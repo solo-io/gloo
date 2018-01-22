@@ -20,10 +20,8 @@ func CreateSnapshot(gatewayConfig *config.Config) (cache.Snapshot, error) {
 		routes   byWeight
 		clusters byName
 	)
-	gatewayConfig.ResourcesLock.RLock()
-	defer gatewayConfig.ResourcesLock.RUnlock()
 
-	for _, resources := range gatewayConfig.Resources {
+	for _, resources := range gatewayConfig.GetResources() {
 		for _, filter := range resources.Filters {
 			filters = append(filters, filter)
 		}

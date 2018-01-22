@@ -39,16 +39,15 @@ func rewRegistry(cfg *config.Config) *registry {
 func (r *registry) register(module Module) {
 	log.Printf("registering module %v\n", module)
 	r.cfg.RegisterHandler(func(raw []byte) error {
-		blobs, err := getBlobsFromYml(r.cfg.Raw, module.Identifier())
+		blobs, err := getBlobsFromYml(r.cfg.Raw(), module.Identifier())
 		if err != nil {
 			return err
 		}
-		r.cfg.ResourcesLock.Lock()
-		r.cfg.Resources[module.Identifier()], err = module.Translate(nil, blobs)
-		r.cfg.ResourcesLock.Unlock()
+		resources, err := module.Translate(nil, blobs)
 		if err != nil {
 			return err
 		}
+		r.cfg.UpdateResources(module.Identifier(), resources)
 		return nil
 	})
 }
