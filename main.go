@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/solo-io/mockway/config"
-	"github.com/solo-io/mockway/module"
-	_ "github.com/solo-io/mockway/module/install"
-	"github.com/solo-io/mockway/pkg/log"
-	"github.com/solo-io/mockway/xds"
+	"github.com/solo-io/glue/config"
+	"github.com/solo-io/glue/module"
+	_ "github.com/solo-io/glue/module/install"
+	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/glue/xds"
 )
 
 func main() {

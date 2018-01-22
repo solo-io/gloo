@@ -10,8 +10,8 @@ import (
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
-	"github.com/solo-io/mockway/config"
-	"github.com/solo-io/mockway/pkg/log"
+	"github.com/solo-io/glue/config"
+	"github.com/solo-io/glue/pkg/log"
 )
 
 func CreateSnapshot(gatewayConfig *config.Config) (cache.Snapshot, error) {

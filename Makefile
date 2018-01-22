@@ -1,16 +1,16 @@
 SOURCES := $(shell find . -name *.go)
 
-build: mockway
+build: glue
 
 fmt:
 	gofmt -w module/ xds/ config/
 	goimports -w module/ xds/ config/
 
-mockway: $(SOURCES)
-	go build -o mockway
+glue: $(SOURCES)
+	go build -o glue
 
-run: mockway
-	./mockway -f module/example/example_config.yml
+run: glue
+	./glue -f module/example/example_config.yml
 
 clean:
-	rm -f mockway
+	rm -f glue

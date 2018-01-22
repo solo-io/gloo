@@ -10,8 +10,8 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	"github.com/solo-io/mockway/config"
-	"github.com/solo-io/mockway/pkg/log"
+	"github.com/solo-io/glue/config"
+	"github.com/solo-io/glue/pkg/log"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )

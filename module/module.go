@@ -1,6 +1,6 @@
 package module
 
-import "github.com/solo-io/mockway/config"
+import "github.com/solo-io/glue/config"
 
 type Module interface {
 	// Identifier

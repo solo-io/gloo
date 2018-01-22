@@ -7,8 +7,8 @@ import (
 
 	envoyapi "github.com/envoyproxy/go-control-plane/api"
 	envoynetwork "github.com/envoyproxy/go-control-plane/api/filter/network"
-	"github.com/solo-io/mockway/config"
-	"github.com/solo-io/mockway/module"
+	"github.com/solo-io/glue/config"
+	"github.com/solo-io/glue/module"
 	"gopkg.in/yaml.v2"
 )
 

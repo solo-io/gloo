@@ -3,8 +3,8 @@ package module
 import (
 	"sync"
 
-	"github.com/solo-io/mockway/config"
-	"github.com/solo-io/mockway/pkg/log"
+	"github.com/solo-io/glue/config"
+	"github.com/solo-io/glue/pkg/log"
 )
 
 var ready sync.WaitGroup
