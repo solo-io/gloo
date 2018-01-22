@@ -14,7 +14,7 @@ import (
 	"github.com/solo-io/glue/pkg/log"
 )
 
-func CreateSnapshot(gatewayConfig *config.Config) (cache.Snapshot, error) {
+func createSnapshot(gatewayConfig *config.Config) (cache.Snapshot, error) {
 	var (
 		filters  byStage
 		routes   byWeight
@@ -201,13 +201,6 @@ func (s byWeight) Swap(i, j int) {
 func (s byWeight) Less(i, j int) bool {
 	return s[i].Weight < s[j].Weight
 }
-func (s byWeight) toProto() []proto.Message {
-	var routes []proto.Message
-	for _, route := range s {
-		routes = append(routes, &route.Route)
-	}
-	return routes
-}
 
 type byName []config.ClusterWrapper
 
@@ -220,7 +213,3 @@ func (s byName) Swap(i, j int) {
 func (s byName) Less(i, j int) bool {
 	return s[i].Cluster.Name < s[j].Cluster.Name
 }
-
-//func (s byName) toProto() []proto.Message {
-//	return clusters
-//}

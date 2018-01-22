@@ -71,7 +71,7 @@ func RunXDS(gatewayConfig *config.Config, port int, configChanged <-chan bool) e
 }
 
 func configureCache(gatewayConfig *config.Config, config envoycache.Cache) {
-	snapshot, err := CreateSnapshot(gatewayConfig)
+	snapshot, err := createSnapshot(gatewayConfig)
 	if err != nil {
 		log.Printf("ERROR:failed to create snapshot: %v", err)
 	}
