@@ -1,0 +1,7 @@
+hello: foo
+bar:
+    baz: bat
+    bat:
+        - 1
+        - 2
+        - 3

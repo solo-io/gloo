@@ -1,0 +1,32 @@
+admin:
+  access_log_path: /dev/null
+  address:
+    socket_address: { address: 0.0.0.0, port_value: 9901 }
+
+dynamic_resources:
+  lds_config:
+    api_config_source:
+      cluster_names: [xds_cluster]
+      api_type: GRPC
+      grpc_services:
+      - envoy_grpc:
+          cluster_name: xds_cluster
+  cds_config:
+    api_config_source:
+      cluster_names: [xds_cluster]
+      api_type: GRPC
+      grpc_services:
+      - envoy_grpc:
+          cluster_name: xds_cluster
+
+static_resources:
+  clusters:
+  - name: xds_cluster
+    connect_timeout: 0.25s
+    type: LOGICAL_DNS
+    lb_policy: ROUND_ROBIN
+    http2_protocol_options: {}
+    # note: if you are not running envoy on the same host as the xds, you will
+    # need to change this address
+    hosts: [{ socket_address: { address: localhost, port_value: 8081 }}]
+  

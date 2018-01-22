@@ -1,0 +1,9 @@
+- bar: bat
+- 1
+- baz:
+    bat: 2
+    foo:
+        - 4
+        - 5
+        - 6
+- foo
