@@ -25,3 +25,12 @@ spec:
         env:
         - name: GRPC_TRACE
           value: all
+        command: ["/glue"]
+        args: ["-c", "/config/glue.yml"]
+        volumeMounts:
+        - name: glue-config
+          mountPath: /config
+      volumes:
+      - name: glue-config
+        configMap:
+          name: glue-config

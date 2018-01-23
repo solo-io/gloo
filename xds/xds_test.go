@@ -83,7 +83,7 @@ var _ = Describe("Xds", func() {
 		}
 	})
 	Describe("RunXDS Server", func() {
-		FIt("successfully bootstraps the envoy proxy", func() {
+		It("successfully bootstraps the envoy proxy", func() {
 			Eventually(func() string {
 				str := buf.String()
 				return str

@@ -1,18 +1,19 @@
 package e2e_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/pborman/uuid"
-	"github.com/solo-io/glue/test/e2e/helpers"
+	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
-	"fmt"
-	"github.com/solo-io/glue/module/example"
 	"text/template"
-	"bytes"
 	"time"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/pborman/uuid"
+	"github.com/solo-io/glue/module/example"
+	"github.com/solo-io/glue/test/e2e/helpers"
 )
 
 const glueConfigTmpl = `
@@ -31,34 +32,46 @@ const glueConfigTmpl = `
 const helloService = "helloservice"
 
 var _ = Describe("Kubernetes Deployment", func() {
-	vmName := "test-" + uuid.New()
+	var vmName string
 	BeforeSuite(func() {
-		err := helpers.StartMinikube(vmName)
-		Must(err)
-		err = helpers.BuildContainers(vmName)
+		// if a minikube vm exists, we can skip creating and tearing down
+		vmName = os.Getenv("MINIKUBE_VM")
+		if vmName == "" {
+			vmName = "test-" + uuid.New()
+			err := helpers.StartMinikube(vmName)
+			Must(err)
+		}
+		err := helpers.BuildContainers(vmName)
 		Must(err)
 		err = helpers.CreateKubeResources(vmName)
 		Must(err)
 	})
 	AfterSuite(func() {
-		err := helpers.DeleteMinikube(vmName)
-		Must(err)
+		if os.Getenv("MINIKUBE_VM") == "" {
+			err := helpers.DeleteMinikube(vmName)
+			Must(err)
+		} else {
+			//err := helpers.DeleteKubeResources()
+			//Must(err)
+		}
 	})
 	Describe("E2e", func() {
-		Describe("updating glue config", func(){
-			It("dynamically updates envoy with new routes", func(){
-				randomPath := "/"+uuid.New()
+		Describe("updating glue config", func() {
+			It("dynamically updates envoy with new routes", func() {
+				randomPath := "/" + uuid.New()
 				result, err := curlEnvoy(randomPath)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(result).To(ContainSubstring("< HTTP/1.1 404"))
+				Expect(result).NotTo(ContainSubstring("< HTTP/1.1 404"))
 				rules := []example.ExampleRule{
 					newExampleRule(time.Second, randomPath, helloService, helloService, 8080),
 				}
 				err = updateGlueConfig(rules)
 				Expect(err).NotTo(HaveOccurred())
-				result, err = curlEnvoy(randomPath)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(result).To(ContainSubstring("< HTTP/1.1 200"))
+				Eventually(func() string {
+					res, err := curlEnvoy(randomPath)
+					Expect(err).NotTo(HaveOccurred())
+					return res
+				}).Should(ContainSubstring("< HTTP/1.1 200"))
 			})
 
 		})
@@ -72,10 +85,11 @@ func Must(err error) {
 }
 
 func curlEnvoy(path string) (string, error) {
-	return helpers.TestRunner("curl", "http://envoy:8080"+path, "-v")
+	return helpers.TestRunner("curl", "-v", "http://envoy:8080"+path)
 }
 
-func updateGlueConfig(rules []example.ExampleRule) error {templ := template.New("glue-config")
+func updateGlueConfig(rules []example.ExampleRule) error {
+	templ := template.New("glue-config")
 	t, err := templ.Parse(glueConfigTmpl)
 	if err != nil {
 		return err
@@ -109,9 +123,9 @@ func newExampleRule(timeout time.Duration, path, upstreamName, upstreamAddr stri
 			Prefix: path,
 		},
 		Upstream: example.Upstream{
-			Name: upstreamName,
+			Name:    upstreamName,
 			Address: upstreamAddr,
-			Port: upstreamPort,
+			Port:    upstreamPort,
 		},
 	}
 }

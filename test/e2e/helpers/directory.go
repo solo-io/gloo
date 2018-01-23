@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"path/filepath"
 	"os"
+	"path/filepath"
 )
 
 func E2eDirectory() string {

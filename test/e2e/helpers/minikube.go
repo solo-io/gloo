@@ -5,13 +5,19 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strings"
 	"path/filepath"
-	"bytes"
+	"strings"
 	"time"
 )
 
 // minikube.go provides helper methods for running tests on minikube
+
+const (
+	testrunner   = "testrunner"
+	helloservice = "helloservice"
+	envoy        = "envoy"
+	glue         = "glue"
+)
 
 // ErrMinikubeNotInstalled indicates minikube binary is not found
 var ErrMinikubeNotInstalled = fmt.Errorf("minikube not found in path")
@@ -65,11 +71,12 @@ func BuildContainers(vmName string) error {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() {
+
+		if !info.IsDir() || path == containerDir {
 			return nil
 		}
 		log.Printf("TEST: building container %v", filepath.Base(path))
-		cmd := exec.Command("build.sh")
+		cmd := exec.Command(filepath.Join(path, "build.sh"))
 		cmd.Dir = path
 		cmd.Stdout = os.Stderr
 		cmd.Stderr = os.Stderr
@@ -105,7 +112,7 @@ func CreateKubeResources(vmName string) error {
 			return err
 		}
 	}
-	return WaitPodsRunning("testcontainer", "helloservice", "envoy", "glue")
+	return WaitPodsRunning(testrunner, helloservice, envoy, glue)
 }
 
 func kubectl(args ...string) error {
@@ -118,25 +125,33 @@ func kubectl(args ...string) error {
 func KubectlOut(args ...string) (string, error) {
 	cmd := exec.Command("kubectl", args...)
 	out, err := cmd.CombinedOutput()
+	if err != nil {
+		err = fmt.Errorf("%s (%v)", out, err)
+	}
 	return string(out), err
 }
 
 // DeleteKubeResources deletes all the kube resources contained in kube_resources dir
 func DeleteKubeResources() error {
 	kubeResourcesDir := filepath.Join(E2eDirectory(), "kube_resources")
-	if err := kubectl("deelte", "-f", filepath.Join(kubeResourcesDir, "namespace.yml")); err != nil {
+	if err := kubectl("delete", "-f", filepath.Join(kubeResourcesDir, "namespace.yml")); err != nil {
 		return err
 	}
-	return WaitPodsTerminated("testcontainer", "helloservice", "envoy", "glue")
+	return WaitPodsTerminated(testrunner, helloservice, envoy, glue)
+}
+
+// DeleteContext deletes the context from the kubeconfig
+func DeleteContext(vmName string) error {
+	return kubectl("config", "delete-context", vmName)
 }
 
 // WaitPodsRunning waits for all pods to be running
-func WaitPodsRunning(podNames ... string) error {
+func WaitPodsRunning(podNames ...string) error {
 	for _, pod := range podNames {
 		finished := func(output string) bool {
 			return strings.Contains(output, "Running")
 		}
-		if err := waitPodStatus(pod, "terminated", finished); err != nil {
+		if err := waitPodStatus(pod, "Running", finished); err != nil {
 			return err
 		}
 	}
@@ -144,10 +159,10 @@ func WaitPodsRunning(podNames ... string) error {
 }
 
 // WaitPodsTerminated waits for all pods to be terminated
-func WaitPodsTerminated(podNames ... string) error {
+func WaitPodsTerminated(podNames ...string) error {
 	for _, pod := range podNames {
 		finished := func(output string) bool {
-			return strings.Contains(output, pod)
+			return !strings.Contains(output, pod)
 		}
 		if err := waitPodStatus(pod, "terminated", finished); err != nil {
 			return err
@@ -157,28 +172,27 @@ func WaitPodsTerminated(podNames ... string) error {
 }
 
 // TestRunner executes a command inside the TestRunner container
-func TestRunner(args ... string) (string, error) {
-	args = append([]string{"exec", "-ti", "testrunner"}, args...)
+func TestRunner(args ...string) (string, error) {
+	args = append([]string{"exec", "-i", testrunner, "--"}, args...)
 	return KubectlOut(args...)
 }
 
 func waitPodStatus(pod, status string, finished func(output string) bool) error {
 	timeout := time.Second * 20
-	interval := time.Millisecond * 100
+	interval := time.Millisecond * 1000
 	tick := time.Tick(interval)
 
-	buf := &bytes.Buffer{}
-	cmd := exec.Command("kubectl", "get", "pod", pod)
-	cmd.Stdout = buf
-	cmd.Stderr = buf
-	cmd.Start()
 	log.Printf("waiting %v for pod %v to be %v...", timeout, pod, status)
 	for {
 		select {
 		case <-time.After(timeout):
 			return fmt.Errorf("timed out waiting for %v to be %v", pod, status)
 		case <-tick:
-			if finished(buf.String()) {
+			out, err := KubectlOut("get", "pod", "-l", "app="+pod)
+			if err != nil {
+				return fmt.Errorf("failed getting pod: %v", err)
+			}
+			if finished(out) {
 				return nil
 			}
 		}
