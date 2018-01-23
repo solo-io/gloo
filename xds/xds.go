@@ -18,14 +18,33 @@ import (
 
 const nodeKey = envoycache.Key("mock-node")
 
-type hasher struct {
-}
+type hasher struct{}
 
 func (h hasher) Hash(node *envoyapi.Node) (envoycache.Key, error) {
 	return nodeKey, nil
 }
 
 func RunXDS(gatewayConfig *config.Config, port int, configChanged <-chan bool) error {
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		return fmt.Errorf("failed to listen: %v", err)
+	}
+	srv, envoyConfig := createXdsServer()
+	go func() {
+		log.Printf("xDS server listening on %d", port)
+		if err = srv.Serve(lis); err != nil {
+			log.Fatalf("failed to serve grpc: %v", err)
+		}
+	}()
+	for {
+		select {
+		case <-configChanged:
+			configureCache(gatewayConfig.GetResources(), envoyConfig)
+		}
+	}
+}
+
+func createXdsServer() (*grpc.Server, envoycache.Cache) {
 	envoyConfig := envoycache.NewSimpleCache(hasher{}, func(key envoycache.Key) {
 		log.Printf("CACHE: Key Updated: %s", key)
 	})
@@ -47,27 +66,12 @@ func RunXDS(gatewayConfig *config.Config, port int, configChanged <-chan bool) e
 		)),
 	)
 	xdsSerevr := xds.NewServer(envoyConfig)
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	if err != nil {
-		return fmt.Errorf("failed to listen: %v", err)
-	}
 	envoyapi.RegisterAggregatedDiscoveryServiceServer(grpcServer, xdsSerevr)
 	envoyapi.RegisterEndpointDiscoveryServiceServer(grpcServer, xdsSerevr)
 	envoyapi.RegisterClusterDiscoveryServiceServer(grpcServer, xdsSerevr)
 	envoyapi.RegisterRouteDiscoveryServiceServer(grpcServer, xdsSerevr)
 	envoyapi.RegisterListenerDiscoveryServiceServer(grpcServer, xdsSerevr)
-	log.Printf("xDS server listening on %d", port)
-	go func() {
-		if err = grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve grpc: %v", err)
-		}
-	}()
-	for {
-		select {
-		case <-configChanged:
-			configureCache(gatewayConfig.GetResources(), envoyConfig)
-		}
-	}
+	return grpcServer, envoyConfig
 }
 
 func configureCache(resources []config.EnvoyResources, config envoycache.Cache) {
