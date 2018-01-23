@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: helloservice
+  labels:
+    sevice: helloservice
+  namespace: glue-system
+spec:
+  ports:
+  - port: 8083
+    protocol: TCP
+  selector:
+    app: helloservice

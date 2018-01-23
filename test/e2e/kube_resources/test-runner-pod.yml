@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: testrunner
+  namespace: glue-system
+spec:
+  containers:
+  - image: solo-io/testrunner:v0.1
+    command:
+      - sleep
+      - "36000"
+    name: testrunner
+  restartPolicy: Always
