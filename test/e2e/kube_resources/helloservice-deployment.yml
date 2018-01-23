@@ -20,5 +20,5 @@ spec:
         imagePullPolicy: Never
         name: helloservice
         ports:
-        - containerPort: 8083
+        - containerPort: 8080
           name: http

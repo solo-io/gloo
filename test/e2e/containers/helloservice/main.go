@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-
 	"github.com/golang/glog"
 )
 

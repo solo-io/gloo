@@ -1,36 +1,15 @@
 apiVersion: v1
 data:
-  envoy.yaml: |
-    admin:
-      access_log_path: /tmp/admin_access.log
-      address:
-        socket_address: { address: 0.0.0.0, port_value: 9901 }
-
-    dynamic_resources:
-      lds_config:
-        api_config_source:
-          cluster_names: [xds_cluster]
-          api_type: GRPC
-          grpc_services:
-          - envoy_grpc:
-              cluster_name: xds_cluster
-      cds_config:
-        api_config_source:
-          cluster_names: [xds_cluster]
-          api_type: GRPC
-          grpc_services:
-          - envoy_grpc:
-              cluster_name: xds_cluster
-
-    static_resources:
-      clusters:
-      - name: xds_cluster
-        connect_timeout: 0.25s
-        type: LOGICAL_DNS
-        lb_policy: ROUND_ROBIN
-        http2_protocol_options: {}
-        hosts: [{ socket_address: { address: glue, port_value: 8081 }}]
+  glue-config.yml: |
+    - example_rule:
+        timeout: 15s
+        match:
+          prefix: /broken
+        upstream:
+          name: nonexistent
+          address: doesntresolve
+          port: 1234
 kind: ConfigMap
 metadata:
-  name: envoy-config
+  name: glue-config
   namespace: glue-system

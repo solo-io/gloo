@@ -2,13 +2,33 @@ package e2e_test
 
 import (
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/pborman/uuid"
 	"github.com/solo-io/glue/test/e2e/helpers"
 	"io/ioutil"
 	"os"
 	"strings"
 	"fmt"
+	"github.com/solo-io/glue/module/example"
+	"text/template"
+	"bytes"
+	"time"
 )
+
+const glueConfigTmpl = `
+{{range .}}
+- example_rule:
+  timeout: {{.Timeout}}
+  match:
+    prefix: {{.Match.Prefix}}
+  upstream:
+    name: {{.Upstream.Name}}
+    address: {{.Upstream.Address}}
+    port: {{.Upstream.Port}}
+{{end}}
+`
+
+const helloService = "helloservice"
 
 var _ = Describe("Kubernetes Deployment", func() {
 	vmName := "test-" + uuid.New()
@@ -25,11 +45,20 @@ var _ = Describe("Kubernetes Deployment", func() {
 		Must(err)
 	})
 	Describe("E2e", func() {
-		Describe("envoy resolves configured rules", func(){
-			BeforeEach(func(){
+		Describe("updating glue config", func(){
+			It("dynamically updates envoy with new routes", func(){
 				randomPath := "/"+uuid.New()
 				result, err := curlEnvoy(randomPath)
-				Must(err)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(result).To(ContainSubstring("< HTTP/1.1 404"))
+				rules := []example.ExampleRule{
+					newExampleRule(time.Second, randomPath, helloService, helloService, 8080),
+				}
+				err = updateGlueConfig(rules)
+				Expect(err).NotTo(HaveOccurred())
+				result, err = curlEnvoy(randomPath)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(result).To(ContainSubstring("< HTTP/1.1 200"))
 			})
 
 		})
@@ -43,15 +72,23 @@ func Must(err error) {
 }
 
 func curlEnvoy(path string) (string, error) {
-	return helpers.TestRunner("curl", "http://envoy:8080"+path)
+	return helpers.TestRunner("curl", "http://envoy:8080"+path, "-v")
 }
 
-func updateGlueConfig(contents string) error {
+func updateGlueConfig(rules []example.ExampleRule) error {templ := template.New("glue-config")
+	t, err := templ.Parse(glueConfigTmpl)
+	if err != nil {
+		return err
+	}
+	buf := &bytes.Buffer{}
+	if err := t.Execute(buf, rules); err != nil {
+		return err
+	}
 	tmpCmFile, err := ioutil.TempFile("", "glue=configmap.yml")
 	if err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(tmpCmFile.Name(), []byte(contents), 0644); err != nil {
+	if err := ioutil.WriteFile(tmpCmFile.Name(), buf.Bytes(), 0644); err != nil {
 		return err
 	}
 	defer os.Remove(tmpCmFile.Name())
@@ -65,4 +102,16 @@ func updateGlueConfig(contents string) error {
 	return nil
 }
 
-func newGlueConfig(path string) 
+func newExampleRule(timeout time.Duration, path, upstreamName, upstreamAddr string, upstreamPort int) example.ExampleRule {
+	return example.ExampleRule{
+		Timeout: timeout,
+		Match: example.Match{
+			Prefix: path,
+		},
+		Upstream: example.Upstream{
+			Name: upstreamName,
+			Address: upstreamAddr,
+			Port: upstreamPort,
+		},
+	}
+}
