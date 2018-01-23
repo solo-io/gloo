@@ -10,7 +10,10 @@ glue: $(SOURCES)
 	go build -o glue
 
 run: glue
-	./glue -f module/example/example_config.yml
+	./hack/run-local.sh
+
+kill:
+	killall envoy
 
 clean:
 	rm -f glue
