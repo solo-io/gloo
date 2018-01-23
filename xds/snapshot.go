@@ -14,14 +14,14 @@ import (
 	"github.com/solo-io/glue/pkg/log"
 )
 
-func createSnapshot(gatewayConfig *config.Config) (cache.Snapshot, error) {
+func createSnapshot(resources []config.EnvoyResources) (cache.Snapshot, error) {
 	var (
 		filters  byStage
 		routes   byWeight
 		clusters byName
 	)
 
-	for _, resources := range gatewayConfig.GetResources() {
+	for _, resources := range resources {
 		for _, filter := range resources.Filters {
 			filters = append(filters, filter)
 		}
@@ -130,7 +130,8 @@ func makeListener(filters []config.FilterWrapper) *api.Listener {
 	}
 	var httpFilters []*network.HttpFilter
 	for _, filter := range filters {
-		httpFilters = append(httpFilters, &filter.Filter)
+		envoyFilter := filter.Filter
+		httpFilters = append(httpFilters, &envoyFilter)
 	}
 	manager := &network.HttpConnectionManager{
 		CodecType:  network.HttpConnectionManager_AUTO,

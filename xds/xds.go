@@ -65,13 +65,13 @@ func RunXDS(gatewayConfig *config.Config, port int, configChanged <-chan bool) e
 	for {
 		select {
 		case <-configChanged:
-			configureCache(gatewayConfig, envoyConfig)
+			configureCache(gatewayConfig.GetResources(), envoyConfig)
 		}
 	}
 }
 
-func configureCache(gatewayConfig *config.Config, config envoycache.Cache) {
-	snapshot, err := createSnapshot(gatewayConfig)
+func configureCache(resources []config.EnvoyResources, config envoycache.Cache) {
+	snapshot, err := createSnapshot(resources)
 	if err != nil {
 		log.Printf("ERROR:failed to create snapshot: %v", err)
 	}
