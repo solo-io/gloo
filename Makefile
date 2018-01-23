@@ -1,10 +1,11 @@
 SOURCES := $(shell find . -name *.go)
+PKGDIRS := config/ module/ pkg/ xds/
 
 build: glue
 
 fmt:
-	gofmt -w module/ xds/ config/
-	goimports -w module/ xds/ config/
+	gofmt -w $(PKGDIRS)
+	goimports -w $(PKGDIRS)
 
 glue: $(SOURCES)
 	go build -o glue

@@ -18,3 +18,5 @@ spec:
     name: admin
   selector:
     app: envoy
+  # nodeport for manual debugging
+  type: NodePort

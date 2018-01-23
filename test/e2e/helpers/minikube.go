@@ -137,6 +137,10 @@ func DeleteKubeResources() error {
 	if err := kubectl("delete", "-f", filepath.Join(kubeResourcesDir, "namespace.yml")); err != nil {
 		return err
 	}
+	// test runner pod is slow to tear down sometimes, just force it
+	if err := kubectl("delete", "-f", filepath.Join(kubeResourcesDir, "test-runner-pod.yml", "--force")); err != nil {
+		return err
+	}
 	return WaitPodsTerminated(testrunner, helloservice, envoy, glue)
 }
 

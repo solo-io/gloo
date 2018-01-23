@@ -13,20 +13,28 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pborman/uuid"
 	"github.com/solo-io/glue/module/example"
+	"github.com/solo-io/glue/pkg/log"
 	"github.com/solo-io/glue/test/e2e/helpers"
 )
 
 const glueConfigTmpl = `
+apiVersion: v1
+data:
+  glue.yml: |
 {{range .}}
-- example_rule:
-  timeout: {{.Timeout}}
-  match:
-    prefix: {{.Match.Prefix}}
-  upstream:
-    name: {{.Upstream.Name}}
-    address: {{.Upstream.Address}}
-    port: {{.Upstream.Port}}
+    - example_rule:
+      timeout: {{.Timeout}}
+      match:
+        prefix: {{.Match.Prefix}}
+      upstream:
+      	  name: {{.Upstream.Name}}
+        address: {{.Upstream.Address}}
+        port: {{.Upstream.Port}}
 {{end}}
+kind: ConfigMap
+metadata:
+  name: glue-config
+  namespace: glue-system
 `
 
 const helloService = "helloservice"
@@ -51,32 +59,55 @@ var _ = Describe("Kubernetes Deployment", func() {
 			err := helpers.DeleteMinikube(vmName)
 			Must(err)
 		} else {
-			//err := helpers.DeleteKubeResources()
-			//Must(err)
+			err := helpers.DeleteKubeResources()
+			Must(err)
 		}
 	})
 	Describe("E2e", func() {
 		Describe("updating glue config", func() {
-			It("dynamically updates envoy with new routes", func() {
+			It("responds 503 for a route with misconfigured upstream", func() {
+				curlEventuallyShouldRespond("/broken", "< HTTP/1.1 503", time.Minute*3)
+			})
+			Context("update glue with new rules", func() {
 				randomPath := "/" + uuid.New()
-				result, err := curlEnvoy(randomPath)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(result).NotTo(ContainSubstring("< HTTP/1.1 404"))
-				rules := []example.ExampleRule{
-					newExampleRule(time.Second, randomPath, helloService, helloService, 8080),
-				}
-				err = updateGlueConfig(rules)
-				Expect(err).NotTo(HaveOccurred())
-				Eventually(func() string {
-					res, err := curlEnvoy(randomPath)
+				It("responds 404 before update", func() {
+					curlEventuallyShouldRespond(randomPath, "< HTTP/1.1 404")
+				})
+				It("responds 200 after update", func() {
+					rules := []example.ExampleRule{
+						newExampleRule(time.Second, randomPath, helloService, helloService, 8080),
+					}
+					err := updateGlueConfig(rules)
 					Expect(err).NotTo(HaveOccurred())
-					return res
-				}).Should(ContainSubstring("< HTTP/1.1 200"))
+					curlEventuallyShouldRespond(randomPath, "< HTTP/1.1 200", time.Minute)
+				})
 			})
 
 		})
 	})
 })
+
+func curlEventuallyShouldRespond(path, substr string, timeout ...time.Duration) {
+	t := time.Second * 20
+	if len(timeout) > 0 {
+		t = timeout[0]
+	}
+	// for some useful-ish output
+	tick := time.Tick(t / 8)
+	Eventually(func() string {
+		res, err := curlEnvoy(path)
+		if err != nil {
+			res = err.Error()
+		}
+		select {
+		default:
+			break
+		case <-tick:
+			log.Printf("curl output: %v", res)
+		}
+		return res
+	}, t).Should(ContainSubstring(substr))
+}
 
 func Must(err error) {
 	if err != nil {
@@ -110,7 +141,7 @@ func updateGlueConfig(rules []example.ExampleRule) error {
 	if err != nil {
 		return err
 	}
-	if !strings.Contains(out, "updated") {
+	if !strings.Contains(out, `configmap "glue-config" configured`) {
 		return fmt.Errorf("expected 'updated' in kubectl output: %v", out)
 	}
 	return nil
