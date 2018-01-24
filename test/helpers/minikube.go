@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/pborman/uuid"
 )
 
 // minikube.go provides helper methods for running tests on minikube
@@ -25,56 +23,94 @@ const (
 var ErrMinikubeNotInstalled = fmt.Errorf("minikube not found in path")
 
 type MinikubeInstance struct {
-	vmName    string
-	ephemeral bool
+	vmName             string
+	ephemeral          bool
+	deployGlue         bool
+	ephemeralNamespace string
 }
 
-func NewMinikube() *MinikubeInstance {
+func NewMinikube(deployGlue bool, ephemeralNamespace ...string) *MinikubeInstance {
 	var ephemeral bool
 	vmName := os.Getenv("MINIKUBE_VM")
 	if vmName == "" {
 		ephemeral = true
-		vmName = "test-minikube" + uuid.New()
+		vmName = "test-minikube-" + RandString(6)
+	}
+	var namespace string
+	if len(ephemeralNamespace) > 0 {
+		namespace = ephemeralNamespace[0]
 	}
 	return &MinikubeInstance{
-		vmName:    vmName,
-		ephemeral: ephemeral,
+		vmName:             vmName,
+		ephemeral:          ephemeral,
+		deployGlue:         deployGlue,
+		ephemeralNamespace: namespace,
 	}
+}
+func (mkb *MinikubeInstance) IP() (string, error) {
+	out, err := exec.Command("minikube", "ip", "-p", mkb.vmName).CombinedOutput()
+	return string(out), err
 }
 
 func (mkb *MinikubeInstance) Setup() error {
 	if mkb.ephemeral {
-		if err := mkb.StartMinikube(); err != nil {
+		if err := mkb.startMinikube(); err != nil {
 			return err
 		}
 	}
-	if err := mkb.BuildContainers(); err != nil {
-		return err
+	if mkb.deployGlue {
+		if err := mkb.buildContainers(); err != nil {
+			return err
+		}
+		if err := mkb.createE2eResources(); err != nil {
+			return err
+		}
 	}
-	return mkb.CreateKubeResources()
+	if mkb.ephemeralNamespace != "" {
+		if err := kubectl("create", "namespace", mkb.ephemeralNamespace); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (mkb *MinikubeInstance) Teardown() error {
 	if mkb.ephemeral {
-		return mkb.DeleteMinikube()
+		return mkb.deleteMinikube()
 	}
-	return mkb.DeleteKubeResources()
+	if mkb.deployGlue {
+		if err := mkb.deleteE2eResources(); err != nil {
+			return err
+		}
+	}
+	if mkb.ephemeralNamespace != "" {
+		if err := kubectl("delete", "namespace", mkb.ephemeralNamespace); err != nil {
+			return err
+		}
+		terminated := func(output string) bool {
+			return strings.Contains(output, "NotFound")
+		}
+		if err := waitNamespaceStatus(mkb.ephemeralNamespace, "Terminated", terminated); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-// StartMinikube starts a minikube vm with the given name
-func (mkb *MinikubeInstance) StartMinikube() error {
+// startMinikube starts a minikube vm with the given name
+func (mkb *MinikubeInstance) startMinikube() error {
 	log.Printf("starting minikube %v", mkb.vmName)
 	return minikube("start", "-p", mkb.vmName)
 }
 
-// DeleteMinikube deletes the given minikube vm
-func (mkb *MinikubeInstance) DeleteMinikube() error {
+// deleteMinikube deletes the given minikube vm
+func (mkb *MinikubeInstance) deleteMinikube() error {
 	log.Printf("deleting minikube %v", mkb.vmName)
 	return minikube("delete", "-p", mkb.vmName)
 }
 
-// SetMinikubeDockerEnv sets the docker env for the current process
-func (mkb *MinikubeInstance) SetMinikubeDockerEnv() error {
+// setMinikubeDockerEnv sets the docker env for the current process
+func (mkb *MinikubeInstance) setMinikubeDockerEnv() error {
 	bashEnv, err := minikubeOutput("docker-env", "-p", mkb.vmName)
 	if err != nil {
 		return err
@@ -100,9 +136,9 @@ func (mkb *MinikubeInstance) SetMinikubeDockerEnv() error {
 	return nil
 }
 
-// BuildContainers builds all docker containers needed for test
-func (mkb *MinikubeInstance) BuildContainers() error {
-	if err := mkb.SetMinikubeDockerEnv(); err != nil {
+// buildContainers builds all docker containers needed for test
+func (mkb *MinikubeInstance) buildContainers() error {
+	if err := mkb.setMinikubeDockerEnv(); err != nil {
 		return err
 	}
 	containerDir := filepath.Join(E2eDirectory(), "containers")
@@ -123,8 +159,8 @@ func (mkb *MinikubeInstance) BuildContainers() error {
 	})
 }
 
-// CreateKubeResources creates all the kube resources contained in kube_resources dir
-func (mkb *MinikubeInstance) CreateKubeResources() error {
+// createE2eResources creates all the kube resources contained in kube_resources dir
+func (mkb *MinikubeInstance) createE2eResources() error {
 	kubeResourcesDir := filepath.Join(E2eDirectory(), "kube_resources")
 	if err := kubectl("config", "set-context", mkb.vmName, "--namespace=glue-system"); err != nil {
 		return err
@@ -151,7 +187,7 @@ func (mkb *MinikubeInstance) CreateKubeResources() error {
 			return err
 		}
 	}
-	return WaitPodsRunning(testrunner, helloservice, envoy, glue)
+	return waitPodsRunning(testrunner, helloservice, envoy, glue)
 }
 
 func kubectl(args ...string) error {
@@ -170,8 +206,8 @@ func KubectlOut(args ...string) (string, error) {
 	return string(out), err
 }
 
-// DeleteKubeResources deletes all the kube resources contained in kube_resources dir
-func (mkb *MinikubeInstance) DeleteKubeResources() error {
+// deleteE2eResources deletes all the kube resources contained in kube_resources dir
+func (mkb *MinikubeInstance) deleteE2eResources() error {
 	if err := kubectl("config", "set-context", mkb.vmName, "--namespace=glue-system"); err != nil {
 		return err
 	}
@@ -183,7 +219,7 @@ func (mkb *MinikubeInstance) DeleteKubeResources() error {
 	if err := kubectl("delete", "-f", filepath.Join(kubeResourcesDir, "test-runner-pod.yml"), "--force"); err != nil {
 		return err
 	}
-	return WaitPodsTerminated(testrunner, helloservice, envoy, glue)
+	return waitPodsTerminated(testrunner, helloservice, envoy, glue)
 }
 
 // DeleteContext deletes the context from the kubeconfig
@@ -191,8 +227,8 @@ func (mkb *MinikubeInstance) DeleteContext() error {
 	return kubectl("config", "delete-context", mkb.vmName)
 }
 
-// WaitPodsRunning waits for all pods to be running
-func WaitPodsRunning(podNames ...string) error {
+// waitPodsRunning waits for all pods to be running
+func waitPodsRunning(podNames ...string) error {
 	for _, pod := range podNames {
 		finished := func(output string) bool {
 			return strings.Contains(output, "Running")
@@ -204,8 +240,8 @@ func WaitPodsRunning(podNames ...string) error {
 	return nil
 }
 
-// WaitPodsTerminated waits for all pods to be terminated
-func WaitPodsTerminated(podNames ...string) error {
+// waitPodsTerminated waits for all pods to be terminated
+func waitPodsTerminated(podNames ...string) error {
 	for _, pod := range podNames {
 		finished := func(output string) bool {
 			return !strings.Contains(output, pod)
@@ -235,6 +271,28 @@ func waitPodStatus(pod, status string, finished func(output string) bool) error 
 			return fmt.Errorf("timed out waiting for %v to be %v", pod, status)
 		case <-tick:
 			out, err := KubectlOut("get", "pod", "-l", "app="+pod)
+			if err != nil {
+				return fmt.Errorf("failed getting pod: %v", err)
+			}
+			if finished(out) {
+				return nil
+			}
+		}
+	}
+}
+
+func waitNamespaceStatus(namespace, status string, finished func(output string) bool) error {
+	timeout := time.Second * 20
+	interval := time.Millisecond * 1000
+	tick := time.Tick(interval)
+
+	log.Printf("waiting %v for namespace %v to be %v...", timeout, namespace, status)
+	for {
+		select {
+		case <-time.After(timeout):
+			return fmt.Errorf("timed out waiting for %v to be %v", namespace, status)
+		case <-tick:
+			out, err := KubectlOut("get", "namespace", namespace)
 			if err != nil {
 				return fmt.Errorf("failed getting pod: %v", err)
 			}

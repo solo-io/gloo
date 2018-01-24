@@ -42,7 +42,7 @@ const helloService = "helloservice"
 var _ = Describe("Kubernetes Deployment", func() {
 	var mkb *MinikubeInstance
 	BeforeSuite(func() {
-		mkb = NewMinikube()
+		mkb = NewMinikube(true)
 		err := mkb.Setup()
 		Must(err)
 	})
