@@ -14,7 +14,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/solo-io/glue/module/example"
 	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/test/helpers"
+	. "github.com/solo-io/glue/test/helpers"
 )
 
 const glueConfigTmpl = `
@@ -40,28 +40,15 @@ metadata:
 const helloService = "helloservice"
 
 var _ = Describe("Kubernetes Deployment", func() {
-	var vmName string
+	var mkb *MinikubeInstance
 	BeforeSuite(func() {
-		// if a minikube vm exists, we can skip creating and tearing down
-		vmName = os.Getenv("MINIKUBE_VM")
-		if vmName == "" {
-			vmName = "test-" + uuid.New()
-			err := helpers.StartMinikube(vmName)
-			Must(err)
-		}
-		err := helpers.BuildContainers(vmName)
-		Must(err)
-		err = helpers.CreateKubeResources(vmName)
+		mkb = NewMinikube()
+		err := mkb.Setup()
 		Must(err)
 	})
 	AfterSuite(func() {
-		if os.Getenv("MINIKUBE_VM") == "" {
-			err := helpers.DeleteMinikube(vmName)
-			Must(err)
-		} else {
-			err := helpers.DeleteKubeResources()
-			Must(err)
-		}
+		err := mkb.Teardown()
+		Must(err)
 	})
 	Describe("E2e", func() {
 		Describe("updating glue config", func() {
@@ -109,14 +96,8 @@ func curlEventuallyShouldRespond(path, substr string, timeout ...time.Duration) 
 	}, t).Should(ContainSubstring(substr))
 }
 
-func Must(err error) {
-	if err != nil {
-		Fail(err.Error())
-	}
-}
-
 func curlEnvoy(path string) (string, error) {
-	return helpers.TestRunner("curl", "-v", "http://envoy:8080"+path)
+	return TestRunner("curl", "-v", "http://envoy:8080"+path)
 }
 
 func updateGlueConfig(rules []example.ExampleRule) error {
@@ -137,7 +118,7 @@ func updateGlueConfig(rules []example.ExampleRule) error {
 		return err
 	}
 	defer os.Remove(tmpCmFile.Name())
-	out, err := helpers.KubectlOut("apply", "-f", tmpCmFile.Name())
+	out, err := KubectlOut("apply", "-f", tmpCmFile.Name())
 	if err != nil {
 		return err
 	}

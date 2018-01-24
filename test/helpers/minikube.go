@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/pborman/uuid"
 )
 
 // minikube.go provides helper methods for running tests on minikube
@@ -22,21 +24,58 @@ const (
 // ErrMinikubeNotInstalled indicates minikube binary is not found
 var ErrMinikubeNotInstalled = fmt.Errorf("minikube not found in path")
 
+type MinikubeInstance struct {
+	vmName    string
+	ephemeral bool
+}
+
+func NewMinikube() *MinikubeInstance {
+	var ephemeral bool
+	vmName := os.Getenv("MINIKUBE_VM")
+	if vmName == "" {
+		ephemeral = true
+		vmName = "test-minikube" + uuid.New()
+	}
+	return &MinikubeInstance{
+		vmName:    vmName,
+		ephemeral: ephemeral,
+	}
+}
+
+func (mkb *MinikubeInstance) Setup() error {
+	if mkb.ephemeral {
+		if err := mkb.StartMinikube(); err != nil {
+			return err
+		}
+	}
+	if err := mkb.BuildContainers(); err != nil {
+		return err
+	}
+	return mkb.CreateKubeResources()
+}
+
+func (mkb *MinikubeInstance) Teardown() error {
+	if mkb.ephemeral {
+		return mkb.DeleteMinikube()
+	}
+	return mkb.DeleteKubeResources()
+}
+
 // StartMinikube starts a minikube vm with the given name
-func StartMinikube(vmName string) error {
-	log.Printf("starting minikube %v", vmName)
-	return minikube("start", "-p", vmName)
+func (mkb *MinikubeInstance) StartMinikube() error {
+	log.Printf("starting minikube %v", mkb.vmName)
+	return minikube("start", "-p", mkb.vmName)
 }
 
 // DeleteMinikube deletes the given minikube vm
-func DeleteMinikube(vmName string) error {
-	log.Printf("deleting minikube %v", vmName)
-	return minikube("delete", "-p", vmName)
+func (mkb *MinikubeInstance) DeleteMinikube() error {
+	log.Printf("deleting minikube %v", mkb.vmName)
+	return minikube("delete", "-p", mkb.vmName)
 }
 
 // SetMinikubeDockerEnv sets the docker env for the current process
-func SetMinikubeDockerEnv(vmName string) error {
-	bashEnv, err := minikubeOutput("docker-env", "-p", vmName)
+func (mkb *MinikubeInstance) SetMinikubeDockerEnv() error {
+	bashEnv, err := minikubeOutput("docker-env", "-p", mkb.vmName)
 	if err != nil {
 		return err
 	}
@@ -62,8 +101,8 @@ func SetMinikubeDockerEnv(vmName string) error {
 }
 
 // BuildContainers builds all docker containers needed for test
-func BuildContainers(vmName string) error {
-	if err := SetMinikubeDockerEnv(vmName); err != nil {
+func (mkb *MinikubeInstance) BuildContainers() error {
+	if err := mkb.SetMinikubeDockerEnv(); err != nil {
 		return err
 	}
 	containerDir := filepath.Join(E2eDirectory(), "containers")
@@ -85,9 +124,9 @@ func BuildContainers(vmName string) error {
 }
 
 // CreateKubeResources creates all the kube resources contained in kube_resources dir
-func CreateKubeResources(vmName string) error {
+func (mkb *MinikubeInstance) CreateKubeResources() error {
 	kubeResourcesDir := filepath.Join(E2eDirectory(), "kube_resources")
-	if err := kubectl("config", "set-context", vmName, "--namespace=glue-system"); err != nil {
+	if err := kubectl("config", "set-context", mkb.vmName, "--namespace=glue-system"); err != nil {
 		return err
 	}
 	// order matters here
@@ -132,7 +171,10 @@ func KubectlOut(args ...string) (string, error) {
 }
 
 // DeleteKubeResources deletes all the kube resources contained in kube_resources dir
-func DeleteKubeResources() error {
+func (mkb *MinikubeInstance) DeleteKubeResources() error {
+	if err := kubectl("config", "set-context", mkb.vmName, "--namespace=glue-system"); err != nil {
+		return err
+	}
 	kubeResourcesDir := filepath.Join(E2eDirectory(), "kube_resources")
 	if err := kubectl("delete", "-f", filepath.Join(kubeResourcesDir, "namespace.yml")); err != nil {
 		return err
@@ -145,8 +187,8 @@ func DeleteKubeResources() error {
 }
 
 // DeleteContext deletes the context from the kubeconfig
-func DeleteContext(vmName string) error {
-	return kubectl("config", "delete-context", vmName)
+func (mkb *MinikubeInstance) DeleteContext() error {
+	return kubectl("config", "delete-context", mkb.vmName)
 }
 
 // WaitPodsRunning waits for all pods to be running
