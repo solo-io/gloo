@@ -23,13 +23,13 @@ data:
   glue.yml: |
 {{range .}}
     - example_rule:
-      timeout: {{.Timeout}}
-      match:
-        prefix: {{.Match.Prefix}}
-      upstream:
-      	  name: {{.Upstream.Name}}
-        address: {{.Upstream.Address}}
-        port: {{.Upstream.Port}}
+        timeout: {{.Timeout}}
+        match:
+          prefix: {{.Match.Prefix}}
+        upstream:
+          name: {{.Upstream.Name}}
+          address: {{.Upstream.Address}}
+          port: {{.Upstream.Port}}
 {{end}}
 kind: ConfigMap
 metadata:
@@ -79,7 +79,7 @@ var _ = Describe("Kubernetes Deployment", func() {
 					}
 					err := updateGlueConfig(rules)
 					Expect(err).NotTo(HaveOccurred())
-					curlEventuallyShouldRespond(randomPath, "< HTTP/1.1 200", time.Minute)
+					curlEventuallyShouldRespond(randomPath, "< HTTP/1.1 200", time.Minute*30)
 				})
 			})
 

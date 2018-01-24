@@ -75,7 +75,8 @@ func setConfig(gatewayConfig *config.Config, configFile string, configChanged ch
 	}
 
 	if err := gatewayConfig.Update(data); err != nil {
-		return err
+		log.GreyPrintf("Warning: config was rejected: \n%s\n with err: %v", data, err)
+		return nil
 	}
 
 	go func() {

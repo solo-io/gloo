@@ -24,9 +24,12 @@ func (c *Config) RegisterHandler(handler UpdateHandler) {
 }
 
 func (c *Config) Update(data []byte) error {
+	oldData := c.raw
 	c.raw = data
 	for _, cb := range c.handlers {
 		if err := cb(c.raw); err != nil {
+			// restore previous data if the new conifg is rejected
+			c.raw = oldData
 			return err
 		}
 	}
