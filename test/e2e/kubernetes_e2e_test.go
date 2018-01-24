@@ -14,7 +14,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/solo-io/glue/module/example"
 	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/test/e2e/helpers"
+	"github.com/solo-io/glue/test/helpers"
 )
 
 const glueConfigTmpl = `
