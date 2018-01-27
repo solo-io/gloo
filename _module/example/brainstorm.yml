@@ -1,0 +1,67 @@
+routes:
+- match:
+    path:
+      prefix/regex/exact: /hello
+    header:
+    - name: HEADER_NAME
+      value(optional): OPTIONAL_VALUE_MATCH_IF_GIVEN
+    verbs:
+    - GET
+    - POST
+    host: hello.example.com #maps to virtualhost, defautls to default if absent
+  destination:
+    function: hello_func
+- match:
+    path:
+      prefix: /users
+    host: users.example.com
+  destination:
+    upstream:
+      name: user_service
+      strip_prefix: true
+      upstream_prefix: /yuval
+  plugins:
+    request_transformation:
+
+hosts:
+- domain: foo.solo.io
+  ssl_config:
+    ca_crt: /etc/glue/ca.crt
+
+upstreams:
+- name: aws_us_east
+  type: lambda
+  az: us-east-1
+  auth:
+    aws_secret_key_ref: 1234
+  functions:
+  - name: hello_func
+    function_name: hello.js
+    qualifier: v1
+  - name: bar_func
+    params: foo
+
+
+type Function struct {
+  Name
+  Spec
+}
+
+- name: my_nats
+  type: nats
+  nats_url: my.nats.com
+  functions:
+  - name: my_event
+    destinationpic: my_event_topic
+
+- name: goodbye_service
+  type: external_service
+  hosts: goodbye.example.com
+  client_ssl: <ssl_info>
+
+- name: my_kube_service
+  type: service
+  hosts: myservice.kubernetes.com
+  ssl: <whatever>
+  functions:
+  - name:

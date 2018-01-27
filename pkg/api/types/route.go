@@ -1,17 +1,22 @@
 package types
 
 type Route struct {
-	From Matcher
-	To   isDestination
+	Matcher     Matcher
+	Destination isDestination
 	// plugin content is unknown to the core api
-	// plugins are passed
-	Plugins []Spec
+	// plugins are passed the spec blob for handling
+	// plugins have unique names
+	Plugins map[string]Spec
 }
 
 type Matcher struct {
 	Path    isPathMatcher
 	Headers map[string]string
 	Verbs   []string
+	// virtual host this route belongs to
+	// leave empty to use the default
+	// (we map these to virtualhosts)
+	VirtualHost string
 }
 
 type isDestination interface {
@@ -39,7 +44,7 @@ type isPathMatcher interface {
 }
 
 type ExactPathMatcher struct {
-	Path string
+	Exact string
 }
 
 func (p ExactPathMatcher) isPathMatcher() {}

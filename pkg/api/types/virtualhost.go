@@ -1,7 +1,7 @@
 package types
 
 type VirtualHost struct {
-	Domain    string
+	Domains   []string
 	SSLConfig SSLConfig
 }
 

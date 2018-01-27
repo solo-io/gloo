@@ -6,6 +6,6 @@ type Config struct {
 	VirtualHosts []VirtualHost
 }
 
-// spec is a generic blob object
+// spec is a generic spec object
 // that will be passed to route plugins/upstream modules
-type Spec map[string][]byte
+type Spec map[string]interface{}

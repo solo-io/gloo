@@ -3,13 +3,12 @@ package main
 import (
 	"flag"
 	"io/ioutil"
-	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/solo-io/glue/config"
-	"github.com/solo-io/glue/module"
-	_ "github.com/solo-io/glue/module/install"
+	"github.com/revel/config"
+	"github.com/solo-io/glue/cache"
 	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/glue/translator"
 	"github.com/solo-io/glue/xds"
 )
 
@@ -20,23 +19,25 @@ func main() {
 	log.Fatalf("%v", start(*configFile, *port))
 }
 
-func start(configFile string, xdsPort int) error {
+func start() error {
 	errChan := make(chan error)
 	configChanged := make(chan bool)
-	gatewayConfig := config.NewConfig()
-	module.Init(gatewayConfig)
-	// give modules a sec to register
-	time.Sleep(time.Millisecond * 250)
+	var c cache.Cache
+	var t translator.Translator
 	go func() {
-		errChan <- watchConfigChanges(gatewayConfig, configFile, configChanged)
+		errChan <- initTranslator()
 	}()
+	go func() {
+		errChan <- initConfigCache()
+	}()
+	//TODO: endpoint discovery?
 	go func() {
 		errChan <- xds.RunXDS(gatewayConfig, xdsPort, configChanged)
 	}()
 	return <-errChan
 }
 
-func watchConfigChanges(gatewayConfig *config.Config, configFile string, configChanged chan bool) error {
+func watchConfigChanges(gatewayConfig *Config, configFile string, configChanged chan bool) error {
 	if err := setConfig(gatewayConfig, configFile, configChanged); err != nil {
 		return err
 	}
