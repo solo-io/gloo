@@ -6,12 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"bytes"
-
-	"encoding/json"
-
 	"github.com/ghodss/yaml"
-	"github.com/gogo/protobuf/jsonpb"
+	"github.com/golang/protobuf/jsonpb"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/glue/config/watcher"
@@ -47,7 +43,6 @@ var _ = Describe("Watcher", func() {
 					Fail("config was received, expected error")
 				case err := <-watch.Error():
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("yaml"))
 				case <-time.After(time.Second):
 					Fail("expected new config to be read in before 1s")
 				}
@@ -56,19 +51,12 @@ var _ = Describe("Watcher", func() {
 		Context("a valid config is written to a file", func() {
 			It("sends a corresponding config on the Config()", func() {
 				cfg := NewTestConfig()
-				out := &bytes.Buffer{}
-				var jsn []byte
-				if false {
-					err = (&jsonpb.Marshaler{}).Marshal(out, cfg)
-					Must(err)
-					jsn = out.Bytes()
-				} else {
-					jsn, err = json.Marshal(cfg)
-					Must(err)
-				}
+				m := jsonpb.Marshaler{}
+				str, err := m.MarshalToString(cfg)
+				Must(err)
+				jsn := []byte(str)
 				yml, err := yaml.JSONToYAML(jsn)
 				Must(err)
-				log.GreyPrintf("%s", string(yml))
 				err = ioutil.WriteFile(filepath.Join(dir, "config.yml"), yml, 0644)
 				Must(err)
 				select {

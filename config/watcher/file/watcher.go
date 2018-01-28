@@ -1,17 +1,13 @@
 package file
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"time"
 
-	"io/ioutil"
-
-	"bytes"
-
-	"encoding/json"
-
 	"github.com/ghodss/yaml"
-	"github.com/gogo/protobuf/jsonpb"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/radovskyb/watcher"
 	"github.com/solo-io/glue/pkg/api/types"
 	"github.com/solo-io/glue/pkg/log"
@@ -20,12 +16,12 @@ import (
 // FileWatcher uses .yml files in a directory
 // to write and read configs
 type fileWatcher struct {
-	configs chan types.Config
+	configs chan *types.Config
 	errors  chan error
 }
 
 func NewFileWatcher(dir string, syncFrequency time.Duration) (*fileWatcher, error) {
-	configs := make(chan types.Config)
+	configs := make(chan *types.Config)
 	errors := make(chan error)
 	w := watcher.New()
 	w.SetMaxEvents(1)
@@ -35,7 +31,7 @@ func NewFileWatcher(dir string, syncFrequency time.Duration) (*fileWatcher, erro
 		for {
 			select {
 			case event := <-w.Event:
-				log.Printf("FileCache: Watcher received new event: %v", event)
+				log.Debugf("FileCache: Watcher received new event: %v", event)
 				if event.IsDir() {
 					break
 				}
@@ -44,7 +40,7 @@ func NewFileWatcher(dir string, syncFrequency time.Duration) (*fileWatcher, erro
 					errors <- err
 					break
 				}
-				configs <- cfg
+				configs <- &cfg
 			case err := <-w.Error:
 				log.Printf("FileCache: Watcher encountered error: %v", err)
 			case <-w.Closed:
@@ -77,7 +73,7 @@ func NewFileWatcher(dir string, syncFrequency time.Duration) (*fileWatcher, erro
 	}, nil
 }
 
-func (fc *fileWatcher) Config() <-chan types.Config {
+func (fc *fileWatcher) Config() <-chan *types.Config {
 	return fc.configs
 }
 
@@ -87,19 +83,15 @@ func (fc *fileWatcher) Error() <-chan error {
 
 func parseConfig(path string) (types.Config, error) {
 	var cfg types.Config
-	raw, err := ioutil.ReadFile(path)
+	yml, err := ioutil.ReadFile(path)
 	if err != nil {
 		return cfg, err
 	}
-	jsn, err := yaml.YAMLToJSON(raw)
+	jsn, err := yaml.YAMLToJSON(yml)
 	if err != nil {
 		return cfg, err
 	}
-	if false {
-		err = jsonpb.Unmarshal(bytes.NewBuffer(jsn), &cfg)
-	} else {
-		err = json.Unmarshal(jsn, &cfg)
-	}
+	err = jsonpb.Unmarshal(bytes.NewBuffer(jsn), &cfg)
 	if err != nil {
 		log.GreyPrintf("WHY!\n%s\n%v", jsn, err)
 	}
