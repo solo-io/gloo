@@ -1,51 +1,77 @@
 package helpers
 
-import "github.com/solo-io/glue/pkg/api/types"
+import (
+	google_protobuf "github.com/golang/protobuf/ptypes/struct"
+	"github.com/solo-io/glue/pkg/api/types"
+)
 
-func NewTestConfig() types.Config {
-	routes := []types.Route{
+func NewTestConfig() *types.Config {
+	routes := []*types.Route{
 		{
-			Matcher: types.Matcher{
-				Path: types.PrefixPathMatcher{
+			Matcher: &types.Matcher{
+				Path: &types.Matcher_Prefix{
 					Prefix: "/foo",
 				},
 				Headers:     map[string]string{"x-foo-bar": ""},
 				Verbs:       []string{"GET", "POST"},
 				VirtualHost: "my_vhost",
 			},
-			Destination: types.FunctionDestination{
-				FunctionName: "aws.foo",
+			Destination: &types.Route_FunctionName{
+				FunctionName: &types.FunctionDestination{
+					FunctionName: "foo",
+					UpstreamName: "aws",
+				},
 			},
-			Plugins: map[string]types.Spec{
-				"auth": {"username": "alice", "password": "bob"},
+			Plugins: map[string]*google_protobuf.Struct{
+				"auth": {
+					Fields: map[string]*google_protobuf.Value{
+						"username": {Kind: &google_protobuf.Value_StringValue{StringValue: "alice"}},
+						"password": {Kind: &google_protobuf.Value_StringValue{StringValue: "bob"}},
+					},
+				},
 			},
 		},
 		{
-			Matcher: types.Matcher{
-				Path: types.ExactPathMatcher{
+			Matcher: &types.Matcher{
+				Path: &types.Matcher_Exact{
 					Exact: "/bar",
 				},
 				Verbs: []string{"GET", "POST"},
 			},
-			Destination: types.UpstreamDestination{
-				UpstreamName:  "my_upstream",
-				RewritePrefix: "/baz",
+			Destination: &types.Route_FunctionName{
+				FunctionName: &types.FunctionDestination{
+					FunctionName: "foo",
+					UpstreamName: "aws",
+				},
 			},
-			Plugins: map[string]types.Spec{
-				"auth": {"username": "alice", "password": "bob"},
+			Plugins: map[string]*google_protobuf.Struct{
+				"auth": {
+					Fields: map[string]*google_protobuf.Value{
+						"username": {Kind: &google_protobuf.Value_StringValue{StringValue: "alice"}},
+						"password": {Kind: &google_protobuf.Value_StringValue{StringValue: "bob"}},
+					},
+				},
 			},
 		},
 	}
-	upstreams := []types.Upstream{
+	upstreams := []*types.Upstream{
 		{
 			Name: "aws",
 			Type: "lambda",
-			Spec: types.Spec{"region": "us_east_1", "secret_key_ref": "my-aws-secret-key", "access_key_ref": "my0aws-access-key"},
-			Functions: []types.Function{
+			Spec: &google_protobuf.Struct{
+				Fields: map[string]*google_protobuf.Value{
+					"region":         {Kind: &google_protobuf.Value_StringValue{StringValue: "us_east_1"}},
+					"secret_key_ref": {Kind: &google_protobuf.Value_StringValue{StringValue: "my-aws-secret-key"}},
+					"access_key_ref": {Kind: &google_protobuf.Value_StringValue{StringValue: "my-aws-access-key"}},
+				},
+			},
+			Functions: []*types.Function{
 				{
 					Name: "my_lambda_function",
-					Spec: types.Spec{
-						"context_parameter": map[string]string{"KEY": "VAL"},
+					Spec: &google_protobuf.Struct{
+						Fields: map[string]*google_protobuf.Value{
+							"key": {Kind: &google_protobuf.Value_StringValue{StringValue: "value"}},
+						},
 					},
 				},
 			},
@@ -53,16 +79,22 @@ func NewTestConfig() types.Config {
 		{
 			Name: "my_upstream",
 			Type: "service",
-			Spec: types.Spec{"url": "https://myapi.example.com"},
+			Spec: &google_protobuf.Struct{
+				Fields: map[string]*google_protobuf.Value{
+					"url": {Kind: &google_protobuf.Value_StringValue{StringValue: "http://www.example.com"}},
+				},
+			},
 		},
 	}
-	virtualhosts := []types.VirtualHost{
+	virtualhosts := []*types.VirtualHost{
 		{
-			Domains:   []string{"*.example.io"},
-			SSLConfig: types.SSLConfig{},
+			Domains: []string{"*.example.io"},
+			SslConfig: &types.SSLConfig{
+				CaCertPath: "/etc/my_crts/ca.crt",
+			},
 		},
 	}
-	return types.Config{
+	return &types.Config{
 		Routes:       routes,
 		Upstreams:    upstreams,
 		VirtualHosts: virtualhosts,

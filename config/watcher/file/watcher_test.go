@@ -6,13 +6,18 @@ import (
 	"path/filepath"
 	"time"
 
+	"bytes"
+
+	"encoding/json"
+
+	"github.com/ghodss/yaml"
+	"github.com/gogo/protobuf/jsonpb"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/glue/config/watcher"
 	. "github.com/solo-io/glue/config/watcher/file"
 	"github.com/solo-io/glue/pkg/log"
 	. "github.com/solo-io/glue/test/helpers"
-	"gopkg.in/yaml.v2"
 )
 
 var _ = Describe("Watcher", func() {
@@ -51,16 +56,27 @@ var _ = Describe("Watcher", func() {
 		Context("a valid config is written to a file", func() {
 			It("sends a corresponding config on the Config()", func() {
 				cfg := NewTestConfig()
-				data, err := yaml.Marshal(cfg)
+				out := &bytes.Buffer{}
+				var jsn []byte
+				if false {
+					err = (&jsonpb.Marshaler{}).Marshal(out, cfg)
+					Must(err)
+					jsn = out.Bytes()
+				} else {
+					jsn, err = json.Marshal(cfg)
+					Must(err)
+				}
+				yml, err := yaml.JSONToYAML(jsn)
 				Must(err)
-				err = ioutil.WriteFile(filepath.Join(dir, "config.yml"), data, 0644)
+				log.GreyPrintf("%s", string(yml))
+				err = ioutil.WriteFile(filepath.Join(dir, "config.yml"), yml, 0644)
 				Must(err)
 				select {
 				case parsedCfg := <-watch.Config():
 					Expect(parsedCfg).To(Equal(cfg))
 				case err := <-watch.Error():
 					Expect(err).NotTo(HaveOccurred())
-				case <-time.After(time.Second):
+				case <-time.After(time.Second * 30):
 					Fail("expected new config to be read in before 1s")
 				}
 			})

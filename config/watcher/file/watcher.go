@@ -6,7 +6,12 @@ import (
 
 	"io/ioutil"
 
+	"bytes"
+
+	"encoding/json"
+
 	"github.com/ghodss/yaml"
+	"github.com/gogo/protobuf/jsonpb"
 	"github.com/radovskyb/watcher"
 	"github.com/solo-io/glue/pkg/api/types"
 	"github.com/solo-io/glue/pkg/log"
@@ -86,6 +91,18 @@ func parseConfig(path string) (types.Config, error) {
 	if err != nil {
 		return cfg, err
 	}
-	err = yaml.Unmarshal(raw, &cfg)
+	jsn, err := yaml.YAMLToJSON(raw)
+	if err != nil {
+		return cfg, err
+	}
+	if false {
+		err = jsonpb.Unmarshal(bytes.NewBuffer(jsn), &cfg)
+	} else {
+		err = json.Unmarshal(jsn, &cfg)
+	}
+	if err != nil {
+		log.GreyPrintf("WHY!\n%s\n%v", jsn, err)
+	}
+
 	return cfg, err
 }
