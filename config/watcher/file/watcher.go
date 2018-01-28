@@ -14,7 +14,7 @@ import (
 )
 
 // FileWatcher uses .yml files in a directory
-// to write and read configs
+// to watch for config changes
 type fileWatcher struct {
 	configs chan *types.Config
 	errors  chan error
