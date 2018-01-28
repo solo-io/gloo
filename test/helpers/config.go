@@ -7,52 +7,8 @@ import (
 
 func NewTestConfig() *types.Config {
 	routes := []*types.Route{
-		{
-			Matcher: &types.Matcher{
-				Path: &types.Matcher_Prefix{
-					Prefix: "/foo",
-				},
-				Headers:     map[string]string{"x-foo-bar": ""},
-				Verbs:       []string{"GET", "POST"},
-				VirtualHost: "my_vhost",
-			},
-			Destination: &types.Route_FunctionName{
-				FunctionName: &types.FunctionDestination{
-					FunctionName: "foo",
-					UpstreamName: "aws",
-				},
-			},
-			Plugins: map[string]*google_protobuf.Struct{
-				"auth": {
-					Fields: map[string]*google_protobuf.Value{
-						"username": {Kind: &google_protobuf.Value_StringValue{StringValue: "alice"}},
-						"password": {Kind: &google_protobuf.Value_StringValue{StringValue: "bob"}},
-					},
-				},
-			},
-		},
-		{
-			Matcher: &types.Matcher{
-				Path: &types.Matcher_Exact{
-					Exact: "/bar",
-				},
-				Verbs: []string{"GET", "POST"},
-			},
-			Destination: &types.Route_FunctionName{
-				FunctionName: &types.FunctionDestination{
-					FunctionName: "foo",
-					UpstreamName: "aws",
-				},
-			},
-			Plugins: map[string]*google_protobuf.Struct{
-				"auth": {
-					Fields: map[string]*google_protobuf.Value{
-						"username": {Kind: &google_protobuf.Value_StringValue{StringValue: "alice"}},
-						"password": {Kind: &google_protobuf.Value_StringValue{StringValue: "bob"}},
-					},
-				},
-			},
-		},
+		NewTestRoute1(),
+		NewTestRoute2(),
 	}
 	upstreams := []*types.Upstream{
 		{
@@ -98,5 +54,57 @@ func NewTestConfig() *types.Config {
 		Routes:       routes,
 		Upstreams:    upstreams,
 		VirtualHosts: virtualhosts,
+	}
+}
+
+func NewTestRoute1() *types.Route {
+	return &types.Route{
+		Matcher: &types.Matcher{
+			Path: &types.Matcher_Prefix{
+				Prefix: "/foo",
+			},
+			Headers:     map[string]string{"x-foo-bar": ""},
+			Verbs:       []string{"GET", "POST"},
+			VirtualHost: "my_vhost",
+		},
+		Destination: &types.Route_FunctionName{
+			FunctionName: &types.FunctionDestination{
+				FunctionName: "foo",
+				UpstreamName: "aws",
+			},
+		},
+		Plugins: map[string]*google_protobuf.Struct{
+			"auth": {
+				Fields: map[string]*google_protobuf.Value{
+					"username": {Kind: &google_protobuf.Value_StringValue{StringValue: "alice"}},
+					"password": {Kind: &google_protobuf.Value_StringValue{StringValue: "bob"}},
+				},
+			},
+		},
+	}
+}
+
+func NewTestRoute2() *types.Route {
+	return &types.Route{
+		Matcher: &types.Matcher{
+			Path: &types.Matcher_Exact{
+				Exact: "/bar",
+			},
+			Verbs: []string{"GET", "POST"},
+		},
+		Destination: &types.Route_FunctionName{
+			FunctionName: &types.FunctionDestination{
+				FunctionName: "foo",
+				UpstreamName: "aws",
+			},
+		},
+		Plugins: map[string]*google_protobuf.Struct{
+			"auth": {
+				Fields: map[string]*google_protobuf.Value{
+					"username": {Kind: &google_protobuf.Value_StringValue{StringValue: "alice"}},
+					"password": {Kind: &google_protobuf.Value_StringValue{StringValue: "bob"}},
+				},
+			},
+		},
 	}
 }
