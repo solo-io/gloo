@@ -21,10 +21,10 @@ package v1
 import (
 	time "time"
 
-	solo_io_v1 "github.com/solo-io/glue/config/watcher/crd//solo.io/v1"
 	versioned "github.com/solo-io/glue/config/watcher/crd/client/clientset/versioned"
 	internalinterfaces "github.com/solo-io/glue/config/watcher/crd/client/informers/externalversions/internalinterfaces"
 	v1 "github.com/solo-io/glue/config/watcher/crd/client/listers/solo.io/v1"
+	solo_io_v1 "github.com/solo-io/glue/config/watcher/crd/solo.io/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"

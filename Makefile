@@ -7,7 +7,7 @@ PACKAGE_PATH:=github.com/solo-io/glue
 clientset:
 	./vendor/k8s.io/code-generator/generate-groups.sh all \
 		$(PACKAGE_PATH)/config/watcher/crd/client \
-		$(PACKAGE_PATH)/config/watcher/crd/ \
+		$(PACKAGE_PATH)/config/watcher/crd \
 		"solo.io:v1"
 
 build: glue
