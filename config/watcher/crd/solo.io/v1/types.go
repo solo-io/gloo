@@ -15,6 +15,7 @@ type Route struct {
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	types.Route
+	Status `json:"status"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -37,6 +38,7 @@ type Upstream struct {
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	types.Upstream
+	Status `json:"status"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -59,6 +61,7 @@ type VirtualHost struct {
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	types.VirtualHost
+	Status `json:"status"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -69,4 +72,24 @@ type VirtualHostList struct {
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	Items             []VirtualHost `json:"items"`
+}
+
+type Status int
+
+const (
+	Status_Pending Status = iota
+	Status_Completed
+	Status_Failed
+)
+
+func (s Status) String() string {
+	switch s {
+	case Status_Pending:
+		return "Pending"
+	case Status_Completed:
+		return "Completed"
+	case Status_Failed:
+		return "Failed"
+	}
+	return "Unknown"
 }
