@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/name5566/leaf/util"
 	"github.com/solo-io/glue/pkg/api/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -14,8 +15,8 @@ type Route struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	types.Route
-	Status `json:"status"`
+	Spec              DeepCopyRoute
+	Status            `json:"status"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -37,8 +38,8 @@ type Upstream struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	types.Upstream
-	Status `json:"status"`
+	Spec              DeepCopyUpstream
+	Status            `json:"status"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -60,8 +61,8 @@ type VirtualHost struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	types.VirtualHost
-	Status `json:"status"`
+	Spec              DeepCopyVirtualHost
+	Status            `json:"status"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -92,4 +93,22 @@ func (s Status) String() string {
 		return "Failed"
 	}
 	return "Unknown"
+}
+
+type DeepCopyRoute types.Route
+
+func (r DeepCopyRoute) DeepCopyInto(r2 *DeepCopyRoute) {
+	util.DeepCopy(&r, r2)
+}
+
+type DeepCopyUpstream types.Upstream
+
+func (r DeepCopyUpstream) DeepCopyInto(r2 *DeepCopyUpstream) {
+	util.DeepCopy(&r, r2)
+}
+
+type DeepCopyVirtualHost types.VirtualHost
+
+func (r DeepCopyVirtualHost) DeepCopyInto(r2 *DeepCopyVirtualHost) {
+	util.DeepCopy(&r, r2)
 }

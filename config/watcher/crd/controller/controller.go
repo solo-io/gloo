@@ -265,15 +265,18 @@ func (c *Controller) syncHandler(key string) error {
 	}
 	routes := make([]*types.Route, len(routeList.Items))
 	for _, route := range routeList.Items {
-		routes = append(routes, &route.Route)
+		r := types.Route(route.Spec)
+		routes = append(routes, &r)
 	}
 	upstreams := make([]*types.Upstream, len(upstreamList.Items))
 	for _, upstream := range upstreamList.Items {
-		upstreams = append(upstreams, &upstream.Upstream)
+		u := types.Upstream(upstream.Spec)
+		upstreams = append(upstreams, &u)
 	}
 	vHosts := make([]*types.VirtualHost, len(vHostList.Items))
 	for _, vHost := range vHostList.Items {
-		vHosts = append(vHosts, &vHost.VirtualHost)
+		v := types.VirtualHost(vHost.Spec)
+		vHosts = append(vHosts, &v)
 	}
 	log.Debugf("config updated")
 	c.configs <- &types.Config{

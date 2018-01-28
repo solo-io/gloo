@@ -67,7 +67,7 @@ var _ = Describe("Controller", func() {
 			time.Sleep(time.Second * 2)
 
 			route := &v1.Route{
-				Route: *NewTestRoute1(),
+				Spec: v1.DeepCopyRoute(*NewTestRoute1()),
 			}
 
 			_, err = glueClient.GlueV1().Routes(namespace).Create(route)
