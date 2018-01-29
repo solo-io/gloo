@@ -7,12 +7,15 @@ import (
 
 	"fmt"
 
+	"encoding/json"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	clientset "github.com/solo-io/glue/config/watcher/crd/client/clientset/versioned"
 	informers "github.com/solo-io/glue/config/watcher/crd/client/informers/externalversions"
 	. "github.com/solo-io/glue/config/watcher/crd/controller"
-	"github.com/solo-io/glue/config/watcher/crd/solo.io/v1"
+	crdv1 "github.com/solo-io/glue/config/watcher/crd/solo.io/v1"
+	"github.com/solo-io/glue/pkg/api/types/v1"
 	. "github.com/solo-io/glue/test/helpers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -36,7 +39,6 @@ var _ = Describe("Controller", func() {
 		Must(err)
 	})
 	AfterSuite(func() {
-		time.Sleep(time.Second * 30)
 		mkb.Teardown()
 	})
 	Describe("controller", func() {
@@ -53,17 +55,15 @@ var _ = Describe("Controller", func() {
 			glueClient, err := clientset.NewForConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
-			route := &v1.Route{
+			route := &crdv1.Route{
 				ObjectMeta: metav1.ObjectMeta{
 					GenerateName: "route-",
 				},
-				Spec: v1.DeepCopyRoute(NewTestRoute1()),
+				Spec: crdv1.DeepCopyRoute(NewTestRoute1()),
 			}
 
 			_, err = glueClient.GlueV1().Routes(namespace).Create(route)
 			Expect(err).NotTo(HaveOccurred())
-
-			return
 
 			glueInformerFactory := informers.NewSharedInformerFactory(glueClient, time.Millisecond*30)
 
@@ -81,12 +81,18 @@ var _ = Describe("Controller", func() {
 			// give controller time to register
 			time.Sleep(time.Second * 2)
 
+			var expectedRoute v1.Route
+			data, err := json.Marshal(route.Spec)
+			Expect(err).To(BeNil())
+			err = json.Unmarshal(data, &expectedRoute)
+			Expect(err).To(BeNil())
 			select {
 			case <-time.After(time.Second * 5):
 				Expect(fmt.Errorf("expected to have received resource event before 5s")).NotTo(HaveOccurred())
 			case cfg := <-controller.Configs():
 				Expect(len(cfg.Routes)).To(Equal(1))
-				Expect(cfg.Routes[0]).To(Equal(route))
+				Expect(cfg.Routes[0]).To(Equal(expectedRoute))
+				Expect(cfg.Routes[0].Plugins["auth"]).To(Equal(expectedRoute.Plugins["auth"]))
 			}
 		})
 	})

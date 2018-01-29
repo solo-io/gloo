@@ -86,7 +86,7 @@ func (in *Route) DeepCopyObject() runtime.Object {
 func (in *RouteList) DeepCopyInto(out *RouteList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
+	out.ListMeta = in.ListMeta
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]Route, len(*in))
@@ -148,7 +148,7 @@ func (in *Upstream) DeepCopyObject() runtime.Object {
 func (in *UpstreamList) DeepCopyInto(out *UpstreamList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
+	out.ListMeta = in.ListMeta
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]Upstream, len(*in))
@@ -210,7 +210,7 @@ func (in *VirtualHost) DeepCopyObject() runtime.Object {
 func (in *VirtualHostList) DeepCopyInto(out *VirtualHostList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
+	out.ListMeta = in.ListMeta
 	in.Status.DeepCopyInto(&out.Status)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items

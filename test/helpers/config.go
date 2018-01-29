@@ -69,9 +69,14 @@ func NewTestRoute1() v1.Route {
 			},
 		},
 		Plugins: map[string]interface{}{
-			"auth": map[string]string{
-				"username": "alice",
-				"password": "bob",
+			"auth": map[string]interface{}{
+				"credentials": struct {
+					Username, Password string
+				}{
+					Username: "alice",
+					Password: "bob",
+				},
+				"token": "my-12345",
 			},
 		},
 	}

@@ -16,8 +16,9 @@ type Route struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Status            Status        `json:"status,omitempty"`
-	Spec              DeepCopyRoute `json:"spec"`
+	Status            Status `json:"status,omitempty"`
+
+	Spec DeepCopyRoute `json:"spec"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -26,8 +27,8 @@ type Route struct {
 type RouteList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Items             []Route `json:"items"`
+	metav1.ListMeta `json:"metadata"`
+	Items           []Route `json:"items"`
 }
 
 // +genclient
@@ -50,8 +51,8 @@ type Upstream struct {
 type UpstreamList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Items             []Upstream `json:"items"`
+	metav1.ListMeta `json:"metadata"`
+	Items           []Upstream `json:"items"`
 }
 
 // +genclient
@@ -74,9 +75,9 @@ type VirtualHost struct {
 type VirtualHostList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	metav1.Status     `json:"status,omitempty"`
-	Items             []VirtualHost `json:"items"`
+	metav1.ListMeta `json:"metadata"`
+	metav1.Status   `json:"status,omitempty"`
+	Items           []VirtualHost `json:"items"`
 }
 
 type Status string

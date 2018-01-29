@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang/glog"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
@@ -92,30 +92,16 @@ func NewController(
 	}
 
 	glog.Info("Setting up event handlers")
-	// Set up an event handler for when Route resources change
-	routeInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: controller.enqueueSync,
-		UpdateFunc: func(old, new interface{}) {
-			controller.enqueueSync(new)
-		},
-		DeleteFunc: controller.enqueueSync,
-	})
-	// Set up an event handler for when Upstream resources change
-	routeInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: controller.enqueueSync,
-		UpdateFunc: func(old, new interface{}) {
-			controller.enqueueSync(new)
-		},
-		DeleteFunc: controller.enqueueSync,
-	})
-	// Set up an event handler for when VirtualHost resources change
-	routeInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: controller.enqueueSync,
-		UpdateFunc: func(old, new interface{}) {
-			controller.enqueueSync(new)
-		},
-		DeleteFunc: controller.enqueueSync,
-	})
+	for _, informer := range []cache.SharedInformer{routeInformer.Informer(), upstreamInformer.Informer(), virtualHostInformer.Informer()} {
+		// Set up an event handler for when glue resources change
+		informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+			AddFunc: controller.enqueueSync("added"),
+			UpdateFunc: func(old, new interface{}) {
+				controller.enqueueSync("updated")(new)
+			},
+			DeleteFunc: controller.enqueueSync("deleted"),
+		})
+	}
 
 	return controller
 }
@@ -218,53 +204,56 @@ func (c *Controller) processNextWorkItem() bool {
 
 // enqueueSync takes a Glue resource and converts it into a namespace/name
 // string which is then put onto the work queue.
-func (c *Controller) enqueueSync(obj interface{}) {
-	var key string
-	var err error
-	if key, err = cache.MetaNamespaceKeyFunc(obj); err != nil {
-		runtime.HandleError(err)
-		return
+func (c *Controller) enqueueSync(event string) func(interface{}) {
+	return func(obj interface{}) {
+		var key string
+		var err error
+		if key, err = cache.MetaNamespaceKeyFunc(obj); err != nil {
+			runtime.HandleError(err)
+			return
+		}
+		log.Printf("crd event: %s: %s", event, key)
+		c.workqueue.AddRateLimited(key)
 	}
-	c.workqueue.AddRateLimited(key)
 }
 
 // syncHandler retrieves all crds from kubernetes
 // and constructs an updated version of the config
 // we really don't care what resource type we were passed.
-
 func (c *Controller) syncHandler(key string) error {
 	// Convert the namespace/name string into a distinct namespace and name
-	namespace, name, err := cache.SplitMetaNamespaceKey(key)
+	_, name, err := cache.SplitMetaNamespaceKey(key)
 	if err != nil {
 		runtime.HandleError(fmt.Errorf("invalid resource key: %s", key))
 		return nil
 	}
 	log.Printf("updating config after item %v changed", name)
 
-	routeList, err := c.glueclientset.GlueV1().Routes(namespace).List(metav1.ListOptions{})
+	c.virtualHostsLister.List(labels.Everything())
+	routeList, err := c.routesLister.List(labels.Everything())
 	if err != nil {
 		return fmt.Errorf("error retrieving routes: %v", err)
 	}
-	upstreamList, err := c.glueclientset.GlueV1().Upstreams(namespace).List(metav1.ListOptions{})
+	upstreamList, err := c.upstreamsLister.List(labels.Everything())
 	if err != nil {
 		return fmt.Errorf("error retrieving upstreams: %v", err)
 	}
-	vHostList, err := c.glueclientset.GlueV1().VirtualHosts(namespace).List(metav1.ListOptions{})
+	vHostList, err := c.virtualHostsLister.List(labels.Everything())
 	if err != nil {
 		return fmt.Errorf("error retrieving virtualhosts: %v", err)
 	}
-	routes := make([]v1.Route, len(routeList.Items))
-	for _, route := range routeList.Items {
+	var routes []v1.Route
+	for _, route := range routeList {
 		r := v1.Route(route.Spec)
 		routes = append(routes, r)
 	}
-	upstreams := make([]v1.Upstream, len(upstreamList.Items))
-	for _, upstream := range upstreamList.Items {
+	var upstreams []v1.Upstream
+	for _, upstream := range upstreamList {
 		u := v1.Upstream(upstream.Spec)
 		upstreams = append(upstreams, u)
 	}
-	vHosts := make([]v1.VirtualHost, len(vHostList.Items))
-	for _, vHost := range vHostList.Items {
+	var vHosts []v1.VirtualHost
+	for _, vHost := range vHostList {
 		v := v1.VirtualHost(vHost.Spec)
 		vHosts = append(vHosts, v)
 	}
