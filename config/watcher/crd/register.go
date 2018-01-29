@@ -1,4 +1,4 @@
-package controller
+package crd
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 )
 
 // register crds
-func RegisterCrds(restConfig *rest.Config) error {
+func registerCrds(restConfig *rest.Config) error {
 	clientset, err := apiexts.NewForConfig(restConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create api extension clientset: %v", err)

@@ -1,4 +1,4 @@
-package ctrl
+package crd
 
 import (
 	"fmt"
@@ -17,12 +17,12 @@ import (
 	"github.com/solo-io/glue/pkg/log"
 )
 
-type crdCtrl struct {
+type crdController struct {
 	configs chan *v1.Config
 	errors  chan error
 }
 
-func NewCrdCtrl(cfg *rest.Config, resyncDuration time.Duration) (*crdCtrl, error) {
+func newCrdController(cfg *rest.Config, resyncDuration time.Duration) (*crdController, error) {
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
@@ -44,7 +44,7 @@ func NewCrdCtrl(cfg *rest.Config, resyncDuration time.Duration) (*crdCtrl, error
 		upstreamInformer.Informer(),
 		virtualHostInformer.Informer())
 
-	ctrl := &crdCtrl{
+	ctrl := &crdController{
 		configs: make(chan *v1.Config),
 		errors:  make(chan error),
 	}
@@ -70,7 +70,7 @@ func NewCrdCtrl(cfg *rest.Config, resyncDuration time.Duration) (*crdCtrl, error
 	return ctrl, nil
 }
 
-func (c *crdCtrl) syncConfig(namespace, name string,
+func (c *crdController) syncConfig(namespace, name string,
 	routesLister listers.RouteLister,
 	upstreamsLister listers.UpstreamLister,
 	virtualHostsLister listers.VirtualHostLister) error {
@@ -117,10 +117,10 @@ func (c *crdCtrl) syncConfig(namespace, name string,
 	return nil
 }
 
-func (c *crdCtrl) Config() <-chan *v1.Config {
+func (c *crdController) Config() <-chan *v1.Config {
 	return c.configs
 }
 
-func (c *crdCtrl) Error() <-chan error {
+func (c *crdController) Error() <-chan error {
 	return c.errors
 }
