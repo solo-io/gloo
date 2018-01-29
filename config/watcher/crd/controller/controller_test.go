@@ -40,7 +40,7 @@ var _ = Describe("Controller", func() {
 		mkb.Teardown()
 	})
 	Describe("controller", func() {
-		FIt("watches kube crds", func() {
+		It("watches kube crds", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
 			//cfg.WrapTransport = AddLoggingToTransport

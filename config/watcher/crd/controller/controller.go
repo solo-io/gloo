@@ -26,21 +26,6 @@ import (
 
 const controllerAgentName = "glue-crd-controller"
 
-const (
-	// SuccessSynced is used as part of the Event 'reason' when a Route is synced
-	SuccessSynced = "Synced"
-	// ErrResourceExists is used as part of the Event 'reason' when a Route fails
-	// to sync due to a Deployment of the same name already existing.
-	ErrResourceExists = "ErrResourceExists"
-
-	// MessageResourceExists is the message used for Events when a resource
-	// fails to sync due to a Deployment already existing
-	MessageResourceExists = "Resource %q already exists and is not managed by Route"
-	// MessageResourceSynced is the message used for an Event fired when a Route
-	// is synced successfully
-	MessageResourceSynced = "Route synced successfully"
-)
-
 // Controller is the controller implementation for Route resources
 type Controller struct {
 	// kubeclientset is a standard kubernetes clientset

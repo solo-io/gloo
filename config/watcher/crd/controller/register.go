@@ -3,13 +3,14 @@ package controller
 import (
 	"fmt"
 
-	"github.com/solo-io/glue/config/watcher/crd/solo.io/v1"
-	"github.com/solo-io/glue/pkg/log"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
+
+	"github.com/solo-io/glue/config/watcher/crd/solo.io/v1"
+	"github.com/solo-io/glue/pkg/log"
 )
 
 // register crds
