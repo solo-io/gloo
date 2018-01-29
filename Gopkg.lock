@@ -186,6 +186,12 @@
   revision = "2bca23e0e452137f789efbc8610126fd8b94f73b"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/mapstructure"
+  packages = ["."]
+  revision = "b4575eea38cca1123ec2dc90c26529b5c5acfcff"
+
+[[projects]]
   name = "github.com/name5566/leaf"
   packages = ["util"]
   revision = "b4a5928965598cb0211ce4067f2032889fe0fb66"
@@ -445,6 +451,18 @@
 
 [[projects]]
   branch = "master"
+  name = "k8s.io/apiextensions-apiserver"
+  packages = [
+    "pkg/apis/apiextensions",
+    "pkg/apis/apiextensions/v1beta1",
+    "pkg/client/clientset/clientset",
+    "pkg/client/clientset/clientset/scheme",
+    "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+  ]
+  revision = "ddd9f73609e9a03a76dc8566ba6296db0cda63d3"
+
+[[projects]]
+  branch = "master"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/errors",
@@ -566,6 +584,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a06c4428cb379a78e59d6083fc77867433782f6e4f4caca950b92fcbbdbf87c0"
+  inputs-digest = "6c5361a2f83ec27d452ccfcab596d3217b50de383f0cfda9ac3c489673b5fea7"
   solver-name = "gps-cdcl"
   solver-version = 1

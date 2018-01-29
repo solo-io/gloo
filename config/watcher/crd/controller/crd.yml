@@ -1,0 +1,6 @@
+apiVersion: glue.solo.io/v1
+kind: Route
+metadata:
+  name: testroute
+  namespace: default
+  spec:

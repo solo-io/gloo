@@ -20,7 +20,7 @@ import (
 	gluescheme "github.com/solo-io/glue/config/watcher/crd/client/clientset/versioned/scheme"
 	informers "github.com/solo-io/glue/config/watcher/crd/client/informers/externalversions"
 	listers "github.com/solo-io/glue/config/watcher/crd/client/listers/solo.io/v1"
-	"github.com/solo-io/glue/pkg/api/types"
+	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/log"
 )
 
@@ -67,7 +67,7 @@ type Controller struct {
 	// Kubernetes API.
 	recorder record.EventRecorder
 
-	configs chan *types.Config
+	configs chan *v1.Config
 }
 
 // NewController returns a new sample controller
@@ -103,7 +103,7 @@ func NewController(
 		virtualHostsSynced: virtualHostInformer.Informer().HasSynced,
 		workqueue:          workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Routes"),
 		recorder:           recorder,
-		configs:            make(chan *types.Config),
+		configs:            make(chan *v1.Config),
 	}
 
 	glog.Info("Setting up event handlers")
@@ -133,6 +133,11 @@ func NewController(
 	})
 
 	return controller
+}
+
+// registers crds to the kube apiserver
+func (c *Controller) RegisterCRDs() {
+
 }
 
 // Run will set up the event handlers for types we are interested in, as well
@@ -263,23 +268,23 @@ func (c *Controller) syncHandler(key string) error {
 	if err != nil {
 		return fmt.Errorf("error retrieving virtualhosts: %v", err)
 	}
-	routes := make([]*types.Route, len(routeList.Items))
+	routes := make([]v1.Route, len(routeList.Items))
 	for _, route := range routeList.Items {
-		r := types.Route(route.Spec)
-		routes = append(routes, &r)
+		r := v1.Route(route.Spec)
+		routes = append(routes, r)
 	}
-	upstreams := make([]*types.Upstream, len(upstreamList.Items))
+	upstreams := make([]v1.Upstream, len(upstreamList.Items))
 	for _, upstream := range upstreamList.Items {
-		u := types.Upstream(upstream.Spec)
-		upstreams = append(upstreams, &u)
+		u := v1.Upstream(upstream.Spec)
+		upstreams = append(upstreams, u)
 	}
-	vHosts := make([]*types.VirtualHost, len(vHostList.Items))
+	vHosts := make([]v1.VirtualHost, len(vHostList.Items))
 	for _, vHost := range vHostList.Items {
-		v := types.VirtualHost(vHost.Spec)
-		vHosts = append(vHosts, &v)
+		v := v1.VirtualHost(vHost.Spec)
+		vHosts = append(vHosts, v)
 	}
 	log.Debugf("config updated")
-	c.configs <- &types.Config{
+	c.configs <- &v1.Config{
 		Routes:       routes,
 		Upstreams:    upstreams,
 		VirtualHosts: vHosts,
@@ -287,6 +292,6 @@ func (c *Controller) syncHandler(key string) error {
 	return nil
 }
 
-func (c *Controller) Configs() <-chan *types.Config {
+func (c *Controller) Configs() <-chan *v1.Config {
 	return c.configs
 }

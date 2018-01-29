@@ -211,6 +211,7 @@ func (in *VirtualHostList) DeepCopyInto(out *VirtualHostList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
+	in.Status.DeepCopyInto(&out.Status)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]VirtualHost, len(*in))

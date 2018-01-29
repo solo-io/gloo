@@ -8,10 +8,43 @@ import (
 
 const (
 	GroupName = "glue.solo.io"
+	Version   = "v1"
 )
 
+var KnownCRDs = []crd{
+	{
+		Plural:  "routes",
+		Group:   GroupName,
+		Version: Version,
+		Kind:    "Route",
+	},
+	{
+		Plural:  "upstreams",
+		Group:   GroupName,
+		Version: Version,
+		Kind:    "Upstream",
+	},
+	{
+		Plural:  "virtualhosts",
+		Group:   GroupName,
+		Version: Version,
+		Kind:    "VirtualHost",
+	},
+}
+
+type crd struct {
+	Plural  string
+	Group   string
+	Version string
+	Kind    string
+}
+
+func (d crd) FullName() string {
+	return d.Plural + "." + d.Group
+}
+
 // SchemeGroupVersion is group version used to register these objects
-var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1alpha1"}
+var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: Version}
 
 // Kind takes an unqualified kind and returns back a Group qualified GroupKind
 func Kind(kind string) schema.GroupKind {

@@ -5,10 +5,15 @@ PACKAGE_PATH:=github.com/solo-io/glue
 
 # kubernetes custom clientsets
 clientset:
-	./vendor/k8s.io/code-generator/generate-groups.sh all \
+	cd ${GOPATH}/src/k8s.io/code-generator && \
+	./generate-groups.sh all \
 		$(PACKAGE_PATH)/config/watcher/crd/client \
 		$(PACKAGE_PATH)/config/watcher/crd \
 		"solo.io:v1"
+
+proto:
+	cd pkg/api/types && \
+	protoc -I. --go_out=. ./types.proto
 
 build: glue
 

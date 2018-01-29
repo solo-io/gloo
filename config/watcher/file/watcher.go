@@ -1,27 +1,27 @@
 package file
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"time"
 
+	"encoding/json"
+
 	"github.com/ghodss/yaml"
-	"github.com/golang/protobuf/jsonpb"
 	"github.com/radovskyb/watcher"
-	"github.com/solo-io/glue/pkg/api/types"
+	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/log"
 )
 
 // FileWatcher uses .yml files in a directory
 // to watch for config changes
 type fileWatcher struct {
-	configs chan *types.Config
+	configs chan *v1.Config
 	errors  chan error
 }
 
 func NewFileWatcher(dir string, syncFrequency time.Duration) (*fileWatcher, error) {
-	configs := make(chan *types.Config)
+	configs := make(chan *v1.Config)
 	errors := make(chan error)
 	w := watcher.New()
 	w.SetMaxEvents(1)
@@ -73,7 +73,7 @@ func NewFileWatcher(dir string, syncFrequency time.Duration) (*fileWatcher, erro
 	}, nil
 }
 
-func (fc *fileWatcher) Config() <-chan *types.Config {
+func (fc *fileWatcher) Config() <-chan *v1.Config {
 	return fc.configs
 }
 
@@ -81,8 +81,8 @@ func (fc *fileWatcher) Error() <-chan error {
 	return fc.errors
 }
 
-func parseConfig(path string) (types.Config, error) {
-	var cfg types.Config
+func parseConfig(path string) (v1.Config, error) {
+	var cfg v1.Config
 	yml, err := ioutil.ReadFile(path)
 	if err != nil {
 		return cfg, err
@@ -91,7 +91,7 @@ func parseConfig(path string) (types.Config, error) {
 	if err != nil {
 		return cfg, err
 	}
-	err = jsonpb.Unmarshal(bytes.NewBuffer(jsn), &cfg)
+	err = json.Unmarshal(jsn, &cfg)
 	if err != nil {
 		log.GreyPrintf("WHY!\n%s\n%v", jsn, err)
 	}

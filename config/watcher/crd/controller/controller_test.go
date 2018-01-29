@@ -14,6 +14,7 @@ import (
 	. "github.com/solo-io/glue/config/watcher/crd/controller"
 	"github.com/solo-io/glue/config/watcher/crd/solo.io/v1"
 	. "github.com/solo-io/glue/test/helpers"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/sample-controller/pkg/signals"
@@ -31,17 +32,19 @@ var _ = Describe("Controller", func() {
 		err := mkb.Setup()
 		Must(err)
 		kubeconfigPath = filepath.Join(os.Getenv("HOME"), ".kube", "config")
-		masterUrl, err = mkb.IP()
+		masterUrl, err = mkb.Addr()
 		Must(err)
 	})
 	AfterSuite(func() {
-		err := mkb.Teardown()
-		Must(err)
+		time.Sleep(time.Second * 30)
+		mkb.Teardown()
 	})
 	Describe("controller", func() {
-		It("watches kube resources", func() {
-
+		FIt("watches kube crds", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
+			Expect(err).NotTo(HaveOccurred())
+			//cfg.WrapTransport = AddLoggingToTransport
+			err = RegisterCrds(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
 			kubeClient, err := kubernetes.NewForConfig(cfg)
@@ -49,6 +52,18 @@ var _ = Describe("Controller", func() {
 
 			glueClient, err := clientset.NewForConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
+
+			route := &v1.Route{
+				ObjectMeta: metav1.ObjectMeta{
+					GenerateName: "route-",
+				},
+				Spec: v1.DeepCopyRoute(NewTestRoute1()),
+			}
+
+			_, err = glueClient.GlueV1().Routes(namespace).Create(route)
+			Expect(err).NotTo(HaveOccurred())
+
+			return
 
 			glueInformerFactory := informers.NewSharedInformerFactory(glueClient, time.Millisecond*30)
 
@@ -66,12 +81,6 @@ var _ = Describe("Controller", func() {
 			// give controller time to register
 			time.Sleep(time.Second * 2)
 
-			route := &v1.Route{
-				Spec: v1.DeepCopyRoute(*NewTestRoute1()),
-			}
-
-			_, err = glueClient.GlueV1().Routes(namespace).Create(route)
-			Expect(err).NotTo(HaveOccurred())
 			select {
 			case <-time.After(time.Second * 5):
 				Expect(fmt.Errorf("expected to have received resource event before 5s")).NotTo(HaveOccurred())

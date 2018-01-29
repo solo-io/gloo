@@ -1,33 +1,28 @@
 package helpers
 
 import (
-	google_protobuf "github.com/golang/protobuf/ptypes/struct"
-	"github.com/solo-io/glue/pkg/api/types"
+	"github.com/solo-io/glue/pkg/api/types/v1"
 )
 
-func NewTestConfig() *types.Config {
-	routes := []*types.Route{
+func NewTestConfig() v1.Config {
+	routes := []v1.Route{
 		NewTestRoute1(),
 		NewTestRoute2(),
 	}
-	upstreams := []*types.Upstream{
+	upstreams := []v1.Upstream{
 		{
 			Name: "aws",
 			Type: "lambda",
-			Spec: &google_protobuf.Struct{
-				Fields: map[string]*google_protobuf.Value{
-					"region":         {Kind: &google_protobuf.Value_StringValue{StringValue: "us_east_1"}},
-					"secret_key_ref": {Kind: &google_protobuf.Value_StringValue{StringValue: "my-aws-secret-key"}},
-					"access_key_ref": {Kind: &google_protobuf.Value_StringValue{StringValue: "my-aws-access-key"}},
-				},
+			Spec: map[string]interface{}{
+				"region":         "us-east-1",
+				"secret_key_ref": "my-secret-key",
+				"access_key_ref": "my-access-key",
 			},
-			Functions: []*types.Function{
+			Functions: []v1.Function{
 				{
 					Name: "my_lambda_function",
-					Spec: &google_protobuf.Struct{
-						Fields: map[string]*google_protobuf.Value{
-							"key": {Kind: &google_protobuf.Value_StringValue{StringValue: "value"}},
-						},
+					Spec: map[string]interface{}{
+						"key": "value",
 					},
 				},
 			},
@@ -35,75 +30,71 @@ func NewTestConfig() *types.Config {
 		{
 			Name: "my_upstream",
 			Type: "service",
-			Spec: &google_protobuf.Struct{
-				Fields: map[string]*google_protobuf.Value{
-					"url": {Kind: &google_protobuf.Value_StringValue{StringValue: "http://www.example.com"}},
+			Spec: map[string]interface{}{
+				"auth": map[string]interface{}{
+					"url": "http://www.example.com",
 				},
 			},
 		},
 	}
-	virtualhosts := []*types.VirtualHost{
+	virtualhosts := []v1.VirtualHost{
 		{
 			Domains: []string{"*.example.io"},
-			SslConfig: &types.SSLConfig{
-				CaCertPath: "/etc/my_crts/ca.crt",
+			SSLConfig: v1.SSLConfig{
+				CACertPath: "/etc/my_crts/ca.crt",
 			},
 		},
 	}
-	return &types.Config{
+	return v1.Config{
 		Routes:       routes,
 		Upstreams:    upstreams,
 		VirtualHosts: virtualhosts,
 	}
 }
 
-func NewTestRoute1() *types.Route {
-	return &types.Route{
-		Matcher: &types.Matcher{
-			Path: &types.Matcher_Prefix{
+func NewTestRoute1() v1.Route {
+	return v1.Route{
+		Matcher: v1.Matcher{
+			Path: v1.Path{
 				Prefix: "/foo",
 			},
 			Headers:     map[string]string{"x-foo-bar": ""},
 			Verbs:       []string{"GET", "POST"},
 			VirtualHost: "my_vhost",
 		},
-		Destination: &types.Route_FunctionName{
-			FunctionName: &types.FunctionDestination{
+		Destination: v1.Destination{
+			FunctionDestionation: &v1.FunctionDestination{
 				FunctionName: "foo",
 				UpstreamName: "aws",
 			},
 		},
-		Plugins: map[string]*google_protobuf.Struct{
-			"auth": {
-				Fields: map[string]*google_protobuf.Value{
-					"username": {Kind: &google_protobuf.Value_StringValue{StringValue: "alice"}},
-					"password": {Kind: &google_protobuf.Value_StringValue{StringValue: "bob"}},
-				},
+		Plugins: map[string]interface{}{
+			"auth": map[string]string{
+				"username": "alice",
+				"password": "bob",
 			},
 		},
 	}
 }
 
-func NewTestRoute2() *types.Route {
-	return &types.Route{
-		Matcher: &types.Matcher{
-			Path: &types.Matcher_Exact{
+func NewTestRoute2() v1.Route {
+	return v1.Route{
+		Matcher: v1.Matcher{
+			Path: v1.Path{
 				Exact: "/bar",
 			},
 			Verbs: []string{"GET", "POST"},
 		},
-		Destination: &types.Route_FunctionName{
-			FunctionName: &types.FunctionDestination{
+		Destination: v1.Destination{
+			FunctionDestionation: &v1.FunctionDestination{
 				FunctionName: "foo",
 				UpstreamName: "aws",
 			},
 		},
-		Plugins: map[string]*google_protobuf.Struct{
-			"auth": {
-				Fields: map[string]*google_protobuf.Value{
-					"username": {Kind: &google_protobuf.Value_StringValue{StringValue: "alice"}},
-					"password": {Kind: &google_protobuf.Value_StringValue{StringValue: "bob"}},
-				},
+		Plugins: map[string]interface{}{
+			"auth": map[string]interface{}{
+				"username": "alice",
+				"password": "bob",
 			},
 		},
 	}

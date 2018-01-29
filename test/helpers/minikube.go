@@ -47,9 +47,9 @@ func NewMinikube(deployGlue bool, ephemeralNamespace ...string) *MinikubeInstanc
 		ephemeralNamespace: namespace,
 	}
 }
-func (mkb *MinikubeInstance) IP() (string, error) {
+func (mkb *MinikubeInstance) Addr() (string, error) {
 	out, err := exec.Command("minikube", "ip", "-p", mkb.vmName).CombinedOutput()
-	return string(out), err
+	return "https://" + strings.TrimSuffix(string(out), "\n") + ":8443", err
 }
 
 func (mkb *MinikubeInstance) Setup() error {
