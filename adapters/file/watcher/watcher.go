@@ -22,7 +22,7 @@ func WatchFile(path string, handler func(path string), syncFrequency time.Durati
 		for {
 			select {
 			case event := <-w.Event:
-				log.Printf("FileWatcher: Watcher received new event: %v %v", event.Op.String(), event.Path)
+				log.Debugf("FileWatcher: Watcher received new event: %v %v", event.Op.String(), event.Path)
 				if path != event.Path {
 					break
 				}

@@ -6,54 +6,53 @@ import (
 	"time"
 
 	"github.com/ghodss/yaml"
-	"github.com/solo-io/glue/adapters/file/watcher"
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/log"
+
+	filewatch "github.com/solo-io/glue/adapters/file/watcher"
+	"github.com/solo-io/glue/secrets/watcher"
 )
 
 // FileWatcher uses .yml files in a directory
-// to watch for config changes
+// to watch secrets
 type fileWatcher struct {
-	configs chan *v1.Config
+	secrets chan watcher.SecretMap
 	errors  chan error
 }
 
 func NewFileWatcher(file string, syncFrequency time.Duration) (*fileWatcher, error) {
-	configs := make(chan *v1.Config)
+	secrets := make(chan watcher.SecretMap)
 	errors := make(chan error)
-	if err := watcher.WatchFile(file, func(path string) {
-		log.Printf("called")
-		cfg, err := parseConfig(path)
+	if err := filewatch.WatchFile(file, func(path string) {
+		secretMap, err := getSecrets(path)
 		if err != nil {
 			errors <- err
 			return
 		}
-		configs <- &cfg
+		secrets <- secretMap
 	}, syncFrequency); err != nil {
 		return nil, fmt.Errorf("failed to start filewatcher: %v", err)
 	}
 
 	return &fileWatcher{
-		configs: configs,
+		secrets: secrets,
 		errors:  errors,
 	}, nil
 }
 
-func (fc *fileWatcher) Config() <-chan *v1.Config {
-	return fc.configs
+func (fc *fileWatcher) Config() <-chan watcher.SecretMap {
+	return fc.secrets
 }
 
 func (fc *fileWatcher) Error() <-chan error {
 	return fc.errors
 }
 
-func parseConfig(path string) (v1.Config, error) {
-	var cfg v1.Config
+func getSecrets(path string) (watcher.SecretMap, error) {
+	var secretMap watcher.SecretMap
 	yml, err := ioutil.ReadFile(path)
 	if err != nil {
-		return cfg, err
+		return secretMap, err
 	}
-	err = yaml.Unmarshal(yml, &cfg)
+	err = yaml.Unmarshal(yml, &secretMap)
 
-	return cfg, err
+	return secretMap, err
 }
