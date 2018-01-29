@@ -25,8 +25,8 @@ import (
 
 const controllerAgentName = "glue-crd-controller"
 
-// Controller is the controller implementation for Route resources
-type Controller struct {
+// crdController is the controller implementation for Route resources
+type crdController struct {
 	// kubeclientset is a standard kubernetes clientset
 	kubeclientset kubernetes.Interface
 
@@ -56,7 +56,7 @@ type Controller struct {
 // NewController returns a new sample controller
 func NewController(
 	kubeclientset kubernetes.Interface,
-	glueInformerFactory informers.SharedInformerFactory) *Controller {
+	glueInformerFactory informers.SharedInformerFactory) *crdController {
 
 	// obtain references to shared index informers for the Deployment and Route
 	// types.
@@ -74,7 +74,7 @@ func NewController(
 	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeclientset.CoreV1().Events("")})
 	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: controllerAgentName})
 
-	controller := &Controller{
+	controller := &crdController{
 		routesLister:       routeInformer.Lister(),
 		routesSynced:       routeInformer.Informer().HasSynced,
 		upstreamsLister:    upstreamInformer.Lister(),
@@ -102,16 +102,11 @@ func NewController(
 	return controller
 }
 
-// registers crds to the kube apiserver
-func (c *Controller) RegisterCRDs() {
-
-}
-
 // Run will set up the event handlers for types we are interested in, as well
 // as syncing informer caches and starting workers. It will block until stopCh
 // is closed, at which point it will shutdown the workqueue and wait for
 // workers to finish processing their current work items.
-func (c *Controller) Run(threadiness int, stopCh <-chan struct{}) error {
+func (c *crdController) Run(threadiness int, stopCh <-chan struct{}) error {
 	defer runtime.HandleCrash()
 	defer c.workqueue.ShutDown()
 
@@ -140,14 +135,14 @@ func (c *Controller) Run(threadiness int, stopCh <-chan struct{}) error {
 // runWorker is a long-running function that will continually call the
 // processNextWorkItem function in order to read and process a message on the
 // workqueue.
-func (c *Controller) runWorker() {
+func (c *crdController) runWorker() {
 	for c.processNextWorkItem() {
 	}
 }
 
 // processNextWorkItem will read a single work item off the workqueue and
 // attempt to process it, by calling the syncHandler.
-func (c *Controller) processNextWorkItem() bool {
+func (c *crdController) processNextWorkItem() bool {
 	obj, shutdown := c.workqueue.Get()
 
 	if shutdown {
@@ -202,7 +197,7 @@ func (c *Controller) processNextWorkItem() bool {
 
 // enqueueSync takes a Glue resource and converts it into a namespace/name
 // string which is then put onto the work queue.
-func (c *Controller) enqueueSync(event string) func(interface{}) {
+func (c *crdController) enqueueSync(event string) func(interface{}) {
 	return func(obj interface{}) {
 		var key string
 		var err error
@@ -218,7 +213,7 @@ func (c *Controller) enqueueSync(event string) func(interface{}) {
 // syncHandler retrieves all crds from kubernetes
 // and constructs an updated version of the config
 // we really don't care what resource type we were passed.
-func (c *Controller) syncHandler(key string) error {
+func (c *crdController) syncHandler(key string) error {
 	// Convert the namespace/name string into a distinct namespace and name
 	_, name, err := cache.SplitMetaNamespaceKey(key)
 	if err != nil {
@@ -264,10 +259,10 @@ func (c *Controller) syncHandler(key string) error {
 	return nil
 }
 
-func (c *Controller) Config() <-chan *v1.Config {
+func (c *crdController) Config() <-chan *v1.Config {
 	return c.configs
 }
 
-func (c *Controller) Error() <-chan error {
+func (c *crdController) Error() <-chan error {
 	return c.errors
 }

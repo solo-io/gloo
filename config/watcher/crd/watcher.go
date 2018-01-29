@@ -9,12 +9,13 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/sample-controller/pkg/signals"
 
+	"github.com/solo-io/glue/config/watcher"
 	clientset "github.com/solo-io/glue/config/watcher/crd/client/clientset/versioned"
 	informers "github.com/solo-io/glue/config/watcher/crd/client/informers/externalversions"
 	"github.com/solo-io/glue/config/watcher/crd/controller"
 )
 
-func NewCrdWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration) (*controller.Controller, error) {
+func NewCrdWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration) (watcher.Watcher, error) {
 	cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build rest config: %v", err)
