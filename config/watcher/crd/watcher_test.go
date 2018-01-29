@@ -1,87 +1,80 @@
 package crd_test
 
 import (
-	"io/ioutil"
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/ghodss/yaml"
-	"github.com/golang/protobuf/jsonpb"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/glue/config/watcher"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/clientcmd"
+
 	. "github.com/solo-io/glue/config/watcher/crd"
-	"github.com/solo-io/glue/pkg/log"
+	clientset "github.com/solo-io/glue/config/watcher/crd/client/clientset/versioned"
+	crdv1 "github.com/solo-io/glue/config/watcher/crd/solo.io/v1"
+	"github.com/solo-io/glue/pkg/api/types/v1"
 	. "github.com/solo-io/glue/test/helpers"
 )
 
 var _ = Describe("Watcher", func() {
 	var (
-		dir                       string
-		err                       error
-		watch                     watcher.Watcher
 		masterUrl, kubeconfigPath string
 		mkb                       *MinikubeInstance
+		namespace                 string
 	)
 	BeforeSuite(func() {
-		mkb = NewMinikube(false)
+		namespace = RandString(8)
+		mkb = NewMinikube(false, namespace)
 		err := mkb.Setup()
 		Must(err)
 		kubeconfigPath = filepath.Join(os.Getenv("HOME"), ".kube", "config")
-		masterUrl, err = mkb.IP()
+		masterUrl, err = mkb.Addr()
 		Must(err)
 	})
 	AfterSuite(func() {
-		err := mkb.Teardown()
-		Must(err)
+		mkb.Teardown()
 	})
-	BeforeEach(func() {
-		dir, err = ioutil.TempDir("", "filecachetest")
-		Must(err)
-		watch, err = NewCrdWatcher(dir, time.Millisecond)
-		Must(err)
-	})
-	AfterEach(func() {
-		log.Printf("removing " + dir)
-		os.RemoveAll(dir)
-	})
-	Describe("watching directory", func() {
-		Context("an invalid config is written to a file", func() {
-			It("sends an error on the Error() channel", func() {
-				invalidConfig := []byte("in: valid")
-				err = ioutil.WriteFile(filepath.Join(dir, "config.yml"), invalidConfig, 0644)
-				Expect(err).NotTo(HaveOccurred())
-				select {
-				case <-watch.Config():
-					Fail("config was received, expected error")
-				case err := <-watch.Error():
-					Expect(err).To(HaveOccurred())
-				case <-time.After(time.Second):
-					Fail("expected new config to be read in before 1s")
-				}
-			})
-		})
-		Context("a valid config is written to a file", func() {
-			It("sends a corresponding config on the Config()", func() {
-				cfg := NewTestConfig()
-				m := jsonpb.Marshaler{}
-				str, err := m.MarshalToString(cfg)
-				Must(err)
-				jsn := []byte(str)
-				yml, err := yaml.JSONToYAML(jsn)
-				Must(err)
-				err = ioutil.WriteFile(filepath.Join(dir, "config.yml"), yml, 0644)
-				Must(err)
-				select {
-				case parsedCfg := <-watch.Config():
-					Expect(parsedCfg).To(Equal(cfg))
-				case err := <-watch.Error():
-					Expect(err).NotTo(HaveOccurred())
-				case <-time.After(time.Second * 30):
-					Fail("expected new config to be read in before 1s")
-				}
-			})
+	Describe("controller", func() {
+		It("watches kube crds", func() {
+			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
+			Expect(err).NotTo(HaveOccurred())
+
+			watcher, err := NewCrdWatcher(masterUrl, kubeconfigPath, time.Second)
+			Expect(err).NotTo(HaveOccurred())
+
+			// add a route
+			glueClient, err := clientset.NewForConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+			route := &crdv1.Route{
+				ObjectMeta: metav1.ObjectMeta{
+					GenerateName: "route-",
+				},
+				Spec: crdv1.DeepCopyRoute(NewTestRoute1()),
+			}
+			_, err = glueClient.GlueV1().Routes(namespace).Create(route)
+			Expect(err).NotTo(HaveOccurred())
+
+			// give controller time to register
+			time.Sleep(time.Second * 2)
+
+			var expectedRoute v1.Route
+			data, err := json.Marshal(route.Spec)
+			Expect(err).To(BeNil())
+			err = json.Unmarshal(data, &expectedRoute)
+			Expect(err).To(BeNil())
+			select {
+			case <-time.After(time.Second * 5):
+				Expect(fmt.Errorf("expected to have received resource event before 5s")).NotTo(HaveOccurred())
+			case cfg := <-watcher.Config():
+				Expect(len(cfg.Routes)).To(Equal(1))
+				Expect(cfg.Routes[0]).To(Equal(expectedRoute))
+				Expect(cfg.Routes[0].Plugins["auth"]).To(Equal(expectedRoute.Plugins["auth"]))
+			case err := <-watcher.Error():
+				Expect(err).To(BeNil())
+			}
 		})
 	})
 })

@@ -16,7 +16,6 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 
-	clientset "github.com/solo-io/glue/config/watcher/crd/client/clientset/versioned"
 	gluescheme "github.com/solo-io/glue/config/watcher/crd/client/clientset/versioned/scheme"
 	informers "github.com/solo-io/glue/config/watcher/crd/client/informers/externalversions"
 	listers "github.com/solo-io/glue/config/watcher/crd/client/listers/solo.io/v1"
@@ -30,8 +29,6 @@ const controllerAgentName = "glue-crd-controller"
 type Controller struct {
 	// kubeclientset is a standard kubernetes clientset
 	kubeclientset kubernetes.Interface
-	// glueclientset is a clientset for our own API group
-	glueclientset clientset.Interface
 
 	routesLister listers.RouteLister
 	routesSynced cache.InformerSynced
@@ -59,7 +56,6 @@ type Controller struct {
 // NewController returns a new sample controller
 func NewController(
 	kubeclientset kubernetes.Interface,
-	glueclientset clientset.Interface,
 	glueInformerFactory informers.SharedInformerFactory) *Controller {
 
 	// obtain references to shared index informers for the Deployment and Route
@@ -79,8 +75,6 @@ func NewController(
 	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: controllerAgentName})
 
 	controller := &Controller{
-		kubeclientset:      kubeclientset,
-		glueclientset:      glueclientset,
 		routesLister:       routeInformer.Lister(),
 		routesSynced:       routeInformer.Informer().HasSynced,
 		upstreamsLister:    upstreamInformer.Lister(),

@@ -1,4 +1,4 @@
-package controller_test
+package crd_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestController(t *testing.T) {
+func TestCrd(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Controller Suite")
+	RunSpecs(t, "Crd Suite")
 }
