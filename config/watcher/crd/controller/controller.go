@@ -222,7 +222,6 @@ func (c *crdController) syncHandler(key string) error {
 	}
 	log.Printf("updating config after item %v changed", name)
 
-	c.virtualHostsLister.List(labels.Everything())
 	routeList, err := c.routesLister.List(labels.Everything())
 	if err != nil {
 		return fmt.Errorf("error retrieving routes: %v", err)

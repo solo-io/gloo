@@ -1,5 +1,5 @@
 package fetcher
 
 type Fetcher interface {
-	FetchSecrets(names []string) (map[string]string, error)
+	FetchSecrets(secretRefs []string) (map[string]string, error)
 }

@@ -4,15 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/sample-controller/pkg/signals"
 
 	"github.com/solo-io/glue/config/watcher"
-	clientset "github.com/solo-io/glue/config/watcher/crd/client/clientset/versioned"
-	informers "github.com/solo-io/glue/config/watcher/crd/client/informers/externalversions"
 	"github.com/solo-io/glue/config/watcher/crd/controller"
+	"github.com/solo-io/glue/config/watcher/crd/ctrl"
 )
 
 func NewCrdWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration) (watcher.Watcher, error) {
@@ -24,29 +20,11 @@ func NewCrdWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duratio
 	if err != nil {
 		return nil, fmt.Errorf("failed to register crds: %v", err)
 	}
-	kubeClient, err := kubernetes.NewForConfig(cfg)
+
+	ctl, err := ctrl.NewCrdCtrl(cfg, resyncDuration)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
+		return nil, fmt.Errorf("failed to initialize crd controller: %v", err)
 	}
-
-	glueClient, err := clientset.NewForConfig(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create glue clientset: %v", err)
-	}
-
-	glueInformerFactory := informers.NewSharedInformerFactory(glueClient, resyncDuration)
-
-	ctl := controller.NewController(kubeClient, glueInformerFactory)
-
-	// set up signals so we handle the first shutdown signal gracefully
-	stopCh := signals.SetupSignalHandler()
-
-	go glueInformerFactory.Start(stopCh)
-
-	go func() {
-		err = ctl.Run(2, stopCh)
-		runtime.HandleError(err)
-	}()
 
 	return ctl, nil
 }
