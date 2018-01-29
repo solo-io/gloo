@@ -89,10 +89,12 @@ var _ = Describe("Controller", func() {
 			select {
 			case <-time.After(time.Second * 5):
 				Expect(fmt.Errorf("expected to have received resource event before 5s")).NotTo(HaveOccurred())
-			case cfg := <-controller.Configs():
+			case cfg := <-controller.Config():
 				Expect(len(cfg.Routes)).To(Equal(1))
 				Expect(cfg.Routes[0]).To(Equal(expectedRoute))
 				Expect(cfg.Routes[0].Plugins["auth"]).To(Equal(expectedRoute.Plugins["auth"]))
+			case err := <-controller.Error():
+				Expect(err).To(BeNil())
 			}
 		})
 	})

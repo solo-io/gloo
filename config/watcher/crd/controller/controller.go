@@ -53,6 +53,7 @@ type Controller struct {
 	recorder record.EventRecorder
 
 	configs chan *v1.Config
+	errors  chan error
 }
 
 // NewController returns a new sample controller
@@ -89,6 +90,7 @@ func NewController(
 		workqueue:          workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Routes"),
 		recorder:           recorder,
 		configs:            make(chan *v1.Config),
+		errors:             make(chan error),
 	}
 
 	glog.Info("Setting up event handlers")
@@ -185,7 +187,9 @@ func (c *Controller) processNextWorkItem() bool {
 		// Run the syncHandler, passing it the namespace/name string of the
 		// Route resource to be synced.
 		if err := c.syncHandler(key); err != nil {
-			return fmt.Errorf("error syncing '%s': %s", key, err.Error())
+			err := fmt.Errorf("error syncing '%s': %s", key, err.Error())
+			c.errors <- err
+			return err
 		}
 		// Finally, if no error occurs we Forget this item so it does not
 		// get queued again until another change happens.
@@ -266,6 +270,10 @@ func (c *Controller) syncHandler(key string) error {
 	return nil
 }
 
-func (c *Controller) Configs() <-chan *v1.Config {
+func (c *Controller) Config() <-chan *v1.Config {
 	return c.configs
+}
+
+func (c *Controller) Error() <-chan error {
+	return c.errors
 }
