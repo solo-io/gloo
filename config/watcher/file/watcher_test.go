@@ -3,68 +3,71 @@ package file_test
 import (
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"time"
 
+	"encoding/json"
+
 	"github.com/ghodss/yaml"
-	"github.com/golang/protobuf/jsonpb"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/glue/config/watcher"
 	. "github.com/solo-io/glue/config/watcher/file"
+	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/log"
 	. "github.com/solo-io/glue/test/helpers"
 )
 
 var _ = Describe("Watcher", func() {
 	var (
-		dir   string
+		file  string
 		err   error
 		watch watcher.Watcher
 	)
 	BeforeEach(func() {
-		dir, err = ioutil.TempDir("", "filecachetest")
+		f, err := ioutil.TempFile("", "filecachetest")
 		Must(err)
-		watch, err = NewFileWatcher(dir, time.Millisecond)
+		file = f.Name()
+		watch, err = NewFileWatcher(file, time.Millisecond)
 		Must(err)
 	})
 	AfterEach(func() {
-		log.Printf("removing " + dir)
-		os.RemoveAll(dir)
+		log.Printf("removing " + file)
+		os.RemoveAll(file)
 	})
-	Describe("watching directory", func() {
+	Describe("watching file", func() {
 		Context("an invalid config is written to a file", func() {
 			It("sends an error on the Error() channel", func() {
-				invalidConfig := []byte("in: valid")
-				err = ioutil.WriteFile(filepath.Join(dir, "config.yml"), invalidConfig, 0644)
+				invalidConfig := []byte("wdf112 1`12")
+				err = ioutil.WriteFile(file, invalidConfig, 0644)
 				Expect(err).NotTo(HaveOccurred())
 				select {
 				case <-watch.Config():
 					Fail("config was received, expected error")
 				case err := <-watch.Error():
 					Expect(err).To(HaveOccurred())
-				case <-time.After(time.Second):
-					Fail("expected new config to be read in before 1s")
+				case <-time.After(time.Second * 1):
+					Fail("expected err to have occurred before 1s")
 				}
 			})
 		})
 		Context("a valid config is written to a file", func() {
 			It("sends a corresponding config on the Config()", func() {
 				cfg := NewTestConfig()
-				m := jsonpb.Marshaler{}
-				str, err := m.MarshalToString(cfg)
+				yml, err := yaml.Marshal(cfg)
 				Must(err)
-				jsn := []byte(str)
-				yml, err := yaml.JSONToYAML(jsn)
+				err = ioutil.WriteFile(file, yml, 0644)
 				Must(err)
-				err = ioutil.WriteFile(filepath.Join(dir, "config.yml"), yml, 0644)
-				Must(err)
+				var expectedCfg v1.Config
+				data, err := json.Marshal(cfg)
+				Expect(err).To(BeNil())
+				err = json.Unmarshal(data, &expectedCfg)
+				Expect(err).To(BeNil())
 				select {
 				case parsedCfg := <-watch.Config():
-					Expect(parsedCfg).To(Equal(cfg))
+					Expect(*parsedCfg).To(Equal(expectedCfg))
 				case err := <-watch.Error():
 					Expect(err).NotTo(HaveOccurred())
-				case <-time.After(time.Second * 30):
+				case <-time.After(time.Second * 1):
 					Fail("expected new config to be read in before 1s")
 				}
 			})
