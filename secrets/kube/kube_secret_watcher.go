@@ -6,10 +6,10 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/solo-io/glue/secrets/watcher"
+	"github.com/solo-io/glue/secrets"
 )
 
-func NewSecretWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration) (watcher.Watcher, error) {
+func NewSecretWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration) (secrets.Watcher, error) {
 	cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build rest config: %v", err)

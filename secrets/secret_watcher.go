@@ -1,4 +1,4 @@
-package watcher
+package secrets
 
 type SecretMap map[string]map[string][]byte
 

@@ -11,34 +11,42 @@ import (
 
 	"github.com/solo-io/glue/adapters/kube/controller"
 	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/secrets/watcher"
+	"github.com/solo-io/glue/secrets"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/listers/core/v1"
+	"github.com/solo-io/glue/discovery"
 )
 
-type secretController struct {
-	secrets       chan watcher.SecretMap
-	errors        chan error
-	secretsLister v1.SecretLister
-	secretRefs    []string
+type discoveryController struct {
+	clusters        chan discovery.Clusters
+	errors          chan error
+	serviceLister   v1.ServiceLister
+	endpointsLister v1.EndpointsLister
+	serviceRefs    []serviceRef
 }
 
-func newSecretController(cfg *rest.Config, resyncDuration time.Duration) (*secretController, error) {
+type serviceRef struct {
+	namespace, name string
+}
+
+func newDiscoveryController(cfg *rest.Config, resyncDuration time.Duration) (*discoveryController, error) {
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
 	}
 
 	informerFactory := informers.NewSharedInformerFactory(kubeClient, resyncDuration)
-	secretInformer := informerFactory.Core().V1().Secrets()
+	serviceInformer := informerFactory.Core().V1().Services()
+	endpointsLister := informerFactory.Core().V1().Endpoints()
 
 	kubeController := controller.NewController("glue-secrets-controller", kubeClient,
-		secretInformer.Informer())
+		serviceInformer.Informer(), endpointsLister.Informer())
 
-	ctrl := &secretController{
-		secrets:       make(chan watcher.SecretMap),
+	ctrl := &discoveryController{
+		clusters:      make(chan discovery.Clusters),
 		errors:        make(chan error),
-		secretsLister: secretInformer.Lister(),
+		serviceLister: serviceInformer.Lister(),
+		endpointsLister: endpointsLister.Lister(),
 	}
 
 	kubeController.AddEventHandler(controller.Added, func(_, _ string, _ interface{}) {
@@ -63,21 +71,24 @@ func newSecretController(cfg *rest.Config, resyncDuration time.Duration) (*secre
 }
 
 // triggers an update
-func (c *secretController) UpdateRefs(secretRefs []string) {
-	c.secretRefs = secretRefs
+func (c *discoveryController) UpdateClusterRefs(clusterRefs []string) {
+	var serviceRefs []serviceRef
+	for _, cluster := range clusterRefs {
+
+	}
 	c.syncSecrets()
 }
 
-func (c *secretController) Secrets() <-chan watcher.SecretMap {
-	return c.secrets
+func (c *discoveryController) Ckusters() <-chan secrets.SecretMap {
+	return c.clusters
 }
 
-func (c *secretController) Error() <-chan error {
+func (c *discoveryController) Error() <-chan error {
 	return c.errors
 }
 
 // pushes secretmap or error to channel
-func (c *secretController) syncSecrets() {
+func (c *discoveryController) syncSecrets() {
 	secretMap, err := c.getUpdatedSecrets()
 	if err != nil {
 		c.errors <- err
@@ -87,18 +98,18 @@ func (c *secretController) syncSecrets() {
 	if len(secretMap) == 0 {
 		return
 	}
-	c.secrets <- secretMap
+	c.clusters <- secretMap
 }
 
 // retrieves secrets from kubernetes
-func (c *secretController) getUpdatedSecrets() (watcher.SecretMap, error) {
-	secretList, err := c.secretsLister.List(labels.Everything())
+func (c *discoveryController) getUpdatedSecrets() (secrets.SecretMap, error) {
+	secretList, err := c.serviceLister.List(labels.Everything())
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving routes: %v", err)
 	}
-	secretMap := make(watcher.SecretMap)
+	secretMap := make(secrets.SecretMap)
 	for _, secret := range secretList {
-		for _, ref := range c.secretRefs {
+		for _, ref := range c.serviceNames {
 			if secret.Name == ref {
 				log.Printf("updated secret %s", ref)
 				secretMap[ref] = secret.Data

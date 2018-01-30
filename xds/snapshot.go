@@ -32,6 +32,7 @@ func createSnapshot(resources []config.EnvoyResources) (cache.Snapshot, error) {
 			clusters = append(clusters, cluster)
 		}
 	}
+	api.Cluster{}
 	sort.Sort(filters)
 	sort.Sort(routes)
 	sort.Sort(clusters)

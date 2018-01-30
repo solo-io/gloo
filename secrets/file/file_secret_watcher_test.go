@@ -12,8 +12,8 @@ import (
 	"encoding/json"
 
 	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/secrets/watcher"
-	. "github.com/solo-io/glue/secrets/watcher/file"
+	"github.com/solo-io/glue/secrets"
+	. "github.com/solo-io/glue/secrets/file"
 	. "github.com/solo-io/glue/test/helpers"
 )
 
@@ -21,7 +21,7 @@ var _ = Describe("FileSecretWatcher", func() {
 	var (
 		file  string
 		err   error
-		watch watcher.Watcher
+		watch secrets.Watcher
 	)
 	BeforeEach(func() {
 		f, err := ioutil.TempFile("", "filesecrettest")
@@ -88,20 +88,20 @@ var _ = Describe("FileSecretWatcher", func() {
 		})
 		Context("a valid config is written to a file", func() {
 			It("sends a corresponding secretmap on Secrets()", func() {
-				secrets := NewTestSecrets()
-				yml, err := yaml.Marshal(secrets)
+				secretMap := NewTestSecrets()
+				yml, err := yaml.Marshal(secretMap)
 				Must(err)
 				err = ioutil.WriteFile(file, yml, 0644)
 				Must(err)
 				var key string
-				for k := range secrets {
+				for k := range secretMap {
 					key = k
 					break
 				}
 				go watch.UpdateRefs([]string{key})
 				select {
 				case parsedSecrets := <-watch.Secrets():
-					Expect(parsedSecrets).To(Equal(secrets))
+					Expect(parsedSecrets).To(Equal(secretMap))
 				case err := <-watch.Error():
 					Expect(err).NotTo(HaveOccurred())
 				case <-time.After(time.Second * 5):

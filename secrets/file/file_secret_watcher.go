@@ -9,7 +9,7 @@ import (
 
 	filewatch "github.com/solo-io/glue/adapters/file/watcher"
 	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/secrets/watcher"
+	"github.com/solo-io/glue/secrets"
 )
 
 // FileWatcher uses .yml files in a directory
@@ -17,12 +17,12 @@ import (
 type fileWatcher struct {
 	file           string
 	secretsToWatch []string
-	secrets        chan watcher.SecretMap
+	secrets        chan secrets.SecretMap
 	errors         chan error
 }
 
 func NewSecretWatcher(file string, syncFrequency time.Duration) (*fileWatcher, error) {
-	secrets := make(chan watcher.SecretMap)
+	secrets := make(chan secrets.SecretMap)
 	errors := make(chan error)
 	fw := &fileWatcher{
 		secrets: secrets,
@@ -57,7 +57,7 @@ func (fw *fileWatcher) UpdateRefs(secretRefs []string) {
 	fw.updateSecrets()
 }
 
-func (fw *fileWatcher) Secrets() <-chan watcher.SecretMap {
+func (fw *fileWatcher) Secrets() <-chan secrets.SecretMap {
 	return fw.secrets
 }
 
@@ -65,17 +65,17 @@ func (fw *fileWatcher) Error() <-chan error {
 	return fw.errors
 }
 
-func (fw *fileWatcher) getSecrets() (watcher.SecretMap, error) {
+func (fw *fileWatcher) getSecrets() (secrets.SecretMap, error) {
 	yml, err := ioutil.ReadFile(fw.file)
 	if err != nil {
 		return nil, err
 	}
-	var secretMap watcher.SecretMap
+	var secretMap secrets.SecretMap
 	err = yaml.Unmarshal(yml, &secretMap)
 	if err != nil {
 		return nil, err
 	}
-	desiredSecrets := make(watcher.SecretMap)
+	desiredSecrets := make(secrets.SecretMap)
 	for _, ref := range fw.secretsToWatch {
 		data, ok := secretMap[ref]
 		if !ok {

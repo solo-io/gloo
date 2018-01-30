@@ -1,4 +1,4 @@
-package file_test
+package kube
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestFile(t *testing.T) {
+func TestKube(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "File Suite")
+	RunSpecs(t, "Kube Suite")
 }
