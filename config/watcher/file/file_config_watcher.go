@@ -17,7 +17,7 @@ type fileWatcher struct {
 	errors  chan error
 }
 
-func NewFileWatcher(file string, syncFrequency time.Duration) (*fileWatcher, error) {
+func NewFileConfigWatcher(file string, syncFrequency time.Duration) (*fileWatcher, error) {
 	configs := make(chan *v1.Config)
 	errors := make(chan error)
 	if err := watcher.WatchFile(file, func(path string) {

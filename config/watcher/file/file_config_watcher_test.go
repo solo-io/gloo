@@ -17,7 +17,7 @@ import (
 	. "github.com/solo-io/glue/test/helpers"
 )
 
-var _ = Describe("Watcher", func() {
+var _ = Describe("FileConfigWatcher", func() {
 	var (
 		file  string
 		err   error
@@ -27,7 +27,7 @@ var _ = Describe("Watcher", func() {
 		f, err := ioutil.TempFile("", "filecachetest")
 		Must(err)
 		file = f.Name()
-		watch, err = NewFileWatcher(file, time.Millisecond)
+		watch, err = NewFileConfigWatcher(file, time.Millisecond)
 		Must(err)
 	})
 	AfterEach(func() {
