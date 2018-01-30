@@ -111,7 +111,7 @@ func (c *Controller) enqueueSync(event Event) func(interface{}) {
 			runtime.HandleError(err)
 			return
 		}
-		log.Printf("%s event: %s: %s", c.name, event, key)
+		log.Debugf("%s event: %s: %s", c.name, event, key)
 		c.workqueue.AddRateLimited(wrapped{
 			event: event,
 			key:   key,
