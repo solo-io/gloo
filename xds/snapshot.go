@@ -81,6 +81,29 @@ const (
 	defaultVirtualHost = "default"
 )
 
+func makeEndpointConfig(cluster, adress string, port int) *api.ClusterLoadAssignment {
+	return &api.ClusterLoadAssignment{
+		ClusterName: cluster,
+		Endpoints: []*api.LocalityLbEndpoints{{
+			LbEndpoints: []*api.LbEndpoint{{
+				Endpoint: &api.Endpoint{
+					Address: &api.Address{
+						Address: &api.Address_SocketAddress{
+							SocketAddress: &api.SocketAddress{
+								Protocol: api.SocketAddress_TCP,
+								Address:  localhost,
+								PortSpecifier: &api.SocketAddress_PortValue{
+									PortValue: port,
+								},
+							},
+						},
+					},
+				},
+			}},
+		}},
+	}
+}
+
 func makeRouteConfig(routes []config.RouteWrapper) *api.RouteConfiguration {
 	routesByVirtualHost := make(map[string][]config.RouteWrapper)
 	for _, route := range routes {
