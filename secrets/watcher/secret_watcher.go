@@ -1,6 +1,6 @@
 package watcher
 
-type SecretMap map[string]map[string]string
+type SecretMap map[string]map[string][]byte
 
 // Watcher is responsible for watching secrets referenced by a config
 type Watcher interface {

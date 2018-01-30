@@ -9,6 +9,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"encoding/json"
+
 	"github.com/solo-io/glue/pkg/log"
 	"github.com/solo-io/glue/secrets/watcher"
 	. "github.com/solo-io/glue/secrets/watcher/file"
@@ -50,8 +52,10 @@ var _ = Describe("FileSecretWatcher", func() {
 		})
 		Context("no secrets wanted", func() {
 			It("doesnt send anything on any channel", func() {
-				missingSecrets := []byte("foo:\n  bar: baz\n  qux: qaz")
-				err = ioutil.WriteFile(file, missingSecrets, 0644)
+				missingSecrets := map[string]map[string][]byte{"another-key": {"foo": []byte("bar"), "baz": []byte("qux")}}
+				data, err := json.Marshal(missingSecrets)
+				Expect(err).NotTo(HaveOccurred())
+				err = ioutil.WriteFile(file, data, 0644)
 				Expect(err).NotTo(HaveOccurred())
 				select {
 				case <-watch.Secrets():
@@ -65,8 +69,10 @@ var _ = Describe("FileSecretWatcher", func() {
 		})
 		Context("want secrets that the file doesn't contain", func() {
 			It("sends an error on the Error() channel", func() {
-				missingSecrets := []byte("foo:\n  bar: baz\n  qux: qaz")
-				err = ioutil.WriteFile(file, missingSecrets, 0644)
+				missingSecrets := map[string]map[string][]byte{"another-key": {"foo": []byte("bar"), "baz": []byte("qux")}}
+				data, err := json.Marshal(missingSecrets)
+				Expect(err).NotTo(HaveOccurred())
+				err = ioutil.WriteFile(file, data, 0644)
 				Expect(err).NotTo(HaveOccurred())
 				go watch.UpdateRefs([]string{"this key really should not be in the secretmap"})
 				select {
@@ -81,7 +87,7 @@ var _ = Describe("FileSecretWatcher", func() {
 			})
 		})
 		Context("a valid config is written to a file", func() {
-			It("sends a corresponding config on the Config()", func() {
+			It("sends a corresponding secretmap on Secrets()", func() {
 				secrets := NewTestSecrets()
 				yml, err := yaml.Marshal(secrets)
 				Must(err)
