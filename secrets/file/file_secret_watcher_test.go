@@ -74,7 +74,7 @@ var _ = Describe("FileSecretWatcher", func() {
 				Expect(err).NotTo(HaveOccurred())
 				err = ioutil.WriteFile(file, data, 0644)
 				Expect(err).NotTo(HaveOccurred())
-				go watch.UpdateRefs([]string{"this key really should not be in the secretmap"})
+				go watch.TrackSecrets([]string{"this key really should not be in the secretmap"})
 				select {
 				case <-watch.Secrets():
 					Fail("config was received, expected error")
@@ -98,7 +98,7 @@ var _ = Describe("FileSecretWatcher", func() {
 					key = k
 					break
 				}
-				go watch.UpdateRefs([]string{key})
+				go watch.TrackSecrets([]string{key})
 				select {
 				case parsedSecrets := <-watch.Secrets():
 					Expect(parsedSecrets).To(Equal(secretMap))

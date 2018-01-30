@@ -63,7 +63,7 @@ func newSecretController(cfg *rest.Config, resyncDuration time.Duration) (*secre
 }
 
 // triggers an update
-func (c *secretController) UpdateRefs(secretRefs []string) {
+func (c *secretController) TrackSecrets(secretRefs []string) {
 	c.secretRefs = secretRefs
 	c.syncSecrets()
 }
@@ -94,7 +94,7 @@ func (c *secretController) syncSecrets() {
 func (c *secretController) getUpdatedSecrets() (secrets.SecretMap, error) {
 	secretList, err := c.secretsLister.List(labels.Everything())
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving routes: %v", err)
+		return nil, fmt.Errorf("error retrieving secrets: %v", err)
 	}
 	secretMap := make(secrets.SecretMap)
 	for _, secret := range secretList {
