@@ -9,7 +9,7 @@ import (
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/glue/config/watcher/crd/solo.io/v1"
+	"github.com/solo-io/glue/implemented_modules/kube/configwatcher/crd/solo.io/v1"
 	"github.com/solo-io/glue/pkg/log"
 )
 

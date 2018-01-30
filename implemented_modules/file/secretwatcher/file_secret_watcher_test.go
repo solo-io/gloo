@@ -21,7 +21,7 @@ var _ = Describe("FileSecretWatcher", func() {
 	var (
 		file  string
 		err   error
-		watch module.Watcher
+		watch module.SecretWatcher
 	)
 	BeforeEach(func() {
 		f, err := ioutil.TempFile("", "filesecrettest")

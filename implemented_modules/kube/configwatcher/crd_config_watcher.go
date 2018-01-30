@@ -6,10 +6,10 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/solo-io/glue/config/watcher"
+	"github.com/solo-io/glue/module"
 )
 
-func NewCrdWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration) (watcher.Watcher, error) {
+func NewCrdWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration) (module.ConfigWatcher, error) {
 	cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build rest config: %v", err)

@@ -9,10 +9,10 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/sample-controller/pkg/signals"
 
-	"github.com/solo-io/glue/adapters/kube/controller"
-	clientset "github.com/solo-io/glue/config/watcher/crd/client/clientset/versioned"
-	informers "github.com/solo-io/glue/config/watcher/crd/client/informers/externalversions"
-	listers "github.com/solo-io/glue/config/watcher/crd/client/listers/solo.io/v1"
+	clientset "github.com/solo-io/glue/implemented_modules/kube/configwatcher/crd/client/clientset/versioned"
+	informers "github.com/solo-io/glue/implemented_modules/kube/configwatcher/crd/client/informers/externalversions"
+	listers "github.com/solo-io/glue/implemented_modules/kube/configwatcher/crd/client/listers/solo.io/v1"
+	"github.com/solo-io/glue/implemented_modules/kube/pkg/controller"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/log"
 )
