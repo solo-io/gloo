@@ -9,7 +9,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
-	"k8s.io/sample-controller/pkg/signals"
 
 	"github.com/solo-io/glue/implemented_modules/kube/pkg/controller"
 	"github.com/solo-io/glue/pkg/log"
@@ -23,7 +22,7 @@ type secretController struct {
 	secretRefs    []string
 }
 
-func newSecretController(cfg *rest.Config, resyncDuration time.Duration) (*secretController, error) {
+func newSecretController(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}) (*secretController, error) {
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
@@ -32,27 +31,18 @@ func newSecretController(cfg *rest.Config, resyncDuration time.Duration) (*secre
 	informerFactory := informers.NewSharedInformerFactory(kubeClient, resyncDuration)
 	secretInformer := informerFactory.Core().V1().Secrets()
 
-	kubeController := controller.NewController("glue-secrets-controller", kubeClient,
-		secretInformer.Informer())
-
 	ctrl := &secretController{
 		secrets:       make(chan module.SecretMap),
 		errors:        make(chan error),
 		secretsLister: secretInformer.Lister(),
 	}
 
-	kubeController.AddEventHandler(controller.Added, func(_, _ string, _ interface{}) {
-		ctrl.getUpdatedSecrets()
-	})
-	kubeController.AddEventHandler(controller.Updated, func(namespace, name string, _ interface{}) {
-		ctrl.getUpdatedSecrets()
-	})
-	kubeController.AddEventHandler(controller.Deleted, func(namespace, name string, _ interface{}) {
-		ctrl.getUpdatedSecrets()
-	})
-
-	// set up signals so we handle the first shutdown signal gracefully
-	stopCh := signals.SetupSignalHandler()
+	kubeController := controller.NewController(
+		"glue-secrets-controller", kubeClient,
+		func(_, _ string, _ interface{}) {
+			ctrl.getUpdatedSecrets()
+		},
+		secretInformer.Informer())
 
 	go informerFactory.Start(stopCh)
 	go func() {

@@ -19,7 +19,7 @@ import (
 	. "github.com/solo-io/glue/test/helpers"
 )
 
-var _ = Describe("SecretWatcher", func() {
+var _ = Describe("KubeConfigWatcher", func() {
 	var (
 		masterUrl, kubeconfigPath string
 		mkb                       *MinikubeInstance
@@ -42,7 +42,7 @@ var _ = Describe("SecretWatcher", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
 
-			watcher, err := NewCrdWatcher(masterUrl, kubeconfigPath, time.Second)
+			watcher, err := NewCrdWatcher(masterUrl, kubeconfigPath, time.Second, make(chan struct{}))
 			Expect(err).NotTo(HaveOccurred())
 
 			// add a route

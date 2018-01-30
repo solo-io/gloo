@@ -43,7 +43,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
 
-			watcher, err := NewSecretWatcher(masterUrl, kubeconfigPath, time.Second)
+			watcher, err := NewSecretWatcher(masterUrl, kubeconfigPath, time.Second, make(chan struct{}))
 			Expect(err).NotTo(HaveOccurred())
 
 			// add a secret

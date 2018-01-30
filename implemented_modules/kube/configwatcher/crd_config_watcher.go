@@ -9,7 +9,7 @@ import (
 	"github.com/solo-io/glue/pkg/module"
 )
 
-func NewCrdWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration) (module.ConfigWatcher, error) {
+func NewCrdWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration, stopCh <-chan struct{}) (module.ConfigWatcher, error) {
 	cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build rest config: %v", err)
@@ -19,7 +19,7 @@ func NewCrdWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duratio
 		return nil, fmt.Errorf("failed to register crds: %v", err)
 	}
 
-	ctl, err := newCrdController(cfg, resyncDuration)
+	ctl, err := newCrdController(cfg, resyncDuration, stopCh)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize crd controller: %v", err)
 	}

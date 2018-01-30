@@ -7,7 +7,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/sample-controller/pkg/signals"
 
 	clientset "github.com/solo-io/glue/implemented_modules/kube/configwatcher/crd/client/clientset/versioned"
 	informers "github.com/solo-io/glue/implemented_modules/kube/configwatcher/crd/client/informers/externalversions"
@@ -20,9 +19,13 @@ import (
 type crdController struct {
 	configs chan *v1.Config
 	errors  chan error
+
+	routesLister       listers.RouteLister
+	upstreamsLister    listers.UpstreamLister
+	virtualHostsLister listers.VirtualHostLister
 }
 
-func newCrdController(cfg *rest.Config, resyncDuration time.Duration) (*crdController, error) {
+func newCrdController(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}) (*crdController, error) {
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
@@ -39,28 +42,19 @@ func newCrdController(cfg *rest.Config, resyncDuration time.Duration) (*crdContr
 	upstreamInformer := glueInformerFactory.Glue().V1().Upstreams()
 	virtualHostInformer := glueInformerFactory.Glue().V1().VirtualHosts()
 
+	ctrl := &crdController{
+		configs:            make(chan *v1.Config),
+		errors:             make(chan error),
+		routesLister:       routeInformer.Lister(),
+		upstreamsLister:    upstreamInformer.Lister(),
+		virtualHostsLister: virtualHostInformer.Lister(),
+	}
+
 	kubeController := controller.NewController("glue-crd-controller", kubeClient,
+		ctrl.syncConfig,
 		routeInformer.Informer(),
 		upstreamInformer.Informer(),
 		virtualHostInformer.Informer())
-
-	ctrl := &crdController{
-		configs: make(chan *v1.Config),
-		errors:  make(chan error),
-	}
-
-	kubeController.AddEventHandler(controller.Added, func(namespace, name string, _ interface{}) {
-		ctrl.syncConfig(namespace, name, routeInformer.Lister(), upstreamInformer.Lister(), virtualHostInformer.Lister())
-	})
-	kubeController.AddEventHandler(controller.Updated, func(namespace, name string, _ interface{}) {
-		ctrl.syncConfig(namespace, name, routeInformer.Lister(), upstreamInformer.Lister(), virtualHostInformer.Lister())
-	})
-	kubeController.AddEventHandler(controller.Deleted, func(namespace, name string, _ interface{}) {
-		ctrl.syncConfig(namespace, name, routeInformer.Lister(), upstreamInformer.Lister(), virtualHostInformer.Lister())
-	})
-
-	// set up signals so we handle the first shutdown signal gracefully
-	stopCh := signals.SetupSignalHandler()
 
 	go glueInformerFactory.Start(stopCh)
 	go func() {
@@ -70,22 +64,19 @@ func newCrdController(cfg *rest.Config, resyncDuration time.Duration) (*crdContr
 	return ctrl, nil
 }
 
-func (c *crdController) syncConfig(namespace, name string,
-	routesLister listers.RouteLister,
-	upstreamsLister listers.UpstreamLister,
-	virtualHostsLister listers.VirtualHostLister) error {
+func (c *crdController) syncConfig(namespace, name string, _ interface{}) {
 	if err := func() error {
 		log.Printf("syncing config after item %v/%v changed", namespace, name)
 
-		routeList, err := routesLister.List(labels.Everything())
+		routeList, err := c.routesLister.List(labels.Everything())
 		if err != nil {
 			return fmt.Errorf("error retrieving routes: %v", err)
 		}
-		upstreamList, err := upstreamsLister.List(labels.Everything())
+		upstreamList, err := c.upstreamsLister.List(labels.Everything())
 		if err != nil {
 			return fmt.Errorf("error retrieving upstreams: %v", err)
 		}
-		vHostList, err := virtualHostsLister.List(labels.Everything())
+		vHostList, err := c.virtualHostsLister.List(labels.Everything())
 		if err != nil {
 			return fmt.Errorf("error retrieving virtualhosts: %v", err)
 		}
@@ -114,7 +105,6 @@ func (c *crdController) syncConfig(namespace, name string,
 	}(); err != nil {
 		c.errors <- err
 	}
-	return nil
 }
 
 func (c *crdController) Config() <-chan *v1.Config {

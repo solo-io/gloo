@@ -18,6 +18,8 @@ import (
 	"github.com/solo-io/glue/pkg/log"
 )
 
+type SyncFunction func(namespace, name string, obj interface{})
+
 // Controller is the controller implementation for Route resources
 type Controller struct {
 	name string
@@ -36,15 +38,15 @@ type Controller struct {
 	// Kubernetes API.
 	recorder record.EventRecorder
 
-	onAddFuncs    []func(namespace, name string, obj interface{})
-	onUpdateFuncs []func(namespace, name string, obj interface{})
-	onDeleteFuncs []func(namespace, name string, obj interface{})
+	// object synced
+	handler func(namespace, name string, obj interface{})
 }
 
-// NewController returns a new sample controller
+// NewController returns a new controller
 func NewController(
 	controllerAgentName string,
 	kubeclientset kubernetes.Interface,
+	handler SyncFunction,
 	informers ...cache.SharedInformer) *Controller {
 
 	glog.V(4).Info("Creating event broadcaster")
@@ -59,6 +61,7 @@ func NewController(
 		name:      controllerAgentName,
 		workqueue: workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Routes"),
 		recorder:  recorder,
+		handler:   handler,
 	}
 
 	glog.Info("Setting up event handlers")
@@ -67,43 +70,23 @@ func NewController(
 
 		// Set up an event handler for when glue resources change
 		informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-			AddFunc: controller.enqueueSync(Added),
+			AddFunc: controller.enqueueSync("added"),
 			UpdateFunc: func(old, new interface{}) {
-				controller.enqueueSync(Updated)(new)
+				controller.enqueueSync("updated")(new)
 			},
-			DeleteFunc: controller.enqueueSync(Deleted),
+			DeleteFunc: controller.enqueueSync("deleted"),
 		})
 	}
 
 	return controller
 }
 
-func (c *Controller) AddEventHandler(event Event, handler func(namespace, name string, obj interface{})) {
-	switch event {
-	case Added:
-		c.onAddFuncs = append(c.onAddFuncs, handler)
-	case Updated:
-		c.onUpdateFuncs = append(c.onUpdateFuncs, handler)
-	case Deleted:
-		c.onDeleteFuncs = append(c.onDeleteFuncs, handler)
-	}
-}
-
-type Event int
-
-const (
-	Added Event = iota
-	Updated
-	Deleted
-)
-
 type wrapped struct {
-	event Event
-	key   string
-	obj   interface{}
+	key string
+	obj interface{}
 }
 
-func (c *Controller) enqueueSync(event Event) func(interface{}) {
+func (c *Controller) enqueueSync(event string) func(interface{}) {
 	return func(obj interface{}) {
 		var key string
 		var err error
@@ -111,11 +94,10 @@ func (c *Controller) enqueueSync(event Event) func(interface{}) {
 			runtime.HandleError(err)
 			return
 		}
-		log.Debugf("%s event: %s: %s", c.name, event, key)
+		log.Debugf("%s EVENT: %s: %s", c.name, event, key)
 		c.workqueue.AddRateLimited(wrapped{
-			event: event,
-			key:   key,
-			obj:   obj,
+			key: key,
+			obj: obj,
 		})
 	}
 }
@@ -192,20 +174,7 @@ func (c *Controller) processNextWorkItem() bool {
 			return nil
 		}
 		namespace, name, _ := cache.SplitMetaNamespaceKey(w.key)
-		switch w.event {
-		case Added:
-			for _, onAdd := range c.onAddFuncs {
-				onAdd(namespace, name, w.obj)
-			}
-		case Updated:
-			for _, onUpdate := range c.onUpdateFuncs {
-				onUpdate(namespace, name, w.obj)
-			}
-		case Deleted:
-			for _, onDelete := range c.onDeleteFuncs {
-				onDelete(namespace, name, w.obj)
-			}
-		}
+		c.handler(namespace, name, obj)
 
 		c.workqueue.Forget(obj)
 		return nil
