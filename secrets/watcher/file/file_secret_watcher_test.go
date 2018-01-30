@@ -33,9 +33,9 @@ var _ = Describe("FileSecretWatcher", func() {
 		os.RemoveAll(file)
 	})
 	Describe("watching file", func() {
-		Context("an invalid yml is written to a file", func() {
+		Context("an invalid structure is written to a file", func() {
 			It("sends an error on the Error() channel", func() {
-				invalidData := []byte("wdf112 1`12")
+				invalidData := []byte("foo: bar")
 				err = ioutil.WriteFile(file, invalidData, 0644)
 				Expect(err).NotTo(HaveOccurred())
 				select {
@@ -48,16 +48,33 @@ var _ = Describe("FileSecretWatcher", func() {
 				}
 			})
 		})
-		Context("want secrets that the file doesn't contain", func() {
-			It("sends an error on the Error() channel", func() {
-				missingSecrets := []byte("foo: bar")
+		Context("no secrets wanted", func() {
+			It("doesnt send anything on any channel", func() {
+				missingSecrets := []byte("foo:\n  bar: baz\n  qux: qaz")
 				err = ioutil.WriteFile(file, missingSecrets, 0644)
 				Expect(err).NotTo(HaveOccurred())
+				select {
+				case <-watch.Secrets():
+					Fail("config was received, expected timeout")
+				case err := <-watch.Error():
+					Expect(err).NotTo(HaveOccurred())
+				case <-time.After(time.Second * 1):
+					// passed
+				}
+			})
+		})
+		Context("want secrets that the file doesn't contain", func() {
+			It("sends an error on the Error() channel", func() {
+				missingSecrets := []byte("foo:\n  bar: baz\n  qux: qaz")
+				err = ioutil.WriteFile(file, missingSecrets, 0644)
+				Expect(err).NotTo(HaveOccurred())
+				go watch.UpdateRefs([]string{"this key really should not be in the secretmap"})
 				select {
 				case <-watch.Secrets():
 					Fail("config was received, expected error")
 				case err := <-watch.Error():
 					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("secretmap not found"))
 				case <-time.After(time.Second * 1):
 					Fail("expected err to have occurred before 1s")
 				}

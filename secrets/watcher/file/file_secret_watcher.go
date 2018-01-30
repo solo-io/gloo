@@ -8,6 +8,7 @@ import (
 	"github.com/ghodss/yaml"
 
 	filewatch "github.com/solo-io/glue/adapters/file/watcher"
+	"github.com/solo-io/glue/pkg/log"
 	"github.com/solo-io/glue/secrets/watcher"
 )
 
@@ -29,12 +30,7 @@ func NewFileSecretWatcher(file string, syncFrequency time.Duration) (*fileWatche
 		file:    file,
 	}
 	if err := filewatch.WatchFile(file, func(_ string) {
-		secretMap, err := fw.getSecrets()
-		if err != nil {
-			errors <- err
-			return
-		}
-		secrets <- secretMap
+		fw.updateSecrets()
 	}, syncFrequency); err != nil {
 		return nil, fmt.Errorf("failed to start filewatcher: %v", err)
 	}
@@ -42,15 +38,23 @@ func NewFileSecretWatcher(file string, syncFrequency time.Duration) (*fileWatche
 	return fw, nil
 }
 
-// triggers an update
-func (fw *fileWatcher) UpdateRefs(secretRefs []string) {
-	fw.secretsToWatch = secretRefs
+func (fw *fileWatcher) updateSecrets() {
 	secretMap, err := fw.getSecrets()
 	if err != nil {
 		fw.errors <- err
 		return
 	}
+	// ignore empty configs / no secrets to watch
+	if len(secretMap) == 0 {
+		return
+	}
 	fw.secrets <- secretMap
+}
+
+// triggers an update
+func (fw *fileWatcher) UpdateRefs(secretRefs []string) {
+	fw.secretsToWatch = secretRefs
+	fw.updateSecrets()
 }
 
 func (fw *fileWatcher) Secrets() <-chan watcher.SecretMap {
@@ -75,8 +79,10 @@ func (fw *fileWatcher) getSecrets() (watcher.SecretMap, error) {
 	for _, ref := range fw.secretsToWatch {
 		data, ok := secretMap[ref]
 		if !ok {
+			log.Printf("ref %v not found", ref)
 			return nil, fmt.Errorf("secret ref %v not found in file %v", ref, fw.file)
 		}
+		log.Printf("ref found: %v", ref)
 		desiredSecrets[ref] = data
 	}
 
