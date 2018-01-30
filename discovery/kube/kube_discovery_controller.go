@@ -9,12 +9,14 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/sample-controller/pkg/signals"
 
+	"strings"
+
 	"github.com/solo-io/glue/adapters/kube/controller"
+	"github.com/solo-io/glue/discovery"
 	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/secrets"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/listers/core/v1"
-	"github.com/solo-io/glue/discovery"
 )
 
 type discoveryController struct {
@@ -22,7 +24,7 @@ type discoveryController struct {
 	errors          chan error
 	serviceLister   v1.ServiceLister
 	endpointsLister v1.EndpointsLister
-	serviceRefs    []serviceRef
+	serviceRefs     []serviceRef
 }
 
 type serviceRef struct {
@@ -39,24 +41,24 @@ func newDiscoveryController(cfg *rest.Config, resyncDuration time.Duration) (*di
 	serviceInformer := informerFactory.Core().V1().Services()
 	endpointsLister := informerFactory.Core().V1().Endpoints()
 
-	kubeController := controller.NewController("glue-secrets-controller", kubeClient,
+	kubeController := controller.NewController("glue-endpoints-controller", kubeClient,
 		serviceInformer.Informer(), endpointsLister.Informer())
 
 	ctrl := &discoveryController{
-		clusters:      make(chan discovery.Clusters),
-		errors:        make(chan error),
-		serviceLister: serviceInformer.Lister(),
+		clusters:        make(chan discovery.Clusters),
+		errors:          make(chan error),
+		serviceLister:   serviceInformer.Lister(),
 		endpointsLister: endpointsLister.Lister(),
 	}
 
 	kubeController.AddEventHandler(controller.Added, func(_, _ string, _ interface{}) {
-		ctrl.getUpdatedSecrets()
+		ctrl.getClusters()
 	})
 	kubeController.AddEventHandler(controller.Updated, func(namespace, name string, _ interface{}) {
-		ctrl.getUpdatedSecrets()
+		ctrl.getClusters()
 	})
 	kubeController.AddEventHandler(controller.Deleted, func(namespace, name string, _ interface{}) {
-		ctrl.getUpdatedSecrets()
+		ctrl.getClusters()
 	})
 
 	// set up signals so we handle the first shutdown signal gracefully
@@ -71,15 +73,23 @@ func newDiscoveryController(cfg *rest.Config, resyncDuration time.Duration) (*di
 }
 
 // triggers an update
-func (c *discoveryController) UpdateClusterRefs(clusterRefs []string) {
+func (c *discoveryController) UpdateClusterRefs(hostnames []string) {
 	var serviceRefs []serviceRef
-	for _, cluster := range clusterRefs {
-
+	for _, hostname := range hostnames {
+		namespace, name, err := parseHostname(hostname)
+		if err != nil {
+			runtime.HandleError(fmt.Errorf("failed to parse hostname %v", err))
+			continue
+		}
+		serviceRefs = append(serviceRefs, serviceRef{
+			namespace: namespace,
+			name:      name,
+		})
 	}
-	c.syncSecrets()
+	c.syncClusters()
 }
 
-func (c *discoveryController) Ckusters() <-chan secrets.SecretMap {
+func (c *discoveryController) Clusters() <-chan discovery.Clusters {
 	return c.clusters
 }
 
@@ -87,35 +97,52 @@ func (c *discoveryController) Error() <-chan error {
 	return c.errors
 }
 
-// pushes secretmap or error to channel
-func (c *discoveryController) syncSecrets() {
-	secretMap, err := c.getUpdatedSecrets()
+// pushes clusters or error to channel
+func (c *discoveryController) syncClusters() {
+	clusters, err := c.getClusters()
 	if err != nil {
 		c.errors <- err
 		return
 	}
-	// ignore empty configs / no secrets to watch
-	if len(secretMap) == 0 {
+	// ignore empty configs / no clusters to watch
+	if len(clusters) == 0 {
 		return
 	}
-	c.clusters <- secretMap
+	c.clusters <- clusters
 }
 
-// retrieves secrets from kubernetes
-func (c *discoveryController) getUpdatedSecrets() (secrets.SecretMap, error) {
-	secretList, err := c.serviceLister.List(labels.Everything())
+// retrieves clusters from kubernetes
+func (c *discoveryController) getClusters() (discovery.Clusters, error) {
+	serviceList, err := c.serviceLister.List(labels.Everything())
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving routes: %v", err)
 	}
-	secretMap := make(secrets.SecretMap)
-	for _, secret := range secretList {
-		for _, ref := range c.serviceNames {
-			if secret.Name == ref {
-				log.Printf("updated secret %s", ref)
-				secretMap[ref] = secret.Data
+	clusters := make(discovery.Clusters)
+	for _, ref := range c.serviceRefs {
+		var clusterFound bool
+		for _, service := range serviceList {
+			if service.Name == ref.name && service.Namespace == ref.namespace {
+				log.Printf("updated cluster %s", ref)
+				service.Spec
+				clusters[ref] = service.Data
 				break
 			}
 		}
+		if !clusterFound {
+			runtime.HandleError(fmt.Errorf("cluster for service %v not found", ref))
+		}
 	}
-	return secretMap, nil
+	return clusters, nil
+}
+
+// parseHostname extracts service name and namespace from the service hostname
+func parseHostname(hostname string) (name string, namespace string, err error) {
+	parts := strings.Split(hostname, ".")
+	if len(parts) < 2 {
+		err = fmt.Errorf("missing service name and namespace from the service hostname %q", hostname)
+		return
+	}
+	name = parts[0]
+	namespace = parts[1]
+	return
 }
