@@ -1,4 +1,4 @@
-package kube
+package kube_test
 
 import (
 	"testing"
