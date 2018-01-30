@@ -115,7 +115,11 @@ func (c *discoveryController) syncClusters() {
 func (c *discoveryController) getClusters() (discovery.Clusters, error) {
 	serviceList, err := c.serviceLister.List(labels.Everything())
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving routes: %v", err)
+		return nil, fmt.Errorf("error retrieving services: %v", err)
+	}
+	endpointsList, err := c.endpointsLister.List(labels.Everything())
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving endpoints: %v", err)
 	}
 	clusters := make(discovery.Clusters)
 	for _, ref := range c.serviceRefs {

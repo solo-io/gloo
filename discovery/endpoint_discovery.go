@@ -1,11 +1,9 @@
 package discovery
 
-type Clusters map[string]Cluster
+import "github.com/solo-io/glue/pkg/api/types/v1"
 
-type Cluster struct {
-	Hostname  string
-	Endpoints []Endpoint
-}
+// cluster of endpoints for an upstream
+type Clusters map[string][]Endpoint
 
 type Endpoint struct {
 	Address string
@@ -15,7 +13,18 @@ type Endpoint struct {
 type Discovery interface {
 	// cluster ref is the discovery-specific identifier for the cluster
 	// in kubernetes, this would be the namespace+service name
-	DiscoveryFor(hostnames []string)
+
+	/*
+		upstream:
+		- name: my_upstream_v1
+		  type: kubernetes
+		  spec:
+			kubernetes_name: service
+		    labels:
+		    - version: v1
+	*/
+
+	TrackUpstreams(upstreams []v1.Upstream)
 
 	// secrets are pushed here whenever they are read
 	Clusters() <-chan Clusters
