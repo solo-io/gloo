@@ -1,4 +1,4 @@
-package secrets
+package module
 
 type SecretMap map[string]map[string][]byte
 

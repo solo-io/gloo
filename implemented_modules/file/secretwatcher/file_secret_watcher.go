@@ -1,4 +1,4 @@
-package file
+package secretwatcher
 
 import (
 	"fmt"
@@ -7,9 +7,9 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	filewatch "github.com/solo-io/glue/adapters/file/watcher"
+	"github.com/solo-io/glue/implemented_modules/file/pkg/watcher"
+	"github.com/solo-io/glue/module"
 	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/secrets"
 )
 
 // FileWatcher uses .yml files in a directory
@@ -17,19 +17,19 @@ import (
 type fileWatcher struct {
 	file           string
 	secretsToWatch []string
-	secrets        chan secrets.SecretMap
+	secrets        chan module.SecretMap
 	errors         chan error
 }
 
 func NewSecretWatcher(file string, syncFrequency time.Duration) (*fileWatcher, error) {
-	secrets := make(chan secrets.SecretMap)
+	secrets := make(chan module.SecretMap)
 	errors := make(chan error)
 	fw := &fileWatcher{
 		secrets: secrets,
 		errors:  errors,
 		file:    file,
 	}
-	if err := filewatch.WatchFile(file, func(_ string) {
+	if err := watcher.WatchFile(file, func(_ string) {
 		fw.updateSecrets()
 	}, syncFrequency); err != nil {
 		return nil, fmt.Errorf("failed to start filewatcher: %v", err)
@@ -57,7 +57,7 @@ func (fw *fileWatcher) UpdateRefs(secretRefs []string) {
 	fw.updateSecrets()
 }
 
-func (fw *fileWatcher) Secrets() <-chan secrets.SecretMap {
+func (fw *fileWatcher) Secrets() <-chan module.SecretMap {
 	return fw.secrets
 }
 
@@ -65,17 +65,17 @@ func (fw *fileWatcher) Error() <-chan error {
 	return fw.errors
 }
 
-func (fw *fileWatcher) getSecrets() (secrets.SecretMap, error) {
+func (fw *fileWatcher) getSecrets() (module.SecretMap, error) {
 	yml, err := ioutil.ReadFile(fw.file)
 	if err != nil {
 		return nil, err
 	}
-	var secretMap secrets.SecretMap
+	var secretMap module.SecretMap
 	err = yaml.Unmarshal(yml, &secretMap)
 	if err != nil {
 		return nil, err
 	}
-	desiredSecrets := make(secrets.SecretMap)
+	desiredSecrets := make(module.SecretMap)
 	for _, ref := range fw.secretsToWatch {
 		data, ok := secretMap[ref]
 		if !ok {
