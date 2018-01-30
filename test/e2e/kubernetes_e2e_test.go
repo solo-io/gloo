@@ -12,8 +12,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pborman/uuid"
-	"github.com/solo-io/glue/module/example"
 	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/glue/pkg/module/example"
 	. "github.com/solo-io/glue/test/helpers"
 )
 

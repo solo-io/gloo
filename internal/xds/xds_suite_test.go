@@ -1,4 +1,4 @@
-package xds_test
+package xds
 
 import (
 	"testing"

@@ -9,8 +9,8 @@ import (
 	"github.com/ghodss/yaml"
 
 	"github.com/solo-io/glue/implemented_modules/file/pkg/watcher"
-	"github.com/solo-io/glue/module"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/glue/pkg/module"
 )
 
 // FileWatcher uses .yml files in a directory

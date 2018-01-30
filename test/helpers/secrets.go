@@ -1,6 +1,6 @@
 package helpers
 
-import "github.com/solo-io/glue/module"
+import "github.com/solo-io/glue/pkg/module"
 
 func NewTestSecrets() module.SecretMap {
 	return map[string]map[string][]byte{

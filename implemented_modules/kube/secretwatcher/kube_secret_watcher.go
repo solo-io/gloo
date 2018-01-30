@@ -6,7 +6,7 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/solo-io/glue/module"
+	"github.com/solo-io/glue/pkg/module"
 )
 
 func NewSecretWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration) (module.SecretWatcher, error) {

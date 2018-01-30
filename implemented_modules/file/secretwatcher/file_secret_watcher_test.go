@@ -12,8 +12,8 @@ import (
 	"encoding/json"
 
 	. "github.com/solo-io/glue/implemented_modules/file/secretwatcher"
-	"github.com/solo-io/glue/module"
 	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/glue/pkg/module"
 	. "github.com/solo-io/glue/test/helpers"
 )
 

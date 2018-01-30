@@ -12,8 +12,8 @@ import (
 	"k8s.io/sample-controller/pkg/signals"
 
 	"github.com/solo-io/glue/implemented_modules/kube/pkg/controller"
-	"github.com/solo-io/glue/module"
 	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/glue/pkg/module"
 )
 
 type secretController struct {

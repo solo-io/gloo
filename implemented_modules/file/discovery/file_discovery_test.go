@@ -12,9 +12,9 @@ import (
 	"encoding/json"
 
 	. "github.com/solo-io/glue/implemented_modules/file/discovery"
-	"github.com/solo-io/glue/module"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/glue/pkg/module"
 	. "github.com/solo-io/glue/test/helpers"
 )
 
@@ -76,8 +76,8 @@ var _ = Describe("FileSecretWatcher", func() {
 				err = ioutil.WriteFile(file, yml, 0644)
 				Must(err)
 				upstreams := make([]v1.Upstream, 1)
-				for k := range cfg.Upstreams {
-					upstreams[0] = k
+				for _, upstream := range cfg.Upstreams {
+					upstreams[0] = upstream
 					break
 				}
 				go discovery.TrackUpstreams(upstreams)
