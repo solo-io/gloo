@@ -1,8 +1,8 @@
 package helpers
 
-import "github.com/solo-io/glue/secrets"
+import "github.com/solo-io/glue/module"
 
-func NewTestSecrets() secrets.SecretMap {
+func NewTestSecrets() module.SecretMap {
 	return map[string]map[string][]byte{
 		"user": {"username": []byte("me@example.com"), "password": []byte("foobar")},
 	}
