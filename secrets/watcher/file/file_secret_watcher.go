@@ -21,7 +21,7 @@ type fileWatcher struct {
 	errors         chan error
 }
 
-func NewFileSecretWatcher(file string, syncFrequency time.Duration) (*fileWatcher, error) {
+func NewSecretWatcher(file string, syncFrequency time.Duration) (*fileWatcher, error) {
 	secrets := make(chan watcher.SecretMap)
 	errors := make(chan error)
 	fw := &fileWatcher{

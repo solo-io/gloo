@@ -25,7 +25,7 @@ var _ = Describe("FileSecretWatcher", func() {
 		f, err := ioutil.TempFile("", "filesecrettest")
 		Must(err)
 		file = f.Name()
-		watch, err = NewFileSecretWatcher(file, time.Millisecond)
+		watch, err = NewSecretWatcher(file, time.Millisecond)
 		Must(err)
 	})
 	AfterEach(func() {
