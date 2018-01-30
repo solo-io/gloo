@@ -4,7 +4,7 @@ type SecretMap map[string]map[string][]byte
 
 // SecretWatcher is responsible for watching secrets referenced by a config
 type SecretWatcher interface {
-	UpdateRefs(secretRefs []string)
+	TrackSecrets(secretRefs []string)
 
 	// secrets are pushed here whenever they are read
 	Secrets() <-chan SecretMap

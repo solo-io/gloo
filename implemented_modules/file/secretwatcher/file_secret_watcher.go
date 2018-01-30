@@ -52,7 +52,7 @@ func (fw *fileWatcher) updateSecrets() {
 }
 
 // triggers an update
-func (fw *fileWatcher) UpdateRefs(secretRefs []string) {
+func (fw *fileWatcher) TrackSecrets(secretRefs []string) {
 	fw.secretsToWatch = secretRefs
 	fw.updateSecrets()
 }

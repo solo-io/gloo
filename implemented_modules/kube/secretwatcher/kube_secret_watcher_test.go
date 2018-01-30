@@ -63,7 +63,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 			// give controller time to register
 			time.Sleep(time.Second * 2)
 
-			go watcher.UpdateRefs([]string{createdSecret.Name})
+			go watcher.TrackSecrets([]string{createdSecret.Name})
 
 			select {
 			case <-time.After(time.Second * 5):

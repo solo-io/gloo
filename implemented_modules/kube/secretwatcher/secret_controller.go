@@ -63,7 +63,7 @@ func newSecretController(cfg *rest.Config, resyncDuration time.Duration) (*secre
 }
 
 // triggers an update
-func (c *secretController) UpdateRefs(secretRefs []string) {
+func (c *secretController) TrackSecrets(secretRefs []string) {
 	c.secretRefs = secretRefs
 	c.syncSecrets()
 }
