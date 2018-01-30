@@ -186,18 +186,6 @@
   revision = "2bca23e0e452137f789efbc8610126fd8b94f73b"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/mitchellh/mapstructure"
-  packages = ["."]
-  revision = "b4575eea38cca1123ec2dc90c26529b5c5acfcff"
-
-[[projects]]
-  name = "github.com/name5566/leaf"
-  packages = ["util"]
-  revision = "b4a5928965598cb0211ce4067f2032889fe0fb66"
-  version = "1.1.3"
-
-[[projects]]
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -514,6 +502,46 @@
   packages = [
     "discovery",
     "discovery/fake",
+    "informers",
+    "informers/admissionregistration",
+    "informers/admissionregistration/v1alpha1",
+    "informers/admissionregistration/v1beta1",
+    "informers/apps",
+    "informers/apps/v1",
+    "informers/apps/v1beta1",
+    "informers/apps/v1beta2",
+    "informers/autoscaling",
+    "informers/autoscaling/v1",
+    "informers/autoscaling/v2beta1",
+    "informers/batch",
+    "informers/batch/v1",
+    "informers/batch/v1beta1",
+    "informers/batch/v2alpha1",
+    "informers/certificates",
+    "informers/certificates/v1beta1",
+    "informers/core",
+    "informers/core/v1",
+    "informers/events",
+    "informers/events/v1beta1",
+    "informers/extensions",
+    "informers/extensions/v1beta1",
+    "informers/internalinterfaces",
+    "informers/networking",
+    "informers/networking/v1",
+    "informers/policy",
+    "informers/policy/v1beta1",
+    "informers/rbac",
+    "informers/rbac/v1",
+    "informers/rbac/v1alpha1",
+    "informers/rbac/v1beta1",
+    "informers/scheduling",
+    "informers/scheduling/v1alpha1",
+    "informers/settings",
+    "informers/settings/v1alpha1",
+    "informers/storage",
+    "informers/storage/v1",
+    "informers/storage/v1alpha1",
+    "informers/storage/v1beta1",
     "kubernetes",
     "kubernetes/scheme",
     "kubernetes/typed/admissionregistration/v1alpha1",
@@ -544,6 +572,30 @@
     "kubernetes/typed/storage/v1",
     "kubernetes/typed/storage/v1alpha1",
     "kubernetes/typed/storage/v1beta1",
+    "listers/admissionregistration/v1alpha1",
+    "listers/admissionregistration/v1beta1",
+    "listers/apps/v1",
+    "listers/apps/v1beta1",
+    "listers/apps/v1beta2",
+    "listers/autoscaling/v1",
+    "listers/autoscaling/v2beta1",
+    "listers/batch/v1",
+    "listers/batch/v1beta1",
+    "listers/batch/v2alpha1",
+    "listers/certificates/v1beta1",
+    "listers/core/v1",
+    "listers/events/v1beta1",
+    "listers/extensions/v1beta1",
+    "listers/networking/v1",
+    "listers/policy/v1beta1",
+    "listers/rbac/v1",
+    "listers/rbac/v1alpha1",
+    "listers/rbac/v1beta1",
+    "listers/scheduling/v1alpha1",
+    "listers/settings/v1alpha1",
+    "listers/storage/v1",
+    "listers/storage/v1alpha1",
+    "listers/storage/v1beta1",
     "pkg/version",
     "rest",
     "rest/watch",
@@ -584,6 +636,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6c5361a2f83ec27d452ccfcab596d3217b50de383f0cfda9ac3c489673b5fea7"
+  inputs-digest = "4732a89781e89db22ff16074ae8d7eba62c0f82debc87276ca1b2cab2bf47b1e"
   solver-name = "gps-cdcl"
   solver-version = 1
