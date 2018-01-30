@@ -1,23 +1,23 @@
-package kube
+package secretwatcher
 
 import (
 	"fmt"
 	"time"
 
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/sample-controller/pkg/signals"
 
-	"github.com/solo-io/glue/adapters/kube/controller"
+	"github.com/solo-io/glue/implemented_modules/kube/pkg/controller"
+	"github.com/solo-io/glue/module"
 	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/secrets"
-	"k8s.io/client-go/informers"
-	"k8s.io/client-go/listers/core/v1"
 )
 
 type secretController struct {
-	secrets       chan secrets.SecretMap
+	secrets       chan module.SecretMap
 	errors        chan error
 	secretsLister v1.SecretLister
 	secretRefs    []string
@@ -36,7 +36,7 @@ func newSecretController(cfg *rest.Config, resyncDuration time.Duration) (*secre
 		secretInformer.Informer())
 
 	ctrl := &secretController{
-		secrets:       make(chan secrets.SecretMap),
+		secrets:       make(chan module.SecretMap),
 		errors:        make(chan error),
 		secretsLister: secretInformer.Lister(),
 	}
@@ -68,7 +68,7 @@ func (c *secretController) UpdateRefs(secretRefs []string) {
 	c.syncSecrets()
 }
 
-func (c *secretController) Secrets() <-chan secrets.SecretMap {
+func (c *secretController) Secrets() <-chan module.SecretMap {
 	return c.secrets
 }
 
@@ -91,12 +91,12 @@ func (c *secretController) syncSecrets() {
 }
 
 // retrieves secrets from kubernetes
-func (c *secretController) getUpdatedSecrets() (secrets.SecretMap, error) {
+func (c *secretController) getUpdatedSecrets() (module.SecretMap, error) {
 	secretList, err := c.secretsLister.List(labels.Everything())
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving routes: %v", err)
 	}
-	secretMap := make(secrets.SecretMap)
+	secretMap := make(module.SecretMap)
 	for _, secret := range secretList {
 		for _, ref := range c.secretRefs {
 			if secret.Name == ref {
