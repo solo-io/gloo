@@ -1,4 +1,4 @@
-package crd_test
+package configwatcher_test
 
 import (
 	"testing"
