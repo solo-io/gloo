@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/glue/implemented_modules/kube/pkg/upstream"
+	. "github.com/solo-io/glue/internal/platform/kube/upstream"
 	"github.com/solo-io/glue/pkg/log"
 )
 

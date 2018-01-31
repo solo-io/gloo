@@ -12,9 +12,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
-	. "github.com/solo-io/glue/implemented_modules/kube/configwatcher"
-	clientset "github.com/solo-io/glue/implemented_modules/kube/configwatcher/crd/client/clientset/versioned"
-	crdv1 "github.com/solo-io/glue/implemented_modules/kube/configwatcher/crd/solo.io/v1"
+	. "github.com/solo-io/glue/internal/configwatcher/kube"
+	clientset "github.com/solo-io/glue/internal/configwatcher/kube/crd/client/clientset/versioned"
+	crdv1 "github.com/solo-io/glue/internal/configwatcher/kube/crd/solo.io/v1"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	. "github.com/solo-io/glue/test/helpers"
 )

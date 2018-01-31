@@ -1,12 +1,13 @@
-package watcher
+package file
 
 import (
 	"fmt"
 	"time"
 
 	"github.com/radovskyb/watcher"
-	"github.com/solo-io/glue/pkg/log"
 	"k8s.io/apimachinery/pkg/util/runtime"
+
+	"github.com/solo-io/glue/pkg/log"
 )
 
 // WatchFile watches for changes

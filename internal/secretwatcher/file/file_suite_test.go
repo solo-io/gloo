@@ -1,4 +1,4 @@
-package secretwatcher
+package file_test
 
 import (
 	"testing"

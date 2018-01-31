@@ -1,4 +1,4 @@
-package secretwatcher_test
+package kube_test
 
 import (
 	"time"
@@ -11,10 +11,10 @@ import (
 
 	"fmt"
 
-	. "github.com/solo-io/glue/implemented_modules/kube/discovery"
-	"github.com/solo-io/glue/implemented_modules/kube/pkg/upstream"
+	. "github.com/solo-io/glue/internal/endpointdiscovery/kube"
+	"github.com/solo-io/glue/internal/platform/kube/upstream"
 	gluev1 "github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/module"
+	"github.com/solo-io/glue/pkg/endpointdiscovery"
 	. "github.com/solo-io/glue/test/helpers"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -126,7 +126,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 				//created pods and services
 			}
 
-			Eventually(func() module.EndpointGroups {
+			Eventually(func() endpointdiscovery.EndpointGroups {
 				select {
 				case endpoints := <-discovery.Endpoints():
 					return endpoints

@@ -1,4 +1,4 @@
-package configwatcher
+package file
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	"github.com/solo-io/glue/implemented_modules/file/pkg/watcher"
+	"github.com/solo-io/glue/internal/platform/file"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 )
 
@@ -18,10 +18,10 @@ type fileWatcher struct {
 	errors  chan error
 }
 
-func NewFileConfigWatcher(file string, syncFrequency time.Duration) (*fileWatcher, error) {
+func NewFileConfigWatcher(fileName string, syncFrequency time.Duration) (*fileWatcher, error) {
 	configs := make(chan *v1.Config)
 	errors := make(chan error)
-	if err := watcher.WatchFile(file, func(path string) {
+	if err := file.WatchFile(fileName, func(path string) {
 		cfg, err := parseConfig(path)
 		if err != nil {
 			errors <- err

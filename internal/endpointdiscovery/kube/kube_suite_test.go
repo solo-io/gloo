@@ -1,4 +1,4 @@
-package secretwatcher_test
+package kube_test
 
 import (
 	"testing"

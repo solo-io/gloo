@@ -1,4 +1,4 @@
-package secretwatcher
+package kube
 
 import (
 	"fmt"
@@ -6,10 +6,10 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/solo-io/glue/pkg/module"
+	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
-func NewSecretWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration, stopCh <-chan struct{}) (module.SecretWatcher, error) {
+func NewSecretWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration, stopCh <-chan struct{}) (secretwatcher.Interface, error) {
 	cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build rest config: %v", err)

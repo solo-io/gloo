@@ -1,19 +1,19 @@
-package configwatcher_test
+package file_test
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"time"
 
-	"encoding/json"
-
 	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/solo-io/glue/implemented_modules/file/configwatcher"
+
+	. "github.com/solo-io/glue/internal/configwatcher/file"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/glue/pkg/configwatcher"
 	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/pkg/module"
 	. "github.com/solo-io/glue/test/helpers"
 )
 
@@ -21,7 +21,7 @@ var _ = Describe("FileConfigWatcher", func() {
 	var (
 		file  string
 		err   error
-		watch module.ConfigWatcher
+		watch configwatcher.Interface
 	)
 	BeforeEach(func() {
 		f, err := ioutil.TempFile("", "filecachetest")

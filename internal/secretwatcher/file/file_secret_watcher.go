@@ -1,4 +1,4 @@
-package secretwatcher
+package file
 
 import (
 	"fmt"
@@ -7,9 +7,9 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	"github.com/solo-io/glue/implemented_modules/file/pkg/watcher"
+	"github.com/solo-io/glue/internal/platform/file"
 	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/pkg/module"
+	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
 // FileWatcher uses .yml files in a directory
@@ -17,19 +17,19 @@ import (
 type fileWatcher struct {
 	file           string
 	secretsToWatch []string
-	secrets        chan module.SecretMap
+	secrets        chan secretwatcher.SecretMap
 	errors         chan error
 }
 
-func NewSecretWatcher(file string, syncFrequency time.Duration) (*fileWatcher, error) {
-	secrets := make(chan module.SecretMap)
+func NewSecretWatcher(fileName string, syncFrequency time.Duration) (*fileWatcher, error) {
+	secrets := make(chan secretwatcher.SecretMap)
 	errors := make(chan error)
 	fw := &fileWatcher{
 		secrets: secrets,
 		errors:  errors,
-		file:    file,
+		file:    fileName,
 	}
-	if err := watcher.WatchFile(file, func(_ string) {
+	if err := file.WatchFile(fileName, func(_ string) {
 		fw.updateSecrets()
 	}, syncFrequency); err != nil {
 		return nil, fmt.Errorf("failed to start filewatcher: %v", err)
@@ -57,7 +57,7 @@ func (fw *fileWatcher) TrackSecrets(secretRefs []string) {
 	fw.updateSecrets()
 }
 
-func (fw *fileWatcher) Secrets() <-chan module.SecretMap {
+func (fw *fileWatcher) Secrets() <-chan secretwatcher.SecretMap {
 	return fw.secrets
 }
 
@@ -65,17 +65,17 @@ func (fw *fileWatcher) Error() <-chan error {
 	return fw.errors
 }
 
-func (fw *fileWatcher) getSecrets() (module.SecretMap, error) {
+func (fw *fileWatcher) getSecrets() (secretwatcher.SecretMap, error) {
 	yml, err := ioutil.ReadFile(fw.file)
 	if err != nil {
 		return nil, err
 	}
-	var secretMap module.SecretMap
+	var secretMap secretwatcher.SecretMap
 	err = yaml.Unmarshal(yml, &secretMap)
 	if err != nil {
 		return nil, err
 	}
-	desiredSecrets := make(module.SecretMap)
+	desiredSecrets := make(secretwatcher.SecretMap)
 	for _, ref := range fw.secretsToWatch {
 		data, ok := secretMap[ref]
 		if !ok {

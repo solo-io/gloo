@@ -10,7 +10,7 @@ type Endpoint struct {
 	Port    int32
 }
 
-type Discovery interface {
+type Interface interface {
 	// tells the discovery to track endpoints for the given upstreams
 	TrackUpstreams(upstreams []v1.Upstream)
 

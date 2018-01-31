@@ -1,4 +1,4 @@
-package configwatcher_test
+package file_test
 
 import (
 	"testing"

@@ -1,4 +1,4 @@
-package secretwatcher
+package kube
 
 import (
 	"fmt"
@@ -12,14 +12,14 @@ import (
 	kubev1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/glue/implemented_modules/kube/pkg/controller"
-	"github.com/solo-io/glue/implemented_modules/kube/pkg/upstream"
+	"github.com/solo-io/glue/internal/platform/kube/controller"
+	"github.com/solo-io/glue/internal/platform/kube/upstream"
 	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/module"
+	"github.com/solo-io/glue/pkg/endpointdiscovery"
 )
 
 type endpointController struct {
-	endpoints       chan module.EndpointGroups
+	endpoints       chan endpointdiscovery.EndpointGroups
 	errors          chan error
 	endpointsLister kubev1.EndpointsLister
 	servicesLister  kubev1.ServiceLister
@@ -37,7 +37,7 @@ func newEndpointController(cfg *rest.Config, resyncDuration time.Duration, stopC
 	serviceInformer := informerFactory.Core().V1().Services()
 
 	ctrl := &endpointController{
-		endpoints:       make(chan module.EndpointGroups),
+		endpoints:       make(chan endpointdiscovery.EndpointGroups),
 		errors:          make(chan error),
 		endpointsLister: endpointInformer.Lister(),
 		servicesLister:  serviceInformer.Lister(),
@@ -74,7 +74,7 @@ func (c *endpointController) TrackUpstreams(upstreams []v1.Upstream) {
 	c.syncEndpoints()
 }
 
-func (c *endpointController) Endpoints() <-chan module.EndpointGroups {
+func (c *endpointController) Endpoints() <-chan endpointdiscovery.EndpointGroups {
 	return c.endpoints
 }
 
@@ -97,7 +97,7 @@ func (c *endpointController) syncEndpoints() {
 }
 
 // retrieves secrets from kubernetes
-func (c *endpointController) getUpdatedEndpoints() (module.EndpointGroups, error) {
+func (c *endpointController) getUpdatedEndpoints() (endpointdiscovery.EndpointGroups, error) {
 	serviceList, err := c.servicesLister.List(labels.Everything())
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving endpoints: %v", err)
@@ -107,7 +107,7 @@ func (c *endpointController) getUpdatedEndpoints() (module.EndpointGroups, error
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving endpoints: %v", err)
 	}
-	endpointGroups := make(module.EndpointGroups)
+	endpointGroups := make(endpointdiscovery.EndpointGroups)
 	for upstreamName, spec := range c.upstreamSpecs {
 		// find the targetport for our service
 		// if targetport is empty, skip this upstream
@@ -120,7 +120,7 @@ func (c *endpointController) getUpdatedEndpoints() (module.EndpointGroups, error
 			if spec.ServiceName == endpoint.Name && spec.ServiceNamespace == endpoint.Namespace {
 				for _, es := range endpoint.Subsets {
 					for _, addr := range es.Addresses {
-						m := module.Endpoint{
+						m := endpointdiscovery.Endpoint{
 							Address: addr.IP,
 							Port:    targetPort,
 						}
@@ -138,7 +138,7 @@ func portForUpstream(spec upstream.Spec, serviceList []*kubev1resources.Service)
 		if spec.ServiceName == svc.Name && spec.ServiceNamespace == svc.Namespace {
 			// found the port we want
 			if svc.Spec.ExternalName != "" {
-				runtime.HandleError(fmt.Errorf("WARNING: external name services are not supported for Kubernetes Endpoint Discovery"))
+				runtime.HandleError(fmt.Errorf("WARNING: external name services are not supported for Kubernetes Endpoint Interface"))
 			}
 			// if the service only has one port, just assume that's the one we want
 			// this way the user doesn't have to specify portname
@@ -148,7 +148,7 @@ func portForUpstream(spec upstream.Spec, serviceList []*kubev1resources.Service)
 			for _, port := range svc.Spec.Ports {
 				if spec.ServicePortName == port.Name {
 					if port.TargetPort.StrVal != "" {
-						runtime.HandleError(fmt.Errorf("WARNING: named ports are not supported for Kubernetes Endpoint Discovery"))
+						runtime.HandleError(fmt.Errorf("WARNING: named ports are not supported for Kubernetes Endpoint Interface"))
 					}
 					return port.TargetPort.IntVal, nil
 				}

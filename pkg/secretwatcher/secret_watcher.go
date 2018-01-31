@@ -2,8 +2,8 @@ package secretwatcher
 
 type SecretMap map[string]map[string][]byte
 
-// SecretWatcher is responsible for watching secrets referenced by a config
-type SecretWatcher interface {
+// Interface is responsible for watching secrets referenced by a config
+type Interface interface {
 	TrackSecrets(secretRefs []string)
 
 	// secrets are pushed here whenever they are read

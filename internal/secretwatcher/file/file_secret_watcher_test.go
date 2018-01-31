@@ -1,4 +1,4 @@
-package secretwatcher
+package file_test
 
 import (
 	"io/ioutil"
@@ -11,9 +11,9 @@ import (
 
 	"encoding/json"
 
-	. "github.com/solo-io/glue/implemented_modules/file/secretwatcher"
+	. "github.com/solo-io/glue/internal/secretwatcher/file"
 	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/pkg/module"
+	"github.com/solo-io/glue/pkg/secretwatcher"
 	. "github.com/solo-io/glue/test/helpers"
 )
 
@@ -21,7 +21,7 @@ var _ = Describe("FileSecretWatcher", func() {
 	var (
 		file  string
 		err   error
-		watch module.SecretWatcher
+		watch secretwatcher.Interface
 	)
 	BeforeEach(func() {
 		f, err := ioutil.TempFile("", "filesecrettest")

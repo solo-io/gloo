@@ -1,4 +1,4 @@
-package secretwatcher_test
+package kube_test
 
 import (
 	"time"
@@ -11,7 +11,7 @@ import (
 
 	"fmt"
 
-	. "github.com/solo-io/glue/implemented_modules/kube/secretwatcher"
+	. "github.com/solo-io/glue/internal/secretwatcher/kube"
 	. "github.com/solo-io/glue/test/helpers"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
