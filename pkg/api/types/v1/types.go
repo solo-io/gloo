@@ -47,9 +47,11 @@ type UpstreamDestination struct {
 	RewritePrefix string `json:"rewrite_prefix"`
 }
 
+type UpstreamType string
+
 type Upstream struct {
 	Name      string                 `json:"name"`
-	Type      string                 `json:"type"`
+	Type      UpstreamType           `json:"type"`
 	Spec      map[string]interface{} `json:"spec"`
 	Functions []Function             `json:"functions"`
 }

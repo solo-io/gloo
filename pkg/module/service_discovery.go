@@ -7,7 +7,7 @@ type EndpointGroups map[string][]Endpoint
 
 type Endpoint struct {
 	Address string
-	Port    uint32
+	Port    int32
 }
 
 type Discovery interface {
