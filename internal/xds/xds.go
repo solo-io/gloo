@@ -10,42 +10,26 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	"github.com/solo-io/glue/config"
 	"github.com/solo-io/glue/pkg/log"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
-const nodeKey = envoycache.Key("mock-node")
+// For now we're only running one envoy instance
+const NodeKey = envoycache.Key("glue-envoy")
 
 type hasher struct{}
 
 func (h hasher) Hash(node *envoyapi.Node) (envoycache.Key, error) {
-	return nodeKey, nil
+	return NodeKey, nil
 }
 
-func RunXDS(gatewayConfig *config.Config, port int, configChanged <-chan bool) error {
+func RunXDS(port int) (envoycache.Cache, *grpc.Server, error) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
-		return fmt.Errorf("failed to listen: %v", err)
+		return nil, nil, fmt.Errorf("failed to listen: %v", err)
 	}
-	srv, envoyConfig := createXdsServer()
-	go func() {
-		log.Printf("xDS server listening on %d", port)
-		if err = srv.Serve(lis); err != nil {
-			log.Fatalf("failed to serve grpc: %v", err)
-		}
-	}()
-	for {
-		select {
-		case <-configChanged:
-			configureCache(gatewayConfig.GetResources(), envoyConfig)
-		}
-	}
-}
-
-func createXdsServer() (*grpc.Server, envoycache.Cache) {
-	envoyConfig := envoycache.NewSimpleCache(hasher{}, func(key envoycache.Key) {
+	envoyCache := envoycache.NewSimpleCache(hasher{}, func(key envoycache.Key) {
 		log.Printf("CACHE: Key Updated: %s", key)
 	})
 	opts := []grpc_zap.Option{
@@ -65,23 +49,18 @@ func createXdsServer() (*grpc.Server, envoycache.Cache) {
 			},
 		)),
 	)
-	xdsSerevr := xds.NewServer(envoyConfig)
-	envoyapi.RegisterAggregatedDiscoveryServiceServer(grpcServer, xdsSerevr)
-	envoyapi.RegisterEndpointDiscoveryServiceServer(grpcServer, xdsSerevr)
-	envoyapi.RegisterClusterDiscoveryServiceServer(grpcServer, xdsSerevr)
-	envoyapi.RegisterRouteDiscoveryServiceServer(grpcServer, xdsSerevr)
-	envoyapi.RegisterListenerDiscoveryServiceServer(grpcServer, xdsSerevr)
-	return grpcServer, envoyConfig
-}
+	xdsServer := xds.NewServer(envoyCache)
+	envoyapi.RegisterAggregatedDiscoveryServiceServer(grpcServer, xdsServer)
+	envoyapi.RegisterEndpointDiscoveryServiceServer(grpcServer, xdsServer)
+	envoyapi.RegisterClusterDiscoveryServiceServer(grpcServer, xdsServer)
+	envoyapi.RegisterRouteDiscoveryServiceServer(grpcServer, xdsServer)
+	envoyapi.RegisterListenerDiscoveryServiceServer(grpcServer, xdsServer)
 
-func configureCache(resources []config.EnvoyResources, config envoycache.Cache) {
-	snapshot, err := createSnapshot(resources)
-	if err != nil {
-		log.Printf("ERROR:failed to create snapshot: %v", err)
-	}
-	config.SetSnapshot(nodeKey, snapshot)
-	if err != nil {
-		log.Printf("ERROR:failed to set snapshot: %v", err)
-	}
-	log.Debugf("set new snapshot: %v", snapshot)
+	go func() {
+		log.Printf("xDS server listening on %d", port)
+		if err = grpcServer.Serve(lis); err != nil {
+			log.Fatalf("failed to serve grpc: %v", err)
+		}
+	}()
+	return envoyCache, grpcServer, nil
 }
