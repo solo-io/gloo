@@ -11,7 +11,7 @@ import (
 	clientset "github.com/solo-io/glue/internal/configwatcher/kube/crd/client/clientset/versioned"
 	informers "github.com/solo-io/glue/internal/configwatcher/kube/crd/client/informers/externalversions"
 	listers "github.com/solo-io/glue/internal/configwatcher/kube/crd/client/listers/solo.io/v1"
-	"github.com/solo-io/glue/internal/platform/kube/controller"
+	"github.com/solo-io/glue/internal/pkg/kube/controller"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/log"
 )

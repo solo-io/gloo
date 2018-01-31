@@ -10,7 +10,7 @@ import (
 	"k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/glue/internal/platform/kube/controller"
+	"github.com/solo-io/glue/internal/pkg/kube/controller"
 	"github.com/solo-io/glue/pkg/log"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )

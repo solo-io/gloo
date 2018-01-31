@@ -7,7 +7,7 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	"github.com/solo-io/glue/internal/platform/file"
+	"github.com/solo-io/glue/internal/pkg/file"
 	"github.com/solo-io/glue/pkg/log"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )
