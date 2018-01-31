@@ -186,6 +186,12 @@
   revision = "2bca23e0e452137f789efbc8610126fd8b94f73b"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/mapstructure"
+  packages = ["."]
+  revision = "b4575eea38cca1123ec2dc90c26529b5c5acfcff"
+
+[[projects]]
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -627,15 +633,9 @@
   packages = ["pkg/util/proto"]
   revision = "a07b7bbb58e7fdc5144f8d7046331d29fc9ad3b3"
 
-[[projects]]
-  branch = "master"
-  name = "k8s.io/sample-controller"
-  packages = ["pkg/signals"]
-  revision = "0b8ef8e981fcec88f223b7ea9c687b064a6c0fc6"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4732a89781e89db22ff16074ae8d7eba62c0f82debc87276ca1b2cab2bf47b1e"
+  inputs-digest = "ed50e5d57473fc196b167bcffc84e8e08b1f13b470f5212d2bd8341edb3793e5"
   solver-name = "gps-cdcl"
   solver-version = 1
