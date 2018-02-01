@@ -1,23 +1,46 @@
 package v1
 
+type ConfigObject interface {
+	ThisIsAConfigObject()
+}
+
 type Config struct {
 	Routes       []Route
 	Upstreams    []Upstream
 	VirtualHosts []VirtualHost
 }
 
+func (c *Route) ThisIsAConfigObject()       {}
+func (c *Upstream) ThisIsAConfigObject()    {}
+func (c *VirtualHost) ThisIsAConfigObject() {}
+
 type Route struct {
-	Matcher     Matcher                `json:"matcher"`
-	Destination Destination            `json:"destination"`
-	Plugins     map[string]interface{} `json:"plugins"`
+	Matcher       Matcher     `json:"matcher"`
+	Destination   Destination `json:"destination"`
+	RewritePrefix string      `json:"rewrite_prefix"`
+	Weight        int
+	Plugins       map[string]interface{} `json:"plugins"`
 }
 
 type Destination struct {
 	// A valid destination can only contain one of:
+	// SingleDestination
+	// Destinations
+	SingleDestination
+	Destinations []WeightedDestination
+}
+
+type WeightedDestination struct {
+	SingleDestination
+	Weight int
+}
+
+type SingleDestination struct {
+	// A valid destination can only contain one of:
 	// FunctionDestination
 	// UpstreamDestination
-	FunctionDestionation *FunctionDestination `json:"function_destination,omitemtpy"`
-	UpstreamDestination  *UpstreamDestination `json:"upstream_destination,omitemtpy"`
+	FunctionDestination *FunctionDestination `json:"function_destination,omitemtpy"`
+	UpstreamDestination *UpstreamDestination `json:"upstream_destination,omitemtpy"`
 }
 
 type Matcher struct {
@@ -38,13 +61,12 @@ type Path struct {
 }
 
 type FunctionDestination struct {
-	UpstreamName string `json:"upstream_name"`
+	UpstreamName string `json:"upstream_name"` /// Move to function object?
 	FunctionName string `json:"function_name"`
 }
 
 type UpstreamDestination struct {
-	UpstreamName  string `json:"upstream_name"`
-	RewritePrefix string `json:"rewrite_prefix"`
+	UpstreamName string `json:"upstream_name"`
 }
 
 type Upstream struct {
@@ -55,13 +77,16 @@ type Upstream struct {
 }
 
 type Function struct {
-	Name string                 `json:"name"`
+	Name string `json:"name"`
+	// upstream ref?
 	Spec map[string]interface{} `json:"spec"`
 }
 
 type VirtualHost struct {
 	Domains   []string  `json:"domains"`
 	SSLConfig SSLConfig `json:"ssl_config,omitemtpy"`
+	// ^ secret ref | or file
+	// should route rules live here?
 }
 
 type SSLConfig struct {
