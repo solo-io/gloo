@@ -9,6 +9,7 @@ type Config struct {
 type Route struct {
 	Matcher     Matcher                `json:"matcher"`
 	Destination Destination            `json:"destination"`
+	Weight      int                    `json:"weight"`
 	Plugins     map[string]interface{} `json:"plugins"`
 }
 
