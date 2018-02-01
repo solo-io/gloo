@@ -28,3 +28,11 @@ func FromMap(m map[string]interface{}) (Spec, error) {
 
 	return spec, decoder.Decode(m)
 }
+
+func ToMap(spec Spec) map[string]interface{} {
+	return map[string]interface{}{
+		"service_name":      spec.ServiceName,
+		"service_namespace": spec.ServiceNamespace,
+		"service_port_name": spec.ServicePortName,
+	}
+}
