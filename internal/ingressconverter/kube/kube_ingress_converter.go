@@ -13,6 +13,8 @@ import (
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
 
+	"reflect"
+
 	clientset "github.com/solo-io/glue/internal/configwatcher/kube/crd/client/clientset/versioned"
 	crdv1 "github.com/solo-io/glue/internal/configwatcher/kube/crd/solo.io/v1"
 	"github.com/solo-io/glue/internal/pkg/kube/controller"
@@ -70,16 +72,16 @@ func NewIngressConverter(cfg *rest.Config, resyncDuration time.Duration, stopCh 
 	return ctrl, nil
 }
 
-func (c *ingressConverter) syncGlueResourcesWithIngresses(namespace, name string, ing interface{}) {
-	ingress, ok := ing.(*v1beta1.Ingress)
+func (c *ingressConverter) syncGlueResourcesWithIngresses(namespace, name string, v interface{}) {
+	ingress, ok := v.(*v1beta1.Ingress)
 	if !ok {
 		return
 	}
+	// only react if it's our ingress class
 	if !glueIngressClass(ingress) {
 		return
 	}
-	// only react if it's our inrgess class
-	log.Printf("syncing glue config items after ingress %v/%v changed", namespace, name)
+	log.Debugf("syncing glue config items after ingress %v/%v changed", namespace, name)
 	if err := c.syncGlueResources(namespace); err != nil {
 		c.errors <- err
 	}
@@ -101,6 +103,7 @@ func (c *ingressConverter) syncGlueResources(namespace string) error {
 	if err := c.syncUpstreams(namespace, desiredUpstreams, actualUpstreams); err != nil {
 		return fmt.Errorf("failed to sync actual with desired upstreams: %v", err)
 	}
+	shoutLen("desired routes", desiredRoutes)
 	if err := c.syncRoutes(namespace, desiredRoutes, actualRoutes); err != nil {
 		return fmt.Errorf("failed to sync actual with desired routes: %v", err)
 	}
@@ -117,8 +120,12 @@ func (c *ingressConverter) syncUpstreams(namespace string, desiredUpstreams, act
 		for i, actualUpstream := range actualUpstreams {
 			if desiredUpstream.Name == actualUpstream.Name {
 				// modify existing upstream
-				upstreamsToUpdate = append(upstreamsToUpdate, desiredUpstream)
+				desiredUpstream.ResourceVersion = actualUpstream.ResourceVersion
 				update = true
+				if !reflect.DeepEqual(desiredUpstream.Spec, actualUpstream.Spec) {
+					// only actually update if the spec has changed
+					upstreamsToUpdate = append(upstreamsToUpdate, desiredUpstream)
+				}
 				// remove it from the list we match against
 				actualUpstreams = append(actualUpstreams[:i], actualUpstreams[i+1:]...)
 				break
@@ -145,6 +152,9 @@ func (c *ingressConverter) syncUpstreams(namespace string, desiredUpstreams, act
 			return fmt.Errorf("failed to update upstream crd %s: %v", us.Name, err)
 		}
 	}
+	printList("created upstreams", upstreamsToCreate)
+	printList("updated upstreams", upstreamsToUpdate)
+	printList("deleted upstreams", actualUpstreams)
 	return nil
 }
 
@@ -158,8 +168,12 @@ func (c *ingressConverter) syncRoutes(namespace string, desiredRoutes, actualRou
 		for i, actualRoute := range actualRoutes {
 			if desiredRoute.Name == actualRoute.Name {
 				// modify existing route
-				routesToUpdate = append(routesToUpdate, desiredRoute)
+				desiredRoute.ResourceVersion = actualRoute.ResourceVersion
 				update = true
+				if !reflect.DeepEqual(desiredRoute.Spec, actualRoute.Spec) {
+					// only actually update if the spec has changed
+					routesToUpdate = append(routesToUpdate, desiredRoute)
+				}
 				// remove it from the list we match against
 				actualRoutes = append(actualRoutes[:i], actualRoutes[i+1:]...)
 				break
@@ -186,6 +200,9 @@ func (c *ingressConverter) syncRoutes(namespace string, desiredRoutes, actualRou
 			return fmt.Errorf("failed to update upstream crd %s: %v", route.Name, err)
 		}
 	}
+	printList("created routes", routesToCreate)
+	printList("updated routes", routesToUpdate)
+	printList("deleted routes", actualRoutes)
 	return nil
 }
 
@@ -210,6 +227,7 @@ func (c *ingressConverter) generateDesiredCrds(namespace string) ([]crdv1.Upstre
 		upstreams []crdv1.Upstream
 		routes    []crdv1.Route
 	)
+	printList("read ingresses", ingressList)
 	for _, ingress := range ingressList {
 		// we only care about ingresses in the specific namespace
 		if ingress.Namespace != namespace {
@@ -330,7 +348,7 @@ func portName(portVal intstr.IntOrString) string {
 	if portVal.Type == intstr.String {
 		return portVal.StrVal
 	}
-	return fmt.Sprintf("%s", portVal.IntVal)
+	return fmt.Sprintf("%d", portVal.IntVal)
 }
 
 func upstreamName(ingressName string, backend v1beta1.IngressBackend) string {
@@ -343,4 +361,22 @@ func routeName(route v1.Route) string {
 
 func glueIngressClass(ingress *v1beta1.Ingress) bool {
 	return ingress.Annotations["kubernetes.io/ingress.class"] == GlueIngressClass
+}
+
+func shoutLen(msg string, v interface{}) {
+	if l := reflect.ValueOf(v).Len(); l > 0 {
+		log.Printf("%s: %v", msg, l)
+	}
+}
+
+func shoutList(msg string, v interface{}) {
+	if l := reflect.ValueOf(v).Len(); l > 0 {
+		log.Printf("%s %d: %v", msg, l, v)
+	}
+}
+
+func printList(msg string, v interface{}) {
+	if l := reflect.ValueOf(v).Len(); l > 0 {
+		log.Debugf("%s %d: %v", msg, l, v)
+	}
 }

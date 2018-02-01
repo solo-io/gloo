@@ -174,7 +174,7 @@ func (c *Controller) processNextWorkItem() bool {
 			return nil
 		}
 		namespace, name, _ := cache.SplitMetaNamespaceKey(w.key)
-		c.handler(namespace, name, obj)
+		c.handler(namespace, name, w.obj)
 
 		c.workqueue.Forget(obj)
 		return nil
