@@ -88,6 +88,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 			AfterEach(func() {
 				err = kubeClient.ExtensionsV1beta1().Ingresses(namespace).Delete(createdIngress.Name, nil)
 				Must(err)
+				time.Sleep(time.Second)
 			})
 			It("does not return an error", func() {
 				select {
@@ -137,6 +138,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 			AfterEach(func() {
 				err = kubeClient.ExtensionsV1beta1().Ingresses(namespace).Delete(createdIngress.Name, nil)
 				Must(err)
+				time.Sleep(time.Second)
 			})
 			It("does not return an error", func() {
 				select {
@@ -175,6 +177,147 @@ var _ = Describe("KubeSecretWatcher", func() {
 				route := routes.Items[0]
 				Expect(route.Name).To(Equal(routeName(glueRoute)))
 				Expect(v1.Route(route.Spec)).To(Equal(glueRoute))
+			})
+		})
+		Context("an ingress is created with multiple rules", func() {
+			var (
+				createdIngress *v1beta1.Ingress
+				err            error
+			)
+			BeforeEach(func() {
+				// add an ingress
+				ingress := &v1beta1.Ingress{
+					ObjectMeta: metav1.ObjectMeta{
+						GenerateName: "ingress-",
+						Namespace:    namespace,
+						Annotations:  map[string]string{"kubernetes.io/ingress.class": GlueIngressClass},
+					},
+					Spec: v1beta1.IngressSpec{
+						Rules: []v1beta1.IngressRule{
+							{
+								Host: "host1",
+								IngressRuleValue: v1beta1.IngressRuleValue{
+									HTTP: &v1beta1.HTTPIngressRuleValue{
+										Paths: []v1beta1.HTTPIngressPath{
+											{
+												Path: "/foo/bar",
+												Backend: v1beta1.IngressBackend{
+													ServiceName: "service1",
+													ServicePort: intstr.FromInt(1234),
+												},
+											},
+											{
+												Path: "/foo/baz",
+												Backend: v1beta1.IngressBackend{
+													ServiceName: "service2",
+													ServicePort: intstr.FromInt(3456),
+												},
+											},
+										},
+									},
+								},
+							},
+							{
+								Host: "host2",
+								IngressRuleValue: v1beta1.IngressRuleValue{
+									HTTP: &v1beta1.HTTPIngressRuleValue{
+										Paths: []v1beta1.HTTPIngressPath{
+											{
+												Path: "/foo/bar",
+												Backend: v1beta1.IngressBackend{
+													ServiceName: "service3",
+													ServicePort: intstr.FromInt(1234),
+												},
+											},
+											{
+												Path: "/straw/berry",
+												Backend: v1beta1.IngressBackend{
+													ServiceName: "service4",
+													ServicePort: intstr.FromString("foo"),
+												},
+											},
+											{
+												Path: "/bat/girl",
+												Backend: v1beta1.IngressBackend{
+													ServiceName: "service4",
+													ServicePort: intstr.FromString("foo"),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+				createdIngress, err = kubeClient.ExtensionsV1beta1().Ingresses(namespace).Create(ingress)
+				Must(err)
+				time.Sleep(time.Second * 3)
+			})
+			AfterEach(func() {
+				err = kubeClient.ExtensionsV1beta1().Ingresses(namespace).Delete(createdIngress.Name, nil)
+				Must(err)
+				time.Sleep(time.Second)
+			})
+			It("does not return an error", func() {
+				select {
+				case <-time.After(time.Second * 2):
+					// passed without error
+				case err := <-ingressCvtr.Error():
+					Expect(err).NotTo(HaveOccurred())
+					Fail("err passed, but was nil")
+				}
+			})
+			It("should de-duplicate repeated upstreams", func() {
+				expectedUpstreams := make(map[string]v1.Upstream)
+				for _, rule := range createdIngress.Spec.Rules {
+					for _, path := range rule.HTTP.Paths {
+						expectedUpstreams[upstreamName(createdIngress.Name, path.Backend)] = v1.Upstream{
+							Name: upstreamName(createdIngress.Name, path.Backend),
+							Type: upstream.Kubernetes,
+							Spec: upstream.ToMap(upstream.Spec{
+								ServiceName:      path.Backend.ServiceName,
+								ServiceNamespace: namespace,
+								ServicePortName:  portName(path.Backend.ServicePort),
+							}),
+						}
+					}
+				}
+				upstreams, err := glueClient.GlueV1().Upstreams(namespace).List(metav1.ListOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(upstreams.Items).To(HaveLen(len(expectedUpstreams)))
+				for _, us := range upstreams.Items {
+					Expect(expectedUpstreams).To(HaveKey(us.Name))
+					Expect(us.Spec.Type).To(Equal(upstream.Kubernetes))
+					Expect(expectedUpstreams[us.Name]).To(Equal(v1.Upstream(us.Spec)))
+				}
+			})
+			It("create a route for every path", func() {
+				var expectedRoutes []v1.Route
+				for _, rule := range createdIngress.Spec.Rules {
+					for i, path := range rule.HTTP.Paths {
+						expectedRoutes = append(expectedRoutes, v1.Route{
+							Matcher: v1.Matcher{
+								Path: v1.Path{
+									Regex: path.Path,
+								},
+								VirtualHost: rule.Host,
+							},
+							Destination: v1.Destination{
+								UpstreamDestination: &v1.UpstreamDestination{
+									UpstreamName: upstreamName(createdIngress.Name, path.Backend),
+								},
+							},
+							Weight: len(rule.IngressRuleValue.HTTP.Paths) - i,
+						})
+					}
+				}
+				routes, err := glueClient.GlueV1().Routes(namespace).List(metav1.ListOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(routes.Items).To(HaveLen(len(expectedRoutes)))
+				for _, route := range routes.Items {
+					Expect(expectedRoutes).To(ContainElement(v1.Route(route.Spec)))
+				}
 			})
 		})
 	})

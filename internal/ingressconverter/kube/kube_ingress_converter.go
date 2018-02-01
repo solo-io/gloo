@@ -1,7 +1,9 @@
 package kube
 
 import (
+	"crypto/md5"
 	"fmt"
+	"reflect"
 	"time"
 
 	"k8s.io/api/extensions/v1beta1"
@@ -12,8 +14,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
-
-	"reflect"
 
 	clientset "github.com/solo-io/glue/internal/configwatcher/kube/crd/client/clientset/versioned"
 	crdv1 "github.com/solo-io/glue/internal/configwatcher/kube/crd/solo.io/v1"
@@ -103,7 +103,6 @@ func (c *ingressConverter) syncGlueResources(namespace string) error {
 	if err := c.syncUpstreams(namespace, desiredUpstreams, actualUpstreams); err != nil {
 		return fmt.Errorf("failed to sync actual with desired upstreams: %v", err)
 	}
-	shoutLen("desired routes", desiredRoutes)
 	if err := c.syncRoutes(namespace, desiredRoutes, actualRoutes); err != nil {
 		return fmt.Errorf("failed to sync actual with desired routes: %v", err)
 	}
@@ -152,9 +151,6 @@ func (c *ingressConverter) syncUpstreams(namespace string, desiredUpstreams, act
 			return fmt.Errorf("failed to update upstream crd %s: %v", us.Name, err)
 		}
 	}
-	printList("created upstreams", upstreamsToCreate)
-	printList("updated upstreams", upstreamsToUpdate)
-	printList("deleted upstreams", actualUpstreams)
 	return nil
 }
 
@@ -200,9 +196,6 @@ func (c *ingressConverter) syncRoutes(namespace string, desiredRoutes, actualRou
 			return fmt.Errorf("failed to update upstream crd %s: %v", route.Name, err)
 		}
 	}
-	printList("created routes", routesToCreate)
-	printList("updated routes", routesToUpdate)
-	printList("deleted routes", actualRoutes)
 	return nil
 }
 
@@ -227,7 +220,6 @@ func (c *ingressConverter) generateDesiredCrds(namespace string) ([]crdv1.Upstre
 		upstreams []crdv1.Upstream
 		routes    []crdv1.Route
 	)
-	printList("read ingresses", ingressList)
 	for _, ingress := range ingressList {
 		// we only care about ingresses in the specific namespace
 		if ingress.Namespace != namespace {
@@ -296,6 +288,7 @@ func createResourcesForRule(ingressName string, namespace string, rule v1beta1.I
 	)
 	host := rule.Host
 
+	uniqueUpstreams := make(map[string]crdv1.Upstream)
 	for i, path := range rule.IngressRuleValue.HTTP.Paths {
 		pathRegex := path.Path
 		if pathRegex == "" {
@@ -338,8 +331,11 @@ func createResourcesForRule(ingressName string, namespace string, rule v1beta1.I
 			},
 			Spec: crdv1.DeepCopyRoute(route),
 		}
-		upstreams = append(upstreams, usCrd)
+		uniqueUpstreams[usCrd.Name] = usCrd
 		routes = append(routes, routeCrd)
+	}
+	for _, usCrd := range uniqueUpstreams {
+		upstreams = append(upstreams, usCrd)
 	}
 	return upstreams, routes
 }
@@ -356,27 +352,25 @@ func upstreamName(ingressName string, backend v1beta1.IngressBackend) string {
 }
 
 func routeName(route v1.Route) string {
-	return fmt.Sprintf("%s%s%s", routePrefix, route.Matcher.VirtualHost, route.Destination.UpstreamDestination.UpstreamName)
+	var pathName string
+	if regex := route.Matcher.Path.Regex; regex != "" {
+		pathName = regex
+	}
+	if prefix := route.Matcher.Path.Prefix; prefix != "" {
+		pathName = prefix
+	}
+	if exact := route.Matcher.Path.Exact; exact != "" {
+		pathName = exact
+	}
+	return fmt.Sprintf("%s-%s%s", routePrefix, route.Matcher.VirtualHost, pathToName(pathName))
 }
 
 func glueIngressClass(ingress *v1beta1.Ingress) bool {
 	return ingress.Annotations["kubernetes.io/ingress.class"] == GlueIngressClass
 }
 
-func shoutLen(msg string, v interface{}) {
-	if l := reflect.ValueOf(v).Len(); l > 0 {
-		log.Printf("%s: %v", msg, l)
-	}
-}
-
-func shoutList(msg string, v interface{}) {
-	if l := reflect.ValueOf(v).Len(); l > 0 {
-		log.Printf("%s %d: %v", msg, l, v)
-	}
-}
-
-func printList(msg string, v interface{}) {
-	if l := reflect.ValueOf(v).Len(); l > 0 {
-		log.Debugf("%s %d: %v", msg, l, v)
-	}
+func pathToName(path string) string {
+	hash := md5.New()
+	hash.Write([]byte(path))
+	return fmt.Sprintf("%x", hash.Sum(nil))
 }
