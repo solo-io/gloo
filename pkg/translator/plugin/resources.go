@@ -1,6 +1,9 @@
 package plugin
 
-import 	"github.com/envoyproxy/go-control-plane/api/filter/network"
+import (
+	"github.com/envoyproxy/go-control-plane/api"
+	"github.com/envoyproxy/go-control-plane/api/filter/network"
+)
 
 type Stage int
 
