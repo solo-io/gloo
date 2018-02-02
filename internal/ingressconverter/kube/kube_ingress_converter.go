@@ -264,8 +264,10 @@ func createDefaultResources(ingressName string, namespace string, backend *v1bet
 			},
 		},
 		Destination: v1.Destination{
-			UpstreamDestination: &v1.UpstreamDestination{
-				UpstreamName: us.Name,
+			SingleDestination: v1.SingleDestination{
+				UpstreamDestination: &v1.UpstreamDestination{
+					UpstreamName: us.Name,
+				},
 			},
 		},
 		Weight: defaultRouteWeight,
@@ -318,8 +320,10 @@ func createResourcesForRule(ingressName string, namespace string, rule v1beta1.I
 				VirtualHost: host,
 			},
 			Destination: v1.Destination{
-				UpstreamDestination: &v1.UpstreamDestination{
-					UpstreamName: us.Name,
+				SingleDestination: v1.SingleDestination{
+					UpstreamDestination: &v1.UpstreamDestination{
+						UpstreamName: us.Name,
+					},
 				},
 			},
 			Weight: len(rule.IngressRuleValue.HTTP.Paths) - i,

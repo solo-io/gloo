@@ -165,8 +165,10 @@ var _ = Describe("KubeSecretWatcher", func() {
 						},
 					},
 					Destination: v1.Destination{
-						UpstreamDestination: &v1.UpstreamDestination{
-							UpstreamName: upstreamName(createdIngress.Name, *createdIngress.Spec.Backend),
+						SingleDestination: v1.SingleDestination{
+							UpstreamDestination: &v1.UpstreamDestination{
+								UpstreamName: upstreamName(createdIngress.Name, *createdIngress.Spec.Backend),
+							},
 						},
 					},
 					Weight: defaultRouteWeight,
@@ -304,8 +306,10 @@ var _ = Describe("KubeSecretWatcher", func() {
 								VirtualHost: rule.Host,
 							},
 							Destination: v1.Destination{
-								UpstreamDestination: &v1.UpstreamDestination{
-									UpstreamName: upstreamName(createdIngress.Name, path.Backend),
+								SingleDestination: v1.SingleDestination{
+									UpstreamDestination: &v1.UpstreamDestination{
+										UpstreamName: upstreamName(createdIngress.Name, path.Backend),
+									},
 								},
 							},
 							Weight: len(rule.IngressRuleValue.HTTP.Paths) - i,

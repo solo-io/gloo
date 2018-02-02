@@ -69,9 +69,11 @@ type UpstreamDestination struct {
 	UpstreamName string `json:"upstream_name"`
 }
 
+type UpstreamType string
+
 type Upstream struct {
 	Name      string                 `json:"name"`
-	Type      string                 `json:"type"`
+	Type      UpstreamType           `json:"type"`
 	Spec      map[string]interface{} `json:"spec"`
 	Functions []Function             `json:"functions"`
 }

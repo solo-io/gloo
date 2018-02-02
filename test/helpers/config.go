@@ -63,9 +63,11 @@ func NewTestRoute1() v1.Route {
 			VirtualHost: "my_vhost",
 		},
 		Destination: v1.Destination{
-			FunctionDestionation: &v1.FunctionDestination{
-				FunctionName: "foo",
-				UpstreamName: "aws",
+			SingleDestination: v1.SingleDestination{
+				FunctionDestination: &v1.FunctionDestination{
+					FunctionName: "foo",
+					UpstreamName: "aws",
+				},
 			},
 		},
 		Plugins: map[string]interface{}{
@@ -91,9 +93,11 @@ func NewTestRoute2() v1.Route {
 			Verbs: []string{"GET", "POST"},
 		},
 		Destination: v1.Destination{
-			FunctionDestionation: &v1.FunctionDestination{
-				FunctionName: "foo",
-				UpstreamName: "aws",
+			SingleDestination: v1.SingleDestination{
+				FunctionDestination: &v1.FunctionDestination{
+					FunctionName: "foo",
+					UpstreamName: "aws",
+				},
 			},
 		},
 		Plugins: map[string]interface{}{
