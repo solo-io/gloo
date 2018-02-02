@@ -30,7 +30,6 @@ const AwsFilterName = "io.solo.aws"
 const AwsFilterStage = plugin.OutAuth
 
 type AwsPlugin struct {
-	helper plugin.FuncitonalFilterHelper
 }
 
 func New() plugin.Plugin {
@@ -119,7 +118,7 @@ func (a *AwsPlugin) EnvoyFilters(pi *plugin.PluginInputs) []plugin.FilterWrapper
 }
 
 func (a *AwsPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, out *api.Route) {
-	a.helper.UpdateRoute(pi, a, in, out)
+	// nothing here
 }
 
 func (a *AwsPlugin) UpdateEnvoyCluster(pi *plugin.PluginInputs, in *v1.Upstream, out *api.Cluster) {
@@ -133,6 +132,11 @@ func (a *AwsPlugin) UpdateEnvoyCluster(pi *plugin.PluginInputs, in *v1.Upstream,
 		// TODO: log error
 		return
 	}
+
+	out.Type = api.Cluster_LOGICAL_DNS
+	out.Hosts = append(out.Hosts, &api.Address{Address: &api.Address_SocketAddress{SocketAddress: &api.SocketAddress{
+		Address: spec.GetLambdaHostname(),
+	}}})
 
 	secret := pi.State.Dependencies.Secrets()[spec.Secret]
 
@@ -160,6 +164,9 @@ func (a *AwsPlugin) IsMyUpstream(upstream *v1.Upstream) bool {
 
 func (a *AwsPlugin) GetFunctionSpec(in *v1.Function) *types.Struct {
 	spec, err := function.FromMap(in.Spec)
+	if err != nil {
+		return err
+	}
 
 	funcstruct := &types.Struct{Fields: make(map[string]*types.Value)}
 	funcstruct.Fields[AwsFunctionNameKey].Kind = &types.Value_StringValue{StringValue: string(spec.FunctionName)}

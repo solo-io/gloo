@@ -5,7 +5,6 @@ type ConfigObject interface {
 }
 
 type Config struct {
-	Routes       []Route
 	Upstreams    []Upstream
 	VirtualHosts []VirtualHost
 }
@@ -15,10 +14,9 @@ func (c *Upstream) ThisIsAConfigObject()    {}
 func (c *VirtualHost) ThisIsAConfigObject() {}
 
 type Route struct {
-	Matcher       Matcher     `json:"matcher"`
-	Destination   Destination `json:"destination"`
-	RewritePrefix string      `json:"rewrite_prefix"`
-	Weight        int
+	Matcher       Matcher                `json:"matcher"`
+	Destination   Destination            `json:"destination"`
+	RewritePrefix string                 `json:"rewrite_prefix"`
 	Plugins       map[string]interface{} `json:"plugins"`
 }
 
@@ -32,7 +30,7 @@ type Destination struct {
 
 type WeightedDestination struct {
 	SingleDestination
-	Weight int
+	Weight uint
 }
 
 type SingleDestination struct {
@@ -44,10 +42,9 @@ type SingleDestination struct {
 }
 
 type Matcher struct {
-	Path        Path              `json:"path"`
-	Headers     map[string]string `json:"headers"`
-	Verbs       []string          `json:"verbs"`
-	VirtualHost string            `json:"virtual_host"`
+	Path    Path              `json:"path"`
+	Headers map[string]string `json:"headers"`
+	Verbs   []string          `json:"verbs"`
 }
 
 type Path struct {
@@ -83,7 +80,9 @@ type Function struct {
 }
 
 type VirtualHost struct {
-	Domains   []string  `json:"domains"`
+	Name      string   `json:"name"`
+	Domains   []string `json:"domains"`
+	Routes    []Route
 	SSLConfig SSLConfig `json:"ssl_config,omitemtpy"`
 	// ^ secret ref | or file
 	// should route rules live here?
@@ -91,4 +90,5 @@ type VirtualHost struct {
 
 type SSLConfig struct {
 	CACertPath string `json:"ca_cert_path"`
+	SecretRef  string
 }
