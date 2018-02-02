@@ -142,7 +142,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 			})
 			It("does not return an error", func() {
 				select {
-				case <-time.After(time.Second * 2):
+				case <-time.After(time.Second * 1):
 					// passed without error
 				case err := <-ingressCvtr.Error():
 					Expect(err).NotTo(HaveOccurred())
@@ -254,12 +254,11 @@ var _ = Describe("KubeSecretWatcher", func() {
 				}
 				createdIngress, err = kubeClient.ExtensionsV1beta1().Ingresses(namespace).Create(ingress)
 				Must(err)
-				time.Sleep(time.Second * 3)
+				time.Sleep(time.Second * 2)
 			})
 			AfterEach(func() {
 				err = kubeClient.ExtensionsV1beta1().Ingresses(namespace).Delete(createdIngress.Name, nil)
 				Must(err)
-				time.Sleep(time.Second)
 			})
 			It("does not return an error", func() {
 				select {
@@ -271,6 +270,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 				}
 			})
 			It("should de-duplicate repeated upstreams", func() {
+				time.Sleep(time.Second * 3)
 				expectedUpstreams := make(map[string]v1.Upstream)
 				for _, rule := range createdIngress.Spec.Rules {
 					for _, path := range rule.HTTP.Paths {
@@ -295,6 +295,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 				}
 			})
 			It("create a route for every path", func() {
+				time.Sleep(4 * time.Second)
 				var expectedRoutes []v1.Route
 				for _, rule := range createdIngress.Spec.Rules {
 					for i, path := range rule.HTTP.Paths {
