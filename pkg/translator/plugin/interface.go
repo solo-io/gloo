@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/module"
 
@@ -36,4 +37,8 @@ type Dependencies interface {
 
 type NameTranslator interface {
 	UpstreamToClusterName(string) string
+}
+
+type Translator interface {
+	Translate(cfg *v1.Config, secretMap module.SecretMap, endpoints module.EndpointGroups) (*envoycache.Snapshot, error)
 }
