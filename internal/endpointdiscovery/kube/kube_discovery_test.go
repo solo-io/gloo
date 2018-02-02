@@ -23,7 +23,6 @@ import (
 )
 
 var _ = Describe("KubeSecretWatcher", func() {
-
 	var (
 		masterUrl, kubeconfigPath string
 		mkb                       *MinikubeInstance

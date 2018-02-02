@@ -30,7 +30,7 @@ func RunXDS(port int) (envoycache.Cache, *grpc.Server, error) {
 		return nil, nil, fmt.Errorf("failed to listen: %v", err)
 	}
 	envoyCache := envoycache.NewSimpleCache(hasher{}, func(key envoycache.Key) {
-		log.Printf("CACHE: Key Updated: %s", key)
+		log.Debugf("CACHE: Key Updated: %s", key)
 	})
 	opts := []grpc_zap.Option{
 		grpc_zap.WithDecider(func(fullMethodName string, err error) bool {
@@ -43,7 +43,7 @@ func RunXDS(port int) (envoycache.Cache, *grpc.Server, error) {
 			grpc_ctxtags.StreamServerInterceptor(),
 			grpc_zap.StreamServerInterceptor(zap.NewNop(), opts...),
 			func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-				log.Printf("STREAM: info: %v\n", info)
+				log.Debugf("STREAM: info: %v\n", info)
 				log.Debugf("STREAM: serverStream: %v\n", ss)
 				return handler(srv, ss)
 			},
@@ -57,7 +57,7 @@ func RunXDS(port int) (envoycache.Cache, *grpc.Server, error) {
 	envoyapi.RegisterListenerDiscoveryServiceServer(grpcServer, xdsServer)
 
 	go func() {
-		log.Printf("xDS server listening on %d", port)
+		log.Debugf("xDS server listening on %d", port)
 		if err = grpcServer.Serve(lis); err != nil {
 			log.Fatalf("failed to serve grpc: %v", err)
 		}

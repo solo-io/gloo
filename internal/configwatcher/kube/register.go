@@ -32,7 +32,7 @@ func registerCrds(restConfig *rest.Config) error {
 				},
 			},
 		}
-		log.Printf("registering crd %v", crd)
+		log.Debugf("registering crd %v", crd)
 		if _, err := clientset.ApiextensionsV1beta1().CustomResourceDefinitions().Create(toRegister); err != nil && !apierrors.IsAlreadyExists(err) {
 			return fmt.Errorf("failed to create crd: %v", err)
 		}

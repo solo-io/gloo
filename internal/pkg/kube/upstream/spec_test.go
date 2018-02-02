@@ -16,7 +16,7 @@ var _ = Describe("FromMap", func() {
 			"service_port_name": "svc-port",
 		}
 		spec, err := FromMap(m)
-		log.Printf("%v", spec)
+		log.Debugf("%v", spec)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(spec.ServiceName).To(Equal(m["service_name"]))
 		Expect(spec.ServiceNamespace).To(Equal(m["service_namespace"]))

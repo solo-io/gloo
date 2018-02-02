@@ -31,7 +31,7 @@ var _ = Describe("FileConfigWatcher", func() {
 		Must(err)
 	})
 	AfterEach(func() {
-		log.Printf("removing " + file)
+		log.Debugf("removing " + file)
 		os.RemoveAll(file)
 	})
 	Describe("watching file", func() {

@@ -66,7 +66,7 @@ func newCrdController(cfg *rest.Config, resyncDuration time.Duration, stopCh <-c
 
 func (c *crdController) syncConfig(namespace, name string, _ interface{}) {
 	if err := func() error {
-		log.Printf("syncing config after item %v/%v changed", namespace, name)
+		log.Debugf("syncing config after item %v/%v changed", namespace, name)
 
 		routeList, err := c.routesLister.List(labels.Everything())
 		if err != nil {

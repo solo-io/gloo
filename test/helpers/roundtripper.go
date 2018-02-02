@@ -19,7 +19,7 @@ func (rt *loggingRoundTripper) RoundTrip(req *http.Request) (*http.Response, err
 	res, err := rt.wrapped.RoundTrip(req)
 	log.GreyPrintf("Logging response: %v", res)
 	if err != nil {
-		log.Printf("Logging err: %v", err)
+		log.Debugf("Logging err: %v", err)
 	}
 	return res, err
 }

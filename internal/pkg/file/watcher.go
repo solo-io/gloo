@@ -29,9 +29,9 @@ func WatchFile(path string, handler func(path string), syncFrequency time.Durati
 				}
 				handler(event.Path)
 			case err := <-w.Error:
-				log.Printf("FileWatcher: Watcher encountered error: %v", err)
+				log.Debugf("FileWatcher: Watcher encountered error: %v", err)
 			case <-w.Closed:
-				log.Printf("FileWatcher: Watcher terminated")
+				log.Debugf("FileWatcher: Watcher terminated")
 				return
 			}
 		}
@@ -45,7 +45,7 @@ func WatchFile(path string, handler func(path string), syncFrequency time.Durati
 	// Print a list of all of the files and folders currently
 	// being watched and their paths.
 	for path, f := range w.WatchedFiles() {
-		log.Printf("FileWatcher: Watching %s: %s\n", path, f.Name())
+		log.Debugf("FileWatcher: Watching %s: %s\n", path, f.Name())
 	}
 
 	go func() {

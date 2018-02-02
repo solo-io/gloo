@@ -90,7 +90,7 @@ func (c *secretController) getUpdatedSecrets() (secretwatcher.SecretMap, error) 
 	for _, secret := range secretList {
 		for _, ref := range c.secretRefs {
 			if secret.Name == ref {
-				log.Printf("updated secret %s", ref)
+				log.Debugf("updated secret %s", ref)
 				secretMap[ref] = secret.Data
 				break
 			}

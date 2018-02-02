@@ -2,12 +2,13 @@ package helpers
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/solo-io/glue/pkg/log"
 )
 
 // minikube.go provides helper methods for running tests on minikube
@@ -87,25 +88,19 @@ func (mkb *MinikubeInstance) Teardown() error {
 		if err := kubectl("delete", "namespace", mkb.ephemeralNamespace); err != nil {
 			return err
 		}
-		terminated := func(output string) bool {
-			return strings.Contains(output, "NotFound")
-		}
-		if err := waitNamespaceStatus(mkb.ephemeralNamespace, "Terminated", terminated); err != nil {
-			return err
-		}
 	}
 	return nil
 }
 
 // startMinikube starts a minikube vm with the given name
 func (mkb *MinikubeInstance) startMinikube() error {
-	log.Printf("starting minikube %v", mkb.vmName)
+	log.Debugf("starting minikube %v", mkb.vmName)
 	return minikube("start", "-p", mkb.vmName)
 }
 
 // deleteMinikube deletes the given minikube vm
 func (mkb *MinikubeInstance) deleteMinikube() error {
-	log.Printf("deleting minikube %v", mkb.vmName)
+	log.Debugf("deleting minikube %v", mkb.vmName)
 	return minikube("delete", "-p", mkb.vmName)
 }
 
@@ -123,7 +118,7 @@ func (mkb *MinikubeInstance) setMinikubeDockerEnv() error {
 		line = strings.TrimPrefix(line, "export ")
 		parts := strings.Split(line, "=")
 		if len(parts) != 2 {
-			log.Printf("unexpected line was not parsed: %v", line)
+			log.Debugf("unexpected line was not parsed: %v", line)
 			continue
 		}
 		key := parts[0]
@@ -150,7 +145,7 @@ func (mkb *MinikubeInstance) buildContainers() error {
 		if !info.IsDir() || path == containerDir {
 			return nil
 		}
-		log.Printf("TEST: building container %v", filepath.Base(path))
+		log.Debugf("TEST: building container %v", filepath.Base(path))
 		cmd := exec.Command(filepath.Join(path, "build.sh"))
 		cmd.Dir = path
 		cmd.Stdout = os.Stderr
@@ -264,7 +259,7 @@ func waitPodStatus(pod, status string, finished func(output string) bool) error 
 	interval := time.Millisecond * 1000
 	tick := time.Tick(interval)
 
-	log.Printf("waiting %v for pod %v to be %v...", timeout, pod, status)
+	log.Debugf("waiting %v for pod %v to be %v...", timeout, pod, status)
 	for {
 		select {
 		case <-time.After(timeout):
@@ -286,7 +281,7 @@ func waitNamespaceStatus(namespace, status string, finished func(output string) 
 	interval := time.Millisecond * 1000
 	tick := time.Tick(interval)
 
-	log.Printf("waiting %v for namespace %v to be %v...", timeout, namespace, status)
+	log.Debugf("waiting %v for namespace %v to be %v...", timeout, namespace, status)
 	for {
 		select {
 		case <-time.After(timeout):

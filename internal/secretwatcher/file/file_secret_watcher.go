@@ -79,10 +79,10 @@ func (fw *fileWatcher) getSecrets() (secretwatcher.SecretMap, error) {
 	for _, ref := range fw.secretsToWatch {
 		data, ok := secretMap[ref]
 		if !ok {
-			log.Printf("ref %v not found", ref)
+			log.Debugf("ref %v not found", ref)
 			return nil, fmt.Errorf("secret ref %v not found in file %v", ref, fw.file)
 		}
-		log.Printf("ref found: %v", ref)
+		log.Debugf("ref found: %v", ref)
 		desiredSecrets[ref] = data
 	}
 
