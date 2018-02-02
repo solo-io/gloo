@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "cloud.google.com/go"
+  packages = ["compute/metadata"]
+  revision = "767c40d6a2e058483c25fa193e963a22da17236d"
+  version = "v0.18.0"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -59,7 +65,6 @@
   revision = "84a468cf14b4376def5d68c722b139b881c450a4"
 
 [[projects]]
-  branch = "master"
   name = "github.com/golang/protobuf"
   packages = [
     "jsonpb",
@@ -69,7 +74,8 @@
     "ptypes/any",
     "ptypes/duration",
     "ptypes/struct",
-    "ptypes/timestamp"
+    "ptypes/timestamp",
+    "ptypes/wrappers"
   ]
   revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
 
@@ -118,6 +124,18 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hashicorp/errwrap"
+  packages = ["."]
+  revision = "7554cd9344cec97297fa6649b055a8c98c2a1e55"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/go-multierror"
+  packages = ["."]
+  revision = "b7773ae218740a7be65057fc60b366a49b538a44"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/golang-lru"
   packages = [
     ".",
@@ -136,6 +154,12 @@
   packages = ["."]
   revision = "163f41321a19dd09362d4c63cc2489db2015f1f4"
   version = "0.3.2"
+
+[[projects]]
+  name = "github.com/inconshreveable/mousetrap"
+  packages = ["."]
+  revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+  version = "v1.0"
 
 [[projects]]
   branch = "master"
@@ -181,15 +205,15 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/mitchellh/hashstructure"
-  packages = ["."]
-  revision = "2bca23e0e452137f789efbc8610126fd8b94f73b"
-
-[[projects]]
-  branch = "master"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   revision = "b4575eea38cca1123ec2dc90c26529b5c5acfcff"
+
+[[projects]]
+  name = "github.com/natefinch/lumberjack"
+  packages = ["."]
+  revision = "a96e63847dc3c67d17befa69c303767e2f84e54f"
+  version = "v2.1"
 
 [[projects]]
   name = "github.com/onsi/ginkgo"
@@ -266,6 +290,12 @@
   version = "v0.18.0"
 
 [[projects]]
+  name = "github.com/spf13/cobra"
+  packages = ["."]
+  revision = "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
+  version = "v0.0.1"
+
+[[projects]]
   name = "github.com/spf13/pflag"
   packages = ["."]
   revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
@@ -291,7 +321,8 @@
     "internal/bufferpool",
     "internal/color",
     "internal/exit",
-    "zapcore"
+    "zapcore",
+    "zapgrpc"
   ]
   revision = "35aad584952c3e7020db7b839f6b102de6271f89"
   version = "v1.7.1"
@@ -307,6 +338,7 @@
   name = "golang.org/x/net"
   packages = [
     "context",
+    "context/ctxhttp",
     "html",
     "html/atom",
     "html/charset",
@@ -318,6 +350,18 @@
     "trace"
   ]
   revision = "5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/oauth2"
+  packages = [
+    ".",
+    "google",
+    "internal",
+    "jws",
+    "jwt"
+  ]
+  revision = "a032972e28060ca4f5644acffae3dfc268cc09db"
 
 [[projects]]
   branch = "master"
@@ -360,6 +404,23 @@
     "unicode/rangetable"
   ]
   revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
+
+[[projects]]
+  name = "google.golang.org/appengine"
+  packages = [
+    ".",
+    "internal",
+    "internal/app_identity",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/modules",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch"
+  ]
+  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -409,6 +470,35 @@
   revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
 [[projects]]
+  name = "istio.io/api"
+  packages = [
+    "mesh/v1alpha1",
+    "mixer/v1",
+    "mixer/v1/config/client",
+    "routing/v1alpha1",
+    "routing/v1alpha2"
+  ]
+  revision = "58de5731b5401268263924fae9df7d091813c19e"
+
+[[projects]]
+  branch = "master"
+  name = "istio.io/gogo-genproto"
+  packages = ["googleapis/google/rpc"]
+  revision = "dd2b5b6a8f1400838165245e704a011a30154a44"
+
+[[projects]]
+  name = "istio.io/istio"
+  packages = [
+    "pilot/pkg/config/kube/crd",
+    "pilot/pkg/model",
+    "pilot/pkg/model/test",
+    "pilot/pkg/serviceregistry/kube",
+    "pkg/log"
+  ]
+  revision = "c9debceacb63a14a9ae24df433e2ec3ce1f16fc7"
+  version = "0.5.0"
+
+[[projects]]
   branch = "master"
   name = "k8s.io/api"
   packages = [
@@ -444,7 +534,7 @@
   revision = "dc0dd48d5a5cae9f8736bb0643cfe6052e450f1b"
 
 [[projects]]
-  branch = "master"
+  branch = "release-1.9"
   name = "k8s.io/apiextensions-apiserver"
   packages = [
     "pkg/apis/apiextensions",
@@ -453,7 +543,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "ddd9f73609e9a03a76dc8566ba6296db0cda63d3"
+  revision = "6f29dd12234812844d29f52bd520bb01374619ce"
 
 [[projects]]
   branch = "master"
@@ -603,9 +693,12 @@
     "listers/storage/v1alpha1",
     "listers/storage/v1beta1",
     "pkg/version",
+    "plugin/pkg/client/auth/gcp",
+    "plugin/pkg/client/auth/oidc",
     "rest",
     "rest/watch",
     "testing",
+    "third_party/forked/golang/template",
     "tools/auth",
     "tools/cache",
     "tools/clientcmd",
@@ -622,6 +715,7 @@
     "util/flowcontrol",
     "util/homedir",
     "util/integer",
+    "util/jsonpath",
     "util/workqueue"
   ]
   revision = "78700dec6369ba22221b72770783300f143df150"
@@ -636,6 +730,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ed50e5d57473fc196b167bcffc84e8e08b1f13b470f5212d2bd8341edb3793e5"
+  inputs-digest = "3f319a981e3f532b4760bb21e29f5cc1bdfa5baff1de8f2817527ad90bff51cf"
   solver-name = "gps-cdcl"
   solver-version = 1
