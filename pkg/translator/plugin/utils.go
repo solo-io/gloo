@@ -27,14 +27,13 @@ func (s *SimpleDependenciesDescription) SecretRefs() []string {
 
 type FunctionalFilter interface {
 	IsMyUpstream(upstream *v1.Upstream) bool
-	GetFunctionSpec(functioname string) *types.Struct
+	GetFunctionSpec(in *v1.Function) *types.Struct
 }
 
 type FuncitonalFilterHelper struct {
 }
 
 func (ffh *FuncitonalFilterHelper) UpdateRoute(pi *PluginInputs, ff FunctionalFilter, routein *v1.Route, routeout *api.Route) {
-
 	// we only care about upstreams of type aws
 
 	// if it is a single destination and it is not aws do nothing.
@@ -60,7 +59,7 @@ func (ffh *FuncitonalFilterHelper) UpdateRoute(pi *PluginInputs, ff FunctionalFi
 				},
 			},
 		}
-		ffh.addClusterSingleFuncToMetadata(ff, routeout, clustername, singlefunc)
+		ffh.addClusterSingleFuncToMetadata(pi, ff, routeout, clustername, singlefunc)
 
 	} else {
 		// for each source in route, find the upstream
@@ -80,14 +79,12 @@ func (ffh *FuncitonalFilterHelper) UpdateRoute(pi *PluginInputs, ff FunctionalFi
 			}
 			clustername := pi.NameTranslator.UpstreamToClusterName(k)
 			// create metadata object for cluster in the route:
-			ffh.addClusterFuncsToMetadata(ff, routeout, clustername, v)
+			ffh.addClusterFuncsToMetadata(pi, ff, routeout, clustername, v)
 
 			// add the cluster to the list
 			ffh.addClusterWithWeight(routeout, clustername, uint32(w))
 		}
-
 	}
-
 }
 
 func (ffh *FuncitonalFilterHelper) verifyMetadata(routeout *api.Route, clustername string) *types.Struct {
@@ -106,12 +103,12 @@ func (ffh *FuncitonalFilterHelper) verifyMetadata(routeout *api.Route, clusterna
 	return routeClusterMetadata
 }
 
-func (ffh *FuncitonalFilterHelper) addClusterSingleFuncToMetadata(ff FunctionalFilter, routeout *api.Route, clustername string, destination *v1.FunctionDestination) {
+func (ffh *FuncitonalFilterHelper) addClusterSingleFuncToMetadata(pi *PluginInputs, ff FunctionalFilter, routeout *api.Route, clustername string, destination *v1.FunctionDestination) {
 	routeClusterMetadata := ffh.verifyMetadata(routeout, clustername)
-	routeClusterMetadata.Fields[FunctionalSingleKey].Kind = &types.Value_StructValue{StructValue: ff.GetFunctionSpec(destination.FunctionName)}
+	routeClusterMetadata.Fields[FunctionalSingleKey].Kind = &types.Value_StructValue{StructValue: ff.GetFunctionSpec(pi.State.GetFunction(destination))}
 }
 
-func (ffh *FuncitonalFilterHelper) addClusterFuncsToMetadata(ff FunctionalFilter, routeout *api.Route, clustername string, destinations []*v1.WeightedDestination) {
+func (ffh *FuncitonalFilterHelper) addClusterFuncsToMetadata(pi *PluginInputs, ff FunctionalFilter, routeout *api.Route, clustername string, destinations []*v1.WeightedDestination) {
 	routeClusterMetadata := ffh.verifyMetadata(routeout, clustername)
 
 	var clusterFuncWeights []*types.Value
@@ -119,7 +116,7 @@ func (ffh *FuncitonalFilterHelper) addClusterFuncsToMetadata(ff FunctionalFilter
 	for _, destination := range destinations {
 		curvalstruct := &types.Struct{Fields: make(map[string]*types.Value)}
 
-		curvalstruct.Fields["spec"].Kind = &types.Value_StructValue{StructValue: ff.GetFunctionSpec(destination.FunctionDestination.FunctionName)}
+		curvalstruct.Fields["spec"].Kind = &types.Value_StructValue{StructValue: ff.GetFunctionSpec(pi.State.GetFunction(destination.FunctionDestination))}
 		curvalstruct.Fields["weight"].Kind = &types.Value_NumberValue{
 			NumberValue: float64(destination.Weight),
 		}
@@ -132,7 +129,6 @@ func (ffh *FuncitonalFilterHelper) addClusterFuncsToMetadata(ff FunctionalFilter
 	}
 
 	routeClusterMetadata.Fields[FunctionalFunctionsKey].Kind = &types.Value_ListValue{ListValue: &types.ListValue{clusterFuncWeights}}
-
 }
 
 func (ffh *FuncitonalFilterHelper) addClusterWithWeight(routeout *api.Route, clustername string, weight uint32) error {
