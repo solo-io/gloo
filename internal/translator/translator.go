@@ -10,6 +10,7 @@ import (
 
 	"github.com/envoyproxy/go-control-plane/api"
 	"github.com/envoyproxy/go-control-plane/api/filter/network"
+	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/module"
 	"github.com/solo-io/glue/pkg/translator/plugin"
@@ -117,6 +118,62 @@ func (t *Translator) constructEds(clustername string, addresses []module.Endpoin
 	return &out
 }
 
+func (t *Translator) constructListener(pi *plugin.PluginInputs, listener, route string) *api.Listener {
+	router := "envoy.router"
+	httpFilter := "envoy.http_connection_manager"
+	port := uint32(80)
+
+	rdsSource := api.ConfigSource{}
+	rdsSource.ConfigSourceSpecifier = &api.ConfigSource_Ads{
+		Ads: &api.AggregatedConfigSource{},
+	}
+
+	var whttpfilters []plugin.FilterWrapper
+	for _, plgin := range t.plugins {
+		whttpfilters = append(whttpfilters, plgin.EnvoyFilters(pi)...)
+	}
+	httpfilters := sortFilters(whttpfilters)
+
+	httpfilters = append(httpfilters, &network.HttpFilter{Name: router})
+
+	manager := &network.HttpConnectionManager{
+		CodecType:  network.HttpConnectionManager_AUTO,
+		StatPrefix: "http",
+		RouteSpecifier: &network.HttpConnectionManager_Rds{
+			Rds: &network.Rds{
+				ConfigSource:    rdsSource,
+				RouteConfigName: route,
+			},
+		},
+		HttpFilters: httpfilters,
+	}
+	pbst, err := util.MessageToStruct(manager)
+	if err != nil {
+		panic("TODO: Report error")
+	}
+
+	return &api.Listener{
+		Name: listener,
+		Address: &api.Address{
+			Address: &api.Address_SocketAddress{
+				SocketAddress: &api.SocketAddress{
+					Protocol: api.SocketAddress_TCP,
+					Address:  "::", //bind all
+					PortSpecifier: &api.SocketAddress_PortValue{
+						PortValue: port,
+					},
+				},
+			},
+		},
+		FilterChains: []*api.FilterChain{{
+			Filters: []*api.Filter{{
+				Name:   httpFilter,
+				Config: pbst,
+			}},
+		}},
+	}
+}
+
 func (t *Translator) Translate(cfg *v1.Config, secretMap module.SecretMap, endpoints module.EndpointGroups) (*envoycache.Snapshot, error) {
 	dependencies := dependencies{secrets: secretMap}
 	state := &plugin.State{
@@ -149,7 +206,7 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap module.SecretMap, endpo
 		clustersproto = append(clustersproto, envoycluster)
 	}
 
-	rdsname := "routes"
+	rdsname := "routes-80"
 
 	var envoyvhosts []*api.VirtualHost
 	for _, vhost := range cfg.VirtualHosts {
@@ -167,6 +224,7 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap module.SecretMap, endpo
 			Domains: ifEmpty(vhost.Domains, []string{"*"}),
 			Routes:  routes,
 		}
+
 		// if we have ssl certificates, add them to the ssl filter chain.
 		// TODO: Create filter chain for listener
 		envoyvhosts = append(envoyvhosts, envoyvhost)
@@ -179,13 +237,17 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap module.SecretMap, endpo
 	var routessproto []proto.Message
 	routessproto = append(routessproto, routeConfig)
 
+	listener := t.constructListener(pi, "listener-"+rdsname, rdsname)
+	var listenerproto []proto.Message
+	listenerproto = append(listenerproto, listener)
+
 	version := "1"
 
 	snapshot := envoycache.NewSnapshot(version,
 		endpointsproto,
 		clustersproto,
 		routessproto,
-		nil /*[]proto.Message{listener}*/)
+		listenerproto)
 
 	// create the routes
 
@@ -207,7 +269,7 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap module.SecretMap, endpo
 	// stable sort
 
 	// computer snapshort version
-	return snapshot, nil
+	return &snapshot, nil
 }
 
 func ifEmpty(l []string, def []string) []string {
@@ -217,33 +279,7 @@ func ifEmpty(l []string, def []string) []string {
 	return def
 }
 
-func (t *Translator) runTranslation(cfg v1.Config, secretMap module.SecretMap) envoycache.Snapshot {
-	// compute virtual VirtualHosts
-	// compute Routes
-	// ...
-
-	// do a stable sort
-	var filters []plugin.FilterWrapper
-	var routes []plugin.RouteWrapper
-	var clusters []plugin.ClusterWrapper
-
-	for _, plgin := range t.plugins {
-		resource := plgin.Translate(cfg, secretMap)
-		filters = append(filters, resource.Filters...)
-		clusters = append(clusters, resource.Clusters...)
-		routes = append(routes, resource.Routes...)
-	}
-
-	// for each route, find out which upstream it goes to and add metadata as appropriate.
-
-	// sort out the filters
-	sortedFilters := sortFilters(filters)
-
-	snapshot := envoycache.NewSnapshot
-
-}
-
-func sortFilters(filters []plugin.FilterWrapper) []network.HttpFilter {
+func sortFilters(filters []plugin.FilterWrapper) []*network.HttpFilter {
 	// sort them accoirding to stage and then according to the name.
 	less := func(i, j int) bool {
 		filteri := filters[i]
@@ -255,9 +291,9 @@ func sortFilters(filters []plugin.FilterWrapper) []network.HttpFilter {
 	}
 	sort.Slice(filters, less)
 
-	var sortedFilters []network.HttpFilter
+	var sortedFilters []*network.HttpFilter
 	for _, filter := range filters {
-		sortedFilters = append(sortedFilters, filter.Filter)
+		sortedFilters = append(sortedFilters, &filter.Filter)
 	}
 
 	return sortedFilters
