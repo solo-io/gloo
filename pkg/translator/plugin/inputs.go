@@ -10,7 +10,7 @@ type State struct {
 }
 
 type PluginInputs struct {
-	State          State
+	State          *State
 	NameTranslator NameTranslator
 }
 
