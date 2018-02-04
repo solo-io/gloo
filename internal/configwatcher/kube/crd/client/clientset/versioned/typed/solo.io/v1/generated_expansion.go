@@ -16,8 +16,6 @@ limitations under the License.
 
 package v1
 
-type RouteExpansion interface{}
-
 type UpstreamExpansion interface{}
 
 type VirtualHostExpansion interface{}

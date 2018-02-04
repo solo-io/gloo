@@ -48,30 +48,31 @@ var _ = Describe("KubeConfigWatcher", func() {
 			// add a route
 			glueClient, err := clientset.NewForConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
-			route := &crdv1.Route{
+			virtualHost := &crdv1.VirtualHost{
 				ObjectMeta: metav1.ObjectMeta{
 					GenerateName: "route-",
 				},
-				Spec: crdv1.DeepCopyRoute(NewTestRoute1()),
+				Spec: crdv1.DeepCopyVirtualHost(NewTestVirtualHost("vhost_1", NewTestRoute1())),
 			}
-			_, err = glueClient.GlueV1().Routes(namespace).Create(route)
+			_, err = glueClient.GlueV1().VirtualHosts(namespace).Create(virtualHost)
 			Expect(err).NotTo(HaveOccurred())
 
 			// give controller time to register
 			time.Sleep(time.Second * 2)
 
-			var expectedRoute v1.Route
-			data, err := json.Marshal(route.Spec)
+			var expectedVhost v1.VirtualHost
+			data, err := json.Marshal(virtualHost.Spec)
 			Expect(err).To(BeNil())
-			err = json.Unmarshal(data, &expectedRoute)
+			err = json.Unmarshal(data, &expectedVhost)
 			Expect(err).To(BeNil())
 			select {
 			case <-time.After(time.Second * 5):
 				Expect(fmt.Errorf("expected to have received resource event before 5s")).NotTo(HaveOccurred())
 			case cfg := <-watcher.Config():
-				Expect(len(cfg.Routes)).To(Equal(1))
-				Expect(cfg.Routes[0]).To(Equal(expectedRoute))
-				Expect(cfg.Routes[0].Plugins["auth"]).To(Equal(expectedRoute.Plugins["auth"]))
+				Expect(len(cfg.VirtualHosts)).To(Equal(1))
+				Expect(cfg.VirtualHosts[0]).To(Equal(expectedVhost))
+				Expect(len(cfg.VirtualHosts[0].Routes)).To(Equal(1))
+				Expect(cfg.VirtualHosts[0].Routes[0]).To(Equal(expectedVhost.Routes[0]))
 			case err := <-watcher.Error():
 				Expect(err).To(BeNil())
 			}

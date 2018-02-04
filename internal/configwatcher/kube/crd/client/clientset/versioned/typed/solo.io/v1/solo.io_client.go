@@ -25,7 +25,6 @@ import (
 
 type GlueV1Interface interface {
 	RESTClient() rest.Interface
-	RoutesGetter
 	UpstreamsGetter
 	VirtualHostsGetter
 }
@@ -33,10 +32,6 @@ type GlueV1Interface interface {
 // GlueV1Client is used to interact with features provided by the glue.solo.io group.
 type GlueV1Client struct {
 	restClient rest.Interface
-}
-
-func (c *GlueV1Client) Routes(namespace string) RouteInterface {
-	return newRoutes(c, namespace)
 }
 
 func (c *GlueV1Client) Upstreams(namespace string) UpstreamInterface {

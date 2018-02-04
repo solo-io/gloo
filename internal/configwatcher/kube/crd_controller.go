@@ -20,7 +20,6 @@ type crdController struct {
 	configs chan *v1.Config
 	errors  chan error
 
-	routesLister       listers.RouteLister
 	upstreamsLister    listers.UpstreamLister
 	virtualHostsLister listers.VirtualHostLister
 }
@@ -38,21 +37,18 @@ func newCrdController(cfg *rest.Config, resyncDuration time.Duration, stopCh <-c
 
 	glueInformerFactory := informers.NewSharedInformerFactory(glueClient, resyncDuration)
 
-	routeInformer := glueInformerFactory.Glue().V1().Routes()
 	upstreamInformer := glueInformerFactory.Glue().V1().Upstreams()
 	virtualHostInformer := glueInformerFactory.Glue().V1().VirtualHosts()
 
 	ctrl := &crdController{
 		configs:            make(chan *v1.Config),
 		errors:             make(chan error),
-		routesLister:       routeInformer.Lister(),
 		upstreamsLister:    upstreamInformer.Lister(),
 		virtualHostsLister: virtualHostInformer.Lister(),
 	}
 
 	kubeController := controller.NewController("glue-crd-controller", kubeClient,
 		ctrl.syncConfig,
-		routeInformer.Informer(),
 		upstreamInformer.Informer(),
 		virtualHostInformer.Informer())
 
@@ -68,10 +64,6 @@ func (c *crdController) syncConfig(namespace, name string, _ interface{}) {
 	if err := func() error {
 		log.Debugf("syncing config after item %v/%v changed", namespace, name)
 
-		routeList, err := c.routesLister.List(labels.Everything())
-		if err != nil {
-			return fmt.Errorf("error retrieving routes: %v", err)
-		}
 		upstreamList, err := c.upstreamsLister.List(labels.Everything())
 		if err != nil {
 			return fmt.Errorf("error retrieving upstreams: %v", err)
@@ -79,11 +71,6 @@ func (c *crdController) syncConfig(namespace, name string, _ interface{}) {
 		vHostList, err := c.virtualHostsLister.List(labels.Everything())
 		if err != nil {
 			return fmt.Errorf("error retrieving virtualhosts: %v", err)
-		}
-		var routes []v1.Route
-		for _, route := range routeList {
-			r := v1.Route(route.Spec)
-			routes = append(routes, r)
 		}
 		var upstreams []v1.Upstream
 		for _, upstream := range upstreamList {
@@ -97,7 +84,6 @@ func (c *crdController) syncConfig(namespace, name string, _ interface{}) {
 		}
 		log.Debugf("config updated")
 		c.configs <- &v1.Config{
-			Routes:       routes,
 			Upstreams:    upstreams,
 			VirtualHosts: vHosts,
 		}

@@ -26,10 +26,6 @@ type FakeGlueV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeGlueV1) Routes(namespace string) v1.RouteInterface {
-	return &FakeRoutes{c, namespace}
-}
-
 func (c *FakeGlueV1) Upstreams(namespace string) v1.UpstreamInterface {
 	return &FakeUpstreams{c, namespace}
 }

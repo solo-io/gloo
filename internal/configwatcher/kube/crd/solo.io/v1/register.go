@@ -13,12 +13,6 @@ const (
 
 var KnownCRDs = []crd{
 	{
-		Plural:  "routes",
-		Group:   GroupName,
-		Version: Version,
-		Kind:    "Route",
-	},
-	{
 		Plural:  "upstreams",
 		Group:   GroupName,
 		Version: Version,
@@ -64,8 +58,6 @@ var (
 // Adds the list of known types to Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&Route{},
-		&RouteList{},
 		&Upstream{},
 		&UpstreamList{},
 		&VirtualHost{},

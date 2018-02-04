@@ -5,10 +5,6 @@ import (
 )
 
 func NewTestConfig() v1.Config {
-	routes := []v1.Route{
-		NewTestRoute1(),
-		NewTestRoute2(),
-	}
 	upstreams := []v1.Upstream{
 		{
 			Name: "aws",
@@ -38,17 +34,19 @@ func NewTestConfig() v1.Config {
 		},
 	}
 	virtualhosts := []v1.VirtualHost{
-		{
-			Domains: []string{"*.example.io"},
-			SSLConfig: v1.SSLConfig{
-				CACertPath: "/etc/my_crts/ca.crt",
-			},
-		},
+		NewTestVirtualHost("my_vhost", NewTestRoute1(), NewTestRoute2()),
+		NewTestVirtualHost("my_vhost_2", NewTestRoute1(), NewTestRoute2()),
 	}
 	return v1.Config{
-		Routes:       routes,
 		Upstreams:    upstreams,
 		VirtualHosts: virtualhosts,
+	}
+}
+
+func NewTestVirtualHost(name string, routes ...v1.Route) v1.VirtualHost {
+	return v1.VirtualHost{
+		Name:   name,
+		Routes: routes,
 	}
 }
 
@@ -58,9 +56,8 @@ func NewTestRoute1() v1.Route {
 			Path: v1.Path{
 				Prefix: "/foo",
 			},
-			Headers:     map[string]string{"x-foo-bar": ""},
-			Verbs:       []string{"GET", "POST"},
-			VirtualHost: "my_vhost",
+			Headers: map[string]string{"x-foo-bar": ""},
+			Verbs:   []string{"GET", "POST"},
 		},
 		Destination: v1.Destination{
 			SingleDestination: v1.SingleDestination{

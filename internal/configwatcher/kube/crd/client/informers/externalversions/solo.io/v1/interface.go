@@ -24,8 +24,6 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
-	// Routes returns a RouteInformer.
-	Routes() RouteInformer
 	// Upstreams returns a UpstreamInformer.
 	Upstreams() UpstreamInformer
 	// VirtualHosts returns a VirtualHostInformer.
@@ -41,11 +39,6 @@ type version struct {
 // New returns a new Interface.
 func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakListOptions internalinterfaces.TweakListOptionsFunc) Interface {
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
-}
-
-// Routes returns a RouteInformer.
-func (v *version) Routes() RouteInformer {
-	return &routeInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // Upstreams returns a UpstreamInformer.

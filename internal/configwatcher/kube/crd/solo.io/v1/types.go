@@ -11,30 +11,6 @@ import (
 // +genclient:noStatus
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Route is the generic Kubernetes API object wrapper for Glue Routes
-type Route struct {
-	metav1.TypeMeta `json:",inline"`
-	// +optional
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Status            Status `json:"status,omitempty"`
-
-	Spec DeepCopyRoute `json:"spec"`
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
-// RouteList is the generic Kubernetes API object wrapper
-type RouteList struct {
-	metav1.TypeMeta `json:",inline"`
-	// +optional
-	metav1.ListMeta `json:"metadata"`
-	Items           []Route `json:"items"`
-}
-
-// +genclient
-// +genclient:noStatus
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
 // Upstream is the generic Kubernetes API object wrapper for Glue Upstreams
 type Upstream struct {
 	metav1.TypeMeta `json:",inline"`
@@ -81,19 +57,6 @@ type VirtualHostList struct {
 }
 
 type Status string
-
-type DeepCopyRoute v1.Route
-
-func (in *DeepCopyRoute) DeepCopyInto(out *DeepCopyRoute) {
-	data, err := json.Marshal(in)
-	if err != nil {
-		panic(err)
-	}
-	err = json.Unmarshal(data, out)
-	if err != nil {
-		panic(err)
-	}
-}
 
 type DeepCopyUpstream v1.Upstream
 
