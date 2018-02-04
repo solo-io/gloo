@@ -221,8 +221,12 @@ func (c *ingressConverter) generateDesiredCrds(namespace string) ([]crdv1.Upstre
 		routes    []crdv1.Route
 	)
 	for _, ingress := range ingressList {
-		// we only care about ingresses in the specific namespace
-		if ingress.Namespace != namespace {
+		// we only care about ingresses in the specific namespace, if namespace is given
+		if namespace != "" && ingress.Namespace != namespace {
+			continue
+		}
+		// only care if it's our ingress class
+		if !glueIngressClass(ingress) {
 			continue
 		}
 		if ingress.Spec.Backend != nil {
