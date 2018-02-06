@@ -17,15 +17,21 @@
   branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
-    "api",
-    "api/filter",
-    "api/filter/accesslog",
-    "api/filter/network",
+    "envoy/api/v2",
+    "envoy/api/v2/auth",
+    "envoy/api/v2/cluster",
+    "envoy/api/v2/core",
+    "envoy/api/v2/endpoint",
+    "envoy/api/v2/listener",
+    "envoy/api/v2/route",
+    "envoy/config/filter/accesslog/v2",
+    "envoy/config/filter/network/http_connection_manager/v2",
+    "envoy/service/discovery/v2",
     "pkg/cache",
     "pkg/server",
     "pkg/util"
   ]
-  revision = "fbbb4c69aa07eb7818bc90ebb0abdc8ec4e68565"
+  revision = "2fe005477d70adc579351a5a9c26408c4a54ef51"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
@@ -62,7 +68,7 @@
   branch = "master"
   name = "github.com/golang/groupcache"
   packages = ["lru"]
-  revision = "84a468cf14b4376def5d68c722b139b881c450a4"
+  revision = "66deaeb636dff1ac7d938ce666d090556056a4b0"
 
 [[projects]]
   name = "github.com/golang/protobuf"
@@ -141,7 +147,7 @@
     ".",
     "simplelru"
   ]
-  revision = "0a025b7e63adc15a622f29b0b2c4c3848243bbf6"
+  revision = "0fb14efe8c47ae851c0034ed7a448854d3d34cf3"
 
 [[projects]]
   branch = "master"
@@ -160,12 +166,6 @@
   packages = ["."]
   revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
   version = "v1.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/istio/gogo-genproto"
-  packages = ["googleapis/google/api"]
-  revision = "67f8f8d47316e96703fa2fd09038285aecdb7535"
 
 [[projects]]
   name = "github.com/json-iterator/go"
@@ -207,7 +207,7 @@
   branch = "master"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
-  revision = "b4575eea38cca1123ec2dc90c26529b5c5acfcff"
+  revision = "a4e142e9c047c904fa2f1e144d9a84e6133024bc"
 
 [[projects]]
   name = "github.com/natefinch/lumberjack"
@@ -278,6 +278,12 @@
   version = "v2.0.1"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   name = "github.com/radovskyb/watcher"
   packages = ["."]
   revision = "6145e1439b9de93806925353403f91d2abbad8a5"
@@ -331,7 +337,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "1875d0a70c90e57f11972aefd42276df65e895b9"
+  revision = "d9133f5469342136e669e85192a26056b587f503"
 
 [[projects]]
   branch = "master"
@@ -349,7 +355,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec"
+  revision = "2fb46b16b8dda405028c50f7c7f0f9dd1fa6bfb1"
 
 [[projects]]
   branch = "master"
@@ -370,7 +376,7 @@
     "unix",
     "windows"
   ]
-  revision = "af50095a40f9041b3b38960738837185c26e9419"
+  revision = "37707fdb30a5b38865cfb95e5aab41707daec7fd"
 
 [[projects]]
   branch = "master"
@@ -426,7 +432,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "a8101f21cf983e773d0c1133ebc5424792003214"
+  revision = "2b5a72b8730b0b16380010cfe5286c42108d88e7"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -483,7 +489,10 @@
 [[projects]]
   branch = "master"
   name = "istio.io/gogo-genproto"
-  packages = ["googleapis/google/rpc"]
+  packages = [
+    "googleapis/google/api",
+    "googleapis/google/rpc"
+  ]
   revision = "dd2b5b6a8f1400838165245e704a011a30154a44"
 
 [[projects]]
@@ -531,7 +540,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "dc0dd48d5a5cae9f8736bb0643cfe6052e450f1b"
+  revision = "30d9380b35ad0abf9ef651011e775f997afc1fb6"
 
 [[projects]]
   branch = "release-1.9"
@@ -543,7 +552,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "6f29dd12234812844d29f52bd520bb01374619ce"
+  revision = "f1425805c0335c1f5b23e70f0154747b3df5a16a"
 
 [[projects]]
   branch = "master"
@@ -555,7 +564,7 @@
     "pkg/apis/meta/internalversion",
     "pkg/apis/meta/v1",
     "pkg/apis/meta/v1/unstructured",
-    "pkg/apis/meta/v1alpha1",
+    "pkg/apis/meta/v1beta1",
     "pkg/conversion",
     "pkg/conversion/queryparams",
     "pkg/fields",
@@ -591,7 +600,7 @@
     "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "b621949a1923cee3fce8bca9613e9a83609f0bbc"
+  revision = "204a986b654021625b85be7bcec2d89f90ad2e1f"
 
 [[projects]]
   name = "k8s.io/client-go"
@@ -705,6 +714,8 @@
     "tools/clientcmd/api",
     "tools/clientcmd/api/latest",
     "tools/clientcmd/api/v1",
+    "tools/leaderelection",
+    "tools/leaderelection/resourcelock",
     "tools/metrics",
     "tools/pager",
     "tools/record",
@@ -722,14 +733,29 @@
   version = "v6.0.0"
 
 [[projects]]
+  name = "k8s.io/ingress"
+  packages = [
+    "core/pkg/ingress/annotations/class",
+    "core/pkg/ingress/annotations/parser",
+    "core/pkg/ingress/errors",
+    "core/pkg/ingress/status",
+    "core/pkg/ingress/store",
+    "core/pkg/k8s",
+    "core/pkg/strings",
+    "core/pkg/task"
+  ]
+  revision = "fe19ebb09ee22f90d60ba3111ae0a9db6027e675"
+  version = "0.9.6"
+
+[[projects]]
   branch = "master"
   name = "k8s.io/kube-openapi"
   packages = ["pkg/util/proto"]
-  revision = "a07b7bbb58e7fdc5144f8d7046331d29fc9ad3b3"
+  revision = "275e2ce91dec4c05a4094a7b1daee5560b555ac9"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3f319a981e3f532b4760bb21e29f5cc1bdfa5baff1de8f2817527ad90bff51cf"
+  inputs-digest = "644728257a14c9e03998a65966eb0a5abdb7bf2f6d30e7494d5d2abd7e83f9c3"
   solver-name = "gps-cdcl"
   solver-version = 1
