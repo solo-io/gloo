@@ -6,41 +6,49 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/pkg/errors"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	kubeinformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/cache"
+	"k8s.io/ingress/core/pkg/ingress/status"
+	"k8s.io/ingress/core/pkg/ingress/store"
 
-	clientset "github.com/solo-io/glue/pkg/platform/kube/crd/client/clientset/versioned"
-	crdv1 "github.com/solo-io/glue/pkg/platform/kube/crd/solo.io/v1"
 	"github.com/solo-io/glue/internal/pkg/kube/controller"
 	"github.com/solo-io/glue/internal/pkg/kube/upstream"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/log"
+	clientset "github.com/solo-io/glue/pkg/platform/kube/crd/client/clientset/versioned"
+	crdv1 "github.com/solo-io/glue/pkg/platform/kube/crd/solo.io/v1"
 )
 
 const (
-	resourcePrefix = "glue-generated"
-	upstreamPrefix = resourcePrefix + "-upstream"
-	routePrefix    = resourcePrefix + "-route"
+	resourcePrefix    = "glue-generated"
+	upstreamPrefix    = resourcePrefix + "-upstream"
+	virtualHostPrefix = resourcePrefix + "-virtualHost"
 
-	defaultRouteWeight = 10000
+	defaultVirtualHost = "default"
 
 	GlueIngressClass = "glue"
 )
 
 type ingressConverter struct {
-	errors chan error
+	errors             chan error
+	useAsGlobalIngress bool
+	// name of the kubernetes service for the ingress (envoy)
+	ingressService string
 
 	ingressLister v1beta1listers.IngressLister
 	glueClient    clientset.Interface
+	kubeclient    kubernetes.Interface
 }
 
-func NewIngressConverter(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}) (*ingressConverter, error) {
+func NewIngressConverter(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}, useAsGlobalIngress bool, ingressService string) (*ingressConverter, error) {
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
@@ -54,10 +62,16 @@ func NewIngressConverter(cfg *rest.Config, resyncDuration time.Duration, stopCh 
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, resyncDuration)
 	ingressInformer := kubeInformerFactory.Extensions().V1beta1().Ingresses()
 
+	servicesInformer := kubeInformerFactory.Core().V1().Services()
+
 	ctrl := &ingressConverter{
-		errors:        make(chan error),
+		errors:             make(chan error),
+		useAsGlobalIngress: useAsGlobalIngress,
+		ingressService:     ingressService,
+
 		ingressLister: ingressInformer.Lister(),
 		glueClient:    glueClient,
+		kubeclient:    kubeClient,
 	}
 
 	kubeController := controller.NewController("glue-ingress-controller", kubeClient,
@@ -72,13 +86,50 @@ func NewIngressConverter(cfg *rest.Config, resyncDuration time.Duration, stopCh 
 	return ctrl, nil
 }
 
+const (
+	ingressElectionID = "kube-ingress-importer-leader"
+)
+
+func (c *ingressConverter) syncIngressStatuses(client kubeclientset.Interface, ingressStore cache.Store) error {
+
+	sync := status.NewStatusSyncer(status.Config{
+		Client:              client,
+		IngressLister:       store.IngressLister{Store: ingressStore},
+		ElectionID:          ingressElectionID, // TODO: configurable?
+		PublishService:      publishService,
+		DefaultIngressClass: defaultIngressClass,
+		IngressClass:        ingressClass,
+		CustomIngressStatus: customIngressStatus,
+	})
+	ingressService, err := c.serviceLister.Services("").Get(c.ingressService)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get ingress service %v", c.ingressService)
+	}
+	lbStatus := ingressService.Status.LoadBalancer
+	ingresses, err := c.ingressLister.List(labels.Everything())
+	if err != nil {
+		return errors.Wrapf(err, "failed to list existing ingresses")
+	}
+	for _, ingress := range ingresses {
+		// only react if it's our ingress class
+		if !c.isOurIngress(ingress) {
+			continue
+		}
+		ingress.Status.LoadBalancer = lbStatus
+		if _, err := c.kubeclient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress); err != nil {
+			return errors.Wrapf(err, "failed to update ingress %v with lb status %v", ingress.Name, lbStatus)
+		}
+	}
+	return nil
+}
+
 func (c *ingressConverter) syncGlueResourcesWithIngresses(namespace, name string, v interface{}) {
 	ingress, ok := v.(*v1beta1.Ingress)
 	if !ok {
 		return
 	}
-	// only react if it's our ingress class
-	if !glueIngressClass(ingress) {
+	// only react if it's an ingress we care about
+	if !c.isOurIngress(ingress) {
 		return
 	}
 	log.Debugf("syncing glue config items after ingress %v/%v changed", namespace, name)
@@ -92,19 +143,19 @@ func (c *ingressConverter) Error() <-chan error {
 }
 
 func (c *ingressConverter) syncGlueResources(namespace string) error {
-	desiredUpstreams, desiredRoutes, err := c.generateDesiredCrds(namespace)
+	desiredUpstreams, desiredVirtualHosts, err := c.generateDesiredCrds(namespace)
 	if err != nil {
 		return fmt.Errorf("failed to generate desired crds: %v", err)
 	}
-	actualUpstreams, actualRoutes, err := c.getActualCrds(namespace)
+	actualUpstreams, actualVirtualHosts, err := c.getActualCrds(namespace)
 	if err != nil {
 		return fmt.Errorf("failed to list actual crds: %v", err)
 	}
 	if err := c.syncUpstreams(namespace, desiredUpstreams, actualUpstreams); err != nil {
 		return fmt.Errorf("failed to sync actual with desired upstreams: %v", err)
 	}
-	if err := c.syncRoutes(namespace, desiredRoutes, actualRoutes); err != nil {
-		return fmt.Errorf("failed to sync actual with desired routes: %v", err)
+	if err := c.syncVirtualHosts(namespace, desiredVirtualHosts, actualVirtualHosts); err != nil {
+		return fmt.Errorf("failed to sync actual with desired virtualHosts: %v", err)
 	}
 	return nil
 }
@@ -154,227 +205,176 @@ func (c *ingressConverter) syncUpstreams(namespace string, desiredUpstreams, act
 	return nil
 }
 
-func (c *ingressConverter) syncRoutes(namespace string, desiredRoutes, actualRoutes []crdv1.Route) error {
+func (c *ingressConverter) syncVirtualHosts(namespace string, desiredVirtualHosts, actualVirtualHosts []crdv1.VirtualHost) error {
 	var (
-		routesToCreate []crdv1.Route
-		routesToUpdate []crdv1.Route
+		virtualHostsToCreate []crdv1.VirtualHost
+		virtualHostsToUpdate []crdv1.VirtualHost
 	)
-	for _, desiredRoute := range desiredRoutes {
+	for _, desiredVirtualHost := range desiredVirtualHosts {
 		var update bool
-		for i, actualRoute := range actualRoutes {
-			if desiredRoute.Name == actualRoute.Name {
-				// modify existing route
-				desiredRoute.ResourceVersion = actualRoute.ResourceVersion
+		for i, actualVirtualHost := range actualVirtualHosts {
+			if desiredVirtualHost.Name == actualVirtualHost.Name {
+				// modify existing virtualHost
+				desiredVirtualHost.ResourceVersion = actualVirtualHost.ResourceVersion
 				update = true
-				if !reflect.DeepEqual(desiredRoute.Spec, actualRoute.Spec) {
+				if !reflect.DeepEqual(desiredVirtualHost.Spec, actualVirtualHost.Spec) {
 					// only actually update if the spec has changed
-					routesToUpdate = append(routesToUpdate, desiredRoute)
+					virtualHostsToUpdate = append(virtualHostsToUpdate, desiredVirtualHost)
 				}
 				// remove it from the list we match against
-				actualRoutes = append(actualRoutes[:i], actualRoutes[i+1:]...)
+				actualVirtualHosts = append(actualVirtualHosts[:i], actualVirtualHosts[i+1:]...)
 				break
 			}
 		}
 		if !update {
 			// desired was not found, mark for creation
-			routesToCreate = append(routesToCreate, desiredRoute)
+			virtualHostsToCreate = append(virtualHostsToCreate, desiredVirtualHost)
 		}
 	}
-	for _, route := range routesToCreate {
-		if _, err := c.glueClient.GlueV1().Routes(namespace).Create(&route); err != nil {
-			return fmt.Errorf("failed to create route crd %s: %v", route.Name, err)
+	for _, virtualHost := range virtualHostsToCreate {
+		if _, err := c.glueClient.GlueV1().VirtualHosts(namespace).Create(&virtualHost); err != nil {
+			return fmt.Errorf("failed to create virtualHost crd %s: %v", virtualHost.Name, err)
 		}
 	}
-	for _, route := range routesToUpdate {
-		if _, err := c.glueClient.GlueV1().Routes(namespace).Update(&route); err != nil {
-			return fmt.Errorf("failed to update upstream crd %s: %v", route.Name, err)
+	for _, virtualHost := range virtualHostsToUpdate {
+		if _, err := c.glueClient.GlueV1().VirtualHosts(namespace).Update(&virtualHost); err != nil {
+			return fmt.Errorf("failed to update upstream crd %s: %v", virtualHost.Name, err)
 		}
 	}
 	// only remaining are no longer desired, delete em!
-	for _, route := range actualRoutes {
-		if err := c.glueClient.GlueV1().Routes(namespace).Delete(route.Name, nil); err != nil {
-			return fmt.Errorf("failed to update upstream crd %s: %v", route.Name, err)
+	for _, virtualHost := range actualVirtualHosts {
+		if err := c.glueClient.GlueV1().VirtualHosts(namespace).Delete(virtualHost.Name, nil); err != nil {
+			return fmt.Errorf("failed to update upstream crd %s: %v", virtualHost.Name, err)
 		}
 	}
 	return nil
 }
 
-func (c *ingressConverter) getActualCrds(namespace string) ([]crdv1.Upstream, []crdv1.Route, error) {
+func (c *ingressConverter) getActualCrds(namespace string) ([]crdv1.Upstream, []crdv1.VirtualHost, error) {
 	upstreams, err := c.glueClient.GlueV1().Upstreams(namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get upstream crd list: %v", err)
 	}
-	routes, err := c.glueClient.GlueV1().Routes(namespace).List(metav1.ListOptions{})
+	virtualHosts, err := c.glueClient.GlueV1().VirtualHosts(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get route crd list: %v", err)
+		return nil, nil, fmt.Errorf("failed to get virtual host crd list: %v", err)
 	}
-	return upstreams.Items, routes.Items, nil
+	return upstreams.Items, virtualHosts.Items, nil
 }
 
-func (c *ingressConverter) generateDesiredCrds(namespace string) ([]crdv1.Upstream, []crdv1.Route, error) {
+func (c *ingressConverter) generateDesiredCrds(namespace string) ([]crdv1.Upstream, []crdv1.VirtualHost, error) {
 	ingressList, err := c.ingressLister.List(labels.Everything())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to list ingresses: %v", err)
 	}
-	var (
-		upstreams []crdv1.Upstream
-		routes    []crdv1.Route
-	)
+	upstreamsByName := make(map[string]v1.Upstream)
+	routesByVirtualHostName := make(map[string][]v1.Route)
+	sslsByVirtualHostName := make(map[string]v1.SSLConfig)
 	for _, ingress := range ingressList {
 		// we only care about ingresses in the specific namespace, if namespace is given
 		if namespace != "" && ingress.Namespace != namespace {
 			continue
 		}
-		// only care if it's our ingress class
-		if !glueIngressClass(ingress) {
+		// only care if it's our ingress class, or we're the global default
+		if !c.isOurIngress(ingress) {
 			continue
 		}
+		// configure ssl for each host
+		for _, tls := range ingress.Spec.TLS {
+			if len(tls.Hosts) == 0 {
+				sslsByVirtualHostName[defaultVirtualHost] = v1.SSLConfig{SecretRef: tls.SecretName}
+			}
+			for _, host := range tls.Hosts {
+				sslsByVirtualHostName[host] = v1.SSLConfig{SecretRef: tls.SecretName}
+			}
+		}
+		// default virtualhost
 		if ingress.Spec.Backend != nil {
-			us, route := createDefaultResources(ingress.Name, namespace, ingress.Spec.Backend)
-			upstreams = append(upstreams, us)
-			routes = append(routes, route)
+			us := newUpstreamFromBackend(ingress.Namespace, *ingress.Spec.Backend)
+			if _, ok := routesByVirtualHostName[defaultVirtualHost]; ok {
+				runtime.HandleError(errors.Errorf("default backend was redefined in ingress %v, ignoring", ingress.Name))
+			} else {
+				routesByVirtualHostName[defaultVirtualHost] = []v1.Route{
+					{
+						Matcher: v1.Matcher{
+							Path: v1.Path{
+								Prefix: "/",
+							},
+						},
+						Destination: v1.Destination{
+							SingleDestination: v1.SingleDestination{
+								UpstreamDestination: &v1.UpstreamDestination{
+									UpstreamName: us.Name,
+								},
+							},
+						},
+					},
+				}
+			}
 		}
 		for _, rule := range ingress.Spec.Rules {
-			ruleUpstreams, ruleRoutes := createResourcesForRule(ingress.Name, ingress.Namespace, rule)
-			upstreams = append(upstreams, ruleUpstreams...)
-			routes = append(routes, ruleRoutes...)
+			addRoutesAndUpstreams(ingress.Namespace, rule, upstreamsByName, routesByVirtualHostName)
 		}
 	}
-	return upstreams, routes, nil
+	uniqueVirtualHosts := make(map[string]v1.VirtualHost)
+	for host, routes := range routesByVirtualHostName {
+		uniqueVirtualHosts[host] = v1.VirtualHost{
+			Name: host,
+			// kubernetes only supports a single domain per virtualhost
+			Domains:   []string{host},
+			Routes:    routes,
+			SSLConfig: sslsByVirtualHostName[host],
+		}
+	}
+	return upstreams, virtualHosts, nil
 }
 
-func createDefaultResources(ingressName string, namespace string, backend *v1beta1.IngressBackend) (crdv1.Upstream, crdv1.Route) {
-	us := v1.Upstream{
-		Name: upstreamName(ingressName, *backend),
-		Type: upstream.Kubernetes,
-		Spec: upstream.ToMap(upstream.Spec{
-			ServiceName:      backend.ServiceName,
-			ServiceNamespace: namespace,
-			ServicePortName:  portName(backend.ServicePort),
-		}),
+func addRoutesAndUpstreams(namespace string, rule v1beta1.IngressRule, upstreams map[string]v1.Upstream, routes map[string][]v1.Route) {
+	if rule.HTTP == nil {
+		return
 	}
-	usCrd := crdv1.Upstream{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      us.Name,
-			Namespace: namespace,
-		},
-		Spec: crdv1.DeepCopyUpstream(us),
-	}
-
-	route := v1.Route{
-		Matcher: v1.Matcher{
-			Path: v1.Path{
-				Prefix: "/",
-			},
-		},
-		Destination: v1.Destination{
-			SingleDestination: v1.SingleDestination{
-				UpstreamDestination: &v1.UpstreamDestination{
-					UpstreamName: us.Name,
-				},
-			},
-		},
-		Weight: defaultRouteWeight,
-	}
-	routeCrd := crdv1.Route{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      routeName(route),
-			Namespace: namespace,
-		},
-		Spec: crdv1.DeepCopyRoute(route),
-	}
-
-	return usCrd, routeCrd
-}
-
-func createResourcesForRule(ingressName string, namespace string, rule v1beta1.IngressRule) ([]crdv1.Upstream, []crdv1.Route) {
-	var (
-		upstreams []crdv1.Upstream
-		routes    []crdv1.Route
-	)
-	host := rule.Host
-
-	uniqueUpstreams := make(map[string]crdv1.Upstream)
-	for i, path := range rule.IngressRuleValue.HTTP.Paths {
-		pathRegex := path.Path
-		if pathRegex == "" {
-			pathRegex = "/"
+	for _, path := range rule.HTTP.Paths {
+		generatedUpstream := newUpstreamFromBackend(namespace, path.Backend)
+		upstreams[generatedUpstream.Name] = generatedUpstream
+		host := rule.Host
+		if host == "" {
+			host = defaultVirtualHost
 		}
-		us := v1.Upstream{
-			Name: upstreamName(ingressName, path.Backend),
-			Type: upstream.Kubernetes,
-			Spec: upstream.ToMap(upstream.Spec{
-				ServiceName:      path.Backend.ServiceName,
-				ServiceNamespace: namespace,
-				ServicePortName:  portName(path.Backend.ServicePort),
-			}),
-		}
-		usCrd := crdv1.Upstream{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      us.Name,
-				Namespace: namespace,
-			},
-			Spec: crdv1.DeepCopyUpstream(us),
-		}
-		route := v1.Route{
+		routes[rule.Host] = append(routes[rule.Host], v1.Route{
 			Matcher: v1.Matcher{
 				Path: v1.Path{
-					Regex: pathRegex,
+					Regex: path.Path,
 				},
-				VirtualHost: host,
 			},
 			Destination: v1.Destination{
 				SingleDestination: v1.SingleDestination{
 					UpstreamDestination: &v1.UpstreamDestination{
-						UpstreamName: us.Name,
+						UpstreamName: generatedUpstream.Name,
 					},
 				},
 			},
-			Weight: len(rule.IngressRuleValue.HTTP.Paths) - i,
-		}
-		routeCrd := crdv1.Route{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      routeName(route),
-				Namespace: namespace,
-			},
-			Spec: crdv1.DeepCopyRoute(route),
-		}
-		uniqueUpstreams[usCrd.Name] = usCrd
-		routes = append(routes, routeCrd)
+		})
 	}
-	for _, usCrd := range uniqueUpstreams {
-		upstreams = append(upstreams, usCrd)
-	}
-	return upstreams, routes
 }
 
-func portName(portVal intstr.IntOrString) string {
-	if portVal.Type == intstr.String {
-		return portVal.StrVal
+func newUpstreamFromBackend(namespace string, backend v1beta1.IngressBackend) v1.Upstream {
+	return v1.Upstream{
+		Name: upstreamName(namespace, backend),
+		Type: upstream.Kubernetes,
+		Spec: upstream.ToMap(upstream.Spec{
+			ServiceName:      backend.ServiceName,
+			ServiceNamespace: namespace,
+			ServicePortName:  backend.ServicePort.String(),
+		}),
 	}
-	return fmt.Sprintf("%d", portVal.IntVal)
 }
 
-func upstreamName(ingressName string, backend v1beta1.IngressBackend) string {
-	return fmt.Sprintf("%s-%s-%s-%s", upstreamPrefix, ingressName, backend.ServiceName, portName(backend.ServicePort))
+func upstreamName(namespace string, backend v1beta1.IngressBackend) string {
+	return fmt.Sprintf("%s-%s-%s-%s", upstreamPrefix, namespace, backend.ServiceName, backend.ServicePort.String())
 }
 
-func routeName(route v1.Route) string {
-	var pathName string
-	if regex := route.Matcher.Path.Regex; regex != "" {
-		pathName = regex
-	}
-	if prefix := route.Matcher.Path.Prefix; prefix != "" {
-		pathName = prefix
-	}
-	if exact := route.Matcher.Path.Exact; exact != "" {
-		pathName = exact
-	}
-	return fmt.Sprintf("%s-%s%s", routePrefix, route.Matcher.VirtualHost, pathToName(pathName))
-}
-
-func glueIngressClass(ingress *v1beta1.Ingress) bool {
-	return ingress.Annotations["kubernetes.io/ingress.class"] == GlueIngressClass
+func (c *ingressConverter) isOurIngress(ingress *v1beta1.Ingress) bool {
+	return c.useAsGlobalIngress || ingress.Annotations["kubernetes.io/ingress.class"] == GlueIngressClass
 }
 
 func pathToName(path string) string {

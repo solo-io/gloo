@@ -92,5 +92,5 @@ type VirtualHost struct {
 
 type SSLConfig struct {
 	CACertPath string `json:"ca_cert_path"`
-	SecretRef  string
+	SecretRef  string `json:"secret_ref"`
 }
