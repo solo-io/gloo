@@ -11,20 +11,21 @@ const (
 	Version   = "v1"
 )
 
-var KnownCRDs = []crd{
-	{
+var (
+	UpstreamCRD = crd{
 		Plural:  "upstreams",
 		Group:   GroupName,
 		Version: Version,
 		Kind:    "Upstream",
-	},
-	{
+	}
+	VirtualHostCRD = crd{
 		Plural:  "virtualhosts",
 		Group:   GroupName,
 		Version: Version,
 		Kind:    "VirtualHost",
-	},
-}
+	}
+	KnownCRDs = []crd{UpstreamCRD, VirtualHostCRD}
+)
 
 type crd struct {
 	Plural  string
