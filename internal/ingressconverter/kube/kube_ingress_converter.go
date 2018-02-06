@@ -15,8 +15,8 @@ import (
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
 
-	clientset "github.com/solo-io/glue/internal/configwatcher/kube/crd/client/clientset/versioned"
-	crdv1 "github.com/solo-io/glue/internal/configwatcher/kube/crd/solo.io/v1"
+	clientset "github.com/solo-io/glue/pkg/platform/kube/crd/client/clientset/versioned"
+	crdv1 "github.com/solo-io/glue/pkg/platform/kube/crd/solo.io/v1"
 	"github.com/solo-io/glue/internal/pkg/kube/controller"
 	"github.com/solo-io/glue/internal/pkg/kube/upstream"
 	"github.com/solo-io/glue/pkg/api/types/v1"

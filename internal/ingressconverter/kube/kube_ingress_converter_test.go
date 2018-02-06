@@ -9,9 +9,9 @@ import (
 	"os"
 	"path/filepath"
 
-	clientset "github.com/solo-io/glue/internal/configwatcher/kube/crd/client/clientset/versioned"
 	"github.com/solo-io/glue/internal/pkg/kube/upstream"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	clientset "github.com/solo-io/glue/pkg/platform/kube/crd/client/clientset/versioned"
 	. "github.com/solo-io/glue/test/helpers"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

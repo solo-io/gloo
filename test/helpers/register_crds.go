@@ -9,7 +9,7 @@ import (
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/glue/internal/configwatcher/kube/crd/solo.io/v1"
+	"github.com/solo-io/glue/pkg/platform/kube/crd/solo.io/v1"
 )
 
 func RegisterCrds(restConfig *rest.Config) error {

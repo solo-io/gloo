@@ -13,9 +13,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	. "github.com/solo-io/glue/internal/configwatcher/kube"
-	clientset "github.com/solo-io/glue/internal/configwatcher/kube/crd/client/clientset/versioned"
-	crdv1 "github.com/solo-io/glue/internal/configwatcher/kube/crd/solo.io/v1"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	clientset "github.com/solo-io/glue/pkg/platform/kube/crd/client/clientset/versioned"
+	crdv1 "github.com/solo-io/glue/pkg/platform/kube/crd/solo.io/v1"
 	. "github.com/solo-io/glue/test/helpers"
 )
 
