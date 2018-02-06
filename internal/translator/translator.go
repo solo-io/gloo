@@ -151,7 +151,7 @@ func (t *Translator) constructListener(pi *plugin.PluginInputs, listener, route 
 	}
 	pbst, err := util.MessageToStruct(manager)
 	if err != nil {
-		panic("TODO: Report error")
+		panic("should never happen")
 	}
 
 	return &api.Listener{
@@ -254,17 +254,29 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap module.SecretMap, endpo
 
 		var routes []*api.Route
 		for _, route := range vhost.Routes {
+			var routeerrors *multierror.Error
 			envoyroute := constructRoute(&route)
 			for _, p := range t.plugins {
-				p.UpdateEnvoyRoute(pi, &route, envoyroute)
+				err := p.UpdateEnvoyRoute(pi, &route, envoyroute)
+				if err != nil {
+					routeerrors = multierror.Append(routeerrors, err)
+				}
 			}
-			routes = append(routes, envoyroute)
+
+			if routeerrors == nil {
+				routes = append(routes, envoyroute)
+				statues = append(statues, plugin.NewConfigOk(&route))
+			} else {
+				statues = append(statues, plugin.NewConfigMultiError(&route, routeerrors))
+			}
 		}
+
 		envoyvhost := &api.VirtualHost{
 			Name:    t.nameTranslator.ToEnvoyVhostName(&vhost),
 			Domains: ifEmpty(vhost.Domains, []string{"*"}),
 			Routes:  routes,
 		}
+		statues = append(statues, plugin.NewConfigOk(&vhost))
 
 		// if we have ssl certificates, add them to the ssl filter chain.
 		// TODO: Create filter chain for listener
