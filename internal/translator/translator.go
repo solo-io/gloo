@@ -218,6 +218,9 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap module.SecretMap, endpo
 			}
 		}
 
+		// TODO: make sure all clusters have lb type.
+		// if not mark cluster as invalid.
+
 		// make sure upstream is health
 		if clustererrors == nil {
 			clustersproto = append(clustersproto, envoycluster)
@@ -256,6 +259,10 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap module.SecretMap, endpo
 		for _, route := range vhost.Routes {
 			var routeerrors *multierror.Error
 			envoyroute := constructRoute(&route)
+
+			// TODO: make sure all clusters that the route points to exist and valid.
+			// if not mark route as invalid.
+
 			for _, p := range t.plugins {
 				err := p.UpdateEnvoyRoute(pi, &route, envoyroute)
 				if err != nil {
