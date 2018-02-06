@@ -12,6 +12,7 @@ type Config struct {
 func (c *Route) ThisIsAConfigObject()       {}
 func (c *Upstream) ThisIsAConfigObject()    {}
 func (c *VirtualHost) ThisIsAConfigObject() {}
+func (c *Function) ThisIsAConfigObject()    {}
 
 type Route struct {
 	Matcher       Matcher                `json:"matcher"`
