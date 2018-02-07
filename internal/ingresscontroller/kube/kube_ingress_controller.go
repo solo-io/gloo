@@ -232,10 +232,16 @@ func (c *ingressController) generateDesiredCrds() ([]crdv1.Upstream, []crdv1.Vir
 			// longer = comes first
 			return l1 > l2
 		})
+		// TODO: evaluate
+		// set default virtualhost to match *
+		domains := []string{host}
+		if host == defaultVirtualHost {
+			domains[0] = "*"
+		}
 		uniqueVirtualHosts[host] = v1.VirtualHost{
 			Name: host,
 			// kubernetes only supports a single domain per virtualhost
-			Domains:   []string{host},
+			Domains:   domains,
 			Routes:    routes,
 			SSLConfig: sslsByHostName[host],
 		}
