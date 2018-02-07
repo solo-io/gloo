@@ -191,7 +191,9 @@ func (ffh *InitPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, o
 			totalWeight += c.Weight
 		}
 
-		ffh.addTotalWeight(out, totalWeight)
+		if err := ffh.addTotalWeight(out, totalWeight); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -326,6 +328,11 @@ func (ffh *InitPlugin) addClusterWithWeight(routeout *apiroute.Route, clusternam
 	return nil
 }
 
-func (ffh *InitPlugin) addTotalWeight(routeout *apiroute.Route, totalWeight uint) {
-	panic("TODO")
+func (ffh *InitPlugin) addTotalWeight(routeout *apiroute.Route, totalWeight uint) error {
+	weights, err := ffh.getWeightedClusters(routeout)
+	if err != nil {
+		return err
+	}
+	weights.WeightedClusters.TotalWeight = &types.UInt32Value{Value: uint32(totalWeight)}
+	return nil
 }
