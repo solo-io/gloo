@@ -2,16 +2,17 @@ package plugin
 
 import (
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/glue/pkg/translator"
 )
 
 type State struct {
-	Dependencies Dependencies
+	Dependencies translator.Dependencies
 	Config       *v1.Config
 }
 
 type PluginInputs struct {
 	State          *State
-	NameTranslator NameTranslator
+	NameTranslator translator.NameTranslator
 }
 
 func (s *State) GetFunction(fd *v1.FunctionDestination) *v1.Function {

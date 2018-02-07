@@ -17,6 +17,7 @@ import (
 
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	translatoriface "github.com/solo-io/glue/pkg/translator"
 	"github.com/solo-io/glue/pkg/translator/plugin"
 
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
@@ -35,10 +36,10 @@ func (d *dependencies) Secrets() secretwatcher.SecretMap {
 
 type Translator struct {
 	plugins        []plugin.Plugin
-	nameTranslator plugin.NameTranslator
+	nameTranslator translatoriface.NameTranslator
 }
 
-func NewTranslator(plugins []plugin.Plugin, nameTranslator plugin.NameTranslator) *Translator {
+func NewTranslator(plugins []plugin.Plugin, nameTranslator translatoriface.NameTranslator) *Translator {
 
 	var functionPlugins []plugin.FunctionalPlugin
 	for _, p := range plugins {
@@ -184,7 +185,7 @@ func (t *Translator) constructListener(pi *plugin.PluginInputs, listener, route 
 }
 
 func (t *Translator) Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap, endpoints endpointdiscovery.EndpointGroups) (*envoycache.Snapshot, error) {
-	var statues []plugin.ConfigStatus
+	var statues []translatoriface.ConfigStatus
 
 	dependencies := dependencies{secrets: secretMap}
 	state := &plugin.State{
@@ -231,7 +232,7 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap
 		// make sure upstream is health
 		if clustererrors == nil {
 			clustersproto = append(clustersproto, envoycluster)
-			statues = append(statues, plugin.NewConfigOk(&upstream))
+			statues = append(statues, translatoriface.NewConfigOk(&upstream))
 
 			// now, process functions
 			for _, function := range upstream.Functions {
@@ -244,14 +245,14 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap
 				}
 
 				if functionerrors == nil {
-					statues = append(statues, plugin.NewConfigOk(&function))
+					statues = append(statues, translatoriface.NewConfigOk(&function))
 				} else {
-					statues = append(statues, plugin.NewConfigMultiError(&function, functionerrors))
+					statues = append(statues, translatoriface.NewConfigMultiError(&function, functionerrors))
 				}
 			}
 
 		} else {
-			statues = append(statues, plugin.NewConfigMultiError(&upstream, clustererrors))
+			statues = append(statues, translatoriface.NewConfigMultiError(&upstream, clustererrors))
 
 		}
 
@@ -279,9 +280,9 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap
 
 			if routeerrors == nil {
 				routes = append(routes, *envoyroute)
-				statues = append(statues, plugin.NewConfigOk(&route))
+				statues = append(statues, translatoriface.NewConfigOk(&route))
 			} else {
-				statues = append(statues, plugin.NewConfigMultiError(&route, routeerrors))
+				statues = append(statues, translatoriface.NewConfigMultiError(&route, routeerrors))
 			}
 		}
 
@@ -290,7 +291,7 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap
 			Domains: ifEmpty(vhost.Domains, []string{"*"}),
 			Routes:  routes,
 		}
-		statues = append(statues, plugin.NewConfigOk(&vhost))
+		statues = append(statues, translatoriface.NewConfigOk(&vhost))
 
 		// if we have ssl certificates, add them to the ssl filter chain.
 		// TODO: Create filter chain for listener

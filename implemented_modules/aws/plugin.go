@@ -10,6 +10,7 @@ import (
 	awspluginspec "github.com/solo-io/glue/implemented_modules/aws/pkg/plugin"
 	"github.com/solo-io/glue/implemented_modules/aws/pkg/upstream"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/glue/pkg/translator"
 	"github.com/solo-io/glue/pkg/translator/plugin"
 
 	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
@@ -42,7 +43,7 @@ func New() plugin.Plugin {
 	return &AwsPlugin{}
 }
 
-func (a *AwsPlugin) GetDependencies(cfg *v1.Config) plugin.DependenciesDescription {
+func (a *AwsPlugin) GetDependencies(cfg *v1.Config) translator.DependenciesDescription {
 	var deps plugin.SimpleDependenciesDescription
 	// go over all upstream and get secrets.
 	for _, u := range cfg.Upstreams {

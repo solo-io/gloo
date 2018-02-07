@@ -8,6 +8,7 @@ import (
 	apiroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/glue/pkg/translator"
 	"github.com/solo-io/glue/pkg/translator/plugin"
 
 	"github.com/gogo/protobuf/types"
@@ -38,7 +39,7 @@ func NewInitPlugin(ff []plugin.FunctionalPlugin) plugin.Plugin {
 	}
 }
 
-func (ffh *InitPlugin) GetDependencies(cfg *v1.Config) plugin.DependenciesDescription {
+func (ffh *InitPlugin) GetDependencies(cfg *v1.Config) translator.DependenciesDescription {
 	return nil
 }
 
