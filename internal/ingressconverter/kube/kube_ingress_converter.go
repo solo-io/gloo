@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -45,10 +46,9 @@ type ingressConverter struct {
 
 	ingressLister v1beta1listers.IngressLister
 	glueClient    clientset.Interface
-	kubeclient    kubernetes.Interface
 }
 
-func NewIngressConverter(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}, useAsGlobalIngress bool, ingressService string) (*ingressConverter, error) {
+func NewIngressConverter(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}, useAsGlobalIngress bool, ingressNamespace, ingressService string) (*ingressConverter, error) {
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
@@ -62,8 +62,6 @@ func NewIngressConverter(cfg *rest.Config, resyncDuration time.Duration, stopCh 
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, resyncDuration)
 	ingressInformer := kubeInformerFactory.Extensions().V1beta1().Ingresses()
 
-	servicesInformer := kubeInformerFactory.Core().V1().Services()
-
 	ctrl := &ingressConverter{
 		errors:             make(chan error),
 		useAsGlobalIngress: useAsGlobalIngress,
@@ -71,7 +69,6 @@ func NewIngressConverter(cfg *rest.Config, resyncDuration time.Duration, stopCh 
 
 		ingressLister: ingressInformer.Lister(),
 		glueClient:    glueClient,
-		kubeclient:    kubeClient,
 	}
 
 	kubeController := controller.NewController("glue-ingress-controller", kubeClient,
@@ -82,6 +79,9 @@ func NewIngressConverter(cfg *rest.Config, resyncDuration time.Duration, stopCh 
 	go func() {
 		kubeController.Run(2, stopCh)
 	}()
+	go func() {
+		ctrl.syncIngressStatuses(kubeClient, ingressInformer.Informer().GetStore(), ingressNamespace, ingressService, stopCh)
+	}()
 
 	return ctrl, nil
 }
@@ -90,37 +90,21 @@ const (
 	ingressElectionID = "kube-ingress-importer-leader"
 )
 
-func (c *ingressConverter) syncIngressStatuses(client kubeclientset.Interface, ingressStore cache.Store) error {
-
+func (c *ingressConverter) syncIngressStatuses(client kubernetes.Interface,
+	ingressStore cache.Store,
+	ingressNamespace, ingressService string,
+	stopCh <-chan struct{}) {
 	sync := status.NewStatusSyncer(status.Config{
 		Client:              client,
 		IngressLister:       store.IngressLister{Store: ingressStore},
 		ElectionID:          ingressElectionID, // TODO: configurable?
-		PublishService:      publishService,
-		DefaultIngressClass: defaultIngressClass,
-		IngressClass:        ingressClass,
-		CustomIngressStatus: customIngressStatus,
+		PublishService:      ingressNamespace + "/" + ingressService,
+		DefaultIngressClass: GlueIngressClass,
+		IngressClass:        GlueIngressClass,
+		CustomIngressStatus: func(ingress *v1beta1.Ingress) []corev1.LoadBalancerIngress { return nil },
 	})
-	ingressService, err := c.serviceLister.Services("").Get(c.ingressService)
-	if err != nil {
-		return errors.Wrapf(err, "failed to get ingress service %v", c.ingressService)
-	}
-	lbStatus := ingressService.Status.LoadBalancer
-	ingresses, err := c.ingressLister.List(labels.Everything())
-	if err != nil {
-		return errors.Wrapf(err, "failed to list existing ingresses")
-	}
-	for _, ingress := range ingresses {
-		// only react if it's our ingress class
-		if !c.isOurIngress(ingress) {
-			continue
-		}
-		ingress.Status.LoadBalancer = lbStatus
-		if _, err := c.kubeclient.ExtensionsV1beta1().Ingresses(ingress.Namespace).Update(ingress); err != nil {
-			return errors.Wrapf(err, "failed to update ingress %v with lb status %v", ingress.Name, lbStatus)
-		}
-	}
-	return nil
+	defer sync.Shutdown()
+	sync.Run(stopCh)
 }
 
 func (c *ingressConverter) syncGlueResourcesWithIngresses(namespace, name string, v interface{}) {
