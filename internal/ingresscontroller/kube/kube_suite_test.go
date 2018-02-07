@@ -9,5 +9,5 @@ import (
 
 func TestKube(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Kube Suite")
+	RunSpecs(t, "Ingress Controller Suite")
 }

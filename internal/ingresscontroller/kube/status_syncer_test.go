@@ -16,7 +16,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var _ = FDescribe("StatusSyncer", func() {
+var _ = Describe("StatusSyncer", func() {
 	var (
 		masterUrl, kubeconfigPath string
 		mkb                       *MinikubeInstance

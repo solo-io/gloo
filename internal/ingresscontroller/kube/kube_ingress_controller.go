@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -30,7 +29,7 @@ import (
 const (
 	resourcePrefix    = "glue-generated"
 	upstreamPrefix    = resourcePrefix + "-upstream"
-	virtualHostPrefix = resourcePrefix + "-virtualHost"
+	virtualHostPrefix = resourcePrefix + "-virtualhost"
 
 	defaultVirtualHost = "default"
 
@@ -94,7 +93,8 @@ func (c *ingressController) syncGlueResourcesWithIngresses(namespace, name strin
 		return
 	}
 	// only react if it's an ingress we care about
-	if isOurIngress(c.useAsGlobalIngress, ingress) {
+	if !isOurIngress(c.useAsGlobalIngress, ingress) {
+		log.Debugf("%v is not our ingress, ignoring", ingress)
 		return
 	}
 	log.Debugf("syncing glue config items after ingress %v/%v changed", namespace, name)
@@ -147,7 +147,7 @@ func (c *ingressController) generateDesiredCrds() ([]crdv1.Upstream, []crdv1.Vir
 	})
 	for _, ingress := range ingressList {
 		// only care if it's our ingress class, or we're the global default
-		if isOurIngress(c.useAsGlobalIngress, ingress) {
+		if !isOurIngress(c.useAsGlobalIngress, ingress) {
 			continue
 		}
 		// configure ssl for each host
@@ -192,17 +192,7 @@ func (c *ingressController) generateDesiredCrds() ([]crdv1.Upstream, []crdv1.Vir
 		// sort routes by path length
 		// equal length sorted by string compare
 		// longest routes should come first
-		sort.SliceStable(routes, func(i, j int) bool {
-			p1 := routes[i].Matcher.Path.Regex
-			p2 := routes[j].Matcher.Path.Regex
-			l1 := len(p1)
-			l2 := len(p2)
-			if l1 == l2 {
-				return strings.Compare(p1, p2) < 0
-			}
-			// longer = comes first
-			return l1 > l2
-		})
+		sortRoutes(routes)
 		// TODO: evaluate
 		// set default virtualhost to match *
 		domains := []string{host}
@@ -239,6 +229,20 @@ func (c *ingressController) generateDesiredCrds() ([]crdv1.Upstream, []crdv1.Vir
 	return upstreams, virtualHosts, nil
 }
 
+func sortRoutes(routes []v1.Route) {
+	sort.SliceStable(routes, func(i, j int) bool {
+		p1 := routes[i].Matcher.Path.Regex
+		p2 := routes[j].Matcher.Path.Regex
+		l1 := len(p1)
+		l2 := len(p2)
+		if l1 == l2 {
+			return strings.Compare(p1, p2) < 0
+		}
+		// longer = comes first
+		return l1 > l2
+	})
+}
+
 func (c *ingressController) syncUpstreams(desiredUpstreams, actualUpstreams []crdv1.Upstream) error {
 	var (
 		upstreamsToCreate []crdv1.Upstream
@@ -266,18 +270,18 @@ func (c *ingressController) syncUpstreams(desiredUpstreams, actualUpstreams []cr
 		}
 	}
 	for _, us := range upstreamsToCreate {
-		if _, err := c.glueClient.GlueV1().Upstreams(corev1.NamespaceAll).Create(&us); err != nil {
+		if _, err := c.glueClient.GlueV1().Upstreams(c.crdNamespace).Create(&us); err != nil {
 			return fmt.Errorf("failed to create upstream crd %s: %v", us.Name, err)
 		}
 	}
 	for _, us := range upstreamsToUpdate {
-		if _, err := c.glueClient.GlueV1().Upstreams(corev1.NamespaceAll).Update(&us); err != nil {
+		if _, err := c.glueClient.GlueV1().Upstreams(c.crdNamespace).Update(&us); err != nil {
 			return fmt.Errorf("failed to update upstream crd %s: %v", us.Name, err)
 		}
 	}
 	// only remaining are no longer desired, delete em!
 	for _, us := range actualUpstreams {
-		if err := c.glueClient.GlueV1().Upstreams(corev1.NamespaceAll).Delete(us.Name, nil); err != nil {
+		if err := c.glueClient.GlueV1().Upstreams(c.crdNamespace).Delete(us.Name, nil); err != nil {
 			return fmt.Errorf("failed to update upstream crd %s: %v", us.Name, err)
 		}
 	}

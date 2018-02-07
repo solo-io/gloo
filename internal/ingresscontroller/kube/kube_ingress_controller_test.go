@@ -20,7 +20,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var _ = Describe("KubeSecretWatcher", func() {
+var _ = Describe("KubeIngressController", func() {
 	var (
 		masterUrl, kubeconfigPath string
 		mkb                       *MinikubeInstance
@@ -149,15 +149,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 					Fail("err passed, but was nil")
 				}
 			})
-			It("creates the expected upstream for the ingress", func() {
-				upstreams, err := glueClient.GlueV1().Upstreams(namespace).List(metav1.ListOptions{})
-				Expect(err).NotTo(HaveOccurred())
-				Expect(upstreams.Items).To(HaveLen(1))
-				us := upstreams.Items[0]
-				Expect(us.Name).To(Equal(upstreamName(createdIngress.Name, *createdIngress.Spec.Backend)))
-				Expect(us.Spec.Type).To(Equal(upstream.Kubernetes))
-			})
-			It("creates the expected virtualhost for the ingress", func() {
+			It("creates the default virtualhost for the ingress", func() {
 				glueRoute := v1.Route{
 					Matcher: v1.Matcher{
 						Path: v1.Path{
@@ -167,7 +159,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 					Destination: v1.Destination{
 						SingleDestination: v1.SingleDestination{
 							UpstreamDestination: &v1.UpstreamDestination{
-								UpstreamName: upstreamName(createdIngress.Name, *createdIngress.Spec.Backend),
+								UpstreamName: upstreamName(createdIngress.Namespace, *createdIngress.Spec.Backend),
 							},
 						},
 					},
@@ -181,7 +173,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(virtualHostList.Items).To(HaveLen(1))
 				virtualHost := virtualHostList.Items[0]
-				Expect(virtualHost.Name).To(Equal(virtualHostPrefix + "-" + defaultVirtualHost))
+				Expect(virtualHost.Name).To(Equal(defaultVirtualHost))
 				Expect(v1.VirtualHost(virtualHost.Spec)).To(Equal(glueVirtualHost))
 			})
 		})
@@ -199,6 +191,16 @@ var _ = Describe("KubeSecretWatcher", func() {
 						Annotations:  map[string]string{"kubernetes.io/ingress.class": GlueIngressClass},
 					},
 					Spec: v1beta1.IngressSpec{
+						TLS: []v1beta1.IngressTLS{
+							{
+								Hosts:      []string{"host1"},
+								SecretName: "my-secret-1",
+							},
+							{
+								Hosts:      []string{"host2"},
+								SecretName: "my-secret-2",
+							},
+						},
 						Rules: []v1beta1.IngressRule{
 							{
 								Host: "host1",
@@ -278,8 +280,8 @@ var _ = Describe("KubeSecretWatcher", func() {
 				expectedUpstreams := make(map[string]v1.Upstream)
 				for _, rule := range createdIngress.Spec.Rules {
 					for _, path := range rule.HTTP.Paths {
-						expectedUpstreams[upstreamName(createdIngress.Name, path.Backend)] = v1.Upstream{
-							Name: upstreamName(createdIngress.Name, path.Backend),
+						expectedUpstreams[upstreamName(createdIngress.Namespace, path.Backend)] = v1.Upstream{
+							Name: upstreamName(createdIngress.Namespace, path.Backend),
 							Type: upstream.Kubernetes,
 							Spec: upstream.ToMap(upstream.Spec{
 								ServiceName:      path.Backend.ServiceName,
@@ -301,15 +303,13 @@ var _ = Describe("KubeSecretWatcher", func() {
 			It("create a route for every path", func() {
 				time.Sleep(4 * time.Second)
 				expectedVirtualHosts := map[string]v1.VirtualHost{
-					"host1": {
-						Name:    "host1",
-						Domains: []string{"host1"},
-						Routes:  []v1.Route{},
-					},
 					"host2": {
 						Name:    "host2",
+						Domains: []string{"host2"},
+					},
+					"host1": v1.VirtualHost{
+						Name:    "host1",
 						Domains: []string{"host1"},
-						Routes:  []v1.Route{},
 					},
 				}
 
@@ -318,18 +318,35 @@ var _ = Describe("KubeSecretWatcher", func() {
 						vHost := expectedVirtualHosts[rule.Host]
 						vHost.Routes = append(vHost.Routes, v1.Route{
 							Matcher: v1.Matcher{
-								Path: v1.Path{
-									Regex: path.Path,
-								},
+								Path:    v1.Path{Prefix: "", Regex: path.Path, Exact: ""},
+								Headers: nil,
+								Verbs:   nil,
 							},
 							Destination: v1.Destination{
 								SingleDestination: v1.SingleDestination{
+									FunctionDestination: nil,
 									UpstreamDestination: &v1.UpstreamDestination{
-										UpstreamName: upstreamName(createdIngress.Name, path.Backend),
+										UpstreamName: upstreamName(createdIngress.Namespace, path.Backend),
 									},
 								},
+								Destinations: nil,
 							},
+							RewritePrefix: "",
+							Plugins:       nil,
 						})
+						sortRoutes(vHost.Routes)
+						expectedVirtualHosts[rule.Host] = vHost
+					}
+				}
+
+				for _, tls := range createdIngress.Spec.TLS {
+					for _, host := range tls.Hosts {
+						vHost := expectedVirtualHosts[host]
+						vHost.SSLConfig = v1.SSLConfig{
+							CACertPath: "",
+							SecretRef:  tls.SecretName,
+						}
+						expectedVirtualHosts[host] = vHost
 					}
 				}
 				virtuavirtualHostList, err := glueClient.GlueV1().VirtualHosts(namespace).List(metav1.ListOptions{})
