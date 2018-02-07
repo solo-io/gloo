@@ -87,9 +87,19 @@ func (c *ingressSyncer) sync() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to list ingresses")
 	}
-	service, err := c.serviceLister.Services(kubev1.NamespaceAll).Get(c.ingressService)
+	services, err := c.serviceLister.List(labels.Everything())
 	if err != nil {
-		return errors.Wrapf(err, "failed to get ingress service %s", c.ingressService)
+		return errors.Wrap(err, "failed to list services")
+	}
+	var service *kubev1.Service
+	for _, svc := range services {
+		if svc.Name == c.ingressService {
+			service = svc
+			break
+		}
+	}
+	if service == nil {
+		return errors.Errorf("failed to find service %v", c.ingressService)
 	}
 	for _, ingress := range ingresses {
 		if !isOurIngress(c.globalIngress, ingress) {

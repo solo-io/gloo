@@ -40,27 +40,18 @@ var _ = FDescribe("StatusSyncer", func() {
 			ingressSync *ingressSyncer
 			kubeClient  kubernetes.Interface
 		)
-		BeforeEach(func() {
-			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
-			Must(err)
-
-			ingressSync, err = NewIngressSyncer(cfg,
-				time.Second, make(chan struct{}),
-				true, ingressService)
-			Must(err)
-
-			kubeClient, err = kubernetes.NewForConfig(cfg)
-			Must(err)
-
-			err = RegisterCrds(cfg)
-			Must(err)
-		})
 		Context("an ingress is created with our ingress class", func() {
 			var (
 				createdIngress *v1beta1.Ingress
 				err            error
 			)
 			BeforeEach(func() {
+				cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
+				Must(err)
+
+				kubeClient, err = kubernetes.NewForConfig(cfg)
+				Must(err)
+
 				// create the "ingress pod" - really just a nginx nothingness
 				// but we want the service to point at it
 				labels := map[string]string{"app": ingressService}
@@ -79,7 +70,7 @@ var _ = FDescribe("StatusSyncer", func() {
 						},
 					},
 				}
-				_, err := kubeClient.CoreV1().Pods(namespace).Create(pod)
+				_, err = kubeClient.CoreV1().Pods(namespace).Create(pod)
 				Expect(err).NotTo(HaveOccurred())
 
 				// create the ingress service, this guy is gonna be the source of our status
@@ -96,7 +87,7 @@ var _ = FDescribe("StatusSyncer", func() {
 								Port: 8080,
 							},
 						},
-						Type: v1.ServiceTypeNodePort,
+						Type: v1.ServiceTypeLoadBalancer,
 					},
 				}
 				_, err = kubeClient.CoreV1().Services(namespace).Create(service)
@@ -118,6 +109,14 @@ var _ = FDescribe("StatusSyncer", func() {
 				}
 				createdIngress, err = kubeClient.ExtensionsV1beta1().Ingresses(namespace).Create(ingress)
 				Must(err)
+
+				time.Sleep(time.Second)
+
+				ingressSync, err = NewIngressSyncer(cfg,
+					time.Second, make(chan struct{}),
+					true, ingressService)
+				Must(err)
+
 			})
 			AfterEach(func() {
 				err = kubeClient.ExtensionsV1beta1().Ingresses(namespace).Delete(createdIngress.Name, nil)
@@ -138,7 +137,6 @@ var _ = FDescribe("StatusSyncer", func() {
 				Expect(err).NotTo(HaveOccurred())
 				service, err := kubeClient.CoreV1().Services(namespace).Get(ingressService, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
-				Expect(service.Status.LoadBalancer.Ingress).NotTo(BeEmpty())
 				Expect(ingress.Status.LoadBalancer.Ingress).To(Equal(service.Status.LoadBalancer.Ingress))
 			})
 		})
