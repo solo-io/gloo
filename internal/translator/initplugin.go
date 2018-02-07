@@ -131,16 +131,6 @@ func (ffh *InitPlugin) GetPluginForDest(pi *plugin.PluginInputs, dest *v1.Single
 }
 
 func (ffh *InitPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, out *apiroute.Route) error {
-	// we only care about upstreams of type aws
-
-	// if it is a single destination and it is not aws do nothing.
-	// if it is multiple destinations, add the weights for our functions to the metadata to the
-	// section of our cluster type.
-
-	// gather info of upstreams we care about
-	// group functions by upstreams
-	// assign weights in metadata with upstream name
-	// add our cluster with the sum of the weights to the envoy route object.
 
 	// done. further down, the total weights will be calculated.
 	if isSingleDestination(in) {
@@ -156,7 +146,6 @@ func (ffh *InitPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, o
 			}
 		}
 	} else {
-		// TODO: test for errors from functions
 		// for each functional source in route, find the upstream
 		ourupstreams := make(map[string][]*v1.WeightedDestination)
 		var clusterdestinations []v1.WeightedDestination

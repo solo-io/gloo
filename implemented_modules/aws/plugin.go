@@ -110,8 +110,13 @@ func (a *AwsPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, out 
 }
 
 func (a *AwsPlugin) UpdateFunctionToEnvoyCluster(pi *plugin.PluginInputs, in *v1.Upstream, infunc *v1.Function, out *api.Cluster) error {
+
 	// validate the spec
 	_, err := function.FromMap(in.Spec)
+	if err != nil {
+		return err
+	}
+
 	// no need to udpate the cluster, as we implement functional filter.
 	return err
 }
@@ -121,6 +126,10 @@ func (a *AwsPlugin) UpdateEnvoyCluster(pi *plugin.PluginInputs, in *v1.Upstream,
 	if !a.IsMyUpstream(in) {
 		return nil
 	}
+
+	// mark the cluster as functional and belongs to us.
+	awsstruct := &types.Struct{Fields: make(map[string]*types.Value)}
+	out.Metadata.FilterMetadata[AwsFilterName] = awsstruct
 
 	spec, err := upstream.FromMap(in.Spec)
 	if err != nil {
@@ -165,9 +174,6 @@ func (a *AwsPlugin) UpdateEnvoyCluster(pi *plugin.PluginInputs, in *v1.Upstream,
 			FilterMetadata: make(map[string]*types.Struct),
 		}
 	}
-	awsstruct := &types.Struct{Fields: make(map[string]*types.Value)}
-	out.Metadata.FilterMetadata[AwsFilterName] = awsstruct
-
 	awsstruct.Fields[AwsSecretAccessKey].Kind = &types.Value_StringValue{StringValue: string(accesskey)}
 	awsstruct.Fields[AwsSecretSecretKey].Kind = &types.Value_StringValue{StringValue: string(secretkey)}
 	awsstruct.Fields[AwsRegionKey].Kind = &types.Value_StringValue{StringValue: spec.Region}
