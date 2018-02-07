@@ -109,34 +109,19 @@ func (c *istioConverter) sync() error {
 	if err != nil {
 		return fmt.Errorf("getting ingresses: %v", err)
 	}
-
+	log.Printf("TODO: Finish %v %v %v", routeRules, destinationPolicies, ingresses)
+	panic("foo")
 }
 
 func (c *istioConverter) generateDesiredCrds(routeRules []*routing.RouteRule,
 	destinationPolicies []*routing.DestinationPolicy,
-	ingresses []*v1beta1.Ingress) ([]crdv1.Upstream, []crdv1.Route, error) {
+	ingresses []*v1beta1.Ingress) ([]crdv1.Upstream, []crdv1.VirtualHost, error) {
 
 	routeRules = ingressRouteRules(routeRules)
-	destinationPolicies = ingressDestPolicies(destinationPolicies)
-	ingresses = istioIngresses(ingresses)
+	//destinationPolicies = ingressDestPolicies(destinationPolicies)
+	//ingresses = istioIngresses(ingresses)
 
-	var (
-		upstreams []crdv1.Upstream
-		routes    []crdv1.Route
-	)
-	for _, ingress := range ingresses {
-		if ingress.Spec.Backend != nil {
-			us, route := createDefaultResources(ingress.Name, namespace, ingress.Spec.Backend)
-			upstreams = append(upstreams, us)
-			routes = append(routes, route)
-		}
-		for _, rule := range ingress.Spec.Rules {
-			ruleUpstreams, ruleRoutes := createResourcesForRule(ingress.Name, ingress.Namespace, rule)
-			upstreams = append(upstreams, ruleUpstreams...)
-			routes = append(routes, ruleRoutes...)
-		}
-	}
-	return upstreams, routes, nil
+	return nil, nil, nil
 }
 
 func ingressRouteRules(rules []*routing.RouteRule) []*routing.RouteRule {

@@ -23,7 +23,10 @@ import (
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 
+	"fmt"
+
 	"github.com/hashicorp/go-multierror"
+	"github.com/mitchellh/hashstructure"
 )
 
 type dependencies struct {
@@ -36,10 +39,10 @@ func (d *dependencies) Secrets() secretwatcher.SecretMap {
 
 type Translator struct {
 	plugins        []plugin.Plugin
-	nameTranslator translatoriface.NameTranslator
+	nameTranslator translatoriface.EnvoyNameConverter
 }
 
-func NewTranslator(plugins []plugin.Plugin, nameTranslator translatoriface.NameTranslator) *Translator {
+func NewTranslator(plugins []plugin.Plugin, nameTranslator translatoriface.EnvoyNameConverter) *Translator {
 
 	var functionPlugins []plugin.FunctionalPlugin
 	for _, p := range plugins {
@@ -88,10 +91,10 @@ func constructRoute(in *v1.Route) *apiroute.Route {
 	return &out
 }
 
-func (t *Translator) constructUpstream(in *v1.Upstream) *api.Cluster {
+func (t *Translator) prepareClusterObject(in *v1.Upstream) *api.Cluster {
 	var out api.Cluster
 
-	out.Name = t.nameTranslator.UpstreamToClusterName(in.Name)
+	out.Name = t.nameTranslator.ToEnvoyClusterName(in.Name)
 	return &out
 }
 
@@ -197,7 +200,7 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap
 
 	for _, u := range cfg.Upstreams {
 		if group, ok := endpoints[u.Name]; ok {
-			cla := t.constructEds(t.nameTranslator.UpstreamToClusterName(u.Name), group)
+			cla := t.constructEds(t.nameTranslator.ToEnvoyClusterName(u.Name), group)
 			endpointsproto = append(endpointsproto, cla)
 		}
 	}
@@ -213,7 +216,7 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap
 	for _, upstream := range upstreams {
 		var clustererrors *multierror.Error
 
-		envoycluster := t.constructUpstream(&upstream)
+		envoycluster := t.prepareClusterObject(&upstream)
 		if _, ok := endpoints[upstream.Name]; ok {
 			// if we have EDS!
 			envoycluster.Type = api.Cluster_EDS
@@ -258,6 +261,7 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap
 
 	}
 
+	// TODO unhardcode
 	rdsname := "routes-80"
 
 	var envoyvhosts []apiroute.VirtualHost
@@ -286,6 +290,7 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap
 			}
 		}
 
+		// todo handle default virtualhost
 		envoyvhost := &apiroute.VirtualHost{
 			Name:    t.nameTranslator.ToEnvoyVhostName(&vhost),
 			Domains: ifEmpty(vhost.Domains, []string{"*"}),
@@ -309,9 +314,12 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap
 	var listenerproto []proto.Message
 	listenerproto = append(listenerproto, listener)
 
-	version := "TODO"
+	version, _ := hashstructure.Hash([][]proto.Message{endpointsproto,
+		clustersproto,
+		routessproto,
+		listenerproto}, nil)
 
-	snapshot := envoycache.NewSnapshot(version,
+	snapshot := envoycache.NewSnapshot(fmt.Sprintf("%v", version),
 		endpointsproto,
 		clustersproto,
 		routessproto,

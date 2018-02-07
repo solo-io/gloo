@@ -93,7 +93,7 @@ func (ffh *InitPlugin) updateSingleFunction(pi *plugin.PluginInputs, singlefunc 
 		return errors.New("function handler doesn't exist")
 	}
 
-	clustername := pi.NameTranslator.UpstreamToClusterName(singlefunc.UpstreamName)
+	clustername := pi.NameTranslator.ToEnvoyClusterName(us.Name)
 	out.Action = &apiroute.Route_Route{
 		Route: &apiroute.RouteAction{
 			ClusterSpecifier: &apiroute.RouteAction_Cluster{
@@ -108,7 +108,7 @@ func (ffh *InitPlugin) updateSingleUpstream(pi *plugin.PluginInputs, singleus *v
 	if singleus == nil {
 		return errors.New("upstream doesn't exist")
 	}
-	clustername := pi.NameTranslator.UpstreamToClusterName(singleus.UpstreamName)
+	clustername := pi.NameTranslator.ToEnvoyClusterName(singleus.UpstreamName)
 	out.Action = &apiroute.Route_Route{
 		Route: &apiroute.RouteAction{
 			ClusterSpecifier: &apiroute.RouteAction_Cluster{
@@ -147,26 +147,26 @@ func (ffh *InitPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, o
 		}
 	} else {
 		// for each functional source in route, find the upstream
-		ourupstreams := make(map[string][]*v1.WeightedDestination)
-		var clusterdestinations []v1.WeightedDestination
+		upstreamdestinationsWithFunctions := make(map[string][]*v1.WeightedDestination)
+		var upstreamDestinationsWithoutFunctions []v1.WeightedDestination
 		for _, dest := range in.Destination.Destinations {
 
 			if plugin := ffh.GetPluginForDest(pi, &dest.SingleDestination); plugin == nil {
-				clusterdestinations = append(clusterdestinations, dest)
+				upstreamDestinationsWithoutFunctions = append(upstreamDestinationsWithoutFunctions, dest)
 			} else {
 
-				ourupstreams[dest.FunctionDestination.UpstreamName] = append(ourupstreams[dest.FunctionDestination.UpstreamName], &dest)
+				upstreamdestinationsWithFunctions[dest.FunctionDestination.UpstreamName] = append(upstreamdestinationsWithFunctions[dest.FunctionDestination.UpstreamName], &dest)
 			}
 		}
 
 		totalWeight := uint(0)
 		// now create a cluster for each upstream:
-		for k, v := range ourupstreams {
+		for k, v := range upstreamdestinationsWithFunctions {
 			w := uint(0)
 			for _, d := range v {
 				w += d.Weight
 			}
-			clustername := pi.NameTranslator.UpstreamToClusterName(k)
+			clustername := pi.NameTranslator.ToEnvoyClusterName(k)
 			// create metadata object for cluster in the route:
 			ffh.addClusterFuncsToMetadata(pi, ffh.GetPluginForDest(pi, &v[0].SingleDestination), out, clustername, v)
 
@@ -175,8 +175,8 @@ func (ffh *InitPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, o
 			totalWeight += w
 		}
 
-		for _, c := range clusterdestinations {
-			clustername := pi.NameTranslator.UpstreamToClusterName(c.SingleDestination.UpstreamDestination.UpstreamName)
+		for _, c := range upstreamDestinationsWithoutFunctions {
+			clustername := pi.NameTranslator.ToEnvoyClusterName(c.SingleDestination.UpstreamDestination.UpstreamName)
 			ffh.addClusterWithWeight(out, clustername, uint32(c.Weight))
 			totalWeight += c.Weight
 		}

@@ -73,7 +73,6 @@ func (a *AwsPlugin) EnvoyFilters(pi *plugin.PluginInputs) []plugin.FilterWrapper
 }
 
 func (a *AwsPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, out *apiroute.Route) error {
-	// nothing here
 
 	plugins := in.Plugins
 	if plugins != nil {
@@ -112,10 +111,7 @@ func (a *AwsPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, out 
 func (a *AwsPlugin) UpdateFunctionToEnvoyCluster(pi *plugin.PluginInputs, in *v1.Upstream, infunc *v1.Function, out *api.Cluster) error {
 
 	// validate the spec
-	_, err := function.FromMap(in.Spec)
-	if err != nil {
-		return err
-	}
+	_, err := function.FromMap(infunc.Spec)
 
 	// no need to udpate the cluster, as we implement functional filter.
 	return err

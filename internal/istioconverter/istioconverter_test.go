@@ -13,7 +13,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var _ = Describe("Istioconverter", func() {
+var _ = XDescribe("Istioconverter", func() {
 	var (
 		masterUrl, kubeconfigPath string
 		mkb                       *MinikubeInstance

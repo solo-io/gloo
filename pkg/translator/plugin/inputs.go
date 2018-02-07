@@ -12,7 +12,7 @@ type State struct {
 
 type PluginInputs struct {
 	State          *State
-	NameTranslator translator.NameTranslator
+	NameTranslator translator.EnvoyNameConverter
 }
 
 func (s *State) GetFunction(fd *v1.FunctionDestination) *v1.Function {

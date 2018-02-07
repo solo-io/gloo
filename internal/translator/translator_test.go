@@ -24,7 +24,7 @@ import (
 
 type testNameTranslator struct{}
 
-func (t testNameTranslator) UpstreamToClusterName(s string) string {
+func (t testNameTranslator) ToEnvoyClusterName(s string) string {
 	return s
 }
 

@@ -1,24 +1,30 @@
 package v1
 
 type ConfigObject interface {
-	ThisIsAConfigObject()
+	IsConfigObject()
 }
+
+func (c *Route) IsConfigObject()       {}
+func (c *Upstream) IsConfigObject()    {}
+func (c *VirtualHost) IsConfigObject() {}
+func (c *Function) IsConfigObject()    {}
+
+type spec map[string]interface{}
+
+type RoutePluginSpec spec
+type UpstreamSpec spec
+type FunctionSpec spec
 
 type Config struct {
 	Upstreams    []Upstream
 	VirtualHosts []VirtualHost
 }
 
-func (c *Route) ThisIsAConfigObject()       {}
-func (c *Upstream) ThisIsAConfigObject()    {}
-func (c *VirtualHost) ThisIsAConfigObject() {}
-func (c *Function) ThisIsAConfigObject()    {}
-
 type Route struct {
-	Matcher       Matcher                `json:"matcher"`
-	Destination   Destination            `json:"destination"`
-	RewritePrefix string                 `json:"rewrite_prefix"`
-	Plugins       map[string]interface{} `json:"plugins"`
+	Matcher       Matcher                    `json:"matcher"`
+	Destination   Destination                `json:"destination"`
+	RewritePrefix string                     `json:"rewrite_prefix"`
+	Plugins       map[string]RoutePluginSpec `json:"plugins"`
 }
 
 type Destination struct {

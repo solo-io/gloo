@@ -21,8 +21,8 @@ type Dependencies interface {
 	Secrets() secretwatcher.SecretMap
 }
 
-type NameTranslator interface {
-	UpstreamToClusterName(string) string
+type EnvoyNameConverter interface {
+	ToEnvoyClusterName(upstreamName string) string
 	ToEnvoyVhostName(*v1.VirtualHost) string
 }
 
@@ -35,15 +35,11 @@ func NewConfigMultiError(Cfg v1.ConfigObject, err *multierror.Error) ConfigStatu
 	return ConfigStatus{Cfg: Cfg, Err: err}
 }
 
-func NewConfigError(Cfg v1.ConfigObject, err error) ConfigStatus {
-	return ConfigStatus{Cfg: Cfg, Err: multierror.Append(nil, err)}
-}
-
 func NewConfigOk(Cfg v1.ConfigObject) ConfigStatus {
 	return ConfigStatus{Cfg: Cfg, Err: nil}
 }
 
-type Translator interface {
+type Interface interface {
 	UserResource
 
 	Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap, endpoints endpointdiscovery.EndpointGroups) (*envoycache.Snapshot, []ConfigStatus)
