@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net"
 
-	envoyapi "github.com/envoyproxy/go-control-plane/api"
+	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	envoyv2 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	xds "github.com/envoyproxy/go-control-plane/pkg/server"
 	"github.com/grpc-ecosystem/go-grpc-middleware"
@@ -20,7 +22,7 @@ const NodeKey = envoycache.Key("glue-envoy")
 
 type hasher struct{}
 
-func (h hasher) Hash(node *envoyapi.Node) (envoycache.Key, error) {
+func (h hasher) Hash(node *core.Node) (envoycache.Key, error) {
 	return NodeKey, nil
 }
 
@@ -50,11 +52,11 @@ func RunXDS(port int) (envoycache.Cache, *grpc.Server, error) {
 		)),
 	)
 	xdsServer := xds.NewServer(envoyCache)
-	envoyapi.RegisterAggregatedDiscoveryServiceServer(grpcServer, xdsServer)
-	envoyapi.RegisterEndpointDiscoveryServiceServer(grpcServer, xdsServer)
-	envoyapi.RegisterClusterDiscoveryServiceServer(grpcServer, xdsServer)
-	envoyapi.RegisterRouteDiscoveryServiceServer(grpcServer, xdsServer)
-	envoyapi.RegisterListenerDiscoveryServiceServer(grpcServer, xdsServer)
+	envoyv2.RegisterAggregatedDiscoveryServiceServer(grpcServer, xdsServer)
+	v2.RegisterEndpointDiscoveryServiceServer(grpcServer, xdsServer)
+	v2.RegisterClusterDiscoveryServiceServer(grpcServer, xdsServer)
+	v2.RegisterRouteDiscoveryServiceServer(grpcServer, xdsServer)
+	v2.RegisterListenerDiscoveryServiceServer(grpcServer, xdsServer)
 
 	go func() {
 		log.Debugf("xDS server listening on %d", port)
