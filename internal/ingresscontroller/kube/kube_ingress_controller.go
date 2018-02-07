@@ -15,9 +15,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/cache"
-	"k8s.io/ingress/core/pkg/ingress/status"
-	"k8s.io/ingress/core/pkg/ingress/store"
 
 	"sort"
 	"strings"
@@ -43,8 +40,7 @@ const (
 type ingressController struct {
 	errors             chan error
 	useAsGlobalIngress bool
-	// name of the kubernetes service for the ingress (envoy)
-	ingressService string
+
 	// where to store generated crds
 	crdNamespace string
 
@@ -57,7 +53,7 @@ func (c *ingressController) Error() <-chan error {
 }
 
 func NewIngressController(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}, useAsGlobalIngress bool,
-	crdNamespace, ingressNamespace, ingressService string) (*ingressController, error) {
+	crdNamespace string) (*ingressController, error) {
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
@@ -71,10 +67,9 @@ func NewIngressController(cfg *rest.Config, resyncDuration time.Duration, stopCh
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, resyncDuration)
 	ingressInformer := kubeInformerFactory.Extensions().V1beta1().Ingresses()
 
-	ctrl := &ingressController{
+	c := &ingressController{
 		errors:             make(chan error),
 		useAsGlobalIngress: useAsGlobalIngress,
-		ingressService:     ingressService,
 		crdNamespace:       crdNamespace,
 
 		ingressLister: ingressInformer.Lister(),
@@ -82,39 +77,15 @@ func NewIngressController(cfg *rest.Config, resyncDuration time.Duration, stopCh
 	}
 
 	kubeController := controller.NewController("glue-ingress-controller", kubeClient,
-		ctrl.syncGlueResourcesWithIngresses,
+		c.syncGlueResourcesWithIngresses,
 		ingressInformer.Informer())
 
 	go kubeInformerFactory.Start(stopCh)
 	go func() {
 		kubeController.Run(2, stopCh)
 	}()
-	go func() {
-		ctrl.syncIngressStatuses(kubeClient, ingressInformer.Informer().GetStore(), ingressNamespace, ingressService, stopCh)
-	}()
 
-	return ctrl, nil
-}
-
-const (
-	ingressElectionID = "kube-ingress-importer-leader"
-)
-
-func (c *ingressController) syncIngressStatuses(client kubernetes.Interface,
-	ingressStore cache.Store,
-	ingressNamespace, ingressService string,
-	stopCh <-chan struct{}) {
-	sync := status.NewStatusSyncer(status.Config{
-		Client:              client,
-		IngressLister:       store.IngressLister{Store: ingressStore},
-		ElectionID:          ingressElectionID, // TODO: configurable?
-		PublishService:      ingressNamespace + "/" + ingressService,
-		DefaultIngressClass: GlueIngressClass,
-		IngressClass:        GlueIngressClass,
-		CustomIngressStatus: func(ingress *v1beta1.Ingress) []corev1.LoadBalancerIngress { return nil },
-	})
-	defer sync.Shutdown()
-	sync.Run(stopCh)
+	return c, nil
 }
 
 func (c *ingressController) syncGlueResourcesWithIngresses(namespace, name string, v interface{}) {
@@ -123,7 +94,7 @@ func (c *ingressController) syncGlueResourcesWithIngresses(namespace, name strin
 		return
 	}
 	// only react if it's an ingress we care about
-	if !c.isOurIngress(ingress) {
+	if isOurIngress(c.useAsGlobalIngress, ingress) {
 		return
 	}
 	log.Debugf("syncing glue config items after ingress %v/%v changed", namespace, name)
@@ -176,7 +147,7 @@ func (c *ingressController) generateDesiredCrds() ([]crdv1.Upstream, []crdv1.Vir
 	})
 	for _, ingress := range ingressList {
 		// only care if it's our ingress class, or we're the global default
-		if !c.isOurIngress(ingress) {
+		if isOurIngress(c.useAsGlobalIngress, ingress) {
 			continue
 		}
 		// configure ssl for each host
@@ -402,6 +373,6 @@ func upstreamName(namespace string, backend v1beta1.IngressBackend) string {
 	return fmt.Sprintf("%s-%s-%s-%s", upstreamPrefix, namespace, backend.ServiceName, backend.ServicePort.String())
 }
 
-func (c *ingressController) isOurIngress(ingress *v1beta1.Ingress) bool {
-	return c.useAsGlobalIngress || ingress.Annotations["kubernetes.io/ingress.class"] == GlueIngressClass
+func isOurIngress(useAsGlobalIngress bool, ingress *v1beta1.Ingress) bool {
+	return useAsGlobalIngress || ingress.Annotations["kubernetes.io/ingress.class"] == GlueIngressClass
 }

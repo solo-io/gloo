@@ -26,7 +26,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 		mkb                       *MinikubeInstance
 		namespace                 string
 	)
-	BeforeSuite(func() {
+	BeforeEach(func() {
 		namespace = RandString(8)
 		mkb = NewMinikube(false, namespace)
 		err := mkb.Setup()
@@ -35,7 +35,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 		masterUrl, err = mkb.Addr()
 		Must(err)
 	})
-	AfterSuite(func() {
+	AfterEach(func() {
 		mkb.Teardown()
 	})
 	Describe("controller", func() {
@@ -48,12 +48,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Must(err)
 
-			/*
-						cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}, useAsGlobalIngress bool,
-				crdNamespace, ingressNamespace, ingressService
-			*/
-
-			ingressCvtr, err = NewIngressController(cfg, time.Second, make(chan struct{}), true, namespace, namespace, "test-ingress")
+			ingressCvtr, err = NewIngressController(cfg, time.Second, make(chan struct{}), true, namespace)
 			Must(err)
 
 			kubeClient, err = kubernetes.NewForConfig(cfg)
