@@ -40,7 +40,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 	})
 	Describe("controller", func() {
 		var (
-			ingressCvtr *ingressConverter
+			ingressCvtr *ingressController
 			kubeClient  kubernetes.Interface
 			glueClient  clientset.Interface
 		)
@@ -48,7 +48,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Must(err)
 
-			ingressCvtr, err = NewIngressConverter(cfg, time.Second, make(chan struct{}))
+			ingressCvtr, err = NewIngressController(cfg, time.Second, make(chan struct{}))
 			Must(err)
 
 			kubeClient, err = kubernetes.NewForConfig(cfg)

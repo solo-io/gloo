@@ -38,7 +38,7 @@ const (
 	GlueIngressClass = "glue"
 )
 
-type ingressConverter struct {
+type ingressController struct {
 	errors             chan error
 	useAsGlobalIngress bool
 	// name of the kubernetes service for the ingress (envoy)
@@ -48,7 +48,7 @@ type ingressConverter struct {
 	glueClient    clientset.Interface
 }
 
-func NewIngressConverter(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}, useAsGlobalIngress bool, ingressNamespace, ingressService string) (*ingressConverter, error) {
+func NewIngressController(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}, useAsGlobalIngress bool, ingressNamespace, ingressService string) (*ingressController, error) {
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
@@ -62,7 +62,7 @@ func NewIngressConverter(cfg *rest.Config, resyncDuration time.Duration, stopCh 
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, resyncDuration)
 	ingressInformer := kubeInformerFactory.Extensions().V1beta1().Ingresses()
 
-	ctrl := &ingressConverter{
+	ctrl := &ingressController{
 		errors:             make(chan error),
 		useAsGlobalIngress: useAsGlobalIngress,
 		ingressService:     ingressService,
@@ -90,7 +90,7 @@ const (
 	ingressElectionID = "kube-ingress-importer-leader"
 )
 
-func (c *ingressConverter) syncIngressStatuses(client kubernetes.Interface,
+func (c *ingressController) syncIngressStatuses(client kubernetes.Interface,
 	ingressStore cache.Store,
 	ingressNamespace, ingressService string,
 	stopCh <-chan struct{}) {
@@ -107,7 +107,7 @@ func (c *ingressConverter) syncIngressStatuses(client kubernetes.Interface,
 	sync.Run(stopCh)
 }
 
-func (c *ingressConverter) syncGlueResourcesWithIngresses(namespace, name string, v interface{}) {
+func (c *ingressController) syncGlueResourcesWithIngresses(namespace, name string, v interface{}) {
 	ingress, ok := v.(*v1beta1.Ingress)
 	if !ok {
 		return
@@ -122,11 +122,11 @@ func (c *ingressConverter) syncGlueResourcesWithIngresses(namespace, name string
 	}
 }
 
-func (c *ingressConverter) Error() <-chan error {
+func (c *ingressController) Error() <-chan error {
 	return c.errors
 }
 
-func (c *ingressConverter) syncGlueResources(namespace string) error {
+func (c *ingressController) syncGlueResources(namespace string) error {
 	desiredUpstreams, desiredVirtualHosts, err := c.generateDesiredCrds(namespace)
 	if err != nil {
 		return fmt.Errorf("failed to generate desired crds: %v", err)
@@ -144,7 +144,7 @@ func (c *ingressConverter) syncGlueResources(namespace string) error {
 	return nil
 }
 
-func (c *ingressConverter) syncUpstreams(namespace string, desiredUpstreams, actualUpstreams []crdv1.Upstream) error {
+func (c *ingressController) syncUpstreams(namespace string, desiredUpstreams, actualUpstreams []crdv1.Upstream) error {
 	var (
 		upstreamsToCreate []crdv1.Upstream
 		upstreamsToUpdate []crdv1.Upstream
@@ -189,7 +189,7 @@ func (c *ingressConverter) syncUpstreams(namespace string, desiredUpstreams, act
 	return nil
 }
 
-func (c *ingressConverter) syncVirtualHosts(namespace string, desiredVirtualHosts, actualVirtualHosts []crdv1.VirtualHost) error {
+func (c *ingressController) syncVirtualHosts(namespace string, desiredVirtualHosts, actualVirtualHosts []crdv1.VirtualHost) error {
 	var (
 		virtualHostsToCreate []crdv1.VirtualHost
 		virtualHostsToUpdate []crdv1.VirtualHost
@@ -234,7 +234,7 @@ func (c *ingressConverter) syncVirtualHosts(namespace string, desiredVirtualHost
 	return nil
 }
 
-func (c *ingressConverter) getActualCrds(namespace string) ([]crdv1.Upstream, []crdv1.VirtualHost, error) {
+func (c *ingressController) getActualCrds(namespace string) ([]crdv1.Upstream, []crdv1.VirtualHost, error) {
 	upstreams, err := c.glueClient.GlueV1().Upstreams(namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get upstream crd list: %v", err)
@@ -246,7 +246,7 @@ func (c *ingressConverter) getActualCrds(namespace string) ([]crdv1.Upstream, []
 	return upstreams.Items, virtualHosts.Items, nil
 }
 
-func (c *ingressConverter) generateDesiredCrds(namespace string) ([]crdv1.Upstream, []crdv1.VirtualHost, error) {
+func (c *ingressController) generateDesiredCrds(namespace string) ([]crdv1.Upstream, []crdv1.VirtualHost, error) {
 	ingressList, err := c.ingressLister.List(labels.Everything())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to list ingresses: %v", err)
@@ -357,7 +357,7 @@ func upstreamName(namespace string, backend v1beta1.IngressBackend) string {
 	return fmt.Sprintf("%s-%s-%s-%s", upstreamPrefix, namespace, backend.ServiceName, backend.ServicePort.String())
 }
 
-func (c *ingressConverter) isOurIngress(ingress *v1beta1.Ingress) bool {
+func (c *ingressController) isOurIngress(ingress *v1beta1.Ingress) bool {
 	return c.useAsGlobalIngress || ingress.Annotations["kubernetes.io/ingress.class"] == GlueIngressClass
 }
 
