@@ -12,8 +12,11 @@ import (
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/translator/plugin"
 
-	"github.com/envoyproxy/go-control-plane/api"
-	"github.com/envoyproxy/go-control-plane/api/filter/network"
+	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	apiroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	hcm "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+
 	"github.com/hashicorp/go-multierror"
 )
 
@@ -60,7 +63,7 @@ func (a *AwsPlugin) GetDependencies(cfg *v1.Config) plugin.DependenciesDescripti
 
 func (a *AwsPlugin) EnvoyFilters(pi *plugin.PluginInputs) []plugin.FilterWrapper {
 	filter := plugin.FilterWrapper{
-		Filter: network.HttpFilter{
+		Filter: hcm.HttpFilter{
 			Name: AwsFilterName,
 		},
 		Stage: AwsFilterStage,
@@ -68,7 +71,7 @@ func (a *AwsPlugin) EnvoyFilters(pi *plugin.PluginInputs) []plugin.FilterWrapper
 	return []plugin.FilterWrapper{filter}
 }
 
-func (a *AwsPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, out *api.Route) error {
+func (a *AwsPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, out *apiroute.Route) error {
 	// nothing here
 
 	plugins := in.Plugins
@@ -81,7 +84,7 @@ func (a *AwsPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, out 
 		if spec.Async {
 
 			if out.Metadata == nil {
-				out.Metadata = &api.Metadata{
+				out.Metadata = &envoy_api_v2_core.Metadata{
 					FilterMetadata: make(map[string]*types.Struct),
 				}
 			}
@@ -101,8 +104,7 @@ func (a *AwsPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, out 
 		}
 
 	}
-	// TODO: check if we are async or not in the in route plugins
-	// if we are async add it to the route metadata for the aws filter
+
 	return nil
 }
 
@@ -125,7 +127,7 @@ func (a *AwsPlugin) UpdateEnvoyCluster(pi *plugin.PluginInputs, in *v1.Upstream,
 	}
 
 	out.Type = api.Cluster_LOGICAL_DNS
-	out.Hosts = append(out.Hosts, &api.Address{Address: &api.Address_SocketAddress{SocketAddress: &api.SocketAddress{
+	out.Hosts = append(out.Hosts, &envoy_api_v2_core.Address{Address: &envoy_api_v2_core.Address_SocketAddress{SocketAddress: &envoy_api_v2_core.SocketAddress{
 		Address: spec.GetLambdaHostname(),
 	}}})
 
@@ -158,7 +160,7 @@ func (a *AwsPlugin) UpdateEnvoyCluster(pi *plugin.PluginInputs, in *v1.Upstream,
 	}
 
 	if out.Metadata == nil {
-		out.Metadata = &api.Metadata{
+		out.Metadata = &envoy_api_v2_core.Metadata{
 			FilterMetadata: make(map[string]*types.Struct),
 		}
 	}

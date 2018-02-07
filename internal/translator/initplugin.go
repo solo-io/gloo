@@ -3,7 +3,10 @@ package translator
 import (
 	"errors"
 
-	"github.com/envoyproxy/go-control-plane/api"
+	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	apiroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/translator/plugin"
 
@@ -79,7 +82,7 @@ func isSingleDestination(in *v1.Route) bool {
 	return len(in.Destination.Destinations) == 0
 }
 
-func (ffh *InitPlugin) updateSingleFunction(pi *plugin.PluginInputs, singlefunc *v1.FunctionDestination, out *api.Route) error {
+func (ffh *InitPlugin) updateSingleFunction(pi *plugin.PluginInputs, singlefunc *v1.FunctionDestination, out *apiroute.Route) error {
 	us := pi.State.GetUpstream(singlefunc.UpstreamName)
 	if us != nil {
 		return errors.New("upstream doesn't exist")
@@ -90,9 +93,9 @@ func (ffh *InitPlugin) updateSingleFunction(pi *plugin.PluginInputs, singlefunc 
 	}
 
 	clustername := pi.NameTranslator.UpstreamToClusterName(singlefunc.UpstreamName)
-	out.Action = &api.Route_Route{
-		Route: &api.RouteAction{
-			ClusterSpecifier: &api.RouteAction_Cluster{
+	out.Action = &apiroute.Route_Route{
+		Route: &apiroute.RouteAction{
+			ClusterSpecifier: &apiroute.RouteAction_Cluster{
 				Cluster: clustername,
 			},
 		},
@@ -100,14 +103,14 @@ func (ffh *InitPlugin) updateSingleFunction(pi *plugin.PluginInputs, singlefunc 
 	ffh.addClusterSingleFuncToMetadata(pi, funcplug, out, clustername, singlefunc)
 	return nil
 }
-func (ffh *InitPlugin) updateSingleUpstream(pi *plugin.PluginInputs, singleus *v1.UpstreamDestination, out *api.Route) error {
+func (ffh *InitPlugin) updateSingleUpstream(pi *plugin.PluginInputs, singleus *v1.UpstreamDestination, out *apiroute.Route) error {
 	if singleus == nil {
 		return errors.New("upstream doesn't exist")
 	}
 	clustername := pi.NameTranslator.UpstreamToClusterName(singleus.UpstreamName)
-	out.Action = &api.Route_Route{
-		Route: &api.RouteAction{
-			ClusterSpecifier: &api.RouteAction_Cluster{
+	out.Action = &apiroute.Route_Route{
+		Route: &apiroute.RouteAction{
+			ClusterSpecifier: &apiroute.RouteAction_Cluster{
 				Cluster: clustername,
 			},
 		},
@@ -126,7 +129,7 @@ func (ffh *InitPlugin) GetPluginForDest(pi *plugin.PluginInputs, dest *v1.Single
 	return ffh.ff.GetPlugin(us)
 }
 
-func (ffh *InitPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, out *api.Route) error {
+func (ffh *InitPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, out *apiroute.Route) error {
 	// we only care about upstreams of type aws
 
 	// if it is a single destination and it is not aws do nothing.
@@ -194,18 +197,18 @@ func (ffh *InitPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, o
 	return nil
 }
 
-func (ffh *InitPlugin) verifyMetadata(routeout *api.Route, clustername string) *types.Struct {
+func (ffh *InitPlugin) verifyMetadata(routeout *apiroute.Route, clustername string) *types.Struct {
 	if routeout.Metadata == nil {
-		routeout.Metadata = &api.Metadata{
+		routeout.Metadata = &envoy_api_v2_core.Metadata{
 			FilterMetadata: make(map[string]*types.Struct),
 		}
 	}
 
 	return ffh.getStructForKey(routeout.Metadata, clustername)
 }
-func (ffh *InitPlugin) getStructForKey(meta *api.Metadata, key string) *types.Struct {
+func (ffh *InitPlugin) getStructForKey(meta *envoy_api_v2_core.Metadata, key string) *types.Struct {
 	if meta == nil {
-		meta = &api.Metadata{
+		meta = &envoy_api_v2_core.Metadata{
 			FilterMetadata: make(map[string]*types.Struct),
 		}
 	}
@@ -246,13 +249,13 @@ func (ffh *InitPlugin) setFuncSpecStruct(out *api.Cluster, funcname string, spec
 	functionsMetadata.Fields[funcname].Kind = &types.Value_StructValue{StructValue: spec}
 }
 
-func (ffh *InitPlugin) addClusterSingleFuncToMetadata(pi *plugin.PluginInputs, ff plugin.FunctionalPlugin, out *api.Route, clustername string, destination *v1.FunctionDestination) {
+func (ffh *InitPlugin) addClusterSingleFuncToMetadata(pi *plugin.PluginInputs, ff plugin.FunctionalPlugin, out *apiroute.Route, clustername string, destination *v1.FunctionDestination) {
 	routeClusterMetadata := ffh.verifyMetadata(out, clustername)
 
 	routeClusterMetadata.Fields[FunctionalSingleKey].Kind = &types.Value_StringValue{StringValue: destination.FunctionName}
 }
 
-func (ffh *InitPlugin) addClusterFuncsToMetadata(pi *plugin.PluginInputs, ff plugin.FunctionalPlugin, routeout *api.Route, clustername string, destinations []*v1.WeightedDestination) {
+func (ffh *InitPlugin) addClusterFuncsToMetadata(pi *plugin.PluginInputs, ff plugin.FunctionalPlugin, routeout *apiroute.Route, clustername string, destinations []*v1.WeightedDestination) {
 	routeClusterMetadata := ffh.verifyMetadata(routeout, clustername)
 
 	var clusterFuncWeights []*types.Value
@@ -275,46 +278,46 @@ func (ffh *InitPlugin) addClusterFuncsToMetadata(pi *plugin.PluginInputs, ff plu
 	routeClusterMetadata.Fields[FunctionalFunctionsKey].Kind = &types.Value_ListValue{ListValue: &types.ListValue{clusterFuncWeights}}
 }
 
-func (ffh *InitPlugin) getWeightedClusters(out *api.Route) (*api.RouteAction_WeightedClusters, error) {
-	var weights *api.RouteAction_WeightedClusters
+func (ffh *InitPlugin) getWeightedClusters(out *apiroute.Route) (*apiroute.RouteAction_WeightedClusters, error) {
+	var weights *apiroute.RouteAction_WeightedClusters
 	if out.Action != nil {
-		route, ok := out.Action.(*api.Route_Route)
+		route, ok := out.Action.(*apiroute.Route_Route)
 		if !ok {
 			return nil, errors.New("bad route")
 		}
 		if route.Route == nil {
-			route.Route = &api.RouteAction{}
+			route.Route = &apiroute.RouteAction{}
 		}
 		if route.Route.ClusterSpecifier != nil {
-			weights, ok = route.Route.ClusterSpecifier.(*api.RouteAction_WeightedClusters)
+			weights, ok = route.Route.ClusterSpecifier.(*apiroute.RouteAction_WeightedClusters)
 			if !ok {
 				return nil, errors.New("bad route")
 			}
 		} else {
-			weights = &api.RouteAction_WeightedClusters{}
+			weights = &apiroute.RouteAction_WeightedClusters{}
 			route.Route.ClusterSpecifier = weights
 		}
 	} else {
-		weights = &api.RouteAction_WeightedClusters{}
-		out.Action = &api.Route_Route{
-			Route: &api.RouteAction{
+		weights = &apiroute.RouteAction_WeightedClusters{}
+		out.Action = &apiroute.Route_Route{
+			Route: &apiroute.RouteAction{
 				ClusterSpecifier: weights,
 			},
 		}
 	}
 
 	if weights.WeightedClusters == nil {
-		weights.WeightedClusters = &api.WeightedCluster{}
+		weights.WeightedClusters = &apiroute.WeightedCluster{}
 	}
 	return weights, nil
 }
 
-func (ffh *InitPlugin) addClusterWithWeight(routeout *api.Route, clustername string, weight uint32) error {
+func (ffh *InitPlugin) addClusterWithWeight(routeout *apiroute.Route, clustername string, weight uint32) error {
 	weights, err := ffh.getWeightedClusters(routeout)
 	if err != nil {
 		return err
 	}
-	wc := &api.WeightedCluster_ClusterWeight{
+	wc := &apiroute.WeightedCluster_ClusterWeight{
 		Name:   clustername,
 		Weight: &types.UInt32Value{Value: weight},
 	}
@@ -323,6 +326,6 @@ func (ffh *InitPlugin) addClusterWithWeight(routeout *api.Route, clustername str
 	return nil
 }
 
-func (ffh *InitPlugin) addTotalWeight(routeout *api.Route, totalWeight uint) {
+func (ffh *InitPlugin) addTotalWeight(routeout *apiroute.Route, totalWeight uint) {
 	panic("TODO")
 }

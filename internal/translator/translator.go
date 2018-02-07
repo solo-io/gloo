@@ -8,21 +8,28 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
 
-	"github.com/envoyproxy/go-control-plane/api"
-	"github.com/envoyproxy/go-control-plane/api/filter/network"
+	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	apiep "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
+	envoy_api_v2_listener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
+	apiroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	hcm "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/module"
 	"github.com/solo-io/glue/pkg/translator/plugin"
+
+	"github.com/solo-io/glue/pkg/endpointdiscovery"
+	"github.com/solo-io/glue/pkg/secretwatcher"
 
 	"github.com/hashicorp/go-multierror"
 )
 
 type dependencies struct {
-	secrets module.SecretMap
+	secrets secretwatcher.SecretMap
 }
 
-func (d *dependencies) Secrets() module.SecretMap {
+func (d *dependencies) Secrets() secretwatcher.SecretMap {
 	return d.secrets
 }
 
@@ -45,34 +52,34 @@ func NewTranslator(plugins []plugin.Plugin, nameTranslator plugin.NameTranslator
 	return &Translator{plugins: plugins, nameTranslator: nameTranslator}
 }
 
-func constructMatch(in *v1.Matcher) *api.RouteMatch {
-	var out api.RouteMatch
+func constructMatch(in *v1.Matcher) apiroute.RouteMatch {
+	var out apiroute.RouteMatch
 	if in.Path.Exact != "" {
-		out.PathSpecifier = &api.RouteMatch_Path{Path: in.Path.Exact}
+		out.PathSpecifier = &apiroute.RouteMatch_Path{Path: in.Path.Exact}
 	} else if in.Path.Prefix != "" {
-		out.PathSpecifier = &api.RouteMatch_Prefix{Prefix: in.Path.Prefix}
+		out.PathSpecifier = &apiroute.RouteMatch_Prefix{Prefix: in.Path.Prefix}
 	} else if in.Path.Regex != "" {
-		out.PathSpecifier = &api.RouteMatch_Regex{Regex: in.Path.Regex}
+		out.PathSpecifier = &apiroute.RouteMatch_Regex{Regex: in.Path.Regex}
 	}
 
 	if len(in.Verbs) == 1 {
-		out.Headers = append(out.Headers, &api.HeaderMatcher{Name: ":method", Value: in.Verbs[0]})
+		out.Headers = append(out.Headers, &apiroute.HeaderMatcher{Name: ":method", Value: in.Verbs[0]})
 	} else if len(in.Verbs) >= 1 {
-		out.Headers = append(out.Headers, &api.HeaderMatcher{Name: ":method", Value: strings.Join(in.Verbs, "|"), Regex: &types.BoolValue{Value: true}})
+		out.Headers = append(out.Headers, &apiroute.HeaderMatcher{Name: ":method", Value: strings.Join(in.Verbs, "|"), Regex: &types.BoolValue{Value: true}})
 	}
 
 	for k, v := range in.Headers {
-		out.Headers = append(out.Headers, &api.HeaderMatcher{Name: k, Value: v})
+		out.Headers = append(out.Headers, &apiroute.HeaderMatcher{Name: k, Value: v})
 	}
 
-	return &out
-
+	return out
 }
-func constructRoute(in *v1.Route) *api.Route {
-	var out api.Route
+
+func constructRoute(in *v1.Route) *apiroute.Route {
+	var out apiroute.Route
 	out.Match = constructMatch(&in.Matcher)
-	out.Action = &api.Route_Route{
-		Route: &api.RouteAction{
+	out.Action = &apiroute.Route_Route{
+		Route: &apiroute.RouteAction{
 			PrefixRewrite: in.RewritePrefix,
 		},
 	}
@@ -87,19 +94,19 @@ func (t *Translator) constructUpstream(in *v1.Upstream) *api.Cluster {
 	return &out
 }
 
-func (t *Translator) constructEds(clustername string, addresses []module.Endpoint) *api.ClusterLoadAssignment {
+func (t *Translator) constructEds(clustername string, addresses []endpointdiscovery.Endpoint) *api.ClusterLoadAssignment {
 	var out api.ClusterLoadAssignment
 
-	var endpoints []*api.LbEndpoint
+	var endpoints []apiep.LbEndpoint
 	for _, adr := range addresses {
-		l := &api.LbEndpoint{
-			Endpoint: &api.Endpoint{
-				Address: &api.Address{
-					Address: &api.Address_SocketAddress{
-						SocketAddress: &api.SocketAddress{
-							Protocol: api.SocketAddress_TCP,
+		l := apiep.LbEndpoint{
+			Endpoint: &apiep.Endpoint{
+				Address: &envoy_api_v2_core.Address{
+					Address: &envoy_api_v2_core.Address_SocketAddress{
+						SocketAddress: &envoy_api_v2_core.SocketAddress{
+							Protocol: envoy_api_v2_core.TCP,
 							Address:  adr.Address,
-							PortSpecifier: &api.SocketAddress_PortValue{
+							PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{
 								PortValue: uint32(adr.Port),
 							},
 						},
@@ -112,7 +119,7 @@ func (t *Translator) constructEds(clustername string, addresses []module.Endpoin
 
 	out = api.ClusterLoadAssignment{
 		ClusterName: clustername,
-		Endpoints: []*api.LocalityLbEndpoints{{
+		Endpoints: []apiep.LocalityLbEndpoints{{
 			LbEndpoints: endpoints,
 		}},
 	}
@@ -125,9 +132,9 @@ func (t *Translator) constructListener(pi *plugin.PluginInputs, listener, route 
 	httpFilter := "envoy.http_connection_manager"
 	port := uint32(80)
 
-	rdsSource := api.ConfigSource{}
-	rdsSource.ConfigSourceSpecifier = &api.ConfigSource_Ads{
-		Ads: &api.AggregatedConfigSource{},
+	rdsSource := envoy_api_v2_core.ConfigSource{}
+	rdsSource.ConfigSourceSpecifier = &envoy_api_v2_core.ConfigSource_Ads{
+		Ads: &envoy_api_v2_core.AggregatedConfigSource{},
 	}
 
 	var whttpfilters []plugin.FilterWrapper
@@ -136,13 +143,13 @@ func (t *Translator) constructListener(pi *plugin.PluginInputs, listener, route 
 	}
 	httpfilters := sortFilters(whttpfilters)
 
-	httpfilters = append(httpfilters, &network.HttpFilter{Name: router})
+	httpfilters = append(httpfilters, &hcm.HttpFilter{Name: router})
 
-	manager := &network.HttpConnectionManager{
-		CodecType:  network.HttpConnectionManager_AUTO,
+	manager := &hcm.HttpConnectionManager{
+		CodecType:  hcm.AUTO,
 		StatPrefix: "http",
-		RouteSpecifier: &network.HttpConnectionManager_Rds{
-			Rds: &network.Rds{
+		RouteSpecifier: &hcm.HttpConnectionManager_Rds{
+			Rds: &hcm.Rds{
 				ConfigSource:    rdsSource,
 				RouteConfigName: route,
 			},
@@ -156,19 +163,19 @@ func (t *Translator) constructListener(pi *plugin.PluginInputs, listener, route 
 
 	return &api.Listener{
 		Name: listener,
-		Address: &api.Address{
-			Address: &api.Address_SocketAddress{
-				SocketAddress: &api.SocketAddress{
-					Protocol: api.SocketAddress_TCP,
+		Address: envoy_api_v2_core.Address{
+			Address: &envoy_api_v2_core.Address_SocketAddress{
+				SocketAddress: &envoy_api_v2_core.SocketAddress{
+					Protocol: envoy_api_v2_core.TCP,
 					Address:  "::", //bind all
-					PortSpecifier: &api.SocketAddress_PortValue{
+					PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{
 						PortValue: port,
 					},
 				},
 			},
 		},
-		FilterChains: []*api.FilterChain{{
-			Filters: []*api.Filter{{
+		FilterChains: []envoy_api_v2_listener.FilterChain{{
+			Filters: []envoy_api_v2_listener.Filter{{
 				Name:   httpFilter,
 				Config: pbst,
 			}},
@@ -176,7 +183,7 @@ func (t *Translator) constructListener(pi *plugin.PluginInputs, listener, route 
 	}
 }
 
-func (t *Translator) Translate(cfg *v1.Config, secretMap module.SecretMap, endpoints module.EndpointGroups) (*envoycache.Snapshot, error) {
+func (t *Translator) Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap, endpoints endpointdiscovery.EndpointGroups) (*envoycache.Snapshot, error) {
 	var statues []plugin.ConfigStatus
 
 	dependencies := dependencies{secrets: secretMap}
@@ -252,10 +259,10 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap module.SecretMap, endpo
 
 	rdsname := "routes-80"
 
-	var envoyvhosts []*api.VirtualHost
+	var envoyvhosts []apiroute.VirtualHost
 	for _, vhost := range cfg.VirtualHosts {
 
-		var routes []*api.Route
+		var routes []apiroute.Route
 		for _, route := range vhost.Routes {
 			var routeerrors *multierror.Error
 			envoyroute := constructRoute(&route)
@@ -271,14 +278,14 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap module.SecretMap, endpo
 			}
 
 			if routeerrors == nil {
-				routes = append(routes, envoyroute)
+				routes = append(routes, *envoyroute)
 				statues = append(statues, plugin.NewConfigOk(&route))
 			} else {
 				statues = append(statues, plugin.NewConfigMultiError(&route, routeerrors))
 			}
 		}
 
-		envoyvhost := &api.VirtualHost{
+		envoyvhost := &apiroute.VirtualHost{
 			Name:    t.nameTranslator.ToEnvoyVhostName(&vhost),
 			Domains: ifEmpty(vhost.Domains, []string{"*"}),
 			Routes:  routes,
@@ -287,7 +294,7 @@ func (t *Translator) Translate(cfg *v1.Config, secretMap module.SecretMap, endpo
 
 		// if we have ssl certificates, add them to the ssl filter chain.
 		// TODO: Create filter chain for listener
-		envoyvhosts = append(envoyvhosts, envoyvhost)
+		envoyvhosts = append(envoyvhosts, *envoyvhost)
 	}
 	routeConfig := &api.RouteConfiguration{
 		Name:         rdsname,
@@ -339,7 +346,7 @@ func ifEmpty(l []string, def []string) []string {
 	return def
 }
 
-func sortFilters(filters []plugin.FilterWrapper) []*network.HttpFilter {
+func sortFilters(filters []plugin.FilterWrapper) []*hcm.HttpFilter {
 	// sort them accoirding to stage and then according to the name.
 	less := func(i, j int) bool {
 		filteri := filters[i]
@@ -351,7 +358,7 @@ func sortFilters(filters []plugin.FilterWrapper) []*network.HttpFilter {
 	}
 	sort.Slice(filters, less)
 
-	var sortedFilters []*network.HttpFilter
+	var sortedFilters []*hcm.HttpFilter
 	for _, filter := range filters {
 		sortedFilters = append(sortedFilters, &filter.Filter)
 	}

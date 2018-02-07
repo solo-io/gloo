@@ -1,12 +1,14 @@
 package plugin
 
 import (
+	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	apiroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/module"
+	"github.com/solo-io/glue/pkg/endpointdiscovery"
+	"github.com/solo-io/glue/pkg/secretwatcher"
 
-	"github.com/envoyproxy/go-control-plane/api"
 	"github.com/hashicorp/go-multierror"
 )
 
@@ -36,7 +38,7 @@ type Plugin interface {
 
 	EnvoyFilters(fi *PluginInputs) []FilterWrapper
 
-	UpdateEnvoyRoute(fi *PluginInputs, in *v1.Route, out *api.Route) error
+	UpdateEnvoyRoute(fi *PluginInputs, in *v1.Route, out *apiroute.Route) error
 
 	UpdateEnvoyCluster(fi *PluginInputs, in *v1.Upstream, out *api.Cluster) error
 
@@ -53,7 +55,7 @@ type DependenciesDescription interface {
 }
 
 type Dependencies interface {
-	Secrets() module.SecretMap
+	Secrets() secretwatcher.SecretMap
 }
 
 type NameTranslator interface {
@@ -64,5 +66,5 @@ type NameTranslator interface {
 type Translator interface {
 	UserResource
 
-	Translate(cfg *v1.Config, secretMap module.SecretMap, endpoints module.EndpointGroups) (*envoycache.Snapshot, []ConfigStatus)
+	Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap, endpoints endpointdiscovery.EndpointGroups) (*envoycache.Snapshot, []ConfigStatus)
 }
