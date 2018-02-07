@@ -24,11 +24,16 @@
     "envoy/api/v2/endpoint",
     "envoy/api/v2/listener",
     "envoy/api/v2/route",
+    "envoy/config/bootstrap/v2",
     "envoy/config/filter/accesslog/v2",
     "envoy/config/filter/network/http_connection_manager/v2",
+    "envoy/config/metrics/v2",
+    "envoy/config/ratelimit/v2",
+    "envoy/config/trace/v2",
     "envoy/service/discovery/v2",
     "pkg/cache",
     "pkg/server",
+    "pkg/test/resource",
     "pkg/util"
   ]
   revision = "2fe005477d70adc579351a5a9c26408c4a54ef51"
@@ -293,7 +298,7 @@
   name = "github.com/revel/config"
   packages = ["."]
   revision = "662332b741dd464a886ab0901379c02b9bc5dc30"
-  version = "v0.18.0"
+  version = "v0.19.0"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -540,7 +545,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "30d9380b35ad0abf9ef651011e775f997afc1fb6"
+  revision = "beab4da9671e79815b7876363175af45aa180eb5"
 
 [[projects]]
   branch = "release-1.9"
@@ -756,6 +761,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "644728257a14c9e03998a65966eb0a5abdb7bf2f6d30e7494d5d2abd7e83f9c3"
+  inputs-digest = "68025e8e9e824b3f6bacb461642358d4404008b597f44664f3d844f6c81f3df2"
   solver-name = "gps-cdcl"
   solver-version = 1
