@@ -189,7 +189,6 @@ func (a *AwsPlugin) GetFunctionSpec(in *v1.Function) (*types.Struct, error) {
 	funcstruct := &types.Struct{Fields: make(map[string]*types.Value)}
 	funcstruct.Fields[AwsFunctionNameKey].Kind = &types.Value_StringValue{StringValue: string(spec.FunctionName)}
 	funcstruct.Fields[AwsFunctionQualifierKey].Kind = &types.Value_StringValue{StringValue: string(spec.Qualifier)}
-	// TODO: add qualifier.
 
 	return funcstruct, nil
 }
