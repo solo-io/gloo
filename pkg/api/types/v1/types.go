@@ -10,11 +10,14 @@ type storageRef struct {
 	ref string
 }
 
-func (r storageRef) SetStorageRef(ref string) {
+func (r *storageRef) SetStorageRef(ref string) {
 	r.ref = ref
 }
 
-func (r storageRef) GetStorageRef() string {
+func (r *storageRef) GetStorageRef() string {
+	if r.ref == "" {
+		panic("storage ref not set")
+	}
 	return r.ref
 }
 
@@ -27,6 +30,17 @@ type FunctionSpec spec
 type Config struct {
 	Upstreams    []Upstream
 	VirtualHosts []VirtualHost
+}
+
+type VirtualHost struct {
+	storageRef
+
+	Name      string   `json:"name"`
+	Domains   []string `json:"domains"`
+	Routes    []Route
+	SSLConfig SSLConfig `json:"ssl_config,omitemtpy"`
+	// ^ secret ref | or file
+	// should route rules live here?
 }
 
 type Route struct {
@@ -97,17 +111,6 @@ type Function struct {
 	Name string `json:"name"`
 	// upstream ref?
 	Spec map[string]interface{} `json:"spec"`
-}
-
-type VirtualHost struct {
-	storageRef
-
-	Name      string   `json:"name"`
-	Domains   []string `json:"domains"`
-	Routes    []Route
-	SSLConfig SSLConfig `json:"ssl_config,omitemtpy"`
-	// ^ secret ref | or file
-	// should route rules live here?
 }
 
 type SSLConfig struct {
