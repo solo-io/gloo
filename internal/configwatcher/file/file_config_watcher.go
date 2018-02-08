@@ -7,8 +7,20 @@ import (
 
 	"github.com/ghodss/yaml"
 
+	"os"
+	"path/filepath"
+
+	"strings"
+
+	"github.com/pkg/errors"
 	"github.com/solo-io/glue/internal/pkg/file"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+)
+
+var (
+	upstreamDir     = "upstreams"
+	virtualhostsDir = "virtualhosts"
+	subdirs         = []string{upstreamDir, virtualhostsDir}
 )
 
 // FileWatcher uses .yml files in a directory
@@ -18,23 +30,26 @@ type fileWatcher struct {
 	errors  chan error
 }
 
-func NewFileConfigWatcher(fileName string, syncFrequency time.Duration) (*fileWatcher, error) {
+func NewFileConfigWatcher(dir string, syncFrequency time.Duration) (*fileWatcher, error) {
 	configs := make(chan *v1.Config)
-	errors := make(chan error)
-	if err := file.WatchFile(fileName, func(path string) {
-		cfg, err := parseConfig(path)
+	errs := make(chan error)
+	for _, subdir := range subdirs {
+		os.MkdirAll(filepath.Join(dir, subdir), 0755)
+	}
+	if err := file.WatchDir(dir, func(string) {
+		cfg, err := refreshConfig(dir)
 		if err != nil {
-			errors <- err
+			errs <- err
 			return
 		}
-		configs <- &cfg
+		configs <- cfg
 	}, syncFrequency); err != nil {
 		return nil, fmt.Errorf("failed to start filewatcher: %v", err)
 	}
 
 	return &fileWatcher{
 		configs: configs,
-		errors:  errors,
+		errors:  errs,
 	}, nil
 }
 
@@ -46,13 +61,60 @@ func (fc *fileWatcher) Error() <-chan error {
 	return fc.errors
 }
 
-func parseConfig(path string) (v1.Config, error) {
-	var cfg v1.Config
-	yml, err := ioutil.ReadFile(path)
+func refreshConfig(configDir string) (*v1.Config, error) {
+	var (
+		upstreams    []v1.Upstream
+		virtualHosts []v1.VirtualHost
+	)
+	fullUpstreamDir := filepath.Join(configDir, upstreamDir)
+	upstreamFiles, err := ioutil.ReadDir(fullUpstreamDir)
 	if err != nil {
-		return cfg, err
+		return nil, errors.New("failed to read directory " + fullUpstreamDir)
 	}
-	err = yaml.Unmarshal(yml, &cfg)
+	fullVirtualhostDir := filepath.Join(configDir, virtualhostsDir)
+	virtualhostFiles, err := ioutil.ReadDir(fullVirtualhostDir)
+	if err != nil {
+		return nil, errors.New("failed to read directory " + fullVirtualhostDir)
+	}
 
-	return cfg, err
+	for _, f := range upstreamFiles {
+		if f.IsDir() {
+			continue
+		}
+		if !strings.HasSuffix(f.Name(), ".yml") && !strings.HasSuffix(f.Name(), ".yaml") {
+			continue
+		}
+		var u v1.Upstream
+		if err := readFileInto(filepath.Join(fullUpstreamDir, f.Name()), &u); err != nil {
+			return nil, errors.Errorf("failed to read file into upstream: %v", err)
+		}
+		upstreams = append(upstreams, u)
+	}
+
+	for _, f := range virtualhostFiles {
+		if f.IsDir() {
+			continue
+		}
+		if !strings.HasSuffix(f.Name(), ".yml") && !strings.HasSuffix(f.Name(), ".yaml") {
+			continue
+		}
+		var vh v1.VirtualHost
+		if err := readFileInto(filepath.Join(fullVirtualhostDir, f.Name()), &vh); err != nil {
+			return nil, errors.Errorf("failed to read file into virtualhost: %v", err)
+		}
+		virtualHosts = append(virtualHosts, vh)
+	}
+
+	return &v1.Config{
+		VirtualHosts: virtualHosts,
+		Upstreams:    upstreams,
+	}, err
+}
+
+func readFileInto(f string, v interface{}) error {
+	data, err := ioutil.ReadFile(f)
+	if err != nil {
+		return errors.Errorf("error reading file: %v", err)
+	}
+	return yaml.Unmarshal(data, v)
 }
