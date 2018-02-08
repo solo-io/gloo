@@ -13,7 +13,7 @@ import (
 // on a file or directory
 // and calls the given handler
 // on that file
-func WatchDir(path string, handler func(path string), syncFrequency time.Duration) error {
+func WatchDir(path string, recursive bool, handler func(path string), syncFrequency time.Duration) error {
 	w := watcher.New()
 	w.SetMaxEvents(1)
 	// Only notify rename and move events.
@@ -36,9 +36,15 @@ func WatchDir(path string, handler func(path string), syncFrequency time.Duratio
 		}
 	}()
 
-	// Watch this file for changes.
-	if err := w.AddRecursive(path); err != nil {
-		return fmt.Errorf("failed to add watcher to %s: %v", path, err)
+	// Watch this file or directory for changes.
+	if recursive {
+		if err := w.AddRecursive(path); err != nil {
+			return fmt.Errorf("failed to add watcher to %s: %v", path, err)
+		}
+	} else {
+		if err := w.Add(path); err != nil {
+			return fmt.Errorf("failed to add watcher to %s: %v", path, err)
+		}
 	}
 
 	// Print a list of all of the files and folders currently

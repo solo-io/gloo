@@ -29,7 +29,7 @@ func NewSecretWatcher(fileName string, syncFrequency time.Duration) (*fileWatche
 		errors:  errors,
 		file:    fileName,
 	}
-	if err := file.WatchFile(fileName, func(_ string) {
+	if err := file.WatchDir(fileName, false, func(_ string) {
 		fw.updateSecrets()
 	}, syncFrequency); err != nil {
 		return nil, fmt.Errorf("failed to start filewatcher: %v", err)

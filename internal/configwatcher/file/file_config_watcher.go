@@ -36,7 +36,7 @@ func NewFileConfigWatcher(dir string, syncFrequency time.Duration) (*fileWatcher
 	for _, subdir := range subdirs {
 		os.MkdirAll(filepath.Join(dir, subdir), 0755)
 	}
-	if err := file.WatchDir(dir, func(string) {
+	if err := file.WatchDir(dir, true, func(string) {
 		cfg, err := refreshConfig(dir)
 		if err != nil {
 			errs <- err
