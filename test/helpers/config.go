@@ -24,7 +24,7 @@ func NewTestConfig() v1.Config {
 			},
 		},
 		{
-			Name: "my_upstream",
+			Name: "my-upstream",
 			Type: "service",
 			Spec: map[string]interface{}{
 				"auth": map[string]interface{}{
@@ -34,8 +34,8 @@ func NewTestConfig() v1.Config {
 		},
 	}
 	virtualhosts := []v1.VirtualHost{
-		NewTestVirtualHost("my_vhost", NewTestRoute1(), NewTestRoute2()),
-		NewTestVirtualHost("my_vhost_2", NewTestRoute1(), NewTestRoute2()),
+		NewTestVirtualHost("my-vhost", NewTestRoute1(), NewTestRoute2()),
+		NewTestVirtualHost("my-vhost-2", NewTestRoute1(), NewTestRoute2()),
 	}
 	return v1.Config{
 		Upstreams:    upstreams,
