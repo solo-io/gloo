@@ -39,6 +39,12 @@ var _ = Describe("FileConfigWatcher", func() {
 		watch                       configwatcher.Interface
 		resourceDirs                = []string{"upstreams", "virtualhosts"}
 		upstreamDir, virtualhostDir string
+		upstreamFilename            = func(us v1.Upstream) string {
+			return filepath.Join(upstreamDir, fmt.Sprintf("%v.yaml", us.Name))
+		}
+		virtualhostFilename = func(vh v1.VirtualHost) string {
+			return filepath.Join(virtualhostDir, fmt.Sprintf("%v.yaml", vh.Name))
+		}
 	)
 	BeforeEach(func() {
 		dir, err = ioutil.TempDir("", "filecachetest")
@@ -72,13 +78,11 @@ var _ = Describe("FileConfigWatcher", func() {
 			It("creates and updates configs for .yml or .yaml files found in the subdirs", func() {
 				cfg := NewTestConfig()
 				for _, us := range cfg.Upstreams {
-					filename := fmt.Sprintf("%v.yaml", us.Name)
-					err := writeConfigObjFile(us, upstreamDir, filename)
+					err := writeConfigObjFile(us, upstreamFilename(us))
 					Expect(err).NotTo(HaveOccurred())
 				}
 				for _, vhost := range cfg.VirtualHosts {
-					filename := fmt.Sprintf("%v.yaml", vhost.Name)
-					err := writeConfigObjFile(vhost, virtualhostDir, filename)
+					err := writeConfigObjFile(vhost, virtualhostFilename(vhost))
 					Expect(err).NotTo(HaveOccurred())
 				}
 				var expectedCfg v1.Config
@@ -86,7 +90,27 @@ var _ = Describe("FileConfigWatcher", func() {
 				Expect(err).To(BeNil())
 				err = json.Unmarshal(data, &expectedCfg)
 				Expect(err).To(BeNil())
-				Eventually(func() (v1.Config, error) { return readConfig(watch) }).Should(Equal(expectedCfg))
+				for i := range expectedCfg.Upstreams {
+					us := &expectedCfg.Upstreams[i]
+					us.SetStorageRef(upstreamFilename(*us))
+				}
+				for i := range expectedCfg.VirtualHosts {
+					vHost := &expectedCfg.VirtualHosts[i]
+					vHost.SetStorageRef(virtualhostFilename(*vHost))
+				}
+				var actualCfg *v1.Config
+				Eventually(func() (v1.Config, error) {
+					cfg, err := readConfig(watch)
+					actualCfg = &cfg
+					return cfg, err
+				}).Should(Equal(expectedCfg))
+
+				for _, us := range actualCfg.Upstreams {
+					Expect(us.GetStorageRef()).To(Equal(upstreamFilename(us)))
+				}
+				for _, vhost := range actualCfg.VirtualHosts {
+					Expect(vhost.GetStorageRef()).To(Equal(virtualhostFilename(vhost)))
+				}
 			})
 		})
 		Context("an invalid config is written to a dir", func() {
@@ -107,12 +131,12 @@ var _ = Describe("FileConfigWatcher", func() {
 	})
 })
 
-func writeConfigObjFile(v interface{}, dir, filename string) error {
+func writeConfigObjFile(v interface{}, filename string) error {
 	data, err := yaml.Marshal(v)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(filepath.Join(dir, filename), data, 0644)
+	return ioutil.WriteFile(filename, data, 0644)
 }
 
 var lastRead *v1.Config

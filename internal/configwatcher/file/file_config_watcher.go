@@ -85,9 +85,11 @@ func refreshConfig(configDir string) (*v1.Config, error) {
 			continue
 		}
 		var u v1.Upstream
+		path := filepath.Join(fullUpstreamDir, f.Name())
 		if err := readFileInto(filepath.Join(fullUpstreamDir, f.Name()), &u); err != nil {
 			return nil, errors.Errorf("failed to read file into upstream: %v", err)
 		}
+		u.SetStorageRef(path)
 		upstreams = append(upstreams, u)
 	}
 
@@ -99,9 +101,11 @@ func refreshConfig(configDir string) (*v1.Config, error) {
 			continue
 		}
 		var vh v1.VirtualHost
-		if err := readFileInto(filepath.Join(fullVirtualhostDir, f.Name()), &vh); err != nil {
+		path := filepath.Join(fullVirtualhostDir, f.Name())
+		if err := readFileInto(path, &vh); err != nil {
 			return nil, errors.Errorf("failed to read file into virtualhost: %v", err)
 		}
+		vh.SetStorageRef(path)
 		virtualHosts = append(virtualHosts, vh)
 	}
 
