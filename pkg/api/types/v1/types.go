@@ -1,13 +1,22 @@
 package v1
 
-type ConfigObject interface {
-	IsConfigObject()
+// currently only top-level objects are storable
+type StorableConfigObject interface {
+	SetStorageRef(string)
+	GetStorageRef() string
 }
 
-func (c *Route) IsConfigObject()       {}
-func (c *Upstream) IsConfigObject()    {}
-func (c *VirtualHost) IsConfigObject() {}
-func (c *Function) IsConfigObject()    {}
+type storageRef struct {
+	ref string
+}
+
+func (r storageRef) SetStorageRef(ref string) {
+	r.ref = ref
+}
+
+func (r storageRef) GetStorageRef() string {
+	return r.ref
+}
 
 type spec map[string]interface{}
 
@@ -76,6 +85,8 @@ type UpstreamDestination struct {
 type UpstreamType string
 
 type Upstream struct {
+	storageRef
+
 	Name      string                 `json:"name"`
 	Type      UpstreamType           `json:"type"`
 	Spec      map[string]interface{} `json:"spec"`
@@ -89,6 +100,8 @@ type Function struct {
 }
 
 type VirtualHost struct {
+	storageRef
+
 	Name      string   `json:"name"`
 	Domains   []string `json:"domains"`
 	Routes    []Route

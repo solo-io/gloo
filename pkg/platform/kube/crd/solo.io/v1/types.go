@@ -3,9 +3,15 @@ package v1
 import (
 	"encoding/json"
 
+	"github.com/solo-io/glue/internal/reporter"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+type CrdObjectStatus struct {
+	State  reporter.ObjectState `json:"state"`
+	Reason string               `json:"reason,omitempty"`
+}
 
 // +genclient
 // +genclient:noStatus
@@ -16,7 +22,7 @@ type Upstream struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Status            Status `json:"status,omitempty"`
+	Status            CrdObjectStatus `json:"status"`
 
 	Spec DeepCopyUpstream `json:"spec"`
 }
@@ -40,7 +46,7 @@ type VirtualHost struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Status            Status `json:"status,omitempty"`
+	Status            CrdObjectStatus `json:"status"`
 
 	Spec DeepCopyVirtualHost `json:"spec"`
 }
@@ -55,8 +61,6 @@ type VirtualHostList struct {
 	metav1.Status   `json:"status,omitempty"`
 	Items           []VirtualHost `json:"items"`
 }
-
-type Status string
 
 type DeepCopyUpstream v1.Upstream
 
