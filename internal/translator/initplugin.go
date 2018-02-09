@@ -85,11 +85,11 @@ func isSingleDestination(in *v1.Route) bool {
 
 func (ffh *InitPlugin) updateSingleFunction(pi *plugin.PluginInputs, singlefunc *v1.FunctionDestination, out *apiroute.Route) error {
 	us := pi.State.GetUpstream(singlefunc.UpstreamName)
-	if us != nil {
+	if us == nil {
 		return errors.New("upstream doesn't exist")
 	}
 	funcplug := ffh.ff.GetPlugin(us)
-	if funcplug != nil {
+	if funcplug == nil {
 		return errors.New("function handler doesn't exist")
 	}
 
@@ -101,7 +101,7 @@ func (ffh *InitPlugin) updateSingleFunction(pi *plugin.PluginInputs, singlefunc 
 			},
 		},
 	}
-	ffh.addClusterSingleFuncToMetadata(pi, funcplug, out, clustername, singlefunc)
+	ffh.addClusterSingleFuncToMetadata(out, clustername, singlefunc)
 	return nil
 }
 func (ffh *InitPlugin) updateSingleUpstream(pi *plugin.PluginInputs, singleus *v1.UpstreamDestination, out *apiroute.Route) error {
@@ -241,7 +241,7 @@ func (ffh *InitPlugin) setFuncSpecStruct(out *api.Cluster, funcname string, spec
 	functionsMetadata.Fields[funcname].Kind = &types.Value_StructValue{StructValue: spec}
 }
 
-func (ffh *InitPlugin) addClusterSingleFuncToMetadata(pi *plugin.PluginInputs, ff plugin.FunctionalPlugin, out *apiroute.Route, clustername string, destination *v1.FunctionDestination) {
+func (ffh *InitPlugin) addClusterSingleFuncToMetadata(out *apiroute.Route, clustername string, destination *v1.FunctionDestination) {
 	routeClusterMetadata := ffh.verifyMetadata(out, clustername)
 
 	routeClusterMetadata.Fields[FunctionalSingleKey].Kind = &types.Value_StringValue{StringValue: destination.FunctionName}

@@ -39,8 +39,7 @@ type VirtualHost struct {
 	Domains   []string `json:"domains"`
 	Routes    []Route
 	SSLConfig SSLConfig `json:"ssl_config,omitemtpy"`
-	// ^ secret ref | or file
-	// should route rules live here?
+	// TODO: global route rules that live on the virtualhost level
 }
 
 type Route struct {
@@ -110,7 +109,7 @@ type Upstream struct {
 type Function struct {
 	Name string `json:"name"`
 	// upstream ref?
-	Spec map[string]interface{} `json:"spec"`
+	Spec FunctionSpec `json:"spec"`
 }
 
 type SSLConfig struct {

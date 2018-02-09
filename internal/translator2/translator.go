@@ -29,9 +29,14 @@ func NewTranslator(upstreamPlugins []plugin.UpstreamPlugin, routePlugins []plugi
 		}
 	}
 	if len(functionPlugins) > 0 {
-		upstreamPlugins = append([]plugin.UpstreamPlugin{&functionRouterPlugin{
+		// the function router plugin must be initialized for any function plugins
+		// since it operates on both upstreams and routes, it must be added to both
+		// groups of plugins
+		functionRouter := &functionRouterPlugin{
 			functionPlugins: functionPlugins,
-		}}, upstreamPlugins...)
+		}
+		upstreamPlugins = append([]plugin.UpstreamPlugin{functionRouter}, upstreamPlugins...)
+		routePlugins = append([]plugin.RoutePlugin{functionRouter}, routePlugins...)
 	}
 	return &Translator{
 		upstreamPlugins: upstreamPlugins,
@@ -48,7 +53,10 @@ func (t *Translator) Translate(cfg v1.Config,
 
 	// clusters
 	clusters, clusterReports := t.computeClusters(cfg, secrets, endpoints)
+
 }
+
+// Endpoints
 
 func computeClusterEndpoints(upstreams []v1.Upstream, endpoints endpointdiscovery.EndpointGroups) []*envoyapi.ClusterLoadAssignment {
 	var clusterEndpointAssignments []*envoyapi.ClusterLoadAssignment
@@ -91,6 +99,9 @@ func loadAssignmentForCluster(clusterName string, addresses []endpointdiscovery.
 		}},
 	}
 }
+
+// Clusters
+
 func (t *Translator) computeClusters(cfg v1.Config, secrets secretwatcher.SecretMap, endpoints endpointdiscovery.EndpointGroups) ([]*envoyapi.Cluster, []reporter.ConfigObjectReport) {
 	var (
 		reports  []reporter.ConfigObjectReport
@@ -103,13 +114,6 @@ func (t *Translator) computeClusters(cfg v1.Config, secrets secretwatcher.Secret
 		reports = append(reports, createUpstreamReport(upstream, err))
 	}
 	return clusters, reports
-}
-
-func createUpstreamReport(upstream v1.Upstream, err error) reporter.ConfigObjectReport {
-	return reporter.ConfigObjectReport{
-		CfgObject: &upstream,
-		Err:       err,
-	}
 }
 
 func (t *Translator) computeCluster(cfg v1.Config, secrets secretwatcher.SecretMap, upstream v1.Upstream, edsCluster bool) (*envoyapi.Cluster, error) {
@@ -140,6 +144,13 @@ func validateCluster(c *envoyapi.Cluster) error {
 		}
 	}
 	return nil
+}
+
+func createUpstreamReport(upstream v1.Upstream, err error) reporter.ConfigObjectReport {
+	return reporter.ConfigObjectReport{
+		CfgObject: &upstream,
+		Err:       err,
+	}
 }
 
 func secretsForPlugin(cfg v1.Config, plug plugin.TranslatorPlugin, secrets secretwatcher.SecretMap) secretwatcher.SecretMap {
