@@ -24,7 +24,7 @@ import (
 
 type testNameTranslator struct{}
 
-func (t testNameTranslator) ToEnvoyClusterName(s string) string {
+func (t testNameTranslator) UpstreamToClusterName(s string) string {
 	return s
 }
 
@@ -187,7 +187,7 @@ func getResources(snapshot *cache.Snapshot) map[cache.ResponseType][]proto.Messa
 	names := map[cache.ResponseType][]string{
 		cache.EndpointResponse: nil,
 		cache.ClusterResponse:  nil,
-		cache.RouteResponse:    nil, // []string{routeName},
+		cache.RouteResponse:    nil,
 		cache.ListenerResponse: nil,
 	}
 	c := cache.NewSimpleCache(group{}, nil)
