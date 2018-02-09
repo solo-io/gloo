@@ -1,0 +1,15 @@
+apiVersion: "glue.solo.io/v1"
+kind: Upstream
+metadata:
+  name: testupstream
+spec:
+    name: testupstream
+    type: aws
+    spec:
+      region: us-east-1
+      credential: aws-e2e-secret
+    functions:
+    - name: f:v1
+      spec:
+        FunctionName: f
+        Qualifier: v1
