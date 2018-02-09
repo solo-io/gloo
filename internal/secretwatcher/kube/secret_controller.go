@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mitchellh/hashstructure"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/listers/core/v1"
@@ -20,6 +22,7 @@ type secretController struct {
 	errors        chan error
 	secretsLister v1.SecretLister
 	secretRefs    []string
+	lastSeen      uint64
 }
 
 func newSecretController(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}) (*secretController, error) {
@@ -86,15 +89,24 @@ func (c *secretController) getUpdatedSecrets() (secretwatcher.SecretMap, error) 
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving secrets: %v", err)
 	}
-	secretMap := make(secretwatcher.SecretMap)
+	secrets := make(secretwatcher.SecretMap)
 	for _, secret := range secretList {
 		for _, ref := range c.secretRefs {
 			if secret.Name == ref {
 				log.Debugf("updated secret %s", ref)
-				secretMap[ref] = secret.Data
+				secrets[ref] = secret.Data
 				break
 			}
 		}
 	}
-	return secretMap, nil
+	hash, err := hashstructure.Hash(secrets, nil)
+	if err != nil {
+		runtime.HandleError(err)
+		return nil, nil
+	}
+	if c.lastSeen == hash {
+		return nil, nil
+	}
+	c.lastSeen = hash
+	return secrets, nil
 }

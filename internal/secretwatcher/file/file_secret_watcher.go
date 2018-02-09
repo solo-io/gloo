@@ -5,7 +5,10 @@ import (
 	"io/ioutil"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/runtime"
+
 	"github.com/ghodss/yaml"
+	"github.com/mitchellh/hashstructure"
 
 	"github.com/solo-io/glue/internal/pkg/file"
 	"github.com/solo-io/glue/pkg/log"
@@ -19,6 +22,7 @@ type fileWatcher struct {
 	secretsToWatch []string
 	secrets        chan secretwatcher.SecretMap
 	errors         chan error
+	lastSeen       uint64
 }
 
 func NewSecretWatcher(fileName string, syncFrequency time.Duration) (*fileWatcher, error) {
@@ -86,5 +90,14 @@ func (fw *fileWatcher) getSecrets() (secretwatcher.SecretMap, error) {
 		desiredSecrets[ref] = data
 	}
 
-	return desiredSecrets, err
+	hash, err := hashstructure.Hash(desiredSecrets, nil)
+	if err != nil {
+		runtime.HandleError(err)
+		return nil, nil
+	}
+	if fw.lastSeen == hash {
+		return nil, nil
+	}
+	fw.lastSeen = hash
+	return desiredSecrets, nil
 }
