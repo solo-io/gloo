@@ -22,18 +22,22 @@ import (
 )
 
 const (
-	AwsPluginType      = "aws"
+	AwsPluginType = "aws"
+)
+
+const (
 	AwsSecretAccessKey = "access_key"
 	AwsSecretSecretKey = "secret_key"
 	AwsRegionKey       = "region"
 	AwsHostKey         = "host"
 )
 
-const AwsFunctionNameKey = "name"
-const AwsFunctionQualifierKey = "qualifier"
-
+const (
+	AwsFunctionNameKey      = "name"
+	AwsFunctionQualifierKey = "qualifier"
+	AwsAsyncKey             = "async"
+)
 const AwsFilterName = "io.solo.aws"
-const AwsAsyncKey = "async"
 const AwsFilterStage = plugin.OutAuth
 
 type AwsPlugin struct {
