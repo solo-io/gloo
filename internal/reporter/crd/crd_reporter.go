@@ -39,9 +39,9 @@ func (r *kubeReporter) writeReport(report reporter.ConfigObjectReport) error {
 	status := crdv1.CrdObjectStatus{
 		State: reporter.ObjectStateAccepted,
 	}
-	if err := report.Err.ErrorOrNil(); err != nil {
+	if report.Err != nil {
 		status.State = reporter.ObjectStateRejected
-		status.Reason = err.Error()
+		status.Reason = report.Err.Error()
 	}
 	switch report.CfgObject.(type) {
 	case *v1.Upstream:

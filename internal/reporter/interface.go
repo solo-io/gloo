@@ -1,7 +1,6 @@
 package reporter
 
 import (
-	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 )
 
@@ -14,7 +13,7 @@ const (
 
 type ConfigObjectReport struct {
 	CfgObject v1.StorableConfigObject
-	Err       *multierror.Error
+	Err       error
 }
 
 type Interface interface {

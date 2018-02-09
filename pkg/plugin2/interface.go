@@ -10,18 +10,13 @@ type Dependencies struct {
 	SecretRefs []string
 }
 
-type Inputs struct {
-	Cfg     v1.Config
-	Secrets secretwatcher.SecretMap
-}
-
 type TranslatorPlugin interface {
 	GetDependencies(cfg v1.Config) *Dependencies
 }
 
 type UpstreamPlugin interface {
 	TranslatorPlugin
-	Process(out *envoyapi.Cluster)
+	ProcessUpstream(in v1.Upstream, Secrets secretwatcher.SecretMap, out *envoyapi.Cluster) error
 }
 
 type FunctionPlugin interface {
