@@ -164,3 +164,66 @@ func secretsForPlugin(cfg v1.Config, plug plugin.TranslatorPlugin, secrets secre
 	}
 	return pluginSecrets
 }
+
+func validateDestination(upstreams []v1.Upstream, route v1.Route) error {
+	USETHISFUNCTION
+
+	// collect existing upstreams/functions for matching
+	upstreamsAndTheirFunctions := make(map[string][]string)
+	for _, upstream := range upstreams {
+		var funcsForUpstream []string
+		for _, fn := range upstream.Functions {
+			funcsForUpstream = append(funcsForUpstream, fn.Name)
+		}
+		upstreamsAndTheirFunctions[upstream.Name] = funcsForUpstream
+	}
+
+	// make sure the destination itself has the right structure
+	if len(route.Destination.Destinations) > 0 {
+		return validateMultiDestination(upstreamsAndTheirFunctions, route.Destination.Destinations)
+	}
+	return validateSingleDestination(upstreamsAndTheirFunctions, route.Destination.SingleDestination)
+}
+
+func validateMultiDestination(upstreamsAndTheirFunctions map[string][]string, destinations []v1.WeightedDestination) error {
+	for _, dest := range destinations {
+		if err := validateSingleDestination(upstreamsAndTheirFunctions, dest.SingleDestination); err != nil {
+			return errors.Wrap(err, "invalid destination in weighted destination list")
+		}
+	}
+	return nil
+}
+
+func validateSingleDestination(upstreamsAndTheirFunctions map[string][]string, destination v1.SingleDestination) error {
+	if destination.FunctionDestination != nil && destination.UpstreamDestination != nil {
+		return errors.New("only one of function_destination and upstream_destination can be set on a single destination")
+	}
+	if destination.UpstreamDestination != nil {
+		return validateUpstreamDestination(upstreamsAndTheirFunctions, destination.UpstreamDestination)
+	}
+	if destination.FunctionDestination != nil {
+		return validateFunctionDestination(upstreamsAndTheirFunctions, destination.FunctionDestination)
+	}
+	return errors.New("must specify either a function or upstream on a single destination")
+}
+
+func validateUpstreamDestination(upstreamsAndTheirFunctions map[string][]string, upstreamDestination *v1.UpstreamDestination) error {
+	upstreamName := upstreamDestination.UpstreamName
+	if _, ok := upstreamsAndTheirFunctions[upstreamName]; !ok {
+		return errors.Errorf("upstream %v was not found for function destination", upstreamName)
+	}
+	return nil
+}
+
+func validateFunctionDestination(upstreamsAndTheirFunctions map[string][]string, functionDestination *v1.FunctionDestination) error {
+	upstreamName := functionDestination.UpstreamName
+	upstreamFuncs, ok := upstreamsAndTheirFunctions[upstreamName]
+	if !ok {
+		return errors.Errorf("upstream %v was not found for function destination", upstreamName)
+	}
+	functionName := functionDestination.FunctionName
+	if !stringInSlice(upstreamFuncs, functionName) {
+		return errors.Errorf("function %v/%v was not found for function destination", upstreamName, functionName)
+	}
+	return nil
+}

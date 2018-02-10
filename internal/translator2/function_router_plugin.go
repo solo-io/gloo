@@ -1,22 +1,21 @@
 package translator
 
 import (
-	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	"github.com/solo-io/glue/internal/pkg/envoy"
-
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
+	"github.com/solo-io/glue/internal/pkg/envoy"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/plugin2"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
 const (
-	FunctionalFilterKey          = "io.solo.function_router"
-	MultiFunctionDestinationKey  = "functions"
-	SingleFunctionDestinationKey = "function"
+	functionRouterFilterName     = "io.solo.function_router"
+	multiFunctionDestinationKey  = "functions"
+	mingleFunctionDestinationKey = "function"
 )
 
 type functionRouterPlugin struct {
@@ -50,12 +49,12 @@ func (p *functionRouterPlugin) getFunctionSpec(upstreamType v1.UpstreamType, spe
 }
 
 func setEnvoyFunctionSpec(out *envoyapi.Cluster, funcName string, spec *types.Struct) {
-	functionsMetadata := getStructForKey(out.Metadata, MultiFunctionDestinationKey)
+	multiFunctionMetadata := getFunctionalFilterMetadata(multiFunctionDestinationKey, out.Metadata)
 
-	if functionsMetadata.Fields[funcName] == nil {
-		functionsMetadata.Fields[funcName] = &types.Value{}
+	if multiFunctionMetadata.Fields[funcName] == nil {
+		multiFunctionMetadata.Fields[funcName] = &types.Value{}
 	}
-	functionsMetadata.Fields[funcName].Kind = &types.Value_StructValue{StructValue: spec}
+	multiFunctionMetadata.Fields[funcName].Kind = &types.Value_StructValue{StructValue: spec}
 }
 
 func (p *functionRouterPlugin) ProcessRoute(in v1.Route, out *envoyroute.Route) error {
@@ -66,7 +65,11 @@ func (p *functionRouterPlugin) ProcessRoute(in v1.Route, out *envoyroute.Route) 
 	case destinationTypeSingleFunction:
 		p.processSingleFunctionRoute(*in.Destination.FunctionDestination, out)
 		return nil
+	case destinationTypeMultiple:
+		p.processMultipleDestinationRoute(in.Destination.Destinations, out)
+		return nil
 	}
+	return errors.Errorf("invalid destination for function %v", in.Destination)
 }
 
 type destinationType string
@@ -76,8 +79,16 @@ const (
 	destinationTypeSingleFunction = "single function"
 	destinationTypeMultiple       = "multiple upstreams or functions"
 	//destinationTypeMultiFunction  = "multiple functions"
-	destinationTypeInvalid = "invalid"
 )
+
+func stringInSlice(slice []string, s string) bool {
+	for _, el := range slice {
+		if el == s {
+			return true
+		}
+	}
+	return false
+}
 
 func getDestinationType(route v1.Route) destinationType {
 	if len(route.Destination.Destinations) > 0 {
@@ -89,7 +100,7 @@ func getDestinationType(route v1.Route) destinationType {
 	if route.Destination.SingleDestination.FunctionDestination != nil {
 		return destinationTypeSingleFunction
 	}
-	return destinationTypeInvalid
+	return ""
 }
 
 func (p *functionRouterPlugin) processSingleUpstreamRoute(upstreamName string, out *envoyroute.Route) {
@@ -100,61 +111,135 @@ func (p *functionRouterPlugin) processSingleFunctionRoute(destination v1.Functio
 	upstreamName := destination.UpstreamName
 	p.initRouteForUpstream(upstreamName, out)
 	clusterName := envoy.ClusterName(upstreamName)
-	initRouteMetadata(clusterName, out)
 	functionalFilterMetadata := getFunctionalFilterMetadata(clusterName, out.Metadata)
-	functionalFilterMetadata.Fields[SingleFunctionDestinationKey].Kind = &types.Value_StringValue{StringValue: destination.FunctionName}
+	functionalFilterMetadata.Fields[mingleFunctionDestinationKey].Kind = &types.Value_StringValue{StringValue: destination.FunctionName}
 }
 
-func getStructForKey(meta *envoycore.Metadata, key string) *types.Struct {
+func (p *functionRouterPlugin) processMultipleDestinationRoute(destinations []v1.WeightedDestination, out *envoyroute.Route) {
+	var (
+		totalWeight                   uint
+		upstreamDestinationsWithFuncs = make(map[string][]v1.WeightedDestination)
+		clusterWeights                = make(map[string]uint32)
+	)
+	for _, destination := range destinations {
+		totalWeight += destination.Weight
+
+		var upstreamName string
+		if destination.FunctionDestination != nil {
+			upstreamName = destination.FunctionDestination.UpstreamName
+			// if functional, add it to the functional destination list
+			upstreamDestinationsWithFuncs[upstreamName] = append(upstreamDestinationsWithFuncs[upstreamName], destination)
+		} else {
+			upstreamName = destination.UpstreamDestination.UpstreamName
+		}
+		clusterWeights[envoy.ClusterName(upstreamName)] = uint32(destination.Weight)
+	}
+	// set weights for function routes
+	for upstreamName, functionalDestinations := range upstreamDestinationsWithFuncs {
+		addClusterFuncsToMetadata(envoy.ClusterName(upstreamName), functionalDestinations, out)
+	}
+	// set weights for clusters (functional or non)
+	for clusterName, weight := range clusterWeights {
+		addClusterWeight(clusterName, weight, out)
+	}
+}
+
+func addClusterFuncsToMetadata(clusterName string, destinations []v1.WeightedDestination, out *envoyroute.Route) {
+	var clusterFuncWeights []*types.Value
+	for _, dest := range destinations {
+		clusterFuncWeight := &types.Value{
+			Kind: &types.Value_StructValue{
+				StructValue: &types.Struct{
+					Fields: map[string]*types.Value{
+						"spec":   {Kind: &types.Value_StringValue{StringValue: dest.FunctionDestination.FunctionName}},
+						"weight": {Kind: &types.Value_NumberValue{NumberValue: float64(dest.Weight)}},
+					},
+				},
+			},
+		}
+		clusterFuncWeights = append(clusterFuncWeights, clusterFuncWeight)
+	}
+	routeClusterMetadata := getFunctionalFilterMetadata(clusterName, out.Metadata)
+	routeClusterMetadata.Fields[functionRouterFilterName].Kind = &types.Value_ListValue{
+		ListValue: &types.ListValue{Values: clusterFuncWeights},
+	}
+}
+
+func addClusterWeight(clusterName string, weight uint32, out *envoyroute.Route) {
+	weights := getWeightedClusters(out)
+	clusterWeight := &envoyroute.WeightedCluster_ClusterWeight{
+		Name:   clusterName,
+		Weight: &types.UInt32Value{Value: weight},
+	}
+	weights.WeightedClusters.Clusters = append(weights.WeightedClusters.Clusters, clusterWeight)
+}
+
+func getWeightedClusters(out *envoyroute.Route) *envoyroute.RouteAction_WeightedClusters {
+	// if route action is nil, just initialize it here
+	if out.Action == nil {
+		out.Action = &envoyroute.Route_Route{
+			Route: &envoyroute.RouteAction{
+				ClusterSpecifier: &envoyroute.RouteAction_WeightedClusters{
+					WeightedClusters: &envoyroute.WeightedCluster{},
+				},
+			},
+		}
+	}
+
+	// TODO: assess a way to deal with possible panics here
+	// eventually we will need to support *Route_DirectResponse
+	route, ok := out.Action.(*envoyroute.Route_Route)
+	if !ok {
+		panic("function router plugin unable to handle route action other than *Route_Route")
+	}
+	if route.Route == nil {
+		route.Route = &envoyroute.RouteAction{}
+	}
+	if route.Route.ClusterSpecifier == nil {
+		route.Route.ClusterSpecifier = &envoyroute.RouteAction_WeightedClusters{
+			WeightedClusters: &envoyroute.WeightedCluster{},
+		}
+	}
+	clusterSpecifier, ok := route.Route.ClusterSpecifier.(*envoyroute.RouteAction_WeightedClusters)
+	if !ok {
+		panic("function router plugin unable to handle Cluster Specifier other than *RouteAction_WeightedClusters")
+	}
+	if clusterSpecifier.WeightedClusters == nil {
+		clusterSpecifier.WeightedClusters = &envoyroute.WeightedCluster{}
+	}
+	return clusterSpecifier
+}
+
+func getFunctionalFilterMetadata(key string, meta *envoycore.Metadata) *types.Struct {
+	initFunctionalFilterMetadata(key, meta)
+	return meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind.(*types.Value_StructValue).StructValue
+}
+
+// sets anything that might be nil so we don't get a nil pointer / map somewhere
+func initFunctionalFilterMetadata(key string, meta *envoycore.Metadata) {
 	if meta == nil {
 		meta = &envoycore.Metadata{
 			FilterMetadata: make(map[string]*types.Struct),
 		}
 	}
-
-	if meta.FilterMetadata[FunctionalFilterKey] == nil {
-		meta.FilterMetadata[FunctionalFilterKey] = &types.Struct{Fields: make(map[string]*types.Value)}
-	}
-
-	if meta.FilterMetadata[FunctionalFilterKey].Fields[key] == nil {
-		keyStruct := &types.Struct{}
-		meta.FilterMetadata[FunctionalFilterKey].Fields[key] = &types.Value{}
-		meta.FilterMetadata[FunctionalFilterKey].Fields[key].Kind = &types.Value_StructValue{StructValue: keyStruct}
-		return keyStruct
-	} else {
-		return meta.FilterMetadata[FunctionalFilterKey].Fields[key].Kind.(*types.Value_StructValue).StructValue
-	}
-}
-
-// sets anything that might be nil so we don't get a nil pointer / map somewhere
-func initRouteMetadata(clusterName string, out *envoyroute.Route) {
-	if out.Metadata == nil {
-		out.Metadata = &envoycore.Metadata{
-			FilterMetadata: make(map[string]*types.Struct),
-		}
-	}
-	if out.Metadata.FilterMetadata[FunctionalFilterKey] == nil {
-		out.Metadata.FilterMetadata[FunctionalFilterKey] = &types.Struct{
+	if meta.FilterMetadata[functionRouterFilterName] == nil {
+		meta.FilterMetadata[functionRouterFilterName] = &types.Struct{
 			Fields: make(map[string]*types.Value),
 		}
 	}
-	if out.Metadata.FilterMetadata[FunctionalFilterKey].Fields[clusterName] == nil {
-		out.Metadata.FilterMetadata[FunctionalFilterKey].Fields[clusterName] = &types.Value{}
+	if meta.FilterMetadata[functionRouterFilterName].Fields[key] == nil {
+		meta.FilterMetadata[functionRouterFilterName].Fields[key] = &types.Value{}
 	}
-	if out.Metadata.FilterMetadata[FunctionalFilterKey].Fields[clusterName].Kind == nil {
-		out.Metadata.FilterMetadata[FunctionalFilterKey].Fields[clusterName].Kind = &types.Value_StructValue{}
+	if meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind == nil {
+		meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind = &types.Value_StructValue{}
 	}
-	_, isStructValue := out.Metadata.FilterMetadata[FunctionalFilterKey].Fields[clusterName].Kind.(*types.Value_StructValue)
+	_, isStructValue := meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind.(*types.Value_StructValue)
 	if !isStructValue {
-		out.Metadata.FilterMetadata[FunctionalFilterKey].Fields[clusterName].Kind = &types.Value_StructValue{}
+		meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind = &types.Value_StructValue{}
 	}
-	if out.Metadata.FilterMetadata[FunctionalFilterKey].Fields[clusterName].Kind.(*types.Value_StructValue).StructValue == nil {
-		out.Metadata.FilterMetadata[FunctionalFilterKey].Fields[clusterName].Kind.(*types.Value_StructValue).StructValue = &types.Struct{}
+	if meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind.(*types.Value_StructValue).StructValue == nil {
+		meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind.(*types.Value_StructValue).StructValue = &types.Struct{}
 	}
-}
-
-func getFunctionalFilterMetadata(clusterName string, metadata *envoycore.Metadata) *types.Struct {
-	return metadata.FilterMetadata[FunctionalFilterKey].Fields[clusterName].Kind.(*types.Value_StructValue).StructValue
 }
 
 func (p *functionRouterPlugin) initRouteForUpstream(upstreamName string, out *envoyroute.Route) {

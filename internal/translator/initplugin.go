@@ -168,7 +168,7 @@ func (ffh *InitPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, o
 			}
 			clustername := pi.NameTranslator.ToEnvoyClusterName(k)
 			// create metadata object for cluster in the route:
-			ffh.addClusterFuncsToMetadata(pi, ffh.GetPluginForDest(pi, &v[0].SingleDestination), out, clustername, v)
+			ffh.addClusterFuncsToMetadata(out, clustername, v)
 
 			// add the cluster to the list
 			ffh.addClusterWithWeight(out, clustername, uint32(w))
@@ -239,7 +239,7 @@ func (ffh *InitPlugin) addClusterSingleFuncToMetadata(out *apiroute.Route, clust
 	routeClusterMetadata.Fields[FunctionalSingleKey].Kind = &types.Value_StringValue{StringValue: destination.FunctionName}
 }
 
-func (ffh *InitPlugin) addClusterFuncsToMetadata(pi *plugin.PluginInputs, ff plugin.FunctionalPlugin, routeout *apiroute.Route, clustername string, destinations []*v1.WeightedDestination) {
+func (ffh *InitPlugin) addClusterFuncsToMetadata(routeout *apiroute.Route, clustername string, destinations []*v1.WeightedDestination) {
 	routeClusterMetadata := ffh.getStructForKey(routeout.Metadata, clustername)
 
 	var clusterFuncWeights []*types.Value
