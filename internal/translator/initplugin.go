@@ -189,15 +189,6 @@ func (ffh *InitPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, o
 	return nil
 }
 
-func (ffh *InitPlugin) verifyMetadata(routeout *apiroute.Route, clustername string) *types.Struct {
-	if routeout.Metadata == nil {
-		routeout.Metadata = &envoy_api_v2_core.Metadata{
-			FilterMetadata: make(map[string]*types.Struct),
-		}
-	}
-
-	return ffh.getStructForKey(routeout.Metadata, clustername)
-}
 func (ffh *InitPlugin) getStructForKey(meta *envoy_api_v2_core.Metadata, key string) *types.Struct {
 	if meta == nil {
 		meta = &envoy_api_v2_core.Metadata{
@@ -232,6 +223,7 @@ func (ffh *InitPlugin) getFuncSpecStruct(out *api.Cluster, funcname string) *typ
 		return functionsMetadata.Fields[funcname].Kind.(*types.Value_StructValue).StructValue
 	}
 }
+
 func (ffh *InitPlugin) setFuncSpecStruct(out *api.Cluster, funcname string, spec *types.Struct) {
 	functionsMetadata := ffh.getStructForKey(out.Metadata, FunctionalFunctionsKey)
 
@@ -242,13 +234,13 @@ func (ffh *InitPlugin) setFuncSpecStruct(out *api.Cluster, funcname string, spec
 }
 
 func (ffh *InitPlugin) addClusterSingleFuncToMetadata(out *apiroute.Route, clustername string, destination *v1.FunctionDestination) {
-	routeClusterMetadata := ffh.verifyMetadata(out, clustername)
+	routeClusterMetadata := ffh.getStructForKey(out.Metadata, clustername)
 
 	routeClusterMetadata.Fields[FunctionalSingleKey].Kind = &types.Value_StringValue{StringValue: destination.FunctionName}
 }
 
 func (ffh *InitPlugin) addClusterFuncsToMetadata(pi *plugin.PluginInputs, ff plugin.FunctionalPlugin, routeout *apiroute.Route, clustername string, destinations []*v1.WeightedDestination) {
-	routeClusterMetadata := ffh.verifyMetadata(routeout, clustername)
+	routeClusterMetadata := ffh.getStructForKey(routeout.Metadata, clustername)
 
 	var clusterFuncWeights []*types.Value
 
