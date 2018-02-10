@@ -4,9 +4,11 @@ import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyendpoints "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
+	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
+	"github.com/solo-io/glue/internal/pkg/envoy"
 
 	"github.com/solo-io/glue/internal/reporter"
 	"github.com/solo-io/glue/pkg/api/types/v1"
@@ -54,6 +56,8 @@ func (t *Translator) Translate(cfg v1.Config,
 	// clusters
 	clusters, clusterReports := t.computeClusters(cfg, secrets, endpoints)
 
+	// virtualhosts
+	virtualHosts, virtualHostReports := t.computeVirtualHosts(cfg)
 }
 
 // Endpoints
@@ -153,6 +157,13 @@ func createUpstreamReport(upstream v1.Upstream, err error) reporter.ConfigObject
 	}
 }
 
+func createVirtualHostReport(virtualHost v1.VirtualHost, err error) reporter.ConfigObjectReport {
+	return reporter.ConfigObjectReport{
+		CfgObject: &virtualHost,
+		Err:       err,
+	}
+}
+
 func secretsForPlugin(cfg v1.Config, plug plugin.TranslatorPlugin, secrets secretwatcher.SecretMap) secretwatcher.SecretMap {
 	deps := plug.GetDependencies(cfg)
 	if deps == nil || len(deps.SecretRefs) == 0 {
@@ -165,9 +176,48 @@ func secretsForPlugin(cfg v1.Config, plug plugin.TranslatorPlugin, secrets secre
 	return pluginSecrets
 }
 
-func validateDestination(upstreams []v1.Upstream, route v1.Route) error {
-	USETHISFUNCTION
+// VirtualHosts
 
+func (t *Translator) computeVirtualHosts(cfg v1.Config) ([]*envoyroute.VirtualHost, []reporter.ConfigObjectReport) {
+	var (
+		reports      []reporter.ConfigObjectReport
+		virtualHosts []*envoyroute.VirtualHost
+	)
+	for _, virtualHost := range cfg.VirtualHosts {
+		envoyVirtualHost, err := t.computeVirtualHost(cfg.Upstreams, virtualHost)
+		virtualHosts = append(virtualHosts, envoyVirtualHost)
+		reports = append(reports, createVirtualHostReport(virtualHost, err))
+	}
+	return virtualHosts, reports
+}
+
+func (t *Translator) computeVirtualHost(upstreams []v1.Upstream, virtualHost v1.VirtualHost) (*envoyroute.VirtualHost, error) {
+	var envoyRoutes []envoyroute.Route
+	var routeErrors *multierror.Error
+	for _, route := range virtualHost.Routes {
+		if err := validateRoute(upstreams, route); err != nil {
+			routeErrors = multierror.Append(routeErrors, err)
+		}
+		envoyRoute := envoyroute.Route{}
+		for _, routePlugin := range t.routePlugins {
+			if err := routePlugin.ProcessRoute(route, &envoyRoute); err != nil {
+				routeErrors = multierror.Append(routeErrors, err)
+			}
+		}
+		envoyRoutes = append(envoyRoutes, envoyRoute)
+	}
+	domains := virtualHost.Domains
+	if len(domains) == 0 || (len(domains) == 1 && domains[0] == "") {
+		domains = []string{"*"}
+	}
+	return &envoyroute.VirtualHost{
+		Name:    envoy.VirtualHostName(virtualHost.Name),
+		Domains: domains,
+		Routes:  envoyRoutes,
+	}, routeErrors
+}
+
+func validateRoute(upstreams []v1.Upstream, route v1.Route) error {
 	// collect existing upstreams/functions for matching
 	upstreamsAndTheirFunctions := make(map[string][]string)
 	for _, upstream := range upstreams {
