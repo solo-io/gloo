@@ -17,6 +17,8 @@ import (
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
+const rdsName = "glue-rds"
+
 type Translator struct {
 	upstreamPlugins []plugin.UpstreamPlugin
 	routePlugins    []plugin.RoutePlugin
@@ -58,6 +60,13 @@ func (t *Translator) Translate(cfg v1.Config,
 
 	// virtualhosts
 	virtualHosts, virtualHostReports := t.computeVirtualHosts(cfg)
+
+	routeConfig := &envoyapi.RouteConfiguration{
+		Name:         rdsName,
+		VirtualHosts: virtualHosts,
+	}
+
+	//listener :=
 }
 
 // Endpoints
@@ -178,10 +187,10 @@ func secretsForPlugin(cfg v1.Config, plug plugin.TranslatorPlugin, secrets secre
 
 // VirtualHosts
 
-func (t *Translator) computeVirtualHosts(cfg v1.Config) ([]*envoyroute.VirtualHost, []reporter.ConfigObjectReport) {
+func (t *Translator) computeVirtualHosts(cfg v1.Config) ([]envoyroute.VirtualHost, []reporter.ConfigObjectReport) {
 	var (
 		reports      []reporter.ConfigObjectReport
-		virtualHosts []*envoyroute.VirtualHost
+		virtualHosts []envoyroute.VirtualHost
 	)
 	for _, virtualHost := range cfg.VirtualHosts {
 		envoyVirtualHost, err := t.computeVirtualHost(cfg.Upstreams, virtualHost)
@@ -191,7 +200,7 @@ func (t *Translator) computeVirtualHosts(cfg v1.Config) ([]*envoyroute.VirtualHo
 	return virtualHosts, reports
 }
 
-func (t *Translator) computeVirtualHost(upstreams []v1.Upstream, virtualHost v1.VirtualHost) (*envoyroute.VirtualHost, error) {
+func (t *Translator) computeVirtualHost(upstreams []v1.Upstream, virtualHost v1.VirtualHost) (envoyroute.VirtualHost, error) {
 	var envoyRoutes []envoyroute.Route
 	var routeErrors *multierror.Error
 	for _, route := range virtualHost.Routes {
@@ -210,7 +219,10 @@ func (t *Translator) computeVirtualHost(upstreams []v1.Upstream, virtualHost v1.
 	if len(domains) == 0 || (len(domains) == 1 && domains[0] == "") {
 		domains = []string{"*"}
 	}
-	return &envoyroute.VirtualHost{
+
+	// TODO: handle default virtualhost
+	// TODO: handle ssl
+	return envoyroute.VirtualHost{
 		Name:    envoy.VirtualHostName(virtualHost.Name),
 		Domains: domains,
 		Routes:  envoyRoutes,
