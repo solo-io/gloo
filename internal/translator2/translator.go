@@ -1,15 +1,25 @@
 package translator
 
 import (
+	"fmt"
+	"sort"
+
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyendpoints "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
+	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
+	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
+	"github.com/gogo/protobuf/proto"
+	"github.com/mitchellh/hashstructure"
+	"k8s.io/apimachinery/pkg/util/runtime"
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"github.com/solo-io/glue/internal/pkg/envoy"
 
+	"github.com/solo-io/glue/internal/pkg/envoy"
 	"github.com/solo-io/glue/internal/reporter"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
@@ -17,18 +27,22 @@ import (
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
-const rdsName = "glue-rds"
+const (
+	rdsName       = "glue-rds"
+	listenerName  = "listener-" + rdsName
+	listenerPort  = uint32(80)
+	connMgrFilter = "envoy.http_connection_manager"
+)
 
 type Translator struct {
-	upstreamPlugins []plugin.UpstreamPlugin
-	routePlugins    []plugin.RoutePlugin
+	plugins []plugin.TranslatorPlugin
 }
 
-func NewTranslator(upstreamPlugins []plugin.UpstreamPlugin, routePlugins []plugin.RoutePlugin) *Translator {
+func NewTranslator(plugins []plugin.TranslatorPlugin) *Translator {
 	// special routing must be done for upstream plugins that support functions
 	var functionPlugins []plugin.FunctionPlugin
-	for _, upstreamPlugin := range upstreamPlugins {
-		if functionPlugin, ok := upstreamPlugin.(plugin.FunctionPlugin); ok {
+	for _, plug := range plugins {
+		if functionPlugin, ok := plug.(plugin.FunctionPlugin); ok {
 			functionPlugins = append(functionPlugins, functionPlugin)
 		}
 	}
@@ -39,18 +53,16 @@ func NewTranslator(upstreamPlugins []plugin.UpstreamPlugin, routePlugins []plugi
 		functionRouter := &functionRouterPlugin{
 			functionPlugins: functionPlugins,
 		}
-		upstreamPlugins = append([]plugin.UpstreamPlugin{functionRouter}, upstreamPlugins...)
-		routePlugins = append([]plugin.RoutePlugin{functionRouter}, routePlugins...)
+		plugins = append([]plugin.TranslatorPlugin{functionRouter}, plugins...)
 	}
 	return &Translator{
-		upstreamPlugins: upstreamPlugins,
-		routePlugins:    routePlugins,
+		plugins: plugins,
 	}
 }
 
 func (t *Translator) Translate(cfg v1.Config,
 	secrets secretwatcher.SecretMap,
-	endpoints endpointdiscovery.EndpointGroups) (*envoycache.Snapshot, []reporter.ConfigObjectReport) {
+	endpoints endpointdiscovery.EndpointGroups) (*envoycache.Snapshot, []reporter.ConfigObjectReport, error) {
 
 	// endpoints
 	clusterLoadAssignments := computeClusterEndpoints(cfg.Upstreams, endpoints)
@@ -66,7 +78,46 @@ func (t *Translator) Translate(cfg v1.Config,
 		VirtualHosts: virtualHosts,
 	}
 
-	//listener :=
+	// listeners
+	// TODO: eventaully support multiple listeners (e.g. for TLS)
+	listener, err := t.constructHttpListener(listenerName, listenerPort, routeConfig.Name)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "constructing http listener %v", listenerName)
+	}
+
+	// proto-ify everything
+	var endpointsProto []proto.Message
+	for _, cla := range clusterLoadAssignments {
+		endpointsProto = append(endpointsProto, cla)
+	}
+
+	var clustersProto []proto.Message
+	for _, cluster := range clusters {
+		clustersProto = append(clustersProto, cluster)
+	}
+
+	routesProto := []proto.Message{routeConfig}
+	listenersProto := []proto.Message{listener}
+
+	// construct version
+	// TODO: investigate whether we need a more sophisticated versionining algorithm
+	version, err := hashstructure.Hash([][]proto.Message{
+		endpointsProto,
+		clustersProto,
+		routesProto,
+		listenersProto,
+	}, nil)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "constructing version hash for envoy snapshot components")
+	}
+
+	// construct snapshot
+	snapshot := envoycache.NewSnapshot(fmt.Sprintf("%v", version), endpointsProto, clustersProto, routesProto, listenersProto)
+
+	// aggregate reports
+	reports := append(clusterReports, virtualHostReports...)
+
+	return &snapshot, reports, nil
 }
 
 // Endpoints
@@ -137,7 +188,11 @@ func (t *Translator) computeCluster(cfg v1.Config, secrets secretwatcher.SecretM
 		out.Type = envoyapi.Cluster_EDS
 	}
 	var upstreamErrors *multierror.Error
-	for _, upstreamPlugin := range t.upstreamPlugins {
+	for _, plug := range t.plugins {
+		upstreamPlugin, ok := plug.(plugin.UpstreamPlugin)
+		if !ok {
+			continue
+		}
 		pluginSecrets := secretsForPlugin(cfg, upstreamPlugin, secrets)
 		if err := upstreamPlugin.ProcessUpstream(upstream, pluginSecrets, out); err != nil {
 			upstreamErrors = multierror.Append(upstreamErrors, err)
@@ -208,7 +263,11 @@ func (t *Translator) computeVirtualHost(upstreams []v1.Upstream, virtualHost v1.
 			routeErrors = multierror.Append(routeErrors, err)
 		}
 		envoyRoute := envoyroute.Route{}
-		for _, routePlugin := range t.routePlugins {
+		for _, plug := range t.plugins {
+			routePlugin, ok := plug.(plugin.RoutePlugin)
+			if !ok {
+				continue
+			}
 			if err := routePlugin.ProcessRoute(route, &envoyRoute); err != nil {
 				routeErrors = multierror.Append(routeErrors, err)
 			}
@@ -288,4 +347,94 @@ func validateFunctionDestination(upstreamsAndTheirFunctions map[string][]string,
 		return errors.Errorf("function %v/%v was not found for function destination", upstreamName, functionName)
 	}
 	return nil
+}
+
+// Listener
+
+type stagedFilter struct {
+	filter *envoyhttp.HttpFilter
+	stage  plugin.Stage
+}
+
+func (t *Translator) constructHttpListener(name string, port uint32, routeConfigName string) (*envoyapi.Listener, error) {
+	var filtersByStage []stagedFilter
+	for _, plug := range t.plugins {
+		filterPlugin, ok := plug.(plugin.FilterPlugin)
+		if !ok {
+			continue
+		}
+		httpFilter, stage := filterPlugin.HttpFilter()
+		if httpFilter == nil {
+			runtime.HandleError(errors.New("plugin implements HttpFilter() but returned nil"))
+			continue
+		}
+		filtersByStage = append(filtersByStage, stagedFilter{
+			filter: httpFilter,
+			stage:  stage,
+		})
+	}
+
+	// sort filters by stage
+	httpFilters := sortFilters(filtersByStage)
+
+	httpConnMgr := &envoyhttp.HttpConnectionManager{
+		CodecType:  envoyhttp.AUTO,
+		StatPrefix: "http",
+		RouteSpecifier: &envoyhttp.HttpConnectionManager_Rds{
+			Rds: &envoyhttp.Rds{
+				ConfigSource: envoycore.ConfigSource{
+					ConfigSourceSpecifier: &envoycore.ConfigSource_Ads{
+						Ads: &envoycore.AggregatedConfigSource{},
+					},
+				},
+				RouteConfigName: routeConfigName,
+			},
+		},
+		HttpFilters: httpFilters,
+	}
+
+	httpConnMgrCfg, err := envoyutil.MessageToStruct(httpConnMgr)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to convert proto message to struct")
+	}
+	return &envoyapi.Listener{
+		Name: name,
+		Address: envoycore.Address{
+			Address: &envoycore.Address_SocketAddress{
+				SocketAddress: &envoycore.SocketAddress{
+					Protocol: envoycore.TCP,
+					Address:  "::", // bind all
+					PortSpecifier: &envoycore.SocketAddress_PortValue{
+						PortValue: port,
+					},
+				},
+			},
+		},
+		FilterChains: []envoylistener.FilterChain{{
+			Filters: []envoylistener.Filter{{
+				Name:   connMgrFilter,
+				Config: httpConnMgrCfg,
+			}},
+		}},
+	}, nil
+}
+
+func sortFilters(filters []stagedFilter) []*envoyhttp.HttpFilter {
+	// sort them first by stage, then by name.
+	less := func(i, j int) bool {
+		filteri := filters[i]
+		filterj := filters[j]
+		if filteri.stage != filterj.stage {
+			return filteri.stage < filterj.stage
+		}
+		return filteri.filter.Name < filterj.filter.Name
+	}
+	sort.SliceStable(filters, less)
+
+	var sortedFilters []*envoyhttp.HttpFilter
+	for _, filter := range filters {
+		sortedFilters = append(sortedFilters, filter.filter)
+	}
+
+	return sortedFilters
 }

@@ -66,7 +66,7 @@ func (a *AwsPlugin) GetDependencies(cfg *v1.Config) translator.DependenciesDescr
 	return &deps
 }
 
-func (a *AwsPlugin) EnvoyFilters(pi *plugin.PluginInputs) []plugin.FilterWrapper {
+func (a *AwsPlugin) EnvoyFilters() []plugin.FilterWrapper {
 	filter := plugin.FilterWrapper{
 		Filter: hcm.HttpFilter{
 			Name: AwsFilterName,
@@ -76,7 +76,7 @@ func (a *AwsPlugin) EnvoyFilters(pi *plugin.PluginInputs) []plugin.FilterWrapper
 	return []plugin.FilterWrapper{filter}
 }
 
-func (a *AwsPlugin) UpdateEnvoyRoute(pi *plugin.PluginInputs, in *v1.Route, out *apiroute.Route) error {
+func (a *AwsPlugin) UpdateEnvoyRoute(in *v1.Route, out *apiroute.Route) error {
 
 	plugins := in.Plugins
 	if plugins != nil {
