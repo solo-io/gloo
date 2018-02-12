@@ -69,7 +69,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 				Expect(fmt.Errorf("expected to have received resource event before 5s")).NotTo(HaveOccurred())
 			case secrets := <-watcher.Secrets():
 				Expect(len(secrets)).To(Equal(1))
-				Expect(secrets[createdSecret.Name]["username"]).To(Equal([]byte("me@example.com")))
+				Expect(secrets[createdSecret.Name]["username"]).To(Equal("me@example.com"))
 			case err := <-watcher.Error():
 				Expect(err).To(BeNil())
 			}

@@ -9,7 +9,7 @@ import (
 	"github.com/solo-io/glue/internal/pkg/envoy"
 	"github.com/solo-io/glue/internal/plugins/common"
 	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/plugin2"
+	"github.com/solo-io/glue/pkg/plugin"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 

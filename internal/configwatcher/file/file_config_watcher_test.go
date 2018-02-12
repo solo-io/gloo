@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/ghodss/yaml"
@@ -101,6 +102,12 @@ var _ = Describe("FileConfigWatcher", func() {
 				var actualCfg *v1.Config
 				Eventually(func() (v1.Config, error) {
 					cfg, err := readConfig(watch)
+					sort.SliceStable(cfg.VirtualHosts, func(i, j int) bool {
+						return cfg.VirtualHosts[i].Name < cfg.VirtualHosts[j].Name
+					})
+					sort.SliceStable(cfg.Upstreams, func(i, j int) bool {
+						return cfg.Upstreams[i].Name < cfg.Upstreams[j].Name
+					})
 					actualCfg = &cfg
 					return cfg, err
 				}).Should(Equal(expectedCfg))

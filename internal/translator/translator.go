@@ -1,375 +1,450 @@
 package translator
 
 import (
-	"sort"
-	"strings"
-
-	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
-	"github.com/gogo/protobuf/proto"
-	"github.com/gogo/protobuf/types"
-
-	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	apiep "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
-	envoy_api_v2_listener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
-	apiroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	hcm "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
-
-	"github.com/envoyproxy/go-control-plane/pkg/util"
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	translatoriface "github.com/solo-io/glue/pkg/translator"
-	"github.com/solo-io/glue/pkg/translator/plugin"
-
-	"github.com/solo-io/glue/pkg/endpointdiscovery"
-	"github.com/solo-io/glue/pkg/secretwatcher"
-
 	"fmt"
+	"sort"
 
+	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	envoyendpoints "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
+	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
+	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
+	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
+
+	"github.com/gogo/protobuf/proto"
 	"github.com/hashicorp/go-multierror"
 	"github.com/mitchellh/hashstructure"
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/util/runtime"
+
+	"github.com/solo-io/glue/internal/pkg/envoy"
+	"github.com/solo-io/glue/internal/plugins/functionrouter"
+	"github.com/solo-io/glue/internal/reporter"
+	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/glue/pkg/endpointdiscovery"
+	"github.com/solo-io/glue/pkg/plugin"
+	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
-type dependencies struct {
-	secrets secretwatcher.SecretMap
-}
-
-func (d *dependencies) Secrets() secretwatcher.SecretMap {
-	return d.secrets
-}
+const (
+	rdsName       = "glue-rds"
+	listenerName  = "listener-" + rdsName
+	listenerPort  = uint32(80)
+	connMgrFilter = "envoy.http_connection_manager"
+)
 
 type Translator struct {
-	plugins        []plugin.Plugin
-	nameTranslator translatoriface.EnvoyNameConverter
+	plugins []plugin.TranslatorPlugin
 }
 
-func NewTranslator(plugins []plugin.Plugin, nameTranslator translatoriface.EnvoyNameConverter) *Translator {
-
-	var functionPlugins []plugin.FunctionalPlugin
-	for _, p := range plugins {
-		if fp, ok := p.(plugin.FunctionalPlugin); ok {
-			functionPlugins = append(functionPlugins, fp)
+func NewTranslator(plugins []plugin.TranslatorPlugin) *Translator {
+	// special routing must be done for upstream plugins that support functions
+	var functionPlugins []plugin.FunctionPlugin
+	for _, plug := range plugins {
+		if functionPlugin, ok := plug.(plugin.FunctionPlugin); ok {
+			functionPlugins = append(functionPlugins, functionPlugin)
 		}
 	}
-
-	plugins = append([]plugin.Plugin{NewInitPlugin(functionPlugins)}, plugins...)
-
-	return &Translator{plugins: plugins, nameTranslator: nameTranslator}
+	if len(functionPlugins) > 0 {
+		// the function router plugin must be initialized for any function plugins
+		// since it operates on both upstreams and routes, it must be added to both
+		// groups of plugins
+		functionRouter := functionrouter.NewFunctionRouterPlugin(functionPlugins)
+		plugins = append([]plugin.TranslatorPlugin{functionRouter}, plugins...)
+	}
+	return &Translator{
+		plugins: plugins,
+	}
 }
 
-func constructMatch(in *v1.Matcher) apiroute.RouteMatch {
-	var out apiroute.RouteMatch
-	if in.Path.Exact != "" {
-		out.PathSpecifier = &apiroute.RouteMatch_Path{Path: in.Path.Exact}
-	} else if in.Path.Prefix != "" {
-		out.PathSpecifier = &apiroute.RouteMatch_Prefix{Prefix: in.Path.Prefix}
-	} else if in.Path.Regex != "" {
-		out.PathSpecifier = &apiroute.RouteMatch_Regex{Regex: in.Path.Regex}
+func (t *Translator) Translate(cfg v1.Config,
+	secrets secretwatcher.SecretMap,
+	endpoints endpointdiscovery.EndpointGroups) (*envoycache.Snapshot, []reporter.ConfigObjectReport, error) {
+
+	// endpoints
+	clusterLoadAssignments := computeClusterEndpoints(cfg.Upstreams, endpoints)
+
+	// clusters
+	clusters, clusterReports := t.computeClusters(cfg, secrets, endpoints)
+
+	// virtualhosts
+	virtualHosts, virtualHostReports := t.computeVirtualHosts(cfg)
+
+	routeConfig := &envoyapi.RouteConfiguration{
+		Name:         rdsName,
+		VirtualHosts: virtualHosts,
 	}
 
-	if len(in.Verbs) == 1 {
-		out.Headers = append(out.Headers, &apiroute.HeaderMatcher{Name: ":method", Value: in.Verbs[0]})
-	} else if len(in.Verbs) >= 1 {
-		out.Headers = append(out.Headers, &apiroute.HeaderMatcher{Name: ":method", Value: strings.Join(in.Verbs, "|"), Regex: &types.BoolValue{Value: true}})
+	// listeners
+	// TODO: eventaully support multiple listeners (e.g. for TLS)
+	listener, err := t.constructHttpListener(listenerName, listenerPort, routeConfig.Name)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "constructing http listener %v", listenerName)
 	}
 
-	for k, v := range in.Headers {
-		out.Headers = append(out.Headers, &apiroute.HeaderMatcher{Name: k, Value: v})
+	// proto-ify everything
+	var endpointsProto []proto.Message
+	for _, cla := range clusterLoadAssignments {
+		endpointsProto = append(endpointsProto, cla)
 	}
 
-	return out
+	var clustersProto []proto.Message
+	for _, cluster := range clusters {
+		clustersProto = append(clustersProto, cluster)
+	}
+
+	routesProto := []proto.Message{routeConfig}
+	listenersProto := []proto.Message{listener}
+
+	// construct version
+	// TODO: investigate whether we need a more sophisticated versionining algorithm
+	version, err := hashstructure.Hash([][]proto.Message{
+		endpointsProto,
+		clustersProto,
+		routesProto,
+		listenersProto,
+	}, nil)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "constructing version hash for envoy snapshot components")
+	}
+
+	// construct snapshot
+	snapshot := envoycache.NewSnapshot(fmt.Sprintf("%v", version), endpointsProto, clustersProto, routesProto, listenersProto)
+
+	// aggregate reports
+	reports := append(clusterReports, virtualHostReports...)
+
+	return &snapshot, reports, nil
 }
 
-func constructRoute(in *v1.Route) *apiroute.Route {
-	var out apiroute.Route
-	out.Match = constructMatch(&in.Matcher)
-	out.Action = &apiroute.Route_Route{
-		Route: &apiroute.RouteAction{
-			PrefixRewrite: in.RewritePrefix,
-		},
+// Endpoints
+
+func computeClusterEndpoints(upstreams []v1.Upstream, endpoints endpointdiscovery.EndpointGroups) []*envoyapi.ClusterLoadAssignment {
+	var clusterEndpointAssignments []*envoyapi.ClusterLoadAssignment
+	for _, upstream := range upstreams {
+		// if there is an endpoint group for this upstream,
+		// it's using eds and we need to create a load assignment for it
+		if endpointGroup, ok := endpoints[upstream.Name]; ok {
+			loadAssignment := loadAssignmentForCluster(upstream.Name, endpointGroup)
+			clusterEndpointAssignments = append(clusterEndpointAssignments, loadAssignment)
+		}
 	}
-
-	return &out
+	return clusterEndpointAssignments
 }
 
-func (t *Translator) prepareClusterObject(in *v1.Upstream) *api.Cluster {
-	var out api.Cluster
-
-	out.Name = t.nameTranslator.ToEnvoyClusterName(in.Name)
-	return &out
-}
-
-func (t *Translator) constructEds(clustername string, addresses []endpointdiscovery.Endpoint) *api.ClusterLoadAssignment {
-	var out api.ClusterLoadAssignment
-
-	var endpoints []apiep.LbEndpoint
-	for _, adr := range addresses {
-		l := apiep.LbEndpoint{
-			Endpoint: &apiep.Endpoint{
-				Address: &envoy_api_v2_core.Address{
-					Address: &envoy_api_v2_core.Address_SocketAddress{
-						SocketAddress: &envoy_api_v2_core.SocketAddress{
-							Protocol: envoy_api_v2_core.TCP,
-							Address:  adr.Address,
-							PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{
-								PortValue: uint32(adr.Port),
+func loadAssignmentForCluster(clusterName string, addresses []endpointdiscovery.Endpoint) *envoyapi.ClusterLoadAssignment {
+	var endpoints []envoyendpoints.LbEndpoint
+	for _, addr := range addresses {
+		lbEndpoint := envoyendpoints.LbEndpoint{
+			Endpoint: &envoyendpoints.Endpoint{
+				Address: &envoycore.Address{
+					Address: &envoycore.Address_SocketAddress{
+						SocketAddress: &envoycore.SocketAddress{
+							Protocol: envoycore.TCP,
+							Address:  addr.Address,
+							PortSpecifier: &envoycore.SocketAddress_PortValue{
+								PortValue: uint32(addr.Port),
 							},
 						},
 					},
 				},
 			},
 		}
-		endpoints = append(endpoints, l)
+		endpoints = append(endpoints, lbEndpoint)
 	}
 
-	out = api.ClusterLoadAssignment{
-		ClusterName: clustername,
-		Endpoints: []apiep.LocalityLbEndpoints{{
+	return &envoyapi.ClusterLoadAssignment{
+		ClusterName: clusterName,
+		Endpoints: []envoyendpoints.LocalityLbEndpoints{{
 			LbEndpoints: endpoints,
 		}},
 	}
-
-	return &out
 }
 
-func (t *Translator) constructListener(pi *plugin.PluginInputs, listener, route string) *api.Listener {
-	router := "envoy.router"
-	httpFilter := "envoy.http_connection_manager"
-	port := uint32(80)
+// Clusters
 
-	rdsSource := envoy_api_v2_core.ConfigSource{}
-	rdsSource.ConfigSourceSpecifier = &envoy_api_v2_core.ConfigSource_Ads{
-		Ads: &envoy_api_v2_core.AggregatedConfigSource{},
+func (t *Translator) computeClusters(cfg v1.Config, secrets secretwatcher.SecretMap, endpoints endpointdiscovery.EndpointGroups) ([]*envoyapi.Cluster, []reporter.ConfigObjectReport) {
+	var (
+		reports  []reporter.ConfigObjectReport
+		clusters []*envoyapi.Cluster
+	)
+	for _, upstream := range cfg.Upstreams {
+		_, edsCluster := endpoints[upstream.Name]
+		cluster, err := t.computeCluster(cfg, secrets, upstream, edsCluster)
+		clusters = append(clusters, cluster)
+		reports = append(reports, createUpstreamReport(upstream, err))
+	}
+	return clusters, reports
+}
+
+func (t *Translator) computeCluster(cfg v1.Config, secrets secretwatcher.SecretMap, upstream v1.Upstream, edsCluster bool) (*envoyapi.Cluster, error) {
+	out := &envoyapi.Cluster{
+		Name:     upstream.Name,
+		Metadata: new(envoycore.Metadata),
+	}
+	if edsCluster {
+		out.Type = envoyapi.Cluster_EDS
+	}
+	var upstreamErrors *multierror.Error
+	for _, plug := range t.plugins {
+		upstreamPlugin, ok := plug.(plugin.UpstreamPlugin)
+		if !ok {
+			continue
+		}
+		pluginSecrets := secretsForPlugin(cfg, upstreamPlugin, secrets)
+		if err := upstreamPlugin.ProcessUpstream(upstream, pluginSecrets, out); err != nil {
+			upstreamErrors = multierror.Append(upstreamErrors, err)
+		}
+	}
+	if err := validateCluster(out); err != nil {
+		upstreamErrors = multierror.Append(upstreamErrors, err)
+	}
+	return out, upstreamErrors
+}
+
+// TODO: add more validation here
+func validateCluster(c *envoyapi.Cluster) error {
+	if c.Type == envoyapi.Cluster_STATIC || c.Type == envoyapi.Cluster_STRICT_DNS || c.Type == envoyapi.Cluster_LOGICAL_DNS {
+		if len(c.Hosts) < 1 {
+			return errors.Errorf("cluster type %v specified but hosts were empty", c.Type.String())
+		}
+	}
+	return nil
+}
+
+func createUpstreamReport(upstream v1.Upstream, err error) reporter.ConfigObjectReport {
+	return reporter.ConfigObjectReport{
+		CfgObject: &upstream,
+		Err:       err,
+	}
+}
+
+func createVirtualHostReport(virtualHost v1.VirtualHost, err error) reporter.ConfigObjectReport {
+	return reporter.ConfigObjectReport{
+		CfgObject: &virtualHost,
+		Err:       err,
+	}
+}
+
+func secretsForPlugin(cfg v1.Config, plug plugin.TranslatorPlugin, secrets secretwatcher.SecretMap) secretwatcher.SecretMap {
+	deps := plug.GetDependencies(cfg)
+	if deps == nil || len(deps.SecretRefs) == 0 {
+		return nil
+	}
+	pluginSecrets := make(secretwatcher.SecretMap)
+	for _, ref := range deps.SecretRefs {
+		pluginSecrets[ref] = secrets[ref]
+	}
+	return pluginSecrets
+}
+
+// VirtualHosts
+
+func (t *Translator) computeVirtualHosts(cfg v1.Config) ([]envoyroute.VirtualHost, []reporter.ConfigObjectReport) {
+	var (
+		reports      []reporter.ConfigObjectReport
+		virtualHosts []envoyroute.VirtualHost
+	)
+	for _, virtualHost := range cfg.VirtualHosts {
+		envoyVirtualHost, err := t.computeVirtualHost(cfg.Upstreams, virtualHost)
+		virtualHosts = append(virtualHosts, envoyVirtualHost)
+		reports = append(reports, createVirtualHostReport(virtualHost, err))
+	}
+	return virtualHosts, reports
+}
+
+func (t *Translator) computeVirtualHost(upstreams []v1.Upstream, virtualHost v1.VirtualHost) (envoyroute.VirtualHost, error) {
+	var envoyRoutes []envoyroute.Route
+	var routeErrors *multierror.Error
+	for _, route := range virtualHost.Routes {
+		if err := validateRoute(upstreams, route); err != nil {
+			routeErrors = multierror.Append(routeErrors, err)
+		}
+		out := envoyroute.Route{
+			Metadata: new(envoycore.Metadata),
+		}
+		for _, plug := range t.plugins {
+			routePlugin, ok := plug.(plugin.RoutePlugin)
+			if !ok {
+				continue
+			}
+			if err := routePlugin.ProcessRoute(route, &out); err != nil {
+				routeErrors = multierror.Append(routeErrors, err)
+			}
+		}
+		envoyRoutes = append(envoyRoutes, out)
+	}
+	domains := virtualHost.Domains
+	if len(domains) == 0 || (len(domains) == 1 && domains[0] == "") {
+		domains = []string{"*"}
 	}
 
-	var whttpfilters []plugin.FilterWrapper
-	for _, plgin := range t.plugins {
-		whttpfilters = append(whttpfilters, plgin.EnvoyFilters(pi)...)
+	// TODO: handle default virtualhost
+	// TODO: handle ssl
+	return envoyroute.VirtualHost{
+		Name:    envoy.VirtualHostName(virtualHost.Name),
+		Domains: domains,
+		Routes:  envoyRoutes,
+	}, routeErrors
+}
+
+func validateRoute(upstreams []v1.Upstream, route v1.Route) error {
+	// collect existing upstreams/functions for matching
+	upstreamsAndTheirFunctions := make(map[string][]string)
+	for _, upstream := range upstreams {
+		var funcsForUpstream []string
+		for _, fn := range upstream.Functions {
+			funcsForUpstream = append(funcsForUpstream, fn.Name)
+		}
+		upstreamsAndTheirFunctions[upstream.Name] = funcsForUpstream
 	}
-	httpfilters := sortFilters(whttpfilters)
 
-	httpfilters = append(httpfilters, &hcm.HttpFilter{Name: router})
+	// make sure the destination itself has the right structure
+	if len(route.Destination.Destinations) > 0 {
+		return validateMultiDestination(upstreamsAndTheirFunctions, route.Destination.Destinations)
+	}
+	return validateSingleDestination(upstreamsAndTheirFunctions, route.Destination.SingleDestination)
+}
 
-	manager := &hcm.HttpConnectionManager{
-		CodecType:  hcm.AUTO,
+func validateMultiDestination(upstreamsAndTheirFunctions map[string][]string, destinations []v1.WeightedDestination) error {
+	for _, dest := range destinations {
+		if err := validateSingleDestination(upstreamsAndTheirFunctions, dest.SingleDestination); err != nil {
+			return errors.Wrap(err, "invalid destination in weighted destination list")
+		}
+	}
+	return nil
+}
+
+func validateSingleDestination(upstreamsAndTheirFunctions map[string][]string, destination v1.SingleDestination) error {
+	if destination.FunctionDestination != nil && destination.UpstreamDestination != nil {
+		return errors.New("only one of function_destination and upstream_destination can be set on a single destination")
+	}
+	if destination.UpstreamDestination != nil {
+		return validateUpstreamDestination(upstreamsAndTheirFunctions, destination.UpstreamDestination)
+	}
+	if destination.FunctionDestination != nil {
+		return validateFunctionDestination(upstreamsAndTheirFunctions, destination.FunctionDestination)
+	}
+	return errors.New("must specify either a function or upstream on a single destination")
+}
+
+func validateUpstreamDestination(upstreamsAndTheirFunctions map[string][]string, upstreamDestination *v1.UpstreamDestination) error {
+	upstreamName := upstreamDestination.UpstreamName
+	if _, ok := upstreamsAndTheirFunctions[upstreamName]; !ok {
+		return errors.Errorf("upstream %v was not found for function destination", upstreamName)
+	}
+	return nil
+}
+
+func validateFunctionDestination(upstreamsAndTheirFunctions map[string][]string, functionDestination *v1.FunctionDestination) error {
+	upstreamName := functionDestination.UpstreamName
+	upstreamFuncs, ok := upstreamsAndTheirFunctions[upstreamName]
+	if !ok {
+		return errors.Errorf("upstream %v was not found for function destination", upstreamName)
+	}
+	functionName := functionDestination.FunctionName
+	if !stringInSlice(upstreamFuncs, functionName) {
+		return errors.Errorf("function %v/%v was not found for function destination", upstreamName, functionName)
+	}
+	return nil
+}
+
+func stringInSlice(slice []string, s string) bool {
+	for _, el := range slice {
+		if el == s {
+			return true
+		}
+	}
+	return false
+}
+
+// Listener
+
+type stagedFilter struct {
+	filter *envoyhttp.HttpFilter
+	stage  plugin.Stage
+}
+
+func (t *Translator) constructHttpListener(name string, port uint32, routeConfigName string) (*envoyapi.Listener, error) {
+	var filtersByStage []stagedFilter
+	for _, plug := range t.plugins {
+		filterPlugin, ok := plug.(plugin.FilterPlugin)
+		if !ok {
+			continue
+		}
+		httpFilter, stage := filterPlugin.HttpFilter()
+		if httpFilter == nil {
+			runtime.HandleError(errors.New("plugin implements HttpFilter() but returned nil"))
+			continue
+		}
+		filtersByStage = append(filtersByStage, stagedFilter{
+			filter: httpFilter,
+			stage:  stage,
+		})
+	}
+
+	// sort filters by stage
+	httpFilters := sortFilters(filtersByStage)
+
+	httpConnMgr := &envoyhttp.HttpConnectionManager{
+		CodecType:  envoyhttp.AUTO,
 		StatPrefix: "http",
-		RouteSpecifier: &hcm.HttpConnectionManager_Rds{
-			Rds: &hcm.Rds{
-				ConfigSource:    rdsSource,
-				RouteConfigName: route,
+		RouteSpecifier: &envoyhttp.HttpConnectionManager_Rds{
+			Rds: &envoyhttp.Rds{
+				ConfigSource: envoycore.ConfigSource{
+					ConfigSourceSpecifier: &envoycore.ConfigSource_Ads{
+						Ads: &envoycore.AggregatedConfigSource{},
+					},
+				},
+				RouteConfigName: routeConfigName,
 			},
 		},
-		HttpFilters: httpfilters,
-	}
-	pbst, err := util.MessageToStruct(manager)
-	if err != nil {
-		panic("should never happen")
+		HttpFilters: httpFilters,
 	}
 
-	return &api.Listener{
-		Name: listener,
-		Address: envoy_api_v2_core.Address{
-			Address: &envoy_api_v2_core.Address_SocketAddress{
-				SocketAddress: &envoy_api_v2_core.SocketAddress{
-					Protocol: envoy_api_v2_core.TCP,
-					Address:  "::", //bind all
-					PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{
+	httpConnMgrCfg, err := envoyutil.MessageToStruct(httpConnMgr)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to convert proto message to struct")
+	}
+	return &envoyapi.Listener{
+		Name: name,
+		Address: envoycore.Address{
+			Address: &envoycore.Address_SocketAddress{
+				SocketAddress: &envoycore.SocketAddress{
+					Protocol: envoycore.TCP,
+					Address:  "::", // bind all
+					PortSpecifier: &envoycore.SocketAddress_PortValue{
 						PortValue: port,
 					},
 				},
 			},
 		},
-		FilterChains: []envoy_api_v2_listener.FilterChain{{
-			Filters: []envoy_api_v2_listener.Filter{{
-				Name:   httpFilter,
-				Config: pbst,
+		FilterChains: []envoylistener.FilterChain{{
+			Filters: []envoylistener.Filter{{
+				Name:   connMgrFilter,
+				Config: httpConnMgrCfg,
 			}},
 		}},
-	}
+	}, nil
 }
 
-func (t *Translator) Translate(cfg *v1.Config, secretMap secretwatcher.SecretMap, endpoints endpointdiscovery.EndpointGroups) (*envoycache.Snapshot, error) {
-	var statues []translatoriface.ConfigStatus
-
-	dependencies := dependencies{secrets: secretMap}
-	state := &plugin.State{
-		Dependencies: &dependencies,
-		Config:       cfg,
-	}
-
-	var endpointsproto []proto.Message
-
-	for _, u := range cfg.Upstreams {
-		if group, ok := endpoints[u.Name]; ok {
-			cla := t.constructEds(t.nameTranslator.ToEnvoyClusterName(u.Name), group)
-			endpointsproto = append(endpointsproto, cla)
-		}
-	}
-
-	pi := &plugin.PluginInputs{
-		NameTranslator: t.nameTranslator, // TODO
-		State:          state,
-	}
-
-	var clustersproto []proto.Message
-
-	upstreams := cfg.Upstreams
-	for _, upstream := range upstreams {
-		var clustererrors *multierror.Error
-
-		envoycluster := t.prepareClusterObject(&upstream)
-		if _, ok := endpoints[upstream.Name]; ok {
-			// if we have EDS!
-			envoycluster.Type = api.Cluster_EDS
-		}
-
-		for _, p := range t.plugins {
-			err := p.UpdateEnvoyCluster(pi, &upstream, envoycluster)
-			if err != nil {
-				clustererrors = multierror.Append(clustererrors, err)
-			}
-		}
-
-		// TODO: make sure all clusters have lb type.
-		// if not mark cluster as invalid.
-
-		// make sure upstream is health
-		if clustererrors == nil {
-			clustersproto = append(clustersproto, envoycluster)
-			statues = append(statues, translatoriface.NewConfigOk(&upstream))
-
-			// now, process functions
-			for _, function := range upstream.Functions {
-				var functionerrors *multierror.Error
-				for _, p := range t.plugins {
-					err := p.UpdateFunctionToEnvoyCluster(pi, &upstream, &function, envoycluster)
-					if err != nil {
-						functionerrors = multierror.Append(functionerrors, err)
-					}
-				}
-
-				if functionerrors == nil {
-					statues = append(statues, translatoriface.NewConfigOk(&function))
-				} else {
-					statues = append(statues, translatoriface.NewConfigMultiError(&function, functionerrors))
-				}
-			}
-
-		} else {
-			statues = append(statues, translatoriface.NewConfigMultiError(&upstream, clustererrors))
-
-		}
-
-	}
-
-	// TODO unhardcode
-	rdsname := "routes-80"
-
-	var envoyvhosts []apiroute.VirtualHost
-	for _, vhost := range cfg.VirtualHosts {
-
-		var routes []apiroute.Route
-		for _, route := range vhost.Routes {
-			var routeerrors *multierror.Error
-			envoyroute := constructRoute(&route)
-
-			// TODO: make sure all clusters that the route points to exist and valid.
-			// if not mark route as invalid.
-
-			for _, p := range t.plugins {
-				err := p.UpdateEnvoyRoute(pi, &route, envoyroute)
-				if err != nil {
-					routeerrors = multierror.Append(routeerrors, err)
-				}
-			}
-
-			if routeerrors == nil {
-				routes = append(routes, *envoyroute)
-				statues = append(statues, translatoriface.NewConfigOk(&route))
-			} else {
-				statues = append(statues, translatoriface.NewConfigMultiError(&route, routeerrors))
-			}
-		}
-
-		// todo handle default virtualhost
-		envoyvhost := &apiroute.VirtualHost{
-			Name:    t.nameTranslator.ToEnvoyVhostName(&vhost),
-			Domains: ifEmpty(vhost.Domains, []string{"*"}),
-			Routes:  routes,
-		}
-		statues = append(statues, translatoriface.NewConfigOk(&vhost))
-
-		// if we have ssl certificates, add them to the ssl filter chain.
-		// TODO: Create filter chain for listener
-		envoyvhosts = append(envoyvhosts, *envoyvhost)
-	}
-	routeConfig := &api.RouteConfiguration{
-		Name:         rdsname,
-		VirtualHosts: envoyvhosts,
-	}
-
-	var routessproto []proto.Message
-	routessproto = append(routessproto, routeConfig)
-
-	listener := t.constructListener(pi, "listener-"+rdsname, rdsname)
-	var listenerproto []proto.Message
-	listenerproto = append(listenerproto, listener)
-
-	version, _ := hashstructure.Hash([][]proto.Message{endpointsproto,
-		clustersproto,
-		routessproto,
-		listenerproto}, nil)
-
-	snapshot := envoycache.NewSnapshot(fmt.Sprintf("%v", version),
-		endpointsproto,
-		clustersproto,
-		routessproto,
-		listenerproto)
-
-	// create the routes
-
-	/*
-		create all clusters, and run the filters on all clusters.
-		if from some reason a cluster has errored, send it back to user. and remove it
-		from the list
-	*/
-
-	/*
-		Create virtual hosts and ssl certificates and the such.
-		for each virtual host, go over it's routes and:
-			Create all routes inline, and then send them to be augmented by all filters
-	*/
-
-	// runTranslation
-
-	// combine with cluster + endpoints
-	// stable sort
-
-	// computer snapshort version
-	return &snapshot, nil
-}
-
-func ifEmpty(l []string, def []string) []string {
-	if len(l) != 0 {
-		return l
-	}
-	return def
-}
-
-func sortFilters(filters []plugin.FilterWrapper) []*hcm.HttpFilter {
-	// sort them accoirding to stage and then according to the name.
+func sortFilters(filters []stagedFilter) []*envoyhttp.HttpFilter {
+	// sort them first by stage, then by name.
 	less := func(i, j int) bool {
 		filteri := filters[i]
 		filterj := filters[j]
-		if filteri.Stage != filterj.Stage {
-			return filteri.Stage < filterj.Stage
+		if filteri.stage != filterj.stage {
+			return filteri.stage < filterj.stage
 		}
-		return filteri.Filter.Name < filterj.Filter.Name
+		return filteri.filter.Name < filterj.filter.Name
 	}
-	sort.Slice(filters, less)
+	sort.SliceStable(filters, less)
 
-	var sortedFilters []*hcm.HttpFilter
+	var sortedFilters []*envoyhttp.HttpFilter
 	for _, filter := range filters {
-		sortedFilters = append(sortedFilters, &filter.Filter)
+		sortedFilters = append(sortedFilters, filter.filter)
 	}
 
 	return sortedFilters

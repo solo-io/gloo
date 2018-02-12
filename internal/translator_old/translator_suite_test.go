@@ -1,13 +1,13 @@
 package translator_test
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"testing"
 )
 
-func TestTranslator2(t *testing.T) {
+func TestTranslator(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Translator2 Suite")
+	RunSpecs(t, "Translator Suite")
 }

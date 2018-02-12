@@ -14,7 +14,7 @@ import (
 	"github.com/solo-io/glue/pkg/configwatcher"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/pkg/plugin2"
+	"github.com/solo-io/glue/pkg/plugin"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 	"github.com/solo-io/glue/pkg/signals"
 	"github.com/solo-io/glue/pkg/translator"
