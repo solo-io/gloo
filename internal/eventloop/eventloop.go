@@ -19,7 +19,6 @@ import (
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 	"github.com/solo-io/glue/pkg/log"
 	"github.com/solo-io/glue/pkg/secretwatcher"
-	"github.com/solo-io/glue/pkg/signals"
 )
 
 type eventLoop struct {
@@ -34,14 +33,12 @@ type eventLoop struct {
 }
 
 func Setup(opts bootstrap.Options, stopCh <-chan struct{}) (*eventLoop, error) {
-	gracefulStop := signals.SetupSignalHandler()
-
-	cfgWatcher, err := setupConfigWatcher(opts.ConfigWatcherOptions, gracefulStop)
+	cfgWatcher, err := setupConfigWatcher(opts, stopCh)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to set up config watcher")
 	}
 
-	secretWatcher, err := setupSecretWatcher(opts.SecretWatcherOptions, gracefulStop)
+	secretWatcher, err := setupSecretWatcher(opts, stopCh)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to set up secret watcher")
 	}
@@ -89,44 +86,44 @@ func updateSecretRefsFor(plugins []plugin.TranslatorPlugin) func(cfg *v1.Config)
 	}
 }
 
-func setupConfigWatcher(opts bootstrap.WatcherOptions, stopCh <-chan struct{}) (configwatcher.Interface, error) {
-	switch opts.Type {
+func setupConfigWatcher(opts bootstrap.Options, stopCh <-chan struct{}) (configwatcher.Interface, error) {
+	switch opts.ConfigWatcherOptions.Type {
 	case bootstrap.WatcherTypeFile:
-		dir := opts.FileOptions.Path
+		dir := opts.FileOptions.ConfigDir
 		if dir == "" {
 			return nil, errors.New("must provide directory for file config watcher")
 		}
-		cfgWatcher, err := file.NewFileConfigWatcher(dir, opts.SyncFrequency)
+		cfgWatcher, err := file.NewFileConfigWatcher(dir, opts.ConfigWatcherOptions.SyncFrequency)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to start file config watcher for directory %v", dir)
 		}
 		return cfgWatcher, nil
 	case bootstrap.WatcherTypeKube:
-		cfgWatcher, err := kube.NewCrdWatcher(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig, opts.SyncFrequency, stopCh)
+		cfgWatcher, err := kube.NewCrdWatcher(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig, opts.ConfigWatcherOptions.SyncFrequency, stopCh)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to start kube config watcher with config %#v", opts.KubeOptions)
 		}
 		return cfgWatcher, nil
 	}
-	return nil, errors.Errorf("unknown or unspecified config watcher type: %v", opts.Type)
+	return nil, errors.Errorf("unknown or unspecified config watcher type: %v", opts.ConfigWatcherOptions.Type)
 }
 
-func setupSecretWatcher(opts bootstrap.WatcherOptions, stopCh <-chan struct{}) (secretwatcher.Interface, error) {
-	switch opts.Type {
+func setupSecretWatcher(opts bootstrap.Options, stopCh <-chan struct{}) (secretwatcher.Interface, error) {
+	switch opts.SecretWatcherOptions.Type {
 	case bootstrap.WatcherTypeKube:
-		secretWatcher, err := kubesecrets.NewSecretWatcher(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig, opts.SyncFrequency, stopCh)
+		secretWatcher, err := kubesecrets.NewSecretWatcher(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig, opts.SecretWatcherOptions.SyncFrequency, stopCh)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to start kube secret watcher with config %#v", opts.KubeOptions)
 		}
 		return secretWatcher, nil
 	case bootstrap.WatcherTypeVault:
-		secretWatcher, err := vault.NewVaultSecretWatcher(opts.SyncFrequency, opts.VaultOptions.Retries, opts.VaultOptions.VaultAddr, opts.VaultOptions.AuthToken, stopCh)
+		secretWatcher, err := vault.NewVaultSecretWatcher(opts.SecretWatcherOptions.SyncFrequency, opts.VaultOptions.Retries, opts.VaultOptions.VaultAddr, opts.VaultOptions.AuthToken, stopCh)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to start vault secret watcher with config %#v", opts.VaultOptions)
 		}
 		return secretWatcher, nil
 	}
-	return nil, errors.Errorf("unknown or unspecified secret watcher type: %v", opts.Type)
+	return nil, errors.Errorf("unknown or unspecified secret watcher type: %v", opts.SecretWatcherOptions.Type)
 }
 
 func (e *eventLoop) Run() error {

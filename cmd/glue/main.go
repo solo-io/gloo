@@ -1,14 +1,14 @@
 package main
 
 import (
-	"flag"
+	"log"
 
-	//register CRDs
-	"github.com/solo-io/glue/internal/bootstrap"
+	//register plugins
 	_ "github.com/solo-io/glue/internal/install"
 )
 
 func main() {
-	opts := bootstrap.Options{}
-	flag.StringVar()
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }

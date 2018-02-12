@@ -1,4 +1,4 @@
-package kube
+package kubernetes
 
 import (
 	"fmt"
@@ -13,7 +13,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/solo-io/glue/internal/pkg/kube/controller"
-	kubeplugin "github.com/solo-io/glue/internal/plugins/kubernetes"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 )
@@ -23,7 +22,7 @@ type endpointController struct {
 	errors          chan error
 	endpointsLister kubev1.EndpointsLister
 	servicesLister  kubev1.ServiceLister
-	upstreamSpecs   map[string]kubeplugin.UpstreamSpec
+	upstreamSpecs   map[string]UpstreamSpec
 }
 
 func newEndpointController(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}) (*endpointController, error) {
@@ -61,10 +60,10 @@ func newEndpointController(cfg *rest.Config, resyncDuration time.Duration, stopC
 // triggers an update
 func (c *endpointController) TrackUpstreams(upstreams []v1.Upstream) {
 	if c.upstreamSpecs == nil {
-		c.upstreamSpecs = make(map[string]kubeplugin.UpstreamSpec)
+		c.upstreamSpecs = make(map[string]UpstreamSpec)
 	}
 	for _, us := range upstreams {
-		spec, err := kubeplugin.DecodeUpstreamSpec(us.Spec)
+		spec, err := DecodeUpstreamSpec(us.Spec)
 		if err != nil {
 			runtime.HandleError(err)
 			continue
@@ -133,7 +132,7 @@ func (c *endpointController) getUpdatedEndpoints() (endpointdiscovery.EndpointGr
 	return endpointGroups, nil
 }
 
-func portForUpstream(spec kubeplugin.UpstreamSpec, serviceList []*kubev1resources.Service) (int32, error) {
+func portForUpstream(spec UpstreamSpec, serviceList []*kubev1resources.Service) (int32, error) {
 	for _, svc := range serviceList {
 		if spec.ServiceName == svc.Name && spec.ServiceNamespace == svc.Namespace {
 			// found the port we want

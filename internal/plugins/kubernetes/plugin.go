@@ -6,7 +6,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/solo-io/glue/internal/bootstrap"
-	"github.com/solo-io/glue/internal/endpointdiscovery/kube"
 	"github.com/solo-io/glue/internal/plugins"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
@@ -19,10 +18,10 @@ func init() {
 }
 
 func startEndpointDiscovery(opts bootstrap.Options, stopCh <-chan struct{}) (endpointdiscovery.Interface, error) {
-	kubeConfig := opts.EndpointWatcherOptions.KubeOptions.KubeConfig
-	masterUrl := opts.EndpointWatcherOptions.KubeOptions.MasterURL
-	syncFrequency := opts.EndpointWatcherOptions.SyncFrequency
-	return kube.NewEndpointDiscovery(kubeConfig, masterUrl, syncFrequency, stopCh)
+	kubeConfig := opts.KubeOptions.KubeConfig
+	masterUrl := opts.KubeOptions.MasterURL
+	syncFrequency := opts.ConfigWatcherOptions.SyncFrequency
+	return NewEndpointDiscovery(kubeConfig, masterUrl, syncFrequency, stopCh)
 }
 
 type Plugin struct{}
