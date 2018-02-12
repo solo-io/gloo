@@ -1,10 +1,12 @@
 package kube
 
 import (
+	"encoding/base64"
 	"fmt"
 	"time"
 
 	"github.com/mitchellh/hashstructure"
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
@@ -94,7 +96,14 @@ func (c *secretController) getUpdatedSecrets() (secretwatcher.SecretMap, error) 
 		for _, ref := range c.secretRefs {
 			if secret.Name == ref {
 				log.Debugf("updated secret %s", ref)
-				secrets[ref] = secret.Data
+				secrets[ref] = make(map[string]string)
+				for key, encodedValue := range secret.Data {
+					var decodedValue []byte
+					if _, err := base64.StdEncoding.Decode(decodedValue, encodedValue); err != nil {
+						runtime.HandleError(errors.Wrap(err, "failed to decode base64 encoding on secret"))
+					}
+					secrets[ref][key] = string(encodedValue)
+				}
 				break
 			}
 		}

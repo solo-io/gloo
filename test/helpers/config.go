@@ -67,7 +67,7 @@ func NewTestRoute1() v1.Route {
 				},
 			},
 		},
-		Plugins: map[string]v1.RoutePluginSpec{
+		Plugins: v1.RoutePluginSpec{
 			"auth": map[string]interface{}{
 				"credentials": struct {
 					Username, Password string
@@ -97,7 +97,7 @@ func NewTestRoute2() v1.Route {
 				},
 			},
 		},
-		Plugins: map[string]v1.RoutePluginSpec{
+		Plugins: v1.RoutePluginSpec{
 			"auth": map[string]interface{}{
 				"username": "alice",
 				"password": "bob",

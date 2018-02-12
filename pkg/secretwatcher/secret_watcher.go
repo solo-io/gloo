@@ -1,6 +1,6 @@
 package secretwatcher
 
-type SecretMap map[string]map[string][]byte
+type SecretMap map[string]map[string]string
 
 // Interface is responsible for watching secrets referenced by a config
 type Interface interface {

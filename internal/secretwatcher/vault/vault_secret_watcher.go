@@ -1,8 +1,6 @@
 package vault
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"time"
 
 	vaultapi "github.com/hashicorp/vault/api"
@@ -84,15 +82,13 @@ func (w *vaultSecretWatcher) getSecrets() (secretwatcher.SecretMap, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "reading secret %v", ref)
 		}
-		secretData := make(map[string][]byte)
+		secretData := make(map[string]string)
 		for key, value := range secret.Data {
-			data, err := json.Marshal(value)
-			if err != nil {
-				return nil, errors.Wrapf(err, "failed to encode secret %v/%v", ref, key)
+			strValue, ok := value.(string)
+			if !ok {
+				return nil, errors.New("secret data must be encoded as string:string pairs")
 			}
-			var buf []byte
-			base64.StdEncoding.Encode(buf, data)
-			secretData[key] = data
+			secretData[key] = strValue
 		}
 		secrets[ref] = secretData
 	}

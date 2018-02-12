@@ -43,10 +43,10 @@ type VirtualHost struct {
 }
 
 type Route struct {
-	Matcher       Matcher                    `json:"matcher"`
-	Destination   Destination                `json:"destination"`
-	RewritePrefix string                     `json:"rewrite_prefix"`
-	Plugins       map[string]RoutePluginSpec `json:"plugins"`
+	Matcher       Matcher         `json:"matcher"`
+	Destination   Destination     `json:"destination"`
+	RewritePrefix string          `json:"rewrite_prefix"`
+	Plugins       RoutePluginSpec `json:"plugins"`
 }
 
 type Destination struct {
@@ -100,10 +100,10 @@ type UpstreamType string
 type Upstream struct {
 	storageRef
 
-	Name      string                 `json:"name"`
-	Type      UpstreamType           `json:"type"`
-	Spec      map[string]interface{} `json:"spec"`
-	Functions []Function             `json:"functions"`
+	Name      string       `json:"name"`
+	Type      UpstreamType `json:"type"`
+	Spec      UpstreamSpec `json:"spec"`
+	Functions []Function   `json:"functions"`
 }
 
 type Function struct {

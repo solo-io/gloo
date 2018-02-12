@@ -1,4 +1,4 @@
-package translator
+package functionrouter
 
 import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
@@ -7,13 +7,14 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	"github.com/solo-io/glue/internal/pkg/envoy"
+	"github.com/solo-io/glue/internal/plugins/common"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/plugin2"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
 const (
-	functionRouterFilterName     = "io.solo.function_router"
+	filterName                   = "io.solo.function_router"
 	multiFunctionDestinationKey  = "functions"
 	mingleFunctionDestinationKey = "function"
 )
@@ -160,7 +161,7 @@ func addClusterFuncsToMetadata(clusterName string, destinations []v1.WeightedDes
 		clusterFuncWeights = append(clusterFuncWeights, clusterFuncWeight)
 	}
 	routeClusterMetadata := getFunctionalFilterMetadata(clusterName, out.Metadata)
-	routeClusterMetadata.Fields[functionRouterFilterName].Kind = &types.Value_ListValue{
+	routeClusterMetadata.Fields[filterName].Kind = &types.Value_ListValue{
 		ListValue: &types.ListValue{Values: clusterFuncWeights},
 	}
 }
@@ -212,33 +213,21 @@ func getWeightedClusters(out *envoyroute.Route) *envoyroute.RouteAction_Weighted
 
 func getFunctionalFilterMetadata(key string, meta *envoycore.Metadata) *types.Struct {
 	initFunctionalFilterMetadata(key, meta)
-	return meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind.(*types.Value_StructValue).StructValue
+	return meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue).StructValue
 }
 
 // sets anything that might be nil so we don't get a nil pointer / map somewhere
 func initFunctionalFilterMetadata(key string, meta *envoycore.Metadata) {
-	if meta == nil {
-		meta = &envoycore.Metadata{
-			FilterMetadata: make(map[string]*types.Struct),
-		}
+	common.InitFilterMetadataField(filterName, key, meta)
+	if meta.FilterMetadata[filterName].Fields[key].Kind == nil {
+		meta.FilterMetadata[filterName].Fields[key].Kind = &types.Value_StructValue{}
 	}
-	if meta.FilterMetadata[functionRouterFilterName] == nil {
-		meta.FilterMetadata[functionRouterFilterName] = &types.Struct{
-			Fields: make(map[string]*types.Value),
-		}
-	}
-	if meta.FilterMetadata[functionRouterFilterName].Fields[key] == nil {
-		meta.FilterMetadata[functionRouterFilterName].Fields[key] = &types.Value{}
-	}
-	if meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind == nil {
-		meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind = &types.Value_StructValue{}
-	}
-	_, isStructValue := meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind.(*types.Value_StructValue)
+	_, isStructValue := meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue)
 	if !isStructValue {
-		meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind = &types.Value_StructValue{}
+		meta.FilterMetadata[filterName].Fields[key].Kind = &types.Value_StructValue{}
 	}
-	if meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind.(*types.Value_StructValue).StructValue == nil {
-		meta.FilterMetadata[functionRouterFilterName].Fields[key].Kind.(*types.Value_StructValue).StructValue = &types.Struct{}
+	if meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue).StructValue == nil {
+		meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue).StructValue = &types.Struct{}
 	}
 }
 
