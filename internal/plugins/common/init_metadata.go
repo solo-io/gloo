@@ -7,10 +7,8 @@ import (
 
 // sets anything that might be nil so we don't get a nil pointer / map somewhere
 func InitFilterMetadata(filterName string, meta *envoycore.Metadata) {
-	if meta == nil {
-		meta = &envoycore.Metadata{
-			FilterMetadata: make(map[string]*types.Struct),
-		}
+	if meta.FilterMetadata == nil {
+		meta.FilterMetadata = make(map[string]*types.Struct)
 	}
 	if meta.FilterMetadata[filterName] == nil {
 		meta.FilterMetadata[filterName] = &types.Struct{

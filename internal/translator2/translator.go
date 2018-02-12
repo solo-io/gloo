@@ -14,6 +14,7 @@ import (
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
+	"github.com/solo-io/glue/internal/plugins/functionrouter"
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/hashicorp/go-multierror"
@@ -50,9 +51,7 @@ func NewTranslator(plugins []plugin.TranslatorPlugin) *Translator {
 		// the function router plugin must be initialized for any function plugins
 		// since it operates on both upstreams and routes, it must be added to both
 		// groups of plugins
-		functionRouter := &functionRouterPlugin{
-			functionPlugins: functionPlugins,
-		}
+		functionRouter := functionrouter.NewFunctionRouterPlugin(functionPlugins)
 		plugins = append([]plugin.TranslatorPlugin{functionRouter}, plugins...)
 	}
 	return &Translator{
@@ -182,7 +181,8 @@ func (t *Translator) computeClusters(cfg v1.Config, secrets secretwatcher.Secret
 
 func (t *Translator) computeCluster(cfg v1.Config, secrets secretwatcher.SecretMap, upstream v1.Upstream, edsCluster bool) (*envoyapi.Cluster, error) {
 	out := &envoyapi.Cluster{
-		Name: upstream.Name,
+		Name:     upstream.Name,
+		Metadata: new(envoycore.Metadata),
 	}
 	if edsCluster {
 		out.Type = envoyapi.Cluster_EDS
@@ -262,17 +262,19 @@ func (t *Translator) computeVirtualHost(upstreams []v1.Upstream, virtualHost v1.
 		if err := validateRoute(upstreams, route); err != nil {
 			routeErrors = multierror.Append(routeErrors, err)
 		}
-		envoyRoute := envoyroute.Route{}
+		out := envoyroute.Route{
+			Metadata: new(envoycore.Metadata),
+		}
 		for _, plug := range t.plugins {
 			routePlugin, ok := plug.(plugin.RoutePlugin)
 			if !ok {
 				continue
 			}
-			if err := routePlugin.ProcessRoute(route, &envoyRoute); err != nil {
+			if err := routePlugin.ProcessRoute(route, &out); err != nil {
 				routeErrors = multierror.Append(routeErrors, err)
 			}
 		}
-		envoyRoutes = append(envoyRoutes, envoyRoute)
+		envoyRoutes = append(envoyRoutes, out)
 	}
 	domains := virtualHost.Domains
 	if len(domains) == 0 || (len(domains) == 1 && domains[0] == "") {
@@ -347,6 +349,15 @@ func validateFunctionDestination(upstreamsAndTheirFunctions map[string][]string,
 		return errors.Errorf("function %v/%v was not found for function destination", upstreamName, functionName)
 	}
 	return nil
+}
+
+func stringInSlice(slice []string, s string) bool {
+	for _, el := range slice {
+		if el == s {
+			return true
+		}
+	}
+	return false
 }
 
 // Listener

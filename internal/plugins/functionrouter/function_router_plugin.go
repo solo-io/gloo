@@ -16,11 +16,15 @@ import (
 const (
 	filterName                   = "io.solo.function_router"
 	multiFunctionDestinationKey  = "functions"
-	mingleFunctionDestinationKey = "function"
+	singleFunctionDestinationKey = "function"
 )
 
 type functionRouterPlugin struct {
 	functionPlugins []plugin.FunctionPlugin
+}
+
+func NewFunctionRouterPlugin(functionPlugins []plugin.FunctionPlugin) *functionRouterPlugin {
+	return &functionRouterPlugin{functionPlugins: functionPlugins}
 }
 
 func (p *functionRouterPlugin) GetDependencies(_ v1.Config) *plugin.Dependencies {
@@ -113,7 +117,7 @@ func (p *functionRouterPlugin) processSingleFunctionRoute(destination v1.Functio
 	p.initRouteForUpstream(upstreamName, out)
 	clusterName := envoy.ClusterName(upstreamName)
 	functionalFilterMetadata := getFunctionalFilterMetadata(clusterName, out.Metadata)
-	functionalFilterMetadata.Fields[mingleFunctionDestinationKey].Kind = &types.Value_StringValue{StringValue: destination.FunctionName}
+	functionalFilterMetadata.Fields[singleFunctionDestinationKey] = &types.Value{Kind: &types.Value_StringValue{StringValue: destination.FunctionName}}
 }
 
 func (p *functionRouterPlugin) processMultipleDestinationRoute(destinations []v1.WeightedDestination, out *envoyroute.Route) {
@@ -228,6 +232,9 @@ func initFunctionalFilterMetadata(key string, meta *envoycore.Metadata) {
 	}
 	if meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue).StructValue == nil {
 		meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue).StructValue = &types.Struct{}
+	}
+	if meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue).StructValue.Fields == nil {
+		meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue).StructValue.Fields = make(map[string]*types.Value)
 	}
 }
 

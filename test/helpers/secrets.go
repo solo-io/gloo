@@ -5,7 +5,7 @@ import (
 )
 
 func NewTestSecrets() secretwatcher.SecretMap {
-	return map[string]map[string][]byte{
-		"user": {"username": []byte("me@example.com"), "password": []byte("foobar")},
+	return map[string]map[string]string{
+		"user": {"username": "me@example.com", "password": "foobar"},
 	}
 }
