@@ -1,16 +1,14 @@
 package main
 
 import (
-	_ "github.com/solo-io/glue/internal/configwatcher/file"
-	_ "github.com/solo-io/glue/internal/configwatcher/kube"
-	_ "github.com/solo-io/glue/internal/endpointdiscovery/kube"
-	_ "github.com/solo-io/glue/internal/ingressconverter/kube"
-	_ "github.com/solo-io/glue/internal/secretwatcher/file"
-	_ "github.com/solo-io/glue/internal/secretwatcher/kube"
-	_ "github.com/solo-io/glue/internal/xds"
-	"github.com/solo-io/glue/pkg/log"
+	"flag"
+
+	//register CRDs
+	"github.com/solo-io/glue/internal/bootstrap"
+	_ "github.com/solo-io/glue/internal/install"
 )
 
 func main() {
-	log.Printf("Hi Ashish")
+	opts := bootstrap.Options{}
+	flag.StringVar()
 }

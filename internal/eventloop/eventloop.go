@@ -36,12 +36,12 @@ type eventLoop struct {
 func Setup(opts bootstrap.Options, stopCh <-chan struct{}) (*eventLoop, error) {
 	gracefulStop := signals.SetupSignalHandler()
 
-	cfgWatcher, err := setupConfigWatcher(opts.WatcherOptions, gracefulStop)
+	cfgWatcher, err := setupConfigWatcher(opts.ConfigWatcherOptions, gracefulStop)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to set up config watcher")
 	}
 
-	secretWatcher, err := setupSecretWatcher(opts.WatcherOptions, gracefulStop)
+	secretWatcher, err := setupSecretWatcher(opts.SecretWatcherOptions, gracefulStop)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to set up secret watcher")
 	}
@@ -92,7 +92,7 @@ func updateSecretRefsFor(plugins []plugin.TranslatorPlugin) func(cfg *v1.Config)
 func setupConfigWatcher(opts bootstrap.WatcherOptions, stopCh <-chan struct{}) (configwatcher.Interface, error) {
 	switch opts.Type {
 	case bootstrap.WatcherTypeFile:
-		dir := opts.FileConfigWatcherOptions.Directory
+		dir := opts.FileOptions.Path
 		if dir == "" {
 			return nil, errors.New("must provide directory for file config watcher")
 		}

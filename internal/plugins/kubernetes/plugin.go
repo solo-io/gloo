@@ -19,9 +19,9 @@ func init() {
 }
 
 func startEndpointDiscovery(opts bootstrap.Options, stopCh <-chan struct{}) (endpointdiscovery.Interface, error) {
-	kubeConfig := opts.WatcherOptions.KubeOptions.KubeConfig
-	masterUrl := opts.WatcherOptions.KubeOptions.MasterURL
-	syncFrequency := opts.WatcherOptions.SyncFrequency
+	kubeConfig := opts.EndpointWatcherOptions.KubeOptions.KubeConfig
+	masterUrl := opts.EndpointWatcherOptions.KubeOptions.MasterURL
+	syncFrequency := opts.EndpointWatcherOptions.SyncFrequency
 	return kube.NewEndpointDiscovery(kubeConfig, masterUrl, syncFrequency, stopCh)
 }
 
