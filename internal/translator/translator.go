@@ -59,7 +59,7 @@ func NewTranslator(plugins []plugin.TranslatorPlugin) *Translator {
 	}
 }
 
-func (t *Translator) Translate(cfg v1.Config,
+func (t *Translator) Translate(cfg *v1.Config,
 	secrets secretwatcher.SecretMap,
 	endpoints endpointdiscovery.EndpointGroups) (*envoycache.Snapshot, []reporter.ConfigObjectReport, error) {
 
@@ -165,7 +165,7 @@ func loadAssignmentForCluster(clusterName string, addresses []endpointdiscovery.
 
 // Clusters
 
-func (t *Translator) computeClusters(cfg v1.Config, secrets secretwatcher.SecretMap, endpoints endpointdiscovery.EndpointGroups) ([]*envoyapi.Cluster, []reporter.ConfigObjectReport) {
+func (t *Translator) computeClusters(cfg *v1.Config, secrets secretwatcher.SecretMap, endpoints endpointdiscovery.EndpointGroups) ([]*envoyapi.Cluster, []reporter.ConfigObjectReport) {
 	var (
 		reports  []reporter.ConfigObjectReport
 		clusters []*envoyapi.Cluster
@@ -179,7 +179,7 @@ func (t *Translator) computeClusters(cfg v1.Config, secrets secretwatcher.Secret
 	return clusters, reports
 }
 
-func (t *Translator) computeCluster(cfg v1.Config, secrets secretwatcher.SecretMap, upstream v1.Upstream, edsCluster bool) (*envoyapi.Cluster, error) {
+func (t *Translator) computeCluster(cfg *v1.Config, secrets secretwatcher.SecretMap, upstream v1.Upstream, edsCluster bool) (*envoyapi.Cluster, error) {
 	out := &envoyapi.Cluster{
 		Name:     upstream.Name,
 		Metadata: new(envoycore.Metadata),
@@ -228,7 +228,7 @@ func createVirtualHostReport(virtualHost v1.VirtualHost, err error) reporter.Con
 	}
 }
 
-func secretsForPlugin(cfg v1.Config, plug plugin.TranslatorPlugin, secrets secretwatcher.SecretMap) secretwatcher.SecretMap {
+func secretsForPlugin(cfg *v1.Config, plug plugin.TranslatorPlugin, secrets secretwatcher.SecretMap) secretwatcher.SecretMap {
 	deps := plug.GetDependencies(cfg)
 	if deps == nil || len(deps.SecretRefs) == 0 {
 		return nil
@@ -242,7 +242,7 @@ func secretsForPlugin(cfg v1.Config, plug plugin.TranslatorPlugin, secrets secre
 
 // VirtualHosts
 
-func (t *Translator) computeVirtualHosts(cfg v1.Config) ([]envoyroute.VirtualHost, []reporter.ConfigObjectReport) {
+func (t *Translator) computeVirtualHosts(cfg *v1.Config) ([]envoyroute.VirtualHost, []reporter.ConfigObjectReport) {
 	var (
 		reports      []reporter.ConfigObjectReport
 		virtualHosts []envoyroute.VirtualHost

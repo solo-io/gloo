@@ -17,7 +17,7 @@ var _ = Describe("Translator", func() {
 	It("works", func() {
 		t := NewTranslator([]plugin.TranslatorPlugin{&aws.Plugin{}})
 		cfg := NewTestConfig()
-		snap, reports, err := t.Translate(cfg, secretwatcher.SecretMap{}, endpointdiscovery.EndpointGroups{})
+		snap, reports, err := t.Translate(&cfg, secretwatcher.SecretMap{}, endpointdiscovery.EndpointGroups{})
 		Expect(err).NotTo(HaveOccurred())
 		log.Printf("%v", snap)
 		log.Printf("%v", reports)

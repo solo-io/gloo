@@ -13,7 +13,7 @@ type UpstreamSpec struct {
 	SecretRef string `json:"secret_ref"`
 }
 
-func UpstreamFromSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {
+func DecodeUpstreamSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {
 	s := new(UpstreamSpec)
 	if err := mapstruct.Decode(generic, s); err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ type FunctionSpec struct {
 	Qualifier    string `json:"qualifier"`
 }
 
-func FunctionFromSpec(generic v1.FunctionSpec) (*FunctionSpec, error) {
+func DecodeFunctionSpec(generic v1.FunctionSpec) (*FunctionSpec, error) {
 	s := new(FunctionSpec)
 	if err := mapstruct.Decode(generic, s); err != nil {
 		return nil, err

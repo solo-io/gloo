@@ -9,12 +9,17 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
+	"github.com/solo-io/glue/internal/plugins"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 
 	"github.com/solo-io/glue/internal/plugins/common"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/plugin"
 )
+
+func init() {
+	plugins.Register(&Plugin{}, nil)
+}
 
 type Plugin struct{}
 
@@ -40,13 +45,13 @@ const (
 	functionQualifierKey = "qualifier"
 )
 
-func (p *Plugin) GetDependencies(cfg v1.Config) *plugin.Dependencies {
+func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
 	var deps *plugin.Dependencies
 	for _, upstream := range cfg.Upstreams {
 		if upstream.Type != UpstreamTypeAws {
 			continue
 		}
-		awsUpstream, err := UpstreamFromSpec(upstream.Spec)
+		awsUpstream, err := DecodeUpstreamSpec(upstream.Spec)
 		if err != nil {
 			// errors will be handled during validation
 			// TODO: consider logging error here
@@ -82,7 +87,7 @@ func (p *Plugin) ProcessUpstream(in v1.Upstream, secrets secretwatcher.SecretMap
 		return nil
 	}
 
-	awsUpstream, err := UpstreamFromSpec(in.Spec)
+	awsUpstream, err := DecodeUpstreamSpec(in.Spec)
 	if err != nil {
 		return errors.Wrap(err, "invalid AWS upstream spec")
 	}
@@ -125,7 +130,7 @@ func (p *Plugin) ProcessUpstream(in v1.Upstream, secrets secretwatcher.SecretMap
 }
 
 func (p *Plugin) ParseFunctionSpec(upstreamType v1.UpstreamType, in v1.FunctionSpec) (*types.Struct, error) {
-	functionSpec, err := FunctionFromSpec(in)
+	functionSpec, err := DecodeFunctionSpec(in)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid lambda function spec")
 	}

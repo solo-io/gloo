@@ -27,7 +27,7 @@ func NewFunctionRouterPlugin(functionPlugins []plugin.FunctionPlugin) *functionR
 	return &functionRouterPlugin{functionPlugins: functionPlugins}
 }
 
-func (p *functionRouterPlugin) GetDependencies(_ v1.Config) *plugin.Dependencies {
+func (p *functionRouterPlugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
 	return nil
 }
 
@@ -85,15 +85,6 @@ const (
 	destinationTypeMultiple       = "multiple upstreams or functions"
 	//destinationTypeMultiFunction  = "multiple functions"
 )
-
-func stringInSlice(slice []string, s string) bool {
-	for _, el := range slice {
-		if el == s {
-			return true
-		}
-	}
-	return false
-}
 
 func getDestinationType(route v1.Route) destinationType {
 	if len(route.Destination.Destinations) > 0 {

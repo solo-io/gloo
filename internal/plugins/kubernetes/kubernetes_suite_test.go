@@ -1,4 +1,4 @@
-package upstream_test
+package kubernetes_test
 
 import (
 	"testing"

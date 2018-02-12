@@ -13,7 +13,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/solo-io/glue/internal/pkg/kube/controller"
-	"github.com/solo-io/glue/internal/pkg/kube/upstream"
+	kubeplugin "github.com/solo-io/glue/internal/plugins/kubernetes"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 )
@@ -23,7 +23,7 @@ type endpointController struct {
 	errors          chan error
 	endpointsLister kubev1.EndpointsLister
 	servicesLister  kubev1.ServiceLister
-	upstreamSpecs   map[string]upstream.Spec
+	upstreamSpecs   map[string]kubeplugin.UpstreamSpec
 }
 
 func newEndpointController(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}) (*endpointController, error) {
@@ -61,10 +61,10 @@ func newEndpointController(cfg *rest.Config, resyncDuration time.Duration, stopC
 // triggers an update
 func (c *endpointController) TrackUpstreams(upstreams []v1.Upstream) {
 	if c.upstreamSpecs == nil {
-		c.upstreamSpecs = make(map[string]upstream.Spec)
+		c.upstreamSpecs = make(map[string]kubeplugin.UpstreamSpec)
 	}
 	for _, us := range upstreams {
-		spec, err := upstream.FromMap(us.Spec)
+		spec, err := kubeplugin.DecodeUpstreamSpec(us.Spec)
 		if err != nil {
 			runtime.HandleError(err)
 			continue
@@ -133,7 +133,7 @@ func (c *endpointController) getUpdatedEndpoints() (endpointdiscovery.EndpointGr
 	return endpointGroups, nil
 }
 
-func portForUpstream(spec upstream.Spec, serviceList []*kubev1resources.Service) (int32, error) {
+func portForUpstream(spec kubeplugin.UpstreamSpec, serviceList []*kubev1resources.Service) (int32, error) {
 	for _, svc := range serviceList {
 		if spec.ServiceName == svc.Name && spec.ServiceNamespace == svc.Namespace {
 			// found the port we want
@@ -146,7 +146,7 @@ func portForUpstream(spec upstream.Spec, serviceList []*kubev1resources.Service)
 				return svc.Spec.Ports[0].TargetPort.IntVal, nil
 			}
 			for _, port := range svc.Spec.Ports {
-				if spec.ServicePortName == port.Name {
+				if spec.ServicePort == port.Name {
 					if port.TargetPort.StrVal != "" {
 						runtime.HandleError(fmt.Errorf("WARNING: named ports are not supported for Kubernetes Endpoint Interface"))
 					}

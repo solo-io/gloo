@@ -25,7 +25,7 @@ type Dependencies struct {
 }
 
 type TranslatorPlugin interface {
-	GetDependencies(cfg v1.Config) *Dependencies
+	GetDependencies(cfg *v1.Config) *Dependencies
 }
 
 type UpstreamPlugin interface {
