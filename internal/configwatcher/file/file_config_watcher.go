@@ -3,18 +3,19 @@ package file
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/ghodss/yaml"
-
-	"os"
-	"path/filepath"
-
-	"strings"
-
+	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
+	"github.com/solo-io/glue/pkg/log"
+
 	"github.com/solo-io/glue/internal/pkg/file"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/glue/pkg/protoutil"
 )
 
 var (
@@ -123,10 +124,15 @@ func refreshConfig(configDir string) (*v1.Config, error) {
 	}, err
 }
 
-func readFileInto(f string, v interface{}) error {
+func readFileInto(f string, v proto.Message) error {
 	data, err := ioutil.ReadFile(f)
 	if err != nil {
 		return errors.Errorf("error reading file: %v", err)
 	}
-	return yaml.Unmarshal(data, v)
+	log.GreyPrintf("%s", string(data))
+	jsn, err := yaml.YAMLToJSON(data)
+	if err != nil {
+		return err
+	}
+	return protoutil.Unmarshal(jsn, v)
 }

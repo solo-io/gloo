@@ -1,15 +1,16 @@
 package file_test
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"os"
 	"sort"
 	"time"
 
 	"github.com/ghodss/yaml"
+	"github.com/gogo/protobuf/proto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/glue/pkg/protoutil"
 
 	"fmt"
 	"path/filepath"
@@ -87,10 +88,10 @@ var _ = Describe("FileConfigWatcher", func() {
 					Expect(err).NotTo(HaveOccurred())
 				}
 				var expectedCfg v1.Config
-				data, err := json.Marshal(cfg)
-				Expect(err).To(BeNil())
-				err = json.Unmarshal(data, &expectedCfg)
-				Expect(err).To(BeNil())
+				data, err := protoutil.Marshal(cfg)
+				Expect(err).NotTo(HaveOccurred())
+				err = protoutil.Unmarshal(data, &expectedCfg)
+				Expect(err).NotTo(HaveOccurred())
 				var actualCfg *v1.Config
 				Eventually(func() (v1.Config, error) {
 					cfg, err := readConfig(watch)
@@ -101,6 +102,7 @@ var _ = Describe("FileConfigWatcher", func() {
 						return cfg.Upstreams[i].Name < cfg.Upstreams[j].Name
 					})
 					actualCfg = &cfg
+					log.Printf("%v", actualCfg.VirtualHosts)
 					return cfg, err
 				}).Should(Equal(expectedCfg))
 			})
@@ -123,8 +125,9 @@ var _ = Describe("FileConfigWatcher", func() {
 	})
 })
 
-func writeConfigObjFile(v interface{}, filename string) error {
-	data, err := yaml.Marshal(v)
+func writeConfigObjFile(v proto.Message, filename string) error {
+	jsn, err := protoutil.Marshal(v)
+	data, err := yaml.JSONToYAML(jsn)
 	if err != nil {
 		return err
 	}
