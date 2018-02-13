@@ -1,6 +1,7 @@
 package protoutil_test
 
 import (
+	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -18,40 +19,66 @@ type b struct {
 	D string
 }
 
-var _ = Describe("Protoutil Funcs", func() {
-	Describe("MarshalStruct", func() {
-		It("returns a pb struct for the given type", func() {
-			t := testType{
-				A: "a",
-				B: b{
-					C: "c",
-					D: "d",
+var tests = []struct {
+	in       interface{}
+	expected proto.Message
+}{
+	{
+		in: testType{
+			A: "a",
+			B: b{
+				C: "c",
+				D: "d",
+			},
+		},
+		expected: &types.Struct{
+			Fields: map[string]*types.Value{
+				"A": {
+					Kind: &types.Value_StringValue{StringValue: "a"},
 				},
-			}
-			pb, err := MarshalStruct(t)
-			Expect(err).NotTo(HaveOccurred())
-			expectedPB := &types.Struct{
-				Fields: map[string]*types.Value{
-					"A": {
-						Kind: &types.Value_StringValue{StringValue: "a"},
-					},
-					"B": {
-						Kind: &types.Value_StructValue{
-							StructValue: &types.Struct{
-								Fields: map[string]*types.Value{
-									"C": {
-										Kind: &types.Value_StringValue{StringValue: "c"},
-									},
-									"D": {
-										Kind: &types.Value_StringValue{StringValue: "d"},
-									},
+				"B": {
+					Kind: &types.Value_StructValue{
+						StructValue: &types.Struct{
+							Fields: map[string]*types.Value{
+								"C": {
+									Kind: &types.Value_StringValue{StringValue: "c"},
+								},
+								"D": {
+									Kind: &types.Value_StringValue{StringValue: "d"},
 								},
 							},
 						},
 					},
 				},
-			}
-			Expect(pb).To(Equal(expectedPB))
-		})
+			},
+		},
+	},
+	{
+		in: map[string]interface{}{
+			"a": "b",
+			"c": "d",
+		},
+		expected: &types.Struct{
+			Fields: map[string]*types.Value{
+				"a": {
+					Kind: &types.Value_StringValue{StringValue: "b"},
+				},
+				"c": {
+					Kind: &types.Value_StringValue{StringValue: "d"},
+				},
+			},
+		},
+	},
+}
+
+var _ = Describe("Protoutil Funcs", func() {
+	Describe("MarshalStruct", func() {
+		for _, test := range tests {
+			It("returns a pb struct for object of the given type", func() {
+				pb, err := MarshalStruct(test.in)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(pb).To(Equal(test.expected))
+			})
+		}
 	})
 })
