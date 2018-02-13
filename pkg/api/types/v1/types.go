@@ -61,7 +61,7 @@ type Destination struct {
 
 type WeightedDestination struct {
 	SingleDestination
-	Weight uint
+	Weight uint32
 }
 
 type SingleDestination struct {

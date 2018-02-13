@@ -71,13 +71,13 @@ func setEnvoyFunctionSpec(out *envoyapi.Cluster, funcName string, spec *types.St
 func (p *functionAndClusterRoutingInitializer) ProcessRoute(in v1.Route, out *envoyroute.Route) error {
 	switch getDestinationType(in) {
 	case destinationTypeSingleUpstream:
-		p.processSingleUpstreamRoute(in.Destination.UpstreamDestination.UpstreamName, out)
+		processSingleUpstreamRoute(in.Destination.UpstreamDestination.UpstreamName, in.RewritePrefix, out)
 		return nil
 	case destinationTypeSingleFunction:
-		p.processSingleFunctionRoute(*in.Destination.FunctionDestination, out)
+		processSingleFunctionRoute(*in.Destination.FunctionDestination, in.RewritePrefix, out)
 		return nil
 	case destinationTypeMultiple:
-		p.processMultipleDestinationRoute(in.Destination.Destinations, out)
+		processMultipleDestinationRoute(in.Destination.Destinations, in.RewritePrefix, out)
 		return nil
 	}
 	return errors.Errorf("invalid destination for function %v", in.Destination)
@@ -105,21 +105,21 @@ func getDestinationType(route v1.Route) destinationType {
 	return ""
 }
 
-func (p *functionAndClusterRoutingInitializer) processSingleUpstreamRoute(upstreamName string, out *envoyroute.Route) {
-	p.initRouteForUpstream(upstreamName, out)
+func processSingleUpstreamRoute(upstreamName, prefixRewrite string, out *envoyroute.Route) {
+	initRouteForUpstream(upstreamName, prefixRewrite, out)
 }
 
-func (p *functionAndClusterRoutingInitializer) processSingleFunctionRoute(destination v1.FunctionDestination, out *envoyroute.Route) {
+func processSingleFunctionRoute(destination v1.FunctionDestination, prefixRewrite string, out *envoyroute.Route) {
 	upstreamName := destination.UpstreamName
-	p.initRouteForUpstream(upstreamName, out)
+	initRouteForUpstream(upstreamName, prefixRewrite, out)
 	clusterName := envoy.ClusterName(upstreamName)
 	functionalFilterMetadata := getFunctionalFilterMetadata(clusterName, out.Metadata)
 	functionalFilterMetadata.Fields[singleFunctionDestinationKey] = &types.Value{Kind: &types.Value_StringValue{StringValue: destination.FunctionName}}
 }
 
-func (p *functionAndClusterRoutingInitializer) processMultipleDestinationRoute(destinations []v1.WeightedDestination, out *envoyroute.Route) {
+func processMultipleDestinationRoute(destinations []v1.WeightedDestination, prefixRewrite string, out *envoyroute.Route) {
 	var (
-		totalWeight                   uint
+		totalWeight                   uint32
 		upstreamDestinationsWithFuncs = make(map[string][]v1.WeightedDestination)
 		clusterWeights                = make(map[string]uint32)
 	)
@@ -142,8 +142,19 @@ func (p *functionAndClusterRoutingInitializer) processMultipleDestinationRoute(d
 	}
 	// set weights for clusters (functional or non)
 	for clusterName, weight := range clusterWeights {
-		addClusterWeight(clusterName, weight, out)
+		addWeightedCluster(clusterName, weight, out)
 	}
+	setPrefixRewrite(prefixRewrite, out)
+	setTotalWeight(totalWeight, out)
+}
+
+func setPrefixRewrite(prefixRewrite string, out *envoyroute.Route) {
+	out.Action.(*envoyroute.Route_Route).Route.PrefixRewrite = prefixRewrite
+}
+
+func setTotalWeight(totalWeight uint32, out *envoyroute.Route) {
+	weightedClusters := out.Action.(*envoyroute.Route_Route).Route.ClusterSpecifier.(*envoyroute.RouteAction_WeightedClusters)
+	weightedClusters.WeightedClusters.TotalWeight = &types.UInt32Value{Value: totalWeight}
 }
 
 func addClusterFuncsToMetadata(clusterName string, destinations []v1.WeightedDestination, out *envoyroute.Route) {
@@ -167,7 +178,7 @@ func addClusterFuncsToMetadata(clusterName string, destinations []v1.WeightedDes
 	}
 }
 
-func addClusterWeight(clusterName string, weight uint32, out *envoyroute.Route) {
+func addWeightedCluster(clusterName string, weight uint32, out *envoyroute.Route) {
 	weights := getWeightedClusters(out)
 	clusterWeight := &envoyroute.WeightedCluster_ClusterWeight{
 		Name:   clusterName,
@@ -235,12 +246,13 @@ func initFunctionalFilterMetadata(key string, meta *envoycore.Metadata) {
 	}
 }
 
-func (p *functionAndClusterRoutingInitializer) initRouteForUpstream(upstreamName string, out *envoyroute.Route) {
+func initRouteForUpstream(upstreamName, prefixRewrite string, out *envoyroute.Route) {
 	out.Action = &envoyroute.Route_Route{
 		Route: &envoyroute.RouteAction{
 			ClusterSpecifier: &envoyroute.RouteAction_Cluster{
 				Cluster: envoy.ClusterName(upstreamName),
 			},
+			PrefixRewrite: prefixRewrite,
 		},
 	}
 }

@@ -11,7 +11,7 @@ type UpstreamSpec struct {
 }
 
 type Host struct {
-	IP   string `json:"ip"`
+	Addr string `json:"addr"`
 	Port uint32 `json:"port"`
 }
 
@@ -34,7 +34,7 @@ func (s *UpstreamSpec) validateUpstream() error {
 		return errors.New("most provide at least 1 host")
 	}
 	for _, host := range s.Hosts {
-		if host.IP == "" {
+		if host.Addr == "" {
 			return errors.New("ip cannot be empty")
 		}
 		if host.Port == 0 {

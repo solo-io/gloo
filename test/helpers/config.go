@@ -29,7 +29,7 @@ func NewTestConfig() v1.Config {
 			Type: service.UpstreamTypeService,
 			Spec: service.EncodeUpstreamSpec(service.UpstreamSpec{
 				Hosts: []service.Host{
-					{IP: "localhost", Port: 8000},
+					{Addr: "localhost", Port: 8000},
 				},
 			}),
 		},

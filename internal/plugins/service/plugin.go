@@ -1,6 +1,8 @@
 package service
 
 import (
+	"net"
+
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	"github.com/pkg/errors"
@@ -35,13 +37,18 @@ func (p *Plugin) ProcessUpstream(in v1.Upstream, _ secretwatcher.SecretMap, out 
 	if err != nil {
 		return errors.Wrap(err, "invalid service upstream spec")
 	}
-	out.Type = envoyapi.Cluster_STATIC
 	for _, host := range spec.Hosts {
+		ip := net.ParseIP(host.Addr)
+		if ip != nil {
+			out.Type = envoyapi.Cluster_STATIC
+		} else {
+			out.Type = envoyapi.Cluster_LOGICAL_DNS
+		}
 		out.Hosts = append(out.Hosts, &envoycore.Address{
 			Address: &envoycore.Address_SocketAddress{
 				SocketAddress: &envoycore.SocketAddress{
 					Protocol: envoycore.TCP,
-					Address:  host.IP,
+					Address:  host.Addr,
 					PortSpecifier: &envoycore.SocketAddress_PortValue{
 						PortValue: host.Port,
 					},
