@@ -9,7 +9,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/solo-io/glue/internal/pkg/kube/controller"
-	"github.com/solo-io/glue/internal/pkg/kube/storage"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/log"
 	clientset "github.com/solo-io/glue/pkg/platform/kube/crd/client/clientset/versioned"
@@ -73,17 +72,15 @@ func (c *crdController) syncConfig(namespace, name string, _ interface{}) {
 		if err != nil {
 			return fmt.Errorf("error retrieving virtualhosts: %v", err)
 		}
-		var upstreams []v1.Upstream
+		var upstreams []*v1.Upstream
 		for _, upstream := range upstreamList {
 			u := v1.Upstream(upstream.Spec)
-			u.SetStorageRef(storage.CreateStorageRef(upstream.Namespace, upstream.Name))
-			upstreams = append(upstreams, u)
+			upstreams = append(upstreams, &u)
 		}
-		var vHosts []v1.VirtualHost
+		var vHosts []*v1.VirtualHost
 		for _, vHost := range vHostList {
 			v := v1.VirtualHost(vHost.Spec)
-			v.SetStorageRef(storage.CreateStorageRef(vHost.Namespace, vHost.Name))
-			vHosts = append(vHosts, v)
+			vHosts = append(vHosts, &v)
 		}
 		log.Debugf("config updated")
 		c.configs <- &v1.Config{

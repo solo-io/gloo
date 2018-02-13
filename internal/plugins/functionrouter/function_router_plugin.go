@@ -32,13 +32,13 @@ func (p *functionAndClusterRoutingInitializer) GetDependencies(_ *v1.Config) *pl
 	return nil
 }
 
-func (p *functionAndClusterRoutingInitializer) ProcessUpstream(in v1.Upstream, _ secretwatcher.SecretMap, out *envoyapi.Cluster) error {
+func (p *functionAndClusterRoutingInitializer) ProcessUpstream(in *v1.Upstream, _ secretwatcher.SecretMap, out *envoyapi.Cluster) error {
 	for _, function := range in.Functions {
 		envoyFunctionSpec, err := p.getFunctionSpec(in.Type, function.Spec)
 		if err != nil {
 			return errors.Wrapf(err, "processing function %v/%v failed", in.Name, function.Name)
 		}
-		setEnvoyFunctionSpec(out, function.Name, envoyFunctionSpec)
+		addEnvoyFunctionSpec(out, function.Name, envoyFunctionSpec)
 	}
 	timeout := in.ConnectionTimeout
 	if timeout == 0 {
@@ -54,12 +54,16 @@ func (p *functionAndClusterRoutingInitializer) getFunctionSpec(upstreamType v1.U
 		if err != nil {
 			return nil, errors.Wrap(err, "invalid spec")
 		}
+		// wait until we
+		if envoyFunctionSpec == nil {
+			continue
+		}
 		return envoyFunctionSpec, nil
 	}
 	return nil, errors.New("plugin not found")
 }
 
-func setEnvoyFunctionSpec(out *envoyapi.Cluster, funcName string, spec *types.Struct) {
+func addEnvoyFunctionSpec(out *envoyapi.Cluster, funcName string, spec *types.Struct) {
 	multiFunctionMetadata := getFunctionalFilterMetadata(multiFunctionDestinationKey, out.Metadata)
 
 	if multiFunctionMetadata.Fields[funcName] == nil {
@@ -68,7 +72,7 @@ func setEnvoyFunctionSpec(out *envoyapi.Cluster, funcName string, spec *types.St
 	multiFunctionMetadata.Fields[funcName].Kind = &types.Value_StructValue{StructValue: spec}
 }
 
-func (p *functionAndClusterRoutingInitializer) ProcessRoute(in v1.Route, out *envoyroute.Route) error {
+func (p *functionAndClusterRoutingInitializer) ProcessRoute(in *v1.Route, out *envoyroute.Route) error {
 	switch getDestinationType(in) {
 	case destinationTypeSingleUpstream:
 		processSingleUpstreamRoute(in.Destination.UpstreamDestination.UpstreamName, in.RewritePrefix, out)

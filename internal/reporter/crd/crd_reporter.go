@@ -23,7 +23,7 @@ func NewKubeReporter(client clientset.Interface) *kubeReporter {
 func (r *kubeReporter) WriteReports(reports []reporter.ConfigObjectReport) error {
 	for _, report := range reports {
 		if err := r.writeReport(report); err != nil {
-			return errors.Wrapf(err, "failed to write report for crd %v", report.CfgObject.GetStorageRef())
+			return errors.Wrapf(err, "failed to write report for crd %v", report.CfgObject)
 		}
 		log.Debugf("wrote report for %v", report.CfgObject.GetStorageRef())
 	}

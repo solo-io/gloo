@@ -13,7 +13,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	. "github.com/solo-io/glue/internal/configwatcher/kube"
-	"github.com/solo-io/glue/internal/pkg/kube/storage"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	clientset "github.com/solo-io/glue/pkg/platform/kube/crd/client/clientset/versioned"
 	crdv1 "github.com/solo-io/glue/pkg/platform/kube/crd/solo.io/v1"
@@ -55,7 +54,7 @@ var _ = Describe("KubeConfigWatcher", func() {
 				},
 				Spec: crdv1.DeepCopyVirtualHost(NewTestVirtualHost("vhost-1", NewTestRoute1())),
 			}
-			createdVirtualHost, err := glueClient.GlueV1().VirtualHosts(namespace).Create(virtualHost)
+			_, err = glueClient.GlueV1().VirtualHosts(namespace).Create(virtualHost)
 			Expect(err).NotTo(HaveOccurred())
 
 			// give controller time to register
@@ -66,7 +65,6 @@ var _ = Describe("KubeConfigWatcher", func() {
 			Expect(err).To(BeNil())
 			err = json.Unmarshal(data, &expectedVhost)
 			Expect(err).To(BeNil())
-			expectedVhost.SetStorageRef(storage.CreateStorageRef(namespace, createdVirtualHost.Name))
 			select {
 			case <-time.After(time.Second * 5):
 				Expect(fmt.Errorf("expected to have received resource event before 5s")).NotTo(HaveOccurred())
@@ -75,7 +73,6 @@ var _ = Describe("KubeConfigWatcher", func() {
 				Expect(cfg.VirtualHosts[0]).To(Equal(expectedVhost))
 				Expect(len(cfg.VirtualHosts[0].Routes)).To(Equal(1))
 				Expect(cfg.VirtualHosts[0].Routes[0]).To(Equal(expectedVhost.Routes[0]))
-				Expect(cfg.VirtualHosts[0].GetStorageRef()).To(Equal(storage.CreateStorageRef(namespace, createdVirtualHost.Name)))
 			case err := <-watcher.Error():
 				Expect(err).To(BeNil())
 			}

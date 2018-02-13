@@ -25,7 +25,7 @@ type Plugin struct{}
 
 const (
 	// define Upstream type name
-	UpstreamTypeAws v1.UpstreamType = "aws"
+	UpstreamTypeAws = "aws"
 
 	// generic plugin info
 	filterName  = "io.solo.aws"
@@ -48,7 +48,7 @@ const (
 func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
 	var deps *plugin.Dependencies
 	for _, upstream := range cfg.Upstreams {
-		if upstream.Type != UpstreamTypeAws {
+		if upstream.UpstreamType != UpstreamTypeAws {
 			continue
 		}
 		awsUpstream, err := DecodeUpstreamSpec(upstream.Spec)
@@ -66,8 +66,8 @@ func (p *Plugin) HttpFilter() (*envoyhttp.HttpFilter, plugin.Stage) {
 	return &envoyhttp.HttpFilter{Name: filterName}, pluginStage
 }
 
-func (p *Plugin) ProcessRoute(in v1.Route, out *envoyroute.Route) error {
-	executionStyle, err := GetExecutionStyle(in.Plugins)
+func (p *Plugin) ProcessRoute(in *v1.Route, out *envoyroute.Route) error {
+	executionStyle, err := GetExecutionStyle(in.Extensions)
 	if err != nil {
 		return err
 	}
@@ -82,8 +82,8 @@ func setRouteAsync(async bool, out *envoyroute.Route) {
 	}
 }
 
-func (p *Plugin) ProcessUpstream(in v1.Upstream, secrets secretwatcher.SecretMap, out *envoyapi.Cluster) error {
-	if in.Type != UpstreamTypeAws {
+func (p *Plugin) ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMap, out *envoyapi.Cluster) error {
+	if in.UpstreamType != UpstreamTypeAws {
 		return nil
 	}
 
@@ -129,7 +129,10 @@ func (p *Plugin) ProcessUpstream(in v1.Upstream, secrets secretwatcher.SecretMap
 	return nil
 }
 
-func (p *Plugin) ParseFunctionSpec(upstreamType v1.UpstreamType, in v1.FunctionSpec) (*types.Struct, error) {
+func (p *Plugin) ParseFunctionSpec(upstreamType string, in v1.FunctionSpec) (*types.Struct, error) {
+	if upstreamType != UpstreamTypeAws {
+		return nil, nil
+	}
 	functionSpec, err := DecodeFunctionSpec(in)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid lambda function spec")

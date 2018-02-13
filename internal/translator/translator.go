@@ -119,7 +119,7 @@ func (t *Translator) Translate(cfg *v1.Config,
 
 // Endpoints
 
-func computeClusterEndpoints(upstreams []v1.Upstream, endpoints endpointdiscovery.EndpointGroups) []*envoyapi.ClusterLoadAssignment {
+func computeClusterEndpoints(upstreams []*v1.Upstream, endpoints endpointdiscovery.EndpointGroups) []*envoyapi.ClusterLoadAssignment {
 	var clusterEndpointAssignments []*envoyapi.ClusterLoadAssignment
 	for _, upstream := range upstreams {
 		// if there is an endpoint group for this upstream,
@@ -177,7 +177,7 @@ func (t *Translator) computeClusters(cfg *v1.Config, secrets secretwatcher.Secre
 	return clusters, reports
 }
 
-func (t *Translator) computeCluster(cfg *v1.Config, secrets secretwatcher.SecretMap, upstream v1.Upstream, edsCluster bool) (*envoyapi.Cluster, error) {
+func (t *Translator) computeCluster(cfg *v1.Config, secrets secretwatcher.SecretMap, upstream *v1.Upstream, edsCluster bool) (*envoyapi.Cluster, error) {
 	out := &envoyapi.Cluster{
 		Name:     upstream.Name,
 		Metadata: new(envoycore.Metadata),
@@ -212,16 +212,16 @@ func validateCluster(c *envoyapi.Cluster) error {
 	return nil
 }
 
-func createUpstreamReport(upstream v1.Upstream, err error) reporter.ConfigObjectReport {
+func createUpstreamReport(upstream *v1.Upstream, err error) reporter.ConfigObjectReport {
 	return reporter.ConfigObjectReport{
-		CfgObject: &upstream,
+		CfgObject: upstream,
 		Err:       err,
 	}
 }
 
-func createVirtualHostReport(virtualHost v1.VirtualHost, err error) reporter.ConfigObjectReport {
+func createVirtualHostReport(virtualHost *v1.VirtualHost, err error) reporter.ConfigObjectReport {
 	return reporter.ConfigObjectReport{
-		CfgObject: &virtualHost,
+		CfgObject: virtualHost,
 		Err:       err,
 	}
 }
@@ -253,7 +253,7 @@ func (t *Translator) computeVirtualHosts(cfg *v1.Config) ([]envoyroute.VirtualHo
 	return virtualHosts, reports
 }
 
-func (t *Translator) computeVirtualHost(upstreams []v1.Upstream, virtualHost v1.VirtualHost) (envoyroute.VirtualHost, error) {
+func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream, virtualHost *v1.VirtualHost) (envoyroute.VirtualHost, error) {
 	var envoyRoutes []envoyroute.Route
 	var routeErrors *multierror.Error
 	for _, route := range virtualHost.Routes {
@@ -286,20 +286,20 @@ func (t *Translator) computeVirtualHost(upstreams []v1.Upstream, virtualHost v1.
 	}, routeErrors
 }
 
-func newBaseEnvoyRoute(route v1.Route) envoyroute.Route {
+func newBaseEnvoyRoute(route *v1.Route) envoyroute.Route {
 	match := envoyroute.RouteMatch{}
-	switch {
-	case route.Matcher.Path.Regex != "":
+	switch path := route.Matcher.Path.(type) {
+	case *v1.Matcher_PathRegex:
 		match.PathSpecifier = &envoyroute.RouteMatch_Regex{
-			Regex: route.Matcher.Path.Regex,
+			Regex: path.PathRegex,
 		}
-	case route.Matcher.Path.Prefix != "":
+	case *v1.Matcher_PathPrefix:
 		match.PathSpecifier = &envoyroute.RouteMatch_Prefix{
-			Prefix: route.Matcher.Path.Prefix,
+			Prefix: path.PathPrefix,
 		}
-	case route.Matcher.Path.Exact != "":
+	case *v1.Matcher_PathExact:
 		match.PathSpecifier = &envoyroute.RouteMatch_Path{
-			Path: route.Matcher.Path.Exact,
+			Path: path.PathExact,
 		}
 	}
 	for headerName, headerValue := range route.Matcher.Headers {
@@ -320,7 +320,7 @@ func newBaseEnvoyRoute(route v1.Route) envoyroute.Route {
 	}
 }
 
-func validateRoute(upstreams []v1.Upstream, route v1.Route) error {
+func validateRoute(upstreams []*v1.Upstream, route *v1.Route) error {
 	// collect existing upstreams/functions for matching
 	upstreamsAndTheirFunctions := make(map[string][]string)
 	for _, upstream := range upstreams {
@@ -332,49 +332,49 @@ func validateRoute(upstreams []v1.Upstream, route v1.Route) error {
 	}
 
 	// make sure the destination itself has the right structure
-	if len(route.Destination.Destinations) > 0 {
-		return validateMultiDestination(upstreamsAndTheirFunctions, route.Destination.Destinations)
+	switch destination := route.Destination.(type) {
+	case *v1.SingleDestination:
+		validateSingleDestination(upstreamsAndTheirFunctions, destination)
+	case *v1.MultipleDestinations:
+		return validateMultiDestination(upstreamsAndTheirFunctions, destination)
 	}
-	return validateSingleDestination(upstreamsAndTheirFunctions, route.Destination.SingleDestination)
+	return errors.Errorf("invalid destination type")
 }
 
-func validateMultiDestination(upstreamsAndTheirFunctions map[string][]string, destinations []v1.WeightedDestination) error {
-	for _, dest := range destinations {
-		if err := validateSingleDestination(upstreamsAndTheirFunctions, dest.SingleDestination); err != nil {
+func validateMultiDestination(upstreamsAndTheirFunctions map[string][]string, destinations *v1.MultipleDestinations) error {
+	for _, dest := range destinations.WeightedDestinations {
+		if err := validateSingleDestination(upstreamsAndTheirFunctions, dest.Destination); err != nil {
 			return errors.Wrap(err, "invalid destination in weighted destination list")
 		}
 	}
 	return nil
 }
 
-func validateSingleDestination(upstreamsAndTheirFunctions map[string][]string, destination v1.SingleDestination) error {
-	if destination.FunctionDestination != nil && destination.UpstreamDestination != nil {
-		return errors.New("only one of function_destination and upstream_destination can be set on a single destination")
-	}
-	if destination.UpstreamDestination != nil {
-		return validateUpstreamDestination(upstreamsAndTheirFunctions, destination.UpstreamDestination)
-	}
-	if destination.FunctionDestination != nil {
-		return validateFunctionDestination(upstreamsAndTheirFunctions, destination.FunctionDestination)
+func validateSingleDestination(upstreamsAndTheirFunctions map[string][]string, destination *v1.SingleDestination) error {
+	switch dest := destination.Destination.(type) {
+	case *v1.SingleDestination_Upstream:
+		return validateUpstreamDestination(upstreamsAndTheirFunctions, dest)
+	case *v1.SingleDestination_Function:
+		return validateFunctionDestination(upstreamsAndTheirFunctions, dest)
 	}
 	return errors.New("must specify either a function or upstream on a single destination")
 }
 
-func validateUpstreamDestination(upstreamsAndTheirFunctions map[string][]string, upstreamDestination *v1.UpstreamDestination) error {
-	upstreamName := upstreamDestination.UpstreamName
+func validateUpstreamDestination(upstreamsAndTheirFunctions map[string][]string, upstreamDestination *v1.SingleDestination_Upstream) error {
+	upstreamName := upstreamDestination.Upstream.Name
 	if _, ok := upstreamsAndTheirFunctions[upstreamName]; !ok {
 		return errors.Errorf("upstream %v was not found for function destination", upstreamName)
 	}
 	return nil
 }
 
-func validateFunctionDestination(upstreamsAndTheirFunctions map[string][]string, functionDestination *v1.FunctionDestination) error {
-	upstreamName := functionDestination.UpstreamName
+func validateFunctionDestination(upstreamsAndTheirFunctions map[string][]string, functionDestination *v1.SingleDestination_Function) error {
+	upstreamName := functionDestination.Function.UpstreamName
 	upstreamFuncs, ok := upstreamsAndTheirFunctions[upstreamName]
 	if !ok {
 		return errors.Errorf("upstream %v was not found for function destination", upstreamName)
 	}
-	functionName := functionDestination.FunctionName
+	functionName := functionDestination.Function.FunctionName
 	if !stringInSlice(upstreamFuncs, functionName) {
 		return errors.Errorf("function %v/%v was not found for function destination", upstreamName, functionName)
 	}

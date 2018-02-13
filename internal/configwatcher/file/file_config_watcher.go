@@ -73,8 +73,8 @@ func (fc *fileWatcher) Error() <-chan error {
 
 func refreshConfig(configDir string) (*v1.Config, error) {
 	var (
-		upstreams    []v1.Upstream
-		virtualHosts []v1.VirtualHost
+		upstreams    []*v1.Upstream
+		virtualHosts []*v1.VirtualHost
 	)
 	fullUpstreamDir := filepath.Join(configDir, upstreamDir)
 	upstreamFiles, err := ioutil.ReadDir(fullUpstreamDir)
@@ -96,11 +96,10 @@ func refreshConfig(configDir string) (*v1.Config, error) {
 		}
 		var u v1.Upstream
 		path := filepath.Join(fullUpstreamDir, f.Name())
-		if err := readFileInto(filepath.Join(fullUpstreamDir, f.Name()), &u); err != nil {
+		if err := readFileInto(path, &u); err != nil {
 			return nil, errors.Errorf("failed to read file into upstream: %v", err)
 		}
-		u.SetStorageRef(path)
-		upstreams = append(upstreams, u)
+		upstreams = append(upstreams, &u)
 	}
 
 	for _, f := range virtualhostFiles {
@@ -115,8 +114,7 @@ func refreshConfig(configDir string) (*v1.Config, error) {
 		if err := readFileInto(path, &vh); err != nil {
 			return nil, errors.Errorf("failed to read file into virtualhost: %v", err)
 		}
-		vh.SetStorageRef(path)
-		virtualHosts = append(virtualHosts, vh)
+		virtualHosts = append(virtualHosts, &vh)
 	}
 
 	return &v1.Config{

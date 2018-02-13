@@ -35,7 +35,7 @@ func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
 	return nil
 }
 
-func (p *Plugin) ProcessUpstream(in v1.Upstream, secrets secretwatcher.SecretMap, out *envoyapi.Cluster) error {
+func (p *Plugin) ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMap, out *envoyapi.Cluster) error {
 	if in.Type != UpstreamTypeKube {
 		return nil
 	}

@@ -40,10 +40,10 @@ var _ = Describe("FileConfigWatcher", func() {
 		watch                       configwatcher.Interface
 		resourceDirs                = []string{"upstreams", "virtualhosts"}
 		upstreamDir, virtualhostDir string
-		upstreamFilename            = func(us v1.Upstream) string {
+		upstreamFilename            = func(us *v1.Upstream) string {
 			return filepath.Join(upstreamDir, fmt.Sprintf("%v.yaml", us.Name))
 		}
-		virtualhostFilename = func(vh v1.VirtualHost) string {
+		virtualhostFilename = func(vh *v1.VirtualHost) string {
 			return filepath.Join(virtualhostDir, fmt.Sprintf("%v.yaml", vh.Name))
 		}
 	)
@@ -91,14 +91,6 @@ var _ = Describe("FileConfigWatcher", func() {
 				Expect(err).To(BeNil())
 				err = json.Unmarshal(data, &expectedCfg)
 				Expect(err).To(BeNil())
-				for i := range expectedCfg.Upstreams {
-					us := &expectedCfg.Upstreams[i]
-					us.SetStorageRef(upstreamFilename(*us))
-				}
-				for i := range expectedCfg.VirtualHosts {
-					vHost := &expectedCfg.VirtualHosts[i]
-					vHost.SetStorageRef(virtualhostFilename(*vHost))
-				}
 				var actualCfg *v1.Config
 				Eventually(func() (v1.Config, error) {
 					cfg, err := readConfig(watch)
@@ -111,13 +103,6 @@ var _ = Describe("FileConfigWatcher", func() {
 					actualCfg = &cfg
 					return cfg, err
 				}).Should(Equal(expectedCfg))
-
-				for _, us := range actualCfg.Upstreams {
-					Expect(us.GetStorageRef()).To(Equal(upstreamFilename(us)))
-				}
-				for _, vhost := range actualCfg.VirtualHosts {
-					Expect(vhost.GetStorageRef()).To(Equal(virtualhostFilename(vhost)))
-				}
 			})
 		})
 		Context("an invalid config is written to a dir", func() {

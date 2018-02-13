@@ -12,8 +12,13 @@ clientset:
 		"solo.io:v1"
 
 proto:
-	cd pkg/api/types && \
-	protoc -I. --go_out=. ./types.proto
+	cd api/v1/ && \
+	protoc \
+	-I=. \
+	-I=$(GOPATH)/src \
+	-I=$(GOPATH)/src/github.com/gogo/protobuf/ \
+	--gofast_out=../../pkg/api/types/v1 \
+	./*.proto
 
 build: glue
 
