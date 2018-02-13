@@ -1,23 +1,21 @@
-package aws
+package source
 
 import "sync"
 
-// TODO(ashish) - convert to generic repo and not just
-// for AWS
 //memRepo goroutine safe in memory repository for regions
 type memRepo struct {
-	m    map[string]Region
+	m    map[string]Upstream
 	lock sync.RWMutex
 }
 
 func newRepo() *memRepo {
 	return &memRepo{
-		m: make(map[string]Region),
+		m: make(map[string]Upstream),
 	}
 }
 
-// Get a region for given key. Returns false if it doesn't exist
-func (r *memRepo) get(k string) (Region, bool) {
+// Get an upstream for given id. Returns false if it doesn't exist
+func (r *memRepo) get(k string) (Upstream, bool) {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 
@@ -25,8 +23,8 @@ func (r *memRepo) get(k string) (Region, bool) {
 	return v, ok
 }
 
-// Set a region. Returns true if it new and false for update
-func (r *memRepo) set(v Region) bool {
+// Set an upstream. Returns true if it new and false for update
+func (r *memRepo) set(v Upstream) bool {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
@@ -35,19 +33,19 @@ func (r *memRepo) set(v Region) bool {
 	return !ok
 }
 
-// Delete removes the region for given key
+// Delete removes the upstream for given id
 func (r *memRepo) delete(k string) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	delete(r.m, k)
 }
 
-// Regions returns regions in the repository
-func (r *memRepo) regions() []Region {
+// Upstream returns all the upstreams in the repo
+func (r *memRepo) upstreams() []Upstream {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 
-	vs := make([]Region, len(r.m))
+	vs := make([]Upstream, len(r.m))
 	i := 0
 	for _, v := range r.m {
 		vs[i] = v

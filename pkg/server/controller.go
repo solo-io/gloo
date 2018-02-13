@@ -19,8 +19,7 @@ import (
 
 const (
 	// TODO (ashish) convert these into configurations
-	maxRetries  = 5
-	resyncDelay = 5 * time.Minute
+	maxRetries = 5
 )
 
 // Handler represents the interface for anything that is
@@ -28,7 +27,7 @@ const (
 // TODO(ashish) - rename to Subscriber
 type Handler interface {
 	Update(*solov1.Upstream)
-	Remove(*solov1.Upstream)
+	Remove(string)
 }
 
 type controller struct {
@@ -38,7 +37,7 @@ type controller struct {
 	handlers []Handler
 }
 
-func newController(upstreamRepo v1.UpstreamInterface) *controller {
+func newController(resyncDelay time.Duration, upstreamRepo v1.UpstreamInterface) *controller {
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 	lw := &cache.ListWatch{
 		ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -54,18 +53,24 @@ func newController(upstreamRepo v1.UpstreamInterface) *controller {
 			key, err := cache.MetaNamespaceKeyFunc(obj)
 			if err == nil {
 				queue.Add(key)
+			} else {
+				log.Println("error handling add event in informer ", err)
 			}
 		},
 		UpdateFunc: func(old, new interface{}) {
 			key, err := cache.MetaNamespaceKeyFunc(new)
 			if err == nil {
 				queue.Add(key)
+			} else {
+				log.Println("error handling update event in informer ", err)
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
 			key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
 			if err == nil {
 				queue.Add(key)
+			} else {
+				log.Println("error handling delete event in informer ", err)
 			}
 		},
 	})
@@ -78,15 +83,16 @@ func (c *controller) AddHandler(h Handler) {
 }
 
 func (c *controller) Run(stop <-chan struct{}) {
-	defer utilrt.HandleCrash()
-	defer c.queue.ShutDown()
-
 	go c.informer.Run(stop)
 	// wait for cache sync before starting
 	if !cache.WaitForCacheSync(stop, c.informer.HasSynced) {
 		utilrt.HandleError(fmt.Errorf("Timed out waiting for caches to sync"))
 	}
 	go wait.Until(c.runWorker, time.Second, stop)
+	go func() {
+		<-stop
+		c.queue.ShutDown()
+	}()
 	log.Println("Controller started")
 }
 
@@ -122,7 +128,7 @@ func (c *controller) processItem(key string) error {
 	}
 	if !exists {
 		for _, h := range c.handlers {
-			h.Remove(obj.(*solov1.Upstream))
+			h.Remove(key)
 		}
 		return nil
 	}

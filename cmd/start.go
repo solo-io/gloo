@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/glue-discovery/pkg/secret"
@@ -15,6 +16,7 @@ import (
 
 func startCmd() *cobra.Command {
 	var port int
+	var resyncPeriod int
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Start Glue Function Discovery service",
@@ -23,15 +25,16 @@ func startCmd() *cobra.Command {
 			if err != nil {
 				return errors.Wrap(err, "unable to get client configuration")
 			}
-			start(cfg, port, namespace)
+			start(cfg, port, time.Duration(resyncPeriod)*time.Second, namespace)
 			return nil
 		},
 	}
-	cmd.LocalFlags().IntVarP(&port, "port", "p", 8080, "Port. If not set tries PORT environment variable before defaulting to 8080")
+	cmd.Flags().IntVarP(&port, "port", "p", 8080, "Port. If not set tries PORT environment variable before defaulting to 8080")
+	cmd.Flags().IntVarP(&resyncPeriod, "resync", "r", 300, "Resync period in seconds")
 	return cmd
 }
 
-func start(cfg *rest.Config, port int, namespace string) {
+func start(cfg *rest.Config, port int, resyncPeriod time.Duration, namespace string) {
 	upstreamInterface, err := server.UpstreamInterface(cfg, namespace)
 	if err != nil {
 		log.Fatalf("Unable to get client to K8S for monitoring upstreams %q\n", err)
@@ -48,7 +51,7 @@ func start(cfg *rest.Config, port int, namespace string) {
 	}
 	log.Println("Listening on ", port)
 	stop := make(chan struct{})
-	server.Start(stop)
+	server.Start(resyncPeriod, stop)
 	waitSignal(stop)
 }
 

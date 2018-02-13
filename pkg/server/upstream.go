@@ -7,6 +7,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// UpstreamInterface provides an interfce to talk to Upstreams represented by CRDs in K8S
 func UpstreamInterface(cfg *rest.Config, namespace string) (v1.UpstreamInterface, error) {
 	glueClient, err := clientset.NewForConfig(cfg)
 	if err != nil {
