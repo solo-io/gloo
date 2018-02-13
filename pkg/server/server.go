@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/glue-discovery/pkg/secret"
 	"github.com/solo-io/glue-discovery/pkg/source"
 	"github.com/solo-io/glue-discovery/pkg/source/aws"
+	"github.com/solo-io/glue-discovery/pkg/source/openapi"
 	apiv1 "github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/platform/kube/crd/client/clientset/versioned/typed/solo.io/v1"
 )
@@ -24,6 +25,7 @@ func (s *Server) Start(resyncPeriod time.Duration, stop <-chan struct{}) {
 	ctrlr := newController(resyncPeriod, s.UpstreamRepo)
 
 	source.FetcherRegistry.Add(aws.GetAWSFetcher(s.SecretRepo))
+	source.FetcherRegistry.Add(openapi.GetOpenAPIFetcher())
 
 	updater := func(u source.Upstream) error {
 		crd, exists, err := ctrlr.get(u.ID)

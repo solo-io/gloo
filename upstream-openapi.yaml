@@ -1,0 +1,14 @@
+apiVersion: "glue.solo.io/v1"
+kind: Upstream
+metadata:
+  name: testopenapi
+spec:
+    name: testapi
+    type: k8s 
+    spec:
+      openapi: http://localhost:9000/api-doc/openapi.yaml
+    functions:
+    - name: f:v1
+      spec:
+        Name: f
+        Version: v1
