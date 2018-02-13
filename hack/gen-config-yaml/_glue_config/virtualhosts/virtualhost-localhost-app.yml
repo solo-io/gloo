@@ -1,0 +1,23 @@
+Routes:
+- destination:
+    Destinations: null
+    function_destination: null
+    upstream_destination:
+      upstream_name: localhost-python
+  matcher:
+    headers: null
+    path:
+      exact: ""
+      prefix: ""
+      regex: /
+    query_params: null
+    verbs:
+    - GET
+    - POST
+  plugins: null
+  rewrite_prefix: ""
+domains: null
+name: localhost-app
+ssl_config:
+  ca_cert_path: ""
+  secret_ref: ""

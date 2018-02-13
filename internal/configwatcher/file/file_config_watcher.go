@@ -47,6 +47,16 @@ func NewFileConfigWatcher(dir string, syncFrequency time.Duration) (*fileWatcher
 		return nil, fmt.Errorf("failed to start filewatcher: %v", err)
 	}
 
+	// do one on start
+	go func() {
+		cfg, err := refreshConfig(dir)
+		if err != nil {
+			errs <- err
+			return
+		}
+		configs <- cfg
+	}()
+
 	return &fileWatcher{
 		configs: configs,
 		errors:  errs,

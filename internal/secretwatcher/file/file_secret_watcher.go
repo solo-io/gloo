@@ -3,6 +3,8 @@ package file
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -18,26 +20,30 @@ import (
 // FileWatcher uses .yml files in a directory
 // to watch secrets
 type fileWatcher struct {
-	file           string
+	dir            string
 	secretsToWatch []string
 	secrets        chan secretwatcher.SecretMap
 	errors         chan error
 	lastSeen       uint64
 }
 
-func NewSecretWatcher(fileName string, syncFrequency time.Duration) (*fileWatcher, error) {
+func NewSecretWatcher(dir string, syncFrequency time.Duration) (*fileWatcher, error) {
+	os.MkdirAll(dir, 0755)
 	secrets := make(chan secretwatcher.SecretMap)
 	errors := make(chan error)
 	fw := &fileWatcher{
 		secrets: secrets,
 		errors:  errors,
-		file:    fileName,
+		dir:     dir,
 	}
-	if err := file.WatchDir(fileName, false, func(_ string) {
+	if err := file.WatchDir(dir, false, func(_ string) {
 		fw.updateSecrets()
 	}, syncFrequency); err != nil {
 		return nil, fmt.Errorf("failed to start filewatcher: %v", err)
 	}
+
+	// do one on start
+	go fw.updateSecrets()
 
 	return fw, nil
 }
@@ -70,24 +76,30 @@ func (fw *fileWatcher) Error() <-chan error {
 }
 
 func (fw *fileWatcher) getSecrets() (secretwatcher.SecretMap, error) {
-	yml, err := ioutil.ReadFile(fw.file)
-	if err != nil {
-		return nil, err
-	}
-	var secretMap secretwatcher.SecretMap
-	err = yaml.Unmarshal(yml, &secretMap)
+	secretFiles, err := ioutil.ReadDir(fw.dir)
 	if err != nil {
 		return nil, err
 	}
 	desiredSecrets := make(secretwatcher.SecretMap)
-	for _, ref := range fw.secretsToWatch {
-		data, ok := secretMap[ref]
-		if !ok {
-			log.Debugf("ref %v not found", ref)
-			return nil, fmt.Errorf("secret ref %v not found in file %v", ref, fw.file)
+	for _, secretFile := range secretFiles {
+		yml, err := ioutil.ReadFile(filepath.Join(fw.dir, secretFile.Name()))
+		if err != nil {
+			return nil, err
 		}
-		log.Debugf("ref found: %v", ref)
-		desiredSecrets[ref] = data
+		var secretMap secretwatcher.SecretMap
+		err = yaml.Unmarshal(yml, &secretMap)
+		if err != nil {
+			return nil, err
+		}
+		for _, ref := range fw.secretsToWatch {
+			data, ok := secretMap[ref]
+			if !ok {
+				log.Debugf("ref %v not found", ref)
+				return nil, fmt.Errorf("secret ref %v not found in dir %v", ref, fw.dir)
+			}
+			log.Debugf("ref found: %v", ref)
+			desiredSecrets[ref] = data
+		}
 	}
 
 	hash, err := hashstructure.Hash(desiredSecrets, nil)

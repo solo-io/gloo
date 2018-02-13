@@ -4,6 +4,8 @@ import (
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/pkg/errors"
 	"github.com/solo-io/glue/internal/plugins"
+	"github.com/solo-io/glue/internal/reporter"
+	filesecrets "github.com/solo-io/glue/internal/secretwatcher/file"
 	kubesecrets "github.com/solo-io/glue/internal/secretwatcher/kube"
 	"github.com/solo-io/glue/internal/secretwatcher/vault"
 	"github.com/solo-io/glue/pkg/plugin"
@@ -25,9 +27,11 @@ type eventLoop struct {
 	configWatcher       configwatcher.Interface
 	secretWatcher       secretwatcher.Interface
 	endpointDiscoveries []endpointdiscovery.Interface
-	translator          *translator.Translator
-	xdsConfig           envoycache.Cache
-	updateSecretRefs    func(cfg *v1.Config) []string
+	//TODO: reporter
+	reporter         reporter.Interface
+	translator       *translator.Translator
+	xdsConfig        envoycache.Cache
+	updateSecretRefs func(cfg *v1.Config) []string
 
 	startFuncs []func() error
 }
@@ -110,6 +114,12 @@ func setupConfigWatcher(opts bootstrap.Options, stopCh <-chan struct{}) (configw
 
 func setupSecretWatcher(opts bootstrap.Options, stopCh <-chan struct{}) (secretwatcher.Interface, error) {
 	switch opts.SecretWatcherOptions.Type {
+	case bootstrap.WatcherTypeFile:
+		secretWatcher, err := filesecrets.NewSecretWatcher(opts.FileOptions.SecretDir, opts.SecretWatcherOptions.SyncFrequency)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to start file secret watcher with config %#v", opts.KubeOptions)
+		}
+		return secretWatcher, nil
 	case bootstrap.WatcherTypeKube:
 		secretWatcher, err := kubesecrets.NewSecretWatcher(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig, opts.SecretWatcherOptions.SyncFrequency, stopCh)
 		if err != nil {
@@ -173,6 +183,7 @@ func (e *eventLoop) updateXds(cache *cache) {
 		runtime.HandleError(errors.Wrap(err, "failed to translate based on the latest config"))
 	}
 	log.Printf("TODO: do something with this status eventually: %v", status)
+	log.Debugf("FINAL: XDS Snapshot: %v", snapshot)
 	e.xdsConfig.SetSnapshot(xds.NodeKey, *snapshot)
 }
 
@@ -232,7 +243,7 @@ func newCache() *cache {
 // ready doesn't necessarily tell us whetehr endpoints have been discovered yet
 // but that's okay. envoy won't mind
 func (c *cache) ready() bool {
-	return c.cfg != nil && c.secrets != nil
+	return c.cfg != nil
 }
 
 type endpointTuple struct {

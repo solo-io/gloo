@@ -1,5 +1,7 @@
 package v1
 
+import "time"
+
 // currently only top-level objects are storable
 type StorableConfigObject interface {
 	SetStorageRef(string)
@@ -71,9 +73,10 @@ type SingleDestination struct {
 }
 
 type Matcher struct {
-	Path    Path              `json:"path"`
-	Headers map[string]string `json:"headers"`
-	Verbs   []string          `json:"verbs"`
+	Path        Path              `json:"path"`
+	Headers     map[string]string `json:"headers"`
+	QueryParams map[string]string `json:"query_params"`
+	Verbs       []string          `json:"verbs"`
 }
 
 type Path struct {
@@ -100,10 +103,11 @@ type UpstreamType string
 type Upstream struct {
 	storageRef
 
-	Name      string       `json:"name"`
-	Type      UpstreamType `json:"type"`
-	Spec      UpstreamSpec `json:"spec"`
-	Functions []Function   `json:"functions"`
+	Name              string        `json:"name"`
+	Type              UpstreamType  `json:"type"`
+	Spec              UpstreamSpec  `json:"spec"`
+	ConnectionTimeout time.Duration `json:"connection_timeout"`
+	Functions         []Function    `json:"functions"`
 }
 
 type Function struct {

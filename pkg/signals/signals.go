@@ -4,6 +4,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/solo-io/glue/pkg/log"
 )
 
 var (
@@ -22,6 +24,7 @@ func SetupSignalHandler() (stopCh <-chan struct{}) {
 	signal.Notify(c, shutdownSignals...)
 	go func() {
 		<-c
+		log.Printf("stop signal received, shutting down gracefully. ctr+c again to exit immediately")
 		close(stop)
 		<-c
 		os.Exit(1) // second signal. Exit directly.

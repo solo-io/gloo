@@ -33,6 +33,7 @@ const (
 	listenerName  = "listener-" + rdsName
 	listenerPort  = uint32(80)
 	connMgrFilter = "envoy.http_connection_manager"
+	routerFilter  = "envoy.router"
 )
 
 type Translator struct {
@@ -47,13 +48,10 @@ func NewTranslator(plugins []plugin.TranslatorPlugin) *Translator {
 			functionPlugins = append(functionPlugins, functionPlugin)
 		}
 	}
-	if len(functionPlugins) > 0 {
-		// the function router plugin must be initialized for any function plugins
-		// since it operates on both upstreams and routes, it must be added to both
-		// groups of plugins
-		functionRouter := functionrouter.NewFunctionRouterPlugin(functionPlugins)
-		plugins = append([]plugin.TranslatorPlugin{functionRouter}, plugins...)
-	}
+	// the initializer plugin must be initialized with any function plugins
+	// it's responsible for setting cluster weights and common route properties
+	initPlugin := functionrouter.NewInitializerPlugin(functionPlugins)
+	plugins = append([]plugin.TranslatorPlugin{initPlugin}, plugins...)
 	return &Translator{
 		plugins: plugins,
 	}
@@ -262,9 +260,7 @@ func (t *Translator) computeVirtualHost(upstreams []v1.Upstream, virtualHost v1.
 		if err := validateRoute(upstreams, route); err != nil {
 			routeErrors = multierror.Append(routeErrors, err)
 		}
-		out := envoyroute.Route{
-			Metadata: new(envoycore.Metadata),
-		}
+		out := newBaseEnvoyRoute(route)
 		for _, plug := range t.plugins {
 			routePlugin, ok := plug.(plugin.RoutePlugin)
 			if !ok {
@@ -288,6 +284,40 @@ func (t *Translator) computeVirtualHost(upstreams []v1.Upstream, virtualHost v1.
 		Domains: domains,
 		Routes:  envoyRoutes,
 	}, routeErrors
+}
+
+func newBaseEnvoyRoute(route v1.Route) envoyroute.Route {
+	match := envoyroute.RouteMatch{}
+	switch {
+	case route.Matcher.Path.Regex != "":
+		match.PathSpecifier = &envoyroute.RouteMatch_Regex{
+			Regex: route.Matcher.Path.Regex,
+		}
+	case route.Matcher.Path.Prefix != "":
+		match.PathSpecifier = &envoyroute.RouteMatch_Prefix{
+			Prefix: route.Matcher.Path.Prefix,
+		}
+	case route.Matcher.Path.Exact != "":
+		match.PathSpecifier = &envoyroute.RouteMatch_Path{
+			Path: route.Matcher.Path.Exact,
+		}
+	}
+	for headerName, headerValue := range route.Matcher.Headers {
+		match.Headers = append(match.Headers, &envoyroute.HeaderMatcher{
+			Name:  headerName,
+			Value: headerValue,
+		})
+	}
+	for paramName, paramValue := range route.Matcher.QueryParams {
+		match.QueryParameters = append(match.QueryParameters, &envoyroute.QueryParameterMatcher{
+			Name:  paramName,
+			Value: paramValue,
+		})
+	}
+	return envoyroute.Route{
+		Metadata: new(envoycore.Metadata),
+		Match:    match,
+	}
 }
 
 func validateRoute(upstreams []v1.Upstream, route v1.Route) error {
@@ -387,6 +417,7 @@ func (t *Translator) constructHttpListener(name string, port uint32, routeConfig
 
 	// sort filters by stage
 	httpFilters := sortFilters(filtersByStage)
+	httpFilters = append(httpFilters, &envoyhttp.HttpFilter{Name: routerFilter})
 
 	httpConnMgr := &envoyhttp.HttpConnectionManager{
 		CodecType:  envoyhttp.AUTO,
@@ -414,7 +445,7 @@ func (t *Translator) constructHttpListener(name string, port uint32, routeConfig
 			Address: &envoycore.Address_SocketAddress{
 				SocketAddress: &envoycore.SocketAddress{
 					Protocol: envoycore.TCP,
-					Address:  "::", // bind all
+					Address:  "0.0.0.0", // bind all
 					PortSpecifier: &envoycore.SocketAddress_PortValue{
 						PortValue: port,
 					},

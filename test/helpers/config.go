@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/solo-io/glue/internal/plugins/service"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 )
 
@@ -24,18 +25,19 @@ func NewTestConfig() v1.Config {
 			},
 		},
 		{
-			Name: "my-upstream",
-			Type: "service",
-			Spec: map[string]interface{}{
-				"auth": map[string]interface{}{
-					"url": "http://www.example.com",
+			Name: "localhost-python",
+			Type: service.UpstreamTypeService,
+			Spec: service.EncodeUpstreamSpec(service.UpstreamSpec{
+				Hosts: []service.Host{
+					{IP: "localhost", Port: 8000},
 				},
-			},
+			}),
 		},
 	}
 	virtualhosts := []v1.VirtualHost{
 		NewTestVirtualHost("my-vhost", NewTestRoute1(), NewTestRoute2()),
 		NewTestVirtualHost("my-vhost-2", NewTestRoute1(), NewTestRoute2()),
+		NewTestVirtualHost("localhost-app", NewTestRoute3()),
 	}
 	return v1.Config{
 		Upstreams:    upstreams,
@@ -101,6 +103,24 @@ func NewTestRoute2() v1.Route {
 			"auth": map[string]interface{}{
 				"username": "alice",
 				"password": "bob",
+			},
+		},
+	}
+}
+
+func NewTestRoute3() v1.Route {
+	return v1.Route{
+		Matcher: v1.Matcher{
+			Path: v1.Path{
+				Regex: "/",
+			},
+			Verbs: []string{"GET", "POST"},
+		},
+		Destination: v1.Destination{
+			SingleDestination: v1.SingleDestination{
+				UpstreamDestination: &v1.UpstreamDestination{
+					UpstreamName: "localhost-python",
+				},
 			},
 		},
 	}

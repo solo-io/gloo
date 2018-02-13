@@ -43,7 +43,9 @@ func (p *Plugin) ProcessUpstream(in v1.Upstream, secrets secretwatcher.SecretMap
 	if _, err := DecodeUpstreamSpec(in.Spec); err != nil {
 		return errors.Wrap(err, "invalid kubernetes upstream spec")
 	}
+
 	// just configure the cluster to use EDS:ADS and call it a day
+	out.Type = envoyapi.Cluster_EDS
 	out.EdsClusterConfig = &envoyapi.Cluster_EdsClusterConfig{
 		EdsConfig: &envoycore.ConfigSource{
 			ConfigSourceSpecifier: &envoycore.ConfigSource_Ads{

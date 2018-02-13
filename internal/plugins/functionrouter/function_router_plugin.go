@@ -6,6 +6,7 @@ import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
+	"github.com/solo-io/glue/internal/defaults"
 	"github.com/solo-io/glue/internal/pkg/envoy"
 	"github.com/solo-io/glue/internal/plugins/common"
 	"github.com/solo-io/glue/pkg/api/types/v1"
@@ -19,19 +20,19 @@ const (
 	singleFunctionDestinationKey = "function"
 )
 
-type functionRouterPlugin struct {
+type functionAndClusterRoutingInitializer struct {
 	functionPlugins []plugin.FunctionPlugin
 }
 
-func NewFunctionRouterPlugin(functionPlugins []plugin.FunctionPlugin) *functionRouterPlugin {
-	return &functionRouterPlugin{functionPlugins: functionPlugins}
+func NewInitializerPlugin(functionPlugins []plugin.FunctionPlugin) *functionAndClusterRoutingInitializer {
+	return &functionAndClusterRoutingInitializer{functionPlugins: functionPlugins}
 }
 
-func (p *functionRouterPlugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
+func (p *functionAndClusterRoutingInitializer) GetDependencies(_ *v1.Config) *plugin.Dependencies {
 	return nil
 }
 
-func (p *functionRouterPlugin) ProcessUpstream(in v1.Upstream, _ secretwatcher.SecretMap, out *envoyapi.Cluster) error {
+func (p *functionAndClusterRoutingInitializer) ProcessUpstream(in v1.Upstream, _ secretwatcher.SecretMap, out *envoyapi.Cluster) error {
 	for _, function := range in.Functions {
 		envoyFunctionSpec, err := p.getFunctionSpec(in.Type, function.Spec)
 		if err != nil {
@@ -39,10 +40,15 @@ func (p *functionRouterPlugin) ProcessUpstream(in v1.Upstream, _ secretwatcher.S
 		}
 		setEnvoyFunctionSpec(out, function.Name, envoyFunctionSpec)
 	}
+	timeout := in.ConnectionTimeout
+	if timeout == 0 {
+		timeout = defaults.ClusterConnectionTimeout
+	}
+	out.ConnectTimeout = timeout
 	return nil
 }
 
-func (p *functionRouterPlugin) getFunctionSpec(upstreamType v1.UpstreamType, spec v1.FunctionSpec) (*types.Struct, error) {
+func (p *functionAndClusterRoutingInitializer) getFunctionSpec(upstreamType v1.UpstreamType, spec v1.FunctionSpec) (*types.Struct, error) {
 	for _, functionPlugin := range p.functionPlugins {
 		envoyFunctionSpec, err := functionPlugin.ParseFunctionSpec(upstreamType, spec)
 		if err != nil {
@@ -62,7 +68,7 @@ func setEnvoyFunctionSpec(out *envoyapi.Cluster, funcName string, spec *types.St
 	multiFunctionMetadata.Fields[funcName].Kind = &types.Value_StructValue{StructValue: spec}
 }
 
-func (p *functionRouterPlugin) ProcessRoute(in v1.Route, out *envoyroute.Route) error {
+func (p *functionAndClusterRoutingInitializer) ProcessRoute(in v1.Route, out *envoyroute.Route) error {
 	switch getDestinationType(in) {
 	case destinationTypeSingleUpstream:
 		p.processSingleUpstreamRoute(in.Destination.UpstreamDestination.UpstreamName, out)
@@ -99,11 +105,11 @@ func getDestinationType(route v1.Route) destinationType {
 	return ""
 }
 
-func (p *functionRouterPlugin) processSingleUpstreamRoute(upstreamName string, out *envoyroute.Route) {
+func (p *functionAndClusterRoutingInitializer) processSingleUpstreamRoute(upstreamName string, out *envoyroute.Route) {
 	p.initRouteForUpstream(upstreamName, out)
 }
 
-func (p *functionRouterPlugin) processSingleFunctionRoute(destination v1.FunctionDestination, out *envoyroute.Route) {
+func (p *functionAndClusterRoutingInitializer) processSingleFunctionRoute(destination v1.FunctionDestination, out *envoyroute.Route) {
 	upstreamName := destination.UpstreamName
 	p.initRouteForUpstream(upstreamName, out)
 	clusterName := envoy.ClusterName(upstreamName)
@@ -111,7 +117,7 @@ func (p *functionRouterPlugin) processSingleFunctionRoute(destination v1.Functio
 	functionalFilterMetadata.Fields[singleFunctionDestinationKey] = &types.Value{Kind: &types.Value_StringValue{StringValue: destination.FunctionName}}
 }
 
-func (p *functionRouterPlugin) processMultipleDestinationRoute(destinations []v1.WeightedDestination, out *envoyroute.Route) {
+func (p *functionAndClusterRoutingInitializer) processMultipleDestinationRoute(destinations []v1.WeightedDestination, out *envoyroute.Route) {
 	var (
 		totalWeight                   uint
 		upstreamDestinationsWithFuncs = make(map[string][]v1.WeightedDestination)
@@ -229,7 +235,7 @@ func initFunctionalFilterMetadata(key string, meta *envoycore.Metadata) {
 	}
 }
 
-func (p *functionRouterPlugin) initRouteForUpstream(upstreamName string, out *envoyroute.Route) {
+func (p *functionAndClusterRoutingInitializer) initRouteForUpstream(upstreamName string, out *envoyroute.Route) {
 	out.Action = &envoyroute.Route_Route{
 		Route: &envoyroute.RouteAction{
 			ClusterSpecifier: &envoyroute.RouteAction_Cluster{
