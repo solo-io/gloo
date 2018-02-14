@@ -18,10 +18,8 @@ message VirtualHost {
 
 message Route {
     Matcher matcher = 1;
-    oneof destination {
-        MultipleDestinations multiple_destinations = 2;
-        SingleDestination single_destination = 3;
-    }
+    repeated WeightedDestination multiple_destinations = 2;
+    Destination single_destination = 3;
     string prefix_rewrite = 4;
     google.protobuf.Struct extensions = 5;
 }
@@ -37,17 +35,13 @@ message Matcher {
     repeated string verbs = 6;
 }
 
-message MultipleDestinations {
-    repeated WeightedSingleDestination weighted_destinations = 1;
-}
-
-message WeightedSingleDestination {
-    SingleDestination destination = 1;
+message WeightedDestination {
+    Destination destination = 1  [(gogoproto.embed) = true];
     uint32 weight = 2;
 }
 
-message SingleDestination {
-    oneof destination {
+message Destination {
+    oneof destination_type {
         FunctionDestination function = 1;
         UpstreamDestination upstream = 2;
     }

@@ -9,7 +9,7 @@ import (
 	"github.com/gogo/protobuf/types"
 )
 
-var jsonpbMarshaler = &jsonpb.Marshaler{}
+var jsonpbMarshaler = &jsonpb.Marshaler{OrigName: true}
 
 func MarshalStruct(m interface{}) (*types.Struct, error) {
 	data, err := json.Marshal(m)

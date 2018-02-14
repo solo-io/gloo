@@ -332,17 +332,17 @@ func validateRoute(upstreams []*v1.Upstream, route *v1.Route) error {
 	}
 
 	// make sure the destination itself has the right structure
-	switch destination := route.Destination.(type) {
-	case *v1.SingleDestination:
-		validateSingleDestination(upstreamsAndTheirFunctions, destination)
-	case *v1.MultipleDestinations:
-		return validateMultiDestination(upstreamsAndTheirFunctions, destination)
+	switch {
+	case route.SingleDestination != nil && len(route.MultipleDestinations) == 0:
+		return validateSingleDestination(upstreamsAndTheirFunctions, route.SingleDestination)
+	case route.SingleDestination == nil && len(route.MultipleDestinations) > 0:
+		return validateMultiDestination(upstreamsAndTheirFunctions, route.MultipleDestinations)
 	}
-	return errors.Errorf("invalid destination type")
+	return errors.Errorf("must specify either 'single_destination' or 'multiple_destinations' for route")
 }
 
-func validateMultiDestination(upstreamsAndTheirFunctions map[string][]string, destinations *v1.MultipleDestinations) error {
-	for _, dest := range destinations.WeightedDestinations {
+func validateMultiDestination(upstreamsAndTheirFunctions map[string][]string, destinations []*v1.WeightedDestination) error {
+	for _, dest := range destinations {
 		if err := validateSingleDestination(upstreamsAndTheirFunctions, dest.Destination); err != nil {
 			return errors.Wrap(err, "invalid destination in weighted destination list")
 		}
@@ -350,17 +350,17 @@ func validateMultiDestination(upstreamsAndTheirFunctions map[string][]string, de
 	return nil
 }
 
-func validateSingleDestination(upstreamsAndTheirFunctions map[string][]string, destination *v1.SingleDestination) error {
-	switch dest := destination.Destination.(type) {
-	case *v1.SingleDestination_Upstream:
+func validateSingleDestination(upstreamsAndTheirFunctions map[string][]string, destination *v1.Destination) error {
+	switch dest := destination.DestinationType.(type) {
+	case *v1.Destination_Upstream:
 		return validateUpstreamDestination(upstreamsAndTheirFunctions, dest)
-	case *v1.SingleDestination_Function:
+	case *v1.Destination_Function:
 		return validateFunctionDestination(upstreamsAndTheirFunctions, dest)
 	}
 	return errors.New("must specify either a function or upstream on a single destination")
 }
 
-func validateUpstreamDestination(upstreamsAndTheirFunctions map[string][]string, upstreamDestination *v1.SingleDestination_Upstream) error {
+func validateUpstreamDestination(upstreamsAndTheirFunctions map[string][]string, upstreamDestination *v1.Destination_Upstream) error {
 	upstreamName := upstreamDestination.Upstream.Name
 	if _, ok := upstreamsAndTheirFunctions[upstreamName]; !ok {
 		return errors.Errorf("upstream %v was not found for function destination", upstreamName)
@@ -368,7 +368,7 @@ func validateUpstreamDestination(upstreamsAndTheirFunctions map[string][]string,
 	return nil
 }
 
-func validateFunctionDestination(upstreamsAndTheirFunctions map[string][]string, functionDestination *v1.SingleDestination_Function) error {
+func validateFunctionDestination(upstreamsAndTheirFunctions map[string][]string, functionDestination *v1.Destination_Function) error {
 	upstreamName := functionDestination.Function.UpstreamName
 	upstreamFuncs, ok := upstreamsAndTheirFunctions[upstreamName]
 	if !ok {

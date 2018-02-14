@@ -63,41 +63,17 @@ func (m *VirtualHost) GetStatus() *Status {
 }
 
 type Route struct {
-	Matcher *Matcher `protobuf:"bytes,1,opt,name=matcher" json:"matcher,omitempty"`
-	// Types that are valid to be assigned to Destination:
-	//	*Route_MultipleDestinations
-	//	*Route_SingleDestination
-	Destination   isRoute_Destination     `protobuf_oneof:"destination"`
-	PrefixRewrite string                  `protobuf:"bytes,4,opt,name=prefix_rewrite,json=prefixRewrite,proto3" json:"prefix_rewrite,omitempty"`
-	Extensions    *google_protobuf.Struct `protobuf:"bytes,5,opt,name=extensions" json:"extensions,omitempty"`
+	Matcher              *Matcher                `protobuf:"bytes,1,opt,name=matcher" json:"matcher,omitempty"`
+	MultipleDestinations []*WeightedDestination  `protobuf:"bytes,2,rep,name=multiple_destinations,json=multipleDestinations" json:"multiple_destinations,omitempty"`
+	SingleDestination    *Destination            `protobuf:"bytes,3,opt,name=single_destination,json=singleDestination" json:"single_destination,omitempty"`
+	PrefixRewrite        string                  `protobuf:"bytes,4,opt,name=prefix_rewrite,json=prefixRewrite,proto3" json:"prefix_rewrite,omitempty"`
+	Extensions           *google_protobuf.Struct `protobuf:"bytes,5,opt,name=extensions" json:"extensions,omitempty"`
 }
 
 func (m *Route) Reset()                    { *m = Route{} }
 func (m *Route) String() string            { return proto.CompactTextString(m) }
 func (*Route) ProtoMessage()               {}
 func (*Route) Descriptor() ([]byte, []int) { return fileDescriptorVirtualhost, []int{1} }
-
-type isRoute_Destination interface {
-	isRoute_Destination()
-	Equal(interface{}) bool
-}
-
-type Route_MultipleDestinations struct {
-	MultipleDestinations *MultipleDestinations `protobuf:"bytes,2,opt,name=multiple_destinations,json=multipleDestinations,oneof"`
-}
-type Route_SingleDestination struct {
-	SingleDestination *SingleDestination `protobuf:"bytes,3,opt,name=single_destination,json=singleDestination,oneof"`
-}
-
-func (*Route_MultipleDestinations) isRoute_Destination() {}
-func (*Route_SingleDestination) isRoute_Destination()    {}
-
-func (m *Route) GetDestination() isRoute_Destination {
-	if m != nil {
-		return m.Destination
-	}
-	return nil
-}
 
 func (m *Route) GetMatcher() *Matcher {
 	if m != nil {
@@ -106,16 +82,16 @@ func (m *Route) GetMatcher() *Matcher {
 	return nil
 }
 
-func (m *Route) GetMultipleDestinations() *MultipleDestinations {
-	if x, ok := m.GetDestination().(*Route_MultipleDestinations); ok {
-		return x.MultipleDestinations
+func (m *Route) GetMultipleDestinations() []*WeightedDestination {
+	if m != nil {
+		return m.MultipleDestinations
 	}
 	return nil
 }
 
-func (m *Route) GetSingleDestination() *SingleDestination {
-	if x, ok := m.GetDestination().(*Route_SingleDestination); ok {
-		return x.SingleDestination
+func (m *Route) GetSingleDestination() *Destination {
+	if m != nil {
+		return m.SingleDestination
 	}
 	return nil
 }
@@ -132,80 +108,6 @@ func (m *Route) GetExtensions() *google_protobuf.Struct {
 		return m.Extensions
 	}
 	return nil
-}
-
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*Route) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Route_OneofMarshaler, _Route_OneofUnmarshaler, _Route_OneofSizer, []interface{}{
-		(*Route_MultipleDestinations)(nil),
-		(*Route_SingleDestination)(nil),
-	}
-}
-
-func _Route_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Route)
-	// destination
-	switch x := m.Destination.(type) {
-	case *Route_MultipleDestinations:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.MultipleDestinations); err != nil {
-			return err
-		}
-	case *Route_SingleDestination:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SingleDestination); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("Route.Destination has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _Route_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Route)
-	switch tag {
-	case 2: // destination.multiple_destinations
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(MultipleDestinations)
-		err := b.DecodeMessage(msg)
-		m.Destination = &Route_MultipleDestinations{msg}
-		return true, err
-	case 3: // destination.single_destination
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(SingleDestination)
-		err := b.DecodeMessage(msg)
-		m.Destination = &Route_SingleDestination{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _Route_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Route)
-	// destination
-	switch x := m.Destination.(type) {
-	case *Route_MultipleDestinations:
-		s := proto.Size(x.MultipleDestinations)
-		n += proto.SizeVarint(2<<3 | proto.WireBytes)
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Route_SingleDestination:
-		s := proto.Size(x.SingleDestination)
-		n += proto.SizeVarint(3<<3 | proto.WireBytes)
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type Matcher struct {
@@ -373,159 +275,134 @@ func _Matcher_OneofSizer(msg proto.Message) (n int) {
 	return n
 }
 
-type MultipleDestinations struct {
-	WeightedDestinations []*WeightedSingleDestination `protobuf:"bytes,1,rep,name=weighted_destinations,json=weightedDestinations" json:"weighted_destinations,omitempty"`
+type WeightedDestination struct {
+	*Destination `protobuf:"bytes,1,opt,name=destination,embedded=destination" json:"destination,omitempty"`
+	Weight       uint32 `protobuf:"varint,2,opt,name=weight,proto3" json:"weight,omitempty"`
 }
 
-func (m *MultipleDestinations) Reset()                    { *m = MultipleDestinations{} }
-func (m *MultipleDestinations) String() string            { return proto.CompactTextString(m) }
-func (*MultipleDestinations) ProtoMessage()               {}
-func (*MultipleDestinations) Descriptor() ([]byte, []int) { return fileDescriptorVirtualhost, []int{3} }
+func (m *WeightedDestination) Reset()                    { *m = WeightedDestination{} }
+func (m *WeightedDestination) String() string            { return proto.CompactTextString(m) }
+func (*WeightedDestination) ProtoMessage()               {}
+func (*WeightedDestination) Descriptor() ([]byte, []int) { return fileDescriptorVirtualhost, []int{3} }
 
-func (m *MultipleDestinations) GetWeightedDestinations() []*WeightedSingleDestination {
-	if m != nil {
-		return m.WeightedDestinations
-	}
-	return nil
-}
-
-type WeightedSingleDestination struct {
-	Destination *SingleDestination `protobuf:"bytes,1,opt,name=destination" json:"destination,omitempty"`
-	Weight      uint32             `protobuf:"varint,2,opt,name=weight,proto3" json:"weight,omitempty"`
-}
-
-func (m *WeightedSingleDestination) Reset()         { *m = WeightedSingleDestination{} }
-func (m *WeightedSingleDestination) String() string { return proto.CompactTextString(m) }
-func (*WeightedSingleDestination) ProtoMessage()    {}
-func (*WeightedSingleDestination) Descriptor() ([]byte, []int) {
-	return fileDescriptorVirtualhost, []int{4}
-}
-
-func (m *WeightedSingleDestination) GetDestination() *SingleDestination {
-	if m != nil {
-		return m.Destination
-	}
-	return nil
-}
-
-func (m *WeightedSingleDestination) GetWeight() uint32 {
+func (m *WeightedDestination) GetWeight() uint32 {
 	if m != nil {
 		return m.Weight
 	}
 	return 0
 }
 
-type SingleDestination struct {
-	// Types that are valid to be assigned to Destination:
-	//	*SingleDestination_Function
-	//	*SingleDestination_Upstream
-	Destination isSingleDestination_Destination `protobuf_oneof:"destination"`
+type Destination struct {
+	// Types that are valid to be assigned to DestinationType:
+	//	*Destination_Function
+	//	*Destination_Upstream
+	DestinationType isDestination_DestinationType `protobuf_oneof:"destination_type"`
 }
 
-func (m *SingleDestination) Reset()                    { *m = SingleDestination{} }
-func (m *SingleDestination) String() string            { return proto.CompactTextString(m) }
-func (*SingleDestination) ProtoMessage()               {}
-func (*SingleDestination) Descriptor() ([]byte, []int) { return fileDescriptorVirtualhost, []int{5} }
+func (m *Destination) Reset()                    { *m = Destination{} }
+func (m *Destination) String() string            { return proto.CompactTextString(m) }
+func (*Destination) ProtoMessage()               {}
+func (*Destination) Descriptor() ([]byte, []int) { return fileDescriptorVirtualhost, []int{4} }
 
-type isSingleDestination_Destination interface {
-	isSingleDestination_Destination()
+type isDestination_DestinationType interface {
+	isDestination_DestinationType()
 	Equal(interface{}) bool
 }
 
-type SingleDestination_Function struct {
+type Destination_Function struct {
 	Function *FunctionDestination `protobuf:"bytes,1,opt,name=function,oneof"`
 }
-type SingleDestination_Upstream struct {
+type Destination_Upstream struct {
 	Upstream *UpstreamDestination `protobuf:"bytes,2,opt,name=upstream,oneof"`
 }
 
-func (*SingleDestination_Function) isSingleDestination_Destination() {}
-func (*SingleDestination_Upstream) isSingleDestination_Destination() {}
+func (*Destination_Function) isDestination_DestinationType() {}
+func (*Destination_Upstream) isDestination_DestinationType() {}
 
-func (m *SingleDestination) GetDestination() isSingleDestination_Destination {
+func (m *Destination) GetDestinationType() isDestination_DestinationType {
 	if m != nil {
-		return m.Destination
+		return m.DestinationType
 	}
 	return nil
 }
 
-func (m *SingleDestination) GetFunction() *FunctionDestination {
-	if x, ok := m.GetDestination().(*SingleDestination_Function); ok {
+func (m *Destination) GetFunction() *FunctionDestination {
+	if x, ok := m.GetDestinationType().(*Destination_Function); ok {
 		return x.Function
 	}
 	return nil
 }
 
-func (m *SingleDestination) GetUpstream() *UpstreamDestination {
-	if x, ok := m.GetDestination().(*SingleDestination_Upstream); ok {
+func (m *Destination) GetUpstream() *UpstreamDestination {
+	if x, ok := m.GetDestinationType().(*Destination_Upstream); ok {
 		return x.Upstream
 	}
 	return nil
 }
 
 // XXX_OneofFuncs is for the internal use of the proto package.
-func (*SingleDestination) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _SingleDestination_OneofMarshaler, _SingleDestination_OneofUnmarshaler, _SingleDestination_OneofSizer, []interface{}{
-		(*SingleDestination_Function)(nil),
-		(*SingleDestination_Upstream)(nil),
+func (*Destination) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _Destination_OneofMarshaler, _Destination_OneofUnmarshaler, _Destination_OneofSizer, []interface{}{
+		(*Destination_Function)(nil),
+		(*Destination_Upstream)(nil),
 	}
 }
 
-func _SingleDestination_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*SingleDestination)
-	// destination
-	switch x := m.Destination.(type) {
-	case *SingleDestination_Function:
+func _Destination_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*Destination)
+	// destination_type
+	switch x := m.DestinationType.(type) {
+	case *Destination_Function:
 		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.Function); err != nil {
 			return err
 		}
-	case *SingleDestination_Upstream:
+	case *Destination_Upstream:
 		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.Upstream); err != nil {
 			return err
 		}
 	case nil:
 	default:
-		return fmt.Errorf("SingleDestination.Destination has unexpected type %T", x)
+		return fmt.Errorf("Destination.DestinationType has unexpected type %T", x)
 	}
 	return nil
 }
 
-func _SingleDestination_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*SingleDestination)
+func _Destination_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*Destination)
 	switch tag {
-	case 1: // destination.function
+	case 1: // destination_type.function
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
 		msg := new(FunctionDestination)
 		err := b.DecodeMessage(msg)
-		m.Destination = &SingleDestination_Function{msg}
+		m.DestinationType = &Destination_Function{msg}
 		return true, err
-	case 2: // destination.upstream
+	case 2: // destination_type.upstream
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
 		msg := new(UpstreamDestination)
 		err := b.DecodeMessage(msg)
-		m.Destination = &SingleDestination_Upstream{msg}
+		m.DestinationType = &Destination_Upstream{msg}
 		return true, err
 	default:
 		return false, nil
 	}
 }
 
-func _SingleDestination_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*SingleDestination)
-	// destination
-	switch x := m.Destination.(type) {
-	case *SingleDestination_Function:
+func _Destination_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*Destination)
+	// destination_type
+	switch x := m.DestinationType.(type) {
+	case *Destination_Function:
 		s := proto.Size(x.Function)
 		n += proto.SizeVarint(1<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *SingleDestination_Upstream:
+	case *Destination_Upstream:
 		s := proto.Size(x.Upstream)
 		n += proto.SizeVarint(2<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
@@ -545,7 +422,7 @@ type FunctionDestination struct {
 func (m *FunctionDestination) Reset()                    { *m = FunctionDestination{} }
 func (m *FunctionDestination) String() string            { return proto.CompactTextString(m) }
 func (*FunctionDestination) ProtoMessage()               {}
-func (*FunctionDestination) Descriptor() ([]byte, []int) { return fileDescriptorVirtualhost, []int{6} }
+func (*FunctionDestination) Descriptor() ([]byte, []int) { return fileDescriptorVirtualhost, []int{5} }
 
 func (m *FunctionDestination) GetUpstreamName() string {
 	if m != nil {
@@ -568,7 +445,7 @@ type UpstreamDestination struct {
 func (m *UpstreamDestination) Reset()                    { *m = UpstreamDestination{} }
 func (m *UpstreamDestination) String() string            { return proto.CompactTextString(m) }
 func (*UpstreamDestination) ProtoMessage()               {}
-func (*UpstreamDestination) Descriptor() ([]byte, []int) { return fileDescriptorVirtualhost, []int{7} }
+func (*UpstreamDestination) Descriptor() ([]byte, []int) { return fileDescriptorVirtualhost, []int{6} }
 
 func (m *UpstreamDestination) GetName() string {
 	if m != nil {
@@ -584,7 +461,7 @@ type SSLConfig struct {
 func (m *SSLConfig) Reset()                    { *m = SSLConfig{} }
 func (m *SSLConfig) String() string            { return proto.CompactTextString(m) }
 func (*SSLConfig) ProtoMessage()               {}
-func (*SSLConfig) Descriptor() ([]byte, []int) { return fileDescriptorVirtualhost, []int{8} }
+func (*SSLConfig) Descriptor() ([]byte, []int) { return fileDescriptorVirtualhost, []int{7} }
 
 func (m *SSLConfig) GetSecretRef() string {
 	if m != nil {
@@ -597,9 +474,8 @@ func init() {
 	proto.RegisterType((*VirtualHost)(nil), "v1.VirtualHost")
 	proto.RegisterType((*Route)(nil), "v1.Route")
 	proto.RegisterType((*Matcher)(nil), "v1.Matcher")
-	proto.RegisterType((*MultipleDestinations)(nil), "v1.MultipleDestinations")
-	proto.RegisterType((*WeightedSingleDestination)(nil), "v1.WeightedSingleDestination")
-	proto.RegisterType((*SingleDestination)(nil), "v1.SingleDestination")
+	proto.RegisterType((*WeightedDestination)(nil), "v1.WeightedDestination")
+	proto.RegisterType((*Destination)(nil), "v1.Destination")
 	proto.RegisterType((*FunctionDestination)(nil), "v1.FunctionDestination")
 	proto.RegisterType((*UpstreamDestination)(nil), "v1.UpstreamDestination")
 	proto.RegisterType((*SSLConfig)(nil), "v1.SSLConfig")
@@ -672,67 +548,21 @@ func (this *Route) Equal(that interface{}) bool {
 	if !this.Matcher.Equal(that1.Matcher) {
 		return false
 	}
-	if that1.Destination == nil {
-		if this.Destination != nil {
+	if len(this.MultipleDestinations) != len(that1.MultipleDestinations) {
+		return false
+	}
+	for i := range this.MultipleDestinations {
+		if !this.MultipleDestinations[i].Equal(that1.MultipleDestinations[i]) {
 			return false
 		}
-	} else if this.Destination == nil {
-		return false
-	} else if !this.Destination.Equal(that1.Destination) {
+	}
+	if !this.SingleDestination.Equal(that1.SingleDestination) {
 		return false
 	}
 	if this.PrefixRewrite != that1.PrefixRewrite {
 		return false
 	}
 	if !this.Extensions.Equal(that1.Extensions) {
-		return false
-	}
-	return true
-}
-func (this *Route_MultipleDestinations) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*Route_MultipleDestinations)
-	if !ok {
-		that2, ok := that.(Route_MultipleDestinations)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.MultipleDestinations.Equal(that1.MultipleDestinations) {
-		return false
-	}
-	return true
-}
-func (this *Route_SingleDestination) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*Route_SingleDestination)
-	if !ok {
-		that2, ok := that.(Route_SingleDestination)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.SingleDestination.Equal(that1.SingleDestination) {
 		return false
 	}
 	return true
@@ -863,43 +693,14 @@ func (this *Matcher_PathExact) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *MultipleDestinations) Equal(that interface{}) bool {
+func (this *WeightedDestination) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*MultipleDestinations)
+	that1, ok := that.(*WeightedDestination)
 	if !ok {
-		that2, ok := that.(MultipleDestinations)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if len(this.WeightedDestinations) != len(that1.WeightedDestinations) {
-		return false
-	}
-	for i := range this.WeightedDestinations {
-		if !this.WeightedDestinations[i].Equal(that1.WeightedDestinations[i]) {
-			return false
-		}
-	}
-	return true
-}
-func (this *WeightedSingleDestination) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*WeightedSingleDestination)
-	if !ok {
-		that2, ok := that.(WeightedSingleDestination)
+		that2, ok := that.(WeightedDestination)
 		if ok {
 			that1 = &that2
 		} else {
@@ -919,14 +720,14 @@ func (this *WeightedSingleDestination) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *SingleDestination) Equal(that interface{}) bool {
+func (this *Destination) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*SingleDestination)
+	that1, ok := that.(*Destination)
 	if !ok {
-		that2, ok := that.(SingleDestination)
+		that2, ok := that.(Destination)
 		if ok {
 			that1 = &that2
 		} else {
@@ -938,25 +739,25 @@ func (this *SingleDestination) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if that1.Destination == nil {
-		if this.Destination != nil {
+	if that1.DestinationType == nil {
+		if this.DestinationType != nil {
 			return false
 		}
-	} else if this.Destination == nil {
+	} else if this.DestinationType == nil {
 		return false
-	} else if !this.Destination.Equal(that1.Destination) {
+	} else if !this.DestinationType.Equal(that1.DestinationType) {
 		return false
 	}
 	return true
 }
-func (this *SingleDestination_Function) Equal(that interface{}) bool {
+func (this *Destination_Function) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*SingleDestination_Function)
+	that1, ok := that.(*Destination_Function)
 	if !ok {
-		that2, ok := that.(SingleDestination_Function)
+		that2, ok := that.(Destination_Function)
 		if ok {
 			that1 = &that2
 		} else {
@@ -973,14 +774,14 @@ func (this *SingleDestination_Function) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *SingleDestination_Upstream) Equal(that interface{}) bool {
+func (this *Destination_Upstream) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*SingleDestination_Upstream)
+	that1, ok := that.(*Destination_Upstream)
 	if !ok {
-		that2, ok := that.(SingleDestination_Upstream)
+		that2, ok := that.(Destination_Upstream)
 		if ok {
 			that1 = &that2
 		} else {
@@ -1076,50 +877,49 @@ func (this *SSLConfig) Equal(that interface{}) bool {
 func init() { proto.RegisterFile("virtualhost.proto", fileDescriptorVirtualhost) }
 
 var fileDescriptorVirtualhost = []byte{
-	// 709 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x54, 0xcd, 0x6e, 0xd3, 0x40,
-	0x10, 0xae, 0x93, 0x34, 0xc1, 0xe3, 0x04, 0xb5, 0xdb, 0x94, 0x9a, 0xa8, 0x85, 0xd4, 0x55, 0xa5,
-	0x80, 0x50, 0xaa, 0x06, 0xa1, 0xa2, 0x1e, 0x40, 0x2a, 0xb4, 0xca, 0x81, 0x9f, 0xb2, 0x15, 0x70,
-	0xb4, 0xdc, 0x64, 0xe3, 0x18, 0x1c, 0x3b, 0xdd, 0x5d, 0xa7, 0xe9, 0x5b, 0xf0, 0x18, 0x1c, 0x39,
-	0xf1, 0x40, 0xbc, 0x07, 0x12, 0xda, 0x59, 0x3b, 0x38, 0x69, 0x38, 0x70, 0x9b, 0xf9, 0xe6, 0xfb,
-	0x76, 0x66, 0x76, 0x66, 0x17, 0xd6, 0x27, 0x01, 0x97, 0x89, 0x17, 0x0e, 0x63, 0x21, 0xdb, 0x63,
-	0x1e, 0xcb, 0x98, 0x14, 0x26, 0x87, 0x8d, 0x6d, 0x3f, 0x8e, 0xfd, 0x90, 0x1d, 0x20, 0x72, 0x99,
-	0x0c, 0x0e, 0x84, 0xe4, 0x49, 0x2f, 0x65, 0x34, 0xea, 0x7e, 0xec, 0xc7, 0x68, 0x1e, 0x28, 0x2b,
-	0x45, 0xab, 0x42, 0x7a, 0x32, 0x11, 0xda, 0x73, 0x7e, 0x18, 0x60, 0x7d, 0xd2, 0x67, 0x77, 0x63,
-	0x21, 0x09, 0x81, 0x52, 0xe4, 0x8d, 0x98, 0x6d, 0x34, 0x8d, 0x96, 0x49, 0xd1, 0x26, 0x36, 0x54,
-	0xfa, 0xf1, 0xc8, 0x0b, 0x22, 0x61, 0x17, 0x9a, 0xc5, 0x96, 0x49, 0x33, 0x97, 0xec, 0x42, 0x99,
-	0xc7, 0x89, 0x64, 0xc2, 0x2e, 0x36, 0x8b, 0x2d, 0xab, 0x63, 0xb6, 0x27, 0x87, 0x6d, 0xaa, 0x10,
-	0x9a, 0x06, 0xc8, 0x13, 0x00, 0x21, 0x42, 0xb7, 0x17, 0x47, 0x83, 0xc0, 0xb7, 0x4b, 0x4d, 0xa3,
-	0x65, 0x75, 0x6a, 0x8a, 0x76, 0x71, 0xf1, 0xe6, 0x15, 0x82, 0xd4, 0x14, 0x22, 0xd4, 0x26, 0x71,
-	0xa0, 0xac, 0xcb, 0xb3, 0xcb, 0xc8, 0x04, 0x64, 0x22, 0x42, 0xd3, 0x88, 0xf3, 0xb3, 0x00, 0xab,
-	0x98, 0x83, 0xec, 0x43, 0x65, 0xe4, 0xc9, 0xde, 0x90, 0x71, 0xac, 0xd7, 0xea, 0x58, 0x8a, 0xfe,
-	0x56, 0x43, 0x34, 0x8b, 0x91, 0xf7, 0xb0, 0x39, 0x4a, 0x42, 0x19, 0x8c, 0x43, 0xe6, 0xf6, 0x99,
-	0x90, 0x41, 0xe4, 0xc9, 0x20, 0xc6, 0x6e, 0x94, 0xc8, 0x46, 0x51, 0x4a, 0x78, 0x9d, 0x8b, 0x77,
-	0x57, 0x68, 0x7d, 0xb4, 0x04, 0x27, 0x67, 0x40, 0x44, 0x10, 0xf9, 0xf3, 0xc7, 0xd9, 0x45, 0x3c,
-	0x6d, 0x13, 0x2b, 0xc6, 0x68, 0x4e, 0xd3, 0x5d, 0xa1, 0xeb, 0x62, 0x11, 0x24, 0xfb, 0x70, 0x77,
-	0xcc, 0xd9, 0x20, 0x98, 0xba, 0x9c, 0x5d, 0xf3, 0x40, 0x32, 0xbc, 0x1f, 0x93, 0xd6, 0x34, 0x4a,
-	0x35, 0x48, 0x8e, 0x00, 0xd8, 0x54, 0xb2, 0x48, 0x60, 0xd1, 0xab, 0x98, 0x66, 0xab, 0xad, 0x47,
-	0xdf, 0xce, 0x46, 0xdf, 0xbe, 0xc0, 0xd1, 0xd3, 0x1c, 0xf5, 0xa4, 0x06, 0x56, 0xae, 0x40, 0xe7,
-	0x77, 0x01, 0x2a, 0xe9, 0xe5, 0x90, 0x5d, 0xb0, 0xc6, 0x9e, 0x1c, 0xba, 0x3a, 0x93, 0x1e, 0x77,
-	0x77, 0x85, 0x82, 0x02, 0xcf, 0x11, 0x23, 0x0f, 0x01, 0x3d, 0x97, 0x33, 0x9f, 0x4d, 0xf1, 0xae,
-	0x14, 0xc3, 0x54, 0x18, 0x55, 0xd0, 0x8c, 0xc0, 0xa6, 0x5e, 0x4f, 0x62, 0xfb, 0x33, 0xc2, 0xa9,
-	0x82, 0x48, 0x07, 0x2a, 0x43, 0xe6, 0xf5, 0x19, 0x17, 0x76, 0x09, 0xf7, 0xc3, 0xce, 0xcd, 0xa7,
-	0xdd, 0xd5, 0xa1, 0xd3, 0x48, 0xf2, 0x1b, 0x9a, 0x11, 0xc9, 0x4b, 0xa8, 0x5e, 0x25, 0x8c, 0xdf,
-	0xb8, 0x63, 0x8f, 0x7b, 0x23, 0xd5, 0xae, 0x12, 0x6e, 0xe7, 0x85, 0x1f, 0x54, 0xfc, 0x1c, 0xc3,
-	0x5a, 0x6c, 0x5d, 0xfd, 0x45, 0x48, 0x1d, 0x56, 0x27, 0x8c, 0x5f, 0xaa, 0x0d, 0x52, 0xbb, 0xaa,
-	0x9d, 0xc6, 0x31, 0x54, 0xf3, 0xf9, 0xc8, 0x1a, 0x14, 0xbf, 0xb2, 0x9b, 0x74, 0xcd, 0x95, 0x89,
-	0x3a, 0x2f, 0x4c, 0x98, 0xee, 0x94, 0x6a, 0xe7, 0xb8, 0xf0, 0xdc, 0x68, 0xbc, 0x80, 0xb5, 0xc5,
-	0x94, 0xff, 0xa3, 0x3f, 0x29, 0x43, 0x49, 0xdd, 0x89, 0xf3, 0x05, 0xea, 0xcb, 0xd6, 0x8c, 0x50,
-	0xd8, 0xbc, 0x66, 0x81, 0x3f, 0x94, 0xac, 0x3f, 0xbf, 0x9f, 0x06, 0xf6, 0xbe, 0xa3, 0x7a, 0xff,
-	0x9c, 0x12, 0x6e, 0x6d, 0x16, 0xad, 0x67, 0xda, 0xfc, 0x99, 0x4e, 0x08, 0xf7, 0xff, 0x29, 0x21,
-	0x47, 0x73, 0x7b, 0x91, 0xbe, 0x9d, 0xe5, 0x8b, 0x4b, 0xf3, 0x4c, 0x72, 0x0f, 0xca, 0x3a, 0x1b,
-	0x36, 0x59, 0xa3, 0xa9, 0xe7, 0x7c, 0x33, 0x60, 0xfd, 0x76, 0x9a, 0x67, 0x70, 0x67, 0x90, 0x44,
-	0xbd, 0x5c, 0x8e, 0x2d, 0x95, 0xe3, 0x2c, 0xc5, 0xe6, 0x9f, 0xc7, 0x8c, 0xaa, 0x64, 0xc9, 0x58,
-	0x48, 0xce, 0xbc, 0x51, 0xfa, 0x42, 0x51, 0xf6, 0x31, 0xc5, 0x16, 0x64, 0x19, 0x75, 0x71, 0xd9,
-	0x5d, 0xd8, 0x58, 0x92, 0x88, 0xec, 0x41, 0x2d, 0x53, 0xb8, 0xb9, 0x8f, 0xae, 0x9a, 0x81, 0xef,
-	0xd4, 0x87, 0xb7, 0x07, 0xb5, 0xac, 0x1a, 0x4d, 0xd2, 0x23, 0xad, 0x66, 0xa0, 0x22, 0x39, 0x8f,
-	0x60, 0x63, 0x49, 0x49, 0xcb, 0x3e, 0x50, 0xe7, 0x31, 0x98, 0xb3, 0xdf, 0x8e, 0xec, 0x00, 0x08,
-	0xd6, 0xe3, 0x4c, 0xba, 0x9c, 0x0d, 0x52, 0x9a, 0xa9, 0x11, 0xca, 0x06, 0x27, 0xa5, 0xef, 0xbf,
-	0x1e, 0x18, 0x97, 0x65, 0x7c, 0xd6, 0x4f, 0xff, 0x04, 0x00, 0x00, 0xff, 0xff, 0x2b, 0x1c, 0x98,
-	0xad, 0xf8, 0x05, 0x00, 0x00,
+	// 692 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x94, 0xc1, 0x6e, 0xd3, 0x4a,
+	0x14, 0x86, 0xeb, 0x24, 0x4d, 0xae, 0x8f, 0x93, 0x7b, 0xdb, 0x69, 0xef, 0xad, 0x15, 0xf5, 0xd2,
+	0xd4, 0x55, 0xa5, 0x80, 0x50, 0xaa, 0x06, 0xa1, 0xa2, 0x2e, 0x8a, 0x14, 0x28, 0xca, 0xa2, 0xa0,
+	0x32, 0x15, 0xb0, 0xb4, 0xdc, 0xe4, 0xc4, 0xb1, 0x48, 0x6c, 0x77, 0x66, 0x9c, 0x26, 0x4f, 0xc1,
+	0x0b, 0xf0, 0x00, 0x2c, 0x79, 0x14, 0x9e, 0x80, 0x05, 0xef, 0x81, 0x84, 0x66, 0xc6, 0x4e, 0x87,
+	0x2a, 0x1b, 0x76, 0x33, 0xdf, 0xf9, 0xff, 0x73, 0x8e, 0x67, 0x8e, 0x07, 0x36, 0x67, 0x11, 0x13,
+	0x59, 0x30, 0x19, 0x27, 0x5c, 0x74, 0x52, 0x96, 0x88, 0x84, 0x94, 0x66, 0xc7, 0xcd, 0xdd, 0x30,
+	0x49, 0xc2, 0x09, 0x1e, 0x29, 0x72, 0x9d, 0x8d, 0x8e, 0xb8, 0x60, 0xd9, 0x20, 0x57, 0x34, 0xb7,
+	0xc3, 0x24, 0x4c, 0xd4, 0xf2, 0x48, 0xae, 0x72, 0x5a, 0xe7, 0x22, 0x10, 0x19, 0xd7, 0x3b, 0xef,
+	0xab, 0x05, 0xce, 0x7b, 0x9d, 0xbb, 0x9f, 0x70, 0x41, 0x08, 0x54, 0xe2, 0x60, 0x8a, 0xae, 0xd5,
+	0xb2, 0xda, 0x36, 0x55, 0x6b, 0xe2, 0x42, 0x6d, 0x98, 0x4c, 0x83, 0x28, 0xe6, 0x6e, 0xa9, 0x55,
+	0x6e, 0xdb, 0xb4, 0xd8, 0x92, 0x7d, 0xa8, 0xb2, 0x24, 0x13, 0xc8, 0xdd, 0x72, 0xab, 0xdc, 0x76,
+	0xba, 0x76, 0x67, 0x76, 0xdc, 0xa1, 0x92, 0xd0, 0x3c, 0x40, 0x1e, 0x03, 0x70, 0x3e, 0xf1, 0x07,
+	0x49, 0x3c, 0x8a, 0x42, 0xb7, 0xd2, 0xb2, 0xda, 0x4e, 0xb7, 0x21, 0x65, 0x57, 0x57, 0x17, 0x2f,
+	0x14, 0xa4, 0x36, 0xe7, 0x13, 0xbd, 0x24, 0x1e, 0x54, 0x75, 0x7b, 0x6e, 0x55, 0x29, 0x41, 0x29,
+	0x15, 0xa1, 0x79, 0xc4, 0xfb, 0x5c, 0x82, 0x75, 0x55, 0x83, 0x1c, 0x42, 0x6d, 0x1a, 0x88, 0xc1,
+	0x18, 0x99, 0xea, 0xd7, 0xe9, 0x3a, 0x52, 0xfe, 0x5a, 0x23, 0x5a, 0xc4, 0xc8, 0x05, 0xfc, 0x3b,
+	0xcd, 0x26, 0x22, 0x4a, 0x27, 0xe8, 0x0f, 0x91, 0x8b, 0x28, 0x0e, 0x44, 0x94, 0xe4, 0x5f, 0xe3,
+	0x74, 0x77, 0xa4, 0xe9, 0x03, 0x46, 0xe1, 0x58, 0xe0, 0xf0, 0xe5, 0x5d, 0x9c, 0x6e, 0x17, 0x2e,
+	0x03, 0x72, 0x72, 0x06, 0x84, 0x47, 0x71, 0xf8, 0x7b, 0x2e, 0xb7, 0xac, 0xea, 0xff, 0x23, 0x53,
+	0x99, 0x29, 0x36, 0xb5, 0xd4, 0x40, 0xe4, 0x10, 0xfe, 0x4e, 0x19, 0x8e, 0xa2, 0xb9, 0xcf, 0xf0,
+	0x96, 0x45, 0x02, 0xd5, 0xa1, 0xd8, 0xb4, 0xa1, 0x29, 0xd5, 0x90, 0x9c, 0x00, 0xe0, 0x5c, 0x60,
+	0xcc, 0x55, 0xa7, 0xeb, 0x2a, 0xfd, 0x4e, 0x47, 0xdf, 0x77, 0xa7, 0xb8, 0xef, 0xce, 0x95, 0xba,
+	0x6f, 0x6a, 0x48, 0xbd, 0x9f, 0x25, 0xa8, 0xe5, 0x47, 0x40, 0xf6, 0xc1, 0x49, 0x03, 0x31, 0xf6,
+	0x75, 0x6a, 0x7d, 0xa9, 0xfd, 0x35, 0x0a, 0x12, 0x5e, 0x2a, 0x46, 0xf6, 0x40, 0xed, 0x7c, 0x86,
+	0x21, 0xce, 0xdd, 0x52, 0xae, 0xb0, 0x25, 0xa3, 0x12, 0x2d, 0x05, 0x38, 0x0f, 0x06, 0x42, 0x7d,
+	0xe7, 0x52, 0x70, 0x2e, 0x11, 0xe9, 0x42, 0x6d, 0x8c, 0xc1, 0x10, 0x19, 0x77, 0x2b, 0xea, 0x40,
+	0x5d, 0xe3, 0x16, 0x3a, 0x7d, 0x1d, 0x3a, 0x8f, 0x05, 0x5b, 0xd0, 0x42, 0x48, 0x9e, 0x43, 0xfd,
+	0x26, 0x43, 0xb6, 0xf0, 0xd3, 0x80, 0x05, 0x53, 0xf9, 0x7d, 0xd2, 0xb8, 0x6b, 0x1a, 0xdf, 0xca,
+	0xf8, 0xa5, 0x0a, 0x6b, 0xb3, 0x73, 0x73, 0x47, 0xc8, 0x36, 0xac, 0xcf, 0x90, 0x5d, 0xcb, 0x39,
+	0x91, 0x13, 0xa9, 0x37, 0xcd, 0x53, 0xa8, 0x9b, 0xf5, 0xc8, 0x06, 0x94, 0x3f, 0xe2, 0x22, 0x1f,
+	0x66, 0xb9, 0x54, 0xbe, 0x60, 0x92, 0xa1, 0xfe, 0x52, 0xaa, 0x37, 0xa7, 0xa5, 0x67, 0x56, 0xf3,
+	0x0c, 0x36, 0xee, 0x97, 0xfc, 0x13, 0x7f, 0xaf, 0x0a, 0x15, 0x79, 0x26, 0xde, 0x08, 0xb6, 0x56,
+	0x0c, 0x13, 0x39, 0x01, 0xc7, 0x9c, 0x17, 0x6b, 0xe5, 0xbc, 0xf4, 0x2a, 0xdf, 0xbe, 0xef, 0x59,
+	0xd4, 0x54, 0x92, 0xff, 0xa0, 0x7a, 0xab, 0xf2, 0xa9, 0x92, 0x0d, 0x9a, 0xef, 0xbc, 0x4f, 0x16,
+	0x38, 0x66, 0x81, 0xa7, 0xf0, 0xd7, 0x28, 0x8b, 0x07, 0x46, 0x76, 0x35, 0xd8, 0xaf, 0x72, 0x66,
+	0x48, 0xfb, 0x6b, 0x74, 0x29, 0x95, 0xb6, 0x2c, 0xe5, 0x82, 0x61, 0x30, 0x55, 0x05, 0x72, 0xdb,
+	0xbb, 0x9c, 0xdd, 0xb3, 0x15, 0xd2, 0x1e, 0x81, 0x0d, 0xa3, 0x49, 0x5f, 0x2c, 0x52, 0xf4, 0x7c,
+	0xd8, 0x5a, 0x51, 0x8d, 0x1c, 0x40, 0xa3, 0xb0, 0xf9, 0xc6, 0xdb, 0x52, 0x2f, 0xe0, 0x1b, 0xf9,
+	0xc6, 0x1c, 0x40, 0xa3, 0x68, 0x49, 0x8b, 0xf4, 0xf9, 0xd6, 0x0b, 0x28, 0x45, 0xde, 0x43, 0xd8,
+	0x5a, 0xd1, 0xd7, 0xaa, 0x37, 0xcb, 0x7b, 0x04, 0xf6, 0xf2, 0x81, 0x21, 0xff, 0x03, 0x70, 0x1c,
+	0x30, 0x14, 0x3e, 0xc3, 0x51, 0x2e, 0xb3, 0x35, 0xa1, 0x38, 0xea, 0x55, 0xbe, 0xfc, 0x78, 0x60,
+	0x5d, 0x57, 0xd5, 0x4f, 0xf5, 0xe4, 0x57, 0x00, 0x00, 0x00, 0xff, 0xff, 0x15, 0xc7, 0x6d, 0x49,
+	0x6b, 0x05, 0x00, 0x00,
 }

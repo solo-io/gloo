@@ -18,9 +18,8 @@ It has these top-level messages:
 	VirtualHost
 	Route
 	Matcher
-	MultipleDestinations
-	WeightedSingleDestination
-	SingleDestination
+	WeightedDestination
+	Destination
 	FunctionDestination
 	UpstreamDestination
 	SSLConfig

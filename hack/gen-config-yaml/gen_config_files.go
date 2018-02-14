@@ -76,7 +76,7 @@ func NewTestConfig() v1.Config {
 		},
 	}
 	virtualhosts := []*v1.VirtualHost{
-		NewTestVirtualHost("localhost-app", NewTestRoute()),
+		NewTestVirtualHost("localhost-app", NewTestRoute(), NewTestRouteMultiDest()),
 	}
 	return v1.Config{
 		Upstreams:    upstreams,
@@ -100,13 +100,45 @@ func NewTestRoute() *v1.Route {
 			Headers: map[string]string{"x-foo-bar": ""},
 			Verbs:   []string{"GET", "POST"},
 		},
-		Destination: &v1.Route_SingleDestination{
-			SingleDestination: &v1.SingleDestination{
-				Destination: &v1.SingleDestination_Upstream{
-					Upstream: &v1.UpstreamDestination{
-						Name: upstreamName,
+		SingleDestination: &v1.Destination{
+			DestinationType: &v1.Destination_Upstream{
+				Upstream: &v1.UpstreamDestination{
+					Name: upstreamName,
+				},
+			},
+		},
+	}
+}
+
+func NewTestRouteMultiDest() *v1.Route {
+	return &v1.Route{
+		Matcher: &v1.Matcher{
+			Path: &v1.Matcher_PathPrefix{
+				PathPrefix: "/foo",
+			},
+			Headers: map[string]string{"x-foo-bar": ""},
+			Verbs:   []string{"GET", "POST"},
+		},
+		MultipleDestinations: []*v1.WeightedDestination{
+			{
+				Destination: &v1.Destination{
+					DestinationType: &v1.Destination_Upstream{
+						Upstream: &v1.UpstreamDestination{
+							Name: upstreamName,
+						},
 					},
 				},
+				Weight: 5,
+			},
+			{
+				Destination: &v1.Destination{
+					DestinationType: &v1.Destination_Upstream{
+						Upstream: &v1.UpstreamDestination{
+							Name: upstreamName,
+						},
+					},
+				},
+				Weight: 10,
 			},
 		},
 	}
