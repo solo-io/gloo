@@ -1,5 +1,7 @@
 package storage
 
+import "github.com/gogo/protobuf/proto"
+
 const (
 	// Create is WatchOperation passed to the watch callback
 	CreateOp = iota
@@ -15,7 +17,7 @@ const (
 type WatchOperation int
 
 // Item is used to represent all objects to be stored. Currently Upstream and VirtualHost are supported
-type Item interface{}
+type Item proto.Message
 
 // GetOptions is options object passed to Get method. Currently unused
 type GetOptions struct{}
