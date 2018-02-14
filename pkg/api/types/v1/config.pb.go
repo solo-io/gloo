@@ -6,12 +6,14 @@ Package v1 is a generated protocol buffer package.
 
 It is generated from these files:
 	config.proto
+	metadata.proto
 	status.proto
 	upstream.proto
 	virtualhost.proto
 
 It has these top-level messages:
 	Config
+	Metadata
 	Status
 	Upstream
 	Function

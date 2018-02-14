@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
+	"github.com/solo-io/glue/pkg/log"
 	"github.com/solo-io/glue/pkg/protoutil"
 
 	"github.com/solo-io/glue/internal/plugins/service"
@@ -51,6 +52,7 @@ func main() {
 		must(err)
 		data, err := yaml.JSONToYAML(jsn)
 		must(err)
+		log.GreyPrintf("%s", jsn)
 		filename := filepath.Join(outDir, "virtualhosts", fmt.Sprintf("virtualhost-%v.yml", virtualHost.Name))
 		err = ioutil.WriteFile(filename, data, 0644)
 		must(err)

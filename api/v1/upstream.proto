@@ -8,6 +8,7 @@ import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 import "status.proto";
+import "metadata.proto";
 
 message Upstream {
     string name = 1;
@@ -15,7 +16,9 @@ message Upstream {
     google.protobuf.Duration connection_timeout = 3 [(gogoproto.stdduration) = true];
     google.protobuf.Struct spec = 4;
     repeated Function functions = 5;
-    Status status = 6;
+    // read only
+    Status status = 6  [(gogoproto.embed) = true];
+    Metadata metadata = 7  [(gogoproto.embed) = true];
 }
 
 message Function {
