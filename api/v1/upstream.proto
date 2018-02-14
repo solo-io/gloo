@@ -17,7 +17,7 @@ message Upstream {
     google.protobuf.Struct spec = 4;
     repeated Function functions = 5;
     // read only
-    Status status = 6  [(gogoproto.embed) = true];
+    Status status = 6;
     Metadata metadata = 7  [(gogoproto.embed) = true];
 }
 

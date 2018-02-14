@@ -7,35 +7,9 @@ import (
 )
 
 func NewTestConfig() *v1.Config {
-	usSpec, _ := protoutil.MarshalStruct(map[string]interface{}{
-		"region":         "us-east-1",
-		"secret_key_ref": "my-secret-key",
-		"access_key_ref": "my-access-key",
-	})
-	fnSpec, _ := protoutil.MarshalStruct(map[string]interface{}{
-		"key": "value",
-	})
 	upstreams := []*v1.Upstream{
-		{
-			Name: "aws",
-			Type: "lambda",
-			Spec: usSpec,
-			Functions: []*v1.Function{
-				{
-					Name: "my_lambda_function",
-					Spec: fnSpec,
-				},
-			},
-		},
-		{
-			Name: "localhost-python",
-			Type: service.UpstreamTypeService,
-			Spec: service.EncodeUpstreamSpec(service.UpstreamSpec{
-				Hosts: []service.Host{
-					{Addr: "localhost", Port: 8000},
-				},
-			}),
-		},
+		NewTestUpstream1(),
+		NewTestUpstream2(),
 	}
 	virtualhosts := []*v1.VirtualHost{
 		NewTestVirtualHost("my-vhost", NewTestRoute1(), NewTestRoute2()),
@@ -44,6 +18,39 @@ func NewTestConfig() *v1.Config {
 	return &v1.Config{
 		Upstreams:    upstreams,
 		VirtualHosts: virtualhosts,
+	}
+}
+
+func NewTestUpstream1() *v1.Upstream {
+	usSpec, _ := protoutil.MarshalStruct(map[string]interface{}{
+		"region":         "us-east-1",
+		"secret_key_ref": "my-secret-key",
+		"access_key_ref": "my-access-key",
+	})
+	fnSpec, _ := protoutil.MarshalStruct(map[string]interface{}{
+		"key": "value",
+	})
+	return &v1.Upstream{
+		Name: "aws",
+		Type: "lambda",
+		Spec: usSpec,
+		Functions: []*v1.Function{
+			{
+				Name: "my_lambda_function",
+				Spec: fnSpec,
+			},
+		},
+	}
+}
+func NewTestUpstream2() *v1.Upstream {
+	return &v1.Upstream{
+		Name: "localhost-python",
+		Type: service.UpstreamTypeService,
+		Spec: service.EncodeUpstreamSpec(service.UpstreamSpec{
+			Hosts: []service.Host{
+				{Addr: "localhost", Port: 8000},
+			},
+		}),
 	}
 }
 
@@ -73,13 +80,11 @@ func NewTestRoute1() *v1.Route {
 			Headers: map[string]string{"x-foo-bar": ""},
 			Verbs:   []string{"GET", "POST"},
 		},
-		Destination: &v1.Route_SingleDestination{
-			SingleDestination: &v1.SingleDestination{
-				Destination: &v1.SingleDestination_Function{
-					Function: &v1.FunctionDestination{
-						FunctionName: "foo",
-						UpstreamName: "aws",
-					},
+		SingleDestination: &v1.Destination{
+			DestinationType: &v1.Destination_Function{
+				Function: &v1.FunctionDestination{
+					FunctionName: "foo",
+					UpstreamName: "aws",
 				},
 			},
 		},
@@ -105,12 +110,10 @@ func NewTestRoute2() *v1.Route {
 			},
 			Verbs: []string{"GET", "POST"},
 		},
-		Destination: &v1.Route_SingleDestination{
-			SingleDestination: &v1.SingleDestination{
-				Destination: &v1.SingleDestination_Upstream{
-					Upstream: &v1.UpstreamDestination{
-						Name: "my-upstream",
-					},
+		SingleDestination: &v1.Destination{
+			DestinationType: &v1.Destination_Upstream{
+				Upstream: &v1.UpstreamDestination{
+					Name: "my-upstream",
 				},
 			},
 		},

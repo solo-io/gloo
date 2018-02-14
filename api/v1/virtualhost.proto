@@ -15,7 +15,7 @@ message VirtualHost {
     repeated Route routes = 3;
     SSLConfig ssl_config = 4;
     // read only
-    Status status = 5  [(gogoproto.embed) = true];
+    Status status = 5;
     Metadata metadata = 6  [(gogoproto.embed) = true];
 }
 
