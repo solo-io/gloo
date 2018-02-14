@@ -4,14 +4,16 @@ package v1;
 import "google/protobuf/struct.proto";
 
 import "gogoproto/gogo.proto";
-
 option (gogoproto.equal_all) = true;
+
+import "status.proto";
 
 message VirtualHost {
     string name = 1;
     repeated string domains = 2;
     repeated Route routes = 3;
     SSLConfig ssl_config = 4;
+    Status status = 6;
 }
 
 message Route {

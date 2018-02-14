@@ -1,10 +1,10 @@
 syntax = "proto3";
 package v1;
 
-import "gogoproto/gogo.proto";
 import "upstream.proto";
 import "virtualhost.proto";
 
+import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 message Config {
