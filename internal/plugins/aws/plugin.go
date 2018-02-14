@@ -46,7 +46,7 @@ const (
 )
 
 func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
-	var deps *plugin.Dependencies
+	deps := new(plugin.Dependencies)
 	for _, upstream := range cfg.Upstreams {
 		if upstream.Type != UpstreamTypeAws {
 			continue

@@ -6,7 +6,7 @@ import (
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 
 	"github.com/solo-io/glue/pkg/log"
@@ -21,7 +21,7 @@ func registerCrds(restConfig *rest.Config) error {
 	}
 	for _, crd := range v1.KnownCRDs {
 		toRegister := &v1beta1.CustomResourceDefinition{
-			ObjectMeta: meta_v1.ObjectMeta{Name: crd.FullName()},
+			ObjectMeta: metav1.ObjectMeta{Name: crd.FullName()},
 			Spec: v1beta1.CustomResourceDefinitionSpec{
 				Group:   crd.Group,
 				Version: crd.Version,
