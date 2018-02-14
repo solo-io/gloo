@@ -21,6 +21,8 @@ proto:
 	../../pkg/api/types/v1 \
 	./*.proto
 
+build-debug: glue-debug
+
 build: glue
 
 fmt:
@@ -28,8 +30,10 @@ fmt:
 	goimports -w $(PKGDIRS)
 
 glue: $(SOURCES)
-	go build -o glue cmd/glue/*.go
+	go build -i -o glue cmd/glue/*.go
 
+glue-debug: $(SOURCES)
+	go build -i -gcflags "-N -l" -o glue-debug cmd/glue/*.go
 # not gonna work
 hackrun: glue
 	./hack/run-local.sh
@@ -44,3 +48,4 @@ test: e2e unit
 
 clean:
 	rm -f glue
+
