@@ -1,16 +1,16 @@
 package file
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
 
+	"github.com/solo-io/glue-storage/pkg/storage/common"
 	gluev1 "github.com/solo-io/glue/pkg/api/types/v1"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/solo-io/gluectl/pkg/storage"
+	"github.com/solo-io/glue-storage/pkg/storage"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -22,11 +22,11 @@ const (
 )
 
 var evtTypeToOperation = map[fsnotify.Op]storage.WatchOperation{
-	fsnotify.Create: storage.Create,
-	fsnotify.Write:  storage.Update,
-	fsnotify.Remove: storage.Delete,
-	fsnotify.Chmod:  storage.Update,
-	fsnotify.Rename: storage.Error,
+	fsnotify.Create: storage.CreateOp,
+	fsnotify.Write:  storage.UpdateOp,
+	fsnotify.Remove: storage.DeleteOp,
+	fsnotify.Chmod:  storage.UpdateOp,
+	fsnotify.Rename: storage.ErrorOp,
 }
 
 type FileStorage struct {
@@ -35,30 +35,26 @@ type FileStorage struct {
 	vhostWatcher    *fsnotify.Watcher
 }
 
-func createFolder(name string) error {
-	if _, err := os.Stat(name); os.IsNotExist(err) {
-		return os.MkdirAll(name, folderAtrributes)
-	} else if err != nil {
-		return err
-	}
-	return nil
-}
-
 func NewFileStorage(root, namespace string) (*FileStorage, error) {
-
 	fullpath := path.Join(root, namespace)
-	err := createFolder(path.Join(fullpath, upstreamPath))
-	if err != nil {
-		return nil, err
-	}
-	err = createFolder(path.Join(fullpath, vhostPath))
-	if err != nil {
-		return nil, err
-	}
 	return &FileStorage{namespacePath: fullpath}, nil
 }
 
 func (c *FileStorage) Register(item storage.Item) error {
+	switch item.(type) {
+	case *gluev1.Upstream:
+		err := createFolder(path.Join(c.namespacePath, upstreamPath))
+		if err != nil {
+			return err
+		}
+	case *gluev1.VirtualHost:
+		err := createFolder(path.Join(c.namespacePath, vhostPath))
+		if err != nil {
+			return err
+		}
+	default:
+		return common.UnknownType(item)
+	}
 	return nil
 }
 
@@ -77,7 +73,7 @@ func (c *FileStorage) Create(item storage.Item) (storage.Item, error) {
 	case *gluev1.VirtualHost:
 		err = ioutil.WriteFile(path.Join(c.namespacePath, *n), d, fileAttributes)
 	default:
-		return nil, fmt.Errorf("Unknown Item Type: %t", item)
+		return nil, common.UnknownType(item)
 	}
 	if err != nil {
 		return nil, err
@@ -139,7 +135,7 @@ func (c *FileStorage) List(item storage.Item, listOptions *storage.ListOptions) 
 		}
 		return res, nil
 	default:
-		return nil, fmt.Errorf("Unknown Item Type: %t", item)
+		return nil, common.UnknownType(item)
 	}
 }
 func (c *FileStorage) Watch(item storage.Item, watchOptions *storage.WatchOptions, callback func(item storage.Item, operation storage.WatchOperation)) error {
@@ -159,7 +155,7 @@ func (c *FileStorage) Watch(item storage.Item, watchOptions *storage.WatchOption
 						return
 					}
 					if event.Op == fsnotify.Remove {
-						callback(&gluev1.Upstream{Name: path.Base(event.Name)}, storage.Delete)
+						callback(&gluev1.Upstream{Name: path.Base(event.Name)}, storage.DeleteOp)
 					} else {
 						obj, err := c.read(item, event.Name, "", nil)
 						if err != nil {
@@ -188,7 +184,7 @@ func (c *FileStorage) Watch(item storage.Item, watchOptions *storage.WatchOption
 						return
 					}
 					if event.Op == fsnotify.Remove {
-						callback(&gluev1.VirtualHost{Name: path.Base(event.Name)}, storage.Delete)
+						callback(&gluev1.VirtualHost{Name: path.Base(event.Name)}, storage.DeleteOp)
 					} else {
 						obj, err := c.read(item, event.Name, "", nil)
 						if err != nil {
@@ -205,7 +201,7 @@ func (c *FileStorage) Watch(item storage.Item, watchOptions *storage.WatchOption
 		c.vhostWatcher.Add(path.Join(c.namespacePath, vhostPath))
 
 	default:
-		return fmt.Errorf("Unknown Item Type: %t", item)
+		return common.UnknownType(item)
 	}
 	return nil
 }
@@ -239,7 +235,7 @@ func (c *FileStorage) read(item storage.Item, name, fpath string, getOptions *st
 		}
 		return obj, nil
 	}
-	return nil, fmt.Errorf("Unknown Item Type: %t", item)
+	return nil, common.UnknownType(item)
 }
 
 func getObjName(item storage.Item) (*string, error) {
@@ -250,5 +246,14 @@ func getObjName(item storage.Item) (*string, error) {
 		p := path.Join(vhostPath, obj.Name)
 		return &p, nil
 	}
-	return nil, fmt.Errorf("Unknown Item Type: %t", item)
+	return nil, common.UnknownType(item)
+}
+
+func createFolder(name string) error {
+	if _, err := os.Stat(name); os.IsNotExist(err) {
+		return os.MkdirAll(name, folderAtrributes)
+	} else if err != nil {
+		return err
+	}
+	return nil
 }

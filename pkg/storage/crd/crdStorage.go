@@ -1,12 +1,11 @@
 package crd
 
 import (
-	"fmt"
-
+	"github.com/solo-io/glue-storage/pkg/storage"
+	"github.com/solo-io/glue-storage/pkg/storage/common"
 	gluev1 "github.com/solo-io/glue/pkg/api/types/v1"
 	crdclient "github.com/solo-io/glue/pkg/platform/kube/crd/client/clientset/versioned"
 	crd "github.com/solo-io/glue/pkg/platform/kube/crd/solo.io/v1"
-	"github.com/solo-io/gluectl/pkg/storage"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -16,10 +15,10 @@ import (
 )
 
 var evtTypeToOperation = map[watch.EventType]storage.WatchOperation{
-	watch.Added:    storage.Create,
-	watch.Modified: storage.Update,
-	watch.Deleted:  storage.Delete,
-	watch.Error:    storage.Error,
+	watch.Added:    storage.CreateOp,
+	watch.Modified: storage.UpdateOp,
+	watch.Deleted:  storage.DeleteOp,
+	watch.Error:    storage.ErrorOp,
 }
 
 type CrdStorage struct {
@@ -95,7 +94,7 @@ func (c *CrdStorage) Create(item storage.Item) (storage.Item, error) {
 		cobj := crd.VirtualHostToCRD(metav1.ObjectMeta{Name: obj.Name}, *obj)
 		return vhost(c.clientset.GlueV1().VirtualHosts(c.namespace).Create(cobj))
 	}
-	return nil, fmt.Errorf("Unknown Item Type: %t", item)
+	return nil, common.UnknownType(item)
 }
 
 func (c *CrdStorage) Update(item storage.Item) (storage.Item, error) {
@@ -114,7 +113,7 @@ func (c *CrdStorage) Update(item storage.Item) (storage.Item, error) {
 		cobj := crd.VirtualHostToCRD(xobj.ObjectMeta, *obj)
 		return vhost(c.clientset.GlueV1().VirtualHosts(c.namespace).Update(cobj))
 	}
-	return nil, fmt.Errorf("Unknown Item Type: %t", item)
+	return nil, common.UnknownType(item)
 }
 
 func (c *CrdStorage) Delete(item storage.Item) error {
@@ -123,7 +122,7 @@ func (c *CrdStorage) Delete(item storage.Item) error {
 	} else if obj, ok := item.(*gluev1.VirtualHost); ok {
 		return c.clientset.GlueV1().VirtualHosts(c.namespace).Delete(obj.Name, &metav1.DeleteOptions{})
 	}
-	return fmt.Errorf("Unknown Item Type: %t", item)
+	return common.UnknownType(item)
 }
 
 func (c *CrdStorage) Get(item storage.Item, getOptions *storage.GetOptions) (storage.Item, error) {
@@ -132,7 +131,7 @@ func (c *CrdStorage) Get(item storage.Item, getOptions *storage.GetOptions) (sto
 	} else if obj, ok := item.(*gluev1.VirtualHost); ok {
 		return vhost(c.clientset.GlueV1().VirtualHosts(c.namespace).Get(obj.Name, metav1.GetOptions{}))
 	}
-	return nil, fmt.Errorf("Unknown Item Type: %t", item)
+	return nil, common.UnknownType(item)
 }
 
 func (c *CrdStorage) List(item storage.Item, listOptions *storage.ListOptions) ([]storage.Item, error) {
@@ -160,7 +159,7 @@ func (c *CrdStorage) List(item storage.Item, listOptions *storage.ListOptions) (
 		}
 		return l, nil
 	default:
-		return nil, fmt.Errorf("Unknown Item Type: %t", item)
+		return nil, common.UnknownType(item)
 	}
 }
 
@@ -207,7 +206,7 @@ func (c *CrdStorage) Watch(item storage.Item, watchOptions *storage.WatchOptions
 		return nil
 
 	default:
-		return fmt.Errorf("Unknown Item Type: %t", item)
+		return common.UnknownType(item)
 	}
 }
 
