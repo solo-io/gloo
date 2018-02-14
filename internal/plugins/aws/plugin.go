@@ -126,6 +126,10 @@ func (p *Plugin) ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMa
 		},
 	}
 
+	out.Type = envoyapi.Cluster_LOGICAL_DNS
+	// need to make sure we use ipv4 only dns
+	out.DnsLookupFamily = envoyapi.Cluster_V4_ONLY
+
 	return nil
 }
 
