@@ -85,6 +85,7 @@ var _ = Describe("Conversion", func() {
 			outVhost, err := VirtualHostFromCrd(vhCrd)
 			vHost.Metadata = &v1.Metadata{
 				ResourceVersion: vhCrd.ResourceVersion,
+				Namespace:       vhCrd.Namespace,
 			}
 			Expect(err).To(BeNil())
 			Expect(outVhost).To(Equal(vHost))

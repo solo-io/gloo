@@ -9,23 +9,26 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func UpstreamToCrd(namespace string, us *v1.Upstream) (*crdv1.Upstream, error) {
-	name := us.Name
+func UpstreamToCrd(namespace string, upstream *v1.Upstream) (*crdv1.Upstream, error) {
+	name := upstream.Name
 	var status *v1.Status
 	var ok bool
-	if us.Status != nil {
-		status, ok = proto.Clone(us.Status).(*v1.Status)
+	if upstream.Status != nil {
+		status, ok = proto.Clone(upstream.Status).(*v1.Status)
 		if !ok {
 			return nil, errors.New("internal error: output of proto.Clone was not expected type")
 		}
 	}
 	var resourceVersion string
-	if us.Metadata != nil {
-		resourceVersion = us.Metadata.ResourceVersion
+	if upstream.Metadata != nil {
+		resourceVersion = upstream.Metadata.ResourceVersion
+		if upstream.Metadata.Namespace != "" {
+			namespace = upstream.Metadata.Namespace
+		}
 	}
 
 	// clone and remove fields
-	upstreamClone, ok := proto.Clone(us).(*v1.Upstream)
+	upstreamClone, ok := proto.Clone(upstream).(*v1.Upstream)
 	if !ok {
 		return nil, errors.New("internal error: output of proto.Clone was not expected type")
 	}
@@ -62,6 +65,7 @@ func UpstreamFromCrd(upstreamCrd *crdv1.Upstream) (*v1.Upstream, error) {
 	upstream.Name = upstreamCrd.Name
 	upstream.Metadata = &v1.Metadata{
 		ResourceVersion: upstreamCrd.ResourceVersion,
+		Namespace:       upstreamCrd.Namespace,
 	}
 	upstream.Status = upstreamCrd.Status
 	return &upstream, nil
@@ -80,6 +84,9 @@ func VirtualHostToCrd(namespace string, virtualHost *v1.VirtualHost) (*crdv1.Vir
 	var resourceVersion string
 	if virtualHost.Metadata != nil {
 		resourceVersion = virtualHost.Metadata.ResourceVersion
+		if virtualHost.Metadata.Namespace != "" {
+			namespace = virtualHost.Metadata.Namespace
+		}
 	}
 
 	// clone and remove fields
@@ -120,6 +127,7 @@ func VirtualHostFromCrd(vHostCrd *crdv1.VirtualHost) (*v1.VirtualHost, error) {
 	virtualHost.Name = vHostCrd.Name
 	virtualHost.Metadata = &v1.Metadata{
 		ResourceVersion: vHostCrd.ResourceVersion,
+		Namespace:       vHostCrd.Namespace,
 	}
 	virtualHost.Status = vHostCrd.Status
 	return &virtualHost, nil

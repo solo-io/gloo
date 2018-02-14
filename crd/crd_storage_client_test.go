@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/solo-io/glue-storage/crd"
-	"github.com/solo-io/glue-storage/crd/solo.io/v1"
+	crdv1 "github.com/solo-io/glue-storage/crd/solo.io/v1"
 	. "github.com/solo-io/glue/test/helpers"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -53,7 +53,7 @@ var _ = Describe("CrdStorageClient", func() {
 			Expect(err).NotTo(HaveOccurred())
 			crds, err := apiextClient.ApiextensionsV1beta1().CustomResourceDefinitions().List(metav1.ListOptions{})
 			Expect(err).NotTo(HaveOccurred())
-			for _, crdSchema := range v1.KnownCRDs {
+			for _, crdSchema := range crdv1.KnownCRDs {
 				var foundCrd *v1beta1.CustomResourceDefinition
 				for _, crd := range crds.Items {
 					if crd.Spec.Names.Kind == crdSchema.Kind {
@@ -67,6 +67,43 @@ var _ = Describe("CrdStorageClient", func() {
 				Expect(foundCrd.Spec.Version).To(Equal(crdSchema.Version))
 				Expect(foundCrd.Spec.Group).To(Equal(crdSchema.Group))
 			}
+		})
+	})
+	Describe("Create", func() {
+		It("creates a crd from the item", func() {
+			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
+			Expect(err).NotTo(HaveOccurred())
+			client, err := NewClient(cfg, namespace)
+			Expect(err).NotTo(HaveOccurred())
+			err = client.Register()
+			Expect(err).NotTo(HaveOccurred())
+			upstream := NewTestUpstream1()
+			createdUpstream, err := client.Create(upstream)
+			Expect(err).NotTo(HaveOccurred())
+			upstream.Metadata = createdUpstream.GetMetadata()
+			Expect(upstream).To(Equal(createdUpstream))
+		})
+	})
+	Describe("Update", func() {
+		It("updates a crd from the item", func() {
+			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
+			Expect(err).NotTo(HaveOccurred())
+			client, err := NewClient(cfg, namespace)
+			Expect(err).NotTo(HaveOccurred())
+			err = client.Register()
+			Expect(err).NotTo(HaveOccurred())
+			upstream := NewTestUpstream1()
+			created, err := client.Create(upstream)
+			Expect(err).NotTo(HaveOccurred())
+			upstream.Type = "something-else"
+			_, err = client.Update(upstream)
+			// need to set resource ver
+			Expect(err).To(HaveOccurred())
+			upstream.Metadata = created.GetMetadata()
+			updated, err := client.Update(upstream)
+			Expect(err).NotTo(HaveOccurred())
+			upstream.Metadata = updated.GetMetadata()
+			Expect(updated).To(Equal(upstream))
 		})
 	})
 })

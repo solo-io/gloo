@@ -1,6 +1,6 @@
 package storage
 
-import "github.com/gogo/protobuf/proto"
+import "github.com/solo-io/glue/pkg/api/types/v1"
 
 const (
 	// Create is WatchOperation passed to the watch callback
@@ -17,7 +17,7 @@ const (
 type WatchOperation int
 
 // Item is used to represent all objects to be stored. Currently Upstream and VirtualHost are supported
-type Item proto.Message
+type Item v1.GlueObject
 
 // GetOptions is options object passed to Get method. Currently unused
 type GetOptions struct{}
