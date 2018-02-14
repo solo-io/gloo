@@ -10,9 +10,11 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
+	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/glue/pkg/log"
 	"github.com/solo-io/glue/pkg/protoutil"
 
+	"github.com/solo-io/glue/internal/plugins/aws"
 	"github.com/solo-io/glue/internal/plugins/service"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 )
@@ -24,6 +26,18 @@ var upstreamPort uint32
 
 var upstreamName = "my-upstream"
 
+var configType = flag.String("config", "test", "one of: test, lambda")
+
+func getConfig() v1.Config {
+	switch *configType {
+	case "test":
+		return NewTestConfig()
+	case "lambda":
+		return NewλConfig()
+	}
+	panic("No such config")
+}
+
 func main() {
 	flag.StringVar(&upstreamAddr, "addr", "localhost:8080", "upstream addr")
 	flag.Parse()
@@ -32,7 +46,7 @@ func main() {
 	p, err := strconv.Atoi(parts[1])
 	must(err)
 	upstreamPort = uint32(p)
-	cfg := NewTestConfig()
+	cfg := getConfig()
 	outDir := "_glue_config"
 	err = os.MkdirAll(filepath.Join(outDir, "upstreams"), 0755)
 	must(err)
@@ -65,6 +79,36 @@ func must(err error) {
 	}
 }
 
+func toProtomessageUnTyped(generic interface{}) *types.Struct {
+	m, err := protoutil.MarshalStruct(generic)
+	must(err)
+	return m
+}
+
+func NewλConfig() v1.Config {
+	upstreams := []*v1.Upstream{
+		{
+			Name: "useast1",
+			Type: aws.UpstreamTypeAws,
+			Spec: toProtomessageUnTyped(&aws.UpstreamSpec{
+				Region:    "us-east-1",
+				SecretRef: "aws-secret",
+			}),
+			Functions: []*v1.Function{{
+				Name: "up",
+				Spec: toProtomessageUnTyped(&aws.FunctionSpec{FunctionName: "uppercase", Qualifier: "1"}),
+			}},
+		},
+	}
+	virtualhosts := []*v1.VirtualHost{
+		NewTestVirtualHost("localhost-app", NewλRoute()),
+	}
+	return v1.Config{
+		Upstreams:    upstreams,
+		VirtualHosts: virtualhosts,
+	}
+}
+
 func NewTestConfig() v1.Config {
 	upstreams := []*v1.Upstream{
 		{
@@ -93,6 +137,23 @@ func NewTestVirtualHost(name string, routes ...*v1.Route) *v1.VirtualHost {
 	}
 }
 
+func NewλRoute() *v1.Route {
+	return &v1.Route{
+		Matcher: &v1.Matcher{
+			Path: &v1.Matcher_PathPrefix{
+				PathPrefix: "/lambda",
+			},
+		},
+		SingleDestination: &v1.Destination{
+			DestinationType: &v1.Destination_Function{
+				Function: &v1.FunctionDestination{
+					UpstreamName: "useast1",
+					FunctionName: "up",
+				},
+			},
+		},
+	}
+}
 func NewTestRoute() *v1.Route {
 	return &v1.Route{
 		Matcher: &v1.Matcher{
