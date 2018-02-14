@@ -36,7 +36,7 @@ var _ = XDescribe("Istioconverter", func() {
 		Must(err)
 
 		converter, err := NewIstioConverter(kubeconfigPath, "cluster.local", cfg, time.Millisecond, make(chan struct{}))
-		Expect(err).To(BeNil())
+		Expect(err).NotTo(HaveOccurred())
 		log.Printf("%v", converter)
 		Must(<-converter.Error())
 	})

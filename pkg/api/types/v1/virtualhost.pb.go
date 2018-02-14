@@ -6,7 +6,7 @@ package v1
 import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
-import google_protobuf "github.com/gogo/protobuf/types"
+import google_protobuf1 "github.com/gogo/protobuf/types"
 import _ "github.com/gogo/protobuf/gogoproto"
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -59,9 +59,9 @@ type Route struct {
 	// Types that are valid to be assigned to Destination:
 	//	*Route_MultipleDestinations
 	//	*Route_SingleDestination
-	Destination   isRoute_Destination     `protobuf_oneof:"destination"`
-	PrefixRewrite string                  `protobuf:"bytes,4,opt,name=prefix_rewrite,json=prefixRewrite,proto3" json:"prefix_rewrite,omitempty"`
-	Extensions    *google_protobuf.Struct `protobuf:"bytes,5,opt,name=extensions" json:"extensions,omitempty"`
+	Destination   isRoute_Destination      `protobuf_oneof:"destination"`
+	PrefixRewrite string                   `protobuf:"bytes,4,opt,name=prefix_rewrite,json=prefixRewrite,proto3" json:"prefix_rewrite,omitempty"`
+	Extensions    *google_protobuf1.Struct `protobuf:"bytes,5,opt,name=extensions" json:"extensions,omitempty"`
 }
 
 func (m *Route) Reset()                    { *m = Route{} }
@@ -119,7 +119,7 @@ func (m *Route) GetPrefixRewrite() string {
 	return ""
 }
 
-func (m *Route) GetExtensions() *google_protobuf.Struct {
+func (m *Route) GetExtensions() *google_protobuf1.Struct {
 	if m != nil {
 		return m.Extensions
 	}

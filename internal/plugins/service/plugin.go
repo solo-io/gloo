@@ -21,7 +21,7 @@ type Plugin struct{}
 
 const (
 	// define Upstream type name
-	UpstreamTypeService v1.UpstreamType = "service"
+	UpstreamTypeService = "service"
 )
 
 func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {

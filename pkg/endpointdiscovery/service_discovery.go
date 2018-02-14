@@ -12,7 +12,7 @@ type Endpoint struct {
 
 type Interface interface {
 	// tells the discovery to track endpoints for the given upstreams
-	TrackUpstreams(upstreams []v1.Upstream)
+	TrackUpstreams(upstreams []*v1.Upstream)
 
 	// endpoint groups are pushed here whenever they are updated
 	Endpoints() <-chan EndpointGroups

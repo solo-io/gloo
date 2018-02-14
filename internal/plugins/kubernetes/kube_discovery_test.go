@@ -130,7 +130,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 				case endpoints := <-discovery.Endpoints():
 					return endpoints
 				case err := <-discovery.Error():
-					Expect(err).To(BeNil())
+					Expect(err).NotTo(HaveOccurred())
 				}
 				return nil
 			}, time.Second*5).Should(HaveLen(len(upstreams)))
@@ -156,7 +156,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(podWithIp.Status.PodIP).To(Equal(serviceEndpoints[0].Address))
 				case err := <-discovery.Error():
-					Expect(err).To(BeNil())
+					Expect(err).NotTo(HaveOccurred())
 				}
 			}
 		})

@@ -62,9 +62,9 @@ var _ = Describe("KubeConfigWatcher", func() {
 
 			var expectedVhost v1.VirtualHost
 			data, err := json.Marshal(virtualHost.Spec)
-			Expect(err).To(BeNil())
+			Expect(err).NotTo(HaveOccurred())
 			err = json.Unmarshal(data, &expectedVhost)
-			Expect(err).To(BeNil())
+			Expect(err).NotTo(HaveOccurred())
 			select {
 			case <-time.After(time.Second * 5):
 				Expect(fmt.Errorf("expected to have received resource event before 5s")).NotTo(HaveOccurred())
@@ -74,7 +74,7 @@ var _ = Describe("KubeConfigWatcher", func() {
 				Expect(len(cfg.VirtualHosts[0].Routes)).To(Equal(1))
 				Expect(cfg.VirtualHosts[0].Routes[0]).To(Equal(expectedVhost.Routes[0]))
 			case err := <-watcher.Error():
-				Expect(err).To(BeNil())
+				Expect(err).NotTo(HaveOccurred())
 			}
 		})
 	})

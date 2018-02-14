@@ -48,7 +48,7 @@ const (
 func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
 	var deps *plugin.Dependencies
 	for _, upstream := range cfg.Upstreams {
-		if upstream.UpstreamType != UpstreamTypeAws {
+		if upstream.Type != UpstreamTypeAws {
 			continue
 		}
 		awsUpstream, err := DecodeUpstreamSpec(upstream.Spec)
@@ -83,7 +83,7 @@ func setRouteAsync(async bool, out *envoyroute.Route) {
 }
 
 func (p *Plugin) ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMap, out *envoyapi.Cluster) error {
-	if in.UpstreamType != UpstreamTypeAws {
+	if in.Type != UpstreamTypeAws {
 		return nil
 	}
 

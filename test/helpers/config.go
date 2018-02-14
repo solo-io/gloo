@@ -7,12 +7,12 @@ import (
 )
 
 func NewTestConfig() *v1.Config {
-	usSpec, _ := protoutil.MapToStruct(map[string]interface{}{
+	usSpec, _ := protoutil.MarshalStruct(map[string]interface{}{
 		"region":         "us-east-1",
 		"secret_key_ref": "my-secret-key",
 		"access_key_ref": "my-access-key",
 	})
-	fnSpec, _ := protoutil.MapToStruct(map[string]interface{}{
+	fnSpec, _ := protoutil.MarshalStruct(map[string]interface{}{
 		"key": "value",
 	})
 	upstreams := []*v1.Upstream{
@@ -55,7 +55,7 @@ func NewTestVirtualHost(name string, routes ...*v1.Route) *v1.VirtualHost {
 }
 
 func NewTestRoute1() *v1.Route {
-	extensions, _ := protoutil.MapToStruct(map[string]interface{}{
+	extensions, _ := protoutil.MarshalStruct(map[string]interface{}{
 		"auth": map[string]interface{}{
 			"credentials": struct {
 				Username, Password string
@@ -88,7 +88,7 @@ func NewTestRoute1() *v1.Route {
 }
 
 func NewTestRoute2() *v1.Route {
-	extensions, _ := protoutil.MapToStruct(map[string]interface{}{
+	extensions, _ := protoutil.MarshalStruct(map[string]interface{}{
 		"auth": map[string]interface{}{
 			"credentials": struct {
 				Username, Password string

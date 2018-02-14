@@ -58,7 +58,7 @@ func newEndpointController(cfg *rest.Config, resyncDuration time.Duration, stopC
 }
 
 // triggers an update
-func (c *endpointController) TrackUpstreams(upstreams []v1.Upstream) {
+func (c *endpointController) TrackUpstreams(upstreams []*v1.Upstream) {
 	if c.upstreamSpecs == nil {
 		c.upstreamSpecs = make(map[string]UpstreamSpec)
 	}

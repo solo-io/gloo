@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/solo-io/glue/internal/pkg/mapstruct"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/glue/pkg/protoutil"
 )
 
 type UpstreamSpec struct {
@@ -15,7 +15,7 @@ type UpstreamSpec struct {
 
 func DecodeUpstreamSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {
 	s := new(UpstreamSpec)
-	if err := mapstruct.Decode(generic, s); err != nil {
+	if err := protoutil.UnmarshalStruct(generic, s); err != nil {
 		return nil, err
 	}
 	return s, s.validateLambda()
@@ -70,7 +70,7 @@ type FunctionSpec struct {
 
 func DecodeFunctionSpec(generic v1.FunctionSpec) (*FunctionSpec, error) {
 	s := new(FunctionSpec)
-	if err := mapstruct.Decode(generic, s); err != nil {
+	if err := protoutil.UnmarshalStruct(generic, s); err != nil {
 		return nil, err
 	}
 	return s, s.ValidateLambda()

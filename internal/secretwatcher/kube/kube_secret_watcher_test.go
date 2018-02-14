@@ -71,7 +71,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 				Expect(len(secrets)).To(Equal(1))
 				Expect(secrets[createdSecret.Name]["username"]).To(Equal("me@example.com"))
 			case err := <-watcher.Error():
-				Expect(err).To(BeNil())
+				Expect(err).NotTo(HaveOccurred())
 			}
 		})
 	})

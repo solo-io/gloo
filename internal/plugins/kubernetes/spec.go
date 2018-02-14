@@ -2,8 +2,8 @@ package kubernetes
 
 import (
 	"github.com/pkg/errors"
-	"github.com/solo-io/glue/internal/pkg/mapstruct"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/glue/pkg/mapstruct"
 )
 
 type UpstreamSpec struct {

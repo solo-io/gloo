@@ -154,6 +154,11 @@ func (e *eventLoop) Run() error {
 			current.cfg = cfg
 			secretRefs := e.updateSecretRefs(cfg)
 			go e.secretWatcher.TrackSecrets(secretRefs)
+			for _, discovery := range e.endpointDiscoveries {
+				go func() {
+					discovery.TrackUpstreams(cfg.Upstreams)
+				}()
+			}
 			e.updateXds(current)
 		case secrets := <-e.secretWatcher.Secrets():
 			current.secrets = secrets
