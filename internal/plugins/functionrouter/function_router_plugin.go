@@ -48,7 +48,7 @@ func (p *functionAndClusterRoutingInitializer) ProcessUpstream(in *v1.Upstream, 
 	return nil
 }
 
-func (p *functionAndClusterRoutingInitializer) getFunctionSpec(upstreamType v1.UpstreamType, spec v1.FunctionSpec) (*types.Struct, error) {
+func (p *functionAndClusterRoutingInitializer) getFunctionSpec(upstreamType string, spec v1.FunctionSpec) (*types.Struct, error) {
 	for _, functionPlugin := range p.functionPlugins {
 		envoyFunctionSpec, err := functionPlugin.ParseFunctionSpec(upstreamType, spec)
 		if err != nil {
@@ -75,16 +75,16 @@ func addEnvoyFunctionSpec(out *envoyapi.Cluster, funcName string, spec *types.St
 func (p *functionAndClusterRoutingInitializer) ProcessRoute(in *v1.Route, out *envoyroute.Route) error {
 	switch getDestinationType(in) {
 	case destinationTypeSingleUpstream:
-		processSingleUpstreamRoute(in.Destination.UpstreamDestination.UpstreamName, in.RewritePrefix, out)
+		processSingleUpstreamRoute(in.SingleDestination.DestinationType.(*v1.Destination_Upstream).Upstream.Name, in.PrefixRewrite, out)
 		return nil
 	case destinationTypeSingleFunction:
-		processSingleFunctionRoute(*in.Destination.FunctionDestination, in.RewritePrefix, out)
+		processSingleFunctionRoute(in.SingleDestination.DestinationType.(*v1.Destination_Function).Function, in.PrefixRewrite, out)
 		return nil
 	case destinationTypeMultiple:
-		processMultipleDestinationRoute(in.Destination.Destinations, in.RewritePrefix, out)
+		processMultipleDestinationRoute(in.MultipleDestinations, in.PrefixRewrite, out)
 		return nil
 	}
-	return errors.Errorf("invalid destination for function %v", in.Destination)
+	return errors.Errorf("invalid destination for function %#v | %#v", in.MultipleDestinations, in.SingleDestination)
 }
 
 type destinationType string
@@ -96,14 +96,18 @@ const (
 	//destinationTypeMultiFunction  = "multiple functions"
 )
 
-func getDestinationType(route v1.Route) destinationType {
-	if len(route.Destination.Destinations) > 0 {
+func getDestinationType(route *v1.Route) destinationType {
+	if len(route.MultipleDestinations) > 0 {
 		return destinationTypeMultiple
 	}
-	if route.Destination.SingleDestination.UpstreamDestination != nil {
-		return destinationTypeSingleUpstream
+	// invalid case, single destination must be set
+	if route.SingleDestination == nil {
+		return ""
 	}
-	if route.Destination.SingleDestination.FunctionDestination != nil {
+	switch route.SingleDestination.DestinationType.(type) {
+	case *v1.Destination_Upstream:
+		return destinationTypeSingleUpstream
+	case *v1.Destination_Function:
 		return destinationTypeSingleFunction
 	}
 	return ""
@@ -113,7 +117,7 @@ func processSingleUpstreamRoute(upstreamName, prefixRewrite string, out *envoyro
 	initRouteForUpstream(upstreamName, prefixRewrite, out)
 }
 
-func processSingleFunctionRoute(destination v1.FunctionDestination, prefixRewrite string, out *envoyroute.Route) {
+func processSingleFunctionRoute(destination *v1.FunctionDestination, prefixRewrite string, out *envoyroute.Route) {
 	upstreamName := destination.UpstreamName
 	initRouteForUpstream(upstreamName, prefixRewrite, out)
 	clusterName := envoy.ClusterName(upstreamName)
@@ -121,22 +125,25 @@ func processSingleFunctionRoute(destination v1.FunctionDestination, prefixRewrit
 	functionalFilterMetadata.Fields[singleFunctionDestinationKey] = &types.Value{Kind: &types.Value_StringValue{StringValue: destination.FunctionName}}
 }
 
-func processMultipleDestinationRoute(destinations []v1.WeightedDestination, prefixRewrite string, out *envoyroute.Route) {
+func processMultipleDestinationRoute(destinations []*v1.WeightedDestination, prefixRewrite string, out *envoyroute.Route) {
 	var (
 		totalWeight                   uint32
-		upstreamDestinationsWithFuncs = make(map[string][]v1.WeightedDestination)
+		upstreamDestinationsWithFuncs = make(map[string][]*v1.WeightedDestination)
 		clusterWeights                = make(map[string]uint32)
 	)
 	for _, destination := range destinations {
 		totalWeight += destination.Weight
 
 		var upstreamName string
-		if destination.FunctionDestination != nil {
-			upstreamName = destination.FunctionDestination.UpstreamName
+		switch dest := destination.DestinationType.(type) {
+		case *v1.Destination_Function:
+			upstreamName = dest.Function.UpstreamName
 			// if functional, add it to the functional destination list
 			upstreamDestinationsWithFuncs[upstreamName] = append(upstreamDestinationsWithFuncs[upstreamName], destination)
-		} else {
-			upstreamName = destination.UpstreamDestination.UpstreamName
+		case *v1.Destination_Upstream:
+			upstreamName = dest.Upstream.Name
+		default:
+			panic("TODO: handle when this type assert fails")
 		}
 		clusterWeights[envoy.ClusterName(upstreamName)] = uint32(destination.Weight)
 	}
@@ -161,14 +168,14 @@ func setTotalWeight(totalWeight uint32, out *envoyroute.Route) {
 	weightedClusters.WeightedClusters.TotalWeight = &types.UInt32Value{Value: totalWeight}
 }
 
-func addClusterFuncsToMetadata(clusterName string, destinations []v1.WeightedDestination, out *envoyroute.Route) {
+func addClusterFuncsToMetadata(clusterName string, destinations []*v1.WeightedDestination, out *envoyroute.Route) {
 	var clusterFuncWeights []*types.Value
 	for _, dest := range destinations {
 		clusterFuncWeight := &types.Value{
 			Kind: &types.Value_StructValue{
 				StructValue: &types.Struct{
 					Fields: map[string]*types.Value{
-						"spec":   {Kind: &types.Value_StringValue{StringValue: dest.FunctionDestination.FunctionName}},
+						"spec":   {Kind: &types.Value_StringValue{StringValue: dest.GetFunction().FunctionName}},
 						"weight": {Kind: &types.Value_NumberValue{NumberValue: float64(dest.Weight)}},
 					},
 				},

@@ -13,7 +13,7 @@ import "metadata.proto";
 message Upstream {
     string name = 1;
     string type = 2;
-    google.protobuf.Duration connection_timeout = 3 [(gogoproto.stdduration) = true];
+    google.protobuf.Duration connection_timeout = 3 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
     google.protobuf.Struct spec = 4;
     repeated Function functions = 5;
     // read only

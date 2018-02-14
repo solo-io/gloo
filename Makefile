@@ -28,9 +28,10 @@ fmt:
 	goimports -w $(PKGDIRS)
 
 glue: $(SOURCES)
-	go build -o glue
+	go build -o glue cmd/glue/*.go
 
-run: glue
+# not gonna work
+hackrun: glue
 	./hack/run-local.sh
 
 unit:
