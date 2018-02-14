@@ -1,8 +1,8 @@
 package aws
 
 import (
+	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
-	"github.com/solo-io/glue/pkg/api/types/v1"
 )
 
 const (
@@ -10,19 +10,18 @@ const (
 	RoutePluginKeyExecutionStyle = "execution_style"
 )
 
-type ExecutionStyle string
-
 const (
-	ExecutionStyleSync  ExecutionStyle = "sync"
-	ExecutionStyleAsync ExecutionStyle = "async"
+	ExecutionStyleSync  = "sync"
+	ExecutionStyleAsync = "async"
 )
 
-func GetExecutionStyle(routeSpec v1.RoutePluginSpec) (ExecutionStyle, error) {
-	if style, ok := routeSpec[RoutePluginKeyExecutionStyle]; ok {
-		executionStyle, ok := style.(ExecutionStyle)
+func GetExecutionStyle(routeExtensions *types.Struct) (string, error) {
+	if style, ok := routeExtensions.Fields[RoutePluginKeyExecutionStyle]; ok {
+		executionStyleValue, ok := style.Kind.(*types.Value_StringValue)
 		if !ok {
 			return "", errors.Errorf("invalid format for %v, expected string", RoutePluginKeyExecutionStyle)
 		}
+		executionStyle := executionStyleValue.StringValue
 		switch executionStyle {
 		case ExecutionStyleSync:
 		case ExecutionStyleAsync:
