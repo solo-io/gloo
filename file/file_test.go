@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/solo-io/glue-storage/pkg/storage"
-	"github.com/solo-io/glue-storage/pkg/storage/file"
+	"github.com/solo-io/glue-storage"
+	"github.com/solo-io/glue-storage/file"
 	gluev1 "github.com/solo-io/glue/pkg/api/types/v1"
 )
 

@@ -6,11 +6,10 @@ import (
 	"os"
 	"path"
 
-	"github.com/solo-io/glue-storage/pkg/storage/common"
-	gluev1 "github.com/solo-io/glue/pkg/api/types/v1"
-
 	"github.com/fsnotify/fsnotify"
-	"github.com/solo-io/glue-storage/pkg/storage"
+	"github.com/solo-io/glue-storage"
+	"github.com/solo-io/glue-storage/common"
+	gluev1 "github.com/solo-io/glue/pkg/api/types/v1"
 	yaml "gopkg.in/yaml.v2"
 )
 

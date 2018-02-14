@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/glue-storage/pkg/storage/crd"
+	. "github.com/solo-io/glue-storage/crd"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/protoutil"
 	"github.com/solo-io/glue/test/helpers"

@@ -3,7 +3,7 @@ package common
 import (
 	"fmt"
 
-	"github.com/solo-io/glue-storage/pkg/storage"
+	"github.com/solo-io/glue-storage"
 )
 
 func UnknownType(item storage.Item) error {
