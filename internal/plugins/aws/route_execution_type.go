@@ -16,19 +16,21 @@ const (
 )
 
 func GetExecutionStyle(routeExtensions *types.Struct) (string, error) {
-	if style, ok := routeExtensions.Fields[RoutePluginKeyExecutionStyle]; ok {
-		executionStyleValue, ok := style.Kind.(*types.Value_StringValue)
-		if !ok {
-			return "", errors.Errorf("invalid format for %v, expected string", RoutePluginKeyExecutionStyle)
+	if routeExtensions != nil {
+		if style, ok := routeExtensions.Fields[RoutePluginKeyExecutionStyle]; ok {
+			executionStyleValue, ok := style.Kind.(*types.Value_StringValue)
+			if !ok {
+				return "", errors.Errorf("invalid format for %v, expected string", RoutePluginKeyExecutionStyle)
+			}
+			executionStyle := executionStyleValue.StringValue
+			switch executionStyle {
+			case ExecutionStyleSync:
+			case ExecutionStyleAsync:
+			default:
+				return "", errors.Errorf("invalid execution style provided. must be one of: %v|%v, you gave: %v", ExecutionStyleSync, ExecutionStyleAsync, executionStyle)
+			}
+			return executionStyle, nil
 		}
-		executionStyle := executionStyleValue.StringValue
-		switch executionStyle {
-		case ExecutionStyleSync:
-		case ExecutionStyleAsync:
-		default:
-			return "", errors.Errorf("invalid execution style provided. must be one of: %v|%v, you gave: %v", ExecutionStyleSync, ExecutionStyleAsync, executionStyle)
-		}
-		return executionStyle, nil
 	}
 	return ExecutionStyleSync, nil
 }
