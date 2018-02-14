@@ -27,8 +27,15 @@ func TestUpdateUpstream(t *testing.T) {
 		t.Error("expected upstream to be new")
 	}
 	new = repo.set(Upstream{ID: "test",
-		Name:      "us-east-1",
-		Functions: []Function{Function{Name: "func1", Qualifier: "v1"}}})
+		Name: "us-east-1",
+		Functions: []Function{
+			Function{
+				Name: "func1",
+				Spec: map[string]interface{}{
+					"Qualifier": "v1"},
+			},
+		},
+	})
 	if new {
 		t.Error("expected upstream to be updated")
 	}
