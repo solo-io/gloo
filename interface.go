@@ -30,7 +30,7 @@ type WatchOptions struct{}
 
 // Storage is interface to the storage backend
 type Storage interface {
-	Register(item Item) error
+	Register() error
 	Create(item Item) (Item, error)
 	Update(item Item) (Item, error)
 	Delete(item Item) error
