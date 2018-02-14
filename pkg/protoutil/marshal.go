@@ -39,3 +39,21 @@ func Marshal(pb proto.Message) ([]byte, error) {
 	err := jsonpbMarshaler.Marshal(buf, pb)
 	return buf.Bytes(), err
 }
+
+func MarshalMap(from proto.Message) (map[string]interface{}, error) {
+	data, err := Marshal(from)
+	if err != nil {
+		return nil, err
+	}
+	var m map[string]interface{}
+	err = json.Unmarshal(data, &m)
+	return m, err
+}
+
+func UnmarshalMap(m map[string]interface{}, into proto.Message) error {
+	data, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	return Unmarshal(data, into)
+}
