@@ -23,7 +23,7 @@ message VirtualHost {
 
     // read only
     Status status = 5;
-    Metadata metadata = 6  [(gogoproto.embed) = true];
+    Metadata metadata = 6;
 }
 
 message Route {
