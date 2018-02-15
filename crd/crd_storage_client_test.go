@@ -84,6 +84,23 @@ var _ = Describe("CrdStorageClient", func() {
 			Expect(upstream).To(Equal(createdUpstream))
 		})
 	})
+	Describe("Get", func() {
+		It("gets a crd from the name", func() {
+			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
+			Expect(err).NotTo(HaveOccurred())
+			client, err := NewStorage(cfg, namespace)
+			Expect(err).NotTo(HaveOccurred())
+			err = client.V1().Register()
+			Expect(err).NotTo(HaveOccurred())
+			upstream := NewTestUpstream1()
+			_, err = client.V1().Upstreams().Create(upstream)
+			Expect(err).NotTo(HaveOccurred())
+			created, err := client.V1().Upstreams().Get(upstream.Name)
+			Expect(err).NotTo(HaveOccurred())
+			upstream.Metadata = created.Metadata
+			Expect(created).To(Equal(upstream))
+		})
+	})
 	Describe("Update", func() {
 		It("updates a crd from the item", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
@@ -104,6 +121,23 @@ var _ = Describe("CrdStorageClient", func() {
 			Expect(err).NotTo(HaveOccurred())
 			upstream.Metadata = updated.GetMetadata()
 			Expect(updated).To(Equal(upstream))
+		})
+	})
+	Describe("Delete", func() {
+		It("deletes a crd from the name", func() {
+			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
+			Expect(err).NotTo(HaveOccurred())
+			client, err := NewStorage(cfg, namespace)
+			Expect(err).NotTo(HaveOccurred())
+			err = client.V1().Register()
+			Expect(err).NotTo(HaveOccurred())
+			upstream := NewTestUpstream1()
+			_, err = client.V1().Upstreams().Create(upstream)
+			Expect(err).NotTo(HaveOccurred())
+			err = client.V1().Upstreams().Delete(upstream.Name)
+			Expect(err).NotTo(HaveOccurred())
+			_, err = client.V1().Upstreams().Get(upstream.Name)
+			Expect(err).To(HaveOccurred())
 		})
 	})
 })
