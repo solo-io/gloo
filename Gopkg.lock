@@ -36,13 +36,13 @@
     "pkg/test/resource",
     "pkg/util"
   ]
-  revision = "2fe005477d70adc579351a5a9c26408c4a54ef51"
+  revision = "e0ebc95432196ce43dae88cc2822983466210656"
 
 [[projects]]
-  name = "github.com/fsnotify/fsnotify"
+  name = "github.com/fatih/structs"
   packages = ["."]
-  revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
-  version = "v1.4.7"
+  revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
+  version = "v1.0"
 
 [[projects]]
   name = "github.com/ghodss/yaml"
@@ -89,6 +89,12 @@
     "ptypes/wrappers"
   ]
   revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/golang/snappy"
+  packages = ["."]
+  revision = "553a641470496b2327abcac10b36396bd98e45c9"
 
 [[projects]]
   branch = "master"
@@ -141,9 +147,21 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hashicorp/go-cleanhttp"
+  packages = ["."]
+  revision = "d5fe4b57a186c716b0e00b8c301cbd9b4182694d"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
   revision = "b7773ae218740a7be65057fc60b366a49b538a44"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/go-rootcerts"
+  packages = ["."]
+  revision = "6bb64b370b90e7ef1fa532be9e591a81c3493e00"
 
 [[projects]]
   branch = "master"
@@ -153,6 +171,33 @@
     "simplelru"
   ]
   revision = "0fb14efe8c47ae851c0034ed7a448854d3d34cf3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/hcl"
+  packages = [
+    ".",
+    "hcl/ast",
+    "hcl/parser",
+    "hcl/scanner",
+    "hcl/strconv",
+    "hcl/token",
+    "json/parser",
+    "json/scanner",
+    "json/token"
+  ]
+  revision = "23c074d0eceb2b8a5bfdbb271ab780cde70f05a8"
+
+[[projects]]
+  name = "github.com/hashicorp/vault"
+  packages = [
+    "api",
+    "helper/compressutil",
+    "helper/jsonutil",
+    "helper/parseutil"
+  ]
+  revision = "5acd6a21d5a69ab49d0f7c0bf540123a9b2c696d"
+  version = "v0.9.3"
 
 [[projects]]
   branch = "master"
@@ -207,6 +252,18 @@
   packages = ["."]
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/hashstructure"
+  packages = ["."]
+  revision = "2bca23e0e452137f789efbc8610126fd8b94f73b"
 
 [[projects]]
   branch = "master"
@@ -295,10 +352,24 @@
   version = "v1.0.2"
 
 [[projects]]
-  name = "github.com/revel/config"
+  branch = "master"
+  name = "github.com/sethgrid/pester"
   packages = ["."]
-  revision = "662332b741dd464a886ab0901379c02b9bc5dc30"
-  version = "v0.19.0"
+  revision = "b18953f5db2922a73aaf89652abf7b5ee95cb516"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/solo-io/glue-storage"
+  packages = [
+    ".",
+    "crd",
+    "crd/client/clientset/versioned",
+    "crd/client/clientset/versioned/scheme",
+    "crd/client/clientset/versioned/typed/solo.io/v1",
+    "crd/solo.io/v1",
+    "internal/crud"
+  ]
+  revision = "9f638ad961b3b75d03fcbd679e9fff54b0d54efe"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -342,7 +413,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "d9133f5469342136e669e85192a26056b587f503"
+  revision = "650f4a345ab4e5b245a3034b110ebc7299e68186"
 
 [[projects]]
   branch = "master"
@@ -360,7 +431,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "2fb46b16b8dda405028c50f7c7f0f9dd1fa6bfb1"
+  revision = "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
 
 [[projects]]
   branch = "master"
@@ -372,7 +443,7 @@
     "jws",
     "jwt"
   ]
-  revision = "a032972e28060ca4f5644acffae3dfc268cc09db"
+  revision = "543e37812f10c46c622c9575afd7ad22f22a12ba"
 
 [[projects]]
   branch = "master"
@@ -414,7 +485,7 @@
     "unicode/norm",
     "unicode/rangetable"
   ]
-  revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
+  revision = "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -489,7 +560,7 @@
     "routing/v1alpha1",
     "routing/v1alpha2"
   ]
-  revision = "58de5731b5401268263924fae9df7d091813c19e"
+  revision = "87a9d695c8a65f11db006a9108904934c6c9caeb"
 
 [[projects]]
   branch = "master"
@@ -509,8 +580,8 @@
     "pilot/pkg/serviceregistry/kube",
     "pkg/log"
   ]
-  revision = "c9debceacb63a14a9ae24df433e2ec3ce1f16fc7"
-  version = "0.5.0"
+  revision = "30acfe6528107ea333543309095659b93364b30d"
+  version = "0.5.1"
 
 [[projects]]
   branch = "master"
@@ -545,7 +616,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "beab4da9671e79815b7876363175af45aa180eb5"
+  revision = "0d0b2f481328d8bae556061a08a02175054059f4"
 
 [[projects]]
   branch = "release-1.9"
@@ -557,7 +628,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "f1425805c0335c1f5b23e70f0154747b3df5a16a"
+  revision = "ad6ca8e94ec6b6d0a9f22147f98cfbf47b932700"
 
 [[projects]]
   branch = "master"
@@ -605,7 +676,7 @@
     "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "204a986b654021625b85be7bcec2d89f90ad2e1f"
+  revision = "da3b134bab57ebf23dedfec7e0004614dd4b5a24"
 
 [[projects]]
   name = "k8s.io/client-go"
@@ -719,8 +790,6 @@
     "tools/clientcmd/api",
     "tools/clientcmd/api/latest",
     "tools/clientcmd/api/v1",
-    "tools/leaderelection",
-    "tools/leaderelection/resourcelock",
     "tools/metrics",
     "tools/pager",
     "tools/record",
@@ -738,21 +807,6 @@
   version = "v6.0.0"
 
 [[projects]]
-  name = "k8s.io/ingress"
-  packages = [
-    "core/pkg/ingress/annotations/class",
-    "core/pkg/ingress/annotations/parser",
-    "core/pkg/ingress/errors",
-    "core/pkg/ingress/status",
-    "core/pkg/ingress/store",
-    "core/pkg/k8s",
-    "core/pkg/strings",
-    "core/pkg/task"
-  ]
-  revision = "fe19ebb09ee22f90d60ba3111ae0a9db6027e675"
-  version = "0.9.6"
-
-[[projects]]
   branch = "master"
   name = "k8s.io/kube-openapi"
   packages = ["pkg/util/proto"]
@@ -761,6 +815,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f051d7fb4d426de7116d7adf2fc73620f0249b5b4686a17921f4cbe2d59060e8"
+  inputs-digest = "06e2898833aa6072c563ede3eb581c13148a319782471e8831788c826d66fbd1"
   solver-name = "gps-cdcl"
   solver-version = 1

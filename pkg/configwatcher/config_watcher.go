@@ -4,6 +4,9 @@ import "github.com/solo-io/glue/pkg/api/types/v1"
 
 // ConfigWatcher reports new configs when they are updated externally
 type Interface interface {
+	// starts the ConfigWatcher
+	Run(stop <-chan struct{})
+
 	// configs are pushed here whenever they are read
 	Config() <-chan *v1.Config
 	// shows the status of the current config read by the cache
