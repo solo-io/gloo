@@ -3,15 +3,16 @@ package crd
 import (
 	"fmt"
 
-	"github.com/solo-io/glue-storage"
-	crdclientset "github.com/solo-io/glue-storage/crd/client/clientset/versioned"
-	crdv1 "github.com/solo-io/glue-storage/crd/solo.io/v1"
-	"istio.io/istio/pkg/log"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
+
+	"github.com/solo-io/glue-storage"
+	crdclientset "github.com/solo-io/glue-storage/crd/client/clientset/versioned"
+	crdv1 "github.com/solo-io/glue-storage/crd/solo.io/v1"
+	"github.com/solo-io/glue/pkg/log"
 )
 
 type Client struct {

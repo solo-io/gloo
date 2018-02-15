@@ -54,3 +54,63 @@ type VirtualHostEventHandler interface {
 	OnUpdate(updatedList []*v1.VirtualHost, oldObj, newObj *v1.VirtualHost)
 	OnDelete(updatedList []*v1.VirtualHost, obj *v1.VirtualHost)
 }
+
+// UpstreamEventHandlerFuncs is an adaptor to let you easily specify as many or
+// as few of the notification functions as you want while still implementing
+// UpstreamEventHandler.
+type UpstreamEventHandlerFuncs struct {
+	AddFunc    func(obj *v1.Upstream)
+	UpdateFunc func(oldObj, newObj *v1.Upstream)
+	DeleteFunc func(obj *v1.Upstream)
+}
+
+// OnAdd calls AddFunc if it's not nil.
+func (r UpstreamEventHandlerFuncs) OnAdd(obj *v1.Upstream) {
+	if r.AddFunc != nil {
+		r.AddFunc(obj)
+	}
+}
+
+// OnUpdate calls UpdateFunc if it's not nil.
+func (r UpstreamEventHandlerFuncs) OnUpdate(oldObj, newObj *v1.Upstream) {
+	if r.UpdateFunc != nil {
+		r.UpdateFunc(oldObj, newObj)
+	}
+}
+
+// OnDelete calls DeleteFunc if it's not nil.
+func (r UpstreamEventHandlerFuncs) OnDelete(obj *v1.Upstream) {
+	if r.DeleteFunc != nil {
+		r.DeleteFunc(obj)
+	}
+}
+
+// VirtualHostEventHandlerFuncs is an adaptor to let you easily specify as many or
+// as few of the notification functions as you want while still implementing
+// VirtualHostEventHandler.
+type VirtualHostEventHandlerFuncs struct {
+	AddFunc    func(obj *v1.VirtualHost)
+	UpdateFunc func(oldObj, newObj *v1.VirtualHost)
+	DeleteFunc func(obj *v1.VirtualHost)
+}
+
+// OnAdd calls AddFunc if it's not nil.
+func (r VirtualHostEventHandlerFuncs) OnAdd(obj *v1.VirtualHost) {
+	if r.AddFunc != nil {
+		r.AddFunc(obj)
+	}
+}
+
+// OnUpdate calls UpdateFunc if it's not nil.
+func (r VirtualHostEventHandlerFuncs) OnUpdate(oldObj, newObj *v1.VirtualHost) {
+	if r.UpdateFunc != nil {
+		r.UpdateFunc(oldObj, newObj)
+	}
+}
+
+// OnDelete calls DeleteFunc if it's not nil.
+func (r VirtualHostEventHandlerFuncs) OnDelete(obj *v1.VirtualHost) {
+	if r.DeleteFunc != nil {
+		r.DeleteFunc(obj)
+	}
+}
