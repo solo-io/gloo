@@ -4,8 +4,11 @@ import (
 	"unicode/utf8"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoy_api_v2_auth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
+	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+
 	"github.com/gogo/protobuf/types"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
@@ -28,7 +31,7 @@ const (
 	UpstreamTypeAws = "aws"
 
 	// generic plugin info
-	filterName  = "io.solo.aws"
+	filterName  = "io.solo.lambda"
 	pluginStage = plugin.OutAuth
 
 	// filter-specific metadata
@@ -87,15 +90,28 @@ func (p *Plugin) ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMa
 		return nil
 	}
 
+	out.Type = envoyapi.Cluster_LOGICAL_DNS
+	// need to make sure we use ipv4 only dns
+	out.DnsLookupFamily = envoyapi.Cluster_V4_ONLY
+
 	awsUpstream, err := DecodeUpstreamSpec(in.Spec)
 	if err != nil {
 		return errors.Wrap(err, "invalid AWS upstream spec")
+	}
+
+	out.Hosts = append(out.Hosts, &envoy_api_v2_core.Address{Address: &envoy_api_v2_core.Address_SocketAddress{SocketAddress: &envoy_api_v2_core.SocketAddress{
+		Address:       awsUpstream.GetLambdaHostname(),
+		PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{PortValue: 443},
+	}}})
+	out.TlsContext = &envoy_api_v2_auth.UpstreamTlsContext{
+		Sni: awsUpstream.GetLambdaHostname(),
 	}
 
 	awsSecrets, ok := secrets[awsUpstream.SecretRef]
 	if !ok {
 		return errors.Errorf("aws secrets for ref %v not found", awsUpstream.SecretRef)
 	}
+
 	var secretErrs error
 
 	accessKey, ok := awsSecrets[awsAccessKey]
@@ -112,9 +128,6 @@ func (p *Plugin) ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMa
 	if secretKey != "" && !utf8.Valid([]byte(secretKey)) {
 		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", awsSecretKey))
 	}
-	if secretErrs != nil {
-		return secretErrs
-	}
 
 	common.InitFilterMetadata(filterName, out.Metadata)
 	out.Metadata.FilterMetadata[filterName] = &types.Struct{
@@ -126,11 +139,7 @@ func (p *Plugin) ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMa
 		},
 	}
 
-	out.Type = envoyapi.Cluster_LOGICAL_DNS
-	// need to make sure we use ipv4 only dns
-	out.DnsLookupFamily = envoyapi.Cluster_V4_ONLY
-
-	return nil
+	return secretErrs
 }
 
 func (p *Plugin) ParseFunctionSpec(upstreamType string, in v1.FunctionSpec) (*types.Struct, error) {

@@ -1,3 +1,6 @@
+node:
+  cluster: ingress
+  id: test
 admin:
   access_log_path: /dev/null
   address:
@@ -22,4 +25,4 @@ static_resources:
         port_value: 8081
     http2_protocol_options: {}
     name: xds_cluster
-    type: LOGICAL_DNS
+    type: STRICT_DNS
