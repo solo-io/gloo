@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
 	"github.com/solo-io/glue-storage"
@@ -32,6 +34,10 @@ func NewStorage(cfg *rest.Config, namespace string, syncFrequency time.Duration)
 	if err != nil {
 		return nil, err
 	}
+	kubeClient, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
 	return &Client{
 		v1: &v1client{
 			upstreams: &upstreamsClient{
@@ -44,7 +50,8 @@ func NewStorage(cfg *rest.Config, namespace string, syncFrequency time.Duration)
 				namespace:     namespace,
 				syncFrequency: syncFrequency,
 			},
-			apiexts: apiextClient,
+			apiexts:    apiextClient,
+			kubeclient: kubeClient,
 		},
 	}, nil
 }
@@ -55,12 +62,22 @@ func (c *Client) V1() storage.V1 {
 
 type v1client struct {
 	apiexts          apiexts.Interface
+	kubeclient       kubernetes.Interface
 	upstreams        *upstreamsClient
 	virtualHosts     *virtualHostsClient
 	defaultNamespace string
 }
 
 func (c *v1client) Register() error {
+	// create namespace if it doesnt exist
+	if _, err := c.kubeclient.CoreV1().Namespaces().Create(&corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: c.defaultNamespace,
+		},
+	}); err != nil && !apierrors.IsAlreadyExists(err) {
+		return fmt.Errorf("failed to create namespace %v: %v", c.defaultNamespace, err)
+	}
+
 	for _, crd := range crdv1.KnownCRDs {
 		toRegister := &v1beta1.CustomResourceDefinition{
 			ObjectMeta: metav1.ObjectMeta{Name: crd.FullName()},
