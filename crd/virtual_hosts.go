@@ -63,7 +63,7 @@ func (c *virtualHostsClient) List() ([]*v1.VirtualHost, error) {
 	return returnedVirtualHosts, nil
 }
 
-func (u *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) *storage.Watcher {
+func (u *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) (*storage.Watcher, error) {
 	lw := cache.NewListWatchFromClient(u.crds.GlueV1().RESTClient(), crdv1.VirtualHostCRD.Plural, metav1.NamespaceAll, fields.Everything())
 	sw := cache.NewSharedInformer(lw, new(crdv1.VirtualHost), 30*time.Minute)
 	for _, h := range handlers {
@@ -71,7 +71,7 @@ func (u *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) 
 	}
 	return storage.NewWatcher(func(stop <-chan struct{}) {
 		sw.Run(stop)
-	})
+	}), nil
 }
 
 func (c *virtualHostsClient) createOrUpdateVirtualHostCrd(virtualHost *v1.VirtualHost, op crud.Operation) (*v1.VirtualHost, error) {
@@ -142,16 +142,12 @@ func (eh *virtualHostEventHandler) OnAdd(obj interface{}) {
 	}
 	eh.handler.OnAdd(eh.getUpdatedList(), us)
 }
-func (eh *virtualHostEventHandler) OnUpdate(oldObj, newObj interface{}) {
-	oldVh, ok := convertVh(oldObj)
-	if !ok {
-		return
-	}
+func (eh *virtualHostEventHandler) OnUpdate(_, newObj interface{}) {
 	newVh, ok := convertVh(newObj)
 	if !ok {
 		return
 	}
-	eh.handler.OnUpdate(eh.getUpdatedList(), oldVh, newVh)
+	eh.handler.OnUpdate(eh.getUpdatedList(), newVh)
 }
 
 func (eh *virtualHostEventHandler) OnDelete(obj interface{}) {

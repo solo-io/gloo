@@ -63,7 +63,7 @@ func (c *upstreamsClient) List() ([]*v1.Upstream, error) {
 	return returnedUpstreams, nil
 }
 
-func (u *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) *storage.Watcher {
+func (u *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*storage.Watcher, error) {
 	lw := cache.NewListWatchFromClient(u.crds.GlueV1().RESTClient(), crdv1.UpstreamCRD.Plural, metav1.NamespaceAll, fields.Everything())
 	sw := cache.NewSharedInformer(lw, new(crdv1.Upstream), 30*time.Minute)
 	for _, h := range handlers {
@@ -71,7 +71,7 @@ func (u *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) *stora
 	}
 	return storage.NewWatcher(func(stop <-chan struct{}) {
 		sw.Run(stop)
-	})
+	}), nil
 }
 
 func (c *upstreamsClient) createOrUpdateUpstreamCrd(upstream *v1.Upstream, op crud.Operation) (*v1.Upstream, error) {
@@ -142,16 +142,12 @@ func (eh *upstreamEventHandler) OnAdd(obj interface{}) {
 	}
 	eh.handler.OnAdd(eh.getUpdatedList(), us)
 }
-func (eh *upstreamEventHandler) OnUpdate(oldObj, newObj interface{}) {
-	oldUs, ok := convertUs(oldObj)
-	if !ok {
-		return
-	}
+func (eh *upstreamEventHandler) OnUpdate(_, newObj interface{}) {
 	newUs, ok := convertUs(newObj)
 	if !ok {
 		return
 	}
-	eh.handler.OnUpdate(eh.getUpdatedList(), oldUs, newUs)
+	eh.handler.OnUpdate(eh.getUpdatedList(), newUs)
 }
 
 func (eh *upstreamEventHandler) OnDelete(obj interface{}) {

@@ -19,7 +19,7 @@ type Upstreams interface {
 	Delete(name string) error
 	Get(name string) (*v1.Upstream, error)
 	List() ([]*v1.Upstream, error)
-	Watch(handlers ...UpstreamEventHandler) *Watcher
+	Watch(handlers ...UpstreamEventHandler) (*Watcher, error)
 }
 
 type VirtualHosts interface {
@@ -28,7 +28,7 @@ type VirtualHosts interface {
 	Delete(name string) error
 	Get(name string) (*v1.VirtualHost, error)
 	List() ([]*v1.VirtualHost, error)
-	Watch(...VirtualHostEventHandler) *Watcher
+	Watch(...VirtualHostEventHandler) (*Watcher, error)
 }
 
 type Watcher struct {
@@ -45,13 +45,13 @@ func (w *Watcher) Run(stop <-chan struct{}) {
 
 type UpstreamEventHandler interface {
 	OnAdd(updatedList []*v1.Upstream, obj *v1.Upstream)
-	OnUpdate(updatedList []*v1.Upstream, oldObj, newObj *v1.Upstream)
+	OnUpdate(updatedList []*v1.Upstream, newObj *v1.Upstream)
 	OnDelete(updatedList []*v1.Upstream, obj *v1.Upstream)
 }
 
 type VirtualHostEventHandler interface {
 	OnAdd(updatedList []*v1.VirtualHost, obj *v1.VirtualHost)
-	OnUpdate(updatedList []*v1.VirtualHost, oldObj, newObj *v1.VirtualHost)
+	OnUpdate(updatedList []*v1.VirtualHost, newObj *v1.VirtualHost)
 	OnDelete(updatedList []*v1.VirtualHost, obj *v1.VirtualHost)
 }
 
