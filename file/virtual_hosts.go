@@ -147,38 +147,36 @@ func (c *virtualHostsClient) pathsToVirtualHosts() (map[string]*v1.VirtualHost, 
 
 func (u *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) (*storage.Watcher, error) {
 	w := watcher.New()
-	w.SetMaxEvents(1)
+	w.SetMaxEvents(0)
 	w.FilterOps(watcher.Create, watcher.Write, watcher.Remove)
 	if err := w.AddRecursive(u.dir); err != nil {
 		return nil, errors.Wrapf(err, "failed to add directory %v", u.dir)
 	}
 
 	return storage.NewWatcher(func(stop <-chan struct{}) {
-		go func(stop <-chan struct{}) {
-			errC := make(chan error)
-			go func() {
-				if err := w.Start(u.syncFrequency); err != nil {
-					errC <- err
-				}
-			}()
-			for {
-				select {
-				case event := <-w.Event:
-					if err := u.onEvent(event, handlers...); err != nil {
-						runtime.HandleError(err)
-					}
-				case err := <-w.Error:
-					runtime.HandleError(fmt.Errorf("watcher envoutnered error: %v", err))
-					return
-				case err := <-errC:
-					runtime.HandleError(fmt.Errorf("failed to start watcher to: %v", err))
-					return
-				case <-stop:
-					w.Close()
-					return
-				}
+		errC := make(chan error)
+		go func() {
+			if err := w.Start(u.syncFrequency); err != nil {
+				errC <- err
 			}
-		}(stop)
+		}()
+		for {
+			select {
+			case event := <-w.Event:
+				if err := u.onEvent(event, handlers...); err != nil {
+					runtime.HandleError(err)
+				}
+			case err := <-w.Error:
+				runtime.HandleError(fmt.Errorf("watcher envoutnered error: %v", err))
+				return
+			case err := <-errC:
+				runtime.HandleError(fmt.Errorf("failed to start watcher to: %v", err))
+				return
+			case <-stop:
+				w.Close()
+				return
+			}
+		}
 	}), nil
 }
 
