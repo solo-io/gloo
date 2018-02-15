@@ -187,6 +187,9 @@ func (u *upstreamsClient) onEvent(event watcher.Event, handlers ...storage.Upstr
 	if err != nil {
 		return err
 	}
+	if event.IsDir() {
+		return nil
+	}
 	switch event.Op {
 	case watcher.Create:
 		for _, h := range handlers {

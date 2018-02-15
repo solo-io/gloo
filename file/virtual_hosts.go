@@ -186,6 +186,9 @@ func (u *virtualHostsClient) onEvent(event watcher.Event, handlers ...storage.Vi
 	if err != nil {
 		return err
 	}
+	if event.IsDir() {
+		return nil
+	}
 	switch event.Op {
 	case watcher.Create:
 		for _, h := range handlers {
