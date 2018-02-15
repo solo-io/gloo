@@ -52,6 +52,7 @@ func NewStorage(cfg *rest.Config, namespace string, syncFrequency time.Duration)
 			},
 			apiexts:    apiextClient,
 			kubeclient: kubeClient,
+			namespace:  namespace,
 		},
 	}, nil
 }
@@ -61,21 +62,21 @@ func (c *Client) V1() storage.V1 {
 }
 
 type v1client struct {
-	apiexts          apiexts.Interface
-	kubeclient       kubernetes.Interface
-	upstreams        *upstreamsClient
-	virtualHosts     *virtualHostsClient
-	defaultNamespace string
+	apiexts      apiexts.Interface
+	kubeclient   kubernetes.Interface
+	upstreams    *upstreamsClient
+	virtualHosts *virtualHostsClient
+	namespace    string
 }
 
 func (c *v1client) Register() error {
 	// create namespace if it doesnt exist
 	if _, err := c.kubeclient.CoreV1().Namespaces().Create(&corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: c.defaultNamespace,
+			Name: c.namespace,
 		},
 	}); err != nil && !apierrors.IsAlreadyExists(err) {
-		return fmt.Errorf("failed to create namespace %v: %v", c.defaultNamespace, err)
+		return fmt.Errorf("failed to create namespace %v: %v", c.namespace, err)
 	}
 
 	for _, crd := range crdv1.KnownCRDs {
