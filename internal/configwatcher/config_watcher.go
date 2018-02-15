@@ -1,31 +1,19 @@
-package kube
+package configwatcher
 
 import (
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/pkg/errors"
-	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/solo-io/glue-storage"
-	"github.com/solo-io/glue-storage/crd"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/configwatcher"
 )
 
-func NewCrdWatcher(masterUrl, kubeconfigPath, namespace string, resyncDuration time.Duration) (configwatcher.Interface, error) {
-	cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to build rest config: %v", err)
-	}
-	storageClient, err := crd.NewStorage(cfg, namespace, resyncDuration)
-	if err != nil {
-		return nil, fmt.Errorf("create storage client: %v", err)
-	}
-	err = storageClient.V1().Register()
-	if err != nil {
-		return nil, fmt.Errorf("failed to register crds: %v", err)
+func NewConfigWatcher(storageClient storage.Storage) (configwatcher.Interface, error) {
+	if err := storageClient.V1().Register(); err != nil {
+		return nil, fmt.Errorf("failed to register to storage backend: %v", err)
 	}
 	cache := v1.Config{}
 	configs := make(chan *v1.Config)
@@ -57,30 +45,32 @@ func NewCrdWatcher(masterUrl, kubeconfigPath, namespace string, resyncDuration t
 	return &configWatcher{
 		watchers: []*storage.Watcher{vhostWatcher, upstreamWatcher},
 		configs:  configs,
+		errs:     make(chan error),
 	}, nil
 }
 
 type configWatcher struct {
 	watchers []*storage.Watcher
 	configs  chan *v1.Config
+	errs     chan error
 }
 
 func (w *configWatcher) Run(stop <-chan struct{}) {
 	done := &sync.WaitGroup{}
 	for _, watcher := range w.watchers {
 		done.Add(1)
-		go func(watcher *storage.Watcher) {
-			watcher.Run(stop)
+		go func(watcher *storage.Watcher, stop <-chan struct{}, errs chan error) {
+			watcher.Run(stop, errs)
 			done.Done()
-		}(watcher)
+		}(watcher, stop, w.errs)
 	}
 	done.Wait()
 }
+
 func (w *configWatcher) Config() <-chan *v1.Config {
 	return w.configs
 }
 
-// implemented only for the interface. errors will not be emitted on this chan
 func (w *configWatcher) Error() <-chan error {
-	return make(chan error)
+	return w.errs
 }

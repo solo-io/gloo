@@ -367,9 +367,10 @@
     "crd/client/clientset/versioned/scheme",
     "crd/client/clientset/versioned/typed/solo.io/v1",
     "crd/solo.io/v1",
+    "file",
     "internal/crud"
   ]
-  revision = "9f638ad961b3b75d03fcbd679e9fff54b0d54efe"
+  revision = "9ba1cf90a56099c7e1a2a1d7f19d33b3d4dfdd10"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -815,6 +816,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "06e2898833aa6072c563ede3eb581c13148a319782471e8831788c826d66fbd1"
+  inputs-digest = "1bc25ca118dc117970c8dc9d6d99ebe34a28e0e81935857e5ce8b39b882e882c"
   solver-name = "gps-cdcl"
   solver-version = 1

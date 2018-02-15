@@ -1,4 +1,4 @@
-package kube_test
+package configwatcher
 
 import (
 	"fmt"
@@ -11,7 +11,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/solo-io/glue-storage/crd"
-	. "github.com/solo-io/glue/internal/configwatcher/kube"
 	. "github.com/solo-io/glue/test/helpers"
 )
 
@@ -38,12 +37,12 @@ var _ = Describe("KubeConfigWatcher", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
 
-			watcher, err := NewCrdWatcher(masterUrl, kubeconfigPath, namespace, time.Second)
-			Expect(err).NotTo(HaveOccurred())
-			go func() { watcher.Run(make(chan struct{})) }()
-
 			storageClient, err := crd.NewStorage(cfg, namespace, time.Second)
 			Expect(err).NotTo(HaveOccurred())
+
+			watcher, err := NewConfigWatcher(storageClient)
+			Must(err)
+			go func() { watcher.Run(make(chan struct{})) }()
 
 			virtualHost := NewTestVirtualHost("something", NewTestRoute1())
 			created, err := storageClient.V1().VirtualHosts().Create(virtualHost)
