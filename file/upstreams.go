@@ -133,7 +133,7 @@ func (c *upstreamsClient) pathsToUpstreams() (map[string]*v1.Upstream, error) {
 	upstreams := make(map[string]*v1.Upstream)
 	for _, f := range files {
 		path := filepath.Join(c.dir, f.Name())
-		if !strings.HasSuffix(path, ".yml") || !strings.HasSuffix(path, ".yaml") {
+		if !strings.HasSuffix(path, ".yml") && !strings.HasSuffix(path, ".yaml") {
 			continue
 		}
 		var upstream v1.Upstream

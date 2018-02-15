@@ -38,17 +38,20 @@ func (c *Client) V1() storage.V1 {
 }
 
 type v1client struct {
-	dir          string
 	upstreams    *upstreamsClient
 	virtualHosts *virtualHostsClient
 }
 
 func (c *v1client) Register() error {
-	err := os.MkdirAll(c.dir, 0755)
-	if err == os.ErrExist {
-		return nil
+	err := os.MkdirAll(c.upstreams.dir, 0755)
+	if err != nil && err != os.ErrExist {
+		return err
 	}
-	return err
+	err = os.MkdirAll(c.virtualHosts.dir, 0755)
+	if err != nil && err != os.ErrExist {
+		return err
+	}
+	return nil
 }
 
 func (c *v1client) Upstreams() storage.Upstreams {

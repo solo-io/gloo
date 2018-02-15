@@ -132,7 +132,7 @@ func (c *virtualHostsClient) pathsToVirtualHosts() (map[string]*v1.VirtualHost, 
 	virtualHosts := make(map[string]*v1.VirtualHost)
 	for _, f := range files {
 		path := filepath.Join(c.dir, f.Name())
-		if !strings.HasSuffix(path, ".yml") || !strings.HasSuffix(path, ".yaml") {
+		if !strings.HasSuffix(path, ".yml") && !strings.HasSuffix(path, ".yaml") {
 			continue
 		}
 		var virtualHost v1.VirtualHost
