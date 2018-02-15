@@ -24,12 +24,6 @@
   revision = "e0ebc95432196ce43dae88cc2822983466210656"
 
 [[projects]]
-  name = "github.com/fsnotify/fsnotify"
-  packages = ["."]
-  revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
-  version = "v1.4.7"
-
-[[projects]]
   name = "github.com/ghodss/yaml"
   packages = ["."]
   revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
@@ -218,6 +212,12 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/radovskyb/watcher"
+  packages = ["."]
+  revision = "6145e1439b9de93806925353403f91d2abbad8a5"
+  version = "v1.0.2"
+
+[[projects]]
   branch = "master"
   name = "github.com/solo-io/glue"
   packages = [
@@ -228,9 +228,6 @@
     "pkg/api/types/v1",
     "pkg/endpointdiscovery",
     "pkg/log",
-    "pkg/platform/kube/crd/client/clientset/versioned",
-    "pkg/platform/kube/crd/client/clientset/versioned/scheme",
-    "pkg/platform/kube/crd/client/clientset/versioned/typed/solo.io/v1",
     "pkg/platform/kube/crd/solo.io/v1",
     "pkg/plugin",
     "pkg/protoutil",
@@ -486,6 +483,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "28f5412a2a8e6c2a6f48102327017bd4446452415e716f5fd676e5b76dca1b34"
+  inputs-digest = "44801250450eb44e15c5b4777f1e75094a571086fea2c5da180198d9e0c77900"
   solver-name = "gps-cdcl"
   solver-version = 1

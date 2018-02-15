@@ -50,10 +50,6 @@
   version = "0.8.0"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/solo-io/glue"
-
-[[constraint]]
   branch = "v2"
   name = "gopkg.in/yaml.v2"
 
