@@ -185,6 +185,7 @@ func (e *eventLoop) updateXds(cache *cache) {
 	}
 	snapshot, status, err := e.translator.Translate(cache.cfg, cache.secrets, aggregatedEndpoints)
 	if err != nil {
+		// TODO: panic or handle these internal errors smartly
 		runtime.HandleError(errors.Wrap(err, "failed to translate based on the latest config"))
 	}
 	log.Printf("TODO: do something with this status eventually: %v", status)

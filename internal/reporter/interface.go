@@ -12,7 +12,7 @@ const (
 )
 
 type ConfigObjectReport struct {
-	CfgObject v1.StorableConfigObject
+	CfgObject v1.GlueObject
 	Err       error
 }
 

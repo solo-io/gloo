@@ -1,4 +1,4 @@
-package kube_test
+package configwatcher_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestCrd(t *testing.T) {
+func TestConfigwatcher(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Crd Suite")
+	RunSpecs(t, "Configwatcher Suite")
 }

@@ -1,7 +1,6 @@
-package kube_test
+package configwatcher
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,13 +8,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
-	. "github.com/solo-io/glue/internal/configwatcher/kube"
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	clientset "github.com/solo-io/glue/pkg/platform/kube/crd/client/clientset/versioned"
-	crdv1 "github.com/solo-io/glue/pkg/platform/kube/crd/solo.io/v1"
+	"github.com/solo-io/glue-storage/crd"
 	. "github.com/solo-io/glue/test/helpers"
 )
 
@@ -42,37 +37,28 @@ var _ = Describe("KubeConfigWatcher", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
 
-			watcher, err := NewCrdWatcher(masterUrl, kubeconfigPath, time.Second, make(chan struct{}))
+			storageClient, err := crd.NewStorage(cfg, namespace, time.Second)
 			Expect(err).NotTo(HaveOccurred())
 
-			// add a route
-			glueClient, err := clientset.NewForConfig(cfg)
-			Expect(err).NotTo(HaveOccurred())
-			virtualHost := &crdv1.VirtualHost{
-				ObjectMeta: metav1.ObjectMeta{
-					GenerateName: "vhost-",
-				},
-				Spec: crdv1.DeepCopyVirtualHost(NewTestVirtualHost("vhost-1", NewTestRoute1())),
-			}
-			_, err = glueClient.GlueV1().VirtualHosts(namespace).Create(virtualHost)
+			watcher, err := NewConfigWatcher(storageClient)
+			Must(err)
+			go func() { watcher.Run(make(chan struct{})) }()
+
+			virtualHost := NewTestVirtualHost("something", NewTestRoute1())
+			created, err := storageClient.V1().VirtualHosts().Create(virtualHost)
 			Expect(err).NotTo(HaveOccurred())
 
 			// give controller time to register
 			time.Sleep(time.Second * 2)
 
-			var expectedVhost v1.VirtualHost
-			data, err := json.Marshal(virtualHost.Spec)
-			Expect(err).NotTo(HaveOccurred())
-			err = json.Unmarshal(data, &expectedVhost)
-			Expect(err).NotTo(HaveOccurred())
 			select {
 			case <-time.After(time.Second * 5):
 				Expect(fmt.Errorf("expected to have received resource event before 5s")).NotTo(HaveOccurred())
 			case cfg := <-watcher.Config():
 				Expect(len(cfg.VirtualHosts)).To(Equal(1))
-				Expect(cfg.VirtualHosts[0]).To(Equal(expectedVhost))
+				Expect(cfg.VirtualHosts[0]).To(Equal(created))
 				Expect(len(cfg.VirtualHosts[0].Routes)).To(Equal(1))
-				Expect(cfg.VirtualHosts[0].Routes[0]).To(Equal(expectedVhost.Routes[0]))
+				Expect(cfg.VirtualHosts[0].Routes[0]).To(Equal(created.Routes[0]))
 			case err := <-watcher.Error():
 				Expect(err).NotTo(HaveOccurred())
 			}

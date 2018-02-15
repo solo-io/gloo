@@ -18,7 +18,7 @@ message Upstream {
     repeated Function functions = 5;
     // read only
     Status status = 6;
-    Metadata metadata = 7  [(gogoproto.embed) = true];
+    Metadata metadata = 7;
 }
 
 message Function {
