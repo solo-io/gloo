@@ -52,7 +52,7 @@ func init() {
 	rootCmd.PersistentFlags().DurationVar(&opts.SecretWatcherOptions.SyncFrequency, "secrets.refreshrate", time.Second, "refresh rate for polling secrets")
 
 	// xds port
-	rootCmd.PersistentFlags().IntVar(&opts.XdsOptions.Port, "xds.port", 8081, "auth token for reading vault secrets")
+	rootCmd.PersistentFlags().IntVar(&opts.XdsOptions.Port, "xds.port", 8081, "port to serve envoy xDS services. this port should be specified in your envoy's static config")
 
 	// file
 	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.ConfigDir, "file.config.dir", "_glue_config", "root directory to use for storing glue config files")
