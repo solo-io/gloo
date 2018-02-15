@@ -4,20 +4,20 @@ import (
 	"unicode/utf8"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoy_api_v2_auth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
-	envoy_api_v2_core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	envoyauth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
+	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 
 	"github.com/gogo/protobuf/types"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"github.com/solo-io/glue/internal/plugins"
-	"github.com/solo-io/glue/pkg/secretwatcher"
 
+	"github.com/solo-io/glue/internal/plugins"
 	"github.com/solo-io/glue/internal/plugins/common"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/plugin"
+	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
 func init() {
@@ -99,11 +99,11 @@ func (p *Plugin) ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMa
 		return errors.Wrap(err, "invalid AWS upstream spec")
 	}
 
-	out.Hosts = append(out.Hosts, &envoy_api_v2_core.Address{Address: &envoy_api_v2_core.Address_SocketAddress{SocketAddress: &envoy_api_v2_core.SocketAddress{
+	out.Hosts = append(out.Hosts, &envoycore.Address{Address: &envoycore.Address_SocketAddress{SocketAddress: &envoycore.SocketAddress{
 		Address:       awsUpstream.GetLambdaHostname(),
-		PortSpecifier: &envoy_api_v2_core.SocketAddress_PortValue{PortValue: 443},
+		PortSpecifier: &envoycore.SocketAddress_PortValue{PortValue: 443},
 	}}})
-	out.TlsContext = &envoy_api_v2_auth.UpstreamTlsContext{
+	out.TlsContext = &envoyauth.UpstreamTlsContext{
 		Sni: awsUpstream.GetLambdaHostname(),
 	}
 
