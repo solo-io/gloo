@@ -1,4 +1,4 @@
-package functionrouter
+package translator
 
 import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
@@ -6,9 +6,10 @@ import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
-	"github.com/solo-io/glue/internal/defaults"
+
 	"github.com/solo-io/glue/internal/pkg/envoy"
 	"github.com/solo-io/glue/internal/plugins/common"
+	"github.com/solo-io/glue/internal/translator/defaults"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/plugin"
 	"github.com/solo-io/glue/pkg/secretwatcher"
@@ -24,7 +25,7 @@ type functionAndClusterRoutingInitializer struct {
 	functionPlugins []plugin.FunctionPlugin
 }
 
-func NewInitializerPlugin(functionPlugins []plugin.FunctionPlugin) *functionAndClusterRoutingInitializer {
+func newInitializerPlugin(functionPlugins []plugin.FunctionPlugin) *functionAndClusterRoutingInitializer {
 	return &functionAndClusterRoutingInitializer{functionPlugins: functionPlugins}
 }
 

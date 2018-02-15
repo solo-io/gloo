@@ -20,7 +20,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/solo-io/glue/internal/pkg/envoy"
-	"github.com/solo-io/glue/internal/plugins/functionrouter"
 	"github.com/solo-io/glue/internal/reporter"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
@@ -50,7 +49,7 @@ func NewTranslator(plugins []plugin.TranslatorPlugin) *Translator {
 	}
 	// the initializer plugin must be initialized with any function plugins
 	// it's responsible for setting cluster weights and common route properties
-	initPlugin := functionrouter.NewInitializerPlugin(functionPlugins)
+	initPlugin := newInitializerPlugin(functionPlugins)
 	plugins = append([]plugin.TranslatorPlugin{initPlugin}, plugins...)
 	return &Translator{
 		plugins: plugins,
