@@ -20,7 +20,8 @@ type upstreamsClient struct {
 	crds    crdclientset.Interface
 	apiexts apiexts.Interface
 	// write and read objects to this namespace if not specified on the GlueObjects
-	namespace string
+	namespace     string
+	syncFrequency time.Duration
 }
 
 func (c *upstreamsClient) Create(item *v1.Upstream) (*v1.Upstream, error) {
@@ -65,7 +66,7 @@ func (c *upstreamsClient) List() ([]*v1.Upstream, error) {
 
 func (u *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*storage.Watcher, error) {
 	lw := cache.NewListWatchFromClient(u.crds.GlueV1().RESTClient(), crdv1.UpstreamCRD.Plural, metav1.NamespaceAll, fields.Everything())
-	sw := cache.NewSharedInformer(lw, new(crdv1.Upstream), 30*time.Minute)
+	sw := cache.NewSharedInformer(lw, new(crdv1.Upstream), u.syncFrequency)
 	for _, h := range handlers {
 		sw.AddEventHandler(&upstreamEventHandler{handler: h, store: sw.GetStore()})
 	}

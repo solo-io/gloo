@@ -20,7 +20,8 @@ type virtualHostsClient struct {
 	crds    crdclientset.Interface
 	apiexts apiexts.Interface
 	// write and read objects to this namespace if not specified on the GlueObjects
-	namespace string
+	namespace     string
+	syncFrequency time.Duration
 }
 
 func (c *virtualHostsClient) Create(item *v1.VirtualHost) (*v1.VirtualHost, error) {
@@ -65,7 +66,7 @@ func (c *virtualHostsClient) List() ([]*v1.VirtualHost, error) {
 
 func (u *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) (*storage.Watcher, error) {
 	lw := cache.NewListWatchFromClient(u.crds.GlueV1().RESTClient(), crdv1.VirtualHostCRD.Plural, metav1.NamespaceAll, fields.Everything())
-	sw := cache.NewSharedInformer(lw, new(crdv1.VirtualHost), 30*time.Minute)
+	sw := cache.NewSharedInformer(lw, new(crdv1.VirtualHost), u.syncFrequency)
 	for _, h := range handlers {
 		sw.AddEventHandler(&virtualHostEventHandler{handler: h, store: sw.GetStore()})
 	}

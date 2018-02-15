@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/solo-io/glue-storage/crd"
@@ -20,6 +22,7 @@ var _ = Describe("CrdStorageClient", func() {
 		masterUrl, kubeconfigPath string
 		mkb                       *MinikubeInstance
 		namespace                 string
+		syncFreq                  = time.Minute
 	)
 	BeforeEach(func() {
 		namespace = RandString(8)
@@ -37,7 +40,7 @@ var _ = Describe("CrdStorageClient", func() {
 		It("creates a new client without error", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
-			_, err = NewStorage(cfg, namespace)
+			_, err = NewStorage(cfg, namespace, syncFreq)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
@@ -45,7 +48,7 @@ var _ = Describe("CrdStorageClient", func() {
 		It("registers the crds", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
-			client, err := NewStorage(cfg, namespace)
+			client, err := NewStorage(cfg, namespace, syncFreq)
 			Expect(err).NotTo(HaveOccurred())
 			err = client.V1().Register()
 			Expect(err).NotTo(HaveOccurred())
@@ -73,7 +76,7 @@ var _ = Describe("CrdStorageClient", func() {
 		It("creates a crd from the item", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
-			client, err := NewStorage(cfg, namespace)
+			client, err := NewStorage(cfg, namespace, syncFreq)
 			Expect(err).NotTo(HaveOccurred())
 			err = client.V1().Register()
 			Expect(err).NotTo(HaveOccurred())
@@ -88,7 +91,7 @@ var _ = Describe("CrdStorageClient", func() {
 		It("gets a crd from the name", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
-			client, err := NewStorage(cfg, namespace)
+			client, err := NewStorage(cfg, namespace, syncFreq)
 			Expect(err).NotTo(HaveOccurred())
 			err = client.V1().Register()
 			Expect(err).NotTo(HaveOccurred())
@@ -105,7 +108,7 @@ var _ = Describe("CrdStorageClient", func() {
 		It("updates a crd from the item", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
-			client, err := NewStorage(cfg, namespace)
+			client, err := NewStorage(cfg, namespace, syncFreq)
 			Expect(err).NotTo(HaveOccurred())
 			err = client.V1().Register()
 			Expect(err).NotTo(HaveOccurred())
@@ -127,7 +130,7 @@ var _ = Describe("CrdStorageClient", func() {
 		It("deletes a crd from the name", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
-			client, err := NewStorage(cfg, namespace)
+			client, err := NewStorage(cfg, namespace, syncFreq)
 			Expect(err).NotTo(HaveOccurred())
 			err = client.V1().Register()
 			Expect(err).NotTo(HaveOccurred())

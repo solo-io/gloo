@@ -2,6 +2,7 @@ package crd
 
 import (
 	"fmt"
+	"time"
 
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -19,7 +20,7 @@ type Client struct {
 	v1 *v1client
 }
 
-func NewStorage(cfg *rest.Config, namespace string) (storage.Storage, error) {
+func NewStorage(cfg *rest.Config, namespace string, syncFrequency time.Duration) (storage.Storage, error) {
 	if namespace == "" {
 		namespace = GlueDefaultNamespace
 	}
@@ -34,12 +35,14 @@ func NewStorage(cfg *rest.Config, namespace string) (storage.Storage, error) {
 	return &Client{
 		v1: &v1client{
 			upstreams: &upstreamsClient{
-				crds:      crdClient,
-				namespace: namespace,
+				crds:          crdClient,
+				namespace:     namespace,
+				syncFrequency: syncFrequency,
 			},
 			virtualHosts: &virtualHostsClient{
-				crds:      crdClient,
-				namespace: namespace,
+				crds:          crdClient,
+				namespace:     namespace,
+				syncFrequency: syncFrequency,
 			},
 			apiexts: apiextClient,
 		},
