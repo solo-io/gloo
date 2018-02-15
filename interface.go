@@ -32,15 +32,15 @@ type VirtualHosts interface {
 }
 
 type Watcher struct {
-	runFunc func(stop <-chan struct{})
+	runFunc func(stop <-chan struct{}, errs chan error)
 }
 
-func NewWatcher(runFunc func(stop <-chan struct{})) *Watcher {
+func NewWatcher(runFunc func(stop <-chan struct{}, errs chan error)) *Watcher {
 	return &Watcher{runFunc: runFunc}
 }
 
-func (w *Watcher) Run(stop <-chan struct{}) {
-	w.runFunc(stop)
+func (w *Watcher) Run(stop <-chan struct{}, errs chan error) {
+	w.runFunc(stop, errs)
 }
 
 type UpstreamEventHandler interface {

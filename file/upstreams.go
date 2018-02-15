@@ -154,11 +154,10 @@ func (u *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*stor
 		return nil, errors.Wrapf(err, "failed to add directory %v", u.dir)
 	}
 
-	return storage.NewWatcher(func(stop <-chan struct{}) {
-		errC := make(chan error)
+	return storage.NewWatcher(func(stop <-chan struct{}, errs chan error) {
 		go func() {
 			if err := w.Start(u.syncFrequency); err != nil {
-				errC <- err
+				errs <- err
 			}
 		}()
 		for {
@@ -170,7 +169,7 @@ func (u *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*stor
 			case err := <-w.Error:
 				runtime.HandleError(fmt.Errorf("watcher encoutnered error: %v", err))
 				return
-			case err := <-errC:
+			case err := <-errs:
 				runtime.HandleError(fmt.Errorf("failed to start watcher to: %v", err))
 				return
 			case <-stop:

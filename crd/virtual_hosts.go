@@ -70,7 +70,7 @@ func (u *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) 
 	for _, h := range handlers {
 		sw.AddEventHandler(&virtualHostEventHandler{handler: h, store: sw.GetStore()})
 	}
-	return storage.NewWatcher(func(stop <-chan struct{}) {
+	return storage.NewWatcher(func(stop <-chan struct{}, _ chan error) {
 		sw.Run(stop)
 	}), nil
 }

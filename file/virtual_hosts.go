@@ -1,7 +1,6 @@
 package file
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -153,11 +152,10 @@ func (u *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) 
 		return nil, errors.Wrapf(err, "failed to add directory %v", u.dir)
 	}
 
-	return storage.NewWatcher(func(stop <-chan struct{}) {
-		errC := make(chan error)
+	return storage.NewWatcher(func(stop <-chan struct{}, errs chan error) {
 		go func() {
 			if err := w.Start(u.syncFrequency); err != nil {
-				errC <- err
+				errs <- err
 			}
 		}()
 		for {
@@ -167,10 +165,7 @@ func (u *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) 
 					runtime.HandleError(err)
 				}
 			case err := <-w.Error:
-				runtime.HandleError(fmt.Errorf("watcher envoutnered error: %v", err))
-				return
-			case err := <-errC:
-				runtime.HandleError(fmt.Errorf("failed to start watcher to: %v", err))
+				errs <- err
 				return
 			case <-stop:
 				w.Close()
