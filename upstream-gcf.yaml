@@ -1,0 +1,15 @@
+apiVersion: "glue.solo.io/v1"
+kind: Upstream
+metadata:
+  name: testgcf
+spec:
+    name: testgcf
+    type: gcf
+    spec:
+      project: global-road-195415
+      credential: gcf-secret
+    functions:
+    - name: f:v1
+      spec:
+        Entry: f
+        Version: v1
