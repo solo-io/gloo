@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  name = "cloud.google.com/go"
-  packages = ["compute/metadata"]
-  revision = "767c40d6a2e058483c25fa193e963a22da17236d"
-  version = "v0.18.0"
-
-[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -85,8 +79,7 @@
     "ptypes/any",
     "ptypes/duration",
     "ptypes/struct",
-    "ptypes/timestamp",
-    "ptypes/wrappers"
+    "ptypes/timestamp"
   ]
   revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
 
@@ -272,12 +265,6 @@
   revision = "a4e142e9c047c904fa2f1e144d9a84e6133024bc"
 
 [[projects]]
-  name = "github.com/natefinch/lumberjack"
-  packages = ["."]
-  revision = "a96e63847dc3c67d17befa69c303767e2f84e54f"
-  version = "v2.1"
-
-[[projects]]
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -359,6 +346,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/solo-io/gloo-plugins"
+  packages = ["service"]
+  revision = "f76cb01fa5730be5fd191e361c7eab02a0c800d6"
+
+[[projects]]
+  branch = "master"
   name = "github.com/solo-io/glue-storage"
   packages = [
     ".",
@@ -370,7 +363,13 @@
     "file",
     "internal/crud"
   ]
-  revision = "9ba1cf90a56099c7e1a2a1d7f19d33b3d4dfdd10"
+  revision = "2542c248a689ecb63ef4110656b9e13483beb845"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/solo-io/kubecontroller"
+  packages = ["."]
+  revision = "01b92a637d8772f165fe8e4f7dfd60aca5a32f8e"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -404,8 +403,7 @@
     "internal/bufferpool",
     "internal/color",
     "internal/exit",
-    "zapcore",
-    "zapgrpc"
+    "zapcore"
   ]
   revision = "35aad584952c3e7020db7b839f6b102de6271f89"
   version = "v1.7.1"
@@ -421,7 +419,6 @@
   name = "golang.org/x/net"
   packages = [
     "context",
-    "context/ctxhttp",
     "html",
     "html/atom",
     "html/charset",
@@ -433,18 +430,6 @@
     "trace"
   ]
   revision = "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/oauth2"
-  packages = [
-    ".",
-    "google",
-    "internal",
-    "jws",
-    "jwt"
-  ]
-  revision = "543e37812f10c46c622c9575afd7ad22f22a12ba"
 
 [[projects]]
   branch = "master"
@@ -487,23 +472,6 @@
     "unicode/rangetable"
   ]
   revision = "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
-
-[[projects]]
-  name = "google.golang.org/appengine"
-  packages = [
-    ".",
-    "internal",
-    "internal/app_identity",
-    "internal/base",
-    "internal/datastore",
-    "internal/log",
-    "internal/modules",
-    "internal/remote_api",
-    "internal/urlfetch",
-    "urlfetch"
-  ]
-  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
-  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -553,36 +521,10 @@
   revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
 [[projects]]
-  name = "istio.io/api"
-  packages = [
-    "mesh/v1alpha1",
-    "mixer/v1",
-    "mixer/v1/config/client",
-    "routing/v1alpha1",
-    "routing/v1alpha2"
-  ]
-  revision = "87a9d695c8a65f11db006a9108904934c6c9caeb"
-
-[[projects]]
   branch = "master"
   name = "istio.io/gogo-genproto"
-  packages = [
-    "googleapis/google/api",
-    "googleapis/google/rpc"
-  ]
+  packages = ["googleapis/google/api"]
   revision = "dd2b5b6a8f1400838165245e704a011a30154a44"
-
-[[projects]]
-  name = "istio.io/istio"
-  packages = [
-    "pilot/pkg/config/kube/crd",
-    "pilot/pkg/model",
-    "pilot/pkg/model/test",
-    "pilot/pkg/serviceregistry/kube",
-    "pkg/log"
-  ]
-  revision = "30acfe6528107ea333543309095659b93364b30d"
-  version = "0.5.1"
 
 [[projects]]
   branch = "master"
@@ -683,7 +625,6 @@
   name = "k8s.io/client-go"
   packages = [
     "discovery",
-    "discovery/fake",
     "informers",
     "informers/admissionregistration",
     "informers/admissionregistration/v1alpha1",
@@ -779,12 +720,8 @@
     "listers/storage/v1alpha1",
     "listers/storage/v1beta1",
     "pkg/version",
-    "plugin/pkg/client/auth/gcp",
-    "plugin/pkg/client/auth/oidc",
     "rest",
     "rest/watch",
-    "testing",
-    "third_party/forked/golang/template",
     "tools/auth",
     "tools/cache",
     "tools/clientcmd",
@@ -801,7 +738,6 @@
     "util/flowcontrol",
     "util/homedir",
     "util/integer",
-    "util/jsonpath",
     "util/workqueue"
   ]
   revision = "78700dec6369ba22221b72770783300f143df150"
@@ -816,6 +752,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1bc25ca118dc117970c8dc9d6d99ebe34a28e0e81935857e5ce8b39b882e882c"
+  inputs-digest = "860977d59edb55dbebcfc86bb43e74314ac200a26e748a7f323bd6f4bd43193a"
   solver-name = "gps-cdcl"
   solver-version = 1

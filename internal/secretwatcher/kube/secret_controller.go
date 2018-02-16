@@ -12,9 +12,9 @@ import (
 	"k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/glue/internal/pkg/kube/controller"
 	"github.com/solo-io/glue/pkg/log"
 	"github.com/solo-io/glue/pkg/secretwatcher"
+	"github.com/solo-io/kubecontroller"
 )
 
 type secretController struct {
@@ -34,17 +34,15 @@ func newSecretController(cfg *rest.Config, resyncDuration time.Duration, stopCh 
 	informerFactory := informers.NewSharedInformerFactory(kubeClient, resyncDuration)
 	secretInformer := informerFactory.Core().V1().Secrets()
 
-	ctrl := &secretController{
+	c := &secretController{
 		secrets:       make(chan secretwatcher.SecretMap),
 		errors:        make(chan error),
 		secretsLister: secretInformer.Lister(),
 	}
 
-	kubeController := controller.NewController(
+	kubeController := kubecontroller.NewController(
 		"glue-secrets-controller", kubeClient,
-		func(_, _ string, _ interface{}) {
-			ctrl.getUpdatedSecrets()
-		},
+		kubecontroller.NewSyncHandler(c.syncSecrets),
 		secretInformer.Informer())
 
 	go informerFactory.Start(stopCh)
@@ -52,7 +50,7 @@ func newSecretController(cfg *rest.Config, resyncDuration time.Duration, stopCh 
 		kubeController.Run(2, stopCh)
 	}()
 
-	return ctrl, nil
+	return c, nil
 }
 
 // triggers an update

@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"github.com/solo-io/glue/internal/plugins/service"
+	"github.com/solo-io/gloo-plugins/service"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/protoutil"
 )
