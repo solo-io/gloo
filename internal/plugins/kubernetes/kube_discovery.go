@@ -9,13 +9,13 @@ import (
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 )
 
-func NewEndpointDiscovery(masterUrl, kubeconfigPath string, resyncDuration time.Duration, stopCh <-chan struct{}) (endpointdiscovery.Interface, error) {
+func NewEndpointDiscovery(masterUrl, kubeconfigPath string, resyncDuration time.Duration) (endpointdiscovery.Interface, error) {
 	cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build rest config: %v", err)
 	}
 
-	ctl, err := newEndpointController(cfg, resyncDuration, stopCh)
+	ctl, err := newEndpointController(cfg, resyncDuration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize endpoint controller: %v", err)
 	}

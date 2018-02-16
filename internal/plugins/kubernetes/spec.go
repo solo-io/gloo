@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/mapstruct"
+	"github.com/solo-io/glue/pkg/protoutil"
 )
 
 type UpstreamSpec struct {
@@ -12,20 +12,16 @@ type UpstreamSpec struct {
 	ServicePort      string `json:"service_port"`
 }
 
-func DecodeUpstreamSpec(generic v1.UpstreamSpec) (UpstreamSpec, error) {
-	var s UpstreamSpec
-	if err := mapstruct.Decode(generic, &s); err != nil {
-		return s, err
+func DecodeUpstreamSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {
+	s := new(UpstreamSpec)
+	if err := protoutil.UnmarshalStruct(generic, s); err != nil {
+		return nil, err
 	}
 	return s, s.validateUpstream()
 }
 
-func EncodeUpstreamSpec(spec UpstreamSpec) v1.UpstreamSpec {
-	return v1.UpstreamSpec{
-		"service_name":      spec.ServiceName,
-		"service_namespace": spec.ServiceNamespace,
-		"service_port":      spec.ServicePort,
-	}
+func EncodeUpstreamSpec(spec UpstreamSpec) (v1.UpstreamSpec, error) {
+	return protoutil.MarshalStruct(spec)
 }
 
 func (s *UpstreamSpec) validateUpstream() error {

@@ -11,6 +11,9 @@ type Endpoint struct {
 }
 
 type Interface interface {
+	// starts the discovery service
+	Run(stop <-chan struct{})
+
 	// tells the discovery to track endpoints for the given upstreams
 	TrackUpstreams(upstreams []*v1.Upstream)
 

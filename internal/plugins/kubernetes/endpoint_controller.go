@@ -2,8 +2,10 @@ package kubernetes
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
+	"github.com/solo-io/kubecontroller"
 	kubev1resources "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -12,7 +14,6 @@ import (
 	kubev1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/glue/internal/pkg/kube/controller"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 )
@@ -22,10 +23,11 @@ type endpointController struct {
 	errors          chan error
 	endpointsLister kubev1.EndpointsLister
 	servicesLister  kubev1.ServiceLister
-	upstreamSpecs   map[string]UpstreamSpec
+	upstreamSpecs   map[string]*UpstreamSpec
+	runFunc         func(stop <-chan struct{})
 }
 
-func newEndpointController(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}) (*endpointController, error) {
+func newEndpointController(cfg *rest.Config, resyncDuration time.Duration) (*endpointController, error) {
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
@@ -35,32 +37,43 @@ func newEndpointController(cfg *rest.Config, resyncDuration time.Duration, stopC
 	endpointInformer := informerFactory.Core().V1().Endpoints()
 	serviceInformer := informerFactory.Core().V1().Services()
 
-	ctrl := &endpointController{
+	c := &endpointController{
 		endpoints:       make(chan endpointdiscovery.EndpointGroups),
 		errors:          make(chan error),
 		endpointsLister: endpointInformer.Lister(),
 		servicesLister:  serviceInformer.Lister(),
 	}
 
-	kubeController := controller.NewController("glue-endpoints-controller", kubeClient,
-		func(_, _ string, _ interface{}) {
-			ctrl.syncEndpoints()
-		},
+	kubeController := kubecontroller.NewController("glue-endpoints-controller",
+		kubeClient,
+		kubecontroller.NewSyncHandler(c.syncEndpoints),
 		endpointInformer.Informer(),
 		serviceInformer.Informer())
 
-	go informerFactory.Start(stopCh)
-	go func() {
-		kubeController.Run(2, stopCh)
-	}()
+	c.runFunc = func(stop <-chan struct{}) {
+		wg := &sync.WaitGroup{}
+		go func(stop <-chan struct{}) {
+			wg.Add(1)
+			informerFactory.Start(stop)
+			wg.Done()
+		}(stop)
+		go func() {
+			kubeController.Run(2, stop)
+		}()
+		wg.Wait()
+	}
 
-	return ctrl, nil
+	return c, nil
+}
+
+func (c *endpointController) Run(stop <-chan struct{}) {
+	c.runFunc(stop)
 }
 
 // triggers an update
 func (c *endpointController) TrackUpstreams(upstreams []*v1.Upstream) {
 	if c.upstreamSpecs == nil {
-		c.upstreamSpecs = make(map[string]UpstreamSpec)
+		c.upstreamSpecs = make(map[string]*UpstreamSpec)
 	}
 	for _, us := range upstreams {
 		spec, err := DecodeUpstreamSpec(us.Spec)
@@ -132,7 +145,7 @@ func (c *endpointController) getUpdatedEndpoints() (endpointdiscovery.EndpointGr
 	return endpointGroups, nil
 }
 
-func portForUpstream(spec UpstreamSpec, serviceList []*kubev1resources.Service) (int32, error) {
+func portForUpstream(spec *UpstreamSpec, serviceList []*kubev1resources.Service) (int32, error) {
 	for _, svc := range serviceList {
 		if spec.ServiceName == svc.Name && spec.ServiceNamespace == svc.Namespace {
 			// found the port we want

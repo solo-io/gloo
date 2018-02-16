@@ -14,21 +14,25 @@ import (
 )
 
 func init() {
-	plugins.Register(&Plugin{}, startEndpointDiscovery)
+	plugins.Register(&Plugin{}, createEndpointDiscovery)
 }
 
-func startEndpointDiscovery(opts bootstrap.Options, stopCh <-chan struct{}) (endpointdiscovery.Interface, error) {
+func createEndpointDiscovery(opts bootstrap.Options, stopCh <-chan struct{}) (endpointdiscovery.Interface, error) {
 	kubeConfig := opts.KubeOptions.KubeConfig
 	masterUrl := opts.KubeOptions.MasterURL
 	syncFrequency := opts.ConfigWatcherOptions.SyncFrequency
-	return NewEndpointDiscovery(kubeConfig, masterUrl, syncFrequency, stopCh)
+	disc, err := NewEndpointDiscovery(kubeConfig, masterUrl, syncFrequency)
+	if err != nil {
+		return nil, err
+	}
+	return disc, err
 }
 
 type Plugin struct{}
 
 const (
 	// define Upstream type name
-	UpstreamTypeKube v1.UpstreamType = "kubernetes"
+	UpstreamTypeKube = "kubernetes"
 )
 
 func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {

@@ -1,25 +1,28 @@
 package kubernetes_test
 
 import (
+	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/glue/internal/pkg/kube/upstream"
+	. "github.com/solo-io/glue/internal/plugins/kubernetes"
 	"github.com/solo-io/glue/pkg/log"
 )
 
 var _ = Describe("FromMap", func() {
 	It("correctly deserializes Spec from a map[string]interface{}", func() {
-		m := map[string]interface{}{
-			"service_name":      "svc",
-			"service_namespace": "my-ns",
-			"service_port_name": "svc-port",
+		m := &types.Struct{
+			Fields: map[string]*types.Value{
+				"service_name":      {Kind: &types.Value_StringValue{StringValue: "svc"}},
+				"service_namespace": {Kind: &types.Value_StringValue{StringValue: "my-ns"}},
+				"service_port":      {Kind: &types.Value_StringValue{StringValue: "svc-port"}},
+			},
 		}
-		spec, err := FromMap(m)
+		spec, err := DecodeUpstreamSpec(m)
 		log.Debugf("%v", spec)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(spec.ServiceName).To(Equal(m["service_name"]))
-		Expect(spec.ServiceNamespace).To(Equal(m["service_namespace"]))
-		Expect(spec.ServicePortName).To(Equal(m["service_port_name"]))
+		Expect(spec.ServiceName).To(Equal("svc"))
+		Expect(spec.ServiceNamespace).To(Equal("my-ns"))
+		Expect(spec.ServicePort).To(Equal("svc-port"))
 	})
 })
