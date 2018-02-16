@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"github.com/solo-io/glue/internal/bootstrap"
+	"github.com/solo-io/glue/pkg/bootstrap"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 )
 

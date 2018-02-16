@@ -347,8 +347,13 @@
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-plugins"
-  packages = ["service"]
-  revision = "f76cb01fa5730be5fd191e361c7eab02a0c800d6"
+  packages = [
+    "aws",
+    "common",
+    "kubernetes",
+    "service"
+  ]
+  revision = "df9cc8e31d3ca6a8a2dc575aa8de6ce9fa73996f"
 
 [[projects]]
   branch = "master"
@@ -752,6 +757,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "860977d59edb55dbebcfc86bb43e74314ac200a26e748a7f323bd6f4bd43193a"
+  inputs-digest = "a168bb0398525f26a132167f879fe8439cb95a403504022bb26c5d5f88d62035"
   solver-name = "gps-cdcl"
   solver-version = 1

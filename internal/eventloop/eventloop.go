@@ -3,7 +3,6 @@ package eventloop
 import (
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/pkg/errors"
-	"github.com/solo-io/glue/internal/plugins"
 	"github.com/solo-io/glue/internal/reporter"
 	filesecrets "github.com/solo-io/glue/internal/secretwatcher/file"
 	kubesecrets "github.com/solo-io/glue/internal/secretwatcher/kube"
@@ -11,12 +10,12 @@ import (
 	"github.com/solo-io/glue/pkg/plugin"
 	"k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/solo-io/glue/internal/bootstrap"
 	"github.com/solo-io/glue/internal/configwatcher/file"
 	"github.com/solo-io/glue/internal/configwatcher/kube"
 	"github.com/solo-io/glue/internal/translator"
 	"github.com/solo-io/glue/internal/xds"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/glue/pkg/bootstrap"
 	"github.com/solo-io/glue/pkg/configwatcher"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 	"github.com/solo-io/glue/pkg/log"

@@ -7,10 +7,10 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/glue/internal/pkg/envoy"
-	"github.com/solo-io/glue/internal/plugins/common"
+	"github.com/solo-io/gloo-plugins/common"
 	"github.com/solo-io/glue/internal/translator/defaults"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/glue/pkg/envoy"
 	"github.com/solo-io/glue/pkg/plugin"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )

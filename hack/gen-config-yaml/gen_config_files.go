@@ -14,8 +14,8 @@ import (
 	"github.com/solo-io/glue/pkg/log"
 	"github.com/solo-io/glue/pkg/protoutil"
 
-	"github.com/solo-io/glue/internal/plugins/aws"
-	"github.com/solo-io/glue/internal/plugins/service"
+	"github.com/solo-io/gloo-plugins/aws"
+	"github.com/solo-io/gloo-plugins/service"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 )
 
