@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/glue/internal/plugins/kubernetes"
+	. "github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/glue/pkg/log"
 )
 

@@ -12,7 +12,7 @@ import (
 
 	"fmt"
 
-	. "github.com/solo-io/glue/internal/plugins/kubernetes"
+	. "github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 	. "github.com/solo-io/glue/test/helpers"

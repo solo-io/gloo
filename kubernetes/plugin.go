@@ -5,16 +5,15 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/glue/internal/bootstrap"
-	"github.com/solo-io/glue/internal/plugins"
 	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/glue/pkg/bootstrap"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 	"github.com/solo-io/glue/pkg/plugin"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
 func init() {
-	plugins.Register(&Plugin{}, createEndpointDiscovery)
+	plugin.Register(&Plugin{}, createEndpointDiscovery)
 }
 
 func createEndpointDiscovery(opts bootstrap.Options, stopCh <-chan struct{}) (endpointdiscovery.Interface, error) {

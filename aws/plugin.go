@@ -13,15 +13,14 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/glue/internal/plugins"
-	"github.com/solo-io/glue/internal/plugins/common"
+	"github.com/solo-io/gloo-plugins/common"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/plugin"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
 func init() {
-	plugins.Register(&Plugin{}, nil)
+	plugin.Register(&Plugin{}, nil)
 }
 
 type Plugin struct{}
