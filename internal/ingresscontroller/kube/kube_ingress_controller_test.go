@@ -5,13 +5,14 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/glue-storage"
+	"github.com/solo-io/glue-storage/crd"
 
 	"os"
 	"path/filepath"
 
-	"github.com/solo-io/glue/internal/pkg/kube/upstream"
+	kubeplugin "github.com/solo-io/glue/internal/plugins/kubernetes"
 	"github.com/solo-io/glue/pkg/api/types/v1"
-	clientset "github.com/solo-io/glue/pkg/platform/kube/crd/client/clientset/versioned"
 	. "github.com/solo-io/glue/test/helpers"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,24 +41,23 @@ var _ = Describe("KubeIngressController", func() {
 	})
 	Describe("controller", func() {
 		var (
-			ingressCvtr *ingressController
-			kubeClient  kubernetes.Interface
-			glueClient  clientset.Interface
+			ingressCtl *ingressController
+			kubeClient kubernetes.Interface
+			glueClient storage.Interface
 		)
 		BeforeEach(func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Must(err)
 
-			ingressCvtr, err = NewIngressController(cfg, time.Second, make(chan struct{}), true, namespace)
+			glueClient, err = crd.NewStorage(cfg, namespace, time.Second)
 			Must(err)
+
+			ingressCtl, err = NewIngressController(cfg, glueClient, time.Second, true)
+			Must(err)
+
+			go ingressCtl.Run(make(chan struct{}))
 
 			kubeClient, err = kubernetes.NewForConfig(cfg)
-			Must(err)
-
-			glueClient, err = clientset.NewForConfig(cfg)
-			Must(err)
-
-			err = RegisterCrds(cfg)
 			Must(err)
 		})
 		Context("an ingress is created without our ingress class", func() {
@@ -94,18 +94,18 @@ var _ = Describe("KubeIngressController", func() {
 				select {
 				case <-time.After(time.Second):
 					// passed without error
-				case err := <-ingressCvtr.Error():
+				case err := <-ingressCtl.Error():
 					Expect(err).NotTo(HaveOccurred())
 					Fail("err passed, but was nil")
 				}
 			})
 			It("ignores the ingress", func() {
-				upstreams, err := glueClient.GlueV1().Upstreams(namespace).List(metav1.ListOptions{})
+				upstreams, err := glueClient.V1().Upstreams().List()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(upstreams.Items).To(HaveLen(0))
-				virtualHostList, err := glueClient.GlueV1().VirtualHosts(namespace).List(metav1.ListOptions{})
+				Expect(upstreams).To(HaveLen(0))
+				virtualHostList, err := glueClient.V1().VirtualHosts().List()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(virtualHostList.Items).To(HaveLen(0))
+				Expect(virtualHostList).To(HaveLen(0))
 			})
 		})
 		Context("an ingress is created with a default backend", func() {
@@ -144,37 +144,39 @@ var _ = Describe("KubeIngressController", func() {
 				select {
 				case <-time.After(time.Second * 1):
 					// passed without error
-				case err := <-ingressCvtr.Error():
+				case err := <-ingressCtl.Error():
 					Expect(err).NotTo(HaveOccurred())
 					Fail("err passed, but was nil")
 				}
 			})
 			It("creates the default virtualhost for the ingress", func() {
-				glueRoute := v1.Route{
-					Matcher: v1.Matcher{
-						Path: v1.Path{
-							Prefix: "/",
+				glueRoute := &v1.Route{
+					Matcher: &v1.Matcher{
+						Path: &v1.Matcher_PathPrefix{
+							PathPrefix: "/",
 						},
 					},
-					Destination: v1.Destination{
-						SingleDestination: v1.SingleDestination{
-							UpstreamDestination: &v1.UpstreamDestination{
-								UpstreamName: upstreamName(createdIngress.Namespace, *createdIngress.Spec.Backend),
+					SingleDestination: &v1.Destination{
+						DestinationType: &v1.Destination_Upstream{
+							Upstream: &v1.UpstreamDestination{
+								Name: upstreamName(createdIngress.Namespace, *createdIngress.Spec.Backend),
 							},
 						},
 					},
 				}
-				glueVirtualHost := v1.VirtualHost{
+				glueVirtualHost := &v1.VirtualHost{
 					Name:    defaultVirtualHost,
 					Domains: []string{"*"},
-					Routes:  []v1.Route{glueRoute},
+					Routes:  []*v1.Route{glueRoute},
 				}
-				virtualHostList, err := glueClient.GlueV1().VirtualHosts(namespace).List(metav1.ListOptions{})
+				virtualHostList, err := glueClient.V1().VirtualHosts().List()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(virtualHostList.Items).To(HaveLen(1))
-				virtualHost := virtualHostList.Items[0]
+				Expect(virtualHostList).To(HaveLen(1))
+				virtualHost := virtualHostList[0]
 				Expect(virtualHost.Name).To(Equal(defaultVirtualHost))
-				Expect(v1.VirtualHost(virtualHost.Spec)).To(Equal(glueVirtualHost))
+				// have to set metadata
+				glueVirtualHost.Metadata = virtualHost.Metadata
+				Expect(virtualHost).To(Equal(glueVirtualHost))
 			})
 		})
 		Context("an ingress is created with multiple rules", func() {
@@ -270,44 +272,46 @@ var _ = Describe("KubeIngressController", func() {
 				select {
 				case <-time.After(time.Second * 2):
 					// passed without error
-				case err := <-ingressCvtr.Error():
+				case err := <-ingressCtl.Error():
 					Expect(err).NotTo(HaveOccurred())
 					Fail("err passed, but was nil")
 				}
 			})
 			It("should de-duplicate repeated upstreams", func() {
 				time.Sleep(time.Second * 3)
-				expectedUpstreams := make(map[string]v1.Upstream)
+				expectedUpstreams := make(map[string]*v1.Upstream)
 				for _, rule := range createdIngress.Spec.Rules {
 					for _, path := range rule.HTTP.Paths {
-						expectedUpstreams[upstreamName(createdIngress.Namespace, path.Backend)] = v1.Upstream{
+						spec, _ := kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
+							ServiceName:      path.Backend.ServiceName,
+							ServiceNamespace: namespace,
+							ServicePort:      path.Backend.ServicePort.String(),
+						})
+						expectedUpstreams[upstreamName(createdIngress.Namespace, path.Backend)] = &v1.Upstream{
 							Name: upstreamName(createdIngress.Namespace, path.Backend),
-							Type: upstream.Kubernetes,
-							Spec: upstream.ToMap(upstream.Spec{
-								ServiceName:      path.Backend.ServiceName,
-								ServiceNamespace: namespace,
-								ServicePortName:  path.Backend.ServicePort.String(),
-							}),
+							Type: kubeplugin.UpstreamTypeKube,
+							Spec: spec,
 						}
 					}
 				}
-				upstreams, err := glueClient.GlueV1().Upstreams(namespace).List(metav1.ListOptions{})
+				upstreams, err := glueClient.V1().Upstreams().List()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(upstreams.Items).To(HaveLen(len(expectedUpstreams)))
-				for _, us := range upstreams.Items {
+				Expect(upstreams).To(HaveLen(len(expectedUpstreams)))
+				for _, us := range upstreams {
 					Expect(expectedUpstreams).To(HaveKey(us.Name))
-					Expect(us.Spec.Type).To(Equal(upstream.Kubernetes))
-					Expect(expectedUpstreams[us.Name]).To(Equal(v1.Upstream(us.Spec)))
+					// ignore metadata, as teh client sets this
+					us.Metadata = nil
+					Expect(expectedUpstreams[us.Name]).To(Equal(us))
 				}
 			})
 			It("create a route for every path", func() {
 				time.Sleep(4 * time.Second)
-				expectedVirtualHosts := map[string]v1.VirtualHost{
+				expectedVirtualHosts := map[string]*v1.VirtualHost{
 					"host2": {
 						Name:    "host2",
 						Domains: []string{"host2"},
 					},
-					"host1": v1.VirtualHost{
+					"host1": &v1.VirtualHost{
 						Name:    "host1",
 						Domains: []string{"host1"},
 					},
@@ -316,23 +320,17 @@ var _ = Describe("KubeIngressController", func() {
 				for _, rule := range createdIngress.Spec.Rules {
 					for _, path := range rule.HTTP.Paths {
 						vHost := expectedVirtualHosts[rule.Host]
-						vHost.Routes = append(vHost.Routes, v1.Route{
-							Matcher: v1.Matcher{
-								Path:    v1.Path{Prefix: "", Regex: path.Path, Exact: ""},
-								Headers: nil,
-								Verbs:   nil,
+						vHost.Routes = append(vHost.Routes, &v1.Route{
+							Matcher: &v1.Matcher{
+								Path: &v1.Matcher_PathRegex{PathRegex: path.Path},
 							},
-							Destination: v1.Destination{
-								SingleDestination: v1.SingleDestination{
-									FunctionDestination: nil,
-									UpstreamDestination: &v1.UpstreamDestination{
-										UpstreamName: upstreamName(createdIngress.Namespace, path.Backend),
+							SingleDestination: &v1.Destination{
+								DestinationType: &v1.Destination_Upstream{
+									Upstream: &v1.UpstreamDestination{
+										Name: upstreamName(createdIngress.Namespace, path.Backend),
 									},
 								},
-								Destinations: nil,
 							},
-							RewritePrefix: "",
-							Plugins:       nil,
 						})
 						sortRoutes(vHost.Routes)
 						expectedVirtualHosts[rule.Host] = vHost
@@ -342,18 +340,19 @@ var _ = Describe("KubeIngressController", func() {
 				for _, tls := range createdIngress.Spec.TLS {
 					for _, host := range tls.Hosts {
 						vHost := expectedVirtualHosts[host]
-						vHost.SSLConfig = v1.SSLConfig{
-							CACertPath: "",
-							SecretRef:  tls.SecretName,
+						vHost.SslConfig = &v1.SSLConfig{
+							SecretRef: tls.SecretName,
 						}
 						expectedVirtualHosts[host] = vHost
 					}
 				}
-				virtuavirtualHostList, err := glueClient.GlueV1().VirtualHosts(namespace).List(metav1.ListOptions{})
+				virtuavirtualHostList, err := glueClient.V1().VirtualHosts().List()
 				Expect(err).NotTo(HaveOccurred())
-				Expect(virtuavirtualHostList.Items).To(HaveLen(len(expectedVirtualHosts)))
-				for _, virtualHost := range virtuavirtualHostList.Items {
-					Expect(expectedVirtualHosts).To(ContainElement(v1.VirtualHost(virtualHost.Spec)))
+				Expect(virtuavirtualHostList).To(HaveLen(len(expectedVirtualHosts)))
+				for _, virtualHost := range virtuavirtualHostList {
+					// ignore metadata
+					virtualHost.Metadata = nil
+					Expect(expectedVirtualHosts).To(ContainElement(virtualHost))
 				}
 			})
 		})
