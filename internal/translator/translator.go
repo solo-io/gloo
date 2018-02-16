@@ -12,6 +12,9 @@ import (
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
+	"github.com/ghodss/yaml"
+	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/glue/pkg/protoutil"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/hashicorp/go-multierror"
@@ -22,7 +25,6 @@ import (
 	"github.com/solo-io/glue/internal/reporter"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
-	"github.com/solo-io/glue/pkg/envoy"
 	"github.com/solo-io/glue/pkg/plugin"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )
@@ -30,7 +32,7 @@ import (
 const (
 	rdsName       = "glue-rds"
 	listenerName  = "listener-" + rdsName
-	listenerPort  = uint32(80)
+	listenerPort  = uint32(8080)
 	connMgrFilter = "envoy.http_connection_manager"
 	routerFilter  = "envoy.router"
 )
@@ -107,6 +109,13 @@ func (t *Translator) Translate(cfg *v1.Config,
 		return nil, nil, errors.Wrap(err, "constructing version hash for envoy snapshot components")
 	}
 
+	log.Printf("DID ERR? %v", printYaml(map[envoycache.ResponseType][]proto.Message{
+		envoycache.EndpointResponse: endpointsProto,
+		envoycache.ClusterResponse:  clustersProto,
+		envoycache.RouteResponse:    routesProto,
+		envoycache.ListenerResponse: listenersProto,
+	}))
+
 	// construct snapshot
 	snapshot := envoycache.NewSnapshot(fmt.Sprintf("%v", version), endpointsProto, clustersProto, routesProto, listenersProto)
 
@@ -114,6 +123,24 @@ func (t *Translator) Translate(cfg *v1.Config,
 	reports := append(clusterReports, virtualHostReports...)
 
 	return &snapshot, reports, nil
+}
+
+func printYaml(snaps map[envoycache.ResponseType][]proto.Message) error {
+	for resourceType, snap := range snaps {
+		log.GreyPrintf("\n\n%s\n", resourceType)
+		for _, pro := range snap {
+			jsn, err := protoutil.Marshal(pro)
+			if err != nil {
+				return err
+			}
+			yam, err := yaml.JSONToYAML(jsn)
+			if err != nil {
+				return err
+			}
+			log.GreyPrintf("%s", yam)
+		}
+	}
+	return nil
 }
 
 // Endpoints
@@ -191,7 +218,11 @@ func (t *Translator) computeCluster(cfg *v1.Config, secrets secretwatcher.Secret
 			continue
 		}
 		pluginSecrets := secretsForPlugin(cfg, upstreamPlugin, secrets)
-		if err := upstreamPlugin.ProcessUpstream(upstream, pluginSecrets, out); err != nil {
+		params := &plugin.UpstreamPluginParams{
+			Secrets:              pluginSecrets,
+			EnvoyNameForUpstream: clusterName,
+		}
+		if err := upstreamPlugin.ProcessUpstream(params, upstream, out); err != nil {
 			upstreamErrors = multierror.Append(upstreamErrors, err)
 		}
 	}
@@ -265,7 +296,8 @@ func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream, virtualHost *v
 			if !ok {
 				continue
 			}
-			if err := routePlugin.ProcessRoute(route, &out); err != nil {
+			params := &plugin.RoutePluginParams{}
+			if err := routePlugin.ProcessRoute(params, route, &out); err != nil {
 				routeErrors = multierror.Append(routeErrors, err)
 			}
 		}
@@ -279,7 +311,7 @@ func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream, virtualHost *v
 	// TODO: handle default virtualhost
 	// TODO: handle ssl
 	return envoyroute.VirtualHost{
-		Name:    envoy.VirtualHostName(virtualHost.Name),
+		Name:    virtualHostName(virtualHost.Name),
 		Domains: domains,
 		Routes:  envoyRoutes,
 	}, routeErrors
@@ -403,7 +435,8 @@ func (t *Translator) constructHttpListener(name string, port uint32, routeConfig
 		if !ok {
 			continue
 		}
-		httpFilter, stage := filterPlugin.HttpFilter()
+		params := &plugin.FilterPluginParams{}
+		httpFilter, stage := filterPlugin.HttpFilter(params)
 		if httpFilter == nil {
 			runtime.HandleError(errors.New("plugin implements HttpFilter() but returned nil"))
 			continue
@@ -478,4 +511,14 @@ func sortFilters(filters []stagedFilter) []*envoyhttp.HttpFilter {
 	}
 
 	return sortedFilters
+}
+
+// for future-proofing possible safety issues with bad upstream names
+func clusterName(upstreamName string) string {
+	return upstreamName
+}
+
+// for future-proofing possible safety issues with bad virtualhost names
+func virtualHostName(virtualHostName string) string {
+	return virtualHostName
 }

@@ -20,6 +20,8 @@ const (
 	OutAuth
 )
 
+type EnvoyNameForUpstream func(upstreamName string) string
+
 type Dependencies struct {
 	SecretRefs []string
 }
@@ -28,9 +30,20 @@ type TranslatorPlugin interface {
 	GetDependencies(cfg *v1.Config) *Dependencies
 }
 
+// Parameters for ProcessUpstream()
+type UpstreamPluginParams struct {
+	EnvoyNameForUpstream EnvoyNameForUpstream
+	Secrets              secretwatcher.SecretMap
+}
+
 type UpstreamPlugin interface {
 	TranslatorPlugin
-	ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMap, out *envoyapi.Cluster) error
+	ProcessUpstream(params *UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error
+}
+
+// Params for ParseFunctionSpec()
+type FunctionPluginParams struct {
+	UpstreamType string
 }
 
 type FunctionPlugin interface {
@@ -38,15 +51,21 @@ type FunctionPlugin interface {
 	// if the FunctionSpec does not belong to this plugin, return nil, nil
 	// if the FunctionSpec belongs to this plugin but is not valid, return nil, err
 	// if the FunctionSpec belogns to this plugin and is valid, return *Struct, nil
-	ParseFunctionSpec(upstreamType string, in v1.FunctionSpec) (*types.Struct, error)
+	ParseFunctionSpec(params *FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error)
 }
+
+// Params for ProecssRoute()
+type RoutePluginParams struct{}
 
 type RoutePlugin interface {
 	TranslatorPlugin
-	ProcessRoute(in *v1.Route, out *envoyroute.Route) error
+	ProcessRoute(params *RoutePluginParams, in *v1.Route, out *envoyroute.Route) error
 }
+
+// Params for HttpFilter()
+type FilterPluginParams struct{}
 
 type FilterPlugin interface {
 	TranslatorPlugin
-	HttpFilter() (*envoyhttp.HttpFilter, Stage)
+	HttpFilter(params *FilterPluginParams) (*envoyhttp.HttpFilter, Stage)
 }

@@ -45,8 +45,6 @@ func RunXDS(port int) (envoycache.Cache, *grpc.Server, error) {
 			grpc_ctxtags.StreamServerInterceptor(),
 			grpc_zap.StreamServerInterceptor(zap.NewNop(), opts...),
 			func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-				log.Debugf("STREAM: info: %v\n", info)
-				log.Debugf("STREAM: serverStream: %v\n", ss)
 				return handler(srv, ss)
 			},
 		)),
@@ -59,7 +57,7 @@ func RunXDS(port int) (envoycache.Cache, *grpc.Server, error) {
 	v2.RegisterListenerDiscoveryServiceServer(grpcServer, xdsServer)
 
 	go func() {
-		log.Debugf("xDS server listening on %d", port)
+		log.Debugf("xDS server listening on %s", port)
 		if err = grpcServer.Serve(lis); err != nil {
 			log.Fatalf("failed to serve grpc: %v", err)
 		}
