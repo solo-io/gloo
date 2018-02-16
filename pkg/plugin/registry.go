@@ -7,7 +7,7 @@ import (
 
 var defaultRegistry = &registry{}
 
-type EndpointDiscoveryInitFunc func(options bootstrap.Options, stopCh <-chan struct{}) (endpointdiscovery.Interface, error)
+type EndpointDiscoveryInitFunc func(options bootstrap.Options) (endpointdiscovery.Interface, error)
 
 func Register(plugin TranslatorPlugin, startEndpointDiscovery EndpointDiscoveryInitFunc) {
 	defaultRegistry.plugins = append(defaultRegistry.plugins, plugin)

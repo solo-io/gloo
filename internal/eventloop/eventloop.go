@@ -72,7 +72,7 @@ func Setup(opts bootstrap.Options, stop <-chan struct{}) (*eventLoop, error) {
 
 	for _, endpointDiscoveryInitializer := range plugin.EndpointDiscoveryInitializers() {
 		e.startFuncs = append(e.startFuncs, func() error {
-			discovery, err := endpointDiscoveryInitializer(opts, stop)
+			discovery, err := endpointDiscoveryInitializer(opts)
 			if err != nil {
 				return err
 			}
