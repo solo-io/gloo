@@ -142,6 +142,9 @@ func (e *eventLoop) Run() error {
 			return err
 		}
 	}
+	for _, eds := range e.endpointDiscoveries {
+		go eds.Run()
+	}
 
 	endpointDiscovery := e.endpointDiscovery()
 	workerErrors := e.errors()

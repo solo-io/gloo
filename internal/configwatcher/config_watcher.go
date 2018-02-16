@@ -8,10 +8,9 @@ import (
 
 	"github.com/solo-io/glue-storage"
 	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/configwatcher"
 )
 
-func NewConfigWatcher(storageClient storage.Storage) (configwatcher.Interface, error) {
+func NewConfigWatcher(storageClient storage.Interface) (*configWatcher, error) {
 	if err := storageClient.V1().Register(); err != nil {
 		return nil, fmt.Errorf("failed to register to storage backend: %v", err)
 	}

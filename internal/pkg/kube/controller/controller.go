@@ -49,7 +49,6 @@ func NewController(
 	handler SyncFunction,
 	informers ...cache.SharedInformer) *Controller {
 
-	glog.V(4).Info("Creating event broadcaster")
 	eventBroadcaster := record.NewBroadcaster()
 	eventBroadcaster.StartLogging(glog.Infof)
 	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeclientset.CoreV1().Events("")})
