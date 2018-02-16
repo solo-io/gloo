@@ -1,0 +1,141 @@
+package reporter_test
+
+import (
+	"os"
+	"path/filepath"
+	"time"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
+	"github.com/solo-io/glue-storage"
+	"github.com/solo-io/glue-storage/crd"
+	"k8s.io/client-go/tools/clientcmd"
+
+	. "github.com/solo-io/glue/internal/reporter"
+	"github.com/solo-io/glue/pkg/api/types/v1"
+	. "github.com/solo-io/glue/test/helpers"
+)
+
+var _ = Describe("CrdReporter", func() {
+	var (
+		masterUrl, kubeconfigPath string
+		mkb                       *MinikubeInstance
+		namespace                 string
+		rptr                      Interface
+	)
+	BeforeEach(func() {
+		namespace = RandString(8)
+		mkb = NewMinikube(false, namespace)
+		err := mkb.Setup()
+		Must(err)
+		kubeconfigPath = filepath.Join(os.Getenv("HOME"), ".kube", "config")
+		masterUrl, err = mkb.Addr()
+		Must(err)
+	})
+	AfterEach(func() {
+		mkb.Teardown()
+	})
+	Describe("writereports", func() {
+		var (
+			glueClient   storage.Interface
+			reports      []ConfigObjectReport
+			upstreams    []*v1.Upstream
+			virtualHosts []*v1.VirtualHost
+		)
+		Context("writes status reports for cfg crds with 0 errors", func() {
+			BeforeEach(func() {
+				cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
+				Expect(err).NotTo(HaveOccurred())
+				glueClient, err = crd.NewStorage(cfg, namespace, time.Second)
+				Expect(err).NotTo(HaveOccurred())
+				rptr = NewReporter(glueClient)
+
+				testCfg := NewTestConfig()
+				upstreams = testCfg.Upstreams
+				var storables []v1.ConfigObject
+				for _, us := range upstreams {
+					_, err := glueClient.V1().Upstreams().Create(us)
+					Expect(err).NotTo(HaveOccurred())
+					storables = append(storables, us)
+				}
+				virtualHosts = testCfg.VirtualHosts
+				for _, vHost := range virtualHosts {
+					_, err := glueClient.V1().VirtualHosts().Create(vHost)
+					Expect(err).NotTo(HaveOccurred())
+					storables = append(storables, vHost)
+				}
+				for _, storable := range storables {
+					reports = append(reports, ConfigObjectReport{
+						CfgObject: storable,
+						Err:       nil,
+					})
+				}
+			})
+
+			It("writes an acceptance status for each crd", func() {
+				err := rptr.WriteReports(reports)
+				Expect(err).NotTo(HaveOccurred())
+				updatedUpstreams, err := glueClient.V1().Upstreams().List()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(updatedUpstreams).To(HaveLen(len(upstreams)))
+				for _, updatedUpstream := range updatedUpstreams {
+					Expect(updatedUpstream.Status.State).To(Equal(v1.Status_Accepted))
+				}
+				updatedVhosts, err := glueClient.V1().VirtualHosts().List()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(updatedVhosts).To(HaveLen(len(upstreams)))
+				for _, updatedVhost := range updatedVhosts {
+					Expect(updatedVhost.Status.State).To(Equal(v1.Status_Accepted))
+				}
+			})
+		})
+		Context("writes status reports for cfg crds with SOME errors", func() {
+			BeforeEach(func() {
+				cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
+				Expect(err).NotTo(HaveOccurred())
+				glueClient, err = crd.NewStorage(cfg, namespace, time.Second)
+				Expect(err).NotTo(HaveOccurred())
+				rptr = NewReporter(glueClient)
+
+				testCfg := NewTestConfig()
+				upstreams = testCfg.Upstreams
+				var storables []v1.ConfigObject
+				for _, us := range upstreams {
+					_, err := glueClient.V1().Upstreams().Create(us)
+					Expect(err).NotTo(HaveOccurred())
+					storables = append(storables, us)
+				}
+				virtualHosts = testCfg.VirtualHosts
+				for _, vHost := range virtualHosts {
+					_, err := glueClient.V1().VirtualHosts().Create(vHost)
+					Expect(err).NotTo(HaveOccurred())
+					storables = append(storables, vHost)
+				}
+				for _, storable := range storables {
+					reports = append(reports, ConfigObjectReport{
+						CfgObject: storable,
+						Err:       errors.New("oh no an error what did u do!"),
+					})
+				}
+			})
+
+			It("writes an rejected status for each crd", func() {
+				err := rptr.WriteReports(reports)
+				Expect(err).NotTo(HaveOccurred())
+				updatedUpstreams, err := glueClient.V1().Upstreams().List()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(updatedUpstreams).To(HaveLen(len(upstreams)))
+				for _, updatedUpstream := range updatedUpstreams {
+					Expect(updatedUpstream.Status.State).To(Equal(v1.Status_Rejected))
+				}
+				updatedVhosts, err := glueClient.V1().VirtualHosts().List()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(updatedVhosts).To(HaveLen(len(upstreams)))
+				for _, updatedVhost := range updatedVhosts {
+					Expect(updatedVhost.Status.State).To(Equal(v1.Status_Rejected))
+				}
+			})
+		})
+	})
+})

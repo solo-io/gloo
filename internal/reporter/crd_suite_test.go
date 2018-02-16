@@ -1,4 +1,4 @@
-package crd
+package reporter_test
 
 import (
 	. "github.com/onsi/ginkgo"

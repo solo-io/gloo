@@ -8,7 +8,8 @@ import (
 type UpstreamSpec *types.Struct
 type FunctionSpec *types.Struct
 
-type GlueObject interface {
+type ConfigObject interface {
 	proto.Message
+	GetName() string
 	GetMetadata() *Metadata
 }

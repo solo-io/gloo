@@ -4,15 +4,8 @@ import (
 	"github.com/solo-io/glue/pkg/api/types/v1"
 )
 
-type ObjectState string
-
-const (
-	ObjectStateAccepted ObjectState = "Accepted"
-	ObjectStateRejected ObjectState = "Rejected"
-)
-
 type ConfigObjectReport struct {
-	CfgObject v1.GlueObject
+	CfgObject v1.ConfigObject
 	Err       error
 }
 
