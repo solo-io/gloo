@@ -2,8 +2,8 @@ package storage
 
 import "github.com/solo-io/glue/pkg/api/types/v1"
 
-// Storage is interface to the storage backend
-type Storage interface {
+// Interface is interface to the storage backend
+type Interface interface {
 	V1() V1
 }
 

@@ -15,7 +15,7 @@ type Client struct {
 const upstreamsDir = "upstreams"
 const virtualHostsDir = "virtualhosts"
 
-func NewStorage(dir string, syncFrequency time.Duration) (storage.Storage, error) {
+func NewStorage(dir string, syncFrequency time.Duration) (storage.Interface, error) {
 	if dir == "" {
 		dir = GlueDefaultDirectory
 	}

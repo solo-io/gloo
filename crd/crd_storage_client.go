@@ -22,7 +22,7 @@ type Client struct {
 	v1 *v1client
 }
 
-func NewStorage(cfg *rest.Config, namespace string, syncFrequency time.Duration) (storage.Storage, error) {
+func NewStorage(cfg *rest.Config, namespace string, syncFrequency time.Duration) (storage.Interface, error) {
 	if namespace == "" {
 		namespace = GlueDefaultNamespace
 	}
