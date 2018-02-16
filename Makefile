@@ -26,7 +26,7 @@ glue: $(SOURCES)
 
 glue-debug: $(SOURCES)
 	go build -i -gcflags "-N -l" -o glue-debug cmd/glue/*.go
-# not gonna work
+
 hackrun: glue
 	./hack/run-local.sh
 
