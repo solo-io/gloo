@@ -41,6 +41,7 @@ type WatcherOptions struct {
 type KubeOptions struct {
 	KubeConfig string
 	MasterURL  string
+	Namespace  string // where to watch for storage
 }
 
 type VaultOptions struct {

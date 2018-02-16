@@ -3,22 +3,24 @@ package eventloop
 import (
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/tools/clientcmd"
+
+	"github.com/solo-io/glue-storage"
+	"github.com/solo-io/glue-storage/crd"
+	"github.com/solo-io/glue-storage/file"
+	"github.com/solo-io/glue/internal/configwatcher"
 	"github.com/solo-io/glue/internal/reporter"
 	filesecrets "github.com/solo-io/glue/internal/secretwatcher/file"
 	kubesecrets "github.com/solo-io/glue/internal/secretwatcher/kube"
 	"github.com/solo-io/glue/internal/secretwatcher/vault"
-	"github.com/solo-io/glue/pkg/plugin"
-	"k8s.io/apimachinery/pkg/util/runtime"
-
-	"github.com/solo-io/glue/internal/configwatcher/file"
-	"github.com/solo-io/glue/internal/configwatcher/kube"
 	"github.com/solo-io/glue/internal/translator"
 	"github.com/solo-io/glue/internal/xds"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/bootstrap"
-	"github.com/solo-io/glue/pkg/configwatcher"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/glue/pkg/plugin"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
@@ -35,13 +37,18 @@ type eventLoop struct {
 	startFuncs []func() error
 }
 
-func Setup(opts bootstrap.Options, stopCh <-chan struct{}) (*eventLoop, error) {
-	cfgWatcher, err := setupConfigWatcher(opts, stopCh)
+func Setup(opts bootstrap.Options, stop <-chan struct{}) (*eventLoop, error) {
+	store, err := createStorageClient(opts)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to set up config watcher")
+		return nil, errors.Wrap(err, "failed to create config store client")
 	}
 
-	secretWatcher, err := setupSecretWatcher(opts, stopCh)
+	cfgWatcher, err := configwatcher.NewConfigWatcher(store)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create config watcher")
+	}
+
+	secretWatcher, err := setupSecretWatcher(opts, stop)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to set up secret watcher")
 	}
@@ -51,7 +58,7 @@ func Setup(opts bootstrap.Options, stopCh <-chan struct{}) (*eventLoop, error) {
 		return nil, errors.Wrap(err, "failed to start xds server")
 	}
 
-	plugs := plugins.RegisteredPlugins()
+	plugs := plugin.RegisteredPlugins()
 
 	trans := translator.NewTranslator(plugs)
 
@@ -63,9 +70,9 @@ func Setup(opts bootstrap.Options, stopCh <-chan struct{}) (*eventLoop, error) {
 		updateSecretRefs: updateSecretRefsFor(plugs),
 	}
 
-	for _, endpointDiscoveryInitializer := range plugins.EndpointDiscoveryInitializers() {
+	for _, endpointDiscoveryInitializer := range plugin.EndpointDiscoveryInitializers() {
 		e.startFuncs = append(e.startFuncs, func() error {
-			discovery, err := endpointDiscoveryInitializer(opts, stopCh)
+			discovery, err := endpointDiscoveryInitializer(opts, stop)
 			if err != nil {
 				return err
 			}
@@ -89,20 +96,24 @@ func updateSecretRefsFor(plugins []plugin.TranslatorPlugin) func(cfg *v1.Config)
 	}
 }
 
-func setupConfigWatcher(opts bootstrap.Options, stopCh <-chan struct{}) (configwatcher.Interface, error) {
+func createStorageClient(opts bootstrap.Options) (storage.Interface, error) {
 	switch opts.ConfigWatcherOptions.Type {
 	case bootstrap.WatcherTypeFile:
 		dir := opts.FileOptions.ConfigDir
 		if dir == "" {
 			return nil, errors.New("must provide directory for file config watcher")
 		}
-		cfgWatcher, err := file.NewFileConfigWatcher(dir, opts.ConfigWatcherOptions.SyncFrequency)
+		client, err := file.NewStorage(dir, opts.ConfigWatcherOptions.SyncFrequency)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to start file config watcher for directory %v", dir)
 		}
-		return cfgWatcher, nil
+		return client, nil
 	case bootstrap.WatcherTypeKube:
-		cfgWatcher, err := kube.NewCrdWatcher(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig, opts.ConfigWatcherOptions.SyncFrequency, stopCh)
+		cfg, err := clientcmd.BuildConfigFromFlags(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig)
+		if err != nil {
+			return nil, errors.Wrap(err, "building kube restclient")
+		}
+		cfgWatcher, err := crd.NewStorage(cfg, opts.KubeOptions.Namespace, opts.ConfigWatcherOptions.SyncFrequency)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to start kube config watcher with config %#v", opts.KubeOptions)
 		}
@@ -111,7 +122,7 @@ func setupConfigWatcher(opts bootstrap.Options, stopCh <-chan struct{}) (configw
 	return nil, errors.Errorf("unknown or unspecified config watcher type: %v", opts.ConfigWatcherOptions.Type)
 }
 
-func setupSecretWatcher(opts bootstrap.Options, stopCh <-chan struct{}) (secretwatcher.Interface, error) {
+func setupSecretWatcher(opts bootstrap.Options, stop <-chan struct{}) (secretwatcher.Interface, error) {
 	switch opts.SecretWatcherOptions.Type {
 	case bootstrap.WatcherTypeFile:
 		secretWatcher, err := filesecrets.NewSecretWatcher(opts.FileOptions.SecretDir, opts.SecretWatcherOptions.SyncFrequency)
@@ -120,13 +131,13 @@ func setupSecretWatcher(opts bootstrap.Options, stopCh <-chan struct{}) (secretw
 		}
 		return secretWatcher, nil
 	case bootstrap.WatcherTypeKube:
-		secretWatcher, err := kubesecrets.NewSecretWatcher(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig, opts.SecretWatcherOptions.SyncFrequency, stopCh)
+		secretWatcher, err := kubesecrets.NewSecretWatcher(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig, opts.SecretWatcherOptions.SyncFrequency, stop)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to start kube secret watcher with config %#v", opts.KubeOptions)
 		}
 		return secretWatcher, nil
 	case bootstrap.WatcherTypeVault:
-		secretWatcher, err := vault.NewVaultSecretWatcher(opts.SecretWatcherOptions.SyncFrequency, opts.VaultOptions.Retries, opts.VaultOptions.VaultAddr, opts.VaultOptions.AuthToken, stopCh)
+		secretWatcher, err := vault.NewVaultSecretWatcher(opts.SecretWatcherOptions.SyncFrequency, opts.VaultOptions.Retries, opts.VaultOptions.VaultAddr, opts.VaultOptions.AuthToken, stop)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to start vault secret watcher with config %#v", opts.VaultOptions)
 		}
@@ -135,15 +146,16 @@ func setupSecretWatcher(opts bootstrap.Options, stopCh <-chan struct{}) (secretw
 	return nil, errors.Errorf("unknown or unspecified secret watcher type: %v", opts.SecretWatcherOptions.Type)
 }
 
-func (e *eventLoop) Run() error {
+func (e *eventLoop) Run(stop <-chan struct{}) error {
 	for _, fn := range e.startFuncs {
 		if err := fn(); err != nil {
 			return err
 		}
 	}
 	for _, eds := range e.endpointDiscoveries {
-		go eds.Run()
+		go eds.Run(stop)
 	}
+	go e.configWatcher.Run(stop)
 
 	endpointDiscovery := e.endpointDiscovery()
 	workerErrors := e.errors()

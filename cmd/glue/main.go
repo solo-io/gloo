@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/solo-io/glue-storage/crd"
 	"github.com/spf13/cobra"
 
 	"github.com/solo-io/glue/internal/eventloop"
@@ -30,12 +31,12 @@ var rootCmd = &cobra.Command{
 	Use:   "glue-server",
 	Short: "Glue Server runs the glue service to turn Envoy into a Function Gateway",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		stopCh := signals.SetupSignalHandler()
-		eventLoop, err := eventloop.Setup(opts, stopCh)
+		stop := signals.SetupSignalHandler()
+		eventLoop, err := eventloop.Setup(opts, stop)
 		if err != nil {
 			return errors.Wrap(err, "setting up event loop")
 		}
-		if err := eventLoop.Run(); err != nil {
+		if err := eventLoop.Run(stop); err != nil {
 			return errors.Wrap(err, "failed running event loop")
 		}
 		return nil
@@ -61,6 +62,7 @@ func init() {
 	// kube
 	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.MasterURL, "kube.master", "", "url of the kubernetes apiserver. not needed if running in-cluster")
 	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.KubeConfig, "kube.config", "", "path to kubeconfig file. not needed if running in-cluster")
+	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.Namespace, "kube.namespace", crd.GlueDefaultNamespace, "namespace to read/write glue storage objects")
 
 	// vault
 	rootCmd.PersistentFlags().StringVar(&opts.VaultOptions.VaultAddr, "vault.addr", "", "url for vault server")

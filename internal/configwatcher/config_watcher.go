@@ -10,6 +10,12 @@ import (
 	"github.com/solo-io/glue/pkg/api/types/v1"
 )
 
+type configWatcher struct {
+	watchers []*storage.Watcher
+	configs  chan *v1.Config
+	errs     chan error
+}
+
 func NewConfigWatcher(storageClient storage.Interface) (*configWatcher, error) {
 	if err := storageClient.V1().Register(); err != nil {
 		return nil, fmt.Errorf("failed to register to storage backend: %v", err)
@@ -46,12 +52,6 @@ func NewConfigWatcher(storageClient storage.Interface) (*configWatcher, error) {
 		configs:  configs,
 		errs:     make(chan error),
 	}, nil
-}
-
-type configWatcher struct {
-	watchers []*storage.Watcher
-	configs  chan *v1.Config
-	errs     chan error
 }
 
 func (w *configWatcher) Run(stop <-chan struct{}) {
