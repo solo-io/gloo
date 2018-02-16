@@ -1,24 +1,23 @@
-package ingress_test
+package ingress
 
 import (
+	"os"
+	"path/filepath"
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/glue-storage"
-	"github.com/solo-io/glue-storage/crd"
-
-	"os"
-	"path/filepath"
-
-	kubeplugin "github.com/solo-io/glue/internal/plugins/kubernetes"
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	. "github.com/solo-io/glue/test/helpers"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+
+	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
+	"github.com/solo-io/glue-storage"
+	"github.com/solo-io/glue-storage/crd"
+	"github.com/solo-io/glue/pkg/api/types/v1"
+	. "github.com/solo-io/glue/test/helpers"
 )
 
 var _ = Describe("KubeIngressController", func() {
@@ -41,7 +40,7 @@ var _ = Describe("KubeIngressController", func() {
 	})
 	Describe("controller", func() {
 		var (
-			ingressCtl *ingressController
+			ingressCtl *IngressController
 			kubeClient kubernetes.Interface
 			glueClient storage.Interface
 		)

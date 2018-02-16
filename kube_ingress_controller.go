@@ -8,10 +8,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/glue-storage"
-	kubeplugin "github.com/solo-io/glue/internal/plugins/kubernetes"
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/kubecontroller"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -19,6 +15,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
+
+	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
+	"github.com/solo-io/glue-storage"
+	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/kubecontroller"
 )
 
 const (
@@ -31,7 +32,7 @@ const (
 	GlueIngressClass = "glue"
 )
 
-type ingressController struct {
+type IngressController struct {
 	errors             chan error
 	useAsGlobalIngress bool
 
@@ -43,7 +44,7 @@ type ingressController struct {
 func NewIngressController(cfg *rest.Config,
 	configStore storage.Interface,
 	resyncDuration time.Duration,
-	useAsGlobalIngress bool) (*ingressController, error) {
+	useAsGlobalIngress bool) (*IngressController, error) {
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
@@ -57,7 +58,7 @@ func NewIngressController(cfg *rest.Config,
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, resyncDuration)
 	ingressInformer := kubeInformerFactory.Extensions().V1beta1().Ingresses()
 
-	c := &ingressController{
+	c := &IngressController{
 		errors:             make(chan error),
 		useAsGlobalIngress: useAsGlobalIngress,
 
@@ -85,21 +86,21 @@ func NewIngressController(cfg *rest.Config,
 	return c, nil
 }
 
-func (c *ingressController) Run(stop <-chan struct{}) {
+func (c *IngressController) Run(stop <-chan struct{}) {
 	c.runFunc(stop)
 }
 
-func (c *ingressController) Error() <-chan error {
+func (c *IngressController) Error() <-chan error {
 	return c.errors
 }
 
-func (c *ingressController) syncGlueResourcesWithIngresses() {
+func (c *IngressController) syncGlueResourcesWithIngresses() {
 	if err := c.syncGlueResources(); err != nil {
 		c.errors <- err
 	}
 }
 
-func (c *ingressController) syncGlueResources() error {
+func (c *IngressController) syncGlueResources() error {
 	desiredUpstreams, desiredVirtualHosts, err := c.generateDesiredResources()
 	if err != nil {
 		return fmt.Errorf("failed to generate desired configObjects: %v", err)
@@ -117,7 +118,7 @@ func (c *ingressController) syncGlueResources() error {
 	return nil
 }
 
-func (c *ingressController) getActualResources() ([]*v1.Upstream, []*v1.VirtualHost, error) {
+func (c *IngressController) getActualResources() ([]*v1.Upstream, []*v1.VirtualHost, error) {
 	upstreams, err := c.configObjects.V1().Upstreams().List()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get upstream crd list: %v", err)
@@ -129,7 +130,7 @@ func (c *ingressController) getActualResources() ([]*v1.Upstream, []*v1.VirtualH
 	return upstreams, virtualHosts, nil
 }
 
-func (c *ingressController) generateDesiredResources() ([]*v1.Upstream, []*v1.VirtualHost, error) {
+func (c *IngressController) generateDesiredResources() ([]*v1.Upstream, []*v1.VirtualHost, error) {
 	ingressList, err := c.ingressLister.List(labels.Everything())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to list ingresses: %v", err)
@@ -248,7 +249,7 @@ func sortRoutes(routes []*v1.Route) {
 	})
 }
 
-func (c *ingressController) syncUpstreams(desiredUpstreams, actualUpstreams []*v1.Upstream) error {
+func (c *IngressController) syncUpstreams(desiredUpstreams, actualUpstreams []*v1.Upstream) error {
 	var (
 		upstreamsToCreate []*v1.Upstream
 		upstreamsToUpdate []*v1.Upstream
@@ -293,7 +294,7 @@ func (c *ingressController) syncUpstreams(desiredUpstreams, actualUpstreams []*v
 	return nil
 }
 
-func (c *ingressController) syncVirtualHosts(desiredVirtualHosts, actualVirtualHosts []*v1.VirtualHost) error {
+func (c *IngressController) syncVirtualHosts(desiredVirtualHosts, actualVirtualHosts []*v1.VirtualHost) error {
 	var (
 		virtualHostsToCreate []*v1.VirtualHost
 		virtualHostsToUpdate []*v1.VirtualHost
