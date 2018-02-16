@@ -9,7 +9,6 @@ import (
 	"github.com/solo-io/glue/pkg/bootstrap"
 	"github.com/solo-io/glue/pkg/endpointdiscovery"
 	"github.com/solo-io/glue/pkg/plugin"
-	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
 func init() {
@@ -38,7 +37,7 @@ func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
 	return nil
 }
 
-func (p *Plugin) ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMap, out *envoyapi.Cluster) error {
+func (p *Plugin) ProcessUpstream(_ *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
 	if in.Type != UpstreamTypeKube {
 		return nil
 	}

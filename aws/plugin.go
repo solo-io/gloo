@@ -16,7 +16,6 @@ import (
 	"github.com/solo-io/gloo-plugins/common"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/plugin"
-	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
 func init() {
@@ -64,11 +63,11 @@ func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
 	return deps
 }
 
-func (p *Plugin) HttpFilter() (*envoyhttp.HttpFilter, plugin.Stage) {
+func (p *Plugin) HttpFilter(params *plugin.FilterPluginParams) (*envoyhttp.HttpFilter, plugin.Stage) {
 	return &envoyhttp.HttpFilter{Name: filterName}, pluginStage
 }
 
-func (p *Plugin) ProcessRoute(in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
 	executionStyle, err := GetExecutionStyle(in.Extensions)
 	if err != nil {
 		return err
@@ -84,7 +83,7 @@ func setRouteAsync(async bool, out *envoyroute.Route) {
 	}
 }
 
-func (p *Plugin) ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMap, out *envoyapi.Cluster) error {
+func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
 	if in.Type != UpstreamTypeAws {
 		return nil
 	}
@@ -106,7 +105,7 @@ func (p *Plugin) ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMa
 		Sni: awsUpstream.GetLambdaHostname(),
 	}
 
-	awsSecrets, ok := secrets[awsUpstream.SecretRef]
+	awsSecrets, ok := params.Secrets[awsUpstream.SecretRef]
 	if !ok {
 		return errors.Errorf("aws secrets for ref %v not found", awsUpstream.SecretRef)
 	}
@@ -141,8 +140,8 @@ func (p *Plugin) ProcessUpstream(in *v1.Upstream, secrets secretwatcher.SecretMa
 	return secretErrs
 }
 
-func (p *Plugin) ParseFunctionSpec(upstreamType string, in v1.FunctionSpec) (*types.Struct, error) {
-	if upstreamType != UpstreamTypeAws {
+func (p *Plugin) ParseFunctionSpec(params *plugin.FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error) {
+	if params.UpstreamType != UpstreamTypeAws {
 		return nil, nil
 	}
 	functionSpec, err := DecodeFunctionSpec(in)

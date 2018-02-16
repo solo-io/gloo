@@ -52,8 +52,8 @@ func newEndpointController(cfg *rest.Config, resyncDuration time.Duration) (*end
 
 	c.runFunc = func(stop <-chan struct{}) {
 		wg := &sync.WaitGroup{}
+		wg.Add(1)
 		go func(stop <-chan struct{}) {
-			wg.Add(1)
 			informerFactory.Start(stop)
 			wg.Done()
 		}(stop)
