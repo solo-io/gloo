@@ -7,14 +7,13 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/glue/internal/plugins"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/plugin"
 	"github.com/solo-io/glue/pkg/secretwatcher"
 )
 
 func init() {
-	plugins.Register(&Plugin{}, nil)
+	plugin.Register(&Plugin{}, nil)
 }
 
 type Plugin struct{}
