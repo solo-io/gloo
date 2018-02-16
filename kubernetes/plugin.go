@@ -15,7 +15,7 @@ func init() {
 	plugin.Register(&Plugin{}, createEndpointDiscovery)
 }
 
-func createEndpointDiscovery(opts bootstrap.Options, stopCh <-chan struct{}) (endpointdiscovery.Interface, error) {
+func createEndpointDiscovery(opts bootstrap.Options) (endpointdiscovery.Interface, error) {
 	kubeConfig := opts.KubeOptions.KubeConfig
 	masterUrl := opts.KubeOptions.MasterURL
 	syncFrequency := opts.ConfigWatcherOptions.SyncFrequency
