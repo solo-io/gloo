@@ -17,7 +17,7 @@ limitations under the License.
 package scheme
 
 import (
-	gluev1 "github.com/solo-io/gloo-storage/crd/solo.io/v1"
+	gloov1 "github.com/solo-io/gloo-storage/crd/solo.io/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -48,5 +48,5 @@ func init() {
 // After this, RawExtensions in Kubernetes types will serialize kube-aggregator types
 // correctly.
 func AddToScheme(scheme *runtime.Scheme) {
-	gluev1.AddToScheme(scheme)
+	gloov1.AddToScheme(scheme)
 }

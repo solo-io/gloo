@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	GroupName = "glue.solo.io"
+	GroupName = "gloo.solo.io"
 	Version   = "v1"
 )
 

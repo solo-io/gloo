@@ -1,3 +1,3 @@
 package file
 
-const GlueDefaultDirectory = "_glue_config"
+const GlooDefaultDirectory = "_gloo_config"

@@ -28,13 +28,13 @@ import (
 
 // FakeUpstreams implements UpstreamInterface
 type FakeUpstreams struct {
-	Fake *FakeGlueV1
+	Fake *FakeGlooV1
 	ns   string
 }
 
-var upstreamsResource = schema.GroupVersionResource{Group: "glue.solo.io", Version: "v1", Resource: "upstreams"}
+var upstreamsResource = schema.GroupVersionResource{Group: "gloo.solo.io", Version: "v1", Resource: "upstreams"}
 
-var upstreamsKind = schema.GroupVersionKind{Group: "glue.solo.io", Version: "v1", Kind: "Upstream"}
+var upstreamsKind = schema.GroupVersionKind{Group: "gloo.solo.io", Version: "v1", Kind: "Upstream"}
 
 // Get takes name of the upstream, and returns the corresponding upstream object, and an error if there is any.
 func (c *FakeUpstreams) Get(name string, options v1.GetOptions) (result *solo_io_v1.Upstream, err error) {

@@ -24,7 +24,7 @@ type Client struct {
 
 func NewStorage(cfg *rest.Config, namespace string, syncFrequency time.Duration) (storage.Interface, error) {
 	if namespace == "" {
-		namespace = GlueDefaultNamespace
+		namespace = GlooDefaultNamespace
 	}
 	crdClient, err := crdclientset.NewForConfig(cfg)
 	if err != nil {

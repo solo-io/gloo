@@ -52,11 +52,11 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=glue.solo.io, Version=v1
+	// Group=gloo.solo.io, Version=v1
 	case v1.SchemeGroupVersion.WithResource("upstreams"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Glue().V1().Upstreams().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Gloo().V1().Upstreams().Informer()}, nil
 	case v1.SchemeGroupVersion.WithResource("virtualhosts"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Glue().V1().VirtualHosts().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Gloo().V1().VirtualHosts().Informer()}, nil
 
 	}
 

@@ -61,13 +61,13 @@ func NewFilteredUpstreamInformer(client versioned.Interface, namespace string, r
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.GlueV1().Upstreams(namespace).List(options)
+				return client.GlooV1().Upstreams(namespace).List(options)
 			},
 			WatchFunc: func(options meta_v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.GlueV1().Upstreams(namespace).Watch(options)
+				return client.GlooV1().Upstreams(namespace).Watch(options)
 			},
 		},
 		&solo_io_v1.Upstream{},

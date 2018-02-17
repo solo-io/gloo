@@ -51,7 +51,7 @@ type upstreams struct {
 }
 
 // newUpstreams returns a Upstreams
-func newUpstreams(c *GlueV1Client, namespace string) *upstreams {
+func newUpstreams(c *GlooV1Client, namespace string) *upstreams {
 	return &upstreams{
 		client: c.RESTClient(),
 		ns:     namespace,

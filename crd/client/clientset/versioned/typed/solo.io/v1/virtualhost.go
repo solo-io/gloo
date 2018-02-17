@@ -51,7 +51,7 @@ type virtualHosts struct {
 }
 
 // newVirtualHosts returns a VirtualHosts
-func newVirtualHosts(c *GlueV1Client, namespace string) *virtualHosts {
+func newVirtualHosts(c *GlooV1Client, namespace string) *virtualHosts {
 	return &virtualHosts{
 		client: c.RESTClient(),
 		ns:     namespace,

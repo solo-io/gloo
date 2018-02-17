@@ -18,7 +18,7 @@ package versioned
 
 import (
 	glog "github.com/golang/glog"
-	gluev1 "github.com/solo-io/gloo-storage/crd/client/clientset/versioned/typed/solo.io/v1"
+	gloov1 "github.com/solo-io/gloo-storage/crd/client/clientset/versioned/typed/solo.io/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
@@ -26,27 +26,27 @@ import (
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	GlueV1() gluev1.GlueV1Interface
+	GlooV1() gloov1.GlooV1Interface
 	// Deprecated: please explicitly pick a version if possible.
-	Glue() gluev1.GlueV1Interface
+	Gloo() gloov1.GlooV1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	glueV1 *gluev1.GlueV1Client
+	glooV1 *gloov1.GlooV1Client
 }
 
-// GlueV1 retrieves the GlueV1Client
-func (c *Clientset) GlueV1() gluev1.GlueV1Interface {
-	return c.glueV1
+// GlooV1 retrieves the GlooV1Client
+func (c *Clientset) GlooV1() gloov1.GlooV1Interface {
+	return c.glooV1
 }
 
-// Deprecated: Glue retrieves the default version of GlueClient.
+// Deprecated: Gloo retrieves the default version of GlooClient.
 // Please explicitly pick a version.
-func (c *Clientset) Glue() gluev1.GlueV1Interface {
-	return c.glueV1
+func (c *Clientset) Gloo() gloov1.GlooV1Interface {
+	return c.glooV1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -65,7 +65,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
-	cs.glueV1, err = gluev1.NewForConfig(&configShallowCopy)
+	cs.glooV1, err = gloov1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
-	cs.glueV1 = gluev1.NewForConfigOrDie(c)
+	cs.glooV1 = gloov1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -91,7 +91,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.glueV1 = gluev1.New(c)
+	cs.glooV1 = gloov1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

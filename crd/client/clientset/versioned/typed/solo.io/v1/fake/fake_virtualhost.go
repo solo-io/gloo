@@ -28,13 +28,13 @@ import (
 
 // FakeVirtualHosts implements VirtualHostInterface
 type FakeVirtualHosts struct {
-	Fake *FakeGlueV1
+	Fake *FakeGlooV1
 	ns   string
 }
 
-var virtualhostsResource = schema.GroupVersionResource{Group: "glue.solo.io", Version: "v1", Resource: "virtualhosts"}
+var virtualhostsResource = schema.GroupVersionResource{Group: "gloo.solo.io", Version: "v1", Resource: "virtualhosts"}
 
-var virtualhostsKind = schema.GroupVersionKind{Group: "glue.solo.io", Version: "v1", Kind: "VirtualHost"}
+var virtualhostsKind = schema.GroupVersionKind{Group: "gloo.solo.io", Version: "v1", Kind: "VirtualHost"}
 
 // Get takes name of the virtualHost, and returns the corresponding virtualHost object, and an error if there is any.
 func (c *FakeVirtualHosts) Get(name string, options v1.GetOptions) (result *solo_io_v1.VirtualHost, err error) {

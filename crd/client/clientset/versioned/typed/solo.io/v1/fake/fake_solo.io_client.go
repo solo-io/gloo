@@ -22,21 +22,21 @@ import (
 	testing "k8s.io/client-go/testing"
 )
 
-type FakeGlueV1 struct {
+type FakeGlooV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeGlueV1) Upstreams(namespace string) v1.UpstreamInterface {
+func (c *FakeGlooV1) Upstreams(namespace string) v1.UpstreamInterface {
 	return &FakeUpstreams{c, namespace}
 }
 
-func (c *FakeGlueV1) VirtualHosts(namespace string) v1.VirtualHostInterface {
+func (c *FakeGlooV1) VirtualHosts(namespace string) v1.VirtualHostInterface {
 	return &FakeVirtualHosts{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *FakeGlueV1) RESTClient() rest.Interface {
+func (c *FakeGlooV1) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }

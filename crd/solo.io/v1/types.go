@@ -11,7 +11,7 @@ import (
 // +genclient:noStatus
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Upstream is the generic Kubernetes API object wrapper for Glue Upstreams
+// Upstream is the generic Kubernetes API object wrapper for Gloo Upstreams
 type Upstream struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -34,7 +34,7 @@ type UpstreamList struct {
 // +genclient:noStatus
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// VirtualHost is the generic Kubernetes API object wrapper for Glue VirtualHosts
+// VirtualHost is the generic Kubernetes API object wrapper for Gloo VirtualHosts
 type VirtualHost struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

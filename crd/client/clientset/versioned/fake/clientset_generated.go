@@ -18,8 +18,8 @@ package fake
 
 import (
 	clientset "github.com/solo-io/gloo-storage/crd/client/clientset/versioned"
-	gluev1 "github.com/solo-io/gloo-storage/crd/client/clientset/versioned/typed/solo.io/v1"
-	fakegluev1 "github.com/solo-io/gloo-storage/crd/client/clientset/versioned/typed/solo.io/v1/fake"
+	gloov1 "github.com/solo-io/gloo-storage/crd/client/clientset/versioned/typed/solo.io/v1"
+	fakegloov1 "github.com/solo-io/gloo-storage/crd/client/clientset/versioned/typed/solo.io/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -68,12 +68,12 @@ func (c *Clientset) Discovery() discovery.DiscoveryInterface {
 
 var _ clientset.Interface = &Clientset{}
 
-// GlueV1 retrieves the GlueV1Client
-func (c *Clientset) GlueV1() gluev1.GlueV1Interface {
-	return &fakegluev1.FakeGlueV1{Fake: &c.Fake}
+// GlooV1 retrieves the GlooV1Client
+func (c *Clientset) GlooV1() gloov1.GlooV1Interface {
+	return &fakegloov1.FakeGlooV1{Fake: &c.Fake}
 }
 
-// Glue retrieves the GlueV1Client
-func (c *Clientset) Glue() gluev1.GlueV1Interface {
-	return &fakegluev1.FakeGlueV1{Fake: &c.Fake}
+// Gloo retrieves the GlooV1Client
+func (c *Clientset) Gloo() gloov1.GlooV1Interface {
+	return &fakegloov1.FakeGlooV1{Fake: &c.Fake}
 }

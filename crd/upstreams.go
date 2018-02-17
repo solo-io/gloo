@@ -19,7 +19,7 @@ import (
 type upstreamsClient struct {
 	crds    crdclientset.Interface
 	apiexts apiexts.Interface
-	// write and read objects to this namespace if not specified on the GlueObjects
+	// write and read objects to this namespace if not specified on the GlooObjects
 	namespace     string
 	syncFrequency time.Duration
 }
@@ -33,11 +33,11 @@ func (c *upstreamsClient) Update(item *v1.Upstream) (*v1.Upstream, error) {
 }
 
 func (c *upstreamsClient) Delete(name string) error {
-	return c.crds.GlueV1().Upstreams(c.namespace).Delete(name, nil)
+	return c.crds.GlooV1().Upstreams(c.namespace).Delete(name, nil)
 }
 
 func (c *upstreamsClient) Get(name string) (*v1.Upstream, error) {
-	crdUs, err := c.crds.GlueV1().Upstreams(c.namespace).Get(name, metav1.GetOptions{})
+	crdUs, err := c.crds.GlooV1().Upstreams(c.namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed performing get api request")
 	}
@@ -49,7 +49,7 @@ func (c *upstreamsClient) Get(name string) (*v1.Upstream, error) {
 }
 
 func (c *upstreamsClient) List() ([]*v1.Upstream, error) {
-	crdList, err := c.crds.GlueV1().Upstreams(c.namespace).List(metav1.ListOptions{})
+	crdList, err := c.crds.GlooV1().Upstreams(c.namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed performing list api request")
 	}
@@ -65,7 +65,7 @@ func (c *upstreamsClient) List() ([]*v1.Upstream, error) {
 }
 
 func (u *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*storage.Watcher, error) {
-	lw := cache.NewListWatchFromClient(u.crds.GlueV1().RESTClient(), crdv1.UpstreamCRD.Plural, metav1.NamespaceAll, fields.Everything())
+	lw := cache.NewListWatchFromClient(u.crds.GlooV1().RESTClient(), crdv1.UpstreamCRD.Plural, metav1.NamespaceAll, fields.Everything())
 	sw := cache.NewSharedInformer(lw, new(crdv1.Upstream), u.syncFrequency)
 	for _, h := range handlers {
 		sw.AddEventHandler(&upstreamEventHandler{handler: h, store: sw.GetStore()})
@@ -78,9 +78,9 @@ func (u *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*stor
 func (c *upstreamsClient) createOrUpdateUpstreamCrd(upstream *v1.Upstream, op crud.Operation) (*v1.Upstream, error) {
 	upstreamCrd, err := UpstreamToCrd(c.namespace, upstream)
 	if err != nil {
-		return nil, errors.Wrap(err, "converting glue object to crd")
+		return nil, errors.Wrap(err, "converting gloo object to crd")
 	}
-	upstreams := c.crds.GlueV1().Upstreams(upstreamCrd.Namespace)
+	upstreams := c.crds.GlooV1().Upstreams(upstreamCrd.Namespace)
 	var returnedCrd *crdv1.Upstream
 	switch op {
 	case crud.OperationCreate:

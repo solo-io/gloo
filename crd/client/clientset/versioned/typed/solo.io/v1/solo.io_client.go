@@ -23,27 +23,27 @@ import (
 	rest "k8s.io/client-go/rest"
 )
 
-type GlueV1Interface interface {
+type GlooV1Interface interface {
 	RESTClient() rest.Interface
 	UpstreamsGetter
 	VirtualHostsGetter
 }
 
-// GlueV1Client is used to interact with features provided by the glue.solo.io group.
-type GlueV1Client struct {
+// GlooV1Client is used to interact with features provided by the gloo.solo.io group.
+type GlooV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *GlueV1Client) Upstreams(namespace string) UpstreamInterface {
+func (c *GlooV1Client) Upstreams(namespace string) UpstreamInterface {
 	return newUpstreams(c, namespace)
 }
 
-func (c *GlueV1Client) VirtualHosts(namespace string) VirtualHostInterface {
+func (c *GlooV1Client) VirtualHosts(namespace string) VirtualHostInterface {
 	return newVirtualHosts(c, namespace)
 }
 
-// NewForConfig creates a new GlueV1Client for the given config.
-func NewForConfig(c *rest.Config) (*GlueV1Client, error) {
+// NewForConfig creates a new GlooV1Client for the given config.
+func NewForConfig(c *rest.Config) (*GlooV1Client, error) {
 	config := *c
 	if err := setConfigDefaults(&config); err != nil {
 		return nil, err
@@ -52,12 +52,12 @@ func NewForConfig(c *rest.Config) (*GlueV1Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &GlueV1Client{client}, nil
+	return &GlooV1Client{client}, nil
 }
 
-// NewForConfigOrDie creates a new GlueV1Client for the given config and
+// NewForConfigOrDie creates a new GlooV1Client for the given config and
 // panics if there is an error in the config.
-func NewForConfigOrDie(c *rest.Config) *GlueV1Client {
+func NewForConfigOrDie(c *rest.Config) *GlooV1Client {
 	client, err := NewForConfig(c)
 	if err != nil {
 		panic(err)
@@ -65,9 +65,9 @@ func NewForConfigOrDie(c *rest.Config) *GlueV1Client {
 	return client
 }
 
-// New creates a new GlueV1Client for the given RESTClient.
-func New(c rest.Interface) *GlueV1Client {
-	return &GlueV1Client{c}
+// New creates a new GlooV1Client for the given RESTClient.
+func New(c rest.Interface) *GlooV1Client {
+	return &GlooV1Client{c}
 }
 
 func setConfigDefaults(config *rest.Config) error {
@@ -85,7 +85,7 @@ func setConfigDefaults(config *rest.Config) error {
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *GlueV1Client) RESTClient() rest.Interface {
+func (c *GlooV1Client) RESTClient() rest.Interface {
 	if c == nil {
 		return nil
 	}

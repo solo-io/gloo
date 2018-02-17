@@ -1,1 +1,1 @@
-# glue-storage
+# gloo-storage

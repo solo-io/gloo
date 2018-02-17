@@ -12,7 +12,7 @@ import (
 
 var _ = Describe("Conversion", func() {
 	Describe("UpstreamToCrd", func() {
-		It("Converts a glue upstream to crd", func() {
+		It("Converts a gloo upstream to crd", func() {
 			us := helpers.NewTestUpstream1()
 			upCrd, err := UpstreamToCrd("foo", us)
 			Expect(err).NotTo(HaveOccurred())
@@ -43,7 +43,7 @@ var _ = Describe("Conversion", func() {
 		})
 	})
 	Describe("VirtualhostToCrd", func() {
-		It("Converts a glue virtualhost to crd", func() {
+		It("Converts a gloo virtualhost to crd", func() {
 			vHost := helpers.NewTestVirtualHost("foo", helpers.NewTestRoute1())
 			vhCrd, err := VirtualHostToCrd("foo", vHost)
 			Expect(err).NotTo(HaveOccurred())
@@ -63,7 +63,7 @@ var _ = Describe("Conversion", func() {
 		})
 	})
 	Describe("VirtualhostFromCrd", func() {
-		It("Converts a glue virtualhost to crd", func() {
+		It("Converts a gloo virtualhost to crd", func() {
 			vHost := helpers.NewTestVirtualHost("foo", helpers.NewTestRoute1())
 			vhCrd, err := VirtualHostToCrd("foo", vHost)
 			Expect(err).NotTo(HaveOccurred())

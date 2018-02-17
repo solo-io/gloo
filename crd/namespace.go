@@ -1,3 +1,3 @@
 package crd
 
-const GlueDefaultNamespace = "glue-system"
+const GlooDefaultNamespace = "gloo-system"

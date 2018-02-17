@@ -123,9 +123,9 @@ type SharedInformerFactory interface {
 	ForResource(resource schema.GroupVersionResource) (GenericInformer, error)
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
-	Glue() solo_io.Interface
+	Gloo() solo_io.Interface
 }
 
-func (f *sharedInformerFactory) Glue() solo_io.Interface {
+func (f *sharedInformerFactory) Gloo() solo_io.Interface {
 	return solo_io.New(f, f.namespace, f.tweakListOptions)
 }

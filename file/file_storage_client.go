@@ -17,7 +17,7 @@ const virtualHostsDir = "virtualhosts"
 
 func NewStorage(dir string, syncFrequency time.Duration) (storage.Interface, error) {
 	if dir == "" {
-		dir = GlueDefaultDirectory
+		dir = GlooDefaultDirectory
 	}
 	return &Client{
 		v1: &v1client{

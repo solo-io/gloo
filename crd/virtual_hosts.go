@@ -19,7 +19,7 @@ import (
 type virtualHostsClient struct {
 	crds    crdclientset.Interface
 	apiexts apiexts.Interface
-	// write and read objects to this namespace if not specified on the GlueObjects
+	// write and read objects to this namespace if not specified on the GlooObjects
 	namespace     string
 	syncFrequency time.Duration
 }
@@ -33,11 +33,11 @@ func (c *virtualHostsClient) Update(item *v1.VirtualHost) (*v1.VirtualHost, erro
 }
 
 func (c *virtualHostsClient) Delete(name string) error {
-	return c.crds.GlueV1().VirtualHosts(c.namespace).Delete(name, nil)
+	return c.crds.GlooV1().VirtualHosts(c.namespace).Delete(name, nil)
 }
 
 func (c *virtualHostsClient) Get(name string) (*v1.VirtualHost, error) {
-	crdVh, err := c.crds.GlueV1().VirtualHosts(c.namespace).Get(name, metav1.GetOptions{})
+	crdVh, err := c.crds.GlooV1().VirtualHosts(c.namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed performing get api request")
 	}
@@ -49,7 +49,7 @@ func (c *virtualHostsClient) Get(name string) (*v1.VirtualHost, error) {
 }
 
 func (c *virtualHostsClient) List() ([]*v1.VirtualHost, error) {
-	crdList, err := c.crds.GlueV1().VirtualHosts(c.namespace).List(metav1.ListOptions{})
+	crdList, err := c.crds.GlooV1().VirtualHosts(c.namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed performing list api request")
 	}
@@ -65,7 +65,7 @@ func (c *virtualHostsClient) List() ([]*v1.VirtualHost, error) {
 }
 
 func (u *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) (*storage.Watcher, error) {
-	lw := cache.NewListWatchFromClient(u.crds.GlueV1().RESTClient(), crdv1.VirtualHostCRD.Plural, metav1.NamespaceAll, fields.Everything())
+	lw := cache.NewListWatchFromClient(u.crds.GlooV1().RESTClient(), crdv1.VirtualHostCRD.Plural, metav1.NamespaceAll, fields.Everything())
 	sw := cache.NewSharedInformer(lw, new(crdv1.VirtualHost), u.syncFrequency)
 	for _, h := range handlers {
 		sw.AddEventHandler(&virtualHostEventHandler{handler: h, store: sw.GetStore()})
@@ -78,9 +78,9 @@ func (u *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) 
 func (c *virtualHostsClient) createOrUpdateVirtualHostCrd(virtualHost *v1.VirtualHost, op crud.Operation) (*v1.VirtualHost, error) {
 	vhostCrd, err := VirtualHostToCrd(c.namespace, virtualHost)
 	if err != nil {
-		return nil, errors.Wrap(err, "converting glue object to crd")
+		return nil, errors.Wrap(err, "converting gloo object to crd")
 	}
-	vhosts := c.crds.GlueV1().VirtualHosts(vhostCrd.Namespace)
+	vhosts := c.crds.GlooV1().VirtualHosts(vhostCrd.Namespace)
 	var returnedCrd *crdv1.VirtualHost
 	switch op {
 	case crud.OperationCreate:
