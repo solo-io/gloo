@@ -15,7 +15,7 @@ import (
 
 	"github.com/solo-io/gloo-plugins/common"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-api/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/plugin"
 )
 
 func init() {

@@ -17,7 +17,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-api/pkg/endpointdiscovery"
+	"github.com/solo-io/gloo/pkg/endpointdiscovery"
 )
 
 type endpointController struct {

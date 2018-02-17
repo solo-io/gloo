@@ -6,7 +6,7 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/solo-io/gloo-api/pkg/endpointdiscovery"
+	"github.com/solo-io/gloo/pkg/endpointdiscovery"
 )
 
 func NewEndpointDiscovery(masterUrl, kubeconfigPath string, resyncDuration time.Duration) (endpointdiscovery.Interface, error) {
