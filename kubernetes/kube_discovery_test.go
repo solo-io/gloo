@@ -15,8 +15,8 @@ import (
 	"fmt"
 
 	. "github.com/solo-io/gloo-plugins/kubernetes"
-	"github.com/solo-io/gloo/pkg/api/types/v1"
-	"github.com/solo-io/gloo/pkg/endpointdiscovery"
+	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-api/pkg/endpointdiscovery"
 	. "github.com/solo-io/gloo/test/helpers"
 	kubev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

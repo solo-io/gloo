@@ -5,10 +5,10 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/bootstrap"
-	"github.com/solo-io/gloo/pkg/endpointdiscovery"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo-api/pkg/endpointdiscovery"
+	"github.com/solo-io/gloo-api/pkg/plugin"
 )
 
 func init() {
