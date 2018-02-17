@@ -1,0 +1,4 @@
+/glue
+vendor/
+vendor.*/
+_glue_config*
