@@ -8,15 +8,6 @@
   version = "v1.1.0"
 
 [[projects]]
-  name = "github.com/docker/distribution"
-  packages = [
-    "digest",
-    "reference"
-  ]
-  revision = "48294d928ced5dd9b378f7fd7c6f5da3ff3f2c89"
-  version = "v2.6.2"
-
-[[projects]]
   branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
@@ -125,8 +116,8 @@
 [[projects]]
   name = "github.com/json-iterator/go"
   packages = ["."]
-  revision = "28452fcdec4e44348d2af0d91d1e9e38da3a9e0a"
-  version = "1.0.5"
+  revision = "e7c7f3b33712573affdcc7a107218e7926b9a05b"
+  version = "1.0.6"
 
 [[projects]]
   name = "github.com/juju/ratelimit"
@@ -230,20 +221,22 @@
   branch = "master"
   name = "github.com/solo-io/gloo"
   packages = [
-    "internal/bootstrap",
-    "internal/plugins",
-    "internal/plugins/service",
-    "internal/reporter",
     "pkg/api/types/v1",
+    "pkg/bootstrap",
     "pkg/endpointdiscovery",
     "pkg/log",
-    "pkg/platform/kube/crd/solo.io/v1",
     "pkg/plugin",
     "pkg/protoutil",
     "pkg/secretwatcher",
     "test/helpers"
   ]
-  revision = "62777a32e81d8ca6255d026444033dde69b809c4"
+  revision = "5cf2f90c4ac0f07d57b285928a2dddab2ed894ef"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/solo-io/gloo-plugins"
+  packages = ["service"]
+  revision = "2b47f6327176fd9f3c6daaf55cab4b0a72cd5187"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -272,7 +265,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
+  revision = "136a25c244d3019482a795d728110278d6ba09a4"
 
 [[projects]]
   branch = "master"
@@ -333,6 +326,7 @@
     "connectivity",
     "credentials",
     "encoding",
+    "encoding/proto",
     "grpclb/grpc_lb_v1/messages",
     "grpclog",
     "internal",
@@ -348,8 +342,8 @@
     "tap",
     "transport"
   ]
-  revision = "6b51017f791ae1cfbec89c52efdf444b13b550ef"
-  version = "v1.9.2"
+  revision = "8e4536a86ab602859c20df5ebfd0bd4228d08655"
+  version = "v1.10.0"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -402,7 +396,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "0d0b2f481328d8bae556061a08a02175054059f4"
+  revision = "b378c47b2dcba7f5c3ef97d8a5a0b3821ec6a001"
 
 [[projects]]
   branch = "master"
@@ -414,7 +408,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "4f7590f2a6a4fef4b804baacb1544a300a60ab10"
+  revision = "1a9632403b52a4e091c7ad5b1756423d5895ddf5"
 
 [[projects]]
   branch = "master"
@@ -423,9 +417,6 @@
     "pkg/api/errors",
     "pkg/api/meta",
     "pkg/api/resource",
-    "pkg/apimachinery",
-    "pkg/apimachinery/announced",
-    "pkg/apimachinery/registered",
     "pkg/apis/meta/internalversion",
     "pkg/apis/meta/v1",
     "pkg/apis/meta/v1/unstructured",
@@ -452,7 +443,6 @@
     "pkg/util/intstr",
     "pkg/util/json",
     "pkg/util/net",
-    "pkg/util/rand",
     "pkg/util/runtime",
     "pkg/util/sets",
     "pkg/util/validation",
@@ -463,7 +453,7 @@
     "pkg/watch",
     "third_party/forked/golang/reflect"
   ]
-  revision = "da3b134bab57ebf23dedfec7e0004614dd4b5a24"
+  revision = "cced8e64b6ca92a8b6afcbfea3353ca016694a45"
 
 [[projects]]
   name = "k8s.io/client-go"
@@ -523,22 +513,9 @@
   revision = "78700dec6369ba22221b72770783300f143df150"
   version = "v6.0.0"
 
-[[projects]]
-  name = "k8s.io/kubernetes"
-  packages = [
-    "pkg/api",
-    "pkg/api/v1",
-    "pkg/apis/extensions",
-    "pkg/apis/networking",
-    "pkg/util/parsers",
-    "pkg/util/pointer"
-  ]
-  revision = "2f73858c9e6ede659d6828fe5a1862a48034a0fd"
-  version = "v1.8.8"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f7c2aefb2510e3e6dda37ade2b3bba898042bc339e7e93a4e6777e045fbd09e4"
+  inputs-digest = "b894dd6445d4a0205e317c7b5bae834783e02ca95974142b7b6fd6cd199a4662"
   solver-name = "gps-cdcl"
   solver-version = 1
