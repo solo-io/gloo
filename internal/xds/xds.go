@@ -34,16 +34,10 @@ func RunXDS(port int) (envoycache.Cache, *grpc.Server, error) {
 	envoyCache := envoycache.NewSimpleCache(hasher{}, func(key envoycache.Key) {
 		log.Debugf("CACHE: Key Updated: %s", key)
 	})
-	opts := []grpc_zap.Option{
-		grpc_zap.WithDecider(func(fullMethodName string, err error) bool {
-			// by default everything will be logged
-			return true
-		}),
-	}
 	grpcServer := grpc.NewServer(grpc.StreamInterceptor(
 		grpc_middleware.ChainStreamServer(
 			grpc_ctxtags.StreamServerInterceptor(),
-			grpc_zap.StreamServerInterceptor(zap.NewNop(), opts...),
+			grpc_zap.StreamServerInterceptor(zap.NewNop()),
 			func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 				return handler(srv, ss)
 			},
