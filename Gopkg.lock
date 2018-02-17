@@ -224,11 +224,11 @@
     "kubernetes",
     "service"
   ]
-  revision = "a35b2cc7f82ab903bb0652dea15662c683a372fe"
+  revision = "cea04c8f29ad732da17ffd9bf8580b8bdb801684"
 
 [[projects]]
   branch = "master"
-  name = "github.com/solo-io/glue"
+  name = "github.com/solo-io/gloo"
   packages = [
     "pkg/api/types/v1",
     "pkg/bootstrap",
@@ -243,7 +243,7 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/solo-io/glue-storage"
+  name = "github.com/solo-io/gloo-storage"
   packages = [
     ".",
     "crd",
@@ -253,7 +253,7 @@
     "crd/solo.io/v1",
     "internal/crud"
   ]
-  revision = "2542c248a689ecb63ef4110656b9e13483beb845"
+  revision = "3734d89ca9ae6de4ae0f228318d75cd08c89cf9f"
 
 [[projects]]
   branch = "master"
