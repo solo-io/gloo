@@ -23,7 +23,7 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/protoutil"
 	"github.com/solo-io/gloo/internal/reporter"
-	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
 	"github.com/solo-io/gloo/pkg/plugin"
 	"github.com/solo-io/gloo/pkg/secretwatcher"

@@ -1,6 +1,6 @@
 package configwatcher
 
-import "github.com/solo-io/gloo/pkg/api/types/v1"
+import "github.com/solo-io/gloo-api/pkg/api/types/v1"
 
 type Interface interface {
 	Run(stop <-chan struct{})

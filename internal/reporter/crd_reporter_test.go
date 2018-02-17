@@ -13,7 +13,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	. "github.com/solo-io/gloo/internal/reporter"
-	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	. "github.com/solo-io/gloo/test/helpers"
 )
 

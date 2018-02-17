@@ -16,7 +16,7 @@ import (
 	"github.com/solo-io/gloo/internal/secretwatcher/vault"
 	"github.com/solo-io/gloo/internal/translator"
 	"github.com/solo-io/gloo/internal/xds"
-	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
 	"github.com/solo-io/gloo/pkg/log"

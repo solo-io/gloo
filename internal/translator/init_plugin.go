@@ -9,7 +9,7 @@ import (
 
 	"github.com/solo-io/gloo-plugins/common"
 	"github.com/solo-io/gloo/internal/translator/defaults"
-	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
 
