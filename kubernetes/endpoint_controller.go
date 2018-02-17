@@ -49,7 +49,7 @@ func newEndpointController(cfg *rest.Config, resyncDuration time.Duration) (*end
 		podsLister:      podInformer.Lister(),
 	}
 
-	kubeController := kubecontroller.NewController("glue-endpoints-controller",
+	kubeController := kubecontroller.NewController("gloo-endpoints-controller",
 		kubeClient,
 		kubecontroller.NewSyncHandler(c.syncEndpoints),
 		endpointInformer.Informer(),

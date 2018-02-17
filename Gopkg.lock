@@ -246,7 +246,7 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/solo-io/glue"
+  name = "github.com/solo-io/gloo"
   packages = ["pkg/log"]
   revision = "5cf2f90c4ac0f07d57b285928a2dddab2ed894ef"
 
