@@ -242,13 +242,13 @@
     "pkg/secretwatcher",
     "test/helpers"
   ]
-  revision = "5cf2f90c4ac0f07d57b285928a2dddab2ed894ef"
+  revision = "8f90dd11f187fd67d347f7621fe845941d260ca9"
 
 [[projects]]
   branch = "master"
-  name = "github.com/solo-io/gloo"
+  name = "github.com/solo-io/glue"
   packages = ["pkg/log"]
-  revision = "5cf2f90c4ac0f07d57b285928a2dddab2ed894ef"
+  revision = "8f90dd11f187fd67d347f7621fe845941d260ca9"
 
 [[projects]]
   branch = "master"
@@ -595,6 +595,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "92bde754900aca48708f623174f8a1f755efdc21f4c7145914cdcba3f3466a91"
+  inputs-digest = "f2ce034484a0f41d4cf5d03a37311f3bfbb28c29faec7f665974d1494f24e009"
   solver-name = "gps-cdcl"
   solver-version = 1
