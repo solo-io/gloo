@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/internal/pkg/kube/controller"
 	kubev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -17,6 +16,7 @@ import (
 	corev1 "k8s.io/client-go/listers/core/v1"
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
+	"github.com/solo-io/kubecontroller"
 )
 
 type ingressSyncer struct {
@@ -63,8 +63,8 @@ func NewIngressSyncer(cfg *rest.Config, resyncDuration time.Duration, stopCh <-c
 		cachedStatuses: make(map[string]kubev1.LoadBalancerStatus),
 	}
 
-	kubeController := controller.NewController("glue-ingress-syncer", kubeClient,
-		c.syncIngressStatus,
+	kubeController := kubecontroller.NewController("glue-ingress-syncer", kubeClient,
+		kubecontroller.NewSyncHandler(c.syncIngressStatus),
 		ingressInformer.Informer(),
 		serviceInformer.Informer())
 
@@ -76,7 +76,7 @@ func NewIngressSyncer(cfg *rest.Config, resyncDuration time.Duration, stopCh <-c
 	return c, nil
 }
 
-func (c *ingressSyncer) syncIngressStatus(namespace, name string, v interface{}) {
+func (c *ingressSyncer) syncIngressStatus() {
 	if err := c.sync(); err != nil {
 		c.errors <- err
 	}
