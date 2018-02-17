@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	resourcePrefix = "glue-generated"
+	resourcePrefix = "gloo-generated"
 	upstreamPrefix = resourcePrefix + "-upstream"
 )
 
@@ -59,8 +59,8 @@ func NewServiceController(cfg *rest.Config,
 		upstreams:     configStore,
 	}
 
-	kubeController := kubecontroller.NewController("glue-ingress-controller", kubeClient,
-		kubecontroller.NewSyncHandler(c.syncGlueUpstreamsWithKubeServices),
+	kubeController := kubecontroller.NewController("gloo-ingress-controller", kubeClient,
+		kubecontroller.NewSyncHandler(c.syncGlooUpstreamsWithKubeServices),
 		serviceInformer.Informer())
 
 	c.runFunc = func(stop <-chan struct{}) {
@@ -81,13 +81,13 @@ func (c *ServiceController) Error() <-chan error {
 	return c.errors
 }
 
-func (c *ServiceController) syncGlueUpstreamsWithKubeServices() {
-	if err := c.syncGlueUpstreams(); err != nil {
+func (c *ServiceController) syncGlooUpstreamsWithKubeServices() {
+	if err := c.syncGlooUpstreams(); err != nil {
 		c.errors <- err
 	}
 }
 
-func (c *ServiceController) syncGlueUpstreams() error {
+func (c *ServiceController) syncGlooUpstreams() error {
 	desiredUpstreams, err := c.generateDesiredUpstreams()
 	if err != nil {
 		return fmt.Errorf("failed to generate desired upstreams: %v", err)

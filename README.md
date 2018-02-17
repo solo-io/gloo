@@ -1,2 +1,2 @@
-# glue-k8s-service-discovery
+# gloo-k8s-service-discovery
 Discovers Upstreams from Kubernetes Services 
