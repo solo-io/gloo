@@ -42,16 +42,16 @@ var _ = Describe("KubeIngressController", func() {
 		var (
 			ingressCtl *IngressController
 			kubeClient kubernetes.Interface
-			glueClient storage.Interface
+			glooClient storage.Interface
 		)
 		BeforeEach(func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Must(err)
 
-			glueClient, err = crd.NewStorage(cfg, namespace, time.Second)
+			glooClient, err = crd.NewStorage(cfg, namespace, time.Second)
 			Must(err)
 
-			ingressCtl, err = NewIngressController(cfg, glueClient, time.Second, true)
+			ingressCtl, err = NewIngressController(cfg, glooClient, time.Second, true)
 			Must(err)
 
 			go ingressCtl.Run(make(chan struct{}))
@@ -99,10 +99,10 @@ var _ = Describe("KubeIngressController", func() {
 				}
 			})
 			It("ignores the ingress", func() {
-				upstreams, err := glueClient.V1().Upstreams().List()
+				upstreams, err := glooClient.V1().Upstreams().List()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(upstreams).To(HaveLen(0))
-				virtualHostList, err := glueClient.V1().VirtualHosts().List()
+				virtualHostList, err := glooClient.V1().VirtualHosts().List()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(virtualHostList).To(HaveLen(0))
 			})
@@ -121,7 +121,7 @@ var _ = Describe("KubeIngressController", func() {
 					ObjectMeta: metav1.ObjectMeta{
 						GenerateName: "ingress-",
 						Namespace:    namespace,
-						Annotations:  map[string]string{"kubernetes.io/ingress.class": GlueIngressClass},
+						Annotations:  map[string]string{"kubernetes.io/ingress.class": GlooIngressClass},
 					},
 					Spec: v1beta1.IngressSpec{
 						Backend: &v1beta1.IngressBackend{
@@ -149,7 +149,7 @@ var _ = Describe("KubeIngressController", func() {
 				}
 			})
 			It("creates the default virtualhost for the ingress", func() {
-				glueRoute := &v1.Route{
+				glooRoute := &v1.Route{
 					Matcher: &v1.Matcher{
 						Path: &v1.Matcher_PathPrefix{
 							PathPrefix: "/",
@@ -163,19 +163,19 @@ var _ = Describe("KubeIngressController", func() {
 						},
 					},
 				}
-				glueVirtualHost := &v1.VirtualHost{
+				glooVirtualHost := &v1.VirtualHost{
 					Name:    defaultVirtualHost,
 					Domains: []string{"*"},
-					Routes:  []*v1.Route{glueRoute},
+					Routes:  []*v1.Route{glooRoute},
 				}
-				virtualHostList, err := glueClient.V1().VirtualHosts().List()
+				virtualHostList, err := glooClient.V1().VirtualHosts().List()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(virtualHostList).To(HaveLen(1))
 				virtualHost := virtualHostList[0]
 				Expect(virtualHost.Name).To(Equal(defaultVirtualHost))
 				// have to set metadata
-				glueVirtualHost.Metadata = virtualHost.Metadata
-				Expect(virtualHost).To(Equal(glueVirtualHost))
+				glooVirtualHost.Metadata = virtualHost.Metadata
+				Expect(virtualHost).To(Equal(glooVirtualHost))
 			})
 		})
 		Context("an ingress is created with multiple rules", func() {
@@ -189,7 +189,7 @@ var _ = Describe("KubeIngressController", func() {
 					ObjectMeta: metav1.ObjectMeta{
 						GenerateName: "ingress-",
 						Namespace:    namespace,
-						Annotations:  map[string]string{"kubernetes.io/ingress.class": GlueIngressClass},
+						Annotations:  map[string]string{"kubernetes.io/ingress.class": GlooIngressClass},
 					},
 					Spec: v1beta1.IngressSpec{
 						TLS: []v1beta1.IngressTLS{
@@ -293,7 +293,7 @@ var _ = Describe("KubeIngressController", func() {
 						}
 					}
 				}
-				upstreams, err := glueClient.V1().Upstreams().List()
+				upstreams, err := glooClient.V1().Upstreams().List()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(upstreams).To(HaveLen(len(expectedUpstreams)))
 				for _, us := range upstreams {
@@ -345,7 +345,7 @@ var _ = Describe("KubeIngressController", func() {
 						expectedVirtualHosts[host] = vHost
 					}
 				}
-				virtuavirtualHostList, err := glueClient.V1().VirtualHosts().List()
+				virtuavirtualHostList, err := glooClient.V1().VirtualHosts().List()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(virtuavirtualHostList).To(HaveLen(len(expectedVirtualHosts)))
 				for _, virtualHost := range virtuavirtualHostList {

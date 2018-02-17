@@ -23,13 +23,13 @@ import (
 )
 
 const (
-	resourcePrefix    = "glue-generated"
+	resourcePrefix    = "gloo-generated"
 	upstreamPrefix    = resourcePrefix + "-upstream"
 	virtualHostPrefix = resourcePrefix + "-virtualhost"
 
 	defaultVirtualHost = "default"
 
-	GlueIngressClass = "glue"
+	GlooIngressClass = "gloo"
 )
 
 type IngressController struct {
@@ -66,8 +66,8 @@ func NewIngressController(cfg *rest.Config,
 		configObjects: configStore,
 	}
 
-	kubeController := kubecontroller.NewController("glue-ingress-controller", kubeClient,
-		kubecontroller.NewSyncHandler(c.syncGlueResourcesWithIngresses),
+	kubeController := kubecontroller.NewController("gloo-ingress-controller", kubeClient,
+		kubecontroller.NewSyncHandler(c.syncGlooResourcesWithIngresses),
 		ingressInformer.Informer())
 
 	c.runFunc = func(stop <-chan struct{}) {
@@ -88,13 +88,13 @@ func (c *IngressController) Error() <-chan error {
 	return c.errors
 }
 
-func (c *IngressController) syncGlueResourcesWithIngresses() {
-	if err := c.syncGlueResources(); err != nil {
+func (c *IngressController) syncGlooResourcesWithIngresses() {
+	if err := c.syncGlooResources(); err != nil {
 		c.errors <- err
 	}
 }
 
-func (c *IngressController) syncGlueResources() error {
+func (c *IngressController) syncGlooResources() error {
 	desiredUpstreams, desiredVirtualHosts, err := c.generateDesiredResources()
 	if err != nil {
 		return fmt.Errorf("failed to generate desired configObjects: %v", err)
@@ -382,5 +382,5 @@ func upstreamName(namespace string, backend v1beta1.IngressBackend) string {
 }
 
 func isOurIngress(useAsGlobalIngress bool, ingress *v1beta1.Ingress) bool {
-	return useAsGlobalIngress || ingress.Annotations["kubernetes.io/ingress.class"] == GlueIngressClass
+	return useAsGlobalIngress || ingress.Annotations["kubernetes.io/ingress.class"] == GlooIngressClass
 }

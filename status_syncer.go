@@ -25,7 +25,7 @@ type ingressSyncer struct {
 	// name of the kubernetes service for the ingress (envoy)
 	ingressService string
 
-	// are we reading all ingress classes, or just glue's?
+	// are we reading all ingress classes, or just gloo's?
 	globalIngress bool
 
 	client kubernetes.Interface
@@ -63,7 +63,7 @@ func NewIngressSyncer(cfg *rest.Config, resyncDuration time.Duration, stopCh <-c
 		cachedStatuses: make(map[string]kubev1.LoadBalancerStatus),
 	}
 
-	kubeController := kubecontroller.NewController("glue-ingress-syncer", kubeClient,
+	kubeController := kubecontroller.NewController("gloo-ingress-syncer", kubeClient,
 		kubecontroller.NewSyncHandler(c.syncIngressStatus),
 		ingressInformer.Informer(),
 		serviceInformer.Informer())
