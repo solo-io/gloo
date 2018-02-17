@@ -242,7 +242,7 @@
     "pkg/secretwatcher",
     "test/helpers"
   ]
-  revision = "d5918133d2af8711c43d5d8d505312fff1b70b0e"
+  revision = "8746d48f9b5c6ce79b1a1465fbb0e245970d14ec"
 
 [[projects]]
   branch = "master"

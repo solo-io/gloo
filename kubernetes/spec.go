@@ -7,9 +7,10 @@ import (
 )
 
 type UpstreamSpec struct {
-	ServiceName      string `json:"service_name"`
-	ServiceNamespace string `json:"service_namespace"`
-	ServicePort      string `json:"service_port"`
+	ServiceName      string            `json:"service_name"`
+	ServiceNamespace string            `json:"service_namespace"`
+	ServicePort      string            `json:"service_port"`
+	Labels           map[string]string `json:"labels"`
 }
 
 func DecodeUpstreamSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {

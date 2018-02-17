@@ -2,16 +2,18 @@ package kubernetes
 
 import (
 	"fmt"
-	"sync"
+	"log"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/solo-io/kubecontroller"
+	kubev1 "k8s.io/api/core/v1"
 	kubev1resources "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
-	kubev1 "k8s.io/client-go/listers/core/v1"
+	kubelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 
 	"github.com/solo-io/glue/pkg/api/types/v1"
@@ -21,8 +23,9 @@ import (
 type endpointController struct {
 	endpoints       chan endpointdiscovery.EndpointGroups
 	errors          chan error
-	endpointsLister kubev1.EndpointsLister
-	servicesLister  kubev1.ServiceLister
+	endpointsLister kubelisters.EndpointsLister
+	servicesLister  kubelisters.ServiceLister
+	podsLister      kubelisters.PodLister
 	upstreamSpecs   map[string]*UpstreamSpec
 	runFunc         func(stop <-chan struct{})
 }
@@ -36,31 +39,28 @@ func newEndpointController(cfg *rest.Config, resyncDuration time.Duration) (*end
 	informerFactory := informers.NewSharedInformerFactory(kubeClient, resyncDuration)
 	endpointInformer := informerFactory.Core().V1().Endpoints()
 	serviceInformer := informerFactory.Core().V1().Services()
+	podInformer := informerFactory.Core().V1().Pods()
 
 	c := &endpointController{
 		endpoints:       make(chan endpointdiscovery.EndpointGroups),
 		errors:          make(chan error),
 		endpointsLister: endpointInformer.Lister(),
 		servicesLister:  serviceInformer.Lister(),
+		podsLister:      podInformer.Lister(),
 	}
 
 	kubeController := kubecontroller.NewController("glue-endpoints-controller",
 		kubeClient,
 		kubecontroller.NewSyncHandler(c.syncEndpoints),
 		endpointInformer.Informer(),
-		serviceInformer.Informer())
+		serviceInformer.Informer(),
+		podInformer.Informer())
 
 	c.runFunc = func(stop <-chan struct{}) {
-		wg := &sync.WaitGroup{}
-		wg.Add(1)
-		go func(stop <-chan struct{}) {
-			informerFactory.Start(stop)
-			wg.Done()
-		}(stop)
-		go func() {
-			kubeController.Run(2, stop)
-		}()
-		wg.Wait()
+		go informerFactory.Start(stop)
+		go kubeController.Run(2, stop)
+		<-stop
+		log.Printf("kube endpoint discovery stopped")
 	}
 
 	return c, nil
@@ -114,11 +114,15 @@ func (c *endpointController) getUpdatedEndpoints() (endpointdiscovery.EndpointGr
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving endpoints: %v", err)
 	}
-	time.Sleep(time.Second)
 	endpointList, err := c.endpointsLister.List(labels.Everything())
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving endpoints: %v", err)
 	}
+	podList, err := c.podsLister.List(labels.Everything())
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving pods: %v", err)
+	}
+
 	endpointGroups := make(endpointdiscovery.EndpointGroups)
 	for upstreamName, spec := range c.upstreamSpecs {
 		// find the targetport for our service
@@ -132,6 +136,22 @@ func (c *endpointController) getUpdatedEndpoints() (endpointdiscovery.EndpointGr
 			if spec.ServiceName == endpoint.Name && spec.ServiceNamespace == endpoint.Namespace {
 				for _, es := range endpoint.Subsets {
 					for _, addr := range es.Addresses {
+						// determine whether labels for the owner of this ip (pod) matches the spec
+						podLabels, err := getPodLabelsForIp(addr.IP, podList)
+						if err != nil {
+							// pod not found for ip? what's that about?
+							// log it and keep going
+							runtime.HandleError(err)
+							continue
+						}
+						if !labels.AreLabelsInWhiteList(spec.Labels, podLabels) {
+							continue
+						}
+						// pod hasn't been assigned address yet
+						if addr.IP == "" {
+							continue
+						}
+
 						m := endpointdiscovery.Endpoint{
 							Address: addr.IP,
 							Port:    targetPort,
@@ -143,6 +163,15 @@ func (c *endpointController) getUpdatedEndpoints() (endpointdiscovery.EndpointGr
 		}
 	}
 	return endpointGroups, nil
+}
+
+func getPodLabelsForIp(ip string, pods []*kubev1.Pod) (map[string]string, error) {
+	for _, pod := range pods {
+		if pod.Status.PodIP == ip && pod.Status.Phase == kubev1.PodRunning {
+			return pod.Labels, nil
+		}
+	}
+	return nil, errors.Errorf("running pod not found with ip %v", ip)
 }
 
 func portForUpstream(spec *UpstreamSpec, serviceList []*kubev1resources.Service) (int32, error) {
