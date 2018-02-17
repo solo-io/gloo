@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/solo-io/gloo/pkg/secretwatcher"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 type vaultSecretWatcher struct {
@@ -77,10 +78,14 @@ func (w *vaultSecretWatcher) Error() <-chan error {
 }
 func (w *vaultSecretWatcher) getSecrets() (secretwatcher.SecretMap, error) {
 	secrets := make(secretwatcher.SecretMap)
-	for _, ref := range w.secretRefs {
-		secret, err := w.client.Logical().Read(ref)
+	for _, path := range w.secretRefs {
+		secret, err := w.client.Logical().Read(path)
 		if err != nil {
-			return nil, errors.Wrapf(err, "reading secret %v", ref)
+			return nil, errors.Wrapf(err, "reading secret %v", path)
+		}
+		if secret == nil {
+			log.Printf("secret not found for path %v", path)
+			continue
 		}
 		secretData := make(map[string]string)
 		for key, value := range secret.Data {
@@ -90,7 +95,7 @@ func (w *vaultSecretWatcher) getSecrets() (secretwatcher.SecretMap, error) {
 			}
 			secretData[key] = strValue
 		}
-		secrets[ref] = secretData
+		secrets[path] = secretData
 	}
 	hash, err := hashstructure.Hash(secrets, nil)
 	if err != nil {
