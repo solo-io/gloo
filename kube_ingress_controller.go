@@ -2,9 +2,9 @@ package ingress
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -71,16 +71,10 @@ func NewIngressController(cfg *rest.Config,
 		ingressInformer.Informer())
 
 	c.runFunc = func(stop <-chan struct{}) {
-		wg := &sync.WaitGroup{}
-		go func(stop <-chan struct{}) {
-			wg.Add(1)
-			kubeInformerFactory.Start(stop)
-			wg.Done()
-		}(stop)
-		go func() {
-			kubeController.Run(2, stop)
-		}()
-		wg.Wait()
+		go kubeInformerFactory.Start(stop)
+		go kubeController.Run(2, stop)
+		<-stop
+		log.Printf("ingress controller stopped")
 	}
 
 	return c, nil
