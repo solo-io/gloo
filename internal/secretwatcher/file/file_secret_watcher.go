@@ -15,6 +15,7 @@ import (
 	"github.com/solo-io/gloo/internal/pkg/file"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
+	"github.com/pkg/errors"
 )
 
 // FileWatcher uses .yml files in a directory
@@ -78,18 +79,18 @@ func (fw *fileWatcher) Error() <-chan error {
 func (fw *fileWatcher) getSecrets() (secretwatcher.SecretMap, error) {
 	secretFiles, err := ioutil.ReadDir(fw.dir)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "reading dir: %v", fw.dir)
 	}
 	desiredSecrets := make(secretwatcher.SecretMap)
 	for _, secretFile := range secretFiles {
 		yml, err := ioutil.ReadFile(filepath.Join(fw.dir, secretFile.Name()))
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "reading file: %v", filepath.Join(fw.dir, secretFile.Name()))
 		}
 		var secretMap secretwatcher.SecretMap
 		err = yaml.Unmarshal(yml, &secretMap)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "unmarshalling yaml")
 		}
 		for _, ref := range fw.secretsToWatch {
 			data, ok := secretMap[ref]

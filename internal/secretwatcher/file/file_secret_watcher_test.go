@@ -15,29 +15,31 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 	. "github.com/solo-io/gloo/test/helpers"
+	"path/filepath"
 )
 
 var _ = Describe("FileSecretWatcher", func() {
 	var (
-		file  string
+		dir  string
+		file string
 		err   error
 		watch secretwatcher.Interface
 	)
 	BeforeEach(func() {
-		f, err := ioutil.TempFile("", "filesecrettest")
+		dir, err = ioutil.TempDir("", "filesecrettest")
 		Must(err)
-		file = f.Name()
-		watch, err = NewSecretWatcher(file, time.Millisecond)
+		file = filepath.Join(dir, "secrets.yml")
+		watch, err = NewSecretWatcher(dir, time.Millisecond)
 		Must(err)
 	})
 	AfterEach(func() {
-		log.Debugf("removing " + file)
-		os.RemoveAll(file)
+		log.Debugf("removing " + dir)
+		os.RemoveAll(dir)
 	})
 	Describe("watching file", func() {
 		Context("an invalid structure is written to a file", func() {
 			It("sends an error on the Error() channel", func() {
-				invalidData := []byte("foo: bar")
+				invalidData := []byte("]]foo: bar")
 				err = ioutil.WriteFile(file, invalidData, 0644)
 				Expect(err).NotTo(HaveOccurred())
 				select {
