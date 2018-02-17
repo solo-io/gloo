@@ -17,8 +17,8 @@ import (
 	"k8s.io/client-go/rest"
 
 	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
-	"github.com/solo-io/glue-storage"
-	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/gloo-storage"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
 	"github.com/solo-io/kubecontroller"
 )
 

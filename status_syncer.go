@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/glue/internal/pkg/kube/controller"
+	"github.com/solo-io/gloo/internal/pkg/kube/controller"
 	kubev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"

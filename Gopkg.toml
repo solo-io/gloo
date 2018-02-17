@@ -43,11 +43,11 @@
 
 [[constraint]]
   branch = "proto"
-  name = "github.com/solo-io/glue"
+  name = "github.com/solo-io/gloo"
 
 [[constraint]]
   branch = "master"
-  name = "github.com/solo-io/glue-storage"
+  name = "github.com/solo-io/gloo-storage"
 
 [[constraint]]
   branch = "master"
