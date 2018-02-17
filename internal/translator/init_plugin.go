@@ -177,7 +177,7 @@ func addClusterFuncsToMetadata(clusterName string, destinations []*v1.WeightedDe
 			Kind: &types.Value_StructValue{
 				StructValue: &types.Struct{
 					Fields: map[string]*types.Value{
-						"spec":   {Kind: &types.Value_StringValue{StringValue: dest.GetFunction().FunctionName}},
+						"name":   {Kind: &types.Value_StringValue{StringValue: dest.GetFunction().FunctionName}},
 						"weight": {Kind: &types.Value_NumberValue{NumberValue: float64(dest.Weight)}},
 					},
 				},
@@ -186,7 +186,10 @@ func addClusterFuncsToMetadata(clusterName string, destinations []*v1.WeightedDe
 		clusterFuncWeights = append(clusterFuncWeights, clusterFuncWeight)
 	}
 	routeClusterMetadata := getFunctionalFilterMetadata(clusterName, out.Metadata)
-	routeClusterMetadata.Fields[filterName].Kind = &types.Value_ListValue{
+	if routeClusterMetadata.Fields[multiFunctionDestinationKey] == nil {
+		routeClusterMetadata.Fields[multiFunctionDestinationKey] = &types.Value{}
+	}
+	routeClusterMetadata.Fields[multiFunctionDestinationKey].Kind = &types.Value_ListValue{
 		ListValue: &types.ListValue{Values: clusterFuncWeights},
 	}
 }
