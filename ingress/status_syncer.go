@@ -19,7 +19,7 @@ import (
 	"github.com/solo-io/kubecontroller"
 )
 
-type ingressSyncer struct {
+type IngressSyncer struct {
 	errors chan error
 
 	// name of the kubernetes service for the ingress (envoy)
@@ -40,11 +40,11 @@ type ingressSyncer struct {
 	mu sync.RWMutex
 }
 
-func (c *ingressSyncer) Error() <-chan error {
+func (c *IngressSyncer) Error() <-chan error {
 	return c.errors
 }
 
-func NewIngressSyncer(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}, globalIngress bool, ingressService string) (*ingressSyncer, error) {
+func NewIngressSyncer(cfg *rest.Config, resyncDuration time.Duration, stopCh <-chan struct{}, globalIngress bool, ingressService string) (*IngressSyncer, error) {
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
@@ -53,7 +53,7 @@ func NewIngressSyncer(cfg *rest.Config, resyncDuration time.Duration, stopCh <-c
 	ingressInformer := kubeInformerFactory.Extensions().V1beta1().Ingresses()
 	serviceInformer := kubeInformerFactory.Core().V1().Services()
 
-	c := &ingressSyncer{
+	c := &IngressSyncer{
 		errors:         make(chan error),
 		ingressService: ingressService,
 		globalIngress:  globalIngress,
@@ -76,13 +76,13 @@ func NewIngressSyncer(cfg *rest.Config, resyncDuration time.Duration, stopCh <-c
 	return c, nil
 }
 
-func (c *ingressSyncer) syncIngressStatus() {
+func (c *IngressSyncer) syncIngressStatus() {
 	if err := c.sync(); err != nil {
 		c.errors <- err
 	}
 }
 
-func (c *ingressSyncer) sync() error {
+func (c *IngressSyncer) sync() error {
 	ingresses, err := c.ingressLister.List(labels.Everything())
 	if err != nil {
 		return errors.Wrap(err, "failed to list ingresses")
