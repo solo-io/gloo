@@ -219,15 +219,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/solo-io/gloo-plugins"
-  packages = [
-    "kubernetes",
-    "service"
-  ]
-  revision = "cea04c8f29ad732da17ffd9bf8580b8bdb801684"
-
-[[projects]]
-  branch = "master"
   name = "github.com/solo-io/gloo"
   packages = [
     "pkg/api/types/v1",
@@ -239,7 +230,16 @@
     "pkg/secretwatcher",
     "test/helpers"
   ]
-  revision = "8746d48f9b5c6ce79b1a1465fbb0e245970d14ec"
+  revision = "5cf2f90c4ac0f07d57b285928a2dddab2ed894ef"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/solo-io/gloo-plugins"
+  packages = [
+    "kubernetes",
+    "service"
+  ]
+  revision = "2b47f6327176fd9f3c6daaf55cab4b0a72cd5187"
 
 [[projects]]
   branch = "master"
@@ -253,7 +253,13 @@
     "crd/solo.io/v1",
     "internal/crud"
   ]
-  revision = "3734d89ca9ae6de4ae0f228318d75cd08c89cf9f"
+  revision = "6ebdd0a5c611e3ceecc3403165ab1c87ef75cc9e"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/solo-io/glue"
+  packages = ["pkg/log"]
+  revision = "5cf2f90c4ac0f07d57b285928a2dddab2ed894ef"
 
 [[projects]]
   branch = "master"
@@ -431,7 +437,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "717ca2fc6ccb8bc7a26322735111b93bfcc77123"
+  revision = "1a9632403b52a4e091c7ad5b1756423d5895ddf5"
 
 [[projects]]
   branch = "master"
@@ -612,6 +618,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "67371279dd8cd3191cb20555d73d739ba8c2c49b465463872174e9be9c060ec2"
+  inputs-digest = "f942f48e0da758145ec1d4bd04ba21a57a4781844a7a181e14f04fd9c6c1839b"
   solver-name = "gps-cdcl"
   solver-version = 1
