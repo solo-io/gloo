@@ -3,9 +3,9 @@ package crd
 import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
-	crdv1 "github.com/solo-io/glue-storage/crd/solo.io/v1"
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/protoutil"
+	crdv1 "github.com/solo-io/gloo-storage/crd/solo.io/v1"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/protoutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/solo-io/glue-storage"
+	"github.com/solo-io/gloo-storage"
 )
 
 type Client struct {

@@ -17,9 +17,9 @@ limitations under the License.
 package fake
 
 import (
-	clientset "github.com/solo-io/glue-storage/crd/client/clientset/versioned"
-	gluev1 "github.com/solo-io/glue-storage/crd/client/clientset/versioned/typed/solo.io/v1"
-	fakegluev1 "github.com/solo-io/glue-storage/crd/client/clientset/versioned/typed/solo.io/v1/fake"
+	clientset "github.com/solo-io/gloo-storage/crd/client/clientset/versioned"
+	gluev1 "github.com/solo-io/gloo-storage/crd/client/clientset/versioned/typed/solo.io/v1"
+	fakegluev1 "github.com/solo-io/gloo-storage/crd/client/clientset/versioned/typed/solo.io/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"

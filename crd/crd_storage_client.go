@@ -12,10 +12,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/glue-storage"
-	crdclientset "github.com/solo-io/glue-storage/crd/client/clientset/versioned"
-	crdv1 "github.com/solo-io/glue-storage/crd/solo.io/v1"
-	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/gloo-storage"
+	crdclientset "github.com/solo-io/gloo-storage/crd/client/clientset/versioned"
+	crdv1 "github.com/solo-io/gloo-storage/crd/solo.io/v1"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 type Client struct {

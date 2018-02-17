@@ -21,7 +21,7 @@ limitations under the License.
 package v1
 
 import (
-	types_v1 "github.com/solo-io/glue/pkg/api/types/v1"
+	types_v1 "github.com/solo-io/gloo/pkg/api/types/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 

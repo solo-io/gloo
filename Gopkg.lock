@@ -228,7 +228,7 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/solo-io/glue"
+  name = "github.com/solo-io/gloo"
   packages = [
     "internal/bootstrap",
     "internal/plugins",

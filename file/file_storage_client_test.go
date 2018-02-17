@@ -8,9 +8,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/solo-io/glue-storage/file"
-	"github.com/solo-io/glue/pkg/log"
-	. "github.com/solo-io/glue/test/helpers"
+	. "github.com/solo-io/gloo-storage/file"
+	"github.com/solo-io/gloo/pkg/log"
+	. "github.com/solo-io/gloo/test/helpers"
 )
 
 var _ = Describe("CrdStorageClient", func() {

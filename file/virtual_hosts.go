@@ -12,9 +12,9 @@ import (
 	"github.com/radovskyb/watcher"
 	"k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/solo-io/glue-storage"
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/gloo-storage"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 // TODO: evaluate efficiency of LSing a whole dir on every op

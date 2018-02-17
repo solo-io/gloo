@@ -3,7 +3,7 @@ package v1
 import (
 	"encoding/json"
 
-	"github.com/solo-io/glue/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

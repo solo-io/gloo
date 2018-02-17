@@ -1,7 +1,7 @@
 SOURCES := $(shell find . -name *.go)
 PKGDIRS := config/ module/ pkg/ xds/
 
-PACKAGE_PATH:=github.com/solo-io/glue-storage
+PACKAGE_PATH:=github.com/solo-io/gloo-storage
 
 # kubernetes custom clientsets
 clientset:

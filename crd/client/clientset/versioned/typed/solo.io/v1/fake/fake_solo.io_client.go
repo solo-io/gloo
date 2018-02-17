@@ -17,7 +17,7 @@ limitations under the License.
 package fake
 
 import (
-	v1 "github.com/solo-io/glue-storage/crd/client/clientset/versioned/typed/solo.io/v1"
+	v1 "github.com/solo-io/gloo-storage/crd/client/clientset/versioned/typed/solo.io/v1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

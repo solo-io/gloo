@@ -17,8 +17,8 @@ limitations under the License.
 package v1
 
 import (
-	scheme "github.com/solo-io/glue-storage/crd/client/clientset/versioned/scheme"
-	v1 "github.com/solo-io/glue-storage/crd/solo.io/v1"
+	scheme "github.com/solo-io/gloo-storage/crd/client/clientset/versioned/scheme"
+	v1 "github.com/solo-io/gloo-storage/crd/solo.io/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

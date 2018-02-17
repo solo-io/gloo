@@ -17,7 +17,7 @@ limitations under the License.
 package scheme
 
 import (
-	gluev1 "github.com/solo-io/glue-storage/crd/solo.io/v1"
+	gluev1 "github.com/solo-io/gloo-storage/crd/solo.io/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

@@ -8,9 +8,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/solo-io/glue-storage/crd"
-	crdv1 "github.com/solo-io/glue-storage/crd/solo.io/v1"
-	. "github.com/solo-io/glue/test/helpers"
+	. "github.com/solo-io/gloo-storage/crd"
+	crdv1 "github.com/solo-io/gloo-storage/crd/solo.io/v1"
+	. "github.com/solo-io/gloo/test/helpers"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
