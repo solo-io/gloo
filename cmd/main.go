@@ -28,8 +28,8 @@ func main() {
 var opts bootstrap.Options
 
 var rootCmd = &cobra.Command{
-	Use:   "glue-server",
-	Short: "Glue Server runs the glue service to turn Envoy into a Function Gateway",
+	Use:   "gloo-server",
+	Short: "Gloo Server runs the gloo service to turn Envoy into a Function Gateway",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		stop := signals.SetupSignalHandler()
 		eventLoop, err := eventloop.Setup(opts, stop)
@@ -56,13 +56,13 @@ func init() {
 	rootCmd.PersistentFlags().IntVar(&opts.XdsOptions.Port, "xds.port", 8081, "port to serve envoy xDS services. this port should be specified in your envoy's static config")
 
 	// file
-	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.ConfigDir, "file.config.dir", "_glue_config", "root directory to use for storing glue config files")
-	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.SecretDir, "file.secret.dir", "_glue_secrets", "root directory to use for storing glue secret files")
+	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.ConfigDir, "file.config.dir", "_gloo_config", "root directory to use for storing gloo config files")
+	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.SecretDir, "file.secret.dir", "_gloo_secrets", "root directory to use for storing gloo secret files")
 
 	// kube
 	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.MasterURL, "kube.master", "", "url of the kubernetes apiserver. not needed if running in-cluster")
 	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.KubeConfig, "kube.config", "", "path to kubeconfig file. not needed if running in-cluster")
-	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.Namespace, "kube.namespace", crd.GlueDefaultNamespace, "namespace to read/write glue storage objects")
+	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.Namespace, "kube.namespace", crd.GlooDefaultNamespace, "namespace to read/write gloo storage objects")
 
 	// vault
 	rootCmd.PersistentFlags().StringVar(&opts.VaultOptions.VaultAddr, "vault.addr", "", "url for vault server")

@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	rdsName       = "glue-rds"
+	rdsName       = "gloo-rds"
 	listenerName  = "listener-" + rdsName
 	listenerPort  = uint32(8080)
 	connMgrFilter = "envoy.http_connection_manager"

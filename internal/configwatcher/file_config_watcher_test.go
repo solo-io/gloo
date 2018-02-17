@@ -172,7 +172,7 @@ var _ = Describe("FileConfigWatcher", func() {
 		os.RemoveAll(dir)
 	})
 	Describe("controller", func() {
-		It("watches glue files", func() {
+		It("watches gloo files", func() {
 			storageClient, err := file.NewStorage(dir, time.Millisecond)
 			Must(err)
 			watcher, err := NewConfigWatcher(storageClient)

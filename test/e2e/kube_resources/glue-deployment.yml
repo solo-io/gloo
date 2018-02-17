@@ -2,35 +2,35 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: glue
-  name: glue
-  namespace: glue-system
+    app: gloo
+  name: gloo
+  namespace: gloo-system
 spec:
   selector:
     matchLabels:
-      app: glue
+      app: gloo
   replicas: 1
   template:
     metadata:
       labels:
-        app: glue
+        app: gloo
     spec:
       containers:
-      - image: solo-io/glue:v0.1
+      - image: solo-io/gloo:v0.1
         imagePullPolicy: Never
-        name: glue
+        name: gloo
         ports:
         - containerPort: 8081
           name: http
         env:
         - name: GRPC_TRACE
           value: all
-        command: ["/glue"]
-        args: ["-c", "/config/glue.yml"]
+        command: ["/gloo"]
+        args: ["-c", "/config/gloo.yml"]
         volumeMounts:
-        - name: glue-config
+        - name: gloo-config
           mountPath: /config
       volumes:
-      - name: glue-config
+      - name: gloo-config
         configMap:
-          name: glue-config
+          name: gloo-config

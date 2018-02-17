@@ -13,21 +13,24 @@ proto:
 	../../pkg/api/types/v1 \
 	./*.proto
 
-build-debug: glue-debug
+build-debug: gloo-debug
 
-build: glue
+build: gloo
 
 fmt:
 	gofmt -w $(PKGDIRS)
 	goimports -w $(PKGDIRS)
 
-glue: $(SOURCES)
-	go build -i -o glue cmd/glue/*.go
+gloo: $(SOURCES)
+	CGO_ENABLED=0 GOOS=linux go build -ldflags '-extldflags "-static"' -o $@ cmd/*.go
 
-glue-debug: $(SOURCES)
-	go build -i -gcflags "-N -l" -o glue-debug cmd/glue/*.go
+docker: gloo
+	docker build -t solo-io/gloo:v1.0
 
-hackrun: glue
+gloo-debug: $(SOURCES)
+	go build -i -gcflags "-N -l" -o gloo-debug cmd/*.go
+
+hackrun: gloo
 	./hack/run-local.sh
 
 unit:
@@ -39,5 +42,5 @@ e2e:
 test: e2e unit
 
 clean:
-	rm -f glue
+	rm -f gloo
 

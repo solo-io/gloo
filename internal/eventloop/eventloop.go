@@ -246,7 +246,7 @@ func (e *eventLoop) errors() <-chan error {
 	return aggregatedErrorsChan
 }
 
-// cache contains the latest "glue snapshot"
+// cache contains the latest "gloo snapshot"
 type cache struct {
 	cfg     *v1.Config
 	secrets secretwatcher.SecretMap

@@ -1,3 +1,3 @@
 FROM busybox
-COPY glue /
-CMD ["/glue", "-logtostderr", "-c", "/config/glue-config.yml"]
+COPY gloo /
+CMD ["/gloo", "-logtostderr", "-c", "/config/gloo-config.yml"]

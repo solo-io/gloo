@@ -38,7 +38,7 @@ var _ = Describe("CrdReporter", func() {
 	})
 	Describe("writereports", func() {
 		var (
-			glueClient   storage.Interface
+			glooClient   storage.Interface
 			reports      []ConfigObjectReport
 			upstreams    []*v1.Upstream
 			virtualHosts []*v1.VirtualHost
@@ -47,21 +47,21 @@ var _ = Describe("CrdReporter", func() {
 			BeforeEach(func() {
 				cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 				Expect(err).NotTo(HaveOccurred())
-				glueClient, err = crd.NewStorage(cfg, namespace, time.Second)
+				glooClient, err = crd.NewStorage(cfg, namespace, time.Second)
 				Expect(err).NotTo(HaveOccurred())
-				rptr = NewReporter(glueClient)
+				rptr = NewReporter(glooClient)
 
 				testCfg := NewTestConfig()
 				upstreams = testCfg.Upstreams
 				var storables []v1.ConfigObject
 				for _, us := range upstreams {
-					_, err := glueClient.V1().Upstreams().Create(us)
+					_, err := glooClient.V1().Upstreams().Create(us)
 					Expect(err).NotTo(HaveOccurred())
 					storables = append(storables, us)
 				}
 				virtualHosts = testCfg.VirtualHosts
 				for _, vHost := range virtualHosts {
-					_, err := glueClient.V1().VirtualHosts().Create(vHost)
+					_, err := glooClient.V1().VirtualHosts().Create(vHost)
 					Expect(err).NotTo(HaveOccurred())
 					storables = append(storables, vHost)
 				}
@@ -76,13 +76,13 @@ var _ = Describe("CrdReporter", func() {
 			It("writes an acceptance status for each crd", func() {
 				err := rptr.WriteReports(reports)
 				Expect(err).NotTo(HaveOccurred())
-				updatedUpstreams, err := glueClient.V1().Upstreams().List()
+				updatedUpstreams, err := glooClient.V1().Upstreams().List()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(updatedUpstreams).To(HaveLen(len(upstreams)))
 				for _, updatedUpstream := range updatedUpstreams {
 					Expect(updatedUpstream.Status.State).To(Equal(v1.Status_Accepted))
 				}
-				updatedVhosts, err := glueClient.V1().VirtualHosts().List()
+				updatedVhosts, err := glooClient.V1().VirtualHosts().List()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(updatedVhosts).To(HaveLen(len(upstreams)))
 				for _, updatedVhost := range updatedVhosts {
@@ -94,21 +94,21 @@ var _ = Describe("CrdReporter", func() {
 			BeforeEach(func() {
 				cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 				Expect(err).NotTo(HaveOccurred())
-				glueClient, err = crd.NewStorage(cfg, namespace, time.Second)
+				glooClient, err = crd.NewStorage(cfg, namespace, time.Second)
 				Expect(err).NotTo(HaveOccurred())
-				rptr = NewReporter(glueClient)
+				rptr = NewReporter(glooClient)
 
 				testCfg := NewTestConfig()
 				upstreams = testCfg.Upstreams
 				var storables []v1.ConfigObject
 				for _, us := range upstreams {
-					_, err := glueClient.V1().Upstreams().Create(us)
+					_, err := glooClient.V1().Upstreams().Create(us)
 					Expect(err).NotTo(HaveOccurred())
 					storables = append(storables, us)
 				}
 				virtualHosts = testCfg.VirtualHosts
 				for _, vHost := range virtualHosts {
-					_, err := glueClient.V1().VirtualHosts().Create(vHost)
+					_, err := glooClient.V1().VirtualHosts().Create(vHost)
 					Expect(err).NotTo(HaveOccurred())
 					storables = append(storables, vHost)
 				}
@@ -123,13 +123,13 @@ var _ = Describe("CrdReporter", func() {
 			It("writes an rejected status for each crd", func() {
 				err := rptr.WriteReports(reports)
 				Expect(err).NotTo(HaveOccurred())
-				updatedUpstreams, err := glueClient.V1().Upstreams().List()
+				updatedUpstreams, err := glooClient.V1().Upstreams().List()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(updatedUpstreams).To(HaveLen(len(upstreams)))
 				for _, updatedUpstream := range updatedUpstreams {
 					Expect(updatedUpstream.Status.State).To(Equal(v1.Status_Rejected))
 				}
-				updatedVhosts, err := glueClient.V1().VirtualHosts().List()
+				updatedVhosts, err := glooClient.V1().VirtualHosts().List()
 				Expect(err).NotTo(HaveOccurred())
 				Expect(updatedVhosts).To(HaveLen(len(upstreams)))
 				for _, updatedVhost := range updatedVhosts {

@@ -1,4 +1,4 @@
-# glue
+# gloo
 Mock API Gateway for building Integrations &amp; Plugins
 
 See the [example module](module/example) for an example of how to write modules.

@@ -4,7 +4,7 @@ metadata:
   name: envoy
   labels:
     sevice: envoy
-  namespace: glue-system
+  namespace: gloo-system
 spec:
   ports:
   - port: 8080

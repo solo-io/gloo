@@ -18,7 +18,7 @@ import (
 )
 
 // For now we're only running one envoy instance
-const NodeKey = envoycache.Key("glue-envoy")
+const NodeKey = envoycache.Key("gloo-envoy")
 
 type hasher struct{}
 

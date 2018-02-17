@@ -1,6 +1,6 @@
 apiVersion: v1
 data:
-  glue.yml: |
+  gloo.yml: |
     - example_rule:
         timeout: 15s
         match:
@@ -11,5 +11,5 @@ data:
           port: 1234
 kind: ConfigMap
 metadata:
-  name: glue-config
-  namespace: glue-system
+  name: gloo-config
+  namespace: gloo-system

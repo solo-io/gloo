@@ -4,7 +4,7 @@ metadata:
   labels:
     app: helloservice
   name: helloservice
-  namespace: glue-system
+  namespace: gloo-system
 spec:
   selector:
     matchLabels:

@@ -41,7 +41,7 @@ func newSecretController(cfg *rest.Config, resyncDuration time.Duration, stopCh 
 	}
 
 	kubeController := kubecontroller.NewController(
-		"glue-secrets-controller", kubeClient,
+		"gloo-secrets-controller", kubeClient,
 		kubecontroller.NewSyncHandler(c.syncSecrets),
 		secretInformer.Informer())
 

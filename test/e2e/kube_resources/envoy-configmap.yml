@@ -29,8 +29,8 @@ data:
         type: LOGICAL_DNS
         lb_policy: ROUND_ROBIN
         http2_protocol_options: {}
-        hosts: [{ socket_address: { address: glue, port_value: 8081 }}]
+        hosts: [{ socket_address: { address: gloo, port_value: 8081 }}]
 kind: ConfigMap
 metadata:
   name: envoy-config
-  namespace: glue-system
+  namespace: gloo-system

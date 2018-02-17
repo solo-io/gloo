@@ -17,7 +17,7 @@ const (
 	testrunner   = "testrunner"
 	helloservice = "helloservice"
 	envoy        = "envoy"
-	glue         = "glue"
+	gloo         = "gloo"
 )
 
 // ErrMinikubeNotInstalled indicates minikube binary is not found
@@ -26,11 +26,11 @@ var ErrMinikubeNotInstalled = fmt.Errorf("minikube not found in path")
 type MinikubeInstance struct {
 	vmName             string
 	ephemeral          bool
-	deployGlue         bool
+	deployGloo         bool
 	ephemeralNamespace string
 }
 
-func NewMinikube(deployGlue bool, ephemeralNamespace ...string) *MinikubeInstance {
+func NewMinikube(deployGloo bool, ephemeralNamespace ...string) *MinikubeInstance {
 	var ephemeral bool
 	vmName := os.Getenv("MINIKUBE_VM")
 	if vmName == "" {
@@ -44,7 +44,7 @@ func NewMinikube(deployGlue bool, ephemeralNamespace ...string) *MinikubeInstanc
 	return &MinikubeInstance{
 		vmName:             vmName,
 		ephemeral:          ephemeral,
-		deployGlue:         deployGlue,
+		deployGloo:         deployGloo,
 		ephemeralNamespace: namespace,
 	}
 }
@@ -59,7 +59,7 @@ func (mkb *MinikubeInstance) Setup() error {
 			return err
 		}
 	}
-	if mkb.deployGlue {
+	if mkb.deployGloo {
 		if err := mkb.buildContainers(); err != nil {
 			return err
 		}
@@ -79,7 +79,7 @@ func (mkb *MinikubeInstance) Teardown() error {
 	if mkb.ephemeral {
 		return mkb.deleteMinikube()
 	}
-	if mkb.deployGlue {
+	if mkb.deployGloo {
 		if err := mkb.deleteE2eResources(); err != nil {
 			return err
 		}
@@ -157,16 +157,16 @@ func (mkb *MinikubeInstance) buildContainers() error {
 // createE2eResources creates all the kube resources contained in kube_resources dir
 func (mkb *MinikubeInstance) createE2eResources() error {
 	kubeResourcesDir := filepath.Join(E2eDirectory(), "kube_resources")
-	if err := kubectl("config", "set-context", mkb.vmName, "--namespace=glue-system"); err != nil {
+	if err := kubectl("config", "set-context", mkb.vmName, "--namespace=gloo-system"); err != nil {
 		return err
 	}
 	// order matters here
 	resources := []string{
 		"namespace.yml",
 
-		"glue-configmap.yml",
-		"glue-deployment.yml",
-		"glue-service.yml",
+		"gloo-configmap.yml",
+		"gloo-deployment.yml",
+		"gloo-service.yml",
 
 		"envoy-configmap.yml",
 		"envoy-deployment.yml",
@@ -182,7 +182,7 @@ func (mkb *MinikubeInstance) createE2eResources() error {
 			return err
 		}
 	}
-	return waitPodsRunning(testrunner, helloservice, envoy, glue)
+	return waitPodsRunning(testrunner, helloservice, envoy, gloo)
 }
 
 func kubectl(args ...string) error {
@@ -203,7 +203,7 @@ func KubectlOut(args ...string) (string, error) {
 
 // deleteE2eResources deletes all the kube resources contained in kube_resources dir
 func (mkb *MinikubeInstance) deleteE2eResources() error {
-	if err := kubectl("config", "set-context", mkb.vmName, "--namespace=glue-system"); err != nil {
+	if err := kubectl("config", "set-context", mkb.vmName, "--namespace=gloo-system"); err != nil {
 		return err
 	}
 	kubeResourcesDir := filepath.Join(E2eDirectory(), "kube_resources")
@@ -214,7 +214,7 @@ func (mkb *MinikubeInstance) deleteE2eResources() error {
 	if err := kubectl("delete", "-f", filepath.Join(kubeResourcesDir, "test-runner-pod.yml"), "--force"); err != nil {
 		return err
 	}
-	return waitPodsTerminated(testrunner, helloservice, envoy, glue)
+	return waitPodsTerminated(testrunner, helloservice, envoy, gloo)
 }
 
 // DeleteContext deletes the context from the kubeconfig

@@ -47,7 +47,7 @@ func main() {
 	must(err)
 	upstreamPort = uint32(p)
 	cfg := getConfig()
-	outDir := "_glue_config"
+	outDir := "_gloo_config"
 	err = os.MkdirAll(filepath.Join(outDir, "upstreams"), 0755)
 	must(err)
 	err = os.MkdirAll(filepath.Join(outDir, "virtualhosts"), 0755)
