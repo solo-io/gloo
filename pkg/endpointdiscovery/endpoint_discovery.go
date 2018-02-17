@@ -1,6 +1,6 @@
 package endpointdiscovery
 
-import "github.com/solo-io/glue/pkg/api/types/v1"
+import "github.com/solo-io/gloo/pkg/api/types/v1"
 
 // groups endpoints by their respective upstream name
 type EndpointGroups map[string][]Endpoint

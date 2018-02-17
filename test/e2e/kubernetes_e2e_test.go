@@ -12,9 +12,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pborman/uuid"
-	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/pkg/module/example"
-	. "github.com/solo-io/glue/test/helpers"
+	"github.com/solo-io/gloo/pkg/log"
+	"github.com/solo-io/gloo/pkg/module/example"
+	. "github.com/solo-io/gloo/test/helpers"
 )
 
 const glueConfigTmpl = `

@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"github.com/solo-io/glue/pkg/secretwatcher"
+	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 
 func NewTestSecrets() secretwatcher.SecretMap {

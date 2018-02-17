@@ -12,7 +12,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/gloo/pkg/log"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )

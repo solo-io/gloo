@@ -1,7 +1,7 @@
 SOURCES := $(shell find . -name *.go)
 PKGDIRS := config/ module/ pkg/ xds/
 
-PACKAGE_PATH:=github.com/solo-io/glue/pkg/platform/kube
+PACKAGE_PATH:=github.com/solo-io/gloo/pkg/platform/kube
 
 proto:
 	cd api/v1/ && \

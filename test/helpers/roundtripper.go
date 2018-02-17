@@ -3,7 +3,7 @@ package helpers
 import (
 	"net/http"
 
-	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 func AddLoggingToTransport(rt http.RoundTripper) http.RoundTripper {

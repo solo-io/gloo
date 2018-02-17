@@ -12,21 +12,21 @@ import (
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
-	"github.com/ghodss/yaml"
-	"github.com/solo-io/glue/pkg/log"
-	"github.com/solo-io/glue/pkg/protoutil"
 
+	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/proto"
 	"github.com/hashicorp/go-multierror"
 	"github.com/mitchellh/hashstructure"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/solo-io/glue/internal/reporter"
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/endpointdiscovery"
-	"github.com/solo-io/glue/pkg/plugin"
-	"github.com/solo-io/glue/pkg/secretwatcher"
+	"github.com/solo-io/gloo/pkg/log"
+	"github.com/solo-io/gloo/pkg/protoutil"
+	"github.com/solo-io/gloo/internal/reporter"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/endpointdiscovery"
+	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 
 const (

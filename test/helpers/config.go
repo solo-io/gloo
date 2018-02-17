@@ -2,8 +2,8 @@ package helpers
 
 import (
 	"github.com/solo-io/gloo-plugins/service"
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/protoutil"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
 func NewTestConfig() *v1.Config {

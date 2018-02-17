@@ -5,7 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 var (

@@ -6,7 +6,7 @@ import (
 
 	"github.com/radovskyb/watcher"
 
-	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 // WatchFile watches for changes

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 func MapToStruct(m map[string]interface{}) (*types.Struct, error) {

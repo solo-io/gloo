@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 // minikube.go provides helper methods for running tests on minikube

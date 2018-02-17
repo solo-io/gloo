@@ -24,14 +24,14 @@ import (
 	"fmt"
 
 	"github.com/ghodss/yaml"
-	. "github.com/solo-io/glue/internal/xds"
-	"github.com/solo-io/glue/pkg/log"
-	. "github.com/solo-io/glue/test/helpers"
+	. "github.com/solo-io/gloo/internal/xds"
+	"github.com/solo-io/gloo/pkg/log"
+	. "github.com/solo-io/gloo/test/helpers"
 	"google.golang.org/grpc"
 )
 
 var _ = Describe("Xds", func() {
-	envoyBaseDir := os.Getenv("GOPATH") + "/src/github.com/solo-io/glue"
+	envoyBaseDir := os.Getenv("GOPATH") + "/src/github.com/solo-io/gloo"
 	envoyRunArgs := []string{
 		filepath.Join(envoyBaseDir, "envoy"),
 		"-c", filepath.Join(envoyBaseDir, "envoy.yaml"),

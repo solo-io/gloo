@@ -2,10 +2,10 @@ package reporter
 
 import (
 	"github.com/pkg/errors"
-	"github.com/solo-io/glue-storage"
+	"github.com/solo-io/gloo-storage"
 
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 type reporter struct {

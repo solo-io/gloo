@@ -357,7 +357,7 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/solo-io/glue-storage"
+  name = "github.com/solo-io/gloo-storage"
   packages = [
     ".",
     "crd",

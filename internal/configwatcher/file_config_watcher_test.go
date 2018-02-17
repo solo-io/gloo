@@ -14,13 +14,13 @@
 //	. "github.com/onsi/gomega"
 //	"github.com/pkg/errors"
 //
-//	"github.com/solo-io/glue-storage/file"
-//	. "github.com/solo-io/glue/internal/configwatcher"
-//	"github.com/solo-io/glue/pkg/api/types/v1"
-//	"github.com/solo-io/glue/pkg/configwatcher"
-//	"github.com/solo-io/glue/pkg/log"
-//	"github.com/solo-io/glue/pkg/protoutil"
-//	. "github.com/solo-io/glue/test/helpers"
+//	"github.com/solo-io/gloo-storage/file"
+//	. "github.com/solo-io/gloo/internal/configwatcher"
+//	"github.com/solo-io/gloo/pkg/api/types/v1"
+//	"github.com/solo-io/gloo/pkg/configwatcher"
+//	"github.com/solo-io/gloo/pkg/log"
+//	"github.com/solo-io/gloo/pkg/protoutil"
+//	. "github.com/solo-io/gloo/test/helpers"
 //)
 //
 //var _ = Describe("FileConfigWatcher", func() {
@@ -153,9 +153,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/solo-io/glue-storage/file"
-	"github.com/solo-io/glue/pkg/log"
-	. "github.com/solo-io/glue/test/helpers"
+	"github.com/solo-io/gloo-storage/file"
+	"github.com/solo-io/gloo/pkg/log"
+	. "github.com/solo-io/gloo/test/helpers"
 )
 
 var _ = Describe("FileConfigWatcher", func() {

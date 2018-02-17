@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/glue-storage/crd"
+	"github.com/solo-io/gloo-storage/crd"
 	"github.com/spf13/cobra"
 
-	"github.com/solo-io/glue/internal/eventloop"
-	"github.com/solo-io/glue/pkg/bootstrap"
-	"github.com/solo-io/glue/pkg/signals"
+	"github.com/solo-io/gloo/internal/eventloop"
+	"github.com/solo-io/gloo/pkg/bootstrap"
+	"github.com/solo-io/gloo/pkg/signals"
 
 	//register plugins
-	_ "github.com/solo-io/glue/internal/install"
+	_ "github.com/solo-io/gloo/internal/install"
 )
 
 func main() {

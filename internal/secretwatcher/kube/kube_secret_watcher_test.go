@@ -11,8 +11,8 @@ import (
 
 	"fmt"
 
-	. "github.com/solo-io/glue/internal/secretwatcher/kube"
-	. "github.com/solo-io/glue/test/helpers"
+	. "github.com/solo-io/gloo/internal/secretwatcher/kube"
+	. "github.com/solo-io/gloo/test/helpers"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

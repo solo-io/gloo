@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/solo-io/glue/pkg/secretwatcher"
+	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 
 type vaultSecretWatcher struct {

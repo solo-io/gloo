@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/glue/pkg/protoutil"
+	. "github.com/solo-io/gloo/pkg/protoutil"
 )
 
 type testType struct {
