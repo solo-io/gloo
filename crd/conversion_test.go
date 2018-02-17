@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/solo-io/gloo-storage/crd"
-	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/protoutil"
 	"github.com/solo-io/gloo/test/helpers"
 )
