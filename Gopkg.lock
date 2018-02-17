@@ -350,7 +350,6 @@
   packages = [
     "aws",
     "common",
-    "kubernetes",
     "service"
   ]
   revision = "df9cc8e31d3ca6a8a2dc575aa8de6ce9fa73996f"
@@ -361,14 +360,34 @@
   packages = [
     ".",
     "crd",
+    "file"
+  ]
+  revision = "2542c248a689ecb63ef4110656b9e13483beb845"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/solo-io/glue"
+  packages = [
+    "pkg/api/types/v1",
+    "pkg/log",
+    "pkg/plugin",
+    "pkg/protoutil",
+    "pkg/secretwatcher"
+  ]
+  revision = "5cf2f90c4ac0f07d57b285928a2dddab2ed894ef"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/solo-io/glue-storage"
+  packages = [
+    ".",
     "crd/client/clientset/versioned",
     "crd/client/clientset/versioned/scheme",
     "crd/client/clientset/versioned/typed/solo.io/v1",
     "crd/solo.io/v1",
-    "file",
     "internal/crud"
   ]
-  revision = "2542c248a689ecb63ef4110656b9e13483beb845"
+  revision = "3734d89ca9ae6de4ae0f228318d75cd08c89cf9f"
 
 [[projects]]
   branch = "master"
@@ -757,6 +776,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a168bb0398525f26a132167f879fe8439cb95a403504022bb26c5d5f88d62035"
+  inputs-digest = "326e0ae8f244c400c4f4aa6478495d8c42b0e449566cc3365059e41fcdc093b1"
   solver-name = "gps-cdcl"
   solver-version = 1
