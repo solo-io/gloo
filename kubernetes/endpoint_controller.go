@@ -16,8 +16,8 @@ import (
 	kubelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/endpointdiscovery"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/endpointdiscovery"
 )
 
 type endpointController struct {

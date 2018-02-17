@@ -14,8 +14,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/solo-io/gloo-plugins/common"
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/plugin"
 )
 
 func init() {

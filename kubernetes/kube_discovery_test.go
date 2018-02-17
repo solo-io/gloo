@@ -6,7 +6,7 @@ import (
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/gloo/pkg/log"
 	"k8s.io/apimachinery/pkg/labels"
 
 	"os"
@@ -15,9 +15,9 @@ import (
 	"fmt"
 
 	. "github.com/solo-io/gloo-plugins/kubernetes"
-	"github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/endpointdiscovery"
-	. "github.com/solo-io/glue/test/helpers"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/endpointdiscovery"
+	. "github.com/solo-io/gloo/test/helpers"
 	kubev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

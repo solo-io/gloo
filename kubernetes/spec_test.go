@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/solo-io/gloo-plugins/kubernetes"
-	"github.com/solo-io/glue/pkg/log"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 var _ = Describe("FromMap", func() {

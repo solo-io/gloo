@@ -51,7 +51,7 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/solo-io/glue"
+  name = "github.com/solo-io/gloo"
 
 [[constraint]]
   branch = "master"
