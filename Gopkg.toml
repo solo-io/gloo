@@ -42,7 +42,7 @@
   name = "github.com/solo-io/gloo-plugins"
 
 [[constraint]]
-  branch = "proto"
+  branch = "master"
   name = "github.com/solo-io/gloo"
 
 [[constraint]]

@@ -219,29 +219,27 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/solo-io/gloo-plugins"
-  packages = ["kubernetes"]
-  revision = "f76cb01fa5730be5fd191e361c7eab02a0c800d6"
-
-[[projects]]
-  branch = "proto"
   name = "github.com/solo-io/gloo"
   packages = [
-    "internal/bootstrap",
-    "internal/pkg/kube/controller",
-    "internal/plugins",
-    "internal/plugins/service",
-    "internal/reporter",
     "pkg/api/types/v1",
+    "pkg/bootstrap",
     "pkg/endpointdiscovery",
     "pkg/log",
-    "pkg/platform/kube/crd/solo.io/v1",
     "pkg/plugin",
     "pkg/protoutil",
     "pkg/secretwatcher",
     "test/helpers"
   ]
-  revision = "582ad04edccc0a187b9e485dbddf4afeef1b960c"
+  revision = "5cf2f90c4ac0f07d57b285928a2dddab2ed894ef"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/solo-io/gloo-plugins"
+  packages = [
+    "kubernetes",
+    "service"
+  ]
+  revision = "2b47f6327176fd9f3c6daaf55cab4b0a72cd5187"
 
 [[projects]]
   branch = "master"
@@ -255,13 +253,19 @@
     "crd/solo.io/v1",
     "internal/crud"
   ]
-  revision = "2542c248a689ecb63ef4110656b9e13483beb845"
+  revision = "6ebdd0a5c611e3ceecc3403165ab1c87ef75cc9e"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/solo-io/glue"
+  packages = ["pkg/log"]
+  revision = "5cf2f90c4ac0f07d57b285928a2dddab2ed894ef"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/kubecontroller"
   packages = ["."]
-  revision = "01b92a637d8772f165fe8e4f7dfd60aca5a32f8e"
+  revision = "40c8565f6c9d0a6148456f390144b80ef0e77692"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -421,7 +425,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "ec9c22174abaf90931f3c26e7175feb7910dfdf3"
+  revision = "b378c47b2dcba7f5c3ef97d8a5a0b3821ec6a001"
 
 [[projects]]
   branch = "master"
@@ -433,7 +437,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "a617151c3819609b2c1e93c90308216555453fcc"
+  revision = "1a9632403b52a4e091c7ad5b1756423d5895ddf5"
 
 [[projects]]
   branch = "master"
@@ -609,11 +613,11 @@
   branch = "master"
   name = "k8s.io/kube-openapi"
   packages = ["pkg/util/proto"]
-  revision = "275e2ce91dec4c05a4094a7b1daee5560b555ac9"
+  revision = "50ae88d24ede7b8bad68e23c805b5d3da5c8abaf"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "dc4741b07676c904176d9233e19ce3c4da4523bbb735348cda1a261ea7ae9e88"
+  inputs-digest = "07ce7b313d24c41cb12e628c834ddce77fe74869963248b17ff92ea67d67cd04"
   solver-name = "gps-cdcl"
   solver-version = 1
