@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	"github.com/solo-io/glue/pkg/api/types/v1"
 	"github.com/solo-io/glue/pkg/protoutil"
@@ -21,7 +22,7 @@ func DecodeUpstreamSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {
 	return s, s.validateUpstream()
 }
 
-func EncodeUpstreamSpec(spec UpstreamSpec) (v1.UpstreamSpec, error) {
+func EncodeUpstreamSpec(spec UpstreamSpec) (*types.Struct, error) {
 	return protoutil.MarshalStruct(spec)
 }
 
