@@ -34,10 +34,6 @@
   version = "1.0.0"
 
 [[constraint]]
-  name = "github.com/gogo/protobuf"
-  version = "0.5.0"
-
-[[constraint]]
   branch = "master"
   name = "github.com/golang/glog"
 
@@ -85,9 +81,9 @@
   branch = "master"
   name = "github.com/solo-io/gloo-api"
 
-[[constraint]]
-  branch = "master"
-  name = "github.com/solo-io/gloo-plugins"
+#[[constraint]]
+#  branch = "master"
+#  name = "github.com/solo-io/gloo-plugins"
 
 [[constraint]]
   branch = "master"
