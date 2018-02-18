@@ -226,22 +226,27 @@
     "pkg/log",
     "pkg/plugin",
     "pkg/protoutil",
-    "pkg/secretwatcher",
-    "test/helpers"
+    "pkg/secretwatcher"
   ]
-  revision = "74d520eb19c409b1115b384724cd89a63b42305f"
+  revision = "b8077f785164318300f28d74f61f1b82078acea9"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "b06aecfa20d3a8ddff6f5d0d2b9c0fa7fbf5aab5"
+  revision = "59c0d893fe51b54bf030d7e87fe9f2a4a4f357e5"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-plugins"
   packages = ["service"]
-  revision = "ed8469819908f485254687b4eed19ae020be3867"
+  revision = "4a1b0d517371d4514e070e2abb7e3509e56d8683"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/solo-io/gloo-testing"
+  packages = ["helpers"]
+  revision = "0752a09730d5f092ebc4c31c1dc4e5c8083b7258"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -413,7 +418,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "1a9632403b52a4e091c7ad5b1756423d5895ddf5"
+  revision = "4b7e7fe5854f76034d5eb63edf6c7983a1d2a411"
 
 [[projects]]
   branch = "master"
@@ -521,6 +526,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cbb908a30591a77b08ca7349ca5acb2b108ffaaf36bda208ac148fdecba4d25c"
+  inputs-digest = "a6a2ace523626ccd9bf98f83e8f6240bae59d84157cf17eb2a7b714e0d685b3c"
   solver-name = "gps-cdcl"
   solver-version = 1
