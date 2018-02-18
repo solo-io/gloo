@@ -32,8 +32,8 @@ var globalIngress bool
 var ingressServiceName string
 
 var rootCmd = &cobra.Command{
-	Use:   "gloo-server",
-	Short: "Gloo Server runs the gloo service to turn Envoy into a Function Gateway",
+	Use:   "gloo-ingress",
+	Short: "Enables gloo to function as a kubernetes ingress controller",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		store, err := createStorageClient(opts)
 		if err != nil {
