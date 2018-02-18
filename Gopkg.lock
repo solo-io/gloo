@@ -226,16 +226,15 @@
     "pkg/log",
     "pkg/plugin",
     "pkg/protoutil",
-    "pkg/secretwatcher",
-    "test/helpers"
+    "pkg/secretwatcher"
   ]
-  revision = "74d520eb19c409b1115b384724cd89a63b42305f"
+  revision = "4d6522655762ea586e1dc1c468dbbb331263557f"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "b06aecfa20d3a8ddff6f5d0d2b9c0fa7fbf5aab5"
+  revision = "59c0d893fe51b54bf030d7e87fe9f2a4a4f357e5"
 
 [[projects]]
   branch = "master"
@@ -244,7 +243,7 @@
     "kubernetes",
     "service"
   ]
-  revision = "ed8469819908f485254687b4eed19ae020be3867"
+  revision = "4a1b0d517371d4514e070e2abb7e3509e56d8683"
 
 [[projects]]
   branch = "master"
@@ -258,19 +257,19 @@
     "crd/solo.io/v1",
     "internal/crud"
   ]
-  revision = "8668af0b7cf1cf6a64d774340e8896573bec5a9d"
+  revision = "03ed3126f23c100acf1afa3dc226c15e7386f24c"
 
 [[projects]]
   branch = "master"
-  name = "github.com/solo-io/glue"
-  packages = ["pkg/log"]
-  revision = "74d520eb19c409b1115b384724cd89a63b42305f"
+  name = "github.com/solo-io/gloo-testing"
+  packages = ["helpers"]
+  revision = "0752a09730d5f092ebc4c31c1dc4e5c8083b7258"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/kubecontroller"
   packages = ["."]
-  revision = "40c8565f6c9d0a6148456f390144b80ef0e77692"
+  revision = "53fbd833dec1899a4d4ded8c97dc79648271c1dd"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -442,7 +441,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "1a9632403b52a4e091c7ad5b1756423d5895ddf5"
+  revision = "4b7e7fe5854f76034d5eb63edf6c7983a1d2a411"
 
 [[projects]]
   branch = "master"
@@ -623,6 +622,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "36873655114de3e60c29010a8e7e54e48fd61e8675b2e82b35fed0477b33a08d"
+  inputs-digest = "c19ea987e3c5a34df224c07032a516ecb787052d62dfb5c15089bbbe6a86d51a"
   solver-name = "gps-cdcl"
   solver-version = 1
