@@ -15,8 +15,9 @@ import (
 
 const (
 	filterName                        = "io.solo.function_router"
-	multiFunctionDestinationKey       = "functions"
-	multiFunctionWeightDestinationKey = "functions_weight"
+	multiFunctionDestinationKey       = "weighted_functions"
+	multiFunctionListDestinationKey   = "functions"
+	multiFunctionWeightDestinationKey = "total_weight"
 	singleFunctionDestinationKey      = "function"
 )
 
@@ -192,14 +193,21 @@ func addClusterFuncsToMetadata(clusterName string, destinations []*v1.WeightedDe
 	if routeClusterMetadata.Fields[multiFunctionDestinationKey] == nil {
 		routeClusterMetadata.Fields[multiFunctionDestinationKey] = &types.Value{}
 	}
+
 	if routeClusterMetadata.Fields[multiFunctionWeightDestinationKey] == nil {
 		routeClusterMetadata.Fields[multiFunctionWeightDestinationKey] = &types.Value{}
 	}
-	routeClusterMetadata.Fields[multiFunctionWeightDestinationKey].Kind = &types.Value_NumberValue{NumberValue: float64(functionsWeight)}
 
-	routeClusterMetadata.Fields[multiFunctionDestinationKey].Kind = &types.Value_ListValue{
-		ListValue: &types.ListValue{Values: clusterFuncWeights},
+	routeClusterMetadata.Fields[multiFunctionDestinationKey].Kind = &types.Value_StructValue{
+		StructValue: &types.Struct{
+			Fields: map[string]*types.Value{
+				multiFunctionWeightDestinationKey: {Kind: &types.Value_NumberValue{NumberValue: float64(functionsWeight)}},
+				multiFunctionListDestinationKey: {Kind: &types.Value_ListValue{
+					ListValue: &types.ListValue{Values: clusterFuncWeights}}},
+			},
+		},
 	}
+
 }
 
 func addWeightedCluster(clusterName string, weight uint32, out *envoyroute.Route) {

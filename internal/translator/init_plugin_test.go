@@ -67,9 +67,10 @@ var _ = Describe("InitPlugin", func() {
 
 		metadata := outroute.Metadata
 		clusterroutemeta := metadata.FilterMetadata[filterName].Fields["my-upstream"].Kind.(*types.Value_StructValue).StructValue.Fields
-		totalfuncweight := clusterroutemeta[multiFunctionWeightDestinationKey].Kind.(*types.Value_NumberValue).NumberValue
+		wieghtedfunctionsmeta := clusterroutemeta[multiFunctionDestinationKey].Kind.(*types.Value_StructValue).StructValue.Fields
+		totalfuncweight := wieghtedfunctionsmeta[multiFunctionWeightDestinationKey].Kind.(*types.Value_NumberValue).NumberValue
 		Expect(totalfuncweight).To(BeEquivalentTo(20))
-		functionslist := clusterroutemeta[multiFunctionDestinationKey].Kind.(*types.Value_ListValue).ListValue.Values
+		functionslist := wieghtedfunctionsmeta[multiFunctionListDestinationKey].Kind.(*types.Value_ListValue).ListValue.Values
 		for _, fl := range functionslist {
 			weight := fl.Kind.(*types.Value_StructValue).StructValue.Fields["weight"].Kind.(*types.Value_NumberValue).NumberValue
 			Expect(weight).To(BeEquivalentTo(10))
