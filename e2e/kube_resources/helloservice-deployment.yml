@@ -1,0 +1,24 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: helloservice
+  name: helloservice
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: helloservice
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: helloservice
+    spec:
+      containers:
+      - image: solo-io/helloservice:v0.1
+        imagePullPolicy: Never
+        name: helloservice
+        ports:
+        - containerPort: 8080
+          name: http

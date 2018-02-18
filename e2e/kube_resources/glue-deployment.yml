@@ -1,0 +1,36 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+  name: gloo
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: gloo
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gloo
+    spec:
+      containers:
+      - image: solo-io/gloo:v0.1
+        imagePullPolicy: Never
+        name: gloo
+        ports:
+        - containerPort: 8081
+          name: http
+        env:
+        - name: GRPC_TRACE
+          value: all
+        command: ["/gloo"]
+        args: ["-c", "/config/gloo.yml"]
+        volumeMounts:
+        - name: gloo-config
+          mountPath: /config
+      volumes:
+      - name: gloo-config
+        configMap:
+          name: gloo-config

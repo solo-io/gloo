@@ -1,0 +1,15 @@
+apiVersion: v1
+data:
+  gloo.yml: |
+    - example_rule:
+        timeout: 15s
+        match:
+          prefix: /broken
+        upstream:
+          name: nonexistent
+          address: doesntresolve
+          port: 1234
+kind: ConfigMap
+metadata:
+  name: gloo-config
+  namespace: gloo-system
