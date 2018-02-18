@@ -30,6 +30,7 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/gogo/protobuf"
   packages = [
     "gogoproto",
@@ -39,8 +40,7 @@
     "sortkeys",
     "types"
   ]
-  revision = "342cbe0a04158f6dcb03ca0079991a51a4248c02"
-  version = "v0.5"
+  revision = "b75782e777cfa7ca469bc46cc313ddd26e6e9d1c"
 
 [[projects]]
   branch = "master"
@@ -233,7 +233,6 @@
   branch = "master"
   name = "github.com/solo-io/gloo"
   packages = [
-    "pkg/api/types/v1",
     "pkg/bootstrap",
     "pkg/endpointdiscovery",
     "pkg/log",
@@ -242,19 +241,19 @@
     "pkg/secretwatcher",
     "test/helpers"
   ]
-  revision = "8f90dd11f187fd67d347f7621fe845941d260ca9"
+  revision = "9312ac0dc1eaf80b262c048b3364522cb2027406"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "b06aecfa20d3a8ddff6f5d0d2b9c0fa7fbf5aab5"
+  revision = "de120347c304813a319fe232ab4e3ed3ae85b304"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/glue"
   packages = ["pkg/log"]
-  revision = "8f90dd11f187fd67d347f7621fe845941d260ca9"
+  revision = "9312ac0dc1eaf80b262c048b3364522cb2027406"
 
 [[projects]]
   branch = "master"
@@ -601,6 +600,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "90cb244afd7feb440cf62eef0d56feb2391a1f99792a015e8be34e35da6559da"
+  inputs-digest = "cf787c3f2d9d1a0da20ce67c0d66ded0f0e07f518c129e8a15adf8bbce9f8bb5"
   solver-name = "gps-cdcl"
   solver-version = 1
