@@ -238,28 +238,27 @@
     "pkg/log",
     "pkg/plugin",
     "pkg/protoutil",
-    "pkg/secretwatcher",
-    "test/helpers"
+    "pkg/secretwatcher"
   ]
-  revision = "9312ac0dc1eaf80b262c048b3364522cb2027406"
+  revision = "4d6522655762ea586e1dc1c468dbbb331263557f"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "de120347c304813a319fe232ab4e3ed3ae85b304"
+  revision = "59c0d893fe51b54bf030d7e87fe9f2a4a4f357e5"
 
 [[projects]]
   branch = "master"
-  name = "github.com/solo-io/glue"
-  packages = ["pkg/log"]
-  revision = "9312ac0dc1eaf80b262c048b3364522cb2027406"
+  name = "github.com/solo-io/gloo-testing"
+  packages = ["helpers"]
+  revision = "0752a09730d5f092ebc4c31c1dc4e5c8083b7258"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/kubecontroller"
   packages = ["."]
-  revision = "40c8565f6c9d0a6148456f390144b80ef0e77692"
+  revision = "53fbd833dec1899a4d4ded8c97dc79648271c1dd"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -600,6 +599,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cf787c3f2d9d1a0da20ce67c0d66ded0f0e07f518c129e8a15adf8bbce9f8bb5"
+  inputs-digest = "c6a45dc06fa02779ce507fae740e736e4588279984a7a7a7e997388c9c538273"
   solver-name = "gps-cdcl"
   solver-version = 1

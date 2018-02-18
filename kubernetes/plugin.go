@@ -18,8 +18,8 @@ func init() {
 func createEndpointDiscovery(opts bootstrap.Options) (endpointdiscovery.Interface, error) {
 	kubeConfig := opts.KubeOptions.KubeConfig
 	masterUrl := opts.KubeOptions.MasterURL
-	syncFrequency := opts.ConfigWatcherOptions.SyncFrequency
-	disc, err := NewEndpointDiscovery(kubeConfig, masterUrl, syncFrequency)
+	resyncDuration := opts.ConfigWatcherOptions.SyncFrequency
+	disc, err := NewEndpointDiscovery(kubeConfig, masterUrl, resyncDuration)
 	if err != nil {
 		return nil, err
 	}
