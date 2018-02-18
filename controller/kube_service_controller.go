@@ -57,7 +57,7 @@ func NewServiceController(cfg *rest.Config,
 		upstreams:     configStore,
 	}
 
-	kubeController := kubecontroller.NewController("gloo-ingress-controller", kubeClient,
+	kubeController := kubecontroller.NewController("gloo-service-discovery", kubeClient,
 		kubecontroller.NewLockingSyncHandler(c.syncGlooUpstreamsWithKubeServices),
 		serviceInformer.Informer())
 
