@@ -7,16 +7,17 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 
+	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-plugins/common"
 	"github.com/solo-io/gloo/internal/translator/defaults"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
 
 const (
-	filterName                   = "io.solo.function_router"
-	multiFunctionDestinationKey  = "functions"
-	singleFunctionDestinationKey = "function"
+	filterName                        = "io.solo.function_router"
+	multiFunctionDestinationKey       = "functions"
+	multiFunctionWeightDestinationKey = "functions_weight"
+	singleFunctionDestinationKey      = "function"
 )
 
 type functionAndClusterRoutingInitializer struct {
@@ -172,7 +173,9 @@ func setTotalWeight(totalWeight uint32, out *envoyroute.Route) {
 
 func addClusterFuncsToMetadata(clusterName string, destinations []*v1.WeightedDestination, out *envoyroute.Route) {
 	var clusterFuncWeights []*types.Value
+	var functionsWeight uint32 = 0
 	for _, dest := range destinations {
+		functionsWeight += dest.Weight
 		clusterFuncWeight := &types.Value{
 			Kind: &types.Value_StructValue{
 				StructValue: &types.Struct{
@@ -189,6 +192,11 @@ func addClusterFuncsToMetadata(clusterName string, destinations []*v1.WeightedDe
 	if routeClusterMetadata.Fields[multiFunctionDestinationKey] == nil {
 		routeClusterMetadata.Fields[multiFunctionDestinationKey] = &types.Value{}
 	}
+	if routeClusterMetadata.Fields[multiFunctionWeightDestinationKey] == nil {
+		routeClusterMetadata.Fields[multiFunctionWeightDestinationKey] = &types.Value{}
+	}
+	routeClusterMetadata.Fields[multiFunctionWeightDestinationKey].Kind = &types.Value_NumberValue{NumberValue: float64(functionsWeight)}
+
 	routeClusterMetadata.Fields[multiFunctionDestinationKey].Kind = &types.Value_ListValue{
 		ListValue: &types.ListValue{Values: clusterFuncWeights},
 	}
