@@ -28,8 +28,8 @@ func main() {
 var opts bootstrap.Options
 
 var rootCmd = &cobra.Command{
-	Use:   "gloo-server",
-	Short: "Gloo Server runs the gloo service to turn Envoy into a Function Gateway",
+	Use:   "gloo",
+	Short: "runs the gloo control plane to manage Envoy as a Function Gateway",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		stop := signals.SetupSignalHandler()
 		eventLoop, err := eventloop.Setup(opts, stop)
