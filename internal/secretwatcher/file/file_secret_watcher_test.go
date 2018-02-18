@@ -11,17 +11,18 @@ import (
 
 	"encoding/json"
 
+	"path/filepath"
+
+	. "github.com/solo-io/gloo-testing/helpers"
 	. "github.com/solo-io/gloo/internal/secretwatcher/file"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
-	. "github.com/solo-io/gloo/test/helpers"
-	"path/filepath"
 )
 
 var _ = Describe("FileSecretWatcher", func() {
 	var (
-		dir  string
-		file string
+		dir   string
+		file  string
 		err   error
 		watch secretwatcher.Interface
 	)

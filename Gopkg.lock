@@ -309,12 +309,6 @@
   version = "v1.3.0"
 
 [[projects]]
-  name = "github.com/pborman/uuid"
-  packages = ["."]
-  revision = "e790cca94e6cc75c7064b1332e63811d4aae1a53"
-  version = "v1.1"
-
-[[projects]]
   branch = "master"
   name = "github.com/petar/GoLLRB"
   packages = ["llrb"]
@@ -348,7 +342,7 @@
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "b06aecfa20d3a8ddff6f5d0d2b9c0fa7fbf5aab5"
+  revision = "59c0d893fe51b54bf030d7e87fe9f2a4a4f357e5"
 
 [[projects]]
   branch = "master"
@@ -358,7 +352,7 @@
     "common",
     "service"
   ]
-  revision = "ed8469819908f485254687b4eed19ae020be3867"
+  revision = "4a1b0d517371d4514e070e2abb7e3509e56d8683"
 
 [[projects]]
   branch = "master"
@@ -373,19 +367,19 @@
     "file",
     "internal/crud"
   ]
-  revision = "8668af0b7cf1cf6a64d774340e8896573bec5a9d"
+  revision = "03ed3126f23c100acf1afa3dc226c15e7386f24c"
 
 [[projects]]
   branch = "master"
-  name = "github.com/solo-io/glue"
-  packages = ["pkg/log"]
-  revision = "8f90dd11f187fd67d347f7621fe845941d260ca9"
+  name = "github.com/solo-io/gloo-testing"
+  packages = ["helpers"]
+  revision = "0752a09730d5f092ebc4c31c1dc4e5c8083b7258"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/kubecontroller"
   packages = ["."]
-  revision = "40c8565f6c9d0a6148456f390144b80ef0e77692"
+  revision = "53fbd833dec1899a4d4ded8c97dc79648271c1dd"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -588,7 +582,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "1a9632403b52a4e091c7ad5b1756423d5895ddf5"
+  revision = "4b7e7fe5854f76034d5eb63edf6c7983a1d2a411"
 
 [[projects]]
   branch = "master"
@@ -769,6 +763,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b9c30cf68a4fcbd380a42bd1301e844f2bb38c0b3326cc4a680e5f6b78a96afd"
+  inputs-digest = "d84af3af1e31df053914dbe6485ac07de8f6569ab9dd0644869b129d765d8704"
   solver-name = "gps-cdcl"
   solver-version = 1

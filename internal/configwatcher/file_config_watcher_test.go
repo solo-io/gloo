@@ -20,7 +20,7 @@
 //	"github.com/solo-io/gloo/pkg/configwatcher"
 //	"github.com/solo-io/gloo/pkg/log"
 //	"github.com/solo-io/gloo/pkg/protoutil"
-//	. "github.com/solo-io/gloo/test/helpers"
+//	. "github.com/solo-io/gloo-testing/helpers"
 //)
 //
 //var _ = Describe("FileConfigWatcher", func() {
@@ -154,8 +154,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/solo-io/gloo-storage/file"
+	. "github.com/solo-io/gloo-testing/helpers"
 	"github.com/solo-io/gloo/pkg/log"
-	. "github.com/solo-io/gloo/test/helpers"
 )
 
 var _ = Describe("FileConfigWatcher", func() {

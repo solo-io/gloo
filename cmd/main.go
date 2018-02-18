@@ -60,8 +60,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.SecretDir, "file.secret.dir", "_gloo_secrets", "root directory to use for storing gloo secret files")
 
 	// kube
-	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.MasterURL, "kube.master", "", "url of the kubernetes apiserver. not needed if running in-cluster")
-	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.KubeConfig, "kube.config", "", "path to kubeconfig file. not needed if running in-cluster")
+	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.MasterURL, "master", "", "url of the kubernetes apiserver. not needed if running in-cluster")
+	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.KubeConfig, "kubeconfig", "", "path to kubeconfig file. not needed if running in-cluster")
 	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.Namespace, "kube.namespace", crd.GlooDefaultNamespace, "namespace to read/write gloo storage objects")
 
 	// vault

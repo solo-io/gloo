@@ -1,14 +1,15 @@
 package vault_test
 
 import (
+	vaultapi "github.com/hashicorp/vault/api"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	vaultapi "github.com/hashicorp/vault/api"
 
-	"github.com/solo-io/gloo/pkg/secretwatcher"
-	. "github.com/solo-io/gloo/test/helpers"
 	"time"
+
+	. "github.com/solo-io/gloo-testing/helpers"
 	. "github.com/solo-io/gloo/internal/secretwatcher/vault"
+	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 
 var _ = Describe("watching file", func() {
@@ -53,7 +54,7 @@ var _ = Describe("watching file", func() {
 		})
 	})
 	Context("want secrets that the file doesn't contain", func() {
-		It("sends an error on the Error() channel", func() {
+		It("sends nothing", func() {
 			client.Logical().Write(secretPath, map[string]interface{}{"some": "secret"})
 			Expect(err).NotTo(HaveOccurred())
 			go watch.TrackSecrets([]string{"this key really should not be in the secretmap"})
@@ -61,10 +62,9 @@ var _ = Describe("watching file", func() {
 			case <-watch.Secrets():
 				Fail("secretmap was received, expected error")
 			case err := <-watch.Error():
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("secretmap not found"))
+				Expect(err).NotTo(HaveOccurred())
 			case <-time.After(time.Second * 1):
-				Fail("expected err to have occurred before 1s")
+				// passed
 			}
 		})
 	})

@@ -12,9 +12,9 @@ import (
 	"github.com/solo-io/gloo-storage/crd"
 	"k8s.io/client-go/tools/clientcmd"
 
-	. "github.com/solo-io/gloo/internal/reporter"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	. "github.com/solo-io/gloo/test/helpers"
+	. "github.com/solo-io/gloo-testing/helpers"
+	. "github.com/solo-io/gloo/internal/reporter"
 )
 
 var _ = Describe("CrdReporter", func() {

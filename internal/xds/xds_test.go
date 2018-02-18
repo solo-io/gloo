@@ -24,9 +24,9 @@ import (
 	"fmt"
 
 	"github.com/ghodss/yaml"
+	. "github.com/solo-io/gloo-testing/helpers"
 	. "github.com/solo-io/gloo/internal/xds"
 	"github.com/solo-io/gloo/pkg/log"
-	. "github.com/solo-io/gloo/test/helpers"
 	"google.golang.org/grpc"
 )
 
