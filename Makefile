@@ -12,13 +12,13 @@ fmt:
 	goimports -w $(PKGDIRS)
 
 gloo: $(SOURCES)
-	CGO_ENABLED=0 GOOS=linux go build -i -v -ldflags '-extldflags "-static"' -o $@ cmd/*.go
+	CGO_ENABLED=0 GOOS=linux go build -i -v -ldflags '-extldflags "-static"' -o $@ *.go
 
 docker: gloo
 	docker build -t solo-io/gloo:v1.0 .
 
 gloo-debug: $(SOURCES)
-	go build -i -gcflags "-N -l" -o gloo-debug cmd/*.go
+	go build -i -gcflags "-N -l" -o gloo-debug *.go
 
 hackrun: gloo
 	./hack/run-local.sh
