@@ -2,9 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"log"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -14,20 +11,23 @@ import (
 	"k8s.io/client-go/kubernetes"
 	kubelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
+
+	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/gloo-storage"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/kubecontroller"
 )
 
 const (
 	resourcePrefix = "gloo-generated"
 	upstreamPrefix = resourcePrefix + "-upstream"
+
+	kubeSystemNamespace = "kube-system"
 )
 
 type ServiceController struct {
-	errors             chan error
-	useAsGlobalIngress bool
+	errors chan error
 
 	serviceLister kubelisters.ServiceLister
 	upstreams     storage.Interface
@@ -36,8 +36,7 @@ type ServiceController struct {
 
 func NewServiceController(cfg *rest.Config,
 	configStore storage.Interface,
-	resyncDuration time.Duration,
-	useAsGlobalIngress bool) (*ServiceController, error) {
+	resyncDuration time.Duration) (*ServiceController, error) {
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
@@ -52,15 +51,14 @@ func NewServiceController(cfg *rest.Config,
 	serviceInformer := kubeInformerFactory.Core().V1().Services()
 
 	c := &ServiceController{
-		errors:             make(chan error),
-		useAsGlobalIngress: useAsGlobalIngress,
+		errors: make(chan error),
 
 		serviceLister: serviceInformer.Lister(),
 		upstreams:     configStore,
 	}
 
 	kubeController := kubecontroller.NewController("gloo-ingress-controller", kubeClient,
-		kubecontroller.NewSyncHandler(c.syncGlooUpstreamsWithKubeServices),
+		kubecontroller.NewLockingSyncHandler(c.syncGlooUpstreamsWithKubeServices),
 		serviceInformer.Informer())
 
 	c.runFunc = func(stop <-chan struct{}) {
@@ -117,18 +115,23 @@ func (c *ServiceController) generateDesiredUpstreams() ([]*v1.Upstream, error) {
 	}
 	var upstreams []*v1.Upstream
 	for _, svc := range serviceList {
+		// ignore services in the kube-system namespace
+		if svc.Namespace == kubeSystemNamespace {
+			continue
+		}
+
 		for _, port := range svc.Spec.Ports {
 			spec, err := kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
 				ServiceNamespace: svc.Namespace,
 				ServiceName:      svc.Name,
-				ServicePort:      port.String(),
+				ServicePort:      fmt.Sprintf("%v", port.Port),
 			})
 			if err != nil {
 				runtime.HandleError(err)
 				continue
 			}
 			upstream := &v1.Upstream{
-				Name: upstreamName(svc.Namespace, svc.Name, port.String()),
+				Name: upstreamName(svc.Namespace, svc.Name, port.Port),
 				Type: kubeplugin.UpstreamTypeKube,
 				Spec: spec,
 			}
@@ -136,32 +139,6 @@ func (c *ServiceController) generateDesiredUpstreams() ([]*v1.Upstream, error) {
 		}
 	}
 	return upstreams, nil
-}
-
-func getPathStr(route *v1.Route) string {
-	switch path := route.Matcher.Path.(type) {
-	case *v1.Matcher_PathPrefix:
-		return path.PathPrefix
-	case *v1.Matcher_PathRegex:
-		return path.PathRegex
-	case *v1.Matcher_PathExact:
-		return path.PathExact
-	}
-	return ""
-}
-
-func sortRoutes(routes []*v1.Route) {
-	sort.SliceStable(routes, func(i, j int) bool {
-		p1 := getPathStr(routes[i])
-		p2 := getPathStr(routes[j])
-		l1 := len(p1)
-		l2 := len(p2)
-		if l1 == l2 {
-			return strings.Compare(p1, p2) < 0
-		}
-		// longer = comes first
-		return l1 > l2
-	})
 }
 
 func (c *ServiceController) syncUpstreams(desiredUpstreams, actualUpstreams []*v1.Upstream) error {
@@ -192,16 +169,19 @@ func (c *ServiceController) syncUpstreams(desiredUpstreams, actualUpstreams []*v
 	}
 	for _, us := range upstreamsToCreate {
 		if _, err := c.upstreams.V1().Upstreams().Create(us); err != nil {
+			log.Debugf("creating upstream %v", us.Name)
 			return fmt.Errorf("failed to create upstream crd %s: %v", us.Name, err)
 		}
 	}
 	for _, us := range upstreamsToUpdate {
+		log.Debugf("updating upstream %v", us.Name)
 		if _, err := c.upstreams.V1().Upstreams().Update(us); err != nil {
 			return fmt.Errorf("failed to update upstream crd %s: %v", us.Name, err)
 		}
 	}
 	// only remaining are no longer desired, delete em!
 	for _, us := range actualUpstreams {
+		log.Debugf("deleting upstream %v", us.Name)
 		if err := c.upstreams.V1().Upstreams().Delete(us.Name); err != nil {
 			return fmt.Errorf("failed to update upstream crd %s: %v", us.Name, err)
 		}
@@ -209,6 +189,6 @@ func (c *ServiceController) syncUpstreams(desiredUpstreams, actualUpstreams []*v
 	return nil
 }
 
-func upstreamName(serviceNamespace, serviceName, servicePort string) string {
-	return fmt.Sprintf("%s-%s-%s-%s", upstreamPrefix, serviceNamespace, serviceName, servicePort)
+func upstreamName(serviceNamespace, serviceName string, servicePort int32) string {
+	return fmt.Sprintf("%s-%s-%s-%v", upstreamPrefix, serviceNamespace, serviceName, servicePort)
 }

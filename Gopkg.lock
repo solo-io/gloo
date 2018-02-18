@@ -120,6 +120,12 @@
   version = "0.3.2"
 
 [[projects]]
+  name = "github.com/inconshreveable/mousetrap"
+  packages = ["."]
+  revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+  version = "v1.0"
+
+[[projects]]
   name = "github.com/json-iterator/go"
   packages = ["."]
   revision = "e7c7f3b33712573affdcc7a107218e7926b9a05b"
@@ -218,6 +224,12 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/radovskyb/watcher"
+  packages = ["."]
+  revision = "6145e1439b9de93806925353403f91d2abbad8a5"
+  version = "v1.0.2"
+
+[[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo"
   packages = [
@@ -226,7 +238,8 @@
     "pkg/log",
     "pkg/plugin",
     "pkg/protoutil",
-    "pkg/secretwatcher"
+    "pkg/secretwatcher",
+    "pkg/signals"
   ]
   revision = "4d6522655762ea586e1dc1c468dbbb331263557f"
 
@@ -255,6 +268,7 @@
     "crd/client/clientset/versioned/scheme",
     "crd/client/clientset/versioned/typed/solo.io/v1",
     "crd/solo.io/v1",
+    "file",
     "internal/crud"
   ]
   revision = "03ed3126f23c100acf1afa3dc226c15e7386f24c"
@@ -269,7 +283,13 @@
   branch = "master"
   name = "github.com/solo-io/kubecontroller"
   packages = ["."]
-  revision = "53fbd833dec1899a4d4ded8c97dc79648271c1dd"
+  revision = "916800242c0d38bf20705fbcb80696456d1c107e"
+
+[[projects]]
+  name = "github.com/spf13/cobra"
+  packages = ["."]
+  revision = "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
+  version = "v0.0.1"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -622,6 +642,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c19ea987e3c5a34df224c07032a516ecb787052d62dfb5c15089bbbe6a86d51a"
+  inputs-digest = "9f22f87c0fc45dd44a298513df965edff1f9df99e8ebd8d4c00a0857466622a0"
   solver-name = "gps-cdcl"
   solver-version = 1
