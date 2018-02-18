@@ -56,6 +56,7 @@ var rootCmd = &cobra.Command{
 				return errors.Wrap(err, "failed to start load balancer status syncer")
 			}
 			go func(stop <-chan struct{}) {
+				log.Printf("starting ingress sync")
 				for {
 					select {
 					case err := <-ingressSync.Error():
@@ -67,6 +68,19 @@ var rootCmd = &cobra.Command{
 			}(stop)
 		}
 
+		go func(stop <-chan struct{}) {
+			log.Printf("starting ingress sync")
+			for {
+				select {
+				case err := <-ingressCtl.Error():
+					log.Printf("ingress controller encountered error: %v", err)
+				case <-stop:
+					return
+				}
+			}
+		}(stop)
+
+		log.Printf("starting ingress controller")
 		ingressCtl.Run(stop)
 
 		log.Printf("shutting down")
@@ -79,17 +93,17 @@ func init() {
 	// ingress-specific
 	rootCmd.PersistentFlags().BoolVar(&globalIngress, "global", true, "use gloo as the cluster-wide kubernetes ingress")
 	rootCmd.PersistentFlags().StringVar(&ingressServiceName, "service", "", "The name of the proxy service (envoy) if running in-cluster. If --service is set, the ingress controller will update ingress objects with the load balancer endpoints")
+	rootCmd.PersistentFlags().DurationVar(&opts.ConfigWatcherOptions.SyncFrequency, "syncperiod", time.Minute*30, "sync period for watching ingress rules")
 
-	// config watcher
+	// config writer
 	rootCmd.PersistentFlags().StringVar(&opts.ConfigWatcherOptions.Type, "storage.type", bootstrap.WatcherTypeFile, fmt.Sprintf("storage backend for gloo config objects. supported: [%s]", strings.Join(bootstrap.SupportedCwTypes, " | ")))
-	rootCmd.PersistentFlags().DurationVar(&opts.ConfigWatcherOptions.SyncFrequency, "storage.refreshrate", time.Second, "refresh rate for polling config")
+
 	// file
 	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.ConfigDir, "file.config.dir", "_gloo_config", "root directory to use for storing gloo config files")
-	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.SecretDir, "file.secret.dir", "_gloo_secrets", "root directory to use for storing gloo secret files")
 
 	// kube
-	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.MasterURL, "kube.master", "", "url of the kubernetes apiserver. not needed if running in-cluster")
-	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.KubeConfig, "kube.config", "", "path to kubeconfig file. not needed if running in-cluster")
+	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.MasterURL, "master", "", "url of the kubernetes apiserver. not needed if running in-cluster")
+	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.KubeConfig, "kubeconfig", "", "path to kubeconfig file. not needed if running in-cluster")
 	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.Namespace, "kube.namespace", crd.GlooDefaultNamespace, "namespace to read/write gloo storage objects")
 }
 

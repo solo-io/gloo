@@ -2,12 +2,13 @@ package ingress
 
 import (
 	"fmt"
-	"log"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -16,9 +17,8 @@ import (
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
 
-	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/gloo-storage"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/kubecontroller"
 )
 
@@ -270,17 +270,20 @@ func (c *IngressController) syncUpstreams(desiredUpstreams, actualUpstreams []*v
 		}
 	}
 	for _, us := range upstreamsToCreate {
+		log.Debugf("creating upstream %v", us.Name)
 		if _, err := c.configObjects.V1().Upstreams().Create(us); err != nil {
 			return fmt.Errorf("failed to create upstream crd %s: %v", us.Name, err)
 		}
 	}
 	for _, us := range upstreamsToUpdate {
+		log.Debugf("updating upstream %v", us.Name)
 		if _, err := c.configObjects.V1().Upstreams().Update(us); err != nil {
 			return fmt.Errorf("failed to update upstream crd %s: %v", us.Name, err)
 		}
 	}
 	// only remaining are no longer desired, delete em!
 	for _, us := range actualUpstreams {
+		log.Debugf("deleting upstream %v", us.Name)
 		if err := c.configObjects.V1().Upstreams().Delete(us.Name); err != nil {
 			return fmt.Errorf("failed to update upstream crd %s: %v", us.Name, err)
 		}
@@ -315,17 +318,20 @@ func (c *IngressController) syncVirtualHosts(desiredVirtualHosts, actualVirtualH
 		}
 	}
 	for _, virtualHost := range virtualHostsToCreate {
+		log.Printf("creating virtualhost %v", virtualHost.Name)
 		if _, err := c.configObjects.V1().VirtualHosts().Create(virtualHost); err != nil {
 			return fmt.Errorf("failed to create virtualHost crd %s: %v", virtualHost.Name, err)
 		}
 	}
 	for _, virtualHost := range virtualHostsToUpdate {
+		log.Printf("updating virtualhost %v", virtualHost.Name)
 		if _, err := c.configObjects.V1().VirtualHosts().Update(virtualHost); err != nil {
 			return fmt.Errorf("failed to update upstream crd %s: %v", virtualHost.Name, err)
 		}
 	}
 	// only remaining are no longer desired, delete em!
 	for _, virtualHost := range actualVirtualHosts {
+		log.Printf("deleting virtualhost %v", virtualHost.Name)
 		if err := c.configObjects.V1().VirtualHosts().Delete(virtualHost.Name); err != nil {
 			return fmt.Errorf("failed to update upstream crd %s: %v", virtualHost.Name, err)
 		}
