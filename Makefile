@@ -17,12 +17,8 @@ $(BINARY): $(SOURCES)
 docker: $(BINARY)
 	docker build -t solo-io/$(BINARY):v1.0 .
 
-gloo-debug: $(SOURCES)
-	go build -i -gcflags "-N -l" -o gloo-debug cmd/*.go
-
 test:
 	ginkgo -r -v .
 
 clean:
 	rm -f $(BINARY)
-
