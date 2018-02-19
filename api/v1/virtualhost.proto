@@ -43,6 +43,7 @@ message Matcher {
     map<string, string> headers = 4;
     map<string, string> query_params = 5;
     repeated string verbs = 6;
+    string event_id = 7;
 }
 
 message WeightedDestination {
