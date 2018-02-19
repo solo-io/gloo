@@ -140,19 +140,19 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "b8077f785164318300f28d74f61f1b82078acea9"
+  revision = "942db8b753b15c5c905aa2e51b5136158061244c"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "59c0d893fe51b54bf030d7e87fe9f2a4a4f357e5"
+  revision = "7318bd6d5ae54b47de147ced86939392f4bf14c7"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-plugins"
   packages = ["service"]
-  revision = "4a1b0d517371d4514e070e2abb7e3509e56d8683"
+  revision = "10173fd7052d55bd24b5087826b80032533347db"
 
 [[projects]]
   branch = "master"
@@ -169,7 +169,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "136a25c244d3019482a795d728110278d6ba09a4"
+  revision = "cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb"
 
 [[projects]]
   branch = "master"
@@ -261,6 +261,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "04c913234cfcbfb6ac27409d9c78e4ae8e4d208e302ab5869601eb6d23090e09"
+  inputs-digest = "761dd7d05812c13e8ca3999ad2b5d0615072f0fa176d4e75a870998a988d5479"
   solver-name = "gps-cdcl"
   solver-version = 1
