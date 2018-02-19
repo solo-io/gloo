@@ -240,25 +240,25 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "4d6522655762ea586e1dc1c468dbbb331263557f"
+  revision = "942db8b753b15c5c905aa2e51b5136158061244c"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "59c0d893fe51b54bf030d7e87fe9f2a4a4f357e5"
+  revision = "7318bd6d5ae54b47de147ced86939392f4bf14c7"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "0752a09730d5f092ebc4c31c1dc4e5c8083b7258"
+  revision = "374ba31b91ff0a54fcc6e13c2b2552703eaccf4b"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/kubecontroller"
   packages = ["."]
-  revision = "53fbd833dec1899a4d4ded8c97dc79648271c1dd"
+  revision = "916800242c0d38bf20705fbcb80696456d1c107e"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -270,7 +270,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "650f4a345ab4e5b245a3034b110ebc7299e68186"
+  revision = "432090b8f568c018896cd8a0fb0345872bbac6ce"
 
 [[projects]]
   branch = "master"
@@ -287,7 +287,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "136a25c244d3019482a795d728110278d6ba09a4"
+  revision = "cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb"
 
 [[projects]]
   branch = "master"
@@ -599,6 +599,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c6a45dc06fa02779ce507fae740e736e4588279984a7a7a7e997388c9c538273"
+  inputs-digest = "4a4f05eb5a9b57a580a386a7030b60e2e0e85c1af899b3f55a51675525c2596f"
   solver-name = "gps-cdcl"
   solver-version = 1
