@@ -234,7 +234,7 @@
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "59c0d893fe51b54bf030d7e87fe9f2a4a4f357e5"
+  revision = "7318bd6d5ae54b47de147ced86939392f4bf14c7"
 
 [[projects]]
   branch = "master"
