@@ -45,10 +45,6 @@
   branch = "master"
   name = "github.com/solo-io/gloo-api"
 
-[[constraint]]
-  branch = "master"
-  name = "github.com/solo-io/gloo-plugins"
-
 [prune]
   go-tests = true
   unused-packages = true
