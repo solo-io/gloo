@@ -342,7 +342,7 @@
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "59c0d893fe51b54bf030d7e87fe9f2a4a4f357e5"
+  revision = "7318bd6d5ae54b47de147ced86939392f4bf14c7"
 
 [[projects]]
   branch = "master"
@@ -352,7 +352,7 @@
     "common",
     "service"
   ]
-  revision = "4a1b0d517371d4514e070e2abb7e3509e56d8683"
+  revision = "10173fd7052d55bd24b5087826b80032533347db"
 
 [[projects]]
   branch = "master"
@@ -367,19 +367,19 @@
     "file",
     "internal/crud"
   ]
-  revision = "03ed3126f23c100acf1afa3dc226c15e7386f24c"
+  revision = "b66a02e9662255271a59d21e15a6257010cd2d2e"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "0752a09730d5f092ebc4c31c1dc4e5c8083b7258"
+  revision = "db912eb05fe9d5a647fed207f3e017b49532ca3e"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/kubecontroller"
   packages = ["."]
-  revision = "53fbd833dec1899a4d4ded8c97dc79648271c1dd"
+  revision = "916800242c0d38bf20705fbcb80696456d1c107e"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -422,7 +422,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "650f4a345ab4e5b245a3034b110ebc7299e68186"
+  revision = "432090b8f568c018896cd8a0fb0345872bbac6ce"
 
 [[projects]]
   branch = "master"
@@ -439,7 +439,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "136a25c244d3019482a795d728110278d6ba09a4"
+  revision = "cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb"
 
 [[projects]]
   branch = "master"
@@ -582,7 +582,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "4b7e7fe5854f76034d5eb63edf6c7983a1d2a411"
+  revision = "89a5f8f093a0da6fddcab9b715cd049ff1aeea56"
 
 [[projects]]
   branch = "master"
