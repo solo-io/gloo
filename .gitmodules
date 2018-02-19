@@ -1,0 +1,3 @@
+[submodule "aws/envoy"]
+	path = aws/envoy
+	url = https://github.com/solo-io/envoy-lambda

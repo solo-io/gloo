@@ -1,0 +1,7 @@
+[
+    {
+        "name": "lambda",
+        "gloo": "aws",
+        "envoy": "aws/envoy"
+    }
+]
