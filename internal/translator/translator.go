@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoyauth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyendpoints "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
@@ -30,9 +31,14 @@ import (
 )
 
 const (
-	rdsName       = "gloo-rds"
-	listenerName  = "listener-" + rdsName
-	listenerPort  = uint32(8080)
+	sslRdsName      = "gloo-rds-https"
+	sslListenerName = "listener-" + nosslRdsName
+	sslListenerPort = uint32(8443)
+
+	nosslRdsName      = "gloo-rds-http"
+	nosslListenerName = "listener-" + nosslRdsName
+	nosslListenerPort = uint32(8080)
+
 	connMgrFilter = "envoy.http_connection_manager"
 	routerFilter  = "envoy.router"
 )
@@ -77,19 +83,38 @@ func (t *Translator) Translate(cfg *v1.Config,
 	clusters, clusterReports := t.computeClusters(cfg, secrets, endpoints)
 
 	// virtualhosts
-	virtualHosts, virtualHostReports := t.computeVirtualHosts(cfg)
+	sslVirtualHosts, nosslVirtualHosts, virtualHostReports := t.computeVirtualHosts(cfg)
 
-	routeConfig := &envoyapi.RouteConfiguration{
-		Name:         rdsName,
-		VirtualHosts: virtualHosts,
+	sslRouteConfig := &envoyapi.RouteConfiguration{
+		Name:         sslRdsName,
+		VirtualHosts: sslVirtualHosts,
 	}
 
-	// listeners
-	// TODO: eventaully support multiple listeners (e.g. for TLS)
-	listener, err := t.constructHttpListener(listenerName, listenerPort, routeConfig.Name)
+	nosslRouteConfig := &envoyapi.RouteConfiguration{
+		Name:         nosslRdsName,
+		VirtualHosts: nosslVirtualHosts,
+	}
+
+	// create the base http filters which both listeners will implement
+	httpFilters := t.createHttpFilters()
+
+	// filters
+	// they are basically the same, but have different rds names
+	sslFilters, err := t.constructFilters(sslRouteConfig.Name, httpFilters)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "constructing http listener %v", listenerName)
+		return nil, nil, errors.Wrapf(err, "constructing https filter chain %v", sslListenerName)
 	}
+	nosslFilters, err := t.constructFilters(nosslRouteConfig.Name, httpFilters)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "constructing http filter chain %v", nosslListenerName)
+	}
+
+	// finally, the listeners
+	httpsListener, err := t.constructHttpsListener(sslListenerName, sslListenerPort, sslFilters, cfg.VirtualHosts, secrets)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "constructing https listener %v", nosslListenerName)
+	}
+	httpListener := t.constructHttpListener(nosslListenerName, nosslListenerPort, nosslFilters)
 
 	// proto-ify everything
 	var endpointsProto []proto.Message
@@ -102,8 +127,8 @@ func (t *Translator) Translate(cfg *v1.Config,
 		clustersProto = append(clustersProto, cluster)
 	}
 
-	routesProto := []proto.Message{routeConfig}
-	listenersProto := []proto.Message{listener}
+	routesProto := []proto.Message{nosslRouteConfig, sslRouteConfig}
+	listenersProto := []proto.Message{httpListener, httpsListener}
 
 	// construct version
 	// TODO: investigate whether we need a more sophisticated versionining algorithm
@@ -252,17 +277,22 @@ func secretsForPlugin(cfg *v1.Config, plug plugin.TranslatorPlugin, secrets secr
 
 // VirtualHosts
 
-func (t *Translator) computeVirtualHosts(cfg *v1.Config) ([]envoyroute.VirtualHost, []reporter.ConfigObjectReport) {
+func (t *Translator) computeVirtualHosts(cfg *v1.Config) ([]envoyroute.VirtualHost, []envoyroute.VirtualHost, []reporter.ConfigObjectReport) {
 	var (
-		reports      []reporter.ConfigObjectReport
-		virtualHosts []envoyroute.VirtualHost
+		reports           []reporter.ConfigObjectReport
+		sslVirtualHosts   []envoyroute.VirtualHost
+		nosslVirtualHosts []envoyroute.VirtualHost
 	)
 	for _, virtualHost := range cfg.VirtualHosts {
 		envoyVirtualHost, err := t.computeVirtualHost(cfg.Upstreams, virtualHost)
-		virtualHosts = append(virtualHosts, envoyVirtualHost)
+		if virtualHost.SslConfig != nil && virtualHost.SslConfig.SecretRef != "" {
+			sslVirtualHosts = append(sslVirtualHosts, envoyVirtualHost)
+		} else {
+			nosslVirtualHosts = append(nosslVirtualHosts, envoyVirtualHost)
+		}
 		reports = append(reports, createVirtualHostReport(virtualHost, err))
 	}
-	return virtualHosts, reports
+	return sslVirtualHosts, nosslVirtualHosts, reports
 }
 
 func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream, virtualHost *v1.VirtualHost) (envoyroute.VirtualHost, error) {
@@ -376,7 +406,105 @@ type stagedFilter struct {
 	stage  plugin.Stage
 }
 
-func (t *Translator) constructHttpListener(name string, port uint32, routeConfigName string) (*envoyapi.Listener, error) {
+func (t *Translator) constructHttpListener(name string, port uint32, filters []envoylistener.Filter) *envoyapi.Listener {
+	return &envoyapi.Listener{
+		Name: name,
+		Address: envoycore.Address{
+			Address: &envoycore.Address_SocketAddress{
+				SocketAddress: &envoycore.SocketAddress{
+					Protocol: envoycore.TCP,
+					Address:  "0.0.0.0", // bind all
+					PortSpecifier: &envoycore.SocketAddress_PortValue{
+						PortValue: port,
+					},
+				},
+			},
+		},
+		FilterChains: []envoylistener.FilterChain{{
+			Filters: filters,
+		}},
+	}
+}
+
+const (
+	sslCertificateChainKey = "ca_chain"
+	sslPrivateKeyKey       = "private_key"
+)
+
+func (t *Translator) constructHttpsListener(name string,
+	port uint32,
+	filters []envoylistener.Filter,
+	virtualHosts []*v1.VirtualHost,
+	secrets secretwatcher.SecretMap) (*envoyapi.Listener, error) {
+
+	// create the base filter chain
+	// we will copy the filter chain for each virtualhost that specifies an ssl config
+	var filterChains []envoylistener.FilterChain
+	for _, vhost := range virtualHosts {
+		if vhost.SslConfig == nil || vhost.SslConfig.SecretRef == "" {
+			continue
+		}
+		ref := vhost.SslConfig.SecretRef
+		sslSecrets, ok := secrets[ref]
+		if !ok {
+			return nil, errors.Errorf("secret not found for ref %v", ref)
+		}
+		certChain, ok := sslSecrets[sslCertificateChainKey]
+		if !ok {
+			return nil, errors.Errorf("key %v not found in secrets", sslCertificateChainKey)
+		}
+		privateKey, ok := sslSecrets[sslPrivateKeyKey]
+		if !ok {
+			return nil, errors.Errorf("key %v not found in secrets", sslPrivateKeyKey)
+		}
+		filterChain := newSslFilterChain(certChain, privateKey, filters)
+		filterChains = append(filterChains, filterChain)
+	}
+
+	return &envoyapi.Listener{
+		Name: name,
+		Address: envoycore.Address{
+			Address: &envoycore.Address_SocketAddress{
+				SocketAddress: &envoycore.SocketAddress{
+					Protocol: envoycore.TCP,
+					Address:  "0.0.0.0", // bind all
+					PortSpecifier: &envoycore.SocketAddress_PortValue{
+						PortValue: port,
+					},
+				},
+			},
+		},
+		FilterChains: filterChains,
+	}, nil
+}
+
+func newSslFilterChain(certChain, privateKey string, filters []envoylistener.Filter) envoylistener.FilterChain {
+	return envoylistener.FilterChain{
+		Filters: filters,
+		TlsContext: &envoyauth.DownstreamTlsContext{
+			CommonTlsContext: &envoyauth.CommonTlsContext{
+				// default params
+				TlsParams: &envoyauth.TlsParameters{},
+				TlsCertificates: []*envoyauth.TlsCertificate{
+					{
+						CertificateChain: &envoycore.DataSource{
+							Specifier: &envoycore.DataSource_InlineString{
+								InlineString: certChain,
+							},
+						},
+						PrivateKey: &envoycore.DataSource{
+							Specifier: &envoycore.DataSource_InlineString{
+								InlineString: privateKey,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func (t *Translator) createHttpFilters() []*envoyhttp.HttpFilter {
 	var filtersByStage []stagedFilter
 	for _, plug := range t.plugins {
 		filterPlugin, ok := plug.(plugin.FilterPlugin)
@@ -398,7 +526,10 @@ func (t *Translator) constructHttpListener(name string, port uint32, routeConfig
 	// sort filters by stage
 	httpFilters := sortFilters(filtersByStage)
 	httpFilters = append(httpFilters, &envoyhttp.HttpFilter{Name: routerFilter})
+	return httpFilters
+}
 
+func (t *Translator) constructFilters(routeConfigName string, httpFilters []*envoyhttp.HttpFilter) ([]envoylistener.Filter, error) {
 	httpConnMgr := &envoyhttp.HttpConnectionManager{
 		CodecType:  envoyhttp.AUTO,
 		StatPrefix: "http",
@@ -419,25 +550,11 @@ func (t *Translator) constructHttpListener(name string, port uint32, routeConfig
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to convert proto message to struct")
 	}
-	return &envoyapi.Listener{
-		Name: name,
-		Address: envoycore.Address{
-			Address: &envoycore.Address_SocketAddress{
-				SocketAddress: &envoycore.SocketAddress{
-					Protocol: envoycore.TCP,
-					Address:  "0.0.0.0", // bind all
-					PortSpecifier: &envoycore.SocketAddress_PortValue{
-						PortValue: port,
-					},
-				},
-			},
+	return []envoylistener.Filter{
+		{
+			Name:   connMgrFilter,
+			Config: httpConnMgrCfg,
 		},
-		FilterChains: []envoylistener.FilterChain{{
-			Filters: []envoylistener.Filter{{
-				Name:   connMgrFilter,
-				Config: httpConnMgrCfg,
-			}},
-		}},
 	}, nil
 }
 
