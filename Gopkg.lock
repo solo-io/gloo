@@ -342,17 +342,16 @@
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "7318bd6d5ae54b47de147ced86939392f4bf14c7"
+  revision = "d4a2acba50c037ce1a0637c1a7563ada46004470"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-plugins"
   packages = [
     "aws",
-    "common",
-    "service"
+    "common"
   ]
-  revision = "10173fd7052d55bd24b5087826b80032533347db"
+  revision = "591bf07d4741f1cdff918570fe79ef32582123ae"
 
 [[projects]]
   branch = "master"
@@ -373,7 +372,7 @@
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "db912eb05fe9d5a647fed207f3e017b49532ca3e"
+  revision = "657e41ea056c89add2ad6796b32c1505d9eaa060"
 
 [[projects]]
   branch = "master"
@@ -582,7 +581,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "89a5f8f093a0da6fddcab9b715cd049ff1aeea56"
+  revision = "90a5ba227a3ae6414796a5f2910638c3011af740"
 
 [[projects]]
   branch = "master"
@@ -763,6 +762,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d84af3af1e31df053914dbe6485ac07de8f6569ab9dd0644869b129d765d8704"
+  inputs-digest = "103cbef636f543b3767b067098188774d0befc33ded699d72e18d4582f1d4235"
   solver-name = "gps-cdcl"
   solver-version = 1
