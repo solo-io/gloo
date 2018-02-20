@@ -19,7 +19,8 @@ It has these top-level messages:
 	Function
 	VirtualHost
 	Route
-	Matcher
+	RequestMatcher
+	EventMatcher
 	WeightedDestination
 	Destination
 	FunctionDestination

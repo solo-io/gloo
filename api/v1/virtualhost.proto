@@ -27,14 +27,17 @@ message VirtualHost {
 }
 
 message Route {
-    Matcher matcher = 1;
-    repeated WeightedDestination multiple_destinations = 2;
-    Destination single_destination = 3;
-    string prefix_rewrite = 4;
-    google.protobuf.Struct extensions = 5;
+    oneof matcher {
+        RequestMatcher request_matcher = 1;
+        EventMatcher event_matcher = 2;
+    }
+    repeated WeightedDestination multiple_destinations = 3;
+    Destination single_destination = 4;
+    string prefix_rewrite = 5;
+    google.protobuf.Struct extensions = 6;
 }
 
-message Matcher {
+message RequestMatcher {
     oneof path {
         string path_prefix = 1;
         string path_regex = 2;
@@ -43,7 +46,10 @@ message Matcher {
     map<string, string> headers = 4;
     map<string, string> query_params = 5;
     repeated string verbs = 6;
-    string event_id = 7;
+}
+
+message EventMatcher {
+    string event_type = 1;
 }
 
 message WeightedDestination {
