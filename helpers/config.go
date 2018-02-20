@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"github.com/solo-io/gloo-plugins/service"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/coreplugins/service"
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
@@ -73,12 +73,14 @@ func NewTestRoute1() *v1.Route {
 			"token": "my-12345",
 		}})
 	return &v1.Route{
-		Matcher: &v1.Matcher{
-			Path: &v1.Matcher_PathPrefix{
-				PathPrefix: "/foo",
+		Matcher: &v1.Route_RequestMatcher{
+			RequestMatcher: &v1.RequestMatcher{
+				Path: &v1.RequestMatcher_PathPrefix{
+					PathPrefix: "/foo",
+				},
+				Headers: map[string]string{"x-foo-bar": ""},
+				Verbs:   []string{"GET", "POST"},
 			},
-			Headers: map[string]string{"x-foo-bar": ""},
-			Verbs:   []string{"GET", "POST"},
 		},
 		SingleDestination: &v1.Destination{
 			DestinationType: &v1.Destination_Function{
@@ -104,11 +106,13 @@ func NewTestRoute2() *v1.Route {
 			"token": "my-12345",
 		}})
 	return &v1.Route{
-		Matcher: &v1.Matcher{
-			Path: &v1.Matcher_PathExact{
-				PathExact: "/bar",
+		Matcher: &v1.Route_RequestMatcher{
+			RequestMatcher: &v1.RequestMatcher{
+				Path: &v1.RequestMatcher_PathExact{
+					PathExact: "/bar",
+				},
+				Verbs: []string{"GET", "POST"},
 			},
-			Verbs: []string{"GET", "POST"},
 		},
 		SingleDestination: &v1.Destination{
 			DestinationType: &v1.Destination_Upstream{
