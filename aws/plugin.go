@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/gloo-plugins/common"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-plugins/common"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
 
@@ -77,6 +77,9 @@ func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *en
 }
 
 func setRouteAsync(async bool, out *envoyroute.Route) {
+	if out.Metadata == nil {
+		out.Metadata = &envoycore.Metadata{}
+	}
 	common.InitFilterMetadataField(filterName, filterMetadataKeyAsync, out.Metadata)
 	out.Metadata.FilterMetadata[filterName].Fields[filterMetadataKeyAsync].Kind = &types.Value_BoolValue{
 		BoolValue: async,
@@ -127,6 +130,9 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", awsSecretKey))
 	}
 
+	if out.Metadata == nil {
+		out.Metadata = &envoycore.Metadata{}
+	}
 	common.InitFilterMetadata(filterName, out.Metadata)
 	out.Metadata.FilterMetadata[filterName] = &types.Struct{
 		Fields: map[string]*types.Value{
