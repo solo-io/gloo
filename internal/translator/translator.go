@@ -13,17 +13,17 @@ import (
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 
-	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/proto"
 	"github.com/hashicorp/go-multierror"
 	"github.com/mitchellh/hashstructure"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/solo-io/gloo/pkg/log"
-	"github.com/solo-io/gloo/pkg/protoutil"
-	"github.com/solo-io/gloo/internal/reporter"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/internal/reporter"
+	"github.com/solo-io/gloo/pkg/coreplugins/matcher"
+	"github.com/solo-io/gloo/pkg/coreplugins/route-extensions"
+	"github.com/solo-io/gloo/pkg/coreplugins/service"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
 	"github.com/solo-io/gloo/pkg/plugin"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
@@ -41,7 +41,15 @@ type Translator struct {
 	plugins []plugin.TranslatorPlugin
 }
 
+// all built-in plugins should go here
+var corePlugins = []plugin.TranslatorPlugin{
+	&matcher.Plugin{},
+	&extensions.Plugin{},
+	&service.Plugin{},
+}
+
 func NewTranslator(plugins []plugin.TranslatorPlugin) *Translator {
+	plugins = append(corePlugins, plugins...)
 	// special routing must be done for upstream plugins that support functions
 	var functionPlugins []plugin.FunctionPlugin
 	for _, plug := range plugins {
@@ -108,14 +116,6 @@ func (t *Translator) Translate(cfg *v1.Config,
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "constructing version hash for envoy snapshot components")
 	}
-
-	log.Printf("DID ERR? %v", printYaml(map[envoycache.ResponseType][]proto.Message{
-		envoycache.EndpointResponse: endpointsProto,
-		envoycache.ClusterResponse:  clustersProto,
-		envoycache.RouteResponse:    routesProto,
-		envoycache.ListenerResponse: listenersProto,
-	}))
-
 	// construct snapshot
 	snapshot := envoycache.NewSnapshot(fmt.Sprintf("%v", version), endpointsProto, clustersProto, routesProto, listenersProto)
 
@@ -123,24 +123,6 @@ func (t *Translator) Translate(cfg *v1.Config,
 	reports := append(clusterReports, virtualHostReports...)
 
 	return &snapshot, reports, nil
-}
-
-func printYaml(snaps map[envoycache.ResponseType][]proto.Message) error {
-	for resourceType, snap := range snaps {
-		log.GreyPrintf("\n\n%s\n", resourceType)
-		for _, pro := range snap {
-			jsn, err := protoutil.Marshal(pro)
-			if err != nil {
-				return err
-			}
-			yam, err := yaml.JSONToYAML(jsn)
-			if err != nil {
-				return err
-			}
-			log.GreyPrintf("%s", yam)
-		}
-	}
-	return nil
 }
 
 // Endpoints
@@ -287,10 +269,10 @@ func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream, virtualHost *v
 	var envoyRoutes []envoyroute.Route
 	var routeErrors *multierror.Error
 	for _, route := range virtualHost.Routes {
-		if err := validateRoute(upstreams, route); err != nil {
+		if err := validateRouteDestinations(upstreams, route); err != nil {
 			routeErrors = multierror.Append(routeErrors, err)
 		}
-		out := newBaseEnvoyRoute(route)
+		out := envoyroute.Route{}
 		for _, plug := range t.plugins {
 			routePlugin, ok := plug.(plugin.RoutePlugin)
 			if !ok {
@@ -317,41 +299,7 @@ func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream, virtualHost *v
 	}, routeErrors
 }
 
-func newBaseEnvoyRoute(route *v1.Route) envoyroute.Route {
-	match := envoyroute.RouteMatch{}
-	switch path := route.Matcher.Path.(type) {
-	case *v1.Matcher_PathRegex:
-		match.PathSpecifier = &envoyroute.RouteMatch_Regex{
-			Regex: path.PathRegex,
-		}
-	case *v1.Matcher_PathPrefix:
-		match.PathSpecifier = &envoyroute.RouteMatch_Prefix{
-			Prefix: path.PathPrefix,
-		}
-	case *v1.Matcher_PathExact:
-		match.PathSpecifier = &envoyroute.RouteMatch_Path{
-			Path: path.PathExact,
-		}
-	}
-	for headerName, headerValue := range route.Matcher.Headers {
-		match.Headers = append(match.Headers, &envoyroute.HeaderMatcher{
-			Name:  headerName,
-			Value: headerValue,
-		})
-	}
-	for paramName, paramValue := range route.Matcher.QueryParams {
-		match.QueryParameters = append(match.QueryParameters, &envoyroute.QueryParameterMatcher{
-			Name:  paramName,
-			Value: paramValue,
-		})
-	}
-	return envoyroute.Route{
-		Metadata: new(envoycore.Metadata),
-		Match:    match,
-	}
-}
-
-func validateRoute(upstreams []*v1.Upstream, route *v1.Route) error {
+func validateRouteDestinations(upstreams []*v1.Upstream, route *v1.Route) error {
 	// collect existing upstreams/functions for matching
 	upstreamsAndTheirFunctions := make(map[string][]string)
 	for _, upstream := range upstreams {

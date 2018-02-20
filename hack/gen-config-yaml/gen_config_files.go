@@ -14,9 +14,9 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/protoutil"
 
-	"github.com/solo-io/gloo-plugins/aws"
-	"github.com/solo-io/gloo-plugins/service"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-plugins/aws"
+	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
 
 var upstreamAddr string
@@ -139,9 +139,11 @@ func NewTestVirtualHost(name string, routes ...*v1.Route) *v1.VirtualHost {
 
 func NewλRoute() *v1.Route {
 	return &v1.Route{
-		Matcher: &v1.Matcher{
-			Path: &v1.Matcher_PathPrefix{
-				PathPrefix: "/lambda",
+		Matcher: &v1.Route_RequestMatcher{
+			RequestMatcher: &v1.RequestMatcher{
+				Path: &v1.RequestMatcher_PathPrefix{
+					PathPrefix: "/lambda",
+				},
 			},
 		},
 		SingleDestination: &v1.Destination{
@@ -156,12 +158,14 @@ func NewλRoute() *v1.Route {
 }
 func NewTestRoute() *v1.Route {
 	return &v1.Route{
-		Matcher: &v1.Matcher{
-			Path: &v1.Matcher_PathPrefix{
-				PathPrefix: "/foo",
+		Matcher: &v1.Route_RequestMatcher{
+			RequestMatcher: &v1.RequestMatcher{
+				Path: &v1.RequestMatcher_PathPrefix{
+					PathPrefix: "/foo",
+				},
+				Headers: map[string]string{"x-foo-bar": ""},
+				Verbs:   []string{"GET", "POST"},
 			},
-			Headers: map[string]string{"x-foo-bar": ""},
-			Verbs:   []string{"GET", "POST"},
 		},
 		SingleDestination: &v1.Destination{
 			DestinationType: &v1.Destination_Upstream{
@@ -175,12 +179,10 @@ func NewTestRoute() *v1.Route {
 
 func NewTestRouteMultiDest() *v1.Route {
 	return &v1.Route{
-		Matcher: &v1.Matcher{
-			Path: &v1.Matcher_PathPrefix{
-				PathPrefix: "/foo",
+		Matcher: &v1.Route_EventMatcher{
+			EventMatcher: &v1.EventMatcher{
+				EventType: "my-event",
 			},
-			Headers: map[string]string{"x-foo-bar": ""},
-			Verbs:   []string{"GET", "POST"},
 		},
 		MultipleDestinations: []*v1.WeightedDestination{
 			{

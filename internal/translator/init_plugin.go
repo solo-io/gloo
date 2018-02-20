@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/common"
 	"github.com/solo-io/gloo/internal/translator/defaults"
+	"github.com/solo-io/gloo/pkg/coreplugins/common"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
 
@@ -68,6 +68,9 @@ func (p *functionAndClusterRoutingInitializer) getFunctionSpec(upstreamType stri
 }
 
 func addEnvoyFunctionSpec(out *envoyapi.Cluster, funcName string, spec *types.Struct) {
+	if out.Metadata == nil {
+		out.Metadata = &envoycore.Metadata{}
+	}
 	multiFunctionMetadata := getFunctionalFilterMetadata(multiFunctionDestinationKey, out.Metadata)
 
 	if multiFunctionMetadata.Fields[funcName] == nil {
@@ -125,6 +128,9 @@ func processSingleFunctionRoute(destination *v1.FunctionDestination, prefixRewri
 	upstreamName := destination.UpstreamName
 	initRouteForUpstream(upstreamName, prefixRewrite, out)
 	clusterName := clusterName(upstreamName)
+	if out.Metadata == nil {
+		out.Metadata = &envoycore.Metadata{}
+	}
 	functionalFilterMetadata := getFunctionalFilterMetadata(clusterName, out.Metadata)
 	functionalFilterMetadata.Fields[singleFunctionDestinationKey] = &types.Value{Kind: &types.Value_StringValue{StringValue: destination.FunctionName}}
 }
@@ -188,6 +194,9 @@ func addClusterFuncsToMetadata(clusterName string, destinations []*v1.WeightedDe
 			},
 		}
 		clusterFuncWeights = append(clusterFuncWeights, clusterFuncWeight)
+	}
+	if out.Metadata == nil {
+		out.Metadata = &envoycore.Metadata{}
 	}
 	routeClusterMetadata := getFunctionalFilterMetadata(clusterName, out.Metadata)
 	if routeClusterMetadata.Fields[multiFunctionDestinationKey] == nil {
