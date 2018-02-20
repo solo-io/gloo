@@ -150,9 +150,11 @@ var _ = Describe("KubeIngressController", func() {
 			})
 			It("creates the default virtualhost for the ingress", func() {
 				glooRoute := &v1.Route{
-					Matcher: &v1.Matcher{
-						Path: &v1.Matcher_PathPrefix{
-							PathPrefix: "/",
+					Matcher: &v1.Route_RequestMatcher{
+						RequestMatcher: &v1.RequestMatcher{
+							Path: &v1.RequestMatcher_PathPrefix{
+								PathPrefix: "/",
+							},
 						},
 					},
 					SingleDestination: &v1.Destination{
@@ -320,8 +322,10 @@ var _ = Describe("KubeIngressController", func() {
 					for _, path := range rule.HTTP.Paths {
 						vHost := expectedVirtualHosts[rule.Host]
 						vHost.Routes = append(vHost.Routes, &v1.Route{
-							Matcher: &v1.Matcher{
-								Path: &v1.Matcher_PathRegex{PathRegex: path.Path},
+							Matcher: &v1.Route_RequestMatcher{
+								RequestMatcher: &v1.RequestMatcher{
+									Path: &v1.RequestMatcher_PathRegex{PathRegex: path.Path},
+								},
 							},
 							SingleDestination: &v1.Destination{
 								DestinationType: &v1.Destination_Upstream{

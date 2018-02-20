@@ -161,9 +161,11 @@ func (c *IngressController) generateDesiredResources() ([]*v1.Upstream, []*v1.Vi
 			} else {
 				routesByHostName[defaultVirtualHost] = []*v1.Route{
 					{
-						Matcher: &v1.Matcher{
-							Path: &v1.Matcher_PathPrefix{
-								PathPrefix: "/",
+						Matcher: &v1.Route_RequestMatcher{
+							RequestMatcher: &v1.RequestMatcher{
+								Path: &v1.RequestMatcher_PathPrefix{
+									PathPrefix: "/",
+								},
 							},
 						},
 						SingleDestination: &v1.Destination{
@@ -217,13 +219,13 @@ func (c *IngressController) generateDesiredResources() ([]*v1.Upstream, []*v1.Vi
 	return upstreams, virtualHosts, nil
 }
 
-func getPathStr(route *v1.Route) string {
-	switch path := route.Matcher.Path.(type) {
-	case *v1.Matcher_PathPrefix:
+func getPathStr(matcher *v1.Route_RequestMatcher) string {
+	switch path := matcher.RequestMatcher.Path.(type) {
+	case *v1.RequestMatcher_PathPrefix:
 		return path.PathPrefix
-	case *v1.Matcher_PathRegex:
+	case *v1.RequestMatcher_PathRegex:
 		return path.PathRegex
-	case *v1.Matcher_PathExact:
+	case *v1.RequestMatcher_PathExact:
 		return path.PathExact
 	}
 	return ""
@@ -231,8 +233,8 @@ func getPathStr(route *v1.Route) string {
 
 func sortRoutes(routes []*v1.Route) {
 	sort.SliceStable(routes, func(i, j int) bool {
-		p1 := getPathStr(routes[i])
-		p2 := getPathStr(routes[j])
+		p1 := getPathStr(routes[i].Matcher.(*v1.Route_RequestMatcher))
+		p2 := getPathStr(routes[j].Matcher.(*v1.Route_RequestMatcher))
 		l1 := len(p1)
 		l2 := len(p2)
 		if l1 == l2 {
@@ -354,9 +356,11 @@ func addRoutesAndUpstreams(namespace string, rule v1beta1.IngressRule, upstreams
 			host = defaultVirtualHost
 		}
 		routes[rule.Host] = append(routes[rule.Host], &v1.Route{
-			Matcher: &v1.Matcher{
-				Path: &v1.Matcher_PathRegex{
-					PathRegex: path.Path,
+			Matcher: &v1.Route_RequestMatcher{
+				RequestMatcher: &v1.RequestMatcher{
+					Path: &v1.RequestMatcher_PathRegex{
+						PathRegex: path.Path,
+					},
 				},
 			},
 			SingleDestination: &v1.Destination{
