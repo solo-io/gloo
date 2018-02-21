@@ -1,26 +1,19 @@
 SOURCES := $(shell find . -name *.go)
-PKGDIRS := config/ module/ pkg/ xds/
-
-PACKAGE_PATH:=github.com/solo-io/gloo/pkg/platform/kube
-
+BINARY:=gloo
 build-debug: gloo-debug
 
-build: gloo
+build: $(BINARY)
 
-fmt:
-	gofmt -w $(PKGDIRS)
-	goimports -w $(PKGDIRS)
+$(BINARY): $(SOURCES)
+	CGO_ENABLED=0 GOOS=linux go build -i -v  -o $@ *.go
 
-gloo: $(SOURCES)
-	CGO_ENABLED=0 GOOS=linux go build -i -v -ldflags '-extldflags "-static"' -o $@ *.go
+docker: $(BINARY)
+	docker build -t solo-io/$(BINARY):v0.1 .
 
-docker: gloo
-	docker build -t solo-io/gloo:v1.0 .
+$(BINARY)-debug: $(SOURCES)
+	go build -i -gcflags "-N -l" -o $(BINARY)-debug *.go
 
-gloo-debug: $(SOURCES)
-	go build -i -gcflags "-N -l" -o gloo-debug *.go
-
-hackrun: gloo
+hackrun: $(BINARY)
 	./hack/run-local.sh
 
 unit:
@@ -32,5 +25,5 @@ e2e:
 test: e2e unit
 
 clean:
-	rm -f gloo
+	rm -f $(BINARY) $(BINARY)-debug
 
