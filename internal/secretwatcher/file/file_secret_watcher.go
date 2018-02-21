@@ -12,10 +12,10 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/hashstructure"
 
+	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/internal/pkg/file"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
-	"github.com/pkg/errors"
 )
 
 // FileWatcher uses .yml files in a directory
