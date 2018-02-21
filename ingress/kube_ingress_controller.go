@@ -152,10 +152,7 @@ func (c *IngressController) generateDesiredResources() ([]*v1.Upstream, []*v1.Vi
 		}
 		// default virtualhost
 		if ingress.Spec.Backend != nil {
-			us, err := newUpstreamFromBackend(ingress.Namespace, *ingress.Spec.Backend)
-			if err != nil {
-				return nil, nil, errors.Wrap(err, "internal err: failed to backend to upstream")
-			}
+			us := newUpstreamFromBackend(ingress.Namespace, *ingress.Spec.Backend)
 			if _, ok := routesByHostName[defaultVirtualHost]; ok {
 				runtime.HandleError(errors.Errorf("default backend was redefined in ingress %v, ignoring", ingress.Name))
 			} else {
@@ -346,10 +343,7 @@ func addRoutesAndUpstreams(namespace string, rule v1beta1.IngressRule, upstreams
 		return
 	}
 	for _, path := range rule.HTTP.Paths {
-		generatedUpstream, err := newUpstreamFromBackend(namespace, path.Backend)
-		if err != nil {
-			continue
-		}
+		generatedUpstream := newUpstreamFromBackend(namespace, path.Backend)
 		upstreams[generatedUpstream.Name] = generatedUpstream
 		host := rule.Host
 		if host == "" {
@@ -374,17 +368,16 @@ func addRoutesAndUpstreams(namespace string, rule v1beta1.IngressRule, upstreams
 	}
 }
 
-func newUpstreamFromBackend(namespace string, backend v1beta1.IngressBackend) (*v1.Upstream, error) {
-	spec, err := kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
-		ServiceName:      backend.ServiceName,
-		ServiceNamespace: namespace,
-		ServicePort:      backend.ServicePort.String(),
-	})
+func newUpstreamFromBackend(namespace string, backend v1beta1.IngressBackend) *v1.Upstream {
 	return &v1.Upstream{
 		Name: upstreamName(namespace, backend),
 		Type: kubeplugin.UpstreamTypeKube,
-		Spec: spec,
-	}, err
+		Spec: kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
+			ServiceName:      backend.ServiceName,
+			ServiceNamespace: namespace,
+			ServicePort:      backend.ServicePort.String(),
+		}),
+	}
 }
 
 func upstreamName(namespace string, backend v1beta1.IngressBackend) string {

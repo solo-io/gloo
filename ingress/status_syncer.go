@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
+	"github.com/solo-io/kubecontroller"
 	kubev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -16,7 +17,6 @@ import (
 	corev1 "k8s.io/client-go/listers/core/v1"
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
-	"github.com/solo-io/kubecontroller"
 )
 
 type IngressSyncer struct {

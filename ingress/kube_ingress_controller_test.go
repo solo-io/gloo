@@ -283,15 +283,14 @@ var _ = Describe("KubeIngressController", func() {
 				expectedUpstreams := make(map[string]*v1.Upstream)
 				for _, rule := range createdIngress.Spec.Rules {
 					for _, path := range rule.HTTP.Paths {
-						spec, _ := kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
-							ServiceName:      path.Backend.ServiceName,
-							ServiceNamespace: namespace,
-							ServicePort:      path.Backend.ServicePort.String(),
-						})
 						expectedUpstreams[upstreamName(createdIngress.Namespace, path.Backend)] = &v1.Upstream{
 							Name: upstreamName(createdIngress.Namespace, path.Backend),
 							Type: kubeplugin.UpstreamTypeKube,
-							Spec: spec,
+							Spec: kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
+								ServiceName:      path.Backend.ServiceName,
+								ServiceNamespace: namespace,
+								ServicePort:      path.Backend.ServicePort.String(),
+							}),
 						}
 					}
 				}
