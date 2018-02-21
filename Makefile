@@ -1,21 +1,15 @@
 SOURCES := $(shell find . -name *.go)
-PKGDIRS := config/ module/ pkg/ xds/
-
 PACKAGE_PATH:=github.com/solo-io/gloo/pkg/platform/kube
 
 BINARY:=gloo-ingress
 
 build: $(BINARY)
 
-fmt:
-	gofmt -w $(PKGDIRS)
-	goimports -w $(PKGDIRS)
-
 $(BINARY): $(SOURCES)
-	CGO_ENABLED=0 GOOS=linux go build -i -v -ldflags '-extldflags "-static"' -o $@ *.go
+	CGO_ENABLED=0 GOOS=linux go build -i -v  -o $@ *.go
 
 docker: $(BINARY)
-	docker build -t solo-io/$(BINARY):v1.0 .
+	docker build -t solo-io/$(BINARY):v0.1 .
 
 test:
 	ginkgo -r -v .
