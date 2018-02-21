@@ -1,6 +1,6 @@
 [
     {
-        "name": "lambda",
+        "name": "aws_lambda",
         "gloo": "aws",
         "envoy": "aws/envoy"
     }
