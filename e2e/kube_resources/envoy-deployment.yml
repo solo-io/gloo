@@ -16,7 +16,7 @@ spec:
         app: envoy
     spec:
       containers:
-      - image: docker.io/envoyproxy/envoy-alpine:latest
+      - image: docker.io/envoyproxy/envoy:latest
         name: envoy
         ports:
         - containerPort: 8080

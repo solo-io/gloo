@@ -1,0 +1,35 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+  name: gloo
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: gloo
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gloo
+    spec:
+      containers:
+      - image: solo-io/gloo:v0.1
+        imagePullPolicy: Never
+        name: gloo
+        ports:
+        - containerPort: 8081
+          name: http
+        env:
+        - name: GRPC_TRACE
+          value: all
+        command: ["/gloo"]
+        args:
+        - "-storage.type=kube"
+        - "-storage.refreshrate=30m"
+        - "-secrets.type=kube"
+        - "-secrets.refreshrate=30m"
+        - "-xds.port=8081"
+        - "-kube.namespace=gloo-system"

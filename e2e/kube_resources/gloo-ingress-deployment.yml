@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo-ingress
+  name: gloo-ingress
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: gloo-ingress
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gloo-ingress
+    spec:
+      containers:
+      - image: solo-io/gloo-ingress:v0.1
+        imagePullPolicy: Never
+        name: gloo-ingress
+        env:
+        - name: GRPC_TRACE
+          value: all
+        command: ["/gloo-ingress"]
+        args:
+        - "-service=envoy"
+        - "-syncperiod=30m"
+        - "-storage.type=kube"
+        - "-kube.namespace=gloo-system"

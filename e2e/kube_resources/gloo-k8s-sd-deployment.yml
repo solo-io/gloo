@@ -26,11 +26,7 @@ spec:
         - name: GRPC_TRACE
           value: all
         command: ["/gloo"]
-        args: ["-c", "/config/gloo.yml"]
-        volumeMounts:
-        - name: gloo-config
-          mountPath: /config
-      volumes:
-      - name: gloo-config
-        configMap:
-          name: gloo-config
+        args:
+        - "-storage.type=kube"
+        - "-syncperiod=30m"
+        - "-kube.namespace=gloo-system"
