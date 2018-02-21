@@ -22,8 +22,12 @@ func DecodeUpstreamSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {
 	return s, s.validateUpstream()
 }
 
-func EncodeUpstreamSpec(spec UpstreamSpec) (*types.Struct, error) {
-	return protoutil.MarshalStruct(spec)
+func EncodeUpstreamSpec(spec UpstreamSpec) *types.Struct {
+	pb, err := protoutil.MarshalStruct(spec)
+	if err != nil {
+		panic(err)
+	}
+	return pb
 }
 
 func (s *UpstreamSpec) validateUpstream() error {

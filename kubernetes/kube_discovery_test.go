@@ -42,24 +42,21 @@ var _ = Describe("KubeSecretWatcher", func() {
 		kubeconfigPath = filepath.Join(os.Getenv("HOME"), ".kube", "config")
 		masterUrl, err = mkb.Addr()
 		Must(err)
-		singlePortServiceSpec, err := EncodeUpstreamSpec(UpstreamSpec{
+		singlePortServiceSpec := EncodeUpstreamSpec(UpstreamSpec{
 			ServiceName:      "test-service",
 			ServiceNamespace: namespace,
 		})
-		Must(err)
-		serviceWithSpecificPortSpec, err := EncodeUpstreamSpec(UpstreamSpec{
+		serviceWithSpecificPortSpec := EncodeUpstreamSpec(UpstreamSpec{
 			ServiceName:      "test-service-with-port",
 			ServiceNamespace: namespace,
 			ServicePort:      "portname",
 		})
-		Must(err)
-		serviceWithSpecificLabels, err := EncodeUpstreamSpec(UpstreamSpec{
+		serviceWithSpecificLabels := EncodeUpstreamSpec(UpstreamSpec{
 			ServiceName:      "test-service-with-labels",
 			ServiceNamespace: namespace,
 			ServicePort:      "portname",
 			Labels:           specLabels,
 		})
-		Must(err)
 		upstreams = []*v1.Upstream{
 			{
 				Name: "my_upstream_with_specific_port",

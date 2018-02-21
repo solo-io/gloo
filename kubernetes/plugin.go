@@ -19,9 +19,9 @@ func createEndpointDiscovery(opts bootstrap.Options) (endpointdiscovery.Interfac
 	kubeConfig := opts.KubeOptions.KubeConfig
 	masterUrl := opts.KubeOptions.MasterURL
 	resyncDuration := opts.ConfigWatcherOptions.SyncFrequency
-	disc, err := NewEndpointDiscovery(kubeConfig, masterUrl, resyncDuration)
+	disc, err := NewEndpointDiscovery(masterUrl, kubeConfig, resyncDuration)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to start endpoint discovery")
 	}
 	return disc, err
 }
