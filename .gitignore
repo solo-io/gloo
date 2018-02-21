@@ -2,3 +2,4 @@
 vendor/
 vendor.*/
 _gloo_config*
+e2e/containers/helloservice/helloservice

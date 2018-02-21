@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"os/exec"
 	"os"
+	"os/exec"
 )
 
 func DockerRunVault(containerName, rootToken string) error {

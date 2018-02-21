@@ -13,7 +13,7 @@ spec:
   - port: 8443
     protocol: TCP
     name: https
-  - port: 9901
+  - port: 19000
     protocol: TCP
     name: admin
   selector:

@@ -16,14 +16,14 @@ spec:
         app: envoy
     spec:
       containers:
-      - image: docker.io/envoyproxy/envoy:latest
+      - image: docker.io/envoyproxy/envoy-alpine:latest
         name: envoy
         ports:
         - containerPort: 8080
           name: http
         - containerPort: 8443
           name: https
-        - containerPort: 9901
+        - containerPort: 19000
           name: admin
         command: ["envoy"]
         args: ["-c", "/config/envoy.yaml", "--v2-config-only", "--service-cluster", "envoy", "--service-node", "envoy"]

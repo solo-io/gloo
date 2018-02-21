@@ -24,7 +24,7 @@ spec:
           value: all
         command: ["/gloo-ingress"]
         args:
-        - "-service=envoy"
-        - "-syncperiod=30m"
-        - "-storage.type=kube"
-        - "-kube.namespace=gloo-system"
+        - "--service=envoy"
+        - "--syncperiod=30m"
+        - "--storage.type=kube"
+        - "--kube.namespace=gloo-system"

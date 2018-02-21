@@ -2,31 +2,31 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: gloo
-  name: gloo
+    app: gloo-k8s-service-discovery
+  name: gloo-k8s-service-discovery
   namespace: gloo-system
 spec:
   selector:
     matchLabels:
-      app: gloo
+      app: gloo-k8s-service-discovery
   replicas: 1
   template:
     metadata:
       labels:
-        app: gloo
+        app: gloo-k8s-service-discovery
     spec:
       containers:
-      - image: solo-io/gloo:v0.1
+      - image: solo-io/gloo-k8s-service-discovery:v0.1
         imagePullPolicy: Never
-        name: gloo
+        name: gloo-k8s-service-discovery
         ports:
         - containerPort: 8081
           name: http
         env:
         - name: GRPC_TRACE
           value: all
-        command: ["/gloo"]
+        command: ["/gloo-k8s-service-discovery"]
         args:
-        - "-storage.type=kube"
-        - "-syncperiod=30m"
-        - "-kube.namespace=gloo-system"
+        - "--storage.type=kube"
+        - "--syncperiod=30m"
+        - "--kube.namespace=gloo-system"

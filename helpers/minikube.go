@@ -18,6 +18,8 @@ const (
 	helloservice = "helloservice"
 	envoy        = "envoy"
 	gloo         = "gloo"
+	ingress      = "gloo-ingress"
+	k8sd         = "gloo-k8s-service-discovery"
 )
 
 // ErrMinikubeNotInstalled indicates minikube binary is not found
@@ -48,6 +50,7 @@ func NewMinikube(deployGloo bool, ephemeralNamespace ...string) *MinikubeInstanc
 		ephemeralNamespace: namespace,
 	}
 }
+
 func (mkb *MinikubeInstance) Addr() (string, error) {
 	out, err := exec.Command("minikube", "ip", "-p", mkb.vmName).CombinedOutput()
 	return "https://" + strings.TrimSuffix(string(out), "\n") + ":8443", err
@@ -136,22 +139,30 @@ func (mkb *MinikubeInstance) buildContainers() error {
 	if err := mkb.setMinikubeDockerEnv(); err != nil {
 		return err
 	}
-	containerDir := filepath.Join(E2eDirectory(), "containers")
-	return filepath.Walk(containerDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() || path == containerDir {
-			return nil
-		}
+	for _, path := range []string{
+		filepath.Join(SoloDirectory(), "gloo"),
+		filepath.Join(SoloDirectory(), "gloo-ingress"),
+		filepath.Join(SoloDirectory(), "gloo-k8s-service-discovery"),
+		filepath.Join(E2eDirectory(), "containers", "helloservice"),
+		filepath.Join(E2eDirectory(), "containers", "testrunner"),
+	} {
 		log.Debugf("TEST: building container %v", filepath.Base(path))
-		cmd := exec.Command(filepath.Join(path, "build.sh"))
+		cmd := exec.Command("make", "docker")
 		cmd.Dir = path
 		cmd.Stdout = os.Stderr
 		cmd.Stderr = os.Stderr
-		return cmd.Run()
-	})
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+		cmd = exec.Command("make", "clean")
+		cmd.Dir = path
+		cmd.Stdout = os.Stderr
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			log.Printf("warn: %v", err)
+		}
+	}
+	return nil
 }
 
 // createE2eResources creates all the kube resources contained in kube_resources dir
@@ -164,9 +175,11 @@ func (mkb *MinikubeInstance) createE2eResources() error {
 	resources := []string{
 		"namespace.yml",
 
-		"gloo-configmap.yml",
 		"gloo-deployment.yml",
 		"gloo-service.yml",
+
+		"gloo-ingress-deployment.yml",
+		"gloo-k8s-sd-deployment.yml",
 
 		"envoy-configmap.yml",
 		"envoy-deployment.yml",
@@ -182,7 +195,7 @@ func (mkb *MinikubeInstance) createE2eResources() error {
 			return err
 		}
 	}
-	return waitPodsRunning(testrunner, helloservice, envoy, gloo)
+	return waitPodsRunning(testrunner, helloservice, envoy, gloo, ingress, k8sd)
 }
 
 func kubectl(args ...string) error {
@@ -214,7 +227,7 @@ func (mkb *MinikubeInstance) deleteE2eResources() error {
 	if err := kubectl("delete", "-f", filepath.Join(kubeResourcesDir, "test-runner-pod.yml"), "--force"); err != nil {
 		return err
 	}
-	return waitPodsTerminated(testrunner, helloservice, envoy, gloo)
+	return waitPodsTerminated(testrunner, helloservice, envoy, gloo, ingress, k8sd)
 }
 
 // DeleteContext deletes the context from the kubeconfig

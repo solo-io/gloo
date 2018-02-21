@@ -24,12 +24,14 @@ spec:
           name: http
         env:
         - name: GRPC_TRACE
-          value: all
+          value: "all"
+        - name: DEBUG
+          value: "1"
         command: ["/gloo"]
         args:
-        - "-storage.type=kube"
-        - "-storage.refreshrate=30m"
-        - "-secrets.type=kube"
-        - "-secrets.refreshrate=30m"
-        - "-xds.port=8081"
-        - "-kube.namespace=gloo-system"
+        - "--storage.type=kube"
+        - "--storage.refreshrate=30m"
+        - "--secrets.type=kube"
+        - "--secrets.refreshrate=30m"
+        - "--xds.port=8081"
+        - "--kube.namespace=gloo-system"
