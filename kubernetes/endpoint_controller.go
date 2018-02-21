@@ -76,6 +76,9 @@ func (c *endpointController) TrackUpstreams(upstreams []*v1.Upstream) {
 		c.upstreamSpecs = make(map[string]*UpstreamSpec)
 	}
 	for _, us := range upstreams {
+		if us.Type != UpstreamTypeKube {
+			continue
+		}
 		spec, err := DecodeUpstreamSpec(us.Spec)
 		if err != nil {
 			runtime.HandleError(err)
