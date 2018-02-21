@@ -23,6 +23,9 @@ func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
 }
 
 func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+	if in.Extensions == nil {
+		return nil
+	}
 	spec, err := DecodeUpstreamSpec(in.Extensions)
 	if err != nil {
 		return err

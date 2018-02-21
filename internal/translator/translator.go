@@ -434,10 +434,11 @@ func (t *Translator) constructHttpListener(name string, port uint32, filters []e
 			Address: &envoycore.Address_SocketAddress{
 				SocketAddress: &envoycore.SocketAddress{
 					Protocol: envoycore.TCP,
-					Address:  "0.0.0.0", // bind all
+					Address:  "::", // bind all
 					PortSpecifier: &envoycore.SocketAddress_PortValue{
 						PortValue: port,
 					},
+					Ipv4Compat: true,
 				},
 			},
 		},

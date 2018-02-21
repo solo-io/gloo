@@ -36,7 +36,7 @@ func (p *Plugin) ProcessUpstream(_ *plugin.UpstreamPluginParams, in *v1.Upstream
 		if ip != nil {
 			out.Type = envoyapi.Cluster_STATIC
 		} else {
-			out.Type = envoyapi.Cluster_LOGICAL_DNS
+			out.Type = envoyapi.Cluster_STRICT_DNS
 		}
 		out.Hosts = append(out.Hosts, &envoycore.Address{
 			Address: &envoycore.Address_SocketAddress{
@@ -52,52 +52,3 @@ func (p *Plugin) ProcessUpstream(_ *plugin.UpstreamPluginParams, in *v1.Upstream
 	}
 	return nil
 }
-
-//func (p *Plugin) ProcessRoute(in v1.Route, out *envoyroute.Route) error {
-//	upstreamNames := destinationUpstreams(in)
-//	switch {
-//	case len(upstreamNames) == 0:
-//		return errors.New("no upstreams found for route")
-//	case len(upstreamNames) == 1:
-//		out.Action = &envoyroute.Route_Route{
-//			Route: &envoyroute.RouteAction{
-//				ClusterSpecifier: &envoyroute.RouteAction_Cluster{
-//					Cluster: envoy.ClusterName(upstreamNames[0]),
-//				},
-//			},
-//		}
-//	case len(upstreamNames) > 1:
-//		out.Action = &envoyroute.Route_Route{
-//			Route: &envoyroute.RouteAction{
-//				ClusterSpecifier: &envoyroute.RouteAction_WeightedClusters{
-//					Cluster: envoy.ClusterName(upstreamNames[0]),
-//				},
-//			},
-//		}
-//	}
-//	return nil
-//}
-//
-//func destinationUpstreams(in v1.Route) []string {
-//	var destinationUpstreams []string
-//	dests := []v1.SingleDestination{in.Destination.SingleDestination}
-//	for _, dest := range in.Destination.Destinations {
-//		dests = append(dests, dest.SingleDestination)
-//	}
-//	for _, dest := range dests {
-//		if upstreamName := getUpstreamName(dest); upstreamName != "" {
-//			destinationUpstreams = append(destinationUpstreams, upstreamName)
-//		}
-//	}
-//	return destinationUpstreams
-//}
-//
-//func getUpstreamName(dest v1.SingleDestination) string {
-//	switch {
-//	case dest.UpstreamDestination != nil:
-//		return dest.UpstreamDestination.UpstreamName
-//	case dest.FunctionDestination != nil:
-//		return dest.FunctionDestination.UpstreamName
-//	}
-//	return ""
-//}
