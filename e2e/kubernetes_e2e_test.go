@@ -40,7 +40,7 @@ var _ = Describe("Kubernetes Deployment", func() {
 	})
 })
 
-func curlEventuallyShouldRespond(path, substr string, timeout ...time.Duration) {
+func curlEventuallyShouldRespond(path, method, substr string, timeout ...time.Duration) {
 	t := time.Second * 20
 	if len(timeout) > 0 {
 		t = timeout[0]
@@ -48,7 +48,7 @@ func curlEventuallyShouldRespond(path, substr string, timeout ...time.Duration) 
 	// for some useful-ish output
 	tick := time.Tick(t / 8)
 	Eventually(func() string {
-		res, err := curlEnvoy(path)
+		res, err := curlEnvoy(path, method)
 		if err != nil {
 			res = err.Error()
 		}
@@ -62,6 +62,6 @@ func curlEventuallyShouldRespond(path, substr string, timeout ...time.Duration) 
 	}, t).Should(ContainSubstring(substr))
 }
 
-func curlEnvoy(path string) (string, error) {
-	return TestRunner("curl", "-v", "http://envoy:8080"+path)
+func curlEnvoy(path, method string) (string, error) {
+	return TestRunner("curl", "-v", "-X"+method, "http://envoy:8080"+path)
 }

@@ -57,7 +57,7 @@ var _ = Describe("Kubernetes Upstream + Endpoint Discovery Plugin", func() {
 			gloo.V1().VirtualHosts().Delete(vhostName)
 		})
 		It("should configure envoy with a 200 OK route (backed by helloservice)", func() {
-			curlEventuallyShouldRespond(randomPath, "< HTTP/1.1 200", time.Minute*5)
+			curlEventuallyShouldRespond(randomPath, "GET", "< HTTP/1.1 200", time.Minute*5)
 		})
 	})
 })
