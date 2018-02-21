@@ -85,11 +85,6 @@ func (t *Translator) Translate(cfg *v1.Config,
 	// virtualhosts
 	sslVirtualHosts, nosslVirtualHosts, virtualHostReports := t.computeVirtualHosts(cfg)
 
-	sslRouteConfig := &envoyapi.RouteConfiguration{
-		Name:         sslRdsName,
-		VirtualHosts: sslVirtualHosts,
-	}
-
 	nosslRouteConfig := &envoyapi.RouteConfiguration{
 		Name:         nosslRdsName,
 		VirtualHosts: nosslVirtualHosts,
@@ -100,26 +95,12 @@ func (t *Translator) Translate(cfg *v1.Config,
 
 	// filters
 	// they are basically the same, but have different rds names
-	sslFilters, err := t.constructFilters(sslRouteConfig.Name, httpFilters)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "constructing https filter chain %v", sslListenerName)
-	}
+
 	nosslFilters, err := t.constructFilters(nosslRouteConfig.Name, httpFilters)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "constructing http filter chain %v", nosslListenerName)
 	}
-
-	// finally, the listeners
-	httpsListener, err := t.constructHttpsListener(sslListenerName,
-		sslListenerPort,
-		sslFilters,
-		cfg.VirtualHosts,
-		virtualHostReports,
-		secrets)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "constructing https listener %v", sslListenerName)
-	}
-	httpListener := t.constructHttpListener(nosslListenerName, nosslListenerPort, nosslFilters)
+	nosslListener := t.constructHttpListener(nosslListenerName, nosslListenerPort, nosslFilters)
 
 	// proto-ify everything
 	var endpointsProto []proto.Message
@@ -132,8 +113,41 @@ func (t *Translator) Translate(cfg *v1.Config,
 		clustersProto = append(clustersProto, cluster)
 	}
 
-	routesProto := []proto.Message{nosslRouteConfig, sslRouteConfig}
-	listenersProto := []proto.Message{httpListener, httpsListener}
+	// ssl
+	sslRouteConfig := &envoyapi.RouteConfiguration{
+		Name:         sslRdsName,
+		VirtualHosts: sslVirtualHosts,
+	}
+
+	sslFilters, err := t.constructFilters(sslRouteConfig.Name, httpFilters)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "constructing https filter chain %v", sslListenerName)
+	}
+
+	// finally, the listeners
+	httpsListener, err := t.constructHttpsListener(sslListenerName,
+		sslListenerPort,
+		sslFilters,
+		cfg.VirtualHosts,
+		virtualHostReports,
+		secrets)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "constructing https listener %v", sslListenerName)
+	}
+
+	var listenersProto, routesProto []proto.Message
+
+	// only add http listener and route config if we have no ssl vhosts
+	if len(nosslVirtualHosts) > 0 {
+		listenersProto = append(listenersProto, nosslListener)
+		routesProto = append(routesProto, nosslRouteConfig)
+	}
+
+	// only add https listener and route config if we have ssl vhosts
+	if len(sslVirtualHosts) > 0 {
+		listenersProto = append(listenersProto, httpsListener)
+		routesProto = append(routesProto, sslRouteConfig)
+	}
 
 	// construct version
 	// TODO: investigate whether we need a more sophisticated versionining algorithm
