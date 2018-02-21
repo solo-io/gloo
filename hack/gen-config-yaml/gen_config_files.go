@@ -14,8 +14,11 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/protoutil"
 
+	"encoding/json"
+
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-plugins/aws"
+	"github.com/solo-io/gloo-storage/crd"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
 
@@ -27,6 +30,7 @@ var upstreamPort uint32
 var upstreamName = "my-upstream"
 
 var configType = flag.String("config", "test", "one of: test, lambda")
+var storageType = flag.String("type", "file", "one of: crd or file")
 
 func getConfig() v1.Config {
 	switch *configType {
@@ -53,8 +57,16 @@ func main() {
 	err = os.MkdirAll(filepath.Join(outDir, "virtualhosts"), 0755)
 	must(err)
 	for _, upstream := range cfg.Upstreams {
-		jsn, err := protoutil.Marshal(upstream)
-		must(err)
+		var jsn []byte
+		if *storageType == "crd" {
+			us, err := crd.UpstreamToCrd("put-namespace-here", upstream)
+			must(err)
+			jsn, err = json.Marshal(us)
+			must(err)
+		} else {
+			jsn, err = protoutil.Marshal(upstream)
+			must(err)
+		}
 		data, err := yaml.JSONToYAML(jsn)
 		must(err)
 		filename := filepath.Join(outDir, "upstreams", fmt.Sprintf("upstream-%v.yml", upstream.Name))
@@ -62,8 +74,16 @@ func main() {
 		must(err)
 	}
 	for _, virtualHost := range cfg.VirtualHosts {
-		jsn, err := protoutil.Marshal(virtualHost)
-		must(err)
+		var jsn []byte
+		if *storageType == "crd" {
+			vh, err := crd.VirtualHostToCrd("put-namespace-here", virtualHost)
+			must(err)
+			jsn, err = json.Marshal(vh)
+			must(err)
+		} else {
+			jsn, err = protoutil.Marshal(virtualHost)
+			must(err)
+		}
 		data, err := yaml.JSONToYAML(jsn)
 		must(err)
 		log.GreyPrintf("%s", jsn)
