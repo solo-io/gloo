@@ -195,7 +195,11 @@ func (mkb *MinikubeInstance) createE2eResources() error {
 			return err
 		}
 	}
-	return waitPodsRunning(testrunner, helloservice, envoy, gloo, ingress, k8sd)
+	if err := waitPodsRunning(testrunner, helloservice, envoy, gloo, ingress, k8sd); err != nil {
+		return err
+	}
+	TestRunner("curl", "envoy:19000/logging?config=debug")
+	return nil
 }
 
 func kubectl(args ...string) error {

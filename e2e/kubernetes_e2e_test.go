@@ -53,9 +53,9 @@ var _ = Describe("Kubernetes Deployment", func() {
 			//})
 			Context("update gloo with new rules", func() {
 				randomPath := "/" + uuid.New()
-				It("responds 404 before update", func() {
-					curlEventuallyShouldRespond(randomPath, "< HTTP/1.1 404", time.Minute*15)
-				})
+				//It("responds 404 before update", func() {
+				//	curlEventuallyShouldRespond(randomPath, "< HTTP/1.1 404", time.Minute*15)
+				//})
 				It("responds 200 after update", func() {
 					_, err := gloo.V1().Upstreams().Create(&v1.Upstream{
 						Name: helloService,
@@ -68,7 +68,7 @@ var _ = Describe("Kubernetes Deployment", func() {
 					})
 					Must(err)
 					_, err = gloo.V1().VirtualHosts().Create(&v1.VirtualHost{
-						Name: "one_route",
+						Name: "one-route",
 						Routes: []*v1.Route{{
 							Matcher: &v1.Route_RequestMatcher{
 								RequestMatcher: &v1.RequestMatcher{
