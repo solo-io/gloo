@@ -3,6 +3,9 @@ package matcher
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 
+	"strings"
+
+	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/plugin"
@@ -70,6 +73,13 @@ func createRequestMatcher(requestMatcher *v1.RequestMatcher, out *envoyroute.Rou
 		out.Match.QueryParameters = append(out.Match.QueryParameters, &envoyroute.QueryParameterMatcher{
 			Name:  paramName,
 			Value: paramValue,
+		})
+	}
+	if len(requestMatcher.Verbs) > 0 {
+		out.Match.Headers = append(out.Match.Headers, &envoyroute.HeaderMatcher{
+			Name:  ":method",
+			Value: strings.Join(requestMatcher.Verbs, "|"),
+			Regex: &types.BoolValue{Value: true},
 		})
 	}
 	return nil
