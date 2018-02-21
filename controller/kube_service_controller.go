@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/util/runtime"
 	kubeinformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	kubelisters "k8s.io/client-go/listers/core/v1"
@@ -121,19 +120,14 @@ func (c *ServiceController) generateDesiredUpstreams() ([]*v1.Upstream, error) {
 		}
 
 		for _, port := range svc.Spec.Ports {
-			spec, err := kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
-				ServiceNamespace: svc.Namespace,
-				ServiceName:      svc.Name,
-				ServicePort:      fmt.Sprintf("%v", port.Port),
-			})
-			if err != nil {
-				runtime.HandleError(err)
-				continue
-			}
 			upstream := &v1.Upstream{
 				Name: upstreamName(svc.Namespace, svc.Name, port.Port),
 				Type: kubeplugin.UpstreamTypeKube,
-				Spec: spec,
+				Spec: kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
+					ServiceNamespace: svc.Namespace,
+					ServiceName:      svc.Name,
+					ServicePort:      fmt.Sprintf("%v", port.Port),
+				}),
 			}
 			upstreams = append(upstreams, upstream)
 		}

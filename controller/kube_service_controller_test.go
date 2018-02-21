@@ -106,16 +106,14 @@ var _ = Describe("Kube Service Discovery", func() {
 				}
 				Expect(err).NotTo(HaveOccurred())
 				for _, port := range service.Spec.Ports {
-					spec, err := kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
-						ServiceNamespace: namespace,
-						ServiceName:      serviceName,
-						ServicePort:      fmt.Sprintf("%v", port.Port),
-					})
-					Expect(err).NotTo(HaveOccurred())
 					expectedUpstream := &v1.Upstream{
 						Name: upstreamName(namespace, serviceName, port.Port),
 						Type: kubeplugin.UpstreamTypeKube,
-						Spec: spec,
+						Spec: kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
+							ServiceNamespace: namespace,
+							ServiceName:      serviceName,
+							ServicePort:      fmt.Sprintf("%v", port.Port),
+						}),
 					}
 					Expect(createdUpstreams).To(ContainElement(expectedUpstream))
 				}
