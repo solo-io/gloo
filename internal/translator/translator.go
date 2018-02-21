@@ -110,9 +110,14 @@ func (t *Translator) Translate(cfg *v1.Config,
 	}
 
 	// finally, the listeners
-	httpsListener, err := t.constructHttpsListener(sslListenerName, sslListenerPort, sslFilters, cfg.VirtualHosts, secrets)
+	httpsListener, err := t.constructHttpsListener(sslListenerName,
+		sslListenerPort,
+		sslFilters,
+		cfg.VirtualHosts,
+		virtualHostReports,
+		secrets)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "constructing https listener %v", nosslListenerName)
+		return nil, nil, errors.Wrapf(err, "constructing https listener %v", sslListenerName)
 	}
 	httpListener := t.constructHttpListener(nosslListenerName, nosslListenerPort, nosslFilters)
 
@@ -286,6 +291,8 @@ func (t *Translator) computeVirtualHosts(cfg *v1.Config) ([]envoyroute.VirtualHo
 	for _, virtualHost := range cfg.VirtualHosts {
 		envoyVirtualHost, err := t.computeVirtualHost(cfg.Upstreams, virtualHost)
 		if virtualHost.SslConfig != nil && virtualHost.SslConfig.SecretRef != "" {
+			// TODO: allow user to specify require ALL tls or just external
+			envoyVirtualHost.RequireTls = envoyroute.VirtualHost_ALL
 			sslVirtualHosts = append(sslVirtualHosts, envoyVirtualHost)
 		} else {
 			nosslVirtualHosts = append(nosslVirtualHosts, envoyVirtualHost)
@@ -435,6 +442,7 @@ func (t *Translator) constructHttpsListener(name string,
 	port uint32,
 	filters []envoylistener.Filter,
 	virtualHosts []*v1.VirtualHost,
+	virtualHostReports []reporter.ConfigObjectReport,
 	secrets secretwatcher.SecretMap) (*envoyapi.Listener, error) {
 
 	// create the base filter chain
@@ -445,17 +453,30 @@ func (t *Translator) constructHttpsListener(name string,
 			continue
 		}
 		ref := vhost.SslConfig.SecretRef
+		// if there is a problem with the secret ref, create / append to that vhost's error report
 		sslSecrets, ok := secrets[ref]
 		if !ok {
-			return nil, errors.Errorf("secret not found for ref %v", ref)
+			err := addErrorToReport(virtualHostReports, vhost.GetName(), errors.Errorf("secret not found for ref %v", ref))
+			if err != nil {
+				return nil, err
+			}
+			continue
 		}
 		certChain, ok := sslSecrets[sslCertificateChainKey]
 		if !ok {
-			return nil, errors.Errorf("key %v not found in secrets", sslCertificateChainKey)
+			err := addErrorToReport(virtualHostReports, vhost.GetName(), errors.Errorf("key %v not found in secrets", sslCertificateChainKey))
+			if err != nil {
+				return nil, err
+			}
+			continue
 		}
 		privateKey, ok := sslSecrets[sslPrivateKeyKey]
 		if !ok {
-			return nil, errors.Errorf("key %v not found in secrets", sslPrivateKeyKey)
+			err := addErrorToReport(virtualHostReports, vhost.GetName(), errors.Errorf("key %v not found in secrets", sslPrivateKeyKey))
+			if err != nil {
+				return nil, err
+			}
+			continue
 		}
 		filterChain := newSslFilterChain(certChain, privateKey, filters)
 		filterChains = append(filterChains, filterChain)
@@ -478,6 +499,20 @@ func (t *Translator) constructHttpsListener(name string,
 	}, nil
 }
 
+// for when a report should already exist but we want to add an error to it
+func addErrorToReport(reports []reporter.ConfigObjectReport, cfgObjName string, err error) error {
+	if err == nil {
+		return nil // should not even call this function, but just in case?
+	}
+	for i := range reports {
+		if reports[i].CfgObject.GetName() == cfgObjName {
+			reports[i].Err = multierror.Append(reports[i].Err, err)
+			return nil
+		}
+	}
+	return errors.Errorf("report not found for virtualhost %v", err)
+}
+
 func newSslFilterChain(certChain, privateKey string, filters []envoylistener.Filter) envoylistener.FilterChain {
 	return envoylistener.FilterChain{
 		Filters: filters,
@@ -485,6 +520,7 @@ func newSslFilterChain(certChain, privateKey string, filters []envoylistener.Fil
 			CommonTlsContext: &envoyauth.CommonTlsContext{
 				// default params
 				TlsParams: &envoyauth.TlsParameters{},
+				// TODO: configure client certificates
 				TlsCertificates: []*envoyauth.TlsCertificate{
 					{
 						CertificateChain: &envoycore.DataSource{

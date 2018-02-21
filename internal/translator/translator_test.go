@@ -93,6 +93,46 @@ var _ = Describe("Translator", func() {
 				Expect(listeners).To(HaveLen(2))
 			})
 		})
+		Context("with an ssl secret specified", func() {
+			cfg := ValidConfigSsl()
+			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
+			Context("the desired ssl secret not present in the secret map", func() {
+				It("returns an error for the not found secretref", func() {
+					_, reports, err := t.Translate(cfg, secretwatcher.SecretMap{}, endpointdiscovery.EndpointGroups{})
+					Expect(err).NotTo(HaveOccurred())
+					Expect(reports).To(HaveLen(2))
+					Expect(reports[0].CfgObject).To(Equal(cfg.Upstreams[0]))
+					Expect(reports[1].CfgObject).To(Equal(cfg.VirtualHosts[0]))
+					Expect(reports[0].Err).To(BeNil())
+					Expect(reports[1].Err).NotTo(BeNil())
+					Expect(reports[1].Err.Error()).To(ContainSubstring("secret not found for ref ssl-secret-ref"))
+				})
+			})
+			Context("the desired ssl secret not present in the secret map", func() {
+				It("returns an empty ssl routeconfig and a len 1 nossl routeconfig", func() {
+					snap, reports, err := t.Translate(cfg, secretwatcher.SecretMap{
+						"ssl-secret-ref": map[string]string{
+							"ca_chain":    "1111",
+							"private_key": "1111",
+						},
+					}, endpointdiscovery.EndpointGroups{})
+					Expect(err).NotTo(HaveOccurred())
+					Expect(reports).To(HaveLen(2))
+					Expect(reports[0].CfgObject).To(Equal(cfg.Upstreams[0]))
+					Expect(reports[1].CfgObject).To(Equal(cfg.VirtualHosts[0]))
+					Expect(reports[0].Err).To(BeNil())
+					Expect(reports[1].Err).To(BeNil())
+					clas, clusters, routeConfigs, listeners := getSnapshotResources(snap)
+					Expect(clas).To(HaveLen(0))
+					Expect(clusters).To(HaveLen(1))
+					Expect(routeConfigs).To(HaveLen(2))
+					Expect(routeConfigs[0].VirtualHosts).To(HaveLen(0))
+					Expect(routeConfigs[1].VirtualHosts).To(HaveLen(1))
+					Expect(routeConfigs[1].VirtualHosts[0].RequireTls).To(Equal(envoyroute.VirtualHost_ALL))
+					Expect(listeners).To(HaveLen(2))
+				})
+			})
+		})
 	})
 })
 
@@ -173,6 +213,69 @@ func ValidConfigNoSsl() *v1.Config {
 						},
 					}),
 				},
+			},
+		},
+	}
+	return &v1.Config{
+		Upstreams:    upstreams,
+		VirtualHosts: virtualhosts,
+	}
+}
+
+func ValidConfigSsl() *v1.Config {
+	upstreams := []*v1.Upstream{
+		{
+			Name: "valid-service",
+			Type: service.UpstreamTypeService,
+			Spec: service.EncodeUpstreamSpec(service.UpstreamSpec{
+				Hosts: []service.Host{
+					{
+						Addr: "localhost",
+						Port: 1234,
+					},
+				},
+			}),
+		},
+	}
+	virtualhosts := []*v1.VirtualHost{
+		{
+			Name: "valid-vhost",
+			Routes: []*v1.Route{
+				{
+					Matcher: &v1.Route_RequestMatcher{
+						RequestMatcher: &v1.RequestMatcher{
+							Path: &v1.RequestMatcher_PathPrefix{
+								PathPrefix: "/foo",
+							},
+							Headers: map[string]string{"x-foo-bar": ""},
+							Verbs:   []string{"GET", "POST"},
+						},
+					},
+					SingleDestination: &v1.Destination{
+						DestinationType: &v1.Destination_Upstream{
+							Upstream: &v1.UpstreamDestination{
+								Name: "valid-service",
+							},
+						},
+					},
+					Extensions: extensions.EncodeUpstreamSpec(extensions.RouteExtensionSpec{
+						MaxRetries:    2,
+						Timeout:       time.Minute,
+						PrefixRewrite: "/bar",
+						AddRequestHeaders: []extensions.HeaderValue{
+							{Key: "x-foo", Value: "bar"},
+						},
+						AddResponseHeaders: []extensions.HeaderValue{
+							{Key: "x-foo", Value: "bar"},
+						},
+						RemoveResponseHeaders: []string{
+							"x-bar",
+						},
+					}),
+				},
+			},
+			SslConfig: &v1.SSLConfig{
+				SecretRef: "ssl-secret-ref",
 			},
 		},
 	}
