@@ -158,9 +158,7 @@ func (mkb *MinikubeInstance) buildContainers() error {
 		cmd.Dir = path
 		cmd.Stdout = os.Stderr
 		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			log.Printf("warn: %v", err)
-		}
+		cmd.Run()
 	}
 	return nil
 }
