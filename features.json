@@ -3,5 +3,9 @@
         "name": "aws_lambda",
         "gloo": "aws",
         "envoy": "aws/envoy"
+    },
+    {
+        "name": "kubernetes",
+        "gloo": "kubernetes"
     }
 ]
