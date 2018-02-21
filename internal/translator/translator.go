@@ -372,7 +372,7 @@ func validateSingleDestination(upstreamsAndTheirFunctions map[string][]string, d
 func validateUpstreamDestination(upstreamsAndTheirFunctions map[string][]string, upstreamDestination *v1.Destination_Upstream) error {
 	upstreamName := upstreamDestination.Upstream.Name
 	if _, ok := upstreamsAndTheirFunctions[upstreamName]; !ok {
-		return errors.Errorf("upstream %v was not found for function destination", upstreamName)
+		return errors.Errorf("upstream %v was not found for upstream destination", upstreamName)
 	}
 	return nil
 }
