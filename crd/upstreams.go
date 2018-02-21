@@ -4,10 +4,10 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-storage"
 	crdclientset "github.com/solo-io/gloo-storage/crd/client/clientset/versioned"
 	crdv1 "github.com/solo-io/gloo-storage/crd/solo.io/v1"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
