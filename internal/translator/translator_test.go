@@ -1,6 +1,7 @@
 package translator_test
 
 import (
+	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	. "github.com/solo-io/gloo/internal/translator"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
@@ -26,15 +27,19 @@ var _ = Describe("Translator", func() {
 		Context("with missing plugin for function", func() {
 			cfg := InvalidConfigNoFuncPlugin()
 			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
-			It("returns report for the error", func() {
-				snap, reports, err := t.Translate(cfg, secretwatcher.SecretMap{}, endpointdiscovery.EndpointGroups{})
+			snap, reports, err := t.Translate(cfg, secretwatcher.SecretMap{}, endpointdiscovery.EndpointGroups{})
+			It("returns two reports, one for the upstream, one for the virtualhost", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(reports).To(HaveLen(2))
 				Expect(reports[0].CfgObject).To(Equal(cfg.Upstreams[0]))
+				Expect(reports[1].CfgObject).To(Equal(cfg.VirtualHosts[0]))
+			})
+			It("returns report for the error", func() {
 				Expect(reports[0].Err).NotTo(BeNil())
 				Expect(reports[1].Err).To(BeNil())
 				Expect(reports[0].Err.Error()).To(ContainSubstring("plugin not found"))
-				Expect(reports[1].CfgObject).To(Equal(cfg.VirtualHosts[0]))
+			})
+			It("returns the expected resources", func() {
 				clas, clusters, routeConfigs, listeners := getSnapshotResources(snap)
 				Expect(clas).To(HaveLen(0))
 				Expect(clusters).To(HaveLen(1))
@@ -61,6 +66,29 @@ var _ = Describe("Translator", func() {
 				Expect(clusters).To(HaveLen(1))
 				Expect(routeConfigs).To(HaveLen(2))
 				Expect(routeConfigs[0].VirtualHosts).To(HaveLen(1))
+				Expect(routeConfigs[1].VirtualHosts).To(HaveLen(0))
+				Expect(listeners).To(HaveLen(2))
+			})
+		})
+	})
+	Context("valid config", func() {
+		Context("with no ssl vhosts", func() {
+			cfg := ValidConfigNoSsl()
+			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
+			It("returns an empty ssl routeconfig and a len 1 nossl routeconfig", func() {
+				snap, reports, err := t.Translate(cfg, secretwatcher.SecretMap{}, endpointdiscovery.EndpointGroups{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(reports).To(HaveLen(2))
+				Expect(reports[0].CfgObject).To(Equal(cfg.Upstreams[0]))
+				Expect(reports[1].CfgObject).To(Equal(cfg.VirtualHosts[0]))
+				Expect(reports[0].Err).To(BeNil())
+				Expect(reports[1].Err).To(BeNil())
+				clas, clusters, routeConfigs, listeners := getSnapshotResources(snap)
+				Expect(clas).To(HaveLen(0))
+				Expect(clusters).To(HaveLen(1))
+				Expect(routeConfigs).To(HaveLen(2))
+				Expect(routeConfigs[0].VirtualHosts).To(HaveLen(1))
+				Expect(routeConfigs[0].VirtualHosts[0].RequireTls).To(Equal(envoyroute.VirtualHost_NONE))
 				Expect(routeConfigs[1].VirtualHosts).To(HaveLen(0))
 				Expect(listeners).To(HaveLen(2))
 			})
@@ -94,7 +122,7 @@ func getSnapshotResources(snap *envoycache.Snapshot) ([]*v2.ClusterLoadAssignmen
 	return clas, clusters, routeConfigs, listeners
 }
 
-func ValidConfig() *v1.Config {
+func ValidConfigNoSsl() *v1.Config {
 	upstreams := []*v1.Upstream{
 		{
 			Name: "valid-service",
@@ -107,11 +135,6 @@ func ValidConfig() *v1.Config {
 					},
 				},
 			}),
-			Functions: []*v1.Function{
-				{
-					Name: "valid-func",
-				},
-			},
 		},
 	}
 	virtualhosts := []*v1.VirtualHost{
@@ -129,10 +152,9 @@ func ValidConfig() *v1.Config {
 						},
 					},
 					SingleDestination: &v1.Destination{
-						DestinationType: &v1.Destination_Function{
-							Function: &v1.FunctionDestination{
-								FunctionName: "valid-func",
-								UpstreamName: "valid-service",
+						DestinationType: &v1.Destination_Upstream{
+							Upstream: &v1.UpstreamDestination{
+								Name: "valid-service",
 							},
 						},
 					},
