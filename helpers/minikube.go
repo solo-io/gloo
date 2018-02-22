@@ -14,13 +14,15 @@ import (
 // minikube.go provides helper methods for running tests on minikube
 
 const (
-	testrunner    = "testrunner"
-	helloservice  = "helloservice"
-	helloservice2 = "helloservice-2"
-	envoy         = "envoy"
-	gloo          = "gloo"
-	ingress       = "gloo-ingress"
-	k8sd          = "gloo-k8s-service-discovery"
+	testrunner        = "testrunner"
+	helloservice      = "helloservice"
+	helloservice2     = "helloservice-2"
+	envoy             = "envoy"
+	gloo              = "gloo"
+	ingress           = "gloo-ingress"
+	k8sd              = "gloo-k8s-service-discovery"
+	upstreamForEvents = "upstream-for-events"
+	eventEmitter      = "event-emitter"
 )
 
 // ErrMinikubeNotInstalled indicates minikube binary is not found
@@ -149,6 +151,8 @@ func (mkb *MinikubeInstance) buildContainers() error {
 		filepath.Join(SoloDirectory(), "gloo-k8s-service-discovery"),
 		filepath.Join(E2eDirectory(), "containers", "helloservice"),
 		filepath.Join(E2eDirectory(), "containers", "testrunner"),
+		filepath.Join(E2eDirectory(), "containers", "event-emitter"),
+		filepath.Join(E2eDirectory(), "containers", "upstream-for-events"),
 	} {
 		log.Debugf("TEST: building container %v", filepath.Base(path))
 		cmd := exec.Command("make", "docker")
@@ -193,6 +197,10 @@ func (mkb *MinikubeInstance) createE2eResources() error {
 		"helloservice-2-deployment.yml",
 		"helloservice-2-service.yml",
 
+		"event-emitter-deployment.yml",
+		"event-upstream-deployment.yml",
+		"event-upstream-service.yml",
+
 		"test-runner-pod.yml",
 	}
 	for _, resource := range resources {
@@ -200,7 +208,15 @@ func (mkb *MinikubeInstance) createE2eResources() error {
 			return err
 		}
 	}
-	if err := waitPodsRunning(testrunner, helloservice, helloservice2, envoy, gloo, ingress, k8sd); err != nil {
+	if err := waitPodsRunning(testrunner,
+		helloservice,
+		helloservice2,
+		envoy,
+		gloo,
+		ingress,
+		k8sd,
+		upstreamForEvents,
+		eventEmitter); err != nil {
 		return err
 	}
 	TestRunner("curl", "envoy:19000/logging?config=debug")
@@ -236,7 +252,15 @@ func (mkb *MinikubeInstance) deleteE2eResources() error {
 	if err := kubectl("delete", "-f", filepath.Join(kubeResourcesDir, "test-runner-pod.yml"), "--force"); err != nil {
 		return err
 	}
-	return waitPodsTerminated(testrunner, helloservice, helloservice2, envoy, gloo, ingress, k8sd)
+	return waitPodsTerminated(testrunner,
+		helloservice,
+		helloservice2,
+		envoy,
+		gloo,
+		ingress,
+		k8sd,
+		upstreamForEvents,
+		eventEmitter)
 }
 
 // DeleteContext deletes the context from the kubeconfig

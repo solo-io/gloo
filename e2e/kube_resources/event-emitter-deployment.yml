@@ -1,0 +1,24 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: event-emitter
+  name: event-emitter
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: event-emitter
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: event-emitter
+    spec:
+      containers:
+      - image: solo-io/event-emitter:v0.1
+        imagePullPolicy: Never
+        name: event-emitter
+        ports:
+        - containerPort: 8080
+          name: http
