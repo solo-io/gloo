@@ -20,11 +20,13 @@ func UpstreamToCrd(namespace string, upstream *v1.Upstream) (*crdv1.Upstream, er
 		}
 	}
 	var resourceVersion string
+	var annotations map[string]string
 	if upstream.Metadata != nil {
 		resourceVersion = upstream.Metadata.ResourceVersion
 		if upstream.Metadata.Namespace != "" {
 			namespace = upstream.Metadata.Namespace
 		}
+		annotations = upstream.Metadata.Annotations
 	}
 
 	// clone and remove fields
@@ -47,6 +49,7 @@ func UpstreamToCrd(namespace string, upstream *v1.Upstream) (*crdv1.Upstream, er
 			Name:            name,
 			Namespace:       namespace,
 			ResourceVersion: resourceVersion,
+			Annotations:     annotations,
 		},
 		Status: status,
 		Spec:   &copySpec,
@@ -66,6 +69,7 @@ func UpstreamFromCrd(upstreamCrd *crdv1.Upstream) (*v1.Upstream, error) {
 	upstream.Metadata = &v1.Metadata{
 		ResourceVersion: upstreamCrd.ResourceVersion,
 		Namespace:       upstreamCrd.Namespace,
+		Annotations:     upstreamCrd.Annotations,
 	}
 	upstream.Status = upstreamCrd.Status
 	return &upstream, nil
@@ -82,11 +86,13 @@ func VirtualHostToCrd(namespace string, virtualHost *v1.VirtualHost) (*crdv1.Vir
 		}
 	}
 	var resourceVersion string
+	var annotations map[string]string
 	if virtualHost.Metadata != nil {
 		resourceVersion = virtualHost.Metadata.ResourceVersion
 		if virtualHost.Metadata.Namespace != "" {
 			namespace = virtualHost.Metadata.Namespace
 		}
+		annotations = virtualHost.Metadata.Annotations
 	}
 
 	// clone and remove fields
@@ -109,6 +115,7 @@ func VirtualHostToCrd(namespace string, virtualHost *v1.VirtualHost) (*crdv1.Vir
 			Name:            name,
 			Namespace:       namespace,
 			ResourceVersion: resourceVersion,
+			Annotations:     annotations,
 		},
 		Status: status,
 		Spec:   &copySpec,
@@ -128,6 +135,7 @@ func VirtualHostFromCrd(vHostCrd *crdv1.VirtualHost) (*v1.VirtualHost, error) {
 	virtualHost.Metadata = &v1.Metadata{
 		ResourceVersion: vHostCrd.ResourceVersion,
 		Namespace:       vHostCrd.Namespace,
+		Annotations:     vHostCrd.Annotations,
 	}
 	virtualHost.Status = vHostCrd.Status
 	return &virtualHost, nil

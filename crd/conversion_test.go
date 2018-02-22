@@ -14,16 +14,22 @@ var _ = Describe("Conversion", func() {
 	Describe("UpstreamToCrd", func() {
 		It("Converts a gloo upstream to crd", func() {
 			us := helpers.NewTestUpstream1()
+			annotations := map[string]string{"foo": "bar"}
+			us.Metadata = &v1.Metadata{
+				Annotations: annotations,
+			}
 			upCrd, err := UpstreamToCrd("foo", us)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(upCrd.Name).To(Equal(us.Name))
 			Expect(upCrd.Namespace).To(Equal("foo"))
+			Expect(upCrd.Annotations).To(Equal(annotations))
 			Expect(upCrd.Spec).NotTo(BeNil())
 			spec := *upCrd.Spec
 			// removed parts
 			Expect(spec["name"]).To(BeNil())
 			Expect(spec["metadata"]).To(BeNil())
 			Expect(spec["status"]).To(BeNil())
+			Expect(spec["annotations"]).To(BeNil())
 
 			// shifted parts
 			Expect(spec["type"]).To(Equal(us.Type))
@@ -45,16 +51,22 @@ var _ = Describe("Conversion", func() {
 	Describe("VirtualhostToCrd", func() {
 		It("Converts a gloo virtualhost to crd", func() {
 			vHost := helpers.NewTestVirtualHost("foo", helpers.NewTestRoute1())
+			annotations := map[string]string{"foo": "bar"}
+			vHost.Metadata = &v1.Metadata{
+				Annotations: annotations,
+			}
 			vhCrd, err := VirtualHostToCrd("foo", vHost)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(vhCrd.Name).To(Equal(vHost.Name))
 			Expect(vhCrd.Namespace).To(Equal("foo"))
 			Expect(vhCrd.Spec).NotTo(BeNil())
+			Expect(vhCrd.Annotations).To(Equal(annotations))
 			spec := *vhCrd.Spec
 			// removed parts
 			Expect(spec["name"]).To(BeNil())
 			Expect(spec["metadata"]).To(BeNil())
 			Expect(spec["status"]).To(BeNil())
+			Expect(spec["annotations"]).To(BeNil())
 
 			//// shifted parts
 			vhostMap, err := protoutil.MarshalMap(vHost)
@@ -65,6 +77,10 @@ var _ = Describe("Conversion", func() {
 	Describe("VirtualhostFromCrd", func() {
 		It("Converts a gloo virtualhost to crd", func() {
 			vHost := helpers.NewTestVirtualHost("foo", helpers.NewTestRoute1())
+			annotations := map[string]string{"foo": "bar"}
+			vHost.Metadata = &v1.Metadata{
+				Annotations: annotations,
+			}
 			vhCrd, err := VirtualHostToCrd("foo", vHost)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(vhCrd.Name).To(Equal(vHost.Name))
@@ -86,6 +102,7 @@ var _ = Describe("Conversion", func() {
 			vHost.Metadata = &v1.Metadata{
 				ResourceVersion: vhCrd.ResourceVersion,
 				Namespace:       vhCrd.Namespace,
+				Annotations:     annotations,
 			}
 			Expect(err).To(BeNil())
 			Expect(outVhost).To(Equal(vHost))

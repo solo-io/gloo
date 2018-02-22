@@ -89,6 +89,13 @@ func (c *upstreamsClient) createOrUpdateUpstreamCrd(upstream *v1.Upstream, op cr
 			return nil, errors.Wrap(err, "kubernetes create api request")
 		}
 	case crud.OperationUpdate:
+		// need to make sure we preserve labels and annotations
+		currentCrd, err := upstreams.Get(upstreamCrd.Name, metav1.GetOptions{ResourceVersion: upstreamCrd.ResourceVersion})
+		if err != nil {
+			return nil, errors.Wrap(err, "kubernetes get api request")
+		}
+		// copy labels
+		upstreamCrd.Labels = currentCrd.Labels
 		returnedCrd, err = upstreams.Update(upstreamCrd)
 		if err != nil {
 			return nil, errors.Wrap(err, "kubernetes update api request")

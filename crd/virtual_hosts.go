@@ -89,6 +89,13 @@ func (c *virtualHostsClient) createOrUpdateVirtualHostCrd(virtualHost *v1.Virtua
 			return nil, errors.Wrap(err, "kubernetes create api request")
 		}
 	case crud.OperationUpdate:
+		// need to make sure we preserve labels and annotations
+		currentCrd, err := vhosts.Get(vhostCrd.Name, metav1.GetOptions{ResourceVersion: vhostCrd.ResourceVersion})
+		if err != nil {
+			return nil, errors.Wrap(err, "kubernetes get api request")
+		}
+		// copy labels
+		vhostCrd.Labels = currentCrd.Labels
 		returnedCrd, err = vhosts.Update(vhostCrd)
 		if err != nil {
 			return nil, errors.Wrap(err, "kubernetes update api request")
