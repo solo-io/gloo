@@ -111,10 +111,14 @@ var _ = Describe("KubeIngressController", func() {
 			var (
 				createdIngress *v1beta1.Ingress
 				err            error
+				serviceName    = "somethingsomethingsomething"
+				servicePort    = intstr.FromInt(8080)
+				defaultBackend = &v1beta1.IngressBackend{
+					ServiceName: serviceName,
+					ServicePort: servicePort,
+				}
 			)
 			BeforeEach(func() {
-				serviceName := "somethingsomethingsomething"
-				servicePort := intstr.FromInt(8080)
 
 				// add an ingress
 				ingress := &v1beta1.Ingress{
@@ -124,10 +128,7 @@ var _ = Describe("KubeIngressController", func() {
 						Annotations:  map[string]string{"kubernetes.io/ingress.class": GlooIngressClass},
 					},
 					Spec: v1beta1.IngressSpec{
-						Backend: &v1beta1.IngressBackend{
-							ServiceName: serviceName,
-							ServicePort: servicePort,
-						},
+						Backend: defaultBackend,
 					},
 				}
 				createdIngress, err = kubeClient.ExtensionsV1beta1().Ingresses(namespace).Create(ingress)
@@ -178,6 +179,16 @@ var _ = Describe("KubeIngressController", func() {
 				// have to set metadata
 				glooVirtualHost.Metadata = virtualHost.Metadata
 				Expect(virtualHost).To(Equal(glooVirtualHost))
+			})
+			It("creates an upstream for the ingress backend", func() {
+				expectedUpstream := ingressCtl.newUpstreamFromBackend(namespace, *defaultBackend)
+				upstreamList, err := glooClient.V1().Upstreams().List()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(upstreamList).To(HaveLen(1))
+				actualUpstream := upstreamList[0]
+				// have to set metadata
+				expectedUpstream.Metadata = actualUpstream.Metadata
+				Expect(actualUpstream).To(Equal(expectedUpstream))
 			})
 		})
 		Context("an ingress is created with multiple rules", func() {

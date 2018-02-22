@@ -17,6 +17,7 @@ import (
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
 
+	"github.com/pborman/uuid"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/kubecontroller"
@@ -30,6 +31,8 @@ const (
 	defaultVirtualHost = "default"
 
 	GlooIngressClass = "gloo"
+
+	ingressAnnotationKey = "generated_by"
 )
 
 type IngressController struct {
@@ -39,6 +42,9 @@ type IngressController struct {
 	ingressLister v1beta1listers.IngressLister
 	configObjects storage.Interface
 	runFunc       func(stop <-chan struct{})
+	// just a random uuid used to mark
+	// resources created by us as "ours"
+	generatedBy string
 }
 
 func NewIngressController(cfg *rest.Config,
@@ -64,10 +70,11 @@ func NewIngressController(cfg *rest.Config,
 
 		ingressLister: ingressInformer.Lister(),
 		configObjects: configStore,
+		generatedBy:   uuid.New(),
 	}
 
 	kubeController := kubecontroller.NewController("gloo-ingress-controller", kubeClient,
-		kubecontroller.NewSyncHandler(c.syncGlooResourcesWithIngresses),
+		kubecontroller.NewLockingSyncHandler(c.syncGlooResourcesWithIngresses),
 		ingressInformer.Informer())
 
 	c.runFunc = func(stop <-chan struct{}) {
@@ -117,11 +124,25 @@ func (c *IngressController) getActualResources() ([]*v1.Upstream, []*v1.VirtualH
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get upstream crd list: %v", err)
 	}
+	var ourUpstreams []*v1.Upstream
+	for _, us := range upstreams {
+		if us.Metadata != nil && us.Metadata.Annotations[ingressAnnotationKey] == c.generatedBy {
+			// our upstream, we supervise it
+			ourUpstreams = append(ourUpstreams, us)
+		}
+	}
 	virtualHosts, err := c.configObjects.V1().VirtualHosts().List()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get virtual host crd list: %v", err)
 	}
-	return upstreams, virtualHosts, nil
+	var ourVhosts []*v1.VirtualHost
+	for _, vhost := range virtualHosts {
+		if vhost.Metadata != nil && vhost.Metadata.Annotations[ingressAnnotationKey] == c.generatedBy {
+			// our vhost, we supervise it
+			ourVhosts = append(ourVhosts, vhost)
+		}
+	}
+	return ourUpstreams, ourVhosts, nil
 }
 
 func (c *IngressController) generateDesiredResources() ([]*v1.Upstream, []*v1.VirtualHost, error) {
@@ -152,7 +173,7 @@ func (c *IngressController) generateDesiredResources() ([]*v1.Upstream, []*v1.Vi
 		}
 		// default virtualhost
 		if ingress.Spec.Backend != nil {
-			us := newUpstreamFromBackend(ingress.Namespace, *ingress.Spec.Backend)
+			us := c.newUpstreamFromBackend(ingress.Namespace, *ingress.Spec.Backend)
 			if _, ok := routesByHostName[defaultVirtualHost]; ok {
 				runtime.HandleError(errors.Errorf("default backend was redefined in ingress %v, ignoring", ingress.Name))
 			} else {
@@ -174,10 +195,12 @@ func (c *IngressController) generateDesiredResources() ([]*v1.Upstream, []*v1.Vi
 						},
 					},
 				}
+				// add upstream for default backend
+				upstreamsByName[us.Name] = us
 			}
 		}
 		for _, rule := range ingress.Spec.Rules {
-			addRoutesAndUpstreams(ingress.Namespace, rule, upstreamsByName, routesByHostName)
+			c.addRoutesAndUpstreams(ingress.Namespace, rule, upstreamsByName, routesByHostName)
 		}
 	}
 	uniqueVirtualHosts := make(map[string]*v1.VirtualHost)
@@ -198,6 +221,12 @@ func (c *IngressController) generateDesiredResources() ([]*v1.Upstream, []*v1.Vi
 			Domains:   domains,
 			Routes:    routes,
 			SslConfig: sslsByHostName[host],
+			// mark the virtualhost as ours
+			Metadata: &v1.Metadata{
+				Annotations: map[string]string{
+					ingressAnnotationKey: c.generatedBy,
+				},
+			},
 		}
 	}
 	var (
@@ -338,12 +367,12 @@ func (c *IngressController) syncVirtualHosts(desiredVirtualHosts, actualVirtualH
 	return nil
 }
 
-func addRoutesAndUpstreams(namespace string, rule v1beta1.IngressRule, upstreams map[string]*v1.Upstream, routes map[string][]*v1.Route) {
+func (c *IngressController) addRoutesAndUpstreams(namespace string, rule v1beta1.IngressRule, upstreams map[string]*v1.Upstream, routes map[string][]*v1.Route) {
 	if rule.HTTP == nil {
 		return
 	}
 	for _, path := range rule.HTTP.Paths {
-		generatedUpstream := newUpstreamFromBackend(namespace, path.Backend)
+		generatedUpstream := c.newUpstreamFromBackend(namespace, path.Backend)
 		upstreams[generatedUpstream.Name] = generatedUpstream
 		host := rule.Host
 		if host == "" {
@@ -368,7 +397,7 @@ func addRoutesAndUpstreams(namespace string, rule v1beta1.IngressRule, upstreams
 	}
 }
 
-func newUpstreamFromBackend(namespace string, backend v1beta1.IngressBackend) *v1.Upstream {
+func (c *IngressController) newUpstreamFromBackend(namespace string, backend v1beta1.IngressBackend) *v1.Upstream {
 	return &v1.Upstream{
 		Name: upstreamName(namespace, backend),
 		Type: kubeplugin.UpstreamTypeKube,
@@ -377,6 +406,12 @@ func newUpstreamFromBackend(namespace string, backend v1beta1.IngressBackend) *v
 			ServiceNamespace: namespace,
 			ServicePort:      backend.ServicePort.String(),
 		}),
+		// mark the upstream as ours
+		Metadata: &v1.Metadata{
+			Annotations: map[string]string{
+				ingressAnnotationKey: c.generatedBy,
+			},
+		},
 	}
 }
 
