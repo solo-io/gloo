@@ -65,10 +65,10 @@ func (c *upstreamsClient) List() ([]*v1.Upstream, error) {
 }
 
 func (u *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*storage.Watcher, error) {
-	lw := cache.NewListWatchFromClient(u.crds.GlooV1().RESTClient(), crdv1.UpstreamCRD.Plural, metav1.NamespaceAll, fields.Everything())
+	lw := cache.NewListWatchFromClient(u.crds.GlooV1().RESTClient(), crdv1.UpstreamCRD.Plural, u.namespace, fields.Everything())
 	sw := cache.NewSharedInformer(lw, new(crdv1.Upstream), u.syncFrequency)
 	for _, h := range handlers {
-		sw.AddEventHandler(&upstreamEventHandler{handler: h, store: sw.GetStore(), namespace: u.namespace})
+		sw.AddEventHandler(&upstreamEventHandler{handler: h, store: sw.GetStore()})
 	}
 	return storage.NewWatcher(func(stop <-chan struct{}, _ chan error) {
 		sw.Run(stop)
@@ -110,9 +110,8 @@ func (c *upstreamsClient) createOrUpdateUpstreamCrd(upstream *v1.Upstream, op cr
 
 // implements the kubernetes ResourceEventHandler interface
 type upstreamEventHandler struct {
-	namespace string
-	handler   storage.UpstreamEventHandler
-	store     cache.Store
+	handler storage.UpstreamEventHandler
+	store   cache.Store
 }
 
 func (eh *upstreamEventHandler) getUpdatedList() []*v1.Upstream {
@@ -121,9 +120,6 @@ func (eh *upstreamEventHandler) getUpdatedList() []*v1.Upstream {
 	for _, updated := range updatedList {
 		usCrd, ok := updated.(*crdv1.Upstream)
 		if !ok {
-			continue
-		}
-		if usCrd.Namespace != eh.namespace {
 			continue
 		}
 		updatedUpstream, err := UpstreamFromCrd(usCrd)

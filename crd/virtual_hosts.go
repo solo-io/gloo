@@ -65,10 +65,10 @@ func (v *virtualHostsClient) List() ([]*v1.VirtualHost, error) {
 }
 
 func (v *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) (*storage.Watcher, error) {
-	lw := cache.NewListWatchFromClient(v.crds.GlooV1().RESTClient(), crdv1.VirtualHostCRD.Plural, metav1.NamespaceAll, fields.Everything())
+	lw := cache.NewListWatchFromClient(v.crds.GlooV1().RESTClient(), crdv1.VirtualHostCRD.Plural, v.namespace, fields.Everything())
 	sw := cache.NewSharedInformer(lw, new(crdv1.VirtualHost), v.syncFrequency)
 	for _, h := range handlers {
-		sw.AddEventHandler(&virtualHostEventHandler{handler: h, store: sw.GetStore(), namespace: v.namespace})
+		sw.AddEventHandler(&virtualHostEventHandler{handler: h, store: sw.GetStore()})
 	}
 	return storage.NewWatcher(func(stop <-chan struct{}, _ chan error) {
 		sw.Run(stop)
@@ -110,9 +110,8 @@ func (v *virtualHostsClient) createOrUpdateVirtualHostCrd(virtualHost *v1.Virtua
 
 // implements the kubernetes ResourceEventHandler interface
 type virtualHostEventHandler struct {
-	namespace string
-	handler   storage.VirtualHostEventHandler
-	store     cache.Store
+	handler storage.VirtualHostEventHandler
+	store   cache.Store
 }
 
 func (eh *virtualHostEventHandler) getUpdatedList() []*v1.VirtualHost {
@@ -121,9 +120,6 @@ func (eh *virtualHostEventHandler) getUpdatedList() []*v1.VirtualHost {
 	for _, updated := range updatedList {
 		vhCrd, ok := updated.(*crdv1.VirtualHost)
 		if !ok {
-			continue
-		}
-		if vhCrd.Namespace != eh.namespace {
 			continue
 		}
 		updatedVirtualHost, err := VirtualHostFromCrd(vhCrd)
@@ -138,7 +134,7 @@ func (eh *virtualHostEventHandler) getUpdatedList() []*v1.VirtualHost {
 func convertVh(obj interface{}) (*v1.VirtualHost, bool) {
 	vhCrd, ok := obj.(*crdv1.VirtualHost)
 	if !ok {
-		return nil, ok
+		return nil, false
 	}
 	vh, err := VirtualHostFromCrd(vhCrd)
 	if err != nil {
