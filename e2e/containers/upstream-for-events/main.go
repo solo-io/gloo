@@ -11,7 +11,7 @@ import (
 type handler struct{}
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	go logRequest(r)
+	logRequest(r)
 	w.Header().Set("Content-Type", "application/text")
 	if _, err := w.Write([]byte("accepted event")); err != nil {
 		log.Printf("err: %v", err)
