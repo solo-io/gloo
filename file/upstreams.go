@@ -43,7 +43,7 @@ func (c *upstreamsClient) Create(item *v1.Upstream) (*v1.Upstream, error) {
 	// error if exists already
 	for file, existingUps := range upstreamFiles {
 		if existingUps.Name == item.Name {
-			return nil, errors.Errorf("upstream %v already defined in %s", item.Name, file)
+			return nil, storage.NewAlreadyExistsErr(errors.Errorf("upstream %v already defined in %s", item.Name, file))
 		}
 	}
 	filename := filepath.Join(c.dir, item.Name+".yml")

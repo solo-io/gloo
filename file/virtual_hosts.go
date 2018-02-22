@@ -41,7 +41,7 @@ func (c *virtualHostsClient) Create(item *v1.VirtualHost) (*v1.VirtualHost, erro
 	// error if exists already
 	for file, existingUps := range virtualHostFiles {
 		if existingUps.Name == item.Name {
-			return nil, errors.Errorf("virtualHost %v already defined in %s", item.Name, file)
+			return nil, storage.NewAlreadyExistsErr(errors.Errorf("virtualHost %v already defined in %s", item.Name, file))
 		}
 	}
 	filename := filepath.Join(c.dir, item.Name+".yml")

@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 
 	"github.com/solo-io/gloo-storage/internal/crud"
+	kuberrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -85,9 +86,11 @@ func (v *virtualHostsClient) createOrUpdateVirtualHostCrd(virtualHost *v1.Virtua
 	switch op {
 	case crud.OperationCreate:
 		returnedCrd, err = vhosts.Create(vhostCrd)
-		if err != nil {
-			return nil, errors.Wrap(err, "kubernetes create api request")
+		err = errors.Wrap(err, "kubernetes create api request")
+		if kuberrs.IsAlreadyExists(err) {
+			return nil, storage.NewAlreadyExistsErr(err)
 		}
+		return nil, err
 	case crud.OperationUpdate:
 		// need to make sure we preserve labels and annotations
 		currentCrd, err := vhosts.Get(vhostCrd.Name, metav1.GetOptions{ResourceVersion: vhostCrd.ResourceVersion})

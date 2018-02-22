@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 
 	"github.com/solo-io/gloo-storage/internal/crud"
+	kuberrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -86,10 +87,14 @@ func (c *upstreamsClient) createOrUpdateUpstreamCrd(upstream *v1.Upstream, op cr
 	case crud.OperationCreate:
 		returnedCrd, err = upstreams.Create(upstreamCrd)
 		if err != nil {
-			return nil, errors.Wrap(err, "kubernetes create api request")
+			err = errors.Wrap(err, "kubernetes create api request")
+			if kuberrs.IsAlreadyExists(err) {
+				return nil, storage.NewAlreadyExistsErr(err)
+			}
+			return nil, err
 		}
 	case crud.OperationUpdate:
-		// need to make sure we preserve labels and annotations
+		// need to make sure we preserve labels
 		currentCrd, err := upstreams.Get(upstreamCrd.Name, metav1.GetOptions{ResourceVersion: upstreamCrd.ResourceVersion})
 		if err != nil {
 			return nil, errors.Wrap(err, "kubernetes get api request")
