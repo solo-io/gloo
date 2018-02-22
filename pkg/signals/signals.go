@@ -5,6 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"time"
+
 	"github.com/solo-io/gloo/pkg/log"
 )
 
@@ -26,7 +28,11 @@ func SetupSignalHandler() (stopCh <-chan struct{}) {
 		<-c
 		log.Printf("stop signal received, shutting down gracefully. ctr+c again to exit immediately")
 		close(stop)
-		<-c
+		//TODO: investigate why stop is not immediate
+		select {
+		case <-time.After(time.Second):
+		case <-c:
+		}
 		os.Exit(1) // second signal. Exit directly.
 	}()
 
