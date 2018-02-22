@@ -11,6 +11,7 @@ import (
 	kubelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 
+	"github.com/pborman/uuid"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/gloo-storage"
@@ -23,6 +24,8 @@ const (
 	upstreamPrefix = resourcePrefix + "-upstream"
 
 	kubeSystemNamespace = "kube-system"
+
+	ownerAnnotationKey = "generated_by"
 )
 
 type ServiceController struct {
@@ -31,6 +34,8 @@ type ServiceController struct {
 	serviceLister kubelisters.ServiceLister
 	upstreams     storage.Interface
 	runFunc       func(stop <-chan struct{})
+
+	generatedBy string
 }
 
 func NewServiceController(cfg *rest.Config,
@@ -54,6 +59,7 @@ func NewServiceController(cfg *rest.Config,
 
 		serviceLister: serviceInformer.Lister(),
 		upstreams:     configStore,
+		generatedBy:   uuid.New(),
 	}
 
 	kubeController := kubecontroller.NewController("gloo-service-discovery", kubeClient,
@@ -104,7 +110,14 @@ func (c *ServiceController) getActualUpstreams() ([]*v1.Upstream, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get upstream crd list: %v", err)
 	}
-	return upstreams, nil
+	var ourUpstreams []*v1.Upstream
+	for _, us := range upstreams {
+		if us.Metadata != nil && us.Metadata.Annotations[ownerAnnotationKey] == c.generatedBy {
+			// our upstream, we supervise it
+			ourUpstreams = append(ourUpstreams, us)
+		}
+	}
+	return ourUpstreams, nil
 }
 
 func (c *ServiceController) generateDesiredUpstreams() ([]*v1.Upstream, error) {
@@ -128,6 +141,12 @@ func (c *ServiceController) generateDesiredUpstreams() ([]*v1.Upstream, error) {
 					ServiceName:      svc.Name,
 					ServicePort:      fmt.Sprintf("%v", port.Port),
 				}),
+				// mark the upstream as ours
+				Metadata: &v1.Metadata{
+					Annotations: map[string]string{
+						ownerAnnotationKey: c.generatedBy,
+					},
+				},
 			}
 			upstreams = append(upstreams, upstream)
 		}
