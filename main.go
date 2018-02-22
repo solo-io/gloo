@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/solo-io/gloo-ingress/ingress"
@@ -43,48 +44,12 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrap(err, "failed to create kube restclient config")
 		}
-
-		ingressCtl, err := ingress.NewIngressController(cfg, store, opts.ConfigWatcherOptions.SyncFrequency, globalIngress)
-		if err != nil {
-			return errors.Wrap(err, "failed to create ingress controller")
-		}
 		stop := signals.SetupSignalHandler()
 
-		if ingressServiceName != "" {
-			ingressSync, err := ingress.NewIngressSyncer(cfg, opts.ConfigWatcherOptions.SyncFrequency, stop, globalIngress, ingressServiceName)
-			if err != nil {
-				return errors.Wrap(err, "failed to start load balancer status syncer")
-			}
-			go func(stop <-chan struct{}) {
-				log.Printf("starting ingress sync")
-				for {
-					select {
-					case err := <-ingressSync.Error():
-						log.Printf("ingress sync encountered error: %v", err)
-					case <-stop:
-						return
-					}
-				}
-			}(stop)
-		}
+		go runIngressController(cfg, store, stop)
 
-		go func(stop <-chan struct{}) {
-			log.Printf("starting ingress sync")
-			for {
-				select {
-				case err := <-ingressCtl.Error():
-					log.Printf("ingress controller encountered error: %v", err)
-				case <-stop:
-					return
-				}
-			}
-		}(stop)
-
-		log.Printf("starting ingress controller")
-		ingressCtl.Run(stop)
-
+		<-stop
 		log.Printf("shutting down")
-
 		return nil
 	},
 }
@@ -131,4 +96,46 @@ func createStorageClient(opts bootstrap.Options) (storage.Interface, error) {
 		return cfgWatcher, nil
 	}
 	return nil, errors.Errorf("unknown or unspecified config watcher type: %v", opts.ConfigWatcherOptions.Type)
+}
+
+func runIngressController(cfg *rest.Config, store storage.Interface, stop <-chan struct{}) error {
+	ingressCtl, err := ingress.NewIngressController(cfg, store, opts.ConfigWatcherOptions.SyncFrequency, globalIngress)
+	if err != nil {
+		return errors.Wrap(err, "failed to create ingress controller")
+	}
+
+	if ingressServiceName != "" {
+		ingressSync, err := ingress.NewIngressSyncer(cfg, opts.ConfigWatcherOptions.SyncFrequency, stop, globalIngress, ingressServiceName)
+		if err != nil {
+			return errors.Wrap(err, "failed to start load balancer status syncer")
+		}
+		go func(stop <-chan struct{}) {
+			log.Printf("starting ingress status sync")
+			for {
+				select {
+				case err := <-ingressSync.Error():
+					log.Printf("ingress sync encountered error: %v", err)
+				case <-stop:
+					return
+				}
+			}
+		}(stop)
+	}
+
+	go func(stop <-chan struct{}) {
+		log.Printf("starting ingress sync")
+		for {
+			select {
+			case err := <-ingressCtl.Error():
+				log.Printf("ingress controller encountered error: %v", err)
+			case <-stop:
+				return
+			}
+		}
+	}(stop)
+
+	log.Printf("starting ingress controller")
+	ingressCtl.Run(stop)
+
+	return nil
 }

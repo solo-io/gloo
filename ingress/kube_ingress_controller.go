@@ -18,6 +18,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/pborman/uuid"
+	"github.com/solo-io/gloo-k8s-service-discovery/names"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/kubecontroller"
@@ -25,7 +26,6 @@ import (
 
 const (
 	resourcePrefix    = "gloo-generated"
-	upstreamPrefix    = resourcePrefix + "-upstream"
 	virtualHostPrefix = resourcePrefix + "-virtualhost"
 
 	defaultVirtualHost = "default"
@@ -299,7 +299,9 @@ func (c *IngressController) syncUpstreams(desiredUpstreams, actualUpstreams []*v
 	}
 	for _, us := range upstreamsToCreate {
 		log.Debugf("creating upstream %v", us.Name)
-		if _, err := c.configObjects.V1().Upstreams().Create(us); err != nil {
+		// TODO: think about caring about already exists errors
+		// This workaround is necessary because the service discovery may be running and creating upstreams
+		if _, err := c.configObjects.V1().Upstreams().Create(us); err != nil && !storage.IsAlreadyExists(err) {
 			return fmt.Errorf("failed to create upstream crd %s: %v", us.Name, err)
 		}
 	}
@@ -399,7 +401,7 @@ func (c *IngressController) addRoutesAndUpstreams(namespace string, rule v1beta1
 
 func (c *IngressController) newUpstreamFromBackend(namespace string, backend v1beta1.IngressBackend) *v1.Upstream {
 	return &v1.Upstream{
-		Name: upstreamName(namespace, backend),
+		Name: names.UpstreamName(namespace, backend.ServiceName, backend.ServicePort),
 		Type: kubeplugin.UpstreamTypeKube,
 		Spec: kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
 			ServiceName:      backend.ServiceName,
@@ -413,10 +415,6 @@ func (c *IngressController) newUpstreamFromBackend(namespace string, backend v1b
 			},
 		},
 	}
-}
-
-func upstreamName(namespace string, backend v1beta1.IngressBackend) string {
-	return fmt.Sprintf("%s-%s-%s-%s", upstreamPrefix, namespace, backend.ServiceName, backend.ServicePort.String())
 }
 
 func isOurIngress(useAsGlobalIngress bool, ingress *v1beta1.Ingress) bool {

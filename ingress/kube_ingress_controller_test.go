@@ -14,6 +14,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-k8s-service-discovery/names"
 	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo-storage/crd"
@@ -161,7 +162,7 @@ var _ = Describe("KubeIngressController", func() {
 					SingleDestination: &v1.Destination{
 						DestinationType: &v1.Destination_Upstream{
 							Upstream: &v1.UpstreamDestination{
-								Name: upstreamName(createdIngress.Namespace, *createdIngress.Spec.Backend),
+								Name: names.UpstreamName(createdIngress.Namespace, createdIngress.Spec.Backend.ServiceName, createdIngress.Spec.Backend.ServicePort),
 							},
 						},
 					},
@@ -294,8 +295,9 @@ var _ = Describe("KubeIngressController", func() {
 				expectedUpstreams := make(map[string]*v1.Upstream)
 				for _, rule := range createdIngress.Spec.Rules {
 					for _, path := range rule.HTTP.Paths {
-						expectedUpstreams[upstreamName(createdIngress.Namespace, path.Backend)] = &v1.Upstream{
-							Name: upstreamName(createdIngress.Namespace, path.Backend),
+						upstreamName := names.UpstreamName(createdIngress.Namespace, path.Backend.ServiceName, path.Backend.ServicePort)
+						expectedUpstreams[upstreamName] = &v1.Upstream{
+							Name: upstreamName,
 							Type: kubeplugin.UpstreamTypeKube,
 							Spec: kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
 								ServiceName:      path.Backend.ServiceName,
@@ -340,7 +342,7 @@ var _ = Describe("KubeIngressController", func() {
 							SingleDestination: &v1.Destination{
 								DestinationType: &v1.Destination_Upstream{
 									Upstream: &v1.UpstreamDestination{
-										Name: upstreamName(createdIngress.Namespace, path.Backend),
+										Name: names.UpstreamName(createdIngress.Namespace, path.Backend.ServiceName, path.Backend.ServicePort),
 									},
 								},
 							},
