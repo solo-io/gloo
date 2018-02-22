@@ -181,7 +181,9 @@ func (c *ServiceController) syncUpstreams(desiredUpstreams, actualUpstreams []*v
 		}
 	}
 	for _, us := range upstreamsToCreate {
-		if _, err := c.upstreams.V1().Upstreams().Create(us); err != nil {
+		// TODO: think about caring about already exists errors
+		// This workaround is necessary because the ingress controller may be running and creating upstreams
+		if _, err := c.upstreams.V1().Upstreams().Create(us); err != nil && !storage.IsAlreadyExists(err) {
 			log.Debugf("creating upstream %v", us.Name)
 			return fmt.Errorf("failed to create upstream crd %s: %v", us.Name, err)
 		}

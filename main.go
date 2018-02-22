@@ -17,6 +17,7 @@ import (
 	"github.com/solo-io/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/signals"
+	"k8s.io/client-go/rest"
 )
 
 func main() {
@@ -41,26 +42,11 @@ var rootCmd = &cobra.Command{
 			return errors.Wrap(err, "failed to create kube restclient config")
 		}
 
-		ingressCtl, err := controller.NewServiceController(cfg, store, opts.ConfigWatcherOptions.SyncFrequency)
-		if err != nil {
-			return errors.Wrap(err, "failed to create service discovery service")
-		}
 		stop := signals.SetupSignalHandler()
 
-		go func(stop <-chan struct{}) {
-			for {
-				select {
-				case err := <-ingressCtl.Error():
-					log.Printf("service discovery encountered error: %v", err)
-				case <-stop:
-					return
-				}
-			}
-		}(stop)
+		go runServiceDiscovery(cfg, store, stop)
 
-		log.Printf("starting service discovery")
-		ingressCtl.Run(stop)
-
+		<-stop
 		log.Printf("shutting down")
 
 		return nil
@@ -107,4 +93,27 @@ func createStorageClient(opts bootstrap.Options) (storage.Interface, error) {
 		return cfgWatcher, nil
 	}
 	return nil, errors.Errorf("unknown or unspecified config watcher type: %v", opts.ConfigWatcherOptions.Type)
+}
+
+func runServiceDiscovery(cfg *rest.Config, store storage.Interface, stop <-chan struct{}) error {
+	serviceCtl, err := controller.NewServiceController(cfg, store, opts.ConfigWatcherOptions.SyncFrequency)
+	if err != nil {
+		return errors.Wrap(err, "failed to create service discovery service")
+	}
+
+	go func(stop <-chan struct{}) {
+		for {
+			select {
+			case err := <-serviceCtl.Error():
+				log.Printf("service discovery encountered error: %v", err)
+			case <-stop:
+				return
+			}
+		}
+	}(stop)
+
+	log.Printf("starting service discovery")
+	serviceCtl.Run(stop)
+
+	return nil
 }
