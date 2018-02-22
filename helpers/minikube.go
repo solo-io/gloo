@@ -297,6 +297,7 @@ func waitPodsTerminated(podNames ...string) error {
 // TestRunner executes a command inside the TestRunner container
 func TestRunner(args ...string) (string, error) {
 	args = append([]string{"exec", "-i", testrunner, "--"}, args...)
+	log.Debugf("trying command %v", args)
 	return KubectlOut(args...)
 }
 

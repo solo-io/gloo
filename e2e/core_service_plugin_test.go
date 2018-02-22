@@ -57,10 +57,10 @@ var _ = Describe("Core Service Plugin", func() {
 			gloo.V1().VirtualHosts().Delete(vhostName)
 		})
 		It("should configure envoy with a 200 OK route (backed by helloservice)", func() {
-			curlEventuallyShouldRespond(randomPath, "GET", "< HTTP/1.1 200", time.Minute*5)
+			curlEventuallyShouldRespond(curlOpts{path: randomPath}, "< HTTP/1.1 200", time.Minute*5)
 		})
 		It("POST should be 404", func() {
-			curlEventuallyShouldRespond(randomPath, "POST", "< HTTP/1.1 404", time.Minute*5)
+			curlEventuallyShouldRespond(curlOpts{path: randomPath, method: "POST"}, "< HTTP/1.1 404", time.Minute*5)
 		})
 	})
 })

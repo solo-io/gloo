@@ -87,8 +87,8 @@ var _ = Describe("Multiple Upstream Destinations", func() {
 			gloo.V1().VirtualHosts().Delete(vhostName)
 		})
 		It("should balance requests between the two destinations", func() {
-			curlEventuallyShouldRespond(randomPath, "GET", "helloservice-1", time.Minute*5)
-			curlEventuallyShouldRespond(randomPath, "GET", "helloservice-2", time.Minute*5)
+			curlEventuallyShouldRespond(curlOpts{path: randomPath}, "expected-reply-1", time.Minute*5)
+			curlEventuallyShouldRespond(curlOpts{path: randomPath}, "expected-reply-2", time.Minute*5)
 		})
 	})
 })

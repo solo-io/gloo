@@ -20,7 +20,7 @@ spec:
         imagePullPolicy: Never
         name: helloservice
         args:
-        - "--reply=helloservice-1"
+        - "--reply=expected-reply-1"
         ports:
         - containerPort: 8080
           name: http

@@ -9,7 +9,6 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-plugins/kubernetes"
-	"github.com/solo-io/gloo-storage/crd"
 	. "github.com/solo-io/gloo-testing/helpers"
 )
 
@@ -24,7 +23,7 @@ var _ = Describe("Kubernetes Upstream + Endpoint Discovery Plugin", func() {
 				Name: helloService,
 				Type: kubernetes.UpstreamTypeKube,
 				Spec: kubernetes.EncodeUpstreamSpec(kubernetes.UpstreamSpec{
-					ServiceNamespace: crd.GlooDefaultNamespace,
+					ServiceNamespace: namespace,
 					ServiceName:      helloService,
 					ServicePort:      fmt.Sprintf("%v", servicePort),
 				}),
@@ -57,7 +56,7 @@ var _ = Describe("Kubernetes Upstream + Endpoint Discovery Plugin", func() {
 			gloo.V1().VirtualHosts().Delete(vhostName)
 		})
 		It("should configure envoy with a 200 OK route (backed by helloservice)", func() {
-			curlEventuallyShouldRespond(randomPath, "GET", "< HTTP/1.1 200", time.Minute*5)
+			curlEventuallyShouldRespond(curlOpts{path: randomPath}, "< HTTP/1.1 200", time.Minute*5)
 		})
 	})
 })

@@ -40,6 +40,9 @@ func NewTestUpstream1() *v1.Upstream {
 				Spec: fnSpec,
 			},
 		},
+		Metadata: &v1.Metadata{
+			Annotations: map[string]string{"my_annotation": "value"},
+		},
 	}
 }
 func NewTestUpstream2() *v1.Upstream {
@@ -51,6 +54,9 @@ func NewTestUpstream2() *v1.Upstream {
 				{Addr: "localhost", Port: 8000},
 			},
 		}),
+		Metadata: &v1.Metadata{
+			Annotations: map[string]string{"my_annotation": "value"},
+		},
 	}
 }
 
@@ -58,6 +64,9 @@ func NewTestVirtualHost(name string, routes ...*v1.Route) *v1.VirtualHost {
 	return &v1.VirtualHost{
 		Name:   name,
 		Routes: routes,
+		Metadata: &v1.Metadata{
+			Annotations: map[string]string{"my_annotation": "value"},
+		},
 	}
 }
 

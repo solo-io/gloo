@@ -20,6 +20,7 @@ import (
 var (
 	masterUrl, kubeconfigPath string
 	mkb                       *MinikubeInstance
+	namespace                 = crd.GlooDefaultNamespace
 )
 
 var gloo storage.Interface
@@ -34,7 +35,7 @@ var _ = Describe("Kubernetes Deployment", func() {
 		Must(err)
 		cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 		Must(err)
-		gloo, err = crd.NewStorage(cfg, crd.GlooDefaultNamespace, time.Minute)
+		gloo, err = crd.NewStorage(cfg, namespace, time.Minute)
 		Must(err)
 	})
 	AfterSuite(func() {
@@ -42,7 +43,13 @@ var _ = Describe("Kubernetes Deployment", func() {
 	})
 })
 
-func curlEventuallyShouldRespond(path, method, substr string, timeout ...time.Duration) {
+type curlOpts struct {
+	path   string
+	method string
+	host   string
+}
+
+func curlEventuallyShouldRespond(opts curlOpts, substr string, timeout ...time.Duration) {
 	t := time.Second * 20
 	if len(timeout) > 0 {
 		t = timeout[0]
@@ -50,7 +57,7 @@ func curlEventuallyShouldRespond(path, method, substr string, timeout ...time.Du
 	// for some useful-ish output
 	tick := time.Tick(t / 8)
 	Eventually(func() string {
-		res, err := curlEnvoy(path, method)
+		res, err := curlEnvoy(opts)
 		if err != nil {
 			res = err.Error()
 		}
@@ -67,9 +74,15 @@ func curlEventuallyShouldRespond(path, method, substr string, timeout ...time.Du
 	}, t).Should(ContainSubstring(substr))
 }
 
-func curlEnvoy(path, method string) (string, error) {
-	if method != "GET" {
-		return TestRunner("curl", "-v", "-X"+method, "http://envoy:8080"+path)
+func curlEnvoy(opts curlOpts) (string, error) {
+	args := []string{"curl", "-v"}
+
+	if opts.method != "GET" && opts.method != "" {
+		args = append(args, "-X"+opts.method)
 	}
-	return TestRunner("curl", "-v", "http://envoy:8080"+path)
+	if opts.host != "" {
+		args = append(args, "-H", "Host: "+opts.host)
+	}
+	args = append(args, "http://envoy:8080"+opts.path)
+	return TestRunner(args...)
 }
