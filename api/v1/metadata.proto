@@ -7,4 +7,6 @@ option (gogoproto.equal_all) = true;
 message Metadata {
     string resource_version = 1;
     string namespace = 2;
+    // ignored by gloo but useful for clients
+    map<string, string> annotations= 3;
 }
