@@ -32,7 +32,7 @@ const (
 
 	GlooIngressClass = "gloo"
 
-	ingressAnnotationKey = "generated_by"
+	ownerAnnotationKey = "generated_by"
 )
 
 type IngressController struct {
@@ -126,7 +126,7 @@ func (c *IngressController) getActualResources() ([]*v1.Upstream, []*v1.VirtualH
 	}
 	var ourUpstreams []*v1.Upstream
 	for _, us := range upstreams {
-		if us.Metadata != nil && us.Metadata.Annotations[ingressAnnotationKey] == c.generatedBy {
+		if us.Metadata != nil && us.Metadata.Annotations[ownerAnnotationKey] == c.generatedBy {
 			// our upstream, we supervise it
 			ourUpstreams = append(ourUpstreams, us)
 		}
@@ -137,7 +137,7 @@ func (c *IngressController) getActualResources() ([]*v1.Upstream, []*v1.VirtualH
 	}
 	var ourVhosts []*v1.VirtualHost
 	for _, vhost := range virtualHosts {
-		if vhost.Metadata != nil && vhost.Metadata.Annotations[ingressAnnotationKey] == c.generatedBy {
+		if vhost.Metadata != nil && vhost.Metadata.Annotations[ownerAnnotationKey] == c.generatedBy {
 			// our vhost, we supervise it
 			ourVhosts = append(ourVhosts, vhost)
 		}
@@ -224,7 +224,7 @@ func (c *IngressController) generateDesiredResources() ([]*v1.Upstream, []*v1.Vi
 			// mark the virtualhost as ours
 			Metadata: &v1.Metadata{
 				Annotations: map[string]string{
-					ingressAnnotationKey: c.generatedBy,
+					ownerAnnotationKey: c.generatedBy,
 				},
 			},
 		}
@@ -409,7 +409,7 @@ func (c *IngressController) newUpstreamFromBackend(namespace string, backend v1b
 		// mark the upstream as ours
 		Metadata: &v1.Metadata{
 			Annotations: map[string]string{
-				ingressAnnotationKey: c.generatedBy,
+				ownerAnnotationKey: c.generatedBy,
 			},
 		},
 	}
