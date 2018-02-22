@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var _ = FDescribe("Kubernetes Ingress Controller", func() {
+var _ = Describe("Kubernetes Ingress Controller", func() {
 	const host1 = "host1.example.com"
 	const host2 = "host2.example.com"
 	const helloService = "helloservice"
