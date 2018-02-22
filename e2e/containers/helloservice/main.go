@@ -7,11 +7,9 @@ import (
 	"net/http"
 )
 
-const (
-	hello = "Hi, there!\n"
-)
-
 type handler struct{}
+
+var hello string
 
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/text")
@@ -31,6 +29,7 @@ func serve(port uint) {
 
 func main() {
 	port := flag.Uint("port", 8080, "listener port")
+	flag.StringVar(&hello, "reply", "Hi there\n", "reply for requests")
 	flag.Parse()
 	serve(*port)
 }

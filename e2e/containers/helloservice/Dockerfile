@@ -1,3 +1,3 @@
 FROM busybox
 COPY helloservice /
-CMD ["/helloservice"]
+ENTRYPOINT ["/helloservice"]

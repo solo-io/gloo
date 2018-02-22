@@ -14,12 +14,13 @@ import (
 // minikube.go provides helper methods for running tests on minikube
 
 const (
-	testrunner   = "testrunner"
-	helloservice = "helloservice"
-	envoy        = "envoy"
-	gloo         = "gloo"
-	ingress      = "gloo-ingress"
-	k8sd         = "gloo-k8s-service-discovery"
+	testrunner    = "testrunner"
+	helloservice  = "helloservice"
+	helloservice2 = "helloservice-2"
+	envoy         = "envoy"
+	gloo          = "gloo"
+	ingress       = "gloo-ingress"
+	k8sd          = "gloo-k8s-service-discovery"
 )
 
 // ErrMinikubeNotInstalled indicates minikube binary is not found
@@ -136,6 +137,9 @@ func (mkb *MinikubeInstance) setMinikubeDockerEnv() error {
 
 // buildContainers builds all docker containers needed for test
 func (mkb *MinikubeInstance) buildContainers() error {
+	if os.Getenv("SKIP_BUILD") == "1" {
+		return nil
+	}
 	if err := mkb.setMinikubeDockerEnv(); err != nil {
 		return err
 	}
@@ -186,6 +190,9 @@ func (mkb *MinikubeInstance) createE2eResources() error {
 		"helloservice-deployment.yml",
 		"helloservice-service.yml",
 
+		"helloservice-2-deployment.yml",
+		"helloservice-2-service.yml",
+
 		"test-runner-pod.yml",
 	}
 	for _, resource := range resources {
@@ -193,7 +200,7 @@ func (mkb *MinikubeInstance) createE2eResources() error {
 			return err
 		}
 	}
-	if err := waitPodsRunning(testrunner, helloservice, envoy, gloo, ingress, k8sd); err != nil {
+	if err := waitPodsRunning(testrunner, helloservice, helloservice2, envoy, gloo, ingress, k8sd); err != nil {
 		return err
 	}
 	TestRunner("curl", "envoy:19000/logging?config=debug")
@@ -229,7 +236,7 @@ func (mkb *MinikubeInstance) deleteE2eResources() error {
 	if err := kubectl("delete", "-f", filepath.Join(kubeResourcesDir, "test-runner-pod.yml"), "--force"); err != nil {
 		return err
 	}
-	return waitPodsTerminated(testrunner, helloservice, envoy, gloo, ingress, k8sd)
+	return waitPodsTerminated(testrunner, helloservice, helloservice2, envoy, gloo, ingress, k8sd)
 }
 
 // DeleteContext deletes the context from the kubeconfig

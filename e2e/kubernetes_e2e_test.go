@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo-storage"
@@ -56,12 +58,18 @@ func curlEventuallyShouldRespond(path, method, substr string, timeout ...time.Du
 		default:
 			break
 		case <-tick:
-			log.Printf("curl output: %v", res)
+			log.GreyPrintf("curl output: %v", res)
+		}
+		if strings.Contains(res, substr) {
+			log.GreyPrintf("success: %v", res)
 		}
 		return res
 	}, t).Should(ContainSubstring(substr))
 }
 
 func curlEnvoy(path, method string) (string, error) {
-	return TestRunner("curl", "-v", "-X"+method, "http://envoy:8080"+path)
+	if method != "GET" {
+		return TestRunner("curl", "-v", "-X"+method, "http://envoy:8080"+path)
+	}
+	return TestRunner("curl", "-v", "http://envoy:8080"+path)
 }
