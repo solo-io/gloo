@@ -10,8 +10,8 @@ import (
 	"golang.org/x/oauth2/google"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/glue-discovery/pkg/secret"
-	"github.com/solo-io/glue-discovery/pkg/source"
+	"github.com/solo-io/gloo-function-discovery/pkg/secret"
+	"github.com/solo-io/gloo-function-discovery/pkg/source"
 
 	"google.golang.org/api/cloudfunctions/v1"
 )
@@ -106,7 +106,7 @@ func secretRef(u *source.Upstream) string {
 	if !exists {
 		return ""
 	}
-	return u.Namespace + "/" + v.(string)
+	return v.(string)
 }
 
 func projectID(u *source.Upstream) string {

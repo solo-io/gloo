@@ -13,7 +13,7 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/glue-discovery/pkg/source"
+	"github.com/solo-io/gloo-function-discovery/pkg/source"
 )
 
 func GetOpenAPIFetcher() *openapiFetcher {
@@ -25,7 +25,7 @@ type openapiFetcher struct{}
 func (f *openapiFetcher) Fetch(u *source.Upstream) ([]source.Function, error) {
 	oURL := openapiURL(u)
 	if oURL == nil {
-		return nil, fmt.Errorf("unable to find Open API Docs URL for %s", u.ID)
+		return nil, fmt.Errorf("unable to find Open API Docs URL for %s", u.Name)
 	}
 
 	spec, err := loadSwaggerSpec(oURL)

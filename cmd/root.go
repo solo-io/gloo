@@ -6,18 +6,21 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var (
-	kubeConfig string
-	namespace  string
-)
+var kubeConfig string
 
 func RootCmd() *cobra.Command {
+	var namespace string
+	var syncPeriod int
+
 	root := &cobra.Command{
-		Use:   "glue-discovery",
-		Short: "Glue Function Discovery service",
+		Use:   "gloo-function-discovery",
+		Short: "Gloo Function Discovery service",
 	}
-	root.PersistentFlags().StringVar(&kubeConfig, "kubeconf", "", "Path to K8S config. Needed for out-of-cluster")
-	root.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "K8S namespace to use")
+	pflags := root.PersistentFlags()
+	pflags.StringVar(&kubeConfig, "kubeconfig", "", "Path to K8S config. Needed for out-of-cluster")
+	pflags.StringVarP(&namespace, "namespace", "n", "default", "K8S namespace to use")
+	pflags.IntVar(&syncPeriod, "sync-period", 300, "sync period (seconds) for resources")
+	root.MarkFlagFilename("kubeconfig")
 	root.AddCommand(registerCmd())
 	root.AddCommand(startCmd())
 	return root

@@ -4,57 +4,63 @@ import (
 	"log"
 	"time"
 
+	"github.com/solo-io/gloo/pkg/protoutil"
+
+	google_protobuf "github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
-	"github.com/solo-io/glue-discovery/pkg/secret"
-	"github.com/solo-io/glue-discovery/pkg/source"
-	"github.com/solo-io/glue-discovery/pkg/source/aws"
-	"github.com/solo-io/glue-discovery/pkg/source/gcf"
-	"github.com/solo-io/glue-discovery/pkg/source/openapi"
-	apiv1 "github.com/solo-io/glue/pkg/api/types/v1"
-	"github.com/solo-io/glue/pkg/platform/kube/crd/client/clientset/versioned/typed/solo.io/v1"
+	apiv1 "github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-function-discovery/pkg/secret"
+	"github.com/solo-io/gloo-function-discovery/pkg/source"
+	"github.com/solo-io/gloo-function-discovery/pkg/source/aws"
+	"github.com/solo-io/gloo-function-discovery/pkg/source/gcf"
+	"github.com/solo-io/gloo-function-discovery/pkg/source/openapi"
+	storage "github.com/solo-io/gloo-storage"
 )
 
 // Server represents the service discovery service
 type Server struct {
-	UpstreamRepo v1.UpstreamInterface
-	SecretRepo   *secret.SecretRepo
-	Port         int
+	Upstreams  storage.Upstreams
+	SecretRepo *secret.SecretRepo
+	Port       int
 }
 
 // Start starts the discovery service and its components
 func (s *Server) Start(resyncPeriod time.Duration, stop <-chan struct{}) {
-	ctrlr := newController(resyncPeriod, s.UpstreamRepo)
+	s.SecretRepo.Run(stop)
+	ctrlr := newController(resyncPeriod, s.Upstreams)
 
 	source.FetcherRegistry.Add(aws.GetAWSFetcher(s.SecretRepo))
 	source.FetcherRegistry.Add(gcf.GetGCFFetcher(s.SecretRepo))
 	source.FetcherRegistry.Add(openapi.GetOpenAPIFetcher())
 
 	updater := func(u source.Upstream) error {
-		crd, exists, err := ctrlr.get(u.ID)
+		crd, err := s.Upstreams.Get(u.Name)
 		if err != nil {
-			return errors.Wrapf(err, "unable to update stream %s", u.ID)
+			return errors.Wrapf(err, "unable to update stream %s", u.Name)
 		}
-		if !exists {
-			log.Printf("upstream %s not found, will not update", u.ID)
-			return nil
-		}
-		crd.Spec.Functions = toCRDFunctions(u.Functions)
-		log.Println("updating upstream ", u.ID)
-		return ctrlr.set(crd)
+		crd.Functions = toAPIFunctions(u.Functions)
+		log.Println("updating upstream ", u.Name)
+		_, err = s.Upstreams.Update(crd)
+		return err
 	}
 	poller := source.NewPoller(updater)
 	poller.Start(resyncPeriod, stop)
 	ctrlr.AddHandler(&handler{poller: poller})
-	s.SecretRepo.Run(stop)
 	ctrlr.Run(stop)
 }
 
-func toCRDFunctions(functions []source.Function) []apiv1.Function {
-	crds := make([]apiv1.Function, len(functions))
+func toAPIFunctions(functions []source.Function) []*apiv1.Function {
+	crds := make([]*apiv1.Function, len(functions))
 	for i, f := range functions {
-		crds[i] = apiv1.Function{
+		s := &google_protobuf.Struct{}
+		err := protoutil.UnmarshalMap(f.Spec, s)
+		if err != nil {
+			log.Println("unexpected error unmarshalling function: ", f.Name, err)
+			return []*apiv1.Function{}
+		}
+		crds[i] = &apiv1.Function{
 			Name: f.Name,
-			Spec: f.Spec,
+			Spec: s,
 		}
 	}
 	return crds

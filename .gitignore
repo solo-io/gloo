@@ -1,4 +1,4 @@
 vendor
 .vscode
 debug
-glue-discovery
+gloo-function-discovery

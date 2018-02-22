@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/solo-io/glue-discovery/cmd"
+	"github.com/solo-io/gloo-function-discovery/cmd"
 )
 
 func main() {

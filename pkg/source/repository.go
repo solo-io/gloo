@@ -28,8 +28,8 @@ func (r *memRepo) set(v Upstream) bool {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	_, ok := r.m[v.ID]
-	r.m[v.ID] = v
+	_, ok := r.m[v.Name]
+	r.m[v.Name] = v
 	return !ok
 }
 

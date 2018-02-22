@@ -1,4 +1,4 @@
-# Glue Function Discovery Service
+# Gloo Function Discovery Service
 
 Discovery functions in an upstream service
 

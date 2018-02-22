@@ -1,51 +1,42 @@
 package server
 
 import (
-	"fmt"
-
-	"github.com/solo-io/glue-discovery/pkg/source"
-	apiv1 "github.com/solo-io/glue/pkg/api/types/v1"
-	solov1 "github.com/solo-io/glue/pkg/platform/kube/crd/solo.io/v1"
+	apiv1 "github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-function-discovery/pkg/source"
+	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
 type handler struct {
 	poller *source.Poller
 }
 
-func (h *handler) Update(u *solov1.Upstream) {
+func (h *handler) Update(u *apiv1.Upstream) {
 	h.poller.Update(toUpstream(u))
 }
 
-func (h *handler) Remove(ID string) {
-	h.poller.Remove(ID)
+func (h *handler) Remove(name string) {
+	h.poller.Remove(name)
 }
 
-func toUpstream(u *solov1.Upstream) source.Upstream {
+func toUpstream(u *apiv1.Upstream) source.Upstream {
+	s, _ := protoutil.MarshalMap(u.Spec)
+
 	return source.Upstream{
-		ID:        toID(u),
-		Namespace: u.Namespace,
 		Name:      u.Name,
-		Type:      toType(u.Spec.Type),
-		Spec:      u.Spec.Spec,
-		Functions: toFunctions(u.Spec.Functions),
+		Type:      u.Type,
+		Spec:      s,
+		Functions: toFunctions(u.Functions),
 	}
 }
 
-func toFunctions(functions []apiv1.Function) []source.Function {
+func toFunctions(functions []*apiv1.Function) []source.Function {
 	result := make([]source.Function, len(functions))
 	for i, f := range functions {
+		s, _ := protoutil.MarshalMap(f.Spec)
 		result[i] = source.Function{
 			Name: f.Name,
-			Spec: f.Spec,
+			Spec: s,
 		}
 	}
 	return result
-}
-
-func toID(u *solov1.Upstream) string {
-	return fmt.Sprintf("%s/%s", u.Namespace, u.Name)
-}
-
-func toType(t apiv1.UpstreamType) string {
-	return fmt.Sprintf("%v", t)
 }

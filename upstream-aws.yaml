@@ -1,4 +1,4 @@
-apiVersion: "glue.solo.io/v1"
+apiVersion: "gloo.solo.io/v1"
 kind: Upstream
 metadata:
   name: testaws

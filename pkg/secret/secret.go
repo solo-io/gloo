@@ -18,18 +18,19 @@ import (
 type Secret map[string][]byte
 
 type SecretRepo struct {
-	repo     map[string]Secret
-	lock     sync.RWMutex
-	factory  informers.SharedInformerFactory
-	informer cache.SharedIndexInformer
+	repo      map[string]Secret
+	namespace string
+	lock      sync.RWMutex
+	factory   informers.SharedInformerFactory
+	informer  cache.SharedIndexInformer
 }
 
 // NewSecretRepo returns a repository for secrets that automatically
 // syncronizes with K8S
-// TODO(ashish) - replace with the Secret watcher in Glue so we get
+// TODO(ashish) - replace with the Secret watcher in Gloo so we get
 //                other secret stores beside K8S for free
-func NewSecretRepo(cfg *rest.Config) (*SecretRepo, error) {
-	secretRepo := &SecretRepo{repo: make(map[string]Secret)}
+func NewSecretRepo(cfg *rest.Config, namespace string) (*SecretRepo, error) {
+	secretRepo := &SecretRepo{repo: make(map[string]Secret), namespace: namespace}
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create client for k8s")
@@ -61,10 +62,10 @@ func (s *SecretRepo) Run(stop <-chan struct{}) {
 	s.factory.WaitForCacheSync(stop)
 	log.Println("Started monitoring secrets")
 }
-func (s *SecretRepo) Get(key string) (Secret, bool) {
+func (s *SecretRepo) Get(name string) (Secret, bool) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-
+	key := fmt.Sprintf("%s/%s", s.namespace, name)
 	secret, exists := s.repo[key]
 	return secret, exists
 }

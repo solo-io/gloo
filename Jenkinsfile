@@ -1,11 +1,11 @@
 #!/usr/bin/env groovy
-def imageName = "docker.io/soloio/glue-discovery"
+def imageName = "docker.io/soloio/gloo-function-discovery"
 def imageTag = (env.BRANCH_NAME == "master") ? "latest" : env.BRANCH_NAME
-podTemplate(label: 'glue-discovery-builder', 
+podTemplate(label: 'gloo-function-discovery-builder', 
 containers: [
     containerTemplate(
         name: 'golang', 
-        image: 'golang:1.9', 
+        image: 'golang:1.10', 
         ttyEnabled: true, 
         command: 'cat'),
     containerTemplate(
@@ -38,7 +38,7 @@ volumes: [
         ])
     ])
 
-    node('glue-discovery-builder') {
+    node('gloo-function-discovery-builder') {
         
         stage('Init') { 
             container('golang') {
@@ -51,8 +51,8 @@ volumes: [
                     git config --global url."git@github.com:".insteadOf "https://github.com"
                     curl -fsSL -o /usr/local/bin/dep https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64 && chmod +x /usr/local/bin/dep
                     mkdir -p ${GOPATH}/src/github.com/solo-io/
-                    ln -s `pwd` ${GOPATH}/src/github.com/solo-io/glue-discovery
-                    cd ${GOPATH}/src/github.com/solo-io/glue-discovery
+                    ln -s `pwd` ${GOPATH}/src/github.com/solo-io/gloo-function-discovery
+                    cd ${GOPATH}/src/github.com/solo-io/gloo-function-discovery
                     dep ensure -vendor-only
                     git log -n 1 --pretty=format:%h > hash.tmp
                 '''
@@ -63,7 +63,7 @@ volumes: [
             container('golang') {
                 echo 'Building...'
                 sh '''
-                    cd ${GOPATH}/src/github.com/solo-io/glue-discovery
+                    cd ${GOPATH}/src/github.com/solo-io/gloo-function-discovery
                     CGO_ENABLED=0 GOOS=linux go build
                 '''
             }
@@ -73,7 +73,7 @@ volumes: [
             container('golang') {
                 echo 'Testing....'
                 sh '''
-                    cd ${GOPATH}/src/github.com/solo-io/glue-discovery
+                    cd ${GOPATH}/src/github.com/solo-io/gloo-function-discovery
                     go test  -race -cover `go list ./... | grep -v "e2e"`
                 '''
             }
@@ -84,7 +84,7 @@ volumes: [
                 container('golang') {
                     echo 'Integration tests'
                     sh '''
-                        cd ${GOPATH}/src/github.com/solo-io/glue-discovery
+                        cd ${GOPATH}/src/github.com/solo-io/gloo-function-discovery
                         echo go test ./e2e
                     ''' 
                 }
@@ -100,7 +100,7 @@ volumes: [
                     sh '''
                     export HASH=`cat hash.tmp`
                     cd docker
-                    cp ../glue-discovery .
+                    cp ../gloo-function-discovery .
                     docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" -t "${IMAGE_NAME}:${HASH}" .
                     docker push "${IMAGE_NAME}:${IMAGE_TAG}"
                     docker push "${IMAGE_NAME}:${HASH}"

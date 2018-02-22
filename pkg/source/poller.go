@@ -19,17 +19,17 @@ func NewPoller(u UpdaterFunc) *Poller {
 }
 
 func (p *Poller) Update(u Upstream) {
-	log.Printf("Poller updating upstream %s", u.ID)
-	existing, exists := p.repo.get(u.ID)
+	log.Printf("Poller updating upstream %s", u.Name)
+	existing, exists := p.repo.get(u.Name)
 	if exists {
 		u.Functions = existing.Functions
 	}
 	p.repo.set(u)
 }
 
-func (p *Poller) Remove(upstreamID string) {
-	log.Printf("Poller removing upstream %s", upstreamID)
-	p.repo.delete(upstreamID)
+func (p *Poller) Remove(upstreamName string) {
+	log.Printf("Poller removing upstream %s", upstreamName)
+	p.repo.delete(upstreamName)
 }
 
 func (p *Poller) Start(pollPeriod time.Duration, stop <-chan struct{}) {
@@ -44,19 +44,18 @@ func (p *Poller) run() {
 		// TODO (ashish) instead of doing this everytime maintain a map of upstream to fetcher
 		fetcher := FetcherRegistry.Fetcher(&u)
 		if fetcher == nil {
-			log.Printf("Unable to find fetcher for %s", u.ID)
+			log.Printf("Unable to find fetcher for %s", u.Name)
 			continue
 		}
 		// Runs fetchers in current Go routine; TODO(ashish) - use a worker pool
 		newFunctions, err := fetcher.Fetch(&u)
 		if err != nil {
-			log.Printf("Unable to get functions for %s, %q\n", u.ID, err)
+			log.Printf("Unable to get functions for %s, %q\n", u.Name, err)
 			continue
 		}
 
 		if diff(newFunctions, u.Functions) {
 			updated := Upstream{
-				ID:        u.ID,
 				Name:      u.Name,
 				Type:      u.Type,
 				Spec:      u.Spec,
@@ -64,7 +63,7 @@ func (p *Poller) run() {
 			}
 
 			if err := p.updater(updated); err != nil {
-				log.Printf("unable to update change in functions for %s: %q\n", u.ID, err)
+				log.Printf("unable to update change in functions for %s: %q\n", u.Name, err)
 				continue
 			}
 			p.repo.set(updated)
