@@ -68,7 +68,7 @@ func (u *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*stor
 	lw := cache.NewListWatchFromClient(u.crds.GlooV1().RESTClient(), crdv1.UpstreamCRD.Plural, metav1.NamespaceAll, fields.Everything())
 	sw := cache.NewSharedInformer(lw, new(crdv1.Upstream), u.syncFrequency)
 	for _, h := range handlers {
-		sw.AddEventHandler(&upstreamEventHandler{handler: h, store: sw.GetStore()})
+		sw.AddEventHandler(&upstreamEventHandler{handler: h, store: sw.GetStore(), namespace: u.namespace})
 	}
 	return storage.NewWatcher(func(stop <-chan struct{}, _ chan error) {
 		sw.Run(stop)
@@ -110,8 +110,9 @@ func (c *upstreamsClient) createOrUpdateUpstreamCrd(upstream *v1.Upstream, op cr
 
 // implements the kubernetes ResourceEventHandler interface
 type upstreamEventHandler struct {
-	handler storage.UpstreamEventHandler
-	store   cache.Store
+	namespace string
+	handler   storage.UpstreamEventHandler
+	store     cache.Store
 }
 
 func (eh *upstreamEventHandler) getUpdatedList() []*v1.Upstream {
@@ -120,6 +121,9 @@ func (eh *upstreamEventHandler) getUpdatedList() []*v1.Upstream {
 	for _, updated := range updatedList {
 		usCrd, ok := updated.(*crdv1.Upstream)
 		if !ok {
+			continue
+		}
+		if usCrd.Namespace != eh.namespace {
 			continue
 		}
 		updatedUpstream, err := UpstreamFromCrd(usCrd)

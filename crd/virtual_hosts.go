@@ -24,20 +24,20 @@ type virtualHostsClient struct {
 	syncFrequency time.Duration
 }
 
-func (c *virtualHostsClient) Create(item *v1.VirtualHost) (*v1.VirtualHost, error) {
-	return c.createOrUpdateVirtualHostCrd(item, crud.OperationCreate)
+func (v *virtualHostsClient) Create(item *v1.VirtualHost) (*v1.VirtualHost, error) {
+	return v.createOrUpdateVirtualHostCrd(item, crud.OperationCreate)
 }
 
-func (c *virtualHostsClient) Update(item *v1.VirtualHost) (*v1.VirtualHost, error) {
-	return c.createOrUpdateVirtualHostCrd(item, crud.OperationUpdate)
+func (v *virtualHostsClient) Update(item *v1.VirtualHost) (*v1.VirtualHost, error) {
+	return v.createOrUpdateVirtualHostCrd(item, crud.OperationUpdate)
 }
 
-func (c *virtualHostsClient) Delete(name string) error {
-	return c.crds.GlooV1().VirtualHosts(c.namespace).Delete(name, nil)
+func (v *virtualHostsClient) Delete(name string) error {
+	return v.crds.GlooV1().VirtualHosts(v.namespace).Delete(name, nil)
 }
 
-func (c *virtualHostsClient) Get(name string) (*v1.VirtualHost, error) {
-	crdVh, err := c.crds.GlooV1().VirtualHosts(c.namespace).Get(name, metav1.GetOptions{})
+func (v *virtualHostsClient) Get(name string) (*v1.VirtualHost, error) {
+	crdVh, err := v.crds.GlooV1().VirtualHosts(v.namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed performing get api request")
 	}
@@ -48,8 +48,8 @@ func (c *virtualHostsClient) Get(name string) (*v1.VirtualHost, error) {
 	return returnedVirtualHost, nil
 }
 
-func (c *virtualHostsClient) List() ([]*v1.VirtualHost, error) {
-	crdList, err := c.crds.GlooV1().VirtualHosts(c.namespace).List(metav1.ListOptions{})
+func (v *virtualHostsClient) List() ([]*v1.VirtualHost, error) {
+	crdList, err := v.crds.GlooV1().VirtualHosts(v.namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed performing list api request")
 	}
@@ -64,23 +64,23 @@ func (c *virtualHostsClient) List() ([]*v1.VirtualHost, error) {
 	return returnedVirtualHosts, nil
 }
 
-func (u *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) (*storage.Watcher, error) {
-	lw := cache.NewListWatchFromClient(u.crds.GlooV1().RESTClient(), crdv1.VirtualHostCRD.Plural, metav1.NamespaceAll, fields.Everything())
-	sw := cache.NewSharedInformer(lw, new(crdv1.VirtualHost), u.syncFrequency)
+func (v *virtualHostsClient) Watch(handlers ...storage.VirtualHostEventHandler) (*storage.Watcher, error) {
+	lw := cache.NewListWatchFromClient(v.crds.GlooV1().RESTClient(), crdv1.VirtualHostCRD.Plural, metav1.NamespaceAll, fields.Everything())
+	sw := cache.NewSharedInformer(lw, new(crdv1.VirtualHost), v.syncFrequency)
 	for _, h := range handlers {
-		sw.AddEventHandler(&virtualHostEventHandler{handler: h, store: sw.GetStore()})
+		sw.AddEventHandler(&virtualHostEventHandler{handler: h, store: sw.GetStore(), namespace: v.namespace})
 	}
 	return storage.NewWatcher(func(stop <-chan struct{}, _ chan error) {
 		sw.Run(stop)
 	}), nil
 }
 
-func (c *virtualHostsClient) createOrUpdateVirtualHostCrd(virtualHost *v1.VirtualHost, op crud.Operation) (*v1.VirtualHost, error) {
-	vhostCrd, err := VirtualHostToCrd(c.namespace, virtualHost)
+func (v *virtualHostsClient) createOrUpdateVirtualHostCrd(virtualHost *v1.VirtualHost, op crud.Operation) (*v1.VirtualHost, error) {
+	vhostCrd, err := VirtualHostToCrd(v.namespace, virtualHost)
 	if err != nil {
 		return nil, errors.Wrap(err, "converting gloo object to crd")
 	}
-	vhosts := c.crds.GlooV1().VirtualHosts(vhostCrd.Namespace)
+	vhosts := v.crds.GlooV1().VirtualHosts(vhostCrd.Namespace)
 	var returnedCrd *crdv1.VirtualHost
 	switch op {
 	case crud.OperationCreate:
@@ -110,19 +110,23 @@ func (c *virtualHostsClient) createOrUpdateVirtualHostCrd(virtualHost *v1.Virtua
 
 // implements the kubernetes ResourceEventHandler interface
 type virtualHostEventHandler struct {
-	handler storage.VirtualHostEventHandler
-	store   cache.Store
+	namespace string
+	handler   storage.VirtualHostEventHandler
+	store     cache.Store
 }
 
 func (eh *virtualHostEventHandler) getUpdatedList() []*v1.VirtualHost {
 	updatedList := eh.store.List()
 	var updatedVirtualHostList []*v1.VirtualHost
 	for _, updated := range updatedList {
-		usCrd, ok := updated.(*crdv1.VirtualHost)
+		vhCrd, ok := updated.(*crdv1.VirtualHost)
 		if !ok {
 			continue
 		}
-		updatedVirtualHost, err := VirtualHostFromCrd(usCrd)
+		if vhCrd.Namespace != eh.namespace {
+			continue
+		}
+		updatedVirtualHost, err := VirtualHostFromCrd(vhCrd)
 		if err != nil {
 			continue
 		}
@@ -132,23 +136,23 @@ func (eh *virtualHostEventHandler) getUpdatedList() []*v1.VirtualHost {
 }
 
 func convertVh(obj interface{}) (*v1.VirtualHost, bool) {
-	usCrd, ok := obj.(*crdv1.VirtualHost)
+	vhCrd, ok := obj.(*crdv1.VirtualHost)
 	if !ok {
 		return nil, ok
 	}
-	us, err := VirtualHostFromCrd(usCrd)
+	vh, err := VirtualHostFromCrd(vhCrd)
 	if err != nil {
 		return nil, false
 	}
-	return us, ok
+	return vh, ok
 }
 
 func (eh *virtualHostEventHandler) OnAdd(obj interface{}) {
-	us, ok := convertVh(obj)
+	vh, ok := convertVh(obj)
 	if !ok {
 		return
 	}
-	eh.handler.OnAdd(eh.getUpdatedList(), us)
+	eh.handler.OnAdd(eh.getUpdatedList(), vh)
 }
 func (eh *virtualHostEventHandler) OnUpdate(_, newObj interface{}) {
 	newVh, ok := convertVh(newObj)
@@ -159,9 +163,9 @@ func (eh *virtualHostEventHandler) OnUpdate(_, newObj interface{}) {
 }
 
 func (eh *virtualHostEventHandler) OnDelete(obj interface{}) {
-	us, ok := convertVh(obj)
+	vh, ok := convertVh(obj)
 	if !ok {
 		return
 	}
-	eh.handler.OnDelete(eh.getUpdatedList(), us)
+	eh.handler.OnDelete(eh.getUpdatedList(), vh)
 }
