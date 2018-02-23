@@ -86,11 +86,13 @@ func (v *virtualHostsClient) createOrUpdateVirtualHostCrd(virtualHost *v1.Virtua
 	switch op {
 	case crud.OperationCreate:
 		returnedCrd, err = vhosts.Create(vhostCrd)
-		err = errors.Wrap(err, "kubernetes create api request")
-		if kuberrs.IsAlreadyExists(err) {
-			return nil, storage.NewAlreadyExistsErr(err)
+		if err != nil {
+			if kuberrs.IsAlreadyExists(err) {
+				return nil, storage.NewAlreadyExistsErr(err)
+			}
+			err = errors.Wrap(err, "kubernetes create api request")
+			return nil, err
 		}
-		return nil, err
 	case crud.OperationUpdate:
 		// need to make sure we preserve labels and annotations
 		currentCrd, err := vhosts.Get(vhostCrd.Name, metav1.GetOptions{ResourceVersion: vhostCrd.ResourceVersion})
