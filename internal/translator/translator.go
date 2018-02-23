@@ -237,7 +237,7 @@ func (t *Translator) computeCluster(cfg *v1.Config, secrets secretwatcher.Secret
 	if edsCluster {
 		out.Type = envoyapi.Cluster_EDS
 	}
-	var upstreamErrors *multierror.Error
+	var upstreamErrors error
 	for _, plug := range t.plugins {
 		upstreamPlugin, ok := plug.(plugin.UpstreamPlugin)
 		if !ok {
@@ -318,7 +318,7 @@ func (t *Translator) computeVirtualHosts(cfg *v1.Config) ([]envoyroute.VirtualHo
 
 func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream, virtualHost *v1.VirtualHost) (envoyroute.VirtualHost, error) {
 	var envoyRoutes []envoyroute.Route
-	var routeErrors *multierror.Error
+	var routeErrors error
 	for _, route := range virtualHost.Routes {
 		if err := validateRouteDestinations(upstreams, route); err != nil {
 			routeErrors = multierror.Append(routeErrors, err)
