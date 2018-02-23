@@ -16,6 +16,7 @@ import (
 	kubelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 
+	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
 )
@@ -28,6 +29,7 @@ type endpointController struct {
 	podsLister      kubelisters.PodLister
 	upstreamSpecs   map[string]*UpstreamSpec
 	runFunc         func(stop <-chan struct{})
+	lastSeen        uint64
 }
 
 func newEndpointController(cfg *rest.Config, resyncDuration time.Duration) (*endpointController, error) {
@@ -142,6 +144,7 @@ func (c *endpointController) getUpdatedEndpoints() (endpointdiscovery.EndpointGr
 						// determine whether labels for the owner of this ip (pod) matches the spec
 						podLabels, err := getPodLabelsForIp(addr.IP, podList)
 						if err != nil {
+							err = errors.Wrapf(err, "error for upstream %v service %v", upstreamName, spec.ServiceName)
 							// pod not found for ip? what's that about?
 							// log it and keep going
 							runtime.HandleError(err)
@@ -165,6 +168,15 @@ func (c *endpointController) getUpdatedEndpoints() (endpointdiscovery.EndpointGr
 			}
 		}
 	}
+	newHash, err := hashstructure.Hash(endpointGroups, nil)
+	if err != nil {
+		runtime.HandleError(err)
+		return nil, nil
+	}
+	if newHash == c.lastSeen {
+		return nil, nil
+	}
+	c.lastSeen = newHash
 	return endpointGroups, nil
 }
 
