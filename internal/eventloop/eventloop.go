@@ -88,10 +88,17 @@ func Setup(opts bootstrap.Options, stop <-chan struct{}) (*eventLoop, error) {
 func updateSecretRefsFor(plugins []plugin.TranslatorPlugin) func(cfg *v1.Config) []string {
 	return func(cfg *v1.Config) []string {
 		var secretRefs []string
+		// secrets plugins need
 		for _, plug := range plugins {
 			deps := plug.GetDependencies(cfg)
 			if deps != nil {
 				secretRefs = append(secretRefs, deps.SecretRefs...)
+			}
+		}
+		// secrets for virtualhosts
+		for _, vhost := range cfg.VirtualHosts {
+			if vhost.SslConfig != nil && vhost.SslConfig.SecretRef != "" {
+				secretRefs = append(secretRefs, vhost.SslConfig.SecretRef)
 			}
 		}
 		return secretRefs

@@ -138,13 +138,13 @@ func (t *Translator) Translate(cfg *v1.Config,
 	var listenersProto, routesProto []proto.Message
 
 	// only add http listener and route config if we have no ssl vhosts
-	if len(nosslVirtualHosts) > 0 {
+	if len(nosslVirtualHosts) > 0 && len(nosslListener.FilterChains) > 0 {
 		listenersProto = append(listenersProto, nosslListener)
 		routesProto = append(routesProto, nosslRouteConfig)
 	}
 
 	// only add https listener and route config if we have ssl vhosts
-	if len(sslVirtualHosts) > 0 {
+	if len(sslVirtualHosts) > 0 && len(httpsListener.FilterChains) > 0 {
 		listenersProto = append(listenersProto, httpsListener)
 		routesProto = append(routesProto, sslRouteConfig)
 	}
