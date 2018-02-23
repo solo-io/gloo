@@ -102,17 +102,6 @@ func (t *Translator) Translate(cfg *v1.Config,
 	}
 	nosslListener := t.constructHttpListener(nosslListenerName, nosslListenerPort, nosslFilters)
 
-	// proto-ify everything
-	var endpointsProto []proto.Message
-	for _, cla := range clusterLoadAssignments {
-		endpointsProto = append(endpointsProto, cla)
-	}
-
-	var clustersProto []proto.Message
-	for _, cluster := range clusters {
-		clustersProto = append(clustersProto, cluster)
-	}
-
 	// ssl
 	sslRouteConfig := &envoyapi.RouteConfiguration{
 		Name:         sslRdsName,
@@ -133,6 +122,17 @@ func (t *Translator) Translate(cfg *v1.Config,
 		secrets)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "constructing https listener %v", sslListenerName)
+	}
+
+	// proto-ify everything
+	var endpointsProto []proto.Message
+	for _, cla := range clusterLoadAssignments {
+		endpointsProto = append(endpointsProto, cla)
+	}
+
+	var clustersProto []proto.Message
+	for _, cluster := range clusters {
+		clustersProto = append(clustersProto, cluster)
 	}
 
 	var listenersProto, routesProto []proto.Message
