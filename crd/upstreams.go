@@ -87,11 +87,10 @@ func (c *upstreamsClient) createOrUpdateUpstreamCrd(upstream *v1.Upstream, op cr
 	case crud.OperationCreate:
 		returnedCrd, err = upstreams.Create(upstreamCrd)
 		if err != nil {
-			err = errors.Wrap(err, "kubernetes create api request")
 			if kuberrs.IsAlreadyExists(err) {
 				return nil, storage.NewAlreadyExistsErr(err)
 			}
-			return nil, err
+			return nil, errors.Wrap(err, "kubernetes create api request")
 		}
 	case crud.OperationUpdate:
 		// need to make sure we preserve labels
