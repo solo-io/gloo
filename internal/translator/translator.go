@@ -224,7 +224,7 @@ func (t *Translator) computeClusters(cfg *v1.Config, secrets secretwatcher.Secre
 		_, edsCluster := endpoints[upstream.Name]
 		cluster, err := t.computeCluster(cfg, secrets, upstream, edsCluster)
 		clusters = append(clusters, cluster)
-		reports = append(reports, createUpstreamReport(upstream, err))
+		reports = append(reports, createReport(upstream, err))
 	}
 	return clusters, reports
 }
@@ -268,20 +268,6 @@ func validateCluster(c *envoyapi.Cluster) error {
 	return nil
 }
 
-func createUpstreamReport(upstream *v1.Upstream, err error) reporter.ConfigObjectReport {
-	return reporter.ConfigObjectReport{
-		CfgObject: upstream,
-		Err:       err,
-	}
-}
-
-func createVirtualHostReport(virtualHost *v1.VirtualHost, err error) reporter.ConfigObjectReport {
-	return reporter.ConfigObjectReport{
-		CfgObject: virtualHost,
-		Err:       err,
-	}
-}
-
 func secretsForPlugin(cfg *v1.Config, plug plugin.TranslatorPlugin, secrets secretwatcher.SecretMap) secretwatcher.SecretMap {
 	deps := plug.GetDependencies(cfg)
 	if deps == nil || len(deps.SecretRefs) == 0 {
@@ -311,7 +297,7 @@ func (t *Translator) computeVirtualHosts(cfg *v1.Config) ([]envoyroute.VirtualHo
 		} else {
 			nosslVirtualHosts = append(nosslVirtualHosts, envoyVirtualHost)
 		}
-		reports = append(reports, createVirtualHostReport(virtualHost, err))
+		reports = append(reports, createReport(virtualHost, err))
 	}
 	return sslVirtualHosts, nosslVirtualHosts, reports
 }
@@ -637,4 +623,11 @@ func clusterName(upstreamName string) string {
 // for future-proofing possible safety issues with bad virtualhost names
 func virtualHostName(virtualHostName string) string {
 	return virtualHostName
+}
+
+func createReport(cfgObject v1.ConfigObject, err error) reporter.ConfigObjectReport {
+	return reporter.ConfigObjectReport{
+		CfgObject: cfgObject,
+		Err:       err,
+	}
 }

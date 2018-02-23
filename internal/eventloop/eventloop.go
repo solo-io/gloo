@@ -6,6 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo-storage/crd"
@@ -68,6 +69,7 @@ func Setup(opts bootstrap.Options, stop <-chan struct{}) (*eventLoop, error) {
 		translator:       trans,
 		xdsConfig:        xdsConfig,
 		updateSecretRefs: updateSecretRefsFor(plugs),
+		reporter:         reporter.NewReporter(store),
 	}
 
 	for _, endpointDiscoveryInitializer := range plugin.EndpointDiscoveryInitializers() {
@@ -161,6 +163,7 @@ func (e *eventLoop) Run(stop <-chan struct{}) error {
 	workerErrors := e.errors()
 
 	// cache the most recent read for any of these
+	var hash uint64
 	current := newCache()
 	for {
 		select {
@@ -173,12 +176,27 @@ func (e *eventLoop) Run(stop <-chan struct{}) error {
 					discovery.TrackUpstreams(cfg.Upstreams)
 				}()
 			}
+			newHash := current.hash()
+			if hash == newHash {
+				break
+			}
+			hash = newHash
 			e.updateXds(current)
 		case secrets := <-e.secretWatcher.Secrets():
 			current.secrets = secrets
+			newHash := current.hash()
+			if hash == newHash {
+				break
+			}
+			hash = newHash
 			e.updateXds(current)
 		case endpointTuple := <-endpointDiscovery:
 			current.endpoints[endpointTuple.discoveredBy] = endpointTuple.endpoints
+			newHash := current.hash()
+			if hash == newHash {
+				break
+			}
+			hash = newHash
 			e.updateXds(current)
 		case err := <-workerErrors:
 			runtime.HandleError(err)
@@ -191,18 +209,28 @@ func (e *eventLoop) updateXds(cache *cache) {
 		log.Debugf("cache is not fully constructed to produce a first snapshot yet")
 		return
 	}
+
 	aggregatedEndpoints := make(endpointdiscovery.EndpointGroups)
 	for _, endpointGroups := range cache.endpoints {
 		for upstreamName, endpointSet := range endpointGroups {
 			aggregatedEndpoints[upstreamName] = endpointSet
 		}
 	}
-	snapshot, status, err := e.translator.Translate(cache.cfg, cache.secrets, aggregatedEndpoints)
+	snapshot, statuses, err := e.translator.Translate(cache.cfg, cache.secrets, aggregatedEndpoints)
 	if err != nil {
 		// TODO: panic or handle these internal errors smartly
 		runtime.HandleError(errors.Wrap(err, "failed to translate based on the latest config"))
 	}
-	log.Printf("TODO: do something with this status eventually: %v", status)
+
+	for _, st := range statuses {
+		if st.Err != nil {
+			log.Debugf("translation error: %v: %v", st.CfgObject.GetName(), st.Err)
+		}
+	}
+	if err := e.reporter.WriteReports(statuses); err != nil {
+		runtime.HandleError(err)
+	}
+
 	log.Debugf("FINAL: XDS Snapshot: %v", snapshot)
 	e.xdsConfig.SetSnapshot(xds.NodeKey, *snapshot)
 }
@@ -264,6 +292,23 @@ func newCache() *cache {
 // but that's okay. envoy won't mind
 func (c *cache) ready() bool {
 	return c.cfg != nil
+}
+
+func (c *cache) hash() uint64 {
+	h0, err := hashstructure.Hash(*c.cfg, nil)
+	if err != nil {
+		panic(err)
+	}
+	h1, err := hashstructure.Hash(c.secrets, nil)
+	if err != nil {
+		panic(err)
+	}
+	h2, err := hashstructure.Hash(c.endpoints, nil)
+	if err != nil {
+		panic(err)
+	}
+	h := h0 + h1 + h2
+	return h
 }
 
 type endpointTuple struct {
