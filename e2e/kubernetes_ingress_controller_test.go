@@ -10,8 +10,6 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 var _ = Describe("Kubernetes Ingress Controller", func() {
@@ -24,13 +22,6 @@ var _ = Describe("Kubernetes Ingress Controller", func() {
 	const path1b = "/helloserviceb"
 	const path2a = "/helloservice2a"
 	const path2b = "/helloservice2b"
-	var kube kubernetes.Interface
-	BeforeEach(func() {
-		cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
-		Must(err)
-		kube, err = kubernetes.NewForConfig(cfg)
-		Must(err)
-	})
 	Context("creating a kubernetes ingress with default backend", func() {
 		var ingress *v1beta1.Ingress
 		BeforeEach(func() {

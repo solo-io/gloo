@@ -12,3 +12,14 @@ func SoloDirectory() string {
 func E2eDirectory() string {
 	return filepath.Join(SoloDirectory(), "gloo-testing", "e2e")
 }
+
+func CertsDirectory() string {
+	return filepath.Join(E2eDirectory(), "certs")
+}
+
+func ServerCert() string {
+	return filepath.Join(CertsDirectory(), "envoy.crt")
+}
+func ServerKey() string {
+	return filepath.Join(CertsDirectory(), "envoy.key")
+}

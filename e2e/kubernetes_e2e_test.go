@@ -8,12 +8,15 @@ import (
 
 	"strings"
 
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo-storage/crd"
 	. "github.com/solo-io/gloo-testing/helpers"
 	"github.com/solo-io/gloo/pkg/log"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -24,6 +27,7 @@ var (
 )
 
 var gloo storage.Interface
+var kube kubernetes.Interface
 
 var _ = Describe("Kubernetes Deployment", func() {
 	BeforeSuite(func() {
@@ -37,6 +41,8 @@ var _ = Describe("Kubernetes Deployment", func() {
 		Must(err)
 		gloo, err = crd.NewStorage(cfg, namespace, time.Minute)
 		Must(err)
+		kube, err = kubernetes.NewForConfig(cfg)
+		Must(err)
 	})
 	AfterSuite(func() {
 		mkb.Teardown()
@@ -44,9 +50,12 @@ var _ = Describe("Kubernetes Deployment", func() {
 })
 
 type curlOpts struct {
-	path   string
-	method string
-	host   string
+	protocol string
+	path     string
+	method   string
+	host     string
+	caFile   string
+	port     int
 }
 
 func curlEventuallyShouldRespond(opts curlOpts, substr string, timeout ...time.Duration) {
@@ -83,6 +92,17 @@ func curlEnvoy(opts curlOpts) (string, error) {
 	if opts.host != "" {
 		args = append(args, "-H", "Host: "+opts.host)
 	}
-	args = append(args, "http://envoy:8080"+opts.path)
+	if opts.caFile != "" {
+		args = append(args, "--cacert", opts.caFile)
+	}
+	port := opts.port
+	if port == 0 {
+		port = 8080
+	}
+	protocol := opts.protocol
+	if protocol == "" {
+		protocol = "http"
+	}
+	args = append(args, fmt.Sprintf("%v://envoy:%v%s", protocol, port, opts.path))
 	return TestRunner(args...)
 }
