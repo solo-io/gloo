@@ -131,6 +131,10 @@ func (c *ServiceController) generateDesiredUpstreams() ([]*v1.Upstream, error) {
 		if svc.Namespace == kubeSystemNamespace {
 			continue
 		}
+		// ignore the kubernetes default service
+		if svc.Name == "kubernetes" && svc.Namespace == "default" {
+			continue
+		}
 
 		for _, port := range svc.Spec.Ports {
 			upstream := &v1.Upstream{
