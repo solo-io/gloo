@@ -1,0 +1,6 @@
+site_name: gloo API Docs
+pages:
+    - Home: index.md
+    - v1 API reference: api.md
+    - Go API reference: go.md
+theme: readthedocs
