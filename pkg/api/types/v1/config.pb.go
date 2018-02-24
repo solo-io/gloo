@@ -45,6 +45,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
+// *
+// Config is a top-level config object. It is used internally by gloo as a container for the entire user config.
 type Config struct {
 	Upstreams    []*Upstream    `protobuf:"bytes,1,rep,name=upstreams" json:"upstreams,omitempty"`
 	VirtualHosts []*VirtualHost `protobuf:"bytes,2,rep,name=virtual_hosts,json=virtualHosts" json:"virtual_hosts,omitempty"`
