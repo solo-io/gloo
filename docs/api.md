@@ -97,14 +97,14 @@ Config is a top-level config object. It is used internally by gloo as a containe
 <a name="v1.Metadata"/>
 
 ### Metadata
-
+Metadata contains general properties of config resources useful to clients and the gloo control plane for purposes of versioning, annotating, and namespacing resources.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| resource_version | [string](#string) |  |  |
-| namespace | [string](#string) |  |  |
-| annotations | [Metadata.AnnotationsEntry](#v1.Metadata.AnnotationsEntry) | repeated | ignored by gloo but useful for clients |
+| resource_version | [string](#string) |  | ResourceVersion keeps track of the resource version of a config resource. This mechanism is used by [gloo-storage](TODO) to ensure safety with concurrent writes/updates to a resource in storage. |
+| namespace | [string](#string) |  | Namespace is used for the namespacing of resources. Currently unused by gloo internally. |
+| annotations | [Metadata.AnnotationsEntry](#v1.Metadata.AnnotationsEntry) | repeated | Annotations allow clients to tag resources for special use cases. gloo ignores annotations but preserved them on read/write from/to storage. |
 
 
 
@@ -146,13 +146,13 @@ Config is a top-level config object. It is used internally by gloo as a containe
 <a name="v1.Status"/>
 
 ### Status
-
+Status indicates whether a config resource (currently only [virtualhosts](TODO) and [upstreams](TODO)) has been (in)validated by gloo
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| state | [Status.State](#v1.Status.State) |  |  |
-| reason | [string](#string) |  |  |
+| state | [Status.State](#v1.Status.State) |  | State is the enum indicating the state of the resource |
+| reason | [string](#string) |  | Reason is a description of the error for Rejected resources. If the resource is pending or accepted, this field will be empty |
 
 
 
@@ -168,9 +168,9 @@ Config is a top-level config object. It is used internally by gloo as a containe
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| Pending | 0 |  |
-| Accepted | 1 |  |
-| Rejected | 2 |  |
+| Pending | 0 | Pending status indicates the resource has not yet been validated |
+| Accepted | 1 | Accepted indicates the resource has been validated |
+| Rejected | 2 | Rejected indicates an invalid configuration by the user Rejected resources may be propagated to the xDS server depending on their severity |
 
 
  
@@ -196,8 +196,8 @@ Config is a top-level config object. It is used internally by gloo as a containe
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  |  |
-| spec | [google.protobuf.Struct](#google.protobuf.Struct) |  |  |
+| name | [string](#string) |  | Name of the function. Functions are referenced by name from routes and therefore must be unique within an upstream |
+| spec | [google.protobuf.Struct](#google.protobuf.Struct) |  | Spec for the function. Like [upstream specs](TODO), the content of function specs is specified by the [upstream plugin](TODO) for the upstream&#39;s type. |
 
 
 
@@ -207,18 +207,20 @@ Config is a top-level config object. It is used internally by gloo as a containe
 <a name="v1.Upstream"/>
 
 ### Upstream
-
+Upstream represents a destination for routing. Upstreams can be compared to [clusters](TODO) in [envoy](TODO) terminology.
+Upstreams can take a variety of [types](TODO) in gloo. Language extensions known as [plugins](TODO) allow the addition of new
+types of upstreams. See [upstream types](TODO) for a detailed description of available upstream types.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  |  |
-| type | [string](#string) |  |  |
-| connection_timeout | [google.protobuf.Duration](#google.protobuf.Duration) |  |  |
-| spec | [google.protobuf.Struct](#google.protobuf.Struct) |  |  |
-| functions | [Function](#v1.Function) | repeated |  |
-| status | [Status](#v1.Status) |  | read only |
-| metadata | [Metadata](#v1.Metadata) |  |  |
+| name | [string](#string) |  | Name of the upstream. Names must be unique and follow the following syntax rules: One or more lowercase rfc1035/rfc1123 labels separated by &#39;.&#39; with a maximum length of 253 characters. |
+| type | [string](#string) |  | Type indicates the type of the upstream. Examples include [service](TODO), [kubernetes](TODO), and [aws](TODO) Types are defined by the [plugin](TODO) associated with them. |
+| connection_timeout | [google.protobuf.Duration](#google.protobuf.Duration) |  | Connection Timeout tells gloo to set a timeout for unresponsive connections created to this upstream. If not provided by the user, it will default to a [default value](TODO) |
+| spec | [google.protobuf.Struct](#google.protobuf.Struct) |  | Spec contains properties that are specific to the upstream type. The spec is always required, but the expected content is specified by the [upstream plugin] for the given upstream type. Most often the upstream spec will be a map&lt;string, string&gt; |
+| functions | [Function](#v1.Function) | repeated | Certain upstream types support (and may require) [functions](TODO). Functions allow function-level routing to be done. For example, the [aws lambda](TODO) upstream type Permits routing to [aws lambda functions]. [routes](TODO) on [virtualhosts] can specify [function destinations] to route to specific functions. |
+| status | [Status](#v1.Status) |  | Status indicates the validation status of the upstream resource. Status is read-only by clients, and set by gloo during validation |
+| metadata | [Metadata](#v1.Metadata) |  | Metadata contains the resource metadata for the upstream |
 
 
 
@@ -343,7 +345,10 @@ Config is a top-level config object. It is used internally by gloo as a containe
 <a name="v1.Route"/>
 
 ### Route
-
+Virtual Hosts represent a collection of routes for a set of domains.
+Virtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.
+A virtual host can be used to define &#34;apps&#34;; a collection of APIs that belong to a particular domain.
+The Virtual Host concept allows configuration of per-virtualhost SSL certificates
 
 
 | Field | Type | Label | Description |
@@ -393,17 +398,20 @@ Config is a top-level config object. It is used internally by gloo as a containe
 <a name="v1.VirtualHost"/>
 
 ### VirtualHost
-
+Virtual Hosts represent a collection of routes for a set of domains.
+Virtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.
+A virtual host can be used to define &#34;apps&#34;; a collection of APIs that belong to a particular domain.
+The Virtual Host concept allows configuration of per-virtualhost SSL certificates
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  | required, must be unique cannot be &#34;default&#34; unless it refers to the default vhost |
-| domains | [string](#string) | repeated | if this is empty, this host will become / be merged with the default virtualhost who has domains = [&#34;*&#34;] |
-| routes | [Route](#v1.Route) | repeated | require at least 1 route |
-| ssl_config | [SSLConfig](#v1.SSLConfig) |  | optional |
-| status | [Status](#v1.Status) |  | read only |
-| metadata | [Metadata](#v1.Metadata) |  |  |
+| name | [string](#string) |  | Name of the virtual host. Names must be unique and follow the following syntax rules: One or more lowercase rfc1035/rfc1123 labels separated by &#39;.&#39; with a maximum length of 253 characters. |
+| domains | [string](#string) | repeated | Domains represent the list of domains (host/authority header) that will match for all routes on this virtual host. As in [envoy](TODO): wildcard hosts are supported in the form of “*.foo.com” or “*-bar.foo.com”. If domains is empty, gloo will set the domain to &#34;*&#34;, making that virtual host the &#34;default&#34; virtualhost. The default virtualhost will be the fallback virtual host for all requests that do not match a domain on an existing virtual host. Only one default virtual host can be defined (either with an empty domain list, or a domain list that includes &#34;*&#34;) |
+| routes | [Route](#v1.Route) | repeated | Routes define the list of [routes](TODO) that live on this virtual host. |
+| ssl_config | [SSLConfig](#v1.SSLConfig) |  | SSL Config is optional for the virtual host. If provided, the virtual host will listen on the envoy HTTPS listener port (default :8443) If left empty, the virtual host will listen on the HTTP listener port (default :8080) |
+| status | [Status](#v1.Status) |  | Status indicates the validation status of the virtual host resource. Status is read-only by clients, and set by gloo during validation |
+| metadata | [Metadata](#v1.Metadata) |  | Metadata contains the resource metadata for the virtual host |
 
 
 

@@ -16,8 +16,12 @@ var _ = math.Inf
 type Status_State int32
 
 const (
-	Status_Pending  Status_State = 0
+	// Pending status indicates the resource has not yet been validated
+	Status_Pending Status_State = 0
+	// Accepted indicates the resource has been validated
 	Status_Accepted Status_State = 1
+	// Rejected indicates an invalid configuration by the user
+	// Rejected resources may be propagated to the xDS server depending on their severity
 	Status_Rejected Status_State = 2
 )
 
@@ -37,9 +41,13 @@ func (x Status_State) String() string {
 }
 func (Status_State) EnumDescriptor() ([]byte, []int) { return fileDescriptorStatus, []int{0, 0} }
 
+// *
+// Status indicates whether a config resource (currently only [virtualhosts](TODO) and [upstreams](TODO)) has been (in)validated by gloo
 type Status struct {
-	State  Status_State `protobuf:"varint,1,opt,name=state,proto3,enum=v1.Status_State" json:"state,omitempty"`
-	Reason string       `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	// State is the enum indicating the state of the resource
+	State Status_State `protobuf:"varint,1,opt,name=state,proto3,enum=v1.Status_State" json:"state,omitempty"`
+	// Reason is a description of the error for Rejected resources. If the resource is pending or accepted, this field will be empty
+	Reason string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
 }
 
 func (m *Status) Reset()                    { *m = Status{} }

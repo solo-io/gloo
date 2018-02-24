@@ -14,19 +14,29 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// *
+// Virtual Hosts represent a collection of routes for a set of domains.
+// Virtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.
+// A virtual host can be used to define "apps"; a collection of APIs that belong to a particular domain.
+// The Virtual Host concept allows configuration of per-virtualhost SSL certificates
 type VirtualHost struct {
-	// required, must be unique
-	// cannot be "default" unless it refers to the default vhost
+	// Name of the virtual host. Names must be unique and follow the following syntax rules:
+	// One or more lowercase rfc1035/rfc1123 labels separated by '.' with a maximum length of 253 characters.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// if this is empty, this host will become / be merged with
-	// the default virtualhost who has domains = ["*"]
+	// Domains represent the list of domains (host/authority header) that will match for all routes on this virtual host.
+	// As in [envoy](TODO): wildcard hosts are supported in the form of “*.foo.com” or “*-bar.foo.com”.
+	// If domains is empty, gloo will set the domain to "*", making that virtual host the "default" virtualhost.
+	// The default virtualhost will be the fallback virtual host for all requests that do not match a domain on an existing virtual host.
+	// Only one default virtual host can be defined (either with an empty domain list, or a domain list that includes "*")
 	Domains []string `protobuf:"bytes,2,rep,name=domains" json:"domains,omitempty"`
-	// require at least 1 route
+	// Routes define the list of [routes](TODO) that live on this virtual host.
 	Routes []*Route `protobuf:"bytes,3,rep,name=routes" json:"routes,omitempty"`
-	// optional
+	// SSL Config is optional for the virtual host. If provided, the virtual host will listen on the envoy HTTPS listener port (default :8443)
+	// If left empty, the virtual host will listen on the HTTP listener port (default :8080)
 	SslConfig *SSLConfig `protobuf:"bytes,4,opt,name=ssl_config,json=sslConfig" json:"ssl_config,omitempty"`
-	// read only
-	Status   *Status   `protobuf:"bytes,5,opt,name=status" json:"status,omitempty"`
+	// Status indicates the validation status of the virtual host resource. Status is read-only by clients, and set by gloo during validation
+	Status *Status `protobuf:"bytes,5,opt,name=status" json:"status,omitempty"`
+	// Metadata contains the resource metadata for the virtual host
 	Metadata *Metadata `protobuf:"bytes,6,opt,name=metadata" json:"metadata,omitempty"`
 }
 
@@ -77,6 +87,11 @@ func (m *VirtualHost) GetMetadata() *Metadata {
 	return nil
 }
 
+// *
+// Virtual Hosts represent a collection of routes for a set of domains.
+// Virtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.
+// A virtual host can be used to define "apps"; a collection of APIs that belong to a particular domain.
+// The Virtual Host concept allows configuration of per-virtualhost SSL certificates
 type Route struct {
 	// Types that are valid to be assigned to Matcher:
 	//	*Route_RequestMatcher
