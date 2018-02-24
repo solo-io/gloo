@@ -9,23 +9,40 @@ option (gogoproto.equal_all) = true;
 import "status.proto";
 import "metadata.proto";
 
+/**
+ * Virtual Hosts represent a collection of routes for a set of domains.
+ * Virtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.
+ * A virtual host can be used to define "apps"; a collection of APIs that belong to a particular domain.
+ * The Virtual Host concept allows configuration of per-virtualhost SSL certificates
+ */
 message VirtualHost {
-    // required, must be unique
-    // cannot be "default" unless it refers to the default vhost
+    // Name of the virtual host. Names must be unique and follow the following syntax rules:
+    // One or more lowercase rfc1035/rfc1123 labels separated by '.' with a maximum length of 253 characters.
     string name = 1;
-    // if this is empty, this host will become / be merged with
-    // the default virtualhost who has domains = ["*"]
+    // Domains represent the list of domains (host/authority header) that will match for all routes on this virtual host.
+    // As in [envoy](TODO): wildcard hosts are supported in the form of “*.foo.com” or “*-bar.foo.com”.
+    // If domains is empty, gloo will set the domain to "*", making that virtual host the "default" virtualhost.
+    // The default virtualhost will be the fallback virtual host for all requests that do not match a domain on an existing virtual host.
+    // Only one default virtual host can be defined (either with an empty domain list, or a domain list that includes "*")
     repeated string domains = 2;
-    // require at least 1 route
+    // Routes define the list of [routes](TODO) that live on this virtual host.
     repeated Route routes = 3;
-    // optional
+    // SSL Config is optional for the virtual host. If provided, the virtual host will listen on the envoy HTTPS listener port (default :8443)
+    // If left empty, the virtual host will listen on the HTTP listener port (default :8080)
     SSLConfig ssl_config = 4;
 
-    // read only
+    // Status indicates the validation status of the virtual host resource. Status is read-only by clients, and set by gloo during validation
     Status status = 5;
+    // Metadata contains the resource metadata for the virtual host
     Metadata metadata = 6;
 }
 
+/**
+ * Virtual Hosts represent a collection of routes for a set of domains.
+ * Virtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.
+ * A virtual host can be used to define "apps"; a collection of APIs that belong to a particular domain.
+ * The Virtual Host concept allows configuration of per-virtualhost SSL certificates
+ */
 message Route {
     oneof matcher {
         RequestMatcher request_matcher = 1;
