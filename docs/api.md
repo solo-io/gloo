@@ -246,7 +246,7 @@ types of upstreams. See [upstream types](TODO) for a detailed description of ava
 <a name="v1.Destination"/>
 
 ### Destination
-
+Destination is a destination that requests can be routed to.
 
 
 | Field | Type | Label | Description |
@@ -262,12 +262,13 @@ types of upstreams. See [upstream types](TODO) for a detailed description of ava
 <a name="v1.EventMatcher"/>
 
 ### EventMatcher
-
+Event matcher is a special kind of matcher for CloudEvents
+The CloudEvents API is described here: https://github.com/cloudevents/spec/blob/master/spec.md
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| event_type | [string](#string) |  |  |
+| event_type | [string](#string) |  | Event Type indicates the event type or topic to match |
 
 
 
@@ -277,13 +278,13 @@ types of upstreams. See [upstream types](TODO) for a detailed description of ava
 <a name="v1.FunctionDestination"/>
 
 ### FunctionDestination
-
+FunctionDestination will route a request to a specific function defined for an upstream
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| upstream_name | [string](#string) |  |  |
-| function_name | [string](#string) |  |  |
+| upstream_name | [string](#string) |  | Upstream Name is the name of the upstream the function belongs to |
+| function_name | [string](#string) |  | Function Name is the name of the function as defined on the upstream |
 
 
 
@@ -293,17 +294,18 @@ types of upstreams. See [upstream types](TODO) for a detailed description of ava
 <a name="v1.RequestMatcher"/>
 
 ### RequestMatcher
-
+Request Matcher is a route matcher for traditional http requests
+Request Matchers stand in juxtoposition to Event Matchers, which match &#34;events&#34; rather than HTTP Requests
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| path_prefix | [string](#string) |  |  |
-| path_regex | [string](#string) |  |  |
-| path_exact | [string](#string) |  |  |
-| headers | [RequestMatcher.HeadersEntry](#v1.RequestMatcher.HeadersEntry) | repeated |  |
-| query_params | [RequestMatcher.QueryParamsEntry](#v1.RequestMatcher.QueryParamsEntry) | repeated |  |
-| verbs | [string](#string) | repeated |  |
+| path_prefix | [string](#string) |  | Prefix will match any request whose path begins with this prefix |
+| path_regex | [string](#string) |  | Regex will match any path that matches this regex string |
+| path_exact | [string](#string) |  | Exact will match only requests with exactly this path |
+| headers | [RequestMatcher.HeadersEntry](#v1.RequestMatcher.HeadersEntry) | repeated | Headers specify a list of request headers and their values the request must contain to match this route If a value is not specified (empty string) for a header, all values will match so long as the header is present on the request |
+| query_params | [RequestMatcher.QueryParamsEntry](#v1.RequestMatcher.QueryParamsEntry) | repeated | Query params work the same way as headers, but for query string parameters |
+| verbs | [string](#string) | repeated | HTTP Verb(s) to match on. If none specified, the matcher will match all verbs |
 
 
 
@@ -345,20 +347,17 @@ types of upstreams. See [upstream types](TODO) for a detailed description of ava
 <a name="v1.Route"/>
 
 ### Route
-Virtual Hosts represent a collection of routes for a set of domains.
-Virtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.
-A virtual host can be used to define &#34;apps&#34;; a collection of APIs that belong to a particular domain.
-The Virtual Host concept allows configuration of per-virtualhost SSL certificates
+Routes declare the entrypoints on virtual hosts and the upstreams or functions they route requests to
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | request_matcher | [RequestMatcher](#v1.RequestMatcher) |  |  |
 | event_matcher | [EventMatcher](#v1.EventMatcher) |  |  |
-| multiple_destinations | [WeightedDestination](#v1.WeightedDestination) | repeated |  |
-| single_destination | [Destination](#v1.Destination) |  |  |
-| prefix_rewrite | [string](#string) |  |  |
-| extensions | [google.protobuf.Struct](#google.protobuf.Struct) |  |  |
+| multiple_destinations | [WeightedDestination](#v1.WeightedDestination) | repeated | A route is only allowed to specify one of multiple_destinations or single_destination. Setting both will result in an error Multiple Destinations is used when a user wants a route to balance requests between multiple destinations Balancing is done by probability, where weights are specified for each destination |
+| single_destination | [Destination](#v1.Destination) |  | A single destination is specified when a route only routes to a single destination. |
+| prefix_rewrite | [string](#string) |  | PrefixRewrite can be specified to rewrite the matched path of the request path to a new prefix |
+| extensions | [google.protobuf.Struct](#google.protobuf.Struct) |  | Extensions provides a way to extend the behavior of a route. In addition to the [core route extensions](TODO), gloo provides the means for [route plugins](TODO) to be added to gloo which add new types of route extensions. See the [route extensions section](TODO) for a more detailed explanation |
 
 
 
@@ -368,12 +367,12 @@ The Virtual Host concept allows configuration of per-virtualhost SSL certificate
 <a name="v1.SSLConfig"/>
 
 ### SSLConfig
-
+SSLConfig contains the options necessary to configure a virtualhost to use TLS
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| secret_ref | [string](#string) |  |  |
+| secret_ref | [string](#string) |  | SecretRef contains the [secret ref](TODO) to a [gloo secret](TODO) containing the following structure: { &#34;ca_chain&#34;: &lt;ca chain data...&gt;, &#34;private key&#34;: &lt;private key data...&gt; } |
 
 
 
@@ -383,7 +382,7 @@ The Virtual Host concept allows configuration of per-virtualhost SSL certificate
 <a name="v1.UpstreamDestination"/>
 
 ### UpstreamDestination
-
+Upstream Destination routes a request to an upstream
 
 
 | Field | Type | Label | Description |
@@ -421,13 +420,14 @@ The Virtual Host concept allows configuration of per-virtualhost SSL certificate
 <a name="v1.WeightedDestination"/>
 
 ### WeightedDestination
-
+WeightedDestination attaches a weight to a destination
+For use in routes with multiple destinations
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | destination | [Destination](#v1.Destination) |  |  |
-| weight | [uint32](#uint32) |  |  |
+| weight | [uint32](#uint32) |  | Weight must be greater than zero Routing to each destination will be balanced by the ratio of the destination&#39;s weight to the total weight on a route |
 
 
 

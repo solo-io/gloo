@@ -38,42 +38,68 @@ message VirtualHost {
 }
 
 /**
- * Virtual Hosts represent a collection of routes for a set of domains.
- * Virtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.
- * A virtual host can be used to define "apps"; a collection of APIs that belong to a particular domain.
- * The Virtual Host concept allows configuration of per-virtualhost SSL certificates
+ * Routes declare the entrypoints on virtual hosts and the upstreams or functions they route requests to
  */
 message Route {
+    // Matcher defines what properties of a request to match on.
+    // Routes will route all requests they match.
+    // If a request matches more than one route, the first route on the virtual host's route list will be selected.
     oneof matcher {
         RequestMatcher request_matcher = 1;
         EventMatcher event_matcher = 2;
     }
+    // A route is only allowed to specify one of multiple_destinations or single_destination. Setting both will result in an error
+    // Multiple Destinations is used when a user wants a route to balance requests between multiple destinations
+    // Balancing is done by probability, where weights are specified for each destination
     repeated WeightedDestination multiple_destinations = 3;
+    // A single destination is specified when a route only routes to a single destination.
     Destination single_destination = 4;
+    // PrefixRewrite can be specified to rewrite the matched path of the request path to a new prefix
     string prefix_rewrite = 5;
+    // Extensions provides a way to extend the behavior of a route. In addition to the [core route extensions](TODO),
+    // gloo provides the means for [route plugins](TODO) to be added to gloo which add new types of route extensions.
+    // See the [route extensions section](TODO) for a more detailed explanation
     google.protobuf.Struct extensions = 6;
 }
 
+// Request Matcher is a route matcher for traditional http requests
+// Request Matchers stand in juxtoposition to Event Matchers, which match "events" rather than HTTP Requests
 message RequestMatcher {
+    // Path specifies the :path header in HTTP2, or the request URL path in HTTP 1
     oneof path {
+        // Prefix will match any request whose path begins with this prefix
         string path_prefix = 1;
+        // Regex will match any path that matches this regex string
         string path_regex = 2;
+        // Exact will match only requests with exactly this path
         string path_exact = 3;
     }
+    // Headers specify a list of request headers and their values the request must contain to match this route
+    // If a value is not specified (empty string) for a header, all values will match so long as the header is present on the request
     map<string, string> headers = 4;
+    // Query params work the same way as headers, but for query string parameters
     map<string, string> query_params = 5;
+    // HTTP Verb(s) to match on. If none specified, the matcher will match all verbs
     repeated string verbs = 6;
 }
 
+// Event matcher is a special kind of matcher for CloudEvents
+// The CloudEvents API is described here: https://github.com/cloudevents/spec/blob/master/spec.md
 message EventMatcher {
+    // Event Type indicates the event type or topic to match
     string event_type = 1;
 }
 
+// WeightedDestination attaches a weight to a destination
+// For use in routes with multiple destinations
 message WeightedDestination {
     Destination destination = 1  [(gogoproto.embed) = true];
+    // Weight must be greater than zero
+    // Routing to each destination will be balanced by the ratio of the destination's weight to the total weight on a route
     uint32 weight = 2;
 }
 
+// Destination is a destination that requests can be routed to.
 message Destination {
     oneof destination_type {
         FunctionDestination function = 1;
@@ -81,15 +107,26 @@ message Destination {
     }
 }
 
+// FunctionDestination will route a request to a specific function defined for an upstream
 message FunctionDestination {
+    // Upstream Name is the name of the upstream the function belongs to
     string upstream_name = 1;
+    // Function Name is the name of the function as defined on the upstream
     string function_name = 2;
 }
 
+// Upstream Destination routes a request to an upstream
 message UpstreamDestination {
     string name = 1;
 }
 
+// SSLConfig contains the options necessary to configure a virtualhost to use TLS
 message SSLConfig {
+    /** SecretRef contains the [secret ref](TODO) to a [gloo secret](TODO) containing the following structure:
+    {
+        "ca_chain": <ca chain data...>,
+        "private key": <private key data...>
+    }
+    */
     string secret_ref = 1;
 }

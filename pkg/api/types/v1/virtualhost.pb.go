@@ -88,19 +88,28 @@ func (m *VirtualHost) GetMetadata() *Metadata {
 }
 
 // *
-// Virtual Hosts represent a collection of routes for a set of domains.
-// Virtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.
-// A virtual host can be used to define "apps"; a collection of APIs that belong to a particular domain.
-// The Virtual Host concept allows configuration of per-virtualhost SSL certificates
+// Routes declare the entrypoints on virtual hosts and the upstreams or functions they route requests to
 type Route struct {
+	// Matcher defines what properties of a request to match on.
+	// Routes will route all requests they match.
+	// If a request matches more than one route, the first route on the virtual host's route list will be selected.
+	//
 	// Types that are valid to be assigned to Matcher:
 	//	*Route_RequestMatcher
 	//	*Route_EventMatcher
-	Matcher              isRoute_Matcher         `protobuf_oneof:"matcher"`
-	MultipleDestinations []*WeightedDestination  `protobuf:"bytes,3,rep,name=multiple_destinations,json=multipleDestinations" json:"multiple_destinations,omitempty"`
-	SingleDestination    *Destination            `protobuf:"bytes,4,opt,name=single_destination,json=singleDestination" json:"single_destination,omitempty"`
-	PrefixRewrite        string                  `protobuf:"bytes,5,opt,name=prefix_rewrite,json=prefixRewrite,proto3" json:"prefix_rewrite,omitempty"`
-	Extensions           *google_protobuf.Struct `protobuf:"bytes,6,opt,name=extensions" json:"extensions,omitempty"`
+	Matcher isRoute_Matcher `protobuf_oneof:"matcher"`
+	// A route is only allowed to specify one of multiple_destinations or single_destination. Setting both will result in an error
+	// Multiple Destinations is used when a user wants a route to balance requests between multiple destinations
+	// Balancing is done by probability, where weights are specified for each destination
+	MultipleDestinations []*WeightedDestination `protobuf:"bytes,3,rep,name=multiple_destinations,json=multipleDestinations" json:"multiple_destinations,omitempty"`
+	// A single destination is specified when a route only routes to a single destination.
+	SingleDestination *Destination `protobuf:"bytes,4,opt,name=single_destination,json=singleDestination" json:"single_destination,omitempty"`
+	// PrefixRewrite can be specified to rewrite the matched path of the request path to a new prefix
+	PrefixRewrite string `protobuf:"bytes,5,opt,name=prefix_rewrite,json=prefixRewrite,proto3" json:"prefix_rewrite,omitempty"`
+	// Extensions provides a way to extend the behavior of a route. In addition to the [core route extensions](TODO),
+	// gloo provides the means for [route plugins](TODO) to be added to gloo which add new types of route extensions.
+	// See the [route extensions section](TODO) for a more detailed explanation
+	Extensions *google_protobuf.Struct `protobuf:"bytes,6,opt,name=extensions" json:"extensions,omitempty"`
 }
 
 func (m *Route) Reset()                    { *m = Route{} }
@@ -246,15 +255,23 @@ func _Route_OneofSizer(msg proto.Message) (n int) {
 	return n
 }
 
+// Request Matcher is a route matcher for traditional http requests
+// Request Matchers stand in juxtoposition to Event Matchers, which match "events" rather than HTTP Requests
 type RequestMatcher struct {
+	// Path specifies the :path header in HTTP2, or the request URL path in HTTP 1
+	//
 	// Types that are valid to be assigned to Path:
 	//	*RequestMatcher_PathPrefix
 	//	*RequestMatcher_PathRegex
 	//	*RequestMatcher_PathExact
-	Path        isRequestMatcher_Path `protobuf_oneof:"path"`
-	Headers     map[string]string     `protobuf:"bytes,4,rep,name=headers" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	QueryParams map[string]string     `protobuf:"bytes,5,rep,name=query_params,json=queryParams" json:"query_params,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	Verbs       []string              `protobuf:"bytes,6,rep,name=verbs" json:"verbs,omitempty"`
+	Path isRequestMatcher_Path `protobuf_oneof:"path"`
+	// Headers specify a list of request headers and their values the request must contain to match this route
+	// If a value is not specified (empty string) for a header, all values will match so long as the header is present on the request
+	Headers map[string]string `protobuf:"bytes,4,rep,name=headers" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// Query params work the same way as headers, but for query string parameters
+	QueryParams map[string]string `protobuf:"bytes,5,rep,name=query_params,json=queryParams" json:"query_params,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// HTTP Verb(s) to match on. If none specified, the matcher will match all verbs
+	Verbs []string `protobuf:"bytes,6,rep,name=verbs" json:"verbs,omitempty"`
 }
 
 func (m *RequestMatcher) Reset()                    { *m = RequestMatcher{} }
@@ -411,7 +428,10 @@ func _RequestMatcher_OneofSizer(msg proto.Message) (n int) {
 	return n
 }
 
+// Event matcher is a special kind of matcher for CloudEvents
+// The CloudEvents API is described here: https://github.com/cloudevents/spec/blob/master/spec.md
 type EventMatcher struct {
+	// Event Type indicates the event type or topic to match
 	EventType string `protobuf:"bytes,1,opt,name=event_type,json=eventType,proto3" json:"event_type,omitempty"`
 }
 
@@ -427,9 +447,13 @@ func (m *EventMatcher) GetEventType() string {
 	return ""
 }
 
+// WeightedDestination attaches a weight to a destination
+// For use in routes with multiple destinations
 type WeightedDestination struct {
 	*Destination `protobuf:"bytes,1,opt,name=destination,embedded=destination" json:"destination,omitempty"`
-	Weight       uint32 `protobuf:"varint,2,opt,name=weight,proto3" json:"weight,omitempty"`
+	// Weight must be greater than zero
+	// Routing to each destination will be balanced by the ratio of the destination's weight to the total weight on a route
+	Weight uint32 `protobuf:"varint,2,opt,name=weight,proto3" json:"weight,omitempty"`
 }
 
 func (m *WeightedDestination) Reset()                    { *m = WeightedDestination{} }
@@ -444,6 +468,7 @@ func (m *WeightedDestination) GetWeight() uint32 {
 	return 0
 }
 
+// Destination is a destination that requests can be routed to.
 type Destination struct {
 	// Types that are valid to be assigned to DestinationType:
 	//	*Destination_Function
@@ -566,8 +591,11 @@ func _Destination_OneofSizer(msg proto.Message) (n int) {
 	return n
 }
 
+// FunctionDestination will route a request to a specific function defined for an upstream
 type FunctionDestination struct {
+	// Upstream Name is the name of the upstream the function belongs to
 	UpstreamName string `protobuf:"bytes,1,opt,name=upstream_name,json=upstreamName,proto3" json:"upstream_name,omitempty"`
+	// Function Name is the name of the function as defined on the upstream
 	FunctionName string `protobuf:"bytes,2,opt,name=function_name,json=functionName,proto3" json:"function_name,omitempty"`
 }
 
@@ -590,6 +618,7 @@ func (m *FunctionDestination) GetFunctionName() string {
 	return ""
 }
 
+// Upstream Destination routes a request to an upstream
 type UpstreamDestination struct {
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 }
@@ -606,7 +635,13 @@ func (m *UpstreamDestination) GetName() string {
 	return ""
 }
 
+// SSLConfig contains the options necessary to configure a virtualhost to use TLS
 type SSLConfig struct {
+	// * SecretRef contains the [secret ref](TODO) to a [gloo secret](TODO) containing the following structure:
+	// {
+	// "ca_chain": <ca chain data...>,
+	// "private key": <private key data...>
+	// }
 	SecretRef string `protobuf:"bytes,1,opt,name=secret_ref,json=secretRef,proto3" json:"secret_ref,omitempty"`
 }
 
