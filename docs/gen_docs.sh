@@ -12,11 +12,11 @@
 
 PKGS=$(dirname $(find $GOPATH/src/github.com/solo-io/gloo* -name *.go | grep -v "_test"))
 PKGS=$(echo ${PKGS} | sort | uniq)
-set -x
 
 for i in ${PKGS}; do
  pkg=$(dirname $(echo $i | sed "s@$GOPATH/src/github.com/solo-io/@@g"))
  mkdir -p docs/godoc/$pkg
+ set -x
  godocdown $i > docs/godoc/$pkg/$(basename $i).md
- exit
+ set +x
 done

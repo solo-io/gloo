@@ -66,12 +66,17 @@ func run(file, tmplFile, outDir string) error {
 	return nil
 }
 
-// NoBrFilter removes single CR and LF from content.
 func yamlType(longType, label string) string {
 	yamlType := func() string {
 		switch longType {
 		case "string":
-			return "string"
+			fallthrough
+		case "uint32":
+			fallthrough
+		case "bool":
+			fallthrough
+		case "int32":
+			return longType
 		case "Status":
 			fallthrough
 		case "Metadata":
