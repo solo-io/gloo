@@ -18,6 +18,12 @@
 Metadata contains general properties of config resources useful to clients and the gloo control plane for purposes of versioning, annotating, and namespacing resources.
 
 
+```yaml
+resource_version: [string](#string)
+namespace: [string](#string)
+annotations: [Metadata.AnnotationsEntry](#v1.Metadata.AnnotationsEntry)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | resource_version | [string](#string) |  | ResourceVersion keeps track of the resource version of a config resource. This mechanism is used by [gloo-storage](TODO) to ensure safety with concurrent writes/updates to a resource in storage. |
@@ -35,6 +41,11 @@ Metadata contains general properties of config resources useful to clients and t
 
 
 
+```yaml
+key: [string](#string)
+value: [string](#string)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |

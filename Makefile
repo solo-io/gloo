@@ -14,5 +14,5 @@ proto:
 	./*.proto
 
 doc: proto
-	make -C $(GOPATH)/src/github.com/solo-io/proto-doc-gen
+	go run docs/gen_docs.go
 #	godocdown pkg/api/types/v1/ > docs/go.md

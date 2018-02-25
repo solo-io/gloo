@@ -30,6 +30,15 @@ A virtual host can be used to define &#34;apps&#34;; a collection of APIs that b
 The Virtual Host concept allows configuration of per-virtualhost SSL certificates
 
 
+```yaml
+name: [string](#string)
+domains: [string](#string)
+routes: [Route](#v1.Route)
+ssl_config: [SSLConfig](#v1.SSLConfig)
+status: [Status](#v1.Status)
+metadata: [Metadata](#v1.Metadata)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | Name of the virtual host. Names must be unique and follow the following syntax rules: One or more lowercase rfc1035/rfc1123 labels separated by &#39;.&#39; with a maximum length of 253 characters. |
@@ -50,6 +59,15 @@ The Virtual Host concept allows configuration of per-virtualhost SSL certificate
 Routes declare the entrypoints on virtual hosts and the upstreams or functions they route requests to
 
 
+```yaml
+request_matcher: [RequestMatcher](#v1.RequestMatcher)
+event_matcher: [EventMatcher](#v1.EventMatcher)
+multiple_destinations: [WeightedDestination](#v1.WeightedDestination)
+single_destination: [Destination](#v1.Destination)
+prefix_rewrite: [string](#string)
+extensions: [google.protobuf.Struct](#google.protobuf.Struct)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | request_matcher | [RequestMatcher](#v1.RequestMatcher) |  |  |
@@ -71,6 +89,15 @@ Request Matcher is a route matcher for traditional http requests
 Request Matchers stand in juxtoposition to Event Matchers, which match &#34;events&#34; rather than HTTP Requests
 
 
+```yaml
+path_prefix: [string](#string)
+path_regex: [string](#string)
+path_exact: [string](#string)
+headers: [RequestMatcher.HeadersEntry](#v1.RequestMatcher.HeadersEntry)
+query_params: [RequestMatcher.QueryParamsEntry](#v1.RequestMatcher.QueryParamsEntry)
+verbs: [string](#string)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | path_prefix | [string](#string) |  | Prefix will match any request whose path begins with this prefix |
@@ -91,6 +118,11 @@ Request Matchers stand in juxtoposition to Event Matchers, which match &#34;even
 
 
 
+```yaml
+key: [string](#string)
+value: [string](#string)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
@@ -107,6 +139,11 @@ Request Matchers stand in juxtoposition to Event Matchers, which match &#34;even
 
 
 
+```yaml
+key: [string](#string)
+value: [string](#string)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
@@ -124,6 +161,10 @@ Event matcher is a special kind of matcher for CloudEvents
 The CloudEvents API is described here: https://github.com/cloudevents/spec/blob/master/spec.md
 
 
+```yaml
+event_type: [string](#string)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | event_type | [string](#string) |  | Event Type indicates the event type or topic to match |
@@ -140,6 +181,11 @@ WeightedDestination attaches a weight to a destination
 For use in routes with multiple destinations
 
 
+```yaml
+destination: [Destination](#v1.Destination)
+weight: [uint32](#uint32)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | destination | [Destination](#v1.Destination) |  |  |
@@ -156,6 +202,11 @@ For use in routes with multiple destinations
 Destination is a destination that requests can be routed to.
 
 
+```yaml
+function: [FunctionDestination](#v1.FunctionDestination)
+upstream: [UpstreamDestination](#v1.UpstreamDestination)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | function | [FunctionDestination](#v1.FunctionDestination) |  |  |
@@ -172,6 +223,11 @@ Destination is a destination that requests can be routed to.
 FunctionDestination will route a request to a specific function defined for an upstream
 
 
+```yaml
+upstream_name: [string](#string)
+function_name: [string](#string)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | upstream_name | [string](#string) |  | Upstream Name is the name of the upstream the function belongs to |
@@ -188,6 +244,10 @@ FunctionDestination will route a request to a specific function defined for an u
 Upstream Destination routes a request to an upstream
 
 
+```yaml
+name: [string](#string)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  |  |
@@ -203,6 +263,10 @@ Upstream Destination routes a request to an upstream
 SSLConfig contains the options necessary to configure a virtualhost to use TLS
 
 
+```yaml
+secret_ref: [string](#string)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | secret_ref | [string](#string) |  | SecretRef contains the [secret ref](TODO) to a [gloo secret](TODO) containing the following structure: { &#34;ca_chain&#34;: &lt;ca chain data...&gt;, &#34;private key&#34;: &lt;private key data...&gt; } |

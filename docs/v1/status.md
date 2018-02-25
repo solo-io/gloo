@@ -18,6 +18,11 @@
 Status indicates whether a config resource (currently only [virtualhosts](TODO) and [upstreams](TODO)) has been (in)validated by gloo
 
 
+```yaml
+state: [Status.State](#v1.Status.State)
+reason: [string](#string)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | state | [Status.State](#v1.Status.State) |  | State is the enum indicating the state of the resource |

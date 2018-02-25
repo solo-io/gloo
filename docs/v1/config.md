@@ -17,6 +17,11 @@
 Config is a top-level config object. It is used internally by gloo as a container for the entire user config.
 
 
+```yaml
+upstreams: [Upstream](#v1.Upstream)
+virtual_hosts: [VirtualHost](#v1.VirtualHost)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | upstreams | [Upstream](#v1.Upstream) | repeated | The list of all upstreams defined by the user. |

@@ -1,4 +1,4 @@
-site_name: gloo API Docs
+site_name: gloo documentation
 pages:
     - Index: index.md
     - v1 API reference:

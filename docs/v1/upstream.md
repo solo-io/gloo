@@ -20,6 +20,16 @@ Upstreams can take a variety of [types](TODO) in gloo. Language extensions known
 types of upstreams. See [upstream types](TODO) for a detailed description of available upstream types.
 
 
+```yaml
+name: [string](#string)
+type: [string](#string)
+connection_timeout: [google.protobuf.Duration](#google.protobuf.Duration)
+spec: [google.protobuf.Struct](#google.protobuf.Struct)
+functions: [Function](#v1.Function)
+status: [Status](#v1.Status)
+metadata: [Metadata](#v1.Metadata)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | Name of the upstream. Names must be unique and follow the following syntax rules: One or more lowercase rfc1035/rfc1123 labels separated by &#39;.&#39; with a maximum length of 253 characters. |
@@ -41,6 +51,11 @@ types of upstreams. See [upstream types](TODO) for a detailed description of ava
 
 
 
+```yaml
+name: [string](#string)
+spec: [google.protobuf.Struct](#google.protobuf.Struct)
+
+```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | Name of the function. Functions are referenced by name from routes and therefore must be unique within an upstream |
