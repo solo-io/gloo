@@ -2,7 +2,6 @@
 
 ## Contents
   - [Metadata](#v1.Metadata)
-  - [Metadata.AnnotationsEntry](#v1.Metadata.AnnotationsEntry)
 
 
 
@@ -21,35 +20,14 @@ Metadata contains general properties of config resources useful to clients and t
 ```yaml
 resource_version: string
 namespace: string
-annotations: [{Metadata.AnnotationsEntry}]
+annotations: {map&lt;string,string&gt;}
 
 ```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | resource_version | [string](#string) |  | ResourceVersion keeps track of the resource version of a config resource. This mechanism is used by [gloo-storage](TODO) to ensure safety with concurrent writes/updates to a resource in storage. |
 | namespace | [string](#string) |  | Namespace is used for the namespacing of resources. Currently unused by gloo internally. |
-| annotations | [Metadata.AnnotationsEntry](#v1.Metadata.AnnotationsEntry) | repeated | Annotations allow clients to tag resources for special use cases. gloo ignores annotations but preserved them on read/write from/to storage. |
-
-
-
-
-
-
-<a name="v1.Metadata.AnnotationsEntry"/>
-
-### Metadata.AnnotationsEntry
-
-
-
-```yaml
-key: string
-value: string
-
-```
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [string](#string) |  |  |
+| annotations | [map&lt;string,string&gt;](#map&lt;string,string&gt;) |  | Annotations allow clients to tag resources for special use cases. gloo ignores annotations but preserved them on read/write from/to storage. |
 
 
 

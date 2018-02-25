@@ -4,8 +4,6 @@
   - [VirtualHost](#v1.VirtualHost)
   - [Route](#v1.Route)
   - [RequestMatcher](#v1.RequestMatcher)
-  - [RequestMatcher.HeadersEntry](#v1.RequestMatcher.HeadersEntry)
-  - [RequestMatcher.QueryParamsEntry](#v1.RequestMatcher.QueryParamsEntry)
   - [EventMatcher](#v1.EventMatcher)
   - [WeightedDestination](#v1.WeightedDestination)
   - [Destination](#v1.Destination)
@@ -93,8 +91,8 @@ Request Matchers stand in juxtoposition to Event Matchers, which match &#34;even
 path_prefix: string
 path_regex: string
 path_exact: string
-headers: [{RequestMatcher.HeadersEntry}]
-query_params: [{RequestMatcher.QueryParamsEntry}]
+headers: {map&lt;string,string&gt;}
+query_params: {map&lt;string,string&gt;}
 verbs: [string]
 
 ```
@@ -103,51 +101,9 @@ verbs: [string]
 | path_prefix | [string](#string) |  | Prefix will match any request whose path begins with this prefix Only one of path_prefix, path_regex, or path_exact can be set |
 | path_regex | [string](#string) |  | Regex will match any path that matches this regex string Only one of path_prefix, path_regex, or path_exact can be set |
 | path_exact | [string](#string) |  | Exact will match only requests with exactly this path Only one of path_prefix, path_regex, or path_exact can be set |
-| headers | [RequestMatcher.HeadersEntry](#v1.RequestMatcher.HeadersEntry) | repeated | Headers specify a list of request headers and their values the request must contain to match this route If a value is not specified (empty string) for a header, all values will match so long as the header is present on the request |
-| query_params | [RequestMatcher.QueryParamsEntry](#v1.RequestMatcher.QueryParamsEntry) | repeated | Query params work the same way as headers, but for query string parameters |
+| headers | [map&lt;string,string&gt;](#map&lt;string,string&gt;) |  | Headers specify a list of request headers and their values the request must contain to match this route If a value is not specified (empty string) for a header, all values will match so long as the header is present on the request |
+| query_params | [map&lt;string,string&gt;](#map&lt;string,string&gt;) |  | Query params work the same way as headers, but for query string parameters |
 | verbs | [string](#string) | repeated | HTTP Verb(s) to match on. If none specified, the matcher will match all verbs |
-
-
-
-
-
-
-<a name="v1.RequestMatcher.HeadersEntry"/>
-
-### RequestMatcher.HeadersEntry
-
-
-
-```yaml
-key: string
-value: string
-
-```
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="v1.RequestMatcher.QueryParamsEntry"/>
-
-### RequestMatcher.QueryParamsEntry
-
-
-
-```yaml
-key: string
-value: string
-
-```
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [string](#string) |  |  |
 
 
 
@@ -183,7 +139,7 @@ For use in routes with multiple destinations
 
 ```yaml
 destination: {Destination}
-weight: {uint32}
+weight: uint32
 
 ```
 | Field | Type | Label | Description |

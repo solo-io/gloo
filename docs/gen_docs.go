@@ -41,6 +41,8 @@ func run(file, tmplFile, outDir string) error {
 		return err
 	}
 
+	fixMapEntryKludge(&protoDescriptor)
+
 	for _, protoFile := range protoDescriptor.Files {
 		protoFile.Name = strings.TrimSuffix(protoFile.Name, ".proto")
 		log.Printf(protoFile.Name)
@@ -64,6 +66,43 @@ func run(file, tmplFile, outDir string) error {
 		}
 	}
 	return nil
+}
+
+type mapEntry struct {
+	key   *gendoc.MessageField
+	value *gendoc.MessageField
+}
+
+func fixMapEntryKludge(protoDescriptor *gendoc.Template) {
+	mapEntriesToFix := make(map[string]mapEntry)
+	for _, protoFile := range protoDescriptor.Files {
+		messages := protoFile.Messages
+		protoFile.Messages = nil
+		// remove "entry" types, we are converting these back to map<string, string>
+		for _, message := range messages {
+			if strings.HasSuffix(message.Name, "Entry") {
+				if len(message.Fields) != 2 {
+					log.Fatalf("bad assumption: %#v is not a map entry, or doesn't have 2 fields", message)
+				}
+				mapEntriesToFix[message.Name] = mapEntry{key: message.Fields[0], value: message.Fields[1]}
+			} else {
+				protoFile.Messages = append(protoFile.Messages, message)
+			}
+		}
+	}
+	for _, protoFile := range protoDescriptor.Files {
+		for _, message := range protoFile.Messages {
+			for _, field := range message.Fields {
+				if entry, ok := mapEntriesToFix[field.Type]; ok {
+					field.Type = "map<" + entry.key.Type + "," + entry.value.Type + ">"
+					field.FullType = "map<" + entry.key.FullType + "," + entry.value.FullType + ">"
+					field.LongType = "map<" + entry.key.LongType + "," + entry.value.LongType + ">"
+					field.Label = ""
+					log.Printf("changed field %v", field.Name)
+				}
+			}
+		}
+	}
 }
 
 func yamlType(longType, label string) string {
