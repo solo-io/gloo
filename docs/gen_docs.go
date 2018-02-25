@@ -45,9 +45,10 @@ func run(file, tmplFile, outDir string) error {
 		protoFile.Name = strings.TrimSuffix(protoFile.Name, ".proto")
 		log.Printf(protoFile.Name)
 		tmpl, err := template.New("Proto Doc Template").Funcs(map[string]interface{}{
-			"p":    gendoc.PFilter,
-			"para": gendoc.ParaFilter,
-			"nobr": gendoc.NoBrFilter,
+			"p":        gendoc.PFilter,
+			"para":     gendoc.ParaFilter,
+			"nobr":     gendoc.NoBrFilter,
+			"yamlType": yamlType,
 		}).Parse(string(inputTemplate))
 		if err != nil {
 			return err
@@ -63,4 +64,23 @@ func run(file, tmplFile, outDir string) error {
 		}
 	}
 	return nil
+}
+
+// NoBrFilter removes single CR and LF from content.
+func yamlType(longType, label string) string {
+	yamlType := func() string {
+		switch longType {
+		case "string":
+			return "string"
+		case "Status":
+			fallthrough
+		case "Metadata":
+			return "(read only)"
+		}
+		return "{" + longType + "}"
+	}()
+	if label == "repeated" {
+		yamlType = "[" + yamlType + "]"
+	}
+	return yamlType
 }

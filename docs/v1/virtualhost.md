@@ -31,12 +31,12 @@ The Virtual Host concept allows configuration of per-virtualhost SSL certificate
 
 
 ```yaml
-name: [string](#string)
-domains: [string](#string)
-routes: [Route](#v1.Route)
-ssl_config: [SSLConfig](#v1.SSLConfig)
-status: [Status](#v1.Status)
-metadata: [Metadata](#v1.Metadata)
+name: string
+domains: [string]
+routes: [{Route}]
+ssl_config: {SSLConfig}
+status: (read only)
+metadata: (read only)
 
 ```
 | Field | Type | Label | Description |
@@ -60,18 +60,18 @@ Routes declare the entrypoints on virtual hosts and the upstreams or functions t
 
 
 ```yaml
-request_matcher: [RequestMatcher](#v1.RequestMatcher)
-event_matcher: [EventMatcher](#v1.EventMatcher)
-multiple_destinations: [WeightedDestination](#v1.WeightedDestination)
-single_destination: [Destination](#v1.Destination)
-prefix_rewrite: [string](#string)
-extensions: [google.protobuf.Struct](#google.protobuf.Struct)
+request_matcher: {RequestMatcher}
+event_matcher: {EventMatcher}
+multiple_destinations: [{WeightedDestination}]
+single_destination: {Destination}
+prefix_rewrite: string
+extensions: {google.protobuf.Struct}
 
 ```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| request_matcher | [RequestMatcher](#v1.RequestMatcher) |  |  |
-| event_matcher | [EventMatcher](#v1.EventMatcher) |  |  |
+| request_matcher | [RequestMatcher](#v1.RequestMatcher) |  | request_matcher indicates this route should match requests according to the specification in the provided RequestMatcher only one of request_matcher or event_matcher can be set |
+| event_matcher | [EventMatcher](#v1.EventMatcher) |  | eventt_matcher indicates this route should match requests according to the specification in the provided EventMatcher only one of request_matcher or event_matcher can be set |
 | multiple_destinations | [WeightedDestination](#v1.WeightedDestination) | repeated | A route is only allowed to specify one of multiple_destinations or single_destination. Setting both will result in an error Multiple Destinations is used when a user wants a route to balance requests between multiple destinations Balancing is done by probability, where weights are specified for each destination |
 | single_destination | [Destination](#v1.Destination) |  | A single destination is specified when a route only routes to a single destination. |
 | prefix_rewrite | [string](#string) |  | PrefixRewrite can be specified to rewrite the matched path of the request path to a new prefix |
@@ -90,19 +90,19 @@ Request Matchers stand in juxtoposition to Event Matchers, which match &#34;even
 
 
 ```yaml
-path_prefix: [string](#string)
-path_regex: [string](#string)
-path_exact: [string](#string)
-headers: [RequestMatcher.HeadersEntry](#v1.RequestMatcher.HeadersEntry)
-query_params: [RequestMatcher.QueryParamsEntry](#v1.RequestMatcher.QueryParamsEntry)
-verbs: [string](#string)
+path_prefix: string
+path_regex: string
+path_exact: string
+headers: [{RequestMatcher.HeadersEntry}]
+query_params: [{RequestMatcher.QueryParamsEntry}]
+verbs: [string]
 
 ```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| path_prefix | [string](#string) |  | Prefix will match any request whose path begins with this prefix |
-| path_regex | [string](#string) |  | Regex will match any path that matches this regex string |
-| path_exact | [string](#string) |  | Exact will match only requests with exactly this path |
+| path_prefix | [string](#string) |  | Prefix will match any request whose path begins with this prefix Only one of path_prefix, path_regex, or path_exact can be set |
+| path_regex | [string](#string) |  | Regex will match any path that matches this regex string Only one of path_prefix, path_regex, or path_exact can be set |
+| path_exact | [string](#string) |  | Exact will match only requests with exactly this path Only one of path_prefix, path_regex, or path_exact can be set |
 | headers | [RequestMatcher.HeadersEntry](#v1.RequestMatcher.HeadersEntry) | repeated | Headers specify a list of request headers and their values the request must contain to match this route If a value is not specified (empty string) for a header, all values will match so long as the header is present on the request |
 | query_params | [RequestMatcher.QueryParamsEntry](#v1.RequestMatcher.QueryParamsEntry) | repeated | Query params work the same way as headers, but for query string parameters |
 | verbs | [string](#string) | repeated | HTTP Verb(s) to match on. If none specified, the matcher will match all verbs |
@@ -119,8 +119,8 @@ verbs: [string](#string)
 
 
 ```yaml
-key: [string](#string)
-value: [string](#string)
+key: string
+value: string
 
 ```
 | Field | Type | Label | Description |
@@ -140,8 +140,8 @@ value: [string](#string)
 
 
 ```yaml
-key: [string](#string)
-value: [string](#string)
+key: string
+value: string
 
 ```
 | Field | Type | Label | Description |
@@ -162,7 +162,7 @@ The CloudEvents API is described here: https://github.com/cloudevents/spec/blob/
 
 
 ```yaml
-event_type: [string](#string)
+event_type: string
 
 ```
 | Field | Type | Label | Description |
@@ -182,8 +182,8 @@ For use in routes with multiple destinations
 
 
 ```yaml
-destination: [Destination](#v1.Destination)
-weight: [uint32](#uint32)
+destination: {Destination}
+weight: {uint32}
 
 ```
 | Field | Type | Label | Description |
@@ -203,14 +203,14 @@ Destination is a destination that requests can be routed to.
 
 
 ```yaml
-function: [FunctionDestination](#v1.FunctionDestination)
-upstream: [UpstreamDestination](#v1.UpstreamDestination)
+function: {FunctionDestination}
+upstream: {UpstreamDestination}
 
 ```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| function | [FunctionDestination](#v1.FunctionDestination) |  |  |
-| upstream | [UpstreamDestination](#v1.UpstreamDestination) |  |  |
+| function | [FunctionDestination](#v1.FunctionDestination) |  | function indicates requests sent to this destination will invoke a function Only one of funtion or upstream should be set |
+| upstream | [UpstreamDestination](#v1.UpstreamDestination) |  | upstream indicates requests sent to this destination will be routed to an upstream Only one of funtion or upstream should be set |
 
 
 
@@ -224,8 +224,8 @@ FunctionDestination will route a request to a specific function defined for an u
 
 
 ```yaml
-upstream_name: [string](#string)
-function_name: [string](#string)
+upstream_name: string
+function_name: string
 
 ```
 | Field | Type | Label | Description |
@@ -245,12 +245,12 @@ Upstream Destination routes a request to an upstream
 
 
 ```yaml
-name: [string](#string)
+name: string
 
 ```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  |  |
+| name | [string](#string) |  | Name of the upstream |
 
 
 
@@ -264,7 +264,7 @@ SSLConfig contains the options necessary to configure a virtualhost to use TLS
 
 
 ```yaml
-secret_ref: [string](#string)
+secret_ref: string
 
 ```
 | Field | Type | Label | Description |

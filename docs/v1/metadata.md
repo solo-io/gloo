@@ -19,9 +19,9 @@ Metadata contains general properties of config resources useful to clients and t
 
 
 ```yaml
-resource_version: [string](#string)
-namespace: [string](#string)
-annotations: [Metadata.AnnotationsEntry](#v1.Metadata.AnnotationsEntry)
+resource_version: string
+namespace: string
+annotations: [{Metadata.AnnotationsEntry}]
 
 ```
 | Field | Type | Label | Description |
@@ -42,8 +42,8 @@ annotations: [Metadata.AnnotationsEntry](#v1.Metadata.AnnotationsEntry)
 
 
 ```yaml
-key: [string](#string)
-value: [string](#string)
+key: string
+value: string
 
 ```
 | Field | Type | Label | Description |

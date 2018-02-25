@@ -395,7 +395,7 @@
           "fields": [
             {
               "name": "request_matcher",
-              "description": "",
+              "description": "request_matcher indicates this route should match requests according to the specification in the provided RequestMatcher\nonly one of request_matcher or event_matcher can be set",
               "label": "",
               "type": "RequestMatcher",
               "longType": "RequestMatcher",
@@ -404,7 +404,7 @@
             },
             {
               "name": "event_matcher",
-              "description": "",
+              "description": "eventt_matcher indicates this route should match requests according to the specification in the provided EventMatcher\nonly one of request_matcher or event_matcher can be set",
               "label": "",
               "type": "EventMatcher",
               "longType": "EventMatcher",
@@ -460,7 +460,7 @@
           "fields": [
             {
               "name": "path_prefix",
-              "description": "Prefix will match any request whose path begins with this prefix",
+              "description": "Prefix will match any request whose path begins with this prefix\nOnly one of path_prefix, path_regex, or path_exact can be set",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -469,7 +469,7 @@
             },
             {
               "name": "path_regex",
-              "description": "Regex will match any path that matches this regex string",
+              "description": "Regex will match any path that matches this regex string\nOnly one of path_prefix, path_regex, or path_exact can be set",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -478,7 +478,7 @@
             },
             {
               "name": "path_exact",
-              "description": "Exact will match only requests with exactly this path",
+              "description": "Exact will match only requests with exactly this path\nOnly one of path_prefix, path_regex, or path_exact can be set",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -632,7 +632,7 @@
           "fields": [
             {
               "name": "function",
-              "description": "",
+              "description": "function indicates requests sent to this destination will invoke a function\nOnly one of funtion or upstream should be set",
               "label": "",
               "type": "FunctionDestination",
               "longType": "FunctionDestination",
@@ -641,7 +641,7 @@
             },
             {
               "name": "upstream",
-              "description": "",
+              "description": "upstream indicates requests sent to this destination will be routed to an upstream\nOnly one of funtion or upstream should be set",
               "label": "",
               "type": "UpstreamDestination",
               "longType": "UpstreamDestination",
@@ -690,7 +690,7 @@
           "fields": [
             {
               "name": "name",
-              "description": "",
+              "description": "Name of the upstream",
               "label": "",
               "type": "string",
               "longType": "string",

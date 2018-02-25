@@ -20,7 +20,7 @@
 {{if .HasFields}}
 ```yaml
 {{range .Fields -}}
-{{.Name}}: {{yamlType .LongType}}
+{{.Name}}: {{yamlType .LongType .Label}}
 {{end}}
 ```
 | Field | Type | Label | Description |

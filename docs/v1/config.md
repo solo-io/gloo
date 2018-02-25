@@ -18,8 +18,8 @@ Config is a top-level config object. It is used internally by gloo as a containe
 
 
 ```yaml
-upstreams: [Upstream](#v1.Upstream)
-virtual_hosts: [VirtualHost](#v1.VirtualHost)
+upstreams: [{Upstream}]
+virtual_hosts: [{VirtualHost}]
 
 ```
 | Field | Type | Label | Description |

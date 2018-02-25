@@ -21,13 +21,13 @@ types of upstreams. See [upstream types](TODO) for a detailed description of ava
 
 
 ```yaml
-name: [string](#string)
-type: [string](#string)
-connection_timeout: [google.protobuf.Duration](#google.protobuf.Duration)
-spec: [google.protobuf.Struct](#google.protobuf.Struct)
-functions: [Function](#v1.Function)
-status: [Status](#v1.Status)
-metadata: [Metadata](#v1.Metadata)
+name: string
+type: string
+connection_timeout: {google.protobuf.Duration}
+spec: {google.protobuf.Struct}
+functions: [{Function}]
+status: (read only)
+metadata: (read only)
 
 ```
 | Field | Type | Label | Description |
@@ -52,8 +52,8 @@ metadata: [Metadata](#v1.Metadata)
 
 
 ```yaml
-name: [string](#string)
-spec: [google.protobuf.Struct](#google.protobuf.Struct)
+name: string
+spec: {google.protobuf.Struct}
 
 ```
 | Field | Type | Label | Description |

@@ -19,8 +19,8 @@ Status indicates whether a config resource (currently only [virtualhosts](TODO) 
 
 
 ```yaml
-state: [Status.State](#v1.Status.State)
-reason: [string](#string)
+state: {Status.State}
+reason: string
 
 ```
 | Field | Type | Label | Description |

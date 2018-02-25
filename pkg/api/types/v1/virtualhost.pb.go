@@ -620,6 +620,7 @@ func (m *FunctionDestination) GetFunctionName() string {
 
 // Upstream Destination routes a request to an upstream
 type UpstreamDestination struct {
+	// Name of the upstream
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 }
 

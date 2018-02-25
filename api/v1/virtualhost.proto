@@ -45,7 +45,11 @@ message Route {
     // Routes will route all requests they match.
     // If a request matches more than one route, the first route on the virtual host's route list will be selected.
     oneof matcher {
+        // request_matcher indicates this route should match requests according to the specification in the provided RequestMatcher
+        // only one of request_matcher or event_matcher can be set
         RequestMatcher request_matcher = 1;
+        // eventt_matcher indicates this route should match requests according to the specification in the provided EventMatcher
+        // only one of request_matcher or event_matcher can be set
         EventMatcher event_matcher = 2;
     }
     // A route is only allowed to specify one of multiple_destinations or single_destination. Setting both will result in an error
@@ -68,10 +72,13 @@ message RequestMatcher {
     // Path specifies the :path header in HTTP2, or the request URL path in HTTP 1
     oneof path {
         // Prefix will match any request whose path begins with this prefix
+        // Only one of path_prefix, path_regex, or path_exact can be set
         string path_prefix = 1;
         // Regex will match any path that matches this regex string
+        // Only one of path_prefix, path_regex, or path_exact can be set
         string path_regex = 2;
         // Exact will match only requests with exactly this path
+        // Only one of path_prefix, path_regex, or path_exact can be set
         string path_exact = 3;
     }
     // Headers specify a list of request headers and their values the request must contain to match this route
@@ -102,7 +109,11 @@ message WeightedDestination {
 // Destination is a destination that requests can be routed to.
 message Destination {
     oneof destination_type {
+        // function indicates requests sent to this destination will invoke a function
+        // Only one of funtion or upstream should be set
         FunctionDestination function = 1;
+        // upstream indicates requests sent to this destination will be routed to an upstream
+        // Only one of funtion or upstream should be set
         UpstreamDestination upstream = 2;
     }
 }
@@ -117,6 +128,7 @@ message FunctionDestination {
 
 // Upstream Destination routes a request to an upstream
 message UpstreamDestination {
+    // Name of the upstream
     string name = 1;
 }
 
