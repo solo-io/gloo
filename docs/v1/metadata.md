@@ -20,7 +20,7 @@ Metadata contains general properties of config resources useful to clients and t
 ```yaml
 resource_version: string
 namespace: string
-annotations: {map&lt;string,string&gt;}
+annotations: map<string,string>
 
 ```
 | Field | Type | Label | Description |

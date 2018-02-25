@@ -91,8 +91,8 @@ Request Matchers stand in juxtoposition to Event Matchers, which match &#34;even
 path_prefix: string
 path_regex: string
 path_exact: string
-headers: {map&lt;string,string&gt;}
-query_params: {map&lt;string,string&gt;}
+headers: map<string,string>
+query_params: map<string,string>
 verbs: [string]
 
 ```

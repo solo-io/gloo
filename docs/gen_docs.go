@@ -51,6 +51,7 @@ func run(file, tmplFile, outDir string) error {
 			"para":     gendoc.ParaFilter,
 			"nobr":     gendoc.NoBrFilter,
 			"yamlType": yamlType,
+			"noescape": noEscape,
 		}).Parse(string(inputTemplate))
 		if err != nil {
 			return err
@@ -107,6 +108,9 @@ func fixMapEntryKludge(protoDescriptor *gendoc.Template) {
 
 func yamlType(longType, label string) string {
 	yamlType := func() string {
+		if strings.HasPrefix(longType, "map<") {
+			return longType
+		}
 		switch longType {
 		case "string":
 			fallthrough
@@ -127,4 +131,8 @@ func yamlType(longType, label string) string {
 		yamlType = "[" + yamlType + "]"
 	}
 	return yamlType
+}
+
+func noEscape(s string) template.HTML {
+	return template.HTML(s)
 }
