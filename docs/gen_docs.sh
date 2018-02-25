@@ -16,7 +16,7 @@ set -x
 
 for i in ${PKGS}; do
  pkg=$(dirname $(echo $i | sed "s@$GOPATH/src/github.com/solo-io/@@g"))
- mkdir -p docs/$pkg
- godocdown $i > docs/$pkg/$(basename $i).md
+ mkdir -p docs/godoc/$pkg
+ godocdown $i > docs/godoc/$pkg/$(basename $i).md
  exit
 done

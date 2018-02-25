@@ -1,5 +1,5 @@
 site_name: gloo API Docs
-pages:
-    - About the documentation: about.md
-    - v1 API reference: api.md
+#pages:
+#    - About the documentation: about.md
+#    - v1 API reference: api.md
 theme: readthedocs
