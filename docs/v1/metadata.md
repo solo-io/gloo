@@ -14,7 +14,7 @@
 <a name="v1.Metadata"/>
 
 ### Metadata
-Metadata contains general properties of config resources useful to clients and the gloo control plane for purposes of versioning, annotating, and namespacing resources.
+[]()Metadata contains general properties of config resources useful to clients and the gloo control plane for purposes of versioning, annotating, and namespacing resources.
 
 
 ```yaml

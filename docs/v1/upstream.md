@@ -15,7 +15,7 @@
 <a name="v1.Upstream"/>
 
 ### Upstream
-Upstream represents a destination for routing. Upstreams can be compared to [clusters](TODO) in [envoy](TODO) terminology.
+[]()Upstream represents a destination for routing. Upstreams can be compared to [clusters](TODO) in [envoy](TODO) terminology.
 Upstreams can take a variety of [types](TODO) in gloo. Language extensions known as [plugins](TODO) allow the addition of new
 types of upstreams. See [upstream types](TODO) for a detailed description of available upstream types.
 
@@ -48,7 +48,7 @@ metadata: (read only)
 <a name="v1.Function"/>
 
 ### Function
-
+[]()
 
 
 ```yaml

@@ -15,7 +15,7 @@
 <a name="v1.Status"/>
 
 ### Status
-Status indicates whether a config resource (currently only [virtualhosts](TODO) and [upstreams](TODO)) has been (in)validated by gloo
+[]()Status indicates whether a config resource (currently only [virtualhosts](TODO) and [upstreams](TODO)) has been (in)validated by gloo
 
 
 ```yaml

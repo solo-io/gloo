@@ -22,7 +22,7 @@
 <a name="v1.VirtualHost"/>
 
 ### VirtualHost
-Virtual Hosts represent a collection of routes for a set of domains.
+[]()Virtual Hosts represent a collection of routes for a set of domains.
 Virtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.
 A virtual host can be used to define &#34;apps&#34;; a collection of APIs that belong to a particular domain.
 The Virtual Host concept allows configuration of per-virtualhost SSL certificates
@@ -54,7 +54,7 @@ metadata: (read only)
 <a name="v1.Route"/>
 
 ### Route
-Routes declare the entrypoints on virtual hosts and the upstreams or functions they route requests to
+[]()Routes declare the entrypoints on virtual hosts and the upstreams or functions they route requests to
 
 
 ```yaml
@@ -83,7 +83,7 @@ extensions: {google.protobuf.Struct}
 <a name="v1.RequestMatcher"/>
 
 ### RequestMatcher
-Request Matcher is a route matcher for traditional http requests
+[]()Request Matcher is a route matcher for traditional http requests
 Request Matchers stand in juxtoposition to Event Matchers, which match &#34;events&#34; rather than HTTP Requests
 
 
@@ -113,7 +113,7 @@ verbs: [string]
 <a name="v1.EventMatcher"/>
 
 ### EventMatcher
-Event matcher is a special kind of matcher for CloudEvents
+[]()Event matcher is a special kind of matcher for CloudEvents
 The CloudEvents API is described here: https://github.com/cloudevents/spec/blob/master/spec.md
 
 
@@ -133,7 +133,7 @@ event_type: string
 <a name="v1.WeightedDestination"/>
 
 ### WeightedDestination
-WeightedDestination attaches a weight to a destination
+[]()WeightedDestination attaches a weight to a destination
 For use in routes with multiple destinations
 
 
@@ -155,7 +155,7 @@ weight: uint32
 <a name="v1.Destination"/>
 
 ### Destination
-Destination is a destination that requests can be routed to.
+[]()Destination is a destination that requests can be routed to.
 
 
 ```yaml
@@ -176,7 +176,7 @@ upstream: {UpstreamDestination}
 <a name="v1.FunctionDestination"/>
 
 ### FunctionDestination
-FunctionDestination will route a request to a specific function defined for an upstream
+[]()FunctionDestination will route a request to a specific function defined for an upstream
 
 
 ```yaml
@@ -197,7 +197,7 @@ function_name: string
 <a name="v1.UpstreamDestination"/>
 
 ### UpstreamDestination
-Upstream Destination routes a request to an upstream
+[]()Upstream Destination routes a request to an upstream
 
 
 ```yaml
@@ -216,7 +216,7 @@ name: string
 <a name="v1.SSLConfig"/>
 
 ### SSLConfig
-SSLConfig contains the options necessary to configure a virtualhost to use TLS
+[]()SSLConfig contains the options necessary to configure a virtualhost to use TLS
 
 
 ```yaml
