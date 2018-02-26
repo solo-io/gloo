@@ -10,7 +10,7 @@
 
 
 
-<a name="Overview"/>
+<a name="Overview"></a>
 
 ### Overview
 
@@ -20,10 +20,14 @@ The two top-level concepts in gloo are **Virtual Hosts** and **Upstreams**.
 Route rules consist of a *matcher*, which specifies the kind of function calls to match (requests, events, 
 and gRPC are currently supported), and the name of the destination (or destinations, for load balancing) to route them to.
 
-- **Upstreams** define destinations for routes. 
+- **Upstreams** define destinations for routes. Upstreams can take a variety of types. The most basic is
+the [`service` upstream type](TODO). Service upstreams represent a cluster of one or more hosts (\<hostname or ip>:\<port> combination) 
 
 
-<a name="Virtual Hosts"/>
+
+
+
+<a name="Virtual Hosts"></a>
 
 ### Virtual Hosts
 

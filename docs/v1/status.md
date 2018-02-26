@@ -1,4 +1,4 @@
-<a name="top"/>
+<a name="top"></a>
 
 ## Contents
   - [Status](#v1.Status)
@@ -6,16 +6,16 @@
   - [Status.State](#v1.Status.State)
 
 
-<a name="status"/>
+<a name="status"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 
 
 
-<a name="v1.Status"/>
+<a name="v1.Status"></a>
 
 ### Status
-[]()Status indicates whether a config resource (currently only [virtualhosts](TODO) and [upstreams](TODO)) has been (in)validated by gloo
+Status indicates whether a config resource (currently only [virtualhosts](TODO) and [upstreams](TODO)) has been (in)validated by gloo
 
 
 ```yaml
@@ -35,7 +35,7 @@ reason: string
  
 
 
-<a name="v1.Status.State"/>
+<a name="v1.Status.State"></a>
 
 ### Status.State
 

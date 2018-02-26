@@ -1,4 +1,4 @@
-<a name="top"/>
+<a name="top"></a>
 
 ## Contents
 {{range .Messages}}  - [{{.LongName}}](#{{.FullName}})
@@ -6,16 +6,16 @@
 {{range .Enums}}  - [{{.LongName}}](#{{.FullName}})
 {{end}}
 
-<a name="{{.Name}}"/>
+<a name="{{.Name}}"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 {{.Description}}
 
 {{range .Messages}}
-<a name="{{.FullName}}"/>
+<a name="{{.FullName}}"></a>
 
 ### {{.LongName}}
-[](){{.Description}}
+{{.Description}}
 
 {{if .HasFields}}
 ```yaml
@@ -41,7 +41,7 @@
 {{end}} <!-- end messages -->
 
 {{range .Enums}}
-<a name="{{.FullName}}"/>
+<a name="{{.FullName}}"></a>
 
 ### {{.LongName}}
 {{.Description}}
@@ -55,7 +55,7 @@
 {{end}} <!-- end enums -->
 
 {{range .Services}}
-<a name="{{.FullName}}"/>
+<a name="{{.FullName}}"></a>
 
 ### {{.Name}}
 {{.Description}}

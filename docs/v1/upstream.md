@@ -1,4 +1,4 @@
-<a name="top"/>
+<a name="top"></a>
 
 ## Contents
   - [Upstream](#v1.Upstream)
@@ -6,16 +6,16 @@
 
 
 
-<a name="upstream"/>
+<a name="upstream"></a>
 <p align="right"><a href="#top">Top</a></p>
 
 
 
 
-<a name="v1.Upstream"/>
+<a name="v1.Upstream"></a>
 
 ### Upstream
-[]()Upstream represents a destination for routing. Upstreams can be compared to [clusters](TODO) in [envoy](TODO) terminology.
+Upstream represents a destination for routing. Upstreams can be compared to [clusters](TODO) in [envoy](TODO) terminology.
 Upstreams can take a variety of [types](TODO) in gloo. Language extensions known as [plugins](TODO) allow the addition of new
 types of upstreams. See [upstream types](TODO) for a detailed description of available upstream types.
 
@@ -45,10 +45,10 @@ metadata: (read only)
 
 
 
-<a name="v1.Function"/>
+<a name="v1.Function"></a>
 
 ### Function
-[]()
+
 
 
 ```yaml

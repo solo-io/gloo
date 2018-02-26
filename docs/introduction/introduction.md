@@ -8,11 +8,11 @@
 
 
 
-<a name="What is gloo?"/>
+<a name="What is gloo?"></a>
 
 ### What is gloo?
 
-[]()
+
 gloo is a function gateway built on top of the [Envoy Proxy](envoyproxy.io). gloo provides a unified entry point
 for access to all services and serverless functions, translating from any protocol spoken by a client to any protocol
 spoken by a backend. gloo aggregates REST APIs, events, and RPC calls from clients, "glueing" together services in-cluster, 
@@ -45,11 +45,11 @@ existing ones, which you can read more about [here](TODO).
 
 
 
-<a name="Using gloo"/>
+<a name="Using gloo"></a>
 
 ### Using gloo
 
-[]()
+
 
 The "API" of gloo is accessed through the storage layer (selected by the user). Config objects 
 (see the [gloo v1 API specification](TODO)) for gloo are written by the user in one of the following ways:
@@ -67,11 +67,11 @@ through [language plugins](TODO).
 
 
 
-<a name="Basic Workflow"/>
+<a name="Basic Workflow"></a>
 
 ### Basic Workflow
 
-[]()The basic gloo workflow looks like the following (these can be done in any order):
+The basic gloo workflow looks like the following (these can be done in any order):
 
 1. Deploy gloo (e.g. as a kubernetes pod, docker container, etc. It's just a single go binary that will run anywhere).
 2. *Optionally* deploy [gloo discovery services](TODO) for automated creation of glue config.
