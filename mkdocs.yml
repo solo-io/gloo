@@ -1,6 +1,5 @@
 site_name: gloo documentation
 pages:
-    - Index: index.md
     - About gloo:
       - Intro: introduction/introduction.md
       - Concepts: introduction/concepts.md
