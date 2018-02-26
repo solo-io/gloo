@@ -191,6 +191,7 @@ func getPodLabelsForIp(ip string, pods []*kubev1.Pod) (map[string]string, error)
 
 func portForUpstream(spec *UpstreamSpec, serviceList []*kubev1resources.Service) (int32, error) {
 	for _, svc := range serviceList {
+		log.Printf("looking at svc %v/%v; want %v/%v", svc.Namespace, svc.Namespace, spec.ServiceNamespace, spec.ServiceName)
 		if spec.ServiceName == svc.Name && spec.ServiceNamespace == svc.Namespace {
 			// found the port we want
 			if svc.Spec.ExternalName != "" {
@@ -211,5 +212,5 @@ func portForUpstream(spec *UpstreamSpec, serviceList []*kubev1resources.Service)
 			}
 		}
 	}
-	return 0, fmt.Errorf("target port or service not found")
+	return 0, fmt.Errorf("target port or service not found for service %v", spec.ServiceName)
 }
