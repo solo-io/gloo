@@ -25,8 +25,8 @@ reason: string
 ```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| state | [Status.State](#v1.Status.State) |  | State is the enum indicating the state of the resource |
-| reason | [string](#string) |  | Reason is a description of the error for Rejected resources. If the resource is pending or accepted, this field will be empty |
+| state | [Status.State](status.md#v1.Status.State) |  | State is the enum indicating the state of the resource |
+| reason | string |  | Reason is a description of the error for Rejected resources. If the resource is pending or accepted, this field will be empty |
 
 
 

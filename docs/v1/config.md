@@ -24,8 +24,8 @@ virtual_hosts: [{VirtualHost}]
 ```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| upstreams | [Upstream](#v1.Upstream) | repeated | The list of all upstreams defined by the user. |
-| virtual_hosts | [VirtualHost](#v1.VirtualHost) | repeated | the list of all virtual hosts defined by the user. |
+| upstreams | [Upstream](upstream.md#v1.Upstream) | repeated | The list of all upstreams defined by the user. |
+| virtual_hosts | [VirtualHost](virtualhost.md#v1.VirtualHost) | repeated | the list of all virtual hosts defined by the user. |
 
 
 

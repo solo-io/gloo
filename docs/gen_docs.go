@@ -42,16 +42,18 @@ func run(file, tmplFile, outDir string) error {
 	}
 
 	fixMapEntryKludge(&protoDescriptor)
+	getFilesForTypes(&protoDescriptor)
 
 	for _, protoFile := range protoDescriptor.Files {
 		protoFile.Name = strings.TrimSuffix(protoFile.Name, ".proto")
 		log.Printf(protoFile.Name)
 		tmpl, err := template.New("Proto Doc Template").Funcs(map[string]interface{}{
-			"p":        gendoc.PFilter,
-			"para":     gendoc.ParaFilter,
-			"nobr":     gendoc.NoBrFilter,
-			"yamlType": yamlType,
-			"noescape": noEscape,
+			"p":           gendoc.PFilter,
+			"para":        gendoc.ParaFilter,
+			"nobr":        gendoc.NoBrFilter,
+			"yamlType":    yamlType,
+			"noescape":    noEscape,
+			"linkForType": linkForType,
 		}).Parse(string(inputTemplate))
 		if err != nil {
 			return err
@@ -67,6 +69,24 @@ func run(file, tmplFile, outDir string) error {
 		}
 	}
 	return nil
+}
+
+var filesForTypes = make(map[string]string)
+
+func getFilesForTypes(protoDescriptor *gendoc.Template) {
+	for _, protoFile := range protoDescriptor.Files {
+		for _, message := range protoFile.Messages {
+			for _, field := range message.Fields {
+				filesForTypes[field.FullType] = strings.TrimSuffix(protoFile.Name, ".proto")
+			}
+		}
+	}
+	// overwrite for status and metadata. hacky but the fastest solution!
+	for _, protoFile := range protoDescriptor.Files {
+		for _, message := range protoFile.Messages {
+			filesForTypes[message.FullName] = strings.TrimSuffix(protoFile.Name, ".proto")
+		}
+	}
 }
 
 type mapEntry struct {
@@ -135,4 +155,29 @@ func yamlType(longType, label string) string {
 
 func noEscape(s string) template.HTML {
 	return template.HTML(s)
+}
+
+func linkForType(longType, fullType string) string {
+	if !isObjectType(longType) {
+		return longType //no linking for primitives
+	}
+	link := filesForTypes[fullType] + ".md#" + fullType
+	return "[" + longType + "](" + link + ")"
+}
+
+func isObjectType(longType string) bool {
+	if strings.HasPrefix(longType, "map<") {
+		return false
+	}
+	switch longType {
+	case "string":
+		fallthrough
+	case "uint32":
+		fallthrough
+	case "bool":
+		fallthrough
+	case "int32":
+		return false
+	}
+	return true
 }
