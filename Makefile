@@ -27,10 +27,9 @@ test: e2e unit
 clean:
 	rm -f $(BINARY) $(BINARY)-debug
 
-
-api:
+proto:
 	export OUTDIR=$(PWD)/docs && make -C $(GOPATH)/src/github.com/solo-io/gloo-api proto
 
-doc: api
+doc: proto
 	go run docs/gen_docs.go
 #	godocdown pkg/api/types/v1/ > docs/go.md

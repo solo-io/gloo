@@ -1,9 +1,13 @@
 site_name: gloo documentation
 pages:
     - Index: index.md
+    - About gloo:
+      - Intro: introduction/introduction.md
+      - Concepts: introduction/concepts.md
     - v1 API reference:
+      - Overview: v1/overview.md
       - Upstreams: v1/upstream.md
       - Virtual Hosts: v1/virtualhost.md
       - Metadata: v1/metadata.md
       - Status: v1/status.md
-theme: readthedocs
+theme: material
