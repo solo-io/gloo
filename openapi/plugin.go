@@ -1,4 +1,4 @@
-package transformation
+package openapi
 
 import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
@@ -13,12 +13,11 @@ import (
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-plugins/common"
+	"github.com/solo-io/gloo-plugins/transformation"
 	"github.com/solo-io/gloo/pkg/plugin"
 	"github.com/solo-io/gloo/pkg/protoutil"
 	"k8s.io/apimachinery/pkg/util/runtime"
 )
-
-//go:generate protoc -I=. -I=${GOPATH}/src/github.com/gogo/protobuf/ --gogo_out=. transformation_filter.proto
 
 const (
 	filterName  = "io.solo.transformation"
@@ -27,11 +26,15 @@ const (
 )
 
 func init() {
-	plugin.Register(&Plugin{CachedTransformations: make(map[string]*Transformation)}, nil)
+	plugin.Register(&Plugin{
+		transformationPlugin: &transformation.Plugin{
+			CachedTransformations: make(map[string]*transformation.Transformation),
+		},
+	}, nil)
 }
 
 type Plugin struct {
-	CachedTransformations map[string]*Transformation
+	transformationPlugin *transformation.Plugin
 }
 
 func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
@@ -123,7 +126,7 @@ func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *en
 
 	hash := fmt.Sprintf("%v", intHash)
 
-	p.CachedTransformations[hash] = t
+	p.cachedTransformations[hash] = t
 
 	if out.Metadata == nil {
 		out.Metadata = &envoycore.Metadata{}
@@ -136,7 +139,7 @@ func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *en
 
 func (p *Plugin) HttpFilter(_ *plugin.FilterPluginParams) (*envoyhttp.HttpFilter, plugin.Stage) {
 	filterConfig, err := protoutil.MarshalStruct(&Transformations{
-		Transformations: p.CachedTransformations,
+		Transformations: p.cachedTransformations,
 	})
 	if err != nil {
 		runtime.HandleError(err)
@@ -144,7 +147,7 @@ func (p *Plugin) HttpFilter(_ *plugin.FilterPluginParams) (*envoyhttp.HttpFilter
 	}
 
 	// clear cache
-	p.CachedTransformations = make(map[string]*Transformation)
+	p.cachedTransformations = make(map[string]*Transformation)
 
 	return &envoyhttp.HttpFilter{
 		Name:   filterName,
