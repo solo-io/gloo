@@ -64,15 +64,27 @@ func createRequestMatcher(requestMatcher *v1.RequestMatcher, out *envoyroute.Rou
 		}
 	}
 	for headerName, headerValue := range requestMatcher.Headers {
+		var regex bool
+		if headerValue == "" {
+			headerValue = ".*"
+			regex = true
+		}
 		out.Match.Headers = append(out.Match.Headers, &envoyroute.HeaderMatcher{
 			Name:  headerName,
 			Value: headerValue,
+			Regex: &types.BoolValue{Value: regex},
 		})
 	}
 	for paramName, paramValue := range requestMatcher.QueryParams {
+		var regex bool
+		if paramValue == "" {
+			paramValue = ".*"
+			regex = true
+		}
 		out.Match.QueryParameters = append(out.Match.QueryParameters, &envoyroute.QueryParameterMatcher{
 			Name:  paramName,
 			Value: paramValue,
+			Regex: &types.BoolValue{Value: regex},
 		})
 	}
 	if len(requestMatcher.Verbs) > 0 {
