@@ -27,6 +27,7 @@ type Input struct {
 	MethodParameter    string            `json:"method_parameter"`
 	SchemeParameter    string            `json:"scheme_parameter"`
 	AuthorityParameter string            `json:"authority_parameter"`
+	//TODO: support query params
 }
 
 // SPECIAL VARIABLE NAMES:
@@ -38,6 +39,7 @@ type Input struct {
 type Output struct {
 	HeaderTemplates map[string]string `json:"header_templates"`
 	BodyTemplate    string            `json:"body_template"`
+	//TODO: support query template
 }
 
 func DecodeTransformationSpec(generic *types.Struct) (TransformationSpec, error) {
