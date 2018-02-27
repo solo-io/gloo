@@ -80,8 +80,7 @@ func setRouteAsync(async bool, out *envoyroute.Route) {
 	if out.Metadata == nil {
 		out.Metadata = &envoycore.Metadata{}
 	}
-	common.InitFilterMetadataField(filterName, filterMetadataKeyAsync, out.Metadata)
-	out.Metadata.FilterMetadata[filterName].Fields[filterMetadataKeyAsync].Kind = &types.Value_BoolValue{
+	common.InitFilterMetadataField(filterName, filterMetadataKeyAsync, out.Metadata).Kind = &types.Value_BoolValue{
 		BoolValue: async,
 	}
 }
