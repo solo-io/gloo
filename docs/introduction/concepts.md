@@ -137,7 +137,6 @@ Let's walk through an example of a kubernetes upstream in order to understand ho
 gloo reads in a configuration that looks like the following: 
 
 ```yaml
-#my-upstream.yaml
 name: my-upstream
 type: kubernetes
 spec:
@@ -159,25 +158,12 @@ Some upstream types support **functions**. For example, we can add some [openapi
 gloo will be able to route to those operations, providing request transformation to format incoming requests to the 
 parameters expected by the upstream service.
 
-
-```yaml
-#my-upstream.yaml
-name: my-upstream
-type: kubernetes
-spec:
-  service_name: my-k8s-service
-  service_namespace: default
-  openapi_uri: /swagger/docs/v1
-functions:
-- name: get_users
-  spec:
-    operation_id: 12345
-```
-
 We can now route to the function in our virtual host:
 
 An example of a virtual host with a route to this upstream:
+
 ```yaml
+
 name: my-app
 routes:
 - request_matcher:
@@ -190,6 +176,7 @@ routes:
     openapi_parameters:
     - from: path
       match: /users/{id}
+
 ```
 
 Note that it is necessary to specify `openapi_paremeters` for this function invocation. Some function destinations

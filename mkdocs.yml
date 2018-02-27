@@ -1,4 +1,4 @@
-site_name: gloo documentation
+site_name: gloo
 pages:
     - Index: index.md
     - About gloo:
@@ -14,4 +14,7 @@ repo_url: https://github.com/solo-io/gloo/
 site_author: gloo Project Authors
 copyright: © Copyright 2018, gloo Project Authors
 #google_analytics: ['todo']
-theme: material
+theme: readthedocs
+extra_css: [extra.css]
+extra:
+    version: 1.0
