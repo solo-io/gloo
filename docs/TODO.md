@@ -1,1 +1,0 @@
-# document that we call GetFilters after the other plugins (maybe document the order of everything)

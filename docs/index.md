@@ -1,0 +1,38 @@
+# Features
+- NATS plugin
+- AWS plugin
+- GCF plugin
+- Kubernetes plugin
+- Openapi upstream extension
+- Route extensions plugin
+- Transformation plugin
+- Ingress Controller
+- Istio controller  + gloo with istio
+- kubernetes service discovery
+- gloo config
+  - kubernetes
+  - vault secret watcher
+  - file
+- gloo event plugin / gateway
+- gloo-sdk-go
+- gloo-sdk-node
+- SNI config
+- Detailed virtualhost rules
+- Detailed upstream rules
+- glooctl
+- thetool
+- function discovery
+- building without the tool
+- deployment without the tool
+
+- getting started in cluster
+- getting started out of cluster no kube
+- geting started with istio
+- getting started using discovery services
+- getting started hybrid app example
+- getting started multiplexing example
+- getting started event gateway
+- architecture
+- writing plugins (all different kinds of plugins)
+  - plugin stages
+# document that we call GetFilters after the other plugins (maybe document the order of everything)

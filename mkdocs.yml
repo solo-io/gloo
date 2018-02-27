@@ -1,5 +1,6 @@
 site_name: gloo documentation
 pages:
+    - Index: index.md
     - About gloo:
       - Intro: introduction/introduction.md
       - Concepts: introduction/concepts.md
@@ -9,4 +10,8 @@ pages:
       - Virtual Hosts: v1/virtualhost.md
       - Metadata: v1/metadata.md
       - Status: v1/status.md
+repo_url: https://github.com/solo-io/gloo/
+site_author: gloo Project Authors
+copyright: © Copyright 2018, gloo Project Authors
+#google_analytics: ['todo']
 theme: material
