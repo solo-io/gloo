@@ -26,7 +26,7 @@ func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *en
 	if in.Extensions == nil {
 		return nil
 	}
-	spec, err := DecodeUpstreamSpec(in.Extensions)
+	spec, err := DecodeRouteExtensions(in.Extensions)
 	if err != nil {
 		return err
 	}

@@ -24,7 +24,7 @@ type HeaderValue struct {
 	Append bool   `json:"append,omitempty"`
 }
 
-func DecodeUpstreamSpec(generic *types.Struct) (RouteExtensionSpec, error) {
+func DecodeRouteExtensions(generic *types.Struct) (RouteExtensionSpec, error) {
 	var s RouteExtensionSpec
 	err := protoutil.UnmarshalStruct(generic, &s)
 	return s, err

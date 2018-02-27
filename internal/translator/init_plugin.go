@@ -271,19 +271,19 @@ func getFunctionalFilterMetadata(key string, meta *envoycore.Metadata) *types.St
 
 // sets anything that might be nil so we don't get a nil pointer / map somewhere
 func initFunctionalFilterMetadata(key string, meta *envoycore.Metadata) {
-	common.InitFilterMetadataField(filterName, key, meta)
-	if meta.FilterMetadata[filterName].Fields[key].Kind == nil {
-		meta.FilterMetadata[filterName].Fields[key].Kind = &types.Value_StructValue{}
+	filterMetadata := common.InitFilterMetadataField(filterName, key, meta)
+	if filterMetadata.Kind == nil {
+		filterMetadata.Kind = &types.Value_StructValue{}
 	}
-	_, isStructValue := meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue)
+	_, isStructValue := filterMetadata.Kind.(*types.Value_StructValue)
 	if !isStructValue {
-		meta.FilterMetadata[filterName].Fields[key].Kind = &types.Value_StructValue{}
+		filterMetadata.Kind = &types.Value_StructValue{}
 	}
-	if meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue).StructValue == nil {
-		meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue).StructValue = &types.Struct{}
+	if filterMetadata.Kind.(*types.Value_StructValue).StructValue == nil {
+		filterMetadata.Kind.(*types.Value_StructValue).StructValue = &types.Struct{}
 	}
-	if meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue).StructValue.Fields == nil {
-		meta.FilterMetadata[filterName].Fields[key].Kind.(*types.Value_StructValue).StructValue.Fields = make(map[string]*types.Value)
+	if filterMetadata.Kind.(*types.Value_StructValue).StructValue.Fields == nil {
+		filterMetadata.Kind.(*types.Value_StructValue).StructValue.Fields = make(map[string]*types.Value)
 	}
 }
 

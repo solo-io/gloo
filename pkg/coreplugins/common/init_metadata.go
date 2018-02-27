@@ -20,9 +20,10 @@ func InitFilterMetadata(filterName string, meta *envoycore.Metadata) {
 }
 
 // sets anything that might be nil so we don't get a nil pointer / map somewhere
-func InitFilterMetadataField(filterName, fieldName string, meta *envoycore.Metadata) {
+func InitFilterMetadataField(filterName, fieldName string, meta *envoycore.Metadata) *types.Value {
 	InitFilterMetadata(filterName, meta)
 	if meta.FilterMetadata[filterName].Fields[fieldName] == nil {
 		meta.FilterMetadata[filterName].Fields[fieldName] = &types.Value{}
 	}
+	return meta.FilterMetadata[filterName].Fields[fieldName]
 }

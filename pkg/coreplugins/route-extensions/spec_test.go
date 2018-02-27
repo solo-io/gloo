@@ -51,7 +51,7 @@ something_invalid: another_spec_maybe?`
 		var struc types.Struct
 		err = protoutil.Unmarshal(jsn, &struc)
 		Expect(err).NotTo(HaveOccurred())
-		specc, err := DecodeUpstreamSpec(&struc)
+		specc, err := DecodeRouteExtensions(&struc)
 		Expect(err).NotTo(HaveOccurred())
 		log.Printf("%v", specc)
 	})
