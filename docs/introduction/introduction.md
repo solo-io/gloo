@@ -13,13 +13,13 @@
 ### What is gloo?
 
 
-gloo is a function gateway built on top of the [Envoy Proxy](envoyproxy.io). gloo provides a unified entry point
+gloo is a function gateway built on top of the [Envoy Proxy](https://www.envoyproxy.io). gloo provides a unified entry point
 for access to all services and serverless functions, translating from any protocol spoken by a client to any protocol
 spoken by a backend. gloo aggregates REST APIs, events, and RPC calls from clients, "glueing" together services in-cluster, 
 out of cluster, across clusters, along with any provider of serverless functions.
 
 What truly makes gloo special is its use of *function-level routing*. API gateways that exist today route primarily on the 
-basis of "API-to-service". That means they accept an API call (`GET /users/1234`) and route that call to a service 
+basis of "API-to-service". They accept an API call (`GET /users/1234`) and route that call to a service 
 (`my-kubernetes-service`). It then becomes the responsiblity of the service to do all of the work to handle the specific 
 API request. That means that the client and server must speak the same protocol, the same version, the same language. 
 It also means that the gateway must be very dumb. All it knows how to do is take an API call and forward it to the right
@@ -53,9 +53,11 @@ existing ones, which you can read more about [here](TODO).
 
 The "API" of gloo is accessed through the storage layer (selected by the user). Config objects 
 (see the [gloo v1 API specification](TODO)) for gloo are written by the user in one of the following ways:
-- manually writing them to storage (e.g. a file or kubernetes resource)
+
+- manually writing them to storage (e.g. a file or kubernetes custom resource)
 - [glooctl](TODO)
 - [discovery services](TODO)
+- using the [gloo-storage Go client](TODO) 
 
 gloo then translates user configuration into the v2 envoy config language and provides live updates to envoy via the 
 envoy ADS API. Some of gloo's features are supported natively by envoy; others are implemented by [custom envoy filters](TODO).
@@ -76,6 +78,6 @@ The basic gloo workflow looks like the following (these can be done in any order
 1. Deploy gloo (e.g. as a kubernetes pod, docker container, etc. It's just a single go binary that will run anywhere).
 2. *Optionally* deploy [gloo discovery services](TODO) for automated creation of glue config.
 2. Deploy at least 1 envoy proxy [configured to use gloo as its ADS service](TODO).
-*We recommend using [thetool](TODO) to automate the deployment process for you.*
+    * *Note: we recommend using [thetool](TODO) to automate the above steps for you.*
 3. Write some [gloo configuration objects](TODO). At least one [route](TODO) and one [upstream](TODO) are required for 
 gloo to begin routing.

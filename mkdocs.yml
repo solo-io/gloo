@@ -2,7 +2,7 @@ site_name: gloo documentation
 pages:
     - Index: index.md
     - About gloo:
-      - Intro: introduction/introduction.md
+      - Introduction: introduction/introduction.md
       - Concepts: introduction/concepts.md
     - v1 API reference:
       - Overview: v1/overview.md
