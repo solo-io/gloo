@@ -52,6 +52,20 @@ gloo will use the same set of route rules to for requests, regardless of their `
 Route rules consist of a *matcher*, which specifies the kind of function calls to match (requests, events, 
 and gRPC are currently supported), and the name of the destination (or destinations, for load balancing) to route them to.
 
+A simple virtual host with a single route might look like this: 
+
+```yaml
+name: my-app
+routes:
+- request_matcher:
+    path_prefix: /
+  single_destination:
+    upstream:
+      name: my-upstream
+```
+
+Note that `domains` is empty (not specified). That means this virtual host will act as the default virtual host, matching 
+all domains.
 
 
 <a name="Routes"></a>
@@ -114,27 +128,70 @@ types as well as new function types through our [plugin interface](TODO).
 how to handle routing for the upstream based on its `type` field. Upstreams have a `type`-specific `spec` field which must 
 be used to provide routing information to gloo based on the type of upstream.
 
+The most basic upstream type is the [`service` upstream type](TODO), which simply tells gloo
+of which hosts an upstream consists. More sophisticated upstream types include the [kubernetes upstream type](TODO), the 
+[NATS upstream type](TODO), and the [AWS Lambda upstream type](TODO).
+
 Let's walk through an example of a kubernetes upstream in order to understand how this works.
 
 gloo reads in a configuration that looks like the following: 
 
 ```yaml
-name: my-k8s-service
+#my-upstream.yaml
+name: my-upstream
 type: kubernetes
 spec:
   service_name: my-k8s-service
   service_namespace: default
-  openapi: OPENAPI_URL #TODO!@!! 
-  - TODO
 ```
 
 - `name` tells gloo what the identifier for this upstream will be (for routes that point to it).
 - `type: kubernetes` tells gloo that the [kubernetes plugin](TODO) knows how to route to this upstream
-- `spec: ...` tells the kubernetes plugin the service name and namespace, which 
-- `swagger` tells the [swagger plugin](TODO) how 
+- `spec: ...` tells the kubernetes plugin the service name and namespace, which is used by gloo for routing  
 
 
-The most basic upstream type is the [`service` upstream type](TODO), which simply tells gloo
-of which hosts an upstream consists. More sophisticated upstream types include the [kubernetes upstream type](TODO), the 
-[NATS upstream type](TODO), and the [AWS Lambda upstream type](TODO).
 
+<a name="Functions"></a>
+
+#### Functions
+
+Some upstream types support **functions**. For example, we can add some [openapi](TODO) operations to this upstream, and
+gloo will be able to route to those operations, providing request transformation to format incoming requests to the 
+parameters expected by the upstream service.
+
+
+```yaml
+#my-upstream.yaml
+name: my-upstream
+type: kubernetes
+spec:
+  service_name: my-k8s-service
+  service_namespace: default
+  openapi_uri: /swagger/docs/v1
+functions:
+- name: get_users
+  spec:
+    operation_id: 12345
+```
+
+We can now route to the function in our virtual host:
+
+An example of a virtual host with a route to this upstream:
+```yaml
+name: my-app
+routes:
+- request_matcher:
+    path_regex: /users/.*
+  single_destination:
+    function:
+      upstream_name: my-upstream
+      function_name: get_users
+  extensions:
+    openapi_parameters:
+    - from: path
+      match: /users/{id}
+```
+
+Note that it is necessary to specify `openapi_paremeters` for this function invocation. Some function destinations
+require extensions to be specified on the route they belong to. You can read more about the openapi function plugin 
+[here](TODO). 

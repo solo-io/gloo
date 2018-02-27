@@ -14,7 +14,7 @@
 
 
 gloo is a function gateway built on top of the [Envoy Proxy](https://www.envoyproxy.io). gloo provides a unified entry point
-for access to all services and serverless functions, translating from any protocol spoken by a client to any protocol
+for access to all services and serverless functions, translating from any interface spoken by a client to any interface
 spoken by a backend. gloo aggregates REST APIs, events, and RPC calls from clients, "glueing" together services in-cluster, 
 out of cluster, across clusters, along with any provider of serverless functions.
 
