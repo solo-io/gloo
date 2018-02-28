@@ -14,7 +14,7 @@ func RootCmd() *cobra.Command {
 
 	root := &cobra.Command{
 		Use:   "gloo-function-discovery",
-		Short: "Gloo Function Discovery service",
+		Short: "gloo Function Discovery service",
 	}
 	pflags := root.PersistentFlags()
 	pflags.StringVar(&kubeConfig, "kubeconfig", "", "Path to K8S config. Needed for out-of-cluster")

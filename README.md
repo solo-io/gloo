@@ -1,4 +1,4 @@
-# Gloo Function Discovery Service
+# gloo Function Discovery Service
 
 Discovery functions in an upstream service
 

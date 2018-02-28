@@ -20,7 +20,7 @@ func startCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "start",
 		Aliases: []string{"run"},
-		Short:   "Start Gloo Function Discovery service",
+		Short:   "Start gloo Function Discovery service",
 		RunE: func(c *cobra.Command, args []string) error {
 			cfg, err := getClientConfig()
 			if err != nil {

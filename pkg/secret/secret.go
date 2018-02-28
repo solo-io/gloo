@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-function-discovery/pkg/functiontypes"
 	corev1 "k8s.io/api/core/v1"
 	utilrt "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
@@ -14,6 +16,12 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 )
+
+func GetSecretRefs(us *v1.Upstream) []string {
+	switch functiontypes.GetFunctionType(us) {
+
+	}
+}
 
 type Secret map[string][]byte
 
@@ -27,7 +35,7 @@ type SecretRepo struct {
 
 // NewSecretRepo returns a repository for secrets that automatically
 // syncronizes with K8S
-// TODO(ashish) - replace with the Secret watcher in Gloo so we get
+// TODO(ashish) - replace with the Secret watcher in gloo so we get
 //                other secret stores beside K8S for free
 func NewSecretRepo(cfg *rest.Config, namespace string) (*SecretRepo, error) {
 	secretRepo := &SecretRepo{repo: make(map[string]Secret), namespace: namespace}
