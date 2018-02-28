@@ -26,6 +26,7 @@ import (
 	"github.com/solo-io/gloo/pkg/coreplugins/route-extensions"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
@@ -96,13 +97,14 @@ func (t *Translator) Translate(cfg *v1.Config,
 	// filters
 	// they are basically the same, but have different rds names
 
+	// http filters
 	nosslFilters, err := t.constructFilters(nosslRouteConfig.Name, httpFilters)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "constructing http filter chain %v", nosslListenerName)
 	}
 	nosslListener := t.constructHttpListener(nosslListenerName, nosslListenerPort, nosslFilters)
 
-	// ssl
+	// https filters
 	sslRouteConfig := &envoyapi.RouteConfiguration{
 		Name:         sslRdsName,
 		VirtualHosts: sslVirtualHosts,
@@ -299,7 +301,48 @@ func (t *Translator) computeVirtualHosts(cfg *v1.Config) ([]envoyroute.VirtualHo
 		}
 		reports = append(reports, createReport(virtualHost, err))
 	}
+
+	if err := validateDomainUniqueness(cfg.VirtualHosts, reports); err != nil {
+		// TODO: better handling for internal errors
+		log.Warnf("error writing reports: %v", err)
+	}
+
 	return sslVirtualHosts, nosslVirtualHosts, reports
+}
+
+// adds errors to report if virtualhost domains are not unique
+func validateDomainUniqueness(virtualHosts []*v1.VirtualHost, reports []reporter.ConfigObjectReport) error {
+	domainsToVirtualhosts := make(map[string][]*v1.VirtualHost) // this shouldbe a 1-1 mapping
+	// if len(domainsToVirtualhosts[domain]) > 1, error
+	for _, vhost := range virtualHosts {
+		if len(vhost.Domains) == 0 {
+			// default virtualhost
+			domainsToVirtualhosts["*"] = append(domainsToVirtualhosts["*"], vhost)
+		}
+		for _, domain := range vhost.Domains {
+			// default virtualhost can be specified with empty string
+			if domain == "" {
+				domain = "*"
+			}
+			domainsToVirtualhosts[domain] = append(domainsToVirtualhosts[domain], vhost)
+		}
+	}
+	// see if we found any conflicts, if so, write reports
+	for domain, vHosts := range domainsToVirtualhosts {
+		if len(vHosts) > 1 {
+			for _, vHost := range vHosts {
+				err := addErrorToReport(reports,
+					vHost.GetName(),
+					errors.Errorf("domain %v is shared by the "+
+						"following virtual hosts: %v", domain, vHosts))
+				if err != nil {
+					// should not happen if executed properly; internal error
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream, virtualHost *v1.VirtualHost) (envoyroute.VirtualHost, error) {
