@@ -1,7 +1,7 @@
 # gloo Function Discovery Service
 
-Discovery functions in an upstream service
+Discover functions for the following types of upstreams:
 
-This service doesn't discover upstreams themselves.
-
-
+* Google Functions
+* AWS Lambda
+* (Micro)Services that implement OpenAPI 2.0
