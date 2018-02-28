@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/common"
+	"github.com/solo-io/gloo/pkg/coreplugins/common"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
 

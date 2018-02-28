@@ -11,11 +11,13 @@ import (
 
 	"github.com/gogo/protobuf/types"
 	"github.com/mitchellh/hashstructure"
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/util/runtime"
+
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/common"
+	"github.com/solo-io/gloo/pkg/coreplugins/common"
 	"github.com/solo-io/gloo/pkg/plugin"
 	"github.com/solo-io/gloo/pkg/protoutil"
-	"k8s.io/apimachinery/pkg/util/runtime"
 )
 
 //go:generate protoc -I=. -I=${GOPATH}/src/github.com/gogo/protobuf/ --gogo_out=. transformation_filter.proto
@@ -38,93 +40,136 @@ func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
 	return nil
 }
 
-func parseParameterToRegex(paramString string) ([]string, string) {
-	// escape regex
-	// TODO: make sure all envoy regex is being escaped here
-	paramString = regexp.QuoteMeta(paramString)
-	rxp := regexp.MustCompile("\\{([[:word:]]+)\\}")
-	parameterNames := rxp.FindAllString(paramString, -1)
-	for i, name := range parameterNames {
-		parameterNames[i] = strings.TrimSuffix(strings.TrimPrefix(name, "{"), "}")
-	}
-	// remember that the order of the param names correlates with their order in the regex
-	return parameterNames, rxp.ReplaceAllString(paramString, "([_[:alnum:]]+)")
-}
-
-func (p *Plugin) setHeaderFromParam(header, parameter string, extractors map[string]*Extraction, out *envoyroute.Route) {
-	if parameter != "" {
-		paramNames, pathRegexMatcher := parseParameterToRegex(parameter)
-		// if no regex, this is a "default variable" that the user gets for free
-		if len(paramNames) == 0 {
-			// extract everything
-			// TODO(yuval): create a special extractor that doesn't use regex when we just want the whole thing
-			extract := &Extraction{
-				Header:   header,
-				Regex:    "(.*)",
-				Subgroup: uint32(1),
-			}
-			extractors[strings.TrimPrefix(header, ":")] = extract
-		}
-
-		// otherwise it's regex, and we need to create an extraction for each variable name they defined
-		for i, name := range paramNames {
-			extract := &Extraction{
-				Header:   header,
-				Regex:    pathRegexMatcher,
-				Subgroup: uint32(i + 1),
-			}
-			extractors[name] = extract
-		}
-	}
-}
-
-func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
 	if in.Extensions == nil {
 		return nil
 	}
-	spec, err := DecodeTransformationSpec(in.Extensions)
+
+	extension, err := DecodeRouteExtension(in.Extensions)
 	if err != nil {
 		return err
 	}
 
 	extractors := make(map[string]*Extraction)
 
-	// special http2 headers
-	p.setHeaderFromParam(":path", spec.Input.PathParameter, extractors, out)
-	p.setHeaderFromParam(":method", spec.Input.MethodParameter, extractors, out)
-	p.setHeaderFromParam(":scheme", spec.Input.MethodParameter, extractors, out)
-	p.setHeaderFromParam(":authority", spec.Input.AuthorityParameter, extractors, out)
-	// extra headers
-	for headerName, headerValue := range spec.Input.HeaderParameters {
-		p.setHeaderFromParam(headerName, headerValue, extractors, out)
+	// special http2 headers, get the whole thing for free
+	// as a convenience to the user
+	// TODO: add more
+	for _, header := range []string{
+		"path",
+		"method",
+		"scheme",
+		"authority",
+	} {
+		addHeaderExtractorFromParam(":"+header, "{"+header+"}", extractors)
+	}
+	// headers we support submatching on
+	// custom as well as the path and authority/host header
+	addHeaderExtractorFromParam(":path", extension.TransformationParameters.Path, extractors)
+	addHeaderExtractorFromParam(":authority", extension.TransformationParameters.Authority, extractors)
+	for headerName, headerValue := range extension.TransformationParameters.Header {
+		addHeaderExtractorFromParam(headerName, headerValue, extractors)
 	}
 
-	// create templates
-	// right now it's just a no-op, user writes inja directly
-	headerTemplates := make(map[string]*InjaTemplate)
-	for k, v := range spec.Output.HeaderTemplates {
-		headerTemplates[k] = &InjaTemplate{Text: v}
+	// calculate the templates for all these transformations
+	if err := p.setTransformationsForRoute(pluginParams.Upstreams, in, extractors, out); err != nil {
+		return errors.Wrap(err, "resolving request transformations for route")
 	}
 
-	t := &Transformation{
-		Extractors: extractors,
-		RequestTemplate: &RequestTemplate{
-			Body: &InjaTemplate{
-				Text: spec.Output.BodyTemplate,
-			},
-			Headers: headerTemplates,
-		},
+	return nil
+}
+
+func addHeaderExtractorFromParam(header, parameter string, extractors map[string]*Extraction) {
+	if parameter == "" {
+		return
+	}
+	// remember that the order of the param names correlates with their order in the regex
+	paramNames, pathRegexMatcher := getNamesAndRegexFromParamString(parameter)
+	// if no regex, this is a "default variable" that the user gets for free
+	if len(paramNames) == 0 {
+		// extract everything
+		// TODO(yuval): create a special extractor that doesn't use regex when we just want the whole thing
+		extract := &Extraction{
+			Header:   header,
+			Regex:    "(.*)",
+			Subgroup: uint32(1),
+		}
+		extractors[strings.TrimPrefix(header, ":")] = extract
 	}
 
-	intHash, err := hashstructure.Hash(t, nil)
+	// otherwise it's regex, and we need to create an extraction for each variable name they defined
+	for i, name := range paramNames {
+		extract := &Extraction{
+			Header:   header,
+			Regex:    pathRegexMatcher,
+			Subgroup: uint32(i + 1),
+		}
+		extractors[name] = extract
+	}
+}
+
+func getNamesAndRegexFromParamString(paramString string) ([]string, string) {
+	// escape regex
+	// TODO: make sure all envoy regex is being escaped here
+	rxp := regexp.MustCompile("\\{([[:word:]]+)\\}")
+	parameterNames := rxp.FindAllString(paramString, -1)
+	for i, name := range parameterNames {
+		parameterNames[i] = strings.TrimSuffix(strings.TrimPrefix(name, "{"), "}")
+	}
+
+	return parameterNames, buildRegexString(rxp, paramString)
+}
+
+func buildRegexString(rxp *regexp.Regexp, paramString string) string {
+	var regexString string
+	var prevEnd int
+	for _, startStop := range rxp.FindAllStringIndex(paramString, -1) {
+		start := startStop[0]
+		end := startStop[1]
+		subStr := regexp.QuoteMeta(paramString[prevEnd:start]) + "([_[:alnum:]]+)"
+		regexString += subStr
+		prevEnd = end
+	}
+
+	return regexString + regexp.QuoteMeta(paramString[prevEnd:])
+}
+
+// gets all transformations a route may need
+// if single destination, just one transformation
+// if multi destination, one transformation for each functional
+// that specifies a transformation spec
+func (p *Plugin) setTransformationsForRoute(upstreams []*v1.Upstream, in *v1.Route, extractors map[string]*Extraction, out *envoyroute.Route) error {
+	switch {
+	case in.MultipleDestinations != nil:
+		for _, dest := range in.MultipleDestinations {
+			err := p.setTransformationForFunction(upstreams, dest.Destination, extractors, out)
+			if err != nil {
+				return errors.Wrap(err, "getting transformation for function")
+			}
+		}
+	case in.SingleDestination != nil:
+		err := p.setTransformationForFunction(upstreams, in.SingleDestination, extractors, out)
+		if err != nil {
+			return errors.Wrap(err, "getting transformation for function")
+		}
+	}
+	return nil
+}
+
+func (p *Plugin) setTransformationForFunction(upstreams []*v1.Upstream, dest *v1.Destination, extractors map[string]*Extraction, out *envoyroute.Route) error {
+	hash, transformation, err := getTransformationForFunction(upstreams, dest, extractors)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "getting transformation for function")
+	}
+	// no transformations for this destination
+	if transformation == nil {
+		return nil
 	}
 
-	hash := fmt.Sprintf("%v", intHash)
+	// cache the transformation, the filter config needs to contain all of them
+	p.CachedTransformations[hash] = transformation
 
-	p.CachedTransformations[hash] = t
-
+	// set the filter metadata on the route
 	if out.Metadata == nil {
 		out.Metadata = &envoycore.Metadata{}
 	}
@@ -132,6 +177,65 @@ func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *en
 	filterMetadata.Kind = &types.Value_StringValue{StringValue: hash}
 
 	return nil
+}
+
+func getTransformationForFunction(upstreams []*v1.Upstream, dest *v1.Destination, extractors map[string]*Extraction) (string, *Transformation, error) {
+	fnDestination, ok := dest.DestinationType.(*v1.Destination_Function)
+	if !ok {
+		// not a functional route, nothing to do
+		return "", nil, nil
+	}
+	fn, err := findFunction(upstreams, fnDestination.Function.UpstreamName, fnDestination.Function.FunctionName)
+	if err != nil {
+		return "", nil, errors.Wrap(err, "finding function")
+	}
+	outputTemplates, err := DecodeFunctionSpec(fn.Spec)
+	if err != nil {
+		return "", nil, errors.Wrap(err, "decoding function spec")
+	}
+
+	// create templates
+	// right now it's just a no-op, user writes inja directly
+	headerTemplates := make(map[string]*InjaTemplate)
+	for k, v := range outputTemplates.Header {
+		headerTemplates[k] = &InjaTemplate{Text: v}
+	}
+
+	if outputTemplates.Path != "" {
+		headerTemplates[":path"] = &InjaTemplate{Text: outputTemplates.Path}
+	}
+
+	t := Transformation{
+		Extractors: extractors,
+		RequestTemplate: &RequestTemplate{
+			Body: &InjaTemplate{
+				Text: outputTemplates.Body,
+			},
+			Headers: headerTemplates,
+		},
+	}
+
+	intHash, err := hashstructure.Hash(t, nil)
+	if err != nil {
+		return "", nil, err
+	}
+
+	hash := fmt.Sprintf("%v", intHash)
+
+	return hash, &t, nil
+}
+
+func findFunction(upstreams []*v1.Upstream, upstreamName, functionName string) (*v1.Function, error) {
+	for _, us := range upstreams {
+		if us.Name == upstreamName {
+			for _, fn := range us.Functions {
+				if fn.Name == functionName {
+					return fn, nil
+				}
+			}
+		}
+	}
+	return nil, errors.Errorf("function %v/%v not found", upstreamName, functionName)
 }
 
 func (p *Plugin) HttpFilter(_ *plugin.FilterPluginParams) (*envoyhttp.HttpFilter, plugin.Stage) {

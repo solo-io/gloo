@@ -5,12 +5,12 @@ import (
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
-type TransformationSpec struct {
-	Input  Input  `json:"input"`
-	Output Output `json:"output"`
+// this goes on the route extension
+type RouteExtension struct {
+	TransformationParameters Parameters `json:"transformation_parameters"`
 }
 
-type Input struct {
+type Parameters struct {
 	// headers that will be used to derive the data for processing the output templates
 	// if no syntax containing {variables} are detected in the header value,
 	// the whole value will be substituted by its name into the template
@@ -22,12 +22,11 @@ type Input struct {
 		output:
 			body_template: "{\"path\": {{ path }}}"
 	*/
-	HeaderParameters   map[string]string `json:"header_parameters"`
-	PathParameter      string            `json:"path_parameter,omitempty"`
-	MethodParameter    string            `json:"method_parameter"`
-	SchemeParameter    string            `json:"scheme_parameter"`
-	AuthorityParameter string            `json:"authority_parameter"`
+	Header    map[string]string `json:"header"`
+	Path      string            `json:"path,omitempty"`
+	Authority string            `json:"authority"`
 	//TODO: support query params
+	//TODO: support form params
 }
 
 // SPECIAL VARIABLE NAMES:
@@ -36,19 +35,38 @@ type Input struct {
 // method
 // scheme
 // authority
-type Output struct {
-	HeaderTemplates map[string]string `json:"header_templates"`
-	BodyTemplate    string            `json:"body_template"`
+// any field from the request body, assuming it's json
+
+// this goes on the function spec
+type FunctionSpec struct {
+	Path   string            `json:"path"`
+	Header map[string]string `json:"headers"`
+	Body   string            `json:"body"`
 	//TODO: support query template
+	//TODO: support form template
 }
 
-func DecodeTransformationSpec(generic *types.Struct) (TransformationSpec, error) {
-	var s TransformationSpec
+func DecodeRouteExtension(generic *types.Struct) (RouteExtension, error) {
+	var s RouteExtension
 	err := protoutil.UnmarshalStruct(generic, &s)
 	return s, err
 }
 
-func EncodeUpstreamSpec(spec TransformationSpec) *types.Struct {
+func EncodeRouteExtension(spec RouteExtension) *types.Struct {
+	v1Spec, err := protoutil.MarshalStruct(spec)
+	if err != nil {
+		panic(err)
+	}
+	return v1Spec
+}
+
+func DecodeFunctionSpec(generic *types.Struct) (FunctionSpec, error) {
+	var s FunctionSpec
+	err := protoutil.UnmarshalStruct(generic, &s)
+	return s, err
+}
+
+func EncodeFunctionSpec(spec FunctionSpec) *types.Struct {
 	v1Spec, err := protoutil.MarshalStruct(spec)
 	if err != nil {
 		panic(err)
