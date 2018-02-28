@@ -46,20 +46,22 @@ func Run(opts bootstrap.Options, stop <-chan struct{}, errs chan error) error {
 		upstreams []*v1.Upstream
 	}
 
-	update := func() {
-		if err := updater.UpdateFunctionalUpstreams(store, cache.upstreams, cache.secrets); err != nil {
+	update := func(forceSync bool) {
+		if err := updater.UpdateFunctionalUpstreams(store, cache.upstreams, cache.secrets, forceSync); err != nil {
 			errs <- err
 		}
 	}
 
+	tick := time.Tick(opts.ConfigWatcherOptions.SyncFrequency)
+
 	for {
 		select {
 		case cache.secrets = <-secretWatcher.Secrets():
-			update()
+			update(false)
 		case cache.upstreams = <-upstreams:
-			update()
-		case <-time.After(opts.ConfigWatcherOptions.SyncFrequency):
-			update()
+			update(false)
+		case <-tick:
+			update(true)
 		case err := <-secretWatcher.Error():
 			errs <- err
 		case <-stop:

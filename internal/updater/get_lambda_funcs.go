@@ -59,7 +59,7 @@ func getLambdaFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Fun
 }
 
 func convertResultToFunctionSpec(results *lambda.ListFunctionsOutput) []*v1.Function {
-	var lambdaFuncs []*v1.Function
+	var funcs []*v1.Function
 	for _, f := range results.Functions {
 		fn := &v1.Function{
 			Name: aws.StringValue(f.FunctionName) + ":" + aws.StringValue(f.Version),
@@ -68,7 +68,7 @@ func convertResultToFunctionSpec(results *lambda.ListFunctionsOutput) []*v1.Func
 				Qualifier:    aws.StringValue(f.Version),
 			}),
 		}
-		lambdaFuncs = append(lambdaFuncs, fn)
+		funcs = append(funcs, fn)
 	}
-	return lambdaFuncs
+	return funcs
 }
