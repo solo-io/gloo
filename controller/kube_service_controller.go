@@ -47,7 +47,7 @@ func NewServiceController(cfg *rest.Config,
 	}
 
 	// attempt to register upstreams if they don't exist
-	if err := configStore.V1().Register(); err != nil {
+	if err := configStore.V1().Register(); err != nil && !storage.IsAlreadyExists(err) {
 		return nil, errors.Wrap(err, "failed to register upstreams")
 	}
 
