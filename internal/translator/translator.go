@@ -315,7 +315,9 @@ func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream, virtualHost *v
 			if !ok {
 				continue
 			}
-			params := &plugin.RoutePluginParams{}
+			params := &plugin.RoutePluginParams{
+				Upstreams: upstreams,
+			}
 			if err := routePlugin.ProcessRoute(params, route, &out); err != nil {
 				routeErrors = multierror.Append(routeErrors, err)
 			}

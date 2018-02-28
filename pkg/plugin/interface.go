@@ -54,8 +54,11 @@ type FunctionPlugin interface {
 	ParseFunctionSpec(params *FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error)
 }
 
-// Params for ProecssRoute()
-type RoutePluginParams struct{}
+// Params for ProcessRoute()
+type RoutePluginParams struct {
+	// some route plugins need to know about the upstream(s) they route to
+	Upstreams []*v1.Upstream
+}
 
 type RoutePlugin interface {
 	TranslatorPlugin
