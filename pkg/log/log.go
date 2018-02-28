@@ -25,6 +25,11 @@ func Printf(format string, a ...interface{}) {
 	pp.Printf("%v:%v\n"+format+"\n", append([]interface{}{file, line}, a...)...)
 }
 
+func Warnf(format string, a ...interface{}) {
+	_, file, line, _ := runtime.Caller(1)
+	pp.Printf("WARNING: %v:%v\n"+format+"\n", append([]interface{}{file, line}, a...)...)
+}
+
 func Debugf(format string, a ...interface{}) {
 	if debugMode {
 		_, file, line, _ := runtime.Caller(1)

@@ -13,9 +13,6 @@ import (
 	"github.com/solo-io/gloo-storage/file"
 	"github.com/solo-io/gloo/internal/configwatcher"
 	"github.com/solo-io/gloo/internal/reporter"
-	filesecrets "github.com/solo-io/gloo/internal/secretwatcher/file"
-	kubesecrets "github.com/solo-io/gloo/internal/secretwatcher/kube"
-	"github.com/solo-io/gloo/internal/secretwatcher/vault"
 	"github.com/solo-io/gloo/internal/translator"
 	"github.com/solo-io/gloo/internal/xds"
 	"github.com/solo-io/gloo/pkg/bootstrap"
@@ -23,6 +20,9 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
+	filesecrets "github.com/solo-io/gloo/pkg/secretwatcher/file"
+	kubesecrets "github.com/solo-io/gloo/pkg/secretwatcher/kube"
+	"github.com/solo-io/gloo/pkg/secretwatcher/vault"
 )
 
 type eventLoop struct {

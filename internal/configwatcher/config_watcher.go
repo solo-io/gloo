@@ -17,7 +17,7 @@ type configWatcher struct {
 }
 
 func NewConfigWatcher(storageClient storage.Interface) (*configWatcher, error) {
-	if err := storageClient.V1().Register(); err != nil {
+	if err := storageClient.V1().Register(); err != nil && !storage.IsAlreadyExists(err) {
 		return nil, fmt.Errorf("failed to register to storage backend: %v", err)
 	}
 	initialUpstreams, err := storageClient.V1().Upstreams().List()

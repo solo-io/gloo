@@ -8,8 +8,8 @@ import (
 	"time"
 
 	. "github.com/solo-io/gloo-testing/helpers"
-	. "github.com/solo-io/gloo/internal/secretwatcher/vault"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
+	. "github.com/solo-io/gloo/pkg/secretwatcher/vault"
 )
 
 var _ = Describe("watching file", func() {

@@ -14,9 +14,9 @@ import (
 	"path/filepath"
 
 	. "github.com/solo-io/gloo-testing/helpers"
-	. "github.com/solo-io/gloo/internal/secretwatcher/file"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
+	. "github.com/solo-io/gloo/pkg/secretwatcher/file"
 )
 
 var _ = Describe("FileSecretWatcher", func() {

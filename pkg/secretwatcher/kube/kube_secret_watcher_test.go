@@ -12,7 +12,7 @@ import (
 	"fmt"
 
 	. "github.com/solo-io/gloo-testing/helpers"
-	. "github.com/solo-io/gloo/internal/secretwatcher/kube"
+	. "github.com/solo-io/gloo/pkg/secretwatcher/kube"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
