@@ -11,7 +11,6 @@ import (
 	kubelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/pborman/uuid"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/gloo-storage"
@@ -20,9 +19,6 @@ import (
 )
 
 const (
-	resourcePrefix = "gloo-generated"
-	upstreamPrefix = resourcePrefix + "-upstream"
-
 	kubeSystemNamespace = "kube-system"
 
 	ownerAnnotationKey = "generated_by"
@@ -59,7 +55,7 @@ func NewServiceController(cfg *rest.Config,
 
 		serviceLister: serviceInformer.Lister(),
 		upstreams:     configStore,
-		generatedBy:   uuid.New(),
+		generatedBy:   "kubernetes-upstream-discovery",
 	}
 
 	kubeController := kubecontroller.NewController("gloo-service-discovery", kubeClient,
@@ -137,6 +133,14 @@ func (c *ServiceController) generateDesiredUpstreams() ([]*v1.Upstream, error) {
 		}
 
 		for _, port := range svc.Spec.Ports {
+			// annotate
+			annotations := map[string]string{
+				ownerAnnotationKey: c.generatedBy,
+			}
+			for k, v := range svc.Annotations {
+				annotations[k] = v
+			}
+			// copy annotations from the service = happy users
 			upstream := &v1.Upstream{
 				Name: upstreamName(svc.Namespace, svc.Name, port.Port),
 				Type: kubeplugin.UpstreamTypeKube,
@@ -147,9 +151,7 @@ func (c *ServiceController) generateDesiredUpstreams() ([]*v1.Upstream, error) {
 				}),
 				// mark the upstream as ours
 				Metadata: &v1.Metadata{
-					Annotations: map[string]string{
-						ownerAnnotationKey: c.generatedBy,
-					},
+					Annotations: annotations,
 				},
 			}
 			upstreams = append(upstreams, upstream)
@@ -209,5 +211,5 @@ func (c *ServiceController) syncUpstreams(desiredUpstreams, actualUpstreams []*v
 }
 
 func upstreamName(serviceNamespace, serviceName string, servicePort int32) string {
-	return fmt.Sprintf("%s-%s-%s-%v", upstreamPrefix, serviceNamespace, serviceName, servicePort)
+	return fmt.Sprintf("%s-%s-%v", serviceNamespace, serviceName, servicePort)
 }
