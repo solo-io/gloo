@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
@@ -65,8 +66,7 @@ func (s *UpstreamSpec) GetGFuncHostname() string {
 }
 
 type FunctionSpec struct {
-	Type string `json:"function_name"`
-	URL  string `json:"qualifier"`
+	URL string `json:"qualifier"`
 
 	path string
 	host string
@@ -90,6 +90,14 @@ func DecodeFunctionSpec(generic v1.FunctionSpec) (*FunctionSpec, error) {
 	s.path = parsedUrl.Path
 	s.host = parsedUrl.Host
 	return s, nil
+}
+
+func EncodeFunctionSpec(spec FunctionSpec) *types.Struct {
+	v1Spec, err := protoutil.MarshalStruct(spec)
+	if err != nil {
+		panic(err)
+	}
+	return v1Spec
 }
 
 func (s *FunctionSpec) ValidateGFunc() error {
