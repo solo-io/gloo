@@ -1,4 +1,4 @@
-package updater
+package gcf
 
 import (
 	"context"
@@ -30,7 +30,7 @@ const (
 //TODO: make this a flag
 var cacheToken = true
 
-func getGoogleFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function, error) {
+func GetFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function, error) {
 	secretRef, ok := us.Metadata.Annotations[annotationKey]
 	if !ok {
 		return nil, errors.Errorf("Google Function Discovery requires that a secret ref for a secret containing "+

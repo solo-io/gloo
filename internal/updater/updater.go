@@ -5,6 +5,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-function-discovery/internal/updater/gcf"
+	"github.com/solo-io/gloo-function-discovery/internal/updater/lambda"
+	"github.com/solo-io/gloo-function-discovery/internal/updater/swagger"
 	"github.com/solo-io/gloo-function-discovery/pkg/functiontypes"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo/pkg/log"
@@ -35,7 +38,7 @@ func UpdateFunctionalUpstreams(gloo storage.Interface, upstreams []*v1.Upstream,
 				log.Warnf("lambda upstream detected, but no secrets have been read yet")
 				continue
 			}
-			funcs, err = getLambdaFuncs(us, secrets)
+			funcs, err = lambda.GetFuncs(us, secrets)
 			if err != nil {
 				return errors.Wrap(err, "updating lambda functions")
 			}
@@ -44,9 +47,14 @@ func UpdateFunctionalUpstreams(gloo storage.Interface, upstreams []*v1.Upstream,
 				log.Warnf("google functions upstream detected, but no secrets have been read yet")
 				continue
 			}
-			funcs, err = getGoogleFuncs(us, secrets)
+			funcs, err = gcf.GetFuncs(us, secrets)
 			if err != nil {
-				return errors.Wrap(err, "updating lambda functions")
+				return errors.Wrap(err, "updating google functions")
+			}
+		case functiontypes.FunctionTypeSwagger:
+			funcs, err = swagger.GetFuncs(us)
+			if err != nil {
+				return errors.Wrap(err, "updating swagger functions")
 			}
 		}
 		if err := updateUpstreamWithFuncs(gloo, us, funcs); err != nil {

@@ -1,4 +1,4 @@
-package updater
+package lambda
 
 import (
 	"unicode/utf8"
@@ -19,7 +19,7 @@ const (
 	awsSecretKey = "secret_key"
 )
 
-func getLambdaFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function, error) {
+func GetFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function, error) {
 	lambdaSpec, err := lambdaplugin.DecodeUpstreamSpec(us.Spec)
 	if err != nil {
 		return nil, errors.Wrap(err, "decoding lambda upstream spec")

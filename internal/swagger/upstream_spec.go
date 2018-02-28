@@ -1,35 +1,40 @@
 package swagger
 
 import (
-	"github.com/gogo/protobuf/types"
+	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo/pkg/protoutil"
+	"github.com/solo-io/gloo-plugins/common/annotations"
 )
 
-type UpstreamSpec struct {
-	SwaggerURI string `json:"swagger_uri"`
+const ServiceTypeSwagger = "swagger"
+
+const (
+	AnnotationKeySwaggerURL = "swagger_url"
+	AnnotationKeySwaggerDoc = "swagger_doc"
+)
+
+// TODO: create service spec on upstreams themselves
+// this is needed for NATS, etc. various service types
+// that can be a subclass of an upstream type
+type Spec struct {
+	SwaggerURL       string `json:"swagger_url"`
+	InlineSwaggerDoc string `json:"inline_swagger_doc"`
+	//TODO: support swagger relative path (get the full url by communicating with gloo)
 }
 
-func DecodeUpstreamSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {
-	s := new(UpstreamSpec)
-	if err := protoutil.UnmarshalStruct(generic, s); err != nil {
-		return nil, err
+// TODO: discover & set this annotation key on upstreams by checking for user-provided & common swagger urls
+func GetSwaggerAnnotations(us *v1.Upstream) (*Spec, error) {
+	swaggerUrl, urlOk := us.Metadata.Annotations[AnnotationKeySwaggerURL]
+	swaggerDoc, docOk := us.Metadata.Annotations[AnnotationKeySwaggerDoc]
+	if !urlOk && !docOk {
+		return nil, errors.Errorf("one of %v or %v must be set in the annotation for a swagger upstream")
 	}
-	return s, nil
-}
-
-func EncodeUpstreamSpec(spec UpstreamSpec) *types.Struct {
-	pb, err := protoutil.MarshalStruct(spec)
-	if err != nil {
-		panic(err)
-	}
-	return pb
+	return &Spec{
+		SwaggerURL:       swaggerUrl,
+		InlineSwaggerDoc: swaggerDoc,
+	}, nil
 }
 
 func IsSwagger(us *v1.Upstream) bool {
-	spec, err := DecodeUpstreamSpec(us.Spec)
-	if err != nil {
-		return false
-	}
-	return spec != nil
+	return us.Metadata.Annotations[annotations.ServiceType] == ServiceTypeSwagger
 }
