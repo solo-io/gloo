@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
@@ -74,6 +75,14 @@ func DecodeFunctionSpec(generic v1.FunctionSpec) (*FunctionSpec, error) {
 		return nil, err
 	}
 	return s, s.ValidateLambda()
+}
+
+func EncodeFunctionSpec(spec FunctionSpec) *types.Struct {
+	v1Spec, err := protoutil.MarshalStruct(spec)
+	if err != nil {
+		panic(err)
+	}
+	return v1Spec
 }
 
 func (s *FunctionSpec) ValidateLambda() error {
