@@ -17,7 +17,6 @@ import (
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
 
-	"github.com/pborman/uuid"
 	"github.com/solo-io/gloo-k8s-service-discovery/names"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo/pkg/log"
@@ -25,9 +24,6 @@ import (
 )
 
 const (
-	resourcePrefix    = "gloo-generated"
-	virtualHostPrefix = resourcePrefix + "-virtualhost"
-
 	defaultVirtualHost = "default"
 
 	GlooIngressClass = "gloo"
@@ -70,7 +66,7 @@ func NewIngressController(cfg *rest.Config,
 
 		ingressLister: ingressInformer.Lister(),
 		configObjects: configStore,
-		generatedBy:   uuid.New(),
+		generatedBy:   "gloo-ingress-controller",
 	}
 
 	kubeController := kubecontroller.NewController("gloo-ingress-controller", kubeClient,
@@ -236,10 +232,7 @@ func (c *IngressController) generateDesiredResources() ([]*v1.Upstream, []*v1.Vi
 	for _, us := range upstreamsByName {
 		upstreams = append(upstreams, us)
 	}
-	for name, virtualHost := range uniqueVirtualHosts {
-		if name != defaultVirtualHost {
-			name = fmt.Sprintf("%s-%s", virtualHostPrefix, name)
-		}
+	for _, virtualHost := range uniqueVirtualHosts {
 		virtualHosts = append(virtualHosts, virtualHost)
 	}
 	return upstreams, virtualHosts, nil
