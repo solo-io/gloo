@@ -145,7 +145,7 @@ data:
         lb_policy: round_robin
         hosts:
         - socket_address:
-            address: statsd
+            address: statsd.monitoring.svc.cluster.local
             port_value: 9125
 
 
