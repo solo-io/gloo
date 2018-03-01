@@ -5,357 +5,6 @@ kind: Namespace
 metadata:
   name: monitoring
 ---
-apiVersion: v1
-data:
-  default.tmpl: |
-    {{ define "__alertmanager" }}AlertManager{{ end }}
-    {{ define "__alertmanagerURL" }}{{ .ExternalURL }}/#/alerts?receiver={{ .Receiver }}{{ end }}
-
-    {{ define "__subject" }}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .GroupLabels.SortedPairs.Values | join " " }} {{ if gt (len .CommonLabels) (len .GroupLabels) }}({{ with .CommonLabels.Remove .GroupLabels.Names }}{{ .Values | join " " }}{{ end }}){{ end }}{{ end }}
-    {{ define "__description" }}{{ end }}
-
-    {{ define "__text_alert_list" }}{{ range . }}Labels:
-    {{ range .Labels.SortedPairs }} - {{ .Name }} = {{ .Value }}
-    {{ end }}Annotations:
-    {{ range .Annotations.SortedPairs }} - {{ .Name }} = {{ .Value }}
-    {{ end }}Source: {{ .GeneratorURL }}
-    {{ end }}{{ end }}
-
-
-    {{ define "slack.default.title" }}{{ template "__subject" . }}{{ end }}
-    {{ define "slack.default.username" }}{{ template "__alertmanager" . }}{{ end }}
-    {{ define "slack.default.fallback" }}{{ template "slack.default.title" . }} | {{ template "slack.default.titlelink" . }}{{ end }}
-    {{ define "slack.default.pretext" }}{{ end }}
-    {{ define "slack.default.titlelink" }}{{ template "__alertmanagerURL" . }}{{ end }}
-    {{ define "slack.default.iconemoji" }}{{ end }}
-    {{ define "slack.default.iconurl" }}{{ end }}
-    {{ define "slack.default.text" }}{{ end }}
-
-
-    {{ define "hipchat.default.from" }}{{ template "__alertmanager" . }}{{ end }}
-    {{ define "hipchat.default.message" }}{{ template "__subject" . }}{{ end }}
-
-
-    {{ define "pagerduty.default.description" }}{{ template "__subject" . }}{{ end }}
-    {{ define "pagerduty.default.client" }}{{ template "__alertmanager" . }}{{ end }}
-    {{ define "pagerduty.default.clientURL" }}{{ template "__alertmanagerURL" . }}{{ end }}
-    {{ define "pagerduty.default.instances" }}{{ template "__text_alert_list" . }}{{ end }}
-
-
-    {{ define "opsgenie.default.message" }}{{ template "__subject" . }}{{ end }}
-    {{ define "opsgenie.default.description" }}{{ .CommonAnnotations.SortedPairs.Values | join " " }}
-    {{ if gt (len .Alerts.Firing) 0 -}}
-    Alerts Firing:
-    {{ template "__text_alert_list" .Alerts.Firing }}
-    {{- end }}
-    {{ if gt (len .Alerts.Resolved) 0 -}}
-    Alerts Resolved:
-    {{ template "__text_alert_list" .Alerts.Resolved }}
-    {{- end }}
-    {{- end }}
-    {{ define "opsgenie.default.source" }}{{ template "__alertmanagerURL" . }}{{ end }}
-
-
-    {{ define "victorops.default.message" }}{{ template "__subject" . }} | {{ template "__alertmanagerURL" . }}{{ end }}
-    {{ define "victorops.default.from" }}{{ template "__alertmanager" . }}{{ end }}
-
-
-    {{ define "email.default.subject" }}{{ template "__subject" . }}{{ end }}
-    {{ define "email.default.html" }}
-    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-    <!--
-    Style and HTML derived from https://github.com/mailgun/transactional-email-templates
-
-
-    The MIT License (MIT)
-
-    Copyright (c) 2014 Mailgun
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-    -->
-    <html xmlns="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-    <head style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-    <meta name="viewport" content="width=device-width" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />
-    <title style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">{{ template "__subject" . }}</title>
-
-    </head>
-
-    <body itemscope="" itemtype="http://schema.org/EmailMessage" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: none; height: 100%; line-height: 1.6em; width: 100% !important; background-color: #f6f6f6; margin: 0; padding: 0;" bgcolor="#f6f6f6">
-
-    <table style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; width: 100%; background-color: #f6f6f6; margin: 0;" bgcolor="#f6f6f6">
-      <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-        <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0;" valign="top"></td>
-        <td width="600" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; display: block !important; max-width: 600px !important; clear: both !important; width: 100% !important; margin: 0 auto; padding: 0;" valign="top">
-          <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; max-width: 600px; display: block; margin: 0 auto; padding: 0;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; border-radius: 3px; background-color: #fff; margin: 0; border: 1px solid #e9e9e9;" bgcolor="#fff">
-              <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 16px; vertical-align: top; color: #fff; font-weight: 500; text-align: center; border-radius: 3px 3px 0 0; background-color: #E6522C; margin: 0; padding: 20px;" align="center" bgcolor="#E6522C" valign="top">
-                  {{ .Alerts | len }} alert{{ if gt (len .Alerts) 1 }}s{{ end }} for {{ range .GroupLabels.SortedPairs }}
-                    {{ .Name }}={{ .Value }}
-                  {{ end }}
-                </td>
-              </tr>
-              <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 10px;" valign="top">
-                  <table width="100%" cellpadding="0" cellspacing="0" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                    <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                      <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                        <a href="{{ template "__alertmanagerURL" . }}" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; color: #FFF; text-decoration: none; line-height: 2em; font-weight: bold; text-align: center; cursor: pointer; display: inline-block; border-radius: 5px; text-transform: capitalize; background-color: #348eda; margin: 0; border-color: #348eda; border-style: solid; border-width: 10px 20px;">View in {{ template "__alertmanager" . }}</a>
-                      </td>
-                    </tr>
-                    {{ if gt (len .Alerts.Firing) 0 }}
-                    <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                      <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                        <strong style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">[{{ .Alerts.Firing | len }}] Firing</strong>
-                      </td>
-                    </tr>
-                    {{ end }}
-                    {{ range .Alerts.Firing }}
-                    <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                      <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                        <strong style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">Labels</strong><br style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />
-                        {{ range .Labels.SortedPairs }}{{ .Name }} = {{ .Value }}<br style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />{{ end }}
-                        {{ if gt (len .Annotations) 0 }}<strong style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">Annotations</strong><br style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />{{ end }}
-                        {{ range .Annotations.SortedPairs }}{{ .Name }} = {{ .Value }}<br style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />{{ end }}
-                        <a href="{{ .GeneratorURL }}" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; color: #348eda; text-decoration: underline; margin: 0;">Source</a><br style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />
-                      </td>
-                    </tr>
-                    {{ end }}
-
-                    {{ if gt (len .Alerts.Resolved) 0 }}
-                      {{ if gt (len .Alerts.Firing) 0 }}
-                    <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                      <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                        <br style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />
-                        <hr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />
-                        <br style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />
-                      </td>
-                    </tr>
-                      {{ end }}
-                    <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                      <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                        <strong style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">[{{ .Alerts.Resolved | len }}] Resolved</strong>
-                      </td>
-                    </tr>
-                    {{ end }}
-                    {{ range .Alerts.Resolved }}
-                    <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                      <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                        <strong style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">Labels</strong><br style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />
-                        {{ range .Labels.SortedPairs }}{{ .Name }} = {{ .Value }}<br style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />{{ end }}
-                        {{ if gt (len .Annotations) 0 }}<strong style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">Annotations</strong><br style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />{{ end }}
-                        {{ range .Annotations.SortedPairs }}{{ .Name }} = {{ .Value }}<br style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />{{ end }}
-                        <a href="{{ .GeneratorURL }}" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; color: #348eda; text-decoration: underline; margin: 0;">Source</a><br style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;" />
-                      </td>
-                    </tr>
-                    {{ end }}
-                  </table>
-                </td>
-              </tr>
-            </table>
-
-            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; width: 100%; clear: both; color: #999; margin: 0; padding: 20px;">
-              <table width="100%" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                  <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 12px; vertical-align: top; text-align: center; color: #999; margin: 0; padding: 0 0 20px;" align="center" valign="top"><a href="{{ .ExternalURL }}" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 12px; color: #999; text-decoration: underline; margin: 0;">Sent by {{ template "__alertmanager" . }}</a></td>
-                </tr>
-              </table>
-            </div></div>
-        </td>
-        <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0;" valign="top"></td>
-      </tr>
-    </table>
-
-    </body>
-    </html>
-
-    {{ end }}
-
-    {{ define "pushover.default.title" }}{{ template "__subject" . }}{{ end }}
-    {{ define "pushover.default.message" }}{{ .CommonAnnotations.SortedPairs.Values | join " " }}
-    {{ if gt (len .Alerts.Firing) 0 }}
-    Alerts Firing:
-    {{ template "__text_alert_list" .Alerts.Firing }}
-    {{ end }}
-    {{ if gt (len .Alerts.Resolved) 0 }}
-    Alerts Resolved:
-    {{ template "__text_alert_list" .Alerts.Resolved }}
-    {{ end }}
-    {{ end }}
-    {{ define "pushover.default.url" }}{{ template "__alertmanagerURL" . }}{{ end }}
-  slack.tmpl: |
-    {{ define "slack.devops.text" }}
-    {{range .Alerts}}{{.Annotations.DESCRIPTION}}
-    {{end}}
-    {{ end }}
-kind: ConfigMap
-metadata:
-  creationTimestamp: null
-  name: alertmanager-templates
-  namespace: monitoring
----
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: alertmanager
-  namespace: monitoring
-data:
-  config.yml: |-
-    global:
-      # ResolveTimeout is the time after which an alert is declared resolved
-      # if it has not been updated.
-      resolve_timeout: 5m
-
-      # The smarthost and SMTP sender used for mail notifications.
-      smtp_smarthost: 'smtp.gmail.com:587'
-      smtp_from: 'foo@bar.com'
-      smtp_auth_username: 'foo@bar.com'
-      smtp_auth_password: 'barfoo'
-
-      # The API URL to use for Slack notifications.
-      slack_api_url: 'https://hooks.slack.com/services/some/api/token'
-
-    # # The directory from which notification templates are read.
-    templates:
-    - '/etc/alertmanager-templates/*.tmpl'
-
-    # The root route on which each incoming alert enters.
-    route:
-
-      # The labels by which incoming alerts are grouped together. For example,
-      # multiple alerts coming in for cluster=A and alertname=LatencyHigh would
-      # be batched into a single group.
-
-      group_by: ['alertname', 'cluster', 'service']
-
-      # When a new group of alerts is created by an incoming alert, wait at
-      # least 'group_wait' to send the initial notification.
-      # This way ensures that you get multiple alerts for the same group that start
-      # firing shortly after another are batched together on the first
-      # notification.
-
-      group_wait: 30s
-
-      # When the first notification was sent, wait 'group_interval' to send a batch
-      # of new alerts that started firing for that group.
-
-      group_interval: 5m
-
-      # If an alert has successfully been sent, wait 'repeat_interval' to
-      # resend them.
-
-      #repeat_interval: 1m
-      repeat_interval: 15m
-
-      # A default receiver
-
-      # If an alert isn't caught by a route, send it to default.
-      receiver: default
-
-      # All the above attributes are inherited by all child routes and can
-      # overwritten on each.
-
-      # The child route trees.
-      routes:
-      # Send severity=slack alerts to slack.
-      - match:
-          severity: slack
-        receiver: slack_alert
-      # - match:
-      #     severity: email
-      #   receiver: email_alert
-
-    receivers:
-    - name: 'default'
-      slack_configs:
-      - channel: '#alertmanager-test'
-        text: '<!channel>{{ template "slack.devops.text" . }}'
-        send_resolved: true
-
-    - name: 'slack_alert'
-      slack_configs:
-      - channel: '#alertmanager-test'
-        send_resolved: true
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: alertmanager
-  namespace: monitoring
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: alertmanager
-  template:
-    metadata:
-      name: alertmanager
-      labels:
-        app: alertmanager
-    spec:
-      containers:
-      - name: alertmanager
-        image: quay.io/prometheus/alertmanager:v0.7.1
-        args:
-          - '-config.file=/etc/alertmanager/config.yml'
-          - '-storage.path=/alertmanager'
-        ports:
-        - name: alertmanager
-          containerPort: 9093
-        volumeMounts:
-        - name: config-volume
-          mountPath: /etc/alertmanager
-        - name: templates-volume
-          mountPath: /etc/alertmanager-templates
-        - name: alertmanager
-          mountPath: /alertmanager
-      volumes:
-      - name: config-volume
-        configMap:
-          name: alertmanager
-      - name: templates-volume
-        configMap:
-          name: alertmanager-templates
-      - name: alertmanager
-        emptyDir: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  annotations:
-    prometheus.io/scrape: 'true'
-    prometheus.io/path: '/metrics'
-  labels:
-    name: alertmanager
-  name: alertmanager
-  namespace: monitoring
-spec:
-  selector:
-    app: alertmanager
-  type: NodePort
-  ports:
-  - name: alertmanager
-    protocol: TCP
-    port: 9093
-    targetPort: 9093
----
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -2318,21 +1967,6 @@ spec:
         configMap:
           name: grafana-import-dashboards
 ---
-# apiVersion: extensions/v1beta1
-# kind: Ingress
-# metadata:
-#   name: grafana
-#   namespace: monitoring
-# spec:
-#   rules:
-#   - host: <yourchoice>.<cluster-id>.k8s.gigantic.io
-#     http:
-#       paths:
-#       - path: /
-#         backend:
-#          serviceName: grafana
-#          servicePort: 3000
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -2351,110 +1985,308 @@ spec:
 ---
 apiVersion: v1
 data:
-  prometheus.yaml: |
-    global:
-      scrape_interval: 10s
-      scrape_timeout: 10s
-      evaluation_interval: 10s
-    rule_files:
-      - "/etc/prometheus-rules/*.rules"
+  prometheus.yaml: |-
+    # A scrape configuration for running Prometheus on a Kubernetes cluster.
+    # This uses separate scrape configs for cluster components (i.e. API server, node)
+    # and services to allow each to use different authentication configs.
+    #
+    # Kubernetes labels will be added as Prometheus labels on metrics via the
+    # `labelmap` relabeling action.
+
+    # Scrape config for cluster components.
     scrape_configs:
+    # etcd is living outside of our cluster and we configure
+    # it directly.
+    #- job_name: 'etcd'
+    #  static_configs:
+    #  - targets:
+    #{% for host in groups['etcd'] %}
+    #    - {{ hostvars[host]['ansible_' + etcd_interface].ipv4.address }}:{{ etcd_client_port }}
+    #{% endfor %}
+    #  tls_config:
+    #    ca_file: /etc/etcd/ssl/ca.pem
+    #    cert_file: /etc/etcd/ssl/client.pem
+    #    key_file: /etc/etcd/ssl/client-key.pem
+    #  scheme: https
+    # Dynamic etcd rule, which helps to avoid ansible jinja2 templates
+    # In order to make it work as expected it is necessary to add kubelet into all etcd nodes (and set them unschedulable if necessary)
+    # Also you have to mount proper TLS keypairs in case when your etcd cluster is protected by TLS auth
 
-      # https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml#L37
-      - job_name: 'kubernetes-nodes'
-        tls_config:
-          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-        kubernetes_sd_configs:
-          - role: node
-        relabel_configs:
-          - source_labels: [__address__]
-            regex: '(.*):10250'
-            replacement: '${1}:10255'
-            target_label: __address__
+    - job_name: 'kubernetes-cluster'
+      # Default to scraping over https. If required, just disable this or change to
+      # `http`.
+      scheme: https
+      # This TLS & bearer token file config is used to connect to the actual scrape
+      # endpoints for cluster components. This is separate to discovery auth
+      # configuration (`in_cluster` below) because discovery & scraping are two
+      # separate concerns in Prometheus.
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        # If your node certificates are self-signed or use a different CA to the
+        # master CA, then disable certificate verification below. Note that
+        # certificate verification is an integral part of a secure infrastructure
+        # so this should only be disabled in a controlled environment. You can
+        # disable certificate verification by uncommenting the line below.
+        #
+        # insecure_skip_verify: true
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
 
-      # https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml#L79
-      - job_name: 'kubernetes-endpoints'
-        kubernetes_sd_configs:
-          - role: endpoints
-        relabel_configs:
-          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
-            action: keep
-            regex: true
-          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
-            action: replace
-            target_label: __scheme__
-            regex: (https?)
-          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
-            action: replace
-            target_label: __metrics_path__
-            regex: (.+)
-          - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
-            action: replace
-            target_label: __address__
-            regex: (.+)(?::\d+);(\d+)
-            replacement: $1:$2
-          - action: labelmap
-            regex: __meta_kubernetes_service_label_(.+)
-          - source_labels: [__meta_kubernetes_namespace]
-            action: replace
-            target_label: kubernetes_namespace
-          - source_labels: [__meta_kubernetes_service_name]
-            action: replace
-            target_label: kubernetes_name
+      kubernetes_sd_configs:
+      - api_servers:
+        - https://kubernetes.default.svc
+        in_cluster: true
+        role: apiserver
 
-      # https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml#L119
-      - job_name: 'kubernetes-services'
-        metrics_path: /probe
-        params:
-          module: [http_2xx]
-        kubernetes_sd_configs:
-          - role: service
-        relabel_configs:
-          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_probe]
-            action: keep
-            regex: true
-          - source_labels: [__address__]
-            target_label: __param_target
-          - target_label: __address__
-            replacement: blackbox
-          - source_labels: [__param_target]
-            target_label: instance
-          - action: labelmap
-            regex: __meta_kubernetes_service_label_(.+)
-          - source_labels: [__meta_kubernetes_namespace]
-            target_label: kubernetes_namespace
-          - source_labels: [__meta_kubernetes_service_name]
-            target_label: kubernetes_name
+    - job_name: 'kubernetes-cadvisor'
 
-      # https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml#L156
-      - job_name: 'kubernetes-pods'
-        kubernetes_sd_configs:
-          - role: pod
-        relabel_configs:
-          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-            action: keep
-            regex: true
-          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-            action: replace
-            target_label: __metrics_path__
-            regex: (.+)
-          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
-            action: replace
-            regex: (.+):(?:\d+);(\d+)
-            replacement: ${1}:${2}
-            target_label: __address__
-          - action: labelmap
-            regex: __meta_kubernetes_pod_label_(.+)
-          - source_labels: [__meta_kubernetes_namespace]
-            action: replace
-            target_label: kubernetes_namespace
-          - source_labels: [__meta_kubernetes_pod_name]
-            action: replace
-            target_label: kubernetes_pod_name
-          - source_labels: [__meta_kubernetes_pod_container_port_number]
-            action: keep
-            regex: 9\d{3}
+      # Default to scraping over https. If required, just disable this or change to
+      # `http`.
+      scheme: http
+
+      # This TLS & bearer token file config is used to connect to the actual scrape
+      # endpoints for cluster components. This is separate to discovery auth
+      # configuration (`in_cluster` below) because discovery & scraping are two
+      # separate concerns in Prometheus.
+      #tls_config:
+      #  ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        # If your node certificates are self-signed or use a different CA to the
+        # master CA, then disable certificate verification below. Note that
+        # certificate verification is an integral part of a secure infrastructure
+        # so this should only be disabled in a controlled environment. You can
+        # disable certificate verification by uncommenting the line below.
+        #
+        # insecure_skip_verify: true
+      #bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+      kubernetes_sd_configs:
+      - api_servers:
+        - https://kubernetes.default.svc
+        in_cluster: true
+        role: node
+
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      # Use cadvisor 4194 port
+      - source_labels: [__address__]
+        regex: '(.*):10250'
+        replacement: '${1}:4194'
+        target_label: __address__
+
+      # Backward compatibility for Kubernetes 1.3 dashboards
+      metric_relabel_configs:
+      - source_labels: [io_kubernetes_container_name,container_name]
+        action: replace
+        regex: (.*);(.*)
+        replacement: '${1}${2}'
+        target_label: io_kubernetes_container_name
+      - source_labels: [kubernetes_pod_name,pod_name]
+        action: replace
+        regex: (.*);(.*)
+        replacement: '${1}${2}'
+        target_label: kubernetes_pod_name
+      - source_labels: [kubernetes_pod_name]
+        action: replace
+        target_label: io_kubernetes_pod_name
+
+    - job_name: 'kubernetes-nodes'
+
+      # Default to scraping over https. If required, just disable this or change to
+      # `http`.
+      scheme: http
+
+      # This TLS & bearer token file config is used to connect to the actual scrape
+      # endpoints for cluster components. This is separate to discovery auth
+      # configuration (`in_cluster` below) because discovery & scraping are two
+      # separate concerns in Prometheus.
+      #tls_config:
+      #  ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        # If your node certificates are self-signed or use a different CA to the
+        # master CA, then disable certificate verification below. Note that
+        # certificate verification is an integral part of a secure infrastructure
+        # so this should only be disabled in a controlled environment. You can
+        # disable certificate verification by uncommenting the line below.
+        #
+        # insecure_skip_verify: true
+      #bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+      kubernetes_sd_configs:
+      - api_servers:
+        - https://kubernetes.default.svc
+        in_cluster: true
+        role: node
+
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      # Use insecure read-only HTTP 10255 port
+      # More info is here: https://github.com/kayrus/kubelet-exploit
+      - source_labels: [__address__]
+        regex: '(.*):10250'
+        replacement: '${1}:10255'
+        target_label: __address__
+
+      # Backward compatibility for Kubernetes 1.3 dashboards
+      metric_relabel_configs:
+      - source_labels: [io_kubernetes_container_name,container_name]
+        action: replace
+        regex: (.*);(.*)
+        replacement: '${1}${2}'
+        target_label: io_kubernetes_container_name
+      - source_labels: [kubernetes_pod_name,pod_name]
+        action: replace
+        regex: (.*);(.*)
+        replacement: '${1}${2}'
+        target_label: kubernetes_pod_name
+      - source_labels: [kubernetes_pod_name]
+        action: replace
+        target_label: io_kubernetes_pod_name
+
+    - job_name: 'kubernetes-node-exporter'
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      kubernetes_sd_configs:
+      - api_servers:
+        - https://kubernetes.default.svc
+        in_cluster: true
+        role: node
+
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - source_labels: [__meta_kubernetes_role]
+        action: replace
+        target_label: kubernetes_role
+      - source_labels: [__address__]
+        regex: '(.*):10250'
+        replacement: '${1}:9100'
+        target_label: __address__
+      - source_labels: [__meta_kubernetes_node_label_kubernetes_io_hostname]
+        target_label: __instance__
+      # set "name" value to "job"
+      - source_labels: [job]
+        regex: 'kubernetes-(.*)'
+        replacement: '${1}'
+        target_label: name
+
+    # Scrape config for service endpoints.
+    #
+    # The relabeling allows the actual service scrape endpoint to be configured
+    # via the following annotations:
+    #
+    # * `prometheus.io/scrape`: Only scrape services that have a value of `true`
+    # * `prometheus.io/scheme`: If the metrics endpoint is secured then you will need
+    # to set this to `https` & most likely set the `tls_config` of the scrape config.
+    # * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
+    # * `prometheus.io/port`: If the metrics are exposed on a different port to the
+    # service then set this appropriately.
+    - job_name: 'kubernetes-service-endpoints'
+
+      kubernetes_sd_configs:
+      - api_servers:
+        - 'https://kubernetes.default.svc'
+        in_cluster: true
+        role: endpoint
+
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
+        action: replace
+        target_label: __scheme__
+        regex: (https?)
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+        action: replace
+        target_label: __address__
+        regex: (.+)(?::\d+);(\d+)
+        replacement: $1:$2
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels: [__meta_kubernetes_service_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_service_name]
+        action: replace
+        target_label: kubernetes_name
+
+    # Example scrape config for probing services via the Blackbox Exporter.
+    #
+    # The relabeling allows the actual service scrape endpoint to be configured
+    # via the following annotations:
+    #
+    # * `prometheus.io/probe`: Only probe services that have a value of `true`
+    - job_name: 'kubernetes-services'
+
+      metrics_path: /probe
+      params:
+        module: [http_2xx]
+
+      kubernetes_sd_configs:
+      - api_servers:
+        - 'https://kubernetes.default.svc'
+        in_cluster: true
+        role: service
+
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_probe]
+        action: keep
+        regex: true
+      - source_labels: [__address__]
+        target_label: __param_target
+      - target_label: __address__
+        replacement: blackbox
+      - source_labels: [__param_target]
+        target_label: instance
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels: [__meta_kubernetes_service_namespace]
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_service_name]
+        target_label: kubernetes_name
+
+    # Example scrape config for pods
+    #
+    # The relabeling allows the actual pod scrape endpoint to be configured via the
+    # following annotations:
+    #
+    # * `prometheus.io/scrape`: Only scrape pods that have a value of `true`
+    # * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
+    # * `prometheus.io/port`: Scrape the pod on the indicated port instead of the default of `9102`.
+    - job_name: 'kubernetes-pods'
+
+      kubernetes_sd_configs:
+      - api_servers:
+        - 'https://kubernetes.default.svc'
+        in_cluster: true
+        role: pod
+
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: (.+):(?:\d+);(\d+)
+        replacement: ${1}:${2}
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_pod_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
 kind: ConfigMap
 metadata:
   creationTimestamp: null
@@ -2486,7 +2318,6 @@ spec:
           - '-storage.local.retention=12h'
           - '-storage.local.memory-chunks=500000'
           - '-config.file=/etc/prometheus/prometheus.yaml'
-          - '-alertmanager.url=http://alertmanager:9093/'
         ports:
         - name: webui
           containerPort: 9090
@@ -2500,15 +2331,14 @@ spec:
         volumeMounts:
         - name: config-volume
           mountPath: /etc/prometheus
-        - name: rules-volume
-          mountPath: /etc/prometheus-rules
+        - name: prometheus-data
+          mountPath: /prometheus
       volumes:
       - name: config-volume
         configMap:
           name: prometheus-core
-      - name: rules-volume
-        configMap:
-          name: prometheus-rules
+      - name: prometheus-data
+        emptyDir: {}
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -2529,41 +2359,6 @@ spec:
         ports:
         - containerPort: 8080
 ---
-# ---
-# apiVersion: rbac.authorization.k8s.io/v1beta1
-# kind: ClusterRoleBinding
-# metadata:
-#   name: kube-state-metrics
-# roleRef:
-#   apiGroup: rbac.authorization.k8s.io
-#   kind: ClusterRole
-#   name: kube-state-metrics
-# subjects:
-# - kind: ServiceAccount
-#   name: kube-state-metrics
-#   namespace: monitoring
-# ---
-# apiVersion: rbac.authorization.k8s.io/v1beta1
-# kind: ClusterRole
-# metadata:
-#   name: kube-state-metrics
-# rules:
-# - apiGroups: [""]
-#   resources:
-#   - nodes
-#   - pods
-#   - services
-#   - resourcequotas
-#   - replicationcontrollers
-#   - limitranges
-#   verbs: ["list", "watch"]
-# - apiGroups: ["extensions"]
-#   resources:
-#   - daemonsets
-#   - deployments
-#   - replicasets
-#   verbs: ["list", "watch"]
-# ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -2780,7 +2575,6 @@ metadata:
   name: prometheus-rules
   namespace: monitoring
 ---
----
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
@@ -2838,3 +2632,105 @@ spec:
   selector:
     app: prometheus
     component: core
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: statsd
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: statsd
+  template:
+    metadata:
+      name: statsd
+      namespace: monitoring
+      labels:
+        app: statsd
+    spec:
+      containers:
+      - name: statsd
+        image: prom/statsd-exporter:latest
+        ports:
+        - name: web
+          containerPort: 9102
+        - name: statsd
+          containerPort: 9125
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: 9102
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: 'true'
+  labels:
+    name: statsd
+  name: statsd
+  namespace: monitoring
+spec:
+  selector:
+    app: statsd
+  ports:
+  - name: web
+    protocol: TCP
+    port: 9102
+  - name: statsd
+    protocol: TCP
+    port: 9125
+---
+# jaeger deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+  name: jaeger
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: jaeger
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+      - image: jaegertracing/all-in-one:latest
+        env:
+        - name: COLLECTOR_ZIPKIN_HTTP_PORT
+          value: "9411"
+        name: jaeger
+        ports:
+        - containerPort: 9411
+          name: tracing
+        - containerPort: 16686
+          name: web
+---
+# jaeger service
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+  labels:
+    sevice: jaeger
+  namespace: monitoring
+spec:
+  ports:
+  - port: 9411
+    protocol: TCP
+    name: tracing
+  - port: 16686
+    protocol: TCP
+    name: web
+  selector:
+    app: jaeger
+  type: NodePort

@@ -5,58 +5,6 @@ kind: Namespace
 metadata:
   name: gloo-system
 ---
-
----
-# jaeger deployment
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  labels:
-    app: jaeger
-  name: jaeger
-  namespace: gloo-system
-spec:
-  selector:
-    matchLabels:
-      app: jaeger
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: jaeger
-    spec:
-      containers:
-      - image: jaegertracing/all-in-one:latest
-        env:
-        - name: COLLECTOR_ZIPKIN_HTTP_PORT
-          value: "9411"
-        name: jaeger
-        ports:
-        - containerPort: 9411
-          name: tracing
-        - containerPort: 16686
-          name: web
----
-# jaeger service
-apiVersion: v1
-kind: Service
-metadata:
-  name: jaeger
-  labels:
-    sevice: jaeger
-  namespace: gloo-system
-spec:
-  ports:
-  - port: 9411
-    protocol: TCP
-    name: tracing
-  - port: 16686
-    protocol: TCP
-    name: web
-  selector:
-    app: jaeger
-  type: NodePort
----
 # gloo pods
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -136,7 +84,7 @@ data:
         lb_policy: round_robin
         hosts:
         - socket_address:
-            address: jaeger
+            address: jaeger.monitoring.svc.cluster.local
             port_value: 9411
 
       - name: statsd
@@ -254,10 +202,35 @@ metadata:
   namespace: gloo-system
 spec:
   spec:
-    service_name: prometheus-svc
-    service_namespace: gloo-system
+    service_name: prometheus
+    service_namespace: monitoring
     service_port: 9090
   type: kubernetes
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: jaeger
+  namespace: gloo-system
+spec:
+  spec:
+    service_name: jaeger
+    service_namespace: monitoring
+    service_port: 16686
+  type: kubernetes
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: grafana
+  namespace: gloo-system
+spec:
+  spec:
+    service_name: grafana
+    service_namespace: monitoring
+    service_port: 3000
+  type: kubernetes
+
 ---
 apiVersion: gloo.solo.io/v1
 kind: VirtualHost
@@ -270,16 +243,14 @@ spec:
       path_prefix: /grafana
     single_destination:
       upstream:
-        name: grafana-web
+        name: grafana
   - request_matcher:
-      path_prefix: /graphite
+      path_prefix: /jaeger
     single_destination:
       upstream:
-        name: graphite-web
-    prefix_rewrite: /
+        name: jaeger
   - request_matcher:
       path_prefix: /prometheus
     single_destination:
       upstream:
         name: prometheus
-    prefix_rewrite: /
