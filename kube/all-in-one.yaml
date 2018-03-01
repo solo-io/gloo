@@ -24,7 +24,7 @@ spec:
         app: statsd-grafana
     spec:
       containers:
-      - image: kamon/grafana_graphite:latest
+      - image: solo-io/statsd-grafana:v0.1
         name: statsd-grafana
         ports:
         - containerPort: 80
@@ -203,7 +203,7 @@ data:
         hosts:
         - socket_address:
             address: statsd-grafana
-            port_value: 8025
+            port_value: 8125
 
     dynamic_resources:
       ads_config:
@@ -214,6 +214,9 @@ data:
         ads: {}
       lds_config:
         ads: {}
+
+    stats_flush_interval:
+      seconds: 5
 
     stats_sinks:
     - name: envoy.statsd
@@ -296,3 +299,50 @@ spec:
   selector:
     app: envoy
   type: NodePort
+
+
+# example config
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: grafana-web
+  namespace: gloo-system
+spec:
+  spec:
+    service_name: statsd-grafana
+    service_namespace: gloo-system
+    service_port: 80
+  type: kubernetes
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: statsd-admin
+  namespace: gloo-system
+spec:
+  spec:
+    service_name: statsd-grafana
+    service_namespace: gloo-system
+    service_port: 8126
+  type: kubernetes
+---
+apiVersion: gloo.solo.io/v1
+kind: VirtualHost
+metadata:
+  name: my-services
+  namespace: gloo-system
+spec:
+  routes:
+  - request_matcher:
+      path_prefix: /grafana
+    single_destination:
+      upstream:
+        name: grafana-web
+    prefix_rewrite: /
+  - request_matcher:
+      path_prefix: /statsd
+    single_destination:
+      upstream:
+        name: stastd-admin
+    prefix_rewrite: /
