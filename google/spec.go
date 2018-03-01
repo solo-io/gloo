@@ -66,7 +66,7 @@ func (s *UpstreamSpec) GetGFuncHostname() string {
 }
 
 type FunctionSpec struct {
-	URL string `json:"qualifier"`
+	URL string `json:"URL"`
 
 	path string
 	host string
