@@ -223,19 +223,21 @@ func (e *eventLoop) updateXds(cache *cache) {
 			aggregatedEndpoints[upstreamName] = endpointSet
 		}
 	}
-	snapshot, statuses, err := e.translator.Translate(cache.cfg, cache.secrets, aggregatedEndpoints)
+	snapshot, reports, err := e.translator.Translate(cache.cfg, cache.secrets, aggregatedEndpoints)
 	if err != nil {
 		// TODO: panic or handle these internal errors smartly
 		runtime.HandleError(errors.Wrap(err, "failed to translate based on the latest config"))
+		return
 	}
 
-	for _, st := range statuses {
-		if st.Err != nil {
-			log.Debugf("translation error: %v: %v", st.CfgObject.GetName(), st.Err)
-		}
-	}
-	if err := e.reporter.WriteReports(statuses); err != nil {
+	if err := e.reporter.WriteReports(reports); err != nil {
 		runtime.HandleError(err)
+	}
+
+	for _, st := range reports {
+		if st.Err != nil {
+			log.Warnf("user config error: %v: %v", st.CfgObject.GetName(), st.Err)
+		}
 	}
 
 	log.Debugf("FINAL: XDS Snapshot: %v", snapshot)

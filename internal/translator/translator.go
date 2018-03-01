@@ -81,10 +81,10 @@ func (t *Translator) Translate(cfg *v1.Config,
 	clusterLoadAssignments := computeClusterEndpoints(cfg.Upstreams, endpoints)
 
 	// clusters
-	clusters, clusterReports := t.computeClusters(cfg, secrets, endpoints)
+	clusters, upstreamReports := t.computeClusters(cfg, secrets, endpoints)
 
 	// virtualhosts
-	sslVirtualHosts, nosslVirtualHosts, virtualHostReports := t.computeVirtualHosts(cfg)
+	sslVirtualHosts, nosslVirtualHosts, virtualHostReports := t.computeVirtualHosts(cfg, upstreamReports, secrets)
 
 	nosslRouteConfig := &envoyapi.RouteConfiguration{
 		Name:         nosslRdsName,
@@ -166,7 +166,7 @@ func (t *Translator) Translate(cfg *v1.Config,
 	snapshot := envoycache.NewSnapshot(fmt.Sprintf("%v", version), endpointsProto, clustersProto, routesProto, listenersProto)
 
 	// aggregate reports
-	reports := append(clusterReports, virtualHostReports...)
+	reports := append(upstreamReports, virtualHostReports...)
 
 	return &snapshot, reports, nil
 }
@@ -225,7 +225,10 @@ func (t *Translator) computeClusters(cfg *v1.Config, secrets secretwatcher.Secre
 	for _, upstream := range cfg.Upstreams {
 		_, edsCluster := endpoints[upstream.Name]
 		cluster, err := t.computeCluster(cfg, secrets, upstream, edsCluster)
-		clusters = append(clusters, cluster)
+		// only append valid clusters
+		if err == nil {
+			clusters = append(clusters, cluster)
+		}
 		reports = append(reports, createReport(upstream, err))
 	}
 	return clusters, reports
@@ -284,14 +287,28 @@ func secretsForPlugin(cfg *v1.Config, plug plugin.TranslatorPlugin, secrets secr
 
 // VirtualHosts
 
-func (t *Translator) computeVirtualHosts(cfg *v1.Config) ([]envoyroute.VirtualHost, []envoyroute.VirtualHost, []reporter.ConfigObjectReport) {
+func (t *Translator) computeVirtualHosts(cfg *v1.Config,
+	clusterReports []reporter.ConfigObjectReport,
+	secrets secretwatcher.SecretMap) ([]envoyroute.VirtualHost, []envoyroute.VirtualHost, []reporter.ConfigObjectReport) {
 	var (
 		reports           []reporter.ConfigObjectReport
 		sslVirtualHosts   []envoyroute.VirtualHost
 		nosslVirtualHosts []envoyroute.VirtualHost
 	)
+
+	// check for bad domains, then add those errors to the vhost error list
+	vHostsWithBadDomains := virtualHostsWithConflictingDomains(cfg.VirtualHosts, reports)
+
 	for _, virtualHost := range cfg.VirtualHosts {
-		envoyVirtualHost, err := t.computeVirtualHost(cfg.Upstreams, virtualHost)
+		envoyVirtualHost, err := t.computeVirtualHost(cfg.Upstreams, virtualHost, clusterReports, secrets)
+		if domainErr, invalidVHost := vHostsWithBadDomains[virtualHost.Name]; invalidVHost {
+			err = multierror.Append(err, domainErr)
+		}
+		reports = append(reports, createReport(virtualHost, err))
+		// don't append errored virtual hosts
+		if err != nil {
+			continue
+		}
 		if virtualHost.SslConfig != nil && virtualHost.SslConfig.SecretRef != "" {
 			// TODO: allow user to specify require ALL tls or just external
 			envoyVirtualHost.RequireTls = envoyroute.VirtualHost_ALL
@@ -299,58 +316,50 @@ func (t *Translator) computeVirtualHosts(cfg *v1.Config) ([]envoyroute.VirtualHo
 		} else {
 			nosslVirtualHosts = append(nosslVirtualHosts, envoyVirtualHost)
 		}
-		reports = append(reports, createReport(virtualHost, err))
-	}
-
-	if err := validateDomainUniqueness(cfg.VirtualHosts, reports); err != nil {
-		// TODO: better handling for internal errors
-		log.Warnf("error writing reports: %v", err)
 	}
 
 	return sslVirtualHosts, nosslVirtualHosts, reports
 }
 
 // adds errors to report if virtualhost domains are not unique
-func validateDomainUniqueness(virtualHosts []*v1.VirtualHost, reports []reporter.ConfigObjectReport) error {
-	domainsToVirtualhosts := make(map[string][]*v1.VirtualHost) // this shouldbe a 1-1 mapping
+func virtualHostsWithConflictingDomains(virtualHosts []*v1.VirtualHost, reports []reporter.ConfigObjectReport) map[string]error {
+	domainsToVirtualhosts := make(map[string][]string) // this shouldbe a 1-1 mapping
 	// if len(domainsToVirtualhosts[domain]) > 1, error
 	for _, vhost := range virtualHosts {
 		if len(vhost.Domains) == 0 {
 			// default virtualhost
-			domainsToVirtualhosts["*"] = append(domainsToVirtualhosts["*"], vhost)
+			domainsToVirtualhosts["*"] = append(domainsToVirtualhosts["*"], vhost.Name)
 		}
 		for _, domain := range vhost.Domains {
 			// default virtualhost can be specified with empty string
 			if domain == "" {
 				domain = "*"
 			}
-			domainsToVirtualhosts[domain] = append(domainsToVirtualhosts[domain], vhost)
+			domainsToVirtualhosts[domain] = append(domainsToVirtualhosts[domain], vhost.Name)
 		}
 	}
+	erroredVHosts := make(map[string]error)
 	// see if we found any conflicts, if so, write reports
 	for domain, vHosts := range domainsToVirtualhosts {
 		if len(vHosts) > 1 {
-			for _, vHost := range vHosts {
-				err := addErrorToReport(reports,
-					vHost.GetName(),
-					errors.Errorf("domain %v is shared by the "+
-						"following virtual hosts: %v", domain, vHosts))
-				if err != nil {
-					// should not happen if executed properly; internal error
-					return err
-				}
+			for _, name := range vHosts {
+				erroredVHosts[name] = multierror.Append(erroredVHosts[name], errors.Errorf("domain %v is "+
+					"shared by the following virtual hosts: %v", domain, vHosts))
 			}
 		}
 	}
-	return nil
+	return erroredVHosts
 }
 
-func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream, virtualHost *v1.VirtualHost) (envoyroute.VirtualHost, error) {
+func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream,
+	virtualHost *v1.VirtualHost,
+	clusterReports []reporter.ConfigObjectReport,
+	secrets secretwatcher.SecretMap) (envoyroute.VirtualHost, error) {
 	var envoyRoutes []envoyroute.Route
-	var routeErrors error
+	var vHostErrors error
 	for _, route := range virtualHost.Routes {
-		if err := validateRouteDestinations(upstreams, route); err != nil {
-			routeErrors = multierror.Append(routeErrors, err)
+		if err := validateRouteDestinations(upstreams, route, clusterReports); err != nil {
+			vHostErrors = multierror.Append(vHostErrors, err)
 		}
 		out := envoyroute.Route{}
 		for _, plug := range t.plugins {
@@ -362,11 +371,17 @@ func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream, virtualHost *v
 				Upstreams: upstreams,
 			}
 			if err := routePlugin.ProcessRoute(params, route, &out); err != nil {
-				routeErrors = multierror.Append(routeErrors, err)
+				vHostErrors = multierror.Append(vHostErrors, err)
 			}
 		}
 		envoyRoutes = append(envoyRoutes, out)
 	}
+
+	// validate ssl config if the host specifies one
+	if err := validateVirtualHostSSLConfig(virtualHost, secrets); err != nil {
+		vHostErrors = multierror.Append(vHostErrors, err)
+	}
+
 	domains := virtualHost.Domains
 	if len(domains) == 0 || (len(domains) == 1 && domains[0] == "") {
 		domains = []string{"*"}
@@ -378,13 +393,21 @@ func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream, virtualHost *v
 		Name:    virtualHostName(virtualHost.Name),
 		Domains: domains,
 		Routes:  envoyRoutes,
-	}, routeErrors
+	}, vHostErrors
 }
 
-func validateRouteDestinations(upstreams []*v1.Upstream, route *v1.Route) error {
+func validateRouteDestinations(upstreams []*v1.Upstream, route *v1.Route, clusterReports []reporter.ConfigObjectReport) error {
 	// collect existing upstreams/functions for matching
 	upstreamsAndTheirFunctions := make(map[string][]string)
+
+	// mark errored upstreams; routes that point to them are considered invalid
+	errored := getErroredUpstreams(clusterReports)
+
 	for _, upstream := range upstreams {
+		// don't consider errored upstreams to be valid destinations
+		if errored[upstream.Name] {
+			continue
+		}
 		var funcsForUpstream []string
 		for _, fn := range upstream.Functions {
 			funcsForUpstream = append(funcsForUpstream, fn.Name)
@@ -400,6 +423,20 @@ func validateRouteDestinations(upstreams []*v1.Upstream, route *v1.Route) error 
 		return validateMultiDestination(upstreamsAndTheirFunctions, route.MultipleDestinations)
 	}
 	return errors.Errorf("must specify either 'single_destination' or 'multiple_destinations' for route")
+}
+
+func getErroredUpstreams(clusterReports []reporter.ConfigObjectReport) map[string]bool {
+	erroredUpstreams := make(map[string]bool)
+	for _, report := range clusterReports {
+		upstream, ok := report.CfgObject.(*v1.Upstream)
+		if !ok {
+			continue
+		}
+		if report.Err != nil {
+			erroredUpstreams[upstream.Name] = true
+		}
+	}
+	return erroredUpstreams
 }
 
 func validateMultiDestination(upstreamsAndTheirFunctions map[string][]string, destinations []*v1.WeightedDestination) error {
@@ -424,7 +461,7 @@ func validateSingleDestination(upstreamsAndTheirFunctions map[string][]string, d
 func validateUpstreamDestination(upstreamsAndTheirFunctions map[string][]string, upstreamDestination *v1.Destination_Upstream) error {
 	upstreamName := upstreamDestination.Upstream.Name
 	if _, ok := upstreamsAndTheirFunctions[upstreamName]; !ok {
-		return errors.Errorf("upstream %v was not found for upstream destination", upstreamName)
+		return errors.Errorf("upstream %v was not found or had errors for upstream destination", upstreamName)
 	}
 	return nil
 }
@@ -433,7 +470,7 @@ func validateFunctionDestination(upstreamsAndTheirFunctions map[string][]string,
 	upstreamName := functionDestination.Function.UpstreamName
 	upstreamFuncs, ok := upstreamsAndTheirFunctions[upstreamName]
 	if !ok {
-		return errors.Errorf("upstream %v was not found for function destination", upstreamName)
+		return errors.Errorf("upstream %v was not found or had errors for function destination", upstreamName)
 	}
 	functionName := functionDestination.Function.FunctionName
 	if !stringInSlice(upstreamFuncs, functionName) {
@@ -449,6 +486,30 @@ func stringInSlice(slice []string, s string) bool {
 		}
 	}
 	return false
+}
+
+func validateVirtualHostSSLConfig(virtualHost *v1.VirtualHost, secrets secretwatcher.SecretMap) error {
+	if virtualHost.SslConfig == nil || virtualHost.SslConfig.SecretRef == "" {
+		return nil
+	}
+	_, _, err := getSslSecrets(virtualHost.SslConfig.SecretRef, secrets)
+	return err
+}
+
+func getSslSecrets(ref string, secrets secretwatcher.SecretMap) (string, string, error) {
+	sslSecrets, ok := secrets[ref]
+	if !ok {
+		return "", "", errors.Errorf("ssl secret not found for ref %v", ref)
+	}
+	certChain, ok := sslSecrets[sslCertificateChainKey]
+	if !ok {
+		return "", "", errors.Errorf("key %v not found in ssl secrets", sslCertificateChainKey)
+	}
+	privateKey, ok := sslSecrets[sslPrivateKeyKey]
+	if !ok {
+		return "", "", errors.Errorf("key %v not found in ssl secrets", sslPrivateKeyKey)
+	}
+	return certChain, privateKey, nil
 }
 
 // Listener
@@ -499,29 +560,9 @@ func (t *Translator) constructHttpsListener(name string,
 			continue
 		}
 		ref := vhost.SslConfig.SecretRef
-		// if there is a problem with the secret ref, create / append to that vhost's error report
-		sslSecrets, ok := secrets[ref]
-		if !ok {
-			err := addErrorToReport(virtualHostReports, vhost.GetName(), errors.Errorf("secret not found for ref %v", ref))
-			if err != nil {
-				return nil, err
-			}
-			continue
-		}
-		certChain, ok := sslSecrets[sslCertificateChainKey]
-		if !ok {
-			err := addErrorToReport(virtualHostReports, vhost.GetName(), errors.Errorf("key %v not found in secrets", sslCertificateChainKey))
-			if err != nil {
-				return nil, err
-			}
-			continue
-		}
-		privateKey, ok := sslSecrets[sslPrivateKeyKey]
-		if !ok {
-			err := addErrorToReport(virtualHostReports, vhost.GetName(), errors.Errorf("key %v not found in secrets", sslPrivateKeyKey))
-			if err != nil {
-				return nil, err
-			}
+		certChain, privateKey, err := getSslSecrets(ref, secrets)
+		if err != nil {
+			log.Warnf("skipping ssl vhost with invalid secrets: %v", vhost.Name)
 			continue
 		}
 		filterChain := newSslFilterChain(certChain, privateKey, filters)
@@ -543,20 +584,6 @@ func (t *Translator) constructHttpsListener(name string,
 		},
 		FilterChains: filterChains,
 	}, nil
-}
-
-// for when a report should already exist but we want to add an error to it
-func addErrorToReport(reports []reporter.ConfigObjectReport, cfgObjName string, err error) error {
-	if err == nil {
-		return nil // should not even call this function, but just in case?
-	}
-	for i := range reports {
-		if reports[i].CfgObject.GetName() == cfgObjName {
-			reports[i].Err = multierror.Append(reports[i].Err, err)
-			return nil
-		}
-	}
-	return errors.Errorf("report not found for virtualhost %v", err)
 }
 
 func newSslFilterChain(certChain, privateKey string, filters []envoylistener.Filter) envoylistener.FilterChain {
