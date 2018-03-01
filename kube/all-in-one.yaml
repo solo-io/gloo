@@ -5,67 +5,7 @@ kind: Namespace
 metadata:
   name: gloo-system
 ---
-# statsd-grafana deployment
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  labels:
-    app: statsd-grafana
-  name: statsd-grafana
-  namespace: gloo-system
-spec:
-  selector:
-    matchLabels:
-      app: statsd-grafana
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: statsd-grafana
-    spec:
-      containers:
-      - image: solo-io/statsd-grafana:v0.1
-        name: statsd-grafana
-        ports:
-        - containerPort: 80
-          name: grafana-web
-        - containerPort: 81
-          name: graphite-web
-        - containerPort: 2003
-          name: graphite-data
-        - containerPort: 8125
-          name: statsd
-        - containerPort: 8126
-          name: statsd-admin
----
-# statsd-grafana service
-apiVersion: v1
-kind: Service
-metadata:
-  name: statsd-grafana
-  labels:
-    sevice: statsd-grafana
-  namespace: gloo-system
-spec:
-  ports:
-  - port: 80
-    protocol: TCP
-    name: grafana-web
-  - port: 81
-    name: graphite-web
-    protocol: TCP
-  - port: 2003
-    protocol: TCP
-    name: graphite-data
-  - port: 8125
-    protocol: TCP
-    name: statsd
-  - port: 8126
-    protocol: TCP
-    name: statsd-admin
-  selector:
-    app: statsd-grafana
-  type: NodePort
+
 ---
 # jaeger deployment
 apiVersion: extensions/v1beta1
@@ -180,6 +120,7 @@ data:
 
     static_resources:
       clusters:
+
       - name: xds_cluster
         connect_timeout: 5.000s
         hosts:
@@ -188,6 +129,7 @@ data:
             port_value: 8081
         http2_protocol_options: {}
         type: STRICT_DNS
+
       - name: jaeger
         connect_timeout: 1s
         type: strict_dns
@@ -196,14 +138,16 @@ data:
         - socket_address:
             address: jaeger
             port_value: 9411
+
       - name: statsd
         connect_timeout: 1s
         type: strict_dns
         lb_policy: round_robin
         hosts:
         - socket_address:
-            address: statsd-grafana
-            port_value: 8125
+            address: statsd
+            port_value: 9125
+
 
     dynamic_resources:
       ads_config:
@@ -306,25 +250,13 @@ spec:
 apiVersion: gloo.solo.io/v1
 kind: Upstream
 metadata:
-  name: grafana-web
+  name: prometheus
   namespace: gloo-system
 spec:
   spec:
-    service_name: statsd-grafana
+    service_name: prometheus-svc
     service_namespace: gloo-system
-    service_port: 80
-  type: kubernetes
----
-apiVersion: gloo.solo.io/v1
-kind: Upstream
-metadata:
-  name: statsd-admin
-  namespace: gloo-system
-spec:
-  spec:
-    service_name: statsd-grafana
-    service_namespace: gloo-system
-    service_port: 8126
+    service_port: 9090
   type: kubernetes
 ---
 apiVersion: gloo.solo.io/v1
@@ -339,10 +271,15 @@ spec:
     single_destination:
       upstream:
         name: grafana-web
-    prefix_rewrite: /
   - request_matcher:
-      path_prefix: /statsd
+      path_prefix: /graphite
     single_destination:
       upstream:
-        name: stastd-admin
+        name: graphite-web
+    prefix_rewrite: /
+  - request_matcher:
+      path_prefix: /prometheus
+    single_destination:
+      upstream:
+        name: prometheus
     prefix_rewrite: /

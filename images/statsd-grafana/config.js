@@ -1,8 +1,7 @@
 {
-    port: 8125,
     mgmt_port: 8126,
 
-    servers: ["./servers/tcp"],
+    servers: [ {server: "./servers/tcp", port: 8125} ],
 
     percentThreshold: [ 50, 75, 90, 95, 98, 99, 99.9, 99.99, 99.999],
 
