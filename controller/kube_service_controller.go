@@ -147,7 +147,7 @@ func (c *ServiceController) generateDesiredUpstreams() ([]*v1.Upstream, error) {
 				Spec: kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
 					ServiceNamespace: svc.Namespace,
 					ServiceName:      svc.Name,
-					ServicePort:      fmt.Sprintf("%v", port.Port),
+					ServicePort:      port.TargetPort.IntVal,
 				}),
 				// mark the upstream as ours
 				Metadata: &v1.Metadata{

@@ -12,8 +12,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"fmt"
-
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/gloo-storage"
@@ -112,7 +110,7 @@ var _ = Describe("Kube Service Discovery", func() {
 						Spec: kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
 							ServiceNamespace: namespace,
 							ServiceName:      serviceName,
-							ServicePort:      fmt.Sprintf("%v", port.Port),
+							ServicePort:      port.TargetPort.IntVal,
 						}),
 					}
 					Expect(createdUpstreams).To(ContainElement(expectedUpstream))
