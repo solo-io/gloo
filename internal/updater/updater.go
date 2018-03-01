@@ -16,6 +16,27 @@ import (
 
 var localCache = make(map[string][]*v1.Function)
 
+func GetSecretRefsToWatch(upstreams []*v1.Upstream) []string {
+	var refs []string
+	for _, us := range upstreams {
+		switch functiontypes.GetFunctionType(us) {
+		case functiontypes.FunctionTypeLambda:
+			ref, err := lambda.GetSecretRef(us)
+			if err != nil {
+				continue
+			}
+			refs = append(refs, ref)
+		case functiontypes.FunctionTypeGfuncs:
+			ref, err := gcf.GetSecretRef(us)
+			if err != nil {
+				continue
+			}
+			refs = append(refs, ref)
+		}
+	}
+	return refs
+}
+
 // if forceSync is set, ignore the local cache and poll for new function list anyway
 // we want to forceSync on every refreshDuration
 // on a config / secrets change, we don't want to force sync

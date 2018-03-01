@@ -1,13 +1,11 @@
 package eventloop
 
 import (
-	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/tools/clientcmd"
-
 	"time"
 
-	"github.com/mitchellh/hashstructure"
+	"github.com/pkg/errors"
+	"k8s.io/client-go/tools/clientcmd"
+
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/updater"
 	"github.com/solo-io/gloo-function-discovery/internal/upstreamwatcher"
@@ -16,9 +14,6 @@ import (
 	"github.com/solo-io/gloo-storage/crd"
 	"github.com/solo-io/gloo-storage/file"
 	"github.com/solo-io/gloo/pkg/bootstrap"
-	"github.com/solo-io/gloo/pkg/endpointdiscovery"
-	"github.com/solo-io/gloo/pkg/log"
-	"github.com/solo-io/gloo/pkg/plugin"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 	filesecrets "github.com/solo-io/gloo/pkg/secretwatcher/file"
 	kubesecrets "github.com/solo-io/gloo/pkg/secretwatcher/kube"
@@ -47,6 +42,11 @@ func Run(opts bootstrap.Options, stop <-chan struct{}, errs chan error) error {
 	}
 
 	update := func(forceSync bool) {
+		go func() {
+			// update secret refs on secret watcher
+			refs := updater.GetSecretRefsToWatch(cache.upstreams)
+			secretWatcher.TrackSecrets(refs)
+		}()
 		if err := updater.UpdateFunctionalUpstreams(store, cache.upstreams, cache.secrets, forceSync); err != nil {
 			errs <- err
 		}
@@ -72,26 +72,6 @@ func Run(opts bootstrap.Options, stop <-chan struct{}, errs chan error) error {
 
 func upstreamSelectionFunction(us *v1.Upstream) bool {
 	return functiontypes.GetFunctionType(us) != functiontypes.NonFunctional
-}
-
-func updateSecretRefsFor(plugins []plugin.TranslatorPlugin) func(cfg *v1.Config) []string {
-	return func(cfg *v1.Config) []string {
-		var secretRefs []string
-		// secrets plugins need
-		for _, plug := range plugins {
-			deps := plug.GetDependencies(cfg)
-			if deps != nil {
-				secretRefs = append(secretRefs, deps.SecretRefs...)
-			}
-		}
-		// secrets for virtualhosts
-		for _, vhost := range cfg.VirtualHosts {
-			if vhost.SslConfig != nil && vhost.SslConfig.SecretRef != "" {
-				secretRefs = append(secretRefs, vhost.SslConfig.SecretRef)
-			}
-		}
-		return secretRefs
-	}
 }
 
 func createStorageClient(opts bootstrap.Options) (storage.Interface, error) {
@@ -142,172 +122,4 @@ func setupSecretWatcher(opts bootstrap.Options, stop <-chan struct{}) (secretwat
 		return secretWatcher, nil
 	}
 	return nil, errors.Errorf("unknown or unspecified secret watcher type: %v", opts.SecretWatcherOptions.Type)
-}
-
-func (e *eventLoop) Run(stop <-chan struct{}) error {
-	for _, fn := range e.startFuncs {
-		if err := fn(); err != nil {
-			return err
-		}
-	}
-	for _, eds := range e.endpointDiscoveries {
-		go eds.Run(stop)
-	}
-	go e.configWatcher.Run(stop)
-
-	endpointDiscovery := e.endpointDiscovery()
-	workerErrors := e.errors()
-
-	// cache the most recent read for any of these
-	var hash uint64
-	current := newCache()
-	for {
-		select {
-		case cfg := <-e.configWatcher.Config():
-			current.cfg = cfg
-			secretRefs := e.updateSecretRefs(cfg)
-			go e.secretWatcher.TrackSecrets(secretRefs)
-			for _, discovery := range e.endpointDiscoveries {
-				go func() {
-					discovery.TrackUpstreams(cfg.Upstreams)
-				}()
-			}
-			newHash := current.hash()
-			if hash == newHash {
-				break
-			}
-			hash = newHash
-			e.updateXds(current)
-		case secrets := <-e.secretWatcher.Secrets():
-			current.secrets = secrets
-			newHash := current.hash()
-			if hash == newHash {
-				break
-			}
-			hash = newHash
-			e.updateXds(current)
-		case endpointTuple := <-endpointDiscovery:
-			current.endpoints[endpointTuple.discoveredBy] = endpointTuple.endpoints
-			newHash := current.hash()
-			if hash == newHash {
-				break
-			}
-			hash = newHash
-			e.updateXds(current)
-		case err := <-workerErrors:
-			runtime.HandleError(err)
-		}
-	}
-}
-
-func (e *eventLoop) updateXds(cache *cache) {
-	if !cache.ready() {
-		log.Debugf("cache is not fully constructed to produce a first snapshot yet")
-		return
-	}
-
-	aggregatedEndpoints := make(endpointdiscovery.EndpointGroups)
-	for _, endpointGroups := range cache.endpoints {
-		for upstreamName, endpointSet := range endpointGroups {
-			aggregatedEndpoints[upstreamName] = endpointSet
-		}
-	}
-	snapshot, statuses, err := e.translator.Translate(cache.cfg, cache.secrets, aggregatedEndpoints)
-	if err != nil {
-		// TODO: panic or handle these internal errors smartly
-		runtime.HandleError(errors.Wrap(err, "failed to translate based on the latest config"))
-	}
-
-	for _, st := range statuses {
-		if st.Err != nil {
-			log.Debugf("translation error: %v: %v", st.CfgObject.GetName(), st.Err)
-		}
-	}
-	if err := e.reporter.WriteReports(statuses); err != nil {
-		runtime.HandleError(err)
-	}
-
-	log.Debugf("FINAL: XDS Snapshot: %v", snapshot)
-	e.xdsConfig.SetSnapshot(xds.NodeKey, *snapshot)
-}
-
-// fan out to cover all endpoint discovery services
-func (e *eventLoop) endpointDiscovery() <-chan endpointTuple {
-	aggregatedEndpointsChan := make(chan endpointTuple)
-	for _, ed := range e.endpointDiscoveries {
-		go func() {
-			for endpoints := range ed.Endpoints() {
-				aggregatedEndpointsChan <- endpointTuple{
-					endpoints:    endpoints,
-					discoveredBy: ed,
-				}
-			}
-		}()
-	}
-	return aggregatedEndpointsChan
-}
-
-// fan out to cover all channels that return errors
-func (e *eventLoop) errors() <-chan error {
-	aggregatedErrorsChan := make(chan error)
-	go func() {
-		for err := range e.configWatcher.Error() {
-			aggregatedErrorsChan <- errors.Wrap(err, "config watcher encountered an error")
-		}
-	}()
-	go func() {
-		for err := range e.secretWatcher.Error() {
-			aggregatedErrorsChan <- errors.Wrap(err, "secret watcher encountered an error")
-		}
-	}()
-	for _, ed := range e.endpointDiscoveries {
-		go func() {
-			for err := range ed.Error() {
-				aggregatedErrorsChan <- err
-			}
-		}()
-	}
-	return aggregatedErrorsChan
-}
-
-// cache contains the latest "gloo snapshot"
-type cache struct {
-	cfg     *v1.Config
-	secrets secretwatcher.SecretMap
-	// need to separate endpoints by the service who discovered them
-	endpoints map[endpointdiscovery.Interface]endpointdiscovery.EndpointGroups
-}
-
-func newCache() *cache {
-	return &cache{
-		endpoints: make(map[endpointdiscovery.Interface]endpointdiscovery.EndpointGroups),
-	}
-}
-
-// ready doesn't necessarily tell us whetehr endpoints have been discovered yet
-// but that's okay. envoy won't mind
-func (c *cache) ready() bool {
-	return c.cfg != nil
-}
-
-func (c *cache) hash() uint64 {
-	h0, err := hashstructure.Hash(*c.cfg, nil)
-	if err != nil {
-		panic(err)
-	}
-	h1, err := hashstructure.Hash(c.secrets, nil)
-	if err != nil {
-		panic(err)
-	}
-	h2, err := hashstructure.Hash(c.endpoints, nil)
-	if err != nil {
-		panic(err)
-	}
-	h := h0 + h1 + h2
-	return h
-}
-
-type endpointTuple struct {
-	discoveredBy endpointdiscovery.Interface
-	endpoints    endpointdiscovery.EndpointGroups
 }

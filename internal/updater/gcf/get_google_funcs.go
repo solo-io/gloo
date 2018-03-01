@@ -27,20 +27,14 @@ const (
 	statusAccepted = "ACCEPTED"
 )
 
-//TODO: make this a flag
-var cacheToken = true
-
 func GetFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function, error) {
-	secretRef, ok := us.Metadata.Annotations[annotationKey]
-	if !ok {
-		return nil, errors.Errorf("Google Function Discovery requires that a secret ref for a secret containing "+
-			"Google Cloud account credentials be specified in the annotations for each Google Cloud Upstream. "+
-			"The annotation key is %v. The annotations should contain the annotation %v: [your_secret_ref]",
-			annotationKey, annotationKey)
+	secretRef, err := GetSecretRef(us)
+	if err != nil {
+		return nil, errors.Wrap(err, "getting secret ref")
 	}
 	googleSpec, err := googleplugin.DecodeUpstreamSpec(us.Spec)
 	if err != nil {
-		return nil, errors.Wrap(err, "decoding lambda upstream spec")
+		return nil, errors.Wrap(err, "decoding gcf upstream spec")
 	}
 	googleSecrets, ok := secrets[secretRef]
 	if !ok {
@@ -84,6 +78,17 @@ func GetFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function,
 	}
 
 	return convertGfuncsToFunctionSpec(results), nil
+}
+
+func GetSecretRef(us *v1.Upstream) (string, error) {
+	secretRef, ok := us.Metadata.Annotations[annotationKey]
+	if !ok {
+		return "", errors.Errorf("Google Function Discovery requires that a secret ref for a secret containing "+
+			"Google Cloud account credentials be specified in the annotations for each Google Cloud Upstream. "+
+			"The annotation key is %v. The annotations should contain the annotation %v: [your_secret_ref]",
+			annotationKey, annotationKey)
+	}
+	return secretRef, nil
 }
 
 func convertGfuncsToFunctionSpec(results []*cloudfunctions.CloudFunction) []*v1.Function {

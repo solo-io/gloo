@@ -58,6 +58,14 @@ func GetFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function,
 	return convertResultToFunctionSpec(results), nil
 }
 
+func GetSecretRef(us *v1.Upstream) (string, error) {
+	lambdaSpec, err := lambdaplugin.DecodeUpstreamSpec(us.Spec)
+	if err != nil {
+		return "", errors.Wrap(err, "decoding lambda upstream spec")
+	}
+	return lambdaSpec.SecretRef, nil
+}
+
 func convertResultToFunctionSpec(results *lambda.ListFunctionsOutput) []*v1.Function {
 	var funcs []*v1.Function
 	for _, f := range results.Functions {

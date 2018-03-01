@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-storage/crd"
 	"github.com/spf13/cobra"
 
 	"github.com/solo-io/gloo-function-discovery/internal/eventloop"
 	"github.com/solo-io/gloo/pkg/bootstrap"
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/signals"
 )
 
@@ -29,14 +29,19 @@ var rootCmd = &cobra.Command{
 	Short: "runs the gloo control plane to manage Envoy as a Function Gateway",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		stop := signals.SetupSignalHandler()
-		eventLoop, err := eventloop.Setup(opts, stop)
-		if err != nil {
-			return errors.Wrap(err, "setting up event loop")
-		}
-		if err := eventLoop.Run(stop); err != nil {
-			return errors.Wrap(err, "failed running event loop")
-		}
-		return nil
+		errs := make(chan error)
+
+		finished := make(chan error)
+		go func() { finished <- eventloop.Run(opts, stop, errs) }()
+		go func() {
+			for {
+				select {
+				case err := <-errs:
+					log.Warnf("discovery error: %v", err)
+				}
+			}
+		}()
+		return <-finished
 	},
 }
 
