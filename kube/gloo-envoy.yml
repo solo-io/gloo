@@ -59,3 +59,61 @@ kind: ConfigMap
 metadata:
   name: envoy-config
   namespace: gloo-system
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: envoy
+  name: envoy
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: envoy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: envoy
+    spec:
+      containers:
+      - image: docker.io/envoyproxy/envoy-alpine:latest
+        name: envoy
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 8443
+          name: https
+        - containerPort: 19000
+          name: admin
+        command: ["envoy"]
+        args: ["-c", "/config/envoy.yaml", "--v2-config-only", "--service-cluster", "envoy", "--service-node", "envoy"]
+        volumeMounts:
+        - name: envoy-config
+          mountPath: /config
+      volumes:
+      - name: envoy-config
+        configMap:
+          name: envoy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: envoy
+  labels:
+    sevice: envoy
+  namespace: gloo-system
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    name: http
+  - port: 8443
+    protocol: TCP
+    name: https
+  - port: 19000
+    protocol: TCP
+    name: admin
+  selector:
+    app: envoy
