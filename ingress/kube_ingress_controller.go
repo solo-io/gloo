@@ -399,7 +399,7 @@ func (c *IngressController) newUpstreamFromBackend(namespace string, backend v1b
 		Spec: kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
 			ServiceName:      backend.ServiceName,
 			ServiceNamespace: namespace,
-			ServicePort:      backend.ServicePort.String(),
+			ServicePort:      backend.ServicePort.IntVal,
 		}),
 		// mark the upstream as ours
 		Metadata: &v1.Metadata{
