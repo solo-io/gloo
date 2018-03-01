@@ -63,8 +63,8 @@ func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
 	return deps
 }
 
-func (p *Plugin) HttpFilter(params *plugin.FilterPluginParams) (*envoyhttp.HttpFilter, plugin.Stage) {
-	return &envoyhttp.HttpFilter{Name: filterName}, pluginStage
+func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
+	return []plugin.StagedFilter{{HttpFilter: &envoyhttp.HttpFilter{Name: filterName}, Stage: pluginStage}}
 }
 
 func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {

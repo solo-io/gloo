@@ -244,7 +244,7 @@ func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedF
 	})
 	if err != nil {
 		runtime.HandleError(err)
-		return nil, 0
+		return nil
 	}
 
 	// clear cache
