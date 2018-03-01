@@ -238,7 +238,7 @@ func findFunction(upstreams []*v1.Upstream, upstreamName, functionName string) (
 	return nil, errors.Errorf("function %v/%v not found", upstreamName, functionName)
 }
 
-func (p *Plugin) HttpFilter(_ *plugin.FilterPluginParams) (*envoyhttp.HttpFilter, plugin.Stage) {
+func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
 	filterConfig, err := protoutil.MarshalStruct(&Transformations{
 		Transformations: p.CachedTransformations,
 	})
@@ -250,8 +250,8 @@ func (p *Plugin) HttpFilter(_ *plugin.FilterPluginParams) (*envoyhttp.HttpFilter
 	// clear cache
 	p.CachedTransformations = make(map[string]*Transformation)
 
-	return &envoyhttp.HttpFilter{
+	return []plugin.StagedFilter{{HttpFilter: &envoyhttp.HttpFilter{
 		Name:   filterName,
 		Config: filterConfig,
-	}, pluginStage
+	}, Stage: pluginStage}}
 }

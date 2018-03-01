@@ -12,6 +12,7 @@ import (
 	"github.com/gogo/protobuf/jsonpb"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
 
@@ -113,9 +114,9 @@ func anyempty(strs ...string) bool {
 	return false
 }
 
-func (p *Plugin) HttpFilter(params *plugin.FilterPluginParams) (*envoyhttp.HttpFilter, plugin.Stage) {
+func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
 	if anyempty(p.template.MixerClusterName, p.template.Namespace, p.template.PodName, p.template.ServiceName) {
-		return nil, pluginStage
+		return nil
 	}
 	tmpl := template.Must(template.New("mixer").Parse(mixerTemplateConfig))
 	var b bytes.Buffer
@@ -125,13 +126,12 @@ func (p *Plugin) HttpFilter(params *plugin.FilterPluginParams) (*envoyhttp.HttpF
 	var pbconfig types.Struct
 	err := jsonpb.UnmarshalString(jsonstring, &pbconfig)
 	if err != nil {
-		return nil, pluginStage
-
+		log.Warnf("you found a bug: %v", err)
+		return nil
 	}
 	filter := &envoyhttp.HttpFilter{
 		Name:   filterName,
 		Config: &pbconfig,
 	}
-
-	return filter, pluginStage
+	return []plugin.StagedFilter{{HttpFilter: filter, Stage: pluginStage}}
 }
