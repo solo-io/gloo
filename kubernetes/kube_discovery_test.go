@@ -49,12 +49,12 @@ var _ = Describe("KubeSecretWatcher", func() {
 		serviceWithSpecificPortSpec := EncodeUpstreamSpec(UpstreamSpec{
 			ServiceName:      "test-service-with-port",
 			ServiceNamespace: namespace,
-			ServicePort:      "portname",
+			ServicePort:      80,
 		})
 		serviceWithSpecificLabels := EncodeUpstreamSpec(UpstreamSpec{
 			ServiceName:      "test-service-with-labels",
 			ServiceNamespace: namespace,
-			ServicePort:      "portname",
+			ServicePort:      80,
 			Labels:           specLabels,
 		})
 		upstreams = []*v1.Upstream{
@@ -194,7 +194,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 						Expect(serviceEndpoints).To(HaveLen(2))
 					}
 
-					if decodedSpec.ServicePort != "" {
+					if decodedSpec.ServicePort != 0 {
 						Expect(serviceEndpoints[0].Port).To(Equal(int32(8081)))
 					} else {
 						Expect(serviceEndpoints[0].Port).To(Equal(int32(8080)))

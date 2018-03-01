@@ -15,7 +15,7 @@ var _ = Describe("FromMap", func() {
 			Fields: map[string]*types.Value{
 				"service_name":      {Kind: &types.Value_StringValue{StringValue: "svc"}},
 				"service_namespace": {Kind: &types.Value_StringValue{StringValue: "my-ns"}},
-				"service_port":      {Kind: &types.Value_StringValue{StringValue: "svc-port"}},
+				"service_port":      {Kind: &types.Value_NumberValue{NumberValue: 8080}},
 			},
 		}
 		spec, err := DecodeUpstreamSpec(m)
@@ -23,6 +23,6 @@ var _ = Describe("FromMap", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(spec.ServiceName).To(Equal("svc"))
 		Expect(spec.ServiceNamespace).To(Equal("my-ns"))
-		Expect(spec.ServicePort).To(Equal("svc-port"))
+		Expect(spec.ServicePort).To(Equal(8080))
 	})
 })

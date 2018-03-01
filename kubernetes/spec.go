@@ -10,7 +10,7 @@ import (
 type UpstreamSpec struct {
 	ServiceName      string            `json:"service_name"`
 	ServiceNamespace string            `json:"service_namespace"`
-	ServicePort      string            `json:"service_port"`
+	ServicePort      int32             `json:"service_port"`
 	Labels           map[string]string `json:"labels"`
 }
 

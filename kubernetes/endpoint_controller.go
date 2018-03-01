@@ -203,10 +203,12 @@ func portForUpstream(spec *UpstreamSpec, serviceList []*kubev1resources.Service)
 				return svc.Spec.Ports[0].TargetPort.IntVal, nil
 			}
 			for _, port := range svc.Spec.Ports {
-				if spec.ServicePort == port.Name {
-					if port.TargetPort.StrVal != "" {
-						runtime.HandleError(fmt.Errorf("WARNING: named ports are not supported for Kubernetes Endpoint Interface"))
-					}
+				if port.TargetPort.StrVal != "" {
+					//TODO: remove this warning if it's too chatty
+					runtime.HandleError(fmt.Errorf("target port must be type int for kube endpoint discovery"))
+					continue
+				}
+				if spec.ServicePort == port.TargetPort.IntVal {
 					return port.TargetPort.IntVal, nil
 				}
 			}
