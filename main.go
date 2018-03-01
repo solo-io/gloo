@@ -25,8 +25,8 @@ func main() {
 var opts bootstrap.Options
 
 var rootCmd = &cobra.Command{
-	Use:   "gloo",
-	Short: "runs the gloo control plane to manage Envoy as a Function Gateway",
+	Use:   "gloo-function-discovery",
+	Short: "discovers functions for swagger, google functions, and lambda upstreams",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		stop := signals.SetupSignalHandler()
 		errs := make(chan error)
@@ -50,12 +50,9 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&opts.ConfigWatcherOptions.Type, "storage.type", bootstrap.WatcherTypeFile, fmt.Sprintf("storage backend for config objects. supported: [%s]", strings.Join(bootstrap.SupportedCwTypes, " | ")))
 	rootCmd.PersistentFlags().DurationVar(&opts.ConfigWatcherOptions.SyncFrequency, "storage.refreshrate", time.Second, "refresh rate for polling config")
 
-	// storage watcher
+	// secret watcher
 	rootCmd.PersistentFlags().StringVar(&opts.SecretWatcherOptions.Type, "secrets.type", bootstrap.WatcherTypeFile, fmt.Sprintf("storage backend for secrets. supported: [%s]", strings.Join(bootstrap.SupportedSwTypes, " | ")))
 	rootCmd.PersistentFlags().DurationVar(&opts.SecretWatcherOptions.SyncFrequency, "secrets.refreshrate", time.Second, "refresh rate for polling secrets")
-
-	// xds port
-	rootCmd.PersistentFlags().IntVar(&opts.XdsOptions.Port, "xds.port", 8081, "port to serve envoy xDS services. this port should be specified in your envoy's static config")
 
 	// file
 	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.ConfigDir, "file.config.dir", "_gloo_config", "root directory to use for storing gloo config files")
