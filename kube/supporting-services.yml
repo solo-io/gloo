@@ -1,4 +1,110 @@
 ---
-
+# statsd-grafana deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: statsd-grafana
+  name: statsd-grafana
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: statsd-grafana
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: statsd-grafana
+    spec:
+      containers:
+      - image: kamon/grafana_graphite:latest
+        name: statsd-grafana
+        ports:
+        - containerPort: 80
+          name: grafana-web
+        - containerPort: 81
+          name: graphite-web
+        - containerPort: 2003
+          name: graphite-data
+        - containerPort: 8125
+          name: statsd
+        - containerPort: 8126
+          name: statsd-admin
 ---
+# statsd-grafana service
+apiVersion: v1
+kind: Service
+metadata:
+  name: statsd-grafana
+  labels:
+    sevice: statsd-grafana
+  namespace: gloo-system
+spec:
+  ports:
+  - containerPort: 80
+    protocol: TCP
+  - containerPort: 81
+    protocol: TCP
+  - containerPort: 2003
+    protocol: TCP
+  - containerPort: 8125
+    protocol: TCP
+  - containerPort: 8126
+    protocol: TCP
+  selector:
+    app: statsd-grafana
+---
+# jaeger deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+  name: jaeger
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: jaeger
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+      - image: jaegertracing/all-in-one:latest
+        env:
+        - name: COLLECTOR_ZIPKIN_HTTP_PORT
+          value: "9411"
+        name: jaeger
+        ports:
+        - containerPort: 9411
+          name: tracing
+        - containerPort: 16686
+          name: web
+---
+# jaeger service
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+  labels:
+    sevice: jaeger
+  namespace: gloo-system
+spec:
+  ports:
+  - containerPort: 80
+    protocol: TCP
+  - containerPort: 81
+    protocol: TCP
+  - containerPort: 2003
+    protocol: TCP
+  - containerPort: 8125
+    protocol: TCP
+  - containerPort: 8126
+    protocol: TCP
+  selector:
+    app: jaeger
 ---

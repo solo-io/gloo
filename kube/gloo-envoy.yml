@@ -4,16 +4,26 @@ data:
     node:
       cluster: ingress
       id: ingress
+
     static_resources:
       clusters:
-      - connect_timeout: 5.000s
+      - name: xds_cluster
+        connect_timeout: 5.000s
         hosts:
         - socket_address:
             address: gloo
             port_value: 8081
         http2_protocol_options: {}
-        name: xds_cluster
         type: STRICT_DNS
+      - name: jaeger
+        connect_timeout: 1s
+        type: strict_dns
+        lb_policy: round_robin
+        hosts:
+        - socket_address:
+            address: jaeger
+            port_value: 9411
+
     dynamic_resources:
       ads_config:
         api_type: GRPC
@@ -23,11 +33,27 @@ data:
         ads: {}
       lds_config:
         ads: {}
+
+    stats_sinks:
+    - name: envoy.statsd
+      config:
+      address:
+        socket_address:
+          address: statsd-grafana
+          port_value: 8025
+
+    tracing:
+      http:
+        name: envoy.zipkin
+        config:
+          collector_cluster: jaeger
+          collector_endpoint: "/api/v1/spans"
+
     admin:
       access_log_path: /dev/null
       address:
         socket_address:
-          address: 127.0.0.1
+          address: 0.0.0.0
           port_value: 19000
 kind: ConfigMap
 metadata:
