@@ -65,10 +65,15 @@ type RoutePlugin interface {
 	ProcessRoute(params *RoutePluginParams, in *v1.Route, out *envoyroute.Route) error
 }
 
-// Params for HttpFilter()
+// Params for HttpFilters()
 type FilterPluginParams struct{}
+
+type StagedFilter struct {
+	HttpFilter *envoyhttp.HttpFilter
+	Stage      Stage
+}
 
 type FilterPlugin interface {
 	TranslatorPlugin
-	HttpFilter(params *FilterPluginParams) (*envoyhttp.HttpFilter, Stage)
+	HttpFilters(params *FilterPluginParams) []StagedFilter
 }

@@ -621,15 +621,17 @@ func (t *Translator) createHttpFilters() []*envoyhttp.HttpFilter {
 			continue
 		}
 		params := &plugin.FilterPluginParams{}
-		httpFilter, stage := filterPlugin.HttpFilter(params)
-		if httpFilter == nil {
-			runtime.HandleError(errors.New("plugin implements HttpFilter() but returned nil"))
-			continue
+		stagedFilters := filterPlugin.HttpFilters(params)
+		for _, httpFilter := range stagedFilters {
+			if httpFilter.HttpFilter == nil {
+				runtime.HandleError(errors.New("plugin implements HttpFilters() but returned nil"))
+				continue
+			}
+			filtersByStage = append(filtersByStage, stagedFilter{
+				filter: httpFilter.HttpFilter,
+				stage:  httpFilter.Stage,
+			})
 		}
-		filtersByStage = append(filtersByStage, stagedFilter{
-			filter: httpFilter,
-			stage:  stage,
-		})
 	}
 
 	// sort filters by stage
