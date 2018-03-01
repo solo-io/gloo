@@ -3,8 +3,6 @@ package e2e
 import (
 	"time"
 
-	"fmt"
-
 	. "github.com/onsi/ginkgo"
 	"github.com/pborman/uuid"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
@@ -25,7 +23,7 @@ var _ = Describe("Kubernetes Upstream + Endpoint Discovery Plugin", func() {
 				Spec: kubernetes.EncodeUpstreamSpec(kubernetes.UpstreamSpec{
 					ServiceNamespace: namespace,
 					ServiceName:      helloService,
-					ServicePort:      fmt.Sprintf("%v", servicePort),
+					ServicePort:      servicePort,
 				}),
 			})
 			Must(err)
