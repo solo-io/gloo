@@ -61,6 +61,8 @@ func main() {
 		if *storageType == "crd" {
 			us, err := crd.UpstreamToCrd("put-namespace-here", upstream)
 			must(err)
+			us.TypeMeta.APIVersion = "gloo.solo.io/v1"
+			us.TypeMeta.Kind = "Upstream"
 			jsn, err = json.Marshal(us)
 			must(err)
 		} else {
@@ -78,6 +80,8 @@ func main() {
 		if *storageType == "crd" {
 			vh, err := crd.VirtualHostToCrd("put-namespace-here", virtualHost)
 			must(err)
+			vh.TypeMeta.APIVersion = "gloo.solo.io/v1"
+			vh.TypeMeta.Kind = "VirtualHost"
 			jsn, err = json.Marshal(vh)
 			must(err)
 		} else {
