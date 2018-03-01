@@ -302,7 +302,7 @@ var _ = Describe("KubeIngressController", func() {
 							Spec: kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
 								ServiceName:      path.Backend.ServiceName,
 								ServiceNamespace: namespace,
-								ServicePort:      path.Backend.ServicePort.String(),
+								ServicePort:      path.Backend.ServicePort.IntVal,
 							}),
 						}
 					}
