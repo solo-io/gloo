@@ -35,6 +35,10 @@ spec:
           value: "all"
         - name: DEBUG
           value: "1"
+        - name: GLOG_logtostderr
+          value: "1"
+        - name: GLOG_v
+          value: "10"
         command: ["/gloo"]
         args:
         - "--storage.type=kube"
@@ -3032,3 +3036,4 @@ spec:
     single_destination:
       upstream:
         name: shouldwork
+    prefix_rewrite: /listeners
