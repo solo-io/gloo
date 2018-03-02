@@ -83,8 +83,11 @@ func (t *Translator) Translate(cfg *v1.Config,
 	// clusters
 	clusters, upstreamReports := t.computeClusters(cfg, secrets, endpoints)
 
+	// mark errored upstreams; routes that point to them are considered invalid
+	errored := getErroredUpstreams(upstreamReports)
+
 	// virtualhosts
-	sslVirtualHosts, nosslVirtualHosts, virtualHostReports := t.computeVirtualHosts(cfg, upstreamReports, secrets)
+	sslVirtualHosts, nosslVirtualHosts, virtualHostReports := t.computeVirtualHosts(cfg, errored, secrets)
 
 	nosslRouteConfig := &envoyapi.RouteConfiguration{
 		Name:         nosslRdsName,
@@ -288,7 +291,7 @@ func secretsForPlugin(cfg *v1.Config, plug plugin.TranslatorPlugin, secrets secr
 // VirtualHosts
 
 func (t *Translator) computeVirtualHosts(cfg *v1.Config,
-	clusterReports []reporter.ConfigObjectReport,
+	erroredUpstreams map[string]bool,
 	secrets secretwatcher.SecretMap) ([]envoyroute.VirtualHost, []envoyroute.VirtualHost, []reporter.ConfigObjectReport) {
 	var (
 		reports           []reporter.ConfigObjectReport
@@ -300,7 +303,7 @@ func (t *Translator) computeVirtualHosts(cfg *v1.Config,
 	vHostsWithBadDomains := virtualHostsWithConflictingDomains(cfg.VirtualHosts, reports)
 
 	for _, virtualHost := range cfg.VirtualHosts {
-		envoyVirtualHost, err := t.computeVirtualHost(cfg.Upstreams, virtualHost, clusterReports, secrets)
+		envoyVirtualHost, err := t.computeVirtualHost(cfg.Upstreams, virtualHost, erroredUpstreams, secrets)
 		if domainErr, invalidVHost := vHostsWithBadDomains[virtualHost.Name]; invalidVHost {
 			err = multierror.Append(err, domainErr)
 		}
@@ -353,12 +356,12 @@ func virtualHostsWithConflictingDomains(virtualHosts []*v1.VirtualHost, reports 
 
 func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream,
 	virtualHost *v1.VirtualHost,
-	clusterReports []reporter.ConfigObjectReport,
+	erroredUpstreams map[string]bool,
 	secrets secretwatcher.SecretMap) (envoyroute.VirtualHost, error) {
 	var envoyRoutes []envoyroute.Route
 	var vHostErrors error
 	for _, route := range virtualHost.Routes {
-		if err := validateRouteDestinations(upstreams, route, clusterReports); err != nil {
+		if err := validateRouteDestinations(upstreams, route, erroredUpstreams); err != nil {
 			vHostErrors = multierror.Append(vHostErrors, err)
 		}
 		out := envoyroute.Route{}
@@ -396,16 +399,14 @@ func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream,
 	}, vHostErrors
 }
 
-func validateRouteDestinations(upstreams []*v1.Upstream, route *v1.Route, clusterReports []reporter.ConfigObjectReport) error {
+func validateRouteDestinations(upstreams []*v1.Upstream, route *v1.Route, erroredUpstreams map[string]bool) error {
 	// collect existing upstreams/functions for matching
 	upstreamsAndTheirFunctions := make(map[string][]string)
 
-	// mark errored upstreams; routes that point to them are considered invalid
-	errored := getErroredUpstreams(clusterReports)
-
 	for _, upstream := range upstreams {
 		// don't consider errored upstreams to be valid destinations
-		if errored[upstream.Name] {
+		if erroredUpstreams[upstream.Name] {
+			log.Debugf("upstream %v had errors, it will not be a considered destination", upstream.Name)
 			continue
 		}
 		var funcsForUpstream []string

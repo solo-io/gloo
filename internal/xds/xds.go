@@ -39,6 +39,7 @@ func RunXDS(port int) (envoycache.Cache, *grpc.Server, error) {
 			grpc_ctxtags.StreamServerInterceptor(),
 			grpc_zap.StreamServerInterceptor(zap.NewNop()),
 			func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+				log.Debugf("xds: %v", info.FullMethod)
 				return handler(srv, ss)
 			},
 		)),
