@@ -45,7 +45,6 @@ func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *en
 			NumRetries: &types.UInt32Value{Value: spec.MaxRetries},
 		}
 	}
-	routeAction.Route.PrefixRewrite = spec.PrefixRewrite
 	for _, addH := range spec.AddRequestHeaders {
 		routeAction.Route.RequestHeadersToAdd = append(routeAction.Route.RequestHeadersToAdd, &envoycore.HeaderValueOption{
 			Header: &envoycore.HeaderValue{

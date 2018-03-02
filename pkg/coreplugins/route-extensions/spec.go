@@ -10,7 +10,6 @@ import (
 type RouteExtensionSpec struct {
 	MaxRetries            uint32        `json:"max_retries,omitempty"`
 	Timeout               time.Duration `json:"timeout,omitempty"`
-	PrefixRewrite         string        `json:"prefix_rewrite,omitempty"`
 	AddRequestHeaders     []HeaderValue `json:"add_request_headers,omitempty"`
 	AddResponseHeaders    []HeaderValue `json:"add_response_headers,omitempty"`
 	RemoveResponseHeaders []string      `json:"remove_response_headers,omitempty"`
