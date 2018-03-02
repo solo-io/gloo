@@ -11,6 +11,7 @@ const (
 )
 
 const (
+	ExecutionStyleNone  = "none"
 	ExecutionStyleSync  = "sync"
 	ExecutionStyleAsync = "async"
 )
@@ -30,6 +31,8 @@ func GetExecutionStyle(routeExtensions *types.Struct) (string, error) {
 				return "", errors.Errorf("invalid execution style provided. must be one of: %v|%v, you gave: %v", ExecutionStyleSync, ExecutionStyleAsync, executionStyle)
 			}
 			return executionStyle, nil
+		} else {
+			return ExecutionStyleNone, nil
 		}
 	}
 	return ExecutionStyleSync, nil

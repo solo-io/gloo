@@ -72,6 +72,9 @@ func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *en
 	if err != nil {
 		return err
 	}
+	if executionStyle == ExecutionStyleNone {
+		return nil
+	}
 	setRouteAsync(executionStyle == ExecutionStyleAsync, out)
 	return nil
 }
