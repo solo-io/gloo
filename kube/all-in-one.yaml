@@ -230,6 +230,30 @@ spec:
     service_namespace: monitoring
     service_port: 3000
   type: kubernetes
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: envoy-admin
+  namespace: gloo-system
+spec:
+  spec:
+    service_name: envoy
+    service_namespace: gloo-system
+    service_port: 19000
+  type: kubernetes
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: shouldwork
+  namespace: gloo-system
+spec:
+  spec:
+    hosts:
+    - addr: envoy
+      port: 19000
+  type: service
 
 ---
 apiVersion: gloo.solo.io/v1
@@ -254,3 +278,13 @@ spec:
     single_destination:
       upstream:
         name: prometheus
+  - request_matcher:
+      path_prefix: /envoy
+    single_destination:
+      upstream:
+        name: envoy-admin
+  - request_matcher:
+      path_prefix: /shouldwork
+    single_destination:
+      upstream:
+        name: shouldwork

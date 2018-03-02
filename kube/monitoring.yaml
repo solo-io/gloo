@@ -40,6 +40,8 @@ spec:
             value: "true"
           - name: GF_AUTH_ANONYMOUS_ENABLED
             value: "false"
+          - name: GF_SERVER_ROOT_URL
+            value: "%(protocol)s://%(domain)s:%(http_port)s/grafana"
           # - name: GF_AUTH_ANONYMOUS_ORG_ROLE
           #   value: Admin
           # does not really work, because of template variables in exported dashboards:
