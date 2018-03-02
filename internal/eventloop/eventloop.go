@@ -172,9 +172,18 @@ func (e *eventLoop) Run(stop <-chan struct{}) error {
 	// cache the most recent read for any of these
 	var hash uint64
 	current := newCache()
+	sync := func(current *cache) {
+		newHash := current.hash()
+		if hash == newHash {
+			return
+		}
+		hash = newHash
+		e.updateXds(current)
+	}
 	for {
 		select {
 		case cfg := <-e.configWatcher.Config():
+			log.Debugf("change triggered by config")
 			current.cfg = cfg
 			secretRefs := e.updateSecretRefs(cfg)
 			go e.secretWatcher.TrackSecrets(secretRefs)
@@ -183,28 +192,15 @@ func (e *eventLoop) Run(stop <-chan struct{}) error {
 					discovery.TrackUpstreams(cfg.Upstreams)
 				}()
 			}
-			newHash := current.hash()
-			if hash == newHash {
-				break
-			}
-			hash = newHash
-			e.updateXds(current)
+			sync(current)
 		case secrets := <-e.secretWatcher.Secrets():
+			log.Debugf("change triggered by secrets")
 			current.secrets = secrets
-			newHash := current.hash()
-			if hash == newHash {
-				break
-			}
-			hash = newHash
-			e.updateXds(current)
+			sync(current)
 		case endpointTuple := <-endpointDiscovery:
+			log.Debugf("change triggered by endpoints")
 			current.endpoints[endpointTuple.discoveredBy] = endpointTuple.endpoints
-			newHash := current.hash()
-			if hash == newHash {
-				break
-			}
-			hash = newHash
-			e.updateXds(current)
+			sync(current)
 		case err := <-workerErrors:
 			runtime.HandleError(err)
 		}
