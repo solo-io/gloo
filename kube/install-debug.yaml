@@ -187,12 +187,15 @@ spec:
   - port: 8080
     protocol: TCP
     name: http
+    nodePort: 30080
   - port: 8443
     protocol: TCP
     name: https
+    nodePort: 30443
   - port: 19000
     protocol: TCP
     name: admin
+    nodePort: 31900
   selector:
     app: envoy
   type: NodePort
@@ -2674,6 +2677,7 @@ spec:
           - '-storage.local.retention=12h'
           - '-storage.local.memory-chunks=500000'
           - '-config.file=/etc/prometheus/prometheus.yaml'
+          - '-web.external-url=http://prometheus:9090/prometheus'
         ports:
         - name: webui
           containerPort: 9090
@@ -2858,6 +2862,26 @@ spec:
     app: prometheus
     component: node-exporter
   type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: monitoring
+  labels:
+    app: prometheus
+    component: core
+  annotations:
+    prometheus.io/scrape: 'true'
+spec:
+  ports:
+    - port: 9090
+      protocol: TCP
+      name: webui
+  selector:
+    app: prometheus
+    component: core
 ---
 apiVersion: v1
 data:
@@ -3064,6 +3088,19 @@ spec:
     service_port: 16686
   type: kubernetes
 
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: prometheus-ui
+  namespace: gloo-system
+spec:
+  spec:
+    service_name: prometheus
+    service_namespace: monitoring
+    service_port: 9090
+  type: kubernetes
+
 
 
 
@@ -3108,4 +3145,11 @@ spec:
     single_destination:
       upstream:
         name: jaeger-ui
+    prefix_rewrite: /
+
+  - request_matcher:
+      path_prefix: /prometheus
+    single_destination:
+      upstream:
+        name: prometheus-ui
     prefix_rewrite: /
