@@ -1,0 +1,34 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo-function-discovery
+  name: gloo-function-discovery
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: gloo-function-discovery
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gloo-function-discovery
+    spec:
+      containers:
+      - image: solo-io/gloo-function-discovery:v0.1
+        imagePullPolicy: Never
+        name: gloo-function-discovery
+        ports:
+        - containerPort: 8081
+          name: http
+        env:
+        - name: GRPC_TRACE
+          value: all
+        command: ["/gloo-function-discovery"]
+        args:
+        - "--storage.type=kube"
+        - "--storage.refreshrate=30m"
+        - "--secrets.type=kube"
+        - "--secrets.refreshrate=30m"
+        - "--kube.namespace=gloo-system"
