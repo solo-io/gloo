@@ -69,11 +69,15 @@ func GetSecretRef(us *v1.Upstream) (string, error) {
 func convertResultToFunctionSpec(results *lambda.ListFunctionsOutput) []*v1.Function {
 	var funcs []*v1.Function
 	for _, f := range results.Functions {
+		version := aws.StringValue(f.Version)
+		if version == "$LATEST" {
+			version = ""
+		}
 		fn := &v1.Function{
 			Name: aws.StringValue(f.FunctionName) + ":" + aws.StringValue(f.Version),
 			Spec: lambdaplugin.EncodeFunctionSpec(lambdaplugin.FunctionSpec{
 				FunctionName: aws.StringValue(f.FunctionName),
-				Qualifier:    aws.StringValue(f.Version),
+				Qualifier:    version,
 			}),
 		}
 		funcs = append(funcs, fn)
