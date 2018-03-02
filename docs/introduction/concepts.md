@@ -19,8 +19,7 @@
 The two top-level concepts in Gloo are **Virtual Hosts** and **Upstreams**.
 
 - **Virtual Hosts** define a set of route rules that live under a domain or set of domains.
-Route rules consist of a *matcher*, which specifies the kind of function calls to match (requests, events, 
-and gRPC are currently supported), and the name of the destination (or destinations) to route them to.
+Route rules consist of a *matcher*, which specifies the kind of function calls to match (requests and events,  are currently supported), and the name of the destination (or destinations) to route them to.
 
 - **Upstreams** define destinations for routes. Upstreams tell Gloo what to route to. Upstreams may also define 
 [functions](TODO) for *function-level routing*.
@@ -49,8 +48,8 @@ The each domain specified for a virtualhost must be unique across the set of all
 For many use cases, it may be sufficient to let all routes live on a single virtual host. In thise scenario,
 Gloo will use the same set of route rules to for requests, regardless of their `Host` or `:authority` header.
 
-Route rules consist of a *matcher*, which specifies the kind of function calls to match (requests, events, 
-and gRPC are currently supported), and the name of the destination (or destinations, for load balancing) to route them to.
+Route rules consist of a *matcher*, which specifies the kind of function calls to match (requests and events, 
+are currently supported), and the name of the destination (or destinations, for load balancing) to route them to.
 
 A simple virtual host with a single route might look like this: 
 
@@ -109,12 +108,12 @@ or it can split traffic for that route among a series of weighted destinations.
 
 A destination can be either an *upstream destination* or a *function destination*.
 
-**Upstream Destinations** are analogous to [envoy clusters](TODO). Requests routed to upstream destinations will be routed
+**Upstream Destinations** are analogous to [Envoy clusters](TODO). Requests routed to upstream destinations will be routed
 to a server which is expected to handle the request once it has been admitted (and possibly transformed) by Gloo.
 
 **Function Destinations** allow requests to be routed directly to *functions* that live on various upstreams. A function
 can be a serverless function call (e.g. Lambda, Google Cloud Function, OpenFaaS function, etc.), an API call on a service
-(e.g. a REST API call, OpenAPI operation, gRPC invocation, etc.), or publishing to a message queue (e.g. NATS, AMQP, etc.).
+(e.g. a REST API call, OpenAPI operation, XML/SOAP request etc.), or publishing to a message queue (e.g. NATS, AMQP, etc.).
 Function-level routing is enabled in Envoy by Gloo's [functional filters](TODO). Gloo supports the addition of new upstream
 types as well as new function types through our [plugin interface](TODO).
 

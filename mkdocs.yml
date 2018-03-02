@@ -4,6 +4,7 @@ pages:
     - About gloo:
       - Introduction: introduction/introduction.md
       - Concepts: introduction/concepts.md
+      - Architecture: introduction/architecture.md
     - v1 API reference:
       - Overview: v1/overview.md
       - Upstreams: v1/upstream.md
@@ -12,7 +13,7 @@ pages:
       - Status: v1/status.md
 repo_url: https://github.com/solo-io/gloo/
 site_author: gloo Project Authors
-copyright: © Copyright 2018, gloo Project Authors
+copyright: © Copyright 2018, solo.io Inc.
 #google_analytics: ['todo']
 theme: readthedocs
 extra_css: [extra.css]
