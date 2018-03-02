@@ -71,7 +71,7 @@ func addEnvoyFunctionSpec(out *envoyapi.Cluster, funcName string, spec *types.St
 	if out.Metadata == nil {
 		out.Metadata = &envoycore.Metadata{}
 	}
-	multiFunctionMetadata := getFunctionalFilterMetadata(multiFunctionDestinationKey, out.Metadata)
+	multiFunctionMetadata := getFunctionalFilterMetadata(multiFunctionListDestinationKey, out.Metadata)
 
 	if multiFunctionMetadata.Fields[funcName] == nil {
 		multiFunctionMetadata.Fields[funcName] = &types.Value{}
