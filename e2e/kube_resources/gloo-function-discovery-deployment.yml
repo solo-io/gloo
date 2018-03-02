@@ -17,11 +17,7 @@ spec:
     spec:
       containers:
       - image: solo-io/gloo-function-discovery:v0.1
-        imagePullPolicy: Never
         name: gloo-function-discovery
-        ports:
-        - containerPort: 8081
-          name: http
         env:
         - name: GRPC_TRACE
           value: all
