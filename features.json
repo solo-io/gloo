@@ -3,5 +3,23 @@
         "name": "aws_lambda",
         "gloo": "aws",
         "envoy": "aws/envoy"
+    },
+    {
+        "name": "kubernetes",
+        "gloo": "kubernetes"
+    },
+    {
+        "name": "mixer",
+        "gloo": "mixer",
+        "enabled": false,
+        "tags": ["experimental"]
+    },
+    {
+        "name": "transformation",
+        "gloo": "transformation"
+    },
+    {
+        "name": "nats_streaming",
+        "gloo": "nats-streaming"
     }
 ]
