@@ -1,0 +1,3034 @@
+#---
+#system namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gloo-system
+---
+# gloo pods
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+  name: gloo
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: gloo
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gloo
+    spec:
+      containers:
+      - image: solo-io/gloo:v0.1
+        imagePullPolicy: Never
+        name: gloo
+        ports:
+        - containerPort: 8081
+          name: http
+        env:
+        - name: GRPC_TRACE
+          value: "all"
+        - name: DEBUG
+          value: "1"
+        command: ["/gloo"]
+        args:
+        - "--storage.type=kube"
+        - "--storage.refreshrate=30m"
+        - "--secrets.type=kube"
+        - "--secrets.refreshrate=30m"
+        - "--xds.port=8081"
+        - "--kube.namespace=gloo-system"
+---
+# gloo service
+apiVersion: v1
+kind: Service
+metadata:
+  name: gloo
+  labels:
+    sevice: gloo
+  namespace: gloo-system
+spec:
+  ports:
+  - port: 8081
+    protocol: TCP
+  selector:
+    app: gloo
+---
+apiVersion: v1
+data:
+  envoy.yaml: |
+    node:
+      cluster: ingress
+      id: ingress
+
+    static_resources:
+      clusters:
+
+      - name: xds_cluster
+        connect_timeout: 5.000s
+        hosts:
+        - socket_address:
+            address: gloo
+            port_value: 8081
+        http2_protocol_options: {}
+        type: STRICT_DNS
+
+      - name: jaeger
+        connect_timeout: 1s
+        type: strict_dns
+        lb_policy: round_robin
+        hosts:
+        - socket_address:
+            address: jaeger.monitoring.svc.cluster.local
+            port_value: 9411
+
+      - name: statsd
+        connect_timeout: 1s
+        type: strict_dns
+        lb_policy: round_robin
+        hosts:
+        - socket_address:
+            address: statsd.monitoring.svc.cluster.local
+            port_value: 9125
+
+
+    dynamic_resources:
+      ads_config:
+        api_type: GRPC
+        cluster_names:
+        - xds_cluster
+      cds_config:
+        ads: {}
+      lds_config:
+        ads: {}
+
+    stats_flush_interval:
+      seconds: 5
+
+    stats_sinks:
+    - name: envoy.statsd
+      config:
+        tcp_cluster_name: statsd
+
+    tracing:
+      http:
+        name: envoy.zipkin
+        config:
+          collector_cluster: jaeger
+          collector_endpoint: "/api/v1/spans"
+
+    admin:
+      access_log_path: /dev/null
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 19000
+kind: ConfigMap
+metadata:
+  name: envoy-config
+  namespace: gloo-system
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: envoy
+  name: envoy
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: envoy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: envoy
+    spec:
+      containers:
+      - image: docker.io/envoyproxy/envoy-alpine:latest
+        name: envoy
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 8443
+          name: https
+        - containerPort: 19000
+          name: admin
+        command: ["envoy"]
+        args: ["-c", "/config/envoy.yaml", "--v2-config-only", "--service-cluster", "envoy", "--service-node", "envoy"]
+        volumeMounts:
+        - name: envoy-config
+          mountPath: /config
+      volumes:
+      - name: envoy-config
+        configMap:
+          name: envoy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: envoy
+  labels:
+    sevice: envoy
+  namespace: gloo-system
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    name: http
+  - port: 8443
+    protocol: TCP
+    name: https
+  - port: 19000
+    protocol: TCP
+    name: admin
+  selector:
+    app: envoy
+  type: NodePort
+
+
+# credit to giantswarm/prometheus-kubernetes, plus some modifications
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: grafana-core
+  namespace: monitoring
+  labels:
+    app: grafana
+    component: core
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grafana
+        component: core
+    spec:
+      containers:
+      - image: grafana/grafana:4.2.0
+        name: grafana-core
+        imagePullPolicy: IfNotPresent
+        # env:
+        resources:
+          # keep request = limit to keep this container in guaranteed class
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+          # The following env variables set up basic auth twith the default admin user and admin password.
+          - name: GF_AUTH_BASIC_ENABLED
+            value: "true"
+          - name: GF_AUTH_ANONYMOUS_ENABLED
+            value: "false"
+          - name: GF_SERVER_ROOT_URL
+            value: "%(protocol)s://%(domain)s:%(http_port)s/grafana"
+          # - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+          #   value: Admin
+          # does not really work, because of template variables in exported dashboards:
+          # - name: GF_DASHBOARDS_JSON_ENABLED
+          #   value: "true"
+        readinessProbe:
+          httpGet:
+            path: /login
+            port: 3000
+          # initialDelaySeconds: 30
+          # timeoutSeconds: 1
+        volumeMounts:
+        - name: grafana-persistent-storage
+          mountPath: /var
+      volumes:
+      - name: grafana-persistent-storage
+        emptyDir: {}
+---
+apiVersion: v1
+data:
+  grafana-net-2-dashboard.json: |
+    {
+      "__inputs": [{
+        "name": "DS_PROMETHEUS",
+        "label": "Prometheus",
+        "description": "",
+        "type": "datasource",
+        "pluginId": "prometheus",
+        "pluginName": "Prometheus"
+      }],
+      "__requires": [{
+        "type": "panel",
+        "id": "singlestat",
+        "name": "Singlestat",
+        "version": ""
+      }, {
+        "type": "panel",
+        "id": "text",
+        "name": "Text",
+        "version": ""
+      }, {
+        "type": "panel",
+        "id": "graph",
+        "name": "Graph",
+        "version": ""
+      }, {
+        "type": "grafana",
+        "id": "grafana",
+        "name": "Grafana",
+        "version": "3.1.0"
+      }, {
+        "type": "datasource",
+        "id": "prometheus",
+        "name": "Prometheus",
+        "version": "1.0.0"
+      }],
+      "id": null,
+      "title": "Prometheus Stats",
+      "tags": [],
+      "style": "dark",
+      "timezone": "browser",
+      "editable": true,
+      "hideControls": true,
+      "sharedCrosshair": false,
+      "rows": [{
+        "collapse": false,
+        "editable": true,
+        "height": 178,
+        "panels": [{
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": ["rgba(245, 54, 54, 0.9)", "rgba(237, 129, 40, 0.89)", "rgba(50, 172, 45, 0.97)"],
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 1,
+          "editable": true,
+          "error": false,
+          "format": "s",
+          "id": 5,
+          "interval": null,
+          "links": [],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [{
+            "expr": "(time() - process_start_time_seconds{job=\"prometheus\"})",
+            "intervalFactor": 2,
+            "refId": "A",
+            "step": 4
+          }],
+          "thresholds": "",
+          "title": "Uptime",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [{
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }],
+          "valueName": "current",
+          "mappingTypes": [{
+            "name": "value to text",
+            "value": 1
+          }, {
+            "name": "range to text",
+            "value": 2
+          }],
+          "rangeMaps": [{
+            "from": "null",
+            "to": "null",
+            "text": "N/A"
+          }],
+          "mappingType": 1,
+          "gauge": {
+            "show": false,
+            "minValue": 0,
+            "maxValue": 100,
+            "thresholdMarkers": true,
+            "thresholdLabels": false
+          }
+        }, {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": ["rgba(50, 172, 45, 0.97)", "rgba(237, 129, 40, 0.89)", "rgba(245, 54, 54, 0.9)"],
+          "datasource": "${DS_PROMETHEUS}",
+          "editable": true,
+          "error": false,
+          "format": "none",
+          "id": 6,
+          "interval": null,
+          "links": [],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": true
+          },
+          "targets": [{
+            "expr": "prometheus_local_storage_memory_series",
+            "intervalFactor": 2,
+            "refId": "A",
+            "step": 4
+          }],
+          "thresholds": "1,5",
+          "title": "Local Storage Memory Series",
+          "type": "singlestat",
+          "valueFontSize": "70%",
+          "valueMaps": [],
+          "valueName": "current",
+          "mappingTypes": [{
+            "name": "value to text",
+            "value": 1
+          }, {
+            "name": "range to text",
+            "value": 2
+          }],
+          "rangeMaps": [{
+            "from": "null",
+            "to": "null",
+            "text": "N/A"
+          }],
+          "mappingType": 1,
+          "gauge": {
+            "show": false,
+            "minValue": 0,
+            "maxValue": 100,
+            "thresholdMarkers": true,
+            "thresholdLabels": false
+          }
+        }, {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": true,
+          "colors": ["rgba(50, 172, 45, 0.97)", "rgba(237, 129, 40, 0.89)", "rgba(245, 54, 54, 0.9)"],
+          "datasource": "${DS_PROMETHEUS}",
+          "editable": true,
+          "error": false,
+          "format": "none",
+          "id": 7,
+          "interval": null,
+          "links": [],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": true
+          },
+          "targets": [{
+            "expr": "prometheus_local_storage_indexing_queue_length",
+            "intervalFactor": 2,
+            "refId": "A",
+            "step": 4
+          }],
+          "thresholds": "500,4000",
+          "title": "Interal Storage Queue Length",
+          "type": "singlestat",
+          "valueFontSize": "70%",
+          "valueMaps": [{
+            "op": "=",
+            "text": "Empty",
+            "value": "0"
+          }],
+          "valueName": "current",
+          "mappingTypes": [{
+            "name": "value to text",
+            "value": 1
+          }, {
+            "name": "range to text",
+            "value": 2
+          }],
+          "rangeMaps": [{
+            "from": "null",
+            "to": "null",
+            "text": "N/A"
+          }],
+          "mappingType": 1,
+          "gauge": {
+            "show": false,
+            "minValue": 0,
+            "maxValue": 100,
+            "thresholdMarkers": true,
+            "thresholdLabels": false
+          }
+        }, {
+          "content": "<img src=\"http://prometheus.io/assets/prometheus_logo_grey.svg\" alt=\"Prometheus logo\" style=\"height: 40px;\">\n<span style=\"font-family: 'Open Sans', 'Helvetica Neue', Helvetica; font-size: 25px;vertical-align: text-top;color: #bbbfc2;margin-left: 10px;\">Prometheus</span>\n\n<p style=\"margin-top: 10px;\">You're using Prometheus, an open-source systems monitoring and alerting toolkit originally built at SoundCloud. For more information, check out the <a href=\"http://www.grafana.org/\">Grafana</a> and <a href=\"http://prometheus.io/\">Prometheus</a> projects.</p>",
+          "editable": true,
+          "error": false,
+          "id": 9,
+          "links": [],
+          "mode": "html",
+          "span": 3,
+          "style": {},
+          "title": "",
+          "transparent": true,
+          "type": "text"
+        }],
+        "title": "New row"
+      }, {
+        "collapse": false,
+        "editable": true,
+        "height": 227,
+        "panels": [{
+          "aliasColors": {
+            "prometheus": "#C15C17",
+            "{instance=\"localhost:9090\",job=\"prometheus\"}": "#C15C17"
+          },
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 3,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 9,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [{
+            "expr": "rate(prometheus_local_storage_ingested_samples_total[5m])",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "{{job}}",
+            "metric": "",
+            "refId": "A",
+            "step": 2
+          }],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Samples ingested (rate-5m)",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative",
+            "ordering": "alphabetical",
+            "msResolution": false
+          },
+          "type": "graph",
+          "yaxes": [{
+            "show": true,
+            "min": null,
+            "max": null,
+            "logBase": 1,
+            "format": "short"
+          }, {
+            "show": true,
+            "min": null,
+            "max": null,
+            "logBase": 1,
+            "format": "short"
+          }],
+          "xaxis": {
+            "show": true
+          }
+        }, {
+          "content": "#### Samples Ingested\nThis graph displays the count of samples ingested by the Prometheus server, as measured over the last 5 minutes, per time series in the range vector. When troubleshooting an issue on IRC or Github, this is often the first stat requested by the Prometheus team. ",
+          "editable": true,
+          "error": false,
+          "id": 8,
+          "links": [],
+          "mode": "markdown",
+          "span": 2.995914043583536,
+          "style": {},
+          "title": "",
+          "transparent": true,
+          "type": "text"
+        }],
+        "title": "New row"
+      }, {
+        "collapse": false,
+        "editable": true,
+        "height": "250px",
+        "panels": [{
+          "aliasColors": {
+            "prometheus": "#F9BA8F",
+            "{instance=\"localhost:9090\",interval=\"5s\",job=\"prometheus\"}": "#F9BA8F"
+          },
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 2,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 5,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [{
+            "expr": "rate(prometheus_target_interval_length_seconds_count[5m])",
+            "intervalFactor": 2,
+            "legendFormat": "{{job}}",
+            "refId": "A",
+            "step": 2
+          }],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Target Scrapes (last 5m)",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative",
+            "ordering": "alphabetical",
+            "msResolution": false
+          },
+          "type": "graph",
+          "yaxes": [{
+            "show": true,
+            "min": null,
+            "max": null,
+            "logBase": 1,
+            "format": "short"
+          }, {
+            "show": true,
+            "min": null,
+            "max": null,
+            "logBase": 1,
+            "format": "short"
+          }],
+          "xaxis": {
+            "show": true
+          }
+        }, {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 14,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [{
+            "expr": "prometheus_target_interval_length_seconds{quantile!=\"0.01\", quantile!=\"0.05\"}",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "{{quantile}} ({{interval}})",
+            "metric": "",
+            "refId": "A",
+            "step": 2
+          }],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Scrape Duration",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative",
+            "ordering": "alphabetical",
+            "msResolution": false
+          },
+          "type": "graph",
+          "yaxes": [{
+            "show": true,
+            "min": null,
+            "max": null,
+            "logBase": 1,
+            "format": "short"
+          }, {
+            "show": true,
+            "min": null,
+            "max": null,
+            "logBase": 1,
+            "format": "short"
+          }],
+          "xaxis": {
+            "show": true
+          }
+        }, {
+          "content": "#### Scrapes\nPrometheus scrapes metrics from instrumented jobs, either directly or via an intermediary push gateway for short-lived jobs. Target scrapes will show how frequently targets are scraped, as measured over the last 5 minutes, per time series in the range vector. Scrape Duration will show how long the scrapes are taking, with percentiles available as series. ",
+          "editable": true,
+          "error": false,
+          "id": 11,
+          "links": [],
+          "mode": "markdown",
+          "span": 3,
+          "style": {},
+          "title": "",
+          "transparent": true,
+          "type": "text"
+        }],
+        "title": "New row"
+      }, {
+        "collapse": false,
+        "editable": true,
+        "height": "250px",
+        "panels": [{
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 12,
+          "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": false,
+            "hideEmpty": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 9,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [{
+            "expr": "prometheus_evaluator_duration_milliseconds{quantile!=\"0.01\", quantile!=\"0.05\"}",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "{{quantile}}",
+            "refId": "A",
+            "step": 2
+          }],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Rule Eval Duration",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative",
+            "ordering": "alphabetical",
+            "msResolution": false
+          },
+          "type": "graph",
+          "yaxes": [{
+            "show": true,
+            "min": null,
+            "max": null,
+            "logBase": 1,
+            "format": "percentunit",
+            "label": ""
+          }, {
+            "show": true,
+            "min": null,
+            "max": null,
+            "logBase": 1,
+            "format": "short"
+          }],
+          "xaxis": {
+            "show": true
+          }
+        }, {
+          "content": "#### Rule Evaluation Duration\nThis graph panel plots the duration for all evaluations to execute. The 50th percentile, 90th percentile and 99th percentile are shown as three separate series to help identify outliers that may be skewing the data.",
+          "editable": true,
+          "error": false,
+          "id": 15,
+          "links": [],
+          "mode": "markdown",
+          "span": 3,
+          "style": {},
+          "title": "",
+          "transparent": true,
+          "type": "text"
+        }],
+        "title": "New row"
+      }],
+      "time": {
+        "from": "now-5m",
+        "to": "now"
+      },
+      "timepicker": {
+        "now": true,
+        "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"],
+        "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+      },
+      "templating": {
+        "list": []
+      },
+      "annotations": {
+        "list": []
+      },
+      "refresh": false,
+      "schemaVersion": 12,
+      "version": 0,
+      "links": [{
+        "icon": "info",
+        "tags": [],
+        "targetBlank": true,
+        "title": "Grafana Docs",
+        "tooltip": "",
+        "type": "link",
+        "url": "http://www.grafana.org/docs"
+      }, {
+        "icon": "info",
+        "tags": [],
+        "targetBlank": true,
+        "title": "Prometheus Docs",
+        "type": "link",
+        "url": "http://prometheus.io/docs/introduction/overview/"
+      }],
+      "gnetId": 2,
+      "description": "The  official, pre-built Prometheus Stats Dashboard."
+    }
+  grafana-net-737-dashboard.json: |
+    {
+      "__inputs": [{
+        "name": "DS_PROMETHEUS",
+        "label": "prometheus",
+        "description": "",
+        "type": "datasource",
+        "pluginId": "prometheus",
+        "pluginName": "Prometheus"
+      }],
+      "__requires": [{
+        "type": "panel",
+        "id": "singlestat",
+        "name": "Singlestat",
+        "version": ""
+      }, {
+        "type": "panel",
+        "id": "graph",
+        "name": "Graph",
+        "version": ""
+      }, {
+        "type": "grafana",
+        "id": "grafana",
+        "name": "Grafana",
+        "version": "3.1.0"
+      }, {
+        "type": "datasource",
+        "id": "prometheus",
+        "name": "Prometheus",
+        "version": "1.0.0"
+      }],
+      "id": null,
+      "title": "Kubernetes Pod Resources",
+      "description": "Shows resource usage of Kubernetes pods.",
+      "tags": [
+        "kubernetes"
+      ],
+      "style": "dark",
+      "timezone": "browser",
+      "editable": true,
+      "hideControls": false,
+      "sharedCrosshair": false,
+      "rows": [{
+        "collapse": false,
+        "editable": true,
+        "height": "250px",
+        "panels": [{
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": true,
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "datasource": "${DS_PROMETHEUS}",
+          "editable": true,
+          "error": false,
+          "format": "percent",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "180px",
+          "id": 4,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [{
+            "name": "value to text",
+            "value": 1
+          }, {
+            "name": "range to text",
+            "value": 2
+          }],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [{
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }],
+          "span": 4,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [{
+            "expr": "sum (container_memory_working_set_bytes{id=\"/\",instance=~\"^$instance$\"}) / sum (machine_memory_bytes{instance=~\"^$instance$\"}) * 100",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "",
+            "refId": "A",
+            "step": 2
+          }],
+          "thresholds": "65, 90",
+          "timeFrom": "1m",
+          "timeShift": null,
+          "title": "Memory Working Set",
+          "transparent": false,
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [{
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }],
+          "valueName": "current"
+        }, {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": true,
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "format": "percent",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "180px",
+          "id": 6,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [{
+            "name": "value to text",
+            "value": 1
+          }, {
+            "name": "range to text",
+            "value": 2
+          }],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [{
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }],
+          "span": 4,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [{
+            "expr": "sum(rate(container_cpu_usage_seconds_total{id=\"/\",instance=~\"^$instance$\"}[1m])) / sum (machine_cpu_cores{instance=~\"^$instance$\"}) * 100",
+            "interval": "10s",
+            "intervalFactor": 1,
+            "refId": "A",
+            "step": 10
+          }],
+          "thresholds": "65, 90",
+          "timeFrom": "1m",
+          "timeShift": null,
+          "title": "Cpu Usage",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [{
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }],
+          "valueName": "current"
+        }, {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": true,
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "format": "percent",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": true,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "180px",
+          "id": 7,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [{
+            "name": "value to text",
+            "value": 1
+          }, {
+            "name": "range to text",
+            "value": 2
+          }],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [{
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }],
+          "span": 4,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [{
+            "expr": "sum(container_fs_usage_bytes{id=\"/\",instance=~\"^$instance$\"}) / sum(container_fs_limit_bytes{id=\"/\",instance=~\"^$instance$\"}) * 100",
+            "interval": "10s",
+            "intervalFactor": 1,
+            "legendFormat": "",
+            "metric": "",
+            "refId": "A",
+            "step": 10
+          }],
+          "thresholds": "65, 90",
+          "timeFrom": "1m",
+          "timeShift": null,
+          "title": "Filesystem Usage",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [{
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }],
+          "valueName": "current"
+        }, {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "format": "bytes",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": false,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "1px",
+          "hideTimeOverride": true,
+          "id": 9,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [{
+            "name": "value to text",
+            "value": 1
+          }, {
+            "name": "range to text",
+            "value": 2
+          }],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "20%",
+          "prefix": "",
+          "prefixFontSize": "20%",
+          "rangeMaps": [{
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }],
+          "span": 2,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [{
+            "expr": "sum(container_memory_working_set_bytes{id=\"/\",instance=~\"^$instance$\"})",
+            "interval": "10s",
+            "intervalFactor": 1,
+            "refId": "A",
+            "step": 10
+          }],
+          "thresholds": "",
+          "timeFrom": "1m",
+          "title": "Used",
+          "type": "singlestat",
+          "valueFontSize": "50%",
+          "valueMaps": [{
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }],
+          "valueName": "current"
+        }, {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "format": "bytes",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": false,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "1px",
+          "hideTimeOverride": true,
+          "id": 10,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [{
+            "name": "value to text",
+            "value": 1
+          }, {
+            "name": "range to text",
+            "value": 2
+          }],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [{
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }],
+          "span": 2,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [{
+            "expr": "sum (machine_memory_bytes{instance=~\"^$instance$\"})",
+            "interval": "10s",
+            "intervalFactor": 1,
+            "refId": "A",
+            "step": 10
+          }],
+          "thresholds": "",
+          "timeFrom": "1m",
+          "title": "Total",
+          "type": "singlestat",
+          "valueFontSize": "50%",
+          "valueMaps": [{
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }],
+          "valueName": "current"
+        }, {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "format": "none",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": false,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "1px",
+          "hideTimeOverride": true,
+          "id": 11,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [{
+            "name": "value to text",
+            "value": 1
+          }, {
+            "name": "range to text",
+            "value": 2
+          }],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": " cores",
+          "postfixFontSize": "30%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [{
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }],
+          "span": 2,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [{
+            "expr": "sum (rate (container_cpu_usage_seconds_total{id=\"/\",instance=~\"^$instance$\"}[1m]))",
+            "interval": "10s",
+            "intervalFactor": 1,
+            "refId": "A",
+            "step": 10
+          }],
+          "thresholds": "",
+          "timeFrom": "1m",
+          "timeShift": null,
+          "title": "Used",
+          "type": "singlestat",
+          "valueFontSize": "50%",
+          "valueMaps": [{
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }],
+          "valueName": "current"
+        }, {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "format": "none",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": false,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "1px",
+          "hideTimeOverride": true,
+          "id": 12,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [{
+            "name": "value to text",
+            "value": 1
+          }, {
+            "name": "range to text",
+            "value": 2
+          }],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": " cores",
+          "postfixFontSize": "30%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [{
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }],
+          "span": 2,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [{
+            "expr": "sum (machine_cpu_cores{instance=~\"^$instance$\"})",
+            "interval": "10s",
+            "intervalFactor": 1,
+            "refId": "A",
+            "step": 10
+          }],
+          "thresholds": "",
+          "timeFrom": "1m",
+          "title": "Total",
+          "type": "singlestat",
+          "valueFontSize": "50%",
+          "valueMaps": [{
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }],
+          "valueName": "current"
+        }, {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "format": "bytes",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": false,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "1px",
+          "hideTimeOverride": true,
+          "id": 13,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [{
+            "name": "value to text",
+            "value": 1
+          }, {
+            "name": "range to text",
+            "value": 2
+          }],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [{
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }],
+          "span": 2,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [{
+            "expr": "sum(container_fs_usage_bytes{id=\"/\",instance=~\"^$instance$\"})",
+            "interval": "10s",
+            "intervalFactor": 1,
+            "refId": "A",
+            "step": 10
+          }],
+          "thresholds": "",
+          "timeFrom": "1m",
+          "title": "Used",
+          "type": "singlestat",
+          "valueFontSize": "50%",
+          "valueMaps": [{
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }],
+          "valueName": "current"
+        }, {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "format": "bytes",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": false,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "height": "1px",
+          "hideTimeOverride": true,
+          "id": 14,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [{
+            "name": "value to text",
+            "value": 1
+          }, {
+            "name": "range to text",
+            "value": 2
+          }],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [{
+            "from": "null",
+            "text": "N/A",
+            "to": "null"
+          }],
+          "span": 2,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": false
+          },
+          "targets": [{
+            "expr": "sum (container_fs_limit_bytes{id=\"/\",instance=~\"^$instance$\"})",
+            "interval": "10s",
+            "intervalFactor": 1,
+            "refId": "A",
+            "step": 10
+          }],
+          "thresholds": "",
+          "timeFrom": "1m",
+          "title": "Total",
+          "type": "singlestat",
+          "valueFontSize": "50%",
+          "valueMaps": [{
+            "op": "=",
+            "text": "N/A",
+            "value": "null"
+          }],
+          "valueName": "current"
+        }, {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)",
+            "thresholdLine": false
+          },
+          "height": "200px",
+          "id": 32,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "sideWidth": 200,
+            "sort": "current",
+            "sortDesc": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [{
+            "expr": "sum(rate(container_network_receive_bytes_total{instance=~\"^$instance$\",namespace=~\"^$namespace$\"}[1m]))",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "receive",
+            "metric": "network",
+            "refId": "A",
+            "step": 240
+          }, {
+            "expr": "- sum(rate(container_network_transmit_bytes_total{instance=~\"^$instance$\",namespace=~\"^$namespace$\"}[1m]))",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "transmit",
+            "metric": "network",
+            "refId": "B",
+            "step": 240
+          }],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Network",
+          "tooltip": {
+            "msResolution": false,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "transparent": false,
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [{
+            "format": "Bps",
+            "label": "transmit / receive",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }, {
+            "format": "Bps",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+          }]
+        }],
+        "showTitle": true,
+        "title": "all pods"
+      }, {
+        "collapse": false,
+        "editable": true,
+        "height": "250px",
+        "panels": [{
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 3,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "height": "",
+          "id": 17,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "sideWidth": null,
+            "sort": "current",
+            "sortDesc": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [{
+            "expr": "sum(rate(container_cpu_usage_seconds_total{image!=\"\",name=~\"^k8s_.*\",instance=~\"^$instance$\",namespace=~\"^$namespace$\"}[1m])) by (pod_name)",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "{{ pod_name }}",
+            "metric": "container_cpu",
+            "refId": "A",
+            "step": 240
+          }],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Cpu Usage",
+          "tooltip": {
+            "msResolution": true,
+            "shared": false,
+            "sort": 2,
+            "value_type": "cumulative"
+          },
+          "transparent": false,
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [{
+            "format": "none",
+            "label": "cores",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }, {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+          }]
+        }, {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 33,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "sideWidth": null,
+            "sort": "current",
+            "sortDesc": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [{
+            "expr": "sum (container_memory_working_set_bytes{image!=\"\",name=~\"^k8s_.*\",instance=~\"^$instance$\",namespace=~\"^$namespace$\"}) by (pod_name)",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "{{ pod_name }}",
+            "metric": "",
+            "refId": "A",
+            "step": 240
+          }],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Memory Working Set",
+          "tooltip": {
+            "msResolution": false,
+            "shared": false,
+            "sort": 2,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [{
+            "format": "bytes",
+            "label": "used",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }, {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+          }]
+        }, {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 16,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "sideWidth": 200,
+            "sort": "avg",
+            "sortDesc": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [{
+            "expr": "sum (rate (container_network_receive_bytes_total{image!=\"\",name=~\"^k8s_.*\",instance=~\"^$instance$\",namespace=~\"^$namespace$\"}[1m])) by (pod_name)",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "{{ pod_name }} < in",
+            "metric": "network",
+            "refId": "A",
+            "step": 240
+          }, {
+            "expr": "- sum (rate (container_network_transmit_bytes_total{image!=\"\",name=~\"^k8s_.*\",instance=~\"^$instance$\",namespace=~\"^$namespace$\"}[1m])) by (pod_name)",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "{{ pod_name }} > out",
+            "metric": "network",
+            "refId": "B",
+            "step": 240
+          }],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Network",
+          "tooltip": {
+            "msResolution": false,
+            "shared": false,
+            "sort": 2,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [{
+            "format": "Bps",
+            "label": "transmit / receive",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }, {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+          }]
+        }, {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 34,
+          "isNew": true,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "rightSide": true,
+            "show": true,
+            "sideWidth": 200,
+            "sort": "current",
+            "sortDesc": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "null",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [{
+            "expr": "sum(container_fs_usage_bytes{image!=\"\",name=~\"^k8s_.*\",instance=~\"^$instance$\",namespace=~\"^$namespace$\"}) by (pod_name)",
+            "interval": "",
+            "intervalFactor": 2,
+            "legendFormat": "{{ pod_name }}",
+            "metric": "network",
+            "refId": "A",
+            "step": 240
+          }],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Filesystem",
+          "tooltip": {
+            "msResolution": false,
+            "shared": false,
+            "sort": 2,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [{
+            "format": "bytes",
+            "label": "used",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true
+          }, {
+            "format": "short",
+            "label": null,
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": false
+          }]
+        }],
+        "showTitle": true,
+        "title": "each pod"
+      }],
+      "time": {
+        "from": "now-3d",
+        "to": "now"
+      },
+      "timepicker": {
+        "refresh_intervals": [
+          "5s",
+          "10s",
+          "30s",
+          "1m",
+          "5m",
+          "15m",
+          "30m",
+          "1h",
+          "2h",
+          "1d"
+        ],
+        "time_options": [
+          "5m",
+          "15m",
+          "1h",
+          "6h",
+          "12h",
+          "24h",
+          "2d",
+          "7d",
+          "30d"
+        ]
+      },
+      "templating": {
+        "list": [{
+          "allValue": ".*",
+          "current": {},
+          "datasource": "${DS_PROMETHEUS}",
+          "hide": 0,
+          "includeAll": true,
+          "label": "Instance",
+          "multi": false,
+          "name": "instance",
+          "options": [],
+          "query": "label_values(instance)",
+          "refresh": 1,
+          "regex": "",
+          "type": "query"
+        }, {
+          "current": {},
+          "datasource": "${DS_PROMETHEUS}",
+          "hide": 0,
+          "includeAll": true,
+          "label": "Namespace",
+          "multi": true,
+          "name": "namespace",
+          "options": [],
+          "query": "label_values(namespace)",
+          "refresh": 1,
+          "regex": "",
+          "type": "query"
+        }]
+      },
+      "annotations": {
+        "list": []
+      },
+      "refresh": false,
+      "schemaVersion": 12,
+      "version": 8,
+      "links": [],
+      "gnetId": 737
+    }
+  prometheus-datasource.json: |
+    {
+      "name": "prometheus",
+      "type": "prometheus",
+      "url": "http://prometheus:9090",
+      "access": "proxy",
+      "basicAuth": false
+    }
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: grafana-import-dashboards
+  namespace: monitoring
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: grafana-import-dashboards
+  namespace: monitoring
+  labels:
+    app: grafana
+    component: import-dashboards
+spec:
+  template:
+    metadata:
+      name: grafana-import-dashboards
+      labels:
+        app: grafana
+        component: import-dashboards
+      annotations:
+        pod.beta.kubernetes.io/init-containers: '[
+          {
+            "name": "wait-for-endpoints",
+            "image": "giantswarm/tiny-tools",
+            "imagePullPolicy": "IfNotPresent",
+            "command": ["fish", "-c", "echo \"waiting for endpoints...\"; while true; set endpoints (curl -s --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt --header \"Authorization: Bearer \"(cat /var/run/secrets/kubernetes.io/serviceaccount/token) https://kubernetes.default.svc/api/v1/namespaces/monitoring/endpoints/grafana); echo $endpoints | jq \".\"; if test (echo $endpoints | jq -r \".subsets[]?.addresses // [] | length\") -gt 0; exit 0; end; echo \"waiting...\";sleep 1; end"],
+            "args": ["monitoring", "grafana"]
+          }
+        ]'
+    spec:
+      serviceAccountName: prometheus-k8s
+      containers:
+      - name: grafana-import-dashboards
+        image: giantswarm/tiny-tools
+        command: ["/bin/sh", "-c"]
+        workingDir: /opt/grafana-import-dashboards
+        args:
+          - >
+            for file in *-datasource.json ; do
+              if [ -e "$file" ] ; then
+                echo "importing $file" &&
+                curl --silent --fail --show-error \
+                  --request POST http://admin:admin@grafana:3000/api/datasources \
+                  --header "Content-Type: application/json" \
+                  --data-binary "@$file" ;
+                echo "" ;
+              fi
+            done ;
+            for file in *-dashboard.json ; do
+              if [ -e "$file" ] ; then
+                echo "importing $file" &&
+                ( echo '{"dashboard":'; \
+                  cat "$file"; \
+                  echo ',"overwrite":true,"inputs":[{"name":"DS_PROMETHEUS","type":"datasource","pluginId":"prometheus","value":"prometheus"}]}' ) \
+                | jq -c '.' \
+                | curl --silent --fail --show-error \
+                  --request POST http://admin:admin@grafana:3000/api/dashboards/import \
+                  --header "Content-Type: application/json" \
+                  --data-binary "@-" ;
+                echo "" ;
+              fi
+            done
+
+        volumeMounts:
+        - name: config-volume
+          mountPath: /opt/grafana-import-dashboards
+      restartPolicy: Never
+      volumes:
+      - name: config-volume
+        configMap:
+          name: grafana-import-dashboards
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+  labels:
+    app: grafana
+    component: core
+spec:
+  type: NodePort
+  ports:
+    - port: 3000
+  selector:
+    app: grafana
+    component: core
+---
+apiVersion: v1
+data:
+  prometheus.yaml: |-
+    # A scrape configuration for running Prometheus on a Kubernetes cluster.
+    # This uses separate scrape configs for cluster components (i.e. API server, node)
+    # and services to allow each to use different authentication configs.
+    #
+    # Kubernetes labels will be added as Prometheus labels on metrics via the
+    # `labelmap` relabeling action.
+
+    # Scrape config for cluster components.
+    scrape_configs:
+    # etcd is living outside of our cluster and we configure
+    # it directly.
+    #- job_name: 'etcd'
+    #  static_configs:
+    #  - targets:
+    #{% for host in groups['etcd'] %}
+    #    - {{ hostvars[host]['ansible_' + etcd_interface].ipv4.address }}:{{ etcd_client_port }}
+    #{% endfor %}
+    #  tls_config:
+    #    ca_file: /etc/etcd/ssl/ca.pem
+    #    cert_file: /etc/etcd/ssl/client.pem
+    #    key_file: /etc/etcd/ssl/client-key.pem
+    #  scheme: https
+    # Dynamic etcd rule, which helps to avoid ansible jinja2 templates
+    # In order to make it work as expected it is necessary to add kubelet into all etcd nodes (and set them unschedulable if necessary)
+    # Also you have to mount proper TLS keypairs in case when your etcd cluster is protected by TLS auth
+
+    - job_name: 'kubernetes-cluster'
+      # Default to scraping over https. If required, just disable this or change to
+      # `http`.
+      scheme: https
+      # This TLS & bearer token file config is used to connect to the actual scrape
+      # endpoints for cluster components. This is separate to discovery auth
+      # configuration (`in_cluster` below) because discovery & scraping are two
+      # separate concerns in Prometheus.
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        # If your node certificates are self-signed or use a different CA to the
+        # master CA, then disable certificate verification below. Note that
+        # certificate verification is an integral part of a secure infrastructure
+        # so this should only be disabled in a controlled environment. You can
+        # disable certificate verification by uncommenting the line below.
+        #
+        # insecure_skip_verify: true
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+      kubernetes_sd_configs:
+      - api_servers:
+        - https://kubernetes.default.svc
+        in_cluster: true
+        role: apiserver
+
+    - job_name: 'kubernetes-cadvisor'
+
+      # Default to scraping over https. If required, just disable this or change to
+      # `http`.
+      scheme: http
+
+      # This TLS & bearer token file config is used to connect to the actual scrape
+      # endpoints for cluster components. This is separate to discovery auth
+      # configuration (`in_cluster` below) because discovery & scraping are two
+      # separate concerns in Prometheus.
+      #tls_config:
+      #  ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        # If your node certificates are self-signed or use a different CA to the
+        # master CA, then disable certificate verification below. Note that
+        # certificate verification is an integral part of a secure infrastructure
+        # so this should only be disabled in a controlled environment. You can
+        # disable certificate verification by uncommenting the line below.
+        #
+        # insecure_skip_verify: true
+      #bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+      kubernetes_sd_configs:
+      - api_servers:
+        - https://kubernetes.default.svc
+        in_cluster: true
+        role: node
+
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      # Use cadvisor 4194 port
+      - source_labels: [__address__]
+        regex: '(.*):10250'
+        replacement: '${1}:4194'
+        target_label: __address__
+
+      # Backward compatibility for Kubernetes 1.3 dashboards
+      metric_relabel_configs:
+      - source_labels: [io_kubernetes_container_name,container_name]
+        action: replace
+        regex: (.*);(.*)
+        replacement: '${1}${2}'
+        target_label: io_kubernetes_container_name
+      - source_labels: [kubernetes_pod_name,pod_name]
+        action: replace
+        regex: (.*);(.*)
+        replacement: '${1}${2}'
+        target_label: kubernetes_pod_name
+      - source_labels: [kubernetes_pod_name]
+        action: replace
+        target_label: io_kubernetes_pod_name
+
+    - job_name: 'kubernetes-nodes'
+
+      # Default to scraping over https. If required, just disable this or change to
+      # `http`.
+      scheme: http
+
+      # This TLS & bearer token file config is used to connect to the actual scrape
+      # endpoints for cluster components. This is separate to discovery auth
+      # configuration (`in_cluster` below) because discovery & scraping are two
+      # separate concerns in Prometheus.
+      #tls_config:
+      #  ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        # If your node certificates are self-signed or use a different CA to the
+        # master CA, then disable certificate verification below. Note that
+        # certificate verification is an integral part of a secure infrastructure
+        # so this should only be disabled in a controlled environment. You can
+        # disable certificate verification by uncommenting the line below.
+        #
+        # insecure_skip_verify: true
+      #bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+      kubernetes_sd_configs:
+      - api_servers:
+        - https://kubernetes.default.svc
+        in_cluster: true
+        role: node
+
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      # Use insecure read-only HTTP 10255 port
+      # More info is here: https://github.com/kayrus/kubelet-exploit
+      - source_labels: [__address__]
+        regex: '(.*):10250'
+        replacement: '${1}:10255'
+        target_label: __address__
+
+      # Backward compatibility for Kubernetes 1.3 dashboards
+      metric_relabel_configs:
+      - source_labels: [io_kubernetes_container_name,container_name]
+        action: replace
+        regex: (.*);(.*)
+        replacement: '${1}${2}'
+        target_label: io_kubernetes_container_name
+      - source_labels: [kubernetes_pod_name,pod_name]
+        action: replace
+        regex: (.*);(.*)
+        replacement: '${1}${2}'
+        target_label: kubernetes_pod_name
+      - source_labels: [kubernetes_pod_name]
+        action: replace
+        target_label: io_kubernetes_pod_name
+
+    - job_name: 'kubernetes-node-exporter'
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      kubernetes_sd_configs:
+      - api_servers:
+        - https://kubernetes.default.svc
+        in_cluster: true
+        role: node
+
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - source_labels: [__meta_kubernetes_role]
+        action: replace
+        target_label: kubernetes_role
+      - source_labels: [__address__]
+        regex: '(.*):10250'
+        replacement: '${1}:9100'
+        target_label: __address__
+      - source_labels: [__meta_kubernetes_node_label_kubernetes_io_hostname]
+        target_label: __instance__
+      # set "name" value to "job"
+      - source_labels: [job]
+        regex: 'kubernetes-(.*)'
+        replacement: '${1}'
+        target_label: name
+
+    # Scrape config for service endpoints.
+    #
+    # The relabeling allows the actual service scrape endpoint to be configured
+    # via the following annotations:
+    #
+    # * `prometheus.io/scrape`: Only scrape services that have a value of `true`
+    # * `prometheus.io/scheme`: If the metrics endpoint is secured then you will need
+    # to set this to `https` & most likely set the `tls_config` of the scrape config.
+    # * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
+    # * `prometheus.io/port`: If the metrics are exposed on a different port to the
+    # service then set this appropriately.
+    - job_name: 'kubernetes-service-endpoints'
+
+      kubernetes_sd_configs:
+      - api_servers:
+        - 'https://kubernetes.default.svc'
+        in_cluster: true
+        role: endpoint
+
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
+        action: replace
+        target_label: __scheme__
+        regex: (https?)
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+        action: replace
+        target_label: __address__
+        regex: (.+)(?::\d+);(\d+)
+        replacement: $1:$2
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels: [__meta_kubernetes_service_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_service_name]
+        action: replace
+        target_label: kubernetes_name
+
+    # Example scrape config for probing services via the Blackbox Exporter.
+    #
+    # The relabeling allows the actual service scrape endpoint to be configured
+    # via the following annotations:
+    #
+    # * `prometheus.io/probe`: Only probe services that have a value of `true`
+    - job_name: 'kubernetes-services'
+
+      metrics_path: /probe
+      params:
+        module: [http_2xx]
+
+      kubernetes_sd_configs:
+      - api_servers:
+        - 'https://kubernetes.default.svc'
+        in_cluster: true
+        role: service
+
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_probe]
+        action: keep
+        regex: true
+      - source_labels: [__address__]
+        target_label: __param_target
+      - target_label: __address__
+        replacement: blackbox
+      - source_labels: [__param_target]
+        target_label: instance
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels: [__meta_kubernetes_service_namespace]
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_service_name]
+        target_label: kubernetes_name
+
+    # Example scrape config for pods
+    #
+    # The relabeling allows the actual pod scrape endpoint to be configured via the
+    # following annotations:
+    #
+    # * `prometheus.io/scrape`: Only scrape pods that have a value of `true`
+    # * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
+    # * `prometheus.io/port`: Scrape the pod on the indicated port instead of the default of `9102`.
+    - job_name: 'kubernetes-pods'
+
+      kubernetes_sd_configs:
+      - api_servers:
+        - 'https://kubernetes.default.svc'
+        in_cluster: true
+        role: pod
+
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: (.+):(?:\d+);(\d+)
+        replacement: ${1}:${2}
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_pod_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: prometheus-core
+  namespace: monitoring
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: prometheus-core
+  namespace: monitoring
+  labels:
+    app: prometheus
+    component: core
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: prometheus-main
+      labels:
+        app: prometheus
+        component: core
+    spec:
+      serviceAccountName: prometheus-k8s
+      containers:
+      - name: prometheus
+        image: quay.io/coreos/prometheus:latest
+        args:
+          - '-storage.local.retention=12h'
+          - '-storage.local.memory-chunks=500000'
+          - '-config.file=/etc/prometheus/prometheus.yaml'
+        ports:
+        - name: webui
+          containerPort: 9090
+        resources:
+          requests:
+            cpu: 500m
+            memory: 500M
+          limits:
+            cpu: 500m
+            memory: 500M
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/prometheus
+        - name: prometheus-data
+          mountPath: /prometheus
+      volumes:
+      - name: config-volume
+        configMap:
+          name: prometheus-core
+      - name: prometheus-data
+        emptyDir: {}
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kube-state-metrics
+  namespace: monitoring
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: kube-state-metrics
+    spec:
+      serviceAccountName: kube-state-metrics
+      containers:
+      - name: kube-state-metrics
+        image: gcr.io/google_containers/kube-state-metrics:v0.5.0
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kube-state-metrics
+  namespace: monitoring
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: 'true'
+  name: kube-state-metrics
+  namespace: monitoring
+  labels:
+    app: kube-state-metrics
+spec:
+  ports:
+  - name: kube-state-metrics
+    port: 8080
+    protocol: TCP
+  selector:
+    app: kube-state-metrics
+
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: node-directory-size-metrics
+  namespace: monitoring
+  annotations:
+    description: |
+      This `DaemonSet` provides metrics in Prometheus format about disk usage on the nodes.
+      The container `read-du` reads in sizes of all directories below /mnt and writes that to `/tmp/metrics`. It only reports directories larger then `100M` for now.
+      The other container `caddy` just hands out the contents of that file on request via `http` on `/metrics` at port `9102` which are the defaults for Prometheus.
+      These are scheduled on every node in the Kubernetes cluster.
+      To choose directories from the node to check, just mount them on the `read-du` container below `/mnt`.
+spec:
+  template:
+    metadata:
+      labels:
+        app: node-directory-size-metrics
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '9102'
+        description: |
+          This `Pod` provides metrics in Prometheus format about disk usage on the node.
+          The container `read-du` reads in sizes of all directories below /mnt and writes that to `/tmp/metrics`. It only reports directories larger then `100M` for now.
+          The other container `caddy` just hands out the contents of that file on request on `/metrics` at port `9102` which are the defaults for Prometheus.
+          This `Pod` is scheduled on every node in the Kubernetes cluster.
+          To choose directories from the node to check just mount them on `read-du` below `/mnt`.
+    spec:
+      containers:
+      - name: read-du
+        image: giantswarm/tiny-tools
+        imagePullPolicy: Always
+        # FIXME threshold via env var
+        # The
+        command:
+        - fish
+        - --command
+        - |
+          touch /tmp/metrics-temp
+          while true
+            for directory in (du --bytes --separate-dirs --threshold=100M /mnt)
+              echo $directory | read size path
+              echo "node_directory_size_bytes{path=\"$path\"} $size" \
+                >> /tmp/metrics-temp
+            end
+            mv /tmp/metrics-temp /tmp/metrics
+            sleep 300
+          end
+        volumeMounts:
+        - name: host-fs-var
+          mountPath: /mnt/var
+          readOnly: true
+        - name: metrics
+          mountPath: /tmp
+      - name: caddy
+        image: dockermuenster/caddy:0.9.3
+        command:
+        - "caddy"
+        - "-port=9102"
+        - "-root=/var/www"
+        ports:
+        - containerPort: 9102
+        volumeMounts:
+        - name: metrics
+          mountPath: /var/www
+      volumes:
+      - name: host-fs-var
+        hostPath:
+          path: /var
+      - name: metrics
+        emptyDir:
+          medium: Memory
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: prometheus-node-exporter
+  namespace: monitoring
+  labels:
+    app: prometheus
+    component: node-exporter
+spec:
+  template:
+    metadata:
+      name: prometheus-node-exporter
+      labels:
+        app: prometheus
+        component: node-exporter
+    spec:
+      containers:
+      - image: prom/node-exporter:v0.14.0
+        name: prometheus-node-exporter
+        ports:
+        - name: prom-node-exp
+          #^ must be an IANA_SVC_NAME (at most 15 characters, ..)
+          containerPort: 9100
+          hostPort: 9100
+      hostNetwork: true
+      hostPID: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: 'true'
+  name: prometheus-node-exporter
+  namespace: monitoring
+  labels:
+    app: prometheus
+    component: node-exporter
+spec:
+  clusterIP: None
+  ports:
+    - name: prometheus-node-exporter
+      port: 9100
+      protocol: TCP
+  selector:
+    app: prometheus
+    component: node-exporter
+  type: ClusterIP
+---
+apiVersion: v1
+data:
+  cpu-usage.rules: |
+    ALERT NodeCPUUsage
+      IF (100 - (avg by (instance) (irate(node_cpu{name="node-exporter",mode="idle"}[5m])) * 100)) > 75
+      FOR 2m
+      LABELS {
+        severity="page"
+      }
+      ANNOTATIONS {
+        SUMMARY = "{{$labels.instance}}: High CPU usage detected",
+        DESCRIPTION = "{{$labels.instance}}: CPU usage is above 75% (current value is: {{ $value }})"
+      }
+  instance-availability.rules: |
+    ALERT InstanceDown
+      IF up == 0
+      FOR 1m
+      LABELS { severity = "page" }
+      ANNOTATIONS {
+        summary = "Instance {{ $labels.instance }} down",
+        description = "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.",
+      }
+  low-disk-space.rules: |
+    ALERT NodeLowRootDisk
+      IF ((node_filesystem_size{mountpoint="/root-disk"} - node_filesystem_free{mountpoint="/root-disk"} ) / node_filesystem_size{mountpoint="/root-disk"} * 100) > 75
+      FOR 2m
+      LABELS {
+        severity="page"
+      }
+      ANNOTATIONS {
+        SUMMARY = "{{$labels.instance}}: Low root disk space",
+        DESCRIPTION = "{{$labels.instance}}: Root disk usage is above 75% (current value is: {{ $value }})"
+      }
+
+    ALERT NodeLowDataDisk
+      IF ((node_filesystem_size{mountpoint="/data-disk"} - node_filesystem_free{mountpoint="/data-disk"} ) / node_filesystem_size{mountpoint="/data-disk"} * 100) > 75
+      FOR 2m
+      LABELS {
+        severity="page"
+      }
+      ANNOTATIONS {
+        SUMMARY = "{{$labels.instance}}: Low data disk space",
+        DESCRIPTION = "{{$labels.instance}}: Data disk usage is above 75% (current value is: {{ $value }})"
+      }
+  mem-usage.rules: |
+    ALERT NodeSwapUsage
+      IF (((node_memory_SwapTotal-node_memory_SwapFree)/node_memory_SwapTotal)*100) > 75
+      FOR 2m
+      LABELS {
+        severity="page"
+      }
+      ANNOTATIONS {
+        SUMMARY = "{{$labels.instance}}: Swap usage detected",
+        DESCRIPTION = "{{$labels.instance}}: Swap usage usage is above 75% (current value is: {{ $value }})"
+      }
+
+    ALERT NodeMemoryUsage
+      IF (((node_memory_MemTotal-node_memory_MemFree-node_memory_Cached)/(node_memory_MemTotal)*100)) > 75
+      FOR 2m
+      LABELS {
+        severity="page"
+      }
+      ANNOTATIONS {
+        SUMMARY = "{{$labels.instance}}: High memory usage detected",
+        DESCRIPTION = "{{$labels.instance}}: Memory usage is above 75% (current value is: {{ $value }})"
+      }
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: prometheus-rules
+  namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+- kind: ServiceAccount
+  name: prometheus-k8s
+  namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["get"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-k8s
+  namespace: monitoring
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: monitoring
+  labels:
+    app: prometheus
+    component: core
+  annotations:
+    prometheus.io/scrape: 'true'
+spec:
+  type: NodePort
+  ports:
+    - port: 9090
+      protocol: TCP
+      name: webui
+  selector:
+    app: prometheus
+    component: core
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: statsd
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: statsd
+  template:
+    metadata:
+      name: statsd
+      namespace: monitoring
+      labels:
+        app: statsd
+    spec:
+      containers:
+      - name: statsd
+        image: prom/statsd-exporter:latest
+        ports:
+        - name: web
+          containerPort: 9102
+        - name: statsd
+          containerPort: 9125
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: 9102
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: 'true'
+  labels:
+    name: statsd
+  name: statsd
+  namespace: monitoring
+spec:
+  selector:
+    app: statsd
+  ports:
+  - name: web
+    protocol: TCP
+    port: 9102
+  - name: statsd
+    protocol: TCP
+    port: 9125
+---
+# jaeger deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+  name: jaeger
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: jaeger
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+      - image: jaegertracing/all-in-one:latest
+        env:
+        - name: COLLECTOR_ZIPKIN_HTTP_PORT
+          value: "9411"
+        name: jaeger
+        ports:
+        - containerPort: 9411
+          name: tracing
+        - containerPort: 16686
+          name: web
+---
+# jaeger service
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+  labels:
+    sevice: jaeger
+  namespace: monitoring
+spec:
+  ports:
+  - port: 9411
+    protocol: TCP
+    name: tracing
+  - port: 16686
+    protocol: TCP
+    name: web
+  selector:
+    app: jaeger
+  type: NodePort
+
+
+
+
+
+
+# example config
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: prometheus
+  namespace: gloo-system
+spec:
+  spec:
+    service_name: prometheus
+    service_namespace: monitoring
+    service_port: 9090
+  type: kubernetes
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: jaeger
+  namespace: gloo-system
+spec:
+  spec:
+    service_name: jaeger
+    service_namespace: monitoring
+    service_port: 16686
+  type: kubernetes
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: grafana
+  namespace: gloo-system
+spec:
+  spec:
+    service_name: grafana
+    service_namespace: monitoring
+    service_port: 3000
+  type: kubernetes
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: envoy-admin
+  namespace: gloo-system
+spec:
+  spec:
+    service_name: envoy
+    service_namespace: gloo-system
+    service_port: 19000
+  type: kubernetes
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: shouldwork
+  namespace: gloo-system
+spec:
+  spec:
+    hosts:
+    - addr: envoy
+      port: 19000
+  type: service
+
+---
+apiVersion: gloo.solo.io/v1
+kind: VirtualHost
+metadata:
+  name: my-services
+  namespace: gloo-system
+spec:
+  routes:
+  - request_matcher:
+      path_prefix: /grafana
+    single_destination:
+      upstream:
+        name: grafana
+  - request_matcher:
+      path_prefix: /jaeger
+    single_destination:
+      upstream:
+        name: jaeger
+  - request_matcher:
+      path_prefix: /prometheus
+    single_destination:
+      upstream:
+        name: prometheus
+  - request_matcher:
+      path_prefix: /envoy
+    single_destination:
+      upstream:
+        name: envoy-admin
+  - request_matcher:
+      path_prefix: /shouldwork
+    single_destination:
+      upstream:
+        name: shouldwork
