@@ -29,10 +29,6 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/envoyproxy/go-control-plane"
-
-[[constraint]]
-  branch = "master"
   name = "github.com/hashicorp/go-multierror"
 
 [[constraint]]
