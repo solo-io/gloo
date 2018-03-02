@@ -8,6 +8,7 @@ import (
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-storage"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 type configWatcher struct {
@@ -20,13 +21,16 @@ func NewConfigWatcher(storageClient storage.Interface) (*configWatcher, error) {
 	if err := storageClient.V1().Register(); err != nil && !storage.IsAlreadyExists(err) {
 		return nil, fmt.Errorf("failed to register to storage backend: %v", err)
 	}
+
 	initialUpstreams, err := storageClient.V1().Upstreams().List()
 	if err != nil {
-		return nil, errors.Wrap(err, "retreiving initial upstream list")
+		log.Warnf("Startup: failed to read upstreams from storage: %v", err)
+		initialUpstreams = []*v1.Upstream{}
 	}
 	initialVirtualHosts, err := storageClient.V1().VirtualHosts().List()
 	if err != nil {
-		return nil, errors.Wrap(err, "retreiving initial virtualhost list")
+		log.Warnf("Startup: failed to read virtual hosts from storage: %v", err)
+		initialVirtualHosts = []*v1.VirtualHost{}
 	}
 	configs := make(chan *v1.Config)
 	// do a first time read
