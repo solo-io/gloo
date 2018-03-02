@@ -26,7 +26,7 @@
 
 
 [[constraint]]
-  branch = "master"
+  revision = "e0ebc95432196ce43dae88cc2822983466210656"
   name = "github.com/envoyproxy/go-control-plane"
 
 [[constraint]]

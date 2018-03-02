@@ -8,7 +8,6 @@
   version = "v1.1.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -75,6 +74,7 @@
     "jsonpb",
     "proto",
     "protoc-gen-go/descriptor",
+    "protoc-gen-go/plugin",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
@@ -187,10 +187,11 @@
     "api",
     "helper/compressutil",
     "helper/jsonutil",
-    "helper/parseutil"
+    "helper/parseutil",
+    "helper/strutil"
   ]
-  revision = "5acd6a21d5a69ab49d0f7c0bf540123a9b2c696d"
-  version = "v0.9.3"
+  revision = "36edb4d42380d89a897e7f633046423240b710d9"
+  version = "v0.9.5"
 
 [[projects]]
   branch = "master"
@@ -213,8 +214,8 @@
 [[projects]]
   name = "github.com/json-iterator/go"
   packages = ["."]
-  revision = "e7c7f3b33712573affdcc7a107218e7926b9a05b"
-  version = "1.0.6"
+  revision = "3353055b2a1a5ae1b6a8dfde887a524e7088f3a2"
+  version = "1.1.2"
 
 [[projects]]
   name = "github.com/juju/ratelimit"
@@ -231,8 +232,8 @@
 [[projects]]
   name = "github.com/lyft/protoc-gen-validate"
   packages = ["validate"]
-  revision = "8e6aaf55f4954f1ef9d3ee2e8f5a50e79cc04f8f"
-  version = "v0.0.5"
+  revision = "930a67cf7ba41b9d9436ad7a1be70a5d5ff6e1fc"
+  version = "v0.0.6"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -262,7 +263,19 @@
   branch = "master"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
-  revision = "a4e142e9c047c904fa2f1e144d9a84e6133024bc"
+  revision = "00c29f56e2386353d58c599509e8dc3801b0d716"
+
+[[projects]]
+  name = "github.com/modern-go/concurrent"
+  packages = ["."]
+  revision = "938152ca6a933f501bb238954eebd3cbcbf489ff"
+  version = "1.0.2"
+
+[[projects]]
+  name = "github.com/modern-go/reflect2"
+  packages = ["."]
+  revision = "1df9eeb2bb81f327b96228865c5687bc2194af3f"
+  version = "1.0.0"
 
 [[projects]]
   name = "github.com/onsi/ginkgo"
@@ -327,31 +340,46 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/pseudomuto/protoc-gen-doc"
+  packages = [
+    ".",
+    "parser"
+  ]
+  revision = "728a624b38e5ae90bb3e5da5f406e05138f1517c"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/radovskyb/watcher"
   packages = ["."]
   revision = "6145e1439b9de93806925353403f91d2abbad8a5"
   version = "v1.0.2"
 
 [[projects]]
+  name = "github.com/ryanuber/go-glob"
+  packages = ["."]
+  revision = "572520ed46dbddaed19ea3d9541bdd0494163693"
+  version = "v0.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/sethgrid/pester"
   packages = ["."]
-  revision = "b18953f5db2922a73aaf89652abf7b5ee95cb516"
+  revision = "ed9870dad3170c0b25ab9b11830cc57c3a7798fb"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "d4a2acba50c037ce1a0637c1a7563ada46004470"
+  revision = "86afd419194c716f4f393e54449f7979da4ccfe7"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-plugins"
   packages = [
     "aws",
-    "common"
+    "kubernetes"
   ]
-  revision = "591bf07d4741f1cdff918570fe79ef32582123ae"
+  revision = "09e83fb7bad976d250cfc97e02d4c7e2ef5998c0"
 
 [[projects]]
   branch = "master"
@@ -366,19 +394,19 @@
     "file",
     "internal/crud"
   ]
-  revision = "b66a02e9662255271a59d21e15a6257010cd2d2e"
+  revision = "2c9d0ddfcbe4b3dc03fe8dfc26832770f6ebb12a"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "657e41ea056c89add2ad6796b32c1505d9eaa060"
+  revision = "ab55fa4f9a3dde2b21783c91c230555731987879"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/kubecontroller"
   packages = ["."]
-  revision = "916800242c0d38bf20705fbcb80696456d1c107e"
+  revision = "aa221842c1bff7389ff855537ef87b77cb09d53f"
 
 [[projects]]
   name = "github.com/spf13/cobra"
@@ -421,7 +449,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "432090b8f568c018896cd8a0fb0345872bbac6ce"
+  revision = "91a49db82a88618983a78a06c1cbd4e00ab749ab"
 
 [[projects]]
   branch = "master"
@@ -438,7 +466,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb"
+  revision = "22ae77b79946ea320088417e4d50825671d82d57"
 
 [[projects]]
   branch = "master"
@@ -447,10 +475,9 @@
     "unix",
     "windows"
   ]
-  revision = "37707fdb30a5b38865cfb95e5aab41707daec7fd"
+  revision = "dd2ff4accc098aceecb86b36eaa7829b2a17b1c9"
 
 [[projects]]
-  branch = "master"
   name = "golang.org/x/text"
   packages = [
     "collate",
@@ -480,13 +507,14 @@
     "unicode/norm",
     "unicode/rangetable"
   ]
-  revision = "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [[projects]]
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "2b5a72b8730b0b16380010cfe5286c42108d88e7"
+  revision = "2c5e7ac708aaa719366570dd82bda44541ca2a63"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -525,10 +553,10 @@
   version = "v0.9.0"
 
 [[projects]]
-  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+  revision = "7f97868eec74b32b0982dd158a51a446d1da7eb5"
+  version = "v2.1.1"
 
 [[projects]]
   branch = "master"
@@ -569,7 +597,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "b378c47b2dcba7f5c3ef97d8a5a0b3821ec6a001"
+  revision = "860727955743743199a0f053f2292f41d7196604"
 
 [[projects]]
   branch = "master"
@@ -581,7 +609,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "90a5ba227a3ae6414796a5f2910638c3011af740"
+  revision = "ad8adfd384fd5d3423ef3006ba129791ec96ad22"
 
 [[projects]]
   branch = "master"
@@ -629,7 +657,7 @@
     "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "cced8e64b6ca92a8b6afcbfea3353ca016694a45"
+  revision = "4a62c19bf7bf4a3fdb2afb0b347553362d5c7684"
 
 [[projects]]
   name = "k8s.io/client-go"
@@ -762,6 +790,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "103cbef636f543b3767b067098188774d0befc33ded699d72e18d4582f1d4235"
+  inputs-digest = "f53e52c324ab7461d0c7c240b7c99e064dc7be27c18178a9507fa498f9cd37bc"
   solver-name = "gps-cdcl"
   solver-version = 1
