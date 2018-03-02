@@ -41,13 +41,13 @@ func Run(opts bootstrap.Options, stop <-chan struct{}, errs chan error) error {
 		upstreams []*v1.Upstream
 	}
 
-	update := func(forceSync bool) {
+	update := func() {
 		go func() {
 			// update secret refs on secret watcher
 			refs := updater.GetSecretRefsToWatch(cache.upstreams)
 			secretWatcher.TrackSecrets(refs)
 		}()
-		if err := updater.UpdateFunctionalUpstreams(store, cache.upstreams, cache.secrets, forceSync); err != nil {
+		if err := updater.UpdateFunctionalUpstreams(store, cache.upstreams, cache.secrets); err != nil {
 			errs <- err
 		}
 	}
@@ -57,11 +57,11 @@ func Run(opts bootstrap.Options, stop <-chan struct{}, errs chan error) error {
 	for {
 		select {
 		case cache.secrets = <-secretWatcher.Secrets():
-			update(false)
+			update()
 		case cache.upstreams = <-upstreams:
-			update(false)
+			update()
 		case <-tick:
-			update(true)
+			update()
 		case err := <-secretWatcher.Error():
 			errs <- err
 		case <-stop:

@@ -41,16 +41,12 @@ func GetSecretRefsToWatch(upstreams []*v1.Upstream) []string {
 // we want to forceSync on every refreshDuration
 // on a config / secrets change, we don't want to force sync
 // else we can get into an update loop
-func UpdateFunctionalUpstreams(gloo storage.Interface, upstreams []*v1.Upstream, secrets secretwatcher.SecretMap, forceSync bool) error {
+func UpdateFunctionalUpstreams(gloo storage.Interface, upstreams []*v1.Upstream, secrets secretwatcher.SecretMap) error {
 	// nothing to do
 	if len(upstreams) == 0 {
 		return nil
 	}
 	for _, us := range upstreams {
-		if !forceSync && functionListsEqual(us.Functions, localCache[us.Name]) {
-			// ignore upstreams whose function list matches our cache
-			continue
-		}
 		var funcs []*v1.Function
 		var err error
 		switch functiontypes.GetFunctionType(us) {
