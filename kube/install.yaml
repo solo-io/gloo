@@ -123,7 +123,7 @@ spec:
         gloo: ingress
     spec:
       containers:
-      - image: docker.io/envoyproxy/envoy-alpine:latest
+      - image: soloio/envoy@sha256:af6d3174095f02fcfe250c97e8448400f959186d9ed74a78b1ad3aee26858925
         name: envoy
         ports:
         - containerPort: 8080
