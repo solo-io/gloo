@@ -9,17 +9,8 @@
         "gloo": "kubernetes"
     },
     {
-        "name": "mixer",
-        "gloo": "mixer",
-        "enabled": false,
-        "tags": ["experimental"]
-    },
-    {
         "name": "transformation",
-        "gloo": "transformation"
-    },
-    {
-        "name": "nats_streaming",
-        "gloo": "nats-streaming"
+        "gloo": "transformation",
+        "envoy": "transformation/envoy"
     }
 ]
