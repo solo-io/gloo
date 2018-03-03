@@ -2,21 +2,96 @@
 
 - [Overview](#Overview)
 - [Component Architecture](#Component Architecture)
+- [Discovery Architecture](#Discovery Architecture)
 
 
 <a name="Overview"></a>
 
 ### Overview
 
-show Gloo routing from an api call on a virtual host to an api on an upstream
+Gloo aggregates back end services and provides function-to-function translation for clients, allowing decoupling from back end APIs
 
+![Overview](high_level_architecture.png "High Level Architecture")
 
-# architecture diagram showing requests coming into cluster
-# clients connect through gloo
-# decouple front end from back end
+Clients issue requests or [emit events](TODO link to our events sdk) to routes defined on Gloo. These routes are mapped
+to functions on upstream services by Gloo's configuration (provided by clients of Gloo's API). 
+
+Gloo performs the necessary transformation between the routes defined by clients and the back end functions. Gloo is able 
+to support various upstream functions through its extendable [function plugin interface](TODO).
+
+Gloo offers first-class API management features on all functions:
+
+- Timeouts
+- Metrics & Tracing
+- Health Checks
+- Retries
+- Advanecd load balancing
+- TLS Termination with SNI Support
+- HTTP Header modification
+<!-- TODO: -Authentication -->
+<!-- TODO: -JWT/Oauth2 -->
+
 
 
 
 <a name="Component Architecture"></a>
 
 ### Component Architecture
+
+In the most basic sense, Gloo is a translation engine and [Envoy xDS server](TODO) providing advanced configuration for Envoy (including [Gloo's
+custom Envoy filters](TODO)). Gloo follows an event-based architecture, watching various sources of configuration for
+updates and responding immediately with v2 gRPC updates to Envoy. 
+
+
+![Component Architecture](component_architecture.png "Component Architecture")
+
+* The **Config Watcher** watches the storage layer for updates to user configuration objects ([Upstreams](TODO) and [Virtual Hosts](TODO))
+* The **Secret Watcher** watches a secret store for updates to secrets (which are required for certain plugins such as the [AWS Lambda Plugin](TODO))
+* **Endpoint Discovery** watches service registries such as Kubernetes, Cloud Foundry, and Consul for IPs associated with services. 
+Endpoint Discovery is plugin-specific. For example, the [Kubernetes Plugin](TODO) runs its own Endpoint Discovery goroutine.
+* The **Translator** receives notifications from the 3 different classes of watchers and initiates a new *translation cycle*,
+creating a new [Envoy xDS Snapshot](TODO).
+    1. The translation cycle starts by creating **[Envoy clusters](TODO)** from all configured upstreams. Each upstream has a **type**,
+    indicating which [upstream plugin](TODO) is responsible for processing that upstream object. Correctly configured upstreams are 
+    converted into Envoy clusters by their respective plugins. Plugins may set cluster metadata on the cluster object.
+    1. The next step in the translation cycle is to process all the functions on each upstream. [Functional plugins](TODO) process
+    the functions on upstream, setting function-specifc cluster metadata, which will be later processed by function-specific Envoy
+    filters.
+    1. The next step generates all of the **[Envoy routes](TODO)** via the [route plugins](TODO). Routes are generated for 
+    each route rule defined on the [virtual host objects](TODO). When all of the routes are created, the translator aggregates them
+    into [Envoy virtual hosts](TODO) and adds them to a new [Envoy HTTP Connection Manager](TODO) configuration.
+    1. [Filter plugins](TODO) are queried for their filter configurations, generating the list of HTTP Filters that will go 
+    on the [Envoy listeners](TODO).
+    1. Finally, a snapshot is composed of the all the valid endpoints, clusters, rds configs, and listeners
+* The **Reporter** receives a validation report for every upstream and virtual host processed by the translator. Any invalid
+  config objects are reported back to the user through the storage layer. Invalid objects are marked as "Rejected" with 
+  detailed error messages describing mistakes in the user config.
+* The final snapshot is passed to the **xDS server**, which notifies Envoy of a succesful config update, updating the Envoy
+cluster with a new configuration to match the desired state set by Gloo.   
+
+
+
+
+<a name="Discovery Architecture"></a>
+
+### Discovery Architecture
+
+Gloo is supported by a suite of optional [discovery services](TODO) that automatically discover and configure 
+gloo with upstreams and functions to simplify routing for users and self-service.  
+
+
+![Discovery Architecture](discovery_architecture.png "Discovery Architecture")
+
+Discovery services act as automated Gloo clients, automatically populating the storage layer with upstreams and functions
+to facilitate easy routing for users.
+
+Discovery is optional, but when enabled, will attempt to discover available upsrteams and functions.
+
+Currently supported:
+
+- Kubernetes Service-Based Upstream Discovery
+- AWS Lambda-Based Function Discovery
+- Google Cloud Function-Based Function Discovery
+- OpenAPI-Based Function Discovery
+- Istio-Based Route Rule Discovery (Experimental)
+
