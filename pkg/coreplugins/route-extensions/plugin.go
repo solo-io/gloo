@@ -39,12 +39,6 @@ func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *en
 	if routeAction.Route == nil {
 		routeAction.Route = &envoyroute.RouteAction{}
 	}
-	if spec.MaxRetries > 0 {
-		routeAction.Route.RetryPolicy = &envoyroute.RouteAction_RetryPolicy{
-			RetryOn:    defaultRetryPolicy,
-			NumRetries: &types.UInt32Value{Value: spec.MaxRetries},
-		}
-	}
 	for _, addH := range spec.AddRequestHeaders {
 		routeAction.Route.RequestHeadersToAdd = append(routeAction.Route.RequestHeadersToAdd, &envoycore.HeaderValueOption{
 			Header: &envoycore.HeaderValue{
@@ -64,5 +58,20 @@ func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *en
 		})
 	}
 	routeAction.Route.ResponseHeadersToRemove = append(routeAction.Route.ResponseHeadersToRemove, spec.RemoveResponseHeaders...)
+
+	if spec.Timeout > 0 {
+		routeAction.Route.Timeout = &spec.Timeout
+	}
+	if spec.HostRewrite != "" {
+		routeAction.Route.HostRewriteSpecifier = &envoyroute.RouteAction_HostRewrite{
+			HostRewrite: spec.HostRewrite,
+		}
+	}
+	if spec.MaxRetries > 0 {
+		routeAction.Route.RetryPolicy = &envoyroute.RouteAction_RetryPolicy{
+			RetryOn:    defaultRetryPolicy,
+			NumRetries: &types.UInt32Value{Value: spec.MaxRetries},
+		}
+	}
 	return nil
 }

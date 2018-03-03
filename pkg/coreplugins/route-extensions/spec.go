@@ -8,11 +8,14 @@ import (
 )
 
 type RouteExtensionSpec struct {
-	MaxRetries            uint32        `json:"max_retries,omitempty"`
-	Timeout               time.Duration `json:"timeout,omitempty"`
 	AddRequestHeaders     []HeaderValue `json:"add_request_headers,omitempty"`
 	AddResponseHeaders    []HeaderValue `json:"add_response_headers,omitempty"`
 	RemoveResponseHeaders []string      `json:"remove_response_headers,omitempty"`
+
+	MaxRetries  uint32        `json:"max_retries,omitempty"`
+	Timeout     time.Duration `json:"timeout,omitempty"`
+	HostRewrite string        `json:"host_rewrite,omitempty"`
+
 	//TODO: support RateLimit
 	//TODO: support CORS policy
 }
