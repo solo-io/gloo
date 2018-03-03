@@ -1,4 +1,14 @@
-# gloo
+
+<h1 align="center">
+    <img src="https://i.imgur.com/D1tw77U.png" alt="squash" width="200" height="242">
+  <br>
+  The Function Gateway
+</h1>
+
+
+<h4 align="center"></h4>
+<BR>
+
 Mock API Gateway for building Integrations &amp; Plugins
 
 See the [example module](module/example) for an example of how to write modules.
