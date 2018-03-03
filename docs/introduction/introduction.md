@@ -67,7 +67,7 @@ The "API" of Gloo is accessed through the storage layer (selected by the user). 
 (see the [Gloo v1 API specification](TODO)) for Gloo are written by the user in one of the following ways:
 
 - manually writing them to storage (e.g. a file or kubernetes custom resource)
-- [Glooctl](TODO)
+- [glooctl](TODO)
 - [discovery services](TODO)
 - using the [Gloo-storage Go client](TODO) 
 
