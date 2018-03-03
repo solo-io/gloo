@@ -1,11 +1,8 @@
----
 #system namespace
 apiVersion: v1
 kind: Namespace
 metadata:
   name: gloo-system
-
-
 
 ##########################
 #                        #
@@ -29,7 +26,7 @@ rules:
   verbs: ["*"]
 ---
 kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: gloo-cluster-admin-binding
 subjects:
@@ -205,3 +202,61 @@ data:
         socket_address:
           address: 0.0.0.0
           port_value: 19000
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    gloo: k8s-service-discovery
+  name: k8s-service-discovery
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: k8s-service-discovery
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: k8s-service-discovery
+    spec:
+      containers:
+      - image: soloio/gloo-k8s-service-discovery:0e6dd050
+        name: k8s-service-discovery
+        args:
+        - "--storage.type=kube"
+        - "--syncperiod=30m"
+        - "--kube.namespace=gloo-system"
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    gloo: function-discovery
+  name: function-discovery
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: function-discovery
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: function-discovery
+    spec:
+      containers:
+      - image: soloio/gloo-function-discovery@sha256:94603228c0d87ae42ab4fc979657591efc85be1deecaf955ab78ab82881cb8f2
+        name: function-discovery
+        env:
+        - name: GRPC_TRACE
+          value: all
+        command: ["/gloo-function-discovery"]
+        args:
+        - "--storage.type=kube"
+        - "--storage.refreshrate=30m"
+        - "--secrets.type=kube"
+        - "--secrets.refreshrate=30m"
+        - "--kube.namespace=gloo-system"
+
+
