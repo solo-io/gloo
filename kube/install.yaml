@@ -1,11 +1,33 @@
-#---
+---
 #system namespace
 apiVersion: v1
 kind: Namespace
 metadata:
   name: gloo-system
+
+
+
+##########################
+#                        #
+#                        #
+#         Gloo           #
+#                        #
+#                        #
+##########################
 ---
-# gloo pods
+#rbac for gloo
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: gloo-system
+  name: gloo
+rules:
+- apiGroups: ["", "gloo.solo.io/v1"]
+  resources: ["upstreams", "virtualhosts", "pods", "services"]
+  verbs: ["get", "watch", "list"]
+
+---
+# gloo pod
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -38,9 +60,9 @@ spec:
         command: ["/gloo"]
         args:
         - "--storage.type=kube"
-        - "--storage.refreshrate=30m"
+        - "--storage.refreshrate=1m"
         - "--secrets.type=kube"
-        - "--secrets.refreshrate=30m"
+        - "--secrets.refreshrate=1m"
         - "--xds.port=8081"
         - "--kube.namespace=gloo-system"
 ---
@@ -58,47 +80,20 @@ spec:
     protocol: TCP
   selector:
     app: gloo
+
+
+
+
+##########################
+#                        #
+#                        #
+#         Envoy          #
+#                        #
+#                        #
+##########################
+
 ---
-apiVersion: v1
-data:
-  envoy.yaml: |
-    node:
-      cluster: ingress
-      id: ingress
-
-    static_resources:
-      clusters:
-
-      - name: xds_cluster
-        connect_timeout: 5.000s
-        hosts:
-        - socket_address:
-            address: gloo
-            port_value: 8081
-        http2_protocol_options: {}
-        type: STRICT_DNS
-
-    dynamic_resources:
-      ads_config:
-        api_type: GRPC
-        cluster_names:
-        - xds_cluster
-      cds_config:
-        ads: {}
-      lds_config:
-        ads: {}
-
-    admin:
-      access_log_path: /dev/null
-      address:
-        socket_address:
-          address: 0.0.0.0
-          port_value: 19000
-kind: ConfigMap
-metadata:
-  name: envoy-config
-  namespace: gloo-system
----
+# envoy deployment
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -148,16 +143,73 @@ spec:
   - port: 8080
     protocol: TCP
     name: http
+    nodePort: 30080
   - port: 8443
     protocol: TCP
     name: https
+    nodePort: 30443
   - port: 19000
     protocol: TCP
     name: admin
+    nodePort: 31900
   selector:
     app: envoy
   type: NodePort
 
+---
+# envoy configmap
+apiVersion: v1
+data:
+  envoy.yaml: |
+    node:
+      cluster: ingress
+      id: ingress
+
+    static_resources:
+      clusters:
+
+      - name: xds_cluster
+        connect_timeout: 5.000s
+        hosts:
+        - socket_address:
+            address: gloo
+            port_value: 8081
+        http2_protocol_options: {}
+        type: STRICT_DNS
+
+    dynamic_resources:
+      ads_config:
+        api_type: GRPC
+        cluster_names:
+        - xds_cluster
+      cds_config:
+        ads: {}
+      lds_config:
+        ads: {}
+
+    admin:
+      access_log_path: /dev/null
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 19000
+kind: ConfigMap
+metadata:
+  name: envoy-config
+  namespace: gloo-system
+
+
+
+
+
+
+##########################
+#                        #
+#        Example         #
+#        Config          #
+#                        #
+#                        #
+##########################
 
 # example config
 ---
@@ -172,24 +224,12 @@ spec:
     service_namespace: gloo-system
     service_port: 19000
   type: kubernetes
----
-apiVersion: gloo.solo.io/v1
-kind: Upstream
-metadata:
-  name: shouldwork
-  namespace: gloo-system
-spec:
-  spec:
-    hosts:
-    - addr: envoy
-      port: 19000
-  type: service
 
 ---
 apiVersion: gloo.solo.io/v1
 kind: VirtualHost
 metadata:
-  name: my-services
+  name: default
   namespace: gloo-system
 spec:
   routes:
@@ -198,8 +238,4 @@ spec:
     single_destination:
       upstream:
         name: envoy-admin
-  - request_matcher:
-      path_prefix: /shouldwork
-    single_destination:
-      upstream:
-        name: shouldwork
+    prefix_rewrite: /
