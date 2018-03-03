@@ -1,3 +1,6 @@
 [submodule "aws/envoy"]
 	path = aws/envoy
 	url = https://github.com/solo-io/envoy-lambda
+[submodule "transformation/transformation"]
+	path = transformation/envoy
+	url = https://github.com/solo-io/envoy-transformation
