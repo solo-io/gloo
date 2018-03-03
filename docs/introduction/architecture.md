@@ -42,26 +42,8 @@ In the most basic sense, Gloo is a translation engine and [envoy xDS server](TOD
 custom Envoy filters](TODO)). Gloo follows an event-based architecture, watching various sources of configuration for
 updates and responding immediately with v2 gRPC updates to Envoy. 
 
-core
 
-secret watcher <- secret sources     <- users
-
-config watcher <- config sources
-
-address discovery <- service registries
-
-|
-V
-
-translator ( plugins ) --> reporter --> users   
-   |
-   V
-   xds
-      \
-        \
-         V
-clients ->  Envoy ->  services
-
+![Component Architecture](component_architecture.png "Component Architecture")
 
 
 
