@@ -76,7 +76,9 @@ func Setup(opts bootstrap.Options, stop <-chan struct{}) (*eventLoop, error) {
 		e.startFuncs = append(e.startFuncs, func() error {
 			discovery, err := endpointDiscoveryInitializer(opts)
 			if err != nil {
-				return err
+				log.Warnf("Starting endpoint discovery failed: %v, endpoints will not be discovered for this "+
+					"upstream type", err)
+				return nil
 			}
 			e.endpointDiscoveries = append(e.endpointDiscoveries, discovery)
 			return nil
