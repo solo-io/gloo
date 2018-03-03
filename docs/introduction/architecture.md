@@ -80,7 +80,7 @@ Gloo is supported by a suite of optional [discovery services](TODO) that automat
 gloo with upstreams and functions to simplify routing for users and self-service.  
 
 
-![Component Architecture](component_architecture.png "Component Architecture")
+![Discovery Architecture](discovery_architecture.png "Discovery Architecture")
 
 Discovery services act as automated Gloo clients, automatically populating the storage layer with upstreams and functions
 to facilitate easy routing for users.
@@ -88,9 +88,10 @@ to facilitate easy routing for users.
 Discovery is optional, but when enabled, will attempt to discover available upsrteams and functions.
 
 Currently supported:
-* Kubernetes Service-Based Upstream Discovery
-* AWS Lambda-Based Function Discovery
-* Google Cloud Function-Based Function Discovery
-* OpenAPI-Based Function Discovery
-* Istio-Based Route Rule Discovery (Experimental)
+
+- Kubernetes Service-Based Upstream Discovery
+- AWS Lambda-Based Function Discovery
+- Google Cloud Function-Based Function Discovery
+- OpenAPI-Based Function Discovery
+- Istio-Based Route Rule Discovery (Experimental)
 

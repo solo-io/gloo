@@ -141,8 +141,6 @@ func yamlType(longType, label string) string {
 		case "int32":
 			return longType
 		case "Status":
-			fallthrough
-		case "Metadata":
 			return "(read only)"
 		}
 		return "{" + longType + "}"
@@ -161,7 +159,15 @@ func linkForType(longType, fullType string) string {
 	if !isObjectType(longType) {
 		return longType //no linking for primitives
 	}
-	link := filesForTypes[fullType] + ".md#" + fullType
+	var link string
+	switch {
+	case longType == "google.protobuf.Duration":
+		link = "https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration"
+	case longType == "google.protobuf.Struct":
+		link = "https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/struct"
+	default:
+		link = filesForTypes[fullType] + ".md#" + fullType
+	}
 	return "[" + longType + "](" + link + ")"
 }
 

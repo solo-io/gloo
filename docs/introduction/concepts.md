@@ -5,9 +5,8 @@
     - [Routes](#Routes)
     - [Matchers](#Matchers)
     - [Destinations](#Destinations)
-    - [SNI Config](#SNI Config)
 - [Upstreams](#Upstreams)
-    - [Upstream Types](#Upstream Types)
+    - [Functions](#Functions)
 
 
 
