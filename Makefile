@@ -8,7 +8,7 @@ $(BINARY): $(SOURCES)
 	CGO_ENABLED=0 GOOS=linux go build -i -v  -o $@ *.go
 
 docker: $(BINARY)
-	docker build -t solo-io/$(BINARY):v0.1 .
+	docker build -t soloio/$(BINARY):v0.1 .
 
 $(BINARY)-debug: $(SOURCES)
 	go build -i -gcflags "-N -l" -o $(BINARY)-debug *.go
