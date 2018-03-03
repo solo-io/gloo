@@ -1,0 +1,84 @@
+
+##########################
+#                        #
+#        Example         #
+#        Config          #
+#                        #
+#                        #
+##########################
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-example
+data:
+  contact.html: |
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+      </head>
+      <body>
+      <H1>Gloo is with you!</H1>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+      </body>
+    </html>
+---
+# gloo pods
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: website-example
+  name: website-example
+spec:
+  selector:
+    matchLabels:
+      app: website-example
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: website-example
+    spec:
+      containers:
+      - image: nginx
+        name: website-example
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: content-volume
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: content-volume
+        configMap:
+          name: website-example
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: website-example
+  labels:
+    sevice: website-example
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: website-example
+---
+apiVersion: gloo.solo.io/v1
+kind: VirtualHost
+metadata:
+  name: default
+  namespace: gloo-system
+spec:
+  routes:
+  - request_matcher:
+      path_prefix: /
+    single_destination:
+      upstream:
+        name: default-website-example-80
