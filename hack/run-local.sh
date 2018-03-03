@@ -6,6 +6,10 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/..
 CONFIG_DIR=${CONFIG_DIR:-${DIR}/hack/gen-config-yaml/_gloo_config/}
 SECRETS_DIR=${CONFIG_DIR}/secrets/
 
+mkdir -p ${CONFIG_DIR}/upstreams
+mkdir -p ${CONFIG_DIR}/virtualhosts
+mkdir -p ${CONFIG_DIR}/secrets
+
 FAIL=0
 
 echo "Starting gloo"
