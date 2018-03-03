@@ -57,7 +57,7 @@ spec:
         gloo: control-plane
     spec:
       containers:
-      - image: solo-io/gloo:v0.1
+      - image: soloio/gloo:v0.1
         name: gloo
         ports:
         - containerPort: 8081
