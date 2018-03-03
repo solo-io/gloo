@@ -3,7 +3,34 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: gloo-system
-
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: upstreams.gloo.solo.io
+spec:
+  group: gloo.solo.io
+  names:
+    kind: Upstream
+    listKind: UpstreamList
+    plural: upstreams
+    singular: upstream
+  scope: Namespaced
+  version: v1
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: virtualhosts.gloo.solo.io
+spec:
+  group: gloo.solo.io
+  names:
+    kind: VirtualHost
+    listKind: VirtualHostList
+    plural: virtualhosts
+    singular: virtualhost
+  scope: Namespaced
+  version: v1
 ##########################
 #                        #
 #                        #
@@ -109,7 +136,7 @@ kind: Deployment
 metadata:
   labels:
     gloo: ingress
-  name: envoy
+  name: ingress
   namespace: gloo-system
 spec:
   selector:
@@ -144,9 +171,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: envoy
+  name: ingress
   labels:
-    sevice: envoy
+    gloo: ingress
   namespace: gloo-system
 spec:
   ports:
