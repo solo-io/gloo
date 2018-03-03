@@ -16,34 +16,48 @@ metadata:
 ##########################
 ---
 #rbac for gloo
-kind: Role
+kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: gloo-system
-  name: gloo
+  name: gloo-role
 rules:
-- apiGroups: ["", "gloo.solo.io/v1"]
-  resources: ["upstreams", "virtualhosts", "pods", "services"]
+- apiGroups: [""]
+  resources: ["pods", "services"]
   verbs: ["get", "watch", "list"]
-
+- apiGroups: ["gloo.solo.io/v1"]
+  resources: ["upstreams", "virtualhosts"]
+  verbs: ["*"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: gloo-cluster-admin-binding
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: gloo-system
+roleRef:
+  kind: ClusterRole
+  name: gloo-role
+  apiGroup: rbac.authorization.k8s.io
 ---
 # gloo pod
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: gloo
+    gloo: control-plane
   name: gloo
   namespace: gloo-system
 spec:
   selector:
     matchLabels:
-      app: gloo
+      gloo: control-plane
   replicas: 1
   template:
     metadata:
       labels:
-        app: gloo
+        gloo: control-plane
     spec:
       containers:
       - image: solo-io/gloo:v0.1
@@ -79,7 +93,7 @@ spec:
   - port: 8081
     protocol: TCP
   selector:
-    app: gloo
+    gloo: control-plane
 
 
 
@@ -98,18 +112,18 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: envoy
+    gloo: ingress
   name: envoy
   namespace: gloo-system
 spec:
   selector:
     matchLabels:
-      app: envoy
+      gloo: ingress
   replicas: 1
   template:
     metadata:
       labels:
-        app: envoy
+        gloo: ingress
     spec:
       containers:
       - image: docker.io/envoyproxy/envoy-alpine:latest
@@ -143,22 +157,20 @@ spec:
   - port: 8080
     protocol: TCP
     name: http
-    nodePort: 30080
   - port: 8443
     protocol: TCP
     name: https
-    nodePort: 30443
-  - port: 19000
-    protocol: TCP
-    name: admin
-    nodePort: 31900
   selector:
-    app: envoy
+    gloo: ingress
   type: NodePort
 
 ---
 # envoy configmap
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: envoy-config
+  namespace: gloo-system
 data:
   envoy.yaml: |
     node:
@@ -172,7 +184,7 @@ data:
         connect_timeout: 5.000s
         hosts:
         - socket_address:
-            address: gloo
+            address: gloo.gloo-system.svc.cluster.local
             port_value: 8081
         http2_protocol_options: {}
         type: STRICT_DNS
@@ -193,49 +205,3 @@ data:
         socket_address:
           address: 0.0.0.0
           port_value: 19000
-kind: ConfigMap
-metadata:
-  name: envoy-config
-  namespace: gloo-system
-
-
-
-
-
-
-##########################
-#                        #
-#        Example         #
-#        Config          #
-#                        #
-#                        #
-##########################
-
-# example config
----
-apiVersion: gloo.solo.io/v1
-kind: Upstream
-metadata:
-  name: envoy-admin
-  namespace: gloo-system
-spec:
-  spec:
-    service_name: envoy
-    service_namespace: gloo-system
-    service_port: 19000
-  type: kubernetes
-
----
-apiVersion: gloo.solo.io/v1
-kind: VirtualHost
-metadata:
-  name: default
-  namespace: gloo-system
-spec:
-  routes:
-  - request_matcher:
-      path_prefix: /envoy
-    single_destination:
-      upstream:
-        name: envoy-admin
-    prefix_rewrite: /
