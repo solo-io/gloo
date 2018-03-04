@@ -2,27 +2,28 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: gloo-ingress
-  name: gloo-ingress
+    gloo: ingress-controller
+  name: ingress-controller
   namespace: gloo-system
 spec:
   selector:
     matchLabels:
-      app: gloo-ingress
+      gloo: ingress-controller
   replicas: 1
   template:
     metadata:
       labels:
-        app: gloo-ingress
+        gloo: ingress-controller
     spec:
       containers:
-      - image: soloio/gloo-ingress:v0.1
-        imagePullPolicy: Never
-        name: gloo-ingress
+      - image: soloio/ingress-controller:v0.1
+        name: ingress-controller
         env:
+        - name: DEBUG
+          value: "1"
         - name: GRPC_TRACE
           value: all
-        command: ["/gloo-ingress"]
+        command: ["/ingress-controller"]
         args:
         - "--service=envoy"
         - "--syncperiod=30m"
