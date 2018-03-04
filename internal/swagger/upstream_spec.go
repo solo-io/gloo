@@ -9,8 +9,8 @@ import (
 const ServiceTypeSwagger = "swagger"
 
 const (
-	AnnotationKeySwaggerURL = "swagger_url"
-	AnnotationKeySwaggerDoc = "swagger_doc"
+	AnnotationKeySwaggerURL = "gloo.solo.io/swagger_url"
+	AnnotationKeySwaggerDoc = "gloo.solo.io/swagger_doc"
 )
 
 // TODO: create service spec on upstreams themselves
@@ -27,7 +27,7 @@ func GetSwaggerAnnotations(us *v1.Upstream) (*Spec, error) {
 	swaggerUrl, urlOk := us.Metadata.Annotations[AnnotationKeySwaggerURL]
 	swaggerDoc, docOk := us.Metadata.Annotations[AnnotationKeySwaggerDoc]
 	if !urlOk && !docOk {
-		return nil, errors.Errorf("one of %v or %v must be set in the annotation for a swagger upstream")
+		return nil, errors.Errorf("one of %v or %v must be set in the annotation for a swagger upstream", AnnotationKeySwaggerURL, AnnotationKeySwaggerDoc)
 	}
 	return &Spec{
 		SwaggerURL:       swaggerUrl,
