@@ -1,6 +1,6 @@
 
 <h1 align="center">
-    <img src="https://i.imgur.com/D1tw77U.png" alt="squash" width="200" height="242">
+    <img src="Gloo-01.png" alt="squash" width="200" height="242">
   <br>
   The Function Gateway
 </h1>
