@@ -39,6 +39,11 @@ func (p *functionAndClusterRoutingInitializer) ProcessUpstream(params *plugin.Up
 		if err != nil {
 			return errors.Wrapf(err, "processing function %v/%v failed", in.Name, function.Name)
 		}
+		// not all functions are meant to have specs
+		// for example translation filter
+		if envoyFunctionSpec == nil {
+			continue
+		}
 		addEnvoyFunctionSpec(out, function.Name, envoyFunctionSpec)
 	}
 	timeout := in.ConnectionTimeout
@@ -56,15 +61,16 @@ func (p *functionAndClusterRoutingInitializer) getFunctionSpec(upstreamType stri
 		}
 		envoyFunctionSpec, err := functionPlugin.ParseFunctionSpec(params, spec)
 		if err != nil {
-			return nil, errors.Wrap(err, "invalid spec")
+			return nil, errors.Wrap(err, "invalid function spec")
 		}
-		// wait until we
+		// try until we get a plugin that handles this function
 		if envoyFunctionSpec == nil {
 			continue
 		}
 		return envoyFunctionSpec, nil
 	}
-	return nil, errors.New("plugin not found")
+	// no function plugin found
+	return nil, nil
 }
 
 func addEnvoyFunctionSpec(out *envoyapi.Cluster, funcName string, spec *types.Struct) {
