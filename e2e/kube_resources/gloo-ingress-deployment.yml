@@ -16,7 +16,7 @@ spec:
         app: gloo-ingress
     spec:
       containers:
-      - image: solo-io/gloo-ingress:v0.1
+      - image: soloio/gloo-ingress:v0.1
         imagePullPolicy: Never
         name: gloo-ingress
         env:

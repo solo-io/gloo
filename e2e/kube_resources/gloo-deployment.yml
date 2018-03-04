@@ -16,7 +16,7 @@ spec:
         app: gloo
     spec:
       containers:
-      - image: solo-io/gloo:v0.1
+      - image: soloio/gloo:v0.1
         imagePullPolicy: Never
         name: gloo
         ports:

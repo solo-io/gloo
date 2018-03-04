@@ -1,2 +1,2 @@
 docker:
-	docker build -t solo-io/testrunner:v0.1 .
+	docker build -t soloio/testrunner:v0.1 .

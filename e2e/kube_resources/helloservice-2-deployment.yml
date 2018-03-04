@@ -16,7 +16,7 @@ spec:
         app: helloservice-2
     spec:
       containers:
-      - image: solo-io/helloservice:v0.1
+      - image: soloio/helloservice:v0.1
         imagePullPolicy: Never
         name: helloservice-2
         args:

@@ -16,7 +16,7 @@ spec:
         app: upstream-for-events
     spec:
       containers:
-      - image: solo-io/upstream-for-events:v0.1
+      - image: soloio/upstream-for-events:v0.1
         imagePullPolicy: Never
         name: upstream-for-events
         ports:

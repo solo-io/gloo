@@ -16,7 +16,7 @@ spec:
         app: event-emitter
     spec:
       containers:
-      - image: solo-io/event-emitter:v0.1
+      - image: soloio/event-emitter:v0.1
         imagePullPolicy: Never
         name: event-emitter
         ports:

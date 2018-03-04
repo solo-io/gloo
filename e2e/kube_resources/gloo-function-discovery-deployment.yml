@@ -16,7 +16,7 @@ spec:
         app: gloo-function-discovery
     spec:
       containers:
-      - image: solo-io/gloo-function-discovery:v0.1
+      - image: soloio/gloo-function-discovery:v0.1
         name: gloo-function-discovery
         env:
         - name: GRPC_TRACE

@@ -16,7 +16,7 @@ spec:
         app: gloo-k8s-service-discovery
     spec:
       containers:
-      - image: solo-io/gloo-k8s-service-discovery:v0.1
+      - image: soloio/gloo-k8s-service-discovery:v0.1
         imagePullPolicy: Never
         name: gloo-k8s-service-discovery
         ports:
