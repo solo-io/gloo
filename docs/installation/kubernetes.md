@@ -62,6 +62,4 @@ svc/gloo    ClusterIP   10.104.86.18    <none>        8081/TCP                  
 
 ```
 
-While we wait for some pods to run, let's deploy a service to route to. Nginx will do nicely for this purpose. 
-
-create some Upstreams and Virtual Hosts for Gloo to route to.
+See [Getting Started on Kubernetes](../getting_started/kubernetes.md) to get started creating routes with Gloo
