@@ -1,5 +1,5 @@
 <h1 align="center">
-    <img src="GlooPlugin-01.png" alt="squash" width="200" height="140">
+    <img src="GlooPlugin-01.png" alt="Gloo Plugins" width="300" height="210">
   <br>
 </h1>
 
