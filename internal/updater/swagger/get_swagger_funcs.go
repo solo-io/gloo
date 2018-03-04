@@ -68,9 +68,10 @@ func createFunctionsForPath(basePath, functionPath string, path spec.PathItemPro
 	return pathFunctions
 }
 
-func createFunctionForOpertaion(method string, basePath, functionPath string, operation spec.OperationProps, defintions spec.Definitions) *v1.Function {
+func createFunctionForOpertaion(method string, basePath, functionPath string, operation spec.OperationProps, definitions spec.Definitions) *v1.Function {
 	var queryParams, headerParams []string
-	bodyParams := make(map[string]spec.SchemaProps)
+	//bodyParams := make(map[string]spec.SchemaProps)
+	var body string
 	for _, param := range operation.Parameters {
 		// sort parameters by the template they will go into
 		switch param.In {
@@ -83,7 +84,10 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 		case "formData":
 			log.Warnf("form data params not currently supported; ignoring")
 		case "body":
-			bodyParams[param.Name] = param.Schema.SchemaProps
+			log.Printf("body parameter name: %v", param.Name)
+			log.Printf("doing definitions, %v", definitions)
+			body = getBodyTemplate(param.Name, definitions[param.Name].SchemaProps, definitions)
+			//bodyParams[param.Name] = param.Schema.SchemaProps
 		}
 	}
 
@@ -102,64 +106,40 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 		Spec: transformation.EncodeFunctionSpec(transformation.FunctionSpec{
 			Path:   path,
 			Header: headersTemplate,
-			Body:   constructBodyTemplate("", bodyParams, defintions),
+			Body:   body,
 		}),
 	}
 }
 
-// TODO: make the body template constructor much more sophistocated
-// right now it's only supporting primitive fields (not nested objects)
-func constructBodyTemplate(jsonPathPrefix string, bodyParams map[string]spec.SchemaProps, definitions spec.Definitions) string {
-	if len(bodyParams) == 0 {
-		return ""
-	}
+func getBodyTemplate(parent string, schema spec.SchemaProps, definitions spec.Definitions) string {
 	bodyTemplate := "{"
 	var fields []string
-	for name, schema := range bodyParams {
-		valueName := name
-		if jsonPathPrefix != "" {
-			valueName = jsonPathPrefix + "." + name
-		}
+	for key, prop := range schema.Properties {
+		def := getDefinitionFor(prop.Ref, definitions)
 		switch {
-		case strings.HasPrefix(schema.Ref.String(), "#/definitions/"):
-			// nested object case
-			refName := strings.TrimPrefix(schema.Ref.String(), "#/definitions/")
-			log.Printf("doing %v", refName)
-			props, ok := definitions[refName]
-			if !ok {
-				log.Fatalf("%v not found in %v", refName, definitions)
-			}
-			nestedSchemas := make(map[string]spec.SchemaProps)
-			for key, prop := range props.Properties {
-				nestedSchemas[key] = prop.SchemaProps
-			}
-			for _, prop := range props.AllOf {
-				key := strings.TrimPrefix(prop.Ref.String(), "#/definitions/")
-				if key == "" {
-					continue
-				}
-				nestedProps, ok := definitions[key]
-				if !ok {
-					log.Fatalf("%v not found in %v", key, prop, definitions)
-				}
-				nestedSchemas[key] = nestedProps.SchemaProps
-			}
-			log.Printf("%v nestedSchemas: %v", name, nestedSchemas, props.Properties)
-			fields = append(fields, fmt.Sprintf(`"%v": %v`, name, constructBodyTemplate(valueName, nestedSchemas, definitions)))
-
+		case def != nil:
+			log.Printf("found def %v for %v", def.Type, key)
+			fields = append(fields, fmt.Sprintf(`"%v": "{{%v.%v}}"`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions)))
 		case schema.Type.Contains("string"):
 			// string needs escaping
-			fields = append(fields, fmt.Sprintf(`"%v": "{{%v}}"`, name, valueName))
+			fields = append(fields, fmt.Sprintf(`"%v": "{{%v.%v}}"`, key, parent, key))
 		default:
-			fields = append(fields, fmt.Sprintf(`"%v": {{%v}}`, name, valueName))
+			fields = append(fields, fmt.Sprintf(`"%v": {{%v.%v}}`, key, parent, key))
 		}
-		log.Printf("schema ref: %v", schema.Ref.RemoteURI())
-		log.Printf("schema ref: %v", schema.Ref.String())
 	}
 	bodyTemplate += strings.Join(fields, ",")
 	bodyTemplate += "}"
-	log.Debugf("constructing template for body param: %v: %v", bodyParams, bodyTemplate)
+	log.Printf("body template for %v: %v", schema, bodyTemplate)
 	return bodyTemplate
+}
+
+func getDefinitionFor(ref spec.Ref, definitions spec.Definitions) *spec.Schema {
+	refName := strings.TrimPrefix(ref.String(), "#/definitions/")
+	schema, ok := definitions[refName]
+	if !ok {
+		return nil
+	}
+	return &schema
 }
 
 func swaggerPathToJinjaTemplate(path string) string {
