@@ -381,7 +381,7 @@
     "kubernetes",
     "transformation"
   ]
-  revision = "ec1d15bc75b02221975e17a781e98d6f1e903429"
+  revision = "15415f10c2832fac55a3f319495df84860a2e170"
 
 [[projects]]
   branch = "master"
