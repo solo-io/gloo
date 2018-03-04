@@ -118,6 +118,12 @@ spec:
   selector:
     gloo: control-plane
 
+
+
+
+
+
+
 ##########################
 #                        #
 #                        #
@@ -248,6 +254,9 @@ data:
           port_value: 19000
 
 
+
+
+
 ##########################
 #                        #
 #                        #
@@ -319,4 +328,52 @@ spec:
         - "--storage.refreshrate=30m"
         - "--secrets.type=kube"
         - "--secrets.refreshrate=30m"
+        - "--kube.namespace=gloo-system"
+
+
+
+
+
+
+
+##########################
+#                        #
+#      Kubernetes        #
+#      Ingress           #
+#      Controller        #
+#                        #
+##########################
+
+---
+# ingress controller deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    gloo: ingress-controller
+  name: ingress-controller
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      gloo: ingress-controller
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        gloo: ingress-controller
+    spec:
+      containers:
+      - image: soloio/ingress-controller:v0.1
+        name: ingress-controller
+        env:
+        - name: DEBUG
+          value: "1"
+        - name: GRPC_TRACE
+          value: all
+        command: ["/ingress-controller"]
+        args:
+        - "--service=envoy"
+        - "--syncperiod=30m"
+        - "--storage.type=kube"
         - "--kube.namespace=gloo-system"
