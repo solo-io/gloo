@@ -11,7 +11,7 @@ kind: ConfigMap
 metadata:
   name: website-example
 data:
-  contact.html: |
+  index.html: |
     <!DOCTYPE html>
     <html>
       <head>
