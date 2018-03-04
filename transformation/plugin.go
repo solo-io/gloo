@@ -16,6 +16,7 @@ import (
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
@@ -66,9 +67,9 @@ func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Rou
 	}
 	// headers we support submatching on
 	// custom as well as the path and authority/host header
-	addHeaderExtractorFromParam(":path", extension.TransformationParameters.Path, extractors)
-	addHeaderExtractorFromParam(":authority", extension.TransformationParameters.Authority, extractors)
-	for headerName, headerValue := range extension.TransformationParameters.Header {
+	addHeaderExtractorFromParam(":path", extension.Parameters.Path, extractors)
+	addHeaderExtractorFromParam(":authority", extension.Parameters.Authority, extractors)
+	for headerName, headerValue := range extension.Parameters.Headers {
 		addHeaderExtractorFromParam(headerName, headerValue, extractors)
 	}
 
@@ -85,7 +86,8 @@ func addHeaderExtractorFromParam(header, parameter string, extractors map[string
 		return
 	}
 	// remember that the order of the param names correlates with their order in the regex
-	paramNames, pathRegexMatcher := getNamesAndRegexFromParamString(parameter)
+	paramNames, regexMatcher := getNamesAndRegexFromParamString(parameter)
+	log.Debugf("transformation pluginN: extraction for header %v: parameters: %v regex matcher: %v", header, paramNames, regexMatcher)
 	// if no regex, this is a "default variable" that the user gets for free
 	if len(paramNames) == 0 {
 		// extract everything
@@ -102,7 +104,7 @@ func addHeaderExtractorFromParam(header, parameter string, extractors map[string
 	for i, name := range paramNames {
 		extract := &Extraction{
 			Header:   header,
-			Regex:    pathRegexMatcher,
+			Regex:    regexMatcher,
 			Subgroup: uint32(i + 1),
 		}
 		extractors[name] = extract

@@ -7,7 +7,7 @@ import (
 
 // this goes on the route extension
 type RouteExtension struct {
-	TransformationParameters Parameters `json:"transformation_parameters"`
+	Parameters Parameters `json:"parameters"`
 }
 
 type Parameters struct {
@@ -22,7 +22,7 @@ type Parameters struct {
 		output:
 			body_template: "{\"path\": {{ path }}}"
 	*/
-	Header    map[string]string `json:"header"`
+	Headers   map[string]string `json:"headers"`
 	Path      string            `json:"path,omitempty"`
 	Authority string            `json:"authority"`
 	//TODO: support query params

@@ -95,9 +95,9 @@ func NewSingleDestRoute(upstreamName, functionName string) *v1.Route {
 			},
 		},
 		Extensions: EncodeRouteExtension(RouteExtension{
-			TransformationParameters: Parameters{
-				Path:   "/u(se)rs/{id}/accounts/{account}",
-				Header: map[string]string{"content-type": "application/{type}"},
+			Parameters: Parameters{
+				Path:    "/u(se)rs/{id}/accounts/{account}",
+				Headers: map[string]string{"content-type": "application/{type}"},
 			},
 		}),
 	}
