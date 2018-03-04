@@ -34,15 +34,15 @@ func GetFuncs(us *v1.Upstream) ([]*v1.Function, error) {
 	// TODO: when response transformation is done, look at produces as well
 	var funcs []*v1.Function
 	for functionPath, pathItem := range swaggerSpec.Paths.Paths {
-		funcs = append(funcs, createFunctionsForPath(swaggerSpec.BasePath, functionPath, pathItem.PathItemProps)...)
+		funcs = append(funcs, createFunctionsForPath(swaggerSpec.BasePath, functionPath, pathItem.PathItemProps, swaggerSpec.Definitions)...)
 	}
 	return funcs, nil
 }
 
-func createFunctionsForPath(basePath, functionPath string, path spec.PathItemProps) []*v1.Function {
+func createFunctionsForPath(basePath, functionPath string, path spec.PathItemProps, definitions spec.Definitions) []*v1.Function {
 	var pathFunctions []*v1.Function
 	appendFunction := func(method string, operation *spec.Operation) {
-		pathFunctions = append(pathFunctions, createFunctionForOpertaion(method, basePath, functionPath, operation.OperationProps))
+		pathFunctions = append(pathFunctions, createFunctionForOpertaion(method, basePath, functionPath, operation.OperationProps, definitions))
 	}
 	if path.Get != nil {
 		appendFunction("GET", path.Get)
@@ -68,14 +68,14 @@ func createFunctionsForPath(basePath, functionPath string, path spec.PathItemPro
 	return pathFunctions
 }
 
-func createFunctionForOpertaion(method string, basePath, functionPath string, operation spec.OperationProps) *v1.Function {
+func createFunctionForOpertaion(method string, basePath, functionPath string, operation spec.OperationProps, defintions spec.Definitions) *v1.Function {
 	var queryParams, headerParams []string
 	bodyParams := make(map[string]spec.SchemaProps)
 	for _, param := range operation.Parameters {
 		// sort parameters by the template they will go into
 		switch param.In {
 		case "query":
-			queryParams = append(queryParams, fmt.Sprintf("%v={%v}", param.Name, param.Name))
+			queryParams = append(queryParams, fmt.Sprintf("%v={{%v}}", param.Name, param.Name))
 		case "header":
 			headerParams = append(headerParams, param.Name)
 		case "path":
@@ -102,25 +102,63 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 		Spec: transformation.EncodeFunctionSpec(transformation.FunctionSpec{
 			Path:   path,
 			Header: headersTemplate,
-			Body:   constructBodyTemplate(bodyParams),
+			Body:   constructBodyTemplate("", bodyParams, defintions),
 		}),
 	}
 }
 
 // TODO: make the body template constructor much more sophistocated
 // right now it's only supporting primitive fields (not nested objects)
-func constructBodyTemplate(bodyParams map[string]spec.SchemaProps) string {
+func constructBodyTemplate(jsonPathPrefix string, bodyParams map[string]spec.SchemaProps, definitions spec.Definitions) string {
+	if len(bodyParams) == 0 {
+		return ""
+	}
 	bodyTemplate := "{"
 	var fields []string
 	for name, schema := range bodyParams {
-		if schema.Type.Contains("string") {
-			// if it's a string, need to do quotes
-			fields = append(fields, fmt.Sprintf(`"%v": "{{%v}}"`, name, name))
-		} else {
-			fields = append(fields, fmt.Sprintf(`"%v": {{%v}}`, name, name))
+		valueName := name
+		if jsonPathPrefix != "" {
+			valueName = jsonPathPrefix + "." + name
 		}
+		switch {
+		case strings.HasPrefix(schema.Ref.String(), "#/definitions/"):
+			// nested object case
+			refName := strings.TrimPrefix(schema.Ref.String(), "#/definitions/")
+			log.Printf("doing %v", refName)
+			props, ok := definitions[refName]
+			if !ok {
+				log.Fatalf("%v not found in %v", refName, definitions)
+			}
+			nestedSchemas := make(map[string]spec.SchemaProps)
+			for key, prop := range props.Properties {
+				nestedSchemas[key] = prop.SchemaProps
+			}
+			for _, prop := range props.AllOf {
+				key := strings.TrimPrefix(prop.Ref.String(), "#/definitions/")
+				if key == "" {
+					continue
+				}
+				nestedProps, ok := definitions[key]
+				if !ok {
+					log.Fatalf("%v not found in %v", key, prop, definitions)
+				}
+				nestedSchemas[key] = nestedProps.SchemaProps
+			}
+			log.Printf("%v nestedSchemas: %v", name, nestedSchemas, props.Properties)
+			fields = append(fields, fmt.Sprintf(`"%v": %v`, name, constructBodyTemplate(valueName, nestedSchemas, definitions)))
+
+		case schema.Type.Contains("string"):
+			// string needs escaping
+			fields = append(fields, fmt.Sprintf(`"%v": "{{%v}}"`, name, valueName))
+		default:
+			fields = append(fields, fmt.Sprintf(`"%v": {{%v}}`, name, valueName))
+		}
+		log.Printf("schema ref: %v", schema.Ref.RemoteURI())
+		log.Printf("schema ref: %v", schema.Ref.String())
 	}
+	bodyTemplate += strings.Join(fields, ",")
 	bodyTemplate += "}"
+	log.Debugf("constructing template for body param: %v: %v", bodyParams, bodyTemplate)
 	return bodyTemplate
 }
 
