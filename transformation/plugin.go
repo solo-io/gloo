@@ -23,9 +23,10 @@ import (
 //go:generate protoc -I=. -I=${GOPATH}/src/github.com/gogo/protobuf/ --gogo_out=. transformation_filter.proto
 
 const (
-	filterName  = "io.solo.transformation"
-	metadataKey = "transformation"
-	pluginStage = plugin.PreOutAuth
+	filterName           = "io.solo.transformation"
+	metadataRequestKey   = "request-transformation"
+	metadataResponsetKey = "repsonse-transformation"
+	pluginStage          = plugin.PreOutAuth
 )
 
 func init() {
@@ -173,7 +174,7 @@ func (p *Plugin) setTransformationForFunction(upstreams []*v1.Upstream, dest *v1
 	if out.Metadata == nil {
 		out.Metadata = &envoycore.Metadata{}
 	}
-	filterMetadata := common.InitFilterMetadataField(filterName, metadataKey, out.Metadata)
+	filterMetadata := common.InitFilterMetadataField(filterName, metadataRequestKey, out.Metadata)
 	filterMetadata.Kind = &types.Value_StringValue{StringValue: hash}
 
 	return nil
