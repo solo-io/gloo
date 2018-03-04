@@ -377,7 +377,9 @@
   name = "github.com/solo-io/gloo-plugins"
   packages = [
     "aws",
-    "kubernetes"
+    "google",
+    "kubernetes",
+    "transformation"
   ]
   revision = "09e83fb7bad976d250cfc97e02d4c7e2ef5998c0"
 
@@ -790,6 +792,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f53e52c324ab7461d0c7c240b7c99e064dc7be27c18178a9507fa498f9cd37bc"
+  inputs-digest = "097008ddf7d55ade65f863e386669790be41cd7c249e1c17a03df1ff284c93d7"
   solver-name = "gps-cdcl"
   solver-version = 1
