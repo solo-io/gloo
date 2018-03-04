@@ -1,3 +1,3 @@
 FROM scratch
-COPY gloo-ingress /
-ENTRYPOINT ["/gloo-ingress"]
+COPY gloo-ingress-controller /
+ENTRYPOINT ["/gloo-ingress-controller"]

@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/solo-io/gloo-ingress/ingress"
+	"github.com/solo-io/gloo-ingress-controller/ingress"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo-storage/crd"
 	"github.com/solo-io/gloo-storage/file"
