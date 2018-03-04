@@ -109,7 +109,7 @@ kind: Service
 metadata:
   name: gloo
   labels:
-    sevice: gloo
+    gloo: control-plane
   namespace: gloo-system
 spec:
   ports:
