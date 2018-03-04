@@ -16,20 +16,19 @@ const (
 // TODO: create service spec on upstreams themselves
 // this is needed for NATS, etc. various service types
 // that can be a subclass of an upstream type
-type Spec struct {
-	SwaggerURL       string `json:"swagger_url"`
-	InlineSwaggerDoc string `json:"inline_swagger_doc"`
-	//TODO: support swagger relative path (get the full url by communicating with gloo)
+type Annotations struct {
+	SwaggerURL       string
+	InlineSwaggerDoc string
 }
 
 // TODO: discover & set this annotation key on upstreams by checking for user-provided & common swagger urls
-func GetSwaggerAnnotations(us *v1.Upstream) (*Spec, error) {
+func GetSwaggerAnnotations(us *v1.Upstream) (*Annotations, error) {
 	swaggerUrl, urlOk := us.Metadata.Annotations[AnnotationKeySwaggerURL]
 	swaggerDoc, docOk := us.Metadata.Annotations[AnnotationKeySwaggerDoc]
 	if !urlOk && !docOk {
 		return nil, errors.Errorf("one of %v or %v must be set in the annotation for a swagger upstream", AnnotationKeySwaggerURL, AnnotationKeySwaggerDoc)
 	}
-	return &Spec{
+	return &Annotations{
 		SwaggerURL:       swaggerUrl,
 		InlineSwaggerDoc: swaggerDoc,
 	}, nil

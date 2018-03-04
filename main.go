@@ -23,16 +23,19 @@ func main() {
 }
 
 var opts bootstrap.Options
+var autoDiscoverSwagger bool
+var swaggerUrisToTry []string
 
 var rootCmd = &cobra.Command{
 	Use:   "gloo-function-discovery",
 	Short: "discovers functions for swagger, google functions, and lambda upstreams",
+
 	RunE: func(cmd *cobra.Command, args []string) error {
 		stop := signals.SetupSignalHandler()
 		errs := make(chan error)
 
 		finished := make(chan error)
-		go func() { finished <- eventloop.Run(opts, stop, errs) }()
+		go func() { finished <- eventloop.Run(opts, autoDiscoverSwagger, swaggerUrisToTry, stop, errs) }()
 		go func() {
 			for {
 				select {
@@ -47,11 +50,11 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	// config watcher
-	rootCmd.PersistentFlags().StringVar(&opts.ConfigWatcherOptions.Type, "storage.type", bootstrap.WatcherTypeFile, fmt.Sprintf("storage backend for config objects. supported: [%s]", strings.Join(bootstrap.SupportedCwTypes, " | ")))
+	rootCmd.PersistentFlags().StringVar(&opts.ConfigWatcherOptions.Type, "storage.type", bootstrap.WatcherTypeKube, fmt.Sprintf("storage backend for config objects. supported: [%s]", strings.Join(bootstrap.SupportedCwTypes, " | ")))
 	rootCmd.PersistentFlags().DurationVar(&opts.ConfigWatcherOptions.SyncFrequency, "storage.refreshrate", time.Second, "refresh rate for polling config")
 
 	// secret watcher
-	rootCmd.PersistentFlags().StringVar(&opts.SecretWatcherOptions.Type, "secrets.type", bootstrap.WatcherTypeFile, fmt.Sprintf("storage backend for secrets. supported: [%s]", strings.Join(bootstrap.SupportedSwTypes, " | ")))
+	rootCmd.PersistentFlags().StringVar(&opts.SecretWatcherOptions.Type, "secrets.type", bootstrap.WatcherTypeKube, fmt.Sprintf("storage backend for secrets. supported: [%s]", strings.Join(bootstrap.SupportedSwTypes, " | ")))
 	rootCmd.PersistentFlags().DurationVar(&opts.SecretWatcherOptions.SyncFrequency, "secrets.refreshrate", time.Second, "refresh rate for polling secrets")
 
 	// file
@@ -67,4 +70,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&opts.VaultOptions.VaultAddr, "vault.addr", "", "url for vault server")
 	rootCmd.PersistentFlags().StringVar(&opts.VaultOptions.AuthToken, "vault.token", "", "auth token for reading vault secrets")
 	rootCmd.PersistentFlags().IntVar(&opts.VaultOptions.Retries, "vault.retries", 3, "number of times to retry failed requests to vault")
+
+	// discovery for swagger upstreams
+	rootCmd.PersistentFlags().BoolVar(&autoDiscoverSwagger, "autodiscover-swagger-upstreams", true, "enable automatic discovery of swagger upstreams by querying known Kubernetes and Service upstreams for a 200 OK on common swagger.json paths. Custom swagger.json paths can be specified with --swagger-uri")
+	rootCmd.PersistentFlags().StringSliceVar(&swaggerUrisToTry, "swagger-uri", []string{}, "paths function discovery should try to use to discover swagger services. function discovery will query http://<upstream>/<uri> for the swagger.json document. if found, swagger functions will be discovered for this upstream.")
 }

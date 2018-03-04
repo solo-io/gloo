@@ -7,26 +7,29 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-function-discovery/internal/swagger"
 	"github.com/solo-io/gloo-function-discovery/internal/updater"
 	"github.com/solo-io/gloo-function-discovery/internal/upstreamwatcher"
-	"github.com/solo-io/gloo-function-discovery/pkg/functiontypes"
+	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo-storage/crd"
 	"github.com/solo-io/gloo-storage/file"
 	"github.com/solo-io/gloo/pkg/bootstrap"
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 	filesecrets "github.com/solo-io/gloo/pkg/secretwatcher/file"
 	kubesecrets "github.com/solo-io/gloo/pkg/secretwatcher/kube"
 	"github.com/solo-io/gloo/pkg/secretwatcher/vault"
+	"k8s.io/client-go/kubernetes"
 )
 
-func Run(opts bootstrap.Options, stop <-chan struct{}, errs chan error) error {
+func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []string, stop <-chan struct{}, errs chan error) error {
 	store, err := createStorageClient(opts)
 	if err != nil {
 		return errors.Wrap(err, "failed to create config store client")
 	}
 
-	upstreams, err := upstreamwatcher.WatchUpstreams(store, upstreamSelectionFunction, stop, errs)
+	upstreams, err := upstreamwatcher.WatchUpstreams(store, stop, errs)
 	if err != nil {
 		return errors.Wrap(err, "failed to start monitoring upstreams")
 	}
@@ -35,6 +38,8 @@ func Run(opts bootstrap.Options, stop <-chan struct{}, errs chan error) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to set up secret watcher")
 	}
+
+	resolver := createResolver(opts)
 
 	var cache struct {
 		secrets   secretwatcher.SecretMap
@@ -47,6 +52,9 @@ func Run(opts bootstrap.Options, stop <-chan struct{}, errs chan error) error {
 			refs := updater.GetSecretRefsToWatch(cache.upstreams)
 			secretWatcher.TrackSecrets(refs)
 		}()
+		if autoDiscoverSwagger {
+			swagger.DiscoverSwaggerUpstreams(resolver, swaggerUrisToTry, cache.upstreams)
+		}
 		if err := updater.UpdateFunctionalUpstreams(store, cache.upstreams, cache.secrets); err != nil {
 			errs <- err
 		}
@@ -68,10 +76,6 @@ func Run(opts bootstrap.Options, stop <-chan struct{}, errs chan error) error {
 			return nil
 		}
 	}
-}
-
-func upstreamSelectionFunction(us *v1.Upstream) bool {
-	return functiontypes.GetFunctionType(us) != functiontypes.NonFunctional
 }
 
 func createStorageClient(opts bootstrap.Options) (storage.Interface, error) {
@@ -98,6 +102,24 @@ func createStorageClient(opts bootstrap.Options) (storage.Interface, error) {
 		return cfgWatcher, nil
 	}
 	return nil, errors.Errorf("unknown or unspecified config watcher type: %v", opts.ConfigWatcherOptions.Type)
+}
+
+func createResolver(opts bootstrap.Options) *resolver.Resolver {
+	kube, err := func() (kubernetes.Interface, error) {
+		cfg, err := clientcmd.BuildConfigFromFlags(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig)
+		if err != nil {
+			return nil, err
+		}
+		kube, err := kubernetes.NewForConfig(cfg)
+		if err != nil {
+			return nil, err
+		}
+		return kube, nil
+	}()
+	if err != nil {
+		log.Warnf("create kube client failed: %v. swagger services running in kubernetes will not be discovered by function discovery")
+	}
+	return &resolver.Resolver{Kube: kube}
 }
 
 func setupSecretWatcher(opts bootstrap.Options, stop <-chan struct{}) (secretwatcher.Interface, error) {

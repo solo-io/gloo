@@ -90,10 +90,52 @@ func updateUpstreamWithFuncs(gloo storage.Interface, us *v1.Upstream, funcs []*v
 	if functionListsEqual(us.Functions, funcs) {
 		return nil
 	}
-	us.Functions = funcs
+
+	// because upstream may have updated
+	// try to reduce races
+	usToUpdate, err := gloo.V1().Upstreams().Get(us.Name)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get existing upstream with name %v", us.Name)
+	}
+	usToUpdate.Functions = mergeFuncs(usToUpdate.Functions, funcs)
+	usToUpdate.Metadata.Annotations = mergeAnnotations(usToUpdate.Metadata.Annotations, us.Metadata.Annotations)
+
 	localCache[us.Name] = funcs
-	_, err := gloo.V1().Upstreams().Update(us)
+	_, err = gloo.V1().Upstreams().Update(usToUpdate)
 	return err
+}
+
+// get the unique set of funcs between two lists
+// if conflict, new wins
+func mergeFuncs(oldFuncs, newFuncs []*v1.Function) []*v1.Function {
+	var notReplaced []*v1.Function
+	for _, oldFunc := range oldFuncs {
+		var replace bool
+		for _, newFunc := range newFuncs {
+			if newFunc.Name == oldFunc.Name {
+				replace = true
+				break
+			}
+		}
+		if replace {
+			continue
+		}
+		notReplaced = append(notReplaced, oldFunc)
+	}
+	return append(notReplaced, newFuncs...)
+}
+
+// get the unique set of funcs between two lists
+// if conflict, new wins
+func mergeAnnotations(oldAnnotations, newAnnotations map[string]string) map[string]string {
+	merged := make(map[string]string)
+	for k, v := range oldAnnotations {
+		merged[k] = v
+	}
+	for k, v := range newAnnotations {
+		merged[k] = v
+	}
+	return merged
 }
 
 func functionListsEqual(funcs1, funcs2 []*v1.Function) bool {
