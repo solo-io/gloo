@@ -1,0 +1,61 @@
+
+##########################
+#                        #
+#        Example         #
+#        Config          #
+#                        #
+#                        #
+##########################
+# petstore service
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: petstore
+  name: petstore
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: petstore
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: petstore
+    spec:
+      containers:
+      - image: soloio/petstore-example:latest
+        name: petstore
+        ports:
+        - containerPort: 8344
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petstore
+  namespace: petstore
+  labels:
+    sevice: petstore
+spec:
+  ports:
+  - port: 8344
+    protocol: TCP
+  selector:
+    app: petstore
+
+---
+# virtual host for gloo
+apiVersion: gloo.solo.io/v1
+kind: VirtualHost
+metadata:
+  name: default
+  namespace: default
+spec:
+  routes:
+  - request_matcher:
+      path_prefix: /
+    single_destination:
+      upstream:
+        name: default-petstore-8344
