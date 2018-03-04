@@ -246,6 +246,17 @@ data:
         socket_address:
           address: 0.0.0.0
           port_value: 19000
+
+
+##########################
+#                        #
+#                        #
+#         Discovery      #
+#         Services       #
+#                        #
+##########################
+
+
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -257,16 +268,21 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: k8s-service-discovery
+      gloo: k8s-service-discovery
   replicas: 1
   template:
     metadata:
       labels:
-        app: k8s-service-discovery
+        gloo: k8s-service-discovery
     spec:
       containers:
-      - image: soloio/gloo-k8s-service-discovery:0e6dd050
+      - image: soloio/gloo-k8s-service-discovery:v0.1
         name: k8s-service-discovery
+        env:
+        - name: GRPC_TRACE
+          value: "all"
+        - name: DEBUG
+          value: "1"
         args:
         - "--storage.type=kube"
         - "--syncperiod=30m"
@@ -282,19 +298,21 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: function-discovery
+      gloo: function-discovery
   replicas: 1
   template:
     metadata:
       labels:
-        app: function-discovery
+        gloo: function-discovery
     spec:
       containers:
-      - image: soloio/gloo-function-discovery@sha256:94603228c0d87ae42ab4fc979657591efc85be1deecaf955ab78ab82881cb8f2
+      - image: soloio/gloo-function-discovery:v0.1
         name: function-discovery
         env:
         - name: GRPC_TRACE
-          value: all
+          value: "all"
+        - name: DEBUG
+          value: "1"
         command: ["/gloo-function-discovery"]
         args:
         - "--storage.type=kube"
@@ -302,5 +320,3 @@ spec:
         - "--secrets.type=kube"
         - "--secrets.refreshrate=30m"
         - "--kube.namespace=gloo-system"
-
-
