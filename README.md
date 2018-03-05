@@ -2,11 +2,10 @@
 <h1 align="center">
     <img src="Gloo-01.png" alt="Gloo" width="200" height="242">
   <br>
-  Welcome to Gloo, The Function Gateway
 </h1>
 
 
-<h4 align="center"></h4>
+<h4 align="center">Welcome to Gloo, The Function Gateway</h4>
 <BR>
 
 Gloo is a function gateway built on top of the [Envoy Proxy](https://www.Envoyproxy.io). Gloo provides a unified entry point
