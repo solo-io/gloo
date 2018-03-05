@@ -24,13 +24,14 @@
 Let's verify this:
 
         kubectl get upstreams -n gloo-system
+        
         NAME                        AGE
-        default-petstore-8344       1h
+        default-petstore-8080       1h
         gloo-system-gloo-8081       1h
         gloo-system-ingress-8080    1h
         gloo-system-ingress-8443    1h
 
-    The upstream we want to see is `default-petstore-8344`. Digging a little deeper,
+    The upstream we want to see is `default-petstore-8080`. Digging a little deeper,
     we can verify that Gloo's function discovery populated our upstream with 
     the available rest endpoints it implements. Note: the upstream was created in 
     the `gloo-system` namespace rather than `default` because it was created by a
@@ -39,15 +40,16 @@ Let's verify this:
     
 1. Let's take a closer look at the functions that are available on this upstream (edited here to reduce verbosity):
     
-        kubectl get upstream -n gloo-system default-petstore-8344 -o yaml
+        kubectl get upstream -n gloo-system default-petstore-8080 -o yaml
+        
         apiVersion: gloo.solo.io/v1
         kind: Upstream
         metadata:
           annotations:
             generated_by: kubernetes-upstream-discovery
             gloo.solo.io/service-type: swagger
-            gloo.solo.io/swagger_url: http://petstore.default.svc.cluster.local:8344/swagger.json
-          name: default-petstore-8344
+            gloo.solo.io/swagger_url: http://petstore.default.svc.cluster.local:8080/swagger.json
+          name: default-petstore-8080
           namespace: gloo-system
         spec:
           functions:
@@ -79,14 +81,35 @@ Let's verify this:
             labels: null
             service_name: petstore
             service_namespace: default
-            service_port: 8344
+            service_port: 8080
           type: kubernetes
         status:
           state: 1
     
 1. Let's now use `glooctl` to create a route for this upstream.
 
+        glooctl route create \
+          --path-exact /getPet1 \
+          --upstream default-petstore-8080 \
+          --function findPetById
 
+    With `glooctl`, we can see that a virtual host was created with our route:
+
+        glooctl virtualhost get -o yaml
+        
+        metadata:
+          namespace: gloo-system
+          resource_version: "3052"
+        name: default
+        routes:
+        - request_matcher:
+            path_exact: /getpet
+          single_destination:
+            function:
+              function_name: findPetById
+              upstream_name: default-petstore-8080
+        status:
+          state: Accepted
 
 
 1. Let's create route to `addPet`.

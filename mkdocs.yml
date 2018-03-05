@@ -1,6 +1,6 @@
 site_name: gloo
 pages:
-    - Index: index.md
+#    - Index: index.md
     - About gloo:
       - Introduction: introduction/introduction.md
       - Concepts: introduction/concepts.md
