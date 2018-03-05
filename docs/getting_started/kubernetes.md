@@ -89,9 +89,8 @@ Let's verify this:
 1. Let's now use `glooctl` to create a route for this upstream.
 
         glooctl route create \
-          --path-exact /getPet1 \
-          --upstream default-petstore-8080 \
-          --function findPetById
+          --path-exact /api/pets \
+          --upstream default-petstore-8080
 
     With `glooctl`, we can see that a virtual host was created with our route:
 
@@ -103,21 +102,26 @@ Let's verify this:
         name: default
         routes:
         - request_matcher:
-            path_exact: /getpet
+            path_exact: /api/pets
           single_destination:
-            function:
-              function_name: findPetById
-              upstream_name: default-petstore-8080
+            upstream:
+              name: default-petstore-8080
         status:
           state: Accepted
 
+1. Let's test the route `/api/pets` using `curl`:
 
-1. Let's create route to `addPet`.
+        export GATEWAY_ADDR=$(kubectl get po -l gloo=ingress -n gloo-system -o 'jsonpath={.items[0].status.hostIP}'):$(kubectl get svc ingress -n gloo-system -o 'jsonpath={.spec.ports[?(@.name=="http")].nodePort}')
+        export GATEWAY_URL=http://$GATEWAY_ADDR
+            
+        curl ${GATEWAY_URL}/api/pets
+        
+        [{"id":1,"name":"Dog","status":"available"},{"id":2,"name":"Cat","status":"pending"}]
+        
+        
+Great! our gateawy is up and running. Let's make things a bit more sophisticated in the next section with [Function Routing](TODO).
 
-
-
-
-
+<!-- 1. Let's create route to `addPet`.
 
     Notice the functions that have been discovered:
     
@@ -132,3 +136,4 @@ Let's verify this:
     
     This function will apply request transformation on incoming requests that route to this function.
     In order to take advantage of this transformation, we have to make sure out route specifies sources for the 
+-->
