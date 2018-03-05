@@ -12,7 +12,7 @@ pages:
       - Getting Started on Kubernetes: getting_started/kubernetes.md
 #      - Getting Started on Local Docker: installation/docker.md
     - v1 API reference:
-      - Overview: v1/overview.md
+#      - Overview: v1/overview.md
       - Upstreams: v1/upstream.md
       - Virtual Hosts: v1/virtualhost.md
       - Metadata: v1/metadata.md
