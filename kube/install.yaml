@@ -1,3 +1,4 @@
+---
 #system namespace
 apiVersion: v1
 kind: Namespace
@@ -315,7 +316,7 @@ spec:
         gloo: function-discovery
     spec:
       containers:
-      - image: soloio/gloo-function-discovery:v0.1
+      - image: soloio/gloo-function-discovery:v0.1.1
         name: function-discovery
         env:
         - name: GRPC_TRACE
