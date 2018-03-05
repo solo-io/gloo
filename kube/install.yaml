@@ -84,7 +84,7 @@ spec:
         gloo: control-plane
     spec:
       containers:
-      - image: soloio/gloo:v0.1
+      - image: soloio/gloo:v0.1.1
         name: gloo
         ports:
         - containerPort: 8081
@@ -173,7 +173,7 @@ spec:
               apiVersion: v1
               fieldPath: metadata.namespace
       containers:
-      - image: soloio/envoy@sha256:6e30db60189d6f3e863fa6851aeab5c81a2053b2e9186aa3c63602a01e591d01
+      - image: soloio/envoy:v0.1.1
         name: envoy
         ports:
         - containerPort: 8080
