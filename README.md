@@ -34,20 +34,20 @@ Quick Repository Guide:
 |---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
 | [gloo](https://github.com/solo-io/gloo)                                               | The gloo control plane. Implements the ADS API for envoy                                 |
 | [gloo-install](https://github.com/solo-io/-install)                                   | Install manifests.                                                                       |
-| [gloo-chart](https://github.com/solo-io/gloo-chart)                                   | helm charts for gloo.                                                                    |
+| [gloo-chart](https://github.com/solo-io/gloo-chart)                                   | Helm charts for gloo.                                                                    |
 | [thetool](https://github.com/solo-io/thetool)                                         | Easily build gloo+envoy with plugins enabled or disabled.                                |
-| [glooctl](https://github.com/solo-io/glooctl)                                         | command line client for gloo, for easy config manipulation.                              |
-| [gloo-api](https://github.com/solo-io/gloo-api)                                       | proto API definitions (upstreams, virtualhosts, routes...).                              |
-| [gloo-function-discovery](https://github.com/solo-io/gloo-function-discovery)         | auto discovery for functions in upstreams (i.e. lambda functions, swagger functions).    |
+| [glooctl](https://github.com/solo-io/glooctl)                                         | Command line client for gloo, for easy config manipulation.                              |
+| [gloo-api](https://github.com/solo-io/gloo-api)                                       | Proto API definitions (upstreams, virtualhosts, routes...).                              |
+| [gloo-function-discovery](https://github.com/solo-io/gloo-function-discovery)         | Auto discovery for functions in upstreams (i.e. lambda functions, swagger functions).    |
 | [gloo-storage](https://github.com/solo-io/gloo-storage)                               | Abstracts configuration storage and change watch. kube and file are currently supported. |
 | [gloo-testing](https://github.com/solo-io/gloo-testing)                               | e2e testing with minikube.                                                               |
 | [gloo-plugins](https://github.com/solo-io/gloo-plugins)                               | Plugins that can be enabled and built into gloo using `thetool`.                         |
-| [gloo-k8s-service-discovery](https://github.com/solo-io/gloo-k8s-service-discovery)   | auto register kubernetes services as gloo upstreams.                                     |
-| [gloo-ingress-controller](https://github.com/solo-io/gloo-ingress-controller)         | kube ingress controller that generates gloo upstreams.                                   |
-| [envoy-common](https://github.com/solo-io/envoy-common)                               | common libraries that enabled functional envoy filters.                                  |
-| [envoy-lambda](https://github.com/solo-io/envoy-lambda)                               | aws lambda support for envoy.                                                            |
-| [envoy-transformation](https://github.com/solo-io/envoy-transformation)               | request and response transformation for envoy.                                           |
-| [envoy-google-function](https://github.com/solo-io/envoy-google-function)             | google cloud function support for envoy.                                                 |
+| [gloo-k8s-service-discovery](https://github.com/solo-io/gloo-k8s-service-discovery)   | Auto register kubernetes services as gloo upstreams.                                     |
+| [gloo-ingress-controller](https://github.com/solo-io/gloo-ingress-controller)         | Kube ingress controller that generates gloo upstreams.                                   |
+| [envoy-common](https://github.com/solo-io/envoy-common)                               | Common libraries that enabled functional envoy filters.                                  |
+| [envoy-lambda](https://github.com/solo-io/envoy-lambda)                               | AWS lambda support for envoy.                                                            |
+| [envoy-transformation](https://github.com/solo-io/envoy-transformation)               | Request and response transformation for envoy.                                           |
+| [envoy-google-function](https://github.com/solo-io/envoy-google-function)             | Google Cloud Functions support for envoy.                                                |
 
 Community
 -----
