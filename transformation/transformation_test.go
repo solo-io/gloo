@@ -108,7 +108,7 @@ func NewFunctionalUpstream(name, funcName string) *v1.Upstream {
 	us.Functions = []*v1.Function{
 		{
 			Name: funcName,
-			Spec: EncodeFunctionSpec(FunctionSpec{
+			Spec: EncodeFunctionSpec(Template{
 				Path: "/{id}/why/{id}",
 				Header: map[string]string{
 					"x-user-id":      "{id}",

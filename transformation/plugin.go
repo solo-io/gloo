@@ -43,6 +43,16 @@ func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
 }
 
 func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+	if err := p.processRequestTransformationsForRoute(pluginParams, in, out); err != nil {
+		return errors.Wrap(err, "failed to process request transformation")
+	}
+	if err := p.processResponseTransformationsForRoute(pluginParams, in, out); err != nil {
+		return errors.Wrap(err, "failed to process request transformation")
+	}
+	return nil
+}
+
+func (p *Plugin) processRequestTransformationsForRoute(pluginParams *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
 	if in.Extensions == nil {
 		return nil
 	}
@@ -50,6 +60,10 @@ func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Rou
 	extension, err := DecodeRouteExtension(in.Extensions)
 	if err != nil {
 		return err
+	}
+
+	if extension.Parameters == nil {
+		return nil
 	}
 
 	extractors := make(map[string]*Extraction)
@@ -71,6 +85,38 @@ func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Rou
 	addHeaderExtractorFromParam(":authority", extension.Parameters.Authority, extractors)
 	for headerName, headerValue := range extension.Parameters.Headers {
 		addHeaderExtractorFromParam(headerName, headerValue, extractors)
+	}
+
+	// calculate the templates for all these transformations
+	if err := p.setTransformationsForRoute(pluginParams.Upstreams, in, extractors, out); err != nil {
+		return errors.Wrap(err, "resolving request transformations for route")
+	}
+
+	return nil
+}
+
+// TODO: clean up the response transformation
+// params should live on the source (upstream/function)
+func (p *Plugin) processResponseTransformationsForRoute(pluginParams *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+	if in.Extensions == nil {
+		return nil
+	}
+
+	extension, err := DecodeRouteExtension(in.Extensions)
+	if err != nil {
+		return err
+	}
+
+	if extension.ResponseTemplate == nil {
+		return nil
+	}
+
+	extractors := make(map[string]*Extraction)
+
+	if extension.ResponseParams != nil {
+		for headerName, headerValue := range extension.ResponseParams.Headers {
+			addHeaderExtractorFromParam(headerName, headerValue, extractors)
+		}
 	}
 
 	// calculate the templates for all these transformations
@@ -241,6 +287,43 @@ func findFunction(upstreams []*v1.Upstream, upstreamName, functionName string) (
 	return nil, errors.Errorf("function %v/%v not found", upstreamName, functionName)
 }
 
+func (p *Plugin) setResponseTransformationForRoute(template Template, extractors map[string]*Extraction, out *envoyroute.Route) error {
+	// create templates
+	// right now it's just a no-op, user writes inja directly
+	headerTemplates := make(map[string]*InjaTemplate)
+	for k, v := range template.Header {
+		headerTemplates[k] = &InjaTemplate{Text: v}
+	}
+
+	transformation := Transformation{
+		Extractors: extractors,
+		RequestTemplate: &RequestTemplate{
+			Body: &InjaTemplate{
+				Text: template.Body,
+			},
+			Headers: headerTemplates,
+		},
+	}
+
+	intHash, err := hashstructure.Hash(transformation, nil)
+	if err != nil {
+		return errors.Wrap(err, "generating hash")
+	}
+
+	hash := fmt.Sprintf("%v", intHash)
+
+	// cache the transformation, the filter config needs to contain all of them
+	p.CachedTransformations[hash] = &transformation
+
+	// set the filter metadata on the route
+	if out.Metadata == nil {
+		out.Metadata = &envoycore.Metadata{}
+	}
+	filterMetadata := common.InitFilterMetadataField(filterName, metadataResponsetKey, out.Metadata)
+	filterMetadata.Kind = &types.Value_StringValue{StringValue: hash}
+
+	return nil
+}
 func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
 	filterConfig, err := protoutil.MarshalStruct(&Transformations{
 		Transformations: p.CachedTransformations,

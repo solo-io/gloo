@@ -7,7 +7,9 @@ import (
 
 // this goes on the route extension
 type RouteExtension struct {
-	Parameters Parameters `json:"parameters"`
+	Parameters       *Parameters `json:"parameters,omitempty"`
+	ResponseTemplate *Template   `json:"response_template,omitempty"`
+	ResponseParams   *Parameters `json:"response_parameters,omitempty"`
 }
 
 type Parameters struct {
@@ -38,7 +40,8 @@ type Parameters struct {
 // any field from the request body, assuming it's json
 
 // this goes on the function spec
-type FunctionSpec struct {
+// or on the response transformation
+type Template struct {
 	Path   string            `json:"path"`
 	Header map[string]string `json:"headers"`
 	Body   string            `json:"body"`
@@ -60,13 +63,13 @@ func EncodeRouteExtension(spec RouteExtension) *types.Struct {
 	return v1Spec
 }
 
-func DecodeFunctionSpec(generic *types.Struct) (FunctionSpec, error) {
-	var s FunctionSpec
+func DecodeFunctionSpec(generic *types.Struct) (Template, error) {
+	var s Template
 	err := protoutil.UnmarshalStruct(generic, &s)
 	return s, err
 }
 
-func EncodeFunctionSpec(spec FunctionSpec) *types.Struct {
+func EncodeFunctionSpec(spec Template) *types.Struct {
 	v1Spec, err := protoutil.MarshalStruct(spec)
 	if err != nil {
 		panic(err)
