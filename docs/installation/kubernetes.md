@@ -1,4 +1,4 @@
-# Getting started with Kubernetes
+# Installing on Kubernetes
 
 - [Simple Installation](#Simple Installation)
 - [Advanced  Installation](#Advanced Installation)
@@ -10,9 +10,8 @@
 
 #### What you'll need
 
-1. Kubernetes v1.7 or higher deployed. We recommend using [minikube](TODO) to get a demo cluster up quickly.
+1. Kubernetes v1.8+ or higher deployed. We recommend using [minikube](TODO) to get a demo cluster up quickly.
 1. [`kubectl`](TODO) installed on your local machine.
-1. [`glooctl`](TODO) installed on your local machine.
 
 Once your Kubernetes cluster is up and running, run the following command to deploy Gloo and Envoy to the `gloo-system` namespace:
 
@@ -62,4 +61,7 @@ svc/gloo    ClusterIP   10.104.86.18    <none>        8081/TCP                  
 
 ```
 
-See [Getting Started on Kubernetes](../getting_started/kubernetes.md) to get started creating routes with Gloo
+Everything should be up and running. If this process does not work, please [open an issue](TODO). We are happy to answer
+questions on our [diligently staffed Slack channel](TODO).
+
+See [Getting Started on Kubernetes](../getting_started/kubernetes.md) to get started creating routes with Gloo.
