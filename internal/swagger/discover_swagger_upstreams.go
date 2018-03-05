@@ -27,6 +27,8 @@ var commonSwaggerURIs = []string{
 	"/v1/swagger",
 }
 
+var defaultRetries = 3
+
 // adds swagger annotations to upstreams it discovers
 func DiscoverSwaggerUpstreams(resolver *resolver.Resolver, swaggerUrisToTry []string, upstreams []*v1.Upstream) {
 	for _, us := range upstreams {
@@ -35,10 +37,22 @@ func DiscoverSwaggerUpstreams(resolver *resolver.Resolver, swaggerUrisToTry []st
 		}
 		log.Debugf("initiating swagger detection for %v", us.Name)
 		triedUpstreams[us.Name] = true
-		if err := discoverSwaggerUpstream(resolver, swaggerUrisToTry, us); err != nil {
+		if err := withRetries(defaultRetries, func() error {
+			return discoverSwaggerUpstream(resolver, swaggerUrisToTry, us)
+		}); err != nil {
 			log.Warnf("unable to discover whether upstream %v implements swagger or not.", us.Name)
 		}
 	}
+}
+
+func withRetries(retries int, f func() error) error {
+	err := f()
+	if err != nil {
+		if retries > 0 {
+			return withRetries(retries-1, f)
+		}
+	}
+	return err
 }
 
 func shouldTryDiscovery(us *v1.Upstream) bool {
@@ -75,6 +89,8 @@ func discoverSwaggerUpstream(resolver *resolver.Resolver, swaggerUrisToTry []str
 		log.Debugf("querying swagger url %v", url)
 		res, err := http.Get(url)
 		if err != nil {
+			// this will allow us to retry this upstream if we fail
+			delete(triedUpstreams, us.Name)
 			return errors.Wrapf(err, "could not perform HTTP GET on resolved addr: %v", addr)
 		}
 		// found a swagger service

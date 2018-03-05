@@ -84,8 +84,6 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 		case "formData":
 			log.Warnf("form data params not currently supported; ignoring")
 		case "body":
-			log.Printf("body parameter name: %v", param.Name)
-			log.Printf("doing definitions, %v", definitions)
 			body = getBodyTemplate(param.Name, definitions[param.Name].SchemaProps, definitions)
 			//bodyParams[param.Name] = param.Schema.SchemaProps
 		}
@@ -118,9 +116,12 @@ func getBodyTemplate(parent string, schema spec.SchemaProps, definitions spec.De
 		def := getDefinitionFor(prop.Ref, definitions)
 		switch {
 		case def != nil:
-			log.Printf("found def %v for %v", def.Type, key)
-			fields = append(fields, fmt.Sprintf(`"%v": "{{%v.%v}}"`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions)))
-		case schema.Type.Contains("string"):
+			if def.Type.Contains("string") {
+				fields = append(fields, fmt.Sprintf(`"%v": "{{%v.%v}}"`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions)))
+			} else {
+				fields = append(fields, fmt.Sprintf(`"%v": {{%v.%v}}`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions)))
+			}
+		case prop.Type.Contains("string"):
 			// string needs escaping
 			fields = append(fields, fmt.Sprintf(`"%v": "{{%v.%v}}"`, key, parent, key))
 		default:
@@ -129,7 +130,6 @@ func getBodyTemplate(parent string, schema spec.SchemaProps, definitions spec.De
 	}
 	bodyTemplate += strings.Join(fields, ",")
 	bodyTemplate += "}"
-	log.Printf("body template for %v: %v", schema, bodyTemplate)
 	return bodyTemplate
 }
 
