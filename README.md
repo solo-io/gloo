@@ -21,7 +21,7 @@ For a better understanding of Gloo and its features, please see our [documentati
 Blog
 -----
 
-To learn more about the motivation behind Gloo read our [blog](https://medium.com/solo-io/announcing-gloo-the-function-gateway-3f0860ef6600)
+To learn more about the motivation behind creating Gloo read our [blog](https://medium.com/solo-io/announcing-gloo-the-function-gateway-3f0860ef6600)
 
 Documentation
 -----
