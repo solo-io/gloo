@@ -1,4 +1,4 @@
-# Features
+<!--# Features
 - NATS plugin
 - AWS plugin
 - GCF plugin
@@ -36,3 +36,4 @@
 - writing plugins (all different kinds of plugins)
   - plugin stages
 # document that we call GetFilters after the other plugins (maybe document the order of everything)
+-->
