@@ -4,7 +4,7 @@
 </h1>
 
 
-<h4 align="center">Gloo Storage Client</h4>
+<h3 align="center">Gloo Storage Client</h3>
 <BR>
 
 Gloo is a function gateway built on top of the [Envoy Proxy](https://www.Envoyproxy.io). Gloo provides a unified entry point
