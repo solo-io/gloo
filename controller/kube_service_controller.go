@@ -65,6 +65,18 @@ func NewServiceController(cfg *rest.Config,
 	c.runFunc = func(stop <-chan struct{}) {
 		go kubeInformerFactory.Start(stop)
 		go kubeController.Run(2, stop)
+		// refresh upstreams every minute
+		tick := time.Tick(time.Minute)
+		go func() {
+			for {
+				select {
+				case <-tick:
+					c.syncGlooUpstreamsWithKubeServices()
+				case <-stop:
+					return
+				}
+			}
+		}()
 		<-stop
 		log.Printf("ingress controller stopped")
 	}
