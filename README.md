@@ -1,5 +1,5 @@
 <h1 align="center">
-    <img src="Gloo-01.png" alt="Gloo Testing" width="300" height="210">
+    <img src="Gloo-01.png" alt="Gloo Testing" width="200" height="242">
   <br>
 </h1>
 
