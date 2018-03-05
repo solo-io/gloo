@@ -61,6 +61,18 @@ func newEndpointController(cfg *rest.Config, resyncDuration time.Duration) (*end
 	c.runFunc = func(stop <-chan struct{}) {
 		go informerFactory.Start(stop)
 		go kubeController.Run(2, stop)
+		// refresh every minute
+		tick := time.Tick(time.Minute)
+		go func() {
+			for {
+				select {
+				case <-tick:
+					c.syncEndpoints()
+				case <-stop:
+					return
+				}
+			}
+		}()
 		<-stop
 		log.Printf("kube endpoint discovery stopped")
 	}
