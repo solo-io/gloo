@@ -76,6 +76,18 @@ func NewIngressController(cfg *rest.Config,
 	c.runFunc = func(stop <-chan struct{}) {
 		go kubeInformerFactory.Start(stop)
 		go kubeController.Run(2, stop)
+		// refresh every minute
+		tick := time.Tick(time.Minute)
+		go func() {
+			for {
+				select {
+				case <-tick:
+					c.syncGlooResourcesWithIngresses()
+				case <-stop:
+					return
+				}
+			}
+		}()
 		<-stop
 		log.Printf("ingress controller stopped")
 	}
