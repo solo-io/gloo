@@ -4,3 +4,6 @@
 [submodule "transformation/transformation"]
 	path = transformation/envoy
 	url = https://github.com/solo-io/envoy-transformation
+[submodule "google/envoy"]
+	path = google/envoy
+	url = https://github.com/solo-io/envoy-google-function

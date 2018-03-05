@@ -5,6 +5,11 @@
         "envoy": "aws/envoy"
     },
     {
+        "name": "google-functions",
+        "gloo": "google",
+        "envoy": "google/envoy"
+    },
+    {
         "name": "kubernetes",
         "gloo": "kubernetes"
     },
