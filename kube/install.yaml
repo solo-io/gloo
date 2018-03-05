@@ -173,7 +173,7 @@ spec:
               apiVersion: v1
               fieldPath: metadata.namespace
       containers:
-      - image: soloio/envoy@sha256:af6d3174095f02fcfe250c97e8448400f959186d9ed74a78b1ad3aee26858925
+      - image: soloio/envoy@sha256:6e30db60189d6f3e863fa6851aeab5c81a2053b2e9186aa3c63602a01e591d01
         name: envoy
         ports:
         - containerPort: 8080
