@@ -14,7 +14,7 @@ import (
 )
 
 var _ = Describe("Transformation", func() {
-	FIt("processes response transformations", func() {
+	It("processes response transformations", func() {
 		p := &Plugin{CachedTransformations: make(map[string]*Transformation)}
 		out := &envoyroute.Route{}
 		params := &plugin.RoutePluginParams{}
