@@ -101,7 +101,7 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 
 	return &v1.Function{
 		Name: operation.ID,
-		Spec: transformation.EncodeFunctionSpec(transformation.FunctionSpec{
+		Spec: transformation.EncodeFunctionSpec(transformation.Template{
 			Path:   path,
 			Header: headersTemplate,
 			Body:   body,
