@@ -5,7 +5,7 @@
         "envoy": "aws/envoy"
     },
     {
-        "name": "google-functions",
+        "name": "google_functions",
         "gloo": "google",
         "envoy": "google/envoy"
     },
