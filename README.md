@@ -18,6 +18,10 @@ This Repo
 This repository contains the components that compose the core Gloo storage watcher, Envoy xDS server, and config translator.
 For a better understanding of Gloo and its features, please see our [documentation](https://gloo.solo.io).
 
+Blog
+-----
+
+To learn more about the motivation behind Gloo read our [blog](https://medium.com/solo-io/announcing-gloo-the-function-gateway-3f0860ef6600)
 
 Documentation
 -----
