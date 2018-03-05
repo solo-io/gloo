@@ -2,9 +2,9 @@
 
 
 ### What you'll need
-- [`kubectl`](TODO)
-- [`glooctl`](TODO)
-- Kubernetes v1.8+ deployed somewhere. [Minikube](TODO) is a great way to get a cluster up quickly.
+- [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- [`glooctl`](https://github.com/solo-io/glooctl)
+- Kubernetes v1.8+ deployed somewhere. [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) is a great way to get a cluster up quickly.
 
 
 ### Steps
