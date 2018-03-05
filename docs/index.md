@@ -6,7 +6,8 @@ the component architecture
 ### Installation:
 * [Installing on Kubernetes](installation/kubernetes.md): Installation guide for Kubernetes (recommended) 
 ### Getting Started:
-* [Getting Started on Kubernetes](getting_started/kubernetes.md): Getting started with Kubernetes (recommended for first time users)
+* [Getting Started on Kubernetes](getting_started/kubernetes/1.md): Getting started with Kubernetes (recommended for first time users)
+* [Part 2 - Function Routing](getting_started/kubernetes/2.md): Introduction to Function Routing with Gloo
 ### v1 API reference:
 * [Upstreams](v1/upstream.md): API Specification for the Gloo Upstream Config Object
 * [Virtual](v1/virtualhost.md): API Specification for the Gloo Virtual Host Config Object
