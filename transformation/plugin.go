@@ -24,10 +24,10 @@ import (
 //go:generate protoc -I=. -I=${GOPATH}/src/github.com/gogo/protobuf/ --gogo_out=. transformation_filter.proto
 
 const (
-	filterName           = "io.solo.transformation"
-	metadataRequestKey   = "request-transformation"
-	metadataResponsetKey = "repsonse-transformation"
-	pluginStage          = plugin.PreOutAuth
+	filterName          = "io.solo.transformation"
+	metadataRequestKey  = "request-transformation"
+	metadataResponseKey = "response-transformation"
+	pluginStage         = plugin.PreOutAuth
 )
 
 func init() {
@@ -47,7 +47,7 @@ func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Rou
 		return errors.Wrap(err, "failed to process request transformation")
 	}
 	if err := p.processResponseTransformationsForRoute(pluginParams, in, out); err != nil {
-		return errors.Wrap(err, "failed to process request transformation")
+		return errors.Wrap(err, "failed to process response transformation")
 	}
 	return nil
 }
@@ -120,7 +120,7 @@ func (p *Plugin) processResponseTransformationsForRoute(pluginParams *plugin.Rou
 	}
 
 	// calculate the templates for all these transformations
-	if err := p.setTransformationsForRoute(pluginParams.Upstreams, in, extractors, out); err != nil {
+	if err := p.setResponseTransformationForRoute(*extension.ResponseTemplate, extractors, out); err != nil {
 		return errors.Wrap(err, "resolving request transformations for route")
 	}
 
@@ -319,7 +319,7 @@ func (p *Plugin) setResponseTransformationForRoute(template Template, extractors
 	if out.Metadata == nil {
 		out.Metadata = &envoycore.Metadata{}
 	}
-	filterMetadata := common.InitFilterMetadataField(filterName, metadataResponsetKey, out.Metadata)
+	filterMetadata := common.InitFilterMetadataField(filterName, metadataResponseKey, out.Metadata)
 	filterMetadata.Kind = &types.Value_StringValue{StringValue: hash}
 
 	return nil

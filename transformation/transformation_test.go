@@ -9,10 +9,27 @@ import (
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	. "github.com/solo-io/gloo-plugins/transformation"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
 
 var _ = Describe("Transformation", func() {
+	FIt("processes response transformations", func() {
+		p := &Plugin{CachedTransformations: make(map[string]*Transformation)}
+		out := &envoyroute.Route{}
+		params := &plugin.RoutePluginParams{}
+		in := NewSingleDestRoute("nothing", "nothinf")
+		in.Extensions = EncodeRouteExtension(RouteExtension{
+			ResponseTemplate: &Template{
+				Body: "{{body}}",
+			},
+		})
+		err := p.ProcessRoute(params, in, out)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(p.CachedTransformations).To(HaveLen(1))
+		log.Printf("%v", out)
+		log.Printf("%v", p.HttpFilters(nil))
+	})
 	It("process route for functional upstream", func() {
 		upstreamName := "users-svc"
 		funcName := "get_user"
@@ -95,7 +112,7 @@ func NewSingleDestRoute(upstreamName, functionName string) *v1.Route {
 			},
 		},
 		Extensions: EncodeRouteExtension(RouteExtension{
-			Parameters: Parameters{
+			Parameters: &Parameters{
 				Path:    "/u(se)rs/{id}/accounts/{account}",
 				Headers: map[string]string{"content-type": "application/{type}"},
 			},
