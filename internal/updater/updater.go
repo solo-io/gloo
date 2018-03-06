@@ -100,9 +100,12 @@ func updateUpstreamWithFuncs(gloo storage.Interface, us *v1.Upstream, funcs []*v
 	usToUpdate.Functions = mergeFuncs(usToUpdate.Functions, funcs)
 	usToUpdate.Metadata.Annotations = mergeAnnotations(usToUpdate.Metadata.Annotations, us.Metadata.Annotations)
 
-	localCache[us.Name] = funcs
 	_, err = gloo.V1().Upstreams().Update(usToUpdate)
-	return err
+	if err != nil {
+		return err
+	}
+	localCache[us.Name] = funcs
+	return nil
 }
 
 // get the unique set of funcs between two lists
