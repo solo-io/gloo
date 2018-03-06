@@ -10,8 +10,8 @@ pages:
 #      - Installing on Local Docker: installation/docker.md
     - Getting Started:
       - Kubernetes:
-        - Getting Started on Kubernetes: getting_started/kubernetes/1.md
-        - Function Routing: getting_started/kubernetes/2.md
+        - Part 1 - Basic Routing: getting_started/kubernetes/1.md
+        - Part 2 - Function Routing: getting_started/kubernetes/2.md
 #      - Getting Started on Local Docker: installation/docker.md
     - v1 API reference:
 #      - Overview: v1/overview.md
@@ -23,7 +23,8 @@ repo_url: https://github.com/solo-io/gloo/
 site_author: gloo Project Authors
 copyright: © Copyright 2018, solo.io Inc.
 #google_analytics: ['todo']
-theme: readthedocs
+theme:
+  name: 'rtd-dropdown'
 extra_css: [extra.css]
 extra:
     version: 0.1.1

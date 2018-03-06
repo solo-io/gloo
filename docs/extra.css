@@ -5,6 +5,10 @@
     background: #002853;
 }
 
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
+    color: #d8e3dd;
+}
+
 /*.wy-nav-content {*/
     /*background: gainsboro;*/
 /*}*/
