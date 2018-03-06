@@ -7,7 +7,7 @@
     - [Destinations](#Destinations)
 - [Upstreams](#Upstreams)
     - [Functions](#Functions)
-
+- [Secrets](#Secrets)
 
 
 
@@ -180,3 +180,24 @@ routes:
 Note that it is necessary to specify `openapi_paremeters` for this function invocation. Some function destinations
 require extensions to be specified on the route they belong to. You can read more about the openapi function plugin 
 [here](TODO). 
+
+
+
+
+<a name="Secrets"></a>
+
+### Secrets
+
+Certain plugins such as the [AWS Lambda Plugin](../plugins/aws.md) require the use of secrets for authentication,
+configuration of [SSL Certificates](TODO), and other data that should not be stored in plaintext configuration.
+
+Gloo runs an independent (goroutine) controller to monitor secrets. Secrets are stored in their own secret storage layer.
+Gloo can monitor secrets stored in the following secret storage services:
+
+- [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/)
+- [Hashicorp Vault](https://www.vaultproject.io)
+- Plaintext files (recommended only for testing)
+
+Secrets must adhere to a structure, specified by the plugin that requires them.
+
+Gloo's secret backend can be configured in Gloo's [bootstrap options](TODO) 

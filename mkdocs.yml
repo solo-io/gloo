@@ -13,6 +13,10 @@ pages:
         - Part 1 - Basic Routing: getting_started/kubernetes/1.md
         - Part 2 - Function Routing: getting_started/kubernetes/2.md
 #      - Getting Started on Local Docker: installation/docker.md
+    - Plugins:
+      - AWS Lambda Plugin: plugins/aws.md
+    - Advanced:
+      - Bootstrap Options: advanced/bootstrap_options.md
     - v1 API reference:
 #      - Overview: v1/overview.md
       - Upstreams: v1/upstream.md

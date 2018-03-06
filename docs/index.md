@@ -1,3 +1,12 @@
+
+
+<h1 align="center">
+    <img src="Gloo-01.png" alt="Gloo" width="200" height="242">
+  <br>
+  The Function Gateway
+</h1>
+
+
 ### About gloo:
 * [Introduction](introduction/introduction.md): Introduction to Gloo with a basic overview of Gloo itself and its use cases 
 * [Concepts](introduction/concepts.md): Explanation of the key concepts used in Gloo.
@@ -8,6 +17,9 @@ the component architecture
 ### Getting Started:
 * [Getting Started on Kubernetes](getting_started/kubernetes/1.md): Getting started with Kubernetes (recommended for first time users)
 * [Part 2 - Function Routing](getting_started/kubernetes/2.md): Introduction to Function Routing with Gloo
+### Plugins:
+* [AWS Lambda Plugin](plugins/aws.md): Description of the AWS Lambda Plugin and config rules for AWS Lambda Upstreams and Functions 
+
 ### v1 API reference:
 * [Upstreams](v1/upstream.md): API Specification for the Gloo Upstream Config Object
 * [Virtual](v1/virtualhost.md): API Specification for the Gloo Virtual Host Config Object
