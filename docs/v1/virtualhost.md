@@ -34,7 +34,7 @@ domains: [string]
 routes: [{Route}]
 ssl_config: {SSLConfig}
 status: (read only)
-metadata: (read only)
+metadata: {Metadata}
 
 ```
 | Field | Type | Label | Description |
@@ -73,7 +73,7 @@ extensions: {google.protobuf.Struct}
 | multiple_destinations | [WeightedDestination](virtualhost.md#v1.WeightedDestination) | repeated | A route is only allowed to specify one of multiple_destinations or single_destination. Setting both will result in an error Multiple Destinations is used when a user wants a route to balance requests between multiple destinations Balancing is done by probability, where weights are specified for each destination |
 | single_destination | [Destination](virtualhost.md#v1.Destination) |  | A single destination is specified when a route only routes to a single destination. |
 | prefix_rewrite | string |  | PrefixRewrite can be specified to rewrite the matched path of the request path to a new prefix |
-| extensions | [google.protobuf.Struct](virtualhost.md#google.protobuf.Struct) |  | Extensions provides a way to extend the behavior of a route. In addition to the [core route extensions](TODO), gloo provides the means for [route plugins](TODO) to be added to gloo which add new types of route extensions. See the [route extensions section](TODO) for a more detailed explanation |
+| extensions | [google.protobuf.Struct](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/struct) |  | Extensions provides a way to extend the behavior of a route. In addition to the [core route extensions](TODO), gloo provides the means for [route plugins](TODO) to be added to gloo which add new types of route extensions. See the [route extensions section](TODO) for a more detailed explanation |
 
 
 

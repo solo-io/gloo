@@ -39,3 +39,7 @@ proto:
 doc: proto
 	go run docs/gen_docs.go
 #	godocdown pkg/api/types/v1/ > docs/go.md
+
+site: doc
+	mkdocs build && \
+	docker build -t soloio/nginx-docs:v$(VERSION) -f Dockerfile.site .

@@ -68,4 +68,4 @@ svc/ingress   NodePort    10.96.48.30      <none>        8080:30145/TCP,8443:310
 Everything should be up and running. If this process does not work, please [open an issue](https://github.com/solo-io/gloo/issues/new). We are happy to answer
 questions on our [diligently staffed Slack channel](https://slack.solo.io/).
 
-See [Getting Started on Kubernetes](../getting_started/kubernetes.md) to get started creating routes with Gloo.
+See [Getting Started on Kubernetes](../getting_started/kubernetes/1.md) to get started creating routes with Gloo.
