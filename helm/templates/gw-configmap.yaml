@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "gw.fullname" .}}-config
+data:
+  envoy.yaml: |
+    node:
+      cluster: ingress
+      id: NODE_ID_PLACE_HOLDER
+    static_resources:
+      clusters:
+      - name: xds_cluster
+        connect_timeout: 5.000s
+        hosts:
+        - socket_address:
+            address: {{ template "gw.fullname" . }} 
+            port_value: {{ .Values.gloo.port }}
+        http2_protocol_options: {}
+        type: STRICT_DNS
+    dynamic_resources:
+      ads_config:
+        api_type: GRPC
+        cluster_names:
+        - xds_cluster
+      cds_config:
+        ads: {}
+      lds_config:
+        ads: {}
+    admin:
+      access_log_path: /dev/null
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: {{ .Values.gw.adminPort }}

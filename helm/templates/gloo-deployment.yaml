@@ -1,0 +1,43 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "gloo.fullname" . }}
+  labels:
+    app: {{ template "gloo.name" .}}
+    gloo: control-plane
+    chart: {{ template "gloo-chart.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.gloo.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "gloo.name" . }}
+      gloo: control-plane
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "gloo.name" . }}
+        gloo: control-plane
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: gloo
+        image: "{{ .Values.gloo.image }}:{{ .Values.gloo.imageTag }}"
+        ports:
+        - containerPort: {{ .Values.gloo.port }}
+          name: http
+        env:
+        - name: GRPC_TRACE
+          value: "all"
+        - name: DEBUG
+          value: "1"
+        command: ["/gloo"]
+        args:
+        - "--storage.type=kube"
+        - "--storage.refreshrate=1m"
+        - "--secrets.type=kube"
+        - "--secrets.refreshrate=1m"
+        - "--xds.port={{ .Values.gloo.port }}"
+        - "--kube.namespace={{ .Release.Namespace }}" 

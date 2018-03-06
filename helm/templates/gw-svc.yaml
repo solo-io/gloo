@@ -1,0 +1,25 @@
+# GW
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name}}-ingress
+  labels:
+    gloo: ingress
+    chart: {{ template "gloo-chart.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.gw.type }}
+  ports:
+    - port: {{ .Values.gw.port }}
+      protocol: TCP
+      name: http
+    - port: {{ .Values.gw.securePort }}
+      protocol: TCP
+      name: https
+    - port: {{ .Values.gw.adminPort }}
+      protocol: TCP
+      name: admin
+  selector:
+    app: {{ template "gw.name" . }}
+    release: {{ .Release.Name }}
