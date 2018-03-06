@@ -1,0 +1,38 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "fdiscovery.fullname" . }}
+  labels:
+    app: {{ template "fdiscovery.name" . }}
+    gloo: function-discovery
+    chart: {{ template "gloo-chart.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.fdiscovery.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "fdiscovery.name" . }}
+      gloo: function-discovery
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "fdiscovery.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: function-discovery
+        image: "{{ .Values.fdiscovery.image }}:{{ .Values.fdiscovery.imageTag }}"
+        env:
+        - name: GRPC_TRACE
+          value: "all"
+        - name: DEBUG
+          value: "1"
+        command: ["/gloo-function-discovery"]
+        args:
+        - "--storage.type=kube"
+        - "--storage.refreshrate=30m"
+        - "--secrets.type=kube"
+        - "--secrets.refreshrate=30m"
+        - "--kube.namespace={{ .Release.Namespace }}"

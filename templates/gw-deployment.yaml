@@ -1,0 +1,65 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "gw.fullname" . }} 
+  labels:
+    gloo: ingress
+    app: {{ template "gw.name" .}}
+    chart: {{ template "gloo-chart.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.gw.replicaCount }}
+  selector:
+    matchLabels:
+      app:  {{ template "gw.name" . }}
+      gloo: ingress
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app:  {{ template "gw.name" . }}
+        gloo: ingress
+        release: {{ .Release.Name }}
+    spec:
+      initContainers:
+      - name: assignnodeid
+        image: busybox
+        command:
+        - sed
+        - s/NODE_ID_PLACE_HOLDER/$(POD_NAME).$(POD_NAMESPACE)/
+        - -i
+        - "/config/envoy.yaml"
+        volumeMounts:
+        - name: envoy-config
+          mountPath: /config
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+      containers:
+      - name: envoy
+        image: "{{ .Values.gw.image }}:{{ .Values.gw.imageTag }}"
+        ports: 
+        - containerPort: {{ .Values.gw.port }}
+          name: http
+        - containerPort: {{ .Values.gw.securePort }} 
+          name: https
+        - containerPort: {{ .Values.gw.adminPort }}
+          name: admin
+        command: ["envoy"]
+        args: ["-c", "/etc/envoy.yaml", "--v2-config-only"]
+        volumeMounts:
+        - name: envoy-config
+          mountPath: /config
+      volumes:
+      - name: envoy-config
+        configMap:
+          name: {{ template "gw.fullname" .}}-config 
