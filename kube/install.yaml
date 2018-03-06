@@ -85,7 +85,7 @@ spec:
         gloo: control-plane
     spec:
       containers:
-      - image: soloio/gloo:v0.1.1
+      - image: soloio/gloo:v0.1.2
         name: gloo
         ports:
         - containerPort: 8081
@@ -316,7 +316,7 @@ spec:
         gloo: function-discovery
     spec:
       containers:
-      - image: soloio/gloo-function-discovery:v0.1.1
+      - image: soloio/gloo-function-discovery:v0.1.2
         name: function-discovery
         env:
         - name: GRPC_TRACE
