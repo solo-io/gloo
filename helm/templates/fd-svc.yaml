@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-fdiscovery
+  name: {{ .Release.Name }}-function-discovery
   labels:
     gloo: function-discovery
     chart: {{ template "gloo-chart.chart" .}}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  type: {{ .Values.fdiscovery.type }}
+  type: {{ .Values.function_discovery.type }}
   selector:
-    app: {{ template "fdiscovery.name" . }}
+    app: {{ template "function_discovery.name" . }}
     release: {{ .Release.Name }}

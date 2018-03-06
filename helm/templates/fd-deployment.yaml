@@ -1,29 +1,29 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "fdiscovery.fullname" . }}
+  name: {{ template "function_discovery.fullname" . }}
   labels:
-    app: {{ template "fdiscovery.name" . }}
+    app: {{ template "function_discovery.name" . }}
     gloo: function-discovery
     chart: {{ template "gloo-chart.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  replicas: {{ .Values.fdiscovery.replicaCount }}
+  replicas: {{ .Values.function_discovery.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "fdiscovery.name" . }}
+      app: {{ template "function_discovery.name" . }}
       gloo: function-discovery
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "fdiscovery.name" . }}
+        app: {{ template "function_discovery.name" . }}
         release: {{ .Release.Name }}
     spec:
       containers:
       - name: function-discovery
-        image: "{{ .Values.fdiscovery.image }}:{{ .Values.fdiscovery.imageTag }}"
+        image: "{{ .Values.function_discovery.image }}:{{ .Values.function_discovery.imageTag }}"
         env:
         - name: GRPC_TRACE
           value: "all"

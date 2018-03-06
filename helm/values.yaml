@@ -2,31 +2,28 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# gateway 
-gw:
+ingress:
   type: NodePort
   replicaCount: 1
   port: 8080
   securePort: 8443
   adminPort: 19000
-  image: "axhixh/envoy"
-  imageTag: ab4bdd26
-  serviceCluster: "envoy"
-  serviceNode: "envoy"
+  image: "soloio/envoy"
+  imageTag: "v0.1.2"
 
 gloo:
   type: NodePort
   replicaCount: 1
   port: 8081
   image: "soloio/gloo"
-  imageTag: 529dcba8
+  imageTag: "v0.1.2"
 
-fdiscovery:
+function_discovery:
   type: ClusterIP
   replicaCount: 1
   port: 8080
   image: "soloio/gloo-function-discovery"
-  imageTag: "9cf492d"
+  imageTag: "v0.1.2"
   enabled: true
 
 aws_lambda_enabled: true

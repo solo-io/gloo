@@ -35,36 +35,36 @@ Create chart name and version as used by the chart label.
 {{/* helpers for components */}}
 
 {{/* function discovery */}}
-{{- define "fdiscovery.name" -}}
-{{- default "fdiscovery" .Values.fdiscovery.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- define "function_discovery.name" -}}
+{{- default "function-discovery" .Values.function_discovery.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "fdiscovery.fullname" -}}
-{{- $name := default "fdiscovery" .Values.fdiscovery.nameOverride -}}
+{{- define "function_discovery.fullname" -}}
+{{- $name := default "function-discovery" .Values.function_discovery.nameOverride -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "fdiscovery.serviceAccountName" -}}
+{{- define "function_discovery.serviceAccountName" -}}
 {{- if .Values.global.rbacEnabled -}}
-{{- template "fdiscovery.fullname" . -}}-service-account
+{{- template "function_discovery.fullname" . -}}-service-account
 {{- else }}
-{{- .Values.fdiscovery.serviceAccountName | trunc 63 | trimSuffix "-" -}}-service-account
+{{- .Values.function_discovery.serviceAccountName | trunc 63 | trimSuffix "-" -}}-service-account
 {{- end -}}
 {{- end -}}
 
-{{/* gateway */}}
-{{- define "gw.name" -}}
-{{- default "ingress" .Values.gw.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{/* ingress */}}
+{{- define "ingress.name" -}}
+{{- default "ingress" .Values.ingress.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "gw.fullname" -}}
-{{- $name := default "ingress" .Values.gw.nameOverride -}}
+{{- define "ingress.fullname" -}}
+{{- $name := default "ingress" .Values.ingress.nameOverride -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/* gloo */}}
 {{- define "gloo.name" -}}
-{{- default "gloo" .Values.gw.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- default "gloo" .Values.gloo.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "gloo.fullname" -}}

@@ -1,24 +1,24 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "gw.fullname" . }} 
+  name: {{ template "ingress.fullname" . }} 
   labels:
     gloo: ingress
-    app: {{ template "gw.name" .}}
+    app: {{ template "ingress.name" .}}
     chart: {{ template "gloo-chart.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  replicas: {{ .Values.gw.replicaCount }}
+  replicas: {{ .Values.ingress.replicaCount }}
   selector:
     matchLabels:
-      app:  {{ template "gw.name" . }}
+      app:  {{ template "ingress.name" . }}
       gloo: ingress
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app:  {{ template "gw.name" . }}
+        app:  {{ template "ingress.name" . }}
         gloo: ingress
         release: {{ .Release.Name }}
     spec:
@@ -46,13 +46,13 @@ spec:
               fieldPath: metadata.namespace
       containers:
       - name: envoy
-        image: "{{ .Values.gw.image }}:{{ .Values.gw.imageTag }}"
+        image: "{{ .Values.ingress.image }}:{{ .Values.ingress.imageTag }}"
         ports: 
-        - containerPort: {{ .Values.gw.port }}
+        - containerPort: {{ .Values.ingress.port }}
           name: http
-        - containerPort: {{ .Values.gw.securePort }} 
+        - containerPort: {{ .Values.ingress.securePort }} 
           name: https
-        - containerPort: {{ .Values.gw.adminPort }}
+        - containerPort: {{ .Values.ingress.adminPort }}
           name: admin
         command: ["envoy"]
         args: ["-c", "/etc/envoy.yaml", "--v2-config-only"]
@@ -62,4 +62,4 @@ spec:
       volumes:
       - name: envoy-config
         configMap:
-          name: {{ template "gw.fullname" .}}-config 
+          name: {{ template "ingress.fullname" .}}-config 
