@@ -16,7 +16,8 @@ var _ = math.Inf
 
 // *
 // Virtual Hosts represent a collection of routes for a set of domains.
-// Virtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.
+// Gloo's Virtual Hosts can be compared to
+// [virtual hosts](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/vhost.html?highlight=virtual%20host) in Envoy terminology.
 // A virtual host can be used to define "apps"; a collection of APIs that belong to a particular domain.
 // The Virtual Host concept allows configuration of per-virtualhost SSL certificates
 type VirtualHost struct {
@@ -24,12 +25,12 @@ type VirtualHost struct {
 	// One or more lowercase rfc1035/rfc1123 labels separated by '.' with a maximum length of 253 characters.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// Domains represent the list of domains (host/authority header) that will match for all routes on this virtual host.
-	// As in [envoy](TODO): wildcard hosts are supported in the form of “*.foo.com” or “*-bar.foo.com”.
+	// As in Envoy: wildcard hosts are supported in the form of “*.foo.com” or “*-bar.foo.com”.
 	// If domains is empty, gloo will set the domain to "*", making that virtual host the "default" virtualhost.
 	// The default virtualhost will be the fallback virtual host for all requests that do not match a domain on an existing virtual host.
 	// Only one default virtual host can be defined (either with an empty domain list, or a domain list that includes "*")
 	Domains []string `protobuf:"bytes,2,rep,name=domains" json:"domains,omitempty"`
-	// Routes define the list of [routes](TODO) that live on this virtual host.
+	// Routes define the list of [routes](../) that live on this virtual host.
 	Routes []*Route `protobuf:"bytes,3,rep,name=routes" json:"routes,omitempty"`
 	// SSL Config is optional for the virtual host. If provided, the virtual host will listen on the envoy HTTPS listener port (default :8443)
 	// If left empty, the virtual host will listen on the HTTP listener port (default :8080)
@@ -106,9 +107,9 @@ type Route struct {
 	SingleDestination *Destination `protobuf:"bytes,4,opt,name=single_destination,json=singleDestination" json:"single_destination,omitempty"`
 	// PrefixRewrite can be specified to rewrite the matched path of the request path to a new prefix
 	PrefixRewrite string `protobuf:"bytes,5,opt,name=prefix_rewrite,json=prefixRewrite,proto3" json:"prefix_rewrite,omitempty"`
-	// Extensions provides a way to extend the behavior of a route. In addition to the [core route extensions](TODO),
-	// gloo provides the means for [route plugins](TODO) to be added to gloo which add new types of route extensions.
-	// See the [route extensions section](TODO) for a more detailed explanation
+	// Extensions provides a way to extend the behavior of a route. In addition to the core route extensions<!--(TODO)-->,
+	// gloo provides the means for route plugins<!--(TODO)--> to be added to gloo which add new types of route extensions.
+	// <!--See the route extensions section for a more detailed explanation-->
 	Extensions *google_protobuf.Struct `protobuf:"bytes,6,opt,name=extensions" json:"extensions,omitempty"`
 }
 
@@ -638,7 +639,7 @@ func (m *UpstreamDestination) GetName() string {
 
 // SSLConfig contains the options necessary to configure a virtualhost to use TLS
 type SSLConfig struct {
-	// * SecretRef contains the [secret ref](TODO) to a [gloo secret](TODO) containing the following structure:
+	// * SecretRef contains the secret ref<!--(TODO)--> to a gloo secret<!--(TODO)--> containing the following structure:
 	// {
 	// "ca_chain": <ca chain data...>,
 	// "private key": <private key data...>

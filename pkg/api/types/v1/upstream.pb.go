@@ -19,27 +19,28 @@ var _ = math.Inf
 var _ = time.Kitchen
 
 // *
-// Upstream represents a destination for routing. Upstreams can be compared to [clusters](TODO) in [envoy](TODO) terminology.
-// Upstreams can take a variety of [types](TODO) in gloo. Language extensions known as [plugins](TODO) allow the addition of new
-// types of upstreams. See [upstream types](TODO) for a detailed description of available upstream types.
+// Upstream represents a destination for routing. Upstreams can be compared to
+// [clusters](https://www.envoyproxy.io/docs/envoy/latest/api-v1/cluster_manager/cluster.html?highlight=cluster) in Envoy terminology.
+// Upstreams can take a variety of types<!--(TODO)--> in gloo. Language extensions known as plugins<!--(TODO)--> allow the addition of new
+// types of upstreams. <!--See [upstream types](TODO) for a detailed description of available upstream types.-->
 type Upstream struct {
 	// Name of the upstream. Names must be unique and follow the following syntax rules:
 	// One or more lowercase rfc1035/rfc1123 labels separated by '.' with a maximum length of 253 characters.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Type indicates the type of the upstream. Examples include [service](TODO), [kubernetes](TODO), and [aws](TODO)
-	// Types are defined by the [plugin](TODO) associated with them.
+	// Type indicates the type of the upstream. Examples include service<!--(TODO)-->, kubernetes<!--(TODO)-->, and [aws](../plugins/aws.md)
+	// Types are defined by the plugin<!--(TODO)--> associated with them.
 	Type string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
 	// Connection Timeout tells gloo to set a timeout for unresponsive connections created to this upstream.
-	// If not provided by the user, it will default to a [default value](TODO)
+	// If not provided by the user, it will set to a default value
 	ConnectionTimeout time.Duration `protobuf:"bytes,3,opt,name=connection_timeout,json=connectionTimeout,stdduration" json:"connection_timeout"`
 	// Spec contains properties that are specific to the upstream type. The spec is always required, but
 	// the expected content is specified by the [upstream plugin] for the given upstream type.
 	// Most often the upstream spec will be a map<string, string>
 	Spec *google_protobuf.Struct `protobuf:"bytes,4,opt,name=spec" json:"spec,omitempty"`
-	// Certain upstream types support (and may require) [functions](TODO).
-	// Functions allow function-level routing to be done. For example, the [aws lambda](TODO) upstream type
-	// Permits routing to [aws lambda functions].
-	// [routes](TODO) on [virtualhosts] can specify [function destinations] to route to specific functions.
+	// Certain upstream types support (and may require) [functions](../introduction/concepts.md#Functions).
+	// Functions allow function-level routing to be done. For example, the [AWS lambda](../plugins/aws.md) upstream type
+	// Permits routing to AWS lambda function].
+	// [routes](virtualhost.md#Route) on virtualhosts can specify function destinations to route to specific functions.
 	Functions []*Function `protobuf:"bytes,5,rep,name=functions" json:"functions,omitempty"`
 	// Status indicates the validation status of the upstream resource. Status is read-only by clients, and set by gloo during validation
 	Status *Status `protobuf:"bytes,6,opt,name=status" json:"status,omitempty"`
