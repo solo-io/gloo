@@ -53,20 +53,29 @@ func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Rou
 }
 
 func (p *Plugin) processRequestTransformationsForRoute(pluginParams *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
-	if in.Extensions == nil {
-		return nil
+	var extractors map[string]*Extraction
+	// if no parameters specified, the only extraction will be a json body
+	if in.Extensions != nil {
+		extension, err := DecodeRouteExtension(in.Extensions)
+		if err != nil {
+			return err
+		}
+		extractors = createRequestExtractors(extension.Parameters)
 	}
 
-	extension, err := DecodeRouteExtension(in.Extensions)
-	if err != nil {
-		return err
+	// calculate the templates for all these transformations
+	if err := p.setTransformationsForRoute(pluginParams.Upstreams, in, extractors, out); err != nil {
+		return errors.Wrap(err, "resolving request transformations for route")
 	}
 
-	if extension.Parameters == nil {
-		return nil
-	}
+	return nil
+}
 
+func createRequestExtractors(params *Parameters) map[string]*Extraction {
 	extractors := make(map[string]*Extraction)
+	if params == nil {
+		return extractors
+	}
 
 	// special http2 headers, get the whole thing for free
 	// as a convenience to the user
@@ -81,18 +90,12 @@ func (p *Plugin) processRequestTransformationsForRoute(pluginParams *plugin.Rout
 	}
 	// headers we support submatching on
 	// custom as well as the path and authority/host header
-	addHeaderExtractorFromParam(":path", extension.Parameters.Path, extractors)
-	addHeaderExtractorFromParam(":authority", extension.Parameters.Authority, extractors)
-	for headerName, headerValue := range extension.Parameters.Headers {
+	addHeaderExtractorFromParam(":path", params.Path, extractors)
+	addHeaderExtractorFromParam(":authority", params.Authority, extractors)
+	for headerName, headerValue := range params.Headers {
 		addHeaderExtractorFromParam(headerName, headerValue, extractors)
 	}
-
-	// calculate the templates for all these transformations
-	if err := p.setTransformationsForRoute(pluginParams.Upstreams, in, extractors, out); err != nil {
-		return errors.Wrap(err, "resolving request transformations for route")
-	}
-
-	return nil
+	return extractors
 }
 
 // TODO: clean up the response transformation
@@ -183,7 +186,7 @@ func buildRegexString(rxp *regexp.Regexp, paramString string) string {
 	return regexString + regexp.QuoteMeta(paramString[prevEnd:])
 }
 
-// gets all transformations a route may need
+// sets all transformations a route may need
 // if single destination, just one transformation
 // if multi destination, one transformation for each functional
 // that specifies a transformation spec
@@ -193,13 +196,13 @@ func (p *Plugin) setTransformationsForRoute(upstreams []*v1.Upstream, in *v1.Rou
 		for _, dest := range in.MultipleDestinations {
 			err := p.setTransformationForFunction(upstreams, dest.Destination, extractors, out)
 			if err != nil {
-				return errors.Wrap(err, "getting transformation for function")
+				return errors.Wrap(err, "setting transformation for function")
 			}
 		}
 	case in.SingleDestination != nil:
 		err := p.setTransformationForFunction(upstreams, in.SingleDestination, extractors, out)
 		if err != nil {
-			return errors.Wrap(err, "getting transformation for function")
+			return errors.Wrap(err, "setting transformation for function")
 		}
 	}
 	return nil
@@ -231,6 +234,7 @@ func (p *Plugin) setTransformationForFunction(upstreams []*v1.Upstream, dest *v1
 func getTransformationForFunction(upstreams []*v1.Upstream, dest *v1.Destination, extractors map[string]*Extraction) (string, *Transformation, error) {
 	fnDestination, ok := dest.DestinationType.(*v1.Destination_Function)
 	if !ok {
+		log.Debugf("not a functional route: %v", dest)
 		// not a functional route, nothing to do
 		return "", nil, nil
 	}
@@ -243,22 +247,39 @@ func getTransformationForFunction(upstreams []*v1.Upstream, dest *v1.Destination
 		return "", nil, errors.Wrap(err, "decoding function spec")
 	}
 
+	// if the the function doesn't need a transformation, also return nil
+	var needsTransformation bool
+
 	// create templates
 	// right now it's just a no-op, user writes inja directly
 	headerTemplates := make(map[string]*InjaTemplate)
 	for k, v := range outputTemplates.Header {
+		needsTransformation = true
 		headerTemplates[k] = &InjaTemplate{Text: v}
 	}
 
 	if outputTemplates.Path != "" {
+		needsTransformation = true
 		headerTemplates[":path"] = &InjaTemplate{Text: outputTemplates.Path}
+	}
+
+	var body string
+	if outputTemplates.Body != "" {
+		needsTransformation = true
+		outputTemplates.Body = body
+	}
+
+	// this function doesn't request any kind of transformation
+	if !needsTransformation {
+		log.Debugf("does not need transformation: %v", outputTemplates)
+		return "", nil, nil
 	}
 
 	t := Transformation{
 		Extractors: extractors,
 		RequestTemplate: &RequestTemplate{
 			Body: &InjaTemplate{
-				Text: outputTemplates.Body,
+				Text: body,
 			},
 			Headers: headerTemplates,
 		},
