@@ -15,9 +15,10 @@
 <a name="v1.Upstream"></a>
 
 ### Upstream
-Upstream represents a destination for routing. Upstreams can be compared to [clusters](TODO) in [envoy](TODO) terminology.
-Upstreams can take a variety of [types](TODO) in gloo. Language extensions known as [plugins](TODO) allow the addition of new
-types of upstreams. See [upstream types](TODO) for a detailed description of available upstream types.
+Upstream represents a destination for routing. Upstreams can be compared to
+[clusters](https://www.envoyproxy.io/docs/envoy/latest/api-v1/cluster_manager/cluster.html?highlight=cluster) in Envoy terminology.
+Upstreams can take a variety of types&lt;!--(TODO)--&gt; in gloo. Language extensions known as plugins&lt;!--(TODO)--&gt; allow the addition of new
+types of upstreams. &lt;!--See [upstream types](TODO) for a detailed description of available upstream types.--&gt;
 
 
 ```yaml
@@ -33,10 +34,10 @@ metadata: {Metadata}
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | string |  | Name of the upstream. Names must be unique and follow the following syntax rules: One or more lowercase rfc1035/rfc1123 labels separated by &#39;.&#39; with a maximum length of 253 characters. |
-| type | string |  | Type indicates the type of the upstream. Examples include [service](TODO), [kubernetes](TODO), and [aws](TODO) Types are defined by the [plugin](TODO) associated with them. |
-| connection_timeout | [google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) |  | Connection Timeout tells gloo to set a timeout for unresponsive connections created to this upstream. If not provided by the user, it will default to a [default value](TODO) |
+| type | string |  | Type indicates the type of the upstream. Examples include service&lt;!--(TODO)--&gt;, kubernetes&lt;!--(TODO)--&gt;, and [aws](../plugins/aws.md) Types are defined by the plugin&lt;!--(TODO)--&gt; associated with them. |
+| connection_timeout | [google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) |  | Connection Timeout tells gloo to set a timeout for unresponsive connections created to this upstream. If not provided by the user, it will set to a default value |
 | spec | [google.protobuf.Struct](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/struct) |  | Spec contains properties that are specific to the upstream type. The spec is always required, but the expected content is specified by the [upstream plugin] for the given upstream type. Most often the upstream spec will be a map&lt;string, string&gt; |
-| functions | [Function](upstream.md#v1.Function) | repeated | Certain upstream types support (and may require) [functions](TODO). Functions allow function-level routing to be done. For example, the [aws lambda](TODO) upstream type Permits routing to [aws lambda functions]. [routes](TODO) on [virtualhosts] can specify [function destinations] to route to specific functions. |
+| functions | [Function](upstream.md#v1.Function) | repeated | Certain upstream types support (and may require) [functions](../introduction/concepts.md#Functions). Functions allow function-level routing to be done. For example, the [AWS lambda](../plugins/aws.md) upstream type Permits routing to AWS lambda function]. [routes](virtualhost.md#Route) on virtualhosts can specify function destinations to route to specific functions. |
 | status | [Status](status.md#v1.Status) |  | Status indicates the validation status of the upstream resource. Status is read-only by clients, and set by gloo during validation |
 | metadata | [Metadata](metadata.md#v1.Metadata) |  | Metadata contains the resource metadata for the upstream |
 

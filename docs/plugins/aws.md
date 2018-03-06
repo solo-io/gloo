@@ -12,7 +12,7 @@ automatically route to AWS Lambda invocations. Clients are abstracted from the A
 any AWS-specific headers or signature in their requests. `POST`s containing a JSON body will become the payload
 for the Lambda function.
 
-To jump right in, follow the [AWS Lambda Getting Started Guide](TODO).
+To jump right in, follow the AWS Lambda Getting Started Guide<!--(TODO)-->.
 
 
 #### Upstream Spec Configuration
@@ -84,6 +84,6 @@ functions:
 
 #### Discovery
 
-The [Gloo Function Discovery Service](TODO) will automatically discover functions for Lambda upstreams if it is running.
+The Gloo Function Discovery Service<!--(TODO)--> will automatically discover functions for Lambda upstreams if it is running.
 Simply create a Lambda upstream for Gloo to track, and the function discovery service will auomatically populate it with your
 available lambda functions and keep it up to date with your AWS account. 

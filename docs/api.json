@@ -65,7 +65,7 @@
           "fields": [
             {
               "name": "resource_version",
-              "description": "ResourceVersion keeps track of the resource version of a config resource. This mechanism is used by [gloo-storage](TODO) to ensure safety with concurrent writes/updates to a resource in storage.",
+              "description": "ResourceVersion keeps track of the resource version of a config resource. This mechanism is used by [gloo-storage](https://github.com/solo-io/gloo-storage) to ensure safety with concurrent writes/updates to a resource in storage.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -163,7 +163,7 @@
           "name": "Status",
           "longName": "Status",
           "fullName": "v1.Status",
-          "description": "Status indicates whether a config resource (currently only [virtualhosts](TODO) and [upstreams](TODO)) has been (in)validated by gloo",
+          "description": "Status indicates whether a config resource (currently only [virtualhosts](../introduction/concepts.md) and [upstreams](../introduction/concepts.md)) has been (in)validated by gloo",
           "hasExtensions": false,
           "hasFields": true,
           "extensions": [],
@@ -206,7 +206,7 @@
           "name": "Upstream",
           "longName": "Upstream",
           "fullName": "v1.Upstream",
-          "description": "Upstream represents a destination for routing. Upstreams can be compared to [clusters](TODO) in [envoy](TODO) terminology.\nUpstreams can take a variety of [types](TODO) in gloo. Language extensions known as [plugins](TODO) allow the addition of new\ntypes of upstreams. See [upstream types](TODO) for a detailed description of available upstream types.",
+          "description": "Upstream represents a destination for routing. Upstreams can be compared to\n[clusters](https://www.envoyproxy.io/docs/envoy/latest/api-v1/cluster_manager/cluster.html?highlight=cluster) in Envoy terminology.\nUpstreams can take a variety of types\u003c!--(TODO)--\u003e in gloo. Language extensions known as plugins\u003c!--(TODO)--\u003e allow the addition of new\ntypes of upstreams. \u003c!--See [upstream types](TODO) for a detailed description of available upstream types.--\u003e",
           "hasExtensions": false,
           "hasFields": true,
           "extensions": [],
@@ -222,7 +222,7 @@
             },
             {
               "name": "type",
-              "description": "Type indicates the type of the upstream. Examples include [service](TODO), [kubernetes](TODO), and [aws](TODO)\nTypes are defined by the [plugin](TODO) associated with them.",
+              "description": "Type indicates the type of the upstream. Examples include service\u003c!--(TODO)--\u003e, kubernetes\u003c!--(TODO)--\u003e, and [aws](../plugins/aws.md)\nTypes are defined by the plugin\u003c!--(TODO)--\u003e associated with them.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -231,7 +231,7 @@
             },
             {
               "name": "connection_timeout",
-              "description": "Connection Timeout tells gloo to set a timeout for unresponsive connections created to this upstream.\nIf not provided by the user, it will default to a [default value](TODO)",
+              "description": "Connection Timeout tells gloo to set a timeout for unresponsive connections created to this upstream.\nIf not provided by the user, it will set to a default value",
               "label": "",
               "type": "Duration",
               "longType": "google.protobuf.Duration",
@@ -249,7 +249,7 @@
             },
             {
               "name": "functions",
-              "description": "Certain upstream types support (and may require) [functions](TODO).\nFunctions allow function-level routing to be done. For example, the [aws lambda](TODO) upstream type\nPermits routing to [aws lambda functions].\n[routes](TODO) on [virtualhosts] can specify [function destinations] to route to specific functions.",
+              "description": "Certain upstream types support (and may require) [functions](../introduction/concepts.md#Functions).\nFunctions allow function-level routing to be done. For example, the [AWS lambda](../plugins/aws.md) upstream type\nPermits routing to AWS lambda function].\n[routes](virtualhost.md#Route) on virtualhosts can specify function destinations to route to specific functions.",
               "label": "repeated",
               "type": "Function",
               "longType": "Function",
@@ -323,7 +323,7 @@
           "name": "VirtualHost",
           "longName": "VirtualHost",
           "fullName": "v1.VirtualHost",
-          "description": "Virtual Hosts represent a collection of routes for a set of domains.\nVirtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.\nA virtual host can be used to define \"apps\"; a collection of APIs that belong to a particular domain.\nThe Virtual Host concept allows configuration of per-virtualhost SSL certificates",
+          "description": "Virtual Hosts represent a collection of routes for a set of domains.\nGloo's Virtual Hosts can be compared to\n[virtual hosts](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/vhost.html?highlight=virtual%20host) in Envoy terminology.\nA virtual host can be used to define \"apps\"; a collection of APIs that belong to a particular domain.\nThe Virtual Host concept allows configuration of per-virtualhost SSL certificates",
           "hasExtensions": false,
           "hasFields": true,
           "extensions": [],
@@ -339,7 +339,7 @@
             },
             {
               "name": "domains",
-              "description": "Domains represent the list of domains (host/authority header) that will match for all routes on this virtual host.\nAs in [envoy](TODO): wildcard hosts are supported in the form of “*.foo.com” or “*-bar.foo.com”.\nIf domains is empty, gloo will set the domain to \"*\", making that virtual host the \"default\" virtualhost.\nThe default virtualhost will be the fallback virtual host for all requests that do not match a domain on an existing virtual host.\nOnly one default virtual host can be defined (either with an empty domain list, or a domain list that includes \"*\")",
+              "description": "Domains represent the list of domains (host/authority header) that will match for all routes on this virtual host.\nAs in Envoy: wildcard hosts are supported in the form of “*.foo.com” or “*-bar.foo.com”.\nIf domains is empty, gloo will set the domain to \"*\", making that virtual host the \"default\" virtualhost.\nThe default virtualhost will be the fallback virtual host for all requests that do not match a domain on an existing virtual host.\nOnly one default virtual host can be defined (either with an empty domain list, or a domain list that includes \"*\")",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -348,7 +348,7 @@
             },
             {
               "name": "routes",
-              "description": "Routes define the list of [routes](TODO) that live on this virtual host.",
+              "description": "Routes define the list of [routes](../) that live on this virtual host.",
               "label": "repeated",
               "type": "Route",
               "longType": "Route",
@@ -440,7 +440,7 @@
             },
             {
               "name": "extensions",
-              "description": "Extensions provides a way to extend the behavior of a route. In addition to the [core route extensions](TODO),\ngloo provides the means for [route plugins](TODO) to be added to gloo which add new types of route extensions.\nSee the [route extensions section](TODO) for a more detailed explanation",
+              "description": "Extensions provides a way to extend the behavior of a route. In addition to the core route extensions\u003c!--(TODO)--\u003e,\ngloo provides the means for route plugins\u003c!--(TODO)--\u003e to be added to gloo which add new types of route extensions.\n\u003c!--See the route extensions section for a more detailed explanation--\u003e",
               "label": "",
               "type": "Struct",
               "longType": "google.protobuf.Struct",
@@ -710,7 +710,7 @@
           "fields": [
             {
               "name": "secret_ref",
-              "description": "SecretRef contains the [secret ref](TODO) to a [gloo secret](TODO) containing the following structure:\n{\n\"ca_chain\": \u003cca chain data...\u003e,\n\"private key\": \u003cprivate key data...\u003e\n}",
+              "description": "SecretRef contains the secret ref\u003c!--(TODO)--\u003e to a gloo secret\u003c!--(TODO)--\u003e containing the following structure:\n{\n\"ca_chain\": \u003cca chain data...\u003e,\n\"private key\": \u003cprivate key data...\u003e\n}",
               "label": "",
               "type": "string",
               "longType": "string",

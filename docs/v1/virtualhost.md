@@ -23,7 +23,8 @@
 
 ### VirtualHost
 Virtual Hosts represent a collection of routes for a set of domains.
-Virtual Hosts can be compared to [virtual hosts](TODO) in [envoy](TODO) terminology.
+Gloo&#39;s Virtual Hosts can be compared to
+[virtual hosts](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/vhost.html?highlight=virtual%20host) in Envoy terminology.
 A virtual host can be used to define &#34;apps&#34;; a collection of APIs that belong to a particular domain.
 The Virtual Host concept allows configuration of per-virtualhost SSL certificates
 
@@ -40,8 +41,8 @@ metadata: {Metadata}
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | string |  | Name of the virtual host. Names must be unique and follow the following syntax rules: One or more lowercase rfc1035/rfc1123 labels separated by &#39;.&#39; with a maximum length of 253 characters. |
-| domains | string | repeated | Domains represent the list of domains (host/authority header) that will match for all routes on this virtual host. As in [envoy](TODO): wildcard hosts are supported in the form of “*.foo.com” or “*-bar.foo.com”. If domains is empty, gloo will set the domain to &#34;*&#34;, making that virtual host the &#34;default&#34; virtualhost. The default virtualhost will be the fallback virtual host for all requests that do not match a domain on an existing virtual host. Only one default virtual host can be defined (either with an empty domain list, or a domain list that includes &#34;*&#34;) |
-| routes | [Route](virtualhost.md#v1.Route) | repeated | Routes define the list of [routes](TODO) that live on this virtual host. |
+| domains | string | repeated | Domains represent the list of domains (host/authority header) that will match for all routes on this virtual host. As in Envoy: wildcard hosts are supported in the form of “*.foo.com” or “*-bar.foo.com”. If domains is empty, gloo will set the domain to &#34;*&#34;, making that virtual host the &#34;default&#34; virtualhost. The default virtualhost will be the fallback virtual host for all requests that do not match a domain on an existing virtual host. Only one default virtual host can be defined (either with an empty domain list, or a domain list that includes &#34;*&#34;) |
+| routes | [Route](virtualhost.md#v1.Route) | repeated | Routes define the list of [routes](../) that live on this virtual host. |
 | ssl_config | [SSLConfig](virtualhost.md#v1.SSLConfig) |  | SSL Config is optional for the virtual host. If provided, the virtual host will listen on the envoy HTTPS listener port (default :8443) If left empty, the virtual host will listen on the HTTP listener port (default :8080) |
 | status | [Status](status.md#v1.Status) |  | Status indicates the validation status of the virtual host resource. Status is read-only by clients, and set by gloo during validation |
 | metadata | [Metadata](metadata.md#v1.Metadata) |  | Metadata contains the resource metadata for the virtual host |
@@ -73,7 +74,7 @@ extensions: {google.protobuf.Struct}
 | multiple_destinations | [WeightedDestination](virtualhost.md#v1.WeightedDestination) | repeated | A route is only allowed to specify one of multiple_destinations or single_destination. Setting both will result in an error Multiple Destinations is used when a user wants a route to balance requests between multiple destinations Balancing is done by probability, where weights are specified for each destination |
 | single_destination | [Destination](virtualhost.md#v1.Destination) |  | A single destination is specified when a route only routes to a single destination. |
 | prefix_rewrite | string |  | PrefixRewrite can be specified to rewrite the matched path of the request path to a new prefix |
-| extensions | [google.protobuf.Struct](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/struct) |  | Extensions provides a way to extend the behavior of a route. In addition to the [core route extensions](TODO), gloo provides the means for [route plugins](TODO) to be added to gloo which add new types of route extensions. See the [route extensions section](TODO) for a more detailed explanation |
+| extensions | [google.protobuf.Struct](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/struct) |  | Extensions provides a way to extend the behavior of a route. In addition to the core route extensions&lt;!--(TODO)--&gt;, gloo provides the means for route plugins&lt;!--(TODO)--&gt; to be added to gloo which add new types of route extensions. &lt;!--See the route extensions section for a more detailed explanation--&gt; |
 
 
 
@@ -225,7 +226,7 @@ secret_ref: string
 ```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| secret_ref | string |  | SecretRef contains the [secret ref](TODO) to a [gloo secret](TODO) containing the following structure: { &#34;ca_chain&#34;: &lt;ca chain data...&gt;, &#34;private key&#34;: &lt;private key data...&gt; } |
+| secret_ref | string |  | SecretRef contains the secret ref&lt;!--(TODO)--&gt; to a gloo secret&lt;!--(TODO)--&gt; containing the following structure: { &#34;ca_chain&#34;: &lt;ca chain data...&gt;, &#34;private key&#34;: &lt;private key data...&gt; } |
 
 
 
