@@ -88,8 +88,8 @@ through language plugins<!--(TODO)-->.
 The basic Gloo workflow looks like the following (these can be done in any order):
 
 1. Deploy Gloo (e.g. as a kubernetes pod, docker container, etc. It's just a single go binary that will run anywhere).
-2. *Optionally* deploy Gloo discovery services<!--(TODO)--> for automated creation of glue config.
+2. *Optionally* deploy Gloo discovery services<!--(TODO)--> for automated creation of gloo config.
 2. Deploy at least 1 Envoy proxy configured to use Gloo as its ADS service<!--(TODO)-->.
     * *Note: we recommend using TheTool<!--(TODO)--> to automate the above steps for you.*
-3. Write some Gloo configuration objects<!--(TODO)-->. At least one [route](../v1/virtualhost.md#Route) and one \
+3. Write some Gloo configuration objects<!--(TODO)-->. At least one [route](../v1/virtualhost.md#Route) and one
 [upstream](../v1/upstream.md) are required for Gloo to begin routing.
