@@ -1,5 +1,7 @@
 SOURCES := $(shell find . -name *.go)
 BINARY:=gloo
+VERSION:=$(shell cat version)
+
 build-debug: gloo-debug
 
 build: $(BINARY)
@@ -8,10 +10,14 @@ $(BINARY): $(SOURCES)
 	CGO_ENABLED=0 GOOS=linux go build -i -v  -o $@ *.go
 
 docker: $(BINARY)
-	docker build -t soloio/$(BINARY):v0.1 .
+	docker build -t soloio/$(BINARY):v$(VERSION) .
 
 $(BINARY)-debug: $(SOURCES)
 	go build -i -gcflags "-N -l" -o $(BINARY)-debug *.go
+
+# build a container with debug symbols
+docker-debug: $(BINARY)-debug
+	docker build -t soloio/$(BINARY):v$(VERSION)-debug -f Dockerfile.debug .
 
 hackrun: $(BINARY)
 	./hack/run-local.sh
