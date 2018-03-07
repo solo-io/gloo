@@ -14,8 +14,6 @@ import (
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 
-var localCache = make(map[string][]*v1.Function)
-
 func GetSecretRefsToWatch(upstreams []*v1.Upstream) []string {
 	var refs []string
 	for _, us := range upstreams {
@@ -98,7 +96,6 @@ func updateUpstreamWithFuncs(gloo storage.Interface, us *v1.Upstream, funcs []*v
 	if err != nil {
 		return err
 	}
-	localCache[us.Name] = funcs
 	return nil
 }
 

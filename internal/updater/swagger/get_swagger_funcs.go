@@ -5,6 +5,8 @@ import (
 
 	"fmt"
 
+	"sort"
+
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/spec"
 	"github.com/go-openapi/swag"
@@ -128,6 +130,10 @@ func getBodyTemplate(parent string, schema spec.SchemaProps, definitions spec.De
 			fields = append(fields, fmt.Sprintf(`"%v": {{%v.%v}}`, key, parent, key))
 		}
 	}
+	// idempotency
+	sort.SliceStable(fields, func(i, j int) bool {
+		return fields[i] < fields[j]
+	})
 	bodyTemplate += strings.Join(fields, ",")
 	bodyTemplate += "}"
 	return bodyTemplate
