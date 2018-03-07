@@ -36,7 +36,7 @@ message Upstream {
     // [routes](virtualhost.md#Route) on virtualhosts can specify function destinations to route to specific functions.
     repeated Function functions = 5;
     // Status indicates the validation status of the upstream resource. Status is read-only by clients, and set by gloo during validation
-    Status status = 6;
+    Status status = 6 [(gogoproto.moretags) = "testdiff:\"ignore\""];
     // Metadata contains the resource metadata for the upstream
     Metadata metadata = 7;
 }

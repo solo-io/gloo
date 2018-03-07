@@ -33,7 +33,7 @@ message VirtualHost {
     SSLConfig ssl_config = 4;
 
     // Status indicates the validation status of the virtual host resource. Status is read-only by clients, and set by gloo during validation
-    Status status = 5;
+    Status status = 5 [(gogoproto.moretags) = "testdiff:\"ignore\""];
     // Metadata contains the resource metadata for the virtual host
     Metadata metadata = 6;
 }
