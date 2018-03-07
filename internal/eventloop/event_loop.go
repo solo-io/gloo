@@ -4,7 +4,10 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+
+	"sync"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/swagger"
@@ -20,7 +23,6 @@ import (
 	filesecrets "github.com/solo-io/gloo/pkg/secretwatcher/file"
 	kubesecrets "github.com/solo-io/gloo/pkg/secretwatcher/kube"
 	"github.com/solo-io/gloo/pkg/secretwatcher/vault"
-	"k8s.io/client-go/kubernetes"
 )
 
 func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []string, stop <-chan struct{}, errs chan error) error {
@@ -46,17 +48,39 @@ func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []st
 		upstreams []*v1.Upstream
 	}
 
+	// prevent concurrent attempts to update the same upstream
+	upstreamUpdateLocks := make(map[string]*sync.Mutex)
+
 	update := func() {
-		go func() {
-			// update secret refs on secret watcher
-			refs := updater.GetSecretRefsToWatch(cache.upstreams)
-			secretWatcher.TrackSecrets(refs)
-		}()
-		if autoDiscoverSwagger {
-			swagger.DiscoverSwaggerUpstreams(resolver, swaggerUrisToTry, cache.upstreams)
+		log.Debugf("updating: %v", len(cache.upstreams))
+		// clean locks for upstreams that have been deleted
+		for usName := range upstreamUpdateLocks {
+			var upstreamFound bool
+			for _, us := range cache.upstreams {
+				if usName == us.Name {
+					upstreamFound = true
+					break
+				}
+			}
+			if !upstreamFound {
+				delete(upstreamUpdateLocks, usName)
+			}
 		}
-		if err := updater.UpdateFunctionalUpstreams(store, cache.upstreams, cache.secrets); err != nil {
-			errs <- err
+
+		// updating secret refs can happen async
+		// if new secrets come in, it will trigger a new update
+		go func(upstreams []*v1.Upstream) {
+			// update secret refs on secret watcher
+			refs := updater.GetSecretRefsToWatch(upstreams)
+			secretWatcher.TrackSecrets(refs)
+		}(cache.upstreams)
+
+		for _, us := range cache.upstreams {
+			_, ok := upstreamUpdateLocks[us.Name]
+			if !ok {
+				upstreamUpdateLocks[us.Name] = &sync.Mutex{}
+			}
+			go updateUpstream(upstreamUpdateLocks, us, cache.secrets, resolver, autoDiscoverSwagger, swaggerUrisToTry, store, errs)
 		}
 	}
 
@@ -76,6 +100,25 @@ func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []st
 			return nil
 		}
 	}
+}
+
+func updateUpstream(upstreamUpdateLocks map[string]*sync.Mutex,
+	us *v1.Upstream,
+	secrets secretwatcher.SecretMap,
+	resolver *resolver.Resolver,
+	autoDiscoverSwagger bool,
+	swaggerUrisToTry []string,
+	store storage.Interface, errs chan error) {
+	upstreamUpdateLocks[us.Name].Lock()
+	log.Printf("starting goroutine for %v", us.Name)
+	if autoDiscoverSwagger {
+		swagger.DiscoverSwaggerUpstream(resolver, swaggerUrisToTry, us)
+	}
+	if err := updater.UpdateFunctionalUpstream(store, us, secrets); err != nil {
+		errs <- err
+	}
+	log.Printf("exiting goroutine for %v", us.Name)
+	upstreamUpdateLocks[us.Name].Unlock()
 }
 
 func createStorageClient(opts bootstrap.Options) (storage.Interface, error) {

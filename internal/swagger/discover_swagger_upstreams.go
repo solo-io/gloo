@@ -5,8 +5,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"strings"
+	"sync"
 
+	"github.com/cenkalti/backoff"
+	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
 	"github.com/solo-io/gloo-plugins/common/annotations"
@@ -16,11 +18,8 @@ import (
 )
 
 // local cache to avoid retrying the same upstream
-// may occasionally cause races where an update fails but we have
-// already marked the upstream as "tried"
-// TODO: create a cleaner way to cache upstreams that we have tried,
-// but for which updating failed (e.g. because of out of date resource version)
-var skipRetryingUpstreams = make(map[string]bool)
+var triedUpstreams = make(map[string]bool)
+var mapLock sync.RWMutex
 
 var commonSwaggerURIs = []string{
 	"/swagger.json",
@@ -29,55 +28,34 @@ var commonSwaggerURIs = []string{
 	"/v1/swagger",
 }
 
-// right now retrying disabled
-// TODO: expose retries as a cli flag
-var defaultRetries = 0
-
 // adds swagger annotations to upstreams it discovers
-func DiscoverSwaggerUpstreams(resolver *resolver.Resolver, swaggerUrisToTry []string, upstreams []*v1.Upstream) {
-	for _, us := range upstreams {
-		if !shouldTryDiscovery(us) {
-			continue
-		}
-		log.Debugf("initiating swagger detection for %v", us.Name)
-		if err := withRetries(defaultRetries, func() error {
-			return discoverSwaggerUpstream(resolver, swaggerUrisToTry, us)
-		}); err != nil {
-			if !shouldRetry(err) {
-				skipRetryingUpstreams[us.Name] = true
-			}
-			log.Warnf("unable to discover whether upstream %v implements swagger or not.\n%v", us.Name, err.Error())
-		}
+func DiscoverSwaggerUpstream(resolver *resolver.Resolver, swaggerUrisToTry []string, us *v1.Upstream) {
+	log.Debugf("should try swagger ? %v: %v", us.Name, shouldTryDiscovery(us))
+	if !shouldTryDiscovery(us) {
+		return
 	}
-}
-
-// determine whether this error indicates we should retry this upstream (e.g. no route to host)
-// no route to host might a kubernetes dns issue
-func shouldRetry(err error) bool {
-	switch {
-	case strings.Contains(err.Error(), "getsockopt: no route to host"):
-		return true
-	}
-	return false
-}
-
-func withRetries(retries int, f func() error) error {
-	err := f()
+	log.Debugf("initiating swagger detection for %v", us.Name)
+	err := backoff.Retry(func() error {
+		return discoverSwaggerUpstream(resolver, swaggerUrisToTry, us)
+	}, backoff.NewExponentialBackOff())
 	if err != nil {
-		if retries > 0 {
-			return withRetries(retries-1, f)
-		}
+		log.Warnf("unable to discover whether upstream %v implements swagger or not.\n%v", us.Name, err.Error())
 	}
-	return err
+	mapLock.Lock()
+	triedUpstreams[us.Name] = true
+	mapLock.Unlock()
 }
 
 func shouldTryDiscovery(us *v1.Upstream) bool {
+	mapLock.RLock()
+	defer mapLock.RUnlock()
+
 	switch {
 	case us.Type != kubeplugin.UpstreamTypeKube && us.Type != serviceplugin.UpstreamTypeService:
 		fallthrough
 	case IsSwagger(us): //already discovered
 		fallthrough
-	case skipRetryingUpstreams[us.Name]:
+	case triedUpstreams[us.Name]:
 		return false
 	}
 	return true
@@ -100,12 +78,14 @@ func discoverSwaggerUpstream(resolver *resolver.Resolver, swaggerUrisToTry []str
 	if addr == "" {
 		return nil
 	}
+	var errs error
 	for _, uri := range append(swaggerUrisToTry, commonSwaggerURIs...) {
 		url := "http://" + addr + uri
 		log.Debugf("querying swagger url %v", url)
 		res, err := http.Get(url)
 		if err != nil {
-			return errors.Wrapf(err, "could not perform HTTP GET on resolved addr: %v", addr)
+			errs = multierror.Append(errs, errors.Wrapf(err, "could not perform HTTP GET on resolved addr: %v", addr))
+			continue
 		}
 		// found a swagger service
 		if res.StatusCode == 200 {
@@ -114,7 +94,7 @@ func discoverSwaggerUpstream(resolver *resolver.Resolver, swaggerUrisToTry []str
 		}
 	}
 	// not a swagger upstream
-	return nil
+	return errs
 }
 
 func setSwaggerAnnotations(url string, us *v1.Upstream) {
