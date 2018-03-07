@@ -32,7 +32,7 @@ func DecodeRouteExtensions(generic *types.Struct) (RouteExtensionSpec, error) {
 	return s, err
 }
 
-func EncodeUpstreamSpec(spec RouteExtensionSpec) *types.Struct {
+func EncodeRouteExtensionSpec(spec RouteExtensionSpec) *types.Struct {
 	v1Spec, err := protoutil.MarshalStruct(spec)
 	if err != nil {
 		panic(err)
