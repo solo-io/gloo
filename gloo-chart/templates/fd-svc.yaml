@@ -1,14 +1,16 @@
+{{ if .Values.gloo_function_discovery.enable }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Release.Name }}-function-discovery
+  namespace: {{ .Release.Namespace }}
   labels:
     gloo: function-discovery
     chart: {{ template "gloo-chart.chart" .}}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  type: {{ .Values.function_discovery.type }}
   selector:
-    app: {{ template "function_discovery.name" . }}
+    app: {{ template "gloo_function_discovery.name" . }}
     release: {{ .Release.Name }}
+{{end}}

@@ -9,17 +9,17 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  type: {{ .Values.gw.type }}
+  type: {{ .Values.ingress.type }}
   ports:
-    - port: {{ .Values.gw.port }}
+    - port: {{ .Values.ingress.port }}
       protocol: TCP
       name: http
-    - port: {{ .Values.gw.securePort }}
+    - port: {{ .Values.ingress.securePort }}
       protocol: TCP
       name: https
-    - port: {{ .Values.gw.adminPort }}
+    - port: {{ .Values.ingress.adminPort }}
       protocol: TCP
       name: admin
   selector:
-    app: {{ template "gw.name" . }}
+    app: {{ template "ingress.name" . }}
     release: {{ .Release.Name }}

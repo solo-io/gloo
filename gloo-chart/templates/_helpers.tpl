@@ -35,21 +35,13 @@ Create chart name and version as used by the chart label.
 {{/* helpers for components */}}
 
 {{/* function discovery */}}
-{{- define "function_discovery.name" -}}
-{{- default "function-discovery" .Values.function_discovery.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- define "gloo_function_discovery.name" -}}
+{{- default "function-discovery" .Values.gloo_function_discovery.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "function_discovery.fullname" -}}
-{{- $name := default "function-discovery" .Values.function_discovery.nameOverride -}}
+{{- define "gloo_function_discovery.fullname" -}}
+{{- $name := default "function-discovery" .Values.gloo_function_discovery.nameOverride -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "function_discovery.serviceAccountName" -}}
-{{- if .Values.global.rbacEnabled -}}
-{{- template "function_discovery.fullname" . -}}-service-account
-{{- else }}
-{{- .Values.function_discovery.serviceAccountName | trunc 63 | trimSuffix "-" -}}-service-account
-{{- end -}}
 {{- end -}}
 
 {{/* ingress */}}

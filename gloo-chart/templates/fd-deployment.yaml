@@ -1,29 +1,31 @@
+{{ if .Values.gloo_function_discovery.enable }}
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "function_discovery.fullname" . }}
+  name: {{ template "gloo_function_discovery.fullname" . }}
+  namespace: {{ .Release.Namespace}}
   labels:
-    app: {{ template "function_discovery.name" . }}
+    app: {{ template "gloo_function_discovery.name" . }}
     gloo: function-discovery
     chart: {{ template "gloo-chart.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  replicas: {{ .Values.function_discovery.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
-      app: {{ template "function_discovery.name" . }}
+      app: {{ template "gloo_function_discovery.name" . }}
       gloo: function-discovery
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "function_discovery.name" . }}
+        app: {{ template "gloo_function_discovery.name" . }}
         release: {{ .Release.Name }}
     spec:
       containers:
       - name: function-discovery
-        image: "{{ .Values.function_discovery.image }}:{{ .Values.function_discovery.imageTag }}"
+        image: "{{ .Values.gloo_function_discovery.image }}:{{ .Values.gloo_function_discovery.imageTag }}"
         env:
         - name: GRPC_TRACE
           value: "all"
@@ -36,3 +38,4 @@ spec:
         - "--secrets.type=kube"
         - "--secrets.refreshrate=30m"
         - "--kube.namespace={{ .Release.Namespace }}"
+{{ end }}
