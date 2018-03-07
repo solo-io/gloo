@@ -2,9 +2,9 @@ apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: {{ template "ingress.fullname" . }} 
+  namespace: {{ .Release.Namespace }}
   labels:
     gloo: ingress
-    app: {{ template "ingress.name" .}}
     chart: {{ template "gloo-chart.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
@@ -12,13 +12,11 @@ spec:
   replicas: {{ .Values.ingress.replicaCount }}
   selector:
     matchLabels:
-      app:  {{ template "ingress.name" . }}
       gloo: ingress
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app:  {{ template "ingress.name" . }}
         gloo: ingress
         release: {{ .Release.Name }}
     spec:

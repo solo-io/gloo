@@ -18,7 +18,7 @@ gloo:
   image: "soloio/gloo"
   imageTag: "v0.1.2"
 
-#  services 
+#  services
 gloo_function_discovery:
   image: soloio/gloo-function-discovery
   imageTag: 644fefd

@@ -2,8 +2,8 @@ apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: {{ template "gloo.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ template "gloo.name" .}}
     gloo: control-plane
     chart: {{ template "gloo-chart.chart" . }}
     release: {{ .Release.Name }}

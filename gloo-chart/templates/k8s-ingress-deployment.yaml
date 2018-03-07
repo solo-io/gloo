@@ -1,0 +1,38 @@
+{{ if .Values.gloo_ingress.enable }}
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Relase.Name }}-ingress-controller
+  namespace: {{ .Release.Namespace }}
+  labels:
+    gloo: ingress-controller
+    chart: {{ template "gloo-chart.chart" .}}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      gloo: ingress-controller
+      release: {{ .Release.Name }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        gloo: ingress-controller
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: "{{ .Values.gloo_ingress.image}}:{{ .Values.gloo_ingress.imageTag }}"
+        name: ingress-controller
+        env:
+        - name: DEBUG
+          value: "1"
+        - name: GRPC_TRACE
+          value: all
+        command: ["/gloo-ingress-controller"]
+        args:
+        - "--service=envoy"
+        - "--syncperiod=30m"
+        - "--storage.type=kube"
+        - "--kube.namespace={{ .Release.Namespace }}"
+{{ end }}
