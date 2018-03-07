@@ -33,8 +33,7 @@ Quick Repository Guide:
 | Repo                                                                                  | What it does?                                                                            |
 |---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
 | [gloo](https://github.com/solo-io/gloo)                                               | The gloo control plane. Implements the ADS API for envoy                                 |
-| [gloo-install](https://github.com/solo-io/-install)                                   | Install manifests.                                                                       |
-| [gloo-chart](https://github.com/solo-io/gloo-chart)                                   | Helm charts for gloo.                                                                    |
+| [gloo-install](https://github.com/solo-io/gloo-install)                               | Install manifests and Helm chart.                                                                                                                                        |
 | [thetool](https://github.com/solo-io/thetool)                                         | Easily build gloo+envoy with plugins enabled or disabled.                                |
 | [glooctl](https://github.com/solo-io/glooctl)                                         | Command line client for gloo, for easy config manipulation.                              |
 | [gloo-api](https://github.com/solo-io/gloo-api)                                       | Proto API definitions (upstreams, virtualhosts, routes...).                              |
