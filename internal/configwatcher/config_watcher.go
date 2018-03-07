@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"sync"
 
+	"gopkg.in/d4l3k/messagediff"
+
 	"github.com/pkg/errors"
+
+	"sort"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-storage"
@@ -42,7 +46,18 @@ func NewConfigWatcher(storageClient storage.Interface) (*configWatcher, error) {
 	go func() {
 		configs <- cache
 	}()
+
 	syncUpstreams := func(updatedList []*v1.Upstream, _ *v1.Upstream) {
+		sort.SliceStable(updatedList, func(i, j int) bool {
+			return updatedList[i].GetName() < updatedList[j].GetName()
+		})
+
+		diff, equal := messagediff.PrettyDiff(cache.Upstreams, updatedList)
+		if equal {
+			return
+		}
+		log.GreyPrintf("change detected in upstream: %v", diff)
+
 		cache.Upstreams = updatedList
 		configs <- cache
 	}
@@ -55,6 +70,16 @@ func NewConfigWatcher(storageClient storage.Interface) (*configWatcher, error) {
 		return nil, errors.Wrap(err, "failed to create watcher for upstreams")
 	}
 	syncVhosts := func(updatedList []*v1.VirtualHost, _ *v1.VirtualHost) {
+		sort.SliceStable(updatedList, func(i, j int) bool {
+			return updatedList[i].GetName() < updatedList[j].GetName()
+		})
+
+		diff, equal := messagediff.PrettyDiff(cache.VirtualHosts, updatedList)
+		if equal {
+			return
+		}
+		log.GreyPrintf("change detected in virtualhosts: %v", diff)
+
 		cache.VirtualHosts = updatedList
 		configs <- cache
 	}
