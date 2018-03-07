@@ -27,7 +27,7 @@ var _ = Describe("Spec", func() {
 				},
 			},
 		}
-		encoded := EncodeUpstreamSpec(spec)
+		encoded := EncodeRouteExtensionSpec(spec)
 		jsn, err := protoutil.Marshal(encoded)
 		Expect(err).NotTo(HaveOccurred())
 		yam, err := yaml.JSONToYAML(jsn)

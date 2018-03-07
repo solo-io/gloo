@@ -256,7 +256,7 @@ func ValidConfigNoSsl() *v1.Config {
 							},
 						},
 					},
-					Extensions: extensions.EncodeUpstreamSpec(extensions.RouteExtensionSpec{
+					Extensions: extensions.EncodeRouteExtensionSpec(extensions.RouteExtensionSpec{
 						MaxRetries:    2,
 						Timeout:       time.Minute,
 						PrefixRewrite: "/bar",
@@ -386,7 +386,7 @@ func ValidConfigSsl() *v1.Config {
 							},
 						},
 					},
-					Extensions: extensions.EncodeUpstreamSpec(extensions.RouteExtensionSpec{
+					Extensions: extensions.EncodeRouteExtensionSpec(extensions.RouteExtensionSpec{
 						MaxRetries:    2,
 						Timeout:       time.Minute,
 						PrefixRewrite: "/bar",
@@ -492,7 +492,7 @@ func PartiallyValidConfig() *v1.Config {
 							},
 						},
 					},
-					Extensions: extensions.EncodeUpstreamSpec(extensions.RouteExtensionSpec{
+					Extensions: extensions.EncodeRouteExtensionSpec(extensions.RouteExtensionSpec{
 						MaxRetries:    2,
 						Timeout:       time.Minute,
 						PrefixRewrite: "/bar",
@@ -558,7 +558,7 @@ func InvalidConfigNoFuncPlugin() *v1.Config {
 							},
 						},
 					},
-					Extensions: extensions.EncodeUpstreamSpec(extensions.RouteExtensionSpec{
+					Extensions: extensions.EncodeRouteExtensionSpec(extensions.RouteExtensionSpec{
 						MaxRetries:    2,
 						Timeout:       time.Minute,
 						PrefixRewrite: "/bar",
@@ -618,7 +618,7 @@ func InvalidConfigNoUpstream() *v1.Config {
 							},
 						},
 					},
-					Extensions: extensions.EncodeUpstreamSpec(extensions.RouteExtensionSpec{
+					Extensions: extensions.EncodeRouteExtensionSpec(extensions.RouteExtensionSpec{
 						MaxRetries:    2,
 						Timeout:       time.Minute,
 						PrefixRewrite: "/bar",
