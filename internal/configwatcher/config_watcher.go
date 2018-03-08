@@ -2,13 +2,11 @@ package configwatcher
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 
-	"gopkg.in/d4l3k/messagediff"
-
+	"github.com/d4l3k/messagediff"
 	"github.com/pkg/errors"
-
-	"sort"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-storage"
