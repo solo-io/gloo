@@ -8,6 +8,10 @@ In this demo, we will use the following command line tools:
 - `kubectl` to interact with kubernetes.
 - `glooctl` to interact with gloo.
 - `aws` (the aws cli) to create resources on aws.
+- `jq` to parse the aws output to retrieve the ARN of created resources.
+
+You will need an AWS account. this is used to extend the application to the cloud. In this demo 
+we will create real resources on the cloud, which may result in small charges to your account.
 
 Additionally, some of the demo commands reference files, so first `cd` to the folder that contains 
 this readme (usually this is `cd $GOPATH/src/github.com/solo-io/gloo/example/demo`).
@@ -29,6 +33,11 @@ kubectl create clusterrolebinding permissive-binding \
 ```shell
 kubectl apply \
           -f https://raw.githubusercontent.com/solo-io/gloo-install/master/kube/install.yaml
+```
+
+Wait \ Verify that all the pods are in Running status:
+```
+kubectl get pods --all-namespaces
 ```
 
 ## Get the url of the ingress
@@ -84,7 +93,7 @@ Now the vets page will contain a city column!
 
 Let's expand the app functionality by displaying a contact form and saving the contact response to an AWS S3 bucket.
 
-Note: the current Gloo-AWS integration sends the aws keys unencrypted from gloo to envoy. This means
+**Note:** The current Gloo-AWS integration sends the aws keys unencrypted from gloo to envoy. This means
 that they may be sent in the clear over the local network, and appear in the envoy debug logs (which are off by default). we plan to fix that very soon.
 
 In this section, we will:
@@ -135,7 +144,9 @@ aws lambda create-function \
 
 ## Route to AWS Lambda from gloo
 
-Upload the aws secret to gloo, so that gloo can call your function:
+Upload the aws secret to gloo, so that gloo can call your function. This command will upload 
+the aws credentials ot kubernetes as a secret. by default it takes the credentials from `~/.aws/credentials`.
+Run with `glooctl secret create aws --help` to see other ways to provide the credentials.
 
 ```shell
 glooctl secret create aws --name aws-lambda-us-east-1
@@ -147,22 +158,20 @@ Create the aws upstream in gloo:
 glooctl upstream create -f yamls/aws-upstream.yaml
 ```
 
-Verify that the upstream was created and the functions were auto discoivered:
+Verify that the upstream was created and the functions were auto discovered:
 
 ```shell
 glooctl upstream get aws-lambda-us-east-1 -o yaml
 ```
 
-
-Route the relevant paths to the function:
+# Route the contact paths to the function:
 
 ```shell
 glooctl route create --sort --path-exact /contact --upstream aws-lambda-us-east-1 --function 'processContact:$LATEST'
 glooctl route create --sort --path-exact /contact.html --upstream aws-lambda-us-east-1 --function 'processContact:$LATEST'
 ```
 
-Go to the contact page. Notice that you see json in stead of HTML. To fix that, we will attach a 
-transformation to the route:
+Go to the contact page. Notice that you see json in stead of HTML. To fix that, we will attach a  transformation to the route:
 
 ```shell
 glooctl route update --path-exact /contact.html --upstream aws-lambda-us-east-1 --function 'processContact:$LATEST' --extensions ./yamls/transformation.yaml

@@ -466,7 +466,7 @@
 [914.929717, "o", "\u001b]0;yuval@yuvallaptop-2018: ~/go/src/github.com/solo-io/gloo/example/demo\u0007\u001b[01;32myuval@yuvallaptop-2018\u001b[00m:\u001b[01;34m~/go/src/github.com/solo-io/gloo/example/demo\u001b[00m$ "]
 [915.454282, "o", "#"]
 [916.158629, "o", " "]
-[925.067696, "o", "Notice that you see json in stead of HTML. To fix that, we will attach a  trans\rsformation to the route"]
+[925.067696, "o", "Notice that you see json instead of HTML. To fix that, we will attach a  trans\rsformation to the route"]
 [926.95459, "o", "\r\n"]
 [926.958487, "o", "\u001b]0;yuval@yuvallaptop-2018: ~/go/src/github.com/solo-io/gloo/example/demo\u0007\u001b[01;32myuval@yuvallaptop-2018\u001b[00m:\u001b[01;34m~/go/src/github.com/solo-io/gloo/example/demo\u001b[00m$ "]
 [937.781419, "o", "glooctl route update --path-exact /contact.html --upstream aws-lambda-us-east-1 -\r--function 'processContact:$LATEST' --extensions ./yamls/transformation.yaml\r\n"]
