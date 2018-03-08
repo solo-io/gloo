@@ -1,4 +1,4 @@
-{{ if .Values.gloo_ingress.enable }}
+{{ if .Values.gloo_ingress_controller.enable }}
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
