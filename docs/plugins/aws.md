@@ -19,16 +19,16 @@ To jump right in, follow the AWS Lambda Getting Started Guide<!--(TODO)-->.
 
 The **Upstream Type** for AWS Lambda upstreams is `aws`. 
 
-The [upstream spec](../v1/upstream.md#v1.Upstream) for an AWS Lambda Upstreams has the following structure:
+The [upstream spec](../v1/upstream.md#v1.Upstream) for AWS Lambda Upstreams has the following structure:
 
 ```yaml
 region: string
 secret_ref: string
 ```
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| region | string |  | The [AWS Region](https://docs.aws.amazon.com/general/latest/gr/rande.html) this upstream points to. The credentials specified in the secret must be valid for this region. **required** |
-| secret_ref | string |  | The [AWS Credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html) this upstream points to. The credentials specified in the secret must be valid for this region. **required** |
+| Field | Type |  Description |
+| ----- | ---- |  ----------- |
+| region | string |  The [AWS Region](https://docs.aws.amazon.com/general/latest/gr/rande.html) this upstream points to. The credentials specified in the secret must be valid for this region. **required** |
+| secret_ref | string |  The [AWS Credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html) this upstream points to. The credentials specified in the secret must be valid for this region. **required** |
 
 The `secret_ref` must be the name of a secret in Gloo's [secret storage backend](../introduction/concepts.md#secrets).
 

@@ -15,6 +15,8 @@ pages:
 #      - Getting Started on Local Docker: installation/docker.md
     - Plugins:
       - AWS Lambda Plugin: plugins/aws.md
+      - Kubernetes Plugin: plugins/kubernetes.md
+      - Request Transformation Plugin: plugins/request_transformation.md
     - Advanced:
       - Bootstrap Options: advanced/bootstrap_options.md
     - v1 API reference:
