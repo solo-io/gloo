@@ -1,0 +1,4 @@
+response_template:
+  body: '{{body}}'
+  headers:
+    content-type: text/html

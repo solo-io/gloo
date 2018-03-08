@@ -1,0 +1,37 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: petclinic-vets
+  labels:
+    app: petclinic-vets
+spec:
+  selector:
+    matchLabels:
+      app: petclinic-vets
+  template:
+    metadata:
+      labels:
+        app: petclinic-vets
+    spec:
+      containers:
+      - name: petclinic-vets
+        image: soloio/petclinic-vet@sha256:de455af9fab9c02883cdb085ad24c1a70b9c2ffb86fe7b53ec14df604acb506c
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+          name: http-squash-api
+        command: ["/petclinic-vet"]
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: petclinic-vets
+spec:
+  selector:
+    app: petclinic-vets
+  ports:
+    - name: http-petclinic-vets-api
+      protocol: TCP
+      port: 80
+      targetPort: 8080
