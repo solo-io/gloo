@@ -51,7 +51,7 @@ kubectl apply -f yamls/pet-clinic.yaml
 Verify it is available as an upstream:
 
 ```shell
-kubectl get upstreams -n gloo-system
+glooctl upstream get
 ```
 
 you should see `default-petclinic-80` in the list.
@@ -105,24 +105,18 @@ change the policy to match your bucket:
 
 ```shell
 sed s/io.solo.petclinic/$BUCKET/ aws/policy-document_template.json > aws/policy-document.json
-
 ```
 
 Create the needed policy and role that allows the lambda function to access the bucket:
 
 ```shell
-POLICY_ARN=$(aws iam list-policies | jq -r '.Policies[] | select(.PolicyName == "gloo-contact-lambda-policy") | .Arn')
-if [ -z "$POLICY_ARN" ]; then
-    aws iam create-policy --policy-name gloo-contact-lambda-policy --policy-document file://aws/policy-document.json
-    POLICY_ARN=$(aws iam list-policies | jq -r '.Policies[] | select(.PolicyName == "gloo-contact-lambda-policy") | .Arn')
-fi
 
+aws iam create-policy --policy-name gloo-contact-lambda-policy --policy-document file://aws/policy-document.json
+POLICY_ARN=$(aws iam list-policies | jq -r '.Policies[] | select(.PolicyName == "gloo-contact-lambda-policy") | .Arn')
+
+aws iam create-role --role-name gloo-contact-lambda-role --assume-role-policy-document file://aws/assume-role-policy-document.json
+aws iam attach-role-policy --role-name gloo-contact-lambda-role --policy-arn $POLICY_ARN
 ROLE_ARN=$(aws iam list-roles | jq -r '.Roles[] | select(.RoleName == "gloo-contact-lambda-role") | .Arn')
-if [ -z "$ROLE_ARN" ]; then
-    aws iam create-role --role-name gloo-contact-lambda-role --assume-role-policy-document file://aws/assume-role-policy-document.json
-    aws iam attach-role-policy --role-name gloo-contact-lambda-role --policy-arn $POLICY_ARN
-    ROLE_ARN=$(aws iam list-roles | jq -r '.Roles[] | select(.RoleName == "gloo-contact-lambda-role") | .Arn')
-fi
 
 ```
 
@@ -152,6 +146,13 @@ Create the aws upstream in gloo:
 ```shell
 glooctl upstream create -f yamls/aws-upstream.yaml
 ```
+
+Verify that the upstream was created and the functions were auto discoivered:
+
+```shell
+glooctl upstream get aws-lambda-us-east-1 -o yaml
+```
+
 
 Route the relevant paths to the function:
 
