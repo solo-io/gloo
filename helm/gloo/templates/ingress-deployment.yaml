@@ -53,7 +53,7 @@ spec:
         - containerPort: {{ .Values.ingress.adminPort }}
           name: admin
         command: ["envoy"]
-        args: ["-c", "/etc/envoy.yaml", "--v2-config-only"]
+        args: ["-c", "/config/envoy.yaml", "--v2-config-only"]
         volumeMounts:
         - name: envoy-config
           mountPath: /config
