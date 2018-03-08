@@ -22,7 +22,7 @@ spec:
         release: {{ .Release.Name }}
     spec:
       containers:
-      - image: "{{ .Values.gloo_ingress.image}}:{{ .Values.gloo_ingress.imageTag }}"
+      - image: "{{ .Values.gloo_ingress_controller.image}}:{{ .Values.gloo_ingress_controller.imageTag }}"
         name: ingress-controller
         env:
         - name: DEBUG

@@ -21,19 +21,19 @@ gloo:
 #  services
 gloo_function_discovery:
   image: soloio/gloo-function-discovery
-  imageTag: 644fefd
+  imageTag: v0.1.4
   enable: true
   install: true
 
-gloo_ingress:
-  image: soloio/gloo-ingress
-  imageTag: 99184ba
+gloo_ingress_controller:
+  image: soloio/gloo-ingress-controller
+  imageTag: v0.1
   enable: true
   install: true
 
 gloo_k8s_service_discovery:
   image: soloio/gloo-k8s-service-discovery
-  imageTag: 12b4753
+  imageTag: v0.1
   enable: true
   install: true
 
