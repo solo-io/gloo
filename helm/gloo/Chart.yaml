@@ -1,4 +1,4 @@
-name: gloo-chart
+name: gloo
 version: 0.1.0
 description: Chart to Gloo the Universe
 apiVersion: v1

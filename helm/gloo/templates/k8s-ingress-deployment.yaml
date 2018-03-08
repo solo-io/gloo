@@ -2,7 +2,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ .Relase.Name }}-ingress-controller
+  name: {{ .Release.Name }}-ingress-controller
   namespace: {{ .Release.Namespace }}
   labels:
     gloo: ingress-controller
