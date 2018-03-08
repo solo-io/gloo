@@ -50,7 +50,8 @@ volumes: [
         stage('Initialize thetool') {
             echo 'Initializing thetool...'
             sh '''
-                ls
+                ls -l
+                chmod +x thetool
                 mkdir thetool-work
                 cd thetool-work
                 ../thetool init -g $GLOO_HASH --no-defaults
