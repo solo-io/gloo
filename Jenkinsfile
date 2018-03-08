@@ -50,10 +50,11 @@ volumes: [
         stage('Initialize thetool') {
             echo 'Initializing thetool...'
             sh '''
+                ls
                 mkdir thetool-work
                 cd thetool-work
-                ../thetool init -g param.GLOO_HASH --no-defaults
-                ../thetool add -r https://github.com/solo-io/gloo-plugins.git -c param.GLOO_PLUGINS_HASH
+                ../thetool init -g $GLOO_HASH --no-defaults
+                ../thetool add -r https://github.com/solo-io/gloo-plugins.git -c $GLOO_PLUGINS_HASH
                 ../thetool build all -d
             '''
         }
