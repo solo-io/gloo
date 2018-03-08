@@ -5,22 +5,18 @@ metadata:
   name: {{ template "gloo_function_discovery.fullname" . }}
   namespace: {{ .Release.Namespace}}
   labels:
-    app: {{ template "gloo_function_discovery.name" . }}
     gloo: function-discovery
     chart: {{ template "gloo-chart.chart" . }}
     release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ template "gloo_function_discovery.name" . }}
       gloo: function-discovery
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "gloo_function_discovery.name" . }}
         gloo: function-discovery
         release: {{ .Release.Name }}
     spec:

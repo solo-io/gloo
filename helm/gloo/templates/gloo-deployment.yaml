@@ -12,13 +12,11 @@ spec:
   replicas: {{ .Values.gloo.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "gloo.name" . }}
       gloo: control-plane
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "gloo.name" . }}
         gloo: control-plane
         release: {{ .Release.Name }}
     spec:

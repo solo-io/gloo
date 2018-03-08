@@ -23,5 +23,4 @@ spec:
       name: admin
   selector:
     gloo: ingress
-    app: {{ template "ingress.name" . }}
     release: {{ .Release.Name }}

@@ -15,6 +15,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: {{ template "gloo.name" . }}
     gloo: control-plane
     release: {{ .Release.Name }}
