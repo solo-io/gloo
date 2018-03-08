@@ -26,11 +26,11 @@ volumes: [
     properties([
         parameters ([
             stringParam(
-                defaultValue: '',
+                defaultValue: 'cf08737718cf62bf597f88aa2068c6f6b28b9992',
                 description: 'Commit hash for gloo',
                 name: 'GLOO_HASH'),
             stringParam(
-                defaultValue: '',
+                defaultValue: '282a844ea3ed2527f5044408c9c98bc7ee027cd2',
                 description: 'Commit hash for gloo-plugins',
                 name: 'GLOO_PLUGINS_HASH')
         ])
@@ -41,14 +41,8 @@ volumes: [
             container('golang') {
                 echo 'Building thetool...' 
                 sh '''
-                    curl -fsSL -o /usr/local/bin/dep https://github.com/golang/dep/release/download/v0.4.1/dep-linux-amd64 && chmod +x /usr/local/bin/dep
-                    git clone https://github.com/solo-io/thetool.git
-                    mkdir -p ${GOPATH}/src/github.com/solo-io/
-                    ln -s `pwd`/thetool ${GOPATH}/src/github.com/solo-io/thetool
-                    cd ${GOPATH}/src/github.com/solo-io/thetool
-                    dep ensure -vendor only
-                    CGO_ENABLED=0 go build
-                    }
+                    go get -u github.com/solo-io/thetool
+                    cp ${GOPATH}/bin/thetool .
                 '''
             }
         }
