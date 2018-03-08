@@ -10,7 +10,11 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    name: http
   selector:
-    app: {{ template "gloo_function_discovery.name" . }}
     release: {{ .Release.Name }}
+    gloo: function-discovery
 {{end}}

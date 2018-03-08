@@ -21,6 +21,7 @@ spec:
     metadata:
       labels:
         app: {{ template "gloo_function_discovery.name" . }}
+        gloo: function-discovery
         release: {{ .Release.Name }}
     spec:
       containers:
