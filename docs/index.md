@@ -19,6 +19,9 @@ the component architecture
 * [Part 2 - Function Routing](getting_started/kubernetes/2.md): Introduction to Function Routing with Gloo
 ### Plugins:
 * [AWS Lambda Plugin](plugins/aws.md): Description of the AWS Lambda Plugin and config rules for AWS Lambda Upstreams and Functions 
+* [Kubernetes Plugin](plugins/kubernetes.md): Description of the Kubernetes Plugin and config rules for Kubernetes Upstreams  
+* [Service Plugin](plugins/service.md): Description of the Service Plugin and config rules for Service Upstreams
+* [Request Transformation Plugin](plugins/request_transformation.md): Description of the Request Transformation Plugin and config rules for Request Transformation Routes and Functions 
 
 ### v1 API reference:
 * [Upstreams](v1/upstream.md): API Specification for the Gloo Upstream Config Object
@@ -30,9 +33,7 @@ the component architecture
 
 
 <!--# Features
-- AWS plugin
 - GCF plugin
-- Kubernetes plugin
 - Openapi upstream extension
 - Route extensions plugin
 - Transformation plugin

@@ -9,14 +9,19 @@ pages:
       - Installing on Kubernetes: installation/kubernetes.md
 #      - Installing on Local Docker: installation/docker.md
     - Getting Started:
+      - AWS:
+        - Basic Lambda with Gloo: getting_started/aws/lambda.md
+#        - Petstore Demo with Gloo: example/aws/lambda.md
       - Kubernetes:
         - Part 1 - Basic Routing: getting_started/kubernetes/1.md
         - Part 2 - Function Routing: getting_started/kubernetes/2.md
-#      - Getting Started on Local Docker: installation/docker.md
+      - Demos:
+        - Composing Apps with Gloo: getting_started/demos/composing_apps_with_gloo.md
     - Plugins:
       - AWS Lambda Plugin: plugins/aws.md
       - Kubernetes Plugin: plugins/kubernetes.md
       - Request Transformation Plugin: plugins/request_transformation.md
+      - External Service Plugin: plugins/service.md
     - Advanced:
       - Bootstrap Options: advanced/bootstrap_options.md
     - v1 API reference:

@@ -9,6 +9,9 @@
     color: #d8e3dd;
 }
 
-/*.wy-nav-content {*/
-    /*background: gainsboro;*/
-/*}*/
+.warning {
+    padding: 20px;
+    background-color: #f4ef95; /* Red */
+    color: white;
+    margin-bottom: 15px;
+}
