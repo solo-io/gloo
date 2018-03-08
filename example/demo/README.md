@@ -1,6 +1,16 @@
 Self Demo
 ==========
-This document outlines a demo of gloo composing ('glooing') an application from a monolyth, a microservice and AWS Lambda.
+This document outlines a demo of gloo composing ('glooing') an application from a monolith, a microservice and AWS Lambda.
+
+# Prerequisites
+In this demo, we will use the following command line tools:
+- `minikube` to create a kubernetes test environment.
+- `kubectl` to interact with kubernetes.
+- `glooctl` to interact with gloo.
+- `aws` (the aws cli) to create resources on aws.
+
+Additionally, some of the demo commands reference files, so first `cd` to the folder that contains 
+this readme (usually this is `cd $GOPATH/src/github.com/solo-io/gloo/example/demo`).
 
 # Setup the environment
 
