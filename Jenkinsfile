@@ -42,7 +42,8 @@ volumes: [
                 echo 'Building thetool...' 
                 sh '''
                     go get -u github.com/solo-io/thetool
-                    cp ${GOPATH}/bin/thetool .
+                    mkdir thetool-work
+                    cp ${GOPATH}/bin/thetool thetool-work/.
                 '''
             }
         }
@@ -50,13 +51,10 @@ volumes: [
         stage('Initialize thetool') {
             echo 'Initializing thetool...'
             sh '''
-                ls -l
-                chmod +x thetool
-                mkdir thetool-work
                 cd thetool-work
-                ../thetool init -g $GLOO_HASH --no-defaults
-                ../thetool add -r https://github.com/solo-io/gloo-plugins.git -c $GLOO_PLUGINS_HASH
-                ../thetool build all -d
+                ls -l
+                ./thetool init -g $GLOO_HASH --no-defaults
+                ./thetool add -r https://github.com/solo-io/gloo-plugins.git -c $GLOO_PLUGINS_HASH
             '''
         }
 
@@ -66,6 +64,9 @@ volumes: [
                 sh '''
                     pwd
                     ls
+                    cd thetool-work
+                    ls
+                    ./thetool build envoy -d
                 '''
             }
         }
@@ -76,6 +77,9 @@ volumes: [
                 sh '''
                     pwd
                     ls
+                    cd thetool-work
+                    ls
+                    ./thetool build gloo -d
                 '''
             }
         }
