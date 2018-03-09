@@ -93,5 +93,13 @@ volumes: [
                 '''
             }
         }
+        
+        stage('Test Envoy and Gloo') {
+            echo 'Testing Envoy and Gloo'
+            sh '''
+                ls -l thetool-work/envoy/envoy-out
+                ls -l thetool-work/gloo-out
+            '''
+        }
     }
 }
