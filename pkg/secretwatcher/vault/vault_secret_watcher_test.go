@@ -25,19 +25,18 @@ var _ = Describe("watching file", func() {
 		containerName = "vault-test-" + RandString(4)
 		token = "asdf" //RandString(8)
 		err := DockerRunVault(containerName, token)
-		Must(err)
+		Expect(err).NotTo(HaveOccurred())
 		time.Sleep(time.Second * 2)
 		cfg := vaultapi.DefaultConfig()
 		cfg.Address = vaultAddr
 		client, err = vaultapi.NewClient(cfg)
-		Must(err)
+		Expect(err).NotTo(HaveOccurred())
 		client.SetToken(token)
 		watch, err = NewVaultSecretWatcher(time.Second, 1, vaultAddr, token, make(chan struct{}))
-		Must(err)
+		Expect(err).NotTo(HaveOccurred())
 	})
 	AfterEach(func() {
-		err := DockerRm(containerName)
-		Must(err)
+		DockerRm(containerName)
 	})
 	Context("no secrets wanted", func() {
 		It("doesnt send anything on any channel", func() {
@@ -77,7 +76,7 @@ var _ = Describe("watching file", func() {
 				"password": "foo",
 			}
 			_, err := client.Logical().Write(secretPath, secrets)
-			Must(err)
+			Expect(err).NotTo(HaveOccurred())
 			go watch.TrackSecrets([]string{secretPath})
 			select {
 			case parsedSecrets := <-watch.Secrets():
