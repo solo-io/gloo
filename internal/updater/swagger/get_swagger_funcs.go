@@ -99,8 +99,13 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 		headersTemplate[name] = fmt.Sprintf("{{%v}}", name)
 	}
 
+	fnName := operation.ID
+	if fnName == "" {
+		fnName = strings.ToLower(method) + strings.Replace(functionPath, "/", ".", -1)
+	}
+
 	return &v1.Function{
-		Name: operation.ID,
+		Name: fnName,
 		Spec: transformation.EncodeFunctionSpec(transformation.Template{
 			Path:   path,
 			Header: headersTemplate,
