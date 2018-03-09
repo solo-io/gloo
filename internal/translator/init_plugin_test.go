@@ -10,6 +10,7 @@ import (
 	// . "github.com/solo-io/gloo-testing/helpers"
 	// . "github.com/solo-io/gloo/internal/translator"
 
+	"github.com/k0kubun/pp"
 	"github.com/solo-io/gloo/pkg/plugin"
 
 	. "github.com/onsi/ginkgo"
@@ -18,7 +19,7 @@ import (
 
 var _ = Describe("InitPlugin", func() {
 
-	It("should do correct weights for functions", func() {
+	FIt("should do correct weights for functions", func() {
 		funcs := []plugin.FunctionPlugin{&aws.Plugin{}}
 		initPlugin := newInitializerPlugin(funcs)
 
@@ -57,12 +58,17 @@ var _ = Describe("InitPlugin", func() {
 			}},
 		}
 		params := &plugin.RoutePluginParams{}
+		pp.Fprintln(GinkgoWriter, inroute)
+
 		err := initPlugin.ProcessRoute(params, inroute, &outroute)
+		pp.Fprintln(GinkgoWriter, outroute)
 		Expect(err).NotTo(HaveOccurred())
 		clusterweight := outroute.Action.(*envoyroute.Route_Route).Route.ClusterSpecifier.(*envoyroute.RouteAction_WeightedClusters).WeightedClusters
 		routeweight := clusterweight.TotalWeight.Value
-		Expect(clusterweight.Clusters[0].Weight.Value).To(BeEquivalentTo(20))
-		Expect(clusterweight.Clusters[1].Weight.Value).To(BeEquivalentTo(10))
+
+		Expect(getCluster(clusterweight, "my-upstream").Weight.Value).To(BeEquivalentTo(20))
+		Expect(getCluster(clusterweight, "my-upstream2").Weight.Value).To(BeEquivalentTo(10))
+
 		Expect(routeweight).To(BeEquivalentTo(30))
 
 		metadata := outroute.Metadata
@@ -70,13 +76,22 @@ var _ = Describe("InitPlugin", func() {
 		wieghtedfunctionsmeta := clusterroutemeta[multiFunctionDestinationKey].Kind.(*types.Value_StructValue).StructValue.Fields
 		totalfuncweight := wieghtedfunctionsmeta[multiFunctionWeightDestinationKey].Kind.(*types.Value_NumberValue).NumberValue
 		Expect(totalfuncweight).To(BeEquivalentTo(20))
+
 		functionslist := wieghtedfunctionsmeta[multiFunctionListDestinationKey].Kind.(*types.Value_ListValue).ListValue.Values
 		for _, fl := range functionslist {
 			weight := fl.Kind.(*types.Value_StructValue).StructValue.Fields["weight"].Kind.(*types.Value_NumberValue).NumberValue
 			Expect(weight).To(BeEquivalentTo(10))
 
 		}
-
 	})
 
 })
+
+func getCluster(clusters *envoyroute.WeightedCluster, name string) *envoyroute.WeightedCluster_ClusterWeight {
+	for _, c := range clusters.Clusters {
+		if c.Name == name {
+			return c
+		}
+	}
+	return nil
+}

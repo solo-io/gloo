@@ -209,10 +209,6 @@ func addClusterFuncsToMetadata(clusterName string, destinations []*v1.WeightedDe
 		routeClusterMetadata.Fields[multiFunctionDestinationKey] = &types.Value{}
 	}
 
-	if routeClusterMetadata.Fields[multiFunctionWeightDestinationKey] == nil {
-		routeClusterMetadata.Fields[multiFunctionWeightDestinationKey] = &types.Value{}
-	}
-
 	routeClusterMetadata.Fields[multiFunctionDestinationKey].Kind = &types.Value_StructValue{
 		StructValue: &types.Struct{
 			Fields: map[string]*types.Value{
