@@ -55,15 +55,12 @@ var _ = Describe("HappyPath", func() {
 
 		// wait for envoy to start receiving request
 		Eventually(func() error {
-			_, err := http.Get(fmt.Sprintf("http://%s:%d", "localhost", envoyPort))
+			// send a request with a body
+			var buf bytes.Buffer
+			buf.Write(body)
+			_, err = http.Post(fmt.Sprintf("http://%s:%d", "localhost", envoyPort), "application/octet-stream", &buf)
 			return err
 		}, 60, 1).Should(BeNil())
-
-		// send a request with a body
-		var buf bytes.Buffer
-		buf.Write(body)
-		_, err = http.Post(fmt.Sprintf("http://%s:%d", "localhost", envoyPort), "application/octet-stream", &buf)
-		Expect(err).NotTo(HaveOccurred())
 
 		expectedResponse := &ReceivedRequest{
 			Method: "POST",
