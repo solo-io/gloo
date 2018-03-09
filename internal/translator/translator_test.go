@@ -23,32 +23,6 @@ import (
 
 var _ = Describe("Translator", func() {
 	Context("invalid config", func() {
-		Context("with missing plugin for function", func() {
-			cfg := InvalidConfigNoFuncPlugin()
-			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
-			snap, reports, err := t.Translate(cfg, secretwatcher.SecretMap{}, endpointdiscovery.EndpointGroups{})
-			It("returns two reports, one for the upstream, one for the virtualhost", func() {
-				Expect(err).NotTo(HaveOccurred())
-				Expect(reports).To(HaveLen(2))
-				Expect(reports[0].CfgObject).To(Equal(cfg.Upstreams[0]))
-				Expect(reports[1].CfgObject).To(Equal(cfg.VirtualHosts[0]))
-			})
-			It("returns an error report for the bad cluster", func() {
-				Expect(reports[0].Err).NotTo(BeNil())
-				Expect(reports[0].Err.Error()).To(ContainSubstring("plugin not found"))
-			})
-			It("returns an error report for the bad vhost route", func() {
-				Expect(reports[1].Err).NotTo(BeNil())
-				Expect(reports[1].Err.Error()).To(ContainSubstring("was not found or had errors for function destination"))
-			})
-			It("returns no resources", func() {
-				clas, clusters, routeConfigs, listeners := getSnapshotResources(snap)
-				Expect(clas).To(HaveLen(0))
-				Expect(clusters).To(HaveLen(0))
-				Expect(routeConfigs).To(HaveLen(0))
-				Expect(listeners).To(HaveLen(0))
-			})
-		})
 		Context("domains are not unique amongst virtual hosts", func() {
 			cfg := InvalidConfigSharedDomains()
 			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
@@ -94,7 +68,7 @@ var _ = Describe("Translator", func() {
 				Expect(reports[1].Err).NotTo(BeNil())
 				Expect(reports[2].Err).To(BeNil())
 				Expect(reports[3].Err).NotTo(BeNil())
-				Expect(reports[1].Err.Error()).To(ContainSubstring("plugin not found"))
+				Expect(reports[1].Err.Error()).To(ContainSubstring("ip cannot be empty"))
 				Expect(reports[3].Err.Error()).To(ContainSubstring("was not found for function destination"))
 			})
 			It("returns one cluster and one vhost", func() {
@@ -256,10 +230,10 @@ func ValidConfigNoSsl() *v1.Config {
 							},
 						},
 					},
+					PrefixRewrite: "/bar",
 					Extensions: extensions.EncodeRouteExtensionSpec(extensions.RouteExtensionSpec{
-						MaxRetries:    2,
-						Timeout:       time.Minute,
-						PrefixRewrite: "/bar",
+						MaxRetries: 2,
+						Timeout:    time.Minute,
 						AddRequestHeaders: []extensions.HeaderValue{
 							{Key: "x-foo", Value: "bar"},
 						},
@@ -386,10 +360,10 @@ func ValidConfigSsl() *v1.Config {
 							},
 						},
 					},
+					PrefixRewrite: "/bar",
 					Extensions: extensions.EncodeRouteExtensionSpec(extensions.RouteExtensionSpec{
-						MaxRetries:    2,
-						Timeout:       time.Minute,
-						PrefixRewrite: "/bar",
+						MaxRetries: 2,
+						Timeout:    time.Minute,
 						AddRequestHeaders: []extensions.HeaderValue{
 							{Key: "x-foo", Value: "bar"},
 						},
@@ -433,16 +407,11 @@ func PartiallyValidConfig() *v1.Config {
 			Spec: service.EncodeUpstreamSpec(service.UpstreamSpec{
 				Hosts: []service.Host{
 					{
-						Addr: "localhost",
+						Addr: "", //not a valid addr
 						Port: 1234,
 					},
 				},
 			}),
-			Functions: []*v1.Function{
-				{
-					Name: "invalid-func",
-				},
-			},
 		},
 	}
 	virtualhosts := []*v1.VirtualHost{
@@ -492,10 +461,10 @@ func PartiallyValidConfig() *v1.Config {
 							},
 						},
 					},
+					PrefixRewrite: "/bar",
 					Extensions: extensions.EncodeRouteExtensionSpec(extensions.RouteExtensionSpec{
-						MaxRetries:    2,
-						Timeout:       time.Minute,
-						PrefixRewrite: "/bar",
+						MaxRetries: 2,
+						Timeout:    time.Minute,
 						AddRequestHeaders: []extensions.HeaderValue{
 							{Key: "x-foo", Value: "bar"},
 						},
@@ -558,10 +527,10 @@ func InvalidConfigNoFuncPlugin() *v1.Config {
 							},
 						},
 					},
+					PrefixRewrite: "/bar",
 					Extensions: extensions.EncodeRouteExtensionSpec(extensions.RouteExtensionSpec{
-						MaxRetries:    2,
-						Timeout:       time.Minute,
-						PrefixRewrite: "/bar",
+						MaxRetries: 2,
+						Timeout:    time.Minute,
 						AddRequestHeaders: []extensions.HeaderValue{
 							{Key: "x-foo", Value: "bar"},
 						},
@@ -618,10 +587,10 @@ func InvalidConfigNoUpstream() *v1.Config {
 							},
 						},
 					},
+					PrefixRewrite: "/bar",
 					Extensions: extensions.EncodeRouteExtensionSpec(extensions.RouteExtensionSpec{
-						MaxRetries:    2,
-						Timeout:       time.Minute,
-						PrefixRewrite: "/bar",
+						MaxRetries: 2,
+						Timeout:    time.Minute,
 						AddRequestHeaders: []extensions.HeaderValue{
 							{Key: "x-foo", Value: "bar"},
 						},

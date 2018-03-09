@@ -17,9 +17,8 @@ import (
 var _ = Describe("Spec", func() {
 	It("decodes and uncodes from yaml", func() {
 		spec := RouteExtensionSpec{
-			MaxRetries:    1,
-			Timeout:       time.Minute,
-			PrefixRewrite: "/foo",
+			MaxRetries: 1,
+			Timeout:    time.Minute,
 			AddRequestHeaders: []HeaderValue{
 				{
 					Key:   "FOO",

@@ -26,7 +26,7 @@ var _ = Describe("watching file", func() {
 		token = "asdf" //RandString(8)
 		err := DockerRunVault(containerName, token)
 		Must(err)
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 2)
 		cfg := vaultapi.DefaultConfig()
 		cfg.Address = vaultAddr
 		client, err = vaultapi.NewClient(cfg)

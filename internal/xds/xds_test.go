@@ -23,6 +23,8 @@ import (
 
 	"fmt"
 
+	"io/ioutil"
+
 	"github.com/ghodss/yaml"
 	. "github.com/solo-io/gloo-testing/helpers"
 	. "github.com/solo-io/gloo/internal/xds"
@@ -30,14 +32,55 @@ import (
 	"google.golang.org/grpc"
 )
 
+const staticEnvoyConfig = `
+node:
+  cluster: ingress
+  id: some-id
+
+static_resources:
+  clusters:
+
+  - name: xds_cluster
+    connect_timeout: 5.000s
+    hosts:
+    - socket_address:
+        address: 127.0.0.1
+        port_value: 8081
+    http2_protocol_options: {}
+    type: STRICT_DNS
+
+dynamic_resources:
+  ads_config:
+    api_type: GRPC
+    cluster_names:
+    - xds_cluster
+  cds_config:
+    ads: {}
+  lds_config:
+    ads: {}
+
+admin:
+  access_log_path: /dev/null
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 19000
+`
+
 var _ = Describe("Xds", func() {
-	envoyBaseDir := os.Getenv("GOPATH") + "/src/github.com/solo-io/gloo"
+	cfgDir, err := ioutil.TempDir("", "")
+	Must(err)
+	err = ioutil.WriteFile(filepath.Join(cfgDir, "envoy.yaml"), []byte(staticEnvoyConfig), 0644)
+	Must(err)
 	envoyRunArgs := []string{
-		filepath.Join(envoyBaseDir, "envoy"),
-		"-c", filepath.Join(envoyBaseDir, "envoy.yaml"),
+		"docker", "run", "--rm",
+		"--name", "one-at-a-time",
+		"-v", cfgDir + ":/config",
+		"--network", "host",
+		"soloio/envoy:v0.1.2",
+		"envoy",
+		"-c", "/config/envoy.yaml",
 		"--v2-config-only",
-		"--service-cluster", "envoy",
-		"--service-node", "envoy",
 	}
 	var (
 		envoyPid int
@@ -87,6 +130,8 @@ var _ = Describe("Xds", func() {
 		if err := syscall.Kill(envoyPid, syscall.SIGKILL); err != nil {
 			log.Fatalf(err.Error())
 		}
+		exec.Command("docker", "kill", "one-at-a-time").Run()
+		os.RemoveAll(cfgDir)
 	})
 	Describe("RunXDS Server", func() {
 		It("successfully bootstraps the envoy proxy", func() {
