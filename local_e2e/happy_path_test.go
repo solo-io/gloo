@@ -6,11 +6,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-
-	"github.com/k0kubun/pp"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -55,26 +52,24 @@ var _ = Describe("HappyPath", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		body := []byte("solo.io test")
-		timeout := time.After(1 * time.Minute)
-		for {
-			select {
-			case request := <-tu.C:
-				pp.Fprintf(GinkgoWriter, "%v", request)
-				Expect(request.Body).NotTo(BeNil())
-				Expect(request.Body).To(Equal(body))
-				return
-			case <-time.After(time.Second):
-				// call the server again is it might not have initialized
-				var buf bytes.Buffer
-				buf.Write(body)
-				_, err := http.Post(fmt.Sprintf("http://%s:%d", "localhost", envoyPort), "application/octet-stream", &buf)
-				if err != nil {
-					//	fmt.Println("post err " + err.Error())
-				}
-			case <-timeout:
-				panic("timeout")
-			}
+
+		// wait for envoy to start receiving request
+		Eventually(func() error {
+			_, err := http.Get(fmt.Sprintf("http://%s:%d", "localhost", envoyPort))
+			return err
+		}, 60, 1).Should(BeNil())
+
+		// send a request with a body
+		var buf bytes.Buffer
+		buf.Write(body)
+		_, err = http.Post(fmt.Sprintf("http://%s:%d", "localhost", envoyPort), "application/octet-stream", &buf)
+		Expect(err).NotTo(HaveOccurred())
+
+		expectedResponse := &ReceivedRequest{
+			Method: "POST",
+			Body:   body,
 		}
+		Eventually(tu.C).Should(Receive(Equal(expectedResponse)))
 
 	})
 
