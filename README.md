@@ -8,28 +8,24 @@
 <h3 align="center">The Function Gateway</h3>
 <BR>
 
-Gloo is a function gateway built on top of the [Envoy Proxy](https://www.Envoyproxy.io). Gloo provides a unified entry point
-for access to all services and serverless functions, translating from any interface spoken by a client to any interface
-spoken by a backend. Gloo aggregates REST APIs and events calls from clients, "glueing" together services in-cluster, 
-out of cluster, across clusters, along with any provider of serverless functions.
+Gloo is an ingress controller and function gateway built on the [Envoy Proxy](https://www.Envoyproxy.io), written in Go.
+ 
+Gloo expands upon the model of traditional API Gateways as (currently) the only gateway to support 
+[routing on the function level](https://gloo.solo.io/introduction/introduction/). This allows users to compose 
+gateway APIs from more granular components, i.e. the functions that compose services, rather than the services themselves.
 
-This Repo
------
-This repository contains the components that compose the core Gloo storage watcher, Envoy xDS server, and config translator.
-For a better understanding of Gloo and its features, please see our [documentation](https://gloo.solo.io).
+This repository contains the core controller of the Gloo system. The core includes the Envoy xDS server and the translator
+that manages and calls [Gloo plugins](https://gloo.solo.io/introduction/architecture/).
 
-Blog
------
+For an in-depth breakdown of of Gloo and its features, please see our [documentation](https://gloo.solo.io).
 
-To learn more about the motivation behind creating Gloo read our [blog](https://medium.com/solo-io/announcing-gloo-the-function-gateway-3f0860ef6600)
+## Documentation
 
-Documentation
------
+* [Official Documentation](https://gloo.solo.io)
+* [Announcement Blog](https://medium.com/solo-io/announcing-gloo-the-function-gateway-3f0860ef6600)
 
-Get started by reading our docs here: [https://gloo.solo.io/](https://gloo.solo.io/)
+## Repository Guide
 
-Quick Repository Guide:
------
 | Repo                                                                                  | What it does?                                                                            |
 |---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
 | [gloo](https://github.com/solo-io/gloo)                                               | The gloo control plane. Implements the ADS API for envoy                                 |
