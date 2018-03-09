@@ -11,6 +11,7 @@ import (
 	. "github.com/solo-io/gloo-storage/crd"
 	crdv1 "github.com/solo-io/gloo-storage/crd/solo.io/v1"
 	. "github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/log"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,6 +19,11 @@ import (
 )
 
 var _ = Describe("CrdStorageClient", func() {
+	if os.Getenv("RUN_KUBE_TESTS") != "1" {
+		//Skip("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.", 1)
+		log.Printf("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
+		return
+	}
 	var (
 		masterUrl, kubeconfigPath string
 		mkb                       *MinikubeInstance
