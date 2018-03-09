@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 
 	"io/ioutil"
+
+	"github.com/onsi/ginkgo"
 )
 
 const defualtEnvoyDockerImage = "soloio/envoy:v0.1.2"
@@ -45,32 +47,25 @@ admin:
 
 `
 
-type EnvoyInstance struct {
-	envoypath    string
-	envoycfgpath string
-	tmpdir       string
-	cmd          *exec.Cmd
+type EnvoyFactory struct {
+	envoypath string
+
+	tmpdir string
 }
 
-func NewEnvoyInstance() (*EnvoyInstance, error) {
+func NewEnvoyFactory() (*EnvoyFactory, error) {
 	envoypath := os.Getenv("ENVOY_BINARY")
+
+	if envoypath != "" {
+		return &EnvoyFactory{
+			envoypath: envoypath,
+		}, nil
+	}
 
 	// try to grab one form docker...
 	tmpdir, err := ioutil.TempDir(os.Getenv("HELPER_TMP"), "envoy")
 	if err != nil {
 		return nil, err
-	}
-
-	envoyconfigyaml := filepath.Join(tmpdir, "envoyconfig.yaml")
-
-	ioutil.WriteFile(envoyconfigyaml, []byte(envoyfconfig), 0644)
-
-	if envoypath != "" {
-		return &EnvoyInstance{
-			envoypath:    envoypath,
-			envoycfgpath: envoyconfigyaml,
-			tmpdir:       tmpdir,
-		}, nil
 	}
 
 	bash := `
@@ -85,24 +80,57 @@ docker rm $CID
 
 	cmd := exec.Command("bash", scriptfile)
 	cmd.Dir = tmpdir
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = ginkgo.GinkgoWriter
+	cmd.Stderr = ginkgo.GinkgoWriter
 	if err := cmd.Run(); err != nil {
 		return nil, err
 	}
 
+	return &EnvoyFactory{
+		envoypath: filepath.Join(tmpdir, "envoy"),
+		tmpdir:    tmpdir,
+	}, nil
+}
+
+func (ef *EnvoyFactory) Clean() error {
+	if ef.tmpdir != "" {
+		os.RemoveAll(ef.tmpdir)
+
+	}
+	return nil
+}
+
+type EnvoyInstance struct {
+	envoypath    string
+	envoycfgpath string
+	tmpdir       string
+	cmd          *exec.Cmd
+}
+
+func (ef *EnvoyFactory) NewEnvoyInstance() (*EnvoyInstance, error) {
+	// try to grab one form docker...
+	tmpdir, err := ioutil.TempDir(os.Getenv("HELPER_TMP"), "envoy")
+	if err != nil {
+		return nil, err
+	}
+
+	envoyconfigyaml := filepath.Join(tmpdir, "envoyconfig.yaml")
+
+	ioutil.WriteFile(envoyconfigyaml, []byte(envoyfconfig), 0644)
+
 	return &EnvoyInstance{
-		envoypath:    filepath.Join(tmpdir, "envoy"),
+		envoypath:    ef.envoypath,
 		envoycfgpath: envoyconfigyaml,
 		tmpdir:       tmpdir,
 	}, nil
+
 }
 
 func (ei *EnvoyInstance) Run() error {
 	cmd := exec.Command(ei.envoypath, "-c", ei.envoycfgpath, "--v2-config-only")
 	cmd.Dir = ei.tmpdir
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = ginkgo.GinkgoWriter
+	cmd.Stderr = ginkgo.GinkgoWriter
 	err := cmd.Start()
 	if err != nil {
 		return err
@@ -121,8 +149,7 @@ func (ei *EnvoyInstance) Clean() error {
 		ei.cmd.Wait()
 	}
 	if ei.tmpdir != "" {
-		defer os.RemoveAll(ei.tmpdir)
-
+		os.RemoveAll(ei.tmpdir)
 	}
 	return nil
 }
