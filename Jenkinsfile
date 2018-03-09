@@ -17,6 +17,10 @@ containers: [
         ttyEnabled: true,
         command: 'cat'),
 ],
+envVars: [
+    envVar(key: 'THETOOL_GID', value: '10000'),
+    envVar(key: 'THETOOL_UID', value: '10000'),
+],
 volumes: [
     hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock'),
     secretVolume(secretName: 'soloio-docker-hub', mountPath: '/etc/docker'),
@@ -37,49 +41,52 @@ volumes: [
     ])
 
     node('gloo-builder') {
-        stage('Build thetool') {
+        stage('thetool') {
+            sh '''
+            id
+            '''
             container('golang') {
-                echo 'Building thetool...' 
+                echo 'Initialize thetool...' 
                 sh '''
                     go get -u github.com/solo-io/thetool
                     mkdir thetool-work
-                    cp ${GOPATH}/bin/thetool thetool-work/.
+                    cd thetool-work
+                    cp ${GOPATH}/bin/thetool .
+                    ./thetool --version
+                    ./thetool init -g $GLOO_HASH --no-defaults
+                    ./thetool add -r https://github.com/solo-io/gloo-plugins.git -c $GLOO_PLUGINS_HASH
+                    ./thetool build envoy -d -v --publish=false
+                    ./thetool build gloo -d -v --publish=false
+                    id
                 '''
             }
         }
 
-        stage('Initialize thetool') {
-            echo 'Initializing thetool...'
-            sh '''
-                cd thetool-work
-                ls -l
-                ./thetool init -g $GLOO_HASH --no-defaults
-                ./thetool add -r https://github.com/solo-io/gloo-plugins.git -c $GLOO_PLUGINS_HASH
-            '''
-        }
-
+        
+        
         stage('Build Envoy') {
             container('envoy-build') {
                 echo 'Building envoy...'
                 sh '''
-                    pwd
-                    ls
-                    cd thetool-work
-                    ls
-                    ./thetool build envoy -d
+                    cd thetool-work/repositories
+                    ln -s `pwd` /repositories
+                    cd ../envoy
+                    ln -s `pwd` /source
+                    cd /source
+                    chmod -R 777 .
+                    ./build-envoy.sh
                 '''
             }
         }
-
+        
         stage('Build gloo') {
             container('golang') {
                 echo 'Building gloo...'
                 sh '''
-                    pwd
-                    ls
                     cd thetool-work
-                    ls
-                    ./thetool build gloo -d
+                    ln -s `pwd` /gloo
+                    cd /gloo
+                    ./build-gloo.sh
                 '''
             }
         }
