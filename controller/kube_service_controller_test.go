@@ -110,7 +110,7 @@ var _ = Describe("Kube Service Discovery", func() {
 						Spec: kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
 							ServiceNamespace: namespace,
 							ServiceName:      serviceName,
-							ServicePort:      port.TargetPort.IntVal,
+							ServicePort:      port.Port,
 						}),
 					}
 					Expect(createdUpstreams).To(ContainElement(expectedUpstream))
