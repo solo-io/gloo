@@ -83,9 +83,12 @@ volumes: [
             container('golang') {
                 echo 'Building gloo...'
                 sh '''
+                    mkdir -p $GOPATH/pkg/dep
                     cd thetool-work
                     ln -s `pwd` /gloo
                     cd /gloo
+                    chmod -R 777 .
+                    chmod -R 777 $GOPATH/src
                     ./build-gloo.sh
                 '''
             }
