@@ -17,6 +17,11 @@ pages:
         - Part 2 - Function Routing: getting_started/kubernetes/2.md
       - Demos:
         - Composing Apps with Gloo: getting_started/demos/composing_apps_with_gloo.md
+    - thetool:
+      - Install: thetool/install.md
+      - Quick Start: thetool/quickstart.md
+      - Building Custom Gloo: thetool/custom.md
+#      - Getting Started on Local Docker: installation/docker.md
     - Plugins:
       - AWS Lambda Plugin: plugins/aws.md
       - Kubernetes Plugin: plugins/kubernetes.md
