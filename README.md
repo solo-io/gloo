@@ -47,3 +47,9 @@ For an in-depth breakdown of of Gloo and its features, please see our [documenta
 Community
 -----
 Join us on our slack channel: [https://slack.solo.io/](https://slack.solo.io/)
+
+---
+
+### Thanks
+
+**Gloo** would not be possible without the valuable open-source work of projects in the community. We would like to extend a special thank-you to [envoy](https://www.envoyproxy.io).
