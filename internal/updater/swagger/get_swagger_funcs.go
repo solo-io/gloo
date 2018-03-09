@@ -1,11 +1,9 @@
 package swagger
 
 import (
-	"strings"
-
 	"fmt"
-
 	"sort"
+	"strings"
 
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/spec"
