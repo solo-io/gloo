@@ -15,9 +15,15 @@ import (
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	. "github.com/solo-io/gloo-testing/helpers"
 	. "github.com/solo-io/gloo/internal/reporter"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 var _ = Describe("CrdReporter", func() {
+	if os.Getenv("RUN_KUBE_TESTS") != "1" {
+		//Skip("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.", 1)
+		log.Printf("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
+		return
+	}
 	var (
 		masterUrl, kubeconfigPath string
 		mkb                       *MinikubeInstance

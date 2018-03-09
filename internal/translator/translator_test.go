@@ -9,11 +9,7 @@ import (
 
 	"time"
 
-	"reflect"
-	"unsafe"
-
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	"github.com/gogo/protobuf/proto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
@@ -169,26 +165,23 @@ var _ = Describe("Translator", func() {
 })
 
 func getSnapshotResources(snap *envoycache.Snapshot) ([]*v2.ClusterLoadAssignment, []*v2.Cluster, []*v2.RouteConfiguration, []*v2.Listener) {
-	rs := reflect.ValueOf(snap).Elem()
-	rf := rs.FieldByName("resources")
-	rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
-	res := rf.Interface().(map[string][]proto.Message)
+
 	var (
 		clas         []*v2.ClusterLoadAssignment
 		clusters     []*v2.Cluster
 		routeConfigs []*v2.RouteConfiguration
 		listeners    []*v2.Listener
 	)
-	for _, pb := range res[envoycache.EndpointType] {
+	for _, pb := range snap.Endpoints.Items {
 		clas = append(clas, pb.(*v2.ClusterLoadAssignment))
 	}
-	for _, pb := range res[envoycache.ClusterType] {
+	for _, pb := range snap.Clusters.Items {
 		clusters = append(clusters, pb.(*v2.Cluster))
 	}
-	for _, pb := range res[envoycache.RouteType] {
+	for _, pb := range snap.Routes.Items {
 		routeConfigs = append(routeConfigs, pb.(*v2.RouteConfiguration))
 	}
-	for _, pb := range res[envoycache.ListenerType] {
+	for _, pb := range snap.Listeners.Items {
 		listeners = append(listeners, pb.(*v2.Listener))
 	}
 	return clas, clusters, routeConfigs, listeners

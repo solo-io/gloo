@@ -14,7 +14,6 @@ import (
 	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
 	envoyhttpconnectionmanager "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/envoyproxy/go-control-plane/pkg/cache"
-	"github.com/envoyproxy/go-control-plane/pkg/test/resource"
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/jsonpb"
 	. "github.com/onsi/ginkgo"
@@ -24,6 +23,7 @@ import (
 
 	"io/ioutil"
 
+	bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
 	"github.com/ghodss/yaml"
 	. "github.com/solo-io/gloo-testing/helpers"
 	. "github.com/solo-io/gloo/internal/xds"
@@ -92,7 +92,7 @@ var _ = Describe("Xds", func() {
 	BeforeEach(func() {
 		// fun times
 		// write bootstrap file
-		bootstrap := resource.MakeBootstrap(true, uint32(8081), 19000)
+		bootstrap := makeBootstrap(true, uint32(8081), 19000)
 		buf = &bytes.Buffer{}
 		err := (&jsonpb.Marshaler{OrigName: true}).Marshal(buf, bootstrap)
 		Must(err)
@@ -193,4 +193,74 @@ func createSnapshot(routeConfigName, listenerName string) (cache.Snapshot, error
 		listener,
 	}
 	return cache.NewSnapshot("foo", endpoints, clusters, routes, listeners), nil
+}
+
+// MakeBootstrap creates a bootstrap envoy configuration
+func makeBootstrap(ads bool, controlPort, adminPort uint32) *bootstrap.Bootstrap {
+	source := &envoycore.ApiConfigSource{
+		ApiType:      envoycore.ApiConfigSource_GRPC,
+		ClusterNames: []string{"xds_cluster"},
+	}
+
+	var dynamic *bootstrap.Bootstrap_DynamicResources
+	if ads {
+		dynamic = &bootstrap.Bootstrap_DynamicResources{
+			LdsConfig: &envoycore.ConfigSource{
+				ConfigSourceSpecifier: &envoycore.ConfigSource_Ads{Ads: &envoycore.AggregatedConfigSource{}},
+			},
+			CdsConfig: &envoycore.ConfigSource{
+				ConfigSourceSpecifier: &envoycore.ConfigSource_Ads{Ads: &envoycore.AggregatedConfigSource{}},
+			},
+			AdsConfig: source,
+		}
+	} else {
+		dynamic = &bootstrap.Bootstrap_DynamicResources{
+			LdsConfig: &envoycore.ConfigSource{
+				ConfigSourceSpecifier: &envoycore.ConfigSource_ApiConfigSource{ApiConfigSource: source},
+			},
+			CdsConfig: &envoycore.ConfigSource{
+				ConfigSourceSpecifier: &envoycore.ConfigSource_ApiConfigSource{ApiConfigSource: source},
+			},
+		}
+	}
+
+	return &bootstrap.Bootstrap{
+		Node: &envoycore.Node{
+			Id:      "test-id",
+			Cluster: "test-cluster",
+		},
+		Admin: bootstrap.Admin{
+			AccessLogPath: "/dev/null",
+			Address: envoycore.Address{
+				Address: &envoycore.Address_SocketAddress{
+					SocketAddress: &envoycore.SocketAddress{
+						Address: "127.0.0.1",
+						PortSpecifier: &envoycore.SocketAddress_PortValue{
+							PortValue: adminPort,
+						},
+					},
+				},
+			},
+		},
+		StaticResources: &bootstrap.Bootstrap_StaticResources{
+			Clusters: []v2.Cluster{{
+				Name:           "xds_cluster",
+				ConnectTimeout: 5 * time.Second,
+				Type:           v2.Cluster_STATIC,
+				Hosts: []*envoycore.Address{{
+					Address: &envoycore.Address_SocketAddress{
+						SocketAddress: &envoycore.SocketAddress{
+							Address: "127.0.0.1",
+							PortSpecifier: &envoycore.SocketAddress_PortValue{
+								PortValue: controlPort,
+							},
+						},
+					},
+				}},
+				LbPolicy:             v2.Cluster_ROUND_ROBIN,
+				Http2ProtocolOptions: &envoycore.Http2ProtocolOptions{},
+			}},
+		},
+		DynamicResources: dynamic,
+	}
 }
