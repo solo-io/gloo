@@ -30,6 +30,11 @@ var gloo storage.Interface
 var kube kubernetes.Interface
 
 var _ = Describe("Kubernetes Deployment", func() {
+	if os.Getenv("RUN_KUBE_TESTS") != "1" {
+		//Skip("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.", 1)
+		log.Printf("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
+		return
+	}
 	BeforeSuite(func() {
 		mkb = NewMinikube(true)
 		err := mkb.Setup()
