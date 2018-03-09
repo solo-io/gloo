@@ -8,8 +8,6 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	. "github.com/solo-io/gloo-plugins/transformation"
-	"github.com/solo-io/gloo/pkg/coreplugins/service"
-	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
 
@@ -17,8 +15,11 @@ var _ = Describe("Transformation", func() {
 	It("processes response transformations", func() {
 		p := &Plugin{CachedTransformations: make(map[string]*Transformation)}
 		out := &envoyroute.Route{}
+
+		upstreamName := "nothing"
 		params := &plugin.RoutePluginParams{}
-		in := NewSingleDestRoute("nothing", "nothinf")
+
+		in := NewNonFunctionSingleDestRoute(upstreamName)
 		in.Extensions = EncodeRouteExtension(RouteExtension{
 			ResponseTemplate: &Template{
 				Body: "{{body}}",
@@ -27,8 +28,6 @@ var _ = Describe("Transformation", func() {
 		err := p.ProcessRoute(params, in, out)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(p.CachedTransformations).To(HaveLen(1))
-		log.Printf("%v", out)
-		log.Printf("%v", p.HttpFilters(nil))
 	})
 	It("process route for functional upstream", func() {
 		upstreamName := "users-svc"
@@ -73,7 +72,7 @@ var _ = Describe("Transformation", func() {
 				Regex:    "application/([_[:alnum:]]+)",
 				Subgroup: 1,
 			}))
-			Expect(out.Metadata.FilterMetadata["io.solo.transformation"].Fields["transformation"].Kind).To(Equal(&types.Value_StringValue{StringValue: hash}))
+			Expect(out.Metadata.FilterMetadata["io.solo.transformation"].Fields["request-transformation"].Kind).To(Equal(&types.Value_StringValue{StringValue: hash}))
 		}
 	})
 })
@@ -81,33 +80,46 @@ var _ = Describe("Transformation", func() {
 func NonFunctionalUpstream(name string) *v1.Upstream {
 	return &v1.Upstream{
 		Name: name,
-		Type: service.UpstreamTypeService,
-		Spec: service.EncodeUpstreamSpec(service.UpstreamSpec{
-			Hosts: []service.Host{
-				{
-					Addr: "127.0.0.1",
-					Port: 9090,
-				},
-			},
-		}),
+		Type: "test",
 	}
 }
 
 func NewSingleDestRoute(upstreamName, functionName string) *v1.Route {
 	return &v1.Route{
-		Matcher: &v1.Route_RequestMatcher{
-			RequestMatcher: &v1.RequestMatcher{
-				Path: &v1.RequestMatcher_PathRegex{
-					PathRegex: "/users/.*/accounts/.*",
-				},
-				Verbs: []string{"GET"},
+		Matcher: &v1.Matcher{
+			Path: &v1.Matcher_PathRegex{
+				PathRegex: "/users/.*/accounts/.*",
 			},
+			Verbs: []string{"GET"},
 		},
 		SingleDestination: &v1.Destination{
 			DestinationType: &v1.Destination_Function{
 				Function: &v1.FunctionDestination{
 					FunctionName: functionName,
 					UpstreamName: upstreamName,
+				},
+			},
+		},
+		Extensions: EncodeRouteExtension(RouteExtension{
+			Parameters: &Parameters{
+				Path:    "/u(se)rs/{id}/accounts/{account}",
+				Headers: map[string]string{"content-type": "application/{type}"},
+			},
+		}),
+	}
+}
+func NewNonFunctionSingleDestRoute(upstreamName string) *v1.Route {
+	return &v1.Route{
+		Matcher: &v1.Matcher{
+			Path: &v1.Matcher_PathRegex{
+				PathRegex: "/users/.*/accounts/.*",
+			},
+			Verbs: []string{"GET"},
+		},
+		SingleDestination: &v1.Destination{
+			DestinationType: &v1.Destination_Upstream{
+				Upstream: &v1.UpstreamDestination{
+					Name: upstreamName,
 				},
 			},
 		},
