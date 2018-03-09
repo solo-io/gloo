@@ -230,6 +230,12 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/radovskyb/watcher"
+  packages = ["."]
+  revision = "6145e1439b9de93806925353403f91d2abbad8a5"
+  version = "v1.0.2"
+
+[[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo"
   packages = [
@@ -271,6 +277,7 @@
     "crd/client/clientset/versioned/scheme",
     "crd/client/clientset/versioned/typed/solo.io/v1",
     "crd/solo.io/v1",
+    "file",
     "internal/crud"
   ]
   revision = "00415184cdd9e5f87e10c1ffbd62ef7bf66c2e4c"
@@ -633,6 +640,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "93a386e81240b5caee85eebaf83c179b07896df64faa63b6c02aa4a533330fa7"
+  inputs-digest = "1a137929bc6885854b5d0d7afed35eb41042b523a2b48e3b5e899f517c486769"
   solver-name = "gps-cdcl"
   solver-version = 1
