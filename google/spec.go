@@ -82,7 +82,13 @@ func DecodeFunctionSpec(generic v1.FunctionSpec) (*FunctionSpec, error) {
 		return s, err
 	}
 
-	parsedUrl, err := url.Parse(s.URL)
+	return NewFuncFromUrl(s.URL)
+}
+
+func NewFuncFromUrl(urls string) (*FunctionSpec, error) {
+	s := new(FunctionSpec)
+	s.URL = urls
+	parsedUrl, err := url.Parse(urls)
 	if err != nil {
 		return s, err
 	}
