@@ -18,22 +18,29 @@ import (
 )
 
 // For now we're only running one envoy instance
-const NodeKey = envoycache.Key("gloo-envoy")
+const NodeKey = string("gloo-envoy")
 
 type hasher struct{}
 
-func (h hasher) Hash(node *core.Node) (envoycache.Key, error) {
-	return NodeKey, nil
+func (h hasher) ID(node *core.Node) string {
+	return NodeKey
 }
 
-func RunXDS(port int) (envoycache.Cache, *grpc.Server, error) {
+type logger struct{}
+
+func (*logger) Infof(format string, args ...interface{}) {
+	log.Printf(format, args...)
+}
+func (*logger) Errorf(format string, args ...interface{}) {
+	log.Warnf(format, args...)
+}
+
+func RunXDS(port int) (envoycache.SnapshotCache, *grpc.Server, error) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to listen: %v", err)
 	}
-	envoyCache := envoycache.NewSimpleCache(hasher{}, func(key envoycache.Key) {
-		log.Debugf("CACHE: Key Updated: %s", key)
-	})
+	envoyCache := envoycache.NewSnapshotCache(true, hasher{}, &logger{})
 	grpcServer := grpc.NewServer(grpc.StreamInterceptor(
 		grpc_middleware.ChainStreamServer(
 			grpc_ctxtags.StreamServerInterceptor(),
@@ -44,7 +51,7 @@ func RunXDS(port int) (envoycache.Cache, *grpc.Server, error) {
 			},
 		)),
 	)
-	xdsServer := xds.NewServer(envoyCache)
+	xdsServer := xds.NewServer(envoyCache, nil)
 	envoyv2.RegisterAggregatedDiscoveryServiceServer(grpcServer, xdsServer)
 	v2.RegisterEndpointDiscoveryServiceServer(grpcServer, xdsServer)
 	v2.RegisterClusterDiscoveryServiceServer(grpcServer, xdsServer)

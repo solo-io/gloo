@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/d4l3k/messagediff"
+  packages = ["."]
+  revision = "7b706999d935b04cf2dbc71a5a5afcbd288aeb48"
+  version = "v1.1.0"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -25,11 +31,12 @@
     "envoy/config/trace/v2",
     "envoy/service/discovery/v2",
     "pkg/cache",
+    "pkg/log",
     "pkg/server",
     "pkg/test/resource",
     "pkg/util"
   ]
-  revision = "e0ebc95432196ce43dae88cc2822983466210656"
+  revision = "c517738a012f46dda2754ccfbc1da2628e0905ca"
 
 [[projects]]
   name = "github.com/fatih/structs"
@@ -792,6 +799,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "097008ddf7d55ade65f863e386669790be41cd7c249e1c17a03df1ff284c93d7"
+  inputs-digest = "b8316dd1ff8a83d15e73d67054e6de09088b249c5a58a9a6149ae132c77cfc7a"
   solver-name = "gps-cdcl"
   solver-version = 1

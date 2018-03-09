@@ -14,7 +14,6 @@ import (
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/hashicorp/go-multierror"
 	"github.com/mitchellh/hashstructure"
 	"github.com/pkg/errors"
@@ -76,7 +75,7 @@ func NewTranslator(plugins []plugin.TranslatorPlugin) *Translator {
 func (t *Translator) Translate(cfg *v1.Config,
 	secrets secretwatcher.SecretMap,
 	endpoints endpointdiscovery.EndpointGroups) (*envoycache.Snapshot, []reporter.ConfigObjectReport, error) {
-
+	log.Printf("Translation loop starting")
 	// endpoints
 	clusterLoadAssignments := computeClusterEndpoints(cfg.Upstreams, endpoints)
 
@@ -130,17 +129,17 @@ func (t *Translator) Translate(cfg *v1.Config,
 	}
 
 	// proto-ify everything
-	var endpointsProto []proto.Message
+	var endpointsProto []envoycache.Resource
 	for _, cla := range clusterLoadAssignments {
 		endpointsProto = append(endpointsProto, cla)
 	}
 
-	var clustersProto []proto.Message
+	var clustersProto []envoycache.Resource
 	for _, cluster := range clusters {
 		clustersProto = append(clustersProto, cluster)
 	}
 
-	var listenersProto, routesProto []proto.Message
+	var listenersProto, routesProto []envoycache.Resource
 
 	// only add http listener and route config if we have no ssl vhosts
 	if len(nosslVirtualHosts) > 0 && len(nosslListener.FilterChains) > 0 {
@@ -156,7 +155,7 @@ func (t *Translator) Translate(cfg *v1.Config,
 
 	// construct version
 	// TODO: investigate whether we need a more sophisticated versionining algorithm
-	version, err := hashstructure.Hash([][]proto.Message{
+	version, err := hashstructure.Hash([][]envoycache.Resource{
 		endpointsProto,
 		clustersProto,
 		routesProto,

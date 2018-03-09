@@ -32,7 +32,7 @@ type eventLoop struct {
 	//TODO: reporter
 	reporter         reporter.Interface
 	translator       *translator.Translator
-	xdsConfig        envoycache.Cache
+	xdsConfig        envoycache.SnapshotCache
 	updateSecretRefs func(cfg *v1.Config) []string
 
 	startFuncs []func() error
