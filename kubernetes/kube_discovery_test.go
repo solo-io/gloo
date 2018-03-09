@@ -27,6 +27,11 @@ import (
 var podsWithLabels = make(map[string]bool)
 
 var _ = Describe("KubeSecretWatcher", func() {
+	if os.Getenv("RUN_KUBE_TESTS") != "1" {
+		//Skip("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.", 1)
+		log.Printf("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
+		return
+	}
 	var (
 		masterUrl, kubeconfigPath string
 		mkb                       *MinikubeInstance
@@ -147,13 +152,12 @@ var _ = Describe("KubeSecretWatcher", func() {
 
 				podsWithLabels[withLabels.Name] = true
 
-				portName := us.Spec.Fields["service_port"].Kind.(*types.Value_StringValue).StringValue
-				if portName != "" {
-					service.Spec.Ports = append(service.Spec.Ports, kubev1.ServicePort{
-						Name: portName,
-						Port: 8081,
-					})
-				}
+				//port := us.Spec.Fields["service_port"].Kind.(*types.Value_NumberValue).NumberValue
+				//if port != 0 {
+				//	service.Spec.Ports = append(service.Spec.Ports, kubev1.ServicePort{
+				//		Port: port,
+				//	})
+				//}
 				_, err = kubeClient.CoreV1().Services(namespace).Create(service)
 				Expect(err).NotTo(HaveOccurred())
 

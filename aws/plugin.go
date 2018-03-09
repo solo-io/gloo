@@ -36,8 +36,8 @@ const (
 	filterMetadataKeyAsync = "async"
 
 	// upstream-specific metadata
-	awsAccessKey = "access_key"
-	awsSecretKey = "secret_key"
+	AwsAccessKey = "access_key"
+	AwsSecretKey = "secret_key"
 	awsRegion    = "region"
 	awsHost      = "host"
 
@@ -117,19 +117,19 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 
 	var secretErrs error
 
-	accessKey, ok := awsSecrets[awsAccessKey]
+	accessKey, ok := awsSecrets[AwsAccessKey]
 	if !ok {
-		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", awsAccessKey))
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", AwsAccessKey))
 	}
 	if accessKey != "" && !utf8.Valid([]byte(accessKey)) {
-		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", awsAccessKey))
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", AwsAccessKey))
 	}
-	secretKey, ok := awsSecrets[awsSecretKey]
+	secretKey, ok := awsSecrets[AwsSecretKey]
 	if !ok {
-		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", awsSecretKey))
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", AwsSecretKey))
 	}
 	if secretKey != "" && !utf8.Valid([]byte(secretKey)) {
-		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", awsSecretKey))
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", AwsSecretKey))
 	}
 
 	if out.Metadata == nil {
@@ -138,8 +138,8 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	common.InitFilterMetadata(filterName, out.Metadata)
 	out.Metadata.FilterMetadata[filterName] = &types.Struct{
 		Fields: map[string]*types.Value{
-			awsAccessKey: {Kind: &types.Value_StringValue{StringValue: accessKey}},
-			awsSecretKey: {Kind: &types.Value_StringValue{StringValue: secretKey}},
+			AwsAccessKey: {Kind: &types.Value_StringValue{StringValue: accessKey}},
+			AwsSecretKey: {Kind: &types.Value_StringValue{StringValue: secretKey}},
 			awsRegion:    {Kind: &types.Value_StringValue{StringValue: awsUpstream.Region}},
 			awsHost:      {Kind: &types.Value_StringValue{StringValue: awsUpstream.GetLambdaHostname()}},
 		},

@@ -23,6 +23,6 @@ var _ = Describe("FromMap", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(spec.ServiceName).To(Equal("svc"))
 		Expect(spec.ServiceNamespace).To(Equal("my-ns"))
-		Expect(spec.ServicePort).To(Equal(8080))
+		Expect(spec.ServicePort).To(Equal(int32(8080)))
 	})
 })

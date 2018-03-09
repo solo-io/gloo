@@ -14,6 +14,14 @@ type UpstreamSpec struct {
 	SecretRef string `json:"secret_ref"`
 }
 
+func EncodeUpstreamSpec(spec UpstreamSpec) *types.Struct {
+	v1Spec, err := protoutil.MarshalStruct(spec)
+	if err != nil {
+		panic(err)
+	}
+	return v1Spec
+}
+
 func DecodeUpstreamSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {
 	s := new(UpstreamSpec)
 	if err := protoutil.UnmarshalStruct(generic, s); err != nil {
