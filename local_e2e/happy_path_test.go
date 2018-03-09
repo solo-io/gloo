@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-testing/helpers/local"
 
 	"github.com/k0kubun/pp"
 
@@ -18,26 +17,6 @@ import (
 )
 
 var _ = Describe("HappyPath", func() {
-	var (
-		envoyInstance *localhelpers.EnvoyInstance
-		glooInstance  *localhelpers.GlooInstance
-	)
-	BeforeEach(func() {
-		var err error
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
-		glooInstance, err = glooFactory.NewGlooInstance()
-		Expect(err).NotTo(HaveOccurred())
-	})
-
-	AfterEach(func() {
-		if envoyInstance != nil {
-			envoyInstance.Clean()
-		}
-		if glooInstance != nil {
-			glooInstance.Clean()
-		}
-	})
 
 	It("Receive proxied request", func() {
 		err := envoyInstance.Run()

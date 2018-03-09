@@ -9,8 +9,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var envoyFactory *localhelpers.EnvoyFactory
-var glooFactory *localhelpers.GlooFactory
+var (
+	envoyFactory *localhelpers.EnvoyFactory
+	glooFactory  *localhelpers.GlooFactory
+)
 
 func TestLocalE2e(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -29,4 +31,26 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	envoyFactory.Clean()
 	glooFactory.Clean()
+})
+
+var (
+	envoyInstance *localhelpers.EnvoyInstance
+	glooInstance  *localhelpers.GlooInstance
+)
+
+var _ = BeforeEach(func() {
+	var err error
+	envoyInstance, err = envoyFactory.NewEnvoyInstance()
+	Expect(err).NotTo(HaveOccurred())
+	glooInstance, err = glooFactory.NewGlooInstance()
+	Expect(err).NotTo(HaveOccurred())
+})
+
+var _ = AfterEach(func() {
+	if envoyInstance != nil {
+		envoyInstance.Clean()
+	}
+	if glooInstance != nil {
+		glooInstance.Clean()
+	}
 })
