@@ -172,23 +172,23 @@ func getSnapshotResources(snap *envoycache.Snapshot) ([]*v2.ClusterLoadAssignmen
 	rs := reflect.ValueOf(snap).Elem()
 	rf := rs.FieldByName("resources")
 	rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
-	res := rf.Interface().(map[envoycache.ResponseType][]proto.Message)
+	res := rf.Interface().(map[string][]proto.Message)
 	var (
 		clas         []*v2.ClusterLoadAssignment
 		clusters     []*v2.Cluster
 		routeConfigs []*v2.RouteConfiguration
 		listeners    []*v2.Listener
 	)
-	for _, pb := range res[envoycache.EndpointResponse] {
+	for _, pb := range res[envoycache.EndpointType] {
 		clas = append(clas, pb.(*v2.ClusterLoadAssignment))
 	}
-	for _, pb := range res[envoycache.ClusterResponse] {
+	for _, pb := range res[envoycache.ClusterType] {
 		clusters = append(clusters, pb.(*v2.Cluster))
 	}
-	for _, pb := range res[envoycache.RouteResponse] {
+	for _, pb := range res[envoycache.RouteType] {
 		routeConfigs = append(routeConfigs, pb.(*v2.RouteConfiguration))
 	}
-	for _, pb := range res[envoycache.ListenerResponse] {
+	for _, pb := range res[envoycache.ListenerType] {
 		listeners = append(listeners, pb.(*v2.Listener))
 	}
 	return clas, clusters, routeConfigs, listeners

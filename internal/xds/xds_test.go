@@ -17,7 +17,6 @@ import (
 	"github.com/envoyproxy/go-control-plane/pkg/test/resource"
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/jsonpb"
-	"github.com/gogo/protobuf/proto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -145,9 +144,9 @@ var _ = Describe("Xds", func() {
 
 func createSnapshot(routeConfigName, listenerName string) (cache.Snapshot, error) {
 	var (
-		endpoints []proto.Message
-		clusters  []proto.Message
-		routes    []proto.Message
+		endpoints []cache.Resource
+		clusters  []cache.Resource
+		routes    []cache.Resource
 	)
 	adsSource := envoycore.ConfigSource{
 		ConfigSourceSpecifier: &envoycore.ConfigSource_Ads{
@@ -190,7 +189,7 @@ func createSnapshot(routeConfigName, listenerName string) (cache.Snapshot, error
 		}},
 	}
 
-	listeners := []proto.Message{
+	listeners := []cache.Resource{
 		listener,
 	}
 	return cache.NewSnapshot("foo", endpoints, clusters, routes, listeners), nil
