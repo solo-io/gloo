@@ -25,7 +25,6 @@ spec:
     spec:
       containers:
       - image: soloio/gloo:v0.1
-        imagePullPolicy: Never
         name: gloo
         ports:
         - containerPort: 8081

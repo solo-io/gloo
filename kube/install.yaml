@@ -286,7 +286,7 @@ spec:
         gloo: k8s-service-discovery
     spec:
       containers:
-      - image: soloio/gloo-k8s-service-discovery:v0.1
+      - image: soloio/gloo-k8s-service-discovery:v0.1.1
         name: k8s-service-discovery
         env:
         - name: GRPC_TRACE
@@ -365,7 +365,7 @@ spec:
         gloo: ingress-controller
     spec:
       containers:
-      - image: soloio/gloo-ingress-controller:v0.1
+      - image: soloio/gloo-ingress-controller:v0.1.1
         name: ingress-controller
         env:
         - name: DEBUG
