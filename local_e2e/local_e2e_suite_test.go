@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	envoyFactory *localhelpers.EnvoyFactory
-	glooFactory  *localhelpers.GlooFactory
+	envoyFactory             *localhelpers.EnvoyFactory
+	glooFactory              *localhelpers.GlooFactory
+	functionDiscoveryFactory *localhelpers.FunctionDiscoveryFactory
 )
 
 func TestLocalE2e(t *testing.T) {
@@ -25,6 +26,8 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	glooFactory, err = localhelpers.NewGlooFactory()
 	Expect(err).NotTo(HaveOccurred())
+	functionDiscoveryFactory, err = localhelpers.NewFunctionDiscoveryFactory()
+	Expect(err).NotTo(HaveOccurred())
 
 })
 
@@ -34,8 +37,9 @@ var _ = AfterSuite(func() {
 })
 
 var (
-	envoyInstance *localhelpers.EnvoyInstance
-	glooInstance  *localhelpers.GlooInstance
+	envoyInstance             *localhelpers.EnvoyInstance
+	glooInstance              *localhelpers.GlooInstance
+	functionDiscoveryInstance *localhelpers.FunctionDiscoveryInstance
 )
 
 var _ = BeforeEach(func() {
@@ -43,6 +47,8 @@ var _ = BeforeEach(func() {
 	envoyInstance, err = envoyFactory.NewEnvoyInstance()
 	Expect(err).NotTo(HaveOccurred())
 	glooInstance, err = glooFactory.NewGlooInstance()
+	Expect(err).NotTo(HaveOccurred())
+	functionDiscoveryInstance, err = functionDiscoveryFactory.NewFunctionDiscoveryInstance()
 	Expect(err).NotTo(HaveOccurred())
 })
 
