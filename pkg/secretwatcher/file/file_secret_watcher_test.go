@@ -23,13 +23,15 @@ var _ = Describe("FileSecretWatcher", func() {
 	var (
 		dir   string
 		file  string
+		ref   string
 		err   error
 		watch secretwatcher.Interface
 	)
 	BeforeEach(func() {
+		ref = "secrets.yml"
 		dir, err = ioutil.TempDir("", "filesecrettest")
 		Must(err)
-		file = filepath.Join(dir, "secrets.yml")
+		file = filepath.Join(dir, ref)
 		watch, err = NewSecretWatcher(dir, time.Millisecond)
 		Must(err)
 	})
@@ -40,6 +42,7 @@ var _ = Describe("FileSecretWatcher", func() {
 	Describe("watching file", func() {
 		Context("an invalid structure is written to a file", func() {
 			It("sends an error on the Error() channel", func() {
+				go watch.TrackSecrets([]string{ref})
 				invalidData := []byte("]]foo: bar")
 				err = ioutil.WriteFile(file, invalidData, 0644)
 				Expect(err).NotTo(HaveOccurred())
@@ -70,41 +73,20 @@ var _ = Describe("FileSecretWatcher", func() {
 				}
 			})
 		})
-		Context("want secrets that the file doesn't contain", func() {
-			It("sends an error on the Error() channel", func() {
-				missingSecrets := map[string]map[string][]byte{"another-key": {"foo": []byte("bar"), "baz": []byte("qux")}}
-				data, err := json.Marshal(missingSecrets)
-				Expect(err).NotTo(HaveOccurred())
-				err = ioutil.WriteFile(file, data, 0644)
-				Expect(err).NotTo(HaveOccurred())
-				go watch.TrackSecrets([]string{"this key really should not be in the secretmap"})
-				select {
-				case <-watch.Secrets():
-					Fail("secretmap was received, expected error")
-				case err := <-watch.Error():
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("secretmap not found"))
-				case <-time.After(time.Second * 1):
-					Fail("expected err to have occurred before 1s")
-				}
-			})
-		})
-		Context("a valid config is written to a file", func() {
+		Context("valid secrets are written to the ref file", func() {
 			It("sends a corresponding secretmap on Secrets()", func() {
-				secretMap := NewTestSecrets()
-				yml, err := yaml.Marshal(secretMap)
+
+				secrets := map[string]string{"username": "me@example.com", "password": "foobar"}
+				yml, err := yaml.Marshal(secrets)
 				Must(err)
 				err = ioutil.WriteFile(file, yml, 0644)
 				Must(err)
-				var key string
-				for k := range secretMap {
-					key = k
-					break
-				}
-				go watch.TrackSecrets([]string{key})
+				go watch.TrackSecrets([]string{ref})
 				select {
 				case parsedSecrets := <-watch.Secrets():
-					Expect(parsedSecrets).To(Equal(secretMap))
+					Expect(parsedSecrets).To(Equal(secretwatcher.SecretMap{
+						ref: secrets,
+					}))
 				case err := <-watch.Error():
 					Expect(err).NotTo(HaveOccurred())
 				case <-time.After(time.Second * 5):

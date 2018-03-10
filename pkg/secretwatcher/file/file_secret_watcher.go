@@ -14,7 +14,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/internal/pkg/file"
-	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 
@@ -77,30 +76,19 @@ func (fw *fileWatcher) Error() <-chan error {
 }
 
 func (fw *fileWatcher) getSecrets() (secretwatcher.SecretMap, error) {
-	secretFiles, err := ioutil.ReadDir(fw.dir)
-	if err != nil {
-		return nil, errors.Wrapf(err, "reading dir: %v", fw.dir)
-	}
 	desiredSecrets := make(secretwatcher.SecretMap)
-	for _, secretFile := range secretFiles {
-		yml, err := ioutil.ReadFile(filepath.Join(fw.dir, secretFile.Name()))
+	// ref should be the filename
+	for _, ref := range fw.secretsToWatch {
+		yml, err := ioutil.ReadFile(filepath.Join(fw.dir, ref))
 		if err != nil {
-			return nil, errors.Wrapf(err, "reading file: %v", filepath.Join(fw.dir, secretFile.Name()))
+			return nil, errors.Wrapf(err, "reading file: %v", filepath.Join(fw.dir, ref))
 		}
-		var secretMap secretwatcher.SecretMap
-		err = yaml.Unmarshal(yml, &secretMap)
+		var contents map[string]string
+		err = yaml.Unmarshal(yml, &contents)
 		if err != nil {
 			return nil, errors.Wrap(err, "unmarshalling yaml")
 		}
-		for _, ref := range fw.secretsToWatch {
-			data, ok := secretMap[ref]
-			if !ok {
-				log.Debugf("ref %v not found", ref)
-				return nil, fmt.Errorf("secret ref %v not found in dir %v", ref, fw.dir)
-			}
-			log.Debugf("ref found: %v", ref)
-			desiredSecrets[ref] = data
-		}
+		desiredSecrets[ref] = contents
 	}
 
 	hash, err := hashstructure.Hash(desiredSecrets, nil)
