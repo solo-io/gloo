@@ -23,6 +23,7 @@ spec:
     spec:
       containers:
       - image: "{{ .Values.gloo_ingress_controller.image}}:{{ .Values.gloo_ingress_controller.imageTag }}"
+        imagePullPolicy: {{ .Values.gloo_ingress_controller.imagePullPolicy }}
         name: ingress-controller
         env:
         - name: DEBUG

@@ -45,6 +45,7 @@ spec:
       containers:
       - name: envoy
         image: "{{ .Values.ingress.image }}:{{ .Values.ingress.imageTag }}"
+        imagePullPolicy: {{ .Values.ingress.imagePullPolicy }}
         ports: 
         - containerPort: {{ .Values.ingress.port }}
           name: http

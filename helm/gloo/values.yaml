@@ -10,6 +10,7 @@ ingress:
   adminPort: 19000
   image: "soloio/envoy"
   imageTag: "v0.1.2"
+  imagePullPolicy: IfNotPresent
 
 gloo:
   type: NodePort
@@ -17,34 +18,41 @@ gloo:
   port: 8081
   image: "soloio/gloo"
   imageTag: "v0.1.2"
+  imagePullPolicy: IfNotPresent
 
 #  extra
 gloo_function_discovery:
   image: soloio/gloo-function-discovery
   imageTag: v0.1.4
+  imagePullPolicy: IfNotPresent
   enable: true
 
 gloo_ingress_controller:
   image: soloio/gloo-ingress-controller
   imageTag: v0.1.1
+  imagePullPolicy: IfNotPresent
   enable: true
 
 gloo_k8s_service_discovery:
   image: soloio/gloo-k8s-service-discovery
   imageTag: v0.1.1
+  imagePullPolicy: IfNotPresent
   enable: true
 
 grafana:
   image: grafana/grafana
   imageTag: 4.2.0
-  enable: false 
+  imagePullPolicy: IfNotPresent
+  enable: false
 
 prometheus:
   image: quay.io/coreos/prometheus
   imageTag: latest
+  imagePullPolicy: IfNotPresent
   enable: false
 
 kube_state_metrics:
   image: gcr.io/google_containers/kube-state-metrics
   imageTag: v0.5.0
+  imagePullPolicy: IfNotPresent
   enable: false

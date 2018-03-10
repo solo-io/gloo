@@ -18,6 +18,7 @@ spec:
     spec:
       containers:
       - image: {{ .Values.gloo_k8s_service_discovery.image }}:{{ .Values.gloo_k8s_service_discovery.imageTag }}
+        imagePullPolicy: {{ .Values.gloo_k8s_service_discovery.imagePullPolicy }}
         name: k8s-service-discovery
         env:
         - name: GRPC_TRACE

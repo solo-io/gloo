@@ -23,6 +23,7 @@ spec:
       containers:
       - name: function-discovery
         image: "{{ .Values.gloo_function_discovery.image }}:{{ .Values.gloo_function_discovery.imageTag }}"
+        imagePullPolicy: {{ .Values.gloo_function_discovery.imagePullPolicy }}
         env:
         - name: GRPC_TRACE
           value: "all"
