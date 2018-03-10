@@ -99,6 +99,12 @@ func discoverSwaggerUpstream(resolver *resolver.Resolver, swaggerUrisToTry []str
 
 func setSwaggerAnnotations(url string, us *v1.Upstream) {
 	log.Debugf("swagger service detected: %v", url)
+	if us.Metadata == nil {
+		us.Metadata = &v1.Metadata{}
+	}
+	if us.Metadata.Annotations == nil {
+		us.Metadata.Annotations = make(map[string]string)
+	}
 	us.Metadata.Annotations[annotations.ServiceType] = ServiceTypeSwagger
 	us.Metadata.Annotations[AnnotationKeySwaggerURL] = url
 	us.Metadata.Annotations[AnnotationKeySwaggerURL] = url
