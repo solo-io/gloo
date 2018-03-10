@@ -21,7 +21,7 @@
     "envoy/config/filter/network/http_connection_manager/v2",
     "pkg/util"
   ]
-  revision = "c517738a012f46dda2754ccfbc1da2628e0905ca,"
+  revision = "c517738a012f46dda2754ccfbc1da2628e0905ca"
 
 [[projects]]
   name = "github.com/ghodss/yaml"
@@ -266,7 +266,7 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "468859df27af4ca7426db2b826d1c99daf716b3e"
+  revision = "bade2f570897dcf97f0de44bd7c589a74a6e1c01"
 
 [[projects]]
   branch = "master"
@@ -281,7 +281,7 @@
     "google",
     "kubernetes"
   ]
-  revision = "bf260ff8a0d110ba9e43463f0a08445f4e858f8b"
+  revision = "d8222c9273b10aa1b8ad0c974920d9c69a0b8254"
 
 [[projects]]
   branch = "master"
@@ -302,7 +302,7 @@
     "file",
     "internal/crud"
   ]
-  revision = "c95516809062e060efd172f46201128c7a16d653"
+  revision = "89675313cee8502fc7b3d1f9af971a96f89dc18c"
 
 [[projects]]
   branch = "master"
@@ -481,7 +481,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "1f8e259486b0c630f3d6a7bef07bfd74579a95a2"
+  revision = "2bfdee521deb68bde13345da386c5d064f428585"
 
 [[projects]]
   branch = "master"
@@ -662,6 +662,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0083ca78c1986425b4560931bedc15958ff31aa185c02af7f6e064e6ca30dab3"
+  inputs-digest = "1c4f1b6e24b6c4226af9c8592cf86bf8fe38cd5a5082b0941cd9b6cee1a0db9a"
   solver-name = "gps-cdcl"
   solver-version = 1

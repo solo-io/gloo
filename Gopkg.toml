@@ -24,6 +24,10 @@
 #   go-tests = true
 #   unused-packages = true
 
+[[override]]
+  revision = "c517738a012f46dda2754ccfbc1da2628e0905ca"
+  name = "github.com/envoyproxy/go-control-plane"
+
 
 [[constraint]]
   branch = "master"
