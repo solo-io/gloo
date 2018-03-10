@@ -21,26 +21,18 @@ import (
 )
 
 var (
-	masterUrl, kubeconfigPath string
-	mkb                       *MinikubeInstance
-	namespace                 = crd.GlooDefaultNamespace
+	namespace = RandString(6)
 )
 
 var gloo storage.Interface
 var kube kubernetes.Interface
 
 var _ = Describe("Kubernetes Deployment", func() {
-	if os.Getenv("RUN_KUBE_TESTS") != "1" {
-		//Skip("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.", 1)
-		log.Printf("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
-		return
-	}
 	BeforeSuite(func() {
-		mkb = NewMinikube(true)
-		err := mkb.Setup()
+		err := SetupKubeForE2eTest(namespace, true, true)
 		Must(err)
-		kubeconfigPath = filepath.Join(os.Getenv("HOME"), ".kube", "config")
-		masterUrl, err = mkb.Addr()
+		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
+		masterUrl := ""
 		Must(err)
 		cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 		Must(err)
@@ -50,7 +42,7 @@ var _ = Describe("Kubernetes Deployment", func() {
 		Must(err)
 	})
 	AfterSuite(func() {
-		mkb.Teardown()
+		TeardownKube(namespace)
 	})
 })
 
@@ -108,6 +100,6 @@ func curlEnvoy(opts curlOpts) (string, error) {
 	if protocol == "" {
 		protocol = "http"
 	}
-	args = append(args, fmt.Sprintf("%v://envoy:%v%s", protocol, port, opts.path))
+	args = append(args, fmt.Sprintf("%v://test-ingress:%v%s", protocol, port, opts.path))
 	return TestRunner(args...)
 }

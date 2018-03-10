@@ -2,22 +2,22 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: helloservice
+    gloo: helloservice
   name: helloservice
   namespace: gloo-system
 spec:
   selector:
     matchLabels:
-      app: helloservice
+      gloo: helloservice
   replicas: 1
   template:
     metadata:
       labels:
-        app: helloservice
+        gloo: helloservice
     spec:
       containers:
-      - image: soloio/helloservice:v0.1
-        imagePullPolicy: Never
+      - image: soloio/helloservice:testing
+        imagePullPolicy: Always
         name: helloservice
         args:
         - "--reply=expected-reply-1"

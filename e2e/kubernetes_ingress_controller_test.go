@@ -47,7 +47,7 @@ var _ = Describe("Kubernetes Ingress Controller", func() {
 			curlEventuallyShouldRespond(curlOpts{path: "/"}, "< HTTP/1.1 200", time.Minute*5)
 		})
 		It("should update the ingress with the lb status of the service", func() {
-			envoySvc, err := kube.CoreV1().Services(namespace).Get("envoy", metav1.GetOptions{})
+			envoySvc, err := kube.CoreV1().Services(namespace).Get("test-ingress", metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			// just to test, set the envoySvcLB status to soemthing
 			envoySvc.Status.LoadBalancer.Ingress = append(envoySvc.Status.LoadBalancer.Ingress, kubev1.LoadBalancerIngress{

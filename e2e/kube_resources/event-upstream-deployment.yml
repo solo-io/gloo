@@ -2,22 +2,22 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: upstream-for-events
+    gloo: upstream-for-events
   name: upstream-for-events
   namespace: gloo-system
 spec:
   selector:
     matchLabels:
-      app: upstream-for-events
+      gloo: upstream-for-events
   replicas: 1
   template:
     metadata:
       labels:
-        app: upstream-for-events
+        gloo: upstream-for-events
     spec:
       containers:
-      - image: soloio/upstream-for-events:v0.1
-        imagePullPolicy: Never
+      - image: soloio/upstream-for-events:testing
+        imagePullPolicy: Always
         name: upstream-for-events
         ports:
         - containerPort: 8080

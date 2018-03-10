@@ -2,12 +2,12 @@ apiVersion: v1
 kind: Pod
 metadata:
   labels:
-    app: testrunner
+    gloo: testrunner
   name: testrunner
   namespace: gloo-system
 spec:
   containers:
-  - image: soloio/testrunner:v0.1
+  - image: soloio/testrunner:testing
     command:
       - sleep
       - "36000"

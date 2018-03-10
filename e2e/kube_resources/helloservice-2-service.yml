@@ -10,4 +10,4 @@ spec:
   - port: 8080
     protocol: TCP
   selector:
-    app: helloservice-2
+    gloo: helloservice-2

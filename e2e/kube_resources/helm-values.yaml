@@ -1,0 +1,36 @@
+ingress:
+  type: NodePort
+  replicaCount: 1
+  port: 8080
+  securePort: 8443
+  adminPort: 19000
+  image: "soloio/envoy"
+  imageTag: "v0.1.2"
+  imagePullPolicy: Always
+
+gloo:
+  type: NodePort
+  replicaCount: 1
+  port: 8081
+  image: "soloio/gloo"
+  imageTag: testing
+  imagePullPolicy: Always
+
+#  discovery
+gloo_function_discovery:
+  image: soloio/gloo-function-discovery
+  imageTag: testing
+  imagePullPolicy: Always
+  enable: true
+
+gloo_ingress_controller:
+  image: soloio/gloo-ingress-controller
+  imageTag: testing
+  imagePullPolicy: Always
+  enable: true
+
+gloo_k8s_service_discovery:
+  image: soloio/gloo-k8s-service-discovery
+  imageTag: testing
+  imagePullPolicy: Always
+  enable: true

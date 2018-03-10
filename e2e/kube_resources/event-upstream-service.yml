@@ -10,4 +10,4 @@ spec:
   - port: 8080
     protocol: TCP
   selector:
-    app: upstream-for-events
+    gloo: upstream-for-events

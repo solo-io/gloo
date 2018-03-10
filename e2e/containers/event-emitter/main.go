@@ -15,7 +15,7 @@ var eventData string
 var topic string
 
 func main() {
-	flag.StringVar(&envoyAddr, "envoy", "http://envoy:8080", "address to send events (envoy gateway)")
+	flag.StringVar(&envoyAddr, "envoy", "http://test-ingress:8080", "address to send events (envoy gateway)")
 	flag.StringVar(&eventData, "data", "what an event!", "data to send in the event")
 	flag.StringVar(&topic, "topic", "test-topic", "topic to publish events to")
 	flag.Parse()

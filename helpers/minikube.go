@@ -6,21 +6,25 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
+	"io/ioutil"
+
+	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/pkg/log"
 )
 
 // minikube.go provides helper methods for running tests on minikube
 
 const (
+	// glooo labels
 	testrunner        = "testrunner"
 	helloservice      = "helloservice"
 	helloservice2     = "helloservice-2"
-	envoy             = "envoy"
-	gloo              = "gloo"
-	ingress           = "gloo-ingress"
-	k8sd              = "gloo-k8s-service-discovery"
+	envoy             = "ingress"
+	gloo              = "control-plane"
+	ingress           = "ingress-controller"
+	k8sd              = "k8s-service-discovery"
+	funcitonDiscovery = "function-discovery"
 	upstreamForEvents = "upstream-for-events"
 	eventEmitter      = "event-emitter"
 )
@@ -173,23 +177,30 @@ func (mkb *MinikubeInstance) buildContainers() error {
 
 // createE2eResources creates all the kube resources contained in kube_resources dir
 func (mkb *MinikubeInstance) createE2eResources() error {
+
 	kubeResourcesDir := filepath.Join(E2eDirectory(), "kube_resources")
-	if err := kubectl("config", "set-context", mkb.vmName, "--namespace=gloo-system"); err != nil {
+
+	namespace := mkb.ephemeralNamespace
+	if namespace == "" {
+		namespace = "gloo-system"
+	}
+
+	installBytes, err := exec.Command("helm", "template", HelmDirectory(), "--namespace", namespace, "-n", "test-gloo").CombinedOutput()
+	if err != nil {
+		return errors.Wrapf(err, "running helm template: %v", installBytes)
+	}
+
+	err = ioutil.WriteFile(filepath.Join(kubeResourcesDir, "install.yml"), installBytes, 0644)
+	if err != nil {
+		return errors.Wrap(err, "writing generated install template")
+	}
+
+	if err := kubectl("config", "set-context", mkb.vmName, "--namespace="+namespace); err != nil {
 		return err
 	}
 	// order matters here
 	resources := []string{
-		"namespace.yml",
-
-		"gloo-deployment.yml",
-		"gloo-service.yml",
-
-		"gloo-ingress-deployment.yml",
-		"gloo-k8s-sd-deployment.yml",
-
-		"envoy-configmap.yml",
-		"envoy-deployment.yml",
-		"envoy-service.yml",
+		"install.yml",
 
 		"helloservice-deployment.yml",
 		"helloservice-service.yml",
@@ -215,28 +226,13 @@ func (mkb *MinikubeInstance) createE2eResources() error {
 		gloo,
 		ingress,
 		k8sd,
+		funcitonDiscovery,
 		upstreamForEvents,
 		eventEmitter); err != nil {
 		return err
 	}
-	TestRunner("curl", "envoy:19000/logging?config=debug")
+	TestRunner("curl", "test-ingress:19000/logging?config=debug")
 	return nil
-}
-
-func kubectl(args ...string) error {
-	cmd := exec.Command("kubectl", args...)
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
-
-func KubectlOut(args ...string) (string, error) {
-	cmd := exec.Command("kubectl", args...)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		err = fmt.Errorf("%s (%v)", out, err)
-	}
-	return string(out), err
 }
 
 // deleteE2eResources deletes all the kube resources contained in kube_resources dir
@@ -258,6 +254,7 @@ func (mkb *MinikubeInstance) deleteE2eResources() error {
 		envoy,
 		gloo,
 		ingress,
+		funcitonDiscovery,
 		k8sd,
 		upstreamForEvents,
 		eventEmitter)
@@ -266,83 +263,6 @@ func (mkb *MinikubeInstance) deleteE2eResources() error {
 // DeleteContext deletes the context from the kubeconfig
 func (mkb *MinikubeInstance) DeleteContext() error {
 	return kubectl("config", "delete-context", mkb.vmName)
-}
-
-// waitPodsRunning waits for all pods to be running
-func waitPodsRunning(podNames ...string) error {
-	for _, pod := range podNames {
-		finished := func(output string) bool {
-			return strings.Contains(output, "Running")
-		}
-		if err := waitPodStatus(pod, "Running", finished); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// waitPodsTerminated waits for all pods to be terminated
-func waitPodsTerminated(podNames ...string) error {
-	for _, pod := range podNames {
-		finished := func(output string) bool {
-			return !strings.Contains(output, pod)
-		}
-		if err := waitPodStatus(pod, "terminated", finished); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// TestRunner executes a command inside the TestRunner container
-func TestRunner(args ...string) (string, error) {
-	args = append([]string{"exec", "-i", testrunner, "--"}, args...)
-	log.Debugf("trying command %v", args)
-	return KubectlOut(args...)
-}
-
-func waitPodStatus(pod, status string, finished func(output string) bool) error {
-	timeout := time.Second * 20
-	interval := time.Millisecond * 1000
-	tick := time.Tick(interval)
-
-	log.Debugf("waiting %v for pod %v to be %v...", timeout, pod, status)
-	for {
-		select {
-		case <-time.After(timeout):
-			return fmt.Errorf("timed out waiting for %v to be %v", pod, status)
-		case <-tick:
-			out, err := KubectlOut("get", "pod", "-l", "app="+pod)
-			if err != nil {
-				return fmt.Errorf("failed getting pod: %v", err)
-			}
-			if finished(out) {
-				return nil
-			}
-		}
-	}
-}
-
-func waitNamespaceStatus(namespace, status string, finished func(output string) bool) error {
-	timeout := time.Second * 20
-	interval := time.Millisecond * 1000
-	tick := time.Tick(interval)
-
-	log.Debugf("waiting %v for namespace %v to be %v...", timeout, namespace, status)
-	for {
-		select {
-		case <-time.After(timeout):
-			return fmt.Errorf("timed out waiting for %v to be %v", namespace, status)
-		case <-tick:
-			out, err := KubectlOut("get", "namespace", namespace)
-			if err != nil {
-				return fmt.Errorf("failed getting pod: %v", err)
-			}
-			if finished(out) {
-				return nil
-			}
-		}
-	}
 }
 
 func minikube(args ...string) error {
