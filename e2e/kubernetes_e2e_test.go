@@ -52,6 +52,8 @@ type curlOpts struct {
 	method   string
 	host     string
 	caFile   string
+	body     string
+	headers  map[string]string
 	port     int
 }
 
@@ -91,6 +93,12 @@ func curlEnvoy(opts curlOpts) (string, error) {
 	}
 	if opts.caFile != "" {
 		args = append(args, "--cacert", opts.caFile)
+	}
+	if opts.body != "" {
+		args = append(args, "-d", opts.body)
+	}
+	for h, v := range opts.headers {
+		args = append(args, "-H", fmt.Sprintf("%v: %v", h, v))
 	}
 	port := opts.port
 	if port == 0 {
