@@ -5,6 +5,8 @@
 - [`aws`](https://aws.amazon.com/cli/) (the aws cli) to create resources on AWS.
 - [`jq`](https://stedolan.github.io/jq/) to parse the aws output to retrieve the role ARN (required for creating our lambda).
 
+
+
 1. Create a lambda function:
 
         # download the zipped function from github
@@ -17,7 +19,7 @@
         aws lambda create-function \
         --region us-east-1 \
         --function-name helloWorld \
-        --zip-file https://google.com/helloWorld.zip \
+        --zip-file fileb://helloWorld.zip \
         --handler helloWorld.handler \
         --runtime nodejs6.10 \
         --role $ROLE_ARN

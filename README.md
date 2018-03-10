@@ -19,6 +19,18 @@ that manages and calls [Gloo plugins](https://gloo.solo.io/introduction/architec
 
 For an in-depth breakdown of of Gloo and its features, please see our [documentation](https://gloo.solo.io).
 
+## Getting Started
+
+Getting started with Gloo on Kubernetes is as easy as running
+
+```bash
+kubectl apply \
+  -f https://raw.githubusercontent.com/solo-io/gloo-install/master/kube/install.yaml
+```
+
+which will create the `gloo-system` namespace and deploy Envoy, Gloo, and Gloo's discovery services. To create your first 
+routes with Gloo, [see the getting started page in our documentation](https://gloo.solo.io/getting_started/kubernetes/1/).
+
 ## Documentation
 
 * [Official Documentation](https://gloo.solo.io)

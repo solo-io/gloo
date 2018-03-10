@@ -1,5 +1,6 @@
-Composing Apps with Gloo
+Refactoring Monoliths with Microservices and Serverless 
 ==========
+
 This document outlines a demo of gloo composing ('glooing') an application from a monolith, a microservice and AWS Lambda.
 
 # Prerequisites

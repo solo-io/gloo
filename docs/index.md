@@ -17,6 +17,8 @@ the component architecture
 ### Getting Started:
 * [Getting Started on Kubernetes](getting_started/kubernetes/1.md): Getting started with Kubernetes (recommended for first time users)
 * [Part 2 - Function Routing](getting_started/kubernetes/2.md): Introduction to Function Routing with Gloo
+### Tutorials
+* [Refactoring Monoliths with Gloo](tutorials/refactor_monolith.md): Using Gloo to refactor monolithic apps
 ### Plugins:
 * [AWS Lambda Plugin](plugins/aws.md): Description of the AWS Lambda Plugin and config rules for AWS Lambda Upstreams and Functions 
 * [Kubernetes Plugin](plugins/kubernetes.md): Description of the Kubernetes Plugin and config rules for Kubernetes Upstreams  
