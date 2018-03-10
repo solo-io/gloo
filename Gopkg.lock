@@ -8,7 +8,6 @@
   version = "v1.1.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -19,9 +18,10 @@
     "envoy/api/v2/listener",
     "envoy/api/v2/route",
     "envoy/config/filter/accesslog/v2",
-    "envoy/config/filter/network/http_connection_manager/v2"
+    "envoy/config/filter/network/http_connection_manager/v2",
+    "pkg/util"
   ]
-  revision = "e0ebc95432196ce43dae88cc2822983466210656"
+  revision = "c517738a012f46dda2754ccfbc1da2628e0905ca,"
 
 [[projects]]
   name = "github.com/ghodss/yaml"
@@ -32,8 +32,8 @@
 [[projects]]
   name = "github.com/go-resty/resty"
   packages = ["."]
-  revision = "00cb083b8cdc8b0fb1e1f5ebe24bbc23e0ff0cf6"
-  version = "v1.2"
+  revision = "65798e030a35b911602b4d1d743d6f50ac93b665"
+  version = "v1.3"
 
 [[projects]]
   name = "github.com/gogo/protobuf"
@@ -102,7 +102,7 @@
     ".",
     "diskcache"
   ]
-  revision = "2bcd89a1743fd4b373f7370ce8ddc14dfbd18229"
+  revision = "9cad4c3443a7200dd6400aef47183728de563a38"
 
 [[projects]]
   branch = "master"
@@ -128,8 +128,8 @@
 [[projects]]
   name = "github.com/json-iterator/go"
   packages = ["."]
-  revision = "e7c7f3b33712573affdcc7a107218e7926b9a05b"
-  version = "1.0.6"
+  revision = "3353055b2a1a5ae1b6a8dfde887a524e7088f3a2"
+  version = "1.1.2"
 
 [[projects]]
   name = "github.com/juju/ratelimit"
@@ -160,6 +160,24 @@
   packages = ["."]
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/hashstructure"
+  packages = ["."]
+  revision = "2bca23e0e452137f789efbc8610126fd8b94f73b"
+
+[[projects]]
+  name = "github.com/modern-go/concurrent"
+  packages = ["."]
+  revision = "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94"
+  version = "1.0.3"
+
+[[projects]]
+  name = "github.com/modern-go/reflect2"
+  packages = ["."]
+  revision = "1df9eeb2bb81f327b96228865c5687bc2194af3f"
+  version = "1.0.0"
 
 [[projects]]
   name = "github.com/onsi/ginkgo"
@@ -230,10 +248,17 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/radovskyb/watcher"
+  packages = ["."]
+  revision = "6145e1439b9de93806925353403f91d2abbad8a5"
+  version = "v1.0.2"
+
+[[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo"
   packages = [
     "pkg/bootstrap",
+    "pkg/coreplugins/common",
     "pkg/coreplugins/service",
     "pkg/endpointdiscovery",
     "pkg/log",
@@ -241,25 +266,28 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "bbd9fff65cdd00b64c55ecb9344518f3cb256fb3"
+  revision = "468859df27af4ca7426db2b826d1c99daf716b3e"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "d4a2acba50c037ce1a0637c1a7563ada46004470"
+  revision = "2b1a83ebd1c6c802f6ade1c8266b699523494dc1"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-plugins"
-  packages = ["kubernetes"]
-  revision = "783a7ce36ae153df9e23cebf518b37b72f095237"
+  packages = [
+    "google",
+    "kubernetes"
+  ]
+  revision = "bf260ff8a0d110ba9e43463f0a08445f4e858f8b"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-sdk-go"
   packages = ["events"]
-  revision = "b5024d573307f03389088b3ac1e7f6cf4cfcff00"
+  revision = "000e82f8af6d2742c10b8b43d6f72b17e2dd6352"
 
 [[projects]]
   branch = "master"
@@ -271,15 +299,16 @@
     "crd/client/clientset/versioned/scheme",
     "crd/client/clientset/versioned/typed/solo.io/v1",
     "crd/solo.io/v1",
+    "file",
     "internal/crud"
   ]
-  revision = "00415184cdd9e5f87e10c1ffbd62ef7bf66c2e4c"
+  revision = "c95516809062e060efd172f46201128c7a16d653"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/kubecontroller"
   packages = ["."]
-  revision = "916800242c0d38bf20705fbcb80696456d1c107e"
+  revision = "ee1645fc146af77ffcdd004a8b34b56fff216188"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -291,7 +320,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "432090b8f568c018896cd8a0fb0345872bbac6ce"
+  revision = "c7dcf104e3a7a1417abc0230cb0d5240d764159d"
 
 [[projects]]
   branch = "master"
@@ -309,7 +338,7 @@
     "publicsuffix",
     "trace"
   ]
-  revision = "cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb"
+  revision = "d0aafc73d5cdc42264b0af071c261abac580695e"
 
 [[projects]]
   branch = "master"
@@ -318,7 +347,7 @@
     "unix",
     "windows"
   ]
-  revision = "37707fdb30a5b38865cfb95e5aab41707daec7fd"
+  revision = "7dca6fe1f43775aa6d1334576870ff63f978f539"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -357,7 +386,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "2b5a72b8730b0b16380010cfe5286c42108d88e7"
+  revision = "df60624c1e9b9d2973e889c7a1cff73155da81c4"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -396,10 +425,10 @@
   version = "v0.9.0"
 
 [[projects]]
-  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+  revision = "7f97868eec74b32b0982dd158a51a446d1da7eb5"
+  version = "v2.1.1"
 
 [[projects]]
   branch = "master"
@@ -440,7 +469,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "b378c47b2dcba7f5c3ef97d8a5a0b3821ec6a001"
+  revision = "fd252c3a3e1debf912ff5b80221a31a6a3c24493"
 
 [[projects]]
   branch = "master"
@@ -452,7 +481,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "90a5ba227a3ae6414796a5f2910638c3011af740"
+  revision = "1f8e259486b0c630f3d6a7bef07bfd74579a95a2"
 
 [[projects]]
   branch = "master"
@@ -500,7 +529,7 @@
     "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "cced8e64b6ca92a8b6afcbfea3353ca016694a45"
+  revision = "e9ff529c66f83aeac6dff90f11ea0c5b7c4d626a"
 
 [[projects]]
   name = "k8s.io/client-go"
@@ -633,6 +662,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "93a386e81240b5caee85eebaf83c179b07896df64faa63b6c02aa4a533330fa7"
+  inputs-digest = "0083ca78c1986425b4560931bedc15958ff31aa185c02af7f6e064e6ca30dab3"
   solver-name = "gps-cdcl"
   solver-version = 1
