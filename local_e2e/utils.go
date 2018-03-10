@@ -1,10 +1,11 @@
 package local_e2e
 
 import (
+	"net"
 	"net/http"
+	"strconv"
 
 	"context"
-	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -34,12 +35,27 @@ func runServer(ctx context.Context) (uint32, <-chan *ReceivedRequest) {
 		bodychan <- &rr
 	}
 
-	port := uint32(1334)
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		panic(err)
+	}
+
+	addr := listener.Addr().String()
+	_, portstr, err := net.SplitHostPort(addr)
+	if err != nil {
+		panic(err)
+	}
+
+	port, err := strconv.Atoi(portstr)
+	if err != nil {
+		panic(err)
+	}
+
 	handler := http.HandlerFunc(handlerfunc)
 	go func() {
-		h := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: handler}
+		h := &http.Server{Handler: handler}
 		go func() {
-			if err := h.ListenAndServe(); err != nil {
+			if err := h.Serve(listener); err != nil {
 				if err != http.ErrServerClosed {
 					panic(err)
 				}
@@ -50,9 +66,8 @@ func runServer(ctx context.Context) (uint32, <-chan *ReceivedRequest) {
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		h.Shutdown(ctx)
 		cancel()
-
 	}()
-	return port, bodychan
+	return uint32(port), bodychan
 }
 
 func NewTestUpstream(ctx context.Context) *TestUpstream {
