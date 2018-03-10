@@ -5,7 +5,7 @@ metadata:
   labels:
     gloo: event-emitter
   name: event-emitter
-  namespace: qzz0cv
+  namespace: ogfdqr
 spec:
   selector:
     matchLabels:
@@ -30,7 +30,7 @@ metadata:
   labels:
     gloo: upstream-for-events
   name: upstream-for-events
-  namespace: qzz0cv
+  namespace: ogfdqr
 spec:
   selector:
     matchLabels:
@@ -55,7 +55,7 @@ metadata:
   name: upstream-for-events
   labels:
     sevice: upstream-for-events
-  namespace: qzz0cv
+  namespace: ogfdqr
 spec:
   ports:
   - port: 8080
@@ -69,7 +69,7 @@ metadata:
   labels:
     gloo: helloservice-2
   name: helloservice-2
-  namespace: qzz0cv
+  namespace: ogfdqr
 spec:
   selector:
     matchLabels:
@@ -96,7 +96,7 @@ metadata:
   name: helloservice-2
   labels:
     sevice: helloservice-2
-  namespace: qzz0cv
+  namespace: ogfdqr
 spec:
   ports:
   - port: 8080
@@ -110,7 +110,7 @@ metadata:
   labels:
     gloo: helloservice
   name: helloservice
-  namespace: qzz0cv
+  namespace: ogfdqr
 spec:
   selector:
     matchLabels:
@@ -137,7 +137,7 @@ metadata:
   name: helloservice
   labels:
     sevice: helloservice
-  namespace: qzz0cv
+  namespace: ogfdqr
 spec:
   ports:
   - port: 8080
@@ -151,10 +151,11 @@ metadata:
   labels:
     gloo: testrunner
   name: testrunner
-  namespace: qzz0cv
+  namespace: ogfdqr
 spec:
   containers:
   - image: soloio/testrunner:testing
+    imagePullPolicy: Always
     command:
       - sleep
       - "36000"

@@ -4,7 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: test-ingress-config
-  namespace: qzz0cv
+  namespace: ogfdqr
 data:
   envoy.yaml: |
     node:
@@ -43,7 +43,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: test-function-discovery
-  namespace: qzz0cv
+  namespace: ogfdqr
   labels:
     gloo: function-discovery
     chart: gloo-0.1.0
@@ -64,7 +64,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: test-gloo
-  namespace: qzz0cv
+  namespace: ogfdqr
   labels:
     gloo: control-plane
     chart: gloo-0.1.0
@@ -86,7 +86,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: test-ingress
-  namespace: qzz0cv
+  namespace: ogfdqr
   labels:
     gloo: ingress
     chart: gloo-0.1.0
@@ -114,7 +114,7 @@ apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: test-function-discovery
-  namespace: qzz0cv
+  namespace: ogfdqr
   labels:
     gloo: function-discovery
     chart: gloo-0.1.0
@@ -146,7 +146,7 @@ spec:
         - "--storage.refreshrate=30m"
         - "--secrets.type=kube"
         - "--secrets.refreshrate=30m"
-        - "--kube.namespace=qzz0cv"
+        - "--kube.namespace=ogfdqr"
 
 ---
 # Source: gloo/templates/gloo-deployment.yaml
@@ -154,7 +154,7 @@ apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: test-gloo
-  namespace: qzz0cv
+  namespace: ogfdqr
   labels:
     gloo: control-plane
     chart: gloo-0.1.0
@@ -191,14 +191,14 @@ spec:
         - "--secrets.type=kube"
         - "--secrets.refreshrate=1m"
         - "--xds.port=8081"
-        - "--kube.namespace=qzz0cv" 
+        - "--kube.namespace=ogfdqr" 
 ---
 # Source: gloo/templates/ingress-deployment.yaml
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: test-ingress 
-  namespace: qzz0cv
+  namespace: ogfdqr
   labels:
     gloo: ingress
     chart: gloo-0.1.0
@@ -265,7 +265,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: test-ingress-controller
-  namespace: qzz0cv
+  namespace: ogfdqr
   labels:
     gloo: ingress-controller
     chart: gloo-0.1.0
@@ -297,7 +297,7 @@ spec:
         - "--service=envoy"
         - "--syncperiod=30m"
         - "--storage.type=kube"
-        - "--kube.namespace=qzz0cv"
+        - "--kube.namespace=ogfdqr"
 
 ---
 # Source: gloo/templates/sd-deployment.yaml
@@ -308,7 +308,7 @@ metadata:
   labels:
     gloo: k8s-service-discovery
   name: test-service-discovery
-  namespace: qzz0cv
+  namespace: ogfdqr
 spec:
   selector:
     matchLabels:
@@ -331,5 +331,5 @@ spec:
         args:
         - "--storage.type=kube"
         - "--syncperiod=30m"
-        - "--kube.namespace=qzz0cv"
+        - "--kube.namespace=ogfdqr"
 

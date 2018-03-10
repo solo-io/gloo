@@ -56,8 +56,8 @@ var _ = Describe("Event matcher route type", func() {
 			gloo.V1().Upstreams().Delete(upstreamForEvents)
 			gloo.V1().VirtualHosts().Delete(vhostName)
 		})
-		It("should balance requests between the two destinations", func() {
-			logsShouldEventuallyContain("received event:", time.Minute*5)
+		It("receive the event", func() {
+			logsShouldEventuallyContain(`"message":"what an event!"`, time.Minute*5)
 		})
 	})
 })
@@ -70,7 +70,7 @@ func logsShouldEventuallyContain(substr string, timeout ...time.Duration) {
 	// for some useful-ish output
 	tick := time.Tick(t / 8)
 	Eventually(func() string {
-		logs, err := KubectlOut("logs", "-l", "app=upstream-for-events")
+		logs, err := KubectlOut("logs", "-l", "gloo=upstream-for-events")
 		if err != nil {
 			logs = err.Error()
 		}

@@ -22,8 +22,8 @@ func CertsDirectory() string {
 }
 
 func ServerCert() string {
-	return filepath.Join(CertsDirectory(), "envoy.crt")
+	return filepath.Join(CertsDirectory(), "test-ingress.crt")
 }
 func ServerKey() string {
-	return filepath.Join(CertsDirectory(), "envoy.key")
+	return filepath.Join(CertsDirectory(), "test-ingress.key")
 }
