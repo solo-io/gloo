@@ -2,6 +2,7 @@ package localhelpers
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -32,12 +33,15 @@ func NewGlooFactory() (*GlooFactory, error) {
 		}, nil
 	}
 	srcpath := filepath.Join(helpers.SoloDirectory(), "gloo")
-	gloopath = filepath.Join(srcpath, "gloo")
 	gf := &GlooFactory{
-		srcpath:  srcpath,
-		gloopath: gloopath,
+		srcpath: srcpath,
 	}
-	gf.build()
+	err := gf.build()
+	if err != nil {
+		return nil, err
+	}
+	gloopath = filepath.Join(srcpath, "gloo")
+	gf.gloopath = gloopath
 	return gf, nil
 }
 
@@ -51,6 +55,7 @@ func (gf *GlooFactory) build() error {
 	gf.wasbuilt = true
 
 	cmd := exec.Command("go", "build", "-v", "-i", "-gcflags", "-N -l", "-o", "gloo", "main.go")
+
 	cmd.Dir = gf.srcpath
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter
@@ -92,6 +97,10 @@ type GlooInstance struct {
 	cmd    *exec.Cmd
 }
 
+func (gi *GlooInstance) DataDir() string {
+	return gi.tmpdir
+}
+
 func (gi *GlooInstance) EnvoyPort() uint32 {
 	return 8080
 }
@@ -121,15 +130,26 @@ func (gi *GlooInstance) initStorage() error {
 	return nil
 
 }
-
 func (gi *GlooInstance) Run() error {
-	cmd := exec.Command(gi.gloopath,
+	return gi.RunWithPort(8081)
+}
+
+func (gi *GlooInstance) RunWithPort(xdsport uint32) error {
+
+	var cmd *exec.Cmd
+	glooargs := []string{
 		"--storage.type=file",
 		"--storage.refreshrate=1s",
 		"--secrets.type=file",
 		"--secrets.refreshrate=1s",
-		"--xds.port=8081",
-	)
+		fmt.Sprintf("--xds.port=%d", xdsport),
+	}
+	if os.Getenv("DEBUG_GLOO") != "" {
+		dlvargs := append([]string{"--headless", "--listen=:2345", "--log", "exec", gi.gloopath, "--"}, glooargs...)
+		cmd = exec.Command("dlv", dlvargs...)
+	} else {
+		cmd = exec.Command(gi.gloopath, glooargs...)
+	}
 
 	cmd.Dir = gi.tmpdir
 	cmd.Stdout = ginkgo.GinkgoWriter

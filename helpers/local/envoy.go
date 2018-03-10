@@ -1,6 +1,7 @@
 package localhelpers
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,7 +13,12 @@ import (
 
 const defualtEnvoyDockerImage = "soloio/envoy:v0.1.2"
 
-const envoyfconfig = `
+func buildBootstrap(xdsPort uint32) []byte {
+
+	return []byte(fmt.Sprintf(envoyConfigTemplate, xdsPort))
+}
+
+const envoyConfigTemplate = `
 node:
  cluster: ingress
  id: testnode
@@ -24,7 +30,7 @@ static_resources:
     hosts:
     - socket_address:
         address: localhost
-        port_value: 8081
+        port_value: %d
     http2_protocol_options: {}
     type: STRICT_DNS
 
@@ -116,8 +122,6 @@ func (ef *EnvoyFactory) NewEnvoyInstance() (*EnvoyInstance, error) {
 
 	envoyconfigyaml := filepath.Join(tmpdir, "envoyconfig.yaml")
 
-	ioutil.WriteFile(envoyconfigyaml, []byte(envoyfconfig), 0644)
-
 	return &EnvoyInstance{
 		envoypath:    ef.envoypath,
 		envoycfgpath: envoyconfigyaml,
@@ -127,11 +131,21 @@ func (ef *EnvoyFactory) NewEnvoyInstance() (*EnvoyInstance, error) {
 }
 
 func (ei *EnvoyInstance) Run() error {
+	return ei.RunWithPort(8081)
+}
+
+func (ei *EnvoyInstance) RunWithPort(port uint32) error {
+	err := ioutil.WriteFile(ei.envoycfgpath, buildBootstrap(port), 0644)
+
+	if err != nil {
+		return err
+	}
+
 	cmd := exec.Command(ei.envoypath, "-c", ei.envoycfgpath, "--v2-config-only")
 	cmd.Dir = ei.tmpdir
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
 		return err
 	}
