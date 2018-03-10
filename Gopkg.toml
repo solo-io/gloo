@@ -23,9 +23,7 @@
 #   non-go = false
 #   go-tests = true
 #   unused-packages = true
-[[override]]
-  name = "github.com/gogo/protobuf"
-  branch = "master"
+
 
 [[constraint]]
   branch = "master"
@@ -42,6 +40,10 @@
 [[constraint]]
   name = "github.com/pkg/errors"
   version = "0.8.0"
+
+[[constraint]]
+  revision = "c517738a012f46dda2754ccfbc1da2628e0905ca"
+  name = "github.com/envoyproxy/go-control-plane"
 
 [[constraint]]
   branch = "master"

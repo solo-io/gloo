@@ -86,11 +86,13 @@ func NonFunctionalUpstream(name string) *v1.Upstream {
 
 func NewSingleDestRoute(upstreamName, functionName string) *v1.Route {
 	return &v1.Route{
-		Matcher: &v1.Matcher{
-			Path: &v1.Matcher_PathRegex{
-				PathRegex: "/users/.*/accounts/.*",
+		Matcher: &v1.Route_RequestMatcher{
+			RequestMatcher: &v1.RequestMatcher{
+				Path: &v1.RequestMatcher_PathRegex{
+					PathRegex: "/users/.*/accounts/.*",
+				},
+				Verbs: []string{"GET"},
 			},
-			Verbs: []string{"GET"},
 		},
 		SingleDestination: &v1.Destination{
 			DestinationType: &v1.Destination_Function{
@@ -110,11 +112,13 @@ func NewSingleDestRoute(upstreamName, functionName string) *v1.Route {
 }
 func NewNonFunctionSingleDestRoute(upstreamName string) *v1.Route {
 	return &v1.Route{
-		Matcher: &v1.Matcher{
-			Path: &v1.Matcher_PathRegex{
-				PathRegex: "/users/.*/accounts/.*",
+		Matcher: &v1.Route_RequestMatcher{
+			RequestMatcher: &v1.RequestMatcher{
+				Path: &v1.RequestMatcher_PathRegex{
+					PathRegex: "/users/.*/accounts/.*",
+				},
+				Verbs: []string{"GET"},
 			},
-			Verbs: []string{"GET"},
 		},
 		SingleDestination: &v1.Destination{
 			DestinationType: &v1.Destination_Upstream{
