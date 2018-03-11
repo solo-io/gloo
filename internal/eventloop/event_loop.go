@@ -7,8 +7,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"sync"
-
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/swagger"
 	"github.com/solo-io/gloo-function-discovery/internal/updater"
@@ -49,12 +47,12 @@ func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []st
 	}
 
 	// prevent concurrent attempts to update the same upstream
-	upstreamUpdateLocks := make(map[string]*sync.Mutex)
+	upstreamUpdateChannels := make(map[string]chan secretwatcher.SecretMap)
 
 	update := func() {
 		log.Debugf("updating: %v", len(cache.upstreams))
 		// clean locks for upstreams that have been deleted
-		for usName := range upstreamUpdateLocks {
+		for usName := range upstreamUpdateChannels {
 			var upstreamFound bool
 			for _, us := range cache.upstreams {
 				if usName == us.Name {
@@ -63,7 +61,8 @@ func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []st
 				}
 			}
 			if !upstreamFound {
-				delete(upstreamUpdateLocks, usName)
+				close(upstreamUpdateChannels[usName])
+				delete(upstreamUpdateChannels, usName)
 			}
 		}
 
@@ -76,23 +75,28 @@ func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []st
 		}(cache.upstreams)
 
 		for _, us := range cache.upstreams {
-			_, ok := upstreamUpdateLocks[us.Name]
-			if !ok {
-				upstreamUpdateLocks[us.Name] = &sync.Mutex{}
+			if _, ok := upstreamUpdateChannels[us.Name]; !ok {
+				upstreamUpdateChannels[us.Name] = make(chan secretwatcher.SecretMap, 20)
+				go updateUpstream(upstreamUpdateChannels[us.Name], us, resolver, autoDiscoverSwagger, swaggerUrisToTry, store, errs)
 			}
-			go updateUpstream(upstreamUpdateLocks, us, cache.secrets, resolver, autoDiscoverSwagger, swaggerUrisToTry, store, errs)
+			select {
+			case upstreamUpdateChannels[us.Name] <- cache.secrets:
+			default:
+				log.Printf("Upstream  %s cannot process new secrets", us.Name)
+
+			}
 		}
 	}
 
-	tick := time.Tick(opts.ConfigWatcherOptions.SyncFrequency)
-
+	ticker := time.NewTicker(opts.ConfigWatcherOptions.SyncFrequency)
+	defer ticker.Stop()
 	for {
 		select {
 		case cache.secrets = <-secretWatcher.Secrets():
 			update()
 		case cache.upstreams = <-upstreams:
 			update()
-		case <-tick:
+		case <-ticker.C:
 			update()
 		case err := <-secretWatcher.Error():
 			errs <- err
@@ -102,23 +106,40 @@ func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []st
 	}
 }
 
-func updateUpstream(upstreamUpdateLocks map[string]*sync.Mutex,
+func updateUpstream(secretChan <-chan secretwatcher.SecretMap,
 	us *v1.Upstream,
-	secrets secretwatcher.SecretMap,
 	resolver *resolver.Resolver,
 	autoDiscoverSwagger bool,
 	swaggerUrisToTry []string,
 	store storage.Interface, errs chan error) {
-	upstreamUpdateLocks[us.Name].Lock()
 	log.Printf("starting goroutine for %v", us.Name)
-	if autoDiscoverSwagger {
-		swagger.DiscoverSwaggerUpstream(resolver, swaggerUrisToTry, us)
+	defer log.Printf("exiting goroutine for %v", us.Name)
+
+	for secrets := range secretChan {
+		// drain the channel and only process the last secret.
+	loop:
+		for {
+			var ok bool
+			select {
+			case secrets, ok = <-secretChan:
+				if ok {
+					continue
+				} else {
+					return
+				}
+			default:
+				break loop
+			}
+		}
+		if autoDiscoverSwagger {
+			swagger.DiscoverSwaggerUpstream(resolver, swaggerUrisToTry, us)
+		}
+		if err := updater.UpdateFunctionalUpstream(store, us, secrets); err != nil {
+			errs <- err
+		}
+		// wait 10s to ensure we are not over eager
+		time.Sleep(10 * time.Second)
 	}
-	if err := updater.UpdateFunctionalUpstream(store, us, secrets); err != nil {
-		errs <- err
-	}
-	log.Printf("exiting goroutine for %v", us.Name)
-	upstreamUpdateLocks[us.Name].Unlock()
 }
 
 func createStorageClient(opts bootstrap.Options) (storage.Interface, error) {
