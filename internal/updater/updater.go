@@ -66,7 +66,10 @@ func UpdateFunctionalUpstream(gloo storage.Interface, us *v1.Upstream, secrets s
 		if err != nil {
 			return errors.Wrap(err, "updating swagger functions")
 		}
+	default:
+		return errors.Errorf("unknown function type")
 	}
+
 	if err := updateUpstreamWithFuncs(gloo, us, funcs); err != nil {
 		return errors.Wrap(err, "updating upstream object with new funcs")
 	}
