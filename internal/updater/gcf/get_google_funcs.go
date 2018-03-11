@@ -25,9 +25,11 @@ const (
 	serviceAccountJsonKeyFile = "json_key_file"
 
 	statusAccepted = "ACCEPTED"
+	statusReady    = "READY"
 )
 
 func GetFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function, error) {
+
 	secretRef, err := GetSecretRef(us)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting secret ref")
@@ -68,7 +70,7 @@ func GetFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function,
 	if err := listCall.Pages(ctx, func(response *cloudfunctions.ListFunctionsResponse) error {
 		for _, result := range response.Functions {
 			// TODO: document that we currently only support https trigger funcs
-			if result.Status == statusAccepted && result.HttpsTrigger != nil {
+			if result.Status == statusReady && result.HttpsTrigger != nil {
 				results = append(results, result)
 			}
 		}
