@@ -16,6 +16,11 @@ containers: [
         image: 'envoyproxy/envoy-build-ubuntu@sha256:6153d9787cb894c2dd6b17a1539eaeba88ae15d79f66f63eec0f4713436d74f0',
         ttyEnabled: true,
         command: 'cat'),
+    containerTemplate(
+        name: 'helm',
+        image: 'devth/helm:2.8.1',
+        ttyEnabled: true,
+        command: 'cat'),
 ],
 envVars: [
     envVar(key: 'THETOOL_GID', value: '10000'),
@@ -57,7 +62,6 @@ volumes: [
                     ./thetool add -r https://github.com/solo-io/gloo-plugins.git -c $GLOO_PLUGINS_HASH
                     ./thetool build envoy -d -v --publish=false
                     ./thetool build gloo -d -v --publish=false
-                    id
                 '''
             }
         }
@@ -96,10 +100,35 @@ volumes: [
         
         stage('Test Envoy and Gloo') {
             echo 'Testing Envoy and Gloo'
-            sh '''
-                ls -l thetool-work/envoy/envoy-out
-                ls -l thetool-work/gloo-out
-            '''
+            container('golang') {
+                sh '''
+                    export GLOO_BINARY=`pwd`/thetool-work/gloo-out/gloo
+                    export ENVOY_BINARY=`pwd`/thetool-work/envoy/envoy-out/envoy
+                    go get -u github.com/golang/dep/cmd/dep
+                    cd $GOPATH/src
+                    mkdir -p github.com/solo-io
+                    cd github.com/solo-io
+                    git clone https://github.com/solo-io/gloo-testing
+                    cd gloo-testing
+                    dep ensure -vendor-only
+                    cd local_e2e
+                    go test
+                '''
+            }
+        }
+        
+        stage('Generate install') {
+            echo 'Generate files for install'
+            container('helm') {
+                sh '''
+                    cd thetool-work
+                    ls -l
+                    ./thetool deploy k8s --generate-install -t v0.1.6-$BUILD_NUMBER
+                    cat install.yaml
+                    ./thetool deploy k8s -d -t v0.1.6-$BUILD_NUMBER
+                    cat gloo-chart.yaml
+                '''
+            }
         }
     }
 }
