@@ -6,9 +6,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     gloo: function-discovery
-    chart: {{ template "gloo-chart.chart" .}}
     release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
 spec:
   ports:
   - port: 8080
