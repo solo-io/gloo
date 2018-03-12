@@ -72,6 +72,15 @@ var _ = Describe("Transformation", func() {
 				Regex:    "application/([_[:alnum:]]+)",
 				Subgroup: 1,
 			}))
+			Expect(trans.RequestTemplate.Body).To(Equal(&InjaTemplate{
+				Text: `{"id":"{{id}}", "type":"{{type}}"}`,
+			}))
+			Expect(trans.RequestTemplate.Headers).To(Equal(map[string]*InjaTemplate{
+				":path":          {Text: "/{{id}}/why/{{id}}"},
+				"x-user-id":      {Text: "{{id}}"},
+				"x-content-type": {Text: "{{type}}"},
+			}))
+			Expect(out.Metadata.FilterMetadata["io.solo.transformation"].Fields["request-transformation"].Kind).To(Equal(&types.Value_StringValue{StringValue: hash}))
 			Expect(out.Metadata.FilterMetadata["io.solo.transformation"].Fields["request-transformation"].Kind).To(Equal(&types.Value_StringValue{StringValue: hash}))
 		}
 	})
@@ -142,10 +151,10 @@ func NewFunctionalUpstream(name, funcName string) *v1.Upstream {
 		{
 			Name: funcName,
 			Spec: EncodeFunctionSpec(Template{
-				Path: "/{id}/why/{id}",
+				Path: "/{{id}}/why/{{id}}",
 				Header: map[string]string{
-					"x-user-id":      "{id}",
-					"x-content-type": "{type}",
+					"x-user-id":      "{{id}}",
+					"x-content-type": "{{type}}",
 				},
 				Body: `{"id":"{{id}}", "type":"{{type}}"}`,
 			}),

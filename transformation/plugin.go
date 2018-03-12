@@ -266,7 +266,7 @@ func getTransformationForFunction(upstreams []*v1.Upstream, dest *v1.Destination
 	var body string
 	if outputTemplates.Body != "" {
 		needsTransformation = true
-		outputTemplates.Body = body
+		body = outputTemplates.Body
 	}
 
 	// this function doesn't request any kind of transformation
