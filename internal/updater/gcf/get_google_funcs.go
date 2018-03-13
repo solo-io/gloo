@@ -24,8 +24,10 @@ const (
 	// expected map identifiers for secrets
 	serviceAccountJsonKeyFile = "json_key_file"
 
-	statusAccepted = "ACCEPTED"
-	statusReady    = "READY"
+	// v1beta2: https://cloud.google.com/functions/docs/reference/rest/v1beta2/projects.locations.functions
+	statusReady = "READY"
+	// v1 status: https://cloud.google.com/functions/docs/reference/rest/v1/projects.locations.functions
+	statusActive = "ACTIVE"
 )
 
 func GetFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function, error) {
@@ -70,7 +72,7 @@ func GetFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function,
 	if err := listCall.Pages(ctx, func(response *cloudfunctions.ListFunctionsResponse) error {
 		for _, result := range response.Functions {
 			// TODO: document that we currently only support https trigger funcs
-			if result.Status == statusReady && result.HttpsTrigger != nil {
+			if ((result.Status == statusReady) || (result.Status == statusActive)) && result.HttpsTrigger != nil {
 				results = append(results, result)
 			}
 		}
