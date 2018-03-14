@@ -1,6 +1,7 @@
 package transformation
 
 import (
+	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
@@ -15,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-plugins/common/annotations"
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
@@ -28,6 +30,8 @@ const (
 	metadataRequestKey  = "request-transformation"
 	metadataResponseKey = "response-transformation"
 	pluginStage         = plugin.PreOutAuth
+
+	ServiceTypeFunctionalTransformation = "TODO"
 )
 
 func init() {
@@ -42,7 +46,25 @@ func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
 	return nil
 }
 
+func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
+	if in.Metadata.Annotations[annotations.ServiceType] != ServiceTypeFunctionalTransformation {
+		return nil
+	}
+
+	if out.Metadata == nil {
+		out.Metadata = &envoycore.Metadata{}
+	}
+	common.InitFilterMetadata(filterName, out.Metadata)
+	out.Metadata.FilterMetadata[filterName] = &types.Struct{
+		Fields: make(map[string]*types.Value),
+	}
+
+	return nil
+}
+
+// TODO: only do transformation for swagger \ transformation routes; not any functional routes
 func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+
 	if err := p.processRequestTransformationsForRoute(pluginParams, in, out); err != nil {
 		return errors.Wrap(err, "failed to process request transformation")
 	}
@@ -209,7 +231,15 @@ func (p *Plugin) setTransformationsForRoute(upstreams []*v1.Upstream, in *v1.Rou
 }
 
 func (p *Plugin) setTransformationForFunction(upstreams []*v1.Upstream, dest *v1.Destination, extractors map[string]*Extraction, out *envoyroute.Route) error {
-	hash, transformation, err := getTransformationForFunction(upstreams, dest, extractors)
+
+	fnDestination, ok := dest.DestinationType.(*v1.Destination_Function)
+	if !ok {
+		log.Debugf("not a functional route: %v", dest)
+		// not a functional route, nothing to do
+		return nil
+	}
+
+	hash, transformation, err := getTransformationForFunction(upstreams, fnDestination, extractors)
 	if err != nil {
 		return errors.Wrap(err, "getting transformation for function")
 	}
@@ -226,18 +256,32 @@ func (p *Plugin) setTransformationForFunction(upstreams []*v1.Upstream, dest *v1
 		out.Metadata = &envoycore.Metadata{}
 	}
 	filterMetadata := common.InitFilterMetadataField(filterName, metadataRequestKey, out.Metadata)
-	filterMetadata.Kind = &types.Value_StringValue{StringValue: hash}
+	if filterMetadata.Kind == nil {
+		filterMetadata.Kind = &types.Value_StructValue{
+			StructValue: &types.Struct{
+				Fields: make(map[string]*types.Value),
+			},
+		}
+	}
+
+	fields := filterMetadata.Kind.(*types.Value_StructValue).StructValue.Fields
+	if fields[fnDestination.Function.UpstreamName] == nil {
+		var funcVal types.Value
+		funcVal.Kind = &types.Value_StructValue{
+			StructValue: &types.Struct{
+				Fields: make(map[string]*types.Value),
+			},
+		}
+		fields[fnDestination.Function.UpstreamName] = &funcVal
+	}
+
+	funcfileds := fields[fnDestination.Function.UpstreamName].Kind.(*types.Value_StructValue).StructValue.Fields
+	funcfileds[fnDestination.Function.FunctionName].Kind = &types.Value_StringValue{StringValue: hash}
 
 	return nil
 }
 
-func getTransformationForFunction(upstreams []*v1.Upstream, dest *v1.Destination, extractors map[string]*Extraction) (string, *Transformation, error) {
-	fnDestination, ok := dest.DestinationType.(*v1.Destination_Function)
-	if !ok {
-		log.Debugf("not a functional route: %v", dest)
-		// not a functional route, nothing to do
-		return "", nil, nil
-	}
+func getTransformationForFunction(upstreams []*v1.Upstream, fnDestination *v1.Destination_Function, extractors map[string]*Extraction) (string, *Transformation, error) {
 	fn, err := findFunction(upstreams, fnDestination.Function.UpstreamName, fnDestination.Function.FunctionName)
 	if err != nil {
 		return "", nil, errors.Wrap(err, "finding function")
