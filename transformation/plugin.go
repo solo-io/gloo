@@ -401,6 +401,11 @@ func (p *Plugin) setResponseTransformationForRoute(template Template, extractors
 	return nil
 }
 func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
+
+	if len(p.CachedTransformations) == 0 {
+		return nil
+	}
+
 	filterConfig, err := protoutil.MarshalStruct(&Transformations{
 		Transformations: p.CachedTransformations,
 	})

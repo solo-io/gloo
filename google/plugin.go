@@ -19,7 +19,9 @@ func init() {
 	plugin.Register(&Plugin{}, nil)
 }
 
-type Plugin struct{}
+type Plugin struct {
+	isNeeded bool
+}
 
 const (
 	// define Upstream type name
@@ -42,7 +44,12 @@ func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
 }
 
 func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
-	return []plugin.StagedFilter{{HttpFilter: &envoyhttp.HttpFilter{Name: filterName}, Stage: pluginStage}}
+	defer func() { p.isNeeded = false }()
+
+	if p.isNeeded {
+		return []plugin.StagedFilter{{HttpFilter: &envoyhttp.HttpFilter{Name: filterName}, Stage: pluginStage}}
+	}
+	return nil
 }
 
 func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
@@ -53,6 +60,7 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	if in.Type != UpstreamTypeGoogle {
 		return nil
 	}
+	p.isNeeded = true
 
 	out.Type = envoyapi.Cluster_LOGICAL_DNS
 	// need to make sure we use ipv4 only dns
