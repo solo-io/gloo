@@ -46,8 +46,12 @@ func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
 	return nil
 }
 
+func isOurs(in *v1.Upstream) bool {
+	return in.Metadata.Annotations[annotations.ServiceType] == ServiceTypeFunctionalTransformation
+}
+
 func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
-	if in.Metadata.Annotations[annotations.ServiceType] != ServiceTypeFunctionalTransformation {
+	if !isOurs(in) {
 		return nil
 	}
 
@@ -286,6 +290,10 @@ func getTransformationForFunction(upstreams []*v1.Upstream, fnDestination *v1.De
 	if err != nil {
 		return "", nil, errors.Wrap(err, "finding function")
 	}
+	if fn == nil {
+		return "", nil, nil
+	}
+
 	outputTemplates, err := DecodeFunctionSpec(fn.Spec)
 	if err != nil {
 		return "", nil, errors.Wrap(err, "decoding function spec")
@@ -342,6 +350,9 @@ func getTransformationForFunction(upstreams []*v1.Upstream, fnDestination *v1.De
 func findFunction(upstreams []*v1.Upstream, upstreamName, functionName string) (*v1.Function, error) {
 	for _, us := range upstreams {
 		if us.Name == upstreamName {
+			if !isOurs(us) {
+				return nil, nil
+			}
 			for _, fn := range us.Functions {
 				if fn.Name == functionName {
 					return fn, nil
