@@ -266,22 +266,35 @@ volumes: [
                     cat install.yaml
                     ./thetool deploy k8s -d -t $TAG
                     cat gloo-chart.yaml
-
-                    git clone https://github.com/solo-io/gloo-install
+                '''
+            }
+            
+            container('golang') {
+                sh '''
+                    if [ -n "$GLOO_VERSION" ]; then
+                      export TAG=$GLOO_VERSION-$BUILD_NUMBER
+                    else
+                      export TAG=v0.1.6-$BUILD_NUMBER
+                    fi
+                    cd thetool-work
+                    cp /etc/github/id_rsa $PWD 
+                    chmod 400 $PWD/id_rsa 
+                    export GIT_SSH_COMMAND="ssh -i $PWD/id_rsa -o 'StrictHostKeyChecking no'" 
+                    git clone git@github.com:solo-io/gloo-install.git
                     cd gloo-install
+                    git checkout -b $TAG
                     cp ../install.yaml kube/install.yaml
                     cp ../gloo-chart.yaml helm/gloo/values.yaml
                     git diff | cat
                     git add kube/install.yaml
                     git add helm/gloo/values.yaml
-                    git config --global user.email "solobot@soloio.com"
+                    git config --global user.email "bot@soloio.com"
                     git config --global user.name "Solo Buildbot"
                     git commit -m "Jenkins: updated for $TAG"
-                    git tag $TAG
-                   
-                    if [ "$UPDATE_INSTALL" == "true" ]; then
-                      git push origin $TAG
+                    if [ "$UPDATE_INSTALL" = "true" ]; then
+                      git push -u origin $TAG:$TAG
                     fi
+                    rm ../id_rsa
                 ''' 
             }
         }
