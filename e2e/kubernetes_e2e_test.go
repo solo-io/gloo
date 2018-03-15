@@ -73,7 +73,7 @@ func curlEventuallyShouldRespond(opts curlOpts, substr string, timeout ...time.D
 		default:
 			break
 		case <-tick:
-			log.GreyPrintf("curl output: %v", res)
+			log.GreyPrintf("running: %v\nwant %v\nhave: %s", opts, substr, res)
 		}
 		if strings.Contains(res, substr) {
 			log.GreyPrintf("success: %v", res)
@@ -95,6 +95,7 @@ func curlEnvoy(opts curlOpts) (string, error) {
 		args = append(args, "--cacert", opts.caFile)
 	}
 	if opts.body != "" {
+		args = append(args, "-H", "Content-Type: application/json")
 		args = append(args, "-d", opts.body)
 	}
 	for h, v := range opts.headers {

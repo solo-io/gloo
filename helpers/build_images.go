@@ -13,7 +13,6 @@ func BuildPushContainers(push bool) error {
 	if os.Getenv("SKIP_BUILD") == "1" {
 		return nil
 	}
-	os.Setenv("IMAGE_TAG", "testing")
 	for _, path := range []string{
 		filepath.Join(SoloDirectory(), "gloo"),
 		filepath.Join(SoloDirectory(), "gloo-ingress-controller"),
@@ -24,6 +23,7 @@ func BuildPushContainers(push bool) error {
 		filepath.Join(E2eDirectory(), "containers", "event-emitter"),
 		filepath.Join(E2eDirectory(), "containers", "upstream-for-events"),
 	} {
+		os.Setenv("IMAGE_TAG", "testing")
 		dockerUser := os.Getenv("DOCKER_USER")
 		if dockerUser == "" {
 			dockerUser = "soloio"
