@@ -6,7 +6,12 @@ import (
 	"log"
 	"net"
 
-	bookstore "github.com/solo-io/gloo-plugins/grpc/grpc-test-service/bookstore/protos"
+	"github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	"github.com/solo-io/gloo-plugins/grpc/grpc-test-service/bookstore/protos"
+	"github.com/solo-io/gloo-plugins/grpc/grpc-test-service/server"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -23,8 +28,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	grpcServer := grpc.NewServer()
-	bookstore.RegisterBookstoreServer(grpcServer, NewServer())
+	grpcServer := grpc.NewServer(grpc.StreamInterceptor(
+		grpc_middleware.ChainStreamServer(
+			grpc_ctxtags.StreamServerInterceptor(),
+			grpc_zap.StreamServerInterceptor(zap.NewNop()),
+			func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+				log.Printf("%v", info.FullMethod)
+				return handler(srv, ss)
+			},
+		)))
+	bookstore.RegisterBookstoreServer(grpcServer, server.NewServer())
 	log.Printf("listening on %v", *port)
 	grpcServer.Serve(lis)
 }
