@@ -86,7 +86,10 @@ func (p *Plugin) processRequestTransformationsForRoute(pluginParams *plugin.Rout
 		if err != nil {
 			return err
 		}
-		extractors = createRequestExtractors(extension.Parameters)
+		extractors, err = createRequestExtractors(extension.Parameters)
+		if err != nil {
+			return err
+		}
 	}
 
 	// calculate the templates for all these transformations
@@ -97,10 +100,10 @@ func (p *Plugin) processRequestTransformationsForRoute(pluginParams *plugin.Rout
 	return nil
 }
 
-func createRequestExtractors(params *Parameters) map[string]*Extraction {
+func createRequestExtractors(params *Parameters) (map[string]*Extraction, error) {
 	extractors := make(map[string]*Extraction)
 	if params == nil {
-		return extractors
+		return extractors, nil
 	}
 
 	// special http2 headers, get the whole thing for free
@@ -116,12 +119,18 @@ func createRequestExtractors(params *Parameters) map[string]*Extraction {
 	}
 	// headers we support submatching on
 	// custom as well as the path and authority/host header
-	addHeaderExtractorFromParam(":path", params.Path, extractors)
-	addHeaderExtractorFromParam(":authority", params.Authority, extractors)
-	for headerName, headerValue := range params.Headers {
-		addHeaderExtractorFromParam(headerName, headerValue, extractors)
+	if err := addHeaderExtractorFromParam(":path", params.Path, extractors); err != nil {
+		return nil, errors.Wrap(err, "error processing parameter")
 	}
-	return extractors
+	if err := addHeaderExtractorFromParam(":authority", params.Authority, extractors); err != nil {
+		return nil, errors.Wrap(err, "error processing parameter")
+	}
+	for headerName, headerValue := range params.Headers {
+		if err := addHeaderExtractorFromParam(headerName, headerValue, extractors); err != nil {
+			return nil, errors.Wrap(err, "error processing parameter")
+		}
+	}
+	return extractors, nil
 }
 
 // TODO: clean up the response transformation
@@ -156,9 +165,9 @@ func (p *Plugin) processResponseTransformationsForRoute(pluginParams *plugin.Rou
 	return nil
 }
 
-func addHeaderExtractorFromParam(header, parameter string, extractors map[string]*Extraction) {
+func addHeaderExtractorFromParam(header, parameter string, extractors map[string]*Extraction) error {
 	if parameter == "" {
-		return
+		return nil
 	}
 	// remember that the order of the param names correlates with their order in the regex
 	paramNames, regexMatcher := getNamesAndRegexFromParamString(parameter)
@@ -175,6 +184,15 @@ func addHeaderExtractorFromParam(header, parameter string, extractors map[string
 		extractors[strings.TrimPrefix(header, ":")] = extract
 	}
 
+	// count the number of open braces,
+	// if they are not equal to the # of counted params,
+	// the user gave us bad variable names or unterminated braces and we should error
+	expectedParameterCount := strings.Count(parameter, "{")
+	if len(paramNames) != expectedParameterCount {
+		return errors.Errorf("%v is not valid syntax. {} braces must be closed and variable names must satisfy regex "+
+			`([\.\-_[:alnum:]]+)`, parameter)
+	}
+
 	// otherwise it's regex, and we need to create an extraction for each variable name they defined
 	for i, name := range paramNames {
 		extract := &Extraction{
@@ -184,12 +202,13 @@ func addHeaderExtractorFromParam(header, parameter string, extractors map[string
 		}
 		extractors[name] = extract
 	}
+	return nil
 }
 
 func getNamesAndRegexFromParamString(paramString string) ([]string, string) {
 	// escape regex
 	// TODO: make sure all envoy regex is being escaped here
-	rxp := regexp.MustCompile("\\{([[:word:]]+)\\}")
+	rxp := regexp.MustCompile(`\{([\.\-_[:word:]]+)\}`)
 	parameterNames := rxp.FindAllString(paramString, -1)
 	for i, name := range parameterNames {
 		parameterNames[i] = strings.TrimSuffix(strings.TrimPrefix(name, "{"), "}")
@@ -204,7 +223,7 @@ func buildRegexString(rxp *regexp.Regexp, paramString string) string {
 	for _, startStop := range rxp.FindAllStringIndex(paramString, -1) {
 		start := startStop[0]
 		end := startStop[1]
-		subStr := regexp.QuoteMeta(paramString[prevEnd:start]) + "([_[:alnum:]]+)"
+		subStr := regexp.QuoteMeta(paramString[prevEnd:start]) + `([\.\-_[:alnum:]]+)`
 		regexString += subStr
 		prevEnd = end
 	}
