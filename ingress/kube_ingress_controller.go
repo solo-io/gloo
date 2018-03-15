@@ -17,10 +17,10 @@ import (
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/gloo-k8s-service-discovery/names"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/kubecontroller"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
@@ -406,7 +406,7 @@ func (c *IngressController) addRoutesAndUpstreams(namespace string, rule v1beta1
 
 func (c *IngressController) newUpstreamFromBackend(namespace string, backend v1beta1.IngressBackend) *v1.Upstream {
 	return &v1.Upstream{
-		Name: names.UpstreamName(namespace, backend.ServiceName, backend.ServicePort),
+		Name: UpstreamName(namespace, backend.ServiceName, backend.ServicePort),
 		Type: kubeplugin.UpstreamTypeKube,
 		Spec: kubeplugin.EncodeUpstreamSpec(kubeplugin.UpstreamSpec{
 			ServiceName:      backend.ServiceName,
@@ -424,4 +424,8 @@ func (c *IngressController) newUpstreamFromBackend(namespace string, backend v1b
 
 func isOurIngress(useAsGlobalIngress bool, ingress *v1beta1.Ingress) bool {
 	return useAsGlobalIngress || ingress.Annotations["kubernetes.io/ingress.class"] == GlooIngressClass
+}
+
+func UpstreamName(serviceNamespace, serviceName string, servicePort intstr.IntOrString) string {
+	return fmt.Sprintf("%s-%s-%v", serviceNamespace, serviceName, servicePort.String())
 }

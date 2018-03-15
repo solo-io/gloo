@@ -14,7 +14,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-k8s-service-discovery/names"
 	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo-storage/crd"
@@ -24,26 +23,22 @@ import (
 
 var _ = Describe("KubeIngressController", func() {
 	if os.Getenv("RUN_KUBE_TESTS") != "1" {
-		//Skip("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.", 1)
-		log.Printf("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
+		log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
 		return
 	}
 	var (
 		masterUrl, kubeconfigPath string
-		mkb                       *MinikubeInstance
 		namespace                 string
 	)
 	BeforeEach(func() {
 		namespace = RandString(8)
-		mkb = NewMinikube(false, namespace)
-		err := mkb.Setup()
+		err := SetupKubeForTest(namespace)
 		Must(err)
 		kubeconfigPath = filepath.Join(os.Getenv("HOME"), ".kube", "config")
-		masterUrl, err = mkb.Addr()
-		Must(err)
+		masterUrl = ""
 	})
 	AfterEach(func() {
-		mkb.Teardown()
+		TeardownKube(namespace)
 	})
 	Describe("controller", func() {
 		var (
@@ -168,7 +163,7 @@ var _ = Describe("KubeIngressController", func() {
 					SingleDestination: &v1.Destination{
 						DestinationType: &v1.Destination_Upstream{
 							Upstream: &v1.UpstreamDestination{
-								Name: names.UpstreamName(createdIngress.Namespace, createdIngress.Spec.Backend.ServiceName, createdIngress.Spec.Backend.ServicePort),
+								Name: UpstreamName(createdIngress.Namespace, createdIngress.Spec.Backend.ServiceName, createdIngress.Spec.Backend.ServicePort),
 							},
 						},
 					},
@@ -301,7 +296,7 @@ var _ = Describe("KubeIngressController", func() {
 				expectedUpstreams := make(map[string]*v1.Upstream)
 				for _, rule := range createdIngress.Spec.Rules {
 					for _, path := range rule.HTTP.Paths {
-						upstreamName := names.UpstreamName(createdIngress.Namespace, path.Backend.ServiceName, path.Backend.ServicePort)
+						upstreamName := UpstreamName(createdIngress.Namespace, path.Backend.ServiceName, path.Backend.ServicePort)
 						expectedUpstreams[upstreamName] = &v1.Upstream{
 							Name: upstreamName,
 							Type: kubeplugin.UpstreamTypeKube,
@@ -348,7 +343,7 @@ var _ = Describe("KubeIngressController", func() {
 							SingleDestination: &v1.Destination{
 								DestinationType: &v1.Destination_Upstream{
 									Upstream: &v1.UpstreamDestination{
-										Name: names.UpstreamName(createdIngress.Namespace, path.Backend.ServiceName, path.Backend.ServicePort),
+										Name: UpstreamName(createdIngress.Namespace, path.Backend.ServiceName, path.Backend.ServicePort),
 									},
 								},
 							},
