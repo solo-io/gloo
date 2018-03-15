@@ -18,8 +18,7 @@ import (
 )
 
 var _ = Describe("InitPlugin", func() {
-
-	FIt("should do correct weights for functions", func() {
+	It("should do correct weights for functions", func() {
 		funcs := []plugin.FunctionPlugin{&aws.Plugin{}}
 		initPlugin := newInitializerPlugin(funcs)
 

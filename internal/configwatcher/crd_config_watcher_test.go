@@ -17,26 +17,22 @@ import (
 
 var _ = Describe("KubeConfigWatcher", func() {
 	if os.Getenv("RUN_KUBE_TESTS") != "1" {
-		//Skip("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.", 1)
-		log.Printf("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
+		log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
 		return
 	}
 	var (
 		masterUrl, kubeconfigPath string
-		mkb                       *MinikubeInstance
 		namespace                 string
 	)
-	BeforeSuite(func() {
+	BeforeEach(func() {
 		namespace = RandString(8)
-		mkb = NewMinikube(false, namespace)
-		err := mkb.Setup()
+		err := SetupKubeForTest(namespace)
 		Must(err)
 		kubeconfigPath = filepath.Join(os.Getenv("HOME"), ".kube", "config")
-		masterUrl, err = mkb.Addr()
-		Must(err)
+		masterUrl = ""
 	})
-	AfterSuite(func() {
-		mkb.Teardown()
+	AfterEach(func() {
+		TeardownKube(namespace)
 	})
 	Describe("controller", func() {
 		It("watches kube crds", func() {
