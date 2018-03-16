@@ -3,9 +3,9 @@
 - [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to interact with kubernetes.
 - [`glooctl`](https://github.com/solo-io/glooctl) to interact with gloo.
 - [`aws`](https://aws.amazon.com/cli/) (the aws cli) to create resources on AWS.
-- [`jq`](https://stedolan.github.io/jq/) to parse the aws output to retrieve the role ARN (required for creating our lambda).
 
 
+### Steps
 
 1. Create a lambda function:
 
@@ -13,7 +13,7 @@
         wget https://github.com/solo-io/gloo/raw/master/docs/getting_started/aws/helloWorld.zip
 
         # get the ARN for the "lambda_basic_execution" role
-        ROLE_ARN=$(aws iam list-roles | jq -r '.Roles[] | select(.RoleName == "lambda_basic_execution") | .Arn')
+        ROLE_ARN=$(aws iam get-role --role-name lambda_basic_execution --query Role.Arn --output text)
 
         # create the function    
         aws lambda create-function \
