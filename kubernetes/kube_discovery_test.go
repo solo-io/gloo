@@ -12,8 +12,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"fmt"
-
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	. "github.com/solo-io/gloo-plugins/kubernetes"
 	. "github.com/solo-io/gloo-testing/helpers"
@@ -173,58 +171,59 @@ var _ = Describe("KubeSecretWatcher", func() {
 				return nil
 			}, time.Second*10).Should(HaveLen(len(upstreams)))
 
+			var endpoints endpointdiscovery.EndpointGroups
+
+		L:
+			// drain the channel
+			for {
+				select {
+				case <-time.After(time.Second * 3):
+					Expect(endpoints).NotTo(BeNil())
+					break L
+				case endpoints = <-discovery.Endpoints():
+				}
+			}
+
 			for _, us := range upstreams {
 				decodedSpec, err := DecodeUpstreamSpec(us.Spec)
 				Expect(err).NotTo(HaveOccurred())
 				serviceName := decodedSpec.ServiceName
 
-				select {
-				case <-time.After(time.Second * 5):
-					Expect(fmt.Errorf("expected to have received resource event before 5s")).NotTo(HaveOccurred())
-				case endpoints := <-discovery.Endpoints():
-					Expect(len(endpoints)).To(Equal(len(upstreams)))
-					Expect(endpoints).To(HaveKey(us.Name))
-					serviceEndpoints := endpoints[us.Name]
-					Expect(serviceEndpoints).NotTo(BeNil())
-					careAboutLabels := len(decodedSpec.Labels) > 0
-					log.Printf("%v got eps %v", decodedSpec.Labels, endpoints)
-					if careAboutLabels {
-						Expect(serviceEndpoints).To(HaveLen(1))
-					} else {
-						Expect(serviceEndpoints).To(HaveLen(2))
-					}
+				Expect(len(endpoints)).To(Equal(len(upstreams)))
+				Expect(endpoints).To(HaveKey(us.Name))
+				serviceEndpoints := endpoints[us.Name]
+				Expect(serviceEndpoints).NotTo(BeNil())
+				careAboutLabels := len(decodedSpec.Labels) > 0
+				log.Printf("%v got eps %v", decodedSpec.Labels, endpoints)
+				if careAboutLabels {
+					Expect(serviceEndpoints).To(HaveLen(1))
+				} else {
+					Expect(serviceEndpoints).To(HaveLen(2))
+				}
 
-					if decodedSpec.ServicePort != 0 {
-						Expect(serviceEndpoints[0].Port).To(Equal(int32(8081)))
-					} else {
-						Expect(serviceEndpoints[0].Port).To(Equal(int32(8080)))
-					}
+				Expect(serviceEndpoints[0].Port).To(Equal(int32(8080)))
 
-					if careAboutLabels {
-						podWithIp, err := kubeClient.CoreV1().Pods(namespace).Get(podName(serviceName, true), metav1.GetOptions{})
-						Expect(err).NotTo(HaveOccurred())
-						log.Printf("pod %v", podWithIp)
-						Expect(serviceEndpoints[0].Address).To(Equal(podWithIp.Status.PodIP))
-					} else {
-						podNoLabels, err := kubeClient.CoreV1().Pods(namespace).Get(podName(serviceName, false), metav1.GetOptions{})
-						Expect(err).NotTo(HaveOccurred())
-						podLabels, err := kubeClient.CoreV1().Pods(namespace).Get(podName(serviceName, true), metav1.GetOptions{})
-						Expect(err).NotTo(HaveOccurred())
-						var endpointFoundForPod bool
-					loop:
-						for _, ep := range serviceEndpoints {
-							for _, pod := range []*kubev1.Pod{podNoLabels, podLabels} {
-								if pod.Status.PodIP == ep.Address {
-									endpointFoundForPod = true
-									break loop
-								}
+				if careAboutLabels {
+					podWithIp, err := kubeClient.CoreV1().Pods(namespace).Get(podName(serviceName, true), metav1.GetOptions{})
+					Expect(err).NotTo(HaveOccurred())
+					log.Printf("pod %v", podWithIp)
+					Expect(serviceEndpoints[0].Address).To(Equal(podWithIp.Status.PodIP))
+				} else {
+					podNoLabels, err := kubeClient.CoreV1().Pods(namespace).Get(podName(serviceName, false), metav1.GetOptions{})
+					Expect(err).NotTo(HaveOccurred())
+					podLabels, err := kubeClient.CoreV1().Pods(namespace).Get(podName(serviceName, true), metav1.GetOptions{})
+					Expect(err).NotTo(HaveOccurred())
+					var endpointFoundForPod bool
+				loop:
+					for _, ep := range serviceEndpoints {
+						for _, pod := range []*kubev1.Pod{podNoLabels, podLabels} {
+							if pod.Status.PodIP == ep.Address {
+								endpointFoundForPod = true
+								break loop
 							}
 						}
-						Expect(endpointFoundForPod).To(BeTrue())
 					}
-
-				case err := <-discovery.Error():
-					Expect(err).NotTo(HaveOccurred())
+					Expect(endpointFoundForPod).To(BeTrue())
 				}
 			}
 		})

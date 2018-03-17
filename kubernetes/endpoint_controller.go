@@ -2,11 +2,10 @@ package kubernetes
 
 import (
 	"fmt"
-	"log"
+	"sort"
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/kubecontroller"
 	kubev1 "k8s.io/api/core/v1"
 	kubev1resources "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -19,6 +18,8 @@ import (
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
+	"github.com/solo-io/gloo/pkg/log"
+	"github.com/solo-io/kubecontroller"
 )
 
 type endpointController struct {
@@ -179,6 +180,13 @@ func (c *endpointController) getUpdatedEndpoints() (endpointdiscovery.EndpointGr
 				}
 			}
 		}
+	}
+	// sort for idempotency
+	for upstreamName, epGroup := range endpointGroups {
+		sort.SliceStable(epGroup, func(i, j int) bool {
+			return epGroup[i].Address < epGroup[j].Address
+		})
+		endpointGroups[upstreamName] = epGroup
 	}
 	newHash, err := hashstructure.Hash(endpointGroups, nil)
 	if err != nil {
