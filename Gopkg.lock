@@ -391,7 +391,7 @@
     "kubernetes",
     "transformation"
   ]
-  revision = "ba524a2ed8cf1aee7a79d19e73b7bdbe08f855ba"
+  revision = "ac1a8f3c7c221d8863897722b0876a5be6fea7bf"
 
 [[projects]]
   branch = "master"
@@ -406,13 +406,13 @@
     "file",
     "internal/crud"
   ]
-  revision = "51554ef9eb718d384758975f83181216fda2fb48"
+  revision = "c34bc7537fbb906c94bc79fea4fcd02d5cb05b2e"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "146104f2ae66a87360552f0c4476de6a4644feeb"
+  revision = "80f46e9b3ba2ebada05dec85fce64adc4a1d4ce6"
 
 [[projects]]
   branch = "master"
@@ -621,7 +621,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "91eb9a80bf633133eac2f47a852d6de05a42dc0a"
+  revision = "9c224d3e8f2f57b7e9616f3c0a427fecc440003b"
 
 [[projects]]
   branch = "master"
@@ -802,6 +802,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "97b7b56ba3856e7c769cafdd1b325ab5954e6e4770e25f2eeaccd3cd84b326e3"
+  inputs-digest = "be920c4b6035938cee2e4098e3296b52fc6e471939cc4ca106636379b6610469"
   solver-name = "gps-cdcl"
   solver-version = 1

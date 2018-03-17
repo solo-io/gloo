@@ -86,6 +86,10 @@
   name = "github.com/solo-io/kubecontroller"
 
 [[constraint]]
+  branch = "master"
+  name = "github.com/solo-io/gloo-testing"
+
+[[constraint]]
   name = "github.com/spf13/cobra"
   version = "0.0.1"
 
