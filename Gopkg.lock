@@ -266,22 +266,23 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "bade2f570897dcf97f0de44bd7c589a74a6e1c01"
+  revision = "5cbc9fecf09e9f9be9b94d816e37073e737e7093"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "2b1a83ebd1c6c802f6ade1c8266b699523494dc1"
+  revision = "15ee452ae0a4446bd7eb1bc1beb423dba0cda32f"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-plugins"
   packages = [
-    "google",
-    "kubernetes"
+    "common/annotations",
+    "kubernetes",
+    "transformation"
   ]
-  revision = "d8222c9273b10aa1b8ad0c974920d9c69a0b8254"
+  revision = "ba524a2ed8cf1aee7a79d19e73b7bdbe08f855ba"
 
 [[projects]]
   branch = "master"
@@ -302,7 +303,7 @@
     "file",
     "internal/crud"
   ]
-  revision = "89675313cee8502fc7b3d1f9af971a96f89dc18c"
+  revision = "51554ef9eb718d384758975f83181216fda2fb48"
 
 [[projects]]
   branch = "master"
@@ -320,7 +321,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "c7dcf104e3a7a1417abc0230cb0d5240d764159d"
+  revision = "374053ea96cb300f8671b8d3b07edeeb06e203b4"
 
 [[projects]]
   branch = "master"
@@ -338,7 +339,7 @@
     "publicsuffix",
     "trace"
   ]
-  revision = "d0aafc73d5cdc42264b0af071c261abac580695e"
+  revision = "e0c57d8f86c17f0724497efcb3bc617e82834821"
 
 [[projects]]
   branch = "master"
@@ -347,7 +348,7 @@
     "unix",
     "windows"
   ]
-  revision = "7dca6fe1f43775aa6d1334576870ff63f978f539"
+  revision = "2f1e207ee39ff70f3433e49c6eb52677a515e3b5"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -386,7 +387,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "df60624c1e9b9d2973e889c7a1cff73155da81c4"
+  revision = "f8c8703595236ae70fdf8789ecb656ea0bcdcf46"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -469,7 +470,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "fd252c3a3e1debf912ff5b80221a31a6a3c24493"
+  revision = "5584376ceeffeb13a2e98b5e9f0e9dab37de4bab"
 
 [[projects]]
   branch = "master"
@@ -481,7 +482,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "2bfdee521deb68bde13345da386c5d064f428585"
+  revision = "91eb9a80bf633133eac2f47a852d6de05a42dc0a"
 
 [[projects]]
   branch = "master"
@@ -529,7 +530,7 @@
     "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "e9ff529c66f83aeac6dff90f11ea0c5b7c4d626a"
+  revision = "762f667215d26148452351d3d7de61dd8bb6d260"
 
 [[projects]]
   name = "k8s.io/client-go"
@@ -662,6 +663,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1c4f1b6e24b6c4226af9c8592cf86bf8fe38cd5a5082b0941cd9b6cee1a0db9a"
+  inputs-digest = "89d3cd7dc8f283c50a56d31ba5a860f4c4626126f3926b3bd2f3c31dc2812804"
   solver-name = "gps-cdcl"
   solver-version = 1
