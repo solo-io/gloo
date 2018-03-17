@@ -2,9 +2,7 @@ package xds_test
 
 import (
 	"bytes"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -20,8 +18,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"fmt"
-
-	"io/ioutil"
 
 	bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
 	"github.com/ghodss/yaml"
@@ -67,19 +63,16 @@ admin:
 `
 
 var _ = Describe("Xds", func() {
-	cfgDir, err := ioutil.TempDir("", "")
-	Must(err)
-	err = ioutil.WriteFile(filepath.Join(cfgDir, "envoy.yaml"), []byte(staticEnvoyConfig), 0644)
-	Must(err)
 	envoyRunArgs := []string{
 		"docker", "run", "--rm",
 		"--name", "one-at-a-time",
-		"-v", cfgDir + ":/config",
 		"--network", "host",
 		"soloio/envoy:v0.1.2",
+		"/bin/sh", "-c",
+		"\"echo", "'" + staticEnvoyConfig + "'", ">", "/envoy.yaml", "&&",
 		"envoy",
-		"-c", "/config/envoy.yaml",
-		"--v2-config-only",
+		"-c", "/envoy.yaml",
+		"--v2-config-only\"",
 	}
 	var (
 		envoyPid int
@@ -130,7 +123,6 @@ var _ = Describe("Xds", func() {
 			log.Fatalf(err.Error())
 		}
 		exec.Command("docker", "kill", "one-at-a-time").Run()
-		os.RemoveAll(cfgDir)
 	})
 	Describe("RunXDS Server", func() {
 		It("successfully bootstraps the envoy proxy", func() {
