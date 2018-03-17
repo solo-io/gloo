@@ -240,13 +240,13 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "d762d2c5c5fca4d78b9bcbc6b154e623f223fdcc"
+  revision = "5cbc9fecf09e9f9be9b94d816e37073e737e7093"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "2b1a83ebd1c6c802f6ade1c8266b699523494dc1"
+  revision = "15ee452ae0a4446bd7eb1bc1beb423dba0cda32f"
 
 [[projects]]
   branch = "master"
