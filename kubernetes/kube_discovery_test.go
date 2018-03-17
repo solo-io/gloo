@@ -28,25 +28,21 @@ var podsWithLabels = make(map[string]bool)
 
 var _ = Describe("KubeSecretWatcher", func() {
 	if os.Getenv("RUN_KUBE_TESTS") != "1" {
-		//Skip("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.", 1)
-		log.Printf("This test launches minikube and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
+		log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
 		return
 	}
 	var (
 		masterUrl, kubeconfigPath string
-		mkb                       *MinikubeInstance
 		namespace                 string
 		upstreams                 []*v1.Upstream
 		specLabels                = map[string]string{"version": "v1"}
 	)
 	BeforeSuite(func() {
 		namespace = RandString(8)
-		mkb = NewMinikube(false, namespace)
-		err := mkb.Setup()
+		err := SetupKubeForTest(namespace)
 		Must(err)
 		kubeconfigPath = filepath.Join(os.Getenv("HOME"), ".kube", "config")
-		masterUrl, err = mkb.Addr()
-		Must(err)
+		masterUrl = ""
 		singlePortServiceSpec := EncodeUpstreamSpec(UpstreamSpec{
 			ServiceName:      "test-service",
 			ServiceNamespace: namespace,
@@ -81,7 +77,7 @@ var _ = Describe("KubeSecretWatcher", func() {
 		}
 	})
 	AfterSuite(func() {
-		mkb.Teardown()
+		TeardownKube(namespace)
 	})
 	Describe("controller", func() {
 		It("watches kube endpoints", func() {
