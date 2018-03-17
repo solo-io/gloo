@@ -379,7 +379,7 @@
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "2b1a83ebd1c6c802f6ade1c8266b699523494dc1"
+  revision = "15ee452ae0a4446bd7eb1bc1beb423dba0cda32f"
 
 [[projects]]
   branch = "master"
@@ -406,7 +406,7 @@
     "file",
     "internal/crud"
   ]
-  revision = "b09f7bc2c8d2493a20262097705e953ea99252ee"
+  revision = "51554ef9eb718d384758975f83181216fda2fb48"
 
 [[projects]]
   branch = "master"
