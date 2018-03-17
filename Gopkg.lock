@@ -22,8 +22,8 @@
 [[projects]]
   name = "github.com/asaskevich/govalidator"
   packages = ["."]
-  revision = "521b25f4b05fd26bec69d9dedeb8f9c9a83939a8"
-  version = "v8"
+  revision = "ccb8e960c48f04d6935e72476ae4a51028f9e22f"
+  version = "v9"
 
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
@@ -44,6 +44,7 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/sdkio",
     "internal/sdkrand",
     "internal/shareddefaults",
     "private/protocol",
@@ -57,8 +58,8 @@
     "service/lambda",
     "service/sts"
   ]
-  revision = "bafcd9ccc717e9bc5406acaea370577299223873"
-  version = "v1.13.11"
+  revision = "f0872da8a448f8cb10f4f0c95c2100e4f7356448"
+  version = "v1.13.16"
 
 [[projects]]
   name = "github.com/cenkalti/backoff"
@@ -344,7 +345,7 @@
     "jlexer",
     "jwriter"
   ]
-  revision = "4a8a4c12c4d1b0c0a7de630426ce6dcb07141b17"
+  revision = "f594efddfa171111dc4349cd6e78e8f61dc7936f"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -486,13 +487,13 @@
     "pkg/secretwatcher/vault",
     "pkg/signals"
   ]
-  revision = "6696e32d95dddcfc4935004ad9471c545bb8523e"
+  revision = "5cbc9fecf09e9f9be9b94d816e37073e737e7093"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "2b1a83ebd1c6c802f6ade1c8266b699523494dc1"
+  revision = "15ee452ae0a4446bd7eb1bc1beb423dba0cda32f"
 
 [[projects]]
   branch = "master"
@@ -504,7 +505,7 @@
     "kubernetes",
     "transformation"
   ]
-  revision = "d8222c9273b10aa1b8ad0c974920d9c69a0b8254"
+  revision = "ba524a2ed8cf1aee7a79d19e73b7bdbe08f855ba"
 
 [[projects]]
   branch = "master"
@@ -519,13 +520,13 @@
     "file",
     "internal/crud"
   ]
-  revision = "89675313cee8502fc7b3d1f9af971a96f89dc18c"
+  revision = "51554ef9eb718d384758975f83181216fda2fb48"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "dc0d579f830303fb506b54b1afadbe79439b99a0"
+  revision = "146104f2ae66a87360552f0c4476de6a4644feeb"
 
 [[projects]]
   branch = "master"
@@ -549,7 +550,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "c7dcf104e3a7a1417abc0230cb0d5240d764159d"
+  revision = "374053ea96cb300f8671b8d3b07edeeb06e203b4"
 
 [[projects]]
   branch = "master"
@@ -567,7 +568,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "d0aafc73d5cdc42264b0af071c261abac580695e"
+  revision = "e0c57d8f86c17f0724497efcb3bc617e82834821"
 
 [[projects]]
   branch = "master"
@@ -579,7 +580,7 @@
     "jws",
     "jwt"
   ]
-  revision = "2f32c3ac0fa4fb807a0fcefb0b6f2468a0d99bd0"
+  revision = "fdc9e635145ae97e6c2cb777c48305600cf515cb"
 
 [[projects]]
   branch = "master"
@@ -588,7 +589,7 @@
     "unix",
     "windows"
   ]
-  revision = "7dca6fe1f43775aa6d1334576870ff63f978f539"
+  revision = "2f1e207ee39ff70f3433e49c6eb52677a515e3b5"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -633,7 +634,7 @@
     "googleapi",
     "googleapi/internal/uritemplates"
   ]
-  revision = "fd84a7d742f699417e6d39a933a987ff2386c99c"
+  revision = "c24aa0e5ed34558ea50c016e4fb92c5e9aa69f2c"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -656,7 +657,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "df60624c1e9b9d2973e889c7a1cff73155da81c4"
+  revision = "f8c8703595236ae70fdf8789ecb656ea0bcdcf46"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -748,7 +749,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "fd252c3a3e1debf912ff5b80221a31a6a3c24493"
+  revision = "5584376ceeffeb13a2e98b5e9f0e9dab37de4bab"
 
 [[projects]]
   branch = "master"
@@ -760,7 +761,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "411da2035afc93b52e127805331f4d2fbe19a9ec"
+  revision = "9c224d3e8f2f57b7e9616f3c0a427fecc440003b"
 
 [[projects]]
   branch = "master"
@@ -808,7 +809,7 @@
     "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "e9ff529c66f83aeac6dff90f11ea0c5b7c4d626a"
+  revision = "762f667215d26148452351d3d7de61dd8bb6d260"
 
 [[projects]]
   name = "k8s.io/client-go"
