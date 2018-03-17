@@ -8,7 +8,6 @@
   version = "v1.1.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -21,7 +20,7 @@
     "envoy/config/filter/accesslog/v2",
     "envoy/config/filter/network/http_connection_manager/v2"
   ]
-  revision = "e0ebc95432196ce43dae88cc2822983466210656"
+  revision = "c517738a012f46dda2754ccfbc1da2628e0905ca"
 
 [[projects]]
   name = "github.com/ghodss/yaml"
@@ -90,7 +89,7 @@
     ".",
     "diskcache"
   ]
-  revision = "2bcd89a1743fd4b373f7370ce8ddc14dfbd18229"
+  revision = "9cad4c3443a7200dd6400aef47183728de563a38"
 
 [[projects]]
   branch = "master"
@@ -116,8 +115,8 @@
 [[projects]]
   name = "github.com/json-iterator/go"
   packages = ["."]
-  revision = "e7c7f3b33712573affdcc7a107218e7926b9a05b"
-  version = "1.0.6"
+  revision = "3353055b2a1a5ae1b6a8dfde887a524e7088f3a2"
+  version = "1.1.2"
 
 [[projects]]
   name = "github.com/juju/ratelimit"
@@ -134,8 +133,8 @@
 [[projects]]
   name = "github.com/lyft/protoc-gen-validate"
   packages = ["validate"]
-  revision = "8e6aaf55f4954f1ef9d3ee2e8f5a50e79cc04f8f"
-  version = "v0.0.5"
+  revision = "930a67cf7ba41b9d9436ad7a1be70a5d5ff6e1fc"
+  version = "v0.0.6"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -148,6 +147,18 @@
   packages = ["."]
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
+
+[[projects]]
+  name = "github.com/modern-go/concurrent"
+  packages = ["."]
+  revision = "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94"
+  version = "1.0.3"
+
+[[projects]]
+  name = "github.com/modern-go/reflect2"
+  packages = ["."]
+  revision = "1df9eeb2bb81f327b96228865c5687bc2194af3f"
+  version = "1.0.0"
 
 [[projects]]
   name = "github.com/onsi/ginkgo"
@@ -222,31 +233,26 @@
   name = "github.com/solo-io/gloo"
   packages = [
     "pkg/bootstrap",
+    "pkg/coreplugins/service",
     "pkg/endpointdiscovery",
     "pkg/log",
     "pkg/plugin",
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "b8077f785164318300f28d74f61f1b82078acea9"
+  revision = "d762d2c5c5fca4d78b9bcbc6b154e623f223fdcc"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "7318bd6d5ae54b47de147ced86939392f4bf14c7"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/solo-io/gloo-plugins"
-  packages = ["service"]
-  revision = "4a1b0d517371d4514e070e2abb7e3509e56d8683"
+  revision = "2b1a83ebd1c6c802f6ade1c8266b699523494dc1"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "0752a09730d5f092ebc4c31c1dc4e5c8083b7258"
+  revision = "146104f2ae66a87360552f0c4476de6a4644feeb"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -258,7 +264,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "650f4a345ab4e5b245a3034b110ebc7299e68186"
+  revision = "374053ea96cb300f8671b8d3b07edeeb06e203b4"
 
 [[projects]]
   branch = "master"
@@ -275,7 +281,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "136a25c244d3019482a795d728110278d6ba09a4"
+  revision = "e0c57d8f86c17f0724497efcb3bc617e82834821"
 
 [[projects]]
   branch = "master"
@@ -284,10 +290,9 @@
     "unix",
     "windows"
   ]
-  revision = "37707fdb30a5b38865cfb95e5aab41707daec7fd"
+  revision = "2f1e207ee39ff70f3433e49c6eb52677a515e3b5"
 
 [[projects]]
-  branch = "master"
   name = "golang.org/x/text"
   packages = [
     "collate",
@@ -317,13 +322,14 @@
     "unicode/norm",
     "unicode/rangetable"
   ]
-  revision = "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [[projects]]
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "2b5a72b8730b0b16380010cfe5286c42108d88e7"
+  revision = "f8c8703595236ae70fdf8789ecb656ea0bcdcf46"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -362,10 +368,10 @@
   version = "v0.9.0"
 
 [[projects]]
-  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+  revision = "7f97868eec74b32b0982dd158a51a446d1da7eb5"
+  version = "v2.1.1"
 
 [[projects]]
   branch = "master"
@@ -406,7 +412,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "b378c47b2dcba7f5c3ef97d8a5a0b3821ec6a001"
+  revision = "5584376ceeffeb13a2e98b5e9f0e9dab37de4bab"
 
 [[projects]]
   branch = "master"
@@ -418,7 +424,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "4b7e7fe5854f76034d5eb63edf6c7983a1d2a411"
+  revision = "91eb9a80bf633133eac2f47a852d6de05a42dc0a"
 
 [[projects]]
   branch = "master"
@@ -463,7 +469,7 @@
     "pkg/watch",
     "third_party/forked/golang/reflect"
   ]
-  revision = "cced8e64b6ca92a8b6afcbfea3353ca016694a45"
+  revision = "762f667215d26148452351d3d7de61dd8bb6d260"
 
 [[projects]]
   name = "k8s.io/client-go"
