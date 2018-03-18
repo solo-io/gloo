@@ -31,7 +31,7 @@ const (
 	metadataResponseKey = "response-transformation"
 	pluginStage         = plugin.PreOutAuth
 
-	ServiceTypeFunctionalTransformation = "TODO"
+	ServiceTypeHttpFunctions = "HTTP-Functions"
 )
 
 func init() {
@@ -47,7 +47,10 @@ func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
 }
 
 func isOurs(in *v1.Upstream) bool {
-	return in.Metadata.Annotations[annotations.ServiceType] == ServiceTypeFunctionalTransformation
+	if in.Metadata == nil || in.Metadata.Annotations == nil {
+		return false
+	}
+	return in.Metadata.Annotations[annotations.ServiceType] == ServiceTypeHttpFunctions
 }
 
 func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {

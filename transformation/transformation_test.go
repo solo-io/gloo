@@ -7,6 +7,7 @@ import (
 
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-plugins/common/annotations"
 	. "github.com/solo-io/gloo-plugins/transformation"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
@@ -110,6 +111,11 @@ func NonFunctionalUpstream(name string) *v1.Upstream {
 	return &v1.Upstream{
 		Name: name,
 		Type: "test",
+		Metadata: &v1.Metadata{
+			Annotations: map[string]string{
+				annotations.ServiceType: ServiceTypeHttpFunctions,
+			},
+		},
 	}
 }
 
