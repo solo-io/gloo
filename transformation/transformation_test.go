@@ -86,8 +86,26 @@ var _ = Describe("Transformation", func() {
 				"x-user-id":      {Text: "{{id}}"},
 				"x-content-type": {Text: "{{type}}"},
 			}))
-			Expect(out.Metadata.FilterMetadata["io.solo.transformation"].Fields["request-transformation"].Kind).To(Equal(&types.Value_StringValue{StringValue: hash}))
-			Expect(out.Metadata.FilterMetadata["io.solo.transformation"].Fields["request-transformation"].Kind).To(Equal(&types.Value_StringValue{StringValue: hash}))
+			Expect(out.Metadata.FilterMetadata["io.solo.transformation"].Fields["request-transformation"].Kind).
+				To(Equal(&types.Value_StructValue{
+					StructValue: &types.Struct{
+						Fields: map[string]*types.Value{
+							"users-svc": {
+								Kind: &types.Value_StructValue{
+									StructValue: &types.Struct{
+										Fields: map[string]*types.Value{
+											"get_user": {
+												Kind: &types.Value_StringValue{
+													StringValue: hash,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				}))
 		}
 	})
 	It("errors when user provides invalid parameters", func() {
