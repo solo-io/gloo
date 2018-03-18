@@ -257,10 +257,8 @@ func (p *Plugin) setTransformationsForRoute(upstreams []*v1.Upstream, in *v1.Rou
 }
 
 func (p *Plugin) setTransformationForFunction(upstreams []*v1.Upstream, dest *v1.Destination, extractors map[string]*Extraction, out *envoyroute.Route) error {
-
 	fnDestination, ok := dest.DestinationType.(*v1.Destination_Function)
 	if !ok {
-		log.Debugf("not a functional route: %v", dest)
 		// not a functional route, nothing to do
 		return nil
 	}
@@ -269,6 +267,7 @@ func (p *Plugin) setTransformationForFunction(upstreams []*v1.Upstream, dest *v1
 	if err != nil {
 		return errors.Wrap(err, "getting transformation for function")
 	}
+
 	// no transformations for this destination
 	if transformation == nil {
 		return nil
@@ -283,26 +282,43 @@ func (p *Plugin) setTransformationForFunction(upstreams []*v1.Upstream, dest *v1
 	}
 	filterMetadata := common.InitFilterMetadataField(filterName, metadataRequestKey, out.Metadata)
 	if filterMetadata.Kind == nil {
-		filterMetadata.Kind = &types.Value_StructValue{
-			StructValue: &types.Struct{
-				Fields: make(map[string]*types.Value),
-			},
-		}
+		filterMetadata.Kind = &types.Value_StructValue{}
+	}
+	if _, ok := filterMetadata.Kind.(*types.Value_StructValue); !ok {
+		return errors.Errorf("needed filter metadta to be kind *types.Value_StructValue, but was: %v", filterMetadata.Kind)
+	}
+	if filterMetadata.Kind.(*types.Value_StructValue).StructValue == nil {
+		filterMetadata.Kind.(*types.Value_StructValue).StructValue = &types.Struct{}
+	}
+	if filterMetadata.Kind.(*types.Value_StructValue).StructValue.Fields == nil {
+		filterMetadata.Kind.(*types.Value_StructValue).StructValue.Fields = make(map[string]*types.Value)
 	}
 
+	upstreamName := fnDestination.Function.UpstreamName
+	functionName := fnDestination.Function.FunctionName
+
 	fields := filterMetadata.Kind.(*types.Value_StructValue).StructValue.Fields
-	if fields[fnDestination.Function.UpstreamName] == nil {
+	if fields[upstreamName] == nil {
 		var funcVal types.Value
 		funcVal.Kind = &types.Value_StructValue{
 			StructValue: &types.Struct{
 				Fields: make(map[string]*types.Value),
 			},
 		}
-		fields[fnDestination.Function.UpstreamName] = &funcVal
+		fields[upstreamName] = &funcVal
 	}
 
-	funcfileds := fields[fnDestination.Function.UpstreamName].Kind.(*types.Value_StructValue).StructValue.Fields
-	funcfileds[fnDestination.Function.FunctionName].Kind = &types.Value_StringValue{StringValue: hash}
+	funcFields := fields[upstreamName].Kind.(*types.Value_StructValue).StructValue.Fields
+	if funcFields[functionName] == nil {
+		funcFields[functionName] = &types.Value{
+			Kind: &types.Value_StructValue{
+				StructValue: &types.Struct{
+					Fields: make(map[string]*types.Value),
+				},
+			},
+		}
+	}
+	funcFields[functionName].Kind = &types.Value_StringValue{StringValue: hash}
 
 	return nil
 }
