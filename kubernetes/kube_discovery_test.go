@@ -88,7 +88,6 @@ var _ = Describe("KubeSecretWatcher", func() {
 			// add a pod and service pointing to it
 			kubeClient, err := kubernetes.NewForConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
-			go discovery.TrackUpstreams(upstreams)
 
 			// create a service and a pod backing it for each upstream
 			for _, us := range upstreams {
@@ -126,8 +125,31 @@ var _ = Describe("KubeSecretWatcher", func() {
 						},
 					},
 				}
-				_, err = kubeClient.CoreV1().Pods(namespace).Create(withLabels)
+				p, err := kubeClient.CoreV1().Pods(namespace).Create(withLabels)
 				Expect(err).NotTo(HaveOccurred())
+
+				// wait for pod to be running
+				podReady := make(chan struct{})
+				go func() {
+					for {
+						pod, err := kubeClient.CoreV1().Pods(namespace).Get(p.Name, metav1.GetOptions{})
+						if err != nil {
+							panic(err)
+						}
+						if pod.Status.Phase == kubev1.PodRunning {
+							close(podReady)
+							return
+						}
+						time.Sleep(time.Second)
+					}
+				}()
+
+				select {
+				case <-time.After(time.Minute):
+					Fail("timed out waiting for pod " + p.Name + " to start")
+				case <-podReady:
+				}
+
 				service := &kubev1.Service{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      serviceName,
@@ -159,19 +181,20 @@ var _ = Describe("KubeSecretWatcher", func() {
 			}
 
 			go discovery.Run(make(chan struct{}))
+			go discovery.TrackUpstreams(upstreams)
 			time.Sleep(time.Second)
+
+			var endpoints endpointdiscovery.EndpointGroups
 
 			Eventually(func() endpointdiscovery.EndpointGroups {
 				select {
-				case endpoints := <-discovery.Endpoints():
+				case endpoints = <-discovery.Endpoints():
 					return endpoints
 				case err := <-discovery.Error():
 					Expect(err).NotTo(HaveOccurred())
 				}
 				return nil
 			}, time.Second*10).Should(HaveLen(len(upstreams)))
-
-			var endpoints endpointdiscovery.EndpointGroups
 
 		L:
 			// drain the channel
@@ -194,7 +217,15 @@ var _ = Describe("KubeSecretWatcher", func() {
 				serviceEndpoints := endpoints[us.Name]
 				Expect(serviceEndpoints).NotTo(BeNil())
 				careAboutLabels := len(decodedSpec.Labels) > 0
-				log.Printf("%v got eps %v", decodedSpec.Labels, endpoints)
+
+				svc, _ := kubeClient.CoreV1().Services(namespace).List(metav1.ListOptions{})
+				pods, _ := kubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+
+				log.Debugf("upstreamName: %v\n"+
+					"labels: %v\n"+
+					"eps %v\n"+
+					"svc: %v\n"+
+					"pods: %v", us.Name, decodedSpec.Labels, endpoints, svc, pods)
 				if careAboutLabels {
 					Expect(serviceEndpoints).To(HaveLen(1))
 				} else {
@@ -206,7 +237,6 @@ var _ = Describe("KubeSecretWatcher", func() {
 				if careAboutLabels {
 					podWithIp, err := kubeClient.CoreV1().Pods(namespace).Get(podName(serviceName, true), metav1.GetOptions{})
 					Expect(err).NotTo(HaveOccurred())
-					log.Printf("pod %v", podWithIp)
 					Expect(serviceEndpoints[0].Address).To(Equal(podWithIp.Status.PodIP))
 				} else {
 					podNoLabels, err := kubeClient.CoreV1().Pods(namespace).Get(podName(serviceName, false), metav1.GetOptions{})
