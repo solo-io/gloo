@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
 	"github.com/solo-io/gloo-plugins/common/annotations"
 	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
+	"github.com/solo-io/gloo-plugins/transformation"
 	serviceplugin "github.com/solo-io/gloo/pkg/coreplugins/service"
 	"github.com/solo-io/gloo/pkg/log"
 )
@@ -105,7 +106,6 @@ func setSwaggerAnnotations(url string, us *v1.Upstream) {
 	if us.Metadata.Annotations == nil {
 		us.Metadata.Annotations = make(map[string]string)
 	}
-	us.Metadata.Annotations[annotations.ServiceType] = ServiceTypeSwagger
-	us.Metadata.Annotations[AnnotationKeySwaggerURL] = url
+	us.Metadata.Annotations[annotations.ServiceType] = transformation.ServiceTypeHttpFunctions
 	us.Metadata.Annotations[AnnotationKeySwaggerURL] = url
 }

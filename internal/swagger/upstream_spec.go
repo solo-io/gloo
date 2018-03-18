@@ -3,10 +3,7 @@ package swagger
 import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/common/annotations"
 )
-
-const ServiceTypeSwagger = "swagger"
 
 const (
 	AnnotationKeySwaggerURL = "gloo.solo.io/swagger_url"
@@ -35,5 +32,5 @@ func GetSwaggerAnnotations(us *v1.Upstream) (*Annotations, error) {
 }
 
 func IsSwagger(us *v1.Upstream) bool {
-	return us.Metadata.Annotations[annotations.ServiceType] == ServiceTypeSwagger
+	return us.Metadata.Annotations[AnnotationKeySwaggerURL] != "" || us.Metadata.Annotations[AnnotationKeySwaggerDoc] != ""
 }
