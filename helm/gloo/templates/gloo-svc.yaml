@@ -7,7 +7,6 @@ metadata:
     gloo: control-plane
     release: {{ .Release.Name }}
 spec:
-  type: {{ .Values.gloo.type }}
   ports:
     - port: {{ .Values.gloo.port }}
       protocol: TCP
