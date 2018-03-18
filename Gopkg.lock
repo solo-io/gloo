@@ -316,8 +316,8 @@
 [[projects]]
   name = "github.com/json-iterator/go"
   packages = ["."]
-  revision = "3353055b2a1a5ae1b6a8dfde887a524e7088f3a2"
-  version = "1.1.2"
+  revision = "ca39e5af3ece67bbcda3d0f4f56a8e24d9f2dad4"
+  version = "1.1.3"
 
 [[projects]]
   name = "github.com/juju/ratelimit"
@@ -487,7 +487,7 @@
     "pkg/secretwatcher/vault",
     "pkg/signals"
   ]
-  revision = "5cbc9fecf09e9f9be9b94d816e37073e737e7093"
+  revision = "173732b68a84bffad276e813826170acbce73aaa"
 
 [[projects]]
   branch = "master"
@@ -505,7 +505,7 @@
     "kubernetes",
     "transformation"
   ]
-  revision = "ba524a2ed8cf1aee7a79d19e73b7bdbe08f855ba"
+  revision = "d70cf7af750cdcccdee09545df6014cf95c41ca5"
 
 [[projects]]
   branch = "master"
@@ -520,13 +520,13 @@
     "file",
     "internal/crud"
   ]
-  revision = "51554ef9eb718d384758975f83181216fda2fb48"
+  revision = "c34bc7537fbb906c94bc79fea4fcd02d5cb05b2e"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "146104f2ae66a87360552f0c4476de6a4644feeb"
+  revision = "80f46e9b3ba2ebada05dec85fce64adc4a1d4ce6"
 
 [[projects]]
   branch = "master"
@@ -568,7 +568,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "e0c57d8f86c17f0724497efcb3bc617e82834821"
+  revision = "24dd3780ca4f75fed9f321890729414a4b5d3f13"
 
 [[projects]]
   branch = "master"
@@ -761,7 +761,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "9c224d3e8f2f57b7e9616f3c0a427fecc440003b"
+  revision = "1bb11d890353d98bf4e28bfa65c6a7eaa33fda0e"
 
 [[projects]]
   branch = "master"
