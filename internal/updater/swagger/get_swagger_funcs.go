@@ -95,6 +95,9 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 	}
 
 	headersTemplate := map[string]string{":method": method}
+	if body != "" {
+		headersTemplate["Content-Type"] = "application/json"
+	}
 	for _, name := range headerParams {
 		headersTemplate[name] = fmt.Sprintf("{{%v}}", name)
 	}
@@ -118,19 +121,24 @@ func getBodyTemplate(parent string, schema spec.SchemaProps, definitions spec.De
 	bodyTemplate := "{"
 	var fields []string
 	for key, prop := range schema.Properties {
+		var defaultValue string
+		if prop.Default != nil {
+			defaultValue = fmt.Sprintf("%v", prop.Default)
+		}
 		def := getDefinitionFor(prop.Ref, definitions)
+		defaultValue = fmt.Sprintf("\"%v\"", defaultValue)
 		switch {
 		case def != nil:
 			if def.Type.Contains("string") {
-				fields = append(fields, fmt.Sprintf(`"%v": "{{%v.%v}}"`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions)))
+				fields = append(fields, fmt.Sprintf(`"%v": "{{ default(%v.%v, "%v")}}"`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions), defaultValue))
 			} else {
-				fields = append(fields, fmt.Sprintf(`"%v": {{%v.%v}}`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions)))
+				fields = append(fields, fmt.Sprintf(`"%v": {{ default(%v.%v, "%v") }}`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions), defaultValue))
 			}
 		case prop.Type.Contains("string"):
 			// string needs escaping
-			fields = append(fields, fmt.Sprintf(`"%v": "{{%v.%v}}"`, key, parent, key))
+			fields = append(fields, fmt.Sprintf(`"%v": "{{ default(%v.%v, "%v")}}"`, key, parent, key, defaultValue))
 		default:
-			fields = append(fields, fmt.Sprintf(`"%v": {{%v.%v}}`, key, parent, key))
+			fields = append(fields, fmt.Sprintf(`"%v": {{ default(%v.%v, "%v") }}`, key, parent, key, defaultValue))
 		}
 	}
 	// idempotency
