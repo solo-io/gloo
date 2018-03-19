@@ -10,7 +10,6 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/solo-io/gloo-plugins/grpc/grpc-test-service/bookstore/protos"
-	"github.com/solo-io/gloo-plugins/grpc/grpc-test-service/server"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -37,7 +36,7 @@ func main() {
 				return handler(srv, ss)
 			},
 		)))
-	bookstore.RegisterBookstoreServer(grpcServer, server.NewServer())
+	bookstore.RegisterBookstoreServer(grpcServer, NewServer())
 	log.Printf("listening on %v", *port)
 	grpcServer.Serve(lis)
 }
