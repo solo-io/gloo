@@ -62,9 +62,16 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 	}
 	kubeResourcesDir := filepath.Join(E2eDirectory(), "kube_resources")
 
+	envoyImageTag := os.Getenv("ENVOY_IMAGE_TAG")
+	if envoyImageTag == "" {
+		log.Warnf("no ENVOY_IMAGE_TAG specified, defaulting to latest")
+		envoyImageTag = "latest"
+	}
+
 	installBytes, err := exec.Command("helm", "template", HelmDirectory(),
 		"--namespace", namespace,
 		"-n", "test",
+		"--set", "ingress.imageTag="+envoyImageTag,
 		"-f", filepath.Join(kubeResourcesDir, "helm-values.yaml")).CombinedOutput()
 	if err != nil {
 		return errors.Wrapf(err, "running helm template: %v", installBytes)
