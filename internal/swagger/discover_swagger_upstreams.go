@@ -106,6 +106,6 @@ func setSwaggerAnnotations(url string, us *v1.Upstream) {
 	if us.Metadata.Annotations == nil {
 		us.Metadata.Annotations = make(map[string]string)
 	}
-	us.Metadata.Annotations[annotations.ServiceType] = transformation.ServiceTypeHttpFunctions
+	us.Metadata.Annotations[annotations.ServiceType] = transformation.ServiceTypeTransformation
 	us.Metadata.Annotations[AnnotationKeySwaggerURL] = url
 }

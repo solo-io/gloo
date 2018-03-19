@@ -53,7 +53,7 @@ var _ = Describe("DiscoverSwaggerUpstreams", func() {
 				}
 				DiscoverSwaggerUpstream(&resolver.Resolver{}, []string{"/test/path"}, us)
 				Expect(us.Metadata.Annotations).To(HaveKey(annotations.ServiceType))
-				Expect(us.Metadata.Annotations[annotations.ServiceType]).To(Equal(transformation.ServiceTypeHttpFunctions))
+				Expect(us.Metadata.Annotations[annotations.ServiceType]).To(Equal(transformation.ServiceTypeTransformation))
 				Expect(us.Metadata.Annotations).To(HaveKey(AnnotationKeySwaggerURL))
 				Expect(us.Metadata.Annotations[AnnotationKeySwaggerURL]).To(Equal(srv.URL + "/test/path"))
 			})
