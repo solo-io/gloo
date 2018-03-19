@@ -131,7 +131,7 @@ func NonFunctionalUpstream(name string) *v1.Upstream {
 		Type: "test",
 		Metadata: &v1.Metadata{
 			Annotations: map[string]string{
-				annotations.ServiceType: ServiceTypeHttpFunctions,
+				annotations.ServiceType: ServiceTypeTransformation,
 			},
 		},
 	}
