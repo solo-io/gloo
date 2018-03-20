@@ -12,7 +12,7 @@ import (
 
 	"strings"
 
-	"github.com/pseudomuto/protoc-gen-doc"
+	"github.com/ilackarms/protoc-gen-doc"
 )
 
 func main() {

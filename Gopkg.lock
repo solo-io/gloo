@@ -206,6 +206,12 @@
   revision = "bf9dde6d0d2c004a008c27aaee91170c786f6db8"
 
 [[projects]]
+  name = "github.com/ilackarms/protoc-gen-doc"
+  packages = ["."]
+  revision = "728a624b38e5ae90bb3e5da5f406e05138f1517c"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
   revision = "163f41321a19dd09362d4c63cc2489db2015f1f4"
@@ -347,15 +353,9 @@
 
 [[projects]]
   name = "github.com/pseudomuto/protoc-gen-doc"
-  packages = ["."]
-  revision = "0c4d666cfe1175663cf067963396a0b9b34f543f"
-  version = "v1.1.0"
-
-[[projects]]
-  name = "github.com/pseudomuto/protokit"
-  packages = ["."]
-  revision = "7037620bf27b13fcdc10b1b17ddef82540db670b"
-  version = "v0.1.0"
+  packages = ["parser"]
+  revision = "728a624b38e5ae90bb3e5da5f406e05138f1517c"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/radovskyb/watcher"
@@ -802,6 +802,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "be920c4b6035938cee2e4098e3296b52fc6e471939cc4ca106636379b6610469"
+  inputs-digest = "13958a18f847b9d35a976e0dcf35a643939edb9b11644823d52a800b8908cbfa"
   solver-name = "gps-cdcl"
   solver-version = 1
