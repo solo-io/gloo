@@ -51,7 +51,7 @@ An example request transformation function looks like the following:
 ```yaml
 - name: addPet
   spec:
-    body: '{"tag": "{{pet.tag}}","id": {{pet.id}},"name": "{{pet.name}}"}'
+    body: '{"tag": "{{tag}}","id": {{id}},"name": "{{name}}"}'
     headers:
       :method: POST
     path: /api/pets
@@ -85,12 +85,12 @@ An example route to specify parameters for the above function can look like the 
   extensions:
     parameters:
       headers:
-        x-pet-id: '{pet.id}'
-        x-pet-tag: '{pet.tag}'
-        x-pet-name: '{pet.name}'
+        x-pet-id: '{id}'
+        x-pet-tag: '{tag}'
+        x-pet-name: '{name}'
 ```
 
-Gloo will extract the variables named `pet.id`, `pet.tag`, and `pet.name` from the specified headers on the incoming request 
+Gloo will extract the variables named `id`, `tag`, and `name` from the specified headers on the incoming request 
 and use them to generate the outgoing request. If they cannot be found in the request headers, Envoy will try to parse
 the request body as JSON and search there by json path. If the parameters still cannot be found, Envoy will return a 400
 Bad Request to the client.
