@@ -74,9 +74,9 @@ var _ = Describe("Function Discovery", func() {
 						Extensions: transformation.EncodeRouteExtension(transformation.RouteExtension{
 							Parameters: &transformation.Parameters{
 								Headers: map[string]string{
-									"x-id":   "{pet.id}",
-									"x-name": "{pet.name}",
-									"x-tag":  "{pet.tag}",
+									"x-id":   "{id}",
+									"x-name": "{name}",
+									"x-tag":  "{tag}",
 								},
 							},
 						}),
@@ -92,7 +92,7 @@ var _ = Describe("Function Discovery", func() {
 		It("should route to the petstore function", func() {
 			curlEventuallyShouldRespond(curlOpts{
 				path: functionPath,
-				body: `{"pet.id": 3, "pet.tag": "donkey", "pet.name": "videogamedunkey"}`,
+				body: `{"id": 3, "tag": "donkey", "name": "videogamedunkey"}`,
 			}, "< HTTP/1.1 200", time.Minute*5)
 			curlEventuallyShouldRespond(curlOpts{
 				path: getPath + "/3",
@@ -103,7 +103,7 @@ var _ = Describe("Function Discovery", func() {
 		})
 		It("using params: should route to the petstore function", func() {
 			curlEventuallyShouldRespond(curlOpts{
-				path: functionPath,
+				path: functionPathWithParams,
 				headers: map[string]string{
 					"x-id":   "4",
 					"x-name": "spatula",
