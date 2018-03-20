@@ -130,15 +130,15 @@ func getBodyTemplate(parent string, schema spec.SchemaProps, definitions spec.De
 		switch {
 		case def != nil:
 			if def.Type.Contains("string") {
-				fields = append(fields, fmt.Sprintf(`"%v": "{{ default(%v.%v, "%v")}}"`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions), defaultValue))
+				fields = append(fields, fmt.Sprintf(`"%v": "{{ default(%v.%v, %v)}}"`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions), defaultValue))
 			} else {
-				fields = append(fields, fmt.Sprintf(`"%v": {{ default(%v.%v, "%v") }}`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions), defaultValue))
+				fields = append(fields, fmt.Sprintf(`"%v": {{ default(%v.%v, %v") }}`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions), defaultValue))
 			}
 		case prop.Type.Contains("string"):
 			// string needs escaping
-			fields = append(fields, fmt.Sprintf(`"%v": "{{ default(%v.%v, "%v")}}"`, key, parent, key, defaultValue))
+			fields = append(fields, fmt.Sprintf(`"%v": "{{ default(%v.%v, %v)}}"`, key, parent, key, defaultValue))
 		default:
-			fields = append(fields, fmt.Sprintf(`"%v": {{ default(%v.%v, "%v") }}`, key, parent, key, defaultValue))
+			fields = append(fields, fmt.Sprintf(`"%v": {{ default(%v.%v, %v) }}`, key, parent, key, defaultValue))
 		}
 	}
 	// idempotency
