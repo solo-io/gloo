@@ -84,7 +84,7 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 		case "formData":
 			log.Warnf("form data params not currently supported; ignoring")
 		case "body":
-			body = getBodyTemplate(param.Name, definitions[param.Name].SchemaProps, definitions)
+			body = getBodyTemplate("", definitions[param.Name].SchemaProps, definitions)
 			//bodyParams[param.Name] = param.Schema.SchemaProps
 		}
 	}
@@ -127,18 +127,22 @@ func getBodyTemplate(parent string, schema spec.SchemaProps, definitions spec.De
 		}
 		def := getDefinitionFor(prop.Ref, definitions)
 		defaultValue = fmt.Sprintf("\"%v\"", defaultValue)
+		paramName := "%v"
+		if parent != "" {
+			paramName = parent + ".%v"
+		}
 		switch {
 		case def != nil:
 			if def.Type.Contains("string") {
-				fields = append(fields, fmt.Sprintf(`"%v": "{{ default(%v.%v, %v)}}"`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions), defaultValue))
+				fields = append(fields, fmt.Sprintf(`"%v": "{{ default(`+paramName+`, %v)}}"`, key, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions), defaultValue))
 			} else {
-				fields = append(fields, fmt.Sprintf(`"%v": {{ default(%v.%v, %v") }}`, key, parent, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions), defaultValue))
+				fields = append(fields, fmt.Sprintf(`"%v": {{ default(`+paramName+`, %v) }}`, key, getBodyTemplate(parent+"."+key, def.SchemaProps, definitions), defaultValue))
 			}
 		case prop.Type.Contains("string"):
 			// string needs escaping
-			fields = append(fields, fmt.Sprintf(`"%v": "{{ default(%v.%v, %v)}}"`, key, parent, key, defaultValue))
+			fields = append(fields, fmt.Sprintf(`"%v": "{{ default(`+paramName+`, %v)}}"`, key, key, defaultValue))
 		default:
-			fields = append(fields, fmt.Sprintf(`"%v": {{ default(%v.%v, %v) }}`, key, parent, key, defaultValue))
+			fields = append(fields, fmt.Sprintf(`"%v": {{ default(`+paramName+`, %v) }}`, key, key, defaultValue))
 		}
 	}
 	// idempotency
