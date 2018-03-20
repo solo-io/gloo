@@ -8,12 +8,12 @@
 <h3 align="center">The Function Gateway</h3>
 <BR>
 
-Gloo is an ingress controller and function gateway built on the [Envoy Proxy](https://www.Envoyproxy.io), written in Go.
- 
-Gloo expands upon the model of traditional API Gateways as (currently) the only gateway to support 
-[routing on the function level](https://gloo.solo.io/introduction/introduction/). This allows users to compose 
-gateway APIs from more granular components, i.e. the functions that compose services, rather than the services themselves.
+Gloo is a function gateway built on top of the [Envoy Proxy](https://www.Envoyproxy.io). Gloo provides a unified entry point for access to all services and serverless functions, translating from any interface spoken by a client to any interface spoken by a backend. Gloo aggregates REST APIs and events calls from clients, "glueing" together services in-cluster, out of cluster, across clusters, along with any provider of serverless functions.
 
+What makes Gloo special is its use of function-level routing, which is made possible by the fact that Gloo intimately knows the APIs of the upstreams it routes to. This means that the client and server do not have to speak the same protocol, the same version, or the same language. Users can configure Gloo (or enable automatic discovery services) to make Gloo aware of functional back-ends (such as AWS Lambda, Google Functions, or RESTful services) and enable function-level routing. Gloo features an entirely pluggable architecture, providing the ability to extend its configuration language with plugins which add new types of upstreams and route features.
+
+It is entirely possible to run Gloo as a traditional API gateway, without leveraging function-level capabilities. Gloo can be configured as a fully-featured API gateway, simply by using upstreams that don't support functions.
+ 
 This repository contains the core controller of the Gloo system. The core includes the Envoy xDS server and the translator
 that manages and calls [Gloo plugins](https://gloo.solo.io/introduction/architecture/).
 
@@ -34,7 +34,9 @@ routes with Gloo, [see the getting started page in our documentation](https://gl
 ## Documentation
 
 * [Official Documentation](https://gloo.solo.io)
+* [Building hybrid app demo](https://www.youtube.com/watch?time_continue=1&v=ISR3G0CAZM0)
 * [Announcement Blog](https://medium.com/solo-io/announcing-gloo-the-function-gateway-3f0860ef6600)
+
 
 ## Repository Guide
 
