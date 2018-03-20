@@ -42,5 +42,7 @@ doc: proto
 #	godocdown pkg/api/types/v1/ > docs/go.md
 
 site: doc
-	mkdocs build && \
+	mkdocs build 
+
+docker-docs: site
 	docker build -t soloio/nginx-docs:v$(VERSION) -f Dockerfile.site .
