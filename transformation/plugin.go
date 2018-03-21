@@ -29,7 +29,7 @@ const (
 	filterName          = "io.solo.transformation"
 	metadataRequestKey  = "request-transformation"
 	metadataResponseKey = "response-transformation"
-	pluginStage         = plugin.PreOutAuth
+	pluginStage         = plugin.PostInAuth
 
 	ServiceTypeHttpFunctions = "HTTP-Functions"
 )

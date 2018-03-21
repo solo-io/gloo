@@ -1,24 +1,18 @@
 package grpc
 
 import (
+	"crypto/sha1"
+	"fmt"
 	"strings"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-
 	"github.com/gogo/googleapis/google/api"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
-	"github.com/gogo/protobuf/types"
-
-	"crypto/sha1"
-
-	"fmt"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-plugins/common/annotations"
 	"github.com/solo-io/gloo-plugins/transformation"
-	"github.com/solo-io/gloo/pkg/coreplugins/common"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
@@ -29,9 +23,9 @@ type Plugin struct {
 
 const (
 	filterName  = "envoy.grpc_json_transcoder"
-	pluginStage = plugin.PostInAuth
+	pluginStage = plugin.PreOutAuth
 
-	ServiceTypeGRPC = "gRPC-Functions"
+	ServiceTypeGRPC = "gRPC"
 )
 
 /*
@@ -56,8 +50,21 @@ for every service in the file, create a d
 
 */
 
-func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
-	return nil
+func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
+	deps := &plugin.Dependencies{}
+	for _, us := range cfg.Upstreams {
+		if us.ServiceInfo == nil || us.ServiceInfo.Type != ServiceTypeGRPC {
+			continue
+		}
+		serviceSpec, err := DecodeServiceProperties(us.ServiceInfo.Properties)
+		if err != nil {
+			log.Warnf("%v: error parsing service properties for upstream %v: %v",
+				ServiceTypeGRPC, us.Name, err)
+			continue
+		}
+		deps.FileRefs = append(deps.FileRefs, serviceSpec.DescriptorsFileRef)
+	}
+	return deps
 }
 
 func isOurs(in *v1.Upstream) bool {
@@ -70,14 +77,6 @@ func isOurs(in *v1.Upstream) bool {
 func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
 	if !isOurs(in) {
 		return nil
-	}
-
-	if out.Metadata == nil {
-		out.Metadata = &envoycore.Metadata{}
-	}
-	common.InitFilterMetadata(filterName, out.Metadata)
-	out.Metadata.FilterMetadata[filterName] = &types.Struct{
-		Fields: make(map[string]*types.Value),
 	}
 
 	return nil
@@ -178,3 +177,25 @@ func lookupMessageType(inputType string, messageTypes []*descriptor.DescriptorPr
 	}
 	return nil
 }
+
+//func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
+//
+//	if len(p.CachedTransformations) == 0 {
+//		return nil
+//	}
+//
+//	filterConfig, err := protoutil.MarshalStruct(&Transformations{
+//		Transformations: p.CachedTransformations,
+//	})
+//	if err != nil {
+//		return nil
+//	}
+//
+//	// clear cache
+//	p.CachedTransformations = make(map[string]*Transformation)
+//
+//	return []plugin.StagedFilter{{HttpFilter: &envoyhttp.HttpFilter{
+//		Name:   filterName,
+//		Config: filterConfig,
+//	}, Stage: pluginStage}}
+//}
