@@ -11,7 +11,6 @@ import (
 	"github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/common/annotations"
 	"github.com/solo-io/gloo-plugins/transformation"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
@@ -53,7 +52,7 @@ for every service in the file, create a d
 func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
 	deps := &plugin.Dependencies{}
 	for _, us := range cfg.Upstreams {
-		if us.ServiceInfo == nil || us.ServiceInfo.Type != ServiceTypeGRPC {
+		if !isOurs(us) {
 			continue
 		}
 		serviceSpec, err := DecodeServiceProperties(us.ServiceInfo.Properties)
@@ -68,10 +67,7 @@ func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
 }
 
 func isOurs(in *v1.Upstream) bool {
-	if in.Metadata == nil || in.Metadata.Annotations == nil {
-		return false
-	}
-	return in.Metadata.Annotations[annotations.ServiceType] == ServiceTypeGRPC
+	return in.ServiceInfo != nil && in.ServiceInfo.Type == ServiceTypeGRPC
 }
 
 func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
