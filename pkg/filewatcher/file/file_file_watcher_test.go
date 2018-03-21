@@ -31,7 +31,7 @@ var _ = Describe("FileArtifactWatcher", func() {
 		dir, err = ioutil.TempDir("", "fileartifacttest")
 		Must(err)
 		file = filepath.Join(dir, ref)
-		watch, err = NewArtifactWatcher(dir, time.Millisecond)
+		watch, err = NewFileWatcher(dir, time.Millisecond)
 		Must(err)
 	})
 	AfterEach(func() {
@@ -62,11 +62,11 @@ var _ = Describe("FileArtifactWatcher", func() {
 				data := []byte("this is the data")
 				err = ioutil.WriteFile(file, data, 0644)
 				Must(err)
-				go watch.TrackArtifacts([]string{ref})
+				go watch.TrackFiles([]string{ref})
 				select {
 				case parsedArtifacts := <-watch.Files():
 					Expect(parsedArtifacts).To(Equal(filewatcher.Files{
-						ref: map[string][]byte{ref: data},
+						ref: data,
 					}))
 				case err := <-watch.Error():
 					Expect(err).NotTo(HaveOccurred())
