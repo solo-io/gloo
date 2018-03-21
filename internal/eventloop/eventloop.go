@@ -2,11 +2,11 @@ package eventloop
 
 import (
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
+	"github.com/mitchellh/hashstructure"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo-storage/crd"
@@ -17,6 +17,9 @@ import (
 	"github.com/solo-io/gloo/internal/xds"
 	"github.com/solo-io/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
+	"github.com/solo-io/gloo/pkg/filewatcher"
+	filefiles "github.com/solo-io/gloo/pkg/filewatcher/file"
+	kubefiles "github.com/solo-io/gloo/pkg/filewatcher/kube"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
@@ -28,12 +31,12 @@ import (
 type eventLoop struct {
 	configWatcher       configwatcher.Interface
 	secretWatcher       secretwatcher.Interface
+	fileWatcher         filewatcher.Interface
 	endpointDiscoveries []endpointdiscovery.Interface
-	//TODO: reporter
-	reporter         reporter.Interface
-	translator       *translator.Translator
-	xdsConfig        envoycache.SnapshotCache
-	updateSecretRefs func(cfg *v1.Config) []string
+	reporter            reporter.Interface
+	translator          *translator.Translator
+	xdsConfig           envoycache.SnapshotCache
+	getDependencies     func(cfg *v1.Config) []*plugin.Dependencies
 
 	startFuncs []func() error
 }
@@ -54,6 +57,11 @@ func Setup(opts bootstrap.Options, stop <-chan struct{}) (*eventLoop, error) {
 		return nil, errors.Wrap(err, "failed to set up secret watcher")
 	}
 
+	fileWatcher, err := setupFileWatcher(opts, stop)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to set up file watcher")
+	}
+
 	xdsConfig, _, err := xds.RunXDS(opts.XdsOptions.Port)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to start xds server")
@@ -64,12 +72,13 @@ func Setup(opts bootstrap.Options, stop <-chan struct{}) (*eventLoop, error) {
 	trans := translator.NewTranslator(plugs)
 
 	e := &eventLoop{
-		configWatcher:    cfgWatcher,
-		secretWatcher:    secretWatcher,
-		translator:       trans,
-		xdsConfig:        xdsConfig,
-		updateSecretRefs: updateSecretRefsFor(plugs),
-		reporter:         reporter.NewReporter(store),
+		configWatcher:   cfgWatcher,
+		secretWatcher:   secretWatcher,
+		fileWatcher:     fileWatcher,
+		translator:      trans,
+		xdsConfig:       xdsConfig,
+		getDependencies: getDependenciesFor(plugs),
+		reporter:        reporter.NewReporter(store),
 	}
 
 	for _, endpointDiscoveryInitializer := range plugin.EndpointDiscoveryInitializers() {
@@ -87,23 +96,17 @@ func Setup(opts bootstrap.Options, stop <-chan struct{}) (*eventLoop, error) {
 	return e, nil
 }
 
-func updateSecretRefsFor(plugins []plugin.TranslatorPlugin) func(cfg *v1.Config) []string {
-	return func(cfg *v1.Config) []string {
-		var secretRefs []string
+func getDependenciesFor(plugins []plugin.TranslatorPlugin) func(cfg *v1.Config) []*plugin.Dependencies {
+	return func(cfg *v1.Config) []*plugin.Dependencies {
+		var dependencies []*plugin.Dependencies
 		// secrets plugins need
 		for _, plug := range plugins {
-			deps := plug.GetDependencies(cfg)
-			if deps != nil {
-				secretRefs = append(secretRefs, deps.SecretRefs...)
+			dep := plug.GetDependencies(cfg)
+			if dep != nil {
+				dependencies = append(dependencies, dep)
 			}
 		}
-		// secrets for virtualhosts
-		for _, vhost := range cfg.VirtualHosts {
-			if vhost.SslConfig != nil && vhost.SslConfig.SecretRef != "" {
-				secretRefs = append(secretRefs, vhost.SslConfig.SecretRef)
-			}
-		}
-		return secretRefs
+		return dependencies
 	}
 }
 
@@ -157,6 +160,24 @@ func setupSecretWatcher(opts bootstrap.Options, stop <-chan struct{}) (secretwat
 	return nil, errors.Errorf("unknown or unspecified secret watcher type: %v", opts.SecretWatcherOptions.Type)
 }
 
+func setupFileWatcher(opts bootstrap.Options, stop <-chan struct{}) (filewatcher.Interface, error) {
+	switch opts.SecretWatcherOptions.Type {
+	case bootstrap.WatcherTypeFile:
+		fileWatcher, err := filefiles.NewFileWatcher(opts.FileOptions.SecretDir, opts.FileWatcherOptions.SyncFrequency)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to start filesystem-based file watcher with config %#v", opts.KubeOptions)
+		}
+		return fileWatcher, nil
+	case bootstrap.WatcherTypeKube:
+		fileWatcher, err := kubefiles.NewFileWatcher(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig, opts.FileWatcherOptions.SyncFrequency, stop)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to start kubenetes configmap-based file watcher with config %#v", opts.KubeOptions)
+		}
+		return fileWatcher, nil
+	}
+	return nil, errors.Errorf("unknown or unspecified file watcher type: %v", opts.FileWatcherOptions.Type)
+}
+
 func (e *eventLoop) Run(stop <-chan struct{}) error {
 	for _, fn := range e.startFuncs {
 		if err := fn(); err != nil {
@@ -187,8 +208,20 @@ func (e *eventLoop) Run(stop <-chan struct{}) error {
 		case cfg := <-e.configWatcher.Config():
 			log.Debugf("change triggered by config")
 			current.cfg = cfg
-			secretRefs := e.updateSecretRefs(cfg)
+			dependencies := e.getDependencies(cfg)
+			var secretRefs, fileRefs []string
+			for _, dep := range dependencies {
+				secretRefs = append(secretRefs, dep.SecretRefs...)
+				fileRefs = append(fileRefs, dep.FileRefs...)
+			}
+			// secrets for virtualhosts
+			for _, vhost := range cfg.VirtualHosts {
+				if vhost.SslConfig != nil && vhost.SslConfig.SecretRef != "" {
+					secretRefs = append(secretRefs, vhost.SslConfig.SecretRef)
+				}
+			}
 			go e.secretWatcher.TrackSecrets(secretRefs)
+			go e.fileWatcher.TrackFiles(fileRefs)
 			for _, discovery := range e.endpointDiscoveries {
 				go func() {
 					discovery.TrackUpstreams(cfg.Upstreams)
@@ -198,6 +231,10 @@ func (e *eventLoop) Run(stop <-chan struct{}) error {
 		case secrets := <-e.secretWatcher.Secrets():
 			log.Debugf("change triggered by secrets")
 			current.secrets = secrets
+			sync(current)
+		case files := <-e.fileWatcher.Files():
+			log.Debugf("change triggered by files")
+			current.files = files
 			sync(current)
 		case endpointTuple := <-endpointDiscovery:
 			log.Debugf("change triggered by endpoints")
@@ -221,7 +258,12 @@ func (e *eventLoop) updateXds(cache *cache) {
 			aggregatedEndpoints[upstreamName] = endpointSet
 		}
 	}
-	snapshot, reports, err := e.translator.Translate(cache.cfg, cache.secrets, aggregatedEndpoints)
+	snapshot, reports, err := e.translator.Translate(translator.Inputs{
+		Cfg:       cache.cfg,
+		Secrets:   cache.secrets,
+		Files:     cache.files,
+		Endpoints: aggregatedEndpoints,
+	})
 	if err != nil {
 		// TODO: panic or handle these internal errors smartly
 		runtime.HandleError(errors.Wrap(err, "failed to translate based on the latest config"))
@@ -271,6 +313,11 @@ func (e *eventLoop) errors() <-chan error {
 			aggregatedErrorsChan <- errors.Wrap(err, "secret watcher encountered an error")
 		}
 	}()
+	go func() {
+		for err := range e.fileWatcher.Error() {
+			aggregatedErrorsChan <- errors.Wrap(err, "file watcher encountered an error")
+		}
+	}()
 	for _, ed := range e.endpointDiscoveries {
 		go func() {
 			for err := range ed.Error() {
@@ -285,6 +332,7 @@ func (e *eventLoop) errors() <-chan error {
 type cache struct {
 	cfg     *v1.Config
 	secrets secretwatcher.SecretMap
+	files   filewatcher.Files
 	// need to separate endpoints by the service who discovered them
 	endpoints map[endpointdiscovery.Interface]endpointdiscovery.EndpointGroups
 }

@@ -52,12 +52,17 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&opts.SecretWatcherOptions.Type, "secrets.type", bootstrap.WatcherTypeFile, fmt.Sprintf("storage backend for secrets. supported: [%s]", strings.Join(bootstrap.SupportedSwTypes, " | ")))
 	rootCmd.PersistentFlags().DurationVar(&opts.SecretWatcherOptions.SyncFrequency, "secrets.refreshrate", time.Second, "refresh rate for polling secrets")
 
+	// file watcher
+	rootCmd.PersistentFlags().StringVar(&opts.FileWatcherOptions.Type, "filewatcher.type", bootstrap.WatcherTypeFile, fmt.Sprintf("storage backend for raw files. supported: [%s]", strings.Join(bootstrap.SupportedFwTypes, " | ")))
+	rootCmd.PersistentFlags().DurationVar(&opts.FileWatcherOptions.SyncFrequency, "filewatcher.refreshrate", time.Second, "refresh rate for polling config")
+
 	// xds port
 	rootCmd.PersistentFlags().IntVar(&opts.XdsOptions.Port, "xds.port", 8081, "port to serve envoy xDS services. this port should be specified in your envoy's static config")
 
 	// file
 	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.ConfigDir, "file.config.dir", "_gloo_config", "root directory to use for storing gloo config files")
 	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.SecretDir, "file.secret.dir", "_gloo_secrets", "root directory to use for storing gloo secret files")
+	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.FilesDir, "file.files.dir", "_gloo_files", "root directory to use for storing gloo input files")
 
 	// kube
 	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.MasterURL, "master", "", "url of the kubernetes apiserver. not needed if running in-cluster")

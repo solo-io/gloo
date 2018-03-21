@@ -47,6 +47,17 @@ func newSecretController(cfg *rest.Config, resyncDuration time.Duration, stopCh 
 
 	go informerFactory.Start(stopCh)
 	go func() {
+		tick := time.Tick(time.Minute)
+		go func() {
+			for {
+				select {
+				case <-tick:
+					c.syncSecrets()
+				case <-stopCh:
+					return
+				}
+			}
+		}()
 		kubeController.Run(2, stopCh)
 	}()
 
