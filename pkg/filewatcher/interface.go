@@ -1,14 +1,14 @@
-package artifactwatcher
+package filewatcher
 
-// map [ref] : map[filename] : contents
-type Artifacts map[string]map[string][]byte
+// map [ref] : contents
+type Files map[string][]byte
 
 // Interface is responsible for watching artifacts referenced by a config
 type Interface interface {
-	TrackArtifacts(artifactRefs []string)
+	TrackFiles(fileRefs []string)
 
 	// artifacts are pushed here whenever they are read
-	Artifacts() <-chan Artifacts
+	Files() <-chan Files
 
 	// should show valid if the most recent update passed, otherwise a useful error
 	Error() <-chan error

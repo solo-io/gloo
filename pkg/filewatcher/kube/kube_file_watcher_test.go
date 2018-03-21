@@ -12,7 +12,7 @@ import (
 	"fmt"
 
 	. "github.com/solo-io/gloo-testing/helpers"
-	. "github.com/solo-io/gloo/pkg/artifactwatcher/kube"
+	. "github.com/solo-io/gloo/pkg/filewatcher/kube"
 	"github.com/solo-io/gloo/pkg/log"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,7 +20,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var _ = Describe("KubeArtifactWatcher", func() {
+var _ = Describe("KubeFileWatcher", func() {
 	if os.Getenv("RUN_KUBE_TESTS") != "1" {
 		log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
 		return
@@ -40,38 +40,42 @@ var _ = Describe("KubeArtifactWatcher", func() {
 		TeardownKube(namespace)
 	})
 	Describe("controller", func() {
-		It("watches kube artifacts", func() {
+		It("watches kube configmaps for files", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
 
-			watcher, err := NewArtifactWatcher(masterUrl, kubeconfigPath, time.Second, make(chan struct{}))
+			watcher, err := NewFileWatcher(masterUrl, kubeconfigPath, time.Second, make(chan struct{}))
 			Expect(err).NotTo(HaveOccurred())
 
-			// add a artifact
+			// add a file
 			kubeClient, err := kubernetes.NewForConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
-			artifact := &v1.ConfigMap{
+			file := &v1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
-					GenerateName: "artifact-",
+					GenerateName: "file-",
 					Namespace:    namespace,
 				},
 				Data: map[string]string{"username": "me@example.com", "password": "foobar"},
 			}
 
-			createdArtifact, err := kubeClient.CoreV1().ConfigMaps(namespace).Create(artifact)
+			createdFile, err := kubeClient.CoreV1().ConfigMaps(namespace).Create(file)
 			Expect(err).NotTo(HaveOccurred())
 
 			// give controller time to register
 			time.Sleep(time.Second * 2)
 
-			go watcher.TrackArtifacts([]string{createdArtifact.Name})
+			usernameRef := createdFile.Name + "/username"
+			passwordRef := createdFile.Name + "/password"
+
+			go watcher.TrackFiles([]string{usernameRef, passwordRef})
 
 			select {
 			case <-time.After(time.Second * 5):
 				Expect(fmt.Errorf("expected to have received resource event before 5s")).NotTo(HaveOccurred())
-			case artifacts := <-watcher.Artifacts():
-				Expect(len(artifacts)).To(Equal(1))
-				Expect(artifacts[createdArtifact.Name]["username"]).To(Equal([]byte("me@example.com")))
+			case files := <-watcher.Files():
+				Expect(len(files)).To(Equal(2))
+				Expect(files[usernameRef]).To(Equal([]byte("me@example.com")))
+				Expect(files[passwordRef]).To(Equal([]byte("foobar")))
 			case err := <-watcher.Error():
 				Expect(err).NotTo(HaveOccurred())
 			}

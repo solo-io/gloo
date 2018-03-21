@@ -13,8 +13,8 @@ import (
 	"path/filepath"
 
 	. "github.com/solo-io/gloo-testing/helpers"
-	"github.com/solo-io/gloo/pkg/artifactwatcher"
-	. "github.com/solo-io/gloo/pkg/artifactwatcher/file"
+	"github.com/solo-io/gloo/pkg/filewatcher"
+	. "github.com/solo-io/gloo/pkg/filewatcher/file"
 	"github.com/solo-io/gloo/pkg/log"
 )
 
@@ -24,7 +24,7 @@ var _ = Describe("FileArtifactWatcher", func() {
 		file  string
 		ref   string
 		err   error
-		watch artifactwatcher.Interface
+		watch filewatcher.Interface
 	)
 	BeforeEach(func() {
 		ref = "artifacts.yml"
@@ -47,8 +47,8 @@ var _ = Describe("FileArtifactWatcher", func() {
 				err = ioutil.WriteFile(file, data, 0644)
 				Expect(err).NotTo(HaveOccurred())
 				select {
-				case <-watch.Artifacts():
-					Fail("Artifacts was received, expected timeout")
+				case <-watch.Files():
+					Fail("Files was received, expected timeout")
 				case err := <-watch.Error():
 					Expect(err).NotTo(HaveOccurred())
 				case <-time.After(time.Second * 1):
@@ -57,15 +57,15 @@ var _ = Describe("FileArtifactWatcher", func() {
 			})
 		})
 		Context("valid artifacts are written to the ref file", func() {
-			It("sends a corresponding Artifacts on Artifacts()", func() {
+			It("sends a corresponding Files on Files()", func() {
 
 				data := []byte("this is the data")
 				err = ioutil.WriteFile(file, data, 0644)
 				Must(err)
 				go watch.TrackArtifacts([]string{ref})
 				select {
-				case parsedArtifacts := <-watch.Artifacts():
-					Expect(parsedArtifacts).To(Equal(artifactwatcher.Artifacts{
+				case parsedArtifacts := <-watch.Files():
+					Expect(parsedArtifacts).To(Equal(filewatcher.Files{
 						ref: map[string][]byte{ref: data},
 					}))
 				case err := <-watch.Error():

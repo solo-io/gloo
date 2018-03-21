@@ -13,7 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/internal/pkg/file"
-	"github.com/solo-io/gloo/pkg/artifactwatcher"
+	"github.com/solo-io/gloo/pkg/filewatcher"
 )
 
 // FileWatcher uses .yml files in a directory
@@ -21,14 +21,14 @@ import (
 type fileWatcher struct {
 	dir              string
 	artifactsToWatch []string
-	artifacts        chan artifactwatcher.Artifacts
+	artifacts        chan filewatcher.Files
 	errors           chan error
 	lastSeen         uint64
 }
 
 func NewArtifactWatcher(dir string, syncFrequency time.Duration) (*fileWatcher, error) {
 	os.MkdirAll(dir, 0755)
-	artifacts := make(chan artifactwatcher.Artifacts)
+	artifacts := make(chan filewatcher.Files)
 	errs := make(chan error)
 	fw := &fileWatcher{
 		artifacts: artifacts,
@@ -66,7 +66,7 @@ func (fw *fileWatcher) TrackArtifacts(artifactRefs []string) {
 	fw.updateArtifacts()
 }
 
-func (fw *fileWatcher) Artifacts() <-chan artifactwatcher.Artifacts {
+func (fw *fileWatcher) Artifacts() <-chan filewatcher.Files {
 	return fw.artifacts
 }
 
@@ -74,8 +74,8 @@ func (fw *fileWatcher) Error() <-chan error {
 	return fw.errors
 }
 
-func (fw *fileWatcher) getArtifacts() (artifactwatcher.Artifacts, error) {
-	desiredArtifacts := make(artifactwatcher.Artifacts)
+func (fw *fileWatcher) getArtifacts() (filewatcher.Files, error) {
+	desiredArtifacts := make(filewatcher.Files)
 	// ref should be the filename
 	for _, ref := range fw.artifactsToWatch {
 		data, err := ioutil.ReadFile(filepath.Join(fw.dir, ref))

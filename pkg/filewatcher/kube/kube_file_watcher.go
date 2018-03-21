@@ -6,10 +6,10 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/solo-io/gloo/pkg/artifactwatcher"
+	"github.com/solo-io/gloo/pkg/filewatcher"
 )
 
-func NewArtifactWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration, stopCh <-chan struct{}) (artifactwatcher.Interface, error) {
+func NewFileWatcher(masterUrl, kubeconfigPath string, resyncDuration time.Duration, stopCh <-chan struct{}) (filewatcher.Interface, error) {
 	cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build rest config: %v", err)
