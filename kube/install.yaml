@@ -85,7 +85,7 @@ spec:
         gloo: control-plane
     spec:
       containers:
-      - image: soloio/gloo:v0.1.4
+      - image: soloio/gloo:v0.1.5-81
         name: gloo
         ports:
         - containerPort: 8081
@@ -174,7 +174,7 @@ spec:
               apiVersion: v1
               fieldPath: metadata.namespace
       containers:
-      - image: soloio/envoy:v0.1.6-77
+      - image: soloio/envoy:v0.1.5-81
         name: envoy
         ports:
         - containerPort: 8080
@@ -286,7 +286,7 @@ spec:
         gloo: k8s-service-discovery
     spec:
       containers:
-      - image: soloio/gloo-k8s-service-discovery:v0.1.1
+      - image: soloio/gloo-k8s-service-discovery:v0.1.1-81
         name: k8s-service-discovery
         env:
         - name: GRPC_TRACE
@@ -316,7 +316,7 @@ spec:
         gloo: function-discovery
     spec:
       containers:
-      - image: soloio/gloo-function-discovery:v0.1.4
+      - image: soloio/gloo-function-discovery:v0.1.7-81
         name: function-discovery
         env:
         - name: GRPC_TRACE
@@ -365,7 +365,7 @@ spec:
         gloo: ingress-controller
     spec:
       containers:
-      - image: soloio/gloo-ingress-controller:v0.1.1
+      - image: soloio/gloo-ingress-controller:v0.1.2-81
         name: ingress-controller
         env:
         - name: DEBUG
