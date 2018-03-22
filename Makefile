@@ -3,12 +3,16 @@ BINARY:=gloo
 VERSION:=$(shell cat version)
 IMAGE_TAG?=v$(VERSION)
 
+build: $(BINARY)
+build-static: $(BINARY)-static
 build-debug: gloo-debug
 
-build: $(BINARY)
 
 $(BINARY): $(SOURCES)
 	CGO_ENABLED=0 GOOS=linux go build -i -v  -o $@ *.go
+
+$(BINARY)-static: $(SOURCES)
+	CGO_ENABLED=0 GOOS=linux go build -v -a -ldflags '-extldflags "-static"' -o $@ *.go
 
 docker: $(BINARY)
 	docker build -t soloio/$(BINARY):$(IMAGE_TAG) .
