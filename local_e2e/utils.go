@@ -1,6 +1,7 @@
 package local_e2e
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"strconv"
@@ -70,6 +71,8 @@ func runServer(ctx context.Context) (uint32, <-chan *ReceivedRequest) {
 	return uint32(port), bodychan
 }
 
+var id = 0
+
 func NewTestUpstream(ctx context.Context) *TestUpstream {
 
 	backendport, responses := runServer(ctx)
@@ -80,9 +83,9 @@ func NewTestUpstream(ctx context.Context) *TestUpstream {
 			Port: backendport,
 		}},
 	}
-
+	id += 1
 	u := &v1.Upstream{
-		Name: "local", // TODO: randomize
+		Name: fmt.Sprintf("local-%d", id),
 		Type: "service",
 		Spec: service.EncodeUpstreamSpec(serviceSpec),
 	}
