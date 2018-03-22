@@ -18,6 +18,20 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 )
 
+const (
+	// gloo labels
+	testrunner        = "testrunner"
+	helloservice      = "helloservice"
+	helloservice2     = "helloservice-2"
+	envoy             = "ingress"
+	gloo              = "control-plane"
+	ingress           = "ingress-controller"
+	k8sd              = "k8s-service-discovery"
+	funcitonDiscovery = "function-discovery"
+	upstreamForEvents = "upstream-for-events"
+	eventEmitter      = "event-emitter"
+)
+
 func SetupKubeForTest(namespace string) error {
 	context := os.Getenv("KUBECTL_CONTEXT")
 	if context == "" {
@@ -48,9 +62,16 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 	}
 	kubeResourcesDir := filepath.Join(E2eDirectory(), "kube_resources")
 
+	envoyImageTag := os.Getenv("ENVOY_IMAGE_TAG")
+	if envoyImageTag == "" {
+		log.Warnf("no ENVOY_IMAGE_TAG specified, defaulting to latest")
+		envoyImageTag = "latest"
+	}
+
 	installBytes, err := exec.Command("helm", "template", HelmDirectory(),
 		"--namespace", namespace,
 		"-n", "test",
+		"--set", "ingress.imageTag="+envoyImageTag,
 		"-f", filepath.Join(kubeResourcesDir, "helm-values.yaml")).CombinedOutput()
 	if err != nil {
 		return errors.Wrapf(err, "running helm template: %v", installBytes)
@@ -105,7 +126,15 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 
 func kubectl(args ...string) error {
 	cmd := exec.Command("kubectl", args...)
-	log.Printf("k command: %v", cmd.Args)
+	log.Debugf("k command: %v", cmd.Args)
+	cmd.Env = os.Environ()
+	// disable DEBUG=1 from getting through to kube
+	for i, pair := range cmd.Env {
+		if strings.HasPrefix(pair, "DEBUG") {
+			cmd.Env = append(cmd.Env[:i], cmd.Env[i+1:]...)
+			break
+		}
+	}
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -113,6 +142,14 @@ func kubectl(args ...string) error {
 
 func KubectlOut(args ...string) (string, error) {
 	cmd := exec.Command("kubectl", args...)
+	cmd.Env = os.Environ()
+	// disable DEBUG=1 from getting through to kube
+	for i, pair := range cmd.Env {
+		if strings.HasPrefix(pair, "DEBUG") {
+			cmd.Env = append(cmd.Env[:i], cmd.Env[i+1:]...)
+			break
+		}
+	}
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		err = fmt.Errorf("%s (%v)", out, err)
@@ -122,10 +159,10 @@ func KubectlOut(args ...string) (string, error) {
 
 // waitPodsRunning waits for all pods to be running
 func waitPodsRunning(podNames ...string) error {
+	finished := func(output string) bool {
+		return strings.Contains(output, "Running")
+	}
 	for _, pod := range podNames {
-		finished := func(output string) bool {
-			return strings.Contains(output, "Running")
-		}
 		if err := waitPodStatus(pod, "Running", finished); err != nil {
 			return err
 		}
@@ -149,7 +186,7 @@ func waitPodsTerminated(podNames ...string) error {
 // TestRunner executes a command inside the TestRunner container
 func TestRunner(args ...string) (string, error) {
 	args = append([]string{"exec", "-i", testrunner, "--"}, args...)
-	log.Debugf("trying command %v", args)
+	//log.Debugf("trying command %s", strings.Join(args, " "))
 	return KubectlOut(args...)
 }
 

@@ -39,7 +39,7 @@ var _ = Describe("Kube Upstream Discovery", func() {
 			Must(err)
 		})
 		AfterEach(func() {
-			gloo.V1().Upstreams().Delete(generatedUpstreamName)
+			//gloo.V1().Upstreams().Delete(generatedUpstreamName)
 			gloo.V1().VirtualHosts().Delete(vhostName)
 		})
 		It("should configure envoy with a 200 OK route (backed by helloservice)", func() {

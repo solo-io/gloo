@@ -5,7 +5,7 @@ ingress:
   securePort: 8443
   adminPort: 19000
   image: "soloio/envoy"
-  imageTag: "v0.1.2"
+  imageTag: "latest"
   imagePullPolicy: Always
 
 gloo:
