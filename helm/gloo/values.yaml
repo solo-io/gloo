@@ -9,14 +9,14 @@ ingress:
   securePort: 8443
   adminPort: 19000
   image: "soloio/envoy"
-  imageTag: "v0.1.2"
+  imageTag: "v0.1.6-77"
   imagePullPolicy: IfNotPresent
 
 gloo:
   replicaCount: 1
   port: 8081
   image: "soloio/gloo"
-  imageTag: "v0.1.2"
+  imageTag: "v0.1.4"
   imagePullPolicy: IfNotPresent
 
 #  extra
@@ -38,20 +38,20 @@ gloo_k8s_service_discovery:
   imagePullPolicy: IfNotPresent
   enable: true
 
-grafana:
-  image: grafana/grafana
-  imageTag: 4.2.0
+opentracing:
   imagePullPolicy: IfNotPresent
   enable: false
+  jaeger: jaegertracing/all-in-one:latest
+  jaeger_host: jaeger.server
+  jaeger_port: 9123
+  status: disable
 
-prometheus:
-  image: quay.io/coreos/prometheus
-  imageTag: latest
+metrics:
   imagePullPolicy: IfNotPresent
   enable: false
-
-kube_state_metrics:
-  image: gcr.io/google_containers/kube-state-metrics
-  imageTag: v0.5.0
-  imagePullPolicy: IfNotPresent
-  enable: false
+  grafana: grafana/grafana:4.2.0
+  prometheus: quay.io/coreos/prometheus:latest
+  statsd-exporter: prom/statsd-exporter:latest
+  statsd_host: statsd.server
+  statsd_port: 9451
+  status: disable
