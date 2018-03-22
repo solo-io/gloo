@@ -62,10 +62,11 @@ func (c *virtualHostsClient) Update(item *v1.VirtualHost) (*v1.VirtualHost, erro
 	}
 	// error if exists already
 	for file, existingUps := range virtualHostFiles {
-		if existingUps.Name == item.Name {
-			if existingUps.Metadata != nil && lessThan(item.Metadata.ResourceVersion, existingUps.Metadata.ResourceVersion) {
-				return nil, errors.Errorf("resource version outdated for %v", item.Name)
-			}
+		if existingUps.Name != item.Name {
+			continue
+		}
+		if existingUps.Metadata != nil && lessThan(item.Metadata.ResourceVersion, existingUps.Metadata.ResourceVersion) {
+			return nil, errors.Errorf("resource version outdated for %v", item.Name)
 		}
 		virtualHostClone, ok := proto.Clone(item).(*v1.VirtualHost)
 		if !ok {
