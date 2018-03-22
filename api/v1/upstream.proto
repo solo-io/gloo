@@ -39,6 +39,21 @@ message Upstream {
     Status status = 6 [(gogoproto.moretags) = "testdiff:\"ignore\""];
     // Metadata contains the resource metadata for the upstream
     Metadata metadata = 7;
+    // Service Info contains information about the service running on the upstream
+    // Service Info is optional, but is used by certain plugins (such as the gRPC plugin)
+    // as well as discovery services to provide sophistocated routing features for well-known
+    // types of services
+    ServiceInfo service_info = 8;
+}
+
+message ServiceInfo {
+    // Type indicates the type of service running on the upstream.
+    // Current options include `REST`, `gRPC`, and `NATS`
+    string type = 1;
+    // Properties contains properties that describe the service. The spec may be required
+    // by the Upstream Plugin that handles the given Service Type
+    // Most often the service properties will be a map<string, string>
+    google.protobuf.Struct properties = 2;
 }
 
 message Function {
