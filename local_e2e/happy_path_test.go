@@ -60,7 +60,7 @@ var _ = Describe("HappyPath", func() {
 			buf.Write(body)
 			_, err = http.Post(fmt.Sprintf("http://%s:%d", "localhost", envoyPort), "application/octet-stream", &buf)
 			return err
-		}, 60, 1).Should(BeNil())
+		}, 90, 1).Should(BeNil())
 
 		expectedResponse := &ReceivedRequest{
 			Method: "POST",
