@@ -14,7 +14,7 @@ $(BINARY): $(SOURCES)
 $(BINARY)-static: $(SOURCES)
 	CGO_ENABLED=0 GOOS=linux go build -v -a -ldflags '-extldflags "-static"' -o $@ *.go
 
-docker: $(BINARY)
+docker: $(BINARY)-static
 	docker build -t soloio/$(BINARY):$(IMAGE_TAG) .
 
 $(BINARY)-debug: $(SOURCES)
