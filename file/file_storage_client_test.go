@@ -47,7 +47,7 @@ var _ = Describe("CrdStorageClient", func() {
 		})
 	})
 	Describe("Create2Update", func() {
-		FIt("creates and updates", func() {
+		It("creates and updates", func() {
 			client, err := NewStorage(dir, resync)
 			Expect(err).NotTo(HaveOccurred())
 			err = client.V1().Register()
