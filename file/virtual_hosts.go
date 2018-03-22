@@ -61,9 +61,12 @@ func (c *virtualHostsClient) Update(item *v1.VirtualHost) (*v1.VirtualHost, erro
 		return nil, errors.Wrap(err, "failed to read virtualHost dir")
 	}
 	// error if exists already
-	for file, existingUps := range virtualHostFiles {
-		if existingUps.Name == item.Name {
-			if existingUps.Metadata != nil && lessThan(item.Metadata.ResourceVersion, existingUps.Metadata.ResourceVersion) {
+	for file, existinVhost := range virtualHostFiles {
+		if existinVhost.Name != item.Name {
+			continue
+		}
+		if existinVhost.Name == item.Name {
+			if existinVhost.Metadata != nil && lessThan(item.Metadata.ResourceVersion, existinVhost.Metadata.ResourceVersion) {
 				return nil, errors.Errorf("resource version outdated for %v", item.Name)
 			}
 		}
