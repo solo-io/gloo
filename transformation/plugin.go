@@ -31,7 +31,7 @@ const (
 	metadataResponseKey = "response-transformation"
 	pluginStage         = plugin.PostInAuth
 
-	ServiceTypeHttpFunctions = "HTTP-Functions"
+	ServiceTypeHttpFunctions = "REST"
 )
 
 func init() {
@@ -69,9 +69,7 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	return nil
 }
 
-// TODO: only do transformation for swagger \ transformation routes; not any functional routes
 func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
-
 	if err := p.processRequestTransformationsForRoute(pluginParams, in, out); err != nil {
 		return errors.Wrap(err, "failed to process request transformation")
 	}
