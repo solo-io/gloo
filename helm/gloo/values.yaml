@@ -51,7 +51,7 @@ metrics:
   enable: false
   grafana: grafana/grafana:4.2.0
   prometheus: quay.io/coreos/prometheus:latest
-  statsd-exporter: prom/statsd-exporter:latest
+  statsd_exporter: prom/statsd-exporter:latest
   statsd_host: statsd.server
   statsd_port: 9451
   status: disable
