@@ -33,7 +33,7 @@ const (
 
 type Plugin interface {
 	ActivateFilterForCluster(out *envoyapi.Cluster)
-	AddRequestTransformationsToRoute(getTransformation GetTransformationFunction, in *v1.Route, out *envoyroute.Route) error
+	AddRequestTransformationsToRoute(getTemplate GetTransformationFunction, in *v1.Route, out *envoyroute.Route) error
 	AddResponseTransformationsToRoute(in *v1.Route, out *envoyroute.Route) error
 	GetTransformationFilter() *plugin.StagedFilter
 }
@@ -44,13 +44,10 @@ func NewTransformationPlugin() Plugin {
 	}
 }
 
-type GetTransformationFunction func(destination *v1.Destination_Function, extractors map[string]*Extraction) (string, *Transformation, error)
+type GetTransformationFunction func(destination *v1.Destination_Function) (*TransformationTemplate, error)
 
 type transformationPlugin struct {
 	cachedTransformations map[string]*Transformation
-
-	// if this is set, the transformation plugin will use this function to generate each transformation for the route
-	getTransformationForDestination GetTransformationFunction
 }
 
 func (p *transformationPlugin) ActivateFilterForCluster(out *envoyapi.Cluster) {
@@ -63,7 +60,7 @@ func (p *transformationPlugin) ActivateFilterForCluster(out *envoyapi.Cluster) {
 	}
 }
 
-func (p *transformationPlugin) AddRequestTransformationsToRoute(getTransformation GetTransformationFunction, in *v1.Route, out *envoyroute.Route) error {
+func (p *transformationPlugin) AddRequestTransformationsToRoute(getTemplate GetTransformationFunction, in *v1.Route, out *envoyroute.Route) error {
 	var extractors map[string]*Extraction
 	// if no parameters specified, the only extraction will be a json body
 	if in.Extensions != nil {
@@ -78,7 +75,7 @@ func (p *transformationPlugin) AddRequestTransformationsToRoute(getTransformatio
 	}
 
 	// calculate the templates for all these transformations
-	if err := p.setTransformationsForRoute(getTransformation, in, extractors, out); err != nil {
+	if err := p.setTransformationsForRoute(getTemplate, in, extractors, out); err != nil {
 		return errors.Wrap(err, "resolving request transformations for route")
 	}
 
@@ -220,17 +217,17 @@ func buildRegexString(rxp *regexp.Regexp, paramString string) string {
 // if single destination, just one transformation
 // if multi destination, one transformation for each functional
 // that specifies a transformation spec
-func (p *transformationPlugin) setTransformationsForRoute(getTransformation GetTransformationFunction, in *v1.Route, extractors map[string]*Extraction, out *envoyroute.Route) error {
+func (p *transformationPlugin) setTransformationsForRoute(getTemplate GetTransformationFunction, in *v1.Route, extractors map[string]*Extraction, out *envoyroute.Route) error {
 	switch {
 	case in.MultipleDestinations != nil:
 		for _, dest := range in.MultipleDestinations {
-			err := p.setTransformationForRoute(getTransformation, dest.Destination, extractors, out)
+			err := p.setTransformationForRoute(getTemplate, dest.Destination, extractors, out)
 			if err != nil {
 				return errors.Wrap(err, "setting transformation for route")
 			}
 		}
 	case in.SingleDestination != nil:
-		err := p.setTransformationForRoute(getTransformation, in.SingleDestination, extractors, out)
+		err := p.setTransformationForRoute(getTemplate, in.SingleDestination, extractors, out)
 		if err != nil {
 			return errors.Wrap(err, "setting transformation for route")
 		}
@@ -238,25 +235,35 @@ func (p *transformationPlugin) setTransformationsForRoute(getTransformation GetT
 	return nil
 }
 
-func (p *transformationPlugin) setTransformationForRoute(getTransformationForDestination GetTransformationFunction, dest *v1.Destination, extractors map[string]*Extraction, out *envoyroute.Route) error {
+func (p *transformationPlugin) setTransformationForRoute(getTemplateForDestination GetTransformationFunction, dest *v1.Destination, extractors map[string]*Extraction, out *envoyroute.Route) error {
 	fnDestination, ok := dest.DestinationType.(*v1.Destination_Function)
 	if !ok {
 		// not a functional route, nothing to do
 		return nil
 	}
-
-	hash, transformation, err := getTransformationForDestination(fnDestination, extractors)
+	template, err := getTemplateForDestination(fnDestination)
 	if err != nil {
 		return errors.Wrap(err, "getting transformation for function")
 	}
-
 	// no transformations for this destination
-	if transformation == nil {
+	if template == nil {
 		return nil
 	}
 
+	t := Transformation{
+		Extractors:             extractors,
+		TransformationTemplate: template,
+	}
+
+	intHash, err := hashstructure.Hash(t, nil)
+	if err != nil {
+		return err
+	}
+
+	hash := fmt.Sprintf("%v", intHash)
+
 	// cache the transformation, the filter config needs to contain all of them
-	p.cachedTransformations[hash] = transformation
+	p.cachedTransformations[hash] = &t
 
 	// set the filter metadata on the route
 	if out.Metadata == nil {

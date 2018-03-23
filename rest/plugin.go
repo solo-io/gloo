@@ -1,12 +1,9 @@
 package rest
 
 import (
-	"fmt"
-
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 
-	"github.com/mitchellh/hashstructure"
 	"github.com/pkg/errors"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
@@ -60,18 +57,18 @@ func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Rou
 }
 
 func createTransformationForRestFunction(upstreams []*v1.Upstream) transformation.GetTransformationFunction {
-	return func(fnDestination *v1.Destination_Function, extractors map[string]*transformation.Extraction) (string, *transformation.Transformation, error) {
+	return func(fnDestination *v1.Destination_Function) (*transformation.TransformationTemplate, error) {
 		fn, err := findFunction(upstreams, fnDestination.Function.UpstreamName, fnDestination.Function.FunctionName)
 		if err != nil {
-			return "", nil, errors.Wrap(err, "finding function")
+			return nil, errors.Wrap(err, "finding function")
 		}
 		if fn == nil {
-			return "", nil, nil
+			return nil, nil
 		}
 
 		outputTemplates, err := DecodeFunctionSpec(fn.Spec)
 		if err != nil {
-			return "", nil, errors.Wrap(err, "decoding function spec")
+			return nil, errors.Wrap(err, "decoding function spec")
 		}
 
 		// if the the function doesn't need a transformation, also return nil
@@ -93,34 +90,24 @@ func createTransformationForRestFunction(upstreams []*v1.Upstream) transformatio
 		// this function doesn't request any kind of transformation
 		if !needsTransformation {
 			log.Debugf("does not need transformation: %v", outputTemplates)
-			return "", nil, nil
+			return nil, nil
 		}
 
-		t := transformation.Transformation{
-			Extractors: extractors,
-			TransformationTemplate: &transformation.TransformationTemplate{
-				Headers: headerTemplates,
-			},
+		template := &transformation.TransformationTemplate{
+			Headers: headerTemplates,
 		}
 
 		if outputTemplates.Body != nil {
-			t.TransformationTemplate.BodyTransformation = &transformation.TransformationTemplate_Body{
+			template.BodyTransformation = &transformation.TransformationTemplate_Body{
 				Body: &transformation.InjaTemplate{
 					Text: *outputTemplates.Body,
 				},
 			}
 		} else {
-			t.TransformationTemplate.BodyTransformation = &transformation.TransformationTemplate_Passthrough{}
+			template.BodyTransformation = &transformation.TransformationTemplate_Passthrough{}
 		}
 
-		intHash, err := hashstructure.Hash(t, nil)
-		if err != nil {
-			return "", nil, err
-		}
-
-		hash := fmt.Sprintf("%v", intHash)
-
-		return hash, &t, nil
+		return template, nil
 	}
 }
 
