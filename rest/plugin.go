@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/transformation"
+	"github.com/solo-io/gloo-plugins/common/transformation"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
