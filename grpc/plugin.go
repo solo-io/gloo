@@ -121,58 +121,61 @@ func convertProto(b []byte) (*descriptor.FileDescriptorSet, error) {
 	return &fileDescriptor, err
 }
 
-func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
-	switch {
-	case in.SingleDestination != nil:
-		err := p.processRouteForGRPC(in.SingleDestination, in, out)
-		if err != nil {
-			return errors.Wrap(err, "processing route for gRPC destination")
-		}
-
-	case in.MultipleDestinations != nil:
-		for _, dest := range in.MultipleDestinations {
-			err := p.processRouteForGRPC(dest.Destination, in, out)
-			if err != nil {
-				return errors.Wrap(err, "processing route for gRPC destination")
-			}
-		}
+func getPath(matcher *v1.RequestMatcher) string {
+	switch path := matcher.Path.(type) {
+	case *v1.RequestMatcher_PathPrefix:
+		return path.PathPrefix
+	case *v1.RequestMatcher_PathExact:
+		return path.PathExact
+	case *v1.RequestMatcher_PathRegex:
+		return path.PathRegex
 	}
-	return nil
+	panic("invalid matcher")
 }
 
-func (p *Plugin) processRouteForGRPC(dest *v1.Destination, in *v1.Route, out *envoyroute.Route) error {
-	fnDest, ok := dest.DestinationType.(*v1.Destination_Function)
-	if !ok {
-		// not intetransformationed have a nice day
-		return nil
+func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+	if in.Extensions == nil {
+		matcher, ok := in.Matcher.(*v1.Route_RequestMatcher)
+		if ok {
+			in.Extensions = transformation.EncodeRouteExtension(transformation.RouteExtension{
+				Parameters: &transformation.Parameters{
+					Path: getPath(matcher.RequestMatcher),
+				},
+			})
+		}
 	}
-	upstreamName := fnDest.Function.UpstreamName
+	return p.transformation.AddRequestTransformationsToRoute(p.templateForFunction, in, out)
+}
+
+func (p *Plugin) templateForFunction(dest *v1.Destination_Function) (*transformation.TransformationTemplate, error) {
+	upstreamName := dest.Function.UpstreamName
 	serviceName, ok := p.upstreamServices[upstreamName]
 	if !ok {
 		// the upstream is not a grpc desintation
-		return nil
+		return nil, nil
 	}
 
 	// method name should be function name in this case. TODO: document in the api
-	methodName := fnDest.Function.FunctionName
+	methodName := dest.Function.FunctionName
+
 
 	// create the transformation for the route
 
 	outPath := httpPath(upstreamName, serviceName, methodName)
 
-	routeParams, err := transformation.DecodeRouteExtension(in.Extensions)
-	if err != nil {
-		return errors.Wrap(err, "parsing route extensions")
-	}
+	// add query matcher to out path. kombina for now
+	// TODO: support query for matching
+	outPath += `?{{ default(query_string), "")}}`
 
 	// we always choose post
 	httpMethod := "POST"
-
-	p.transformation.AddRequestTransformationsToRoute(func(destination *v1.Destination_Function, extractors map[string]*transformation.Extraction) (string, *transformation.Transformation, error) {
-		// get transformation, maybe refactor this method a little; don't need extractors for this, don't need to give the hash. just need to give the template
-	}, in, out)
-
-	return nil
+	return &transformation.TransformationTemplate{
+		Headers: map[string]*transformation.InjaTemplate{
+			":method": {Text: httpMethod},
+			":path":   {Text: outPath},
+		},
+		BodyTransformation: ,
+	}, nil
 }
 
 func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileDescriptorSet) error {

@@ -31,6 +31,8 @@ const (
 	pluginStage         = plugin.PostInAuth
 )
 
+type GetTransformationFunction func(destination *v1.Destination_Function) (*TransformationTemplate, error)
+
 type Plugin interface {
 	ActivateFilterForCluster(out *envoyapi.Cluster)
 	AddRequestTransformationsToRoute(getTemplate GetTransformationFunction, in *v1.Route, out *envoyroute.Route) error
@@ -43,8 +45,6 @@ func NewTransformationPlugin() Plugin {
 		cachedTransformations: make(map[string]*Transformation),
 	}
 }
-
-type GetTransformationFunction func(destination *v1.Destination_Function) (*TransformationTemplate, error)
 
 type transformationPlugin struct {
 	cachedTransformations map[string]*Transformation
