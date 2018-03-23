@@ -261,7 +261,7 @@ func (p *Plugin) setTransformationForRoute(upstreams []*v1.Upstream, dest *v1.De
 		return nil
 	}
 
-	hash, transformation, err := getTransformationForFunction(upstreams, fnDestination, extractors)
+	hash, transformation, err := getTransformationForDestination(upstreams, fnDestination, extractors)
 	if err != nil {
 		return errors.Wrap(err, "getting transformation for function")
 	}
@@ -321,7 +321,7 @@ func (p *Plugin) setTransformationForRoute(upstreams []*v1.Upstream, dest *v1.De
 	return nil
 }
 
-func getTransformationForFunction(upstreams []*v1.Upstream, fnDestination *v1.Destination_Function, extractors map[string]*Extraction) (string, *Transformation, error) {
+func getTransformationForDestination(upstreams []*v1.Upstream, fnDestination *v1.Destination_Function, extractors map[string]*Extraction) (string, *Transformation, error) {
 	fn, err := findFunction(upstreams, fnDestination.Function.UpstreamName, fnDestination.Function.FunctionName)
 	if err != nil {
 		return "", nil, errors.Wrap(err, "finding function")
