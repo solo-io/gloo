@@ -23,7 +23,7 @@ var _ = Describe("Transformation", func() {
 		in := NewNonFunctionSingleDestRoute(upstreamName)
 		in.Extensions = EncodeRouteExtension(RouteExtension{
 			ResponseTemplate: &Template{
-				Body: "{{body}}",
+				Body: strPtr("{{body}}"),
 			},
 		})
 		err := p.ProcessRoute(params, in, out)
@@ -78,10 +78,10 @@ var _ = Describe("Transformation", func() {
 				Regex:    `([\.\-_[:alnum:]]+)`,
 				Subgroup: 1,
 			}))
-			Expect(trans.RequestTemplate.Body).To(Equal(&InjaTemplate{
+			Expect(trans.TransformationTemplate.BodyTransformation.(*TransformationTemplate_Body).Body).To(Equal(&InjaTemplate{
 				Text: `{"id":"{{id}}", "type":"{{type}}"}`,
 			}))
-			Expect(trans.RequestTemplate.Headers).To(Equal(map[string]*InjaTemplate{
+			Expect(trans.TransformationTemplate.Headers).To(Equal(map[string]*InjaTemplate{
 				":path":          {Text: "/{{id}}/why/{{id}}"},
 				"x-user-id":      {Text: "{{id}}"},
 				"x-content-type": {Text: "{{type}}"},
@@ -233,9 +233,13 @@ func NewFunctionalUpstream(name, funcName string) *v1.Upstream {
 					"x-user-id":      "{{id}}",
 					"x-content-type": "{{type}}",
 				},
-				Body: `{"id":"{{id}}", "type":"{{type}}"}`,
+				Body: strPtr(`{"id":"{{id}}", "type":"{{type}}"}`),
 			}),
 		},
 	}
 	return us
+}
+
+func strPtr(s string) *string {
+	return &s
 }

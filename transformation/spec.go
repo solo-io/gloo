@@ -44,7 +44,8 @@ type Parameters struct {
 type Template struct {
 	Path   string            `json:"path"`
 	Header map[string]string `json:"headers"`
-	Body   string            `json:"body"`
+	// body is a pointer because, if null, pass through original body
+	Body *string `json:"body"`
 	// if enabled, the request body will be passed through untouched
 	PassthroughBody bool `json:"passthrough_body"`
 	//TODO: support query template

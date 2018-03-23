@@ -23,7 +23,7 @@ import (
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
-//go:generate protoc -I=. -I=${GOPATH}/src/github.com/gogo/protobuf/ --gogo_out=. transformation_filter.proto
+//go:generate protoc -I=./envoy/ -I=${GOPATH}/src/github.com/gogo/protobuf/ --gogo_out=. envoy/transformation_filter.proto
 
 const (
 	filterName          = "io.solo.transformation"
@@ -240,21 +240,21 @@ func (p *Plugin) setTransformationsForRoute(upstreams []*v1.Upstream, in *v1.Rou
 	switch {
 	case in.MultipleDestinations != nil:
 		for _, dest := range in.MultipleDestinations {
-			err := p.setTransformationForFunction(upstreams, dest.Destination, extractors, out)
+			err := p.setTransformationForRoute(upstreams, dest.Destination, extractors, out)
 			if err != nil {
-				return errors.Wrap(err, "setting transformation for function")
+				return errors.Wrap(err, "setting transformation for route")
 			}
 		}
 	case in.SingleDestination != nil:
-		err := p.setTransformationForFunction(upstreams, in.SingleDestination, extractors, out)
+		err := p.setTransformationForRoute(upstreams, in.SingleDestination, extractors, out)
 		if err != nil {
-			return errors.Wrap(err, "setting transformation for function")
+			return errors.Wrap(err, "setting transformation for route")
 		}
 	}
 	return nil
 }
 
-func (p *Plugin) setTransformationForFunction(upstreams []*v1.Upstream, dest *v1.Destination, extractors map[string]*Extraction, out *envoyroute.Route) error {
+func (p *Plugin) setTransformationForRoute(upstreams []*v1.Upstream, dest *v1.Destination, extractors map[string]*Extraction, out *envoyroute.Route) error {
 	fnDestination, ok := dest.DestinationType.(*v1.Destination_Function)
 	if !ok {
 		// not a functional route, nothing to do
@@ -336,7 +336,7 @@ func getTransformationForFunction(upstreams []*v1.Upstream, fnDestination *v1.De
 	}
 
 	// if the the function doesn't need a transformation, also return nil
-	var needsTransformation bool
+	needsTransformation := outputTemplates.Body != nil
 
 	// create templates
 	// right now it's just a no-op, user writes inja directly
@@ -351,12 +351,6 @@ func getTransformationForFunction(upstreams []*v1.Upstream, fnDestination *v1.De
 		headerTemplates[":path"] = &InjaTemplate{Text: outputTemplates.Path}
 	}
 
-	var body string
-	if outputTemplates.Body != "" {
-		needsTransformation = true
-		body = outputTemplates.Body
-	}
-
 	// this function doesn't request any kind of transformation
 	if !needsTransformation {
 		log.Debugf("does not need transformation: %v", outputTemplates)
@@ -365,12 +359,19 @@ func getTransformationForFunction(upstreams []*v1.Upstream, fnDestination *v1.De
 
 	t := Transformation{
 		Extractors: extractors,
-		RequestTemplate: &RequestTemplate{
-			Body: &InjaTemplate{
-				Text: body,
-			},
+		TransformationTemplate: &TransformationTemplate{
 			Headers: headerTemplates,
 		},
+	}
+
+	if outputTemplates.Body != nil {
+		t.TransformationTemplate.BodyTransformation = &TransformationTemplate_Body{
+			Body: &InjaTemplate{
+				Text: *outputTemplates.Body,
+			},
+		}
+	} else {
+		t.TransformationTemplate.BodyTransformation = &TransformationTemplate_Passthrough{}
 	}
 
 	intHash, err := hashstructure.Hash(t, nil)
@@ -407,17 +408,24 @@ func (p *Plugin) setResponseTransformationForRoute(template Template, extractors
 		headerTemplates[k] = &InjaTemplate{Text: v}
 	}
 
-	transformation := Transformation{
+	t := Transformation{
 		Extractors: extractors,
-		RequestTemplate: &RequestTemplate{
-			Body: &InjaTemplate{
-				Text: template.Body,
-			},
+		TransformationTemplate: &TransformationTemplate{
 			Headers: headerTemplates,
 		},
 	}
 
-	intHash, err := hashstructure.Hash(transformation, nil)
+	if template.Body != nil {
+		t.TransformationTemplate.BodyTransformation = &TransformationTemplate_Body{
+			Body: &InjaTemplate{
+				Text: *template.Body,
+			},
+		}
+	} else {
+		t.TransformationTemplate.BodyTransformation = &TransformationTemplate_Passthrough{}
+	}
+
+	intHash, err := hashstructure.Hash(t, nil)
 	if err != nil {
 		return errors.Wrap(err, "generating hash")
 	}
@@ -425,7 +433,7 @@ func (p *Plugin) setResponseTransformationForRoute(template Template, extractors
 	hash := fmt.Sprintf("%v", intHash)
 
 	// cache the transformation, the filter config needs to contain all of them
-	p.CachedTransformations[hash] = &transformation
+	p.CachedTransformations[hash] = &t
 
 	// set the filter metadata on the route
 	if out.Metadata == nil {
@@ -436,6 +444,7 @@ func (p *Plugin) setResponseTransformationForRoute(template Template, extractors
 
 	return nil
 }
+
 func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
 	if len(p.CachedTransformations) == 0 {
 		return nil
