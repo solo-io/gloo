@@ -16,7 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/common/annotations"
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
@@ -30,34 +29,31 @@ const (
 	metadataRequestKey  = "request-transformation"
 	metadataResponseKey = "response-transformation"
 	pluginStage         = plugin.PostInAuth
-
-	ServiceTypeHttpFunctions = "REST"
 )
 
-func init() {
-	plugin.Register(&Plugin{CachedTransformations: make(map[string]*Transformation)}, nil)
+type Plugin interface {
+	ActivateFilterForCluster(out *envoyapi.Cluster)
+	AddRequestTransformationsToRoute(getTransformation GetTransformationFunction, in *v1.Route, out *envoyroute.Route) error
+	AddResponseTransformationsToRoute(in *v1.Route, out *envoyroute.Route) error
+	GetTransformationFilter() *plugin.StagedFilter
 }
 
-type Plugin struct {
-	CachedTransformations map[string]*Transformation
-}
-
-func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
-	return nil
-}
-
-func isOurs(in *v1.Upstream) bool {
-	if in.Metadata == nil || in.Metadata.Annotations == nil {
-		return false
+func NewTransformationPlugin() Plugin {
+	return &transformationPlugin{
+		cachedTransformations: make(map[string]*Transformation),
 	}
-	return in.Metadata.Annotations[annotations.ServiceType] == ServiceTypeHttpFunctions
 }
 
-func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
-	if !isOurs(in) {
-		return nil
-	}
+type GetTransformationFunction func(destination *v1.Destination_Function, extractors map[string]*Extraction) (string, *Transformation, error)
 
+type transformationPlugin struct {
+	cachedTransformations map[string]*Transformation
+
+	// if this is set, the transformation plugin will use this function to generate each transformation for the route
+	getTransformationForDestination GetTransformationFunction
+}
+
+func (p *transformationPlugin) ActivateFilterForCluster(out *envoyapi.Cluster) {
 	if out.Metadata == nil {
 		out.Metadata = &envoycore.Metadata{}
 	}
@@ -65,21 +61,9 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	out.Metadata.FilterMetadata[filterName] = &types.Struct{
 		Fields: make(map[string]*types.Value),
 	}
-
-	return nil
 }
 
-func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
-	if err := p.processRequestTransformationsForRoute(pluginParams, in, out); err != nil {
-		return errors.Wrap(err, "failed to process request transformation")
-	}
-	if err := p.processResponseTransformationsForRoute(pluginParams, in, out); err != nil {
-		return errors.Wrap(err, "failed to process response transformation")
-	}
-	return nil
-}
-
-func (p *Plugin) processRequestTransformationsForRoute(pluginParams *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *transformationPlugin) AddRequestTransformationsToRoute(getTransformation GetTransformationFunction, in *v1.Route, out *envoyroute.Route) error {
 	var extractors map[string]*Extraction
 	// if no parameters specified, the only extraction will be a json body
 	if in.Extensions != nil {
@@ -94,7 +78,7 @@ func (p *Plugin) processRequestTransformationsForRoute(pluginParams *plugin.Rout
 	}
 
 	// calculate the templates for all these transformations
-	if err := p.setTransformationsForRoute(pluginParams.Upstreams, in, extractors, out); err != nil {
+	if err := p.setTransformationsForRoute(getTransformation, in, extractors, out); err != nil {
 		return errors.Wrap(err, "resolving request transformations for route")
 	}
 
@@ -136,7 +120,7 @@ func createRequestExtractors(params *Parameters) (map[string]*Extraction, error)
 
 // TODO: clean up the response transformation
 // params should live on the source (upstream/function)
-func (p *Plugin) processResponseTransformationsForRoute(pluginParams *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *transformationPlugin) AddResponseTransformationsToRoute(in *v1.Route, out *envoyroute.Route) error {
 	if in.Extensions == nil {
 		return nil
 	}
@@ -236,17 +220,17 @@ func buildRegexString(rxp *regexp.Regexp, paramString string) string {
 // if single destination, just one transformation
 // if multi destination, one transformation for each functional
 // that specifies a transformation spec
-func (p *Plugin) setTransformationsForRoute(upstreams []*v1.Upstream, in *v1.Route, extractors map[string]*Extraction, out *envoyroute.Route) error {
+func (p *transformationPlugin) setTransformationsForRoute(getTransformation GetTransformationFunction, in *v1.Route, extractors map[string]*Extraction, out *envoyroute.Route) error {
 	switch {
 	case in.MultipleDestinations != nil:
 		for _, dest := range in.MultipleDestinations {
-			err := p.setTransformationForRoute(upstreams, dest.Destination, extractors, out)
+			err := p.setTransformationForRoute(getTransformation, dest.Destination, extractors, out)
 			if err != nil {
 				return errors.Wrap(err, "setting transformation for route")
 			}
 		}
 	case in.SingleDestination != nil:
-		err := p.setTransformationForRoute(upstreams, in.SingleDestination, extractors, out)
+		err := p.setTransformationForRoute(getTransformation, in.SingleDestination, extractors, out)
 		if err != nil {
 			return errors.Wrap(err, "setting transformation for route")
 		}
@@ -254,14 +238,14 @@ func (p *Plugin) setTransformationsForRoute(upstreams []*v1.Upstream, in *v1.Rou
 	return nil
 }
 
-func (p *Plugin) setTransformationForRoute(upstreams []*v1.Upstream, dest *v1.Destination, extractors map[string]*Extraction, out *envoyroute.Route) error {
+func (p *transformationPlugin) setTransformationForRoute(getTransformationForDestination GetTransformationFunction, dest *v1.Destination, extractors map[string]*Extraction, out *envoyroute.Route) error {
 	fnDestination, ok := dest.DestinationType.(*v1.Destination_Function)
 	if !ok {
 		// not a functional route, nothing to do
 		return nil
 	}
 
-	hash, transformation, err := getTransformationForDestination(upstreams, fnDestination, extractors)
+	hash, transformation, err := getTransformationForDestination(fnDestination, extractors)
 	if err != nil {
 		return errors.Wrap(err, "getting transformation for function")
 	}
@@ -272,7 +256,7 @@ func (p *Plugin) setTransformationForRoute(upstreams []*v1.Upstream, dest *v1.De
 	}
 
 	// cache the transformation, the filter config needs to contain all of them
-	p.CachedTransformations[hash] = transformation
+	p.cachedTransformations[hash] = transformation
 
 	// set the filter metadata on the route
 	if out.Metadata == nil {
@@ -321,86 +305,7 @@ func (p *Plugin) setTransformationForRoute(upstreams []*v1.Upstream, dest *v1.De
 	return nil
 }
 
-func getTransformationForDestination(upstreams []*v1.Upstream, fnDestination *v1.Destination_Function, extractors map[string]*Extraction) (string, *Transformation, error) {
-	fn, err := findFunction(upstreams, fnDestination.Function.UpstreamName, fnDestination.Function.FunctionName)
-	if err != nil {
-		return "", nil, errors.Wrap(err, "finding function")
-	}
-	if fn == nil {
-		return "", nil, nil
-	}
-
-	outputTemplates, err := DecodeFunctionSpec(fn.Spec)
-	if err != nil {
-		return "", nil, errors.Wrap(err, "decoding function spec")
-	}
-
-	// if the the function doesn't need a transformation, also return nil
-	needsTransformation := outputTemplates.Body != nil
-
-	// create templates
-	// right now it's just a no-op, user writes inja directly
-	headerTemplates := make(map[string]*InjaTemplate)
-	for k, v := range outputTemplates.Header {
-		needsTransformation = true
-		headerTemplates[k] = &InjaTemplate{Text: v}
-	}
-
-	if outputTemplates.Path != "" {
-		needsTransformation = true
-		headerTemplates[":path"] = &InjaTemplate{Text: outputTemplates.Path}
-	}
-
-	// this function doesn't request any kind of transformation
-	if !needsTransformation {
-		log.Debugf("does not need transformation: %v", outputTemplates)
-		return "", nil, nil
-	}
-
-	t := Transformation{
-		Extractors: extractors,
-		TransformationTemplate: &TransformationTemplate{
-			Headers: headerTemplates,
-		},
-	}
-
-	if outputTemplates.Body != nil {
-		t.TransformationTemplate.BodyTransformation = &TransformationTemplate_Body{
-			Body: &InjaTemplate{
-				Text: *outputTemplates.Body,
-			},
-		}
-	} else {
-		t.TransformationTemplate.BodyTransformation = &TransformationTemplate_Passthrough{}
-	}
-
-	intHash, err := hashstructure.Hash(t, nil)
-	if err != nil {
-		return "", nil, err
-	}
-
-	hash := fmt.Sprintf("%v", intHash)
-
-	return hash, &t, nil
-}
-
-func findFunction(upstreams []*v1.Upstream, upstreamName, functionName string) (*v1.Function, error) {
-	for _, us := range upstreams {
-		if us.Name == upstreamName {
-			if !isOurs(us) {
-				return nil, nil
-			}
-			for _, fn := range us.Functions {
-				if fn.Name == functionName {
-					return fn, nil
-				}
-			}
-		}
-	}
-	return nil, errors.Errorf("function %v/%v not found", upstreamName, functionName)
-}
-
-func (p *Plugin) setResponseTransformationForRoute(template Template, extractors map[string]*Extraction, out *envoyroute.Route) error {
+func (p *transformationPlugin) setResponseTransformationForRoute(template Template, extractors map[string]*Extraction, out *envoyroute.Route) error {
 	// create templates
 	// right now it's just a no-op, user writes inja directly
 	headerTemplates := make(map[string]*InjaTemplate)
@@ -433,7 +338,7 @@ func (p *Plugin) setResponseTransformationForRoute(template Template, extractors
 	hash := fmt.Sprintf("%v", intHash)
 
 	// cache the transformation, the filter config needs to contain all of them
-	p.CachedTransformations[hash] = &t
+	p.cachedTransformations[hash] = &t
 
 	// set the filter metadata on the route
 	if out.Metadata == nil {
@@ -445,13 +350,13 @@ func (p *Plugin) setResponseTransformationForRoute(template Template, extractors
 	return nil
 }
 
-func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
-	if len(p.CachedTransformations) == 0 {
+func (p *transformationPlugin) GetTransformationFilter() *plugin.StagedFilter {
+	if len(p.cachedTransformations) == 0 {
 		return nil
 	}
 
 	filterConfig, err := protoutil.MarshalStruct(&Transformations{
-		Transformations: p.CachedTransformations,
+		Transformations: p.cachedTransformations,
 	})
 	if err != nil {
 		runtime.HandleError(err)
@@ -459,10 +364,12 @@ func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedF
 	}
 
 	// clear cache
-	p.CachedTransformations = make(map[string]*Transformation)
+	p.cachedTransformations = make(map[string]*Transformation)
 
-	return []plugin.StagedFilter{{HttpFilter: &envoyhttp.HttpFilter{
-		Name:   filterName,
-		Config: filterConfig,
-	}, Stage: pluginStage}}
+	return &plugin.StagedFilter{
+		HttpFilter: &envoyhttp.HttpFilter{
+			Name:   filterName,
+			Config: filterConfig,
+		}, Stage: pluginStage,
+	}
 }
