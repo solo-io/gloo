@@ -11,7 +11,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
 
-	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-plugins/transformation"
@@ -24,7 +23,7 @@ type Plugin struct {
 	serviceDescriptors map[string]*descriptor.FileDescriptorSet
 	// keep track of which service belongs to which upstream
 	upstreamServices map[string]string
-	transformation   *transformation.Plugin
+	transformation   transformation.Plugin
 }
 
 const (
@@ -78,7 +77,7 @@ func isOurs(in *v1.Upstream) bool {
 	return in.ServiceInfo != nil && in.ServiceInfo.Type == ServiceTypeGRPC
 }
 
-func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, _ *envoyapi.Cluster) error {
+func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
 	if !isOurs(in) {
 		return nil
 	}
@@ -106,6 +105,8 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 		return errors.Wrap(err, "failed to generate http rules for proto descriptors")
 	}
 
+	p.transformation.ActivateFilterForCluster(out)
+
 	// cache the descriptors; we'll need then when we create our grpc filters
 	p.serviceDescriptors[serviceName] = descriptors
 	// keep track of which service belongs to which upstream
@@ -120,17 +121,17 @@ func convertProto(b []byte) (*descriptor.FileDescriptorSet, error) {
 	return &fileDescriptor, err
 }
 
-func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
 	switch {
 	case in.SingleDestination != nil:
-		err := p.processRouteForGRPC(in.SingleDestination, in.Extensions, out)
+		err := p.processRouteForGRPC(in.SingleDestination, in, out)
 		if err != nil {
 			return errors.Wrap(err, "processing route for gRPC destination")
 		}
 
 	case in.MultipleDestinations != nil:
 		for _, dest := range in.MultipleDestinations {
-			err := p.processRouteForGRPC(dest.Destination, in.Extensions, out)
+			err := p.processRouteForGRPC(dest.Destination, in, out)
 			if err != nil {
 				return errors.Wrap(err, "processing route for gRPC destination")
 			}
@@ -139,10 +140,10 @@ func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Rou
 	return nil
 }
 
-func (p *Plugin) processRouteForGRPC(dest *v1.Destination, extensions *types.Struct, out *envoyroute.Route) error {
+func (p *Plugin) processRouteForGRPC(dest *v1.Destination, in *v1.Route, out *envoyroute.Route) error {
 	fnDest, ok := dest.DestinationType.(*v1.Destination_Function)
 	if !ok {
-		// not interested have a nice day
+		// not intetransformationed have a nice day
 		return nil
 	}
 	upstreamName := fnDest.Function.UpstreamName
@@ -159,10 +160,17 @@ func (p *Plugin) processRouteForGRPC(dest *v1.Destination, extensions *types.Str
 
 	outPath := httpPath(upstreamName, serviceName, methodName)
 
-	routeParams, err := transformation.DecodeRouteExtension(extensions)
+	routeParams, err := transformation.DecodeRouteExtension(in.Extensions)
 	if err != nil {
 		return errors.Wrap(err, "parsing route extensions")
 	}
+
+	// we always choose post
+	httpMethod := "POST"
+
+	p.transformation.AddRequestTransformationsToRoute(func(destination *v1.Destination_Function, extractors map[string]*transformation.Extraction) (string, *transformation.Transformation, error) {
+		// get transformation, maybe refactor this method a little; don't need extractors for this, don't need to give the hash. just need to give the template
+	}, in, out)
 
 	return nil
 }
