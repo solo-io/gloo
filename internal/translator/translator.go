@@ -474,7 +474,7 @@ func validateFunctionDestination(upstreamsAndTheirFunctions map[string][]string,
 	}
 	functionName := functionDestination.Function.FunctionName
 	if !stringInSlice(upstreamFuncs, functionName) {
-		return errors.Errorf("function %v/%v was not found for function destination", upstreamName, functionName)
+		log.Warnf("function %v/%v was not found for function destination", upstreamName, functionName)
 	}
 	return nil
 }
