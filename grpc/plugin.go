@@ -3,10 +3,11 @@ package grpc
 import (
 	"crypto/sha1"
 	"fmt"
-	"strings"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	envoytranscoder "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/transcoder/v2"
+	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/gogo/googleapis/google/api"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
@@ -16,6 +17,7 @@ import (
 	"github.com/solo-io/gloo-plugins/transformation"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
 type Plugin struct {
@@ -32,29 +34,6 @@ const (
 
 	ServiceTypeGRPC = "gRPC"
 )
-
-/*
-
-for every request type, need to get all the top level fields
-the field should come from either:
-- body
-- path
-- query param
-
-for each method:
-  routes = aggregate all the routes for that method
-  for each route:
-    get the parameters (extractors).
-    add an http rule to the destination function (method):
-
-add_http_rule:
-  look up the message type for the method's request
-  for every top-level field in the message, we have to pick an extractor:
-  - path
-  - query param
-  - body (currently just passthrough, nothing to do here)
-
-*/
 
 func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
 	deps := &plugin.Dependencies{}
@@ -139,7 +118,7 @@ func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *en
 		if ok {
 			in.Extensions = transformation.EncodeRouteExtension(transformation.RouteExtension{
 				Parameters: &transformation.Parameters{
-					Path: getPath(matcher.RequestMatcher),
+					Path: getPath(matcher.RequestMatcher) + "?{query_string}",
 				},
 			})
 		}
@@ -158,7 +137,6 @@ func (p *Plugin) templateForFunction(dest *v1.Destination_Function) (*transforma
 	// method name should be function name in this case. TODO: document in the api
 	methodName := dest.Function.FunctionName
 
-
 	// create the transformation for the route
 
 	outPath := httpPath(upstreamName, serviceName, methodName)
@@ -174,7 +152,9 @@ func (p *Plugin) templateForFunction(dest *v1.Destination_Function) (*transforma
 			":method": {Text: httpMethod},
 			":path":   {Text: outPath},
 		},
-		BodyTransformation: ,
+		BodyTransformation: &transformation.TransformationTemplate_MergeExtractorsToBody{
+			MergeExtractorsToBody: &transformation.MergeExtractorsToBody{},
+		},
 	}, nil
 }
 
@@ -187,7 +167,7 @@ func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileD
 					if err != nil {
 						return errors.Wrap(err, "getting http extensions from method.Options")
 					}
-					log.Printf("existing extension: %v", extension)
+					log.Warnf("overwriting existing extension: %v", extension)
 					if err := proto.SetExtension(method.Options, api.E_Http, &api.HttpRule{
 						Pattern: &api.HttpRule_Post{
 							Post: httpPath(upstreamName, serviceName, *method.Name),
@@ -210,91 +190,116 @@ func httpPath(upstreamName, serviceName, methodName string) string {
 	return "/" + fmt.Sprintf("%x", h.Sum(nil))[:8] + "/" + upstreamName + "/" + serviceName + "/" + methodName
 }
 
-func FuncsForProto(serviceName string, set *descriptor.FileDescriptorSet) []*v1.Function {
-	var funcs []*v1.Function
-	for _, file := range set.File {
-		for _, svc := range file.Service {
-			if svc.Name == nil || *svc.Name != serviceName {
-				continue
-			}
-			for _, method := range svc.Method {
-				g, err := proto.GetExtension(method.Options, api.E_Http)
-				if err != nil {
-					log.Printf("missing http option on the extensions, skipping: %v", *method.Name)
-					continue
-				}
-				httpRule, ok := g.(*api.HttpRule)
-				if !ok {
-					panic(g)
-				}
-				log.Printf("rule: %v", httpRule)
-				verb, path := verbAndPathForRule(httpRule)
-				fn := &v1.Function{
-					Name: *method.Name,
-					Spec: transformation.EncodeFunctionSpec(transformation.Template{
-						Path:            toInjaTemplateFormat(path),
-						Header:          map[string]string{":method": verb},
-						PassthroughBody: true,
-					}),
-				}
-				funcs = append(funcs, fn)
-			}
+func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
+	if len(p.serviceDescriptors) == 0 {
+		return nil
+	}
+
+	transformationFilter := p.transformation.GetTransformationFilter()
+	if transformationFilter == nil {
+		log.Warnf("ERROR: nil transformation filter returned from transformation plugin")
+		return nil
+	}
+
+	filters := []plugin.StagedFilter{*transformationFilter}
+
+	for serviceName, protoDescriptor := range p.serviceDescriptors {
+		descriptorBytes, err := proto.Marshal(protoDescriptor)
+		if err != nil {
+			log.Warnf("ERROR: marshaling proto descriptor: %v", err)
+			continue
 		}
-		log.Printf("%v", file.MessageType)
-	}
-	return funcs
-}
-
-func toInjaTemplateFormat(in string) string {
-	in = strings.Replace(in, "{", "{{", -1)
-	return strings.Replace(in, "}", "}}", -1)
-}
-
-func verbAndPathForRule(httpRule *api.HttpRule) (string, string) {
-	switch rule := httpRule.Pattern.(type) {
-	case *api.HttpRule_Get:
-		return "GET", rule.Get
-	case *api.HttpRule_Custom:
-		return rule.Custom.Kind, rule.Custom.Path
-	case *api.HttpRule_Delete:
-		return "DELETE", rule.Delete
-	case *api.HttpRule_Patch:
-		return "PATCH", rule.Patch
-	case *api.HttpRule_Post:
-		return "POST", rule.Post
-	case *api.HttpRule_Put:
-		return "PUT", rule.Put
-	}
-	panic("unknown rule type")
-}
-
-func lookupMessageType(inputType string, messageTypes []*descriptor.DescriptorProto) *descriptor.DescriptorProto {
-	for _, msg := range messageTypes {
-		if *msg.Name == inputType {
-			return msg
+		filterConfig, err := protoutil.MarshalStruct(&envoytranscoder.GrpcJsonTranscoder{
+			DescriptorSet: &envoytranscoder.GrpcJsonTranscoder_ProtoDescriptorBin{
+				ProtoDescriptorBin: descriptorBytes,
+			},
+			Services:               []string{serviceName},
+			SkipRecalculatingRoute: true,
+		})
+		if err != nil {
+			log.Warnf("ERROR: marshaling GrpcJsonTranscoder config: %v", err)
+			return nil
 		}
+		filters = append(filters, plugin.StagedFilter{
+			HttpFilter: &envoyhttp.HttpFilter{
+				Name:   filterName,
+				Config: filterConfig,
+			},
+			Stage: pluginStage,
+		})
 	}
-	return nil
+
+	// clear cache
+	p.serviceDescriptors = make(map[string]*descriptor.FileDescriptorSet)
+	p.upstreamServices = make(map[string]string)
+
+	return filters
 }
 
-//func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
-//
-//	if len(p.CachedTransformations) == 0 {
-//		return nil
+//func FuncsForProto(serviceName string, set *descriptor.FileDescriptorSet) []*v1.Function {
+//	var funcs []*v1.Function
+//	for _, file := range set.File {
+//		for _, svc := range file.Service {
+//			if svc.Name == nil || *svc.Name != serviceName {
+//				continue
+//			}
+//			for _, method := range svc.Method {
+//				g, err := proto.GetExtension(method.Options, api.E_Http)
+//				if err != nil {
+//					log.Printf("missing http option on the extensions, skipping: %v", *method.Name)
+//					continue
+//				}
+//				httpRule, ok := g.(*api.HttpRule)
+//				if !ok {
+//					panic(g)
+//				}
+//				log.Printf("rule: %v", httpRule)
+//				verb, path := verbAndPathForRule(httpRule)
+//				fn := &v1.Function{
+//					Name: *method.Name,
+//					Spec: transformation.EncodeFunctionSpec(transformation.Template{
+//						Path:            toInjaTemplateFormat(path),
+//						Header:          map[string]string{":method": verb},
+//						PassthroughBody: true,
+//					}),
+//				}
+//				funcs = append(funcs, fn)
+//			}
+//		}
+//		log.Printf("%v", file.MessageType)
 //	}
-//
-//	filterConfig, err := protoutil.MarshalStruct(&Transformations{
-//		Transformations: p.CachedTransformations,
-//	})
-//	if err != nil {
-//		return nil
-//	}
-//
-//	// clear cache
-//	p.CachedTransformations = make(map[string]*Transformation)
-//
-//	return []plugin.StagedFilter{{HttpFilter: &envoyhttp.HttpFilter{
-//		Name:   filterName,
-//		Config: filterConfig,
-//	}, Stage: pluginStage}}
+//	return funcs
 //}
+//
+//func toInjaTemplateFormat(in string) string {
+//	in = strings.Replace(in, "{", "{{", -1)
+//	return strings.Replace(in, "}", "}}", -1)
+//}
+//
+//func verbAndPathForRule(httpRule *api.HttpRule) (string, string) {
+//	switch rule := httpRule.Pattern.(type) {
+//	case *api.HttpRule_Get:
+//		return "GET", rule.Get
+//	case *api.HttpRule_Custom:
+//		return rule.Custom.Kind, rule.Custom.Path
+//	case *api.HttpRule_Delete:
+//		return "DELETE", rule.Delete
+//	case *api.HttpRule_Patch:
+//		return "PATCH", rule.Patch
+//	case *api.HttpRule_Post:
+//		return "POST", rule.Post
+//	case *api.HttpRule_Put:
+//		return "PUT", rule.Put
+//	}
+//	panic("unknown rule type")
+//}
+//
+//func lookupMessageType(inputType string, messageTypes []*descriptor.DescriptorProto) *descriptor.DescriptorProto {
+//	for _, msg := range messageTypes {
+//		if *msg.Name == inputType {
+//			return msg
+//		}
+//	}
+//	return nil
+//}
+//
