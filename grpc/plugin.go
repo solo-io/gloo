@@ -20,6 +20,14 @@ import (
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
+func NewPlugin() *Plugin {
+	return &Plugin{
+		serviceDescriptors: make(map[string]*descriptor.FileDescriptorSet),
+		upstreamServices:   make(map[string]string),
+		transformation:     transformation.NewTransformationPlugin(),
+	}
+}
+
 type Plugin struct {
 	// map service names to their descriptors
 	serviceDescriptors map[string]*descriptor.FileDescriptorSet
@@ -74,7 +82,10 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	if serviceName == "" {
 		return errors.New("service_properties.service_name cannot be empty")
 	}
-	descriptorsFile := params.Files[fileRef]
+	descriptorsFile, ok := params.Files[fileRef]
+	if !ok {
+		return errors.Errorf("descriptors file not found for file ref %v", fileRef)
+	}
 	descriptors, err := convertProto(descriptorsFile)
 	if err != nil {
 		return errors.Wrapf(err, "parsing file %v as a proto descriptor set", fileRef)
@@ -159,15 +170,38 @@ func (p *Plugin) templateForFunction(dest *v1.Destination_Function) (*transforma
 }
 
 func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileDescriptorSet) error {
+	var serviceFound, googleApiHttpFound, googleApiAnnotationsFound bool
 	for _, file := range set.File {
+		log.Printf("%v", *file.Name)
+		if *file.Name == "google/api/http.proto" {
+			googleApiHttpFound = true
+			//b, err := proto.Marshal(file)
+			//if err != nil {
+			//	panic(err)
+			//}
+			//err = os.MkdirAll(filepath.Dir(*file.Name), 0755)
+			//if err != nil {
+			//	panic(err)
+			//}
+			//err = ioutil.WriteFile(*file.Name+".descriptor", b, 0644)
+			//if err != nil {
+			//	panic(err)
+			//}
+			continue
+		}
+		if *file.Name == "google/api/annotations.proto" {
+			googleApiAnnotationsFound = true
+			continue
+		}
+	findService:
 		for _, svc := range file.Service {
 			if *svc.Name == serviceName {
 				for _, method := range svc.Method {
-					extension, err := proto.GetExtension(method.Options, api.E_Http)
-					if err != nil {
-						return errors.Wrap(err, "getting http extensions from method.Options")
-					}
-					log.Warnf("overwriting existing extension: %v", extension)
+					//extension, err := proto.GetExtension(method.Options, api.E_Http)
+					//if err != nil {
+					//	return errors.Wrap(err, "getting http extensions from method.Options")
+					//}
+					//log.Warnf("overwriting existing extension: %v", extension)
 					if err := proto.SetExtension(method.Options, api.E_Http, &api.HttpRule{
 						Pattern: &api.HttpRule_Post{
 							Post: httpPath(upstreamName, serviceName, *method.Name),
@@ -176,12 +210,27 @@ func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileD
 					}); err != nil {
 						return errors.Wrap(err, "setting http extensions for method.Options")
 					}
+					serviceFound = true
+					break findService
 				}
-
+				return nil
 			}
 		}
+
 	}
-	return errors.Errorf("could not find match: %v/%v", upstreamName, serviceName)
+
+	if !googleApiHttpFound {
+		addGoogleApisHttp(set)
+	}
+
+	if !googleApiAnnotationsFound {
+		addGoogleApisAnnotations(set)
+	}
+
+	if !serviceFound {
+		return errors.Errorf("could not find match: %v/%v", upstreamName, serviceName)
+	}
+	return nil
 }
 
 func httpPath(upstreamName, serviceName, methodName string) string {
