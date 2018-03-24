@@ -7,3 +7,6 @@
 [submodule "google/envoy"]
 	path = google/envoy
 	url = https://github.com/solo-io/envoy-google-function
+[submodule "common/transformation/envoy"]
+	path = common/transformation/envoy
+	url = https://github.com/solo-io/envoy-transformation
