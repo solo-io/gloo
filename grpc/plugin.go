@@ -175,18 +175,6 @@ func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileD
 		log.Printf("%v", *file.Name)
 		if *file.Name == "google/api/http.proto" {
 			googleApiHttpFound = true
-			//b, err := proto.Marshal(file)
-			//if err != nil {
-			//	panic(err)
-			//}
-			//err = os.MkdirAll(filepath.Dir(*file.Name), 0755)
-			//if err != nil {
-			//	panic(err)
-			//}
-			//err = ioutil.WriteFile(*file.Name+".descriptor", b, 0644)
-			//if err != nil {
-			//	panic(err)
-			//}
 			continue
 		}
 		if *file.Name == "google/api/annotations.proto" {
@@ -197,11 +185,6 @@ func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileD
 		for _, svc := range file.Service {
 			if *svc.Name == serviceName {
 				for _, method := range svc.Method {
-					//extension, err := proto.GetExtension(method.Options, api.E_Http)
-					//if err != nil {
-					//	return errors.Wrap(err, "getting http extensions from method.Options")
-					//}
-					//log.Warnf("overwriting existing extension: %v", extension)
 					if err := proto.SetExtension(method.Options, api.E_Http, &api.HttpRule{
 						Pattern: &api.HttpRule_Post{
 							Post: httpPath(upstreamName, serviceName, *method.Name),
