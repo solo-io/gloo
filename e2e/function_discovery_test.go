@@ -5,7 +5,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/transformation"
 	. "github.com/solo-io/gloo-testing/helpers"
 )
 
@@ -71,8 +70,8 @@ var _ = Describe("Function Discovery", func() {
 								},
 							},
 						},
-						Extensions: transformation.EncodeRouteExtension(transformation.RouteExtension{
-							Parameters: &transformation.Parameters{
+						Extensions: rest.EncodeRouteExtension(rest.RouteExtension{
+							Parameters: &rest.Parameters{
 								Headers: map[string]string{
 									"x-id":   "{id}",
 									"x-name": "{name}",
