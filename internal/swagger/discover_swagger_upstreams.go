@@ -11,9 +11,8 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
-	"github.com/solo-io/gloo-plugins/common/annotations"
 	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
-	"github.com/solo-io/gloo-plugins/transformation"
+	"github.com/solo-io/gloo-plugins/rest"
 	serviceplugin "github.com/solo-io/gloo/pkg/coreplugins/service"
 	"github.com/solo-io/gloo/pkg/log"
 )
@@ -90,7 +89,7 @@ func discoverSwaggerUpstream(resolver *resolver.Resolver, swaggerUrisToTry []str
 		}
 		// found a swagger service
 		if res.StatusCode == 200 {
-			setSwaggerAnnotations(url, us)
+			setSwaggerServiceType(url, us)
 			return nil
 		}
 	}
@@ -98,7 +97,7 @@ func discoverSwaggerUpstream(resolver *resolver.Resolver, swaggerUrisToTry []str
 	return errs
 }
 
-func setSwaggerAnnotations(url string, us *v1.Upstream) {
+func setSwaggerServiceType(url string, us *v1.Upstream) {
 	log.Debugf("swagger service detected: %v", url)
 	if us.Metadata == nil {
 		us.Metadata = &v1.Metadata{}
@@ -106,6 +105,9 @@ func setSwaggerAnnotations(url string, us *v1.Upstream) {
 	if us.Metadata.Annotations == nil {
 		us.Metadata.Annotations = make(map[string]string)
 	}
-	us.Metadata.Annotations[annotations.ServiceType] = transformation.ServiceTypeTransformation
+	if us.ServiceInfo == nil {
+		us.ServiceInfo = &v1.ServiceInfo{}
+	}
+	us.ServiceInfo.Type = rest.ServiceTypeREST
 	us.Metadata.Annotations[AnnotationKeySwaggerURL] = url
 }

@@ -112,7 +112,7 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 		Spec: transformation.EncodeFunctionSpec(transformation.Template{
 			Path:   path,
 			Header: headersTemplate,
-			Body:   body,
+			Body:   &body,
 		}),
 	}
 }

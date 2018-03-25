@@ -94,6 +94,8 @@ func updateUpstreamWithFuncs(gloo storage.Interface, us *v1.Upstream, funcs []*v
 	}
 	usToUpdate.Functions = mergeFuncs(usToUpdate.Functions, funcs)
 	usToUpdate.Metadata.Annotations = mergeAnnotations(usToUpdate.Metadata.Annotations, us.Metadata.Annotations)
+	// overwrite service info; needed for swagger
+	usToUpdate.ServiceInfo = us.ServiceInfo
 
 	_, err = gloo.V1().Upstreams().Update(usToUpdate)
 	if err != nil {
