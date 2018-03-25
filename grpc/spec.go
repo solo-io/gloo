@@ -8,7 +8,7 @@ import (
 type ServiceProperties struct {
 	// the name of the gRPC service defined in the descriptors (to route to)
 	// note: currently only one service per upstream is supported
-	GRPCServiceName string `json:"service_names"`
+	GRPCServiceName string `json:"service_name"`
 	// file ref for the proto descriptors generated for is gRPC service
 	DescriptorsFileRef string `json:"descriptors_file_ref"`
 }

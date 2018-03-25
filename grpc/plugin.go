@@ -20,6 +20,10 @@ import (
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
+func init() {
+	plugin.Register(NewPlugin(), nil)
+}
+
 func NewPlugin() *Plugin {
 	return &Plugin{
 		serviceDescriptors: make(map[string]*descriptor.FileDescriptorSet),
@@ -77,11 +81,12 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	serviceName := serviceProperties.GRPCServiceName
 
 	if fileRef == "" {
-		return errors.New("service_properties.descriptors_file_ref cannot be empty")
+		return errors.New("service_info.properties.descriptors_file_ref cannot be empty")
 	}
 	if serviceName == "" {
-		return errors.New("service_properties.service_name cannot be empty")
+		return errors.New("service_info.properties.service_name cannot be empty")
 	}
+	log.Printf("files: %v", params.Files)
 	descriptorsFile, ok := params.Files[fileRef]
 	if !ok {
 		return errors.Errorf("descriptors file not found for file ref %v", fileRef)
