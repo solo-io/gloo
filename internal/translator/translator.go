@@ -305,10 +305,16 @@ func dependenciesForPlugin(cfg *v1.Config, plug plugin.TranslatorPlugin, depende
 		Files:   make(filewatcher.Files),
 	}
 	for _, ref := range dependencyRefs.SecretRefs {
-		pluginDeps.Secrets[ref] = dependencies.Secrets[ref]
+		item, ok := dependencies.Secrets[ref]
+		if ok {
+			pluginDeps.Secrets[ref] = item
+		}
 	}
 	for _, ref := range dependencyRefs.FileRefs {
-		pluginDeps.Files[ref] = dependencies.Files[ref]
+		item, ok := dependencies.Files[ref]
+		if ok {
+			pluginDeps.Files[ref] = item
+		}
 	}
 	return pluginDeps
 }
