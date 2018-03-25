@@ -27,7 +27,7 @@ var upstreamAddr string
 var upstreamHost string
 var upstreamPort uint32
 
-var upstreamName = "my-upstream"
+var upstreamName = "localhost8000"
 
 var configType = flag.String("config", "test", "one of: test, lambda")
 var storageType = flag.String("type", "file", "one of: crd or file")
@@ -43,7 +43,7 @@ func getConfig() v1.Config {
 }
 
 func main() {
-	flag.StringVar(&upstreamAddr, "addr", "localhost:8080", "upstream addr")
+	flag.StringVar(&upstreamAddr, "addr", "localhost:8000", "upstream addr")
 	flag.Parse()
 	parts := strings.Split(upstreamAddr, ":")
 	upstreamHost = parts[0]
@@ -136,11 +136,11 @@ func NewλConfig() v1.Config {
 func NewTestConfig() v1.Config {
 	upstreams := []*v1.Upstream{
 		{
-			Name: "localhost-python",
+			Name: upstreamName,
 			Type: service.UpstreamTypeService,
 			Spec: service.EncodeUpstreamSpec(service.UpstreamSpec{
 				Hosts: []service.Host{
-					{Addr: upstreamAddr, Port: upstreamPort},
+					{Addr: upstreamHost, Port: upstreamPort},
 				},
 			}),
 		},
