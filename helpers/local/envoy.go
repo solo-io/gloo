@@ -76,7 +76,7 @@ func NewEnvoyFactory() (*EnvoyFactory, error) {
 
 	bash := `
 set -ex
-CID=$(docker run -d  soloio/envoy:v0.1.2 /bin/bash -c exit)
+CID=$(docker run -d  soloio/envoy:ab4dc682 /bin/bash -c exit)
 docker cp $CID:/usr/local/bin/envoy .
 docker rm $CID
     `
