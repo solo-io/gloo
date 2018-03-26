@@ -73,7 +73,7 @@ Create chart name and version as used by the chart label.
 {{- if eq .Values.opentracing.status "configure" -}}
 {{- .Values.opentracing.jaeger_host -}}
 {{- else -}}
-{{-  template "jaeger.name" . -}}.svc.cluster.local
+{{-  template "jaeger.name" . -}}.{{ .Release.Namespace }}.svc.cluster.local
 {{- end -}}
 {{- end -}}
 
@@ -92,7 +92,7 @@ Create chart name and version as used by the chart label.
 {{- if eq .Values.metrics.status "statsd" -}}
 {{- .Values.metrics.statsd_host -}}
 {{- else -}}
-{{- template "statsd.name" . -}}.svc.cluster.local
+{{- template "statsd.name" . -}}.{{ .Releease.Namespace }}.svc.cluster.local
 {{- end -}}
 {{- end -}}
 
