@@ -20,7 +20,6 @@
     },
     {
         "name": "grpc",
-        "gloo": "grpc",
-        "envoy": "common/transformation/envoy"
+        "gloo": "grpc"
     }
 ]
