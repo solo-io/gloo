@@ -38,6 +38,12 @@ func (s *bookstoreServer) ListShelves(context.Context, *empty.Empty) (*ListShelv
 func (s *bookstoreServer) CreateShelf(ctx context.Context, r *CreateShelfRequest) (*Shelf, error) {
 	s.m.Lock()
 	defer s.m.Unlock()
+	if r == nil {
+		return nil, errors.New("request cannot be nil")
+	}
+	if r.Shelf == nil {
+		return nil, errors.New("shelf cannot be nil")
+	}
 	s.shelves[r.Shelf.Id] = r.Shelf
 	return r.Shelf, nil
 }
