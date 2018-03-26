@@ -12,6 +12,8 @@ import (
 
 var jsonpbMarshaler = &jsonpb.Marshaler{OrigName: true}
 
+// this function is designed for converting go object (that is not a proto.Message) into a
+// pb Struct, based on json struct tags
 func MarshalStruct(m interface{}) (*types.Struct, error) {
 	data, err := json.Marshal(m)
 	if err != nil {
