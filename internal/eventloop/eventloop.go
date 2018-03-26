@@ -163,7 +163,7 @@ func setupSecretWatcher(opts bootstrap.Options, stop <-chan struct{}) (secretwat
 func setupFileWatcher(opts bootstrap.Options, stop <-chan struct{}) (filewatcher.Interface, error) {
 	switch opts.SecretWatcherOptions.Type {
 	case bootstrap.WatcherTypeFile:
-		fileWatcher, err := filefiles.NewFileWatcher(opts.FileOptions.SecretDir, opts.FileWatcherOptions.SyncFrequency)
+		fileWatcher, err := filefiles.NewFileWatcher(opts.FileOptions.FilesDir, opts.FileWatcherOptions.SyncFrequency)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to start filesystem-based file watcher with config %#v", opts.KubeOptions)
 		}
