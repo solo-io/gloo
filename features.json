@@ -10,6 +10,11 @@
         "envoy": "google/envoy"
     },
     {
+        "name": "nats-streaming",
+        "gloo": "nats-streaming",
+        "envoy": "nats-streaming/envoy"
+    },
+    {
         "name": "kubernetes",
         "gloo": "kubernetes"
     },
