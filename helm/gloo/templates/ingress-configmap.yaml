@@ -31,7 +31,7 @@ data:
       {{- end }}
       {{- end }}
       {{- if .Values.metrics.status }}
-      {{- if eq .Values.metrics.status "statsd" "prometheus" "install" }}
+      {{- if eq .Values.metrics.status "statsd" "prometheus" "all" }}
       - name: statsd
         connect_timeout: 1s
         type: strict_dns
