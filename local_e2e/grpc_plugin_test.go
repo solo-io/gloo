@@ -9,8 +9,11 @@ import (
 
 	"time"
 
+	"io/ioutil"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo-testing/helpers"
 	"github.com/solo-io/gloo-testing/local_e2e/test_grpc_service/glootest/protos"
 	"github.com/solo-io/gloo/pkg/log"
 )
@@ -55,28 +58,45 @@ var _ = FDescribe("GRPC Plugin", func() {
 		err = glooInstance.AddVhost(v)
 		Expect(err).NotTo(HaveOccurred())
 
-		body := []byte("solo.io test")
+		body := []byte(`{"str": "foo"}`)
 
 		time.Sleep(time.Second)
 
-		// wait for envoy to start receiving request
-		Eventually(func() error {
+		testRequest := func() error {
 			// send a request with a body
 			var buf bytes.Buffer
 			buf.Write(body)
 			res, err := http.Post(fmt.Sprintf("http://%s:%d/test", "localhost", envoyPort), "application/json", &buf)
 			if err == nil {
+				b, _ := ioutil.ReadAll(res.Body)
 				log.Printf("%v", res.Header)
 				log.Printf("%v", res.Status)
+				log.Printf("%v", string(b))
 			}
 			return err
-		}, 60, 1).Should(BeNil())
+		}
+
+		// wait for envoy to start receiving request
+		Eventually(testRequest, 60, 1).Should(BeNil())
+
+		ch := make(chan struct{})
+		go func() {
+			for {
+				select {
+				case <-time.After(time.Second):
+					err := testRequest()
+					helpers.Must(err)
+				case <-ch:
+					return
+				}
+			}
+		}()
 
 		expectedResponse := &ReceivedRequest{
-			GRPCRequest: &glootest.TestResponse{Str: string(body)},
+			GRPCRequest: &glootest.TestRequest{Str: "foo"},
 		}
-		Eventually(tu.C).Should(Receive(Equal(expectedResponse)))
-
+		Eventually(tu.C, time.Second*15).Should(Receive(Equal(expectedResponse)))
+		close(ch)
 	})
 
 })
