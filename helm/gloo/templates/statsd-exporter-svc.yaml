@@ -1,0 +1,23 @@
+{{ if .Values.metrics.status -}}
+{{ if eq .Values.metrics.status "prometheus" "install" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: 'true'
+  labels:
+    name: statsd
+  name: {{ template "statsd.name" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: statsd
+  ports:
+  - name: web
+    protocol: TCP
+    port: 9102
+  - name: statsd
+    protocol: TCP
+    port: 9125
+{{ end -}}
+{{ end -}}

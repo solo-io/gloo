@@ -63,3 +63,41 @@ Create chart name and version as used by the chart label.
 {{- $name := default "gloo" .Values.gloo.nameOverride -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{/* Jaeger related templates */}}
+{{- define "jaeger.name" -}}
+{{ printf "%s-%s" .Release.Name "jaeger" | trunc 63 | trimSuffix "-"}}
+{{- end -}}
+
+{{- define "jaeger.host" -}}
+{{- if eq .Values.opentracing.status "configure" -}}
+{{- .Values.opentracing.jaeger_host -}}
+{{- else -}}
+{{-  template "jaeger.name" . -}}.svc.cluster.local
+{{- end -}}
+{{- end -}}
+
+{{- define "jaeger.port" -}}
+{{- if eq .Values.opentracing.status "configure" -}}
+{{- .Values.opentracing.jaeger_port -}}
+{{- else -}}9411{{- end -}}
+{{- end -}}
+
+{{/* Statsd related templates */}}
+{{- define "statsd.name" -}}
+{{- printf "%s-%s" .Release.Name "statsd" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "statsd.host" -}}
+{{- if eq .Values.metrics.status "statsd" -}}
+{{- .Values.metrics.statsd_host -}}
+{{- else -}}
+{{- template "statsd.name" . -}}.svc.cluster.local
+{{- end -}}
+{{- end -}}
+
+{{- define "statsd.port" -}}
+{{- if eq .Values.metrics.status "statsd" -}}
+{{- .Values.metrics.statsd_port -}}
+{{- else -}}9125{{- end -}}
+{{- end -}}
