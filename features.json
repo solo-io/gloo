@@ -10,7 +10,7 @@
         "envoy": "google/envoy"
     },
     {
-        "name": "nats-streaming",
+        "name": "nats_streaming",
         "gloo": "nats-streaming",
         "envoy": "nats-streaming/envoy"
     },
