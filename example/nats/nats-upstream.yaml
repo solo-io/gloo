@@ -1,0 +1,9 @@
+type: service
+metadata:
+  annotations:
+    gloo.solo.io/service-type: nats-streaming
+name: nats-streaming
+spec:
+  hosts:
+  - addr: nats-streaming
+    port: 4222

@@ -1,0 +1,6 @@
+type: service
+name: website
+spec:
+  hosts:
+  - addr: website
+    port: 80

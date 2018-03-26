@@ -1,0 +1,95 @@
+<html>
+    <head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
+    <script
+    src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous">
+    </script>
+    <script src="/code.js" >
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <meta charset="utf-8"/>
+</head>
+<body onload="loaded()">
+<main  role="main" class="container">
+    <h1>Welcome!</h1>
+    <section>
+        <h2>Introduction</h2>
+        <p>
+            This demos shows Gloo transparently channeling ingress trafic to a NATS Streaming server.
+            
+            In this demo we will show you how you can combine Gloo and NATS Streaming to get the 
+            best of both worlds, providing performance transparently to your front end application.
+            
+            Gloo integrates directly
+            with NATS Streaming, translating the HTTP protol to the NATS Streaming protocol.
+        </p>
+        <p>
+            In this demo we have a few components:
+        </p>
+        <ul>
+            <li>This website! - Simulates an app that measures analytics</li>
+            <li>Cassandra - the data store for our analytics</li>
+            <li>Analytics - sub system that that saves analytics requests. more on that next.</li>
+        </ul>
+        
+        The analytics - two approaches:
+        <p>
+            <strong>Approach 1</strong>: A microservice that acceptes the analytics request and sends it to Cassandra.
+        </p>
+        <p>
+            <strong>Approach 2</strong>: The request get to NATS Streaming. A microservice subscribes to messgages from NATS Streaming,
+            and writes them to Cassandra.
+        </p>
+        <p>
+            <strong>Gloo</strong> makes using the two approaches the same for the front end code, and enables you 
+            to smoothtly transsion form one approach to another.
+        </p>
+    </section>
+    <section>
+        <h2>Traffic simulation</h2>
+        <div>
+            <h3>Approach 1</h3>
+            <div>
+                One visit:
+                <button onclick="javascript:send_analytics(1);">Simulate one visit</button>
+            </div>
+            <div>
+                Simulate spike via microservice:
+                <button onclick="javascript:send_analytics(1500);">Traffic spike</button>
+            </div>
+        </div>
+        <div>
+            <h3>Approach 2</h3>
+            <div>
+                Simulate spike though NATS Streaming:
+                <button onclick="javascript:send_nats_analytics(1500);">Traffic spike</button>
+            </div>
+        </div>
+    </section>
+    <section>
+        <h2>Analytics live stats</h2>
+        This section retreives the analytics from Cassandra and displays them via a request from 
+        the analytics microservice. It tries to retrieve updated stats every second, but if the 
+        service is under load, it might take more time. take note especially when simulating a traffic 
+        spike.
+
+        Current stats:
+        <div>
+            Time since last update: <span id="deltaupdate">0</span> seconds.
+        </div>
+        <div>
+            Max: <span id="maxdeltaupdate">0</span> seconds.
+        </div>
+        <div id="currentstats">
+        </div>
+
+        <canvas class="my-4" id="myChart" width="900" height="380"></canvas>
+
+    </section>
+</main>
+</body>
+</html>

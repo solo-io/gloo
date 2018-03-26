@@ -1,0 +1,44 @@
+version: '3'
+services:
+
+  cassandra:
+    image: cassandra
+
+  analytics:
+    build: ./analytics
+
+  analytics-nats-streaming:
+    build: ./analytics-nats-streaming
+
+  nats-streaming:
+    image: nats-streaming
+    ports:
+    - "4222:4222"
+
+  gloo:
+    image: soloio/gloo:v0.1.5 #-78
+    entrypoint: ["/gloo"]
+    working_dir: /config/
+    command:
+    - "--storage.type=file"
+    - "--storage.refreshrate=1s"
+    - "--secrets.type=file"
+    - "--secrets.refreshrate=1s"
+    volumes:
+    - ./gloo-config:/config/
+
+  ingress:
+    # image: soloio/envoy:v0.1.6-77
+    image: yuval/envoy
+    entrypoint: ["envoy"]
+    command: ["-c", "/config/envoy.yaml", "--v2-config-only"]
+    volumes:
+    - ./envoy.yaml:/config/envoy.yaml:ro
+    ports:
+    - "8080:8080"
+    - "19000:19000"
+
+  website:
+    image: nginx
+    volumes:
+    - ./website:/usr/share/nginx/html:ro

@@ -1,0 +1,21 @@
+metadata:
+name: default
+routes:
+- request_matcher:
+    path_exact: /analytics
+    verbs:
+    - POST
+  single_destination:
+    function:
+      upstream_name: nats-streaming
+      function_name: analytics
+- request_matcher:
+    path_exact: /analytics
+  single_destination:
+    upstream:
+      name: analytics
+- request_matcher:
+    path_prefix: /
+  single_destination:
+    upstream:
+      name: website
