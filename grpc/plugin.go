@@ -96,16 +96,19 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 		return errors.Wrapf(err, "parsing file %v as a proto descriptor set", fileRef)
 	}
 
-	if err := addHttpRulesToProto(in.Name, serviceName, descriptors); err != nil {
+	packageName, err := addHttpRulesToProto(in.Name, serviceName, descriptors)
+	if err != nil {
 		return errors.Wrap(err, "failed to generate http rules for proto descriptors")
 	}
 
 	p.transformation.ActivateFilterForCluster(out)
 
 	// cache the descriptors; we'll need then when we create our grpc filters
-	p.serviceDescriptors[serviceName] = descriptors
+	// need the package name as well, required by the transcoder filter
+	fullServiceName := packageName + "." + serviceName
+	p.serviceDescriptors[fullServiceName] = descriptors
 	// keep track of which service belongs to which upstream
-	p.upstreamServices[in.Name] = serviceName
+	p.upstreamServices[in.Name] = fullServiceName
 
 	return nil
 }
@@ -174,8 +177,10 @@ func (p *Plugin) templateForFunction(dest *v1.Destination_Function) (*transforma
 	}, nil
 }
 
-func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileDescriptorSet) error {
-	var serviceFound, googleApiHttpFound, googleApiAnnotationsFound bool
+// returns package name
+func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileDescriptorSet) (string, error) {
+	var googleApiHttpFound, googleApiAnnotationsFound bool
+	var packageName string
 	for _, file := range set.File {
 		log.Printf("%v", *file.Name)
 		if *file.Name == "google/api/http.proto" {
@@ -196,15 +201,13 @@ func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileD
 						},
 						Body: "*",
 					}); err != nil {
-						return errors.Wrap(err, "setting http extensions for method.Options")
+						return "", errors.Wrap(err, "setting http extensions for method.Options")
 					}
-					serviceFound = true
+					packageName = *file.Package
 					break findService
 				}
-				return nil
 			}
 		}
-
 	}
 
 	if !googleApiHttpFound {
@@ -215,10 +218,10 @@ func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileD
 		addGoogleApisAnnotations(set)
 	}
 
-	if !serviceFound {
-		return errors.Errorf("could not find match: %v/%v", upstreamName, serviceName)
+	if packageName == "" {
+		return "", errors.Errorf("could not find match: %v/%v", upstreamName, serviceName)
 	}
-	return nil
+	return packageName, nil
 }
 
 func httpPath(upstreamName, serviceName, methodName string) string {

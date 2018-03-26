@@ -87,8 +87,8 @@ var _ = Describe("Plugin", func() {
 			out := &envoyapi.Cluster{}
 			err = p.ProcessUpstream(params, in, out)
 			Expect(err).To(BeNil())
-			Expect(p.upstreamServices["myupstream"]).To(Equal("Bookstore"))
-			Expect(p.serviceDescriptors["Bookstore"]).NotTo(BeNil())
+			Expect(p.upstreamServices["myupstream"]).To(Equal("bookstore.Bookstore"))
+			Expect(p.serviceDescriptors["bookstore.Bookstore"]).NotTo(BeNil())
 			//for _, file := range p.serviceDescriptors["Bookstore"].File {
 			//log.Printf("%v", p.serviceDescriptors["Bookstore"])
 			//}
