@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/swagger"
-	"github.com/solo-io/gloo-plugins/transformation"
+	"github.com/solo-io/gloo-plugins/rest"
 	"github.com/solo-io/gloo/pkg/log"
 )
 
@@ -109,7 +109,7 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 
 	return &v1.Function{
 		Name: fnName,
-		Spec: transformation.EncodeFunctionSpec(transformation.Template{
+		Spec: rest.EncodeFunctionSpec(rest.Template{
 			Path:   path,
 			Header: headersTemplate,
 			Body:   &body,

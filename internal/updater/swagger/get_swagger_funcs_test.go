@@ -13,7 +13,7 @@ import (
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/swagger"
 	. "github.com/solo-io/gloo-function-discovery/internal/updater/swagger"
-	"github.com/solo-io/gloo-plugins/transformation"
+	"github.com/solo-io/gloo-plugins/rest"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
 
@@ -52,12 +52,13 @@ var _ = Describe("GetSwaggerFuncs", func() {
 		funcs, err := GetFuncs(us)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(funcs).To(HaveLen(1))
+		str := ""
 		expectedFn := &v1.Function{
 			Name: "get.pets",
-			Spec: transformation.EncodeFunctionSpec(transformation.Template{
+			Spec: rest.EncodeFunctionSpec(rest.Template{
 				Path:   "/api/pets",
 				Header: map[string]string{":method": "GET"},
-				Body:   "",
+				Body:   &str,
 			}),
 		}
 		Expect(funcs[0]).To(Equal(expectedFn))
