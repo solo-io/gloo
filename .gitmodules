@@ -7,3 +7,6 @@
 [submodule "google/envoy"]
 	path = google/envoy
 	url = https://github.com/solo-io/envoy-google-function
+[submodule "nats-streaming/envoy"]
+	path = nats-streaming/envoy
+	url = http://github.com/solo-io/envoy-nats-streaming
