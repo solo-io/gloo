@@ -15,11 +15,11 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/runtime"
 
+	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
-	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
 //go:generate protoc -I=./envoy/ -I=${GOPATH}/src/github.com/gogo/protobuf/ --gogo_out=. envoy/transformation_filter.proto
@@ -362,7 +362,7 @@ func (p *transformationPlugin) GetTransformationFilter() *plugin.StagedFilter {
 		return nil
 	}
 
-	filterConfig, err := protoutil.MarshalStruct(&Transformations{
+	filterConfig, err := util.MessageToStruct(&Transformations{
 		Transformations: p.cachedTransformations,
 	})
 	if err != nil {

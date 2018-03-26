@@ -12,12 +12,12 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
 
+	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-plugins/common/transformation"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
-	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
 func init() {
@@ -246,12 +246,12 @@ func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedF
 			log.Warnf("ERROR: marshaling proto descriptor: %v", err)
 			continue
 		}
-		filterConfig, err := protoutil.MarshalStruct(&envoytranscoder.GrpcJsonTranscoder{
+		filterConfig, err := util.MessageToStruct(&envoytranscoder.GrpcJsonTranscoder{
 			DescriptorSet: &envoytranscoder.GrpcJsonTranscoder_ProtoDescriptorBin{
 				ProtoDescriptorBin: descriptorBytes,
 			},
-			Services:               []string{serviceName},
-			SkipRecalculatingRoute: true,
+			Services:                  []string{serviceName},
+			MatchIncomingRequestRoute: true,
 		})
 		if err != nil {
 			log.Warnf("ERROR: marshaling GrpcJsonTranscoder config: %v", err)
