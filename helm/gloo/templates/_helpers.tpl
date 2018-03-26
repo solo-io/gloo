@@ -92,7 +92,7 @@ Create chart name and version as used by the chart label.
 {{- if eq .Values.metrics.status "statsd" -}}
 {{- .Values.metrics.statsd_host -}}
 {{- else -}}
-{{- template "statsd.name" . -}}.{{ .Releease.Namespace }}.svc.cluster.local
+{{- template "statsd.name" . -}}.{{ .Release.Namespace }}.svc.cluster.local
 {{- end -}}
 {{- end -}}
 
