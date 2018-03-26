@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoytranscoder "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/transcoder/v2"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
@@ -86,7 +87,6 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	if serviceName == "" {
 		return errors.New("service_info.properties.service_name cannot be empty")
 	}
-	log.Printf("files: %v", params.Files)
 	descriptorsFile, ok := params.Files[fileRef]
 	if !ok {
 		return errors.Errorf("descriptors file not found for file ref %v", fileRef)
@@ -100,6 +100,8 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	if err != nil {
 		return errors.Wrap(err, "failed to generate http rules for proto descriptors")
 	}
+
+	out.Http2ProtocolOptions = &envoycore.Http2ProtocolOptions{}
 
 	p.transformation.ActivateFilterForCluster(out)
 
@@ -182,7 +184,7 @@ func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileD
 	var googleApiHttpFound, googleApiAnnotationsFound bool
 	var packageName string
 	for _, file := range set.File {
-		log.Printf("%v", *file.Name)
+		log.Debugf("inspecting descriptor for proto file %v...", *file.Name)
 		if *file.Name == "google/api/http.proto" {
 			googleApiHttpFound = true
 			continue
@@ -195,17 +197,19 @@ func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileD
 		for _, svc := range file.Service {
 			if *svc.Name == serviceName {
 				for _, method := range svc.Method {
+					packageName = *file.Package
+					fullServiceName := packageName + "." + serviceName
 					if err := proto.SetExtension(method.Options, api.E_Http, &api.HttpRule{
 						Pattern: &api.HttpRule_Post{
-							Post: httpPath(upstreamName, serviceName, *method.Name),
+							Post: httpPath(upstreamName, fullServiceName, *method.Name),
 						},
 						Body: "*",
 					}); err != nil {
 						return "", errors.Wrap(err, "setting http extensions for method.Options")
 					}
-					packageName = *file.Package
-					break findService
+					log.Debugf("method.options: %v", *method.Options)
 				}
+				break findService
 			}
 		}
 	}
