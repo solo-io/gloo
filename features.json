@@ -14,8 +14,12 @@
         "gloo": "kubernetes"
     },
     {
-        "name": "transformation",
-        "gloo": "transformation",
-        "envoy": "transformation/envoy"
+        "name": "rest",
+        "gloo": "rest",
+        "envoy": "common/transformation/envoy"
+    },
+    {
+        "name": "grpc",
+        "gloo": "grpc"
     }
 ]
