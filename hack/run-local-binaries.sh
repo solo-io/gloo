@@ -4,7 +4,7 @@ set -x -e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/..
 
-
+#DIR=${PWD}
 CONFIG_DIR=${CONFIG_DIR:-${DIR}/hack/gen-config-yaml/_gloo_config/}
 SECRETS_DIR=${CONFIG_DIR}/secrets/
 FILES_DIR=${CONFIG_DIR}/files
@@ -28,13 +28,13 @@ echo "Starting gloo"
 
 ./gloo --file.config.dir ${CONFIG_DIR} \
        --file.secret.dir ${SECRETS_DIR} \
-       --file.secret.dir ${FILES_DIR} &
+       --file.files.dir ${FILES_DIR} &
 
 sleep 1
 
 echo "Starting envoy"
 #GLOO_IP=$(docker inspect gloo -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}')
-GLOO_IP=127.0.0.1
+GLOO_IP=localhost
 cat > ${CONFIG_DIR}/envoy.yaml <<EOF
 node:
   cluster: ingress
@@ -50,7 +50,7 @@ static_resources:
         address: ${GLOO_IP}
         port_value: 8081
     http2_protocol_options: {}
-    type: STATIC
+    type: STRICT_DNS
 
 dynamic_resources:
   ads_config:
@@ -70,18 +70,19 @@ admin:
       port_value: 19000
 EOF
 
-docker run --rm -i \
-    -v ${CONFIG_DIR}:/config \
-    --name envoy \
-    --net=host \
-#    -p 8080:8080 \
-#    -p 8443:8443 \
-#    -p 19000:19000 \
-    envoyproxy/envoy:be0d5f72 \
-    envoy \
-    -c /config/envoy.yaml \
-    --service-cluster envoy \
-    --service-node envoy &
+#docker run --rm -i \
+#    -v ${CONFIG_DIR}:/config \
+#    --name envoy \
+#    --net=host \
+#    soloio/envoy:be0d5f72 \
+#    envoy \
+#    -c /config/envoy.yaml \
+#    --service-cluster envoy \
+#    --service-node envoy &
+
+#./envoy -c ./hack/gen-config-yaml/_gloo_config/envoy.yaml --v2-config-only
+
+./envoy -c ${CONFIG_DIR}/envoy.yaml --v2-config-only
 
 sleep 1
 

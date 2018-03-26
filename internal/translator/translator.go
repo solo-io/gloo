@@ -25,6 +25,7 @@ import (
 	"github.com/solo-io/gloo/pkg/coreplugins/route-extensions"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
+	"github.com/solo-io/gloo/pkg/filewatcher"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
@@ -72,15 +73,30 @@ func NewTranslator(plugins []plugin.TranslatorPlugin) *Translator {
 	}
 }
 
-func (t *Translator) Translate(cfg *v1.Config,
-	secrets secretwatcher.SecretMap,
-	endpoints endpointdiscovery.EndpointGroups) (*envoycache.Snapshot, []reporter.ConfigObjectReport, error) {
+type Inputs struct {
+	Cfg       *v1.Config
+	Secrets   secretwatcher.SecretMap
+	Files     filewatcher.Files
+	Endpoints endpointdiscovery.EndpointGroups
+}
+
+type pluginDependencies struct {
+	Secrets secretwatcher.SecretMap
+	Files   filewatcher.Files
+}
+
+func (t *Translator) Translate(inputs Inputs) (*envoycache.Snapshot, []reporter.ConfigObjectReport, error) {
+	cfg := inputs.Cfg
+	dependencies := &pluginDependencies{Secrets: inputs.Secrets, Files: inputs.Files}
+	secrets := inputs.Secrets
+	endpoints := inputs.Endpoints
+
 	log.Printf("Translation loop starting")
 	// endpoints
 	clusterLoadAssignments := computeClusterEndpoints(cfg.Upstreams, endpoints)
 
 	// clusters
-	clusters, upstreamReports := t.computeClusters(cfg, secrets, endpoints)
+	clusters, upstreamReports := t.computeClusters(cfg, dependencies, endpoints)
 
 	// mark errored upstreams; routes that point to them are considered invalid
 	errored := getErroredUpstreams(upstreamReports)
@@ -219,14 +235,14 @@ func loadAssignmentForCluster(clusterName string, addresses []endpointdiscovery.
 
 // Clusters
 
-func (t *Translator) computeClusters(cfg *v1.Config, secrets secretwatcher.SecretMap, endpoints endpointdiscovery.EndpointGroups) ([]*envoyapi.Cluster, []reporter.ConfigObjectReport) {
+func (t *Translator) computeClusters(cfg *v1.Config, dependencies *pluginDependencies, endpoints endpointdiscovery.EndpointGroups) ([]*envoyapi.Cluster, []reporter.ConfigObjectReport) {
 	var (
 		reports  []reporter.ConfigObjectReport
 		clusters []*envoyapi.Cluster
 	)
 	for _, upstream := range cfg.Upstreams {
 		_, edsCluster := endpoints[upstream.Name]
-		cluster, err := t.computeCluster(cfg, secrets, upstream, edsCluster)
+		cluster, err := t.computeCluster(cfg, dependencies, upstream, edsCluster)
 		// only append valid clusters
 		if err == nil {
 			clusters = append(clusters, cluster)
@@ -236,7 +252,7 @@ func (t *Translator) computeClusters(cfg *v1.Config, secrets secretwatcher.Secre
 	return clusters, reports
 }
 
-func (t *Translator) computeCluster(cfg *v1.Config, secrets secretwatcher.SecretMap, upstream *v1.Upstream, edsCluster bool) (*envoyapi.Cluster, error) {
+func (t *Translator) computeCluster(cfg *v1.Config, dependencies *pluginDependencies, upstream *v1.Upstream, edsCluster bool) (*envoyapi.Cluster, error) {
 	out := &envoyapi.Cluster{
 		Name:     upstream.Name,
 		Metadata: new(envoycore.Metadata),
@@ -250,11 +266,15 @@ func (t *Translator) computeCluster(cfg *v1.Config, secrets secretwatcher.Secret
 		if !ok {
 			continue
 		}
-		pluginSecrets := secretsForPlugin(cfg, upstreamPlugin, secrets)
 		params := &plugin.UpstreamPluginParams{
-			Secrets:              pluginSecrets,
 			EnvoyNameForUpstream: clusterName,
 		}
+		deps := dependenciesForPlugin(cfg, upstreamPlugin, dependencies)
+		if deps != nil {
+			params.Secrets = deps.Secrets
+			params.Files = deps.Files
+		}
+
 		if err := upstreamPlugin.ProcessUpstream(params, upstream, out); err != nil {
 			upstreamErrors = multierror.Append(upstreamErrors, err)
 		}
@@ -275,16 +295,28 @@ func validateCluster(c *envoyapi.Cluster) error {
 	return nil
 }
 
-func secretsForPlugin(cfg *v1.Config, plug plugin.TranslatorPlugin, secrets secretwatcher.SecretMap) secretwatcher.SecretMap {
-	deps := plug.GetDependencies(cfg)
-	if deps == nil || len(deps.SecretRefs) == 0 {
+func dependenciesForPlugin(cfg *v1.Config, plug plugin.TranslatorPlugin, dependencies *pluginDependencies) *pluginDependencies {
+	dependencyRefs := plug.GetDependencies(cfg)
+	if dependencyRefs == nil {
 		return nil
 	}
-	pluginSecrets := make(secretwatcher.SecretMap)
-	for _, ref := range deps.SecretRefs {
-		pluginSecrets[ref] = secrets[ref]
+	pluginDeps := &pluginDependencies{
+		Secrets: make(secretwatcher.SecretMap),
+		Files:   make(filewatcher.Files),
 	}
-	return pluginSecrets
+	for _, ref := range dependencyRefs.SecretRefs {
+		item, ok := dependencies.Secrets[ref]
+		if ok {
+			pluginDeps.Secrets[ref] = item
+		}
+	}
+	for _, ref := range dependencyRefs.FileRefs {
+		item, ok := dependencies.Files[ref]
+		if ok {
+			pluginDeps.Files[ref] = item
+		}
+	}
+	return pluginDeps
 }
 
 // VirtualHosts

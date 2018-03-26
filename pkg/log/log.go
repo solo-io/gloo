@@ -41,6 +41,7 @@ func Debugf(format string, a ...interface{}) {
 
 func Fatalf(format string, a ...interface{}) {
 	pp.Fprintf(DefaultOut, "%v\t"+format+"\n", append([]interface{}{line()}, a...)...)
+	os.Exit(1)
 }
 
 func line() string {

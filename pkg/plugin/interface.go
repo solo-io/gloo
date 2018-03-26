@@ -7,6 +7,7 @@ import (
 	"github.com/gogo/protobuf/types"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/filewatcher"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 
@@ -24,6 +25,7 @@ type EnvoyNameForUpstream func(upstreamName string) string
 
 type Dependencies struct {
 	SecretRefs []string
+	FileRefs   []string
 }
 
 type TranslatorPlugin interface {
@@ -34,6 +36,7 @@ type TranslatorPlugin interface {
 type UpstreamPluginParams struct {
 	EnvoyNameForUpstream EnvoyNameForUpstream
 	Secrets              secretwatcher.SecretMap
+	Files                filewatcher.Files
 }
 
 type UpstreamPlugin interface {
