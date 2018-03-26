@@ -18,7 +18,7 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 )
 
-var _ = FDescribe("GRPC Plugin", func() {
+var _ = Describe("GRPC Plugin", func() {
 	It("Routes to GRPC Functions", func() {
 		err := envoyInstance.Run()
 		Expect(err).NotTo(HaveOccurred())
