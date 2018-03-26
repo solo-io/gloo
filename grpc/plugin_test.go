@@ -2,6 +2,7 @@ package grpc
 
 import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -89,6 +90,26 @@ var _ = Describe("Plugin", func() {
 			Expect(err).To(BeNil())
 			Expect(p.upstreamServices["myupstream"]).To(Equal("bookstore.Bookstore"))
 			Expect(p.serviceDescriptors["bookstore.Bookstore"]).NotTo(BeNil())
+			route := &v1.Route{
+				Matcher: &v1.Route_RequestMatcher{
+					RequestMatcher: &v1.RequestMatcher{
+						Path: &v1.RequestMatcher_PathExact{PathExact: "/test"},
+					},
+				},
+				SingleDestination: &v1.Destination{
+					DestinationType: &v1.Destination_Function{
+						Function: &v1.FunctionDestination{
+							UpstreamName: "myupstream",
+							FunctionName: "ListShelves",
+						},
+					},
+				},
+			}
+			outRoute := &envoyroute.Route{}
+			err = p.ProcessRoute(nil, route, outRoute)
+			Expect(err).To(BeNil())
+			filters := p.HttpFilters(nil)
+			Expect(len(filters)).To(Equal(1))
 			//for _, file := range p.serviceDescriptors["Bookstore"].File {
 			//log.Printf("%v", p.serviceDescriptors["Bookstore"])
 			//}

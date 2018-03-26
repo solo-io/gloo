@@ -181,7 +181,7 @@ func (p *Plugin) templateForFunction(dest *v1.Destination_Function) (*transforma
 
 // returns package name
 func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileDescriptorSet) (string, error) {
-	var googleApiHttpFound, googleApiAnnotationsFound bool
+	var googleApiHttpFound, googleApiAnnotationsFound, googleApiDescriptorFound bool
 	var packageName string
 	for _, file := range set.File {
 		log.Debugf("inspecting descriptor for proto file %v...", *file.Name)
@@ -191,6 +191,10 @@ func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileD
 		}
 		if *file.Name == "google/api/annotations.proto" {
 			googleApiAnnotationsFound = true
+			continue
+		}
+		if *file.Name == "google/api/descriptor.proto" {
+			googleApiDescriptorFound = true
 			continue
 		}
 	findService:
@@ -214,12 +218,17 @@ func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileD
 		}
 	}
 
+	if !googleApiDescriptorFound {
+		addGoogleApisDescriptor(set)
+	}
+
 	if !googleApiHttpFound {
 		addGoogleApisHttp(set)
 	}
 
 	if !googleApiAnnotationsFound {
-		addGoogleApisAnnotations(set)
+		//TODO: investigate if we need this
+		//addGoogleApisAnnotations(packageName, set)
 	}
 
 	if packageName == "" {
@@ -234,7 +243,7 @@ func httpPath(upstreamName, serviceName, methodName string) string {
 	return "/" + fmt.Sprintf("%x", h.Sum(nil))[:8] + "/" + upstreamName + "/" + serviceName + "/" + methodName
 }
 
-func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
+func (p *Plugin) HttpFilters(_ *plugin.FilterPluginParams) []plugin.StagedFilter {
 	if len(p.serviceDescriptors) == 0 {
 		return nil
 	}
@@ -253,6 +262,7 @@ func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedF
 			log.Warnf("ERROR: marshaling proto descriptor: %v", err)
 			continue
 		}
+		log.Debugf("service %v using descriptors %v", serviceName, protoDescriptor)
 		filterConfig, err := util.MessageToStruct(&envoytranscoder.GrpcJsonTranscoder{
 			DescriptorSet: &envoytranscoder.GrpcJsonTranscoder_ProtoDescriptorBin{
 				ProtoDescriptorBin: descriptorBytes,
