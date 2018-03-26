@@ -10,11 +10,12 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/solo-io/gloo-plugins/grpc/grpc-test-service/bookstore/protos"
+	"github.com/solo-io/gloo-plugins/grpc/grpc-test-service/server"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
-// requires https://github.com/googleapis/googleapis to be in /tmp/googleapis
+// requires https://github.com/googleapis/googleapis to be in ${HOME}/workspace/googleapis
 
 //go:generate mkdir -p bookstore
 //go:generate mkdir -p descriptors
@@ -36,7 +37,7 @@ func main() {
 				return handler(srv, ss)
 			},
 		)))
-	bookstore.RegisterBookstoreServer(grpcServer, NewServer())
+	bookstore.RegisterBookstoreServer(grpcServer, server.NewServer())
 	log.Printf("listening on %v", *port)
 	grpcServer.Serve(lis)
 }
