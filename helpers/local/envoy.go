@@ -99,6 +99,9 @@ docker rm $CID
 }
 
 func (ef *EnvoyFactory) Clean() error {
+	if ef == nil {
+		return nil
+	}
 	if ef.tmpdir != "" {
 		os.RemoveAll(ef.tmpdir)
 

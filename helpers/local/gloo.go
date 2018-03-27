@@ -16,6 +16,8 @@ import (
 	"github.com/solo-io/gloo-testing/helpers"
 
 	"github.com/onsi/ginkgo"
+
+	"github.com/ghodss/yaml"
 )
 
 type GlooFactory struct {
@@ -115,6 +117,18 @@ func (gi *GlooInstance) AddVhost(u *v1.VirtualHost) error {
 	return err
 }
 
+func (gi *GlooInstance) AddSecret(name string, secret map[string]string) error {
+	secretdir := filepath.Join(gi.tmpdir, "_gloo_secrets")
+	os.Mkdir(secretdir, 0755)
+	secretfile := filepath.Join(secretdir, name)
+
+	data, err := yaml.Marshal(&secret)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(secretfile, data, 0400)
+}
+
 func (gi *GlooInstance) initStorage() error {
 
 	dir := gi.tmpdir
@@ -163,6 +177,9 @@ func (gi *GlooInstance) RunWithPort(xdsport uint32) error {
 }
 
 func (gi *GlooInstance) Clean() error {
+	if gi == nil {
+		return nil
+	}
 	if gi.cmd != nil {
 		gi.cmd.Process.Kill()
 		gi.cmd.Wait()

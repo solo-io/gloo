@@ -13,6 +13,7 @@ var (
 	envoyFactory             *localhelpers.EnvoyFactory
 	glooFactory              *localhelpers.GlooFactory
 	functionDiscoveryFactory *localhelpers.FunctionDiscoveryFactory
+	natsStreamingFactory     *localhelpers.NatsStreamingFactory
 )
 
 func TestLocalE2e(t *testing.T) {
@@ -26,20 +27,27 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	glooFactory, err = localhelpers.NewGlooFactory()
 	Expect(err).NotTo(HaveOccurred())
-	functionDiscoveryFactory, err = localhelpers.NewFunctionDiscoveryFactory()
-	Expect(err).NotTo(HaveOccurred())
+	functionDiscoveryFactory, _ = localhelpers.NewFunctionDiscoveryFactory()
+	natsStreamingFactory, _ = localhelpers.NewNatsStreamingFactory()
 
 })
 
 var _ = AfterSuite(func() {
 	envoyFactory.Clean()
 	glooFactory.Clean()
+	if functionDiscoveryFactory != nil {
+		functionDiscoveryFactory.Clean()
+	}
+	if natsStreamingFactory != nil {
+		natsStreamingFactory.Clean()
+	}
 })
 
 var (
 	envoyInstance             *localhelpers.EnvoyInstance
 	glooInstance              *localhelpers.GlooInstance
 	functionDiscoveryInstance *localhelpers.FunctionDiscoveryInstance
+	natsStreamingInstance     *localhelpers.NatsStreamingInstance
 )
 
 var _ = BeforeEach(func() {
@@ -48,8 +56,12 @@ var _ = BeforeEach(func() {
 	Expect(err).NotTo(HaveOccurred())
 	glooInstance, err = glooFactory.NewGlooInstance()
 	Expect(err).NotTo(HaveOccurred())
-	functionDiscoveryInstance, err = functionDiscoveryFactory.NewFunctionDiscoveryInstance()
-	Expect(err).NotTo(HaveOccurred())
+	if functionDiscoveryFactory != nil {
+		functionDiscoveryInstance, _ = functionDiscoveryFactory.NewFunctionDiscoveryInstance()
+	}
+	if natsStreamingFactory != nil {
+		natsStreamingInstance, _ = natsStreamingFactory.NewNatsStreamingInstance()
+	}
 })
 
 var _ = AfterEach(func() {
@@ -58,5 +70,11 @@ var _ = AfterEach(func() {
 	}
 	if glooInstance != nil {
 		glooInstance.Clean()
+	}
+	if functionDiscoveryInstance != nil {
+		functionDiscoveryInstance.Clean()
+	}
+	if natsStreamingInstance != nil {
+		natsStreamingInstance.Clean()
 	}
 })
