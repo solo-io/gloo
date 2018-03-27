@@ -296,7 +296,7 @@
           "fields": [
             {
               "name": "type",
-              "description": "Type indicates the type of service running on the upstream.\nCurrent options include `http`, `gRPC`, and `NATS`",
+              "description": "Type indicates the type of service running on the upstream.\nCurrent options include `REST`, `gRPC`, and `NATS`",
               "label": "",
               "type": "string",
               "longType": "string",

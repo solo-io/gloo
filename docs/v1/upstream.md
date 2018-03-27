@@ -2,6 +2,7 @@
 
 ## Contents
   - [Upstream](#v1.Upstream)
+  - [ServiceInfo](#v1.ServiceInfo)
   - [Function](#v1.Function)
 
 
@@ -29,6 +30,7 @@ spec: {google.protobuf.Struct}
 functions: [{Function}]
 status: (read only)
 metadata: {Metadata}
+service_info: {ServiceInfo}
 
 ```
 | Field | Type | Label | Description |
@@ -40,6 +42,28 @@ metadata: {Metadata}
 | functions | [Function](upstream.md#v1.Function) | repeated | Certain upstream types support (and may require) [functions](../introduction/concepts.md#Functions). Functions allow function-level routing to be done. For example, the [AWS lambda](../plugins/aws.md) upstream type Permits routing to AWS lambda function]. [routes](virtualhost.md#Route) on virtualhosts can specify function destinations to route to specific functions. |
 | status | [Status](status.md#v1.Status) |  | Status indicates the validation status of the upstream resource. Status is read-only by clients, and set by gloo during validation |
 | metadata | [Metadata](metadata.md#v1.Metadata) |  | Metadata contains the resource metadata for the upstream |
+| service_info | [ServiceInfo](upstream.md#v1.ServiceInfo) |  | Service Info contains information about the service running on the upstream Service Info is optional, but is used by certain plugins (such as the gRPC plugin) as well as discovery services to provide sophistocated routing features for well-known types of services |
+
+
+
+
+
+
+<a name="v1.ServiceInfo"></a>
+
+### ServiceInfo
+
+
+
+```yaml
+type: string
+properties: {google.protobuf.Struct}
+
+```
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| type | string |  | Type indicates the type of service running on the upstream. Current options include `REST`, `gRPC`, and `NATS` |
+| properties | [google.protobuf.Struct](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/struct) |  | Properties contains properties that describe the service. The spec may be required by the Upstream Plugin that handles the given Service Type Most often the service properties will be a map&lt;string, string&gt; |
 
 
 
