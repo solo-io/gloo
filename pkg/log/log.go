@@ -9,6 +9,8 @@ import (
 
 	"io"
 
+	"time"
+
 	"github.com/k0kubun/pp"
 )
 
@@ -53,5 +55,5 @@ func Fatalf(format string, a ...interface{}) {
 func line() string {
 	_, file, line, _ := runtime.Caller(2)
 	file = rxp.ReplaceAllString(file, "")
-	return fmt.Sprintf("%v:%v", file, line)
+	return fmt.Sprintf("%v: %v:%v", time.Now().Format(time.RFC1123), file, line)
 }
