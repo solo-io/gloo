@@ -32,6 +32,12 @@ func (p *Plugin) ProcessUpstream(_ *plugin.UpstreamPluginParams, in *v1.Upstream
 		return errors.Wrap(err, "invalid service upstream spec")
 	}
 	for _, host := range spec.Hosts {
+		if host.Addr == "" {
+			return errors.New("addr cannot be empty for host")
+		}
+		if host.Port == 0 {
+			return errors.New("port cannot be empty for host")
+		}
 		ip := net.ParseIP(host.Addr)
 		if ip != nil {
 			out.Type = envoyapi.Cluster_STATIC

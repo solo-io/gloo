@@ -64,7 +64,7 @@ var _ = Describe("Translator", func() {
 				Expect(reports[2].Err).To(BeNil())
 				Expect(reports[3].Err).NotTo(BeNil())
 				Expect(reports[1].Err.Error()).To(ContainSubstring("ip cannot be empty"))
-				Expect(reports[3].Err.Error()).To(ContainSubstring("was not found for function destination"))
+				Expect(reports[3].Err.Error()).To(ContainSubstring("upstream invalid-service was not found or had errors for function destination"))
 			})
 			It("returns one cluster and one vhost", func() {
 				clas, clusters, routeConfigs, listeners := getSnapshotResources(snap)
@@ -452,7 +452,7 @@ func PartiallyValidConfig() *v1.Config {
 						DestinationType: &v1.Destination_Function{
 							Function: &v1.FunctionDestination{
 								FunctionName: "invalid-func",
-								UpstreamName: "valid-service",
+								UpstreamName: "invalid-service",
 							},
 						},
 					},
