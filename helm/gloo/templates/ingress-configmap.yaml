@@ -22,26 +22,26 @@ data:
       {{- if eq .Values.opentracing.status "configure" "install" }}
       - name: jaeger
         connect_timeout: 1s
-        type: strict_dns
-        lb_policy: round_robin
+        type: STRICT_DNS
         hosts:
         - socket_address:
-          address: {{ template "jaeger.host" . }}
-          port_value: {{ template "jaeger.port" . }}
+            address: {{ template "jaeger.host" . }}
+            port_value: {{ template "jaeger.port" . }}
       {{- end }}
       {{- end }}
       {{- if .Values.metrics.status }}
       {{- if eq .Values.metrics.status "statsd" "prometheus" "all" }}
       - name: statsd
         connect_timeout: 1s
-        type: strict_dns
-        lb_policy: round_robin
+        type: STRICT_DNS
         hosts:
         - socket_address:
-          address: {{ template "statsd.host" . }}
-          port_value: {{ template "statsd.port" . }}
+            address: {{ template "statsd.host" . }}
+            port_value: {{ template "statsd.port" . }}
       {{- end }}
       {{- end }}
+    
+    dynamic_resources:
       ads_config:
         api_type: GRPC
         cluster_names:
