@@ -16,7 +16,7 @@ import (
 	. "github.com/solo-io/gloo-function-discovery/internal/swagger"
 	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
 	"github.com/solo-io/gloo-plugins/common/annotations"
-	"github.com/solo-io/gloo-plugins/transformation"
+	"github.com/solo-io/gloo-plugins/rest"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
 
@@ -53,7 +53,7 @@ var _ = Describe("DiscoverSwaggerUpstreams", func() {
 				}
 				DiscoverSwaggerUpstream(&resolver.Resolver{}, []string{"/test/path"}, us)
 				Expect(us.Metadata.Annotations).To(HaveKey(annotations.ServiceType))
-				Expect(us.Metadata.Annotations[annotations.ServiceType]).To(Equal(transformation.ServiceTypeTransformation))
+				Expect(us.Metadata.Annotations[annotations.ServiceType]).To(Equal(rest.ServiceTypeTransformation))
 				Expect(us.Metadata.Annotations).To(HaveKey(AnnotationKeySwaggerURL))
 				Expect(us.Metadata.Annotations[AnnotationKeySwaggerURL]).To(Equal(srv.URL + "/test/path"))
 			})
