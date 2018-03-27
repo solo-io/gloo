@@ -41,9 +41,10 @@
   name = "github.com/pkg/errors"
   version = "0.8.0"
 
-[[constraint]]
-  revision = "c517738a012f46dda2754ccfbc1da2628e0905ca"
+[[override]]
+  branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
+  source = "https://github.com/ilackarms/go-control-plane.git"
 
 [[constraint]]
   branch = "master"
