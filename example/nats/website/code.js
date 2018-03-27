@@ -125,25 +125,52 @@ function readquestFinished(requestId, successfully) {
     }
 }
 
-var ctx = null;
+var XSIZE = 300;
 var myChart = null;
+var myChart2 = null;
 
 $(document).ready(function(){
-    ctx = $("#myChart");
+    let ctx = $("#myChart");
+    let ctx2 = $("#myChart2");
+
 
     myChart = new Chart(ctx, {
   type: 'line',
   data: {
-    labels: [0],
+    labels: Array(XSIZE).fill(0),
     datasets: [{
-        data: [0],
+        data: Array(XSIZE).fill(0),
         lineTension: 0,
         backgroundColor: 'transparent',
         borderColor: '#007bff',
         borderWidth: 4,
         pointBackgroundColor: '#007bff'
-      },{
-        data: [0],
+      }]
+  },
+  options: {
+    scales: {
+      yAxes: [{
+        ticks: {
+          beginAtZero: true,
+          suggestedMax: 2000
+        }
+      }
+      ]
+    },
+    legend: {
+      display: false,
+    }
+  }
+});
+
+
+
+    myChart2 = new Chart(ctx2, {
+  type: 'line',
+  data: {
+    labels: Array(XSIZE).fill(0),
+    datasets: [{
+        data: Array(XSIZE).fill(0),
         lineTension: 0,
         backgroundColor: 'transparent',
         borderColor: '#ff0000',
@@ -151,7 +178,7 @@ $(document).ready(function(){
         pointBackgroundColor: '#ff0000',
         yAxisID : "persecond"
       },{
-        data: [0],
+        data: Array(XSIZE).fill(0),
         lineTension: 0,
         backgroundColor: 'transparent',
         borderColor: '#00ff00',
@@ -162,18 +189,11 @@ $(document).ready(function(){
   },
   options: {
     scales: {
-      yAxes: [{
-        ticks: {
-          beginAtZero: true,
-          suggestedMax: 2000
-        }
-      },
+      yAxes: [
       {
         id : "persecond",
-        position: "right",
         ticks: {
-            beginAtZero: true,
-            stepSize : 1.0
+            beginAtZero: true
         }
       }
       ]
@@ -183,26 +203,38 @@ $(document).ready(function(){
     }
   }
 });
+
+
+      
 });
 
 function updateChart(dt) {
     dt = dt / 1000.0;
     label = parseFloat(myChart.data.labels[myChart.data.labels.length-1]) + dt;
     myChart.data.labels.push(label);
+    myChart2.data.labels.push(label);
 
     myChart.data.datasets[0].data.push(pendingRequests);
-    myChart.data.datasets[1].data.push(failedRequests);
-    myChart.data.datasets[2].data.push(succesfulRequests);
+    myChart2.data.datasets[0].data.push(failedRequests);
+    myChart2.data.datasets[1].data.push(succesfulRequests);
     succesfulRequests = 0;
     failedRequests = 0;
 
-    if (myChart.data.labels.length > 500) {
+    while (myChart.data.labels.length > XSIZE) {
         myChart.data.labels.shift();
         myChart.data.datasets.forEach((dataset) => {
             dataset.data.shift();
         });
     }
     
+    while (myChart2.data.labels.length > XSIZE) {
+        myChart2.data.labels.shift();
+        myChart2.data.datasets.forEach((dataset) => {
+            dataset.data.shift();
+        });
+    }
+    
 
     myChart.update();
+    myChart2.update();
 }
