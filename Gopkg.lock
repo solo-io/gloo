@@ -25,6 +25,7 @@
     "envoy/api/v2/route",
     "envoy/config/bootstrap/v2",
     "envoy/config/filter/accesslog/v2",
+    "envoy/config/filter/http/transcoder/v2",
     "envoy/config/filter/network/http_connection_manager/v2",
     "envoy/config/metrics/v2",
     "envoy/config/ratelimit/v2",
@@ -48,6 +49,12 @@
   packages = ["."]
   revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
   version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gogo/googleapis"
+  packages = ["google/api"]
+  revision = "0cd9801be74a10d5ac39d69626eac8255ffcd502"
 
 [[projects]]
   name = "github.com/gogo/protobuf"
@@ -382,16 +389,17 @@
   revision = "15ee452ae0a4446bd7eb1bc1beb423dba0cda32f"
 
 [[projects]]
-  branch = "master"
+  branch = "grpc"
   name = "github.com/solo-io/gloo-plugins"
   packages = [
     "aws",
-    "common/annotations",
+    "common/transformation",
     "google",
+    "grpc",
     "kubernetes",
-    "transformation"
+    "rest"
   ]
-  revision = "d70cf7af750cdcccdee09545df6014cf95c41ca5"
+  revision = "267ccf84dab635abfd8da88ff51b94d7b0e2ca26"
 
 [[projects]]
   branch = "master"
@@ -802,6 +810,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "13958a18f847b9d35a976e0dcf35a643939edb9b11644823d52a800b8908cbfa"
+  inputs-digest = "60ef7475127ef76d145325a3eb982305b28331908db181f1ae58e8a236520752"
   solver-name = "gps-cdcl"
   solver-version = 1

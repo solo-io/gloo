@@ -3,7 +3,6 @@ package translator
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
-	"github.com/solo-io/gloo/pkg/endpointdiscovery"
 	"github.com/solo-io/gloo/pkg/plugin"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 
@@ -22,7 +21,7 @@ var _ = Describe("Translator", func() {
 		Context("domains are not unique amongst virtual hosts", func() {
 			cfg := InvalidConfigSharedDomains()
 			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
-			snap, reports, err := t.Translate(cfg, secretwatcher.SecretMap{}, endpointdiscovery.EndpointGroups{})
+			snap, reports, err := t.Translate(Inputs{Cfg: cfg})
 			It("returns four reports, one for each upstream, one for each virtualhost", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(reports).To(HaveLen(3))
@@ -50,7 +49,7 @@ var _ = Describe("Translator", func() {
 		Context("one valid route, one invalid route", func() {
 			cfg := PartiallyValidConfig()
 			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
-			snap, reports, err := t.Translate(cfg, secretwatcher.SecretMap{}, endpointdiscovery.EndpointGroups{})
+			snap, reports, err := t.Translate(Inputs{Cfg: cfg})
 			It("returns four reports, one for each upstream, one for each virtualhost", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(reports).To(HaveLen(4))
@@ -82,7 +81,7 @@ var _ = Describe("Translator", func() {
 			cfg := InvalidConfigNoUpstream()
 			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
 			It("returns report for the error and no virtual hosts", func() {
-				snap, reports, err := t.Translate(cfg, secretwatcher.SecretMap{}, endpointdiscovery.EndpointGroups{})
+				snap, reports, err := t.Translate(Inputs{Cfg: cfg})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(reports).To(HaveLen(2))
 				Expect(reports[0].CfgObject).To(Equal(cfg.Upstreams[0]))
@@ -104,7 +103,7 @@ var _ = Describe("Translator", func() {
 			cfg := ValidConfigNoSsl()
 			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
 			It("returns an empty ssl routeconfig and a len 1 nossl routeconfig", func() {
-				snap, reports, err := t.Translate(cfg, secretwatcher.SecretMap{}, endpointdiscovery.EndpointGroups{})
+				snap, reports, err := t.Translate(Inputs{Cfg: cfg})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(reports).To(HaveLen(2))
 				Expect(reports[0].CfgObject).To(Equal(cfg.Upstreams[0]))
@@ -126,7 +125,7 @@ var _ = Describe("Translator", func() {
 			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
 			Context("the desired ssl secret not present in the secret map", func() {
 				It("returns an error for the not found secretref", func() {
-					_, reports, err := t.Translate(cfg, secretwatcher.SecretMap{}, endpointdiscovery.EndpointGroups{})
+					_, reports, err := t.Translate(Inputs{Cfg: cfg})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(reports).To(HaveLen(2))
 					Expect(reports[0].CfgObject).To(Equal(cfg.Upstreams[0]))
@@ -138,12 +137,15 @@ var _ = Describe("Translator", func() {
 			})
 			Context("the desired ssl secret not present in the secret map", func() {
 				It("returns an empty ssl routeconfig and a len 1 nossl routeconfig", func() {
-					snap, reports, err := t.Translate(cfg, secretwatcher.SecretMap{
-						"ssl-secret-ref": map[string]string{
-							"ca_chain":    "1111",
-							"private_key": "1111",
+					snap, reports, err := t.Translate(Inputs{
+						Cfg: cfg,
+						Secrets: secretwatcher.SecretMap{
+							"ssl-secret-ref": map[string]string{
+								"ca_chain":    "1111",
+								"private_key": "1111",
+							},
 						},
-					}, endpointdiscovery.EndpointGroups{})
+					})
 					Expect(err).NotTo(HaveOccurred())
 					Expect(reports).To(HaveLen(2))
 					Expect(reports[0].CfgObject).To(Equal(cfg.Upstreams[0]))

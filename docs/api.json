@@ -273,6 +273,44 @@
               "longType": "Metadata",
               "fullType": "v1.Metadata",
               "defaultValue": ""
+            },
+            {
+              "name": "service_info",
+              "description": "Service Info contains information about the service running on the upstream\nService Info is optional, but is used by certain plugins (such as the gRPC plugin)\nas well as discovery services to provide sophistocated routing features for well-known\ntypes of services",
+              "label": "",
+              "type": "ServiceInfo",
+              "longType": "ServiceInfo",
+              "fullType": "v1.ServiceInfo",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ServiceInfo",
+          "longName": "ServiceInfo",
+          "fullName": "v1.ServiceInfo",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "type",
+              "description": "Type indicates the type of service running on the upstream.\nCurrent options include `http`, `gRPC`, and `NATS`",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "defaultValue": ""
+            },
+            {
+              "name": "properties",
+              "description": "Properties contains properties that describe the service. The spec may be required\nby the Upstream Plugin that handles the given Service Type\nMost often the service properties will be a map\u003cstring, string\u003e",
+              "label": "",
+              "type": "Struct",
+              "longType": "google.protobuf.Struct",
+              "fullType": "google.protobuf.Struct",
+              "defaultValue": ""
             }
           ]
         },

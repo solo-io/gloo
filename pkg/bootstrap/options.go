@@ -15,6 +15,10 @@ var (
 		WatcherTypeFile,
 		WatcherTypeKube,
 	}
+	SupportedFwTypes = []string{
+		WatcherTypeFile,
+		WatcherTypeKube,
+	}
 	SupportedSwTypes = []string{
 		WatcherTypeVault,
 		WatcherTypeKube,
@@ -26,6 +30,7 @@ type Options struct {
 	KubeOptions          KubeOptions
 	ConfigWatcherOptions WatcherOptions
 	SecretWatcherOptions WatcherOptions
+	FileWatcherOptions   WatcherOptions
 	FileOptions          FileOptions
 	VaultOptions         VaultOptions
 	XdsOptions           XdsOptions
@@ -53,6 +58,7 @@ type VaultOptions struct {
 type FileOptions struct {
 	ConfigDir string
 	SecretDir string
+	FilesDir  string
 }
 
 type XdsOptions struct {
