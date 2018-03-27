@@ -40,22 +40,6 @@ var _ = Describe("FileSecretWatcher", func() {
 		os.RemoveAll(dir)
 	})
 	Describe("watching file", func() {
-		Context("an invalid structure is written to a file", func() {
-			It("sends an error on the Error() channel", func() {
-				go watch.TrackSecrets([]string{ref})
-				invalidData := []byte("]]foo: bar")
-				err = ioutil.WriteFile(file, invalidData, 0644)
-				Expect(err).NotTo(HaveOccurred())
-				select {
-				case <-watch.Secrets():
-					Fail("config was received, expected error")
-				case err := <-watch.Error():
-					Expect(err).To(HaveOccurred())
-				case <-time.After(time.Second * 1):
-					Fail("expected err to have occurred before 1s")
-				}
-			})
-		})
 		Context("no secrets wanted", func() {
 			It("doesnt send anything on any channel", func() {
 				missingSecrets := map[string]map[string][]byte{"another-key": {"foo": []byte("bar"), "baz": []byte("qux")}}
