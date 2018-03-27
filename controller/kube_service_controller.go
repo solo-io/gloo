@@ -208,8 +208,18 @@ func (c *ServiceController) syncUpstreams(desiredUpstreams, actualUpstreams []*v
 	}
 	for _, us := range upstreamsToUpdate {
 		log.Debugf("updating upstream %v", us.Name)
+		// preserve functions that may have already been discovered
+		currentUpstream, err := c.upstreams.V1().Upstreams().Get(us.Name)
+		if err != nil {
+			return fmt.Errorf("failed to get existing upstream %s: %v", us.Name, err)
+		}
+		currentUpstream.Spec = us.Spec
+		if currentUpstream.Metadata == nil {
+			currentUpstream.Metadata = &v1.Metadata{}
+		}
+		currentUpstream.Metadata.Annotations = mergeAnnotations(currentUpstream.Metadata.Annotations, us.Metadata.Annotations)
 		if _, err := c.upstreams.V1().Upstreams().Update(us); err != nil {
-			return fmt.Errorf("failed to update upstream crd %s: %v", us.Name, err)
+			return fmt.Errorf("failed to update upstream %s: %v", us.Name, err)
 		}
 	}
 	// only remaining are no longer desired, delete em!
@@ -224,4 +234,17 @@ func (c *ServiceController) syncUpstreams(desiredUpstreams, actualUpstreams []*v
 
 func upstreamName(serviceNamespace, serviceName string, servicePort int32) string {
 	return fmt.Sprintf("%s-%s-%v", serviceNamespace, serviceName, servicePort)
+}
+
+// get the unique set of funcs between two lists
+// if conflict, new wins
+func mergeAnnotations(oldAnnotations, newAnnotations map[string]string) map[string]string {
+	merged := make(map[string]string)
+	for k, v := range oldAnnotations {
+		merged[k] = v
+	}
+	for k, v := range newAnnotations {
+		merged[k] = v
+	}
+	return merged
 }
