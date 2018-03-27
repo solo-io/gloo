@@ -39,9 +39,41 @@ var _ = Describe("Transformation", func() {
 		transformations := filter[0].HttpFilter.Config.Fields["transformations"].Kind.(*types.Value_StructValue)
 		Expect(transformations.StructValue.Fields).To(HaveLen(1))
 		for k, v := range transformations.StructValue.Fields {
-			Expect(v.Kind).To(BeAssignableToTypeOf(&types.Value_StructValue{}))
-			Expect(v.Kind.(*types.Value_StructValue).StructValue.Fields).To(HaveKey("transformation_template"))
-			Expect(v.Kind.(*types.Value_StructValue).StructValue.Fields["transformation_template"].Kind.(*types.Value_StructValue).StructValue.Fields).To(HaveKey("BodyTransformation"))
+			Expect(v.Kind.(*types.Value_StructValue).StructValue.Fields["extractors"]).To(Equal(&types.Value{
+				Kind: &types.Value_StructValue{
+					StructValue: &types.Struct{
+						Fields: map[string]*types.Value{},
+					},
+				},
+			}))
+			Expect(v.Kind.(*types.Value_StructValue).StructValue.Fields["transformation_template"]).To(Equal(&types.Value{
+				Kind: &types.Value_StructValue{
+					StructValue: &types.Struct{
+						Fields: map[string]*types.Value{
+							"body": &types.Value{
+								Kind: &types.Value_StructValue{
+									StructValue: &types.Struct{
+										Fields: map[string]*types.Value{
+											"text": &types.Value{
+												Kind: &types.Value_StringValue{
+													StringValue: "{{body}}",
+												},
+											},
+										},
+									},
+								},
+							},
+							"headers": &types.Value{
+								Kind: &types.Value_StructValue{
+									StructValue: &types.Struct{
+										Fields: map[string]*types.Value{},
+									},
+								},
+							},
+						},
+					},
+				},
+			}))
 			// make sure the hashes match
 			Expect(out.Metadata.FilterMetadata["io.solo.transformation"].Fields["response-transformation"].Kind.(*types.Value_StringValue).StringValue).To(Equal(k))
 		}
@@ -78,52 +110,6 @@ var _ = Describe("Transformation", func() {
 								Kind: &types.Value_StructValue{
 									StructValue: &types.Struct{
 										Fields: map[string]*types.Value{
-											"id": {
-												Kind: &types.Value_StructValue{
-													StructValue: &types.Struct{
-														Fields: map[string]*types.Value{
-															"subgroup": {
-																Kind: &types.Value_NumberValue{
-																	NumberValue: 1.000000,
-																},
-															},
-															"header": {
-																Kind: &types.Value_StringValue{
-																	StringValue: ":path",
-																},
-															},
-															"regex": {
-																Kind: &types.Value_StringValue{
-																	StringValue: "/u\\(se\\)rs/([\\.\\-_[:alnum:]]+)/accounts/([\\.\\-_[:alnum:]]+)",
-																},
-															},
-														},
-													},
-												},
-											},
-											"method": {
-												Kind: &types.Value_StructValue{
-													StructValue: &types.Struct{
-														Fields: map[string]*types.Value{
-															"header": {
-																Kind: &types.Value_StringValue{
-																	StringValue: ":method",
-																},
-															},
-															"regex": {
-																Kind: &types.Value_StringValue{
-																	StringValue: "([\\.\\-_[:alnum:]]+)",
-																},
-															},
-															"subgroup": {
-																Kind: &types.Value_NumberValue{
-																	NumberValue: 1.000000,
-																},
-															},
-														},
-													},
-												},
-											},
 											"path": {
 												Kind: &types.Value_StructValue{
 													StructValue: &types.Struct{
@@ -174,6 +160,11 @@ var _ = Describe("Transformation", func() {
 												Kind: &types.Value_StructValue{
 													StructValue: &types.Struct{
 														Fields: map[string]*types.Value{
+															"header": {
+																Kind: &types.Value_StringValue{
+																	StringValue: "content-type",
+																},
+															},
 															"regex": {
 																Kind: &types.Value_StringValue{
 																	StringValue: "application/([\\.\\-_[:alnum:]]+)",
@@ -184,11 +175,6 @@ var _ = Describe("Transformation", func() {
 																	NumberValue: 1.000000,
 																},
 															},
-															"header": {
-																Kind: &types.Value_StringValue{
-																	StringValue: "content-type",
-																},
-															},
 														},
 													},
 												},
@@ -197,11 +183,6 @@ var _ = Describe("Transformation", func() {
 												Kind: &types.Value_StructValue{
 													StructValue: &types.Struct{
 														Fields: map[string]*types.Value{
-															"regex": {
-																Kind: &types.Value_StringValue{
-																	StringValue: "/u\\(se\\)rs/([\\.\\-_[:alnum:]]+)/accounts/([\\.\\-_[:alnum:]]+)",
-																},
-															},
 															"subgroup": {
 																Kind: &types.Value_NumberValue{
 																	NumberValue: 2.000000,
@@ -210,6 +191,11 @@ var _ = Describe("Transformation", func() {
 															"header": {
 																Kind: &types.Value_StringValue{
 																	StringValue: ":path",
+																},
+															},
+															"regex": {
+																Kind: &types.Value_StringValue{
+																	StringValue: "/u\\(se\\)rs/([\\.\\-_[:alnum:]]+)/accounts/([\\.\\-_[:alnum:]]+)",
 																},
 															},
 														},
@@ -243,6 +229,11 @@ var _ = Describe("Transformation", func() {
 												Kind: &types.Value_StructValue{
 													StructValue: &types.Struct{
 														Fields: map[string]*types.Value{
+															"header": {
+																Kind: &types.Value_StringValue{
+																	StringValue: "x-foo-bar",
+																},
+															},
 															"regex": {
 																Kind: &types.Value_StringValue{
 																	StringValue: "([\\.\\-_[:alnum:]]+)",
@@ -253,9 +244,50 @@ var _ = Describe("Transformation", func() {
 																	NumberValue: 1.000000,
 																},
 															},
+														},
+													},
+												},
+											},
+											"id": {
+												Kind: &types.Value_StructValue{
+													StructValue: &types.Struct{
+														Fields: map[string]*types.Value{
 															"header": {
 																Kind: &types.Value_StringValue{
-																	StringValue: "x-foo-bar",
+																	StringValue: ":path",
+																},
+															},
+															"regex": {
+																Kind: &types.Value_StringValue{
+																	StringValue: "/u\\(se\\)rs/([\\.\\-_[:alnum:]]+)/accounts/([\\.\\-_[:alnum:]]+)",
+																},
+															},
+															"subgroup": {
+																Kind: &types.Value_NumberValue{
+																	NumberValue: 1.000000,
+																},
+															},
+														},
+													},
+												},
+											},
+											"method": {
+												Kind: &types.Value_StructValue{
+													StructValue: &types.Struct{
+														Fields: map[string]*types.Value{
+															"header": {
+																Kind: &types.Value_StringValue{
+																	StringValue: ":method",
+																},
+															},
+															"regex": {
+																Kind: &types.Value_StringValue{
+																	StringValue: "([\\.\\-_[:alnum:]]+)",
+																},
+															},
+															"subgroup": {
+																Kind: &types.Value_NumberValue{
+																	NumberValue: 1.000000,
 																},
 															},
 														},
@@ -274,6 +306,19 @@ var _ = Describe("Transformation", func() {
 												Kind: &types.Value_StructValue{
 													StructValue: &types.Struct{
 														Fields: map[string]*types.Value{
+															":path": {
+																Kind: &types.Value_StructValue{
+																	StructValue: &types.Struct{
+																		Fields: map[string]*types.Value{
+																			"text": {
+																				Kind: &types.Value_StringValue{
+																					StringValue: "/{{id}}/why/{{id}}",
+																				},
+																			},
+																		},
+																	},
+																},
+															},
 															"x-content-type": {
 																Kind: &types.Value_StructValue{
 																	StructValue: &types.Struct{
@@ -300,38 +345,17 @@ var _ = Describe("Transformation", func() {
 																	},
 																},
 															},
-															":path": {
-																Kind: &types.Value_StructValue{
-																	StructValue: &types.Struct{
-																		Fields: map[string]*types.Value{
-																			"text": {
-																				Kind: &types.Value_StringValue{
-																					StringValue: "/{{id}}/why/{{id}}",
-																				},
-																			},
-																		},
-																	},
-																},
-															},
 														},
 													},
 												},
 											},
-											"BodyTransformation": {
+											"body": {
 												Kind: &types.Value_StructValue{
 													StructValue: &types.Struct{
 														Fields: map[string]*types.Value{
-															"Body": {
-																Kind: &types.Value_StructValue{
-																	StructValue: &types.Struct{
-																		Fields: map[string]*types.Value{
-																			"text": {
-																				Kind: &types.Value_StringValue{
-																					StringValue: "{\"id\":\"{{id}}\", \"type\":\"{{type}}\"}",
-																				},
-																			},
-																		},
-																	},
+															"text": {
+																Kind: &types.Value_StringValue{
+																	StringValue: "{\"id\":\"{{id}}\", \"type\":\"{{type}}\"}",
 																},
 															},
 														},
