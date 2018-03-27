@@ -56,16 +56,9 @@ function getagain() {
 var maxTimeInSecinds = 0;
 
 function updatetime() {
-    let timesinceupdate = Date.now() - lastUpdate;
-    let timeinseconds = Math.floor(timesinceupdate/1000.0);
-    $("#deltaupdate").html(""+timeinseconds);
-    if (timeinseconds > maxTimeInSecinds) {
-        maxTimeInSecinds = timeinseconds;
-        $("#maxdeltaupdate").html(""+maxTimeInSecinds);
-    }
     setTimeout(updatetime, 1000);
     if (myChart) {
-        updateChart(timesinceupdate, 1000);
+        updateChart(1000);
     }
 }
 
@@ -74,30 +67,62 @@ function post_analytics() {
 }
 
 function post_analytics_for(page) {
-    let data = {
-        "Url": "www.solo.io",
-        "Page": page,
-    }
-    return $.ajax({
-        type: "POST",
-        url: "/analytics",
-        data: JSON.stringify(data),
-        contentType: 'application/json; charset=utf-8',
-        dataType: "json"
-        });
+    return post_analytics_with_address_for("/analytics", page);
 }
+
 function post_nats_analytics_for(page) {
+    return post_analytics_with_address_for("/analytics-nats", page);
+}
+
+var requestId = 0;
+
+var requestStartTimes = {};
+var requestLatencies = [];
+
+function post_analytics_with_address_for(address, page) {
+    let copyRequestId = requestId;
+    requestId += 1;
+
+    requestStartTimes[copyRequestId] = Date.now();
+
     let data = {
         "Url": "www.solo.io",
         "Page": page,
     }
+    readquestStarted(copyRequestId);
     return $.ajax({
         type: "POST",
-        url: "/analytics-nats",
+        url: address,
         data: JSON.stringify(data),
         contentType: 'application/json; charset=utf-8',
-        dataType: "json"
-        });
+        }).fail(function(jqXHR, textStatus) {
+            readquestFinished(copyRequestId, false);
+        }
+        ).done(function(msg) {
+            readquestFinished(copyRequestId, true);
+        }
+        );
+
+}
+
+var pendingRequests = 0;
+var succesfulRequests = 0;
+var failedRequests = 0;
+
+function readquestStarted(requestId) {
+    pendingRequests += 1;
+}
+
+function readquestFinished(requestId, successfully) {
+    let starttime = requestStartTimes[requestId];
+    delete requestStartTimes[requestId];
+    let endtime = Date.now();
+    pendingRequests -= 1;
+    if (successfully) {
+        succesfulRequests += 1;
+    } else {
+        failedRequests += 1;
+    }
 }
 
 var ctx = null;
@@ -109,24 +134,49 @@ $(document).ready(function(){
     myChart = new Chart(ctx, {
   type: 'line',
   data: {
-    labels: ["0","1"],
+    labels: [0],
     datasets: [{
-      data: [0,1],
-      lineTension: 0,
-      backgroundColor: 'transparent',
-      borderColor: '#007bff',
-      borderWidth: 4,
-      pointBackgroundColor: '#007bff'
-    }]
+        data: [0],
+        lineTension: 0,
+        backgroundColor: 'transparent',
+        borderColor: '#007bff',
+        borderWidth: 4,
+        pointBackgroundColor: '#007bff'
+      },{
+        data: [0],
+        lineTension: 0,
+        backgroundColor: 'transparent',
+        borderColor: '#ff0000',
+        borderWidth: 4,
+        pointBackgroundColor: '#ff0000',
+        yAxisID : "persecond"
+      },{
+        data: [0],
+        lineTension: 0,
+        backgroundColor: 'transparent',
+        borderColor: '#00ff00',
+        borderWidth: 4,
+        pointBackgroundColor: '#00ff00',
+        yAxisID : "persecond"
+      }]
   },
   options: {
     scales: {
       yAxes: [{
         ticks: {
-          beginAtZero: false,
-          suggestedMax: 300
+          beginAtZero: true,
+          suggestedMax: 2000
         }
-      }]
+      },
+      {
+        id : "persecond",
+        position: "right",
+        ticks: {
+            beginAtZero: true,
+            stepSize : 1.0
+        }
+      }
+      ]
     },
     legend: {
       display: false,
@@ -135,14 +185,16 @@ $(document).ready(function(){
 });
 });
 
-function updateChart(timesinceupdate, dt) {
-    timesinceupdate = timesinceupdate/1000.0;
+function updateChart(dt) {
     dt = dt / 1000.0;
     label = parseFloat(myChart.data.labels[myChart.data.labels.length-1]) + dt;
     myChart.data.labels.push(label);
-    myChart.data.datasets.forEach((dataset) => {
-        dataset.data.push(timesinceupdate);
-    });
+
+    myChart.data.datasets[0].data.push(pendingRequests);
+    myChart.data.datasets[1].data.push(failedRequests);
+    myChart.data.datasets[2].data.push(succesfulRequests);
+    succesfulRequests = 0;
+    failedRequests = 0;
 
     if (myChart.data.labels.length > 500) {
         myChart.data.labels.shift();
