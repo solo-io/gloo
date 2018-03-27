@@ -109,10 +109,10 @@ var _ = Describe("Plugin", func() {
 			err = p.ProcessRoute(nil, route, outRoute)
 			Expect(err).To(BeNil())
 			filters := p.HttpFilters(nil)
-			Expect(len(filters)).To(Equal(1))
-			//for _, file := range p.serviceDescriptors["Bookstore"].File {
-			//log.Printf("%v", p.serviceDescriptors["Bookstore"])
-			//}
+			Expect(filters).To(HaveLen(2))
+			Expect(filters[0].HttpFilter.Name).To(Equal("io.solo.transformation"))
+			Expect(filters[1].HttpFilter.Name).To(Equal("envoy.grpc_json_transcoder"))
+			// TODO: improve this test
 		})
 	})
 })
