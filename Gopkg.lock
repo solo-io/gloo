@@ -68,6 +68,7 @@
   revision = "66deaeb636dff1ac7d938ce666d090556056a4b0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/golang/protobuf"
   packages = [
     "jsonpb",
@@ -80,8 +81,7 @@
     "ptypes/struct",
     "ptypes/timestamp"
   ]
-  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
-  version = "v1.0.0"
+  revision = "bbd03ef6da3a115852eaf24c8a1c46aeb39aa175"
 
 [[projects]]
   branch = "master"
@@ -115,15 +115,17 @@
   revision = "9cad4c3443a7200dd6400aef47183728de563a38"
 
 [[projects]]
-  branch = "better_docs"
+  branch = "master"
   name = "github.com/grpc-ecosystem/go-grpc-middleware"
   packages = [
     ".",
     "logging",
     "logging/zap",
-    "tags"
+    "logging/zap/ctxzap",
+    "tags",
+    "tags/zap"
   ]
-  revision = "63e69ea2fcaa6764e67826381756e528db9203ab"
+  revision = "aed189ae50cf2ee326c1de8c083f3187e574e0d8"
 
 [[projects]]
   branch = "master"
@@ -179,8 +181,8 @@
 [[projects]]
   name = "github.com/lyft/protoc-gen-validate"
   packages = ["validate"]
-  revision = "930a67cf7ba41b9d9436ad7a1be70a5d5ff6e1fc"
-  version = "v0.0.6"
+  revision = "8e6aaf55f4954f1ef9d3ee2e8f5a50e79cc04f8f"
+  version = "v0.0.5"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -288,7 +290,7 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "095e3069ae702e60a39bc57c85659d799126d019"
+  revision = "9bc65a0e9cdab04140791e8944ab849420f2ea45"
 
 [[projects]]
   branch = "master"
