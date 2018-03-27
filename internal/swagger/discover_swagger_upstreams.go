@@ -8,6 +8,9 @@ import (
 	"sync"
 
 	"github.com/cenkalti/backoff"
+	"github.com/go-openapi/loads"
+	"github.com/go-openapi/spec"
+	"github.com/go-openapi/swag"
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
@@ -87,8 +90,13 @@ func discoverSwaggerUpstream(resolver *resolver.Resolver, swaggerUrisToTry []str
 			errs = multierror.Append(errs, errors.Wrapf(err, "could not perform HTTP GET on resolved addr: %v", addr))
 			continue
 		}
-		// found a swagger service
+		// might have found a swagger service
 		if res.StatusCode == 200 {
+			if _, err := RetrieveSwaggerDocFromUrl(url); err != nil {
+				errs = multierror.Append(errs, err)
+				continue
+			}
+			// definitely found swagger
 			setSwaggerServiceType(url, us)
 			return nil
 		}
@@ -110,4 +118,28 @@ func setSwaggerServiceType(url string, us *v1.Upstream) {
 	}
 	us.ServiceInfo.Type = rest.ServiceTypeREST
 	us.Metadata.Annotations[AnnotationKeySwaggerURL] = url
+}
+
+func RetrieveSwaggerDocFromUrl(url string) (*spec.Swagger, error) {
+	docBytes, err := swag.LoadFromFileOrHTTP(url)
+	if err != nil {
+		return nil, errors.Wrap(err, "loading swagger doc from url")
+	}
+	return ParseSwaggerDoc(docBytes)
+}
+
+func ParseSwaggerDoc(docBytes []byte) (*spec.Swagger, error) {
+	doc, err := loads.Analyzed(docBytes, "")
+	if err != nil {
+		log.Warnf("parsing doc as json failed, falling back to yaml")
+		jsn, err := swag.YAMLToJSON(docBytes)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to convert yaml to json (after falling back to yaml parsing)")
+		}
+		doc, err = loads.Analyzed(jsn, "")
+		if err != nil {
+			return nil, errors.Wrap(err, "invalid swagger doc")
+		}
+	}
+	return doc.Spec(), nil
 }

@@ -5,9 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/go-openapi/loads"
 	"github.com/go-openapi/spec"
-	"github.com/go-openapi/swag"
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/swagger"
@@ -176,35 +174,11 @@ func getSwaggerSpecForUpsrteam(us *v1.Upstream) (*spec.Swagger, error) {
 	}
 	switch {
 	case annotations.SwaggerURL != "":
-		return retrieveSwaggerDocFromUrl(annotations.SwaggerURL)
+		return swagger.RetrieveSwaggerDocFromUrl(annotations.SwaggerURL)
 	case annotations.InlineSwaggerDoc != "":
-		return parseSwaggerDoc([]byte(annotations.InlineSwaggerDoc))
+		return swagger.ParseSwaggerDoc([]byte(annotations.InlineSwaggerDoc))
 	}
 	return nil, errors.Errorf("one of %v or %v must be specified on the swagger upstream annotations",
 		swagger.AnnotationKeySwaggerDoc,
 		swagger.AnnotationKeySwaggerURL)
-}
-
-func retrieveSwaggerDocFromUrl(url string) (*spec.Swagger, error) {
-	docBytes, err := swag.LoadFromFileOrHTTP(url)
-	if err != nil {
-		return nil, errors.Wrap(err, "loading swagger doc from url")
-	}
-	return parseSwaggerDoc(docBytes)
-}
-
-func parseSwaggerDoc(docBytes []byte) (*spec.Swagger, error) {
-	doc, err := loads.Analyzed(docBytes, "")
-	if err != nil {
-		log.Warnf("parsing doc as json failed, falling back to yaml")
-		jsn, err := swag.YAMLToJSON(docBytes)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to convert yaml to json (after falling back to yaml parsing)")
-		}
-		doc, err = loads.Analyzed(jsn, "")
-		if err != nil {
-			return nil, errors.Wrap(err, "invalid swagger doc")
-		}
-	}
-	return doc.Spec(), nil
 }

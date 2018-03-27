@@ -50,7 +50,7 @@ func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []st
 	upstreamUpdateChannels := make(map[string]chan secretwatcher.SecretMap)
 
 	update := func() {
-		log.Debugf("updating: %v", len(cache.upstreams))
+		log.Debugf("updating %v upstreams", len(cache.upstreams))
 		// clean locks for upstreams that have been deleted
 		for usName := range upstreamUpdateChannels {
 			var upstreamFound bool
@@ -81,9 +81,9 @@ func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []st
 			}
 			select {
 			case upstreamUpdateChannels[us.Name] <- cache.secrets:
+				log.Printf("updating %s with new secrets %v", us.Name, len(upstreamUpdateChannels[us.Name]))
 			default:
-				log.Printf("Upstream  %s cannot process new secrets", us.Name)
-
+				log.Printf("Upstream  %s cannot process new secrets %v", us.Name, len(upstreamUpdateChannels[us.Name]))
 			}
 		}
 	}
@@ -122,11 +122,10 @@ func updateUpstream(secretChan <-chan secretwatcher.SecretMap,
 			var ok bool
 			select {
 			case secrets, ok = <-secretChan:
-				if ok {
-					continue
-				} else {
+				if !ok {
 					return
 				}
+				continue
 			default:
 				break loop
 			}
@@ -135,7 +134,7 @@ func updateUpstream(secretChan <-chan secretwatcher.SecretMap,
 			swagger.DiscoverSwaggerUpstream(resolver, swaggerUrisToTry, us)
 		}
 		if err := updater.UpdateFunctionalUpstream(store, us, secrets); err != nil {
-			errs <- err
+			errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
 		}
 		// wait 10s to ensure we are not over eager
 		time.Sleep(10 * time.Second)
