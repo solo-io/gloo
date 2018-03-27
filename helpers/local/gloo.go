@@ -103,6 +103,10 @@ func (gi *GlooInstance) DataDir() string {
 	return gi.tmpdir
 }
 
+func (gi *GlooInstance) FilesDir() string {
+	return filepath.Join(gi.tmpdir, "_gloo_files")
+}
+
 func (gi *GlooInstance) EnvoyPort() uint32 {
 	return 8080
 }
@@ -130,7 +134,6 @@ func (gi *GlooInstance) AddSecret(name string, secret map[string]string) error {
 }
 
 func (gi *GlooInstance) initStorage() error {
-
 	dir := gi.tmpdir
 	client, err := file.NewStorage(filepath.Join(dir, "_gloo_config"), time.Hour)
 	if err != nil {
@@ -139,6 +142,10 @@ func (gi *GlooInstance) initStorage() error {
 	err = client.V1().Register()
 	if err != nil {
 		return errors.New("failed to register file config watcher for directory " + dir)
+	}
+	// enable file storage
+	if err := os.MkdirAll(filepath.Join(gi.tmpdir, "_gloo_files"), 0755); err != nil {
+		return err
 	}
 	gi.store = client
 	return nil

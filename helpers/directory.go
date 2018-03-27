@@ -13,6 +13,10 @@ func HelmDirectory() string {
 	return filepath.Join(SoloDirectory(), "gloo-install", "helm", "gloo")
 }
 
+func LocalE2eDirectory() string {
+	return filepath.Join(SoloDirectory(), "gloo-testing", "local_e2e")
+}
+
 func E2eDirectory() string {
 	return filepath.Join(SoloDirectory(), "gloo-testing", "e2e")
 }

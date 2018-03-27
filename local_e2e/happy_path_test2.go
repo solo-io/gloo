@@ -26,8 +26,8 @@ var _ = Describe("HappyPath2Upstreams", func() {
 
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		tu := NewTestUpstream(ctx)
-		tu2 := NewTestUpstream(ctx)
+		tu := NewTestHttpUpstream(ctx)
+		tu2 := NewTestHttpUpstream(ctx)
 		err = glooInstance.AddUpstream(tu.Upstream)
 		Expect(err).NotTo(HaveOccurred())
 		err = glooInstance.AddUpstream(tu2.Upstream)
@@ -49,22 +49,22 @@ var _ = Describe("HappyPath2Upstreams", func() {
 					},
 				},
 			},
-		
-			{
-				Matcher: &v1.Route_RequestMatcher{
-					RequestMatcher: &v1.RequestMatcher{
-						Path: &v1.RequestMatcher_PathPrefix{PathPrefix: "/2"},
+
+				{
+					Matcher: &v1.Route_RequestMatcher{
+						RequestMatcher: &v1.RequestMatcher{
+							Path: &v1.RequestMatcher_PathPrefix{PathPrefix: "/2"},
+						},
 					},
-				},
-				SingleDestination: &v1.Destination{
-					DestinationType: &v1.Destination_Upstream{
-						Upstream: &v1.UpstreamDestination{
-							Name: tu2.Upstream.Name,
+					SingleDestination: &v1.Destination{
+						DestinationType: &v1.Destination_Upstream{
+							Upstream: &v1.UpstreamDestination{
+								Name: tu2.Upstream.Name,
+							},
 						},
 					},
 				},
 			},
-		},
 		}
 
 		err = glooInstance.AddVhost(v)

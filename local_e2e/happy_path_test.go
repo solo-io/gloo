@@ -26,7 +26,7 @@ var _ = Describe("HappyPath", func() {
 
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		tu := NewTestUpstream(ctx)
+		tu := NewTestHttpUpstream(ctx)
 		err = glooInstance.AddUpstream(tu.Upstream)
 		Expect(err).NotTo(HaveOccurred())
 

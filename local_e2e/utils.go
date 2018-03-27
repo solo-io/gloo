@@ -10,13 +10,20 @@ import (
 	"io/ioutil"
 	"time"
 
+	"path/filepath"
+
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-plugins/grpc"
+	"github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo-testing/local_e2e/test_grpc_service"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
 
 type ReceivedRequest struct {
-	Method string
-	Body   []byte
+	Method      string
+	Body        []byte
+	GRPCRequest proto.Message
 }
 type TestUpstream struct {
 	Upstream *v1.Upstream
@@ -73,14 +80,42 @@ func runServer(ctx context.Context) (uint32, <-chan *ReceivedRequest) {
 
 var id = 0
 
-func NewTestUpstream(ctx context.Context) *TestUpstream {
-
+func NewTestHttpUpstream(ctx context.Context) *TestUpstream {
 	backendport, responses := runServer(ctx)
+	return newTestUpstream(backendport, responses)
+}
 
+func NewTestGRPCUpstream(glooFilesDir string) *TestUpstream {
+	srv := testgrpcservice.RunServer()
+	received := make(chan *ReceivedRequest)
+	go func() {
+		for r := range srv.C {
+			received <- &ReceivedRequest{GRPCRequest: r}
+		}
+	}()
+	protobytes, err := ioutil.ReadFile(filepath.Join(helpers.LocalE2eDirectory(), "test_grpc_service", "descriptors", "proto.pb"))
+	if err != nil {
+		panic(err)
+	}
+	if err := ioutil.WriteFile(filepath.Join(glooFilesDir, "proto.pb"), protobytes, 0644); err != nil {
+		panic(err)
+	}
+	us := newTestUpstream(srv.Port, received)
+	us.Upstream.ServiceInfo = &v1.ServiceInfo{
+		Type: grpc.ServiceTypeGRPC,
+		Properties: grpc.EncodeServiceProperties(grpc.ServiceProperties{
+			GRPCServiceName:    "TestService",
+			DescriptorsFileRef: "proto.pb",
+		}),
+	}
+	return us
+}
+
+func newTestUpstream(port uint32, responses <-chan *ReceivedRequest) *TestUpstream {
 	serviceSpec := service.UpstreamSpec{
 		Hosts: []service.Host{{
 			Addr: "localhost",
-			Port: backendport,
+			Port: port,
 		}},
 	}
 	id += 1
