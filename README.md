@@ -38,9 +38,10 @@ the component architecture
 * [Status](docs/v1/status.md): API Specification for Gloo Config Object Status
 
 
-Blogs
+Blogs & Demos
 -----
 * [Announcement Blog](https://medium.com/solo-io/announcing-gloo-the-function-gateway-3f0860ef6600)
+* [Building hybrid app demo](https://www.youtube.com/watch?time_continue=1&v=ISR3G0CAZM0)
 
 
 Community
