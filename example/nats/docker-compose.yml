@@ -28,7 +28,7 @@ services:
     - ./gloo-config:/config/
 
   ingress:
-    image: soloio/envoy:v0.1.0-nats
+    image: soloio/envoy:v0.1.6-125
     entrypoint: ["envoy"]
     command: ["-c", "/config/envoy.yaml", "--v2-config-only"]
     volumes:
