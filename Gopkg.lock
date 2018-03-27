@@ -407,7 +407,7 @@
     "nats-streaming",
     "rest"
   ]
-  revision = "0f19ee19bafc4358b46b6af37db4aba59b8ed0cf"
+  revision = "c5750fa02bb84a861b28102d3eb8713ad82ad299"
 
 [[projects]]
   branch = "master"
