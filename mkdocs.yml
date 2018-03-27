@@ -38,7 +38,7 @@ pages:
 repo_url: https://github.com/solo-io/gloo/
 site_author: gloo Project Authors
 copyright: © Copyright 2018, solo.io Inc.
-#google_analytics: ['todo']
+google_analytics: ['UA-101654320-1']
 theme:
   name: 'rtd-dropdown'
 extra_css: [extra.css]

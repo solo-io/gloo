@@ -15,6 +15,12 @@ import (
 var debugMode = os.Getenv("DEBUG") == "1"
 var DefaultOut io.Writer = os.Stdout
 
+func init() {
+	if os.Getenv("DISABLE_COLOR") == "1" {
+		pp.ColoringEnabled = false
+	}
+}
+
 var rxp = regexp.MustCompile(".*/src/")
 
 func Sprintf(format string, a ...interface{}) string {
