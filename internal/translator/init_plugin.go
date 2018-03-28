@@ -35,7 +35,7 @@ func (p *functionAndClusterRoutingInitializer) GetDependencies(_ *v1.Config) *pl
 
 func (p *functionAndClusterRoutingInitializer) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
 	for _, function := range in.Functions {
-		envoyFunctionSpec, err := p.getFunctionSpec(in.Type, function.Spec)
+		envoyFunctionSpec, err := p.getFunctionSpec(in, function.Spec)
 		if err != nil {
 			return errors.Wrapf(err, "processing function %v/%v failed", in.Name, function.Name)
 		}
@@ -54,10 +54,15 @@ func (p *functionAndClusterRoutingInitializer) ProcessUpstream(params *plugin.Up
 	return nil
 }
 
-func (p *functionAndClusterRoutingInitializer) getFunctionSpec(upstreamType string, spec v1.FunctionSpec) (*types.Struct, error) {
+func (p *functionAndClusterRoutingInitializer) getFunctionSpec(upstream *v1.Upstream, spec v1.FunctionSpec) (*types.Struct, error) {
 	for _, functionPlugin := range p.functionPlugins {
+		var serviceType string
+		if upstream.ServiceInfo != nil {
+			serviceType = upstream.ServiceInfo.Type
+		}
 		params := &plugin.FunctionPluginParams{
-			UpstreamType: upstreamType,
+			UpstreamType: upstream.Type,
+			ServiceType:  serviceType,
 		}
 		envoyFunctionSpec, err := functionPlugin.ParseFunctionSpec(params, spec)
 		if err != nil {

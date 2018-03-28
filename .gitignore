@@ -4,3 +4,4 @@ vendor.*/
 _gloo_config*
 site/
 /envoy
+gloo-static

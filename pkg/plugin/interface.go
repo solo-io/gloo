@@ -47,6 +47,7 @@ type UpstreamPlugin interface {
 // Params for ParseFunctionSpec()
 type FunctionPluginParams struct {
 	UpstreamType string
+	ServiceType  string
 }
 
 type FunctionPlugin interface {
