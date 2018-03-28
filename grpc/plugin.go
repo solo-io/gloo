@@ -14,6 +14,7 @@ import (
 	"github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
 
 	"github.com/envoyproxy/go-control-plane/pkg/util"
+	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-plugins/common/transformation"
@@ -288,6 +289,14 @@ func (p *Plugin) HttpFilters(_ *plugin.FilterPluginParams) []plugin.StagedFilter
 	p.upstreamServices = make(map[string]string)
 
 	return filters
+}
+
+// just so the init plugin knows we're functional
+func (p *Plugin) ParseFunctionSpec(params *plugin.FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error) {
+	if params.ServiceType != ServiceTypeGRPC {
+		return nil, nil
+	}
+	return nil, errors.New("functions are not required for service type " + ServiceTypeGRPC)
 }
 
 //func FuncsForProto(serviceName string, set *descriptor.FileDescriptorSet) []*v1.Function {

@@ -13,7 +13,6 @@ import (
 	"github.com/gogo/protobuf/types"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/common/annotations"
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
@@ -54,7 +53,7 @@ func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedF
 }
 
 func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
-	if in.Metadata.Annotations[annotations.ServiceType] != ServiceTypeNatsStreaming {
+	if in.ServiceInfo == nil || in.ServiceInfo.Type != ServiceTypeNatsStreaming {
 		return nil
 	}
 	//    string nats_streaming_cluster_id = 3;
@@ -95,5 +94,8 @@ func natsConfig(cluster string) *types.Struct {
 }
 
 func (p *Plugin) ParseFunctionSpec(params *plugin.FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error) {
-	return nil, errors.New("no spec for this function")
+	if params.ServiceType != ServiceTypeNatsStreaming {
+		return nil, nil
+	}
+	return nil, errors.New("functions are not required for service type " + ServiceTypeNatsStreaming)
 }
