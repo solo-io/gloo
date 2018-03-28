@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/gloo-plugins/nats-streaming"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 
+	"github.com/nats-io/go-nats-streaming"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

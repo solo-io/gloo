@@ -193,6 +193,31 @@
   version = "1.0.0"
 
 [[projects]]
+  name = "github.com/nats-io/go-nats"
+  packages = [
+    ".",
+    "encoders/builtin",
+    "util"
+  ]
+  revision = "062418ea1c2181f52dc0f954f6204370519a868b"
+  version = "v1.5.0"
+
+[[projects]]
+  name = "github.com/nats-io/go-nats-streaming"
+  packages = [
+    ".",
+    "pb"
+  ]
+  revision = "6e620057a207bd61e992c1c5b6a2de7b6a4cb010"
+  version = "v0.3.4"
+
+[[projects]]
+  name = "github.com/nats-io/nuid"
+  packages = ["."]
+  revision = "289cccf02c178dc782430d534e3c1f5b72af807f"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -673,6 +698,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c5026de63590ece755b12380009f30ebdccaa66d0895dd0132d1a1d36b92ee09"
+  inputs-digest = "a625734ae1fa38ccfa144031618a2c7d0fec0f70aec5aeea3ae295b9de34fe2d"
   solver-name = "gps-cdcl"
   solver-version = 1
