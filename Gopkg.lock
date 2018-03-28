@@ -8,6 +8,7 @@
   version = "v1.1.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -20,9 +21,11 @@
     "envoy/config/filter/accesslog/v2",
     "envoy/config/filter/http/transcoder/v2",
     "envoy/config/filter/network/http_connection_manager/v2",
+    "envoy/type",
     "pkg/util"
   ]
-  revision = "c517738a012f46dda2754ccfbc1da2628e0905ca"
+  revision = "24ec8afcc1ff4a7380f375a8bf1402dff6fd49a7"
+  source = "https://github.com/ilackarms/go-control-plane.git"
 
 [[projects]]
   name = "github.com/ghodss/yaml"
@@ -39,7 +42,10 @@
 [[projects]]
   branch = "master"
   name = "github.com/gogo/googleapis"
-  packages = ["google/api"]
+  packages = [
+    "google/api",
+    "google/rpc"
+  ]
   revision = "0cd9801be74a10d5ac39d69626eac8255ffcd502"
 
 [[projects]]
@@ -274,7 +280,7 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "9bc65a0e9cdab04140791e8944ab849420f2ea45"
+  revision = "65e531fdd5fdb4a9e4e38efec7c7a82616864c9c"
 
 [[projects]]
   branch = "master"
@@ -289,9 +295,10 @@
     "common/transformation",
     "grpc",
     "kubernetes",
+    "nats-streaming",
     "rest"
   ]
-  revision = "c5750fa02bb84a861b28102d3eb8713ad82ad299"
+  revision = "b134709fa9d27229e506f978117d6583c3c249c9"
 
 [[projects]]
   branch = "master"
@@ -312,7 +319,7 @@
     "file",
     "internal/crud"
   ]
-  revision = "324e1b1c7129e91362c69fa6db2772c60d27ae8b"
+  revision = "961a366778c63bafe9d7f58ed85388b724c1eee2"
 
 [[projects]]
   branch = "master"
@@ -425,8 +432,8 @@
     "tap",
     "transport"
   ]
-  revision = "8e4536a86ab602859c20df5ebfd0bd4228d08655"
-  version = "v1.10.0"
+  revision = "afc05b9e1d36f289ea16ba294894486a3e458246"
+  version = "v1.11.0"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -439,12 +446,6 @@
   packages = ["."]
   revision = "86f5ed62f8a0ee96bd888d2efdfd6d4fb100a4eb"
   version = "v2.2.0"
-
-[[projects]]
-  branch = "master"
-  name = "istio.io/gogo-genproto"
-  packages = ["googleapis/google/api"]
-  revision = "dd2b5b6a8f1400838165245e704a011a30154a44"
 
 [[projects]]
   branch = "master"
@@ -491,7 +492,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "b7d6d691cfaa689eb82b21f71ca447dfdb325b0c"
+  revision = "23e65a2674e95b2c20b2f1e693401d1ca844b96c"
 
 [[projects]]
   branch = "master"
@@ -539,7 +540,7 @@
     "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "7175867f4d9f782220ceae4fc323e3aaae35f23a"
+  revision = "210bcde8e5a7715fe776460ca1df1a3f2738725e"
 
 [[projects]]
   name = "k8s.io/client-go"
@@ -672,6 +673,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "14fb6027e937a09e9cd0eb2d91f83dc8367023c61744bc8959397e6f50ed4260"
+  inputs-digest = "c5026de63590ece755b12380009f30ebdccaa66d0895dd0132d1a1d36b92ee09"
   solver-name = "gps-cdcl"
   solver-version = 1
