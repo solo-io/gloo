@@ -74,12 +74,22 @@ func NewEnvoyFactory() (*EnvoyFactory, error) {
 		return nil, err
 	}
 
-	bash := `
+	envoyImageTag := os.Getenv("ENVOY_IMAGE_TAG")
+	if envoyImageTag == "" {
+		envoyImageTag = "latest"
+	}
+
+	bash := fmt.Sprintf(`
 set -ex
-CID=$(docker run -d  soloio/envoy:ab4dc682 /bin/bash -c exit)
+CID=$(docker run -d  soloio/envoy:%s /bin/bash -c exit)
+
+# just print the image sha for repoducibility
+echo "Using Envoy Image:"
+docker inspect soloio/envoy:%s -f "{{.RepoDigests}}"
+
 docker cp $CID:/usr/local/bin/envoy .
 docker rm $CID
-    `
+    `, envoyImageTag, envoyImageTag)
 	scriptfile := filepath.Join(tmpdir, "getenvoy.sh")
 
 	ioutil.WriteFile(scriptfile, []byte(bash), 0755)
