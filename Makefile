@@ -36,7 +36,7 @@ e2e:
 test: e2e unit
 
 clean:
-	rm -f $(BINARY) $(BINARY)-debug
+	rm -f $(BINARY) $(BINARY)-debug $(BINARY)-static
 
 proto:
 	export OUTDIR=$(PWD)/docs && make -C $(GOPATH)/src/github.com/solo-io/gloo-api proto
