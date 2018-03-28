@@ -4,14 +4,12 @@ import (
 	"net/http"
 
 	"bytes"
-	"fmt"
 	"errors"
+	"fmt"
 
-	"github.com/solo-io/gloo/pkg/coreplugins/service"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/common/annotations"
 	"github.com/solo-io/gloo-plugins/nats-streaming"
-	"github.com/nats-io/go-nats-streaming"
+	"github.com/solo-io/gloo/pkg/coreplugins/service"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -31,22 +29,19 @@ var _ = Describe("Nats streaming test", func() {
 
 		envoyPort := glooInstance.EnvoyPort()
 
-		atts := make(map[string]string)
-		atts[annotations.ServiceType] = natsstreaming.ServiceTypeNatsStreaming
-
 		serviceSpec := service.UpstreamSpec{
 			Hosts: []service.Host{{
 				Addr: "localhost",
 				Port: natsStreamingInstance.NatsPort(),
 			}},
 		}
-	
+
 		u := &v1.Upstream{
 			Name: "local", // TODO: randomize
 			Type: "service",
 			Spec: service.EncodeUpstreamSpec(serviceSpec),
-			Metadata: &v1.Metadata{
-				Annotations: atts,
+			ServiceInfo: &v1.ServiceInfo{
+				Type: natsstreaming.ServiceTypeNatsStreaming,
 			},
 		}
 		err = glooInstance.AddUpstream(u)
@@ -56,29 +51,29 @@ var _ = Describe("Nats streaming test", func() {
 			Name: "default",
 			Routes: []*v1.Route{{
 				Matcher: &v1.Route_EventMatcher{
-					EventMatcher:  &v1.EventMatcher{
-						EventType : "some-event",
+					EventMatcher: &v1.EventMatcher{
+						EventType: "some-event",
 					},
 				},
 				SingleDestination: &v1.Destination{
 					DestinationType: &v1.Destination_Function{
-						Function :&v1.FunctionDestination{
+						Function: &v1.FunctionDestination{
 							UpstreamName: u.Name,
 							FunctionName: "nats-subject",
 						},
 					},
 				},
-			},{
+			}, {
 				Matcher: &v1.Route_RequestMatcher{
-					RequestMatcher :   &v1.RequestMatcher{
-						Path : &v1.RequestMatcher_PathPrefix {
-							PathPrefix : "/nats",
+					RequestMatcher: &v1.RequestMatcher{
+						Path: &v1.RequestMatcher_PathPrefix{
+							PathPrefix: "/nats",
 						},
 					},
 				},
 				SingleDestination: &v1.Destination{
 					DestinationType: &v1.Destination_Function{
-						Function :&v1.FunctionDestination{
+						Function: &v1.FunctionDestination{
 							UpstreamName: u.Name,
 							FunctionName: "nats-subject",
 						},
@@ -89,17 +84,17 @@ var _ = Describe("Nats streaming test", func() {
 
 		err = glooInstance.AddVhost(v)
 		Expect(err).NotTo(HaveOccurred())
-		
+
 		body := []byte("solo.io test")
-		
+
 		// TODO subscribe for nats streaming
 		sc, err := stan.Connect(natsStreamingInstance.ClusterId(), "clientID", stan.NatsURL(fmt.Sprintf("nats://localhost:%d", natsStreamingInstance.NatsPort())))
 		Expect(err).NotTo(HaveOccurred())
-		defer sc.Close();
+		defer sc.Close()
 		recvied := make(chan struct{}, 10)
 		sub, err := sc.Subscribe("nats-subject", func(m *stan.Msg) {
 			fmt.Printf("Received a message: %s\n", string(m.Data))
-			recvied<- struct{}{}
+			recvied <- struct{}{}
 		})
 		Expect(err).NotTo(HaveOccurred())
 		defer sub.Unsubscribe()
@@ -111,7 +106,7 @@ var _ = Describe("Nats streaming test", func() {
 			var buf bytes.Buffer
 			buf.Write(body)
 			resp, err := http.Post(fmt.Sprintf("http://%s:%d/nats", "localhost", envoyPort), "application/octet-stream", &buf)
-			if err != nil{
+			if err != nil {
 				return err
 			}
 			if resp.StatusCode != 200 {
