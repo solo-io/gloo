@@ -1,4 +1,4 @@
-package nats_streaming
+package nats
 
 import (
 	"github.com/nats-io/go-nats-streaming"
@@ -24,12 +24,6 @@ func NewNatsDetector(clusterID string) detector.Detector {
 	return &natsDetector{
 		clusterID: defaultClusterID,
 	}
-}
-
-// lets us know if this detector wants to run detection on this upstream
-func (d *natsDetector) DetectsFor(us *v1.Upstream) bool {
-	// if service info has been set, we no longer care about it
-	return us.ServiceInfo == nil
 }
 
 // if it detects the upstream is a known functional type, give us the

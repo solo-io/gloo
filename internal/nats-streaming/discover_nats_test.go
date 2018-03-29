@@ -1,4 +1,4 @@
-package nats_streaming_test
+package nats_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -18,7 +18,6 @@ var _ = Describe("DiscoverNats", func() {
 				err = natsStreamingInstance.Run()
 				Expect(err).NotTo(HaveOccurred())
 				detector := NewNatsDetector(natsStreamingInstance.ClusterId())
-				Expect(detector.DetectsFor(&v1.Upstream{})).To(BeTrue())
 				svcInfo, annotations, err := detector.DetectFunctionalService(fmt.Sprintf("localhost:%v", natsStreamingInstance.NatsPort()))
 				Expect(err).To(BeNil())
 				Expect(annotations).To(BeNil())

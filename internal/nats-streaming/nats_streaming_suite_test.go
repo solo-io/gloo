@@ -1,4 +1,4 @@
-package nats_streaming_test
+package nats_test
 
 import (
 	"testing"

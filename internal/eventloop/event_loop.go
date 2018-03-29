@@ -8,7 +8,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-function-discovery/internal/swagger"
+	"github.com/solo-io/gloo-function-discovery/internal/detector"
+	"github.com/solo-io/gloo-function-discovery/internal/nats-streaming"
 	"github.com/solo-io/gloo-function-discovery/internal/updater"
 	"github.com/solo-io/gloo-function-discovery/internal/upstreamwatcher"
 	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
@@ -23,7 +24,7 @@ import (
 	"github.com/solo-io/gloo/pkg/secretwatcher/vault"
 )
 
-func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []string, stop <-chan struct{}, errs chan error) error {
+func Run(opts bootstrap.Options, autoDiscoverFunctionalUpstreams bool, swaggerUrisToTry []string, stop <-chan struct{}, errs chan error) error {
 	store, err := createStorageClient(opts)
 	if err != nil {
 		return errors.Wrap(err, "failed to create config store client")
@@ -39,7 +40,11 @@ func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []st
 		return errors.Wrap(err, "failed to set up secret watcher")
 	}
 
-	resolver := createResolver(opts)
+	resolve := createResolver(opts)
+
+	marker := detector.NewMarker([]detector.Detector{
+		nats.NewNatsDetector(""), //TODO: support cluster ids to try
+	}, resolve)
 
 	var cache struct {
 		secrets   secretwatcher.SecretMap
@@ -77,7 +82,7 @@ func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []st
 		for _, us := range cache.upstreams {
 			if _, ok := upstreamUpdateChannels[us.Name]; !ok {
 				upstreamUpdateChannels[us.Name] = make(chan secretwatcher.SecretMap, 20)
-				go updateUpstream(upstreamUpdateChannels[us.Name], us, resolver, autoDiscoverSwagger, swaggerUrisToTry, store, errs)
+				go updateUpstream(upstreamUpdateChannels[us.Name], us, marker, autoDiscoverFunctionalUpstreams, store, errs)
 			}
 			select {
 			case upstreamUpdateChannels[us.Name] <- cache.secrets:
@@ -108,12 +113,18 @@ func Run(opts bootstrap.Options, autoDiscoverSwagger bool, swaggerUrisToTry []st
 
 func updateUpstream(secretChan <-chan secretwatcher.SecretMap,
 	us *v1.Upstream,
-	resolver *resolver.Resolver,
-	autoDiscoverSwagger bool,
-	swaggerUrisToTry []string,
+	marker *detector.Marker,
+	autoDiscoverFunctionalUpstreams bool,
 	store storage.Interface, errs chan error) {
 	log.Printf("starting goroutine for %v", us.Name)
 	defer log.Printf("exiting goroutine for %v", us.Name)
+
+	// attempt to discover functional services on upstream
+	if autoDiscoverFunctionalUpstreams {
+		if err := marker.MarkFunctionalUpstream(us); err != nil {
+			log.Warnf("failed to discover whether %v is a functional upstream: %v", us.Name, err)
+		}
+	}
 
 	for secrets := range secretChan {
 		// drain the channel and only process the last secret.
@@ -129,9 +140,6 @@ func updateUpstream(secretChan <-chan secretwatcher.SecretMap,
 			default:
 				break loop
 			}
-		}
-		if autoDiscoverSwagger {
-			swagger.DiscoverSwaggerUpstream(resolver, swaggerUrisToTry, us)
 		}
 		if err := updater.UpdateFunctionalUpstream(store, us, secrets); err != nil {
 			errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
