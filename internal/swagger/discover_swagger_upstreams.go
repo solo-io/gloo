@@ -5,86 +5,42 @@ import (
 
 	"github.com/pkg/errors"
 
-	"sync"
-
-	"github.com/cenkalti/backoff"
-	"github.com/go-openapi/loads"
-	"github.com/go-openapi/spec"
-	"github.com/go-openapi/swag"
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
-	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
+	"github.com/solo-io/gloo-function-discovery/internal/detector"
+	"github.com/solo-io/gloo-function-discovery/internal/updater/swagger"
 	"github.com/solo-io/gloo-plugins/rest"
-	serviceplugin "github.com/solo-io/gloo/pkg/coreplugins/service"
 	"github.com/solo-io/gloo/pkg/log"
 )
-
-// local cache to avoid retrying the same upstream
-var triedUpstreams = make(map[string]bool)
-var mapLock sync.RWMutex
 
 var commonSwaggerURIs = []string{
 	"/swagger.json",
 	"/swagger/docs/v1",
 	"/swagger/docs/v2",
 	"/v1/swagger",
+	"/v2/swagger",
 }
 
-// adds swagger annotations to upstreams it discovers
-func DiscoverSwaggerUpstream(resolver *resolver.Resolver, swaggerUrisToTry []string, us *v1.Upstream) {
-	log.Debugf("should try swagger ? %v: %v", us.Name, shouldTryDiscovery(us))
-	if !shouldTryDiscovery(us) {
-		return
-	}
-	log.Debugf("initiating swagger detection for %v", us.Name)
-	err := backoff.Retry(func() error {
-		return discoverSwaggerUpstream(resolver, swaggerUrisToTry, us)
-	}, backoff.NewExponentialBackOff())
-	if err != nil {
-		log.Warnf("unable to discover whether upstream %v implements swagger or not.\n%v", us.Name, err.Error())
-	}
-	mapLock.Lock()
-	triedUpstreams[us.Name] = true
-	mapLock.Unlock()
+type swaggerDetector struct {
+	swaggerUrisToTry []string
 }
 
-func shouldTryDiscovery(us *v1.Upstream) bool {
-	mapLock.RLock()
-	defer mapLock.RUnlock()
-
-	switch {
-	case us.Type != kubeplugin.UpstreamTypeKube && us.Type != serviceplugin.UpstreamTypeService:
-		fallthrough
-	case IsSwagger(us): //already discovered
-		fallthrough
-	case triedUpstreams[us.Name]:
-		return false
+func NewSwaggerDetector(swaggerUrisToTry []string) detector.Detector {
+	return &swaggerDetector{
+		swaggerUrisToTry: append(commonSwaggerURIs, swaggerUrisToTry...),
 	}
-	return true
 }
 
-func discoverSwaggerUpstream(resolver *resolver.Resolver, swaggerUrisToTry []string, us *v1.Upstream) error {
-	// only discover for kube or service
-	// TODO: add more types here
-	switch us.Type {
-	default:
-		return nil
-	case kubeplugin.UpstreamTypeKube:
-	case serviceplugin.UpstreamTypeService:
-	}
-
-	addr, err := resolver.Resolve(us)
-	if err != nil {
-		return err
-	}
-	if addr == "" {
-		return nil
-	}
+func (d *swaggerDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo, map[string]string, error) {
 	var errs error
-	for _, uri := range append(swaggerUrisToTry, commonSwaggerURIs...) {
+	for _, uri := range d.swaggerUrisToTry {
 		url := "http://" + addr + uri
 		log.Debugf("querying swagger url %v", url)
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "invalid url for request")
+		}
+		req.Header.Set("X-Gloo-Discovery", "Swagger-Discovery")
 		res, err := http.Get(url)
 		if err != nil {
 			errs = multierror.Append(errs, errors.Wrapf(err, "could not perform HTTP GET on resolved addr: %v", addr))
@@ -92,54 +48,19 @@ func discoverSwaggerUpstream(resolver *resolver.Resolver, swaggerUrisToTry []str
 		}
 		// might have found a swagger service
 		if res.StatusCode == 200 {
-			if _, err := RetrieveSwaggerDocFromUrl(url); err != nil {
+			if _, err := swagger.RetrieveSwaggerDocFromUrl(url); err != nil {
 				errs = multierror.Append(errs, err)
 				continue
 			}
 			// definitely found swagger
-			setSwaggerServiceType(url, us)
-			return nil
+			svcInfo := &v1.ServiceInfo{
+				Type: rest.ServiceTypeREST,
+			}
+			annotations := map[string]string{swagger.AnnotationKeySwaggerURL: url}
+			return svcInfo, annotations, nil
 		}
 	}
 	// not a swagger upstream
-	return errs
-}
-
-func setSwaggerServiceType(url string, us *v1.Upstream) {
-	log.Debugf("swagger service detected: %v", url)
-	if us.Metadata == nil {
-		us.Metadata = &v1.Metadata{}
-	}
-	if us.Metadata.Annotations == nil {
-		us.Metadata.Annotations = make(map[string]string)
-	}
-	if us.ServiceInfo == nil {
-		us.ServiceInfo = &v1.ServiceInfo{}
-	}
-	us.ServiceInfo.Type = rest.ServiceTypeREST
-	us.Metadata.Annotations[AnnotationKeySwaggerURL] = url
-}
-
-func RetrieveSwaggerDocFromUrl(url string) (*spec.Swagger, error) {
-	docBytes, err := swag.LoadFromFileOrHTTP(url)
-	if err != nil {
-		return nil, errors.Wrap(err, "loading swagger doc from url")
-	}
-	return ParseSwaggerDoc(docBytes)
-}
-
-func ParseSwaggerDoc(docBytes []byte) (*spec.Swagger, error) {
-	doc, err := loads.Analyzed(docBytes, "")
-	if err != nil {
-		log.Warnf("parsing doc as json failed, falling back to yaml")
-		jsn, err := swag.YAMLToJSON(docBytes)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to convert yaml to json (after falling back to yaml parsing)")
-		}
-		doc, err = loads.Analyzed(jsn, "")
-		if err != nil {
-			return nil, errors.Wrap(err, "invalid swagger doc")
-		}
-	}
-	return doc.Spec(), nil
+	return nil, nil, errors.Wrapf(errs, "service at %s does not implement swagger at a known endpoint, "+
+		"or was unreachable", addr)
 }

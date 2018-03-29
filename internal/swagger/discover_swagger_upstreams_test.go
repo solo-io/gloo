@@ -1,22 +1,19 @@
 package swagger_test
 
 import (
+	"fmt"
+	"net/http"
 	"net/http/httptest"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"fmt"
-	"net/http"
-
-	"strconv"
-	"strings"
-
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	. "github.com/solo-io/gloo-function-discovery/internal/swagger"
-	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
+	"github.com/solo-io/gloo-function-discovery/internal/updater/swagger"
 	"github.com/solo-io/gloo-plugins/rest"
-	"github.com/solo-io/gloo/pkg/coreplugins/service"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 var _ = Describe("DiscoverSwaggerUpstreams", func() {
@@ -24,7 +21,12 @@ var _ = Describe("DiscoverSwaggerUpstreams", func() {
 		Context("upstream for a service that serves a swagger spec", func() {
 			// create a test swagger server
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				fmt.Fprint(w, swaggerDoc)
+				if r.URL.Path == "/v1/swagger" {
+					log.Printf("hit")
+					fmt.Fprint(w, swaggerDoc)
+					return
+				}
+				http.NotFound(w, r)
 			}))
 			BeforeEach(func() {
 				//srv.Start()
@@ -32,28 +34,15 @@ var _ = Describe("DiscoverSwaggerUpstreams", func() {
 			AfterEach(func() {
 				srv.Close()
 			})
-			It("marks the upstream annotations with swagger", func() {
-				u := strings.Split(srv.URL, ":")
-				addr := strings.TrimPrefix(u[1], "//")
-				port, _ := strconv.Atoi(u[2])
-
-				us := &v1.Upstream{
-					Name:     "something",
-					Type:     service.UpstreamTypeService,
-					Metadata: &v1.Metadata{Annotations: make(map[string]string)},
-					Spec: service.EncodeUpstreamSpec(service.UpstreamSpec{
-						Hosts: []service.Host{
-							{
-								Addr: addr,
-								Port: uint32(port),
-							},
-						},
-					}),
-				}
-				DiscoverSwaggerUpstream(&resolver.Resolver{}, []string{"/test/path"}, us)
-				Expect(us.ServiceInfo.Type).To(Equal(rest.ServiceTypeREST))
-				Expect(us.Metadata.Annotations).To(HaveKey(AnnotationKeySwaggerURL))
-				Expect(us.Metadata.Annotations[AnnotationKeySwaggerURL]).To(Equal(srv.URL + "/test/path"))
+			It("returns annotations with swagger doc url and service info for REST", func() {
+				addr := strings.TrimPrefix(srv.URL, "http://")
+				d := NewSwaggerDetector(nil)
+				svc, annotations, err := d.DetectFunctionalService(addr)
+				Expect(err).To(BeNil())
+				Expect(annotations).To(Equal(map[string]string{
+					swagger.AnnotationKeySwaggerURL: "http://" + addr + "/v1/swagger",
+				}))
+				Expect(svc).To(Equal(&v1.ServiceInfo{Type: rest.ServiceTypeREST}))
 			})
 		})
 	})

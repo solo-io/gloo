@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/detector"
 	"github.com/solo-io/gloo-function-discovery/internal/nats-streaming"
+	"github.com/solo-io/gloo-function-discovery/internal/swagger"
 	"github.com/solo-io/gloo-function-discovery/internal/updater"
 	"github.com/solo-io/gloo-function-discovery/internal/upstreamwatcher"
 	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
@@ -44,6 +45,7 @@ func Run(opts bootstrap.Options, autoDiscoverFunctionalUpstreams bool, swaggerUr
 
 	marker := detector.NewMarker([]detector.Detector{
 		nats.NewNatsDetector(""), //TODO: support cluster ids to try
+		swagger.NewSwaggerDetector(swaggerUrisToTry),
 	}, resolve)
 
 	var cache struct {

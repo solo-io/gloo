@@ -23,7 +23,7 @@ func main() {
 }
 
 var opts bootstrap.Options
-var autoDiscoverSwagger bool
+var autoDiscoverFunctional bool
 var swaggerUrisToTry []string
 
 var rootCmd = &cobra.Command{
@@ -35,7 +35,7 @@ var rootCmd = &cobra.Command{
 		errs := make(chan error)
 
 		finished := make(chan error)
-		go func() { finished <- eventloop.Run(opts, autoDiscoverSwagger, swaggerUrisToTry, stop, errs) }()
+		go func() { finished <- eventloop.Run(opts, autoDiscoverFunctional, swaggerUrisToTry, stop, errs) }()
 		go func() {
 			for {
 				select {
@@ -72,6 +72,6 @@ func init() {
 	rootCmd.PersistentFlags().IntVar(&opts.VaultOptions.Retries, "vault.retries", 3, "number of times to retry failed requests to vault")
 
 	// discovery for swagger upstreams
-	rootCmd.PersistentFlags().BoolVar(&autoDiscoverSwagger, "autodiscover-swagger-upstreams", true, "enable automatic discovery of swagger upstreams by querying known Kubernetes and Service upstreams for a 200 OK on common swagger.json paths. Custom swagger.json paths can be specified with --swagger-uri")
+	rootCmd.PersistentFlags().BoolVar(&autoDiscoverFunctional, "autodiscover-functional-upstreams", true, "enable automatic discovery of functional upstreams by querying known Kubernetes and Service upstreams for a 200 OK on common API endpoints. Currently includes swagger, grpc, and nats discovery")
 	rootCmd.PersistentFlags().StringSliceVar(&swaggerUrisToTry, "swagger-uri", []string{}, "paths function discovery should try to use to discover swagger services. function discovery will query http://<upstream>/<uri> for the swagger.json document. if found, swagger functions will be discovered for this upstream.")
 }

@@ -5,10 +5,12 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/go-openapi/loads"
 	"github.com/go-openapi/spec"
+	"github.com/go-openapi/swag"
 	"github.com/pkg/errors"
+
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-function-discovery/internal/swagger"
 	"github.com/solo-io/gloo-plugins/rest"
 	"github.com/solo-io/gloo/pkg/log"
 )
@@ -168,17 +170,68 @@ func swaggerPathToJinjaTemplate(path string) string {
 }
 
 func getSwaggerSpecForUpsrteam(us *v1.Upstream) (*spec.Swagger, error) {
-	annotations, err := swagger.GetSwaggerAnnotations(us)
+	annotations, err := getSwaggerAnnotations(us)
 	if err != nil {
 		return nil, errors.Wrapf(err, "invalid or missing swagger annotations on %v", us.Name)
 	}
 	switch {
 	case annotations.SwaggerURL != "":
-		return swagger.RetrieveSwaggerDocFromUrl(annotations.SwaggerURL)
+		return RetrieveSwaggerDocFromUrl(annotations.SwaggerURL)
 	case annotations.InlineSwaggerDoc != "":
-		return swagger.ParseSwaggerDoc([]byte(annotations.InlineSwaggerDoc))
+		return parseSwaggerDoc([]byte(annotations.InlineSwaggerDoc))
 	}
 	return nil, errors.Errorf("one of %v or %v must be specified on the swagger upstream annotations",
-		swagger.AnnotationKeySwaggerDoc,
-		swagger.AnnotationKeySwaggerURL)
+		AnnotationKeySwaggerDoc,
+		AnnotationKeySwaggerURL)
+}
+
+// TODO: discover & set this annotation key on upstreams by checking for user-provided & common swagger urls
+func getSwaggerAnnotations(us *v1.Upstream) (*Annotations, error) {
+	swaggerUrl, urlOk := us.Metadata.Annotations[AnnotationKeySwaggerURL]
+	swaggerDoc, docOk := us.Metadata.Annotations[AnnotationKeySwaggerDoc]
+	if !urlOk && !docOk {
+		return nil, errors.Errorf("one of %v or %v must be set in the annotation for a swagger upstream", AnnotationKeySwaggerURL, AnnotationKeySwaggerDoc)
+	}
+	return &Annotations{
+		SwaggerURL:       swaggerUrl,
+		InlineSwaggerDoc: swaggerDoc,
+	}, nil
+}
+
+const (
+	AnnotationKeySwaggerURL = "gloo.solo.io/swagger_url"
+	AnnotationKeySwaggerDoc = "gloo.solo.io/swagger_doc"
+)
+
+type Annotations struct {
+	SwaggerURL       string
+	InlineSwaggerDoc string
+}
+
+func IsSwagger(us *v1.Upstream) bool {
+	return us.Metadata.Annotations[AnnotationKeySwaggerURL] != "" || us.Metadata.Annotations[AnnotationKeySwaggerDoc] != ""
+}
+
+func RetrieveSwaggerDocFromUrl(url string) (*spec.Swagger, error) {
+	docBytes, err := swag.LoadFromFileOrHTTP(url)
+	if err != nil {
+		return nil, errors.Wrap(err, "loading swagger doc from url")
+	}
+	return parseSwaggerDoc(docBytes)
+}
+
+func parseSwaggerDoc(docBytes []byte) (*spec.Swagger, error) {
+	doc, err := loads.Analyzed(docBytes, "")
+	if err != nil {
+		log.Warnf("parsing doc as json failed, falling back to yaml")
+		jsn, err := swag.YAMLToJSON(docBytes)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to convert yaml to json (after falling back to yaml parsing)")
+		}
+		doc, err = loads.Analyzed(jsn, "")
+		if err != nil {
+			return nil, errors.Wrap(err, "invalid swagger doc")
+		}
+	}
+	return doc.Spec(), nil
 }
