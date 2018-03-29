@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/detector"
 	"github.com/solo-io/gloo-function-discovery/internal/nats-streaming"
+	"github.com/solo-io/gloo-function-discovery/internal/options"
 	"github.com/solo-io/gloo-function-discovery/internal/swagger"
 	"github.com/solo-io/gloo-function-discovery/internal/updater"
 	"github.com/solo-io/gloo-function-discovery/internal/upstreamwatcher"
@@ -25,7 +26,7 @@ import (
 	"github.com/solo-io/gloo/pkg/secretwatcher/vault"
 )
 
-func Run(opts bootstrap.Options, autoDiscoverFunctionalUpstreams bool, swaggerUrisToTry []string, stop <-chan struct{}, errs chan error) error {
+func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-chan struct{}, errs chan error) error {
 	store, err := createStorageClient(opts)
 	if err != nil {
 		return errors.Wrap(err, "failed to create config store client")
@@ -45,7 +46,7 @@ func Run(opts bootstrap.Options, autoDiscoverFunctionalUpstreams bool, swaggerUr
 
 	marker := detector.NewMarker([]detector.Detector{
 		nats.NewNatsDetector(""), //TODO: support cluster ids to try
-		swagger.NewSwaggerDetector(swaggerUrisToTry),
+		swagger.NewSwaggerDetector(discoveryOpts.SwaggerUrisToTry),
 	}, resolve)
 
 	var cache struct {
@@ -143,7 +144,7 @@ func updateUpstream(secretChan <-chan secretwatcher.SecretMap,
 				break loop
 			}
 		}
-		if err := updater.UpdateFunctionalUpstream(store, us, secrets); err != nil {
+		if err := updater.UpdateFunctions(store, us, secrets); err != nil {
 			errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
 		}
 		// wait 10s to ensure we are not over eager

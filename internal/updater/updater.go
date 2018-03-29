@@ -3,6 +3,8 @@ package updater
 import (
 	"sort"
 
+	"reflect"
+
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/updater/gcf"
@@ -39,7 +41,7 @@ func GetSecretRefsToWatch(upstreams []*v1.Upstream) []string {
 // we want to forceSync on every refreshDuration
 // on a config / secrets change, we don't want to force sync
 // else we can get into an update loop
-func UpdateFunctionalUpstream(gloo storage.Interface, us *v1.Upstream, secrets secretwatcher.SecretMap) error {
+func UpdateFunctions(gloo storage.Interface, us *v1.Upstream, secrets secretwatcher.SecretMap) error {
 	var funcs []*v1.Function
 	var err error
 	switch functiontypes.GetFunctionType(us) {
@@ -70,32 +72,29 @@ func UpdateFunctionalUpstream(gloo storage.Interface, us *v1.Upstream, secrets s
 		return errors.Errorf("unknown function type")
 	}
 
-	if err := updateUpstreamWithFuncs(gloo, us, funcs); err != nil {
+	if err := updateUpstreamWithFuncs(gloo, us.Name, funcs); err != nil {
 		return errors.Wrap(err, "updating upstream object with new funcs")
 	}
 	return nil
 }
 
-func updateUpstreamWithFuncs(gloo storage.Interface, us *v1.Upstream, funcs []*v1.Function) error {
+func updateUpstreamWithFuncs(gloo storage.Interface, upstreamName string, funcs []*v1.Function) error {
 	// sort funcs for idempotency
 	sort.SliceStable(funcs, func(i, j int) bool {
 		return funcs[i].Name < funcs[j].Name
 	})
+
+	usToUpdate, err := gloo.V1().Upstreams().Get(upstreamName)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get existing upstream with name %v", upstreamName)
+	}
+
 	// no update to do
-	if functionListsEqual(us.Functions, funcs) {
+	if functionListsEqual(usToUpdate.Functions, funcs) {
 		return nil
 	}
 
-	// because upstream may have updated
-	// try to reduce races
-	usToUpdate, err := gloo.V1().Upstreams().Get(us.Name)
-	if err != nil {
-		return errors.Wrapf(err, "failed to get existing upstream with name %v", us.Name)
-	}
 	usToUpdate.Functions = mergeFuncs(usToUpdate.Functions, funcs)
-	usToUpdate.Metadata.Annotations = mergeAnnotations(usToUpdate.Metadata.Annotations, us.Metadata.Annotations)
-	// overwrite service info; needed for swagger
-	usToUpdate.ServiceInfo = us.ServiceInfo
 
 	_, err = gloo.V1().Upstreams().Update(usToUpdate)
 	if err != nil {
@@ -124,6 +123,45 @@ func mergeFuncs(oldFuncs, newFuncs []*v1.Function) []*v1.Function {
 	return append(notReplaced, newFuncs...)
 }
 
+func functionListsEqual(funcs1, funcs2 []*v1.Function) bool {
+	if len(funcs1) != len(funcs2) {
+		return false
+	}
+	for i := range funcs1 {
+		fn1 := funcs1[i]
+		fn2 := funcs2[i]
+		if !fn1.Equal(fn2) {
+			return false
+		}
+	}
+	return true
+}
+
+// update the upstream with service info and annotations
+func UpdateServiceInfo(gloo storage.Interface,
+	upstreamName string,
+	svcInfo *v1.ServiceInfo,
+	annotations map[string]string) error {
+	usToUpdate, err := gloo.V1().Upstreams().Get(upstreamName)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get existing upstream with name %v", upstreamName)
+	}
+
+	// no update to do
+	if annotationsEqual(usToUpdate, annotations) && svcInfoEqual(usToUpdate, svcInfo) {
+		return nil
+	}
+
+	usToUpdate.Metadata.Annotations = mergeAnnotations(usToUpdate.Metadata.Annotations, annotations)
+	usToUpdate.ServiceInfo = svcInfo
+
+	_, err = gloo.V1().Upstreams().Update(usToUpdate)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // get the unique set of funcs between two lists
 // if conflict, new wins
 func mergeAnnotations(oldAnnotations, newAnnotations map[string]string) map[string]string {
@@ -137,16 +175,24 @@ func mergeAnnotations(oldAnnotations, newAnnotations map[string]string) map[stri
 	return merged
 }
 
-func functionListsEqual(funcs1, funcs2 []*v1.Function) bool {
-	if len(funcs1) != len(funcs2) {
+func annotationsEqual(us *v1.Upstream, annotations map[string]string) bool {
+	if us.Metadata == nil {
+		if len(annotations) == 0 {
+			return true
+		}
 		return false
 	}
-	for i := range funcs1 {
-		fn1 := funcs1[i]
-		fn2 := funcs2[i]
-		if !fn1.Equal(fn2) {
+	if len(us.Metadata.Annotations) != len(annotations) {
+		return false
+	}
+	for k, v := range us.Metadata.Annotations {
+		if annotations[k] != v {
 			return false
 		}
 	}
 	return true
+}
+
+func svcInfoEqual(us *v1.Upstream, svcInfo *v1.ServiceInfo) bool {
+	return reflect.DeepEqual(us.ServiceInfo, svcInfo)
 }

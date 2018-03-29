@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
 	"github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 // detectors detect a specific type of functional service
@@ -97,7 +98,12 @@ func withBackoff(fn func() error, stop chan struct{}) {
 			return
 		case <-time.After(tilNextRetry):
 			tilNextRetry *= 2
-			if err := fn(); err == nil || tilNextRetry >= defaultMaxElapsedTime {
+			err := fn()
+			if err == nil {
+				return
+			}
+			if tilNextRetry >= defaultMaxElapsedTime {
+				log.Warnf("detection failed with error %v", err)
 				return
 			}
 		}
