@@ -16,31 +16,28 @@ var _ = Describe("Marker", func() {
 	Context("happy path", func() {
 		It("marks the upstream with the service info", func() {
 			resolve := &resolver.Resolver{}
-			marker := NewMarker([]Detector{
-				&mockDetector{triesBeforeSucceding: 5},
+			marker := NewMarker([]Interface{
+				&mockDetector{triesBeforeSucceding: 50},
 				&mockDetector{triesBeforeSucceding: 3},
 			}, resolve)
 			us := helpers.NewTestUpstream2()
-			err := marker.MarkFunctionalUpstream(us)
+			svcInfo, annotations, err := marker.DetectFunctionalUpstream(us)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(us.ServiceInfo).To(Equal(&v1.ServiceInfo{Type: "mock_service"}))
-			expectedAnnotations := make(map[string]string)
-			if us.Metadata != nil {
-				for k, v := range us.Metadata.Annotations {
-					expectedAnnotations[k] = v
-				}
-			}
-			expectedAnnotations["foo"] = "bar"
-			Expect(us.Metadata.Annotations).To(Equal(expectedAnnotations))
+			Expect(svcInfo).To(Equal(&v1.ServiceInfo{Type: "mock_service"}))
+			Expect(annotations).To(Equal(map[string]string{"foo": "bar"}))
+			Expect(totalTries).To(Equal(6))
 		})
 	})
 })
+
+var totalTries int
 
 type mockDetector struct {
 	triesBeforeSucceding int
 }
 
 func (d *mockDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo, map[string]string, error) {
+	totalTries++
 	d.triesBeforeSucceding--
 	if d.triesBeforeSucceding > 0 {
 		return nil, nil, errors.New("mock: failed detection")

@@ -16,7 +16,7 @@ import (
 // detectors detect a specific type of functional service
 // if they detect the service, they return service info and
 // annotations (optional) for the service
-type Detector interface {
+type Interface interface {
 	// if it detects the upstream is a known functional type, give us the
 	// service info and annotations to mark it with
 	DetectFunctionalService(addr string) (*v1.ServiceInfo, map[string]string, error)
@@ -25,58 +25,72 @@ type Detector interface {
 // marker marks the upstream as functional. this modifies the upstream it was received,
 // so should not be called concurrently from multiple goroutines
 type Marker struct {
-	detectors []Detector
+	detectors []Interface
 	resolver  *resolver.Resolver
+
+	markedOrFailed map[string]bool
+	m              sync.RWMutex
 }
 
-func NewMarker(detectors []Detector, resolver *resolver.Resolver) *Marker {
+func NewMarker(detectors []Interface, resolver *resolver.Resolver) *Marker {
 	return &Marker{
-		detectors: detectors,
-		resolver:  resolver,
+		detectors:      detectors,
+		resolver:       resolver,
+		markedOrFailed: make(map[string]bool),
 	}
 }
 
 // should only be called for k8s, consul, and service type upstreams
-func (m *Marker) MarkFunctionalUpstream(us *v1.Upstream) error {
+func (m *Marker) DetectFunctionalUpstream(us *v1.Upstream) (*v1.ServiceInfo, map[string]string, error) {
 	if us.Type != kubernetes.UpstreamTypeKube && us.Type != service.UpstreamTypeService {
 		// don't run detection for these types of upstreams
-		return nil
+		return nil, nil, nil
 	}
 	if us.ServiceInfo != nil {
+		return nil, nil, nil
 		// this upstream has already been marked, skip it
-		return nil
 	}
 
+	m.m.RLock()
+	// already tried this upstream
+	already := m.markedOrFailed[us.Name]
+	m.m.RUnlock()
+	if already {
+		return nil, nil, nil
+	}
+
+	defer func() {
+		m.m.Lock()
+		m.markedOrFailed[us.Name] = true
+		m.m.Unlock()
+	}()
+
 	stop := make(chan struct{})
-	wg := sync.WaitGroup{}
+
+	serviceInfoC := make(chan *v1.ServiceInfo)
+	annotationsC := make(chan map[string]string)
+
 	// try every possible detector concurrently
 	for _, d := range m.detectors {
 		addr, err := m.resolver.Resolve(us)
 		if err != nil {
-			return errors.Wrapf(err, "resolving address for %v", us.Name)
+			return nil, nil, errors.Wrapf(err, "resolving address for %v", us.Name)
 		}
-		wg.Add(1)
-		go func() {
+		go func(d Interface) {
 			withBackoff(func() error {
 				serviceInfo, annotations, err := d.DetectFunctionalService(addr)
 				if err != nil {
+					log.Printf("%v err: %v", d, err)
 					return err
 				}
-				// discovered an upstream
-				us.ServiceInfo = serviceInfo
-				if us.Metadata == nil {
-					us.Metadata = &v1.Metadata{}
-				}
-				us.Metadata.Annotations = mergeAnnotations(us.Metadata.Annotations, annotations)
-				// stop the other detectors from running for this upstream
+				close(stop)
+				serviceInfoC <- serviceInfo
+				annotationsC <- annotations
 				return nil
 			}, stop)
-			wg.Done()
-		}()
+		}(d)
 	}
-	wg.Wait()
-	close(stop)
-	return nil
+	return <-serviceInfoC, <-annotationsC, nil
 }
 
 // Default values for ExponentialBackOff.
@@ -95,6 +109,7 @@ func withBackoff(fn func() error, stop chan struct{}) {
 		select {
 		// stopped by another goroutine
 		case <-stop:
+			log.Printf("closed")
 			return
 		case <-time.After(tilNextRetry):
 			tilNextRetry *= 2
@@ -108,17 +123,4 @@ func withBackoff(fn func() error, stop chan struct{}) {
 			}
 		}
 	}
-}
-
-// get the unique set of funcs between two lists
-// if conflict, new wins
-func mergeAnnotations(oldAnnotations, newAnnotations map[string]string) map[string]string {
-	merged := make(map[string]string)
-	for k, v := range oldAnnotations {
-		merged[k] = v
-	}
-	for k, v := range newAnnotations {
-		merged[k] = v
-	}
-	return merged
 }
