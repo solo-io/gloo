@@ -71,7 +71,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&opts.VaultOptions.AuthToken, "vault.token", "", "auth token for reading vault secrets")
 	rootCmd.PersistentFlags().IntVar(&opts.VaultOptions.Retries, "vault.retries", 3, "number of times to retry failed requests to vault")
 
-	// discovery for swagger upstreams
+	// upstream service type detection
 	rootCmd.PersistentFlags().BoolVar(&autoDiscoverFunctional, "autodiscover-functional-upstreams", true, "enable automatic discovery of functional upstreams by querying known Kubernetes and Service upstreams for a 200 OK on common API endpoints. Currently includes swagger, grpc, and nats discovery")
 	rootCmd.PersistentFlags().StringSliceVar(&swaggerUrisToTry, "swagger-uri", []string{}, "paths function discovery should try to use to discover swagger services. function discovery will query http://<upstream>/<uri> for the swagger.json document. if found, swagger functions will be discovered for this upstream.")
 }
