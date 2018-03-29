@@ -18,7 +18,7 @@ type natsDetector struct {
 	clusterID string
 }
 
-func NewNatsDetector(clusterID string) detector.Detector {
+func NewNatsDetector(clusterID string) detector.Interface {
 	if clusterID == "" {
 		clusterID = defaultClusterID
 	}

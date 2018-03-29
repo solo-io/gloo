@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-function-discovery/internal/detector"
 	"github.com/solo-io/gloo-function-discovery/internal/updater/gcf"
 	"github.com/solo-io/gloo-function-discovery/internal/updater/lambda"
 	"github.com/solo-io/gloo-function-discovery/internal/updater/swagger"
@@ -41,9 +42,13 @@ func GetSecretRefsToWatch(upstreams []*v1.Upstream) []string {
 // we want to forceSync on every refreshDuration
 // on a config / secrets change, we don't want to force sync
 // else we can get into an update loop
-func UpdateFunctions(gloo storage.Interface, us *v1.Upstream, secrets secretwatcher.SecretMap) error {
+func UpdateFunctions(gloo storage.Interface, upstreamName string, secrets secretwatcher.SecretMap) error {
+	us, err := gloo.V1().Upstreams().Get(upstreamName)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get existing upstream with name %v", upstreamName)
+	}
+
 	var funcs []*v1.Function
-	var err error
 	switch functiontypes.GetFunctionType(us) {
 	case functiontypes.FunctionTypeLambda:
 		if len(secrets) == 0 {
@@ -140,11 +145,15 @@ func functionListsEqual(funcs1, funcs2 []*v1.Function) bool {
 // update the upstream with service info and annotations
 func UpdateServiceInfo(gloo storage.Interface,
 	upstreamName string,
-	svcInfo *v1.ServiceInfo,
-	annotations map[string]string) error {
+	marker *detector.Marker) error {
 	usToUpdate, err := gloo.V1().Upstreams().Get(upstreamName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get existing upstream with name %v", upstreamName)
+	}
+
+	svcInfo, annotations, err := marker.DetectFunctionalUpstream(usToUpdate)
+	if err != nil {
+		return errors.Wrapf(err, "failed to discover whether %v is a functional upstream", usToUpdate.Name)
 	}
 
 	// no update to do

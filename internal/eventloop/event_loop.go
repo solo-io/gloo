@@ -7,6 +7,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"sync"
+
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/detector"
 	"github.com/solo-io/gloo-function-discovery/internal/nats-streaming"
@@ -44,23 +46,29 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 
 	resolve := createResolver(opts)
 
-	marker := detector.NewMarker([]detector.Detector{
-		nats.NewNatsDetector(""), //TODO: support cluster ids to try
-		swagger.NewSwaggerDetector(discoveryOpts.SwaggerUrisToTry),
-	}, resolve)
+	var detectors []detector.Interface
+	if discoveryOpts.AutoDiscoverNATS {
+		//TODO: support cluster ids
+		detectors = append(detectors, nats.NewNatsDetector(""))
+	}
+	if discoveryOpts.AutoDiscoverSwagger {
+		detectors = append(detectors, swagger.NewSwaggerDetector(discoveryOpts.SwaggerUrisToTry))
+	}
+
+	marker := detector.NewMarker(detectors, resolve)
 
 	var cache struct {
 		secrets   secretwatcher.SecretMap
 		upstreams []*v1.Upstream
 	}
 
-	// prevent concurrent attempts to update the same upstream
-	upstreamUpdateChannels := make(map[string]chan secretwatcher.SecretMap)
+	updatingUpstreams := make(map[string]*sync.Mutex)
 
 	update := func() {
 		log.Debugf("updating %v upstreams", len(cache.upstreams))
+
 		// clean locks for upstreams that have been deleted
-		for usName := range upstreamUpdateChannels {
+		for usName := range updatingUpstreams {
 			var upstreamFound bool
 			for _, us := range cache.upstreams {
 				if usName == us.Name {
@@ -69,8 +77,7 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 				}
 			}
 			if !upstreamFound {
-				close(upstreamUpdateChannels[usName])
-				delete(upstreamUpdateChannels, usName)
+				delete(updatingUpstreams, usName)
 			}
 		}
 
@@ -83,16 +90,22 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 		}(cache.upstreams)
 
 		for _, us := range cache.upstreams {
-			if _, ok := upstreamUpdateChannels[us.Name]; !ok {
-				upstreamUpdateChannels[us.Name] = make(chan secretwatcher.SecretMap, 20)
-				go updateUpstream(upstreamUpdateChannels[us.Name], us, marker, autoDiscoverFunctionalUpstreams, store, errs)
+			_, ok := updatingUpstreams[us.Name]
+			if !ok {
+				updatingUpstreams[us.Name] = &sync.Mutex{}
 			}
-			select {
-			case upstreamUpdateChannels[us.Name] <- cache.secrets:
-				log.Printf("updating %s with new secrets %v", us.Name, len(upstreamUpdateChannels[us.Name]))
-			default:
-				log.Printf("Upstream  %s cannot process new secrets %v", us.Name, len(upstreamUpdateChannels[us.Name]))
-			}
+			// ensure only 1 update at a time per upstream
+			m := updatingUpstreams[us.Name]
+			m.Lock()
+			go func() {
+				defer m.Unlock()
+				if err := updater.UpdateServiceInfo(store, us.Name, marker); err != nil {
+					errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
+				}
+				if err := updater.UpdateFunctions(store, us.Name, cache.secrets); err != nil {
+					errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
+				}
+			}()
 		}
 	}
 
@@ -111,44 +124,6 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 		case <-stop:
 			return nil
 		}
-	}
-}
-
-func updateUpstream(secretChan <-chan secretwatcher.SecretMap,
-	us *v1.Upstream,
-	marker *detector.Marker,
-	autoDiscoverFunctionalUpstreams bool,
-	store storage.Interface, errs chan error) {
-	log.Printf("starting goroutine for %v", us.Name)
-	defer log.Printf("exiting goroutine for %v", us.Name)
-
-	// attempt to discover functional services on upstream
-	if autoDiscoverFunctionalUpstreams {
-		if err := marker.MarkFunctionalUpstream(us); err != nil {
-			log.Warnf("failed to discover whether %v is a functional upstream: %v", us.Name, err)
-		}
-	}
-
-	for secrets := range secretChan {
-		// drain the channel and only process the last secret.
-	loop:
-		for {
-			var ok bool
-			select {
-			case secrets, ok = <-secretChan:
-				if !ok {
-					return
-				}
-				continue
-			default:
-				break loop
-			}
-		}
-		if err := updater.UpdateFunctions(store, us, secrets); err != nil {
-			errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
-		}
-		// wait 10s to ensure we are not over eager
-		time.Sleep(10 * time.Second)
 	}
 }
 

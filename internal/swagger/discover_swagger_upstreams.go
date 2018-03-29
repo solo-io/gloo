@@ -25,7 +25,7 @@ type swaggerDetector struct {
 	swaggerUrisToTry []string
 }
 
-func NewSwaggerDetector(swaggerUrisToTry []string) detector.Detector {
+func NewSwaggerDetector(swaggerUrisToTry []string) detector.Interface {
 	return &swaggerDetector{
 		swaggerUrisToTry: append(commonSwaggerURIs, swaggerUrisToTry...),
 	}

@@ -5,4 +5,5 @@ type DiscoveryOptions struct {
 	SwaggerUrisToTry    []string
 
 	AutoDiscoverNATS bool
+	ClusterIDsToTry  []string
 }

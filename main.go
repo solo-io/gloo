@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/solo-io/gloo-function-discovery/internal/eventloop"
+	"github.com/solo-io/gloo-function-discovery/internal/options"
 	"github.com/solo-io/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/signals"
@@ -22,9 +23,10 @@ func main() {
 	}
 }
 
-var opts bootstrap.Options
-var autoDiscoverFunctional bool
-var swaggerUrisToTry []string
+var (
+	opts          bootstrap.Options
+	discoveryOpts options.DiscoveryOptions
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "gloo-function-discovery",
@@ -35,7 +37,7 @@ var rootCmd = &cobra.Command{
 		errs := make(chan error)
 
 		finished := make(chan error)
-		go func() { finished <- eventloop.Run(opts, autoDiscoverFunctional, swaggerUrisToTry, stop, errs) }()
+		go func() { finished <- eventloop.Run(opts, discoveryOpts, stop, errs) }()
 		go func() {
 			for {
 				select {
@@ -72,6 +74,8 @@ func init() {
 	rootCmd.PersistentFlags().IntVar(&opts.VaultOptions.Retries, "vault.retries", 3, "number of times to retry failed requests to vault")
 
 	// upstream service type detection
-	rootCmd.PersistentFlags().BoolVar(&autoDiscoverFunctional, "autodiscover-functional-upstreams", true, "enable automatic discovery of functional upstreams by querying known Kubernetes and Service upstreams for a 200 OK on common API endpoints. Currently includes swagger, grpc, and nats discovery")
-	rootCmd.PersistentFlags().StringSliceVar(&swaggerUrisToTry, "swagger-uri", []string{}, "paths function discovery should try to use to discover swagger services. function discovery will query http://<upstream>/<uri> for the swagger.json document. if found, swagger functions will be discovered for this upstream.")
+	rootCmd.PersistentFlags().BoolVar(&discoveryOpts.AutoDiscoverSwagger, "detect-swagger-upstreams", true, "enable automatic discovery of upstreams that implement Swagger by querying for common Swagger Doc endpoints.")
+	rootCmd.PersistentFlags().BoolVar(&discoveryOpts.AutoDiscoverNATS, "detect-nats-upstreams", true, "enable automatic discovery of upstreams that are running NATS by connecting to the default cluster id.")
+	rootCmd.PersistentFlags().StringSliceVar(&discoveryOpts.SwaggerUrisToTry, "swagger-uris", []string{}, "paths function discovery should try to use to discover swagger services. function discovery will query http://<upstream>/<uri> for the swagger.json document. "+
+		"if found, REST functions will be discovered for this upstream.")
 }
