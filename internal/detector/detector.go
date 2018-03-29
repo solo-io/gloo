@@ -68,13 +68,13 @@ func (m *Marker) MarkFunctionalUpstream(us *v1.Upstream) error {
 				}
 				us.Metadata.Annotations = mergeAnnotations(us.Metadata.Annotations, annotations)
 				// stop the other detectors from running for this upstream
-				close(stop)
 				return nil
 			}, stop)
 			wg.Done()
 		}()
 	}
 	wg.Wait()
+	close(stop)
 	return nil
 }
 
