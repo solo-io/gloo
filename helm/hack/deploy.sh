@@ -1,5 +1,8 @@
 #!/bin/bash
 
-cat ../bootstrap.yaml | sed -e "s/{{ .Namespace }}/gloo-system/" | kubectl create -f -
+NAMESPACE=gloo-system
 
-helm install ../gloo --namespace gloo-system -n gloo-demo 
+helm repo add coreos https://s3-eu-west-1.amazonaws.com/coreos-charts/stable/
+helm install coreos/prometheus-operator --name prometheus-operator --namespace $NAMESPACE
+cat ../bootstrap.yaml | sed -e "s/{{ .Namespace }}/$NAMESPACE/" | kubectl create -f -
+helm install ../gloo --namespace $NAMESPACE -n gloo-demo 

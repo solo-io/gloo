@@ -40,7 +40,6 @@ data:
             port_value: {{ template "statsd.port" . }}
       {{- end }}
       {{- end }}
-    
     dynamic_resources:
       ads_config:
         api_type: GRPC
@@ -56,3 +55,11 @@ data:
         socket_address:
           address: 0.0.0.0
           port_value: {{ .Values.ingress.adminPort }}
+    {{- if .Values.metrics.status }}
+    {{- if eq .Values.metrics.status "statsd" "prometheus" "all" }}
+    stats_sinks:
+    - name: envoy.statsd
+      config:
+        tcp_cluster_name: statsd
+    {{- end }}
+    {{- end }}
