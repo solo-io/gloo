@@ -1,4 +1,4 @@
-dirs:=image-pusher star-tweeter
+dirs:=image-pusher star-tweeter slack-bot
 IMAGE_TAG?=latest
 
 .PHONY: all $(dirs)

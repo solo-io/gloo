@@ -29,13 +29,15 @@
             --api s3v4 --lookup dns
 
 ## deploy the image-pusher service
-        kubectl apply -f  deploy-image-pusher.yaml
+        kubectl apply -f  image-pusher/deploy.yaml
 
 ## start mirroring the "images" minio bucket
         mkdir images
-        ./mc mirror gloo/images ./images -w # browse to ./images in your file browser 
+        ./mc mirror gloo/images ./images -w
+        
+browse to ./images in your file browser 
 
-**unstar/star the git repo to see images start to appear**
+**unstar/star the git repo to see images appear**
 
 
 # Star-Tweeter Microservice
@@ -53,3 +55,27 @@
             --from-literal=TWITTER_ACCESS_TOKEN=${TWITTER_ACCESS_TOKEN} \
             --from-literal=TWITTER_ACCESS_SECRET=${TWITTER_ACCESS_SECRET} 
     
+
+## deploy the microservice
+        kubectl apply -f  star-tweeter/deploy.yaml
+
+
+**unstar/star the git repo to see tweets appear**
+
+
+
+# Slack-Bot Microservice
+
+## create a kubernetes secret with slack bot credentials
+        export SLACK_TOKEN=<your-slack-api-token>
+        
+        kubectl create secret -n default generic slack-secret \
+            --from-literal=SLACK_TOKEN=${SLACK_TOKEN}
+    
+
+## deploy the microservice
+        kubectl apply -f  slack-bot/deploy.yaml
+
+**unstar/star the git repo to see slack messages**
+
+

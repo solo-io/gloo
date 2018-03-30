@@ -1,0 +1,32 @@
+---
+# slack-bot pod
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: slack-bot
+  name: slack-bot
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: slack-bot
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: slack-bot
+    spec:
+      containers:
+      - image: soloio/slack-bot:latest
+        name: slack-bot
+        command: ["/slack-bot"]
+        env:
+        # Slack bot token
+        - name: SLACK_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: slack-secret
+              key: SLACK_TOKEN
+        - name: SLACK_CHANNEL
+          value: demos
