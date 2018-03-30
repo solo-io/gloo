@@ -3,8 +3,7 @@ package detector_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"errors"
+	"github.com/pkg/errors"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	. "github.com/solo-io/gloo-function-discovery/internal/detector"
@@ -17,8 +16,8 @@ var _ = Describe("Marker", func() {
 		It("marks the upstream with the service info", func() {
 			resolve := &resolver.Resolver{}
 			marker := NewMarker([]Interface{
-				&mockDetector{triesBeforeSucceding: 50},
-				&mockDetector{triesBeforeSucceding: 3},
+				&mockDetector{id: "failing", triesBeforeSucceding: 50},
+				&mockDetector{id: "succeeding", triesBeforeSucceding: 3},
 			}, resolve)
 			us := helpers.NewTestUpstream2()
 			svcInfo, annotations, err := marker.DetectFunctionalUpstream(us)
@@ -33,6 +32,7 @@ var _ = Describe("Marker", func() {
 var totalTries int
 
 type mockDetector struct {
+	id                   string
 	triesBeforeSucceding int
 }
 
@@ -40,7 +40,7 @@ func (d *mockDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo, ma
 	totalTries++
 	d.triesBeforeSucceding--
 	if d.triesBeforeSucceding > 0 {
-		return nil, nil, errors.New("mock: failed detection")
+		return nil, nil, errors.Errorf("mock[%s]: failed detection", d.id)
 	}
 	return &v1.ServiceInfo{Type: "mock_service"}, map[string]string{"foo": "bar"}, nil
 }
