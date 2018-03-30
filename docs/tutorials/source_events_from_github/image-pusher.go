@@ -1,40 +1,28 @@
 package main
 
 import (
-	"github.com/nats-io/go-nats-streaming"
-	"github.com/solo-io/gloo/pkg/log"
+	"net/http"
+
+	"github.com/ilackarms/go-github-webhook-server/github"
+	"github.com/pkg/errors"
+	"github.com/solo-io/gloo/docs/tutorials/source_events_from_github/base"
 )
 
 func main() {
-	log.Fatalf("err: %v", run())
+	opts := base.Opts{
+		ClientID:  "image-pusher",
+		ClusterID: "test-cluster",
+		NatsURL:   "nats://nats-streaming.default.svc.cluster.local:4222",
+		Subject:   "github-webhooks",
+		Handler:   handleWatch,
+	}
+	base.Run(opts)
 }
 
-func run() error {
-	conn, err := stan.Connect("test-cluster", "image-pusher",
-		stan.NatsURL("nats://nats-streaming.default.svc.cluster.local:4222"))
+func handleWatch(watch *github.WatchEvent) error {
+	imgUrl := watch.Sender.AvatarURL
+	resp, err := http.Get(imgUrl)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "downloading image from url "+imgUrl)
 	}
-
-	log.Printf("Connected to nats-streaming")
-
-	events := make(chan []byte)
-
-	sub, err := conn.Subscribe("github-webhooks", func(msg *stan.Msg) {
-		events <- []byte(msg.Data)
-	})
-	log.Printf("Subscribed to github-webhooks topic")
-	defer sub.Close()
-	for {
-		select {
-		case event := <-events:
-			if err := handleEvent(event); err != nil {
-				log.Warnf("error handling event: %v", err)
-			}
-		}
-	}
-}
-
-func handleEvent(rawEventData []byte) error {
-
 }
