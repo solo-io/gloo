@@ -1,10 +1,10 @@
-BINARY:=image-pusher
+dirs:=image-pusher
 IMAGE_TAG?=latest
 
-build: $(BINARY)
+.PHONY: all $(dirs)
+all: $(dirs)
 
-$(BINARY): $(SOURCES)
-	CGO_ENABLED=0 GOOS=linux go build -i -v -o $@ $@.go
-
-docker: $(BINARY)
-	docker build -t soloio/$(BINARY):$(IMAGE_TAG) .
+$(dirs):
+	cd $@ && \
+	CGO_ENABLED=0 GOOS=linux go build -i -v -o $@ *.go && \
+	docker build -t soloio/$@:$(IMAGE_TAG) .

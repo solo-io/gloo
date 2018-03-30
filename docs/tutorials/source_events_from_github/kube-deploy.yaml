@@ -40,46 +40,56 @@ spec:
     app: nats-streaming
 
 ---
-# image-pusher pod
+# minio pod
+
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  labels:
-    app: image-pusher
-  name: image-pusher
-  namespace: default
+  # This name uniquely identifies the Deployment
+  name: minio-deployment
 spec:
-  selector:
-    matchLabels:
-      app: image-pusher
-  replicas: 1
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
-        app: image-pusher
+        # Label is used as selector in the service.
+        app: minio
     spec:
+      # volume
+      volumes:
+      - name: storage
+        emptyDir: {}
       containers:
-      - image: soloio/image-pusher:latest
-        name: image-pusher
-        ports:
-        - containerPort: 8080
-          name: http
-        command: ["/image-pusher"]
+      - name: minio
+        # Pulls the default Minio image from Docker Hub
+        image: minio/minio
+        args:
+        - server
+        - /storage
         env:
-        - name: GITHUB_SECRET
-          value: "asdf"
+        # Minio access key and secret key
+        - name: MINIO_ACCESS_KEY
+          value: "gloo.solo.io"
+        - name: MINIO_SECRET_KEY
+          value: "gloo.solo.io"
+        ports:
+        - containerPort: 9000
+        # Mount the volume into the pod
+        volumeMounts:
+        - name: storage # must match the volume name, above
+          mountPath: "/storage"
 ---
-# image-pusher service
 apiVersion: v1
 kind: Service
 metadata:
-  name: image-pusher
-  labels:
-    app: image-pusher
-  namespace: default
+  name: minio-service
 spec:
   ports:
-  - port: 8080
-    protocol: TCP
+    - port: 9000
+      targetPort: 9000
+      protocol: TCP
   selector:
-    app: image-pusher
+    app: minio
+
+
