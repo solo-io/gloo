@@ -1,0 +1,85 @@
+---
+# nats-streaming pod
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: nats-streaming
+  name: nats-streaming
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: nats-streaming
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nats-streaming
+    spec:
+      containers:
+      - image: nats-streaming
+        name: nats-streaming
+        ports:
+        - containerPort: 4222
+          name: nats
+---
+# nats-streaming service
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats-streaming
+  labels:
+    app: nats-streaming
+  namespace: default
+spec:
+  ports:
+  - port: 4222
+    protocol: TCP
+  selector:
+    app: nats-streaming
+
+---
+# image-pusher pod
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: image-pusher
+  name: image-pusher
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: image-pusher
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: image-pusher
+    spec:
+      containers:
+      - image: soloio/image-pusher:latest
+        name: image-pusher
+        ports:
+        - containerPort: 8080
+          name: http
+        command: ["/image-pusher"]
+        env:
+        - name: GITHUB_SECRET
+          value: "asdf"
+---
+# image-pusher service
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-pusher
+  labels:
+    app: image-pusher
+  namespace: default
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    app: image-pusher
