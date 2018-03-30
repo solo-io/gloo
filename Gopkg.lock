@@ -271,7 +271,7 @@
     "pkg/secretwatcher",
     "pkg/signals"
   ]
-  revision = "095e3069ae702e60a39bc57c85659d799126d019"
+  revision = "65e531fdd5fdb4a9e4e38efec7c7a82616864c9c"
 
 [[projects]]
   branch = "master"
@@ -283,7 +283,7 @@
   branch = "master"
   name = "github.com/solo-io/gloo-plugins"
   packages = ["kubernetes"]
-  revision = "c5750fa02bb84a861b28102d3eb8713ad82ad299"
+  revision = "b134709fa9d27229e506f978117d6583c3c249c9"
 
 [[projects]]
   branch = "master"
@@ -298,13 +298,13 @@
     "file",
     "internal/crud"
   ]
-  revision = "324e1b1c7129e91362c69fa6db2772c60d27ae8b"
+  revision = "961a366778c63bafe9d7f58ed85388b724c1eee2"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "47cb5c60b8a01030df145b6324988e7d2034a715"
+  revision = "a2ba74bcc5a8eb154ab37483314a4731ebc78b86"
 
 [[projects]]
   branch = "master"
@@ -315,8 +315,8 @@
 [[projects]]
   name = "github.com/spf13/cobra"
   packages = ["."]
-  revision = "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
-  version = "v0.0.1"
+  revision = "a1f051bc3eba734da4772d60e2d677f47cf93ef4"
+  version = "v0.0.2"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -354,7 +354,7 @@
     "unix",
     "windows"
   ]
-  revision = "13d03a9a82fba647c21a0ef8fba44a795d0f0835"
+  revision = "378d26f46672a356c46195c28f61bdb4c0a781dd"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -422,8 +422,8 @@
     "tap",
     "transport"
   ]
-  revision = "8e4536a86ab602859c20df5ebfd0bd4228d08655"
-  version = "v1.10.0"
+  revision = "1e2570b1b19ade82d8dbb31bba4e65e9f9ef5b34"
+  version = "v1.11.1"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -434,8 +434,8 @@
 [[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "86f5ed62f8a0ee96bd888d2efdfd6d4fb100a4eb"
-  version = "v2.2.0"
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [[projects]]
   branch = "master"
@@ -470,7 +470,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "055879e38033d1526b0fe169089a055c33fa3990"
+  revision = "c4ebf33f93081f8c7602d29a59944e4a9f684ac2"
 
 [[projects]]
   branch = "master"
@@ -482,7 +482,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "b7d6d691cfaa689eb82b21f71ca447dfdb325b0c"
+  revision = "ab194a3e88161111fb267a02a266ab745a0c6685"
 
 [[projects]]
   branch = "master"
@@ -530,7 +530,7 @@
     "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "7175867f4d9f782220ceae4fc323e3aaae35f23a"
+  revision = "0ed326127d3068118ef128c76673dad6005736ba"
 
 [[projects]]
   name = "k8s.io/client-go"
