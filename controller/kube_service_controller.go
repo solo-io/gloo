@@ -213,12 +213,13 @@ func (c *ServiceController) syncUpstreams(desiredUpstreams, actualUpstreams []*v
 		if err != nil {
 			return fmt.Errorf("failed to get existing upstream %s: %v", us.Name, err)
 		}
+		// all we want to do is update the spec and merge the annotations
 		currentUpstream.Spec = us.Spec
 		if currentUpstream.Metadata == nil {
 			currentUpstream.Metadata = &v1.Metadata{}
 		}
 		currentUpstream.Metadata.Annotations = mergeAnnotations(currentUpstream.Metadata.Annotations, us.Metadata.Annotations)
-		if _, err := c.upstreams.V1().Upstreams().Update(us); err != nil {
+		if _, err := c.upstreams.V1().Upstreams().Update(currentUpstream); err != nil {
 			return fmt.Errorf("failed to update upstream %s: %v", us.Name, err)
 		}
 	}
