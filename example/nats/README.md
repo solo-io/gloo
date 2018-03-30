@@ -38,6 +38,8 @@ $ glooctl --gloo-config-dir gloo-config/_gloo_config/  virtualhost get -o yaml
 
 Once everything is up and running, you can the demo website in your browser, and continue there: http://localhost:8080
 
+You can visit http://localhost:3000 and login with username *admin* and password *admin* to monitor Gloo.
+
 # Cleanup:
 
 To stop the containers, hit CNTRL+C on in the terminal where `docker-compose up` was invoked.
