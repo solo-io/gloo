@@ -22,8 +22,6 @@ spec:
         name: star-tweeter
         command: ["/star-tweeter"]
         env:
-        - name: GITHUB_SECRET
-          value: "asdf"
         # Twitter access tokens
         - name: TWITTER_CONSUMER_KEY
           valueFrom:

@@ -1,10 +1,10 @@
 # Setup
 
 ## Deploy Gloo
-        k apply -f https://raw.githubusercontent.com/solo-io/gloo-install/master/kube/install.yaml
+        kubectl apply -f https://raw.githubusercontent.com/solo-io/gloo-install/master/kube/install.yaml
 
 ## Deploy NATS and minio
-        k apply -f kube-deploy.yaml
+        kubectl apply -f kube-deploy.yaml
 
 ## Create a route for nats
         glooctl route create --sort \
@@ -29,7 +29,7 @@
             --api s3v4 --lookup dns
 
 ## deploy the image-pusher service
-        k apply -f  deploy-image-pusher.yaml
+        kubectl apply -f  deploy-image-pusher.yaml
 
 ## start mirroring the "images" minio bucket
         mkdir images
@@ -39,3 +39,17 @@
 
 
 # Star-Tweeter Microservice
+
+## create a kubernetes secret with your twitter credentials
+        export TWITTER_CONSUMER_KEY=<your-twitter-consumer-key>
+        export TWITTER_CONSUMER_SECRET=<your-twitter-consumer-secret>
+        export TWITTER_ACCESS_TOKEN=<your-twitter-access-token>
+        export TWITTER_ACCESS_SECRET=<your-twitter-access-secret>
+        
+        kubectl create secret -n default generic \
+            twitter-secret \
+            --from-literal=TWITTER_CONSUMER_KEY=${TWITTER_CONSUMER_KEY} \
+            --from-literal=TWITTER_CONSUMER_SECRET=${TWITTER_CONSUMER_SECRET} \
+            --from-literal=TWITTER_ACCESS_TOKEN=${TWITTER_ACCESS_TOKEN} \
+            --from-literal=TWITTER_ACCESS_SECRET=${TWITTER_ACCESS_SECRET} 
+    

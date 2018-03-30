@@ -1,4 +1,4 @@
-dirs:=image-pusher
+dirs:=image-pusher star-tweeter
 IMAGE_TAG?=latest
 
 .PHONY: all $(dirs)
