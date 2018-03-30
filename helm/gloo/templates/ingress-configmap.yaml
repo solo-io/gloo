@@ -63,3 +63,13 @@ data:
         tcp_cluster_name: statsd
     {{- end }}
     {{- end }}
+    {{- if .Values.opentracing.status }} 
+    {{- if eq .Values.opentracing.status "configure" "install" }}
+    tracing:
+      http:
+        name: envoy.zipkin
+        config:
+          collector_cluster: jaeger
+          collector_endpoint: "/api/v1/spans"
+    {{- end }}
+    {{- end }}
