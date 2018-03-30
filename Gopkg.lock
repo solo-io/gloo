@@ -4,8 +4,8 @@
 [[projects]]
   name = "github.com/d4l3k/messagediff"
   packages = ["."]
-  revision = "7b706999d935b04cf2dbc71a5a5afcbd288aeb48"
-  version = "v1.1.0"
+  revision = "29f32d820d112dbd66e58492a6ffb7cc3106312b"
+  version = "v1.2.1"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -415,7 +415,7 @@
     "nats-streaming",
     "rest"
   ]
-  revision = "db7d389b0b8d561644e60f4c621c7669d18a0e4f"
+  revision = "b134709fa9d27229e506f978117d6583c3c249c9"
 
 [[projects]]
   branch = "master"
@@ -436,7 +436,7 @@
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "71af2f935264f1545881202cc9d36f6eff817b7b"
+  revision = "a2ba74bcc5a8eb154ab37483314a4731ebc78b86"
 
 [[projects]]
   branch = "master"
@@ -447,8 +447,8 @@
 [[projects]]
   name = "github.com/spf13/cobra"
   packages = ["."]
-  revision = "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
-  version = "v0.0.1"
+  revision = "a1f051bc3eba734da4772d60e2d677f47cf93ef4"
+  version = "v0.0.2"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -511,7 +511,7 @@
     "unix",
     "windows"
   ]
-  revision = "13d03a9a82fba647c21a0ef8fba44a795d0f0835"
+  revision = "378d26f46672a356c46195c28f61bdb4c0a781dd"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -579,8 +579,8 @@
     "tap",
     "transport"
   ]
-  revision = "afc05b9e1d36f289ea16ba294894486a3e458246"
-  version = "v1.11.0"
+  revision = "1e2570b1b19ade82d8dbb31bba4e65e9f9ef5b34"
+  version = "v1.11.1"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -591,8 +591,8 @@
 [[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "86f5ed62f8a0ee96bd888d2efdfd6d4fb100a4eb"
-  version = "v2.2.0"
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [[projects]]
   branch = "master"
@@ -627,7 +627,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "055879e38033d1526b0fe169089a055c33fa3990"
+  revision = "c4ebf33f93081f8c7602d29a59944e4a9f684ac2"
 
 [[projects]]
   branch = "master"
@@ -639,7 +639,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "23e65a2674e95b2c20b2f1e693401d1ca844b96c"
+  revision = "ab194a3e88161111fb267a02a266ab745a0c6685"
 
 [[projects]]
   branch = "master"
@@ -687,7 +687,7 @@
     "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "210bcde8e5a7715fe776460ca1df1a3f2738725e"
+  revision = "0ed326127d3068118ef128c76673dad6005736ba"
 
 [[projects]]
   name = "k8s.io/client-go"
