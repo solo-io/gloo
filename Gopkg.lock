@@ -252,7 +252,7 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "65e531fdd5fdb4a9e4e38efec7c7a82616864c9c"
+  revision = "db55cbcbb3e947f3bf05b61e1d2817655b2d01c7"
 
 [[projects]]
   branch = "master"
@@ -264,7 +264,7 @@
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "a2ba74bcc5a8eb154ab37483314a4731ebc78b86"
+  revision = "4940b4291a9ffe5ab88d24c36cb3bc4225791778"
 
 [[projects]]
   name = "github.com/spf13/pflag"
