@@ -12,6 +12,12 @@ static_resources:
         port_value: 8081
     http2_protocol_options: {}
     type: STRICT_DNS
+  - name: statsd
+    connect_timeout: 1s
+    type: STRICT_DNS
+    hosts:
+      address: statsd
+      port_value: 9125
 dynamic_resources:
   ads_config:
     api_type: GRPC
@@ -27,3 +33,7 @@ admin:
     socket_address:
       address: 0.0.0.0
       port_value: 19000
+stats_sinks:
+- name: envoy.statsd
+  config:
+    tcp_cluster_name: statsd

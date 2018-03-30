@@ -41,3 +41,24 @@ services:
     image: nginx
     volumes:
     - ./website:/usr/share/nginx/html:ro
+
+  statsd:
+    image: prom/statsd-exporter:latest
+    ports:
+    - "9102:9102"
+    - "9125:9125"
+
+  prometheus:
+    image: prom/prometheus
+    command: "--config.file=/tmp/prometheus.yaml --web.listen-address '0.0.0.0:9090'"
+    ports: 
+    - "9090:9090"
+    volumes:
+    - ./prometheus.yaml:/tmp/prometheus.yaml
+
+  grafana:
+    image: grafana/grafana
+    ports:
+    - "3000:3000"
+    volumes:
+    - ./grafana-datasource.yaml:/etc/grafana/provisioning/datasources/grafana-datasource.yaml
