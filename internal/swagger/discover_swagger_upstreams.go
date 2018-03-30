@@ -35,7 +35,6 @@ func (d *swaggerDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo,
 	var errs error
 	for _, uri := range d.swaggerUrisToTry {
 		url := "http://" + addr + uri
-		log.Debugf("querying swagger url %v", url)
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "invalid url for request")
@@ -53,6 +52,7 @@ func (d *swaggerDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo,
 				continue
 			}
 			// definitely found swagger
+			log.Printf("swagger upstream detected: %v", addr)
 			svcInfo := &v1.ServiceInfo{
 				Type: rest.ServiceTypeREST,
 			}

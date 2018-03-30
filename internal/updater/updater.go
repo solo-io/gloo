@@ -57,7 +57,7 @@ func UpdateFunctions(gloo storage.Interface, upstreamName string, secrets secret
 		}
 		funcs, err = lambda.GetFuncs(us, secrets)
 		if err != nil {
-			return errors.Wrap(err, "updating lambda functions")
+			return errors.Wrap(err, "retrieving lambda functions")
 		}
 	case functiontypes.FunctionTypeGfuncs:
 		if len(secrets) == 0 {
@@ -66,15 +66,15 @@ func UpdateFunctions(gloo storage.Interface, upstreamName string, secrets secret
 		}
 		funcs, err = gcf.GetFuncs(us, secrets)
 		if err != nil {
-			return errors.Wrap(err, "updating google functions")
+			return errors.Wrap(err, "retrieving google functions")
 		}
 	case functiontypes.FunctionTypeSwagger:
 		funcs, err = swagger.GetFuncs(us)
 		if err != nil {
-			return errors.Wrap(err, "updating swagger functions")
+			return errors.Wrap(err, "retrieving swagger functions")
 		}
 	default:
-		return errors.Errorf("unknown function type")
+		return nil //errors.Errorf("unknown function type")
 	}
 
 	if err := updateUpstreamWithFuncs(gloo, us.Name, funcs); err != nil {
@@ -156,8 +156,13 @@ func UpdateServiceInfo(gloo storage.Interface,
 		return errors.Wrapf(err, "failed to discover whether %v is a functional upstream", usToUpdate.Name)
 	}
 
+	// detection skipped this upstream, probably already detected for it
+	if svcInfo == nil && annotations == nil {
+		return nil
+	}
+
 	// no update to do
-	if annotationsEqual(usToUpdate, annotations) && svcInfoEqual(usToUpdate, svcInfo) {
+	if svcInfoEqual(usToUpdate, svcInfo) && containsAnnotations(usToUpdate, annotations) {
 		return nil
 	}
 
@@ -166,8 +171,9 @@ func UpdateServiceInfo(gloo storage.Interface,
 
 	_, err = gloo.V1().Upstreams().Update(usToUpdate)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "updating upstream %s with service info", upstreamName)
 	}
+	log.Printf("updated upstream %v", usToUpdate)
 	return nil
 }
 
@@ -184,18 +190,15 @@ func mergeAnnotations(oldAnnotations, newAnnotations map[string]string) map[stri
 	return merged
 }
 
-func annotationsEqual(us *v1.Upstream, annotations map[string]string) bool {
-	if us.Metadata == nil {
+func containsAnnotations(us *v1.Upstream, annotations map[string]string) bool {
+	if us.Metadata == nil || us.Metadata.Annotations == nil {
 		if len(annotations) == 0 {
 			return true
 		}
 		return false
 	}
-	if len(us.Metadata.Annotations) != len(annotations) {
-		return false
-	}
-	for k, v := range us.Metadata.Annotations {
-		if annotations[k] != v {
+	for k, v := range annotations {
+		if us.Metadata.Annotations[k] != v {
 			return false
 		}
 	}

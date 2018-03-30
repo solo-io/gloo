@@ -31,13 +31,13 @@ func NewNatsDetector(clusterID string) detector.Interface {
 // service info and annotations to mark it with
 func (d *natsDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo, map[string]string, error) {
 	// try to connect to the addr as though it's a NATS cluster
-	log.Debugf("trying to connect to nats cluster at nats://%v with cluster id  %s", addr, d.clusterID)
 	c, err := stan.Connect(d.clusterID, "gloo-function-discovery", stan.NatsURL("nats://"+addr))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to connect to nats-streaming cluster")
 	}
 	defer c.Close()
 
+	log.Printf("nats upstream detected: %v", addr)
 	svcInfo := &v1.ServiceInfo{
 		Type: natsstreaming.ServiceTypeNatsStreaming,
 		Properties: natsstreaming.EncodeServiceProperties(natsstreaming.ServiceProperties{

@@ -65,24 +65,27 @@ func (m *Marker) DetectFunctionalUpstream(us *v1.Upstream) (*v1.ServiceInfo, map
 		m.m.Unlock()
 	}()
 
+	addr, err := m.resolver.Resolve(us)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "resolving address for %v", us.Name)
+	}
+
 	stop := make(chan struct{})
+	failed := make(chan struct{})
 
 	serviceInfoC := make(chan *v1.ServiceInfo)
 	annotationsC := make(chan map[string]string)
 
 	// try every possible detector concurrently
 	for _, d := range m.detectors {
-		addr, err := m.resolver.Resolve(us)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "resolving address for %v", us.Name)
-		}
 		go func(d Interface) {
 			withBackoff(func() error {
 				serviceInfo, annotations, err := d.DetectFunctionalService(addr)
 				if err != nil {
-					log.Printf("%v err: %v", d, err)
+					failed <- struct{}{}
 					return err
 				}
+				// success
 				close(stop)
 				serviceInfoC <- serviceInfo
 				annotationsC <- annotations
@@ -90,13 +93,26 @@ func (m *Marker) DetectFunctionalUpstream(us *v1.Upstream) (*v1.ServiceInfo, map
 			}, stop)
 		}(d)
 	}
-	return <-serviceInfoC, <-annotationsC, nil
+
+	var totalFailed int
+
+	for {
+		select {
+		case <-stop:
+			return <-serviceInfoC, <-annotationsC, nil
+		case <-failed:
+			totalFailed++
+			if totalFailed >= len(m.detectors) {
+				return nil, nil, errors.Errorf("service type detection failed for %s", us.Name)
+			}
+		}
+	}
 }
 
 // Default values for ExponentialBackOff.
 const (
 	defaultInitialInterval = 500 * time.Millisecond
-	defaultMaxElapsedTime  = 3 * time.Minute
+	defaultMaxElapsedTime  = 60 * time.Second
 )
 
 func withBackoff(fn func() error, stop chan struct{}) {
@@ -109,7 +125,6 @@ func withBackoff(fn func() error, stop chan struct{}) {
 		select {
 		// stopped by another goroutine
 		case <-stop:
-			log.Printf("closed")
 			return
 		case <-time.After(tilNextRetry):
 			tilNextRetry *= 2
@@ -118,7 +133,7 @@ func withBackoff(fn func() error, stop chan struct{}) {
 				return
 			}
 			if tilNextRetry >= defaultMaxElapsedTime {
-				log.Warnf("detection failed with error %v", err)
+				log.Warnf("detection failed with error %v", err.Error())
 				return
 			}
 		}

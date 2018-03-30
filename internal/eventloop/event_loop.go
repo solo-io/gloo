@@ -95,17 +95,17 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 				updatingUpstreams[us.Name] = &sync.Mutex{}
 			}
 			// ensure only 1 update at a time per upstream
-			m := updatingUpstreams[us.Name]
-			m.Lock()
-			go func() {
-				defer m.Unlock()
+			updatingUpstreams[us.Name].Lock()
+			go func(us *v1.Upstream) {
+				log.Debugf("starting update goroutine for %v", us.Name)
+				defer updatingUpstreams[us.Name].Unlock()
 				if err := updater.UpdateServiceInfo(store, us.Name, marker); err != nil {
 					errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
 				}
 				if err := updater.UpdateFunctions(store, us.Name, cache.secrets); err != nil {
 					errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
 				}
-			}()
+			}(us)
 		}
 	}
 
