@@ -30,8 +30,10 @@ func run() error {
 	// Twitter client
 	client := twitter.NewClient(httpClient)
 
+	log.Printf("starting twitter client")
+
 	opts := base.Opts{
-		ClientID:  "image-pusher",
+		ClientID:  os.Getenv("HOSTNAME"),
 		ClusterID: "test-cluster",
 		NatsURL:   "nats://nats-streaming.default.svc.cluster.local:4222",
 		Subject:   "github-webhooks",

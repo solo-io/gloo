@@ -38,7 +38,7 @@ func run() error {
 	log.Printf("Successfully created bucket %s\n", bucketName)
 
 	opts := base.Opts{
-		ClientID:  "image-pusher",
+		ClientID:  os.Getenv("HOSTNAME"),
 		ClusterID: "test-cluster",
 		NatsURL:   "nats://nats-streaming.default.svc.cluster.local:4222",
 		Subject:   "github-webhooks",
