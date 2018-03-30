@@ -10,8 +10,8 @@ pages:
 #      - Installing on Local Docker: installation/docker.md
     - Getting Started:
       - Kubernetes:
-        - Part 1 - Basic Routing: getting_started/kubernetes/1.md
-        - Part 2 - Function Routing: getting_started/kubernetes/2.md
+        - Basic Routing: getting_started/kubernetes/1.md
+        - Function Routing: getting_started/kubernetes/2.md
       - AWS:
         - Basic Lambda with Gloo: getting_started/aws/lambda.md
     - Tutorials:
