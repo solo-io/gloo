@@ -8,12 +8,6 @@
   version = "v1.1.0"
 
 [[projects]]
-  name = "github.com/envoyproxy/envoy"
-  packages = ["examples/grpc-bridge/service/gen"]
-  revision = "4dd49d8809f7aaa580538b3c228dd99a2fae92a4"
-  version = "v1.6.0"
-
-[[projects]]
   branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
@@ -306,7 +300,7 @@
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "45566b2fc76ff857c725f0aa92066ad0a1da44db"
+  revision = "a2ba74bcc5a8eb154ab37483314a4731ebc78b86"
 
 [[projects]]
   branch = "master"
@@ -375,7 +369,7 @@
     "unix",
     "windows"
   ]
-  revision = "13d03a9a82fba647c21a0ef8fba44a795d0f0835"
+  revision = "378d26f46672a356c46195c28f61bdb4c0a781dd"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -446,8 +440,8 @@
     "tap",
     "transport"
   ]
-  revision = "afc05b9e1d36f289ea16ba294894486a3e458246"
-  version = "v1.11.0"
+  revision = "1e2570b1b19ade82d8dbb31bba4e65e9f9ef5b34"
+  version = "v1.11.1"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -458,8 +452,8 @@
 [[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "86f5ed62f8a0ee96bd888d2efdfd6d4fb100a4eb"
-  version = "v2.2.0"
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [[projects]]
   branch = "master"
@@ -494,7 +488,7 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "055879e38033d1526b0fe169089a055c33fa3990"
+  revision = "c4ebf33f93081f8c7602d29a59944e4a9f684ac2"
 
 [[projects]]
   branch = "master"
@@ -542,7 +536,7 @@
     "third_party/forked/golang/json",
     "third_party/forked/golang/reflect"
   ]
-  revision = "210bcde8e5a7715fe776460ca1df1a3f2738725e"
+  revision = "0ed326127d3068118ef128c76673dad6005736ba"
 
 [[projects]]
   name = "k8s.io/client-go"
@@ -675,6 +669,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "06683fba25ca89024729f0795b351a27bf5ab11f628caecd248c3e5da21600c2"
+  inputs-digest = "3d6c3dda02726c0f4355a77bec6ea851c593aa56d93600f06fa5ffa0bdef2c9f"
   solver-name = "gps-cdcl"
   solver-version = 1
