@@ -519,7 +519,7 @@
     "pkg/secretwatcher/vault",
     "pkg/signals"
   ]
-  revision = "db55cbcbb3e947f3bf05b61e1d2817655b2d01c7"
+  revision = "4b07ff75976855f33fb275df4b91813c5438de2c"
 
 [[projects]]
   branch = "master"
@@ -538,7 +538,7 @@
     "nats-streaming",
     "rest"
   ]
-  revision = "dfbeb95e008649d3a4acec7d4276f35c33130d0e"
+  revision = "6b0ccd99fbe1aefb09a980aab3b9d43395d1f62c"
 
 [[projects]]
   branch = "master"
@@ -553,7 +553,7 @@
     "file",
     "internal/crud"
   ]
-  revision = "25d855b96279b2180b35dd60b5f0be522c2eafab"
+  revision = "86f3f2f8c35f32623630bed4ed7c92efe72b7ae1"
 
 [[projects]]
   branch = "master"
@@ -562,7 +562,7 @@
     "helpers",
     "helpers/local"
   ]
-  revision = "4940b4291a9ffe5ab88d24c36cb3bc4225791778"
+  revision = "97203d0434dbd5eb6034749c98ea8c607655ef49"
 
 [[projects]]
   branch = "master"
