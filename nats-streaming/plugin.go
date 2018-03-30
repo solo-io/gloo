@@ -1,17 +1,15 @@
 package natsstreaming
 
 import (
-	"errors"
-
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 
+	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/pkg/protoutil"
 	"k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/gogo/protobuf/types"
-
+	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
 	"github.com/solo-io/gloo/pkg/plugin"
@@ -34,13 +32,25 @@ const (
 	filterName  = "io.solo.nats_streaming"
 	pluginStage = plugin.OutAuth
 
-	clusterId                 = "cluster_id"
-	clusterIdAnnotations      = "gloo.solo.io/cluster_id"
-	defaultClusterId          = "test-cluster"
-	discoverPrefix            = "discover_prefix"
-	discoverPrefixAnnotations = "gloo.solo.io/discover_prefix"
-	defaultDiscoverPrefix     = "_STAN.discover"
+	clusterId      = "cluster_id"
+	discoverPrefix = "discover_prefix"
+
+	defaultClusterId      = "test-cluster"
+	defaultDiscoverPrefix = "_STAN.discover"
 )
+
+type ServiceProperties struct {
+	ClusterID      string `json:"cluster_id"`
+	DiscoverPrefix string `json:"discover_prefix"`
+}
+
+func EncodeServiceProperties(props ServiceProperties) *types.Struct {
+	s, err := protoutil.MarshalStruct(props)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
 
 func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
 	return nil
@@ -56,15 +66,17 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	if in.ServiceInfo == nil || in.ServiceInfo.Type != ServiceTypeNatsStreaming {
 		return nil
 	}
-	//    string nats_streaming_cluster_id = 3;
-	//    string discover_prefix = 4;
-	// in.Metadata
+	var props ServiceProperties
+	err := protoutil.UnmarshalStruct(in.ServiceInfo.Properties, &props)
+	if err != nil {
+		return errors.Wrap(err, "unmarshalling serviceinfo.properties")
+	}
 
-	cid := in.Metadata.Annotations[clusterIdAnnotations]
+	cid := props.ClusterID
 	if cid == "" {
 		cid = defaultClusterId
 	}
-	dp := in.Metadata.Annotations[clusterIdAnnotations]
+	dp := props.DiscoverPrefix
 	if dp == "" {
 		dp = defaultDiscoverPrefix
 	}
