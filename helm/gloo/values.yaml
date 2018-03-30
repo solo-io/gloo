@@ -9,32 +9,32 @@ ingress:
   securePort: 8443
   adminPort: 19000
   image: "soloio/envoy"
-  imageTag: "v0.1.5-81"
+  imageTag: "v0.1.7-108"
   imagePullPolicy: IfNotPresent
 
 gloo:
   replicaCount: 1
   port: 8081
   image: "soloio/gloo"
-  imageTag: "v0.1.5-81"
+  imageTag: "v0.1.7-108"
   imagePullPolicy: IfNotPresent
 
 #  extra
 gloo_function_discovery:
   image: soloio/gloo-function-discovery
-  imageTag: v0.1.4
+  imageTag: v0.1.7-108
   imagePullPolicy: IfNotPresent
   enable: true
 
 gloo_ingress_controller:
   image: soloio/gloo-ingress-controller
-  imageTag: v0.1.1
+  imageTag: v0.1.2-108
   imagePullPolicy: IfNotPresent
   enable: true
 
 gloo_k8s_service_discovery:
   image: soloio/gloo-k8s-service-discovery
-  imageTag: v0.1.1
+  imageTag: v0.1.2-108
   imagePullPolicy: IfNotPresent
   enable: true
 
