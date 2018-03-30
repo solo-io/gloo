@@ -305,7 +305,7 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "65e531fdd5fdb4a9e4e38efec7c7a82616864c9c"
+  revision = "db55cbcbb3e947f3bf05b61e1d2817655b2d01c7"
 
 [[projects]]
   branch = "master"
@@ -323,13 +323,13 @@
     "nats-streaming",
     "rest"
   ]
-  revision = "b134709fa9d27229e506f978117d6583c3c249c9"
+  revision = "dfbeb95e008649d3a4acec7d4276f35c33130d0e"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-sdk-go"
   packages = ["events"]
-  revision = "8db9f5ba1440bb595be7304ad1d8805dd612ba36"
+  revision = "75a4e2ea52d5ea5bfcae4a865fc85393a0fbab73"
 
 [[projects]]
   branch = "master"
@@ -344,7 +344,7 @@
     "file",
     "internal/crud"
   ]
-  revision = "961a366778c63bafe9d7f58ed85388b724c1eee2"
+  revision = "25d855b96279b2180b35dd60b5f0be522c2eafab"
 
 [[projects]]
   branch = "master"
