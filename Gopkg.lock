@@ -415,7 +415,7 @@
     "nats-streaming",
     "rest"
   ]
-  revision = "b134709fa9d27229e506f978117d6583c3c249c9"
+  revision = "dfbeb95e008649d3a4acec7d4276f35c33130d0e"
 
 [[projects]]
   branch = "master"
@@ -430,13 +430,13 @@
     "file",
     "internal/crud"
   ]
-  revision = "961a366778c63bafe9d7f58ed85388b724c1eee2"
+  revision = "25d855b96279b2180b35dd60b5f0be522c2eafab"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "a2ba74bcc5a8eb154ab37483314a4731ebc78b86"
+  revision = "4940b4291a9ffe5ab88d24c36cb3bc4225791778"
 
 [[projects]]
   branch = "master"
