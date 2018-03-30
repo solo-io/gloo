@@ -24,7 +24,7 @@ var _ = Describe("Marker", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(svcInfo).To(Equal(&v1.ServiceInfo{Type: "mock_service"}))
 			Expect(annotations).To(Equal(map[string]string{"foo": "bar"}))
-			Expect(totalTries).To(Equal(6))
+			Expect(totalTries).To(BeNumerically(">=", 5))
 		})
 	})
 })
