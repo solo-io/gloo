@@ -116,7 +116,7 @@ func (m *Upstream) GetServiceInfo() *ServiceInfo {
 
 type ServiceInfo struct {
 	// Type indicates the type of service running on the upstream.
-	// Current options include `http`, `gRPC`, and `NATS`
+	// Current options include `REST`, `gRPC`, and `NATS`
 	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
 	// Properties contains properties that describe the service. The spec may be required
 	// by the Upstream Plugin that handles the given Service Type
