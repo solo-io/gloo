@@ -19,21 +19,20 @@
     <section>
         <h2>Introduction</h2>
         <p>
-            This demos shows Gloo transparently channeling ingress trafic to a NATS Streaming server.
+            This demo shows Gloo transparently channeling ingress trafic to a NATS Streaming server.
             
-            In this demo we will show you how you can combine Gloo and NATS Streaming to get the 
+            In this demo, we will show you how you can combine Gloo and NATS Streaming to get the 
             best of both worlds, providing performance transparently to your front end application.
             
-            Gloo integrates directly
-            with NATS Streaming, translating the HTTP protol to the NATS Streaming protocol.
+            Gloo integrates directly with NATS Streaming, translating the HTTP protol to the NATS Streaming protocol.
         </p>
         <p>
-            In this demo we have a few components:
+            In this demo, we have a few components:
         </p>
         <ul>
-            <li>This website! - Simulates an app that measures analytics</li>
+            <li>This website! - Simulates an app that shows analytics</li>
             <li>Cassandra - the data store for our analytics</li>
-            <li>Analytics - sub system that that saves analytics requests. more on that next.</li>
+            <li>Analytics - sub system that that saves analytics requests. More on that next.</li>
         </ul>
         
         The analytics - two approaches:
@@ -46,37 +45,46 @@
         </p>
         <p>
             <strong>Gloo</strong> makes using the two approaches the same for the front end code, and enables you 
-            to smoothtly transsion form one approach to another.
+            to smoothtly transition form one approach to another.
         </p>
     </section>
     <section>
         <h2>Traffic simulation</h2>
-        <div>
-            <h3>Approach 1</h3>
-            <div>
-                One visit:
-                <button onclick="javascript:send_analytics(1);">Simulate one visit</button>
+        <div class="row">
+            <div class="col">
+                <div>
+                    <h3>Approach 1</h3>
+                    <p>
+                    One visit:
+                    <button type="button" class="btn btn-info float-right" onclick="javascript:send_analytics(1);">Simulate one visit</button>
+                    </p>
+                    <p>
+                    Simulate spike via microservice:
+                    <button type="button" class="btn btn-primary float-right" onclick="javascript:send_analytics(1500);">Traffic spike</button>
+                    </p>
+                </div>
             </div>
-            <div>
-                Simulate spike via microservice:
-                <button onclick="javascript:send_analytics(1500);">Traffic spike</button>
+            <div class="col">
+                <div>
+                    <h3>Approach 2</h3>
+                    <div>
+                        Simulate spike through NATS Streaming:
+                        <button type="button" class="btn btn-primary float-right" onclick="javascript:send_nats_analytics(1500);">Traffic spike</button>
+                    </div>
+                </div>
             </div>
         </div>
-        <div>
-            <h3>Approach 2</h3>
-            <div>
-                Simulate spike though NATS Streaming:
-                <button onclick="javascript:send_nats_analytics(1500);">Traffic spike</button>
-            </div>
-        </div>
+        
+        
     </section>
     <section>
         <h2>Analytics live stats</h2>
+        <p>
         This section retreives the analytics from Cassandra and displays them via a request from 
         the analytics microservice. It tries to retrieve updated stats every second, but if the 
         service is under load, it might take more time. take note especially when simulating a traffic 
         spike.
-
+        </p>
         Current stats:
         <div id="currentstats">
         </div>
