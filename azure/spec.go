@@ -2,6 +2,7 @@ package azure
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 
 	"github.com/gogo/protobuf/types"
@@ -38,6 +39,10 @@ func (s *UpstreamSpec) Validate() error {
 	} else {
 		return errors.New("invalid function app name")
 	}
+}
+
+func (s *UpstreamSpec) GetHostname() string {
+	return fmt.Sprintf("%s.azurewebsites.net", s.FunctionAppName)
 }
 
 type FunctionSpec struct {

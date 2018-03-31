@@ -135,6 +135,13 @@ var _ = Describe("UpstreamSpec", func() {
 			})
 		})
 	})
+	Describe("retrieving hostname", func() {
+		It("should succeed ", func() {
+			spec, err := decodeUpstreamSpec("azure-function-app-1", "my-azure-sec")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(spec.GetHostname()).To(Equal("azure-function-app-1.azurewebsites.net"))
+		})
+	})
 })
 
 func decodeFunctionSpec(functionName string, authLevel string) (*FunctionSpec, error) {
