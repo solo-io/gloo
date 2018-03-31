@@ -51,6 +51,12 @@ func ConfigMapToFile(cm *v1.ConfigMap) (*dependencies.File, error) {
 		}
 		for k, v := range cm.Data {
 			key = k
+			// if the saved content was binary, it was base64'ed
+			// get it back
+			// note: no longer necessary in kube1.10 whih supports binary data
+			if b, err := base64.StdEncoding.DecodeString(v); err == nil {
+				v = string(b)
+			}
 			val = []byte(v)
 		}
 	}

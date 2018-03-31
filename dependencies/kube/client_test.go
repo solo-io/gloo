@@ -88,6 +88,7 @@ var _ = Describe("Client", func() {
 			f, err := client.Create(file)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(f).NotTo(BeNil())
+			Expect(f.Contents).To(Equal(contents))
 			cm, err := kube.CoreV1().ConfigMaps(namespace).Get(cmName, v1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cm.Data).To(HaveLen(1))
