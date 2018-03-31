@@ -157,6 +157,33 @@ func KubectlOut(args ...string) (string, error) {
 	return string(out), err
 }
 
+func KubectlOutAsync(args ...string) (*bytes.Buffer, chan struct{}, error) {
+	cmd := exec.Command("kubectl", args...)
+	cmd.Env = os.Environ()
+	// disable DEBUG=1 from getting through to kube
+	for i, pair := range cmd.Env {
+		if strings.HasPrefix(pair, "DEBUG") {
+			cmd.Env = append(cmd.Env[:i], cmd.Env[i+1:]...)
+			break
+		}
+	}
+	buf := &bytes.Buffer{}
+	cmd.Stdout = buf
+	cmd.Stderr = buf
+	err := cmd.Start()
+	if err != nil {
+		err = fmt.Errorf("%s (%v)", buf.Bytes(), err)
+	}
+	done := make(chan struct{})
+	go func() {
+		select {
+		case <-done:
+			cmd.Process.Kill()
+		}
+	}()
+	return buf, done, err
+}
+
 // waitPodsRunning waits for all pods to be running
 func waitPodsRunning(podNames ...string) error {
 	finished := func(output string) bool {
@@ -186,8 +213,14 @@ func waitPodsTerminated(podNames ...string) error {
 // TestRunner executes a command inside the TestRunner container
 func TestRunner(args ...string) (string, error) {
 	args = append([]string{"exec", "-i", testrunner, "--"}, args...)
-	//log.Debugf("trying command %s", strings.Join(args, " "))
 	return KubectlOut(args...)
+}
+
+// TestRunnerAsync executes a command inside the TestRunner container
+// returning a buffer that can be read from as it executes
+func TestRunnerAsync(args ...string) (*bytes.Buffer, chan struct{}, error) {
+	args = append([]string{"exec", "-i", testrunner, "--"}, args...)
+	return KubectlOutAsync(args...)
 }
 
 func waitPodStatus(pod, status string, finished func(output string) bool) error {

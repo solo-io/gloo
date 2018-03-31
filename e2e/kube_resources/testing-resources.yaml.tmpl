@@ -199,3 +199,44 @@ spec:
     protocol: TCP
   selector:
     app: petstore
+
+---
+# nats-streaming pod
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: nats-streaming
+  name: nats-streaming
+  namespace: {{.Namespace}}
+spec:
+  selector:
+    matchLabels:
+      app: nats-streaming
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nats-streaming
+    spec:
+      containers:
+      - image: nats-streaming
+        name: nats-streaming
+        ports:
+        - containerPort: 4222
+          name: nats
+---
+# nats-streaming service
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats-streaming
+  labels:
+    app: nats-streaming
+  namespace: {{.Namespace}}
+spec:
+  ports:
+  - port: 4222
+    protocol: TCP
+  selector:
+    app: nats-streaming
