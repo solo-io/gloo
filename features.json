@@ -5,6 +5,11 @@
         "envoy": "aws/envoy"
     },
     {
+        "name": "azure_functions",
+        "gloo": "azure",
+        "envoy": "azure/envoy"
+    },
+    {
         "name": "google_functions",
         "gloo": "google",
         "envoy": "google/envoy"
