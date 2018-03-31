@@ -163,5 +163,54 @@ var _ = Describe("Client", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(list).NotTo(ContainElement(f1))
 		})
+		It("watches", func() {
+			lists := make(chan []*dependencies.File, 3)
+			stop := make(chan struct{})
+			defer close(stop)
+			errs := make(chan error)
+			w, err := client.Watch(&dependencies.FileEventHandlerFuncs{
+				AddFunc: func(updatedList []*dependencies.File, obj *dependencies.File) {
+					lists <- updatedList
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			go func() {
+				w.Run(stop, errs)
+			}()
+			cmName := "good"
+			key := "filename"
+			contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
+			file := &dependencies.File{
+				Name:     cmName + "1/" + key,
+				Contents: contents,
+			}
+			file2 := &dependencies.File{
+				Name:     cmName + "2/" + key,
+				Contents: contents,
+			}
+			file3 := &dependencies.File{
+				Name:     cmName + "3/" + key,
+				Contents: contents,
+			}
+			f1, err := client.Create(file)
+			Expect(err).NotTo(HaveOccurred())
+			f2, err := client.Create(file2)
+			Expect(err).NotTo(HaveOccurred())
+			f3, err := client.Create(file3)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(lists).Should(HaveLen(3))
+			list1 := <-lists
+			Expect(list1).To(HaveLen(1))
+			Expect(list1).To(ContainElement(f1))
+			list2 := <-lists
+			Expect(list2).To(HaveLen(2))
+			Expect(list2).To(ContainElement(f1))
+			Expect(list2).To(ContainElement(f2))
+			list3 := <-lists
+			Expect(list3).To(HaveLen(3))
+			Expect(list3).To(ContainElement(f1))
+			Expect(list3).To(ContainElement(f2))
+			Expect(list3).To(ContainElement(f3))
+		})
 	})
 })
