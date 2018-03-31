@@ -128,7 +128,7 @@ var _ = Describe("UpstreamSpec", func() {
 				Expect(spec.SecretRef).To(Equal("my-azure-sec"))
 			})
 		})
-		Context("with an invlid function app name", func() {
+		Context("with an invalid function app name", func() {
 			It("should error", func() {
 				_, err := decodeUpstreamSpec("_azure-function-app-1", "my-azure-sec")
 				Expect(err).To(HaveOccurred())
@@ -157,7 +157,7 @@ var _ = Describe("FunctionSpec", func() {
 				Expect(spec.AuthLevel).To(Equal("anonymous"))
 			})
 		})
-		Context("with an invlid function name", func() {
+		Context("with an invalid function name", func() {
 			It("should result in one error", func() {
 				_, err := decodeFunctionSpec("_azure-function-1", "anonymous")
 				Expect(err).To(HaveOccurred())
@@ -166,7 +166,7 @@ var _ = Describe("FunctionSpec", func() {
 				Expect(len(merr.Errors)).To(Equal(1))
 			})
 		})
-		Context("with an invlid authorization level", func() {
+		Context("with an invalid authorization level", func() {
 			It("should result in one error", func() {
 				_, err := decodeFunctionSpec("azure-function-1", "invalid")
 				Expect(err).To(HaveOccurred())
@@ -175,7 +175,7 @@ var _ = Describe("FunctionSpec", func() {
 				Expect(len(merr.Errors)).To(Equal(1))
 			})
 		})
-		Context("with an invlid function name and an invlid authorization level", func() {
+		Context("with an invalid function name and an invalid authorization level", func() {
 			It("should result in two errors", func() {
 				_, err := decodeFunctionSpec("_azure-function-1", "invalid")
 				Expect(err).To(HaveOccurred())
