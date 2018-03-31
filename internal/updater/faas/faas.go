@@ -13,8 +13,6 @@ import (
 	"github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/gloo-plugins/rest"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
-
-	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 
 type FaasFunction struct {
@@ -26,9 +24,17 @@ type FaasFunction struct {
 
 type FaasFunctions []FaasFunction
 
-func GetFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function, error) {
+func GetFuncs(us *v1.Upstream) ([]*v1.Function, error) {
 	fr := FassRetriever{Lister: listFuncs}
-	return fr.GetFuncs(us, secrets)
+	return fr.GetFuncs(us)
+}
+
+func IsFaas(us *v1.Upstream) bool {
+	gw, err := getHost(us)
+	if err != nil {
+		return false
+	}
+	return gw != ""
 }
 
 func listFuncs(gw string) (FaasFunctions, error) {
@@ -106,7 +112,7 @@ func getHost(us *v1.Upstream) (string, error) {
 	return "", nil
 }
 
-func (fr *FassRetriever) GetFuncs(us *v1.Upstream, secrets secretwatcher.SecretMap) ([]*v1.Function, error) {
+func (fr *FassRetriever) GetFuncs(us *v1.Upstream) ([]*v1.Function, error) {
 	// decode does validation for us
 	gw, err := getHost(us)
 	if err != nil {

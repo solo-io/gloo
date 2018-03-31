@@ -9,7 +9,6 @@ import (
 	. "github.com/solo-io/gloo-function-discovery/internal/updater/faas"
 	"github.com/solo-io/gloo-plugins/rest"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
-	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 
 func dummyListFuncs(gw string) (FaasFunctions, error) {
@@ -75,11 +74,9 @@ var _ = Describe("Faas", func() {
 	It("should get list of functions", func() {
 		fr := FassRetriever{Lister: dummyListFuncs}
 
-		secrets := secretwatcher.SecretMap{}
-
 		for us := range getServices("", "") {
 
-			funcs, err := fr.GetFuncs(us, secrets)
+			funcs, err := fr.GetFuncs(us)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(funcs).To(Not(BeEmpty()))
@@ -98,11 +95,9 @@ var _ = Describe("Faas", func() {
 	It("should ignore non gateway faas upstreams", func() {
 		fr := FassRetriever{Lister: nil}
 
-		secrets := secretwatcher.SecretMap{}
-
 		for us := range getServices("", "not-the-gateway") {
 
-			funcs, err := fr.GetFuncs(us, secrets)
+			funcs, err := fr.GetFuncs(us)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(funcs).To(BeEmpty())
@@ -114,7 +109,7 @@ var _ = Describe("Faas", func() {
 
 		for us := range getServices("not-openfaas", "") {
 
-			funcs, err := fr.GetFuncs(us, nil)
+			funcs, err := fr.GetFuncs(us)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(funcs).To(BeEmpty())
@@ -130,7 +125,7 @@ var _ = Describe("Faas", func() {
 		fr := FassRetriever{Lister: f}
 		us := getKubeUs("", "")
 
-		fr.GetFuncs(us, nil)
+		fr.GetFuncs(us)
 		Expect(gw).To(Equal("http://gateway.openfaas.svc.cluster.local:8080/"))
 	})
 
@@ -143,7 +138,7 @@ var _ = Describe("Faas", func() {
 		fr := FassRetriever{Lister: f}
 		us := getServiceUs("", "")
 
-		fr.GetFuncs(us, nil)
+		fr.GetFuncs(us)
 		Expect(gw).To(Equal("http://gateway:80/"))
 	})
 })

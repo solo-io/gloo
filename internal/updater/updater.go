@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/detector"
+	"github.com/solo-io/gloo-function-discovery/internal/updater/faas"
 	"github.com/solo-io/gloo-function-discovery/internal/updater/gcf"
 	"github.com/solo-io/gloo-function-discovery/internal/updater/lambda"
 	"github.com/solo-io/gloo-function-discovery/internal/updater/swagger"
@@ -73,6 +74,11 @@ func UpdateFunctions(gloo storage.Interface, upstreamName string, secrets secret
 		funcs, err = swagger.GetFuncs(us)
 		if err != nil {
 			return errors.Wrap(err, "retrieving swagger functions")
+		}
+	case functiontypes.FunctionTypeFaas:
+		funcs, err = faas.GetFuncs(us)
+		if err != nil {
+			return errors.Wrap(err, "updating faas functions")
 		}
 	default:
 		return nil //errors.Errorf("unknown function type")
