@@ -64,6 +64,7 @@ func (s *configMapStorage) Update(file *dependencies.File) (*dependencies.File, 
 	}
 	return newFile, nil
 }
+
 func (s *configMapStorage) Delete(name string) error {
 	cmName, _, err := ParseFileRef(name)
 	if err != nil {
