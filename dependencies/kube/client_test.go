@@ -144,5 +144,24 @@ var _ = Describe("Client", func() {
 			Expect(list).To(ContainElement(f1))
 			Expect(list).To(ContainElement(f2))
 		})
+		It("deletes", func() {
+			cmName := "good"
+			key := "filename"
+			contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
+			file := &dependencies.File{
+				Name:     cmName + "1/" + key,
+				Contents: contents,
+			}
+			f1, err := client.Create(file)
+			Expect(err).NotTo(HaveOccurred())
+			list, err := client.List()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(list).To(ContainElement(f1))
+			err = client.Delete(file.Name)
+			Expect(err).NotTo(HaveOccurred())
+			list, err = client.List()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(list).NotTo(ContainElement(f1))
+		})
 	})
 })
