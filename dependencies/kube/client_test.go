@@ -95,5 +95,30 @@ var _ = Describe("Client", func() {
 			Expect(cm.BinaryData).To(HaveLen(0))
 			Expect(cm.Data).To(Equal(map[string]string{key: base64.StdEncoding.EncodeToString(contents)}))
 		})
+		It("updates the config map", func() {
+			cmName := "good"
+			key := "filename"
+			fileRef := cmName + "/" + key
+			contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
+			file := &dependencies.File{
+				Name:     fileRef,
+				Contents: contents,
+			}
+			f, err := client.Create(file)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(f).NotTo(BeNil())
+			Expect(f.Contents).To(Equal(contents))
+			contents = []byte{3, 4, 5, 6}
+			f.Contents = contents
+			f2, err := client.Update(f)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(f).NotTo(BeNil())
+			Expect(f2.Contents).To(Equal(contents))
+			cm, err := kube.CoreV1().ConfigMaps(namespace).Get(cmName, v1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cm.Data).To(HaveLen(1))
+			Expect(cm.BinaryData).To(HaveLen(0))
+			Expect(cm.Data).To(Equal(map[string]string{key: string(contents)}))
+		})
 	})
 })
