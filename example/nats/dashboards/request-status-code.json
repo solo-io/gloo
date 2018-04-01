@@ -165,6 +165,7 @@
   },
   "timepicker": {
     "refresh_intervals": [
+      "1s",
       "5s",
       "10s",
       "30s",
@@ -177,6 +178,8 @@
       "1d"
     ],
     "time_options": [
+      "30s",
+      "1m",
       "5m",
       "15m",
       "1h",

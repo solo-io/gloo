@@ -46,7 +46,7 @@ function update_analytics() {
             "class": "my-new-list",
             html: items.join( "" )
         }).appendTo( "#currentstats" );
-        }).always(getagain);
+        }); //.always(getagain);
 }
 
 function getagain() {
