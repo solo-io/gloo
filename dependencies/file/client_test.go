@@ -31,19 +31,19 @@ var _ = Describe("Client", func() {
 	Describe("create", func() {
 		It("creates the file on disk", func() {
 			file := &dependencies.File{
-				Name:     "filename",
+				Ref:      "filename",
 				Contents: []byte("hello"),
 			}
 			f, err := client.Create(file)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(f).NotTo(BeNil())
-			b, err := ioutil.ReadFile(filepath.Join(dir, file.Name))
+			b, err := ioutil.ReadFile(filepath.Join(dir, file.Ref))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(b).To(Equal(file.Contents))
 		})
 		It("errors if the file exists", func() {
 			file := &dependencies.File{
-				Name:     "filename",
+				Ref:      "filename",
 				Contents: []byte("hello"),
 			}
 			f, err := client.Create(file)
@@ -56,25 +56,25 @@ var _ = Describe("Client", func() {
 			fileRef := "filename"
 			contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
 			file := &dependencies.File{
-				Name:     fileRef,
+				Ref:      fileRef,
 				Contents: contents,
 			}
 			f, err := client.Create(file)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(f).NotTo(BeNil())
 			Expect(f.Contents).To(Equal(contents))
-			f2, err := client.Get(f.Name)
+			f2, err := client.Get(f.Ref)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(f2).To(Equal(f))
 		})
 		It("lists", func() {
 			contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
 			file := &dependencies.File{
-				Name:     "file1",
+				Ref:      "file1",
 				Contents: contents,
 			}
 			file2 := &dependencies.File{
-				Name:     "file2",
+				Ref:      "file2",
 				Contents: contents,
 			}
 			f1, err := client.Create(file)
@@ -89,7 +89,7 @@ var _ = Describe("Client", func() {
 		It("deletes", func() {
 			contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
 			file := &dependencies.File{
-				Name:     "file1",
+				Ref:      "file1",
 				Contents: contents,
 			}
 			f1, err := client.Create(file)
@@ -97,7 +97,7 @@ var _ = Describe("Client", func() {
 			list, err := client.List()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(list).To(ContainElement(f1))
-			err = client.Delete(file.Name)
+			err = client.Delete(file.Ref)
 			Expect(err).NotTo(HaveOccurred())
 			list, err = client.List()
 			Expect(err).NotTo(HaveOccurred())
@@ -119,15 +119,15 @@ var _ = Describe("Client", func() {
 			}()
 			contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
 			file := &dependencies.File{
-				Name:     "file1",
+				Ref:      "file1",
 				Contents: contents,
 			}
 			file2 := &dependencies.File{
-				Name:     "file2",
+				Ref:      "file2",
 				Contents: contents,
 			}
 			file3 := &dependencies.File{
-				Name:     "file3",
+				Ref:      "file3",
 				Contents: contents,
 			}
 			f1, err := client.Create(file)

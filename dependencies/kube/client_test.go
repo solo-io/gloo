@@ -54,9 +54,9 @@ var _ = Describe("Client", func() {
 		TeardownKube(namespace)
 	})
 	Describe("create", func() {
-		It("errors if the filename does not have a /", func() {
+		It("errors if the filename does not have a :", func() {
 			file := &dependencies.File{
-				Name:     "badfilename",
+				Ref:      "badfilename",
 				Contents: []byte{},
 			}
 			_, err := client.Create(file)
@@ -65,7 +65,7 @@ var _ = Describe("Client", func() {
 		})
 		It("creates the config map", func() {
 			file := &dependencies.File{
-				Name:     "good/filename",
+				Ref:      "good:filename",
 				Contents: []byte("hello"),
 			}
 			f, err := client.Create(file)
@@ -78,7 +78,7 @@ var _ = Describe("Client", func() {
 		})
 		It("errors if the file exists", func() {
 			file := &dependencies.File{
-				Name:     "good/filename",
+				Ref:      "good:filename",
 				Contents: []byte("hello"),
 			}
 			f, err := client.Create(file)
@@ -90,10 +90,10 @@ var _ = Describe("Client", func() {
 		It("creates the config map for a binary file", func() {
 			cmName := "good"
 			key := "filename"
-			fileRef := cmName + "/" + key
+			fileRef := cmName + ":" + key
 			contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
 			file := &dependencies.File{
-				Name:     fileRef,
+				Ref:      fileRef,
 				Contents: contents,
 			}
 			f, err := client.Create(file)
@@ -109,17 +109,17 @@ var _ = Describe("Client", func() {
 		It("gets by name", func() {
 			cmName := "good"
 			key := "filename"
-			fileRef := cmName + "/" + key
+			fileRef := cmName + ":" + key
 			contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
 			file := &dependencies.File{
-				Name:     fileRef,
+				Ref:      fileRef,
 				Contents: contents,
 			}
 			f, err := client.Create(file)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(f).NotTo(BeNil())
 			Expect(f.Contents).To(Equal(contents))
-			f2, err := client.Get(f.Name)
+			f2, err := client.Get(f.Ref)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(f2).To(Equal(f))
 		})
@@ -128,11 +128,11 @@ var _ = Describe("Client", func() {
 			key := "filename"
 			contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
 			file := &dependencies.File{
-				Name:     cmName + "1/" + key,
+				Ref:      cmName + "1:" + key,
 				Contents: contents,
 			}
 			file2 := &dependencies.File{
-				Name:     cmName + "2/" + key,
+				Ref:      cmName + "2:" + key,
 				Contents: contents,
 			}
 			f1, err := client.Create(file)
@@ -149,7 +149,7 @@ var _ = Describe("Client", func() {
 			key := "filename"
 			contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
 			file := &dependencies.File{
-				Name:     cmName + "1/" + key,
+				Ref:      cmName + "1:" + key,
 				Contents: contents,
 			}
 			f1, err := client.Create(file)
@@ -157,7 +157,7 @@ var _ = Describe("Client", func() {
 			list, err := client.List()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(list).To(ContainElement(f1))
-			err = client.Delete(file.Name)
+			err = client.Delete(file.Ref)
 			Expect(err).NotTo(HaveOccurred())
 			list, err = client.List()
 			Expect(err).NotTo(HaveOccurred())
@@ -181,15 +181,15 @@ var _ = Describe("Client", func() {
 			key := "filename"
 			contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
 			file := &dependencies.File{
-				Name:     cmName + "1/" + key,
+				Ref:      cmName + "1:" + key,
 				Contents: contents,
 			}
 			file2 := &dependencies.File{
-				Name:     cmName + "2/" + key,
+				Ref:      cmName + "2:" + key,
 				Contents: contents,
 			}
 			file3 := &dependencies.File{
-				Name:     cmName + "3/" + key,
+				Ref:      cmName + "3:" + key,
 				Contents: contents,
 			}
 			f1, err := client.Create(file)

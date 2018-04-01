@@ -15,7 +15,7 @@ import (
 var InvalidConfigMapErr = errors.New("config map must have exactly 1 value in either BinaryData or Data")
 
 func FileToConfigMap(file *dependencies.File) (*v1.ConfigMap, error) {
-	configMapName, key, err := ParseFileRef(file.Name)
+	configMapName, key, err := ParseFileRef(file.Ref)
 	if err != nil {
 		return nil, err
 	}
@@ -64,21 +64,21 @@ func ConfigMapToFile(cm *v1.ConfigMap) (*dependencies.File, error) {
 		return nil, InvalidConfigMapErr
 	}
 	return &dependencies.File{
-		Name:            CreateFileRef(cm.Name, key),
+		Ref:             CreateFileRef(cm.Name, key),
 		Contents:        val,
 		ResourceVersion: cm.ResourceVersion,
 	}, nil
 }
 
 func CreateFileRef(configMapName, key string) string {
-	return configMapName + "/" + key
+	return configMapName + ":" + key
 }
 
 func ParseFileRef(fileRef string) (string, string, error) {
-	parts := strings.Split(fileRef, "/")
+	parts := strings.Split(fileRef, ":")
 	if len(parts) != 2 {
 		return "", "", errors.Errorf("invalid file ref for kubernetes: %v. file refs for "+
-			"kubernetes must follow the format <configmap_name>/<key_name>", fileRef)
+			"kubernetes must follow the format <configmap_name>:<key_name>", fileRef)
 	}
 	return parts[0], parts[1], nil
 }

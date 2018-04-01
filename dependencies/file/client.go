@@ -30,15 +30,15 @@ func copyFile(file *dependencies.File) *dependencies.File {
 	contents := make([]byte, len(file.Contents))
 	copy(contents, file.Contents)
 	return &dependencies.File{
-		Name:            file.Name,
+		Ref:             file.Ref,
 		Contents:        contents,
 		ResourceVersion: file.ResourceVersion,
 	}
 }
 
 func (s *fileStorage) Create(file *dependencies.File) (*dependencies.File, error) {
-	if _, err := s.Get(file.Name); err == nil {
-		return nil, errors.Errorf("file %v already exists", file.Name)
+	if _, err := s.Get(file.Ref); err == nil {
+		return nil, errors.Errorf("file %v already exists", file.Ref)
 	}
 	if err := writeFile(s.dir, file); err != nil {
 		return nil, errors.Wrap(err, "writing file")

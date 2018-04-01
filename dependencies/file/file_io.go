@@ -14,10 +14,10 @@ import (
 )
 
 func writeFile(dir string, file *dependencies.File) error {
-	if strings.Contains(file.Name, "/") {
-		return errors.Errorf("file name cannot contain '/': %v", file.Name)
+	if strings.Contains(file.Ref, "/") {
+		return errors.Errorf("file name cannot contain '/': %v", file.Ref)
 	}
-	return ioutil.WriteFile(filepath.Join(dir, file.Name), file.Contents, 0644)
+	return ioutil.WriteFile(filepath.Join(dir, file.Ref), file.Contents, 0644)
 }
 
 func readFile(dir, filename string) (*dependencies.File, error) {
@@ -26,7 +26,7 @@ func readFile(dir, filename string) (*dependencies.File, error) {
 		return nil, errors.Errorf("error reading file: %v", err)
 	}
 	return &dependencies.File{
-		Name:     filename,
+		Ref:      filename,
 		Contents: data,
 	}, nil
 }

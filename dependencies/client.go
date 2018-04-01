@@ -3,7 +3,7 @@ package dependencies
 import storage "github.com/solo-io/gloo-storage"
 
 type File struct {
-	Name            string
+	Ref             string
 	Contents        []byte
 	ResourceVersion string
 }
