@@ -48,6 +48,8 @@ func SetupKubeForTest(namespace string) error {
 }
 
 func TeardownKube(namespace string) error {
+	kubectl("delete", "-f", filepath.Join(E2eDirectory(), "kube_resources", "install.yml"))
+	kubectl("delete", "-f", filepath.Join(E2eDirectory(), "kube_resources", "testing-resources.yml"))
 	return kubectl("delete", "namespace", namespace)
 }
 
@@ -239,7 +241,7 @@ func waitPodStatus(pod, status string, finished func(output string) bool) error 
 				return fmt.Errorf("failed getting pod: %v", err)
 			}
 			if strings.Contains(out, "CrashLoopBackOff") {
-				out, _ := KubectlOut("logs", "-l", "gloo="+pod)
+				out = KubeLogs(pod)
 				return errors.Errorf("%v in crash loop with logs %v", pod, out)
 			}
 			if finished(out) {
@@ -247,6 +249,14 @@ func waitPodStatus(pod, status string, finished func(output string) bool) error 
 			}
 		}
 	}
+}
+
+func KubeLogs(pod string) string {
+	out, err := KubectlOut("logs", "-l", "gloo="+pod)
+	if err != nil {
+		out = err.Error()
+	}
+	return out
 }
 
 func waitNamespaceStatus(namespace, status string, finished func(output string) bool) error {
