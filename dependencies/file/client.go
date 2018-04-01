@@ -47,7 +47,10 @@ func (s *fileStorage) Create(file *dependencies.File) (*dependencies.File, error
 }
 
 func (s *fileStorage) Update(file *dependencies.File) (*dependencies.File, error) {
-	return s.Create(file)
+	if err := writeFile(s.dir, file); err != nil {
+		return nil, errors.Wrap(err, "writing file")
+	}
+	return copyFile(file), nil
 }
 
 func (s *fileStorage) Delete(name string) error {
