@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/gloo-plugins/grpc/grpc-test-service/server"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 // requires https://github.com/googleapis/googleapis to be in ${HOME}/workspace/googleapis
@@ -39,5 +40,6 @@ func main() {
 		)))
 	bookstore.RegisterBookstoreServer(grpcServer, server.NewServer())
 	log.Printf("listening on %v", *port)
+	reflection.Register(grpcServer)
 	grpcServer.Serve(lis)
 }

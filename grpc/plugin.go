@@ -80,13 +80,13 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 		return errors.Wrap(err, "parsing service properties")
 	}
 	fileRef := serviceProperties.DescriptorsFileRef
-	serviceName := serviceProperties.GRPCServiceName
+	serviceNames := serviceProperties.GRPCServiceNames
 
 	if fileRef == "" {
 		return errors.New("service_info.properties.descriptors_file_ref cannot be empty")
 	}
-	if serviceName == "" {
-		return errors.New("service_info.properties.service_name cannot be empty")
+	if len(serviceNames) == 0 {
+		return errors.New("service_info.properties.service_names cannot be empty")
 	}
 	descriptorsFile, ok := params.Files[fileRef]
 	if !ok {
@@ -97,21 +97,23 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 		return errors.Wrapf(err, "parsing file %v as a proto descriptor set", fileRef)
 	}
 
-	packageName, err := addHttpRulesToProto(in.Name, serviceName, descriptors)
-	if err != nil {
-		return errors.Wrap(err, "failed to generate http rules for proto descriptors")
+	for _, serviceName := range serviceNames {
+		packageName, err := addHttpRulesToProto(in.Name, serviceName, descriptors)
+		if err != nil {
+			return errors.Wrapf(err, "failed to generate http rules for service %s in proto descriptors", serviceName)
+		}
+		// cache the descriptors; we'll need then when we create our grpc filters
+		// need the package name as well, required by the transcoder filter
+		fullServiceName := packageName + "." + serviceName
+		p.serviceDescriptors[fullServiceName] = descriptors
+		// keep track of which service belongs to which upstream
+		p.upstreamServices[in.Name] = fullServiceName
+
 	}
 
 	out.Http2ProtocolOptions = &envoycore.Http2ProtocolOptions{}
 
 	p.transformation.ActivateFilterForCluster(out)
-
-	// cache the descriptors; we'll need then when we create our grpc filters
-	// need the package name as well, required by the transcoder filter
-	fullServiceName := packageName + "." + serviceName
-	p.serviceDescriptors[fullServiceName] = descriptors
-	// keep track of which service belongs to which upstream
-	p.upstreamServices[in.Name] = fullServiceName
 
 	return nil
 }
