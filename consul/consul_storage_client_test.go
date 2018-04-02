@@ -51,6 +51,19 @@ var _ = Describe("ConsulStorageClient", func() {
 				input.Metadata = us.Metadata
 				Expect(us).To(Equal(input))
 			})
+			FIt("errors when creating the same upstream twice", func() {
+				client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+				Expect(err).NotTo(HaveOccurred())
+				input := &v1.Upstream{
+					Name:              "myupstream",
+					Type:              "foo",
+					ConnectionTimeout: time.Second,
+				}
+				_, err = client.V1().Upstreams().Create(input)
+				Expect(err).NotTo(HaveOccurred())
+				_, err = client.V1().Upstreams().Create(input)
+				Expect(err).To(HaveOccurred())
+			})
 		})
 	})
 })

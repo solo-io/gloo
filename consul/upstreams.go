@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/consul/api"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-storage"
 )
 
 // TODO: evaluate efficiency of LSing a whole dir on every op
@@ -38,6 +39,14 @@ func (c *upstreamsClient) Create(item *v1.Upstream) (*v1.Upstream, error) {
 	p, err := ToKVPair(c.rootPath, item)
 	if err != nil {
 		return nil, errors.Wrapf(err, "converting %s to kv pair", item.Name)
+	}
+
+	// error if the key already exists
+	if p, _, err := c.consul.KV().Get(p.Key, &api.QueryOptions{RequireConsistent: true}); err != nil {
+		return nil, errors.Wrap(err, "failed to query consul")
+	} else if p != nil {
+		return nil, storage.NewAlreadyExistsErr(
+			errors.Errorf("key found for upstream %s: %s", item.Name, p.Key))
 	}
 	if _, err := c.consul.KV().Put(p, nil); err != nil {
 		return nil, errors.Wrapf(err, "writing kv pair %s", p.Key)
