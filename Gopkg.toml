@@ -35,10 +35,6 @@
   version = "1.0.0"
 
 [[constraint]]
-  branch = "better_docs"
-  name = "github.com/grpc-ecosystem/go-grpc-middleware"
-
-[[constraint]]
   branch = "master"
   name = "github.com/hashicorp/go-multierror"
 
