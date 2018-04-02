@@ -3,12 +3,16 @@ package consul
 import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"time"
+
+	"fmt"
 
 	"github.com/hashicorp/consul/api"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-storage"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 // TODO: evaluate efficiency of LSing a whole dir on every op
@@ -108,121 +112,66 @@ func (c *upstreamsClient) Get(name string) (*v1.Upstream, error) {
 	return us, nil
 }
 
-//func (c *upstreamsClient) Get(name string) (*v1.Upstream, error) {
-//	upstreamFiles, err := c.pathsToUpstreams()
-//	if err != nil {
-//		return nil, errors.Wrap(err, "failed to read upstream dir")
-//	}
-//	// error if exists already
-//	for _, existingUps := range upstreamFiles {
-//		if existingUps.Name == name {
-//			return existingUps, nil
-//		}
-//	}
-//	return nil, errors.Errorf("file not found for upstream %v", name)
-//}
-//
-//func (c *upstreamsClient) List() ([]*v1.Upstream, error) {
-//	upstreamPaths, err := c.pathsToUpstreams()
-//	if err != nil {
-//		return nil, err
-//	}
-//	var upstreams []*v1.Upstream
-//	for _, up := range upstreamPaths {
-//		upstreams = append(upstreams, up)
-//	}
-//	return upstreams, nil
-//}
-//
-//func (c *upstreamsClient) pathsToUpstreams() (map[string]*v1.Upstream, error) {
-//	files, err := ioutil.ReadDir(c.dir)
-//	if err != nil {
-//		return nil, errors.Wrap(err, "could not read dir")
-//	}
-//	upstreams := make(map[string]*v1.Upstream)
-//	for _, f := range files {
-//		path := filepath.Join(c.dir, f.Name())
-//		if !strings.HasSuffix(path, ".yml") && !strings.HasSuffix(path, ".yaml") {
-//			continue
-//		}
-//		var upstream v1.Upstream
-//		err := ReadFileInto(path, &upstream)
-//		if err != nil {
-//			return nil, errors.Wrap(err, "unable to parse .yml file as upstream")
-//		}
-//		upstreams[path] = &upstream
-//	}
-//	return upstreams, nil
-//}
-//
-//func (u *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*storage.Watcher, error) {
-//	w := watcher.New()
-//	w.SetMaxEvents(0)
-//	w.FilterOps(watcher.Create, watcher.Write, watcher.Remove)
-//	if err := w.AddRecursive(u.dir); err != nil {
-//		return nil, errors.Wrapf(err, "failed to add directory %v", u.dir)
-//	}
-//
-//	return storage.NewWatcher(func(stop <-chan struct{}, errs chan error) {
-//		go func() {
-//			if err := w.Start(u.syncFrequency); err != nil {
-//				errs <- err
-//			}
-//		}()
-//		for {
-//			select {
-//			case event := <-w.Event:
-//				if err := u.onEvent(event, handlers...); err != nil {
-//					runtime.HandleError(err)
-//				}
-//			case err := <-w.Error:
-//				runtime.HandleError(fmt.Errorf("watcher encoutnered error: %v", err))
-//				return
-//			case err := <-errs:
-//				runtime.HandleError(fmt.Errorf("failed to start watcher to: %v", err))
-//				return
-//			case <-stop:
-//				w.Close()
-//				return
-//			}
-//		}
-//	}), nil
-//}
-//
-//func (u *upstreamsClient) onEvent(event watcher.Event, handlers ...storage.UpstreamEventHandler) error {
-//	log.Debugf("file event: %v [%v]", event.Path, event.Op)
-//	current, err := u.List()
-//	if err != nil {
-//		return err
-//	}
-//	if event.IsDir() {
-//		return nil
-//	}
-//	switch event.Op {
-//	case watcher.Create:
-//		for _, h := range handlers {
-//			var created v1.Upstream
-//			err := ReadFileInto(event.Path, &created)
-//			if err != nil {
-//				return err
-//			}
-//			h.OnAdd(current, &created)
-//		}
-//	case watcher.Write:
-//		for _, h := range handlers {
-//			var updated v1.Upstream
-//			err := ReadFileInto(event.Path, &updated)
-//			if err != nil {
-//				return err
-//			}
-//			h.OnUpdate(current, &updated)
-//		}
-//	case watcher.Remove:
-//		for _, h := range handlers {
-//			// can't read the deleted object
-//			// callers beware
-//			h.OnDelete(current, nil)
-//		}
-//	}
-//	return nil
-//}
+func (c *upstreamsClient) List() ([]*v1.Upstream, error) {
+	pairs, _, err := c.consul.KV().List(c.rootPath, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "listing key-value pairs for root %s", c.rootPath)
+	}
+	var upstreams []*v1.Upstream
+	for _, p := range pairs {
+		us, err := upstreamFromKVPair(p)
+		if err != nil {
+			return nil, errors.Wrapf(err, "converting %s to upstream", p.Key)
+		}
+		upstreams = append(upstreams, us)
+	}
+	return upstreams, nil
+}
+
+func (c *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*storage.Watcher, error) {
+	_, meta, err := c.consul.KV().List(c.rootPath, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "getting initial list")
+	}
+	lastIndex := meta.LastIndex
+	sync := func() error {
+		pairs, meta, err := c.consul.KV().List(c.rootPath, nil)
+		if err != nil {
+			return errors.Wrap(err, "getting kv-pairs list")
+		}
+		// no change since last poll
+		if lastIndex == meta.LastIndex {
+			return nil
+		}
+		var upstreams []*v1.Upstream
+		for _, p := range pairs {
+			us, err := upstreamFromKVPair(p)
+			if err != nil {
+				return errors.Wrapf(err, "converting %s to upstream", p.Key)
+			}
+			upstreams = append(upstreams, us)
+		}
+		lastIndex = meta.LastIndex
+		for _, h := range handlers {
+			// TODO: be clear that watch for consul only calls update
+			h.OnUpdate(upstreams, nil)
+		}
+		return nil
+
+	}
+	return storage.NewWatcher(func(stop <-chan struct{}, errs chan error) {
+		for {
+			select {
+			case <-time.After(c.syncFrequency):
+				if err := sync(); err != nil {
+					log.Warnf("error syncing with consul kv-pairs: %v", err)
+				}
+			case err := <-errs:
+				runtime.HandleError(fmt.Errorf("failed to start watcher to: %v", err))
+				return
+			case <-stop:
+				return
+			}
+		}
+	}), nil
+}

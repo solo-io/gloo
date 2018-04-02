@@ -64,8 +64,6 @@ var _ = Describe("ConsulStorageClient", func() {
 				_, err = client.V1().Upstreams().Create(input)
 				Expect(err).To(HaveOccurred())
 			})
-		})
-		Describe("Upstreams", func() {
 			Describe("update", func() {
 				It("fails if the upstream doesn't exist", func() {
 					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
@@ -112,8 +110,6 @@ var _ = Describe("ConsulStorageClient", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(out.Type).To(Equal(changed.Type))
 				})
-			})
-			Describe("Upstreams", func() {
 				Describe("get", func() {
 					It("fails if the upstream doesn't exist", func() {
 						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
@@ -137,6 +133,38 @@ var _ = Describe("ConsulStorageClient", func() {
 						Expect(out).To(Equal(us))
 						input.Metadata = out.Metadata
 						Expect(out).To(Equal(input))
+					})
+				})
+				Describe("list", func() {
+					It("returns all existing upstreams", func() {
+						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						Expect(err).NotTo(HaveOccurred())
+						input1 := &v1.Upstream{
+							Name:              "myupstream1",
+							Type:              "foo",
+							ConnectionTimeout: time.Second,
+						}
+						input2 := &v1.Upstream{
+							Name:              "myupstream2",
+							Type:              "foo",
+							ConnectionTimeout: time.Second,
+						}
+						input3 := &v1.Upstream{
+							Name:              "myupstream3",
+							Type:              "foo",
+							ConnectionTimeout: time.Second,
+						}
+						us1, err := client.V1().Upstreams().Create(input1)
+						Expect(err).NotTo(HaveOccurred())
+						us2, err := client.V1().Upstreams().Create(input2)
+						Expect(err).NotTo(HaveOccurred())
+						us3, err := client.V1().Upstreams().Create(input3)
+						Expect(err).NotTo(HaveOccurred())
+						out, err := client.V1().Upstreams().List()
+						Expect(err).NotTo(HaveOccurred())
+						Expect(out).To(ContainElement(us1))
+						Expect(out).To(ContainElement(us2))
+						Expect(out).To(ContainElement(us3))
 					})
 				})
 			})
