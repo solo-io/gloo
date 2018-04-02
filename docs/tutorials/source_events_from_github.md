@@ -7,7 +7,8 @@ Sourcing Events from GitHub Webhooks
         kubectl apply -f https://raw.githubusercontent.com/solo-io/gloo-install/master/kube/install.yaml
 
 #### Deploy NATS and minio
-        kubectl apply -f kube-deploy.yaml
+        kubectl apply -f \
+         https://raw.githubusercontent.com/solo-io/gloo/master/example/source_events_from_github/kube-deploy.yaml
 
 #### Create a route for nats
         glooctl route create --sort \
@@ -18,28 +19,32 @@ Sourcing Events from GitHub Webhooks
 #### Create a route for mirroring with minio
         glooctl route create --sort \
             --path-prefix=/ \
-            --header "User-Agent:Minio (linux; amd64) minio-go/5.0.1 mc/2018-03-25T01:22:22Z" \
+            --header "User-Agent:Minio.*" \
             --upstream default-minio-service-9000
 
 
 
 ## Image Pusher Microservice
 
-#### Install minio client
+#### Install minio client - linux
         wget https://dl.minio.io/client/mc/release/linux-amd64/mc
         chmod +x mc
-        ./mc config host add gloo http://ilackarms.aws.solo.io:8080 \
+        sudo mv mc /usr/local/bin/
+#### Install minio client - mac
+        brew install minio/stable/mc
+
+#### Configure minio to point at gloo
+        mc config host add gloo http://idit.aws.solo.io:8080 \
             gloo.solo.io \
-            gloo.solo.io \
-            --api s3v4 --lookup dns
+            gloo.solo.io
 
 #### deploy the image-pusher service
         kubectl apply -f  \
-            https://raw.githubusercontent.com/solo-io/gloo/example/source_events_from_github/image-pusher/deploy.yaml
+            https://raw.githubusercontent.com/solo-io/gloo/master/example/source_events_from_github/image-pusher/deploy.yaml
 
 #### start mirroring the "images" minio bucket
-        mkdir images
-        ./mc mirror gloo/images ./images -w
+        mkdir -p images
+        mc mirror gloo/bucket ./images -w
         
 browse to ./images in your file browser 
 
@@ -65,7 +70,7 @@ browse to ./images in your file browser
 
 #### deploy the microservice
         kubectl apply -f  \
-            https://raw.githubusercontent.com/solo-io/gloo/example/source_events_from_github/star-tweeter/deploy.yaml
+            https://raw.githubusercontent.com/solo-io/gloo/master/example/source_events_from_github/star-tweeter/deploy.yaml
 
 
 **unstar/star the git repo to see tweets appear**
@@ -83,8 +88,14 @@ browse to ./images in your file browser
 
 #### deploy the microservice
         kubectl apply -f  \
-            https://raw.githubusercontent.com/solo-io/gloo/example/source_events_from_github/slack-bot/deploy.yaml
+            https://raw.githubusercontent.com/solo-io/gloo/master/example/source_events_from_github/slack-bot/deploy.yaml
 
 **unstar/star the git repo to see slack messages**
 
 
+#### Cleanup
+
+        kubectl delete -f https://raw.githubusercontent.com/solo-io/gloo/master/example/source_events_from_github/kube-deploy.yaml 
+        kubectl delete -f https://raw.githubusercontent.com/solo-io/gloo/master/example/source_events_from_github/image-pusher/deploy.yaml 
+        kubectl delete -f https://raw.githubusercontent.com/solo-io/gloo/master/example/source_events_from_github/slack-bot/deploy.yaml 
+        kubectl delete -f https://raw.githubusercontent.com/solo-io/gloo/master/example/source_events_from_github/star-tweeter/deploy.yaml 

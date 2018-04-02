@@ -31,6 +31,6 @@ spec:
         - name: MINIO_SECRET_KEY
           value: "gloo.solo.io"
         - name: MINIO_BUCKET_NAME
-          value: "images"
+          value: "bucket"
         - name: MINIO_REGION
           value: "us-east-1"
