@@ -16,7 +16,7 @@ services:
     - "4222:4222"
 
   gloo:
-    image: soloio/gloo:v0.1.5-nats #-78
+    image: soloio/gloo:v0.1.7-108
     entrypoint: ["/gloo"]
     working_dir: /config/
     command:
