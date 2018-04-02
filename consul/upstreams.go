@@ -19,8 +19,19 @@ type upstreamsClient struct {
 	syncFrequency time.Duration
 }
 
-func (c *upstreamsClient) createKey(item v1.ConfigObject) string {
-	return c.rootPath + "/" + item.GetName()
+func updateResourceVersion(item *v1.Upstream, p *api.KVPair) (*v1.Upstream, error) {
+	resourceVersion := fmt.Sprintf("%v", p.ModifyIndex)
+
+	// set resourceversion on clone
+	upstreamClone, ok := proto.Clone(item).(*v1.Upstream)
+	if !ok {
+		return nil, errors.New("internal error: output of proto.Clone was not expected type")
+	}
+	if upstreamClone.Metadata == nil {
+		upstreamClone.Metadata = &v1.Metadata{}
+	}
+	upstreamClone.Metadata.ResourceVersion = resourceVersion
+	return upstreamClone, nil
 }
 
 func (c *upstreamsClient) Create(item *v1.Upstream) (*v1.Upstream, error) {
@@ -36,18 +47,11 @@ func (c *upstreamsClient) Create(item *v1.Upstream) (*v1.Upstream, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting newly created kv pair %s", p.Key)
 	}
-	resourceVersion := fmt.Sprintf("%v", p.CreateIndex)
-
-	// set resourceversion on clone
-	upstreamClone, ok := proto.Clone(item).(*v1.Upstream)
-	if !ok {
-		return nil, errors.New("internal error: output of proto.Clone was not expected type")
+	createdUs, err := updateResourceVersion(item, p)
+	if err != nil {
+		return nil, errors.Wrapf(err, "updating resource version for %s", item.Name)
 	}
-	if upstreamClone.Metadata == nil {
-		upstreamClone.Metadata = &v1.Metadata{}
-	}
-	upstreamClone.Metadata.ResourceVersion = resourceVersion
-	return upstreamClone, nil
+	return createdUs, nil
 }
 
 //func (c *upstreamsClient) Update(item *v1.Upstream) (*v1.Upstream, error) {
