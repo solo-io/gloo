@@ -92,7 +92,7 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	if !ok {
 		return errors.Errorf("descriptors file not found for file ref %v", fileRef)
 	}
-	descriptors, err := convertProto(descriptorsFile)
+	descriptors, err := convertProto(descriptorsFile.Contents)
 	if err != nil {
 		return errors.Wrapf(err, "parsing file %v as a proto descriptor set", fileRef)
 	}

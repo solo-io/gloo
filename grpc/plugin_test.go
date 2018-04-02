@@ -10,6 +10,7 @@ import (
 
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-storage/dependencies"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
@@ -58,10 +59,10 @@ var _ = Describe("Plugin", func() {
 				},
 			}
 			p := NewPlugin()
-			b, err := ioutil.ReadFile("grpc-test-service/descriptors/proto.pb")
+			b, err := ioutil.ReadFile("test/proto.pb")
 			Expect(err).NotTo(HaveOccurred())
 			params := &plugin.UpstreamPluginParams{
-				Files: map[string][]byte{"file_1": b},
+				Files: map[string]*dependencies.File{"file_1": {Ref: "file_1", Contents: b}},
 			}
 			out := &envoyapi.Cluster{}
 			err = p.ProcessUpstream(params, in, out)
@@ -82,10 +83,10 @@ var _ = Describe("Plugin", func() {
 				},
 			}
 			p := NewPlugin()
-			b, err := ioutil.ReadFile("grpc-test-service/descriptors/proto.pb")
+			b, err := ioutil.ReadFile("test/proto.pb")
 			Expect(err).NotTo(HaveOccurred())
 			params := &plugin.UpstreamPluginParams{
-				Files: map[string][]byte{"file_1": b},
+				Files: map[string]*dependencies.File{"file_1": {Ref: "file_1", Contents: b}},
 			}
 			out := &envoyapi.Cluster{}
 			err = p.ProcessUpstream(params, in, out)
