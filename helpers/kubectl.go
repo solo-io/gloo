@@ -110,7 +110,7 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 		"testing-resources.yml",
 	}
 	for _, resource := range resources {
-		if err := kubectl("create", "-f", filepath.Join(kubeResourcesDir, resource)); err != nil {
+		if err := kubectl("apply", "-f", filepath.Join(kubeResourcesDir, resource)); err != nil {
 			return errors.Wrapf(err, "creating kube resource from "+resource)
 		}
 	}
