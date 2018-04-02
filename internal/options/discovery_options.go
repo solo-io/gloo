@@ -5,6 +5,7 @@ type DiscoveryOptions struct {
 	SwaggerUrisToTry    []string
 
 	AutoDiscoverNATS bool
+	AutoDiscoverFAAS bool
 	ClusterIDsToTry  []string
 
 	AutoDiscoverGRPC bool

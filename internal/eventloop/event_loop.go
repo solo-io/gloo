@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/detector"
 	"github.com/solo-io/gloo-function-discovery/internal/grpc"
+	"github.com/solo-io/gloo-function-discovery/internal/faas"
 	"github.com/solo-io/gloo-function-discovery/internal/nats-streaming"
 	"github.com/solo-io/gloo-function-discovery/internal/options"
 	"github.com/solo-io/gloo-function-discovery/internal/swagger"
@@ -62,6 +63,11 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 		//TODO: support cluster ids
 		detectors = append(detectors, nats.NewNatsDetector(""))
 	}
+
+	if discoveryOpts.AutoDiscoverFAAS {
+		detectors = append(detectors, faas.NewFaasDetector())
+	}
+
 	if discoveryOpts.AutoDiscoverSwagger {
 		detectors = append(detectors, swagger.NewSwaggerDetector(discoveryOpts.SwaggerUrisToTry))
 	}
