@@ -1,6 +1,10 @@
 package faas_test
 
 import (
+	"bytes"
+	"io"
+	"io/ioutil"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo-plugins/kubernetes"
@@ -140,5 +144,21 @@ var _ = Describe("Faas", func() {
 
 		fr.GetFuncs(us)
 		Expect(gw).To(Equal("http://gateway:80/"))
+	})
+
+	It("get correct gw functions", func() {
+
+		list := ListGatewayFunctions(
+			func(string) (io.ReadCloser, error) {
+				var b bytes.Buffer
+				b.WriteString(`[{"name":"qrcode-go","image":"johnmccabe/qrcode","invocationCount":0,"replicas":1,"envProcess":"","availableReplicas":1,"labels":{"com.openfaas.ui.ext":"png","faas_function":"qrcode-go"}}]`)
+				c := ioutil.NopCloser(&b)
+				return c, nil
+			})
+
+		funcs, err := list("blah")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(funcs).To(HaveLen(1))
+
 	})
 })

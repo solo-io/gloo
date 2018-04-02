@@ -3,6 +3,7 @@ package faas
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -25,7 +26,7 @@ type FaasFunction struct {
 type FaasFunctions []FaasFunction
 
 func GetFuncs(us *v1.Upstream) ([]*v1.Function, error) {
-	fr := FassRetriever{Lister: listFuncs}
+	fr := FassRetriever{Lister: ListGatewayFunctions(httpget)}
 	return fr.GetFuncs(us)
 }
 
@@ -37,27 +38,39 @@ func IsFaas(us *v1.Upstream) bool {
 	return gw != ""
 }
 
-func listFuncs(gw string) (FaasFunctions, error) {
-	u, err := url.Parse(gw)
-	if err != nil {
-		return nil, err
-	}
-	u.Path = path.Join(u.Path, "system", "functions")
-	s := u.String()
+func httpget(s string) (io.ReadCloser, error) {
 	resp, err := http.Get(s)
 
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-	var funcs FaasFunctions
-	err = json.NewDecoder(resp.Body).Decode(funcs)
+	return resp.Body, nil
+}
 
-	if err != nil {
-		return nil, err
+func ListGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw string) (FaasFunctions, error) {
+
+	return func(gw string) (FaasFunctions, error) {
+		u, err := url.Parse(gw)
+		if err != nil {
+			return nil, err
+		}
+		u.Path = path.Join(u.Path, "system", "functions")
+		s := u.String()
+		body, err := httpget(s)
+
+		if err != nil {
+			return nil, err
+		}
+		defer body.Close()
+		var funcs FaasFunctions
+		err = json.NewDecoder(body).Decode(&funcs)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return funcs, nil
 	}
-
-	return funcs, nil
 }
 
 type FassRetriever struct {
