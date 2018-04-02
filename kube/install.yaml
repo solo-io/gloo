@@ -216,7 +216,7 @@ spec:
     name: https
   selector:
     gloo: ingress
-  type: NodePort
+  type: LoadBalancer
 
 ---
 # envoy configmap
