@@ -9,19 +9,16 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/grpcreflect"
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/detector"
 	grpcplugin "github.com/solo-io/gloo-plugins/grpc"
 	"github.com/solo-io/gloo-storage/dependencies"
+	"github.com/solo-io/gloo/pkg/log"
 	"google.golang.org/grpc"
 	reflectpb "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
-)
-
-const (
-	// TODO: add more cluster ids, or extend with config options
-	defaultClusterID = "test-cluster"
 )
 
 type grpcDetector struct {
@@ -47,6 +44,7 @@ func (d *grpcDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo, ma
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "listing services. are you sure %v implements reflection?", addr)
 	}
+	log.Printf("%v discovered as a gRPC service", addr)
 	var (
 		serviceNames []string
 	)
@@ -99,18 +97,19 @@ func (d *grpcDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo, ma
 }
 
 func getAllDescriptors(refClient *grpcreflect.Client, s string) ([]*descriptor.FileDescriptorProto, error) {
-	desc, err := refClient.FileContainingSymbol(s)
+	root, err := refClient.FileContainingSymbol(s)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting file for symbol %s", s)
 	}
-	files := []*descriptor.FileDescriptorProto{desc.AsFileDescriptorProto()}
-	//for _, dep := range desc.GetDependencies() {
-	//	sym := dep.GetPackage() + ".Annotations"
-	//	depFiles, err := getAllDescriptors(refClient, sym)
-	//	if err != nil {
-	//		return nil, errors.Wrapf(err, "dependency symbol failed: %v", sym)
-	//	}
-	//	files = append(files, depFiles...)
-	//}
+	files := getDepTree(root)
 	return files, nil
+}
+
+func getDepTree(root *desc.FileDescriptor) []*descriptor.FileDescriptorProto {
+	var deps []*descriptor.FileDescriptorProto
+	for _, dep := range root.GetDependencies() {
+		deps = append(deps, getDepTree(dep)...)
+	}
+	deps = append(deps, root.AsFileDescriptorProto())
+	return deps
 }

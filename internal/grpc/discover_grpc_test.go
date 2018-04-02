@@ -39,7 +39,6 @@ var _ = Describe("Discovergrpc", func() {
 				}))
 				list, err := files.List()
 				Expect(err).To(BeNil())
-				// fail on purpose bwhaahaha
 				Expect(list).To(HaveLen(1))
 				Expect(list[0].Ref).To(Equal(fileRef))
 			})

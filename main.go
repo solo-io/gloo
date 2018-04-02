@@ -59,8 +59,13 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&opts.SecretWatcherOptions.Type, "secrets.type", bootstrap.WatcherTypeKube, fmt.Sprintf("storage backend for secrets. supported: [%s]", strings.Join(bootstrap.SupportedSwTypes, " | ")))
 	rootCmd.PersistentFlags().DurationVar(&opts.SecretWatcherOptions.SyncFrequency, "secrets.refreshrate", time.Second, "refresh rate for polling secrets")
 
+	// file watcher
+	rootCmd.PersistentFlags().StringVar(&opts.FileWatcherOptions.Type, "files.type", bootstrap.WatcherTypeKube, fmt.Sprintf("storage backend for files. supported: [%s]", strings.Join(bootstrap.SupportedFwTypes, " | ")))
+	rootCmd.PersistentFlags().DurationVar(&opts.FileWatcherOptions.SyncFrequency, "files.refreshrate", time.Second, "refresh rate for polling files")
+
 	// file
 	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.ConfigDir, "file.config.dir", "_gloo_config", "root directory to use for storing gloo config files")
+	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.FilesDir, "file.files.dir", "_gloo_config", "root directory to use for storing input files")
 	rootCmd.PersistentFlags().StringVar(&opts.FileOptions.SecretDir, "file.secret.dir", "_gloo_secrets", "root directory to use for storing gloo secret files")
 
 	// kube
@@ -76,6 +81,7 @@ func init() {
 	// upstream service type detection
 	rootCmd.PersistentFlags().BoolVar(&discoveryOpts.AutoDiscoverSwagger, "detect-swagger-upstreams", true, "enable automatic discovery of upstreams that implement Swagger by querying for common Swagger Doc endpoints.")
 	rootCmd.PersistentFlags().BoolVar(&discoveryOpts.AutoDiscoverNATS, "detect-nats-upstreams", true, "enable automatic discovery of upstreams that are running NATS by connecting to the default cluster id.")
+	rootCmd.PersistentFlags().BoolVar(&discoveryOpts.AutoDiscoverGRPC, "detect-grpc-upstreams", true, "enable automatic discovery of upstreams that are running gRPC Services and haeve reflection enabled.")
 	rootCmd.PersistentFlags().StringSliceVar(&discoveryOpts.SwaggerUrisToTry, "swagger-uris", []string{}, "paths function discovery should try to use to discover swagger services. function discovery will query http://<upstream>/<uri> for the swagger.json document. "+
 		"if found, REST functions will be discovered for this upstream.")
 }

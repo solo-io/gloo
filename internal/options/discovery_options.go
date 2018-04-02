@@ -6,4 +6,6 @@ type DiscoveryOptions struct {
 
 	AutoDiscoverNATS bool
 	ClusterIDsToTry  []string
+
+	AutoDiscoverGRPC bool
 }
