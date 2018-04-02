@@ -58,8 +58,14 @@
     "service/lambda",
     "service/sts"
   ]
-  revision = "4b5324816e154564ef4e490842c2e40560971f75"
-  version = "v1.13.24"
+  revision = "74ca63959be8b9a9a24cd86eaaea8bf99de8022d"
+  version = "v1.13.25"
+
+[[projects]]
+  name = "github.com/d4l3k/messagediff"
+  packages = ["."]
+  revision = "29f32d820d112dbd66e58492a6ffb7cc3106312b"
+  version = "v1.2.1"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -68,6 +74,7 @@
   version = "v1.1.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -78,12 +85,13 @@
     "envoy/api/v2/listener",
     "envoy/api/v2/route",
     "envoy/config/filter/accesslog/v2",
+    "envoy/config/filter/http/transcoder/v2",
     "envoy/config/filter/network/http_connection_manager/v2",
     "envoy/type",
     "pkg/util"
   ]
-  revision = "89abfa00ef3cae559f2739ce9e1f181ffc7caf92"
-  version = "v0.1"
+  revision = "24ec8afcc1ff4a7380f375a8bf1402dff6fd49a7"
+  source = "https://github.com/ilackarms/go-control-plane.git"
 
 [[projects]]
   name = "github.com/fatih/structs"
@@ -158,7 +166,7 @@
     "google/api",
     "google/rpc"
   ]
-  revision = "0cd9801be74a10d5ac39d69626eac8255ffcd502"
+  revision = "08a7655d27152912db7aaf4f983275eaf8d128ef"
 
 [[projects]]
   name = "github.com/gogo/protobuf"
@@ -186,17 +194,20 @@
   revision = "66deaeb636dff1ac7d938ce666d090556056a4b0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/golang/protobuf"
   packages = [
+    "jsonpb",
     "proto",
     "protoc-gen-go/descriptor",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
+    "ptypes/empty",
+    "ptypes/struct",
     "ptypes/timestamp"
   ]
-  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
-  version = "v1.0.0"
+  revision = "e09c5db296004fbe3f74490e84dcd62c3c5ddb1b"
 
 [[projects]]
   branch = "master"
@@ -234,6 +245,19 @@
     "diskcache"
   ]
   revision = "9cad4c3443a7200dd6400aef47183728de563a38"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/grpc-ecosystem/go-grpc-middleware"
+  packages = [
+    ".",
+    "logging",
+    "logging/zap",
+    "logging/zap/ctxzap",
+    "tags",
+    "tags/zap"
+  ]
+  revision = "bc372cc64f55abd91995ba3f219b380ffbc59e9d"
 
 [[projects]]
   branch = "master"
@@ -305,14 +329,25 @@
 [[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
-  revision = "163f41321a19dd09362d4c63cc2489db2015f1f4"
-  version = "0.3.2"
+  revision = "0d4b488675fdec1dde48751b05ab530cf0b630e1"
+  version = "v0.3.2"
 
 [[projects]]
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
   revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
   version = "v1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/jhump/protoreflect"
+  packages = [
+    "desc",
+    "desc/internal",
+    "grpcreflect",
+    "internal"
+  ]
+  revision = "cfdba734743d6b9685ff2e8d78c7e6c7e6ddad65"
 
 [[projects]]
   name = "github.com/jmespath/go-jmespath"
@@ -340,8 +375,8 @@
 [[projects]]
   name = "github.com/lyft/protoc-gen-validate"
   packages = ["validate"]
-  revision = "930a67cf7ba41b9d9436ad7a1be70a5d5ff6e1fc"
-  version = "v0.0.6"
+  revision = "8e6aaf55f4954f1ef9d3ee2e8f5a50e79cc04f8f"
+  version = "v0.0.5"
 
 [[projects]]
   branch = "master"
@@ -519,13 +554,13 @@
     "pkg/secretwatcher/vault",
     "pkg/signals"
   ]
-  revision = "4b07ff75976855f33fb275df4b91813c5438de2c"
+  revision = "9e20aa23cd4940b3220a8c2fc2690f03c8bb35a7"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "0a39c18e5fd9e6da5c8a0ed1ff191040862a25a0"
+  revision = "da06cbac45bb7441bb59c8cc5e21086d64c758fc"
 
 [[projects]]
   branch = "master"
@@ -534,11 +569,12 @@
     "aws",
     "common/transformation",
     "google",
+    "grpc",
     "kubernetes",
     "nats-streaming",
     "rest"
   ]
-  revision = "6b0ccd99fbe1aefb09a980aab3b9d43395d1f62c"
+  revision = "8dd67b0ccbff469403bc531bfc8c5d857f69d552"
 
 [[projects]]
   branch = "master"
@@ -550,19 +586,24 @@
     "crd/client/clientset/versioned/scheme",
     "crd/client/clientset/versioned/typed/solo.io/v1",
     "crd/solo.io/v1",
+    "dependencies",
+    "dependencies/file",
+    "dependencies/kube",
     "file",
     "internal/crud"
   ]
-  revision = "86f3f2f8c35f32623630bed4ed7c92efe72b7ae1"
+  revision = "497dd0e48f7a86b3cef58cf73405dfd92a650c04"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = [
+    "e2e/containers/grpc-test-service/bookstore/protos",
+    "e2e/containers/grpc-test-service/server",
     "helpers",
     "helpers/local"
   ]
-  revision = "97203d0434dbd5eb6034749c98ea8c607655ef49"
+  revision = "ca82edffd95b3873926ee04816d1853cb2b89b90"
 
 [[projects]]
   branch = "master"
@@ -583,10 +624,35 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "go.uber.org/atomic"
+  packages = ["."]
+  revision = "8474b86a5a6f79c443ce4b2992817ff32cf208b8"
+  version = "v1.3.1"
+
+[[projects]]
+  name = "go.uber.org/multierr"
+  packages = ["."]
+  revision = "3c4937480c32f4c13a875a1829af76c98ca3d40a"
+  version = "v1.1.0"
+
+[[projects]]
+  name = "go.uber.org/zap"
+  packages = [
+    ".",
+    "buffer",
+    "internal/bufferpool",
+    "internal/color",
+    "internal/exit",
+    "zapcore"
+  ]
+  revision = "35aad584952c3e7020db7b839f6b102de6271f89"
+  version = "v1.7.1"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "88942b9c40a4c9d203b82b3731787b672d6e809b"
+  revision = "12892e8c234f4fe6f6803f052061de9057903bb2"
 
 [[projects]]
   branch = "master"
@@ -604,7 +670,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "6078986fec03a1dcc236c34816c71b0e05018fda"
+  revision = "b68f30494add4df6bd8ef5e82803f308e7f7c59c"
 
 [[projects]]
   branch = "master"
@@ -670,7 +736,7 @@
     "googleapi",
     "googleapi/internal/uritemplates"
   ]
-  revision = "dbbc13f71100fa6ece308335445fca6bb0dd5c2f"
+  revision = "3072d9cd7f79a11909b84fdb7c9c8b9e60a57fbd"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -692,7 +758,10 @@
 [[projects]]
   branch = "master"
   name = "google.golang.org/genproto"
-  packages = ["googleapis/rpc/status"]
+  packages = [
+    "googleapis/api/annotations",
+    "googleapis/rpc/status"
+  ]
   revision = "ab0870e398d5dd054b868c0db1481ab029b9a9f2"
 
 [[projects]]
@@ -714,6 +783,8 @@
     "metadata",
     "naming",
     "peer",
+    "reflection",
+    "reflection/grpc_reflection_v1alpha",
     "resolver",
     "resolver/dns",
     "resolver/passthrough",
@@ -791,7 +862,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "ab194a3e88161111fb267a02a266ab745a0c6685"
+  revision = "76b8134f2082ae81f4989c709be17587745ef0c0"
 
 [[projects]]
   branch = "master"
@@ -972,6 +1043,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8ea3e3b3880177d373497994140ff84cbfdb19606f621c5bb598ca96f7b1ea6a"
+  inputs-digest = "fcbaef83bd8e197f9ea41c986a63c549152e6d036c0687bff1fdd4779a8c4676"
   solver-name = "gps-cdcl"
   solver-version = 1

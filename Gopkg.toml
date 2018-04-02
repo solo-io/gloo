@@ -24,6 +24,11 @@
 #   go-tests = true
 #   unused-packages = true
 
+[[override]]
+  branch = "master"
+  name = "github.com/envoyproxy/go-control-plane"
+  source = "https://github.com/ilackarms/go-control-plane.git"
+
 
 [[constraint]]
   name = "github.com/aws/aws-sdk-go"
