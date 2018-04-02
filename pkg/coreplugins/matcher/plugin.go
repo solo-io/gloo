@@ -67,6 +67,8 @@ func createRequestMatcher(requestMatcher *v1.RequestMatcher, out *envoyroute.Rou
 		var regex bool
 		if headerValue == "" {
 			headerValue = ".*"
+		}
+		if strings.Contains(headerValue, ".*") {
 			regex = true
 		}
 		out.Match.Headers = append(out.Match.Headers, &envoyroute.HeaderMatcher{
