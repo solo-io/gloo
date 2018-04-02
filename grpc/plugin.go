@@ -108,8 +108,9 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 		p.serviceDescriptors[fullServiceName] = descriptors
 		// keep track of which service belongs to which upstream
 		p.upstreamServices[in.Name] = fullServiceName
-
 	}
+
+	addWellKnownProtos(descriptors)
 
 	out.Http2ProtocolOptions = &envoycore.Http2ProtocolOptions{}
 
@@ -184,22 +185,8 @@ func (p *Plugin) templateForFunction(dest *v1.Destination_Function) (*transforma
 
 // returns package name
 func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileDescriptorSet) (string, error) {
-	var googleApiHttpFound, googleApiAnnotationsFound, googleApiDescriptorFound bool
 	var packageName string
 	for _, file := range set.File {
-		log.Debugf("inspecting descriptor for proto file %v...", *file.Name)
-		if *file.Name == "google/api/http.proto" {
-			googleApiHttpFound = true
-			continue
-		}
-		if *file.Name == "google/api/annotations.proto" {
-			googleApiAnnotationsFound = true
-			continue
-		}
-		if *file.Name == "google/api/descriptor.proto" {
-			googleApiDescriptorFound = true
-			continue
-		}
 	findService:
 		for _, svc := range file.Service {
 			if *svc.Name == serviceName {
@@ -221,23 +208,41 @@ func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileD
 		}
 	}
 
+	if packageName == "" {
+		return "", errors.Errorf("could not find match: %v/%v", upstreamName, serviceName)
+	}
+	return packageName, nil
+}
+
+func addWellKnownProtos(descriptors *descriptor.FileDescriptorSet) {
+	var googleApiHttpFound, googleApiAnnotationsFound, googleApiDescriptorFound bool
+	for _, file := range descriptors.File {
+		log.Debugf("inspecting descriptor for proto file %v...", *file.Name)
+		if *file.Name == "google/api/http.proto" {
+			googleApiHttpFound = true
+			continue
+		}
+		if *file.Name == "google/api/annotations.proto" {
+			googleApiAnnotationsFound = true
+			continue
+		}
+		if *file.Name == "google/protobuf/descriptor.proto" {
+			googleApiDescriptorFound = true
+			continue
+		}
+	}
 	if !googleApiDescriptorFound {
-		addGoogleApisDescriptor(set)
+		addGoogleApisDescriptor(descriptors)
 	}
 
 	if !googleApiHttpFound {
-		addGoogleApisHttp(set)
+		addGoogleApisHttp(descriptors)
 	}
 
 	if !googleApiAnnotationsFound {
 		//TODO: investigate if we need this
 		//addGoogleApisAnnotations(packageName, set)
 	}
-
-	if packageName == "" {
-		return "", errors.Errorf("could not find match: %v/%v", upstreamName, serviceName)
-	}
-	return packageName, nil
 }
 
 func httpPath(upstreamName, serviceName, methodName string) string {
@@ -265,7 +270,7 @@ func (p *Plugin) HttpFilters(_ *plugin.FilterPluginParams) []plugin.StagedFilter
 			log.Warnf("ERROR: marshaling proto descriptor: %v", err)
 			continue
 		}
-		log.Debugf("service %v using descriptors %v", serviceName, protoDescriptor)
+		//log.Debugf("service %v using descriptors %v", serviceName, protoDescriptor.File)
 		filterConfig, err := util.MessageToStruct(&envoytranscoder.GrpcJsonTranscoder{
 			DescriptorSet: &envoytranscoder.GrpcJsonTranscoder_ProtoDescriptorBin{
 				ProtoDescriptorBin: descriptorBytes,
