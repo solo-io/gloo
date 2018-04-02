@@ -270,7 +270,7 @@
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "ca82edffd95b3873926ee04816d1853cb2b89b90"
+  revision = "1e982896c4c4dcdd8f5cf2ab88c435032a0ec7d3"
 
 [[projects]]
   name = "github.com/spf13/pflag"
