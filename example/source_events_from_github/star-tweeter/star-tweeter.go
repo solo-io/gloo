@@ -9,7 +9,7 @@ import (
 	"github.com/dghubble/oauth1"
 	"github.com/ilackarms/go-github-webhook-server/github"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/docs/tutorials/source_events_from_github/base"
+	"github.com/solo-io/gloo/example/source_events_from_github/base"
 	"github.com/solo-io/gloo/pkg/log"
 )
 
