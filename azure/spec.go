@@ -34,11 +34,11 @@ func DecodeUpstreamSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {
 }
 
 func (s *UpstreamSpec) Validate() error {
-	if IsValidFunctionAppName(s.FunctionAppName) {
-		return nil
-	} else {
-		return errors.New("invalid function app name")
+	if !IsValidFunctionAppName(s.FunctionAppName) {
+		return errors.New("function app name must be non-empty and can contain letters, digits and dashes")
 	}
+
+	return nil
 }
 
 func (s *UpstreamSpec) GetHostname() string {
@@ -70,10 +70,14 @@ func (s *FunctionSpec) Validate() error {
 	var result error
 
 	if !IsValidFunctionName(s.FunctionName) {
-		result = multierror.Append(result, errors.New("invalid function name"))
+		result = multierror.Append(
+			result,
+			errors.New("function name must start with a letter and can contain letters, digits, dashes and underscores"))
 	}
 	if !IsValidAuthLevel(s.AuthLevel) {
-		result = multierror.Append(result, errors.New("invalid authentication level"))
+		result = multierror.Append(
+			result,
+			errors.New("authentication level must be one of \"anonymous\", \"function\" or \"admin\""))
 	}
 
 	return result
