@@ -7,7 +7,7 @@ var natsStreamingRequestsKey = "www.solo.io;nats-streaming-spike";
 
 function loaded() {
     post_analytics();
-    update_analytics();
+    // update_analytics();
     updatetime();
 }
 
