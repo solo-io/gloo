@@ -65,7 +65,7 @@ var _ = Describe("ConsulStorageClient", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
-		FDescribe("Upstreams", func() {
+		Describe("Upstreams", func() {
 			Describe("update", func() {
 				It("fails if the upstream doesn't exist", func() {
 					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
@@ -111,6 +111,33 @@ var _ = Describe("ConsulStorageClient", func() {
 					out, err := client.V1().Upstreams().Update(changed)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(out.Type).To(Equal(changed.Type))
+				})
+			})
+			Describe("Upstreams", func() {
+				Describe("get", func() {
+					It("fails if the upstream doesn't exist", func() {
+						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						Expect(err).NotTo(HaveOccurred())
+						us, err := client.V1().Upstreams().Get("foo")
+						Expect(err).To(HaveOccurred())
+						Expect(us).To(BeNil())
+					})
+					It("returns the upstream", func() {
+						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						Expect(err).NotTo(HaveOccurred())
+						input := &v1.Upstream{
+							Name:              "myupstream",
+							Type:              "foo",
+							ConnectionTimeout: time.Second,
+						}
+						us, err := client.V1().Upstreams().Create(input)
+						Expect(err).NotTo(HaveOccurred())
+						out, err := client.V1().Upstreams().Get(input.Name)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(out).To(Equal(us))
+						input.Metadata = out.Metadata
+						Expect(out).To(Equal(input))
+					})
 				})
 			})
 		})

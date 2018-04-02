@@ -21,30 +21,21 @@ func TestConsul(t *testing.T) {
 }
 
 var (
-	consulFactory *localhelpers.ConsulFactory
-	err           error
+	consulFactory  *localhelpers.ConsulFactory
+	consulInstance *localhelpers.ConsulInstance
+	err            error
 )
 
 var _ = BeforeSuite(func() {
 	consulFactory, err = localhelpers.NewConsulFactory()
 	helpers.Must(err)
-})
-
-var _ = AfterSuite(func() {
-	consulFactory.Clean()
-})
-
-var (
-	consulInstance *localhelpers.ConsulInstance
-)
-
-var _ = BeforeEach(func() {
 	consulInstance, err = consulFactory.NewConsulInstance()
 	helpers.Must(err)
 	err = consulInstance.Run()
 	helpers.Must(err)
 })
 
-var _ = AfterEach(func() {
+var _ = AfterSuite(func() {
 	consulInstance.Clean()
+	consulFactory.Clean()
 })

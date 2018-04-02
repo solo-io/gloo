@@ -11,6 +11,10 @@ import (
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 )
 
+func key(rootPath, itemName string) string {
+	return rootPath + "/" + itemName
+}
+
 func toKVPair(rootPath string, item v1.ConfigObject) (*api.KVPair, error) {
 	data, err := proto.Marshal(item)
 	if err != nil {
@@ -25,7 +29,7 @@ func toKVPair(rootPath string, item v1.ConfigObject) (*api.KVPair, error) {
 		}
 	}
 	return &api.KVPair{
-		Key:         rootPath + "/" + item.GetName(),
+		Key:         key(rootPath, item.GetName()),
 		Value:       data,
 		ModifyIndex: modifyIndex,
 	}, nil

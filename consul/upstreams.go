@@ -26,9 +26,11 @@ func (c *upstreamsClient) Create(item *v1.Upstream) (*v1.Upstream, error) {
 	}
 
 	// error if the key already exists
-	if p, _, err := c.consul.KV().Get(p.Key, &api.QueryOptions{RequireConsistent: true}); err != nil {
+	existingP, _, err := c.consul.KV().Get(p.Key, &api.QueryOptions{RequireConsistent: true})
+	if err != nil {
 		return nil, errors.Wrap(err, "failed to query consul")
-	} else if p != nil {
+	}
+	if existingP != nil {
 		return nil, storage.NewAlreadyExistsErr(
 			errors.Errorf("key found for upstream %s: %s", item.Name, p.Key))
 	}
@@ -53,9 +55,11 @@ func (c *upstreamsClient) Update(item *v1.Upstream) (*v1.Upstream, error) {
 	}
 
 	// error if the key doesn't already exist
-	if exsitingP, _, err := c.consul.KV().Get(updatedP.Key, &api.QueryOptions{RequireConsistent: true}); err != nil {
+	exsitingP, _, err := c.consul.KV().Get(updatedP.Key, &api.QueryOptions{RequireConsistent: true})
+	if err != nil {
 		return nil, errors.Wrap(err, "failed to query consul")
-	} else if exsitingP == nil {
+	}
+	if exsitingP == nil {
 		return nil, errors.Errorf("key not found for upstream %s: %s", item.Name, updatedP.Key)
 	}
 	if success, _, err := c.consul.KV().CAS(updatedP, nil); err != nil {
@@ -78,52 +82,32 @@ func (c *upstreamsClient) Update(item *v1.Upstream) (*v1.Upstream, error) {
 	return upstreamClone, nil
 }
 
-//func (c *upstreamsClient) Update(item *v1.Upstream) (*v1.Upstream, error) {
-//	if item.Metadata == nil || item.Metadata.ResourceVersion == "" {
-//		return nil, errors.New("resource version must be set for update operations")
-//	}
-//	upstreamFiles, err := c.pathsToUpstreams()
-//	if err != nil {
-//		return nil, errors.Wrap(err, "failed to read upstream dir")
-//	}
-//	// error if exists already
-//	for file, existingUps := range upstreamFiles {
-//		if existingUps.Name != item.Name {
-//			continue
-//		}
-//		if existingUps.Metadata != nil && lessThan(item.Metadata.ResourceVersion, existingUps.Metadata.ResourceVersion) {
-//			return nil, errors.Errorf("resource version outdated for %v", item.Name)
-//		}
-//		upstreamClone, ok := proto.Clone(item).(*v1.Upstream)
-//		if !ok {
-//			return nil, errors.New("internal error: output of proto.Clone was not expected type")
-//		}
-//		upstreamClone.Metadata.ResourceVersion = newOrIncrementResourceVer(upstreamClone.Metadata.ResourceVersion)
-//
-//		err = WriteToFile(file, upstreamClone)
-//		if err != nil {
-//			return nil, errors.Wrap(err, "failed creating file")
-//		}
-//
-//		return upstreamClone, nil
-//	}
-//	return nil, errors.Errorf("upstream %v not found", item.Name)
-//}
-//
-//func (c *upstreamsClient) Delete(name string) error {
-//	upstreamFiles, err := c.pathsToUpstreams()
-//	if err != nil {
-//		return errors.Wrap(err, "failed to read upstream dir")
-//	}
-//	// error if exists already
-//	for file, existingUps := range upstreamFiles {
-//		if existingUps.Name == name {
-//			return os.Remove(file)
-//		}
-//	}
-//	return errors.Errorf("file not found for upstream %v", name)
-//}
-//
+func (c *upstreamsClient) Delete(name string) error {
+	key := key(c.rootPath, name)
+
+	_, err := c.consul.KV().Delete(key, nil)
+	if err != nil {
+		return errors.Wrapf(err, "deleting %s", name)
+	}
+	return nil
+}
+
+func (c *upstreamsClient) Get(name string) (*v1.Upstream, error) {
+	key := key(c.rootPath, name)
+	p, _, err := c.consul.KV().Get(key, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "getting pair for for key %v", key)
+	}
+	if p == nil {
+		return nil, errors.Errorf("keypair %s not found for upstream %s", key, name)
+	}
+	us, err := upstreamFromKVPair(p)
+	if err != nil {
+		return nil, errors.Wrap(err, "converting consul kv-pair to upstream")
+	}
+	return us, nil
+}
+
 //func (c *upstreamsClient) Get(name string) (*v1.Upstream, error) {
 //	upstreamFiles, err := c.pathsToUpstreams()
 //	if err != nil {
