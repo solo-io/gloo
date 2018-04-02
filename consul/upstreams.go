@@ -4,7 +4,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/consul/api"
@@ -20,23 +19,8 @@ type upstreamsClient struct {
 	syncFrequency time.Duration
 }
 
-func updateResourceVersion(item *v1.Upstream, p *api.KVPair) (*v1.Upstream, error) {
-	resourceVersion := fmt.Sprintf("%v", p.ModifyIndex)
-
-	// set resourceversion on clone
-	upstreamClone, ok := proto.Clone(item).(*v1.Upstream)
-	if !ok {
-		return nil, errors.New("internal error: output of proto.Clone was not expected type")
-	}
-	if upstreamClone.Metadata == nil {
-		upstreamClone.Metadata = &v1.Metadata{}
-	}
-	upstreamClone.Metadata.ResourceVersion = resourceVersion
-	return upstreamClone, nil
-}
-
 func (c *upstreamsClient) Create(item *v1.Upstream) (*v1.Upstream, error) {
-	p, err := ToKVPair(c.rootPath, item)
+	p, err := toKVPair(c.rootPath, item)
 	if err != nil {
 		return nil, errors.Wrapf(err, "converting %s to kv pair", item.Name)
 	}
@@ -56,11 +40,42 @@ func (c *upstreamsClient) Create(item *v1.Upstream) (*v1.Upstream, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting newly created kv pair %s", p.Key)
 	}
-	createdUs, err := updateResourceVersion(item, p)
+	// set resourceversion on clone
+	upstreamClone := proto.Clone(item).(*v1.Upstream)
+	setResourceVersion(upstreamClone, p)
+	return upstreamClone, nil
+}
+
+func (c *upstreamsClient) Update(item *v1.Upstream) (*v1.Upstream, error) {
+	updatedP, err := toKVPair(c.rootPath, item)
 	if err != nil {
-		return nil, errors.Wrapf(err, "updating resource version for %s", item.Name)
+		return nil, errors.Wrapf(err, "converting %s to kv pair", item.Name)
 	}
-	return createdUs, nil
+
+	// error if the key doesn't already exist
+	if exsitingP, _, err := c.consul.KV().Get(updatedP.Key, &api.QueryOptions{RequireConsistent: true}); err != nil {
+		return nil, errors.Wrap(err, "failed to query consul")
+	} else if exsitingP == nil {
+		return nil, errors.Errorf("key not found for upstream %s: %s", item.Name, updatedP.Key)
+	}
+	if success, _, err := c.consul.KV().CAS(updatedP, nil); err != nil {
+		return nil, errors.Wrapf(err, "writing kv pair %s", updatedP.Key)
+	} else if !success {
+		return nil, errors.Errorf("resource version was invalid for upstream: %s", item.Name)
+	}
+
+	// set the resource version from the CreateIndex of the created kv pair
+	updatedP, _, err = c.consul.KV().Get(updatedP.Key, &api.QueryOptions{RequireConsistent: true})
+	if err != nil {
+		return nil, errors.Wrapf(err, "getting newly created kv pair %s", updatedP.Key)
+	}
+	// set resourceversion on clone
+	upstreamClone, ok := proto.Clone(item).(*v1.Upstream)
+	if !ok {
+		return nil, errors.New("internal error: output of proto.Clone was not expected type")
+	}
+	setResourceVersion(upstreamClone, updatedP)
+	return upstreamClone, nil
 }
 
 //func (c *upstreamsClient) Update(item *v1.Upstream) (*v1.Upstream, error) {

@@ -27,8 +27,8 @@ var _ = Describe("ConsulStorageClient", func() {
 	AfterEach(func() {
 		consul.KV().DeleteTree(rootPath, nil)
 	})
-	Context("Upstreams", func() {
-		Context("create", func() {
+	Describe("Upstreams", func() {
+		Describe("create", func() {
 			It("creates the upstream as a consul key", func() {
 				client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
 				Expect(err).NotTo(HaveOccurred())
@@ -51,7 +51,7 @@ var _ = Describe("ConsulStorageClient", func() {
 				input.Metadata = us.Metadata
 				Expect(us).To(Equal(input))
 			})
-			FIt("errors when creating the same upstream twice", func() {
+			It("errors when creating the same upstream twice", func() {
 				client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
 				Expect(err).NotTo(HaveOccurred())
 				input := &v1.Upstream{
@@ -63,6 +63,55 @@ var _ = Describe("ConsulStorageClient", func() {
 				Expect(err).NotTo(HaveOccurred())
 				_, err = client.V1().Upstreams().Create(input)
 				Expect(err).To(HaveOccurred())
+			})
+		})
+		FDescribe("Upstreams", func() {
+			Describe("update", func() {
+				It("fails if the upstream doesn't exist", func() {
+					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+					Expect(err).NotTo(HaveOccurred())
+					input := &v1.Upstream{
+						Name:              "myupstream",
+						Type:              "foo",
+						ConnectionTimeout: time.Second,
+					}
+					us, err := client.V1().Upstreams().Update(input)
+					Expect(err).To(HaveOccurred())
+					Expect(us).To(BeNil())
+				})
+				It("fails if the resourceversion is not up to date", func() {
+					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+					Expect(err).NotTo(HaveOccurred())
+					input := &v1.Upstream{
+						Name:              "myupstream",
+						Type:              "foo",
+						ConnectionTimeout: time.Second,
+					}
+					_, err = client.V1().Upstreams().Create(input)
+					Expect(err).NotTo(HaveOccurred())
+					v, err := client.V1().Upstreams().Update(input)
+					Expect(v).To(BeNil())
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(ContainSubstring("resource version"))
+				})
+				It("updates the upstream", func() {
+					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+					Expect(err).NotTo(HaveOccurred())
+					input := &v1.Upstream{
+						Name:              "myupstream",
+						Type:              "foo",
+						ConnectionTimeout: time.Second,
+					}
+					us, err := client.V1().Upstreams().Create(input)
+					Expect(err).NotTo(HaveOccurred())
+					changed := proto.Clone(input).(*v1.Upstream)
+					changed.Type = "bar"
+					// match resource version
+					changed.Metadata = us.Metadata
+					out, err := client.V1().Upstreams().Update(changed)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(out.Type).To(Equal(changed.Type))
+				})
 			})
 		})
 	})
