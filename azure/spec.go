@@ -34,7 +34,7 @@ func DecodeUpstreamSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {
 }
 
 func (s *UpstreamSpec) Validate() error {
-	if !IsValidFunctionAppName(s.FunctionAppName) {
+	if !isValidFunctionAppName(s.FunctionAppName) {
 		return errors.New("function app name must be non-empty and can contain letters, digits and dashes")
 	}
 
@@ -69,12 +69,12 @@ func DecodeFunctionSpec(generic v1.FunctionSpec) (*FunctionSpec, error) {
 func (s *FunctionSpec) Validate() error {
 	var result error
 
-	if !IsValidFunctionName(s.FunctionName) {
+	if !isValidFunctionName(s.FunctionName) {
 		result = multierror.Append(
 			result,
 			errors.New("function name must start with a letter and can contain letters, digits, dashes and underscores"))
 	}
-	if !IsValidAuthLevel(s.AuthLevel) {
+	if !isValidAuthLevel(s.AuthLevel) {
 		result = multierror.Append(
 			result,
 			errors.New("authentication level must be one of \"anonymous\", \"function\" or \"admin\""))
@@ -83,18 +83,18 @@ func (s *FunctionSpec) Validate() error {
 	return result
 }
 
-func IsValidFunctionAppName(functionAppName string) bool {
+func isValidFunctionAppName(functionAppName string) bool {
 	// Valid characters are `a-z`, `0-9`, and `-`.
 	return regexp.MustCompile("^[[:alpha:][:digit:]-]+$").MatchString(functionAppName)
 }
 
-func IsValidFunctionName(functionName string) bool {
+func isValidFunctionName(functionName string) bool {
 	// The name must be unique within a Function App. It must start with a letter and can contain
 	// letters, numbers (0-9), dashes ("-"), and underscores ("_").
 	return regexp.MustCompile("^[[:alpha:]][[:alpha:][:digit:]_-]*$").MatchString(functionName)
 }
 
-func IsValidAuthLevel(authLevel string) bool {
+func isValidAuthLevel(authLevel string) bool {
 	// The authorization level can be one of the following values:
 	// * "anonymous" - No API key is required.
 	// * "function" - A function-specific API key is required. This is the default value if none is

@@ -1,43 +1,42 @@
-package azure_test
+package azure
 
 import (
 	"github.com/gogo/protobuf/types"
 	multierror "github.com/hashicorp/go-multierror"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/solo-io/gloo-plugins/azure"
 )
 
 var _ = Describe("Function app name", func() {
 	Describe("validation", func() {
 		Context("of an empty name", func() {
 			It("should fail", func() {
-				Expect(IsValidFunctionAppName("")).To(Equal(false))
+				Expect(isValidFunctionAppName("")).To(Equal(false))
 			})
 		})
 		Context("of a valid name", func() {
 			It("should succeed", func() {
-				Expect(IsValidFunctionAppName("azure-function-app-1")).To(Equal(true))
+				Expect(isValidFunctionAppName("azure-function-app-1")).To(Equal(true))
 			})
 		})
 		Context("of a name starting with a digit", func() {
 			It("should succeed", func() {
-				Expect(IsValidFunctionAppName("1-azure-function-app")).To(Equal(true))
+				Expect(isValidFunctionAppName("1-azure-function-app")).To(Equal(true))
 			})
 		})
 		Context("of a name starting with a dash", func() {
 			It("should succeed", func() {
-				Expect(IsValidFunctionAppName("-azure-function-app-1")).To(Equal(true))
+				Expect(isValidFunctionAppName("-azure-function-app-1")).To(Equal(true))
 			})
 		})
 		Context("of a name containing an underscore", func() {
 			It("should fail", func() {
-				Expect(IsValidFunctionAppName("azure-function_app-1")).To(Equal(false))
+				Expect(isValidFunctionAppName("azure-function_app-1")).To(Equal(false))
 			})
 		})
 		Context("of a name containing an invalid character", func() {
 			It("should fail", func() {
-				Expect(IsValidFunctionAppName("azure-function-1!")).To(Equal(false))
+				Expect(isValidFunctionAppName("azure-function-1!")).To(Equal(false))
 			})
 		})
 	})
@@ -47,32 +46,32 @@ var _ = Describe("Function name", func() {
 	Describe("validation", func() {
 		Context("of an empty name", func() {
 			It("should fail", func() {
-				Expect(IsValidFunctionName("")).To(Equal(false))
+				Expect(isValidFunctionName("")).To(Equal(false))
 			})
 		})
 		Context("of a valid name", func() {
 			It("should succeed", func() {
-				Expect(IsValidFunctionName("azure-function-1")).To(Equal(true))
+				Expect(isValidFunctionName("azure-function-1")).To(Equal(true))
 			})
 		})
 		Context("of a name starting with a digit", func() {
 			It("should fail", func() {
-				Expect(IsValidFunctionName("1-azure-function")).To(Equal(false))
+				Expect(isValidFunctionName("1-azure-function")).To(Equal(false))
 			})
 		})
 		Context("of a name starting with a dash", func() {
 			It("should fail", func() {
-				Expect(IsValidFunctionName("-azure-function-1")).To(Equal(false))
+				Expect(isValidFunctionName("-azure-function-1")).To(Equal(false))
 			})
 		})
 		Context("of a name starting with an underscore", func() {
 			It("should fail", func() {
-				Expect(IsValidFunctionName("_azure-function-1")).To(Equal(false))
+				Expect(isValidFunctionName("_azure-function-1")).To(Equal(false))
 			})
 		})
 		Context("of a name containing an invalid character", func() {
 			It("should fail", func() {
-				Expect(IsValidFunctionName("azure-function-1!")).To(Equal(false))
+				Expect(isValidFunctionName("azure-function-1!")).To(Equal(false))
 			})
 		})
 	})
@@ -82,27 +81,27 @@ var _ = Describe("Authentication level", func() {
 	Describe("validation", func() {
 		Context("of an empty string", func() {
 			It("should fail", func() {
-				Expect(IsValidAuthLevel("")).To(Equal(false))
+				Expect(isValidAuthLevel("")).To(Equal(false))
 			})
 		})
 		Context("of \"anonymous\"", func() {
 			It("should succeed", func() {
-				Expect(IsValidAuthLevel("anonymous")).To(Equal(true))
+				Expect(isValidAuthLevel("anonymous")).To(Equal(true))
 			})
 		})
 		Context("of \"function\"", func() {
 			It("should succeed", func() {
-				Expect(IsValidAuthLevel("function")).To(Equal(true))
+				Expect(isValidAuthLevel("function")).To(Equal(true))
 			})
 		})
 		Context("of \"admin\"", func() {
 			It("should succeed", func() {
-				Expect(IsValidAuthLevel("admin")).To(Equal(true))
+				Expect(isValidAuthLevel("admin")).To(Equal(true))
 			})
 		})
 		Context("of an invalid value", func() {
 			It("should fail", func() {
-				Expect(IsValidAuthLevel("invalid")).To(Equal(false))
+				Expect(isValidAuthLevel("invalid")).To(Equal(false))
 			})
 		})
 	})
