@@ -76,10 +76,6 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/solo-io/gloo-storage"
-
-[[constraint]]
-  branch = "master"
   name = "github.com/solo-io/kubecontroller"
 
 [[constraint]]
