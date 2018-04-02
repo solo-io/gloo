@@ -1,4 +1,4 @@
-package kube_test
+package filewatcher_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestKube(t *testing.T) {
+func TestFilewatcher(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Kube Suite")
+	RunSpecs(t, "Filewatcher Suite")
 }

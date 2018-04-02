@@ -1,10 +1,14 @@
 package filewatcher
 
-// map [ref] : contents
-type Files map[string][]byte
+import "github.com/solo-io/gloo-storage/dependencies"
+
+// map [ref] : *File
+type Files map[string]*dependencies.File
 
 // Interface is responsible for watching artifacts referenced by a config
 type Interface interface {
+	Run(<-chan struct{})
+
 	TrackFiles(fileRefs []string)
 
 	// artifacts are pushed here whenever they are read

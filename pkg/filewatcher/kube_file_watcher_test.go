@@ -1,4 +1,4 @@
-package kube_test
+package filewatcher_test
 
 import (
 	"time"
@@ -11,8 +11,9 @@ import (
 
 	"fmt"
 
+	"github.com/solo-io/gloo-storage/dependencies/kube"
 	. "github.com/solo-io/gloo-testing/helpers"
-	. "github.com/solo-io/gloo/pkg/filewatcher/kube"
+	. "github.com/solo-io/gloo/pkg/filewatcher"
 	"github.com/solo-io/gloo/pkg/log"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,18 +45,24 @@ var _ = Describe("KubeFileWatcher", func() {
 			cfg, err := clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath)
 			Expect(err).NotTo(HaveOccurred())
 
-			watcher, err := NewFileWatcher(masterUrl, kubeconfigPath, time.Second, make(chan struct{}))
+			store, err := kube.NewFileStorage(cfg, namespace, time.Second)
 			Expect(err).NotTo(HaveOccurred())
+
+			watcher, err := NewFileWatcher(store)
+			Expect(err).NotTo(HaveOccurred())
+			stop := make(chan struct{})
+			go watcher.Run(stop)
+			defer close(stop)
 
 			// add a file
 			kubeClient, err := kubernetes.NewForConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
 			file := &v1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
-					GenerateName: "file-",
-					Namespace:    namespace,
+					Name:      "myfile",
+					Namespace: namespace,
 				},
-				Data: map[string]string{"username": "me@example.com", "password": "foobar"},
+				Data: map[string]string{"username": "me@example.com"},
 			}
 
 			createdFile, err := kubeClient.CoreV1().ConfigMaps(namespace).Create(file)
@@ -64,18 +71,16 @@ var _ = Describe("KubeFileWatcher", func() {
 			// give controller time to register
 			time.Sleep(time.Second * 2)
 
-			usernameRef := createdFile.Name + "/username"
-			passwordRef := createdFile.Name + "/password"
+			usernameRef := createdFile.Name + ":username"
 
-			go watcher.TrackFiles([]string{usernameRef, passwordRef})
+			go watcher.TrackFiles([]string{usernameRef})
 
 			select {
 			case <-time.After(time.Second * 5):
 				Expect(fmt.Errorf("expected to have received resource event before 5s")).NotTo(HaveOccurred())
 			case files := <-watcher.Files():
-				Expect(len(files)).To(Equal(2))
-				Expect(files[usernameRef]).To(Equal([]byte("me@example.com")))
-				Expect(files[passwordRef]).To(Equal([]byte("foobar")))
+				Expect(files).To(HaveLen(1))
+				Expect(files[usernameRef].Contents).To(Equal([]byte("me@example.com")))
 			case err := <-watcher.Error():
 				Expect(err).NotTo(HaveOccurred())
 			}

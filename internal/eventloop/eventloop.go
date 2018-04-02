@@ -10,6 +10,9 @@ import (
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo-storage/crd"
+	"github.com/solo-io/gloo-storage/dependencies"
+	filestore "github.com/solo-io/gloo-storage/dependencies/file"
+	kubestore "github.com/solo-io/gloo-storage/dependencies/kube"
 	"github.com/solo-io/gloo-storage/file"
 	"github.com/solo-io/gloo/internal/configwatcher"
 	"github.com/solo-io/gloo/internal/reporter"
@@ -18,8 +21,6 @@ import (
 	"github.com/solo-io/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
 	"github.com/solo-io/gloo/pkg/filewatcher"
-	filefiles "github.com/solo-io/gloo/pkg/filewatcher/file"
-	kubefiles "github.com/solo-io/gloo/pkg/filewatcher/kube"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
@@ -161,21 +162,28 @@ func setupSecretWatcher(opts bootstrap.Options, stop <-chan struct{}) (secretwat
 }
 
 func setupFileWatcher(opts bootstrap.Options, stop <-chan struct{}) (filewatcher.Interface, error) {
+	var store dependencies.FileStorage
 	switch opts.SecretWatcherOptions.Type {
 	case bootstrap.WatcherTypeFile:
-		fileWatcher, err := filefiles.NewFileWatcher(opts.FileOptions.FilesDir, opts.FileWatcherOptions.SyncFrequency)
+		s, err := filestore.NewFileStorage(opts.FileOptions.FilesDir, opts.FileWatcherOptions.SyncFrequency)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to start filesystem-based file watcher with config %#v", opts.KubeOptions)
+			return nil, errors.Wrapf(err, "failed to start filesystem-based file watcher with config %#v", opts.FileOptions)
 		}
-		return fileWatcher, nil
+		store = s
 	case bootstrap.WatcherTypeKube:
-		fileWatcher, err := kubefiles.NewFileWatcher(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig, opts.FileWatcherOptions.SyncFrequency, stop)
+		cfg, err := clientcmd.BuildConfigFromFlags(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to start kubenetes configmap-based file watcher with config %#v", opts.KubeOptions)
+			return nil, errors.Wrap(err, "building kube restclient")
 		}
-		return fileWatcher, nil
+		s, err := kubestore.NewFileStorage(cfg, opts.KubeOptions.Namespace, opts.FileWatcherOptions.SyncFrequency)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to start kube configmap-based file watcher with config %#v", opts.KubeOptions)
+		}
+		store = s
+	default:
+		return nil, errors.Errorf("unknown or unspecified file watcher type: %v", opts.FileWatcherOptions.Type)
 	}
-	return nil, errors.Errorf("unknown or unspecified file watcher type: %v", opts.FileWatcherOptions.Type)
+	return filewatcher.NewFileWatcher(store)
 }
 
 func (e *eventLoop) Run(stop <-chan struct{}) error {

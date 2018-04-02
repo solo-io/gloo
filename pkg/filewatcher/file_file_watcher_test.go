@@ -1,4 +1,4 @@
-package file_test
+package filewatcher_test
 
 import (
 	"io/ioutil"
@@ -12,9 +12,10 @@ import (
 
 	"path/filepath"
 
+	"github.com/solo-io/gloo-storage/dependencies"
+	filestorage "github.com/solo-io/gloo-storage/dependencies/file"
 	. "github.com/solo-io/gloo-testing/helpers"
-	"github.com/solo-io/gloo/pkg/filewatcher"
-	. "github.com/solo-io/gloo/pkg/filewatcher/file"
+	. "github.com/solo-io/gloo/pkg/filewatcher"
 	"github.com/solo-io/gloo/pkg/log"
 )
 
@@ -24,15 +25,18 @@ var _ = Describe("FileArtifactWatcher", func() {
 		file  string
 		ref   string
 		err   error
-		watch filewatcher.Interface
+		watch Interface
 	)
 	BeforeEach(func() {
 		ref = "artifacts.yml"
 		dir, err = ioutil.TempDir("", "fileartifacttest")
 		Must(err)
 		file = filepath.Join(dir, ref)
-		watch, err = NewFileWatcher(dir, time.Millisecond)
+		store, err := filestorage.NewFileStorage(dir, time.Millisecond)
 		Must(err)
+		watch, err = NewFileWatcher(store)
+		Must(err)
+		go watch.Run(make(chan struct{}))
 	})
 	AfterEach(func() {
 		log.Debugf("removing " + dir)
@@ -47,7 +51,8 @@ var _ = Describe("FileArtifactWatcher", func() {
 				err = ioutil.WriteFile(file, data, 0644)
 				Expect(err).NotTo(HaveOccurred())
 				select {
-				case <-watch.Files():
+				case f := <-watch.Files():
+					log.Printf("%v", f)
 					Fail("Files was received, expected timeout")
 				case err := <-watch.Error():
 					Expect(err).NotTo(HaveOccurred())
@@ -65,8 +70,8 @@ var _ = Describe("FileArtifactWatcher", func() {
 				go watch.TrackFiles([]string{ref})
 				select {
 				case parsedArtifacts := <-watch.Files():
-					Expect(parsedArtifacts).To(Equal(filewatcher.Files{
-						ref: data,
+					Expect(parsedArtifacts).To(Equal(Files{
+						ref: &dependencies.File{Ref: ref, Contents: data},
 					}))
 				case err := <-watch.Error():
 					Expect(err).NotTo(HaveOccurred())

@@ -18,12 +18,14 @@
             --header "User-Agent:Minio (linux; amd64) minio-go/5.0.1 mc/2018-03-25T01:22:22Z" \
             --upstream default-minio-service-9000
 
+
+
 # Image Pusher Microservice
 
 ## Install minio client
         wget https://dl.minio.io/client/mc/release/linux-amd64/mc
         chmod +x mc
-        ./mc config host add gloo http://ilackarms.aws.solo.io \
+        ./mc config host add gloo http://ilackarms.aws.solo.io:8080 \
             gloo.solo.io \
             gloo.solo.io \
             --api s3v4 --lookup dns
@@ -38,6 +40,7 @@
 browse to ./images in your file browser 
 
 **unstar/star the git repo to see images appear**
+
 
 
 # Star-Tweeter Microservice
