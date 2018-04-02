@@ -132,13 +132,13 @@ var _ = Describe("Client", func() {
 			}
 			f1, err := client.Create(file)
 			Expect(err).NotTo(HaveOccurred())
-			time.Sleep(time.Millisecond)
+			time.Sleep(time.Millisecond * 100)
 			f2, err := client.Create(file2)
 			Expect(err).NotTo(HaveOccurred())
-			time.Sleep(time.Millisecond)
+			time.Sleep(time.Millisecond * 100)
 			f3, err := client.Create(file3)
 			Expect(err).NotTo(HaveOccurred())
-			time.Sleep(time.Millisecond)
+			time.Sleep(time.Millisecond * 100)
 			list1 := <-lists
 			Expect(list1).To(HaveLen(1))
 			Expect(list1).To(ContainElement(f1))
