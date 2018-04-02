@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/d4l3k/messagediff"
+  packages = ["."]
+  revision = "29f32d820d112dbd66e58492a6ffb7cc3106312b"
+  version = "v1.2.1"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -37,7 +43,7 @@
     "google/api",
     "google/rpc"
   ]
-  revision = "0cd9801be74a10d5ac39d69626eac8255ffcd502"
+  revision = "08a7655d27152912db7aaf4f983275eaf8d128ef"
 
 [[projects]]
   name = "github.com/gogo/protobuf"
@@ -120,8 +126,8 @@
 [[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
-  revision = "163f41321a19dd09362d4c63cc2489db2015f1f4"
-  version = "0.3.2"
+  revision = "0d4b488675fdec1dde48751b05ab530cf0b630e1"
+  version = "v0.3.2"
 
 [[projects]]
   name = "github.com/json-iterator/go"
@@ -252,19 +258,19 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "db55cbcbb3e947f3bf05b61e1d2817655b2d01c7"
+  revision = "950fe44d5c27e24f2086191a4828084905794f77"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "0a39c18e5fd9e6da5c8a0ed1ff191040862a25a0"
+  revision = "da06cbac45bb7441bb59c8cc5e21086d64c758fc"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "4940b4291a9ffe5ab88d24c36cb3bc4225791778"
+  revision = "ca82edffd95b3873926ee04816d1853cb2b89b90"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -276,7 +282,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "88942b9c40a4c9d203b82b3731787b672d6e809b"
+  revision = "12892e8c234f4fe6f6803f052061de9057903bb2"
 
 [[projects]]
   branch = "master"
@@ -293,7 +299,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "6078986fec03a1dcc236c34816c71b0e05018fda"
+  revision = "b68f30494add4df6bd8ef5e82803f308e7f7c59c"
 
 [[projects]]
   branch = "master"
@@ -430,7 +436,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "ab194a3e88161111fb267a02a266ab745a0c6685"
+  revision = "76b8134f2082ae81f4989c709be17587745ef0c0"
 
 [[projects]]
   branch = "master"
