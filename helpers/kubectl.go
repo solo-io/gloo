@@ -29,6 +29,7 @@ const (
 	k8sd              = "k8s-service-discovery"
 	funcitonDiscovery = "function-discovery"
 	upstreamForEvents = "upstream-for-events"
+	grpcTestService   = "grpc-test-service"
 	eventEmitter      = "event-emitter"
 )
 
@@ -48,9 +49,12 @@ func SetupKubeForTest(namespace string) error {
 }
 
 func TeardownKube(namespace string) error {
+	return kubectl("delete", "namespace", namespace)
+}
+func TeardownKubeE2E(namespace string) error {
 	kubectl("delete", "-f", filepath.Join(E2eDirectory(), "kube_resources", "install.yml"))
 	kubectl("delete", "-f", filepath.Join(E2eDirectory(), "kube_resources", "testing-resources.yml"))
-	return kubectl("delete", "namespace", namespace)
+	return TeardownKube(namespace)
 }
 
 func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
@@ -119,6 +123,7 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 		k8sd,
 		funcitonDiscovery,
 		upstreamForEvents,
+		grpcTestService,
 		eventEmitter); err != nil {
 		return errors.Wrap(err, "waiting for pods to start")
 	}

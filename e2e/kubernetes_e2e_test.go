@@ -42,7 +42,7 @@ var _ = Describe("Kubernetes Deployment", func() {
 		Must(err)
 	})
 	AfterSuite(func() {
-		TeardownKube(namespace)
+		TeardownKubeE2E(namespace)
 	})
 })
 

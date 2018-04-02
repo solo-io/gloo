@@ -67,6 +67,45 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
+    gloo: grpc-test-service
+  name: grpc-test-service
+  namespace: {{.Namespace}}
+spec:
+  selector:
+    matchLabels:
+      gloo: grpc-test-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        gloo: grpc-test-service
+    spec:
+      containers:
+      - image: soloio/grpc-test-service:testing
+        imagePullPolicy: Always
+        name: grpc-test-service
+        ports:
+        - containerPort: 8080
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-test-service
+  labels:
+    sevice: grpc-test-service
+  namespace: {{.Namespace}}
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    gloo: grpc-test-service
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
     gloo: helloservice-2
   name: helloservice-2
   namespace: {{.Namespace}}

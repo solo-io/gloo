@@ -22,6 +22,7 @@ func BuildPushContainers(push bool) error {
 		filepath.Join(E2eDirectory(), "containers", "testrunner"),
 		filepath.Join(E2eDirectory(), "containers", "event-emitter"),
 		filepath.Join(E2eDirectory(), "containers", "upstream-for-events"),
+		filepath.Join(E2eDirectory(), "containers", "grpc-test-service"),
 	} {
 		os.Setenv("IMAGE_TAG", "testing")
 		dockerUser := os.Getenv("DOCKER_USER")
