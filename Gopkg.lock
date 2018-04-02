@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/d4l3k/messagediff"
+  packages = ["."]
+  revision = "29f32d820d112dbd66e58492a6ffb7cc3106312b"
+  version = "v1.2.1"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -46,7 +52,7 @@
     "google/api",
     "google/rpc"
   ]
-  revision = "0cd9801be74a10d5ac39d69626eac8255ffcd502"
+  revision = "08a7655d27152912db7aaf4f983275eaf8d128ef"
 
 [[projects]]
   name = "github.com/gogo/protobuf"
@@ -74,17 +80,20 @@
   revision = "66deaeb636dff1ac7d938ce666d090556056a4b0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/golang/protobuf"
   packages = [
+    "jsonpb",
     "proto",
     "protoc-gen-go/descriptor",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
+    "ptypes/empty",
+    "ptypes/struct",
     "ptypes/timestamp"
   ]
-  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
-  version = "v1.0.0"
+  revision = "e09c5db296004fbe3f74490e84dcd62c3c5ddb1b"
 
 [[projects]]
   branch = "master"
@@ -119,6 +128,19 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/grpc-ecosystem/go-grpc-middleware"
+  packages = [
+    ".",
+    "logging",
+    "logging/zap",
+    "logging/zap/ctxzap",
+    "tags",
+    "tags/zap"
+  ]
+  revision = "bc372cc64f55abd91995ba3f219b380ffbc59e9d"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/golang-lru"
   packages = [
     ".",
@@ -135,8 +157,8 @@
 [[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
-  revision = "163f41321a19dd09362d4c63cc2489db2015f1f4"
-  version = "0.3.2"
+  revision = "0d4b488675fdec1dde48751b05ab530cf0b630e1"
+  version = "v0.3.2"
 
 [[projects]]
   name = "github.com/json-iterator/go"
@@ -159,8 +181,8 @@
 [[projects]]
   name = "github.com/lyft/protoc-gen-validate"
   packages = ["validate"]
-  revision = "930a67cf7ba41b9d9436ad7a1be70a5d5ff6e1fc"
-  version = "v0.0.6"
+  revision = "8e6aaf55f4954f1ef9d3ee2e8f5a50e79cc04f8f"
+  version = "v0.0.5"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -305,13 +327,13 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "db55cbcbb3e947f3bf05b61e1d2817655b2d01c7"
+  revision = "9e20aa23cd4940b3220a8c2fc2690f03c8bb35a7"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "0a39c18e5fd9e6da5c8a0ed1ff191040862a25a0"
+  revision = "da06cbac45bb7441bb59c8cc5e21086d64c758fc"
 
 [[projects]]
   branch = "master"
@@ -323,7 +345,7 @@
     "nats-streaming",
     "rest"
   ]
-  revision = "dfbeb95e008649d3a4acec7d4276f35c33130d0e"
+  revision = "8dd67b0ccbff469403bc531bfc8c5d857f69d552"
 
 [[projects]]
   branch = "master"
@@ -341,10 +363,11 @@
     "crd/client/clientset/versioned/scheme",
     "crd/client/clientset/versioned/typed/solo.io/v1",
     "crd/solo.io/v1",
+    "dependencies",
     "file",
     "internal/crud"
   ]
-  revision = "25d855b96279b2180b35dd60b5f0be522c2eafab"
+  revision = "497dd0e48f7a86b3cef58cf73405dfd92a650c04"
 
 [[projects]]
   branch = "master"
@@ -359,10 +382,35 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "go.uber.org/atomic"
+  packages = ["."]
+  revision = "8474b86a5a6f79c443ce4b2992817ff32cf208b8"
+  version = "v1.3.1"
+
+[[projects]]
+  name = "go.uber.org/multierr"
+  packages = ["."]
+  revision = "3c4937480c32f4c13a875a1829af76c98ca3d40a"
+  version = "v1.1.0"
+
+[[projects]]
+  name = "go.uber.org/zap"
+  packages = [
+    ".",
+    "buffer",
+    "internal/bufferpool",
+    "internal/color",
+    "internal/exit",
+    "zapcore"
+  ]
+  revision = "35aad584952c3e7020db7b839f6b102de6271f89"
+  version = "v1.7.1"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "88942b9c40a4c9d203b82b3731787b672d6e809b"
+  revision = "12892e8c234f4fe6f6803f052061de9057903bb2"
 
 [[projects]]
   branch = "master"
@@ -380,7 +428,7 @@
     "publicsuffix",
     "trace"
   ]
-  revision = "6078986fec03a1dcc236c34816c71b0e05018fda"
+  revision = "b68f30494add4df6bd8ef5e82803f308e7f7c59c"
 
 [[projects]]
   branch = "master"
@@ -427,7 +475,10 @@
 [[projects]]
   branch = "master"
   name = "google.golang.org/genproto"
-  packages = ["googleapis/rpc/status"]
+  packages = [
+    "googleapis/api/annotations",
+    "googleapis/rpc/status"
+  ]
   revision = "ab0870e398d5dd054b868c0db1481ab029b9a9f2"
 
 [[projects]]
@@ -449,6 +500,8 @@
     "metadata",
     "naming",
     "peer",
+    "reflection",
+    "reflection/grpc_reflection_v1alpha",
     "resolver",
     "resolver/dns",
     "resolver/passthrough",
@@ -517,7 +570,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "ab194a3e88161111fb267a02a266ab745a0c6685"
+  revision = "76b8134f2082ae81f4989c709be17587745ef0c0"
 
 [[projects]]
   branch = "master"
@@ -698,6 +751,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a625734ae1fa38ccfa144031618a2c7d0fec0f70aec5aeea3ae295b9de34fe2d"
+  inputs-digest = "c7b4750bd2e9e5cfc56d53a8095a629f61b07c51e5d134930311843de74a4a72"
   solver-name = "gps-cdcl"
   solver-version = 1
