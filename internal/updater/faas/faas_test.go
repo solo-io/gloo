@@ -92,6 +92,8 @@ var _ = Describe("Faas", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(outspec.Path).To(Equal("/function/test"))
+			Expect(outspec.Header[":method"]).To(Equal("POST"))
+			Expect(outspec.PassthroughBody).To(Equal(true))
 		}
 
 	})

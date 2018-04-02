@@ -157,8 +157,9 @@ func createFunction(fn FaasFunction) *v1.Function {
 	return &v1.Function{
 		Name: fn.Name,
 		Spec: rest.EncodeFunctionSpec(rest.Template{
-			Path:   path.Join("/function", fn.Name),
-			Header: headersTemplate,
+			Path:            path.Join("/function", fn.Name),
+			Header:          headersTemplate,
+			PassthroughBody: true,
 		}),
 	}
 }
