@@ -280,7 +280,7 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "9e20aa23cd4940b3220a8c2fc2690f03c8bb35a7"
+  revision = "950fe44d5c27e24f2086191a4828084905794f77"
 
 [[projects]]
   branch = "master"
@@ -295,13 +295,13 @@
     ".",
     "dependencies"
   ]
-  revision = "497dd0e48f7a86b3cef58cf73405dfd92a650c04"
+  revision = "684b57cf078ca59aee4eb841c9b53d11d748be23"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "ca82edffd95b3873926ee04816d1853cb2b89b90"
+  revision = "1e982896c4c4dcdd8f5cf2ab88c435032a0ec7d3"
 
 [[projects]]
   branch = "master"
