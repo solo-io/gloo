@@ -10,6 +10,26 @@ import (
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
+var (
+	validRegions = map[string]bool{
+		"northamerica-northeast1": true,
+		"us-central1":             true,
+		"us-west1":                true,
+		"us-east4":                true,
+		"us-east1":                true,
+		"southamerica-east1":      true,
+		"europe-west1":            true,
+		"europe-west2":            true,
+		"europe-west3":            true,
+		"europe-west4":            true,
+		"asia-south1":             true,
+		"asia-southeast1":         true,
+		"asia-east1":              true,
+		"asia-northeast1":         true,
+		"australia-southeast1":    true,
+	}
+)
+
 type UpstreamSpec struct {
 	Region    string `json:"region"`
 	ProjectId string `json:"project_id"`
@@ -24,41 +44,16 @@ func DecodeUpstreamSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {
 }
 
 func (s *UpstreamSpec) validateUpstream() error {
-	switch s.Region {
-
-	case "northamerica-northeast1":
-		return nil
-	case "us-central1":
-		return nil
-	case "us-west1":
-		return nil
-	case "us-east4":
-		return nil
-	case "us-east1":
-		return nil
-	case "southamerica-east1":
-		return nil
-	case "europe-west1":
-		return nil
-	case "europe-west2":
-		return nil
-	case "europe-west3":
-		return nil
-	case "europe-west4":
-		return nil
-	case "asia-south1":
-		return nil
-	case "asia-southeast1":
-		return nil
-	case "asia-east1":
-		return nil
-	case "asia-northeast1":
-		return nil
-	case "australia-southeast1":
-		return nil
+	_, exists := validRegions[s.Region]
+	if !exists {
+		return errors.New("no such region")
 
 	}
-	return errors.New("no such region")
+
+	if s.ProjectId == "" {
+		return errors.New("missing project ID")
+	}
+	return nil
 }
 
 func (s *UpstreamSpec) GetGFuncHostname() string {
@@ -68,8 +63,8 @@ func (s *UpstreamSpec) GetGFuncHostname() string {
 type FunctionSpec struct {
 	URL string `json:"URL"`
 
-	path string
-	host string
+	path string // used by envoy filter
+	host string // used by envoy filter
 }
 
 func DecodeFunctionSpec(generic v1.FunctionSpec) (*FunctionSpec, error) {
@@ -77,24 +72,12 @@ func DecodeFunctionSpec(generic v1.FunctionSpec) (*FunctionSpec, error) {
 	if err := protoutil.UnmarshalStruct(generic, s); err != nil {
 		return nil, err
 	}
-	err := s.ValidateGFunc()
-	if err != nil {
+	if err := s.ValidateGFunc(); err != nil {
 		return s, err
 	}
-
-	return NewFuncFromUrl(s.URL)
-}
-
-func NewFuncFromUrl(urls string) (*FunctionSpec, error) {
-	s := new(FunctionSpec)
-	s.URL = urls
-	parsedUrl, err := url.Parse(urls)
-	if err != nil {
-		return s, err
-	}
-
-	s.path = parsedUrl.Path
-	s.host = parsedUrl.Host
+	parsedURL, _ := url.Parse(s.URL)
+	s.path = parsedURL.Path
+	s.host = parsedURL.Host
 	return s, nil
 }
 
@@ -106,9 +89,23 @@ func EncodeFunctionSpec(spec FunctionSpec) *types.Struct {
 	return v1Spec
 }
 
+// TODO(ashish) - is this being called from outside this package?
+// can this be merged into DecodeFuncionSpec
 func (s *FunctionSpec) ValidateGFunc() error {
 	if s.URL == "" {
-		return errors.New("invalid function url")
+		return errors.New("invalid function URL")
+	}
+	parsedURL, err := url.Parse(s.URL)
+	if err != nil {
+		return err
+	}
+
+	if parsedURL.Path == "" {
+		return errors.New("invalid function URL; missing path")
+	}
+
+	if parsedURL.Host == "" {
+		return errors.New("invalid function URL; missing host")
 	}
 	return nil
 }
