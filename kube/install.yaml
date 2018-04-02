@@ -47,7 +47,7 @@ metadata:
   name: gloo-role
 rules:
 - apiGroups: [""]
-  resources: ["pods", "services", "secrets", "endpoints"]
+  resources: ["pods", "services", "secrets", "endpoints", "configmaps"]
   verbs: ["get", "watch", "list"]
 - apiGroups: [""]
   resources: ["namespaces"]
@@ -271,7 +271,38 @@ data:
 #         Services       #
 #                        #
 ##########################
-
+---
+#rbac for gloo-discovery
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-discovery-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: [""]
+  resources: ["secrets", "configmaps"]
+  verbs: ["*"]
+- apiGroups: ["extensions"]
+  resources: ["ingresses"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: ["gloo.solo.io"]
+  resources: ["upstreams", "virtualhosts"]
+  verbs: ["*"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-discovery-cluster-admin-binding
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: gloo-system
+roleRef:
+  kind: ClusterRole
+  name: gloo-discovery-role
+  apiGroup: rbac.authorization.k8s.io
 
 ---
 apiVersion: extensions/v1beta1
@@ -335,6 +366,8 @@ spec:
         - "--storage.refreshrate=30m"
         - "--secrets.type=kube"
         - "--secrets.refreshrate=30m"
+        - "--files.type=kube"
+        - "--files.refreshrate=30m"
         - "--kube.namespace=gloo-system"
 
 
