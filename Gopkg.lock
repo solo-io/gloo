@@ -513,7 +513,7 @@
     "nats-streaming",
     "rest"
   ]
-  revision = "8dd67b0ccbff469403bc531bfc8c5d857f69d552"
+  revision = "60b4c11b785f7f1921e2efd354d3d856a788e8b8"
 
 [[projects]]
   branch = "master"
@@ -531,13 +531,13 @@
     "file",
     "internal/crud"
   ]
-  revision = "497dd0e48f7a86b3cef58cf73405dfd92a650c04"
+  revision = "684b57cf078ca59aee4eb841c9b53d11d748be23"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "ca82edffd95b3873926ee04816d1853cb2b89b90"
+  revision = "1e982896c4c4dcdd8f5cf2ab88c435032a0ec7d3"
 
 [[projects]]
   branch = "master"
@@ -925,6 +925,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "32bcd44d2099c29e8af1650d357db5ec59ac2ffc7aee01ade5da816197cce86e"
+  inputs-digest = "5d284b00d9025782f65f590d13e0cae0f7943d5806c928ade50167b2249d809c"
   solver-name = "gps-cdcl"
   solver-version = 1
