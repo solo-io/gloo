@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/d4l3k/messagediff"
+  packages = ["."]
+  revision = "29f32d820d112dbd66e58492a6ffb7cc3106312b"
+  version = "v1.2.1"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -37,7 +43,7 @@
     "google/api",
     "google/rpc"
   ]
-  revision = "0cd9801be74a10d5ac39d69626eac8255ffcd502"
+  revision = "08a7655d27152912db7aaf4f983275eaf8d128ef"
 
 [[projects]]
   name = "github.com/gogo/protobuf"
@@ -126,8 +132,8 @@
 [[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
-  revision = "163f41321a19dd09362d4c63cc2489db2015f1f4"
-  version = "0.3.2"
+  revision = "0d4b488675fdec1dde48751b05ab530cf0b630e1"
+  version = "v0.3.2"
 
 [[projects]]
   name = "github.com/inconshreveable/mousetrap"
@@ -271,19 +277,19 @@
     "pkg/secretwatcher",
     "pkg/signals"
   ]
-  revision = "db55cbcbb3e947f3bf05b61e1d2817655b2d01c7"
+  revision = "9e20aa23cd4940b3220a8c2fc2690f03c8bb35a7"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-api"
   packages = ["pkg/api/types/v1"]
-  revision = "0a39c18e5fd9e6da5c8a0ed1ff191040862a25a0"
+  revision = "da06cbac45bb7441bb59c8cc5e21086d64c758fc"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-plugins"
   packages = ["kubernetes"]
-  revision = "dfbeb95e008649d3a4acec7d4276f35c33130d0e"
+  revision = "8dd67b0ccbff469403bc531bfc8c5d857f69d552"
 
 [[projects]]
   branch = "master"
@@ -295,16 +301,17 @@
     "crd/client/clientset/versioned/scheme",
     "crd/client/clientset/versioned/typed/solo.io/v1",
     "crd/solo.io/v1",
+    "dependencies",
     "file",
     "internal/crud"
   ]
-  revision = "25d855b96279b2180b35dd60b5f0be522c2eafab"
+  revision = "497dd0e48f7a86b3cef58cf73405dfd92a650c04"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "4940b4291a9ffe5ab88d24c36cb3bc4225791778"
+  revision = "ca82edffd95b3873926ee04816d1853cb2b89b90"
 
 [[projects]]
   branch = "master"
@@ -328,7 +335,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "88942b9c40a4c9d203b82b3731787b672d6e809b"
+  revision = "12892e8c234f4fe6f6803f052061de9057903bb2"
 
 [[projects]]
   branch = "master"
@@ -345,7 +352,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "6078986fec03a1dcc236c34816c71b0e05018fda"
+  revision = "b68f30494add4df6bd8ef5e82803f308e7f7c59c"
 
 [[projects]]
   branch = "master"
@@ -482,7 +489,7 @@
     "pkg/client/clientset/clientset/scheme",
     "pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
   ]
-  revision = "ab194a3e88161111fb267a02a266ab745a0c6685"
+  revision = "76b8134f2082ae81f4989c709be17587745ef0c0"
 
 [[projects]]
   branch = "master"
