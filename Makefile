@@ -1,4 +1,4 @@
-SOURCES := $(shell find . -name *.go)
+SOURCES := $(shell find . -name "*.go")
 BINARY:=gloo-function-discovery
 VERSION:=$(shell cat version)
 IMAGE_TAG?=v$(VERSION)
