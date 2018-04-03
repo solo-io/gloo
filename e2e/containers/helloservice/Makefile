@@ -1,4 +1,4 @@
-SOURCES := $(shell find . -name *.go)
+SOURCES := $(shell find . -name "*.go")
 
 BINARY:=helloservice
 IMAGE_TAG?=v0.1
