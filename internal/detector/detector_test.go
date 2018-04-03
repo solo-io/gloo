@@ -36,7 +36,7 @@ type mockDetector struct {
 	triesBeforeSucceding int
 }
 
-func (d *mockDetector) DetectFunctionalService(us *v1.Upstream, addr string) (*v1.ServiceInfo, map[string]string, error) {
+func (d *mockDetector) DetectFunctionalService(_ *v1.Upstream, addr string) (*v1.ServiceInfo, map[string]string, error) {
 	totalTries++
 	d.triesBeforeSucceding--
 	if d.triesBeforeSucceding > 0 {
