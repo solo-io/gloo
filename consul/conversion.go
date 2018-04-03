@@ -35,20 +35,38 @@ func toKVPair(rootPath string, item v1.ConfigObject) (*api.KVPair, error) {
 	}, nil
 }
 
-func setResourceVersion(item *v1.Upstream, p *api.KVPair) {
+func setResourceVersion(item v1.ConfigObject, p *api.KVPair, t ConfigObjectType) {
 	resourceVersion := fmt.Sprintf("%v", p.ModifyIndex)
-	if item.Metadata == nil {
-		item.Metadata = &v1.Metadata{}
+	switch t {
+	case configObjectTypeUpstream:
+		if item.(*v1.Upstream).Metadata == nil {
+			item.(*v1.Upstream).Metadata = &v1.Metadata{}
+		}
+		item.(*v1.Upstream).Metadata.ResourceVersion = resourceVersion
+	case configObjectTypeVirtualHost:
+		if item.(*v1.VirtualHost).Metadata == nil {
+			item.(*v1.VirtualHost).Metadata = &v1.Metadata{}
+		}
+		item.(*v1.VirtualHost).Metadata.ResourceVersion = resourceVersion
+	default:
+		panic("invalid type: " + t)
 	}
-	item.Metadata.ResourceVersion = resourceVersion
 }
 
-func upstreamFromKVPair(p *api.KVPair) (*v1.Upstream, error) {
-	var us v1.Upstream
-	err := proto.Unmarshal(p.Value, &us)
+func configObjectFromKVPair(p *api.KVPair, t ConfigObjectType) (v1.ConfigObject, error) {
+	var item v1.ConfigObject
+	switch t {
+	case configObjectTypeUpstream:
+		item = &v1.Upstream{}
+	case configObjectTypeVirtualHost:
+		item = &v1.VirtualHost{}
+	default:
+		panic("invalid type: " + t)
+	}
+	err := proto.Unmarshal(p.Value, item)
 	if err != nil {
 		return nil, errors.Wrap(err, "unmarshalling cfg object from proto")
 	}
-	setResourceVersion(&us, p)
-	return &us, nil
+	setResourceVersion(item, p, t)
+	return item, nil
 }

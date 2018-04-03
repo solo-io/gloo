@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
+	"github.com/solo-io/gloo-storage"
 )
 
 type Client struct {
@@ -12,7 +13,7 @@ type Client struct {
 }
 
 // TODO: support basic auth and tls
-func NewStorage(cfg *api.Config, rootPath string, syncFrequency time.Duration) (*Client, error) {
+func NewStorage(cfg *api.Config, rootPath string, syncFrequency time.Duration) (storage.Interface, error) {
 	// Get a new client
 	client, err := api.NewClient(cfg)
 	if err != nil {
@@ -22,35 +23,40 @@ func NewStorage(cfg *api.Config, rootPath string, syncFrequency time.Duration) (
 	return &Client{
 		v1: &v1client{
 			upstreams: &upstreamsClient{
-				consul:        client,
-				rootPath:      rootPath + "/upstreams",
-				syncFrequency: syncFrequency,
+				&baseClient{
+					consul:        client,
+					rootPath:      rootPath + "/upstreams",
+					syncFrequency: syncFrequency,
+				},
 			},
-			//virtualHosts: &virtualHostsClient{
-			//	dir:           filepath.Join(dir, virtualHostsDir),
-			//	syncFrequency: syncFrequency,
-			//},
+			virtualHosts: &virtualHostsClient{
+				&baseClient{
+					consul:        client,
+					rootPath:      rootPath + "/virtualhosts",
+					syncFrequency: syncFrequency,
+				},
+			},
 		},
 	}, nil
 }
 
-func (c *Client) V1() *v1client {
+func (c *Client) V1() storage.V1 {
 	return c.v1
 }
 
 type v1client struct {
-	upstreams *upstreamsClient
-	//virtualHosts *virtualHostsClient
+	upstreams    *upstreamsClient
+	virtualHosts *virtualHostsClient
 }
 
 func (c *v1client) Register() error {
 	return nil
 }
 
-func (c *v1client) Upstreams() *upstreamsClient {
+func (c *v1client) Upstreams() storage.Upstreams {
 	return c.upstreams
 }
 
-//func (c *v1client) VirtualHosts() storage.VirtualHosts {
-//	return c.virtualHosts
-//}
+func (c *v1client) VirtualHosts() storage.VirtualHosts {
+	return c.virtualHosts
+}
