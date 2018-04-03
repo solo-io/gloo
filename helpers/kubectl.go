@@ -104,27 +104,29 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 		return errors.Wrap(err, "writing generated test resources template")
 	}
 
-	// order matters here
-	resources := []string{
-		"install.yml",
-		"testing-resources.yml",
+	if err := kubectl("apply", "-f", filepath.Join(kubeResourcesDir, "install.yml")); err != nil {
+		return errors.Wrapf(err, "creating kube resource from install.yml")
 	}
-	for _, resource := range resources {
-		if err := kubectl("apply", "-f", filepath.Join(kubeResourcesDir, resource)); err != nil {
-			return errors.Wrapf(err, "creating kube resource from "+resource)
-		}
-	}
-	if err := waitPodsRunning(testrunner,
-		helloservice,
-		helloservice2,
+	if err := waitPodsRunning(
 		envoy,
 		gloo,
 		ingress,
 		k8sd,
 		funcitonDiscovery,
+	); err != nil {
+		return errors.Wrap(err, "waiting for pods to start")
+	}
+	if err := kubectl("apply", "-f", filepath.Join(kubeResourcesDir, "testing-resources.yml")); err != nil {
+		return errors.Wrapf(err, "creating kube resource from testing-resources.yml")
+	}
+	if err := waitPodsRunning(
+		testrunner,
+		helloservice,
+		helloservice2,
 		upstreamForEvents,
 		grpcTestService,
-		eventEmitter); err != nil {
+		eventEmitter,
+	); err != nil {
 		return errors.Wrap(err, "waiting for pods to start")
 	}
 	TestRunner("curl", "test-ingress:19000/logging?config=debug")
