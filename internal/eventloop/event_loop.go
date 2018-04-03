@@ -7,8 +7,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"sync"
-
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/detector"
 	"github.com/solo-io/gloo-function-discovery/internal/grpc"
@@ -31,6 +29,15 @@ import (
 	kubesecrets "github.com/solo-io/gloo/pkg/secretwatcher/kube"
 	"github.com/solo-io/gloo/pkg/secretwatcher/vault"
 )
+
+const (
+	maxThreadsPerUpstream = 10
+)
+
+type workItem struct {
+	upstream *v1.Upstream
+	secrets  secretwatcher.SecretMap
+}
 
 func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-chan struct{}, errs chan error) error {
 	store, err := createStorageClient(opts)
@@ -73,13 +80,23 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 		upstreams []*v1.Upstream
 	}
 
-	updatingUpstreams := make(map[string]*sync.Mutex)
+	workQueues := make(map[string]chan *workItem)
+
+	updateUpstream := func(us *v1.Upstream, secrets secretwatcher.SecretMap) {
+		log.Debugf("attempting update for %v", us.Name)
+		if err := updater.UpdateServiceInfo(store, us.Name, marker); err != nil {
+			errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
+		}
+		if err := updater.UpdateFunctions(store, us.Name, secrets); err != nil {
+			errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
+		}
+	}
 
 	update := func() {
-		log.Debugf("updating %v upstreams", len(cache.upstreams))
+		log.Debugf("beginning update for %v upstreams", len(cache.upstreams))
 
-		// clean locks for upstreams that have been deleted
-		for usName := range updatingUpstreams {
+		// clean queues for upstreams that have been deleted
+		for usName := range workQueues {
 			var upstreamFound bool
 			for _, us := range cache.upstreams {
 				if usName == us.Name {
@@ -88,7 +105,8 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 				}
 			}
 			if !upstreamFound {
-				delete(updatingUpstreams, usName)
+				close(workQueues[usName])
+				delete(workQueues, usName)
 			}
 		}
 
@@ -101,22 +119,19 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 		}(cache.upstreams)
 
 		for _, us := range cache.upstreams {
-			_, ok := updatingUpstreams[us.Name]
+			_, ok := workQueues[us.Name]
 			if !ok {
-				updatingUpstreams[us.Name] = &sync.Mutex{}
+				workQueues[us.Name] = make(chan *workItem, maxThreadsPerUpstream)
+				// start worker thread for this upstream
+				go func(workQueues map[string]chan *workItem, usName string) {
+					log.Debugf("starting goroutine for %s", usName)
+					for work := range workQueues[usName] {
+						updateUpstream(work.upstream, work.secrets)
+					}
+					log.Debugf("exiting goroutine for %s", usName)
+				}(workQueues, us.Name)
 			}
-			// ensure only 1 update at a time per upstream
-			updatingUpstreams[us.Name].Lock()
-			go func(us *v1.Upstream) {
-				log.Debugf("starting update goroutine for %v", us.Name)
-				defer updatingUpstreams[us.Name].Unlock()
-				if err := updater.UpdateServiceInfo(store, us.Name, marker); err != nil {
-					errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
-				}
-				if err := updater.UpdateFunctions(store, us.Name, cache.secrets); err != nil {
-					errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
-				}
-			}(us)
+			workQueues[us.Name] <- &workItem{upstream: us, secrets: cache.secrets}
 		}
 	}
 
