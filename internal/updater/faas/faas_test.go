@@ -109,6 +109,15 @@ var _ = Describe("Faas", func() {
 		}
 	})
 
+	It("should not crash on nil metadata upstream", func() {
+		fr := FassRetriever{Lister: nil}
+
+		for us := range getServices("", "not-the-gateway") {
+			us.Metadata = nil
+			Expect(func() { fr.GetFuncs(us) }).ShouldNot(Panic())
+		}
+	})
+
 	It("should ignore non faas upstreams", func() {
 		fr := FassRetriever{Lister: nil}
 

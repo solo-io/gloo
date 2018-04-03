@@ -78,7 +78,9 @@ type FassRetriever struct {
 }
 
 func getServiceHost(us *v1.Upstream) (string, error) {
-
+	if us.Metadata == nil {
+		return "", nil
+	}
 	if us.Metadata.Namespace != "openfaas" || us.Name != "gateway" {
 		return "", nil
 	}
