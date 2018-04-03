@@ -26,7 +26,7 @@ type FaasFunction struct {
 type FaasFunctions []FaasFunction
 
 func GetFuncs(us *v1.Upstream) ([]*v1.Function, error) {
-	fr := FassRetriever{Lister: ListGatewayFunctions(httpget)}
+	fr := FassRetriever{Lister: listGatewayFunctions(httpget)}
 	return fr.GetFuncs(us)
 }
 
@@ -47,7 +47,7 @@ func httpget(s string) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
-func ListGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw string) (FaasFunctions, error) {
+func listGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw string) (FaasFunctions, error) {
 
 	return func(gw string) (FaasFunctions, error) {
 		u, err := url.Parse(gw)

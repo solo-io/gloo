@@ -1,4 +1,4 @@
-package faas_test
+package faas
 
 import (
 	"bytes"
@@ -10,7 +10,6 @@ import (
 	"github.com/solo-io/gloo-plugins/kubernetes"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	. "github.com/solo-io/gloo-function-discovery/internal/updater/faas"
 	"github.com/solo-io/gloo-plugins/rest"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
@@ -150,7 +149,7 @@ var _ = Describe("Faas", func() {
 
 	It("get correct gw functions", func() {
 
-		list := ListGatewayFunctions(
+		list := listGatewayFunctions(
 			func(string) (io.ReadCloser, error) {
 				var b bytes.Buffer
 				b.WriteString(`[{"name":"qrcode-go","image":"johnmccabe/qrcode","invocationCount":0,"replicas":1,"envProcess":"","availableReplicas":1,"labels":{"com.openfaas.ui.ext":"png","faas_function":"qrcode-go"}}]`)
