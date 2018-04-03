@@ -58,6 +58,8 @@ func (d *swaggerDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo,
 			}
 			annotations := map[string]string{swagger.AnnotationKeySwaggerURL: url}
 			return svcInfo, annotations, nil
+		} else {
+			errs = multierror.Append(errs, errors.Errorf("path: %v response code: %v headers: %v", uri, res.Status, res.Header))
 		}
 	}
 	// not a swagger upstream
