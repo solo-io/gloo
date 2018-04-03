@@ -209,6 +209,7 @@
   packages = [
     ".",
     "config",
+    "extensions/table",
     "internal/codelocation",
     "internal/containernode",
     "internal/failer",
@@ -280,7 +281,7 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "9ce7dc475a057f593cdbfe85407945a553fa209f"
+  revision = "3d7ad09178ad4c095f196ed9c52bb092cfaf209e"
 
 [[projects]]
   branch = "master"
@@ -319,7 +320,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "12892e8c234f4fe6f6803f052061de9057903bb2"
+  revision = "b2aa35443fbc700ab74c586ae79b81c171851023"
 
 [[projects]]
   branch = "master"
@@ -384,7 +385,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "ab0870e398d5dd054b868c0db1481ab029b9a9f2"
+  revision = "35de2414665fc36f56b72d982c5af480d86de5ab"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -637,11 +638,11 @@
   branch = "master"
   name = "k8s.io/kube-openapi"
   packages = ["pkg/util/proto"]
-  revision = "50ae88d24ede7b8bad68e23c805b5d3da5c8abaf"
+  revision = "0b1a1cda24b26020ee60be6fdae01b50615505c8"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5f0dacc4aca36a7e6daadbe360db9e4cf98164aaff55e592018633c61f2e3571"
+  inputs-digest = "1e1e71e3e7bdcd381cb8178843a3a39d7e971f44335ca4c37d0b290ce17e9764"
   solver-name = "gps-cdcl"
   solver-version = 1
