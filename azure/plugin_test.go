@@ -172,6 +172,56 @@ var _ = Describe("Processing upstream", func() {
 	})
 })
 
+var _ = Describe("Processing function", func() {
+	Context("with non Azure upstream", func() {
+		It("should return nil and not error", func() {
+			p := Plugin{}
+			nonAzure := &plugin.FunctionPluginParams{}
+			out, err := p.ParseFunctionSpec(nonAzure, functionSpec("foo", "anonymous"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(out).To(BeNil())
+		})
+	})
+	Context("with invalid function spec", func() {
+		It("should error", func() {
+			p := Plugin{
+				isNeeded: true,
+				hostname: "my-appwhos.azurewebsites.net",
+				apiKeys:  map[string]string{"foo": "key1"},
+			}
+			param := &plugin.FunctionPluginParams{UpstreamType: UpstreamTypeAzure}
+			_, err := p.ParseFunctionSpec(param, functionSpec("foo", "invalid"))
+			Expect(err).To(HaveOccurred())
+		})
+	})
+	Context("with missing key", func() {
+		It("should error", func() {
+			p := Plugin{
+				isNeeded: true,
+				hostname: "my-appwhos.azurewebsites.net",
+				apiKeys:  map[string]string{"foo": "key1"},
+			}
+			param := &plugin.FunctionPluginParams{UpstreamType: UpstreamTypeAzure}
+			_, err := p.ParseFunctionSpec(param, functionSpec("bar", "function"))
+			Expect(err).To(HaveOccurred())
+		})
+	})
+	Context("with valid function spec", func() {
+		It("should return host and path", func() {
+			p := Plugin{
+				isNeeded: true,
+				hostname: "my-appwhos.azurewebsites.net",
+				apiKeys:  map[string]string{"foo": "key1"},
+			}
+			param := &plugin.FunctionPluginParams{UpstreamType: UpstreamTypeAzure}
+			out, err := p.ParseFunctionSpec(param, functionSpec("foo", "function"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(get(out, "host")).To(Equal("my-appwhos.azurewebsites.net"))
+			Expect(get(out, "path")).To(Equal("/api/foo?code=key1"))
+		})
+	})
+})
+
 var _ = Describe("API key", func() {
 	Describe("retrieval", func() {
 		Context("of a function key from an empty map", func() {
@@ -466,4 +516,25 @@ func upstream(name string, functionAppName string, secretRef string) *v1.Upstrea
 		Type: UpstreamTypeAzure,
 		Spec: upstreamSpec(functionAppName, secretRef),
 	}
+}
+
+func functionSpec(functionName string, authLevel string) v1.FunctionSpec {
+	return &types.Struct{
+		Fields: map[string]*types.Value{
+			"function_name": {Kind: &types.Value_StringValue{StringValue: functionName}},
+			"auth_level":    {Kind: &types.Value_StringValue{StringValue: authLevel}},
+		},
+	}
+}
+
+func get(s *types.Struct, key string) string {
+	v, ok := s.Fields[key]
+	if !ok {
+		return ""
+	}
+	sv, ok := v.Kind.(*types.Value_StringValue)
+	if !ok {
+		return ""
+	}
+	return sv.StringValue
 }
