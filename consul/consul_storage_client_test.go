@@ -207,19 +207,20 @@ var _ = Describe("ConsulStorageClient", func() {
 						us3, err := client.V1().Upstreams().Create(input3)
 						Expect(err).NotTo(HaveOccurred())
 
-						Eventually(lists, time.Second).Should(HaveLen(3))
-						list1 := <-lists
-						Expect(list1).To(HaveLen(1))
-						Expect(list1).To(ContainElement(us1))
-						list2 := <-lists
-						Expect(list2).To(HaveLen(2))
-						Expect(list2).To(ContainElement(us1))
-						Expect(list2).To(ContainElement(us2))
-						list3 := <-lists
-						Expect(list3).To(HaveLen(3))
-						Expect(list3).To(ContainElement(us1))
-						Expect(list3).To(ContainElement(us2))
-						Expect(list3).To(ContainElement(us3))
+						var list []*v1.Upstream
+						Eventually(func() []*v1.Upstream {
+							select {
+							default:
+								return nil
+							case l := <-lists:
+								list = l
+								return l
+							}
+						}).Should(HaveLen(3))
+						Expect(list).To(HaveLen(3))
+						Expect(list).To(ContainElement(us1))
+						Expect(list).To(ContainElement(us2))
+						Expect(list).To(ContainElement(us3))
 					})
 				})
 			})
@@ -234,9 +235,9 @@ var _ = Describe("ConsulStorageClient", func() {
 					Name:    "myvirtualhost",
 					Domains: []string{"foo"},
 				}
-				us, err := client.V1().VirtualHosts().Create(input)
+				vh, err := client.V1().VirtualHosts().Create(input)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(us).NotTo(Equal(input))
+				Expect(vh).NotTo(Equal(input))
 				p, _, err := consul.KV().Get(rootPath+"/virtualhosts/"+input.Name, nil)
 				Expect(err).NotTo(HaveOccurred())
 				var unmarshalledVirtualHost v1.VirtualHost
@@ -244,9 +245,9 @@ var _ = Describe("ConsulStorageClient", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(&unmarshalledVirtualHost).To(Equal(input))
 				resourceVersion := fmt.Sprintf("%v", p.CreateIndex)
-				Expect(us.Metadata.ResourceVersion).To(Equal(resourceVersion))
-				input.Metadata = us.Metadata
-				Expect(us).To(Equal(input))
+				Expect(vh.Metadata.ResourceVersion).To(Equal(resourceVersion))
+				input.Metadata = vh.Metadata
+				Expect(vh).To(Equal(input))
 			})
 			It("errors when creating the same virtualhost twice", func() {
 				client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
@@ -268,9 +269,9 @@ var _ = Describe("ConsulStorageClient", func() {
 						Name:    "myvirtualhost",
 						Domains: []string{"foo"},
 					}
-					us, err := client.V1().VirtualHosts().Update(input)
+					vh, err := client.V1().VirtualHosts().Update(input)
 					Expect(err).To(HaveOccurred())
-					Expect(us).To(BeNil())
+					Expect(vh).To(BeNil())
 				})
 				It("fails if the resourceversion is not up to date", func() {
 					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
@@ -293,12 +294,12 @@ var _ = Describe("ConsulStorageClient", func() {
 						Name:    "myvirtualhost",
 						Domains: []string{"foo"},
 					}
-					us, err := client.V1().VirtualHosts().Create(input)
+					vh, err := client.V1().VirtualHosts().Create(input)
 					Expect(err).NotTo(HaveOccurred())
 					changed := proto.Clone(input).(*v1.VirtualHost)
 					changed.Domains = []string{"bar"}
 					// match resource version
-					changed.Metadata = us.Metadata
+					changed.Metadata = vh.Metadata
 					out, err := client.V1().VirtualHosts().Update(changed)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(out.Domains).To(Equal(changed.Domains))
@@ -307,9 +308,9 @@ var _ = Describe("ConsulStorageClient", func() {
 					It("fails if the virtualhost doesn't exist", func() {
 						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
 						Expect(err).NotTo(HaveOccurred())
-						us, err := client.V1().VirtualHosts().Get("foo")
+						vh, err := client.V1().VirtualHosts().Get("foo")
 						Expect(err).To(HaveOccurred())
-						Expect(us).To(BeNil())
+						Expect(vh).To(BeNil())
 					})
 					It("returns the virtualhost", func() {
 						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
@@ -318,11 +319,11 @@ var _ = Describe("ConsulStorageClient", func() {
 							Name:    "myvirtualhost",
 							Domains: []string{"foo"},
 						}
-						us, err := client.V1().VirtualHosts().Create(input)
+						vh, err := client.V1().VirtualHosts().Create(input)
 						Expect(err).NotTo(HaveOccurred())
 						out, err := client.V1().VirtualHosts().Get(input.Name)
 						Expect(err).NotTo(HaveOccurred())
-						Expect(out).To(Equal(us))
+						Expect(out).To(Equal(vh))
 						input.Metadata = out.Metadata
 						Expect(out).To(Equal(input))
 					})
@@ -343,17 +344,19 @@ var _ = Describe("ConsulStorageClient", func() {
 							Name:    "myvirtualhost3",
 							Domains: []string{"foo"},
 						}
-						us1, err := client.V1().VirtualHosts().Create(input1)
+						vh1, err := client.V1().VirtualHosts().Create(input1)
 						Expect(err).NotTo(HaveOccurred())
-						us2, err := client.V1().VirtualHosts().Create(input2)
+						time.Sleep(time.Second)
+						vh2, err := client.V1().VirtualHosts().Create(input2)
 						Expect(err).NotTo(HaveOccurred())
-						us3, err := client.V1().VirtualHosts().Create(input3)
+						time.Sleep(time.Second)
+						vh3, err := client.V1().VirtualHosts().Create(input3)
 						Expect(err).NotTo(HaveOccurred())
 						out, err := client.V1().VirtualHosts().List()
 						Expect(err).NotTo(HaveOccurred())
-						Expect(out).To(ContainElement(us1))
-						Expect(out).To(ContainElement(us2))
-						Expect(out).To(ContainElement(us3))
+						Expect(out).To(ContainElement(vh1))
+						Expect(out).To(ContainElement(vh2))
+						Expect(out).To(ContainElement(vh3))
 					})
 				})
 				Describe("watch", func() {
@@ -385,26 +388,27 @@ var _ = Describe("ConsulStorageClient", func() {
 							Name:    "myvirtualhost3",
 							Domains: []string{"foo"},
 						}
-						us1, err := client.V1().VirtualHosts().Create(input1)
+						vh1, err := client.V1().VirtualHosts().Create(input1)
 						Expect(err).NotTo(HaveOccurred())
-						us2, err := client.V1().VirtualHosts().Create(input2)
+						vh2, err := client.V1().VirtualHosts().Create(input2)
 						Expect(err).NotTo(HaveOccurred())
-						us3, err := client.V1().VirtualHosts().Create(input3)
+						vh3, err := client.V1().VirtualHosts().Create(input3)
 						Expect(err).NotTo(HaveOccurred())
 
-						Eventually(lists).Should(HaveLen(3))
-						list1 := <-lists
-						Expect(list1).To(HaveLen(1))
-						Expect(list1).To(ContainElement(us1))
-						list2 := <-lists
-						Expect(list2).To(HaveLen(2))
-						Expect(list2).To(ContainElement(us1))
-						Expect(list2).To(ContainElement(us2))
-						list3 := <-lists
-						Expect(list3).To(HaveLen(3))
-						Expect(list3).To(ContainElement(us1))
-						Expect(list3).To(ContainElement(us2))
-						Expect(list3).To(ContainElement(us3))
+						var list []*v1.VirtualHost
+						Eventually(func() []*v1.VirtualHost {
+							select {
+							default:
+								return nil
+							case l := <-lists:
+								list = l
+								return l
+							}
+						}).Should(HaveLen(3))
+						Expect(list).To(HaveLen(3))
+						Expect(list).To(ContainElement(vh1))
+						Expect(list).To(ContainElement(vh2))
+						Expect(list).To(ContainElement(vh3))
 					})
 				})
 			})
