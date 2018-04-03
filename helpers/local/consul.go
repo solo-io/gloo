@@ -37,14 +37,14 @@ func NewConsulFactory() (*ConsulFactory, error) {
 
 	bash := fmt.Sprintf(`
 set -ex
-CID=$(docker run -d  %s /bin/bash -c exit)
+CID=$(docker run -d  %s /bin/sh -c exit)
 
 # just print the image sha for repoducibility
 echo "Using Consul Image:"
 docker inspect %s -f "{{.RepoDigests}}"
 
 docker cp $CID:/bin/consul .
-docker rm $CID
+docker rm -f $CID
     `, defualtConsulDockerImage, defualtConsulDockerImage)
 	scriptfile := filepath.Join(tmpdir, "getconsul.sh")
 
@@ -108,7 +108,7 @@ func (i *ConsulInstance) RunWithPort() error {
 	if err != nil {
 		return err
 	}
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Millisecond * 1500)
 	i.cmd = cmd
 	return nil
 }
