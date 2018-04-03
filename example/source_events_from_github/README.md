@@ -1,6 +1,10 @@
 Sourcing Events from GitHub Webhooks
 ==========
 
+<h3 align="center"><img src="demo_flow.png" border="1">
+  <br>
+</h3>
+
 ## Setup
 
 #### Deploy Gloo
