@@ -147,8 +147,8 @@
 [[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
-  revision = "0d4b488675fdec1dde48751b05ab530cf0b630e1"
-  version = "v0.3.2"
+  revision = "33882c6bfe701aca0ff1472aa8b4ebd6135a560d"
+  version = "v0.3.3"
 
 [[projects]]
   name = "github.com/json-iterator/go"
@@ -280,7 +280,7 @@
     "pkg/protoutil",
     "pkg/secretwatcher"
   ]
-  revision = "950fe44d5c27e24f2086191a4828084905794f77"
+  revision = "9ce7dc475a057f593cdbfe85407945a553fa209f"
 
 [[projects]]
   branch = "master"
@@ -295,13 +295,13 @@
     ".",
     "dependencies"
   ]
-  revision = "684b57cf078ca59aee4eb841c9b53d11d748be23"
+  revision = "ef2cc37ad42209a90e02ea44b63581d9715fc471"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "1e982896c4c4dcdd8f5cf2ab88c435032a0ec7d3"
+  revision = "bec1318b6f679a19c3cf78fe641f209178538ff1"
 
 [[projects]]
   branch = "master"
