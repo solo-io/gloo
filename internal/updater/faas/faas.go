@@ -26,7 +26,7 @@ type FaasFunction struct {
 type FaasFunctions []FaasFunction
 
 func GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([]*v1.Function, error) {
-	fr := FassRetriever{Lister: listGatewayFunctions(httpget)}
+	fr := FaasRetriever{Lister: listGatewayFunctions(httpget)}
 	return fr.GetFuncs(resolve, us)
 }
 
@@ -76,7 +76,7 @@ func listGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw s
 	}
 }
 
-type FassRetriever struct {
+type FaasRetriever struct {
 	Lister func(from string) (FaasFunctions, error)
 }
 
@@ -103,7 +103,7 @@ func isKubernetesHost(us *v1.Upstream) bool {
 	return true
 }
 
-func (fr *FassRetriever) GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([]*v1.Function, error) {
+func (fr *FaasRetriever) GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([]*v1.Function, error) {
 
 	if !IsFaas(us) {
 		return nil, nil

@@ -89,7 +89,7 @@ var _ = Describe("Faas", func() {
 	})
 
 	It("should get list of functions", func() {
-		fr := FassRetriever{Lister: dummyListFuncs}
+		fr := FaasRetriever{Lister: dummyListFuncs}
 
 		for us := range getServices("", "") {
 			funcs, err := fr.GetFuncs(mockResolver, us)
@@ -111,7 +111,7 @@ var _ = Describe("Faas", func() {
 	})
 
 	It("should ignore non gateway faas upstreams", func() {
-		fr := FassRetriever{Lister: nil}
+		fr := FaasRetriever{Lister: nil}
 
 		for us := range getServices("", "not-the-gateway") {
 
@@ -123,7 +123,7 @@ var _ = Describe("Faas", func() {
 	})
 
 	It("should not crash on nil metadata upstream", func() {
-		fr := FassRetriever{Lister: nil}
+		fr := FaasRetriever{Lister: nil}
 
 		for us := range getServices("", "not-the-gateway") {
 			us.Metadata = nil
@@ -132,7 +132,7 @@ var _ = Describe("Faas", func() {
 	})
 
 	It("should ignore non faas upstreams", func() {
-		fr := FassRetriever{Lister: nil}
+		fr := FaasRetriever{Lister: nil}
 
 		for us := range getServices("not-openfaas", "") {
 
@@ -149,7 +149,7 @@ var _ = Describe("Faas", func() {
 			gw = gwinner
 			return nil, nil
 		}
-		fr := FassRetriever{Lister: f}
+		fr := FaasRetriever{Lister: f}
 		us := getKubeUs("", "")
 
 		fr.GetFuncs(mockResolver, us)
