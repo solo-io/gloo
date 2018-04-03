@@ -59,11 +59,9 @@ func (m *Marker) DetectFunctionalUpstream(us *v1.Upstream) (*v1.ServiceInfo, map
 		return nil, nil, nil
 	}
 
-	defer func() {
-		m.m.Lock()
-		m.markedOrFailed[us.Name] = true
-		m.m.Unlock()
-	}()
+	m.m.Lock()
+	m.markedOrFailed[us.Name] = true
+	m.m.Unlock()
 
 	addr, err := m.resolver.Resolve(us)
 	if err != nil {
