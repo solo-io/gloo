@@ -11,7 +11,6 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-storage/dependencies"
-	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugin"
 )
 
@@ -294,7 +293,6 @@ var _ = Describe("Plugin", func() {
 									}}}}}}))
 			}
 			Expect(filters[1].HttpFilter.Name).To(Equal("envoy.grpc_json_transcoder"))
-			log.Printf("%v", filters[1].HttpFilter.Config.Fields["services"])
 			Expect(filters[1].HttpFilter.Config.Fields["services"]).To(Equal(&types.Value{
 				Kind: &types.Value_ListValue{
 					ListValue: &types.ListValue{
