@@ -9,6 +9,27 @@ import (
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
+var (
+	validRegions = map[string]bool{
+		"us-east-2":      true,
+		"us-east-1":      true,
+		"us-west-1":      true,
+		"us-west-2":      true,
+		"ap-northeast-1": true,
+		"ap-northeast-2": true,
+		"ap-south-1":     true,
+		"ap-southeast-1": true,
+		"ap-southeast-2": true,
+		"ca-central-1":   true,
+		"cn-north-1":     true,
+		"eu-central-1":   true,
+		"eu-west-1":      true,
+		"eu-west-2":      true,
+		"eu-west-3":      true,
+		"sa-east-1":      true,
+	}
+)
+
 type UpstreamSpec struct {
 	Region    string `json:"region"`
 	SecretRef string `json:"secret_ref"`
@@ -31,41 +52,16 @@ func DecodeUpstreamSpec(generic v1.UpstreamSpec) (*UpstreamSpec, error) {
 }
 
 func (s *UpstreamSpec) validateLambda() error {
-	switch s.Region {
-	case "us-east-2":
-		return nil
-	case "us-east-1":
-		return nil
-	case "us-west-1":
-		return nil
-	case "us-west-2":
-		return nil
-	case "ap-northeast-1":
-		return nil
-	case "ap-northeast-2":
-		return nil
-	case "ap-south-1":
-		return nil
-	case "ap-southeast-1":
-		return nil
-	case "ap-southeast-2":
-		return nil
-	case "ca-central-1":
-		return nil
-	case "cn-north-1":
-		return nil
-	case "eu-central-1":
-		return nil
-	case "eu-west-1":
-		return nil
-	case "eu-west-2":
-		return nil
-	case "eu-west-3":
-		return nil
-	case "sa-east-1":
-		return nil
+	_, exists := validRegions[s.Region]
+	if !exists {
+		return errors.New("no such region")
 	}
-	return errors.New("no such region")
+
+	if s.SecretRef == "" {
+		return errors.New("missing secret reference")
+	}
+
+	return nil
 }
 
 func (s *UpstreamSpec) GetLambdaHostname() string {
