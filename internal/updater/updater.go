@@ -14,6 +14,8 @@ import (
 	"github.com/solo-io/gloo-function-discovery/internal/updater/swagger"
 	"github.com/solo-io/gloo-function-discovery/pkg/backoff"
 	"github.com/solo-io/gloo-function-discovery/pkg/functiontypes"
+	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
+
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
@@ -44,7 +46,7 @@ func GetSecretRefsToWatch(upstreams []*v1.Upstream) []string {
 // we want to forceSync on every refreshDuration
 // on a config / secrets change, we don't want to force sync
 // else we can get into an update loop
-func UpdateFunctions(gloo storage.Interface, upstreamName string, secrets secretwatcher.SecretMap) error {
+func UpdateFunctions(resolve resolver.Resolver, gloo storage.Interface, upstreamName string, secrets secretwatcher.SecretMap) error {
 	us, err := gloo.V1().Upstreams().Get(upstreamName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get existing upstream with name %v", upstreamName)
@@ -76,7 +78,7 @@ func UpdateFunctions(gloo storage.Interface, upstreamName string, secrets secret
 			return errors.Wrap(err, "retrieving swagger functions")
 		}
 	case functiontypes.FunctionTypeFaas:
-		funcs, err = faas.GetFuncs(us)
+		funcs, err = faas.GetFuncs(resolve, us)
 		if err != nil {
 			return errors.Wrap(err, "updating faas functions")
 		}

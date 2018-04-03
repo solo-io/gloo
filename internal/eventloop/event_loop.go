@@ -93,7 +93,7 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 		if err := updater.UpdateServiceInfo(store, us.Name, marker); err != nil {
 			errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
 		}
-		if err := updater.UpdateFunctions(store, us.Name, secrets); err != nil {
+		if err := updater.UpdateFunctions(resolve, store, us.Name, secrets); err != nil {
 			errs <- errors.Wrapf(err, "updating upstream %v", us.Name)
 		}
 	}
@@ -217,7 +217,7 @@ func createFileStorageClient(opts bootstrap.Options) (dependencies.FileStorage, 
 	return nil, errors.Errorf("unknown or unspecified file watcher type: %v", opts.FileWatcherOptions.Type)
 }
 
-func createResolver(opts bootstrap.Options) *resolver.Resolver {
+func createResolver(opts bootstrap.Options) resolver.Resolver {
 	kube, err := func() (kubernetes.Interface, error) {
 		cfg, err := clientcmd.BuildConfigFromFlags(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig)
 		if err != nil {
@@ -232,7 +232,7 @@ func createResolver(opts bootstrap.Options) *resolver.Resolver {
 	if err != nil {
 		log.Warnf("create kube client failed: %v. swagger services running in kubernetes will not be discovered by function discovery")
 	}
-	return &resolver.Resolver{Kube: kube}
+	return NewResolver(kube)
 }
 
 func setupSecretWatcher(opts bootstrap.Options, stop <-chan struct{}) (secretwatcher.Interface, error) {

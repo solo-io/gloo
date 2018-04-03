@@ -14,7 +14,7 @@ import (
 var _ = Describe("Marker", func() {
 	Context("happy path", func() {
 		It("marks the upstream with the service info", func() {
-			resolve := &resolver.Resolver{}
+			resolve := resolver.NewResolver(nil)
 			marker := NewMarker([]Interface{
 				&mockDetector{id: "failing", triesBeforeSucceding: 50},
 				&mockDetector{id: "succeeding", triesBeforeSucceding: 3},

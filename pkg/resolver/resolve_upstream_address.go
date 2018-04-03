@@ -12,11 +12,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type Resolver struct {
+type Resolver interface {
+	Resolve(us *v1.Upstream) (string, error)
+}
+
+func NewResolver(kube kubernetes.Interface) Resolver {
+	return &resolver{Kube: kube}
+}
+
+type resolver struct {
 	Kube kubernetes.Interface
 }
 
-func (r *Resolver) Resolve(us *v1.Upstream) (string, error) {
+func (r *resolver) Resolve(us *v1.Upstream) (string, error) {
 	switch us.Type {
 	case kubeplugin.UpstreamTypeKube:
 		return resolveKubeUpstream(r.Kube, us)

@@ -28,13 +28,13 @@ type Interface interface {
 // so should not be called concurrently from multiple goroutines
 type Marker struct {
 	detectors []Interface
-	resolver  *resolver.Resolver
+	resolver  resolver.Resolver
 
 	finishedOrFailed map[string]int
 	m                sync.RWMutex
 }
 
-func NewMarker(detectors []Interface, resolver *resolver.Resolver) *Marker {
+func NewMarker(detectors []Interface, resolver resolver.Resolver) *Marker {
 	return &Marker{
 		detectors:        detectors,
 		resolver:         resolver,

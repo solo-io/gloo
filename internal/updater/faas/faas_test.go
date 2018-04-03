@@ -73,13 +73,26 @@ func getServices(ns, n string) <-chan *v1.Upstream {
 	return c
 }
 
+type mockResolve struct {
+	result string
+}
+
+func (m *mockResolve) Resolve(us *v1.Upstream) (string, error) {
+	return m.result, nil
+}
+
 var _ = Describe("Faas", func() {
+
+	var mockResolver *mockResolve
+	BeforeEach(func() {
+		mockResolver = &mockResolve{result: "somehost"}
+	})
+
 	It("should get list of functions", func() {
 		fr := FassRetriever{Lister: dummyListFuncs}
 
 		for us := range getServices("", "") {
-
-			funcs, err := fr.GetFuncs(us)
+			funcs, err := fr.GetFuncs(mockResolver, us)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(funcs).To(Not(BeEmpty()))
@@ -102,7 +115,7 @@ var _ = Describe("Faas", func() {
 
 		for us := range getServices("", "not-the-gateway") {
 
-			funcs, err := fr.GetFuncs(us)
+			funcs, err := fr.GetFuncs(mockResolver, us)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(funcs).To(BeEmpty())
@@ -114,7 +127,7 @@ var _ = Describe("Faas", func() {
 
 		for us := range getServices("", "not-the-gateway") {
 			us.Metadata = nil
-			Expect(func() { fr.GetFuncs(us) }).ShouldNot(Panic())
+			Expect(func() { fr.GetFuncs(mockResolver, us) }).ShouldNot(Panic())
 		}
 	})
 
@@ -123,14 +136,14 @@ var _ = Describe("Faas", func() {
 
 		for us := range getServices("not-openfaas", "") {
 
-			funcs, err := fr.GetFuncs(us)
+			funcs, err := fr.GetFuncs(mockResolver, us)
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(funcs).To(BeEmpty())
 		}
 	})
 
-	It("get correct gw kube", func() {
+	It("get and http(s) url to list", func() {
 		var gw string
 		f := func(gwinner string) (FaasFunctions, error) {
 			gw = gwinner
@@ -139,21 +152,8 @@ var _ = Describe("Faas", func() {
 		fr := FassRetriever{Lister: f}
 		us := getKubeUs("", "")
 
-		fr.GetFuncs(us)
-		Expect(gw).To(Equal("http://gateway.openfaas.svc.cluster.local:8080/"))
-	})
-
-	It("get correct gw service", func() {
-		var gw string
-		f := func(gwinner string) (FaasFunctions, error) {
-			gw = gwinner
-			return nil, nil
-		}
-		fr := FassRetriever{Lister: f}
-		us := getServiceUs("", "")
-
-		fr.GetFuncs(us)
-		Expect(gw).To(Equal("http://gateway:80/"))
+		fr.GetFuncs(mockResolver, us)
+		Expect(gw).To(HavePrefix("http"))
 	})
 
 	It("get correct gw functions", func() {

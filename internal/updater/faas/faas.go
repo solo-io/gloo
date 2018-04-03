@@ -2,7 +2,6 @@ package faas
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -11,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
 	"github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/gloo-plugins/rest"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
@@ -25,17 +25,20 @@ type FaasFunction struct {
 
 type FaasFunctions []FaasFunction
 
-func GetFuncs(us *v1.Upstream) ([]*v1.Function, error) {
+func GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([]*v1.Function, error) {
 	fr := FassRetriever{Lister: listGatewayFunctions(httpget)}
-	return fr.GetFuncs(us)
+	return fr.GetFuncs(resolve, us)
 }
 
 func IsFaas(us *v1.Upstream) bool {
-	gw, err := getHost(us)
-	if err != nil {
-		return false
+	if us.Type == service.UpstreamTypeService {
+		return isServiceHost(us)
 	}
-	return gw != ""
+	if us.Type == kubernetes.UpstreamTypeKube {
+		return isKubernetesHost(us)
+	}
+
+	return false
 }
 
 func httpget(s string) (io.ReadCloser, error) {
@@ -77,67 +80,48 @@ type FassRetriever struct {
 	Lister func(from string) (FaasFunctions, error)
 }
 
-func getServiceHost(us *v1.Upstream) (string, error) {
+func isServiceHost(us *v1.Upstream) bool {
 	if us.Metadata == nil {
-		return "", nil
+		return false
 	}
 	if us.Metadata.Namespace != "openfaas" || us.Name != "gateway" {
-		return "", nil
+		return false
 	}
-
-	spec, err := service.DecodeUpstreamSpec(us.Spec)
-	if err != nil {
-		return "", errors.Wrap(err, "decoding service upstream spec")
-	}
-
-	if len(spec.Hosts) == 0 {
-		return "", errors.New("no hosts")
-	}
-
-	host := spec.Hosts[0]
-
-	gw := fmt.Sprintf("http://%s:%d/", host.Addr, host.Port)
-	return gw, nil
+	return true
 }
 
-func getKubernetesHost(us *v1.Upstream) (string, error) {
+func isKubernetesHost(us *v1.Upstream) bool {
 
 	spec, err := kubernetes.DecodeUpstreamSpec(us.Spec)
 	if err != nil {
-		return "", errors.Wrap(err, "decoding service upstream spec")
+		return false
 	}
 
 	if spec.ServiceNamespace != "openfaas" || spec.ServiceName != "gateway" {
-		return "", nil
+		return false
 	}
-
-	gw := fmt.Sprintf("http://%s.%s.svc.cluster.local:%d/", spec.ServiceName, spec.ServiceNamespace, spec.ServicePort)
-	return gw, nil
+	return true
 }
 
-func getHost(us *v1.Upstream) (string, error) {
+func (fr *FassRetriever) GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([]*v1.Function, error) {
 
-	if us.Type == service.UpstreamTypeService {
-		return getServiceHost(us)
-	}
-	if us.Type == kubernetes.UpstreamTypeKube {
-		return getKubernetesHost(us)
+	if !IsFaas(us) {
+		return nil, nil
 	}
 
-	return "", nil
-}
-
-func (fr *FassRetriever) GetFuncs(us *v1.Upstream) ([]*v1.Function, error) {
-	// decode does validation for us
-	gw, err := getHost(us)
+	gw, err := resolve.Resolve(us)
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting faas service")
 	}
+
 	if gw == "" {
 		return nil, nil
 	}
 
-	functions, err := fr.Lister(gw)
+	// convert it to an http address
+	httpgw := "http://" + gw
+
+	functions, err := fr.Lister(httpgw)
 	if err != nil {
 		return nil, errors.Wrap(err, "error fetching functions")
 	}
