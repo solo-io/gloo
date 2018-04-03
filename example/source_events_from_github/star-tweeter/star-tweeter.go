@@ -5,6 +5,8 @@ import (
 
 	"os"
 
+	"time"
+
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 	"github.com/ilackarms/go-github-webhook-server/github"
@@ -47,7 +49,7 @@ func run() error {
 func handleWatch(client *twitter.Client) func(watch *github.WatchEvent) error {
 	return func(watch *github.WatchEvent) error {
 		sender := watch.Sender.Login
-		text := fmt.Sprintf("Thanks to %v for the star on github.com/solo-io/gloo !", sender)
+		text := fmt.Sprintf("Thanks to %v for the star on github.com/solo-io/gloo (%v)!", sender, time.Now().Format(time.RFC850))
 		// Send a Tweet
 		tweet, resp, err := client.Statuses.Update(text, nil)
 		if err != nil {
