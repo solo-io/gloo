@@ -11,6 +11,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/hashicorp/consul/api"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-storage"
 	. "github.com/solo-io/gloo-storage/consul"
 	"github.com/solo-io/gloo-testing/helpers"
 )
@@ -165,6 +166,60 @@ var _ = Describe("ConsulStorageClient", func() {
 						Expect(out).To(ContainElement(us1))
 						Expect(out).To(ContainElement(us2))
 						Expect(out).To(ContainElement(us3))
+					})
+				})
+				Describe("watch", func() {
+					It("watches", func() {
+						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						Expect(err).NotTo(HaveOccurred())
+						lists := make(chan []*v1.Upstream, 3)
+						stop := make(chan struct{})
+						defer close(stop)
+						errs := make(chan error)
+						w, err := client.V1().Upstreams().Watch(&storage.UpstreamEventHandlerFuncs{
+							UpdateFunc: func(updatedList []*v1.Upstream, _ *v1.Upstream) {
+								lists <- updatedList
+							},
+						})
+						Expect(err).NotTo(HaveOccurred())
+						go func() {
+							w.Run(stop, errs)
+						}()
+						input1 := &v1.Upstream{
+							Name:              "myupstream1",
+							Type:              "foo",
+							ConnectionTimeout: time.Second,
+						}
+						input2 := &v1.Upstream{
+							Name:              "myupstream2",
+							Type:              "foo",
+							ConnectionTimeout: time.Second,
+						}
+						input3 := &v1.Upstream{
+							Name:              "myupstream3",
+							Type:              "foo",
+							ConnectionTimeout: time.Second,
+						}
+						us1, err := client.V1().Upstreams().Create(input1)
+						Expect(err).NotTo(HaveOccurred())
+						us2, err := client.V1().Upstreams().Create(input2)
+						Expect(err).NotTo(HaveOccurred())
+						us3, err := client.V1().Upstreams().Create(input3)
+						Expect(err).NotTo(HaveOccurred())
+
+						Eventually(lists).Should(HaveLen(3))
+						list1 := <-lists
+						Expect(list1).To(HaveLen(1))
+						Expect(list1).To(ContainElement(us1))
+						list2 := <-lists
+						Expect(list2).To(HaveLen(2))
+						Expect(list2).To(ContainElement(us1))
+						Expect(list2).To(ContainElement(us2))
+						list3 := <-lists
+						Expect(list3).To(HaveLen(3))
+						Expect(list3).To(ContainElement(us1))
+						Expect(list3).To(ContainElement(us2))
+						Expect(list3).To(ContainElement(us3))
 					})
 				})
 			})

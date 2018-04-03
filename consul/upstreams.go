@@ -3,11 +3,8 @@ package consul
 import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"time"
-
-	"fmt"
 
 	"github.com/hashicorp/consul/api"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
@@ -157,7 +154,6 @@ func (c *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*stor
 			h.OnUpdate(upstreams, nil)
 		}
 		return nil
-
 	}
 	return storage.NewWatcher(func(stop <-chan struct{}, errs chan error) {
 		for {
@@ -167,7 +163,7 @@ func (c *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*stor
 					log.Warnf("error syncing with consul kv-pairs: %v", err)
 				}
 			case err := <-errs:
-				runtime.HandleError(fmt.Errorf("failed to start watcher to: %v", err))
+				log.Warnf("failed to start watcher to: %v", err)
 				return
 			case <-stop:
 				return
