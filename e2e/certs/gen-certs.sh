@@ -8,7 +8,7 @@ export PKI_LOCALITY="Agloe"
 export PKI_PROVINCE="New York"
 
 mkdir $PKI_ROOT
-easypki create --filename root --ca "Acme Inc. Certificate Authority"
+easypki create --filename root --ca "test-ingress"
 cp /tmp/pki/root/certs/root.crt .
 cp root.crt ../containers/testrunner/root.crt
 cp /tmp/pki/root/keys/root.key .

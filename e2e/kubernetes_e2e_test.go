@@ -51,6 +51,7 @@ type curlOpts struct {
 	path     string
 	method   string
 	host     string
+	service  string
 	caFile   string
 	body     string
 	headers  map[string]string
@@ -65,7 +66,7 @@ func curlEventuallyShouldRespond(opts curlOpts, substr string, timeout ...time.D
 	// for some useful-ish output
 	tick := time.Tick(t / 8)
 	Eventually(func() string {
-		res, err := curlEnvoy(opts)
+		res, err := curl(opts)
 		if err != nil {
 			res = err.Error()
 		}
@@ -82,7 +83,7 @@ func curlEventuallyShouldRespond(opts curlOpts, substr string, timeout ...time.D
 	}, t).Should(ContainSubstring(substr))
 }
 
-func curlEnvoy(opts curlOpts) (string, error) {
+func curl(opts curlOpts) (string, error) {
 	args := []string{"curl", "-v"}
 
 	if opts.method != "GET" && opts.method != "" {
@@ -109,6 +110,11 @@ func curlEnvoy(opts curlOpts) (string, error) {
 	if protocol == "" {
 		protocol = "http"
 	}
-	args = append(args, fmt.Sprintf("%v://test-ingress:%v%s", protocol, port, opts.path))
+	service := opts.service
+	if service == "" {
+		service = "test-ingress"
+	}
+	args = append(args, fmt.Sprintf("%v://%s:%v%s", protocol, service, port, opts.path))
+	log.Debugf("running: curl %v", strings.Join(args, " "))
 	return TestRunner(args...)
 }

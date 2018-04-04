@@ -5,3 +5,4 @@ _gloo_config*
 e2e/containers/helloservice/helloservicee2e/kube_resources/install.yml
 e2e/kube_resources/testing-resources.yml
 e2e/kube_resources/install.yml
+e2e/containers/event-emitter/event-emitter

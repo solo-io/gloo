@@ -7,6 +7,8 @@ import (
 
 	"log"
 
+	"net/http"
+
 	"github.com/solo-io/gloo-sdk-go/events"
 )
 
@@ -20,6 +22,18 @@ func main() {
 	flag.StringVar(&topic, "topic", "test-topic", "topic to publish events to")
 	flag.Parse()
 	emitter := events.NewGloo(envoyAddr, nil).Emitter("test-source")
+
+	log.Printf("waiting")
+	start := make(chan struct{})
+	go func() {
+		http.HandleFunc("/start", func(writer http.ResponseWriter, request *http.Request) {
+			start <- struct{}{}
+			log.Printf("started")
+		})
+		http.ListenAndServe(":8080", nil)
+	}()
+
+	<-start
 
 	for t := range time.Tick(time.Second) {
 		if err := emitter.Emit(topic, data{

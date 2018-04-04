@@ -24,6 +24,20 @@ spec:
         - containerPort: 8080
           name: http
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-emitter
+  labels:
+    sevice: event-emitter
+  namespace: {{.Namespace}}
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    gloo: event-emitter
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:

@@ -57,6 +57,10 @@ var _ = Describe("Event matcher route type", func() {
 			gloo.V1().VirtualHosts().Delete(vhostName)
 		})
 		It("receive the event", func() {
+			// start the event emitter
+			resp, err := curl(curlOpts{path: "/start", service: "event-emitter"})
+			Expect(err).To(BeNil())
+			Expect(resp).To(ContainSubstring("HTTP/1.1 200"))
 			logsShouldEventuallyContain(`"message":"what an event!"`, time.Minute*5)
 		})
 	})
