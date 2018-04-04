@@ -114,7 +114,7 @@ func (m *Marker) DetectFunctionalUpstream(us *v1.Upstream) (*v1.ServiceInfo, map
 // Default values for ExponentialBackOff.
 const (
 	defaultInitialInterval = 500 * time.Millisecond
-	defaultMaxElapsedTime  = 60 * time.Second
+	defaultMaxElapsedTime  = 180 * time.Second
 )
 
 func withBackoff(fn func() error, stop chan struct{}) error {

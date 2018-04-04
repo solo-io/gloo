@@ -125,6 +125,8 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 				// start worker thread for this upstream
 				go func(workQueues map[string]chan *workItem, usName string) {
 					log.Debugf("starting goroutine for %s", usName)
+					// allow upstream time to start up
+					time.Sleep(time.Second * 2)
 					for work := range workQueues[usName] {
 						updateUpstream(work.upstream, work.secrets)
 					}
