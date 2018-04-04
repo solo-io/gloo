@@ -48,8 +48,8 @@ var _ = Describe("Plugin", func() {
 			})
 
 			It("should have region and project in the output host", func() {
-				Expect(out.Hosts[0].GetSocketAddress()).To(ContainSubstring("us-east1"))
-				Expect(out.Hosts[0].GetSocketAddress()).To(ContainSubstring("project-x"))
+				Expect(out.Hosts[0].GetSocketAddress().Address).To(ContainSubstring("us-east1"))
+				Expect(out.Hosts[0].GetSocketAddress().Address).To(ContainSubstring("project-x"))
 			})
 		})
 	})
