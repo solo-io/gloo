@@ -1,6 +1,8 @@
 package local_e2e
 
 import (
+	"fmt"
+	"runtime"
 	"testing"
 
 	"github.com/solo-io/gloo-testing/helpers/local"
@@ -17,6 +19,11 @@ var (
 )
 
 func TestLocalE2e(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		fmt.Println("local E2E Suite only runs on Linux")
+		return
+	}
+
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "LocalE2e Suite")
 }
