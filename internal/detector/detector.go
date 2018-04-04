@@ -1,17 +1,19 @@
 package detector
 
 import (
-	"time"
-
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo-function-discovery/pkg/backoff"
 	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
 	"github.com/solo-io/gloo-plugins/kubernetes"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
+	"github.com/solo-io/gloo/pkg/log"
 )
+
+const maxRetries = 3
 
 // detectors detect a specific type of functional service
 // if they detect the service, they return service info and
@@ -19,7 +21,7 @@ import (
 type Interface interface {
 	// if it detects the upstream is a known functional type, give us the
 	// service info and annotations to mark it with
-	DetectFunctionalService(addr string) (*v1.ServiceInfo, map[string]string, error)
+	DetectFunctionalService(us *v1.Upstream, addr string) (*v1.ServiceInfo, map[string]string, error)
 }
 
 // marker marks the upstream as functional. this modifies the upstream it was received,
@@ -28,15 +30,15 @@ type Marker struct {
 	detectors []Interface
 	resolver  *resolver.Resolver
 
-	markedOrFailed map[string]bool
-	m              sync.RWMutex
+	finishedOrFailed map[string]int
+	m                sync.RWMutex
 }
 
 func NewMarker(detectors []Interface, resolver *resolver.Resolver) *Marker {
 	return &Marker{
-		detectors:      detectors,
-		resolver:       resolver,
-		markedOrFailed: make(map[string]bool),
+		detectors:        detectors,
+		resolver:         resolver,
+		finishedOrFailed: make(map[string]int),
 	}
 }
 
@@ -52,15 +54,16 @@ func (m *Marker) DetectFunctionalUpstream(us *v1.Upstream) (*v1.ServiceInfo, map
 	}
 
 	m.m.RLock()
-	// already tried this upstream
-	already := m.markedOrFailed[us.Name]
+	// tried this upstream
+	already := m.finishedOrFailed[us.Name]
 	m.m.RUnlock()
-	if already {
+	if already > maxRetries {
+		log.Debugf("no more retries for %s", us.Name)
 		return nil, nil, nil
 	}
 
 	m.m.Lock()
-	m.markedOrFailed[us.Name] = true
+	m.finishedOrFailed[us.Name]++
 	m.m.Unlock()
 
 	addr, err := m.resolver.Resolve(us)
@@ -77,8 +80,8 @@ func (m *Marker) DetectFunctionalUpstream(us *v1.Upstream) (*v1.ServiceInfo, map
 	// try every possible detector concurrently
 	for _, d := range m.detectors {
 		go func(d Interface) {
-			err := withBackoff(func() error {
-				serviceInfo, annotations, err := d.DetectFunctionalService(addr)
+			err := backoff.WithBackoff(func() error {
+				serviceInfo, annotations, err := d.DetectFunctionalService(us, addr)
 				if err != nil {
 					return err
 				}
@@ -86,6 +89,9 @@ func (m *Marker) DetectFunctionalUpstream(us *v1.Upstream) (*v1.ServiceInfo, map
 				close(stop)
 				serviceInfoC <- serviceInfo
 				annotationsC <- annotations
+				m.m.Lock()
+				m.finishedOrFailed[us.Name] = maxRetries
+				m.m.Unlock()
 				return nil
 			}, stop)
 			if err != nil {
@@ -93,7 +99,6 @@ func (m *Marker) DetectFunctionalUpstream(us *v1.Upstream) (*v1.ServiceInfo, map
 			}
 		}(d)
 	}
-
 	var totalFailed int
 
 	var errs error
@@ -106,36 +111,6 @@ func (m *Marker) DetectFunctionalUpstream(us *v1.Upstream) (*v1.ServiceInfo, map
 			totalFailed++
 			if totalFailed >= len(m.detectors) {
 				return nil, nil, errors.Errorf("service type detection failed for %s: %v", us.Name, errs)
-			}
-		}
-	}
-}
-
-// Default values for ExponentialBackOff.
-const (
-	defaultInitialInterval = 500 * time.Millisecond
-	defaultMaxElapsedTime  = 180 * time.Second
-)
-
-func withBackoff(fn func() error, stop chan struct{}) error {
-	// first try
-	if err := fn(); err == nil {
-		return nil
-	}
-	tilNextRetry := defaultInitialInterval
-	for {
-		select {
-		// stopped by another goroutine
-		case <-stop:
-			return nil
-		case <-time.After(tilNextRetry):
-			tilNextRetry *= 2
-			err := fn()
-			if err == nil {
-				return nil
-			}
-			if tilNextRetry >= defaultMaxElapsedTime {
-				return err
 			}
 		}
 	}

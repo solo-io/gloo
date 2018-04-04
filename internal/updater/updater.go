@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/gloo-function-discovery/internal/updater/gcf"
 	"github.com/solo-io/gloo-function-discovery/internal/updater/lambda"
 	"github.com/solo-io/gloo-function-discovery/internal/updater/swagger"
+	"github.com/solo-io/gloo-function-discovery/pkg/backoff"
 	"github.com/solo-io/gloo-function-discovery/pkg/functiontypes"
 	"github.com/solo-io/gloo-storage"
 	"github.com/solo-io/gloo/pkg/log"
@@ -146,35 +147,44 @@ func functionListsEqual(funcs1, funcs2 []*v1.Function) bool {
 func UpdateServiceInfo(gloo storage.Interface,
 	upstreamName string,
 	marker *detector.Marker) error {
-	usToUpdate, err := gloo.V1().Upstreams().Get(upstreamName)
+
+	log.Debugf("attempting to apply update for upstream %v", upstreamName)
+
+	us, err := gloo.V1().Upstreams().Get(upstreamName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get existing upstream with name %v", upstreamName)
 	}
 
-	svcInfo, annotations, err := marker.DetectFunctionalUpstream(usToUpdate)
+	svcInfo, annotations, err := marker.DetectFunctionalUpstream(us)
 	if err != nil {
-		return errors.Wrapf(err, "failed to discover whether %v is a functional upstream", usToUpdate.Name)
+		return errors.Wrapf(err, "failed to discover whether %v is a functional upstream", upstreamName)
 	}
 
-	// detection skipped this upstream, probably already detected for it
-	if svcInfo == nil && annotations == nil {
+	return backoff.WithBackoff(func() error {
+		usToUpdate, err := gloo.V1().Upstreams().Get(upstreamName)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get existing upstream with name %v", upstreamName)
+		}
+
+		// detection skipped this upstream, probably already detected for it
+		if svcInfo == nil && annotations == nil {
+			return nil
+		}
+
+		// no update to do
+		if svcInfoEqual(usToUpdate, svcInfo) && containsAnnotations(usToUpdate, annotations) {
+			return nil
+		}
+
+		usToUpdate.Metadata.Annotations = mergeAnnotations(usToUpdate.Metadata.Annotations, annotations)
+		usToUpdate.ServiceInfo = svcInfo
+
+		if _, err := gloo.V1().Upstreams().Update(usToUpdate); err != nil {
+			return errors.Wrapf(err, "updating upstream %s with service info", upstreamName)
+		}
+		log.Printf("updated upstream %v", usToUpdate)
 		return nil
-	}
-
-	// no update to do
-	if svcInfoEqual(usToUpdate, svcInfo) && containsAnnotations(usToUpdate, annotations) {
-		return nil
-	}
-
-	usToUpdate.Metadata.Annotations = mergeAnnotations(usToUpdate.Metadata.Annotations, annotations)
-	usToUpdate.ServiceInfo = svcInfo
-
-	_, err = gloo.V1().Upstreams().Update(usToUpdate)
-	if err != nil {
-		return errors.Wrapf(err, "updating upstream %s with service info", upstreamName)
-	}
-	log.Printf("updated upstream %v", usToUpdate)
-	return nil
+	}, make(chan struct{}))
 }
 
 // get the unique set of funcs between two lists

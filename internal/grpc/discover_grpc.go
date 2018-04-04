@@ -33,7 +33,8 @@ func NewGRPCDetector(files dependencies.FileStorage) detector.Interface {
 
 // if it detects the upstream is a known functional type, give us the
 // service info and annotations to mark it with
-func (d *grpcDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo, map[string]string, error) {
+func (d *grpcDetector) DetectFunctionalService(us *v1.Upstream, addr string) (*v1.ServiceInfo, map[string]string, error) {
+	log.Debugf("attempting to detect GRPC for %s", us.Name)
 	cc, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "dialing grpc on %v", addr)

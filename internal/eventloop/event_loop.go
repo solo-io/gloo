@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	maxThreadsPerUpstream = 10
+	maxThreadsPerUpstream = 25
 )
 
 type workItem struct {
@@ -93,7 +93,11 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 	}
 
 	update := func() {
-		log.Debugf("beginning update for %v upstreams", len(cache.upstreams))
+		var usNames []string
+		for _, us := range cache.upstreams {
+			usNames = append(usNames, us.Name)
+		}
+		log.Debugf("beginning update for %v upstreams: %v", usNames, len(cache.upstreams))
 
 		// clean queues for upstreams that have been deleted
 		for usName := range workQueues {

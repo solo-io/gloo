@@ -31,8 +31,9 @@ func NewSwaggerDetector(swaggerUrisToTry []string) detector.Interface {
 	}
 }
 
-func (d *swaggerDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo, map[string]string, error) {
+func (d *swaggerDetector) DetectFunctionalService(us *v1.Upstream, addr string) (*v1.ServiceInfo, map[string]string, error) {
 	var errs error
+	log.Debugf("attempting to detect swagger for %s", us.Name)
 	for _, uri := range d.swaggerUrisToTry {
 		url := "http://" + addr + uri
 		req, err := http.NewRequest("GET", url, nil)
@@ -62,6 +63,7 @@ func (d *swaggerDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo,
 			errs = multierror.Append(errs, errors.Errorf("path: %v response code: %v headers: %v", uri, res.Status, res.Header))
 		}
 	}
+	log.Printf("failed to detect swagger for %s: %v", us.Name, errs.Error())
 	// not a swagger upstream
 	return nil, nil, errors.Wrapf(errs, "service at %s does not implement swagger at a known endpoint, "+
 		"or was unreachable", addr)

@@ -29,7 +29,8 @@ func NewNatsDetector(clusterID string) detector.Interface {
 
 // if it detects the upstream is a known functional type, give us the
 // service info and annotations to mark it with
-func (d *natsDetector) DetectFunctionalService(addr string) (*v1.ServiceInfo, map[string]string, error) {
+func (d *natsDetector) DetectFunctionalService(us *v1.Upstream, addr string) (*v1.ServiceInfo, map[string]string, error) {
+	log.Debugf("attempting to detect NATS for %s", us.Name)
 	// try to connect to the addr as though it's a NATS cluster
 	c, err := stan.Connect(d.clusterID, "gloo-function-discovery", stan.NatsURL("nats://"+addr))
 	if err != nil {
