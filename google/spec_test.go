@@ -1,12 +1,84 @@
 package gfunc
 
 import (
-	"strings"
-	"testing"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/gomega"
 
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 )
+
+var _ = Describe("Spec", func() {
+	Describe("Decode function", func() {
+		DescribeTable("with invalid spec",
+
+			func(f v1.FunctionSpec) {
+				_, err := DecodeFunctionSpec(f)
+				Expect(err).To(HaveOccurred())
+			},
+
+			Entry("empty", &types.Struct{
+				Fields: map[string]*types.Value{},
+			}),
+			Entry("missing path", funcSpec("apple")),
+			Entry("valid url with no path", funcSpec("http://apple.com")),
+			Entry("url with port but no path", funcSpec("http://solo.io:8433")),
+			Entry("invalid url", funcSpec("nowhere]:/apple")))
+
+		DescribeTable("with valid spec",
+			func(url, host, path string) {
+				f, err := DecodeFunctionSpec(funcSpec(url))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(f.host).To(Equal(host))
+				Expect(f.path).To(Equal(path))
+			},
+
+			Entry("url with path", "http://test.com/apple", "test.com", "/apple"),
+			Entry("/ path", "http://solo.io/", "solo.io", "/"))
+	})
+
+	Describe("Decode upstream", func() {
+		DescribeTable("with invalid spec",
+			func(u v1.UpstreamSpec) {
+				_, err := DecodeUpstreamSpec(u)
+				Expect(err).To(HaveOccurred())
+			},
+
+			Entry("empty", &types.Struct{
+				Fields: map[string]*types.Value{},
+			}),
+			Entry("invalid region", upstreamSpec("solo", "gloo")),
+			Entry("missing region", upstreamSpec("", "x23")),
+			Entry("missing project", upstreamSpec("us-east1", "")))
+
+		Context("with valid spec", func() {
+			var (
+				u   *UpstreamSpec
+				err error
+			)
+			BeforeEach(func() {
+				u, err = DecodeUpstreamSpec(upstreamSpec("us-east1", "project-231x"))
+			})
+
+			It("should not error", func() {
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should have correct parameters", func() {
+				Expect(u.Region).To(Equal("us-east1"))
+				Expect(u.ProjectId).To(Equal("project-231x"))
+			})
+
+			It("should return a host name with region and project", func() {
+				Expect(u.GetGFuncHostname()).To(ContainSubstring("us-east1"))
+				Expect(u.GetGFuncHostname()).To(ContainSubstring("project-231x"))
+
+			})
+		})
+	})
+
+})
 
 func funcSpec(u string) v1.FunctionSpec {
 	return &types.Struct{
@@ -15,48 +87,6 @@ func funcSpec(u string) v1.FunctionSpec {
 				Kind: &types.Value_StringValue{StringValue: u},
 			},
 		},
-	}
-}
-func TestDecodeFuncSpecWithInvalidSpecFails(t *testing.T) {
-	data := []*types.Struct{
-		&types.Struct{
-			Fields: map[string]*types.Value{},
-		},
-		funcSpec("apple"),
-		funcSpec("http://apple.com"),
-		funcSpec("http://solo.io:8433"),
-		funcSpec("nowhere]:/apple"),
-	}
-	for _, d := range data {
-		_, err := DecodeFunctionSpec(d)
-		if err == nil {
-			t.Errorf("invalid function spec should have returned error: %v", d)
-		}
-	}
-}
-
-type row struct {
-	spec v1.FunctionSpec
-	host string
-	path string
-}
-
-func TestDecodeFuncSpecWithValidURL(t *testing.T) {
-	data := []row{
-		row{spec: funcSpec("http://test.com/apple"), host: "test.com", path: "/apple"},
-		row{spec: funcSpec("http://solo.io/"), host: "solo.io", path: "/"},
-	}
-	for _, d := range data {
-		f, err := DecodeFunctionSpec(d.spec)
-		if err != nil {
-			t.Errorf("error creating function spec %v", err)
-		}
-		if d.host != f.host {
-			t.Errorf("functionspec created with wrong host. expected %s got %s", d.host, f.host)
-		}
-		if d.path != f.path {
-			t.Errorf("functionspec created with wrong path. expected %s got %s", d.path, f.path)
-		}
 	}
 }
 
@@ -70,68 +100,5 @@ func upstreamSpec(region, projectID string) v1.UpstreamSpec {
 				Kind: &types.Value_StringValue{StringValue: projectID},
 			},
 		},
-	}
-}
-
-func TestDecodeUpstreamWithInvalidRegion(t *testing.T) {
-	data := []*types.Struct{
-		&types.Struct{
-			Fields: map[string]*types.Value{},
-		},
-		upstreamSpec("solo", "gloo"),
-		upstreamSpec("", "x23"),
-	}
-	for _, d := range data {
-		_, err := DecodeUpstreamSpec(d)
-		if err == nil {
-			t.Errorf("invalid upstream spec should have returned error: %v", d)
-		}
-	}
-}
-
-func TestDecodeUpstreamWithInvalidProject(t *testing.T) {
-	data := []*types.Struct{
-		&types.Struct{
-			Fields: map[string]*types.Value{},
-		},
-		upstreamSpec("us-east1", ""),
-	}
-	for _, d := range data {
-		_, err := DecodeUpstreamSpec(d)
-		if err == nil {
-			t.Errorf("invalid upstream spec should have returned error: %v", d)
-		}
-	}
-}
-
-type upstreamTestCase struct {
-	spec      v1.UpstreamSpec
-	region    string
-	projectID string
-}
-
-func TestDecodeUpstreamWithValidData(t *testing.T) {
-	data := []upstreamTestCase{
-		upstreamTestCase{spec: upstreamSpec("us-east1", "project-231x"), region: "us-east1", projectID: "project-231x"},
-	}
-	for _, d := range data {
-		u, err := DecodeUpstreamSpec(d.spec)
-		if err != nil {
-			t.Errorf("error decoding upstream %v: %v", d.spec, err)
-		}
-		if d.region != u.Region {
-			t.Errorf("decoding upstream failed. expected %s got %s", d.region, u.Region)
-		}
-		if d.projectID != u.ProjectId {
-			t.Errorf("decoding upstream failed. expected %s got %s", d.projectID, u.ProjectId)
-		}
-
-		hostname := u.GetGFuncHostname()
-		if !strings.Contains(hostname, d.region) {
-			t.Errorf("hostname doesn't contain region")
-		}
-		if !strings.Contains(hostname, d.projectID) {
-			t.Errorf("hostname doesn't contain project ID")
-		}
 	}
 }
