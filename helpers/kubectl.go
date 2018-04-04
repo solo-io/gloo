@@ -100,7 +100,7 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 		"--set", "ingress.imageTag="+envoyImageTag,
 		"-f", filepath.Join(kubeResourcesDir, "helm-values.yaml")).CombinedOutput()
 	if err != nil {
-		return errors.Wrapf(err, "running helm template: %v", installBytes)
+		return errors.Wrapf(err, "running helm template: %v", string(installBytes))
 	}
 
 	err = ioutil.WriteFile(filepath.Join(kubeResourcesDir, "install.yml"), installBytes, 0644)
