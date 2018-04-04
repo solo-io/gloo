@@ -162,12 +162,13 @@ spec:
         image: busybox
         command:
         - sed
-        - s/NODE_ID_PLACE_HOLDER/$(POD_NAME).$(POD_NAMESPACE)/
-        - -i
+        - s/NODE_ID_PLACE_HOLDER/$(POD_NAME).$(POD_NAMESPACE)/;w /config-tmp/envoy.yaml
         - "/config/envoy.yaml"
         volumeMounts:
         - name: envoy-config
           mountPath: /config
+        - name: config-tmp
+          mountPath: /config-tmp
         env:
         - name: POD_NAME
           valueFrom:
@@ -192,12 +193,14 @@ spec:
         command: ["envoy"]
         args: ["-c", "/config/envoy.yaml", "--v2-config-only"]
         volumeMounts:
-        - name: envoy-config
+        - name: config-tmp
           mountPath: /config
       volumes:
       - name: envoy-config
         configMap:
           name: envoy-config
+      - name: config-tmp
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
