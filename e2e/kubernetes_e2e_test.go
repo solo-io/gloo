@@ -29,6 +29,7 @@ var kube kubernetes.Interface
 
 var _ = Describe("Kubernetes Deployment", func() {
 	BeforeSuite(func() {
+		log.Printf("USING IMAGE TAG %v", ImageTag)
 		err := SetupKubeForE2eTest(namespace, true, true)
 		Must(err)
 		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")

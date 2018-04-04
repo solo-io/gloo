@@ -10,7 +10,6 @@ import (
 	"github.com/solo-io/gloo-plugins/grpc"
 	"github.com/solo-io/gloo-plugins/nats-streaming"
 	"github.com/solo-io/gloo-plugins/rest"
-	"github.com/solo-io/gloo/pkg/log"
 )
 
 var _ = Describe("Function Discovery Service Detection", func() {
@@ -53,7 +52,6 @@ var _ = Describe("Function Discovery Service Detection", func() {
 					if upstreamToTest == nil {
 						return nil, errors.New("could not find upstream " + test.upstreamName)
 					}
-					log.Printf("got upstream: %v", upstreamToTest)
 					return upstreamToTest.ServiceInfo, nil
 				}, time.Minute*2).Should(Equal(test.expectedServiceInfo))
 			})

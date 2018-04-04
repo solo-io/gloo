@@ -17,7 +17,7 @@ spec:
         gloo: event-emitter
     spec:
       containers:
-      - image: soloio/event-emitter:testing
+      - image: soloio/event-emitter:{{ .ImageTag }}
         imagePullPolicy: Always
         name: event-emitter
         ports:
@@ -56,7 +56,7 @@ spec:
         gloo: upstream-for-events
     spec:
       containers:
-      - image: soloio/upstream-for-events:testing
+      - image: soloio/upstream-for-events:{{ .ImageTag }}
         imagePullPolicy: Always
         name: upstream-for-events
         ports:
@@ -95,7 +95,7 @@ spec:
         gloo: grpc-test-service
     spec:
       containers:
-      - image: soloio/grpc-test-service:testing
+      - image: soloio/grpc-test-service:{{ .ImageTag }}
         imagePullPolicy: Always
         name: grpc-test-service
         ports:
@@ -134,7 +134,7 @@ spec:
         gloo: helloservice-2
     spec:
       containers:
-      - image: soloio/helloservice:testing
+      - image: soloio/helloservice:{{ .ImageTag }}
         imagePullPolicy: Always
         name: helloservice-2
         args:
@@ -175,7 +175,7 @@ spec:
         gloo: helloservice
     spec:
       containers:
-      - image: soloio/helloservice:testing
+      - image: soloio/helloservice:{{ .ImageTag }}
         imagePullPolicy: Always
         name: helloservice
         args:
@@ -207,7 +207,7 @@ metadata:
   namespace: {{.Namespace}}
 spec:
   containers:
-  - image: soloio/testrunner:testing
+  - image: soloio/testrunner:{{ .ImageTag }}
     imagePullPolicy: Always
     command:
       - sleep

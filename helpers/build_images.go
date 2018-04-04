@@ -8,6 +8,8 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 )
 
+var ImageTag = "testing-" + RandString(4)
+
 // builds and pushes all docker containers needed for test
 func BuildPushContainers(push bool) error {
 	if os.Getenv("SKIP_BUILD") == "1" {
@@ -24,12 +26,12 @@ func BuildPushContainers(push bool) error {
 		filepath.Join(E2eDirectory(), "containers", "upstream-for-events"),
 		filepath.Join(E2eDirectory(), "containers", "grpc-test-service"),
 	} {
-		os.Setenv("IMAGE_TAG", "testing")
+		os.Setenv("IMAGE_TAG", ImageTag)
 		dockerUser := os.Getenv("DOCKER_USER")
 		if dockerUser == "" {
 			dockerUser = "soloio"
 		}
-		fullImage := dockerUser + "/" + filepath.Base(path) + ":testing"
+		fullImage := dockerUser + "/" + filepath.Base(path) + ":" + ImageTag
 		log.Debugf("TEST: building fullImage %v", fullImage)
 		cmd := exec.Command("make", "docker")
 		cmd.Dir = path

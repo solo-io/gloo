@@ -13,24 +13,24 @@ gloo:
   replicaCount: 1
   port: 8081
   image: "soloio/gloo"
-  imageTag: testing
+  imageTag: {{ .ImageTag }}
   imagePullPolicy: Always
 
 #  discovery
 gloo_function_discovery:
   image: soloio/gloo-function-discovery
-  imageTag: testing
+  imageTag: {{ .ImageTag }}
   imagePullPolicy: Always
   enable: true
 
 gloo_ingress_controller:
   image: soloio/gloo-ingress-controller
-  imageTag: testing
+  imageTag: {{ .ImageTag }}
   imagePullPolicy: Always
   enable: true
 
 gloo_k8s_service_discovery:
   image: soloio/gloo-k8s-service-discovery
-  imageTag: testing
+  imageTag: {{ .ImageTag }}
   imagePullPolicy: Always
   enable: true

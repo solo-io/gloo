@@ -74,6 +74,26 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 		envoyImageTag = "latest"
 	}
 
+	data := &struct {
+		Namespace string
+		ImageTag  string
+	}{Namespace: namespace, ImageTag: ImageTag}
+
+	tmpl, err := template.New("Test_Resources").ParseFiles(filepath.Join(kubeResourcesDir, "helm-values.yaml.tmpl"))
+	if err != nil {
+		return errors.Wrap(err, "parsing template from helm-values.yaml.tmpl")
+	}
+
+	buf := &bytes.Buffer{}
+	if err := tmpl.ExecuteTemplate(buf, "helm-values.yaml.tmpl", data); err != nil {
+		return errors.Wrap(err, "executing template")
+	}
+
+	err = ioutil.WriteFile(filepath.Join(kubeResourcesDir, "helm-values.yaml"), buf.Bytes(), 0644)
+	if err != nil {
+		return errors.Wrap(err, "writing generated test resources template")
+	}
+
 	installBytes, err := exec.Command("helm", "template", HelmDirectory(),
 		"--namespace", namespace,
 		"-n", "test",
@@ -88,13 +108,12 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 		return errors.Wrap(err, "writing generated install template")
 	}
 
-	tmpl, err := template.New("Test_Resources").ParseFiles(filepath.Join(kubeResourcesDir, "testing-resources.yaml.tmpl"))
+	tmpl, err = template.New("Test_Resources").ParseFiles(filepath.Join(kubeResourcesDir, "testing-resources.yaml.tmpl"))
 	if err != nil {
 		return errors.Wrap(err, "parsing template from testing-resources.yaml.tmpl")
 	}
 
-	buf := &bytes.Buffer{}
-	data := &struct{ Namespace string }{Namespace: namespace}
+	buf = &bytes.Buffer{}
 	if err := tmpl.ExecuteTemplate(buf, "testing-resources.yaml.tmpl", data); err != nil {
 		return errors.Wrap(err, "executing template")
 	}
