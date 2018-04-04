@@ -35,7 +35,7 @@ const (
 	filterName  = "io.solo.azure_functions"
 	pluginStage = plugin.OutAuth
 
-	MasterKeyName = "_master"
+	masterKeyName = "_master"
 
 	// function-specific metadata
 	functionHost = "host"
@@ -154,9 +154,9 @@ func getPathParameters(functionSpec *FunctionSpec, apiKeys map[string]string) (s
 	case "anonymous":
 		return "", nil
 	case "function":
-		keyNames = []string{functionSpec.FunctionName, MasterKeyName}
+		keyNames = []string{functionSpec.FunctionName, masterKeyName}
 	case "admin":
-		keyNames = []string{MasterKeyName}
+		keyNames = []string{masterKeyName}
 	}
 
 	apiKey, err := getApiKey(apiKeys, keyNames)

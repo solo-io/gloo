@@ -234,14 +234,14 @@ var _ = Describe("API key", func() {
 		Context("of a master key from an empty map", func() {
 			It("should fail", func() {
 				apiKeys := make(map[string]string)
-				_, err := getApiKey(apiKeys, []string{MasterKeyName})
+				_, err := getApiKey(apiKeys, []string{masterKeyName})
 				Expect(err).To(HaveOccurred())
 			})
 		})
 		Context("of a function key and a master key from an empty map", func() {
 			It("should fail", func() {
 				apiKeys := make(map[string]string)
-				_, err := getApiKey(apiKeys, []string{"foo", MasterKeyName})
+				_, err := getApiKey(apiKeys, []string{"foo", masterKeyName})
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -254,8 +254,8 @@ var _ = Describe("API key", func() {
 		})
 		Context("of an existing empty master key", func() {
 			It("should fail", func() {
-				apiKeys := map[string]string{MasterKeyName: ""}
-				_, err := getApiKey(apiKeys, []string{MasterKeyName})
+				apiKeys := map[string]string{masterKeyName: ""}
+				_, err := getApiKey(apiKeys, []string{masterKeyName})
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -269,24 +269,24 @@ var _ = Describe("API key", func() {
 		})
 		Context("of an existing non-empty master key", func() {
 			It("should succeed", func() {
-				apiKeys := map[string]string{MasterKeyName: "新신シん양ʃШŞשܫשׁش"}
-				apiKey, err := getApiKey(apiKeys, []string{MasterKeyName})
+				apiKeys := map[string]string{masterKeyName: "新신シん양ʃШŞשܫשׁش"}
+				apiKey, err := getApiKey(apiKeys, []string{masterKeyName})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(apiKey).To(Equal("新신シん양ʃШŞשܫשׁش"))
 			})
 		})
 		Context("of a function key and a master key with both present", func() {
 			It("should return the function key", func() {
-				apiKeys := map[string]string{MasterKeyName: "key1", "foo": "key2"}
-				apiKey, err := getApiKey(apiKeys, []string{"foo", MasterKeyName})
+				apiKeys := map[string]string{masterKeyName: "key1", "foo": "key2"}
+				apiKey, err := getApiKey(apiKeys, []string{"foo", masterKeyName})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(apiKey).To(Equal("key2"))
 			})
 		})
 		Context("of a missing function key and an existing master key", func() {
 			It("should return the master key", func() {
-				apiKeys := map[string]string{MasterKeyName: "key1", "foo": "key2"}
-				apiKey, err := getApiKey(apiKeys, []string{"bar", MasterKeyName})
+				apiKeys := map[string]string{masterKeyName: "key1", "foo": "key2"}
+				apiKey, err := getApiKey(apiKeys, []string{"bar", masterKeyName})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(apiKey).To(Equal("key1"))
 			})
