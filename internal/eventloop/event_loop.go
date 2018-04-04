@@ -232,7 +232,7 @@ func createResolver(opts bootstrap.Options) resolver.Resolver {
 	if err != nil {
 		log.Warnf("create kube client failed: %v. swagger services running in kubernetes will not be discovered by function discovery")
 	}
-	return NewResolver(kube)
+	return resolver.NewResolver(kube)
 }
 
 func setupSecretWatcher(opts bootstrap.Options, stop <-chan struct{}) (secretwatcher.Interface, error) {
