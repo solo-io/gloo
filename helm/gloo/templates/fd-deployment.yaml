@@ -34,7 +34,5 @@ spec:
         - "--storage.refreshrate=30m"
         - "--secrets.type=kube"
         - "--secrets.refreshrate=30m"
-        - "--files.type=kube"
-        - "--files.refreshrate=30m"
         - "--kube.namespace={{ .Release.Namespace }}"
 {{ end }}
