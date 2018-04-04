@@ -1,4 +1,4 @@
-SOURCES := $(shell find . -name *.go)
+SOURCES := $(shell find . -name "*.go")
 PACKAGE_PATH:=github.com/solo-io/gloo-storage
 
 # kubernetes custom clientsets
