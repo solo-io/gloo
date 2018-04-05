@@ -1,0 +1,32 @@
+{{ if .Values.gloo_k8s_service_discovery.enable }}
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    gloo: k8s-service-discovery
+  name: {{ .Release.Name }}-service-discovery
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      gloo: k8s-service-discovery
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        gloo: k8s-service-discovery
+    spec:
+      containers:
+      - image: {{ .Values.gloo_k8s_service_discovery.image }}:{{ .Values.gloo_k8s_service_discovery.imageTag }}
+        imagePullPolicy: {{ .Values.gloo_k8s_service_discovery.imagePullPolicy }}
+        name: k8s-service-discovery
+        env:
+        - name: GRPC_TRACE
+          value: "all"
+        - name: DEBUG
+          value: "1"
+        args:
+        - "--storage.type=kube"
+        - "--syncperiod=30m"
+        - "--kube.namespace={{ .Release.Namespace }}"
+{{ end }}

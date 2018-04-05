@@ -1,0 +1,38 @@
+{{ if .Values.gloo_function_discovery.enable }}
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "gloo_function_discovery.fullname" . }}
+  namespace: {{ .Release.Namespace}}
+  labels:
+    gloo: function-discovery
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: function-discovery
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        gloo: function-discovery
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: function-discovery
+        image: "{{ .Values.gloo_function_discovery.image }}:{{ .Values.gloo_function_discovery.imageTag }}"
+        imagePullPolicy: {{ .Values.gloo_function_discovery.imagePullPolicy }}
+        env:
+        - name: GRPC_TRACE
+          value: "all"
+        - name: DEBUG
+          value: "1"
+        command: ["/gloo-function-discovery"]
+        args:
+        - "--storage.type=kube"
+        - "--storage.refreshrate=30m"
+        - "--secrets.type=kube"
+        - "--secrets.refreshrate=30m"
+        - "--kube.namespace={{ .Release.Namespace }}"
+{{ end }}

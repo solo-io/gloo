@@ -1,0 +1,24 @@
+# GW
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name}}-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    gloo: ingress
+    release: {{ .Release.Name }}
+spec:
+  type: {{ .Values.ingress.type }}
+  ports:
+    - port: {{ .Values.ingress.port }}
+      protocol: TCP
+      name: http
+    - port: {{ .Values.ingress.securePort }}
+      protocol: TCP
+      name: https
+    - port: {{ .Values.ingress.adminPort }}
+      protocol: TCP
+      name: admin
+  selector:
+    gloo: ingress
+    release: {{ .Release.Name }}
