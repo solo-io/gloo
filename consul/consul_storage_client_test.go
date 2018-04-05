@@ -31,7 +31,7 @@ var _ = Describe("ConsulStorageClient", func() {
 	Describe("Upstreams", func() {
 		Describe("create", func() {
 			It("creates the upstream as a consul key", func() {
-				client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+				client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 				Expect(err).NotTo(HaveOccurred())
 				input := &v1.Upstream{
 					Name:              "myupstream",
@@ -53,7 +53,7 @@ var _ = Describe("ConsulStorageClient", func() {
 				Expect(us).To(Equal(input))
 			})
 			It("errors when creating the same upstream twice", func() {
-				client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+				client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 				Expect(err).NotTo(HaveOccurred())
 				input := &v1.Upstream{
 					Name:              "myupstream",
@@ -67,7 +67,7 @@ var _ = Describe("ConsulStorageClient", func() {
 			})
 			Describe("update", func() {
 				It("fails if the upstream doesn't exist", func() {
-					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 					Expect(err).NotTo(HaveOccurred())
 					input := &v1.Upstream{
 						Name:              "myupstream",
@@ -79,7 +79,7 @@ var _ = Describe("ConsulStorageClient", func() {
 					Expect(us).To(BeNil())
 				})
 				It("fails if the resourceversion is not up to date", func() {
-					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 					Expect(err).NotTo(HaveOccurred())
 					input := &v1.Upstream{
 						Name:              "myupstream",
@@ -94,7 +94,7 @@ var _ = Describe("ConsulStorageClient", func() {
 					Expect(err.Error()).To(ContainSubstring("resource version"))
 				})
 				It("updates the upstream", func() {
-					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 					Expect(err).NotTo(HaveOccurred())
 					input := &v1.Upstream{
 						Name:              "myupstream",
@@ -113,14 +113,14 @@ var _ = Describe("ConsulStorageClient", func() {
 				})
 				Describe("get", func() {
 					It("fails if the upstream doesn't exist", func() {
-						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 						Expect(err).NotTo(HaveOccurred())
 						us, err := client.V1().Upstreams().Get("foo")
 						Expect(err).To(HaveOccurred())
 						Expect(us).To(BeNil())
 					})
 					It("returns the upstream", func() {
-						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 						Expect(err).NotTo(HaveOccurred())
 						input := &v1.Upstream{
 							Name:              "myupstream",
@@ -138,7 +138,7 @@ var _ = Describe("ConsulStorageClient", func() {
 				})
 				Describe("list", func() {
 					It("returns all existing upstreams", func() {
-						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 						Expect(err).NotTo(HaveOccurred())
 						input1 := &v1.Upstream{
 							Name:              "myupstream1",
@@ -170,7 +170,7 @@ var _ = Describe("ConsulStorageClient", func() {
 				})
 				Describe("watch", func() {
 					It("watches", func() {
-						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 						Expect(err).NotTo(HaveOccurred())
 						lists := make(chan []*v1.Upstream, 3)
 						stop := make(chan struct{})
@@ -229,7 +229,7 @@ var _ = Describe("ConsulStorageClient", func() {
 	Describe("VirtualHosts", func() {
 		Describe("create", func() {
 			It("creates the virtualhost as a consul key", func() {
-				client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+				client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 				Expect(err).NotTo(HaveOccurred())
 				input := &v1.VirtualHost{
 					Name:    "myvirtualhost",
@@ -250,7 +250,7 @@ var _ = Describe("ConsulStorageClient", func() {
 				Expect(vh).To(Equal(input))
 			})
 			It("errors when creating the same virtualhost twice", func() {
-				client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+				client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 				Expect(err).NotTo(HaveOccurred())
 				input := &v1.VirtualHost{
 					Name:    "myvirtualhost",
@@ -263,7 +263,7 @@ var _ = Describe("ConsulStorageClient", func() {
 			})
 			Describe("update", func() {
 				It("fails if the virtualhost doesn't exist", func() {
-					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 					Expect(err).NotTo(HaveOccurred())
 					input := &v1.VirtualHost{
 						Name:    "myvirtualhost",
@@ -274,7 +274,7 @@ var _ = Describe("ConsulStorageClient", func() {
 					Expect(vh).To(BeNil())
 				})
 				It("fails if the resourceversion is not up to date", func() {
-					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 					Expect(err).NotTo(HaveOccurred())
 					input := &v1.VirtualHost{
 						Name:    "myvirtualhost",
@@ -288,7 +288,7 @@ var _ = Describe("ConsulStorageClient", func() {
 					Expect(err.Error()).To(ContainSubstring("resource version"))
 				})
 				It("updates the virtualhost", func() {
-					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+					client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 					Expect(err).NotTo(HaveOccurred())
 					input := &v1.VirtualHost{
 						Name:    "myvirtualhost",
@@ -306,14 +306,14 @@ var _ = Describe("ConsulStorageClient", func() {
 				})
 				Describe("get", func() {
 					It("fails if the virtualhost doesn't exist", func() {
-						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 						Expect(err).NotTo(HaveOccurred())
 						vh, err := client.V1().VirtualHosts().Get("foo")
 						Expect(err).To(HaveOccurred())
 						Expect(vh).To(BeNil())
 					})
 					It("returns the virtualhost", func() {
-						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 						Expect(err).NotTo(HaveOccurred())
 						input := &v1.VirtualHost{
 							Name:    "myvirtualhost",
@@ -330,7 +330,7 @@ var _ = Describe("ConsulStorageClient", func() {
 				})
 				Describe("list", func() {
 					It("returns all existing virtualhosts", func() {
-						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 						Expect(err).NotTo(HaveOccurred())
 						input1 := &v1.VirtualHost{
 							Name:    "myvirtualhost1",
@@ -361,7 +361,7 @@ var _ = Describe("ConsulStorageClient", func() {
 				})
 				Describe("watch", func() {
 					It("watches", func() {
-						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						client, err := NewStorage(api.DefaultConfig(), rootPath, time.Second)
 						Expect(err).NotTo(HaveOccurred())
 						lists := make(chan []*v1.VirtualHost, 3)
 						stop := make(chan struct{})

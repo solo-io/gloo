@@ -29,7 +29,7 @@ var _ = Describe("Client", func() {
 	Describe("files", func() {
 		Describe("create", func() {
 			It("creates the file as a consul key", func() {
-				client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+				client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Minute)
 				Expect(err).NotTo(HaveOccurred())
 				input := &dependencies.File{
 					Ref:      "myfile",
@@ -49,7 +49,7 @@ var _ = Describe("Client", func() {
 			})
 			It("creates binary files without any problem as a consul key", func() {
 				contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
-				client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+				client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Minute)
 				Expect(err).NotTo(HaveOccurred())
 				input := &dependencies.File{
 					Ref:      "myfile",
@@ -71,7 +71,7 @@ var _ = Describe("Client", func() {
 				Expect(input.Contents).To(Equal(get.Contents))
 			})
 			It("errors when creating the same file twice", func() {
-				client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+				client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Minute)
 				Expect(err).NotTo(HaveOccurred())
 				input := &dependencies.File{
 					Ref:      "myfile",
@@ -84,7 +84,7 @@ var _ = Describe("Client", func() {
 			})
 			Describe("update", func() {
 				It("fails if the file doesn't exist", func() {
-					client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+					client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Minute)
 					Expect(err).NotTo(HaveOccurred())
 					input := &dependencies.File{
 						Ref:      "myfile",
@@ -95,7 +95,7 @@ var _ = Describe("Client", func() {
 					Expect(fi).To(BeNil())
 				})
 				It("fails if the resourceversion is not up to date", func() {
-					client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+					client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Minute)
 					Expect(err).NotTo(HaveOccurred())
 					input := &dependencies.File{
 						Ref:      "myfile",
@@ -109,7 +109,7 @@ var _ = Describe("Client", func() {
 					Expect(err.Error()).To(ContainSubstring("resource version"))
 				})
 				It("updates the file", func() {
-					client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+					client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Minute)
 					Expect(err).NotTo(HaveOccurred())
 					input := &dependencies.File{
 						Ref:      "myfile",
@@ -128,14 +128,14 @@ var _ = Describe("Client", func() {
 				})
 				Describe("get", func() {
 					It("fails if the file doesn't exist", func() {
-						client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Minute)
 						Expect(err).NotTo(HaveOccurred())
 						fi, err := client.Get("foo")
 						Expect(err).To(HaveOccurred())
 						Expect(fi).To(BeNil())
 					})
 					It("returns the file", func() {
-						client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Minute)
 						Expect(err).NotTo(HaveOccurred())
 						input := &dependencies.File{
 							Ref:      "myfile",
@@ -152,7 +152,7 @@ var _ = Describe("Client", func() {
 				})
 				Describe("list", func() {
 					It("returns all existing files", func() {
-						client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Minute)
 						Expect(err).NotTo(HaveOccurred())
 						input1 := &dependencies.File{
 							Ref:      "myfile1",
@@ -181,7 +181,7 @@ var _ = Describe("Client", func() {
 				})
 				Describe("watch", func() {
 					It("watches", func() {
-						client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+						client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Minute)
 						Expect(err).NotTo(HaveOccurred())
 						lists := make(chan []*dependencies.File, 3)
 						stop := make(chan struct{})

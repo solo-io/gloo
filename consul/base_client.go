@@ -4,8 +4,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 
-	"time"
-
 	"github.com/hashicorp/consul/api"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-storage"
@@ -15,9 +13,8 @@ import (
 // TODO: evaluate efficiency of LSing a whole dir on every op
 // so far this is preferable to caring what files are named
 type baseClient struct {
-	rootPath      string
-	consul        *api.Client
-	syncFrequency time.Duration
+	rootPath string
+	consul   *api.Client
 }
 
 type ConfigObjectType string
@@ -136,7 +133,7 @@ func (c *baseClient) List(t ConfigObjectType) ([]v1.ConfigObject, error) {
 func (c *baseClient) Watch(t ConfigObjectType, handlers ...storage.ConfigObjectEventHandler) (*storage.Watcher, error) {
 	var lastIndex uint64
 	sync := func() error {
-		pairs, meta, err := c.consul.KV().List(c.rootPath, &api.QueryOptions{RequireConsistent: true})
+		pairs, meta, err := c.consul.KV().List(c.rootPath, &api.QueryOptions{RequireConsistent: true, WaitIndex: lastIndex})
 		if err != nil {
 			return errors.Wrap(err, "getting kv-pairs list")
 		}
@@ -175,7 +172,7 @@ func (c *baseClient) Watch(t ConfigObjectType, handlers ...storage.ConfigObjectE
 	return storage.NewWatcher(func(stop <-chan struct{}, errs chan error) {
 		for {
 			select {
-			case <-time.After(c.syncFrequency):
+			default:
 				if err := sync(); err != nil {
 					log.Warnf("error syncing with consul kv-pairs: %v", err)
 				}

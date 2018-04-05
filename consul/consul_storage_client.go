@@ -14,6 +14,8 @@ type Client struct {
 
 // TODO: support basic auth and tls
 func NewStorage(cfg *api.Config, rootPath string, syncFrequency time.Duration) (storage.Interface, error) {
+	cfg.WaitTime = syncFrequency
+
 	// Get a new client
 	client, err := api.NewClient(cfg)
 	if err != nil {
@@ -24,16 +26,14 @@ func NewStorage(cfg *api.Config, rootPath string, syncFrequency time.Duration) (
 		v1: &v1client{
 			upstreams: &upstreamsClient{
 				&baseClient{
-					consul:        client,
-					rootPath:      rootPath + "/upstreams",
-					syncFrequency: syncFrequency,
+					consul:   client,
+					rootPath: rootPath + "/upstreams",
 				},
 			},
 			virtualHosts: &virtualHostsClient{
 				&baseClient{
-					consul:        client,
-					rootPath:      rootPath + "/virtualhosts",
-					syncFrequency: syncFrequency,
+					consul:   client,
+					rootPath: rootPath + "/virtualhosts",
 				},
 			},
 		},

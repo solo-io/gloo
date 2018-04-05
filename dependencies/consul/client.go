@@ -12,12 +12,13 @@ import (
 )
 
 type fileStorage struct {
-	rootPath      string
-	consul        *api.Client
-	syncFrequency time.Duration
+	rootPath string
+	consul   *api.Client
 }
 
 func NewFileStorage(cfg *api.Config, rootPath string, syncFrequency time.Duration) (dependencies.FileStorage, error) {
+	cfg.WaitTime = syncFrequency
+
 	// Get a new client
 	client, err := api.NewClient(cfg)
 	if err != nil {
@@ -25,9 +26,8 @@ func NewFileStorage(cfg *api.Config, rootPath string, syncFrequency time.Duratio
 	}
 
 	return &fileStorage{
-		consul:        client,
-		rootPath:      rootPath + "/files",
-		syncFrequency: syncFrequency,
+		consul:   client,
+		rootPath: rootPath + "/files",
 	}, nil
 }
 
@@ -135,7 +135,7 @@ func (s *fileStorage) List() ([]*dependencies.File, error) {
 func (s *fileStorage) Watch(handlers ...dependencies.FileEventHandler) (*storage.Watcher, error) {
 	var lastIndex uint64
 	sync := func() error {
-		pairs, meta, err := s.consul.KV().List(s.rootPath, &api.QueryOptions{RequireConsistent: true})
+		pairs, meta, err := s.consul.KV().List(s.rootPath, &api.QueryOptions{RequireConsistent: true, WaitIndex: lastIndex})
 		if err != nil {
 			return errors.Wrap(err, "getting kv-pairs list")
 		}
@@ -158,7 +158,7 @@ func (s *fileStorage) Watch(handlers ...dependencies.FileEventHandler) (*storage
 	return storage.NewWatcher(func(stop <-chan struct{}, errs chan error) {
 		for {
 			select {
-			case <-time.After(s.syncFrequency):
+			default:
 				if err := sync(); err != nil {
 					log.Warnf("error syncing with consul kv-pairs: %v", err)
 				}
