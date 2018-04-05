@@ -8,9 +8,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/detector"
-	"github.com/solo-io/gloo-function-discovery/internal/updater/faas"
 	"github.com/solo-io/gloo-function-discovery/internal/updater/gcf"
 	"github.com/solo-io/gloo-function-discovery/internal/updater/lambda"
+	"github.com/solo-io/gloo-function-discovery/internal/updater/openfaas"
 	"github.com/solo-io/gloo-function-discovery/internal/updater/swagger"
 	"github.com/solo-io/gloo-function-discovery/pkg/backoff"
 	"github.com/solo-io/gloo-function-discovery/pkg/functiontypes"
@@ -77,8 +77,8 @@ func UpdateFunctions(resolve resolver.Resolver, gloo storage.Interface, upstream
 		if err != nil {
 			return errors.Wrap(err, "retrieving swagger functions")
 		}
-	case functiontypes.FunctionTypeFaas:
-		funcs, err = faas.GetFuncs(resolve, us)
+	case functiontypes.FunctionTypeOpenFaas:
+		funcs, err = openfaas.GetFuncs(resolve, us)
 		if err != nil {
 			return errors.Wrap(err, "updating faas functions")
 		}

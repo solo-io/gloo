@@ -1,4 +1,4 @@
-package faas
+package openfaas
 
 import (
 	"bytes"
@@ -14,8 +14,8 @@ import (
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
 
-func dummyListFuncs(gw string) (FaasFunctions, error) {
-	funcs := FaasFunctions{
+func dummyListFuncs(gw string) (OpenFaasFunctions, error) {
+	funcs := OpenFaasFunctions{
 		{
 			Name: "test",
 		},
@@ -145,7 +145,7 @@ var _ = Describe("Faas", func() {
 
 	It("get and http(s) url to list", func() {
 		var gw string
-		f := func(gwinner string) (FaasFunctions, error) {
+		f := func(gwinner string) (OpenFaasFunctions, error) {
 			gw = gwinner
 			return nil, nil
 		}
