@@ -1,4 +1,4 @@
-package lambda_test
+package swagger
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestLambda(t *testing.T) {
+func TestSwagger(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Lambda Suite")
+	RunSpecs(t, "Swagger Suite")
 }

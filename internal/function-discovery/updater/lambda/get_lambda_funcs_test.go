@@ -1,4 +1,4 @@
-package lambda_test
+package lambda
 
 import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
