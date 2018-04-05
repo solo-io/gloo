@@ -18,8 +18,10 @@ import (
 	"github.com/solo-io/gloo-function-discovery/internal/upstreamwatcher"
 	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
 	"github.com/solo-io/gloo-storage"
+	"github.com/solo-io/gloo-storage/consul"
 	"github.com/solo-io/gloo-storage/crd"
 	"github.com/solo-io/gloo-storage/dependencies"
+	consulfiles "github.com/solo-io/gloo-storage/dependencies/consul"
 	filestorage "github.com/solo-io/gloo-storage/dependencies/file"
 	"github.com/solo-io/gloo-storage/dependencies/kube"
 	"github.com/solo-io/gloo-storage/file"
@@ -182,11 +184,18 @@ func createStorageClient(opts bootstrap.Options) (storage.Interface, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "building kube restclient")
 		}
-		cfgWatcher, err := crd.NewStorage(cfg, opts.KubeOptions.Namespace, opts.ConfigWatcherOptions.SyncFrequency)
+		client, err := crd.NewStorage(cfg, opts.KubeOptions.Namespace, opts.ConfigWatcherOptions.SyncFrequency)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to start kube config watcher with config %#v", opts.KubeOptions)
 		}
-		return cfgWatcher, nil
+		return client, nil
+	case bootstrap.WatcherTypeConsul:
+		cfg := opts.ConsulOptions.ToConsulConfig()
+		client, err := consul.NewStorage(cfg, opts.ConsulOptions.RootPath, opts.ConfigWatcherOptions.SyncFrequency)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to start consul config watcher with config %#v", opts.ConsulOptions)
+		}
+		return client, nil
 	}
 	return nil, errors.Errorf("unknown or unspecified config watcher type: %v", opts.ConfigWatcherOptions.Type)
 }
@@ -196,25 +205,32 @@ func createFileStorageClient(opts bootstrap.Options) (dependencies.FileStorage, 
 	case bootstrap.WatcherTypeFile:
 		dir := opts.FileOptions.FilesDir
 		if dir == "" {
-			return nil, errors.New("must provide directory for file file watcher")
+			return nil, errors.New("must provide directory for file file storage client")
 		}
-		client, err := filestorage.NewFileStorage(dir, opts.FileWatcherOptions.SyncFrequency)
+		store, err := filestorage.NewFileStorage(dir, opts.FileWatcherOptions.SyncFrequency)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to start file based file watcher for directory %v", dir)
+			return nil, errors.Wrapf(err, "failed to start file based file storage client for directory %v", dir)
 		}
-		return client, nil
+		return store, nil
 	case bootstrap.WatcherTypeKube:
 		cfg, err := clientcmd.BuildConfigFromFlags(opts.KubeOptions.MasterURL, opts.KubeOptions.KubeConfig)
 		if err != nil {
 			return nil, errors.Wrap(err, "building kube restclient")
 		}
-		cfgWatcher, err := kube.NewFileStorage(cfg, opts.KubeOptions.Namespace, opts.FileWatcherOptions.SyncFrequency)
+		store, err := kube.NewFileStorage(cfg, opts.KubeOptions.Namespace, opts.FileWatcherOptions.SyncFrequency)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to start kube file watcher with config %#v", opts.KubeOptions)
+			return nil, errors.Wrapf(err, "failed to start kube file storage client with config %#v", opts.KubeOptions)
 		}
-		return cfgWatcher, nil
+		return store, nil
+	case bootstrap.WatcherTypeConsul:
+		cfg := opts.ConsulOptions.ToConsulConfig()
+		store, err := consulfiles.NewFileStorage(cfg, opts.ConsulOptions.RootPath, opts.ConfigWatcherOptions.SyncFrequency)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to start consul KV-based file storage client with config %#v", opts.ConsulOptions)
+		}
+		return store, nil
 	}
-	return nil, errors.Errorf("unknown or unspecified file watcher type: %v", opts.FileWatcherOptions.Type)
+	return nil, errors.Errorf("unknown or unspecified file storage client type: %v", opts.FileWatcherOptions.Type)
 }
 
 func createResolver(opts bootstrap.Options) resolver.Resolver {
