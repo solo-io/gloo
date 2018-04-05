@@ -1,0 +1,6 @@
+/gloo
+vendor/
+vendor.*/
+_gloo_config*
+gloo-ingress
+gloo-ingress-controller
