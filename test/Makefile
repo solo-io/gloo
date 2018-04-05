@@ -1,0 +1,2 @@
+test:
+	ginkgo -r -v .
