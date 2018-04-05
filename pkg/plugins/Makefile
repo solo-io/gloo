@@ -1,6 +1,0 @@
-
-build:
-	go build -v ./...
-
-unit:
-	go test -cover ./...

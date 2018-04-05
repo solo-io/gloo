@@ -1,4 +1,4 @@
-package file_test
+package file
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestFile(t *testing.T) {
+func TestCrd(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "File Files Suite")
+	RunSpecs(t, "Crd Suite")
 }

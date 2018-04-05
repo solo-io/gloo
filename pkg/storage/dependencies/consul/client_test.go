@@ -1,4 +1,4 @@
-package consul_test
+package consul
 
 import (
 	"fmt"

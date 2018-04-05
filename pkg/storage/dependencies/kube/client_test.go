@@ -1,4 +1,4 @@
-package kube_test
+package kube
 
 import (
 	. "github.com/onsi/ginkgo"

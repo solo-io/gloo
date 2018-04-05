@@ -1,6 +1,0 @@
-/gloo
-vendor/
-vendor.*/
-_gloo_config*
-grpc-test-service/grpc-test-service
-*.coverprofile
