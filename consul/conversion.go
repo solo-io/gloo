@@ -1,9 +1,8 @@
 package consul
 
 import (
-	"strconv"
-
 	"fmt"
+	"strconv"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/hashicorp/consul/api"
