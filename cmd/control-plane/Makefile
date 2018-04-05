@@ -23,16 +23,5 @@ $(BINARY)-debug: $(SOURCES)
 docker-debug: $(BINARY)-debug
 	docker build -t soloio/$(BINARY):$(IMAGE_TAG)-debug -f Dockerfile.debug .
 
-hackrun: $(BINARY)
-	./hack/run-local.sh
-
-unit:
-	ginkgo -r -v config/ module/ pkg/ xds/
-
-e2e:
-	ginkgo -r -v test/e2e/
-
-test: e2e unit
-
 clean:
 	rm -f $(BINARY) $(BINARY)-debug $(BINARY)-static

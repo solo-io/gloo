@@ -1,5 +1,9 @@
 ROOTDIR := $(shell pwd)
 
+#----------------------------------------------------------------------------------
+# Build
+#----------------------------------------------------------------------------------
+
 proto:
 	export DISABLE_SORT=1 && \
 	cd api/v1/ && \
@@ -15,6 +19,10 @@ proto:
 	$(ROOTDIR)/pkg/api/types/v1 \
 	./*.proto
 
+#----------------------------------------------------------------------------------
+# Docs
+#----------------------------------------------------------------------------------
+
 doc: proto
 	go run docs/gen_docs.go
 #	godocdown pkg/api/types/v1/ > docs/go.md
@@ -24,6 +32,25 @@ site: doc
 
 docker-docs: site
 	docker build -t soloio/nginx-docs:v$(VERSION) -f Dockerfile.site .
+
+#----------------------------------------------------------------------------------
+# Test
+#----------------------------------------------------------------------------------
+
+hackrun: $(BINARY)
+	./hack/run-local.sh
+
+unit:
+	ginkgo -r -v config/ module/ pkg/ xds/
+
+e2e:
+	ginkgo -r -v test/e2e/
+
+test: e2e unit
+
+
+
+
 
 # TODO: dependnencies
 # binaries:
