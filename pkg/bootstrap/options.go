@@ -60,6 +60,9 @@ type ConsulOptions struct {
 	// Address is the address of the Consul server
 	Address string
 
+	// Datacenter to use. If not provided, the default agent datacenter is used.
+	Datacenter string
+
 	// Scheme is the URI scheme for the Consul server
 	Scheme string
 
@@ -82,6 +85,9 @@ type ConsulOptions struct {
 
 func (o ConsulOptions) ToConsulConfig() *api.Config {
 	cfg := api.DefaultConfig()
+	if o.Datacenter != "" {
+		cfg.Datacenter = o.Datacenter
+	}
 	if o.Address != "" {
 		cfg.Address = o.Address
 	}
