@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/hashicorp/consul/api"
 	. "github.com/onsi/ginkgo"
@@ -45,6 +46,29 @@ var _ = Describe("Client", func() {
 					ResourceVersion: fmt.Sprintf("%v", p.ModifyIndex),
 				}
 				Expect(fi).To(Equal(fileFromConsul))
+			})
+			It("creates binary files without any problem as a consul key", func() {
+				contents := []byte{1, 2, 3, unicode.MaxASCII + 1}
+				client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Millisecond)
+				Expect(err).NotTo(HaveOccurred())
+				input := &dependencies.File{
+					Ref:      "myfile",
+					Contents: contents,
+				}
+				fi, err := client.Create(input)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fi).NotTo(Equal(input))
+				p, _, err := consul.KV().Get(rootPath+"/files/"+input.Ref, nil)
+				Expect(err).NotTo(HaveOccurred())
+				fileFromConsul := &dependencies.File{
+					Ref:             strings.TrimPrefix(p.Key, rootPath+"/files/"),
+					Contents:        p.Value,
+					ResourceVersion: fmt.Sprintf("%v", p.ModifyIndex),
+				}
+				Expect(fi).To(Equal(fileFromConsul))
+				get, err := client.Get(input.Ref)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(input.Contents).To(Equal(get.Contents))
 			})
 			It("errors when creating the same file twice", func() {
 				client, err := NewFileStorage(api.DefaultConfig(), rootPath, time.Millisecond)
