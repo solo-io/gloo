@@ -1,8 +1,8 @@
-package consul
+package base
 
 import (
-	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
+	"github.com/solo-io/gloo-storage/dependencies"
 
 	"github.com/hashicorp/consul/api"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
@@ -12,19 +12,19 @@ import (
 
 // TODO: evaluate efficiency of LSing a whole dir on every op
 // so far this is preferable to caring what files are named
-type baseClient struct {
+type ConsulStorageClient struct {
 	rootPath string
 	consul   *api.Client
 }
 
-type ConfigObjectType string
+func NewConsulStorageClient(rootPath string, consul *api.Client) *ConsulStorageClient {
+	return &ConsulStorageClient{
+		rootPath: rootPath,
+		consul:   consul,
+	}
+}
 
-const (
-	configObjectTypeUpstream    = "Upstream"
-	configObjectTypeVirtualHost = "VirtualHost"
-)
-
-func (c *baseClient) Create(item v1.ConfigObject, t ConfigObjectType) (v1.ConfigObject, error) {
+func (c *ConsulStorageClient) Create(item *StorableItem) (*StorableItem, error) {
 	p, err := toKVPair(c.rootPath, item)
 	if err != nil {
 		return nil, errors.Wrapf(err, "converting %s to kv pair", item.GetName())
@@ -37,57 +37,50 @@ func (c *baseClient) Create(item v1.ConfigObject, t ConfigObjectType) (v1.Config
 	}
 	if existingP != nil {
 		return nil, storage.NewAlreadyExistsErr(
-			errors.Errorf("key found for configObject %s: %s", item.GetName(), p.Key))
+			errors.Errorf("key found for storageItem %s: %s", item.GetName(), p.Key))
 	}
+
+	// create the item
 	if _, err := c.consul.KV().Put(p, nil); err != nil {
 		return nil, errors.Wrapf(err, "writing kv pair %s", p.Key)
 	}
-	// set the resource version from the CreateIndex of the created kv pair
-	p, _, err = c.consul.KV().Get(p.Key, &api.QueryOptions{RequireConsistent: true})
+	cfgObject, err := c.Get(item.GetName())
 	if err != nil {
-		return nil, errors.Wrapf(err, "getting newly created kv pair %s", p.Key)
+		return nil, errors.Wrapf(err, "getting newly created cfg object %s", p.Key)
 	}
-	// set resourceversion on clone
-	configObjectClone := proto.Clone(item).(v1.ConfigObject)
-	setResourceVersion(configObjectClone, p, t)
-	return configObjectClone, nil
+	return cfgObject, nil
 }
 
-func (c *baseClient) Update(item v1.ConfigObject, t ConfigObjectType) (v1.ConfigObject, error) {
+func (c *ConsulStorageClient) Update(item *StorableItem) (*StorableItem, error) {
 	updatedP, err := toKVPair(c.rootPath, item)
 	if err != nil {
 		return nil, errors.Wrapf(err, "converting %s to kv pair", item.GetName())
 	}
 
 	// error if the key doesn't already exist
-	exsitingP, _, err := c.consul.KV().Get(updatedP.Key, &api.QueryOptions{RequireConsistent: true})
+	existingP, _, err := c.consul.KV().Get(updatedP.Key, &api.QueryOptions{RequireConsistent: true})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query consul")
 	}
-	if exsitingP == nil {
-		return nil, errors.Errorf("key not found for configObject %s: %s", item.GetName(), updatedP.Key)
+	if existingP == nil {
+		return nil, errors.Errorf("key not found for storageItem %s: %s", item.GetName(), updatedP.Key)
 	}
+
+	// update the item
 	if success, _, err := c.consul.KV().CAS(updatedP, nil); err != nil {
 		return nil, errors.Wrapf(err, "writing kv pair %s", updatedP.Key)
 	} else if !success {
-		return nil, errors.Errorf("resource version was invalid for configObject: %s", item.GetName())
+		return nil, errors.Errorf("resource version was invalid for storageItem: %s", item.GetName())
 	}
 
-	// set the resource version from the CreateIndex of the created kv pair
-	updatedP, _, err = c.consul.KV().Get(updatedP.Key, &api.QueryOptions{RequireConsistent: true})
+	cfgObject, err := c.Get(item.GetName())
 	if err != nil {
-		return nil, errors.Wrapf(err, "getting newly created kv pair %s", updatedP.Key)
+		return nil, errors.Wrapf(err, "getting updated created cfg object %s", existingP.Key)
 	}
-	// set resourceversion on clone
-	configObjectClone, ok := proto.Clone(item).(v1.ConfigObject)
-	if !ok {
-		return nil, errors.New("internal error: output of proto.Clone was not expected type")
-	}
-	setResourceVersion(configObjectClone, updatedP, t)
-	return configObjectClone, nil
+	return cfgObject, nil
 }
 
-func (c *baseClient) Delete(name string) error {
+func (c *ConsulStorageClient) Delete(name string) error {
 	key := key(c.rootPath, name)
 
 	_, err := c.consul.KV().Delete(key, nil)
@@ -97,40 +90,40 @@ func (c *baseClient) Delete(name string) error {
 	return nil
 }
 
-func (c *baseClient) Get(name string, t ConfigObjectType) (v1.ConfigObject, error) {
+func (c *ConsulStorageClient) Get(name string) (*StorableItem, error) {
 	key := key(c.rootPath, name)
 	p, _, err := c.consul.KV().Get(key, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "getting pair for for key %v", key)
 	}
 	if p == nil {
-		return nil, errors.Errorf("keypair %s not found for configObject %s", key, name)
+		return nil, errors.Errorf("keypair %s not found for storageItem %s", key, name)
 	}
-	obj, err := configObjectFromKVPair(p, t)
+	obj, err := itemFromKVPair(c.rootPath, p)
 	if err != nil {
-		return nil, errors.Wrap(err, "converting consul kv-pair to configObject")
+		return nil, errors.Wrap(err, "converting consul kv-pair to storageItem")
 	}
 	return obj, nil
 }
 
-func (c *baseClient) List(t ConfigObjectType) ([]v1.ConfigObject, error) {
+func (c *ConsulStorageClient) List() ([]*StorableItem, error) {
 	pairs, _, err := c.consul.KV().List(c.rootPath, &api.QueryOptions{RequireConsistent: true})
 	if err != nil {
 		return nil, errors.Wrapf(err, "listing key-value pairs for root %s", c.rootPath)
 	}
-	var configObjects []v1.ConfigObject
+	var storageItems []*StorableItem
 	for _, p := range pairs {
-		obj, err := configObjectFromKVPair(p, t)
+		obj, err := itemFromKVPair(c.rootPath, p)
 		if err != nil {
-			return nil, errors.Wrapf(err, "converting %s to configObject", p.Key)
+			return nil, errors.Wrapf(err, "converting %s to storageItem", p.Key)
 		}
-		configObjects = append(configObjects, obj)
+		storageItems = append(storageItems, obj)
 	}
-	return configObjects, nil
+	return storageItems, nil
 }
 
 // TODO: be clear that watch for consul only calls update
-func (c *baseClient) Watch(t ConfigObjectType, handlers ...storage.ConfigObjectEventHandler) (*storage.Watcher, error) {
+func (c *ConsulStorageClient) Watch(handlers ...StorableItemEventHandler) (*storage.Watcher, error) {
 	var lastIndex uint64
 	sync := func() error {
 		pairs, meta, err := c.consul.KV().List(c.rootPath, &api.QueryOptions{RequireConsistent: true, WaitIndex: lastIndex})
@@ -144,27 +137,40 @@ func (c *baseClient) Watch(t ConfigObjectType, handlers ...storage.ConfigObjectE
 		var (
 			virtualHosts []*v1.VirtualHost
 			upstreams    []*v1.Upstream
+			files        []*dependencies.File
 		)
 		for _, p := range pairs {
-			obj, err := configObjectFromKVPair(p, t)
+			item, err := itemFromKVPair(c.rootPath, p)
 			if err != nil {
-				return errors.Wrapf(err, "converting %s to configObject", p.Key)
+				return errors.Wrapf(err, "converting %s to storageItem", p.Key)
 			}
 
-			switch t {
-			case configObjectTypeUpstream:
-				upstreams = append(upstreams, obj.(*v1.Upstream))
-			case configObjectTypeVirtualHost:
-				virtualHosts = append(virtualHosts, obj.(*v1.VirtualHost))
+			switch {
+			case item.Upstream != nil:
+				upstreams = append(upstreams, item.Upstream)
+			case item.VirtualHost != nil:
+				virtualHosts = append(virtualHosts, item.VirtualHost)
+			case item.File != nil:
+				files = append(files, item.File)
+			default:
+				panic("virtual host, file or upstream must be set")
+
 			}
 		}
+		// update index
 		lastIndex = meta.LastIndex
-		for _, h := range handlers {
-			switch t {
-			case configObjectTypeUpstream:
+		switch {
+		case len(upstreams) > 0:
+			for _, h := range handlers {
 				h.UpstreamEventHandler.OnUpdate(upstreams, nil)
-			case configObjectTypeVirtualHost:
+			}
+		case len(virtualHosts) > 0:
+			for _, h := range handlers {
 				h.VirtualHostEventHandler.OnUpdate(virtualHosts, nil)
+			}
+		case len(files) > 0:
+			for _, h := range handlers {
+				h.FileEventHandler.OnUpdate(files, nil)
 			}
 		}
 		return nil

@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-storage"
+	"github.com/solo-io/gloo-storage/internal/base"
 )
 
 type Client struct {
@@ -25,16 +26,10 @@ func NewStorage(cfg *api.Config, rootPath string, syncFrequency time.Duration) (
 	return &Client{
 		v1: &v1client{
 			upstreams: &upstreamsClient{
-				&baseClient{
-					consul:   client,
-					rootPath: rootPath + "/upstreams",
-				},
+				base: base.NewConsulStorageClient(rootPath+"/upstreams", client),
 			},
 			virtualHosts: &virtualHostsClient{
-				&baseClient{
-					consul:   client,
-					rootPath: rootPath + "/virtualhosts",
-				},
+				base: base.NewConsulStorageClient(rootPath+"/virtualhosts", client),
 			},
 		},
 	}, nil

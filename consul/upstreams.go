@@ -3,28 +3,27 @@ package consul
 import (
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-storage"
+	"github.com/solo-io/gloo-storage/internal/base"
 )
 
-// TODO: evaluate efficiency of LSing a whole dir on every op
-// so far this is preferable to caring what files are named
 type upstreamsClient struct {
-	base *baseClient
+	base *base.ConsulStorageClient
 }
 
 func (c *upstreamsClient) Create(item *v1.Upstream) (*v1.Upstream, error) {
-	out, err := c.base.Create(item, configObjectTypeUpstream)
+	out, err := c.base.Create(&base.StorableItem{Upstream: item})
 	if err != nil {
 		return nil, err
 	}
-	return out.(*v1.Upstream), nil
+	return out.Upstream, nil
 }
 
 func (c *upstreamsClient) Update(item *v1.Upstream) (*v1.Upstream, error) {
-	out, err := c.base.Update(item, configObjectTypeUpstream)
+	out, err := c.base.Update(&base.StorableItem{Upstream: item})
 	if err != nil {
 		return nil, err
 	}
-	return out.(*v1.Upstream), nil
+	return out.Upstream, nil
 }
 
 func (c *upstreamsClient) Delete(name string) error {
@@ -32,29 +31,29 @@ func (c *upstreamsClient) Delete(name string) error {
 }
 
 func (c *upstreamsClient) Get(name string) (*v1.Upstream, error) {
-	out, err := c.base.Get(name, configObjectTypeUpstream)
+	out, err := c.base.Get(name)
 	if err != nil {
 		return nil, err
 	}
-	return out.(*v1.Upstream), nil
+	return out.Upstream, nil
 }
 
 func (c *upstreamsClient) List() ([]*v1.Upstream, error) {
-	list, err := c.base.List(configObjectTypeUpstream)
+	list, err := c.base.List()
 	if err != nil {
 		return nil, err
 	}
 	var upstreams []*v1.Upstream
 	for _, obj := range list {
-		upstreams = append(upstreams, obj.(*v1.Upstream))
+		upstreams = append(upstreams, obj.Upstream)
 	}
 	return upstreams, nil
 }
 
 func (c *upstreamsClient) Watch(handlers ...storage.UpstreamEventHandler) (*storage.Watcher, error) {
-	var configObjHandlers []storage.ConfigObjectEventHandler
+	var baseHandlers []base.StorableItemEventHandler
 	for _, h := range handlers {
-		configObjHandlers = append(configObjHandlers, storage.ConfigObjectEventHandler{UpstreamEventHandler: h})
+		baseHandlers = append(baseHandlers, base.StorableItemEventHandler{UpstreamEventHandler: h})
 	}
-	return c.base.Watch(configObjectTypeUpstream, configObjHandlers...)
+	return c.base.Watch(baseHandlers...)
 }
