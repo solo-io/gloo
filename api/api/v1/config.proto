@@ -1,0 +1,16 @@
+syntax = "proto3";
+package v1;
+
+import "upstream.proto";
+import "virtualhost.proto";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+/**
+ * Config is a top-level config object. It is used internally by gloo as a container for the entire user config.
+ */
+message Config {
+    repeated Upstream upstreams = 1; // The list of all upstreams defined by the user.
+    repeated VirtualHost virtual_hosts = 2; // the list of all virtual hosts defined by the user.
+}
