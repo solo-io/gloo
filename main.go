@@ -69,6 +69,14 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.KubeConfig, "kubeconfig", "", "path to kubeconfig file. not needed if running in-cluster")
 	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.Namespace, "kube.namespace", crd.GlooDefaultNamespace, "namespace to read/write gloo storage objects")
 
+	// consul
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.RootPath, "consul.root", "gloo", "prefix for all k/v pairs stored in consul by gloo, when using consul for storage")
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.Address, "consul.address", "", "address (including port) of the consul server to connect to when using consul for storage or service discovery")
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.Scheme, "consul.scheme", "", "uri scheme for the consul server")
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.Token, "consul.token", "", "token is used to provide a per-request ACL token to override the default")
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.Username, "consul.username", "", "username for authenticating to the consul server, if using basic auth")
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.Password, "consul.password", "", "password for authenticating to the consul server, if using basic auth")
+
 	// vault
 	rootCmd.PersistentFlags().StringVar(&opts.VaultOptions.VaultAddr, "vault.addr", "", "url for vault server")
 	rootCmd.PersistentFlags().StringVar(&opts.VaultOptions.AuthToken, "vault.token", "", "auth token for reading vault secrets")
