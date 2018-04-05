@@ -1,0 +1,12 @@
+# # config file version
+apiVersion: 1
+
+# # list of datasources to insert/update depending
+# # on what's available in the datbase
+datasources:
+ - name: prometheus
+   type: prometheus
+   access: proxy
+   url: http://prometheus:9090
+   basicAuth: false 
+   isDefault: true

@@ -1,0 +1,5 @@
+name: aws-lambda-us-east-1
+type: aws
+spec:
+  region: us-east-1
+  secret_ref: aws-lambda-us-east-1

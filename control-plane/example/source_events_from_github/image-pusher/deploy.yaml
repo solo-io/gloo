@@ -1,0 +1,36 @@
+
+---
+# image-pusher pod
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: image-pusher
+  name: image-pusher
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: image-pusher
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: image-pusher
+    spec:
+      containers:
+      - image: soloio/image-pusher:latest
+        name: image-pusher
+        command: ["/image-pusher"]
+        env:
+        - name: GITHUB_SECRET
+          value: "asdf"
+        # Minio access key and secret key
+        - name: MINIO_ACCESS_KEY
+          value: "gloo.solo.io"
+        - name: MINIO_SECRET_KEY
+          value: "gloo.solo.io"
+        - name: MINIO_BUCKET_NAME
+          value: "bucket"
+        - name: MINIO_REGION
+          value: "us-east-1"

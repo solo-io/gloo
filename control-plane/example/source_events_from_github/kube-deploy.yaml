@@ -1,0 +1,97 @@
+---
+# nats-streaming pod
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: nats-streaming
+  name: nats-streaming
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: nats-streaming
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nats-streaming
+    spec:
+      containers:
+      - image: nats-streaming
+        name: nats-streaming
+        ports:
+        - containerPort: 4222
+          name: nats
+---
+# nats-streaming service
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats-streaming
+  labels:
+    app: nats-streaming
+  namespace: default
+spec:
+  ports:
+  - port: 4222
+    protocol: TCP
+  selector:
+    app: nats-streaming
+
+---
+# minio pod
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  # This name uniquely identifies the Deployment
+  name: minio-deployment
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        # Label is used as selector in the service.
+        app: minio
+    spec:
+      # volume
+      volumes:
+      - name: storage
+        emptyDir: {}
+      containers:
+      - name: minio
+        # Pulls the default Minio image from Docker Hub
+        image: minio/minio
+        args:
+        - server
+        - /storage
+        env:
+        # Minio access key and secret key
+        - name: MINIO_ACCESS_KEY
+          value: "gloo.solo.io"
+        - name: MINIO_SECRET_KEY
+          value: "gloo.solo.io"
+        ports:
+        - containerPort: 9000
+        # Mount the volume into the pod
+        volumeMounts:
+        - name: storage # must match the volume name, above
+          mountPath: "/storage"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service
+  namespace: default
+spec:
+  ports:
+    - port: 9000
+      targetPort: 9000
+      protocol: TCP
+  selector:
+    app: minio
+
+

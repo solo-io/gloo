@@ -1,0 +1,4 @@
+FROM alpine:3.7
+COPY gloo-debug /gloo
+EXPOSE 8081
+ENTRYPOINT ["/gloo"]

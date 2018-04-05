@@ -1,0 +1,45 @@
+---
+# star-tweeter pod
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: star-tweeter
+  name: star-tweeter
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: star-tweeter
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: star-tweeter
+    spec:
+      containers:
+      - image: soloio/star-tweeter:latest
+        name: star-tweeter
+        command: ["/star-tweeter"]
+        env:
+        # Twitter access tokens
+        - name: TWITTER_CONSUMER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: twitter-secret
+              key: TWITTER_CONSUMER_KEY
+        - name: TWITTER_CONSUMER_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: twitter-secret
+              key: TWITTER_CONSUMER_SECRET
+        - name: TWITTER_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: twitter-secret
+              key: TWITTER_ACCESS_TOKEN
+        - name: TWITTER_ACCESS_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: twitter-secret
+              key: TWITTER_ACCESS_SECRET

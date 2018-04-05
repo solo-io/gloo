@@ -1,0 +1,26 @@
+{
+            "Version": "2012-10-17", 
+            "Statement": [
+                {
+                    "Action": [
+                        "logs:CreateLogStream", 
+                        "logs:PutLogEvents"
+                    ], 
+                    "Resource": "arn:aws:logs:*:*:*", 
+                    "Effect": "Allow", 
+                    "Sid": "Sid0"
+                }, 
+                {
+                    "Action": "s3:PutObject", 
+                    "Resource": "arn:aws:s3:::io.solo.petclinic/*", 
+                    "Effect": "Allow", 
+                    "Sid": "Sid1"
+                }, 
+                {
+                    "Action": "logs:CreateLogGroup", 
+                    "Resource": "arn:aws:logs:*:*:*", 
+                    "Effect": "Allow", 
+                    "Sid": "Sid2"
+                }
+            ]
+}

@@ -1,0 +1,6 @@
+type: service
+name: analytics
+spec:
+  hosts:
+  - addr: analytics
+    port: 5000

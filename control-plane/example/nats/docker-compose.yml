@@ -1,0 +1,66 @@
+version: '3'
+services:
+
+  cassandra:
+    image: cassandra
+
+  analytics:
+    build: ./analytics
+
+  analytics-nats-streaming:
+    build: ./analytics-nats-streaming
+
+  nats-streaming:
+    image: nats-streaming
+    ports:
+    - "4222:4222"
+
+  gloo:
+    image: soloio/gloo:v0.1.7-108
+    entrypoint: ["/gloo"]
+    working_dir: /config/
+    command:
+    - "--storage.type=file"
+    - "--storage.refreshrate=1s"
+    - "--secrets.type=file"
+    - "--secrets.refreshrate=1s"
+    volumes:
+    - ./gloo-config:/config/
+
+  ingress:
+    image: soloio/envoy:v0.1.6-125
+    entrypoint: ["envoy"]
+    command: ["-c", "/config/envoy.yaml", "--v2-config-only"]
+    volumes:
+    - ./envoy.yaml:/config/envoy.yaml:ro
+    ports:
+    - "8080:8080"
+    - "19000:19000"
+
+  website:
+    image: nginx
+    volumes:
+    - ./website:/usr/share/nginx/html:ro
+
+  statsd:
+    image: prom/statsd-exporter:latest
+    ports:
+    - "9102:9102"
+    - "9125:9125"
+
+  prometheus:
+    image: prom/prometheus
+    command: "--config.file=/tmp/prometheus.yaml --web.listen-address '0.0.0.0:9090'"
+    ports: 
+    - "9090:9090"
+    volumes:
+    - ./prometheus.yaml:/tmp/prometheus.yaml
+
+  grafana:
+    image: grafana/grafana
+    ports:
+    - "3000:3000"
+    volumes:
+    - ./grafana-datasource.yaml:/etc/grafana/provisioning/datasources/grafana-datasource.yaml
+    - ./grafana-dashboard-provider.yaml:/etc/grafana/provisioning/dashboards/dashboard-provider.yaml
+    - ./dashboards:/var/lib/grafana/dashboards
