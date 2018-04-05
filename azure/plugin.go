@@ -145,7 +145,7 @@ func getApiKey(apiKeys map[string]string, keyNames []string) (string, error) {
 		}
 	}
 
-	return "", errors.New("secret not found")
+	return "", fmt.Errorf("secret not found for key names %v", keyNames)
 }
 
 func getPathParameters(functionSpec *FunctionSpec, apiKeys map[string]string) (string, error) {
