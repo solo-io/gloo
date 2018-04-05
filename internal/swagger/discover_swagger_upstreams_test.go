@@ -37,7 +37,7 @@ var _ = Describe("DiscoverSwaggerUpstreams", func() {
 			It("returns annotations with swagger doc url and service info for REST", func() {
 				addr := strings.TrimPrefix(srv.URL, "http://")
 				d := NewSwaggerDetector(nil)
-				svc, annotations, err := d.DetectFunctionalService(nil, addr)
+				svc, annotations, err := d.DetectFunctionalService(&v1.Upstream{Name: "Test"}, addr)
 				Expect(err).To(BeNil())
 				Expect(annotations).To(Equal(map[string]string{
 					swagger.AnnotationKeySwaggerURL: "http://" + addr + "/v1/swagger",

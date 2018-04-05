@@ -26,7 +26,7 @@ var _ = Describe("Discovergrpc", func() {
 				Expect(err).To(BeNil())
 				detector := NewGRPCDetector(files)
 				addr := fmt.Sprintf("localhost:%v", port)
-				svcInfo, annotations, err := detector.DetectFunctionalService(addr)
+				svcInfo, annotations, err := detector.DetectFunctionalService(&v1.Upstream{Name: "Test"}, addr)
 				Expect(err).To(BeNil())
 				Expect(annotations).To(BeNil())
 				fileRef := "grpc-discovery:Bookstore.descriptors"

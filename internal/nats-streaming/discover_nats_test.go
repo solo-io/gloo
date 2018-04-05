@@ -18,7 +18,7 @@ var _ = Describe("DiscoverNats", func() {
 				err = natsStreamingInstance.Run()
 				Expect(err).NotTo(HaveOccurred())
 				detector := NewNatsDetector(natsStreamingInstance.ClusterId())
-				svcInfo, annotations, err := detector.DetectFunctionalService(nil, fmt.Sprintf("localhost:%v", natsStreamingInstance.NatsPort()))
+				svcInfo, annotations, err := detector.DetectFunctionalService(&v1.Upstream{Name: "Test"}, fmt.Sprintf("localhost:%v", natsStreamingInstance.NatsPort()))
 				Expect(err).To(BeNil())
 				Expect(annotations).To(BeNil())
 				Expect(svcInfo).To(Equal(&v1.ServiceInfo{
