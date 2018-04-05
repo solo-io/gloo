@@ -1,4 +1,4 @@
-package aws_test
+package aws
 
 import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"

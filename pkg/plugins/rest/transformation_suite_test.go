@@ -1,4 +1,4 @@
-package grpc_test
+package rest
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestGrpc(t *testing.T) {
+func TestTransformation(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Grpc Suite")
+	RunSpecs(t, "Transformation Suite")
 }

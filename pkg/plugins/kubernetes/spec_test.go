@@ -1,4 +1,4 @@
-package kubernetes_test
+package kubernetes
 
 import (
 	"github.com/gogo/protobuf/types"
