@@ -15,12 +15,24 @@ proto:
 	$(ROOTDIR)/pkg/api/types/v1 \
 	./*.proto
 
-#TODO: document these dependnencies
+doc: proto
+	go run docs/gen_docs.go
+#	godocdown pkg/api/types/v1/ > docs/go.md
+
+site: doc
+	mkdocs build
+
+docker-docs: site
+	docker build -t soloio/nginx-docs:v$(VERSION) -f Dockerfile.site .
+
+# TODO: dependnencies
 # binaries:
 #  make
 #  protoc
 #  go
 #  protoc-gen-doc
+#  docker
+#  mkdocs
 
 # libs
 #  libproto
