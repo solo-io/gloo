@@ -1,0 +1,5 @@
+/gloo
+vendor/
+vendor.*/
+_gloo_config*
+gloo-k8s-service-discovery
