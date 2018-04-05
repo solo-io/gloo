@@ -57,7 +57,7 @@ func (m *Marker) DetectFunctionalUpstream(us *v1.Upstream) (*v1.ServiceInfo, map
 	// tried this upstream
 	already := m.finishedOrFailed[us.Name]
 	m.m.RUnlock()
-	if already > maxRetries {
+	if already >= maxRetries {
 		log.Debugf("no more retries for %s", us.Name)
 		return nil, nil, nil
 	}
