@@ -8,16 +8,17 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/solo-io/gloo-k8s-service-discovery/controller"
 	"github.com/solo-io/gloo-storage"
+	"github.com/solo-io/gloo-storage/consul"
 	"github.com/solo-io/gloo-storage/crd"
 	"github.com/solo-io/gloo-storage/file"
 	"github.com/solo-io/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/signals"
-	"k8s.io/client-go/rest"
 )
 
 func main() {
@@ -67,6 +68,15 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.MasterURL, "master", "", "url of the kubernetes apiserver. not needed if running in-cluster")
 	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.KubeConfig, "kubeconfig", "", "path to kubeconfig file. not needed if running in-cluster")
 	rootCmd.PersistentFlags().StringVar(&opts.KubeOptions.Namespace, "kube.namespace", crd.GlooDefaultNamespace, "namespace to read/write gloo storage objects")
+
+	// consul
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.RootPath, "consul.root", "gloo", "prefix for all k/v pairs stored in consul by gloo, when using consul for storage")
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.Datacenter, "consul.datacenter", "", "datacenter of the consul server when using consul for storage")
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.Address, "consul.address", "", "address (including port) of the consul server to connect to when using consul for storage")
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.Scheme, "consul.scheme", "", "uri scheme for the consul server")
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.Token, "consul.token", "", "token is used to provide a per-request ACL token to override the default")
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.Username, "consul.username", "", "username for authenticating to the consul server, if using basic auth")
+	rootCmd.PersistentFlags().StringVar(&opts.ConsulOptions.Password, "consul.password", "", "password for authenticating to the consul server, if using basic auth")
 }
 
 func createStorageClient(opts bootstrap.Options) (storage.Interface, error) {
@@ -89,6 +99,13 @@ func createStorageClient(opts bootstrap.Options) (storage.Interface, error) {
 		cfgWatcher, err := crd.NewStorage(cfg, opts.KubeOptions.Namespace, opts.ConfigWatcherOptions.SyncFrequency)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to start kube config watcher with config %#v", opts.KubeOptions)
+		}
+		return cfgWatcher, nil
+	case bootstrap.WatcherTypeConsul:
+		cfg := opts.ConsulOptions.ToConsulConfig()
+		cfgWatcher, err := consul.NewStorage(cfg, opts.ConsulOptions.RootPath, opts.ConfigWatcherOptions.SyncFrequency)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to start consul config watcher with config %#v", opts.ConsulOptions)
 		}
 		return cfgWatcher, nil
 	}
