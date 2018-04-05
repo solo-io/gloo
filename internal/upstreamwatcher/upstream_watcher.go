@@ -1,7 +1,6 @@
 package upstreamwatcher
 
 import (
-	"github.com/pkg/errors"
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-storage"
 )
@@ -18,13 +17,6 @@ func WatchUpstreams(gloo storage.Interface,
 			upstreams <- newList
 		}
 	}
-
-	// get the party started
-	initialList, err := gloo.V1().Upstreams().List()
-	if err != nil {
-		return nil, errors.Wrap(err, "getting initial list of upstreams")
-	}
-	go syncFunc(initialList, nil)
 
 	w, err := gloo.V1().Upstreams().Watch(storage.UpstreamEventHandlerFuncs{
 		AddFunc:    syncFunc,
