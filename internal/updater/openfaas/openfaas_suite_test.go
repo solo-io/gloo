@@ -1,4 +1,4 @@
-package faas
+package openfaas
 
 import (
 	"testing"

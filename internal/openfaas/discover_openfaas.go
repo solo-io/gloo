@@ -1,12 +1,13 @@
-package faas
+package openfaas
 
 import (
 	"errors"
+
 	"github.com/solo-io/gloo-api/pkg/api/types/v1"
 	"github.com/solo-io/gloo-function-discovery/internal/detector"
 	"github.com/solo-io/gloo-plugins/rest"
 
-	updatefaas "github.com/solo-io/gloo-function-discovery/internal/updater/faas"
+	updatefaas "github.com/solo-io/gloo-function-discovery/internal/updater/openfaas"
 )
 
 type faasDetector struct {
@@ -17,7 +18,7 @@ func NewFaasDetector() detector.Interface {
 }
 
 func (d *faasDetector) DetectFunctionalService(us *v1.Upstream, addr string) (*v1.ServiceInfo, map[string]string, error) {
-	if updatefaas.IsFaas(us) {
+	if updatefaas.IsOpenFaas(us) {
 		svcInfo := &v1.ServiceInfo{
 			Type: rest.ServiceTypeREST,
 		}

@@ -1,4 +1,4 @@
-package faas
+package openfaas
 
 import (
 	"encoding/json"
@@ -16,21 +16,21 @@ import (
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
 
-type FaasFunction struct {
+type OpenFaasFunction struct {
 	Name            string `json:"name"`
 	Image           string `json:"image"`
 	InvocationCount int64  `json:"invocationCount"`
 	Replicas        int64  `json:"replicas"`
 }
 
-type FaasFunctions []FaasFunction
+type OpenFaasFunctions []OpenFaasFunction
 
 func GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([]*v1.Function, error) {
 	fr := FaasRetriever{Lister: listGatewayFunctions(httpget)}
 	return fr.GetFuncs(resolve, us)
 }
 
-func IsFaas(us *v1.Upstream) bool {
+func IsOpenFaas(us *v1.Upstream) bool {
 	if us.Type == service.UpstreamTypeService {
 		return isServiceHost(us)
 	}
@@ -50,9 +50,9 @@ func httpget(s string) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
-func listGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw string) (FaasFunctions, error) {
+func listGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw string) (OpenFaasFunctions, error) {
 
-	return func(gw string) (FaasFunctions, error) {
+	return func(gw string) (OpenFaasFunctions, error) {
 		u, err := url.Parse(gw)
 		if err != nil {
 			return nil, err
@@ -65,7 +65,7 @@ func listGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw s
 			return nil, err
 		}
 		defer body.Close()
-		var funcs FaasFunctions
+		var funcs OpenFaasFunctions
 		err = json.NewDecoder(body).Decode(&funcs)
 
 		if err != nil {
@@ -77,7 +77,7 @@ func listGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw s
 }
 
 type FaasRetriever struct {
-	Lister func(from string) (FaasFunctions, error)
+	Lister func(from string) (OpenFaasFunctions, error)
 }
 
 func isServiceHost(us *v1.Upstream) bool {
@@ -105,7 +105,7 @@ func isKubernetesHost(us *v1.Upstream) bool {
 
 func (fr *FaasRetriever) GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([]*v1.Function, error) {
 
-	if !IsFaas(us) {
+	if !IsOpenFaas(us) {
 		return nil, nil
 	}
 
@@ -136,7 +136,7 @@ func (fr *FaasRetriever) GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([
 	return funcs, nil
 }
 
-func createFunction(fn FaasFunction) *v1.Function {
+func createFunction(fn OpenFaasFunction) *v1.Function {
 
 	headersTemplate := map[string]string{":method": "POST"}
 
