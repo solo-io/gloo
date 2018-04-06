@@ -1,6 +1,7 @@
 ROOTDIR := $(shell pwd)
 PROTOS := $(shell find api/v1 -name "*.proto")
 SOURCES := $(shell find . -name "*.go")
+GENERATED_PROTO_FILES := $(shell find pkg/api/types/v1 -name "*.pb.go") docs/api.json
 
 #----------------------------------------------------------------------------------
 # Build
@@ -8,12 +9,15 @@ SOURCES := $(shell find . -name "*.go")
 
 BINARIES ?= control-plane function-discovery kube-ingress-controller kube-upstream-discovery
 
+DOCKER_USER=soloio
+
 .PHONY: build
 build: $(BINARIES)
 
+docker: $(foreach BINARY,$(BINARIES),$(shell echo $(BINARY)-docker))
+proto: $(GENERATED_PROTO_FILES)
 
-
-proto: $(PROTOS)
+$(GENERATED_PROTO_FILES): $(PROTOS)
 	export DISABLE_SORT=1 && \
 	cd api/v1/ && \
 	mkdir -p $(ROOTDIR)/pkg/api/types/v1 && \
@@ -28,24 +32,23 @@ proto: $(PROTOS)
 	$(ROOTDIR)/pkg/api/types/v1 \
 	./*.proto
 
-$(BINARIES): $(SOURCES) proto
-	CGO_ENABLED=0 GOOS=linux go build -v -a -ldflags '-extldflags "-static"' -o $@ cmd/$@/main.go
-
 define BINARY_TARGETS
+$(eval VERSION := $(shell cat cmd/$(BINARY)/version))
+$(eval IMAGE_TAG ?= v$(VERSION))
+
 $(BINARY): $(PREREQUISITES)
 	CGO_ENABLED=0 GOOS=linux go build -v -a -ldflags '-extldflags "-static"' -o $(BINARY) cmd/$(BINARY)/main.go
 $(BINARY)-debug: $(PREREQUISITES)
 	go build -i -gcflags "-N -l" -o $(BINARY)-debug cmd/$(BINARY)/main.go
 $(BINARY)-docker: $(BINARY)
-	VERSION:=$(shell cat cmd/$(BINARY)/version)
-	IMAGE_TAG?=v$(VERSION)
-	docker build -t soloio/$(BINARY):$(IMAGE_TAG) cmd/$(BINARY)
+	docker build -t $(DOCKER_USER)/$(BINARY):$(IMAGE_TAG) -f cmd/$(BINARY)/Dockerfile .
+$(BINARY)-docker-push: $(BINARY)
+	docker push $(DOCKER_USER)/$(BINARY):$(IMAGE_TAG)
 $(BINARY)-docker-debug: $(BINARY)-debug
-	VERSION:=$(shell cat cmd/$(BINARY)/version)
-	IMAGE_TAG?=v$(VERSION)
-	docker build -t soloio/$(BINARY)-debug:$(IMAGE_TAG) -f cmd/$(BINARY)/Dockerfile.debug cmd/$(BINARY)
+	docker build -t $(DOCKER_USER)/$(BINARY)-debug:$(IMAGE_TAG) -f cmd/$(BINARY)/Dockerfile.debug .
 endef
 
+PREREQUISITES := $(SOURCES) $(GENERATED_PROTO_FILES)
 $(foreach BINARY,$(BINARIES),$(eval $(BINARY_TARGETS)))
 
 
@@ -61,7 +64,7 @@ site: doc
 	mkdocs build
 
 docker-docs: site
-	docker build -t soloio/nginx-docs:v$(VERSION) -f Dockerfile.site .
+	docker build -t $(DOCKER_USER)/nginx-docs:v$(VERSION) -f Dockerfile.site .
 
 #----------------------------------------------------------------------------------
 # Test
