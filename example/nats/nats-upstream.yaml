@@ -1,5 +1,8 @@
 type: service
 name: nats-streaming
+metadata:
+  annotations:
+    gloo.solo.io/service-type: nats-streaming
 spec:
   hosts:
   - addr: nats-streaming

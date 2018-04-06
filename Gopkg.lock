@@ -86,8 +86,8 @@
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "6333e38ac20b8949a8dd68baa3650f4dee8f39f0"
-  version = "v1.33.0"
+  revision = "5e9692864e22d02ac79e2fa499cffb00520b4fea"
+  version = "v1.34.0"
 
 [[projects]]
   branch = "master"
@@ -202,6 +202,12 @@
   revision = "bc372cc64f55abd91995ba3f219b380ffbc59e9d"
 
 [[projects]]
+  name = "github.com/hashicorp/consul"
+  packages = ["api"]
+  revision = "9a494b5fb9c86180a5702e29c485df1507a47198"
+  version = "v1.0.6"
+
+[[projects]]
   branch = "master"
   name = "github.com/hashicorp/errwrap"
   packages = ["."]
@@ -248,7 +254,13 @@
     "json/scanner",
     "json/token"
   ]
-  revision = "f40e974e75af4e271d97ce0fc917af5898ae7bda"
+  revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
+
+[[projects]]
+  name = "github.com/hashicorp/serf"
+  packages = ["coordinate"]
+  revision = "d6574a5bb1226678d7010325fb6c985db20ee458"
+  version = "v0.8.1"
 
 [[projects]]
   name = "github.com/hashicorp/vault"
@@ -283,8 +295,8 @@
 [[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
-  revision = "0d4b488675fdec1dde48751b05ab530cf0b630e1"
-  version = "v0.3.2"
+  revision = "9d5f1277e9a8ed20c3684bda8fde67c05628518c"
+  version = "v0.3.4"
 
 [[projects]]
   name = "github.com/inconshreveable/mousetrap"
@@ -513,31 +525,34 @@
     "nats-streaming",
     "rest"
   ]
-  revision = "60b4c11b785f7f1921e2efd354d3d856a788e8b8"
+  revision = "cefcf51d7ff8e1583ad7388fb2cc513eab79a1b3"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-storage"
   packages = [
     ".",
+    "consul",
     "crd",
     "crd/client/clientset/versioned",
     "crd/client/clientset/versioned/scheme",
     "crd/client/clientset/versioned/typed/solo.io/v1",
     "crd/solo.io/v1",
     "dependencies",
+    "dependencies/consul",
     "dependencies/file",
     "dependencies/kube",
     "file",
+    "internal/base",
     "internal/crud"
   ]
-  revision = "684b57cf078ca59aee4eb841c9b53d11d748be23"
+  revision = "b4926d40df3c7f34e3148ae5d54be66921ae40f6"
 
 [[projects]]
   branch = "master"
   name = "github.com/solo-io/gloo-testing"
   packages = ["helpers"]
-  revision = "1e982896c4c4dcdd8f5cf2ab88c435032a0ec7d3"
+  revision = "e7b38366621f2bc44005cfe76ad03df6c6c19e3a"
 
 [[projects]]
   branch = "master"
@@ -590,7 +605,7 @@
     "blake2b",
     "ssh/terminal"
   ]
-  revision = "12892e8c234f4fe6f6803f052061de9057903bb2"
+  revision = "b2aa35443fbc700ab74c586ae79b81c171851023"
 
 [[projects]]
   branch = "master"
@@ -607,7 +622,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "b68f30494add4df6bd8ef5e82803f308e7f7c59c"
+  revision = "b3c676e531a6dc479fa1b35ac961c13f5e2b4d2e"
 
 [[projects]]
   branch = "master"
@@ -616,7 +631,7 @@
     "unix",
     "windows"
   ]
-  revision = "378d26f46672a356c46195c28f61bdb4c0a781dd"
+  revision = "1d206c9fa8975fb4cf00df1dc8bf3283dc24ba0e"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -655,7 +670,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "ab0870e398d5dd054b868c0db1481ab029b9a9f2"
+  revision = "aae13d27a44d62f039eeeb93e74e893886673932"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -684,8 +699,8 @@
     "tap",
     "transport"
   ]
-  revision = "1e2570b1b19ade82d8dbb31bba4e65e9f9ef5b34"
-  version = "v1.11.1"
+  revision = "d89cded64628466c4ab532d1f0ba5c220459ebe8"
+  version = "v1.11.2"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -920,11 +935,11 @@
   branch = "master"
   name = "k8s.io/kube-openapi"
   packages = ["pkg/util/proto"]
-  revision = "50ae88d24ede7b8bad68e23c805b5d3da5c8abaf"
+  revision = "cd0308977f05a0de033c0e8ce1860b317e360dca"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5d284b00d9025782f65f590d13e0cae0f7943d5806c928ade50167b2249d809c"
+  inputs-digest = "a0e1e012d7d8cb262c4e96b74222da903a4eb1a797a5733bba581b43b023b855"
   solver-name = "gps-cdcl"
   solver-version = 1

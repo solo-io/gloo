@@ -4,6 +4,8 @@ import (
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/mitchellh/hashstructure"
 	"github.com/pkg/errors"
+	"github.com/solo-io/gloo-storage/consul"
+	consulfiles "github.com/solo-io/gloo-storage/dependencies/consul"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 
@@ -133,6 +135,13 @@ func createStorageClient(opts bootstrap.Options) (storage.Interface, error) {
 			return nil, errors.Wrapf(err, "failed to start kube config watcher with config %#v", opts.KubeOptions)
 		}
 		return cfgWatcher, nil
+	case bootstrap.WatcherTypeConsul:
+		cfg := opts.ConsulOptions.ToConsulConfig()
+		cfgWatcher, err := consul.NewStorage(cfg, opts.ConsulOptions.RootPath, opts.ConfigWatcherOptions.SyncFrequency)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to start consul config watcher with config %#v", opts.ConsulOptions)
+		}
+		return cfgWatcher, nil
 	}
 	return nil, errors.Errorf("unknown or unspecified config watcher type: %v", opts.ConfigWatcherOptions.Type)
 }
@@ -178,6 +187,13 @@ func setupFileWatcher(opts bootstrap.Options, stop <-chan struct{}) (filewatcher
 		s, err := kubestore.NewFileStorage(cfg, opts.KubeOptions.Namespace, opts.FileWatcherOptions.SyncFrequency)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to start kube configmap-based file watcher with config %#v", opts.KubeOptions)
+		}
+		store = s
+	case bootstrap.WatcherTypeConsul:
+		cfg := opts.ConsulOptions.ToConsulConfig()
+		s, err := consulfiles.NewFileStorage(cfg, opts.ConsulOptions.RootPath, opts.ConfigWatcherOptions.SyncFrequency)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to start consul KV-based file watcher with config %#v", opts.ConsulOptions)
 		}
 		store = s
 	default:
