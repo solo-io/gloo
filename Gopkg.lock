@@ -449,6 +449,15 @@
   version = "v2.3.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/keybase/go-ps"
+  packages = [
+    ".",
+    "darwincgo"
+  ]
+  revision = "668c8856d9992f97248b3177d45743d2cc1068db"
+
+[[projects]]
   name = "github.com/lyft/protoc-gen-validate"
   packages = ["validate"]
   revision = "6cd364ac742e088e22c2d04e90358ce48e1e33e5"
@@ -1086,6 +1095,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "96d893a61de12f2ac228757b7fdc36e41eff2b6d8ff651bdfbe55bc05c20cfe5"
+  inputs-digest = "fcbc683a0d1b617e2c4adc56e0cf7a829ab8a6d85fb11d455caa455f1da796d8"
   solver-name = "gps-cdcl"
   solver-version = 1
