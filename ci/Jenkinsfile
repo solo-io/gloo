@@ -26,30 +26,14 @@ volumes: [
 
     properties([
         parameters ([
-            stringParam(
-                defaultValue: '0',
+            boolParam(
+                defaultValue: 'false',
                 description: 'Skip testing stage',
                 name: 'SKIP_TESTS'),
             stringParam(
                 defaultValue: 'v0.1.7-104',
                 description: 'Image tag of envoy container to use',
                 name: 'ENVOY_IMAGE_TAG'),
-            stringParam(
-                defaultValue: '',
-                description: 'config context for kubectl to use',
-                name: 'KUBECTL_CONTEXT'),
-            stringParam(
-                defaultValue: '1',
-                description: 'Run kubernetes tests',
-                name: 'RUN_KUBE_TESTS'),
-            stringParam(
-                defaultValue: '1',
-                description: 'Run consul tests',
-                name: 'RUN_CONSUL_TESTS'),
-            stringParam(
-                defaultValue: 'control-plane function-discovery kube-ingress-controller kube-upstream-discovery',
-                description: 'gloo projects to build and test',
-                name: 'GLOO_PROJECTS'),
         ])
     ])
 
@@ -96,6 +80,7 @@ volumes: [
                     TAG=monorepo-$BUILD_NUMBER
                     make IMAGE_TAG=$TAG
                     
+                    GLOO_PROJECTS="control-plane function-discovery kube-ingress-controller kube-upstream-discovery"
 
                     for i in ${GLOO_PROJECTS}; do
                         if [[ -f cmd/$i/Dockerfile ]]; then
