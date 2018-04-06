@@ -8,6 +8,9 @@ import (
 func SoloDirectory() string {
 	return filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "solo-io")
 }
+func GlooSoloDirectory() string {
+	return filepath.Join(os.Getenv("GOPATH"), "src", "github.com", "solo-io", "gloo")
+}
 
 func HelmDirectory() string {
 	return filepath.Join(SoloDirectory(), "gloo-install", "helm", "gloo")

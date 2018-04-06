@@ -34,7 +34,7 @@ func NewGlooFactory() (*GlooFactory, error) {
 			gloopath: gloopath,
 		}, nil
 	}
-	srcpath := filepath.Join(helpers.SoloDirectory(), "gloo")
+	srcpath := filepath.Join(helpers.GlooSoloDirectory(), "cmd", "control-plane")
 	gf := &GlooFactory{
 		srcpath: srcpath,
 	}
@@ -42,7 +42,7 @@ func NewGlooFactory() (*GlooFactory, error) {
 	if err != nil {
 		return nil, err
 	}
-	gloopath = filepath.Join(srcpath, "gloo")
+	gloopath = filepath.Join(srcpath, "control-plane")
 	gf.gloopath = gloopath
 	return gf, nil
 }
@@ -56,7 +56,7 @@ func (gf *GlooFactory) build() error {
 	}
 	gf.wasbuilt = true
 
-	cmd := exec.Command("go", "build", "-v", "-i", "-gcflags", "-N -l", "-o", "gloo", "main.go")
+	cmd := exec.Command("go", "build", "-v", "-i", "-gcflags", "-N -l", "-o", "control-plane", "main.go")
 
 	cmd.Dir = gf.srcpath
 	cmd.Stdout = ginkgo.GinkgoWriter

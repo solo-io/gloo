@@ -25,7 +25,7 @@ func NewFunctionDiscoveryFactory() (*FunctionDiscoveryFactory, error) {
 			funcDiscoveryPath: funcDiscoveryPath,
 		}, nil
 	}
-	srcpath := filepath.Join(helpers.SoloDirectory(), "gloo-function-discovery")
+	srcpath := filepath.Join(helpers.GlooSoloDirectory(), "cmd", "function-discovery")
 	funcDiscoveryPath = filepath.Join(srcpath, "gloo-function-discovery")
 	gf := &FunctionDiscoveryFactory{
 		srcpath:           srcpath,
