@@ -26,7 +26,7 @@ const (
 	envoy             = "ingress"
 	gloo              = "control-plane"
 	ingress           = "ingress-controller"
-	k8sd              = "k8s-service-discovery"
+	k8sd              = "kube-upstream-discovery"
 	funcitonDiscovery = "function-discovery"
 	upstreamForEvents = "upstream-for-events"
 	grpcTestService   = "grpc-test-service"

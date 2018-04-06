@@ -1,34 +1,34 @@
-{{ if .Values.gloo_ingress_controller.enable }}
+{{ if .Values.kube-ingress-controller.enable }}
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-ingress-controller
+  name: {{ .Release.Name }}-kube-ingress-controller
   namespace: {{ .Release.Namespace }}
   labels:
-    gloo: ingress-controller
+    gloo: kube-ingress-controller
     release: {{ .Release.Name }}
 spec:
   selector:
     matchLabels:
-      gloo: ingress-controller
+      gloo: kube-ingress-controller
       release: {{ .Release.Name }}
   replicas: 1
   template:
     metadata:
       labels:
-        gloo: ingress-controller
+        gloo: kube-ingress-controller
         release: {{ .Release.Name }}
     spec:
       containers:
-      - image: "{{ .Values.gloo_ingress_controller.image}}:{{ .Values.gloo_ingress_controller.imageTag }}"
-        imagePullPolicy: {{ .Values.gloo_ingress_controller.imagePullPolicy }}
-        name: ingress-controller
+      - image: "{{ .Values.kube-ingress-controller.image}}:{{ .Values.kube-ingress-controller.imageTag }}"
+        imagePullPolicy: {{ .Values.kube-ingress-controller.imagePullPolicy }}
+        name: kube-ingress-controller
         env:
         - name: DEBUG
           value: "1"
         - name: GRPC_TRACE
           value: all
-        command: ["/gloo-ingress-controller"]
+        command: ["/kube-ingress-controller"]
         args:
         - "--service=ingress"
         - "--syncperiod=30m"

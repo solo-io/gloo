@@ -12,28 +12,28 @@ ingress:
   imageTag: "v0.1.7-108"
   imagePullPolicy: IfNotPresent
 
-gloo:
+control-plane:
   replicaCount: 1
   port: 8081
-  image: "soloio/gloo"
+  image: "soloio/control-plane"
   imageTag: "v0.1.7-108"
   imagePullPolicy: IfNotPresent
 
 #  extra
-gloo_function_discovery:
+function-discovery:
   image: soloio/gloo-function-discovery
   imageTag: v0.1.7-108
   imagePullPolicy: IfNotPresent
   enable: true
 
-gloo_ingress_controller:
-  image: soloio/gloo-ingress-controller
+kube-ingress-controller:
+  image: soloio/kube-ingress-controller
   imageTag: v0.1.2-108
   imagePullPolicy: IfNotPresent
   enable: true
 
-gloo_k8s_service_discovery:
-  image: soloio/gloo-k8s-service-discovery
+kube-upstream-discovery:
+  image: soloio/kube-upstream-discovery
   imageTag: v0.1.2-108
   imagePullPolicy: IfNotPresent
   enable: true

@@ -1,7 +1,7 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "gloo.fullname" . }}
+  name: {{ template "control-plane.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     gloo: control-plane
@@ -19,22 +19,22 @@ spec:
         release: {{ .Release.Name }}
     spec:
       containers:
-      - name: gloo
+      - name: control-plane
         image: "{{ .Values.gloo.image }}:{{ .Values.gloo.imageTag }}"
-        imagePullPolicy: {{ .Values.gloo.imagePullPolicy }}
+        imagePullPolicy: {{ .Values.control-plane.imagePullPolicy }}
         ports:
-        - containerPort: {{ .Values.gloo.port }}
+        - containerPort: {{ .Values.control-plane.port }}
           name: http
         env:
         - name: GRPC_TRACE
           value: "all"
         - name: DEBUG
           value: "1"
-        command: ["/gloo"]
+        command: ["/control-plane"]
         args:
         - "--storage.type=kube"
         - "--storage.refreshrate=1m"
         - "--secrets.type=kube"
         - "--secrets.refreshrate=1m"
-        - "--xds.port={{ .Values.gloo.port }}"
+        - "--xds.port={{ .Values.control-plane.port }}"
         - "--kube.namespace={{ .Release.Namespace }}" 

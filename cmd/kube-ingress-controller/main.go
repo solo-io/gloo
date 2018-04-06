@@ -33,7 +33,7 @@ var globalIngress bool
 var ingressServiceName string
 
 var rootCmd = &cobra.Command{
-	Use:   "gloo-ingress-controller",
+	Use:   "kube-ingress-controller",
 	Short: "Enables gloo to function as a kubernetes ingress controller",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		store, err := createStorageClient(opts)

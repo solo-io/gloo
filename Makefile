@@ -15,6 +15,7 @@ DOCKER_USER=soloio
 build: $(BINARIES)
 
 docker: $(foreach BINARY,$(BINARIES),$(shell echo $(BINARY)-docker))
+docker-push: $(foreach BINARY,$(BINARIES),$(shell echo $(BINARY)-docker-push))
 proto: $(GENERATED_PROTO_FILES)
 
 $(GENERATED_PROTO_FILES): $(PROTOS)
@@ -51,6 +52,8 @@ endef
 PREREQUISITES := $(SOURCES) $(GENERATED_PROTO_FILES)
 $(foreach BINARY,$(BINARIES),$(eval $(BINARY_TARGETS)))
 
+clean:
+	rm -f $(BINARIES)
 
 #----------------------------------------------------------------------------------
 # Docs

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name}}-gloo
+  name: {{ .Release.Name}}-control-plane
   namespace: {{ .Release.Namespace }}
   labels:
     gloo: control-plane

@@ -1,8 +1,8 @@
-{{ if .Values.gloo_function_discovery.enable }}
+{{ if .Values.function-discovery.enable }}
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "gloo_function_discovery.fullname" . }}
+  name: {{ template "function-discovery.fullname" . }}
   namespace: {{ .Release.Namespace}}
   labels:
     gloo: function-discovery
@@ -21,18 +21,20 @@ spec:
     spec:
       containers:
       - name: function-discovery
-        image: "{{ .Values.gloo_function_discovery.image }}:{{ .Values.gloo_function_discovery.imageTag }}"
-        imagePullPolicy: {{ .Values.gloo_function_discovery.imagePullPolicy }}
+        image: "{{ .Values.function-discovery.image }}:{{ .Values.function-discovery.imageTag }}"
+        imagePullPolicy: {{ .Values.function-discovery.imagePullPolicy }}
         env:
         - name: GRPC_TRACE
           value: "all"
         - name: DEBUG
           value: "1"
-        command: ["/gloo-function-discovery"]
+        command: ["/function-discovery"]
         args:
         - "--storage.type=kube"
         - "--storage.refreshrate=30m"
         - "--secrets.type=kube"
         - "--secrets.refreshrate=30m"
+        - "--files.type=kube"
+        - "--files.refreshrate=30m"
         - "--kube.namespace={{ .Release.Namespace }}"
 {{ end }}

@@ -31,7 +31,7 @@ func main() {
 var opts bootstrap.Options
 
 var rootCmd = &cobra.Command{
-	Use:   "gloo-k8s-service-discovery",
+	Use:   "kube-upstream-discovery",
 	Short: "discovers kubernetes services and publishes them as gloo upstreams",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		store, err := createStorageClient(opts)

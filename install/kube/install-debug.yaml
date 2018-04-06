@@ -365,14 +365,14 @@ spec:
         gloo: ingress-controller
     spec:
       containers:
-      - image: soloio/gloo-ingress-controller:v0.1
+      - image: soloio/kube-ingress-controller:v0.1
         name: ingress-controller
         env:
         - name: DEBUG
           value: "1"
         - name: GRPC_TRACE
           value: all
-        command: ["/gloo-ingress-controller"]
+        command: ["/kube-ingress-controller"]
         args:
         - "--service=envoy"
         - "--syncperiod=30m"

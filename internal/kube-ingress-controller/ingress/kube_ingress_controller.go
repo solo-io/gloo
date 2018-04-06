@@ -66,10 +66,10 @@ func NewIngressController(cfg *rest.Config,
 
 		ingressLister: ingressInformer.Lister(),
 		configObjects: configStore,
-		generatedBy:   "gloo-ingress-controller",
+		generatedBy:   "kube-ingress-controller",
 	}
 
-	kubeController := kubecontroller.NewController("gloo-ingress-controller", kubeClient,
+	kubeController := kubecontroller.NewController("kube-ingress-controller", kubeClient,
 		kubecontroller.NewLockingSyncHandler(c.syncGlooResourcesWithIngresses),
 		ingressInformer.Informer())
 
