@@ -2,7 +2,11 @@
 
 On linux, the easiest way to start is with the kvm2 driver:
 ```
-minikube start --vm-driver=kvm2  --extra-config=apiserver.Authorization.Mode=RBAC
+minikube start --vm-driver=kvm2  \
+        --feature-gates=AdvancedAudit=true \
+        --extra-config=apiserver.Authorization.Mode=RBAC \
+        --extra-config=apiserver.Audit.LogOptions.Path=/var/log/apiserver/audit.log \
+        --extra-config=apiserver.Audit.PolicyFile=/etc/kubernetes/addons/audit-policy.yaml
 kubectl create clusterrolebinding permissive-binding \
          --clusterrole=cluster-admin \
          --user=admin \
