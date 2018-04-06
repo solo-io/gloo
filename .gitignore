@@ -3,3 +3,7 @@ vendor.*/
 _gloo_config*
 site/
 /envoy
+/control-plane
+/function-discovery
+/kube-ingress-controller
+/kube-upstream-discovery

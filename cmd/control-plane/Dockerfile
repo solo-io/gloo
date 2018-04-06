@@ -1,4 +1,4 @@
 FROM alpine:3.7
-COPY gloo-static /gloo
+COPY control-plane /control-plane
 EXPOSE 8081
-ENTRYPOINT ["/gloo"]
+ENTRYPOINT ["/control-plane"]

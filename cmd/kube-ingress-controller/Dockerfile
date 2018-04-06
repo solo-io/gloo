@@ -1,3 +1,3 @@
 FROM scratch
-COPY gloo-ingress-controller /
-ENTRYPOINT ["/gloo-ingress-controller"]
+COPY kube-ingress-controller /
+ENTRYPOINT ["/kube-ingress-controller"]
