@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"fmt"
+	"math/rand"
+	
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,8 +25,13 @@ import (
 )
 
 var (
-	namespace = RandString(6)
+	namespace string
 )
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+	namespace = RandString(6)
+}
 
 var gloo storage.Interface
 var kube kubernetes.Interface
