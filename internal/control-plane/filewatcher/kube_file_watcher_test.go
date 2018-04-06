@@ -1,4 +1,4 @@
-package filewatcher
+package filewatcher_test
 
 import (
 	"time"
@@ -11,9 +11,9 @@ import (
 
 	"fmt"
 
-	"github.com/solo-io/gloo-storage/dependencies/kube"
-	. "github.com/solo-io/gloo-testing/helpers"
-	. "github.com/solo-io/gloo/pkg/filewatcher"
+	"github.com/solo-io/gloo/pkg/storage/dependencies/kube"
+	. "github.com/solo-io/gloo/test/helpers"
+	. "github.com/solo-io/gloo/internal/control-plane/filewatcher"
 	"github.com/solo-io/gloo/pkg/log"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -10,13 +10,13 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 func init() {
-	plugin.Register(&Plugin{}, nil)
+	plugins.Register(&Plugin{}, nil)
 }
 
 type Plugin struct {
@@ -29,7 +29,7 @@ const (
 
 	// generic plugin info
 	filterName  = "io.solo.gcloudfunc"
-	pluginStage = plugin.OutAuth
+	pluginStage = plugins.OutAuth
 
 	googleRegion = "region"
 
@@ -38,25 +38,25 @@ const (
 	functionPath = "path"
 )
 
-func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
+func (p *Plugin) GetDependencies(cfg *v1.Config) *plugins.Dependencies {
 
 	return nil
 }
 
-func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
+func (p *Plugin) HttpFilters(params *plugins.FilterPluginParams) []plugins.StagedFilter {
 	defer func() { p.isNeeded = false }()
 
 	if p.isNeeded {
-		return []plugin.StagedFilter{{HttpFilter: &envoyhttp.HttpFilter{Name: filterName}, Stage: pluginStage}}
+		return []plugins.StagedFilter{{HttpFilter: &envoyhttp.HttpFilter{Name: filterName}, Stage: pluginStage}}
 	}
 	return nil
 }
 
-func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(_ *plugins.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
 	return nil
 }
 
-func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
+func (p *Plugin) ProcessUpstream(params *plugins.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
 	if in.Type != UpstreamTypeGoogle {
 		return nil
 	}
@@ -92,7 +92,7 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	return nil
 }
 
-func (p *Plugin) ParseFunctionSpec(params *plugin.FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error) {
+func (p *Plugin) ParseFunctionSpec(params *plugins.FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error) {
 	if params.UpstreamType != UpstreamTypeGoogle {
 		return nil, nil
 	}

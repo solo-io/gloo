@@ -9,9 +9,9 @@ import (
 	"io/ioutil"
 
 	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-storage/dependencies"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/storage/dependencies"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 var _ = Describe("Plugin", func() {
@@ -41,7 +41,7 @@ var _ = Describe("Plugin", func() {
 			},
 		}
 		plugin := &Plugin{}
-		deps := plugin.GetDependencies(&v1.Config{Upstreams: []*v1.Upstream{us}})
+		deps := plugins.GetDependencies(&v1.Config{Upstreams: []*v1.Upstream{us}})
 		Expect(deps.FileRefs).To(HaveLen(1))
 		Expect(deps.FileRefs[0]).To(Equal("file_1"))
 	})
@@ -60,7 +60,7 @@ var _ = Describe("Plugin", func() {
 			p := NewPlugin()
 			b, err := ioutil.ReadFile("test/proto.pb")
 			Expect(err).NotTo(HaveOccurred())
-			params := &plugin.UpstreamPluginParams{
+			params := &plugins.UpstreamPluginParams{
 				Files: map[string]*dependencies.File{"file_1": {Ref: "file_1", Contents: b}},
 			}
 			out := &envoyapi.Cluster{}
@@ -84,7 +84,7 @@ var _ = Describe("Plugin", func() {
 			p := NewPlugin()
 			b, err := ioutil.ReadFile("test/proto.pb")
 			Expect(err).NotTo(HaveOccurred())
-			params := &plugin.UpstreamPluginParams{
+			params := &plugins.UpstreamPluginParams{
 				Files: map[string]*dependencies.File{"file_1": {Ref: "file_1", Contents: b}},
 			}
 			out := &envoyapi.Cluster{}

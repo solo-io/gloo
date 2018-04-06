@@ -8,15 +8,15 @@ import (
 	"path/filepath"
 	"time"
 
-	. "github.com/solo-io/gloo-storage/dependencies/kube"
+	. "github.com/solo-io/gloo/pkg/storage/dependencies/kube"
 	restclient "k8s.io/client-go/rest"
 
 	"unicode"
 
 	"encoding/base64"
 
-	"github.com/solo-io/gloo-storage/dependencies"
-	. "github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/storage/dependencies"
+	. "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/pkg/log"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

@@ -13,10 +13,10 @@ import (
 	"path/filepath"
 
 	"github.com/gogo/protobuf/proto"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/grpc"
-	"github.com/solo-io/gloo-testing/helpers"
-	"github.com/solo-io/gloo-testing/local_e2e/test_grpc_service"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/plugins/grpc"
+	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/gloo/test/local_e2e/test_grpc_service"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
 

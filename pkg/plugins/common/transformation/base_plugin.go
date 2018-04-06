@@ -16,10 +16,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/envoyproxy/go-control-plane/pkg/util"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
 	"github.com/solo-io/gloo/pkg/log"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 //go:generate protoc -I=./envoy/ -I=${GOPATH}/src/github.com/gogo/protobuf/ --gogo_out=. envoy/transformation_filter.proto
@@ -30,7 +30,7 @@ const (
 	metadataResponseKey = "response-transformation"
 
 	ServiceTypeTransformation = "HTTP-Functions"
-	pluginStage               = plugin.PostInAuth
+	pluginStage               = plugins.PostInAuth
 )
 
 type GetTransformationFunction func(destination *v1.Destination_Function) (*TransformationTemplate, error)
@@ -39,7 +39,7 @@ type Plugin interface {
 	ActivateFilterForCluster(out *envoyapi.Cluster)
 	AddRequestTransformationsToRoute(getTemplate GetTransformationFunction, in *v1.Route, out *envoyroute.Route) error
 	AddResponseTransformationsToRoute(in *v1.Route, out *envoyroute.Route) error
-	GetTransformationFilter() *plugin.StagedFilter
+	GetTransformationFilter() *plugins.StagedFilter
 }
 
 func NewTransformationPlugin() Plugin {
@@ -359,7 +359,7 @@ func (p *transformationPlugin) setResponseTransformationForRoute(template Templa
 	return nil
 }
 
-func (p *transformationPlugin) GetTransformationFilter() *plugin.StagedFilter {
+func (p *transformationPlugin) GetTransformationFilter() *plugins.StagedFilter {
 	if len(p.cachedTransformations) == 0 {
 		return nil
 	}
@@ -375,7 +375,7 @@ func (p *transformationPlugin) GetTransformationFilter() *plugin.StagedFilter {
 	// clear cache
 	p.cachedTransformations = make(map[string]*Transformation)
 
-	return &plugin.StagedFilter{
+	return &plugins.StagedFilter{
 		HttpFilter: &envoyhttp.HttpFilter{
 			Name:   filterName,
 			Config: filterConfig,

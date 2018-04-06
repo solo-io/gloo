@@ -10,19 +10,19 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 //go:generate protoc -I=. -I=${GOPATH}/src/github.com/gogo/protobuf/ --gogo_out=. nats_streaming_filter.proto
 
 func init() {
-	plugin.Register(&Plugin{}, nil)
+	plugins.Register(&Plugin{}, nil)
 }
 
 type Plugin struct {
-	filters []plugin.StagedFilter
+	filters []plugins.StagedFilter
 }
 
 const (
@@ -30,7 +30,7 @@ const (
 
 	// generic plugin info
 	filterName  = "io.solo.nats_streaming"
-	pluginStage = plugin.OutAuth
+	pluginStage = plugins.OutAuth
 
 	clusterId      = "cluster_id"
 	discoverPrefix = "discover_prefix"
@@ -52,17 +52,17 @@ func EncodeServiceProperties(props ServiceProperties) *types.Struct {
 	return s
 }
 
-func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
+func (p *Plugin) GetDependencies(cfg *v1.Config) *plugins.Dependencies {
 	return nil
 }
 
-func (p *Plugin) HttpFilters(params *plugin.FilterPluginParams) []plugin.StagedFilter {
+func (p *Plugin) HttpFilters(params *plugins.FilterPluginParams) []plugins.StagedFilter {
 	filters := p.filters
 	p.filters = nil
 	return filters
 }
 
-func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
+func (p *Plugin) ProcessUpstream(params *plugins.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
 	if in.ServiceInfo == nil || in.ServiceInfo.Type != ServiceTypeNatsStreaming {
 		return nil
 	}
@@ -86,7 +86,7 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	common.InitFilterMetadataField(filterName, clusterId, out.Metadata).Kind = &types.Value_StringValue{StringValue: defaultClusterId}
 	common.InitFilterMetadataField(filterName, discoverPrefix, out.Metadata).Kind = &types.Value_StringValue{StringValue: dp}
 
-	p.filters = append(p.filters, plugin.StagedFilter{HttpFilter: &envoyhttp.HttpFilter{Name: filterName, Config: natsConfig(out.Name)}, Stage: pluginStage})
+	p.filters = append(p.filters, plugins.StagedFilter{HttpFilter: &envoyhttp.HttpFilter{Name: filterName, Config: natsConfig(out.Name)}, Stage: pluginStage})
 
 	return nil
 }
@@ -105,7 +105,7 @@ func natsConfig(cluster string) *types.Struct {
 	return filterConfig
 }
 
-func (p *Plugin) ParseFunctionSpec(params *plugin.FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error) {
+func (p *Plugin) ParseFunctionSpec(params *plugins.FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error) {
 	if params.ServiceType != ServiceTypeNatsStreaming {
 		return nil, nil
 	}

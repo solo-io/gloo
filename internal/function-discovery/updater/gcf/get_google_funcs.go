@@ -11,8 +11,8 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/cloudfunctions/v1beta2"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	googleplugin "github.com/solo-io/gloo-plugins/google"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	googleplugin "github.com/solo-io/gloo/pkg/plugins/google"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 

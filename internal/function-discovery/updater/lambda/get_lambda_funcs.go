@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	lambdaplugin "github.com/solo-io/gloo-plugins/aws"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	lambdaplugin "github.com/solo-io/gloo/pkg/plugins/aws"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 

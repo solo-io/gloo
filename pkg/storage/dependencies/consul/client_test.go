@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/consul/api"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo-storage/dependencies"
-	. "github.com/solo-io/gloo-storage/dependencies/consul"
-	. "github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/storage/dependencies"
+	. "github.com/solo-io/gloo/pkg/storage/dependencies/consul"
+	. "github.com/solo-io/gloo/test/helpers"
 )
 
 var _ = Describe("Client", func() {

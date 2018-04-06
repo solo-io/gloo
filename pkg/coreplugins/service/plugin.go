@@ -7,8 +7,8 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 type Plugin struct{}
@@ -18,11 +18,11 @@ const (
 	UpstreamTypeService = "service"
 )
 
-func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
+func (p *Plugin) GetDependencies(_ *v1.Config) *plugins.Dependencies {
 	return nil
 }
 
-func (p *Plugin) ProcessUpstream(_ *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
+func (p *Plugin) ProcessUpstream(_ *plugins.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
 	if in.Type != UpstreamTypeService {
 		return nil
 	}

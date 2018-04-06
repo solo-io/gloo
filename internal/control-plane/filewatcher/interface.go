@@ -1,6 +1,6 @@
 package filewatcher
 
-import "github.com/solo-io/gloo-storage/dependencies"
+import "github.com/solo-io/gloo/pkg/storage/dependencies"
 
 // map [ref] : *File
 type Files map[string]*dependencies.File

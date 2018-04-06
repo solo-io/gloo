@@ -11,9 +11,9 @@ import (
 	kubelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
-	"github.com/solo-io/gloo-storage"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	kubeplugin "github.com/solo-io/gloo/pkg/plugins/kubernetes"
+	"github.com/solo-io/gloo/pkg/storage"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/kubecontroller"
 )

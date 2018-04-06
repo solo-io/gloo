@@ -13,10 +13,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	. "github.com/solo-io/gloo-function-discovery/internal/updater/lambda"
-	awsplugin "github.com/solo-io/gloo-plugins/aws"
-	"github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	. "github.com/solo-io/gloo/internal/function-discovery/updater/lambda"
+	awsplugin "github.com/solo-io/gloo/pkg/plugins/aws"
+	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 

@@ -5,8 +5,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	. "github.com/solo-io/gloo-plugins/aws"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	. "github.com/solo-io/gloo/pkg/plugins/aws"
 )
 
 var _ = Describe("Spec", func() {

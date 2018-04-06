@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-storage/dependencies"
+	"github.com/solo-io/gloo/pkg/storage/dependencies"
 )
 
 func writeFile(dir string, file *dependencies.File) error {

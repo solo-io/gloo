@@ -5,8 +5,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	"github.com/pborman/uuid"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	. "github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	. "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
 

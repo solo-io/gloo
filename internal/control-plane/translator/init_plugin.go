@@ -7,10 +7,10 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo/internal/translator/defaults"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/internal/control-plane/translator/defaults"
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 const (
@@ -22,18 +22,18 @@ const (
 )
 
 type functionAndClusterRoutingInitializer struct {
-	functionPlugins []plugin.FunctionPlugin
+	functionPlugins []plugins.FunctionPlugin
 }
 
-func newInitializerPlugin(functionPlugins []plugin.FunctionPlugin) *functionAndClusterRoutingInitializer {
+func newInitializerPlugin(functionPlugins []plugins.FunctionPlugin) *functionAndClusterRoutingInitializer {
 	return &functionAndClusterRoutingInitializer{functionPlugins: functionPlugins}
 }
 
-func (p *functionAndClusterRoutingInitializer) GetDependencies(_ *v1.Config) *plugin.Dependencies {
+func (p *functionAndClusterRoutingInitializer) GetDependencies(_ *v1.Config) *plugins.Dependencies {
 	return nil
 }
 
-func (p *functionAndClusterRoutingInitializer) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
+func (p *functionAndClusterRoutingInitializer) ProcessUpstream(params *plugins.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
 	for _, function := range in.Functions {
 		envoyFunctionSpec, err := p.getFunctionSpec(in, function.Spec)
 		if err != nil {
@@ -60,7 +60,7 @@ func (p *functionAndClusterRoutingInitializer) getFunctionSpec(upstream *v1.Upst
 		if upstream.ServiceInfo != nil {
 			serviceType = upstream.ServiceInfo.Type
 		}
-		params := &plugin.FunctionPluginParams{
+		params := &plugins.FunctionPluginParams{
 			UpstreamType: upstream.Type,
 			ServiceType:  serviceType,
 		}
@@ -90,7 +90,7 @@ func addEnvoyFunctionSpec(out *envoyapi.Cluster, funcName string, spec *types.St
 	multiFunctionMetadata.Fields[funcName].Kind = &types.Value_StructValue{StructValue: spec}
 }
 
-func (p *functionAndClusterRoutingInitializer) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *functionAndClusterRoutingInitializer) ProcessRoute(_ *plugins.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
 	switch getDestinationType(in) {
 	case destinationTypeSingleUpstream:
 		processSingleUpstreamRoute(in.SingleDestination.DestinationType.(*v1.Destination_Upstream).Upstream.Name, in.PrefixRewrite, out)

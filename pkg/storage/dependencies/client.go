@@ -1,6 +1,6 @@
 package dependencies
 
-import storage "github.com/solo-io/gloo-storage"
+import storage "github.com/solo-io/gloo/pkg/storage"
 
 type File struct {
 	Ref             string

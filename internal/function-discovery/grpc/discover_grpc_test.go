@@ -10,10 +10,10 @@ import (
 
 	"time"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	. "github.com/solo-io/gloo-function-discovery/internal/grpc"
-	"github.com/solo-io/gloo-plugins/grpc"
-	"github.com/solo-io/gloo-storage/dependencies/file"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	. "github.com/solo-io/gloo/internal/function-discovery/grpc"
+	"github.com/solo-io/gloo/pkg/plugins/grpc"
+	"github.com/solo-io/gloo/pkg/storage/dependencies/file"
 )
 
 var _ = Describe("Discovergrpc", func() {

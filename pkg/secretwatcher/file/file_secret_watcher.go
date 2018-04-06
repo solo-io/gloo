@@ -13,7 +13,6 @@ import (
 	"github.com/mitchellh/hashstructure"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/internal/pkg/file"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 
@@ -36,7 +35,7 @@ func NewSecretWatcher(dir string, syncFrequency time.Duration) (*fileWatcher, er
 		errors:  errors,
 		dir:     dir,
 	}
-	if err := file.WatchDir(dir, false, func(_ string) {
+	if err := WatchDir(dir, false, func(_ string) {
 		fw.updateSecrets()
 	}, syncFrequency); err != nil {
 		return nil, fmt.Errorf("failed to start filewatcher: %v", err)

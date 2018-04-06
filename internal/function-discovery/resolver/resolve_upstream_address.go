@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	kubeplugin "github.com/solo-io/gloo/pkg/plugins/kubernetes"
 	serviceplugin "github.com/solo-io/gloo/pkg/coreplugins/service"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

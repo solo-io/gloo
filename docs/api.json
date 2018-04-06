@@ -65,7 +65,7 @@
           "fields": [
             {
               "name": "resource_version",
-              "description": "ResourceVersion keeps track of the resource version of a config resource. This mechanism is used by [gloo-storage](https://github.com/solo-io/gloo-storage) to ensure safety with concurrent writes/updates to a resource in storage.",
+              "description": "ResourceVersion keeps track of the resource version of a config resource. This mechanism is used by [gloo-storage](https://github.com/solo-io/gloo/pkg/storage) to ensure safety with concurrent writes/updates to a resource in storage.",
               "label": "",
               "type": "string",
               "longType": "string",

@@ -8,8 +8,8 @@ import (
 	"github.com/d4l3k/messagediff"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-storage"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/storage"
 	"github.com/solo-io/gloo/pkg/log"
 )
 

@@ -5,10 +5,10 @@ import (
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/solo-io/gloo-plugins/aws"
-	"github.com/solo-io/gloo/pkg/plugin"
+	. "github.com/solo-io/gloo/pkg/plugins/aws"
+	"github.com/solo-io/gloo/pkg/plugins"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
 )
 
 var _ = Describe("Plugin", func() {
@@ -51,7 +51,7 @@ var _ = Describe("Plugin", func() {
 					Spec: upstreamSpec("us-east-1", "aws-secret"),
 				}
 				out := &envoyapi.Cluster{}
-				params := &plugin.UpstreamPluginParams{}
+				params := &plugins.UpstreamPluginParams{}
 				p := Plugin{}
 				err := p.ProcessUpstream(params, upstream, out)
 				Expect(err).To(HaveOccurred())
@@ -74,7 +74,7 @@ var _ = Describe("Plugin", func() {
 				}
 				out := &envoyapi.Cluster{}
 				for _, s := range secrets {
-					params := &plugin.UpstreamPluginParams{Secrets: map[string]map[string]string{
+					params := &plugins.UpstreamPluginParams{Secrets: map[string]map[string]string{
 						"aws-secret": s,
 					}}
 					err := p.ProcessUpstream(params, upstream, out)
@@ -96,7 +96,7 @@ var _ = Describe("Plugin", func() {
 					Spec: upstreamSpec("us-east-1", "aws-secret"),
 				}
 				out = &envoyapi.Cluster{}
-				params := &plugin.UpstreamPluginParams{Secrets: map[string]map[string]string{
+				params := &plugins.UpstreamPluginParams{Secrets: map[string]map[string]string{
 					"aws-secret": map[string]string{AwsAccessKey: "apple", AwsSecretKey: "ball"},
 				}}
 				err = p.ProcessUpstream(params, upstream, out)
@@ -121,7 +121,7 @@ var _ = Describe("Plugin", func() {
 		Context("with non AWS upstream", func() {
 			It("should return nil and not error", func() {
 				p := Plugin{}
-				nonAWS := &plugin.FunctionPluginParams{}
+				nonAWS := &plugins.FunctionPluginParams{}
 				out, err := p.ParseFunctionSpec(nonAWS, funcSpec("func1", "v1"))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(out).To(BeNil())
@@ -131,7 +131,7 @@ var _ = Describe("Plugin", func() {
 		Context("with valid function spec", func() {
 			It("Should return name and qualifier", func() {
 				p := Plugin{}
-				param := &plugin.FunctionPluginParams{UpstreamType: UpstreamTypeAws}
+				param := &plugins.FunctionPluginParams{UpstreamType: UpstreamTypeAws}
 				out, err := p.ParseFunctionSpec(param, funcSpec("func1", "v1"))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(get(out, "name")).To(Equal("func1"))

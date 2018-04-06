@@ -16,14 +16,14 @@ import (
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/common/transformation"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/plugins/common/transformation"
 	"github.com/solo-io/gloo/pkg/log"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 func init() {
-	plugin.Register(NewPlugin(), nil)
+	plugins.Register(NewPlugin(), nil)
 }
 
 func NewPlugin() *Plugin {
@@ -44,13 +44,13 @@ type Plugin struct {
 
 const (
 	filterName  = "envoy.grpc_json_transcoder"
-	pluginStage = plugin.PreOutAuth
+	pluginStage = plugins.PreOutAuth
 
 	ServiceTypeGRPC = "gRPC"
 )
 
-func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
-	deps := &plugin.Dependencies{}
+func (p *Plugin) GetDependencies(cfg *v1.Config) *plugins.Dependencies {
+	deps := &plugins.Dependencies{}
 	for _, us := range cfg.Upstreams {
 		if !isOurs(us) {
 			continue
@@ -70,7 +70,7 @@ func isOurs(in *v1.Upstream) bool {
 	return in.ServiceInfo != nil && in.ServiceInfo.Type == ServiceTypeGRPC
 }
 
-func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
+func (p *Plugin) ProcessUpstream(params *plugins.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
 	if !isOurs(in) {
 		return nil
 	}
@@ -137,7 +137,7 @@ func getPath(matcher *v1.RequestMatcher) string {
 	panic("invalid matcher")
 }
 
-func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(_ *plugins.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
 	if in.Extensions == nil {
 		matcher, ok := in.Matcher.(*v1.Route_RequestMatcher)
 		if ok {
@@ -251,7 +251,7 @@ func httpPath(upstreamName, serviceName, methodName string) string {
 	return "/" + fmt.Sprintf("%x", h.Sum(nil))[:8] + "/" + upstreamName + "/" + serviceName + "/" + methodName
 }
 
-func (p *Plugin) HttpFilters(_ *plugin.FilterPluginParams) []plugin.StagedFilter {
+func (p *Plugin) HttpFilters(_ *plugins.FilterPluginParams) []plugins.StagedFilter {
 	if len(p.serviceDescriptors) == 0 {
 		return nil
 	}
@@ -262,7 +262,7 @@ func (p *Plugin) HttpFilters(_ *plugin.FilterPluginParams) []plugin.StagedFilter
 		return nil
 	}
 
-	filters := []plugin.StagedFilter{*transformationFilter}
+	filters := []plugins.StagedFilter{*transformationFilter}
 
 	for serviceName, protoDescriptor := range p.serviceDescriptors {
 		descriptorBytes, err := proto.Marshal(protoDescriptor)
@@ -282,7 +282,7 @@ func (p *Plugin) HttpFilters(_ *plugin.FilterPluginParams) []plugin.StagedFilter
 			log.Warnf("ERROR: marshaling GrpcJsonTranscoder config: %v", err)
 			return nil
 		}
-		filters = append(filters, plugin.StagedFilter{
+		filters = append(filters, plugins.StagedFilter{
 			HttpFilter: &envoyhttp.HttpFilter{
 				Name:   filterName,
 				Config: filterConfig,
@@ -299,7 +299,7 @@ func (p *Plugin) HttpFilters(_ *plugin.FilterPluginParams) []plugin.StagedFilter
 }
 
 // just so the init plugin knows we're functional
-func (p *Plugin) ParseFunctionSpec(params *plugin.FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error) {
+func (p *Plugin) ParseFunctionSpec(params *plugins.FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error) {
 	if params.ServiceType != ServiceTypeGRPC {
 		return nil, nil
 	}

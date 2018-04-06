@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	kubeplugin "github.com/solo-io/gloo/pkg/plugins/kubernetes"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -17,7 +17,7 @@ import (
 	v1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/gloo-storage"
+	"github.com/solo-io/gloo/pkg/storage"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/kubecontroller"
 	"k8s.io/apimachinery/pkg/util/intstr"

@@ -12,9 +12,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	"github.com/solo-io/gloo-storage"
-	crdclientset "github.com/solo-io/gloo-storage/crd/client/clientset/versioned"
-	crdv1 "github.com/solo-io/gloo-storage/crd/solo.io/v1"
+	"github.com/solo-io/gloo/pkg/storage"
+	crdclientset "github.com/solo-io/gloo/pkg/storage/crd/client/clientset/versioned"
+	crdv1 "github.com/solo-io/gloo/pkg/storage/crd/solo.io/v1"
 	"github.com/solo-io/gloo/pkg/log"
 )
 

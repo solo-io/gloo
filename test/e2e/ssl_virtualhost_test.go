@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 
 	. "github.com/onsi/ginkgo"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	. "github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	. "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 	kubev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

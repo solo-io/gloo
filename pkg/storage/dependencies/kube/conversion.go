@@ -7,7 +7,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-storage/dependencies"
+	"github.com/solo-io/gloo/pkg/storage/dependencies"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

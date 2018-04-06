@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/solo-io/gloo-testing/helpers/local"
+	"github.com/solo-io/gloo/test/helpers/local"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

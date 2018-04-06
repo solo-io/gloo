@@ -6,10 +6,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/common/transformation"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/plugins/common/transformation"
 	"github.com/solo-io/gloo/pkg/log"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 const (
@@ -17,7 +17,7 @@ const (
 )
 
 func init() {
-	plugin.Register(NewPlugin(), nil)
+	plugins.Register(NewPlugin(), nil)
 }
 
 func NewPlugin() *Plugin {
@@ -28,7 +28,7 @@ type Plugin struct {
 	transformation transformation.Plugin
 }
 
-func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
+func (p *Plugin) GetDependencies(_ *v1.Config) *plugins.Dependencies {
 	return nil
 }
 
@@ -36,7 +36,7 @@ func isOurs(in *v1.Upstream) bool {
 	return in.ServiceInfo != nil && in.ServiceInfo.Type == ServiceTypeREST
 }
 
-func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
+func (p *Plugin) ProcessUpstream(params *plugins.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
 	if !isOurs(in) {
 		return nil
 	}
@@ -45,7 +45,7 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	return nil
 }
 
-func (p *Plugin) ProcessRoute(pluginParams *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(pluginParams *plugins.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
 	getTransformationFunction := createTransformationForRestFunction(pluginParams.Upstreams)
 	if err := p.transformation.AddRequestTransformationsToRoute(getTransformationFunction, in, out); err != nil {
 		return errors.Wrap(err, "failed to process request transformation")
@@ -127,11 +127,11 @@ func findFunction(upstreams []*v1.Upstream, upstreamName, functionName string) (
 	return nil, errors.Errorf("function %v/%v not found", upstreamName, functionName)
 }
 
-func (p *Plugin) HttpFilters(_ *plugin.FilterPluginParams) []plugin.StagedFilter {
+func (p *Plugin) HttpFilters(_ *plugins.FilterPluginParams) []plugins.StagedFilter {
 	filter := p.transformation.GetTransformationFilter()
 	if filter == nil {
 		return nil
 	}
 
-	return []plugin.StagedFilter{*filter}
+	return []plugins.StagedFilter{*filter}
 }

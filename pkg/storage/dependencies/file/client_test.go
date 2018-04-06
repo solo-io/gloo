@@ -10,9 +10,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/solo-io/gloo-storage/dependencies"
-	. "github.com/solo-io/gloo-storage/dependencies/file"
-	. "github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/storage/dependencies"
+	. "github.com/solo-io/gloo/pkg/storage/dependencies/file"
+	. "github.com/solo-io/gloo/test/helpers"
 )
 
 var _ = Describe("Client", func() {

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/consul/api"
-	"github.com/solo-io/gloo-storage/dependencies"
+	"github.com/solo-io/gloo/pkg/storage/dependencies"
 )
 
 func key(rootPath, itemName string) string {

@@ -5,8 +5,8 @@ import (
 
 	"github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-storage"
-	"github.com/solo-io/gloo-storage/internal/base"
+	"github.com/solo-io/gloo/pkg/storage"
+	"github.com/solo-io/gloo/pkg/storage/base"
 )
 
 type Client struct {

@@ -4,27 +4,27 @@ import (
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/mitchellh/hashstructure"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-storage/consul"
-	consulfiles "github.com/solo-io/gloo-storage/dependencies/consul"
+	"github.com/solo-io/gloo/pkg/storage/consul"
+	consulfiles "github.com/solo-io/gloo/pkg/storage/dependencies/consul"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-storage"
-	"github.com/solo-io/gloo-storage/crd"
-	"github.com/solo-io/gloo-storage/dependencies"
-	filestore "github.com/solo-io/gloo-storage/dependencies/file"
-	kubestore "github.com/solo-io/gloo-storage/dependencies/kube"
-	"github.com/solo-io/gloo-storage/file"
-	"github.com/solo-io/gloo/internal/configwatcher"
-	"github.com/solo-io/gloo/internal/reporter"
-	"github.com/solo-io/gloo/internal/translator"
-	"github.com/solo-io/gloo/internal/xds"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/storage"
+	"github.com/solo-io/gloo/pkg/storage/crd"
+	"github.com/solo-io/gloo/pkg/storage/dependencies"
+	filestore "github.com/solo-io/gloo/pkg/storage/dependencies/file"
+	kubestore "github.com/solo-io/gloo/pkg/storage/dependencies/kube"
+	"github.com/solo-io/gloo/pkg/storage/file"
+	"github.com/solo-io/gloo/internal/control-plane/configwatcher"
+	"github.com/solo-io/gloo/internal/control-plane/reporter"
+	"github.com/solo-io/gloo/internal/control-plane/translator"
+	"github.com/solo-io/gloo/internal/control-plane/xds"
 	"github.com/solo-io/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
-	"github.com/solo-io/gloo/pkg/filewatcher"
+	"github.com/solo-io/gloo/internal/control-plane/filewatcher"
 	"github.com/solo-io/gloo/pkg/log"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 	filesecrets "github.com/solo-io/gloo/pkg/secretwatcher/file"
 	kubesecrets "github.com/solo-io/gloo/pkg/secretwatcher/kube"
@@ -39,7 +39,7 @@ type eventLoop struct {
 	reporter            reporter.Interface
 	translator          *translator.Translator
 	xdsConfig           envoycache.SnapshotCache
-	getDependencies     func(cfg *v1.Config) []*plugin.Dependencies
+	getDependencies     func(cfg *v1.Config) []*plugins.Dependencies
 
 	startFuncs []func() error
 }
@@ -70,7 +70,7 @@ func Setup(opts bootstrap.Options, stop <-chan struct{}) (*eventLoop, error) {
 		return nil, errors.Wrap(err, "failed to start xds server")
 	}
 
-	plugs := plugin.RegisteredPlugins()
+	plugs := plugins.RegisteredPlugins()
 
 	trans := translator.NewTranslator(plugs)
 
@@ -84,7 +84,7 @@ func Setup(opts bootstrap.Options, stop <-chan struct{}) (*eventLoop, error) {
 		reporter:        reporter.NewReporter(store),
 	}
 
-	for _, endpointDiscoveryInitializer := range plugin.EndpointDiscoveryInitializers() {
+	for _, endpointDiscoveryInitializer := range plugins.EndpointDiscoveryInitializers() {
 		e.startFuncs = append(e.startFuncs, func() error {
 			discovery, err := endpointDiscoveryInitializer(opts)
 			if err != nil {
@@ -99,11 +99,11 @@ func Setup(opts bootstrap.Options, stop <-chan struct{}) (*eventLoop, error) {
 	return e, nil
 }
 
-func getDependenciesFor(plugins []plugin.TranslatorPlugin) func(cfg *v1.Config) []*plugin.Dependencies {
-	return func(cfg *v1.Config) []*plugin.Dependencies {
-		var dependencies []*plugin.Dependencies
+func getDependenciesFor(translatorPlugins []plugins.TranslatorPlugin) func(cfg *v1.Config) []*plugins.Dependencies {
+	return func(cfg *v1.Config) []*plugins.Dependencies {
+		var dependencies []*plugins.Dependencies
 		// secrets plugins need
-		for _, plug := range plugins {
+		for _, plug := range translatorPlugins {
 			dep := plug.GetDependencies(cfg)
 			if dep != nil {
 				dependencies = append(dependencies, dep)

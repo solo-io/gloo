@@ -17,8 +17,8 @@ limitations under the License.
 package v1
 
 import (
-	"github.com/solo-io/gloo-storage/crd/client/clientset/versioned/scheme"
-	v1 "github.com/solo-io/gloo-storage/crd/solo.io/v1"
+	"github.com/solo-io/gloo/pkg/storage/crd/client/clientset/versioned/scheme"
+	v1 "github.com/solo-io/gloo/pkg/storage/crd/solo.io/v1"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	rest "k8s.io/client-go/rest"
 )

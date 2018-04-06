@@ -5,10 +5,10 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-function-discovery/pkg/backoff"
-	"github.com/solo-io/gloo-function-discovery/pkg/resolver"
-	"github.com/solo-io/gloo-plugins/kubernetes"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/backoff"
+	"github.com/solo-io/gloo/internal/function-discovery/resolver"
+	"github.com/solo-io/gloo/pkg/plugins/kubernetes"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 	"github.com/solo-io/gloo/pkg/log"
 )

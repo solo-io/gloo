@@ -6,10 +6,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/grpc"
-	"github.com/solo-io/gloo-plugins/nats-streaming"
-	"github.com/solo-io/gloo-plugins/rest"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/plugins/grpc"
+	"github.com/solo-io/gloo/pkg/plugins/nats-streaming"
+	"github.com/solo-io/gloo/pkg/plugins/rest"
 )
 
 var _ = Describe("Function Discovery Service Detection", func() {

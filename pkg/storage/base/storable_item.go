@@ -2,9 +2,9 @@ package base
 
 import (
 	"github.com/gogo/protobuf/proto"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	storage "github.com/solo-io/gloo-storage"
-	"github.com/solo-io/gloo-storage/dependencies"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	storage "github.com/solo-io/gloo/pkg/storage"
+	"github.com/solo-io/gloo/pkg/storage/dependencies"
 )
 
 type StorableItem struct {

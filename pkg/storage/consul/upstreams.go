@@ -1,9 +1,9 @@
 package consul
 
 import (
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-storage"
-	"github.com/solo-io/gloo-storage/internal/base"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/storage"
+	"github.com/solo-io/gloo/pkg/storage/base"
 )
 
 type upstreamsClient struct {

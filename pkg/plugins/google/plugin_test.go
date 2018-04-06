@@ -5,8 +5,8 @@ import (
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 var _ = Describe("Plugin", func() {
@@ -57,7 +57,7 @@ var _ = Describe("Plugin", func() {
 		Context("with non Google upstream", func() {
 			It("should return nil and not error", func() {
 				p := Plugin{}
-				nonGoogle := &plugin.FunctionPluginParams{}
+				nonGoogle := &plugins.FunctionPluginParams{}
 				out, err := p.ParseFunctionSpec(nonGoogle, funcSpec("http://solo.io/gloo"))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(out).To(BeNil())
@@ -67,7 +67,7 @@ var _ = Describe("Plugin", func() {
 		Context("with valid function spec", func() {
 			It("Should return name and qualifier", func() {
 				p := Plugin{}
-				param := &plugin.FunctionPluginParams{UpstreamType: UpstreamTypeGoogle}
+				param := &plugins.FunctionPluginParams{UpstreamType: UpstreamTypeGoogle}
 				out, err := p.ParseFunctionSpec(param, funcSpec("https://host.io/func"))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(get(out, "host")).To(Equal("host.io"))

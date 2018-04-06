@@ -5,13 +5,13 @@ import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	"github.com/gogo/protobuf/types"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/aws"
-	// . "github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/plugins/aws"
+	// . "github.com/solo-io/gloo/test/helpers"
 	// . "github.com/solo-io/gloo/internal/translator"
 
 	"github.com/k0kubun/pp"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/plugins"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -19,7 +19,7 @@ import (
 
 var _ = Describe("InitPlugin", func() {
 	It("should do correct weights for functions", func() {
-		funcs := []plugin.FunctionPlugin{&aws.Plugin{}}
+		funcs := []plugins.FunctionPlugin{&aws.Plugin{}}
 		initPlugin := newInitializerPlugin(funcs)
 
 		outroute := envoyroute.Route{Metadata: new(envoycore.Metadata)}
@@ -56,7 +56,7 @@ var _ = Describe("InitPlugin", func() {
 				Weight: 10,
 			}},
 		}
-		params := &plugin.RoutePluginParams{}
+		params := &plugins.RoutePluginParams{}
 		pp.Fprintln(GinkgoWriter, inroute)
 
 		err := initPlugin.ProcessRoute(params, inroute, &outroute)

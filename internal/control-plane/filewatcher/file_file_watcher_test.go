@@ -1,4 +1,4 @@
-package filewatcher
+package filewatcher_test
 
 import (
 	"io/ioutil"
@@ -12,10 +12,10 @@ import (
 
 	"path/filepath"
 
-	"github.com/solo-io/gloo-storage/dependencies"
-	filestorage "github.com/solo-io/gloo-storage/dependencies/file"
-	. "github.com/solo-io/gloo-testing/helpers"
-	. "github.com/solo-io/gloo/pkg/filewatcher"
+	"github.com/solo-io/gloo/pkg/storage/dependencies"
+	filestorage "github.com/solo-io/gloo/pkg/storage/dependencies/file"
+	. "github.com/solo-io/gloo/test/helpers"
+	. "github.com/solo-io/gloo/internal/control-plane/filewatcher"
 	"github.com/solo-io/gloo/pkg/log"
 )
 

@@ -23,9 +23,9 @@ import (
 	sync "sync"
 	time "time"
 
-	versioned "github.com/solo-io/gloo-storage/crd/client/clientset/versioned"
-	internalinterfaces "github.com/solo-io/gloo-storage/crd/client/informers/externalversions/internalinterfaces"
-	solo_io "github.com/solo-io/gloo-storage/crd/client/informers/externalversions/solo.io"
+	versioned "github.com/solo-io/gloo/pkg/storage/crd/client/clientset/versioned"
+	internalinterfaces "github.com/solo-io/gloo/pkg/storage/crd/client/informers/externalversions/internalinterfaces"
+	solo_io "github.com/solo-io/gloo/pkg/storage/crd/client/informers/externalversions/solo.io"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

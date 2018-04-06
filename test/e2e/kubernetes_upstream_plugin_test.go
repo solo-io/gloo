@@ -5,9 +5,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	"github.com/pborman/uuid"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/kubernetes"
-	. "github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/plugins/kubernetes"
+	. "github.com/solo-io/gloo/test/helpers"
 )
 
 var _ = Describe("Kubernetes Upstream + Endpoint Discovery Plugin", func() {

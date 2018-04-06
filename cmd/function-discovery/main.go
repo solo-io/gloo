@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/solo-io/gloo-storage/crd"
+	"github.com/solo-io/gloo/pkg/storage/crd"
 	"github.com/spf13/cobra"
 
-	"github.com/solo-io/gloo-function-discovery/internal/eventloop"
-	"github.com/solo-io/gloo-function-discovery/internal/options"
+	"github.com/solo-io/gloo/internal/function-discovery/eventloop"
+	"github.com/solo-io/gloo/internal/function-discovery/options"
 	"github.com/solo-io/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/signals"

@@ -16,9 +16,9 @@ import (
 
 	"encoding/json"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo-plugins/aws"
-	"github.com/solo-io/gloo-storage/crd"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/plugins/aws"
+	"github.com/solo-io/gloo/pkg/storage/crd"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
 

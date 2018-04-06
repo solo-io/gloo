@@ -12,9 +12,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo-storage"
-	"github.com/solo-io/gloo-storage/crd"
-	. "github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/storage"
+	"github.com/solo-io/gloo/pkg/storage/crd"
+	. "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/pkg/log"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"

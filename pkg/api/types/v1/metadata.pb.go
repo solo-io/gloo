@@ -16,7 +16,7 @@ var _ = math.Inf
 // *
 // Metadata contains general properties of config resources useful to clients and the gloo control plane for purposes of versioning, annotating, and namespacing resources.
 type Metadata struct {
-	// ResourceVersion keeps track of the resource version of a config resource. This mechanism is used by [gloo-storage](https://github.com/solo-io/gloo-storage) to ensure safety with concurrent writes/updates to a resource in storage.
+	// ResourceVersion keeps track of the resource version of a config resource. This mechanism is used by [gloo-storage](https://github.com/solo-io/gloo/pkg/storage) to ensure safety with concurrent writes/updates to a resource in storage.
 	ResourceVersion string `protobuf:"bytes,1,opt,name=resource_version,json=resourceVersion,proto3" json:"resource_version,omitempty" testdiff:"ignore"`
 	// Namespace is used for the namespacing of resources. Currently unused by gloo internally.
 	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`

@@ -1,4 +1,4 @@
-package plugin
+package plugins
 
 import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
@@ -6,8 +6,8 @@ import (
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/gogo/protobuf/types"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo/pkg/filewatcher"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/internal/control-plane/filewatcher"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 

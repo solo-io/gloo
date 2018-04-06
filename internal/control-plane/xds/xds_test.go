@@ -1,4 +1,4 @@
-package xds
+package xds_test
 
 import (
 	"bytes"
@@ -21,8 +21,8 @@ import (
 
 	bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
 	"github.com/ghodss/yaml"
-	. "github.com/solo-io/gloo-testing/helpers"
-	. "github.com/solo-io/gloo/internal/xds"
+	. "github.com/solo-io/gloo/test/helpers"
+	. "github.com/solo-io/gloo/internal/control-plane/xds"
 	"github.com/solo-io/gloo/pkg/log"
 	"google.golang.org/grpc"
 )

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
 

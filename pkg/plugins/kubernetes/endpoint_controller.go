@@ -16,7 +16,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/mitchellh/hashstructure"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/kubecontroller"
@@ -87,9 +87,7 @@ func (c *endpointController) Run(stop <-chan struct{}) {
 
 // triggers an update
 func (c *endpointController) TrackUpstreams(upstreams []*v1.Upstream) {
-	if c.upstreamSpecs == nil {
-		c.upstreamSpecs = make(map[string]*UpstreamSpec)
-	}
+	c.upstreamSpecs = make(map[string]*UpstreamSpec)
 	for _, us := range upstreams {
 		if us.Type != UpstreamTypeKube {
 			continue

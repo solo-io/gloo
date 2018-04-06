@@ -13,11 +13,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	kubeplugin "github.com/solo-io/gloo-plugins/kubernetes"
-	"github.com/solo-io/gloo-storage"
-	"github.com/solo-io/gloo-storage/crd"
-	. "github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	kubeplugin "github.com/solo-io/gloo/pkg/plugins/kubernetes"
+	"github.com/solo-io/gloo/pkg/storage"
+	"github.com/solo-io/gloo/pkg/storage/crd"
+	. "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/pkg/log"
 )
 

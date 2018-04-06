@@ -10,8 +10,8 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/solo-io/gloo-storage/crd"
-	. "github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/storage/crd"
+	. "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/pkg/log"
 )
 

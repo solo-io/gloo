@@ -3,7 +3,7 @@ package translator
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 
 	"time"
@@ -11,7 +11,7 @@ import (
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/coreplugins/route-extensions"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
@@ -20,7 +20,7 @@ var _ = Describe("Translator", func() {
 	Context("invalid config", func() {
 		Context("domains are not unique amongst virtual hosts", func() {
 			cfg := InvalidConfigSharedDomains()
-			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
+			t := NewTranslator([]plugins.TranslatorPlugin{&service.Plugin{}})
 			snap, reports, err := t.Translate(Inputs{Cfg: cfg})
 			It("returns four reports, one for each upstream, one for each virtualhost", func() {
 				Expect(err).NotTo(HaveOccurred())
@@ -48,7 +48,7 @@ var _ = Describe("Translator", func() {
 		})
 		Context("one valid route, one invalid route", func() {
 			cfg := PartiallyValidConfig()
-			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
+			t := NewTranslator([]plugins.TranslatorPlugin{&service.Plugin{}})
 			snap, reports, err := t.Translate(Inputs{Cfg: cfg})
 			It("returns four reports, one for each upstream, one for each virtualhost", func() {
 				Expect(err).NotTo(HaveOccurred())
@@ -79,7 +79,7 @@ var _ = Describe("Translator", func() {
 		})
 		Context("with missing upstream for route", func() {
 			cfg := InvalidConfigNoUpstream()
-			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
+			t := NewTranslator([]plugins.TranslatorPlugin{&service.Plugin{}})
 			It("returns report for the error and no virtual hosts", func() {
 				snap, reports, err := t.Translate(Inputs{Cfg: cfg})
 				Expect(err).NotTo(HaveOccurred())
@@ -101,7 +101,7 @@ var _ = Describe("Translator", func() {
 	Context("valid config", func() {
 		Context("with no ssl vhosts", func() {
 			cfg := ValidConfigNoSsl()
-			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
+			t := NewTranslator([]plugins.TranslatorPlugin{&service.Plugin{}})
 			It("returns an empty ssl routeconfig and a len 1 nossl routeconfig", func() {
 				snap, reports, err := t.Translate(Inputs{Cfg: cfg})
 				Expect(err).NotTo(HaveOccurred())
@@ -122,7 +122,7 @@ var _ = Describe("Translator", func() {
 		})
 		Context("with an ssl secret specified", func() {
 			cfg := ValidConfigSsl()
-			t := NewTranslator([]plugin.TranslatorPlugin{&service.Plugin{}})
+			t := NewTranslator([]plugins.TranslatorPlugin{&service.Plugin{}})
 			Context("the desired ssl secret not present in the secret map", func() {
 				It("returns an error for the not found secretref", func() {
 					_, reports, err := t.Translate(Inputs{Cfg: cfg})

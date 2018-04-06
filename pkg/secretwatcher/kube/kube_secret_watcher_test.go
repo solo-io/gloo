@@ -11,7 +11,7 @@ import (
 
 	"fmt"
 
-	. "github.com/solo-io/gloo-testing/helpers"
+	. "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/pkg/log"
 	. "github.com/solo-io/gloo/pkg/secretwatcher/kube"
 	"k8s.io/api/core/v1"

@@ -4,9 +4,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	. "github.com/solo-io/gloo-storage/crd"
-	"github.com/solo-io/gloo-testing/helpers"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	. "github.com/solo-io/gloo/pkg/storage/crd"
+	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
 

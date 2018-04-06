@@ -7,8 +7,8 @@ import (
 
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 const (
@@ -18,11 +18,11 @@ const (
 
 type Plugin struct{}
 
-func (p *Plugin) GetDependencies(_ *v1.Config) *plugin.Dependencies {
+func (p *Plugin) GetDependencies(_ *v1.Config) *plugins.Dependencies {
 	return nil
 }
 
-func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(_ *plugins.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
 	switch matcher := in.Matcher.(type) {
 	case *v1.Route_EventMatcher:
 		return createEventMatcher(matcher.EventMatcher, out)

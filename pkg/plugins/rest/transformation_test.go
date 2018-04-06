@@ -6,9 +6,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	. "github.com/solo-io/gloo-plugins/rest"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	. "github.com/solo-io/gloo/pkg/plugins/rest"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 var _ = Describe("Transformation", func() {
@@ -17,7 +17,7 @@ var _ = Describe("Transformation", func() {
 		out := &envoyroute.Route{}
 
 		upstreamName := "nothing"
-		params := &plugin.RoutePluginParams{}
+		params := &plugins.RoutePluginParams{}
 
 		in := NewNonFunctionSingleDestRoute(upstreamName)
 		in.Extensions = EncodeRouteExtension(RouteExtension{
@@ -32,7 +32,7 @@ var _ = Describe("Transformation", func() {
 		Expect(out.Metadata.FilterMetadata["io.solo.transformation"].Fields).To(HaveKey("response-transformation"))
 		filter := p.HttpFilters(nil)
 		Expect(filter).To(HaveLen(1))
-		Expect(filter[0].Stage).To(Equal(plugin.PostInAuth))
+		Expect(filter[0].Stage).To(Equal(plugins.PostInAuth))
 		Expect(filter[0].HttpFilter.Config).NotTo(BeNil())
 		Expect(filter[0].HttpFilter.Config.Fields).To(HaveKey("transformations"))
 		Expect(filter[0].HttpFilter.Config.Fields["transformations"].Kind).To(BeAssignableToTypeOf(&types.Value_StructValue{}))
@@ -81,7 +81,7 @@ var _ = Describe("Transformation", func() {
 	It("process route for functional upstream", func() {
 		upstreamName := "users-svc"
 		funcName := "get_user"
-		params := &plugin.RoutePluginParams{
+		params := &plugins.RoutePluginParams{
 			Upstreams: []*v1.Upstream{
 				NewFunctionalUpstream(upstreamName, funcName),
 			},
@@ -96,7 +96,7 @@ var _ = Describe("Transformation", func() {
 		Expect(out.Metadata.FilterMetadata["io.solo.transformation"].Fields).To(HaveKey("request-transformation"))
 		filter := p.HttpFilters(nil)
 		Expect(filter).To(HaveLen(1))
-		Expect(filter[0].Stage).To(Equal(plugin.PostInAuth))
+		Expect(filter[0].Stage).To(Equal(plugins.PostInAuth))
 		Expect(filter[0].HttpFilter.Config).NotTo(BeNil())
 		Expect(filter[0].HttpFilter.Config.Fields).To(HaveKey("transformations"))
 		Expect(filter[0].HttpFilter.Config.Fields["transformations"].Kind).To(BeAssignableToTypeOf(&types.Value_StructValue{}))
@@ -395,7 +395,7 @@ var _ = Describe("Transformation", func() {
 	It("errors when user provides invalid parameters", func() {
 		upstreamName := "users-svc"
 		funcName := "get_user"
-		params := &plugin.RoutePluginParams{
+		params := &plugins.RoutePluginParams{
 			Upstreams: []*v1.Upstream{
 				NewFunctionalUpstream(upstreamName, funcName),
 			},

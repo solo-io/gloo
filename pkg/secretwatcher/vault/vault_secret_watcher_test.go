@@ -7,7 +7,7 @@ import (
 
 	"time"
 
-	. "github.com/solo-io/gloo-testing/helpers"
+	. "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 	. "github.com/solo-io/gloo/pkg/secretwatcher/vault"
 )

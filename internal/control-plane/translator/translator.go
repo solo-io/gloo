@@ -19,15 +19,15 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo/internal/reporter"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/internal/control-plane/reporter"
 	"github.com/solo-io/gloo/pkg/coreplugins/matcher"
 	"github.com/solo-io/gloo/pkg/coreplugins/route-extensions"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
 	"github.com/solo-io/gloo/pkg/endpointdiscovery"
-	"github.com/solo-io/gloo/pkg/filewatcher"
+	"github.com/solo-io/gloo/internal/control-plane/filewatcher"
 	"github.com/solo-io/gloo/pkg/log"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 
@@ -45,31 +45,31 @@ const (
 )
 
 type Translator struct {
-	plugins []plugin.TranslatorPlugin
+	plugins []plugins.TranslatorPlugin
 }
 
 // all built-in plugins should go here
-var corePlugins = []plugin.TranslatorPlugin{
+var corePlugins = []plugins.TranslatorPlugin{
 	&matcher.Plugin{},
 	&extensions.Plugin{},
 	&service.Plugin{},
 }
 
-func NewTranslator(plugins []plugin.TranslatorPlugin) *Translator {
-	plugins = append(corePlugins, plugins...)
+func NewTranslator(translatorPlugins []plugins.TranslatorPlugin) *Translator {
+	translatorPlugins = append(corePlugins, translatorPlugins...)
 	// special routing must be done for upstream plugins that support functions
-	var functionPlugins []plugin.FunctionPlugin
-	for _, plug := range plugins {
-		if functionPlugin, ok := plug.(plugin.FunctionPlugin); ok {
+	var functionPlugins []plugins.FunctionPlugin
+	for _, plug := range translatorPlugins {
+		if functionPlugin, ok := plug.(plugins.FunctionPlugin); ok {
 			functionPlugins = append(functionPlugins, functionPlugin)
 		}
 	}
 	// the initializer plugin must be initialized with any function plugins
 	// it's responsible for setting cluster weights and common route properties
 	initPlugin := newInitializerPlugin(functionPlugins)
-	plugins = append([]plugin.TranslatorPlugin{initPlugin}, plugins...)
+	translatorPlugins = append([]plugins.TranslatorPlugin{initPlugin}, translatorPlugins...)
 	return &Translator{
-		plugins: plugins,
+		plugins: translatorPlugins,
 	}
 }
 
@@ -262,11 +262,11 @@ func (t *Translator) computeCluster(cfg *v1.Config, dependencies *pluginDependen
 	}
 	var upstreamErrors error
 	for _, plug := range t.plugins {
-		upstreamPlugin, ok := plug.(plugin.UpstreamPlugin)
+		upstreamPlugin, ok := plug.(plugins.UpstreamPlugin)
 		if !ok {
 			continue
 		}
-		params := &plugin.UpstreamPluginParams{
+		params := &plugins.UpstreamPluginParams{
 			EnvoyNameForUpstream: clusterName,
 		}
 		deps := dependenciesForPlugin(cfg, upstreamPlugin, dependencies)
@@ -295,7 +295,7 @@ func validateCluster(c *envoyapi.Cluster) error {
 	return nil
 }
 
-func dependenciesForPlugin(cfg *v1.Config, plug plugin.TranslatorPlugin, dependencies *pluginDependencies) *pluginDependencies {
+func dependenciesForPlugin(cfg *v1.Config, plug plugins.TranslatorPlugin, dependencies *pluginDependencies) *pluginDependencies {
 	dependencyRefs := plug.GetDependencies(cfg)
 	if dependencyRefs == nil {
 		return nil
@@ -397,11 +397,11 @@ func (t *Translator) computeVirtualHost(upstreams []*v1.Upstream,
 		}
 		out := envoyroute.Route{}
 		for _, plug := range t.plugins {
-			routePlugin, ok := plug.(plugin.RoutePlugin)
+			routePlugin, ok := plug.(plugins.RoutePlugin)
 			if !ok {
 				continue
 			}
-			params := &plugin.RoutePluginParams{
+			params := &plugins.RoutePluginParams{
 				Upstreams: upstreams,
 			}
 			if err := routePlugin.ProcessRoute(params, route, &out); err != nil {
@@ -548,7 +548,7 @@ func getSslSecrets(ref string, secrets secretwatcher.SecretMap) (string, string,
 
 type stagedFilter struct {
 	filter *envoyhttp.HttpFilter
-	stage  plugin.Stage
+	stage  plugins.Stage
 }
 
 func (t *Translator) constructHttpListener(name string, port uint32, filters []envoylistener.Filter) *envoyapi.Listener {
@@ -648,11 +648,11 @@ func newSslFilterChain(certChain, privateKey string, filters []envoylistener.Fil
 func (t *Translator) createHttpFilters() []*envoyhttp.HttpFilter {
 	var filtersByStage []stagedFilter
 	for _, plug := range t.plugins {
-		filterPlugin, ok := plug.(plugin.FilterPlugin)
+		filterPlugin, ok := plug.(plugins.FilterPlugin)
 		if !ok {
 			continue
 		}
-		params := &plugin.FilterPluginParams{}
+		params := &plugins.FilterPluginParams{}
 		stagedFilters := filterPlugin.HttpFilters(params)
 		for _, httpFilter := range stagedFilters {
 			if httpFilter.HttpFilter == nil {

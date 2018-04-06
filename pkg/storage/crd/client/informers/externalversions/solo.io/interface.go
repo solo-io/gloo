@@ -19,8 +19,8 @@ limitations under the License.
 package gloo
 
 import (
-	internalinterfaces "github.com/solo-io/gloo-storage/crd/client/informers/externalversions/internalinterfaces"
-	v1 "github.com/solo-io/gloo-storage/crd/client/informers/externalversions/solo.io/v1"
+	internalinterfaces "github.com/solo-io/gloo/pkg/storage/crd/client/informers/externalversions/internalinterfaces"
+	v1 "github.com/solo-io/gloo/pkg/storage/crd/client/informers/externalversions/solo.io/v1"
 )
 
 // Interface provides access to each of this group's versions.

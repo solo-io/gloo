@@ -18,7 +18,7 @@ package versioned
 
 import (
 	glog "github.com/golang/glog"
-	gloov1 "github.com/solo-io/gloo-storage/crd/client/clientset/versioned/typed/solo.io/v1"
+	gloov1 "github.com/solo-io/gloo/pkg/storage/crd/client/clientset/versioned/typed/solo.io/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

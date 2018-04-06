@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/radovskyb/watcher"
-	"github.com/solo-io/gloo-storage"
-	"github.com/solo-io/gloo-storage/dependencies"
+	"github.com/solo-io/gloo/pkg/storage"
+	"github.com/solo-io/gloo/pkg/storage/dependencies"
 	"github.com/solo-io/gloo/pkg/log"
 )
 
