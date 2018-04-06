@@ -27,7 +27,7 @@ volumes: [
     properties([
         parameters ([
             booleanParam(
-                defaultValue: 'false',
+                defaultValue: false,
                 description: 'Skip testing stage',
                 name: 'SKIP_TESTS'),
             stringParam(
