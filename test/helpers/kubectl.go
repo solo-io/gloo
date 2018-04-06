@@ -20,17 +20,17 @@ import (
 
 const (
 	// gloo labels
-	testrunner        = "testrunner"
-	helloservice      = "helloservice"
-	helloservice2     = "helloservice-2"
-	envoy             = "ingress"
-	gloo              = "control-plane"
-	ingress           = "ingress-controller"
-	k8sd              = "kube-upstream-discovery"
-	funcitonDiscovery = "function-discovery"
-	upstreamForEvents = "upstream-for-events"
-	grpcTestService   = "grpc-test-service"
-	eventEmitter      = "event-emitter"
+	testrunner            = "testrunner"
+	helloservice          = "helloservice"
+	helloservice2         = "helloservice-2"
+	envoy                 = "ingress"
+	gloo                  = "control-plane"
+	kubeIngressController = "kube-ingress-controller"
+	kubeUpstreamDiscovery = "kube-upstream-discovery"
+	funcitonDiscovery     = "function-discovery"
+	upstreamForEvents     = "upstream-for-events"
+	grpcTestService       = "grpc-test-service"
+	eventEmitter          = "event-emitter"
 )
 
 func SetupKubeForTest(namespace string) error {
@@ -131,8 +131,8 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 	if err := waitPodsRunning(
 		envoy,
 		gloo,
-		ingress,
-		k8sd,
+		kubeIngressController,
+		kubeUpstreamDiscovery,
 		funcitonDiscovery,
 	); err != nil {
 		return errors.Wrap(err, "waiting for pods to start")

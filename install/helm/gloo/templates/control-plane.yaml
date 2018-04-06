@@ -7,7 +7,7 @@ metadata:
     gloo: control-plane
     release: {{ .Release.Name }}
 spec:
-  replicas: {{ .Values.gloo.replicaCount }}
+  replicas: {{ .Values.control_plane.replicaCount }}
   selector:
     matchLabels:
       gloo: control-plane
@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: control-plane
-        image: "{{ .Values.gloo.image }}:{{ .Values.gloo.imageTag }}"
+        image: "{{ .Values.control_plane.image }}:{{ .Values.control_plane.imageTag }}"
         imagePullPolicy: {{ .Values.control_plane.imagePullPolicy }}
         ports:
         - containerPort: {{ .Values.control_plane.port }}
@@ -37,4 +37,21 @@ spec:
         - "--secrets.type=kube"
         - "--secrets.refreshrate=1m"
         - "--xds.port={{ .Values.control_plane.port }}"
-        - "--kube.namespace={{ .Release.Namespace }}" 
+        - "--kube.namespace={{ .Release.Namespace }}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name}}-control-plane
+  namespace: {{ .Release.Namespace }}
+  labels:
+    gloo: control-plane
+    release: {{ .Release.Name }}
+spec:
+  ports:
+    - port: {{ .Values.control_plane.port }}
+      protocol: TCP
+      name: http
+  selector:
+    gloo: control-plane
+    release: {{ .Release.Name }}

@@ -28,5 +28,24 @@ spec:
           name: tracing
         - containerPort: 16686
           name: web
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "jaeger.name" . }}
+  labels:
+    sevice: jaeger
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+  - port: 9411
+    protocol: TCP
+    name: tracing
+  - port: 16686
+    protocol: TCP
+    name: web
+  selector:
+    app: jaeger
+  type: NodePort
 {{ end -}}
 {{ end -}}
