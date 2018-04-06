@@ -77,7 +77,7 @@ hackrun: $(BINARY)
 	./hack/run-local.sh
 
 unit:
-	ginkgo -r -v pkg/ xds/
+	ginkgo -r -v pkg/ internal/
 
 e2e:
 	ginkgo -r -v test/
