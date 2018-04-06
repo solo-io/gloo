@@ -1,6 +1,8 @@
 package e2e
 
 import (
+	"os/exec"
+	"regexp"
 	"time"
 
 	"os"
@@ -12,10 +14,10 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/storage"
 	"github.com/solo-io/gloo/pkg/storage/crd"
 	. "github.com/solo-io/gloo/test/helpers"
-	"github.com/solo-io/gloo/pkg/log"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -30,7 +32,15 @@ var kube kubernetes.Interface
 var _ = Describe("Kubernetes Deployment", func() {
 	BeforeSuite(func() {
 		log.Printf("USING IMAGE TAG %v", ImageTag)
-		err := SetupKubeForE2eTest(namespace, true, true)
+
+		// are we on minikube? set docket env vars and push to false
+		push := true
+		if setupMinikubeEnvVars() {
+			push = false
+		}
+		log.Debugf("SetupKubeForE2eTest: push =  %v", push)
+
+		err := SetupKubeForE2eTest(namespace, true, push)
 		Must(err)
 		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 		masterUrl := ""
@@ -118,4 +128,42 @@ func curl(opts curlOpts) (string, error) {
 	args = append(args, fmt.Sprintf("%v://%s:%v%s", protocol, service, port, opts.path))
 	log.Debugf("running: curl %v", strings.Join(args, " "))
 	return TestRunner(args...)
+}
+
+func setupMinikubeEnvVars() bool {
+	// are we in minikube?
+	out, _ := exec.Command("kubectl", "config", "current-context").CombinedOutput()
+	if strings.Contains(string(out), "minikube") {
+		return setupEnvFromMinikube()
+	}
+	return false
+}
+
+var lineregex = regexp.MustCompile("export (\\S+)=\"(.+)\"")
+
+func setupEnvFromMinikube() bool {
+	out, err := exec.Command("minikube", "docker-env", "--shell", "bash").CombinedOutput()
+	if err != nil {
+		return false
+	}
+	outs := string(out)
+	varsset := false
+	lines := strings.Split(outs, "\n")
+	const prefix = "export "
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if len(line) == 0 {
+			continue
+		}
+		if line[0] == '#' {
+			continue
+		}
+		matches := lineregex.FindStringSubmatch(line)
+		if matches != nil {
+			varsset = true
+			log.Debugf("Settings var: %v %v", matches[1], matches[2])
+			os.Setenv(matches[1], matches[2])
+		}
+	}
+	return varsset
 }
