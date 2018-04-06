@@ -67,9 +67,11 @@ func (p *Plugin) ProcessUpstream(params *plugins.UpstreamPluginParams, in *v1.Up
 		return nil
 	}
 	var props ServiceProperties
-	err := protoutil.UnmarshalStruct(in.ServiceInfo.Properties, &props)
-	if err != nil {
-		return errors.Wrap(err, "unmarshalling serviceinfo.properties")
+	if in.ServiceInfo.Properties != nil {
+		err := protoutil.UnmarshalStruct(in.ServiceInfo.Properties, &props)
+		if err != nil {
+			return errors.Wrap(err, "unmarshalling serviceinfo.properties")
+		}
 	}
 
 	cid := props.ClusterID

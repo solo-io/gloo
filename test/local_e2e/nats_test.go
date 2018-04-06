@@ -8,8 +8,8 @@ import (
 	"fmt"
 
 	"github.com/solo-io/gloo/pkg/api/types/v1"
-	"github.com/solo-io/gloo/pkg/plugins/nats-streaming"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
+	"github.com/solo-io/gloo/pkg/plugins/nats-streaming"
 
 	"github.com/nats-io/go-nats-streaming"
 	. "github.com/onsi/ginkgo"
@@ -114,7 +114,7 @@ var _ = Describe("Nats streaming test", func() {
 				return errors.New("invalid code")
 			}
 			return nil
-		}, 90, 1).Should(BeNil())
+		}, "1m", "1s").Should(BeNil())
 
 		// expecct that a response was received.
 		Eventually(recvied).Should(Receive())
