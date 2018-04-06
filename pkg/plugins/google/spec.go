@@ -109,3 +109,16 @@ func (s *FunctionSpec) ValidateGFunc() error {
 	}
 	return nil
 }
+
+func NewFuncFromUrl(funcurl string) (*FunctionSpec, error) {
+	s := new(FunctionSpec)
+	s.URL = funcurl
+	parsedUrl, err := url.Parse(funcurl)
+	if err != nil {
+		return s, err
+	}
+
+	s.path = parsedUrl.Path
+	s.host = parsedUrl.Host
+	return s, nil
+}
