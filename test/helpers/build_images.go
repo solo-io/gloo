@@ -57,10 +57,10 @@ func BuildPushContainers(push bool) error {
 		if err := cmd.Run(); err != nil {
 			return err
 		}
-
 	}
 
 	for _, path := range []string{
+		filepath.Join(GlooSoloDirectory(), "hack", "auditor"),
 		filepath.Join(E2eDirectory(), "containers", "helloservice"),
 		filepath.Join(E2eDirectory(), "containers", "testrunner"),
 		filepath.Join(E2eDirectory(), "containers", "event-emitter"),

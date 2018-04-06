@@ -54,9 +54,9 @@ func TeardownKube(namespace string) error {
 	return kubectl("delete", "namespace", namespace)
 }
 func TeardownKubeE2E(namespace string) error {
+	TeardownKube(namespace)
 	kubectl("delete", "-f", filepath.Join(E2eDirectory(), "kube_resources", "install.yml"))
-	kubectl("delete", "-f", filepath.Join(E2eDirectory(), "kube_resources", "testing-resources.yml"))
-	return TeardownKube(namespace)
+	return kubectl("delete", "-f", filepath.Join(E2eDirectory(), "kube_resources", "testing-resources.yml"))
 }
 
 func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
@@ -132,18 +132,7 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 		return errors.Wrap(err, "writing generated test resources template")
 	}
 
-	if err := kubectl("apply", "-f", filepath.Join(kubeResourcesDir, "install.yml")); err != nil {
-		return errors.Wrapf(err, "creating kube resource from install.yml")
-	}
-	if err := waitPodsRunning(
-		envoy,
-		gloo,
-		kubeIngressController,
-		kubeUpstreamDiscovery,
-		funcitonDiscovery,
-	); err != nil {
-		return errors.Wrap(err, "waiting for pods to start")
-	}
+	// test stuff first
 	if err := kubectl("apply", "-f", filepath.Join(kubeResourcesDir, "testing-resources.yml")); err != nil {
 		return errors.Wrapf(err, "creating kube resource from testing-resources.yml")
 	}
@@ -154,6 +143,19 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 		upstreamForEvents,
 		grpcTestService,
 		eventEmitter,
+	); err != nil {
+		return errors.Wrap(err, "waiting for pods to start")
+	}
+
+	if err := kubectl("apply", "-f", filepath.Join(kubeResourcesDir, "install.yml")); err != nil {
+		return errors.Wrapf(err, "creating kube resource from install.yml")
+	}
+	if err := waitPodsRunning(
+		envoy,
+		gloo,
+		kubeIngressController,
+		kubeUpstreamDiscovery,
+		funcitonDiscovery,
 	); err != nil {
 		return errors.Wrap(err, "waiting for pods to start")
 	}
@@ -278,6 +280,10 @@ func waitPodStatus(pod, status string, finished func(output string) bool) error 
 			if strings.Contains(out, "CrashLoopBackOff") {
 				out = KubeLogs(pod)
 				return errors.Errorf("%v in crash loop with logs %v", pod, out)
+			}
+			if strings.Contains(out, "ErrImagePull") || strings.Contains(out, "ImagePullBackOff") {
+				out, _ = KubectlOut("describe", pod)
+				return errors.Errorf("%v in ErrImagePull with description %v", pod, out)
 			}
 			if finished(out) {
 				return nil

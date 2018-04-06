@@ -24,12 +24,13 @@ import (
 )
 
 var (
-	namespace string
+	// namespace needs to be set here or tests will break
+	namespace = getNamespace()
 )
 
-func init() {
+func getNamespace() string {
 	rand.Seed(time.Now().UTC().UnixNano())
-	namespace = RandString(6)
+	return RandString(6)
 }
 
 var gloo storage.Interface
@@ -44,7 +45,8 @@ var _ = Describe("Kubernetes Deployment", func() {
 		if setupMinikubeEnvVars() {
 			push = false
 		}
-		log.Debugf("SetupKubeForE2eTest: push =  %v", push)
+
+		log.Debugf("SetupKubeForE2eTest: push =  %v \t namespace = %v", push, namespace)
 
 		err := SetupKubeForE2eTest(namespace, true, push)
 		Must(err)

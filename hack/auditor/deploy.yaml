@@ -1,0 +1,39 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    gloo: auditor
+  name: auditor
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      gloo: auditor
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        gloo: auditor
+    spec:
+      containers:
+      - image: soloio/auditor:testing-fpll
+        imagePullPolicy: Always
+        name: auditor
+        ports:
+        - containerPort: 8080
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auditor
+  labels:
+    sevice: auditor
+  namespace: default
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    gloo: auditor
