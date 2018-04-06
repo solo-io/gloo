@@ -56,11 +56,11 @@ Create chart name and version as used by the chart label.
 
 {{/* gloo */}}
 {{- define "control_plane.name" -}}
-{{- default "gloo" .Values.control_plane.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- default "control-plane" .Values.control_plane.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "control_plane.fullname" -}}
-{{- $name := default "gloo" .Values.control_plane.nameOverride -}}
+{{- $name := default "control-plane" .Values.control_plane.nameOverride -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
