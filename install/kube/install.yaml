@@ -91,7 +91,7 @@ spec:
         gloo: control-plane
     spec:
       containers:
-      - image: soloio/gloo:v0.1.7-108
+      - image: soloio/control-plane:v0.1.7-108
         name: gloo
         ports:
         - containerPort: 8081
@@ -101,7 +101,6 @@ spec:
           value: "all"
         - name: DEBUG
           value: "1"
-        command: ["/gloo"]
         args:
         - "--storage.type=kube"
         - "--storage.refreshrate=1m"
@@ -356,14 +355,13 @@ spec:
         gloo: function-discovery
     spec:
       containers:
-      - image: soloio/gloo-function-discovery:v0.1.7-108
+      - image: soloio/function-discovery:v0.1.7-108
         name: function-discovery
         env:
         - name: GRPC_TRACE
           value: "all"
         - name: DEBUG
           value: "1"
-        command: ["/gloo-function-discovery"]
         args:
         - "--storage.type=kube"
         - "--storage.refreshrate=30m"
@@ -412,7 +410,6 @@ spec:
           value: "1"
         - name: GRPC_TRACE
           value: all
-        command: ["/kube-ingress-controller"]
         args:
         - "--service=ingress"
         - "--syncperiod=30m"
