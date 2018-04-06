@@ -1,6 +1,6 @@
 ROOTDIR := $(shell pwd)
 PROTOS := $(shell find api/v1 -name "*.proto")
-SOURCES := $(shell find . -name "*.go")
+SOURCES := $(shell find . -name "*.go" | grep -v test)
 GENERATED_PROTO_FILES := $(shell find pkg/api/types/v1 -name "*.pb.go") docs/api.json
 OUTPUT := _output
 #----------------------------------------------------------------------------------
@@ -53,15 +53,15 @@ $(BINARY)-debug: $(OUTPUT_BINARY)-debug
 
 # go build
 $(OUTPUT_BINARY): $(OUTPUT) $(PREREQUISITES)
-	CGO_ENABLED=0 GOOS=linux go build -v -a -ldflags '-extldflags "-static"' -o $(OUTPUT_BINARY) cmd/$(BINARY)/main.go
+	CGO_ENABLED=0 GOOS=linux go build -i -v -o $(OUTPUT_BINARY) cmd/$(BINARY)/main.go
 $(OUTPUT_BINARY)-debug: $(OUTPUT) $(PREREQUISITES)
 	go build -i -gcflags "-N -l" -o $(OUTPUT_BINARY)-debug cmd/$(BINARY)/main.go
 
 # docker
 $(BINARY)-docker: $(OUTPUT_BINARY)
-	docker build -t $(DOCKER_USER)/$(BINARY):$(IMAGE_TAG) -f cmd/$(BINARY)/Dockerfile .
+	docker build -t $(DOCKER_USER)/$(BINARY):$(IMAGE_TAG) -f cmd/$(BINARY)/Dockerfile $(OUTPUT)
 $(BINARY)-docker-debug: $(OUTPUT_BINARY)-debug
-	docker build -t $(DOCKER_USER)/$(BINARY)-debug:$(IMAGE_TAG) -f cmd/$(BINARY)/Dockerfile.debug .
+	docker build -t $(DOCKER_USER)/$(BINARY)-debug:$(IMAGE_TAG) -f cmd/$(BINARY)/Dockerfile.debug $(OUTPUT)
 $(BINARY)-docker-push: $(BINARY)-docker
 	docker push $(DOCKER_USER)/$(BINARY):$(IMAGE_TAG)
 
