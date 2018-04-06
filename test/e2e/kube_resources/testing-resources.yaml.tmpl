@@ -3,6 +3,46 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
+    gloo: auditor
+  name: auditor
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      gloo: auditor
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        gloo: auditor
+    spec:
+      containers:
+      - image: soloio/auditor:v0.1
+        imagePullPolicy: {{ .ImagePullPolicy }}
+        name: auditor
+        ports:
+        - containerPort: 8080
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auditor
+  labels:
+    sevice: auditor
+  namespace: default
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    gloo: auditor
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
     gloo: event-emitter
   name: event-emitter
   namespace: {{.Namespace}}
@@ -18,7 +58,7 @@ spec:
     spec:
       containers:
       - image: soloio/event-emitter:{{ .ImageTag }}
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .ImagePullPolicy }}
         name: event-emitter
         ports:
         - containerPort: 8080
@@ -57,7 +97,7 @@ spec:
     spec:
       containers:
       - image: soloio/upstream-for-events:{{ .ImageTag }}
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .ImagePullPolicy }}
         name: upstream-for-events
         ports:
         - containerPort: 8080
@@ -96,7 +136,7 @@ spec:
     spec:
       containers:
       - image: soloio/grpc-test-service:{{ .ImageTag }}
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .ImagePullPolicy }}
         name: grpc-test-service
         ports:
         - containerPort: 8080
@@ -135,7 +175,7 @@ spec:
     spec:
       containers:
       - image: soloio/helloservice:{{ .ImageTag }}
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .ImagePullPolicy }}
         name: helloservice-2
         args:
         - "--reply=expected-reply-2"
@@ -176,7 +216,7 @@ spec:
     spec:
       containers:
       - image: soloio/helloservice:{{ .ImageTag }}
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .ImagePullPolicy }}
         name: helloservice
         args:
         - "--reply=expected-reply-1"
@@ -208,7 +248,7 @@ metadata:
 spec:
   containers:
   - image: soloio/testrunner:{{ .ImageTag }}
-    imagePullPolicy: Always
+    imagePullPolicy: {{ .ImagePullPolicy }}
     command:
       - sleep
       - "36000"

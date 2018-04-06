@@ -76,10 +76,17 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 		envoyImageTag = "latest"
 	}
 
+	pullPolicy := "IfNotPresent"
+
+	if push {
+		pullPolicy = "Always"
+	}
+
 	data := &struct {
-		Namespace string
-		ImageTag  string
-	}{Namespace: namespace, ImageTag: ImageTag()}
+		Namespace       string
+		ImageTag        string
+		ImagePullPolicy string
+	}{Namespace: namespace, ImageTag: ImageTag(), ImagePullPolicy: pullPolicy}
 
 	tmpl, err := template.New("Test_Resources").ParseFiles(filepath.Join(kubeResourcesDir, "helm-values.yaml.tmpl"))
 	if err != nil {
