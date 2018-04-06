@@ -47,7 +47,7 @@ volumes: [
                 description: 'Run consul tests',
                 name: 'RUN_CONSUL_TESTS'),
             stringParam(
-                defaultValue: 'gloo gloo-api gloo-plugins gloo-k8s-service-discovery gloo-ingress-controller gloo-function-discovery gloo-install gloo-storage  gloo-testing',
+                defaultValue: 'control-plane function-discovery kube-ingress-controller kube-upstream-discovery',
                 description: 'gloo projects to build and test',
                 name: 'GLOO_PROJECTS'),
         ])
@@ -61,9 +61,8 @@ volumes: [
                     rm -rf ${GOPATH}/src/
                     mkdir -p ${GOPATH}/src/github.com/solo-io/
                     cd ${GOPATH}/src/github.com/solo-io/
-                    for i in ${GLOO_PROJECTS}; do
-                        git clone https://github.com/solo-io/$i
-                        cd $i
+                    git clone https://github.com/solo-io/gloo
+                    cd gloo
                         (dep ensure -v -vendor-only || true)
                         cd ..
                     done
@@ -78,10 +77,10 @@ volumes: [
                     cp /etc/kube/* ${HOME}/.kube/
                     mkdir -p ${HOME}/.aws/
                     cp /etc/aws/* ${HOME}/.aws/
-                    cd ${GOPATH}/src/github.com/solo-io/
-                    echo "WARNING: REMOVING TESTS"
-                    rm gloo/internal/control-plane/xds/*_test.go
-                    rm gloo/pkg/secretwatcher/vault/*_test.go
+                    cd ${GOPATH}/src/github.com/solo-io/gloo
+                    # echo "WARNING: REMOVING TESTS"
+                    # rm gloo/internal/control-plane/xds/*_test.go
+                    # rm gloo/pkg/secretwatcher/vault/*_test.go
                     export DISABLE_COLOR=1
                     if [[ $SKIP_TESTS -ne "1" ]]; then
                         ginkgo -r --noColor .
@@ -93,28 +92,25 @@ volumes: [
             container('jenkins') {
                 echo 'Building images'
                 sh '''#!/bin/bash
-                    cd ${GOPATH}/src/github.com/solo-io/
+                    cd ${GOPATH}/src/github.com/solo-io/gloo
+                    TAG=monorepo-$BUILD_NUMBER
+                    make IMAGE_TAG=$TAG
+                    
+
                     for i in ${GLOO_PROJECTS}; do
-                        cd $i
-                        if [[ -f Dockerfile ]]; then
-                            rm -f $i
-                            make docker
-                            TAG=$(docker images | grep "$i.*$(cat version) " | awk 'NR==1{print $2}')
-                            docker tag soloio/$i:$TAG soloio/$i:$TAG-$BUILD_NUMBER
-                            docker push soloio/$i:$TAG-$BUILD_NUMBER
-                            sed -i "s@image: soloio/$i:.*@image: soloio/$i:$TAG-$BUILD_NUMBER@g" ${GOPATH}/src/github.com/solo-io/gloo-install/kube/install.yaml
+                        if [[ -f cmd/$i/Dockerfile ]]; then
+                            sed -i "s@image: soloio/$i:.*@image: soloio/$i:$TAG-$BUILD_NUMBER@g" ${GOPATH}/src/github.com/solo-io/gloo/install/kube/install.yaml
                         fi
-                        cd ..
                     done
+
 
                     # just re-tag and push new Envoy image
                     # use gloo's tag to tag envoy as well
-                    TAG=$(docker images | grep "soloio/gloo.*-${BUILD_NUMBER}" | awk 'NR==1{print $2}')
 
                     docker pull soloio/envoy:$ENVOY_IMAGE_TAG
                     docker tag soloio/envoy:$ENVOY_IMAGE_TAG soloio/envoy:$TAG
                     docker push soloio/envoy:$TAG
-                    sed -i "s@image: soloio/envoy:.*@image: soloio/envoy:$TAG@g" ${GOPATH}/src/github.com/solo-io/gloo-install/kube/install.yaml
+                    sed -i "s@image: soloio/envoy:.*@image: soloio/envoy:$TAG@g" ${GOPATH}/src/github.com/solo-io/gloo/install/kube/install.yaml
                 '''
             }
         }
@@ -125,7 +121,7 @@ volumes: [
                     cp /etc/github/id_rsa $PWD
                     chmod 400 $PWD/id_rsa
                     export GIT_SSH_COMMAND="ssh -i $PWD/id_rsa -o 'StrictHostKeyChecking no'"
-                    cd gloo-install
+                    cd gloo/install
                     git checkout -b jenkins-$BUILD_NUMBER
                     git add kube/install.yaml
                     git config --global user.email "bot@soloio.com"
@@ -133,7 +129,7 @@ volumes: [
                     git commit -am "Jenkins: updated for jenkins-$BUILD_NUMBER"
                     git remote set-url origin git@github.com:solo-io/gloo-install.git
                     git push -u origin jenkins-$BUILD_NUMBER
-                    rm ../id_rsa
+                    rm ../../id_rsa
                 ''' 
             }
         }
