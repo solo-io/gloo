@@ -5,7 +5,7 @@ IMAGE_TAG?=v0.1
 build: $(BINARY)
 
 $(BINARY): $(SOURCES)
-	CGO_ENABLED=0 GOOS=linux go build -v  -o $@ *.go
+	GOOS=linux go build -v -i -o $@ *.go
 
 docker: $(BINARY)
 	docker build -t soloio/$(BINARY):$(IMAGE_TAG) .
