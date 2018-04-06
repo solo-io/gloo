@@ -27,7 +27,7 @@ func BuildPushContainers(push bool) error {
 		}
 
 		cmd := exec.Command("make", arg)
-		cmd.Dir = SoloDirectory()
+		cmd.Dir = GlooSoloDirectory()
 		cmd.Stdout = os.Stderr
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
