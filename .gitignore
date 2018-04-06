@@ -8,3 +8,6 @@ site/
 /kube-ingress-controller
 /kube-upstream-discovery
 test/e2e/kube_resources/helm-values.yaml
+test/e2e/kube_resources/testing-resources.yml
+
+test/e2e/kube_resources/install.yml
