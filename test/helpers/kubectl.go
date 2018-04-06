@@ -42,6 +42,8 @@ func SetupKubeForTest(namespace string) error {
 		}
 		context = strings.TrimSuffix(current, "\n")
 	}
+	// TODO(yuval-k): this changes the context for the user? can we do this less intrusive? maybe add it to
+	// each kubectl command?
 	if err := kubectl("config", "set-context", context, "--namespace="+namespace); err != nil {
 		return errors.Wrap(err, "setting context")
 	}
