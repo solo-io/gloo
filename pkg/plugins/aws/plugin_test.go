@@ -1,12 +1,12 @@
-package aws
+package aws_test
 
 import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/solo-io/gloo/pkg/plugins/aws"
 	"github.com/solo-io/gloo/pkg/plugins"
+	. "github.com/solo-io/gloo/pkg/plugins/aws"
 
 	"github.com/solo-io/gloo/pkg/api/types/v1"
 )

@@ -1,4 +1,4 @@
-package consul
+package consul_test
 
 import (
 	. "github.com/onsi/ginkgo"

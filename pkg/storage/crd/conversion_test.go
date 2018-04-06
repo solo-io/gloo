@@ -1,4 +1,4 @@
-package crd
+package crd_test
 
 import (
 	. "github.com/onsi/ginkgo"

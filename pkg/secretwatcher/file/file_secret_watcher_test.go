@@ -13,10 +13,10 @@ import (
 
 	"path/filepath"
 
-	. "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 	. "github.com/solo-io/gloo/pkg/secretwatcher/file"
+	. "github.com/solo-io/gloo/test/helpers"
 )
 
 var _ = Describe("FileSecretWatcher", func() {

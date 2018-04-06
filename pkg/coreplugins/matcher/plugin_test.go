@@ -1,12 +1,12 @@
-package matcher
+package matcher_test
 
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/gloo/test/helpers"
 	. "github.com/solo-io/gloo/pkg/coreplugins/matcher"
+	. "github.com/solo-io/gloo/test/helpers"
 )
 
 var _ = Describe("Plugin", func() {

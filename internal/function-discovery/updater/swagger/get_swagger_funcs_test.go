@@ -1,4 +1,4 @@
-package swagger
+package swagger_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/solo-io/gloo/pkg/api/types/v1"
 	. "github.com/solo-io/gloo/internal/function-discovery/updater/swagger"
-	"github.com/solo-io/gloo/pkg/plugins/rest"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/coreplugins/service"
+	"github.com/solo-io/gloo/pkg/plugins/rest"
 )
 
 var _ = Describe("GetSwaggerFuncs", func() {

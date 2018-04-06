@@ -1,4 +1,4 @@
-package protoutil
+package protoutil_test
 
 import (
 	"github.com/gogo/protobuf/proto"

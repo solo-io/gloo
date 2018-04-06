@@ -1,4 +1,4 @@
-package kubernetes
+package kubernetes_test
 
 import (
 	"time"

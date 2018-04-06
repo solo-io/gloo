@@ -1,4 +1,4 @@
-package lambda
+package lambda_test
 
 import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -13,11 +13,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/solo-io/gloo/pkg/api/types/v1"
 	. "github.com/solo-io/gloo/internal/function-discovery/updater/lambda"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
 	awsplugin "github.com/solo-io/gloo/pkg/plugins/aws"
-	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
+	"github.com/solo-io/gloo/test/helpers"
 )
 
 var _ = Describe("GetLambdaFuncs", func() {

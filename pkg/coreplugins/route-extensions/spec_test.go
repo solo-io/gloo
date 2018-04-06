@@ -1,4 +1,4 @@
-package extensions
+package extensions_test
 
 import (
 	. "github.com/onsi/ginkgo"

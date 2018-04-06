@@ -1,4 +1,4 @@
-package aws
+package aws_test
 
 import (
 	"github.com/gogo/protobuf/types"

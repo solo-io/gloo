@@ -1,4 +1,4 @@
-package file
+package file_test
 
 import (
 	"io/ioutil"
@@ -8,9 +8,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/pkg/log"
 	. "github.com/solo-io/gloo/pkg/storage/file"
 	. "github.com/solo-io/gloo/test/helpers"
-	"github.com/solo-io/gloo/pkg/log"
 )
 
 var _ = Describe("CrdStorageClient", func() {

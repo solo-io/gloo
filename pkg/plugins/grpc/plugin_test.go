@@ -41,7 +41,7 @@ var _ = Describe("Plugin", func() {
 			},
 		}
 		plugin := &Plugin{}
-		deps := plugins.GetDependencies(&v1.Config{Upstreams: []*v1.Upstream{us}})
+		deps := plugin.GetDependencies(&v1.Config{Upstreams: []*v1.Upstream{us}})
 		Expect(deps.FileRefs).To(HaveLen(1))
 		Expect(deps.FileRefs[0]).To(Equal("file_1"))
 	})
