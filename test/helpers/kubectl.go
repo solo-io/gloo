@@ -282,7 +282,7 @@ func waitPodStatus(pod, status string, finished func(output string) bool) error 
 				return errors.Errorf("%v in crash loop with logs %v", pod, out)
 			}
 			if strings.Contains(out, "ErrImagePull") || strings.Contains(out, "ImagePullBackOff") {
-				out, _ = KubectlOut("describe", pod)
+				out, _ = KubectlOut("describe", "pod", "-l", "gloo="+pod)
 				return errors.Errorf("%v in ErrImagePull with description %v", pod, out)
 			}
 			if finished(out) {

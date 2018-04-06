@@ -129,7 +129,7 @@ var _ = Describe("Xds", func() {
 			Eventually(func() string {
 				str := string(buf.Bytes())
 				return str
-			}, time.Second*10).Should(ContainSubstring("lds: add/update listener '" + listenerName))
+			}, time.Second*45).Should(ContainSubstring("lds: add/update listener '" + listenerName))
 		})
 	})
 })
