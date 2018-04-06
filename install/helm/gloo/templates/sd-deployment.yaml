@@ -1,4 +1,4 @@
-{{ if .Values.kube-upstream-discovery.enable }}
+{{ if .Values.kube_upstream_discovery.enable }}
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -17,8 +17,8 @@ spec:
         gloo: kube-upstream-discovery
     spec:
       containers:
-      - image: {{ .Values.kube-upstream-discovery.image }}:{{ .Values.kube-upstream-discovery.imageTag }}
-        imagePullPolicy: {{ .Values.kube-upstream-discovery.imagePullPolicy }}
+      - image: {{ .Values.kube_upstream_discovery.image }}:{{ .Values.kube_upstream_discovery.imageTag }}
+        imagePullPolicy: {{ .Values.kube_upstream_discovery.imagePullPolicy }}
         name: kube-upstream-discovery
         env:
         - name: GRPC_TRACE

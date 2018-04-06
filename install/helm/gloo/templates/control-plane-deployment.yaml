@@ -1,7 +1,7 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "control-plane.fullname" . }}
+  name: {{ template "control_plane.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     gloo: control-plane
@@ -21,9 +21,9 @@ spec:
       containers:
       - name: control-plane
         image: "{{ .Values.gloo.image }}:{{ .Values.gloo.imageTag }}"
-        imagePullPolicy: {{ .Values.control-plane.imagePullPolicy }}
+        imagePullPolicy: {{ .Values.control_plane.imagePullPolicy }}
         ports:
-        - containerPort: {{ .Values.control-plane.port }}
+        - containerPort: {{ .Values.control_plane.port }}
           name: http
         env:
         - name: GRPC_TRACE
@@ -36,5 +36,5 @@ spec:
         - "--storage.refreshrate=1m"
         - "--secrets.type=kube"
         - "--secrets.refreshrate=1m"
-        - "--xds.port={{ .Values.control-plane.port }}"
+        - "--xds.port={{ .Values.control_plane.port }}"
         - "--kube.namespace={{ .Release.Namespace }}" 

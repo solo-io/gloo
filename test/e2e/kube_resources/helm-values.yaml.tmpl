@@ -8,7 +8,7 @@ ingress:
   imageTag: "latest"
   imagePullPolicy: Always
 
-control-plane:
+control_plane:
   replicaCount: 1
   port: 8081
   image: "soloio/control-plane"
@@ -16,19 +16,19 @@ control-plane:
   imagePullPolicy: Always
 
 #  extra
-function-discovery:
+function_discovery:
   image: soloio/function-discovery
   imageTag: {{ .ImageTag }}
   imagePullPolicy: Always
   enable: true
 
-kube-ingress-controller:
+kube_ingress_controller:
   image: soloio/kube-ingress-controller
   imageTag: {{ .ImageTag }}
   imagePullPolicy: Always
   enable: true
 
-kube-upstream-discovery:
+kube_upstream_discovery:
   image: soloio/kube-upstream-discovery
   imageTag: {{ .ImageTag }}
   imagePullPolicy: Always

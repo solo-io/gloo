@@ -1,4 +1,4 @@
-{{ if .Values.kube-ingress-controller.enable }}
+{{ if .Values.kube_ingress_controller.enable }}
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -20,8 +20,8 @@ spec:
         release: {{ .Release.Name }}
     spec:
       containers:
-      - image: "{{ .Values.kube-ingress-controller.image}}:{{ .Values.kube-ingress-controller.imageTag }}"
-        imagePullPolicy: {{ .Values.kube-ingress-controller.imagePullPolicy }}
+      - image: "{{ .Values.kube_ingress_controller.image}}:{{ .Values.kube_ingress_controller.imageTag }}"
+        imagePullPolicy: {{ .Values.kube_ingress_controller.imagePullPolicy }}
         name: kube-ingress-controller
         env:
         - name: DEBUG

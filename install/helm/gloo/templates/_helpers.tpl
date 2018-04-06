@@ -35,12 +35,12 @@ Create chart name and version as used by the chart label.
 {{/* helpers for components */}}
 
 {{/* function discovery */}}
-{{- define "function-discovery.name" -}}
-{{- default "function-discovery" .Values.function-discovery.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- define "function_discovery.name" -}}
+{{- default "function-discovery" .Values.function_discovery.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "function-discovery.fullname" -}}
-{{- $name := default "function-discovery" .Values.function-discovery.nameOverride -}}
+{{- define "function_discovery.fullname" -}}
+{{- $name := default "function-discovery" .Values.function_discovery.nameOverride -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -59,7 +59,7 @@ Create chart name and version as used by the chart label.
 {{- default "gloo" .Values.gloo.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "control-plane.fullname" -}}
+{{- define "control_plane.fullname" -}}
 {{- $name := default "gloo" .Values.gloo.nameOverride -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}

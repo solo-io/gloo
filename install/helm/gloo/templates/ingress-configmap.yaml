@@ -14,8 +14,8 @@ data:
         connect_timeout: 5.000s
         hosts:
         - socket_address:
-            address: {{ template "control-plane.fullname" . }}
-            port_value: {{ .Values.control-plane.port }}
+            address: {{ template "control_plane.fullname" . }}
+            port_value: {{ .Values.control_plane.port }}
         http2_protocol_options: {}
         type: STRICT_DNS
       {{- if .Values.opentracing.status }} 
