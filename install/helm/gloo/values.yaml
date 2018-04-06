@@ -21,7 +21,7 @@ control_plane:
 
 #  extra
 function_discovery:
-  image: soloio/gloo-function-discovery
+  image: soloio/function-discovery
   imageTag: v0.1.7-108
   imagePullPolicy: IfNotPresent
   enable: true
