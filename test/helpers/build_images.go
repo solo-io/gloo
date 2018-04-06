@@ -17,9 +17,6 @@ func BuildPushContainers(push bool) error {
 	}
 	for _, path := range []string{
 		filepath.Join(SoloDirectory(), "gloo"),
-		filepath.Join(SoloDirectory(), "kube-ingress-controller"),
-		filepath.Join(SoloDirectory(), "kube-upstream-discovery"),
-		filepath.Join(SoloDirectory(), "gloo-function-discovery"),
 		filepath.Join(E2eDirectory(), "containers", "helloservice"),
 		filepath.Join(E2eDirectory(), "containers", "testrunner"),
 		filepath.Join(E2eDirectory(), "containers", "event-emitter"),

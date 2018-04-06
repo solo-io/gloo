@@ -8,28 +8,27 @@ ingress:
   imageTag: "latest"
   imagePullPolicy: Always
 
-gloo:
-  type: NodePort
+control-plane:
   replicaCount: 1
   port: 8081
-  image: "soloio/gloo"
+  image: "soloio/control-plane"
   imageTag: {{ .ImageTag }}
   imagePullPolicy: Always
 
-#  discovery
-gloo_function_discovery:
-  image: soloio/gloo-function-discovery
+#  extra
+function-discovery:
+  image: soloio/function-discovery
   imageTag: {{ .ImageTag }}
   imagePullPolicy: Always
   enable: true
 
-gloo_ingress_controller:
+kube-ingress-controller:
   image: soloio/kube-ingress-controller
   imageTag: {{ .ImageTag }}
   imagePullPolicy: Always
   enable: true
 
-gloo_k8s_service_discovery:
+kube-upstream-discovery:
   image: soloio/kube-upstream-discovery
   imageTag: {{ .ImageTag }}
   imagePullPolicy: Always
