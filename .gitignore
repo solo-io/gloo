@@ -7,5 +7,4 @@ site/
 /function-discovery
 /kube-ingress-controller
 /kube-upstream-discovery
-install/helm/gloo/values.yaml
 test/e2e/kube_resources/helm-values.yaml
