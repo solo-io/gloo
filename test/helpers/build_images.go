@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"fmt"
+	"hash/crc32"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -8,27 +10,49 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 )
 
-var ImageTag = "testing-" + RandString(4)
+var imageTagStatic = ""
+
+func ImageTag() string {
+	if imageTagStatic != "" {
+		return imageTagStatic
+	}
+	tag := os.Getenv("TEST_IMAGE_TAG")
+	if tag == "" {
+		if host, err := os.Hostname(); err == nil {
+			tag = hash(host)
+		} else {
+			tag = RandString(4)
+		}
+	}
+
+	imageTagStatic = "testing-" + tag
+	return imageTagStatic
+}
+
+func hash(h string) string {
+	crc32q := crc32.MakeTable(0xD5828281)
+	return fmt.Sprintf("%08x", crc32.Checksum([]byte(h), crc32q))
+}
 
 // builds and pushes all docker containers needed for test
 func BuildPushContainers(push bool) error {
 	if os.Getenv("SKIP_BUILD") == "1" {
 		return nil
 	}
-	os.Setenv("IMAGE_TAG", ImageTag)
+	imageTag := ImageTag()
+	os.Setenv("IMAGE_TAG", imageTag)
 
 	// make the gloo containers
 	for _, component := range []string{"control-plane", "function-discovery", "kube-ingress-controller", "kube-upstream-discovery"} {
 		arg := component
+		arg += "-docker"
 		if push {
-			arg += "-docker-push"
-		} else {
-			arg += "-docker"
+			arg += "-push"
 		}
 
 		cmd := exec.Command("make", arg)
 		cmd.Dir = GlooSoloDirectory()
-		cmd.Stdout = os.Stderr
+		cmd.Stdout = os.Stderr // TODO(yuval-k): should this be GinkgoWriter ?
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
 			return err
@@ -47,7 +71,7 @@ func BuildPushContainers(push bool) error {
 		if dockerUser == "" {
 			dockerUser = "soloio"
 		}
-		fullImage := dockerUser + "/" + filepath.Base(path) + ":" + ImageTag
+		fullImage := dockerUser + "/" + filepath.Base(path) + ":" + ImageTag()
 		log.Debugf("TEST: building fullImage %v", fullImage)
 		cmd := exec.Command("make", "docker")
 		cmd.Dir = path

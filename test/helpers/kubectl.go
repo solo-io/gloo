@@ -79,7 +79,7 @@ func SetupKubeForE2eTest(namespace string, buildImages, push bool) error {
 	data := &struct {
 		Namespace string
 		ImageTag  string
-	}{Namespace: namespace, ImageTag: ImageTag}
+	}{Namespace: namespace, ImageTag: ImageTag()}
 
 	tmpl, err := template.New("Test_Resources").ParseFiles(filepath.Join(kubeResourcesDir, "helm-values.yaml.tmpl"))
 	if err != nil {
