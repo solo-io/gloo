@@ -108,6 +108,7 @@
   revision = "bb3d318650d48840a39aa21a027c6630e198e626"
 
 [[projects]]
+  branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -131,8 +132,8 @@
     "pkg/server",
     "pkg/util"
   ]
-  revision = "89abfa00ef3cae559f2739ce9e1f181ffc7caf92"
-  version = "v0.1"
+  revision = "24ec8afcc1ff4a7380f375a8bf1402dff6fd49a7"
+  source = "https://github.com/ilackarms/go-control-plane.git"
 
 [[projects]]
   branch = "master"
@@ -1085,6 +1086,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d52ec41d043d8c7575b5c16413ccecea8226ae4ad249bbcfd06db050933a1681"
+  inputs-digest = "96d893a61de12f2ac228757b7fdc36e41eff2b6d8ff651bdfbe55bc05c20cfe5"
   solver-name = "gps-cdcl"
   solver-version = 1
