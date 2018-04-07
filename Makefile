@@ -1,52 +1,122 @@
-SOURCES := $(shell find . -name "*.go")
-BINARY:=gloo
-VERSION:=$(shell cat version)
-IMAGE_TAG?=v$(VERSION)
+ROOTDIR := $(shell pwd)
+PROTOS := $(shell find api/v1 -name "*.proto")
+SOURCES := $(shell find . -name "*.go" | grep -v test)
+GENERATED_PROTO_FILES := $(shell find pkg/api/types/v1 -name "*.pb.go") docs/api.json
+OUTPUT := _output
+#----------------------------------------------------------------------------------
+# Build
+#----------------------------------------------------------------------------------
 
-build: $(BINARY)
-build-static: $(BINARY)-static
-build-debug: gloo-debug
+BINARIES ?= control-plane function-discovery kube-ingress-controller kube-upstream-discovery
 
+DOCKER_USER=soloio
 
-$(BINARY): $(SOURCES)
-	CGO_ENABLED=0 GOOS=linux go build -i -v  -o $@ *.go
+.PHONY: build
+build: $(BINARIES)
 
-$(BINARY)-static: $(SOURCES)
-	CGO_ENABLED=0 GOOS=linux go build -v -a -ldflags '-extldflags "-static"' -o $@ *.go
+docker: $(foreach BINARY,$(BINARIES),$(shell echo $(BINARY)-docker))
+docker-push: $(foreach BINARY,$(BINARIES),$(shell echo $(BINARY)-docker-push))
+proto: $(GENERATED_PROTO_FILES)
 
-docker: $(BINARY)-static
-	docker build -t soloio/$(BINARY):$(IMAGE_TAG) .
+$(GENERATED_PROTO_FILES): $(PROTOS)
+	export DISABLE_SORT=1 && \
+	cd api/v1/ && \
+	mkdir -p $(ROOTDIR)/pkg/api/types/v1 && \
+	protoc \
+	-I=. \
+	-I=$(GOPATH)/src \
+	-I=$(GOPATH)/src/github.com/gogo/protobuf/ \
+	--plugin=protoc-gen-doc=$(GOPATH)/bin/protoc-gen-doc \
+    --doc_out=$(ROOTDIR)/docs/ \
+    --doc_opt=json,api.json \
+	--gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types:\
+	$(ROOTDIR)/pkg/api/types/v1 \
+	./*.proto
 
-$(BINARY)-debug: $(SOURCES)
-	go build -i -gcflags "-N -l" -o $(BINARY)-debug *.go
+$(OUTPUT):
+	mkdir -p $(OUTPUT)
 
-# build a container with debug symbols
-docker-debug: $(BINARY)-debug
-	docker build -t soloio/$(BINARY):$(IMAGE_TAG)-debug -f Dockerfile.debug .
+define BINARY_TARGETS
+$(eval VERSION := $(shell cat cmd/$(BINARY)/version))
+$(eval IMAGE_TAG ?= v$(VERSION))
+$(eval OUTPUT_BINARY := $(OUTPUT)/$(BINARY))
 
-hackrun: $(BINARY)
-	./hack/run-local.sh
+.PHONY: $(BINARY)
+.PHONY: $(BINARY)-debug
+.PHONY: $(BINARY)-docker
+.PHONY: $(BINARY)-docker-debug
+.PHONY: $(BINARY)-docker-push
 
-unit:
-	ginkgo -r -v config/ module/ pkg/ xds/
+# nice targets for the binaries
+$(BINARY): $(OUTPUT_BINARY)
+$(BINARY)-debug: $(OUTPUT_BINARY)-debug
 
-e2e:
-	ginkgo -r -v test/e2e/
+# go build
+$(OUTPUT_BINARY): $(OUTPUT) $(PREREQUISITES)
+	CGO_ENABLED=0 GOOS=linux go build -i -v -o $(OUTPUT_BINARY) cmd/$(BINARY)/main.go
+$(OUTPUT_BINARY)-debug: $(OUTPUT) $(PREREQUISITES)
+	go build -i -gcflags "-N -l" -o $(OUTPUT_BINARY)-debug cmd/$(BINARY)/main.go
 
-test: e2e unit
+# docker
+$(BINARY)-docker: $(OUTPUT_BINARY)
+	docker build -t $(DOCKER_USER)/$(BINARY):$(IMAGE_TAG) -f cmd/$(BINARY)/Dockerfile $(OUTPUT)
+$(BINARY)-docker-debug: $(OUTPUT_BINARY)-debug
+	docker build -t $(DOCKER_USER)/$(BINARY)-debug:$(IMAGE_TAG) -f cmd/$(BINARY)/Dockerfile.debug $(OUTPUT)
+$(BINARY)-docker-push: $(BINARY)-docker
+	docker push $(DOCKER_USER)/$(BINARY):$(IMAGE_TAG)
+
+endef
+
+PREREQUISITES := $(SOURCES) $(GENERATED_PROTO_FILES)
+$(foreach BINARY,$(BINARIES),$(eval $(BINARY_TARGETS)))
 
 clean:
-	rm -f $(BINARY) $(BINARY)-debug $(BINARY)-static
+	rm -f $(OUTPUT)
 
-proto:
-	export OUTDIR=$(PWD)/docs && make -C $(GOPATH)/src/github.com/solo-io/gloo-api proto
+#----------------------------------------------------------------------------------
+# Docs
+#----------------------------------------------------------------------------------
 
 doc: proto
 	go run docs/gen_docs.go
 #	godocdown pkg/api/types/v1/ > docs/go.md
 
 site: doc
-	mkdocs build 
+	mkdocs build
 
 docker-docs: site
-	docker build -t soloio/nginx-docs:v$(VERSION) -f Dockerfile.site .
+	docker build -t $(DOCKER_USER)/nginx-docs:v$(VERSION) -f Dockerfile.site .
+
+#----------------------------------------------------------------------------------
+# Test
+#----------------------------------------------------------------------------------
+
+hackrun: $(BINARY)
+	./hack/run-local.sh
+
+unit:
+	ginkgo -r -v pkg/ internal/
+
+e2e:
+	ginkgo -r -v test/
+
+test: e2e unit
+
+
+
+
+
+# TODO: dependnencies
+# binaries:
+#  make
+#  protoc
+#  go
+#  protoc-gen-doc ilackarms version
+#  docker
+#  mkdocs
+
+# libs
+#  libproto
+
+# go packages#
+#  github.com/gogo/protobuf

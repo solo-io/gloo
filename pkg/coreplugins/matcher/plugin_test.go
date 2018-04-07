@@ -5,8 +5,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/gloo-testing/helpers"
 	. "github.com/solo-io/gloo/pkg/coreplugins/matcher"
+	. "github.com/solo-io/gloo/test/helpers"
 )
 
 var _ = Describe("Plugin", func() {

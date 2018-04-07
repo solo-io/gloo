@@ -1,0 +1,64 @@
+syntax = "proto3";
+package v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/duration.proto";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "status.proto";
+import "metadata.proto";
+
+/**
+ * Upstream represents a destination for routing. Upstreams can be compared to
+ * [clusters](https://www.envoyproxy.io/docs/envoy/latest/api-v1/cluster_manager/cluster.html?highlight=cluster) in Envoy terminology.
+ * Upstreams can take a variety of types<!--(TODO)--> in gloo. Language extensions known as plugins<!--(TODO)--> allow the addition of new
+ * types of upstreams. <!--See [upstream types](TODO) for a detailed description of available upstream types.-->
+ */
+message Upstream {
+    // Name of the upstream. Names must be unique and follow the following syntax rules:
+    // One or more lowercase rfc1035/rfc1123 labels separated by '.' with a maximum length of 253 characters.
+    string name = 1;
+    // Type indicates the type of the upstream. Examples include service<!--(TODO)-->, kubernetes<!--(TODO)-->, and [aws](../plugins/aws.md)
+    // Types are defined by the plugin<!--(TODO)--> associated with them.
+    string type = 2;
+    // Connection Timeout tells gloo to set a timeout for unresponsive connections created to this upstream.
+    // If not provided by the user, it will set to a default value
+    google.protobuf.Duration connection_timeout = 3 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+    // Spec contains properties that are specific to the upstream type. The spec is always required, but
+    // the expected content is specified by the [upstream plugin] for the given upstream type.
+    // Most often the upstream spec will be a map<string, string>
+    google.protobuf.Struct spec = 4;
+    // Certain upstream types support (and may require) [functions](../introduction/concepts.md#Functions).
+    // Functions allow function-level routing to be done. For example, the [AWS lambda](../plugins/aws.md) upstream type
+    // Permits routing to AWS lambda function].
+    // [routes](virtualhost.md#Route) on virtualhosts can specify function destinations to route to specific functions.
+    repeated Function functions = 5;
+    // Status indicates the validation status of the upstream resource. Status is read-only by clients, and set by gloo during validation
+    Status status = 6 [(gogoproto.moretags) = "testdiff:\"ignore\""];
+    // Metadata contains the resource metadata for the upstream
+    Metadata metadata = 7;
+    // Service Info contains information about the service running on the upstream
+    // Service Info is optional, but is used by certain plugins (such as the gRPC plugin)
+    // as well as discovery services to provide sophistocated routing features for well-known
+    // types of services
+    ServiceInfo service_info = 8;
+}
+
+message ServiceInfo {
+    // Type indicates the type of service running on the upstream.
+    // Current options include `REST`, `gRPC`, and `NATS`
+    string type = 1;
+    // Properties contains properties that describe the service. The spec may be required
+    // by the Upstream Plugin that handles the given Service Type
+    // Most often the service properties will be a map<string, string>
+    google.protobuf.Struct properties = 2;
+}
+
+message Function {
+    // Name of the function. Functions are referenced by name from routes and therefore must be unique within an upstream
+    string name = 1;
+    // Spec for the function. Like [upstream specs](TODO), the content of function specs is specified by the [upstream plugin](TODO) for the upstream's type.
+    google.protobuf.Struct spec = 4;
+}
