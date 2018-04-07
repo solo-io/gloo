@@ -45,7 +45,7 @@ volumes: [
                     mkdir -p ${GOPATH}/src/github.com/solo-io/
                     cd ${GOPATH}/src/github.com/solo-io/
                     #TODO(yuval-k): should we use SCM Checkout to support forks and brances?
-                    git clone -b monorepo  https://github.com/solo-io/gloo 
+                    git clone https://github.com/solo-io/gloo 
                     cd gloo
                         (dep ensure -v -vendor-only || true)
                     cd ..
