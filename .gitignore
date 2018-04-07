@@ -12,3 +12,5 @@ test/e2e/kube_resources/testing-resources.yml
 
 test/e2e/kube_resources/install.yml
 _output/
+cmd/control-plane/control-plane
+cmd/function-discovery/gloo-function-discovery
