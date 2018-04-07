@@ -68,7 +68,9 @@ volumes: [
                     if [ "$SKIP_TESTS" != "true" ]; then
                         export RUN_KUBE_TESTS=1
                         # TODO: add console tests
-                        ginkgo -r --skipPackage xds,vault --noColor  --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
+                        # TODO: only run cover and race in unit tests and not in e2e (or anything else that is time sensitive)
+                        # ginkgo -r --skipPackage xds,vault --noColor  --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
+                        ginkgo -r --skipPackage xds,vault --noColor  --randomizeAllSpecs --randomizeSuites --failOnPending --trace --progress
                     fi
                 '''
             }
@@ -78,13 +80,13 @@ volumes: [
                 echo 'Building images'
                 sh '''#!/bin/bash -ex
                     cd ${GOPATH}/src/github.com/solo-io/gloo
-                    TAG=monorepo-$BUILD_NUMBER
-                    make IMAGE_TAG=$TAG
+                    TAG=v1.0.8-$BUILD_NUMBER
                     
                     GLOO_PROJECTS="control-plane function-discovery kube-ingress-controller kube-upstream-discovery"
 
                     for i in ${GLOO_PROJECTS}; do
                         if [[ -f cmd/$i/Dockerfile ]]; then
+                            make IMAGE_TAG=$TAG "$i-docker-push"
                             sed -i "s@image: soloio/$i:.*@image: soloio/$i:$TAG-$BUILD_NUMBER@g" ${GOPATH}/src/github.com/solo-io/gloo/install/kube/install.yaml
                         fi
                     done
@@ -92,7 +94,7 @@ volumes: [
 
                     # just re-tag and push new Envoy image
                     # use gloo's tag to tag envoy as well
-
+                    #TODO(yuval-k): should we change this to build envoy?
                     docker pull soloio/envoy:$ENVOY_IMAGE_TAG
                     docker tag soloio/envoy:$ENVOY_IMAGE_TAG soloio/envoy:$TAG
                     docker push soloio/envoy:$TAG
@@ -113,8 +115,8 @@ volumes: [
                     git config --global user.email "bot@soloio.com"
                     git config --global user.name "Solo Buildbot"
                     git commit -am "Jenkins: updated for jenkins-$BUILD_NUMBER"
-                    git remote set-url origin git@github.com:solo-io/gloo-install.git
-                    git push -u origin jenkins-$BUILD_NUMBER
+                    git remote set-url origin git@github.com:solo-io/gloo.git
+                    git push origin jenkins-$BUILD_NUMBER:jenkins-$BUILD_NUMBER
                     rm ../../id_rsa
                 ''' 
             }
