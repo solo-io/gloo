@@ -31,7 +31,7 @@ volumes: [
                 description: 'Skip testing stage',
                 name: 'SKIP_TESTS'),
             stringParam(
-                defaultValue: 'v0.1.7-104',
+                defaultValue: 'v0.1.6-125',
                 description: 'Image tag of envoy container to use',
                 name: 'ENVOY_IMAGE_TAG'),
         ])
@@ -41,22 +41,21 @@ volumes: [
         stage('init projects') {
             container('jenkins') {
                 echo 'Cloning repos'
-                sh '''#!/bin/bash
-                    rm -rf ${GOPATH}/src/
+                sh '''#!/bin/bash -ex
                     mkdir -p ${GOPATH}/src/github.com/solo-io/
                     cd ${GOPATH}/src/github.com/solo-io/
-                    git clone https://github.com/solo-io/gloo
+                    #TODO(yuval-k): should we use SCM Checkout to support forks and brances?
+                    git clone -b monorepo  https://github.com/solo-io/gloo 
                     cd gloo
                         (dep ensure -v -vendor-only || true)
-                        cd ..
-                    done
+                    cd ..
                 '''
             }
         }
         stage('test') {
             container('jenkins') {
                 echo 'Running tests'
-                sh '''#!/bin/bash
+                sh '''#!/bin/bash -ex
                     mkdir -p ${HOME}/.kube/
                     cp /etc/kube/* ${HOME}/.kube/
                     mkdir -p ${HOME}/.aws/
@@ -66,8 +65,10 @@ volumes: [
                     # rm gloo/internal/control-plane/xds/*_test.go
                     # rm gloo/pkg/secretwatcher/vault/*_test.go
                     export DISABLE_COLOR=1
-                    if [[ $SKIP_TESTS -ne "true" ]]; then
-                        ginkgo -r --noColor .
+                    if [ "$SKIP_TESTS" != "true" ]; then
+                        export RUN_KUBE_TESTS=1
+                        # TODO: add console tests
+                        ginkgo -r --skipPackage xds,vault --noColor  --randomizeAllSpecs --randomizeSuites --failOnPending --cover --trace --race --progress
                     fi
                 '''
             }
@@ -75,7 +76,7 @@ volumes: [
         stage('build images') {
             container('jenkins') {
                 echo 'Building images'
-                sh '''#!/bin/bash
+                sh '''#!/bin/bash -ex
                     cd ${GOPATH}/src/github.com/solo-io/gloo
                     TAG=monorepo-$BUILD_NUMBER
                     make IMAGE_TAG=$TAG
@@ -101,7 +102,7 @@ volumes: [
         }
         stage('push new install') {
             container('jenkins') {
-                sh '''#!/bin/bash
+                sh '''#!/bin/bash -ex
                     cd ${GOPATH}/src/github.com/solo-io/
                     cp /etc/github/id_rsa $PWD
                     chmod 400 $PWD/id_rsa
