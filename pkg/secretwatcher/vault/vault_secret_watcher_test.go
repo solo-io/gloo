@@ -7,9 +7,9 @@ import (
 
 	"time"
 
-	. "github.com/solo-io/gloo-testing/helpers"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 	. "github.com/solo-io/gloo/pkg/secretwatcher/vault"
+	. "github.com/solo-io/gloo/test/helpers"
 )
 
 var _ = Describe("watching file", func() {
@@ -26,7 +26,7 @@ var _ = Describe("watching file", func() {
 		token = "asdf" //RandString(8)
 		err := DockerRunVault(containerName, token)
 		Expect(err).NotTo(HaveOccurred())
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 10)
 		cfg := vaultapi.DefaultConfig()
 		cfg.Address = vaultAddr
 		client, err = vaultapi.NewClient(cfg)

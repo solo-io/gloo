@@ -69,7 +69,7 @@ The "API" of Gloo is accessed through the storage layer (selected by the user). 
 - manually writing them to storage (e.g. a file or kubernetes custom resource)
 - glooctl <!--(TODO)-->
 - discovery services <!--(TODO)-->
-- using the [Gloo-storage Go client](https://github.com/solo-io/gloo-storage) 
+- using the [Gloo-storage Go client](https://github.com/solo-io/gloo/pkg/storage) 
 
 Gloo then translates user configuration into the v2 Envoy config language and provides live updates to Envoy via the 
 Envoy ADS API. Some of Gloo's features are supported natively by Envoy; others are implemented by custom Envoy filters<!--(TODO)-->.

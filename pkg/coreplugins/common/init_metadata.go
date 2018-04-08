@@ -5,7 +5,7 @@ import (
 	"github.com/gogo/protobuf/types"
 )
 
-// NOTE: this file is duplicated from gloo-plugins/common/init_metadata.go
+// NOTE: this file is duplicated from gloo/pkg/plugins/common/init_metadata.go
 
 // sets anything that might be nil so we don't get a nil pointer / map somewhere
 func InitFilterMetadata(filterName string, meta *envoycore.Metadata) {

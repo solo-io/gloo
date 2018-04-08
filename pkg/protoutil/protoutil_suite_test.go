@@ -1,4 +1,4 @@
-package protoutil_test
+package protoutil
 
 import (
 	"testing"

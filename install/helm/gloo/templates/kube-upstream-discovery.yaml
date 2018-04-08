@@ -1,0 +1,32 @@
+{{ if .Values.kube_upstream_discovery.enable }}
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    gloo: kube-upstream-discovery
+  name: {{ .Release.Name }}-service-discovery
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      gloo: kube-upstream-discovery
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        gloo: kube-upstream-discovery
+    spec:
+      containers:
+      - image: {{ .Values.kube_upstream_discovery.image }}:{{ .Values.kube_upstream_discovery.imageTag }}
+        imagePullPolicy: {{ .Values.kube_upstream_discovery.imagePullPolicy }}
+        name: kube-upstream-discovery
+        env:
+        - name: GRPC_TRACE
+          value: "all"
+        - name: DEBUG
+          value: "1"
+        args:
+        - "--storage.type=kube"
+        - "--syncperiod=30m"
+        - "--kube.namespace={{ .Release.Namespace }}"
+{{ end }}
