@@ -1,0 +1,40 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: grpc-bookstore
+  name: grpc-bookstore
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: grpc-bookstore
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grpc-bookstore
+    spec:
+      containers:
+      - image: soloio/grpc-bookstore:latest
+        imagePullPolicy: Always
+        name: grpc-bookstore
+        ports:
+        - containerPort: 8080
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-bookstore
+  labels:
+    sevice: grpc-bookstore
+  namespace: default
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    app: grpc-bookstore
+  type: LoadBalancer
