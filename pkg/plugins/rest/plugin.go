@@ -7,9 +7,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/solo-io/gloo/pkg/api/types/v1"
-	"github.com/solo-io/gloo/pkg/plugins/common/transformation"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/pkg/plugins/common/transformation"
 )
 
 const (
@@ -104,7 +104,9 @@ func createTransformationForRestFunction(upstreams []*v1.Upstream) transformatio
 				},
 			}
 		} else {
-			template.BodyTransformation = &transformation.TransformationTemplate_Passthrough{}
+			template.BodyTransformation = &transformation.TransformationTemplate_Passthrough{
+				Passthrough: &transformation.Passthrough{},
+			}
 		}
 
 		return template, nil
