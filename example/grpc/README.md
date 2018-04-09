@@ -44,14 +44,16 @@ export GRPC_URL=http://$GRPC_ADDR
 ```
 
 
-## Try the gRPC Service directly with cURL
+## Try the gRPC Service directly with cURL. 
+
+These commands will return binary output and the connection will be reset by the server.
 
 ```
 curl $GRPC_URL
 curl $GRPC_URL/bookstore.Bookstore/ListShelves
 ```
 
-# Use Gloo to translate cURL to gRPC
+# Use Gloo to translate JSON to gRPC
 
 ## Create a route for a function
 
