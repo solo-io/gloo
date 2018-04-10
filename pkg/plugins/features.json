@@ -5,6 +5,11 @@
         "envoy": "pkg/plugins/aws/envoy"
     },
     {
+        "name": "azure_functions",
+        "gloo": "pkg/plugins/azure",
+        "envoy": "pkg/plugins/azure/envoy"
+    },
+    {
         "name": "google_functions",
         "gloo": "pkg/plugins/google",
         "envoy": "pkg/plugins/google/envoy"

@@ -10,3 +10,6 @@
 [submodule "pkg/plugins/aws/envoy"]
 	path = pkg/plugins/aws/envoy
 	url = https://github.com/solo-io/envoy-lambda
+[submodule "pkg/plugins/azure/envoy"]
+	path = pkg/plugins/azure/envoy
+	url = https://github.com/solo-io/envoy-azure-functions
