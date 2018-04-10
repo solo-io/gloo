@@ -12,13 +12,13 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 func init() {
-	plugin.Register(&Plugin{apiKeys: make(map[string]string)}, nil)
+	plugins.Register(&Plugin{apiKeys: make(map[string]string)}, nil)
 }
 
 type Plugin struct {
@@ -33,7 +33,7 @@ const (
 
 	// generic plugin info
 	filterName  = "io.solo.azure_functions"
-	pluginStage = plugin.OutAuth
+	pluginStage = plugins.OutAuth
 
 	masterKeyName = "_master"
 
@@ -42,8 +42,8 @@ const (
 	functionPath = "path"
 )
 
-func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
-	deps := new(plugin.Dependencies)
+func (p *Plugin) GetDependencies(cfg *v1.Config) *plugins.Dependencies {
+	deps := new(plugins.Dependencies)
 	for _, upstream := range cfg.Upstreams {
 		if upstream.Type != UpstreamTypeAzure {
 			continue
@@ -59,7 +59,7 @@ func (p *Plugin) GetDependencies(cfg *v1.Config) *plugin.Dependencies {
 	return deps
 }
 
-func (p *Plugin) HttpFilters(_ *plugin.FilterPluginParams) []plugin.StagedFilter {
+func (p *Plugin) HttpFilters(_ *plugins.FilterPluginParams) []plugins.StagedFilter {
 	defer func() {
 		p.isNeeded = false
 		p.hostname = ""
@@ -67,16 +67,16 @@ func (p *Plugin) HttpFilters(_ *plugin.FilterPluginParams) []plugin.StagedFilter
 	}()
 
 	if p.isNeeded {
-		return []plugin.StagedFilter{{HttpFilter: &envoyhttp.HttpFilter{Name: filterName}, Stage: pluginStage}}
+		return []plugins.StagedFilter{{HttpFilter: &envoyhttp.HttpFilter{Name: filterName}, Stage: pluginStage}}
 	}
 	return nil
 }
 
-func (p *Plugin) ProcessRoute(_ *plugin.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(_ *plugins.RoutePluginParams, in *v1.Route, out *envoyroute.Route) error {
 	return nil
 }
 
-func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
+func (p *Plugin) ProcessUpstream(params *plugins.UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error {
 	if in.Type != UpstreamTypeAzure {
 		return nil
 	}
@@ -119,7 +119,7 @@ func (p *Plugin) ProcessUpstream(params *plugin.UpstreamPluginParams, in *v1.Ups
 	return nil
 }
 
-func (p *Plugin) ParseFunctionSpec(params *plugin.FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error) {
+func (p *Plugin) ParseFunctionSpec(params *plugins.FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error) {
 	if params.UpstreamType != UpstreamTypeAzure {
 		return nil, nil
 	}

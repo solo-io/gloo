@@ -6,8 +6,8 @@ import (
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo-api/pkg/api/types/v1"
-	"github.com/solo-io/gloo/pkg/plugin"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/plugins"
 )
 
 var _ = Describe("Plugin dependencies", func() {
@@ -44,7 +44,7 @@ var _ = Describe("Plugin HTTP filters", func() {
 			filters := p.HttpFilters(nil)
 			Expect(filters).To(HaveLen(1))
 			Expect(filters[0].HttpFilter.Name).To(Equal("io.solo.azure_functions"))
-			Expect(filters[0].Stage).To(Equal(plugin.OutAuth))
+			Expect(filters[0].Stage).To(Equal(plugins.OutAuth))
 			Expect(p.isNeeded).To(Equal(false))
 			Expect(p.hostname).To(Equal(""))
 			Expect(p.apiKeys).To(HaveLen(0))
@@ -84,7 +84,7 @@ var _ = Describe("Processing upstream", func() {
 				Spec: upstreamSpec("my-appwhos", "azure-secret1"),
 			}
 			out := &envoyapi.Cluster{}
-			params := &plugin.UpstreamPluginParams{}
+			params := &plugins.UpstreamPluginParams{}
 			p := Plugin{}
 			err := p.ProcessUpstream(params, upstream, out)
 			Expect(err).To(HaveOccurred())
@@ -103,7 +103,7 @@ var _ = Describe("Processing upstream", func() {
 				Spec: upstreamSpec("my-appwhos", "azure-secret1"),
 			}
 			out = &envoyapi.Cluster{}
-			params := &plugin.UpstreamPluginParams{Secrets: map[string]map[string]string{
+			params := &plugins.UpstreamPluginParams{Secrets: map[string]map[string]string{
 				"azure-secret1": map[string]string{"_master": "key1", "foo": "key1", "bar": "key2"},
 			}}
 			err = p.ProcessUpstream(params, upstream, out)
@@ -143,7 +143,7 @@ var _ = Describe("Processing upstream", func() {
 				Spec: upstreamSpec("my-appwhos", ""),
 			}
 			out = &envoyapi.Cluster{}
-			params := &plugin.UpstreamPluginParams{Secrets: map[string]map[string]string{
+			params := &plugins.UpstreamPluginParams{Secrets: map[string]map[string]string{
 				"some-irrelevant-secret1": map[string]string{"_master": "key1", "foo": "key1", "bar": "key2"},
 			}}
 			err = p.ProcessUpstream(params, upstream, out)
@@ -176,7 +176,7 @@ var _ = Describe("Processing function", func() {
 	Context("with non Azure upstream", func() {
 		It("should return nil and not error", func() {
 			p := Plugin{}
-			nonAzure := &plugin.FunctionPluginParams{}
+			nonAzure := &plugins.FunctionPluginParams{}
 			out, err := p.ParseFunctionSpec(nonAzure, functionSpec("foo", "anonymous"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(out).To(BeNil())
@@ -189,7 +189,7 @@ var _ = Describe("Processing function", func() {
 				hostname: "my-appwhos.azurewebsites.net",
 				apiKeys:  map[string]string{"foo": "key1"},
 			}
-			param := &plugin.FunctionPluginParams{UpstreamType: UpstreamTypeAzure}
+			param := &plugins.FunctionPluginParams{UpstreamType: UpstreamTypeAzure}
 			_, err := p.ParseFunctionSpec(param, functionSpec("foo", "invalid"))
 			Expect(err).To(HaveOccurred())
 		})
@@ -201,7 +201,7 @@ var _ = Describe("Processing function", func() {
 				hostname: "my-appwhos.azurewebsites.net",
 				apiKeys:  map[string]string{"foo": "key1"},
 			}
-			param := &plugin.FunctionPluginParams{UpstreamType: UpstreamTypeAzure}
+			param := &plugins.FunctionPluginParams{UpstreamType: UpstreamTypeAzure}
 			_, err := p.ParseFunctionSpec(param, functionSpec("bar", "function"))
 			Expect(err).To(HaveOccurred())
 		})
@@ -213,7 +213,7 @@ var _ = Describe("Processing function", func() {
 				hostname: "my-appwhos.azurewebsites.net",
 				apiKeys:  map[string]string{"foo": "key1"},
 			}
-			param := &plugin.FunctionPluginParams{UpstreamType: UpstreamTypeAzure}
+			param := &plugins.FunctionPluginParams{UpstreamType: UpstreamTypeAzure}
 			out, err := p.ParseFunctionSpec(param, functionSpec("foo", "function"))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(get(out, "host")).To(Equal("my-appwhos.azurewebsites.net"))
