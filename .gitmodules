@@ -10,6 +10,7 @@
 [submodule "common/transformation/envoy"]
 	path = common/transformation/envoy
 	url = https://github.com/solo-io/envoy-transformation
-[submodule "azure/envoy"]
-	path = azure/envoy
+
+[submodule "pkg/plugins/azure/envoy"]
+	path = pkg/plugins/azure/envoy
 	url = https://github.com/solo-io/envoy-azure-functions
