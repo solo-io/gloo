@@ -251,10 +251,12 @@ func (p *transformationPlugin) setTransformationForRoute(getTemplateForDestinati
 	if template == nil {
 		return nil
 	}
+	template.Extractors = extractors
 
 	t := Transformation{
-		Extractors:             extractors,
-		TransformationTemplate: template,
+		TransformationType: &Transformation_TransformationTemplate{
+			TransformationTemplate: template,
+		},
 	}
 
 	intHash, err := hashstructure.Hash(t, nil)
@@ -322,21 +324,27 @@ func (p *transformationPlugin) setResponseTransformationForRoute(template Templa
 		headerTemplates[k] = &InjaTemplate{Text: v}
 	}
 
-	t := Transformation{
-		Extractors: extractors,
+	tt := &Transformation_TransformationTemplate{
 		TransformationTemplate: &TransformationTemplate{
-			Headers: headerTemplates,
+			Extractors: extractors,
+			Headers:    headerTemplates,
 		},
 	}
 
 	if template.Body != nil {
-		t.TransformationTemplate.BodyTransformation = &TransformationTemplate_Body{
+		tt.TransformationTemplate.BodyTransformation = &TransformationTemplate_Body{
 			Body: &InjaTemplate{
 				Text: *template.Body,
 			},
 		}
 	} else {
-		t.TransformationTemplate.BodyTransformation = &TransformationTemplate_Passthrough{}
+		tt.TransformationTemplate.BodyTransformation = &TransformationTemplate_Passthrough{
+			Passthrough: &Passthrough{},
+		}
+	}
+
+	t := Transformation{
+		TransformationType: tt,
 	}
 
 	intHash, err := hashstructure.Hash(t, nil)
