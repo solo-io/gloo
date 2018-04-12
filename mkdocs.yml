@@ -7,11 +7,15 @@ pages:
       - Architecture: introduction/architecture.md
     - Installation:
       - Installing on Kubernetes: installation/kubernetes.md
+      - Installing on OpenShift: installation/openshift.md
 #      - Installing on Local Docker: installation/docker.md
     - Getting Started:
       - Kubernetes:
         - Basic Routing: getting_started/kubernetes/1.md
         - Function Routing: getting_started/kubernetes/2.md
+      - OpenShift:
+        - Basic Routing: getting_started/openshift/1.md
+        - Function Routing: getting_started/openshift/2.md
       - AWS:
         - Basic Lambda with Gloo: getting_started/aws/lambda.md
     - Tutorials:
