@@ -21,9 +21,9 @@ import (
 
 	bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
 	"github.com/ghodss/yaml"
-	. "github.com/solo-io/gloo/test/helpers"
 	. "github.com/solo-io/gloo/internal/control-plane/xds"
 	"github.com/solo-io/gloo/pkg/log"
+	. "github.com/solo-io/gloo/test/helpers"
 	"google.golang.org/grpc"
 )
 
@@ -47,8 +47,8 @@ static_resources:
 dynamic_resources:
   ads_config:
     api_type: GRPC
-    cluster_names:
-    - xds_cluster
+    grpc_services:
+    - envoy_grpc: {cluster_name: xds_cluster}
   cds_config:
     ads: {}
   lds_config:

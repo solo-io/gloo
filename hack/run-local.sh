@@ -55,8 +55,8 @@ static_resources:
 dynamic_resources:
   ads_config:
     api_type: GRPC
-    cluster_names:
-    - xds_cluster
+    grpc_services:
+    - envoy_grpc: {cluster_name: xds_cluster}
   cds_config:
     ads: {}
   lds_config:
