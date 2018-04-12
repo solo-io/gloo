@@ -37,8 +37,8 @@ static_resources:
 dynamic_resources:
   ads_config:
     api_type: GRPC
-    cluster_names:
-    - xds_cluster
+    grpc_services:
+    - envoy_grpc: {cluster_name: xds_cluster}
   cds_config:
     ads: {}
   lds_config:
@@ -158,7 +158,9 @@ func (ei *EnvoyInstance) RunWithPort(port uint32) error {
 	cmd.Dir = ei.tmpdir
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter
-	err = cmd.Start()
+
+	runner := Runner{Sourcepath: ei.envoypath, ComponentName: "ENVOY"}
+	cmd, err = runner.run(cmd)
 	if err != nil {
 		return err
 	}

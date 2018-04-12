@@ -10,8 +10,8 @@ import (
 
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/pkg/api/types/v1"
-	"github.com/solo-io/gloo/pkg/storage/dependencies"
 	"github.com/solo-io/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/pkg/storage/dependencies"
 )
 
 var _ = Describe("Plugin", func() {
@@ -120,133 +120,133 @@ var _ = Describe("Plugin", func() {
 					Kind: &types.Value_StructValue{
 						StructValue: &types.Struct{
 							Fields: map[string]*types.Value{
-								"extractors": {
-									Kind: &types.Value_StructValue{
-										StructValue: &types.Struct{
-											Fields: map[string]*types.Value{
-												"method": {
-													Kind: &types.Value_StructValue{
-														StructValue: &types.Struct{
-															Fields: map[string]*types.Value{
-																"header": {
-																	Kind: &types.Value_StringValue{
-																		StringValue: ":method",
-																	},
-																},
-																"regex": {
-																	Kind: &types.Value_StringValue{
-																		StringValue: "([\\.\\-_[:alnum:]]+)",
-																	},
-																},
-																"subgroup": {
-																	Kind: &types.Value_NumberValue{
-																		NumberValue: 1.000000,
-																	},
-																},
-															},
-														},
-													},
-												},
-												"path": {
-													Kind: &types.Value_StructValue{
-														StructValue: &types.Struct{
-															Fields: map[string]*types.Value{
-																"header": {
-																	Kind: &types.Value_StringValue{
-																		StringValue: ":path",
-																	},
-																},
-																"regex": {
-																	Kind: &types.Value_StringValue{
-																		StringValue: "([\\.\\-_[:alnum:]]+)",
-																	},
-																},
-																"subgroup": {
-																	Kind: &types.Value_NumberValue{
-																		NumberValue: 1.000000,
-																	},
-																},
-															},
-														},
-													},
-												},
-												"query_string": {
-													Kind: &types.Value_StructValue{
-														StructValue: &types.Struct{
-															Fields: map[string]*types.Value{
-																"header": {
-																	Kind: &types.Value_StringValue{
-																		StringValue: ":path",
-																	},
-																},
-																"regex": {
-																	Kind: &types.Value_StringValue{
-																		StringValue: "/test\\?([\\.\\-_[:alnum:]]+)",
-																	},
-																},
-																"subgroup": {
-																	Kind: &types.Value_NumberValue{
-																		NumberValue: 1.000000,
-																	},
-																},
-															},
-														},
-													},
-												},
-												"scheme": {
-													Kind: &types.Value_StructValue{
-														StructValue: &types.Struct{
-															Fields: map[string]*types.Value{
-																"header": {
-																	Kind: &types.Value_StringValue{
-																		StringValue: ":scheme",
-																	},
-																},
-																"regex": {
-																	Kind: &types.Value_StringValue{
-																		StringValue: "([\\.\\-_[:alnum:]]+)",
-																	},
-																},
-																"subgroup": {
-																	Kind: &types.Value_NumberValue{
-																		NumberValue: 1.000000,
-																	},
-																},
-															},
-														},
-													},
-												},
-												"authority": {
-													Kind: &types.Value_StructValue{
-														StructValue: &types.Struct{
-															Fields: map[string]*types.Value{
-																"header": {
-																	Kind: &types.Value_StringValue{
-																		StringValue: ":authority",
-																	},
-																},
-																"regex": {
-																	Kind: &types.Value_StringValue{
-																		StringValue: "([\\.\\-_[:alnum:]]+)",
-																	},
-																},
-																"subgroup": {
-																	Kind: &types.Value_NumberValue{
-																		NumberValue: 1.000000,
-																	},
-																},
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-								},
 								"transformation_template": {
 									Kind: &types.Value_StructValue{
 										StructValue: &types.Struct{
 											Fields: map[string]*types.Value{
+												"extractors": {
+													Kind: &types.Value_StructValue{
+														StructValue: &types.Struct{
+															Fields: map[string]*types.Value{
+																"method": {
+																	Kind: &types.Value_StructValue{
+																		StructValue: &types.Struct{
+																			Fields: map[string]*types.Value{
+																				"header": {
+																					Kind: &types.Value_StringValue{
+																						StringValue: ":method",
+																					},
+																				},
+																				"regex": {
+																					Kind: &types.Value_StringValue{
+																						StringValue: "([\\.\\-_[:alnum:]]+)",
+																					},
+																				},
+																				"subgroup": {
+																					Kind: &types.Value_NumberValue{
+																						NumberValue: 1.000000,
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+																"path": {
+																	Kind: &types.Value_StructValue{
+																		StructValue: &types.Struct{
+																			Fields: map[string]*types.Value{
+																				"header": {
+																					Kind: &types.Value_StringValue{
+																						StringValue: ":path",
+																					},
+																				},
+																				"regex": {
+																					Kind: &types.Value_StringValue{
+																						StringValue: "([\\.\\-_[:alnum:]]+)",
+																					},
+																				},
+																				"subgroup": {
+																					Kind: &types.Value_NumberValue{
+																						NumberValue: 1.000000,
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+																"query_string": {
+																	Kind: &types.Value_StructValue{
+																		StructValue: &types.Struct{
+																			Fields: map[string]*types.Value{
+																				"header": {
+																					Kind: &types.Value_StringValue{
+																						StringValue: ":path",
+																					},
+																				},
+																				"regex": {
+																					Kind: &types.Value_StringValue{
+																						StringValue: "/test\\?([\\.\\-_[:alnum:]]+)",
+																					},
+																				},
+																				"subgroup": {
+																					Kind: &types.Value_NumberValue{
+																						NumberValue: 1.000000,
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+																"scheme": {
+																	Kind: &types.Value_StructValue{
+																		StructValue: &types.Struct{
+																			Fields: map[string]*types.Value{
+																				"header": {
+																					Kind: &types.Value_StringValue{
+																						StringValue: ":scheme",
+																					},
+																				},
+																				"regex": {
+																					Kind: &types.Value_StringValue{
+																						StringValue: "([\\.\\-_[:alnum:]]+)",
+																					},
+																				},
+																				"subgroup": {
+																					Kind: &types.Value_NumberValue{
+																						NumberValue: 1.000000,
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+																"authority": {
+																	Kind: &types.Value_StructValue{
+																		StructValue: &types.Struct{
+																			Fields: map[string]*types.Value{
+																				"header": {
+																					Kind: &types.Value_StringValue{
+																						StringValue: ":authority",
+																					},
+																				},
+																				"regex": {
+																					Kind: &types.Value_StringValue{
+																						StringValue: "([\\.\\-_[:alnum:]]+)",
+																					},
+																				},
+																				"subgroup": {
+																					Kind: &types.Value_NumberValue{
+																						NumberValue: 1.000000,
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
 												"headers": {
 													Kind: &types.Value_StructValue{
 														StructValue: &types.Struct{
