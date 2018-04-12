@@ -158,7 +158,9 @@ func (ei *EnvoyInstance) RunWithPort(port uint32) error {
 	cmd.Dir = ei.tmpdir
 	cmd.Stdout = ginkgo.GinkgoWriter
 	cmd.Stderr = ginkgo.GinkgoWriter
-	err = cmd.Start()
+
+	runner := Runner{Sourcepath: ei.envoypath, ComponentName: "ENVOY"}
+	cmd, err = runner.run(cmd)
 	if err != nil {
 		return err
 	}
