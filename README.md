@@ -18,10 +18,13 @@ It is entirely possible to run Gloo as a traditional API gateway, without levera
 * [Architecture](docs/introduction/architecture.md): Overview of Gloo's architecture. Covers architecture at a high level, and 
 the component architecture
 ### Installation:
-* [Installing on Kubernetes](docs/installation/kubernetes.md): Installation guide for Kubernetes (recommended) 
+* [Installing on Kubernetes](docs/installation/kubernetes.md): Installation guide for Kubernetes (recommended)
+* [Installing on OpenShift](docs/installation/openshift.md): Installation guide for OpenShift
 ### Getting Started:
 * [Getting Started on Kubernetes](docs/getting_started/kubernetes/1.md): Getting started with Kubernetes (recommended for first time users)
-* [Function Routing](docs/getting_started/kubernetes/2.md): Introduction to Function Routing with Gloo
+* [Function Routing on Kubernetes](docs/getting_started/kubernetes/2.md): Introduction to Function Routing with Gloo
+* [Getting Started on OpenShift](docs/getting_started/openshift/1.md): Getting started with OpenShift
+* [Function Routing on OpenShift](docs/getting_started/openshift/2.md): Introduction to Function Routing with Gloo (OpenShift version)
 * [AWS Lambda](docs/getting_started/aws/lambda.md): Basic AWS Lambda with Gloo
 ### Tutorials
 * [Refactoring Monoliths with Gloo](docs/tutorials/refactor_monolith.md): Using Gloo to refactor monolithic apps
