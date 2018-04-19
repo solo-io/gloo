@@ -3,6 +3,8 @@ package backoff
 import (
 	"context"
 	"time"
+
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 // Default values for ExponentialBackOff.
@@ -59,6 +61,7 @@ func UntilSuccess(fn func() error, ctx context.Context) {
 			}
 			if tilNextRetry >= backoffCap {
 				tilNextRetry = backoffCap
+				log.Warnf("reached maximum backoff with error: %v", err)
 			}
 		}
 	}
