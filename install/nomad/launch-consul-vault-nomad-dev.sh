@@ -3,6 +3,7 @@
 consul agent -dev --client 0.0.0.0 &
 
 vault server -dev -dev-root-token-id=root \
+    -log-level=trace \
     -dev-listen-address 0.0.0.0:8200 &
 
 sleep 1

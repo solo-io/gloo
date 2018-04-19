@@ -149,7 +149,31 @@ EOF
       service {
         name = "ingress"
         tags = [
-          "gloo"]
+          "gloo", "http"]
+        port = "http"
+        check {
+          name = "alive"
+          type = "tcp"
+          interval = "10s"
+          timeout = "5s"
+        }
+      }
+      service {
+        name = "ingress"
+        tags = [
+          "gloo", "https"]
+        port = "https"
+        check {
+          name = "alive"
+          type = "tcp"
+          interval = "10s"
+          timeout = "5s"
+        }
+      }
+      service {
+        name = "ingress"
+        tags = [
+          "gloo", "admin"]
         port = "admin"
         check {
           name = "alive"
