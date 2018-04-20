@@ -12,8 +12,11 @@ type Options struct {
 type UpstreamDiscoveryOptions struct {
 	EnableDiscoveryForKubernetes bool
 	EnableDiscoveryForCopilot    bool
+	EnableDiscoveryForConsul     bool
 }
 
 func (opts UpstreamDiscoveryOptions) DiscoveryEnabled() bool {
-	return opts.EnableDiscoveryForKubernetes || opts.EnableDiscoveryForCopilot
+	return opts.EnableDiscoveryForKubernetes ||
+		opts.EnableDiscoveryForCopilot ||
+		opts.EnableDiscoveryForConsul
 }

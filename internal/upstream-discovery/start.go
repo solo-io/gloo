@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/internal/upstream-discovery/bootstrap"
+	"github.com/solo-io/gloo/internal/upstream-discovery/consul"
 	"github.com/solo-io/gloo/internal/upstream-discovery/copilot"
 	"github.com/solo-io/gloo/internal/upstream-discovery/kube"
 	"github.com/solo-io/gloo/pkg/plugins/cloudfoundry"
@@ -36,6 +37,19 @@ func Start(opts bootstrap.Options, store storage.Interface, stop <-chan struct{}
 
 		serviceCtl := copilot.NewUpstreamController(context.Background(), store, istioclient, 5*time.Second)
 		go runController("copilot", serviceCtl, stop)
+	}
+
+	if opts.UpstreamDiscoveryOptions.EnableDiscoveryForConsul {
+		cfg := opts.ConsulOptions.ToConsulConfig()
+
+		// TODO: expose this as a separate flag (interval for restarting a blocking query)
+		cfg.WaitTime = opts.ConfigStorageOptions.SyncFrequency
+
+		serviceCtl, err := consul.NewUpstreamController(cfg, store)
+		if err != nil {
+			return errors.Wrap(err, "starting consul upstream discovery")
+		}
+		go runController("consul", serviceCtl, stop)
 	}
 
 	return nil

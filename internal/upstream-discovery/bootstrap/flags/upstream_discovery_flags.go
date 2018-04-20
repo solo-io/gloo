@@ -11,4 +11,6 @@ func AddUpstreamDiscoveryFlags(cmd *cobra.Command, opts *bootstrap.Options) {
 			"kubernetes discovery will be activated automatically")
 	cmd.PersistentFlags().BoolVar(&opts.UpstreamDiscoveryOptions.EnableDiscoveryForCopilot, "enable.cloudfoundry",
 		false, "Enable upstream discovery for CloudFoundry via Copilot")
+	cmd.PersistentFlags().BoolVar(&opts.UpstreamDiscoveryOptions.EnableDiscoveryForConsul, "enable.consul",
+		false, "Enable upstream discovery for Consul")
 }

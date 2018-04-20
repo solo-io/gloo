@@ -38,7 +38,7 @@ job "gloo" {
       }
       driver = "docker"
       config {
-        image = "soloio/control-plane:0.2.0"
+        image = "soloio/control-plane:0.2.1"
         port_map {
           xds = 8081
         }
@@ -181,6 +181,30 @@ EOF
           interval = "10s"
           timeout = "5s"
         }
+      }
+    }
+
+    # upstream-discovery
+    task "upstream-discovery" {
+
+      env {
+        DEBUG = "1"
+      }
+
+      driver = "docker"
+      config {
+        image = "soloio/upstream-discovery:0.2.1"
+        args = [
+          "--storage.type=consul",
+          "--storage.refreshrate=1m",
+          "--consul.address=${attr.driver.docker.bridge_ip}:8500",
+          "--consul.scheme=http",
+          "--enable.consul",
+        ]
+      }
+      resources {
+        cpu = 500
+        memory = 256
       }
     }
 
