@@ -67,7 +67,7 @@ func (c *UpstreamController) Run(stop <-chan struct{}) {
 			log.Printf("consul upstream discovery stopped")
 			return
 		case serviceList := <-discoveredServices:
-			c.syncGlooUpstreamsWithKubeServices(serviceList)
+			c.syncGlooUpstreamsWithConsulServices(serviceList)
 		}
 	}
 }
@@ -175,7 +175,7 @@ func (c *UpstreamController) getNextUpdate(ctx context.Context, lastIndex uint64
 	return services, meta.LastIndex, nil
 }
 
-func (c *UpstreamController) syncGlooUpstreamsWithKubeServices(serviceList map[string][][]string) {
+func (c *UpstreamController) syncGlooUpstreamsWithConsulServices(serviceList map[string][][]string) {
 	c.syncer.DesiredUpstreams = convertServicesFunc(serviceList)
 	if err := c.syncer.SyncDesiredState(); err != nil {
 		c.errors <- err
