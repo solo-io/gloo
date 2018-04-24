@@ -217,7 +217,7 @@ EOF
 
       driver = "docker"
       config {
-        image = "soloio/function-discovery:0.2.0"
+        image = "soloio/function-discovery:0.2.1"
         args = [
           "--storage.type=consul",
           "--storage.refreshrate=1m",

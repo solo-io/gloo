@@ -7,6 +7,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/hashicorp/consul/api"
 	"github.com/solo-io/gloo/internal/function-discovery/detector"
 	"github.com/solo-io/gloo/internal/function-discovery/grpc"
 	"github.com/solo-io/gloo/internal/function-discovery/nats-streaming"
@@ -180,7 +181,16 @@ func createResolver(opts bootstrap.Options) resolver.Resolver {
 		return kube, nil
 	}()
 	if err != nil {
-		log.Warnf("create kube client failed: %v. swagger services running in kubernetes will not be discovered by function discovery")
+		log.Warnf("create kube client failed: %v. functonal services running in kubernetes will not be discovered " +
+			"by function discovery")
 	}
-	return resolver.NewResolver(kube)
+	consul, err := func() (*api.Client, error) {
+		cfg := opts.ConsulOptions.ToConsulConfig()
+		return api.NewClient(cfg)
+	}()
+	if err != nil {
+		log.Warnf("create consul client failed: %v. functional services running in consul will " +
+			"not be discovered by function discovery")
+	}
+	return resolver.NewResolver(kube, consul)
 }
