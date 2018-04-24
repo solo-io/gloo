@@ -14,7 +14,6 @@ nomad agent -dev \
     --vault-enabled=true \
     --vault-address=http://127.0.0.1:8200 \
     --vault-token=root \
-    -bind 172.17.0.1 \
     -network-interface docker0 &
 
 FAIL=0
