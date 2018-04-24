@@ -5,7 +5,7 @@ set -x -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/..
 
 #DIR=${PWD}
-CONFIG_DIR=${CONFIG_DIR:-${DIR}/hack/gen-config-yaml/_gloo_config/}
+CONFIG_DIR=${CONFIG_DIR:-${DIR}/_gloo_config/}
 SECRETS_DIR=${CONFIG_DIR}/secrets/
 FILES_DIR=${CONFIG_DIR}/files
 
@@ -16,19 +16,28 @@ mkdir -p ${FILES_DIR}
 
 FAIL=0
 
-echo "Starting gloo"
-#docker run --rm -i \
-#    -e DEBUG=1 \
-#    -v ${CONFIG_DIR}:/config \
-#    -v ${SECRETS_DIR}:/secrets \
-#    --name gloo \
-#    soloio/gloo:v0.1.local \
-#    --file.config.dir /config \
-#    --file.secret.dir /secrets &
+echo "Starting control plane"
+docker run --rm -i \
+    -e DEBUG=1 \
+    -v ${CONFIG_DIR}:/config \
+    -v ${SECRETS_DIR}:/secrets \
+    -v ${files_dir}:/files \
+    --name control-plane \
+    soloio/control-plane:0.2.1 \
+    --file.config.dir /config \
+    --file.secret.dir /secrets \
+    --file.files.dir /files &
 
-./gloo --file.config.dir ${CONFIG_DIR} \
-       --file.secret.dir ${SECRETS_DIR} \
-       --file.files.dir ${FILES_DIR} &
+docker run --rm -i \
+    -e DEBUG=1 \
+    -v ${CONFIG_DIR}:/config \
+    -v ${SECRETS_DIR}:/secrets \
+    -v ${files_dir}:/files \
+    --name function-discovery \
+    soloio/function-discovery:0.2.0 \
+    --file.config.dir /config \
+    --file.secret.dir /secrets \
+    --file.files.dir /files &
 
 sleep 1
 
