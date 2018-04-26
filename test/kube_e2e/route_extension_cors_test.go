@@ -76,7 +76,7 @@ var _ = Describe("Route Exetnsion - CORS", func() {
 					"Origin":                        "gloo.solo.io",
 					"Access-Control-Request-Method": "POST",
 				}},
-				"access-control-allow-methods: GET, POST, PUT", time.Minute*1)
+				"access-control-allow-methods: GET, POST, PUT", time.Minute*5)
 		})
 		It("should return response with CORS allow origin header", func() {
 			curlEventuallyShouldRespond(curlOpts{
