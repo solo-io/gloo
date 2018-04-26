@@ -104,7 +104,7 @@ func (p *Plugin) ProcessUpstream(params *plugins.UpstreamPluginParams, in *v1.Up
 		}
 		// cache the descriptors; we'll need then when we create our grpc filters
 		// need the package name as well, required by the transcoder filter
-		fullServiceName := packageName + "." + serviceName
+		fullServiceName := in.Name + "." + packageName + "." + serviceName
 		p.serviceDescriptors[fullServiceName] = descriptors
 		// keep track of which service belongs to which upstream
 		p.upstreamServices[in.Name] = fullServiceName
