@@ -166,8 +166,12 @@ var _ = Describe("Secret Storage Client", func() {
 			}
 			s1, err := client.Create(secret)
 			Expect(err).NotTo(HaveOccurred())
+			Eventually(lists).Should(HaveLen(1))
+
 			s2, err := client.Create(secret2)
 			Expect(err).NotTo(HaveOccurred())
+			Eventually(lists).Should(HaveLen(2))
+
 			s3, err := client.Create(secret3)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(lists).Should(HaveLen(3))
