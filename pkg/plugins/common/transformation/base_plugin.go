@@ -370,6 +370,10 @@ func (p *transformationPlugin) GetTransformationFilter() *plugins.StagedFilter {
 	if len(p.cachedTransformations) == 0 {
 		return nil
 	}
+	defer func() {
+		// clear cache
+		p.cachedTransformations = make(map[string]*Transformation)
+	}()
 
 	filterConfig, err := util.MessageToStruct(&Transformations{
 		Transformations: p.cachedTransformations,
@@ -379,8 +383,6 @@ func (p *transformationPlugin) GetTransformationFilter() *plugins.StagedFilter {
 		return nil
 	}
 
-	// clear cache
-	p.cachedTransformations = make(map[string]*Transformation)
 
 	return &plugins.StagedFilter{
 		HttpFilter: &envoyhttp.HttpFilter{

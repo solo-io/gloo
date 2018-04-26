@@ -252,6 +252,12 @@ func httpPath(upstreamName, serviceName, methodName string) string {
 }
 
 func (p *Plugin) HttpFilters(_ *plugins.FilterPluginParams) []plugins.StagedFilter {
+	defer func() {
+		// clear cache
+		p.serviceDescriptors = make(map[string]*descriptor.FileDescriptorSet)
+		p.upstreamServices = make(map[string]string)
+	}()
+
 	if len(p.serviceDescriptors) == 0 {
 		return nil
 	}
@@ -262,8 +268,7 @@ func (p *Plugin) HttpFilters(_ *plugins.FilterPluginParams) []plugins.StagedFilt
 		return nil
 	}
 
-	filters := []plugins.StagedFilter{*transformationFilter}
-
+	var filters []plugins.StagedFilter
 	for serviceName, protoDescriptor := range p.serviceDescriptors {
 		descriptorBytes, err := proto.Marshal(protoDescriptor)
 		if err != nil {
@@ -291,9 +296,11 @@ func (p *Plugin) HttpFilters(_ *plugins.FilterPluginParams) []plugins.StagedFilt
 		})
 	}
 
-	// clear cache
-	p.serviceDescriptors = make(map[string]*descriptor.FileDescriptorSet)
-	p.upstreamServices = make(map[string]string)
+	if len(filters) == 0 {
+		log.Warnf("ERROR: no valid GrpcJsonTranscoder available")
+		return nil
+	}
+	filters = append([]plugins.StagedFilter{*transformationFilter}, filters...)
 
 	return filters
 }
