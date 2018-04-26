@@ -153,3 +153,20 @@ func (i *VaultInstance) Clean() error {
 	}
 	return nil
 }
+
+func (i *VaultInstance) Exec(args ...string) (string, error) {
+	cmd := exec.Command(i.vaultpath, args...)
+	cmd.Env = os.Environ()
+	// disable DEBUG=1 from getting through to nomad
+	for i, pair := range cmd.Env {
+		if strings.HasPrefix(pair, "DEBUG") {
+			cmd.Env = append(cmd.Env[:i], cmd.Env[i+1:]...)
+			break
+		}
+	}
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		err = fmt.Errorf("%s (%v)", out, err)
+	}
+	return string(out), err
+}

@@ -12,8 +12,16 @@ import (
 
 	"syscall"
 
+	"bytes"
+	"strings"
+	"text/template"
+
 	"github.com/hashicorp/nomad/api"
 	"github.com/onsi/ginkgo"
+	"github.com/pkg/errors"
+	"github.com/solo-io/gloo/pkg/backoff"
+	"github.com/solo-io/gloo/pkg/log"
+	"github.com/solo-io/gloo/test/helpers"
 )
 
 const defualtNomadDockerImage = "djenriquez/nomad"
@@ -82,9 +90,10 @@ type NomadInstance struct {
 	nomadpath string
 	tmpdir    string
 	cmd       *exec.Cmd
+	vault     *VaultInstance
 }
 
-func (ef *NomadFactory) NewNomadInstance() (*NomadInstance, error) {
+func (ef *NomadFactory) NewNomadInstance(vault *VaultInstance) (*NomadInstance, error) {
 	// try to grab one form docker...
 	tmpdir, err := ioutil.TempDir(os.Getenv("HELPER_TMP"), "nomad")
 	if err != nil {
@@ -104,6 +113,7 @@ func (ef *NomadFactory) NewNomadInstance() (*NomadInstance, error) {
 		nomadpath: ef.nomadpath,
 		tmpdir:    tmpdir,
 		cmd:       cmd,
+		vault:     vault,
 	}, nil
 
 }
@@ -147,4 +157,196 @@ func (i *NomadInstance) Clean() error {
 
 func (i *NomadInstance) Cfg() *api.Config {
 	return api.DefaultConfig()
+}
+
+func (i *NomadInstance) Exec(args ...string) (string, error) {
+	cmd := exec.Command(i.nomadpath, args...)
+	cmd.Env = os.Environ()
+	// disable DEBUG=1 from getting through to nomad
+	for i, pair := range cmd.Env {
+		if strings.HasPrefix(pair, "DEBUG") {
+			cmd.Env = append(cmd.Env[:i], cmd.Env[i+1:]...)
+			break
+		}
+	}
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		err = fmt.Errorf("%s (%v)", out, err)
+	}
+	return string(out), err
+}
+
+func (i *NomadInstance) SetupNomadForE2eTest(buildImages bool) error {
+	if buildImages {
+		if err := helpers.BuildPushContainers(false, false); err != nil {
+			return err
+		}
+	}
+	nomadResourcesDir := filepath.Join(helpers.NomadE2eDirectory(), "nomad_resources")
+
+	envoyImageTag := os.Getenv("ENVOY_IMAGE_TAG")
+	if envoyImageTag == "" {
+		log.Warnf("no ENVOY_IMAGE_TAG specified, defaulting to latest")
+		envoyImageTag = "latest"
+	}
+
+	data := &struct {
+		ImageTag      string
+		EnvoyImageTag string
+	}{ImageTag: helpers.ImageTag(), EnvoyImageTag: envoyImageTag}
+
+	tmpl, err := template.New("Test_Resources").ParseFiles(filepath.Join(nomadResourcesDir, "install.nomad.tmpl"))
+	if err != nil {
+		return errors.Wrap(err, "parsing template from install.nomad.tmpl")
+	}
+
+	buf := &bytes.Buffer{}
+	if err := tmpl.ExecuteTemplate(buf, "install.nomad.tmpl", data); err != nil {
+		return errors.Wrap(err, "executing template")
+	}
+
+	err = ioutil.WriteFile(filepath.Join(nomadResourcesDir, "install.nomad"), buf.Bytes(), 0644)
+	if err != nil {
+		return errors.Wrap(err, "writing generated test resources template")
+	}
+
+	tmpl, err = template.New("Test_Resources").ParseFiles(filepath.Join(nomadResourcesDir, "testing-resources.nomad.tmpl"))
+	if err != nil {
+		return errors.Wrap(err, "parsing template from testing-resources.nomad.tmpl")
+	}
+
+	buf = &bytes.Buffer{}
+	if err := tmpl.ExecuteTemplate(buf, "testing-resources.nomad.tmpl", data); err != nil {
+		return errors.Wrap(err, "executing template")
+	}
+
+	err = ioutil.WriteFile(filepath.Join(nomadResourcesDir, "testing-resources.nomad"), buf.Bytes(), 0644)
+	if err != nil {
+		return errors.Wrap(err, "writing generated test resources template")
+	}
+
+	_, err = i.vault.Exec("policy", "write", "-address=http://127.0.0.1:8200", "gloo", filepath.Join(nomadResourcesDir, "gloo-policy.hcl"))
+	if err != nil {
+		return errors.Wrap(err, "setting vault policy")
+	}
+
+	backoff.WithBackoff(func() error {
+		// test stuff first
+		if _, err := i.Exec("run", filepath.Join(nomadResourcesDir, "testing-resources.nomad")); err != nil {
+			return errors.Wrapf(err, "creating nomad resource from testing-resources.nomad")
+		}
+		return nil
+	}, make(chan struct{}))
+
+	if err := i.waitJobRunning("testing-resources"); err != nil {
+		return errors.Wrap(err, "waiting for job to start")
+	}
+
+	if _, err := i.Exec("run", filepath.Join(nomadResourcesDir, "install.nomad")); err != nil {
+		return errors.Wrapf(err, "creating nomad resource from install.nomad")
+	}
+
+	if err := i.waitJobRunning("gloo"); err != nil {
+		return errors.Wrap(err, "waiting for job to start")
+	}
+
+	var ingressAddr string
+
+	backoff.WithBackoff(func() error {
+		addr, err := helpers.ConsulServiceAddress("ingress", "admin")
+		if err != nil {
+			return errors.Wrap(err, "getting ingress addr")
+		}
+		ingressAddr = addr
+		return nil
+	}, make(chan struct{}))
+
+	_, err = helpers.Curl(ingressAddr, helpers.CurlOpts{Path: "/logging?config=debug"})
+	return err
+}
+
+func (i *NomadInstance) waitJobRunning(name string) error {
+	return i.waitJobStatus(name, "running")
+}
+
+func (i *NomadInstance) waitJobStatus(job, status string) error {
+	cfg := i.Cfg()
+	client, err := api.NewClient(cfg)
+	if err != nil {
+		return err
+	}
+	statusFunc := func() (string, error) {
+		info, _, err := client.Jobs().Info(job, nil)
+		if err != nil {
+			return "", err
+		}
+		if *info.Stop {
+			return "stopped", nil
+		}
+		return *info.Status, nil
+	}
+
+	timeout := time.Second * 20
+	interval := time.Millisecond * 1000
+	tick := time.Tick(interval)
+
+	log.Debugf("waiting %v for pod %v to be %v...", timeout, job, status)
+	for {
+		select {
+		case <-time.After(timeout):
+			return fmt.Errorf("timed out waiting for %v to be %v", job, status)
+		case <-tick:
+			out, err := statusFunc()
+			if err != nil {
+				return fmt.Errorf("failed getting status: %v", err)
+			}
+			if strings.Contains(out, "dead") || strings.Contains(out, "failed") {
+				out, _ = i.Exec("status", job)
+				return errors.Errorf("%v in dead with logs %v", job, out)
+			}
+			if out == status {
+				return nil
+			}
+		}
+	}
+}
+
+func (i *NomadInstance) TeardownNomadE2e() error {
+	out, err := i.Exec("job", "stop", "-purge", "gloo")
+	if err != nil {
+		return errors.Wrapf(err, "stop job failed: %v", out)
+	}
+	out, err = i.Exec("job", "stop", "-purge", "testing-resources")
+	if err != nil {
+		return errors.Wrapf(err, "stop job failed: %v", out)
+	}
+	return nil
+}
+func (i *NomadInstance) Logs(job, task string) (string, error) {
+	allocId, err := i.getAllocationId(job)
+	if err != nil {
+		return "", err
+	}
+	stdout, err := i.Exec("logs", allocId, task)
+	if err != nil {
+		return "", err
+	}
+	stderr, err := i.Exec("logs", "-stderr", allocId, task)
+	return stdout + "\n\n" + stderr, nil
+}
+
+func (i *NomadInstance) getAllocationId(job string) (string, error) {
+	cfg := i.Cfg()
+	client, err := api.NewClient(cfg)
+	if err != nil {
+		return "", err
+	}
+	allocs, _, err := client.Jobs().Allocations("gloo", false, nil)
+	if err != nil {
+		return "", err
+	}
+	if len(allocs) < 1 {
+		return "", errors.Errorf("expected at least 1 allocation, got %v", len(allocs))
+	}
+	return allocs[0].ID, nil
 }

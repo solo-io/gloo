@@ -16,7 +16,6 @@ import (
 	"github.com/solo-io/gloo/pkg/storage/dependencies/vault"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/helpers/local"
-	"github.com/solo-io/gloo/test/nomad_e2e/utils"
 )
 
 func TestConsul(t *testing.T) {
@@ -29,10 +28,12 @@ func TestConsul(t *testing.T) {
 	helpers.RegisterPreFailHandler(func() {
 		var logs string
 		for _, task := range []string{"control-plane", "ingress"} {
-			l, err := utils.Logs(nomadInstance, "gloo", task)
-			logs += l + "\n"
-			if err != nil {
-				logs += "error getting logs for " + task + ": " + err.Error()
+			if nomadInstance != nil {
+				l, err := nomadInstance.Logs("gloo", task)
+				logs += l + "\n"
+				if err != nil {
+					logs += "error getting logs for " + task + ": " + err.Error()
+				}
 			}
 		}
 		addr, err := helpers.ConsulServiceAddress("ingress", "admin")
@@ -87,7 +88,7 @@ var _ = BeforeSuite(func() {
 
 	nomadFactory, err = localhelpers.NewNomadFactory()
 	helpers.Must(err)
-	nomadInstance, err = nomadFactory.NewNomadInstance()
+	nomadInstance, err = nomadFactory.NewNomadInstance(vaultInstance)
 	helpers.Must(err)
 	nomadInstance.Silence()
 	err = nomadInstance.Run()
@@ -104,12 +105,12 @@ var _ = BeforeSuite(func() {
 
 	secrets = vault.NewSecretStorage(cli, "gloo", time.Second)
 
-	err = utils.SetupNomadForE2eTest(nomadInstance, true)
+	err = nomadInstance.SetupNomadForE2eTest(true)
 	helpers.Must(err)
 })
 
 var _ = AfterSuite(func() {
-	if err := utils.TeardownNomadE2e(); err != nil {
+	if err := nomadInstance.TeardownNomadE2e(); err != nil {
 		log.Warnf("FAILED TEARING DOWN: %v", err)
 	}
 
