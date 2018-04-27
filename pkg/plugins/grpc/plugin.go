@@ -104,7 +104,7 @@ func (p *Plugin) ProcessUpstream(params *plugins.UpstreamPluginParams, in *v1.Up
 		}
 		// cache the descriptors; we'll need then when we create our grpc filters
 		// need the package name as well, required by the transcoder filter
-		fullServiceName := in.Name + "." + packageName + "." + serviceName
+		fullServiceName := genFullServiceName(in.Name, packageName, serviceName)
 		p.serviceDescriptors[fullServiceName] = descriptors
 		// keep track of which service belongs to which upstream
 		p.upstreamServices[in.Name] = fullServiceName
@@ -117,6 +117,10 @@ func (p *Plugin) ProcessUpstream(params *plugins.UpstreamPluginParams, in *v1.Up
 	p.transformation.ActivateFilterForCluster(out)
 
 	return nil
+}
+
+func genFullServiceName(upstreamName, packageName, serviceName string) string {
+	return upstreamName + "." + packageName + "." + serviceName
 }
 
 func convertProto(b []byte) (*descriptor.FileDescriptorSet, error) {
@@ -192,7 +196,7 @@ func addHttpRulesToProto(upstreamName, serviceName string, set *descriptor.FileD
 			if *svc.Name == serviceName {
 				for _, method := range svc.Method {
 					packageName = *file.Package
-					fullServiceName := packageName + "." + serviceName
+					fullServiceName := genFullServiceName(upstreamName, packageName, serviceName)
 					if err := proto.SetExtension(method.Options, api.E_Http, &api.HttpRule{
 						Pattern: &api.HttpRule_Post{
 							Post: httpPath(upstreamName, fullServiceName, *method.Name),
