@@ -70,6 +70,45 @@ var _ = Describe("Plugin", func() {
 			Expect(out.Metadata.FilterMetadata).NotTo(BeNil())
 			Expect(out.Metadata.FilterMetadata).To(HaveKey("io.solo.transformation"))
 		})
+
+		It("processes two upstreams with the same service", func() {
+			in1 := &v1.Upstream{
+				Name: "myupstream1",
+				ServiceInfo: &v1.ServiceInfo{
+					Type: ServiceTypeGRPC,
+					Properties: EncodeServiceProperties(ServiceProperties{
+						DescriptorsFileRef: "file_1",
+						GRPCServiceNames:   []string{"Bookstore"},
+					}),
+				},
+			}
+			in2 := &v1.Upstream{
+				Name: "myupstream2",
+				ServiceInfo: &v1.ServiceInfo{
+					Type: ServiceTypeGRPC,
+					Properties: EncodeServiceProperties(ServiceProperties{
+						DescriptorsFileRef: "file_1",
+						GRPCServiceNames:   []string{"Bookstore"},
+					}),
+				},
+			}
+			p := NewPlugin()
+			b, err := ioutil.ReadFile("test/proto.pb")
+			Expect(err).NotTo(HaveOccurred())
+			params := &plugins.UpstreamPluginParams{
+				Files: map[string]*dependencies.File{"file_1": {Ref: "file_1", Contents: b}},
+			}
+			out := &envoyapi.Cluster{}
+			err = p.ProcessUpstream(params, in1, out)
+			Expect(err).NotTo(HaveOccurred())
+
+			out = &envoyapi.Cluster{}
+			err = p.ProcessUpstream(params, in2, out)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(p.serviceDescriptors).To(HaveLen(2))
+			Expect(p.upstreamServices).To(HaveLen(2))
+		})
+
 		It("Stores the descriptors proto in the plugin memory and adds to it http rules", func() {
 			in := &v1.Upstream{
 				Name: "myupstream",
@@ -90,8 +129,8 @@ var _ = Describe("Plugin", func() {
 			out := &envoyapi.Cluster{}
 			err = p.ProcessUpstream(params, in, out)
 			Expect(err).To(BeNil())
-			Expect(p.upstreamServices["myupstream"]).To(Equal("bookstore.Bookstore"))
-			Expect(p.serviceDescriptors["bookstore.Bookstore"]).NotTo(BeNil())
+			Expect(p.upstreamServices["myupstream"]).To(Equal("myupstream.bookstore.Bookstore"))
+			Expect(p.serviceDescriptors["myupstream.bookstore.Bookstore"]).NotTo(BeNil())
 			route := &v1.Route{
 				Matcher: &v1.Route_RequestMatcher{
 					RequestMatcher: &v1.RequestMatcher{
@@ -270,7 +309,7 @@ var _ = Describe("Plugin", func() {
 																			Fields: map[string]*types.Value{
 																				"text": {
 																					Kind: &types.Value_StringValue{
-																						StringValue: "/4f527d09/myupstream/bookstore.Bookstore/ListShelves?{{ default(query_string), \"\")}}",
+																						StringValue: "/1e9e591e/myupstream/myupstream.bookstore.Bookstore/ListShelves?{{ default(query_string), \"\")}}",
 																					},
 																				},
 																			},
@@ -299,7 +338,7 @@ var _ = Describe("Plugin", func() {
 						Values: []*types.Value{
 							&types.Value{
 								Kind: &types.Value_StringValue{
-									StringValue: "bookstore.Bookstore",
+									StringValue: "myupstream.bookstore.Bookstore",
 								},
 							},
 						},
