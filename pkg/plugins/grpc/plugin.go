@@ -26,19 +26,24 @@ func init() {
 	plugins.Register(NewPlugin(), nil)
 }
 
+type ServiceAndDescriptors struct {
+	FullServiceName string
+	Descriptors     *descriptor.FileDescriptorSet
+}
+
 func NewPlugin() *Plugin {
 	return &Plugin{
-		serviceDescriptors: make(map[string]*descriptor.FileDescriptorSet),
-		upstreamServices:   make(map[string]string),
-		transformation:     transformation.NewTransformationPlugin(),
+		// serviceDescriptors: make(map[string]*descriptor.FileDescriptorSet),
+		upstreamServices: make(map[string]ServiceAndDescriptors),
+		transformation:   transformation.NewTransformationPlugin(),
 	}
 }
 
 type Plugin struct {
 	// map service names to their descriptors
-	serviceDescriptors map[string]*descriptor.FileDescriptorSet
+	// serviceDescriptors map[string]*descriptor.FileDescriptorSet
 	// keep track of which service belongs to which upstream
-	upstreamServices map[string]string
+	upstreamServices map[string]ServiceAndDescriptors
 	transformation   transformation.Plugin
 }
 
@@ -105,9 +110,9 @@ func (p *Plugin) ProcessUpstream(params *plugins.UpstreamPluginParams, in *v1.Up
 		// cache the descriptors; we'll need then when we create our grpc filters
 		// need the package name as well, required by the transcoder filter
 		fullServiceName := genFullServiceName(in.Name, packageName, serviceName)
-		p.serviceDescriptors[fullServiceName] = descriptors
 		// keep track of which service belongs to which upstream
-		p.upstreamServices[in.Name] = fullServiceName
+		p.upstreamServices[in.Name] = ServiceAndDescriptors{
+			Descriptors: descriptors, FullServiceName: fullServiceName}
 	}
 
 	addWellKnownProtos(descriptors)
@@ -120,7 +125,7 @@ func (p *Plugin) ProcessUpstream(params *plugins.UpstreamPluginParams, in *v1.Up
 }
 
 func genFullServiceName(upstreamName, packageName, serviceName string) string {
-	return upstreamName + "." + packageName + "." + serviceName
+	return packageName + "." + serviceName
 }
 
 func convertProto(b []byte) (*descriptor.FileDescriptorSet, error) {
@@ -157,7 +162,7 @@ func (p *Plugin) ProcessRoute(_ *plugins.RoutePluginParams, in *v1.Route, out *e
 
 func (p *Plugin) templateForFunction(dest *v1.Destination_Function) (*transformation.TransformationTemplate, error) {
 	upstreamName := dest.Function.UpstreamName
-	serviceName, ok := p.upstreamServices[upstreamName]
+	serviceAndDescriptor, ok := p.upstreamServices[upstreamName]
 	if !ok {
 		// the upstream is not a grpc desintation
 		return nil, nil
@@ -168,7 +173,7 @@ func (p *Plugin) templateForFunction(dest *v1.Destination_Function) (*transforma
 
 	// create the transformation for the route
 
-	outPath := httpPath(upstreamName, serviceName, methodName)
+	outPath := httpPath(upstreamName, serviceAndDescriptor.FullServiceName, methodName)
 
 	// add query matcher to out path. kombina for now
 	// TODO: support query for matching
@@ -258,11 +263,10 @@ func httpPath(upstreamName, serviceName, methodName string) string {
 func (p *Plugin) HttpFilters(_ *plugins.FilterPluginParams) []plugins.StagedFilter {
 	defer func() {
 		// clear cache
-		p.serviceDescriptors = make(map[string]*descriptor.FileDescriptorSet)
-		p.upstreamServices = make(map[string]string)
+		p.upstreamServices = make(map[string]ServiceAndDescriptors)
 	}()
 
-	if len(p.serviceDescriptors) == 0 {
+	if len(p.upstreamServices) == 0 {
 		return nil
 	}
 
@@ -273,8 +277,8 @@ func (p *Plugin) HttpFilters(_ *plugins.FilterPluginParams) []plugins.StagedFilt
 	}
 
 	var filters []plugins.StagedFilter
-	for serviceName, protoDescriptor := range p.serviceDescriptors {
-		descriptorBytes, err := proto.Marshal(protoDescriptor)
+	for _, serviceAndDescriptor := range p.upstreamServices {
+		descriptorBytes, err := proto.Marshal(serviceAndDescriptor.Descriptors)
 		if err != nil {
 			log.Warnf("ERROR: marshaling proto descriptor: %v", err)
 			continue
@@ -284,7 +288,7 @@ func (p *Plugin) HttpFilters(_ *plugins.FilterPluginParams) []plugins.StagedFilt
 			DescriptorSet: &envoytranscoder.GrpcJsonTranscoder_ProtoDescriptorBin{
 				ProtoDescriptorBin: descriptorBytes,
 			},
-			Services:                  []string{serviceName},
+			Services:                  []string{serviceAndDescriptor.FullServiceName},
 			MatchIncomingRequestRoute: true,
 		})
 		if err != nil {

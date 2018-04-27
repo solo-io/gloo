@@ -105,7 +105,6 @@ var _ = Describe("Plugin", func() {
 			out = &envoyapi.Cluster{}
 			err = p.ProcessUpstream(params, in2, out)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(p.serviceDescriptors).To(HaveLen(2))
 			Expect(p.upstreamServices).To(HaveLen(2))
 		})
 
@@ -129,8 +128,8 @@ var _ = Describe("Plugin", func() {
 			out := &envoyapi.Cluster{}
 			err = p.ProcessUpstream(params, in, out)
 			Expect(err).To(BeNil())
-			Expect(p.upstreamServices["myupstream"]).To(Equal("myupstream.bookstore.Bookstore"))
-			Expect(p.serviceDescriptors["myupstream.bookstore.Bookstore"]).NotTo(BeNil())
+			Expect(p.upstreamServices["myupstream"].FullServiceName).To(Equal("bookstore.Bookstore"))
+			Expect(p.upstreamServices["myupstream"].Descriptors).NotTo(BeNil())
 			route := &v1.Route{
 				Matcher: &v1.Route_RequestMatcher{
 					RequestMatcher: &v1.RequestMatcher{
@@ -309,7 +308,7 @@ var _ = Describe("Plugin", func() {
 																			Fields: map[string]*types.Value{
 																				"text": {
 																					Kind: &types.Value_StringValue{
-																						StringValue: "/1e9e591e/myupstream/myupstream.bookstore.Bookstore/ListShelves?{{ default(query_string), \"\")}}",
+																						StringValue: "/4f527d09/myupstream/bookstore.Bookstore/ListShelves?{{ default(query_string), \"\")}}",
 																					},
 																				},
 																			},
@@ -338,7 +337,7 @@ var _ = Describe("Plugin", func() {
 						Values: []*types.Value{
 							&types.Value{
 								Kind: &types.Value_StringValue{
-									StringValue: "myupstream.bookstore.Bookstore",
+									StringValue: "bookstore.Bookstore",
 								},
 							},
 						},
