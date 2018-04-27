@@ -1,9 +1,7 @@
 package helpers
 
-import "github.com/onsi/ginkgo"
+import . "github.com/onsi/gomega"
 
 func Must(err error) {
-	if err != nil {
-		ginkgo.Fail(err.Error())
-	}
+	Expect(err).NotTo(HaveOccurred())
 }
