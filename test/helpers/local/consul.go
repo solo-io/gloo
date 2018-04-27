@@ -13,7 +13,7 @@ import (
 	"github.com/onsi/ginkgo"
 )
 
-const defualtConsulDockerImage = "consul"
+const defaultConsulDockerImage = "consul@sha256:6ffe55dcc1000126a6e874b298fe1f1b87f556fb344781af60681932e408ec6a"
 
 type ConsulFactory struct {
 	consulpath string
@@ -45,7 +45,7 @@ docker inspect %s -f "{{.RepoDigests}}"
 
 docker cp $CID:/bin/consul .
 docker rm -f $CID
-    `, defualtConsulDockerImage, defualtConsulDockerImage)
+    `, defaultConsulDockerImage, defaultConsulDockerImage)
 	scriptfile := filepath.Join(tmpdir, "getconsul.sh")
 
 	ioutil.WriteFile(scriptfile, []byte(bash), 0755)

@@ -12,13 +12,6 @@ job "gloo" {
     canary = 0
   }
 
-  migrate {
-    max_parallel = 1
-    health_check = "checks"
-    min_healthy_time = "10s"
-    healthy_deadline = "5m"
-  }
-
   group "gloo" {
     count = 1
     restart {
@@ -36,12 +29,9 @@ job "gloo" {
       env {
         DEBUG = "1"
       }
-      driver = "docker"
+      driver = "raw_exec"
       config {
-        image = "soloio/control-plane:{{ .ImageTag }}"
-        port_map {
-          xds = 8081
-        }
+        command = "{{ .OutputDirectory }}/control-plane"
         args = [
           "--storage.type=consul",
           "--storage.refreshrate=1m",
@@ -50,9 +40,11 @@ job "gloo" {
           "--files.type=consul",
           "--files.refreshrate=1m",
           "--xds.port=${NOMAD_PORT_xds}",
-          "--consul.address=${attr.driver.docker.bridge_ip}:8500",
+          "--envoy.port=${NOMAD_PORT_ingress_http}",
+          "--envoy.secure-port=${NOMAD_PORT_ingress_https}",
+          "--consul.address=127.0.0.1:8500",
           "--consul.scheme=http",
-          "--vault.addr=http://${attr.driver.docker.bridge_ip}:8200",
+          "--vault.addr=http://127.0.0.1:8200",
           "--vault.token=${VAULT_TOKEN}",
         ]
       }
@@ -86,18 +78,12 @@ job "gloo" {
     # ingress
     task "ingress" {
 
-      driver = "docker"
+      driver = "raw_exec"
       config {
-        image = "soloio/envoy:{{ .EnvoyImageTag }}"
-        port_map {
-          http = 8080
-          https = 8443
-          admin = 19000
-        }
-        command = "envoy"
+        command = "{{ .EnvoyPath }}"
         args = [
           "-c",
-          "${NOMAD_TASK_DIR}/envoy.yaml",
+          "./${NOMAD_TASK_DIR}/envoy.yaml",
           "--v2-config-only",
         ]
       }
@@ -134,7 +120,7 @@ admin:
   address:
     socket_address:
       address: 0.0.0.0
-      port_value: 19000
+      port_value: {{"{{"}} env "NOMAD_PORT_admin" {{"}}"}}
 EOF
         destination = "${NOMAD_TASK_DIR}/envoy.yaml"
       }
@@ -193,13 +179,13 @@ EOF
         DEBUG = "1"
       }
 
-      driver = "docker"
+      driver = "raw_exec"
       config {
-        image = "soloio/upstream-discovery:{{ .ImageTag }}"
+        command = "{{ .OutputDirectory }}/upstream-discovery"
         args = [
           "--storage.type=consul",
           "--storage.refreshrate=1m",
-          "--consul.address=${attr.driver.docker.bridge_ip}:8500",
+          "--consul.address=127.0.0.1:8500",
           "--consul.scheme=http",
           "--enable.consul",
         ]
@@ -217,9 +203,9 @@ EOF
         DEBUG = "1"
       }
 
-      driver = "docker"
+      driver = "raw_exec"
       config {
-        image = "soloio/function-discovery:{{ .ImageTag }}"
+        command = "{{ .OutputDirectory }}/function-discovery"
         args = [
           "--storage.type=consul",
           "--storage.refreshrate=1m",
@@ -227,9 +213,9 @@ EOF
           "--secrets.refreshrate=1m",
           "--files.type=consul",
           "--files.refreshrate=1m",
-          "--consul.address=${attr.driver.docker.bridge_ip}:8500",
+          "--consul.address=127.0.0.1:8500",
           "--consul.scheme=http",
-          "--vault.addr=http://${attr.driver.docker.bridge_ip}:8200",
+          "--vault.addr=http://127.0.0.1:8200",
           "--vault.token=${VAULT_TOKEN}",
         ]
       }

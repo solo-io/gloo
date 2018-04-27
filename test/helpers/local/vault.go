@@ -19,7 +19,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const defualtVaultDockerImage = "vault:0.9.2"
+const defaultVaultDockerImage = "vault:0.9.2"
 
 type VaultFactory struct {
 	vaultpath string
@@ -51,7 +51,7 @@ docker inspect %s -f "{{.RepoDigests}}"
 
 docker cp $CID:/bin/vault .
 docker rm -f $CID
-    `, defualtVaultDockerImage, defualtVaultDockerImage)
+    `, defaultVaultDockerImage, defaultVaultDockerImage)
 	scriptfile := filepath.Join(tmpdir, "getvault.sh")
 
 	ioutil.WriteFile(scriptfile, []byte(bash), 0755)

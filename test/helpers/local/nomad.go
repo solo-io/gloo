@@ -25,7 +25,7 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 )
 
-const defualtNomadDockerImage = "djenriquez/nomad"
+const defaultNomadDockerImage = "djenriquez/nomad@sha256:31f63da9ad07b349e02f5d71bd3def416bac72cfcfd79323fd2e99abaaccdd0f"
 
 type NomadFactory struct {
 	nomadpath string
@@ -57,7 +57,7 @@ docker inspect %s -f "{{.RepoDigests}}"
 
 docker cp $CID:/bin/nomad .
 docker rm -f $CID
-    `, defualtNomadDockerImage, defualtNomadDockerImage)
+    `, defaultNomadDockerImage, defaultNomadDockerImage)
 	scriptfile := filepath.Join(tmpdir, "getnomad.sh")
 
 	ioutil.WriteFile(scriptfile, []byte(bash), 0755)
@@ -107,7 +107,6 @@ func (ef *NomadFactory) NewNomadInstance(vault *VaultInstance) (*NomadInstance, 
 		"--vault-enabled=true",
 		"--vault-address=http://127.0.0.1:8200",
 		"--vault-token=root",
-		"-network-interface=docker0",
 	)
 	cmd.Dir = tmpdir
 	cmd.Stdout = ginkgo.GinkgoWriter
@@ -179,24 +178,21 @@ func (i *NomadInstance) Exec(args ...string) (string, error) {
 	return string(out), err
 }
 
-func (i *NomadInstance) SetupNomadForE2eTest(buildImages bool) error {
-	if buildImages {
+func (i *NomadInstance) SetupNomadForE2eTest(envoyPath string, buildBinaries bool) error {
+	if buildBinaries {
 		if err := helpers.BuildPushContainers(false, false); err != nil {
 			return err
 		}
 	}
 	nomadResourcesDir := filepath.Join(helpers.NomadE2eDirectory(), "nomad_resources")
 
-	envoyImageTag := os.Getenv("ENVOY_IMAGE_TAG")
-	if envoyImageTag == "" {
-		log.Warnf("no ENVOY_IMAGE_TAG specified, defaulting to latest")
-		envoyImageTag = "latest"
-	}
+	// TODO: set outputDirectory from something more variable
+	outputDirectory := filepath.Join(helpers.GlooSoloDirectory(), "_output")
 
 	data := &struct {
-		ImageTag      string
-		EnvoyImageTag string
-	}{ImageTag: helpers.ImageTag(), EnvoyImageTag: envoyImageTag}
+		OutputDirectory string
+		EnvoyPath       string
+	}{OutputDirectory: outputDirectory, EnvoyPath: envoyPath}
 
 	tmpl, err := template.New("Test_Resources").ParseFiles(filepath.Join(nomadResourcesDir, "install.nomad.tmpl"))
 	if err != nil {
