@@ -16,6 +16,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/nomad/api"
 	"github.com/onsi/ginkgo"
 	"github.com/pkg/errors"
@@ -91,6 +92,8 @@ type NomadInstance struct {
 	tmpdir    string
 	cmd       *exec.Cmd
 	vault     *VaultInstance
+
+	cleanupJobs []string
 }
 
 func (ef *NomadFactory) NewNomadInstance(vault *VaultInstance) (*NomadInstance, error) {
@@ -230,13 +233,18 @@ func (i *NomadInstance) SetupNomadForE2eTest(buildImages bool) error {
 		return errors.Wrap(err, "setting vault policy")
 	}
 
-	backoff.WithBackoff(func() error {
+	err = backoff.WithBackoff(func() error {
 		// test stuff first
 		if _, err := i.Exec("run", filepath.Join(nomadResourcesDir, "testing-resources.nomad")); err != nil {
 			return errors.Wrapf(err, "creating nomad resource from testing-resources.nomad")
 		}
+		i.cleanupJobs = append(i.cleanupJobs, "testing-resources")
 		return nil
-	}, make(chan struct{}))
+	}, nil)
+
+	if err != nil {
+		return errors.Wrap(err, "creating job for testing-resources")
+	}
 
 	if err := i.waitJobRunning("testing-resources"); err != nil {
 		return errors.Wrap(err, "waiting for job to start")
@@ -246,21 +254,25 @@ func (i *NomadInstance) SetupNomadForE2eTest(buildImages bool) error {
 		return errors.Wrapf(err, "creating nomad resource from install.nomad")
 	}
 
+	i.cleanupJobs = append(i.cleanupJobs, "gloo")
 	if err := i.waitJobRunning("gloo"); err != nil {
 		return errors.Wrap(err, "waiting for job to start")
 	}
 
 	var ingressAddr string
 
-	backoff.WithBackoff(func() error {
+	err = backoff.WithBackoff(func() error {
 		addr, err := helpers.ConsulServiceAddress("ingress", "admin")
 		if err != nil {
 			return errors.Wrap(err, "getting ingress addr")
 		}
 		ingressAddr = addr
 		return nil
-	}, make(chan struct{}))
+	}, nil)
 
+	if err != nil {
+		return errors.Wrap(err, "creating getting ingress addr")
+	}
 	_, err = helpers.Curl(ingressAddr, helpers.CurlOpts{Path: "/logging?config=debug"})
 	return err
 }
@@ -312,15 +324,15 @@ func (i *NomadInstance) waitJobStatus(job, status string) error {
 }
 
 func (i *NomadInstance) TeardownNomadE2e() error {
-	out, err := i.Exec("job", "stop", "-purge", "gloo")
-	if err != nil {
-		return errors.Wrapf(err, "stop job failed: %v", out)
+	var result *multierror.Error
+	for _, job := range i.cleanupJobs {
+
+		out, err := i.Exec("job", "stop", "-purge", job)
+		if err != nil {
+			multierror.Append(result, errors.Wrapf(err, "stop job failed: %v", out))
+		}
 	}
-	out, err = i.Exec("job", "stop", "-purge", "testing-resources")
-	if err != nil {
-		return errors.Wrapf(err, "stop job failed: %v", out)
-	}
-	return nil
+	return result.ErrorOrNil()
 }
 func (i *NomadInstance) Logs(job, task string) (string, error) {
 	allocId, err := i.getAllocationId(job)
