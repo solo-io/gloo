@@ -33,7 +33,6 @@ type ServiceAndDescriptors struct {
 
 func NewPlugin() *Plugin {
 	return &Plugin{
-		// serviceDescriptors: make(map[string]*descriptor.FileDescriptorSet),
 		upstreamServices: make(map[string]ServiceAndDescriptors),
 		transformation:   transformation.NewTransformationPlugin(),
 	}
@@ -41,7 +40,6 @@ func NewPlugin() *Plugin {
 
 type Plugin struct {
 	// map service names to their descriptors
-	// serviceDescriptors map[string]*descriptor.FileDescriptorSet
 	// keep track of which service belongs to which upstream
 	upstreamServices map[string]ServiceAndDescriptors
 	transformation   transformation.Plugin
