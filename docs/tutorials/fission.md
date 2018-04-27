@@ -1,8 +1,8 @@
-This document shows how to access your OpenFaaS functions securly via Gloo. We will deploy everything
+This document shows how to access your Fission functions securly via Gloo. We will deploy everything
 to minikube. With minor adjustments can be applied to any kubernets cluster.
 
 # Deploy Fission & Gloo
-The official OpenFaas install guide is here: https://docs.fission.io/0.6.0/installation/installation/
+The official Fission install guide is here: https://docs.fission.io/0.6.0/installation/installation/
 
 Setting up kubernetes: https://docs.fission.io/0.6.0/installation/kubernetessetup/
 
