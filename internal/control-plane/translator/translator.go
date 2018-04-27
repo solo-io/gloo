@@ -34,18 +34,17 @@ import (
 const (
 	sslRdsName      = "gloo-rds-https"
 	sslListenerName = "listener-" + sslRdsName
-	sslListenerPort = uint32(8443)
 
 	nosslRdsName      = "gloo-rds-http"
 	nosslListenerName = "listener-" + nosslRdsName
-	nosslListenerPort = uint32(8080)
 
 	connMgrFilter = "envoy.http_connection_manager"
 	routerFilter  = "envoy.router"
 )
 
 type TranslatorConfig struct {
-	IngressBindAddress string
+	IngressBindAddress             string
+	IngressPort, IngressSecurePort uint32
 }
 
 type Translator struct {
@@ -145,7 +144,7 @@ func (t *Translator) Translate(inputs Inputs) (*envoycache.Snapshot, []reporter.
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "constructing http filter chain %v", nosslListenerName)
 	}
-	nosslListener := t.constructHttpListener(nosslListenerName, nosslListenerPort, nosslFilters)
+	nosslListener := t.constructHttpListener(nosslListenerName, t.config.IngressPort, nosslFilters)
 
 	// https filters
 	sslRouteConfig := &envoyapi.RouteConfiguration{
@@ -160,7 +159,7 @@ func (t *Translator) Translate(inputs Inputs) (*envoycache.Snapshot, []reporter.
 
 	// finally, the listeners
 	httpsListener, err := t.constructHttpsListener(sslListenerName,
-		sslListenerPort,
+		t.config.IngressSecurePort,
 		sslFilters,
 		cfg.VirtualHosts,
 		virtualHostReports,
