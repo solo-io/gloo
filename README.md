@@ -6,11 +6,42 @@
   The Function Gateway
 </h1>
 
-Gloo is a function gateway built on top of the [Envoy Proxy](https://www.Envoyproxy.io). Gloo provides a unified entry point for access to all services and serverless functions, translating from any interface spoken by a client to any interface spoken by a backend. Gloo aggregates REST APIs and events calls from clients, "glueing" together services in-cluster, out of cluster, across clusters, along with any provider of serverless functions.
+### What is Gloo?
 
-What makes Gloo special is its use of function-level routing, which is made possible by the fact that Gloo intimately knows the APIs of the upstreams it routes to. This means that the client and server do not have to speak the same protocol, the same version, or the same language. Users can configure Gloo (or enable automatic discovery services) to make Gloo aware of functional back-ends (such as AWS Lambda, Google Functions, or RESTful services) and enable function-level routing. Gloo features an entirely pluggable architecture, providing the ability to extend its configuration language with plugins which add new types of upstreams and route features.
+Gloo is a high-performance, plugin-extendable, platform-agnostic API Gateway built on top of Envoy. Gloo is designed for microservice, monolithic, and serverless applications. By employing funcion-level routing, Gloo can completely decouple client APIs from upstream APIs at the routing level. Gloo serves as an abstraction layer between clients and upstream services, allowing front-end teams to work independently of teams developing the microservices their apps connect to.
 
-It is entirely possible to run Gloo as a traditional API gateway, without leveraging function-level capabilities. Gloo can be configured as a fully-featured API gateway, simply by using upstreams that don't support functions.
+First-Class Microservice Platform Integrations with Service Discovery:
+* Kubernetes
+* OpenShift
+* HashiCorp Stack (Vault, Consul, Nomad)
+* Cloud Foundry
+
+First-Class Serverless Platform Integrations with Function Discovery:
+* AWS Lambda
+* Microsoft Azure Functions
+* Google Cloud Platform Functions
+* Fission
+* OpenFaaS
+* ProjectFn
+
+Routing Features:
+* Dynamic Load Balancing: Load balance traffic across multiple upstream services.
+* Health Checks: Active and passive monitoring of your upstream services.
+* OpenTracing: Monitor requests using the well-supported OpenTracing standard
+* Monitoring: Export HTTP metrics to Prometheus or Statsd
+* SSL: Highly customizable options for adding SSL encryption to upstream services with full support for SNI.
+* Transformations: Add, remove, or manipulate HTTP requests and responses.
+* Automated API Translation: Automatically transform client requests to upstream API calls using Gloo’s Function Discovery
+* CLI: Control your Gloo cluster from the command line.
+* Declarative API: Gloo features a declarative YAML-based API; store your configuration as code and commit it with your projects.
+* Failure Recovery: Gloo is completely stateless and will immediately return to the desired configuration at boot time.
+* Scalability: Gloo acts as a control plane for Envoy, allowing Envoy instances and Gloo instances to be scaled independently. Both Gloo and Envoy are stateless.
+* Performance: Gloo leverages Envoy for its high performance and low footprint.
+* Plugins: Extendable architecture for adding functionality and integrations to Gloo.
+* Tooling: Build and Deployment tool for customized builds and deployment options
+* Events: Invoke APIs using CloudEvents.
+* Pub/Sub: Publish HTTP requests to NATS
+* JSON-to-gRPC transcoding: Connect JSON clients to gRPC services
 
 ### About gloo:
 * [Introduction](docs/introduction/introduction.md): Introduction to Gloo with a basic overview of Gloo itself and its use cases 
