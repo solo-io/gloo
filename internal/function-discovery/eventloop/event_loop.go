@@ -68,7 +68,7 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 		detectors = append(detectors, nats.NewNatsDetector(""))
 	}
 
-	if discoveryOpts.AutoDiscoverFAAS {
+	if discoveryOpts.AutoDiscoverFaaS {
 		detectors = append(detectors, openfaas.NewFaasDetector())
 	}
 	if discoveryOpts.AutoDiscoverFission {
