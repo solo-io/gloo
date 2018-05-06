@@ -87,7 +87,7 @@ func UpdateFunctions(resolve resolver.Resolver, gloo storage.Interface, secretSt
 		if err != nil {
 			return errors.Wrap(err, "retrieving swagger functions")
 		}
-	case functiontypes.FunctionTypeOpenFaas:
+	case functiontypes.FunctionTypeOpenFaaS:
 		funcs, err = openfaas.GetFuncs(resolve, us)
 		if err != nil {
 			return errors.Wrap(err, "retreving faas functions")

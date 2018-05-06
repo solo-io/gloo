@@ -47,7 +47,7 @@ func (c *Client) V1() storage.V1 {
 type v1client struct {
 	upstreams       *upstreamsClient
 	virtualServices *virtualServicesClient
-	virtualMeshes *virtualMeshesClient
+	virtualMeshes   *virtualMeshesClient
 }
 
 func (c *v1client) Register() error {

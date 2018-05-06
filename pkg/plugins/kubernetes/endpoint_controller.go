@@ -225,7 +225,7 @@ func portForUpstream(spec *UpstreamSpec, serviceList []*kubev1resources.Service)
 					continue
 				}
 				if spec.ServicePort == getPortVal(port) {
-					return spec.ServicePort , nil
+					return spec.ServicePort, nil
 				}
 			}
 		}

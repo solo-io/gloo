@@ -1,8 +1,8 @@
 This document shows how to access your OpenFaaS functions securly via Gloo. We will deploy everything
 to minikube. With minor adjustments can be applied to any kubernets cluster.
 
-# Deploy OpenFaas & Gloo
-The official OpenFaas install guide is here: https://docs.openfaas.com/deployment/kubernetes/
+# Deploy OpenFaaS & Gloo
+The official OpenFaaS install guide is here: https://docs.openfaas.com/deployment/kubernetes/
 
 The TL;DR version for a minikube setup:
 
@@ -19,7 +19,7 @@ kubectl apply -f https://raw.githubusercontent.com/solo-io/gloo/master/install/k
 
 # Deploy Function
 
-Get access to the OpenFaas gateway, and use faas-cli to deploy a function:
+Get access to the OpenFaaS gateway, and use faas-cli to deploy a function:
 
 ```
 GATEWAY=$(minikube service -nopenfaas gateway --url)

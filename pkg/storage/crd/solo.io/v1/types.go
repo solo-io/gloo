@@ -54,7 +54,6 @@ type VirtualServiceList struct {
 	Items           []VirtualService `json:"items"`
 }
 
-
 // +genclient
 // +genclient:noStatus
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -15,8 +15,8 @@ import (
 	"github.com/solo-io/gloo/test/helpers"
 )
 
-func dummyListFuncs(gw string) (OpenFaasFunctions, error) {
-	funcs := OpenFaasFunctions{
+func dummyListFuncs(gw string) (OpenFaaSFunctions, error) {
+	funcs := OpenFaaSFunctions{
 		{
 			Name: "test",
 		},
@@ -74,7 +74,7 @@ func getServices(ns, n string) <-chan *v1.Upstream {
 	return c
 }
 
-var _ = Describe("Faas", func() {
+var _ = Describe("FaaS", func() {
 
 	var mockResolver *helpers.MockResolver
 	BeforeEach(func() {
@@ -82,7 +82,7 @@ var _ = Describe("Faas", func() {
 	})
 
 	It("should get list of functions", func() {
-		fr := FaasRetriever{Lister: dummyListFuncs}
+		fr := FaaSRetriever{Lister: dummyListFuncs}
 
 		for us := range getServices("", "") {
 			funcs, err := fr.GetFuncs(mockResolver, us)
@@ -104,7 +104,7 @@ var _ = Describe("Faas", func() {
 	})
 
 	It("should ignore non gateway faas upstreams", func() {
-		fr := FaasRetriever{Lister: nil}
+		fr := FaaSRetriever{Lister: nil}
 
 		for us := range getServices("", "not-the-gateway") {
 
@@ -116,7 +116,7 @@ var _ = Describe("Faas", func() {
 	})
 
 	It("should not crash on nil metadata upstream", func() {
-		fr := FaasRetriever{Lister: nil}
+		fr := FaaSRetriever{Lister: nil}
 
 		for us := range getServices("", "not-the-gateway") {
 			us.Metadata = nil
@@ -125,7 +125,7 @@ var _ = Describe("Faas", func() {
 	})
 
 	It("should ignore non faas upstreams", func() {
-		fr := FaasRetriever{Lister: nil}
+		fr := FaaSRetriever{Lister: nil}
 
 		for us := range getServices("not-openfaas", "") {
 
@@ -138,11 +138,11 @@ var _ = Describe("Faas", func() {
 
 	It("get and http(s) url to list", func() {
 		var gw string
-		f := func(gwinner string) (OpenFaasFunctions, error) {
+		f := func(gwinner string) (OpenFaaSFunctions, error) {
 			gw = gwinner
 			return nil, nil
 		}
-		fr := FaasRetriever{Lister: f}
+		fr := FaaSRetriever{Lister: f}
 		us := getKubeUs("", "")
 
 		fr.GetFuncs(mockResolver, us)

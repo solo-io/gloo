@@ -11,10 +11,10 @@ import (
 
 	"fmt"
 
-	"github.com/solo-io/gloo/pkg/storage/dependencies/kube"
-	. "github.com/solo-io/gloo/test/helpers"
 	. "github.com/solo-io/gloo/internal/control-plane/filewatcher"
 	"github.com/solo-io/gloo/pkg/log"
+	"github.com/solo-io/gloo/pkg/storage/dependencies/kube"
+	. "github.com/solo-io/gloo/test/helpers"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

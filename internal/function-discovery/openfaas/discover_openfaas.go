@@ -14,12 +14,12 @@ import (
 type faasDetector struct {
 }
 
-func NewFaasDetector() detector.Interface {
+func NewFaaSDetector() detector.Interface {
 	return &faasDetector{}
 }
 
 func (d *faasDetector) DetectFunctionalService(us *v1.Upstream, addr string) (*v1.ServiceInfo, map[string]string, error) {
-	if updatefaas.IsOpenFaas(us) {
+	if updatefaas.IsOpenFaaS(us) {
 		svcInfo := &v1.ServiceInfo{
 			Type: rest.ServiceTypeREST,
 		}
@@ -29,5 +29,5 @@ func (d *faasDetector) DetectFunctionalService(us *v1.Upstream, addr string) (*v
 		return svcInfo, annotations, nil
 	}
 
-	return nil, nil, errors.New("not a faas upstream")
+	return nil, nil, errors.New("not an openfaas upstream")
 }

@@ -9,28 +9,28 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/gloo/pkg/api/types/v1"
 	"github.com/solo-io/gloo/internal/function-discovery/resolver"
+	"github.com/solo-io/gloo/pkg/api/types/v1"
+	"github.com/solo-io/gloo/pkg/coreplugins/service"
 	"github.com/solo-io/gloo/pkg/plugins/kubernetes"
 	"github.com/solo-io/gloo/pkg/plugins/rest"
-	"github.com/solo-io/gloo/pkg/coreplugins/service"
 )
 
-type OpenFaasFunction struct {
+type OpenFaaSFunction struct {
 	Name            string `json:"name"`
 	Image           string `json:"image"`
 	InvocationCount int64  `json:"invocationCount"`
 	Replicas        int64  `json:"replicas"`
 }
 
-type OpenFaasFunctions []OpenFaasFunction
+type OpenFaaSFunctions []OpenFaaSFunction
 
 func GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([]*v1.Function, error) {
-	fr := FaasRetriever{Lister: listGatewayFunctions(httpget)}
+	fr := FaaSRetriever{Lister: listGatewayFunctions(httpget)}
 	return fr.GetFuncs(resolve, us)
 }
 
-func IsOpenFaas(us *v1.Upstream) bool {
+func IsOpenFaaS(us *v1.Upstream) bool {
 	if us.Type == service.UpstreamTypeService {
 		return isServiceHost(us)
 	}
@@ -50,8 +50,8 @@ func httpget(s string) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
-func listGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw string) (OpenFaasFunctions, error) {
-	return func(gw string) (OpenFaasFunctions, error) {
+func listGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw string) (OpenFaaSFunctions, error) {
+	return func(gw string) (OpenFaaSFunctions, error) {
 		u, err := url.Parse(gw)
 		if err != nil {
 			return nil, err
@@ -64,7 +64,7 @@ func listGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw s
 			return nil, err
 		}
 		defer body.Close()
-		var funcs OpenFaasFunctions
+		var funcs OpenFaaSFunctions
 		err = json.NewDecoder(body).Decode(&funcs)
 
 		if err != nil {
@@ -75,8 +75,8 @@ func listGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw s
 	}
 }
 
-type FaasRetriever struct {
-	Lister func(from string) (OpenFaasFunctions, error)
+type FaaSRetriever struct {
+	Lister func(from string) (OpenFaaSFunctions, error)
 }
 
 func isServiceHost(us *v1.Upstream) bool {
@@ -101,8 +101,8 @@ func isKubernetesHost(us *v1.Upstream) bool {
 	return true
 }
 
-func (fr *FaasRetriever) GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([]*v1.Function, error) {
-	if !IsOpenFaas(us) {
+func (fr *FaaSRetriever) GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([]*v1.Function, error) {
+	if !IsOpenFaaS(us) {
 		return nil, nil
 	}
 
@@ -133,7 +133,7 @@ func (fr *FaasRetriever) GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([
 	return funcs, nil
 }
 
-func createFunction(fn OpenFaasFunction) *v1.Function {
+func createFunction(fn OpenFaaSFunction) *v1.Function {
 	headersTemplate := map[string]string{":method": "POST"}
 
 	return &v1.Function{

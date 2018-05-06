@@ -66,7 +66,6 @@ func ConfigObjectToCrd(namespace string, item v1.ConfigObject) (metav1.Object, e
 	}
 	copySpec := crdv1.Spec(spec)
 
-
 	meta := metav1.ObjectMeta{
 		Name:            name,
 		Namespace:       namespace,
@@ -80,20 +79,20 @@ func ConfigObjectToCrd(namespace string, item v1.ConfigObject) (metav1.Object, e
 	case *v1.Upstream:
 		crdObject = &crdv1.Upstream{
 			ObjectMeta: meta,
-			Status: status,
-			Spec:   &copySpec,
+			Status:     status,
+			Spec:       &copySpec,
 		}
 	case *v1.VirtualService:
 		crdObject = &crdv1.VirtualService{
 			ObjectMeta: meta,
-			Status: status,
-			Spec:   &copySpec,
+			Status:     status,
+			Spec:       &copySpec,
 		}
 	case *v1.VirtualMesh:
 		crdObject = &crdv1.VirtualMesh{
 			ObjectMeta: meta,
-			Status: status,
-			Spec:   &copySpec,
+			Status:     status,
+			Spec:       &copySpec,
 		}
 	default:
 		panic(errors.Errorf("unknown type: %v", item))

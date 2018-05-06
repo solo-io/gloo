@@ -1,17 +1,18 @@
 package main
 
 import (
-	"flag"
-	"path/filepath"
-	"github.com/solo-io/gloo/pkg/log"
-	"github.com/pkg/errors"
 	"bytes"
+	"flag"
 	"io/ioutil"
+	"path/filepath"
 	"text/template"
+
+	"github.com/pkg/errors"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 type clientType struct {
-	FilenamePrefix string
+	FilenamePrefix      string
 	LowercaseName       string
 	LowercasePluralName string
 	UppercaseName       string
@@ -20,21 +21,21 @@ type clientType struct {
 
 var clients = []clientType{
 	{
-		FilenamePrefix: "upstreams",
+		FilenamePrefix:      "upstreams",
 		LowercaseName:       "upstream",
 		LowercasePluralName: "upstreams",
 		UppercaseName:       "Upstream",
 		UppercasePluralName: "Upstreams",
 	},
 	{
-		FilenamePrefix: "virtual_services",
+		FilenamePrefix:      "virtual_services",
 		LowercaseName:       "virtualService",
 		LowercasePluralName: "virtualServices",
 		UppercaseName:       "VirtualService",
 		UppercasePluralName: "VirtualServices",
 	},
 	{
-		FilenamePrefix: "virtual_meshes",
+		FilenamePrefix:      "virtual_meshes",
 		LowercaseName:       "virtualMesh",
 		LowercasePluralName: "virtualMeshes",
 		UppercaseName:       "VirtualMesh",

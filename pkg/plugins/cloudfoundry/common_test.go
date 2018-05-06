@@ -15,7 +15,7 @@ var _ = Describe("Common", func() {
 	var us v1.Upstream
 	BeforeEach(func() {
 		resp = *FakeResponse(hostname, "1.2.3.4", 1234)
-		
+
 		us = v1.Upstream{
 			Name: "doesnt matter",
 			Type: UpstreamTypeCF,

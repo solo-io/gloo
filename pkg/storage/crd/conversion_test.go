@@ -7,8 +7,8 @@ import (
 	"github.com/solo-io/gloo/pkg/api/types/v1"
 	"github.com/solo-io/gloo/pkg/protoutil"
 	. "github.com/solo-io/gloo/pkg/storage/crd"
-	"github.com/solo-io/gloo/test/helpers"
 	crdv1 "github.com/solo-io/gloo/pkg/storage/crd/solo.io/v1"
+	"github.com/solo-io/gloo/test/helpers"
 )
 
 var _ = Describe("Conversion", func() {
