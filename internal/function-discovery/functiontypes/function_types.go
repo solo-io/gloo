@@ -32,7 +32,7 @@ func GetFunctionType(us *v1.Upstream) FunctionType {
 		return FunctionTypeAzure
 	case swagger.IsSwagger(us):
 		return FunctionTypeSwagger
-	case openfaas.IsOpenFaaS(us):
+	case openfaas.IsOpenFaaSGateway(us):
 		return FunctionTypeOpenFaaS
 	case fission.IsFissionUpstream(us):
 		return FunctionTypeFission

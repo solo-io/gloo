@@ -19,7 +19,7 @@ func NewFaaSDetector() detector.Interface {
 }
 
 func (d *faasDetector) DetectFunctionalService(us *v1.Upstream, addr string) (*v1.ServiceInfo, map[string]string, error) {
-	if updatefaas.IsOpenFaaS(us) {
+	if updatefaas.IsOpenFaaSGateway(us) {
 		svcInfo := &v1.ServiceInfo{
 			Type: rest.ServiceTypeREST,
 		}
