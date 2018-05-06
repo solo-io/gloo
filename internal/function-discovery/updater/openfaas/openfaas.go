@@ -51,7 +51,6 @@ func httpget(s string) (io.ReadCloser, error) {
 }
 
 func listGatewayFunctions(httpget func(string) (io.ReadCloser, error)) func(gw string) (OpenFaasFunctions, error) {
-
 	return func(gw string) (OpenFaasFunctions, error) {
 		u, err := url.Parse(gw)
 		if err != nil {
@@ -91,7 +90,6 @@ func isServiceHost(us *v1.Upstream) bool {
 }
 
 func isKubernetesHost(us *v1.Upstream) bool {
-
 	spec, err := kubernetes.DecodeUpstreamSpec(us.Spec)
 	if err != nil {
 		return false
@@ -104,7 +102,6 @@ func isKubernetesHost(us *v1.Upstream) bool {
 }
 
 func (fr *FaasRetriever) GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([]*v1.Function, error) {
-
 	if !IsOpenFaas(us) {
 		return nil, nil
 	}
@@ -137,7 +134,6 @@ func (fr *FaasRetriever) GetFuncs(resolve resolver.Resolver, us *v1.Upstream) ([
 }
 
 func createFunction(fn OpenFaasFunction) *v1.Function {
-
 	headersTemplate := map[string]string{":method": "POST"}
 
 	return &v1.Function{
