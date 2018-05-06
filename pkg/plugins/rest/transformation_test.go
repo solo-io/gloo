@@ -43,7 +43,7 @@ var _ = Describe("Transformation", func() {
 				Kind: &types.Value_StructValue{
 					StructValue: &types.Struct{
 						Fields: map[string]*types.Value{
-							"extractors" : &types.Value{
+							"extractors": &types.Value{
 								Kind: &types.Value_StructValue{
 									StructValue: &types.Struct{
 										Fields: map[string]*types.Value{},

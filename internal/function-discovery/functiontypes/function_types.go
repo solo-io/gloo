@@ -16,7 +16,7 @@ const (
 	FunctionTypeLambda   FunctionType = "functionTypeLambda"
 	FunctionTypeGfuncs   FunctionType = "functionTypeGfuncs"
 	FunctionTypeSwagger  FunctionType = "functionTypeSwagger"
-	FunctionTypeOpenFaas FunctionType = "functionTypeFaas"
+	FunctionTypeOpenFaaS FunctionType = "functionTypeFaaS"
 	FunctionTypeAzure    FunctionType = "functionTypeAzure"
 	FunctionTypeFission  FunctionType = "functionTypeFission"
 	NonFunctional        FunctionType = "nonFunctional"
@@ -32,8 +32,8 @@ func GetFunctionType(us *v1.Upstream) FunctionType {
 		return FunctionTypeAzure
 	case swagger.IsSwagger(us):
 		return FunctionTypeSwagger
-	case openfaas.IsOpenFaas(us):
-		return FunctionTypeOpenFaas
+	case openfaas.IsOpenFaaSGateway(us):
+		return FunctionTypeOpenFaaS
 	case fission.IsFissionUpstream(us):
 		return FunctionTypeFission
 	}

@@ -68,8 +68,7 @@ glooctl route create \
 ## Get the url of the ingress
 If you installed kubernetes using minikube as mentioned above, you can use this command:
 ```shell
-GATEWAY_ADDR=$(kubectl get po -l gloo=ingress -n gloo-system -o 'jsonpath={.items[0].status.hostIP}'):$(kubectl get svc ingress -n gloo-system -o 'jsonpath={.spec.ports[?(@.name=="http")].nodePort}')
-export GATEWAY_URL=http://$GATEWAY_ADDR
+export GATEWAY_URL=http://$(minikube ip):$(kubectl get svc ingress -n gloo-system -o 'jsonpath={.spec.ports[?(@.name=="http")].nodePort}')
 ```
 
 ## Try with curl again

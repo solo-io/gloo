@@ -3,15 +3,16 @@ package vault
 import (
 	"time"
 
+	"reflect"
+	"sort"
+	"strings"
+
 	"github.com/d4l3k/messagediff"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/storage"
 	"github.com/solo-io/gloo/pkg/storage/dependencies"
-	"reflect"
-	"sort"
-	"strings"
 )
 
 type secretStorage struct {

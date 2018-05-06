@@ -9,10 +9,10 @@ import (
 
 	"github.com/hashicorp/consul/api"
 	"github.com/solo-io/gloo/internal/function-discovery/detector"
+	"github.com/solo-io/gloo/internal/function-discovery/fission"
 	"github.com/solo-io/gloo/internal/function-discovery/grpc"
 	"github.com/solo-io/gloo/internal/function-discovery/nats-streaming"
 	"github.com/solo-io/gloo/internal/function-discovery/openfaas"
-	"github.com/solo-io/gloo/internal/function-discovery/fission"
 	"github.com/solo-io/gloo/internal/function-discovery/options"
 	"github.com/solo-io/gloo/internal/function-discovery/resolver"
 	"github.com/solo-io/gloo/internal/function-discovery/swagger"
@@ -68,9 +68,8 @@ func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions, stop <-
 		detectors = append(detectors, nats.NewNatsDetector(""))
 	}
 
-	if discoveryOpts.AutoDiscoverFaaS {
-		detectors = append(detectors, openfaas.NewFaasDetector())
-	}
+	detectors = append(detectors, openfaas.NewFaaSDetector())
+
 	if discoveryOpts.AutoDiscoverFission {
 		detectors = append(detectors, fission.NewFissionDetector())
 	}

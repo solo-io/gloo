@@ -110,7 +110,7 @@ func (item *StorableItem) GetTypeFlag() StorableItemType {
 type StorableItemType uint64
 
 const (
-	StorableItemTypeUpstream       StorableItemType = iota
+	StorableItemTypeUpstream StorableItemType = iota
 	StorableItemTypeVirtualService
 	StorableItemTypeVirtualMesh
 	StorableItemTypeFile

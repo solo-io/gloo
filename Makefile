@@ -60,7 +60,7 @@ $(OUTPUT):
 	mkdir -p $(OUTPUT)
 
 define BINARY_TARGETS
-$(eval VERSION := $(shell cat cmd/$(BINARY)/version))
+$(eval VERSION := $(shell cat version))
 $(eval IMAGE_TAG ?= $(VERSION))
 $(eval OUTPUT_BINARY := $(OUTPUT_DIR)/$(BINARY))
 
@@ -130,7 +130,7 @@ site: doc
 	mkdocs build
 
 docker-docs: site
-	docker build -t $(DOCKER_ORG)/nginx-docs:v0.2.2 -f Dockerfile.site .
+	docker build -t $(DOCKER_ORG)/nginx-docs:$(VERSION) -f Dockerfile.site .
 
 #----------------------------------------------------------------------------------
 # Test

@@ -32,15 +32,16 @@ var (
 )
 
 type Options struct {
-	// these 3 get copied around. fun, i know
-	KubeOptions          KubeOptions
-	ConsulOptions        ConsulOptions
+	// general options for storage backends
 	ConfigStorageOptions StorageOptions
-	CoPilotOptions       CoPilotOptions
 	SecretStorageOptions StorageOptions
 	FileStorageOptions   StorageOptions
-	FileOptions          FileOptions
-	VaultOptions         VaultOptions
+	// options for platforms
+	KubeOptions    KubeOptions
+	ConsulOptions  ConsulOptions
+	CoPilotOptions CoPilotOptions
+	FileOptions    FileOptions
+	VaultOptions   VaultOptions
 }
 
 type StorageOptions struct {

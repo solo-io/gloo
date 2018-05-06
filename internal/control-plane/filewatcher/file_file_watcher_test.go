@@ -12,11 +12,11 @@ import (
 
 	"path/filepath"
 
+	. "github.com/solo-io/gloo/internal/control-plane/filewatcher"
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/storage/dependencies"
 	filestorage "github.com/solo-io/gloo/pkg/storage/dependencies/file"
 	. "github.com/solo-io/gloo/test/helpers"
-	. "github.com/solo-io/gloo/internal/control-plane/filewatcher"
-	"github.com/solo-io/gloo/pkg/log"
 )
 
 var _ = Describe("FileArtifactWatcher", func() {

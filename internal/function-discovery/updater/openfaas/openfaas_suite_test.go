@@ -8,8 +8,8 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 )
 
-func TestFaas(t *testing.T) {
+func TestFaaS(t *testing.T) {
 	RegisterFailHandler(Fail)
 	log.DefaultOut = GinkgoWriter
-	RunSpecs(t, "Faas Suite")
+	RunSpecs(t, "FaaS Suite")
 }
