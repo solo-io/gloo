@@ -8,9 +8,9 @@ import (
 
 	"github.com/solo-io/gloo/internal/control-plane/filewatcher"
 	"github.com/solo-io/gloo/pkg/api/types/v1"
-	"github.com/solo-io/gloo/pkg/secretwatcher"
-	"github.com/solo-io/gloo/pkg/endpointdiscovery"
 	"github.com/solo-io/gloo/pkg/bootstrap"
+	"github.com/solo-io/gloo/pkg/endpointdiscovery"
+	"github.com/solo-io/gloo/pkg/secretwatcher"
 )
 
 type Stage int
@@ -46,7 +46,6 @@ type UpstreamPlugin interface {
 	ProcessUpstream(params *UpstreamPluginParams, in *v1.Upstream, out *envoyapi.Cluster) error
 }
 
-
 type EndpointDiscoveryPlugin interface {
 	UpstreamPlugin
 	SetupEndpointDiscovery(options bootstrap.Options) (endpointdiscovery.Interface, error)
@@ -62,7 +61,7 @@ type FunctionPlugin interface {
 	UpstreamPlugin
 	// if the FunctionSpec does not belong to this plugin, return nil, nil
 	// if the FunctionSpec belongs to this plugin but is not valid, return nil, err
-	// if the FunctionSpec belogns to this plugin and is valid, return *Struct, nil
+	// if the FunctionSpec belongs to this plugin and is valid, return *Struct, nil
 	ParseFunctionSpec(params *FunctionPluginParams, in v1.FunctionSpec) (*types.Struct, error)
 }
 
