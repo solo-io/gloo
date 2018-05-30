@@ -24,7 +24,6 @@ pages:
         - Basic Lambda with Gloo: getting_started/aws/lambda.md
     - Dev Guide: dev/README.md
     - Tutorials:
-#      - Extending Microservices with Serverless: tutorials/extend_microservice.md
       - Refactoring Monoliths with Microservices and Serverless: tutorials/refactor_monolith.md
       - Sourcing NATS Messages from HTTP Requests: tutorials/source_events_from_github.md
     - Plugins:
@@ -36,7 +35,6 @@ pages:
       - Install: thetool/install.md
       - Quick Start: thetool/quickstart.md
       - Building Custom Gloo: thetool/custom.md
-#      - Getting Started on Local Docker: installation/docker.md
     - Advanced:
       - Bootstrap Options: advanced/bootstrap_options.md
     - v1 API reference:
