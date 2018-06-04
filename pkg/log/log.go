@@ -50,7 +50,7 @@ func Fatalf(format string, a ...interface{}) {
 }
 
 func line() string {
-	_, file, line, _ := runtime.Caller(2)
+	_, file, line, _ := runtime.Caller(3)
 	file = rxp.ReplaceAllString(file, "")
 	return fmt.Sprintf("%v: %v:%v", time.Now().Format(time.RFC1123), file, line)
 }
