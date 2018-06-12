@@ -1,7 +1,7 @@
 <a name="top"></a>
 
 ## Contents
-  - [Metadata](#v1.Metadata)
+  - [Metadata](#gloo.api.v1.Metadata)
 
 
 
@@ -11,7 +11,7 @@
 
 
 
-<a name="v1.Metadata"></a>
+<a name="gloo.api.v1.Metadata"></a>
 
 ### Metadata
 Metadata contains general properties of config resources useful to clients and the gloo control plane for purposes of versioning, annotating, and namespacing resources.

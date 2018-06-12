@@ -3,7 +3,7 @@
     {
       "name": "config.proto",
       "description": "",
-      "package": "v1",
+      "package": "gloo.api.v1",
       "hasEnums": false,
       "hasExtensions": false,
       "hasMessages": true,
@@ -14,7 +14,7 @@
         {
           "name": "Config",
           "longName": "Config",
-          "fullName": "v1.Config",
+          "fullName": "gloo.api.v1.Config",
           "description": "Config is a top-level config object. It is used internally by gloo as a container for the entire set of config objects.",
           "hasExtensions": false,
           "hasFields": true,
@@ -26,7 +26,7 @@
               "label": "repeated",
               "type": "Upstream",
               "longType": "Upstream",
-              "fullType": "v1.Upstream",
+              "fullType": "gloo.api.v1.Upstream",
               "defaultValue": ""
             },
             {
@@ -35,7 +35,7 @@
               "label": "repeated",
               "type": "VirtualService",
               "longType": "VirtualService",
-              "fullType": "v1.VirtualService",
+              "fullType": "gloo.api.v1.VirtualService",
               "defaultValue": ""
             },
             {
@@ -44,7 +44,7 @@
               "label": "repeated",
               "type": "Role",
               "longType": "Role",
-              "fullType": "v1.Role",
+              "fullType": "gloo.api.v1.Role",
               "defaultValue": ""
             }
           ]
@@ -55,7 +55,7 @@
     {
       "name": "metadata.proto",
       "description": "",
-      "package": "v1",
+      "package": "gloo.api.v1",
       "hasEnums": false,
       "hasExtensions": false,
       "hasMessages": true,
@@ -66,7 +66,7 @@
         {
           "name": "Metadata",
           "longName": "Metadata",
-          "fullName": "v1.Metadata",
+          "fullName": "gloo.api.v1.Metadata",
           "description": "Metadata contains general properties of config resources useful to clients and the gloo control plane for purposes of versioning, annotating, and namespacing resources.",
           "hasExtensions": false,
           "hasFields": true,
@@ -96,7 +96,7 @@
               "label": "repeated",
               "type": "AnnotationsEntry",
               "longType": "Metadata.AnnotationsEntry",
-              "fullType": "v1.Metadata.AnnotationsEntry",
+              "fullType": "gloo.api.v1.Metadata.AnnotationsEntry",
               "defaultValue": ""
             }
           ]
@@ -104,7 +104,7 @@
         {
           "name": "AnnotationsEntry",
           "longName": "Metadata.AnnotationsEntry",
-          "fullName": "v1.Metadata.AnnotationsEntry",
+          "fullName": "gloo.api.v1.Metadata.AnnotationsEntry",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -136,7 +136,7 @@
     {
       "name": "role.proto",
       "description": "",
-      "package": "v1",
+      "package": "gloo.api.v1",
       "hasEnums": false,
       "hasExtensions": false,
       "hasMessages": true,
@@ -147,7 +147,7 @@
         {
           "name": "Role",
           "longName": "Role",
-          "fullName": "v1.Role",
+          "fullName": "gloo.api.v1.Role",
           "description": "A Role is a container for a set of Virtual Services that will be used to generate a single proxy config\nto be applied to one or more Envoy nodes. The Role is best understood as an in-mesh application's localized view\nof the rest of the mesh.\nEach domain for each Virtual Service contained in a Role cannot appear more than once, or the Role\nwill be invalid.\nIn the current implementation, Roles are read-only objects created by Gloo for the puprose of reporting.\nIn the future, Gloo will support fields in Roles that can be written to for the purpose of applying policy\nto groups of Virtual Services.",
           "hasExtensions": false,
           "hasFields": true,
@@ -177,7 +177,7 @@
               "label": "",
               "type": "Status",
               "longType": "Status",
-              "fullType": "v1.Status",
+              "fullType": "gloo.api.v1.Status",
               "defaultValue": ""
             },
             {
@@ -186,7 +186,7 @@
               "label": "",
               "type": "Metadata",
               "longType": "Metadata",
-              "fullType": "v1.Metadata",
+              "fullType": "gloo.api.v1.Metadata",
               "defaultValue": ""
             }
           ]
@@ -197,7 +197,7 @@
     {
       "name": "status.proto",
       "description": "",
-      "package": "v1",
+      "package": "gloo.api.v1",
       "hasEnums": false,
       "hasExtensions": false,
       "hasMessages": true,
@@ -206,7 +206,7 @@
         {
           "name": "State",
           "longName": "Status.State",
-          "fullName": "v1.Status.State",
+          "fullName": "gloo.api.v1.Status.State",
           "description": "",
           "values": [
             {
@@ -232,7 +232,7 @@
         {
           "name": "Status",
           "longName": "Status",
-          "fullName": "v1.Status",
+          "fullName": "gloo.api.v1.Status",
           "description": "Status indicates whether a config resource (currently only [virtualservices](../introduction/concepts.md) and [upstreams](../introduction/concepts.md)) has been (in)validated by gloo",
           "hasExtensions": false,
           "hasFields": true,
@@ -244,7 +244,7 @@
               "label": "",
               "type": "State",
               "longType": "Status.State",
-              "fullType": "v1.Status.State",
+              "fullType": "gloo.api.v1.Status.State",
               "defaultValue": ""
             },
             {
@@ -264,7 +264,7 @@
     {
       "name": "upstream.proto",
       "description": "",
-      "package": "v1",
+      "package": "gloo.api.v1",
       "hasEnums": false,
       "hasExtensions": false,
       "hasMessages": true,
@@ -275,7 +275,7 @@
         {
           "name": "Upstream",
           "longName": "Upstream",
-          "fullName": "v1.Upstream",
+          "fullName": "gloo.api.v1.Upstream",
           "description": "Upstream represents a destination for routing. Upstreams can be compared to\n[clusters](https://www.envoyproxy.io/docs/envoy/latest/api-v1/cluster_manager/cluster.html?highlight=cluster) in Envoy terminology.\nUpstreams can take a variety of types\u003c!--(TODO)--\u003e in gloo. Language extensions known as plugins\u003c!--(TODO)--\u003e allow the addition of new\ntypes of upstreams. \u003c!--See [upstream types](TODO) for a detailed description of available upstream types.--\u003e",
           "hasExtensions": false,
           "hasFields": true,
@@ -323,7 +323,7 @@
               "label": "repeated",
               "type": "Function",
               "longType": "Function",
-              "fullType": "v1.Function",
+              "fullType": "gloo.api.v1.Function",
               "defaultValue": ""
             },
             {
@@ -332,7 +332,7 @@
               "label": "",
               "type": "ServiceInfo",
               "longType": "ServiceInfo",
-              "fullType": "v1.ServiceInfo",
+              "fullType": "gloo.api.v1.ServiceInfo",
               "defaultValue": ""
             },
             {
@@ -341,7 +341,7 @@
               "label": "",
               "type": "Status",
               "longType": "Status",
-              "fullType": "v1.Status",
+              "fullType": "gloo.api.v1.Status",
               "defaultValue": ""
             },
             {
@@ -350,7 +350,7 @@
               "label": "",
               "type": "Metadata",
               "longType": "Metadata",
-              "fullType": "v1.Metadata",
+              "fullType": "gloo.api.v1.Metadata",
               "defaultValue": ""
             }
           ]
@@ -358,7 +358,7 @@
         {
           "name": "ServiceInfo",
           "longName": "ServiceInfo",
-          "fullName": "v1.ServiceInfo",
+          "fullName": "gloo.api.v1.ServiceInfo",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -387,7 +387,7 @@
         {
           "name": "Function",
           "longName": "Function",
-          "fullName": "v1.Function",
+          "fullName": "gloo.api.v1.Function",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -419,7 +419,7 @@
     {
       "name": "virtualservice.proto",
       "description": "",
-      "package": "v1",
+      "package": "gloo.api.v1",
       "hasEnums": false,
       "hasExtensions": false,
       "hasMessages": true,
@@ -430,7 +430,7 @@
         {
           "name": "VirtualService",
           "longName": "VirtualService",
-          "fullName": "v1.VirtualService",
+          "fullName": "gloo.api.v1.VirtualService",
           "description": "Virtual Services represent a collection of routes for a set of domains.\nGloo's Virtual Services can be compared to\n[virtual hosts](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/vService.html?highlight=virtual%20host) in Envoy terminology.\nA virtual service can be used to define \"apps\"; a collection of APIs that belong to a particular domain.\nThe Virtual Service concept allows configuration of per-virtualservice SSL certificates",
           "hasExtensions": false,
           "hasFields": true,
@@ -460,7 +460,7 @@
               "label": "repeated",
               "type": "Route",
               "longType": "Route",
-              "fullType": "v1.Route",
+              "fullType": "gloo.api.v1.Route",
               "defaultValue": ""
             },
             {
@@ -469,7 +469,7 @@
               "label": "",
               "type": "SSLConfig",
               "longType": "SSLConfig",
-              "fullType": "v1.SSLConfig",
+              "fullType": "gloo.api.v1.SSLConfig",
               "defaultValue": ""
             },
             {
@@ -478,7 +478,7 @@
               "label": "",
               "type": "Status",
               "longType": "Status",
-              "fullType": "v1.Status",
+              "fullType": "gloo.api.v1.Status",
               "defaultValue": ""
             },
             {
@@ -496,7 +496,7 @@
               "label": "",
               "type": "Metadata",
               "longType": "Metadata",
-              "fullType": "v1.Metadata",
+              "fullType": "gloo.api.v1.Metadata",
               "defaultValue": ""
             }
           ]
@@ -504,7 +504,7 @@
         {
           "name": "Route",
           "longName": "Route",
-          "fullName": "v1.Route",
+          "fullName": "gloo.api.v1.Route",
           "description": "Routes declare the entrypoints on virtual services and the upstreams or functions they route requests to",
           "hasExtensions": false,
           "hasFields": true,
@@ -516,7 +516,7 @@
               "label": "",
               "type": "RequestMatcher",
               "longType": "RequestMatcher",
-              "fullType": "v1.RequestMatcher",
+              "fullType": "gloo.api.v1.RequestMatcher",
               "defaultValue": ""
             },
             {
@@ -525,7 +525,7 @@
               "label": "",
               "type": "EventMatcher",
               "longType": "EventMatcher",
-              "fullType": "v1.EventMatcher",
+              "fullType": "gloo.api.v1.EventMatcher",
               "defaultValue": ""
             },
             {
@@ -534,7 +534,7 @@
               "label": "repeated",
               "type": "WeightedDestination",
               "longType": "WeightedDestination",
-              "fullType": "v1.WeightedDestination",
+              "fullType": "gloo.api.v1.WeightedDestination",
               "defaultValue": ""
             },
             {
@@ -543,7 +543,7 @@
               "label": "",
               "type": "Destination",
               "longType": "Destination",
-              "fullType": "v1.Destination",
+              "fullType": "gloo.api.v1.Destination",
               "defaultValue": ""
             },
             {
@@ -569,7 +569,7 @@
         {
           "name": "RequestMatcher",
           "longName": "RequestMatcher",
-          "fullName": "v1.RequestMatcher",
+          "fullName": "gloo.api.v1.RequestMatcher",
           "description": "Request Matcher is a route matcher for traditional http requests\nRequest Matchers stand in juxtoposition to Event Matchers, which match \"events\" rather than HTTP Requests",
           "hasExtensions": false,
           "hasFields": true,
@@ -608,7 +608,7 @@
               "label": "repeated",
               "type": "HeadersEntry",
               "longType": "RequestMatcher.HeadersEntry",
-              "fullType": "v1.RequestMatcher.HeadersEntry",
+              "fullType": "gloo.api.v1.RequestMatcher.HeadersEntry",
               "defaultValue": ""
             },
             {
@@ -617,7 +617,7 @@
               "label": "repeated",
               "type": "QueryParamsEntry",
               "longType": "RequestMatcher.QueryParamsEntry",
-              "fullType": "v1.RequestMatcher.QueryParamsEntry",
+              "fullType": "gloo.api.v1.RequestMatcher.QueryParamsEntry",
               "defaultValue": ""
             },
             {
@@ -634,7 +634,7 @@
         {
           "name": "HeadersEntry",
           "longName": "RequestMatcher.HeadersEntry",
-          "fullName": "v1.RequestMatcher.HeadersEntry",
+          "fullName": "gloo.api.v1.RequestMatcher.HeadersEntry",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -663,7 +663,7 @@
         {
           "name": "QueryParamsEntry",
           "longName": "RequestMatcher.QueryParamsEntry",
-          "fullName": "v1.RequestMatcher.QueryParamsEntry",
+          "fullName": "gloo.api.v1.RequestMatcher.QueryParamsEntry",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -692,7 +692,7 @@
         {
           "name": "EventMatcher",
           "longName": "EventMatcher",
-          "fullName": "v1.EventMatcher",
+          "fullName": "gloo.api.v1.EventMatcher",
           "description": "Event matcher is a special kind of matcher for CloudEvents\nThe CloudEvents API is described here: https://github.com/cloudevents/spec/blob/master/spec.md",
           "hasExtensions": false,
           "hasFields": true,
@@ -712,7 +712,7 @@
         {
           "name": "WeightedDestination",
           "longName": "WeightedDestination",
-          "fullName": "v1.WeightedDestination",
+          "fullName": "gloo.api.v1.WeightedDestination",
           "description": "WeightedDestination attaches a weight to a destination\nFor use in routes with multiple destinations",
           "hasExtensions": false,
           "hasFields": true,
@@ -724,7 +724,7 @@
               "label": "",
               "type": "Destination",
               "longType": "Destination",
-              "fullType": "v1.Destination",
+              "fullType": "gloo.api.v1.Destination",
               "defaultValue": ""
             },
             {
@@ -741,7 +741,7 @@
         {
           "name": "Destination",
           "longName": "Destination",
-          "fullName": "v1.Destination",
+          "fullName": "gloo.api.v1.Destination",
           "description": "Destination is a destination that requests can be routed to.",
           "hasExtensions": false,
           "hasFields": true,
@@ -753,7 +753,7 @@
               "label": "",
               "type": "FunctionDestination",
               "longType": "FunctionDestination",
-              "fullType": "v1.FunctionDestination",
+              "fullType": "gloo.api.v1.FunctionDestination",
               "defaultValue": ""
             },
             {
@@ -762,7 +762,7 @@
               "label": "",
               "type": "UpstreamDestination",
               "longType": "UpstreamDestination",
-              "fullType": "v1.UpstreamDestination",
+              "fullType": "gloo.api.v1.UpstreamDestination",
               "defaultValue": ""
             }
           ]
@@ -770,7 +770,7 @@
         {
           "name": "FunctionDestination",
           "longName": "FunctionDestination",
-          "fullName": "v1.FunctionDestination",
+          "fullName": "gloo.api.v1.FunctionDestination",
           "description": "FunctionDestination will route a request to a specific function defined for an upstream",
           "hasExtensions": false,
           "hasFields": true,
@@ -799,7 +799,7 @@
         {
           "name": "UpstreamDestination",
           "longName": "UpstreamDestination",
-          "fullName": "v1.UpstreamDestination",
+          "fullName": "gloo.api.v1.UpstreamDestination",
           "description": "Upstream Destination routes a request to an upstream",
           "hasExtensions": false,
           "hasFields": true,
@@ -819,7 +819,7 @@
         {
           "name": "SSLConfig",
           "longName": "SSLConfig",
-          "fullName": "v1.SSLConfig",
+          "fullName": "gloo.api.v1.SSLConfig",
           "description": "SSLConfig contains the options necessary to configure a virtualservice to use TLS",
           "hasExtensions": false,
           "hasFields": true,

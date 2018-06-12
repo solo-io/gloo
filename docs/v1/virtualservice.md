@@ -1,15 +1,15 @@
 <a name="top"></a>
 
 ## Contents
-  - [VirtualService](#v1.VirtualService)
-  - [Route](#v1.Route)
-  - [RequestMatcher](#v1.RequestMatcher)
-  - [EventMatcher](#v1.EventMatcher)
-  - [WeightedDestination](#v1.WeightedDestination)
-  - [Destination](#v1.Destination)
-  - [FunctionDestination](#v1.FunctionDestination)
-  - [UpstreamDestination](#v1.UpstreamDestination)
-  - [SSLConfig](#v1.SSLConfig)
+  - [VirtualService](#gloo.api.v1.VirtualService)
+  - [Route](#gloo.api.v1.Route)
+  - [RequestMatcher](#gloo.api.v1.RequestMatcher)
+  - [EventMatcher](#gloo.api.v1.EventMatcher)
+  - [WeightedDestination](#gloo.api.v1.WeightedDestination)
+  - [Destination](#gloo.api.v1.Destination)
+  - [FunctionDestination](#gloo.api.v1.FunctionDestination)
+  - [UpstreamDestination](#gloo.api.v1.UpstreamDestination)
+  - [SSLConfig](#gloo.api.v1.SSLConfig)
 
 
 
@@ -19,7 +19,7 @@
 
 
 
-<a name="v1.VirtualService"></a>
+<a name="gloo.api.v1.VirtualService"></a>
 
 ### VirtualService
 Virtual Services represent a collection of routes for a set of domains.
@@ -43,18 +43,18 @@ metadata: {Metadata}
 | ----- | ---- | ----- | ----------- |
 | name | string |  | Name of the virtual service. Names must be unique and follow the following syntax rules: One or more lowercase rfc1035/rfc1123 labels separated by &#39;.&#39; with a maximum length of 253 characters. |
 | domains | string | repeated | Domains represent the list of domains (host/authority header) that will match for all routes on this virtual service. As in Envoy: wildcard hosts are supported in the form of “*.foo.com” or “*-bar.foo.com”. If domains is empty, gloo will set the domain to &#34;*&#34;, making that virtual service the &#34;default&#34; virtualservice. The default virtualservice will be the fallback virtual service for all requests that do not match a domain on an existing virtual service. Only one default virtual service can be defined (either with an empty domain list, or a domain list that includes &#34;*&#34;) |
-| routes | [Route](virtualservice.md#v1.Route) | repeated | Routes define the list of [routes](../) that live on this virtual service. |
-| ssl_config | [SSLConfig](virtualservice.md#v1.SSLConfig) |  | SSL Config is optional for the virtual service. If provided, the virtual service will listen on the envoy HTTPS listener port (default :8443) If left empty, the virtual service will listen on the HTTP listener port (default :8080) |
-| status | [Status](status.md#v1.Status) |  | Status indicates the validation status of the virtual service resource. Status is read-only by clients, and set by gloo during validation |
+| routes | [Route](virtualservice.md#gloo.api.v1.Route) | repeated | Routes define the list of [routes](../) that live on this virtual service. |
+| ssl_config | [SSLConfig](virtualservice.md#gloo.api.v1.SSLConfig) |  | SSL Config is optional for the virtual service. If provided, the virtual service will listen on the envoy HTTPS listener port (default :8443) If left empty, the virtual service will listen on the HTTP listener port (default :8080) |
+| status | [Status](status.md#gloo.api.v1.Status) |  | Status indicates the validation status of the virtual service resource. Status is read-only by clients, and set by gloo during validation |
 | roles | string | repeated | defines one or more roles this virtual service will be defined for role maps a virtual service to a group of proxies if left empty, Gloo will treat the role as a role for the ingress |
-| metadata | [Metadata](metadata.md#v1.Metadata) |  | Metadata contains the resource metadata for the virtual service |
+| metadata | [Metadata](metadata.md#gloo.api.v1.Metadata) |  | Metadata contains the resource metadata for the virtual service |
 
 
 
 
 
 
-<a name="v1.Route"></a>
+<a name="gloo.api.v1.Route"></a>
 
 ### Route
 Routes declare the entrypoints on virtual services and the upstreams or functions they route requests to
@@ -71,10 +71,10 @@ extensions: {google.protobuf.Struct}
 ```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| request_matcher | [RequestMatcher](virtualservice.md#v1.RequestMatcher) |  | request_matcher indicates this route should match requests according to the specification in the provided RequestMatcher only one of request_matcher or event_matcher can be set |
-| event_matcher | [EventMatcher](virtualservice.md#v1.EventMatcher) |  | eventt_matcher indicates this route should match requests according to the specification in the provided EventMatcher only one of request_matcher or event_matcher can be set |
-| multiple_destinations | [WeightedDestination](virtualservice.md#v1.WeightedDestination) | repeated | A route is only allowed to specify one of multiple_destinations or single_destination. Setting both will result in an error Multiple Destinations is used when a user wants a route to balance requests between multiple destinations Balancing is done by probability, where weights are specified for each destination |
-| single_destination | [Destination](virtualservice.md#v1.Destination) |  | A single destination is specified when a route only routes to a single destination. |
+| request_matcher | [RequestMatcher](virtualservice.md#gloo.api.v1.RequestMatcher) |  | request_matcher indicates this route should match requests according to the specification in the provided RequestMatcher only one of request_matcher or event_matcher can be set |
+| event_matcher | [EventMatcher](virtualservice.md#gloo.api.v1.EventMatcher) |  | eventt_matcher indicates this route should match requests according to the specification in the provided EventMatcher only one of request_matcher or event_matcher can be set |
+| multiple_destinations | [WeightedDestination](virtualservice.md#gloo.api.v1.WeightedDestination) | repeated | A route is only allowed to specify one of multiple_destinations or single_destination. Setting both will result in an error Multiple Destinations is used when a user wants a route to balance requests between multiple destinations Balancing is done by probability, where weights are specified for each destination |
+| single_destination | [Destination](virtualservice.md#gloo.api.v1.Destination) |  | A single destination is specified when a route only routes to a single destination. |
 | prefix_rewrite | string |  | PrefixRewrite can be specified to rewrite the matched path of the request path to a new prefix |
 | extensions | [google.protobuf.Struct](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/struct) |  | Extensions provides a way to extend the behavior of a route. In addition to the core route extensions&lt;!--(TODO)--&gt;, gloo provides the means for route plugins&lt;!--(TODO)--&gt; to be added to gloo which add new types of route extensions. &lt;!--See the route extensions section for a more detailed explanation--&gt; |
 
@@ -83,7 +83,7 @@ extensions: {google.protobuf.Struct}
 
 
 
-<a name="v1.RequestMatcher"></a>
+<a name="gloo.api.v1.RequestMatcher"></a>
 
 ### RequestMatcher
 Request Matcher is a route matcher for traditional http requests
@@ -113,7 +113,7 @@ verbs: [string]
 
 
 
-<a name="v1.EventMatcher"></a>
+<a name="gloo.api.v1.EventMatcher"></a>
 
 ### EventMatcher
 Event matcher is a special kind of matcher for CloudEvents
@@ -133,7 +133,7 @@ event_type: string
 
 
 
-<a name="v1.WeightedDestination"></a>
+<a name="gloo.api.v1.WeightedDestination"></a>
 
 ### WeightedDestination
 WeightedDestination attaches a weight to a destination
@@ -147,7 +147,7 @@ weight: uint32
 ```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| destination | [Destination](virtualservice.md#v1.Destination) |  |  |
+| destination | [Destination](virtualservice.md#gloo.api.v1.Destination) |  |  |
 | weight | uint32 |  | Weight must be greater than zero Routing to each destination will be balanced by the ratio of the destination&#39;s weight to the total weight on a route |
 
 
@@ -155,7 +155,7 @@ weight: uint32
 
 
 
-<a name="v1.Destination"></a>
+<a name="gloo.api.v1.Destination"></a>
 
 ### Destination
 Destination is a destination that requests can be routed to.
@@ -168,15 +168,15 @@ upstream: {UpstreamDestination}
 ```
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| function | [FunctionDestination](virtualservice.md#v1.FunctionDestination) |  | function indicates requests sent to this destination will invoke a function Only one of funtion or upstream should be set |
-| upstream | [UpstreamDestination](virtualservice.md#v1.UpstreamDestination) |  | upstream indicates requests sent to this destination will be routed to an upstream Only one of funtion or upstream should be set |
+| function | [FunctionDestination](virtualservice.md#gloo.api.v1.FunctionDestination) |  | function indicates requests sent to this destination will invoke a function Only one of funtion or upstream should be set |
+| upstream | [UpstreamDestination](virtualservice.md#gloo.api.v1.UpstreamDestination) |  | upstream indicates requests sent to this destination will be routed to an upstream Only one of funtion or upstream should be set |
 
 
 
 
 
 
-<a name="v1.FunctionDestination"></a>
+<a name="gloo.api.v1.FunctionDestination"></a>
 
 ### FunctionDestination
 FunctionDestination will route a request to a specific function defined for an upstream
@@ -197,7 +197,7 @@ function_name: string
 
 
 
-<a name="v1.UpstreamDestination"></a>
+<a name="gloo.api.v1.UpstreamDestination"></a>
 
 ### UpstreamDestination
 Upstream Destination routes a request to an upstream
@@ -216,7 +216,7 @@ name: string
 
 
 
-<a name="v1.SSLConfig"></a>
+<a name="gloo.api.v1.SSLConfig"></a>
 
 ### SSLConfig
 SSLConfig contains the options necessary to configure a virtualservice to use TLS

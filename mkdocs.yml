@@ -49,6 +49,7 @@ copyright: © Copyright 2018, solo.io Inc.
 google_analytics: ['UA-101654320-1', 'gloo.solo.io']
 theme:
   name: 'material'
+  favicon: 'img/favicon.ico'
 extra_css: [extra.css]
 extra:
     version: 0.1.1
