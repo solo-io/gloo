@@ -1,4 +1,4 @@
-package extensions_test
+package routing_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,17 +9,18 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/types"
-	. "github.com/solo-io/gloo/pkg/coreplugins/route-extensions"
+	. "github.com/solo-io/gloo/pkg/coreplugins/routing"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/pkg/protoutil"
 )
 
 var _ = Describe("Spec", func() {
 	It("decodes and uncodes from yaml", func() {
-		spec := RouteExtensionSpec{
+		timeout := time.Minute
+		spec := &RouteExtensions{
 			MaxRetries: 1,
-			Timeout:    time.Minute,
-			AddRequestHeaders: []HeaderValue{
+			Timeout:    &timeout,
+			AddRequestHeaders: []*HeaderValue{
 				{
 					Key:   "FOO",
 					Value: "BAR",
@@ -38,12 +39,8 @@ var _ = Describe("Spec", func() {
 add_request_headers:
 - key: FOO
   value: BAR
-- key: BOO
-  value: BAR
-  append: true
 max_retries: 1
-prefix_rewrite: /foo
-timeout: 60000000000
+timeout: 60000
 something_invalid: another_spec_maybe?
 cors:
   allow_origin: 
@@ -55,12 +52,14 @@ cors:
 		jsn, err := yaml.YAMLToJSON([]byte(yam))
 		Expect(err).NotTo(HaveOccurred())
 		var struc types.Struct
+		log.Printf(string(jsn))
 		err = protoutil.Unmarshal(jsn, &struc)
 		Expect(err).NotTo(HaveOccurred())
 		specc, err := DecodeRouteExtensions(&struc)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(specc.Cors).NotTo(BeNil())
-		Expect(specc.Cors.MaxAge).To(Equal(time.Duration(24 * time.Hour)))
+		t := time.Duration(24 * time.Hour)
+		Expect(specc.Cors.MaxAge).To(Equal(&t))
 		log.Printf("%v", specc)
 	})
 })

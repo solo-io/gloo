@@ -6,15 +6,15 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/pkg/control-plane/snapshot"
 	v12 "github.com/solo-io/gloo/pkg/api/defaults/v1"
-	"github.com/solo-io/gloo/pkg/coreplugins/route-extensions"
+	"github.com/solo-io/gloo/pkg/control-plane/snapshot"
+	"github.com/solo-io/gloo/pkg/coreplugins/routing"
 	"github.com/solo-io/gloo/pkg/coreplugins/static"
 	"github.com/solo-io/gloo/pkg/secretwatcher"
 	"github.com/solo-io/gloo/pkg/storage/dependencies"
 
-	. "github.com/solo-io/gloo/pkg/control-plane/translator"
 	"github.com/solo-io/gloo/pkg/api/types/v1"
+	. "github.com/solo-io/gloo/pkg/control-plane/translator"
 )
 
 var _ = Describe("Translator", func() {
@@ -39,7 +39,7 @@ var _ = Describe("Translator", func() {
 		Expect(reports[2].Err.Error()).To(ContainSubstring("ssl secret not found for ref ssl-secret-ref"))
 
 		Expect(reports[3].CfgObject).To(Equal(cfg.VirtualServices[1]))
-		Expect(reports[3].Err).To(BeNil())
+		Expect(reports[3].Err).NotTo(HaveOccurred())
 
 		// fix secrets
 		snap, reports := t.Translate(role, &snapshot.Cache{Cfg: cfg, Secrets: secretwatcher.SecretMap{
@@ -88,8 +88,8 @@ func ValidConfig() *v1.Config {
 		{
 			Name: "valid-service",
 			Type: static.UpstreamTypeService,
-			Spec: static.EncodeUpstreamSpec(static.UpstreamSpec{
-				Hosts: []static.Host{
+			Spec: static.EncodeUpstreamSpec(&static.UpstreamSpec{
+				Hosts: []*static.Host{
 					{
 						Addr: "localhost",
 						Port: 1234,
@@ -98,6 +98,7 @@ func ValidConfig() *v1.Config {
 			}),
 		},
 	}
+	timeout := time.Minute
 	virtualServices := []*v1.VirtualService{
 		{
 			Name: "valid-vservice-1",
@@ -120,13 +121,13 @@ func ValidConfig() *v1.Config {
 						},
 					},
 					PrefixRewrite: "/bar",
-					Extensions: extensions.EncodeRouteExtensionSpec(extensions.RouteExtensionSpec{
+					Extensions: routing.EncodeRouteExtensionSpec(&routing.RouteExtensions{
 						MaxRetries: 2,
-						Timeout:    time.Minute,
-						AddRequestHeaders: []extensions.HeaderValue{
+						Timeout:    &timeout,
+						AddRequestHeaders: []*routing.HeaderValue{
 							{Key: "x-foo", Value: "bar"},
 						},
-						AddResponseHeaders: []extensions.HeaderValue{
+						AddResponseHeaders: []*routing.HeaderValue{
 							{Key: "x-foo", Value: "bar"},
 						},
 						RemoveResponseHeaders: []string{
@@ -160,13 +161,13 @@ func ValidConfig() *v1.Config {
 						},
 					},
 					PrefixRewrite: "/bar",
-					Extensions: extensions.EncodeRouteExtensionSpec(extensions.RouteExtensionSpec{
+					Extensions: routing.EncodeRouteExtensionSpec(&routing.RouteExtensions{
 						MaxRetries: 2,
-						Timeout:    time.Minute,
-						AddRequestHeaders: []extensions.HeaderValue{
+						Timeout:    &timeout,
+						AddRequestHeaders: []*routing.HeaderValue{
 							{Key: "x-foo", Value: "bar"},
 						},
-						AddResponseHeaders: []extensions.HeaderValue{
+						AddResponseHeaders: []*routing.HeaderValue{
 							{Key: "x-foo", Value: "bar"},
 						},
 						RemoveResponseHeaders: []string{

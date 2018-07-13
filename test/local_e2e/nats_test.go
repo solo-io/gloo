@@ -17,7 +17,6 @@ import (
 )
 
 var _ = Describe("Nats streaming test", func() {
-
 	It("Receive proxied nats request", func() {
 		err := envoyInstance.Run()
 		Expect(err).NotTo(HaveOccurred())
@@ -30,8 +29,8 @@ var _ = Describe("Nats streaming test", func() {
 
 		envoyPort := glooInstance.EnvoyPort()
 
-		serviceSpec := static.UpstreamSpec{
-			Hosts: []static.Host{{
+		serviceSpec := &static.UpstreamSpec{
+			Hosts: []*static.Host{{
 				Addr: envoyInstance.LocalAddr(),
 				Port: natsStreamingInstance.NatsPort(),
 			}},

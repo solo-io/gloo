@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/pborman/uuid"
 	"github.com/solo-io/gloo/pkg/api/types/v1"
-	extensions "github.com/solo-io/gloo/pkg/coreplugins/route-extensions"
+	"github.com/solo-io/gloo/pkg/coreplugins/routing"
 	"github.com/solo-io/gloo/pkg/coreplugins/static"
 	. "github.com/solo-io/gloo/test/helpers"
 )
@@ -22,8 +22,8 @@ var _ = Describe("Route Exetnsion - CORS", func() {
 			_, err := gloo.V1().Upstreams().Create(&v1.Upstream{
 				Name: helloService,
 				Type: static.UpstreamTypeService,
-				Spec: static.EncodeUpstreamSpec(static.UpstreamSpec{
-					Hosts: []static.Host{
+				Spec: static.EncodeUpstreamSpec(&static.UpstreamSpec{
+					Hosts: []*static.Host{
 						{
 							Addr: helloService,
 							Port: servicePort,
@@ -49,9 +49,9 @@ var _ = Describe("Route Exetnsion - CORS", func() {
 							},
 						},
 					},
-					Extensions: extensions.EncodeRouteExtensionSpec(
-						extensions.RouteExtensionSpec{
-							Cors: &extensions.CorsPolicy{
+					Extensions: routing.EncodeRouteExtensionSpec(
+						&routing.RouteExtensions{
+							Cors: &routing.CorsPolicy{
 								AllowOrigin:  []string{"*"},
 								AllowMethods: "GET, POST, PUT",
 							},
