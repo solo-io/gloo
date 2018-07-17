@@ -7,10 +7,9 @@ import (
 
 type Resource interface {
 	proto.Message
-	GetName() string
+	Equal(that interface{}) bool
 	GetStatus() core.Status
 	GetMetadata() core.Metadata
-	SetName(name string)
 	SetStatus(status core.Status)
 	SetMetadata(meta core.Metadata)
 }
