@@ -1,6 +1,6 @@
 syntax = "proto3";
 package core.api.v1;
-option go_package = "github.com/solo-io/solo-kit/pkg/api/types/v1";
+option go_package = "github.com/solo-io/solo-kit/pkg/api/v1/resources/core";
 
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
