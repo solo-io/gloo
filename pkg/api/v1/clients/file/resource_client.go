@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"fmt"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/fileutils"
+	"path/filepath"
 )
 
 type ResourceClient struct {
@@ -26,7 +28,9 @@ var _ clients.ResourceClient = &ResourceClient{}
 
 func (rc *ResourceClient) Register() error {panic("yay")}
 
-func (rc *ResourceClient) Get(name string, opts *clients.GetOptions) (resources.Resource, error) {panic("yay")}
+func (rc *ResourceClient) Get(name string, opts *clients.GetOptions) (resources.Resource, error) {
+
+}
 
 func (rc *ResourceClient) Write(resource resources.Resource, opts *clients.WriteOptions) (resources.Resource, error) {
 	if !opts.OverwriteExisting {
@@ -47,7 +51,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts *clients.Write
 	// initialize or increment resource version
 	meta.ResourceVersion = newOrIncrementResourceVer(meta.ResourceVersion)
 	clone.SetMetadata(meta)
-
+	return clone, fileutils.WriteToFile(rc.filename(clone), clone)
 }
 
 func (rc *ResourceClient) Delete(name string, opts *clients.DeleteOptions) error {panic("yay")}
@@ -55,6 +59,10 @@ func (rc *ResourceClient) Delete(name string, opts *clients.DeleteOptions) error
 func (rc *ResourceClient) List(opts *clients.ListOptions) ([]resources.Resource, error) {panic("yay")}
 
 func (rc *ResourceClient) Watch(opts *clients.WatchOptions) (<-chan []resources.Resource, error) {panic("yay")}
+
+func (rc *ResourceClient) filename(namespace, name string) string {
+	return filepath.Join(rc.dir, namespace, name)
+}
 
 // util methods
 func newOrIncrementResourceVer(resourceVersion string) string {
