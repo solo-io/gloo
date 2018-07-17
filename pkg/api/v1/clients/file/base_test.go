@@ -7,6 +7,8 @@ import (
 	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/file"
 	"io/ioutil"
 	"time"
+	"github.com/solo-io/solo-kit/test/mocks"
+	"os"
 )
 
 var _ = Describe("Base", func() {
@@ -20,7 +22,16 @@ var _ = Describe("Base", func() {
 		Expect(err).NotTo(HaveOccurred())
 		client = NewResourceClient(tmpDir, time.Millisecond)
 	})
-	It("creates resources", func() {
-		r, err := client.Create()
+	AfterEach(func() {
+		os.RemoveAll(tmpDir)
+	})
+	It("CRUDs resources", func() {
+		data := "foo"
+		r, err := client.Create(&mocks.MockResource{
+			Data: data,
+		}, nil)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(r).To(BeAssignableToTypeOf(&mocks.MockResource{}))
+		Expect(r.(*mocks.MockResource).Data).To(Equal(data))
 	})
 })
