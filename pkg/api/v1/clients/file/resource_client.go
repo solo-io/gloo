@@ -39,7 +39,11 @@ func (rc *ResourceClient) Read(name string, into resources.Resource, opts client
 	if opts.Namespace == "" {
 		opts.Namespace = clients.DefaultNamespace
 	}
-	return fileutils.ReadFileInto(rc.filename(opts.Namespace, name), into)
+	path := rc.filename(opts.Namespace, name)
+	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
+		return errors.NewNotExistErr(opts.Namespace, name, err)
+	}
+	return fileutils.ReadFileInto(path, into)
 }
 
 func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteOptions) (resources.Resource, error) {
@@ -58,7 +62,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 			Ctx:       opts.Ctx,
 			Namespace: meta.Namespace,
 		}); err == nil {
-			return nil, errors.NewAlreadyExistsErr(resource.GetMetadata())
+			return nil, errors.NewExistErr(resource.GetMetadata())
 		}
 	}
 

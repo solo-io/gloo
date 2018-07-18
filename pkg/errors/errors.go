@@ -8,21 +8,49 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
-type alreadyExistsErr struct {
+type existErr struct {
 	meta core.Metadata
 }
 
-func (err *alreadyExistsErr) Error() string {
-	return fmt.Sprintf("already exists: %v", err.meta)
+func (err *existErr) Error() string {
+	return fmt.Sprintf("%v exists", err.meta)
 }
 
-func NewAlreadyExistsErr(meta core.Metadata) *alreadyExistsErr {
-	return &alreadyExistsErr{meta: meta}
+func NewExistErr(meta core.Metadata) *existErr {
+	return &existErr{meta: meta}
 }
 
-func IsAlreadyExists(err error) bool {
+func IsExist(err error) bool {
 	switch err.(type) {
-	case *alreadyExistsErr:
+	case *existErr:
+		return true
+	}
+	return false
+}
+
+type notExistErr struct {
+	namespace string
+	name      string
+	err       error
+}
+
+func (err *notExistErr) Error() string {
+	if err.err != nil {
+		return fmt.Sprintf("%v.%v does not exist: %v", err.namespace, err.name, err.err)
+	}
+	return fmt.Sprintf("%v.%v does not exist", err.namespace, err.name)
+}
+
+func NewNotExistErr(namespace, name string, err ... error) *notExistErr {
+	if len(err) > 0 {
+		return &notExistErr{namespace: namespace, name: name, err: err[0]}
+	}
+	return &notExistErr{namespace: namespace, name: name}
+}
+
+func IsNotExist(err error) bool {
+	switch err.(type) {
+	case *notExistErr:
 		return true
 	}
 	return false

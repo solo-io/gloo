@@ -11,6 +11,7 @@ import (
 	"os"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
 var _ = Describe("Base", func() {
@@ -28,18 +29,28 @@ var _ = Describe("Base", func() {
 		os.RemoveAll(tmpDir)
 	})
 	It("CRUDs resources", func() {
-		data := "foo"
-		r, err := client.Write(&mocks.MockResource{
-			Data: data,
+		name := "foo"
+		input := &mocks.MockResource{
+			Data: name,
 			Metadata: core.Metadata{
-				Name: data,
+				Name: name,
 			},
-		}, clients.WriteOptions{})
+		}
+		r, err := client.Write(input, clients.WriteOptions{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(r).To(BeAssignableToTypeOf(&mocks.MockResource{}))
-		Expect(r.GetMetadata().Name).To(Equal(data))
+		Expect(r.GetMetadata().Name).To(Equal(name))
 		Expect(r.GetMetadata().Namespace).To(Equal(clients.DefaultNamespace))
 		Expect(r.GetMetadata().ResourceVersion).To(Equal("1"))
-		Expect(r.(*mocks.MockResource).Data).To(Equal(data))
+		Expect(r.(*mocks.MockResource).Data).To(Equal(name))
+
+		var read mocks.MockResource
+		err = client.Read(name, &read, clients.GetOptions{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(r).To(Equal(&read))
+
+		err = client.Read(name, &read, clients.GetOptions{Namespace: "doesntexist"})
+		Expect(err).To(HaveOccurred())
+		Expect(errors.IsNotExist(err)).To(BeTrue())
 	})
 })
