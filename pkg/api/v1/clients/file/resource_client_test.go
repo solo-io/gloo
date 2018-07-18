@@ -23,7 +23,7 @@ var _ = Describe("Base", func() {
 		var err error
 		tmpDir, err = ioutil.TempDir("", "base_test")
 		Expect(err).NotTo(HaveOccurred())
-		client = NewResourceClient(tmpDir, time.Millisecond)
+		client = NewResourceClient(tmpDir, time.Millisecond, &mocks.MockResource{})
 	})
 	AfterEach(func() {
 		os.RemoveAll(tmpDir)
@@ -36,18 +36,18 @@ var _ = Describe("Base", func() {
 				Name: name,
 			},
 		}
-		r, err := client.Write(input, clients.WriteOptions{})
+		r1, err := client.Write(input, clients.WriteOptions{})
 		Expect(err).NotTo(HaveOccurred())
 
 		_, err = client.Write(input, clients.WriteOptions{})
 		Expect(err).To(HaveOccurred())
 		Expect(errors.IsExist(err)).To(BeTrue())
 
-		Expect(r).To(BeAssignableToTypeOf(&mocks.MockResource{}))
-		Expect(r.GetMetadata().Name).To(Equal(name))
-		Expect(r.GetMetadata().Namespace).To(Equal(clients.DefaultNamespace))
-		Expect(r.GetMetadata().ResourceVersion).To(Equal("1"))
-		Expect(r.(*mocks.MockResource).Data).To(Equal(name))
+		Expect(r1).To(BeAssignableToTypeOf(&mocks.MockResource{}))
+		Expect(r1.GetMetadata().Name).To(Equal(name))
+		Expect(r1.GetMetadata().Namespace).To(Equal(clients.DefaultNamespace))
+		Expect(r1.GetMetadata().ResourceVersion).To(Equal("1"))
+		Expect(r1.(*mocks.MockResource).Data).To(Equal(name))
 
 
 		_, err = client.Write(input, clients.WriteOptions{
@@ -55,13 +55,27 @@ var _ = Describe("Base", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		var read mocks.MockResource
-		err = client.Read(name, &read, clients.GetOptions{})
+		read, err := client.Read(name, clients.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(r).To(Equal(&read))
+		Expect(read).To(Equal(r1))
 
-		err = client.Read(name, &read, clients.GetOptions{Namespace: "doesntexist"})
+		_, err = client.Read(name, clients.GetOptions{Namespace: "doesntexist"})
 		Expect(err).To(HaveOccurred())
 		Expect(errors.IsNotExist(err)).To(BeTrue())
+
+		name = "boo"
+		input = &mocks.MockResource{
+			Data: name,
+			Metadata: core.Metadata{
+				Name: name,
+			},
+		}
+		r2, err := client.Write(input, clients.WriteOptions{})
+		Expect(err).NotTo(HaveOccurred())
+
+		list, err := client.List(clients.ListOptions{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(list).To(ContainElement(r1))
+		Expect(list).To(ContainElement(r2))
 	})
 })

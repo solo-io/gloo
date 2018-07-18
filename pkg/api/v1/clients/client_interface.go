@@ -9,7 +9,7 @@ const DefaultNamespace = "default"
 
 type ResourceClient interface {
 	Register() error
-	Read(name string, into resources.Resource, opts GetOptions) error
+	Read(name string, opts GetOptions) (resources.Resource, error)
 	Write(resource resources.Resource, opts WriteOptions) (resources.Resource, error)
 	Delete(name string, opts DeleteOptions) error
 	List(opts ListOptions) ([]resources.Resource, error)

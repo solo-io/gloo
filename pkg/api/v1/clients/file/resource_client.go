@@ -11,17 +11,20 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/fileutils"
 	"path/filepath"
 	"os"
+	"reflect"
 )
 
 type ResourceClient struct {
 	dir         string
 	refreshRate time.Duration
+	resourceType resources.Resource
 }
 
-func NewResourceClient(dir string, refreshRate time.Duration) *ResourceClient {
+func NewResourceClient(dir string, refreshRate time.Duration, resourceType resources.Resource) *ResourceClient {
 	return &ResourceClient{
 		dir:         dir,
 		refreshRate: refreshRate,
+		resourceType: resourceType,
 	}
 }
 
@@ -31,18 +34,22 @@ func (rc *ResourceClient) Register() error {
 	return nil
 }
 
-func (rc *ResourceClient) Read(name string, into resources.Resource, opts clients.GetOptions) error {
+func (rc *ResourceClient) Read(name string, opts clients.GetOptions) (resources.Resource, error) {
 	if err := resources.ValidateName(name); err != nil {
-		return errors.Wrapf(err, "validation error")
+		return nil, errors.Wrapf(err, "validation error")
 	}
 	if opts.Namespace == "" {
 		opts.Namespace = clients.DefaultNamespace
 	}
 	path := rc.filename(opts.Namespace, name)
 	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
-		return errors.NewNotExistErr(opts.Namespace, name, err)
+		return nil, errors.NewNotExistErr(opts.Namespace, name, err)
 	}
-	return fileutils.ReadFileInto(path, into)
+	into := proto.Clone(rc.resourceType).(resources.Resource)
+	if err := fileutils.ReadFileInto(path, into); err != nil {
+		return nil, errors.Wrapf(err, "reading file into %v", reflect.TypeOf(rc.resourceType).Name())
+	}
+	return into, nil
 }
 
 func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteOptions) (resources.Resource, error) {
@@ -79,7 +86,9 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 
 func (rc *ResourceClient) Delete(name string, opts clients.DeleteOptions) error { panic("yay") }
 
-func (rc *ResourceClient) List(opts clients.ListOptions) ([]resources.Resource, error) { panic("yay") }
+func (rc *ResourceClient) List(opts clients.ListOptions) ([]resources.Resource, error) {
+	panic("yay")
+}
 
 func (rc *ResourceClient) Watch(opts clients.WatchOptions) (<-chan []resources.Resource, error) { panic("yay") }
 
