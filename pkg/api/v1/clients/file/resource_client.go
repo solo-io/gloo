@@ -34,7 +34,7 @@ func (rc *ResourceClient) Register() error {
 	return nil
 }
 
-func (rc *ResourceClient) Read(name string, opts clients.GetOptions) (resources.Resource, error) {
+func (rc *ResourceClient) Read(name string, opts clients.GetOpts) (resources.Resource, error) {
 	if err := resources.ValidateName(name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
@@ -52,7 +52,7 @@ func (rc *ResourceClient) Read(name string, opts clients.GetOptions) (resources.
 	return resource, nil
 }
 
-func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteOptions) (resources.Resource, error) {
+func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteOpts) (resources.Resource, error) {
 	if err := resources.Validate(resource); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
@@ -84,9 +84,9 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	return clone, nil
 }
 
-func (rc *ResourceClient) Delete(name string, opts clients.DeleteOptions) error { panic("yay") }
+func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error { panic("yay") }
 
-func (rc *ResourceClient) List(opts clients.ListOptions) ([]resources.Resource, error) {
+func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, error) {
 	if opts.Namespace == "" {
 		opts.Namespace = clients.DefaultNamespace
 	}
@@ -114,7 +114,7 @@ func (rc *ResourceClient) List(opts clients.ListOptions) ([]resources.Resource, 
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(opts clients.WatchOptions) (<-chan []resources.Resource, error) {
+func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Resource, error) {
 	panic("yay")
 }
 

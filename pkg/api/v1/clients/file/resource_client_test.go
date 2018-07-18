@@ -35,10 +35,10 @@ var _ = Describe("Base", func() {
 				Name: name,
 			},
 		}
-		r1, err := client.Write(input, clients.WriteOptions{})
+		r1, err := client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = client.Write(input, clients.WriteOptions{})
+		_, err = client.Write(input, clients.WriteOpts{})
 		Expect(err).To(HaveOccurred())
 		Expect(errors.IsExist(err)).To(BeTrue())
 
@@ -48,16 +48,16 @@ var _ = Describe("Base", func() {
 		Expect(r1.GetMetadata().ResourceVersion).To(Equal("1"))
 		Expect(r1.(*mocks.MockResource).Data).To(Equal(name))
 
-		_, err = client.Write(input, clients.WriteOptions{
+		_, err = client.Write(input, clients.WriteOpts{
 			OverwriteExisting: true,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		read, err := client.Read(name, clients.GetOptions{})
+		read, err := client.Read(name, clients.GetOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(read).To(Equal(r1))
 
-		_, err = client.Read(name, clients.GetOptions{Namespace: "doesntexist"})
+		_, err = client.Read(name, clients.GetOpts{Namespace: "doesntexist"})
 		Expect(err).To(HaveOccurred())
 		Expect(errors.IsNotExist(err)).To(BeTrue())
 
@@ -68,12 +68,22 @@ var _ = Describe("Base", func() {
 				Name: name,
 			},
 		}
-		r2, err := client.Write(input, clients.WriteOptions{})
+		r2, err := client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		list, err := client.List(clients.ListOptions{})
+		list, err := client.List(clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(list).To(ContainElement(r1))
 		Expect(list).To(ContainElement(r2))
+
+		err = client.Delete("adsfw", clients.DeleteOpts{})
+		Expect(err).To(HaveOccurred())
+		Expect(errors.IsNotExist(err)).To(BeTrue())
+
+		err = client.Delete(r1.GetMetadata().Name, clients.DeleteOpts{})
+		Expect(err).To(HaveOccurred())
+		Expect(errors.IsNotExist(err)).To(BeTrue())
+
+
 	})
 })
