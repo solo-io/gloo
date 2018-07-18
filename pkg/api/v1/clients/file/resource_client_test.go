@@ -80,10 +80,16 @@ var _ = Describe("Base", func() {
 		Expect(err).To(HaveOccurred())
 		Expect(errors.IsNotExist(err)).To(BeTrue())
 
-		err = client.Delete(r1.GetMetadata().Name, clients.DeleteOpts{})
-		Expect(err).To(HaveOccurred())
-		Expect(errors.IsNotExist(err)).To(BeTrue())
+		err = client.Delete("adsfw", clients.DeleteOpts{
+			IgnoreNotExist: true,
+		})
+		Expect(err).NotTo(HaveOccurred())
 
-
+		err = client.Delete(r2.GetMetadata().Name, clients.DeleteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		list, err = client.List(clients.ListOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(list).To(ContainElement(r1))
+		Expect(list).NotTo(ContainElement(r2))
 	})
 })
