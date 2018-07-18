@@ -9,6 +9,8 @@ import (
 	"time"
 	"github.com/solo-io/solo-kit/test/mocks"
 	"os"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 var _ = Describe("Base", func() {
@@ -27,11 +29,17 @@ var _ = Describe("Base", func() {
 	})
 	It("CRUDs resources", func() {
 		data := "foo"
-		r, err := client.Create(&mocks.MockResource{
+		r, err := client.Write(&mocks.MockResource{
 			Data: data,
-		}, nil)
+			Metadata: core.Metadata{
+				Name: data,
+			},
+		}, clients.WriteOptions{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(r).To(BeAssignableToTypeOf(&mocks.MockResource{}))
+		Expect(r.GetMetadata().Name).To(Equal(data))
+		Expect(r.GetMetadata().Namespace).To(Equal(clients.DefaultNamespace))
+		Expect(r.GetMetadata().ResourceVersion).To(Equal("1"))
 		Expect(r.(*mocks.MockResource).Data).To(Equal(data))
 	})
 })

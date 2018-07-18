@@ -9,10 +9,6 @@ option (gogoproto.equal_all) = true;
  * Metadata contains general properties of resources for purposes of versioning, annotating, and namespacing.
  */
 message Metadata {
-    // a globally unique identifier across all resources. allows objects to be queried or referenced
-    // without foreknowledge of their type
-    string guid = 1;
-
     /*
     Name of the resource.
 

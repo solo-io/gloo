@@ -5,27 +5,32 @@ import (
 	"context"
 )
 
+const DefaultNamespace = "default"
+
 type ResourceClient interface {
 	Register() error
-	Get(name string, opts *GetOptions) (resources.Resource, error)
-	Write(resource resources.Resource, opts *WriteOptions) (resources.Resource, error)
-	Delete(name string, opts *DeleteOptions) error
-	List(opts *ListOptions) ([]resources.Resource, error)
-	Watch(opts *WatchOptions) (<-chan []resources.Resource, error)
+	Read(name string, into resources.Resource, opts GetOptions) error
+	Write(resource resources.Resource, opts WriteOptions) (resources.Resource, error)
+	Delete(name string, opts DeleteOptions) error
+	List(opts ListOptions) ([]resources.Resource, error)
+	Watch(opts WatchOptions) (<-chan []resources.Resource, error)
 }
 
 type GetOptions struct {
 	Ctx       context.Context
+	Namespace string
 }
 
 type ListOptions struct {
 	Ctx       context.Context
 	Selector  map[string]string
+	Namespace string
 }
 
 type WatchOptions struct {
 	Ctx       context.Context
 	Selector  map[string]string
+	Namespace string
 }
 
 type WriteOptions struct {

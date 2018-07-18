@@ -10,6 +10,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/fileutils"
 	"path/filepath"
+	"reflect"
+	"os"
 )
 
 type ResourceClient struct {
@@ -26,39 +28,61 @@ func NewResourceClient(dir string, refreshRate time.Duration) *ResourceClient {
 
 var _ clients.ResourceClient = &ResourceClient{}
 
-func (rc *ResourceClient) Register() error {panic("yay")}
-
-func (rc *ResourceClient) Get(name string, opts *clients.GetOptions) (resources.Resource, error) {
-
+func (rc *ResourceClient) Register() error {
+	return nil
 }
 
-func (rc *ResourceClient) Write(resource resources.Resource, opts *clients.WriteOptions) (resources.Resource, error) {
+func (rc *ResourceClient) Read(name string, into resources.Resource, opts clients.GetOptions) error {
+	if err := resources.ValidateName(name); err != nil {
+		return errors.Wrapf(err, "validation error")
+	}
+	if opts.Namespace == "" {
+		opts.Namespace = clients.DefaultNamespace
+	}
+	return fileutils.ReadFileInto(rc.filename(opts.Namespace, name), into)
+}
+
+func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteOptions) (resources.Resource, error) {
+	if err := resources.Validate(resource); err != nil {
+		return nil, errors.Wrapf(err, "validation error")
+	}
+
+	meta := resource.GetMetadata()
+	if meta.Namespace == "" {
+		meta.Namespace = clients.DefaultNamespace
+	}
+
 	if !opts.OverwriteExisting {
-		getOpts := &clients.GetOptions{}
-		if opts != nil {
-			getOpts.Ctx = opts.Ctx
-		}
-		if _, err := rc.Get(resource.GetMetadata().Name, getOpts); err == nil {
-			return nil, errors.NewAlreadyExistsErr(resource)
+		empty := reflect.New(reflect.TypeOf(resource)).Elem().Interface().(resources.Resource)
+		if err := rc.Read(resource.GetMetadata().Name, empty, clients.GetOptions{
+			Ctx:       opts.Ctx,
+			Namespace: meta.Namespace,
+		}); err == nil {
+			return nil, errors.NewAlreadyExistsErr(resource.GetMetadata())
 		}
 	}
-	// only mutate clone
-	clone, ok := proto.Clone(resource).(resources.Resource)
-	if !ok {
-		panic("internal error: output of proto.Clone was not expected type")
-	}
-	meta := clone.GetMetadata()
+
+	// mutate and return clone
+	clone := proto.Clone(resource).(resources.Resource)
 	// initialize or increment resource version
 	meta.ResourceVersion = newOrIncrementResourceVer(meta.ResourceVersion)
 	clone.SetMetadata(meta)
-	return clone, fileutils.WriteToFile(rc.filename(clone), clone)
+
+	path := rc.filename(meta.Namespace, meta.Name)
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil && !os.IsExist(err) {
+		return nil, errors.Wrapf(err, "creating directory")
+	}
+	if err := fileutils.WriteToFile(path, clone); err != nil {
+		return nil, errors.Wrapf(err, "writing file")
+	}
+	return clone, nil
 }
 
-func (rc *ResourceClient) Delete(name string, opts *clients.DeleteOptions) error {panic("yay")}
+func (rc *ResourceClient) Delete(name string, opts clients.DeleteOptions) error { panic("yay") }
 
-func (rc *ResourceClient) List(opts *clients.ListOptions) ([]resources.Resource, error) {panic("yay")}
+func (rc *ResourceClient) List(opts clients.ListOptions) ([]resources.Resource, error) { panic("yay") }
 
-func (rc *ResourceClient) Watch(opts *clients.WatchOptions) (<-chan []resources.Resource, error) {panic("yay")}
+func (rc *ResourceClient) Watch(opts clients.WatchOptions) (<-chan []resources.Resource, error) { panic("yay") }
 
 func (rc *ResourceClient) filename(namespace, name string) string {
 	return filepath.Join(rc.dir, namespace, name)
