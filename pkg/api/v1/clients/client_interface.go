@@ -47,6 +47,6 @@ type UpdateOpts struct {
 
 type DeleteOpts struct {
 	Ctx            context.Context
-	Namespace string
+	Namespace      string
 	IgnoreNotExist bool
 }

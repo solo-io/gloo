@@ -91,7 +91,7 @@ func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
 	path := rc.filename(opts.Namespace, name)
 	err := os.Remove(path)
 	switch {
-	case err == nil :
+	case err == nil:
 		return nil
 	case os.IsNotExist(err) && opts.IgnoreNotExist:
 		return nil
