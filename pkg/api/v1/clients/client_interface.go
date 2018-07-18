@@ -8,6 +8,7 @@ import (
 )
 
 const DefaultNamespace = "default"
+
 var DefaultRefreshRate = time.Second * 30
 
 type ResourceClient interface {
