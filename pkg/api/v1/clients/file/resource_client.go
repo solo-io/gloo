@@ -10,7 +10,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/fileutils"
 	"path/filepath"
-	"reflect"
 	"os"
 )
 
@@ -55,13 +54,10 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	if meta.Namespace == "" {
 		meta.Namespace = clients.DefaultNamespace
 	}
+	path := rc.filename(meta.Namespace, meta.Name)
 
 	if !opts.OverwriteExisting {
-		empty := reflect.New(reflect.TypeOf(resource)).Elem().Interface().(resources.Resource)
-		if err := rc.Read(resource.GetMetadata().Name, empty, clients.GetOptions{
-			Ctx:       opts.Ctx,
-			Namespace: meta.Namespace,
-		}); err == nil {
+		if _, err := os.Stat(path); err == nil {
 			return nil, errors.NewExistErr(resource.GetMetadata())
 		}
 	}
@@ -72,7 +68,6 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	meta.ResourceVersion = newOrIncrementResourceVer(meta.ResourceVersion)
 	clone.SetMetadata(meta)
 
-	path := rc.filename(meta.Namespace, meta.Name)
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil && !os.IsExist(err) {
 		return nil, errors.Wrapf(err, "creating directory")
 	}
