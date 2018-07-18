@@ -84,7 +84,22 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	return clone, nil
 }
 
-func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error { panic("yay") }
+func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
+	if opts.Namespace == "" {
+		opts.Namespace = clients.DefaultNamespace
+	}
+	path := rc.filename(opts.Namespace, name)
+	err := os.Remove(path)
+	switch {
+	case err == nil :
+		return nil
+	case os.IsNotExist(err) && opts.IgnoreNotExist:
+		return nil
+	case os.IsNotExist(err) && !opts.IgnoreNotExist:
+		return errors.NewNotExistErr(opts.Namespace, name, err)
+	}
+	return errors.Wrapf(err, "deleting resource %v", name)
+}
 
 func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, error) {
 	if opts.Namespace == "" {
