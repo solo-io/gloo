@@ -8,6 +8,7 @@ import (
 )
 
 const DefaultNamespace = "default"
+var DefaultRefreshRate = time.Second * 30
 
 type ResourceClient interface {
 	Register() error
@@ -23,10 +24,30 @@ type GetOpts struct {
 	Namespace string
 }
 
+func (o GetOpts) WithDefaults() GetOpts {
+	if o.Ctx == nil {
+		o.Ctx = context.TODO()
+	}
+	if o.Namespace == "" {
+		o.Namespace = DefaultNamespace
+	}
+	return o
+}
+
 type ListOpts struct {
 	Ctx       context.Context
 	Selector  map[string]string
 	Namespace string
+}
+
+func (o ListOpts) WithDefaults() ListOpts {
+	if o.Ctx == nil {
+		o.Ctx = context.TODO()
+	}
+	if o.Namespace == "" {
+		o.Namespace = DefaultNamespace
+	}
+	return o
 }
 
 type WatchOpts struct {
@@ -36,17 +57,43 @@ type WatchOpts struct {
 	RefreshRate time.Duration
 }
 
+func (o WatchOpts) WithDefaults() WatchOpts {
+	if o.Ctx == nil {
+		o.Ctx = context.TODO()
+	}
+	if o.Namespace == "" {
+		o.Namespace = DefaultNamespace
+	}
+	if o.RefreshRate == 0 {
+		o.RefreshRate = DefaultRefreshRate
+	}
+	return o
+}
+
 type WriteOpts struct {
 	Ctx               context.Context
 	OverwriteExisting bool
 }
 
-type UpdateOpts struct {
-	Ctx context.Context
+func (o WriteOpts) WithDefaults() WriteOpts {
+	if o.Ctx == nil {
+		o.Ctx = context.TODO()
+	}
+	return o
 }
 
 type DeleteOpts struct {
 	Ctx            context.Context
 	Namespace      string
 	IgnoreNotExist bool
+}
+
+func (o DeleteOpts) WithDefaults() DeleteOpts {
+	if o.Ctx == nil {
+		o.Ctx = context.TODO()
+	}
+	if o.Namespace == "" {
+		o.Namespace = DefaultNamespace
+	}
+	return o
 }

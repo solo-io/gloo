@@ -38,9 +38,7 @@ func (rc *ResourceClient) Read(name string, opts clients.GetOpts) (resources.Res
 	if err := resources.ValidateName(name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
-	if opts.Namespace == "" {
-		opts.Namespace = clients.DefaultNamespace
-	}
+	opts = opts.WithDefaults()
 	path := rc.filename(opts.Namespace, name)
 	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
 		return nil, errors.NewNotExistErr(opts.Namespace, name, err)
@@ -53,10 +51,10 @@ func (rc *ResourceClient) Read(name string, opts clients.GetOpts) (resources.Res
 }
 
 func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteOpts) (resources.Resource, error) {
+	opts = opts.WithDefaults()
 	if err := resources.Validate(resource); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
-
 	meta := resource.GetMetadata()
 	if meta.Namespace == "" {
 		meta.Namespace = clients.DefaultNamespace
@@ -85,9 +83,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 }
 
 func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
-	if opts.Namespace == "" {
-		opts.Namespace = clients.DefaultNamespace
-	}
+	opts = opts.WithDefaults()
 	path := rc.filename(opts.Namespace, name)
 	err := os.Remove(path)
 	switch {
@@ -102,9 +98,7 @@ func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
 }
 
 func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, error) {
-	if opts.Namespace == "" {
-		opts.Namespace = clients.DefaultNamespace
-	}
+	opts = opts.WithDefaults()
 
 	namespaceDir := filepath.Join(rc.dir, opts.Namespace)
 	files, err := ioutil.ReadDir(namespaceDir)
@@ -130,6 +124,7 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 }
 
 func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Resource, error) {
+	opts = opts.WithDefaults()
 	panic("yay")
 }
 
