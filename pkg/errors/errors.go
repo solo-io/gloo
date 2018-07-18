@@ -41,7 +41,7 @@ func (err *notExistErr) Error() string {
 	return fmt.Sprintf("%v.%v does not exist", err.namespace, err.name)
 }
 
-func NewNotExistErr(namespace, name string, err ... error) *notExistErr {
+func NewNotExistErr(namespace, name string, err ...error) *notExistErr {
 	if len(err) > 0 {
 		return &notExistErr{namespace: namespace, name: name, err: err[0]}
 	}

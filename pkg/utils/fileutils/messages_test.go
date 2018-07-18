@@ -4,10 +4,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/solo-kit/pkg/utils/fileutils"
-	"github.com/gogo/protobuf/types"
 	"io/ioutil"
 	"os"
+
+	"github.com/gogo/protobuf/types"
+	. "github.com/solo-io/solo-kit/pkg/utils/fileutils"
 )
 
 var _ = Describe("Messages", func() {

@@ -1,8 +1,10 @@
 package clients
 
 import (
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"context"
+	"time"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 )
 
 const DefaultNamespace = "default"
@@ -28,9 +30,10 @@ type ListOptions struct {
 }
 
 type WatchOptions struct {
-	Ctx       context.Context
-	Selector  map[string]string
-	Namespace string
+	Ctx         context.Context
+	Selector    map[string]string
+	Namespace   string
+	RefreshRate time.Duration
 }
 
 type WriteOptions struct {

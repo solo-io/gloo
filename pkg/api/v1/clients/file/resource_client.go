@@ -1,31 +1,29 @@
 package file
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"reflect"
+	"sort"
+	"strconv"
+
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"time"
-	"github.com/gogo/protobuf/proto"
-	"strconv"
-	"fmt"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/fileutils"
-	"path/filepath"
-	"os"
-	"reflect"
-	"io/ioutil"
-	"sort"
 )
 
 type ResourceClient struct {
-	dir         string
-	refreshRate time.Duration
+	dir          string
 	resourceType resources.Resource
 }
 
-func NewResourceClient(dir string, refreshRate time.Duration, resourceType resources.Resource) *ResourceClient {
+func NewResourceClient(dir string, resourceType resources.Resource) *ResourceClient {
 	return &ResourceClient{
-		dir:         dir,
-		refreshRate: refreshRate,
+		dir:          dir,
 		resourceType: resourceType,
 	}
 }
@@ -116,10 +114,12 @@ func (rc *ResourceClient) List(opts clients.ListOptions) ([]resources.Resource, 
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(opts clients.WatchOptions) (<-chan []resources.Resource, error) { panic("yay") }
+func (rc *ResourceClient) Watch(opts clients.WatchOptions) (<-chan []resources.Resource, error) {
+	panic("yay")
+}
 
 func (rc *ResourceClient) filename(namespace, name string) string {
-	return filepath.Join(rc.dir, namespace, name)+".yaml"
+	return filepath.Join(rc.dir, namespace, name) + ".yaml"
 }
 
 func (rc *ResourceClient) newResource() resources.Resource {

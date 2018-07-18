@@ -4,14 +4,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/file"
 	"io/ioutil"
-	"time"
-	"github.com/solo-io/solo-kit/test/mocks"
 	"os"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/file"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/test/mocks"
 )
 
 var _ = Describe("Base", func() {
@@ -23,7 +22,7 @@ var _ = Describe("Base", func() {
 		var err error
 		tmpDir, err = ioutil.TempDir("", "base_test")
 		Expect(err).NotTo(HaveOccurred())
-		client = NewResourceClient(tmpDir, time.Millisecond, &mocks.MockResource{})
+		client = NewResourceClient(tmpDir, &mocks.MockResource{})
 	})
 	AfterEach(func() {
 		os.RemoveAll(tmpDir)
@@ -48,7 +47,6 @@ var _ = Describe("Base", func() {
 		Expect(r1.GetMetadata().Namespace).To(Equal(clients.DefaultNamespace))
 		Expect(r1.GetMetadata().ResourceVersion).To(Equal("1"))
 		Expect(r1.(*mocks.MockResource).Data).To(Equal(name))
-
 
 		_, err = client.Write(input, clients.WriteOptions{
 			OverwriteExisting: true,
