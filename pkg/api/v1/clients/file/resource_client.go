@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"os"
 	"reflect"
+	"io/ioutil"
+	"sort"
 )
 
 type ResourceClient struct {
@@ -45,11 +47,11 @@ func (rc *ResourceClient) Read(name string, opts clients.GetOptions) (resources.
 	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
 		return nil, errors.NewNotExistErr(opts.Namespace, name, err)
 	}
-	into := proto.Clone(rc.resourceType).(resources.Resource)
-	if err := fileutils.ReadFileInto(path, into); err != nil {
-		return nil, errors.Wrapf(err, "reading file into %v", reflect.TypeOf(rc.resourceType).Name())
+	resource := rc.newResource()
+	if err := fileutils.ReadFileInto(path, resource); err != nil {
+		return nil, errors.Wrapf(err, "reading file into %v", reflect.TypeOf(rc.resourceType))
 	}
-	return into, nil
+	return resource, nil
 }
 
 func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteOptions) (resources.Resource, error) {
@@ -87,13 +89,41 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 func (rc *ResourceClient) Delete(name string, opts clients.DeleteOptions) error { panic("yay") }
 
 func (rc *ResourceClient) List(opts clients.ListOptions) ([]resources.Resource, error) {
-	panic("yay")
+	if opts.Namespace == "" {
+		opts.Namespace = clients.DefaultNamespace
+	}
+
+	namespaceDir := filepath.Join(rc.dir, opts.Namespace)
+	files, err := ioutil.ReadDir(namespaceDir)
+	if err != nil {
+		return nil, errors.Wrapf(err, "reading namespace dir")
+	}
+
+	var resourceList []resources.Resource
+	for _, file := range files {
+		resource := rc.newResource()
+		path := filepath.Join(namespaceDir, file.Name())
+		if err := fileutils.ReadFileInto(path, resource); err != nil {
+			return nil, errors.Wrapf(err, "reading file into %v", reflect.TypeOf(rc.resourceType))
+		}
+		resourceList = append(resourceList, resource)
+	}
+
+	sort.SliceStable(resourceList, func(i, j int) bool {
+		return resourceList[i].GetMetadata().Name < resourceList[j].GetMetadata().Name
+	})
+
+	return resourceList, nil
 }
 
 func (rc *ResourceClient) Watch(opts clients.WatchOptions) (<-chan []resources.Resource, error) { panic("yay") }
 
 func (rc *ResourceClient) filename(namespace, name string) string {
-	return filepath.Join(rc.dir, namespace, name)
+	return filepath.Join(rc.dir, namespace, name)+".yaml"
+}
+
+func (rc *ResourceClient) newResource() resources.Resource {
+	return proto.Clone(rc.resourceType).(resources.Resource)
 }
 
 // util methods
