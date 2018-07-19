@@ -1,34 +1,34 @@
 package kube
 
 import (
-	"fmt"
-	"path/filepath"
 	"reflect"
 	"sort"
-	"strconv"
-
 	"github.com/gogo/protobuf/proto"
-	"github.com/hashicorp/consul/api"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
-	"k8s.io/api/core/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
+	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
+	kubewatch "k8s.io/apimachinery/pkg/watch"
 )
 
 type ResourceClient struct {
+	crd          crd.Crd
+	apiexts      apiexts.Interface
 	kube         versioned.Interface
 	ownerLabel   string
 	resourceName string
 	resourceType resources.Resource
 }
 
-func NewResourceClient(client versioned.Interface, ownerLabel string, resourceType resources.Resource) *ResourceClient {
+func NewResourceClient(crd crd.Crd, apiexts apiexts.Interface, kube versioned.Interface, resourceType resources.Resource) *ResourceClient {
 	return &ResourceClient{
-		kube:         client,
-		ownerLabel:   ownerLabel,
+		crd:          crd,
+		apiexts:      apiexts,
+		kube:         kube,
 		resourceName: reflect.TypeOf(resourceType).Name(),
 		resourceType: resourceType,
 	}
@@ -37,7 +37,7 @@ func NewResourceClient(client versioned.Interface, ownerLabel string, resourceTy
 var _ clients.ResourceClient = &ResourceClient{}
 
 func (rc *ResourceClient) Register() error {
-	return nil
+	return rc.crd.Register(rc.apiexts)
 }
 
 func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Resource, error) {
@@ -48,12 +48,12 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 
 	resourceCrd, err := rc.kube.ResourcesV1().Resources(opts.Namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
-		return nil, errors.Wrapf(err, "performing kube configmap get")
+		return nil, errors.Wrapf(err, "reading resource from kubernetes")
 	}
-	resource := rc.newResource()
+	resource := resources.Clone(rc.resourceType)
 	if resourceCrd.Spec != nil {
 		if err := protoutils.UnmarshalMap(*resourceCrd.Spec, resource); err != nil {
-			return nil, errors.Wrapf(err, "reading KV into %v", rc.resourceName)
+			return nil, errors.Wrapf(err, "reading crd spec into %v", rc.resourceName)
 		}
 	}
 	meta := resource.GetMetadata()
@@ -71,54 +71,39 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	if meta.Namespace == "" {
 		meta.Namespace = clients.DefaultNamespace
 	}
-	key := rc.resourceKey(meta.Namespace, meta.Name)
-
-	if !opts.OverwriteExisting {
-		kvPair, _, err := rc.kube.KV().Get(key, nil)
-		if err != nil {
-			return nil, errors.Wrapf(err, "performing kube KV get")
-		}
-		if kvPair != nil {
-			return nil, errors.NewExistErr(meta)
-		}
-	}
 
 	// mutate and return clone
 	clone := proto.Clone(resource).(resources.Resource)
 	clone.SetMetadata(meta)
+	resourceCrd := rc.crd.KubeResource(clone)
 
-	data, err := protoutils.MarshalBytes(clone)
-	if err != nil {
-		panic(errors.Wrapf(err, "internal err: failed to marshal resource"))
-	}
-	var modifyIndex uint64
-	if meta.GetResourceVersion() != "" {
-		if i, err := strconv.Atoi(meta.GetResourceVersion()); err == nil {
-			modifyIndex = uint64(i)
+	if rc.exist(meta.Namespace, meta.Name) {
+		if !opts.OverwriteExisting {
+			return nil, errors.NewExistErr(meta)
+		}
+		if _, err := rc.kube.ResourcesV1().Resources(meta.Namespace).Update(resourceCrd); err != nil {
+			return nil, errors.Wrapf(err, "updating kube resource %v", resourceCrd.Name)
+		}
+	} else {
+		if _, err := rc.kube.ResourcesV1().Resources(meta.Namespace).Create(resourceCrd); err != nil {
+			return nil, errors.Wrapf(err, "creating kube resource %v", resourceCrd.Name)
 		}
 	}
-	kvPair := &api.KVPair{
-		Key:         key,
-		Value:       data,
-		ModifyIndex: modifyIndex,
-	}
-	if _, err := rc.kube.KV().Put(kvPair, nil); err != nil {
-		return nil, errors.Wrapf(err, "writing to KV")
-	}
-	// return a read object to update the modify index
+
+	// return a read object to update the resource version
 	return rc.Read(meta.Name, clients.ReadOpts{Ctx: opts.Ctx, Namespace: meta.Namespace})
 }
 
 func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
-	key := rc.resourceKey(opts.Namespace, name)
-	if !opts.IgnoreNotExist {
-		if _, err := rc.Read(name, clients.ReadOpts{Namespace: opts.Namespace, Ctx: opts.Ctx}); err != nil {
-			return errors.NewNotExistErr(opts.Namespace, name, err)
+	if !rc.exist(opts.Namespace, name) {
+		if !opts.IgnoreNotExist {
+			return errors.NewNotExistErr(opts.Namespace, name)
 		}
+		return nil
 	}
-	_, err := rc.kube.KV().Delete(key, nil)
-	if err != nil {
+
+	if err := rc.kube.ResourcesV1().Resources(opts.Namespace).Delete(name, nil); err != nil {
 		return errors.Wrapf(err, "deleting resource %v", name)
 	}
 	return nil
@@ -127,20 +112,22 @@ func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
 func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, error) {
 	opts = opts.WithDefaults()
 
-	namespacePrefix := filepath.Join(rc.root, opts.Namespace)
-	kvPairs, _, err := rc.kube.KV().List(namespacePrefix, nil)
+	resourceCrdList, err := rc.kube.ResourcesV1().Resources(opts.Namespace).List(metav1.ListOptions{})
 	if err != nil {
-		return nil, errors.Wrapf(err, "reading namespace root")
+		return nil, errors.Wrapf(err, "deleting listing resources in %v", opts.Namespace)
 	}
-
 	var resourceList []resources.Resource
-	for _, kvPair := range kvPairs {
-		resource := rc.newResource()
-		if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
-			return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
+	for _, resourceCrd := range resourceCrdList.Items {
+		resource := resources.Clone(rc.resourceType)
+		if resourceCrd.Spec != nil {
+			if err := protoutils.UnmarshalMap(*resourceCrd.Spec, resource); err != nil {
+				return nil, errors.Wrapf(err, "reading crd spec into %v", rc.resourceName)
+			}
 		}
 		meta := resource.GetMetadata()
-		meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
+		meta.Namespace = resourceCrd.Namespace
+		meta.Name = resourceCrd.Name
+		meta.ResourceVersion = resourceCrd.ResourceVersion
 		resource.SetMetadata(meta)
 		resourceList = append(resourceList, resource)
 	}
@@ -154,12 +141,13 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 
 func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
 	opts = opts.WithDefaults()
-	var lastIndex uint64
-	namespacePrefix := filepath.Join(rc.root, opts.Namespace)
+	watch, err := rc.kube.ResourcesV1().Resources(opts.Namespace).Watch(metav1.ListOptions{})
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "initiating kube watch in %v", opts.Namespace)
+	}
 	resourcesChan := make(chan []resources.Resource)
 	errs := make(chan error)
-	go func() {
-		// watch should open up with an initial read
+	updateResourceList := func() {
 		list, err := rc.List(clients.ListOpts{
 			Ctx:       opts.Ctx,
 			Selector:  opts.Selector,
@@ -170,50 +158,22 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 			return
 		}
 		resourcesChan <- list
-	}()
-	updatedResourceList := func() ([]resources.Resource, error) {
-		kvPairs, meta, err := rc.kube.KV().List(namespacePrefix,
-			&api.QueryOptions{
-				RequireConsistent: true,
-				WaitIndex:         lastIndex,
-				WaitTime:          opts.RefreshRate,
-			})
-		if err != nil {
-			return nil, errors.Wrapf(err, "getting kv-pairs list")
-		}
-		// no change since last poll
-		if lastIndex == meta.LastIndex {
-			return nil, nil
-		}
-		var resourceList []resources.Resource
-		for _, kvPair := range kvPairs {
-			resource := rc.newResource()
-			if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
-				return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
-			}
-			meta := resource.GetMetadata()
-			meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
-			resource.SetMetadata(meta)
-			resourceList = append(resourceList, resource)
-		}
-
-		sort.SliceStable(resourceList, func(i, j int) bool {
-			return resourceList[i].GetMetadata().Name < resourceList[j].GetMetadata().Name
-		})
-
-		// update index
-		lastIndex = meta.LastIndex
-		return resourceList, nil
 	}
+	// watch should open up with an initial read
+	go updateResourceList()
 
 	go func() {
 		for {
-			list, err := updatedResourceList()
-			if err != nil {
-				errs <- err
-			}
-			if list != nil {
-				resourcesChan <- list
+			select {
+			case event := <-watch.ResultChan():
+				switch event.Type {
+				case kubewatch.Error:
+					errs <- errors.Errorf("error during watch: %v", event)
+				default:
+					updateResourceList()
+				}
+			case <-opts.Ctx.Done():
+				watch.Stop()
 			}
 		}
 	}()
@@ -221,10 +181,8 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 	return resourcesChan, errs, nil
 }
 
-func (rc *ResourceClient) resourceKey(namespace, name string) string {
-	return filepath.Join(rc.root, namespace, name)
-}
+func (rc *ResourceClient) exist(namespace, name string) bool {
+	_, err := rc.kube.ResourcesV1().Resources(namespace).Get(name, metav1.GetOptions{})
+	return err == nil
 
-func (rc *ResourceClient) newResource() resources.Resource {
-	return proto.Clone(rc.resourceType).(resources.Resource)
 }

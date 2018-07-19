@@ -2,8 +2,10 @@ package kube_test
 
 import (
 	"time"
+	"os"
+	"path/filepath"
 
-	"github.com/hashicorp/consul/api"
+	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -13,27 +15,43 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/mocks"
+	"k8s.io/client-go/rest"
+	"github.com/solo-io/solo-kit/test/services"
+	"k8s.io/client-go/tools/clientcmd"
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
 )
 
 var _ = Describe("Base", func() {
+	if os.Getenv("RUN_KUBE_TESTS") != "1" {
+		log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
+		return
+	}
 	var (
-		consul  *api.Client
-		client  *ResourceClient
-		rootKey string
+		namespace string
+		cfg       *rest.Config
+		client    *ResourceClient
 	)
 	BeforeEach(func() {
-		rootKey = helpers.RandString(4)
-		c, err := api.NewClient(api.DefaultConfig())
+		namespace = helpers.RandString(8)
+		err := services.SetupKubeForTest(namespace)
 		Expect(err).NotTo(HaveOccurred())
-		consul = c
-		crdClient := versioned.NewForConfig()
-		client = NewResourceClient(crdClient, rootKey, &mocks.MockResource{})
+		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
+		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+		Expect(err).NotTo(HaveOccurred())
+		apiextsClient, err := apiexts.NewForConfig(cfg)
+		Expect(err).NotTo(HaveOccurred())
+		resourceClient, err := versioned.NewForConfig(cfg, mocks.MockCrd)
+		Expect(err).NotTo(HaveOccurred())
+		client = NewResourceClient(mocks.MockCrd, apiextsClient, resourceClient, &mocks.MockResource{})
 	})
 	AfterEach(func() {
-		consul.KV().DeleteTree(rootKey, nil)
+		services.TeardownKube(namespace)
 	})
 	It("CRUDs resources", func() {
+		err := client.Register()
+		Expect(err).NotTo(HaveOccurred())
+
 		name := "foo"
 		input := mocks.NewMockResource(name)
 		r1, err := client.Write(input, clients.WriteOpts{})

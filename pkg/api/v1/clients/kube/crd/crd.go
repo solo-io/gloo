@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/gloo/pkg/protoutil"
 	"fmt"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned/scheme"
 )
 
 type Crd struct {
@@ -42,6 +43,7 @@ func NewCrd(GroupName string,
 }
 
 func (d Crd) Register(apiexts apiexts.Interface) error {
+	d.AddToScheme(scheme.Scheme)
 	toRegister := &v1beta1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{Name: d.FullName()},
 		Spec: v1beta1.CustomResourceDefinitionSpec{
@@ -71,8 +73,9 @@ func (d Crd) KubeResource(resource resources.Resource) *v1.Resource {
 	return &v1.Resource{
 		TypeMeta: d.TypeMeta(),
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: resource.GetMetadata().Namespace,
-			Name:      resource.GetMetadata().Name,
+			Namespace:       resource.GetMetadata().Namespace,
+			Name:            resource.GetMetadata().Name,
+			ResourceVersion: resource.GetMetadata().ResourceVersion,
 		},
 		Status: resource.GetStatus(),
 		Spec:   &spec,
