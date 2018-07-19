@@ -90,9 +90,9 @@ func NewForConfigOrDie(c *rest.Config, def crd.Crd) *Clientset {
 }
 
 // New creates a new Clientset for the given RESTClient.
-func New(c rest.Interface) *Clientset {
+func New(c rest.Interface, def crd.Crd) *Clientset {
 	var cs Clientset
-	cs.resourcesV1 = resourcesv1.New(c)
+	cs.resourcesV1 = resourcesv1.New(c, def)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

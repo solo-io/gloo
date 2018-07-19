@@ -33,10 +33,11 @@ type ResourcesV1Interface interface {
 // ResourcesV1Client is used to interact with features provided by the resources.solo.io group.
 type ResourcesV1Client struct {
 	restClient rest.Interface
+	def        crd.Crd
 }
 
 func (c *ResourcesV1Client) Resources(namespace string) ResourceInterface {
-	return newResources(c, namespace)
+	return newResources(c, namespace, c.def)
 }
 
 // NewForConfig creates a new ResourcesV1Client for the given config.
@@ -49,7 +50,7 @@ func NewForConfig(c *rest.Config, def crd.Crd) (*ResourcesV1Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ResourcesV1Client{client}, nil
+	return &ResourcesV1Client{restClient: client, def: def}, nil
 }
 
 // NewForConfigOrDie creates a new ResourcesV1Client for the given config and
@@ -63,8 +64,8 @@ func NewForConfigOrDie(c *rest.Config, def crd.Crd) *ResourcesV1Client {
 }
 
 // New creates a new ResourcesV1Client for the given RESTClient.
-func New(c rest.Interface) *ResourcesV1Client {
-	return &ResourcesV1Client{c}
+func New(c rest.Interface, def crd.Crd) *ResourcesV1Client {
+	return &ResourcesV1Client{restClient: c, def: def}
 }
 
 func setConfigDefaults(config *rest.Config, def crd.Crd) error {

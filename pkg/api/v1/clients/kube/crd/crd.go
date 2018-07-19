@@ -3,11 +3,14 @@ package crd
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	"github.com/solo-io/gloo/pkg/protoutil"
 	"fmt"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type Crd struct {
@@ -38,6 +41,27 @@ func NewCrd(GroupName string,
 	}
 }
 
+func (d Crd) Register(apiexts apiexts.Interface) error {
+	toRegister := &v1beta1.CustomResourceDefinition{
+		ObjectMeta: metav1.ObjectMeta{Name: d.FullName()},
+		Spec: v1beta1.CustomResourceDefinitionSpec{
+			Group:   d.Group,
+			Version: d.Version,
+			Scope:   v1beta1.NamespaceScoped,
+			Names: v1beta1.CustomResourceDefinitionNames{
+				Plural:     d.Plural,
+				Kind:       d.KindName,
+				ShortNames: []string{d.ShortName},
+			},
+		},
+	}
+	_, err := apiexts.ApiextensionsV1beta1().CustomResourceDefinitions().Create(toRegister)
+	if err != nil && !apierrors.IsAlreadyExists(err) {
+		return fmt.Errorf("failed to register crd: %v", err)
+	}
+	return nil
+}
+
 func (d Crd) KubeResource(resource resources.Resource) *v1.Resource {
 	data, err := protoutil.MarshalMap(resource)
 	if err != nil {
@@ -51,7 +75,7 @@ func (d Crd) KubeResource(resource resources.Resource) *v1.Resource {
 			Name:      resource.GetMetadata().Name,
 		},
 		Status: resource.GetStatus(),
-		Spec: &spec,
+		Spec:   &spec,
 	}
 }
 

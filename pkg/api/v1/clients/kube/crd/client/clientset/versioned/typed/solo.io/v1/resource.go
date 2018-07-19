@@ -19,12 +19,13 @@ limitations under the License.
 package v1
 
 import (
-	scheme "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned/scheme"
-	v1 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned/scheme"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	types "k8s.io/apimachinery/pkg/types"
-	watch "k8s.io/apimachinery/pkg/watch"
-	rest "k8s.io/client-go/rest"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/rest"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 )
 
 // ResourcesGetter has a method to return a ResourceInterface.
@@ -50,13 +51,15 @@ type ResourceInterface interface {
 type resources struct {
 	client rest.Interface
 	ns     string
+	def    crd.Crd
 }
 
 // newResources returns a Resources
-func newResources(c *ResourcesV1Client, namespace string) *resources {
+func newResources(c *ResourcesV1Client, namespace string, def crd.Crd) *resources {
 	return &resources{
 		client: c.RESTClient(),
 		ns:     namespace,
+		def:    def,
 	}
 }
 
@@ -65,7 +68,7 @@ func (c *resources) Get(name string, options meta_v1.GetOptions) (result *v1.Res
 	result = &v1.Resource{}
 	err = c.client.Get().
 		Namespace(c.ns).
-		Resource("resources").
+		Resource(c.def.Plural).
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
 		Do().
@@ -78,7 +81,7 @@ func (c *resources) List(opts meta_v1.ListOptions) (result *v1.ResourceList, err
 	result = &v1.ResourceList{}
 	err = c.client.Get().
 		Namespace(c.ns).
-		Resource("resources").
+		Resource(c.def.Plural).
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Do().
 		Into(result)
@@ -90,7 +93,7 @@ func (c *resources) Watch(opts meta_v1.ListOptions) (watch.Interface, error) {
 	opts.Watch = true
 	return c.client.Get().
 		Namespace(c.ns).
-		Resource("resources").
+		Resource(c.def.Plural).
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Watch()
 }
@@ -100,7 +103,7 @@ func (c *resources) Create(resource *v1.Resource) (result *v1.Resource, err erro
 	result = &v1.Resource{}
 	err = c.client.Post().
 		Namespace(c.ns).
-		Resource("resources").
+		Resource(c.def.Plural).
 		Body(resource).
 		Do().
 		Into(result)
@@ -112,7 +115,7 @@ func (c *resources) Update(resource *v1.Resource) (result *v1.Resource, err erro
 	result = &v1.Resource{}
 	err = c.client.Put().
 		Namespace(c.ns).
-		Resource("resources").
+		Resource(c.def.Plural).
 		Name(resource.Name).
 		Body(resource).
 		Do().
@@ -124,7 +127,7 @@ func (c *resources) Update(resource *v1.Resource) (result *v1.Resource, err erro
 func (c *resources) Delete(name string, options *meta_v1.DeleteOptions) error {
 	return c.client.Delete().
 		Namespace(c.ns).
-		Resource("resources").
+		Resource(c.def.Plural).
 		Name(name).
 		Body(options).
 		Do().
@@ -135,7 +138,7 @@ func (c *resources) Delete(name string, options *meta_v1.DeleteOptions) error {
 func (c *resources) DeleteCollection(options *meta_v1.DeleteOptions, listOptions meta_v1.ListOptions) error {
 	return c.client.Delete().
 		Namespace(c.ns).
-		Resource("resources").
+		Resource(c.def.Plural).
 		VersionedParams(&listOptions, scheme.ParameterCodec).
 		Body(options).
 		Do().
@@ -147,7 +150,7 @@ func (c *resources) Patch(name string, pt types.PatchType, data []byte, subresou
 	result = &v1.Resource{}
 	err = c.client.Patch(pt).
 		Namespace(c.ns).
-		Resource("resources").
+		Resource(c.def.Plural).
 		SubResource(subresources...).
 		Name(name).
 		Body(data).
