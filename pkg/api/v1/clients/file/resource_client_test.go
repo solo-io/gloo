@@ -7,6 +7,9 @@ import (
 	"io/ioutil"
 	"os"
 
+	"time"
+
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/file"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -93,20 +96,24 @@ var _ = Describe("Base", func() {
 		Expect(list).To(ContainElement(r1))
 		Expect(list).NotTo(ContainElement(r2))
 
-		w, err := client.Watch(clients.WatchOpts{})
+		w, errs, err := client.Watch(clients.WatchOpts{RefreshRate: time.Millisecond})
 		Expect(err).NotTo(HaveOccurred())
 		go func() {
 			// event 1
 			r2, err = client.Write(r2, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
+			time.Sleep(time.Millisecond * 2)
 			// event 2
 			err = client.Delete(r2.GetMetadata().Name, clients.DeleteOpts{})
 			Expect(err).NotTo(HaveOccurred())
+			time.Sleep(time.Millisecond * 5)
 			// event 3
 			r2, err = client.Write(r2, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
+
+			log.Printf("reached")
 		}()
-		Eventually(Expect(w)).Should(HaveLen(3))
+		Eventually(w, time.Second*3).Should(HaveLen(3))
 		list1 := <-w
 		Expect(list1).To(ContainElement(r1))
 		Expect(list1).To(ContainElement(r2))
@@ -116,6 +123,6 @@ var _ = Describe("Base", func() {
 		list3 := <-w
 		Expect(list3).To(ContainElement(r1))
 		Expect(list3).To(ContainElement(r2))
-
+		Expect(errs).To(HaveLen(0))
 	})
 })

@@ -17,7 +17,7 @@ type ResourceClient interface {
 	Write(resource resources.Resource, opts WriteOpts) (resources.Resource, error)
 	Delete(name string, opts DeleteOpts) error
 	List(opts ListOpts) ([]resources.Resource, error)
-	Watch(opts WatchOpts) (<-chan []resources.Resource, error)
+	Watch(opts WatchOpts) (<-chan []resources.Resource, <-chan error, error)
 }
 
 type GetOpts struct {

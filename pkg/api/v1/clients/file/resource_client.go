@@ -9,11 +9,16 @@ import (
 	"sort"
 	"strconv"
 
+	"context"
+	"time"
+
 	"github.com/gogo/protobuf/proto"
+	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/fileutils"
+	"v/github.com/radovskyb/watcher@v1.0.2"
 )
 
 type ResourceClient struct {
@@ -123,9 +128,30 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Resource, error) {
+func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
 	opts = opts.WithDefaults()
-	panic("yay")
+	dir := filepath.Join(rc.dir, opts.Namespace)
+	events, errs, err := rc.events(opts.Ctx, dir, opts.RefreshRate)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "starting watch on namespace dir")
+	}
+	resourceLists := make(chan []resources.Resource)
+	go func() {
+		select {
+		case <-events:
+			list, err := rc.List(clients.ListOpts{
+				Ctx:       opts.Ctx,
+				Selector:  opts.Selector,
+				Namespace: opts.Namespace,
+			})
+			if err != nil {
+				errs <- err
+			}
+			resourceLists <- list
+		}
+	}()
+
+	return resourceLists, errs, nil
 }
 
 func (rc *ResourceClient) filename(namespace, name string) string {
@@ -134,6 +160,41 @@ func (rc *ResourceClient) filename(namespace, name string) string {
 
 func (rc *ResourceClient) newResource() resources.Resource {
 	return proto.Clone(rc.resourceType).(resources.Resource)
+}
+
+func (rc *ResourceClient) events(ctx context.Context, dir string, refreshRate time.Duration) (<-chan struct{}, chan error, error) {
+	events := make(chan struct{})
+	errs := make(chan error)
+	w := watcher.New()
+	w.SetMaxEvents(0)
+	w.FilterOps(watcher.Create, watcher.Write, watcher.Remove, watcher.Rename, watcher.Move)
+	if err := w.AddRecursive(dir); err != nil {
+		return nil, nil, errors.Wrapf(err, "failed to watch directory %v", dir)
+	}
+	go func() {
+		log.Printf("watching dir %v", dir)
+		if err := w.Start(refreshRate); err != nil {
+			errs <- err
+		}
+	}()
+	go func() {
+		for {
+			select {
+			case event := <-w.Event:
+				log.Printf("event: %v", event.String())
+				if event.IsDir() {
+					continue
+				}
+				events <- struct{}{}
+			case err := <-w.Error:
+				errs <- errors.Wrapf(err, "file watcher error")
+			case <-ctx.Done():
+				w.Close()
+				return
+			}
+		}
+	}()
+	return events, errs, nil
 }
 
 // util methods
