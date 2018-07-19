@@ -1,4 +1,4 @@
-package protoutil_test
+package protoutils_test
 
 import (
 	"github.com/gogo/protobuf/proto"
@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/gloo/pkg/protoutil"
+	. "github.com/solo-io/solo-kit/pkg/utils/protoutils"
 )
 
 type testType struct {

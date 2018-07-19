@@ -1,4 +1,4 @@
-package protoutil
+package protoutils
 
 import (
 	"bytes"

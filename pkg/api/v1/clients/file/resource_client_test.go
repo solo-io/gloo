@@ -6,7 +6,6 @@ import (
 
 	"io/ioutil"
 	"os"
-
 	"time"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"

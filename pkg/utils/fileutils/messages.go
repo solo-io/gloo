@@ -6,11 +6,11 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/utils/protoutil"
+	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 )
 
 func WriteToFile(filename string, pb proto.Message) error {
-	jsn, err := protoutil.MarshalBytes(pb)
+	jsn, err := protoutils.MarshalBytes(pb)
 	data, err := yaml.JSONToYAML(jsn)
 	if err != nil {
 		return err
@@ -27,5 +27,5 @@ func ReadFileInto(filename string, v proto.Message) error {
 	if err != nil {
 		return err
 	}
-	return protoutil.UnmarshalBytes(jsn, v)
+	return protoutils.UnmarshalBytes(jsn, v)
 }
