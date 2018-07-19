@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"
-	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -135,23 +134,39 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "starting watch on namespace dir")
 	}
-	resourceLists := make(chan []resources.Resource)
+	resourcesChan := make(chan []resources.Resource)
 	go func() {
-		select {
-		case <-events:
-			list, err := rc.List(clients.ListOpts{
-				Ctx:       opts.Ctx,
-				Selector:  opts.Selector,
-				Namespace: opts.Namespace,
-			})
-			if err != nil {
-				errs <- err
+		// watch should open up with an initial read
+		list, err := rc.List(clients.ListOpts{
+			Ctx:       opts.Ctx,
+			Selector:  opts.Selector,
+			Namespace: opts.Namespace,
+		})
+		if err != nil {
+			errs <- err
+			return
+		}
+		resourcesChan <- list
+	}()
+	go func() {
+		for {
+			select {
+			case <-events:
+				list, err := rc.List(clients.ListOpts{
+					Ctx:       opts.Ctx,
+					Selector:  opts.Selector,
+					Namespace: opts.Namespace,
+				})
+				if err != nil {
+					errs <- err
+					continue
+				}
+				resourcesChan <- list
 			}
-			resourceLists <- list
 		}
 	}()
 
-	return resourceLists, errs, nil
+	return resourcesChan, errs, nil
 }
 
 func (rc *ResourceClient) filename(namespace, name string) string {
@@ -172,7 +187,6 @@ func (rc *ResourceClient) events(ctx context.Context, dir string, refreshRate ti
 		return nil, nil, errors.Wrapf(err, "failed to watch directory %v", dir)
 	}
 	go func() {
-		log.Printf("watching dir %v", dir)
 		if err := w.Start(refreshRate); err != nil {
 			errs <- err
 		}
@@ -181,7 +195,6 @@ func (rc *ResourceClient) events(ctx context.Context, dir string, refreshRate ti
 		for {
 			select {
 			case event := <-w.Event:
-				log.Printf("event: %v", event.String())
 				if event.IsDir() {
 					continue
 				}
