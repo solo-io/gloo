@@ -4,7 +4,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"v/k8s.io/apimachinery@v0.0.0-20180328184639-0ed326127d30/pkg/util/validation"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 type Resource interface {

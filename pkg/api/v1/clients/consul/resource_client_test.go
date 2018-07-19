@@ -49,10 +49,10 @@ var _ = Describe("Base", func() {
 		Expect(r1).To(BeAssignableToTypeOf(&mocks.MockResource{}))
 		Expect(r1.GetMetadata().Name).To(Equal(name))
 		Expect(r1.GetMetadata().Namespace).To(Equal(clients.DefaultNamespace))
-		Expect(r1.GetMetadata().ResourceVersion).To(Equal("1"))
+		Expect(r1.GetMetadata().ResourceVersion).To(Equal("7"))
 		Expect(r1.(*mocks.MockResource).Data).To(Equal(name))
 
-		_, err = client.Write(input, clients.WriteOpts{
+		r1, err = client.Write(input, clients.WriteOpts{
 			OverwriteExisting: true,
 		})
 		Expect(err).NotTo(HaveOccurred())

@@ -343,9 +343,20 @@
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
   version = "v2.2.1"
 
+[[projects]]
+  branch = "master"
+  name = "k8s.io/apimachinery"
+  packages = [
+    "pkg/util/errors",
+    "pkg/util/sets",
+    "pkg/util/validation",
+    "pkg/util/validation/field"
+  ]
+  revision = "001f0307e2ebcfc31265ae32d8d3130c1b81b44e"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d1da2023aaff17aa2617e1226e11000b577591c1a6cf9dc080667b10248e8484"
+  inputs-digest = "fe545e88f094a018e3e7b47e16286cba1c874f857525d41cb9eaff41259470d4"
   solver-name = "gps-cdcl"
   solver-version = 1

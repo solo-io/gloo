@@ -55,6 +55,7 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 	}
 	meta := resource.GetMetadata()
 	meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
+	resource.SetMetadata(meta)
 	return resource, nil
 }
 
@@ -108,6 +109,11 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
 	key := rc.resourceKey(opts.Namespace, name)
+	if !opts.IgnoreNotExist {
+		if _, err := rc.Read(name, clients.ReadOpts{Namespace: opts.Namespace, Ctx: opts.Ctx}); err != nil {
+			return errors.NewNotExistErr(opts.Namespace, name, err)
+		}
+	}
 	_, err := rc.consul.KV().Delete(key, nil)
 	if err != nil {
 		return errors.Wrapf(err, "deleting resource %v", name)
@@ -130,6 +136,9 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 		if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 			return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 		}
+		meta := resource.GetMetadata()
+		meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
+		resource.SetMetadata(meta)
 		resourceList = append(resourceList, resource)
 	}
 
@@ -179,6 +188,9 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 			if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 				return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 			}
+			meta := resource.GetMetadata()
+			meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
+			resource.SetMetadata(meta)
 			resourceList = append(resourceList, resource)
 		}
 
