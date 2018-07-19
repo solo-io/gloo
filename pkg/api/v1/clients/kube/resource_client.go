@@ -1,4 +1,4 @@
-package consul
+package kube
 
 import (
 	"fmt"
@@ -13,18 +13,23 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
+	"k8s.io/api/core/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ResourceClient struct {
-	consul       *api.Client
-	root         string
+	kube         versioned.Interface
+	ownerLabel   string
+	resourceName string
 	resourceType resources.Resource
 }
 
-func NewResourceClient(client *api.Client, rootKey string, resourceType resources.Resource) *ResourceClient {
+func NewResourceClient(client versioned.Interface, ownerLabel string, resourceType resources.Resource) *ResourceClient {
 	return &ResourceClient{
-		consul:       client,
-		root:         rootKey,
+		kube:         client,
+		ownerLabel:   ownerLabel,
+		resourceName: reflect.TypeOf(resourceType).Name(),
 		resourceType: resourceType,
 	}
 }
@@ -40,21 +45,19 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 		return nil, errors.Wrapf(err, "validation error")
 	}
 	opts = opts.WithDefaults()
-	key := rc.resourceKey(opts.Namespace, name)
 
-	kvPair, _, err := rc.consul.KV().Get(key, nil)
+	resourceCrd, err := rc.kube.ResourcesV1().Resources(opts.Namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
-		return nil, errors.Wrapf(err, "performing consul KV get")
+		return nil, errors.Wrapf(err, "performing kube configmap get")
 	}
-	if kvPair == nil {
-		return nil, errors.NewNotExistErr(opts.Namespace, name)
-	}
-	resource := resources.Clone(rc.resourceType)
-	if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
-		return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
+	resource := rc.newResource()
+	if resourceCrd.Spec != nil {
+		if err := protoutils.UnmarshalMap(*resourceCrd.Spec, resource); err != nil {
+			return nil, errors.Wrapf(err, "reading KV into %v", rc.resourceName)
+		}
 	}
 	meta := resource.GetMetadata()
-	meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
+	meta.ResourceVersion = resourceCrd.ResourceVersion
 	resource.SetMetadata(meta)
 	return resource, nil
 }
@@ -71,9 +74,9 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	key := rc.resourceKey(meta.Namespace, meta.Name)
 
 	if !opts.OverwriteExisting {
-		kvPair, _, err := rc.consul.KV().Get(key, nil)
+		kvPair, _, err := rc.kube.KV().Get(key, nil)
 		if err != nil {
-			return nil, errors.Wrapf(err, "performing consul KV get")
+			return nil, errors.Wrapf(err, "performing kube KV get")
 		}
 		if kvPair != nil {
 			return nil, errors.NewExistErr(meta)
@@ -99,7 +102,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 		Value:       data,
 		ModifyIndex: modifyIndex,
 	}
-	if _, err := rc.consul.KV().Put(kvPair, nil); err != nil {
+	if _, err := rc.kube.KV().Put(kvPair, nil); err != nil {
 		return nil, errors.Wrapf(err, "writing to KV")
 	}
 	// return a read object to update the modify index
@@ -114,7 +117,7 @@ func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
 			return errors.NewNotExistErr(opts.Namespace, name, err)
 		}
 	}
-	_, err := rc.consul.KV().Delete(key, nil)
+	_, err := rc.kube.KV().Delete(key, nil)
 	if err != nil {
 		return errors.Wrapf(err, "deleting resource %v", name)
 	}
@@ -125,14 +128,14 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 	opts = opts.WithDefaults()
 
 	namespacePrefix := filepath.Join(rc.root, opts.Namespace)
-	kvPairs, _, err := rc.consul.KV().List(namespacePrefix, nil)
+	kvPairs, _, err := rc.kube.KV().List(namespacePrefix, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "reading namespace root")
 	}
 
 	var resourceList []resources.Resource
 	for _, kvPair := range kvPairs {
-		resource := resources.Clone(rc.resourceType)
+		resource := rc.newResource()
 		if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 			return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 		}
@@ -169,7 +172,7 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 		resourcesChan <- list
 	}()
 	updatedResourceList := func() ([]resources.Resource, error) {
-		kvPairs, meta, err := rc.consul.KV().List(namespacePrefix,
+		kvPairs, meta, err := rc.kube.KV().List(namespacePrefix,
 			&api.QueryOptions{
 				RequireConsistent: true,
 				WaitIndex:         lastIndex,
@@ -184,7 +187,7 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 		}
 		var resourceList []resources.Resource
 		for _, kvPair := range kvPairs {
-			resource := resources.Clone(rc.resourceType)
+			resource := rc.newResource()
 			if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 				return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 			}
@@ -220,4 +223,8 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 
 func (rc *ResourceClient) resourceKey(namespace, name string) string {
 	return filepath.Join(rc.root, namespace, name)
+}
+
+func (rc *ResourceClient) newResource() resources.Resource {
+	return proto.Clone(rc.resourceType).(resources.Resource)
 }

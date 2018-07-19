@@ -16,6 +16,10 @@ type Resource interface {
 	SetMetadata(meta core.Metadata)
 }
 
+func Clone(resource Resource) Resource {
+	return proto.Clone(resource).(Resource)
+}
+
 func Validate(resource Resource) error {
 	return ValidateName(resource.GetMetadata().Name)
 }

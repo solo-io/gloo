@@ -46,7 +46,7 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
 		return nil, errors.NewNotExistErr(opts.Namespace, name, err)
 	}
-	resource := rc.newResource()
+	resource := resources.Clone(rc.resourceType)
 	if err := fileutils.ReadFileInto(path, resource); err != nil {
 		return nil, errors.Wrapf(err, "reading file into %v", reflect.TypeOf(rc.resourceType))
 	}
@@ -111,7 +111,7 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 
 	var resourceList []resources.Resource
 	for _, file := range files {
-		resource := rc.newResource()
+		resource := resources.Clone(rc.resourceType)
 		path := filepath.Join(namespaceDir, file.Name())
 		if err := fileutils.ReadFileInto(path, resource); err != nil {
 			return nil, errors.Wrapf(err, "reading file into %v", reflect.TypeOf(rc.resourceType))
@@ -170,10 +170,6 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 
 func (rc *ResourceClient) filename(namespace, name string) string {
 	return filepath.Join(rc.dir, namespace, name) + ".yaml"
-}
-
-func (rc *ResourceClient) newResource() resources.Resource {
-	return proto.Clone(rc.resourceType).(resources.Resource)
 }
 
 func (rc *ResourceClient) events(ctx context.Context, dir string, refreshRate time.Duration) (<-chan struct{}, chan error, error) {

@@ -1,8 +1,15 @@
 #----------------------------------------------------------------------------------
-# Protobufs
+# Base
 #----------------------------------------------------------------------------------
 
 ROOTDIR := $(shell pwd)
+PACKAGE_PATH:=github.com/solo-io/solo-kit
+OUTPUT_DIR ?= $(ROOTDIR)/_output
+
+#----------------------------------------------------------------------------------
+# Protobufs
+#----------------------------------------------------------------------------------
+
 PROTOS := $(shell find api/v1 -name "*.proto")
 GENERATED_PROTO_FILES := $(shell find pkg/api/v1/resources/core -name "*.pb.go")
 
@@ -20,3 +27,21 @@ $(GENERATED_PROTO_FILES): $(PROTOS)
 	-I=$(GOPATH)/src/github.com/gogo/protobuf/protobuf/ \
 	-I=. \
 	./*.proto
+
+#----------------------------------------------------------------------------------
+# Kubernetes Clientsets
+#----------------------------------------------------------------------------------
+
+$(OUTPUT_DIR):
+	mkdir -p $@
+
+.PHONY: clientset
+clientset: $(OUTPUT_DIR) $(OUTPUT_DIR)/.clientset
+
+$(OUTPUT_DIR)/.clientset: $(GENERATED_PROTO_FILES) $(SOURCES)
+	cd ${GOPATH}/src/k8s.io/code-generator && \
+	./generate-groups.sh all \
+		$(PACKAGE_PATH)/pkg/api/v1/clients/kube/crd/client \
+		$(PACKAGE_PATH)/pkg/api/v1/clients/kube/crd \
+		"solo.io:v1"
+	touch $@
