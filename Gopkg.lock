@@ -101,6 +101,12 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/radovskyb/watcher"
+  packages = ["."]
+  revision = "6145e1439b9de93806925353403f91d2abbad8a5"
+  version = "v1.0.2"
+
+[[projects]]
   name = "github.com/solo-io/gloo"
   packages = [
     "pkg/log",
@@ -169,6 +175,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e080e1ee3cfcce6ca5441f84b558cce7cc8f4daec5ad5947bb36f83d05ac00b5"
+  inputs-digest = "9653cd43bb637708ce0f948b03342664046db762f6fd622b621e49f4627509a6"
   solver-name = "gps-cdcl"
   solver-version = 1

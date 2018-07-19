@@ -57,11 +57,11 @@ var _ = Describe("Base", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		read, err := client.Read(name, clients.GetOpts{})
+		read, err := client.Read(name, clients.ReadOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(read).To(Equal(r1))
 
-		_, err = client.Read(name, clients.GetOpts{Namespace: "doesntexist"})
+		_, err = client.Read(name, clients.ReadOpts{Namespace: "doesntexist"})
 		Expect(err).To(HaveOccurred())
 		Expect(errors.IsNotExist(err)).To(BeTrue())
 

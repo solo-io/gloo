@@ -13,19 +13,47 @@ var DefaultRefreshRate = time.Second * 30
 
 type ResourceClient interface {
 	Register() error
-	Read(name string, opts GetOpts) (resources.Resource, error)
+	Read(name string, opts ReadOpts) (resources.Resource, error)
 	Write(resource resources.Resource, opts WriteOpts) (resources.Resource, error)
 	Delete(name string, opts DeleteOpts) error
 	List(opts ListOpts) ([]resources.Resource, error)
 	Watch(opts WatchOpts) (<-chan []resources.Resource, <-chan error, error)
 }
 
-type GetOpts struct {
+type ReadOpts struct {
 	Ctx       context.Context
 	Namespace string
 }
 
-func (o GetOpts) WithDefaults() GetOpts {
+func (o ReadOpts) WithDefaults() ReadOpts {
+	if o.Ctx == nil {
+		o.Ctx = context.TODO()
+	}
+	if o.Namespace == "" {
+		o.Namespace = DefaultNamespace
+	}
+	return o
+}
+
+type WriteOpts struct {
+	Ctx               context.Context
+	OverwriteExisting bool
+}
+
+func (o WriteOpts) WithDefaults() WriteOpts {
+	if o.Ctx == nil {
+		o.Ctx = context.TODO()
+	}
+	return o
+}
+
+type DeleteOpts struct {
+	Ctx            context.Context
+	Namespace      string
+	IgnoreNotExist bool
+}
+
+func (o DeleteOpts) WithDefaults() DeleteOpts {
 	if o.Ctx == nil {
 		o.Ctx = context.TODO()
 	}
@@ -67,34 +95,6 @@ func (o WatchOpts) WithDefaults() WatchOpts {
 	}
 	if o.RefreshRate == 0 {
 		o.RefreshRate = DefaultRefreshRate
-	}
-	return o
-}
-
-type WriteOpts struct {
-	Ctx               context.Context
-	OverwriteExisting bool
-}
-
-func (o WriteOpts) WithDefaults() WriteOpts {
-	if o.Ctx == nil {
-		o.Ctx = context.TODO()
-	}
-	return o
-}
-
-type DeleteOpts struct {
-	Ctx            context.Context
-	Namespace      string
-	IgnoreNotExist bool
-}
-
-func (o DeleteOpts) WithDefaults() DeleteOpts {
-	if o.Ctx == nil {
-		o.Ctx = context.TODO()
-	}
-	if o.Namespace == "" {
-		o.Namespace = DefaultNamespace
 	}
 	return o
 }

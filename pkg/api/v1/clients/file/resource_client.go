@@ -1,6 +1,7 @@
 package file
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -8,16 +9,14 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
-
-	"context"
 	"time"
 
 	"github.com/gogo/protobuf/proto"
+	"github.com/radovskyb/watcher"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/fileutils"
-	"v/github.com/radovskyb/watcher@v1.0.2"
 )
 
 type ResourceClient struct {
@@ -38,7 +37,7 @@ func (rc *ResourceClient) Register() error {
 	return nil
 }
 
-func (rc *ResourceClient) Read(name string, opts clients.GetOpts) (resources.Resource, error) {
+func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Resource, error) {
 	if err := resources.ValidateName(name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
