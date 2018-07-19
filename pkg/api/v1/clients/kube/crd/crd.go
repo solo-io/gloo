@@ -4,6 +4,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
+	"github.com/solo-io/gloo/pkg/protoutil"
+	"fmt"
 )
 
 type Crd struct {
@@ -31,6 +35,23 @@ func NewCrd(GroupName string,
 		KindName:  KindName,
 		ShortName: ShortName,
 		Type:      Type,
+	}
+}
+
+func (d Crd) KubeResource(resource resources.Resource) *v1.Resource {
+	data, err := protoutil.MarshalMap(resource)
+	if err != nil {
+		panic(fmt.Sprintf("internal error: failed to marshal resource to map: %v", err))
+	}
+	spec := v1.Spec(data)
+	return &v1.Resource{
+		TypeMeta: d.TypeMeta(),
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: resource.GetMetadata().Namespace,
+			Name:      resource.GetMetadata().Name,
+		},
+		Status: resource.GetStatus(),
+		Spec: &spec,
 	}
 }
 
@@ -69,5 +90,6 @@ func (d Crd) SchemeBuilder() runtime.SchemeBuilder {
 }
 
 func (d Crd) AddToScheme(s *runtime.Scheme) error {
-	return d.SchemeBuilder().AddToScheme(s)
+	builder := d.SchemeBuilder()
+	return (&builder).AddToScheme(s)
 }

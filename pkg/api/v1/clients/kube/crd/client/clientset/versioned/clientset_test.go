@@ -35,8 +35,13 @@ var _ = Describe("Clientset", func() {
 		services.TeardownKube(namespace)
 	})
 	It("registers, creates, deletes resource implementations", func() {
-		)
 		mockCrdClient, err := NewForConfig(cfg, mocks.MockCrd)
 		Expect(err).NotTo(HaveOccurred())
+		name := "foo"
+		input := mocks.NewMockResource(name)
+		inputCrd := mocks.MockCrd.KubeResource(input)
+		created, err := mockCrdClient.ResourcesV1().Resources(namespace).Create(inputCrd)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(created).To(BeNil())
 	})
 })

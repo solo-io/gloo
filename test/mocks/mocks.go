@@ -6,10 +6,18 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 //go:generate protoc -I=./ -I=${GOPATH}/src/github.com/gogo/protobuf/ -I=${GOPATH}/src/github.com/gogo/protobuf/protobuf/ -I=${GOPATH}/src --gogo_out=Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types:${GOPATH}/src mock_resource.proto
+
+func NewMockResource(name string) *MockResource {
+	return &MockResource{
+		Data: name,
+		Metadata: core.Metadata{
+			Name: name,
+		},
+	}
+}
 
 func (r *MockResource) SetStatus(status core.Status) {
 	r.Status = status
@@ -24,6 +32,7 @@ var _ resources.Resource = &MockResource{}
 type MockCrdObject struct {
 	resources.Resource
 }
+
 func (m *MockCrdObject) GetObjectKind() schema.ObjectKind {
 	t := MockCrd.TypeMeta()
 	return &t

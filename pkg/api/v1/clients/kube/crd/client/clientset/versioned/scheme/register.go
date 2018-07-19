@@ -19,36 +19,33 @@ limitations under the License.
 package scheme
 
 import (
-	resourcesv1 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	runtime "k8s.io/apimachinery/pkg/runtime"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
-	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 )
 
 var Scheme = runtime.NewScheme()
 var Codecs = serializer.NewCodecFactory(Scheme)
 var ParameterCodec = runtime.NewParameterCodec(Scheme)
 
-func init() {
+func Init(def crd.Crd) {
 	v1.AddToGroupVersion(Scheme, schema.GroupVersion{Version: "v1"})
-	AddToScheme(Scheme)
-}
 
-// AddToScheme adds all types of this clientset into the given scheme. This allows composition
-// of clientsets, like in:
-//
-//   import (
-//     "k8s.io/client-go/kubernetes"
-//     clientsetscheme "k8s.io/client-go/kubernetes/scheme"
-//     aggregatorclientsetscheme "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/scheme"
-//   )
-//
-//   kclientset, _ := kubernetes.NewForConfig(c)
-//   aggregatorclientsetscheme.AddToScheme(clientsetscheme.Scheme)
-//
-// After this, RawExtensions in Kubernetes types will serialize kube-aggregator types
-// correctly.
-func AddToScheme(scheme *runtime.Scheme) {
-	resourcesv1.AddToScheme(scheme)
+	// AddToScheme adds all types of this clientset into the given scheme. This allows composition
+	// of clientsets, like in:
+	//
+	//   import (
+	//     "k8s.io/client-go/kubernetes"
+	//     clientsetscheme "k8s.io/client-go/kubernetes/scheme"
+	//     aggregatorclientsetscheme "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/scheme"
+	//   )
+	//
+	//   kclientset, _ := kubernetes.NewForConfig(c)
+	//   aggregatorclientsetscheme.AddToScheme(clientsetscheme.Scheme)
+	//
+	// After this, RawExtensions in Kubernetes types will serialize kube-aggregator types
+	// correctly.
+	def.AddToScheme(Scheme)
 }

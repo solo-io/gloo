@@ -3,8 +3,8 @@ package v1
 import (
 	"encoding/json"
 
-	"github.com/solo-io/gloo/pkg/api/types/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 // +genclient
@@ -15,9 +15,9 @@ import (
 type Resource struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Status            *v1.Status `json:"status"`
-	Spec              *Spec      `json:"spec"`
+	metav1.ObjectMeta  `json:"metadata,omitempty"`
+	Status core.Status `json:"status"`
+	Spec   *Spec       `json:"spec"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -26,8 +26,8 @@ type Resource struct {
 type ResourceList struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
-	metav1.ListMeta `json:"metadata"`
-	Items           []Resource `json:"items"`
+	metav1.ListMeta  `json:"metadata"`
+	Items []Resource `json:"items"`
 }
 
 // spec implements deepcopy

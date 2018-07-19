@@ -21,7 +21,6 @@ limitations under the License.
 package v1
 
 import (
-	types_v1 "github.com/solo-io/gloo/pkg/api/types/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -30,15 +29,7 @@ func (in *Resource) DeepCopyInto(out *Resource) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
-	if in.Status != nil {
-		in, out := &in.Status, &out.Status
-		if *in == nil {
-			*out = nil
-		} else {
-			*out = new(types_v1.Status)
-			**out = **in
-		}
-	}
+	out.Status = in.Status
 	if in.Spec != nil {
 		in, out := &in.Spec, &out.Spec
 		if *in == nil {
