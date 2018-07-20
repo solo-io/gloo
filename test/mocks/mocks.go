@@ -19,16 +19,6 @@ func NewMockResource(name string) *MockResource {
 	}
 }
 
-func (r *MockResource) SetStatus(status core.Status) {
-	r.Status = status
-}
-
-func (r *MockResource) SetMetadata(meta core.Metadata) {
-	r.Metadata = meta
-}
-
-var _ resources.Resource = &MockResource{}
-
 type MockCrdObject struct {
 	resources.Resource
 }
