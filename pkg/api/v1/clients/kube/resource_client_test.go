@@ -54,6 +54,7 @@ var _ = Describe("Base", func() {
 
 		name := "foo"
 		input := mocks.NewMockResource(name)
+		input.Metadata.Namespace = namespace
 		r1, err := client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -63,16 +64,24 @@ var _ = Describe("Base", func() {
 
 		Expect(r1).To(BeAssignableToTypeOf(&mocks.MockResource{}))
 		Expect(r1.GetMetadata().Name).To(Equal(name))
-		Expect(r1.GetMetadata().Namespace).To(Equal(clients.DefaultNamespace))
-		Expect(r1.GetMetadata().ResourceVersion).To(Equal("7"))
+		Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
+		Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal("7"))
 		Expect(r1.(*mocks.MockResource).Data).To(Equal(name))
 
+		_, err = client.Write(input, clients.WriteOpts{
+			OverwriteExisting: true,
+		})
+		Expect(err).To(HaveOccurred())
+
+		input.Metadata.ResourceVersion = r1.GetMetadata().ResourceVersion
 		r1, err = client.Write(input, clients.WriteOpts{
 			OverwriteExisting: true,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		read, err := client.Read(name, clients.ReadOpts{})
+		read, err := client.Read(name, clients.ReadOpts{
+			Namespace: namespace,
+		})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(read).To(Equal(r1))
 
@@ -84,39 +93,59 @@ var _ = Describe("Base", func() {
 		input = &mocks.MockResource{
 			Data: name,
 			Metadata: core.Metadata{
-				Name: name,
+				Name:      name,
+				Namespace: namespace,
 			},
 		}
 		r2, err := client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		list, err := client.List(clients.ListOpts{})
+		list, err := client.List(clients.ListOpts{
+			Namespace: namespace,
+		})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(list).To(ContainElement(r1))
 		Expect(list).To(ContainElement(r2))
 
-		err = client.Delete("adsfw", clients.DeleteOpts{})
+		err = client.Delete("adsfw", clients.DeleteOpts{
+			Namespace: namespace,
+		})
 		Expect(err).To(HaveOccurred())
 		Expect(errors.IsNotExist(err)).To(BeTrue())
 
 		err = client.Delete("adsfw", clients.DeleteOpts{
 			IgnoreNotExist: true,
+			Namespace:      namespace,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		err = client.Delete(r2.GetMetadata().Name, clients.DeleteOpts{})
+		err = client.Delete(r2.GetMetadata().Name, clients.DeleteOpts{
+			Namespace: namespace,
+		})
 		Expect(err).NotTo(HaveOccurred())
-		list, err = client.List(clients.ListOpts{})
+		list, err = client.List(clients.ListOpts{
+			Namespace: namespace,
+		})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(list).To(ContainElement(r1))
 		Expect(list).NotTo(ContainElement(r2))
 
-		w, errs, err := client.Watch(clients.WatchOpts{RefreshRate: time.Millisecond})
+		w, errs, err := client.Watch(clients.WatchOpts{
+			Namespace:   namespace,
+			RefreshRate: time.Hour,
+		})
 		Expect(err).NotTo(HaveOccurred())
 
 		var r3 resources.Resource
 		wait := make(chan struct{})
 		go func() {
+			defer close(wait)
+			defer GinkgoRecover()
+
+			resources.UpdateMetadata(r2, func(meta core.Metadata) core.Metadata {
+				meta.ResourceVersion = ""
+				return meta
+			})
 			r2, err = client.Write(r2, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
@@ -124,12 +153,12 @@ var _ = Describe("Base", func() {
 			input = &mocks.MockResource{
 				Data: name,
 				Metadata: core.Metadata{
-					Name: name,
+					Name:      name,
+					Namespace: namespace,
 				},
 			}
 			r3, err = client.Write(input, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
-			close(wait)
 		}()
 		<-wait
 

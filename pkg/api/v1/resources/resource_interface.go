@@ -20,6 +20,10 @@ func Clone(resource Resource) Resource {
 	return proto.Clone(resource).(Resource)
 }
 
+func UpdateMetadata(resource Resource, updateFunc func(meta core.Metadata) core.Metadata) {
+	resource.SetMetadata(updateFunc(resource.GetMetadata()))
+}
+
 func Validate(resource Resource) error {
 	return ValidateName(resource.GetMetadata().Name)
 }

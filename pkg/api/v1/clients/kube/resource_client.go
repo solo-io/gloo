@@ -12,7 +12,9 @@ import (
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	kubewatch "k8s.io/apimachinery/pkg/watch"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 type ResourceClient struct {
@@ -48,6 +50,9 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 
 	resourceCrd, err := rc.kube.ResourcesV1().Resources(opts.Namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, errors.NewNotExistErr(opts.Namespace, name, err)
+		}
 		return nil, errors.Wrapf(err, "reading resource from kubernetes")
 	}
 	resource := resources.Clone(rc.resourceType)
@@ -56,9 +61,10 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 			return nil, errors.Wrapf(err, "reading crd spec into %v", rc.resourceName)
 		}
 	}
-	meta := resource.GetMetadata()
-	meta.ResourceVersion = resourceCrd.ResourceVersion
-	resource.SetMetadata(meta)
+	resources.UpdateMetadata(resource, func(meta core.Metadata) core.Metadata {
+		meta.ResourceVersion = resourceCrd.ResourceVersion
+		return meta
+	})
 	return resource, nil
 }
 
@@ -124,11 +130,12 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 				return nil, errors.Wrapf(err, "reading crd spec into %v", rc.resourceName)
 			}
 		}
-		meta := resource.GetMetadata()
-		meta.Namespace = resourceCrd.Namespace
-		meta.Name = resourceCrd.Name
-		meta.ResourceVersion = resourceCrd.ResourceVersion
-		resource.SetMetadata(meta)
+		resources.UpdateMetadata(resource, func(meta core.Metadata) core.Metadata {
+			meta.Namespace = resourceCrd.Namespace
+			meta.Name = resourceCrd.Name
+			meta.ResourceVersion = resourceCrd.ResourceVersion
+			return meta
+		})
 		resourceList = append(resourceList, resource)
 	}
 

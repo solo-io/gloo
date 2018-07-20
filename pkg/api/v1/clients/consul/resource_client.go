@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 type ResourceClient struct {
@@ -53,9 +54,10 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 	if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 		return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 	}
-	meta := resource.GetMetadata()
-	meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
-	resource.SetMetadata(meta)
+	resources.UpdateMetadata(resource, func(meta core.Metadata) core.Metadata {
+		meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
+		return meta
+	})
 	return resource, nil
 }
 
@@ -136,9 +138,10 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 		if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 			return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 		}
-		meta := resource.GetMetadata()
-		meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
-		resource.SetMetadata(meta)
+		resources.UpdateMetadata(resource, func(meta core.Metadata) core.Metadata {
+			meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
+			return meta
+		})
 		resourceList = append(resourceList, resource)
 	}
 
@@ -188,9 +191,10 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 			if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 				return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 			}
-			meta := resource.GetMetadata()
-			meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
-			resource.SetMetadata(meta)
+			resources.UpdateMetadata(resource, func(meta core.Metadata) core.Metadata {
+				meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
+				return meta
+			})
 			resourceList = append(resourceList, resource)
 		}
 
