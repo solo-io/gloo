@@ -3,13 +3,14 @@ package services
 import (
 	"bytes"
 	"fmt"
-	"github.com/onsi/ginkgo"
-	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/pkg/log"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/onsi/ginkgo"
+	"github.com/pkg/errors"
+	"github.com/solo-io/gloo/pkg/log"
 )
 
 const (

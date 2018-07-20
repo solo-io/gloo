@@ -1,4 +1,4 @@
-package mocks_test
+package mocks
 
 import (
 	"os"
@@ -15,7 +15,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/test/helpers"
-	. "github.com/solo-io/solo-kit/test/mocks"
 	"github.com/solo-io/solo-kit/test/services"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/rest"

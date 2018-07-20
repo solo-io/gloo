@@ -15,6 +15,14 @@ import (
 // plugin is an implementation of protokit.Plugin
 type Plugin struct{}
 
+type generateCodeFunc func(string, string) (string, error)
+
+var filesToGenerate = map[string]generateCodeFunc{
+	"_client.go":           typed.GenerateTypedClientCode,
+	"_client_kube_test.go": typed.GenerateTypedClientKubeTestCode,
+	"_suite_test.go":       typed.GenerateTypedClientTestSuiteCode,
+}
+
 func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
 	descriptors := protokit.ParseCodeGenRequest(req)
 
@@ -23,21 +31,30 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 	for _, d := range descriptors {
 		for _, msg := range d.Messages {
 			if msg.GetComments() != nil && msg.GetComments().Leading == "@solo-kit:genclient" {
-				fileName := strings.TrimSuffix(d.GetName(), ".proto") + "_client.go"
-				content, err := typed.GenerateTypedClientCode(goPackage(d), msg.GetName())
-				if err != nil {
-					return nil, err
+				for suffix, genFunc := range filesToGenerate {
+					file, err := generateFile(d, suffix, msg.GetName(), genFunc)
+					if err != nil {
+						return nil, err
+					}
+					resp.File = append(resp.File, file)
 				}
-
-				resp.File = append(resp.File, &plugin_go.CodeGeneratorResponse_File{
-					Name:    proto.String(fileName),
-					Content: proto.String(content),
-				})
 			}
 		}
 	}
 
 	return resp, nil
+}
+
+func generateFile(d *protokit.FileDescriptor, suffix, messageName string, genFunc generateCodeFunc) (*plugin_go.CodeGeneratorResponse_File, error) {
+	fileName := strings.TrimSuffix(d.GetName(), ".proto") + suffix
+	content, err := genFunc(goPackage(d), messageName)
+	if err != nil {
+		return nil, err
+	}
+	return &plugin_go.CodeGeneratorResponse_File{
+		Name:    proto.String(fileName),
+		Content: proto.String(content),
+	}, nil
 }
 
 // goPackageOption interprets the file's go_package option.

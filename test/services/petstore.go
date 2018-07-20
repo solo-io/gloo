@@ -1,11 +1,12 @@
 package services
 
 import (
-	"github.com/pkg/errors"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/pkg/errors"
 )
 
 func downloadPetstore(destDir string) (string, error) {
