@@ -5,11 +5,13 @@ import (
 	"text/template"
 )
 
-func GenerateTypedClientCode(resourceTypeName string) (string, error) {
+func GenerateTypedClientCode(packageName, resourceTypeName string) (string, error) {
 	buf := &bytes.Buffer{}
 	if err := typedClientTemplate.Execute(buf, struct {
+		PackageName  string
 		ResourceType string
 	}{
+		PackageName:  packageName,
 		ResourceType: resourceTypeName,
 	}); err != nil {
 		return "", err
@@ -19,8 +21,9 @@ func GenerateTypedClientCode(resourceTypeName string) (string, error) {
 
 var typedClientTemplate = template.Must(template.New("typed_client").Parse(templateContents))
 
-const templateContents = `import (
-	"time"
+const templateContents = `package {{ .PackageName }}
+
+import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -94,10 +97,10 @@ func (client *typedResourceClient) Watch(opts clients.WatchOpts) (<-chan []*{{ .
 		return nil, nil, initErr
 	}
 	typedResourcesChan := make(chan []*{{ .ResourceType }})
-	go func(){
+	go func() {
 		for {
 			select {
-			case resourceList := <- resourcesChan:
+			case resourceList := <-resourcesChan:
 				typedResourcesChan <- convertResources(resourceList)
 			}
 		}

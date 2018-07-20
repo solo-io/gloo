@@ -5,6 +5,7 @@
 ROOTDIR := $(shell pwd)
 PACKAGE_PATH:=github.com/solo-io/solo-kit
 OUTPUT_DIR ?= $(ROOTDIR)/_output
+SOURCES := $(shell find . -name "*.go" | grep -v test)
 
 #----------------------------------------------------------------------------------
 # Protobufs
@@ -45,3 +46,26 @@ $(OUTPUT_DIR)/.clientset: $(GENERATED_PROTO_FILES) $(SOURCES)
 		$(PACKAGE_PATH)/pkg/api/v1/clients/kube/crd \
 		"solo.io:v1"
 	touch $@
+
+#----------------------------------------------------------------------------------
+# Generated Code
+#----------------------------------------------------------------------------------
+
+.PHONY: generated-code
+generated-code: $(OUTPUT_DIR)/.generated-code
+
+$(OUTPUT_DIR)/.generated-code:
+	go generate ./pkg/...
+	touch $@
+
+#----------------------------------------------------------------------------------
+# protoc plugin binary
+#----------------------------------------------------------------------------------
+
+$(OUTPUT_DIR)/protoc-gen-solo-kit: $(SOURCES)
+	go build -o $@ cmd/generator/main.go
+
+
+.PHONY: install-plugin
+install-plugin: $(OUTPUT_DIR)/protoc-gen-solo-kit
+	cp $(OUTPUT_DIR)/protoc-gen-solo-kit ${GOPATH}/bin/
