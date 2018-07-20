@@ -176,7 +176,7 @@ var _ = Describe("Base", func() {
 			case list = <-w:
 			case err := <-errs:
 				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Millisecond * 5):
+			case <-time.After(time.Millisecond * 500):
 				break drain
 			}
 		}
