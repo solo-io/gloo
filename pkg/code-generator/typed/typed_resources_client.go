@@ -1,13 +1,13 @@
 package typed
 
 import (
-	"text/template"
 	"bytes"
+	"text/template"
 )
 
 func GenerateTypedClientCode(resourceTypeName string) (string, error) {
 	buf := &bytes.Buffer{}
-	if err := typedClientTemplate.Execute(buf, struct{
+	if err := typedClientTemplate.Execute(buf, struct {
 		ResourceType string
 	}{
 		ResourceType: resourceTypeName,
