@@ -1,6 +1,25 @@
-package clients
+package typed
 
-const templatecontents = `import (
+import (
+	"text/template"
+	"bytes"
+)
+
+func GenerateTypedClientCode(resourceTypeName string) (string, error) {
+	buf := &bytes.Buffer{}
+	if err := typedClientTemplate.Execute(buf, struct{
+		ResourceType string
+	}{
+		ResourceType: resourceTypeName,
+	}); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
+var typedClientTemplate = template.Must(template.New("typed_client").Parse(templateContents))
+
+const templateContents = `import (
 	"time"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"

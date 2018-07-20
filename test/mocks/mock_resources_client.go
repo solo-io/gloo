@@ -1,7 +1,6 @@
 package mocks
 
 import (
-	"time"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -75,10 +74,10 @@ func (client *typedResourceClient) Watch(opts clients.WatchOpts) (<-chan []*Mock
 		return nil, nil, initErr
 	}
 	typedResourcesChan := make(chan []*MockResource)
-	go func(){
+	go func() {
 		for {
 			select {
-			case resourceList := <- resourcesChan:
+			case resourceList := <-resourcesChan:
 				typedResourcesChan <- convertResources(resourceList)
 			}
 		}
