@@ -1,15 +1,15 @@
 package services
 
 import (
-	"os/exec"
-	"os"
-	"fmt"
-	"strings"
-	"time"
 	"bytes"
+	"fmt"
 	"github.com/onsi/ginkgo"
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/pkg/log"
+	"os"
+	"os/exec"
+	"strings"
+	"time"
 )
 
 const (

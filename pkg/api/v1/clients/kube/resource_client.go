@@ -3,18 +3,19 @@ package kube
 import (
 	"reflect"
 	"sort"
+
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubewatch "k8s.io/apimachinery/pkg/watch"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 type ResourceClient struct {

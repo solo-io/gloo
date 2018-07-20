@@ -19,10 +19,10 @@ limitations under the License.
 package v1
 
 import (
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned/scheme"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/rest"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 )
 
 type ResourcesV1Interface interface {

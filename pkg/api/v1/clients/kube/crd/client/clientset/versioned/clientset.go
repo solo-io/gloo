@@ -19,11 +19,11 @@ limitations under the License.
 package versioned
 
 import (
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	resourcesv1 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned/typed/solo.io/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 )
 
 type Interface interface {

@@ -1,9 +1,9 @@
 package mocks
 
 import (
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )

@@ -1,20 +1,21 @@
 package versioned_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
-	"github.com/solo-io/gloo/pkg/log"
 	"os"
 	"path/filepath"
-	"github.com/solo-io/solo-kit/test/helpers"
-	"github.com/solo-io/solo-kit/test/services"
-	"k8s.io/client-go/tools/clientcmd"
-	"github.com/solo-io/solo-kit/test/mocks"
-	"k8s.io/client-go/rest"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/solo-io/gloo/pkg/log"
+	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
 	crdv1 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
+	"github.com/solo-io/solo-kit/test/helpers"
+	"github.com/solo-io/solo-kit/test/mocks"
+	"github.com/solo-io/solo-kit/test/services"
+	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 var _ = Describe("Clientset", func() {

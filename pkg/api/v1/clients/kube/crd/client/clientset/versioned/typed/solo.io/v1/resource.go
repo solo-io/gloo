@@ -19,13 +19,13 @@ limitations under the License.
 package v1
 
 import (
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned/scheme"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/rest"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 )
 
 // ResourcesGetter has a method to return a ResourceInterface.
