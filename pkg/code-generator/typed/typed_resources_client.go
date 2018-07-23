@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"strings"
 	"text/template"
+
+	"github.com/iancoleman/strcase"
 )
 
 type ResourceLevelTemplateParams struct {
@@ -29,7 +31,8 @@ type PackageLevelTemplateParams struct {
 }
 
 var funcs = template.FuncMap{
-	"join": strings.Join,
+	"join":      strings.Join,
+	"lowercase": strcase.ToLowerCamel,
 }
 
 func GenerateTypedClientCode(params ResourceLevelTemplateParams) (string, error) {
@@ -413,9 +416,118 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 `
 const inventoryTemplateContents = `package {{ .PackageName }}
 
-type Inventory struct {
+import (
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/mitchellh/hashstructure"
+	"github.com/gogo/protobuf/proto"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+)
+
+type Snapshot struct {
 {{- range .ResourceTypes}}
 	{{ . }}List []*{{.}}
 {{- end}}
+}
+
+func (s Snapshot) Clone() Snapshot {
+{{- range .ResourceTypes}}
+	var {{ lowercase . }}List []*{{ . }}
+	for _, {{ lowercase . }} := range s.{{ . }}List {
+		{{ lowercase . }}List = append({{ lowercase . }}List, proto.Clone({{ lowercase . }}).(*{{ . }}))
+	}
+{{- end}}
+	return Snapshot{
+{{- range .ResourceTypes}}
+		{{ . }}List: {{ lowercase . }}List,
+{{- end}}
+	}
+}
+
+func (s Snapshot) Hash() uint64 {
+	snapshotForHashing := s.Clone()
+{{- range .ResourceTypes}}
+	for _, {{ lowercase . }} := range s.{{ . }}List {
+		resources.UpdateMetadata({{ lowercase . }}, func(meta *core.Metadata) {
+			meta.ResourceVersion = ""
+		})
+		{{ lowercase . }}.SetStatus(core.Status{})
+	}
+{{- end}}
+	h, err := hashstructure.Hash(snapshotForHashing, nil)
+	if err != nil {
+		panic(err)
+	}
+	return h
+}
+
+type Cache interface {
+{{- range .ResourceTypes}}
+	{{ . }}() {{ . }}Client
+{{- end}}
+	Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
+}
+
+func NewCache(factory *factory.ResourceClientFactory) Cache {
+	return &cache{
+{{- range .ResourceTypes}}
+		{{ lowercase . }}: New{{ . }}Client(factory),
+{{- end}}
+	}
+}
+
+type cache struct {
+{{- range .ResourceTypes}}
+	{{ lowercase . }} {{ . }}Client
+{{- end}}
+}
+
+{{- range .ResourceTypes}}
+
+func (c *cache) {{ . }}() {{ . }}Client {
+	return c.{{ lowercase . }}
+}
+{{- end}}
+
+func (c *cache) Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
+	snapshots := make(chan *Snapshot)
+	errs := make(chan error)
+
+	currentSnapshot := Snapshot{}
+
+	sync := func(newSnapshot Snapshot) {
+		if currentSnapshot.Hash() == newSnapshot.Hash() {
+			return
+		}
+		currentSnapshot = newSnapshot
+		snapshots <- &currentSnapshot
+	}
+
+{{- range .ResourceTypes}}
+	{{ lowercase . }}Chan, {{ lowercase . }}Errs, err := c.{{ lowercase . }}.Watch(opts)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "starting {{ . }} watch")
+	}
+{{- end}}
+
+	go func() {
+		for {
+			select {
+{{- range .ResourceTypes}}
+			case {{ lowercase . }}List := <-{{ lowercase . }}Chan:
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.{{ . }}List = {{ lowercase . }}List
+				sync(newSnapshot)
+{{- end}}
+{{- range .ResourceTypes}}
+			case err := <-{{ lowercase . }}Errs:
+				errs <- err
+{{- end}}
+			}
+		}
+	}()
+	return snapshots, errs, nil
 }
 `

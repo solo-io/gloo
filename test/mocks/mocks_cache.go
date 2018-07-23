@@ -17,10 +17,10 @@ type Snapshot struct {
 
 func (s Snapshot) Clone() Snapshot {
 	var mockResourceList []*MockResource
-	var fakeResourceList []*FakeResource
 	for _, mockResource := range s.MockResourceList {
 		mockResourceList = append(mockResourceList, proto.Clone(mockResource).(*MockResource))
 	}
+	var fakeResourceList []*FakeResource
 	for _, fakeResource := range s.FakeResourceList {
 		fakeResourceList = append(fakeResourceList, proto.Clone(fakeResource).(*FakeResource))
 	}
@@ -77,7 +77,6 @@ func (c *cache) FakeResource() FakeResourceClient {
 	return c.fakeResource
 }
 
-
 func (c *cache) Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
 	snapshots := make(chan *Snapshot)
 	errs := make(chan error)
@@ -91,16 +90,15 @@ func (c *cache) Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan erro
 		currentSnapshot = newSnapshot
 		snapshots <- &currentSnapshot
 	}
-
 	mockResourceChan, mockResourceErrs, err := c.mockResource.Watch(opts)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "starting MockResource watch")
 	}
-
 	fakeResourceChan, fakeResourceErrs, err := c.fakeResource.Watch(opts)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "starting FakeResource watch")
 	}
+
 	go func() {
 		for {
 			select {
@@ -111,9 +109,10 @@ func (c *cache) Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan erro
 			case fakeResourceList := <-fakeResourceChan:
 				newSnapshot := currentSnapshot.Clone()
 				newSnapshot.FakeResourceList = fakeResourceList
-			case err := <- mockResourceErrs:
+				sync(newSnapshot)
+			case err := <-mockResourceErrs:
 				errs <- err
-			case err := <- fakeResourceErrs:
+			case err := <-fakeResourceErrs:
 				errs <- err
 			}
 		}
