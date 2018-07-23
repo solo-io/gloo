@@ -1,6 +1,6 @@
 package mocks
 
-type Collection struct {
+type Inventory struct {
 	MockResourceList []*MockResource
 	FakeResourceList []*FakeResource
 }

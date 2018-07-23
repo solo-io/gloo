@@ -391,7 +391,7 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 `
 const inventoryTemplateContents = `package {{ .PackageName }}
 
-type Collection struct {
+type Inventory struct {
 {{- range .ResourceTypes}}
 	{{ . }}List []*{{.}}
 {{- end}}
