@@ -29,21 +29,21 @@ type MockResourceClient interface {
 	Watch(opts clients.WatchOpts) (<-chan []*MockResource, <-chan error, error)
 }
 
-type typedResourceClient struct {
+type mockResourceClient struct {
 	rc clients.ResourceClient
 }
 
 func NewMockResourceClient(factory *factory.ResourceClientFactory) MockResourceClient {
-	return &typedResourceClient{
+	return &mockResourceClient{
 		rc: factory.NewResourceClient(&MockResource{}),
 	}
 }
 
-func (client *typedResourceClient) Register() error {
+func (client *mockResourceClient) Register() error {
 	return client.rc.Register()
 }
 
-func (client *typedResourceClient) Read(name string, opts clients.ReadOpts) (*MockResource, error) {
+func (client *mockResourceClient) Read(name string, opts clients.ReadOpts) (*MockResource, error) {
 	resource, err := client.rc.Read(name, opts)
 	if err != nil {
 		return nil, err
@@ -51,19 +51,19 @@ func (client *typedResourceClient) Read(name string, opts clients.ReadOpts) (*Mo
 	return resource.(*MockResource), nil
 }
 
-func (client *typedResourceClient) Write(typedResource *MockResource, opts clients.WriteOpts) (*MockResource, error) {
-	resource, err := client.rc.Write(typedResource, opts)
+func (client *mockResourceClient) Write(mockResource *MockResource, opts clients.WriteOpts) (*MockResource, error) {
+	resource, err := client.rc.Write(mockResource, opts)
 	if err != nil {
 		return nil, err
 	}
 	return resource.(*MockResource), nil
 }
 
-func (client *typedResourceClient) Delete(name string, opts clients.DeleteOpts) error {
+func (client *mockResourceClient) Delete(name string, opts clients.DeleteOpts) error {
 	return client.rc.Delete(name, opts)
 }
 
-func (client *typedResourceClient) List(opts clients.ListOpts) ([]*MockResource, error) {
+func (client *mockResourceClient) List(opts clients.ListOpts) ([]*MockResource, error) {
 	resourceList, err := client.rc.List(opts)
 	if err != nil {
 		return nil, err
@@ -71,29 +71,29 @@ func (client *typedResourceClient) List(opts clients.ListOpts) ([]*MockResource,
 	return convertResources(resourceList), nil
 }
 
-func (client *typedResourceClient) Watch(opts clients.WatchOpts) (<-chan []*MockResource, <-chan error, error) {
+func (client *mockResourceClient) Watch(opts clients.WatchOpts) (<-chan []*MockResource, <-chan error, error) {
 	resourcesChan, errs, initErr := client.rc.Watch(opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	typedResourcesChan := make(chan []*MockResource)
+	mockResourcesChan := make(chan []*MockResource)
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				typedResourcesChan <- convertResources(resourceList)
+				mockResourcesChan <- convertResources(resourceList)
 			}
 		}
 	}()
-	return typedResourcesChan, errs, nil
+	return mockResourcesChan, errs, nil
 }
 
 func convertResources(resources []resources.Resource) []*MockResource {
-	var typedResourceList []*MockResource
+	var mockResourceList []*MockResource
 	for _, resource := range resources {
-		typedResourceList = append(typedResourceList, resource.(*MockResource))
+		mockResourceList = append(mockResourceList, resource.(*MockResource))
 	}
-	return typedResourceList
+	return mockResourceList
 }
 
 // Kubernetes Adapter for MockResource

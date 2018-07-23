@@ -5,16 +5,22 @@ import (
 	"text/template"
 )
 
-type CodeGeneratorParams struct {
-	PackageName  string
-	ResourceType string
-	PluralName   string
-	GroupName    string
-	Version      string
-	ShortName    string
+type ResourceClientTemplateParams struct {
+	PackageName           string
+	ResourceType          string
+	ResourceTypeLowerCase string
+	PluralName            string
+	GroupName             string
+	Version               string
+	ShortName             string
 }
 
-func GenerateTypedClientCode(params CodeGeneratorParams) (string, error) {
+type InventoryTemplateParams struct {
+	PackageName   string
+	ResourceTypes []string
+}
+
+func GenerateTypedClientCode(params ResourceClientTemplateParams) (string, error) {
 	buf := &bytes.Buffer{}
 	if err := typedClientTemplate.Execute(buf, params); err != nil {
 		return "", err
@@ -22,7 +28,7 @@ func GenerateTypedClientCode(params CodeGeneratorParams) (string, error) {
 	return buf.String(), nil
 }
 
-func GenerateTypedClientTestSuiteCode(params CodeGeneratorParams) (string, error) {
+func GenerateTypedClientTestSuiteCode(params ResourceClientTemplateParams) (string, error) {
 	buf := &bytes.Buffer{}
 	if err := testSuiteTemplate.Execute(buf, params); err != nil {
 		return "", err
@@ -30,9 +36,17 @@ func GenerateTypedClientTestSuiteCode(params CodeGeneratorParams) (string, error
 	return buf.String(), nil
 }
 
-func GenerateTypedClientKubeTestCode(params CodeGeneratorParams) (string, error) {
+func GenerateTypedClientKubeTestCode(params ResourceClientTemplateParams) (string, error) {
 	buf := &bytes.Buffer{}
 	if err := kubeTestTemplate.Execute(buf, params); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
+func GenerateInventoryCode(params InventoryTemplateParams) (string, error) {
+	buf := &bytes.Buffer{}
+	if err := inventoryTemplate.Execute(buf, params); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
@@ -41,6 +55,7 @@ func GenerateTypedClientKubeTestCode(params CodeGeneratorParams) (string, error)
 var typedClientTemplate = template.Must(template.New("typed_client").Parse(typedClientTemplateContents))
 var testSuiteTemplate = template.Must(template.New("typed_client_test_suite").Parse(testSuiteTemplateContents))
 var kubeTestTemplate = template.Must(template.New("typed_client_kube_test").Parse(kubeTestTemplateContents))
+var inventoryTemplate = template.Must(template.New("inventory").Parse(inventoryTemplateContents))
 
 const typedClientTemplateContents = `package {{ .PackageName }}
 
@@ -73,21 +88,21 @@ type {{ .ResourceType }}Client interface {
 	Watch(opts clients.WatchOpts) (<-chan []*{{ .ResourceType }}, <-chan error, error)
 }
 
-type typedResourceClient struct {
+type {{ .ResourceTypeLowerCase }}Client struct {
 	rc clients.ResourceClient
 }
 
 func New{{ .ResourceType }}Client(factory *factory.ResourceClientFactory) {{ .ResourceType }}Client {
-	return &typedResourceClient{
+	return &{{ .ResourceTypeLowerCase }}Client{
 		rc: factory.NewResourceClient(&{{ .ResourceType }}{}),
 	}
 }
 
-func (client *typedResourceClient) Register() error {
+func (client *{{ .ResourceTypeLowerCase }}Client) Register() error {
 	return client.rc.Register()
 }
 
-func (client *typedResourceClient) Read(name string, opts clients.ReadOpts) (*{{ .ResourceType }}, error) {
+func (client *{{ .ResourceTypeLowerCase }}Client) Read(name string, opts clients.ReadOpts) (*{{ .ResourceType }}, error) {
 	resource, err := client.rc.Read(name, opts)
 	if err != nil {
 		return nil, err
@@ -95,19 +110,19 @@ func (client *typedResourceClient) Read(name string, opts clients.ReadOpts) (*{{
 	return resource.(*{{ .ResourceType }}), nil
 }
 
-func (client *typedResourceClient) Write(typedResource *{{ .ResourceType }}, opts clients.WriteOpts) (*{{ .ResourceType }}, error) {
-	resource, err := client.rc.Write(typedResource, opts)
+func (client *{{ .ResourceTypeLowerCase }}Client) Write({{ .ResourceTypeLowerCase }} *{{ .ResourceType }}, opts clients.WriteOpts) (*{{ .ResourceType }}, error) {
+	resource, err := client.rc.Write({{ .ResourceTypeLowerCase }}, opts)
 	if err != nil {
 		return nil, err
 	}
 	return resource.(*{{ .ResourceType }}), nil
 }
 
-func (client *typedResourceClient) Delete(name string, opts clients.DeleteOpts) error {
+func (client *{{ .ResourceTypeLowerCase }}Client) Delete(name string, opts clients.DeleteOpts) error {
 	return client.rc.Delete(name, opts)
 }
 
-func (client *typedResourceClient) List(opts clients.ListOpts) ([]*{{ .ResourceType }}, error) {
+func (client *{{ .ResourceTypeLowerCase }}Client) List(opts clients.ListOpts) ([]*{{ .ResourceType }}, error) {
 	resourceList, err := client.rc.List(opts)
 	if err != nil {
 		return nil, err
@@ -115,29 +130,29 @@ func (client *typedResourceClient) List(opts clients.ListOpts) ([]*{{ .ResourceT
 	return convertResources(resourceList), nil
 }
 
-func (client *typedResourceClient) Watch(opts clients.WatchOpts) (<-chan []*{{ .ResourceType }}, <-chan error, error) {
+func (client *{{ .ResourceTypeLowerCase }}Client) Watch(opts clients.WatchOpts) (<-chan []*{{ .ResourceType }}, <-chan error, error) {
 	resourcesChan, errs, initErr := client.rc.Watch(opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	typedResourcesChan := make(chan []*{{ .ResourceType }})
+	{{ .ResourceTypeLowerCase }}sChan := make(chan []*{{ .ResourceType }})
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				typedResourcesChan <- convertResources(resourceList)
+				{{ .ResourceTypeLowerCase }}sChan <- convertResources(resourceList)
 			}
 		}
 	}()
-	return typedResourcesChan, errs, nil
+	return {{ .ResourceTypeLowerCase }}sChan, errs, nil
 }
 
 func convertResources(resources []resources.Resource) []*{{ .ResourceType }} {
-	var typedResourceList []*{{ .ResourceType }}
+	var {{ .ResourceTypeLowerCase }}List []*{{ .ResourceType }}
 	for _, resource := range resources {
-		typedResourceList = append(typedResourceList, resource.(*{{ .ResourceType }}))
+		{{ .ResourceTypeLowerCase }}List = append({{ .ResourceTypeLowerCase }}List, resource.(*{{ .ResourceType }}))
 	}
-	return typedResourceList
+	return {{ .ResourceTypeLowerCase }}List
 }
 
 // Kubernetes Adapter for {{ .ResourceType }}
@@ -373,4 +388,12 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 		Expect(list).To(ContainElement(r3))
 	})
 })
+`
+const inventoryTemplateContents = `package {{ .PackageName }}
+
+type Collection struct {
+{{range .ResourceTypes}}
+	{{ . }}List []{{.}}
+{{end}}
+}
 `

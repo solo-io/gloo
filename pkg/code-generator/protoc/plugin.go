@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/iancoleman/strcase"
 	"github.com/pseudomuto/protokit"
 	"github.com/solo-io/solo-kit/pkg/code-generator/typed"
 )
@@ -15,7 +16,7 @@ import (
 // plugin is an implementation of protokit.Plugin
 type Plugin struct{}
 
-type generateCodeFunc func(params typed.CodeGeneratorParams) (string, error)
+type generateCodeFunc func(params typed.ResourceClientTemplateParams) (string, error)
 
 var filesToGenerate = map[string]generateCodeFunc{
 	"_client.go":           typed.GenerateTypedClientCode,
@@ -29,11 +30,15 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 	resp := new(plugin_go.CodeGeneratorResponse)
 
 	for _, d := range descriptors {
+		packageName := goPackage(d)
+		var resourceTypes []string
 		for _, msg := range d.Messages {
-			params := codegenParams(d, msg.GetComments(), msg.GetName())
+			resourceType := msg.GetName()
+			params := codegenParams(packageName, msg.GetComments(), resourceType)
 			if params != nil {
+				resourceTypes = append(resourceTypes, resourceType)
 				for suffix, genFunc := range filesToGenerate {
-					file, err := generateFile(d, *params, suffix, genFunc)
+					file, err := generateFile(*params, suffix, genFunc)
 					if err != nil {
 						return nil, err
 					}
@@ -41,12 +46,21 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 				}
 			}
 		}
+		if len(resourceTypes) > 0 {
+			params := typed.InventoryTemplateParams{
+				ResourceTypes: resourceTypes,
+			}
+			file, err := generateInventoryFile(params)
+			if err != nil {
+				return nil, err
+			}
+			resp.File = append(resp.File, file)
+		}
 	}
-
 	return resp, nil
 }
 
-func codegenParams(d *protokit.FileDescriptor, comments *protokit.Comment, messageName string) *typed.CodeGeneratorParams {
+func codegenParams(packageName string, comments *protokit.Comment, resourceType string) *typed.ResourceClientTemplateParams {
 	magicComments := strings.Split(comments.Leading, "\n")
 	var (
 		isResource bool
@@ -80,19 +94,35 @@ func codegenParams(d *protokit.FileDescriptor, comments *protokit.Comment, messa
 	if !isResource {
 		return nil
 	}
-	return &typed.CodeGeneratorParams{
-		PackageName:  goPackage(d),
-		ResourceType: messageName,
-		ShortName:    shortName,
-		PluralName:   pluralName,
-		GroupName:    groupName,
-		Version:      version,
+	return &typed.ResourceClientTemplateParams{
+		PackageName:           packageName,
+		ResourceType:          resourceType,
+		ResourceTypeLowerCase: strcase.ToLowerCamel(resourceType),
+		ShortName:             shortName,
+		PluralName:            pluralName,
+		GroupName:             groupName,
+		Version:               version,
 	}
 }
 
-func generateFile(d *protokit.FileDescriptor, params typed.CodeGeneratorParams, suffix string, genFunc generateCodeFunc) (*plugin_go.CodeGeneratorResponse_File, error) {
-	fileName := strings.TrimSuffix(d.GetName(), ".proto") + suffix
+func generateFile(params typed.ResourceClientTemplateParams, suffix string, genFunc generateCodeFunc) (*plugin_go.CodeGeneratorResponse_File, error) {
+	fileName := strcase.ToSnake(params.ResourceType) + suffix
 	content, err := genFunc(params)
+	if err != nil {
+		return nil, err
+	}
+	return &plugin_go.CodeGeneratorResponse_File{
+		Name:    proto.String(fileName),
+		Content: proto.String(content),
+	}, nil
+}
+
+func generateInventoryFile(params typed.InventoryTemplateParams) (*plugin_go.CodeGeneratorResponse_File, error) {
+	fileName := params.PackageName + "_inventory.go"
+	content, err := typed.GenerateInventoryCode(params)
+	if err != nil {
+		return nil, err
+	}
 	if err != nil {
 		return nil, err
 	}

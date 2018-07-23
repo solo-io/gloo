@@ -20,3 +20,16 @@ message MockResource {
     core.api.v1.Status status = 6 [(gogoproto.nullable) = false];
     core.api.v1.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }
+
+/*
+@solo-kit:resource
+@solo-kit:resource.short_name=fk
+@solo-kit:resource.plural_name=fakes
+@solo-kit:resource.group_name=testing.solo.io
+@solo-kit:resource.version=v1
+*/
+message FakeResource {
+    uint32 data = 1;
+    core.api.v1.Status status = 6 [(gogoproto.nullable) = false];
+    core.api.v1.Metadata metadata = 7 [(gogoproto.nullable) = false];
+}
