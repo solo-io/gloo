@@ -69,6 +69,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// TODO: modify as needed to populate additional fields
+func New{{ .ResourceType }}(namespace, name string) *{{ .ResourceType }} {
+	return &MockResource{
+		Metadata: core.Metadata{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+}
+
+
 func (r *{{ .ResourceType }}) SetStatus(status core.Status) {
 	r.Status = status
 }
@@ -127,7 +138,7 @@ func (client *{{ .ResourceTypeLowerCase }}Client) List(opts clients.ListOpts) ([
 	if err != nil {
 		return nil, err
 	}
-	return convertResources(resourceList), nil
+	return convertTo{{ .ResourceType }}(resourceList), nil
 }
 
 func (client *{{ .ResourceTypeLowerCase }}Client) Watch(opts clients.WatchOpts) (<-chan []*{{ .ResourceType }}, <-chan error, error) {
@@ -140,14 +151,14 @@ func (client *{{ .ResourceTypeLowerCase }}Client) Watch(opts clients.WatchOpts) 
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				{{ .ResourceTypeLowerCase }}sChan <- convertResources(resourceList)
+				{{ .ResourceTypeLowerCase }}sChan <- convertTo{{ .ResourceType }}(resourceList)
 			}
 		}
 	}()
 	return {{ .ResourceTypeLowerCase }}sChan, errs, nil
 }
 
-func convertResources(resources []resources.Resource) []*{{ .ResourceType }} {
+func convertTo{{ .ResourceType }}(resources []resources.Resource) []*{{ .ResourceType }} {
 	var {{ .ResourceTypeLowerCase }}List []*{{ .ResourceType }}
 	for _, resource := range resources {
 		{{ .ResourceTypeLowerCase }}List = append({{ .ResourceTypeLowerCase }}List, resource.(*{{ .ResourceType }}))
@@ -255,7 +266,7 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		name := "foo"
-		input := New{{ .ResourceType }}(name)
+		input := New{{ .ResourceType }}(namespace, name)
 		input.Metadata.Namespace = namespace
 		r1, err := client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())

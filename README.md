@@ -22,3 +22,11 @@ type Inventory struct {
 3 - generate an event loop:
  - event loop should take other channels as parameters, as well as a sync funciton (for example we need
  an event loop to handle secrets, endpoints for gloo)
+
+4 - reporter
+ 
+5 - e2e tests
+ 
+ post 3 weeks
+ - installer
+ - CLI

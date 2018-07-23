@@ -10,6 +10,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// TODO: modify as needed to populate additional fields
+func NewMockResource(namespace, name string) *MockResource {
+	return &MockResource{
+		Metadata: core.Metadata{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+}
+
+
 func (r *MockResource) SetStatus(status core.Status) {
 	r.Status = status
 }
@@ -68,7 +79,7 @@ func (client *mockResourceClient) List(opts clients.ListOpts) ([]*MockResource, 
 	if err != nil {
 		return nil, err
 	}
-	return convertResources(resourceList), nil
+	return convertToMockResource(resourceList), nil
 }
 
 func (client *mockResourceClient) Watch(opts clients.WatchOpts) (<-chan []*MockResource, <-chan error, error) {
@@ -81,14 +92,14 @@ func (client *mockResourceClient) Watch(opts clients.WatchOpts) (<-chan []*MockR
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				mockResourcesChan <- convertResources(resourceList)
+				mockResourcesChan <- convertToMockResource(resourceList)
 			}
 		}
 	}()
 	return mockResourcesChan, errs, nil
 }
 
-func convertResources(resources []resources.Resource) []*MockResource {
+func convertToMockResource(resources []resources.Resource) []*MockResource {
 	var mockResourceList []*MockResource
 	for _, resource := range resources {
 		mockResourceList = append(mockResourceList, resource.(*MockResource))

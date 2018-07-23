@@ -57,7 +57,7 @@ var _ = Describe("MockResourceClient", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		name := "foo"
-		input := NewMockResource(name)
+		input := NewMockResource(namespace, name)
 		input.Metadata.Namespace = namespace
 		r1, err := client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())

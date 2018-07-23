@@ -59,7 +59,7 @@ var _ = Describe("Clientset", func() {
 		mockCrdClient, err := NewForConfig(cfg, mocks.MockResourceCrdDefinition)
 		Expect(err).NotTo(HaveOccurred())
 		name := "foo"
-		input := mocks.NewMockResource(name)
+		input := mocks.NewMockResource(namespace, name)
 		inputCrd := mocks.MockResourceCrdDefinition.KubeResource(input)
 		created, err := mockCrdClient.ResourcesV1().Resources(namespace).Create(inputCrd)
 		Expect(err).NotTo(HaveOccurred())

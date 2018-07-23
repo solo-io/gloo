@@ -32,7 +32,7 @@ var _ = Describe("Base", func() {
 	})
 	It("CRUDs resources", func() {
 		name := "foo"
-		input := mocks.NewMockResource(name)
+		input := mocks.NewMockResource("", name)
 		r1, err := client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 

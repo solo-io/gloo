@@ -10,6 +10,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// TODO: modify as needed to populate additional fields
+func NewFakeResource(namespace, name string) *FakeResource {
+	return &MockResource{
+		Metadata: core.Metadata{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+}
+
+
 func (r *FakeResource) SetStatus(status core.Status) {
 	r.Status = status
 }
@@ -68,7 +79,7 @@ func (client *fakeResourceClient) List(opts clients.ListOpts) ([]*FakeResource, 
 	if err != nil {
 		return nil, err
 	}
-	return convertResources(resourceList), nil
+	return convertToFakeResource(resourceList), nil
 }
 
 func (client *fakeResourceClient) Watch(opts clients.WatchOpts) (<-chan []*FakeResource, <-chan error, error) {
@@ -81,14 +92,14 @@ func (client *fakeResourceClient) Watch(opts clients.WatchOpts) (<-chan []*FakeR
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				fakeResourcesChan <- convertResources(resourceList)
+				fakeResourcesChan <- convertToFakeResource(resourceList)
 			}
 		}
 	}()
 	return fakeResourcesChan, errs, nil
 }
 
-func convertResources(resources []resources.Resource) []*FakeResource {
+func convertToFakeResource(resources []resources.Resource) []*FakeResource {
 	var fakeResourceList []*FakeResource
 	for _, resource := range resources {
 		fakeResourceList = append(fakeResourceList, resource.(*FakeResource))
