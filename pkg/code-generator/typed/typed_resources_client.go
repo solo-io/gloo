@@ -43,7 +43,7 @@ func GenerateTypedClientKubeTestCode(params ResourceLevelTemplateParams) (string
 
 func GenerateTestSuiteCode(params PackageLevelTemplateParams) (string, error) {
 	buf := &bytes.Buffer{}
-	if err := testSuiteTemplate.Funcs(funcs).Execute(buf, params); err != nil {
+	if err := testSuiteTemplate.Execute(buf, params); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
@@ -57,10 +57,10 @@ func GenerateInventoryCode(params PackageLevelTemplateParams) (string, error) {
 	return buf.String(), nil
 }
 
-var typedClientTemplate = template.Must(template.New("typed_client").Parse(typedClientTemplateContents))
-var kubeTestTemplate = template.Must(template.New("typed_client_kube_test").Parse(kubeTestTemplateContents))
-var testSuiteTemplate = template.Must(template.New("typed_client_test_suite").Parse(testSuiteTemplateContents))
-var inventoryTemplate = template.Must(template.New("inventory").Parse(inventoryTemplateContents))
+var typedClientTemplate = template.Must(template.New("typed_client").Funcs(funcs).Parse(typedClientTemplateContents))
+var kubeTestTemplate = template.Must(template.New("typed_client_kube_test").Funcs(funcs).Parse(kubeTestTemplateContents))
+var testSuiteTemplate = template.Must(template.New("typed_client_test_suite").Funcs(funcs).Parse(testSuiteTemplateContents))
+var inventoryTemplate = template.Must(template.New("inventory").Funcs(funcs).Parse(inventoryTemplateContents))
 
 const typedClientTemplateContents = `package {{ .PackageName }}
 
