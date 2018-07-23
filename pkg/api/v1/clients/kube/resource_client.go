@@ -62,9 +62,8 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 			return nil, errors.Wrapf(err, "reading crd spec into %v", rc.resourceName)
 		}
 	}
-	resources.UpdateMetadata(resource, func(meta core.Metadata) core.Metadata {
+	resources.UpdateMetadata(resource, func(meta *core.Metadata) {
 		meta.ResourceVersion = resourceCrd.ResourceVersion
-		return meta
 	})
 	return resource, nil
 }
@@ -131,11 +130,10 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 				return nil, errors.Wrapf(err, "reading crd spec into %v", rc.resourceName)
 			}
 		}
-		resources.UpdateMetadata(resource, func(meta core.Metadata) core.Metadata {
+		resources.UpdateMetadata(resource, func(meta *core.Metadata) {
 			meta.Namespace = resourceCrd.Namespace
 			meta.Name = resourceCrd.Name
 			meta.ResourceVersion = resourceCrd.ResourceVersion
-			return meta
 		})
 		resourceList = append(resourceList, resource)
 	}

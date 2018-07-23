@@ -54,9 +54,8 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 	if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 		return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 	}
-	resources.UpdateMetadata(resource, func(meta core.Metadata) core.Metadata {
+	resources.UpdateMetadata(resource, func(meta *core.Metadata) {
 		meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
-		return meta
 	})
 	return resource, nil
 }
@@ -138,9 +137,8 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 		if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 			return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 		}
-		resources.UpdateMetadata(resource, func(meta core.Metadata) core.Metadata {
+		resources.UpdateMetadata(resource, func(meta *core.Metadata) {
 			meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
-			return meta
 		})
 		resourceList = append(resourceList, resource)
 	}
@@ -191,9 +189,8 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 			if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 				return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 			}
-			resources.UpdateMetadata(resource, func(meta core.Metadata) core.Metadata {
+			resources.UpdateMetadata(resource, func(meta *core.Metadata) {
 				meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
-				return meta
 			})
 			resourceList = append(resourceList, resource)
 		}

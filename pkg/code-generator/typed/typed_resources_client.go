@@ -366,9 +366,8 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 			defer close(wait)
 			defer GinkgoRecover()
 
-			resources.UpdateMetadata(r2, func(meta core.Metadata) core.Metadata {
+			resources.UpdateMetadata(r2, func(meta *core.Metadata) {
 				meta.ResourceVersion = ""
-				return meta
 			})
 			r2, err = client.Write(r2, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
