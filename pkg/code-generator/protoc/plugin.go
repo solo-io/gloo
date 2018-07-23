@@ -30,7 +30,7 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 
 	for _, d := range descriptors {
 		for _, msg := range d.Messages {
-			if msg.GetComments() != nil && msg.GetComments().Leading == "@solo-kit:genclient" {
+			if msg.GetComments() != nil && msg.GetComments().Leading == "@solo-kit:resource" {
 				for suffix, genFunc := range filesToGenerate {
 					file, err := generateFile(d, suffix, msg.GetName(), genFunc)
 					if err != nil {

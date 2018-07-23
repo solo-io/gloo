@@ -40,10 +40,10 @@ var _ = Describe("MockResourceClient", func() {
 		Expect(err).NotTo(HaveOccurred())
 		apiextsClient, err := apiexts.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-		resourceClient, err := versioned.NewForConfig(cfg, MockCrd)
+		resourceClient, err := versioned.NewForConfig(cfg, MockResourceCrdDefinition)
 		Expect(err).NotTo(HaveOccurred())
 		clientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd:     MockCrd,
+			Crd:     MockResourceCrdDefinition,
 			Kube:    resourceClient,
 			ApiExts: apiextsClient,
 		})

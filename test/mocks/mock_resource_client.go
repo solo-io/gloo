@@ -3,8 +3,11 @@ package mocks
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func (r *MockResource) SetStatus(status core.Status) {
@@ -92,3 +95,28 @@ func convertResources(resources []resources.Resource) []*MockResource {
 	}
 	return typedResourceList
 }
+
+// Kubernetes Adapter for MockResource
+
+type MockResourceCrd struct {
+	resources.Resource
+}
+
+func (m *MockResourceCrd) GetObjectKind() schema.ObjectKind {
+	t := MockResourceCrdDefinition.TypeMeta()
+	return &t
+}
+
+func (m *MockResourceCrd) DeepCopyObject() runtime.Object {
+	return &MockResourceCrd{
+		Resource: resources.Clone(m.Resource),
+	}
+}
+
+var MockResourceCrdDefinition = crd.NewCrd("testing.solo.io",
+	"mocks",
+	"testing.solo.io",
+	"v1",
+	"MockResource",
+	"mk",
+	&MockResourceCrd{})

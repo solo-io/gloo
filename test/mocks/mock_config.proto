@@ -8,9 +8,9 @@ option (gogoproto.equal_all) = true;
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
-//@solo-kit:resource
-message MockResource {
-    string data = 1;
-    core.api.v1.Status status = 6 [(gogoproto.nullable) = false];
-    core.api.v1.Metadata metadata = 7 [(gogoproto.nullable) = false];
+import "./mock_resource.proto";
+
+//@solo-kit:config
+message MockConfig {
+    repeated MockResource mock_resources = 1;
 }

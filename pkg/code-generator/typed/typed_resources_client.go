@@ -10,6 +10,9 @@ func GenerateTypedClientCode(packageName, resourceTypeName string) (string, erro
 	if err := typedClientTemplate.Execute(buf, struct {
 		PackageName  string
 		ResourceType string
+		PluralName   string
+		Version      string
+		ShortName    string
 	}{
 		PackageName:  packageName,
 		ResourceType: resourceTypeName,
@@ -56,8 +59,11 @@ const typedClientTemplateContents = `package {{ .PackageName }}
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func (r *{{ .ResourceType }}) SetStatus(status core.Status) {
@@ -145,6 +151,32 @@ func convertResources(resources []resources.Resource) []*{{ .ResourceType }} {
 	}
 	return typedResourceList
 }
+
+// Kubernetes Adapter for {{ .ResourceType }}
+
+type {{ .ResourceType }}Crd struct {
+	resources.Resource
+}
+
+func (m *{{ .ResourceType }}Crd) GetObjectKind() schema.ObjectKind {
+	t := {{ .ResourceType }}CrdDefinition.TypeMeta()
+	return &t
+}
+
+func (m *{{ .ResourceType }}Crd) DeepCopyObject() runtime.Object {
+	return &{{ .ResourceType }}Crd{
+		Resource: resources.Clone(m.Resource),
+	}
+}
+
+var {{ .ResourceType }}CrdDefinition = crd.NewCrd("testing.solo.io",
+	"mocks",
+	"{{ .PluralName }}",
+	"{{ .Version }}",
+	"{{ .ResourceType }}",
+	"{{ .ShortName }}",
+	&{{ .ResourceType }}Crd{})
+
 `
 
 const testSuiteTemplateContents = `package {{ .PackageName }}

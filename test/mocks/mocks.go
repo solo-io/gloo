@@ -18,26 +18,3 @@ func NewMockResource(name string) *MockResource {
 		},
 	}
 }
-
-type MockCrdObject struct {
-	resources.Resource
-}
-
-func (m *MockCrdObject) GetObjectKind() schema.ObjectKind {
-	t := MockCrd.TypeMeta()
-	return &t
-}
-
-func (m *MockCrdObject) DeepCopyObject() runtime.Object {
-	return &MockCrdObject{
-		Resource: resources.Clone(m.Resource),
-	}
-}
-
-var MockCrd = crd.NewCrd("testing.solo.io",
-	"mocks",
-	"testing.solo.io",
-	"v1",
-	"MockCrdObject",
-	"mk",
-	&MockCrdObject{})
