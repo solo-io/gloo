@@ -484,6 +484,15 @@ type cache struct {
 {{- end}}
 }
 
+func (c *cache) Register() error {
+{{- range .ResourceTypes}}
+	if err := c.{{ lowercase . }}.Register(); err != nil {
+		return err
+	}
+{{- end}}
+	return nil
+}
+
 {{- range .ResourceTypes}}
 
 func (c *cache) {{ . }}() {{ . }}Client {

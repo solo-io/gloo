@@ -69,6 +69,16 @@ type cache struct {
 	fakeResource FakeResourceClient
 }
 
+func (c *cache) Register() error {
+	if err := c.mockResource.Register(); err != nil {
+		return err
+	}
+	if err := c.fakeResource.Register(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *cache) MockResource() MockResourceClient {
 	return c.mockResource
 }
