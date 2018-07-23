@@ -25,6 +25,8 @@ var funcs = template.FuncMap{
 	"join": strings.Join,
 }
 
+func randomizedConstructor() {}
+
 func GenerateTypedClientCode(params ResourceLevelTemplateParams) (string, error) {
 	buf := &bytes.Buffer{}
 	if err := typedClientTemplate.Execute(buf, params); err != nil {
@@ -76,7 +78,7 @@ import (
 
 // TODO: modify as needed to populate additional fields
 func New{{ .ResourceType }}(namespace, name string) *{{ .ResourceType }} {
-	return &MockResource{
+	return &{{ .ResourceType }}{
 		Metadata: core.Metadata{
 			Name:      name,
 			Namespace: namespace,
@@ -219,6 +221,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/log"
@@ -308,13 +311,14 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 		Expect(errors.IsNotExist(err)).To(BeTrue())
 
 		name = "boo"
-		input = &{{ .ResourceType }}{
-			Data: name,
-			Metadata: core.Metadata{
-				Name:      name,
-				Namespace: namespace,
-			},
+		input = &{{ .ResourceType }}{}
+		err = faker.FakeData(input)
+		Expect(err).To(HaveOccurred())
+		input.Metadata = core.Metadata{
+			Name:      name,
+			Namespace: namespace,
 		}
+
 		r2, err := client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -368,13 +372,14 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			name = "goo"
-			input = &{{ .ResourceType }}{
-				Data: name,
-				Metadata: core.Metadata{
-					Name:      name,
-					Namespace: namespace,
-				},
+			input = &{{ .ResourceType }}{}
+			err = faker.FakeData(input)
+			Expect(err).To(HaveOccurred())
+			input.Metadata = core.Metadata{
+				Name:      name,
+				Namespace: namespace,
 			}
+
 			r3, err = client.Write(input, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 		}()

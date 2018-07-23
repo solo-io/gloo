@@ -29,7 +29,7 @@ message MockResource {
 @solo-kit:resource.version=v1
 */
 message FakeResource {
-    uint32 data = 1;
+    uint32 count = 1;
     core.api.v1.Status status = 6 [(gogoproto.nullable) = false];
     core.api.v1.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }

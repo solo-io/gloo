@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/gloo/pkg/log"
@@ -94,13 +95,14 @@ var _ = Describe("FakeResourceClient", func() {
 		Expect(errors.IsNotExist(err)).To(BeTrue())
 
 		name = "boo"
-		input = &FakeResource{
-			Data: name,
-			Metadata: core.Metadata{
-				Name:      name,
-				Namespace: namespace,
-			},
+		input = &FakeResource{}
+		err = faker.FakeData(input)
+		Expect(err).To(HaveOccurred())
+		input.Metadata = core.Metadata{
+			Name:      name,
+			Namespace: namespace,
 		}
+
 		r2, err := client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -154,13 +156,14 @@ var _ = Describe("FakeResourceClient", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			name = "goo"
-			input = &FakeResource{
-				Data: name,
-				Metadata: core.Metadata{
-					Name:      name,
-					Namespace: namespace,
-				},
+			input = &FakeResource{}
+			err = faker.FakeData(input)
+			Expect(err).To(HaveOccurred())
+			input.Metadata = core.Metadata{
+				Name:      name,
+				Namespace: namespace,
 			}
+
 			r3, err = client.Write(input, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 		}()

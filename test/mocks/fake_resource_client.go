@@ -12,7 +12,7 @@ import (
 
 // TODO: modify as needed to populate additional fields
 func NewFakeResource(namespace, name string) *FakeResource {
-	return &MockResource{
+	return &FakeResource{
 		Metadata: core.Metadata{
 			Name:      name,
 			Namespace: namespace,
