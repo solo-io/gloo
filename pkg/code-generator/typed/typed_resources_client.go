@@ -14,6 +14,13 @@ type ResourceLevelTemplateParams struct {
 	GroupName             string
 	Version               string
 	ShortName             string
+	Fields                []string
+}
+
+type Field struct {
+	Name   string
+	Type   string
+	Fields []Field
 }
 
 type PackageLevelTemplateParams struct {
@@ -24,8 +31,6 @@ type PackageLevelTemplateParams struct {
 var funcs = template.FuncMap{
 	"join": strings.Join,
 }
-
-func randomizedConstructor() {}
 
 func GenerateTypedClientCode(params ResourceLevelTemplateParams) (string, error) {
 	buf := &bytes.Buffer{}
@@ -175,28 +180,22 @@ func convertTo{{ .ResourceType }}(resources []resources.Resource) []*{{ .Resourc
 
 // Kubernetes Adapter for {{ .ResourceType }}
 
-type {{ .ResourceType }}Crd struct {
-	resources.Resource
-}
-
-func (m *{{ .ResourceType }}Crd) GetObjectKind() schema.ObjectKind {
-	t := {{ .ResourceType }}CrdDefinition.TypeMeta()
+func (o *{{ .ResourceType }}) GetObjectKind() schema.ObjectKind {
+	t := {{ .ResourceType }}Crd.TypeMeta()
 	return &t
 }
 
-func (m *{{ .ResourceType }}Crd) DeepCopyObject() runtime.Object {
-	return &{{ .ResourceType }}Crd{
-		Resource: resources.Clone(m.Resource),
-	}
+func (o *{{ .ResourceType }}) DeepCopyObject() runtime.Object {
+	return resources.Clone(o).(*{{ .ResourceType }})
 }
 
-var {{ .ResourceType }}CrdDefinition = crd.NewCrd("{{ .GroupName }}",
+var {{ .ResourceType }}Crd = crd.NewCrd("{{ .GroupName }}",
 	"{{ .PluralName }}",
 	"{{ .GroupName }}",
 	"{{ .Version }}",
 	"{{ .ResourceType }}",
 	"{{ .ShortName }}",
-	&{{ .ResourceType }}Crd{})
+	&{{ .ResourceType }}{})
 `
 
 const testSuiteTemplateContents = `package {{ .PackageName }}
@@ -257,10 +256,10 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 		Expect(err).NotTo(HaveOccurred())
 		apiextsClient, err := apiexts.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-		resourceClient, err := versioned.NewForConfig(cfg, {{ .ResourceType }}CrdDefinition)
+		resourceClient, err := versioned.NewForConfig(cfg, {{ .ResourceType }}Crd)
 		Expect(err).NotTo(HaveOccurred())
 		clientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd:     {{ .ResourceType }}CrdDefinition,
+			Crd:     {{ .ResourceType }}Crd,
 			Kube:    resourceClient,
 			ApiExts: apiextsClient,
 		})
@@ -287,7 +286,10 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 		Expect(r1.GetMetadata().Name).To(Equal(name))
 		Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 		Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal("7"))
-		Expect(r1.Data).To(Equal(name))
+
+		{{- range .Fields }}
+		Expect(r1.{{ . }}).To(Equal(input.{{ . }}))
+		{{- end }}
 
 		_, err = client.Write(input, clients.WriteOpts{
 			OverwriteExisting: true,
@@ -313,7 +315,7 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 		name = "boo"
 		input = &{{ .ResourceType }}{}
 		err = faker.FakeData(input)
-		Expect(err).To(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		input.Metadata = core.Metadata{
 			Name:      name,
 			Namespace: namespace,
@@ -374,7 +376,7 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 			name = "goo"
 			input = &{{ .ResourceType }}{}
 			err = faker.FakeData(input)
-			Expect(err).To(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			input.Metadata = core.Metadata{
 				Name:      name,
 				Namespace: namespace,

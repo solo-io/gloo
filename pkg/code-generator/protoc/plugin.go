@@ -39,7 +39,15 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 		var resourceTypes []string
 		for _, msg := range d.Messages {
 			resourceType := msg.GetName()
-			params := codegenParams(packageName, msg.GetComments(), resourceType)
+			var fields []string
+			for _, field := range msg.Fields {
+				// exclude special fields
+				if field.GetName() == "status" || field.GetName() == "metadata" {
+					continue
+				}
+				fields = append(fields, strcase.ToCamel(field.GetName()))
+			}
+			params := codegenParams(packageName, msg.GetComments(), resourceType, fields)
 			if params != nil {
 				resourceTypes = append(resourceTypes, resourceType)
 				for suffix, genFunc := range resourceFilesToGenerate {
@@ -68,7 +76,7 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 	return resp, nil
 }
 
-func codegenParams(packageName string, comments *protokit.Comment, resourceType string) *typed.ResourceLevelTemplateParams {
+func codegenParams(packageName string, comments *protokit.Comment, resourceType string, fields []string) *typed.ResourceLevelTemplateParams {
 	magicComments := strings.Split(comments.Leading, "\n")
 	var (
 		isResource bool
@@ -110,6 +118,7 @@ func codegenParams(packageName string, comments *protokit.Comment, resourceType 
 		PluralName:            pluralName,
 		GroupName:             groupName,
 		Version:               version,
+		Fields:                fields,
 	}
 }
 

@@ -109,25 +109,19 @@ func convertToMockResource(resources []resources.Resource) []*MockResource {
 
 // Kubernetes Adapter for MockResource
 
-type MockResourceCrd struct {
-	resources.Resource
-}
-
-func (m *MockResourceCrd) GetObjectKind() schema.ObjectKind {
-	t := MockResourceCrdDefinition.TypeMeta()
+func (o *MockResource) GetObjectKind() schema.ObjectKind {
+	t := MockResourceCrd.TypeMeta()
 	return &t
 }
 
-func (m *MockResourceCrd) DeepCopyObject() runtime.Object {
-	return &MockResourceCrd{
-		Resource: resources.Clone(m.Resource),
-	}
+func (o *MockResource) DeepCopyObject() runtime.Object {
+	return resources.Clone(o).(*MockResource)
 }
 
-var MockResourceCrdDefinition = crd.NewCrd("testing.solo.io",
+var MockResourceCrd = crd.NewCrd("testing.solo.io",
 	"mocks",
 	"testing.solo.io",
 	"v1",
 	"MockResource",
 	"mk",
-	&MockResourceCrd{})
+	&MockResource{})

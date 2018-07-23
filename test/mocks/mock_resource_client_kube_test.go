@@ -41,10 +41,10 @@ var _ = Describe("MockResourceClient", func() {
 		Expect(err).NotTo(HaveOccurred())
 		apiextsClient, err := apiexts.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-		resourceClient, err := versioned.NewForConfig(cfg, MockResourceCrdDefinition)
+		resourceClient, err := versioned.NewForConfig(cfg, MockResourceCrd)
 		Expect(err).NotTo(HaveOccurred())
 		clientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd:     MockResourceCrdDefinition,
+			Crd:     MockResourceCrd,
 			Kube:    resourceClient,
 			ApiExts: apiextsClient,
 		})
@@ -71,7 +71,7 @@ var _ = Describe("MockResourceClient", func() {
 		Expect(r1.GetMetadata().Name).To(Equal(name))
 		Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 		Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal("7"))
-		Expect(r1.Data).To(Equal(name))
+		Expect(r1.Data).To(Equal(input.Data))
 
 		_, err = client.Write(input, clients.WriteOpts{
 			OverwriteExisting: true,
@@ -97,7 +97,7 @@ var _ = Describe("MockResourceClient", func() {
 		name = "boo"
 		input = &MockResource{}
 		err = faker.FakeData(input)
-		Expect(err).To(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 		input.Metadata = core.Metadata{
 			Name:      name,
 			Namespace: namespace,
@@ -158,7 +158,7 @@ var _ = Describe("MockResourceClient", func() {
 			name = "goo"
 			input = &MockResource{}
 			err = faker.FakeData(input)
-			Expect(err).To(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			input.Metadata = core.Metadata{
 				Name:      name,
 				Namespace: namespace,

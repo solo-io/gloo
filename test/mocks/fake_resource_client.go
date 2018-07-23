@@ -109,25 +109,19 @@ func convertToFakeResource(resources []resources.Resource) []*FakeResource {
 
 // Kubernetes Adapter for FakeResource
 
-type FakeResourceCrd struct {
-	resources.Resource
-}
-
-func (m *FakeResourceCrd) GetObjectKind() schema.ObjectKind {
-	t := FakeResourceCrdDefinition.TypeMeta()
+func (o *FakeResource) GetObjectKind() schema.ObjectKind {
+	t := FakeResourceCrd.TypeMeta()
 	return &t
 }
 
-func (m *FakeResourceCrd) DeepCopyObject() runtime.Object {
-	return &FakeResourceCrd{
-		Resource: resources.Clone(m.Resource),
-	}
+func (o *FakeResource) DeepCopyObject() runtime.Object {
+	return resources.Clone(o).(*FakeResource)
 }
 
-var FakeResourceCrdDefinition = crd.NewCrd("testing.solo.io",
+var FakeResourceCrd = crd.NewCrd("testing.solo.io",
 	"fakes",
 	"testing.solo.io",
 	"v1",
 	"FakeResource",
 	"fk",
-	&FakeResourceCrd{})
+	&FakeResource{})
