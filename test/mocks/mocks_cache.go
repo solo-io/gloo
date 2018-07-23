@@ -105,15 +105,12 @@ func (c *cache) Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan erro
 		for {
 			select {
 			case mockResourceList := <-mockResourceChan:
-				sync(Snapshot{
-					MockResourceList: mockResourceList,
-					FakeResourceList: currentSnapshot.FakeResourceList,
-				})
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.MockResourceList = mockResourceList
+				sync(newSnapshot)
 			case fakeResourceList := <-fakeResourceChan:
-				sync(Snapshot{
-					MockResourceList: currentSnapshot.MockResourceList,
-					FakeResourceList: fakeResourceList,
-				})
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.FakeResourceList = fakeResourceList
 			case err := <- mockResourceErrs:
 				errs <- err
 			case err := <- fakeResourceErrs:
