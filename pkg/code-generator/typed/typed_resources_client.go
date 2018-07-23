@@ -5,46 +5,34 @@ import (
 	"text/template"
 )
 
-func GenerateTypedClientCode(packageName, resourceTypeName string) (string, error) {
+type CodeGeneratorParams struct {
+	PackageName  string
+	ResourceType string
+	PluralName   string
+	GroupName    string
+	Version      string
+	ShortName    string
+}
+
+func GenerateTypedClientCode(params CodeGeneratorParams) (string, error) {
 	buf := &bytes.Buffer{}
-	if err := typedClientTemplate.Execute(buf, struct {
-		PackageName  string
-		ResourceType string
-		PluralName   string
-		Version      string
-		ShortName    string
-	}{
-		PackageName:  packageName,
-		ResourceType: resourceTypeName,
-	}); err != nil {
+	if err := typedClientTemplate.Execute(buf, params); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
 }
 
-func GenerateTypedClientTestSuiteCode(packageName, resourceTypeName string) (string, error) {
+func GenerateTypedClientTestSuiteCode(params CodeGeneratorParams) (string, error) {
 	buf := &bytes.Buffer{}
-	if err := testSuiteTemplate.Execute(buf, struct {
-		PackageName  string
-		ResourceType string
-	}{
-		PackageName:  packageName,
-		ResourceType: resourceTypeName,
-	}); err != nil {
+	if err := testSuiteTemplate.Execute(buf, params); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
 }
 
-func GenerateTypedClientKubeTestCode(packageName, resourceTypeName string) (string, error) {
+func GenerateTypedClientKubeTestCode(params CodeGeneratorParams) (string, error) {
 	buf := &bytes.Buffer{}
-	if err := kubeTestTemplate.Execute(buf, struct {
-		PackageName  string
-		ResourceType string
-	}{
-		PackageName:  packageName,
-		ResourceType: resourceTypeName,
-	}); err != nil {
+	if err := kubeTestTemplate.Execute(buf, params); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
@@ -169,14 +157,13 @@ func (m *{{ .ResourceType }}Crd) DeepCopyObject() runtime.Object {
 	}
 }
 
-var {{ .ResourceType }}CrdDefinition = crd.NewCrd("testing.solo.io",
-	"mocks",
+var {{ .ResourceType }}CrdDefinition = crd.NewCrd("{{ .GroupName }}",
 	"{{ .PluralName }}",
+	"{{ .GroupName }}",
 	"{{ .Version }}",
 	"{{ .ResourceType }}",
 	"{{ .ShortName }}",
 	&{{ .ResourceType }}Crd{})
-
 `
 
 const testSuiteTemplateContents = `package {{ .PackageName }}
@@ -236,10 +223,10 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 		Expect(err).NotTo(HaveOccurred())
 		apiextsClient, err := apiexts.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-		resourceClient, err := versioned.NewForConfig(cfg, MockCrd)
+		resourceClient, err := versioned.NewForConfig(cfg, {{ .ResourceType }}CrdDefinition)
 		Expect(err).NotTo(HaveOccurred())
 		clientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd:     MockCrd,
+			Crd:     {{ .ResourceType }}CrdDefinition,
 			Kube:    resourceClient,
 			ApiExts: apiextsClient,
 		})

@@ -15,7 +15,7 @@ import (
 // plugin is an implementation of protokit.Plugin
 type Plugin struct{}
 
-type generateCodeFunc func(string, string) (string, error)
+type generateCodeFunc func(params typed.CodeGeneratorParams) (string, error)
 
 var filesToGenerate = map[string]generateCodeFunc{
 	"_client.go":           typed.GenerateTypedClientCode,
@@ -30,9 +30,10 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 
 	for _, d := range descriptors {
 		for _, msg := range d.Messages {
-			if msg.GetComments() != nil && msg.GetComments().Leading == "@solo-kit:resource" {
+			params := codegenParams(d, msg.GetComments(), msg.GetName())
+			if params != nil {
 				for suffix, genFunc := range filesToGenerate {
-					file, err := generateFile(d, suffix, msg.GetName(), genFunc)
+					file, err := generateFile(d, *params, suffix, genFunc)
 					if err != nil {
 						return nil, err
 					}
@@ -45,9 +46,53 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 	return resp, nil
 }
 
-func generateFile(d *protokit.FileDescriptor, suffix, messageName string, genFunc generateCodeFunc) (*plugin_go.CodeGeneratorResponse_File, error) {
+func codegenParams(d *protokit.FileDescriptor, comments *protokit.Comment, messageName string) *typed.CodeGeneratorParams {
+	magicComments := strings.Split(comments.Leading, "\n")
+	var (
+		isResource bool
+		shortName  string
+		pluralName string
+		groupName  string
+		version    string
+	)
+	for _, comment := range magicComments {
+		if comment == "@solo-kit:resource" {
+			isResource = true
+			continue
+		}
+		if strings.HasPrefix(comment, "@solo-kit:resource.short_name=") {
+			shortName = strings.TrimPrefix(comment, "@solo-kit:resource.short_name=")
+			continue
+		}
+		if strings.HasPrefix(comment, "@solo-kit:resource.plural_name=") {
+			pluralName = strings.TrimPrefix(comment, "@solo-kit:resource.plural_name=")
+			continue
+		}
+		if strings.HasPrefix(comment, "@solo-kit:resource.group_name=") {
+			groupName = strings.TrimPrefix(comment, "@solo-kit:resource.group_name=")
+			continue
+		}
+		if strings.HasPrefix(comment, "@solo-kit:resource.version=") {
+			version = strings.TrimPrefix(comment, "@solo-kit:resource.version=")
+			continue
+		}
+	}
+	if !isResource {
+		return nil
+	}
+	return &typed.CodeGeneratorParams{
+		PackageName:  goPackage(d),
+		ResourceType: messageName,
+		ShortName:    shortName,
+		PluralName:   pluralName,
+		GroupName:    groupName,
+		Version:      version,
+	}
+}
+
+func generateFile(d *protokit.FileDescriptor, params typed.CodeGeneratorParams, suffix string, genFunc generateCodeFunc) (*plugin_go.CodeGeneratorResponse_File, error) {
 	fileName := strings.TrimSuffix(d.GetName(), ".proto") + suffix
-	content, err := genFunc(goPackage(d), messageName)
+	content, err := genFunc(params)
 	if err != nil {
 		return nil, err
 	}

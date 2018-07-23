@@ -8,7 +8,13 @@ option (gogoproto.equal_all) = true;
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
-//@solo-kit:resource
+/*
+@solo-kit:resource
+@solo-kit:resource.short_name=mk
+@solo-kit:resource.plural_name=mocks
+@solo-kit:resource.group_name=testing.solo.io
+@solo-kit:resource.version=v1
+*/
 message MockResource {
     string data = 1;
     core.api.v1.Status status = 6 [(gogoproto.nullable) = false];

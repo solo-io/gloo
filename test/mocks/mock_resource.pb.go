@@ -30,7 +30,12 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
+//
 // @solo-kit:resource
+// @solo-kit:resource.short_name=mk
+// @solo-kit:resource.plural_name=mocks
+// @solo-kit:resource.group_name=testing.solo.io
+// @solo-kit:resource.version=v1
 type MockResource struct {
 	Data     string               `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	Status   core_api_v11.Status  `protobuf:"bytes,6,opt,name=status" json:"status"`
