@@ -16,12 +16,17 @@ import (
 // plugin is an implementation of protokit.Plugin
 type Plugin struct{}
 
-type generateCodeFunc func(params typed.ResourceClientTemplateParams) (string, error)
+type resouceTemplateFunc func(params typed.ResourceLevelTemplateParams) (string, error)
+type packageTemplateFunc func(params typed.PackageLevelTemplateParams) (string, error)
 
-var filesToGenerate = map[string]generateCodeFunc{
+var resourceFilesToGenerate = map[string]resouceTemplateFunc{
 	"_client.go":           typed.GenerateTypedClientCode,
 	"_client_kube_test.go": typed.GenerateTypedClientKubeTestCode,
-	"_suite_test.go":       typed.GenerateTypedClientTestSuiteCode,
+}
+
+var packageFilesToGenerate = map[string]packageTemplateFunc{
+	"_suite_test.go": typed.GenerateTestSuiteCode,
+	"_inventory.go":  typed.GenerateInventoryCode,
 }
 
 func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
@@ -37,8 +42,8 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 			params := codegenParams(packageName, msg.GetComments(), resourceType)
 			if params != nil {
 				resourceTypes = append(resourceTypes, resourceType)
-				for suffix, genFunc := range filesToGenerate {
-					file, err := generateFile(*params, suffix, genFunc)
+				for suffix, genFunc := range resourceFilesToGenerate {
+					file, err := generateResourceLevelFile(*params, suffix, genFunc)
 					if err != nil {
 						return nil, err
 					}
@@ -47,21 +52,23 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 			}
 		}
 		if len(resourceTypes) > 0 {
-			params := typed.InventoryTemplateParams{
+			params := typed.PackageLevelTemplateParams{
 				PackageName:   packageName,
 				ResourceTypes: resourceTypes,
 			}
-			file, err := generateInventoryFile(params)
-			if err != nil {
-				return nil, err
+			for suffix, genFunc := range packageFilesToGenerate {
+				file, err := generatePackageLevelFile(params, suffix, genFunc)
+				if err != nil {
+					return nil, err
+				}
+				resp.File = append(resp.File, file)
 			}
-			resp.File = append(resp.File, file)
 		}
 	}
 	return resp, nil
 }
 
-func codegenParams(packageName string, comments *protokit.Comment, resourceType string) *typed.ResourceClientTemplateParams {
+func codegenParams(packageName string, comments *protokit.Comment, resourceType string) *typed.ResourceLevelTemplateParams {
 	magicComments := strings.Split(comments.Leading, "\n")
 	var (
 		isResource bool
@@ -95,7 +102,7 @@ func codegenParams(packageName string, comments *protokit.Comment, resourceType 
 	if !isResource {
 		return nil
 	}
-	return &typed.ResourceClientTemplateParams{
+	return &typed.ResourceLevelTemplateParams{
 		PackageName:           packageName,
 		ResourceType:          resourceType,
 		ResourceTypeLowerCase: strcase.ToLowerCamel(resourceType),
@@ -106,7 +113,7 @@ func codegenParams(packageName string, comments *protokit.Comment, resourceType 
 	}
 }
 
-func generateFile(params typed.ResourceClientTemplateParams, suffix string, genFunc generateCodeFunc) (*plugin_go.CodeGeneratorResponse_File, error) {
+func generateResourceLevelFile(params typed.ResourceLevelTemplateParams, suffix string, genFunc resouceTemplateFunc) (*plugin_go.CodeGeneratorResponse_File, error) {
 	fileName := strcase.ToSnake(params.ResourceType) + suffix
 	content, err := genFunc(params)
 	if err != nil {
@@ -118,9 +125,9 @@ func generateFile(params typed.ResourceClientTemplateParams, suffix string, genF
 	}, nil
 }
 
-func generateInventoryFile(params typed.InventoryTemplateParams) (*plugin_go.CodeGeneratorResponse_File, error) {
-	fileName := params.PackageName + "_inventory.go"
-	content, err := typed.GenerateInventoryCode(params)
+func generatePackageLevelFile(params typed.PackageLevelTemplateParams, suffix string, genFunc packageTemplateFunc) (*plugin_go.CodeGeneratorResponse_File, error) {
+	fileName := params.PackageName + suffix
+	content, err := genFunc(params)
 	if err != nil {
 		return nil, err
 	}

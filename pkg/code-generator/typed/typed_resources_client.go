@@ -2,10 +2,11 @@ package typed
 
 import (
 	"bytes"
+	"strings"
 	"text/template"
 )
 
-type ResourceClientTemplateParams struct {
+type ResourceLevelTemplateParams struct {
 	PackageName           string
 	ResourceType          string
 	ResourceTypeLowerCase string
@@ -15,12 +16,16 @@ type ResourceClientTemplateParams struct {
 	ShortName             string
 }
 
-type InventoryTemplateParams struct {
+type PackageLevelTemplateParams struct {
 	PackageName   string
 	ResourceTypes []string
 }
 
-func GenerateTypedClientCode(params ResourceClientTemplateParams) (string, error) {
+var funcs = template.FuncMap{
+	"join": strings.Join,
+}
+
+func GenerateTypedClientCode(params ResourceLevelTemplateParams) (string, error) {
 	buf := &bytes.Buffer{}
 	if err := typedClientTemplate.Execute(buf, params); err != nil {
 		return "", err
@@ -28,15 +33,7 @@ func GenerateTypedClientCode(params ResourceClientTemplateParams) (string, error
 	return buf.String(), nil
 }
 
-func GenerateTypedClientTestSuiteCode(params ResourceClientTemplateParams) (string, error) {
-	buf := &bytes.Buffer{}
-	if err := testSuiteTemplate.Execute(buf, params); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
-
-func GenerateTypedClientKubeTestCode(params ResourceClientTemplateParams) (string, error) {
+func GenerateTypedClientKubeTestCode(params ResourceLevelTemplateParams) (string, error) {
 	buf := &bytes.Buffer{}
 	if err := kubeTestTemplate.Execute(buf, params); err != nil {
 		return "", err
@@ -44,7 +41,15 @@ func GenerateTypedClientKubeTestCode(params ResourceClientTemplateParams) (strin
 	return buf.String(), nil
 }
 
-func GenerateInventoryCode(params InventoryTemplateParams) (string, error) {
+func GenerateTestSuiteCode(params PackageLevelTemplateParams) (string, error) {
+	buf := &bytes.Buffer{}
+	if err := testSuiteTemplate.Funcs(funcs).Execute(buf, params); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
+func GenerateInventoryCode(params PackageLevelTemplateParams) (string, error) {
 	buf := &bytes.Buffer{}
 	if err := inventoryTemplate.Execute(buf, params); err != nil {
 		return "", err
@@ -53,8 +58,8 @@ func GenerateInventoryCode(params InventoryTemplateParams) (string, error) {
 }
 
 var typedClientTemplate = template.Must(template.New("typed_client").Parse(typedClientTemplateContents))
-var testSuiteTemplate = template.Must(template.New("typed_client_test_suite").Parse(testSuiteTemplateContents))
 var kubeTestTemplate = template.Must(template.New("typed_client_kube_test").Parse(kubeTestTemplateContents))
+var testSuiteTemplate = template.Must(template.New("typed_client_test_suite").Parse(testSuiteTemplateContents))
 var inventoryTemplate = template.Must(template.New("inventory").Parse(inventoryTemplateContents))
 
 const typedClientTemplateContents = `package {{ .PackageName }}
@@ -201,9 +206,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func Test{{ .ResourceType }}(t *testing.T) {
+func Test{{ join .ResourceTypes "" }}(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "{{ .ResourceType }} Suite")
+	RunSpecs(t, "{{ join .ResourceTypes "" }} Suite")
 }
 `
 
