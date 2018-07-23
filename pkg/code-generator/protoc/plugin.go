@@ -48,6 +48,7 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 		}
 		if len(resourceTypes) > 0 {
 			params := typed.InventoryTemplateParams{
+				PackageName:   packageName,
 				ResourceTypes: resourceTypes,
 			}
 			file, err := generateInventoryFile(params)
