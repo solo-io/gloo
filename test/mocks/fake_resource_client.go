@@ -6,8 +6,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // TODO: modify as needed to populate additional fields
@@ -19,7 +19,6 @@ func NewFakeResource(namespace, name string) *FakeResource {
 		},
 	}
 }
-
 
 func (r *FakeResource) SetStatus(status core.Status) {
 	r.Status = status

@@ -1,12 +1,12 @@
 package mocks
 
 import (
-	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/mitchellh/hashstructure"
 	"github.com/gogo/protobuf/proto"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/mitchellh/hashstructure"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
 type Snapshot struct {
