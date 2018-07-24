@@ -31,13 +31,13 @@ func (s Snapshot) Clone() Snapshot {
 
 func (s Snapshot) Hash() uint64 {
 	snapshotForHashing := s.Clone()
-	for _, mockResource := range s.MockResourceList {
+	for _, mockResource := range snapshotForHashing.MockResourceList {
 		resources.UpdateMetadata(mockResource, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
 		mockResource.SetStatus(core.Status{})
 	}
-	for _, fakeResource := range s.FakeResourceList {
+	for _, fakeResource := range snapshotForHashing.FakeResourceList {
 		resources.UpdateMetadata(fakeResource, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})

@@ -26,7 +26,7 @@ var resourceFilesToGenerate = map[string]resouceTemplateFunc{
 
 var packageFilesToGenerate = map[string]packageTemplateFunc{
 	"_suite_test.go": typed.GenerateTestSuiteCode,
-	"_cache.go":      typed.GenerateInventoryCode,
+	"_cache.go":      typed.GenerateCacheCode,
 }
 
 func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
