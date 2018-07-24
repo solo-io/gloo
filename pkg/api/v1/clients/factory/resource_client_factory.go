@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 )
@@ -35,6 +36,8 @@ func (factory *ResourceClientFactory) NewResourceClient(resourceType resources.R
 		return consul.NewResourceClient(opts.Consul, opts.RootKey, resourceType)
 	case *FileResourceClientOpts:
 		return file.NewResourceClient(opts.RootDir, resourceType)
+	case *MemoryResourceClientOpts:
+		return memory.NewResourceClient(resourceType)
 	}
 	panic("unsupported type " + reflect.TypeOf(factory.opts).Name())
 }
@@ -64,3 +67,7 @@ type FileResourceClientOpts struct {
 }
 
 func (o *FileResourceClientOpts) isResourceClientOpts() {}
+
+type MemoryResourceClientOpts struct{}
+
+func (o *MemoryResourceClientOpts) isResourceClientOpts() {}
