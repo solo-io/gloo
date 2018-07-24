@@ -41,7 +41,7 @@ var _ = Describe("Clientset", func() {
 	It("registers, creates, deletes resource implementations", func() {
 		apiextsClient, err := apiexts.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-		err = mocks.MockResourceCrdDefinition.Register(apiextsClient)
+		err = mocks.MockResourceCrd.Register(apiextsClient)
 		Expect(err).NotTo(HaveOccurred())
 
 		c, err := apiextsClient.ApiextensionsV1beta1().CustomResourceDefinitions().List(v1.ListOptions{})
@@ -49,25 +49,26 @@ var _ = Describe("Clientset", func() {
 		Expect(len(c.Items)).To(BeNumerically(">=", 1))
 		var found bool
 		for _, i := range c.Items {
-			if i.Name == mocks.MockResourceCrdDefinition.FullName() {
+			if i.Name == mocks.MockResourceCrd.FullName() {
 				found = true
 				break
 			}
 		}
 		Expect(found).To(BeTrue())
 
-		mockCrdClient, err := NewForConfig(cfg, mocks.MockResourceCrdDefinition)
+		mockCrdClient, err := NewForConfig(cfg, mocks.MockResourceCrd)
 		Expect(err).NotTo(HaveOccurred())
 		name := "foo"
 		input := mocks.NewMockResource(namespace, name)
-		inputCrd := mocks.MockResourceCrdDefinition.KubeResource(input)
+		input.Data = name
+		inputCrd := mocks.MockResourceCrd.KubeResource(input)
 		created, err := mockCrdClient.ResourcesV1().Resources(namespace).Create(inputCrd)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(created).NotTo(BeNil())
 		Expect(created.Spec).NotTo(BeNil())
 		Expect(created.Spec).To(Equal(&crdv1.Spec{
 			"data":     "foo",
-			"metadata": map[string]interface{}{"name": "foo"},
+			"metadata": map[string]interface{}{"name": "foo", "namespace": namespace},
 			"status":   map[string]interface{}{},
 		}))
 	})

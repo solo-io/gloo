@@ -41,9 +41,9 @@ var _ = Describe("Base", func() {
 		Expect(err).NotTo(HaveOccurred())
 		apiextsClient, err := apiexts.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-		resourceClient, err := versioned.NewForConfig(cfg, mocks.MockResourceCrdDefinition)
+		resourceClient, err := versioned.NewForConfig(cfg, mocks.MockResourceCrd)
 		Expect(err).NotTo(HaveOccurred())
-		client = NewResourceClient(mocks.MockResourceCrdDefinition, apiextsClient, resourceClient, &mocks.MockResource{})
+		client = NewResourceClient(mocks.MockResourceCrd, apiextsClient, resourceClient, &mocks.MockResource{})
 	})
 	AfterEach(func() {
 		services.TeardownKube(namespace)
@@ -54,6 +54,7 @@ var _ = Describe("Base", func() {
 
 		name := "foo"
 		input := mocks.NewMockResource(namespace, name)
+		input.Data = name
 		input.Metadata.Namespace = namespace
 		r1, err := client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
