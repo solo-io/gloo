@@ -30,6 +30,7 @@ var _ = Describe("MocksCache", func() {
 		mockResourceClient MockResourceClient
 		fakeResourceClient FakeResourceClient
 	)
+
 	BeforeEach(func() {
 		namespace = helpers.RandString(8)
 		err := services.SetupKubeForTest(namespace)
@@ -69,7 +70,6 @@ var _ = Describe("MocksCache", func() {
 			RefreshRate: time.Minute,
 		})
 		Expect(err).NotTo(HaveOccurred())
-
 		mockResource1, err := mockResourceClient.Write(NewMockResource(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -96,8 +96,7 @@ var _ = Describe("MocksCache", func() {
 		case <-time.After(time.Second):
 			Fail("expected snapshot before 1 second")
 		}
-
-		fakeResource1, err := fakeResourceClient.Write(NewFakeResource(namespace, "derek"), clients.WriteOpts{})
+		fakeResource1, err := fakeResourceClient.Write(NewFakeResource(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -110,7 +109,7 @@ var _ = Describe("MocksCache", func() {
 			Fail("expected snapshot before 1 second")
 		}
 
-		fakeResource2, err := fakeResourceClient.Write(NewFakeResource(namespace, "jenna"), clients.WriteOpts{})
+		fakeResource2, err := fakeResourceClient.Write(NewFakeResource(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -123,7 +122,6 @@ var _ = Describe("MocksCache", func() {
 		case <-time.After(time.Second):
 			Fail("expected snapshot before 1 second")
 		}
-
 		err = mockResourceClient.Delete(mockResource2.Metadata.Name, clients.DeleteOpts{
 			Namespace: mockResource2.Metadata.Namespace,
 		})
@@ -153,7 +151,6 @@ var _ = Describe("MocksCache", func() {
 		case <-time.After(time.Second):
 			Fail("expected snapshot before 1 second")
 		}
-
 		err = fakeResourceClient.Delete(fakeResource2.Metadata.Name, clients.DeleteOpts{
 			Namespace: fakeResource2.Metadata.Namespace,
 		})

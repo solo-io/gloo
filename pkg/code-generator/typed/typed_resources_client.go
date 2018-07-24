@@ -79,6 +79,14 @@ func GenerateCacheCode(params PackageLevelTemplateParams) (string, error) {
 	return buf.String(), nil
 }
 
+func GenerateCacheTestCode(params PackageLevelTemplateParams) (string, error) {
+	buf := &bytes.Buffer{}
+	if err := cacheTestTemplate.Execute(buf, params); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
 var typedClientTemplate = template.Must(template.New("typed_client").Funcs(funcs).Parse(typedClientTemplateContents))
 var kubeTestTemplate = template.Must(template.New("typed_client_kube_test").Funcs(funcs).Parse(kubeTestTemplateContents))
 var testSuiteTemplate = template.Must(template.New("typed_client_test_suite").Funcs(funcs).Parse(testSuiteTemplateContents))
@@ -607,7 +615,7 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		})
 		{{ lowercase . }}Client = New{{ . }}Client({{ lowercase . }}ClientFactory)
 {{- end}}
-		cache = NewCache({{ clients . true }})
+		cache = NewCache({{ clients . false }})
 	})
 	AfterEach(func() {
 		services.TeardownKube(namespace)
