@@ -5,6 +5,7 @@ import (
 	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	"github.com/envoyproxy/go-control-plane/pkg/server"
 	"github.com/gogo/protobuf/types"
 
 	"github.com/solo-io/gloo/pkg/api/types/v1"
@@ -115,3 +116,40 @@ type ClusterGeneratorPlugin interface {
 
 // Params for GeneratedClusters()
 type ClusterGeneratorPluginParams struct{}
+
+type XdsPlugin interface {
+	Callbacks() server.Callbacks
+}
+
+type XdsCallbacks []server.Callbacks
+
+func (ps XdsCallbacks) OnStreamOpen(a int64, b string) {
+	for _, cb := range ps {
+		cb.OnStreamOpen(a, b)
+	}
+}
+func (ps XdsCallbacks) OnStreamClosed(a int64) {
+	for _, cb := range ps {
+		cb.OnStreamClosed(a)
+	}
+}
+func (ps XdsCallbacks) OnStreamRequest(a int64, b *envoyapi.DiscoveryRequest) {
+	for _, cb := range ps {
+		cb.OnStreamRequest(a, b)
+	}
+}
+func (ps XdsCallbacks) OnStreamResponse(a int64, b *envoyapi.DiscoveryRequest, c *envoyapi.DiscoveryResponse) {
+	for _, cb := range ps {
+		cb.OnStreamResponse(a, b, c)
+	}
+}
+func (ps XdsCallbacks) OnFetchRequest(a *envoyapi.DiscoveryRequest) {
+	for _, cb := range ps {
+		cb.OnFetchRequest(a)
+	}
+}
+func (ps XdsCallbacks) OnFetchResponse(a *envoyapi.DiscoveryRequest, b *envoyapi.DiscoveryResponse) {
+	for _, cb := range ps {
+		cb.OnFetchResponse(a, b)
+	}
+}
