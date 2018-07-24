@@ -26,7 +26,11 @@ type Inventory struct {
 4 - reporter
  
 5 - e2e tests
+
+TODO soonish:
+ - support selectors/labels
  
  post 3 weeks
  - installer
  - CLI
+- tests for consul and file

@@ -10,15 +10,12 @@ import (
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/tools/clientcmd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/bxcodec/faker"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"os"
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"path/filepath"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"time"
 )
 
 var _ = Describe("MocksCache", func() {
@@ -27,9 +24,11 @@ var _ = Describe("MocksCache", func() {
 		return
 	}
 	var (
-		namespace string
-		cfg       *rest.Config
-		cache     Cache
+		namespace          string
+		cfg                *rest.Config
+		cache              Cache
+		mockResourceClient MockResourceClient
+		fakeResourceClient FakeResourceClient
 	)
 	BeforeEach(func() {
 		namespace = helpers.RandString(8)
@@ -47,7 +46,7 @@ var _ = Describe("MocksCache", func() {
 			Kube:    mockResourceKubeclient,
 			ApiExts: apiextsClient,
 		})
-		mockResourceClient := NewMockResourceClient(mockResourceClientFactory)
+		mockResourceClient = NewMockResourceClient(mockResourceClientFactory)
 		fakeResourceKubeclient, err := versioned.NewForConfig(cfg, FakeResourceCrd)
 		Expect(err).NotTo(HaveOccurred())
 		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
@@ -55,148 +54,134 @@ var _ = Describe("MocksCache", func() {
 			Kube:    fakeResourceKubeclient,
 			ApiExts: apiextsClient,
 		})
-		fakeResourceClient := NewFakeResourceClient(fakeResourceClientFactory)
+		fakeResourceClient = NewFakeResourceClient(fakeResourceClientFactory)
 		cache = NewCache(mockResourceClient, fakeResourceClient)
 	})
 	AfterEach(func() {
 		services.TeardownKube(namespace)
 	})
-	It("CRUDs resources", func() {
+	It("tracks snapshots on changes to any resource", func() {
 		err := cache.Register()
 		Expect(err).NotTo(HaveOccurred())
 
-		name := "foo"
-		input := NewMockResource(namespace, name)
-		input.Metadata.Namespace = namespace
-		r1, err := cache.Write(input, clients.WriteOpts{})
-		Expect(err).NotTo(HaveOccurred())
-
-		_, err = cache.Write(input, clients.WriteOpts{})
-		Expect(err).To(HaveOccurred())
-		Expect(errors.IsExist(err)).To(BeTrue())
-
-		Expect(r1).To(BeAssignableToTypeOf(&MockResource{}))
-		Expect(r1.GetMetadata().Name).To(Equal(name))
-		Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
-		Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal("7"))
-		Expect(r1.Data).To(Equal(input.Data))
-
-		_, err = cache.Write(input, clients.WriteOpts{
-			OverwriteExisting: true,
-		})
-		Expect(err).To(HaveOccurred())
-
-		input.Metadata.ResourceVersion = r1.GetMetadata().ResourceVersion
-		r1, err = cache.Write(input, clients.WriteOpts{
-			OverwriteExisting: true,
-		})
-		Expect(err).NotTo(HaveOccurred())
-
-		read, err := cache.Read(name, clients.ReadOpts{
-			Namespace: namespace,
-		})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(read).To(Equal(r1))
-
-		_, err = cache.Read(name, clients.ReadOpts{Namespace: "doesntexist"})
-		Expect(err).To(HaveOccurred())
-		Expect(errors.IsNotExist(err)).To(BeTrue())
-
-		name = "boo"
-		input = &MockResource{}
-		err = faker.FakeData(input)
-		Expect(err).NotTo(HaveOccurred())
-		input.Metadata = core.Metadata{
-			Name:      name,
-			Namespace: namespace,
-		}
-
-		r2, err := cache.Write(input, clients.WriteOpts{})
-		Expect(err).NotTo(HaveOccurred())
-
-		list, err := cache.List(clients.ListOpts{
-			Namespace: namespace,
-		})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(list).To(ContainElement(r1))
-		Expect(list).To(ContainElement(r2))
-
-		err = cache.Delete("adsfw", clients.DeleteOpts{
-			Namespace: namespace,
-		})
-		Expect(err).To(HaveOccurred())
-		Expect(errors.IsNotExist(err)).To(BeTrue())
-
-		err = cache.Delete("adsfw", clients.DeleteOpts{
-			IgnoreNotExist: true,
-			Namespace:      namespace,
-		})
-		Expect(err).NotTo(HaveOccurred())
-
-		err = cache.Delete(r2.GetMetadata().Name, clients.DeleteOpts{
-			Namespace: namespace,
-		})
-		Expect(err).NotTo(HaveOccurred())
-		list, err = cache.List(clients.ListOpts{
-			Namespace: namespace,
-		})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(list).To(ContainElement(r1))
-		Expect(list).NotTo(ContainElement(r2))
-
-		w, errs, err := cache.Watch(clients.WatchOpts{
+		snapshots, errs, err := cache.Snapshots(clients.WatchOpts{
 			Namespace:   namespace,
-			RefreshRate: time.Hour,
+			RefreshRate: time.Minute,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		var r3 resources.Resource
-		wait := make(chan struct{})
-		go func() {
-			defer close(wait)
-			defer GinkgoRecover()
-
-			resources.UpdateMetadata(r2, func(meta *core.Metadata) {
-				meta.ResourceVersion = ""
-			})
-			r2, err = cache.Write(r2, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-
-			name = "goo"
-			input = &MockResource{}
-			err = faker.FakeData(input)
-			Expect(err).NotTo(HaveOccurred())
-			input.Metadata = core.Metadata{
-				Name:      name,
-				Namespace: namespace,
-			}
-
-			r3, err = cache.Write(input, clients.WriteOpts{})
-			Expect(err).NotTo(HaveOccurred())
-		}()
-		<-wait
+		mockResource1, err := mockResourceClient.Write(NewMockResource(namespace, "angela"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
 
 		select {
+		case snap := <-snapshots:
+			Expect(snap.MockResourceList).To(HaveLen(1))
+			Expect(snap.MockResourceList).To(ContainElement(mockResource1))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case list = <-w:
-		case <-time.After(time.Millisecond * 5):
-			Fail("expected a message in channel")
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
 		}
 
-	drain:
-		for {
-			select {
-			case list = <-w:
-			case err := <-errs:
-				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Millisecond * 500):
-				break drain
-			}
+		mockResource2, err := mockResourceClient.Write(NewMockResource(namespace, "lane"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.MockResourceList).To(HaveLen(2))
+			Expect(snap.MockResourceList).To(ContainElement(mockResource1))
+			Expect(snap.MockResourceList).To(ContainElement(mockResource2))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
 		}
 
-		Expect(list).To(ContainElement(r1))
-		Expect(list).To(ContainElement(r2))
-		Expect(list).To(ContainElement(r3))
+		fakeResource1, err := fakeResourceClient.Write(NewFakeResource(namespace, "derek"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.FakeResourceList).To(HaveLen(1))
+			Expect(snap.FakeResourceList).To(ContainElement(fakeResource1))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+
+		fakeResource2, err := fakeResourceClient.Write(NewFakeResource(namespace, "jenna"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.FakeResourceList).To(HaveLen(2))
+			Expect(snap.FakeResourceList).To(ContainElement(fakeResource1))
+			Expect(snap.FakeResourceList).To(ContainElement(fakeResource2))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+
+		err = mockResourceClient.Delete(mockResource2.Metadata.Name, clients.DeleteOpts{
+			Namespace: mockResource2.Metadata.Namespace,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.MockResourceList).To(HaveLen(1))
+			Expect(snap.MockResourceList).To(ContainElement(mockResource1))
+			Expect(snap.MockResourceList).NotTo(ContainElement(mockResource2))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+
+		err = mockResourceClient.Delete(mockResource1.Metadata.Name, clients.DeleteOpts{
+			Namespace: mockResource1.Metadata.Namespace,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.MockResourceList).To(HaveLen(0))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+
+		err = fakeResourceClient.Delete(fakeResource2.Metadata.Name, clients.DeleteOpts{
+			Namespace: fakeResource2.Metadata.Namespace,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.FakeResourceList).To(HaveLen(1))
+			Expect(snap.FakeResourceList).To(ContainElement(fakeResource1))
+			Expect(snap.FakeResourceList).NotTo(ContainElement(fakeResource2))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+
+		err = fakeResourceClient.Delete(fakeResource1.Metadata.Name, clients.DeleteOpts{
+			Namespace: fakeResource1.Metadata.Namespace,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.FakeResourceList).To(HaveLen(0))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
 	})
 })
