@@ -40,14 +40,23 @@ var _ = Describe("MocksCache", func() {
 		Expect(err).NotTo(HaveOccurred())
 		apiextsClient, err := apiexts.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-		resourceClient, err := versioned.NewForConfig(cfg, MockResourceCrd)
+		mockResourceKubeclient, err := versioned.NewForConfig(cfg, MockResourceCrd)
 		Expect(err).NotTo(HaveOccurred())
-		clientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+		mockResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd:     MockResourceCrd,
-			Kube:    resourceClient,
+			Kube:    mockResourceKubeclient,
 			ApiExts: apiextsClient,
 		})
-		cache = NewMockResourceClient(clientFactory)
+		mockResourceClient := NewMockResourceClient(mockResourceClientFactory)
+		fakeResourceKubeclient, err := versioned.NewForConfig(cfg, FakeResourceCrd)
+		Expect(err).NotTo(HaveOccurred())
+		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+			Crd:     FakeResourceCrd,
+			Kube:    fakeResourceKubeclient,
+			ApiExts: apiextsClient,
+		})
+		fakeResourceClient := NewFakeResourceClient(fakeResourceClientFactory)
+		cache = NewCache(mockResourceClient, fakeResourceClient)
 	})
 	AfterEach(func() {
 		services.TeardownKube(namespace)

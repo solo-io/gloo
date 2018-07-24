@@ -1,7 +1,6 @@
 package mocks
 
 import (
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/mitchellh/hashstructure"
@@ -52,15 +51,16 @@ func (s Snapshot) Hash() uint64 {
 }
 
 type Cache interface {
+	Register() error
 	MockResource() MockResourceClient
 	FakeResource() FakeResourceClient
 	Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
 
-func NewCache(factory *factory.ResourceClientFactory) Cache {
+func NewCache(mockResourceClient MockResourceClient, fakeResourceClient FakeResourceClient) Cache {
 	return &cache{
-		mockResource: NewMockResourceClient(factory),
-		fakeResource: NewFakeResourceClient(factory),
+		mockResource: mockResourceClient,
+		fakeResource: fakeResourceClient,
 	}
 }
 

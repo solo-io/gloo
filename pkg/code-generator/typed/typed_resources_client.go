@@ -33,6 +33,13 @@ type PackageLevelTemplateParams struct {
 var funcs = template.FuncMap{
 	"join":      strings.Join,
 	"lowercase": strcase.ToLowerCamel,
+	"clients": func(params PackageLevelTemplateParams) string {
+		var clientParams []string
+		for _, resource := range params.ResourceTypes {
+			clientParams = append(clientParams, strcase.ToLowerCamel(resource)+"Client "+resource+"Client")
+		}
+		return strings.Join(clientParams, ", ")
+	},
 }
 
 func GenerateTypedClientCode(params ResourceLevelTemplateParams) (string, error) {
@@ -417,7 +424,6 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 const inventoryTemplateContents = `package {{ .PackageName }}
 
 import (
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/mitchellh/hashstructure"
@@ -464,16 +470,17 @@ func (s Snapshot) Hash() uint64 {
 }
 
 type Cache interface {
+	Register() error
 {{- range .ResourceTypes}}
 	{{ . }}() {{ . }}Client
 {{- end}}
 	Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
 
-func NewCache(factory *factory.ResourceClientFactory) Cache {
+func NewCache({{ clients . }}) Cache {
 	return &cache{
 {{- range .ResourceTypes}}
-		{{ lowercase . }}: New{{ . }}Client(factory),
+		{{ lowercase . }}: {{ lowercase . }}Client,
 {{- end}}
 	}
 }
