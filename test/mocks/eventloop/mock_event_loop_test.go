@@ -1,14 +1,15 @@
 package eventloop_test
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
-	. "github.com/solo-io/solo-kit/test/mocks/eventloop"
-	"github.com/solo-io/solo-kit/test/services"
+	. "github.com/onsi/gomega"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/test/mocks"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	. "github.com/onsi/gomega"
-	"time"
+	. "github.com/solo-io/solo-kit/test/mocks/eventloop"
+	"github.com/solo-io/solo-kit/test/services"
 )
 
 var _ = Describe("MockEventLoop", func() {
@@ -37,7 +38,7 @@ var _ = Describe("MockEventLoop", func() {
 			err := el.Run(clients.WatchOpts{Namespace: namespace})
 			Expect(err).NotTo(HaveOccurred())
 		}()
-		Eventually(func() bool { return sync.synced}, time.Second).Should(BeTrue())
+		Eventually(func() bool { return sync.synced }, time.Second).Should(BeTrue())
 	})
 })
 
