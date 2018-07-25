@@ -8,13 +8,13 @@
   revision = "3c58d8115a78a6879e5df75ae900846768d36895"
 
 [[projects]]
+  branch = "master"
   name = "github.com/bxcodec/faker"
   packages = [
     ".",
     "support/slice"
   ]
-  revision = "1e3dfd53d826aa0d096d235cf8525149287a2834"
-  version = "v1.4.3"
+  revision = "886f57703256b3d02e9198410de4a83864f976d1"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -712,6 +712,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e6efcdc2eb6e50d3cdae2ea43728677f1261b758c2c653e40d070752471ab984"
+  inputs-digest = "b12d673cc0a3c212d7f8ee3f0337aec2d979a4caf06ae0ab43d75eba5d7cbd85"
   solver-name = "gps-cdcl"
   solver-version = 1
