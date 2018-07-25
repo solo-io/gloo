@@ -8,8 +8,6 @@ option (gogoproto.equal_all) = true;
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
-import "google/protobuf/empty.proto";
-
 /*
 @solo-kit:resource
 @solo-kit:resource.short_name=mk
@@ -35,47 +33,3 @@ message FakeResource {
     core.api.v1.Status status = 6 [(gogoproto.nullable) = false];
     core.api.v1.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }
-
-message ReadRequest {
-    string name = 1;
-    string namespace = 2;
-}
-
-message DeleteRequest {
-    string name = 1;
-    string namespace = 2;
-}
-
-message ListRequest {
-    string namespace = 2;
-}
-
-message WatchRequest {
-    string namespace = 2;
-}
-
-message ListResponse {
-    repeated MockResource mock_resource_list = 1;
-}
-
-message WriteRequest {
-    MockResource mock_resource = 1;
-}
-
-service ApiServer {
-    rpc Register(google.protobuf.Empty) returns (google.protobuf.Empty) {}
-    rpc Read(ReadRequest) returns (MockResource) {}
-    rpc Write(WriteRequest) returns (MockResource) {}
-    rpc Delete(DeleteRequest) returns (google.protobuf.Empty) {}
-    rpc List(ListRequest) returns (ListResponse) {}
-    rpc Watch(WatchRequest) returns (stream ListResponse) {}
-}
-
-/*
-Register() error
-Read(name string, opts ReadOpts) (resources.Resource, error)
-Write(resource resources.Resource, opts WriteOpts) (resources.Resource, error)
-Delete(name string, opts DeleteOpts) error
-List(opts ListOpts) ([]resources.Resource, error)
-Watch(opts WatchOpts) (<-chan []resources.Resource, <-chan error, error)
-*/
