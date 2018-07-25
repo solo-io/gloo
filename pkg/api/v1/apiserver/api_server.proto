@@ -1,0 +1,71 @@
+syntax = "proto3";
+package apiserver.api.v1;
+option go_package = "github.com/solo-io/solo-kit/pkg/api/v1/apiserver";
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/struct.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/status.proto";
+
+message Resource {
+    google.protobuf.Struct data = 4;
+    core.api.v1.Status status = 6 [(gogoproto.nullable) = false];
+    core.api.v1.Metadata metadata = 7 [(gogoproto.nullable) = false];
+}
+
+/*
+GRPC stuff
+*/
+message ReadRequest {
+    string name = 1;
+    string namespace = 2;
+}
+
+message ReadResponse {
+    Resource resource = 1;
+}
+
+message WriteRequest {
+    Resource resource = 1;
+}
+
+message WriteResponse {
+    Resource resource = 1;
+}
+
+message DeleteRequest {
+    string name = 1;
+    string namespace = 2;
+}
+
+message DeleteResponse {}
+
+message ListRequest {
+    string namespace = 2;
+}
+
+message ListResponse {
+    repeated Resource resource_list = 1;
+}
+
+message WatchRequest {
+    string namespace = 2;
+}
+
+message WatchResponse {
+    repeated Resource resource_list = 1;
+}
+
+message RegisterRequest {}
+message RegisterResponse {}
+
+service ApiServer {
+    rpc Register(RegisterRequest) returns (RegisterResponse) {}
+    rpc Read(ReadRequest) returns (ReadResponse) {}
+    rpc Write(WriteRequest) returns (WriteResponse) {}
+    rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+    rpc List(ListRequest) returns (ListResponse) {}
+    rpc Watch(WatchRequest) returns (stream ListResponse) {}
+}
