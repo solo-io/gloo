@@ -32,6 +32,7 @@ const (
 
 type Logger interface {
 	Printf(level LogLevel, format string, a ...interface{})
+	WithPrefix(string) Logger
 }
 
 type BasicLogger struct {
@@ -43,6 +44,12 @@ func (l *BasicLogger) Printf(level LogLevel, format string, a ...interface{}) {
 		return
 	}
 	fmt.Printf(l.prefix+level.String()+format, a...)
+}
+
+func (l *BasicLogger) WithPrefix(prefix string) Logger {
+	return &BasicLogger{
+		prefix: l.prefix + "." + prefix,
+	}
 }
 
 var DefaultLogger = &BasicLogger{}

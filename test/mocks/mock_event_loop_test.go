@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/test/services"
 )
 
 var _ = Describe("MockEventLoop", func() {
@@ -22,9 +21,6 @@ var _ = Describe("MockEventLoop", func() {
 		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{})
 		fakeResourceClient := NewFakeResourceClient(fakeResourceClientFactory)
 		cache = NewCache(mockResourceClient, fakeResourceClient)
-	})
-	AfterEach(func() {
-		services.TeardownKube(namespace)
 	})
 	It("runs sync function on a new snapshot", func() {
 		_, err := cache.MockResource().Write(NewMockResource(namespace, "jerry"), clients.WriteOpts{})
