@@ -33,6 +33,14 @@ func NewResourceClient(dir string, resourceType resources.Resource) *ResourceCli
 
 var _ clients.ResourceClient = &ResourceClient{}
 
+func (rc *ResourceClient) Kind() string {
+	return reflect.TypeOf(rc.resourceType).Name()
+}
+
+func (rc *ResourceClient) NewResource() resources.Resource {
+	return resources.Clone(rc.resourceType)
+}
+
 func (rc *ResourceClient) Register() error {
 	return nil
 }
@@ -46,7 +54,7 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
 		return nil, errors.NewNotExistErr(opts.Namespace, name, err)
 	}
-	resource := resources.Clone(rc.resourceType)
+	resource := rc.NewResource()
 	if err := fileutils.ReadFileInto(path, resource); err != nil {
 		return nil, errors.Wrapf(err, "reading file into %v", reflect.TypeOf(rc.resourceType))
 	}
@@ -111,7 +119,7 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 
 	var resourceList []resources.Resource
 	for _, file := range files {
-		resource := resources.Clone(rc.resourceType)
+		resource := rc.NewResource()
 		path := filepath.Join(namespaceDir, file.Name())
 		if err := fileutils.ReadFileInto(path, resource); err != nil {
 			return nil, errors.Wrapf(err, "reading file into %v", reflect.TypeOf(rc.resourceType))

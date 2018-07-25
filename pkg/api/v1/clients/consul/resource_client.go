@@ -32,6 +32,14 @@ func NewResourceClient(client *api.Client, rootKey string, resourceType resource
 
 var _ clients.ResourceClient = &ResourceClient{}
 
+func (rc *ResourceClient) Kind() string {
+	return reflect.TypeOf(rc.resourceType).Name()
+}
+
+func (rc *ResourceClient) NewResource() resources.Resource {
+	return resources.Clone(rc.resourceType)
+}
+
 func (rc *ResourceClient) Register() error {
 	return nil
 }
@@ -50,7 +58,7 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 	if kvPair == nil {
 		return nil, errors.NewNotExistErr(opts.Namespace, name)
 	}
-	resource := resources.Clone(rc.resourceType)
+	resource := rc.NewResource()
 	if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 		return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 	}
@@ -133,7 +141,7 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 
 	var resourceList []resources.Resource
 	for _, kvPair := range kvPairs {
-		resource := resources.Clone(rc.resourceType)
+		resource := rc.NewResource()
 		if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 			return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 		}
@@ -185,7 +193,7 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 		}
 		var resourceList []resources.Resource
 		for _, kvPair := range kvPairs {
-			resource := resources.Clone(rc.resourceType)
+			resource := rc.NewResource()
 			if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
 				return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
 			}

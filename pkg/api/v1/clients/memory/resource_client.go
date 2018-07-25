@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 
+	"reflect"
+
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -31,6 +33,10 @@ func NewResourceClient(resourceType resources.Resource) *ResourceClient {
 }
 
 var _ clients.ResourceClient = &ResourceClient{}
+
+func (rc *ResourceClient) Kind() string {
+	return reflect.TypeOf(rc.resourceType).Name()
+}
 
 func (rc *ResourceClient) Register() error {
 	return nil

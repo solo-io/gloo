@@ -39,6 +39,14 @@ func NewResourceClient(crd crd.Crd, apiexts apiexts.Interface, kube versioned.In
 
 var _ clients.ResourceClient = &ResourceClient{}
 
+func (rc *ResourceClient) Kind() string {
+	return reflect.TypeOf(rc.resourceType).Name()
+}
+
+func (rc *ResourceClient) NewResource() resources.Resource {
+	return resources.Clone(rc.resourceType)
+}
+
 func (rc *ResourceClient) Register() error {
 	return rc.crd.Register(rc.apiexts)
 }
@@ -56,7 +64,7 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 		}
 		return nil, errors.Wrapf(err, "reading resource from kubernetes")
 	}
-	resource := resources.Clone(rc.resourceType)
+	resource := rc.NewResource()
 	if resourceCrd.Spec != nil {
 		if err := protoutils.UnmarshalMap(*resourceCrd.Spec, resource); err != nil {
 			return nil, errors.Wrapf(err, "reading crd spec into %v", rc.resourceName)
@@ -124,7 +132,7 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 	}
 	var resourceList []resources.Resource
 	for _, resourceCrd := range resourceCrdList.Items {
-		resource := resources.Clone(rc.resourceType)
+		resource := rc.NewResource()
 		if resourceCrd.Spec != nil {
 			if err := protoutils.UnmarshalMap(*resourceCrd.Spec, resource); err != nil {
 				return nil, errors.Wrapf(err, "reading crd spec into %v", rc.resourceName)

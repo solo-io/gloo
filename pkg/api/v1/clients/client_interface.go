@@ -12,6 +12,8 @@ const DefaultNamespace = "default"
 var DefaultRefreshRate = time.Second * 30
 
 type ResourceClient interface {
+	Kind() string
+	NewResource() resources.Resource
 	Register() error
 	Read(name string, opts ReadOpts) (resources.Resource, error)
 	Write(resource resources.Resource, opts WriteOpts) (resources.Resource, error)
