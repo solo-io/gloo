@@ -6,13 +6,9 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/struct.proto";
 option (gogoproto.equal_all) = true;
 
-import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
-import "github.com/solo-io/solo-kit/api/v1/status.proto";
-
 message Resource {
+    string kind = 1;
     google.protobuf.Struct data = 4;
-    core.api.v1.Status status = 6 [(gogoproto.nullable) = false];
-    core.api.v1.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }
 
 /*
@@ -21,6 +17,7 @@ GRPC stuff
 message ReadRequest {
     string name = 1;
     string namespace = 2;
+    string kind = 3;
 }
 
 message ReadResponse {
@@ -29,6 +26,7 @@ message ReadResponse {
 
 message WriteRequest {
     Resource resource = 1;
+    bool overwrite_existing = 2;
 }
 
 message WriteResponse {
@@ -38,12 +36,14 @@ message WriteResponse {
 message DeleteRequest {
     string name = 1;
     string namespace = 2;
+    string kind = 3;
 }
 
 message DeleteResponse {}
 
 message ListRequest {
     string namespace = 2;
+    string kind = 3;
 }
 
 message ListResponse {
@@ -52,6 +52,7 @@ message ListResponse {
 
 message WatchRequest {
     string namespace = 2;
+    string kind = 3;
 }
 
 message WatchResponse {
