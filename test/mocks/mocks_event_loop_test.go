@@ -13,6 +13,7 @@ var _ = Describe("MockEventLoop", func() {
 	var (
 		namespace string
 		cache     Cache
+		err       error
 	)
 
 	BeforeEach(func() {
@@ -23,7 +24,9 @@ var _ = Describe("MockEventLoop", func() {
 		cache = NewCache(mockResourceClient, fakeResourceClient)
 	})
 	It("runs sync function on a new snapshot", func() {
-		_, err := cache.MockResource().Write(NewMockResource(namespace, "jerry"), clients.WriteOpts{})
+		_, err = cache.MockResource().Write(NewMockResource(namespace, "jerry"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		_, err = cache.FakeResource().Write(NewFakeResource(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		sync := &mockSyncer{}
 		el := NewEventLoop(cache, sync)

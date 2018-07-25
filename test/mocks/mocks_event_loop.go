@@ -31,7 +31,7 @@ func (el *eventLoop) Run(opts clients.WatchOpts) error {
 	logger := contextutils.GetLogger(opts.Ctx)
 	logger = logger.WithPrefix("mocks.event_loop")
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, logger)
-	logger.Printf(contextutils.LogLevelInfo, "mocks: event loop started")
+	logger.Printf(contextutils.LogLevelInfo, "event loop started")
 	errorHandler := contextutils.GetErrorHandler(opts.Ctx)
 	watch, errs, err := el.cache.Snapshots(opts)
 	if err != nil {

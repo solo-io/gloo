@@ -25,9 +25,11 @@ var resourceFilesToGenerate = map[string]resouceTemplateFunc{
 }
 
 var packageFilesToGenerate = map[string]packageTemplateFunc{
-	"_suite_test.go": typed.GenerateTestSuiteCode,
-	"_cache.go":      typed.GenerateCacheCode,
-	"_cache_test.go": typed.GenerateCacheTestCode,
+	"_suite_test.go":      typed.GenerateTestSuiteCode,
+	"_cache.go":           typed.GenerateCacheCode,
+	"_cache_test.go":      typed.GenerateCacheTestCode,
+	"_event_loop.go":      typed.GenerateEventLoopCode,
+	"_event_loop_test.go": typed.GenerateEventLoopTestCode,
 }
 
 func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
