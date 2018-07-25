@@ -11,19 +11,8 @@ a new proto for that config (it's internal anyway)
 
 
 steps:
-1 - generate inventory container for resources, e.g.:
-type Inventory struct {
-  MockResourceList []*MockResource
-  FakeResourceList []*FakeResource
-}
-
-2 - generate a config watcher for this config
-
-3 - generate an event loop:
- - event loop should take other channels as parameters, as well as a sync funciton (for example we need
- an event loop to handle secrets, endpoints for gloo)
-
 4 - reporter
+
  
 5 - e2e tests
 
@@ -33,6 +22,13 @@ TODO soonish:
  - support selectors/labels
  
  post 3 weeks
- - installer
- - CLI
+- bootstrap
+- installer
+- CLI
 - tests for consul and file
+
+
+- knative demo
+- caching plugin
+- framework
+- extending xds for rate limit, extauth
