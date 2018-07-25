@@ -10,6 +10,19 @@ It is generated from these files:
 It has these top-level messages:
 	MockResource
 	FakeResource
+	Resource
+	ReadRequest
+	ReadResponse
+	WriteRequest
+	WriteResponse
+	DeleteRequest
+	DeleteResponse
+	ListRequest
+	ListResponse
+	WatchRequest
+	WatchResponse
+	RegisterRequest
+	RegisterResponse
 */
 package mocks
 
@@ -19,6 +32,9 @@ import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
 import core_api_v1 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 import core_api_v11 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+
+import context "golang.org/x/net/context"
+import grpc "google.golang.org/grpc"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -30,6 +46,27 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+
+type ResourceKind int32
+
+const (
+	ResourceKind_ResourceKind_MockResource ResourceKind = 0
+	ResourceKind_ResourceKind_FakeResource ResourceKind = 1
+)
+
+var ResourceKind_name = map[int32]string{
+	0: "ResourceKind_MockResource",
+	1: "ResourceKind_FakeResource",
+}
+var ResourceKind_value = map[string]int32{
+	"ResourceKind_MockResource": 0,
+	"ResourceKind_FakeResource": 1,
+}
+
+func (x ResourceKind) String() string {
+	return proto.EnumName(ResourceKind_name, int32(x))
+}
+func (ResourceKind) EnumDescriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{0} }
 
 //
 // @solo-kit:resource
@@ -107,9 +144,361 @@ func (m *FakeResource) GetMetadata() core_api_v1.Metadata {
 	return core_api_v1.Metadata{}
 }
 
+type Resource struct {
+	// Types that are valid to be assigned to Kind:
+	//	*Resource_MockResource
+	//	*Resource_FakeResource
+	Kind isResource_Kind `protobuf_oneof:"kind"`
+}
+
+func (m *Resource) Reset()                    { *m = Resource{} }
+func (m *Resource) String() string            { return proto.CompactTextString(m) }
+func (*Resource) ProtoMessage()               {}
+func (*Resource) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{2} }
+
+type isResource_Kind interface {
+	isResource_Kind()
+	Equal(interface{}) bool
+}
+
+type Resource_MockResource struct {
+	MockResource *MockResource `protobuf:"bytes,1,opt,name=mock_resource,json=mockResource,oneof"`
+}
+type Resource_FakeResource struct {
+	FakeResource *FakeResource `protobuf:"bytes,2,opt,name=fake_resource,json=fakeResource,oneof"`
+}
+
+func (*Resource_MockResource) isResource_Kind() {}
+func (*Resource_FakeResource) isResource_Kind() {}
+
+func (m *Resource) GetKind() isResource_Kind {
+	if m != nil {
+		return m.Kind
+	}
+	return nil
+}
+
+func (m *Resource) GetMockResource() *MockResource {
+	if x, ok := m.GetKind().(*Resource_MockResource); ok {
+		return x.MockResource
+	}
+	return nil
+}
+
+func (m *Resource) GetFakeResource() *FakeResource {
+	if x, ok := m.GetKind().(*Resource_FakeResource); ok {
+		return x.FakeResource
+	}
+	return nil
+}
+
+// XXX_OneofFuncs is for the internal use of the proto package.
+func (*Resource) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _Resource_OneofMarshaler, _Resource_OneofUnmarshaler, _Resource_OneofSizer, []interface{}{
+		(*Resource_MockResource)(nil),
+		(*Resource_FakeResource)(nil),
+	}
+}
+
+func _Resource_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*Resource)
+	// kind
+	switch x := m.Kind.(type) {
+	case *Resource_MockResource:
+		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.MockResource); err != nil {
+			return err
+		}
+	case *Resource_FakeResource:
+		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.FakeResource); err != nil {
+			return err
+		}
+	case nil:
+	default:
+		return fmt.Errorf("Resource.Kind has unexpected type %T", x)
+	}
+	return nil
+}
+
+func _Resource_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*Resource)
+	switch tag {
+	case 1: // kind.mock_resource
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(MockResource)
+		err := b.DecodeMessage(msg)
+		m.Kind = &Resource_MockResource{msg}
+		return true, err
+	case 2: // kind.fake_resource
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(FakeResource)
+		err := b.DecodeMessage(msg)
+		m.Kind = &Resource_FakeResource{msg}
+		return true, err
+	default:
+		return false, nil
+	}
+}
+
+func _Resource_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*Resource)
+	// kind
+	switch x := m.Kind.(type) {
+	case *Resource_MockResource:
+		s := proto.Size(x.MockResource)
+		n += proto.SizeVarint(1<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *Resource_FakeResource:
+		s := proto.Size(x.FakeResource)
+		n += proto.SizeVarint(2<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case nil:
+	default:
+		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
+	}
+	return n
+}
+
+type ReadRequest struct {
+	Name      string       `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Namespace string       `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Kind      ResourceKind `protobuf:"varint,3,opt,name=kind,proto3,enum=mocks.api.v1.ResourceKind" json:"kind,omitempty"`
+}
+
+func (m *ReadRequest) Reset()                    { *m = ReadRequest{} }
+func (m *ReadRequest) String() string            { return proto.CompactTextString(m) }
+func (*ReadRequest) ProtoMessage()               {}
+func (*ReadRequest) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{3} }
+
+func (m *ReadRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *ReadRequest) GetNamespace() string {
+	if m != nil {
+		return m.Namespace
+	}
+	return ""
+}
+
+func (m *ReadRequest) GetKind() ResourceKind {
+	if m != nil {
+		return m.Kind
+	}
+	return ResourceKind_ResourceKind_MockResource
+}
+
+type ReadResponse struct {
+	Resource *Resource `protobuf:"bytes,1,opt,name=resource" json:"resource,omitempty"`
+}
+
+func (m *ReadResponse) Reset()                    { *m = ReadResponse{} }
+func (m *ReadResponse) String() string            { return proto.CompactTextString(m) }
+func (*ReadResponse) ProtoMessage()               {}
+func (*ReadResponse) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{4} }
+
+func (m *ReadResponse) GetResource() *Resource {
+	if m != nil {
+		return m.Resource
+	}
+	return nil
+}
+
+type WriteRequest struct {
+	Resource *Resource `protobuf:"bytes,1,opt,name=resource" json:"resource,omitempty"`
+}
+
+func (m *WriteRequest) Reset()                    { *m = WriteRequest{} }
+func (m *WriteRequest) String() string            { return proto.CompactTextString(m) }
+func (*WriteRequest) ProtoMessage()               {}
+func (*WriteRequest) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{5} }
+
+func (m *WriteRequest) GetResource() *Resource {
+	if m != nil {
+		return m.Resource
+	}
+	return nil
+}
+
+type WriteResponse struct {
+	Resource *Resource `protobuf:"bytes,1,opt,name=resource" json:"resource,omitempty"`
+}
+
+func (m *WriteResponse) Reset()                    { *m = WriteResponse{} }
+func (m *WriteResponse) String() string            { return proto.CompactTextString(m) }
+func (*WriteResponse) ProtoMessage()               {}
+func (*WriteResponse) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{6} }
+
+func (m *WriteResponse) GetResource() *Resource {
+	if m != nil {
+		return m.Resource
+	}
+	return nil
+}
+
+type DeleteRequest struct {
+	Name      string       `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Namespace string       `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Kind      ResourceKind `protobuf:"varint,3,opt,name=kind,proto3,enum=mocks.api.v1.ResourceKind" json:"kind,omitempty"`
+}
+
+func (m *DeleteRequest) Reset()                    { *m = DeleteRequest{} }
+func (m *DeleteRequest) String() string            { return proto.CompactTextString(m) }
+func (*DeleteRequest) ProtoMessage()               {}
+func (*DeleteRequest) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{7} }
+
+func (m *DeleteRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *DeleteRequest) GetNamespace() string {
+	if m != nil {
+		return m.Namespace
+	}
+	return ""
+}
+
+func (m *DeleteRequest) GetKind() ResourceKind {
+	if m != nil {
+		return m.Kind
+	}
+	return ResourceKind_ResourceKind_MockResource
+}
+
+type DeleteResponse struct {
+}
+
+func (m *DeleteResponse) Reset()                    { *m = DeleteResponse{} }
+func (m *DeleteResponse) String() string            { return proto.CompactTextString(m) }
+func (*DeleteResponse) ProtoMessage()               {}
+func (*DeleteResponse) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{8} }
+
+type ListRequest struct {
+	Namespace string       `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Kind      ResourceKind `protobuf:"varint,3,opt,name=kind,proto3,enum=mocks.api.v1.ResourceKind" json:"kind,omitempty"`
+}
+
+func (m *ListRequest) Reset()                    { *m = ListRequest{} }
+func (m *ListRequest) String() string            { return proto.CompactTextString(m) }
+func (*ListRequest) ProtoMessage()               {}
+func (*ListRequest) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{9} }
+
+func (m *ListRequest) GetNamespace() string {
+	if m != nil {
+		return m.Namespace
+	}
+	return ""
+}
+
+func (m *ListRequest) GetKind() ResourceKind {
+	if m != nil {
+		return m.Kind
+	}
+	return ResourceKind_ResourceKind_MockResource
+}
+
+type ListResponse struct {
+	ResourceList []*Resource `protobuf:"bytes,1,rep,name=resource_list,json=resourceList" json:"resource_list,omitempty"`
+}
+
+func (m *ListResponse) Reset()                    { *m = ListResponse{} }
+func (m *ListResponse) String() string            { return proto.CompactTextString(m) }
+func (*ListResponse) ProtoMessage()               {}
+func (*ListResponse) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{10} }
+
+func (m *ListResponse) GetResourceList() []*Resource {
+	if m != nil {
+		return m.ResourceList
+	}
+	return nil
+}
+
+type WatchRequest struct {
+	Namespace string       `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Kind      ResourceKind `protobuf:"varint,3,opt,name=kind,proto3,enum=mocks.api.v1.ResourceKind" json:"kind,omitempty"`
+}
+
+func (m *WatchRequest) Reset()                    { *m = WatchRequest{} }
+func (m *WatchRequest) String() string            { return proto.CompactTextString(m) }
+func (*WatchRequest) ProtoMessage()               {}
+func (*WatchRequest) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{11} }
+
+func (m *WatchRequest) GetNamespace() string {
+	if m != nil {
+		return m.Namespace
+	}
+	return ""
+}
+
+func (m *WatchRequest) GetKind() ResourceKind {
+	if m != nil {
+		return m.Kind
+	}
+	return ResourceKind_ResourceKind_MockResource
+}
+
+type WatchResponse struct {
+	ResourceList []*Resource `protobuf:"bytes,1,rep,name=resource_list,json=resourceList" json:"resource_list,omitempty"`
+}
+
+func (m *WatchResponse) Reset()                    { *m = WatchResponse{} }
+func (m *WatchResponse) String() string            { return proto.CompactTextString(m) }
+func (*WatchResponse) ProtoMessage()               {}
+func (*WatchResponse) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{12} }
+
+func (m *WatchResponse) GetResourceList() []*Resource {
+	if m != nil {
+		return m.ResourceList
+	}
+	return nil
+}
+
+type RegisterRequest struct {
+}
+
+func (m *RegisterRequest) Reset()                    { *m = RegisterRequest{} }
+func (m *RegisterRequest) String() string            { return proto.CompactTextString(m) }
+func (*RegisterRequest) ProtoMessage()               {}
+func (*RegisterRequest) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{13} }
+
+type RegisterResponse struct {
+}
+
+func (m *RegisterResponse) Reset()                    { *m = RegisterResponse{} }
+func (m *RegisterResponse) String() string            { return proto.CompactTextString(m) }
+func (*RegisterResponse) ProtoMessage()               {}
+func (*RegisterResponse) Descriptor() ([]byte, []int) { return fileDescriptorMockResources, []int{14} }
+
 func init() {
 	proto.RegisterType((*MockResource)(nil), "mocks.api.v1.MockResource")
 	proto.RegisterType((*FakeResource)(nil), "mocks.api.v1.FakeResource")
+	proto.RegisterType((*Resource)(nil), "mocks.api.v1.Resource")
+	proto.RegisterType((*ReadRequest)(nil), "mocks.api.v1.ReadRequest")
+	proto.RegisterType((*ReadResponse)(nil), "mocks.api.v1.ReadResponse")
+	proto.RegisterType((*WriteRequest)(nil), "mocks.api.v1.WriteRequest")
+	proto.RegisterType((*WriteResponse)(nil), "mocks.api.v1.WriteResponse")
+	proto.RegisterType((*DeleteRequest)(nil), "mocks.api.v1.DeleteRequest")
+	proto.RegisterType((*DeleteResponse)(nil), "mocks.api.v1.DeleteResponse")
+	proto.RegisterType((*ListRequest)(nil), "mocks.api.v1.ListRequest")
+	proto.RegisterType((*ListResponse)(nil), "mocks.api.v1.ListResponse")
+	proto.RegisterType((*WatchRequest)(nil), "mocks.api.v1.WatchRequest")
+	proto.RegisterType((*WatchResponse)(nil), "mocks.api.v1.WatchResponse")
+	proto.RegisterType((*RegisterRequest)(nil), "mocks.api.v1.RegisterRequest")
+	proto.RegisterType((*RegisterResponse)(nil), "mocks.api.v1.RegisterResponse")
+	proto.RegisterEnum("mocks.api.v1.ResourceKind", ResourceKind_name, ResourceKind_value)
 }
 func (this *MockResource) Equal(that interface{}) bool {
 	if that == nil {
@@ -171,26 +560,699 @@ func (this *FakeResource) Equal(that interface{}) bool {
 	}
 	return true
 }
+func (this *Resource) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*Resource)
+	if !ok {
+		that2, ok := that.(Resource)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if that1.Kind == nil {
+		if this.Kind != nil {
+			return false
+		}
+	} else if this.Kind == nil {
+		return false
+	} else if !this.Kind.Equal(that1.Kind) {
+		return false
+	}
+	return true
+}
+func (this *Resource_MockResource) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*Resource_MockResource)
+	if !ok {
+		that2, ok := that.(Resource_MockResource)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.MockResource.Equal(that1.MockResource) {
+		return false
+	}
+	return true
+}
+func (this *Resource_FakeResource) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*Resource_FakeResource)
+	if !ok {
+		that2, ok := that.(Resource_FakeResource)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.FakeResource.Equal(that1.FakeResource) {
+		return false
+	}
+	return true
+}
+func (this *ReadRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*ReadRequest)
+	if !ok {
+		that2, ok := that.(ReadRequest)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.Name != that1.Name {
+		return false
+	}
+	if this.Namespace != that1.Namespace {
+		return false
+	}
+	if this.Kind != that1.Kind {
+		return false
+	}
+	return true
+}
+func (this *ReadResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*ReadResponse)
+	if !ok {
+		that2, ok := that.(ReadResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Resource.Equal(that1.Resource) {
+		return false
+	}
+	return true
+}
+func (this *WriteRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*WriteRequest)
+	if !ok {
+		that2, ok := that.(WriteRequest)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Resource.Equal(that1.Resource) {
+		return false
+	}
+	return true
+}
+func (this *WriteResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*WriteResponse)
+	if !ok {
+		that2, ok := that.(WriteResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Resource.Equal(that1.Resource) {
+		return false
+	}
+	return true
+}
+func (this *DeleteRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*DeleteRequest)
+	if !ok {
+		that2, ok := that.(DeleteRequest)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.Name != that1.Name {
+		return false
+	}
+	if this.Namespace != that1.Namespace {
+		return false
+	}
+	if this.Kind != that1.Kind {
+		return false
+	}
+	return true
+}
+func (this *DeleteResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*DeleteResponse)
+	if !ok {
+		that2, ok := that.(DeleteResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *ListRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*ListRequest)
+	if !ok {
+		that2, ok := that.(ListRequest)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.Namespace != that1.Namespace {
+		return false
+	}
+	if this.Kind != that1.Kind {
+		return false
+	}
+	return true
+}
+func (this *ListResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*ListResponse)
+	if !ok {
+		that2, ok := that.(ListResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if len(this.ResourceList) != len(that1.ResourceList) {
+		return false
+	}
+	for i := range this.ResourceList {
+		if !this.ResourceList[i].Equal(that1.ResourceList[i]) {
+			return false
+		}
+	}
+	return true
+}
+func (this *WatchRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*WatchRequest)
+	if !ok {
+		that2, ok := that.(WatchRequest)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.Namespace != that1.Namespace {
+		return false
+	}
+	if this.Kind != that1.Kind {
+		return false
+	}
+	return true
+}
+func (this *WatchResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*WatchResponse)
+	if !ok {
+		that2, ok := that.(WatchResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if len(this.ResourceList) != len(that1.ResourceList) {
+		return false
+	}
+	for i := range this.ResourceList {
+		if !this.ResourceList[i].Equal(that1.ResourceList[i]) {
+			return false
+		}
+	}
+	return true
+}
+func (this *RegisterRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*RegisterRequest)
+	if !ok {
+		that2, ok := that.(RegisterRequest)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *RegisterResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*RegisterResponse)
+	if !ok {
+		that2, ok := that.(RegisterResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion4
+
+// Client API for ApiServer service
+
+type ApiServerClient interface {
+	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	Read(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (*ReadResponse, error)
+	Write(ctx context.Context, in *WriteRequest, opts ...grpc.CallOption) (*WriteResponse, error)
+	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
+	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error)
+	Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (ApiServer_WatchClient, error)
+}
+
+type apiServerClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewApiServerClient(cc *grpc.ClientConn) ApiServerClient {
+	return &apiServerClient{cc}
+}
+
+func (c *apiServerClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
+	out := new(RegisterResponse)
+	err := grpc.Invoke(ctx, "/mocks.api.v1.ApiServer/Register", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *apiServerClient) Read(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (*ReadResponse, error) {
+	out := new(ReadResponse)
+	err := grpc.Invoke(ctx, "/mocks.api.v1.ApiServer/Read", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *apiServerClient) Write(ctx context.Context, in *WriteRequest, opts ...grpc.CallOption) (*WriteResponse, error) {
+	out := new(WriteResponse)
+	err := grpc.Invoke(ctx, "/mocks.api.v1.ApiServer/Write", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *apiServerClient) Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error) {
+	out := new(DeleteResponse)
+	err := grpc.Invoke(ctx, "/mocks.api.v1.ApiServer/Delete", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *apiServerClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error) {
+	out := new(ListResponse)
+	err := grpc.Invoke(ctx, "/mocks.api.v1.ApiServer/List", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *apiServerClient) Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (ApiServer_WatchClient, error) {
+	stream, err := grpc.NewClientStream(ctx, &_ApiServer_serviceDesc.Streams[0], c.cc, "/mocks.api.v1.ApiServer/Watch", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &apiServerWatchClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ApiServer_WatchClient interface {
+	Recv() (*ListResponse, error)
+	grpc.ClientStream
+}
+
+type apiServerWatchClient struct {
+	grpc.ClientStream
+}
+
+func (x *apiServerWatchClient) Recv() (*ListResponse, error) {
+	m := new(ListResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// Server API for ApiServer service
+
+type ApiServerServer interface {
+	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	Read(context.Context, *ReadRequest) (*ReadResponse, error)
+	Write(context.Context, *WriteRequest) (*WriteResponse, error)
+	Delete(context.Context, *DeleteRequest) (*DeleteResponse, error)
+	List(context.Context, *ListRequest) (*ListResponse, error)
+	Watch(*WatchRequest, ApiServer_WatchServer) error
+}
+
+func RegisterApiServerServer(s *grpc.Server, srv ApiServerServer) {
+	s.RegisterService(&_ApiServer_serviceDesc, srv)
+}
+
+func _ApiServer_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServerServer).Register(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mocks.api.v1.ApiServer/Register",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServerServer).Register(ctx, req.(*RegisterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApiServer_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServerServer).Read(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mocks.api.v1.ApiServer/Read",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServerServer).Read(ctx, req.(*ReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApiServer_Write_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WriteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServerServer).Write(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mocks.api.v1.ApiServer/Write",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServerServer).Write(ctx, req.(*WriteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApiServer_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServerServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mocks.api.v1.ApiServer/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServerServer).Delete(ctx, req.(*DeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApiServer_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServerServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mocks.api.v1.ApiServer/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServerServer).List(ctx, req.(*ListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApiServer_Watch_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ApiServerServer).Watch(m, &apiServerWatchServer{stream})
+}
+
+type ApiServer_WatchServer interface {
+	Send(*ListResponse) error
+	grpc.ServerStream
+}
+
+type apiServerWatchServer struct {
+	grpc.ServerStream
+}
+
+func (x *apiServerWatchServer) Send(m *ListResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+var _ApiServer_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "mocks.api.v1.ApiServer",
+	HandlerType: (*ApiServerServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Register",
+			Handler:    _ApiServer_Register_Handler,
+		},
+		{
+			MethodName: "Read",
+			Handler:    _ApiServer_Read_Handler,
+		},
+		{
+			MethodName: "Write",
+			Handler:    _ApiServer_Write_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _ApiServer_Delete_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _ApiServer_List_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Watch",
+			Handler:       _ApiServer_Watch_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "mock_resources.proto",
+}
 
 func init() { proto.RegisterFile("mock_resources.proto", fileDescriptorMockResources) }
 
 var fileDescriptorMockResources = []byte{
-	// 257 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xc9, 0xcd, 0x4f, 0xce,
-	0x8e, 0x2f, 0x4a, 0x2d, 0xce, 0x2f, 0x2d, 0x4a, 0x4e, 0x2d, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9,
-	0x17, 0xe2, 0x01, 0x89, 0x16, 0xeb, 0x25, 0x16, 0x64, 0xea, 0x95, 0x19, 0x4a, 0x89, 0xa4, 0xe7,
-	0xa7, 0xe7, 0x83, 0x25, 0xf4, 0x41, 0x2c, 0x88, 0x1a, 0x29, 0xc3, 0xf4, 0xcc, 0x92, 0x8c, 0xd2,
-	0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0xfd, 0xe2, 0xfc, 0x9c, 0x7c, 0xdd, 0xcc, 0x7c, 0x08, 0x9d, 0x9d,
-	0x59, 0xa2, 0x9f, 0x58, 0x90, 0xa9, 0x5f, 0x66, 0xa8, 0x9f, 0x9b, 0x5a, 0x92, 0x98, 0x92, 0x58,
-	0x92, 0x08, 0xd5, 0xa2, 0x4f, 0x84, 0x96, 0xe2, 0x92, 0xc4, 0x92, 0x52, 0xa8, 0x3b, 0x94, 0xfa,
-	0x18, 0xb9, 0x78, 0x7c, 0xf3, 0x93, 0xb3, 0x83, 0xa0, 0xee, 0x13, 0x12, 0xe2, 0x62, 0x01, 0x99,
-	0x27, 0xc1, 0xa8, 0xc0, 0xa8, 0xc1, 0x19, 0x04, 0x66, 0x0b, 0x19, 0x72, 0xb1, 0x41, 0x34, 0x49,
-	0xb0, 0x29, 0x30, 0x6a, 0x70, 0x1b, 0x09, 0xeb, 0x25, 0xe7, 0x17, 0xa5, 0x42, 0x1d, 0xaf, 0x17,
-	0x0c, 0x96, 0x72, 0x62, 0x39, 0x71, 0x4f, 0x9e, 0x21, 0x08, 0xaa, 0x50, 0xc8, 0x9c, 0x8b, 0x03,
-	0xe6, 0x34, 0x09, 0x76, 0xb0, 0x26, 0x51, 0x14, 0x4d, 0xbe, 0x50, 0x49, 0xa8, 0x36, 0xb8, 0x62,
-	0xa5, 0x09, 0x8c, 0x5c, 0x3c, 0x6e, 0x89, 0xd9, 0xa9, 0x70, 0x07, 0x89, 0x70, 0xb1, 0x26, 0xe7,
-	0x97, 0xe6, 0x95, 0x80, 0x5d, 0xc4, 0x1b, 0x04, 0xe1, 0xd0, 0xd3, 0x49, 0x4e, 0x3a, 0x2b, 0x1e,
-	0xc9, 0x31, 0x46, 0xa9, 0xe1, 0x0b, 0xda, 0x92, 0xd4, 0xe2, 0x12, 0x7d, 0x70, 0x94, 0x26, 0xb1,
-	0x81, 0x03, 0xd6, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0x23, 0x16, 0xd3, 0x41, 0xf8, 0x01, 0x00,
-	0x00,
+	// 631 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x95, 0xcf, 0x6e, 0xd3, 0x4e,
+	0x10, 0xc7, 0xe3, 0x5f, 0xd3, 0xfc, 0x9a, 0x89, 0x5d, 0xc2, 0x52, 0x50, 0x6a, 0xda, 0x52, 0xf9,
+	0x80, 0x2a, 0x04, 0x36, 0x09, 0x07, 0x0e, 0x1c, 0x50, 0x53, 0x40, 0x48, 0x6d, 0x2f, 0xee, 0xa1,
+	0x12, 0x20, 0x45, 0x5b, 0x67, 0x9b, 0xae, 0x9c, 0x64, 0x5d, 0xef, 0x26, 0x8f, 0x81, 0x38, 0xf2,
+	0x08, 0x88, 0x27, 0xe1, 0x29, 0x38, 0xf0, 0x24, 0x68, 0xbd, 0x6b, 0x67, 0xe3, 0x86, 0x08, 0x41,
+	0xcb, 0x29, 0xf6, 0xce, 0xcc, 0x77, 0x3e, 0x3b, 0x7f, 0x62, 0xd8, 0x18, 0xb1, 0x28, 0xee, 0xa5,
+	0x84, 0xb3, 0x49, 0x1a, 0x11, 0xee, 0x27, 0x29, 0x13, 0x0c, 0xd9, 0xf2, 0x94, 0xfb, 0x38, 0xa1,
+	0xfe, 0xb4, 0xed, 0x6e, 0x0c, 0xd8, 0x80, 0x65, 0x86, 0x40, 0x3e, 0x29, 0x1f, 0xb7, 0x3d, 0xa0,
+	0xe2, 0x62, 0x72, 0xe6, 0x47, 0x6c, 0x14, 0x70, 0x36, 0x64, 0x4f, 0x28, 0x53, 0xbf, 0x31, 0x15,
+	0x01, 0x4e, 0x68, 0x30, 0x6d, 0x07, 0x23, 0x22, 0x70, 0x1f, 0x0b, 0xac, 0x43, 0x82, 0xdf, 0x08,
+	0xe1, 0x02, 0x8b, 0x89, 0xe6, 0xf0, 0x3e, 0x5a, 0x60, 0x1f, 0xb3, 0x28, 0x0e, 0x35, 0x1f, 0x42,
+	0x50, 0x95, 0x7a, 0x2d, 0x6b, 0xd7, 0xda, 0xab, 0x87, 0xd9, 0x33, 0x6a, 0x43, 0x4d, 0x05, 0xb5,
+	0x6a, 0xbb, 0xd6, 0x5e, 0xa3, 0x73, 0xc7, 0x8f, 0x58, 0x4a, 0x34, 0xbc, 0x7f, 0x92, 0x99, 0xba,
+	0xd5, 0x6f, 0xdf, 0x1f, 0x54, 0x42, 0xed, 0x88, 0x9e, 0xc3, 0x5a, 0x8e, 0xd6, 0xfa, 0x3f, 0x0b,
+	0xba, 0x3b, 0x17, 0x74, 0xac, 0x8d, 0x3a, 0xac, 0x70, 0xf6, 0x3e, 0x59, 0x60, 0xbf, 0xc1, 0x31,
+	0x29, 0x80, 0x36, 0x60, 0x35, 0x62, 0x93, 0xb1, 0xc8, 0x88, 0x9c, 0x50, 0xbd, 0xfc, 0x53, 0xa4,
+	0xcf, 0x16, 0xac, 0x15, 0x38, 0xfb, 0xe0, 0xcc, 0x35, 0x34, 0xc3, 0x6a, 0x74, 0x5c, 0xdf, 0x6c,
+	0xa8, 0x6f, 0x96, 0xf4, 0x6d, 0x25, 0xcc, 0xba, 0x6d, 0x4a, 0x9c, 0xe3, 0x98, 0xcc, 0x24, 0xfe,
+	0x5b, 0x24, 0x61, 0x16, 0x41, 0x4a, 0x9c, 0x1b, 0xef, 0xdd, 0x1a, 0x54, 0x63, 0x3a, 0xee, 0x7b,
+	0x0c, 0x1a, 0x21, 0xc1, 0xfd, 0x90, 0x5c, 0x4e, 0x08, 0x17, 0xb2, 0x79, 0x63, 0x3c, 0x22, 0x79,
+	0xf3, 0xe4, 0x33, 0xda, 0x82, 0xba, 0xfc, 0xe5, 0x09, 0xd6, 0x99, 0xea, 0xe1, 0xec, 0x00, 0xf9,
+	0x4a, 0xa8, 0xb5, 0xb2, 0x6b, 0xed, 0xad, 0x97, 0x11, 0xf2, 0x74, 0x87, 0x74, 0xdc, 0x0f, 0x55,
+	0xc2, 0x2e, 0xd8, 0x2a, 0x21, 0x4f, 0xd8, 0x98, 0x13, 0xd4, 0x81, 0xb5, 0x52, 0x25, 0xee, 0x2d,
+	0xd6, 0x08, 0x0b, 0x3f, 0xa9, 0x71, 0x9a, 0x52, 0x41, 0x72, 0xea, 0x3f, 0xd1, 0x38, 0x00, 0x47,
+	0x6b, 0xfc, 0x05, 0xc8, 0x25, 0x38, 0xaf, 0xc8, 0x90, 0xcc, 0x48, 0x6e, 0xbe, 0x7e, 0x4d, 0x58,
+	0xcf, 0x53, 0x2a, 0x70, 0xef, 0x3d, 0x34, 0x8e, 0x28, 0x17, 0x39, 0xc2, 0xf5, 0xa6, 0x3b, 0x04,
+	0x5b, 0x89, 0xeb, 0x2a, 0xbd, 0x00, 0x27, 0xbf, 0x7d, 0x6f, 0x48, 0xb9, 0x5c, 0xaa, 0x95, 0x25,
+	0xa5, 0xb2, 0x73, 0x67, 0x29, 0xe2, 0x7d, 0x00, 0xfb, 0x14, 0x8b, 0xe8, 0xe2, 0x66, 0x50, 0x8f,
+	0xc0, 0xd1, 0xea, 0xd7, 0xc1, 0x7a, 0x1b, 0x6e, 0x85, 0x64, 0x40, 0xb9, 0x20, 0xa9, 0xc6, 0xf5,
+	0x10, 0x34, 0x67, 0x47, 0x2a, 0xc7, 0xa3, 0x23, 0x39, 0xce, 0x33, 0x14, 0xb4, 0x0d, 0x9b, 0xe6,
+	0x7b, 0xcf, 0xdc, 0xe3, 0x66, 0xe5, 0x8a, 0xd9, 0xdc, 0xd1, 0xa6, 0xd5, 0xf9, 0xba, 0x02, 0xf5,
+	0xfd, 0x84, 0x9e, 0x90, 0x74, 0x4a, 0x52, 0x74, 0x28, 0xff, 0x35, 0x54, 0x3e, 0xb4, 0x5d, 0x86,
+	0x9e, 0x43, 0x73, 0x77, 0x7e, 0x65, 0xd6, 0x33, 0x52, 0x41, 0x2f, 0xa1, 0x2a, 0xf7, 0x0e, 0x6d,
+	0x96, 0x3d, 0x8b, 0xe5, 0x77, 0xdd, 0x45, 0xa6, 0x42, 0xa0, 0x0b, 0xab, 0xd9, 0xc2, 0xa0, 0x92,
+	0x9b, 0xb9, 0x89, 0xee, 0xfd, 0x85, 0xb6, 0x42, 0xe3, 0x35, 0xd4, 0xd4, 0xf0, 0xa2, 0x92, 0xe3,
+	0xdc, 0x16, 0xb9, 0x5b, 0x8b, 0x8d, 0xe6, 0x5d, 0x64, 0x8f, 0xca, 0x77, 0x31, 0xb6, 0xa0, 0x7c,
+	0x17, 0x73, 0x86, 0xbd, 0x0a, 0x3a, 0x80, 0xd5, 0x6c, 0x54, 0xae, 0xdc, 0xc5, 0x98, 0xce, 0xe5,
+	0x12, 0x4f, 0xad, 0xee, 0xe3, 0x2f, 0x3f, 0x76, 0xac, 0x77, 0x0f, 0x97, 0x7d, 0x30, 0x05, 0xe1,
+	0x22, 0xc8, 0x54, 0xce, 0x6a, 0xd9, 0xe7, 0xf2, 0xd9, 0xcf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x31,
+	0xee, 0xd2, 0x29, 0xce, 0x07, 0x00, 0x00,
 }

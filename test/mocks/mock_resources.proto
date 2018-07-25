@@ -33,3 +33,75 @@ message FakeResource {
     core.api.v1.Status status = 6 [(gogoproto.nullable) = false];
     core.api.v1.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }
+
+/*
+GRPC stuff
+*/
+
+enum ResourceKind {
+    ResourceKind_MockResource = 0;
+    ResourceKind_FakeResource = 1;
+}
+
+message Resource {
+    oneof kind {
+        MockResource mock_resource = 1;
+        FakeResource fake_resource = 2;
+    }
+}
+
+message ReadRequest {
+    string name = 1;
+    string namespace = 2;
+    ResourceKind kind = 3;
+}
+
+message ReadResponse {
+    Resource resource = 1;
+}
+
+message WriteRequest {
+    Resource resource = 1;
+}
+
+message WriteResponse {
+    Resource resource = 1;
+}
+
+message DeleteRequest {
+    string name = 1;
+    string namespace = 2;
+    ResourceKind kind = 3;
+}
+
+message DeleteResponse {}
+
+message ListRequest {
+    string namespace = 2;
+    ResourceKind kind = 3;
+}
+
+message ListResponse {
+    repeated Resource resource_list = 1;
+}
+
+message WatchRequest {
+    string namespace = 2;
+    ResourceKind kind = 3;
+}
+
+message WatchResponse {
+    repeated Resource resource_list = 1;
+}
+
+message RegisterRequest {}
+message RegisterResponse {}
+
+service ApiServer {
+    rpc Register(RegisterRequest) returns (RegisterResponse) {}
+    rpc Read(ReadRequest) returns (ReadResponse) {}
+    rpc Write(WriteRequest) returns (WriteResponse) {}
+    rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+    rpc List(ListRequest) returns (ListResponse) {}
+    rpc Watch(WatchRequest) returns (stream ListResponse) {}
+}
