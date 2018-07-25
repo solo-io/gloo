@@ -28,11 +28,18 @@
   go-tests = true
   unused-packages = true
 
-
 [[override]]
   branch = "master"
   name = "k8s.io/api"
 
+[[override]]
+  branch = "master"
+  name = "github.com/golang/protobuf"
+
+#[[constraint]]
+#  revision = "e9c5d9645c437ab1b204cff969a2c0fb16cd4276"
+#  name = "github.com/grpc-ecosystem/go-grpc-middleware"
+#
 #[[constraint]]
 #  branch = "master"
 #  name = "k8s.io/apiextensions-apiserver"

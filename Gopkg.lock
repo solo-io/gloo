@@ -48,18 +48,20 @@
   revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
 [[projects]]
+  branch = "master"
   name = "github.com/golang/protobuf"
   packages = [
+    "jsonpb",
     "proto",
     "protoc-gen-go/descriptor",
     "protoc-gen-go/plugin",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
+    "ptypes/struct",
     "ptypes/timestamp"
   ]
-  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
-  version = "v1.1.0"
+  revision = "93b26e6a70e37abb14f2f88194949312b0592a84"
 
 [[projects]]
   branch = "master"
@@ -97,6 +99,19 @@
     "diskcache"
   ]
   revision = "9cad4c3443a7200dd6400aef47183728de563a38"
+
+[[projects]]
+  name = "github.com/grpc-ecosystem/go-grpc-middleware"
+  packages = [
+    ".",
+    "logging",
+    "logging/zap",
+    "logging/zap/ctxzap",
+    "tags",
+    "tags/zap"
+  ]
+  revision = "c250d6563d4d4c20252cd865923440e829844f4e"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/hashicorp/consul"
@@ -697,6 +712,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2f5a9725242a157c10bada484d5719bb6ca8081f0f51e8e9eaeb91e109d64f22"
+  inputs-digest = "e6efcdc2eb6e50d3cdae2ea43728677f1261b758c2c653e40d070752471ab984"
   solver-name = "gps-cdcl"
   solver-version = 1
