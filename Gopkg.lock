@@ -8,6 +8,15 @@
   revision = "3c58d8115a78a6879e5df75ae900846768d36895"
 
 [[projects]]
+  name = "github.com/bxcodec/faker"
+  packages = [
+    ".",
+    "support/slice"
+  ]
+  revision = "1e3dfd53d826aa0d096d235cf8525149287a2834"
+  version = "v1.4.3"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -42,6 +51,8 @@
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
+    "protoc-gen-go/descriptor",
+    "protoc-gen-go/plugin",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
@@ -199,6 +210,12 @@
   revision = "a1dbeea552b7c8df4b542c66073e393de198a800"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/iancoleman/strcase"
+  packages = ["."]
+  revision = "90d371a664d668ca3e61d3ddddf1916662959f11"
+
+[[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
   revision = "9316a62528ac99aaecb4e47eadd6dc8aa6533d58"
@@ -224,6 +241,15 @@
     "darwincgo"
   ]
   revision = "668c8856d9992f97248b3177d45743d2cc1068db"
+
+[[projects]]
+  name = "github.com/knative/serving"
+  packages = [
+    "pkg/logging",
+    "pkg/logging/logkey"
+  ]
+  revision = "091d4519394bb7bee5ae4d3ab764c3f4f6f2a51b"
+  version = "v0.1.0"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -342,6 +368,12 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/pseudomuto/protokit"
+  packages = ["."]
+  revision = "7037620bf27b13fcdc10b1b17ddef82540db670b"
+  version = "v0.1.0"
+
+[[projects]]
   name = "github.com/radovskyb/watcher"
   packages = ["."]
   revision = "6145e1439b9de93806925353403f91d2abbad8a5"
@@ -375,6 +407,31 @@
   version = "v1.1.1"
 
 [[projects]]
+  name = "go.uber.org/atomic"
+  packages = ["."]
+  revision = "1ea20fb1cbb1cc08cbd0d913a96dead89aa18289"
+  version = "v1.3.2"
+
+[[projects]]
+  name = "go.uber.org/multierr"
+  packages = ["."]
+  revision = "3c4937480c32f4c13a875a1829af76c98ca3d40a"
+  version = "v1.1.0"
+
+[[projects]]
+  name = "go.uber.org/zap"
+  packages = [
+    ".",
+    "buffer",
+    "internal/bufferpool",
+    "internal/color",
+    "internal/exit",
+    "zapcore"
+  ]
+  revision = "4d45f9617f7d90f7a663ff21c7a4321dbe78098b"
+  version = "v1.9.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = [
@@ -394,7 +451,9 @@
     "http/httpguts",
     "http2",
     "http2/hpack",
-    "idna"
+    "idna",
+    "internal/timeseries",
+    "trace"
   ]
   revision = "d0887baf81f4598189d4e12a37c6da86f0bba4d0"
 
@@ -446,6 +505,44 @@
   name = "golang.org/x/time"
   packages = ["rate"]
   revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
+
+[[projects]]
+  branch = "master"
+  name = "google.golang.org/genproto"
+  packages = ["googleapis/rpc/status"]
+  revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
+
+[[projects]]
+  name = "google.golang.org/grpc"
+  packages = [
+    ".",
+    "balancer",
+    "balancer/base",
+    "balancer/roundrobin",
+    "codes",
+    "connectivity",
+    "credentials",
+    "encoding",
+    "encoding/proto",
+    "grpclog",
+    "internal",
+    "internal/backoff",
+    "internal/channelz",
+    "internal/grpcrand",
+    "keepalive",
+    "metadata",
+    "naming",
+    "peer",
+    "resolver",
+    "resolver/dns",
+    "resolver/passthrough",
+    "stats",
+    "status",
+    "tap",
+    "transport"
+  ]
+  revision = "168a6198bcb0ef175f7dacec0b8691fc141dc9b8"
+  version = "v1.13.0"
 
 [[projects]]
   name = "gopkg.in/fsnotify/fsnotify.v1"
@@ -600,6 +697,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e8020c489dfbea4e2297a91575c3ab9b6212632e027aa733e74e9c53ed74c7f3"
+  inputs-digest = "2f5a9725242a157c10bada484d5719bb6ca8081f0f51e8e9eaeb91e109d64f22"
   solver-name = "gps-cdcl"
   solver-version = 1

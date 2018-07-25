@@ -29,18 +29,18 @@
   unused-packages = true
 
 
-[[constraint]]
+[[override]]
   branch = "master"
   name = "k8s.io/api"
 
-[[constraint]]
-  branch = "master"
-  name = "k8s.io/apiextensions-apiserver"
-
-[[constraint]]
-  branch = "master"
-  name = "k8s.io/apimachinery"
-
-[[constraint]]
-  name = "k8s.io/client-go"
-  branch = "master"
+#[[constraint]]
+#  branch = "master"
+#  name = "k8s.io/apiextensions-apiserver"
+#
+#[[constraint]]
+#  branch = "master"
+#  name = "k8s.io/apimachinery"
+#
+#[[constraint]]
+#  name = "k8s.io/client-go"
+#  branch = "master"
