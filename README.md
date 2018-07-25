@@ -27,6 +27,8 @@ type Inventory struct {
  
 5 - e2e tests
 
+6 - generate apiserver (grpc)
+
 TODO soonish:
  - support selectors/labels
  
