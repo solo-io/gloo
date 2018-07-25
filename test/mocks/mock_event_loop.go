@@ -1,14 +1,13 @@
-package eventloop
+package mocks
 
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/test/mocks"
 )
 
 type Syncer interface {
-	Sync(*mocks.Snapshot) error
+	Sync(*Snapshot) error
 }
 
 type EventLoop interface {
@@ -16,11 +15,11 @@ type EventLoop interface {
 }
 
 type eventLoop struct {
-	cache  mocks.Cache
+	cache  Cache
 	syncer Syncer
 }
 
-func NewEventLoop(cache mocks.Cache, syncer Syncer) EventLoop {
+func NewEventLoop(cache Cache, syncer Syncer) EventLoop {
 	return &eventLoop{
 		cache:  cache,
 		syncer: syncer,
