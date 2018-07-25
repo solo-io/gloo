@@ -2,41 +2,52 @@ package contextutils
 
 import (
 	"context"
+
+	"github.com/knative/serving/pkg/logging"
+	"go.uber.org/zap"
 )
+
+func WithLogger(ctx context.Context, name string) context.Context {
+	return logging.WithLogger(ctx, logging.FromContext(ctx).Named(name))
+}
+
+func LoggerFrom(ctx context.Context) *zap.SugaredLogger {
+	return logging.FromContext(ctx)
+}
 
 type ErrorHandler interface {
 	HandleErr(error)
 }
 
 type ErrorLogger struct {
-	logger Logger
+	ctx context.Context
 }
 
 func (h *ErrorLogger) HandleErr(err error) {
 	if err == nil {
 		return
 	}
-	h.logger.Printf(LogLevelError, err.Error())
+	logging.FromContext(h.ctx).Errorf(err.Error())
 }
 
-var DefaultErrorHandler = &ErrorLogger{
-	logger: DefaultLogger,
-}
-
-const errorHandlerKey = "errorhandler.solo.io"
+type errorHandlerKey struct{}
 
 func WithErrorHandler(ctx context.Context, errorHandler ErrorHandler) context.Context {
-	return context.WithValue(ctx, errorHandlerKey, errorHandler)
+	return context.WithValue(ctx, errorHandlerKey{}, errorHandler)
 }
 
-func GetErrorHandler(ctx context.Context) ErrorHandler {
-	val := ctx.Value(loggerKey)
+func ErrorHandlerFrom(ctx context.Context) ErrorHandler {
+	val := ctx.Value(errorHandlerKey{})
 	if val == nil {
-		return DefaultErrorHandler
+		return &ErrorLogger{
+			ctx: ctx,
+		}
 	}
 	errorHandler, ok := val.(ErrorHandler)
 	if !ok {
-		return DefaultErrorHandler
+		return &ErrorLogger{
+			ctx: ctx,
+		}
 	}
 	return errorHandler
 }

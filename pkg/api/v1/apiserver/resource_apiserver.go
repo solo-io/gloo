@@ -3,6 +3,8 @@ package apiserver
 import (
 	"context"
 
+	"time"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -52,6 +54,9 @@ func (s *ApiServer) Read(ctx context.Context, req *ReadRequest) (*ReadResponse, 
 		Namespace: req.Namespace,
 		Ctx:       contextutils.WithLogger(ctx, "apiserver.read"),
 	})
+	if err != nil {
+		return nil, err
+	}
 	data, err := protoutils.MarshalStruct(resource)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to marshal resource")
@@ -77,6 +82,9 @@ func (s *ApiServer) Write(ctx context.Context, req *WriteRequest) (*WriteRespons
 		OverwriteExisting: req.OverwriteExisting,
 		Ctx:               contextutils.WithLogger(ctx, "apiserver.write"),
 	})
+	if err != nil {
+		return nil, err
+	}
 	data, err := protoutils.MarshalStruct(resource)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to marshal resource")
@@ -135,8 +143,12 @@ func (s *ApiServer) Watch(req *WatchRequest, watch ApiServer_WatchServer) error 
 		return err
 	}
 	ctx := contextutils.WithLogger(watch.Context(), "apiserver.read")
+	var duration time.Duration
+	if req.SyncFrequency != nil {
+		duration = time.Duration(req.SyncFrequency.Nanos)
+	}
 	resourceWatch, errs, err := rc.Watch(clients.WatchOpts{
-		RefreshRate: req.SyncFrequency,
+		RefreshRate: duration,
 		Namespace:   req.Namespace,
 		Ctx:         ctx,
 	})

@@ -35,7 +35,11 @@ func NewResourceClient(resourceType resources.Resource) *ResourceClient {
 var _ clients.ResourceClient = &ResourceClient{}
 
 func (rc *ResourceClient) Kind() string {
-	return reflect.TypeOf(rc.resourceType).Name()
+	return reflect.TypeOf(rc.resourceType).String()
+}
+
+func (rc *ResourceClient) NewResource() resources.Resource {
+	return resources.Clone(rc.resourceType)
 }
 
 func (rc *ResourceClient) Register() error {

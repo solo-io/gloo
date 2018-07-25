@@ -33,7 +33,7 @@ func NewResourceClient(client *api.Client, rootKey string, resourceType resource
 var _ clients.ResourceClient = &ResourceClient{}
 
 func (rc *ResourceClient) Kind() string {
-	return reflect.TypeOf(rc.resourceType).Name()
+	return reflect.TypeOf(rc.resourceType).String()
 }
 
 func (rc *ResourceClient) NewResource() resources.Resource {
