@@ -4,6 +4,7 @@ option go_package = "github.com/solo-io/solo-kit/pkg/api/v1/apiserver";
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/duration.proto";
 option (gogoproto.equal_all) = true;
 
 message Resource {
@@ -37,9 +38,11 @@ message DeleteRequest {
     string name = 1;
     string namespace = 2;
     string kind = 3;
+    bool ignore_not_exist = 4;
 }
 
-message DeleteResponse {}
+message DeleteResponse {
+}
 
 message ListRequest {
     string namespace = 2;
@@ -53,20 +56,29 @@ message ListResponse {
 message WatchRequest {
     string namespace = 2;
     string kind = 3;
+    google.protobuf.Duration sync_frequency = 4 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];;
 }
 
 message WatchResponse {
     repeated Resource resource_list = 1;
 }
 
-message RegisterRequest {}
-message RegisterResponse {}
+message RegisterRequest {
+}
+message RegisterResponse {
+}
 
 service ApiServer {
-    rpc Register(RegisterRequest) returns (RegisterResponse) {}
-    rpc Read(ReadRequest) returns (ReadResponse) {}
-    rpc Write(WriteRequest) returns (WriteResponse) {}
-    rpc Delete(DeleteRequest) returns (DeleteResponse) {}
-    rpc List(ListRequest) returns (ListResponse) {}
-    rpc Watch(WatchRequest) returns (stream ListResponse) {}
+    rpc Register (RegisterRequest) returns (RegisterResponse) {
+    }
+    rpc Read (ReadRequest) returns (ReadResponse) {
+    }
+    rpc Write (WriteRequest) returns (WriteResponse) {
+    }
+    rpc Delete (DeleteRequest) returns (DeleteResponse) {
+    }
+    rpc List (ListRequest) returns (ListResponse) {
+    }
+    rpc Watch (WatchRequest) returns (stream ListResponse) {
+    }
 }

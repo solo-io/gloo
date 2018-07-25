@@ -7,20 +7,23 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
+	"google.golang.org/grpc"
 )
 
 type ApiServer struct {
 	resourceClients map[string]clients.ResourceClient
 }
 
-func NewApiServer(resourceClients ...clients.ResourceClient) ApiServerServer {
+func NewApiServer(s *grpc.Server, resourceClients ...clients.ResourceClient) ApiServerServer {
 	mapped := make(map[string]clients.ResourceClient)
 	for _, rc := range resourceClients {
 		mapped[rc.Kind()] = rc
 	}
-	return &ApiServer{
+	srv := &ApiServer{
 		resourceClients: mapped,
 	}
+	RegisterApiServerServer(s, srv)
+	return srv
 }
 
 func (s *ApiServer) resourceClient(kind string) (clients.ResourceClient, error) {
@@ -86,8 +89,80 @@ func (s *ApiServer) Write(ctx context.Context, req *WriteRequest) (*WriteRespons
 	}, nil
 }
 
-func (s *ApiServer) Delete(ctx context.Context, req *DeleteRequest) (*DeleteResponse, error) {}
+func (s *ApiServer) Delete(ctx context.Context, req *DeleteRequest) (*DeleteResponse, error) {
+	rc, err := s.resourceClient(req.Kind)
+	if err != nil {
+		return nil, err
+	}
+	if err := rc.Delete(req.Name, clients.DeleteOpts{
+		IgnoreNotExist: req.IgnoreNotExist,
+		Namespace:      req.Namespace,
+		Ctx:            contextutils.WithLogger(ctx, "apiserver.delete"),
+	}); err != nil {
+		return nil, errors.Wrapf(err, "failed to delete resource %v", req.Kind)
+	}
+	return &DeleteResponse{}, nil
+}
 
-func (s *ApiServer) List(ctx context.Context, req *ListRequest) (*ListResponse, error) {}
+func (s *ApiServer) List(ctx context.Context, req *ListRequest) (*ListResponse, error) {
+	rc, err := s.resourceClient(req.Kind)
+	if err != nil {
+		return nil, err
+	}
+	resourceList, err := rc.List(clients.ListOpts{
+		Namespace: req.Namespace,
+		Ctx:       contextutils.WithLogger(ctx, "apiserver.read"),
+	})
+	var resourceListResponse []*Resource
+	for _, resource := range resourceList {
+		data, err := protoutils.MarshalStruct(resource)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to marshal resource %v", req.Kind)
+		}
+		resourceListResponse = append(resourceListResponse, &Resource{
+			Kind: rc.Kind(),
+			Data: data,
+		})
+	}
+	return &ListResponse{
+		ResourceList: resourceListResponse,
+	}, nil
+}
 
-func (s *ApiServer) Watch(*WatchRequest, ApiServer_WatchServer) error {}
+func (s *ApiServer) Watch(req *WatchRequest, watch ApiServer_WatchServer) error {
+	rc, err := s.resourceClient(req.Kind)
+	if err != nil {
+		return err
+	}
+	ctx := contextutils.WithLogger(watch.Context(), "apiserver.read")
+	resourceWatch, errs, err := rc.Watch(clients.WatchOpts{
+		RefreshRate: req.SyncFrequency,
+		Namespace:   req.Namespace,
+		Ctx:         ctx,
+	})
+	for {
+		select {
+		case resourceList := <- resourceWatch:
+			var resourceListResponse []*Resource
+			for _, resource := range resourceList {
+				data, err := protoutils.MarshalStruct(resource)
+				if err != nil {
+					return errors.Wrapf(err, "failed to marshal resource %v", req.Kind)
+				}
+				resourceListResponse = append(resourceListResponse, &Resource{
+					Kind: rc.Kind(),
+					Data: data,
+				})
+			}
+			if err := watch.Send(&ListResponse{
+				ResourceList: resourceListResponse,
+			}); err != nil {
+				return errors.Wrapf(err, "failed to send list response on watch")
+			}
+		case err := <- errs:
+			return errors.Wrapf(err, "error during %v watch", req.Kind)
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
