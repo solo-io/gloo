@@ -142,7 +142,7 @@ func (s *ApiServer) Watch(req *WatchRequest, watch ApiServer_WatchServer) error 
 	})
 	for {
 		select {
-		case resourceList := <- resourceWatch:
+		case resourceList := <-resourceWatch:
 			var resourceListResponse []*Resource
 			for _, resource := range resourceList {
 				data, err := protoutils.MarshalStruct(resource)
@@ -159,7 +159,7 @@ func (s *ApiServer) Watch(req *WatchRequest, watch ApiServer_WatchServer) error 
 			}); err != nil {
 				return errors.Wrapf(err, "failed to send list response on watch")
 			}
-		case err := <- errs:
+		case err := <-errs:
 			return errors.Wrapf(err, "error during %v watch", req.Kind)
 		case <-ctx.Done():
 			return nil
