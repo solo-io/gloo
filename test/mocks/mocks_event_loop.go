@@ -28,11 +28,10 @@ func NewEventLoop(cache Cache, syncer Syncer) EventLoop {
 
 func (el *eventLoop) Run(opts clients.WatchOpts) error {
 	opts = opts.WithDefaults()
-	logger := contextutils.GetLogger(opts.Ctx)
-	logger = logger.WithPrefix("mocks.event_loop")
-	opts.Ctx = contextutils.WithLogger(opts.Ctx, logger)
-	logger.Printf(contextutils.LogLevelInfo, "event loop started")
-	errorHandler := contextutils.GetErrorHandler(opts.Ctx)
+	opts.Ctx = contextutils.WithLogger(opts.Ctx, "mocks.event_loop")
+	logger := contextutils.LoggerFrom(opts.Ctx)
+	logger.Infof("event loop started")
+	errorHandler := contextutils.ErrorHandlerFrom(opts.Ctx)
 	watch, errs, err := el.cache.Snapshots(opts)
 	if err != nil {
 		return errors.Wrapf(err, "starting snapshot watch")
@@ -49,3 +48,4 @@ func (el *eventLoop) Run(opts clients.WatchOpts) error {
 		}
 	}
 }
+

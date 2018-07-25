@@ -55,11 +55,10 @@ func NewEventLoop(cache Cache, syncer Syncer) EventLoop {
 
 func (el *eventLoop) Run(opts clients.WatchOpts) error {
 	opts = opts.WithDefaults()
-	logger := contextutils.GetLogger(opts.Ctx)
-	logger = logger.WithPrefix("{{ .PackageName }}.event_loop")
-	opts.Ctx = contextutils.WithLogger(opts.Ctx, logger)
-	logger.Printf(contextutils.LogLevelInfo, "event loop started")
-	errorHandler := contextutils.GetErrorHandler(opts.Ctx)
+	opts.Ctx = contextutils.WithLogger(opts.Ctx, "{{ .PackageName }}.event_loop")
+	logger := contextutils.LoggerFrom(opts.Ctx)
+	logger.Infof("event loop started")
+	errorHandler := contextutils.ErrorHandlerFrom(opts.Ctx)
 	watch, errs, err := el.cache.Snapshots(opts)
 	if err != nil {
 		return errors.Wrapf(err, "starting snapshot watch")
@@ -76,6 +75,7 @@ func (el *eventLoop) Run(opts clients.WatchOpts) error {
 		}
 	}
 }
+
 `
 
 const eventLoopTestTemplateContents = `package {{ .PackageName }}
@@ -89,7 +89,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 )
 
-var _ = Describe("MockEventLoop", func() {
+var _ = Describe("{{ uppercase .PackageName }}EventLoop", func() {
 	var (
 		namespace string
 		cache     Cache

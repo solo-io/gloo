@@ -9,7 +9,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 )
 
-var _ = Describe("MockEventLoop", func() {
+var _ = Describe("MocksEventLoop", func() {
 	var (
 		namespace string
 		cache     Cache
