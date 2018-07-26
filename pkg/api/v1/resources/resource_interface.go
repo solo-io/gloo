@@ -1,6 +1,8 @@
 package resources
 
 import (
+	"reflect"
+
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -18,6 +20,10 @@ type Resource interface {
 
 func Clone(resource Resource) Resource {
 	return proto.Clone(resource).(Resource)
+}
+
+func Kind(resource Resource) string {
+	return reflect.TypeOf(resource).String()
 }
 
 func UpdateMetadata(resource Resource, updateFunc func(meta *core.Metadata)) {

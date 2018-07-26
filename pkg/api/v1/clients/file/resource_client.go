@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"reflect"
 	"sort"
 	"strconv"
 	"time"
@@ -34,7 +33,7 @@ func NewResourceClient(dir string, resourceType resources.Resource) *ResourceCli
 var _ clients.ResourceClient = &ResourceClient{}
 
 func (rc *ResourceClient) Kind() string {
-	return reflect.TypeOf(rc.resourceType).String()
+	return resources.Kind(rc.resourceType)
 }
 
 func (rc *ResourceClient) NewResource() resources.Resource {
@@ -56,7 +55,7 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 	}
 	resource := rc.NewResource()
 	if err := fileutils.ReadFileInto(path, resource); err != nil {
-		return nil, errors.Wrapf(err, "reading file into %v", reflect.TypeOf(rc.resourceType))
+		return nil, errors.Wrapf(err, "reading file into %v", rc.Kind())
 	}
 	return resource, nil
 }
@@ -122,7 +121,7 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 		resource := rc.NewResource()
 		path := filepath.Join(namespaceDir, file.Name())
 		if err := fileutils.ReadFileInto(path, resource); err != nil {
-			return nil, errors.Wrapf(err, "reading file into %v", reflect.TypeOf(rc.resourceType))
+			return nil, errors.Wrapf(err, "reading file into %v", rc.Kind())
 		}
 		resourceList = append(resourceList, resource)
 	}

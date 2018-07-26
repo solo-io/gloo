@@ -40,7 +40,7 @@ func NewResourceClient(crd crd.Crd, apiexts apiexts.Interface, kube versioned.In
 var _ clients.ResourceClient = &ResourceClient{}
 
 func (rc *ResourceClient) Kind() string {
-	return reflect.TypeOf(rc.resourceType).String()
+	return resources.Kind(rc.resourceType)
 }
 
 func (rc *ResourceClient) NewResource() resources.Resource {

@@ -2,7 +2,6 @@ package apiclient
 
 import (
 	"io"
-	"reflect"
 	"sort"
 
 	"strings"
@@ -32,7 +31,7 @@ func NewResourceClient(cc *grpc.ClientConn, resourceType resources.Resource) *Re
 var _ clients.ResourceClient = &ResourceClient{}
 
 func (rc *ResourceClient) Kind() string {
-	return reflect.TypeOf(rc.resourceType).String()
+	return resources.Kind(rc.resourceType)
 }
 
 func (rc *ResourceClient) NewResource() resources.Resource {
@@ -61,7 +60,7 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 	}
 	resource := rc.NewResource()
 	if err := protoutils.UnmarshalStruct(resp.Resource.Data, resource); err != nil {
-		return nil, errors.Wrapf(err, "reading proto struct into %v", reflect.TypeOf(rc.resourceType))
+		return nil, errors.Wrapf(err, "reading proto struct into %v", rc.Kind())
 	}
 	return resource, nil
 }
@@ -90,7 +89,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	}
 	written := rc.NewResource()
 	if err := protoutils.UnmarshalStruct(resp.Resource.Data, written); err != nil {
-		return nil, errors.Wrapf(err, "reading proto struct into %v", reflect.TypeOf(rc.resourceType))
+		return nil, errors.Wrapf(err, "reading proto struct into %v", rc.Kind())
 	}
 	return written, nil
 }
@@ -126,7 +125,7 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 	for _, resourceData := range resp.ResourceList {
 		resource := rc.NewResource()
 		if err := protoutils.UnmarshalStruct(resourceData.Data, resource); err != nil {
-			return nil, errors.Wrapf(err, "reading proto struct into %v", reflect.TypeOf(rc.resourceType))
+			return nil, errors.Wrapf(err, "reading proto struct into %v", rc.Kind())
 		}
 		resourceList = append(resourceList, resource)
 	}
@@ -181,7 +180,7 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 			for _, resourceData := range resourceDataList.ResourceList {
 				resource := rc.NewResource()
 				if err := protoutils.UnmarshalStruct(resourceData.Data, resource); err != nil {
-					errs <- errors.Wrapf(err, "reading proto struct into %v", reflect.TypeOf(rc.resourceType))
+					errs <- errors.Wrapf(err, "reading proto struct into %v", rc.Kind())
 					continue
 				}
 				resourceList = append(resourceList, resource)

@@ -3,7 +3,6 @@ package consul
 import (
 	"fmt"
 	"path/filepath"
-	"reflect"
 	"sort"
 	"strconv"
 
@@ -33,7 +32,7 @@ func NewResourceClient(client *api.Client, rootKey string, resourceType resource
 var _ clients.ResourceClient = &ResourceClient{}
 
 func (rc *ResourceClient) Kind() string {
-	return reflect.TypeOf(rc.resourceType).String()
+	return resources.Kind(rc.resourceType)
 }
 
 func (rc *ResourceClient) NewResource() resources.Resource {
@@ -60,7 +59,7 @@ func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Re
 	}
 	resource := rc.NewResource()
 	if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
-		return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
+		return nil, errors.Wrapf(err, "reading KV into %v", rc.Kind())
 	}
 	resources.UpdateMetadata(resource, func(meta *core.Metadata) {
 		meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
@@ -143,7 +142,7 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 	for _, kvPair := range kvPairs {
 		resource := rc.NewResource()
 		if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
-			return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
+			return nil, errors.Wrapf(err, "reading KV into %v", rc.Kind())
 		}
 		resources.UpdateMetadata(resource, func(meta *core.Metadata) {
 			meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
@@ -195,7 +194,7 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 		for _, kvPair := range kvPairs {
 			resource := rc.NewResource()
 			if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
-				return nil, errors.Wrapf(err, "reading KV into %v", reflect.TypeOf(rc.resourceType))
+				return nil, errors.Wrapf(err, "reading KV into %v", rc.Kind())
 			}
 			resources.UpdateMetadata(resource, func(meta *core.Metadata) {
 				meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
