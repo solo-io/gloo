@@ -18,6 +18,11 @@ steps:
 6 - callbacks/acl for apiserver
 
  - support selectors/labels
+
+- desired-state-achiever (syncer library)
+give a set of desired resources, this syncer will update existing resources to match desired
+
+- something that works for 3rd party resources (configmaps, artifacts, etc)
  
  post 3 weeks
 - bootstrap
