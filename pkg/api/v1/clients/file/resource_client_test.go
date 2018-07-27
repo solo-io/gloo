@@ -27,6 +27,6 @@ var _ = Describe("Base", func() {
 		os.RemoveAll(tmpDir)
 	})
 	It("CRUDs resources", func() {
-		helpers.TestCrudClient(client)
+		helpers.TestCrudClient("", client)
 	})
 })

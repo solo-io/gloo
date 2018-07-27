@@ -127,7 +127,9 @@ func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
 func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, error) {
 	opts = opts.WithDefaults()
 
-	resourceCrdList, err := rc.kube.ResourcesV1().Resources(opts.Namespace).List(metav1.ListOptions{})
+	resourceCrdList, err := rc.kube.ResourcesV1().Resources(opts.Namespace).List(metav1.ListOptions{
+		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
+	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "deleting listing resources in %v", opts.Namespace)
 	}
@@ -144,9 +146,7 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 			meta.Name = resourceCrd.Name
 			meta.ResourceVersion = resourceCrd.ResourceVersion
 		})
-		if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
-			resourceList = append(resourceList, resource)
-		}
+		resourceList = append(resourceList, resource)
 	}
 
 	sort.SliceStable(resourceList, func(i, j int) bool {

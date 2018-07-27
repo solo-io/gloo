@@ -26,6 +26,6 @@ var _ = Describe("Base", func() {
 		consul.KV().DeleteTree(rootKey, nil)
 	})
 	It("CRUDs resources", func() {
-		helpers.TestCrudClient(client)
+		helpers.TestCrudClient("", client)
 	})
 })

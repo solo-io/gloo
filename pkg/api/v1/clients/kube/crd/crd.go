@@ -77,6 +77,7 @@ func (d Crd) KubeResource(resource resources.Resource) *v1.Resource {
 			Namespace:       resource.GetMetadata().Namespace,
 			Name:            resource.GetMetadata().Name,
 			ResourceVersion: resource.GetMetadata().ResourceVersion,
+			Labels:          resource.GetMetadata().Labels,
 		},
 		Status: resource.GetStatus(),
 		Spec:   &spec,

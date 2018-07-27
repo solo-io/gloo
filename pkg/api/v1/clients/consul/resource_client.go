@@ -79,13 +79,13 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	}
 	key := rc.resourceKey(meta.Namespace, meta.Name)
 
-	if !opts.OverwriteExisting {
-		kvPair, _, err := rc.consul.KV().Get(key, nil)
-		if err != nil {
-			return nil, errors.Wrapf(err, "performing consul KV get")
-		}
-		if kvPair != nil {
+	original, err := rc.Read(meta.Name, clients.ReadOpts{Namespace: meta.Namespace})
+	if original != nil && err == nil {
+		if !opts.OverwriteExisting {
 			return nil, errors.NewExistErr(meta)
+		}
+		if meta.ResourceVersion != original.GetMetadata().ResourceVersion {
+			return nil, errors.Errorf("resource version error. must update new resource version to match current")
 		}
 	}
 

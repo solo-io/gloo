@@ -15,12 +15,17 @@ import (
 )
 
 // Call within "It"
-func TestCrudClient(client ResourceClient) {
+func TestCrudClient(namespace string, client ResourceClient) {
+	client.Register()
 	name := "foo"
-	input := mocks.NewMockResource("", name)
+	input := mocks.NewMockResource(namespace, name)
 	input.Data = name
 	labels := map[string]string{"pick": "me"}
 	input.Metadata.Labels = labels
+
+	err := client.Register()
+	Expect(err).NotTo(HaveOccurred())
+
 	r1, err := client.Write(input, clients.WriteOpts{})
 	Expect(err).NotTo(HaveOccurred())
 
@@ -30,7 +35,10 @@ func TestCrudClient(client ResourceClient) {
 
 	Expect(r1).To(BeAssignableToTypeOf(&mocks.MockResource{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
-	Expect(r1.GetMetadata().Namespace).To(Equal(clients.DefaultNamespace))
+	if namespace == "" {
+		namespace = DefaultNamespace
+	}
+	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 	Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal(""))
 	Expect(r1.(*mocks.MockResource).Data).To(Equal(name))
 
@@ -45,7 +53,7 @@ func TestCrudClient(client ResourceClient) {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	read, err := client.Read(name, clients.ReadOpts{})
+	read, err := client.Read(name, clients.ReadOpts{Namespace: namespace})
 	Expect(err).NotTo(HaveOccurred())
 	// it should update the resource version on the new write
 	Expect(read.GetMetadata().ResourceVersion).NotTo(Equal(r1.GetMetadata().ResourceVersion))
@@ -62,7 +70,8 @@ func TestCrudClient(client ResourceClient) {
 	input = &mocks.MockResource{
 		Data: name,
 		Metadata: core.Metadata{
-			Name: name,
+			Name:      name,
+			Namespace: namespace,
 		},
 	}
 	r2, err := client.Write(input, clients.WriteOpts{})
@@ -70,40 +79,47 @@ func TestCrudClient(client ResourceClient) {
 
 	// with labels
 	list, err := client.List(clients.ListOpts{
-		Selector: labels,
+		Selector:  labels,
+		Namespace: namespace,
 	})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(list).To(ContainElement(r1))
 	Expect(list).NotTo(ContainElement(r2))
 
 	// without
-	list, err = client.List(clients.ListOpts{})
+	list, err = client.List(clients.ListOpts{Namespace: namespace})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(list).To(ContainElement(r1))
 	Expect(list).To(ContainElement(r2))
 
-	err = client.Delete("adsfw", clients.DeleteOpts{})
+	err = client.Delete("adsfw", clients.DeleteOpts{Namespace: namespace})
 	Expect(err).To(HaveOccurred())
 	Expect(errors.IsNotExist(err)).To(BeTrue())
 
 	err = client.Delete("adsfw", clients.DeleteOpts{
 		IgnoreNotExist: true,
+		Namespace:      namespace,
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	err = client.Delete(r2.GetMetadata().Name, clients.DeleteOpts{})
+	err = client.Delete(r2.GetMetadata().Name, clients.DeleteOpts{Namespace: namespace})
 	Expect(err).NotTo(HaveOccurred())
-	list, err = client.List(clients.ListOpts{})
+	list, err = client.List(clients.ListOpts{Namespace: namespace})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(list).To(ContainElement(r1))
 	Expect(list).NotTo(ContainElement(r2))
 
-	w, errs, err := client.Watch(clients.WatchOpts{RefreshRate: time.Millisecond})
+	w, errs, err := client.Watch(clients.WatchOpts{Namespace: namespace, RefreshRate: time.Millisecond})
 	Expect(err).NotTo(HaveOccurred())
 
 	var r3 resources.Resource
 	wait := make(chan struct{})
 	go func() {
+		defer GinkgoRecover()
+		defer close(wait)
+		resources.UpdateMetadata(r2, func(meta *core.Metadata) {
+			meta.ResourceVersion = ""
+		})
 		r2, err = client.Write(r2, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -111,12 +127,12 @@ func TestCrudClient(client ResourceClient) {
 		input = &mocks.MockResource{
 			Data: name,
 			Metadata: core.Metadata{
-				Name: name,
+				Name:      name,
+				Namespace: namespace,
 			},
 		}
 		r3, err = client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
-		close(wait)
 	}()
 	<-wait
 
@@ -134,7 +150,7 @@ drain:
 		case list = <-w:
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Millisecond * 5):
+		case <-time.After(time.Second / 4):
 			break drain
 		}
 	}

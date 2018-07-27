@@ -44,6 +44,6 @@ var _ = Describe("Base", func() {
 		services.TeardownKube(namespace)
 	})
 	It("CRUDs resources", func() {
-		helpers.TestCrudClient(client)
+		helpers.TestCrudClient(namespace, client)
 	})
 })

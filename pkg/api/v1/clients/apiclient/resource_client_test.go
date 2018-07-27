@@ -31,6 +31,6 @@ var _ = Describe("Base", func() {
 		cc.Close()
 	})
 	It("CRUDs resources", func() {
-		helpers.TestCrudClient(client)
+		helpers.TestCrudClient("", client)
 	})
 })

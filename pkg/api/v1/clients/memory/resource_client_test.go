@@ -17,6 +17,6 @@ var _ = Describe("Base", func() {
 	AfterEach(func() {
 	})
 	It("CRUDs resources", func() {
-		helpers.TestCrudClient(client)
+		helpers.TestCrudClient("", client)
 	})
 })

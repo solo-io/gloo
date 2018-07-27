@@ -70,11 +70,14 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	if meta.Namespace == "" {
 		meta.Namespace = clients.DefaultNamespace
 	}
-	path := rc.filename(meta.Namespace, meta.Name)
 
-	if !opts.OverwriteExisting {
-		if _, err := os.Stat(path); err == nil {
-			return nil, errors.NewExistErr(resource.GetMetadata())
+	original, err := rc.Read(meta.Name, clients.ReadOpts{Namespace: meta.Namespace})
+	if original != nil && err == nil {
+		if !opts.OverwriteExisting {
+			return nil, errors.NewExistErr(meta)
+		}
+		if meta.ResourceVersion != original.GetMetadata().ResourceVersion {
+			return nil, errors.Errorf("resource version error. must update new resource version to match current")
 		}
 	}
 
@@ -84,6 +87,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	meta.ResourceVersion = newOrIncrementResourceVer(meta.ResourceVersion)
 	clone.SetMetadata(meta)
 
+	path := rc.filename(meta.Namespace, meta.Name)
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil && !os.IsExist(err) {
 		return nil, errors.Wrapf(err, "creating directory")
 	}
