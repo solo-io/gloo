@@ -87,7 +87,7 @@ func syncResource(ctx context.Context, rc clients.ResourceClient, desired resour
 func deleteStaleResource(ctx context.Context, rc clients.ResourceClient, original resources.Resource) error {
 	return rc.Delete(original.GetMetadata().Name, clients.DeleteOpts{
 		Ctx:            ctx,
-		Namespace:      original.GetMetadata().Name,
+		Namespace:      original.GetMetadata().Namespace,
 		IgnoreNotExist: true,
 	})
 }

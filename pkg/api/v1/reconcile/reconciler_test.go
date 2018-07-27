@@ -24,8 +24,6 @@ var _ = Describe("Reconciler", func() {
 		fakeResourceClient = memory.NewResourceClient(&mocks.FakeResource{})
 		reconciler = NewReconciler(mockResourceClient, fakeResourceClient)
 	})
-	AfterEach(func() {
-	})
 	It("does the crudding for you so you can sip a nice coconut", func() {
 		desiredMockResources := []resources.Resource{
 			mocks.NewMockResource(namspace, "a1-barry"),
@@ -33,14 +31,10 @@ var _ = Describe("Reconciler", func() {
 		}
 
 		// creates when doesn't exist
-		err := reconciler.Reconcile(clients.ListOpts{
-			Namespace: namspace,
-		}, mockResourceClient.Kind(), desiredMockResources)
+		err := reconciler.Reconcile(clients.ListOpts{Namespace: namspace}, mockResourceClient.Kind(), desiredMockResources)
 		Expect(err).NotTo(HaveOccurred())
 
-		mockList, err := mockResourceClient.List(clients.ListOpts{
-			Namespace: namspace,
-		})
+		mockList, err := mockResourceClient.List(clients.ListOpts{Namespace: namspace})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(mockList).To(HaveLen(2))
@@ -51,20 +45,17 @@ var _ = Describe("Reconciler", func() {
 			Expect(mockList[i]).To(Equal(desiredMockResources[i]))
 		}
 
+		// does multiple resource types
 		desiredFakeResources := []resources.Resource{
 			mocks.NewFakeResource(namspace, "c3-peter"),
 			mocks.NewFakeResource(namspace, "d4-steven"),
 		}
 
 		// creates when doesn't exist
-		err = reconciler.Reconcile(clients.ListOpts{
-			Namespace: namspace,
-		}, fakeResourceClient.Kind(), desiredFakeResources)
+		err = reconciler.Reconcile(clients.ListOpts{Namespace: namspace}, fakeResourceClient.Kind(), desiredFakeResources)
 		Expect(err).NotTo(HaveOccurred())
 
-		fakeList, err := fakeResourceClient.List(clients.ListOpts{
-			Namespace: namspace,
-		})
+		fakeList, err := fakeResourceClient.List(clients.ListOpts{Namespace: namspace})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeList).To(HaveLen(2))
@@ -74,5 +65,32 @@ var _ = Describe("Reconciler", func() {
 			})
 			Expect(fakeList[i]).To(Equal(desiredFakeResources[i]))
 		}
+
+		// updates
+		desiredMockResources[0].(*mocks.MockResource).Data = "foo"
+		desiredMockResources[1].(*mocks.MockResource).Data = "bar"
+		err = reconciler.Reconcile(clients.ListOpts{Namespace: namspace}, mockResourceClient.Kind(), desiredMockResources)
+		Expect(err).NotTo(HaveOccurred())
+
+		mockList, err = mockResourceClient.List(clients.ListOpts{Namespace: namspace})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(mockList).To(HaveLen(2))
+		for i := range mockList {
+			resources.UpdateMetadata(mockList[i], func(meta *core.Metadata) {
+				meta.ResourceVersion = ""
+			})
+			Expect(mockList[i]).To(Equal(desiredMockResources[i]))
+		}
+
+		// clean it all up now
+		desiredMockResources = []resources.Resource{}
+		err = reconciler.Reconcile(clients.ListOpts{Namespace: namspace}, mockResourceClient.Kind(), desiredMockResources)
+		Expect(err).NotTo(HaveOccurred())
+
+		mockList, err = mockResourceClient.List(clients.ListOpts{Namespace: namspace})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(mockList).To(HaveLen(0))
 	})
 })

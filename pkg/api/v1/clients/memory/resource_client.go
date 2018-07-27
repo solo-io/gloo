@@ -93,8 +93,11 @@ func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
 	rc.lock.RLock()
 	_, ok := rc.cache[key]
 	rc.lock.RUnlock()
-	if !ok && !opts.IgnoreNotExist {
-		return errors.NewNotExistErr(opts.Namespace, name)
+	if !ok {
+		if !opts.IgnoreNotExist {
+			return errors.NewNotExistErr(opts.Namespace, name)
+		}
+		return nil
 	}
 
 	rc.lock.Lock()
