@@ -38,7 +38,7 @@ type Syncer interface {
 }
 
 type EventLoop interface {
-	Run(opts clients.WatchOpts) error
+	Run(namespace string, opts clients.WatchOpts) error
 }
 
 type eventLoop struct {
@@ -53,13 +53,13 @@ func NewEventLoop(cache Cache, syncer Syncer) EventLoop {
 	}
 }
 
-func (el *eventLoop) Run(opts clients.WatchOpts) error {
+func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "{{ .PackageName }}.event_loop")
 	logger := contextutils.LoggerFrom(opts.Ctx)
 	logger.Infof("event loop started")
 	errorHandler := contextutils.ErrorHandlerFrom(opts.Ctx)
-	watch, errs, err := el.cache.Snapshots(opts)
+	watch, errs, err := el.cache.Snapshots(namespace, opts)
 	if err != nil {
 		return errors.Wrapf(err, "starting snapshot watch")
 	}
