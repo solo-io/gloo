@@ -11,7 +11,7 @@ a new proto for that config (it's internal anyway)
 
 
 steps:
-4 - reporter
+XX4 - reporter
  
 5 - e2e tests
 
