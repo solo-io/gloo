@@ -59,78 +59,78 @@ var _ resources.Resource = &{{ .ResourceType }}{}
 
 type {{ .ResourceType }}Client interface {
 	Register() error
-	Read(name string, opts clients.ReadOpts) (*{{ .ResourceType }}, error)
+	Read(namespace, name string, opts clients.ReadOpts) (*{{ .ResourceType }}, error)
 	Write(resource *{{ .ResourceType }}, opts clients.WriteOpts) (*{{ .ResourceType }}, error)
-	Delete(name string, opts clients.DeleteOpts) error
-	List(opts clients.ListOpts) ([]*{{ .ResourceType }}, error)
-	Watch(opts clients.WatchOpts) (<-chan []*{{ .ResourceType }}, <-chan error, error)
+	Delete(namespace, name string, opts clients.DeleteOpts) error
+	List(namespace string, opts clients.ListOpts) ([]*{{ .ResourceType }}, error)
+	Watch(namespace string, opts clients.WatchOpts) (<-chan []*{{ .ResourceType }}, <-chan error, error)
 }
 
-type {{ .ResourceTypeLowerCase }}Client struct {
+type {{ lowercase .ResourceType }}Client struct {
 	rc clients.ResourceClient
 }
 
 func New{{ .ResourceType }}Client(factory *factory.ResourceClientFactory) {{ .ResourceType }}Client {
-	return &{{ .ResourceTypeLowerCase }}Client{
+	return &{{ lowercase .ResourceType }}Client{
 		rc: factory.NewResourceClient(&{{ .ResourceType }}{}),
 	}
 }
 
-func (client *{{ .ResourceTypeLowerCase }}Client) Register() error {
+func (client *{{ lowercase .ResourceType }}Client) Register() error {
 	return client.rc.Register()
 }
 
-func (client *{{ .ResourceTypeLowerCase }}Client) Read(name string, opts clients.ReadOpts) (*{{ .ResourceType }}, error) {
-	resource, err := client.rc.Read(name, opts)
+func (client *{{ lowercase .ResourceType }}Client) Read(namespace, name string, opts clients.ReadOpts) (*{{ .ResourceType }}, error) {
+	resource, err := client.rc.Read(namespace, name, opts)
 	if err != nil {
 		return nil, err
 	}
 	return resource.(*{{ .ResourceType }}), nil
 }
 
-func (client *{{ .ResourceTypeLowerCase }}Client) Write({{ .ResourceTypeLowerCase }} *{{ .ResourceType }}, opts clients.WriteOpts) (*{{ .ResourceType }}, error) {
-	resource, err := client.rc.Write({{ .ResourceTypeLowerCase }}, opts)
+func (client *{{ lowercase .ResourceType }}Client) Write({{ lowercase .ResourceType }} *{{ .ResourceType }}, opts clients.WriteOpts) (*{{ .ResourceType }}, error) {
+	resource, err := client.rc.Write({{ lowercase .ResourceType }}, opts)
 	if err != nil {
 		return nil, err
 	}
 	return resource.(*{{ .ResourceType }}), nil
 }
 
-func (client *{{ .ResourceTypeLowerCase }}Client) Delete(name string, opts clients.DeleteOpts) error {
-	return client.rc.Delete(name, opts)
+func (client *{{ lowercase .ResourceType }}Client) Delete(namespace, name string, opts clients.DeleteOpts) error {
+	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *{{ .ResourceTypeLowerCase }}Client) List(opts clients.ListOpts) ([]*{{ .ResourceType }}, error) {
-	resourceList, err := client.rc.List(opts)
+func (client *{{ lowercase .ResourceType }}Client) List(namespace string, opts clients.ListOpts) ([]*{{ .ResourceType }}, error) {
+	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
 		return nil, err
 	}
 	return convertTo{{ .ResourceType }}(resourceList), nil
 }
 
-func (client *{{ .ResourceTypeLowerCase }}Client) Watch(opts clients.WatchOpts) (<-chan []*{{ .ResourceType }}, <-chan error, error) {
-	resourcesChan, errs, initErr := client.rc.Watch(opts)
+func (client *{{ lowercase .ResourceType }}Client) Watch(namespace string, opts clients.WatchOpts) (<-chan []*{{ .ResourceType }}, <-chan error, error) {
+	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	{{ .ResourceTypeLowerCase }}sChan := make(chan []*{{ .ResourceType }})
+	{{ lowercase .ResourceType }}sChan := make(chan []*{{ .ResourceType }})
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				{{ .ResourceTypeLowerCase }}sChan <- convertTo{{ .ResourceType }}(resourceList)
+				{{ lowercase .ResourceType }}sChan <- convertTo{{ .ResourceType }}(resourceList)
 			}
 		}
 	}()
-	return {{ .ResourceTypeLowerCase }}sChan, errs, nil
+	return {{ lowercase .ResourceType }}sChan, errs, nil
 }
 
 func convertTo{{ .ResourceType }}(resources []resources.Resource) []*{{ .ResourceType }} {
-	var {{ .ResourceTypeLowerCase }}List []*{{ .ResourceType }}
+	var {{ lowercase .ResourceType }}List []*{{ .ResourceType }}
 	for _, resource := range resources {
-		{{ .ResourceTypeLowerCase }}List = append({{ .ResourceTypeLowerCase }}List, resource.(*{{ .ResourceType }}))
+		{{ lowercase .ResourceType }}List = append({{ lowercase .ResourceType }}List, resource.(*{{ .ResourceType }}))
 	}
-	return {{ .ResourceTypeLowerCase }}List
+	return {{ lowercase .ResourceType }}List
 }
 
 // Kubernetes Adapter for {{ .ResourceType }}

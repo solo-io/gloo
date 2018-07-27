@@ -32,11 +32,11 @@ var _ resources.Resource = &FakeResource{}
 
 type FakeResourceClient interface {
 	Register() error
-	Read(name string, opts clients.ReadOpts) (*FakeResource, error)
+	Read(namespace, name string, opts clients.ReadOpts) (*FakeResource, error)
 	Write(resource *FakeResource, opts clients.WriteOpts) (*FakeResource, error)
-	Delete(name string, opts clients.DeleteOpts) error
-	List(opts clients.ListOpts) ([]*FakeResource, error)
-	Watch(opts clients.WatchOpts) (<-chan []*FakeResource, <-chan error, error)
+	Delete(namespace, name string, opts clients.DeleteOpts) error
+	List(namespace string, opts clients.ListOpts) ([]*FakeResource, error)
+	Watch(namespace string, opts clients.WatchOpts) (<-chan []*FakeResource, <-chan error, error)
 }
 
 type fakeResourceClient struct {
@@ -53,8 +53,8 @@ func (client *fakeResourceClient) Register() error {
 	return client.rc.Register()
 }
 
-func (client *fakeResourceClient) Read(name string, opts clients.ReadOpts) (*FakeResource, error) {
-	resource, err := client.rc.Read(name, opts)
+func (client *fakeResourceClient) Read(namespace, name string, opts clients.ReadOpts) (*FakeResource, error) {
+	resource, err := client.rc.Read(namespace, name, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -69,20 +69,20 @@ func (client *fakeResourceClient) Write(fakeResource *FakeResource, opts clients
 	return resource.(*FakeResource), nil
 }
 
-func (client *fakeResourceClient) Delete(name string, opts clients.DeleteOpts) error {
-	return client.rc.Delete(name, opts)
+func (client *fakeResourceClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
+	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *fakeResourceClient) List(opts clients.ListOpts) ([]*FakeResource, error) {
-	resourceList, err := client.rc.List(opts)
+func (client *fakeResourceClient) List(namespace string, opts clients.ListOpts) ([]*FakeResource, error) {
+	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
 		return nil, err
 	}
 	return convertToFakeResource(resourceList), nil
 }
 
-func (client *fakeResourceClient) Watch(opts clients.WatchOpts) (<-chan []*FakeResource, <-chan error, error) {
-	resourcesChan, errs, initErr := client.rc.Watch(opts)
+func (client *fakeResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []*FakeResource, <-chan error, error) {
+	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}

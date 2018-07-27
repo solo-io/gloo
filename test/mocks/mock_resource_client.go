@@ -32,11 +32,11 @@ var _ resources.Resource = &MockResource{}
 
 type MockResourceClient interface {
 	Register() error
-	Read(name string, opts clients.ReadOpts) (*MockResource, error)
+	Read(namespace, name string, opts clients.ReadOpts) (*MockResource, error)
 	Write(resource *MockResource, opts clients.WriteOpts) (*MockResource, error)
-	Delete(name string, opts clients.DeleteOpts) error
-	List(opts clients.ListOpts) ([]*MockResource, error)
-	Watch(opts clients.WatchOpts) (<-chan []*MockResource, <-chan error, error)
+	Delete(namespace, name string, opts clients.DeleteOpts) error
+	List(namespace string, opts clients.ListOpts) ([]*MockResource, error)
+	Watch(namespace string, opts clients.WatchOpts) (<-chan []*MockResource, <-chan error, error)
 }
 
 type mockResourceClient struct {
@@ -53,8 +53,8 @@ func (client *mockResourceClient) Register() error {
 	return client.rc.Register()
 }
 
-func (client *mockResourceClient) Read(name string, opts clients.ReadOpts) (*MockResource, error) {
-	resource, err := client.rc.Read(name, opts)
+func (client *mockResourceClient) Read(namespace, name string, opts clients.ReadOpts) (*MockResource, error) {
+	resource, err := client.rc.Read(namespace, name, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -69,20 +69,20 @@ func (client *mockResourceClient) Write(mockResource *MockResource, opts clients
 	return resource.(*MockResource), nil
 }
 
-func (client *mockResourceClient) Delete(name string, opts clients.DeleteOpts) error {
-	return client.rc.Delete(name, opts)
+func (client *mockResourceClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
+	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *mockResourceClient) List(opts clients.ListOpts) ([]*MockResource, error) {
-	resourceList, err := client.rc.List(opts)
+func (client *mockResourceClient) List(namespace string, opts clients.ListOpts) ([]*MockResource, error) {
+	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
 		return nil, err
 	}
 	return convertToMockResource(resourceList), nil
 }
 
-func (client *mockResourceClient) Watch(opts clients.WatchOpts) (<-chan []*MockResource, <-chan error, error) {
-	resourcesChan, errs, initErr := client.rc.Watch(opts)
+func (client *mockResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []*MockResource, <-chan error, error) {
+	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
