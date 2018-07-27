@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 type ResourceClient struct {
@@ -127,7 +128,9 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 		if err := protoutils.UnmarshalStruct(resourceData.Data, resource); err != nil {
 			return nil, errors.Wrapf(err, "reading proto struct into %v", rc.Kind())
 		}
-		resourceList = append(resourceList, resource)
+		if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
+			resourceList = append(resourceList, resource)
+		}
 	}
 
 	sort.SliceStable(resourceList, func(i, j int) bool {
@@ -183,7 +186,9 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 					errs <- errors.Wrapf(err, "reading proto struct into %v", rc.Kind())
 					continue
 				}
-				resourceList = append(resourceList, resource)
+				if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
+					resourceList = append(resourceList, resource)
+				}
 			}
 
 			sort.SliceStable(resourceList, func(i, j int) bool {

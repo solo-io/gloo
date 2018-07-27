@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 type ResourceClient struct {
@@ -147,7 +148,9 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 		resources.UpdateMetadata(resource, func(meta *core.Metadata) {
 			meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
 		})
-		resourceList = append(resourceList, resource)
+		if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
+			resourceList = append(resourceList, resource)
+		}
 	}
 
 	sort.SliceStable(resourceList, func(i, j int) bool {
@@ -199,7 +202,9 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 			resources.UpdateMetadata(resource, func(meta *core.Metadata) {
 				meta.ResourceVersion = fmt.Sprintf("%v", kvPair.ModifyIndex)
 			})
-			resourceList = append(resourceList, resource)
+			if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
+				resourceList = append(resourceList, resource)
+			}
 		}
 
 		sort.SliceStable(resourceList, func(i, j int) bool {

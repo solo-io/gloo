@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 const separator = "~;~"
@@ -67,9 +68,15 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	if meta.Namespace == "" {
 		meta.Namespace = clients.DefaultNamespace
 	}
-	if !opts.OverwriteExisting {
-		if _, err := rc.Read(resource.GetMetadata().Name, clients.ReadOpts{Namespace: resource.GetMetadata().Namespace}); err == nil {
-			return nil, errors.NewExistErr(resource.GetMetadata())
+	key := rc.key(meta.Namespace, meta.Name)
+
+	original, err := rc.Read(meta.Name, clients.ReadOpts{Namespace: meta.Namespace})
+	if original != nil && err == nil {
+		if !opts.OverwriteExisting {
+			return nil, errors.NewExistErr(meta)
+		}
+		if meta.ResourceVersion != original.GetMetadata().ResourceVersion {
+			return nil, errors.Errorf("resource version error. must update new resource version to match current")
 		}
 	}
 
@@ -80,7 +87,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	clone.SetMetadata(meta)
 
 	rc.lock.Lock()
-	rc.cache[rc.key(meta.Namespace, meta.Name)] = clone
+	rc.cache[key] = clone
 	rc.signalUpdate()
 	rc.lock.Unlock()
 
@@ -116,7 +123,9 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 		if !strings.HasPrefix(key, opts.Namespace+separator) {
 			continue
 		}
-		resourceList = append(resourceList, resource)
+		if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
+			resourceList = append(resourceList, resource)
+		}
 	}
 
 	sort.SliceStable(resourceList, func(i, j int) bool {
@@ -180,5 +189,5 @@ func newOrIncrementResourceVer(resourceVersion string) string {
 	if err != nil {
 		curr = 1
 	}
-	return fmt.Sprintf("%v", curr)
+	return fmt.Sprintf("%v", curr+1)
 }

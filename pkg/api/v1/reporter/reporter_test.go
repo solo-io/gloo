@@ -26,7 +26,7 @@ var _ = Describe("Reporter", func() {
 	})
 	AfterEach(func() {
 	})
-	It("CRUDs resources", func() {
+	It("reports errors for resources", func() {
 		r1, err := mockResourceClient.Write(mocks.NewMockResource("", "mocky"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		r2, err := mockResourceClient.Write(mocks.NewMockResource("", "fakey"), clients.WriteOpts{})

@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/fileutils"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 type ResourceClient struct {
@@ -123,7 +124,9 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 		if err := fileutils.ReadFileInto(path, resource); err != nil {
 			return nil, errors.Wrapf(err, "reading file into %v", rc.Kind())
 		}
-		resourceList = append(resourceList, resource)
+		if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
+			resourceList = append(resourceList, resource)
+		}
 	}
 
 	sort.SliceStable(resourceList, func(i, j int) bool {
@@ -218,5 +221,5 @@ func newOrIncrementResourceVer(resourceVersion string) string {
 	if err != nil {
 		curr = 1
 	}
-	return fmt.Sprintf("%v", curr)
+	return fmt.Sprintf("%v", curr+1)
 }

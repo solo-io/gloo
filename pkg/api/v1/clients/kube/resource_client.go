@@ -15,6 +15,7 @@ import (
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	kubewatch "k8s.io/apimachinery/pkg/watch"
 )
 
@@ -143,7 +144,9 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 			meta.Name = resourceCrd.Name
 			meta.ResourceVersion = resourceCrd.ResourceVersion
 		})
-		resourceList = append(resourceList, resource)
+		if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
+			resourceList = append(resourceList, resource)
+		}
 	}
 
 	sort.SliceStable(resourceList, func(i, j int) bool {

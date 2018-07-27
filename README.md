@@ -12,15 +12,14 @@ a new proto for that config (it's internal anyway)
 
 steps:
 XX4 - reporter
+
+XXX - desired-state-achiever (syncer library)
  
 5 - e2e tests
 
 6 - callbacks/acl for apiserver
 
  - support selectors/labels
-
-- desired-state-achiever (syncer library)
-give a set of desired resources, this syncer will update existing resources to match desired
 
 - something that works for 3rd party resources (configmaps, artifacts, etc)
  
