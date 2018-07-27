@@ -43,19 +43,19 @@ func (rc *ResourceClient) Register() error {
 	return nil
 }
 
-func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Resource, error) {
+func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (resources.Resource, error) {
 	if err := resources.ValidateName(name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
 	opts = opts.WithDefaults()
 	resp, err := rc.grpc.Read(opts.Ctx, &apiserver.ReadRequest{
 		Name:      name,
-		Namespace: opts.Namespace,
+		Namespace: namespace,
 		Kind:      rc.Kind(),
 	})
 	if err != nil {
 		if stat, ok := status.FromError(err); ok && strings.Contains(stat.Message(), "does not exist") {
-			return nil, errors.NewNotExistErr(opts.Namespace, name)
+			return nil, errors.NewNotExistErr(namespace, name)
 		}
 		return nil, errors.Wrapf(err, "performing grpc request")
 	}
@@ -95,27 +95,27 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	return written, nil
 }
 
-func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
+func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
 	_, err := rc.grpc.Delete(opts.Ctx, &apiserver.DeleteRequest{
 		Name:           name,
-		Namespace:      opts.Namespace,
+		Namespace:      namespace,
 		Kind:           rc.Kind(),
 		IgnoreNotExist: opts.IgnoreNotExist,
 	})
 	if err != nil {
 		if stat, ok := status.FromError(err); ok && strings.Contains(stat.Message(), "does not exist") {
-			return errors.NewNotExistErr(opts.Namespace, name)
+			return errors.NewNotExistErr(namespace, name)
 		}
 		return errors.Wrapf(err, "deleting resource %v", name)
 	}
 	return nil
 }
 
-func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, error) {
+func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resources.Resource, error) {
 	opts = opts.WithDefaults()
 	resp, err := rc.grpc.List(opts.Ctx, &apiserver.ListRequest{
-		Namespace: opts.Namespace,
+		Namespace: namespace,
 		Kind:      rc.Kind(),
 	})
 	if err != nil {
@@ -140,13 +140,13 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
+func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
 	opts = opts.WithDefaults()
 	resp, err := rc.grpc.Watch(opts.Ctx, &apiserver.WatchRequest{
 		SyncFrequency: &types.Duration{
 			Nanos: int32(opts.RefreshRate),
 		},
-		Namespace: opts.Namespace,
+		Namespace: namespace,
 		Kind:      rc.Kind(),
 	})
 	if err != nil {
@@ -157,10 +157,9 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 	errs := make(chan error)
 	// watch should open up with an initial read
 	go func() {
-		list, err := rc.List(clients.ListOpts{
-			Ctx:       opts.Ctx,
-			Selector:  opts.Selector,
-			Namespace: opts.Namespace,
+		list, err := rc.List(namespace, clients.ListOpts{
+			Ctx:      opts.Ctx,
+			Selector: opts.Selector,
 		})
 		if err != nil {
 			errs <- err

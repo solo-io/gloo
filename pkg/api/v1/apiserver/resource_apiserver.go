@@ -50,9 +50,8 @@ func (s *ApiServer) Read(ctx context.Context, req *ReadRequest) (*ReadResponse, 
 	if err != nil {
 		return nil, err
 	}
-	resource, err := rc.Read(req.Name, clients.ReadOpts{
-		Namespace: req.Namespace,
-		Ctx:       contextutils.WithLogger(ctx, "apiserver.read"),
+	resource, err := rc.Read(req.Namespace, req.Name, clients.ReadOpts{
+		Ctx: contextutils.WithLogger(ctx, "apiserver.read"),
 	})
 	if err != nil {
 		return nil, err
@@ -102,9 +101,8 @@ func (s *ApiServer) Delete(ctx context.Context, req *DeleteRequest) (*DeleteResp
 	if err != nil {
 		return nil, err
 	}
-	if err := rc.Delete(req.Name, clients.DeleteOpts{
+	if err := rc.Delete(req.Namespace, req.Name, clients.DeleteOpts{
 		IgnoreNotExist: req.IgnoreNotExist,
-		Namespace:      req.Namespace,
 		Ctx:            contextutils.WithLogger(ctx, "apiserver.delete"),
 	}); err != nil {
 		return nil, errors.Wrapf(err, "failed to delete resource %v", req.Kind)
@@ -117,9 +115,8 @@ func (s *ApiServer) List(ctx context.Context, req *ListRequest) (*ListResponse, 
 	if err != nil {
 		return nil, err
 	}
-	resourceList, err := rc.List(clients.ListOpts{
-		Namespace: req.Namespace,
-		Ctx:       contextutils.WithLogger(ctx, "apiserver.read"),
+	resourceList, err := rc.List(req.Namespace, clients.ListOpts{
+		Ctx: contextutils.WithLogger(ctx, "apiserver.read"),
 	})
 	var resourceListResponse []*Resource
 	for _, resource := range resourceList {
@@ -147,9 +144,8 @@ func (s *ApiServer) Watch(req *WatchRequest, watch ApiServer_WatchServer) error 
 	if req.SyncFrequency != nil {
 		duration = time.Duration(req.SyncFrequency.Nanos)
 	}
-	resourceWatch, errs, err := rc.Watch(clients.WatchOpts{
+	resourceWatch, errs, err := rc.Watch(req.Namespace, clients.WatchOpts{
 		RefreshRate: duration,
-		Namespace:   req.Namespace,
 		Ctx:         ctx,
 	})
 	for {

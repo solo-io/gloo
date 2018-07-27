@@ -44,19 +44,19 @@ func (rc *ResourceClient) Register() error {
 	return nil
 }
 
-func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Resource, error) {
+func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (resources.Resource, error) {
 	if err := resources.ValidateName(name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
 	opts = opts.WithDefaults()
-	key := rc.resourceKey(opts.Namespace, name)
+	key := rc.resourceKey(namespace, name)
 
 	kvPair, _, err := rc.consul.KV().Get(key, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "performing consul KV get")
 	}
 	if kvPair == nil {
-		return nil, errors.NewNotExistErr(opts.Namespace, name)
+		return nil, errors.NewNotExistErr(namespace, name)
 	}
 	resource := rc.NewResource()
 	if err := protoutils.UnmarshalBytes(kvPair.Value, resource); err != nil {
@@ -74,12 +74,10 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 		return nil, errors.Wrapf(err, "validation error")
 	}
 	meta := resource.GetMetadata()
-	if meta.Namespace == "" {
-		meta.Namespace = clients.DefaultNamespace
-	}
+	meta.Namespace = clients.DefaultNamespaceIfEmpty(meta.Namespace)
 	key := rc.resourceKey(meta.Namespace, meta.Name)
 
-	original, err := rc.Read(meta.Name, clients.ReadOpts{Namespace: meta.Namespace})
+	original, err := rc.Read(meta.Namespace, meta.Name, clients.ReadOpts{})
 	if original != nil && err == nil {
 		if !opts.OverwriteExisting {
 			return nil, errors.NewExistErr(meta)
@@ -112,15 +110,16 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 		return nil, errors.Wrapf(err, "writing to KV")
 	}
 	// return a read object to update the modify index
-	return rc.Read(meta.Name, clients.ReadOpts{Ctx: opts.Ctx, Namespace: meta.Namespace})
+	return rc.Read(meta.Namespace, meta.Name, clients.ReadOpts{Ctx: opts.Ctx})
 }
 
-func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
+func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
-	key := rc.resourceKey(opts.Namespace, name)
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
+	key := rc.resourceKey(namespace, name)
 	if !opts.IgnoreNotExist {
-		if _, err := rc.Read(name, clients.ReadOpts{Namespace: opts.Namespace, Ctx: opts.Ctx}); err != nil {
-			return errors.NewNotExistErr(opts.Namespace, name, err)
+		if _, err := rc.Read(namespace, name, clients.ReadOpts{Ctx: opts.Ctx}); err != nil {
+			return errors.NewNotExistErr(namespace, name, err)
 		}
 	}
 	_, err := rc.consul.KV().Delete(key, nil)
@@ -130,10 +129,11 @@ func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
 	return nil
 }
 
-func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, error) {
+func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resources.Resource, error) {
 	opts = opts.WithDefaults()
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 
-	namespacePrefix := filepath.Join(rc.root, opts.Namespace)
+	namespacePrefix := filepath.Join(rc.root, namespace)
 	kvPairs, _, err := rc.consul.KV().List(namespacePrefix, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "reading namespace root")
@@ -160,18 +160,18 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
+func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
 	opts = opts.WithDefaults()
 	var lastIndex uint64
-	namespacePrefix := filepath.Join(rc.root, opts.Namespace)
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
+	namespacePrefix := filepath.Join(rc.root, namespace)
 	resourcesChan := make(chan []resources.Resource)
 	errs := make(chan error)
 	go func() {
 		// watch should open up with an initial read
-		list, err := rc.List(clients.ListOpts{
-			Ctx:       opts.Ctx,
-			Selector:  opts.Selector,
-			Namespace: opts.Namespace,
+		list, err := rc.List(namespace, clients.ListOpts{
+			Ctx:      opts.Ctx,
+			Selector: opts.Selector,
 		})
 		if err != nil {
 			errs <- err

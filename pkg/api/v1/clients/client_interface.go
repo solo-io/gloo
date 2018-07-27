@@ -11,28 +11,31 @@ const DefaultNamespace = "default"
 
 var DefaultRefreshRate = time.Second * 30
 
+func DefaultNamespaceIfEmpty(namespace string) string {
+	if namespace == "" {
+		return DefaultNamespace
+	}
+	return namespace
+}
+
 type ResourceClient interface {
 	Kind() string
 	NewResource() resources.Resource
 	Register() error
-	Read(name string, opts ReadOpts) (resources.Resource, error)
+	Read(namespace, name string, opts ReadOpts) (resources.Resource, error)
 	Write(resource resources.Resource, opts WriteOpts) (resources.Resource, error)
-	Delete(name string, opts DeleteOpts) error
-	List(opts ListOpts) ([]resources.Resource, error)
-	Watch(opts WatchOpts) (<-chan []resources.Resource, <-chan error, error)
+	Delete(namespace, name string, opts DeleteOpts) error
+	List(namespace string, opts ListOpts) ([]resources.Resource, error)
+	Watch(namespace string, opts WatchOpts) (<-chan []resources.Resource, <-chan error, error)
 }
 
 type ReadOpts struct {
-	Ctx       context.Context
-	Namespace string
+	Ctx context.Context
 }
 
 func (o ReadOpts) WithDefaults() ReadOpts {
 	if o.Ctx == nil {
 		o.Ctx = context.TODO()
-	}
-	if o.Namespace == "" {
-		o.Namespace = DefaultNamespace
 	}
 	return o
 }
@@ -51,7 +54,6 @@ func (o WriteOpts) WithDefaults() WriteOpts {
 
 type DeleteOpts struct {
 	Ctx            context.Context
-	Namespace      string
 	IgnoreNotExist bool
 }
 
@@ -59,24 +61,17 @@ func (o DeleteOpts) WithDefaults() DeleteOpts {
 	if o.Ctx == nil {
 		o.Ctx = context.TODO()
 	}
-	if o.Namespace == "" {
-		o.Namespace = DefaultNamespace
-	}
 	return o
 }
 
 type ListOpts struct {
-	Ctx       context.Context
-	Selector  map[string]string
-	Namespace string
+	Ctx      context.Context
+	Selector map[string]string
 }
 
 func (o ListOpts) WithDefaults() ListOpts {
 	if o.Ctx == nil {
 		o.Ctx = context.TODO()
-	}
-	if o.Namespace == "" {
-		o.Namespace = DefaultNamespace
 	}
 	return o
 }
@@ -84,16 +79,12 @@ func (o ListOpts) WithDefaults() ListOpts {
 type WatchOpts struct {
 	Ctx         context.Context
 	Selector    map[string]string
-	Namespace   string
 	RefreshRate time.Duration
 }
 
 func (o WatchOpts) WithDefaults() WatchOpts {
 	if o.Ctx == nil {
 		o.Ctx = context.TODO()
-	}
-	if o.Namespace == "" {
-		o.Namespace = DefaultNamespace
 	}
 	if o.RefreshRate == 0 {
 		o.RefreshRate = DefaultRefreshRate

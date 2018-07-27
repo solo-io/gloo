@@ -45,14 +45,15 @@ func (rc *ResourceClient) Register() error {
 	return nil
 }
 
-func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Resource, error) {
+func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (resources.Resource, error) {
 	if err := resources.ValidateName(name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 	opts = opts.WithDefaults()
-	path := rc.filename(opts.Namespace, name)
+	path := rc.filename(namespace, name)
 	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
-		return nil, errors.NewNotExistErr(opts.Namespace, name, err)
+		return nil, errors.NewNotExistErr(namespace, name, err)
 	}
 	resource := rc.NewResource()
 	if err := fileutils.ReadFileInto(path, resource); err != nil {
@@ -67,11 +68,9 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 		return nil, errors.Wrapf(err, "validation error")
 	}
 	meta := resource.GetMetadata()
-	if meta.Namespace == "" {
-		meta.Namespace = clients.DefaultNamespace
-	}
+	meta.Namespace = clients.DefaultNamespaceIfEmpty(meta.Namespace)
 
-	original, err := rc.Read(meta.Name, clients.ReadOpts{Namespace: meta.Namespace})
+	original, err := rc.Read(meta.Namespace, meta.Name, clients.ReadOpts{})
 	if original != nil && err == nil {
 		if !opts.OverwriteExisting {
 			return nil, errors.NewExistErr(meta)
@@ -97,9 +96,10 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	return clone, nil
 }
 
-func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
+func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
-	path := rc.filename(opts.Namespace, name)
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
+	path := rc.filename(namespace, name)
 	err := os.Remove(path)
 	switch {
 	case err == nil:
@@ -107,15 +107,16 @@ func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
 	case os.IsNotExist(err) && opts.IgnoreNotExist:
 		return nil
 	case os.IsNotExist(err) && !opts.IgnoreNotExist:
-		return errors.NewNotExistErr(opts.Namespace, name, err)
+		return errors.NewNotExistErr(namespace, name, err)
 	}
 	return errors.Wrapf(err, "deleting resource %v", name)
 }
 
-func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, error) {
+func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resources.Resource, error) {
 	opts = opts.WithDefaults()
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 
-	namespaceDir := filepath.Join(rc.dir, opts.Namespace)
+	namespaceDir := filepath.Join(rc.dir, namespace)
 	files, err := ioutil.ReadDir(namespaceDir)
 	if err != nil {
 		return nil, errors.Wrapf(err, "reading namespace dir")
@@ -140,9 +141,11 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
+func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
 	opts = opts.WithDefaults()
-	dir := filepath.Join(rc.dir, opts.Namespace)
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
+
+	dir := filepath.Join(rc.dir, namespace)
 	events, errs, err := rc.events(opts.Ctx, dir, opts.RefreshRate)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "starting watch on namespace dir")
@@ -150,10 +153,9 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 	resourcesChan := make(chan []resources.Resource)
 	go func() {
 		// watch should open up with an initial read
-		list, err := rc.List(clients.ListOpts{
-			Ctx:       opts.Ctx,
-			Selector:  opts.Selector,
-			Namespace: opts.Namespace,
+		list, err := rc.List(namespace, clients.ListOpts{
+			Ctx:      opts.Ctx,
+			Selector: opts.Selector,
 		})
 		if err != nil {
 			errs <- err
@@ -165,10 +167,9 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 		for {
 			select {
 			case <-events:
-				list, err := rc.List(clients.ListOpts{
-					Ctx:       opts.Ctx,
-					Selector:  opts.Selector,
-					Namespace: opts.Namespace,
+				list, err := rc.List(namespace, clients.ListOpts{
+					Ctx:      opts.Ctx,
+					Selector: opts.Selector,
 				})
 				if err != nil {
 					errs <- err

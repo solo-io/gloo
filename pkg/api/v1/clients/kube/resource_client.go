@@ -52,16 +52,17 @@ func (rc *ResourceClient) Register() error {
 	return rc.crd.Register(rc.apiexts)
 }
 
-func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Resource, error) {
+func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (resources.Resource, error) {
 	if err := resources.ValidateName(name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
 	opts = opts.WithDefaults()
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 
-	resourceCrd, err := rc.kube.ResourcesV1().Resources(opts.Namespace).Get(name, metav1.GetOptions{})
+	resourceCrd, err := rc.kube.ResourcesV1().Resources(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			return nil, errors.NewNotExistErr(opts.Namespace, name, err)
+			return nil, errors.NewNotExistErr(namespace, name, err)
 		}
 		return nil, errors.Wrapf(err, "reading resource from kubernetes")
 	}
@@ -83,9 +84,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 		return nil, errors.Wrapf(err, "validation error")
 	}
 	meta := resource.GetMetadata()
-	if meta.Namespace == "" {
-		meta.Namespace = clients.DefaultNamespace
-	}
+	meta.Namespace = clients.DefaultNamespaceIfEmpty(meta.Namespace)
 
 	// mutate and return clone
 	clone := proto.Clone(resource).(resources.Resource)
@@ -106,32 +105,33 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	}
 
 	// return a read object to update the resource version
-	return rc.Read(meta.Name, clients.ReadOpts{Ctx: opts.Ctx, Namespace: meta.Namespace})
+	return rc.Read(meta.Namespace, meta.Name, clients.ReadOpts{Ctx: opts.Ctx})
 }
 
-func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
+func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
-	if !rc.exist(opts.Namespace, name) {
+	if !rc.exist(namespace, name) {
 		if !opts.IgnoreNotExist {
-			return errors.NewNotExistErr(opts.Namespace, name)
+			return errors.NewNotExistErr(namespace, name)
 		}
 		return nil
 	}
 
-	if err := rc.kube.ResourcesV1().Resources(opts.Namespace).Delete(name, nil); err != nil {
+	if err := rc.kube.ResourcesV1().Resources(namespace).Delete(name, nil); err != nil {
 		return errors.Wrapf(err, "deleting resource %v", name)
 	}
 	return nil
 }
 
-func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, error) {
+func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resources.Resource, error) {
 	opts = opts.WithDefaults()
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 
-	resourceCrdList, err := rc.kube.ResourcesV1().Resources(opts.Namespace).List(metav1.ListOptions{
+	resourceCrdList, err := rc.kube.ResourcesV1().Resources(namespace).List(metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "deleting listing resources in %v", opts.Namespace)
+		return nil, errors.Wrapf(err, "deleting listing resources in %v", namespace)
 	}
 	var resourceList []resources.Resource
 	for _, resourceCrd := range resourceCrdList.Items {
@@ -156,19 +156,19 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
+func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
 	opts = opts.WithDefaults()
-	watch, err := rc.kube.ResourcesV1().Resources(opts.Namespace).Watch(metav1.ListOptions{})
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
+	watch, err := rc.kube.ResourcesV1().Resources(namespace).Watch(metav1.ListOptions{})
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "initiating kube watch in %v", opts.Namespace)
+		return nil, nil, errors.Wrapf(err, "initiating kube watch in %v", namespace)
 	}
 	resourcesChan := make(chan []resources.Resource)
 	errs := make(chan error)
 	updateResourceList := func() {
-		list, err := rc.List(clients.ListOpts{
-			Ctx:       opts.Ctx,
-			Selector:  opts.Selector,
-			Namespace: opts.Namespace,
+		list, err := rc.List(namespace, clients.ListOpts{
+			Ctx:      opts.Ctx,
+			Selector: opts.Selector,
 		})
 		if err != nil {
 			errs <- err

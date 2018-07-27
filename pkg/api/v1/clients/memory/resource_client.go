@@ -45,16 +45,17 @@ func (rc *ResourceClient) Register() error {
 	return nil
 }
 
-func (rc *ResourceClient) Read(name string, opts clients.ReadOpts) (resources.Resource, error) {
+func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (resources.Resource, error) {
 	if err := resources.ValidateName(name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
 	opts = opts.WithDefaults()
 	rc.lock.RLock()
-	resource, ok := rc.cache[rc.key(opts.Namespace, name)]
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
+	resource, ok := rc.cache[rc.key(namespace, name)]
 	rc.lock.RUnlock()
 	if !ok {
-		return nil, errors.NewNotExistErr(opts.Namespace, name)
+		return nil, errors.NewNotExistErr(namespace, name)
 	}
 	return resource, nil
 }
@@ -65,12 +66,11 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 		return nil, errors.Wrapf(err, "validation error")
 	}
 	meta := resource.GetMetadata()
-	if meta.Namespace == "" {
-		meta.Namespace = clients.DefaultNamespace
-	}
+	meta.Namespace = clients.DefaultNamespaceIfEmpty(meta.Namespace)
+
 	key := rc.key(meta.Namespace, meta.Name)
 
-	original, err := rc.Read(meta.Name, clients.ReadOpts{Namespace: meta.Namespace})
+	original, err := rc.Read(meta.Namespace, meta.Name, clients.ReadOpts{})
 	if original != nil && err == nil {
 		if !opts.OverwriteExisting {
 			return nil, errors.NewExistErr(meta)
@@ -94,15 +94,16 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	return clone, nil
 }
 
-func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
+func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
-	key := rc.key(opts.Namespace, name)
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
+	key := rc.key(namespace, name)
 	rc.lock.RLock()
 	_, ok := rc.cache[key]
 	rc.lock.RUnlock()
 	if !ok {
 		if !opts.IgnoreNotExist {
-			return errors.NewNotExistErr(opts.Namespace, name)
+			return errors.NewNotExistErr(namespace, name)
 		}
 		return nil
 	}
@@ -114,13 +115,14 @@ func (rc *ResourceClient) Delete(name string, opts clients.DeleteOpts) error {
 	return nil
 }
 
-func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, error) {
+func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resources.Resource, error) {
 	opts = opts.WithDefaults()
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 	var resourceList []resources.Resource
 	rc.lock.RLock()
 	defer rc.lock.RUnlock()
 	for key, resource := range rc.cache {
-		if !strings.HasPrefix(key, opts.Namespace+separator) {
+		if !strings.HasPrefix(key, namespace+separator) {
 			continue
 		}
 		if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
@@ -135,16 +137,16 @@ func (rc *ResourceClient) List(opts clients.ListOpts) ([]resources.Resource, err
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
+func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
 	opts = opts.WithDefaults()
+	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 	resourcesChan := make(chan []resources.Resource)
 	errs := make(chan error)
 	go func() {
 		// watch should open up with an initial read
-		list, err := rc.List(clients.ListOpts{
-			Ctx:       opts.Ctx,
-			Selector:  opts.Selector,
-			Namespace: opts.Namespace,
+		list, err := rc.List(namespace, clients.ListOpts{
+			Ctx:      opts.Ctx,
+			Selector: opts.Selector,
 		})
 		if err != nil {
 			errs <- err
@@ -156,10 +158,9 @@ func (rc *ResourceClient) Watch(opts clients.WatchOpts) (<-chan []resources.Reso
 		for {
 			select {
 			case <-rc.updates:
-				list, err := rc.List(clients.ListOpts{
-					Ctx:       opts.Ctx,
-					Selector:  opts.Selector,
-					Namespace: opts.Namespace,
+				list, err := rc.List(namespace, clients.ListOpts{
+					Ctx:      opts.Ctx,
+					Selector: opts.Selector,
 				})
 				if err != nil {
 					errs <- err

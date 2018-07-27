@@ -53,7 +53,7 @@ func TestCrudClient(namespace string, client ResourceClient) {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	read, err := client.Read(name, clients.ReadOpts{Namespace: namespace})
+	read, err := client.Read(namespace, name, clients.ReadOpts{})
 	Expect(err).NotTo(HaveOccurred())
 	// it should update the resource version on the new write
 	Expect(read.GetMetadata().ResourceVersion).NotTo(Equal(r1.GetMetadata().ResourceVersion))
@@ -62,7 +62,7 @@ func TestCrudClient(namespace string, client ResourceClient) {
 	})
 	Expect(read).To(Equal(r1))
 
-	_, err = client.Read(name, clients.ReadOpts{Namespace: "doesntexist"})
+	_, err = client.Read("doesntexist", name, clients.ReadOpts{})
 	Expect(err).To(HaveOccurred())
 	Expect(errors.IsNotExist(err)).To(BeTrue())
 
@@ -78,38 +78,36 @@ func TestCrudClient(namespace string, client ResourceClient) {
 	Expect(err).NotTo(HaveOccurred())
 
 	// with labels
-	list, err := client.List(clients.ListOpts{
-		Selector:  labels,
-		Namespace: namespace,
+	list, err := client.List(namespace, clients.ListOpts{
+		Selector: labels,
 	})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(list).To(ContainElement(r1))
 	Expect(list).NotTo(ContainElement(r2))
 
 	// without
-	list, err = client.List(clients.ListOpts{Namespace: namespace})
+	list, err = client.List(namespace, clients.ListOpts{})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(list).To(ContainElement(r1))
 	Expect(list).To(ContainElement(r2))
 
-	err = client.Delete("adsfw", clients.DeleteOpts{Namespace: namespace})
+	err = client.Delete(namespace, "adsfw", clients.DeleteOpts{})
 	Expect(err).To(HaveOccurred())
 	Expect(errors.IsNotExist(err)).To(BeTrue())
 
-	err = client.Delete("adsfw", clients.DeleteOpts{
+	err = client.Delete(namespace, "adsfw", clients.DeleteOpts{
 		IgnoreNotExist: true,
-		Namespace:      namespace,
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	err = client.Delete(r2.GetMetadata().Name, clients.DeleteOpts{Namespace: namespace})
+	err = client.Delete(namespace, r2.GetMetadata().Name, clients.DeleteOpts{})
 	Expect(err).NotTo(HaveOccurred())
-	list, err = client.List(clients.ListOpts{Namespace: namespace})
+	list, err = client.List(namespace, clients.ListOpts{})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(list).To(ContainElement(r1))
 	Expect(list).NotTo(ContainElement(r2))
 
-	w, errs, err := client.Watch(clients.WatchOpts{Namespace: namespace, RefreshRate: time.Millisecond})
+	w, errs, err := client.Watch(namespace, clients.WatchOpts{RefreshRate: time.Millisecond})
 	Expect(err).NotTo(HaveOccurred())
 
 	var r3 resources.Resource
