@@ -84,13 +84,11 @@ var _ = Describe("FakeResourceClient", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		read, err := client.Read(name, clients.ReadOpts{
-			Namespace: namespace,
-		})
+		read, err := client.Read(namespace, name, clients.ReadOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(read).To(Equal(r1))
 
-		_, err = client.Read(name, clients.ReadOpts{Namespace: "doesntexist"})
+		_, err = client.Read("doesntexist", name, clients.ReadOpts{})
 		Expect(err).To(HaveOccurred())
 		Expect(errors.IsNotExist(err)).To(BeTrue())
 
@@ -106,38 +104,28 @@ var _ = Describe("FakeResourceClient", func() {
 		r2, err := client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		list, err := client.List(clients.ListOpts{
-			Namespace: namespace,
-		})
+		list, err := client.List(namespace, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(list).To(ContainElement(r1))
 		Expect(list).To(ContainElement(r2))
 
-		err = client.Delete("adsfw", clients.DeleteOpts{
-			Namespace: namespace,
-		})
+		err = client.Delete(namespace, "adsfw", clients.DeleteOpts{})
 		Expect(err).To(HaveOccurred())
 		Expect(errors.IsNotExist(err)).To(BeTrue())
 
-		err = client.Delete("adsfw", clients.DeleteOpts{
+		err = client.Delete(namespace, "adsfw", clients.DeleteOpts{
 			IgnoreNotExist: true,
-			Namespace:      namespace,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		err = client.Delete(r2.GetMetadata().Name, clients.DeleteOpts{
-			Namespace: namespace,
-		})
+		err = client.Delete(namespace, r2.GetMetadata().Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
-		list, err = client.List(clients.ListOpts{
-			Namespace: namespace,
-		})
+		list, err = client.List(namespace, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(list).To(ContainElement(r1))
 		Expect(list).NotTo(ContainElement(r2))
 
-		w, errs, err := client.Watch(clients.WatchOpts{
-			Namespace:   namespace,
+		w, errs, err := client.Watch(namespace, clients.WatchOpts{
 			RefreshRate: time.Hour,
 		})
 		Expect(err).NotTo(HaveOccurred())
