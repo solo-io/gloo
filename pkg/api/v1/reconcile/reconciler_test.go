@@ -15,7 +15,7 @@ import (
 
 var _ = Describe("Reconciler", func() {
 	var (
-		namspace                               = helpers.RandString(5)
+		namespace                              = helpers.RandString(5)
 		reconciler                             Reconciler
 		mockResourceClient, fakeResourceClient clients.ResourceClient
 	)
@@ -26,15 +26,15 @@ var _ = Describe("Reconciler", func() {
 	})
 	It("does the crudding for you so you can sip a nice coconut", func() {
 		desiredMockResources := []resources.Resource{
-			mocks.NewMockResource(namspace, "a1-barry"),
-			mocks.NewMockResource(namspace, "b2-dave"),
+			mocks.NewMockResource(namespace, "a1-barry"),
+			mocks.NewMockResource(namespace, "b2-dave"),
 		}
 
 		// creates when doesn't exist
-		err := reconciler.Reconcile(clients.ListOpts{Namespace: namspace}, mockResourceClient.Kind(), desiredMockResources)
+		err := reconciler.Reconcile(namespace, clients.ListOpts{}, mockResourceClient.Kind(), desiredMockResources)
 		Expect(err).NotTo(HaveOccurred())
 
-		mockList, err := mockResourceClient.List(clients.ListOpts{Namespace: namspace})
+		mockList, err := mockResourceClient.List(namespace, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(mockList).To(HaveLen(2))
@@ -47,15 +47,15 @@ var _ = Describe("Reconciler", func() {
 
 		// does multiple resource types
 		desiredFakeResources := []resources.Resource{
-			mocks.NewFakeResource(namspace, "c3-peter"),
-			mocks.NewFakeResource(namspace, "d4-steven"),
+			mocks.NewFakeResource(namespace, "c3-peter"),
+			mocks.NewFakeResource(namespace, "d4-steven"),
 		}
 
 		// creates when doesn't exist
-		err = reconciler.Reconcile(clients.ListOpts{Namespace: namspace}, fakeResourceClient.Kind(), desiredFakeResources)
+		err = reconciler.Reconcile(namespace, clients.ListOpts{}, fakeResourceClient.Kind(), desiredFakeResources)
 		Expect(err).NotTo(HaveOccurred())
 
-		fakeList, err := fakeResourceClient.List(clients.ListOpts{Namespace: namspace})
+		fakeList, err := fakeResourceClient.List(namespace, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(fakeList).To(HaveLen(2))
@@ -69,10 +69,10 @@ var _ = Describe("Reconciler", func() {
 		// updates
 		desiredMockResources[0].(*mocks.MockResource).Data = "foo"
 		desiredMockResources[1].(*mocks.MockResource).Data = "bar"
-		err = reconciler.Reconcile(clients.ListOpts{Namespace: namspace}, mockResourceClient.Kind(), desiredMockResources)
+		err = reconciler.Reconcile(namespace, clients.ListOpts{}, mockResourceClient.Kind(), desiredMockResources)
 		Expect(err).NotTo(HaveOccurred())
 
-		mockList, err = mockResourceClient.List(clients.ListOpts{Namespace: namspace})
+		mockList, err = mockResourceClient.List(namespace, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(mockList).To(HaveLen(2))
@@ -85,10 +85,10 @@ var _ = Describe("Reconciler", func() {
 
 		// clean it all up now
 		desiredMockResources = []resources.Resource{}
-		err = reconciler.Reconcile(clients.ListOpts{Namespace: namspace}, mockResourceClient.Kind(), desiredMockResources)
+		err = reconciler.Reconcile(namespace, clients.ListOpts{}, mockResourceClient.Kind(), desiredMockResources)
 		Expect(err).NotTo(HaveOccurred())
 
-		mockList, err = mockResourceClient.List(clients.ListOpts{Namespace: namspace})
+		mockList, err = mockResourceClient.List(namespace, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(mockList).To(HaveLen(0))

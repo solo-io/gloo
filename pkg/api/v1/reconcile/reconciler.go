@@ -13,7 +13,7 @@ import (
 type ListResources func() ([]resources.Resource, error)
 
 type Reconciler interface {
-	Reconcile(opts clients.ListOpts, kind string, desiredResources []resources.Resource) error
+	Reconcile(namespace string, opts clients.ListOpts, kind string, desiredResources []resources.Resource) error
 }
 
 type reconciler struct {
@@ -38,14 +38,14 @@ func (r *reconciler) resourceClient(kind string) (clients.ResourceClient, error)
 	return rc, nil
 }
 
-func (r *reconciler) Reconcile(opts clients.ListOpts, kind string, desiredResources []resources.Resource) error {
+func (r *reconciler) Reconcile(namespace string, opts clients.ListOpts, kind string, desiredResources []resources.Resource) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "reconciler")
 	rc, err := r.resourceClient(kind)
 	if err != nil {
 		return err
 	}
-	originalResources, err := rc.List(opts)
+	originalResources, err := rc.List(namespace, opts)
 	if err != nil {
 		return err
 	}
@@ -85,9 +85,8 @@ func syncResource(ctx context.Context, rc clients.ResourceClient, desired resour
 }
 
 func deleteStaleResource(ctx context.Context, rc clients.ResourceClient, original resources.Resource) error {
-	return rc.Delete(original.GetMetadata().Name, clients.DeleteOpts{
+	return rc.Delete(original.GetMetadata().Namespace, original.GetMetadata().Name, clients.DeleteOpts{
 		Ctx:            ctx,
-		Namespace:      original.GetMetadata().Namespace,
 		IgnoreNotExist: true,
 	})
 }

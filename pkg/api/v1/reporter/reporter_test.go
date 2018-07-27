@@ -38,13 +38,9 @@ var _ = Describe("Reporter", func() {
 		err = reporter.WriteReports(context.TODO(), resourceErrs)
 		Expect(err).NotTo(HaveOccurred())
 
-		r1, err = mockResourceClient.Read(r1.GetMetadata().Name, clients.ReadOpts{
-			Namespace: r1.GetMetadata().Namespace,
-		})
+		r1, err = mockResourceClient.Read(r1.GetMetadata().Namespace, r1.GetMetadata().Name, clients.ReadOpts{})
 		Expect(err).NotTo(HaveOccurred())
-		r2, err = mockResourceClient.Read(r2.GetMetadata().Name, clients.ReadOpts{
-			Namespace: r2.GetMetadata().Namespace,
-		})
+		r2, err = mockResourceClient.Read(r2.GetMetadata().Namespace, r2.GetMetadata().Name, clients.ReadOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(r1.GetStatus()).To(Equal(core.Status{
 			State:  2,
