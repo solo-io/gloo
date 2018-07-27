@@ -78,7 +78,7 @@ type Cache interface {
 {{- range .ResourceTypes}}
 	{{ . }}() {{ . }}Client
 {{- end}}
-	Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
+	Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
 
 func NewCache({{ clients . true }}) Cache {
@@ -111,7 +111,7 @@ func (c *cache) {{ . }}() {{ . }}Client {
 }
 {{- end}}
 
-func (c *cache) Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
+func (c *cache) Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
 	snapshots := make(chan *Snapshot)
 	errs := make(chan error)
 
@@ -126,7 +126,7 @@ func (c *cache) Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan erro
 	}
 
 {{- range .ResourceTypes}}
-	{{ lowercase . }}Chan, {{ lowercase . }}Errs, err := c.{{ lowercase . }}.Watch(opts)
+	{{ lowercase . }}Chan, {{ lowercase . }}Errs, err := c.{{ lowercase . }}.Watch(namespace, opts)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "starting {{ . }} watch")
 	}

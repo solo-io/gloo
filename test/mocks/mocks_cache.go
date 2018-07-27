@@ -54,7 +54,7 @@ type Cache interface {
 	Register() error
 	MockResource() MockResourceClient
 	FakeResource() FakeResourceClient
-	Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
+	Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
 
 func NewCache(mockResourceClient MockResourceClient, fakeResourceClient FakeResourceClient) Cache {
@@ -87,7 +87,7 @@ func (c *cache) FakeResource() FakeResourceClient {
 	return c.fakeResource
 }
 
-func (c *cache) Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
+func (c *cache) Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
 	snapshots := make(chan *Snapshot)
 	errs := make(chan error)
 
@@ -100,11 +100,11 @@ func (c *cache) Snapshots(opts clients.WatchOpts) (<-chan *Snapshot, <-chan erro
 		currentSnapshot = newSnapshot
 		snapshots <- &currentSnapshot
 	}
-	mockResourceChan, mockResourceErrs, err := c.mockResource.Watch(opts)
+	mockResourceChan, mockResourceErrs, err := c.mockResource.Watch(namespace, opts)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "starting MockResource watch")
 	}
-	fakeResourceChan, fakeResourceErrs, err := c.fakeResource.Watch(opts)
+	fakeResourceChan, fakeResourceErrs, err := c.fakeResource.Watch(namespace, opts)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "starting FakeResource watch")
 	}
