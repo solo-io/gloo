@@ -204,7 +204,7 @@ ignored = ["github.com/envoyproxy/data-plane-api*"]
 
 [[constraint]]
   name = "github.com/knative/serving"
-  revision = "fed3bc3f41a6f5aa87480a53a32f97cab79f1f5f"
+  version = "v0.1.0"
 
 [[override]]
   name = "k8s.io/autoscaler"

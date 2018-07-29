@@ -601,15 +601,6 @@
   revision = "5c1d8c8469d1ed34b2aecf4c2305b3a57fff2ee3"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/knative/pkg"
-  packages = [
-    "apis",
-    "configmap"
-  ]
-  revision = "9d1975b29fbab0f2f955f77bbfb1d173ef5a5815"
-
-[[projects]]
   name = "github.com/knative/serving"
   packages = [
     "pkg/apis/istio",
@@ -628,10 +619,12 @@
     "pkg/client/informers/externalversions/serving/v1alpha1",
     "pkg/client/listers/istio/v1alpha3",
     "pkg/client/listers/serving/v1alpha1",
+    "pkg/configmap",
     "pkg/controller",
     "pkg/logging/logkey"
   ]
-  revision = "fed3bc3f41a6f5aa87480a53a32f97cab79f1f5f"
+  revision = "091d4519394bb7bee5ae4d3ab764c3f4f6f2a51b"
+  version = "v0.1.0"
 
 [[projects]]
   name = "github.com/lyft/protoc-gen-validate"
@@ -1328,6 +1321,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "69e82a25481e1533a019d47e1561908e7872f8a3de431c35525867abf7d0f82c"
+  inputs-digest = "4420c3448b951903626b8fa3e5ef1b34be93bf7c285317ecbfbb33b3867ad843"
   solver-name = "gps-cdcl"
   solver-version = 1
