@@ -15,12 +15,12 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-type configMapClient struct {
+type artifactClient struct {
 	kube kubernetes.Interface
 }
 
 func NewArtifactClient(kube kubernetes.Interface) thirdparty.ThirdPartyResourceClient {
-	return &configMapClient{
+	return &artifactClient{
 		kube: kube,
 	}
 }
@@ -49,7 +49,7 @@ func toKubeConfigMap(resource thirdparty.ThirdPartyResource) *v1.ConfigMap {
 	}
 }
 
-func (rc *configMapClient) Read(namespace, name string, opts clients.ReadOpts) (thirdparty.ThirdPartyResource, error) {
+func (rc *artifactClient) Read(namespace, name string, opts clients.ReadOpts) (thirdparty.ThirdPartyResource, error) {
 	if err := resources.ValidateName(name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
@@ -66,7 +66,7 @@ func (rc *configMapClient) Read(namespace, name string, opts clients.ReadOpts) (
 	return fromKubeConfigMap(configMap), nil
 }
 
-func (rc *configMapClient) Write(resource thirdparty.ThirdPartyResource, opts clients.WriteOpts) (thirdparty.ThirdPartyResource, error) {
+func (rc *artifactClient) Write(resource thirdparty.ThirdPartyResource, opts clients.WriteOpts) (thirdparty.ThirdPartyResource, error) {
 	opts = opts.WithDefaults()
 	if err := resources.ValidateName(resource.GetMetadata().Name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
@@ -90,7 +90,7 @@ func (rc *configMapClient) Write(resource thirdparty.ThirdPartyResource, opts cl
 	return rc.Read(configMap.Namespace, configMap.Name, clients.ReadOpts{Ctx: opts.Ctx})
 }
 
-func (rc *configMapClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
+func (rc *artifactClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
 	if !rc.exist(namespace, name) {
 		if !opts.IgnoreNotExist {
@@ -105,7 +105,7 @@ func (rc *configMapClient) Delete(namespace, name string, opts clients.DeleteOpt
 	return nil
 }
 
-func (rc *configMapClient) List(namespace string, opts clients.ListOpts) ([]thirdparty.ThirdPartyResource, error) {
+func (rc *artifactClient) List(namespace string, opts clients.ListOpts) ([]thirdparty.ThirdPartyResource, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 
@@ -127,7 +127,7 @@ func (rc *configMapClient) List(namespace string, opts clients.ListOpts) ([]thir
 	return resourceList, nil
 }
 
-func (rc *configMapClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []thirdparty.ThirdPartyResource, <-chan error, error) {
+func (rc *artifactClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []thirdparty.ThirdPartyResource, <-chan error, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 	watch, err := rc.kube.CoreV1().ConfigMaps(namespace).Watch(metav1.ListOptions{})
@@ -169,7 +169,7 @@ func (rc *configMapClient) Watch(namespace string, opts clients.WatchOpts) (<-ch
 	return resourcesChan, errs, nil
 }
 
-func (rc *configMapClient) exist(namespace, name string) bool {
+func (rc *artifactClient) exist(namespace, name string) bool {
 	_, err := rc.kube.CoreV1().ConfigMaps(namespace).Get(name, metav1.GetOptions{})
 	return err == nil
 
