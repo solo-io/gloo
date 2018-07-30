@@ -1,8 +1,6 @@
 package thirdparty
 
 import (
-	"time"
-
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
@@ -10,13 +8,13 @@ import (
 type ThirdPartyResource interface {
 	GetMetadata() core.Metadata
 	SetMetadata(meta core.Metadata)
-	Data() string
+	GetData() map[string]string
 	IsSecret() bool
 }
 
 type Data struct {
 	core.Metadata
-	data string
+	Values map[string]string
 }
 
 type Secret struct {
@@ -35,8 +33,8 @@ func (a *Data) SetMetadata(meta core.Metadata) {
 	a.Metadata = meta
 }
 
-func (a *Data) Data() string {
-	return a.data
+func (a *Data) GetData() map[string]string {
+	return a.Values
 }
 
 func (a *Artifact) IsSecret() bool {
@@ -50,21 +48,7 @@ func (a *Secret) IsSecret() bool {
 var _ ThirdPartyResource = &Secret{}
 var _ ThirdPartyResource = &Artifact{}
 
-const DefaultNamespace = "default"
-
-var DefaultRefreshRate = time.Second * 30
-
-func DefaultNamespaceIfEmpty(namespace string) string {
-	if namespace == "" {
-		return DefaultNamespace
-	}
-	return namespace
-}
-
 type ThirdPartyResourceClient interface {
-	Kind() string
-	NewResource() ThirdPartyResource
-	Register() error
 	Read(namespace, name string, opts clients.ReadOpts) (ThirdPartyResource, error)
 	Write(resource ThirdPartyResource, opts clients.WriteOpts) (ThirdPartyResource, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error

@@ -1,4 +1,4 @@
-package thirdparty
+package kube_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestSecretArtifact(t *testing.T) {
+func TestKube(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "SecretArtifact Suite")
+	RunSpecs(t, "Kube Suite")
 }

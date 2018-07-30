@@ -131,7 +131,7 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resou
 		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "deleting listing resources in %v", namespace)
+		return nil, errors.Wrapf(err, "listing resources in %v", namespace)
 	}
 	var resourceList []resources.Resource
 	for _, resourceCrd := range resourceCrdList.Items {

@@ -9,13 +9,17 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
+type BaseResource interface {
+	GetMetadata() core.Metadata
+	SetMetadata(meta core.Metadata)
+}
+
 type Resource interface {
 	proto.Message
+	BaseResource
 	Equal(that interface{}) bool
 	GetStatus() core.Status
-	GetMetadata() core.Metadata
 	SetStatus(status core.Status)
-	SetMetadata(meta core.Metadata)
 }
 
 func Clone(resource Resource) Resource {
@@ -26,7 +30,7 @@ func Kind(resource Resource) string {
 	return reflect.TypeOf(resource).String()
 }
 
-func UpdateMetadata(resource Resource, updateFunc func(meta *core.Metadata)) {
+func UpdateMetadata(resource BaseResource, updateFunc func(meta *core.Metadata)) {
 	meta := resource.GetMetadata()
 	updateFunc(&meta)
 	resource.SetMetadata(meta)
