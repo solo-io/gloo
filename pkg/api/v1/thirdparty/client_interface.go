@@ -4,8 +4,51 @@ import (
 	"time"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
+
+type ThirdPartyResource interface {
+	GetMetadata() core.Metadata
+	SetMetadata(meta core.Metadata)
+	Data() string
+	IsSecret() bool
+}
+
+type Data struct {
+	core.Metadata
+	data string
+}
+
+type Secret struct {
+	Data
+}
+
+type Artifact struct {
+	Data
+}
+
+func (a *Data) GetMetadata() core.Metadata {
+	return a.Metadata
+}
+
+func (a *Data) SetMetadata(meta core.Metadata) {
+	a.Metadata = meta
+}
+
+func (a *Data) Data() string {
+	return a.data
+}
+
+func (a *Artifact) IsSecret() bool {
+	return false
+}
+
+func (a *Secret) IsSecret() bool {
+	return true
+}
+
+var _ ThirdPartyResource = &Secret{}
+var _ ThirdPartyResource = &Artifact{}
 
 const DefaultNamespace = "default"
 
@@ -18,20 +61,13 @@ func DefaultNamespaceIfEmpty(namespace string) string {
 	return namespace
 }
 
-//type Secret struct{}
-
-type SecretClient interface {
+type ThirdPartyResourceClient interface {
 	Kind() string
-	NewResource() resources.Resource
+	NewResource() ThirdPartyResource
 	Register() error
-	Read(namespace, name string, opts clients.ReadOpts) (resources.Resource, error)
-	Write(resource resources.Resource, opts clients.WriteOpts) (resources.Resource, error)
+	Read(namespace, name string, opts clients.ReadOpts) (ThirdPartyResource, error)
+	Write(resource ThirdPartyResource, opts clients.WriteOpts) (ThirdPartyResource, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
-	List(namespace string, opts clients.ListOpts) ([]resources.Resource, error)
-	Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error)
+	List(namespace string, opts clients.ListOpts) ([]ThirdPartyResource, error)
+	Watch(namespace string, opts clients.WatchOpts) (<-chan []ThirdPartyResource, <-chan error, error)
 }
-
-/*
-thirdarty resource can be either secret or plaintext
-same object same interface
-*/
