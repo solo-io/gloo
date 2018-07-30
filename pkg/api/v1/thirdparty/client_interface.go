@@ -18,7 +18,7 @@ func DefaultNamespaceIfEmpty(namespace string) string {
 	return namespace
 }
 
-type Secret struct{}
+//type Secret struct{}
 
 type SecretClient interface {
 	Kind() string
