@@ -1,33 +1,30 @@
-package file_test
+package consul_test
 
 import (
+	"github.com/hashicorp/consul/api"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	. "github.com/solo-io/solo-kit/pkg/api/v1/thirdparty/file"
-
-	"io/ioutil"
-	"os"
-
 	"github.com/solo-io/solo-kit/pkg/api/v1/thirdparty"
+	. "github.com/solo-io/solo-kit/pkg/api/v1/thirdparty/consul"
 	"github.com/solo-io/solo-kit/test/helpers"
 )
 
-var _ = Describe("File ThirdPartyResource Clients", func() {
+var _ = Describe("Base", func() {
 	var (
-		tmpDir string
-		//artifacts thirdparty.ThirdPartyResourceClient
+		consul             *api.Client
+		rootKey            string
 		artifacts, secrets thirdparty.ThirdPartyResourceClient
 	)
 	BeforeEach(func() {
-		var err error
-		tmpDir, err = ioutil.TempDir("", "resource_test")
+		rootKey = helpers.RandString(4)
+		c, err := api.NewClient(api.DefaultConfig())
 		Expect(err).NotTo(HaveOccurred())
-		artifacts = NewArtifactClient(tmpDir)
-		secrets = NewSecretClient(tmpDir)
+		consul = c
+		artifacts = NewThirdPartyResourceClient(consul, rootKey, &thirdparty.Artifact{})
+		secrets = NewThirdPartyResourceClient(consul, rootKey, &thirdparty.Secret{})
 	})
 	AfterEach(func() {
-		os.RemoveAll(tmpDir)
+		consul.KV().DeleteTree(rootKey, nil)
 	})
 	It("CRUDs secrets", func() {
 		helpers.TestThirdPartyClient("", secrets, &thirdparty.Secret{})

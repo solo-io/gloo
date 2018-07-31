@@ -1,15 +1,19 @@
 package thirdparty
 
 import (
+	"encoding/json"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 type ThirdPartyResource interface {
-	GetMetadata() core.Metadata
-	SetMetadata(meta core.Metadata)
+	resources.BaseResource
 	GetData() map[string]string
+	SetData(map[string]string)
 	IsSecret() bool
+	DeepCopy() ThirdPartyResource
 }
 
 type Data struct {
@@ -37,8 +41,38 @@ func (a *Data) GetData() map[string]string {
 	return a.Values
 }
 
+func (a *Data) SetData(values map[string]string) {
+	a.Values = values
+}
+
+func (a *Artifact) DeepCopy() ThirdPartyResource {
+	b, err := json.Marshal(a)
+	if err != nil {
+		panic("unexpected error marshalling " + err.Error())
+	}
+	var deepcopy Artifact
+	err = json.Unmarshal(b, &deepcopy)
+	if err != nil {
+		panic("unexpected error unmarshalling " + err.Error())
+	}
+	return &deepcopy
+}
+
 func (a *Artifact) IsSecret() bool {
 	return false
+}
+
+func (a *Secret) DeepCopy() ThirdPartyResource {
+	b, err := json.Marshal(a)
+	if err != nil {
+		panic("unexpected error marshalling " + err.Error())
+	}
+	var deepcopy Artifact
+	err = json.Unmarshal(b, &deepcopy)
+	if err != nil {
+		panic("unexpected error unmarshalling " + err.Error())
+	}
+	return &deepcopy
 }
 
 func (a *Secret) IsSecret() bool {
