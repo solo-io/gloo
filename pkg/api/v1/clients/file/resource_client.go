@@ -70,7 +70,9 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	meta := resource.GetMetadata()
 	meta.Namespace = clients.DefaultNamespaceIfEmpty(meta.Namespace)
 
-	original, err := rc.Read(meta.Namespace, meta.Name, clients.ReadOpts{})
+	original, err := rc.Read(meta.Namespace, meta.Name, clients.ReadOpts{
+		Ctx: opts.Ctx,
+	})
 	if original != nil && err == nil {
 		if !opts.OverwriteExisting {
 			return nil, errors.NewExistErr(meta)

@@ -28,7 +28,7 @@ func TestApiclient(t *testing.T) {
 }
 
 var (
-	resourceClient = memory.NewResourceClient(&mocks.MockResource{})
+	resourceClient = memory.NewResourceClient(&mocks.MockData{})
 	port           = 1234
 	server         *grpc.Server
 )

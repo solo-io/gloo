@@ -12,7 +12,7 @@ var _ = Describe("Base", func() {
 		client *ResourceClient
 	)
 	BeforeEach(func() {
-		client = NewResourceClient(&mocks.MockResource{})
+		client = NewResourceClient(&mocks.MockData{})
 	})
 	AfterEach(func() {
 	})

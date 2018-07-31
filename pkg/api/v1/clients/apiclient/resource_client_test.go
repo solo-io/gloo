@@ -25,7 +25,7 @@ var _ = Describe("Base", func() {
 		time.Sleep(time.Second)
 		cc, err = grpc.Dial(fmt.Sprintf("127.0.0.1:%v", port), grpc.WithInsecure())
 		Expect(err).NotTo(HaveOccurred())
-		client = NewResourceClient(cc, &mocks.MockResource{})
+		client = NewResourceClient(cc, &mocks.MockData{})
 	})
 	AfterEach(func() {
 		cc.Close()

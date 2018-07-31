@@ -17,9 +17,10 @@ import (
 // Call within "It"
 func TestCrudClient(namespace string, client ResourceClient) {
 	client.Register()
-	name := "foo"
-	input := mocks.NewMockResource(namespace, name)
-	input.Data = name
+	foo := "foo"
+	input := mocks.NewMockData(namespace, foo)
+	data := map[string]string{"hello": "goodbye"}
+	input.Data = data
 	labels := map[string]string{"pick": "me"}
 	input.Metadata.Labels = labels
 
@@ -33,14 +34,14 @@ func TestCrudClient(namespace string, client ResourceClient) {
 	Expect(err).To(HaveOccurred())
 	Expect(errors.IsExist(err)).To(BeTrue())
 
-	Expect(r1).To(BeAssignableToTypeOf(&mocks.MockResource{}))
-	Expect(r1.GetMetadata().Name).To(Equal(name))
+	Expect(r1).To(BeAssignableToTypeOf(&mocks.MockData{}))
+	Expect(r1.GetMetadata().Name).To(Equal(foo))
 	if namespace == "" {
 		namespace = DefaultNamespace
 	}
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 	Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal(""))
-	Expect(r1.(*mocks.MockResource).Data).To(Equal(name))
+	Expect(r1.(*mocks.MockData).Data).To(Equal(data))
 
 	// if exists and resource ver was not updated, error
 	_, err = client.Write(input, clients.WriteOpts{
@@ -48,29 +49,34 @@ func TestCrudClient(namespace string, client ResourceClient) {
 	})
 	Expect(err).To(HaveOccurred())
 
-	_, err = client.Write(r1, clients.WriteOpts{
+	resources.UpdateMetadata(input, func(meta *core.Metadata) {
+		meta.ResourceVersion = r1.GetMetadata().ResourceVersion
+	})
+	data = map[string]string{"asdf":"qwer"}
+	input.Data = data
+
+	oldRv := r1.GetMetadata().ResourceVersion
+
+	r1, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	read, err := client.Read(namespace, name, clients.ReadOpts{})
+	read, err := client.Read(namespace, foo, clients.ReadOpts{})
 	Expect(err).NotTo(HaveOccurred())
 	// it should update the resource version on the new write
-	Expect(read.GetMetadata().ResourceVersion).NotTo(Equal(r1.GetMetadata().ResourceVersion))
-	resources.UpdateMetadata(r1, func(meta *core.Metadata) {
-		meta.ResourceVersion = read.GetMetadata().ResourceVersion
-	})
+	Expect(read.GetMetadata().ResourceVersion).NotTo(Equal(oldRv))
 	Expect(read).To(Equal(r1))
 
-	_, err = client.Read("doesntexist", name, clients.ReadOpts{})
+	_, err = client.Read("doesntexist", foo, clients.ReadOpts{})
 	Expect(err).To(HaveOccurred())
 	Expect(errors.IsNotExist(err)).To(BeTrue())
 
-	name = "boo"
-	input = &mocks.MockResource{
-		Data: name,
+	boo := "boo"
+	input = &mocks.MockData{
+		Data: data,
 		Metadata: core.Metadata{
-			Name:      name,
+			Name:      boo,
 			Namespace: namespace,
 		},
 	}
@@ -121,11 +127,10 @@ func TestCrudClient(namespace string, client ResourceClient) {
 		r2, err = client.Write(r2, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		name = "goo"
-		input = &mocks.MockResource{
-			Data: name,
+		input = &mocks.MockData{
+			Data: data,
 			Metadata: core.Metadata{
-				Name:      name,
+				Name:      "goo",
 				Namespace: namespace,
 			},
 		}

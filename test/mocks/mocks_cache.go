@@ -12,6 +12,7 @@ import (
 type Snapshot struct {
 	MockResourceList []*MockResource
 	FakeResourceList []*FakeResource
+	MockDataList []*MockData
 }
 
 func (s Snapshot) Clone() Snapshot {
@@ -23,9 +24,14 @@ func (s Snapshot) Clone() Snapshot {
 	for _, fakeResource := range s.FakeResourceList {
 		fakeResourceList = append(fakeResourceList, proto.Clone(fakeResource).(*FakeResource))
 	}
+	var mockDataList []*MockData
+	for _, mockData := range s.MockDataList {
+		mockDataList = append(mockDataList, proto.Clone(mockData).(*MockData))
+	}
 	return Snapshot{
 		MockResourceList: mockResourceList,
 		FakeResourceList: fakeResourceList,
+		MockDataList: mockDataList,
 	}
 }
 
@@ -43,6 +49,12 @@ func (s Snapshot) Hash() uint64 {
 		})
 		fakeResource.SetStatus(core.Status{})
 	}
+	for _, mockData := range snapshotForHashing.MockDataList {
+		resources.UpdateMetadata(mockData, func(meta *core.Metadata) {
+			meta.ResourceVersion = ""
+		})
+		mockData.SetStatus(core.Status{})
+	}
 	h, err := hashstructure.Hash(snapshotForHashing, nil)
 	if err != nil {
 		panic(err)
@@ -54,19 +66,22 @@ type Cache interface {
 	Register() error
 	MockResource() MockResourceClient
 	FakeResource() FakeResourceClient
+	MockData() MockDataClient
 	Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
 
-func NewCache(mockResourceClient MockResourceClient, fakeResourceClient FakeResourceClient) Cache {
+func NewCache(mockResourceClient MockResourceClient, fakeResourceClient FakeResourceClient, mockDataClient MockDataClient) Cache {
 	return &cache{
 		mockResource: mockResourceClient,
 		fakeResource: fakeResourceClient,
+		mockData: mockDataClient,
 	}
 }
 
 type cache struct {
 	mockResource MockResourceClient
 	fakeResource FakeResourceClient
+	mockData MockDataClient
 }
 
 func (c *cache) Register() error {
@@ -74,6 +89,9 @@ func (c *cache) Register() error {
 		return err
 	}
 	if err := c.fakeResource.Register(); err != nil {
+		return err
+	}
+	if err := c.mockData.Register(); err != nil {
 		return err
 	}
 	return nil
@@ -85,6 +103,10 @@ func (c *cache) MockResource() MockResourceClient {
 
 func (c *cache) FakeResource() FakeResourceClient {
 	return c.fakeResource
+}
+
+func (c *cache) MockData() MockDataClient {
+	return c.mockData
 }
 
 func (c *cache) Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
@@ -108,6 +130,10 @@ func (c *cache) Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Sna
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "starting FakeResource watch")
 	}
+	mockDataChan, mockDataErrs, err := c.mockData.Watch(namespace, opts)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "starting MockData watch")
+	}
 
 	go func() {
 		for {
@@ -120,9 +146,15 @@ func (c *cache) Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Sna
 				newSnapshot := currentSnapshot.Clone()
 				newSnapshot.FakeResourceList = fakeResourceList
 				sync(newSnapshot)
+			case mockDataList := <-mockDataChan:
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.MockDataList = mockDataList
+				sync(newSnapshot)
 			case err := <-mockResourceErrs:
 				errs <- err
 			case err := <-fakeResourceErrs:
+				errs <- err
+			case err := <-mockDataErrs:
 				errs <- err
 			}
 		}

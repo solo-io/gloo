@@ -21,12 +21,16 @@ var _ = Describe("MocksEventLoop", func() {
 		mockResourceClient := NewMockResourceClient(mockResourceClientFactory)
 		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{})
 		fakeResourceClient := NewFakeResourceClient(fakeResourceClientFactory)
-		cache = NewCache(mockResourceClient, fakeResourceClient)
+		mockDataClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{})
+		mockDataClient := NewMockDataClient(mockDataClientFactory)
+		cache = NewCache(mockResourceClient, fakeResourceClient, mockDataClient)
 	})
 	It("runs sync function on a new snapshot", func() {
 		_, err = cache.MockResource().Write(NewMockResource(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		_, err = cache.FakeResource().Write(NewFakeResource(namespace, "jerry"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		_, err = cache.MockData().Write(NewMockData(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		sync := &mockSyncer{}
 		el := NewEventLoop(cache, sync)

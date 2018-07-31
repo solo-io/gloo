@@ -21,7 +21,7 @@ var _ = Describe("Base", func() {
 		var err error
 		tmpDir, err = ioutil.TempDir("", "base_test")
 		Expect(err).NotTo(HaveOccurred())
-		client = NewResourceClient(tmpDir, &mocks.MockResource{})
+		client = NewResourceClient(tmpDir, &mocks.MockData{})
 	})
 	AfterEach(func() {
 		os.RemoveAll(tmpDir)
