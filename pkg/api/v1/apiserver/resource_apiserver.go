@@ -12,16 +12,27 @@ import (
 	"google.golang.org/grpc"
 )
 
+type Callbacks interface {
+	OnRegister(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error)
+	OnRead(ctx context.Context, req *ReadRequest) (*ReadResponse, error)
+	OnWrite(ctx context.Context, req *WriteRequest) (*WriteResponse, error)
+	OnDelete(ctx context.Context, req *DeleteRequest) (*DeleteResponse, error)
+	OnList(ctx context.Context, req *ListRequest) (*ListResponse, error)
+	OnWatch(req *WatchRequest, watch ApiServer_WatchServer) error
+}
+
 type ApiServer struct {
+	callbacks       Callbacks
 	resourceClients map[string]clients.ResourceClient
 }
 
-func NewApiServer(s *grpc.Server, resourceClients ...clients.ResourceClient) ApiServerServer {
+func NewApiServer(s *grpc.Server, callbacks Callbacks, resourceClients ...clients.ResourceClient) ApiServerServer {
 	mapped := make(map[string]clients.ResourceClient)
 	for _, rc := range resourceClients {
 		mapped[rc.Kind()] = rc
 	}
 	srv := &ApiServer{
+		callbacks:       callbacks,
 		resourceClients: mapped,
 	}
 	RegisterApiServerServer(s, srv)
@@ -36,7 +47,13 @@ func (s *ApiServer) resourceClient(kind string) (clients.ResourceClient, error) 
 	return rc, nil
 }
 
-func (s *ApiServer) Register(context.Context, *RegisterRequest) (*RegisterResponse, error) {
+func (s *ApiServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
+	if s.callbacks != nil {
+		resp, err := s.callbacks.OnRegister(ctx, req)
+		if err != nil {
+			return resp, err
+		}
+	}
 	for _, rc := range s.resourceClients {
 		if err := rc.Register(); err != nil {
 			return nil, errors.Wrapf(err, "failed to register client %v", rc.Kind())
@@ -46,6 +63,12 @@ func (s *ApiServer) Register(context.Context, *RegisterRequest) (*RegisterRespon
 }
 
 func (s *ApiServer) Read(ctx context.Context, req *ReadRequest) (*ReadResponse, error) {
+	if s.callbacks != nil {
+		resp, err := s.callbacks.OnRead(ctx, req)
+		if err != nil {
+			return resp, err
+		}
+	}
 	rc, err := s.resourceClient(req.Kind)
 	if err != nil {
 		return nil, err
@@ -69,6 +92,12 @@ func (s *ApiServer) Read(ctx context.Context, req *ReadRequest) (*ReadResponse, 
 }
 
 func (s *ApiServer) Write(ctx context.Context, req *WriteRequest) (*WriteResponse, error) {
+	if s.callbacks != nil {
+		resp, err := s.callbacks.OnWrite(ctx, req)
+		if err != nil {
+			return resp, err
+		}
+	}
 	rc, err := s.resourceClient(req.Resource.Kind)
 	if err != nil {
 		return nil, err
@@ -97,6 +126,12 @@ func (s *ApiServer) Write(ctx context.Context, req *WriteRequest) (*WriteRespons
 }
 
 func (s *ApiServer) Delete(ctx context.Context, req *DeleteRequest) (*DeleteResponse, error) {
+	if s.callbacks != nil {
+		resp, err := s.callbacks.OnDelete(ctx, req)
+		if err != nil {
+			return resp, err
+		}
+	}
 	rc, err := s.resourceClient(req.Kind)
 	if err != nil {
 		return nil, err
@@ -111,6 +146,12 @@ func (s *ApiServer) Delete(ctx context.Context, req *DeleteRequest) (*DeleteResp
 }
 
 func (s *ApiServer) List(ctx context.Context, req *ListRequest) (*ListResponse, error) {
+	if s.callbacks != nil {
+		resp, err := s.callbacks.OnList(ctx, req)
+		if err != nil {
+			return resp, err
+		}
+	}
 	rc, err := s.resourceClient(req.Kind)
 	if err != nil {
 		return nil, err
@@ -135,6 +176,12 @@ func (s *ApiServer) List(ctx context.Context, req *ListRequest) (*ListResponse, 
 }
 
 func (s *ApiServer) Watch(req *WatchRequest, watch ApiServer_WatchServer) error {
+	if s.callbacks != nil {
+		err := s.callbacks.OnWatch(req, watch)
+		if err != nil {
+			return err
+		}
+	}
 	rc, err := s.resourceClient(req.Kind)
 	if err != nil {
 		return err

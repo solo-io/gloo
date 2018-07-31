@@ -45,7 +45,7 @@ var _ = BeforeSuite(func() {
 				return handler(srv, ss)
 			},
 		)))
-	apiserver.NewApiServer(server, resourceClient)
+	apiserver.NewApiServer(server, nil, resourceClient)
 	log.Printf("grpc listening on %v", port)
 	go server.Serve(lis)
 })

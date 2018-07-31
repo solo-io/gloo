@@ -21,9 +21,8 @@ xxx - support selectors/labels
 
 6 - callbacks/acl for apiserver
 
+xxx - something that works for 3rd party resources (configmaps, artifacts, etc)
 
-- something that works for 3rd party resources (configmaps, artifacts, etc)
- 
  post 3 weeks
 - bootstrap
 - installer
