@@ -65,6 +65,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/golang/snappy"
+  packages = ["."]
+  revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
+
+[[projects]]
+  branch = "master"
   name = "github.com/google/btree"
   packages = ["."]
   revision = "e89373fe6b4a7413d7acd6da1725b83ef713e6e4"
@@ -151,9 +157,21 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hashicorp/go-retryablehttp"
+  packages = ["."]
+  revision = "e651d75abec6fbd4f2c09508f72ae7af8a8b7171"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/go-rootcerts"
   packages = ["."]
   revision = "6bb64b370b90e7ef1fa532be9e591a81c3493e00"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/hashicorp/go-sockaddr"
+  packages = ["."]
+  revision = "6d291a969b86c4b633730bfc6b8b9d64c3aafed9"
 
 [[projects]]
   branch = "master"
@@ -211,6 +229,19 @@
   packages = ["coordinate"]
   revision = "d6574a5bb1226678d7010325fb6c985db20ee458"
   version = "v0.8.1"
+
+[[projects]]
+  name = "github.com/hashicorp/vault"
+  packages = [
+    "api",
+    "helper/compressutil",
+    "helper/hclutil",
+    "helper/jsonutil",
+    "helper/parseutil",
+    "helper/strutil"
+  ]
+  revision = "e21712a687889de1125e0a12a980420b1a4f72d3"
+  version = "v0.10.4"
 
 [[projects]]
   branch = "master"
@@ -395,6 +426,12 @@
   version = "v1.0.2"
 
 [[projects]]
+  name = "github.com/ryanuber/go-glob"
+  packages = ["."]
+  revision = "572520ed46dbddaed19ea3d9541bdd0494163693"
+  version = "v0.1"
+
+[[projects]]
   name = "github.com/solo-io/gloo"
   packages = [
     "pkg/api/types/v1",
@@ -404,7 +441,8 @@
     "pkg/storage",
     "pkg/storage/dependencies",
     "pkg/storage/file",
-    "test/helpers"
+    "test/helpers",
+    "test/helpers/local"
   ]
   revision = "d79dccb20dff2a3a1187efc1d2e045604919f769"
   version = "v0.4.0"
@@ -744,6 +782,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e566bca676e161e77e26211b256aeb06b769e2f4d4f8d1c980d52685cb53fb2f"
+  inputs-digest = "112afb72f346ebd7152404cf6c4ea040b7d8a632172df2bf846479e7a1bcbdee"
   solver-name = "gps-cdcl"
   solver-version = 1
