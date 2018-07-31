@@ -9,8 +9,8 @@ import (
 	"fmt"
 
 	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/apiclient"
-	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/mocks"
+	"github.com/solo-io/solo-kit/test/tests"
 	"google.golang.org/grpc"
 )
 
@@ -31,6 +31,6 @@ var _ = Describe("Base", func() {
 		cc.Close()
 	})
 	It("CRUDs resources", func() {
-		helpers.TestCrudClient("", client)
+		tests.TestCrudClient("", client)
 	})
 })

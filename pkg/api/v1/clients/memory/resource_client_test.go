@@ -3,8 +3,8 @@ package memory_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/mocks"
+	"github.com/solo-io/solo-kit/test/tests"
 )
 
 var _ = Describe("Base", func() {
@@ -17,6 +17,6 @@ var _ = Describe("Base", func() {
 	AfterEach(func() {
 	})
 	It("CRUDs resources", func() {
-		helpers.TestCrudClient("", client)
+		tests.TestCrudClient("", client)
 	})
 })

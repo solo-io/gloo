@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/mocks"
 	"github.com/solo-io/solo-kit/test/services"
+	"github.com/solo-io/solo-kit/test/tests"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -44,6 +45,6 @@ var _ = Describe("Base", func() {
 		services.TeardownKube(namespace)
 	})
 	It("CRUDs resources", func() {
-		helpers.TestCrudClient(namespace, client)
+		tests.TestCrudClient(namespace, client)
 	})
 })

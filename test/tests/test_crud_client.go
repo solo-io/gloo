@@ -1,4 +1,4 @@
-package helpers
+package tests
 
 import (
 	. "github.com/onsi/ginkgo"

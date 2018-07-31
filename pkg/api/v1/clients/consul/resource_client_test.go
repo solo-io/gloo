@@ -7,6 +7,7 @@ import (
 	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/consul"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/mocks"
+	"github.com/solo-io/solo-kit/test/tests"
 )
 
 var _ = Describe("Base", func() {
@@ -26,6 +27,6 @@ var _ = Describe("Base", func() {
 		consul.KV().DeleteTree(rootKey, nil)
 	})
 	It("CRUDs resources", func() {
-		helpers.TestCrudClient("", client)
+		tests.TestCrudClient("", client)
 	})
 })

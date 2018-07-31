@@ -8,6 +8,7 @@ import (
 	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/vault"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/mocks"
+	"github.com/solo-io/solo-kit/test/tests"
 )
 
 var _ = Describe("Base", func() {
@@ -30,6 +31,6 @@ var _ = Describe("Base", func() {
 		vault.Logical().Delete(rootKey)
 	})
 	It("CRUDs secrets", func() {
-		helpers.TestCrudClient("", secrets)
+		tests.TestCrudClient("", secrets)
 	})
 })
