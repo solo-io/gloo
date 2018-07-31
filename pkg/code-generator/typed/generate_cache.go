@@ -215,8 +215,7 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		err := cache.Register()
 		Expect(err).NotTo(HaveOccurred())
 
-		snapshots, errs, err := cache.Snapshots(clients.WatchOpts{
-			Namespace:   namespace,
+		snapshots, errs, err := cache.Snapshots(namespace, clients.WatchOpts{
 			RefreshRate: time.Minute,
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -251,9 +250,7 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 {{- end}}
 
 {{- range .ResourceTypes }}
-		err = {{ lowercase . }}Client.Delete({{ lowercase . }}2.Metadata.Name, clients.DeleteOpts{
-			Namespace: {{ lowercase . }}2.Metadata.Namespace,
-		})
+		err = {{ lowercase . }}Client.Delete({{ lowercase . }}2.Metadata.Namespace, {{ lowercase . }}2.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -267,9 +264,7 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 			Fail("expected snapshot before 1 second")
 		}
 
-		err = {{ lowercase . }}Client.Delete({{ lowercase . }}1.Metadata.Name, clients.DeleteOpts{
-			Namespace: {{ lowercase . }}1.Metadata.Namespace,
-		})
+		err = {{ lowercase . }}Client.Delete({{ lowercase . }}1.Metadata.Namespace, {{ lowercase . }}1.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {

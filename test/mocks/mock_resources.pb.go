@@ -111,8 +111,8 @@ func (m *FakeResource) GetMetadata() core_api_v1.Metadata {
 //
 // @solo-kit:resource
 // @solo-kit:resource.data_type
-// @solo-kit:resource.short_name=fk
-// @solo-kit:resource.plural_name=fakes
+// @solo-kit:resource.short_name=mkd
+// @solo-kit:resource.plural_name=mockdatas
 // @solo-kit:resource.group_name=testing.solo.io
 // @solo-kit:resource.version=v1
 type MockData struct {

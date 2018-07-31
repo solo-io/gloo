@@ -122,9 +122,9 @@ func (o *MockData) DeepCopyObject() runtime.Object {
 }
 
 var MockDataCrd = crd.NewCrd("testing.solo.io",
-	"fakes",
+	"mockdatas",
 	"testing.solo.io",
 	"v1",
 	"MockData",
-	"fk",
+	"mkd",
 	&MockData{})

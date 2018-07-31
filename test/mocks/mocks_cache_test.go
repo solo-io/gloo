@@ -74,8 +74,7 @@ var _ = Describe("MocksCache", func() {
 		err := cache.Register()
 		Expect(err).NotTo(HaveOccurred())
 
-		snapshots, errs, err := cache.Snapshots(clients.WatchOpts{
-			Namespace:   namespace,
+		snapshots, errs, err := cache.Snapshots(namespace, clients.WatchOpts{
 			RefreshRate: time.Minute,
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -157,9 +156,7 @@ var _ = Describe("MocksCache", func() {
 		case <-time.After(time.Second):
 			Fail("expected snapshot before 1 second")
 		}
-		err = mockResourceClient.Delete(mockResource2.Metadata.Name, clients.DeleteOpts{
-			Namespace: mockResource2.Metadata.Namespace,
-		})
+		err = mockResourceClient.Delete(mockResource2.Metadata.Namespace, mockResource2.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -173,9 +170,7 @@ var _ = Describe("MocksCache", func() {
 			Fail("expected snapshot before 1 second")
 		}
 
-		err = mockResourceClient.Delete(mockResource1.Metadata.Name, clients.DeleteOpts{
-			Namespace: mockResource1.Metadata.Namespace,
-		})
+		err = mockResourceClient.Delete(mockResource1.Metadata.Namespace, mockResource1.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -186,9 +181,7 @@ var _ = Describe("MocksCache", func() {
 		case <-time.After(time.Second):
 			Fail("expected snapshot before 1 second")
 		}
-		err = fakeResourceClient.Delete(fakeResource2.Metadata.Name, clients.DeleteOpts{
-			Namespace: fakeResource2.Metadata.Namespace,
-		})
+		err = fakeResourceClient.Delete(fakeResource2.Metadata.Namespace, fakeResource2.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -202,9 +195,7 @@ var _ = Describe("MocksCache", func() {
 			Fail("expected snapshot before 1 second")
 		}
 
-		err = fakeResourceClient.Delete(fakeResource1.Metadata.Name, clients.DeleteOpts{
-			Namespace: fakeResource1.Metadata.Namespace,
-		})
+		err = fakeResourceClient.Delete(fakeResource1.Metadata.Namespace, fakeResource1.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -215,9 +206,7 @@ var _ = Describe("MocksCache", func() {
 		case <-time.After(time.Second):
 			Fail("expected snapshot before 1 second")
 		}
-		err = mockDataClient.Delete(mockData2.Metadata.Name, clients.DeleteOpts{
-			Namespace: mockData2.Metadata.Namespace,
-		})
+		err = mockDataClient.Delete(mockData2.Metadata.Namespace, mockData2.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -231,9 +220,7 @@ var _ = Describe("MocksCache", func() {
 			Fail("expected snapshot before 1 second")
 		}
 
-		err = mockDataClient.Delete(mockData1.Metadata.Name, clients.DeleteOpts{
-			Namespace: mockData1.Metadata.Namespace,
-		})
+		err = mockDataClient.Delete(mockData1.Metadata.Namespace, mockData1.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {

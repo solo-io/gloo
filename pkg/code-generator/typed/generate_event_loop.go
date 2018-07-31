@@ -112,7 +112,7 @@ var _ = Describe("{{ uppercase .PackageName }}EventLoop", func() {
 		el := NewEventLoop(cache, sync)
 		go func() {
 			defer GinkgoRecover()
-			err := el.Run(clients.WatchOpts{Namespace: namespace})
+			err := el.Run(namespace, clients.WatchOpts{})
 			Expect(err).NotTo(HaveOccurred())
 		}()
 		Eventually(func() bool { return sync.synced }, time.Second).Should(BeTrue())
