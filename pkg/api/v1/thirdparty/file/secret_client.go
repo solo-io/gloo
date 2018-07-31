@@ -18,27 +18,27 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-type artifactClient struct {
+type secretClient struct {
 	dir string
 }
 
-func NewArtifactClient(dir string) thirdparty.ThirdPartyResourceClient {
-	return &artifactClient{
+func NewSecretClient(dir string) thirdparty.ThirdPartyResourceClient {
+	return &secretClient{
 		dir: dir,
 	}
 }
 
-func readFileIntoArtifact(file string) (*thirdparty.Artifact, error) {
+func readFileIntoSecret(file string) (*thirdparty.Secret, error) {
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
-	var artifact thirdparty.Artifact
-	err = yaml.Unmarshal(b, &artifact)
-	return &artifact, err
+	var secret thirdparty.Secret
+	err = yaml.Unmarshal(b, &secret)
+	return &secret, err
 }
 
-func (rc *artifactClient) Read(namespace, name string, opts clients.ReadOpts) (thirdparty.ThirdPartyResource, error) {
+func (rc *secretClient) Read(namespace, name string, opts clients.ReadOpts) (thirdparty.ThirdPartyResource, error) {
 	if err := resources.ValidateName(name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
@@ -49,10 +49,10 @@ func (rc *artifactClient) Read(namespace, name string, opts clients.ReadOpts) (t
 		return nil, errors.NewNotExistErr(namespace, name, err)
 	}
 
-	return readFileIntoArtifact(path)
+	return readFileIntoSecret(path)
 }
 
-func (rc *artifactClient) Write(resource thirdparty.ThirdPartyResource, opts clients.WriteOpts) (thirdparty.ThirdPartyResource, error) {
+func (rc *secretClient) Write(resource thirdparty.ThirdPartyResource, opts clients.WriteOpts) (thirdparty.ThirdPartyResource, error) {
 	opts = opts.WithDefaults()
 	if err := resources.ValidateName(resource.GetMetadata().Name); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
@@ -75,7 +75,7 @@ func (rc *artifactClient) Write(resource thirdparty.ThirdPartyResource, opts cli
 	}
 
 	meta.ResourceVersion = newOrIncrementResourceVer(meta.ResourceVersion)
-	clone := &thirdparty.Artifact{
+	clone := &thirdparty.Secret{
 		Data: thirdparty.Data{
 			Metadata: meta,
 			Values:   resource.GetData(),
@@ -94,7 +94,7 @@ func (rc *artifactClient) Write(resource thirdparty.ThirdPartyResource, opts cli
 	return rc.Read(meta.Namespace, meta.Name, clients.ReadOpts{Ctx: opts.Ctx})
 }
 
-func (rc *artifactClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
+func (rc *secretClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
 	if !rc.exist(namespace, name) {
 		if !opts.IgnoreNotExist {
@@ -107,7 +107,7 @@ func (rc *artifactClient) Delete(namespace, name string, opts clients.DeleteOpts
 	return os.Remove(path)
 }
 
-func (rc *artifactClient) List(namespace string, opts clients.ListOpts) ([]thirdparty.ThirdPartyResource, error) {
+func (rc *secretClient) List(namespace string, opts clients.ListOpts) ([]thirdparty.ThirdPartyResource, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 
@@ -120,9 +120,9 @@ func (rc *artifactClient) List(namespace string, opts clients.ListOpts) ([]third
 	var resourceList []thirdparty.ThirdPartyResource
 	for _, file := range files {
 		path := filepath.Join(namespaceDir, file.Name())
-		resource, err := readFileIntoArtifact(path)
+		resource, err := readFileIntoSecret(path)
 		if err != nil {
-			return nil, errors.Wrapf(err, "reading file as artifact")
+			return nil, errors.Wrapf(err, "reading file as secret")
 		}
 		if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
 			resourceList = append(resourceList, resource)
@@ -136,7 +136,7 @@ func (rc *artifactClient) List(namespace string, opts clients.ListOpts) ([]third
 	return resourceList, nil
 }
 
-func (rc *artifactClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []thirdparty.ThirdPartyResource, <-chan error, error) {
+func (rc *secretClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []thirdparty.ThirdPartyResource, <-chan error, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 
@@ -178,16 +178,16 @@ func (rc *artifactClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 	return resourcesChan, errs, nil
 }
 
-func (rc *artifactClient) exist(namespace, name string) bool {
+func (rc *secretClient) exist(namespace, name string) bool {
 	_, err := os.Stat(rc.filename(namespace, name))
 	return err == nil
 }
 
-func (rc *artifactClient) filename(namespace, name string) string {
+func (rc *secretClient) filename(namespace, name string) string {
 	return filepath.Join(rc.dir, namespace, name) + ".yaml"
 }
 
-func (rc *artifactClient) events(ctx context.Context, dir string, refreshRate time.Duration) (<-chan struct{}, chan error, error) {
+func (rc *secretClient) events(ctx context.Context, dir string, refreshRate time.Duration) (<-chan struct{}, chan error, error) {
 	events := make(chan struct{})
 	errs := make(chan error)
 	w := watcher.New()

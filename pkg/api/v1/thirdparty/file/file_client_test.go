@@ -15,21 +15,24 @@ import (
 
 var _ = Describe("File ThirdPartyResource Clients", func() {
 	var (
-		tmpDir    string
-		artifacts thirdparty.ThirdPartyResourceClient
-		//artifacts, secrets thirdparty.ThirdPartyResourceClient
+		tmpDir string
+		//artifacts thirdparty.ThirdPartyResourceClient
+		artifacts, secrets thirdparty.ThirdPartyResourceClient
 	)
 	BeforeEach(func() {
 		var err error
 		tmpDir, err = ioutil.TempDir("", "resource_test")
 		Expect(err).NotTo(HaveOccurred())
 		artifacts = NewArtifactClient(tmpDir)
+		secrets = NewSecretClient(tmpDir)
 	})
 	AfterEach(func() {
 		os.RemoveAll(tmpDir)
 	})
-	It("CRUDs resources", func() {
-		//helpers.TestThirdPartyClient(namespace, secrets, &thirdparty.Secret{})
+	It("CRUDs secrets", func() {
+		helpers.TestThirdPartyClient("", secrets, &thirdparty.Secret{})
+	})
+	It("CRUDs secrets", func() {
 		helpers.TestThirdPartyClient("", artifacts, &thirdparty.Artifact{})
 	})
 })

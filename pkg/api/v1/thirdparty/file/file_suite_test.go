@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestKube(t *testing.T) {
+func TestFile(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Kube Suite")
+	RunSpecs(t, "File Suite")
 }
