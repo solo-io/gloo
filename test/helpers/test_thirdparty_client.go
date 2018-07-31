@@ -47,6 +47,8 @@ func TestThirdPartyClient(namespace string, client ThirdPartyResourceClient, res
 
 	// if exists and resource ver was not updated, error
 	input.Values["hi"] = "bye"
+	input.ResourceVersion = r1.GetMetadata().ResourceVersion
+
 	r1, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,
 	})
@@ -54,6 +56,7 @@ func TestThirdPartyClient(namespace string, client ThirdPartyResourceClient, res
 
 	// it should update the resource version on the new write
 	input.Annotations = labels
+	input.ResourceVersion = r1.GetMetadata().ResourceVersion
 	_, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,
 	})

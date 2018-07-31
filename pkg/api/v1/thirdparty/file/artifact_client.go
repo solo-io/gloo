@@ -60,6 +60,7 @@ func (rc *artifactClient) Write(resource thirdparty.ThirdPartyResource, opts cli
 		return nil, errors.Wrapf(err, "validation error")
 	}
 	meta := resource.GetMetadata()
+	meta.Namespace = clients.DefaultNamespaceIfEmpty(meta.Namespace)
 
 	original, err := rc.Read(meta.Namespace, meta.Name, clients.ReadOpts{})
 	if original != nil && err == nil {
