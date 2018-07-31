@@ -55,6 +55,13 @@ func (r *{{ .ResourceType }}) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
 
+{{- if .IsDataType}}
+
+func (r *{{ .ResourceType }}) SetData(data map[string]string) {
+	r.Data = data
+}
+{{- end}}
+
 var _ resources.Resource = &{{ .ResourceType }}{}
 
 type {{ .ResourceType }}Client interface {

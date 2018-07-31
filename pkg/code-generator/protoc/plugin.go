@@ -83,6 +83,7 @@ func codegenParams(packageName string, comments *protokit.Comment, resourceType 
 	magicComments := strings.Split(comments.Leading, "\n")
 	var (
 		isResource bool
+		isDataType bool
 		shortName  string
 		pluralName string
 		groupName  string
@@ -91,6 +92,10 @@ func codegenParams(packageName string, comments *protokit.Comment, resourceType 
 	for _, comment := range magicComments {
 		if comment == "@solo-kit:resource" {
 			isResource = true
+			continue
+		}
+		if comment == "@solo-kit:resource.data_type" {
+			isDataType = true
 			continue
 		}
 		if strings.HasPrefix(comment, "@solo-kit:resource.short_name=") {
@@ -116,6 +121,7 @@ func codegenParams(packageName string, comments *protokit.Comment, resourceType 
 	return &typed.ResourceLevelTemplateParams{
 		PackageName:           packageName,
 		ResourceType:          resourceType,
+		IsDataType:            isDataType,
 		ResourceTypeLowerCase: strcase.ToLowerCamel(resourceType),
 		ShortName:             shortName,
 		PluralName:            pluralName,

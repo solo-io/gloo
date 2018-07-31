@@ -10,6 +10,7 @@ import (
 type ResourceLevelTemplateParams struct {
 	PackageName           string
 	ResourceType          string
+	IsDataType            bool
 	ResourceTypeLowerCase string
 	PluralName            string
 	GroupName             string
