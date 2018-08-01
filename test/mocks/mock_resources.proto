@@ -17,8 +17,8 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
 */
 message MockResource {
     string data = 1;
-    core.api.v1.Status status = 6 [(gogoproto.nullable) = false];
-    core.api.v1.Metadata metadata = 7 [(gogoproto.nullable) = false];
+    core.solo.io.Status status = 6 [(gogoproto.nullable) = false];
+    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }
 
 /*
@@ -30,8 +30,8 @@ message MockResource {
 */
 message FakeResource {
     uint32 count = 1;
-    core.api.v1.Status status = 6 [(gogoproto.nullable) = false];
-    core.api.v1.Metadata metadata = 7 [(gogoproto.nullable) = false];
+    core.solo.io.Status status = 6 [(gogoproto.nullable) = false];
+    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }
 
 /*
@@ -44,6 +44,6 @@ message FakeResource {
 */
 message MockData {
     map<string,string> data = 1;
-    core.api.v1.Status status = 6 [(gogoproto.nullable) = false];
-    core.api.v1.Metadata metadata = 7 [(gogoproto.nullable) = false];
+    core.solo.io.Status status = 6 [(gogoproto.nullable) = false];
+    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }
