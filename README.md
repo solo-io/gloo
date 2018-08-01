@@ -34,3 +34,9 @@ xxx - something that works for 3rd party resources (configmaps, artifacts, etc)
 - caching plugin
 - framework
 - extending xds for rate limit, extauth
+
+
+identity system:
+
+capability: field per object permissions
+all fields down to primitive
