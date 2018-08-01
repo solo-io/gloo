@@ -1,0 +1,52 @@
+syntax = "proto3";
+package authorization.solo.io;
+option go_package = "github.com/solo-io/solo-kit/pkg/api/v1/rbac/policy";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/status.proto";
+
+/*
+@solo-kit:resource
+@solo-kit:resource.short_name=policy
+@solo-kit:resource.plural_name=policies
+@solo-kit:resource.group_name=authorization.solo.io
+@solo-kit:resource.version=v1
+*/
+message Policy {
+    // description of the policy (optional)
+    string description = 1;
+    // list of the names of resources the policy applies to
+    repeated string resources = 2;
+    // list of the capabilities the policy grants
+    repeated Capability capabilities = 4;
+    // list of the names of identities the policy applies to
+    repeated string subjects = 3;
+    core.solo.io.Status status = 8 [(gogoproto.nullable) = false];
+    core.solo.io.Metadata metadata = 9 [(gogoproto.nullable) = false];
+}
+
+enum Capability {
+    REGISTER = 0;
+    READ = 1;
+    WRITE = 2;
+    DELETE = 3;
+    LIST = 4;
+    WATCH = 5;
+}
+
+/*
+@solo-kit:resource
+@solo-kit:resource.short_name=identity
+@solo-kit:resource.plural_name=identities
+@solo-kit:resource.group_name=authorization.solo.io
+@solo-kit:resource.version=v1
+*/
+message Identity {
+    string description = 1;
+    string group = 2;
+    core.solo.io.Status status = 8 [(gogoproto.nullable) = false];
+    core.solo.io.Metadata metadata = 9 [(gogoproto.nullable) = false];
+}
