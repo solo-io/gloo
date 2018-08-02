@@ -49,7 +49,7 @@ func (factory *resourceClientFactory) NewResourceClient(params NewResourceClient
 	case *FileResourceClientOpts:
 		return file.NewResourceClient(opts.RootDir, resourceType), nil
 	case *MemoryResourceClientOpts:
-		return memory.NewResourceClient(resourceType), nil
+		return memory.NewResourceClient(opts.Cache, resourceType), nil
 	}
 	panic("unsupported type " + reflect.TypeOf(factory.opts).Name())
 }
@@ -79,6 +79,8 @@ type FileResourceClientOpts struct {
 
 func (o *FileResourceClientOpts) isResourceClientOpts() {}
 
-type MemoryResourceClientOpts struct{}
+type MemoryResourceClientOpts struct {
+	Cache memory.InMemoryResourceCache
+}
 
 func (o *MemoryResourceClientOpts) isResourceClientOpts() {}

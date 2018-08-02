@@ -16,17 +16,93 @@ import (
 
 const separator = "~;~"
 
-type ResourceClient struct {
-	lock         sync.RWMutex
-	cache        map[string]resources.Resource
-	updates      chan struct{}
-	resourceType resources.Resource
+type InMemoryResourceCache interface {
+	Get(key string) (resources.Resource, bool)
+	Delete(key string)
+	Set(key string, resource resources.Resource)
+	List(prefix string) []resources.Resource
+	Subscribe(subscription chan struct{})
+	Unsubscribe(subscription chan struct{})
 }
 
-func NewResourceClient(resourceType resources.Resource) *ResourceClient {
+type inMemoryResourceCache struct {
+	store       map[string]resources.Resource
+	lock        sync.RWMutex
+	subscribers []chan struct{}
+}
+
+func (c *inMemoryResourceCache) signalUpdate() {
+	for _, subscription := range c.subscribers {
+		go func() {
+			subscription <- struct{}{}
+		}()
+	}
+}
+
+func (c *inMemoryResourceCache) Get(key string) (resources.Resource, bool) {
+	c.lock.RLock()
+	resource, ok := c.store[key]
+	c.lock.RUnlock()
+	return resource, ok
+}
+
+func (c *inMemoryResourceCache) Delete(key string) {
+	c.lock.Lock()
+	delete(c.store, key)
+	c.lock.Unlock()
+}
+
+func (c *inMemoryResourceCache) Set(key string, resource resources.Resource) {
+	c.lock.Lock()
+	c.store[key] = resource
+	c.signalUpdate()
+	c.lock.Unlock()
+}
+
+func (c *inMemoryResourceCache) List(prefix string) []resources.Resource {
+	var ress []resources.Resource
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	for key, resource := range c.store {
+		if !strings.HasPrefix(key, prefix) {
+			continue
+		}
+		ress = append(ress, resource)
+	}
+	return ress
+}
+
+func (c *inMemoryResourceCache) Subscribe(subscription chan struct{}) {
+	c.lock.Lock()
+	c.subscribers = append(c.subscribers, subscription)
+	c.lock.Unlock()
+}
+
+func (c *inMemoryResourceCache) Unsubscribe(subscription chan struct{}) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	for i, sub := range c.subscribers {
+		if sub == subscription {
+			c.subscribers = append(c.subscribers[:i], c.subscribers[i+1:]...)
+			return
+		}
+	}
+}
+
+func NewInMemoryResourceCache() InMemoryResourceCache {
+	return &inMemoryResourceCache{
+		store: make(map[string]resources.Resource),
+	}
+}
+
+type ResourceClient struct {
+	resourceType resources.Resource
+	cache        InMemoryResourceCache
+}
+
+func NewResourceClient(cache InMemoryResourceCache, resourceType resources.Resource) *ResourceClient {
 	return &ResourceClient{
-		cache:        make(map[string]resources.Resource),
-		updates:      make(chan struct{}),
+		cache:        cache,
 		resourceType: resourceType,
 	}
 }
@@ -50,10 +126,8 @@ func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (r
 		return nil, errors.Wrapf(err, "validation error")
 	}
 	opts = opts.WithDefaults()
-	rc.lock.RLock()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
-	resource, ok := rc.cache[rc.key(namespace, name)]
-	rc.lock.RUnlock()
+	resource, ok := rc.cache.Get(rc.key(namespace, name))
 	if !ok {
 		return nil, errors.NewNotExistErr(namespace, name)
 	}
@@ -86,10 +160,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	meta.ResourceVersion = newOrIncrementResourceVer(meta.ResourceVersion)
 	clone.SetMetadata(meta)
 
-	rc.lock.Lock()
-	rc.cache[key] = clone
-	rc.signalUpdate()
-	rc.lock.Unlock()
+	rc.cache.Set(key, clone)
 
 	return clone, nil
 }
@@ -98,9 +169,7 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 	key := rc.key(namespace, name)
-	rc.lock.RLock()
-	_, ok := rc.cache[key]
-	rc.lock.RUnlock()
+	_, ok := rc.cache.Get(key)
 	if !ok {
 		if !opts.IgnoreNotExist {
 			return errors.NewNotExistErr(namespace, name)
@@ -108,23 +177,16 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 		return nil
 	}
 
-	rc.lock.Lock()
-	delete(rc.cache, key)
-	rc.signalUpdate()
-	rc.lock.Unlock()
+	rc.cache.Delete(key)
 	return nil
 }
 
 func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resources.Resource, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
+	cachedResources := rc.cache.List(namespace + separator)
 	var resourceList []resources.Resource
-	rc.lock.RLock()
-	defer rc.lock.RUnlock()
-	for key, resource := range rc.cache {
-		if !strings.HasPrefix(key, namespace+separator) {
-			continue
-		}
+	for _, resource := range cachedResources {
 		if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
 			resourceList = append(resourceList, resource)
 		}
@@ -155,9 +217,14 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		resourcesChan <- list
 	}()
 	go func() {
+		subscription := make(chan struct{})
+		rc.cache.Subscribe(subscription)
 		for {
 			select {
-			case <-rc.updates:
+			case <-opts.Ctx.Done():
+				close(subscription)
+				return
+			case <-subscription:
 				list, err := rc.List(namespace, clients.ListOpts{
 					Ctx:      opts.Ctx,
 					Selector: opts.Selector,
@@ -176,12 +243,6 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 
 func (rc *ResourceClient) key(namespace, name string) string {
 	return namespace + separator + name
-}
-
-func (rc *ResourceClient) signalUpdate() {
-	go func() {
-		rc.updates <- struct{}{}
-	}()
 }
 
 // util methods

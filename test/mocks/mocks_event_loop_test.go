@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 )
 
 var _ = Describe("MocksEventLoop", func() {
@@ -18,15 +19,21 @@ var _ = Describe("MocksEventLoop", func() {
 
 	BeforeEach(func() {
 
-		mockResourceClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{})
+		mockResourceClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+			Cache: memory.NewInMemoryResourceCache(),
+		})
 		mockResourceClient, err := NewMockResourceClient(mockResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{})
+		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+			Cache: memory.NewInMemoryResourceCache(),
+		})
 		fakeResourceClient, err := NewFakeResourceClient(fakeResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		mockDataClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{})
+		mockDataClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+			Cache: memory.NewInMemoryResourceCache(),
+		})
 		mockDataClient, err := NewMockDataClient(mockDataClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 

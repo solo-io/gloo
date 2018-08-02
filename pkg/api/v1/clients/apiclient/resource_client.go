@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"k8s.io/apimachinery/pkg/labels"
 )
@@ -20,12 +21,14 @@ import (
 type ResourceClient struct {
 	grpc         apiserver.ApiServerClient
 	resourceType resources.Resource
+	token        string
 }
 
-func NewResourceClient(cc *grpc.ClientConn, resourceType resources.Resource) *ResourceClient {
+func NewResourceClient(cc *grpc.ClientConn, token string, resourceType resources.Resource) *ResourceClient {
 	return &ResourceClient{
 		grpc:         apiserver.NewApiServerClient(cc),
 		resourceType: resourceType,
+		token:        token,
 	}
 }
 
@@ -48,6 +51,7 @@ func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (r
 		return nil, errors.Wrapf(err, "validation error")
 	}
 	opts = opts.WithDefaults()
+	opts.Ctx = metadata.AppendToOutgoingContext(opts.Ctx, "authorization", "bearer "+rc.token)
 	resp, err := rc.grpc.Read(opts.Ctx, &apiserver.ReadRequest{
 		Name:      name,
 		Namespace: namespace,
@@ -67,10 +71,11 @@ func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (r
 }
 
 func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteOpts) (resources.Resource, error) {
-	opts = opts.WithDefaults()
 	if err := resources.Validate(resource); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
 	}
+	opts = opts.WithDefaults()
+	opts.Ctx = metadata.AppendToOutgoingContext(opts.Ctx, "authorization", "bearer "+rc.token)
 	data, err := protoutils.MarshalStruct(resource)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to marshal resource")
@@ -97,6 +102,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 
 func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
+	opts.Ctx = metadata.AppendToOutgoingContext(opts.Ctx, "authorization", "bearer "+rc.token)
 	_, err := rc.grpc.Delete(opts.Ctx, &apiserver.DeleteRequest{
 		Name:           name,
 		Namespace:      namespace,
@@ -114,6 +120,7 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 
 func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resources.Resource, error) {
 	opts = opts.WithDefaults()
+	opts.Ctx = metadata.AppendToOutgoingContext(opts.Ctx, "authorization", "bearer "+rc.token)
 	resp, err := rc.grpc.List(opts.Ctx, &apiserver.ListRequest{
 		Namespace: namespace,
 		Kind:      rc.Kind(),
@@ -142,6 +149,7 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resou
 
 func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
 	opts = opts.WithDefaults()
+	opts.Ctx = metadata.AppendToOutgoingContext(opts.Ctx, "authorization", "bearer "+rc.token)
 	resp, err := rc.grpc.Watch(opts.Ctx, &apiserver.WatchRequest{
 		SyncFrequency: &types.Duration{
 			Nanos: int32(opts.RefreshRate),

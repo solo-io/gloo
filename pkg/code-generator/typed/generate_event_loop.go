@@ -99,7 +99,9 @@ var _ = Describe("{{ uppercase .PackageName }}EventLoop", func() {
 	BeforeEach(func() {
 {{- range .ResourceTypes}}
 
-		{{ lowercase . }}ClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{})
+		{{ lowercase . }}ClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+			Cache: memory.NewInMemoryResourceCache(),
+		})
 		{{ lowercase . }}Client, err := New{{ . }}Client({{ lowercase . }}ClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 {{- end}}
