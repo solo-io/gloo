@@ -33,6 +33,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -77,10 +78,16 @@ type {{ lowercase .ResourceType }}Client struct {
 	rc clients.ResourceClient
 }
 
-func New{{ .ResourceType }}Client(factory *factory.ResourceClientFactory) {{ .ResourceType }}Client {
-	return &{{ lowercase .ResourceType }}Client{
-		rc: factory.NewResourceClient(&{{ .ResourceType }}{}),
+func New{{ .ResourceType }}Client(rcFactory factory.ResourceClientFactory) ({{ .ResourceType }}Client, error) {
+	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
+		ResourceType: &{{ .ResourceType }}{},
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "creating base {{ .ResourceType }} resource client")
 	}
+	return &{{ lowercase .ResourceType }}Client{
+		rc: rc,
+	}, nil
 }
 
 func (client *{{ lowercase .ResourceType }}Client) Register() error {

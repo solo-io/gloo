@@ -5,7 +5,11 @@ import (
 
 	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/auth"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
@@ -22,29 +26,45 @@ type Callbacks interface {
 }
 
 type ApiServer struct {
-	callbacks       Callbacks
-	resourceClients map[string]clients.ResourceClient
+	callbacks     Callbacks
+	resourceTypes map[string]resources.Resource
+	factory       factory.ResourceClientFactory
 }
 
-func NewApiServer(s *grpc.Server, callbacks Callbacks, resourceClients ...clients.ResourceClient) ApiServerServer {
-	mapped := make(map[string]clients.ResourceClient)
-	for _, rc := range resourceClients {
-		mapped[rc.Kind()] = rc
+func NewApiServer(s *grpc.Server, callbacks Callbacks, factory factory.ResourceClientFactory, resourceTypes ...resources.Resource) ApiServerServer {
+	mapped := make(map[string]resources.Resource)
+	for _, resource := range resourceTypes {
+		mapped[resources.Kind(resource)] = resource
 	}
 	srv := &ApiServer{
-		callbacks:       callbacks,
-		resourceClients: mapped,
+		callbacks:     callbacks,
+		resourceTypes: mapped,
+		factory:       factory,
 	}
 	RegisterApiServerServer(s, srv)
 	return srv
 }
 
-func (s *ApiServer) resourceClient(kind string) (clients.ResourceClient, error) {
-	rc, ok := s.resourceClients[kind]
-	if !ok {
-		return nil, errors.Errorf("no resource client registered for kind %s", kind)
+func tokenFromCtx(ctx context.Context) (string, error) {
+	return grpc_auth.AuthFromMD(ctx, "bearer")
+}
+
+func (s *ApiServer) resourceClient(ctx context.Context, resourceKind string) (clients.ResourceClient, error) {
+	token, err := tokenFromCtx(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "retrieving auth token from request")
 	}
-	return rc, nil
+	if token == "" {
+		return nil, errors.Errorf("auth token cannot be empty")
+	}
+	resourceType, ok := s.resourceTypes[resourceKind]
+	if !ok {
+		return nil, errors.Errorf("no resource type registered for kind %s", resourceKind)
+	}
+	return s.factory.NewResourceClient(factory.NewResourceClientParams{
+		Token:        token,
+		ResourceType: resourceType,
+	})
 }
 
 func (s *ApiServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
@@ -54,7 +74,11 @@ func (s *ApiServer) Register(ctx context.Context, req *RegisterRequest) (*Regist
 			return resp, err
 		}
 	}
-	for _, rc := range s.resourceClients {
+	for kind := range s.resourceTypes {
+		rc, err := s.resourceClient(ctx, kind)
+		if err != nil {
+			return nil, err
+		}
 		if err := rc.Register(); err != nil {
 			return nil, errors.Wrapf(err, "failed to register client %v", rc.Kind())
 		}
@@ -69,7 +93,7 @@ func (s *ApiServer) Read(ctx context.Context, req *ReadRequest) (*ReadResponse, 
 			return resp, err
 		}
 	}
-	rc, err := s.resourceClient(req.Kind)
+	rc, err := s.resourceClient(ctx, req.Kind)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +122,7 @@ func (s *ApiServer) Write(ctx context.Context, req *WriteRequest) (*WriteRespons
 			return resp, err
 		}
 	}
-	rc, err := s.resourceClient(req.Resource.Kind)
+	rc, err := s.resourceClient(ctx, req.Resource.Kind)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +156,7 @@ func (s *ApiServer) Delete(ctx context.Context, req *DeleteRequest) (*DeleteResp
 			return resp, err
 		}
 	}
-	rc, err := s.resourceClient(req.Kind)
+	rc, err := s.resourceClient(ctx, req.Kind)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +176,7 @@ func (s *ApiServer) List(ctx context.Context, req *ListRequest) (*ListResponse, 
 			return resp, err
 		}
 	}
-	rc, err := s.resourceClient(req.Kind)
+	rc, err := s.resourceClient(ctx, req.Kind)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +206,7 @@ func (s *ApiServer) Watch(req *WatchRequest, watch ApiServer_WatchServer) error 
 			return err
 		}
 	}
-	rc, err := s.resourceClient(req.Kind)
+	rc, err := s.resourceClient(watch.Context(), req.Kind)
 	if err != nil {
 		return err
 	}

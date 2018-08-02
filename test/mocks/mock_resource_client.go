@@ -6,6 +6,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -43,10 +44,16 @@ type mockResourceClient struct {
 	rc clients.ResourceClient
 }
 
-func NewMockResourceClient(factory *factory.ResourceClientFactory) MockResourceClient {
-	return &mockResourceClient{
-		rc: factory.NewResourceClient(&MockResource{}),
+func NewMockResourceClient(rcFactory factory.ResourceClientFactory) (MockResourceClient, error) {
+	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
+		ResourceType: &MockResource{},
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "creating base MockResource resource client")
 	}
+	return &mockResourceClient{
+		rc: rc,
+	}, nil
 }
 
 func (client *mockResourceClient) Register() error {

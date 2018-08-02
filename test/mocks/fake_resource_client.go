@@ -6,6 +6,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -43,10 +44,16 @@ type fakeResourceClient struct {
 	rc clients.ResourceClient
 }
 
-func NewFakeResourceClient(factory *factory.ResourceClientFactory) FakeResourceClient {
-	return &fakeResourceClient{
-		rc: factory.NewResourceClient(&FakeResource{}),
+func NewFakeResourceClient(rcFactory factory.ResourceClientFactory) (FakeResourceClient, error) {
+	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
+		ResourceType: &FakeResource{},
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "creating base FakeResource resource client")
 	}
+	return &fakeResourceClient{
+		rc: rc,
+	}, nil
 }
 
 func (client *fakeResourceClient) Register() error {

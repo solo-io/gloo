@@ -17,6 +17,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	kubewatch "k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/rest"
 )
 
 type ResourceClient struct {
@@ -28,14 +29,22 @@ type ResourceClient struct {
 	resourceType resources.Resource
 }
 
-func NewResourceClient(crd crd.Crd, apiexts apiexts.Interface, kube versioned.Interface, resourceType resources.Resource) *ResourceClient {
+func NewResourceClient(crd crd.Crd, cfg *rest.Config, resourceType resources.Resource) (*ResourceClient, error) {
+	apiExts, err := apiexts.NewForConfig(cfg)
+	if err != nil {
+		return nil, errors.Wrapf(err, "creating api extensions client")
+	}
+	crdClient, err := versioned.NewForConfig(cfg, crd)
+	if err != nil {
+		return nil, errors.Wrapf(err, "creating crd client")
+	}
 	return &ResourceClient{
 		crd:          crd,
-		apiexts:      apiexts,
-		kube:         kube,
+		apiexts:      apiExts,
+		kube:         crdClient,
 		resourceName: reflect.TypeOf(resourceType).Name(),
 		resourceType: resourceType,
-	}
+	}, nil
 }
 
 var _ clients.ResourceClient = &ResourceClient{}

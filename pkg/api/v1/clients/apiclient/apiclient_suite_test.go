@@ -17,6 +17,7 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/apiserver"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/test/mocks"
 	"go.uber.org/zap"
@@ -45,7 +46,7 @@ var _ = BeforeSuite(func() {
 				return handler(srv, ss)
 			},
 		)))
-	apiserver.NewApiServer(server, nil, resourceClient)
+	apiserver.NewApiServer(server, nil, factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{}), &mocks.MockData{})
 	log.Printf("grpc listening on %v", port)
 	go server.Serve(lis)
 })

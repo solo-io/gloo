@@ -9,48 +9,59 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/file"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/client-go/rest"
 )
 
-type ResourceClientFactory struct {
-	opts resourceClientOpts
+type ResourceClientFactory interface {
+	NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error)
 }
 
-func NewResourceClientFactory(opts resourceClientOpts) *ResourceClientFactory {
-	return &ResourceClientFactory{
+type resourceClientFactory struct {
+	opts ResourceClientFactoryOpts
+}
+
+func NewResourceClientFactory(opts ResourceClientFactoryOpts) ResourceClientFactory {
+	if opts == nil {
+		panic("resource client factory opts cannot be nil")
+	}
+	return &resourceClientFactory{
 		opts: opts,
 	}
 }
 
-func (factory *ResourceClientFactory) NewResourceClient(resourceType resources.Resource) clients.ResourceClient {
-	if factory.opts == nil {
-		panic("resource client factory opts cannot be nil")
-	}
+type NewResourceClientParams struct {
+	ResourceType resources.Resource
+	Token        string
+}
+
+func (factory *resourceClientFactory) NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error) {
+	resourceType := params.ResourceType
 	switch opts := factory.opts.(type) {
 	case *KubeResourceClientOpts:
-		return kube.NewResourceClient(opts.Crd, opts.ApiExts, opts.Kube, resourceType)
+		if params.Token != "" {
+			opts.Cfg.BearerToken = params.Token
+		}
+		return kube.NewResourceClient(opts.Crd, opts.Cfg, resourceType)
 	case *ConsulResourceClientOpts:
-		return consul.NewResourceClient(opts.Consul, opts.RootKey, resourceType)
+		return consul.NewResourceClient(opts.Consul, opts.RootKey, resourceType), nil
 	case *FileResourceClientOpts:
-		return file.NewResourceClient(opts.RootDir, resourceType)
+		return file.NewResourceClient(opts.RootDir, resourceType), nil
 	case *MemoryResourceClientOpts:
-		return memory.NewResourceClient(resourceType)
+		return memory.NewResourceClient(resourceType), nil
 	}
 	panic("unsupported type " + reflect.TypeOf(factory.opts).Name())
 }
 
 // https://golang.org/doc/faq#generics
-type resourceClientOpts interface {
+type ResourceClientFactoryOpts interface {
 	isResourceClientOpts()
 }
 
 type KubeResourceClientOpts struct {
-	Crd     crd.Crd
-	ApiExts apiexts.Interface
-	Kube    versioned.Interface
+	Crd crd.Crd
+	Cfg *rest.Config
 }
 
 func (o *KubeResourceClientOpts) isResourceClientOpts() {}
