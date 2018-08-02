@@ -98,9 +98,12 @@ var _ = Describe("{{ uppercase .PackageName }}EventLoop", func() {
 
 	BeforeEach(func() {
 {{- range .ResourceTypes}}
+
 		{{ lowercase . }}ClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{})
-		{{ lowercase . }}Client := New{{ . }}Client({{ lowercase . }}ClientFactory)
+		{{ lowercase . }}Client, err := New{{ . }}Client({{ lowercase . }}ClientFactory)
+		Expect(err).NotTo(HaveOccurred())
 {{- end}}
+
 		cache = NewCache({{ clients . false }})
 	})
 	It("runs sync function on a new snapshot", func() {

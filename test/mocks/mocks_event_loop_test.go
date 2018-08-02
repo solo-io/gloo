@@ -17,12 +17,19 @@ var _ = Describe("MocksEventLoop", func() {
 	)
 
 	BeforeEach(func() {
+
 		mockResourceClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{})
-		mockResourceClient := NewMockResourceClient(mockResourceClientFactory)
+		mockResourceClient, err := NewMockResourceClient(mockResourceClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+
 		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{})
-		fakeResourceClient := NewFakeResourceClient(fakeResourceClientFactory)
+		fakeResourceClient, err := NewFakeResourceClient(fakeResourceClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+
 		mockDataClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{})
-		mockDataClient := NewMockDataClient(mockDataClientFactory)
+		mockDataClient, err := NewMockDataClient(mockDataClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+
 		cache = NewCache(mockResourceClient, fakeResourceClient, mockDataClient)
 	})
 	It("runs sync function on a new snapshot", func() {

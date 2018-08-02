@@ -164,10 +164,8 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
-	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -193,18 +191,15 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
-		apiextsClient, err := apiexts.NewForConfig(cfg)
-		Expect(err).NotTo(HaveOccurred())
 
 {{- range .ResourceTypes }}
-		{{ lowercase . }}Kubeclient, err := versioned.NewForConfig(cfg, {{ . }}Crd)
-		Expect(err).NotTo(HaveOccurred())
+
 		{{ lowercase . }}ClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd:     {{ . }}Crd,
-			Kube:    {{ lowercase . }}Kubeclient,
-			ApiExts: apiextsClient,
+			Crd: {{ . }}Crd,
+			Cfg: cfg,
 		})
-		{{ lowercase . }}Client = New{{ . }}Client({{ lowercase . }}ClientFactory)
+		{{ lowercase . }}Client, err = New{{ . }}Client({{ lowercase . }}ClientFactory)
+		Expect(err).NotTo(HaveOccurred())
 {{- end}}
 		cache = NewCache({{ clients . false }})
 	})

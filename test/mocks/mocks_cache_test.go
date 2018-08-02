@@ -10,10 +10,8 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
-	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -39,32 +37,27 @@ var _ = Describe("MocksCache", func() {
 		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
-		apiextsClient, err := apiexts.NewForConfig(cfg)
-		Expect(err).NotTo(HaveOccurred())
-		mockResourceKubeclient, err := versioned.NewForConfig(cfg, MockResourceCrd)
-		Expect(err).NotTo(HaveOccurred())
+
 		mockResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd:     MockResourceCrd,
-			Kube:    mockResourceKubeclient,
-			ApiExts: apiextsClient,
+			Crd: MockResourceCrd,
+			Cfg: cfg,
 		})
-		mockResourceClient = NewMockResourceClient(mockResourceClientFactory)
-		fakeResourceKubeclient, err := versioned.NewForConfig(cfg, FakeResourceCrd)
+		mockResourceClient, err = NewMockResourceClient(mockResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
+
 		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd:     FakeResourceCrd,
-			Kube:    fakeResourceKubeclient,
-			ApiExts: apiextsClient,
+			Crd: FakeResourceCrd,
+			Cfg: cfg,
 		})
-		fakeResourceClient = NewFakeResourceClient(fakeResourceClientFactory)
-		mockDataKubeclient, err := versioned.NewForConfig(cfg, MockDataCrd)
+		fakeResourceClient, err = NewFakeResourceClient(fakeResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
+
 		mockDataClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd:     MockDataCrd,
-			Kube:    mockDataKubeclient,
-			ApiExts: apiextsClient,
+			Crd: MockDataCrd,
+			Cfg: cfg,
 		})
-		mockDataClient = NewMockDataClient(mockDataClientFactory)
+		mockDataClient, err = NewMockDataClient(mockDataClientFactory)
+		Expect(err).NotTo(HaveOccurred())
 		cache = NewCache(mockResourceClient, fakeResourceClient, mockDataClient)
 	})
 	AfterEach(func() {
