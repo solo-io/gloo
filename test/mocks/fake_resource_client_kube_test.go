@@ -11,13 +11,11 @@ import (
 	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
-	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -39,16 +37,12 @@ var _ = Describe("FakeResourceClient", func() {
 		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
-		apiextsClient, err := apiexts.NewForConfig(cfg)
-		Expect(err).NotTo(HaveOccurred())
-		resourceClient, err := versioned.NewForConfig(cfg, FakeResourceCrd)
-		Expect(err).NotTo(HaveOccurred())
 		clientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd:     FakeResourceCrd,
-			Kube:    resourceClient,
-			ApiExts: apiextsClient,
+			Crd: FakeResourceCrd,
+			Cfg: cfg,
 		})
-		client = NewFakeResourceClient(clientFactory)
+		client, err = NewFakeResourceClient(clientFactory)
+		Expect(err).NotTo(HaveOccurred())
 	})
 	AfterEach(func() {
 		services.TeardownKube(namespace)
