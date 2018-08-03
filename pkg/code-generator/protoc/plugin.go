@@ -37,6 +37,8 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 
 	resp := new(plugin_go.CodeGeneratorResponse)
 
+	resourcesByPackage := make(map[string][]string)
+
 	for _, d := range descriptors {
 		packageName := goPackage(d)
 		var resourceTypes []string
@@ -63,17 +65,21 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 			}
 		}
 		if len(resourceTypes) > 0 {
-			params := typed.PackageLevelTemplateParams{
-				PackageName:   packageName,
-				ResourceTypes: resourceTypes,
+			resourcesByPackage[packageName] = resourceTypes
+		}
+	}
+
+	for packageName, resourceTypes := range resourcesByPackage {
+		params := typed.PackageLevelTemplateParams{
+			PackageName:   packageName,
+			ResourceTypes: resourceTypes,
+		}
+		for suffix, genFunc := range packageFilesToGenerate {
+			file, err := generatePackageLevelFile(params, suffix, genFunc)
+			if err != nil {
+				return nil, err
 			}
-			for suffix, genFunc := range packageFilesToGenerate {
-				file, err := generatePackageLevelFile(params, suffix, genFunc)
-				if err != nil {
-					return nil, err
-				}
-				resp.File = append(resp.File, file)
-			}
+			resp.File = append(resp.File, file)
 		}
 	}
 	return resp, nil
