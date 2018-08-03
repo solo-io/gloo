@@ -12,9 +12,9 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
 /*
 @solo-kit:resource
-@solo-kit:resource.short_name=mk
-@solo-kit:resource.plural_name=mocks
-@solo-kit:resource.group_name=testing.solo.io
+@solo-kit:resource.short_name=vs
+@solo-kit:resource.plural_name=virtualservices
+@solo-kit:resource.group_name=gloo.solo.io
 @solo-kit:resource.version=v1
 
  * Virtual Services represent a collection of routes for a set of domains.

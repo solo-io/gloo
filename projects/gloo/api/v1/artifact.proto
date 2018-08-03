@@ -1,0 +1,37 @@
+syntax = "proto3";
+package gloo.api.v1;
+option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/status.proto";
+
+/*
+@solo-kit:resource
+@solo-kit:resource.short_name=art
+@solo-kit:resource.plural_name=artifacts
+@solo-kit:resource.group_name=gloo.solo.io
+@solo-kit:resource.version=v1
+
+Gloo Artifacts are used by Gloo to store small bits of binary or file data.
+
+Certain plugins such as the gRPC plugin read and write artifacts to one of Gloo's configured
+storage layer.
+
+Artifacts can be backed by files on disk, Kubernetes ConfigMaps, and Consul Key/Value pairs.
+
+Supported artifact backends can be selected in Gloo's boostrap options.
+ */
+message Artifact {
+    // The data this Artifact contains
+    map<string, string> data = 1;
+
+    // Artifacts may be invalidated by plugins that read them.
+    // Status is read-only by clients, and set by Gloo during validation
+    core.solo.io.Status status = 6 [(gogoproto.moretags) = "testdiff:\"ignore\""];
+
+    // Metadata contains the resource metadata for the attribute
+    core.solo.io.Metadata metadata = 7;
+}

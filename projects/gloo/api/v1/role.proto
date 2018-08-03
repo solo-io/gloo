@@ -16,7 +16,7 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
 @solo-kit:resource
 @solo-kit:resource.short_name=mk
 @solo-kit:resource.plural_name=mocks
-@solo-kit:resource.group_name=testing.solo.io
+@solo-kit:resource.group_name=gloo.solo.io
 @solo-kit:resource.version=v1
 
  * A Role is a container for a set of Virtual Services that will be used to generate a single proxy config

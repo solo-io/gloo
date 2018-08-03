@@ -12,9 +12,9 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
 /*
 @solo-kit:resource
-@solo-kit:resource.short_name=mk
-@solo-kit:resource.plural_name=mocks
-@solo-kit:resource.group_name=testing.solo.io
+@solo-kit:resource.short_name=attr
+@solo-kit:resource.plural_name=attributes
+@solo-kit:resource.group_name=gloo.solo.io
 @solo-kit:resource.version=v1
 
  * An attribute is a container for configuration that is intended to be applied across a set of labeled resources inside of Gloo.

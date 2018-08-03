@@ -1,0 +1,26 @@
+syntax = "proto3";
+package gloo.api.v1;
+option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/status.proto";
+
+/*
+Endpoints represent a single IP address or hostname + port where an application or service is listening
+ */
+message Endpoint {
+    // Address of the endpoint (ip or hostname)
+    string address = 1;
+    // listening port for the endpoint
+    uint32 port = 1;
+
+    // Endpoints may be invalidated by plugins that read them.
+    // Status is read-only by clients, and set by Gloo during validation
+    core.solo.io.Status status = 6 [(gogoproto.moretags) = "testdiff:\"ignore\""];
+
+    // Metadata contains the resource metadata for the attribute
+    core.solo.io.Metadata metadata = 7;
+}
