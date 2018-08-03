@@ -40,3 +40,8 @@ identity system:
 
 capability: field per object permissions
 all fields down to primitive
+
+
+syncers:
+- generic ADS server, returns the grpc server to which envoy, rate limit, etc register
+z
