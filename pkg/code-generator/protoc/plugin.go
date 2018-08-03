@@ -65,7 +65,7 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 			}
 		}
 		if len(resourceTypes) > 0 {
-			resourcesByPackage[packageName] = resourceTypes
+			resourcesByPackage[packageName] = append(resourcesByPackage[packageName], resourceTypes...)
 		}
 	}
 
