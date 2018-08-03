@@ -1,0 +1,175 @@
+syntax = "proto3";
+package gloo.api.v1;
+option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
+
+import "google/protobuf/struct.proto";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/status.proto";
+
+/*
+@solo-kit:resource
+@solo-kit:resource.short_name=mk
+@solo-kit:resource.plural_name=mocks
+@solo-kit:resource.group_name=testing.solo.io
+@solo-kit:resource.version=v1
+
+ * Virtual Services represent a collection of routes for a set of domains.
+ * Gloo's Virtual Services can be compared to
+ * [virtual hosts](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/vService.html?highlight=virtual%20host) in Envoy terminology.
+ * A virtual service can be used to define "apps"; a collection of APIs that belong to a particular domain.
+ * The Virtual Service concept allows configuration of per-virtualservice SSL certificates
+ */
+message VirtualService {
+    // Name of the virtual service. Names must be unique and follow the following syntax rules:
+    // One or more lowercase rfc1035/rfc1123 labels separated by '.' with a maximum length of 253 characters.
+    string name = 1;
+
+    // Domains represent the list of domains (host/authority header) that will match for all routes on this virtual service.
+    // As in Envoy: wildcard hosts are supported in the form of “*.foo.com” or “*-bar.foo.com”.
+    // If domains is empty, gloo will set the domain to "*", making that virtual service the "default" virtualservice.
+    // The default virtualservice will be the fallback virtual service for all requests that do not match a domain on an existing virtual service.
+    // Only one default virtual service can be defined (either with an empty domain list, or a domain list that includes "*")
+    repeated string domains = 2;
+
+    // Routes define the list of [routes](../) that live on this virtual service.
+    repeated Route routes = 3;
+
+    // SSL Config is optional for the virtual service. If provided, the virtual service will listen on the envoy HTTPS listener port (default :8443)
+    // If left empty, the virtual service will listen on the HTTP listener port (default :8080)
+    SSLConfig ssl_config = 4;
+
+    // indicates whether or not this virtual service should be assigned to gateway roles automatically
+    // TODO: eventually this flag will be deprecated; gateway roles will have to explicitly state the virtual services
+    // they have access to.
+    bool disable_for_gateways = 7;
+
+    // Status indicates the validation status of the virtual service resource. Status is read-only by clients, and set by gloo during validation
+    core.solo.io.Status status = 5 [(gogoproto.moretags) = "testdiff:\"ignore\""];
+
+    // Metadata contains the resource metadata for the virtual service
+    core.solo.io.Metadata metadata = 6;
+}
+
+/**
+ * Routes declare the entrypoints on virtual services and the upstreams or functions they route requests to
+ */
+message Route {
+    // Matcher defines what properties of a request to match on.
+    // Routes will route all requests they match.
+    // If a request matches more than one route, the first route on the virtual service's route list will be selected.
+    oneof matcher {
+        // request_matcher indicates this route should match requests according to the specification in the provided RequestMatcher
+        // only one of request_matcher or event_matcher can be set
+        RequestMatcher request_matcher = 1;
+        // eventt_matcher indicates this route should match requests according to the specification in the provided EventMatcher
+        // only one of request_matcher or event_matcher can be set
+        EventMatcher event_matcher = 2;
+    }
+    // A route is only allowed to specify one of multiple_destinations or single_destination. Setting both will result in an error
+    // Multiple Destinations is used when a user wants a route to balance requests between multiple destinations
+    // Balancing is done by probability, where weights are specified for each destination
+    repeated WeightedDestination multiple_destinations = 3;
+    // A single destination is specified when a route only routes to a single destination.
+    Destination single_destination = 4;
+    // PrefixRewrite can be specified to rewrite the matched path of the request path to a new prefix
+    string prefix_rewrite = 5;
+    // Extensions provides a way to extend the behavior of a route. In addition to the core route extensions<!--(TODO)-->,
+    // gloo provides the means for route plugins<!--(TODO)--> to be added to gloo which add new types of route extensions.
+    // <!--See the route extensions section for a more detailed explanation-->
+    google.protobuf.Struct extensions = 6;
+}
+
+// Request Matcher is a route matcher for traditional http requests
+// Request Matchers stand in juxtoposition to Event Matchers, which match "events" rather than HTTP Requests
+message RequestMatcher {
+    // Path specifies the :path header in HTTP2, or the request URL path in HTTP 1
+    oneof path {
+        // Prefix will match any request whose path begins with this prefix
+        // Only one of path_prefix, path_regex, or path_exact can be set
+        string path_prefix = 1;
+        // Regex will match any path that matches this regex string
+        // Only one of path_prefix, path_regex, or path_exact can be set
+        string path_regex = 2;
+        // Exact will match only requests with exactly this path
+        // Only one of path_prefix, path_regex, or path_exact can be set
+        string path_exact = 3;
+    }
+    // Headers specify a list of request headers and their values the request must contain to match this route
+    // If a value is not specified (empty string) for a header, all values will match so long as the header is present on the request
+    map<string, string> headers = 4;
+    // Query params work the same way as headers, but for query string parameters
+    map<string, string> query_params = 5;
+    // HTTP Verb(s) to match on. If none specified, the matcher will match all verbs
+    repeated string verbs = 6;
+}
+
+// Event matcher is a special kind of matcher for CloudEvents
+// The CloudEvents API is described here: https://github.com/cloudevents/spec/blob/master/spec.md
+message EventMatcher {
+    // Event Type indicates the event type or topic to match
+    string event_type = 1;
+}
+
+// WeightedDestination attaches a weight to a destination
+// For use in routes with multiple destinations
+message WeightedDestination {
+    Destination destination = 1  [(gogoproto.embed) = true];
+    // Weight must be greater than zero
+    // Routing to each destination will be balanced by the ratio of the destination's weight to the total weight on a route
+    uint32 weight = 2;
+}
+
+// Destination is a destination that requests can be routed to.
+message Destination {
+    oneof destination_type {
+        // function indicates requests sent to this destination will invoke a function
+        // Only one of funtion or upstream should be set
+        FunctionDestination function = 1;
+        // upstream indicates requests sent to this destination will be routed to an upstream
+        // Only one of funtion or upstream should be set
+        UpstreamDestination upstream = 2;
+    }
+}
+
+// FunctionDestination will route a request to a specific function defined for an upstream
+message FunctionDestination {
+    // Upstream Name is the name of the upstream the function belongs to
+    string upstream_name = 1;
+    // Function Name is the name of the function as defined on the upstream
+    string function_name = 2;
+}
+
+// Upstream Destination routes a request to an upstream
+message UpstreamDestination {
+    // Name of the upstream
+    string name = 1;
+}
+
+// SSLConfig contains the options necessary to configure a virtualservice or listener to use TLS
+message SSLConfig {
+    oneof ssl_secrets {
+        /** SecretRef contains the secret ref to a gloo secret containing the following structure:
+        {
+            "tls.crt": <ca chain data...>,
+            "tls.key": <private key data...>
+        }
+        */
+        string secret_ref = 1;
+        // SSLFiles reference paths to certificates which are local to the proxy
+        SSLFiles ssl_files = 2;
+    }
+    // optional. the SNI domains that should be considered for TLS connections
+    repeated string sni_domains = 3;
+}
+
+// SSLFiles reference paths to certificates which can be read by the proxy off of its local filesystem
+message SSLFiles {
+    string tls_cert = 1;
+    string tls_key = 2;
+    // for client cert validation. optional
+    string root_ca = 3;
+}
