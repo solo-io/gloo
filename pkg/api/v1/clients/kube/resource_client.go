@@ -26,10 +26,10 @@ type ResourceClient struct {
 	kube         versioned.Interface
 	ownerLabel   string
 	resourceName string
-	resourceType resources.Resource
+	resourceType resources.InputResource
 }
 
-func NewResourceClient(crd crd.Crd, cfg *rest.Config, resourceType resources.Resource) (*ResourceClient, error) {
+func NewResourceClient(crd crd.Crd, cfg *rest.Config, resourceType resources.InputResource) (*ResourceClient, error) {
 	apiExts, err := apiexts.NewForConfig(cfg)
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating api extensions client")
@@ -96,7 +96,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	meta.Namespace = clients.DefaultNamespaceIfEmpty(meta.Namespace)
 
 	// mutate and return clone
-	clone := proto.Clone(resource).(resources.Resource)
+	clone := proto.Clone(resource).(resources.InputResource)
 	clone.SetMetadata(meta)
 	resourceCrd := rc.crd.KubeResource(clone)
 

@@ -78,7 +78,9 @@ func syncResource(ctx context.Context, rc clients.ResourceClient, desired resour
 		resources.UpdateMetadata(desired, func(meta *core.Metadata) {
 			meta.ResourceVersion = original.GetMetadata().ResourceVersion
 		})
-		desired.SetStatus(core.Status{})
+		if desiredInput, ok := desired.(resources.InputResource); ok {
+			desiredInput.SetStatus(core.Status{})
+		}
 	}
 	_, err := rc.Write(desired, clients.WriteOpts{Ctx: ctx, OverwriteExisting: overwriteExisting})
 	return err

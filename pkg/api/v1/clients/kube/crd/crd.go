@@ -65,7 +65,7 @@ func (d Crd) Register(apiexts apiexts.Interface) error {
 	return nil
 }
 
-func (d Crd) KubeResource(resource resources.Resource) *v1.Resource {
+func (d Crd) KubeResource(resource resources.InputResource) *v1.Resource {
 	data, err := protoutil.MarshalMap(resource)
 	if err != nil {
 		panic(fmt.Sprintf("internal error: failed to marshal resource to map: %v", err))

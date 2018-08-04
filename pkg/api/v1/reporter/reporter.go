@@ -11,9 +11,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-type ResourceErrors map[resources.Resource]error
+type ResourceErrors map[resources.InputResource]error
 
-func (e ResourceErrors) AddError(res resources.Resource, err error) {
+func (e ResourceErrors) AddError(res resources.InputResource, err error) {
 	if err == nil {
 		return
 	}
@@ -47,7 +47,7 @@ func (r *reporter) WriteReports(ctx context.Context, resourceErrs ResourceErrors
 			return errors.Errorf("reporter: was passed resource of kind %v but no client to support it", kind)
 		}
 		status := statusFromError(validationError)
-		resourceToWrite := resources.Clone(resource)
+		resourceToWrite := resources.Clone(resource).(resources.InputResource)
 		resourceToWrite.SetStatus(status)
 		if _, err := client.Write(resourceToWrite, clients.WriteOpts{
 			Ctx:               ctx,

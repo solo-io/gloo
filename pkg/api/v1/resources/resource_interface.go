@@ -14,6 +14,10 @@ type Resource interface {
 	GetMetadata() core.Metadata
 	SetMetadata(meta core.Metadata)
 	Equal(that interface{}) bool
+}
+
+type InputResource interface {
+	Resource
 	GetStatus() core.Status
 	SetStatus(status core.Status)
 }
