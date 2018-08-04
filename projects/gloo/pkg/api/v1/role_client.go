@@ -124,9 +124,9 @@ func (o *Role) DeepCopyObject() runtime.Object {
 	return resources.Clone(o).(*Role)
 }
 
-var RoleCrd = crd.NewCrd("testing.solo.io",
+var RoleCrd = crd.NewCrd("gloo.solo.io",
 	"mocks",
-	"testing.solo.io",
+	"gloo.solo.io",
 	"v1",
 	"Role",
 	"mk",

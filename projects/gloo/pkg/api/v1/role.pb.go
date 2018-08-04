@@ -6,7 +6,7 @@ package v1
 import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
-import google_protobuf "google/protobuf"
+import google_protobuf1 "google/protobuf"
 import _ "github.com/gogo/protobuf/gogoproto"
 import core_solo_io "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 import core_solo_io1 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -20,7 +20,7 @@ var _ = math.Inf
 // @solo-kit:resource
 // @solo-kit:resource.short_name=mk
 // @solo-kit:resource.plural_name=mocks
-// @solo-kit:resource.group_name=testing.solo.io
+// @solo-kit:resource.group_name=gloo.solo.io
 // @solo-kit:resource.version=v1
 //
 // A Role is a container for a set of Virtual Services that will be used to generate a single proxy config
@@ -51,7 +51,7 @@ type Role struct {
 	// Status indicates the validation status of the role resource.
 	// Status is read-only by clients, and set by gloo during validation
 	Status *core_solo_io1.Status `protobuf:"bytes,6,opt,name=status" json:"status,omitempty" testdiff:"ignore"`
-	// Metadata contains the resource metadata for the role
+	// Metadata contains the object metadata for this resource
 	Metadata *core_solo_io.Metadata `protobuf:"bytes,7,opt,name=metadata" json:"metadata,omitempty"`
 }
 
@@ -106,7 +106,7 @@ type Listener struct {
 	// Listener config is applied to all TCP/HTTP traffic that
 	// initiates via this listener.
 	// Configuration such as gzip compression and TLS authentication is specified here
-	Config *google_protobuf.Struct `protobuf:"bytes,5,opt,name=config" json:"config,omitempty"`
+	Config *google_protobuf1.Struct `protobuf:"bytes,5,opt,name=config" json:"config,omitempty"`
 	// Apply Listener Attributes to listeners with selectors matching these label keys and values
 	// If empty or not present, the Listener will inherit no configuration from Attributes.
 	Labels map[string]string `protobuf:"bytes,7,rep,name=labels" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
@@ -150,7 +150,7 @@ func (m *Listener) GetVirtualServices() []string {
 	return nil
 }
 
-func (m *Listener) GetConfig() *google_protobuf.Struct {
+func (m *Listener) GetConfig() *google_protobuf1.Struct {
 	if m != nil {
 		return m.Config
 	}

@@ -124,10 +124,10 @@ func (o *VirtualService) DeepCopyObject() runtime.Object {
 	return resources.Clone(o).(*VirtualService)
 }
 
-var VirtualServiceCrd = crd.NewCrd("testing.solo.io",
-	"mocks",
-	"testing.solo.io",
+var VirtualServiceCrd = crd.NewCrd("gloo.solo.io",
+	"virtualservices",
+	"gloo.solo.io",
 	"v1",
 	"VirtualService",
-	"mk",
+	"vs",
 	&VirtualService{})

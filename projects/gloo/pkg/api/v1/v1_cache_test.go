@@ -25,8 +25,11 @@ var _ = Describe("V1Cache", func() {
 		namespace          string
 		cfg                *rest.Config
 		cache              Cache
+		artifactClient ArtifactClient
 		attributeClient AttributeClient
+		endpointClient EndpointClient
 		roleClient RoleClient
+		secretClient SecretClient
 		upstreamClient UpstreamClient
 		virtualServiceClient VirtualServiceClient
 	)
@@ -39,6 +42,13 @@ var _ = Describe("V1Cache", func() {
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
+		artifactClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+			Crd: ArtifactCrd,
+			Cfg: cfg,
+		})
+		artifactClient, err = NewArtifactClient(artifactClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+
 		attributeClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: AttributeCrd,
 			Cfg: cfg,
@@ -46,11 +56,25 @@ var _ = Describe("V1Cache", func() {
 		attributeClient, err = NewAttributeClient(attributeClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
+		endpointClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+			Crd: EndpointCrd,
+			Cfg: cfg,
+		})
+		endpointClient, err = NewEndpointClient(endpointClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+
 		roleClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: RoleCrd,
 			Cfg: cfg,
 		})
 		roleClient, err = NewRoleClient(roleClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+
+		secretClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+			Crd: SecretCrd,
+			Cfg: cfg,
+		})
+		secretClient, err = NewSecretClient(secretClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		upstreamClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
@@ -66,7 +90,7 @@ var _ = Describe("V1Cache", func() {
 		})
 		virtualServiceClient, err = NewVirtualServiceClient(virtualServiceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
-		cache = NewCache(attributeClient, roleClient, upstreamClient, virtualServiceClient)
+		cache = NewCache(artifactClient, attributeClient, endpointClient, roleClient, secretClient, upstreamClient, virtualServiceClient)
 	})
 	AfterEach(func() {
 		services.TeardownKube(namespace)
@@ -79,6 +103,32 @@ var _ = Describe("V1Cache", func() {
 			RefreshRate: time.Minute,
 		})
 		Expect(err).NotTo(HaveOccurred())
+		artifact1, err := artifactClient.Write(NewArtifact(namespace, "angela"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.ArtifactList).To(HaveLen(1))
+			Expect(snap.ArtifactList).To(ContainElement(artifact1))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+
+		artifact2, err := artifactClient.Write(NewArtifact(namespace, "lane"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.ArtifactList).To(HaveLen(2))
+			Expect(snap.ArtifactList).To(ContainElement(artifact1))
+			Expect(snap.ArtifactList).To(ContainElement(artifact2))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
 		attribute1, err := attributeClient.Write(NewAttribute(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -105,6 +155,32 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second):
 			Fail("expected snapshot before 1 second")
 		}
+		endpoint1, err := endpointClient.Write(NewEndpoint(namespace, "angela"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.EndpointList).To(HaveLen(1))
+			Expect(snap.EndpointList).To(ContainElement(endpoint1))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+
+		endpoint2, err := endpointClient.Write(NewEndpoint(namespace, "lane"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.EndpointList).To(HaveLen(2))
+			Expect(snap.EndpointList).To(ContainElement(endpoint1))
+			Expect(snap.EndpointList).To(ContainElement(endpoint2))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
 		role1, err := roleClient.Write(NewRole(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -126,6 +202,32 @@ var _ = Describe("V1Cache", func() {
 			Expect(snap.RoleList).To(HaveLen(2))
 			Expect(snap.RoleList).To(ContainElement(role1))
 			Expect(snap.RoleList).To(ContainElement(role2))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+		secret1, err := secretClient.Write(NewSecret(namespace, "angela"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.SecretList).To(HaveLen(1))
+			Expect(snap.SecretList).To(ContainElement(secret1))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+
+		secret2, err := secretClient.Write(NewSecret(namespace, "lane"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.SecretList).To(HaveLen(2))
+			Expect(snap.SecretList).To(ContainElement(secret1))
+			Expect(snap.SecretList).To(ContainElement(secret2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second):
@@ -183,6 +285,31 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second):
 			Fail("expected snapshot before 1 second")
 		}
+		err = artifactClient.Delete(artifact2.Metadata.Namespace, artifact2.Metadata.Name, clients.DeleteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.ArtifactList).To(HaveLen(1))
+			Expect(snap.ArtifactList).To(ContainElement(artifact1))
+			Expect(snap.ArtifactList).NotTo(ContainElement(artifact2))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+
+		err = artifactClient.Delete(artifact1.Metadata.Namespace, artifact1.Metadata.Name, clients.DeleteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.ArtifactList).To(HaveLen(0))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
 		err = attributeClient.Delete(attribute2.Metadata.Namespace, attribute2.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -208,6 +335,31 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second):
 			Fail("expected snapshot before 1 second")
 		}
+		err = endpointClient.Delete(endpoint2.Metadata.Namespace, endpoint2.Metadata.Name, clients.DeleteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.EndpointList).To(HaveLen(1))
+			Expect(snap.EndpointList).To(ContainElement(endpoint1))
+			Expect(snap.EndpointList).NotTo(ContainElement(endpoint2))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+
+		err = endpointClient.Delete(endpoint1.Metadata.Namespace, endpoint1.Metadata.Name, clients.DeleteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.EndpointList).To(HaveLen(0))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
 		err = roleClient.Delete(role2.Metadata.Namespace, role2.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -228,6 +380,31 @@ var _ = Describe("V1Cache", func() {
 		select {
 		case snap := <-snapshots:
 			Expect(snap.RoleList).To(HaveLen(0))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+		err = secretClient.Delete(secret2.Metadata.Namespace, secret2.Metadata.Name, clients.DeleteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.SecretList).To(HaveLen(1))
+			Expect(snap.SecretList).To(ContainElement(secret1))
+			Expect(snap.SecretList).NotTo(ContainElement(secret2))
+		case err := <-errs:
+			Expect(err).NotTo(HaveOccurred())
+		case <-time.After(time.Second):
+			Fail("expected snapshot before 1 second")
+		}
+
+		err = secretClient.Delete(secret1.Metadata.Namespace, secret1.Metadata.Name, clients.DeleteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+
+		select {
+		case snap := <-snapshots:
+			Expect(snap.SecretList).To(HaveLen(0))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second):

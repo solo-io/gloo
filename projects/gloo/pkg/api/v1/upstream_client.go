@@ -124,10 +124,10 @@ func (o *Upstream) DeepCopyObject() runtime.Object {
 	return resources.Clone(o).(*Upstream)
 }
 
-var UpstreamCrd = crd.NewCrd("testing.solo.io",
-	"mocks",
-	"testing.solo.io",
+var UpstreamCrd = crd.NewCrd("gloo.solo.io",
+	"upstreams",
+	"gloo.solo.io",
 	"v1",
 	"Upstream",
-	"mk",
+	"us",
 	&Upstream{})

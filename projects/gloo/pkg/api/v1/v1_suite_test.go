@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestAttributeRoleUpstreamVirtualService(t *testing.T) {
+func TestArtifactAttributeEndpointRoleSecretUpstreamVirtualService(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "AttributeRoleUpstreamVirtualService Suite")
+	RunSpecs(t, "ArtifactAttributeEndpointRoleSecretUpstreamVirtualService Suite")
 }

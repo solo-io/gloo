@@ -124,10 +124,10 @@ func (o *Attribute) DeepCopyObject() runtime.Object {
 	return resources.Clone(o).(*Attribute)
 }
 
-var AttributeCrd = crd.NewCrd("testing.solo.io",
-	"mocks",
-	"testing.solo.io",
+var AttributeCrd = crd.NewCrd("gloo.solo.io",
+	"attributes",
+	"gloo.solo.io",
 	"v1",
 	"Attribute",
-	"mk",
+	"attr",
 	&Attribute{})

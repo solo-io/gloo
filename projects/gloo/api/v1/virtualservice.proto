@@ -50,7 +50,7 @@ message VirtualService {
     // Status indicates the validation status of the virtual service resource. Status is read-only by clients, and set by gloo during validation
     core.solo.io.Status status = 5 [(gogoproto.moretags) = "testdiff:\"ignore\""];
 
-    // Metadata contains the resource metadata for the virtual service
+    // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 6;
 }
 

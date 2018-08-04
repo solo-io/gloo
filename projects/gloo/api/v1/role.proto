@@ -51,7 +51,7 @@ message Role {
     // Status is read-only by clients, and set by gloo during validation
     core.solo.io.Status status = 6 [(gogoproto.moretags) = "testdiff:\"ignore\""];
 
-    // Metadata contains the resource metadata for the role
+    // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 7;
 }
 

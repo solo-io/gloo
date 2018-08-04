@@ -6,7 +6,7 @@ package v1
 import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
-import google_protobuf "google/protobuf"
+import google_protobuf1 "google/protobuf"
 import _ "github.com/gogo/protobuf/gogoproto"
 import core_solo_io "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 import core_solo_io1 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -18,9 +18,9 @@ var _ = math.Inf
 
 //
 // @solo-kit:resource
-// @solo-kit:resource.short_name=mk
-// @solo-kit:resource.plural_name=mocks
-// @solo-kit:resource.group_name=testing.solo.io
+// @solo-kit:resource.short_name=vs
+// @solo-kit:resource.plural_name=virtualservices
+// @solo-kit:resource.group_name=gloo.solo.io
 // @solo-kit:resource.version=v1
 //
 // Virtual Services represent a collection of routes for a set of domains.
@@ -49,7 +49,7 @@ type VirtualService struct {
 	DisableForGateways bool `protobuf:"varint,7,opt,name=disable_for_gateways,json=disableForGateways,proto3" json:"disable_for_gateways,omitempty"`
 	// Status indicates the validation status of the virtual service resource. Status is read-only by clients, and set by gloo during validation
 	Status *core_solo_io1.Status `protobuf:"bytes,5,opt,name=status" json:"status,omitempty" testdiff:"ignore"`
-	// Metadata contains the resource metadata for the virtual service
+	// Metadata contains the object metadata for this resource
 	Metadata *core_solo_io.Metadata `protobuf:"bytes,6,opt,name=metadata" json:"metadata,omitempty"`
 }
 
@@ -129,7 +129,7 @@ type Route struct {
 	// Extensions provides a way to extend the behavior of a route. In addition to the core route extensions<!--(TODO)-->,
 	// gloo provides the means for route plugins<!--(TODO)--> to be added to gloo which add new types of route extensions.
 	// <!--See the route extensions section for a more detailed explanation-->
-	Extensions *google_protobuf.Struct `protobuf:"bytes,6,opt,name=extensions" json:"extensions,omitempty"`
+	Extensions *google_protobuf1.Struct `protobuf:"bytes,6,opt,name=extensions" json:"extensions,omitempty"`
 }
 
 func (m *Route) Reset()                    { *m = Route{} }
@@ -194,7 +194,7 @@ func (m *Route) GetPrefixRewrite() string {
 	return ""
 }
 
-func (m *Route) GetExtensions() *google_protobuf.Struct {
+func (m *Route) GetExtensions() *google_protobuf1.Struct {
 	if m != nil {
 		return m.Extensions
 	}

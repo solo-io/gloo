@@ -18,16 +18,34 @@ var _ = Describe("V1EventLoop", func() {
 
 	BeforeEach(func() {
 
+		artifactClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+			Cache: memory.NewInMemoryResourceCache(),
+		})
+		artifactClient, err := NewArtifactClient(artifactClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+
 		attributeClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
 			Cache: memory.NewInMemoryResourceCache(),
 		})
 		attributeClient, err := NewAttributeClient(attributeClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
+		endpointClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+			Cache: memory.NewInMemoryResourceCache(),
+		})
+		endpointClient, err := NewEndpointClient(endpointClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+
 		roleClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
 			Cache: memory.NewInMemoryResourceCache(),
 		})
 		roleClient, err := NewRoleClient(roleClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+
+		secretClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+			Cache: memory.NewInMemoryResourceCache(),
+		})
+		secretClient, err := NewSecretClient(secretClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		upstreamClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
@@ -42,12 +60,18 @@ var _ = Describe("V1EventLoop", func() {
 		virtualServiceClient, err := NewVirtualServiceClient(virtualServiceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		cache = NewCache(attributeClient, roleClient, upstreamClient, virtualServiceClient)
+		cache = NewCache(artifactClient, attributeClient, endpointClient, roleClient, secretClient, upstreamClient, virtualServiceClient)
 	})
 	It("runs sync function on a new snapshot", func() {
+		_, err = cache.Artifact().Write(NewArtifact(namespace, "jerry"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
 		_, err = cache.Attribute().Write(NewAttribute(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
+		_, err = cache.Endpoint().Write(NewEndpoint(namespace, "jerry"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
 		_, err = cache.Role().Write(NewRole(namespace, "jerry"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		_, err = cache.Secret().Write(NewSecret(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		_, err = cache.Upstream().Write(NewUpstream(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())

@@ -6,7 +6,6 @@ import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
-import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
 /*
 @solo-kit:resource
@@ -28,10 +27,6 @@ message Artifact {
     // The data this Artifact contains
     map<string, string> data = 1;
 
-    // Artifacts may be invalidated by plugins that read them.
-    // Status is read-only by clients, and set by Gloo during validation
-    core.solo.io.Status status = 6 [(gogoproto.moretags) = "testdiff:\"ignore\""];
-
-    // Metadata contains the resource metadata for the attribute
+    // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 7;
 }

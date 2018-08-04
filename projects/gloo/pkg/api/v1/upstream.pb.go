@@ -6,7 +6,7 @@ package v1
 import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
-import google_protobuf "google/protobuf"
+import google_protobuf1 "google/protobuf"
 import _ "google/protobuf"
 import _ "github.com/gogo/protobuf/gogoproto"
 import core_solo_io "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -22,9 +22,9 @@ var _ = time.Kitchen
 
 //
 // @solo-kit:resource
-// @solo-kit:resource.short_name=mk
-// @solo-kit:resource.plural_name=mocks
-// @solo-kit:resource.group_name=testing.solo.io
+// @solo-kit:resource.short_name=us
+// @solo-kit:resource.plural_name=upstreams
+// @solo-kit:resource.group_name=gloo.solo.io
 // @solo-kit:resource.version=v1
 //
 // Upstream represents a destination for routing. Upstreams can be compared to
@@ -44,7 +44,7 @@ type Upstream struct {
 	// Spec contains properties that are specific to the upstream type. The spec is always required, but
 	// the expected content is specified by the [upstream plugin] for the given upstream type.
 	// Most often the upstream spec will be a map<string, string>
-	Spec *google_protobuf.Struct `protobuf:"bytes,4,opt,name=spec" json:"spec,omitempty"`
+	Spec *google_protobuf1.Struct `protobuf:"bytes,4,opt,name=spec" json:"spec,omitempty"`
 	// Certain upstream types support (and may require) [functions](../introduction/concepts.md#Functions).
 	// Functions allow function-level routing to be done. For example, the [AWS lambda](../plugins/aws.md) upstream type
 	// Permits routing to AWS lambda function].
@@ -57,7 +57,7 @@ type Upstream struct {
 	ServiceInfo *ServiceInfo `protobuf:"bytes,8,opt,name=service_info,json=serviceInfo" json:"service_info,omitempty"`
 	// Status indicates the validation status of the upstream resource. Status is read-only by clients, and set by gloo during validation
 	Status *core_solo_io1.Status `protobuf:"bytes,6,opt,name=status" json:"status,omitempty" testdiff:"ignore"`
-	// Metadata contains the resource metadata for the upstream
+	// Metadata contains the object metadata for this resource
 	Metadata *core_solo_io.Metadata `protobuf:"bytes,7,opt,name=metadata" json:"metadata,omitempty"`
 }
 
@@ -87,7 +87,7 @@ func (m *Upstream) GetConnectionTimeout() time.Duration {
 	return 0
 }
 
-func (m *Upstream) GetSpec() *google_protobuf.Struct {
+func (m *Upstream) GetSpec() *google_protobuf1.Struct {
 	if m != nil {
 		return m.Spec
 	}
@@ -129,7 +129,7 @@ type ServiceInfo struct {
 	// Properties contains properties that describe the service. The spec may be required
 	// by the Upstream Plugin that handles the given Service Type
 	// Most often the service properties will be a map<string, string>
-	Properties *google_protobuf.Struct `protobuf:"bytes,2,opt,name=properties" json:"properties,omitempty"`
+	Properties *google_protobuf1.Struct `protobuf:"bytes,2,opt,name=properties" json:"properties,omitempty"`
 }
 
 func (m *ServiceInfo) Reset()                    { *m = ServiceInfo{} }
@@ -144,7 +144,7 @@ func (m *ServiceInfo) GetType() string {
 	return ""
 }
 
-func (m *ServiceInfo) GetProperties() *google_protobuf.Struct {
+func (m *ServiceInfo) GetProperties() *google_protobuf1.Struct {
 	if m != nil {
 		return m.Properties
 	}
@@ -155,7 +155,7 @@ type Function struct {
 	// Name of the function. Functions are referenced by name from routes and therefore must be unique within an upstream
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// Spec for the function. Like [upstream specs](TODO), the content of function specs is specified by the [upstream plugin](TODO) for the upstream's type.
-	Spec *google_protobuf.Struct `protobuf:"bytes,4,opt,name=spec" json:"spec,omitempty"`
+	Spec *google_protobuf1.Struct `protobuf:"bytes,4,opt,name=spec" json:"spec,omitempty"`
 }
 
 func (m *Function) Reset()                    { *m = Function{} }
@@ -170,7 +170,7 @@ func (m *Function) GetName() string {
 	return ""
 }
 
-func (m *Function) GetSpec() *google_protobuf.Struct {
+func (m *Function) GetSpec() *google_protobuf1.Struct {
 	if m != nil {
 		return m.Spec
 	}
