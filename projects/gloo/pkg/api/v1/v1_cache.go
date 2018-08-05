@@ -65,7 +65,6 @@ func (s Snapshot) Hash() uint64 {
 		resources.UpdateMetadata(artifact, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
-		artifact.SetStatus(core.Status{})
 	}
 	for _, attribute := range snapshotForHashing.AttributeList {
 		resources.UpdateMetadata(attribute, func(meta *core.Metadata) {
@@ -77,7 +76,6 @@ func (s Snapshot) Hash() uint64 {
 		resources.UpdateMetadata(endpoint, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
-		endpoint.SetStatus(core.Status{})
 	}
 	for _, role := range snapshotForHashing.RoleList {
 		resources.UpdateMetadata(role, func(meta *core.Metadata) {
@@ -89,7 +87,6 @@ func (s Snapshot) Hash() uint64 {
 		resources.UpdateMetadata(secret, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
-		secret.SetStatus(core.Status{})
 	}
 	for _, upstream := range snapshotForHashing.UpstreamList {
 		resources.UpdateMetadata(upstream, func(meta *core.Metadata) {

@@ -21,10 +21,6 @@ func NewEndpoint(namespace, name string) *Endpoint {
 	}
 }
 
-func (r *Endpoint) SetStatus(status core.Status) {
-	r.Status = status
-}
-
 func (r *Endpoint) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }

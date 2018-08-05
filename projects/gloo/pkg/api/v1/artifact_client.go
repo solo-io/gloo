@@ -21,10 +21,6 @@ func NewArtifact(namespace, name string) *Artifact {
 	}
 }
 
-func (r *Artifact) SetStatus(status core.Status) {
-	r.Status = status
-}
-
 func (r *Artifact) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }

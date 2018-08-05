@@ -21,10 +21,6 @@ func NewSecret(namespace, name string) *Secret {
 	}
 }
 
-func (r *Secret) SetStatus(status core.Status) {
-	r.Status = status
-}
-
 func (r *Secret) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
