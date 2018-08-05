@@ -2,7 +2,6 @@ package protoc
 
 import (
 	"strings"
-
 	"unicode"
 	"unicode/utf8"
 
@@ -52,7 +51,7 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 				}
 				fields = append(fields, strcase.ToCamel(field.GetName()))
 			}
-			params := codegenParams(packageName, msg.GetComments(), resourceType, fields)
+			params := codegenParams(packageName, msg, resourceType, fields)
 			if params != nil {
 				resourceTypes = append(resourceTypes, params)
 				for suffix, genFunc := range resourceFilesToGenerate {
@@ -94,8 +93,8 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 	return resp, nil
 }
 
-func codegenParams(packageName string, comments *protokit.Comment, resourceType string, fields []string) *typed.ResourceLevelTemplateParams {
-	magicComments := strings.Split(comments.Leading, "\n")
+func codegenParams(packageName string, msg *protokit.Descriptor, resourceType string, fields []string) *typed.ResourceLevelTemplateParams {
+	magicComments := strings.Split(msg.GetComments().Leading, "\n")
 	var (
 		isResource  bool
 		isDataType  bool
@@ -105,6 +104,12 @@ func codegenParams(packageName string, comments *protokit.Comment, resourceType 
 		groupName   string
 		version     string
 	)
+	for _, field := range msg.Fields {
+		if field.GetTypeName() == "core.solo.io.Status" {
+			isInputType = true
+			break
+		}
+	}
 	for _, comment := range magicComments {
 		if comment == "@solo-kit:resource" {
 			isResource = true
@@ -112,10 +117,6 @@ func codegenParams(packageName string, comments *protokit.Comment, resourceType 
 		}
 		if comment == "@solo-kit:resource.data_type" {
 			isDataType = true
-			continue
-		}
-		if comment == "@solo-kit:resource.input_type" {
-			isInputType = true
 			continue
 		}
 		if strings.HasPrefix(comment, "@solo-kit:resource.short_name=") {
