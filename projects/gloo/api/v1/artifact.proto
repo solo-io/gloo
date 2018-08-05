@@ -28,5 +28,5 @@ message Artifact {
     map<string, string> data = 1;
 
     // Metadata contains the object metadata for this resource
-    core.solo.io.Metadata metadata = 7;
+    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }

@@ -50,9 +50,9 @@ message Upstream {
     ServiceInfo service_info = 8;
 
     // Status indicates the validation status of the upstream resource. Status is read-only by clients, and set by gloo during validation
-    core.solo.io.Status status = 6 [(gogoproto.moretags) = "testdiff:\"ignore\""];
+    core.solo.io.Status status = 6 [(gogoproto.nullable) = false, (gogoproto.moretags) = "testdiff:\"ignore\""];
     // Metadata contains the object metadata for this resource
-    core.solo.io.Metadata metadata = 7;
+    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }
 
 message ServiceInfo {

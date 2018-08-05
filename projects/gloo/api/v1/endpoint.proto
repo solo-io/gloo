@@ -23,5 +23,5 @@ message Endpoint {
     uint32 port = 2;
 
     // Metadata contains the object metadata for this resource
-    core.solo.io.Metadata metadata = 7;
+    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }
