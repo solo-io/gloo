@@ -51,7 +51,7 @@ message VirtualService {
     core.solo.io.Status status = 5 [(gogoproto.nullable) = false, (gogoproto.moretags) = "testdiff:\"ignore\""];
 
     // Metadata contains the object metadata for this resource
-    core.solo.io.Metadata metadata = 6;
+    core.solo.io.Metadata metadata = 6 [(gogoproto.nullable) = false];
 }
 
 /**
