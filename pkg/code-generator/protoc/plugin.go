@@ -32,16 +32,22 @@ var packageFilesToGenerate = map[string]packageTemplateFunc{
 	"_event_loop_test.go": typed.GenerateEventLoopTestCode,
 }
 
+type resourceDetails struct {
+	resourcePackage string
+	resourceType    string
+	isInputType     bool
+}
+
 func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
 	descriptors := protokit.ParseCodeGenRequest(req)
 
 	resp := new(plugin_go.CodeGeneratorResponse)
 
-	resourcesByPackage := make(map[string][]string)
+	resourcesByPackage := make(map[string][]resourceDetails)
 
 	for _, d := range descriptors {
 		packageName := goPackage(d)
-		var resourceTypes []string
+		var resourceTypes []resourceDetails
 		for _, msg := range d.Messages {
 			resourceType := msg.GetName()
 			var fields []string
@@ -54,7 +60,11 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 			}
 			params := codegenParams(packageName, msg.GetComments(), resourceType, fields)
 			if params != nil {
-				resourceTypes = append(resourceTypes, resourceType)
+				resourceTypes = append(resourceTypes, resourceDetails{
+					resourceType:    resourceType,
+					resourcePackage: packageName,
+					isInputType:     foo,
+				})
 				for suffix, genFunc := range resourceFilesToGenerate {
 					file, err := generateResourceLevelFile(*params, suffix, genFunc)
 					if err != nil {
@@ -88,12 +98,13 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 func codegenParams(packageName string, comments *protokit.Comment, resourceType string, fields []string) *typed.ResourceLevelTemplateParams {
 	magicComments := strings.Split(comments.Leading, "\n")
 	var (
-		isResource bool
-		isDataType bool
-		shortName  string
-		pluralName string
-		groupName  string
-		version    string
+		isResource  bool
+		isDataType  bool
+		isInputType bool
+		shortName   string
+		pluralName  string
+		groupName   string
+		version     string
 	)
 	for _, comment := range magicComments {
 		if comment == "@solo-kit:resource" {
@@ -102,6 +113,10 @@ func codegenParams(packageName string, comments *protokit.Comment, resourceType 
 		}
 		if comment == "@solo-kit:resource.data_type" {
 			isDataType = true
+			continue
+		}
+		if comment == "@solo-kit:resource.input_type" {
+			isInputType = true
 			continue
 		}
 		if strings.HasPrefix(comment, "@solo-kit:resource.short_name=") {
@@ -128,6 +143,7 @@ func codegenParams(packageName string, comments *protokit.Comment, resourceType 
 		PackageName:           packageName,
 		ResourceType:          resourceType,
 		IsDataType:            isDataType,
+		IsInputType:           isInputType,
 		ResourceTypeLowerCase: strcase.ToLowerCamel(resourceType),
 		ShortName:             shortName,
 		PluralName:            pluralName,

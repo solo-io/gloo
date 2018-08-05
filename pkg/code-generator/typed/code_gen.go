@@ -11,6 +11,7 @@ type ResourceLevelTemplateParams struct {
 	PackageName           string
 	ResourceType          string
 	IsDataType            bool
+	IsInputType           bool
 	ResourceTypeLowerCase string
 	PluralName            string
 	GroupName             string
@@ -26,8 +27,9 @@ type Field struct {
 }
 
 type PackageLevelTemplateParams struct {
-	PackageName   string
-	ResourceTypes []string
+	PackageName         string
+	ResourceTypes       []string
+	ResourceLevelParams map[string]ResourceLevelTemplateParams
 }
 
 var funcs = template.FuncMap{
@@ -44,5 +46,8 @@ var funcs = template.FuncMap{
 			clientParams = append(clientParams, paramString)
 		}
 		return strings.Join(clientParams, ", ")
+	},
+	"is_input_type": func(params PackageLevelTemplateParams, resourceType string) bool {
+		return params.ResourceLevelParams[resourceType].IsInputType
 	},
 }

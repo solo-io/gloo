@@ -63,7 +63,9 @@ func (s Snapshot) Hash() uint64 {
 		resources.UpdateMetadata({{ lowercase . }}, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
+{{- if $.IsInputType }} }}
 		{{ lowercase . }}.SetStatus(core.Status{})
+{{- end }}
 	}
 {{- end}}
 	h, err := hashstructure.Hash(snapshotForHashing, nil)

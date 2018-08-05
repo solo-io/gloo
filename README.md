@@ -3,6 +3,8 @@ The Gloo Control Plane + Tools for Building Gloo-Based Projects
 
 ## Major TODOS:
 
+WIP: split out SetStatus stuff for IsInputResource in code gen
+
 * pkg/api/v1/clients <- support / enforce resource versioning on updates / creates (be consistent with Kube)
 
 * Config Generator (Call it an inventory! :D ). Jut have the plugin
