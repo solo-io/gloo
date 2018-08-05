@@ -12,6 +12,10 @@ import (
 	"github.com/solo-io/solo-kit/pkg/code-generator/typed"
 )
 
+const (
+	statusTypeName = ".core.solo.io.Status"
+)
+
 // plugin is an implementation of protokit.Plugin
 type Plugin struct{}
 
@@ -105,7 +109,7 @@ func codegenParams(packageName string, msg *protokit.Descriptor, resourceType st
 		version     string
 	)
 	for _, field := range msg.Fields {
-		if field.GetTypeName() == "core.solo.io.Status" {
+		if field.GetTypeName() == statusTypeName {
 			isInputType = true
 			break
 		}
