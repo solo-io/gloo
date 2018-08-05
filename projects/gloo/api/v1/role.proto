@@ -27,17 +27,12 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
  * Roles contain a config field which can be written to for the purpose of applying configuration and policy
  * to groupings of Virtual Services.
  */
+// The name of the role is matched to Envoy instances. Envoy instances will be assigned a config matching the role they report to Gloo when registering
+// Envoy instances must specify their role in the prefix for their Node ID when they register to Gloo.
+//
+// Currently this is done in the format <Role>~<this portion is ignored>
+// which can be specified with the `--service-node` flag, or in the Envoy instance's bootstrap config.
 message Role {
-    // Name of the role. Envoy nodes will be assigned a config matching the role they report to Gloo when registering
-    // Envoy instances must specify their role in the prefix for their Node ID when they register to Gloo.
-    //
-    // Currently this is done in the format <Role>~<this portion is ignored>
-    // which can be specified with the `--service-node` flag, or in the Envoy instance's bootstrap config.
-    //
-    // Role Names must be unique and follow the following syntax rules:
-    // One or more lowercase rfc1035/rfc1123 labels separated by '.' with a maximum length of 253 characters.
-    string name = 1;
-
     // define each listener the proxy will create
     // listeners define a set of behaviors for a single address:port
     // where the proxy will listen

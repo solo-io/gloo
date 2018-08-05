@@ -26,12 +26,6 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
  * configuration between roles.
  */
 message Attribute {
-    // Name of the attribute.
-    //
-    // Attribute Names must be unique and follow the following syntax rules:
-    // One or more lowercase rfc1035/rfc1123 labels separated by '.' with a maximum length of 253 characters.
-    string name = 1;
-
     // Attributes can apply only to one kind of resource
     // Currently available are:
     // * Listeners
