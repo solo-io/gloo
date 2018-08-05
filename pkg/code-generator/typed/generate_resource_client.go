@@ -48,7 +48,7 @@ func New{{ .ResourceType }}(namespace, name string) *{{ .ResourceType }} {
 	}
 }
 
-{{- if .IsInputType }}
+{{- if (is_input_type $. . ) }}
 func (r *{{ .ResourceType }}) SetStatus(status core.Status) {
 	r.Status = status
 }
