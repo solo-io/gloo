@@ -398,21 +398,6 @@
   version = "v1.4.1"
 
 [[projects]]
-  name = "github.com/ory/ladon"
-  packages = [
-    ".",
-    "compiler"
-  ]
-  revision = "76e069e27b002d186005c14b1f1b86472cc209f2"
-  version = "v0.8.10"
-
-[[projects]]
-  name = "github.com/pborman/uuid"
-  packages = ["."]
-  revision = "e790cca94e6cc75c7064b1332e63811d4aae1a53"
-  version = "v1.1"
-
-[[projects]]
   branch = "master"
   name = "github.com/petar/GoLLRB"
   packages = ["llrb"]
@@ -429,12 +414,6 @@
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
-
-[[projects]]
-  name = "github.com/pmezard/go-difflib"
-  packages = ["difflib"]
-  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
-  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/pseudomuto/protokit"
@@ -475,15 +454,6 @@
   packages = ["."]
   revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
   version = "v1.0.1"
-
-[[projects]]
-  name = "github.com/stretchr/testify"
-  packages = [
-    "assert",
-    "require"
-  ]
-  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
-  version = "v1.2.2"
 
 [[projects]]
   name = "github.com/ugorji/go"
@@ -814,6 +784,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "207c9905a26f8fda4f62538e84be079b2f9f3e8f5b51b35ca74381e1f14edd5b"
+  inputs-digest = "7a68e91f134cac3c5e109cea97eb768fd75b6817e546e58ac4678fd229d44da0"
   solver-name = "gps-cdcl"
   solver-version = 1
