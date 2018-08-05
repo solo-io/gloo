@@ -32,22 +32,16 @@ var packageFilesToGenerate = map[string]packageTemplateFunc{
 	"_event_loop_test.go": typed.GenerateEventLoopTestCode,
 }
 
-type resourceDetails struct {
-	resourcePackage string
-	resourceType    string
-	isInputType     bool
-}
-
 func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
 	descriptors := protokit.ParseCodeGenRequest(req)
 
 	resp := new(plugin_go.CodeGeneratorResponse)
 
-	resourcesByPackage := make(map[string][]resourceDetails)
+	resourcesByPackage := make(map[string][]*typed.ResourceLevelTemplateParams)
 
 	for _, d := range descriptors {
 		packageName := goPackage(d)
-		var resourceTypes []resourceDetails
+		var resourceTypes []*typed.ResourceLevelTemplateParams
 		for _, msg := range d.Messages {
 			resourceType := msg.GetName()
 			var fields []string
@@ -60,11 +54,7 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 			}
 			params := codegenParams(packageName, msg.GetComments(), resourceType, fields)
 			if params != nil {
-				resourceTypes = append(resourceTypes, resourceDetails{
-					resourceType:    resourceType,
-					resourcePackage: packageName,
-					isInputType:     foo,
-				})
+				resourceTypes = append(resourceTypes, params)
 				for suffix, genFunc := range resourceFilesToGenerate {
 					file, err := generateResourceLevelFile(*params, suffix, genFunc)
 					if err != nil {
@@ -79,10 +69,19 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 		}
 	}
 
-	for packageName, resourceTypes := range resourcesByPackage {
+	for packageName, resourceParams := range resourcesByPackage {
+		var (
+			resourceTypes       []string
+			resourceLevelParams = make(map[string]*typed.ResourceLevelTemplateParams)
+		)
+		for _, resource := range resourceParams {
+			resourceTypes = append(resourceTypes, resource.ResourceType)
+			resourceLevelParams[resource.ResourceType] = resource
+		}
 		params := typed.PackageLevelTemplateParams{
-			PackageName:   packageName,
-			ResourceTypes: resourceTypes,
+			PackageName:         packageName,
+			ResourceTypes:       resourceTypes,
+			ResourceLevelParams: resourceLevelParams,
 		}
 		for suffix, genFunc := range packageFilesToGenerate {
 			file, err := generatePackageLevelFile(params, suffix, genFunc)

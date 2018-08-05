@@ -63,7 +63,7 @@ func (s Snapshot) Hash() uint64 {
 		resources.UpdateMetadata({{ lowercase . }}, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
-{{- if (is_input_type $. . ) }}
+{{- if (index $.ResourceLevelParams .).IsInputType }}
 		{{ lowercase . }}.SetStatus(core.Status{})
 {{- end }}
 	}
