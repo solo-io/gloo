@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/errors"
 	"k8s.io/client-go/rest"
 )
 
@@ -43,7 +44,11 @@ func (factory *resourceClientFactory) NewResourceClient(params NewResourceClient
 		if params.Token != "" {
 			opts.Cfg.BearerToken = params.Token
 		}
-		return kube.NewResourceClient(opts.Crd, opts.Cfg, resourceType)
+		inputResource, ok := params.ResourceType.(resources.InputResource)
+		if !ok {
+			return nil, errors.Errorf("the kubernetes crd client can only be used for input resources, received type %v", resources.Kind(resourceType))
+		}
+		return kube.NewResourceClient(opts.Crd, opts.Cfg, inputResource)
 	case *ConsulResourceClientOpts:
 		return consul.NewResourceClient(opts.Consul, opts.RootKey, resourceType), nil
 	case *FileResourceClientOpts:
