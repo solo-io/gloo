@@ -54,8 +54,11 @@ $(OUTPUT_DIR)/.clientset: $(GENERATED_PROTO_FILES) $(SOURCES)
 .PHONY: generated-code
 generated-code: $(OUTPUT_DIR)/.generated-code
 
+SUBDIRS:=pkg projects test
 $(OUTPUT_DIR)/.generated-code:
-	go generate ./pkg/...
+	go generate ./...
+	gofmt -w $(SUBDIRS)
+	goimports -w $(SUBDIRS)
 	touch $@
 
 #----------------------------------------------------------------------------------

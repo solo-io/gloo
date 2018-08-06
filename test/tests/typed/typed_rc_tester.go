@@ -1,19 +1,20 @@
 package typed
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
-	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/test/services"
-	"k8s.io/client-go/tools/clientcmd"
+
 	"github.com/hashicorp/consul/api"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
-	"io/ioutil"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	vaultapi "github.com/hashicorp/vault/api"
+	. "github.com/onsi/gomega"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
+	"github.com/solo-io/solo-kit/test/services"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 type ResourceClientTester interface {
@@ -172,7 +173,7 @@ func (rct *MemoryRcTester) Teardown(namespace string) {}
  * KubeCfgMap
  *
  */
-type KubeConfigMapRcTester struct {}
+type KubeConfigMapRcTester struct{}
 
 func (rct *KubeConfigMapRcTester) Description() string {
 	return "kube-configmap-based"
@@ -204,7 +205,7 @@ func (rct *KubeConfigMapRcTester) Teardown(namespace string) {
  * KubeSecret
  *
  */
-type KubeSecretRcTester struct {}
+type KubeSecretRcTester struct{}
 
 func (rct *KubeSecretRcTester) Description() string {
 	return "kube-secret-based"
@@ -238,7 +239,7 @@ func (rct *KubeSecretRcTester) Teardown(namespace string) {
  */
 type VaultRcTester struct {
 	vaultInstance *services.VaultInstance
-	vaultFactory *services.VaultFactory
+	vaultFactory  *services.VaultFactory
 }
 
 func (rct *VaultRcTester) Description() string {

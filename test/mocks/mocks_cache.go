@@ -12,7 +12,7 @@ import (
 type Snapshot struct {
 	MockResourceList []*MockResource
 	FakeResourceList []*FakeResource
-	MockDataList []*MockData
+	MockDataList     []*MockData
 }
 
 func (s Snapshot) Clone() Snapshot {
@@ -31,7 +31,7 @@ func (s Snapshot) Clone() Snapshot {
 	return Snapshot{
 		MockResourceList: mockResourceList,
 		FakeResourceList: fakeResourceList,
-		MockDataList: mockDataList,
+		MockDataList:     mockDataList,
 	}
 }
 
@@ -74,14 +74,14 @@ func NewCache(mockResourceClient MockResourceClient, fakeResourceClient FakeReso
 	return &cache{
 		mockResource: mockResourceClient,
 		fakeResource: fakeResourceClient,
-		mockData: mockDataClient,
+		mockData:     mockDataClient,
 	}
 }
 
 type cache struct {
 	mockResource MockResourceClient
 	fakeResource FakeResourceClient
-	mockData MockDataClient
+	mockData     MockDataClient
 }
 
 func (c *cache) Register() error {

@@ -10,12 +10,12 @@ import (
 )
 
 type Snapshot struct {
-	ArtifactList []*Artifact
-	AttributeList []*Attribute
-	EndpointList []*Endpoint
-	RoleList []*Role
-	SecretList []*Secret
-	UpstreamList []*Upstream
+	ArtifactList       []*Artifact
+	AttributeList      []*Attribute
+	EndpointList       []*Endpoint
+	RoleList           []*Role
+	SecretList         []*Secret
+	UpstreamList       []*Upstream
 	VirtualServiceList []*VirtualService
 }
 
@@ -49,12 +49,12 @@ func (s Snapshot) Clone() Snapshot {
 		virtualServiceList = append(virtualServiceList, proto.Clone(virtualService).(*VirtualService))
 	}
 	return Snapshot{
-		ArtifactList: artifactList,
-		AttributeList: attributeList,
-		EndpointList: endpointList,
-		RoleList: roleList,
-		SecretList: secretList,
-		UpstreamList: upstreamList,
+		ArtifactList:       artifactList,
+		AttributeList:      attributeList,
+		EndpointList:       endpointList,
+		RoleList:           roleList,
+		SecretList:         secretList,
+		UpstreamList:       upstreamList,
 		VirtualServiceList: virtualServiceList,
 	}
 }
@@ -121,23 +121,23 @@ type Cache interface {
 
 func NewCache(artifactClient ArtifactClient, attributeClient AttributeClient, endpointClient EndpointClient, roleClient RoleClient, secretClient SecretClient, upstreamClient UpstreamClient, virtualServiceClient VirtualServiceClient) Cache {
 	return &cache{
-		artifact: artifactClient,
-		attribute: attributeClient,
-		endpoint: endpointClient,
-		role: roleClient,
-		secret: secretClient,
-		upstream: upstreamClient,
+		artifact:       artifactClient,
+		attribute:      attributeClient,
+		endpoint:       endpointClient,
+		role:           roleClient,
+		secret:         secretClient,
+		upstream:       upstreamClient,
 		virtualService: virtualServiceClient,
 	}
 }
 
 type cache struct {
-	artifact ArtifactClient
-	attribute AttributeClient
-	endpoint EndpointClient
-	role RoleClient
-	secret SecretClient
-	upstream UpstreamClient
+	artifact       ArtifactClient
+	attribute      AttributeClient
+	endpoint       EndpointClient
+	role           RoleClient
+	secret         SecretClient
+	upstream       UpstreamClient
 	virtualService VirtualServiceClient
 }
 

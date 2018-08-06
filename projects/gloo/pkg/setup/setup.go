@@ -1,8 +1,8 @@
 package setup
 
 import (
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
 func Setup() error {
@@ -24,7 +24,7 @@ func Setup() error {
 	el := v1.NewEventLoop(cache, &syncer{})
 }
 
-type syncer struct {}
+type syncer struct{}
 
 func (syncer) Sync(snap *v1.Snapshot) error {
 

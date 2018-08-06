@@ -52,7 +52,7 @@ func TestCrudClient(namespace string, client ResourceClient) {
 	resources.UpdateMetadata(input, func(meta *core.Metadata) {
 		meta.ResourceVersion = r1.GetMetadata().ResourceVersion
 	})
-	data = map[string]string{"asdf":"qwer"}
+	data = map[string]string{"asdf": "qwer"}
 	input.Data = data
 
 	oldRv := r1.GetMetadata().ResourceVersion

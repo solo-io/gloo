@@ -48,4 +48,3 @@ func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) error {
 		}
 	}
 }
-
