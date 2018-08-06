@@ -1,12 +1,13 @@
 package mocks
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"time"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/bxcodec/faker"
@@ -14,7 +15,7 @@ import (
 	"github.com/solo-io/solo-kit/test/tests/typed"
 )
 
-var _ = FDescribe("FakeResourceClient", func() {
+var _ = Describe("FakeResourceClient", func() {
 	var (
 		namespace string
 	)
@@ -39,13 +40,13 @@ var _ = FDescribe("FakeResourceClient", func() {
 				test.Teardown(namespace)
 			})
 			It("CRUDs FakeResources", func() {
-				TypedResourceClientTest(namespace, client)
+				FakeResourceClientTest(namespace, client)
 			})
 		})
 	}
 })
 
-func TypedResourceClientTest(namespace string, client FakeResourceClient) {
+func FakeResourceClientTest(namespace string, client FakeResourceClient) {
 	err := client.Register()
 	Expect(err).NotTo(HaveOccurred())
 

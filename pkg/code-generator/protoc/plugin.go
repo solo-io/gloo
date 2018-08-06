@@ -24,7 +24,7 @@ type packageTemplateFunc func(params typed.PackageLevelTemplateParams) (string, 
 
 var resourceFilesToGenerate = map[string]resouceTemplateFunc{
 	"_client.go":           typed.GenerateTypedClientCode,
-	"_client_kube_test.go": typed.GenerateTypedClientKubeTestCode,
+	"_client_test.go": typed.GenerateResourceClientTestCode,
 }
 
 var packageFilesToGenerate = map[string]packageTemplateFunc{
