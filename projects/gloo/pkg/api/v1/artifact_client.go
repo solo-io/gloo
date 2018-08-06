@@ -25,6 +25,10 @@ func (r *Artifact) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
 
+func (r *Artifact) SetData(data map[string]string) {
+	r.Data = data
+}
+
 var _ resources.Resource = &Artifact{}
 
 type ArtifactClient interface {

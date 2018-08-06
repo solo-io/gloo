@@ -25,6 +25,10 @@ func (r *Secret) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
 
+func (r *Secret) SetData(data map[string]string) {
+	r.Data = data
+}
+
 var _ resources.Resource = &Secret{}
 
 type SecretClient interface {

@@ -38,6 +38,7 @@ var _ = Describe("MocksCache", func() {
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
+		// MockResource Constructor
 		mockResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: MockResourceCrd,
 			Cfg: cfg,
@@ -45,6 +46,7 @@ var _ = Describe("MocksCache", func() {
 		mockResourceClient, err = NewMockResourceClient(mockResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
+		// FakeResource Constructor
 		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: FakeResourceCrd,
 			Cfg: cfg,
@@ -52,6 +54,7 @@ var _ = Describe("MocksCache", func() {
 		fakeResourceClient, err = NewFakeResourceClient(fakeResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
+		// MockData Constructor
 		mockDataClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: MockDataCrd,
 			Cfg: cfg,

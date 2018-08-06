@@ -47,4 +47,12 @@ var funcs = template.FuncMap{
 		}
 		return strings.Join(clientParams, ", ")
 	},
+	"need_clientset": func(params PackageLevelTemplateParams) bool {
+		for _, p := range params.ResourceLevelParams {
+			if !p.IsInputType && p.IsDataType {
+				return true
+			}
+		}
+		return false
+	},
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -32,6 +33,7 @@ var _ = Describe("V1Cache", func() {
 		secretClient         SecretClient
 		upstreamClient       UpstreamClient
 		virtualServiceClient VirtualServiceClient
+		kube                 kubernetes.Interface
 	)
 
 	BeforeEach(func() {
@@ -42,13 +44,17 @@ var _ = Describe("V1Cache", func() {
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
-		artifactClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd: ArtifactCrd,
-			Cfg: cfg,
+		// Artifact Constructor
+		kube, err = kubernetes.NewForConfig(cfg)
+		Expect(err).NotTo(HaveOccurred())
+
+		artifactClientFactory := factory.NewResourceClientFactory(&factory.KubeConfigMapClientOpts{
+			Clientset: kube,
 		})
 		artifactClient, err = NewArtifactClient(artifactClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
+		// Attribute Constructor
 		attributeClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: AttributeCrd,
 			Cfg: cfg,
@@ -56,13 +62,11 @@ var _ = Describe("V1Cache", func() {
 		attributeClient, err = NewAttributeClient(attributeClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		endpointClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd: EndpointCrd,
-			Cfg: cfg,
-		})
+		// Endpoint Constructor
 		endpointClient, err = NewEndpointClient(endpointClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
+		// Role Constructor
 		roleClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: RoleCrd,
 			Cfg: cfg,
@@ -70,13 +74,17 @@ var _ = Describe("V1Cache", func() {
 		roleClient, err = NewRoleClient(roleClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		secretClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd: SecretCrd,
-			Cfg: cfg,
+		// Secret Constructor
+		kube, err = kubernetes.NewForConfig(cfg)
+		Expect(err).NotTo(HaveOccurred())
+
+		secretClientFactory := factory.NewResourceClientFactory(&factory.KubeSecretClientOpts{
+			Clientset: kube,
 		})
 		secretClient, err = NewSecretClient(secretClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
+		// Upstream Constructor
 		upstreamClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: UpstreamCrd,
 			Cfg: cfg,
@@ -84,6 +92,7 @@ var _ = Describe("V1Cache", func() {
 		upstreamClient, err = NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
+		// VirtualService Constructor
 		virtualServiceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: VirtualServiceCrd,
 			Cfg: cfg,

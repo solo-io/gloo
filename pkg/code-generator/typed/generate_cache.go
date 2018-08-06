@@ -169,6 +169,9 @@ import (
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
 	"k8s.io/client-go/rest"
+{{- if (need_clientset .) }}
+	"k8s.io/client-go/kubernetes"
+{{- end}}
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -184,6 +187,9 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 {{- range .ResourceTypes }}
 		{{ lowercase . }}Client {{ . }}Client
 {{- end}}
+{{- if (need_clientset .) }}
+		kube               kubernetes.Interface
+{{- end}}
 	)
 
 	BeforeEach(func() {
@@ -196,10 +202,27 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 
 {{- range .ResourceTypes }}
 
+		// {{ . }} Constructor
+{{- if (index $.ResourceLevelParams .).IsInputType }}
 		{{ lowercase . }}ClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: {{ . }}Crd,
 			Cfg: cfg,
 		})
+{{- else if (index $.ResourceLevelParams .).IsDataType }}
+		kube, err = kubernetes.NewForConfig(cfg)
+		Expect(err).NotTo(HaveOccurred())
+{{/* TODO(ilackarms): Come with a more generic way to specify that a resource is "Secret"*/}}
+{{- if (eq . "Secret") }}
+		{{ lowercase . }}ClientFactory := factory.NewResourceClientFactory(&factory.KubeSecretClientOpts{
+			Clientset: kube,
+		})
+{{- else }}
+		{{ lowercase . }}ClientFactory := factory.NewResourceClientFactory(&factory.KubeConfigMapClientOpts{
+			Clientset: kube,
+		})
+{{- end }}
+{{- else }}
+{{- end }}
 		{{ lowercase . }}Client, err = New{{ . }}Client({{ lowercase . }}ClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 {{- end}}
