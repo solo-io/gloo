@@ -177,31 +177,38 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 	}()
 	go func() {
 		for {
-			resourceDataList, err := resp.Recv()
-			if err == io.EOF {
-				errs <- errors.Wrapf(err, "grpc stream closed")
+			select {
+			case <-opts.Ctx.Done():
+				close(resourcesChan)
+				close(errs)
 				return
-			}
-			if err != nil {
-				errs <- err
-				continue
-			}
-			var resourceList []resources.Resource
-			for _, resourceData := range resourceDataList.ResourceList {
-				resource := rc.NewResource()
-				if err := protoutils.UnmarshalStruct(resourceData.Data, resource); err != nil {
-					errs <- errors.Wrapf(err, "reading proto struct into %v", rc.Kind())
+			default:
+				resourceDataList, err := resp.Recv()
+				if err == io.EOF {
+					errs <- errors.Wrapf(err, "grpc stream closed")
+					return
+				}
+				if err != nil {
+					errs <- err
 					continue
 				}
-				if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
-					resourceList = append(resourceList, resource)
+				var resourceList []resources.Resource
+				for _, resourceData := range resourceDataList.ResourceList {
+					resource := rc.NewResource()
+					if err := protoutils.UnmarshalStruct(resourceData.Data, resource); err != nil {
+						errs <- errors.Wrapf(err, "reading proto struct into %v", rc.Kind())
+						continue
+					}
+					if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
+						resourceList = append(resourceList, resource)
+					}
 				}
-			}
 
-			sort.SliceStable(resourceList, func(i, j int) bool {
-				return resourceList[i].GetMetadata().Name < resourceList[j].GetMetadata().Name
-			})
-			resourcesChan <- resourceList
+				sort.SliceStable(resourceList, func(i, j int) bool {
+					return resourceList[i].GetMetadata().Name < resourceList[j].GetMetadata().Name
+				})
+				resourcesChan <- resourceList
+			}
 		}
 	}()
 

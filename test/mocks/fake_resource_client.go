@@ -99,6 +99,9 @@ func (client *fakeResourceClient) Watch(namespace string, opts clients.WatchOpts
 			select {
 			case resourceList := <-resourcesChan:
 				fakeResourcesChan <- convertToFakeResource(resourceList)
+			case <-opts.Ctx.Done():
+				close(fakeResourcesChan)
+				return
 			}
 		}
 	}()

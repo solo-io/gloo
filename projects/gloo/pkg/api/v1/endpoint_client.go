@@ -95,6 +95,9 @@ func (client *endpointClient) Watch(namespace string, opts clients.WatchOpts) (<
 			select {
 			case resourceList := <-resourcesChan:
 				endpointsChan <- convertToEndpoint(resourceList)
+			case <-opts.Ctx.Done():
+				close(endpointsChan)
+				return
 			}
 		}
 	}()

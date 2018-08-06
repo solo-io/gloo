@@ -220,12 +220,19 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 
 	go func() {
 		for {
-			list, err := updatedResourceList()
-			if err != nil {
-				errs <- err
-			}
-			if list != nil {
-				resourcesChan <- list
+			select {
+			default:
+				list, err := updatedResourceList()
+				if err != nil {
+					errs <- err
+				}
+				if list != nil {
+					resourcesChan <- list
+				}
+			case <-opts.Ctx.Done():
+				close(resourcesChan)
+				close(errs)
+				return
 			}
 		}
 	}()

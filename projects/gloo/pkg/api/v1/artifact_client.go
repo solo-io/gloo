@@ -99,6 +99,9 @@ func (client *artifactClient) Watch(namespace string, opts clients.WatchOpts) (<
 			select {
 			case resourceList := <-resourcesChan:
 				artifactsChan <- convertToArtifact(resourceList)
+			case <-opts.Ctx.Done():
+				close(artifactsChan)
+				return
 			}
 		}
 	}()

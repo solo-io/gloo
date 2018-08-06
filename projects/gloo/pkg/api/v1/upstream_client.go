@@ -99,6 +99,9 @@ func (client *upstreamClient) Watch(namespace string, opts clients.WatchOpts) (<
 			select {
 			case resourceList := <-resourcesChan:
 				upstreamsChan <- convertToUpstream(resourceList)
+			case <-opts.Ctx.Done():
+				close(upstreamsChan)
+				return
 			}
 		}
 	}()

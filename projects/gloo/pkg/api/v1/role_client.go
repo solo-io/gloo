@@ -99,6 +99,9 @@ func (client *roleClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 			select {
 			case resourceList := <-resourcesChan:
 				rolesChan <- convertToRole(resourceList)
+			case <-opts.Ctx.Done():
+				close(rolesChan)
+				return
 			}
 		}
 	}()
