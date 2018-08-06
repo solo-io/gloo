@@ -224,6 +224,8 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 			select {
 			case <-opts.Ctx.Done():
 				close(subscription)
+				close(resourcesChan)
+				close(errs)
 				return
 			case <-subscription:
 				list, err := rc.List(namespace, clients.ListOpts{

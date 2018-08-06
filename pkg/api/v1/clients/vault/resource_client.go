@@ -251,6 +251,8 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 					resourcesChan <- list
 				}
 			case <-opts.Ctx.Done():
+				close(resourcesChan)
+				close(errs)
 				return
 			}
 		}

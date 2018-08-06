@@ -262,6 +262,8 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 				break drain{{ lowercase . }}
 			case <-time.After(time.Second):
 				Fail("expected snapshot before 1 second")
+			case <-opts.Ctx.Done():
+				return
 			}
 		}
 		Expect(snap.{{ . }}List).To(ContainElement({{ lowercase . }}1))

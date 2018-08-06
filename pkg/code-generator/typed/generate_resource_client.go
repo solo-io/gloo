@@ -136,6 +136,9 @@ func (client *{{ lowercase .ResourceType }}Client) Watch(namespace string, opts 
 			select {
 			case resourceList := <-resourcesChan:
 				{{ lowercase .ResourceType }}sChan <- convertTo{{ .ResourceType }}(resourceList)
+			case <-opts.Ctx.Done():
+				close({{ lowercase .ResourceType }}sChan)
+				return
 			}
 		}
 	}()

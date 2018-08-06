@@ -219,6 +219,9 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 				}
 			case <-opts.Ctx.Done():
 				watch.Stop()
+				close(resourcesChan)
+				close(errs)
+				return
 			}
 		}
 	}()

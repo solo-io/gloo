@@ -99,6 +99,9 @@ func (client *secretClient) Watch(namespace string, opts clients.WatchOpts) (<-c
 			select {
 			case resourceList := <-resourcesChan:
 				secretsChan <- convertToSecret(resourceList)
+			case <-opts.Ctx.Done():
+				close(secretsChan)
+				return
 			}
 		}
 	}()
