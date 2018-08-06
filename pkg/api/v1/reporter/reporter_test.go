@@ -32,8 +32,8 @@ var _ = Describe("Reporter", func() {
 		r2, err := mockResourceClient.Write(mocks.NewMockResource("", "fakey"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		resourceErrs := rep.ResourceErrors{
-			r1: fmt.Errorf("everyone makes mistakes"),
-			r2: fmt.Errorf("try your best"),
+			r1.(*mocks.MockResource): fmt.Errorf("everyone makes mistakes"),
+			r2.(*mocks.MockResource): fmt.Errorf("try your best"),
 		}
 		err = reporter.WriteReports(context.TODO(), resourceErrs)
 		Expect(err).NotTo(HaveOccurred())
