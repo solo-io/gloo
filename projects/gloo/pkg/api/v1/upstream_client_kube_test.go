@@ -65,7 +65,6 @@ var _ = Describe("UpstreamClient", func() {
 		Expect(r1.GetMetadata().Name).To(Equal(name))
 		Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 		Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal("7"))
-		Expect(r1.Name).To(Equal(input.Name))
 		Expect(r1.Type).To(Equal(input.Type))
 		Expect(r1.ConnectionTimeout).To(Equal(input.ConnectionTimeout))
 		Expect(r1.Spec).To(Equal(input.Spec))

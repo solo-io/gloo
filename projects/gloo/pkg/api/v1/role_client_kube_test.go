@@ -65,7 +65,6 @@ var _ = Describe("RoleClient", func() {
 		Expect(r1.GetMetadata().Name).To(Equal(name))
 		Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 		Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal("7"))
-		Expect(r1.Name).To(Equal(input.Name))
 		Expect(r1.Listeners).To(Equal(input.Listeners))
 
 		_, err = client.Write(input, clients.WriteOpts{

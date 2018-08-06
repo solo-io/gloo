@@ -65,7 +65,6 @@ var _ = Describe("VirtualServiceClient", func() {
 		Expect(r1.GetMetadata().Name).To(Equal(name))
 		Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 		Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal("7"))
-		Expect(r1.Name).To(Equal(input.Name))
 		Expect(r1.Domains).To(Equal(input.Domains))
 		Expect(r1.Routes).To(Equal(input.Routes))
 		Expect(r1.SslConfig).To(Equal(input.SslConfig))
