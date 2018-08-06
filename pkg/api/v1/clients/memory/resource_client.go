@@ -49,6 +49,7 @@ func (c *inMemoryResourceCache) Get(key string) (resources.Resource, bool) {
 func (c *inMemoryResourceCache) Delete(key string) {
 	c.lock.Lock()
 	delete(c.store, key)
+	c.signalUpdate()
 	c.lock.Unlock()
 }
 
