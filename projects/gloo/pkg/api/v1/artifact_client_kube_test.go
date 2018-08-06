@@ -16,26 +16,24 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 var _ = Describe("ArtifactClient", func() {
+	var (
+		namespace string
+		client    ArtifactClient
+	)
 	if os.Getenv("RUN_KUBE_TESTS") != "1" {
 		log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
 		return
 	}
-	var (
-		namespace string
-		cfg       *rest.Config
-		client    ArtifactClient
-	)
 	BeforeEach(func() {
 		namespace = helpers.RandString(8)
 		err := services.SetupKubeForTest(namespace)
 		Expect(err).NotTo(HaveOccurred())
 		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
-		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+		cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 		clientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: ArtifactCrd,
