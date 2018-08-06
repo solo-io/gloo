@@ -1,4 +1,4 @@
-package tests
+package generic
 
 import (
 	. "github.com/onsi/ginkgo"

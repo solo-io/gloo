@@ -9,7 +9,7 @@ import (
 
 	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/file"
 	"github.com/solo-io/solo-kit/test/mocks"
-	"github.com/solo-io/solo-kit/test/tests"
+	"github.com/solo-io/solo-kit/test/tests/generic"
 )
 
 var _ = Describe("Base", func() {
@@ -27,6 +27,6 @@ var _ = Describe("Base", func() {
 		os.RemoveAll(tmpDir)
 	})
 	It("CRUDs resources", func() {
-		tests.TestCrudClient("", client)
+		generic.TestCrudClient("", client)
 	})
 })

@@ -11,16 +11,16 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/bxcodec/faker"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/test/tests"
+	"github.com/solo-io/solo-kit/test/tests/typed"
 )
 
 var _ = FDescribe("FakeResourceClient", func() {
 	var (
 		namespace string
 	)
-	for _, test := range []tests.ResourceClientTester{
-		&tests.KubeRcTester{Crd: FakeResourceCrd},
-		&tests.ConsulRcTester{},
+	for _, test := range []typed.ResourceClientTester{
+		&typed.KubeRcTester{Crd: FakeResourceCrd},
+		&typed.ConsulRcTester{},
 	} {
 		Context("resource client backed by "+test.Description(), func() {
 			var (

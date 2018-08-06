@@ -10,7 +10,7 @@ import (
 
 	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/apiclient"
 	"github.com/solo-io/solo-kit/test/mocks"
-	"github.com/solo-io/solo-kit/test/tests"
+	"github.com/solo-io/solo-kit/test/tests/generic"
 	"google.golang.org/grpc"
 )
 
@@ -31,6 +31,6 @@ var _ = Describe("Base", func() {
 		cc.Close()
 	})
 	It("CRUDs resources", func() {
-		tests.TestCrudClient("", client)
+		generic.TestCrudClient("", client)
 	})
 })
