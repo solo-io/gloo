@@ -116,186 +116,209 @@ var _ = Describe("V1Cache", func() {
 			RefreshRate: time.Minute,
 		})
 		Expect(err).NotTo(HaveOccurred())
+
+		var snap *Snapshot
 		artifact1, err := artifactClient.Write(NewArtifact(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.ArtifactList).To(HaveLen(1))
-			Expect(snap.ArtifactList).To(ContainElement(artifact1))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
-			Fail("expected snapshot before 1 second")
+	drainartifact:
+		for {
+			select {
+			case snap = <-snapshots:
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Millisecond * 500):
+				break drainartifact
+			case <-time.After(time.Second):
+				Fail("expected snapshot before 1 second")
+			}
 		}
+		Expect(snap.ArtifactList).To(ContainElement(artifact1))
 
 		artifact2, err := artifactClient.Write(NewArtifact(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.ArtifactList).To(HaveLen(2))
 			Expect(snap.ArtifactList).To(ContainElement(artifact1))
 			Expect(snap.ArtifactList).To(ContainElement(artifact2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		attribute1, err := attributeClient.Write(NewAttribute(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.AttributeList).To(HaveLen(1))
-			Expect(snap.AttributeList).To(ContainElement(attribute1))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
-			Fail("expected snapshot before 1 second")
+	drainattribute:
+		for {
+			select {
+			case snap = <-snapshots:
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Millisecond * 500):
+				break drainattribute
+			case <-time.After(time.Second):
+				Fail("expected snapshot before 1 second")
+			}
 		}
+		Expect(snap.AttributeList).To(ContainElement(attribute1))
 
 		attribute2, err := attributeClient.Write(NewAttribute(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.AttributeList).To(HaveLen(2))
 			Expect(snap.AttributeList).To(ContainElement(attribute1))
 			Expect(snap.AttributeList).To(ContainElement(attribute2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		endpoint1, err := endpointClient.Write(NewEndpoint(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.EndpointList).To(HaveLen(1))
-			Expect(snap.EndpointList).To(ContainElement(endpoint1))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
-			Fail("expected snapshot before 1 second")
+	drainendpoint:
+		for {
+			select {
+			case snap = <-snapshots:
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Millisecond * 500):
+				break drainendpoint
+			case <-time.After(time.Second):
+				Fail("expected snapshot before 1 second")
+			}
 		}
+		Expect(snap.EndpointList).To(ContainElement(endpoint1))
 
 		endpoint2, err := endpointClient.Write(NewEndpoint(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.EndpointList).To(HaveLen(2))
 			Expect(snap.EndpointList).To(ContainElement(endpoint1))
 			Expect(snap.EndpointList).To(ContainElement(endpoint2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		role1, err := roleClient.Write(NewRole(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.RoleList).To(HaveLen(1))
-			Expect(snap.RoleList).To(ContainElement(role1))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
-			Fail("expected snapshot before 1 second")
+	drainrole:
+		for {
+			select {
+			case snap = <-snapshots:
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Millisecond * 500):
+				break drainrole
+			case <-time.After(time.Second):
+				Fail("expected snapshot before 1 second")
+			}
 		}
+		Expect(snap.RoleList).To(ContainElement(role1))
 
 		role2, err := roleClient.Write(NewRole(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.RoleList).To(HaveLen(2))
 			Expect(snap.RoleList).To(ContainElement(role1))
 			Expect(snap.RoleList).To(ContainElement(role2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		secret1, err := secretClient.Write(NewSecret(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.SecretList).To(HaveLen(1))
-			Expect(snap.SecretList).To(ContainElement(secret1))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
-			Fail("expected snapshot before 1 second")
+	drainsecret:
+		for {
+			select {
+			case snap = <-snapshots:
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Millisecond * 500):
+				break drainsecret
+			case <-time.After(time.Second):
+				Fail("expected snapshot before 1 second")
+			}
 		}
+		Expect(snap.SecretList).To(ContainElement(secret1))
 
 		secret2, err := secretClient.Write(NewSecret(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.SecretList).To(HaveLen(2))
 			Expect(snap.SecretList).To(ContainElement(secret1))
 			Expect(snap.SecretList).To(ContainElement(secret2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		upstream1, err := upstreamClient.Write(NewUpstream(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.UpstreamList).To(HaveLen(1))
-			Expect(snap.UpstreamList).To(ContainElement(upstream1))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
-			Fail("expected snapshot before 1 second")
+	drainupstream:
+		for {
+			select {
+			case snap = <-snapshots:
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Millisecond * 500):
+				break drainupstream
+			case <-time.After(time.Second):
+				Fail("expected snapshot before 1 second")
+			}
 		}
+		Expect(snap.UpstreamList).To(ContainElement(upstream1))
 
 		upstream2, err := upstreamClient.Write(NewUpstream(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.UpstreamList).To(HaveLen(2))
 			Expect(snap.UpstreamList).To(ContainElement(upstream1))
 			Expect(snap.UpstreamList).To(ContainElement(upstream2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		virtualService1, err := virtualServiceClient.Write(NewVirtualService(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.VirtualServiceList).To(HaveLen(1))
-			Expect(snap.VirtualServiceList).To(ContainElement(virtualService1))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
-			Fail("expected snapshot before 1 second")
+	drainvirtualService:
+		for {
+			select {
+			case snap = <-snapshots:
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Millisecond * 500):
+				break drainvirtualService
+			case <-time.After(time.Second):
+				Fail("expected snapshot before 1 second")
+			}
 		}
+		Expect(snap.VirtualServiceList).To(ContainElement(virtualService1))
 
 		virtualService2, err := virtualServiceClient.Write(NewVirtualService(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.VirtualServiceList).To(HaveLen(2))
 			Expect(snap.VirtualServiceList).To(ContainElement(virtualService1))
 			Expect(snap.VirtualServiceList).To(ContainElement(virtualService2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		err = artifactClient.Delete(artifact2.Metadata.Namespace, artifact2.Metadata.Name, clients.DeleteOpts{})
@@ -303,12 +326,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.ArtifactList).To(HaveLen(1))
 			Expect(snap.ArtifactList).To(ContainElement(artifact1))
 			Expect(snap.ArtifactList).NotTo(ContainElement(artifact2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
@@ -317,10 +339,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.ArtifactList).To(HaveLen(0))
+			Expect(snap.ArtifactList).NotTo(ContainElement(artifact1))
+			Expect(snap.ArtifactList).NotTo(ContainElement(artifact2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		err = attributeClient.Delete(attribute2.Metadata.Namespace, attribute2.Metadata.Name, clients.DeleteOpts{})
@@ -328,12 +351,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.AttributeList).To(HaveLen(1))
 			Expect(snap.AttributeList).To(ContainElement(attribute1))
 			Expect(snap.AttributeList).NotTo(ContainElement(attribute2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
@@ -342,10 +364,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.AttributeList).To(HaveLen(0))
+			Expect(snap.AttributeList).NotTo(ContainElement(attribute1))
+			Expect(snap.AttributeList).NotTo(ContainElement(attribute2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		err = endpointClient.Delete(endpoint2.Metadata.Namespace, endpoint2.Metadata.Name, clients.DeleteOpts{})
@@ -353,12 +376,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.EndpointList).To(HaveLen(1))
 			Expect(snap.EndpointList).To(ContainElement(endpoint1))
 			Expect(snap.EndpointList).NotTo(ContainElement(endpoint2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
@@ -367,10 +389,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.EndpointList).To(HaveLen(0))
+			Expect(snap.EndpointList).NotTo(ContainElement(endpoint1))
+			Expect(snap.EndpointList).NotTo(ContainElement(endpoint2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		err = roleClient.Delete(role2.Metadata.Namespace, role2.Metadata.Name, clients.DeleteOpts{})
@@ -378,12 +401,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.RoleList).To(HaveLen(1))
 			Expect(snap.RoleList).To(ContainElement(role1))
 			Expect(snap.RoleList).NotTo(ContainElement(role2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
@@ -392,10 +414,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.RoleList).To(HaveLen(0))
+			Expect(snap.RoleList).NotTo(ContainElement(role1))
+			Expect(snap.RoleList).NotTo(ContainElement(role2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		err = secretClient.Delete(secret2.Metadata.Namespace, secret2.Metadata.Name, clients.DeleteOpts{})
@@ -403,12 +426,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.SecretList).To(HaveLen(1))
 			Expect(snap.SecretList).To(ContainElement(secret1))
 			Expect(snap.SecretList).NotTo(ContainElement(secret2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
@@ -417,10 +439,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.SecretList).To(HaveLen(0))
+			Expect(snap.SecretList).NotTo(ContainElement(secret1))
+			Expect(snap.SecretList).NotTo(ContainElement(secret2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		err = upstreamClient.Delete(upstream2.Metadata.Namespace, upstream2.Metadata.Name, clients.DeleteOpts{})
@@ -428,12 +451,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.UpstreamList).To(HaveLen(1))
 			Expect(snap.UpstreamList).To(ContainElement(upstream1))
 			Expect(snap.UpstreamList).NotTo(ContainElement(upstream2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
@@ -442,10 +464,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.UpstreamList).To(HaveLen(0))
+			Expect(snap.UpstreamList).NotTo(ContainElement(upstream1))
+			Expect(snap.UpstreamList).NotTo(ContainElement(upstream2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		err = virtualServiceClient.Delete(virtualService2.Metadata.Namespace, virtualService2.Metadata.Name, clients.DeleteOpts{})
@@ -453,12 +476,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.VirtualServiceList).To(HaveLen(1))
 			Expect(snap.VirtualServiceList).To(ContainElement(virtualService1))
 			Expect(snap.VirtualServiceList).NotTo(ContainElement(virtualService2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
@@ -467,10 +489,11 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.VirtualServiceList).To(HaveLen(0))
+			Expect(snap.VirtualServiceList).NotTo(ContainElement(virtualService1))
+			Expect(snap.VirtualServiceList).NotTo(ContainElement(virtualService2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 	})

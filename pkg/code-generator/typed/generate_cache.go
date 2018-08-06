@@ -246,31 +246,36 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 
+		var snap *Snapshot
+
 {{- range .ResourceTypes }}
 		{{ lowercase . }}1, err := {{ lowercase . }}Client.Write(New{{ . }}(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.{{ . }}List).To(HaveLen(1))
-			Expect(snap.{{ . }}List).To(ContainElement({{ lowercase . }}1))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
-			Fail("expected snapshot before 1 second")
+	drain{{ lowercase . }}:
+		for {
+			select {
+			case snap = <-snapshots:
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Millisecond * 500):
+				break drain{{ lowercase . }}
+			case <-time.After(time.Second):
+				Fail("expected snapshot before 1 second")
+			}
 		}
+		Expect(snap.{{ . }}List).To(ContainElement({{ lowercase . }}1))
 
 		{{ lowercase . }}2, err := {{ lowercase . }}Client.Write(New{{ . }}(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ . }}List).To(HaveLen(2))
 			Expect(snap.{{ . }}List).To(ContainElement({{ lowercase . }}1))
 			Expect(snap.{{ . }}List).To(ContainElement({{ lowercase . }}2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 {{- end}}
@@ -281,12 +286,11 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ . }}List).To(HaveLen(1))
 			Expect(snap.{{ . }}List).To(ContainElement({{ lowercase . }}1))
 			Expect(snap.{{ . }}List).NotTo(ContainElement({{ lowercase . }}2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
@@ -295,10 +299,11 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ . }}List).To(HaveLen(0))
+			Expect(snap.{{ . }}List).NotTo(ContainElement({{ lowercase . }}1))
+			Expect(snap.{{ . }}List).NotTo(ContainElement({{ lowercase . }}2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 {{- end}}

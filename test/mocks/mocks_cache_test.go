@@ -74,82 +74,93 @@ var _ = Describe("MocksCache", func() {
 			RefreshRate: time.Minute,
 		})
 		Expect(err).NotTo(HaveOccurred())
+
+		var snap *Snapshot
 		mockResource1, err := mockResourceClient.Write(NewMockResource(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.MockResourceList).To(HaveLen(1))
-			Expect(snap.MockResourceList).To(ContainElement(mockResource1))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
-			Fail("expected snapshot before 1 second")
+	drainmockResource:
+		for {
+			select {
+			case snap = <-snapshots:
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Millisecond * 500):
+				break drainmockResource
+			case <-time.After(time.Second):
+				Fail("expected snapshot before 1 second")
+			}
 		}
+		Expect(snap.MockResourceList).To(ContainElement(mockResource1))
 
 		mockResource2, err := mockResourceClient.Write(NewMockResource(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.MockResourceList).To(HaveLen(2))
 			Expect(snap.MockResourceList).To(ContainElement(mockResource1))
 			Expect(snap.MockResourceList).To(ContainElement(mockResource2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		fakeResource1, err := fakeResourceClient.Write(NewFakeResource(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.FakeResourceList).To(HaveLen(1))
-			Expect(snap.FakeResourceList).To(ContainElement(fakeResource1))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
-			Fail("expected snapshot before 1 second")
+	drainfakeResource:
+		for {
+			select {
+			case snap = <-snapshots:
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Millisecond * 500):
+				break drainfakeResource
+			case <-time.After(time.Second):
+				Fail("expected snapshot before 1 second")
+			}
 		}
+		Expect(snap.FakeResourceList).To(ContainElement(fakeResource1))
 
 		fakeResource2, err := fakeResourceClient.Write(NewFakeResource(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.FakeResourceList).To(HaveLen(2))
 			Expect(snap.FakeResourceList).To(ContainElement(fakeResource1))
 			Expect(snap.FakeResourceList).To(ContainElement(fakeResource2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		mockData1, err := mockDataClient.Write(NewMockData(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.MockDataList).To(HaveLen(1))
-			Expect(snap.MockDataList).To(ContainElement(mockData1))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
-			Fail("expected snapshot before 1 second")
+	drainmockData:
+		for {
+			select {
+			case snap = <-snapshots:
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Millisecond * 500):
+				break drainmockData
+			case <-time.After(time.Second):
+				Fail("expected snapshot before 1 second")
+			}
 		}
+		Expect(snap.MockDataList).To(ContainElement(mockData1))
 
 		mockData2, err := mockDataClient.Write(NewMockData(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.MockDataList).To(HaveLen(2))
 			Expect(snap.MockDataList).To(ContainElement(mockData1))
 			Expect(snap.MockDataList).To(ContainElement(mockData2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		err = mockResourceClient.Delete(mockResource2.Metadata.Namespace, mockResource2.Metadata.Name, clients.DeleteOpts{})
@@ -157,12 +168,11 @@ var _ = Describe("MocksCache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.MockResourceList).To(HaveLen(1))
 			Expect(snap.MockResourceList).To(ContainElement(mockResource1))
 			Expect(snap.MockResourceList).NotTo(ContainElement(mockResource2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
@@ -171,10 +181,11 @@ var _ = Describe("MocksCache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.MockResourceList).To(HaveLen(0))
+			Expect(snap.MockResourceList).NotTo(ContainElement(mockResource1))
+			Expect(snap.MockResourceList).NotTo(ContainElement(mockResource2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		err = fakeResourceClient.Delete(fakeResource2.Metadata.Namespace, fakeResource2.Metadata.Name, clients.DeleteOpts{})
@@ -182,12 +193,11 @@ var _ = Describe("MocksCache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.FakeResourceList).To(HaveLen(1))
 			Expect(snap.FakeResourceList).To(ContainElement(fakeResource1))
 			Expect(snap.FakeResourceList).NotTo(ContainElement(fakeResource2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
@@ -196,10 +206,11 @@ var _ = Describe("MocksCache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.FakeResourceList).To(HaveLen(0))
+			Expect(snap.FakeResourceList).NotTo(ContainElement(fakeResource1))
+			Expect(snap.FakeResourceList).NotTo(ContainElement(fakeResource2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 		err = mockDataClient.Delete(mockData2.Metadata.Namespace, mockData2.Metadata.Name, clients.DeleteOpts{})
@@ -207,12 +218,11 @@ var _ = Describe("MocksCache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.MockDataList).To(HaveLen(1))
 			Expect(snap.MockDataList).To(ContainElement(mockData1))
 			Expect(snap.MockDataList).NotTo(ContainElement(mockData2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
@@ -221,10 +231,11 @@ var _ = Describe("MocksCache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.MockDataList).To(HaveLen(0))
+			Expect(snap.MockDataList).NotTo(ContainElement(mockData1))
+			Expect(snap.MockDataList).NotTo(ContainElement(mockData2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 	})
