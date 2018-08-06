@@ -49,6 +49,9 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 			resourceType := msg.GetName()
 			var fields []string
 			for _, field := range msg.Fields {
+				if field.GetComments().GetLeading() == "@solo-kit:ignore_field=true" {
+					continue
+				}
 				// exclude special fields
 				if field.GetName() == "status" || field.GetName() == "metadata" {
 					continue
