@@ -14,11 +14,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/solo-io/gloo/pkg/log"
-	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/apiserver"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/test/mocks"
 	"go.uber.org/zap"
 )
@@ -36,7 +35,7 @@ var (
 
 var _ = BeforeSuite(func() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	helpers.Must(err)
+	Expect(err).NotTo(HaveOccurred())
 	server = grpc.NewServer(grpc.StreamInterceptor(
 		grpc_middleware.ChainStreamServer(
 			grpc_ctxtags.StreamServerInterceptor(),

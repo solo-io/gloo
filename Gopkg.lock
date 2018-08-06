@@ -3,12 +3,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/armon/go-metrics"
-  packages = ["."]
-  revision = "3c58d8115a78a6879e5df75ae900846768d36895"
-
-[[projects]]
-  branch = "master"
   name = "github.com/bxcodec/faker"
   packages = [
     ".",
@@ -92,12 +86,6 @@
   version = "v0.2.0"
 
 [[projects]]
-  name = "github.com/gorhill/cronexpr"
-  packages = ["."]
-  revision = "a557574d6c024ed6e36acc8b610f5f211c91568a"
-  version = "1.0.0"
-
-[[projects]]
   branch = "master"
   name = "github.com/gregjones/httpcache"
   packages = [
@@ -141,18 +129,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/hashicorp/go-immutable-radix"
-  packages = ["."]
-  revision = "7f3cd4390caab3250a57f30efdb2a65dd7649ecf"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/hashicorp/go-msgpack"
-  packages = ["codec"]
-  revision = "fa3f63826f7c23912c15263591e65d54d080b458"
-
-[[projects]]
-  branch = "master"
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
   revision = "3d5d8f294aa03d8e98859feac328afbdf1ae0703"
@@ -174,12 +150,6 @@
   name = "github.com/hashicorp/go-sockaddr"
   packages = ["."]
   revision = "6d291a969b86c4b633730bfc6b8b9d64c3aafed9"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/hashicorp/go-version"
-  packages = ["."]
-  revision = "270f2f71b1ee587f3b609f00f422b76a6b28f348"
 
 [[projects]]
   branch = "master"
@@ -205,26 +175,6 @@
     "json/token"
   ]
   revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
-
-[[projects]]
-  name = "github.com/hashicorp/nomad"
-  packages = [
-    "acl",
-    "api",
-    "api/contexts",
-    "helper",
-    "helper/args",
-    "helper/flatmap",
-    "helper/uuid",
-    "nomad/structs"
-  ]
-  revision = "1c75593351b712bb2c22339efd642f1518ae837f"
-
-[[projects]]
-  name = "github.com/hashicorp/raft"
-  packages = ["."]
-  revision = "6d14f0c70869faabd9e60ba7ed88a6cbbd6a661f"
-  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/hashicorp/serf"
@@ -313,12 +263,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/mitchellh/copystructure"
-  packages = ["."]
-  revision = "d23ffcb85de31694d6ccaa23ccb4a03e55c1303f"
-
-[[projects]]
-  branch = "master"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
   revision = "3864e76763d94a6df2f9960b16a20a33da9f9a66"
@@ -334,12 +278,6 @@
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   revision = "f15292f7a699fcc1a38a80977f80a046874ba8ac"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/mitchellh/reflectwalk"
-  packages = ["."]
-  revision = "63d60e9d0dbc60cf9164e6510889b0db6683d98c"
 
 [[projects]]
   name = "github.com/modern-go/concurrent"
@@ -434,32 +372,10 @@
   version = "v0.1"
 
 [[projects]]
-  name = "github.com/solo-io/gloo"
-  packages = [
-    "pkg/api/types/v1",
-    "pkg/backoff",
-    "pkg/log",
-    "pkg/protoutil",
-    "pkg/storage",
-    "pkg/storage/dependencies",
-    "pkg/storage/file",
-    "test/helpers",
-    "test/helpers/local"
-  ]
-  revision = "d79dccb20dff2a3a1187efc1d2e045604919f769"
-  version = "v0.4.0"
-
-[[projects]]
   name = "github.com/spf13/pflag"
   packages = ["."]
   revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
   version = "v1.0.1"
-
-[[projects]]
-  name = "github.com/ugorji/go"
-  packages = ["codec"]
-  revision = "b4c50a2b199d93b13dc15e78929cfb23bfdf21ab"
-  version = "v1.1.1"
 
 [[projects]]
   name = "go.uber.org/atomic"
@@ -489,10 +405,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = [
-    "blake2b",
-    "ssh/terminal"
-  ]
+  packages = ["ssh/terminal"]
   revision = "a2144134853fc9a27a7b1e3eb4f19f1a76df13c9"
 
 [[projects]]
@@ -516,7 +429,6 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = [
-    "cpu",
     "unix",
     "windows"
   ]
@@ -784,6 +696,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7a68e91f134cac3c5e109cea97eb768fd75b6817e546e58ac4678fd229d44da0"
+  inputs-digest = "655e1958c2b117b8dc156f5d1170d24a2e5083d8ad4d4768b7bb57ab810adfcf"
   solver-name = "gps-cdcl"
   solver-version = 1

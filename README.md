@@ -1,5 +1,5 @@
-# gloo-core
-The Gloo Control Plane + Tools for Building Gloo-Based Projects
+# solo-kit
+Tools for Building Declarative API, stateless Projects
 
 ## Major TODOS:
 

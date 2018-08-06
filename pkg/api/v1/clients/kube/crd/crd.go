@@ -3,10 +3,10 @@ package crd
 import (
 	"fmt"
 
-	"github.com/solo-io/gloo/pkg/protoutil"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned/scheme"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -66,7 +66,7 @@ func (d Crd) Register(apiexts apiexts.Interface) error {
 }
 
 func (d Crd) KubeResource(resource resources.InputResource) *v1.Resource {
-	data, err := protoutil.MarshalMap(resource)
+	data, err := protoutils.MarshalMap(resource)
 	if err != nil {
 		panic(fmt.Sprintf("internal error: failed to marshal resource to map: %v", err))
 	}

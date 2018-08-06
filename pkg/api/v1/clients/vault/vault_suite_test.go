@@ -5,9 +5,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/pkg/log"
-	"github.com/solo-io/gloo/test/helpers"
-	"github.com/solo-io/gloo/test/helpers/local"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
+	"github.com/solo-io/solo-kit/test/services"
 )
 
 func TestVault(t *testing.T) {
@@ -17,18 +16,18 @@ func TestVault(t *testing.T) {
 }
 
 var (
-	vaultFactory  *localhelpers.VaultFactory
-	vaultInstance *localhelpers.VaultInstance
+	vaultFactory  *services.VaultFactory
+	vaultInstance *services.VaultInstance
 	err           error
 )
 
 var _ = BeforeSuite(func() {
-	vaultFactory, err = localhelpers.NewVaultFactory()
-	helpers.Must(err)
+	vaultFactory, err = services.NewVaultFactory()
+	Expect(err).NotTo(HaveOccurred())
 	vaultInstance, err = vaultFactory.NewVaultInstance()
-	helpers.Must(err)
+	Expect(err).NotTo(HaveOccurred())
 	err = vaultInstance.Run()
-	helpers.Must(err)
+	Expect(err).NotTo(HaveOccurred())
 })
 
 var _ = AfterSuite(func() {

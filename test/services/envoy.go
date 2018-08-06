@@ -17,7 +17,7 @@ import (
 	"github.com/onsi/ginkgo"
 	"github.com/pkg/errors"
 
-	"github.com/solo-io/gloo/pkg/log"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 
 const (
