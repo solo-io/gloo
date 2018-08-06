@@ -21,6 +21,8 @@ var _ = FDescribe("FakeResourceClient", func() {
 	for _, test := range []typed.ResourceClientTester{
 		&typed.KubeRcTester{Crd: FakeResourceCrd},
 		&typed.ConsulRcTester{},
+		&typed.FileRcTester{},
+		&typed.MemoryRcTester{},
 	} {
 		Context("resource client backed by "+test.Description(), func() {
 			var (
@@ -60,7 +62,6 @@ func TypedResourceClientTest(namespace string, client FakeResourceClient) {
 	Expect(r1).To(BeAssignableToTypeOf(&FakeResource{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
-	Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal("7"))
 	Expect(r1.Count).To(Equal(input.Count))
 
 	_, err = client.Write(input, clients.WriteOpts{

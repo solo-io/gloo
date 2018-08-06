@@ -234,7 +234,6 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 		Expect(r1).To(BeAssignableToTypeOf(&{{ .ResourceType }}{}))
 		Expect(r1.GetMetadata().Name).To(Equal(name))
 		Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
-		Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal("7"))
 
 		{{- range .Fields }}
 		Expect(r1.{{ . }}).To(Equal(input.{{ . }}))
