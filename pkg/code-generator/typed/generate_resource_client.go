@@ -196,6 +196,11 @@ var _ = Describe("{{ .ResourceType }}Client", func() {
 		&typed.ConsulRcTester{},
 		&typed.FileRcTester{},
 		&typed.MemoryRcTester{},
+	{{- if .IsDataType }}
+		&typed.VaultRcTester{},
+		&typed.KubeSecretRcTester{},
+		&typed.KubeConfigMapRcTester{},
+	{{- end}}
 	} {
 		Context("resource client backed by "+test.Description(), func() {
 			var (

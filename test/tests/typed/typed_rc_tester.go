@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"io/ioutil"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	vaultapi "github.com/hashicorp/vault/api"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -182,6 +183,8 @@ func (rct *KubeConfigMapRcTester) Skip() bool {
 }
 
 func (rct *KubeConfigMapRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
+	err := services.SetupKubeForTest(namespace)
+	Expect(err).NotTo(HaveOccurred())
 	kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 	cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	Expect(err).NotTo(HaveOccurred())
@@ -195,7 +198,6 @@ func (rct *KubeConfigMapRcTester) Setup(namespace string) factory.ResourceClient
 func (rct *KubeConfigMapRcTester) Teardown(namespace string) {
 	services.TeardownKube(namespace)
 }
-
 
 /*
  *
@@ -213,6 +215,8 @@ func (rct *KubeSecretRcTester) Skip() bool {
 }
 
 func (rct *KubeSecretRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
+	err := services.SetupKubeForTest(namespace)
+	Expect(err).NotTo(HaveOccurred())
 	kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 	cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	Expect(err).NotTo(HaveOccurred())
@@ -225,4 +229,51 @@ func (rct *KubeSecretRcTester) Setup(namespace string) factory.ResourceClientFac
 
 func (rct *KubeSecretRcTester) Teardown(namespace string) {
 	services.TeardownKube(namespace)
+}
+
+/*
+ *
+ * Vault Secret
+ *
+ */
+type VaultRcTester struct {
+	vaultInstance *services.VaultInstance
+	vaultFactory *services.VaultFactory
+}
+
+func (rct *VaultRcTester) Description() string {
+	return "vault-secret-based"
+}
+
+func (rct *VaultRcTester) Skip() bool {
+	if os.Getenv("RUN_VAULT_TESTS") != "1" {
+		log.Printf("This test downloads and runs vault and is disabled by default. To enable, set RUN_VAULT_TESTS=1 in your env.")
+		return true
+	}
+	return false
+}
+
+func (rct *VaultRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
+	var err error
+	rct.vaultFactory, err = services.NewVaultFactory()
+	Expect(err).NotTo(HaveOccurred())
+	rct.vaultInstance, err = rct.vaultFactory.NewVaultInstance()
+	Expect(err).NotTo(HaveOccurred())
+	err = rct.vaultInstance.Run()
+	Expect(err).NotTo(HaveOccurred())
+	rootKey := "/secret/" + namespace
+	cfg := vaultapi.DefaultConfig()
+	cfg.Address = "http://127.0.0.1:8200"
+	vault, err := vaultapi.NewClient(cfg)
+	vault.SetToken(rct.vaultInstance.Token())
+	Expect(err).NotTo(HaveOccurred())
+	return &factory.VaultSecretClientOpts{
+		RootKey: rootKey,
+		Vault:   vault,
+	}
+}
+
+func (rct *VaultRcTester) Teardown(namespace string) {
+	rct.vaultInstance.Clean()
+	rct.vaultFactory.Clean()
 }

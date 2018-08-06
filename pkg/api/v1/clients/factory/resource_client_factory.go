@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/hashicorp/consul/api"
+	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/configmap"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/consul"
@@ -12,6 +13,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kubesecret"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/vault"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"k8s.io/client-go/kubernetes"
@@ -70,6 +72,12 @@ func (factory *resourceClientFactory) NewResourceClient(params NewResourceClient
 			return nil, errors.Errorf("the kubernetes secret client can only be used for data resources, received type %v", resources.Kind(resourceType))
 		}
 		return kubesecret.NewResourceClient(opts.Clientset, dataResource)
+	case *VaultSecretClientOpts:
+		dataResource, ok := params.ResourceType.(resources.DataResource)
+		if !ok {
+			return nil, errors.Errorf("the vault secret client can only be used for data resources, received type %v", resources.Kind(resourceType))
+		}
+		return vault.NewResourceClient(opts.Vault, opts.RootKey, dataResource), nil
 	}
 	panic("unsupported type " + reflect.TypeOf(factory.opts).Name())
 }
@@ -116,3 +124,10 @@ type KubeSecretClientOpts struct {
 }
 
 func (o *KubeSecretClientOpts) isResourceClientOpts() {}
+
+type VaultSecretClientOpts struct {
+	Vault   *vaultapi.Client
+	RootKey string
+}
+
+func (o *VaultSecretClientOpts) isResourceClientOpts() {}
