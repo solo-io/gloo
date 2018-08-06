@@ -3,74 +3,105 @@ package mocks
 import (
 	"os"
 	"path/filepath"
-	"time"
-
-	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
 	"k8s.io/client-go/tools/clientcmd"
+	"github.com/hashicorp/consul/api"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"time"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/bxcodec/faker"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/onsi/ginkgo/extensions/table"
 )
 
 var _ = FDescribe("FakeResourceClient", func() {
 	var (
 		namespace string
 		client    FakeResourceClient
+
+		consulFactory  *services.ConsulFactory
+		consulInstance *services.ConsulInstance
+		consul         *api.Client
+		err            error
 	)
-	for description, test := range map[string]struct {
-		skip     func() bool
-		setup    func() FakeResourceClient
-		teardown func()
-	}{
-		"kube_crd": {
-			skip: func() bool {
-				if os.Getenv("RUN_KUBE_TESTS") != "1" {
-					log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
-					return false
-				}
-				return true
-			},
-			setup: func() FakeResourceClient {
-				namespace = helpers.RandString(8)
+	table.DescribeTable("resource client tests",
+		func(description string, skip func() bool, setup func(namespace string) factory.ResourceClientFactoryOpts, teardown func(namespace string)) {
+			if skip() {
+				return
+			}
+			var _ = Context("with backend "+description, func() {
+				var _ = BeforeEach(func() {
+					namespace = helpers.RandString(8)
+					factoryOpts := setup(namespace)
+					client, err = NewFakeResourceClient(factory.NewResourceClientFactory(factoryOpts))
+					Expect(err).NotTo(HaveOccurred())
+				})
+				var _ = AfterEach(func() {
+					teardown(namespace)
+				})
+				var _ = It("CRUDs on resource type FakeResource", func() {
+					testClient(namespace, client)
+				})
+			})
+		},
+
+		table.Entry("kube_crd", "kube_crd",
+			func() bool {
+			if os.Getenv("RUN_KUBE_TESTS") != "1" {
+				log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
+				return false
+			}
+			return true
+		},
+			func(namespace string) factory.ResourceClientFactoryOpts {
 				err := services.SetupKubeForTest(namespace)
 				Expect(err).NotTo(HaveOccurred())
 				kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 				cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 				Expect(err).NotTo(HaveOccurred())
-				clientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+				return &factory.KubeResourceClientOpts{
 					Crd: FakeResourceCrd,
 					Cfg: cfg,
-				})
-				client, err := NewFakeResourceClient(clientFactory)
-				Expect(err).NotTo(HaveOccurred())
-				return client
+				}
 			},
-			teardown: func() {
+			func(namespace string) {
 				services.TeardownKube(namespace)
-			},
+			}),
+		table.Entry("consul_kv", "consul_kv",
+			func() bool {
+			if os.Getenv("RUN_CONSUL_TESTS") != "1" {
+				log.Printf("This test downloads and runs consul and is disabled by default. To enable, set RUN_CONSUL_TESTS=1 in your env.")
+				return false
+			}
+			return true
 		},
-	} {
-		if test.skip() {
-			continue
-		}
-		Context(description, func() {
-			BeforeEach(func() {
-				client = test.setup()
-			})
-			AfterEach(test.teardown)
-			It("CRUDs on resource type FakeResource", func() {
-				testClient(namespace, client)
-			})
-		})
-	}
+			func(namespace string) factory.ResourceClientFactoryOpts {
+				consulFactory, err = services.NewConsulFactory()
+				Expect(err).NotTo(HaveOccurred())
+				consulInstance, err = consulFactory.NewConsulInstance()
+				Expect(err).NotTo(HaveOccurred())
+				err = consulInstance.Run()
+				Expect(err).NotTo(HaveOccurred())
 
+				c, err := api.NewClient(api.DefaultConfig())
+				Expect(err).NotTo(HaveOccurred())
+				consul = c
+				return &factory.ConsulResourceClientOpts{
+					Consul:  consul,
+					RootKey: namespace,
+				}
+			},
+			func(namespace string) {
+				consulInstance.Clean()
+				consulFactory.Clean()
+			}),
+	)
 })
 
 func testClient(namespace string, client FakeResourceClient) {
