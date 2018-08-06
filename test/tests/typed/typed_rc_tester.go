@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"io/ioutil"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"k8s.io/client-go/kubernetes"
 )
 
 type ResourceClientTester interface {
@@ -19,6 +20,14 @@ type ResourceClientTester interface {
 	Skip() bool
 	Setup(namespace string) factory.ResourceClientFactoryOpts
 	Teardown(namespace string)
+}
+
+func skipKubeTests() bool {
+	if os.Getenv("RUN_KUBE_TESTS") != "1" {
+		log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
+		return true
+	}
+	return false
 }
 
 /*
@@ -36,11 +45,7 @@ func (rct *KubeRcTester) Description() string {
 }
 
 func (rct *KubeRcTester) Skip() bool {
-	if os.Getenv("RUN_KUBE_TESTS") != "1" {
-		log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
-		return true
-	}
-	return false
+	return skipKubeTests()
 }
 
 func (rct *KubeRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
@@ -160,3 +165,64 @@ func (rct *MemoryRcTester) Setup(namespace string) factory.ResourceClientFactory
 }
 
 func (rct *MemoryRcTester) Teardown(namespace string) {}
+
+/*
+ *
+ * KubeCfgMap
+ *
+ */
+type KubeConfigMapRcTester struct {}
+
+func (rct *KubeConfigMapRcTester) Description() string {
+	return "kube-configmap-based"
+}
+
+func (rct *KubeConfigMapRcTester) Skip() bool {
+	return skipKubeTests()
+}
+
+func (rct *KubeConfigMapRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
+	kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
+	cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+	Expect(err).NotTo(HaveOccurred())
+	kube, err := kubernetes.NewForConfig(cfg)
+	Expect(err).NotTo(HaveOccurred())
+	return &factory.KubeConfigMapClientOpts{
+		Clientset: kube,
+	}
+}
+
+func (rct *KubeConfigMapRcTester) Teardown(namespace string) {
+	services.TeardownKube(namespace)
+}
+
+
+/*
+ *
+ * KubeSecret
+ *
+ */
+type KubeSecretRcTester struct {}
+
+func (rct *KubeSecretRcTester) Description() string {
+	return "kube-secret-based"
+}
+
+func (rct *KubeSecretRcTester) Skip() bool {
+	return skipKubeTests()
+}
+
+func (rct *KubeSecretRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
+	kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
+	cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+	Expect(err).NotTo(HaveOccurred())
+	kube, err := kubernetes.NewForConfig(cfg)
+	Expect(err).NotTo(HaveOccurred())
+	return &factory.KubeSecretClientOpts{
+		Clientset: kube,
+	}
+}
+
+func (rct *KubeSecretRcTester) Teardown(namespace string) {
+	services.TeardownKube(namespace)
+}
