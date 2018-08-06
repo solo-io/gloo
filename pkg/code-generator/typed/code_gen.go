@@ -55,4 +55,12 @@ var funcs = template.FuncMap{
 		}
 		return false
 	},
+	"need_memory_client": func(params PackageLevelTemplateParams) bool {
+		for _, p := range params.ResourceLevelParams {
+			if !p.IsInputType && !p.IsDataType {
+				return true
+			}
+		}
+		return false
+	},
 }

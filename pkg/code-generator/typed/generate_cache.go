@@ -166,6 +166,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+{{- if (need_memory_client .) }}
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+{{- end}}
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
 	"k8s.io/client-go/rest"
@@ -222,6 +225,9 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		})
 {{- end }}
 {{- else }}
+		{{ lowercase . }}ClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+			Cache: memory.NewInMemoryResourceCache(),
+		})
 {{- end }}
 		{{ lowercase . }}Client, err = New{{ . }}Client({{ lowercase . }}ClientFactory)
 		Expect(err).NotTo(HaveOccurred())
