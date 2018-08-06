@@ -2,48 +2,120 @@ syntax = "proto3";
 package gloo.api.v1;
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
 
-import "google/protobuf/struct.proto";
-
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
+import "config.proto";
+
 /*
 @solo-kit:resource
-@solo-kit:resource.short_name=vs
-@solo-kit:resource.plural_name=virtualservices
+@solo-kit:resource.short_name=px
+@solo-kit:resource.plural_name=proxies
 @solo-kit:resource.group_name=gloo.solo.io
 @solo-kit:resource.version=v1
 
- * Virtual Services represent a collection of routes for a set of domains.
- * Gloo's Virtual Services can be compared to
+A Proxy is a container for the entire set of configuration that will to be applied to one or more Proxy instances.
+Proxies define a set of listeners, each of which maps to a different port where the proxy will listen
+for connections. Each listener has its own independent configuration.
+Each domain for each Virtual Host contained in a Listener cannot appear more than once, or the Proxy
+will be invalid.
+
+Proxy instances are assigned the proxy config that matches the instance ID with which they register to Gloo.
+In the case of Envoy, this is contained in the prefix (separated with a `~` character) for their Node ID when they register to Gloo.
+
+For Envoy, this is done in by setting the Node ID to the format `<proxy-name>~<id>`.
+Node ID can be specified in Envoy with the `--service-node` flag, or in the Envoy instance's bootstrap config.
+*/
+message Proxy {
+    // define each listener the proxy will create
+    // listeners define the behavior for a single bind address + port where the proxy will listen
+    repeated Listener listeners = 2;
+
+    // Status indicates the validation status of the role resource.
+    // Status is read-only by clients, and set by gloo during validation
+    core.solo.io.Status status = 6 [(gogoproto.nullable) = false, (gogoproto.moretags) = "testdiff:\"ignore\""];
+
+    // Metadata contains the object metadata for this resource
+    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
+}
+
+// Listeners define the address:port where the proxy will listen for incoming connections
+// Each listener defines a unique set of TCP and HTTP behaviors
+message Listener {
+    // the name of the listener. names must be unique for each listener within a role
+    string name = 1;
+
+    // the bind address for the listener.
+    // both ipv4 and ipv6 formats are supported
+    string bind_address = 2;
+
+    // the port to bind on
+    // ports numbers must be unique for listeners within a role
+    uint32 bind_port = 3;
+
+    // Listeners can listen for HTTP, TCP (unsupported), and UDP (unsupported) connections
+    oneof ListenerType {
+        // The HTTP Listener enables configuration of HTTP features and route-level configuration
+        HttpListener http_listener = 1;
+    }
+
+    // SSL Config is optional for the listener. If provided, the listener will serve TLS for connections on this port
+    // Multiple SSLConfigs are supported for the pupose of SNI. Be aware that the SNI domain provided in the SSL Config
+    // Should match to the desired virtual host 
+    repeated SSLConfig ssl_config = 4;
+}
+
+// The primary type of listener that will be relevant for most use cases.
+// Use this listener to configure proxy behavior for any HTTP-level features
+message HttpListener {
+    // the set of virtual hosts that will be accessible by clients connecting to this listener.
+    // at least one virtual host must be specified for this listener to be active (else connections will be refused)
+    // the set of domains for each virtual host must be unique, or the config will be considered invalid
+    repeated VirtualHost virtual_host = 1;
+
+    // Plugins contains top-level plugin configuration to be applied to a listener
+    // Listener config is applied to all HTTP traffic that
+    // connects to this listener.
+    map<string, ConfigRef> plugins = 5;
+}
+
+/*
+@solo-kit:resource
+@solo-kit:resource.short_name=vs
+@solo-kit:resource.plural_name=virtual hosts
+@solo-kit:resource.group_name=gloo.solo.io
+@solo-kit:resource.version=v1
+
+ * Virtual Hosts represent a collection of routes for a set of domains.
+ * Gloo's Virtual Hosts can be compared to
  * [virtual hosts](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/vService.html?highlight=virtual%20host) in Envoy terminology.
- * A virtual service can be used to define "apps"; a collection of APIs that belong to a particular domain.
- * The Virtual Service concept allows configuration of per-virtualservice SSL certificates
+ * A virtual host can be used to define "apps"; a collection of APIs that belong to a particular domain.
+ * The Virtual Host concept allows configuration of per-virtual host SSL certificates
  */
-message VirtualService {
-    // Domains represent the list of domains (host/authority header) that will match for all routes on this virtual service.
+message VirtualHost {
+    // Domains represent the list of domains (host/authority header) that will match for all routes on this virtual host.
     // As in Envoy: wildcard hosts are supported in the form of “*.foo.com” or “*-bar.foo.com”.
-    // If domains is empty, gloo will set the domain to "*", making that virtual service the "default" virtualservice.
-    // The default virtualservice will be the fallback virtual service for all requests that do not match a domain on an existing virtual service.
-    // Only one default virtual service can be defined (either with an empty domain list, or a domain list that includes "*")
+    // If domains is empty, gloo will set the domain to "*", making that virtual host the "default" virtual host.
+    // The default virtual host will be the fallback virtual host for all requests that do not match a domain on an existing virtual host.
+    // Only one default virtual host can be defined (either with an empty domain list, or a domain list that includes "*")
     repeated string domains = 2;
 
-    // Routes define the list of [routes](../) that live on this virtual service.
+    // Routes define the list of [routes](../) that live on this virtual host.
     repeated Route routes = 3;
 
-    // SSL Config is optional for the virtual service. If provided, the virtual service will listen on the envoy HTTPS listener port (default :8443)
-    // If left empty, the virtual service will listen on the HTTP listener port (default :8080)
+    // SSL Config is optional for the virtual host. If provided, the virtual host will listen on the envoy HTTPS listener port (default :8443)
+    // If left empty, the virtual host will listen on the HTTP listener port (default :8080)
     SSLConfig ssl_config = 4;
 
-    // indicates whether or not this virtual service should be assigned to gateway roles automatically
-    // TODO: eventually this flag will be deprecated; gateway roles will have to explicitly state the virtual services
+    // indicates whether or not this virtual host should be assigned to gateway roles automatically
+    // TODO: eventually this flag will be deprecated; gateway roles will have to explicitly state the virtual hosts
     // they have access to.
     bool disable_for_gateways = 7;
 
-    // Status indicates the validation status of the virtual service resource. Status is read-only by clients, and set by gloo during validation
+    // Status indicates the validation status of the virtual host resource. Status is read-only by clients, and set by gloo during validation
     core.solo.io.Status status = 5 [(gogoproto.nullable) = false, (gogoproto.moretags) = "testdiff:\"ignore\""];
 
     // Metadata contains the object metadata for this resource
@@ -51,12 +123,12 @@ message VirtualService {
 }
 
 /**
- * Routes declare the entrypoints on virtual services and the upstreams or functions they route requests to
+ * Routes declare the entrypoints on virtual hosts and the upstreams or functions they route requests to
  */
 message Route {
     // Matcher defines what properties of a request to match on.
     // Routes will route all requests they match.
-    // If a request matches more than one route, the first route on the virtual service's route list will be selected.
+    // If a request matches more than one route, the first route on the virtual host's route list will be selected.
     oneof matcher {
         // request_matcher indicates this route should match requests according to the specification in the provided RequestMatcher
         // only one of request_matcher or event_matcher can be set
@@ -145,7 +217,7 @@ message UpstreamDestination {
     string name = 1;
 }
 
-// SSLConfig contains the options necessary to configure a virtualservice or listener to use TLS
+// SSLConfig contains the options necessary to configure a virtual host or listener to use TLS
 message SSLConfig {
     oneof ssl_secrets {
         /** SecretRef contains the secret ref to a gloo secret containing the following structure:

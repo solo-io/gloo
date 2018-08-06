@@ -3,16 +3,11 @@ Tools for Building Declarative API, stateless Projects
 
 ## Major TODOS:
 
-WIP: split out SetStatus stuff for IsInputResource in code gen
-
 * pkg/api/v1/clients <- support / enforce resource versioning on updates / creates (be consistent with Kube)
 
-* Config Generator (Call it an inventory! :D ). Jut have the plugin
-create a config watcher for all the resources it processes. user doesnt have to write
-a new proto for that config (it's internal anyway)
-
-
 steps:
+XXX: snapshot + cache
+xxx: split out SetStatus stuff for IsInputResource in code gen
 XX4 - reporter
 
 XXX - desired-state-achiever (syncer library)
@@ -21,9 +16,10 @@ xxx - support selectors/labels
 
 5 - e2e tests
 
-6 - callbacks/acl for apiserver
-
+XXX 6 - callbacks for apiserver
 xxx - something that works for 3rd party resources (configmaps, artifacts, etc)
+
+7 - acl for apiserver
 
  post 3 weeks
 - bootstrap
@@ -32,18 +28,13 @@ xxx - something that works for 3rd party resources (configmaps, artifacts, etc)
 - tests for consul and file
 
 
-- knative demo
 - caching plugin
-- framework
 - extending xds for rate limit, extauth
-
-
-identity system:
-
-capability: field per object permissions
-all fields down to primitive
 
 
 syncers:
 - generic ADS server, returns the grpc server to which envoy, rate limit, etc register
-z
+
+
+gloo:
+- plugins > eds > bootstrap for setup

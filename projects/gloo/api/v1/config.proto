@@ -1,0 +1,43 @@
+syntax = "proto3";
+package gloo.api.v1;
+option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/status.proto";
+
+
+// ConfigRef can be used to reference a config or inline it directly in a configurable resource
+// using config refs is useful when a single piece of config is shared across many objects
+message ConfigRef {
+    oneof ref_type {
+        // reference an existing config by name
+        string name = 1;
+        // inline the config directly
+        Config config = 2;
+    }
+}
+
+/*
+@solo-kit:resource
+@solo-kit:resource.short_name=cfg
+@solo-kit:resource.plural_name=configs
+@solo-kit:resource.group_name=gloo.solo.io
+@solo-kit:resource.version=v1
+
+Config is a proto message wrapper for a configuration struct for any Gloo plugin.
+Configs are referenced by various API objects in Gloo (Listeners, Virtual Hosts, Upstreams).
+*/
+message Config {
+    // defines the type of configuration this config resource describes. config_types are plugin-specific
+    oneof config_type {}
+
+    // Status indicates the validation status of the role resource.
+    // Status is read-only by clients, and set by gloo during validation
+    core.solo.io.Status status = 6 [(gogoproto.nullable) = false, (gogoproto.moretags) = "testdiff:\"ignore\""];
+
+    // Metadata contains the object metadata for this resource
+    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
+}
