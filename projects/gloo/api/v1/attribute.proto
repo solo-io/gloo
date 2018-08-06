@@ -30,6 +30,7 @@ message Attribute {
     // Currently available are:
     // * Listeners
     oneof attribute_type {
+        //@solo-kit:ignore_field=true
         ListenerAttribute listener_attribute = 2;
     }
 
