@@ -18,8 +18,8 @@ var _ = math.Inf
 
 //
 // @solo-kit:resource
-// @solo-kit:resource.short_name=mk
-// @solo-kit:resource.plural_name=mocks
+// @solo-kit:resource.short_name=rl
+// @solo-kit:resource.plural_name=roles
 // @solo-kit:resource.group_name=gloo.solo.io
 // @solo-kit:resource.version=v1
 //

@@ -92,8 +92,10 @@ var _ = Describe("UpstreamClient", func() {
 
 		name = "boo"
 		input = &Upstream{}
-		err = faker.FakeData(input)
-		Expect(err).NotTo(HaveOccurred())
+		
+		// ignore return error because interfaces / oneofs mess it up 
+		faker.FakeData(input)
+		
 		input.Metadata = core.Metadata{
 			Name:      name,
 			Namespace: namespace,
@@ -142,7 +144,8 @@ var _ = Describe("UpstreamClient", func() {
 
 			name = "goo"
 			input = &Upstream{}
-			err = faker.FakeData(input)
+			// ignore return error because interfaces / oneofs mess it up 
+			faker.FakeData(input)
 			Expect(err).NotTo(HaveOccurred())
 			input.Metadata = core.Metadata{
 				Name:      name,

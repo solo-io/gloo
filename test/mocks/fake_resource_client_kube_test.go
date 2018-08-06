@@ -88,8 +88,10 @@ var _ = Describe("FakeResourceClient", func() {
 
 		name = "boo"
 		input = &FakeResource{}
-		err = faker.FakeData(input)
-		Expect(err).NotTo(HaveOccurred())
+		
+		// ignore return error because interfaces / oneofs mess it up 
+		faker.FakeData(input)
+		
 		input.Metadata = core.Metadata{
 			Name:      name,
 			Namespace: namespace,
@@ -138,7 +140,8 @@ var _ = Describe("FakeResourceClient", func() {
 
 			name = "goo"
 			input = &FakeResource{}
-			err = faker.FakeData(input)
+			// ignore return error because interfaces / oneofs mess it up 
+			faker.FakeData(input)
 			Expect(err).NotTo(HaveOccurred())
 			input.Metadata = core.Metadata{
 				Name:      name,

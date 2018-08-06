@@ -87,8 +87,10 @@ var _ = Describe("AttributeClient", func() {
 
 		name = "boo"
 		input = &Attribute{}
-		err = faker.FakeData(input)
-		Expect(err).NotTo(HaveOccurred())
+		
+		// ignore return error because interfaces / oneofs mess it up 
+		faker.FakeData(input)
+		
 		input.Metadata = core.Metadata{
 			Name:      name,
 			Namespace: namespace,
@@ -137,7 +139,8 @@ var _ = Describe("AttributeClient", func() {
 
 			name = "goo"
 			input = &Attribute{}
-			err = faker.FakeData(input)
+			// ignore return error because interfaces / oneofs mess it up 
+			faker.FakeData(input)
 			Expect(err).NotTo(HaveOccurred())
 			input.Metadata = core.Metadata{
 				Name:      name,
