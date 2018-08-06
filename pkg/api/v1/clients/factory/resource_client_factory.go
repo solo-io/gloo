@@ -5,13 +5,16 @@ import (
 
 	"github.com/hashicorp/consul/api"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/configmap"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/consul"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/file"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kubesecret"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
@@ -55,6 +58,18 @@ func (factory *resourceClientFactory) NewResourceClient(params NewResourceClient
 		return file.NewResourceClient(opts.RootDir, resourceType), nil
 	case *MemoryResourceClientOpts:
 		return memory.NewResourceClient(opts.Cache, resourceType), nil
+	case *KubeConfigMapClientOpts:
+		dataResource, ok := params.ResourceType.(resources.DataResource)
+		if !ok {
+			return nil, errors.Errorf("the kubernetes configmap client can only be used for data resources, received type %v", resources.Kind(resourceType))
+		}
+		return configmap.NewResourceClient(opts.Clientset, dataResource)
+	case *KubeSecretClientOpts:
+		dataResource, ok := params.ResourceType.(resources.DataResource)
+		if !ok {
+			return nil, errors.Errorf("the kubernetes secret client can only be used for data resources, received type %v", resources.Kind(resourceType))
+		}
+		return kubesecret.NewResourceClient(opts.Clientset, dataResource)
 	}
 	panic("unsupported type " + reflect.TypeOf(factory.opts).Name())
 }
@@ -89,3 +104,15 @@ type MemoryResourceClientOpts struct {
 }
 
 func (o *MemoryResourceClientOpts) isResourceClientOpts() {}
+
+type KubeConfigMapClientOpts struct {
+	Clientset kubernetes.Interface
+}
+
+func (o *KubeConfigMapClientOpts) isResourceClientOpts() {}
+
+type KubeSecretClientOpts struct {
+	Clientset kubernetes.Interface
+}
+
+func (o *KubeSecretClientOpts) isResourceClientOpts() {}
