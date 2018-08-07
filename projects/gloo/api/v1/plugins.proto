@@ -11,7 +11,7 @@ message ListenerPlugin {
     // Note to developers: new Listener Plugins must be added to this oneof field
     // to be usable by Gloo.
     oneof plugin_type {
-
+        string empty = 1;
     }
 }
 
@@ -21,7 +21,7 @@ message VirtualHostPlugin {
     // Note to developers: new Virtual Host Plugins must be added to this oneof field
     // to be usable by Gloo.
     oneof plugin_type {
-
+        string empty = 1;
     }
 }
 
@@ -31,7 +31,7 @@ message RoutePlugin {
     // Note to developers: new Route Plugins must be added to this oneof field
     // to be usable by Gloo.
     oneof plugin_type {
-
+        string empty = 1;
     }
 }
 
@@ -40,7 +40,7 @@ message DestinationSpec {
     // Note to developers: new DestinationSpecs must be added to this oneof field
     // to be usable by Gloo.
     oneof destination_type {
-
+        string empty = 1;
     }
 }
 
@@ -50,7 +50,7 @@ message UpstreamSpec {
     // Note to developers: new Upstream Plugins must be added to this oneof field
     // to be usable by Gloo.
     oneof upstream_type {
-
+        string empty = 1;
     }
 }
 

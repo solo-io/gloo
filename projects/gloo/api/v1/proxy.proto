@@ -236,7 +236,7 @@ message RedirectAction {
 
     // The HTTP status code to use in the redirect response. The default response
     // code is MOVED_PERMANENTLY (301).
-    RedirectResponseCode response_code = 3 [(validate.rules).enum.defined_only = true];
+    RedirectResponseCode response_code = 3;
 
     // The scheme portion of the URL will be swapped with "https".
     bool https_redirect = 4;
@@ -250,14 +250,14 @@ message RedirectAction {
 // DirectResponseAction is copied directly from https://github.com/envoyproxy/envoy/blob/master/api/envoy/api/v2/route/route.proto
 message DirectResponseAction {
     // Specifies the HTTP response status to be returned.
-    uint32 status = 1 [(validate.rules).uint32 = {gte: 100, lt: 600}];
+    uint32 status = 1;
 
     // Specifies the content of the response body. If this setting is omitted,
     // no body is included in the generated response.
     //
     //   Note: Headers can be specified using the Header Modification plugin in the enclosing
     //   Route, Virtual Host, or Listener.
-    core.DataSource body = 2;
+    string body = 2;
 }
 
 // Parameters for matching routes to requests received by a Gloo-managed proxy
@@ -301,7 +301,7 @@ message RouteMatcher {
     repeated QueryParameterMatcher query_parameters = 7;
 
     // HTTP Method/Verb(s) to match on. If none specified, the matcher will ignore the HTTP Method
-    repeated string methods = 6;
+    repeated string methods = 8;
 }
 
 
