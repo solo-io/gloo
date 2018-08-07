@@ -9,35 +9,57 @@ import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
 
-// ConfigRef can be used to reference a config or inline it directly in a configurable resource
-// using config refs is useful when a single piece of config is shared across many objects
-message ConfigRef {
-    oneof ref_type {
-        // reference an existing config by name
-        string name = 1;
-        // inline the config directly
-        Config config = 2;
+// Plugin-specific configuration that lives on listeners
+// Each ListenerPlugin object contains configuration for a specific plugin
+message ListenerPlugin {
+    // Note to developers: new Listener Plugins must be added to this oneof field
+    // to be usable by Gloo.
+    oneof plugin_type {
+
     }
 }
 
-/*
-@solo-kit:resource
-@solo-kit:resource.short_name=cfg
-@solo-kit:resource.plural_name=configs
-@solo-kit:resource.group_name=gloo.solo.io
-@solo-kit:resource.version=v1
+// Plugin-specific configuration that lives on virtual hosts
+// Each VirtualHostPlugin object contains configuration for a specific plugin
+message VirtualHostPlugin {
+    // Note to developers: new Virtual Host Plugins must be added to this oneof field
+    // to be usable by Gloo.
+    oneof plugin_type {
 
-Config is a proto message wrapper for a configuration struct for any Gloo plugin.
-Configs are referenced by various API objects in Gloo (Listeners, Virtual Hosts, Upstreams).
-*/
-message Config {
-    // defines the type of configuration this config resource describes. config_types are plugin-specific
-    oneof config_type {}
-
-    // Status indicates the validation status of the role resource.
-    // Status is read-only by clients, and set by gloo during validation
-    core.solo.io.Status status = 6 [(gogoproto.nullable) = false, (gogoproto.moretags) = "testdiff:\"ignore\""];
-
-    // Metadata contains the object metadata for this resource
-    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
+    }
 }
+
+// Plugin-specific configuration that lives on routes
+// Each RoutePlugin object contains configuration for a specific plugin
+message RoutePlugin {
+    // Note to developers: new Route Plugins must be added to this oneof field
+    // to be usable by Gloo.
+    oneof plugin_type {
+
+    }
+}
+
+// Configuration for Destinations that are tied to the UpstreamSpec or ServiceSpec on that destination
+message DestinationSpec {
+    // Note to developers: new DestinationSpecs must be added to this oneof field
+    // to be usable by Gloo.
+    oneof destination_type {
+
+    }
+}
+
+// Each upstream in Gloo has a type. Supported types include `static`, `kubernetes`, `aws`, `consul`, and more.
+// Each upstream type is handled by a corresponding Gloo plugin.
+message UpstreamSpec {
+    // Note to developers: new Upstream Plugins must be added to this oneof field
+    // to be usable by Gloo.
+    oneof upstream_type {
+
+    }
+}
+
+// Some upstreams host well-known protocols such as REST, gRPC, and NATS-streaming
+// For upstreams that support services (e.g. static, kubernetes, and consul), additional features
+// such as JSON-gRPC transcoding and automatic request transformation can be achieved by providing
+// a Plugin-specific ServiceSpec on the Upstream object. Upstreams that support ServiceSpec are
+message ServiceSpec {}
