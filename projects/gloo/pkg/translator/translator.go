@@ -18,7 +18,7 @@ type Translator interface {
 	Translate(ctx context.Context, proxy *v1.Proxy, snap *v1.Snapshot) (envoycache.Snapshot, reporter.ResourceErrors, error)
 }
 
-type translator struct{
+type translator struct {
 	plugins []plugins.Plugin
 }
 
@@ -58,7 +58,7 @@ func (t *translator) computeListenerResources(proxy *v1.Proxy, listener *v1.List
 
 	endpoints := computeClusterEndpoints(snap.UpstreamList, snap.EndpointList)
 	clusters := t.computeClusters(snap, resourceErrs)
-	routeConfig := t.computeRouteConfig(proxy, listener.Name, rdsName, snap, resourceErrs)
+	routeConfig := t.computeRouteConfig(proxy, listener, rdsName, snap, resourceErrs)
 	envoyListener := t.computeListener(proxy, listener, snap, resourceErrs)
 
 	return &listenerResources{

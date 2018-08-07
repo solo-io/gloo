@@ -28,7 +28,7 @@ Proxy instances that register with Gloo are assigned the proxy configuration cor
 a proxy-specific identifier.
 * In the case of Envoy, proxy instances are identified by matching the following string pattern `PROXY_ID~IGNORED`
  in the instance's [Node Id](https://www.envoyproxy.io/docs/envoy/latest/operations/cli). where
-PROXY_ID is the name of the role the Gloo operator wishes to assign.
+PROXY_ID is the name of the proxy the Gloo operator wishes to assign.
 * Node ID can be specified in Envoy with the `--service-node` flag, or in the Envoy instance's bootstrap config.
 */
 message Proxy {
@@ -49,7 +49,7 @@ message Proxy {
 // A Listener accepts connections (currently only HTTP is supported) and apply user-defined behavior for those connections,
 // e.g. performing SSL termination, HTTP retries, and rate limiting.
 message Listener {
-    // the name of the listener. names must be unique for each listener within a role
+    // the name of the listener. names must be unique for each listener within a proxy
     string name = 1;
 
     // the bind address for the listener.
@@ -57,7 +57,7 @@ message Listener {
     string bind_address = 2;
 
     // the port to bind on
-    // ports numbers must be unique for listeners within a role
+    // ports numbers must be unique for listeners within a proxy
     uint32 bind_port = 3;
 
     // Listeners can listen for HTTP, TCP (unsupported), and UDP (unsupported) connections
@@ -101,6 +101,9 @@ message HttpListener {
  * If a request is not matched to any virtual host or a route therein, the target proxy will reply with a 404.
  */
 message VirtualHost {
+    // the logical name of the virtual host. names must be unique for each virtual host within a listener
+    string name = 1;
+
     // The list of domains (i.e.: matching the `Host` header of a request) that belong to this virtual host.
     // Note that the wildcard will not match the empty string. e.g. “*-bar.foo.com” will match “baz-bar.foo.com”
     // but not “-bar.foo.com”. Additionally, a special entry “*” is allowed which will match any host/authority header.
@@ -197,7 +200,6 @@ message WeightedDestination {
     uint32 weight = 2;
 }
 
-
 // TODO(ilackarms): evaluate how much to differentiate (or if even to include) RedirectAction
 // Notice: RedirectAction is copioed directly from https://github.com/envoyproxy/envoy/blob/master/api/envoy/api/v2/route/route.proto
 message RedirectAction {
@@ -269,7 +271,7 @@ message RouteMatcher {
 
         // If specified, the route is an exact path rule meaning that the path must
         // exactly match the *:path* header once the query string is removed.
-        string path = 2;
+        string exact = 2;
 
         // If specified, the route is a regular expression rule meaning that the
         // regex must match the *:path* header once the query string is removed. The entire path
@@ -304,8 +306,6 @@ message RouteMatcher {
     repeated string methods = 8;
 }
 
-
-
 //   Internally, Gloo always uses the HTTP/2 *:authority* header to represent the HTTP/1 *Host*
 //   header. Thus, if attempting to match on *Host*, match on *:authority* instead.
 //
@@ -316,50 +316,12 @@ message HeaderMatcher {
     // Specifies the name of the header in the request.
     string name = 1;
 
-    // Specifies how the header match will be performed to route the request.
-    oneof header_match_specifier {
-        // If specified, header match will be performed based on the value of the header.
-        string exact_match = 2;
+    // Specifies the value of the header. If the value is absent a request that
+    // has the name header will match, regardless of the header’s value.
+    string value = 2;
 
-        // If specified, this regex string is a regular expression rule which implies the entire request
-        // header value must match the regex. The rule will not match if only a subsequence of the
-        // request header value matches the regex. The regex grammar used in the value field is defined
-        // `here <http://en.cppreference.com/w/cpp/regex/ecmascript>`_.
-        //
-        // Examples:
-        //
-        // * The regex *\d{3}* matches the value *123*
-        // * The regex *\d{3}* does not match the value *1234*
-        // * The regex *\d{3}* does not match the value *123.456*
-        string regex_match = 3;
-
-        // If specified, header match will be be performed based on whether the header is in the
-        // request.
-        bool present_match = 4;
-
-        // If specified, header match will be performed based on the prefix of the header value.
-        // Note: empty prefix is not allowed, please use present_match instead.
-        //
-        // Examples:
-        //
-        // * The prefix *abcd* matches the value *abcdxyz*, but not for *abcxyz*.
-        string prefix_match = 9;
-
-        // If specified, header match will be performed based on the suffix of the header value.
-        // Note: empty suffix is not allowed, please use present_match instead.
-        //
-        // Examples:
-        //
-        // * The suffix *abcd* matches the value *xyzabcd*, but not for *xyzbcd*.
-        string suffix_match = 10;
-    }
-
-    // If specified, the match result will be inverted before checking. Defaults to false.
-    //
-    // Examples:
-    //
-    // * The regex *\d{3}* does not match the value *1234*, so it will match when inverted.
-    bool invert_match = 8;
+    // Specifies whether the header value should be treated as regex or not.
+    bool regex = 3;
 }
 
 // Query parameter matching treats the query string of a request's :path header
@@ -372,13 +334,13 @@ message QueryParameterMatcher {
     // Specifies the value of the key. If the value is absent, a request
     // that contains the key in its query string will match, whether the
     // key appears with a value (e.g., "?debug=true") or not (e.g., "?debug")
-    string value = 3;
+    string value = 2;
 
     // Specifies whether the query parameter value is a regular expression.
     // Defaults to false. The entire query parameter value (i.e., the part to
     // the right of the equals sign in "key=value") must match the regex.
     // E.g., the regex "\d+$" will match "123" but not "a123" or "123a".
-    bool regex = 4;
+    bool regex = 3;
 }
 
 // SSLConfig contains the options necessary to configure a virtual host or listener to use TLS

@@ -17,9 +17,38 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/envoyproxy/go-control-plane"
+  packages = [
+    "envoy/api/v2",
+    "envoy/api/v2/auth",
+    "envoy/api/v2/cluster",
+    "envoy/api/v2/core",
+    "envoy/api/v2/endpoint",
+    "envoy/api/v2/listener",
+    "envoy/api/v2/route",
+    "envoy/config/filter/accesslog/v2",
+    "envoy/config/filter/network/http_connection_manager/v2",
+    "envoy/type",
+    "pkg/cache",
+    "pkg/log",
+    "pkg/util"
+  ]
+  revision = "c14704578b82128fab17743d91f870c406ef8d09"
+  version = "v0.4"
+
+[[projects]]
   name = "github.com/ghodss/yaml"
   packages = ["."]
   revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/gogo/googleapis"
+  packages = [
+    "google/api",
+    "google/rpc"
+  ]
+  revision = "08a7655d27152912db7aaf4f983275eaf8d128ef"
   version = "v1.0.0"
 
 [[projects]]
@@ -250,6 +279,12 @@
   version = "v0.1.0"
 
 [[projects]]
+  name = "github.com/lyft/protoc-gen-validate"
+  packages = ["validate"]
+  revision = "930a67cf7ba41b9d9436ad7a1be70a5d5ff6e1fc"
+  version = "v0.0.6"
+
+[[projects]]
   name = "github.com/mattn/go-colorable"
   packages = ["."]
   revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
@@ -296,7 +331,6 @@
   packages = [
     ".",
     "config",
-    "extensions/table",
     "internal/codelocation",
     "internal/containernode",
     "internal/failer",
@@ -371,6 +405,16 @@
   packages = ["."]
   revision = "572520ed46dbddaed19ea3d9541bdd0494163693"
   version = "v0.1"
+
+[[projects]]
+  name = "github.com/solo-io/gloo"
+  packages = [
+    "pkg/api/defaults/v1",
+    "pkg/api/types/v1",
+    "pkg/control-plane/translator/defaults"
+  ]
+  revision = "44d23d5f2a2f8b207a54570bf67ef6ecc0b7f19c"
+  version = "v0.4.3"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -697,6 +741,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9c6d4482776d4e5a3471fb0dcd56b82a2f906bde47c9a4c9daa5abce1d59fb55"
+  inputs-digest = "715a31b018ed0f0b3a861cb1ad6d62b1df5442884e78302aa9385a26bc8a319b"
   solver-name = "gps-cdcl"
   solver-version = 1
