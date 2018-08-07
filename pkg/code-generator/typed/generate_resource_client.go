@@ -98,6 +98,7 @@ func (client *{{ lowercase .ResourceType }}Client) Register() error {
 }
 
 func (client *{{ lowercase .ResourceType }}Client) Read(namespace, name string, opts clients.ReadOpts) (*{{ .ResourceType }}, error) {
+	opts = opts.WithDefaults()
 	resource, err := client.rc.Read(namespace, name, opts)
 	if err != nil {
 		return nil, err
@@ -106,6 +107,7 @@ func (client *{{ lowercase .ResourceType }}Client) Read(namespace, name string, 
 }
 
 func (client *{{ lowercase .ResourceType }}Client) Write({{ lowercase .ResourceType }} *{{ .ResourceType }}, opts clients.WriteOpts) (*{{ .ResourceType }}, error) {
+	opts = opts.WithDefaults()
 	resource, err := client.rc.Write({{ lowercase .ResourceType }}, opts)
 	if err != nil {
 		return nil, err
@@ -114,10 +116,12 @@ func (client *{{ lowercase .ResourceType }}Client) Write({{ lowercase .ResourceT
 }
 
 func (client *{{ lowercase .ResourceType }}Client) Delete(namespace, name string, opts clients.DeleteOpts) error {
+	opts = opts.WithDefaults()
 	return client.rc.Delete(namespace, name, opts)
 }
 
 func (client *{{ lowercase .ResourceType }}Client) List(namespace string, opts clients.ListOpts) ([]*{{ .ResourceType }}, error) {
+	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
 		return nil, err
@@ -126,6 +130,7 @@ func (client *{{ lowercase .ResourceType }}Client) List(namespace string, opts c
 }
 
 func (client *{{ lowercase .ResourceType }}Client) Watch(namespace string, opts clients.WatchOpts) (<-chan []*{{ .ResourceType }}, <-chan error, error) {
+	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr

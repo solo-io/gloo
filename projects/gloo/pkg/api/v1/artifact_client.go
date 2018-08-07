@@ -61,6 +61,7 @@ func (client *artifactClient) Register() error {
 }
 
 func (client *artifactClient) Read(namespace, name string, opts clients.ReadOpts) (*Artifact, error) {
+	opts = opts.WithDefaults()
 	resource, err := client.rc.Read(namespace, name, opts)
 	if err != nil {
 		return nil, err
@@ -69,6 +70,7 @@ func (client *artifactClient) Read(namespace, name string, opts clients.ReadOpts
 }
 
 func (client *artifactClient) Write(artifact *Artifact, opts clients.WriteOpts) (*Artifact, error) {
+	opts = opts.WithDefaults()
 	resource, err := client.rc.Write(artifact, opts)
 	if err != nil {
 		return nil, err
@@ -77,10 +79,12 @@ func (client *artifactClient) Write(artifact *Artifact, opts clients.WriteOpts) 
 }
 
 func (client *artifactClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
+	opts = opts.WithDefaults()
 	return client.rc.Delete(namespace, name, opts)
 }
 
 func (client *artifactClient) List(namespace string, opts clients.ListOpts) ([]*Artifact, error) {
+	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
 		return nil, err
@@ -89,6 +93,7 @@ func (client *artifactClient) List(namespace string, opts clients.ListOpts) ([]*
 }
 
 func (client *artifactClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []*Artifact, <-chan error, error) {
+	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr

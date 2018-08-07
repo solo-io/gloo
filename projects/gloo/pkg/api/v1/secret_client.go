@@ -61,6 +61,7 @@ func (client *secretClient) Register() error {
 }
 
 func (client *secretClient) Read(namespace, name string, opts clients.ReadOpts) (*Secret, error) {
+	opts = opts.WithDefaults()
 	resource, err := client.rc.Read(namespace, name, opts)
 	if err != nil {
 		return nil, err
@@ -69,6 +70,7 @@ func (client *secretClient) Read(namespace, name string, opts clients.ReadOpts) 
 }
 
 func (client *secretClient) Write(secret *Secret, opts clients.WriteOpts) (*Secret, error) {
+	opts = opts.WithDefaults()
 	resource, err := client.rc.Write(secret, opts)
 	if err != nil {
 		return nil, err
@@ -77,10 +79,12 @@ func (client *secretClient) Write(secret *Secret, opts clients.WriteOpts) (*Secr
 }
 
 func (client *secretClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
+	opts = opts.WithDefaults()
 	return client.rc.Delete(namespace, name, opts)
 }
 
 func (client *secretClient) List(namespace string, opts clients.ListOpts) ([]*Secret, error) {
+	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
 		return nil, err
@@ -89,6 +93,7 @@ func (client *secretClient) List(namespace string, opts clients.ListOpts) ([]*Se
 }
 
 func (client *secretClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []*Secret, <-chan error, error) {
+	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr

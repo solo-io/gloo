@@ -61,6 +61,7 @@ func (client *upstreamClient) Register() error {
 }
 
 func (client *upstreamClient) Read(namespace, name string, opts clients.ReadOpts) (*Upstream, error) {
+	opts = opts.WithDefaults()
 	resource, err := client.rc.Read(namespace, name, opts)
 	if err != nil {
 		return nil, err
@@ -69,6 +70,7 @@ func (client *upstreamClient) Read(namespace, name string, opts clients.ReadOpts
 }
 
 func (client *upstreamClient) Write(upstream *Upstream, opts clients.WriteOpts) (*Upstream, error) {
+	opts = opts.WithDefaults()
 	resource, err := client.rc.Write(upstream, opts)
 	if err != nil {
 		return nil, err
@@ -77,10 +79,12 @@ func (client *upstreamClient) Write(upstream *Upstream, opts clients.WriteOpts) 
 }
 
 func (client *upstreamClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
+	opts = opts.WithDefaults()
 	return client.rc.Delete(namespace, name, opts)
 }
 
 func (client *upstreamClient) List(namespace string, opts clients.ListOpts) ([]*Upstream, error) {
+	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
 		return nil, err
@@ -89,6 +93,7 @@ func (client *upstreamClient) List(namespace string, opts clients.ListOpts) ([]*
 }
 
 func (client *upstreamClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []*Upstream, <-chan error, error) {
+	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
