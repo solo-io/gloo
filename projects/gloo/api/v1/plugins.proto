@@ -5,10 +5,6 @@ option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
-import "github.com/solo-io/solo-kit/api/v1/status.proto";
-
-
 // Plugin-specific configuration that lives on listeners
 // Each ListenerPlugin object contains configuration for a specific plugin
 message ListenerPlugin {

@@ -2,14 +2,13 @@ syntax = "proto3";
 package gloo.api.v1;
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
 
-import "google/protobuf/struct.proto";
-import "google/protobuf/duration.proto";
-
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
+
+import "plugins.proto";
 
 /*
 @solo-kit:resource
@@ -18,53 +17,19 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
 @solo-kit:resource.group_name=gloo.solo.io
 @solo-kit:resource.version=v1
 
- * Upstream represents a destination for routing. Upstreams can be compared to
+ * Upstreams represent destination for routing HTTP requests. Upstreams can be compared to
  * [clusters](https://www.envoyproxy.io/docs/envoy/latest/api-v1/cluster_manager/cluster.html?highlight=cluster) in Envoy terminology.
- * Upstreams can take a variety of types<!--(TODO)--> in gloo. Language extensions known as plugins<!--(TODO)--> allow the addition of new
- * types of upstreams. <!--See [upstream types](TODO) for a detailed description of available upstream types.-->
+ * Each upstream in Gloo has a type. Supported types include `static`, `kubernetes`, `aws`, `consul`, and more.
+ * Each upstream type is handled by a corresponding Gloo plugin.
  */
 message Upstream {
-    // Type indicates the type of the upstream. Examples include static<!--(TODO)-->, kubernetes<!--(TODO)-->, and [aws](../plugins/aws.md)
-    // Types are defined by the plugin<!--(TODO)--> associated with them.
-    string type = 2;
-    // Connection Timeout tells gloo to set a timeout for unresponsive connections created to this upstream.
-    // If not provided by the user, it will set to a default value
-    google.protobuf.Duration connection_timeout = 3 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
-    // Spec contains properties that are specific to the upstream type. The spec is always required, but
-    // the expected content is specified by the [upstream plugin] for the given upstream type.
-    // Most often the upstream spec will be a map<string, string>
-    google.protobuf.Struct spec = 4;
-    // Certain upstream types support (and may require) [functions](../introduction/concepts.md#Functions).
-    // Functions allow function-level routing to be done. For example, the [AWS lambda](../plugins/aws.md) upstream type
-    // Permits routing to AWS lambda function].
-    // [routes](virtualservice.md#Route) on virtualservices can specify function destinations to route to specific functions.
-    repeated Function functions = 5;
+    // Indicates the type of the upstream. Examples include static, kubernetes, and aws.
+    // Each type has a type-specific config called a spec.
+    UpstreamSpec upstream_type = 2;
 
-    // Service Info contains information about the service running on the upstream
-    // Service Info is optional, but is used by certain plugins (such as the gRPC plugin)
-    // as well as discovery services to provide sophistocated routing features for well-known
-    // types of services
-    ServiceInfo service_info = 8;
-
-    // Status indicates the validation status of the upstream resource. Status is read-only by clients, and set by gloo during validation
+    // Status indicates the validation status of the resource. Status is read-only by clients, and set by gloo during validation
     core.solo.io.Status status = 6 [(gogoproto.nullable) = false, (gogoproto.moretags) = "testdiff:\"ignore\""];
+
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
-}
-
-message ServiceInfo {
-    // Type indicates the type of service running on the upstream.
-    // Current options include `REST`, `gRPC`, and `NATS`
-    string type = 1;
-    // Properties contains properties that describe the service. The spec may be required
-    // by the Upstream Plugin that handles the given Service Type
-    // Most often the service properties will be a map<string, string>
-    google.protobuf.Struct properties = 2;
-}
-
-message Function {
-    // Name of the function. Functions are referenced by name from routes and therefore must be unique within an upstream
-    string name = 1;
-    // Spec for the function. Like [upstream specs](TODO), the content of function specs is specified by the [upstream plugin](TODO) for the upstream's type.
-    google.protobuf.Struct spec = 4;
 }

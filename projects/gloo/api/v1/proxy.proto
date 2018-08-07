@@ -8,7 +8,7 @@ option (gogoproto.equal_all) = true;
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
-import "config.proto";
+import "plugins.proto";
 
 /*
 @solo-kit:resource
@@ -177,7 +177,7 @@ message Destination {
     // gRPC upstreams, for example, allow specifying REST-style parameters for JSON-to-gRPC transcoding in the
     // destination config. If the destination config is required for the upstream and not provided by the user,
     // Gloo will invalidate the destination and its parent resources.
-    DestinationConfig destination_config = 2;
+    DestinationSpec destination_spec = 2;
 }
 
 // MultiDestination is a container for a set of weighted destinations. Gloo will load balance traffic for a single
