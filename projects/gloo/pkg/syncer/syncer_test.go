@@ -4,17 +4,18 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
-	"github.com/envoyproxy/go-control-plane/pkg/cache"
 	"context"
+
+	"github.com/envoyproxy/go-control-plane/pkg/cache"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-kit/test/helpers"
-	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	. "github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
+	"github.com/solo-io/solo-kit/test/helpers"
 )
 
 var _ = Describe("Syncer", func() {
@@ -51,8 +52,8 @@ var _ = Describe("Syncer", func() {
 		Expect(proxies).To(HaveLen(1))
 		Expect(proxies[0]).To(BeAssignableToTypeOf(&v1.Proxy{}))
 		Expect(proxies[0].(*v1.Proxy).Status).To(Equal(core.Status{
-			State: 2,
-			Reason: "hi, how ya doin'?",
+			State:               2,
+			Reason:              "hi, how ya doin'?",
 			ControllerReference: ref,
 		}))
 
@@ -72,8 +73,8 @@ var _ = Describe("Syncer", func() {
 		Expect(proxies).To(HaveLen(1))
 		Expect(proxies[0]).To(BeAssignableToTypeOf(&v1.Proxy{}))
 		Expect(proxies[0].(*v1.Proxy).Status).To(Equal(core.Status{
-			State: 2,
-			Reason: "hi, how ya doin'?",
+			State:               2,
+			Reason:              "hi, how ya doin'?",
 			ControllerReference: ref,
 		}))
 
@@ -81,7 +82,7 @@ var _ = Describe("Syncer", func() {
 	})
 })
 
-type mockTranslator struct{
+type mockTranslator struct {
 	reportErrs bool
 }
 
@@ -92,7 +93,7 @@ func (t *mockTranslator) Translate(ctx context.Context, proxy *v1.Proxy, snap *v
 	return cache.Snapshot{}, nil, nil
 }
 
-type mockXdsCache struct{
+type mockXdsCache struct {
 	called bool
 }
 
