@@ -10,3 +10,4 @@ import (
 type Translator interface {
 	Translate(ctx context.Context, proxy *v1.Proxy, snap *v1.Snapshot) (envoycache.Snapshot, reporter.ResourceErrors, error)
 }
+
