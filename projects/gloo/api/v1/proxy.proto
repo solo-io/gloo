@@ -18,20 +18,23 @@ import "config.proto";
 @solo-kit:resource.version=v1
 
 A Proxy is a container for the entire set of configuration that will to be applied to one or more Proxy instances.
-Proxies define a set of listeners, each of which maps to a different port where the proxy will listen
-for connections. Each listener has its own independent configuration.
-Each domain for each Virtual Host contained in a Listener cannot appear more than once, or the Proxy
-will be invalid.
+Proxies can be understood as a set of listeners, represents a different bind address/port where the proxy will listen
+for connections. Each listener has its own set of configuration.
 
-Proxy instances are assigned the proxy config that matches the instance ID with which they register to Gloo.
-In the case of Envoy, this is contained in the prefix (separated with a `~` character) for their Node ID when they register to Gloo.
+If any of the subresources within a listener is declared invalid (e.g. due to invalid user configuration), the
+proxy will be marked invalid by Gloo.
 
-For Envoy, this is done in by setting the Node ID to the format `<proxy-name>~<id>`.
-Node ID can be specified in Envoy with the `--service-node` flag, or in the Envoy instance's bootstrap config.
+Proxy instances that register with Gloo are assigned the proxy configuration corresponding with
+a proxy-specific identifier.
+* In the case of Envoy, proxy instances are identified by matching the following string pattern `PROXY_ID~IGNORED`
+ in the instance's [Node Id](https://www.envoyproxy.io/docs/envoy/latest/operations/cli). where
+PROXY_ID is the name of the role the Gloo operator wishes to assign.
+* Node ID can be specified in Envoy with the `--service-node` flag, or in the Envoy instance's bootstrap config.
 */
 message Proxy {
-    // define each listener the proxy will create
-    // listeners define the behavior for a single bind address + port where the proxy will listen
+    // Define here each listener the proxy should create.
+    // Listeners define the a set of behaviors for a single bind address/port where the proxy will listen
+    // List
     repeated Listener listeners = 2;
 
     // Status indicates the validation status of the role resource.
