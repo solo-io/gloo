@@ -63,6 +63,7 @@ func EndpointClientTest(namespace string, client EndpointClient) {
 	Expect(r1).To(BeAssignableToTypeOf(&Endpoint{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
+	Expect(r1.UpstreamName).To(Equal(input.UpstreamName))
 	Expect(r1.Address).To(Equal(input.Address))
 	Expect(r1.Port).To(Equal(input.Port))
 

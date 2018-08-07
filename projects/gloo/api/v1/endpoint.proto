@@ -14,13 +14,15 @@ import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 @solo-kit:resource.group_name=gloo.solo.io
 @solo-kit:resource.version=v1
 
-Endpoints represent a single IP address or hostname + port where an application or service is listening
+Endpoints represent dynamically discovered address/ports where an upstream service is listening
  */
 message Endpoint {
+    // Name of the upstream the endpoint belongs to
+    string upstream_name = 1;
     // Address of the endpoint (ip or hostname)
-    string address = 1;
+    string address = 2;
     // listening port for the endpoint
-    uint32 port = 2;
+    uint32 port = 3;
 
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
