@@ -3,30 +3,30 @@ package kubernetes
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	kubev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	kubewatch "k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
-type endpointsWatcher struct{
-	kube kubernetes.Interface
+type endpointsWatcher struct {
+	kube      kubernetes.Interface
 	upstreams []*v1.Upstream
-	resync chan struct{}
+	resync    chan struct{}
 }
 
 func newEndpointsWatcher(kube kubernetes.Interface) *endpointsWatcher {
 	return &endpointsWatcher{
-		kube: kube,
+		kube:   kube,
 		resync: make(chan struct{}),
 	}
 }
 
 func (w *endpointsWatcher) TrackUpstreams(upstreams []*v1.Upstream) {
 	w.upstreams = upstreams
-	go func(){
+	go func() {
 		w.resync <- struct{}{}
 	}()
 }
@@ -113,7 +113,7 @@ type edsMapping struct {
 }
 
 func processNewEndpoints(list *kubev1.EndpointsList) map[edsMapping]*kubev1.Endpoints {
-	endpointSet := make(map[edsMapping ]*kubev1.Endpoints)
+	endpointSet := make(map[edsMapping]*kubev1.Endpoints)
 	for _, eps := range list.Items {
 		for _, subset := range eps.Subsets {
 

@@ -6,34 +6,39 @@ Package v1 is a generated protocol buffer package.
 
 It is generated from these files:
 	artifact.proto
-	attribute.proto
 	endpoint.proto
-	role.proto
+	plugins.proto
+	proxy.proto
 	secret.proto
 	upstream.proto
-	virtualservice.proto
 
 It has these top-level messages:
 	Artifact
-	Attribute
-	ListenerAttribute
 	Endpoint
-	Role
+	ListenerPlugin
+	VirtualHostPlugin
+	RoutePlugin
+	DestinationSpec
+	UpstreamSpec
+	ServiceSpec
+	Proxy
 	Listener
-	Secret
-	Upstream
-	ServiceInfo
-	Function
-	VirtualService
+	HttpListener
+	VirtualHost
 	Route
-	RequestMatcher
-	EventMatcher
-	WeightedDestination
+	RouteAction
 	Destination
-	FunctionDestination
-	UpstreamDestination
+	MultiDestination
+	WeightedDestination
+	RedirectAction
+	DirectResponseAction
+	RouteMatcher
+	HeaderMatcher
+	QueryParameterMatcher
 	SSLConfig
 	SSLFiles
+	Secret
+	Upstream
 */
 package v1
 

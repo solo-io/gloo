@@ -15,43 +15,43 @@ import (
 	"github.com/solo-io/solo-kit/test/tests/typed"
 )
 
-var _ = Describe("VirtualServiceClient", func() {
+var _ = Describe("ProxyClient", func() {
 	var (
 		namespace string
 	)
 	for _, test := range []typed.ResourceClientTester{
-		&typed.KubeRcTester{Crd: VirtualServiceCrd},
+		&typed.KubeRcTester{Crd: ProxyCrd},
 		&typed.ConsulRcTester{},
 		&typed.FileRcTester{},
 		&typed.MemoryRcTester{},
 	} {
 		Context("resource client backed by "+test.Description(), func() {
 			var (
-				client VirtualServiceClient
+				client ProxyClient
 				err    error
 			)
 			BeforeEach(func() {
 				namespace = helpers.RandString(6)
 				factoryOpts := test.Setup(namespace)
-				client, err = NewVirtualServiceClient(factory.NewResourceClientFactory(factoryOpts))
+				client, err = NewProxyClient(factory.NewResourceClientFactory(factoryOpts))
 				Expect(err).NotTo(HaveOccurred())
 			})
 			AfterEach(func() {
 				test.Teardown(namespace)
 			})
-			It("CRUDs VirtualServices", func() {
-				VirtualServiceClientTest(namespace, client)
+			It("CRUDs Proxys", func() {
+				ProxyClientTest(namespace, client)
 			})
 		})
 	}
 })
 
-func VirtualServiceClientTest(namespace string, client VirtualServiceClient) {
+func ProxyClientTest(namespace string, client ProxyClient) {
 	err := client.Register()
 	Expect(err).NotTo(HaveOccurred())
 
 	name := "foo"
-	input := NewVirtualService(namespace, name)
+	input := NewProxy(namespace, name)
 	input.Metadata.Namespace = namespace
 	r1, err := client.Write(input, clients.WriteOpts{})
 	Expect(err).NotTo(HaveOccurred())
@@ -60,13 +60,10 @@ func VirtualServiceClientTest(namespace string, client VirtualServiceClient) {
 	Expect(err).To(HaveOccurred())
 	Expect(errors.IsExist(err)).To(BeTrue())
 
-	Expect(r1).To(BeAssignableToTypeOf(&VirtualService{}))
+	Expect(r1).To(BeAssignableToTypeOf(&Proxy{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
-	Expect(r1.Domains).To(Equal(input.Domains))
-	Expect(r1.Routes).To(Equal(input.Routes))
-	Expect(r1.SslConfig).To(Equal(input.SslConfig))
-	Expect(r1.DisableForGateways).To(Equal(input.DisableForGateways))
+	Expect(r1.Listeners).To(Equal(input.Listeners))
 
 	_, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,
@@ -88,7 +85,7 @@ func VirtualServiceClientTest(namespace string, client VirtualServiceClient) {
 	Expect(errors.IsNotExist(err)).To(BeTrue())
 
 	name = "boo"
-	input = &VirtualService{}
+	input = &Proxy{}
 
 	// ignore return error because interfaces / oneofs mess it up
 	faker.FakeData(input)
@@ -140,7 +137,7 @@ func VirtualServiceClientTest(namespace string, client VirtualServiceClient) {
 		Expect(err).NotTo(HaveOccurred())
 
 		name = "goo"
-		input = &VirtualService{}
+		input = &Proxy{}
 		// ignore return error because interfaces / oneofs mess it up
 		faker.FakeData(input)
 		Expect(err).NotTo(HaveOccurred())

@@ -24,17 +24,15 @@ var _ = Describe("V1Cache", func() {
 		return
 	}
 	var (
-		namespace            string
-		cfg                  *rest.Config
-		cache                Cache
-		artifactClient       ArtifactClient
-		attributeClient      AttributeClient
-		endpointClient       EndpointClient
-		roleClient           RoleClient
-		secretClient         SecretClient
-		upstreamClient       UpstreamClient
-		virtualServiceClient VirtualServiceClient
-		kube                 kubernetes.Interface
+		namespace      string
+		cfg            *rest.Config
+		cache          Cache
+		artifactClient ArtifactClient
+		endpointClient EndpointClient
+		proxyClient    ProxyClient
+		secretClient   SecretClient
+		upstreamClient UpstreamClient
+		kube           kubernetes.Interface
 	)
 
 	BeforeEach(func() {
@@ -55,14 +53,6 @@ var _ = Describe("V1Cache", func() {
 		artifactClient, err = NewArtifactClient(artifactClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		// Attribute Constructor
-		attributeClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd: AttributeCrd,
-			Cfg: cfg,
-		})
-		attributeClient, err = NewAttributeClient(attributeClientFactory)
-		Expect(err).NotTo(HaveOccurred())
-
 		// Endpoint Constructor
 		endpointClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
 			Cache: memory.NewInMemoryResourceCache(),
@@ -70,12 +60,12 @@ var _ = Describe("V1Cache", func() {
 		endpointClient, err = NewEndpointClient(endpointClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		// Role Constructor
-		roleClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd: RoleCrd,
+		// Proxy Constructor
+		proxyClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+			Crd: ProxyCrd,
 			Cfg: cfg,
 		})
-		roleClient, err = NewRoleClient(roleClientFactory)
+		proxyClient, err = NewProxyClient(proxyClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		// Secret Constructor
@@ -95,15 +85,7 @@ var _ = Describe("V1Cache", func() {
 		})
 		upstreamClient, err = NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
-
-		// VirtualService Constructor
-		virtualServiceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd: VirtualServiceCrd,
-			Cfg: cfg,
-		})
-		virtualServiceClient, err = NewVirtualServiceClient(virtualServiceClientFactory)
-		Expect(err).NotTo(HaveOccurred())
-		cache = NewCache(artifactClient, attributeClient, endpointClient, roleClient, secretClient, upstreamClient, virtualServiceClient)
+		cache = NewCache(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)
 	})
 	AfterEach(func() {
 		services.TeardownKube(namespace)
@@ -147,35 +129,6 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		attribute1, err := attributeClient.Write(NewAttribute(namespace, "angela"), clients.WriteOpts{})
-		Expect(err).NotTo(HaveOccurred())
-
-	drainattribute:
-		for {
-			select {
-			case snap = <-snapshots:
-			case err := <-errs:
-				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Millisecond * 500):
-				break drainattribute
-			case <-time.After(time.Second):
-				Fail("expected snapshot before 1 second")
-			}
-		}
-		Expect(snap.AttributeList).To(ContainElement(attribute1))
-
-		attribute2, err := attributeClient.Write(NewAttribute(namespace, "lane"), clients.WriteOpts{})
-		Expect(err).NotTo(HaveOccurred())
-
-		select {
-		case snap := <-snapshots:
-			Expect(snap.AttributeList).To(ContainElement(attribute1))
-			Expect(snap.AttributeList).To(ContainElement(attribute2))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
-		}
 		endpoint1, err := endpointClient.Write(NewEndpoint(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -205,30 +158,30 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		role1, err := roleClient.Write(NewRole(namespace, "angela"), clients.WriteOpts{})
+		proxy1, err := proxyClient.Write(NewProxy(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-	drainrole:
+	drainproxy:
 		for {
 			select {
 			case snap = <-snapshots:
 			case err := <-errs:
 				Expect(err).NotTo(HaveOccurred())
 			case <-time.After(time.Millisecond * 500):
-				break drainrole
+				break drainproxy
 			case <-time.After(time.Second):
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.RoleList).To(ContainElement(role1))
+		Expect(snap.ProxyList).To(ContainElement(proxy1))
 
-		role2, err := roleClient.Write(NewRole(namespace, "lane"), clients.WriteOpts{})
+		proxy2, err := proxyClient.Write(NewProxy(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.RoleList).To(ContainElement(role1))
-			Expect(snap.RoleList).To(ContainElement(role2))
+			Expect(snap.ProxyList).To(ContainElement(proxy1))
+			Expect(snap.ProxyList).To(ContainElement(proxy2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -292,35 +245,6 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		virtualService1, err := virtualServiceClient.Write(NewVirtualService(namespace, "angela"), clients.WriteOpts{})
-		Expect(err).NotTo(HaveOccurred())
-
-	drainvirtualService:
-		for {
-			select {
-			case snap = <-snapshots:
-			case err := <-errs:
-				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Millisecond * 500):
-				break drainvirtualService
-			case <-time.After(time.Second):
-				Fail("expected snapshot before 1 second")
-			}
-		}
-		Expect(snap.VirtualServiceList).To(ContainElement(virtualService1))
-
-		virtualService2, err := virtualServiceClient.Write(NewVirtualService(namespace, "lane"), clients.WriteOpts{})
-		Expect(err).NotTo(HaveOccurred())
-
-		select {
-		case snap := <-snapshots:
-			Expect(snap.VirtualServiceList).To(ContainElement(virtualService1))
-			Expect(snap.VirtualServiceList).To(ContainElement(virtualService2))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
-		}
 		err = artifactClient.Delete(artifact2.Metadata.Namespace, artifact2.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -341,31 +265,6 @@ var _ = Describe("V1Cache", func() {
 		case snap := <-snapshots:
 			Expect(snap.ArtifactList).NotTo(ContainElement(artifact1))
 			Expect(snap.ArtifactList).NotTo(ContainElement(artifact2))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
-		}
-		err = attributeClient.Delete(attribute2.Metadata.Namespace, attribute2.Metadata.Name, clients.DeleteOpts{})
-		Expect(err).NotTo(HaveOccurred())
-
-		select {
-		case snap := <-snapshots:
-			Expect(snap.AttributeList).To(ContainElement(attribute1))
-			Expect(snap.AttributeList).NotTo(ContainElement(attribute2))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
-		}
-
-		err = attributeClient.Delete(attribute1.Metadata.Namespace, attribute1.Metadata.Name, clients.DeleteOpts{})
-		Expect(err).NotTo(HaveOccurred())
-
-		select {
-		case snap := <-snapshots:
-			Expect(snap.AttributeList).NotTo(ContainElement(attribute1))
-			Expect(snap.AttributeList).NotTo(ContainElement(attribute2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -396,26 +295,26 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		err = roleClient.Delete(role2.Metadata.Namespace, role2.Metadata.Name, clients.DeleteOpts{})
+		err = proxyClient.Delete(proxy2.Metadata.Namespace, proxy2.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.RoleList).To(ContainElement(role1))
-			Expect(snap.RoleList).NotTo(ContainElement(role2))
+			Expect(snap.ProxyList).To(ContainElement(proxy1))
+			Expect(snap.ProxyList).NotTo(ContainElement(proxy2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
-		err = roleClient.Delete(role1.Metadata.Namespace, role1.Metadata.Name, clients.DeleteOpts{})
+		err = proxyClient.Delete(proxy1.Metadata.Namespace, proxy1.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.RoleList).NotTo(ContainElement(role1))
-			Expect(snap.RoleList).NotTo(ContainElement(role2))
+			Expect(snap.ProxyList).NotTo(ContainElement(proxy1))
+			Expect(snap.ProxyList).NotTo(ContainElement(proxy2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -466,31 +365,6 @@ var _ = Describe("V1Cache", func() {
 		case snap := <-snapshots:
 			Expect(snap.UpstreamList).NotTo(ContainElement(upstream1))
 			Expect(snap.UpstreamList).NotTo(ContainElement(upstream2))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
-		}
-		err = virtualServiceClient.Delete(virtualService2.Metadata.Namespace, virtualService2.Metadata.Name, clients.DeleteOpts{})
-		Expect(err).NotTo(HaveOccurred())
-
-		select {
-		case snap := <-snapshots:
-			Expect(snap.VirtualServiceList).To(ContainElement(virtualService1))
-			Expect(snap.VirtualServiceList).NotTo(ContainElement(virtualService2))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
-		}
-
-		err = virtualServiceClient.Delete(virtualService1.Metadata.Namespace, virtualService1.Metadata.Name, clients.DeleteOpts{})
-		Expect(err).NotTo(HaveOccurred())
-
-		select {
-		case snap := <-snapshots:
-			Expect(snap.VirtualServiceList).NotTo(ContainElement(virtualService1))
-			Expect(snap.VirtualServiceList).NotTo(ContainElement(virtualService2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
