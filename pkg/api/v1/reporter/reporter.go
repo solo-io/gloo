@@ -13,6 +13,12 @@ import (
 
 type ResourceErrors map[resources.InputResource]error
 
+func (e ResourceErrors) Merge(resErrs ResourceErrors) {
+	for k, v := range resErrs {
+		e[k] = v
+	}
+}
+
 func (e ResourceErrors) AddError(res resources.InputResource, err error) {
 	if err == nil {
 		return
@@ -20,21 +26,33 @@ func (e ResourceErrors) AddError(res resources.InputResource, err error) {
 	e[res] = multierror.Append(e[res], err)
 }
 
+func (e ResourceErrors) Validate() error {
+	var errs error
+	for res, err := range e {
+		if err != nil {
+			errs = multierror.Append(errs, errors.Wrapf(err, "invalid resource %v.%v", res.GetMetadata().Namespace, res.GetMetadata().Name))
+		}
+	}
+	return errs
+}
+
 type Reporter interface {
 	WriteReports(ctx context.Context, errs ResourceErrors) error
 }
 
 type reporter struct {
-	clients map[string]clients.ResourceClient
+	clients       map[string]clients.ResourceClient
+	controllerRef string
 }
 
-func NewReporter(resourceClients ...clients.ResourceClient) Reporter {
+func NewReporter(controllerRef string, resourceClients ...clients.ResourceClient) Reporter {
 	clientsByKind := make(map[string]clients.ResourceClient)
 	for _, client := range resourceClients {
 		clientsByKind[client.Kind()] = client
 	}
 	return &reporter{
-		clients: clientsByKind,
+		controllerRef: controllerRef,
+		clients:       clientsByKind,
 	}
 }
 
@@ -46,7 +64,7 @@ func (r *reporter) WriteReports(ctx context.Context, resourceErrs ResourceErrors
 		if !ok {
 			return errors.Errorf("reporter: was passed resource of kind %v but no client to support it", kind)
 		}
-		status := statusFromError(validationError)
+		status := statusFromError(r.controllerRef, validationError)
 		resourceToWrite := resources.Clone(resource).(resources.InputResource)
 		resourceToWrite.SetStatus(status)
 		if _, err := client.Write(resourceToWrite, clients.WriteOpts{
@@ -59,14 +77,16 @@ func (r *reporter) WriteReports(ctx context.Context, resourceErrs ResourceErrors
 	return nil
 }
 
-func statusFromError(err error) core.Status {
+func statusFromError(ref string, err error) core.Status {
 	if err != nil {
 		return core.Status{
-			State:  core.Status_Rejected,
-			Reason: err.Error(),
+			State:               core.Status_Rejected,
+			Reason:              err.Error(),
+			ControllerReference: ref,
 		}
 	}
 	return core.Status{
-		State: core.Status_Accepted,
+		State:               core.Status_Accepted,
+		ControllerReference: ref,
 	}
 }

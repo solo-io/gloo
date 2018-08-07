@@ -22,7 +22,7 @@ var _ = Describe("Reporter", func() {
 	BeforeEach(func() {
 		mockResourceClient = memory.NewResourceClient(memory.NewInMemoryResourceCache(), &mocks.MockResource{})
 		fakeResourceClient = memory.NewResourceClient(memory.NewInMemoryResourceCache(), &mocks.FakeResource{})
-		reporter = rep.NewReporter(mockResourceClient, fakeResourceClient)
+		reporter = rep.NewReporter("test", mockResourceClient, fakeResourceClient)
 	})
 	AfterEach(func() {
 	})
