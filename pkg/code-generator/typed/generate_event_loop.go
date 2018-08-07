@@ -28,13 +28,14 @@ var eventLoopTestTemplate = template.Must(template.New("event_loop_test").Funcs(
 const eventLoopTemplateContents = `package {{ .PackageName }}
 
 import (
+	"context"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
 type Syncer interface {
-	Sync(*Snapshot) error
+	Sync(context.Context, *Snapshot) error
 }
 
 type EventLoop interface {
@@ -66,12 +67,14 @@ func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) error {
 	for {
 		select {
 		case snapshot := <-watch:
-			err := el.syncer.Sync(snapshot)
+			err := el.syncer.Sync(opts.Ctx, snapshot)
 			if err != nil {
 				errorHandler.HandleErr(err)
 			}
 		case err := <-errs:
 			errorHandler.HandleErr(err)
+		case <-opts.Ctx.Done():
+			return nil
 		}
 	}
 }
@@ -81,6 +84,7 @@ func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) error {
 const eventLoopTestTemplateContents = `package {{ .PackageName }}
 
 import (
+	"context"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -129,7 +133,7 @@ type mockSyncer struct {
 	synced bool
 }
 
-func (s *mockSyncer) Sync(snap *Snapshot) error {
+func (s *mockSyncer) Sync(ctx context.Context, snap *Snapshot) error {
 	s.synced = true
 	return nil
 }

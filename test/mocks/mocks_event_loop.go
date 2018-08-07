@@ -1,13 +1,15 @@
 package mocks
 
 import (
+	"context"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
 type Syncer interface {
-	Sync(*Snapshot) error
+	Sync(context.Context, *Snapshot) error
 }
 
 type EventLoop interface {
@@ -39,12 +41,14 @@ func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) error {
 	for {
 		select {
 		case snapshot := <-watch:
-			err := el.syncer.Sync(snapshot)
+			err := el.syncer.Sync(opts.Ctx, snapshot)
 			if err != nil {
 				errorHandler.HandleErr(err)
 			}
 		case err := <-errs:
 			errorHandler.HandleErr(err)
+		case <-opts.Ctx.Done():
+			return nil
 		}
 	}
 }

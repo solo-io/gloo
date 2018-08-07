@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"context"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -61,7 +62,7 @@ type mockSyncer struct {
 	synced bool
 }
 
-func (s *mockSyncer) Sync(snap *Snapshot) error {
+func (s *mockSyncer) Sync(ctx context.Context, snap *Snapshot) error {
 	s.synced = true
 	return nil
 }
