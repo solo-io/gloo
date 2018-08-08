@@ -22,6 +22,12 @@ type translator struct {
 	plugins []plugins.Plugin
 }
 
+func NewTranslator() Translator {
+	return &translator{
+		plugins: plugins.RegisteredPlugins(),
+	}
+}
+
 func (t *translator) Translate(ctx context.Context, proxy *v1.Proxy, snap *v1.Snapshot) (envoycache.Snapshot, reporter.ResourceErrors, error) {
 	ctx = contextutils.WithLogger(ctx, "gloo.translator")
 	logger := contextutils.LoggerFrom(ctx)
