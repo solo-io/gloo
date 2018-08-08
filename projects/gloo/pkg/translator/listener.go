@@ -9,18 +9,16 @@ import (
 	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
 	gogo_types "github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/pkg/log"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 )
 
-func (t *translator) computeListener(proxy *v1.Proxy, listener *v1.Listener, snap *v1.Snapshot, report reportErr) *envoyapi.Listener {
+func (t *translator) computeListener(proxy *v1.Proxy, listener *v1.Listener, snap *v1.Snapshot, report reportFunc) *envoyapi.Listener {
 	validateListenerPorts(proxy, report)
-
 
 	listenerFilters := t.computeListenerFilters(listener, snap, report)
 
-	filterChains := computeListenerFilterChains(snap, listener, listenerFilters)
+	filterChains := computeFilterChainsFromFilters(snap, listener, listenerFilters, report)
 
 	out := &envoyapi.Listener{
 		Name: listener.Name,
@@ -44,11 +42,11 @@ func (t *translator) computeListener(proxy *v1.Proxy, listener *v1.Listener, sna
 		Snapshot: snap,
 	}
 	for _, plug := range t.plugins {
-		routePlugin, ok := plug.(plugins.ListenerPlugin)
+		listenerPlugin, ok := plug.(plugins.ListenerPlugin)
 		if !ok {
 			continue
 		}
-		if err := routePlugin.ProcessListener(params, listener, out); err != nil {
+		if err := listenerPlugin.ProcessListener(params, listener, out); err != nil {
 			report(err, "plugin error on listener")
 		}
 	}
@@ -57,82 +55,49 @@ func (t *translator) computeListener(proxy *v1.Proxy, listener *v1.Listener, sna
 }
 
 // create a duplicate of the listener filter chain for each ssl cert we want to serve
-// plus one if there's an insecure one
-func computeListenerFilterChains(snap *v1.Snapshot, listener *v1.Listener, listenerFilters []envoylistener.Filter) []envoylistener.FilterChain {
+// if there is no SSL config on the listener, the envoy listener will have one insecure filter chain
+func computeFilterChainsFromFilters(snap *v1.Snapshot, listener *v1.Listener, listenerFilters []envoylistener.Filter, report reportFunc) []envoylistener.FilterChain {
 	// no filters = no filter chains
-	// TODO(ilackarms): find another way to prevent the xds server from serving listeners with 0 filters
-	// currently the translator does not add listeners with 0 filters to the xds snapshot
 	if len(listenerFilters) == 0 {
-		return nil
+		report(errors.Errorf("listener %v configured with 0 virtual services and 0 filters", listener.Name),
+			"invalid listener")
 	}
 
-	// if there are any insecure virtual services, need an insecure filter chain
-	// that will match for them
-	var addInsecureFilterChain bool
-	var filterChains []envoylistener.FilterChain
-	for _, virtualService := range snap.Cfg.VirtualServices {
-		if virtualService.SslConfig == nil || virtualService.SslConfig.SslSecrets == nil {
-			addInsecureFilterChain = true
-			continue
-		}
-		var filterChain envoylistener.FilterChain
-		// TODO(ilackarms): un-copypaste this bit
-		switch sslSecrets := virtualService.SslConfig.SslSecrets.(type) {
+	// if no ssl config is provided, return a single insecure filter chain
+	if len(listener.SslConfiguations) == 0 {
+		return []envoylistener.FilterChain{{
+			Filters: listenerFilters,
+		}}
+	}
+
+	var secureFilterChains []envoylistener.FilterChain
+	for _, sslConfig := range listener.SslConfiguations {
+		// get secrets
+		var (
+			certChain, privateKey, rootCa string
+			// if using a Secret ref, we will inline the certs in the tls config
+			inlineDataSource bool
+		)
+		switch sslSecrets := sslConfig.SslSecrets.(type) {
 		case *v1.SSLConfig_SecretRef:
+			var err error
+			inlineDataSource = true
 			ref := sslSecrets.SecretRef
-			certChain, privateKey, rootCa, err := getSslSecrets(ref, snap.Secrets)
+			certChain, privateKey, rootCa, err = GetSslSecrets(ref, snap.SecretList)
 			if err != nil {
-				log.Warnf("skipping ssl vService with invalid secrets: %v", virtualService.Name)
+				report(err, "invalid secrets for listener %v", listener.Name)
 				continue
 			}
-			domains := virtualService.SslConfig.SniDomains
-			if len(domains) == 0 {
-				domains = virtualService.Domains
-			}
-			filterChain = newSslFilterChain(certChain, privateKey, rootCa, true, domains, listenerFilters)
 		case *v1.SSLConfig_SslFiles:
-			certChain, privateKey, rootCa := sslSecrets.SslFiles.TlsCert, sslSecrets.SslFiles.TlsKey, sslSecrets.SslFiles.RootCa
-			domains := virtualService.SslConfig.SniDomains
-			if len(domains) == 0 {
-				domains = virtualService.Domains
-			}
-			filterChain = newSslFilterChain(certChain, privateKey, rootCa, false, domains, listenerFilters)
+			certChain, privateKey, rootCa = sslSecrets.SslFiles.TlsCert, sslSecrets.SslFiles.TlsKey, sslSecrets.SslFiles.RootCa
 		}
-		filterChains = append(filterChains, filterChain)
+		filterChain := newSslFilterChain(certChain, privateKey, rootCa, inlineDataSource, sslConfig.SniDomains, listenerFilters)
+		secureFilterChains = append(secureFilterChains, filterChain)
 	}
-
-	if listener.SslConfig != nil {
-		var filterChain envoylistener.FilterChain
-		switch sslSecrets := listener.SslConfig.SslSecrets.(type) {
-		case *v1.SSLConfig_SecretRef:
-			ref := sslSecrets.SecretRef
-			certChain, privateKey, rootCa, err := getSslSecrets(ref, snap.Secrets)
-			if err != nil {
-				log.Warnf("skipping ssl listener with invalid secrets: %v", listener.Name)
-			} else {
-				domains := listener.SslConfig.SniDomains
-				filterChain = newSslFilterChain(certChain, privateKey, rootCa, true, domains, listenerFilters)
-			}
-		case *v1.SSLConfig_SslFiles:
-			certChain, privateKey, rootCa := sslSecrets.SslFiles.TlsCert, sslSecrets.SslFiles.TlsKey, sslSecrets.SslFiles.RootCa
-			domains := listener.SslConfig.SniDomains
-			filterChain = newSslFilterChain(certChain, privateKey, rootCa, false, domains, listenerFilters)
-		}
-		filterChains = append(filterChains, filterChain)
-	}
-
-	// if 0 virtualservices are defined and no ssl config is provided for the listener
-	// create a filter chain with no tls
-	if addInsecureFilterChain || len(filterChains) == 0 {
-		filterChains = append(filterChains, envoylistener.FilterChain{
-			Filters: listenerFilters,
-		})
-	}
-
-	return filterChains
+	return secureFilterChains
 }
 
-func validateListenerPorts(proxy *v1.Proxy, report reportErr) {
+func validateListenerPorts(proxy *v1.Proxy, report reportFunc) {
 	listenersByPort := make(map[uint32][]string)
 	for _, listener := range proxy.Listeners {
 		listenersByPort[listener.BindPort] = append(listenersByPort[listener.BindPort], listener.Name)
@@ -190,6 +155,9 @@ func newSslFilterChain(certChain, privateKey, rootCa string, inline bool, sniDom
 	}
 
 	return envoylistener.FilterChain{
+		FilterChainMatch: &envoylistener.FilterChainMatch{
+			ServerNames: sniDomains,
+		},
 		Filters: listenerFilters,
 		TlsContext: &envoyauth.DownstreamTlsContext{
 			RequireClientCertificate: requireClientCert,
@@ -211,49 +179,42 @@ func newSslFilterChain(certChain, privateKey, rootCa string, inline bool, sniDom
 	}
 }
 
-func (t *translator) computeListenerFilters(listener *v1.Listener, snap *v1.Snapshot, report reportErr) []envoylistener.Filter {
-
-var listenerFilters []plugins.StagedListenerFilter
+func (t *translator) computeListenerFilters(listener *v1.Listener, snap *v1.Snapshot, report reportFunc) []envoylistener.Filter {
+	var listenerFilters []plugins.StagedListenerFilter
+	// run the Listener Filter Plugins
+	params := plugins.Params{
+		Snapshot: snap,
+	}
 	for _, plug := range t.plugins {
-		// run the Listener Filter Plugins
-		params := plugins.Params{
-			Snapshot: snap,
-		}
-		for _, plug := range t.plugins {
-			filterPlugin, ok := plug.(plugins.ListenerFilterPlugin)
-			if !ok {
-				continue
-			}
-			if err := filterPlugin.ProcessListenerFilter(params, listener, out); err != nil {
-				report(err, "plugin error on listener filter")
-			}
-		}
 		filterPlugin, ok := plug.(plugins.ListenerFilterPlugin)
 		if !ok {
 			continue
 		}
-		stagedFilters, err := filterPlugin.ListenerFilters(params, listener)
+		stagedFilters, err := filterPlugin.ProcessListenerFilter(params, listener)
 		if err != nil {
-			report( err, "listener plugin error")
+			report(err, "listener plugin error")
 		}
 		for _, listenerFilter := range stagedFilters {
 			listenerFilters = append(listenerFilters, listenerFilter)
 		}
 	}
 
-	// only add the http connection manager if listener has any virtual services
-	if len(listener.VirtualServices) > 0 {
-		// add the http connection manager filter after all the InAuth Listener Filters
-		rdsName := routeConfigName(listener)
-		httpConnMgr, err := t.computeHttpConnectionManager(listener, rdsName)
-		if err != nil {
-			cfgErrs.addError(proxy, err)
-		}
-		listenerFilters = append(listenerFilters, plugins.StagedListenerFilter{
-			ListenerFilter: httpConnMgr,
-			Stage:          plugins.PostInAuth,
-		})
+	// add the http connection manager if listener is HTTP and has >= 1 virtual hosts
+	httpListener, ok := listener.ListenerType.(*v1.Listener_HttpListener)
+	if !ok || len(httpListener.HttpListener.VirtualHosts) == 0 {
+		return sortListenerFilters(listenerFilters)
 	}
+
+	// add the http connection manager filter after all the InAuth Listener Filters
+	rdsName := routeConfigName(listener)
+	httpConnMgr, err := t.computeHttpConnectionManagerFilter(listener, rdsName)
+	if err != nil {
+		cfgErrs.addError(proxy, err)
+	}
+	listenerFilters = append(listenerFilters, plugins.StagedListenerFilter{
+		ListenerFilter: httpConnMgr,
+		Stage:          plugins.PostInAuth,
+	})
 
 	// sort filters by stage
 	return sortListenerFilters(listenerFilters)

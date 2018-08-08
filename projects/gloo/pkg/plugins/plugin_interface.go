@@ -46,7 +46,7 @@ type ListenerPlugin interface {
 
 type ListenerFilterPlugin interface {
 	Plugin
-	ProcessListenerFilter(params Params, in *v1.Listener, out *envoyapi.Listener) error
+	ProcessListenerFilter(params Params, in *v1.Listener) ([]StagedListenerFilter, error)
 }
 
 type StagedListenerFilter struct {

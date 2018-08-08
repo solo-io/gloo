@@ -13,7 +13,7 @@ import (
 	"github.com/gogo/protobuf/types"
 )
 
-type reportErr func(error error, format string, args ...interface{})
+type reportFunc func(error error, format string, args ...interface{})
 
 func (t *translator) computeRouteConfig(proxy *v1.Proxy, listener *v1.Listener, routeCfgName string, snap *v1.Snapshot, resourceErrs reporter.ResourceErrors) *envoyapi.RouteConfiguration {
 	report := func(err error, format string, args ...interface{}) {
@@ -33,7 +33,7 @@ func (t *translator) computeRouteConfig(proxy *v1.Proxy, listener *v1.Listener, 
 	}
 }
 
-func (t *translator) computeVirtualHosts(listener *v1.Listener, snap *v1.Snapshot, report reportErr) []envoyroute.VirtualHost {
+func (t *translator) computeVirtualHosts(listener *v1.Listener, snap *v1.Snapshot, report reportFunc) []envoyroute.VirtualHost {
 	httpListener, ok := listener.ListenerType.(*v1.Listener_HttpListener)
 	if !ok {
 		panic("non-HTTP listeners are not currently supported in Gloo")
@@ -50,7 +50,7 @@ func (t *translator) computeVirtualHosts(listener *v1.Listener, snap *v1.Snapsho
 	return envoyVirtualHosts
 }
 
-func (t *translator) computeVirtualHost(virtualHost *v1.VirtualHost, requireTls bool, snap *v1.Snapshot, report reportErr) envoyroute.VirtualHost {
+func (t *translator) computeVirtualHost(virtualHost *v1.VirtualHost, requireTls bool, snap *v1.Snapshot, report reportFunc) envoyroute.VirtualHost {
 	var envoyRoutes []envoyroute.Route
 	for _, route := range virtualHost.Routes {
 		envoyRoute := t.envoyRoute(snap, report, route)
@@ -81,7 +81,7 @@ func (t *translator) computeVirtualHost(virtualHost *v1.VirtualHost, requireTls 
 	}
 }
 
-func (t *translator) envoyRoute(snap *v1.Snapshot, report reportErr, in *v1.Route) envoyroute.Route {
+func (t *translator) envoyRoute(snap *v1.Snapshot, report reportFunc, in *v1.Route) envoyroute.Route {
 	out := &envoyroute.Route{}
 
 	setMatch(in, out)
@@ -116,7 +116,7 @@ func setMatch(in *v1.Route, out *envoyroute.Route) {
 	out.Match = match
 }
 
-func setAction(snap *v1.Snapshot, report reportErr, in *v1.Route, out *envoyroute.Route) {
+func setAction(snap *v1.Snapshot, report reportFunc, in *v1.Route, out *envoyroute.Route) {
 	switch action := in.Action.(type) {
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
