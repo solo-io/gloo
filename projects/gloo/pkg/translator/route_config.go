@@ -116,30 +116,14 @@ func setMatch(in *v1.Route, out *envoyroute.Route) {
 	out.Match = match
 }
 
-func setRoute(in *v1.RouteAction, out *envoyroute.Route) {
-	switch dest := in.Destination.(type) {
-	case *v1.RouteAction_Single:
-	case *v1.RouteAction_Multi:
-		panninc("implement this ya??")
-	}
-}
-
 func (t *translator) setAction(snap *v1.Snapshot, report reportFunc, in *v1.Route, out *envoyroute.Route) {
 	switch action := in.Action.(type) {
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//
-	// TODO(ilackarms): rethink this block of code
-	//
 	case *v1.Route_RouteAction:
 		if err := validateRouteDestinations(snap.UpstreamList, action.RouteAction); err != nil {
 			report(err, "invalid route")
 		}
 
-		out.Action = &envoyroute.Route_Route{
-			Route: &envoyroute.RouteAction{
-
-			},
-		}
+		t.setRouteAction(in, out)
 	case *v1.Route_DirectResponseAction:
 		out.Action = &envoyroute.Route_DirectResponse{
 			DirectResponse: &envoyroute.DirectResponseAction{
@@ -168,10 +152,6 @@ func (t *translator) setAction(snap *v1.Snapshot, report reportFunc, in *v1.Rout
 			}
 		}
 	}
-	//
-	//
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 }
 
 func setEnvoyPathMatcher(in *v1.RouteMatcher, out *envoyroute.RouteMatch) {
