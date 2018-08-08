@@ -75,6 +75,15 @@ const (
 )
 
 /*
+	Generation plugins
+*/
+type ClusterGeneratorPlugin interface {
+	Plugin
+	GeneratedClusters(params Params) ([]*envoyapi.Cluster, error)
+}
+
+
+/*
 	Non-translator plugins
 	TODO(ilackarms): consider combining eds plugin and uds
 */

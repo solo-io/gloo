@@ -23,31 +23,54 @@ type translator struct {
 }
 
 func (t *translator) Translate(ctx context.Context, proxy *v1.Proxy, snap *v1.Snapshot) (envoycache.Snapshot, reporter.ResourceErrors, error) {
-	ctx = contextutils.WithLogger(ctx, "gloo.syncer")
+	ctx = contextutils.WithLogger(ctx, "gloo.translator")
 	logger := contextutils.LoggerFrom(ctx)
 
+	resourceErrs := make(reporter.ResourceErrors)
+
+	// endpoints and listeners are shared between listeners
+	logger.Debugf("computing envoy clusters for proxy: %v", proxy.Metadata.Name)
+	clusters := t.computeClusters(snap, resourceErrs)
+	logger.Debugf("computing envoy endpoints for proxy: %v", proxy.Metadata.Name)
+	endpoints := computeClusterEndpoints(snap.UpstreamList, snap.EndpointList)
+
 	var (
-		clusters     []*envoyapi.Cluster
-		endpoints    []*envoyapi.ClusterLoadAssignment
 		routeConfigs []*envoyapi.RouteConfiguration
 		listeners    []*envoyapi.Listener
 	)
-	resourceErrs := make(reporter.ResourceErrors)
-
 	for _, listener := range proxy.Listeners {
+		logger.Debugf("computing envoy resources for listener: %v", listener.Name)
 		envoyResources := t.computeListenerResources(proxy, listener, snap, resourceErrs)
-		clusters = append(clusters, envoyResources.clusters...)
-		endpoints = append(endpoints, envoyResources.endpoints...)
+
 		routeConfigs = append(routeConfigs, envoyResources.routeConfig)
 		listeners = append(listeners, envoyResources.listener)
 	}
+
+	// run Cluster Generator Plugins
+	params := plugins.Params{
+		Snapshot: snap,
+	}
+	for _, plug := range t.plugins {
+		clusterGeneratorPlugin, ok := plug.(plugins.ClusterGeneratorPlugin)
+		if !ok {
+			continue
+		}
+		generated, err := clusterGeneratorPlugin.GeneratedClusters(params)
+		if err != nil {
+			resourceErrs.AddError(proxy, err)
+		}
+		clusters = append(clusters, generated...)
+	}
+
+	xdsSnapshot := generateXDSSnapshot(clusters, endpoints, routeConfigs, listeners)
+
+	return xdsSnapshot, resourceErrs, nil
+
 }
 
 // the set of resources returned by one iteration for a single v1.Listener
 // the top level Translate function should aggregate these into a finished snapshot
 type listenerResources struct {
-	clusters     []*envoyapi.Cluster
-	endpoints    []*envoyapi.ClusterLoadAssignment
 	routeConfig  *envoyapi.RouteConfiguration
 	listener     *envoyapi.Listener
 	resourceErrs reporter.ResourceErrors
@@ -56,14 +79,10 @@ type listenerResources struct {
 func (t *translator) computeListenerResources(proxy *v1.Proxy, listener *v1.Listener, snap *v1.Snapshot, resourceErrs reporter.ResourceErrors) *listenerResources {
 	rdsName := routeConfigName(listener)
 
-	endpoints := computeClusterEndpoints(snap.UpstreamList, snap.EndpointList)
-	clusters := t.computeClusters(snap, resourceErrs)
 	routeConfig := t.computeRouteConfig(proxy, listener, rdsName, snap, resourceErrs)
 	envoyListener := t.computeListener(proxy, listener, snap, resourceErrs)
 
 	return &listenerResources{
-		clusters:     clusters,
-		endpoints:    endpoints,
 		listener:     envoyListener,
 		routeConfig:  routeConfig,
 		resourceErrs: resourceErrs,
