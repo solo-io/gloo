@@ -25,7 +25,7 @@ func (t *translator) computeClusters(snap *v1.Snapshot, resourceErrs reporter.Re
 func (t *translator) computeCluster(snap *v1.Snapshot, upstream *v1.Upstream, resourceErrs reporter.ResourceErrors) *envoyapi.Cluster {
 	out := initializeCluster(upstream, snap.EndpointList)
 
-	params := plugins.PluginParams{
+	params := plugins.Params{
 		Secrets:   snap.SecretList,
 		Artifacts: snap.ArtifactList,
 	}

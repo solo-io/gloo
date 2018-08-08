@@ -89,7 +89,7 @@ func (t *translator) envoyRoute(snap *v1.Snapshot, report reportErr, in *v1.Rout
 	setAction(snap, report, in, out)
 
 	// run the plugins
-	params := plugins.PluginParams{
+	params := plugins.Params{
 		Snapshot: snap,
 	}
 	for _, plug := range t.plugins {
