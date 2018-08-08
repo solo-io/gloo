@@ -40,7 +40,16 @@ message DestinationSpec {
     // Note to developers: new DestinationSpecs must be added to this oneof field
     // to be usable by Gloo.
     oneof destination_type {
-        string empty = 1;
+        AwsDestinationSpec aws = 1;
+    }
+    message AwsDestinationSpec {
+        string destination_lambda = 1;
+        string revision = 2;
+    }
+
+    message NatsDestinationSpec {
+        string destination_lambda = 1;
+        string revision = 2;
     }
 }
 

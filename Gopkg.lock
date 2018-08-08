@@ -411,7 +411,9 @@
   packages = [
     "pkg/api/defaults/v1",
     "pkg/api/types/v1",
-    "pkg/control-plane/translator/defaults"
+    "pkg/control-plane/translator/defaults",
+    "pkg/log",
+    "pkg/protoutil"
   ]
   revision = "44d23d5f2a2f8b207a54570bf67ef6ecc0b7f19c"
   version = "v0.4.3"
@@ -741,6 +743,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "715a31b018ed0f0b3a861cb1ad6d62b1df5442884e78302aa9385a26bc8a319b"
+  inputs-digest = "95d9cbc925aae7a1f9f51cc1d7cb1139c5978f27e8db9c9f1daa1b94e47b92ab"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -35,6 +35,11 @@ type RoutePlugin interface {
 	ProcessRoute(params Params, in *v1.Route, out *envoyroute.Route) error
 }
 
+type RouteActionPlugin interface {
+	Plugin
+	ProcessRouteAction(params Params, inAction *v1.RouteAction, inPlugins map[string]*RoutePlugin, out *envoyroute.RouteAction) error
+}
+
 /*
 	Listener Plugins
  */
@@ -82,7 +87,6 @@ type ClusterGeneratorPlugin interface {
 	GeneratedClusters(params Params) ([]*envoyapi.Cluster, error)
 }
 
-
 /*
 	Non-translator plugins
 	TODO(ilackarms): consider combining eds plugin and uds
@@ -95,5 +99,4 @@ type EdsPlugin interface {
 }
 
 type UdsPlugin interface {
-
 }
