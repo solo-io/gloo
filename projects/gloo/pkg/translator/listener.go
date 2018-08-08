@@ -2,7 +2,6 @@ package translator
 
 import (
 	"sort"
-
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
@@ -18,7 +17,7 @@ func (t *translator) computeListener(proxy *v1.Proxy, listener *v1.Listener, sna
 
 	listenerFilters := t.computeListenerFilters(listener, snap, report)
 
-	filterChains := computeFilterChainsFromFilters(snap, listener, listenerFilters, report)
+	filterChains := computeFilterChainsFromSslConfig(snap, listener, listenerFilters, report)
 
 	out := &envoyapi.Listener{
 		Name: listener.Name,
@@ -54,9 +53,47 @@ func (t *translator) computeListener(proxy *v1.Proxy, listener *v1.Listener, sna
 	return out
 }
 
+func (t *translator) computeListenerFilters(listener *v1.Listener, snap *v1.Snapshot, report reportFunc) []envoylistener.Filter {
+	var listenerFilters []plugins.StagedListenerFilter
+	// run the Listener Filter Plugins
+	params := plugins.Params{
+		Snapshot: snap,
+	}
+	for _, plug := range t.plugins {
+		filterPlugin, ok := plug.(plugins.ListenerFilterPlugin)
+		if !ok {
+			continue
+		}
+		stagedFilters, err := filterPlugin.ProcessListenerFilter(params, listener)
+		if err != nil {
+			report(err, "listener plugin error")
+		}
+		for _, listenerFilter := range stagedFilters {
+			listenerFilters = append(listenerFilters, listenerFilter)
+		}
+	}
+
+	// add the http connection manager if listener is HTTP and has >= 1 virtual hosts
+	httpListener, ok := listener.ListenerType.(*v1.Listener_HttpListener)
+	if !ok || len(httpListener.HttpListener.VirtualHosts) == 0 {
+		return sortListenerFilters(listenerFilters)
+	}
+
+	// add the http connection manager filter after all the InAuth Listener Filters
+	rdsName := routeConfigName(listener)
+	httpConnMgr := t.computeHttpConnectionManagerFilter(snap, httpListener.HttpListener, rdsName, report)
+	listenerFilters = append(listenerFilters, plugins.StagedListenerFilter{
+		ListenerFilter: httpConnMgr,
+		Stage:          plugins.PostInAuth,
+	})
+
+	// sort filters by stage
+	return sortListenerFilters(listenerFilters)
+}
+
 // create a duplicate of the listener filter chain for each ssl cert we want to serve
 // if there is no SSL config on the listener, the envoy listener will have one insecure filter chain
-func computeFilterChainsFromFilters(snap *v1.Snapshot, listener *v1.Listener, listenerFilters []envoylistener.Filter, report reportFunc) []envoylistener.FilterChain {
+func computeFilterChainsFromSslConfig(snap *v1.Snapshot, listener *v1.Listener, listenerFilters []envoylistener.Filter, report reportFunc) []envoylistener.FilterChain {
 	// no filters = no filter chains
 	if len(listenerFilters) == 0 {
 		report(errors.Errorf("listener %v configured with 0 virtual services and 0 filters", listener.Name),
@@ -177,47 +214,6 @@ func newSslFilterChain(certChain, privateKey, rootCa string, inline bool, sniDom
 			},
 		},
 	}
-}
-
-func (t *translator) computeListenerFilters(listener *v1.Listener, snap *v1.Snapshot, report reportFunc) []envoylistener.Filter {
-	var listenerFilters []plugins.StagedListenerFilter
-	// run the Listener Filter Plugins
-	params := plugins.Params{
-		Snapshot: snap,
-	}
-	for _, plug := range t.plugins {
-		filterPlugin, ok := plug.(plugins.ListenerFilterPlugin)
-		if !ok {
-			continue
-		}
-		stagedFilters, err := filterPlugin.ProcessListenerFilter(params, listener)
-		if err != nil {
-			report(err, "listener plugin error")
-		}
-		for _, listenerFilter := range stagedFilters {
-			listenerFilters = append(listenerFilters, listenerFilter)
-		}
-	}
-
-	// add the http connection manager if listener is HTTP and has >= 1 virtual hosts
-	httpListener, ok := listener.ListenerType.(*v1.Listener_HttpListener)
-	if !ok || len(httpListener.HttpListener.VirtualHosts) == 0 {
-		return sortListenerFilters(listenerFilters)
-	}
-
-	// add the http connection manager filter after all the InAuth Listener Filters
-	rdsName := routeConfigName(listener)
-	httpConnMgr, err := t.computeHttpConnectionManagerFilter(listener, rdsName)
-	if err != nil {
-		cfgErrs.addError(proxy, err)
-	}
-	listenerFilters = append(listenerFilters, plugins.StagedListenerFilter{
-		ListenerFilter: httpConnMgr,
-		Stage:          plugins.PostInAuth,
-	})
-
-	// sort filters by stage
-	return sortListenerFilters(listenerFilters)
 }
 
 func sortListenerFilters(filters []plugins.StagedListenerFilter) []envoylistener.Filter {

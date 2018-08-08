@@ -4,7 +4,6 @@ import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	"github.com/pkg/errors"
-
 	"github.com/solo-io/gloo/pkg/control-plane/translator/defaults"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"

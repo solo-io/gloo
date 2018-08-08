@@ -56,7 +56,7 @@ type StagedListenerFilter struct {
 
 type HttpFilterPlugin interface {
 	Plugin
-	HttpFilters(params Params) ([]StagedHttpFilter, error)
+	HttpFilters(params Params, listener *v1.HttpListener) ([]StagedHttpFilter, error)
 }
 
 type StagedHttpFilter struct {
