@@ -15,9 +15,9 @@ import (
 
 type reportFunc func(error error, format string, args ...interface{})
 
-func (t *translator) computeRouteConfig(proxy *v1.Proxy, listener *v1.Listener, routeCfgName string, snap *v1.Snapshot, resourceErrs reporter.ResourceErrors) *envoyapi.RouteConfiguration {
-	report := func(err error, format string, args ...interface{}) {
-		resourceErrs.AddError(proxy, errors.Wrapf(err, format, args...))
+func (t *translator) computeRouteConfig(proxy *v1.Proxy, listener *v1.Listener, routeCfgName string, snap *v1.Snapshot, report reportFunc) *envoyapi.RouteConfiguration {
+	report = func(err error, format string, args ...interface{}) {
+		report(err, "route_config."+format, args...)
 	}
 
 	virtualHosts := t.computeVirtualHosts(listener, snap, report)

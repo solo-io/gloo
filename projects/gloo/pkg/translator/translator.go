@@ -40,7 +40,11 @@ func (t *translator) Translate(ctx context.Context, proxy *v1.Proxy, snap *v1.Sn
 	)
 	for _, listener := range proxy.Listeners {
 		logger.Debugf("computing envoy resources for listener: %v", listener.Name)
-		envoyResources := t.computeListenerResources(proxy, listener, snap, resourceErrs)
+		report := func(err error, format string, args ...interface{}) {
+			resourceErrs.AddError(proxy, errors.Wrapf(err, format, args...))
+		}
+
+		envoyResources := t.computeListenerResources(proxy, listener, snap, report)
 
 		routeConfigs = append(routeConfigs, envoyResources.routeConfig)
 		listeners = append(listeners, envoyResources.listener)
@@ -71,21 +75,19 @@ func (t *translator) Translate(ctx context.Context, proxy *v1.Proxy, snap *v1.Sn
 // the set of resources returned by one iteration for a single v1.Listener
 // the top level Translate function should aggregate these into a finished snapshot
 type listenerResources struct {
-	routeConfig  *envoyapi.RouteConfiguration
-	listener     *envoyapi.Listener
-	resourceErrs reporter.ResourceErrors
+	routeConfig *envoyapi.RouteConfiguration
+	listener    *envoyapi.Listener
 }
 
-func (t *translator) computeListenerResources(proxy *v1.Proxy, listener *v1.Listener, snap *v1.Snapshot, resourceErrs reporter.ResourceErrors) *listenerResources {
+func (t *translator) computeListenerResources(proxy *v1.Proxy, listener *v1.Listener, snap *v1.Snapshot, report reportFunc) *listenerResources {
 	rdsName := routeConfigName(listener)
 
-	routeConfig := t.computeRouteConfig(proxy, listener, rdsName, snap, resourceErrs)
-	envoyListener := t.computeListener(proxy, listener, snap, resourceErrs)
+	routeConfig := t.computeRouteConfig(proxy, listener, rdsName, snap, report)
+	envoyListener := t.computeListener(proxy, listener, snap, report)
 
 	return &listenerResources{
-		listener:     envoyListener,
-		routeConfig:  routeConfig,
-		resourceErrs: resourceErrs,
+		listener:    envoyListener,
+		routeConfig: routeConfig,
 	}
 }
 

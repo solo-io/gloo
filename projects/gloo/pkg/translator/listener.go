@@ -13,6 +13,9 @@ import (
 )
 
 func (t *translator) computeListener(proxy *v1.Proxy, listener *v1.Listener, snap *v1.Snapshot, report reportFunc) *envoyapi.Listener {
+	report = func(err error, format string, args ...interface{}) {
+		report(err, "listener."+format, args...)
+	}
 	validateListenerPorts(proxy, report)
 
 	listenerFilters := t.computeListenerFilters(listener, snap, report)
