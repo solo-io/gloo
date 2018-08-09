@@ -110,8 +110,17 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	return nil
 }
 
-func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
-	panic("implement me")
+func (p *plugin) ProcessRouteAction(params plugins.Params, in *v1.RouteAction, out *envoyroute.RouteAction) error {
+	switch dest := in.Destination.(type) {
+	case *v1.RouteAction_Single:
+		destinationSpec, ok := dest.Single.DestinationSpec.DestinationType.(*v1.DestinationSpec_Aws)
+		if !ok {
+			// not ours
+			return nil
+		}
+	case *v1.RouteAction_Multi:
+	}
+
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
