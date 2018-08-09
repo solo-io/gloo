@@ -29,6 +29,20 @@ func (r *MockResource) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
 
+type MockResourceList []*MockResource
+
+// namespace is optional, if left empty, names can collide if the list contains more than one with the same name
+func (list MockResourceList) Find(namespace, name string) (*MockResource, error) {
+	for _, mockResource := range list {
+		if mockResource.Metadata.Name == name {
+			if namespace == "" || mockResource.Metadata.Namespace == namespace {
+				return mockResource, nil
+			}
+		}
+	}
+	return nil, errors.Errorf("list did not find mockResource %v.%v", namespace, name)
+}
+
 var _ resources.Resource = &MockResource{}
 
 type MockResourceClient interface {
@@ -36,8 +50,8 @@ type MockResourceClient interface {
 	Read(namespace, name string, opts clients.ReadOpts) (*MockResource, error)
 	Write(resource *MockResource, opts clients.WriteOpts) (*MockResource, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
-	List(namespace string, opts clients.ListOpts) ([]*MockResource, error)
-	Watch(namespace string, opts clients.WatchOpts) (<-chan []*MockResource, <-chan error, error)
+	List(namespace string, opts clients.ListOpts) (MockResourceList, error)
+	Watch(namespace string, opts clients.WatchOpts) (<-chan MockResourceList, <-chan error, error)
 }
 
 type mockResourceClient struct {
@@ -83,7 +97,7 @@ func (client *mockResourceClient) Delete(namespace, name string, opts clients.De
 	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *mockResourceClient) List(namespace string, opts clients.ListOpts) ([]*MockResource, error) {
+func (client *mockResourceClient) List(namespace string, opts clients.ListOpts) (MockResourceList, error) {
 	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
@@ -92,13 +106,13 @@ func (client *mockResourceClient) List(namespace string, opts clients.ListOpts) 
 	return convertToMockResource(resourceList), nil
 }
 
-func (client *mockResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []*MockResource, <-chan error, error) {
+func (client *mockResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan MockResourceList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	mockResourcesChan := make(chan []*MockResource)
+	mockResourcesChan := make(chan MockResourceList)
 	go func() {
 		for {
 			select {
@@ -113,8 +127,8 @@ func (client *mockResourceClient) Watch(namespace string, opts clients.WatchOpts
 	return mockResourcesChan, errs, nil
 }
 
-func convertToMockResource(resources []resources.Resource) []*MockResource {
-	var mockResourceList []*MockResource
+func convertToMockResource(resources []resources.Resource) MockResourceList {
+	var mockResourceList MockResourceList
 	for _, resource := range resources {
 		mockResourceList = append(mockResourceList, resource.(*MockResource))
 	}

@@ -29,6 +29,20 @@ func (r *FakeResource) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
 
+type FakeResourceList []*FakeResource
+
+// namespace is optional, if left empty, names can collide if the list contains more than one with the same name
+func (list FakeResourceList) Find(namespace, name string) (*FakeResource, error) {
+	for _, fakeResource := range list {
+		if fakeResource.Metadata.Name == name {
+			if namespace == "" || fakeResource.Metadata.Namespace == namespace {
+				return fakeResource, nil
+			}
+		}
+	}
+	return nil, errors.Errorf("list did not find fakeResource %v.%v", namespace, name)
+}
+
 var _ resources.Resource = &FakeResource{}
 
 type FakeResourceClient interface {
@@ -36,8 +50,8 @@ type FakeResourceClient interface {
 	Read(namespace, name string, opts clients.ReadOpts) (*FakeResource, error)
 	Write(resource *FakeResource, opts clients.WriteOpts) (*FakeResource, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
-	List(namespace string, opts clients.ListOpts) ([]*FakeResource, error)
-	Watch(namespace string, opts clients.WatchOpts) (<-chan []*FakeResource, <-chan error, error)
+	List(namespace string, opts clients.ListOpts) (FakeResourceList, error)
+	Watch(namespace string, opts clients.WatchOpts) (<-chan FakeResourceList, <-chan error, error)
 }
 
 type fakeResourceClient struct {
@@ -83,7 +97,7 @@ func (client *fakeResourceClient) Delete(namespace, name string, opts clients.De
 	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *fakeResourceClient) List(namespace string, opts clients.ListOpts) ([]*FakeResource, error) {
+func (client *fakeResourceClient) List(namespace string, opts clients.ListOpts) (FakeResourceList, error) {
 	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
@@ -92,13 +106,13 @@ func (client *fakeResourceClient) List(namespace string, opts clients.ListOpts) 
 	return convertToFakeResource(resourceList), nil
 }
 
-func (client *fakeResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []*FakeResource, <-chan error, error) {
+func (client *fakeResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan FakeResourceList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	fakeResourcesChan := make(chan []*FakeResource)
+	fakeResourcesChan := make(chan FakeResourceList)
 	go func() {
 		for {
 			select {
@@ -113,8 +127,8 @@ func (client *fakeResourceClient) Watch(namespace string, opts clients.WatchOpts
 	return fakeResourcesChan, errs, nil
 }
 
-func convertToFakeResource(resources []resources.Resource) []*FakeResource {
-	var fakeResourceList []*FakeResource
+func convertToFakeResource(resources []resources.Resource) FakeResourceList {
+	var fakeResourceList FakeResourceList
 	for _, resource := range resources {
 		fakeResourceList = append(fakeResourceList, resource.(*FakeResource))
 	}

@@ -3,8 +3,8 @@ package aws
 import (
 	"fmt"
 
-	envoyauth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoyauth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
 	envoyendpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"

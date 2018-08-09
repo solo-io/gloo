@@ -66,6 +66,20 @@ func (r *{{ .ResourceType }}) SetData(data map[string]string) {
 }
 {{- end}}
 
+type {{ .ResourceType }}List []*{{ .ResourceType }}
+
+// namespace is optional, if left empty, names can collide if the list contains more than one with the same name
+func (list {{ .ResourceType }}List) Find(namespace, name string) (*{{ .ResourceType }}, error) {
+	for _, {{ lowercase .ResourceType }} := range list {
+		if {{ lowercase .ResourceType }}.Metadata.Name == name {
+			if namespace == "" || {{ lowercase .ResourceType }}.Metadata.Namespace == namespace {
+				return {{ lowercase .ResourceType }}, nil
+			}
+		}
+	}
+	return nil, errors.Errorf("list did not find {{ lowercase .ResourceType }} %v.%v", namespace, name)
+}
+
 var _ resources.Resource = &{{ .ResourceType }}{}
 
 type {{ .ResourceType }}Client interface {
@@ -73,8 +87,8 @@ type {{ .ResourceType }}Client interface {
 	Read(namespace, name string, opts clients.ReadOpts) (*{{ .ResourceType }}, error)
 	Write(resource *{{ .ResourceType }}, opts clients.WriteOpts) (*{{ .ResourceType }}, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
-	List(namespace string, opts clients.ListOpts) ([]*{{ .ResourceType }}, error)
-	Watch(namespace string, opts clients.WatchOpts) (<-chan []*{{ .ResourceType }}, <-chan error, error)
+	List(namespace string, opts clients.ListOpts) ({{ .ResourceType }}List, error)
+	Watch(namespace string, opts clients.WatchOpts) (<-chan {{ .ResourceType }}List, <-chan error, error)
 }
 
 type {{ lowercase .ResourceType }}Client struct {
@@ -120,7 +134,7 @@ func (client *{{ lowercase .ResourceType }}Client) Delete(namespace, name string
 	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *{{ lowercase .ResourceType }}Client) List(namespace string, opts clients.ListOpts) ([]*{{ .ResourceType }}, error) {
+func (client *{{ lowercase .ResourceType }}Client) List(namespace string, opts clients.ListOpts) ({{ .ResourceType }}List, error) {
 	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
@@ -129,13 +143,13 @@ func (client *{{ lowercase .ResourceType }}Client) List(namespace string, opts c
 	return convertTo{{ .ResourceType }}(resourceList), nil
 }
 
-func (client *{{ lowercase .ResourceType }}Client) Watch(namespace string, opts clients.WatchOpts) (<-chan []*{{ .ResourceType }}, <-chan error, error) {
+func (client *{{ lowercase .ResourceType }}Client) Watch(namespace string, opts clients.WatchOpts) (<-chan {{ .ResourceType }}List, <-chan error, error) {
 	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	{{ lowercase .ResourceType }}sChan := make(chan []*{{ .ResourceType }})
+	{{ lowercase .ResourceType }}sChan := make(chan {{ .ResourceType }}List)
 	go func() {
 		for {
 			select {
@@ -150,8 +164,8 @@ func (client *{{ lowercase .ResourceType }}Client) Watch(namespace string, opts 
 	return {{ lowercase .ResourceType }}sChan, errs, nil
 }
 
-func convertTo{{ .ResourceType }}(resources []resources.Resource) []*{{ .ResourceType }} {
-	var {{ lowercase .ResourceType }}List []*{{ .ResourceType }}
+func convertTo{{ .ResourceType }}(resources []resources.Resource) {{ .ResourceType }}List {
+	var {{ lowercase .ResourceType }}List {{ .ResourceType }}List
 	for _, resource := range resources {
 		{{ lowercase .ResourceType }}List = append({{ lowercase .ResourceType }}List, resource.(*{{ .ResourceType }}))
 	}

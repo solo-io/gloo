@@ -29,6 +29,20 @@ func (r *Artifact) SetData(data map[string]string) {
 	r.Data = data
 }
 
+type ArtifactList []*Artifact
+
+// namespace is optional, if left empty, names can collide if the list contains more than one with the same name
+func (list ArtifactList) Find(namespace, name string) (*Artifact, error) {
+	for _, artifact := range list {
+		if artifact.Metadata.Name == name {
+			if namespace == "" || artifact.Metadata.Namespace == namespace {
+				return artifact, nil
+			}
+		}
+	}
+	return nil, errors.Errorf("list did not find artifact %v.%v", namespace, name)
+}
+
 var _ resources.Resource = &Artifact{}
 
 type ArtifactClient interface {
@@ -36,8 +50,8 @@ type ArtifactClient interface {
 	Read(namespace, name string, opts clients.ReadOpts) (*Artifact, error)
 	Write(resource *Artifact, opts clients.WriteOpts) (*Artifact, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
-	List(namespace string, opts clients.ListOpts) ([]*Artifact, error)
-	Watch(namespace string, opts clients.WatchOpts) (<-chan []*Artifact, <-chan error, error)
+	List(namespace string, opts clients.ListOpts) (ArtifactList, error)
+	Watch(namespace string, opts clients.WatchOpts) (<-chan ArtifactList, <-chan error, error)
 }
 
 type artifactClient struct {
@@ -83,7 +97,7 @@ func (client *artifactClient) Delete(namespace, name string, opts clients.Delete
 	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *artifactClient) List(namespace string, opts clients.ListOpts) ([]*Artifact, error) {
+func (client *artifactClient) List(namespace string, opts clients.ListOpts) (ArtifactList, error) {
 	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
@@ -92,13 +106,13 @@ func (client *artifactClient) List(namespace string, opts clients.ListOpts) ([]*
 	return convertToArtifact(resourceList), nil
 }
 
-func (client *artifactClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []*Artifact, <-chan error, error) {
+func (client *artifactClient) Watch(namespace string, opts clients.WatchOpts) (<-chan ArtifactList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	artifactsChan := make(chan []*Artifact)
+	artifactsChan := make(chan ArtifactList)
 	go func() {
 		for {
 			select {
@@ -113,8 +127,8 @@ func (client *artifactClient) Watch(namespace string, opts clients.WatchOpts) (<
 	return artifactsChan, errs, nil
 }
 
-func convertToArtifact(resources []resources.Resource) []*Artifact {
-	var artifactList []*Artifact
+func convertToArtifact(resources []resources.Resource) ArtifactList {
+	var artifactList ArtifactList
 	for _, resource := range resources {
 		artifactList = append(artifactList, resource.(*Artifact))
 	}

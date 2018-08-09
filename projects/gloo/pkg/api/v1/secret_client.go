@@ -29,6 +29,20 @@ func (r *Secret) SetData(data map[string]string) {
 	r.Data = data
 }
 
+type SecretList []*Secret
+
+// namespace is optional, if left empty, names can collide if the list contains more than one with the same name
+func (list SecretList) Find(namespace, name string) (*Secret, error) {
+	for _, secret := range list {
+		if secret.Metadata.Name == name {
+			if namespace == "" || secret.Metadata.Namespace == namespace {
+				return secret, nil
+			}
+		}
+	}
+	return nil, errors.Errorf("list did not find secret %v.%v", namespace, name)
+}
+
 var _ resources.Resource = &Secret{}
 
 type SecretClient interface {
@@ -36,8 +50,8 @@ type SecretClient interface {
 	Read(namespace, name string, opts clients.ReadOpts) (*Secret, error)
 	Write(resource *Secret, opts clients.WriteOpts) (*Secret, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
-	List(namespace string, opts clients.ListOpts) ([]*Secret, error)
-	Watch(namespace string, opts clients.WatchOpts) (<-chan []*Secret, <-chan error, error)
+	List(namespace string, opts clients.ListOpts) (SecretList, error)
+	Watch(namespace string, opts clients.WatchOpts) (<-chan SecretList, <-chan error, error)
 }
 
 type secretClient struct {
@@ -83,7 +97,7 @@ func (client *secretClient) Delete(namespace, name string, opts clients.DeleteOp
 	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *secretClient) List(namespace string, opts clients.ListOpts) ([]*Secret, error) {
+func (client *secretClient) List(namespace string, opts clients.ListOpts) (SecretList, error) {
 	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
@@ -92,13 +106,13 @@ func (client *secretClient) List(namespace string, opts clients.ListOpts) ([]*Se
 	return convertToSecret(resourceList), nil
 }
 
-func (client *secretClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []*Secret, <-chan error, error) {
+func (client *secretClient) Watch(namespace string, opts clients.WatchOpts) (<-chan SecretList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	secretsChan := make(chan []*Secret)
+	secretsChan := make(chan SecretList)
 	go func() {
 		for {
 			select {
@@ -113,8 +127,8 @@ func (client *secretClient) Watch(namespace string, opts clients.WatchOpts) (<-c
 	return secretsChan, errs, nil
 }
 
-func convertToSecret(resources []resources.Resource) []*Secret {
-	var secretList []*Secret
+func convertToSecret(resources []resources.Resource) SecretList {
+	var secretList SecretList
 	for _, resource := range resources {
 		secretList = append(secretList, resource.(*Secret))
 	}

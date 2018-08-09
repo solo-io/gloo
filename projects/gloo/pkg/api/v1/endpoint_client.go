@@ -25,6 +25,20 @@ func (r *Endpoint) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
 
+type EndpointList []*Endpoint
+
+// namespace is optional, if left empty, names can collide if the list contains more than one with the same name
+func (list EndpointList) Find(namespace, name string) (*Endpoint, error) {
+	for _, endpoint := range list {
+		if endpoint.Metadata.Name == name {
+			if namespace == "" || endpoint.Metadata.Namespace == namespace {
+				return endpoint, nil
+			}
+		}
+	}
+	return nil, errors.Errorf("list did not find endpoint %v.%v", namespace, name)
+}
+
 var _ resources.Resource = &Endpoint{}
 
 type EndpointClient interface {
@@ -32,8 +46,8 @@ type EndpointClient interface {
 	Read(namespace, name string, opts clients.ReadOpts) (*Endpoint, error)
 	Write(resource *Endpoint, opts clients.WriteOpts) (*Endpoint, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
-	List(namespace string, opts clients.ListOpts) ([]*Endpoint, error)
-	Watch(namespace string, opts clients.WatchOpts) (<-chan []*Endpoint, <-chan error, error)
+	List(namespace string, opts clients.ListOpts) (EndpointList, error)
+	Watch(namespace string, opts clients.WatchOpts) (<-chan EndpointList, <-chan error, error)
 }
 
 type endpointClient struct {
@@ -79,7 +93,7 @@ func (client *endpointClient) Delete(namespace, name string, opts clients.Delete
 	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *endpointClient) List(namespace string, opts clients.ListOpts) ([]*Endpoint, error) {
+func (client *endpointClient) List(namespace string, opts clients.ListOpts) (EndpointList, error) {
 	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
@@ -88,13 +102,13 @@ func (client *endpointClient) List(namespace string, opts clients.ListOpts) ([]*
 	return convertToEndpoint(resourceList), nil
 }
 
-func (client *endpointClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []*Endpoint, <-chan error, error) {
+func (client *endpointClient) Watch(namespace string, opts clients.WatchOpts) (<-chan EndpointList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	endpointsChan := make(chan []*Endpoint)
+	endpointsChan := make(chan EndpointList)
 	go func() {
 		for {
 			select {
@@ -109,8 +123,8 @@ func (client *endpointClient) Watch(namespace string, opts clients.WatchOpts) (<
 	return endpointsChan, errs, nil
 }
 
-func convertToEndpoint(resources []resources.Resource) []*Endpoint {
-	var endpointList []*Endpoint
+func convertToEndpoint(resources []resources.Resource) EndpointList {
+	var endpointList EndpointList
 	for _, resource := range resources {
 		endpointList = append(endpointList, resource.(*Endpoint))
 	}

@@ -29,6 +29,20 @@ func (r *Upstream) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
 
+type UpstreamList []*Upstream
+
+// namespace is optional, if left empty, names can collide if the list contains more than one with the same name
+func (list UpstreamList) Find(namespace, name string) (*Upstream, error) {
+	for _, upstream := range list {
+		if upstream.Metadata.Name == name {
+			if namespace == "" || upstream.Metadata.Namespace == namespace {
+				return upstream, nil
+			}
+		}
+	}
+	return nil, errors.Errorf("list did not find upstream %v.%v", namespace, name)
+}
+
 var _ resources.Resource = &Upstream{}
 
 type UpstreamClient interface {
@@ -36,8 +50,8 @@ type UpstreamClient interface {
 	Read(namespace, name string, opts clients.ReadOpts) (*Upstream, error)
 	Write(resource *Upstream, opts clients.WriteOpts) (*Upstream, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
-	List(namespace string, opts clients.ListOpts) ([]*Upstream, error)
-	Watch(namespace string, opts clients.WatchOpts) (<-chan []*Upstream, <-chan error, error)
+	List(namespace string, opts clients.ListOpts) (UpstreamList, error)
+	Watch(namespace string, opts clients.WatchOpts) (<-chan UpstreamList, <-chan error, error)
 }
 
 type upstreamClient struct {
@@ -83,7 +97,7 @@ func (client *upstreamClient) Delete(namespace, name string, opts clients.Delete
 	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *upstreamClient) List(namespace string, opts clients.ListOpts) ([]*Upstream, error) {
+func (client *upstreamClient) List(namespace string, opts clients.ListOpts) (UpstreamList, error) {
 	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
@@ -92,13 +106,13 @@ func (client *upstreamClient) List(namespace string, opts clients.ListOpts) ([]*
 	return convertToUpstream(resourceList), nil
 }
 
-func (client *upstreamClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []*Upstream, <-chan error, error) {
+func (client *upstreamClient) Watch(namespace string, opts clients.WatchOpts) (<-chan UpstreamList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	upstreamsChan := make(chan []*Upstream)
+	upstreamsChan := make(chan UpstreamList)
 	go func() {
 		for {
 			select {
@@ -113,8 +127,8 @@ func (client *upstreamClient) Watch(namespace string, opts clients.WatchOpts) (<
 	return upstreamsChan, errs, nil
 }
 
-func convertToUpstream(resources []resources.Resource) []*Upstream {
-	var upstreamList []*Upstream
+func convertToUpstream(resources []resources.Resource) UpstreamList {
+	var upstreamList UpstreamList
 	for _, resource := range resources {
 		upstreamList = append(upstreamList, resource.(*Upstream))
 	}

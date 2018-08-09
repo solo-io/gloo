@@ -29,6 +29,20 @@ func (r *Proxy) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
 
+type ProxyList []*Proxy
+
+// namespace is optional, if left empty, names can collide if the list contains more than one with the same name
+func (list ProxyList) Find(namespace, name string) (*Proxy, error) {
+	for _, proxy := range list {
+		if proxy.Metadata.Name == name {
+			if namespace == "" || proxy.Metadata.Namespace == namespace {
+				return proxy, nil
+			}
+		}
+	}
+	return nil, errors.Errorf("list did not find proxy %v.%v", namespace, name)
+}
+
 var _ resources.Resource = &Proxy{}
 
 type ProxyClient interface {
@@ -36,8 +50,8 @@ type ProxyClient interface {
 	Read(namespace, name string, opts clients.ReadOpts) (*Proxy, error)
 	Write(resource *Proxy, opts clients.WriteOpts) (*Proxy, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
-	List(namespace string, opts clients.ListOpts) ([]*Proxy, error)
-	Watch(namespace string, opts clients.WatchOpts) (<-chan []*Proxy, <-chan error, error)
+	List(namespace string, opts clients.ListOpts) (ProxyList, error)
+	Watch(namespace string, opts clients.WatchOpts) (<-chan ProxyList, <-chan error, error)
 }
 
 type proxyClient struct {
@@ -83,7 +97,7 @@ func (client *proxyClient) Delete(namespace, name string, opts clients.DeleteOpt
 	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *proxyClient) List(namespace string, opts clients.ListOpts) ([]*Proxy, error) {
+func (client *proxyClient) List(namespace string, opts clients.ListOpts) (ProxyList, error) {
 	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
@@ -92,13 +106,13 @@ func (client *proxyClient) List(namespace string, opts clients.ListOpts) ([]*Pro
 	return convertToProxy(resourceList), nil
 }
 
-func (client *proxyClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []*Proxy, <-chan error, error) {
+func (client *proxyClient) Watch(namespace string, opts clients.WatchOpts) (<-chan ProxyList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	proxysChan := make(chan []*Proxy)
+	proxysChan := make(chan ProxyList)
 	go func() {
 		for {
 			select {
@@ -113,8 +127,8 @@ func (client *proxyClient) Watch(namespace string, opts clients.WatchOpts) (<-ch
 	return proxysChan, errs, nil
 }
 
-func convertToProxy(resources []resources.Resource) []*Proxy {
-	var proxyList []*Proxy
+func convertToProxy(resources []resources.Resource) ProxyList {
+	var proxyList ProxyList
 	for _, resource := range resources {
 		proxyList = append(proxyList, resource.(*Proxy))
 	}
