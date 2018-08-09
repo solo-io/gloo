@@ -10,9 +10,9 @@ import (
 )
 
 type Snapshot struct {
-	MockResourceList []*MockResource
-	FakeResourceList []*FakeResource
-	MockDataList     []*MockData
+	MockResourceList MockResourceList
+	FakeResourceList FakeResourceList
+	MockDataList     MockDataList
 }
 
 func (s Snapshot) Clone() Snapshot {

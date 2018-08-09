@@ -10,11 +10,11 @@ import (
 )
 
 type Snapshot struct {
-	ArtifactList []*Artifact
-	EndpointList []*Endpoint
-	ProxyList    []*Proxy
-	SecretList   []*Secret
-	UpstreamList []*Upstream
+	ArtifactList ArtifactList
+	EndpointList EndpointList
+	ProxyList    ProxyList
+	SecretList   SecretList
+	UpstreamList UpstreamList
 }
 
 func (s Snapshot) Clone() Snapshot {

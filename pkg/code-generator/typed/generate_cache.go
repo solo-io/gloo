@@ -38,7 +38,7 @@ import (
 
 type Snapshot struct {
 {{- range .ResourceTypes}}
-	{{ . }}List []*{{.}}
+	{{ . }}List {{ . }}List
 {{- end}}
 }
 

@@ -2,14 +2,31 @@ package aws
 
 import (
 	"fmt"
+	"unicode/utf8"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
+	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyendpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	"github.com/gogo/protobuf/types"
+	"github.com/hashicorp/go-multierror"
+	"github.com/solo-io/gloo/pkg/coreplugins/common"
+	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
+)
+
+const (
+	// generic plugin info
+	filterName = "io.solo.lambda"
+
+	// upstream-specific metadata
+	AccessKey = "access_key"
+	SecretKey = "secret_key"
+	awsRegion = "region"
+	awsHost   = "host"
 )
 
 func init() {
@@ -52,6 +69,44 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	out.TlsContext = &envoyauth.UpstreamTlsContext{
 		Sni: lambdaHostname,
 	}
+
+	// TODO(ilacakrms): consider if secretRef should be namespace+name
+	awsSecrets, err := params.Snapshot.SecretList.Find("", upstreamSpec.Aws.SecretRef)
+	if err != nil {
+		return errors.Wrapf(err, "retrieving aws secret")
+	}
+	var secretErrs error
+
+	accessKey, ok := awsSecrets.Data[AccessKey]
+	if !ok {
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", AccessKey))
+	}
+	if accessKey == "" || !utf8.Valid([]byte(accessKey)) {
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", AccessKey))
+	}
+	secretKey, ok := awsSecrets.Data[SecretKey]
+	if !ok {
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", SecretKey))
+	}
+	if secretKey == "" || !utf8.Valid([]byte(secretKey)) {
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", SecretKey))
+	}
+
+	if out.Metadata == nil {
+		out.Metadata = &envoycore.Metadata{}
+	}
+	common.InitFilterMetadata(filterName, out.Metadata)
+	out.Metadata.FilterMetadata[filterName] = &types.Struct{
+		Fields: map[string]*types.Value{
+			AccessKey: {Kind: &types.Value_StringValue{StringValue: accessKey}},
+			SecretKey: {Kind: &types.Value_StringValue{StringValue: secretKey}},
+			awsRegion: {Kind: &types.Value_StringValue{StringValue: upstreamSpec.Aws.Region}},
+			awsHost:   {Kind: &types.Value_StringValue{StringValue: lambdaHostname}},
+		},
+	}
+
+	return secretErrs
+
 	return nil
 }
 
@@ -83,8 +138,8 @@ func (p *plugin) ClaimFunctionDestination(dest *v1.Destination) string {
 // 	filterMetadataKeyAsync = "async"
 //
 // 	// upstream-specific metadata
-// 	AwsAccessKey = "access_key"
-// 	AwsSecretKey = "secret_key"
+// 	AccessKey = "access_key"
+// 	SecretKey = "secret_key"
 // 	awsRegion    = "region"
 // 	awsHost      = "host"
 //
@@ -158,19 +213,19 @@ func (p *plugin) ClaimFunctionDestination(dest *v1.Destination) string {
 //
 // 	var secretErrs error
 //
-// 	accessKey, ok := awsSecrets.Data[AwsAccessKey]
+// 	accessKey, ok := awsSecrets.Data[AccessKey]
 // 	if !ok {
-// 		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", AwsAccessKey))
+// 		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", AccessKey))
 // 	}
 // 	if accessKey == "" || !utf8.Valid([]byte(accessKey)) {
-// 		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", AwsAccessKey))
+// 		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", AccessKey))
 // 	}
-// 	secretKey, ok := awsSecrets.Data[AwsSecretKey]
+// 	secretKey, ok := awsSecrets.Data[SecretKey]
 // 	if !ok {
-// 		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", AwsSecretKey))
+// 		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", SecretKey))
 // 	}
 // 	if secretKey == "" || !utf8.Valid([]byte(secretKey)) {
-// 		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", AwsSecretKey))
+// 		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", SecretKey))
 // 	}
 //
 // 	if out.Metadata == nil {
@@ -179,8 +234,8 @@ func (p *plugin) ClaimFunctionDestination(dest *v1.Destination) string {
 // 	common.InitFilterMetadata(filterName, out.Metadata)
 // 	out.Metadata.FilterMetadata[filterName] = &types.Struct{
 // 		Fields: map[string]*types.Value{
-// 			AwsAccessKey: {Kind: &types.Value_StringValue{StringValue: accessKey}},
-// 			AwsSecretKey: {Kind: &types.Value_StringValue{StringValue: secretKey}},
+// 			AccessKey: {Kind: &types.Value_StringValue{StringValue: accessKey}},
+// 			SecretKey: {Kind: &types.Value_StringValue{StringValue: secretKey}},
 // 			awsRegion:    {Kind: &types.Value_StringValue{StringValue: awsUpstream.Region}},
 // 			awsHost:      {Kind: &types.Value_StringValue{StringValue: awsUpstream.GetLambdaHostname()}},
 // 		},
