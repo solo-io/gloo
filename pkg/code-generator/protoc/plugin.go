@@ -1,6 +1,7 @@
 package protoc
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -119,14 +120,24 @@ func genCmd(resourceDescriptors map[string]*protokit.Descriptor) ([]*plugin_go.C
 		}
 		files = append(files, &plugin_go.CodeGeneratorResponse_File{
 			Name:    proto.String("cmd/" + resourceName + ".json"),
-			Content: cmdFile,
+			Content: proto.String(cmdFile),
 		})
 	}
 	return files, nil
 }
 
-func genCmdFile(descriptor *protokit.Descriptor) (string, error) {
-
+func genCmdFile(message *protokit.Descriptor) (string, error) {
+	var msgs []string
+	for _, v := range [][]interface{}{
+		{"message.GetName", message.GetName()},
+		{"message.GetComments", message.GetComments()},
+		{"message.GetOptions", message.GetOptions()},
+		{"message.GetOneofDecl", message.GetOneofDecl()},
+		{"message.GetMessageFields", message.GetMessageFields()},
+	} {
+		msgs = append(msgs, fmt.Sprintf("%v:\n\t%v", v[0].(string), v[1]))
+	}
+	return strings.Join(msgs, "\n\n"), nil
 }
 
 func codegenParams(packageName string, msg *protokit.Descriptor, resourceType string, fields []string) *typed.ResourceLevelTemplateParams {
