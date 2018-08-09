@@ -42,6 +42,8 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 
 	resourcesByPackage := make(map[string][]*typed.ResourceLevelTemplateParams)
 
+	resourceDescriptors := make(map[string]*protokit.Descriptor)
+
 	for _, d := range descriptors {
 		packageName := goPackage(d)
 		var resourceTypes []*typed.ResourceLevelTemplateParams
@@ -68,6 +70,7 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 					}
 					resp.File = append(resp.File, file)
 				}
+				resourceDescriptors[msg.GetName()] = msg
 			}
 		}
 		if len(resourceTypes) > 0 {
@@ -97,7 +100,33 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 			resp.File = append(resp.File, file)
 		}
 	}
+
+	cmdFiles, err := genCmd(resourceDescriptors)
+	if err != nil {
+		return nil, err
+	}
+	resp.File = append(resp.File, cmdFiles...)
+
 	return resp, nil
+}
+
+func genCmd(resourceDescriptors map[string]*protokit.Descriptor) ([]*plugin_go.CodeGeneratorResponse_File, error) {
+	var files []*plugin_go.CodeGeneratorResponse_File
+	for resourceName, descriptor := range resourceDescriptors {
+		cmdFile, err := genCmdFile(descriptor)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, &plugin_go.CodeGeneratorResponse_File{
+			Name:    proto.String("cmd/" + resourceName + ".json"),
+			Content: cmdFile,
+		})
+	}
+	return files, nil
+}
+
+func genCmdFile(descriptor *protokit.Descriptor) (string, error) {
+
 }
 
 func codegenParams(packageName string, msg *protokit.Descriptor, resourceType string, fields []string) *typed.ResourceLevelTemplateParams {
