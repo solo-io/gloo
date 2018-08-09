@@ -25,8 +25,7 @@ func (t *translator) computeCluster(snap *v1.Snapshot, upstream *v1.Upstream, re
 	out := initializeCluster(upstream, snap.EndpointList)
 
 	params := plugins.Params{
-		Secrets:   snap.SecretList,
-		Artifacts: snap.ArtifactList,
+		Snapshot: snap,
 	}
 
 	for _, plug := range t.plugins {

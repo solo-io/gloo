@@ -7,7 +7,7 @@ import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
-import gloo_plugins_aws "github.com/solo-io/gloo/pkg/plugins/aws"
+import gloo_plugins_aws "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/aws"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
