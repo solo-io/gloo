@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 )
 
@@ -32,8 +33,13 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	logger.Debugf("%v", snap)
 	allResourceErrs := make(reporter.ResourceErrors)
 
+	params := plugins.Params{
+		Ctx:      ctx,
+		Snapshot: snap,
+	}
+
 	for _, proxy := range snap.ProxyList {
-		xdsSnapshot, resourceErrs, err := s.translator.Translate(ctx, proxy, snap)
+		xdsSnapshot, resourceErrs, err := s.translator.Translate(params, proxy)
 		if err != nil {
 			return errors.Wrapf(err, "internal error: failed during translation loop")
 		}

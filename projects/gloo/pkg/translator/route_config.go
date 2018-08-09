@@ -8,21 +8,23 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	defaultv1 "github.com/solo-io/gloo/pkg/api/defaults/v1"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 )
 
 type reportFunc func(error error, format string, args ...interface{})
 
-func (t *translator) computeRouteConfig(proxy *v1.Proxy, listener *v1.Listener, routeCfgName string, snap *v1.Snapshot, report reportFunc) *envoyapi.RouteConfiguration {
+func (t *translator) computeRouteConfig(params plugins.Params, proxy *v1.Proxy, listener *v1.Listener, routeCfgName string, report reportFunc) *envoyapi.RouteConfiguration {
 	report = func(err error, format string, args ...interface{}) {
 		report(err, "route_config."+format, args...)
 	}
+	params.Ctx = contextutils.WithLogger(params.Ctx, "compute_route_config."+routeCfgName)
 
-	virtualHosts := t.computeVirtualHosts(listener, snap, report)
+	virtualHosts := t.computeVirtualHosts(params, listener, report)
 
 	// validate ssl config if the listener specifies any
-	if err := validateListenerSslConfig(listener, snap.SecretList); err != nil {
+	if err := validateListenerSslConfig(listener, params.Snapshot.SecretList); err != nil {
 		report(err, "invalid listener %v", listener.Name)
 	}
 
@@ -32,7 +34,7 @@ func (t *translator) computeRouteConfig(proxy *v1.Proxy, listener *v1.Listener, 
 	}
 }
 
-func (t *translator) computeVirtualHosts(listener *v1.Listener, snap *v1.Snapshot, report reportFunc) []envoyroute.VirtualHost {
+func (t *translator) computeVirtualHosts(params plugins.Params, listener *v1.Listener, report reportFunc) []envoyroute.VirtualHost {
 	httpListener, ok := listener.ListenerType.(*v1.Listener_HttpListener)
 	if !ok {
 		panic("non-HTTP listeners are not currently supported in Gloo")
@@ -44,15 +46,15 @@ func (t *translator) computeVirtualHosts(listener *v1.Listener, snap *v1.Snapsho
 	requireTls := len(listener.SslConfiguations) > 0
 	var envoyVirtualHosts []envoyroute.VirtualHost
 	for _, virtualHost := range virtualHosts {
-		envoyVirtualHosts = append(envoyVirtualHosts, t.computeVirtualHost(virtualHost, requireTls, snap, report))
+		envoyVirtualHosts = append(envoyVirtualHosts, t.computeVirtualHost(params, virtualHost, requireTls, report))
 	}
 	return envoyVirtualHosts
 }
 
-func (t *translator) computeVirtualHost(virtualHost *v1.VirtualHost, requireTls bool, snap *v1.Snapshot, report reportFunc) envoyroute.VirtualHost {
+func (t *translator) computeVirtualHost(params plugins.Params, virtualHost *v1.VirtualHost, requireTls bool, report reportFunc) envoyroute.VirtualHost {
 	var envoyRoutes []envoyroute.Route
 	for _, route := range virtualHost.Routes {
-		envoyRoute := t.envoyRoute(snap, report, route)
+		envoyRoute := t.envoyRoute(params, report, route)
 		envoyRoutes = append(envoyRoutes, envoyRoute)
 	}
 	domains := virtualHost.Domains
@@ -80,17 +82,14 @@ func (t *translator) computeVirtualHost(virtualHost *v1.VirtualHost, requireTls 
 	}
 }
 
-func (t *translator) envoyRoute(snap *v1.Snapshot, report reportFunc, in *v1.Route) envoyroute.Route {
+func (t *translator) envoyRoute(params plugins.Params, report reportFunc, in *v1.Route) envoyroute.Route {
 	out := &envoyroute.Route{}
 
 	setMatch(in, out)
 
-	t.setAction(snap, report, in, out)
+	t.setAction(params.Snapshot, report, in, out)
 
 	// run the plugins
-	params := plugins.Params{
-		Snapshot: snap,
-	}
 	for _, plug := range t.plugins {
 		routePlugin, ok := plug.(plugins.RoutePlugin)
 		if !ok {
@@ -175,10 +174,18 @@ func envoyHeaderMatcher(in []*v1.HeaderMatcher) []*envoyroute.HeaderMatcher {
 	for _, matcher := range in {
 		envoyMatch := &envoyroute.HeaderMatcher{
 			Name:  matcher.Name,
-			Value: matcher.Value,
-			Regex: &types.BoolValue{
-				Value: matcher.Regex,
+			HeaderMatchSpecifier: &envoyroute.HeaderMatcher_ExactMatch{
+				ExactMatch: matcher.Value,
 			},
+		}
+		if matcher.Regex {
+			envoyMatch.HeaderMatchSpecifier = &envoyroute.HeaderMatcher_RegexMatch{
+				RegexMatch: matcher.Value,
+			}
+		} else {
+			envoyMatch.HeaderMatchSpecifier = &envoyroute.HeaderMatcher_ExactMatch{
+				ExactMatch: matcher.Value,
+			}
 		}
 		out = append(out, envoyMatch)
 	}

@@ -6,27 +6,26 @@ import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/pkg/control-plane/translator/defaults"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 )
 
-func (t *translator) computeClusters(snap *v1.Snapshot, resourceErrs reporter.ResourceErrors) []*envoyapi.Cluster {
+func (t *translator) computeClusters(params plugins.Params, resourceErrs reporter.ResourceErrors) []*envoyapi.Cluster {
+	params.Ctx = contextutils.WithLogger(params.Ctx, "compute_clusters")
 	var (
 		clusters []*envoyapi.Cluster
 	)
-	for _, upstream := range snap.UpstreamList {
-		cluster := t.computeCluster(snap, upstream, resourceErrs)
+	for _, upstream := range params.Snapshot.UpstreamList {
+		cluster := t.computeCluster(params, upstream, resourceErrs)
 		clusters = append(clusters, cluster)
 	}
 	return clusters
 }
 
-func (t *translator) computeCluster(snap *v1.Snapshot, upstream *v1.Upstream, resourceErrs reporter.ResourceErrors) *envoyapi.Cluster {
-	out := initializeCluster(upstream, snap.EndpointList)
-
-	params := plugins.Params{
-		Snapshot: snap,
-	}
+func (t *translator) computeCluster(params plugins.Params, upstream *v1.Upstream, resourceErrs reporter.ResourceErrors) *envoyapi.Cluster {
+	params.Ctx = contextutils.WithLogger(params.Ctx, upstream.Metadata.Name)
+	out := initializeCluster(upstream, params.Snapshot.EndpointList)
 
 	for _, plug := range t.plugins {
 		upstreamPlugin, ok := plug.(plugins.UpstreamPlugin)
@@ -62,7 +61,7 @@ func initializeCluster(upstream *v1.Upstream, endpoints []*v1.Endpoint) *envoyap
 func validateCluster(c *envoyapi.Cluster) error {
 	if c.Type == envoyapi.Cluster_STATIC || c.Type == envoyapi.Cluster_STRICT_DNS || c.Type == envoyapi.Cluster_LOGICAL_DNS {
 		if (len(c.Hosts) == 0) && (c.LoadAssignment == nil || len(c.LoadAssignment.Endpoints) == 0) {
-			return errors.Errorf("cluster type %v specified but hosts were empty", c.Type.String())
+			return errors.Errorf("cluster type %v specified but LoadAssignment was empty", c.Type.String())
 		}
 	}
 	return nil

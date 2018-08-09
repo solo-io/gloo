@@ -1,6 +1,8 @@
 package plugins
 
 import (
+	"context"
+
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
@@ -16,6 +18,7 @@ type Plugin interface {
 }
 
 type Params struct {
+	Ctx      context.Context
 	Snapshot *v1.Snapshot
 }
 
@@ -85,7 +88,7 @@ type StagedHttpFilter struct {
 type FilterStage int
 
 const (
-	PreInAuth FilterStage = iota
+	PreInAuth  FilterStage = iota
 	InAuth
 	PostInAuth
 	PreOutAuth

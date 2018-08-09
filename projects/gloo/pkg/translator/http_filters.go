@@ -9,12 +9,14 @@ import (
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/pkg/log"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 )
 
-func (t *translator) computeHttpConnectionManagerFilter(snap *v1.Snapshot, listener *v1.HttpListener, rdsName string, report reportFunc) envoylistener.Filter {
-	httpFilters := t.computeHttpFilters(snap, listener, report)
+func (t *translator) computeHttpConnectionManagerFilter(params plugins.Params, listener *v1.HttpListener, rdsName string, report reportFunc) envoylistener.Filter {
+	httpFilters := t.computeHttpFilters(params, listener, report)
+	params.Ctx = contextutils.WithLogger(params.Ctx, "compute_http_connection_manager")
 
 	httpConnMgr := &envoyhttp.HttpConnectionManager{
 		CodecType:  envoyhttp.AUTO,
@@ -42,12 +44,9 @@ func (t *translator) computeHttpConnectionManagerFilter(snap *v1.Snapshot, liste
 	}
 }
 
-func (t *translator) computeHttpFilters(snap *v1.Snapshot, listener *v1.HttpListener, report reportFunc) []*envoyhttp.HttpFilter {
+func (t *translator) computeHttpFilters(params plugins.Params, listener *v1.HttpListener, report reportFunc) []*envoyhttp.HttpFilter {
 	var httpFilters []plugins.StagedHttpFilter
 	// run the Http Filter Plugins
-	params := plugins.Params{
-		Snapshot: snap,
-	}
 	for _, plug := range t.plugins {
 		filterPlugin, ok := plug.(plugins.HttpFilterPlugin)
 		if !ok {

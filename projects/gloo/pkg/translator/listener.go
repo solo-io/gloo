@@ -9,19 +9,22 @@ import (
 	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
 	gogo_types "github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 )
 
-func (t *translator) computeListener(proxy *v1.Proxy, listener *v1.Listener, snap *v1.Snapshot, report reportFunc) *envoyapi.Listener {
+func (t *translator) computeListener(params plugins.Params, proxy *v1.Proxy, listener *v1.Listener, report reportFunc) *envoyapi.Listener {
+	params.Ctx = contextutils.WithLogger(params.Ctx, "compute_listener."+listener.Name)
+
 	report = func(err error, format string, args ...interface{}) {
 		report(err, "listener."+format, args...)
 	}
 	validateListenerPorts(proxy, report)
 
-	listenerFilters := t.computeListenerFilters(listener, snap, report)
+	listenerFilters := t.computeListenerFilters(params, listener, report)
 
-	filterChains := computeFilterChainsFromSslConfig(snap, listener, listenerFilters, report)
+	filterChains := computeFilterChainsFromSslConfig(params.Snapshot, listener, listenerFilters, report)
 
 	out := &envoyapi.Listener{
 		Name: listener.Name,
@@ -41,9 +44,6 @@ func (t *translator) computeListener(proxy *v1.Proxy, listener *v1.Listener, sna
 	}
 
 	// run the Listener Plugins
-	params := plugins.Params{
-		Snapshot: snap,
-	}
 	for _, plug := range t.plugins {
 		listenerPlugin, ok := plug.(plugins.ListenerPlugin)
 		if !ok {
@@ -57,12 +57,9 @@ func (t *translator) computeListener(proxy *v1.Proxy, listener *v1.Listener, sna
 	return out
 }
 
-func (t *translator) computeListenerFilters(listener *v1.Listener, snap *v1.Snapshot, report reportFunc) []envoylistener.Filter {
+func (t *translator) computeListenerFilters(params plugins.Params, listener *v1.Listener, report reportFunc) []envoylistener.Filter {
 	var listenerFilters []plugins.StagedListenerFilter
 	// run the Listener Filter Plugins
-	params := plugins.Params{
-		Snapshot: snap,
-	}
 	for _, plug := range t.plugins {
 		filterPlugin, ok := plug.(plugins.ListenerFilterPlugin)
 		if !ok {
@@ -85,7 +82,7 @@ func (t *translator) computeListenerFilters(listener *v1.Listener, snap *v1.Snap
 
 	// add the http connection manager filter after all the InAuth Listener Filters
 	rdsName := routeConfigName(listener)
-	httpConnMgr := t.computeHttpConnectionManagerFilter(snap, httpListener.HttpListener, rdsName, report)
+	httpConnMgr := t.computeHttpConnectionManagerFilter(params, httpListener.HttpListener, rdsName, report)
 	listenerFilters = append(listenerFilters, plugins.StagedListenerFilter{
 		ListenerFilter: httpConnMgr,
 		Stage:          plugins.PostInAuth,

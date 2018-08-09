@@ -15,7 +15,7 @@ import (
 )
 
 type Translator interface {
-	Translate(ctx context.Context, proxy *v1.Proxy, snap *v1.Snapshot) (envoycache.Snapshot, reporter.ResourceErrors, error)
+	Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors, error)
 }
 
 type translator struct {
@@ -28,17 +28,17 @@ func NewTranslator() Translator {
 	}
 }
 
-func (t *translator) Translate(ctx context.Context, proxy *v1.Proxy, snap *v1.Snapshot) (envoycache.Snapshot, reporter.ResourceErrors, error) {
-	ctx = contextutils.WithLogger(ctx, "gloo.translator")
-	logger := contextutils.LoggerFrom(ctx)
+func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors, error) {
+	params.Ctx = contextutils.WithLogger(params.Ctx, "gloo.translator")
+	logger := contextutils.LoggerFrom(params.Ctx)
 
 	resourceErrs := make(reporter.ResourceErrors)
 
 	// endpoints and listeners are shared between listeners
 	logger.Debugf("computing envoy clusters for proxy: %v", proxy.Metadata.Name)
-	clusters := t.computeClusters(snap, resourceErrs)
+	clusters := t.computeClusters(params, resourceErrs)
 	logger.Debugf("computing envoy endpoints for proxy: %v", proxy.Metadata.Name)
-	endpoints := computeClusterEndpoints(snap.UpstreamList, snap.EndpointList)
+	endpoints := computeClusterEndpoints(params.Snapshot.UpstreamList, params.Snapshot.EndpointList)
 
 	var (
 		routeConfigs []*envoyapi.RouteConfiguration
@@ -57,9 +57,6 @@ func (t *translator) Translate(ctx context.Context, proxy *v1.Proxy, snap *v1.Sn
 	}
 
 	// run Cluster Generator Plugins
-	params := plugins.Params{
-		Snapshot: snap,
-	}
 	for _, plug := range t.plugins {
 		clusterGeneratorPlugin, ok := plug.(plugins.ClusterGeneratorPlugin)
 		if !ok {
