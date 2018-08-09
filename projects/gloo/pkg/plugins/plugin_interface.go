@@ -2,14 +2,14 @@ package plugins
 
 import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
-type InitParams struct {}
+type InitParams struct{}
 
 type Plugin interface {
 	Init(params InitParams) error
@@ -21,7 +21,7 @@ type Params struct {
 
 /*
 	Upstream Plugins
- */
+*/
 
 type UpstreamPlugin interface {
 	Plugin
@@ -30,7 +30,7 @@ type UpstreamPlugin interface {
 
 /*
 	Routing Plugins
- */
+*/
 
 type RoutePlugin interface {
 	Plugin
@@ -55,7 +55,7 @@ type FunctionPlugin interface {
 
 /*
 	Listener Plugins
- */
+*/
 
 type ListenerPlugin interface {
 	Plugin
@@ -85,7 +85,7 @@ type StagedHttpFilter struct {
 type FilterStage int
 
 const (
-	PreInAuth  FilterStage = iota
+	PreInAuth FilterStage = iota
 	InAuth
 	PostInAuth
 	PreOutAuth

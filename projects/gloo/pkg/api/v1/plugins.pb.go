@@ -7,6 +7,7 @@ import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
+import gloo_plugins_aws "github.com/solo-io/gloo/pkg/plugins/aws"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -295,7 +296,7 @@ type DestinationSpec struct {
 	// to be usable by Gloo.
 	//
 	// Types that are valid to be assigned to DestinationType:
-	//	*DestinationSpec_Empty
+	//	*DestinationSpec_Aws
 	DestinationType isDestinationSpec_DestinationType `protobuf_oneof:"destination_type"`
 }
 
@@ -309,11 +310,11 @@ type isDestinationSpec_DestinationType interface {
 	Equal(interface{}) bool
 }
 
-type DestinationSpec_Empty struct {
-	Empty string `protobuf:"bytes,1,opt,name=empty,proto3,oneof"`
+type DestinationSpec_Aws struct {
+	Aws *gloo_plugins_aws.DestinationSpec `protobuf:"bytes,1,opt,name=aws,oneof"`
 }
 
-func (*DestinationSpec_Empty) isDestinationSpec_DestinationType() {}
+func (*DestinationSpec_Aws) isDestinationSpec_DestinationType() {}
 
 func (m *DestinationSpec) GetDestinationType() isDestinationSpec_DestinationType {
 	if m != nil {
@@ -322,17 +323,17 @@ func (m *DestinationSpec) GetDestinationType() isDestinationSpec_DestinationType
 	return nil
 }
 
-func (m *DestinationSpec) GetEmpty() string {
-	if x, ok := m.GetDestinationType().(*DestinationSpec_Empty); ok {
-		return x.Empty
+func (m *DestinationSpec) GetAws() *gloo_plugins_aws.DestinationSpec {
+	if x, ok := m.GetDestinationType().(*DestinationSpec_Aws); ok {
+		return x.Aws
 	}
-	return ""
+	return nil
 }
 
 // XXX_OneofFuncs is for the internal use of the proto package.
 func (*DestinationSpec) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
 	return _DestinationSpec_OneofMarshaler, _DestinationSpec_OneofUnmarshaler, _DestinationSpec_OneofSizer, []interface{}{
-		(*DestinationSpec_Empty)(nil),
+		(*DestinationSpec_Aws)(nil),
 	}
 }
 
@@ -340,9 +341,11 @@ func _DestinationSpec_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 	m := msg.(*DestinationSpec)
 	// destination_type
 	switch x := m.DestinationType.(type) {
-	case *DestinationSpec_Empty:
+	case *DestinationSpec_Aws:
 		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Empty)
+		if err := b.EncodeMessage(x.Aws); err != nil {
+			return err
+		}
 	case nil:
 	default:
 		return fmt.Errorf("DestinationSpec.DestinationType has unexpected type %T", x)
@@ -353,12 +356,13 @@ func _DestinationSpec_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 func _DestinationSpec_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
 	m := msg.(*DestinationSpec)
 	switch tag {
-	case 1: // destination_type.empty
+	case 1: // destination_type.aws
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		x, err := b.DecodeStringBytes()
-		m.DestinationType = &DestinationSpec_Empty{x}
+		msg := new(gloo_plugins_aws.DestinationSpec)
+		err := b.DecodeMessage(msg)
+		m.DestinationType = &DestinationSpec_Aws{msg}
 		return true, err
 	default:
 		return false, nil
@@ -369,10 +373,11 @@ func _DestinationSpec_OneofSizer(msg proto.Message) (n int) {
 	m := msg.(*DestinationSpec)
 	// destination_type
 	switch x := m.DestinationType.(type) {
-	case *DestinationSpec_Empty:
+	case *DestinationSpec_Aws:
+		s := proto.Size(x.Aws)
 		n += proto.SizeVarint(1<<3 | proto.WireBytes)
-		n += proto.SizeVarint(uint64(len(x.Empty)))
-		n += len(x.Empty)
+		n += proto.SizeVarint(uint64(s))
+		n += s
 	case nil:
 	default:
 		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
@@ -387,7 +392,7 @@ type UpstreamSpec struct {
 	// to be usable by Gloo.
 	//
 	// Types that are valid to be assigned to UpstreamType:
-	//	*UpstreamSpec_Empty
+	//	*UpstreamSpec_Aws
 	UpstreamType isUpstreamSpec_UpstreamType `protobuf_oneof:"upstream_type"`
 }
 
@@ -401,11 +406,11 @@ type isUpstreamSpec_UpstreamType interface {
 	Equal(interface{}) bool
 }
 
-type UpstreamSpec_Empty struct {
-	Empty string `protobuf:"bytes,1,opt,name=empty,proto3,oneof"`
+type UpstreamSpec_Aws struct {
+	Aws *gloo_plugins_aws.UpstreamSpec `protobuf:"bytes,1,opt,name=aws,oneof"`
 }
 
-func (*UpstreamSpec_Empty) isUpstreamSpec_UpstreamType() {}
+func (*UpstreamSpec_Aws) isUpstreamSpec_UpstreamType() {}
 
 func (m *UpstreamSpec) GetUpstreamType() isUpstreamSpec_UpstreamType {
 	if m != nil {
@@ -414,17 +419,17 @@ func (m *UpstreamSpec) GetUpstreamType() isUpstreamSpec_UpstreamType {
 	return nil
 }
 
-func (m *UpstreamSpec) GetEmpty() string {
-	if x, ok := m.GetUpstreamType().(*UpstreamSpec_Empty); ok {
-		return x.Empty
+func (m *UpstreamSpec) GetAws() *gloo_plugins_aws.UpstreamSpec {
+	if x, ok := m.GetUpstreamType().(*UpstreamSpec_Aws); ok {
+		return x.Aws
 	}
-	return ""
+	return nil
 }
 
 // XXX_OneofFuncs is for the internal use of the proto package.
 func (*UpstreamSpec) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
 	return _UpstreamSpec_OneofMarshaler, _UpstreamSpec_OneofUnmarshaler, _UpstreamSpec_OneofSizer, []interface{}{
-		(*UpstreamSpec_Empty)(nil),
+		(*UpstreamSpec_Aws)(nil),
 	}
 }
 
@@ -432,9 +437,11 @@ func _UpstreamSpec_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 	m := msg.(*UpstreamSpec)
 	// upstream_type
 	switch x := m.UpstreamType.(type) {
-	case *UpstreamSpec_Empty:
+	case *UpstreamSpec_Aws:
 		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Empty)
+		if err := b.EncodeMessage(x.Aws); err != nil {
+			return err
+		}
 	case nil:
 	default:
 		return fmt.Errorf("UpstreamSpec.UpstreamType has unexpected type %T", x)
@@ -445,12 +452,13 @@ func _UpstreamSpec_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 func _UpstreamSpec_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
 	m := msg.(*UpstreamSpec)
 	switch tag {
-	case 1: // upstream_type.empty
+	case 1: // upstream_type.aws
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		x, err := b.DecodeStringBytes()
-		m.UpstreamType = &UpstreamSpec_Empty{x}
+		msg := new(gloo_plugins_aws.UpstreamSpec)
+		err := b.DecodeMessage(msg)
+		m.UpstreamType = &UpstreamSpec_Aws{msg}
 		return true, err
 	default:
 		return false, nil
@@ -461,10 +469,11 @@ func _UpstreamSpec_OneofSizer(msg proto.Message) (n int) {
 	m := msg.(*UpstreamSpec)
 	// upstream_type
 	switch x := m.UpstreamType.(type) {
-	case *UpstreamSpec_Empty:
+	case *UpstreamSpec_Aws:
+		s := proto.Size(x.Aws)
 		n += proto.SizeVarint(1<<3 | proto.WireBytes)
-		n += proto.SizeVarint(uint64(len(x.Empty)))
-		n += len(x.Empty)
+		n += proto.SizeVarint(uint64(s))
+		n += s
 	case nil:
 	default:
 		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
@@ -684,14 +693,14 @@ func (this *DestinationSpec) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *DestinationSpec_Empty) Equal(that interface{}) bool {
+func (this *DestinationSpec_Aws) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*DestinationSpec_Empty)
+	that1, ok := that.(*DestinationSpec_Aws)
 	if !ok {
-		that2, ok := that.(DestinationSpec_Empty)
+		that2, ok := that.(DestinationSpec_Aws)
 		if ok {
 			that1 = &that2
 		} else {
@@ -703,7 +712,7 @@ func (this *DestinationSpec_Empty) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if this.Empty != that1.Empty {
+	if !this.Aws.Equal(that1.Aws) {
 		return false
 	}
 	return true
@@ -738,14 +747,14 @@ func (this *UpstreamSpec) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *UpstreamSpec_Empty) Equal(that interface{}) bool {
+func (this *UpstreamSpec_Aws) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*UpstreamSpec_Empty)
+	that1, ok := that.(*UpstreamSpec_Aws)
 	if !ok {
-		that2, ok := that.(UpstreamSpec_Empty)
+		that2, ok := that.(UpstreamSpec_Aws)
 		if ok {
 			that1 = &that2
 		} else {
@@ -757,7 +766,7 @@ func (this *UpstreamSpec_Empty) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if this.Empty != that1.Empty {
+	if !this.Aws.Equal(that1.Aws) {
 		return false
 	}
 	return true
@@ -787,21 +796,24 @@ func (this *ServiceSpec) Equal(that interface{}) bool {
 func init() { proto.RegisterFile("plugins.proto", fileDescriptorPlugins) }
 
 var fileDescriptorPlugins = []byte{
-	// 254 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0xd0, 0x31, 0x4b, 0xc3, 0x50,
-	0x10, 0x07, 0x70, 0x33, 0x28, 0x78, 0x31, 0x56, 0x83, 0x88, 0x38, 0x88, 0x74, 0x72, 0x31, 0x8f,
-	0x62, 0xa1, 0x50, 0x70, 0x29, 0x0e, 0x1d, 0x1c, 0xa4, 0x45, 0x07, 0x17, 0x49, 0xe3, 0xf1, 0x3c,
-	0x9b, 0xe4, 0x8e, 0xf7, 0x2e, 0x81, 0x7e, 0x23, 0x3f, 0x97, 0x9f, 0x44, 0x92, 0x27, 0x38, 0x59,
-	0xe8, 0xf4, 0xde, 0x1d, 0xff, 0xdf, 0x0d, 0x7f, 0x48, 0xa4, 0x6c, 0x2c, 0xd5, 0x3e, 0x13, 0xc7,
-	0xca, 0x69, 0x6c, 0x4b, 0xe6, 0x2c, 0x17, 0xca, 0xda, 0xd1, 0xe5, 0x99, 0x65, 0xcb, 0xfd, 0xde,
-	0x74, 0xbf, 0x10, 0x19, 0x4e, 0xe0, 0xf8, 0x91, 0xbc, 0x62, 0x8d, 0xee, 0xa9, 0xb7, 0xe9, 0x39,
-	0xec, 0x63, 0x25, 0xba, 0xb9, 0x88, 0xae, 0xa3, 0x9b, 0xc3, 0xf9, 0xde, 0x22, 0x8c, 0xb3, 0x04,
-	0xe2, 0x70, 0xfd, 0x4d, 0x37, 0x82, 0xc3, 0x29, 0x9c, 0xbe, 0x90, 0xd3, 0x26, 0x2f, 0xe7, 0xec,
-	0x75, 0x37, 0x3b, 0x86, 0x78, 0xc1, 0x8d, 0xe2, 0x6e, 0xea, 0x1e, 0x06, 0x0f, 0xe8, 0x95, 0xea,
-	0x5c, 0x89, 0xeb, 0xa5, 0x60, 0xf1, 0xaf, 0x4c, 0xe1, 0xe4, 0xfd, 0x2f, 0x1a, 0xf8, 0x04, 0x8e,
-	0x9e, 0xc5, 0xab, 0xc3, 0xbc, 0xda, 0x6a, 0x07, 0x90, 0x34, 0xbf, 0xb9, 0x00, 0x13, 0x88, 0x97,
-	0xe8, 0x5a, 0x2a, 0xb0, 0x73, 0xb3, 0xe9, 0xd7, 0xf7, 0x55, 0xf4, 0x3a, 0xb6, 0xa4, 0x1f, 0xcd,
-	0x2a, 0x2b, 0xb8, 0x32, 0x9e, 0x4b, 0xbe, 0x25, 0x0e, 0xef, 0x9a, 0xd4, 0x88, 0xe3, 0x4f, 0x2c,
-	0xd4, 0x9b, 0xae, 0x7f, 0x23, 0x6b, 0x6b, 0x72, 0x21, 0xd3, 0x8e, 0x56, 0x07, 0x7d, 0xe9, 0x77,
-	0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x68, 0xc9, 0x8d, 0xea, 0xa8, 0x01, 0x00, 0x00,
+	// 300 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x91, 0xc1, 0x4a, 0x03, 0x31,
+	0x10, 0x86, 0x5b, 0x44, 0xc1, 0x59, 0xd7, 0xea, 0x22, 0x22, 0x45, 0x8a, 0xf6, 0xe4, 0xc5, 0x84,
+	0xd6, 0x8a, 0xd0, 0x63, 0xf1, 0xd0, 0x83, 0x07, 0x69, 0xd1, 0x83, 0x08, 0x92, 0xae, 0x21, 0xc6,
+	0x6e, 0x77, 0x42, 0x32, 0xdb, 0xa5, 0x6f, 0xe4, 0x73, 0xf9, 0x24, 0xb2, 0xc9, 0x16, 0x8b, 0x9e,
+	0x7a, 0xca, 0xe4, 0x9f, 0xff, 0xff, 0x06, 0x66, 0x20, 0x36, 0x59, 0xa1, 0x74, 0xee, 0x98, 0xb1,
+	0x48, 0x98, 0x44, 0x2a, 0x43, 0x64, 0xc2, 0x68, 0xb6, 0xec, 0xb5, 0x4f, 0x14, 0x2a, 0xf4, 0x3a,
+	0xaf, 0xaa, 0x60, 0x69, 0x9f, 0x9b, 0xb9, 0xe2, 0x75, 0x8a, 0x8b, 0xd2, 0xd5, 0x75, 0xe8, 0x76,
+	0xef, 0xe0, 0xf0, 0x41, 0x3b, 0x92, 0xb9, 0xb4, 0x8f, 0x5e, 0x4f, 0x4e, 0x61, 0x57, 0x2e, 0x0c,
+	0xad, 0xce, 0x9a, 0x17, 0xcd, 0xab, 0xfd, 0x71, 0x63, 0x12, 0xbe, 0xa3, 0x18, 0xa2, 0x90, 0x7c,
+	0xa3, 0x95, 0x91, 0xdd, 0x21, 0x1c, 0x3f, 0x6b, 0x4b, 0x85, 0xc8, 0xc6, 0xe8, 0x68, 0xbb, 0xec,
+	0x00, 0xa2, 0x09, 0x16, 0x24, 0xb7, 0x4b, 0xbd, 0x42, 0xeb, 0x5e, 0x3a, 0xd2, 0xb9, 0x20, 0x8d,
+	0xf9, 0xd4, 0xc8, 0x34, 0xb9, 0x85, 0x1d, 0x51, 0x3a, 0x9f, 0x8b, 0xfa, 0x97, 0xcc, 0x2f, 0x63,
+	0xbd, 0x20, 0x51, 0x3a, 0xf6, 0xc7, 0x3f, 0x6e, 0x4c, 0x2a, 0xff, 0x28, 0x81, 0xa3, 0xf7, 0xdf,
+	0x4e, 0xa0, 0x4f, 0xe1, 0xe0, 0xc9, 0x38, 0xb2, 0x52, 0x2c, 0x3c, 0xba, 0xbf, 0x89, 0xee, 0xfc,
+	0x47, 0x6f, 0x9a, 0xd7, 0xdc, 0x16, 0xc4, 0x45, 0x2d, 0x07, 0x68, 0x0c, 0xd1, 0x54, 0xda, 0xa5,
+	0x4e, 0x65, 0x65, 0x1b, 0x0d, 0xbf, 0xbe, 0x3b, 0xcd, 0x97, 0x81, 0xd2, 0xf4, 0x51, 0xcc, 0x58,
+	0x8a, 0x0b, 0xee, 0x30, 0xc3, 0x6b, 0x8d, 0xe1, 0x9d, 0x6b, 0xe2, 0xc6, 0xe2, 0xa7, 0x4c, 0xc9,
+	0xf1, 0x6a, 0x20, 0xaf, 0x4e, 0x27, 0x8c, 0xe6, 0xcb, 0xde, 0x6c, 0xcf, 0xdf, 0xeb, 0xe6, 0x27,
+	0x00, 0x00, 0xff, 0xff, 0xcb, 0x0d, 0xa1, 0x95, 0x01, 0x02, 0x00, 0x00,
 }

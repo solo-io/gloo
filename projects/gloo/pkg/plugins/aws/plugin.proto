@@ -1,5 +1,5 @@
 syntax = "proto3";
-package gloo.api.aws.v1;
+package gloo.plugins.aws;
 
 option go_package = "github.com/solo-io/gloo/pkg/plugins/aws";
 
@@ -27,20 +27,23 @@ message UpstreamSpec {
     repeated LambdaFunctionSpec lambda_functions = 3;
 }
 
-// Each Lambda Function Spec contains data necessary for Gloo to invoke Lambda functions
+// Each Lambda Function Spec contains data necessary for Gloo to invoke Lambda functions:
+// - name of the function
+// - qualifier for the function
 message LambdaFunctionSpec {
+    // the logical name gloo should associate with this function. if left empty, it will default to
+    // lambda_function_name+qualifier
+    string logical_name = 1;
+
     // The Name of the Lambda Function as it appears in the AWS Lambda Portal
-    string function_name  = 1;
+    string lambda_function_name  = 2;
     // The Qualifier for the Lambda Function. Qualifiers act as a kind of version
     // for Lambda Functions. See https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html for more info.
-    string qualifier = 2;
+    string qualifier = 3;
 }
 
 // Each Lambda Function Spec contains data necessary for Gloo to invoke Lambda functions
-message LambdaFunctionSpec {
-    // The Name of the Lambda Function as it appears in the AWS Lambda Portal
-    string function_name  = 1;
-    // The Qualifier for the Lambda Function. Qualifiers act as a kind of version
-    // for Lambda Functions. See https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html for more info.
-    string qualifier = 2;
+message DestinationSpec {
+    // The Logical Name of the LambdaFunctionSpec to be invoked.
+    string logical_name = 1;
 }

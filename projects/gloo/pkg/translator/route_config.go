@@ -2,15 +2,14 @@ package translator
 
 import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	"github.com/gogo/protobuf/types"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	defaultv1 "github.com/solo-io/gloo/pkg/api/defaults/v1"
-	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
-	"github.com/gogo/protobuf/types"
 )
 
 type reportFunc func(error error, format string, args ...interface{})

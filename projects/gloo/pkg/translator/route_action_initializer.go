@@ -4,7 +4,7 @@ import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/pkg/protoutil"
+	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -51,7 +51,7 @@ func (t *translator) addFunctionToRoute(dest *v1.Destination, out *envoyroute.Ro
 		out.PerFilterConfig = map[string]*types.Struct{}
 	}
 
-	routeFunc, err := protoutil.MarshalStruct(&FunctionalFilterRouteConfig{FunctionName: functionName})
+	routeFunc, err := protoutils.MarshalStruct(&FunctionalFilterRouteConfig{FunctionName: functionName})
 	if err != nil {
 		panic(err)
 	}
@@ -89,14 +89,13 @@ func addWeightedCluster(upstreamName, functionName string, weight uint32, out *e
 		Weight: &types.UInt32Value{Value: weight},
 	}
 	if functionName != "" {
-		routeFunc, err := protoutil.MarshalStruct(&FunctionalFilterRouteConfig{FunctionName: functionName})
+		routeFunc, err := protoutils.MarshalStruct(&FunctionalFilterRouteConfig{FunctionName: functionName})
 		if err != nil {
 			panic(err)
 		}
 		clusterWeight.PerFilterConfig = map[string]*types.Struct{
 			filterName: routeFunc,
 		}
-
 	}
 
 	weights.WeightedClusters.Clusters = append(weights.WeightedClusters.Clusters, clusterWeight)
