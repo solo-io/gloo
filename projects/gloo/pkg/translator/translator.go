@@ -1,7 +1,6 @@
 package translator
 
 import (
-	"context"
 	"fmt"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"

@@ -173,7 +173,7 @@ func envoyHeaderMatcher(in []*v1.HeaderMatcher) []*envoyroute.HeaderMatcher {
 	var out []*envoyroute.HeaderMatcher
 	for _, matcher := range in {
 		envoyMatch := &envoyroute.HeaderMatcher{
-			Name:  matcher.Name,
+			Name: matcher.Name,
 			HeaderMatchSpecifier: &envoyroute.HeaderMatcher_ExactMatch{
 				ExactMatch: matcher.Value,
 			},
