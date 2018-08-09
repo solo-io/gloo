@@ -9,8 +9,10 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 )
 
+type InitParams struct {}
+
 type Plugin interface {
-	Init() error
+	Init(params InitParams) error
 }
 
 type Params struct {
