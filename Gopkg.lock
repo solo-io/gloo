@@ -11,12 +11,19 @@
   revision = "886f57703256b3d02e9198410de4a83864f976d1"
 
 [[projects]]
+  name = "github.com/d4l3k/messagediff"
+  packages = ["."]
+  revision = "29f32d820d112dbd66e58492a6ffb7cc3106312b"
+  version = "v1.2.1"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -33,8 +40,7 @@
     "pkg/log",
     "pkg/util"
   ]
-  revision = "c14704578b82128fab17743d91f870c406ef8d09"
-  version = "v0.4"
+  revision = "5f1c666fa3aaa02d95e4fdd95e725f0c5eb7239f"
 
 [[projects]]
   name = "github.com/ghodss/yaml"
@@ -331,6 +337,7 @@
   packages = [
     ".",
     "config",
+    "extensions/table",
     "internal/codelocation",
     "internal/containernode",
     "internal/failer",
@@ -411,12 +418,21 @@
   packages = [
     "pkg/api/defaults/v1",
     "pkg/api/types/v1",
+    "pkg/bootstrap",
+    "pkg/control-plane/filewatcher",
     "pkg/control-plane/translator/defaults",
+    "pkg/coreplugins/common",
+    "pkg/endpointdiscovery",
     "pkg/log",
-    "pkg/protoutil"
+    "pkg/plugins",
+    "pkg/plugins/aws",
+    "pkg/protoutil",
+    "pkg/secretwatcher",
+    "pkg/storage",
+    "pkg/storage/dependencies"
   ]
-  revision = "44d23d5f2a2f8b207a54570bf67ef6ecc0b7f19c"
-  version = "v0.4.3"
+  revision = "d79dccb20dff2a3a1187efc1d2e045604919f769"
+  version = "v0.4.0"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -743,6 +759,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "95d9cbc925aae7a1f9f51cc1d7cb1139c5978f27e8db9c9f1daa1b94e47b92ab"
+  inputs-digest = "9c9ba5a039c8e7d7cf93536df6f0a806923311f3b733a6dad0112363ab11a865"
   solver-name = "gps-cdcl"
   solver-version = 1
