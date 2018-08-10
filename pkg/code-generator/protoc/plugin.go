@@ -1,7 +1,6 @@
 package protoc
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -36,8 +35,10 @@ var packageFilesToGenerate = map[string]packageTemplateFunc{
 	"_event_loop_test.go": typed.GenerateEventLoopTestCode,
 }
 
+var descriptors []*protokit.FileDescriptor
+
 func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
-	descriptors := protokit.ParseCodeGenRequest(req)
+	descriptors = protokit.ParseCodeGenRequest(req)
 
 	resp := new(plugin_go.CodeGeneratorResponse)
 
@@ -102,43 +103,106 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 		}
 	}
 
-	cmdFiles, err := genCmd(resourceDescriptors)
-	if err != nil {
-		return nil, err
-	}
-	resp.File = append(resp.File, cmdFiles...)
+	//cmdFiles, err := genCmd(resourceDescriptors)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//resp.File = append(resp.File, cmdFiles...)
 
 	return resp, nil
 }
 
-func genCmd(resourceDescriptors map[string]*protokit.Descriptor) ([]*plugin_go.CodeGeneratorResponse_File, error) {
-	var files []*plugin_go.CodeGeneratorResponse_File
-	for resourceName, descriptor := range resourceDescriptors {
-		cmdFile, err := genCmdFile(descriptor)
-		if err != nil {
-			return nil, err
-		}
-		files = append(files, &plugin_go.CodeGeneratorResponse_File{
-			Name:    proto.String("cmd/" + resourceName + ".json"),
-			Content: proto.String(cmdFile),
-		})
-	}
-	return files, nil
-}
-
-func genCmdFile(message *protokit.Descriptor) (string, error) {
-	var msgs []string
-	for _, v := range [][]interface{}{
-		{"message.GetName", message.GetName()},
-		{"message.GetComments", message.GetComments()},
-		{"message.GetOptions", message.GetOptions()},
-		{"message.GetOneofDecl", message.GetOneofDecl()},
-		{"message.GetMessageFields", message.GetMessageFields()},
-	} {
-		msgs = append(msgs, fmt.Sprintf("%v:\n\t%v", v[0].(string), v[1]))
-	}
-	return strings.Join(msgs, "\n\n"), nil
-}
+//type message struct {
+//	name   string
+//	fields []field
+//}
+//
+//type field struct {
+//	name  string
+//	ftype string
+//	// nil if scalar
+//	messagetype *message
+//}
+//
+//func findMessage(typeName string) *protokit.Descriptor {
+//
+//}
+//
+//func constructTree(topLevel *protokit.Descriptor) *message {
+//	msg := &message{
+//		name: topLevel.GetName(),
+//	}
+//	for _, f := range topLevel.GetField() {
+//		var fieldMsg *message
+//		if f.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+//			fieldMsg = constructTree(findMessage(f.GetTypeName()))
+//		}
+//		var repeated string
+//		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+//			repeated = "repeated "
+//		}
+//		field := field{
+//			name:        f.GetName(),
+//			ftype:       repeated + f.GetTypeName(),
+//			messagetype: fieldMsg,
+//		}
+//	}
+//	return msg
+//}
+//
+//func findProtoMessage(msgTypeName string) (*protokit.Descriptor, error) {
+//	packageName := strings.TrimPrefix(msgTypeName, ".")
+//	for _, d := range descriptors {
+//		if d.GetPackage()
+//		log.DefaultOut = os.Stderr
+//		log.Printf("%v", d)
+//		time.Sleep(time.Minute)
+//	}
+//	return nil, nil
+//}
+//
+//func genCmd(resourceDescriptors map[string]*protokit.Descriptor) ([]*plugin_go.CodeGeneratorResponse_File, error) {
+//	var files []*plugin_go.CodeGeneratorResponse_File
+//	for resourceName, descriptor := range resourceDescriptors {
+//		cmdFile, err := genCmdFile(descriptor)
+//		if err != nil {
+//			return nil, err
+//		}
+//		files = append(files, &plugin_go.CodeGeneratorResponse_File{
+//			Name:    proto.String("cmd/" + resourceName + ".json"),
+//			Content: proto.String(cmdFile),
+//		})
+//	}
+//	return files, nil
+//}
+//
+//func toString(fields []*protokit.FieldDescriptor) string {
+//	var msgs []string
+//	for _, f := range fields {
+//		msgs = append(msgs, fmt.Sprintf("- Name: %v", f.GetName()))
+//		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+//			msgs = append(msgs, fmt.Sprintf("  Type: []%v", f.GetTypeName()))
+//		} else {
+//			msgs = append(msgs, fmt.Sprintf("  Type: %v", f.GetTypeName()))
+//		}
+//		msgs = append(msgs, fmt.Sprintf("  Field Type: %v", f.GetType()))
+//	}
+//	return strings.Join(msgs, "\n")
+//}
+//
+//func genCmdFile(message *protokit.Descriptor) (string, error) {
+//	var msgs []string
+//	for _, v := range [][]interface{}{
+//		{"message.GetName:\n\t", message.GetName()},
+//		{"message.GetComments:\n\t", message.GetComments()},
+//		{"message.GetOptions:\n\t", message.GetOptions()},
+//		{"message.GetOneofDecl:\n\t", message.GetOneofDecl()},
+//		{"message.GetMessageFields:\n", toString(message.GetMessageFields())},
+//	} {
+//		msgs = append(msgs, fmt.Sprintf("%v%v", v[0].(string), v[1]))
+//	}
+//	return strings.Join(msgs, "\n\n"), nil
+//}
 
 func codegenParams(packageName string, msg *protokit.Descriptor, resourceType string, fields []string) *typed.ResourceLevelTemplateParams {
 	magicComments := strings.Split(msg.GetComments().Leading, "\n")
