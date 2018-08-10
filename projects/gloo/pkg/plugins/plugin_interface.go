@@ -7,9 +7,9 @@ import (
 	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/gogo/protobuf/types"
 )
 
 type InitParams struct{}
