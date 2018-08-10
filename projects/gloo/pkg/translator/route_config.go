@@ -121,7 +121,10 @@ func (t *translator) setAction(snap *v1.Snapshot, report reportFunc, in *v1.Rout
 			report(err, "invalid route")
 		}
 
-		t.setRouteAction(in, out)
+		out.Action = &envoyroute.Route_Route{}
+		if err := setRouteAction(action.RouteAction, out.Action.(*envoyroute.Route_Route).Route); err != nil {
+			report(err, "error on route")
+		}
 	case *v1.Route_DirectResponseAction:
 		out.Action = &envoyroute.Route_DirectResponse{
 			DirectResponse: &envoyroute.DirectResponseAction{
@@ -150,6 +153,43 @@ func (t *translator) setAction(snap *v1.Snapshot, report reportFunc, in *v1.Rout
 			}
 		}
 	}
+}
+
+func setRouteAction(in *v1.RouteAction, out *envoyroute.RouteAction) error {
+	switch dest := in.Destination.(type) {
+	case *v1.RouteAction_Single:
+		out.ClusterSpecifier = &envoyroute.RouteAction_Cluster{
+			Cluster: dest.Single.UpstreamName,
+		}
+	case *v1.RouteAction_Multi:
+		return setWeightedClusters(dest.Multi, out)
+	}
+	return nil
+}
+
+func setWeightedClusters(multiDest *v1.MultiDestination, out *envoyroute.RouteAction) error {
+	if len(multiDest.Destinations) == 0 {
+		return errors.Errorf("must specify at least one weighted destination for multi destination routes")
+	}
+
+	clusterSpecifier := &envoyroute.RouteAction_WeightedClusters{
+		WeightedClusters: &envoyroute.WeightedCluster{},
+	}
+
+	var totalWeight uint32
+	for _, weightedDest := range multiDest.Destinations {
+		totalWeight += weightedDest.Weight
+		upstreamName := weightedDest.Destination.UpstreamName
+		clusterSpecifier.WeightedClusters.Clusters = append(clusterSpecifier.WeightedClusters.Clusters, &envoyroute.WeightedCluster_ClusterWeight{
+			Name:   upstreamName,
+			Weight: &types.UInt32Value{Value: weightedDest.Weight},
+		})
+	}
+
+	clusterSpecifier.WeightedClusters.TotalWeight = &types.UInt32Value{Value: totalWeight}
+
+	out.ClusterSpecifier = clusterSpecifier
+	return nil
 }
 
 func setEnvoyPathMatcher(in *v1.RouteMatcher, out *envoyroute.RouteMatch) {

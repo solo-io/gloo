@@ -9,6 +9,7 @@ import (
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/gogo/protobuf/types"
 )
 
 type InitParams struct{}
@@ -46,14 +47,12 @@ type RouteActionPlugin interface {
 }
 
 /*
-	Function plugins need to give the translator the name of their "function", to set metadata in the destination cluster(s)
-    On the route.
+	Function plugins.
 */
 type FunctionPlugin interface {
 	Plugin
-	// claim the destination tells the translator this destination belongs to a functional plugin; THIS plugin
-	// also returns the filter-specific name of the function
-	ClaimFunctionDestination(dest *v1.Destination) string
+	// Return Per-Filter config for destinations, we put them on the Route (single dest) or WeightedCluster (multi dest)
+	PerFilterConfig(spec *v1.Destination) (*types.Struct, error)
 }
 
 /*

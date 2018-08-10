@@ -49,7 +49,7 @@ func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycac
 			resourceErrs.AddError(proxy, errors.Wrapf(err, format, args...))
 		}
 
-		envoyResources := t.computeListenerResources(proxy, listener, snap, report)
+		envoyResources := t.computeListenerResources(params, proxy, listener, report)
 
 		routeConfigs = append(routeConfigs, envoyResources.routeConfig)
 		listeners = append(listeners, envoyResources.listener)
@@ -81,11 +81,11 @@ type listenerResources struct {
 	listener    *envoyapi.Listener
 }
 
-func (t *translator) computeListenerResources(proxy *v1.Proxy, listener *v1.Listener, snap *v1.Snapshot, report reportFunc) *listenerResources {
+func (t *translator) computeListenerResources(params plugins.Params, proxy *v1.Proxy, listener *v1.Listener, report reportFunc) *listenerResources {
 	rdsName := routeConfigName(listener)
 
-	routeConfig := t.computeRouteConfig(proxy, listener, rdsName, snap, report)
-	envoyListener := t.computeListener(proxy, listener, snap, report)
+	routeConfig := t.computeRouteConfig(params, proxy, listener, rdsName, report)
+	envoyListener := t.computeListener(params, proxy, listener, report)
 
 	return &listenerResources{
 		listener:    envoyListener,
