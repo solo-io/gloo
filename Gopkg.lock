@@ -11,12 +11,6 @@
   revision = "886f57703256b3d02e9198410de4a83864f976d1"
 
 [[projects]]
-  name = "github.com/d4l3k/messagediff"
-  packages = ["."]
-  revision = "29f32d820d112dbd66e58492a6ffb7cc3106312b"
-  version = "v1.2.1"
-
-[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -255,6 +249,12 @@
   version = "v0.3.5"
 
 [[projects]]
+  name = "github.com/inconshreveable/mousetrap"
+  packages = ["."]
+  revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+  version = "v1.0"
+
+[[projects]]
   name = "github.com/json-iterator/go"
   packages = ["."]
   revision = "ab8a2e0c74be9d3be70b3184d9acc634935ded82"
@@ -337,7 +337,6 @@
   packages = [
     ".",
     "config",
-    "extensions/table",
     "internal/codelocation",
     "internal/containernode",
     "internal/failer",
@@ -418,21 +417,18 @@
   packages = [
     "pkg/api/defaults/v1",
     "pkg/api/types/v1",
-    "pkg/bootstrap",
-    "pkg/control-plane/filewatcher",
     "pkg/control-plane/translator/defaults",
     "pkg/coreplugins/common",
-    "pkg/endpointdiscovery",
-    "pkg/log",
-    "pkg/plugins",
-    "pkg/plugins/aws",
-    "pkg/protoutil",
-    "pkg/secretwatcher",
-    "pkg/storage",
-    "pkg/storage/dependencies"
+    "pkg/log"
   ]
   revision = "d79dccb20dff2a3a1187efc1d2e045604919f769"
   version = "v0.4.0"
+
+[[projects]]
+  name = "github.com/spf13/cobra"
+  packages = ["."]
+  revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
+  version = "v0.0.3"
 
 [[projects]]
   name = "github.com/spf13/pflag"
@@ -759,6 +755,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9c9ba5a039c8e7d7cf93536df6f0a806923311f3b733a6dad0112363ab11a865"
+  inputs-digest = "06b81c2c05fa1b8dc8a7bed086698cdcb59992a678dc7fa8338bd6cb25b0bbe3"
   solver-name = "gps-cdcl"
   solver-version = 1
