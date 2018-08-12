@@ -18,5 +18,5 @@ cd ././../../pkg/plugins/aws/ && \
 protoc -I=./ \
     -I=${GOPATH}/src/github.com/gogo/protobuf/ \
     ${GOGO_OUT_FLAG} \
-    ${SOLO_KIT_FLAG}=. \
+    ${SOLO_KIT_FLAG}=.   \
     *.proto

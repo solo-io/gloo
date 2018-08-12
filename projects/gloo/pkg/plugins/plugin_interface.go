@@ -7,7 +7,6 @@ import (
 	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
-	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
@@ -44,15 +43,6 @@ type RoutePlugin interface {
 type RouteActionPlugin interface {
 	Plugin
 	ProcessRouteAction(params Params, inAction *v1.RouteAction, inPlugins map[string]*RoutePlugin, out *envoyroute.RouteAction) error
-}
-
-/*
-	Function plugins.
-*/
-type FunctionPlugin interface {
-	Plugin
-	// Return Per-Filter config for destinations, we put them on the Route (single dest) or WeightedCluster (multi dest)
-	PerFilterConfig(spec *v1.Destination) (*types.Struct, error)
 }
 
 /*

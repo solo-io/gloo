@@ -5,11 +5,13 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 )
 
+// Return Per-Filter config for destinations, we put them on the Route (single dest) or WeightedCluster (multi dest)
+type PerFilterConfigFunc func(spec *v1.Destination) (*types.Struct, error)
+
 // call this from
-func MarkPerFilterConfig(in *v1.Route, out *envoyroute.Route, filterName string, functionPlugin plugins.FunctionPlugin) error {
+func MarkPerFilterConfig(in *v1.Route, out *envoyroute.Route, filterName string, perFilterConfig PerFilterConfigFunc) error {
 	inRouteAction, ok := in.Action.(*v1.Route_RouteAction)
 	if !ok {
 		return errors.Errorf("input action was not a RouteAction")
@@ -28,17 +30,17 @@ func MarkPerFilterConfig(in *v1.Route, out *envoyroute.Route, filterName string,
 		if !ok {
 			return errors.Errorf("input destination Multi but output destination was not")
 		}
-		return configureMultiDest(dest.Multi, multiClusterSpecifier.WeightedClusters, filterName, functionPlugin)
+		return configureMultiDest(dest.Multi, multiClusterSpecifier.WeightedClusters, filterName, perFilterConfig)
 	case *v1.RouteAction_Single:
 		if out.PerFilterConfig == nil {
 			out.PerFilterConfig = make(map[string]*types.Struct)
 		}
-		return configureSingleDest(dest.Single, out.PerFilterConfig, filterName, functionPlugin)
+		return configureSingleDest(dest.Single, out.PerFilterConfig, filterName, perFilterConfig)
 	}
 	panic(errors.Errorf("unknown dest type"))
 }
 
-func configureMultiDest(in *v1.MultiDestination, out *envoyroute.WeightedCluster, filterName string, functionPlugin plugins.FunctionPlugin) error {
+func configureMultiDest(in *v1.MultiDestination, out *envoyroute.WeightedCluster, filterName string, perFilterConfig PerFilterConfigFunc) error {
 	if len(in.Destinations) != len(out.Clusters) {
 		return errors.Errorf("number of input destinations did not match number of destination weighted clusters")
 	}
@@ -46,7 +48,7 @@ func configureMultiDest(in *v1.MultiDestination, out *envoyroute.WeightedCluster
 		if out.Clusters[i].PerFilterConfig == nil {
 			out.Clusters[i].PerFilterConfig = make(map[string]*types.Struct)
 		}
-		err := configureSingleDest(in.Destinations[i].Destination, out.Clusters[i].PerFilterConfig, filterName, functionPlugin)
+		err := configureSingleDest(in.Destinations[i].Destination, out.Clusters[i].PerFilterConfig, filterName, perFilterConfig)
 		if err != nil {
 			return err
 		}
@@ -55,8 +57,8 @@ func configureMultiDest(in *v1.MultiDestination, out *envoyroute.WeightedCluster
 	return nil
 }
 
-func configureSingleDest(in *v1.Destination, out map[string]*types.Struct, filterName string, functionPlugin plugins.FunctionPlugin) error {
-	config, err := functionPlugin.PerFilterConfig(in)
+func configureSingleDest(in *v1.Destination, out map[string]*types.Struct, filterName string, perFilterConfig PerFilterConfigFunc) error {
+	config, err := perFilterConfig(in)
 	if err != nil {
 		return err
 	}
