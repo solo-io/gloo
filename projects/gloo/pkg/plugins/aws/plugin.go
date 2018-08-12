@@ -123,7 +123,7 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		}
 		// get upstream
 		lambdaSpec, ok := p.recordedUpstreams[spec.UpstreamName]
-		if !ok{
+		if !ok {
 			return nil, errors.Errorf("%v is not an AWS upstream", spec.UpstreamName)
 		}
 		// should be aws upstream
@@ -132,7 +132,8 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		logicalName := awsDestinationSpec.Aws.LogicalName
 		for _, lambdaFunc := range lambdaSpec.LambdaFunctions {
 			if lambdaFunc.LogicalName == logicalName {
-
+				// TODO(ilackarms, yuval-k): return the expected message to the Filter
+				return lambdaFunc, nil
 			}
 		}
 		return nil, errors.Errorf("unknown function %v", logicalName)
@@ -145,7 +146,7 @@ func (p *plugin) Init(params plugins.InitParams) error {
 
 func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	// flush cache
-	defer func() {p.recordedUpstreams = make(map[string]*UpstreamSpec) } ()
+	defer func() { p.recordedUpstreams = make(map[string]*UpstreamSpec) }()
 }
 
 // const (
