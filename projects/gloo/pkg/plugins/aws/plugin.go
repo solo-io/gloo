@@ -40,6 +40,7 @@ type plugin struct {
 func (s *UpstreamSpec) getLambdaHostname() string {
 	return fmt.Sprintf("lambda.%s.amazonaws.com", s.Region)
 }
+
 func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *envoyapi.Cluster) error {
 	upstreamSpec, ok := in.UpstreamType.UpstreamType.(*v1.UpstreamSpec_Aws)
 	if !ok {
