@@ -2,13 +2,15 @@ package pluginutils
 
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	"github.com/envoyproxy/go-control-plane/pkg/util"
+	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
 // Return Per-Filter config for destinations, we put them on the Route (single dest) or WeightedCluster (multi dest)
-type PerFilterConfigFunc func(spec *v1.Destination) (*types.Struct, error)
+type PerFilterConfigFunc func(spec *v1.Destination) (proto.Message, error)
 
 // call this from
 func MarkPerFilterConfig(in *v1.Route, out *envoyroute.Route, filterName string, perFilterConfig PerFilterConfigFunc) error {
@@ -66,6 +68,10 @@ func configureSingleDest(in *v1.Destination, out map[string]*types.Struct, filte
 	if config == nil {
 		return nil
 	}
-	out[filterName] = config
+	configStruct, err := util.MessageToStruct(config)
+	if err != nil {
+		return err
+	}
+	out[filterName] = configStruct
 	return nil
 }

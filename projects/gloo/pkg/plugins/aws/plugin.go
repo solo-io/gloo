@@ -9,6 +9,7 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyendpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
@@ -19,10 +20,11 @@ import (
 )
 
 const (
-	// generic plugin info
-	filterName = "io.solo.lambda"
+	// filter info
+	filterName  = "io.solo.lambda"
+	pluginStage = plugins.OutAuth
 
-	// upstream-specific metadata
+	// cluster info
 	AccessKey = "access_key"
 	SecretKey = "secret_key"
 	awsRegion = "region"
@@ -30,11 +32,11 @@ const (
 )
 
 func init() {
-	plugins.Register(&plugin{})
+	plugins.Register(&plugin{recordedUpstreams: make(map[string]*v1.Upstream)})
 }
 
 type plugin struct {
-	isNeeded bool
+	recordedUpstreams map[string]*UpstreamSpec
 }
 
 func (s *UpstreamSpec) getLambdaHostname() string {
@@ -47,7 +49,6 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		// not ours
 		return nil
 	}
-	p.isNeeded = true
 
 	lambdaHostname := upstreamSpec.Aws.getLambdaHostname()
 
@@ -106,34 +107,45 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		},
 	}
 
+	p.recordedUpstreams[in.Metadata.Name] = upstreamSpec.Aws
+
 	return secretErrs
 
 	return nil
 }
 
-func (p *plugin) ProcessRouteAction(params plugins.Params, in *v1.RouteAction, out *envoyroute.RouteAction) error {
-	switch dest := in.Destination.(type) {
-	case *v1.RouteAction_Single:
-		destinationSpec, ok := dest.Single.DestinationSpec.DestinationType.(*v1.DestinationSpec_Aws)
+func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
+	return pluginutils.MarkPerFilterConfig(in, out, filterName, func(spec *v1.Destination) (proto.Message, error) {
+		// check if it's aws destination
+		awsDestinationSpec, ok := spec.DestinationSpec.DestinationType.(*v1.DestinationSpec_Aws)
 		if !ok {
-			// not ours
-			return nil
+			return nil, nil
 		}
-	case *v1.RouteAction_Multi:
-	}
+		// get upstream
+		lambdaSpec, ok := p.recordedUpstreams[spec.UpstreamName]
+		if !ok{
+			return nil, errors.Errorf("%v is not an AWS upstream", spec.UpstreamName)
+		}
+		// should be aws upstream
 
+		// get function
+		logicalName := awsDestinationSpec.Aws.LogicalName
+		for _, lambdaFunc := range lambdaSpec.LambdaFunctions {
+			if lambdaFunc.LogicalName == logicalName {
+
+			}
+		}
+		return nil, errors.Errorf("unknown function %v", logicalName)
+	})
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
-	panic("implement me")
+	return nil
 }
 
 func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
-	panic("implement me")
-}
-
-func (p *plugin) ClaimFunctionDestination(dest *v1.Destination) string {
-	panic("implement me")
+	// flush cache
+	defer func() {p.recordedUpstreams = make(map[string]*UpstreamSpec) } ()
 }
 
 // const (
