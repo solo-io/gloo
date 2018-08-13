@@ -32,4 +32,13 @@ message Upstream {
 
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
+
+    // Upstreams and their configuration can be automatically by Gloo Discovery
+    // if this upstream is created or modified by Discovery, metadata about the operation will be placed here.
+    DiscoveryMetadata discovery_metadata = 8;
+}
+
+//
+message DiscoveryMetadata {
+    
 }

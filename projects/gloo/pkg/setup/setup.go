@@ -61,3 +61,4 @@ func setupEds(bstrp bootstrap.Config, cache v1.Cache) error {
 func watchKubeEds() {
 
 }
+
