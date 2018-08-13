@@ -38,7 +38,7 @@ message Upstream {
     DiscoveryMetadata discovery_metadata = 8;
 }
 
-//
+// created by discovery services
 message DiscoveryMetadata {
     
 }
