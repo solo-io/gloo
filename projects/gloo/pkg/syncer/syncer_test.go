@@ -52,9 +52,9 @@ var _ = Describe("Syncer", func() {
 		Expect(proxies).To(HaveLen(1))
 		Expect(proxies[0]).To(BeAssignableToTypeOf(&v1.Proxy{}))
 		Expect(proxies[0].(*v1.Proxy).Status).To(Equal(core.Status{
-			State:               2,
-			Reason:              "hi, how ya doin'?",
-			ControllerReference: ref,
+			State:             2,
+			Reason:            "hi, how ya doin'?",
+			ReporterReference: ref,
 		}))
 
 		Expect(c.called).To(BeFalse())
@@ -73,9 +73,9 @@ var _ = Describe("Syncer", func() {
 		Expect(proxies).To(HaveLen(1))
 		Expect(proxies[0]).To(BeAssignableToTypeOf(&v1.Proxy{}))
 		Expect(proxies[0].(*v1.Proxy).Status).To(Equal(core.Status{
-			State:               2,
-			Reason:              "hi, how ya doin'?",
-			ControllerReference: ref,
+			State:             2,
+			Reason:            "hi, how ya doin'?",
+			ReporterReference: ref,
 		}))
 
 		Expect(c.called).To(BeTrue())

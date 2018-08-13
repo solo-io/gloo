@@ -2,11 +2,12 @@ package setup
 
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/bootstrap"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
-func Setup(inputResourceOpts factory.ResourceClientFactoryOpts, secretOpts factory.ResourceClientFactoryOpts, artifactOpts factory.ResourceClientFactoryOpts) error {
+func Setup(bstrp bootstrap.Config, inputResourceOpts factory.ResourceClientFactoryOpts, secretOpts factory.ResourceClientFactoryOpts, artifactOpts factory.ResourceClientFactoryOpts) error {
 	inputFactory := factory.NewResourceClientFactory(inputResourceOpts)
 	secretFactory := factory.NewResourceClientFactory(secretOpts)
 	artifactFactory := factory.NewResourceClientFactory(artifactOpts)
@@ -48,5 +49,15 @@ func Setup(inputResourceOpts factory.ResourceClientFactoryOpts, secretOpts facto
 type syncer struct{}
 
 func (syncer) Sync(snap *v1.Snapshot) error {
+
+}
+
+func setupEds(bstrp bootstrap.Config, cache v1.Cache) error {
+
+}
+
+/// KUBE STUFF
+
+func watchKubeEds() {
 
 }

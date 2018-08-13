@@ -41,18 +41,18 @@ type Reporter interface {
 }
 
 type reporter struct {
-	clients       map[string]clients.ResourceClient
-	controllerRef string
+	clients map[string]clients.ResourceClient
+	ref     string
 }
 
-func NewReporter(controllerRef string, resourceClients ...clients.ResourceClient) Reporter {
+func NewReporter(reporterRef string, resourceClients ...clients.ResourceClient) Reporter {
 	clientsByKind := make(map[string]clients.ResourceClient)
 	for _, client := range resourceClients {
 		clientsByKind[client.Kind()] = client
 	}
 	return &reporter{
-		controllerRef: controllerRef,
-		clients:       clientsByKind,
+		ref:     reporterRef,
+		clients: clientsByKind,
 	}
 }
 
@@ -64,7 +64,7 @@ func (r *reporter) WriteReports(ctx context.Context, resourceErrs ResourceErrors
 		if !ok {
 			return errors.Errorf("reporter: was passed resource of kind %v but no client to support it", kind)
 		}
-		status := statusFromError(r.controllerRef, validationError)
+		status := statusFromError(r.ref, validationError)
 		resourceToWrite := resources.Clone(resource).(resources.InputResource)
 		resourceToWrite.SetStatus(status)
 		if _, err := client.Write(resourceToWrite, clients.WriteOpts{
@@ -80,13 +80,13 @@ func (r *reporter) WriteReports(ctx context.Context, resourceErrs ResourceErrors
 func statusFromError(ref string, err error) core.Status {
 	if err != nil {
 		return core.Status{
-			State:               core.Status_Rejected,
-			Reason:              err.Error(),
-			ControllerReference: ref,
+			State:             core.Status_Rejected,
+			Reason:            err.Error(),
+			ReporterReference: ref,
 		}
 	}
 	return core.Status{
-		State:               core.Status_Accepted,
-		ControllerReference: ref,
+		State:             core.Status_Accepted,
+		ReporterReference: ref,
 	}
 }

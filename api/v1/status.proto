@@ -5,7 +5,7 @@ option go_package = "github.com/solo-io/solo-kit/pkg/api/v1/resources/core";
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 /**
- * Status indicates whether a resource has been (in)validated by a controller in the system.
+ * Status indicates whether a resource has been (in)validated by a reporter in the system.
  * Statuses are meant to be read-only by users
  */
 message Status {
@@ -22,6 +22,6 @@ message Status {
     State state = 1;
     // Reason is a description of the error for Rejected resources. If the resource is pending or accepted, this field will be empty
     string reason = 2;
-    // Reference to the controller who wrote this status
-    string controller_reference = 3;
+    // Reference to the reporter who wrote this status
+    string reporter_reference = 3;
 }
