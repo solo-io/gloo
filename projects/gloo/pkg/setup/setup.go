@@ -138,9 +138,7 @@ func createUpstream(meta metav1.ObjectMeta, port kubev1.ServicePort) *v1.Upstrea
 	coremeta.Name = upstreamName(meta.Namespace, meta.Name, port.Port)
 	return &v1.Upstream{
 		Metadata:     coremeta,
-		UpstreamSpec: &v1.UpstreamSpec{
-
-		},
+		UpstreamSpec: &v1.UpstreamSpec{},
 	}
 }
 

@@ -7,6 +7,7 @@ option (gogoproto.equal_all) = true;
 
 // requires -Igloo/ in imports
 import "pkg/plugins/aws/plugin.proto";
+import "pkg/plugins/kubernetes/plugin.proto";
 
 // Plugin-specific configuration that lives on listeners
 // Each ListenerPlugin object contains configuration for a specific plugin
@@ -54,6 +55,7 @@ message UpstreamSpec {
     // to be usable by Gloo.
     oneof upstream_type {
         gloo.plugins.aws.UpstreamSpec aws = 1;
+        gloo.plugins.kubernetes.UpstreamSpec kube = 2;
     }
 }
 

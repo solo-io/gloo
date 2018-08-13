@@ -14,9 +14,17 @@ protoc -I=./ \
     *.proto
 
 # AWS Plugin
-cd ././../../pkg/plugins/aws/ && \
+(cd ././../../pkg/plugins/aws/ && \
 protoc -I=./ \
     -I=${GOPATH}/src/github.com/gogo/protobuf/ \
     ${GOGO_OUT_FLAG} \
     ${SOLO_KIT_FLAG}=.   \
-    *.proto
+    *.proto)
+
+# Kubernetes Plugin
+(cd ././../../pkg/plugins/kubernetes/ && \
+protoc -I=./ \
+    -I=${GOPATH}/src/github.com/gogo/protobuf/ \
+    ${GOGO_OUT_FLAG} \
+    ${SOLO_KIT_FLAG}=.   \
+    *.proto)
