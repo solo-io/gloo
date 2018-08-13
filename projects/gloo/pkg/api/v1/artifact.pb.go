@@ -39,6 +39,7 @@ It has these top-level messages:
 	SSLFiles
 	Secret
 	Upstream
+	DiscoveryMetadata
 */
 package v1
 

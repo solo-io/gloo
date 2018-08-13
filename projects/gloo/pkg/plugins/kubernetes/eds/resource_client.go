@@ -9,7 +9,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"k8s.io/api/core/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	kubev1 "k8s.io/api/core/v1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -57,21 +58,16 @@ func toKubeMeta(meta core.Metadata) metav1.ObjectMeta {
 	}
 }
 
-func fromKubeService(svc *v1.Service) *UpstreamSpec {
-	into.SetMetadata(fromKubeMeta(svc.ObjectMeta))
-	data := make(map[string]string)
-	for k, v := range svc.Data {
-		data[k] = string(v)
-	}
-	into.SetData(data)
+func fromKubeService(svc *kubev1.Service) *UpstreamSpec {
+	return &v1.Upstream{}
 }
 
-func toKubeSecret(resource resources.DataResource) *v1.Secret {
+func toKubeSecret(resource resources.DataResource) *kubev1.Secret {
 	data := make(map[string][]byte)
 	for k, v := range resource.GetData() {
 		data[k] = []byte(v)
 	}
-	return &v1.Secret{
+	return &kubev1.Secret{
 		ObjectMeta: toKubeMeta(resource.GetMetadata()),
 		Data:       data,
 	}

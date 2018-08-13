@@ -63,7 +63,8 @@ func UpstreamClientTest(namespace string, client UpstreamClient) {
 	Expect(r1).To(BeAssignableToTypeOf(&Upstream{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
-	Expect(r1.UpstreamType).To(Equal(input.UpstreamType))
+	Expect(r1.UpstreamSpec).To(Equal(input.UpstreamSpec))
+	Expect(r1.DiscoveryMetadata).To(Equal(input.DiscoveryMetadata))
 
 	_, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,
