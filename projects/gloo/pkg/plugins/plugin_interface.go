@@ -9,9 +9,12 @@ import (
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/pkg/bootstrap"
 )
 
-type InitParams struct{}
+type InitParams struct{
+	Bootstrap bootstrap.Config
+}
 
 type Plugin interface {
 	Init(params InitParams) error
