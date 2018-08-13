@@ -7,8 +7,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"k8s.io/api/core/v1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -18,28 +18,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func fromKubeMeta(meta metav1.ObjectMeta) core.Metadata {
-	return core.Metadata{
-		Name:            meta.Name,
-		Namespace:       meta.Namespace,
-		ResourceVersion: meta.ResourceVersion,
-		Labels:          meta.Labels,
-		Annotations:     meta.Annotations,
-	}
-}
-
-func toKubeMeta(meta core.Metadata) metav1.ObjectMeta {
-	return metav1.ObjectMeta{
-		Name:            meta.Name,
-		Namespace:       clients.DefaultNamespaceIfEmpty(meta.Namespace),
-		ResourceVersion: meta.ResourceVersion,
-		Labels:          meta.Labels,
-		Annotations:     meta.Annotations,
-	}
-}
-
 func fromKubeSecret(secret *v1.Secret, into resources.DataResource) {
-	into.SetMetadata(fromKubeMeta(secret.ObjectMeta))
+	into.SetMetadata(kubeutils.FromKubeMeta(secret.ObjectMeta))
 	data := make(map[string]string)
 	for k, v := range secret.Data {
 		data[k] = string(v)
@@ -53,7 +33,7 @@ func toKubeSecret(resource resources.DataResource) *v1.Secret {
 		data[k] = []byte(v)
 	}
 	return &v1.Secret{
-		ObjectMeta: toKubeMeta(resource.GetMetadata()),
+		ObjectMeta: kubeutils.ToKubeMeta(resource.GetMetadata()),
 		Data:       data,
 	}
 }
