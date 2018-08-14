@@ -3,6 +3,7 @@ package discovery
 import (
 	"context"
 	"reflect"
+	"sync"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -32,18 +33,34 @@ func NewDiscovery(udsPlugins ...UdsPlugin) *Discovery {
 // launch a goroutine for all the UDS plugins
 func (d *Discovery) StartUds(bstrp bootstrap.Config, namespace string, opts clients.WatchOpts, discOpts Opts, client v1.UpstreamClient) (chan error, error) {
 	aggregatedErrs := make(chan error)
+	upstreamsByUds := make(map[UdsPlugin]v1.UpstreamList)
+	lock := sync.Mutex{}
 	for _, uds := range d.udsPlugins {
 		upstreams, errs, err := uds.WatchUpstreams(namespace, opts, discOpts)
 		if err != nil {
 			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(uds).Name())
 		}
+		reconcileUpstreams := func(uds UdsPlugin, upstreamList v1.UpstreamList) {
+			lock.Lock()
+			upstreamsByUds[uds] = upstreamList
+			desiredUpstreams := upstreamList
+			for ds, upstreams := range upstreamsByUds {
+				if ds == uds {
+					continue
+				}
+				desiredUpstreams = append(desiredUpstreams, upstreams...)
+			}
+			lock.Unlock()
+			if err := reconcile(namespace, desiredUpstreams, client, opts, uds); err != nil {
+				aggregatedErrs <- err
+			}
+		}
+
 		go func(uds UdsPlugin) {
 			for {
 				select {
 				case upstreamList := <-upstreams:
-					if err := reconcile(namespace, upstreamList, client, opts, uds); err != nil {
-						aggregatedErrs <- err
-					}
+					reconcileUpstreams(uds, upstreamList)
 				case err := <-errs:
 					aggregatedErrs <- errors.Wrapf(err, "error in uds plugin %v", reflect.TypeOf(uds).Name())
 				case <-opts.Ctx.Done():
