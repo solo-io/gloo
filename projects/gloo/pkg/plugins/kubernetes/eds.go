@@ -1,18 +1,18 @@
 package kubernetes
 
 import (
+	"context"
+	"time"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	kubev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	kubewatch "k8s.io/apimachinery/pkg/watch"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"time"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/gloo/pkg/endpointdiscovery"
-	"context"
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
 func (p *KubePlugin) WatchEndpoints(opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {

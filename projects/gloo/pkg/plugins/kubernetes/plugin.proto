@@ -20,10 +20,10 @@ message UpstreamSpec {
     string service_namespace = 2;
     // The port where the Service is listening. If the service only has one port, this can be left empty
     int32 service_port = 3;
-    // Labels allow finer-grained filtering of pods for the Upstream. Gloo will select pods based on their labels if
+    // Allows finer-grained filtering of pods for the Upstream. Gloo will select pods based on their labels if
     // any are provided here.
     // (see [Kubernetes labels and selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
-    map<string, string> labels = 4;
+    map<string, string> selector = 4;
     // An optional Service Spec describing the service listening at this address
     gloo.plugins.core.ServiceSpec service_spec = 5;
 }
