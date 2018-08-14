@@ -20,16 +20,17 @@ type UdsPlugin interface {
 }
 
 type Discovery struct {
-	uds []UdsPlugin
+	udsPlugins []UdsPlugin
 }
 
-func NewDiscovery(uds []UdsPlugin) *Discovery {
-	return &Discovery{uds: uds}
+func NewDiscovery(udsPlugins ...UdsPlugin) *Discovery {
+	return &Discovery{udsPlugins: udsPlugins}
 }
 
-func (d *Discovery) Start(bstrp bootstrap.Config, namespace string, opts clients.WatchOpts, discOpts Opts, client v1.UpstreamClient) (chan error, error) {
+// launch a goroutine for all the UDS plugins
+func (d *Discovery) StartUds(bstrp bootstrap.Config, namespace string, opts clients.WatchOpts, discOpts Opts, client v1.UpstreamClient) (chan error, error) {
 	aggregatedErrs := make(chan error)
-	for _, uds := range d.uds {
+	for _, uds := range d.udsPlugins {
 		upstreams, errs, err := uds.WatchUpstreams(namespace, opts, discOpts)
 		if err != nil {
 			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(uds).Name())

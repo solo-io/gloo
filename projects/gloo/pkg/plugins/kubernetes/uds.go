@@ -2,7 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
-
+	"reflect"
 	"time"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -14,7 +14,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	kubewatch "k8s.io/apimachinery/pkg/watch"
-	"reflect"
 )
 
 func (p *KubePlugin) WatchUpstreams(writeNamespace string, opts clients.WatchOpts, discOpts discovery.Opts) (chan v1.UpstreamList, chan error, error) {
