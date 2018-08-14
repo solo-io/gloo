@@ -6,7 +6,7 @@ option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/kuber
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-import "api/v1/service_spec.proto"
+import "pkg/plugins/core/service_spec.proto";
 
 // Upstream Spec for Kubernetes Upstreams
 // Kubernetes Upstreams represent a set of one or more addressable pods for a Kubernetes Service
@@ -25,5 +25,5 @@ message UpstreamSpec {
     // (see [Kubernetes labels and selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
     map<string, string> labels = 4;
     // An optional Service Spec describing the service listening at this address
-    ServiceSpec service_spec = 5;
+    gloo.plugins.core.ServiceSpec service_spec = 5;
 }

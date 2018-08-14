@@ -21,10 +21,18 @@ protoc -I=./ \
     ${SOLO_KIT_FLAG}=.   \
     *.proto)
 
+# Core Plugin
+(cd ././../../pkg/plugins/core/ && \
+protoc -I=./ \
+    -I=${GOPATH}/src/github.com/gogo/protobuf/ \
+    ${GOGO_OUT_FLAG} \
+    *.proto)
+
 # Kubernetes Plugin
 (cd ././../../pkg/plugins/kubernetes/ && \
 protoc -I=./ \
     -I=${GOPATH}/src/github.com/gogo/protobuf/ \
+    -I=${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/ \
     ${GOGO_OUT_FLAG} \
     ${SOLO_KIT_FLAG}=.   \
     *.proto)

@@ -1,14 +1,15 @@
 package discovery
 
 import (
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/bootstrap"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/pkg/errors"
+	"context"
 	"reflect"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"context"
+	"github.com/solo-io/solo-kit/pkg/bootstrap"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
 type UdsPlugin interface {

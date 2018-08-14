@@ -3,16 +3,17 @@ package kubernetes
 import (
 	"fmt"
 
+	"time"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
 	kubev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	kubewatch "k8s.io/apimachinery/pkg/watch"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
-	"time"
 )
 
 func (p *KubePlugin) WatchUpstreams(writeNamespace string, opts clients.WatchOpts, discOpts discovery.Opts) (chan v1.UpstreamList, chan error, error) {

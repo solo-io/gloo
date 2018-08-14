@@ -72,7 +72,7 @@ func (m *Upstream) GetDiscoveryMetadata() *DiscoveryMetadata {
 	return nil
 }
 
-//
+// created by discovery services
 type DiscoveryMetadata struct {
 }
 

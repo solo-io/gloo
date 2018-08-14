@@ -20,7 +20,6 @@ It has these top-level messages:
 	RoutePlugin
 	DestinationSpec
 	UpstreamSpec
-	ServiceSpec
 	Proxy
 	Listener
 	HttpListener

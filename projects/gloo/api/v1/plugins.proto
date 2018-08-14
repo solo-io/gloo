@@ -58,9 +58,3 @@ message UpstreamSpec {
         gloo.plugins.kubernetes.UpstreamSpec kube = 2;
     }
 }
-
-// Some upstreams host well-known protocols such as REST, gRPC, and NATS-streaming
-// For upstreams that support services (e.g. static, kubernetes, and consul), additional features
-// such as JSON-gRPC transcoding and automatic request transformation can be achieved by providing
-// a Plugin-specific ServiceSpec on the Upstream object. Upstreams that support ServiceSpec are
-message ServiceSpec {}
