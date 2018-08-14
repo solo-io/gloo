@@ -6,10 +6,9 @@ SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --
 ROOT=${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo
 
 OUT=${ROOT}/pkg/api/v1/
-mkdir -p ${OUT}
 protoc -I=./ \
     -I=${GOPATH}/src/github.com/gogo/protobuf/ \
-    -I=${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/ \
+    -I=${ROOT}/ \
     -I=${GOPATH}/src \
     ${GOGO_OUT_FLAG} \
     ${SOLO_KIT_FLAG}=${OUT} \
