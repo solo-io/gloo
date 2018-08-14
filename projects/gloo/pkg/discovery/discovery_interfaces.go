@@ -16,7 +16,7 @@ type UdsPlugin interface {
 	// send us an updated list of upstreams on every change
 	WatchUpstreams(namespace string, opts clients.WatchOpts, discOpts Opts) (chan v1.UpstreamList, chan error, error)
 	// tell us how to update from an existing upstream
-	UpdateUpstream(original, desired *v1.Upstream)
+	UpdateUpstream(original, desired *v1.Upstream) error
 }
 
 type Discovery struct {
@@ -89,9 +89,13 @@ func syncResource(ctx context.Context, client v1.UpstreamClient, desired *v1.Ups
 			meta.ResourceVersion = original.GetMetadata().ResourceVersion
 		})
 
+		// reset the status
 		desired.SetStatus(core.Status{})
 
-		uds.UpdateUpstream(original, desired)
+		// call update upstream to allow any old context to be copied to the new object before writing
+		if err := uds.UpdateUpstream(original, desired); err != nil {
+			return err
+		}
 	}
 	_, err := client.Write(desired, clients.WriteOpts{Ctx: ctx, OverwriteExisting: overwriteExisting})
 	return err

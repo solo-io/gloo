@@ -14,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	kubewatch "k8s.io/apimachinery/pkg/watch"
+	"reflect"
 )
 
 func (p *KubePlugin) WatchUpstreams(writeNamespace string, opts clients.WatchOpts, discOpts discovery.Opts) (chan v1.UpstreamList, chan error, error) {
@@ -110,6 +111,16 @@ func skip(svc kubev1.Service, opts discovery.Opts) bool {
 	return false
 }
 
-func (p *KubePlugin) UpdateUpstream(original, desired *v1.Upstream) {
-	panic("implement me")
+func (p *KubePlugin) UpdateUpstream(original, desired *v1.Upstream) error {
+	originalSpec, ok := original.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
+	if !ok {
+		return errors.Errorf("internal error: expected *v1.UpstreamSpec_Kube, got %v", reflect.TypeOf(original.UpstreamSpec.UpstreamType).Name())
+	}
+	desiredSpec, ok := desired.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
+	if !ok {
+		return errors.Errorf("internal error: expected *v1.UpstreamSpec_Kube, got %v", reflect.TypeOf(original.UpstreamSpec.UpstreamType).Name())
+	}
+	// copy service spec, we don't want to overwrite that
+	desiredSpec.Kube.ServiceSpec = originalSpec.Kube.ServiceSpec
+	return nil
 }
