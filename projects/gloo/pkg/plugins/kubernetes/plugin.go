@@ -9,6 +9,12 @@ import (
 
 type KubePlugin struct {
 	kube kubernetes.Interface
+
+	// indicates a resync is required
+	resync chan struct{}
+
+	// track upstreams for eds
+	trackUpstreams func(list v1.UpstreamList)
 }
 
 func (p *KubePlugin) Init(params plugins.InitParams) error {

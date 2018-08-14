@@ -3,95 +3,101 @@ package kubernetes
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	kubev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	kubewatch "k8s.io/apimachinery/pkg/watch"
-	"k8s.io/client-go/kubernetes"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"time"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/gloo/pkg/endpointdiscovery"
+	"context"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-type endpointsWatcher struct {
-	kube      kubernetes.Interface
-	upstreams []*v1.Upstream
-	resync    chan struct{}
-}
-
-func newEndpointsWatcher(kube kubernetes.Interface) *endpointsWatcher {
-	return &endpointsWatcher{
-		kube:   kube,
-		resync: make(chan struct{}),
-	}
-}
-
-func (w *endpointsWatcher) TrackUpstreams(upstreams []*v1.Upstream) {
-	w.upstreams = upstreams
-	go func() {
-		w.resync <- struct{}{}
-	}()
-}
-
-func (w *endpointsWatcher) Watch(namespace string, opts clients.WatchOpts) (<-chan map[edsMapping]*kubev1.Endpoints, <-chan error, error) {
+func (p *KubePlugin) WatchEndpoints(opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
 	opts = opts.WithDefaults()
-	namespace = clients.DefaultNamespaceIfEmpty(namespace)
-	epWatch, err := w.kube.CoreV1().Endpoints(namespace).Watch(metav1.ListOptions{
+
+	// initialize watches
+	epWatch, err := p.kube.CoreV1().Endpoints("").Watch(metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
 	})
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "initiating kube eps watch in %v", namespace)
+		return nil, nil, errors.Wrapf(err, "initiating kube eps watch")
 	}
-	svcWatch, err := w.kube.CoreV1().Services(namespace).Watch(metav1.ListOptions{
+	svcWatch, err := p.kube.CoreV1().Services("").Watch(metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
 	})
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "initiating kube eps watch in %v", namespace)
+		return nil, nil, errors.Wrapf(err, "initiating kube svc watch")
 	}
-	podWatch, err := w.kube.CoreV1().Pods(namespace).Watch(metav1.ListOptions{
+	podWatch, err := p.kube.CoreV1().Pods("").Watch(metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
 	})
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "initiating kube eps watch in %v", namespace)
+		return nil, nil, errors.Wrapf(err, "initiating kube pods watch")
 	}
-	endpointsChan := make(chan map[edsMapping]*kubev1.Endpoints)
+
+	// set up buffers and channels
+	endpointsChan := make(chan v1.EndpointList)
 	errs := make(chan error)
-	updateResourceList := func() {
-		list, err := w.kube.CoreV1().Endpoints(namespace).List(metav1.ListOptions{
+	upstreamsToTrack := make(map[string]*UpstreamSpec)
+
+	// sync functions
+	syncEndpoints := func() {
+		list, err := p.kube.CoreV1().Endpoints("").List(metav1.ListOptions{
 			LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
 		})
 		if err != nil {
 			errs <- err
 			return
 		}
-		endpointsChan <- processNewEndpoints(list)
+		endpointsChan <- p.processNewEndpoints(list, upstreamsToTrack)
 	}
+
+	p.trackUpstreams = func(list v1.UpstreamList) {
+		upstreamsToTrack = make(map[string]*UpstreamSpec)
+		for _, us := range list {
+			kubeUpstream, ok := us.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
+			if !ok {
+				continue
+			}
+			upstreamsToTrack[us.Metadata.Name] = kubeUpstream.Kube
+		}
+		// need to refresh the eds list for new upstreams
+		p.queueResync()
+	}
+
 	// watch should open up with an initial read
-	go updateResourceList()
+	go syncEndpoints()
 
 	go func() {
 		for {
 			select {
-			case <-w.resync:
-				updateResourceList()
+			case <-time.After(opts.RefreshRate):
+				syncEndpoints()
+			case <-p.resync:
+				syncEndpoints()
 			case event := <-svcWatch.ResultChan():
 				switch event.Type {
 				case kubewatch.Error:
 					errs <- errors.Errorf("error during svc watch: %v", event)
 				default:
-					updateResourceList()
+					syncEndpoints()
 				}
 			case event := <-podWatch.ResultChan():
 				switch event.Type {
 				case kubewatch.Error:
 					errs <- errors.Errorf("error during pod watch: %v", event)
 				default:
-					updateResourceList()
+					syncEndpoints()
 				}
 			case event := <-epWatch.ResultChan():
 				switch event.Type {
 				case kubewatch.Error:
 					errs <- errors.Errorf("error during endpoints watch: %v", event)
 				default:
-					updateResourceList()
+					syncEndpoints()
 				}
 			case <-opts.Ctx.Done():
 				epWatch.Stop()
@@ -107,17 +113,78 @@ func (w *endpointsWatcher) Watch(namespace string, opts clients.WatchOpts) (<-ch
 	return endpointsChan, errs, nil
 }
 
-type edsMapping struct {
-	serviceName string
-	servicePort uint32
+func (p *KubePlugin) processNewEndpoints(ctx context.Context, kubeEndpoints *kubev1.EndpointsList, pods []*kubev1.Pod, upstreams map[string]*UpstreamSpec) v1.EndpointList {
+	var endpoints v1.EndpointList
+
+	logger := contextutils.LoggerFrom(contextutils.WithLogger(ctx, "kubernetes_eds"))
+
+	// for each upstream
+	for usName, spec := range upstreams {
+		// find each matching endpoint
+		for _, eps := range kubeEndpoints.Items {
+			if eps.Namespace != spec.ServiceNamespace || eps.Name != spec.ServiceName {
+				continue
+			}
+			for _, subset := range eps.Subsets {
+				for _, addr := range subset.Addresses {
+					// determine whether labels for the owner of this ip (pod) matches the spec
+					podLabels, err := getPodLabelsForIp(addr.IP, pods)
+					if err != nil {
+						err = errors.Wrapf(err, "error for upstream %v service %v", upstreamName, spec.ServiceName)
+						// pod not found for ip? what's that about?
+						// log it and keep going
+						logger.Warnf("error in kubernetes endpoint controller: %v", err)
+						continue
+					}
+					if !labels.AreLabelsInWhiteList(spec.Selector, podLabels) {
+						continue
+					}
+					// pod hasn't been assigned address yet
+					if addr.IP == "" {
+						continue
+					}
+
+					ep := createEndpoint()
+					endpoints = append(endpoints, ep)
+
+				}
+			}
+		}
+
+	}
+	return endpoints
 }
 
-func processNewEndpoints(list *kubev1.EndpointsList) map[edsMapping]*kubev1.Endpoints {
-	endpointSet := make(map[edsMapping]*kubev1.Endpoints)
-	for _, eps := range list.Items {
-		for _, subset := range eps.Subsets {
+func createEndpointFromKube(namespace, upstreamName string, ep kubev1.EndpointSubset) *v1.Endpoint {
+	return createEndpoint(namespace, "foo", upstreamName)
+}
+func createEndpoint(namespace, name, upstreamName, address string, port uint32) *v1.Endpoint {
+	return &v1.Endpoint{
+		Metadata: core.Metadata{
+			Namespace: namespace,
+			Name:      name,
+		},
+		UpstreamName: upstreamName,
+		Address:      address,
+		Port:         port,
+	}
+}
 
+func getPodLabelsForIp(ip string, pods []*kubev1.Pod) (map[string]string, error) {
+	for _, pod := range pods {
+		if pod.Status.PodIP == ip && pod.Status.Phase == kubev1.PodRunning {
+			return pod.Labels, nil
 		}
 	}
-	return endpointSet
+	return nil, errors.Errorf("running pod not found with ip %v", ip)
+}
+
+func (p *KubePlugin) TrackUpstreams(list v1.UpstreamList) {
+	p.trackUpstreams(list)
+}
+
+func (p *KubePlugin) queueResync() {
+	go func() {
+		p.resync <- struct{}{}
+	}()
 }
