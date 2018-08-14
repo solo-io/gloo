@@ -17,6 +17,7 @@ import (
 )
 
 func (p *KubePlugin) WatchUpstreams(writeNamespace string, opts clients.WatchOpts, discOpts discovery.Opts) (chan v1.UpstreamList, chan error, error) {
+	opts = opts.WithDefaults()
 	serviceWatch, err := p.kube.CoreV1().Services("").Watch(metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
 	})
@@ -89,7 +90,6 @@ func createUpstream(meta metav1.ObjectMeta, port kubev1.ServicePort, writeNamesp
 					ServiceName:      meta.Name,
 					ServiceNamespace: meta.Namespace,
 					ServicePort:      port.Port,
-					Labels:           meta.Labels,
 				},
 			},
 		},
@@ -121,5 +121,8 @@ func (p *KubePlugin) UpdateUpstream(original, desired *v1.Upstream) error {
 	}
 	// copy service spec, we don't want to overwrite that
 	desiredSpec.Kube.ServiceSpec = originalSpec.Kube.ServiceSpec
+	// copy labels; user may have written them over. cannot be auto-discovered
+	desiredSpec.Kube.Selector = originalSpec.Kube.Selector
+
 	return nil
 }

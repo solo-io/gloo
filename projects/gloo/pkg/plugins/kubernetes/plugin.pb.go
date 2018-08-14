@@ -41,10 +41,10 @@ type UpstreamSpec struct {
 	ServiceNamespace string `protobuf:"bytes,2,opt,name=service_namespace,json=serviceNamespace,proto3" json:"service_namespace,omitempty"`
 	// The port where the Service is listening. If the service only has one port, this can be left empty
 	ServicePort int32 `protobuf:"varint,3,opt,name=service_port,json=servicePort,proto3" json:"service_port,omitempty"`
-	// Labels allow finer-grained filtering of pods for the Upstream. Gloo will select pods based on their labels if
+	// Selector allow finer-grained filtering of pods for the Upstream. Gloo will select pods based on their labels if
 	// any are provided here.
 	// (see [Kubernetes labels and selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
-	Labels map[string]string `protobuf:"bytes,4,rep,name=labels" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Selector map[string]string `protobuf:"bytes,4,rep,name=labels" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// An optional Service Spec describing the service listening at this address
 	ServiceSpec *gloo_plugins_core.ServiceSpec `protobuf:"bytes,5,opt,name=service_spec,json=serviceSpec" json:"service_spec,omitempty"`
 }
@@ -77,7 +77,7 @@ func (m *UpstreamSpec) GetServicePort() int32 {
 
 func (m *UpstreamSpec) GetLabels() map[string]string {
 	if m != nil {
-		return m.Labels
+		return m.Selector
 	}
 	return nil
 }
@@ -120,11 +120,11 @@ func (this *UpstreamSpec) Equal(that interface{}) bool {
 	if this.ServicePort != that1.ServicePort {
 		return false
 	}
-	if len(this.Labels) != len(that1.Labels) {
+	if len(this.Selector) != len(that1.Selector) {
 		return false
 	}
-	for i := range this.Labels {
-		if this.Labels[i] != that1.Labels[i] {
+	for i := range this.Selector {
+		if this.Selector[i] != that1.Selector[i] {
 			return false
 		}
 	}

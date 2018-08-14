@@ -14,8 +14,10 @@ import (
 
 type UdsPlugin interface {
 	// send us an updated list of upstreams on every change
+	// namespace is for writing to, not necessarily reading from
 	WatchUpstreams(namespace string, opts clients.WatchOpts, discOpts Opts) (chan v1.UpstreamList, chan error, error)
-	// tell us how to update from an existing upstream
+	// finalize any changes to the desired upstream before it gets written
+	// for example, copying the functions from the old upstream to the new.
 	UpdateUpstream(original, desired *v1.Upstream) error
 }
 
