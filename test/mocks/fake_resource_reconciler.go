@@ -11,7 +11,7 @@ import (
 type TransitionFakeResourceFunc func(original, desired *FakeResource)
 
 type FakeResourceReconciler interface {
-	Reconcile(namespace string, desiredResources []*FakeResource, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources []*FakeResource, transition TransitionFakeResourceFunc, opts clients.ListOpts) error
 }
 
 func fakeResourcesToResources(list FakeResourceList) []resources.Resource {
@@ -22,15 +22,9 @@ func fakeResourcesToResources(list FakeResourceList) []resources.Resource {
 	return resourceList
 }
 
-func NewFakeResourceReconciler(client FakeResourceClient, transition TransitionFakeResourceFunc) FakeResourceReconciler {
-	var transitionResources reconcile.TransitionResourcesFunc
-	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*FakeResource), desired.(*FakeResource))
-		}
-	}
+func NewFakeResourceReconciler(client FakeResourceClient) FakeResourceReconciler {
 	return &fakeResourceReconciler{
-		base: reconcile.NewReconciler(client.BaseClient(), transitionResources),
+		base: reconcile.NewReconciler(client.BaseClient()),
 	}
 }
 
@@ -38,8 +32,14 @@ type fakeResourceReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *fakeResourceReconciler) Reconcile(namespace string, desiredResources []*FakeResource, opts clients.ListOpts) error {
+func (r *fakeResourceReconciler) Reconcile(namespace string, desiredResources []*FakeResource, transition TransitionFakeResourceFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "fakeResource_reconciler")
-	return r.base.Reconcile(namespace, fakeResourcesToResources(desiredResources), opts)
+	var transitionResources reconcile.TransitionResourcesFunc
+	if transition != nil {
+		transitionResources = func(original, desired resources.Resource) {
+			transition(original.(*FakeResource), desired.(*FakeResource))
+		}
+	}
+	return r.base.Reconcile(namespace, fakeResourcesToResources(desiredResources), transitionResources, opts)
 }

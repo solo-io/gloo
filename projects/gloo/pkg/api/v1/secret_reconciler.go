@@ -11,7 +11,7 @@ import (
 type TransitionSecretFunc func(original, desired *Secret)
 
 type SecretReconciler interface {
-	Reconcile(namespace string, desiredResources []*Secret, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources []*Secret, transition TransitionSecretFunc, opts clients.ListOpts) error
 }
 
 func secretsToResources(list SecretList) []resources.Resource {
@@ -22,15 +22,9 @@ func secretsToResources(list SecretList) []resources.Resource {
 	return resourceList
 }
 
-func NewSecretReconciler(client SecretClient, transition TransitionSecretFunc) SecretReconciler {
-	var transitionResources reconcile.TransitionResourcesFunc
-	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*Secret), desired.(*Secret))
-		}
-	}
+func NewSecretReconciler(client SecretClient) SecretReconciler {
 	return &secretReconciler{
-		base: reconcile.NewReconciler(client.BaseClient(), transitionResources),
+		base: reconcile.NewReconciler(client.BaseClient()),
 	}
 }
 
@@ -38,8 +32,14 @@ type secretReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *secretReconciler) Reconcile(namespace string, desiredResources []*Secret, opts clients.ListOpts) error {
+func (r *secretReconciler) Reconcile(namespace string, desiredResources []*Secret, transition TransitionSecretFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "secret_reconciler")
-	return r.base.Reconcile(namespace, secretsToResources(desiredResources), opts)
+	var transitionResources reconcile.TransitionResourcesFunc
+	if transition != nil {
+		transitionResources = func(original, desired resources.Resource) {
+			transition(original.(*Secret), desired.(*Secret))
+		}
+	}
+	return r.base.Reconcile(namespace, secretsToResources(desiredResources), transitionResources, opts)
 }

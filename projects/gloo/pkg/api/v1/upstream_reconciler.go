@@ -11,7 +11,7 @@ import (
 type TransitionUpstreamFunc func(original, desired *Upstream)
 
 type UpstreamReconciler interface {
-	Reconcile(namespace string, desiredResources []*Upstream, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources []*Upstream, transition TransitionUpstreamFunc, opts clients.ListOpts) error
 }
 
 func upstreamsToResources(list UpstreamList) []resources.Resource {
@@ -22,15 +22,9 @@ func upstreamsToResources(list UpstreamList) []resources.Resource {
 	return resourceList
 }
 
-func NewUpstreamReconciler(client UpstreamClient, transition TransitionUpstreamFunc) UpstreamReconciler {
-	var transitionResources reconcile.TransitionResourcesFunc
-	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*Upstream), desired.(*Upstream))
-		}
-	}
+func NewUpstreamReconciler(client UpstreamClient) UpstreamReconciler {
 	return &upstreamReconciler{
-		base: reconcile.NewReconciler(client.BaseClient(), transitionResources),
+		base: reconcile.NewReconciler(client.BaseClient()),
 	}
 }
 
@@ -38,8 +32,14 @@ type upstreamReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *upstreamReconciler) Reconcile(namespace string, desiredResources []*Upstream, opts clients.ListOpts) error {
+func (r *upstreamReconciler) Reconcile(namespace string, desiredResources []*Upstream, transition TransitionUpstreamFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "upstream_reconciler")
-	return r.base.Reconcile(namespace, upstreamsToResources(desiredResources), opts)
+	var transitionResources reconcile.TransitionResourcesFunc
+	if transition != nil {
+		transitionResources = func(original, desired resources.Resource) {
+			transition(original.(*Upstream), desired.(*Upstream))
+		}
+	}
+	return r.base.Reconcile(namespace, upstreamsToResources(desiredResources), transitionResources, opts)
 }

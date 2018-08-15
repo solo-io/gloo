@@ -11,7 +11,7 @@ import (
 type TransitionArtifactFunc func(original, desired *Artifact)
 
 type ArtifactReconciler interface {
-	Reconcile(namespace string, desiredResources []*Artifact, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources []*Artifact, transition TransitionArtifactFunc, opts clients.ListOpts) error
 }
 
 func artifactsToResources(list ArtifactList) []resources.Resource {
@@ -22,15 +22,9 @@ func artifactsToResources(list ArtifactList) []resources.Resource {
 	return resourceList
 }
 
-func NewArtifactReconciler(client ArtifactClient, transition TransitionArtifactFunc) ArtifactReconciler {
-	var transitionResources reconcile.TransitionResourcesFunc
-	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*Artifact), desired.(*Artifact))
-		}
-	}
+func NewArtifactReconciler(client ArtifactClient) ArtifactReconciler {
 	return &artifactReconciler{
-		base: reconcile.NewReconciler(client.BaseClient(), transitionResources),
+		base: reconcile.NewReconciler(client.BaseClient()),
 	}
 }
 
@@ -38,8 +32,14 @@ type artifactReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *artifactReconciler) Reconcile(namespace string, desiredResources []*Artifact, opts clients.ListOpts) error {
+func (r *artifactReconciler) Reconcile(namespace string, desiredResources []*Artifact, transition TransitionArtifactFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "artifact_reconciler")
-	return r.base.Reconcile(namespace, artifactsToResources(desiredResources), opts)
+	var transitionResources reconcile.TransitionResourcesFunc
+	if transition != nil {
+		transitionResources = func(original, desired resources.Resource) {
+			transition(original.(*Artifact), desired.(*Artifact))
+		}
+	}
+	return r.base.Reconcile(namespace, artifactsToResources(desiredResources), transitionResources, opts)
 }

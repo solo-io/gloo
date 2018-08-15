@@ -11,7 +11,7 @@ import (
 type TransitionProxyFunc func(original, desired *Proxy)
 
 type ProxyReconciler interface {
-	Reconcile(namespace string, desiredResources []*Proxy, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources []*Proxy, transition TransitionProxyFunc, opts clients.ListOpts) error
 }
 
 func proxysToResources(list ProxyList) []resources.Resource {
@@ -22,15 +22,9 @@ func proxysToResources(list ProxyList) []resources.Resource {
 	return resourceList
 }
 
-func NewProxyReconciler(client ProxyClient, transition TransitionProxyFunc) ProxyReconciler {
-	var transitionResources reconcile.TransitionResourcesFunc
-	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*Proxy), desired.(*Proxy))
-		}
-	}
+func NewProxyReconciler(client ProxyClient) ProxyReconciler {
 	return &proxyReconciler{
-		base: reconcile.NewReconciler(client.BaseClient(), transitionResources),
+		base: reconcile.NewReconciler(client.BaseClient()),
 	}
 }
 
@@ -38,8 +32,14 @@ type proxyReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *proxyReconciler) Reconcile(namespace string, desiredResources []*Proxy, opts clients.ListOpts) error {
+func (r *proxyReconciler) Reconcile(namespace string, desiredResources []*Proxy, transition TransitionProxyFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "proxy_reconciler")
-	return r.base.Reconcile(namespace, proxysToResources(desiredResources), opts)
+	var transitionResources reconcile.TransitionResourcesFunc
+	if transition != nil {
+		transitionResources = func(original, desired resources.Resource) {
+			transition(original.(*Proxy), desired.(*Proxy))
+		}
+	}
+	return r.base.Reconcile(namespace, proxysToResources(desiredResources), transitionResources, opts)
 }

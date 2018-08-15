@@ -3,6 +3,7 @@ package discovery
 import (
 	"context"
 	"reflect"
+	"sort"
 	"sync"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -31,15 +32,34 @@ type DiscoveryPlugin interface {
 }
 
 type Discovery struct {
-	discoveryPlugins []DiscoveryPlugin
+	upstreamReconciler  v1.UpstreamReconciler
+	endpointsReconciler v1.EndpointReconciler
+	discoveryPlugins    []DiscoveryPlugin
 }
 
-func NewDiscovery(discoveryPlugins []DiscoveryPlugin) *Discovery {
-	return &Discovery{discoveryPlugins: discoveryPlugins}
+func NewDiscovery(upstreamClient v1.UpstreamClient,
+	endpointsClient v1.EndpointClient,
+	discoveryPlugins ...DiscoveryPlugin) *Discovery {
+	return &Discovery{
+		upstreamReconciler:  v1.NewUpstreamReconciler(upstreamClient),
+		endpointsReconciler: v1.NewEndpointReconciler(endpointsClient),
+		discoveryPlugins:    discoveryPlugins,
+	}
+}
+
+func aggregateUpstreams(upstreamsByUds map[DiscoveryPlugin]v1.UpstreamList) v1.UpstreamList {
+	var upstreams v1.UpstreamList
+	for _, upstreamList := range upstreamsByUds {
+		upstreams = append(upstreams, upstreamList...)
+	}
+	sort.SliceStable(upstreams, func(i, j int) bool {
+		return upstreams[i].Metadata.Less(upstreams[j].Metadata)
+	})
+	return upstreams
 }
 
 // launch a goroutine for all the UDS plugins
-func (d *Discovery) StartUds(bstrp bootstrap.Config, namespace string, opts clients.WatchOpts, discOpts Opts, client v1.UpstreamClient) (chan error, error) {
+func (d *Discovery) StartUds(bstrp bootstrap.Config, namespace string, opts clients.WatchOpts, discOpts Opts) (chan error, error) {
 	aggregatedErrs := make(chan error)
 	upstreamsByUds := make(map[DiscoveryPlugin]v1.UpstreamList)
 	lock := sync.Mutex{}
@@ -51,15 +71,9 @@ func (d *Discovery) StartUds(bstrp bootstrap.Config, namespace string, opts clie
 		reconcileUpstreams := func(uds DiscoveryPlugin, upstreamList v1.UpstreamList) {
 			lock.Lock()
 			upstreamsByUds[uds] = upstreamList
-			desiredUpstreams := upstreamList
-			for ds, upstreams := range upstreamsByUds {
-				if ds == uds {
-					continue
-				}
-				desiredUpstreams = append(desiredUpstreams, upstreams...)
-			}
+			desiredUpstreams := aggregateUpstreams(upstreamsByUds)
 			lock.Unlock()
-			if err := reconcile(namespace, desiredUpstreams, client, opts, uds); err != nil {
+			if err := d.upstreamReconciler.Reconcile(namespace, desiredUpstreams, opts); err != nil {
 				aggregatedErrs <- err
 			}
 		}

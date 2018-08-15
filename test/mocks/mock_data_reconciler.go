@@ -11,7 +11,7 @@ import (
 type TransitionMockDataFunc func(original, desired *MockData)
 
 type MockDataReconciler interface {
-	Reconcile(namespace string, desiredResources []*MockData, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources []*MockData, transition TransitionMockDataFunc, opts clients.ListOpts) error
 }
 
 func mockDatasToResources(list MockDataList) []resources.Resource {
@@ -22,15 +22,9 @@ func mockDatasToResources(list MockDataList) []resources.Resource {
 	return resourceList
 }
 
-func NewMockDataReconciler(client MockDataClient, transition TransitionMockDataFunc) MockDataReconciler {
-	var transitionResources reconcile.TransitionResourcesFunc
-	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*MockData), desired.(*MockData))
-		}
-	}
+func NewMockDataReconciler(client MockDataClient) MockDataReconciler {
 	return &mockDataReconciler{
-		base: reconcile.NewReconciler(client.BaseClient(), transitionResources),
+		base: reconcile.NewReconciler(client.BaseClient()),
 	}
 }
 
@@ -38,8 +32,14 @@ type mockDataReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *mockDataReconciler) Reconcile(namespace string, desiredResources []*MockData, opts clients.ListOpts) error {
+func (r *mockDataReconciler) Reconcile(namespace string, desiredResources []*MockData, transition TransitionMockDataFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "mockData_reconciler")
-	return r.base.Reconcile(namespace, mockDatasToResources(desiredResources), opts)
+	var transitionResources reconcile.TransitionResourcesFunc
+	if transition != nil {
+		transitionResources = func(original, desired resources.Resource) {
+			transition(original.(*MockData), desired.(*MockData))
+		}
+	}
+	return r.base.Reconcile(namespace, mockDatasToResources(desiredResources), transitionResources, opts)
 }
