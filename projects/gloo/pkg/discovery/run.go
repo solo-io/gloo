@@ -5,6 +5,7 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
@@ -42,21 +43,10 @@ func RunEds(upstreamClient v1.UpstreamClient, disc *Discovery, watchNamespace st
 					errs <- err
 					continue
 				}
-				go aggregateErrs(opts.Ctx, errs, edsErrs)
+				go errutils.AggregateErrs(opts.Ctx, errs, edsErrs)
 
 			}
 		}
 	}()
 	return errs, nil
-}
-
-func aggregateErrs(ctx context.Context, dest chan error, src <-chan error) {
-	for {
-		select {
-		case err := <-src:
-			dest <- err
-		case <-ctx.Done():
-			return
-		}
-	}
 }
