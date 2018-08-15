@@ -13,34 +13,42 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
-type UdsPlugin interface {
+type DiscoveryPlugin interface {
+	// UDS API
 	// send us an updated list of upstreams on every change
 	// namespace is for writing to, not necessarily reading from
 	WatchUpstreams(namespace string, opts clients.WatchOpts, discOpts Opts) (chan v1.UpstreamList, chan error, error)
 	// finalize any changes to the desired upstream before it gets written
 	// for example, copying the functions from the old upstream to the new.
 	UpdateUpstream(original, desired *v1.Upstream) error
+
+	// EDS API
+	// start the EDS watch which sends a new list of endpoints on any change
+	// will send only endpoints for upstreams configured with TrackUpstreams
+	WatchEndpoints(namespace string, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error)
+	// Updates the EDS to track only these upstreams
+	TrackUpstreams(list v1.UpstreamList)
 }
 
 type Discovery struct {
-	udsPlugins []UdsPlugin
+	discoveryPlugins []DiscoveryPlugin
 }
 
-func NewDiscovery(udsPlugins ...UdsPlugin) *Discovery {
-	return &Discovery{udsPlugins: udsPlugins}
+func NewDiscovery(discoveryPlugins []DiscoveryPlugin) *Discovery {
+	return &Discovery{discoveryPlugins: discoveryPlugins}
 }
 
 // launch a goroutine for all the UDS plugins
 func (d *Discovery) StartUds(bstrp bootstrap.Config, namespace string, opts clients.WatchOpts, discOpts Opts, client v1.UpstreamClient) (chan error, error) {
 	aggregatedErrs := make(chan error)
-	upstreamsByUds := make(map[UdsPlugin]v1.UpstreamList)
+	upstreamsByUds := make(map[DiscoveryPlugin]v1.UpstreamList)
 	lock := sync.Mutex{}
-	for _, uds := range d.udsPlugins {
+	for _, uds := range d.discoveryPlugins {
 		upstreams, errs, err := uds.WatchUpstreams(namespace, opts, discOpts)
 		if err != nil {
 			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(uds).Name())
 		}
-		reconcileUpstreams := func(uds UdsPlugin, upstreamList v1.UpstreamList) {
+		reconcileUpstreams := func(uds DiscoveryPlugin, upstreamList v1.UpstreamList) {
 			lock.Lock()
 			upstreamsByUds[uds] = upstreamList
 			desiredUpstreams := upstreamList
@@ -56,7 +64,7 @@ func (d *Discovery) StartUds(bstrp bootstrap.Config, namespace string, opts clie
 			}
 		}
 
-		go func(uds UdsPlugin) {
+		go func(uds DiscoveryPlugin) {
 			for {
 				select {
 				case upstreamList := <-upstreams:
@@ -72,7 +80,7 @@ func (d *Discovery) StartUds(bstrp bootstrap.Config, namespace string, opts clie
 	return aggregatedErrs, nil
 }
 
-func reconcile(namespace string, desiredResources v1.UpstreamList, client v1.UpstreamClient, opts clients.WatchOpts, uds UdsPlugin) error {
+func reconcile(namespace string, desiredResources v1.UpstreamList, client v1.UpstreamClient, opts clients.WatchOpts, uds DiscoveryPlugin) error {
 	originalResources, err := client.List(namespace, clients.ListOpts{
 		Ctx:      opts.Ctx,
 		Selector: opts.Selector,
@@ -97,7 +105,7 @@ func reconcile(namespace string, desiredResources v1.UpstreamList, client v1.Ups
 	return nil
 }
 
-func syncResource(ctx context.Context, client v1.UpstreamClient, desired *v1.Upstream, originalResources v1.UpstreamList, uds UdsPlugin) error {
+func syncResource(ctx context.Context, client v1.UpstreamClient, desired *v1.Upstream, originalResources v1.UpstreamList, uds DiscoveryPlugin) error {
 	var overwriteExisting bool
 	original := findResource(desired.GetMetadata().Namespace, desired.GetMetadata().Name, originalResources)
 	if original != nil {
@@ -135,4 +143,46 @@ func findResource(namespace, name string, rss v1.UpstreamList) *v1.Upstream {
 		}
 	}
 	return nil
+}
+
+// launch a goroutine for all the EDS plugins
+func (d *Discovery) StartEds(bstrp bootstrap.Config, namespace string, opts clients.WatchOpts, client v1.EndpointClient) (chan error, error) {
+	aggregatedErrs := make(chan error)
+	endpointsByEds := make(map[DiscoveryPlugin]v1.EndpointList)
+	lock := sync.Mutex{}
+	for _, eds := range d.discoveryPlugins {
+		endpoints, errs, err := eds.WatchEndpoints(namespace, opts)
+		if err != nil {
+			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(eds).Name())
+		}
+		reconcileEndpoints := func(eds DiscoveryPlugin, endpointList v1.EndpointList) {
+			lock.Lock()
+			endpointsByEds[eds] = endpointList
+			desiredEndpoints := endpointList
+			for ds, upstreams := range endpointsByEds {
+				if ds == eds {
+					continue
+				}
+				desiredEndpoints = append(desiredEndpoints, upstreams...)
+			}
+			lock.Unlock()
+			if err := reconcileEndpoints(namespace, desiredEndpoints, client, opts, eds); err != nil {
+				aggregatedErrs <- err
+			}
+		}
+
+		go func(uds DiscoveryPlugin) {
+			for {
+				select {
+				case upstreamList := <-endpoints:
+					reconcileEndpoints(uds, upstreamList)
+				case err := <-errs:
+					aggregatedErrs <- errors.Wrapf(err, "error in eds plugin %v", reflect.TypeOf(uds).Name())
+				case <-opts.Ctx.Done():
+					return
+				}
+			}
+		}(eds)
+	}
+	return aggregatedErrs, nil
 }

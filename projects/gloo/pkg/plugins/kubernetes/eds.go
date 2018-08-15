@@ -17,7 +17,7 @@ import (
 	kubewatch "k8s.io/apimachinery/pkg/watch"
 )
 
-func (p *KubePlugin) WatchEndpoints(opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
+func (p *KubePlugin) WatchEndpoints(writeNamespace string, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
 	opts = opts.WithDefaults()
 
 	// initialize watches
@@ -55,7 +55,7 @@ func (p *KubePlugin) WatchEndpoints(opts clients.WatchOpts) (<-chan v1.EndpointL
 			errs <- err
 			return
 		}
-		endpointsChan <- p.processNewEndpoints(opts.Ctx, endpoints, pods, upstreamsToTrack)
+		endpointsChan <- p.processNewEndpoints(opts.Ctx, writeNamespace, endpoints, pods, upstreamsToTrack)
 	}
 
 	p.trackUpstreams = func(list v1.UpstreamList) {
@@ -108,7 +108,7 @@ func (p *KubePlugin) WatchEndpoints(opts clients.WatchOpts) (<-chan v1.EndpointL
 	return endpointsChan, errs, nil
 }
 
-func (p *KubePlugin) processNewEndpoints(ctx context.Context, kubeEndpoints *kubev1.EndpointsList, pods *kubev1.PodList, upstreams map[string]*UpstreamSpec) v1.EndpointList {
+func (p *KubePlugin) processNewEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints *kubev1.EndpointsList, pods *kubev1.PodList, upstreams map[string]*UpstreamSpec) v1.EndpointList {
 	var endpoints v1.EndpointList
 
 	logger := contextutils.LoggerFrom(contextutils.WithLogger(ctx, "kubernetes_eds"))
@@ -150,7 +150,7 @@ func (p *KubePlugin) processNewEndpoints(ctx context.Context, kubeEndpoints *kub
 					hash, _ := hashstructure.Hash([]interface{}{subset, addr}, nil)
 					endpointName := fmt.Sprintf("%v.%v", eps.Name, hash)
 
-					ep := createEndpoint(eps.Namespace, endpointName, usName, addr.IP, port)
+					ep := createEndpoint(writeNamespace, endpointName, usName, addr.IP, port)
 					endpoints = append(endpoints, ep)
 				}
 			}

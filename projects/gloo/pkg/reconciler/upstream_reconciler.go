@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
+
 // Option to copy anything from the original to the desired before writing
 type TransitionUpstreamsFunc func(original, desired *v1.Upstream)
 
@@ -18,7 +19,7 @@ type UpstreamReconciler interface {
 	Reconcile(namespace string, desiredResources []*v1.Upstream, opts clients.ListOpts) error
 }
 
-func upstreamsToResources(list ... *v1.Upstream) []resources.Resource {
+func upstreamsToResources(list ...*v1.Upstream) []resources.Resource {
 	var resourceList []resources.Resource
 	for _, upstream := range list {
 		resourceList = append(resourceList, upstream)
@@ -26,7 +27,7 @@ func upstreamsToResources(list ... *v1.Upstream) []resources.Resource {
 	return resourceList
 }
 
-func resourcesToUpstreams(list ... resources.Resource) []*v1.Upstream {
+func resourcesToUpstreams(list ...resources.Resource) []*v1.Upstream {
 	var upstreamList []*v1.Upstream
 	for _, resource := range list {
 		upstreamList = append(upstreamList, resource.(*v1.Upstream))
