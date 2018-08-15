@@ -10,47 +10,34 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-type ListResources func() ([]resources.Resource, error)
+// Option to copy anything from the original to the desired before writing
+type TransitionResourcesFunc func(original, desired resources.Resource)
 
 type Reconciler interface {
-	Reconcile(namespace string, opts clients.ListOpts, kind string, desiredResources []resources.Resource) error
+	Reconcile(namespace string, desiredResources []resources.Resource, opts clients.ListOpts) error
 }
 
 type reconciler struct {
-	resourceClients map[string]clients.ResourceClient
+	rc         clients.ResourceClient
+	transition TransitionResourcesFunc
 }
 
-func NewReconciler(resourceClients ...clients.ResourceClient) Reconciler {
-	mapped := make(map[string]clients.ResourceClient)
-	for _, rc := range resourceClients {
-		mapped[rc.Kind()] = rc
-	}
+func NewReconciler(resourceClient clients.ResourceClient, transitionFunc TransitionResourcesFunc) Reconciler {
 	return &reconciler{
-		resourceClients: mapped,
+		rc:         resourceClient,
+		transition: transitionFunc,
 	}
 }
 
-func (r *reconciler) resourceClient(kind string) (clients.ResourceClient, error) {
-	rc, ok := r.resourceClients[kind]
-	if !ok {
-		return nil, errors.Errorf("no resource client registered for kind %s", kind)
-	}
-	return rc, nil
-}
-
-func (r *reconciler) Reconcile(namespace string, opts clients.ListOpts, kind string, desiredResources []resources.Resource) error {
+func (r *reconciler) Reconcile(namespace string, desiredResources []resources.Resource, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "reconciler")
-	rc, err := r.resourceClient(kind)
-	if err != nil {
-		return err
-	}
-	originalResources, err := rc.List(namespace, opts)
+	originalResources, err := r.rc.List(namespace, opts)
 	if err != nil {
 		return err
 	}
 	for _, desired := range desiredResources {
-		if err := syncResource(opts.Ctx, rc, desired, originalResources); err != nil {
+		if err := syncResource(opts.Ctx, r.rc, desired, originalResources); err != nil {
 			return errors.Wrapf(err, "reconciling resource %v", desired.GetMetadata().Name)
 		}
 	}
@@ -58,7 +45,7 @@ func (r *reconciler) Reconcile(namespace string, opts clients.ListOpts, kind str
 	for _, original := range originalResources {
 		unused := findResource(original.GetMetadata().Namespace, original.GetMetadata().Name, desiredResources) == nil
 		if unused {
-			if err := deleteStaleResource(opts.Ctx, rc, original); err != nil {
+			if err := deleteStaleResource(opts.Ctx, r.rc, original); err != nil {
 				return errors.Wrapf(err, "deleting stale resource %v", original.GetMetadata().Name)
 			}
 		}
