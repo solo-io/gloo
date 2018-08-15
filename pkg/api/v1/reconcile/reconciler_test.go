@@ -21,7 +21,7 @@ var _ = Describe("Reconciler", func() {
 	)
 	BeforeEach(func() {
 		mockResourceClient = memory.NewResourceClient(memory.NewInMemoryResourceCache(), &mocks.MockResource{})
-		mockReconciler = NewReconciler(mockResourceClient, nil)
+		mockReconciler = NewReconciler(mockResourceClient)
 	})
 	It("does the crudding for you so you can sip a nice coconut", func() {
 		desiredMockResources := []resources.Resource{
@@ -30,7 +30,7 @@ var _ = Describe("Reconciler", func() {
 		}
 
 		// creates when doesn't exist
-		err := mockReconciler.Reconcile(namespace, desiredMockResources, clients.ListOpts{})
+		err := mockReconciler.Reconcile(namespace, desiredMockResources, nil, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		mockList, err := mockResourceClient.List(namespace, clients.ListOpts{})
@@ -47,7 +47,7 @@ var _ = Describe("Reconciler", func() {
 		// updates
 		desiredMockResources[0].(*mocks.MockResource).Data = "foo"
 		desiredMockResources[1].(*mocks.MockResource).Data = "bar"
-		err = mockReconciler.Reconcile(namespace, desiredMockResources, clients.ListOpts{})
+		err = mockReconciler.Reconcile(namespace, desiredMockResources, nil, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		mockList, err = mockResourceClient.List(namespace, clients.ListOpts{})
@@ -66,8 +66,8 @@ var _ = Describe("Reconciler", func() {
 			originalMock, desiredMock := original.(*mocks.MockResource), desired.(*mocks.MockResource)
 			desiredMock.Data = "some_" + originalMock.Data
 		}
-		mockReconciler = NewReconciler(mockResourceClient, tznFnc)
-		err = mockReconciler.Reconcile(namespace, desiredMockResources, clients.ListOpts{})
+		mockReconciler = NewReconciler(mockResourceClient)
+		err = mockReconciler.Reconcile(namespace, desiredMockResources, tznFnc, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		mockList, err = mockResourceClient.List(namespace, clients.ListOpts{})
@@ -84,7 +84,7 @@ var _ = Describe("Reconciler", func() {
 
 		// clean it all up now
 		desiredMockResources = []resources.Resource{}
-		err = mockReconciler.Reconcile(namespace, desiredMockResources, clients.ListOpts{})
+		err = mockReconciler.Reconcile(namespace, desiredMockResources, nil, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		mockList, err = mockResourceClient.List(namespace, clients.ListOpts{})

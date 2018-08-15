@@ -14,22 +14,20 @@ import (
 type TransitionResourcesFunc func(original, desired resources.Resource)
 
 type Reconciler interface {
-	Reconcile(namespace string, desiredResources []resources.Resource, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources []resources.Resource, transitionFunc TransitionResourcesFunc, opts clients.ListOpts) error
 }
 
 type reconciler struct {
-	rc         clients.ResourceClient
-	transition TransitionResourcesFunc
+	rc clients.ResourceClient
 }
 
-func NewReconciler(resourceClient clients.ResourceClient, transitionFunc TransitionResourcesFunc) Reconciler {
+func NewReconciler(resourceClient clients.ResourceClient) Reconciler {
 	return &reconciler{
-		rc:         resourceClient,
-		transition: transitionFunc,
+		rc: resourceClient,
 	}
 }
 
-func (r *reconciler) Reconcile(namespace string, desiredResources []resources.Resource, opts clients.ListOpts) error {
+func (r *reconciler) Reconcile(namespace string, desiredResources []resources.Resource, transition TransitionResourcesFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "reconciler")
 	originalResources, err := r.rc.List(namespace, opts)
@@ -37,7 +35,7 @@ func (r *reconciler) Reconcile(namespace string, desiredResources []resources.Re
 		return err
 	}
 	for _, desired := range desiredResources {
-		if err := r.syncResource(opts.Ctx, desired, originalResources); err != nil {
+		if err := r.syncResource(opts.Ctx, desired, originalResources, transition); err != nil {
 			return errors.Wrapf(err, "reconciling resource %v", desired.GetMetadata().Name)
 		}
 	}
@@ -54,7 +52,7 @@ func (r *reconciler) Reconcile(namespace string, desiredResources []resources.Re
 	return nil
 }
 
-func (r *reconciler) syncResource(ctx context.Context, desired resources.Resource, originalResources []resources.Resource) error {
+func (r *reconciler) syncResource(ctx context.Context, desired resources.Resource, originalResources []resources.Resource, transition TransitionResourcesFunc) error {
 	var overwriteExisting bool
 	original := findResource(desired.GetMetadata().Namespace, desired.GetMetadata().Name, originalResources)
 	if original != nil {
@@ -68,8 +66,8 @@ func (r *reconciler) syncResource(ctx context.Context, desired resources.Resourc
 		if desiredInput, ok := desired.(resources.InputResource); ok {
 			desiredInput.SetStatus(core.Status{})
 		}
-		if r.transition != nil {
-			r.transition(original, desired)
+		if transition != nil {
+			transition(original, desired)
 		}
 	}
 	_, err := r.rc.Write(desired, clients.WriteOpts{Ctx: ctx, OverwriteExisting: overwriteExisting})
