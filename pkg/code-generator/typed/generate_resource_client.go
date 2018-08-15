@@ -83,6 +83,7 @@ func (list {{ .ResourceType }}List) Find(namespace, name string) (*{{ .ResourceT
 var _ resources.Resource = &{{ .ResourceType }}{}
 
 type {{ .ResourceType }}Client interface {
+	BaseClient() clients.ResourceClient
 	Register() error
 	Read(namespace, name string, opts clients.ReadOpts) (*{{ .ResourceType }}, error)
 	Write(resource *{{ .ResourceType }}, opts clients.WriteOpts) (*{{ .ResourceType }}, error)
@@ -105,6 +106,10 @@ func New{{ .ResourceType }}Client(rcFactory factory.ResourceClientFactory) ({{ .
 	return &{{ lowercase .ResourceType }}Client{
 		rc: rc,
 	}, nil
+}
+
+func (client *{{ lowercase .ResourceType }}Client) BaseClient() clients.ResourceClient {
+	return client.rc
 }
 
 func (client *{{ lowercase .ResourceType }}Client) Register() error {
