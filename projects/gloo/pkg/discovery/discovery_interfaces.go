@@ -32,30 +32,19 @@ type DiscoveryPlugin interface {
 }
 
 type Discovery struct {
-	upstreamReconciler  v1.UpstreamReconciler
-	endpointsReconciler v1.EndpointReconciler
-	discoveryPlugins    []DiscoveryPlugin
+	upstreamReconciler v1.UpstreamReconciler
+	endpointReconciler v1.EndpointReconciler
+	discoveryPlugins   []DiscoveryPlugin
 }
 
 func NewDiscovery(upstreamClient v1.UpstreamClient,
 	endpointsClient v1.EndpointClient,
 	discoveryPlugins ...DiscoveryPlugin) *Discovery {
 	return &Discovery{
-		upstreamReconciler:  v1.NewUpstreamReconciler(upstreamClient),
-		endpointsReconciler: v1.NewEndpointReconciler(endpointsClient),
-		discoveryPlugins:    discoveryPlugins,
+		upstreamReconciler: v1.NewUpstreamReconciler(upstreamClient),
+		endpointReconciler: v1.NewEndpointReconciler(endpointsClient),
+		discoveryPlugins:   discoveryPlugins,
 	}
-}
-
-func aggregateUpstreams(upstreamsByUds map[DiscoveryPlugin]v1.UpstreamList) v1.UpstreamList {
-	var upstreams v1.UpstreamList
-	for _, upstreamList := range upstreamsByUds {
-		upstreams = append(upstreams, upstreamList...)
-	}
-	sort.SliceStable(upstreams, func(i, j int) bool {
-		return upstreams[i].Metadata.Less(upstreams[j].Metadata)
-	})
-	return upstreams
 }
 
 // launch a goroutine for all the UDS plugins
@@ -95,6 +84,67 @@ func (d *Discovery) StartUds(bstrp bootstrap.Config, namespace string, opts clie
 		}(uds)
 	}
 	return aggregatedErrs, nil
+}
+
+func aggregateUpstreams(endpointsByUds map[DiscoveryPlugin]v1.UpstreamList) v1.UpstreamList {
+	var endpoints v1.UpstreamList
+	for _, endpointList := range endpointsByUds {
+		endpoints = append(endpoints, endpointList...)
+	}
+	sort.SliceStable(endpoints, func(i, j int) bool {
+		return endpoints[i].Metadata.Less(endpoints[j].Metadata)
+	})
+	return endpoints
+}
+
+// launch a goroutine for all the UDS plugins
+func (d *Discovery) StartEds(bstrp bootstrap.Config, namespace string, opts clients.WatchOpts) (chan error, error) {
+	aggregatedErrs := make(chan error)
+	endpointsByUds := make(map[DiscoveryPlugin]v1.EndpointList)
+	lock := sync.Mutex{}
+	for _, eds := range d.discoveryPlugins {
+		endpoints, errs, err := eds.WatchEndpoints(namespace, opts)
+		if err != nil {
+			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(eds).Name())
+		}
+		syncFunc := func(uds DiscoveryPlugin, endpointList v1.EndpointList) {
+			lock.Lock()
+			endpointsByUds[uds] = endpointList
+			desiredEndpoints := aggregateEndpoints(endpointsByUds)
+			lock.Unlock()
+			if err := d.endpointReconciler.Reconcile(namespace, desiredEndpoints, nil, clients.ListOpts{
+				Ctx:      opts.Ctx,
+				Selector: opts.Selector,
+			}); err != nil {
+				aggregatedErrs <- err
+			}
+		}
+
+		go func(eds DiscoveryPlugin) {
+			for {
+				select {
+				case endpointList := <-endpoints:
+					syncFunc(eds, endpointList)
+				case err := <-errs:
+					aggregatedErrs <- errors.Wrapf(err, "error in eds plugin %v", reflect.TypeOf(eds).Name())
+				case <-opts.Ctx.Done():
+					return
+				}
+			}
+		}(eds)
+	}
+	return aggregatedErrs, nil
+}
+
+func aggregateEndpoints(endpointsByUds map[DiscoveryPlugin]v1.EndpointList) v1.EndpointList {
+	var endpoints v1.EndpointList
+	for _, endpointList := range endpointsByUds {
+		endpoints = append(endpoints, endpointList...)
+	}
+	sort.SliceStable(endpoints, func(i, j int) bool {
+		return endpoints[i].Metadata.Less(endpoints[j].Metadata)
+	})
+	return endpoints
 }
 
 // // launch a goroutine for all the EDS plugins
