@@ -96,12 +96,12 @@ func aggregateUpstreams(endpointsByUds map[DiscoveryPlugin]v1.UpstreamList) v1.U
 }
 
 // launch a goroutine for all the UDS plugins with a single cancel to close them all
-func (d *Discovery) StartEds(namespace string, upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (chan error, error) {
+func (d *Discovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (chan error, error) {
 	aggregatedErrs := make(chan error)
 	endpointsByUds := make(map[DiscoveryPlugin]v1.EndpointList)
 	lock := sync.Mutex{}
 	for _, eds := range d.discoveryPlugins {
-		endpoints, errs, err := eds.WatchEndpoints(namespace, upstreamsToTrack, opts)
+		endpoints, errs, err := eds.WatchEndpoints(d.writeNamespace, upstreamsToTrack, opts)
 		if err != nil {
 			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(eds).Name())
 		}
@@ -113,7 +113,7 @@ func (d *Discovery) StartEds(namespace string, upstreamsToTrack v1.UpstreamList,
 					lock.Lock()
 					endpointsByUds[eds] = endpointList
 					desiredEndpoints := aggregateEndpoints(endpointsByUds)
-					if err := d.endpointReconciler.Reconcile(namespace, desiredEndpoints, nil, clients.ListOpts{
+					if err := d.endpointReconciler.Reconcile(d.writeNamespace, desiredEndpoints, nil, clients.ListOpts{
 						Ctx:      opts.Ctx,
 						Selector: opts.Selector,
 					}); err != nil {

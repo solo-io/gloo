@@ -9,8 +9,8 @@ import (
 )
 
 // run once then ya done
-func RunUds(disc *Discovery, writeNamespace string, opts clients.WatchOpts, discOpts Opts) (chan error, error) {
-	errs, err := disc.StartUds(writeNamespace, opts, discOpts)
+func RunUds(disc *Discovery, opts clients.WatchOpts, discOpts Opts) (chan error, error) {
+	errs, err := disc.StartUds(opts, discOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -18,9 +18,9 @@ func RunUds(disc *Discovery, writeNamespace string, opts clients.WatchOpts, disc
 }
 
 // run once, watch upstreams
-func RunEds(upstreamClient v1.UpstreamClient, disc *Discovery, writeNamespace string, opts clients.WatchOpts) (chan error, error) {
+func RunEds(upstreamClient v1.UpstreamClient, disc *Discovery, watchNamespace string, opts clients.WatchOpts) (chan error, error) {
 	errs := make(chan error)
-	upstreams, upstreamErrs, err := upstreamClient.Watch(writeNamespace, opts)
+	upstreams, upstreamErrs, err := upstreamClient.Watch(watchNamespace, opts)
 	if err != nil {
 		return nil, errors.Wrapf(err, "beginning upstream watch")
 	}
@@ -37,7 +37,7 @@ func RunEds(upstreamClient v1.UpstreamClient, disc *Discovery, writeNamespace st
 				}
 				opts.Ctx, cancel = context.WithCancel(ctx)
 
-				edsErrs, err := disc.StartEds(writeNamespace, upstreamList, opts)
+				edsErrs, err := disc.StartEds(upstreamList, opts)
 				if err != nil {
 					errs <- err
 					continue
