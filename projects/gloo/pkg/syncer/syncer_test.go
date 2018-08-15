@@ -3,6 +3,7 @@ package syncer_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 
 	"context"
 
@@ -33,8 +34,6 @@ var _ = Describe("Syncer", func() {
 		proxy := &v1.Proxy{
 			Metadata: helpers.NewRandomMetadata(),
 		}
-		//_, err = proxyClient.Write(proxy, clients.WriteOpts{})
-		//Expect(err).NotTo(HaveOccurred())
 
 		c := &mockXdsCache{}
 		rep := reporter.NewReporter(ref, proxyClient, upstreamClient)
@@ -86,7 +85,7 @@ type mockTranslator struct {
 	reportErrs bool
 }
 
-func (t *mockTranslator) Translate(ctx context.Context, proxy *v1.Proxy, snap *v1.Snapshot) (cache.Snapshot, reporter.ResourceErrors, error) {
+func (t *mockTranslator) Translate(params plugins.Params, proxy *v1.Proxy) (cache.Snapshot, reporter.ResourceErrors, error) {
 	if t.reportErrs {
 		return cache.Snapshot{}, reporter.ResourceErrors{proxy: errors.Errorf("hi, how ya doin'?")}, nil
 	}

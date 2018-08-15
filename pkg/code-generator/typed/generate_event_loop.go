@@ -32,6 +32,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
 type Syncer interface {
@@ -39,7 +40,7 @@ type Syncer interface {
 }
 
 type EventLoop interface {
-	Run(namespace string, opts clients.WatchOpts) error
+	Run(namespace string, opts clients.WatchOpts) (<-chan error, error)
 }
 
 type eventLoop struct {
@@ -54,29 +55,33 @@ func NewEventLoop(cache Cache, syncer Syncer) EventLoop {
 	}
 }
 
-func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) error {
+func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) (<-chan error, error) {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "{{ .PackageName }}.event_loop")
 	logger := contextutils.LoggerFrom(opts.Ctx)
 	logger.Infof("event loop started")
-	errorHandler := contextutils.ErrorHandlerFrom(opts.Ctx)
-	watch, errs, err := el.cache.Snapshots(namespace, opts)
+
+	errs := make(chan error)
+
+	watch, cacheErrs, err := el.cache.Snapshots(namespace, opts)
 	if err != nil {
-		return errors.Wrapf(err, "starting snapshot watch")
+		return nil, errors.Wrapf(err, "starting snapshot watch")
 	}
-	for {
-		select {
-		case snapshot := <-watch:
-			err := el.syncer.Sync(opts.Ctx, snapshot)
-			if err != nil {
-				errorHandler.HandleErr(err)
+	go errutils.AggregateErrs(opts.Ctx, errs, cacheErrs)
+	go func() {
+		for {
+			select {
+			case snapshot := <-watch:
+				err := el.syncer.Sync(opts.Ctx, snapshot)
+				if err != nil {
+					errs <- err
+				}
+			case <-opts.Ctx.Done():
+				return
 			}
-		case err := <-errs:
-			errorHandler.HandleErr(err)
-		case <-opts.Ctx.Done():
-			return nil
 		}
-	}
+	}()
+	return errs, nil
 }
 
 `
@@ -120,11 +125,8 @@ var _ = Describe("{{ uppercase .PackageName }}EventLoop", func() {
 {{- end}}
 		sync := &mockSyncer{}
 		el := NewEventLoop(cache, sync)
-		go func() {
-			defer GinkgoRecover()
-			err := el.Run(namespace, clients.WatchOpts{})
-			Expect(err).NotTo(HaveOccurred())
-		}()
+		_, err := el.Run(namespace, clients.WatchOpts{})
+		Expect(err).NotTo(HaveOccurred())
 		Eventually(func() bool { return sync.synced }, time.Second).Should(BeTrue())
 	})
 })

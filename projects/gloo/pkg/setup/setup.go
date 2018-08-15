@@ -67,7 +67,7 @@ func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts
 	errs := make(chan error)
 
 	udsErrs, err := discovery.RunUds(disc, opts, discovery.Opts{
-		// TODO(ilackarms)
+	// TODO(ilackarms)
 	})
 	if err != nil {
 		return err
@@ -86,12 +86,11 @@ func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts
 	}
 	go errutils.AggregateErrs(opts.Ctx, errs, eventLoopErrs)
 
-
 	logger := contextutils.LoggerFrom(opts.Ctx)
 
 	for {
 		select {
-		case err := <- errs:
+		case err := <-errs:
 			logger.Errorf("error: %v", err)
 		case <-opts.Ctx.Done():
 			close(errs)
