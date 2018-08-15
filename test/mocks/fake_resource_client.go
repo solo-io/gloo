@@ -46,6 +46,7 @@ func (list FakeResourceList) Find(namespace, name string) (*FakeResource, error)
 var _ resources.Resource = &FakeResource{}
 
 type FakeResourceClient interface {
+	BaseClient() clients.ResourceClient
 	Register() error
 	Read(namespace, name string, opts clients.ReadOpts) (*FakeResource, error)
 	Write(resource *FakeResource, opts clients.WriteOpts) (*FakeResource, error)
@@ -68,6 +69,10 @@ func NewFakeResourceClient(rcFactory factory.ResourceClientFactory) (FakeResourc
 	return &fakeResourceClient{
 		rc: rc,
 	}, nil
+}
+
+func (client *fakeResourceClient) BaseClient() clients.ResourceClient {
+	return client.rc
 }
 
 func (client *fakeResourceClient) Register() error {

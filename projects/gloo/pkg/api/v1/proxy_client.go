@@ -46,6 +46,7 @@ func (list ProxyList) Find(namespace, name string) (*Proxy, error) {
 var _ resources.Resource = &Proxy{}
 
 type ProxyClient interface {
+	BaseClient() clients.ResourceClient
 	Register() error
 	Read(namespace, name string, opts clients.ReadOpts) (*Proxy, error)
 	Write(resource *Proxy, opts clients.WriteOpts) (*Proxy, error)
@@ -68,6 +69,10 @@ func NewProxyClient(rcFactory factory.ResourceClientFactory) (ProxyClient, error
 	return &proxyClient{
 		rc: rc,
 	}, nil
+}
+
+func (client *proxyClient) BaseClient() clients.ResourceClient {
+	return client.rc
 }
 
 func (client *proxyClient) Register() error {

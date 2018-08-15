@@ -46,6 +46,7 @@ func (list UpstreamList) Find(namespace, name string) (*Upstream, error) {
 var _ resources.Resource = &Upstream{}
 
 type UpstreamClient interface {
+	BaseClient() clients.ResourceClient
 	Register() error
 	Read(namespace, name string, opts clients.ReadOpts) (*Upstream, error)
 	Write(resource *Upstream, opts clients.WriteOpts) (*Upstream, error)
@@ -68,6 +69,10 @@ func NewUpstreamClient(rcFactory factory.ResourceClientFactory) (UpstreamClient,
 	return &upstreamClient{
 		rc: rc,
 	}, nil
+}
+
+func (client *upstreamClient) BaseClient() clients.ResourceClient {
+	return client.rc
 }
 
 func (client *upstreamClient) Register() error {

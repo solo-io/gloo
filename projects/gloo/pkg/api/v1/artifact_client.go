@@ -46,6 +46,7 @@ func (list ArtifactList) Find(namespace, name string) (*Artifact, error) {
 var _ resources.Resource = &Artifact{}
 
 type ArtifactClient interface {
+	BaseClient() clients.ResourceClient
 	Register() error
 	Read(namespace, name string, opts clients.ReadOpts) (*Artifact, error)
 	Write(resource *Artifact, opts clients.WriteOpts) (*Artifact, error)
@@ -68,6 +69,10 @@ func NewArtifactClient(rcFactory factory.ResourceClientFactory) (ArtifactClient,
 	return &artifactClient{
 		rc: rc,
 	}, nil
+}
+
+func (client *artifactClient) BaseClient() clients.ResourceClient {
+	return client.rc
 }
 
 func (client *artifactClient) Register() error {

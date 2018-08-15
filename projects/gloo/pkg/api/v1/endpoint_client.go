@@ -42,6 +42,7 @@ func (list EndpointList) Find(namespace, name string) (*Endpoint, error) {
 var _ resources.Resource = &Endpoint{}
 
 type EndpointClient interface {
+	BaseClient() clients.ResourceClient
 	Register() error
 	Read(namespace, name string, opts clients.ReadOpts) (*Endpoint, error)
 	Write(resource *Endpoint, opts clients.WriteOpts) (*Endpoint, error)
@@ -64,6 +65,10 @@ func NewEndpointClient(rcFactory factory.ResourceClientFactory) (EndpointClient,
 	return &endpointClient{
 		rc: rc,
 	}, nil
+}
+
+func (client *endpointClient) BaseClient() clients.ResourceClient {
+	return client.rc
 }
 
 func (client *endpointClient) Register() error {

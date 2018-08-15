@@ -46,6 +46,7 @@ func (list SecretList) Find(namespace, name string) (*Secret, error) {
 var _ resources.Resource = &Secret{}
 
 type SecretClient interface {
+	BaseClient() clients.ResourceClient
 	Register() error
 	Read(namespace, name string, opts clients.ReadOpts) (*Secret, error)
 	Write(resource *Secret, opts clients.WriteOpts) (*Secret, error)
@@ -68,6 +69,10 @@ func NewSecretClient(rcFactory factory.ResourceClientFactory) (SecretClient, err
 	return &secretClient{
 		rc: rc,
 	}, nil
+}
+
+func (client *secretClient) BaseClient() clients.ResourceClient {
+	return client.rc
 }
 
 func (client *secretClient) Register() error {

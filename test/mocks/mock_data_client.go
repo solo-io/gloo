@@ -50,6 +50,7 @@ func (list MockDataList) Find(namespace, name string) (*MockData, error) {
 var _ resources.Resource = &MockData{}
 
 type MockDataClient interface {
+	BaseClient() clients.ResourceClient
 	Register() error
 	Read(namespace, name string, opts clients.ReadOpts) (*MockData, error)
 	Write(resource *MockData, opts clients.WriteOpts) (*MockData, error)
@@ -72,6 +73,10 @@ func NewMockDataClient(rcFactory factory.ResourceClientFactory) (MockDataClient,
 	return &mockDataClient{
 		rc: rc,
 	}, nil
+}
+
+func (client *mockDataClient) BaseClient() clients.ResourceClient {
+	return client.rc
 }
 
 func (client *mockDataClient) Register() error {
