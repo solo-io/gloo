@@ -23,8 +23,9 @@ type resouceTemplateFunc func(params typed.ResourceLevelTemplateParams) (string,
 type packageTemplateFunc func(params typed.PackageLevelTemplateParams) (string, error)
 
 var resourceFilesToGenerate = map[string]resouceTemplateFunc{
-	"_client.go":      typed.GenerateTypedClientCode,
+	"_client.go":      typed.GenerateResourceClientCode,
 	"_client_test.go": typed.GenerateResourceClientTestCode,
+	"_reconciler.go":  typed.GenerateReconcilerCode,
 }
 
 var packageFilesToGenerate = map[string]packageTemplateFunc{

@@ -5,7 +5,7 @@ import (
 	"text/template"
 )
 
-func GenerateTypedClientCode(params ResourceLevelTemplateParams) (string, error) {
+func GenerateResourceClientCode(params ResourceLevelTemplateParams) (string, error) {
 	buf := &bytes.Buffer{}
 	if err := typedClientTemplate.Execute(buf, params); err != nil {
 		return "", err
