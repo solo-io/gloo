@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -205,8 +206,7 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 	resourcesChan := make(chan []resources.Resource)
 	errs := make(chan error)
-	go func() {
-		// watch should open up with an initial read
+	updateResourceList := func() {
 		list, err := rc.List(namespace, clients.ListOpts{
 			Ctx:      opts.Ctx,
 			Selector: opts.Selector,
@@ -216,27 +216,22 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 			return
 		}
 		resourcesChan <- list
-	}()
+	}
+	go updateResourceList()
 	go func() {
 		subscription := make(chan struct{})
 		rc.cache.Subscribe(subscription)
 		for {
 			select {
+			case <-time.After(opts.RefreshRate):
+				updateResourceList()
+			case <-subscription:
+				updateResourceList()
 			case <-opts.Ctx.Done():
 				close(subscription)
 				close(resourcesChan)
 				close(errs)
 				return
-			case <-subscription:
-				list, err := rc.List(namespace, clients.ListOpts{
-					Ctx:      opts.Ctx,
-					Selector: opts.Selector,
-				})
-				if err != nil {
-					errs <- err
-					continue
-				}
-				resourcesChan <- list
 			}
 		}
 	}()

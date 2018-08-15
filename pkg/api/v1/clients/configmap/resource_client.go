@@ -3,6 +3,7 @@ package configmap
 import (
 	"reflect"
 	"sort"
+	"time"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -182,6 +183,8 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 	go func() {
 		for {
 			select {
+			case <-time.After(opts.RefreshRate):
+				updateResourceList()
 			case event := <-watch.ResultChan():
 				switch event.Type {
 				case kubewatch.Error:

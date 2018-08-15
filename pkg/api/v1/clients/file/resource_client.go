@@ -165,19 +165,24 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		}
 		resourcesChan <- list
 	}()
+	updateResourceList := func() {
+		list, err := rc.List(namespace, clients.ListOpts{
+			Ctx:      opts.Ctx,
+			Selector: opts.Selector,
+		})
+		if err != nil {
+			errs <- err
+			return
+		}
+		resourcesChan <- list
+	}
 	go func() {
 		for {
 			select {
+			case <-time.After(opts.RefreshRate):
+				updateResourceList()
 			case <-events:
-				list, err := rc.List(namespace, clients.ListOpts{
-					Ctx:      opts.Ctx,
-					Selector: opts.Selector,
-				})
-				if err != nil {
-					errs <- err
-					continue
-				}
-				resourcesChan <- list
+				updateResourceList()
 			case <-opts.Ctx.Done():
 				close(resourcesChan)
 				close(errs)
