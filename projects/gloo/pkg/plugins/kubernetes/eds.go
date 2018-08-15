@@ -7,7 +7,6 @@ import (
 
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -17,7 +16,7 @@ import (
 	kubewatch "k8s.io/apimachinery/pkg/watch"
 )
 
-func (p *KubePlugin) WatchEndpoints(writeNamespace string, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
+func (p *KubePlugin) WatchEndpoints(writeNamespace string, upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
 	opts = opts.WithDefaults()
 
 	// initialize watches
@@ -37,7 +36,16 @@ func (p *KubePlugin) WatchEndpoints(writeNamespace string, opts clients.WatchOpt
 	// set up buffers and channels
 	endpointsChan := make(chan v1.EndpointList)
 	errs := make(chan error)
-	upstreamsToTrack := make(map[string]*UpstreamSpec)
+
+	upstreamSpecs := make(map[string]*UpstreamSpec)
+	for _, us := range upstreamsToTrack {
+		kubeUpstream, ok := us.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
+		// only care about kube upstreams
+		if !ok {
+			continue
+		}
+		upstreamSpecs[us.Metadata.Name] = kubeUpstream.Kube
+	}
 
 	// sync functions
 	syncEndpoints := func() {
@@ -58,19 +66,6 @@ func (p *KubePlugin) WatchEndpoints(writeNamespace string, opts clients.WatchOpt
 		endpointsChan <- p.processNewEndpoints(opts.Ctx, writeNamespace, endpoints, pods, upstreamsToTrack)
 	}
 
-	p.trackUpstreams = func(list v1.UpstreamList) {
-		upstreamsToTrack = make(map[string]*UpstreamSpec)
-		for _, us := range list {
-			kubeUpstream, ok := us.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
-			if !ok {
-				continue
-			}
-			upstreamsToTrack[us.Metadata.Name] = kubeUpstream.Kube
-		}
-		// need to refresh the eds list for new upstreams
-		p.queueResync()
-	}
-
 	// watch should open up with an initial read
 	go syncEndpoints()
 
@@ -78,8 +73,6 @@ func (p *KubePlugin) WatchEndpoints(writeNamespace string, opts clients.WatchOpt
 		for {
 			select {
 			case <-time.After(opts.RefreshRate):
-				syncEndpoints()
-			case <-p.resync:
 				syncEndpoints()
 			case event := <-podWatch.ResultChan():
 				switch event.Type {
@@ -158,35 +151,4 @@ func (p *KubePlugin) processNewEndpoints(ctx context.Context, writeNamespace str
 
 	}
 	return endpoints
-}
-
-func createEndpoint(namespace, name, upstreamName, address string, port uint32) *v1.Endpoint {
-	return &v1.Endpoint{
-		Metadata: core.Metadata{
-			Namespace: namespace,
-			Name:      name,
-		},
-		UpstreamName: upstreamName,
-		Address:      address,
-		Port:         port,
-	}
-}
-
-func getPodLabelsForIp(ip string, pods []kubev1.Pod) (map[string]string, error) {
-	for _, pod := range pods {
-		if pod.Status.PodIP == ip && pod.Status.Phase == kubev1.PodRunning {
-			return pod.Labels, nil
-		}
-	}
-	return nil, errors.Errorf("running pod not found with ip %v", ip)
-}
-
-func (p *KubePlugin) TrackUpstreams(list v1.UpstreamList) {
-	p.trackUpstreams(list)
-}
-
-func (p *KubePlugin) queueResync() {
-	go func() {
-		p.resync <- struct{}{}
-	}()
 }
