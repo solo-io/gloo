@@ -62,9 +62,10 @@ var _ = Describe("Reconciler", func() {
 		}
 
 		// updates with transition function
-		tznFnc := func(original, desired resources.Resource) {
+		tznFnc := func(original, desired resources.Resource) error {
 			originalMock, desiredMock := original.(*mocks.MockResource), desired.(*mocks.MockResource)
 			desiredMock.Data = "some_" + originalMock.Data
+			return nil
 		}
 		mockReconciler = NewReconciler(mockResourceClient)
 		err = mockReconciler.Reconcile(namespace, desiredMockResources, tznFnc, clients.ListOpts{})

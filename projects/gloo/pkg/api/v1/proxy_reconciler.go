@@ -8,7 +8,7 @@ import (
 )
 
 // Option to copy anything from the original to the desired before writing
-type TransitionProxyFunc func(original, desired *Proxy)
+type TransitionProxyFunc func(original, desired *Proxy) error
 
 type ProxyReconciler interface {
 	Reconcile(namespace string, desiredResources []*Proxy, transition TransitionProxyFunc, opts clients.ListOpts) error
@@ -37,8 +37,8 @@ func (r *proxyReconciler) Reconcile(namespace string, desiredResources []*Proxy,
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "proxy_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*Proxy), desired.(*Proxy))
+		transitionResources = func(original, desired resources.Resource) error {
+			return transition(original.(*Proxy), desired.(*Proxy))
 		}
 	}
 	return r.base.Reconcile(namespace, proxysToResources(desiredResources), transitionResources, opts)

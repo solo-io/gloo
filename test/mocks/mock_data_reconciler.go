@@ -8,7 +8,7 @@ import (
 )
 
 // Option to copy anything from the original to the desired before writing
-type TransitionMockDataFunc func(original, desired *MockData)
+type TransitionMockDataFunc func(original, desired *MockData) error
 
 type MockDataReconciler interface {
 	Reconcile(namespace string, desiredResources []*MockData, transition TransitionMockDataFunc, opts clients.ListOpts) error
@@ -37,8 +37,8 @@ func (r *mockDataReconciler) Reconcile(namespace string, desiredResources []*Moc
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "mockData_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*MockData), desired.(*MockData))
+		transitionResources = func(original, desired resources.Resource) error {
+			return transition(original.(*MockData), desired.(*MockData))
 		}
 	}
 	return r.base.Reconcile(namespace, mockDatasToResources(desiredResources), transitionResources, opts)

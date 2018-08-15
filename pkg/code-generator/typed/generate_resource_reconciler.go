@@ -25,7 +25,7 @@ import (
 )
 
 // Option to copy anything from the original to the desired before writing
-type Transition{{ .ResourceType }}Func func(original, desired *{{ .ResourceType }})
+type Transition{{ .ResourceType }}Func func(original, desired *{{ .ResourceType }}) error
 
 type {{ .ResourceType }}Reconciler interface {
 	Reconcile(namespace string, desiredResources []*{{ .ResourceType }}, transition Transition{{ .ResourceType }}Func, opts clients.ListOpts) error
@@ -54,8 +54,8 @@ func (r *{{ lowercase .ResourceType }}Reconciler) Reconcile(namespace string, de
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "{{ lowercase .ResourceType }}_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*{{ .ResourceType }}), desired.(*{{ .ResourceType }}))
+		transitionResources = func(original, desired resources.Resource) error {
+			return transition(original.(*{{ .ResourceType }}), desired.(*{{ .ResourceType }}))
 		}
 	}
 	return r.base.Reconcile(namespace, {{ lowercase .ResourceType }}sToResources(desiredResources), transitionResources, opts)

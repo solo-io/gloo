@@ -8,7 +8,7 @@ import (
 )
 
 // Option to copy anything from the original to the desired before writing
-type TransitionFakeResourceFunc func(original, desired *FakeResource)
+type TransitionFakeResourceFunc func(original, desired *FakeResource) error
 
 type FakeResourceReconciler interface {
 	Reconcile(namespace string, desiredResources []*FakeResource, transition TransitionFakeResourceFunc, opts clients.ListOpts) error
@@ -37,8 +37,8 @@ func (r *fakeResourceReconciler) Reconcile(namespace string, desiredResources []
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "fakeResource_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*FakeResource), desired.(*FakeResource))
+		transitionResources = func(original, desired resources.Resource) error {
+			return transition(original.(*FakeResource), desired.(*FakeResource))
 		}
 	}
 	return r.base.Reconcile(namespace, fakeResourcesToResources(desiredResources), transitionResources, opts)

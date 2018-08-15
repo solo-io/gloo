@@ -8,7 +8,7 @@ import (
 )
 
 // Option to copy anything from the original to the desired before writing
-type TransitionEndpointFunc func(original, desired *Endpoint)
+type TransitionEndpointFunc func(original, desired *Endpoint) error
 
 type EndpointReconciler interface {
 	Reconcile(namespace string, desiredResources []*Endpoint, transition TransitionEndpointFunc, opts clients.ListOpts) error
@@ -37,8 +37,8 @@ func (r *endpointReconciler) Reconcile(namespace string, desiredResources []*End
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "endpoint_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*Endpoint), desired.(*Endpoint))
+		transitionResources = func(original, desired resources.Resource) error {
+			return transition(original.(*Endpoint), desired.(*Endpoint))
 		}
 	}
 	return r.base.Reconcile(namespace, endpointsToResources(desiredResources), transitionResources, opts)

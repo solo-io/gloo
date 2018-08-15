@@ -8,7 +8,7 @@ import (
 )
 
 // Option to copy anything from the original to the desired before writing
-type TransitionUpstreamFunc func(original, desired *Upstream)
+type TransitionUpstreamFunc func(original, desired *Upstream) error
 
 type UpstreamReconciler interface {
 	Reconcile(namespace string, desiredResources []*Upstream, transition TransitionUpstreamFunc, opts clients.ListOpts) error
@@ -37,8 +37,8 @@ func (r *upstreamReconciler) Reconcile(namespace string, desiredResources []*Ups
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "upstream_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*Upstream), desired.(*Upstream))
+		transitionResources = func(original, desired resources.Resource) error {
+			return transition(original.(*Upstream), desired.(*Upstream))
 		}
 	}
 	return r.base.Reconcile(namespace, upstreamsToResources(desiredResources), transitionResources, opts)

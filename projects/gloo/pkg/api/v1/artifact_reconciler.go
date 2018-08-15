@@ -8,7 +8,7 @@ import (
 )
 
 // Option to copy anything from the original to the desired before writing
-type TransitionArtifactFunc func(original, desired *Artifact)
+type TransitionArtifactFunc func(original, desired *Artifact) error
 
 type ArtifactReconciler interface {
 	Reconcile(namespace string, desiredResources []*Artifact, transition TransitionArtifactFunc, opts clients.ListOpts) error
@@ -37,8 +37,8 @@ func (r *artifactReconciler) Reconcile(namespace string, desiredResources []*Art
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "artifact_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*Artifact), desired.(*Artifact))
+		transitionResources = func(original, desired resources.Resource) error {
+			return transition(original.(*Artifact), desired.(*Artifact))
 		}
 	}
 	return r.base.Reconcile(namespace, artifactsToResources(desiredResources), transitionResources, opts)

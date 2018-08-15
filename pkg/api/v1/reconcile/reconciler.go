@@ -11,7 +11,7 @@ import (
 )
 
 // Option to copy anything from the original to the desired before writing
-type TransitionResourcesFunc func(original, desired resources.Resource)
+type TransitionResourcesFunc func(original, desired resources.Resource) error
 
 type Reconciler interface {
 	Reconcile(namespace string, desiredResources []resources.Resource, transitionFunc TransitionResourcesFunc, opts clients.ListOpts) error
@@ -67,7 +67,9 @@ func (r *reconciler) syncResource(ctx context.Context, desired resources.Resourc
 			desiredInput.SetStatus(core.Status{})
 		}
 		if transition != nil {
-			transition(original, desired)
+			if err := transition(original, desired); err != nil {
+				return err
+			}
 		}
 	}
 	_, err := r.rc.Write(desired, clients.WriteOpts{Ctx: ctx, OverwriteExisting: overwriteExisting})

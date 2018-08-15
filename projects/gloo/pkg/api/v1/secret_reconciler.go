@@ -8,7 +8,7 @@ import (
 )
 
 // Option to copy anything from the original to the desired before writing
-type TransitionSecretFunc func(original, desired *Secret)
+type TransitionSecretFunc func(original, desired *Secret) error
 
 type SecretReconciler interface {
 	Reconcile(namespace string, desiredResources []*Secret, transition TransitionSecretFunc, opts clients.ListOpts) error
@@ -37,8 +37,8 @@ func (r *secretReconciler) Reconcile(namespace string, desiredResources []*Secre
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "secret_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*Secret), desired.(*Secret))
+		transitionResources = func(original, desired resources.Resource) error {
+			return transition(original.(*Secret), desired.(*Secret))
 		}
 	}
 	return r.base.Reconcile(namespace, secretsToResources(desiredResources), transitionResources, opts)
