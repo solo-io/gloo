@@ -56,24 +56,20 @@ func (d *Discovery) StartUds(writeNamespace string, opts clients.WatchOpts, disc
 		if err != nil {
 			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(uds).Name())
 		}
-		syncFunc := func(uds DiscoveryPlugin, upstreamList v1.UpstreamList) {
-			lock.Lock()
-			upstreamsByUds[uds] = upstreamList
-			desiredUpstreams := aggregateUpstreams(upstreamsByUds)
-			lock.Unlock()
-			if err := d.upstreamReconciler.Reconcile(writeNamespace, desiredUpstreams, uds.UpdateUpstream, clients.ListOpts{
-				Ctx:      opts.Ctx,
-				Selector: opts.Selector,
-			}); err != nil {
-				aggregatedErrs <- err
-			}
-		}
-
 		go func(uds DiscoveryPlugin) {
 			for {
 				select {
 				case upstreamList := <-upstreams:
-					syncFunc(uds, upstreamList)
+					lock.Lock()
+					upstreamsByUds[uds] = upstreamList
+					desiredUpstreams := aggregateUpstreams(upstreamsByUds)
+					if err := d.upstreamReconciler.Reconcile(writeNamespace, desiredUpstreams, uds.UpdateUpstream, clients.ListOpts{
+						Ctx:      opts.Ctx,
+						Selector: opts.Selector,
+					}); err != nil {
+						aggregatedErrs <- err
+					}
+					lock.Unlock()
 				case err := <-errs:
 					aggregatedErrs <- errors.Wrapf(err, "error in uds plugin %v", reflect.TypeOf(uds).Name())
 				case <-opts.Ctx.Done():
@@ -106,24 +102,21 @@ func (d *Discovery) StartEds(namespace string, upstreamsToTrack v1.UpstreamList,
 		if err != nil {
 			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(eds).Name())
 		}
-		syncFunc := func(uds DiscoveryPlugin, endpointList v1.EndpointList) {
-			lock.Lock()
-			endpointsByUds[uds] = endpointList
-			desiredEndpoints := aggregateEndpoints(endpointsByUds)
-			lock.Unlock()
-			if err := d.endpointReconciler.Reconcile(namespace, desiredEndpoints, nil, clients.ListOpts{
-				Ctx:      opts.Ctx,
-				Selector: opts.Selector,
-			}); err != nil {
-				aggregatedErrs <- err
-			}
-		}
 
 		go func(eds DiscoveryPlugin) {
 			for {
 				select {
 				case endpointList := <-endpoints:
-					syncFunc(eds, endpointList)
+					lock.Lock()
+					endpointsByUds[eds] = endpointList
+					desiredEndpoints := aggregateEndpoints(endpointsByUds)
+					if err := d.endpointReconciler.Reconcile(namespace, desiredEndpoints, nil, clients.ListOpts{
+						Ctx:      opts.Ctx,
+						Selector: opts.Selector,
+					}); err != nil {
+						aggregatedErrs <- err
+					}
+					lock.Unlock()
 				case err := <-errs:
 					aggregatedErrs <- errors.Wrapf(err, "error in eds plugin %v", reflect.TypeOf(eds).Name())
 				case <-opts.Ctx.Done():
