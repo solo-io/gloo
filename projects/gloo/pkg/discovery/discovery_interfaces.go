@@ -30,16 +30,19 @@ type DiscoveryPlugin interface {
 }
 
 type Discovery struct {
+	writeNamespace     string
 	bootstrap          bootstrap.Config
 	upstreamReconciler v1.UpstreamReconciler
 	endpointReconciler v1.EndpointReconciler
 	discoveryPlugins   []DiscoveryPlugin
 }
 
-func NewDiscovery(upstreamClient v1.UpstreamClient,
+func NewDiscovery(writeNamespace string,
+	upstreamClient v1.UpstreamClient,
 	endpointsClient v1.EndpointClient,
 	discoveryPlugins ...DiscoveryPlugin) *Discovery {
 	return &Discovery{
+		writeNamespace:     writeNamespace,
 		upstreamReconciler: v1.NewUpstreamReconciler(upstreamClient),
 		endpointReconciler: v1.NewEndpointReconciler(endpointsClient),
 		discoveryPlugins:   discoveryPlugins,
@@ -47,12 +50,12 @@ func NewDiscovery(upstreamClient v1.UpstreamClient,
 }
 
 // launch a goroutine for all the UDS plugins
-func (d *Discovery) StartUds(writeNamespace string, opts clients.WatchOpts, discOpts Opts) (chan error, error) {
+func (d *Discovery) StartUds(opts clients.WatchOpts, discOpts Opts) (chan error, error) {
 	aggregatedErrs := make(chan error)
 	upstreamsByUds := make(map[DiscoveryPlugin]v1.UpstreamList)
 	lock := sync.Mutex{}
 	for _, uds := range d.discoveryPlugins {
-		upstreams, errs, err := uds.WatchUpstreams(writeNamespace, opts, discOpts)
+		upstreams, errs, err := uds.WatchUpstreams(d.writeNamespace, opts, discOpts)
 		if err != nil {
 			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(uds).Name())
 		}
@@ -63,7 +66,7 @@ func (d *Discovery) StartUds(writeNamespace string, opts clients.WatchOpts, disc
 					lock.Lock()
 					upstreamsByUds[uds] = upstreamList
 					desiredUpstreams := aggregateUpstreams(upstreamsByUds)
-					if err := d.upstreamReconciler.Reconcile(writeNamespace, desiredUpstreams, uds.UpdateUpstream, clients.ListOpts{
+					if err := d.upstreamReconciler.Reconcile(d.writeNamespace, desiredUpstreams, uds.UpdateUpstream, clients.ListOpts{
 						Ctx:      opts.Ctx,
 						Selector: opts.Selector,
 					}); err != nil {
