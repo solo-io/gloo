@@ -64,11 +64,9 @@ var _ = Describe("Reconciler", func() {
 		// updates with transition function
 		tznFnc := func(original, desired resources.Resource) {
 			originalMock, desiredMock := original.(*mocks.MockResource), desired.(*mocks.MockResource)
-			desiredMock.Data += originalMock.Data
+			desiredMock.Data = "some_" + originalMock.Data
 		}
 		mockReconciler = NewReconciler(mockResourceClient, tznFnc)
-		desiredMockResources[0].(*mocks.MockResource).Data = "foo"
-		desiredMockResources[1].(*mocks.MockResource).Data = "bar"
 		err = mockReconciler.Reconcile(namespace, desiredMockResources, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -81,6 +79,7 @@ var _ = Describe("Reconciler", func() {
 				meta.ResourceVersion = ""
 			})
 			Expect(mockList[i]).To(Equal(desiredMockResources[i]))
+			Expect(mockList[i].(*mocks.MockResource).Data).To(ContainSubstring("some_"))
 		}
 
 		// clean it all up now

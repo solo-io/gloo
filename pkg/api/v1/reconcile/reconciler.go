@@ -37,7 +37,7 @@ func (r *reconciler) Reconcile(namespace string, desiredResources []resources.Re
 		return err
 	}
 	for _, desired := range desiredResources {
-		if err := syncResource(opts.Ctx, r.rc, desired, originalResources); err != nil {
+		if err := r.syncResource(opts.Ctx, desired, originalResources); err != nil {
 			return errors.Wrapf(err, "reconciling resource %v", desired.GetMetadata().Name)
 		}
 	}
@@ -54,7 +54,7 @@ func (r *reconciler) Reconcile(namespace string, desiredResources []resources.Re
 	return nil
 }
 
-func syncResource(ctx context.Context, rc clients.ResourceClient, desired resources.Resource, originalResources []resources.Resource) error {
+func (r *reconciler) syncResource(ctx context.Context, desired resources.Resource, originalResources []resources.Resource) error {
 	var overwriteExisting bool
 	original := findResource(desired.GetMetadata().Namespace, desired.GetMetadata().Name, originalResources)
 	if original != nil {
@@ -68,8 +68,11 @@ func syncResource(ctx context.Context, rc clients.ResourceClient, desired resour
 		if desiredInput, ok := desired.(resources.InputResource); ok {
 			desiredInput.SetStatus(core.Status{})
 		}
+		if r.transition != nil {
+			r.transition(original, desired)
+		}
 	}
-	_, err := rc.Write(desired, clients.WriteOpts{Ctx: ctx, OverwriteExisting: overwriteExisting})
+	_, err := r.rc.Write(desired, clients.WriteOpts{Ctx: ctx, OverwriteExisting: overwriteExisting})
 	return err
 }
 
