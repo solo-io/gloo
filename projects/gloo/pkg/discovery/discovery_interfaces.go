@@ -1,6 +1,7 @@
 package discovery
 
 import (
+	"context"
 	"reflect"
 	"sort"
 	"sync"
@@ -26,9 +27,7 @@ type DiscoveryPlugin interface {
 	// EDS API
 	// start the EDS watch which sends a new list of endpoints on any change
 	// will send only endpoints for upstreams configured with TrackUpstreams
-	WatchEndpoints(namespace string, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error)
-	// Updates the EDS to track only these upstreams
-	TrackUpstreams(list v1.UpstreamList)
+	WatchEndpoints(writeNamespace string, upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error)
 }
 
 type Discovery struct {
@@ -97,15 +96,17 @@ func aggregateUpstreams(endpointsByUds map[DiscoveryPlugin]v1.UpstreamList) v1.U
 	return endpoints
 }
 
-// launch a goroutine for all the UDS plugins
-func (d *Discovery) StartEds(bstrp bootstrap.Config, namespace string, opts clients.WatchOpts) (chan error, error) {
+// launch a goroutine for all the UDS plugins with a single cancel to close them all
+func (d *Discovery) StartEds(bstrp bootstrap.Config, namespace string, upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (context.CancelFunc, chan error, error) {
 	aggregatedErrs := make(chan error)
 	endpointsByUds := make(map[DiscoveryPlugin]v1.EndpointList)
 	lock := sync.Mutex{}
+	ctx, cancel := context.WithCancel(opts.Ctx)
+	opts.Ctx = ctx
 	for _, eds := range d.discoveryPlugins {
-		endpoints, errs, err := eds.WatchEndpoints(namespace, opts)
+		endpoints, errs, err := eds.WatchEndpoints(namespace, upstreamsToTrack, opts)
 		if err != nil {
-			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(eds).Name())
+			return nil, nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(eds).Name())
 		}
 		syncFunc := func(uds DiscoveryPlugin, endpointList v1.EndpointList) {
 			lock.Lock()
@@ -133,7 +134,7 @@ func (d *Discovery) StartEds(bstrp bootstrap.Config, namespace string, opts clie
 			}
 		}(eds)
 	}
-	return aggregatedErrs, nil
+	return cancel, aggregatedErrs, nil
 }
 
 func aggregateEndpoints(endpointsByUds map[DiscoveryPlugin]v1.EndpointList) v1.EndpointList {
@@ -146,45 +147,3 @@ func aggregateEndpoints(endpointsByUds map[DiscoveryPlugin]v1.EndpointList) v1.E
 	})
 	return endpoints
 }
-
-// // launch a goroutine for all the EDS plugins
-// func (d *Discovery) StartEds(bstrp bootstrap.Config, namespace string, opts clients.WatchOpts, client v1.EndpointClient) (chan error, error) {
-// 	aggregatedErrs := make(chan error)
-// 	endpointsByEds := make(map[DiscoveryPlugin]v1.EndpointList)
-// 	lock := sync.Mutex{}
-// 	for _, eds := range d.discoveryPlugins {
-// 		endpoints, errs, err := eds.WatchEndpoints(namespace, opts)
-// 		if err != nil {
-// 			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(eds).Name())
-// 		}
-// 		reconcileEndpoints := func(eds DiscoveryPlugin, endpointList v1.EndpointList) {
-// 			lock.Lock()
-// 			endpointsByEds[eds] = endpointList
-// 			desiredEndpoints := endpointList
-// 			for ds, upstreams := range endpointsByEds {
-// 				if ds == eds {
-// 					continue
-// 				}
-// 				desiredEndpoints = append(desiredEndpoints, upstreams...)
-// 			}
-// 			lock.Unlock()
-// 			if err := reconcileEndpoints(namespace, desiredEndpoints, client, opts, eds); err != nil {
-// 				aggregatedErrs <- err
-// 			}
-// 		}
-//
-// 		go func(uds DiscoveryPlugin) {
-// 			for {
-// 				select {
-// 				case upstreamList := <-endpoints:
-// 					reconcileEndpoints(uds, upstreamList)
-// 				case err := <-errs:
-// 					aggregatedErrs <- errors.Wrapf(err, "error in eds plugin %v", reflect.TypeOf(uds).Name())
-// 				case <-opts.Ctx.Done():
-// 					return
-// 				}
-// 			}
-// 		}(eds)
-// 	}
-// 	return aggregatedErrs, nil
-// }
