@@ -1,13 +1,21 @@
 package setup
 
 import (
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-kit/pkg/bootstrap"
+	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 )
 
-func Setup(bstrp bootstrap.Config, inputResourceOpts factory.ResourceClientFactoryOpts, secretOpts factory.ResourceClientFactoryOpts, artifactOpts factory.ResourceClientFactoryOpts) error {
+func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts, secretOpts factory.ResourceClientFactoryOpts, artifactOpts factory.ResourceClientFactoryOpts, opts clients.WatchOpts) error {
+	opts = opts.WithDefaults()
+	opts.Ctx = contextutils.WithLogger(opts.Ctx, "setup")
 	inputFactory := factory.NewResourceClientFactory(inputResourceOpts)
 	secretFactory := factory.NewResourceClientFactory(secretOpts)
 	artifactFactory := factory.NewResourceClientFactory(artifactOpts)
@@ -41,13 +49,53 @@ func Setup(bstrp bootstrap.Config, inputResourceOpts factory.ResourceClientFacto
 		return err
 	}
 
-	// TODO: initialize endpointClient using EDS plugins
 	cache := v1.NewCache(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)
-	el := v1.NewEventLoop(cache, &syncer{})
-}
 
-type syncer struct{}
+	disc := discovery.NewDiscovery(namespace, upstreamClient, endpointClient)
 
-func (syncer) Sync(snap *v1.Snapshot) error {
+	xdsCache, err := newXds()
+	if err != nil {
+		return err
+	}
 
+	rpt := reporter.NewReporter("gloo-reporter", upstreamClient.BaseClient(), proxyClient.BaseClient())
+
+	sync := syncer.NewSyncer(translator.NewTranslator(), xdsCache, rpt)
+
+	eventLoop := v1.NewEventLoop(cache, sync)
+
+	errs := make(chan error)
+
+	udsErrs, err := discovery.RunUds(disc, opts, discovery.Opts{
+		// TODO(ilackarms)
+	})
+	if err != nil {
+		return err
+	}
+	go errutils.AggregateErrs(opts.Ctx, errs, udsErrs)
+
+	edsErrs, err := discovery.RunEds(upstreamClient, disc, namespace, opts)
+	if err != nil {
+		return err
+	}
+	go errutils.AggregateErrs(opts.Ctx, errs, edsErrs)
+
+	eventLoopErrs, err := eventLoop.Run(namespace, opts)
+	if err != nil {
+		return err
+	}
+	go errutils.AggregateErrs(opts.Ctx, errs, eventLoopErrs)
+
+
+	logger := contextutils.LoggerFrom(opts.Ctx)
+
+	for {
+		select {
+		case err := <- errs:
+			logger.Errorf("error: %v", err)
+		case <-opts.Ctx.Done():
+			close(errs)
+			return nil
+		}
+	}
 }
