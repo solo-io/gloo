@@ -28,7 +28,7 @@ import (
 type Transition{{ .ResourceType }}Func func(original, desired *{{ .ResourceType }})
 
 type {{ .ResourceType }}Reconciler interface {
-	Reconcile(namespace string, desiredResources []*{{ .ResourceType }}, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources []*{{ .ResourceType }}, transition Transition{{ .ResourceType }}Func, opts clients.ListOpts) error
 }
 
 func {{ lowercase .ResourceType }}sToResources(list {{ .ResourceType }}List) []resources.Resource {
@@ -39,15 +39,9 @@ func {{ lowercase .ResourceType }}sToResources(list {{ .ResourceType }}List) []r
 	return resourceList
 }
 
-func New{{ .ResourceType }}Reconciler(client {{ .ResourceType }}Client, transition Transition{{ .ResourceType }}Func) {{ .ResourceType }}Reconciler {
-	var transitionResources reconcile.TransitionResourcesFunc
-	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) {
-			transition(original.(*{{ .ResourceType }}), desired.(*{{ .ResourceType }}))
-		}
-	}
+func New{{ .ResourceType }}Reconciler(client {{ .ResourceType }}Client) {{ .ResourceType }}Reconciler {
 	return &{{ lowercase .ResourceType }}Reconciler{
-		base: reconcile.NewReconciler(client.BaseClient(), transitionResources),
+		base: reconcile.NewReconciler(client.BaseClient()),
 	}
 }
 
@@ -55,9 +49,15 @@ type {{ lowercase .ResourceType }}Reconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *{{ lowercase .ResourceType }}Reconciler) Reconcile(namespace string, desiredResources []*{{ .ResourceType }}, opts clients.ListOpts) error {
+func (r *{{ lowercase .ResourceType }}Reconciler) Reconcile(namespace string, desiredResources []*{{ .ResourceType }}, transition Transition{{ .ResourceType }}Func, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "{{ lowercase .ResourceType }}_reconciler")
-	return r.base.Reconcile(namespace, {{ lowercase .ResourceType }}sToResources(desiredResources), opts)
+	var transitionResources reconcile.TransitionResourcesFunc
+	if transition != nil {
+		transitionResources = func(original, desired resources.Resource) {
+			transition(original.(*{{ .ResourceType }}), desired.(*{{ .ResourceType }}))
+		}
+	}
+	return r.base.Reconcile(namespace, {{ lowercase .ResourceType }}sToResources(desiredResources), transitionResources, opts)
 }
 `
