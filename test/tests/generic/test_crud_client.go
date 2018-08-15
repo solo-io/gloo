@@ -3,7 +3,6 @@ package generic
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	"time"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -15,7 +14,7 @@ import (
 )
 
 // Call within "It"
-func TestCrudClient(namespace string, client ResourceClient) {
+func TestCrudClient(namespace string, client ResourceClient, refreshRate time.Duration) {
 	client.Register()
 	foo := "foo"
 	input := mocks.NewMockData(namespace, foo)
@@ -113,14 +112,16 @@ func TestCrudClient(namespace string, client ResourceClient) {
 	Expect(list).To(ContainElement(r1))
 	Expect(list).NotTo(ContainElement(r2))
 
-	w, errs, err := client.Watch(namespace, clients.WatchOpts{RefreshRate: time.Millisecond})
+	w, errs, err := client.Watch(namespace, clients.WatchOpts{RefreshRate: refreshRate})
 	Expect(err).NotTo(HaveOccurred())
 
 	var r3 resources.Resource
 	wait := make(chan struct{})
 	go func() {
 		defer GinkgoRecover()
-		defer close(wait)
+		defer func() {
+			close(wait)
+		}()
 		resources.UpdateMetadata(r2, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
@@ -137,7 +138,11 @@ func TestCrudClient(namespace string, client ResourceClient) {
 		r3, err = client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 	}()
-	<-wait
+	select {
+	case <-wait:
+	case <-time.After(time.Second * 5):
+		Fail("expected wait to be closed before 5s")
+	}
 
 	select {
 	case err := <-errs:
@@ -147,10 +152,15 @@ func TestCrudClient(namespace string, client ResourceClient) {
 		Fail("expected a message in channel")
 	}
 
+	var timesDrained int
 drain:
 	for {
 		select {
 		case list = <-w:
+			timesDrained++
+			if timesDrained > 50 {
+				Fail("drained the watch channel 50 times, something is wrong")
+			}
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second / 4):

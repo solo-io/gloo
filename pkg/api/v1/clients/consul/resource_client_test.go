@@ -1,6 +1,8 @@
 package consul_test
 
 import (
+	"time"
+
 	"github.com/hashicorp/consul/api"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -27,6 +29,6 @@ var _ = Describe("Base", func() {
 		consul.KV().DeleteTree(rootKey, nil)
 	})
 	It("CRUDs resources", func() {
-		generic.TestCrudClient("", client)
+		generic.TestCrudClient("", client, time.Minute)
 	})
 })

@@ -1,6 +1,8 @@
 package file_test
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -27,6 +29,6 @@ var _ = Describe("Base", func() {
 		os.RemoveAll(tmpDir)
 	})
 	It("CRUDs resources", func() {
-		generic.TestCrudClient("", client)
+		generic.TestCrudClient("", client, time.Millisecond)
 	})
 })

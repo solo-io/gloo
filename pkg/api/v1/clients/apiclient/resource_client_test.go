@@ -31,6 +31,6 @@ var _ = Describe("Base", func() {
 		cc.Close()
 	})
 	It("CRUDs resources", func() {
-		generic.TestCrudClient("", client)
+		generic.TestCrudClient("", client, time.Minute)
 	})
 })

@@ -3,6 +3,7 @@ package configmap_test
 import (
 	"os"
 	"path/filepath"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -42,6 +43,6 @@ var _ = Describe("Base", func() {
 		services.TeardownKube(namespace)
 	})
 	It("CRUDs resources", func() {
-		generic.TestCrudClient(namespace, client)
+		generic.TestCrudClient(namespace, client, time.Minute)
 	})
 })

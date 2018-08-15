@@ -1,6 +1,8 @@
 package memory_test
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/test/mocks"
@@ -17,6 +19,6 @@ var _ = Describe("Base", func() {
 	AfterEach(func() {
 	})
 	It("CRUDs resources", func() {
-		generic.TestCrudClient("", client)
+		generic.TestCrudClient("", client, time.Minute)
 	})
 })
