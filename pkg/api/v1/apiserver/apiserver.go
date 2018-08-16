@@ -213,7 +213,7 @@ func (s *ApiServer) Watch(req *WatchRequest, watch ApiServer_WatchServer) error 
 	ctx := contextutils.WithLogger(watch.Context(), "apiserver.read")
 	var duration time.Duration
 	if req.SyncFrequency != nil {
-		duration = time.Duration(req.SyncFrequency.Nanos)
+		duration = time.Duration(req.SyncFrequency.Seconds*int64(time.Second) + int64(req.SyncFrequency.Nanos))
 	}
 	resourceWatch, errs, err := rc.Watch(req.Namespace, clients.WatchOpts{
 		RefreshRate: duration,

@@ -150,10 +150,11 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resou
 func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
 	opts = opts.WithDefaults()
 	opts.Ctx = metadata.AppendToOutgoingContext(opts.Ctx, "authorization", "bearer "+rc.token)
+	secs := opts.RefreshRate.Seconds()
 	nanos := int64(opts.RefreshRate.Seconds()) % int64(time.Duration(opts.RefreshRate.Seconds())*time.Second)
 	resp, err := rc.grpc.Watch(opts.Ctx, &apiserver.WatchRequest{
 		SyncFrequency: &types.Duration{
-			Seconds: int64(opts.RefreshRate.Seconds()),
+			Seconds: int64(secs),
 			Nanos:   int32(nanos),
 		},
 		Namespace: namespace,

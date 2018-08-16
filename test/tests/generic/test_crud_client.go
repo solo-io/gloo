@@ -1,9 +1,10 @@
 package generic
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"time"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	. "github.com/solo-io/solo-kit/pkg/api/v1/clients"
