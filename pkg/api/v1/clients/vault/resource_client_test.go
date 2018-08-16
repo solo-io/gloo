@@ -1,6 +1,8 @@
 package vault_test
 
 import (
+	"time"
+
 	"github.com/hashicorp/vault/api"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -31,6 +33,6 @@ var _ = Describe("Base", func() {
 		vault.Logical().Delete(rootKey)
 	})
 	It("CRUDs secrets", func() {
-		generic.TestCrudClient("", secrets)
+		generic.TestCrudClient("", secrets, time.Minute)
 	})
 })

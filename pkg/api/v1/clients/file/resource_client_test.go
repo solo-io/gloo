@@ -29,6 +29,6 @@ var _ = Describe("Base", func() {
 		os.RemoveAll(tmpDir)
 	})
 	It("CRUDs resources", func() {
-		generic.TestCrudClient("", client, time.Millisecond)
+		generic.TestCrudClient("", client, time.Minute)
 	})
 })
