@@ -33,6 +33,6 @@ var _ = Describe("Base", func() {
 		vault.Logical().Delete(rootKey)
 	})
 	It("CRUDs secrets", func() {
-		generic.TestCrudClient("", secrets, time.Minute)
+		generic.TestCrudClient("", secrets, time.Second/8)
 	})
 })
