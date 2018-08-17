@@ -39,10 +39,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	}
 
 	for _, proxy := range snap.ProxyList {
-		xdsSnapshot, resourceErrs, err := s.translator.Translate(params, proxy)
-		if err != nil {
-			return errors.Wrapf(err, "internal error: failed during translation loop")
-		}
+		xdsSnapshot, resourceErrs := s.translator.Translate(params, proxy)
 
 		allResourceErrs.Merge(resourceErrs)
 

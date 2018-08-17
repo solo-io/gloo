@@ -80,6 +80,24 @@ func (list {{ .ResourceType }}List) Find(namespace, name string) (*{{ .ResourceT
 	return nil, errors.Errorf("list did not find {{ lowercase .ResourceType }} %v.%v", namespace, name)
 }
 
+func (list *{{ .ResourceType }}List) AsResources() []resources.Resource {
+	var ress []resources.Resource 
+	for _, {{ lowercase .ResourceType }} := range list {
+		ress = append(ress, {{ lowercase .ResourceType }})
+	}
+	return ress
+}
+
+{{ if $.IsInputType -}}
+func (list *{{ .ResourceType }}List) AsInputResources() []resources.InputResource {
+	var ress []resources.InputResource
+	for _, {{ lowercase .ResourceType }} := range list {
+		ress = append(ress, {{ lowercase .ResourceType }})
+	}
+	return ress
+}
+{{- end}}
+
 var _ resources.Resource = &{{ .ResourceType }}{}
 
 type {{ .ResourceType }}Client interface {

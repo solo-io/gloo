@@ -14,7 +14,7 @@ import (
 )
 
 type Translator interface {
-	Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors, error)
+	Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors)
 }
 
 type translator struct {
@@ -27,7 +27,7 @@ func NewTranslator() Translator {
 	}
 }
 
-func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors, error) {
+func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors) {
 	params.Ctx = contextutils.WithLogger(params.Ctx, "gloo.translator")
 	logger := contextutils.LoggerFrom(params.Ctx)
 
@@ -70,7 +70,7 @@ func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycac
 
 	xdsSnapshot := generateXDSSnapshot(clusters, endpoints, routeConfigs, listeners)
 
-	return xdsSnapshot, resourceErrs, nil
+	return xdsSnapshot, resourceErrs
 
 }
 

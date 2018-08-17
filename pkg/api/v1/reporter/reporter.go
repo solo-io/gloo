@@ -13,6 +13,13 @@ import (
 
 type ResourceErrors map[resources.InputResource]error
 
+func (e ResourceErrors) Initialize(res ...resources.InputResource) ResourceErrors {
+	for _, r := range res {
+		e[r] = nil
+	}
+	return e
+}
+
 func (e ResourceErrors) Merge(resErrs ResourceErrors) {
 	for k, v := range resErrs {
 		e[k] = v
