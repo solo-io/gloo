@@ -4,7 +4,6 @@ import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/pkg/control-plane/translator/defaults"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -53,7 +52,7 @@ func initializeCluster(upstream *v1.Upstream, endpoints []*v1.Endpoint) *envoyap
 		out.Type = envoyapi.Cluster_EDS
 	}
 	// this field can be overridden by plugins
-	out.ConnectTimeout = defaults.ClusterConnectionTimeout
+	out.ConnectTimeout = ClusterConnectionTimeout
 	return out
 }
 

@@ -7,7 +7,6 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	defaultv1 "github.com/solo-io/gloo/pkg/api/defaults/v1"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
@@ -339,25 +338,25 @@ func GetSslSecrets(ref string, secrets []*v1.Secret) (string, string, string, er
 		return "", "", "", errors.Errorf("ssl secret not found for ref %v", ref)
 	}
 
-	certChain, ok := sslSecret.Data[defaultv1.SslCertificateChainKey]
+	certChain, ok := sslSecret.Data[SslCertificateChainKey]
 	if !ok {
 		certChain, ok = sslSecret.Data[deprecatedSslCertificateChainKey]
 		if !ok {
 			return "", "", "", errors.Errorf("neither %v nor %v key not found in ssl secrets",
-				defaultv1.SslCertificateChainKey, deprecatedSslCertificateChainKey)
+				SslCertificateChainKey, deprecatedSslCertificateChainKey)
 		}
 	}
 
-	privateKey, ok := sslSecret.Data[defaultv1.SslPrivateKeyKey]
+	privateKey, ok := sslSecret.Data[SslPrivateKeyKey]
 	if !ok {
 		privateKey, ok = sslSecret.Data[deprecatedSslPrivateKeyKey]
 		if !ok {
 			return "", "", "", errors.Errorf("neither %v nor %v key not found in ssl secrets",
-				defaultv1.SslPrivateKeyKey, deprecatedSslPrivateKeyKey)
+				SslPrivateKeyKey, deprecatedSslPrivateKeyKey)
 		}
 	}
 
-	rootCa := sslSecret.Data[defaultv1.SslRootCaKey]
+	rootCa := sslSecret.Data[SslRootCaKey]
 	return certChain, privateKey, rootCa, nil
 }
 
