@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	kubeplugin "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	kubev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -26,11 +27,11 @@ func (p *KubePlugin) WatchEndpoints(writeNamespace string, upstreamsToTrack v1.U
 
 type edsWatcher struct {
 	kube      kubernetes.Interface
-	upstreams map[string]*UpstreamSpec
+	upstreams map[string]*kubeplugin.UpstreamSpec
 }
 
 func newEndpointsWatcher(kube kubernetes.Interface, upstreams v1.UpstreamList) *edsWatcher {
-	upstreamSpecs := make(map[string]*UpstreamSpec)
+	upstreamSpecs := make(map[string]*kubeplugin.UpstreamSpec)
 	for _, us := range upstreams {
 		kubeUpstream, ok := us.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
 		// only care about kube upstreams
@@ -126,7 +127,7 @@ func (c *edsWatcher) Watch(namespace string, opts clients.WatchOpts) (<-chan v1.
 	return resourcesChan, errs, nil
 }
 
-func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints *kubev1.EndpointsList, pods *kubev1.PodList, upstreams map[string]*UpstreamSpec) v1.EndpointList {
+func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints *kubev1.EndpointsList, pods *kubev1.PodList, upstreams map[string]*kubeplugin.UpstreamSpec) v1.EndpointList {
 	var endpoints v1.EndpointList
 
 	logger := contextutils.LoggerFrom(contextutils.WithLogger(ctx, "kubernetes_eds"))

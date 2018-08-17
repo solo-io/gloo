@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/gloo/pkg/coreplugins/common"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
 )
@@ -32,16 +33,16 @@ const (
 	awsHost   = "host"
 )
 
-func (s *UpstreamSpec) getLambdaHostname() string {
+func getLambdaHostname(s *aws.UpstreamSpec) string {
 	return fmt.Sprintf("lambda.%s.amazonaws.com", s.Region)
 }
 
 func init() {
-	plugins.Register(&plugin{recordedUpstreams: make(map[string]*UpstreamSpec)})
+	plugins.Register(&plugin{recordedUpstreams: make(map[string]*aws.UpstreamSpec)})
 }
 
 type plugin struct {
-	recordedUpstreams map[string]*UpstreamSpec
+	recordedUpstreams map[string]*aws.UpstreamSpec
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
@@ -55,7 +56,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		return nil
 	}
 
-	lambdaHostname := upstreamSpec.Aws.getLambdaHostname()
+	lambdaHostname := getLambdaHostname(upstreamSpec.Aws)
 
 	// configure Envoy cluster routing info
 	out.Type = envoyapi.Cluster_LOGICAL_DNS
@@ -150,7 +151,7 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 
 func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	// flush cache
-	defer func() { p.recordedUpstreams = make(map[string]*UpstreamSpec) }()
+	defer func() { p.recordedUpstreams = make(map[string]*aws.UpstreamSpec) }()
 	if len(p.recordedUpstreams) == 0 {
 		return nil, nil
 	}

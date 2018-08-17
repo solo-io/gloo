@@ -86,7 +86,7 @@ func createUpstream(meta metav1.ObjectMeta, port kubev1.ServicePort, writeNamesp
 		Metadata: coremeta,
 		UpstreamSpec: &v1.UpstreamSpec{
 			UpstreamType: &v1.UpstreamSpec_Kube{
-				Kube: &UpstreamSpec{
+				Kube: &kube.UpstreamSpec{
 					ServiceName:      meta.Name,
 					ServiceNamespace: meta.Namespace,
 					ServicePort:      uint32(port.Port),
