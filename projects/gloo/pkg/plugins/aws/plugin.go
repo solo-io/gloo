@@ -40,9 +40,11 @@ func getLambdaHostname(s *aws.UpstreamSpec) string {
 }
 
 func init() {
-	plugins.RegisterFunc(func() plugins.Plugin {
-		return &plugin{recordedUpstreams: make(map[string]*aws.UpstreamSpec)}
-	})
+	plugins.RegisterFunc(NewAwsPlugin)
+}
+
+func NewAwsPlugin() plugins.Plugin {
+	return &plugin{recordedUpstreams: make(map[string]*aws.UpstreamSpec)}
 }
 
 type plugin struct {
@@ -79,6 +81,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		},
 	}
 	out.TlsContext = &envoyauth.UpstreamTlsContext{
+		// TODO(yuval-k): Add verification context
 		Sni: lambdaHostname,
 	}
 
@@ -171,8 +174,8 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 }
 
 func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
-	// flush cache
 	if len(p.recordedUpstreams) == 0 {
+		// no upstreams no filter
 		return nil, nil
 	}
 	return []plugins.StagedHttpFilter{
