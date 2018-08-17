@@ -123,7 +123,7 @@ const resource_proto = `syntax = "proto3";
 package {{ .ProjectName }}.api.v1;
 option go_package = "{{ .ProjectGopath }}/pkg/api/v1";
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";

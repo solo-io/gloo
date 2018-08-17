@@ -2,7 +2,7 @@ syntax = "proto3";
 package gloo.plugins.core;
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/core";
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 // Describes APIs and application-level information for services
