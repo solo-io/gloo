@@ -17,7 +17,6 @@
   version = "v1.1.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -34,7 +33,7 @@
     "pkg/log",
     "pkg/util"
   ]
-  revision = "5f1c666fa3aaa02d95e4fdd95e725f0c5eb7239f"
+  revision = "676016db8193d83324a507a986a78cd3642ad713"
 
 [[projects]]
   name = "github.com/ghodss/yaml"
@@ -61,8 +60,8 @@
     "sortkeys",
     "types"
   ]
-  revision = "342cbe0a04158f6dcb03ca0079991a51a4248c02"
-  version = "v0.5"
+  revision = "636bf0302bc95575d69441b25a2603156ffdddf1"
+  version = "v1.1.1"
 
 [[projects]]
   branch = "master"
@@ -413,18 +412,6 @@
   version = "v0.1"
 
 [[projects]]
-  name = "github.com/solo-io/gloo"
-  packages = [
-    "pkg/api/defaults/v1",
-    "pkg/api/types/v1",
-    "pkg/control-plane/translator/defaults",
-    "pkg/coreplugins/common",
-    "pkg/log"
-  ]
-  revision = "d79dccb20dff2a3a1187efc1d2e045604919f769"
-  version = "v0.4.0"
-
-[[projects]]
   name = "github.com/spf13/cobra"
   packages = ["."]
   revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
@@ -755,6 +742,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "06b81c2c05fa1b8dc8a7bed086698cdcb59992a678dc7fa8338bd6cb25b0bbe3"
+  inputs-digest = "ddb3e9f710a35bab71da783fdff7fea53ebb2482987ca057792c3aa16acba8f5"
   solver-name = "gps-cdcl"
   solver-version = 1

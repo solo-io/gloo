@@ -32,6 +32,14 @@
   branch = "master"
   name = "github.com/bxcodec/faker"
 
+[[constraint]]
+  revision = "676016db8193d83324a507a986a78cd3642ad713"
+  name = "github.com/envoyproxy/go-control-plane"
+
+[[constraint]]
+  version = "1.1.1"
+  name = "github.com/gogo/protobuf"
+
 [[override]]
   branch = "master"
   name = "k8s.io/api"
