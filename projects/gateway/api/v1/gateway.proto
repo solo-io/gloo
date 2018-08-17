@@ -1,8 +1,8 @@
 syntax = "proto3";
-package gloo.api.v1;
-option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
+package gateway.solo.io;
+option go_package = "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1";
 
-import "gogoproto/gogo.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
@@ -32,7 +32,7 @@ message Gateway {
     uint32 bind_port = 4;
 
     // If provided, the Gateway will serve TLS/SSL traffic on this port
-    SslConfig ssl_config = 1;
+    gloo.solo.io.SslConfig ssl_config = 1;
 
     // top level plugin configuration for all routes on the gateway
     map<string, gloo.solo.io.ListenerPlugin> plugins = 5;
