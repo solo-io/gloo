@@ -10,10 +10,10 @@ import (
 	envoyendpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
 	"github.com/hashicorp/go-multierror"
-	"github.com/solo-io/gloo/pkg/coreplugins/common"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
@@ -21,9 +21,11 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
 )
 
+//go:generate protoc -I$GOPATH/src/github.com/lyft/protoc-gen-validate -I. -I$GOPATH/src/github.com/gogo/protobuf/protobuf --gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/ filter.proto
+
 const (
 	// filter info
-	filterName  = "io.solo.lambda"
+	filterName  = "io.solo.aws_lambda"
 	pluginStage = plugins.OutAuth
 
 	// cluster info
@@ -38,6 +40,7 @@ func getLambdaHostname(s *aws.UpstreamSpec) string {
 }
 
 func init() {
+	// TODO(yuval-k): register a factor function instead of an instance
 	plugins.Register(&plugin{recordedUpstreams: make(map[string]*aws.UpstreamSpec)})
 }
 
@@ -100,22 +103,32 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", SecretKey))
 	}
 
+	if secretErrs != nil {
+		return secretErrs
+	}
+
 	if out.Metadata == nil {
 		out.Metadata = &envoycore.Metadata{}
 	}
-	common.InitFilterMetadata(filterName, out.Metadata)
-	out.Metadata.FilterMetadata[filterName] = &types.Struct{
-		Fields: map[string]*types.Value{
-			AccessKey: {Kind: &types.Value_StringValue{StringValue: accessKey}},
-			SecretKey: {Kind: &types.Value_StringValue{StringValue: secretKey}},
-			awsRegion: {Kind: &types.Value_StringValue{StringValue: upstreamSpec.Aws.Region}},
-			awsHost:   {Kind: &types.Value_StringValue{StringValue: lambdaHostname}},
-		},
+
+	lpe := &LambdaProtocolExtension{
+		Host:      lambdaHostname,
+		Region:    upstreamSpec.Aws.Region,
+		AccessKey: accessKey,
+		SecretKey: secretKey,
 	}
 
-	p.recordedUpstreams[in.Metadata.Name] = upstreamSpec.Aws
+	if out.ExtensionProtocolOptions == nil {
+		out.ExtensionProtocolOptions = make(map[string]*types.Struct)
+	}
 
-	return secretErrs
+	lpeStruct, err := util.MessageToStruct(lpe)
+	if err != nil {
+		return errors.Wrapf(err, "converting aws protocol options to struct")
+	}
+	out.ExtensionProtocolOptions[filterName] = lpeStruct
+
+	p.recordedUpstreams[in.Metadata.Name] = upstreamSpec.Aws
 
 	return nil
 }
@@ -133,6 +146,7 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		// get upstream
 		lambdaSpec, ok := p.recordedUpstreams[spec.UpstreamName]
 		if !ok {
+			// TODO(yuval-k): panic in debug
 			return nil, errors.Errorf("%v is not an AWS upstream", spec.UpstreamName)
 		}
 		// should be aws upstream
@@ -141,8 +155,14 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		logicalName := awsDestinationSpec.Aws.LogicalName
 		for _, lambdaFunc := range lambdaSpec.LambdaFunctions {
 			if lambdaFunc.LogicalName == logicalName {
-				// TODO(ilackarms, yuval-k): return the expected message to the Filter
-				return lambdaFunc, nil
+
+				lambdaRouteFunc := &LambdaPerRoute{
+					Async:     false, // TODO: introduce async to lambdaFunc
+					Qualifier: lambdaFunc.Qualifier,
+					Name:      lambdaFunc.LambdaFunctionName,
+				}
+
+				return lambdaRouteFunc, nil
 			}
 		}
 		return nil, errors.Errorf("unknown function %v", logicalName)
