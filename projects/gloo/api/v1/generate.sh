@@ -21,3 +21,20 @@ protoc -I=${IN} \
     ${GOGO_OUT_FLAG} \
     ${SOLO_KIT_FLAG} \
     ${IN}/*.proto
+
+IN=${IN}/plugins
+mkdir -p ${OUT}/plugins/{aws,kubernetes}
+
+protoc -I=${IN} \
+    -I=${GOPATH}/src \
+    -I=${GOPATH}/src/github.com/gogo/protobuf/ \
+    ${GOGO_OUT_FLAG} \
+    ${SOLO_KIT_FLAG} \
+    ${IN}/kubernetes/*.proto
+
+protoc -I=${IN} \
+    -I=${GOPATH}/src \
+    -I=${GOPATH}/src/github.com/gogo/protobuf/ \
+    ${GOGO_OUT_FLAG} \
+    ${SOLO_KIT_FLAG} \
+    ${IN}/aws/*.proto
