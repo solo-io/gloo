@@ -12,8 +12,8 @@ import (
 type Snapshot struct {
 	ArtifactList ArtifactList
 	EndpointList EndpointList
-	ProxyList ProxyList
-	SecretList SecretList
+	ProxyList    ProxyList
+	SecretList   SecretList
 	UpstreamList UpstreamList
 }
 
@@ -41,8 +41,8 @@ func (s Snapshot) Clone() Snapshot {
 	return Snapshot{
 		ArtifactList: artifactList,
 		EndpointList: endpointList,
-		ProxyList: proxyList,
-		SecretList: secretList,
+		ProxyList:    proxyList,
+		SecretList:   secretList,
 		UpstreamList: upstreamList,
 	}
 }
@@ -97,8 +97,8 @@ func NewCache(artifactClient ArtifactClient, endpointClient EndpointClient, prox
 	return &cache{
 		artifact: artifactClient,
 		endpoint: endpointClient,
-		proxy: proxyClient,
-		secret: secretClient,
+		proxy:    proxyClient,
+		secret:   secretClient,
 		upstream: upstreamClient,
 	}
 }
@@ -106,8 +106,8 @@ func NewCache(artifactClient ArtifactClient, endpointClient EndpointClient, prox
 type cache struct {
 	artifact ArtifactClient
 	endpoint EndpointClient
-	proxy ProxyClient
-	secret SecretClient
+	proxy    ProxyClient
+	secret   SecretClient
 	upstream UpstreamClient
 }
 

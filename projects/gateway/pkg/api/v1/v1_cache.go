@@ -10,7 +10,7 @@ import (
 )
 
 type Snapshot struct {
-	GatewayList GatewayList
+	GatewayList        GatewayList
 	VirtualServiceList VirtualServiceList
 }
 
@@ -24,7 +24,7 @@ func (s Snapshot) Clone() Snapshot {
 		virtualServiceList = append(virtualServiceList, proto.Clone(virtualService).(*VirtualService))
 	}
 	return Snapshot{
-		GatewayList: gatewayList,
+		GatewayList:        gatewayList,
 		VirtualServiceList: virtualServiceList,
 	}
 }
@@ -59,13 +59,13 @@ type Cache interface {
 
 func NewCache(gatewayClient GatewayClient, virtualServiceClient VirtualServiceClient) Cache {
 	return &cache{
-		gateway: gatewayClient,
+		gateway:        gatewayClient,
 		virtualService: virtualServiceClient,
 	}
 }
 
 type cache struct {
-	gateway GatewayClient
+	gateway        GatewayClient
 	virtualService VirtualServiceClient
 }
 

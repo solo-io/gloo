@@ -7,9 +7,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
 	"k8s.io/client-go/rest"
@@ -27,7 +27,7 @@ var _ = Describe("MocksCache", func() {
 		cache              Cache
 		mockResourceClient MockResourceClient
 		fakeResourceClient FakeResourceClient
-		mockDataClient MockDataClient
+		mockDataClient     MockDataClient
 	)
 
 	BeforeEach(func() {
