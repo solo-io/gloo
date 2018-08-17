@@ -5,7 +5,6 @@ option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-// requires -Igloo/ in imports
 import "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/aws/plugin.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/kubernetes/plugin.proto";
 
