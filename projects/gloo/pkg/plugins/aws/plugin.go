@@ -40,8 +40,9 @@ func getLambdaHostname(s *aws.UpstreamSpec) string {
 }
 
 func init() {
-	// TODO(yuval-k): register a factor function instead of an instance
-	plugins.Register(&plugin{recordedUpstreams: make(map[string]*aws.UpstreamSpec)})
+	plugins.RegisterFunc(func() plugins.Plugin {
+		return &plugin{recordedUpstreams: make(map[string]*aws.UpstreamSpec)}
+	})
 }
 
 type plugin struct {
@@ -171,7 +172,6 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 
 func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	// flush cache
-	defer func() { p.recordedUpstreams = make(map[string]*aws.UpstreamSpec) }()
 	if len(p.recordedUpstreams) == 0 {
 		return nil, nil
 	}

@@ -18,16 +18,19 @@ type Translator interface {
 }
 
 type translator struct {
-	plugins []plugins.Plugin
+	pluginsCtors func() []Plugin
+	plugins      []plugins.Plugin
 }
 
 func NewTranslator() Translator {
 	return &translator{
-		plugins: plugins.RegisteredPlugins(),
+		pluginsCtors: plugins.RegisteredPlugins(plugins.InitParams{}),
 	}
 }
 
 func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors) {
+	t.plugins = t.pluginsCtors()
+
 	params.Ctx = contextutils.WithLogger(params.Ctx, "gloo.translator")
 	logger := contextutils.LoggerFrom(params.Ctx)
 
