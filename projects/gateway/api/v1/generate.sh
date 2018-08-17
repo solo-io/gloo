@@ -14,8 +14,6 @@ OUT=${IN}/../../pkg/api/v1/
 GOGO_OUT_FLAG="--gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/"
 SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=${OUT}"
 
-set -ex
-
 mkdir -p ${OUT}
 protoc -I=${IN} \
     -I=${GOPATH}/src \

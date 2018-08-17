@@ -1,5 +1,5 @@
 syntax = "proto3";
-package gloo.plugins.kubernetes;
+package kubernetes.plugins.gloo.solo.io;
 
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/kubernetes";
 
@@ -25,5 +25,5 @@ message UpstreamSpec {
     // (see [Kubernetes labels and selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
     map<string, string> selector = 4;
     // An optional Service Spec describing the service listening at this address
-    gloo.plugins.core.ServiceSpec service_spec = 5;
+    plugins.gloo.solo.io.ServiceSpec service_spec = 5;
 }

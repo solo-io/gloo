@@ -1,5 +1,5 @@
 syntax = "proto3";
-package gloo.plugins.core;
+package plugins.gloo.solo.io;
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/core";
 
 import "gogoproto/gogo.proto";

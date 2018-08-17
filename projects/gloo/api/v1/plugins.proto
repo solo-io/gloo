@@ -43,7 +43,7 @@ message DestinationSpec {
     // Note to developers: new DestinationSpecs must be added to this oneof field
     // to be usable by Gloo.
     oneof destination_type {
-        gloo.plugins.aws.DestinationSpec aws = 1;
+        aws.plugins.gloo.solo.io.DestinationSpec aws = 1;
     }
 }
 
@@ -53,7 +53,7 @@ message UpstreamSpec {
     // Note to developers: new Upstream Plugins must be added to this oneof field
     // to be usable by Gloo.
     oneof upstream_type {
-        gloo.plugins.aws.UpstreamSpec aws = 1;
-        gloo.plugins.kubernetes.UpstreamSpec kube = 2;
+        aws.plugins.gloo.solo.io.UpstreamSpec aws = 1;
+        kubernetes.plugins.gloo.solo.io.UpstreamSpec kube = 2;
     }
 }

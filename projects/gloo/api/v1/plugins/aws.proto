@@ -1,5 +1,5 @@
 syntax = "proto3";
-package gloo.plugins.aws;
+package aws.plugins.gloo.solo.io;
 
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/aws";
 
