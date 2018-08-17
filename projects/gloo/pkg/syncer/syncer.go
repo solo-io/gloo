@@ -32,6 +32,8 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	logger.Infof("Beginning translation loop for snapshot %v", snap.Hash())
 	logger.Debugf("%v", snap)
 	allResourceErrs := make(reporter.ResourceErrors)
+	allResourceErrs.Initialize(snap.UpstreamList.AsInputResources()...)
+	allResourceErrs.Initialize(snap.ProxyList.AsInputResources()...)
 
 	params := plugins.Params{
 		Ctx:      ctx,
