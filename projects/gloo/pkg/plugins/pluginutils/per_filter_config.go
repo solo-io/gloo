@@ -2,6 +2,7 @@ package pluginutils
 
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
@@ -14,17 +15,10 @@ type PerFilterConfigFunc func(spec *v1.Destination) (proto.Message, error)
 
 // call this from
 func MarkPerFilterConfig(in *v1.Route, out *envoyroute.Route, filterName string, perFilterConfig PerFilterConfigFunc) error {
-	inRouteAction, ok := in.Action.(*v1.Route_RouteAction)
-	if !ok {
-		return errors.Errorf("input action was not a RouteAction")
+	inAction, outAction, err := getRouteActions(in, out)
+	if err != nil {
+		return err
 	}
-	inAction := inRouteAction.RouteAction
-
-	outRouteAction, ok := out.Action.(*envoyroute.Route_Route)
-	if !ok {
-		return errors.Errorf("output action was not a RouteAction")
-	}
-	outAction := outRouteAction.Route
 
 	switch dest := inAction.Destination.(type) {
 	case *v1.RouteAction_Multi:
