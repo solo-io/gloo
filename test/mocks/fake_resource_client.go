@@ -43,6 +43,22 @@ func (list FakeResourceList) Find(namespace, name string) (*FakeResource, error)
 	return nil, errors.Errorf("list did not find fakeResource %v.%v", namespace, name)
 }
 
+func (list *FakeResourceList) AsResources() []resources.Resource {
+	var ress []resources.Resource
+	for _, fakeResource := range list {
+		ress = append(ress, fakeResource)
+	}
+	return ress
+}
+
+func (list *FakeResourceList) AsInputResources() []resources.InputResource {
+	var ress []resources.InputResource
+	for _, fakeResource := range list {
+		ress = append(ress, fakeResource)
+	}
+	return ress
+}
+
 var _ resources.Resource = &FakeResource{}
 
 type FakeResourceClient interface {

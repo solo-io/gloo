@@ -43,6 +43,22 @@ func (list VirtualServiceList) Find(namespace, name string) (*VirtualService, er
 	return nil, errors.Errorf("list did not find virtualService %v.%v", namespace, name)
 }
 
+func (list *VirtualServiceList) AsResources() []resources.Resource {
+	var ress []resources.Resource
+	for _, virtualService := range list {
+		ress = append(ress, virtualService)
+	}
+	return ress
+}
+
+func (list *VirtualServiceList) AsInputResources() []resources.InputResource {
+	var ress []resources.InputResource
+	for _, virtualService := range list {
+		ress = append(ress, virtualService)
+	}
+	return ress
+}
+
 var _ resources.Resource = &VirtualService{}
 
 type VirtualServiceClient interface {

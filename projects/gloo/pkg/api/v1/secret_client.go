@@ -43,6 +43,14 @@ func (list SecretList) Find(namespace, name string) (*Secret, error) {
 	return nil, errors.Errorf("list did not find secret %v.%v", namespace, name)
 }
 
+func (list *SecretList) AsResources() []resources.Resource {
+	var ress []resources.Resource
+	for _, secret := range list {
+		ress = append(ress, secret)
+	}
+	return ress
+}
+
 var _ resources.Resource = &Secret{}
 
 type SecretClient interface {

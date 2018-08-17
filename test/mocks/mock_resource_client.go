@@ -43,6 +43,22 @@ func (list MockResourceList) Find(namespace, name string) (*MockResource, error)
 	return nil, errors.Errorf("list did not find mockResource %v.%v", namespace, name)
 }
 
+func (list *MockResourceList) AsResources() []resources.Resource {
+	var ress []resources.Resource
+	for _, mockResource := range list {
+		ress = append(ress, mockResource)
+	}
+	return ress
+}
+
+func (list *MockResourceList) AsInputResources() []resources.InputResource {
+	var ress []resources.InputResource
+	for _, mockResource := range list {
+		ress = append(ress, mockResource)
+	}
+	return ress
+}
+
 var _ resources.Resource = &MockResource{}
 
 type MockResourceClient interface {

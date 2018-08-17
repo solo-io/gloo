@@ -39,6 +39,14 @@ func (list EndpointList) Find(namespace, name string) (*Endpoint, error) {
 	return nil, errors.Errorf("list did not find endpoint %v.%v", namespace, name)
 }
 
+func (list *EndpointList) AsResources() []resources.Resource {
+	var ress []resources.Resource
+	for _, endpoint := range list {
+		ress = append(ress, endpoint)
+	}
+	return ress
+}
+
 var _ resources.Resource = &Endpoint{}
 
 type EndpointClient interface {

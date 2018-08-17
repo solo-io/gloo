@@ -43,7 +43,15 @@ func (list GatewayList) Find(namespace, name string) (*Gateway, error) {
 	return nil, errors.Errorf("list did not find gateway %v.%v", namespace, name)
 }
 
-func (list GatewayList) AsResources() []resources.InputResource {
+func (list *GatewayList) AsResources() []resources.Resource {
+	var ress []resources.Resource
+	for _, gateway := range list {
+		ress = append(ress, gateway)
+	}
+	return ress
+}
+
+func (list *GatewayList) AsInputResources() []resources.InputResource {
 	var ress []resources.InputResource
 	for _, gateway := range list {
 		ress = append(ress, gateway)

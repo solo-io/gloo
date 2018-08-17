@@ -6,7 +6,6 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -53,8 +52,8 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 
 func translate(namespace string, snap *v1.Snapshot) (*gloov1.Proxy, reporter.ResourceErrors) {
 	resourceErrs := make(reporter.ResourceErrors)
-	resourceErrs.Initialize(snap.GatewayList.Find())
-	resourceErrs.Initialize(snap.VirtualServiceList...)
+	resourceErrs.Initialize(snap.GatewayList.AsInputResources()...)
+	resourceErrs.Initialize(snap.VirtualServiceList.AsInputResources()...)
 	if len(snap.GatewayList) == 0 {
 		return nil, resourceErrs
 	}
@@ -97,7 +96,7 @@ func validateVirtualServices(virtualServices v1.VirtualServiceList, resourceErrs
 
 func desiredListener(gateway *v1.Gateway, virtualSerivces v1.VirtualServiceList, resourceErrs reporter.ResourceErrors) *gloov1.Listener {
 	if len(gateway.VirtualServices) == 0 {
-		resourceErrs.AddError(gateway, errors.Errorf("must specify at least one virtual service on gateway")
+		resourceErrs.AddError(gateway, errors.Errorf("must specify at least one virtual service on gateway"))
 	}
 	var (
 		virtualHosts []*gloov1.VirtualHost

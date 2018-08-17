@@ -47,6 +47,22 @@ func (list MockDataList) Find(namespace, name string) (*MockData, error) {
 	return nil, errors.Errorf("list did not find mockData %v.%v", namespace, name)
 }
 
+func (list *MockDataList) AsResources() []resources.Resource {
+	var ress []resources.Resource
+	for _, mockData := range list {
+		ress = append(ress, mockData)
+	}
+	return ress
+}
+
+func (list *MockDataList) AsInputResources() []resources.InputResource {
+	var ress []resources.InputResource
+	for _, mockData := range list {
+		ress = append(ress, mockData)
+	}
+	return ress
+}
+
 var _ resources.Resource = &MockData{}
 
 type MockDataClient interface {

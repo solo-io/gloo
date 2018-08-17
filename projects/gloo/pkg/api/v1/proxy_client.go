@@ -43,6 +43,22 @@ func (list ProxyList) Find(namespace, name string) (*Proxy, error) {
 	return nil, errors.Errorf("list did not find proxy %v.%v", namespace, name)
 }
 
+func (list *ProxyList) AsResources() []resources.Resource {
+	var ress []resources.Resource
+	for _, proxy := range list {
+		ress = append(ress, proxy)
+	}
+	return ress
+}
+
+func (list *ProxyList) AsInputResources() []resources.InputResource {
+	var ress []resources.InputResource
+	for _, proxy := range list {
+		ress = append(ress, proxy)
+	}
+	return ress
+}
+
 var _ resources.Resource = &Proxy{}
 
 type ProxyClient interface {
