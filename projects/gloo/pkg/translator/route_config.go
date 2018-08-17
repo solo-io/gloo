@@ -309,11 +309,11 @@ func validateSingleDestination(upstreams []*v1.Upstream, destination *v1.Destina
 func validateListenerSslConfig(listener *v1.Listener, secrets []*v1.Secret) error {
 	for _, ssl := range listener.SslConfiguations {
 		switch secret := ssl.SslSecrets.(type) {
-		case *v1.SSLConfig_SecretRef:
+		case *v1.SslConfig_SecretRef:
 			if _, _, _, err := GetSslSecrets(secret.SecretRef, secrets); err != nil {
 				return err
 			}
-		case *v1.SSLConfig_SslFiles:
+		case *v1.SslConfig_SslFiles:
 			// TODO(ilackarms): validate SslFiles
 		}
 	}

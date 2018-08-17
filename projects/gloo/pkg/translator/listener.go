@@ -117,7 +117,7 @@ func computeFilterChainsFromSslConfig(snap *v1.Snapshot, listener *v1.Listener, 
 			inlineDataSource bool
 		)
 		switch sslSecrets := sslConfig.SslSecrets.(type) {
-		case *v1.SSLConfig_SecretRef:
+		case *v1.SslConfig_SecretRef:
 			var err error
 			inlineDataSource = true
 			ref := sslSecrets.SecretRef
@@ -126,7 +126,7 @@ func computeFilterChainsFromSslConfig(snap *v1.Snapshot, listener *v1.Listener, 
 				report(err, "invalid secrets for listener %v", listener.Name)
 				continue
 			}
-		case *v1.SSLConfig_SslFiles:
+		case *v1.SslConfig_SslFiles:
 			certChain, privateKey, rootCa = sslSecrets.SslFiles.TlsCert, sslSecrets.SslFiles.TlsKey, sslSecrets.SslFiles.RootCa
 		}
 		filterChain := newSslFilterChain(certChain, privateKey, rootCa, inlineDataSource, sslConfig.SniDomains, listenerFilters)

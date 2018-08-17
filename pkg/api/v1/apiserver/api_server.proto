@@ -2,7 +2,7 @@ syntax = "proto3";
 package apiserver.api.v1;
 option go_package = "github.com/solo-io/solo-kit/pkg/api/v1/apiserver";
 
-import "gogoproto/gogo.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/duration.proto";
 option (gogoproto.equal_all) = true;

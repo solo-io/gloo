@@ -2,7 +2,6 @@ package mocks
 
 import (
 	"context"
-
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -57,3 +56,4 @@ func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) (<-chan error
 	}()
 	return errs, nil
 }
+

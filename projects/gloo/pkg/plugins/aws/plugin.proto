@@ -3,7 +3,7 @@ package gloo.plugins.aws;
 
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/aws";
 
-import "gogoproto/gogo.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 // Upstream Spec for AWS Lambda Upstreams
