@@ -21,20 +21,3 @@ protoc -I=${IN} \
     ${GOGO_OUT_FLAG} \
     ${SOLO_KIT_FLAG} \
     ${IN}/*.proto
-
-## AWS Plugin
-#(cd ${ROOT}/pkg/plugins/aws/ && \
-#protoc -I=./ \
-#    -I=${GOPATH}/src/github.com/gogo/protobuf/ \
-#    ${GOGO_OUT_FLAG} \
-#    ${SOLO_KIT_FLAG}=.   \
-#    *.proto)
-#
-## Kubernetes Plugin
-#(cd ${ROOT}/pkg/plugins/kubernetes/ && \
-#protoc -I=./ \
-#    -I=${GOPATH}/src/github.com/gogo/protobuf/ \
-#    -I=${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/ \
-#    ${GOGO_OUT_FLAG} \
-#    ${SOLO_KIT_FLAG}=.   \
-#    *.proto)
