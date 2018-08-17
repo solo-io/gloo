@@ -1,14 +1,14 @@
 syntax = "proto3";
-package gloo.api.v1;
+package gloo.solo.io;
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
 
-import "gogoproto/gogo.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
-import "plugins.proto";
+import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins.proto";
 
 /*
 @solo-kit:resource
@@ -68,10 +68,10 @@ message Listener {
     }
 
     // SSL Config is optional for the listener. If provided, the listener will serve TLS for connections on this port
-    // Multiple SSLConfigs are supported for the pupose of SNI. Be aware that the SNI domain provided in the SSL Config
+    // Multiple SslConfigs are supported for the pupose of SNI. Be aware that the SNI domain provided in the SSL Config
     // must match a domain in virtual host
     // TODO(ilackarms): ensure that ssl configs without a matching virtual host are errored
-    repeated SSLConfig ssl_configuations = 5;
+    repeated SslConfig ssl_configuations = 5;
 }
 
 // Use this listener to configure proxy behavior for any HTTP-level features including defining routes (via virtualservices).
@@ -343,8 +343,8 @@ message QueryParameterMatcher {
     bool regex = 3;
 }
 
-// SSLConfig contains the options necessary to configure a virtual host or listener to use TLS
-message SSLConfig {
+// SslConfig contains the options necessary to configure a virtual host or listener to use TLS
+message SslConfig {
     oneof ssl_secrets {
         /** SecretRef contains the secret ref to a gloo secret containing the following structure:
         {
