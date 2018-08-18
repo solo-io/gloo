@@ -14,8 +14,8 @@ type GatewayReconciler interface {
 	Reconcile(namespace string, desiredResources []*Gateway, transition TransitionGatewayFunc, opts clients.ListOpts) error
 }
 
-func gatewaysToResources(list GatewayList) []resources.Resource {
-	var resourceList []resources.Resource
+func gatewaysToResources(list GatewayList) resources.ResourceList {
+	var resourceList resources.ResourceList
 	for _, gateway := range list {
 		resourceList = append(resourceList, gateway)
 	}

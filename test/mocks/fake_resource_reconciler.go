@@ -14,8 +14,8 @@ type FakeResourceReconciler interface {
 	Reconcile(namespace string, desiredResources []*FakeResource, transition TransitionFakeResourceFunc, opts clients.ListOpts) error
 }
 
-func fakeResourcesToResources(list FakeResourceList) []resources.Resource {
-	var resourceList []resources.Resource
+func fakeResourcesToResources(list FakeResourceList) resources.ResourceList {
+	var resourceList resources.ResourceList
 	for _, fakeResource := range list {
 		resourceList = append(resourceList, fakeResource)
 	}

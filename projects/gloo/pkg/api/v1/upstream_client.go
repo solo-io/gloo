@@ -45,16 +45,16 @@ func (list UpstreamList) Find(namespace, name string) (*Upstream, error) {
 	return nil, errors.Errorf("list did not find upstream %v.%v", namespace, name)
 }
 
-func (list UpstreamList) AsResources() []resources.Resource {
-	var ress []resources.Resource
+func (list UpstreamList) AsResources() resources.ResourceList {
+	var ress resources.ResourceList
 	for _, upstream := range list {
 		ress = append(ress, upstream)
 	}
 	return ress
 }
 
-func (list UpstreamList) AsInputResources() []resources.InputResource {
-	var ress []resources.InputResource
+func (list UpstreamList) AsInputResources() resources.InputResourceList {
+	var ress resources.InputResourceList
 	for _, upstream := range list {
 		ress = append(ress, upstream)
 	}
@@ -172,7 +172,7 @@ func (client *upstreamClient) Watch(namespace string, opts clients.WatchOpts) (<
 	return upstreamsChan, errs, nil
 }
 
-func convertToUpstream(resources []resources.Resource) UpstreamList {
+func convertToUpstream(resources resources.ResourceList) UpstreamList {
 	var upstreamList UpstreamList
 	for _, resource := range resources {
 		upstreamList = append(upstreamList, resource.(*Upstream))

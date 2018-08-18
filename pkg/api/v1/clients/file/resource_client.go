@@ -114,7 +114,7 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 	return errors.Wrapf(err, "deleting resource %v", name)
 }
 
-func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resources.Resource, error) {
+func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resources.ResourceList, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 
@@ -124,7 +124,7 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resou
 		return nil, errors.Wrapf(err, "reading namespace dir")
 	}
 
-	var resourceList []resources.Resource
+	var resourceList resources.ResourceList
 	for _, file := range files {
 		resource := rc.NewResource()
 		path := filepath.Join(namespaceDir, file.Name())
@@ -143,7 +143,7 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resou
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
+func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan resources.ResourceList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 
@@ -152,7 +152,7 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "starting watch on namespace dir")
 	}
-	resourcesChan := make(chan []resources.Resource)
+	resourcesChan := make(chan resources.ResourceList)
 	go func() {
 		// watch should open up with an initial read
 		list, err := rc.List(namespace, clients.ListOpts{

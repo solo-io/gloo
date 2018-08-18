@@ -45,16 +45,16 @@ func (list ProxyList) Find(namespace, name string) (*Proxy, error) {
 	return nil, errors.Errorf("list did not find proxy %v.%v", namespace, name)
 }
 
-func (list ProxyList) AsResources() []resources.Resource {
-	var ress []resources.Resource
+func (list ProxyList) AsResources() resources.ResourceList {
+	var ress resources.ResourceList
 	for _, proxy := range list {
 		ress = append(ress, proxy)
 	}
 	return ress
 }
 
-func (list ProxyList) AsInputResources() []resources.InputResource {
-	var ress []resources.InputResource
+func (list ProxyList) AsInputResources() resources.InputResourceList {
+	var ress resources.InputResourceList
 	for _, proxy := range list {
 		ress = append(ress, proxy)
 	}
@@ -172,7 +172,7 @@ func (client *proxyClient) Watch(namespace string, opts clients.WatchOpts) (<-ch
 	return proxysChan, errs, nil
 }
 
-func convertToProxy(resources []resources.Resource) ProxyList {
+func convertToProxy(resources resources.ResourceList) ProxyList {
 	var proxyList ProxyList
 	for _, resource := range resources {
 		proxyList = append(proxyList, resource.(*Proxy))

@@ -168,7 +168,7 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 	return nil
 }
 
-func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resources.Resource, error) {
+func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resources.ResourceList, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 
@@ -186,7 +186,7 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resou
 		return nil, errors.Errorf("expected secret list of type []interface{} but got %v", reflect.TypeOf(val))
 	}
 
-	var resourceList []resources.Resource
+	var resourceList resources.ResourceList
 	for _, keyAsInterface := range keys {
 		key, ok := keyAsInterface.(string)
 		if !ok {
@@ -217,12 +217,12 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resou
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
+func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan resources.ResourceList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
-	resourcesChan := make(chan []resources.Resource)
+	resourcesChan := make(chan resources.ResourceList)
 	errs := make(chan error)
-	var cached []resources.Resource
+	var cached resources.ResourceList
 	go func() {
 		// watch should open up with an initial read
 		list, err := rc.List(namespace, clients.ListOpts{

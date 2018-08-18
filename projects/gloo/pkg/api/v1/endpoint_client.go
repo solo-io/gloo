@@ -41,8 +41,8 @@ func (list EndpointList) Find(namespace, name string) (*Endpoint, error) {
 	return nil, errors.Errorf("list did not find endpoint %v.%v", namespace, name)
 }
 
-func (list EndpointList) AsResources() []resources.Resource {
-	var ress []resources.Resource
+func (list EndpointList) AsResources() resources.ResourceList {
+	var ress resources.ResourceList
 	for _, endpoint := range list {
 		ress = append(ress, endpoint)
 	}
@@ -160,7 +160,7 @@ func (client *endpointClient) Watch(namespace string, opts clients.WatchOpts) (<
 	return endpointsChan, errs, nil
 }
 
-func convertToEndpoint(resources []resources.Resource) EndpointList {
+func convertToEndpoint(resources resources.ResourceList) EndpointList {
 	var endpointList EndpointList
 	for _, resource := range resources {
 		endpointList = append(endpointList, resource.(*Endpoint))

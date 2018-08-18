@@ -31,8 +31,8 @@ type {{ .ResourceType }}Reconciler interface {
 	Reconcile(namespace string, desiredResources []*{{ .ResourceType }}, transition Transition{{ .ResourceType }}Func, opts clients.ListOpts) error
 }
 
-func {{ lowercase .ResourceType }}sToResources(list {{ .ResourceType }}List) []resources.Resource {
-	var resourceList []resources.Resource
+func {{ lowercase .ResourceType }}sToResources(list {{ .ResourceType }}List) resources.ResourceList {
+	var resourceList resources.ResourceList
 	for _, {{ lowercase .ResourceType }} := range list {
 		resourceList = append(resourceList, {{ lowercase .ResourceType }})
 	}

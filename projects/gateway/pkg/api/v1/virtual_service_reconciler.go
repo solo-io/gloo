@@ -14,8 +14,8 @@ type VirtualServiceReconciler interface {
 	Reconcile(namespace string, desiredResources []*VirtualService, transition TransitionVirtualServiceFunc, opts clients.ListOpts) error
 }
 
-func virtualServicesToResources(list VirtualServiceList) []resources.Resource {
-	var resourceList []resources.Resource
+func virtualServicesToResources(list VirtualServiceList) resources.ResourceList {
+	var resourceList resources.ResourceList
 	for _, virtualService := range list {
 		resourceList = append(resourceList, virtualService)
 	}

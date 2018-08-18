@@ -45,16 +45,16 @@ func (list FakeResourceList) Find(namespace, name string) (*FakeResource, error)
 	return nil, errors.Errorf("list did not find fakeResource %v.%v", namespace, name)
 }
 
-func (list FakeResourceList) AsResources() []resources.Resource {
-	var ress []resources.Resource
+func (list FakeResourceList) AsResources() resources.ResourceList {
+	var ress resources.ResourceList
 	for _, fakeResource := range list {
 		ress = append(ress, fakeResource)
 	}
 	return ress
 }
 
-func (list FakeResourceList) AsInputResources() []resources.InputResource {
-	var ress []resources.InputResource
+func (list FakeResourceList) AsInputResources() resources.InputResourceList {
+	var ress resources.InputResourceList
 	for _, fakeResource := range list {
 		ress = append(ress, fakeResource)
 	}
@@ -172,7 +172,7 @@ func (client *fakeResourceClient) Watch(namespace string, opts clients.WatchOpts
 	return fakeResourcesChan, errs, nil
 }
 
-func convertToFakeResource(resources []resources.Resource) FakeResourceList {
+func convertToFakeResource(resources resources.ResourceList) FakeResourceList {
 	var fakeResourceList FakeResourceList
 	for _, resource := range resources {
 		fakeResourceList = append(fakeResourceList, resource.(*FakeResource))

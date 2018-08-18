@@ -14,7 +14,7 @@ import (
 type TransitionResourcesFunc func(original, desired resources.Resource) error
 
 type Reconciler interface {
-	Reconcile(namespace string, desiredResources []resources.Resource, transitionFunc TransitionResourcesFunc, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources resources.ResourceList, transitionFunc TransitionResourcesFunc, opts clients.ListOpts) error
 }
 
 type reconciler struct {
@@ -27,7 +27,7 @@ func NewReconciler(resourceClient clients.ResourceClient) Reconciler {
 	}
 }
 
-func (r *reconciler) Reconcile(namespace string, desiredResources []resources.Resource, transition TransitionResourcesFunc, opts clients.ListOpts) error {
+func (r *reconciler) Reconcile(namespace string, desiredResources resources.ResourceList, transition TransitionResourcesFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "reconciler")
 	originalResources, err := r.rc.List(namespace, opts)
@@ -52,7 +52,7 @@ func (r *reconciler) Reconcile(namespace string, desiredResources []resources.Re
 	return nil
 }
 
-func (r *reconciler) syncResource(ctx context.Context, desired resources.Resource, originalResources []resources.Resource, transition TransitionResourcesFunc) error {
+func (r *reconciler) syncResource(ctx context.Context, desired resources.Resource, originalResources resources.ResourceList, transition TransitionResourcesFunc) error {
 	var overwriteExisting bool
 	original := findResource(desired.GetMetadata().Namespace, desired.GetMetadata().Name, originalResources)
 	if original != nil {
@@ -83,7 +83,7 @@ func deleteStaleResource(ctx context.Context, rc clients.ResourceClient, origina
 	})
 }
 
-func findResource(namespace, name string, rss []resources.Resource) resources.Resource {
+func findResource(namespace, name string, rss resources.ResourceList) resources.Resource {
 	for _, resource := range rss {
 		if resource.GetMetadata().Namespace == namespace && resource.GetMetadata().Name == name {
 			return resource

@@ -21,7 +21,7 @@ type InMemoryResourceCache interface {
 	Get(key string) (resources.Resource, bool)
 	Delete(key string)
 	Set(key string, resource resources.Resource)
-	List(prefix string) []resources.Resource
+	List(prefix string) resources.ResourceList
 	Subscribe(subscription chan struct{})
 	Unsubscribe(subscription chan struct{})
 }
@@ -61,8 +61,8 @@ func (c *inMemoryResourceCache) Set(key string, resource resources.Resource) {
 	c.lock.Unlock()
 }
 
-func (c *inMemoryResourceCache) List(prefix string) []resources.Resource {
-	var ress []resources.Resource
+func (c *inMemoryResourceCache) List(prefix string) resources.ResourceList {
+	var ress resources.ResourceList
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	for key, resource := range c.store {
@@ -183,11 +183,11 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 	return nil
 }
 
-func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resources.Resource, error) {
+func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resources.ResourceList, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 	cachedResources := rc.cache.List(namespace + separator)
-	var resourceList []resources.Resource
+	var resourceList resources.ResourceList
 	for _, resource := range cachedResources {
 		if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
 			resourceList = append(resourceList, resource)
@@ -201,10 +201,10 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resou
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
+func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan resources.ResourceList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
-	resourcesChan := make(chan []resources.Resource)
+	resourcesChan := make(chan resources.ResourceList)
 	errs := make(chan error)
 	updateResourceList := func() {
 		list, err := rc.List(namespace, clients.ListOpts{

@@ -14,8 +14,8 @@ type SecretReconciler interface {
 	Reconcile(namespace string, desiredResources []*Secret, transition TransitionSecretFunc, opts clients.ListOpts) error
 }
 
-func secretsToResources(list SecretList) []resources.Resource {
-	var resourceList []resources.Resource
+func secretsToResources(list SecretList) resources.ResourceList {
+	var resourceList resources.ResourceList
 	for _, secret := range list {
 		resourceList = append(resourceList, secret)
 	}

@@ -24,7 +24,7 @@ var _ = Describe("Reconciler", func() {
 		mockReconciler = NewReconciler(mockResourceClient)
 	})
 	It("does the crudding for you so you can sip a nice coconut", func() {
-		desiredMockResources := []resources.Resource{
+		desiredMockResources := resources.ResourceList{
 			mocks.NewMockResource(namespace, "a1-barry"),
 			mocks.NewMockResource(namespace, "b2-dave"),
 		}
@@ -84,7 +84,7 @@ var _ = Describe("Reconciler", func() {
 		}
 
 		// clean it all up now
-		desiredMockResources = []resources.Resource{}
+		desiredMockResources = resources.ResourceList{}
 		err = mockReconciler.Reconcile(namespace, desiredMockResources, nil, clients.ListOpts{})
 		Expect(err).NotTo(HaveOccurred())
 

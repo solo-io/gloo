@@ -45,8 +45,8 @@ func (list ArtifactList) Find(namespace, name string) (*Artifact, error) {
 	return nil, errors.Errorf("list did not find artifact %v.%v", namespace, name)
 }
 
-func (list ArtifactList) AsResources() []resources.Resource {
-	var ress []resources.Resource
+func (list ArtifactList) AsResources() resources.ResourceList {
+	var ress resources.ResourceList
 	for _, artifact := range list {
 		ress = append(ress, artifact)
 	}
@@ -164,7 +164,7 @@ func (client *artifactClient) Watch(namespace string, opts clients.WatchOpts) (<
 	return artifactsChan, errs, nil
 }
 
-func convertToArtifact(resources []resources.Resource) ArtifactList {
+func convertToArtifact(resources resources.ResourceList) ArtifactList {
 	var artifactList ArtifactList
 	for _, resource := range resources {
 		artifactList = append(artifactList, resource.(*Artifact))

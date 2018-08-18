@@ -14,8 +14,8 @@ type EndpointReconciler interface {
 	Reconcile(namespace string, desiredResources []*Endpoint, transition TransitionEndpointFunc, opts clients.ListOpts) error
 }
 
-func endpointsToResources(list EndpointList) []resources.Resource {
-	var resourceList []resources.Resource
+func endpointsToResources(list EndpointList) resources.ResourceList {
+	var resourceList resources.ResourceList
 	for _, endpoint := range list {
 		resourceList = append(resourceList, endpoint)
 	}

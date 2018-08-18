@@ -28,6 +28,20 @@ type DataResource interface {
 	SetData(map[string]string)
 }
 
+type ResourceList []Resource
+
+// namespace is optional, if left empty, names can collide if the list contains more than one with the same name
+func (list ResourceList) Find(namespace, name string) (Resource, error) {
+	for _, resource := range list {
+		if resource.GetMetadata().Name == name {
+			if namespace == "" || resource.GetMetadata().Namespace == namespace {
+				return resource, nil
+			}
+		}
+	}
+	return nil, errors.Errorf("list did not find resource %v.%v", namespace, name)
+}
+
 func Clone(resource Resource) Resource {
 	return proto.Clone(resource).(Resource)
 }

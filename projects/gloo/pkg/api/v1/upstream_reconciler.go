@@ -14,8 +14,8 @@ type UpstreamReconciler interface {
 	Reconcile(namespace string, desiredResources []*Upstream, transition TransitionUpstreamFunc, opts clients.ListOpts) error
 }
 
-func upstreamsToResources(list UpstreamList) []resources.Resource {
-	var resourceList []resources.Resource
+func upstreamsToResources(list UpstreamList) resources.ResourceList {
+	var resourceList resources.ResourceList
 	for _, upstream := range list {
 		resourceList = append(resourceList, upstream)
 	}

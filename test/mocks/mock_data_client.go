@@ -49,16 +49,16 @@ func (list MockDataList) Find(namespace, name string) (*MockData, error) {
 	return nil, errors.Errorf("list did not find mockData %v.%v", namespace, name)
 }
 
-func (list MockDataList) AsResources() []resources.Resource {
-	var ress []resources.Resource
+func (list MockDataList) AsResources() resources.ResourceList {
+	var ress resources.ResourceList
 	for _, mockData := range list {
 		ress = append(ress, mockData)
 	}
 	return ress
 }
 
-func (list MockDataList) AsInputResources() []resources.InputResource {
-	var ress []resources.InputResource
+func (list MockDataList) AsInputResources() resources.InputResourceList {
+	var ress resources.InputResourceList
 	for _, mockData := range list {
 		ress = append(ress, mockData)
 	}
@@ -176,7 +176,7 @@ func (client *mockDataClient) Watch(namespace string, opts clients.WatchOpts) (<
 	return mockDatasChan, errs, nil
 }
 
-func convertToMockData(resources []resources.Resource) MockDataList {
+func convertToMockData(resources resources.ResourceList) MockDataList {
 	var mockDataList MockDataList
 	for _, resource := range resources {
 		mockDataList = append(mockDataList, resource.(*MockData))

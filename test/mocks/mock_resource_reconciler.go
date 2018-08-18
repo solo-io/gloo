@@ -14,8 +14,8 @@ type MockResourceReconciler interface {
 	Reconcile(namespace string, desiredResources []*MockResource, transition TransitionMockResourceFunc, opts clients.ListOpts) error
 }
 
-func mockResourcesToResources(list MockResourceList) []resources.Resource {
-	var resourceList []resources.Resource
+func mockResourcesToResources(list MockResourceList) resources.ResourceList {
+	var resourceList resources.ResourceList
 	for _, mockResource := range list {
 		resourceList = append(resourceList, mockResource)
 	}

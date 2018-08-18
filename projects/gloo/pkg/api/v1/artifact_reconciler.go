@@ -14,8 +14,8 @@ type ArtifactReconciler interface {
 	Reconcile(namespace string, desiredResources []*Artifact, transition TransitionArtifactFunc, opts clients.ListOpts) error
 }
 
-func artifactsToResources(list ArtifactList) []resources.Resource {
-	var resourceList []resources.Resource
+func artifactsToResources(list ArtifactList) resources.ResourceList {
+	var resourceList resources.ResourceList
 	for _, artifact := range list {
 		resourceList = append(resourceList, artifact)
 	}

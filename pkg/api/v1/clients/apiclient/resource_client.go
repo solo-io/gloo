@@ -118,7 +118,7 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 	return nil
 }
 
-func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resources.Resource, error) {
+func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resources.ResourceList, error) {
 	opts = opts.WithDefaults()
 	opts.Ctx = metadata.AppendToOutgoingContext(opts.Ctx, "authorization", "bearer "+rc.token)
 	resp, err := rc.grpc.List(opts.Ctx, &apiserver.ListRequest{
@@ -129,7 +129,7 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resou
 		return nil, errors.Wrapf(err, "performing grpc request")
 	}
 
-	var resourceList []resources.Resource
+	var resourceList resources.ResourceList
 	for _, resourceData := range resp.ResourceList {
 		resource := rc.NewResource()
 		if err := protoutils.UnmarshalStruct(resourceData.Data, resource); err != nil {
@@ -147,7 +147,7 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resou
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
+func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan resources.ResourceList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	opts.Ctx = metadata.AppendToOutgoingContext(opts.Ctx, "authorization", "bearer "+rc.token)
 	secs := opts.RefreshRate.Seconds()
@@ -164,7 +164,7 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		return nil, nil, errors.Wrapf(err, "performing grpc request")
 	}
 
-	resourcesChan := make(chan []resources.Resource)
+	resourcesChan := make(chan resources.ResourceList)
 	errs := make(chan error)
 	// watch should open up with an initial read
 	go func() {
@@ -195,7 +195,7 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 					errs <- err
 					continue
 				}
-				var resourceList []resources.Resource
+				var resourceList resources.ResourceList
 				for _, resourceData := range resourceDataList.ResourceList {
 					resource := rc.NewResource()
 					if err := protoutils.UnmarshalStruct(resourceData.Data, resource); err != nil {

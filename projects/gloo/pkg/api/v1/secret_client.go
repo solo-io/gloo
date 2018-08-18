@@ -45,8 +45,8 @@ func (list SecretList) Find(namespace, name string) (*Secret, error) {
 	return nil, errors.Errorf("list did not find secret %v.%v", namespace, name)
 }
 
-func (list SecretList) AsResources() []resources.Resource {
-	var ress []resources.Resource
+func (list SecretList) AsResources() resources.ResourceList {
+	var ress resources.ResourceList
 	for _, secret := range list {
 		ress = append(ress, secret)
 	}
@@ -164,7 +164,7 @@ func (client *secretClient) Watch(namespace string, opts clients.WatchOpts) (<-c
 	return secretsChan, errs, nil
 }
 
-func convertToSecret(resources []resources.Resource) SecretList {
+func convertToSecret(resources resources.ResourceList) SecretList {
 	var secretList SecretList
 	for _, resource := range resources {
 		secretList = append(secretList, resource.(*Secret))

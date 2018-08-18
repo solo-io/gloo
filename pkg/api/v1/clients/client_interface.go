@@ -25,8 +25,8 @@ type ResourceClient interface {
 	Read(namespace, name string, opts ReadOpts) (resources.Resource, error)
 	Write(resource resources.Resource, opts WriteOpts) (resources.Resource, error)
 	Delete(namespace, name string, opts DeleteOpts) error
-	List(namespace string, opts ListOpts) ([]resources.Resource, error)
-	Watch(namespace string, opts WatchOpts) (<-chan []resources.Resource, <-chan error, error)
+	List(namespace string, opts ListOpts) (resources.ResourceList, error)
+	Watch(namespace string, opts WatchOpts) (<-chan resources.ResourceList, <-chan error, error)
 }
 
 type ReadOpts struct {

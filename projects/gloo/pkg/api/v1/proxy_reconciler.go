@@ -14,8 +14,8 @@ type ProxyReconciler interface {
 	Reconcile(namespace string, desiredResources []*Proxy, transition TransitionProxyFunc, opts clients.ListOpts) error
 }
 
-func proxysToResources(list ProxyList) []resources.Resource {
-	var resourceList []resources.Resource
+func proxysToResources(list ProxyList) resources.ResourceList {
+	var resourceList resources.ResourceList
 	for _, proxy := range list {
 		resourceList = append(resourceList, proxy)
 	}

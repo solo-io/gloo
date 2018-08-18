@@ -133,7 +133,7 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 	return nil
 }
 
-func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resources.Resource, error) {
+func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resources.ResourceList, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 
@@ -143,7 +143,7 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resou
 	if err != nil {
 		return nil, errors.Wrapf(err, "listing resources in %v", namespace)
 	}
-	var resourceList []resources.Resource
+	var resourceList resources.ResourceList
 	for _, resourceCrd := range resourceCrdList.Items {
 		resource := rc.NewResource()
 		if resourceCrd.Spec != nil {
@@ -166,7 +166,7 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) ([]resou
 	return resourceList, nil
 }
 
-func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan []resources.Resource, <-chan error, error) {
+func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan resources.ResourceList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 	watch, err := rc.kube.ResourcesV1().Resources(namespace).Watch(metav1.ListOptions{
@@ -175,7 +175,7 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "initiating kube watch in %v", namespace)
 	}
-	resourcesChan := make(chan []resources.Resource)
+	resourcesChan := make(chan resources.ResourceList)
 	errs := make(chan error)
 	updateResourceList := func() {
 		list, err := rc.List(namespace, clients.ListOpts{
