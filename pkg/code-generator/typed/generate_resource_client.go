@@ -28,6 +28,8 @@ var resourceClientTestTemplate = template.Must(template.New("typed_client_kube_t
 const typedClientTemplateContents = `package {{ .PackageName }}
 
 import (
+	"sort"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -98,7 +100,7 @@ func (list {{ .ResourceType }}List) AsInputResources() []resources.InputResource
 }
 {{- end}}
 
-func (list {{ .ResourceType }}List) Names() []resources.Resource {
+func (list {{ .ResourceType }}List) Names() []string {
 	var names []string
 	for _, {{ lowercase .ResourceType }} := range list {
 		names = append(names, {{ lowercase .ResourceType }}.Metadata.Name)
@@ -106,7 +108,7 @@ func (list {{ .ResourceType }}List) Names() []resources.Resource {
 	return names
 }
 
-func (list {{ .ResourceType }}List) NamespacesDotNames() []resources.Resource {
+func (list {{ .ResourceType }}List) NamespacesDotNames() []string {
 	var names []string
 	for _, {{ lowercase .ResourceType }} := range list {
 		names = append(names, {{ lowercase .ResourceType }}.Metadata.Namespace + "." + {{ lowercase .ResourceType }}.Metadata.Name)
@@ -114,12 +116,10 @@ func (list {{ .ResourceType }}List) NamespacesDotNames() []resources.Resource {
 	return names
 }
 
-func (list {{ .ResourceType }}List) () []resources.Resource {
-	var names []string
-	for _, {{ lowercase .ResourceType }} := range list {
-		names = append(names, {{ lowercase .ResourceType }}.Metadata.Namespace + "." + {{ lowercase .ResourceType }}.Metadata.Name)
-	}
-	return names
+func (list {{ .ResourceType }}List) Sort() {
+	sort.SliceStable(list, func(i, j int) bool {
+		return list[i].Metadata.Less(list[j].Metadata)
+	})
 }
 
 var _ resources.Resource = &{{ .ResourceType }}{}
