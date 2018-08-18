@@ -80,7 +80,7 @@ func (list {{ .ResourceType }}List) Find(namespace, name string) (*{{ .ResourceT
 	return nil, errors.Errorf("list did not find {{ lowercase .ResourceType }} %v.%v", namespace, name)
 }
 
-func (list *{{ .ResourceType }}List) AsResources() []resources.Resource {
+func (list {{ .ResourceType }}List) AsResources() []resources.Resource {
 	var ress []resources.Resource 
 	for _, {{ lowercase .ResourceType }} := range list {
 		ress = append(ress, {{ lowercase .ResourceType }})
@@ -89,7 +89,7 @@ func (list *{{ .ResourceType }}List) AsResources() []resources.Resource {
 }
 
 {{ if $.IsInputType -}}
-func (list *{{ .ResourceType }}List) AsInputResources() []resources.InputResource {
+func (list {{ .ResourceType }}List) AsInputResources() []resources.InputResource {
 	var ress []resources.InputResource
 	for _, {{ lowercase .ResourceType }} := range list {
 		ress = append(ress, {{ lowercase .ResourceType }})
@@ -98,7 +98,7 @@ func (list *{{ .ResourceType }}List) AsInputResources() []resources.InputResourc
 }
 {{- end}}
 
-func (list *{{ .ResourceType }}List) Names() []resources.Resource {
+func (list {{ .ResourceType }}List) Names() []resources.Resource {
 	var names []string
 	for _, {{ lowercase .ResourceType }} := range list {
 		names = append(names, {{ lowercase .ResourceType }}.Metadata.Name)
@@ -106,7 +106,15 @@ func (list *{{ .ResourceType }}List) Names() []resources.Resource {
 	return names
 }
 
-func (list *{{ .ResourceType }}List) NamespacesDotNames() []resources.Resource {
+func (list {{ .ResourceType }}List) NamespacesDotNames() []resources.Resource {
+	var names []string
+	for _, {{ lowercase .ResourceType }} := range list {
+		names = append(names, {{ lowercase .ResourceType }}.Metadata.Namespace + "." + {{ lowercase .ResourceType }}.Metadata.Name)
+	}
+	return names
+}
+
+func (list {{ .ResourceType }}List) () []resources.Resource {
 	var names []string
 	for _, {{ lowercase .ResourceType }} := range list {
 		names = append(names, {{ lowercase .ResourceType }}.Metadata.Namespace + "." + {{ lowercase .ResourceType }}.Metadata.Name)
