@@ -98,6 +98,22 @@ func (list *{{ .ResourceType }}List) AsInputResources() []resources.InputResourc
 }
 {{- end}}
 
+func (list *{{ .ResourceType }}List) Names() []resources.Resource {
+	var names []string
+	for _, {{ lowercase .ResourceType }} := range list {
+		names = append(names, {{ lowercase .ResourceType }}.Metadata.Name)
+	}
+	return names
+}
+
+func (list *{{ .ResourceType }}List) NamespacesDotNames() []resources.Resource {
+	var names []string
+	for _, {{ lowercase .ResourceType }} := range list {
+		names = append(names, {{ lowercase .ResourceType }}.Metadata.Namespace + "." + {{ lowercase .ResourceType }}.Metadata.Name)
+	}
+	return names
+}
+
 var _ resources.Resource = &{{ .ResourceType }}{}
 
 type {{ .ResourceType }}Client interface {
