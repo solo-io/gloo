@@ -29,9 +29,33 @@ type DataResource interface {
 }
 
 type ResourceList []Resource
+type InputResourceList []InputResource
+type DataResourceList []DataResource
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list ResourceList) Find(namespace, name string) (Resource, error) {
+	for _, resource := range list {
+		if resource.GetMetadata().Name == name {
+			if namespace == "" || resource.GetMetadata().Namespace == namespace {
+				return resource, nil
+			}
+		}
+	}
+	return nil, errors.Errorf("list did not find resource %v.%v", namespace, name)
+}
+
+func (list InputResourceList) Find(namespace, name string) (InputResource, error) {
+	for _, resource := range list {
+		if resource.GetMetadata().Name == name {
+			if namespace == "" || resource.GetMetadata().Namespace == namespace {
+				return resource, nil
+			}
+		}
+	}
+	return nil, errors.Errorf("list did not find resource %v.%v", namespace, name)
+}
+
+func (list DataResourceList) Find(namespace, name string) (DataResource, error) {
 	for _, resource := range list {
 		if resource.GetMetadata().Name == name {
 			if namespace == "" || resource.GetMetadata().Namespace == namespace {
