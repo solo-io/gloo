@@ -6,7 +6,6 @@ import (
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
-	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyendpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
@@ -25,7 +24,7 @@ import (
 
 const (
 	// filter info
-	filterName  = "io.solo.aws_lambda"
+	FilterName  = "io.solo.aws_lambda"
 	pluginStage = plugins.OutAuth
 
 	// cluster info
@@ -111,10 +110,6 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		return secretErrs
 	}
 
-	if out.Metadata == nil {
-		out.Metadata = &envoycore.Metadata{}
-	}
-
 	lpe := &LambdaProtocolExtension{
 		Host:      lambdaHostname,
 		Region:    upstreamSpec.Aws.Region,
@@ -130,15 +125,16 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	if err != nil {
 		return errors.Wrapf(err, "converting aws protocol options to struct")
 	}
-	out.ExtensionProtocolOptions[filterName] = lpeStruct
+	out.ExtensionProtocolOptions[FilterName] = lpeStruct
 
+	// TODO(yuval-k): What about namespace?!
 	p.recordedUpstreams[in.Metadata.Name] = upstreamSpec.Aws
 
 	return nil
 }
 
 func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
-	return pluginutils.MarkPerFilterConfig(in, out, filterName, func(spec *v1.Destination) (proto.Message, error) {
+	return pluginutils.MarkPerFilterConfig(in, out, FilterName, func(spec *v1.Destination) (proto.Message, error) {
 		// check if it's aws destination
 		if spec.DestinationSpec == nil {
 			return nil, nil
@@ -161,7 +157,7 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			if lambdaFunc.LogicalName == logicalName {
 
 				lambdaRouteFunc := &LambdaPerRoute{
-					Async:     false, // TODO: introduce async to lambdaFunc
+					Async:     awsDestinationSpec.Aws.InvocationStyle == aws.DestinationSpec_ASYNC,
 					Qualifier: lambdaFunc.Qualifier,
 					Name:      lambdaFunc.LambdaFunctionName,
 				}
@@ -180,7 +176,7 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	}
 	return []plugins.StagedHttpFilter{
 		{
-			HttpFilter: &envoyhttp.HttpFilter{Name: filterName},
+			HttpFilter: &envoyhttp.HttpFilter{Name: FilterName},
 			Stage:      pluginStage,
 		},
 	}, nil
