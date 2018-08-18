@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"sort"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -43,12 +45,34 @@ func (list ArtifactList) Find(namespace, name string) (*Artifact, error) {
 	return nil, errors.Errorf("list did not find artifact %v.%v", namespace, name)
 }
 
-func (list *ArtifactList) AsResources() []resources.Resource {
+func (list ArtifactList) AsResources() []resources.Resource {
 	var ress []resources.Resource
 	for _, artifact := range list {
 		ress = append(ress, artifact)
 	}
 	return ress
+}
+
+func (list ArtifactList) Names() []string {
+	var names []string
+	for _, artifact := range list {
+		names = append(names, artifact.Metadata.Name)
+	}
+	return names
+}
+
+func (list ArtifactList) NamespacesDotNames() []string {
+	var names []string
+	for _, artifact := range list {
+		names = append(names, artifact.Metadata.Namespace+"."+artifact.Metadata.Name)
+	}
+	return names
+}
+
+func (list ArtifactList) Sort() {
+	sort.SliceStable(list, func(i, j int) bool {
+		return list[i].Metadata.Less(list[j].Metadata)
+	})
 }
 
 var _ resources.Resource = &Artifact{}

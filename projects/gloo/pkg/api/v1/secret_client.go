@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"sort"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -43,12 +45,34 @@ func (list SecretList) Find(namespace, name string) (*Secret, error) {
 	return nil, errors.Errorf("list did not find secret %v.%v", namespace, name)
 }
 
-func (list *SecretList) AsResources() []resources.Resource {
+func (list SecretList) AsResources() []resources.Resource {
 	var ress []resources.Resource
 	for _, secret := range list {
 		ress = append(ress, secret)
 	}
 	return ress
+}
+
+func (list SecretList) Names() []string {
+	var names []string
+	for _, secret := range list {
+		names = append(names, secret.Metadata.Name)
+	}
+	return names
+}
+
+func (list SecretList) NamespacesDotNames() []string {
+	var names []string
+	for _, secret := range list {
+		names = append(names, secret.Metadata.Namespace+"."+secret.Metadata.Name)
+	}
+	return names
+}
+
+func (list SecretList) Sort() {
+	sort.SliceStable(list, func(i, j int) bool {
+		return list[i].Metadata.Less(list[j].Metadata)
+	})
 }
 
 var _ resources.Resource = &Secret{}

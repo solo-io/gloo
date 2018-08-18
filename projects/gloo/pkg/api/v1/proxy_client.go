@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"sort"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -43,7 +45,7 @@ func (list ProxyList) Find(namespace, name string) (*Proxy, error) {
 	return nil, errors.Errorf("list did not find proxy %v.%v", namespace, name)
 }
 
-func (list *ProxyList) AsResources() []resources.Resource {
+func (list ProxyList) AsResources() []resources.Resource {
 	var ress []resources.Resource
 	for _, proxy := range list {
 		ress = append(ress, proxy)
@@ -51,12 +53,34 @@ func (list *ProxyList) AsResources() []resources.Resource {
 	return ress
 }
 
-func (list *ProxyList) AsInputResources() []resources.InputResource {
+func (list ProxyList) AsInputResources() []resources.InputResource {
 	var ress []resources.InputResource
 	for _, proxy := range list {
 		ress = append(ress, proxy)
 	}
 	return ress
+}
+
+func (list ProxyList) Names() []string {
+	var names []string
+	for _, proxy := range list {
+		names = append(names, proxy.Metadata.Name)
+	}
+	return names
+}
+
+func (list ProxyList) NamespacesDotNames() []string {
+	var names []string
+	for _, proxy := range list {
+		names = append(names, proxy.Metadata.Namespace+"."+proxy.Metadata.Name)
+	}
+	return names
+}
+
+func (list ProxyList) Sort() {
+	sort.SliceStable(list, func(i, j int) bool {
+		return list[i].Metadata.Less(list[j].Metadata)
+	})
 }
 
 var _ resources.Resource = &Proxy{}

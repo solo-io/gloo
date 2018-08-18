@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"sort"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -43,7 +45,7 @@ func (list VirtualServiceList) Find(namespace, name string) (*VirtualService, er
 	return nil, errors.Errorf("list did not find virtualService %v.%v", namespace, name)
 }
 
-func (list *VirtualServiceList) AsResources() []resources.Resource {
+func (list VirtualServiceList) AsResources() []resources.Resource {
 	var ress []resources.Resource
 	for _, virtualService := range list {
 		ress = append(ress, virtualService)
@@ -51,12 +53,34 @@ func (list *VirtualServiceList) AsResources() []resources.Resource {
 	return ress
 }
 
-func (list *VirtualServiceList) AsInputResources() []resources.InputResource {
+func (list VirtualServiceList) AsInputResources() []resources.InputResource {
 	var ress []resources.InputResource
 	for _, virtualService := range list {
 		ress = append(ress, virtualService)
 	}
 	return ress
+}
+
+func (list VirtualServiceList) Names() []string {
+	var names []string
+	for _, virtualService := range list {
+		names = append(names, virtualService.Metadata.Name)
+	}
+	return names
+}
+
+func (list VirtualServiceList) NamespacesDotNames() []string {
+	var names []string
+	for _, virtualService := range list {
+		names = append(names, virtualService.Metadata.Namespace+"."+virtualService.Metadata.Name)
+	}
+	return names
+}
+
+func (list VirtualServiceList) Sort() {
+	sort.SliceStable(list, func(i, j int) bool {
+		return list[i].Metadata.Less(list[j].Metadata)
+	})
 }
 
 var _ resources.Resource = &VirtualService{}

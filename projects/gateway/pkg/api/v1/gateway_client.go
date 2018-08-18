@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"sort"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -43,7 +45,7 @@ func (list GatewayList) Find(namespace, name string) (*Gateway, error) {
 	return nil, errors.Errorf("list did not find gateway %v.%v", namespace, name)
 }
 
-func (list *GatewayList) AsResources() []resources.Resource {
+func (list GatewayList) AsResources() []resources.Resource {
 	var ress []resources.Resource
 	for _, gateway := range list {
 		ress = append(ress, gateway)
@@ -51,12 +53,34 @@ func (list *GatewayList) AsResources() []resources.Resource {
 	return ress
 }
 
-func (list *GatewayList) AsInputResources() []resources.InputResource {
+func (list GatewayList) AsInputResources() []resources.InputResource {
 	var ress []resources.InputResource
 	for _, gateway := range list {
 		ress = append(ress, gateway)
 	}
 	return ress
+}
+
+func (list GatewayList) Names() []string {
+	var names []string
+	for _, gateway := range list {
+		names = append(names, gateway.Metadata.Name)
+	}
+	return names
+}
+
+func (list GatewayList) NamespacesDotNames() []string {
+	var names []string
+	for _, gateway := range list {
+		names = append(names, gateway.Metadata.Namespace+"."+gateway.Metadata.Name)
+	}
+	return names
+}
+
+func (list GatewayList) Sort() {
+	sort.SliceStable(list, func(i, j int) bool {
+		return list[i].Metadata.Less(list[j].Metadata)
+	})
 }
 
 var _ resources.Resource = &Gateway{}

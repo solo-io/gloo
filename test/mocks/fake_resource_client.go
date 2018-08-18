@@ -1,6 +1,8 @@
 package mocks
 
 import (
+	"sort"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -43,7 +45,7 @@ func (list FakeResourceList) Find(namespace, name string) (*FakeResource, error)
 	return nil, errors.Errorf("list did not find fakeResource %v.%v", namespace, name)
 }
 
-func (list *FakeResourceList) AsResources() []resources.Resource {
+func (list FakeResourceList) AsResources() []resources.Resource {
 	var ress []resources.Resource
 	for _, fakeResource := range list {
 		ress = append(ress, fakeResource)
@@ -51,12 +53,34 @@ func (list *FakeResourceList) AsResources() []resources.Resource {
 	return ress
 }
 
-func (list *FakeResourceList) AsInputResources() []resources.InputResource {
+func (list FakeResourceList) AsInputResources() []resources.InputResource {
 	var ress []resources.InputResource
 	for _, fakeResource := range list {
 		ress = append(ress, fakeResource)
 	}
 	return ress
+}
+
+func (list FakeResourceList) Names() []string {
+	var names []string
+	for _, fakeResource := range list {
+		names = append(names, fakeResource.Metadata.Name)
+	}
+	return names
+}
+
+func (list FakeResourceList) NamespacesDotNames() []string {
+	var names []string
+	for _, fakeResource := range list {
+		names = append(names, fakeResource.Metadata.Namespace+"."+fakeResource.Metadata.Name)
+	}
+	return names
+}
+
+func (list FakeResourceList) Sort() {
+	sort.SliceStable(list, func(i, j int) bool {
+		return list[i].Metadata.Less(list[j].Metadata)
+	})
 }
 
 var _ resources.Resource = &FakeResource{}

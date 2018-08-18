@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"sort"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -43,7 +45,7 @@ func (list UpstreamList) Find(namespace, name string) (*Upstream, error) {
 	return nil, errors.Errorf("list did not find upstream %v.%v", namespace, name)
 }
 
-func (list *UpstreamList) AsResources() []resources.Resource {
+func (list UpstreamList) AsResources() []resources.Resource {
 	var ress []resources.Resource
 	for _, upstream := range list {
 		ress = append(ress, upstream)
@@ -51,12 +53,34 @@ func (list *UpstreamList) AsResources() []resources.Resource {
 	return ress
 }
 
-func (list *UpstreamList) AsInputResources() []resources.InputResource {
+func (list UpstreamList) AsInputResources() []resources.InputResource {
 	var ress []resources.InputResource
 	for _, upstream := range list {
 		ress = append(ress, upstream)
 	}
 	return ress
+}
+
+func (list UpstreamList) Names() []string {
+	var names []string
+	for _, upstream := range list {
+		names = append(names, upstream.Metadata.Name)
+	}
+	return names
+}
+
+func (list UpstreamList) NamespacesDotNames() []string {
+	var names []string
+	for _, upstream := range list {
+		names = append(names, upstream.Metadata.Namespace+"."+upstream.Metadata.Name)
+	}
+	return names
+}
+
+func (list UpstreamList) Sort() {
+	sort.SliceStable(list, func(i, j int) bool {
+		return list[i].Metadata.Less(list[j].Metadata)
+	})
 }
 
 var _ resources.Resource = &Upstream{}

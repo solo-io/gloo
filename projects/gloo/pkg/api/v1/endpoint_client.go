@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"sort"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -39,12 +41,34 @@ func (list EndpointList) Find(namespace, name string) (*Endpoint, error) {
 	return nil, errors.Errorf("list did not find endpoint %v.%v", namespace, name)
 }
 
-func (list *EndpointList) AsResources() []resources.Resource {
+func (list EndpointList) AsResources() []resources.Resource {
 	var ress []resources.Resource
 	for _, endpoint := range list {
 		ress = append(ress, endpoint)
 	}
 	return ress
+}
+
+func (list EndpointList) Names() []string {
+	var names []string
+	for _, endpoint := range list {
+		names = append(names, endpoint.Metadata.Name)
+	}
+	return names
+}
+
+func (list EndpointList) NamespacesDotNames() []string {
+	var names []string
+	for _, endpoint := range list {
+		names = append(names, endpoint.Metadata.Namespace+"."+endpoint.Metadata.Name)
+	}
+	return names
+}
+
+func (list EndpointList) Sort() {
+	sort.SliceStable(list, func(i, j int) bool {
+		return list[i].Metadata.Less(list[j].Metadata)
+	})
 }
 
 var _ resources.Resource = &Endpoint{}
