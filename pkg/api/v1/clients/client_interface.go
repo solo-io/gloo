@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
 const DefaultNamespace = "default"
@@ -27,6 +28,24 @@ type ResourceClient interface {
 	Delete(namespace, name string, opts DeleteOpts) error
 	List(namespace string, opts ListOpts) (resources.ResourceList, error)
 	Watch(namespace string, opts WatchOpts) (<-chan resources.ResourceList, <-chan error, error)
+}
+
+type ResourceClients map[string]ResourceClient
+
+func (r ResourceClients) Add(rc ResourceClient) {
+	r[rc.Kind()] = rc
+}
+
+func (r ResourceClients) ForResource(resource resources.Resource) (ResourceClient, error) {
+	return r.ForKind(resources.Kind(resource))
+}
+
+func (r ResourceClients) ForKind(kind string) (ResourceClient, error) {
+	rc, ok := r[kind]
+	if !ok {
+		return nil, errors.Errorf("no resource client registered for kind %v", kind)
+	}
+	return rc, nil
 }
 
 type ReadOpts struct {
