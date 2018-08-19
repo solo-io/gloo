@@ -48,12 +48,12 @@ type Reporter interface {
 }
 
 type reporter struct {
-	clients map[string]clients.ResourceClient
+	clients clients.ResourceClients
 	ref     string
 }
 
 func NewReporter(reporterRef string, resourceClients ...clients.ResourceClient) Reporter {
-	clientsByKind := make(map[string]clients.ResourceClient)
+	clientsByKind := make(clients.ResourceClients)
 	for _, client := range resourceClients {
 		clientsByKind[client.Kind()] = client
 	}
