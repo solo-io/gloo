@@ -2,6 +2,7 @@ package resources
 
 import (
 	"reflect"
+	"sort"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -14,6 +15,23 @@ type Resource interface {
 	GetMetadata() core.Metadata
 	SetMetadata(meta core.Metadata)
 	Equal(that interface{}) bool
+}
+
+type ResourcesByType map[string]ResourceList
+
+// mixed type resource list
+func (m ResourcesByType) List() ResourceList {
+	var all ResourceList
+	for _, list := range m {
+		all = append(all, list...)
+	}
+	// sort by type
+	sort.SliceStable(all, func(i, j int) bool {
+		if Kind(all[i]) < Kind(all[j]) {
+			return true
+		}
+		return all[i].GetMetadata().Less(all[j].GetMetadata())
+	})
 }
 
 type InputResource interface {
