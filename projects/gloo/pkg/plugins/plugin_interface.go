@@ -13,6 +13,7 @@ import (
 )
 
 type InitParams struct {
+	Ctx       context.Context
 	Bootstrap bootstrap.Config
 }
 
@@ -80,7 +81,7 @@ type StagedHttpFilter struct {
 type FilterStage int
 
 const (
-	PreInAuth FilterStage = iota
+	PreInAuth  FilterStage = iota
 	InAuth
 	PostInAuth
 	PreOutAuth

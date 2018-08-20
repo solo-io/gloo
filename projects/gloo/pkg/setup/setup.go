@@ -53,10 +53,12 @@ func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts
 
 	disc := discovery.NewDiscovery(namespace, upstreamClient, endpointClient)
 
-	xdsCache, err := newXds()
+	xdsCache, xdsServer, err := newXds()
 	if err != nil {
 		return err
 	}
+
+	go xdsServer.Run(ctx)
 
 	rpt := reporter.NewReporter("gloo-reporter", upstreamClient.BaseClient(), proxyClient.BaseClient())
 
@@ -67,7 +69,7 @@ func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts
 	errs := make(chan error)
 
 	udsErrs, err := discovery.RunUds(disc, opts, discovery.Opts{
-	// TODO(ilackarms)
+		// TODO(ilackarms)
 	})
 	if err != nil {
 		return err
