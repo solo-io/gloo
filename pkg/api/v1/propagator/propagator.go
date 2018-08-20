@@ -2,6 +2,7 @@ package propagator
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -132,6 +133,10 @@ func byKindByNamespace(resourceClients clients.ResourceClients, ress resources.I
 	return resByKindAndNamespace, nil
 }
 
+func containsStatus(st1, st2 core.Status) bool {
+	return st1.State == st2.State && st1.ReportedBy == st2.ReportedBy && strings.Contains(st1.Reason, st2.Reason)
+}
+
 func (p *Propagator) syncStatuses(parents, children resources.ResourceList, opts clients.WatchOpts) error {
 	if !parents.Contains(p.parents.AsResourceList()) {
 		return errors.Errorf("updated list of parent resource(s) was missing a resource to update")
@@ -148,13 +153,13 @@ func (p *Propagator) syncStatuses(parents, children resources.ResourceList, opts
 		if !ok {
 			return errors.Errorf("internal error: %v.%v is not an input resource", parentRes.GetMetadata().Namespace, parentRes.GetMetadata().Name)
 		}
-		status = mergeStatuses(parent.GetStatus(), status)
-		parentStatus := parent.GetStatus()
-		if (&parentStatus).Equal(&status) {
+		if containsStatus(parent.GetStatus(), status) {
 			// no-op
 			continue
 		}
-		parent.SetStatus(status)
+		mergedStatus := mergeStatuses(parent.GetStatus(), status)
+		mergedStatus.ReportedBy = p.forController
+		parent.SetStatus(mergedStatus)
 		rc, err := p.resourceClients.ForResource(parent)
 		if err != nil {
 			return errors.Wrapf(err, "resource client for parent not found")
@@ -198,7 +203,7 @@ func createCombinedStatus(forController string, fromResources resources.Resource
 		switch stat.State {
 		case core.Status_Rejected:
 			state = core.Status_Rejected
-			reason += fmt.Sprintf("child resource %v.%v has an error\n", res.GetMetadata().Namespace, res.GetMetadata().Name)
+			reason += fmt.Sprintf("child resource %v.%v has an error: %v\n", res.GetMetadata().Namespace, res.GetMetadata().Name, stat.Reason)
 		case core.Status_Pending:
 			// accepteds should be pending
 			// errors should still be error

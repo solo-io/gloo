@@ -62,7 +62,7 @@ var _ = Describe("Propagator", func() {
 
 		err = prop.PropagateStatuses(errs, clients.WatchOpts{
 			Ctx:         ctx,
-			RefreshRate: time.Minute,
+			RefreshRate: time.Millisecond,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -86,23 +86,41 @@ var _ = Describe("Propagator", func() {
 		child2, err = mockRc.Write(child2, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
 		Expect(err).NotTo(HaveOccurred())
 
-		// parents should (eventually) have a bad status
-		parent1, err = mockRc.Read(parent1.Metadata.Namespace, parent1.Metadata.Name, clients.ReadOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-		parent2, err = fakeRc.Read(parent2.Metadata.Namespace, parent2.Metadata.Name, clients.ReadOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-
-		time.Sleep(time.Second * 10)
-
-		select {
-		case <-time.After(time.Second * 3):
-		case err := <-errs:
-			log.Print(err)
+	l:
+		for {
+			select {
+			case <-time.After(time.Second * 3):
+				break l
+			case err := <-errs:
+				log.Print(err)
+			}
 		}
 
-		Expect(parent1.GetStatus()).To(BeNil())
-		Expect(parent2.GetStatus()).To(BeNil())
+		// parents should (eventually) have a bad status
+		Eventually(func() (core.Status, error) {
+			parent1, err = mockRc.Read(parent1.Metadata.Namespace, parent1.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+			if err != nil {
+				return core.Status{}, err
+			}
+			return parent1.GetStatus(), err
+		}, time.Second*5).Should(Equal(core.Status{
+			State:      2,
+			Reason:     "child resource namespace1.child1 has an error: it gave me gas\n",
+			ReportedBy: "luffy",
+		}))
+		Eventually(func() (core.Status, error) {
+			parent2, err = fakeRc.Read(parent2.Metadata.Namespace, parent2.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+			if err != nil {
+				return core.Status{}, err
+			}
+			return parent2.GetStatus(), err
+		}, time.Second*5).Should(Equal(core.Status{
+			State:      2,
+			Reason:     "child resource namespace1.child1 has an error: it gave me gas\n",
+			ReportedBy: "luffy",
+		}))
 
+		// try it again after cancel
 		cancel()
 	})
 })
