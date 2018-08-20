@@ -27,7 +27,9 @@ protoc -I=${IN} \
     ${IN}/*.proto
 
 IN=${IN}/plugins
-mkdir -p ${OUT}/plugins/{aws,kubernetes}
+
+for plugin in azure aws kubernetes; do
+mkdir -p ${OUT}/plugins/$plugin
 
 protoc -I=${IN} \
     -I=${GOPATH}/src \
@@ -35,12 +37,5 @@ protoc -I=${IN} \
     -I=${GOPATH}/src/github.com/gogo/protobuf \
     ${GOGO_OUT_FLAG} \
     ${SOLO_KIT_FLAG} \
-    ${IN}/kubernetes/*.proto
-
-protoc -I=${IN} \
-    -I=${GOPATH}/src \
-    -I=${GOPATH}/src/github.com/gogo/protobuf/protobuf \
-    -I=${GOPATH}/src/github.com/gogo/protobuf \
-    ${GOGO_OUT_FLAG} \
-    ${SOLO_KIT_FLAG} \
-    ${IN}/aws/*.proto
+    ${IN}/$plugin/$plugin.proto
+done
