@@ -11,7 +11,7 @@ import (
 type ExtraHeaderFunc func(spec *v1.Destination) ([]*envoycore.HeaderValueOption, error)
 
 // call this from
-func MarkHeaders(in *v1.Route, out *envoyroute.Route, filterName string, perFilterConfig ExtraHeaderFunc) error {
+func MarkHeaders(in *v1.Route, out *envoyroute.Route, headers ExtraHeaderFunc) error {
 	inAction, outAction, err := getRouteActions(in, out)
 	if err != nil {
 		return err
@@ -22,20 +22,20 @@ func MarkHeaders(in *v1.Route, out *envoyroute.Route, filterName string, perFilt
 		if !ok {
 			return errors.Errorf("input destination Multi but output destination was not")
 		}
-		return configureHeadersMultiDest(dest.Multi, multiClusterSpecifier.WeightedClusters, filterName, perFilterConfig)
+		return configureHeadersMultiDest(dest.Multi, multiClusterSpecifier.WeightedClusters, headers)
 	case *v1.RouteAction_Single:
-		return configureHeadersSingleDest(dest.Single, &out.RequestHeadersToAdd, filterName, perFilterConfig)
+		return configureHeadersSingleDest(dest.Single, &out.RequestHeadersToAdd, headers)
 	}
 	// TODO: not panic in prod
 	panic(errors.Errorf("unknown dest type"))
 }
 
-func configureHeadersMultiDest(in *v1.MultiDestination, out *envoyroute.WeightedCluster, filterName string, perFilterConfig ExtraHeaderFunc) error {
+func configureHeadersMultiDest(in *v1.MultiDestination, out *envoyroute.WeightedCluster, headers ExtraHeaderFunc) error {
 	if len(in.Destinations) != len(out.Clusters) {
 		return errors.Errorf("number of input destinations did not match number of destination weighted clusters")
 	}
 	for i := range in.Destinations {
-		err := configureHeadersSingleDest(in.Destinations[i].Destination, &out.Clusters[i].RequestHeadersToAdd, filterName, perFilterConfig)
+		err := configureHeadersSingleDest(in.Destinations[i].Destination, &out.Clusters[i].RequestHeadersToAdd, headers)
 		if err != nil {
 			return err
 		}
@@ -44,8 +44,8 @@ func configureHeadersMultiDest(in *v1.MultiDestination, out *envoyroute.Weighted
 	return nil
 }
 
-func configureHeadersSingleDest(in *v1.Destination, out *[]*envoycore.HeaderValueOption, filterName string, perFilterConfig ExtraHeaderFunc) error {
-	config, err := perFilterConfig(in)
+func configureHeadersSingleDest(in *v1.Destination, out *[]*envoycore.HeaderValueOption, headers ExtraHeaderFunc) error {
+	config, err := headers(in)
 	if err != nil {
 		return err
 	}

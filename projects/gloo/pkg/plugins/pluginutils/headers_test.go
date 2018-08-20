@@ -17,7 +17,6 @@ var _ = Describe("Headers", func() {
 		out     *envoyroute.Route
 		header  *envoycore.HeaderValueOption
 		headers []*envoycore.HeaderValueOption
-		name    string
 	)
 	BeforeEach(func() {
 		header = &envoycore.HeaderValueOption{
@@ -27,8 +26,6 @@ var _ = Describe("Headers", func() {
 			},
 		}
 		headers = []*envoycore.HeaderValueOption{header}
-		name = "fakename"
-
 	})
 	Context("single dests", func() {
 
@@ -57,7 +54,7 @@ var _ = Describe("Headers", func() {
 
 		It("should add header config to upstream", func() {
 
-			err := MarkHeaders(in, out, name, func(spec *v1.Destination) ([]*envoycore.HeaderValueOption, error) {
+			err := MarkHeaders(in, out, func(spec *v1.Destination) ([]*envoycore.HeaderValueOption, error) {
 				return headers, nil
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -71,7 +68,7 @@ var _ = Describe("Headers", func() {
 				},
 			}
 			out.RequestHeadersToAdd = append(out.RequestHeadersToAdd, existingheader)
-			err := MarkHeaders(in, out, name, func(spec *v1.Destination) ([]*envoycore.HeaderValueOption, error) {
+			err := MarkHeaders(in, out, func(spec *v1.Destination) ([]*envoycore.HeaderValueOption, error) {
 				return headers, nil
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -127,7 +124,7 @@ var _ = Describe("Headers", func() {
 		})
 		It("should add per filter config only to relevant upstream in mutiple dest", func() {
 
-			err := MarkHeaders(in, out, name, func(spec *v1.Destination) ([]*envoycore.HeaderValueOption, error) {
+			err := MarkHeaders(in, out, func(spec *v1.Destination) ([]*envoycore.HeaderValueOption, error) {
 				if spec.UpstreamName == "yes" {
 					return headers, nil
 				}
