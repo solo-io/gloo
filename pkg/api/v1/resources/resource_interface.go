@@ -47,10 +47,13 @@ type DataResource interface {
 }
 
 type ResourceList []Resource
-type InputResourceList []InputResource
-type DataResourceList []DataResource
-
-// namespace is optional, if left empty, names can collide if the list contains more than one with the same name
+type ResourcesByKind map[string]ResourceList
+func (m ResourcesByKind) Add(resource Resource) {
+	m[Kind(resource)] = append(m[Kind(resource)], resource)
+}
+func (m ResourcesByKind) Get(resource Resource) []Resource {
+	return m[Kind(resource)]
+}
 func (list ResourceList) Find(namespace, name string) (Resource, error) {
 	for _, resource := range list {
 		if resource.GetMetadata().Name == name {
@@ -61,7 +64,66 @@ func (list ResourceList) Find(namespace, name string) (Resource, error) {
 	}
 	return nil, errors.Errorf("list did not find resource %v.%v", namespace, name)
 }
+func (list ResourceList) Names() []string {
+	var names []string
+	for _, resource := range list {
+		names = append(names, resource.GetMetadata().Name)
+	}
+	return names
+}
+func (list ResourceList) Namespaces() []string {
+	var namespaces []string
+	for _, resource := range list {
+		namespaces = append(namespaces, resource.GetMetadata().Namespace)
+	}
+	return namespaces
+}
+func (list ResourceList) FilterByNames(names []string) ResourceList {
+	var filtered ResourceList
+	for _, resource := range list {
+		for _, name := range names {
+			if name == resource.GetMetadata().Name {
+				filtered = append(filtered, resource)
+				break
+			}
+		}
+	}
+	return filtered
+}
+func (list ResourceList) FilterByNamespaces(namespaces []string) ResourceList {
+	var filtered ResourceList
+	for _, resource := range list {
+		for _, namespace := range namespaces {
+			if namespace == resource.GetMetadata().Namespace {
+				filtered = append(filtered, resource)
+				break
+			}
+		}
+	}
+	return filtered
+}
+func (list ResourceList) FilterByList(list2 ResourceList) ResourceList {
+	return list.FilterByNamespaces(list2.Namespaces()).FilterByNames(list.Names())
+}
+func (list ResourceList) AsInputResourceList() InputResourceList {
+	var inputs InputResourceList
+	for _, res := range list {
+		inputRes, ok := res.(InputResource)
+		if !ok {
+			continue
+		}
+		inputs = append(inputs, inputRes)
+	}
+}
 
+type InputResourceList []InputResource
+type InputResourcesByKind map[string]InputResourceList
+func (m InputResourcesByKind) Add(resource InputResource) {
+	m[Kind(resource)] = append(m[Kind(resource)], resource)
+}
+func (m InputResourcesByKind) Get(resource InputResource) []InputResource {
+	return m[Kind(resource)]
+}
 func (list InputResourceList) Find(namespace, name string) (InputResource, error) {
 	for _, resource := range list {
 		if resource.GetMetadata().Name == name {
@@ -72,17 +134,56 @@ func (list InputResourceList) Find(namespace, name string) (InputResource, error
 	}
 	return nil, errors.Errorf("list did not find resource %v.%v", namespace, name)
 }
-
-func (list DataResourceList) Find(namespace, name string) (DataResource, error) {
+func (list InputResourceList) Names() []string {
+	var names []string
 	for _, resource := range list {
-		if resource.GetMetadata().Name == name {
-			if namespace == "" || resource.GetMetadata().Namespace == namespace {
-				return resource, nil
+		names = append(names, resource.GetMetadata().Name)
+	}
+	return names
+}
+func (list InputResourceList) Namespaces() []string {
+	var namespaces []string
+	for _, resource := range list {
+		namespaces = append(namespaces, resource.GetMetadata().Namespace)
+	}
+	return namespaces
+}
+func (list InputResourceList) FilterByNames(names []string) InputResourceList {
+	var filtered InputResourceList
+	for _, resource := range list {
+		for _, name := range names {
+			if name == resource.GetMetadata().Name {
+				filtered = append(filtered, resource)
+				break
 			}
 		}
 	}
-	return nil, errors.Errorf("list did not find resource %v.%v", namespace, name)
+	return filtered
 }
+func (list InputResourceList) FilterByNamespaces(namespaces []string) InputResourceList {
+	var filtered InputResourceList
+	for _, resource := range list {
+		for _, namespace := range namespaces {
+			if namespace == resource.GetMetadata().Namespace {
+				filtered = append(filtered, resource)
+				break
+			}
+		}
+	}
+	return filtered
+}
+func (list InputResourceList) FilterByList(list2 InputResourceList) InputResourceList {
+	return list.FilterByNamespaces(list2.Namespaces()).FilterByNames(list.Names())
+}
+func (list InputResourceList) AsInputResourceList() ResourceList {
+	var resources ResourceList
+	for _, res := range list {
+		resources = append(resources, res)
+	}
+	return resources
+}
+
+type DataResourceList []DataResource
 
 func Clone(resource Resource) Resource {
 	return proto.Clone(resource).(Resource)
