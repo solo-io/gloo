@@ -1,4 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash 
+
+# set -e
+set -x
 
 # for symlink compatibility
 # https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within
@@ -17,7 +20,8 @@ SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --
 mkdir -p ${OUT}
 protoc -I=${IN} \
     -I=${GOPATH}/src \
-    -I=${GOPATH}/src/github.com/gogo/protobuf/ \
+    -I=${GOPATH}/src/github.com/gogo/protobuf/protobuf \
+    -I=${GOPATH}/src/github.com/gogo/protobuf \
     ${GOGO_OUT_FLAG} \
     ${SOLO_KIT_FLAG} \
     ${IN}/*.proto
@@ -27,14 +31,16 @@ mkdir -p ${OUT}/plugins/{aws,kubernetes}
 
 protoc -I=${IN} \
     -I=${GOPATH}/src \
-    -I=${GOPATH}/src/github.com/gogo/protobuf/ \
+    -I=${GOPATH}/src/github.com/gogo/protobuf/protobuf \
+    -I=${GOPATH}/src/github.com/gogo/protobuf \
     ${GOGO_OUT_FLAG} \
     ${SOLO_KIT_FLAG} \
     ${IN}/kubernetes/*.proto
 
 protoc -I=${IN} \
     -I=${GOPATH}/src \
-    -I=${GOPATH}/src/github.com/gogo/protobuf/ \
+    -I=${GOPATH}/src/github.com/gogo/protobuf/protobuf \
+    -I=${GOPATH}/src/github.com/gogo/protobuf \
     ${GOGO_OUT_FLAG} \
     ${SOLO_KIT_FLAG} \
     ${IN}/aws/*.proto
