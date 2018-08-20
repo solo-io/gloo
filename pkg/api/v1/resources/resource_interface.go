@@ -32,6 +32,7 @@ func (m ResourcesByType) List() ResourceList {
 		}
 		return all[i].GetMetadata().Less(all[j].GetMetadata())
 	})
+	return all
 }
 
 type InputResource interface {
@@ -54,6 +55,13 @@ func (m ResourcesByKind) Add(resource Resource) {
 }
 func (m ResourcesByKind) Get(resource Resource) []Resource {
 	return m[Kind(resource)]
+}
+func (list ResourceList) Copy() ResourceList {
+	var cpy ResourceList
+	for _, res := range list {
+		cpy = append(cpy, Clone(res))
+	}
+	return cpy
 }
 func (list ResourceList) Find(namespace, name string) (Resource, error) {
 	for _, resource := range list {
@@ -115,6 +123,7 @@ func (list ResourceList) AsInputResourceList() InputResourceList {
 		}
 		inputs = append(inputs, inputRes)
 	}
+	return inputs
 }
 
 type InputResourceList []InputResource
@@ -125,6 +134,13 @@ func (m InputResourcesByKind) Add(resource InputResource) {
 }
 func (m InputResourcesByKind) Get(resource InputResource) []InputResource {
 	return m[Kind(resource)]
+}
+func (list InputResourceList) Copy() InputResourceList {
+	var cpy InputResourceList
+	for _, res := range list {
+		cpy = append(cpy, Clone(res).(InputResource))
+	}
+	return cpy
 }
 func (list InputResourceList) Find(namespace, name string) (InputResource, error) {
 	for _, resource := range list {
