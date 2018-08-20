@@ -1,8 +1,9 @@
-package aws_test
+package aws
 
 import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	"github.com/envoyproxy/go-control-plane/pkg/util"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -11,7 +12,11 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	awsapi "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
-	. "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/aws"
+)
+
+const (
+	accessKeyValue = "some acccess value"
+	secretKeyValue = "some secret value"
 )
 
 var _ = Describe("Plugin", func() {
@@ -87,8 +92,8 @@ var _ = Describe("Plugin", func() {
 					Namespace: "",
 				},
 				Data: map[string]string{
-					"access_key": "access_key",
-					"secret_key": "secret_key",
+					"access_key": accessKeyValue,
+					"secret_key": secretKeyValue,
 				},
 			}},
 		}
@@ -99,8 +104,18 @@ var _ = Describe("Plugin", func() {
 			err := plugin.(plugins.UpstreamPlugin).ProcessUpstream(params, upstream, out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(out.ExtensionProtocolOptions).NotTo(BeEmpty())
-			Expect(out.ExtensionProtocolOptions).To(HaveKey(FilterName))
+			Expect(out.ExtensionProtocolOptions).To(HaveKey(filterName))
+
+			lpe := &LambdaProtocolExtension{}
+			err = util.StructToMessage(out.ExtensionProtocolOptions[filterName], lpe)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(lpe.AccessKey).To(Equal(accessKeyValue))
+			Expect(lpe.SecretKey).To(Equal(secretKeyValue))
+			Expect(lpe.Region).To(Equal("us-east1"))
+			Expect(lpe.Host).To(Equal("lambda.us-east1.amazonaws.com"))
 		})
+
 		It("should error upstream with no secrets", func() {
 			params.Snapshot.SecretList = nil
 			err := plugin.(plugins.UpstreamPlugin).ProcessUpstream(params, upstream, out)
@@ -133,7 +148,7 @@ var _ = Describe("Plugin", func() {
 			err := plugin.(plugins.UpstreamPlugin).ProcessUpstream(params, upstream, out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(out.ExtensionProtocolOptions).To(BeEmpty())
-			Expect(outroute.PerFilterConfig).NotTo(HaveKey(FilterName))
+			Expect(outroute.PerFilterConfig).NotTo(HaveKey(filterName))
 
 		})
 	})
@@ -151,7 +166,7 @@ var _ = Describe("Plugin", func() {
 		It("should process route", func() {
 			err := plugin.(plugins.RoutePlugin).ProcessRoute(params, route, outroute)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(outroute.PerFilterConfig).To(HaveKey(FilterName))
+			Expect(outroute.PerFilterConfig).To(HaveKey(filterName))
 		})
 
 		It("should not process with no spec", func() {
@@ -159,7 +174,7 @@ var _ = Describe("Plugin", func() {
 
 			err := plugin.(plugins.RoutePlugin).ProcessRoute(params, route, outroute)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(outroute.PerFilterConfig).NotTo(HaveKey(FilterName))
+			Expect(outroute.PerFilterConfig).NotTo(HaveKey(filterName))
 		})
 
 		It("should not process with a function mismatch", func() {
@@ -167,7 +182,7 @@ var _ = Describe("Plugin", func() {
 
 			err := plugin.(plugins.RoutePlugin).ProcessRoute(params, route, outroute)
 			Expect(err).To(HaveOccurred())
-			Expect(outroute.PerFilterConfig).NotTo(HaveKey(FilterName))
+			Expect(outroute.PerFilterConfig).NotTo(HaveKey(filterName))
 		})
 
 		It("should not process with no spec", func() {
@@ -176,7 +191,7 @@ var _ = Describe("Plugin", func() {
 
 			err := plugin.(plugins.RoutePlugin).ProcessRoute(params, route, outroute)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(outroute.PerFilterConfig).NotTo(HaveKey(FilterName))
+			Expect(outroute.PerFilterConfig).NotTo(HaveKey(filterName))
 		})
 
 	})

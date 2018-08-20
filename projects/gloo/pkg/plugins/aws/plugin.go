@@ -24,14 +24,12 @@ import (
 
 const (
 	// filter info
-	FilterName  = "io.solo.aws_lambda"
+	filterName  = "io.solo.aws_lambda"
 	pluginStage = plugins.OutAuth
 
 	// cluster info
-	AccessKey = "access_key"
-	SecretKey = "secret_key"
-	awsRegion = "region"
-	awsHost   = "host"
+	accessKey = "access_key"
+	secretKey = "secret_key"
 )
 
 func getLambdaHostname(s *aws.UpstreamSpec) string {
@@ -91,19 +89,19 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	}
 	var secretErrs error
 
-	accessKey, ok := awsSecrets.Data[AccessKey]
+	accessKey, ok := awsSecrets.Data[accessKey]
 	if !ok {
-		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", AccessKey))
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", accessKey))
 	}
 	if accessKey == "" || !utf8.Valid([]byte(accessKey)) {
-		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", AccessKey))
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", accessKey))
 	}
-	secretKey, ok := awsSecrets.Data[SecretKey]
+	secretKey, ok := awsSecrets.Data[secretKey]
 	if !ok {
-		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", SecretKey))
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", secretKey))
 	}
 	if secretKey == "" || !utf8.Valid([]byte(secretKey)) {
-		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", SecretKey))
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", secretKey))
 	}
 
 	if secretErrs != nil {
@@ -125,7 +123,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	if err != nil {
 		return errors.Wrapf(err, "converting aws protocol options to struct")
 	}
-	out.ExtensionProtocolOptions[FilterName] = lpeStruct
+	out.ExtensionProtocolOptions[filterName] = lpeStruct
 
 	// TODO(yuval-k): What about namespace?!
 	p.recordedUpstreams[in.Metadata.Name] = upstreamSpec.Aws
@@ -134,7 +132,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 }
 
 func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
-	return pluginutils.MarkPerFilterConfig(in, out, FilterName, func(spec *v1.Destination) (proto.Message, error) {
+	return pluginutils.MarkPerFilterConfig(in, out, filterName, func(spec *v1.Destination) (proto.Message, error) {
 		// check if it's aws destination
 		if spec.DestinationSpec == nil {
 			return nil, nil
@@ -176,7 +174,7 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	}
 	return []plugins.StagedHttpFilter{
 		{
-			HttpFilter: &envoyhttp.HttpFilter{Name: FilterName},
+			HttpFilter: &envoyhttp.HttpFilter{Name: filterName},
 			Stage:      pluginStage,
 		},
 	}, nil

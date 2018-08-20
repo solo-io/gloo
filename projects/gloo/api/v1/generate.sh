@@ -1,7 +1,6 @@
 #!/usr/bin/env bash 
 
-# set -e
-set -x
+set -e
 
 # for symlink compatibility
 # https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within
@@ -31,6 +30,8 @@ IN=${IN}/plugins
 for plugin in azure aws kubernetes; do
 mkdir -p ${OUT}/plugins/$plugin
 
+# we need ${GOPATH}/src/github.com/gogo/protobuf/protobuf
+# as the filter's protobufs use validate/validate.proto
 protoc -I=${IN} \
     -I=${GOPATH}/src \
     -I=${GOPATH}/src/github.com/gogo/protobuf/protobuf \
