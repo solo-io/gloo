@@ -162,6 +162,14 @@ var _ = Describe("Plugin", func() {
 			Expect(outroute.PerFilterConfig).NotTo(HaveKey(FilterName))
 		})
 
+		It("should not process with a function mismatch", func() {
+			destination.DestinationSpec.DestinationType.(*v1.DestinationSpec_Aws).Aws.LogicalName = "somethingelse"
+
+			err := plugin.(plugins.RoutePlugin).ProcessRoute(params, route, outroute)
+			Expect(err).To(HaveOccurred())
+			Expect(outroute.PerFilterConfig).NotTo(HaveKey(FilterName))
+		})
+
 		It("should not process with no spec", func() {
 			Skip("redo this when we have more destination type")
 			// destination.DestinationSpec.DestinationType =
@@ -171,5 +179,26 @@ var _ = Describe("Plugin", func() {
 			Expect(outroute.PerFilterConfig).NotTo(HaveKey(FilterName))
 		})
 
+	})
+
+	Context("filters", func() {
+		It("should produce filters when upstream is present", func() {
+			// process upstream
+			err := plugin.(plugins.UpstreamPlugin).ProcessUpstream(params, upstream, out)
+			Expect(err).NotTo(HaveOccurred())
+			err = plugin.(plugins.RoutePlugin).ProcessRoute(params, route, outroute)
+			Expect(err).NotTo(HaveOccurred())
+
+			// check that we have filters
+			filters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).NotTo(BeEmpty())
+		})
+
+		It("should not produce filters when no upstreams are present", func() {
+			filters, err := plugin.(plugins.HttpFilterPlugin).HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(BeEmpty())
+		})
 	})
 })
