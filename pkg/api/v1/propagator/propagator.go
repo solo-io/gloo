@@ -19,43 +19,17 @@ type Propagator struct {
 	resourceClients   clients.ResourceClients
 }
 
-func NewPropagator(forController string, to, from resources.InputResourceList, ResourceClients clients.ResourceClients) *Propagator {
+func NewPropagator(forController string, parents, children resources.InputResourceList, ResourceClients clients.ResourceClients) *Propagator {
 	return &Propagator{
 		forController:   forController,
-		children:        from,
-		parents:         to,
+		children:        children,
+		parents:         parents,
 		resourceClients: ResourceClients,
 	}
 }
 
-func createWatchForResources(resByKindAndNamespace map[clients.ResourceClient]map[string]resources.InputResourceList, destinationChannel chan resources.ResourceList, writeErrs chan error, opts clients.WatchOpts) error {
-	for clientForKind, childrenByNamespace := range resByKindAndNamespace {
-		for namespace, children := range childrenByNamespace {
-			watch, errs, err := clientForKind.Watch(namespace, opts)
-			if err != nil {
-				return err
-			}
-			go errutils.AggregateErrs(opts.Ctx, writeErrs, errs)
-			go func(namespace string, childrenOfType resources.InputResourceList, watch <-chan resources.ResourceList) {
-				for {
-					select {
-					case resourceList := <-watch:
-						// filter only the resources we want
-						// TODO(ilackarms): move this abstraction down the stack, see if we can get it into the
-						// storage layer api request for max efficiency
-						resourceList = resourceList.FilterByNames(childrenOfType.Names())
-						destinationChannel <- resourceList
-					case <-opts.Ctx.Done():
-						return
-					}
-				}
-			}(namespace, children, watch)
-		}
-	}
-}
-
 // sources can be multiple types
-func (p *Propagator) PropagateStatus(namespace string, writeErrs chan error, opts clients.WatchOpts) error {
+func (p *Propagator) PropagateStatuses(writeErrs chan error, opts clients.WatchOpts) error {
 	// each ressource by kind, then namespace
 	childrenByClientAndNamespace, err := byKindByNamespace(p.resourceClients, p.children)
 	if err != nil {
@@ -115,6 +89,33 @@ func (p *Propagator) PropagateStatus(namespace string, writeErrs chan error, opt
 	return nil
 }
 
+func createWatchForResources(resByKindAndNamespace map[clients.ResourceClient]map[string]resources.InputResourceList, destinationChannel chan resources.ResourceList, writeErrs chan error, opts clients.WatchOpts) error {
+	for clientForKind, childrenByNamespace := range resByKindAndNamespace {
+		for namespace, children := range childrenByNamespace {
+			watch, errs, err := clientForKind.Watch(namespace, opts)
+			if err != nil {
+				return err
+			}
+			go errutils.AggregateErrs(opts.Ctx, writeErrs, errs)
+			go func(namespace string, childrenOfType resources.InputResourceList, watch <-chan resources.ResourceList) {
+				for {
+					select {
+					case resourceList := <-watch:
+						// filter only the resources we want
+						// TODO(ilackarms): move this abstraction down the stack, see if we can get it into the
+						// storage layer api request for max efficiency
+						resourceList = resourceList.FilterByNames(childrenOfType.Names())
+						destinationChannel <- resourceList
+					case <-opts.Ctx.Done():
+						return
+					}
+				}
+			}(namespace, children, watch)
+		}
+	}
+	return nil
+}
+
 func byKindByNamespace(resourceClients clients.ResourceClients, ress resources.InputResourceList) (map[clients.ResourceClient]map[string]resources.InputResourceList, error) {
 	resByKindAndNamespace := make(map[clients.ResourceClient]map[string]resources.InputResourceList)
 	for _, r := range ress {
@@ -145,10 +146,11 @@ func (p *Propagator) syncStatuses(parents, children resources.ResourceList, opts
 	for _, parentRes := range parents {
 		parent, ok := parentRes.(resources.InputResource)
 		if !ok {
-			return errors.Errorf("internal error: %v.%v is not an input resource", parentRes.GetMetadata().ObjectRef())
+			return errors.Errorf("internal error: %v.%v is not an input resource", parentRes.GetMetadata().Namespace, parentRes.GetMetadata().Name)
 		}
 		status = mergeStatuses(parent.GetStatus(), status)
-		if parent.GetStatus().Equal(status) {
+		parentStatus := parent.GetStatus()
+		if (&parentStatus).Equal(&status) {
 			// no-op
 			continue
 		}
@@ -190,20 +192,20 @@ func createCombinedStatus(forController string, fromResources resources.Resource
 	for _, baseRes := range fromResources {
 		res, ok := baseRes.(resources.InputResource)
 		if !ok {
-			return core.Status{}, errors.Errorf("internal error: %v.%v is not an input resource", baseRes.GetMetadata().ObjectRef())
+			return core.Status{}, errors.Errorf("internal error: %v.%v is not an input resource", baseRes.GetMetadata().Namespace, baseRes.GetMetadata().Name)
 		}
 		stat := res.GetStatus()
 		switch stat.State {
 		case core.Status_Rejected:
 			state = core.Status_Rejected
-			reason += fmt.Sprintf("child resource %v.%v has an error\n", res.GetMetadata().ObjectRef())
+			reason += fmt.Sprintf("child resource %v.%v has an error\n", res.GetMetadata().Namespace, res.GetMetadata().Name)
 		case core.Status_Pending:
 			// accepteds should be pending
 			// errors should still be error
 			if state == core.Status_Accepted {
 				state = core.Status_Pending
 			}
-			reason += fmt.Sprintf("child resource %v.%v is still pending\n", res.GetMetadata().ObjectRef())
+			reason += fmt.Sprintf("child resource %v.%v is still pending\n", res.GetMetadata().Namespace, res.GetMetadata().Name)
 		case core.Status_Accepted:
 			continue
 		}
