@@ -63,6 +63,21 @@ func (list ResourceList) Copy() ResourceList {
 	}
 	return cpy
 }
+func (list ResourceList) Contains(list2 ResourceList) bool {
+	for _, res := range list {
+		var found bool
+		for _, res2 := range list {
+			if res.GetMetadata().Name == res2.GetMetadata().Name && res.GetMetadata().Namespace == res2.GetMetadata().Namespace {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
 func (list ResourceList) Find(namespace, name string) (Resource, error) {
 	for _, resource := range list {
 		if resource.GetMetadata().Name == name {
@@ -141,6 +156,21 @@ func (list InputResourceList) Copy() InputResourceList {
 		cpy = append(cpy, Clone(res).(InputResource))
 	}
 	return cpy
+}
+func (list InputResourceList) Contains(list2 InputResourceList) bool {
+	for _, res := range list {
+		var found bool
+		for _, res2 := range list {
+			if res.GetMetadata().Name == res2.GetMetadata().Name && res.GetMetadata().Namespace == res2.GetMetadata().Namespace {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
 }
 func (list InputResourceList) Find(namespace, name string) (InputResource, error) {
 	for _, resource := range list {
