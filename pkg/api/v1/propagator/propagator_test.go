@@ -13,29 +13,44 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	. "github.com/solo-io/solo-kit/pkg/api/v1/propagator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/test/mocks"
+)
+
+var (
+	badStatus = core.Status{
+		State:  core.Status_Rejected,
+		Reason: "it gave me gas",
+	}
+	goodStatus = core.Status{
+		State: core.Status_Accepted,
+	}
+	pendingStatus = core.Status{
+		State: core.Status_Pending,
+	}
 )
 
 var _ = Describe("Propagator", func() {
 	It("propagates errors from a set of child resources to a set of parent resources", func() {
-		parent1 := mocks.NewMockResource("a", "b")
-		parent2 := mocks.NewFakeResource("c", "d")
+		parent1 := mocks.NewMockResource("namespace1", "parent1")
+		parent2 := mocks.NewFakeResource("namespace2", "parent2")
 		parents := resources.InputResourceList{
 			parent1,
 			parent2,
 		}
-		child1 := mocks.NewFakeResource("e", "f")
-		child2 := mocks.NewMockResource("g", "h")
+		child1 := mocks.NewFakeResource("namespace1", "child1")
+		child2 := mocks.NewMockResource("namespace2", "child2")
 		children := resources.InputResourceList{
 			child1,
 			child2,
 		}
-		memFact := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		mockRc, err := mocks.NewMockResourceClient(factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
-		mockRc, err := mocks.NewMockResourceClient(memFact)
+		}))
 		Expect(err).NotTo(HaveOccurred())
-		fakeRc, err := mocks.NewFakeResourceClient(memFact)
+		fakeRc, err := mocks.NewFakeResourceClient(factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+			Cache: memory.NewInMemoryResourceCache(),
+		}))
 		Expect(err).NotTo(HaveOccurred())
 
 		resourceClients := make(clients.ResourceClients)
@@ -44,15 +59,6 @@ var _ = Describe("Propagator", func() {
 		prop := NewPropagator("luffy", parents, children, resourceClients)
 		ctx, cancel := context.WithCancel(context.Background())
 		errs := make(chan error)
-
-		go func() {
-			for {
-				select {
-				case err := <-errs:
-					log.Print(err)
-				}
-			}
-		}()
 
 		err = prop.PropagateStatuses(errs, clients.WatchOpts{
 			Ctx:         ctx,
@@ -70,6 +76,32 @@ var _ = Describe("Propagator", func() {
 		Expect(err).NotTo(HaveOccurred())
 		child1, err = fakeRc.Write(child1, clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
+
+		// now update some statuses
+		child1.SetStatus(badStatus)
+		child2.SetStatus(goodStatus)
+
+		child1, err = fakeRc.Write(child1, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+		Expect(err).NotTo(HaveOccurred())
+		child2, err = mockRc.Write(child2, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+		Expect(err).NotTo(HaveOccurred())
+
+		// parents should (eventually) have a bad status
+		parent1, err = mockRc.Read(parent1.Metadata.Namespace, parent1.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		parent2, err = fakeRc.Read(parent2.Metadata.Namespace, parent2.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+
+		time.Sleep(time.Second * 10)
+
+		select {
+		case <-time.After(time.Second * 3):
+		case err := <-errs:
+			log.Print(err)
+		}
+
+		Expect(parent1.GetStatus()).To(BeNil())
+		Expect(parent2.GetStatus()).To(BeNil())
 
 		cancel()
 	})

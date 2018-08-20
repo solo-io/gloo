@@ -2,7 +2,6 @@ package propagator
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -52,32 +51,32 @@ func (p *Propagator) PropagateStatuses(writeErrs chan error, opts clients.WatchO
 		return errors.Wrapf(err, "creating watch for child resources")
 	}
 
-	uniqueChildren := make(resources.ResourcesById)
-	uniqueParents := make(resources.ResourcesById)
-	lock := sync.RWMutex{}
-
 	// aggregate all the different watches, perform sync
 	go func() {
+		uniqueChildren := make(resources.ResourcesById)
+		uniqueParents := make(resources.ResourcesById)
 		var lastParents, lastChildren resources.ResourceList
 		for {
 			select {
 			case children := <-childrenChannel:
-				lock.Lock()
+				if children.Equal(lastChildren) {
+					continue
+				}
 				for _, child := range children {
 					uniqueChildren[resources.Key(child)] = child.(resources.InputResource)
 				}
 				lastChildren = uniqueChildren.List()
-				lock.Unlock()
 				if err := p.syncStatuses(lastParents, lastChildren, opts); err != nil {
 					writeErrs <- errors.Wrapf(err, "syncing statuses from children to parents")
 				}
 			case parents := <-parentsChannel:
-				lock.Lock()
+				if parents.Equal(lastParents) {
+					continue
+				}
 				for _, parent := range parents {
 					uniqueParents[resources.Key(parent)] = parent.(resources.InputResource)
 				}
 				lastParents = uniqueParents.List()
-				lock.Unlock()
 				if err := p.syncStatuses(lastParents, lastChildren, opts); err != nil {
 					writeErrs <- errors.Wrapf(err, "syncing statuses from children to parents")
 				}
@@ -90,32 +89,33 @@ func (p *Propagator) PropagateStatuses(writeErrs chan error, opts clients.WatchO
 }
 
 func createWatchForResources(resByKindAndNamespace map[clients.ResourceClient]map[string]resources.InputResourceList, destinationChannel chan resources.ResourceList, writeErrs chan error, opts clients.WatchOpts) error {
-	for clientForKind, childrenByNamespace := range resByKindAndNamespace {
-		for namespace, children := range childrenByNamespace {
+	for clientForKind, resourcesByNamespace := range resByKindAndNamespace {
+		for namespace, resourcesToWatch := range resourcesByNamespace {
 			watch, errs, err := clientForKind.Watch(namespace, opts)
 			if err != nil {
 				return err
 			}
 			go errutils.AggregateErrs(opts.Ctx, writeErrs, errs)
-			go func(namespace string, childrenOfType resources.InputResourceList, watch <-chan resources.ResourceList) {
-				for {
-					select {
-					case resourceList := <-watch:
-						// filter only the resources we want
-						// TODO(ilackarms): move this abstraction down the stack, see if we can get it into the
-						// storage layer api request for max efficiency
-						resourceList = resourceList.FilterByNames(childrenOfType.Names())
-						destinationChannel <- resourceList
-					case <-opts.Ctx.Done():
-						return
-					}
-				}
-			}(namespace, children, watch)
+			go receiveResources(watch, resourcesToWatch, destinationChannel, opts)
 		}
 	}
 	return nil
 }
 
+func receiveResources(watch <-chan resources.ResourceList, resourcesToWatch resources.InputResourceList, destinationChannel chan resources.ResourceList, opts clients.WatchOpts) {
+	for {
+		select {
+		case resourceList := <-watch:
+			// filter only the resources we want
+			// TODO(ilackarms): move this abstraction down the stack, see if we can get it into the
+			// storage layer api request for max efficiency
+			resourceList = resourceList.FilterByNames(resourcesToWatch.Names())
+			destinationChannel <- resourceList
+		case <-opts.Ctx.Done():
+			return
+		}
+	}
+}
 func byKindByNamespace(resourceClients clients.ResourceClients, ress resources.InputResourceList) (map[clients.ResourceClient]map[string]resources.InputResourceList, error) {
 	resByKindAndNamespace := make(map[clients.ResourceClient]map[string]resources.InputResourceList)
 	for _, r := range ress {
