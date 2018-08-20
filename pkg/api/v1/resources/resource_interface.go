@@ -48,6 +48,7 @@ type DataResource interface {
 
 type ResourceList []Resource
 type ResourcesByKind map[string]ResourceList
+
 func (m ResourcesByKind) Add(resource Resource) {
 	m[Kind(resource)] = append(m[Kind(resource)], resource)
 }
@@ -118,6 +119,7 @@ func (list ResourceList) AsInputResourceList() InputResourceList {
 
 type InputResourceList []InputResource
 type InputResourcesByKind map[string]InputResourceList
+
 func (m InputResourcesByKind) Add(resource InputResource) {
 	m[Kind(resource)] = append(m[Kind(resource)], resource)
 }
