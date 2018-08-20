@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 
@@ -17,22 +18,9 @@ type Resource interface {
 	Equal(that interface{}) bool
 }
 
-type ResourcesByType map[string]ResourceList
-
-// mixed type resource list
-func (m ResourcesByType) List() ResourceList {
-	var all ResourceList
-	for _, list := range m {
-		all = append(all, list...)
-	}
-	// sort by type
-	sort.SliceStable(all, func(i, j int) bool {
-		if Kind(all[i]) < Kind(all[j]) {
-			return true
-		}
-		return all[i].GetMetadata().Less(all[j].GetMetadata())
-	})
-	return all
+func Key(resource Resource) string {
+	return fmt.Sprintf("%v.%v.%v", Kind(resource), resource.GetMetadata().Namespace,
+		resource.GetMetadata().Name)
 }
 
 type InputResource interface {
@@ -48,13 +36,39 @@ type DataResource interface {
 }
 
 type ResourceList []Resource
+type ResourcesById map[string]Resource
 type ResourcesByKind map[string]ResourceList
 
-func (m ResourcesByKind) Add(resource Resource) {
-	m[Kind(resource)] = append(m[Kind(resource)], resource)
+func (m ResourcesById) List() ResourceList {
+	var all ResourceList
+	for _, res := range m {
+		all = append(all, res)
+	}
+	// sort by type
+	sort.SliceStable(all, func(i, j int) bool {
+		return Key(all[i]) < Key(all[j])
+	})
+	return all
+}
+
+func (m ResourcesByKind) Add(resources ...Resource) {
+	for _, resource := range resources {
+		m[Kind(resource)] = append(m[Kind(resource)], resource)
+	}
 }
 func (m ResourcesByKind) Get(resource Resource) []Resource {
 	return m[Kind(resource)]
+}
+func (m ResourcesByKind) List() ResourceList {
+	var all ResourceList
+	for _, list := range m {
+		all = append(all, list...)
+	}
+	// sort by type
+	sort.SliceStable(all, func(i, j int) bool {
+		return Key(all[i]) < Key(all[j])
+	})
+	return all
 }
 func (list ResourceList) Copy() ResourceList {
 	var cpy ResourceList
@@ -147,8 +161,19 @@ type InputResourcesByKind map[string]InputResourceList
 func (m InputResourcesByKind) Add(resource InputResource) {
 	m[Kind(resource)] = append(m[Kind(resource)], resource)
 }
-func (m InputResourcesByKind) Get(resource InputResource) []InputResource {
+func (m InputResourcesByKind) Get(resource InputResource) InputResourceList {
 	return m[Kind(resource)]
+}
+func (m InputResourcesByKind) List() InputResourceList {
+	var all InputResourceList
+	for _, list := range m {
+		all = append(all, list...)
+	}
+	// sort by type
+	sort.SliceStable(all, func(i, j int) bool {
+		return Key(all[i]) < Key(all[j])
+	})
+	return all
 }
 func (list InputResourceList) Copy() InputResourceList {
 	var cpy InputResourceList
@@ -223,7 +248,7 @@ func (list InputResourceList) FilterByNamespaces(namespaces []string) InputResou
 func (list InputResourceList) FilterByList(list2 InputResourceList) InputResourceList {
 	return list.FilterByNamespaces(list2.Namespaces()).FilterByNames(list.Names())
 }
-func (list InputResourceList) AsInputResourceList() ResourceList {
+func (list InputResourceList) AsResourceList() ResourceList {
 	var resources ResourceList
 	for _, res := range list {
 		resources = append(resources, res)
