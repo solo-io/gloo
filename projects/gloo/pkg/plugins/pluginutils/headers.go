@@ -1,17 +1,23 @@
 package pluginutils
 
 import (
+	"context"
+	"reflect"
+
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 
 	"github.com/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
-type ExtraHeaderFunc func(spec *v1.Destination) ([]*envoycore.HeaderValueOption, error)
+type HeadersToAddFunc func(spec *v1.Destination) ([]*envoycore.HeaderValueOption, error)
 
-// call this from
-func MarkHeaders(in *v1.Route, out *envoyroute.Route, headers ExtraHeaderFunc) error {
+// Allows you add extra headers for specific destination.
+// The provided callback will be called for all the destinations on the route.
+// Any headers returned will be added to requests going to that destination
+func MarkHeaders(ctx context.Context, in *v1.Route, out *envoyroute.Route, headers HeadersToAddFunc) error {
 	inAction, outAction, err := getRouteActions(in, out)
 	if err != nil {
 		return err
@@ -26,11 +32,14 @@ func MarkHeaders(in *v1.Route, out *envoyroute.Route, headers ExtraHeaderFunc) e
 	case *v1.RouteAction_Single:
 		return configureHeadersSingleDest(dest.Single, &out.RequestHeadersToAdd, headers)
 	}
-	// TODO: not panic in prod
-	panic(errors.Errorf("unknown dest type"))
+
+	err = errors.Errorf("unexpected destination type %v", reflect.TypeOf(inAction.Destination).Name())
+	logger := contextutils.LoggerFrom(ctx)
+	logger.DPanic("error: %v", err)
+	return err
 }
 
-func configureHeadersMultiDest(in *v1.MultiDestination, out *envoyroute.WeightedCluster, headers ExtraHeaderFunc) error {
+func configureHeadersMultiDest(in *v1.MultiDestination, out *envoyroute.WeightedCluster, headers HeadersToAddFunc) error {
 	if len(in.Destinations) != len(out.Clusters) {
 		return errors.Errorf("number of input destinations did not match number of destination weighted clusters")
 	}
@@ -44,7 +53,7 @@ func configureHeadersMultiDest(in *v1.MultiDestination, out *envoyroute.Weighted
 	return nil
 }
 
-func configureHeadersSingleDest(in *v1.Destination, out *[]*envoycore.HeaderValueOption, headers ExtraHeaderFunc) error {
+func configureHeadersSingleDest(in *v1.Destination, out *[]*envoycore.HeaderValueOption, headers HeadersToAddFunc) error {
 	config, err := headers(in)
 	if err != nil {
 		return err

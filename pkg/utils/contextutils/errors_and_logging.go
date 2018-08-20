@@ -8,7 +8,7 @@ import (
 )
 
 func WithLogger(ctx context.Context, name string) context.Context {
-	return logging.WithLogger(ctx, logging.FromContext(ctx).Named(name))
+	return withLogger(ctx, logging.FromContext(ctx).Named(name))
 }
 
 func LoggerFrom(ctx context.Context) *zap.SugaredLogger {
@@ -27,7 +27,7 @@ func (h *ErrorLogger) HandleErr(err error) {
 	if err == nil {
 		return
 	}
-	logging.FromContext(h.ctx).Errorf(err.Error())
+	fromContext(h.ctx).Errorf(err.Error())
 }
 
 type errorHandlerKey struct{}

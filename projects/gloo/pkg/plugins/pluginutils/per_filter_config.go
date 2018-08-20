@@ -1,12 +1,16 @@
 package pluginutils
 
 import (
+	"context"
+	"reflect"
+
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
@@ -14,7 +18,7 @@ import (
 type PerFilterConfigFunc func(spec *v1.Destination) (proto.Message, error)
 
 // call this from
-func MarkPerFilterConfig(in *v1.Route, out *envoyroute.Route, filterName string, perFilterConfig PerFilterConfigFunc) error {
+func MarkPerFilterConfig(ctx context.Context, in *v1.Route, out *envoyroute.Route, filterName string, perFilterConfig PerFilterConfigFunc) error {
 	inAction, outAction, err := getRouteActions(in, out)
 	if err != nil {
 		return err
@@ -33,7 +37,11 @@ func MarkPerFilterConfig(in *v1.Route, out *envoyroute.Route, filterName string,
 		}
 		return configureSingleDest(dest.Single, out.PerFilterConfig, filterName, perFilterConfig)
 	}
-	panic(errors.Errorf("unknown dest type"))
+
+	err = errors.Errorf("unexpected destination type %v", reflect.TypeOf(inAction.Destination).Name())
+	logger := contextutils.LoggerFrom(ctx)
+	logger.DPanic("error: %v", err)
+	return err
 }
 
 func configureMultiDest(in *v1.MultiDestination, out *envoyroute.WeightedCluster, filterName string, perFilterConfig PerFilterConfigFunc) error {

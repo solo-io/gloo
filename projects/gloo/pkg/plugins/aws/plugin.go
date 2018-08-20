@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"unicode/utf8"
 
@@ -46,9 +47,11 @@ func NewAwsPlugin() plugins.Plugin {
 
 type plugin struct {
 	recordedUpstreams map[string]*aws.UpstreamSpec
+	ctx               context.Context
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
+	p.ctx = params.Ctx
 	return nil
 }
 
@@ -132,7 +135,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 }
 
 func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
-	return pluginutils.MarkPerFilterConfig(in, out, filterName, func(spec *v1.Destination) (proto.Message, error) {
+	return pluginutils.MarkPerFilterConfig(p.ctx, in, out, filterName, func(spec *v1.Destination) (proto.Message, error) {
 		// check if it's aws destination
 		if spec.DestinationSpec == nil {
 			return nil, nil
