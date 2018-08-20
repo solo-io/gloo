@@ -87,13 +87,13 @@ func (r *reporter) WriteReports(ctx context.Context, resourceErrs ResourceErrors
 func statusFromError(ref string, err error) core.Status {
 	if err != nil {
 		return core.Status{
-			State:             core.Status_Rejected,
-			Reason:            err.Error(),
-			ReporterReference: ref,
+			State:      core.Status_Rejected,
+			Reason:     err.Error(),
+			ReportedBy: ref,
 		}
 	}
 	return core.Status{
-		State:             core.Status_Accepted,
-		ReporterReference: ref,
+		State:      core.Status_Accepted,
+		ReportedBy: ref,
 	}
 }

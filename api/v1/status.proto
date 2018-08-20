@@ -23,5 +23,5 @@ message Status {
     // Reason is a description of the error for Rejected resources. If the resource is pending or accepted, this field will be empty
     string reason = 2;
     // Reference to the reporter who wrote this status
-    string reporter_reference = 3;
+    string reported_by = 3;
 }

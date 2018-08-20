@@ -50,7 +50,7 @@ type Status struct {
 	// Reason is a description of the error for Rejected resources. If the resource is pending or accepted, this field will be empty
 	Reason string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
 	// Reference to the reporter who wrote this status
-	ReporterReference string `protobuf:"bytes,3,opt,name=reporter_reference,json=reporterReference,proto3" json:"reporter_reference,omitempty"`
+	ReportedBy string `protobuf:"bytes,3,opt,name=reporter_reference,json=reporterReference,proto3" json:"reporter_reference,omitempty"`
 }
 
 func (m *Status) Reset()                    { *m = Status{} }
@@ -74,7 +74,7 @@ func (m *Status) GetReason() string {
 
 func (m *Status) GetReporterReference() string {
 	if m != nil {
-		return m.ReporterReference
+		return m.ReportedBy
 	}
 	return ""
 }
@@ -108,7 +108,7 @@ func (this *Status) Equal(that interface{}) bool {
 	if this.Reason != that1.Reason {
 		return false
 	}
-	if this.ReporterReference != that1.ReporterReference {
+	if this.ReportedBy != that1.ReportedBy {
 		return false
 	}
 	return true
