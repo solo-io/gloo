@@ -77,10 +77,21 @@ func (list ResourceList) Copy() ResourceList {
 	}
 	return cpy
 }
+func (list ResourceList) Equal(list2 ResourceList) bool {
+	if len(list) != len(list2) {
+		return false
+	}
+	for i := range list {
+		if !list[i].Equal(list2[i]) {
+			return false
+		}
+	}
+	return true
+}
 func (list ResourceList) Contains(list2 ResourceList) bool {
-	for _, res := range list {
+	for _, res2 := range list2 {
 		var found bool
-		for _, res2 := range list {
+		for _, res := range list {
 			if res.GetMetadata().Name == res2.GetMetadata().Name && res.GetMetadata().Namespace == res2.GetMetadata().Namespace {
 				found = true
 				break
@@ -182,10 +193,21 @@ func (list InputResourceList) Copy() InputResourceList {
 	}
 	return cpy
 }
+func (list InputResourceList) Equal(list2 InputResourceList) bool {
+	if len(list) != len(list2) {
+		return false
+	}
+	for i := range list {
+		if !list[i].Equal(list2[i]) {
+			return false
+		}
+	}
+	return true
+}
 func (list InputResourceList) Contains(list2 InputResourceList) bool {
-	for _, res := range list {
+	for _, res2 := range list2 {
 		var found bool
-		for _, res2 := range list {
+		for _, res := range list {
 			if res.GetMetadata().Name == res2.GetMetadata().Name && res.GetMetadata().Namespace == res2.GetMetadata().Namespace {
 				found = true
 				break
