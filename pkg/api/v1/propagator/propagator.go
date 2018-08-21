@@ -1,12 +1,14 @@
 package propagator
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
@@ -95,7 +97,9 @@ func createWatchForResources(resByKindAndNamespace map[clients.ResourceClient]ma
 			if err != nil {
 				return err
 			}
-			go errutils.AggregateErrs(opts.Ctx, writeErrs, errs)
+			go func(namespace string, clientForKind clients.ResourceClient) {
+				errutils.AggregateErrs(opts.Ctx, writeErrs, errs, "resource watch on "+fmt.Sprintf("%v.%v", namespace, clientForKind.Kind()))
+			}(namespace, clientForKind)
 			go receiveResources(watch, resourcesToWatch, destinationChannel, opts)
 		}
 	}

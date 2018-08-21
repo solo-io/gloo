@@ -41,7 +41,7 @@ func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) (<-chan error
 	if err != nil {
 		return nil, errors.Wrapf(err, "starting snapshot watch")
 	}
-	go errutils.AggregateErrs(opts.Ctx, errs, cacheErrs)
+	go errutils.AggregateErrs(opts.Ctx, errs, cacheErrs, "")
 	go func() {
 		for {
 			select {

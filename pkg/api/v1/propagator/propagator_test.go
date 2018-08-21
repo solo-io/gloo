@@ -103,6 +103,7 @@ var _ = Describe("Propagator", func() {
 				break l
 			case err := <-errs:
 				log.Print(err)
+				Expect(err.Error()).NotTo(ContainSubstring("resource version error"))
 			}
 		}
 
@@ -158,7 +159,9 @@ var _ = Describe("Propagator", func() {
 			},
 		}))
 
+		//
 		// try to see accepted after both children accepted
+		//
 		child1.SetStatus(goodStatus)
 		child2.SetStatus(goodStatus)
 
@@ -174,6 +177,7 @@ var _ = Describe("Propagator", func() {
 				break le
 			case err := <-errs:
 				log.Print(err)
+				Expect(err.Error()).NotTo(ContainSubstring("resource version error"))
 			}
 		}
 
@@ -229,7 +233,83 @@ var _ = Describe("Propagator", func() {
 			},
 		}))
 
+		//
 		// try it again after cancel
+		//
 		cancel()
+
+		// want to see old status
+		child1.SetStatus(badStatus)
+		child2.SetStatus(badStatus)
+
+		child1, err = fakeRc.Write(child1, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+		Expect(err).NotTo(HaveOccurred())
+		child2, err = mockRc.Write(child2, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
+		Expect(err).NotTo(HaveOccurred())
+
+		// wait on all resources to be read in
+	lep:
+		for {
+			select {
+			case <-time.After(time.Second * 3):
+				break lep
+			case err := <-errs:
+				log.Print(err)
+				Expect(err).NotTo(BeNil())
+				Expect(err.Error()).NotTo(ContainSubstring("resource version error"))
+			}
+		}
+
+		// parents should (eventually) have a good status
+		Eventually(func() (core.Status, error) {
+			parent1, err = mockRc.Read(parent1.Metadata.Namespace, parent1.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+			if err != nil {
+				return core.Status{}, err
+			}
+			return parent1.GetStatus(), err
+		}, time.Second*5).Should(Equal(core.Status{
+			State:      0,
+			Reason:     "",
+			ReportedBy: "",
+			SubresourceStatuses: map[string]*core.Status{
+				"*mocks.FakeResource.namespace1.child1": {
+					State:               1,
+					Reason:              "",
+					ReportedBy:          "",
+					SubresourceStatuses: nil,
+				},
+				"*mocks.MockResource.namespace2.child2": {
+					State:               1,
+					Reason:              "",
+					ReportedBy:          "",
+					SubresourceStatuses: nil,
+				},
+			},
+		}))
+		Eventually(func() (core.Status, error) {
+			parent2, err = fakeRc.Read(parent2.Metadata.Namespace, parent2.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+			if err != nil {
+				return core.Status{}, err
+			}
+			return parent2.GetStatus(), err
+		}, time.Second*5).Should(Equal(core.Status{
+			State:      0,
+			Reason:     "",
+			ReportedBy: "",
+			SubresourceStatuses: map[string]*core.Status{
+				"*mocks.MockResource.namespace2.child2": {
+					State:               1,
+					Reason:              "",
+					ReportedBy:          "",
+					SubresourceStatuses: nil,
+				},
+				"*mocks.FakeResource.namespace1.child1": {
+					State:               1,
+					Reason:              "",
+					ReportedBy:          "",
+					SubresourceStatuses: nil,
+				},
+			},
+		}))
 	})
 })

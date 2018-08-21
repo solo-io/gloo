@@ -74,19 +74,19 @@ func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts
 	if err != nil {
 		return err
 	}
-	go errutils.AggregateErrs(opts.Ctx, errs, udsErrs)
+	go errutils.AggregateErrs(opts.Ctx, errs, udsErrs, "uds.gloo")
 
 	edsErrs, err := discovery.RunEds(upstreamClient, disc, namespace, opts)
 	if err != nil {
 		return err
 	}
-	go errutils.AggregateErrs(opts.Ctx, errs, edsErrs)
+	go errutils.AggregateErrs(opts.Ctx, errs, edsErrs, "eds.gloo")
 
 	eventLoopErrs, err := eventLoop.Run(namespace, opts)
 	if err != nil {
 		return err
 	}
-	go errutils.AggregateErrs(opts.Ctx, errs, eventLoopErrs)
+	go errutils.AggregateErrs(opts.Ctx, errs, eventLoopErrs, "event_loop.gloo")
 
 	logger := contextutils.LoggerFrom(opts.Ctx)
 

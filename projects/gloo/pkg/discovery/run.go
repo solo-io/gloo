@@ -43,7 +43,7 @@ func RunEds(upstreamClient v1.UpstreamClient, disc *Discovery, watchNamespace st
 					errs <- err
 					continue
 				}
-				go errutils.AggregateErrs(opts.Ctx, errs, edsErrs)
+				go errutils.AggregateErrs(opts.Ctx, errs, edsErrs, "eds.discovery.gloo")
 
 			}
 		}
