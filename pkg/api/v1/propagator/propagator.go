@@ -116,6 +116,7 @@ func receiveResources(watch <-chan resources.ResourceList, resourcesToWatch reso
 		}
 	}
 }
+
 func byKindByNamespace(resourceClients clients.ResourceClients, ress resources.InputResourceList) (map[clients.ResourceClient]map[string]resources.InputResourceList, error) {
 	resByKindAndNamespace := make(map[clients.ResourceClient]map[string]resources.InputResourceList)
 	for _, r := range ress {
@@ -164,7 +165,11 @@ func (p *Propagator) syncStatuses(parents, children resources.ResourceList, opts
 			OverwriteExisting: true,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "updating status on parent resource")
+			// ignore rv errors, we should read a new one
+			if !errors.IsResourceVersion(err) {
+				return errors.Wrapf(err, "updating status on parent resource %v", resources.Key(parent))
+			}
+			contextutils.LoggerFrom(opts.Ctx).Debugf("received an invalid resource version err on write: %v", err)
 		}
 	}
 	return nil

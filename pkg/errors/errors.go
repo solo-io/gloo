@@ -8,6 +8,18 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
+func Wrapf(err error, format string, args ...interface{}) error {
+	return errors.Wrapf(err, format, args...)
+}
+
+func Errorf(format string, args ...interface{}) error {
+	return errors.Errorf(format, args...)
+}
+
+func Errors(msgs []string) error {
+	return errors.Errorf(strings.Join(msgs, "\n"))
+}
+
 type existErr struct {
 	meta core.Metadata
 }
@@ -56,14 +68,25 @@ func IsNotExist(err error) bool {
 	return false
 }
 
-func Wrapf(err error, format string, args ...interface{}) error {
-	return errors.Wrapf(err, format, args...)
+type resourceVersionErr struct {
+	namespace string
+	name      string
+	given     string
+	expected  string
 }
 
-func Errorf(format string, args ...interface{}) error {
-	return errors.Errorf(format, args...)
+func (err *resourceVersionErr) Error() string {
+	return fmt.Sprintf("invalid resource version %v.%v given %v, expected %v", err.namespace, err.name, err.given, err.expected)
 }
 
-func Errors(msgs []string) error {
-	return errors.Errorf(strings.Join(msgs, "\n"))
+func NewResourceVersionErr(namespace, name, given, expected string) *resourceVersionErr {
+	return &resourceVersionErr{namespace: namespace, name: name, given: given, expected: expected}
+}
+
+func IsResourceVersion(err error) bool {
+	switch err.(type) {
+	case *resourceVersionErr:
+		return true
+	}
+	return false
 }

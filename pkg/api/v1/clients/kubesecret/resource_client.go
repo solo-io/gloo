@@ -109,7 +109,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 			return nil, errors.NewExistErr(meta)
 		}
 		if meta.ResourceVersion != original.GetMetadata().ResourceVersion {
-			return nil, errors.Errorf("resource version error. must update new resource version to match current")
+			return nil, errors.NewResourceVersionErr(meta.Namespace, meta.Name, meta.ResourceVersion, original.GetMetadata().ResourceVersion)
 		}
 		if _, err := rc.kube.CoreV1().Secrets(secret.Namespace).Update(secret); err != nil {
 			return nil, errors.Wrapf(err, "updating kube secret %v", secret.Name)
