@@ -7,7 +7,6 @@ import (
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
-	envoyendpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/envoyproxy/go-control-plane/pkg/util"
@@ -68,18 +67,8 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	out.Type = envoyapi.Cluster_LOGICAL_DNS
 	// TODO(yuval-k): why do we need to make sure we use ipv4 only dns?
 	out.DnsLookupFamily = envoyapi.Cluster_V4_ONLY
-	out.LoadAssignment = &envoyapi.ClusterLoadAssignment{
-		ClusterName: out.Name,
-		Endpoints: []envoyendpoint.LocalityLbEndpoints{
-			{
-				LbEndpoints: []envoyendpoint.LbEndpoint{
-					{
-						Endpoint: pluginutils.EnvoyEndpoint(lambdaHostname, 443),
-					},
-				},
-			},
-		},
-	}
+	pluginutils.EnvoySingleEndpointLoadAssignment(out, lambdaHostname, 443)
+
 	out.TlsContext = &envoyauth.UpstreamTlsContext{
 		// TODO(yuval-k): Add verification context
 		Sni: lambdaHostname,
