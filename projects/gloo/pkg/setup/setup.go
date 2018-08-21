@@ -60,7 +60,7 @@ func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts
 
 	go xdsServer.Run(ctx)
 
-	rpt := reporter.NewReporter("gloo-reporter", upstreamClient.BaseClient(), proxyClient.BaseClient())
+	rpt := reporter.NewReporter("gloo", upstreamClient.BaseClient(), proxyClient.BaseClient())
 
 	sync := syncer.NewSyncer(translator.NewTranslator(), xdsCache, rpt)
 
