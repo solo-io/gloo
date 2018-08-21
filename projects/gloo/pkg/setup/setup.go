@@ -69,7 +69,7 @@ func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts
 	errs := make(chan error)
 
 	udsErrs, err := discovery.RunUds(disc, opts, discovery.Opts{
-		// TODO(ilackarms)
+	// TODO(ilackarms)
 	})
 	if err != nil {
 		return err

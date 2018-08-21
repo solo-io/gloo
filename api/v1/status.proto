@@ -24,4 +24,6 @@ message Status {
     string reason = 2;
     // Reference to the reporter who wrote this status
     string reported_by = 3;
+    // Reference to statuses (by resource-ref string: "Kind.Namespace.Name") of subresources of the parent resource
+    map<string, Status> subresource_statuses = 4;
 }
