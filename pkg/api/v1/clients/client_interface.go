@@ -32,8 +32,10 @@ type ResourceClient interface {
 
 type ResourceClients map[string]ResourceClient
 
-func (r ResourceClients) Add(rc ResourceClient) {
-	r[rc.Kind()] = rc
+func (r ResourceClients) Add(rcs ...ResourceClient) {
+	for _, rc := range rcs {
+		r[rc.Kind()] = rc
+	}
 }
 
 func (r ResourceClients) ForResource(resource resources.Resource) (ResourceClient, error) {
