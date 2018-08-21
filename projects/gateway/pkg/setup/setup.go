@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
+	"github.com/solo-io/solo-kit/pkg/api/v1/propagator"
 )
 
 func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts, opts clients.WatchOpts) error {

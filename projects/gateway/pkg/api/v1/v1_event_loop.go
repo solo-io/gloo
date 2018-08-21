@@ -43,10 +43,17 @@ func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) (<-chan error
 	}
 	go errutils.AggregateErrs(opts.Ctx, errs, cacheErrs)
 	go func() {
+		// create a new context for each loop, cancel it before each loop
+		var cancel context.CancelFunc
 		for {
 			select {
 			case snapshot := <-watch:
-				err := el.syncer.Sync(opts.Ctx, snapshot)
+				if cancel != nil {
+					cancel()
+				}
+				ctx, canc := context.WithCancel(opts.Ctx)
+				cancel = canc
+				err := el.syncer.Sync(ctx, snapshot)
 				if err != nil {
 					errs <- err
 				}

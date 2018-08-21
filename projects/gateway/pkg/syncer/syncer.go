@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/propagator"
 )
 
 type syncer struct {
@@ -34,6 +35,10 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("Beginning translation loop for snapshot %v", snap.Hash())
 	logger.Debugf("%v", snap)
+
+	go func(){
+		prop := propagator.NewPropagator("gateway", snap.GatewayList.AsInputResources(), snap.VirtualServiceList.AsInputResources())
+	}()
 
 	desired, resourceErrs := translate(s.namespace, snap)
 	if err := s.reporter.WriteReports(ctx, resourceErrs); err != nil {
