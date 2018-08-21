@@ -5,25 +5,29 @@ import (
 	"strings"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/propagator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gateway/pkg/propagator"
 )
 
 type syncer struct {
 	namespace       string
 	reporter        reporter.Reporter
+	propagator      propagator.Propagator
+	writeErrs       chan error
 	proxyReconciler gloov1.ProxyReconciler
 }
 
-func NewSyncer(namespace string, proxyClient gloov1.ProxyClient, reporter reporter.Reporter) v1.Syncer {
+func NewSyncer(namespace string, proxyClient gloov1.ProxyClient, reporter reporter.Reporter, propagator propagator.Propagator, writeErrs chan error) v1.Syncer {
 	return &syncer{
 		namespace:       namespace,
 		reporter:        reporter,
+		propagator:      propagator,
+		writeErrs:       writeErrs,
 		proxyReconciler: gloov1.NewProxyReconciler(proxyClient),
 	}
 }
@@ -32,13 +36,10 @@ func metaForSnap(snap *v1.Snapshot) core.Metadata {}
 
 func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	ctx = contextutils.WithLogger(ctx, "gateway.syncer")
+
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("Beginning translation loop for snapshot %v", snap.Hash())
 	logger.Debugf("%v", snap)
-
-	go func() {
-		prop := propagator.NewPropagator("gateway", snap.GatewayList.AsInputResources(), snap.VirtualServiceList.AsInputResources())
-	}()
 
 	desired, resourceErrs := translate(s.namespace, snap)
 	if err := s.reporter.WriteReports(ctx, resourceErrs); err != nil {
@@ -52,7 +53,15 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	if desired == nil {
 		return s.proxyReconciler.Reconcile(s.namespace, nil, nil, clients.ListOpts{})
 	}
-	return s.proxyReconciler.Reconcile(s.namespace, nil, nil, clients.ListOpts{})
+	if err  := s.proxyReconciler.Reconcile(s.namespace, nil, nil, clients.ListOpts{}); err != nil {
+		return
+	}
+
+
+	// start propagating for new set of resources
+	return s.propagator.PropagateStatuses(snap, desired, s.writeErrs, clients.WatchOpts{
+		Ctx: ctx,
+	})
 }
 
 func translate(namespace string, snap *v1.Snapshot) (*gloov1.Proxy, reporter.ResourceErrors) {

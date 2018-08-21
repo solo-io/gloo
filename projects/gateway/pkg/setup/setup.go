@@ -34,12 +34,11 @@ func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts
 
 	rpt := reporter.NewReporter("gateway", gatewayClient.BaseClient(), virtualServicesClient.BaseClient())
 
-	sync := syncer.NewSyncer(namespace, proxyClient, rpt)
+	errs := make(chan error)
+	sync := syncer.NewSyncer(namespace, proxyClient, rpt, errs)
 
 	eventLoop := v1.NewEventLoop(cache, sync)
 	eventLoop.Run(namespace, opts)
-
-	errs := make(chan error)
 
 	logger := contextutils.LoggerFrom(opts.Ctx)
 
