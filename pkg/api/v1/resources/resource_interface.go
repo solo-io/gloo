@@ -312,6 +312,12 @@ func UpdateMetadata(resource Resource, updateFunc func(meta *core.Metadata)) {
 	resource.SetMetadata(meta)
 }
 
+func UpdateStatus(resource InputResource, updateFunc func(status *core.Status)) {
+	status := resource.GetStatus()
+	updateFunc(&status)
+	resource.SetStatus(status)
+}
+
 func Validate(resource Resource) error {
 	return ValidateName(resource.GetMetadata().Name)
 }

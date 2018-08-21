@@ -1,8 +1,7 @@
 package propagator
 
 import (
-	"fmt"
-	"strings"
+	"reflect"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -68,7 +67,7 @@ func (p *Propagator) PropagateStatuses(writeErrs chan error, opts clients.WatchO
 				}
 				lastChildren = uniqueChildren.List()
 				if err := p.syncStatuses(lastParents, lastChildren, opts); err != nil {
-					writeErrs <- errors.Wrapf(err, "syncing statuses from children to parents")
+					writeErrs <- errors.Wrapf(err, "syncing statuses from children to parents1")
 				}
 			case parents := <-parentsChannel:
 				if parents.Equal(lastParents) {
@@ -79,7 +78,7 @@ func (p *Propagator) PropagateStatuses(writeErrs chan error, opts clients.WatchO
 				}
 				lastParents = uniqueParents.List()
 				if err := p.syncStatuses(lastParents, lastChildren, opts); err != nil {
-					writeErrs <- errors.Wrapf(err, "syncing statuses from children to parents")
+					writeErrs <- errors.Wrapf(err, "syncing statuses from children to parents2")
 				}
 			case <-opts.Ctx.Done():
 				return
@@ -133,10 +132,6 @@ func byKindByNamespace(resourceClients clients.ResourceClients, ress resources.I
 	return resByKindAndNamespace, nil
 }
 
-func containsStatus(st1, st2 core.Status) bool {
-	return st1.State == st2.State && st1.ReportedBy == st2.ReportedBy && strings.Contains(st1.Reason, st2.Reason)
-}
-
 func (p *Propagator) syncStatuses(parents, children resources.ResourceList, opts clients.WatchOpts) error {
 	if !parents.Contains(p.parents.AsResourceList()) {
 		return errors.Errorf("updated list of parent resource(s) was missing a resource to update")
@@ -144,7 +139,7 @@ func (p *Propagator) syncStatuses(parents, children resources.ResourceList, opts
 	if !children.Contains(p.children.AsResourceList()) {
 		return errors.Errorf("updated list of child resource(s) was missing a resource to read status from")
 	}
-	status, err := createCombinedStatus(p.forController, children)
+	childStatuses, err := makeChildStatusMap(children)
 	if err != nil {
 		return err
 	}
@@ -153,13 +148,13 @@ func (p *Propagator) syncStatuses(parents, children resources.ResourceList, opts
 		if !ok {
 			return errors.Errorf("internal error: %v.%v is not an input resource", parentRes.GetMetadata().Namespace, parentRes.GetMetadata().Name)
 		}
-		if containsStatus(parent.GetStatus(), status) {
+		if containsStatuses(parent.GetStatus(), childStatuses) {
 			// no-op
 			continue
 		}
-		mergedStatus := mergeStatuses(parent.GetStatus(), status)
-		mergedStatus.ReportedBy = p.forController
-		parent.SetStatus(mergedStatus)
+		resources.UpdateStatus(parent, func(status *core.Status) {
+			status.SubresourceStatuses = childStatuses
+		})
 		rc, err := p.resourceClients.ForResource(parent)
 		if err != nil {
 			return errors.Wrapf(err, "resource client for parent not found")
@@ -175,49 +170,19 @@ func (p *Propagator) syncStatuses(parents, children resources.ResourceList, opts
 	return nil
 }
 
-func mergeStatuses(dest, src core.Status) core.Status {
-	switch src.State {
-	case core.Status_Accepted:
-	case core.Status_Pending:
-		if dest.State == core.Status_Accepted {
-			dest.State = core.Status_Pending
+func makeChildStatusMap(children resources.ResourceList) (map[string]*core.Status, error) {
+	statuses := make(map[string]*core.Status)
+	for _, childRes := range children {
+		child, ok := childRes.(resources.InputResource)
+		if !ok {
+			return nil, errors.Errorf("internal error: %v.%v is not an input resource", childRes.GetMetadata().Namespace, childRes.GetMetadata().Name)
 		}
-		dest.Reason += src.Reason
-	case core.Status_Rejected:
-		dest.State = core.Status_Rejected
-		dest.Reason += src.Reason
+		stat := child.GetStatus()
+		statuses[resources.Key(child)] = &stat
 	}
-	return dest
+	return statuses, nil
 }
 
-func createCombinedStatus(forController string, fromResources resources.ResourceList) (core.Status, error) {
-	state := core.Status_Accepted
-	reason := ""
-
-	for _, baseRes := range fromResources {
-		res, ok := baseRes.(resources.InputResource)
-		if !ok {
-			return core.Status{}, errors.Errorf("internal error: %v.%v is not an input resource", baseRes.GetMetadata().Namespace, baseRes.GetMetadata().Name)
-		}
-		stat := res.GetStatus()
-		switch stat.State {
-		case core.Status_Rejected:
-			state = core.Status_Rejected
-			reason += fmt.Sprintf("child resource %v.%v has an error: %v\n", res.GetMetadata().Namespace, res.GetMetadata().Name, stat.Reason)
-		case core.Status_Pending:
-			// accepteds should be pending
-			// errors should still be error
-			if state == core.Status_Accepted {
-				state = core.Status_Pending
-			}
-			reason += fmt.Sprintf("child resource %v.%v is still pending\n", res.GetMetadata().Namespace, res.GetMetadata().Name)
-		case core.Status_Accepted:
-			continue
-		}
-	}
-	return core.Status{
-		State:      state,
-		Reason:     reason,
-		ReportedBy: forController,
-	}, nil
+func containsStatuses(parent core.Status, statuses map[string]*core.Status) bool {
+	return reflect.DeepEqual(parent.SubresourceStatuses, statuses)
 }
