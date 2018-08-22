@@ -1,10 +1,11 @@
 package scalars
 
 import (
-	"time"
+	"encoding/json"
 	"fmt"
 	"io"
-	"encoding/json"
+	"time"
+
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 )

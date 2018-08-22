@@ -10,8 +10,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
-	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/propagator"
+	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
 type syncer struct {
@@ -51,10 +51,9 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	if desired == nil {
 		return s.proxyReconciler.Reconcile(s.namespace, nil, nil, clients.ListOpts{})
 	}
-	if err  := s.proxyReconciler.Reconcile(s.namespace, nil, nil, clients.ListOpts{}); err != nil {
+	if err := s.proxyReconciler.Reconcile(s.namespace, nil, nil, clients.ListOpts{}); err != nil {
 		return
 	}
-
 
 	// start propagating for new set of resources
 	return s.propagator.PropagateStatuses(snap, desired, s.writeErrs, clients.WatchOpts{
