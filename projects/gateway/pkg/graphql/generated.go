@@ -323,12 +323,28 @@ func (ec *executionContext) _GRPCServiceSpec(ctx context.Context, sel []query.Se
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("GRPCServiceSpec")
+		case "empty":
+			out.Values[i] = ec._GRPCServiceSpec_empty(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
 
 	return out
+}
+
+func (ec *executionContext) _GRPCServiceSpec_empty(ctx context.Context, field graphql.CollectedField, obj *GRPCServiceSpec) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "GRPCServiceSpec"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Empty
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
 }
 
 var kubeUpstreamSpecImplementors = []string{"KubeUpstreamSpec"}
@@ -739,12 +755,28 @@ func (ec *executionContext) _SwaggerServiceSpec(ctx context.Context, sel []query
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SwaggerServiceSpec")
+		case "empty":
+			out.Values[i] = ec._SwaggerServiceSpec_empty(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
 
 	return out
+}
+
+func (ec *executionContext) _SwaggerServiceSpec_empty(ctx context.Context, field graphql.CollectedField, obj *SwaggerServiceSpec) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "SwaggerServiceSpec"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	res := obj.Empty
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
 }
 
 var upstreamImplementors = []string{"Upstream"}
@@ -1838,6 +1870,17 @@ func UnmarshalInputGRPCServiceSpec(v interface{}) (InputGRPCServiceSpec, error) 
 
 	for k, v := range asMap {
 		switch k {
+		case "empty":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.Empty = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -2006,6 +2049,17 @@ func UnmarshalInputSwaggerServiceSpec(v interface{}) (InputSwaggerServiceSpec, e
 
 	for k, v := range asMap {
 		switch k {
+		case "empty":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.Empty = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -2153,10 +2207,14 @@ type AzureFunction {
 union ServiceSpec = SwaggerServiceSpec | GRPCServiceSpec
 
 # Not implemented yet
-type SwaggerServiceSpec  {}
+type SwaggerServiceSpec  {
+    empty: String
+}
 
 # Not implemented yet
-type GRPCServiceSpec {}
+type GRPCServiceSpec {
+    empty: String
+}
 
 type Metadata {
     name:            String!
@@ -2248,10 +2306,14 @@ input InputServiceSpec  {
 }
 
 # Not implemented yet
-input InputSwaggerServiceSpec  {}
+input InputSwaggerServiceSpec  {
+    empty: String
+}
 
 # Not implemented yet
-input InputGRPCServiceSpec {}
+input InputGRPCServiceSpec {
+    empty: String
+}
 
 input InputMetadata {
     name:            String!

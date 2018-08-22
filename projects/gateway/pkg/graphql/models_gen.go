@@ -29,6 +29,7 @@ type AzureUpstreamSpec struct {
 	Functions       []AzureFunction `json:"functions"`
 }
 type GRPCServiceSpec struct {
+	Empty *string `json:"empty"`
 }
 type InputAwsLambdaFunction struct {
 	FunctionName string `json:"functionName"`
@@ -49,6 +50,7 @@ type InputAzureUpstreamSpec struct {
 	Functions       []InputAzureFunction `json:"functions"`
 }
 type InputGRPCServiceSpec struct {
+	Empty *string `json:"empty"`
 }
 type InputKubeUpstreamSpec struct {
 	ServiceName      string                   `json:"serviceName"`
@@ -72,6 +74,7 @@ type InputStatus struct {
 	Reason *string `json:"reason"`
 }
 type InputSwaggerServiceSpec struct {
+	Empty *string `json:"empty"`
 }
 type InputUpstream struct {
 	Spec     InputUpstreamSpec `json:"spec"`
@@ -102,6 +105,7 @@ type Status struct {
 	Reason *string `json:"reason"`
 }
 type SwaggerServiceSpec struct {
+	Empty *string `json:"empty"`
 }
 type Upstream struct {
 	Spec     UpstreamSpec `json:"spec"`

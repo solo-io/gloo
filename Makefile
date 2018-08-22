@@ -72,3 +72,23 @@ $(OUTPUT_DIR)/protoc-gen-solo-kit: $(SOURCES)
 .PHONY: install-plugin
 install-plugin: $(OUTPUT_DIR)/protoc-gen-solo-kit
 	cp $(OUTPUT_DIR)/protoc-gen-solo-kit ${GOPATH}/bin/
+
+
+#----------------------------------------------------------------------------------
+# Gateway
+#----------------------------------------------------------------------------------
+#
+#---------
+#--------- Graphql Stubs
+#---------
+
+GATEWAY_DIR=projects/gateway
+GATEWAY_GRAPHQL_DIR=$(GATEWAY_DIR)/pkg/graphql
+GATEWAY_GRAPHQL_GENERATED_FILES=$(GATEWAY_GRAPHQL_DIR)/generated.go $(GATEWAY_GRAPHQL_DIR)/models_gen.go
+
+.PHONY: gateway
+gateway: $(GATEWAY_GRAPHQL_GENERATED_FILES)
+
+$(GATEWAY_GRAPHQL_GENERATED_FILES): projects/gateway/pkg/graphql/schema.graphqls projects/gateway/pkg/graphql/types.json
+	cd $(GATEWAY_GRAPHQL_DIR) && \
+	gqlgen --typemap types.json --schema ./schema.graphqls

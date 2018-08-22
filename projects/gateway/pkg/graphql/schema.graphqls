@@ -52,10 +52,14 @@ type AzureFunction {
 union ServiceSpec = SwaggerServiceSpec | GRPCServiceSpec
 
 # Not implemented yet
-type SwaggerServiceSpec  {}
+type SwaggerServiceSpec  {
+    empty: String
+}
 
 # Not implemented yet
-type GRPCServiceSpec {}
+type GRPCServiceSpec {
+    empty: String
+}
 
 type Metadata {
     name:            String!
@@ -147,10 +151,14 @@ input InputServiceSpec  {
 }
 
 # Not implemented yet
-input InputSwaggerServiceSpec  {}
+input InputSwaggerServiceSpec  {
+    empty: String
+}
 
 # Not implemented yet
-input InputGRPCServiceSpec {}
+input InputGRPCServiceSpec {
+    empty: String
+}
 
 input InputMetadata {
     name:            String!
