@@ -1,16 +1,14 @@
-//go:generate gorunpkg github.com/99designs/gqlgen
-
 package graphql
 
 import (
 	"context"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/graph"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/models"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 )
 
 type Resolver struct {
@@ -91,7 +89,7 @@ func (r *upstreamQueryResolver) List(ctx context.Context, obj *customtypes.Upstr
 
 func (r *upstreamQueryResolver) Get(ctx context.Context, obj *customtypes.UpstreamQuery, name string) (*models.Upstream, error) {
 	upstream, err := r.Upstreams.Read(obj.Namespace, name, clients.ReadOpts{
-		Ctx:      ctx,
+		Ctx: ctx,
 	})
 	if err != nil {
 		return nil, err

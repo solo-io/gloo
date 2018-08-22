@@ -46,6 +46,7 @@ type KubeUpstreamSpec {
 }
 
 type AwsLambdaFunction {
+    logicalName:  String!
     functionName: String!
     qualifier:    String!
 }
@@ -79,6 +80,7 @@ type VirtualServiceQuery {
 type VirtualService {
     domains: [String]
     routes:  [Route]
+    sslConfig: SslConfig
     plugins: VirtualServicePlugins
 
     metadata: Metadata!
@@ -97,9 +99,49 @@ type VirtualServicePlugins {
 }
 
 type Matcher {
-
+    pathMatch: String!
+    pathMatchType: PathMatchType!
+    headers: [KeyVaueMatcher]
+    queryParameters: [KeyValueMatcher]
+    methods: [String]
 }
 
+type KeyVaueMatcher {
+    name: String!
+    value: String!
+    isRegex: Boolean!
+}
+
+union Destination = MultiDestination | Destination
+
+type MultiDestination {
+    destinations: [WeightedDestination]
+}
+
+type WeightedDestination {
+    destination: Destination!
+    weight: Int!
+}
+
+type Destination {
+    upstreamName: String!
+    destinationSpec: DestinationSpec
+}
+
+union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec
+
+type AwsDestinationSpec {
+    logicalName: String!
+    invocationStyle: AwsLambdaInvocationStyle!
+}
+
+type AzureDestinationSpec {
+    functionName: String!
+}
+
+type SslConfig {
+    secretRef: String!
+}
 
 # Common output types
 
@@ -229,3 +271,14 @@ enum State {
 }
 
 scalar MapStringString
+
+enum PathMatchType {
+    PREFIX
+    REGEX
+    EXACT
+}
+
+enum AwsLambdaInvocationStyle {
+    SYNC
+    ASYNC
+}
