@@ -424,6 +424,19 @@
   version = "v1.0.1"
 
 [[projects]]
+  name = "github.com/vektah/gqlgen"
+  packages = [
+    "graphql",
+    "neelance/common",
+    "neelance/errors",
+    "neelance/introspection",
+    "neelance/query",
+    "neelance/schema"
+  ]
+  revision = "381b34691fd93829e50ba8821412dc3467ec4821"
+  version = "0.3.0"
+
+[[projects]]
   name = "go.uber.org/atomic"
   packages = ["."]
   revision = "1ea20fb1cbb1cc08cbd0d913a96dead89aa18289"
@@ -742,6 +755,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ddb3e9f710a35bab71da783fdff7fea53ebb2482987ca057792c3aa16acba8f5"
+  inputs-digest = "5395544cd9d64a2a2dfaa6e1c3920541fedb920727e37b6f6a55a8a9deab5be0"
   solver-name = "gps-cdcl"
   solver-version = 1

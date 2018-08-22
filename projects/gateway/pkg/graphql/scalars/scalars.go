@@ -6,7 +6,7 @@ import (
 	"io"
 	"encoding/json"
 	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/gloo/pkg/protoutil"
+	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 )
 
 type Duration time.Duration
@@ -51,7 +51,7 @@ func NewStruct(protoStruct *types.Struct) *Struct {
 	if protoStruct == nil {
 		return nil
 	}
-	m, err := protoutil.MarshalMap(protoStruct)
+	m, err := protoutils.MarshalMap(protoStruct)
 	if err != nil {
 		panic(err)
 	}
@@ -86,7 +86,7 @@ func (s *Struct) GetStruct() *types.Struct {
 		return nil
 	}
 	var protoStruct types.Struct
-	if err := protoutil.UnmarshalMap(map[string]interface{}(*s), &protoStruct); err != nil {
+	if err := protoutils.UnmarshalMap(map[string]interface{}(*s), &protoStruct); err != nil {
 		panic(err)
 	}
 	return &protoStruct
@@ -101,6 +101,7 @@ func NewMapStringString(m map[string]string) *MapStringString {
 	ourMapStringString := MapStringString(m)
 	return &ourMapStringString
 }
+
 // UnmarshalGQL implements the graphql.Marshaler interface
 func (m *MapStringString) UnmarshalGQL(v interface{}) error {
 	mapStruct, ok := v.(map[string]string)
