@@ -18,19 +18,31 @@ func (r *Resolver) Mutation() graph.MutationResolver {
 func (r *Resolver) Query() graph.QueryResolver {
 	return &queryResolver{r}
 }
+func (r *Resolver) UpstreamMutation() graph.UpstreamMutationResolver {
+	return &upstreamMutationResolver{r}
+}
 func (r *Resolver) UpstreamQuery() graph.UpstreamQueryResolver {
 	return &upstreamQueryResolver{r}
 }
 
 type mutationResolver struct{ *Resolver }
 
-func (r *mutationResolver) Upstreams(ctx context.Context, namespace string) (*models.UpstreamMutation, error) {
+func (r *mutationResolver) Upstreams(ctx context.Context, namespace string) (*customtypes.UpstreamMutation, error) {
 	panic("not implemented")
 }
 
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Upstreams(ctx context.Context, namespace string) (*customtypes.UpstreamQuery, error) {
+	panic("not implemented")
+}
+
+type upstreamMutationResolver struct{ *Resolver }
+
+func (r *upstreamMutationResolver) Create(ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error) {
+	panic("not implemented")
+}
+func (r *upstreamMutationResolver) Update(ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error) {
 	panic("not implemented")
 }
 
