@@ -1,8 +1,10 @@
-# The query type, represents all of the entry points into our object graph
+# Query / Outputs
+# Query / Outputs
+# Query / Outputs
+# Query / Outputs
+
 type Query {
     upstreams(namespace: String!):       UpstreamQuery
-    virtualServices(namespace: String!): VirtualServicesQuery
-    userConfigProperties:                [UserConfigProperty]
 }
 
 type UpstreamQuery {
@@ -68,13 +70,112 @@ type Status {
     reason: String
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Mutations/Inputs
+# Mutations/Inputs
+# Mutations/Inputs
+# Mutations/Inputs
+
 type Mutation {
     upstreams(namespace: String!): UpstreamMutation
 }
 
 type UpstreamMutation {
-    create(upstream: Upstream!): Upstream
-    update(upstream: Upstream!): Upstream
+    create(upstream: InputUpstream!): Upstream
+    update(upstream: InputUpstream!): Upstream
+}
+
+input InputUpstream {
+    spec:     InputUpstreamSpec!
+    metadata: InputMetadata!
+    status:   InputStatus!
+}
+
+input InputUpstreamSpec {
+    # oneof: aws | azure | kube
+    aws: InputAwsUpstreamSpec
+    azure: InputAzureUpstreamSpec
+    kube: InputKubeUpstreamSpec
+}
+
+input InputAwsUpstreamSpec {
+    region:    String!
+    secretRef: String!
+    functions: [InputAwsLambdaFunction]
+}
+
+input InputAzureUpstreamSpec {
+    functionAppName: String!
+    secretRef:       String
+    functions:       [InputAzureFunction]
+}
+
+input InputKubeUpstreamSpec {
+    serviceName:      String!
+    serviceNamespace: String!
+    servicePort:      Int!
+    selector:         MapStringString
+}
+
+input InputAwsLambdaFunction {
+    functionName: String!
+    qualifier:    String!
+}
+
+input InputAzureFunction {
+    functionName: String!
+    authLevel:    String!
+}
+
+input InputServiceSpec  {
+    # oneof: swagger | grpc
+    swagger: InputSwaggerServiceSpec
+    grpc:    InputGRPCServiceSpec
+}
+
+# Not implemented yet
+input InputSwaggerServiceSpec  {}
+
+# Not implemented yet
+input InputGRPCServiceSpec {}
+
+input InputMetadata {
+    name:            String!
+    namespace:       String!
+    resourceVersion: String!
+    labels:          MapStringString
+    annotations:     MapStringString
+}
+
+input InputStatus {
+    state:  State!
+    reason: String
+}
+
+
+
+
+
+
+# Scalars / Extra
+
+enum State {
+    PENDING
+    ACCEPTED
+    REJECTED
 }
 
 scalar MapStringString
