@@ -25,15 +25,15 @@ It has these top-level messages:
 	HttpListener
 	VirtualHost
 	Route
+	Matcher
+	HeaderMatcher
+	QueryParameterMatcher
 	RouteAction
 	Destination
 	MultiDestination
 	WeightedDestination
 	RedirectAction
 	DirectResponseAction
-	RouteMatcher
-	HeaderMatcher
-	QueryParameterMatcher
 	SslConfig
 	SSLFiles
 	Secret

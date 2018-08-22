@@ -87,12 +87,17 @@ type VirtualService {
 
 
 type Route {
-
+    matcher: Matcher!
+    destination: Destination!
 }
 
 # not implemented
 type VirtualServicePlugins {
     empty: String
+}
+
+type Matcher {
+
 }
 
 

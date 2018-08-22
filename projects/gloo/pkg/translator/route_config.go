@@ -191,17 +191,17 @@ func setWeightedClusters(multiDest *v1.MultiDestination, out *envoyroute.RouteAc
 	return nil
 }
 
-func setEnvoyPathMatcher(in *v1.RouteMatcher, out *envoyroute.RouteMatch) {
+func setEnvoyPathMatcher(in *v1.Matcher, out *envoyroute.RouteMatch) {
 	switch path := in.PathSpecifier.(type) {
-	case *v1.RouteMatcher_Exact:
+	case *v1.Matcher_Exact:
 		out.PathSpecifier = &envoyroute.RouteMatch_Path{
 			Path: path.Exact,
 		}
-	case *v1.RouteMatcher_Regex:
+	case *v1.Matcher_Regex:
 		out.PathSpecifier = &envoyroute.RouteMatch_Regex{
 			Regex: path.Regex,
 		}
-	case *v1.RouteMatcher_Prefix:
+	case *v1.Matcher_Prefix:
 		out.PathSpecifier = &envoyroute.RouteMatch_Prefix{
 			Prefix: path.Prefix,
 		}
