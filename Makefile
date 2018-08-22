@@ -84,11 +84,11 @@ install-plugin: $(OUTPUT_DIR)/protoc-gen-solo-kit
 
 GATEWAY_DIR=projects/gateway
 GATEWAY_GRAPHQL_DIR=$(GATEWAY_DIR)/pkg/graphql
-GATEWAY_GRAPHQL_GENERATED_FILES=$(GATEWAY_GRAPHQL_DIR)/generated.go $(GATEWAY_GRAPHQL_DIR)/models_gen.go
+GATEWAY_GRAPHQL_GENERATED_FILES=$(GATEWAY_GRAPHQL_DIR)/models/generated.go $(GATEWAY_GRAPHQL_DIR)/graph/generated.go
 
 .PHONY: gateway
 gateway: $(GATEWAY_GRAPHQL_GENERATED_FILES)
 
-$(GATEWAY_GRAPHQL_GENERATED_FILES): projects/gateway/pkg/graphql/schema.graphqls projects/gateway/pkg/graphql/types.json
+$(GATEWAY_GRAPHQL_GENERATED_FILES): $(GATEWAY_GRAPHQL_DIR)/schema.graphql
 	cd $(GATEWAY_GRAPHQL_DIR) && \
-	gqlgen --typemap types.json --schema ./schema.graphqls
+	gqlgen -v

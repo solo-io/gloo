@@ -14,7 +14,7 @@ type Query {
 
 type UpstreamQuery {
     list(selector: MapStringString): [Upstream]
-    get(name: String):                Upstream
+    get(name: String!):                Upstream
 }
 
 type Upstream {

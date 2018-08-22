@@ -19,4 +19,8 @@ resolver:
 # graphql. These normally come from the db or a remote api.
 models:
   MapStringString:
-    model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/scalars.MapStringString
+    model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.MapStringString
+  UpstreamQuery:
+    model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.UpstreamQuery
+  UpstreamMutation:
+    model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.UpstreamMutation

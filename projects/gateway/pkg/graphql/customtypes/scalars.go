@@ -1,4 +1,4 @@
-package scalars
+package customtypes
 
 import (
 	"encoding/json"
