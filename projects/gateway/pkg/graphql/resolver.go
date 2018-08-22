@@ -66,7 +66,7 @@ func (r *upstreamMutationResolver) Create(ctx context.Context, obj *customtypes.
 }
 
 func (r *upstreamMutationResolver) Update(ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error) {
-	panic("not implemented")
+	return r.write(true, ctx, obj, upstream)
 }
 
 type upstreamQueryResolver struct {
@@ -75,8 +75,26 @@ type upstreamQueryResolver struct {
 }
 
 func (r *upstreamQueryResolver) List(ctx context.Context, obj *customtypes.UpstreamQuery, selector *customtypes.MapStringString) ([]*models.Upstream, error) {
-	panic("not implemented")
+	var convertedSelector map[string]string
+	if selector != nil {
+		convertedSelector = selector.GetMap()
+	}
+	list, err := r.Upstreams.List(obj.Namespace, clients.ListOpts{
+		Ctx:      ctx,
+		Selector: convertedSelector,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputUpstreams(list), nil
 }
+
 func (r *upstreamQueryResolver) Get(ctx context.Context, obj *customtypes.UpstreamQuery, name string) (*models.Upstream, error) {
-	panic("not implemented")
+	upstream, err := r.Upstreams.Read(obj.Namespace, name, clients.ReadOpts{
+		Ctx:      ctx,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputUpstream(upstream), nil
 }
