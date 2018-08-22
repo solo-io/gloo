@@ -8,9 +8,10 @@ import (
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gateway/pkg/propagator"
 )
 
-func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts, opts clients.WatchOpts) error {
+func Run(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts, opts clients.WatchOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "setup")
 	inputFactory := factory.NewResourceClientFactory(inputResourceOpts)
@@ -34,8 +35,10 @@ func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts
 
 	rpt := reporter.NewReporter("gateway", gatewayClient.BaseClient(), virtualServicesClient.BaseClient())
 
+	prop := propagator.NewPropagator("gateway", gatewayClient, virtualServicesClient, proxyClient)
+
 	errs := make(chan error)
-	sync := syncer.NewSyncer(namespace, proxyClient, rpt, errs)
+	sync := syncer.NewSyncer(namespace, proxyClient, rpt, prop, errs)
 
 	eventLoop := v1.NewEventLoop(cache, sync)
 	eventLoop.Run(namespace, opts)

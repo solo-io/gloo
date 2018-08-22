@@ -17,12 +17,12 @@ import (
 type syncer struct {
 	namespace       string
 	reporter        reporter.Reporter
-	propagator      propagator.Propagator
+	propagator      *propagator.Propagator
 	writeErrs       chan error
 	proxyReconciler gloov1.ProxyReconciler
 }
 
-func NewSyncer(namespace string, proxyClient gloov1.ProxyClient, reporter reporter.Reporter, propagator propagator.Propagator, writeErrs chan error) v1.Syncer {
+func NewSyncer(namespace string, proxyClient gloov1.ProxyClient, reporter reporter.Reporter, propagator *propagator.Propagator, writeErrs chan error) v1.Syncer {
 	return &syncer{
 		namespace:       namespace,
 		reporter:        reporter,
@@ -31,8 +31,6 @@ func NewSyncer(namespace string, proxyClient gloov1.ProxyClient, reporter report
 		proxyReconciler: gloov1.NewProxyReconciler(proxyClient),
 	}
 }
-
-func metaForSnap(snap *v1.Snapshot) core.Metadata {}
 
 func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	ctx = contextutils.WithLogger(ctx, "gateway.syncer")
@@ -104,6 +102,7 @@ func joinGatewayNames(gateways v1.GatewayList) string {
 func validateGateways(gateways v1.GatewayList, resourceErrs reporter.ResourceErrors) {
 
 }
+
 func validateVirtualServices(virtualServices v1.VirtualServiceList, resourceErrs reporter.ResourceErrors) {
 
 }
@@ -123,7 +122,7 @@ func desiredListener(gateway *v1.Gateway, virtualSerivces v1.VirtualServiceList,
 			resourceErrs.AddError(gateway, err)
 			continue
 		}
-
+		virtualHosts = append(virtualHosts, virtualService.VirtualHost)
 	}
 	return &gloov1.Listener{
 		Name:        gateway.Metadata.Name,
