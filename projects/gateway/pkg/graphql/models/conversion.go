@@ -6,23 +6,9 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
-type Converter interface {
-	ConvertInputUpstreams(upstreams []InputUpstream) []*v1.Upstream
-	ConvertInputUpstream(upstream InputUpstream) *v1.Upstream
-	ConvertOutputUpstreams(upstreams []*v1.Upstream) []*Upstream
-	ConvertOutputUpstream(upstream *v1.Upstream) *Upstream
-	ConvertInputVirtualServices(virtualServices []InputVirtualService) ([]*v1.VirtualService, error)
-	ConvertInputVirtualService(virtualService InputVirtualService) (*v1.VirtualService, error)
-	ConvertOutputVirtualServices(virtualServices []*v1.VirtualService) []*VirtualService
-	ConvertOutputVirtualService(virtualService *v1.VirtualService) *VirtualService
-	ConvertUserConfigProperties(userData *userdata.UserDataResponse) ([]*UserConfigProperty, error)
-	ConvertInputRoutes(routes []*InputRoute) ([]*v1.Route, error)
-	ConvertInputRoute(route *InputRoute) (*v1.Route, error)
-}
+type Converter struct{}
 
-type converter struct{}
-
-func (c *converter) ConvertInputUpstreams(upstream []InputUpstream) []*v1.Upstream {
+func (c *Converter) ConvertInputUpstreams(upstream []InputUpstream) []*v1.Upstream {
 	var result []*v1.Upstream
 	for _, us := range upstream {
 		result = append(result, c.ConvertInputUpstream(us))
@@ -30,7 +16,7 @@ func (c *converter) ConvertInputUpstreams(upstream []InputUpstream) []*v1.Upstre
 	return result
 }
 
-func (c *converter) ConvertInputUpstream(upstream InputUpstream) *v1.Upstream {
+func (c *Converter) ConvertInputUpstream(upstream InputUpstream) *v1.Upstream {
 	return &v1.Upstream{
 		Name:              upstream.Name,
 		Type:              upstream.Type,
@@ -67,7 +53,7 @@ func convertInputFunction(function *InputFunction) *v1.Function {
 	}
 }
 
-func (c *converter) ConvertOutputUpstreams(upstreams []*v1.Upstream) []*Upstream {
+func (c *Converter) ConvertOutputUpstreams(upstreams []*v1.Upstream) []*Upstream {
 	var result []*Upstream
 	for _, us := range upstreams {
 		result = append(result, c.ConvertOutputUpstream(us))
@@ -75,7 +61,7 @@ func (c *converter) ConvertOutputUpstreams(upstreams []*v1.Upstream) []*Upstream
 	return result
 }
 
-func (c *converter) ConvertOutputUpstream(upstream *v1.Upstream) *Upstream {
+func (c *Converter) ConvertOutputUpstream(upstream *v1.Upstream) *Upstream {
 	return &Upstream{
 		Name:              upstream.Name,
 		Type:              upstream.Type,
@@ -113,7 +99,7 @@ func convertOutputFunction(function *v1.Function) *Function {
 	}
 }
 
-func (c *converter) ConvertInputVirtualServices(virtualService []InputVirtualService) ([]*v1.VirtualService, error) {
+func (c *Converter) ConvertInputVirtualServices(virtualService []InputVirtualService) ([]*v1.VirtualService, error) {
 	var result []*v1.VirtualService
 	for _, vs := range virtualService {
 		converted, err := c.ConvertInputVirtualService(vs)
@@ -125,7 +111,7 @@ func (c *converter) ConvertInputVirtualServices(virtualService []InputVirtualSer
 	return result, nil
 }
 
-func (c *converter) ConvertInputVirtualService(virtualService InputVirtualService) (*v1.VirtualService, error) {
+func (c *Converter) ConvertInputVirtualService(virtualService InputVirtualService) (*v1.VirtualService, error) {
 	routes, err := c.ConvertInputRoutes(virtualService.Routes)
 	if err != nil {
 		return nil, errors.Wrap(err, "validating input routes")
@@ -141,7 +127,7 @@ func (c *converter) ConvertInputVirtualService(virtualService InputVirtualServic
 	}, nil
 }
 
-func (c *converter) ConvertUserConfigProperties(userData *userdata.UserDataResponse) ([]*UserConfigProperty, error) {
+func (c *Converter) ConvertUserConfigProperties(userData *userdata.UserDataResponse) ([]*UserConfigProperty, error) {
 	output := []*UserConfigProperty{}
 	for _, ud := range userData.UserData {
 		output = append(output, &UserConfigProperty{
@@ -152,7 +138,7 @@ func (c *converter) ConvertUserConfigProperties(userData *userdata.UserDataRespo
 	return output, nil
 }
 
-func (c *converter) ConvertInputRoutes(routes []*InputRoute) ([]*v1.Route, error) {
+func (c *Converter) ConvertInputRoutes(routes []*InputRoute) ([]*v1.Route, error) {
 	var v1Routes []*v1.Route
 	for _, fn := range routes {
 		converted, err := c.ConvertInputRoute(fn)
@@ -164,7 +150,7 @@ func (c *converter) ConvertInputRoutes(routes []*InputRoute) ([]*v1.Route, error
 	return v1Routes, nil
 }
 
-func (c *converter) ConvertInputRoute(route *InputRoute) (*v1.Route, error) {
+func (c *Converter) ConvertInputRoute(route *InputRoute) (*v1.Route, error) {
 	var prefixRewrite string
 	if route.PrefixRewrite != nil {
 		prefixRewrite = *route.PrefixRewrite
@@ -282,7 +268,7 @@ func convertInputSSLConfig(inSSL *InputSSLConfig) *v1.SSLConfig {
 	}
 }
 
-func (c *converter) ConvertOutputVirtualServices(virtualServices []*v1.VirtualService) []*VirtualService {
+func (c *Converter) ConvertOutputVirtualServices(virtualServices []*v1.VirtualService) []*VirtualService {
 	var result []*VirtualService
 	for _, vs := range virtualServices {
 		result = append(result, c.ConvertOutputVirtualService(vs))
@@ -290,7 +276,7 @@ func (c *converter) ConvertOutputVirtualServices(virtualServices []*v1.VirtualSe
 	return result
 }
 
-func (c *converter) ConvertOutputVirtualService(virtualService *v1.VirtualService) *VirtualService {
+func (c *Converter) ConvertOutputVirtualService(virtualService *v1.VirtualService) *VirtualService {
 	return &VirtualService{
 		Name:      virtualService.Name,
 		Domains:   pointerify(virtualService.Domains),
