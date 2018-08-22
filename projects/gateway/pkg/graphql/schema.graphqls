@@ -1,10 +1,71 @@
 # The query type, represents all of the entry points into our object graph
 type Query {
-    upstreams(selector: MapStringString): [Upstream]
-    upstream(namespace: String!, name: String!): Upstream
-    virtualServices(selector: MapStringString): [VirtualService]
-    virtualService(namespace: String!, name: String!): VirtualService
-    userConfigProperties: [UserConfigProperty]
+    upstreams(namespace: String!):       UpstreamQuery
+    virtualServices(namespace: String!): VirtualServicesQuery
+    userConfigProperties:                [UserConfigProperty]
+}
+
+type UpstreamQuery {
+    list(selector: MapStringString): [Upstream]
+    get(name: String):                Upstream
+}
+
+type Upstream {
+    spec:     UpstreamSpec!
+    metadata: Metadata!
+    status:   Status!
+}
+
+union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec
+
+type AwsUpstreamSpec {
+    region:    String!
+    secretRef: String!
+    functions: [AwsLambdaFunction]
+}
+
+type AzureUpstreamSpec {
+    functionAppName: String!
+    secretRef:       String
+    functions:       [AzureFunction]
+}
+
+type KubeUpstreamSpec {
+    serviceName:      String!
+    serviceNamespace: String!
+    servicePort:      Int!
+    selector:         MapStringString
+}
+
+type AwsLambdaFunction {
+    functionName: String!
+    qualifier:    String!
+}
+
+type AzureFunction {
+    functionName: String!
+    authLevel:    String!
+}
+
+union ServiceSpec = SwaggerServiceSpec | GRPCServiceSpec
+
+# Not implemented yet
+type SwaggerServiceSpec  {}
+
+# Not implemented yet
+type GRPCServiceSpec {}
+
+type Metadata {
+    name:            String!
+    namespace:       String!
+    resourceVersion: String!
+    labels:          MapStringString
+    annotations:     MapStringString
+}
+
+type Status {
+    state:  State!
+    reason: String
 }
 
 # The mutation type, represents all updates we can make to our data
@@ -27,14 +88,9 @@ type Mutation {
 ###
 
 type Upstream {
-    name: String!
-    type: String!
-    connectionTimeout: Duration
-    spec: Struct
-    functions: [Function]
-    serviceInfo: ServiceInfo
-    status: Status
-    metadata: Metadata
+    spec: UpstreamSpec!
+    status: Status!
+    metadata: Metadata!
 }
 
 type VirtualService {
@@ -118,9 +174,9 @@ type Metadata {
     annotations: MapStringString
 }
 
-type UserConfigProperty {	
-  key: String!	
-  value: String!	
+type UserConfigProperty {
+    key: String!
+    value: String!
 }
 
 ###
@@ -234,9 +290,9 @@ input InputMetadata {
     annotations: MapStringString
 }
 
-input InputUserConfigProperty {	
-    key: String!	
-    value: String!	
+input InputUserConfigProperty {
+    key: String!
+    value: String!
 }
 
 
