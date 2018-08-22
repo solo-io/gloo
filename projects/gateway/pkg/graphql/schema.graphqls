@@ -68,260 +68,300 @@ type Status {
     reason: String
 }
 
-# The mutation type, represents all updates we can make to our data
 type Mutation {
-    createUpstream(upstream: InputUpstream!) : Upstream
-    updateUpstream(upstream: InputUpstream!) : Upstream
-    deleteUpstream(name: String!) : Boolean
-
-    createVirtualService(virtualService: InputVirtualService!) : VirtualService
-    updateVirtualService(virtualService: InputVirtualService!) : VirtualService
-    deleteVirtualService(name: String!) : Boolean
-
-    addRoute(virtualServiceName: String!, index: Int!, route: InputRoute!) : VirtualService
-    updateRoute(virtualServiceName: String!, index: Int!, route: InputRoute!) : VirtualService
-    deleteRoute(virtualServiceName: String!, index: Int!) : VirtualService
+    upstreams(namespace: String!): UpstreamMutation
 }
 
-###
-### Output types
-###
-
-type Upstream {
-    spec: UpstreamSpec!
-    status: Status!
-    metadata: Metadata!
+type UpstreamMutation {
+    create(upstream: Upstream!): Upstream
+    update(upstream: Upstream!): Upstream
 }
 
-type VirtualService {
-    name: String!
-    domains: [String]
-    routes: [Route]
-    sslConfig: SSLConfig
-    roles: [String]
-    status: Status
-    metadata: Metadata
-    destinationUpstreams: [Upstream]
-}
-
-type Route {
-    matcher: Matcher!
-    destination: Destination!
-    prefixRewrite: String
-    extensions: Struct
-}
-
-type MultiDestination {
-    weighedDestinations: [WeightedDestination]!
-}
-
-type WeightedDestination {
-    destination: SingleDestination!
-    weight: Int!
-}
-
-type RequestMatcher {
-    path: Path!
-    headers: MapStringString
-    queryParams: MapStringString
-    verbs: [String]
-}
-
-type EventMatcher {
-    eventType: String!
-}
-
-type SSLConfig {
-    secretRef: String!
-}
-type UpstreamDestination {
-    name: String!
-}
-
-type FunctionDestination {
-    upstreamName: String!
-    functionName: String!
-}
-
-type PathPrefix implements Path {
-    path: String!
-}
-type PathRegex implements Path {
-    path: String!
-}
-type PathExact implements Path {
-    path: String!
-}
-
-type Function {
-    name: String!
-    spec: Struct
-}
-
-type ServiceInfo {
-    type: String!
-    properties: Struct
-}
-
-type Status {
-    state: State!
-    reason: String
-}
-
-type Metadata {
-    resourceVersion: String!
-    namespace: String
-    annotations: MapStringString
-}
-
-type UserConfigProperty {
-    key: String!
-    value: String!
-}
-
-###
-### Input types
-###
-
-input InputUpstream {
-    name: String!
-    type: String!
-    connectionTimeout: Duration
-    spec: Struct
-    functions: [InputFunction]
-    serviceInfo: InputServiceInfo
-    metadata: InputMetadata
-}
-
-input InputVirtualService {
-    name: String!
-    domains: [String]
-    routes: [InputRoute]
-    sslConfig: InputSSLConfig
-    roles: [String]
-    metadata: InputMetadata
-}
-
-input InputRoute {
-    matcher: InputMatcher!
-    destination: InputDestination!
-
-    prefixRewrite: String
-    extensions: Struct
-}
-
-input InputMatcher {
-    # oneof requestMatcher | eventMatcher
-    requestMatcher: InputRequestMatcher
-    eventMatcher: InputEventMatcher
-}
-input InputDestination {
-    # oneof multiDestinations | singleDestination
-    singleDestination: InputSingleDestination
-    multiDestinations: [InputWeightedDestination]
-}
-
-input InputWeightedDestination {
-    destination: InputSingleDestination!
-    weight: Int!
-}
-
-input InputSingleDestination {
-    # oneof upstreamDestination | functionDestination
-    upstreamDestination: InputUpstreamDestination
-    functionDestination: InputFunctionDestination
-}
-
-input InputRequestMatcher {
-    # oneof pathPrefix | pathRegex | pathExact
-    pathPrefix: InputPathPrefix
-    pathRegex: InputPathRegex
-    pathExact: InputPathExact
-
-    headers: MapStringString
-    queryParams: MapStringString
-    verbs: [String]
-}
-
-input InputEventMatcher {
-    eventType: String!
-}
-
-input InputSSLConfig {
-    secretRef: String!
-}
-input InputUpstreamDestination {
-    name: String!
-}
-
-input InputFunctionDestination {
-    upstreamName: String!
-    functionName: String!
-}
-
-input InputPathPrefix {
-    path: String!
-}
-input InputPathRegex {
-    path: String!
-}
-input InputPathExact {
-    path: String!
-}
-
-input InputFunction {
-    name: String!
-    spec: Struct
-}
-
-input InputServiceInfo {
-    type: String!
-    properties: Struct
-}
-
-input InputStatus {
-    state: State!
-    reason: String
-}
-
-input InputMetadata {
-    resourceVersion: String!
-    namespace: String
-    annotations: MapStringString
-}
-
-input InputUserConfigProperty {
-    key: String!
-    value: String!
-}
-
-
-
-
-
-###
-### Interfaces, enums, scalars
-###
-union Matcher = RequestMatcher | EventMatcher
-
-type SingleDestination {
-    destination: SingleDestinationUnion!
-}
-
-union Destination = MultiDestination | SingleDestination
-union SingleDestinationUnion = FunctionDestination | UpstreamDestination
-
-interface Path {
-    path: String!
-}
-
-enum State {
-    PENDING
-    ACCEPTED
-    REJECTED
-}
-
-scalar Duration
-scalar Struct
-# graphql doesnt have generics or maps
 scalar MapStringString
+
+
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+## The mutation type, represents all updates we can make to our data
+#type Mutation {
+#    createUpstream(upstream: InputUpstream!) : Upstream
+#    updateUpstream(upstream: InputUpstream!) : Upstream
+#    deleteUpstream(name: String!) : Boolean
+#
+#    createVirtualService(virtualService: InputVirtualService!) : VirtualService
+#    updateVirtualService(virtualService: InputVirtualService!) : VirtualService
+#    deleteVirtualService(name: String!) : Boolean
+#
+#    addRoute(virtualServiceName: String!, index: Int!, route: InputRoute!) : VirtualService
+#    updateRoute(virtualServiceName: String!, index: Int!, route: InputRoute!) : VirtualService
+#    deleteRoute(virtualServiceName: String!, index: Int!) : VirtualService
+#}
+#
+####
+#### Output types
+####
+#
+#type Upstream {
+#    spec: UpstreamSpec!
+#    status: Status!
+#    metadata: Metadata!
+#}
+#
+#type VirtualService {
+#    name: String!
+#    domains: [String]
+#    routes: [Route]
+#    sslConfig: SSLConfig
+#    roles: [String]
+#    status: Status
+#    metadata: Metadata
+#    destinationUpstreams: [Upstream]
+#}
+#
+#type Route {
+#    matcher: Matcher!
+#    destination: Destination!
+#    prefixRewrite: String
+#    extensions: Struct
+#}
+#
+#type MultiDestination {
+#    weighedDestinations: [WeightedDestination]!
+#}
+#
+#type WeightedDestination {
+#    destination: SingleDestination!
+#    weight: Int!
+#}
+#
+#type RequestMatcher {
+#    path: Path!
+#    headers: MapStringString
+#    queryParams: MapStringString
+#    verbs: [String]
+#}
+#
+#type EventMatcher {
+#    eventType: String!
+#}
+#
+#type SSLConfig {
+#    secretRef: String!
+#}
+#type UpstreamDestination {
+#    name: String!
+#}
+#
+#type FunctionDestination {
+#    upstreamName: String!
+#    functionName: String!
+#}
+#
+#type PathPrefix implements Path {
+#    path: String!
+#}
+#type PathRegex implements Path {
+#    path: String!
+#}
+#type PathExact implements Path {
+#    path: String!
+#}
+#
+#type Function {
+#    name: String!
+#    spec: Struct
+#}
+#
+#type ServiceInfo {
+#    type: String!
+#    properties: Struct
+#}
+#
+#type Status {
+#    state: State!
+#    reason: String
+#}
+#
+#type Metadata {
+#    resourceVersion: String!
+#    namespace: String
+#    annotations: MapStringString
+#}
+#
+#type UserConfigProperty {
+#    key: String!
+#    value: String!
+#}
+#
+####
+#### Input types
+####
+#
+#input InputUpstream {
+#    name: String!
+#    type: String!
+#    connectionTimeout: Duration
+#    spec: Struct
+#    functions: [InputFunction]
+#    serviceInfo: InputServiceInfo
+#    metadata: InputMetadata
+#}
+#
+#input InputVirtualService {
+#    name: String!
+#    domains: [String]
+#    routes: [InputRoute]
+#    sslConfig: InputSSLConfig
+#    roles: [String]
+#    metadata: InputMetadata
+#}
+#
+#input InputRoute {
+#    matcher: InputMatcher!
+#    destination: InputDestination!
+#
+#    prefixRewrite: String
+#    extensions: Struct
+#}
+#
+#input InputMatcher {
+#    # oneof requestMatcher | eventMatcher
+#    requestMatcher: InputRequestMatcher
+#    eventMatcher: InputEventMatcher
+#}
+#input InputDestination {
+#    # oneof multiDestinations | singleDestination
+#    singleDestination: InputSingleDestination
+#    multiDestinations: [InputWeightedDestination]
+#}
+#
+#input InputWeightedDestination {
+#    destination: InputSingleDestination!
+#    weight: Int!
+#}
+#
+#input InputSingleDestination {
+#    # oneof upstreamDestination | functionDestination
+#    upstreamDestination: InputUpstreamDestination
+#    functionDestination: InputFunctionDestination
+#}
+#
+#input InputRequestMatcher {
+#    # oneof pathPrefix | pathRegex | pathExact
+#    pathPrefix: InputPathPrefix
+#    pathRegex: InputPathRegex
+#    pathExact: InputPathExact
+#
+#    headers: MapStringString
+#    queryParams: MapStringString
+#    verbs: [String]
+#}
+#
+#input InputEventMatcher {
+#    eventType: String!
+#}
+#
+#input InputSSLConfig {
+#    secretRef: String!
+#}
+#input InputUpstreamDestination {
+#    name: String!
+#}
+#
+#input InputFunctionDestination {
+#    upstreamName: String!
+#    functionName: String!
+#}
+#
+#input InputPathPrefix {
+#    path: String!
+#}
+#input InputPathRegex {
+#    path: String!
+#}
+#input InputPathExact {
+#    path: String!
+#}
+#
+#input InputFunction {
+#    name: String!
+#    spec: Struct
+#}
+#
+#input InputServiceInfo {
+#    type: String!
+#    properties: Struct
+#}
+#
+#input InputStatus {
+#    state: State!
+#    reason: String
+#}
+#
+#input InputMetadata {
+#    resourceVersion: String!
+#    namespace: String
+#    annotations: MapStringString
+#}
+#
+#input InputUserConfigProperty {
+#    key: String!
+#    value: String!
+#}
+#
+#
+#
+#
+#
+####
+#### Interfaces, enums, scalars
+####
+#union Matcher = RequestMatcher | EventMatcher
+#
+#type SingleDestination {
+#    destination: SingleDestinationUnion!
+#}
+#
+#union Destination = MultiDestination | SingleDestination
+#union SingleDestinationUnion = FunctionDestination | UpstreamDestination
+#
+#interface Path {
+#    path: String!
+#}
+#
+#enum State {
+#    PENDING
+#    ACCEPTED
+#    REJECTED
+#}
+#
+#scalar Duration
+#scalar Struct
+## graphql doesnt have generics or maps
+#scalar MapStringString
