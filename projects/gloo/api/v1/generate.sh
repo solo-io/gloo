@@ -26,7 +26,14 @@ PROTOC_FLAGS="-I=${GOPATH}/src \
 
 protoc -I=${IN} ${PROTOC_FLAGS} ${IN}/*.proto
 
-IN=${IN}/plugins
+# generate plugin common
+protoc -I=${IN} \
+    -I=${GOPATH}/src \
+    -I=${GOPATH}/src/github.com/gogo/protobuf/protobuf \
+    -I=${GOPATH}/src/github.com/gogo/protobuf \
+    ${GOGO_OUT_FLAG} \
+    ${SOLO_KIT_FLAG} \
+    ${IN}/plugins/*.proto
 
 # protoc made me do it
 protoc -I=${IN} ${PROTOC_FLAGS} ${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/service_spec.proto
