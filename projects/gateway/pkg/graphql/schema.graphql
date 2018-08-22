@@ -3,6 +3,11 @@
 # Query / Outputs
 # Query / Outputs
 
+schema {
+    query: Query
+    mutation: Mutation
+}
+
 type Query {
     upstreams(namespace: String!):       UpstreamQuery
 }
