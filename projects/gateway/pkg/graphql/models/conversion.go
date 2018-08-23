@@ -2,13 +2,15 @@ package models
 
 import (
 	"log"
-	"sort"
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 )
 
 type Converter struct{}
@@ -23,13 +25,8 @@ func (c *Converter) ConvertInputUpstreams(upstream []InputUpstream) []*v1.Upstre
 
 func (c *Converter) ConvertInputUpstream(upstream InputUpstream) *v1.Upstream {
 	return &v1.Upstream{
-		Metadata:          upstream.Metadata,
-		Type:              upstream.Type,
-		ConnectionTimeout: upstream.ConnectionTimeout.GetDuration(),
-		Spec:              upstream.Spec.GetStruct(),
-		Functions:         convertInputFunctions(upstream.Functions),
-		ServiceInfo:       convertInputServiceInfo(upstream.ServiceInfo),
-		Metadata:          convertInputMetadata(upstream.Metadata),
+		Metadata:     convertInputMetadata(upstream.Metadata),
+		UpstreamSpec: convertInputUpstreamSpec(upstream.Spec),
 	}
 }
 
@@ -182,29 +179,66 @@ func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.Virtua
 	}
 }
 
-func convertInputServiceInfo(svcInfo *InputServiceInfo) *v1.ServiceInfo {
-	if svcInfo == nil {
-		return nil
+
+func convertInputUpstreamSpec(spec InputUpstreamSpec) *v1.UpstreamSpec {
+	out := &v1.UpstreamSpec{}
+	switch {
+	case spec.Aws != nil:
+		out.UpstreamType = &v1.UpstreamSpec_Aws{
+			Aws: &aws.UpstreamSpec{
+				Region:          spec.Aws.Region,
+				SecretRef:       spec.Aws.SecretRef,
+				LambdaFunctions: convertLambdaFunctions(spec.Aws.Functions),
+			},
+		}
+	case spec.Azure != nil:
+		var ref string
+		if spec.Azure.SecretRef != nil {
+			ref = *spec.Azure.SecretRef
+		}
+		out.UpstreamType = &v1.UpstreamSpec_Azure{
+			Azure: &azure.UpstreamSpec{
+				FunctionAppName: spec.Azure.FunctionAppName,
+				SecretRef:       ref,
+				Functions:       convertAzureFunctions(spec.Azure.Functions),
+			},
+		}
+	case spec.Kube != nil:
+		out.UpstreamType = &v1.UpstreamSpec_Kube{
+			Kube: &kubernetes.UpstreamSpec{
+				Selector:         spec.Kube.Selector.GetMap(),
+				ServiceName:      spec.Kube.ServiceName,
+				ServiceNamespace: spec.Kube.ServiceNamespace,
+				ServicePort:      uint32(spec.Kube.ServicePort),
+			},
+		}
+	default:
+		log.Printf("invalid spec: %#v", spec)
 	}
-	return &v1.ServiceInfo{
-		Type:       svcInfo.Type,
-		Properties: svcInfo.Properties.GetStruct(),
-	}
+	return out
 }
 
-func convertInputFunctions(functions []*InputFunction) []*v1.Function {
-	var v1Funcs []*v1.Function
-	for _, fn := range functions {
-		v1Funcs = append(v1Funcs, convertInputFunction(fn))
+func convertLambdaFunctions(inputFuncs []*InputAwsLambdaFunction) []*aws.LambdaFunctionSpec {
+	var funcs []*aws.LambdaFunctionSpec
+	for _, inFn := range inputFuncs {
+		funcs = append(funcs, &aws.LambdaFunctionSpec{
+			LogicalName:        inFn.LogicalName,
+			LambdaFunctionName: inFn.FunctionName,
+			Qualifier:          inFn.Qualifier,
+		})
 	}
-	return v1Funcs
+	return funcs
 }
 
-func convertInputFunction(function *InputFunction) *v1.Function {
-	return &v1.Function{
-		Name: function.Name,
-		Spec: function.Spec.GetStruct(),
+func convertAzureFunctions(inputFuncs []*InputAzureFunction) []*azure.UpstreamSpec_FunctionSpec {
+	var funcs []*azure.UpstreamSpec_FunctionSpec
+	for _, inFn := range inputFuncs {
+		funcs = append(funcs, &azure.UpstreamSpec_FunctionSpec{
+			FunctionName: inFn.FunctionName,
+			AuthLevel:    inFn.AuthLevel,
+		})
 	}
+	return funcs
 }
 
 func convertOutputServiceInfo(svcInfo *v1.ServiceInfo) *ServiceInfo {

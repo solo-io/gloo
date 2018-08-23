@@ -4180,6 +4180,12 @@ func UnmarshalInputAwsLambdaFunction(v interface{}) (models.InputAwsLambdaFuncti
 
 	for k, v := range asMap {
 		switch k {
+		case "logicalName":
+			var err error
+			it.LogicalName, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
 		case "functionName":
 			var err error
 			it.FunctionName, err = graphql.UnmarshalString(v)
@@ -5411,6 +5417,7 @@ input InputKubeUpstreamSpec {
 }
 
 input InputAwsLambdaFunction {
+    logicalName:  String!
     functionName: String!
     qualifier:    String!
 }

@@ -146,6 +146,7 @@ input InputKubeUpstreamSpec {
 }
 
 input InputAwsLambdaFunction {
+    logicalName:  String!
     functionName: String!
     qualifier:    String!
 }

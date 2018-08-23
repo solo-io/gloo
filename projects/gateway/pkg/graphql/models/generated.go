@@ -53,6 +53,7 @@ type InputAwsDestinationSpec struct {
 	InvocationStyle AwsLambdaInvocationStyle `json:"invocationStyle"`
 }
 type InputAwsLambdaFunction struct {
+	LogicalName  string `json:"logicalName"`
 	FunctionName string `json:"functionName"`
 	Qualifier    string `json:"qualifier"`
 }
