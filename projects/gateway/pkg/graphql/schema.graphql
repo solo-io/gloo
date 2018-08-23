@@ -255,63 +255,70 @@ type InputVirtualService {
     routes:  [InputRoute]
     sslConfig: InputSslConfig
     plugins: InputVirtualServicePlugins
-
     metadata: InputMetadata
 }
 
 
-type Route {
-    matcher: Matcher!
-    destination: Destination!
+type InputRoute {
+    matcher: InputMatcher!
+    destination: InputDestination!
 }
 
 # not implemented
-type VirtualServicePlugins {
+type InputVirtualServicePlugins {
     empty: String
 }
 
-type Matcher {
+type InputMatcher {
     pathMatch: String!
     pathMatchType: PathMatchType!
-    headers: [KeyVaueMatcher]
-    queryParameters: [KeyValueMatcher]
+    headers: [InputKeyVaueMatcher]
+    queryParameters: [InputKeyValueMatcher]
     methods: [String]
 }
 
-type KeyVaueMatcher {
+type InputKeyVaueMatcher {
     name: String!
     value: String!
     isRegex: Boolean!
 }
 
-union Destination = MultiDestination | Destination
-
-type MultiDestination {
-    destinations: [WeightedDestination]
+input InputDestination {
+    # oneof: MultiDestination, Destination
+    destination: InputDestination
+    multiDestination: InputMultiDestination
 }
 
-type WeightedDestination {
-    destination: Destination!
+type InputMultiDestination {
+    destinations: [InputWeightedDestination]
+}
+
+type InputWeightedDestination {
+    destination: InputDestination!
     weight: Int!
 }
 
-type Destination {
+type InputDestination {
     upstreamName: String!
-    destinationSpec: DestinationSpec
+    destinationSpec: InputDestinationSpec
 }
 
-union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec
+input InputDestinationSpec {
+    # oneof: aws | azure
+    aws: InputAwsDestinationSpec
+    azure: InputAzureDestinationSpec
+}
 
-type AwsDestinationSpec {
+type InputAwsDestinationSpec {
     logicalName: String!
     invocationStyle: AwsLambdaInvocationStyle!
 }
 
-type AzureDestinationSpec {
+type InputAzureDestinationSpec {
     functionName: String!
 }
 
-type SslConfig {
+type InputSslConfig {
     secretRef: String!
 }
 
