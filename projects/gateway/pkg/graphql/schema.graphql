@@ -6,12 +6,12 @@ schema {
 
 type Query {
     upstreams(namespace: String!):       UpstreamQuery
-    virtualServices(namespace: String!): VirtualServicesQuery
+    virtualServices(namespace: String!): VirtualServiceQuery
 }
 
 type Mutation {
     upstreams(namespace: String!):       UpstreamMutation
-    virtualServices(namespace: String!): VirtualServicesMutation
+    virtualServices(namespace: String!): VirtualServiceMutation
 }
 
 type UpstreamQuery {
@@ -203,29 +203,29 @@ type VirtualServicePlugins {
 type Matcher {
     pathMatch: String!
     pathMatchType: PathMatchType!
-    headers: [KeyVaueMatcher]
+    headers: [KeyValueMatcher]
     queryParameters: [KeyValueMatcher]
     methods: [String]
 }
 
-type KeyVaueMatcher {
+type KeyValueMatcher {
     name: String!
     value: String!
     isRegex: Boolean!
 }
 
-union Destination = MultiDestination | Destination
+union Destination = MultiDestination | SingleDestination
 
 type MultiDestination {
     destinations: [WeightedDestination]
 }
 
 type WeightedDestination {
-    destination: Destination!
+    destination: SingleDestination!
     weight: Int!
 }
 
-type Destination {
+type SingleDestination {
     upstreamName: String!
     destinationSpec: DestinationSpec
 }
@@ -250,7 +250,7 @@ type SslConfig {
 # InputVirtualService
 # InputVirtualService
 
-type InputVirtualService {
+input InputVirtualService {
     domains: [String]
     routes:  [InputRoute]
     sslConfig: InputSslConfig
@@ -259,46 +259,46 @@ type InputVirtualService {
 }
 
 
-type InputRoute {
+input InputRoute {
     matcher: InputMatcher!
     destination: InputDestination!
 }
 
 # not implemented
-type InputVirtualServicePlugins {
+input InputVirtualServicePlugins {
     empty: String
 }
 
-type InputMatcher {
+input InputMatcher {
     pathMatch: String!
     pathMatchType: PathMatchType!
-    headers: [InputKeyVaueMatcher]
+    headers: [InputKeyValueMatcher]
     queryParameters: [InputKeyValueMatcher]
     methods: [String]
 }
 
-type InputKeyVaueMatcher {
+input InputKeyValueMatcher {
     name: String!
     value: String!
     isRegex: Boolean!
 }
 
 input InputDestination {
-    # oneof: MultiDestination, Destination
-    destination: InputDestination
+    # oneof: MultiDestination, SingleDestination
+    singleDestination: InputSingleDestination
     multiDestination: InputMultiDestination
 }
 
-type InputMultiDestination {
+input InputMultiDestination {
     destinations: [InputWeightedDestination]
 }
 
-type InputWeightedDestination {
+input InputWeightedDestination {
     destination: InputDestination!
     weight: Int!
 }
 
-type InputDestination {
+input InputSingleDestination {
     upstreamName: String!
     destinationSpec: InputDestinationSpec
 }
@@ -309,16 +309,16 @@ input InputDestinationSpec {
     azure: InputAzureDestinationSpec
 }
 
-type InputAwsDestinationSpec {
+input InputAwsDestinationSpec {
     logicalName: String!
     invocationStyle: AwsLambdaInvocationStyle!
 }
 
-type InputAzureDestinationSpec {
+input InputAzureDestinationSpec {
     functionName: String!
 }
 
-type InputSslConfig {
+input InputSslConfig {
     secretRef: String!
 }
 
