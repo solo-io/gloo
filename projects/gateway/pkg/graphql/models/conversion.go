@@ -40,14 +40,9 @@ func (c *Converter) ConvertOutputUpstreams(upstreams []*v1.Upstream) []*Upstream
 
 func (c *Converter) ConvertOutputUpstream(upstream *v1.Upstream) *Upstream {
 	return &Upstream{
-		Name:              upstream.Name,
-		Type:              upstream.Type,
-		ConnectionTimeout: NewDuration(upstream.ConnectionTimeout),
-		Spec:              NewStruct(upstream.Spec),
-		Functions:         convertOutputFunctions(upstream.Functions),
-		ServiceInfo:       convertOutputServiceInfo(upstream.ServiceInfo),
-		Status:            convertOutputStatus(upstream.Status),
-		Metadata:          convertOutputMetadata(upstream.Metadata),
+		Spec:     convertOutputUpstreamSpec(upstream.UpstreamSpec),
+		Metadata: convertOutputMetadata(upstream.Metadata),
+		Status:   convertOutputStatus(upstream.Status),
 	}
 }
 
@@ -179,7 +174,6 @@ func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.Virtua
 	}
 }
 
-
 func convertInputUpstreamSpec(spec InputUpstreamSpec) *v1.UpstreamSpec {
 	out := &v1.UpstreamSpec{}
 	switch {
@@ -241,28 +235,50 @@ func convertAzureFunctions(inputFuncs []*InputAzureFunction) []*azure.UpstreamSp
 	return funcs
 }
 
-func convertOutputServiceInfo(svcInfo *v1.ServiceInfo) *ServiceInfo {
-	if svcInfo == nil {
-		return nil
+
+func convertOutputUpstreamSpec(spec *v1.UpstreamSpec) UpstreamSpec {
+	switch specType := spec.UpstreamType.(type) {
+	case *v1.UpstreamSpec_Aws:
+		return &AwsUpstreamSpec{
+			Region:    specType.Aws.Region,
+			SecretRef: specType.Aws.SecretRef,
+			Functions: convertOutputLambdaFunctions(specType.Aws.LambdaFunctions),
+		}
+	case *v1.UpstreamSpec_Azure:
+		return &AzureUpstreamSpec{
+			FunctionAppName: specType.Azure.FunctionAppName,
+			Functions:       convertOutputAzureFunctions(specType.Azure.Functions),
+		}
+	case *v1.UpstreamSpec_Kube:
+		return &KubeUpstreamSpec{
+			ServicePort:      int(specType.Kube.ServicePort),
+			ServiceNamespace: specType.Kube.ServiceNamespace,
+			ServiceName:      specType.Kube.ServiceName,
+			Selector:         customtypes.NewMapStringString(specType.Kube.Selector),
+		}
 	}
-	return &ServiceInfo{
-		Type:       svcInfo.Type,
-		Properties: NewStruct(svcInfo.Properties),
+	log.Printf("unsupported upstream type %v", spec)
+	return nil
+}
+
+func convertOutputLambdaFunctions(lambdas []*aws.LambdaFunctionSpec) []*AwsLambdaFunction {
+	var out []*AwsLambdaFunction
+	for _, l := range lambdas {
+		out = append(out, &AwsLambdaFunction{
+			LogicalName:  l.LogicalName,
+			FunctionName: l.LambdaFunctionName,
+			Qualifier:    l.Qualifier,
+		})
 	}
 }
 
-func convertOutputFunctions(functions []*v1.Function) []*Function {
-	var v1Funcs []*Function
-	for _, fn := range functions {
-		v1Funcs = append(v1Funcs, convertOutputFunction(fn))
-	}
-	return v1Funcs
-}
-
-func convertOutputFunction(function *v1.Function) *Function {
-	return &Function{
-		Name: function.Name,
-		Spec: NewStruct(function.Spec),
+func convertOutputAzureFunctions(azureFns []*azure.UpstreamSpec_FunctionSpec) []*AzureFunction {
+	var out []*AzureFunction
+	for _, l := range azureFns {
+		out = append(out, &AzureFunction{
+			FunctionName: l.FunctionName,
+			AuthLevel:    l.AuthLevel,
+		})
 	}
 }
 
