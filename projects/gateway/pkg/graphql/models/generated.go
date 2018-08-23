@@ -81,7 +81,14 @@ type InputDestinationSpec struct {
 	Aws   *InputAwsDestinationSpec   `json:"aws"`
 	Azure *InputAzureDestinationSpec `json:"azure"`
 }
+type InputFieldResolver struct {
+	FieldName string        `json:"fieldName"`
+	Resolver  InputResolver `json:"resolver"`
+}
 type InputGRPCServiceSpec struct {
+	Empty *string `json:"empty"`
+}
+type InputGlooResolver struct {
 	Empty *string `json:"empty"`
 }
 type InputKeyValueMatcher struct {
@@ -112,6 +119,18 @@ type InputMetadata struct {
 type InputMultiDestination struct {
 	Destinations []*InputWeightedDestination `json:"destinations"`
 }
+type InputNodeJSResolver struct {
+	Empty *string `json:"empty"`
+}
+type InputResolver struct {
+	GlooResolver     *InputGlooResolver     `json:"glooResolver"`
+	TemplateResolver *InputTemplateResolver `json:"templateResolver"`
+	NodeResolver     *InputNodeJSResolver   `json:"nodeResolver"`
+}
+type InputResolverMap struct {
+	Types    []*InputTypeResolver `json:"types"`
+	Metadata InputMetadata        `json:"metadata"`
+}
 type InputRoute struct {
 	Matcher     InputMatcher     `json:"matcher"`
 	Destination InputDestination `json:"destination"`
@@ -133,6 +152,13 @@ type InputStatus struct {
 }
 type InputSwaggerServiceSpec struct {
 	Empty *string `json:"empty"`
+}
+type InputTemplateResolver struct {
+	Empty *string `json:"empty"`
+}
+type InputTypeResolver struct {
+	TypeName string                `json:"typeName"`
+	Fields   []*InputFieldResolver `json:"fields"`
 }
 type InputUpstream struct {
 	Spec     InputUpstreamSpec `json:"spec"`
@@ -193,8 +219,6 @@ type ResolverMap struct {
 	Types    []*TypeResolver `json:"types"`
 	Metadata Metadata        `json:"metadata"`
 	Status   Status          `json:"status"`
-}
-type ResolversQuery struct {
 }
 type Route struct {
 	Matcher     Matcher     `json:"matcher"`

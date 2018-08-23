@@ -38,6 +38,13 @@ func (r *Resolver) VirtualServiceMutation() graph.VirtualServiceMutationResolver
 func (r *Resolver) VirtualServiceQuery() graph.VirtualServiceQueryResolver {
 	return &virtualServiceQueryResolver{r}
 }
+func (r *Resolver) ResolverMapMutation() graph.ResolverMapMutationResolver {
+	return &resolverMapMutationResolver{r}
+}
+func (r *Resolver) ResolverMapQuery() graph.ResolverMapQueryResolver {
+	return &resolverMapQueryResolver{r}
+}
+
 
 type mutationResolver struct{ *Resolver }
 
@@ -47,6 +54,9 @@ func (r *mutationResolver) Upstreams(ctx context.Context, namespace string) (cus
 func (r *mutationResolver) VirtualServices(ctx context.Context, namespace string) (customtypes.VirtualServiceMutation, error) {
 	return customtypes.VirtualServiceMutation{Namespace: namespace}, nil
 }
+func (r *mutationResolver) ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapMutation, error) {
+	panic("not implemented")
+}
 
 type queryResolver struct{ *Resolver }
 
@@ -55,6 +65,9 @@ func (r *queryResolver) Upstreams(ctx context.Context, namespace string) (custom
 }
 func (r *queryResolver) VirtualServices(ctx context.Context, namespace string) (customtypes.VirtualServiceQuery, error) {
 	return customtypes.VirtualServiceQuery{Namespace: namespace}, nil
+}
+func (r *queryResolver) ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapQuery, error) {
+	panic("not implemented")
 }
 
 type upstreamMutationResolver struct{ *Resolver }
@@ -188,4 +201,70 @@ func (r *virtualServiceQueryResolver) Get(ctx context.Context, obj *customtypes.
 		return nil, err
 	}
 	return r.Converter.ConvertOutputVirtualService(virtualService), nil
+}
+
+
+type resolverMapMutationResolver struct{ *Resolver }
+
+func (r *resolverMapMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error) {
+	ups := r.Converter.ConvertInputResolverMap(resolverMap)
+	out, err := r.ResolverMaps.Write(ups, clients.WriteOpts{
+		Ctx:               ctx,
+		OverwriteExisting: overwrite,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputResolverMap(out), nil
+}
+
+func (r *resolverMapMutationResolver) Create(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error) {
+	return r.write(false, ctx, obj, resolverMap)
+}
+func (r *resolverMapMutationResolver) Update(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error) {
+	return r.write(true, ctx, obj, resolverMap)
+}
+func (r *resolverMapMutationResolver) Delete(ctx context.Context, obj *customtypes.ResolverMapMutation, name string) (*models.ResolverMap, error) {
+	resolverMap, err := r.ResolverMaps.Read(obj.Namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		if errors.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	err = r.ResolverMaps.Delete(obj.Namespace, name, clients.DeleteOpts{Ctx: ctx})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputResolverMap(resolverMap), nil
+}
+
+type resolverMapQueryResolver struct{ *Resolver }
+
+func (r *resolverMapQueryResolver) List(ctx context.Context, obj *customtypes.ResolverMapQuery, selector *customtypes.MapStringString) ([]*models.ResolverMap, error) {
+	var convertedSelector map[string]string
+	if selector != nil {
+		convertedSelector = selector.GetMap()
+	}
+	list, err := r.ResolverMaps.List(obj.Namespace, clients.ListOpts{
+		Ctx:      ctx,
+		Selector: convertedSelector,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputResolverMaps(list), nil
+}
+
+func (r *resolverMapQueryResolver) Get(ctx context.Context, obj *customtypes.ResolverMapQuery, name string) (*models.ResolverMap, error) {
+	resolverMap, err := r.ResolverMaps.Read(obj.Namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputResolverMap(resolverMap), nil
 }

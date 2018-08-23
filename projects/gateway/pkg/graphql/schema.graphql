@@ -7,12 +7,13 @@ schema {
 type Query {
     upstreams(namespace: String!):       UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
-    resolvers(namespace: String!): ResolversQuery!
+    resolverMaps(namespace: String!): ResolverMapQuery!
 }
 
 type Mutation {
     upstreams(namespace: String!):       UpstreamMutation!
     virtualServices(namespace: String!): VirtualServiceMutation!
+    resolverMaps(namespace: String!): ResolverMapMutation!
 }
 
 type UpstreamQuery {
@@ -191,6 +192,9 @@ input InputStatus {
 ## VirtualService
 ## VirtualService
 ## VirtualService
+## VirtualService
+## VirtualService
+## VirtualService
 
 type VirtualService {
     domains: [String]
@@ -337,7 +341,19 @@ input InputSslConfig {
 
 
 
-
+## ResolverMap
+## ResolverMap
+## ResolverMap
+## ResolverMap
+## ResolverMap
+## ResolverMap
+## ResolverMap
+## ResolverMap
+## ResolverMap
+## ResolverMap
+## ResolverMap
+## ResolverMap
+## ResolverMap
 
 
 type ResolverMap {
@@ -371,6 +387,46 @@ type TemplateResolver {
     empty: String
 }
 type NodeJSResolver {
+    empty: String
+}
+
+
+
+input InputResolverMap {
+    # can't do maps, thanks facebook
+    # the trick with type resolvers is the typeNames must be unique!
+    # this converts to a map in the server
+    # what a novel idea for a type system. maps... who would have thunk it?
+    types: [InputTypeResolver]!
+    metadata: InputMetadata!
+}
+
+input InputTypeResolver {
+    typeName: String!
+    # again, the fieldNames within this array must be unique
+    fields: [InputFieldResolver]!
+}
+
+input InputFieldResolver {
+    fieldName: String!
+    resolver: InputResolver!
+}
+
+input InputResolver {
+    # oneof: gloo, template, node
+    glooResolver: InputGlooResolver
+    templateResolver: InputTemplateResolver
+    nodeResolver: InputNodeJSResolver
+}
+
+# not implemented (ilackarms)
+input InputGlooResolver {
+    empty: String
+}
+input InputTemplateResolver {
+    empty: String
+}
+input InputNodeJSResolver {
     empty: String
 }
 

@@ -28,7 +28,7 @@ models:
     model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.VirtualServiceQuery
   VirtualServiceMutation:
     model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.VirtualServiceMutation
-  ResolversQuery:
-    model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.ResolversQuery
-  ResolversMutation:
-    model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.ResolversMutation
+  ResolverMapQuery:
+    model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.ResolverMapQuery
+  ResolverMapMutation:
+    model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.ResolverMapMutation
