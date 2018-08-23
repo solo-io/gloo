@@ -24,3 +24,7 @@ models:
     model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.UpstreamQuery
   UpstreamMutation:
     model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.UpstreamMutation
+  VirtualServiceQuery:
+    model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.VirtualServiceQuery
+  VirtualServiceMutation:
+    model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.VirtualServiceMutation

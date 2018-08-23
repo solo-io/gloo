@@ -1,4 +1,4 @@
-package models
+package graphql
 
 import (
 	"github.com/pkg/errors"
