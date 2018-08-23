@@ -1,8 +1,10 @@
-package graphql
+package models
 
 import (
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo-apiserver/pkg/api/userdata"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
@@ -18,38 +20,13 @@ func (c *Converter) ConvertInputUpstreams(upstream []InputUpstream) []*v1.Upstre
 
 func (c *Converter) ConvertInputUpstream(upstream InputUpstream) *v1.Upstream {
 	return &v1.Upstream{
-		Name:              upstream.Name,
+		Metadata:          upstream.Metadata,
 		Type:              upstream.Type,
 		ConnectionTimeout: upstream.ConnectionTimeout.GetDuration(),
 		Spec:              upstream.Spec.GetStruct(),
 		Functions:         convertInputFunctions(upstream.Functions),
 		ServiceInfo:       convertInputServiceInfo(upstream.ServiceInfo),
 		Metadata:          convertInputMetadata(upstream.Metadata),
-	}
-}
-
-func convertInputServiceInfo(svcInfo *InputServiceInfo) *v1.ServiceInfo {
-	if svcInfo == nil {
-		return nil
-	}
-	return &v1.ServiceInfo{
-		Type:       svcInfo.Type,
-		Properties: svcInfo.Properties.GetStruct(),
-	}
-}
-
-func convertInputFunctions(functions []*InputFunction) []*v1.Function {
-	var v1Funcs []*v1.Function
-	for _, fn := range functions {
-		v1Funcs = append(v1Funcs, convertInputFunction(fn))
-	}
-	return v1Funcs
-}
-
-func convertInputFunction(function *InputFunction) *v1.Function {
-	return &v1.Function{
-		Name: function.Name,
-		Spec: function.Spec.GetStruct(),
 	}
 }
 
@@ -74,33 +51,8 @@ func (c *Converter) ConvertOutputUpstream(upstream *v1.Upstream) *Upstream {
 	}
 }
 
-func convertOutputServiceInfo(svcInfo *v1.ServiceInfo) *ServiceInfo {
-	if svcInfo == nil {
-		return nil
-	}
-	return &ServiceInfo{
-		Type:       svcInfo.Type,
-		Properties: NewStruct(svcInfo.Properties),
-	}
-}
-
-func convertOutputFunctions(functions []*v1.Function) []*Function {
-	var v1Funcs []*Function
-	for _, fn := range functions {
-		v1Funcs = append(v1Funcs, convertOutputFunction(fn))
-	}
-	return v1Funcs
-}
-
-func convertOutputFunction(function *v1.Function) *Function {
-	return &Function{
-		Name: function.Name,
-		Spec: NewStruct(function.Spec),
-	}
-}
-
-func (c *Converter) ConvertInputVirtualServices(virtualService []InputVirtualService) ([]*v1.VirtualService, error) {
-	var result []*v1.VirtualService
+func (c *Converter) ConvertInputVirtualServices(virtualService []InputVirtualService) ([]*gatewayv1.VirtualService, error) {
+	var result []*gatewayv1.VirtualService
 	for _, vs := range virtualService {
 		converted, err := c.ConvertInputVirtualService(vs)
 		if err != nil {
@@ -111,13 +63,13 @@ func (c *Converter) ConvertInputVirtualServices(virtualService []InputVirtualSer
 	return result, nil
 }
 
-func (c *Converter) ConvertInputVirtualService(virtualService InputVirtualService) (*v1.VirtualService, error) {
+func (c *Converter) ConvertInputVirtualService(virtualService InputVirtualService) (*gatewayv1.VirtualService, error) {
 	routes, err := c.ConvertInputRoutes(virtualService.Routes)
 	if err != nil {
 		return nil, errors.Wrap(err, "validating input routes")
 	}
 
-	return &v1.VirtualService{
+	return &gatewayv1.VirtualService{
 		Name:      virtualService.Name,
 		Domains:   dePointerify(virtualService.Domains),
 		Routes:    routes,
@@ -127,16 +79,28 @@ func (c *Converter) ConvertInputVirtualService(virtualService InputVirtualServic
 	}, nil
 }
 
-func (c *Converter) ConvertUserConfigProperties(userData *userdata.UserDataResponse) ([]*UserConfigProperty, error) {
-	output := []*UserConfigProperty{}
-	for _, ud := range userData.UserData {
-		output = append(output, &UserConfigProperty{
-			Key:   ud.Key,
-			Value: ud.Value,
-		})
+func (c *Converter) ConvertOutputResolverMaps(upstreams []*v1.ResolverMap) []*ResolverMap {
+	var result []*ResolverMap
+	for _, us := range upstreams {
+		result = append(result, c.ConvertOutputResolverMap(us))
 	}
-	return output, nil
+	return result
 }
+
+func (c *Converter) ConvertOutputResolverMap(upstream *v1.ResolverMap) *ResolverMap {
+	return &ResolverMap{
+		Name:              upstream.Name,
+		Type:              upstream.Type,
+		ConnectionTimeout: NewDuration(upstream.ConnectionTimeout),
+		Spec:              NewStruct(upstream.Spec),
+		Functions:         convertOutputFunctions(upstream.Functions),
+		ServiceInfo:       convertOutputServiceInfo(upstream.ServiceInfo),
+		Status:            convertOutputStatus(upstream.Status),
+		Metadata:          convertOutputMetadata(upstream.Metadata),
+	}
+}
+
+// Extra
 
 func (c *Converter) ConvertInputRoutes(routes []*InputRoute) ([]*v1.Route, error) {
 	var v1Routes []*v1.Route
@@ -193,6 +157,76 @@ func (c *Converter) ConvertInputRoute(route *InputRoute) (*v1.Route, error) {
 		return nil, errors.Errorf("must specify exactly one of RequestMatcher or EventMatcher")
 	}
 	return v1Route, nil
+}
+
+func (c *Converter) ConvertOutputVirtualServices(virtualServices []*gatewayv1.VirtualService) []*VirtualService {
+	var result []*VirtualService
+	for _, vs := range virtualServices {
+		result = append(result, c.ConvertOutputVirtualService(vs))
+	}
+	return result
+}
+
+func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.VirtualService) *VirtualService {
+	return &VirtualService{
+		Name:      virtualService.Name,
+		Domains:   pointerify(virtualService.Domains),
+		Routes:    convertOutputRoutes(virtualService.Routes),
+		SslConfig: convertOutputSSLConfig(virtualService.SslConfig),
+		Roles:     pointerify(virtualService.Roles),
+		Status:    convertOutputStatus(virtualService.Status),
+		Metadata:  convertOutputMetadata(virtualService.Metadata),
+	}
+}
+
+func convertInputServiceInfo(svcInfo *InputServiceInfo) *v1.ServiceInfo {
+	if svcInfo == nil {
+		return nil
+	}
+	return &v1.ServiceInfo{
+		Type:       svcInfo.Type,
+		Properties: svcInfo.Properties.GetStruct(),
+	}
+}
+
+func convertInputFunctions(functions []*InputFunction) []*v1.Function {
+	var v1Funcs []*v1.Function
+	for _, fn := range functions {
+		v1Funcs = append(v1Funcs, convertInputFunction(fn))
+	}
+	return v1Funcs
+}
+
+func convertInputFunction(function *InputFunction) *v1.Function {
+	return &v1.Function{
+		Name: function.Name,
+		Spec: function.Spec.GetStruct(),
+	}
+}
+
+func convertOutputServiceInfo(svcInfo *v1.ServiceInfo) *ServiceInfo {
+	if svcInfo == nil {
+		return nil
+	}
+	return &ServiceInfo{
+		Type:       svcInfo.Type,
+		Properties: NewStruct(svcInfo.Properties),
+	}
+}
+
+func convertOutputFunctions(functions []*v1.Function) []*Function {
+	var v1Funcs []*Function
+	for _, fn := range functions {
+		v1Funcs = append(v1Funcs, convertOutputFunction(fn))
+	}
+	return v1Funcs
+}
+
+func convertOutputFunction(function *v1.Function) *Function {
+	return &Function{
+		Name: function.Name,
+		Spec: NewStruct(function.Spec),
+	}
 }
 
 func convertDestinations(inputDests []*InputWeightedDestination) ([]*v1.WeightedDestination, error) {
@@ -259,35 +293,6 @@ func convertInputRequestMatcher(match InputRequestMatcher) (*v1.Route_RequestMat
 	return &v1.Route_RequestMatcher{RequestMatcher: v1Match}, nil
 }
 
-func convertInputSSLConfig(inSSL *InputSSLConfig) *v1.SSLConfig {
-	if inSSL == nil {
-		return nil
-	}
-	return &v1.SSLConfig{
-		SecretRef: inSSL.SecretRef,
-	}
-}
-
-func (c *Converter) ConvertOutputVirtualServices(virtualServices []*v1.VirtualService) []*VirtualService {
-	var result []*VirtualService
-	for _, vs := range virtualServices {
-		result = append(result, c.ConvertOutputVirtualService(vs))
-	}
-	return result
-}
-
-func (c *Converter) ConvertOutputVirtualService(virtualService *v1.VirtualService) *VirtualService {
-	return &VirtualService{
-		Name:      virtualService.Name,
-		Domains:   pointerify(virtualService.Domains),
-		Routes:    convertOutputRoutes(virtualService.Routes),
-		SslConfig: convertOutputSSLConfig(virtualService.SslConfig),
-		Roles:     pointerify(virtualService.Roles),
-		Status:    convertOutputStatus(virtualService.Status),
-		Metadata:  convertOutputMetadata(virtualService.Metadata),
-	}
-}
-
 func convertOutputRoutes(routes []*v1.Route) []*Route {
 	var outRoutes []*Route
 	for _, route := range routes {
@@ -347,6 +352,15 @@ func convertOutputRoutes(routes []*v1.Route) []*Route {
 		outRoutes = append(outRoutes, outRoute)
 	}
 	return outRoutes
+}
+
+func convertInputSSLConfig(inSSL *InputSSLConfig) *v1.SSLConfig {
+	if inSSL == nil {
+		return nil
+	}
+	return &v1.SSLConfig{
+		SecretRef: inSSL.SecretRef,
+	}
 }
 
 func convertSingleDestination(dest *v1.Destination) *SingleDestination {
