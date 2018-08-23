@@ -7,6 +7,45 @@ schema {
 type Query {
     upstreams(namespace: String!):       UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
+    resolvers(namespace: String!): ResolversQuery!
+}
+
+type ResolversQuery {
+
+}
+
+type ResolverMap {
+    # can't do maps, thanks facebook
+    # the trick with type resolvers is the typeNames must be unique!
+    # this converts to a map in the server
+    # what a novel idea for a type system. maps... who would have thunk it?
+    types: [TypeResolver]!
+    metadata: Metadata!
+    status:   Status!
+}
+
+type TypeResolver {
+    typeName: String!
+    # again, the fieldNames within this array must be unique
+    fields: [FieldResolver]!
+}
+
+type FieldResolver {
+    fieldName: String!
+    resolver: Resolver!
+}
+
+union Resolver = GlooResolver | TemplateResolver | NodeJSResolver
+
+# not implemented (ilackarms)
+type GlooResolver {
+    empty: String
+}
+type TemplateResolver {
+    empty: String
+}
+type NodeJSResolver {
+    empty: String
 }
 
 type Mutation {
