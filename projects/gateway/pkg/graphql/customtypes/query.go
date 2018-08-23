@@ -16,3 +16,12 @@ type VirtualServiceQuery struct {
 type VirtualServiceMutation struct {
 	Namespace string
 }
+
+
+type ResolverMapQuery struct {
+	Namespace string
+}
+
+type ResolverMapMutation struct {
+	Namespace string
+}

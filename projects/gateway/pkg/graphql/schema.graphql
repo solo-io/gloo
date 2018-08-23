@@ -10,44 +10,6 @@ type Query {
     resolvers(namespace: String!): ResolversQuery!
 }
 
-type ResolversQuery {
-
-}
-
-type ResolverMap {
-    # can't do maps, thanks facebook
-    # the trick with type resolvers is the typeNames must be unique!
-    # this converts to a map in the server
-    # what a novel idea for a type system. maps... who would have thunk it?
-    types: [TypeResolver]!
-    metadata: Metadata!
-    status:   Status!
-}
-
-type TypeResolver {
-    typeName: String!
-    # again, the fieldNames within this array must be unique
-    fields: [FieldResolver]!
-}
-
-type FieldResolver {
-    fieldName: String!
-    resolver: Resolver!
-}
-
-union Resolver = GlooResolver | TemplateResolver | NodeJSResolver
-
-# not implemented (ilackarms)
-type GlooResolver {
-    empty: String
-}
-type TemplateResolver {
-    empty: String
-}
-type NodeJSResolver {
-    empty: String
-}
-
 type Mutation {
     upstreams(namespace: String!):       UpstreamMutation!
     virtualServices(namespace: String!): VirtualServiceMutation!
@@ -73,9 +35,21 @@ type VirtualServiceQuery {
 
 
 type VirtualServiceMutation {
-    create(upstream: InputVirtualService!): VirtualService
-    update(upstream: InputVirtualService!): VirtualService
+    create(virtualService: InputVirtualService!): VirtualService
+    update(virtualService: InputVirtualService!): VirtualService
     delete(name: String!): VirtualService
+}
+
+
+type ResolverMapQuery {
+    list(selector: MapStringString): [ResolverMap]
+    get(name: String!):                ResolverMap
+}
+
+type ResolverMapMutation {
+    create(resolverMap: InputResolverMap!): ResolverMap
+    update(resolverMap: InputResolverMap!): ResolverMap
+    delete(name: String!): ResolverMap
 }
 
 # Upstream
@@ -361,6 +335,50 @@ input InputSslConfig {
     secretRef: String!
 }
 
+
+
+
+
+
+type ResolverMap {
+    # can't do maps, thanks facebook
+    # the trick with type resolvers is the typeNames must be unique!
+    # this converts to a map in the server
+    # what a novel idea for a type system. maps... who would have thunk it?
+    types: [TypeResolver]!
+    metadata: Metadata!
+    status:   Status!
+}
+
+type TypeResolver {
+    typeName: String!
+    # again, the fieldNames within this array must be unique
+    fields: [FieldResolver]!
+}
+
+type FieldResolver {
+    fieldName: String!
+    resolver: Resolver!
+}
+
+union Resolver = GlooResolver | TemplateResolver | NodeJSResolver
+
+# not implemented (ilackarms)
+type GlooResolver {
+    empty: String
+}
+type TemplateResolver {
+    empty: String
+}
+type NodeJSResolver {
+    empty: String
+}
+
+
+# Common output types
+# Common output types
+# Common output types
+# Common output types
 # Common output types
 
 type Metadata {

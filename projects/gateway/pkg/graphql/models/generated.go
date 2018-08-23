@@ -38,7 +38,14 @@ type AzureUpstreamSpec struct {
 }
 type Destination interface{}
 type DestinationSpec interface{}
+type FieldResolver struct {
+	FieldName string   `json:"fieldName"`
+	Resolver  Resolver `json:"resolver"`
+}
 type GRPCServiceSpec struct {
+	Empty *string `json:"empty"`
+}
+type GlooResolver struct {
 	Empty *string `json:"empty"`
 }
 type InputAwsDestinationSpec struct {
@@ -178,6 +185,17 @@ type Metadata struct {
 type MultiDestination struct {
 	Destinations []*WeightedDestination `json:"destinations"`
 }
+type NodeJSResolver struct {
+	Empty *string `json:"empty"`
+}
+type Resolver interface{}
+type ResolverMap struct {
+	Types    []*TypeResolver `json:"types"`
+	Metadata Metadata        `json:"metadata"`
+	Status   Status          `json:"status"`
+}
+type ResolversQuery struct {
+}
 type Route struct {
 	Matcher     Matcher     `json:"matcher"`
 	Destination Destination `json:"destination"`
@@ -196,6 +214,13 @@ type Status struct {
 }
 type SwaggerServiceSpec struct {
 	Empty *string `json:"empty"`
+}
+type TemplateResolver struct {
+	Empty *string `json:"empty"`
+}
+type TypeResolver struct {
+	TypeName string           `json:"typeName"`
+	Fields   []*FieldResolver `json:"fields"`
 }
 type Upstream struct {
 	Spec     UpstreamSpec `json:"spec"`

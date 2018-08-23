@@ -12,8 +12,8 @@ model:
 
 # Optional, turns on resolver stub generation
 resolver:
-  filename: resolver.go # where to write them
-  type: Resolver  # whats the resolver root implementation type called?
+  filename: resolver2.go # where to write them
+  type: Resolver2  # whats the resolver root implementation type called?
 
 # Tell gqlgen about any existing models you want to reuse for
 # graphql. These normally come from the db or a remote api.
@@ -28,3 +28,7 @@ models:
     model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.VirtualServiceQuery
   VirtualServiceMutation:
     model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.VirtualServiceMutation
+  ResolversQuery:
+    model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.ResolversQuery
+  ResolversMutation:
+    model: github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes.ResolversMutation
