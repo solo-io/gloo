@@ -1,8 +1,4 @@
-# Query / Outputs
-# Query / Outputs
-# Query / Outputs
-# Query / Outputs
-
+# Top Level
 schema {
     query: Query
     mutation: Mutation
@@ -13,10 +9,40 @@ type Query {
     virtualServices(namespace: String!): VirtualServicesQuery
 }
 
+type Mutation {
+    upstreams(namespace: String!):       UpstreamMutation
+    virtualServices(namespace: String!): VirtualServicesMutation
+}
+
 type UpstreamQuery {
     list(selector: MapStringString): [Upstream]
     get(name: String!):                Upstream
 }
+
+
+type UpstreamMutation {
+    create(upstream: InputUpstream!): Upstream
+    update(upstream: InputUpstream!): Upstream
+    delete(name: String!): Upstream
+}
+
+
+type VirtualServiceQuery {
+    list(selector: MapStringString): [VirtualService]
+    get(name: String!):                VirtualService
+}
+
+
+type VirtualServiceMutation {
+    create(upstream: InputVirtualService!): VirtualService
+    update(upstream: InputVirtualService!): VirtualService
+    delete(name: String!): VirtualService
+}
+
+# Upstream
+# Upstream
+# Upstream
+# Upstream
 
 type Upstream {
     spec:     UpstreamSpec!
@@ -69,13 +95,89 @@ type GRPCServiceSpec {
 }
 
 
-## Virtual Services
+# Upstream Mutation
+# Upstream Mutation
+# Upstream Mutation
+# Upstream Mutation
 
-
-type VirtualServiceQuery {
-    list(selector: MapStringString): [VirtualService]
-    get(name: String!):                VirtualService
+input InputUpstream {
+    spec:     InputUpstreamSpec!
+    metadata: InputMetadata!
 }
+
+input InputUpstreamSpec {
+    # oneof: aws | azure | kube
+    aws: InputAwsUpstreamSpec
+    azure: InputAzureUpstreamSpec
+    kube: InputKubeUpstreamSpec
+}
+
+input InputAwsUpstreamSpec {
+    region:    String!
+    secretRef: String!
+    functions: [InputAwsLambdaFunction]
+}
+
+input InputAzureUpstreamSpec {
+    functionAppName: String!
+    secretRef:       String
+    functions:       [InputAzureFunction]
+}
+
+input InputKubeUpstreamSpec {
+    serviceName:      String!
+    serviceNamespace: String!
+    servicePort:      Int!
+    selector:         MapStringString
+}
+
+input InputAwsLambdaFunction {
+    functionName: String!
+    qualifier:    String!
+}
+
+input InputAzureFunction {
+    functionName: String!
+    authLevel:    String!
+}
+
+input InputServiceSpec  {
+    # oneof: swagger | grpc
+    swagger: InputSwaggerServiceSpec
+    grpc:    InputGRPCServiceSpec
+}
+
+# Not implemented yet
+input InputSwaggerServiceSpec  {
+    empty: String
+}
+
+# Not implemented yet
+input InputGRPCServiceSpec {
+    empty: String
+}
+
+input InputMetadata {
+    name:            String!
+    namespace:       String!
+    resourceVersion: String!
+    labels:          MapStringString
+    annotations:     MapStringString
+}
+
+input InputStatus {
+    state:  State!
+    reason: String
+}
+
+
+
+
+
+
+## VirtualService
+## VirtualService
+## VirtualService
 
 type VirtualService {
     domains: [String]
@@ -85,6 +187,76 @@ type VirtualService {
 
     metadata: Metadata!
     status:   Status!
+}
+
+
+type Route {
+    matcher: Matcher!
+    destination: Destination!
+}
+
+# not implemented
+type VirtualServicePlugins {
+    empty: String
+}
+
+type Matcher {
+    pathMatch: String!
+    pathMatchType: PathMatchType!
+    headers: [KeyVaueMatcher]
+    queryParameters: [KeyValueMatcher]
+    methods: [String]
+}
+
+type KeyVaueMatcher {
+    name: String!
+    value: String!
+    isRegex: Boolean!
+}
+
+union Destination = MultiDestination | Destination
+
+type MultiDestination {
+    destinations: [WeightedDestination]
+}
+
+type WeightedDestination {
+    destination: Destination!
+    weight: Int!
+}
+
+type Destination {
+    upstreamName: String!
+    destinationSpec: DestinationSpec
+}
+
+union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec
+
+type AwsDestinationSpec {
+    logicalName: String!
+    invocationStyle: AwsLambdaInvocationStyle!
+}
+
+type AzureDestinationSpec {
+    functionName: String!
+}
+
+type SslConfig {
+    secretRef: String!
+}
+
+# InputVirtualService
+# InputVirtualService
+# InputVirtualService
+# InputVirtualService
+
+type InputVirtualService {
+    domains: [String]
+    routes:  [InputRoute]
+    sslConfig: InputSslConfig
+    plugins: InputVirtualServicePlugins
+
+    metadata: InputMetadata
 }
 
 
@@ -157,107 +329,6 @@ type Status {
     state:  State!
     reason: String
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Mutations/Inputs
-# Mutations/Inputs
-# Mutations/Inputs
-# Mutations/Inputs
-
-type Mutation {
-    upstreams(namespace: String!): UpstreamMutation
-}
-
-type UpstreamMutation {
-    create(upstream: InputUpstream!): Upstream
-    update(upstream: InputUpstream!): Upstream
-}
-
-input InputUpstream {
-    spec:     InputUpstreamSpec!
-    metadata: InputMetadata!
-    status:   InputStatus!
-}
-
-input InputUpstreamSpec {
-    # oneof: aws | azure | kube
-    aws: InputAwsUpstreamSpec
-    azure: InputAzureUpstreamSpec
-    kube: InputKubeUpstreamSpec
-}
-
-input InputAwsUpstreamSpec {
-    region:    String!
-    secretRef: String!
-    functions: [InputAwsLambdaFunction]
-}
-
-input InputAzureUpstreamSpec {
-    functionAppName: String!
-    secretRef:       String
-    functions:       [InputAzureFunction]
-}
-
-input InputKubeUpstreamSpec {
-    serviceName:      String!
-    serviceNamespace: String!
-    servicePort:      Int!
-    selector:         MapStringString
-}
-
-input InputAwsLambdaFunction {
-    functionName: String!
-    qualifier:    String!
-}
-
-input InputAzureFunction {
-    functionName: String!
-    authLevel:    String!
-}
-
-input InputServiceSpec  {
-    # oneof: swagger | grpc
-    swagger: InputSwaggerServiceSpec
-    grpc:    InputGRPCServiceSpec
-}
-
-# Not implemented yet
-input InputSwaggerServiceSpec  {
-    empty: String
-}
-
-# Not implemented yet
-input InputGRPCServiceSpec {
-    empty: String
-}
-
-input InputMetadata {
-    name:            String!
-    namespace:       String!
-    resourceVersion: String!
-    labels:          MapStringString
-    annotations:     MapStringString
-}
-
-input InputStatus {
-    state:  State!
-    reason: String
-}
-
-
 
 
 
