@@ -391,34 +391,23 @@ func convertOutputSSLConfig(v1SSL *v1.SSLConfig) *SSLConfig {
 }
 
 // common
-
-func convertInputMetadata(meta *InputMetadata) *v1.Metadata {
-	if meta == nil {
-		return nil
-	}
-	var namespace string
-	if meta.Namespace != nil {
-		namespace = *meta.Namespace
-	}
-	return &v1.Metadata{
-		ResourceVersion: meta.ResourceVersion,
-		Namespace:       namespace,
-		Annotations:     meta.Annotations.GetMap(),
+func convertInputMetadata(inMeta InputMetadata) core.Metadata {
+	return core.Metadata{
+		Namespace:       inMeta.Namespace,
+		Name:            inMeta.Name,
+		ResourceVersion: inMeta.ResourceVersion,
+		Labels:          inMeta.Labels.GetMap(),
+		Annotations:     inMeta.Annotations.GetMap(),
 	}
 }
 
-func convertOutputMetadata(meta *v1.Metadata) *Metadata {
-	if meta == nil {
-		return nil
-	}
-	var namespace *string
-	if meta.Namespace != "" {
-		namespace = &meta.Namespace
-	}
-	return &Metadata{
+func convertOutputMetadata(meta core.Metadata) Metadata {
+	return Metadata{
+		Namespace:       meta.Namespace,
+		Name:            meta.Name,
 		ResourceVersion: meta.ResourceVersion,
-		Namespace:       namespace,
-		Annotations:     NewMapStringString(meta.Annotations),
+		Labels:          customtypes.NewMapStringString(meta.Labels),
+		Annotations:     customtypes.NewMapStringString(meta.Annotations),
 	}
 }
 
