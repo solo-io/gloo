@@ -41,30 +41,30 @@ type ResolverRoot interface {
 type DirectiveRoot struct {
 }
 type MutationResolver interface {
-	Upstreams(ctx context.Context, namespace string) (*models.UpstreamMutation, error)
-	VirtualServices(ctx context.Context, namespace string) (*models.VirtualServiceMutation, error)
+	Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamMutation, error)
+	VirtualServices(ctx context.Context, namespace string) (customtypes.VirtualServiceMutation, error)
 }
 type QueryResolver interface {
-	Upstreams(ctx context.Context, namespace string) (*models.UpstreamQuery, error)
-	VirtualServices(ctx context.Context, namespace string) (*models.VirtualServiceQuery, error)
+	Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamQuery, error)
+	VirtualServices(ctx context.Context, namespace string) (customtypes.VirtualServiceQuery, error)
 }
 type UpstreamMutationResolver interface {
-	Create(ctx context.Context, obj *models.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error)
-	Update(ctx context.Context, obj *models.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error)
-	Delete(ctx context.Context, obj *models.UpstreamMutation, name string) (*models.Upstream, error)
+	Create(ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error)
+	Update(ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error)
+	Delete(ctx context.Context, obj *customtypes.UpstreamMutation, name string) (*models.Upstream, error)
 }
 type UpstreamQueryResolver interface {
-	List(ctx context.Context, obj *models.UpstreamQuery, selector *customtypes.MapStringString) ([]*models.Upstream, error)
-	Get(ctx context.Context, obj *models.UpstreamQuery, name string) (*models.Upstream, error)
+	List(ctx context.Context, obj *customtypes.UpstreamQuery, selector *customtypes.MapStringString) ([]*models.Upstream, error)
+	Get(ctx context.Context, obj *customtypes.UpstreamQuery, name string) (*models.Upstream, error)
 }
 type VirtualServiceMutationResolver interface {
-	Create(ctx context.Context, obj *models.VirtualServiceMutation, upstream models.InputVirtualService) (*models.VirtualService, error)
-	Update(ctx context.Context, obj *models.VirtualServiceMutation, upstream models.InputVirtualService) (*models.VirtualService, error)
-	Delete(ctx context.Context, obj *models.VirtualServiceMutation, name string) (*models.VirtualService, error)
+	Create(ctx context.Context, obj *customtypes.VirtualServiceMutation, upstream models.InputVirtualService) (*models.VirtualService, error)
+	Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, upstream models.InputVirtualService) (*models.VirtualService, error)
+	Delete(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string) (*models.VirtualService, error)
 }
 type VirtualServiceQueryResolver interface {
-	List(ctx context.Context, obj *models.VirtualServiceQuery, selector *customtypes.MapStringString) ([]*models.VirtualService, error)
-	Get(ctx context.Context, obj *models.VirtualServiceQuery, name string) (*models.VirtualService, error)
+	List(ctx context.Context, obj *customtypes.VirtualServiceQuery, selector *customtypes.MapStringString) ([]*models.VirtualService, error)
+	Get(ctx context.Context, obj *customtypes.VirtualServiceQuery, name string) (*models.VirtualService, error)
 }
 
 type executableSchema struct {
@@ -1137,11 +1137,8 @@ func (ec *executionContext) _Mutation_upstreams(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.UpstreamMutation)
-	if res == nil {
-		return graphql.Null
-	}
-	return ec._UpstreamMutation(ctx, field.Selections, res)
+	res := resTmp.(customtypes.UpstreamMutation)
+	return ec._UpstreamMutation(ctx, field.Selections, &res)
 }
 
 func (ec *executionContext) _Mutation_virtualServices(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1169,11 +1166,8 @@ func (ec *executionContext) _Mutation_virtualServices(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.VirtualServiceMutation)
-	if res == nil {
-		return graphql.Null
-	}
-	return ec._VirtualServiceMutation(ctx, field.Selections, res)
+	res := resTmp.(customtypes.VirtualServiceMutation)
+	return ec._VirtualServiceMutation(ctx, field.Selections, &res)
 }
 
 var queryImplementors = []string{"Query"}
@@ -1242,11 +1236,8 @@ func (ec *executionContext) _Query_upstreams(ctx context.Context, field graphql.
 		if resTmp == nil {
 			return graphql.Null
 		}
-		res := resTmp.(*models.UpstreamQuery)
-		if res == nil {
-			return graphql.Null
-		}
-		return ec._UpstreamQuery(ctx, field.Selections, res)
+		res := resTmp.(customtypes.UpstreamQuery)
+		return ec._UpstreamQuery(ctx, field.Selections, &res)
 	})
 }
 
@@ -1283,11 +1274,8 @@ func (ec *executionContext) _Query_virtualServices(ctx context.Context, field gr
 		if resTmp == nil {
 			return graphql.Null
 		}
-		res := resTmp.(*models.VirtualServiceQuery)
-		if res == nil {
-			return graphql.Null
-		}
-		return ec._VirtualServiceQuery(ctx, field.Selections, res)
+		res := resTmp.(customtypes.VirtualServiceQuery)
+		return ec._VirtualServiceQuery(ctx, field.Selections, &res)
 	})
 }
 
@@ -1687,7 +1675,7 @@ func (ec *executionContext) _Upstream_status(ctx context.Context, field graphql.
 var upstreamMutationImplementors = []string{"UpstreamMutation"}
 
 // nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _UpstreamMutation(ctx context.Context, sel ast.SelectionSet, obj *models.UpstreamMutation) graphql.Marshaler {
+func (ec *executionContext) _UpstreamMutation(ctx context.Context, sel ast.SelectionSet, obj *customtypes.UpstreamMutation) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, upstreamMutationImplementors)
 
 	out := graphql.NewOrderedMap(len(fields))
@@ -1711,7 +1699,7 @@ func (ec *executionContext) _UpstreamMutation(ctx context.Context, sel ast.Selec
 	return out
 }
 
-func (ec *executionContext) _UpstreamMutation_create(ctx context.Context, field graphql.CollectedField, obj *models.UpstreamMutation) graphql.Marshaler {
+func (ec *executionContext) _UpstreamMutation_create(ctx context.Context, field graphql.CollectedField, obj *customtypes.UpstreamMutation) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 models.InputUpstream
@@ -1752,7 +1740,7 @@ func (ec *executionContext) _UpstreamMutation_create(ctx context.Context, field 
 	})
 }
 
-func (ec *executionContext) _UpstreamMutation_update(ctx context.Context, field graphql.CollectedField, obj *models.UpstreamMutation) graphql.Marshaler {
+func (ec *executionContext) _UpstreamMutation_update(ctx context.Context, field graphql.CollectedField, obj *customtypes.UpstreamMutation) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 models.InputUpstream
@@ -1793,7 +1781,7 @@ func (ec *executionContext) _UpstreamMutation_update(ctx context.Context, field 
 	})
 }
 
-func (ec *executionContext) _UpstreamMutation_delete(ctx context.Context, field graphql.CollectedField, obj *models.UpstreamMutation) graphql.Marshaler {
+func (ec *executionContext) _UpstreamMutation_delete(ctx context.Context, field graphql.CollectedField, obj *customtypes.UpstreamMutation) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1837,7 +1825,7 @@ func (ec *executionContext) _UpstreamMutation_delete(ctx context.Context, field 
 var upstreamQueryImplementors = []string{"UpstreamQuery"}
 
 // nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _UpstreamQuery(ctx context.Context, sel ast.SelectionSet, obj *models.UpstreamQuery) graphql.Marshaler {
+func (ec *executionContext) _UpstreamQuery(ctx context.Context, sel ast.SelectionSet, obj *customtypes.UpstreamQuery) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, upstreamQueryImplementors)
 
 	out := graphql.NewOrderedMap(len(fields))
@@ -1859,7 +1847,7 @@ func (ec *executionContext) _UpstreamQuery(ctx context.Context, sel ast.Selectio
 	return out
 }
 
-func (ec *executionContext) _UpstreamQuery_list(ctx context.Context, field graphql.CollectedField, obj *models.UpstreamQuery) graphql.Marshaler {
+func (ec *executionContext) _UpstreamQuery_list(ctx context.Context, field graphql.CollectedField, obj *customtypes.UpstreamQuery) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 *customtypes.MapStringString
@@ -1914,7 +1902,7 @@ func (ec *executionContext) _UpstreamQuery_list(ctx context.Context, field graph
 	})
 }
 
-func (ec *executionContext) _UpstreamQuery_get(ctx context.Context, field graphql.CollectedField, obj *models.UpstreamQuery) graphql.Marshaler {
+func (ec *executionContext) _UpstreamQuery_get(ctx context.Context, field graphql.CollectedField, obj *customtypes.UpstreamQuery) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 string
@@ -2123,7 +2111,7 @@ func (ec *executionContext) _VirtualService_status(ctx context.Context, field gr
 var virtualServiceMutationImplementors = []string{"VirtualServiceMutation"}
 
 // nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _VirtualServiceMutation(ctx context.Context, sel ast.SelectionSet, obj *models.VirtualServiceMutation) graphql.Marshaler {
+func (ec *executionContext) _VirtualServiceMutation(ctx context.Context, sel ast.SelectionSet, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, virtualServiceMutationImplementors)
 
 	out := graphql.NewOrderedMap(len(fields))
@@ -2147,7 +2135,7 @@ func (ec *executionContext) _VirtualServiceMutation(ctx context.Context, sel ast
 	return out
 }
 
-func (ec *executionContext) _VirtualServiceMutation_create(ctx context.Context, field graphql.CollectedField, obj *models.VirtualServiceMutation) graphql.Marshaler {
+func (ec *executionContext) _VirtualServiceMutation_create(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 models.InputVirtualService
@@ -2188,7 +2176,7 @@ func (ec *executionContext) _VirtualServiceMutation_create(ctx context.Context, 
 	})
 }
 
-func (ec *executionContext) _VirtualServiceMutation_update(ctx context.Context, field graphql.CollectedField, obj *models.VirtualServiceMutation) graphql.Marshaler {
+func (ec *executionContext) _VirtualServiceMutation_update(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 models.InputVirtualService
@@ -2229,7 +2217,7 @@ func (ec *executionContext) _VirtualServiceMutation_update(ctx context.Context, 
 	})
 }
 
-func (ec *executionContext) _VirtualServiceMutation_delete(ctx context.Context, field graphql.CollectedField, obj *models.VirtualServiceMutation) graphql.Marshaler {
+func (ec *executionContext) _VirtualServiceMutation_delete(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 string
@@ -2316,7 +2304,7 @@ func (ec *executionContext) _VirtualServicePlugins_empty(ctx context.Context, fi
 var virtualServiceQueryImplementors = []string{"VirtualServiceQuery"}
 
 // nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _VirtualServiceQuery(ctx context.Context, sel ast.SelectionSet, obj *models.VirtualServiceQuery) graphql.Marshaler {
+func (ec *executionContext) _VirtualServiceQuery(ctx context.Context, sel ast.SelectionSet, obj *customtypes.VirtualServiceQuery) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, virtualServiceQueryImplementors)
 
 	out := graphql.NewOrderedMap(len(fields))
@@ -2338,7 +2326,7 @@ func (ec *executionContext) _VirtualServiceQuery(ctx context.Context, sel ast.Se
 	return out
 }
 
-func (ec *executionContext) _VirtualServiceQuery_list(ctx context.Context, field graphql.CollectedField, obj *models.VirtualServiceQuery) graphql.Marshaler {
+func (ec *executionContext) _VirtualServiceQuery_list(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceQuery) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 *customtypes.MapStringString
@@ -2393,7 +2381,7 @@ func (ec *executionContext) _VirtualServiceQuery_list(ctx context.Context, field
 	})
 }
 
-func (ec *executionContext) _VirtualServiceQuery_get(ctx context.Context, field graphql.CollectedField, obj *models.VirtualServiceQuery) graphql.Marshaler {
+func (ec *executionContext) _VirtualServiceQuery_get(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceQuery) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 string
@@ -4341,13 +4329,13 @@ schema {
 }
 
 type Query {
-    upstreams(namespace: String!):       UpstreamQuery
-    virtualServices(namespace: String!): VirtualServiceQuery
+    upstreams(namespace: String!):       UpstreamQuery!
+    virtualServices(namespace: String!): VirtualServiceQuery!
 }
 
 type Mutation {
-    upstreams(namespace: String!):       UpstreamMutation
-    virtualServices(namespace: String!): VirtualServiceMutation
+    upstreams(namespace: String!):       UpstreamMutation!
+    virtualServices(namespace: String!): VirtualServiceMutation!
 }
 
 type UpstreamQuery {

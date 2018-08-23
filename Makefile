@@ -88,7 +88,7 @@ GATEWAY_GRAPHQL_GENERATED_FILES=$(GATEWAY_GRAPHQL_DIR)/models/generated.go $(GAT
 
 .PHONY: gateway
 gateway: $(GATEWAY_GRAPHQL_GENERATED_FILES)
-
-$(GATEWAY_GRAPHQL_GENERATED_FILES): $(GATEWAY_GRAPHQL_DIR)/schema.graphql
+GATEWAY_SOURCES=$(shell find $(GATEWAY_GRAPHQL_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+$(GATEWAY_GRAPHQL_GENERATED_FILES): $(GATEWAY_GRAPHQL_DIR)/schema.graphql $(GATEWAY_GRAPHQL_DIR)/gqlgen.yaml $(GATEWAY_SOURCES)
 	cd $(GATEWAY_GRAPHQL_DIR) && \
 	gqlgen -v

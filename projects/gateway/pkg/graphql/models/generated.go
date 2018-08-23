@@ -202,15 +202,6 @@ type Upstream struct {
 	Metadata Metadata     `json:"metadata"`
 	Status   Status       `json:"status"`
 }
-type UpstreamMutation struct {
-	Create *Upstream `json:"create"`
-	Update *Upstream `json:"update"`
-	Delete *Upstream `json:"delete"`
-}
-type UpstreamQuery struct {
-	List []*Upstream `json:"list"`
-	Get  *Upstream   `json:"get"`
-}
 type UpstreamSpec interface{}
 type VirtualService struct {
 	Domains   []*string              `json:"domains"`
@@ -220,17 +211,8 @@ type VirtualService struct {
 	Metadata  Metadata               `json:"metadata"`
 	Status    Status                 `json:"status"`
 }
-type VirtualServiceMutation struct {
-	Create *VirtualService `json:"create"`
-	Update *VirtualService `json:"update"`
-	Delete *VirtualService `json:"delete"`
-}
 type VirtualServicePlugins struct {
 	Empty *string `json:"empty"`
-}
-type VirtualServiceQuery struct {
-	List []*VirtualService `json:"list"`
-	Get  *VirtualService   `json:"get"`
 }
 type WeightedDestination struct {
 	Destination SingleDestination `json:"destination"`

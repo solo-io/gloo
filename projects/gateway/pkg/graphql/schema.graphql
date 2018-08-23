@@ -5,13 +5,13 @@ schema {
 }
 
 type Query {
-    upstreams(namespace: String!):       UpstreamQuery
-    virtualServices(namespace: String!): VirtualServiceQuery
+    upstreams(namespace: String!):       UpstreamQuery!
+    virtualServices(namespace: String!): VirtualServiceQuery!
 }
 
 type Mutation {
-    upstreams(namespace: String!):       UpstreamMutation
-    virtualServices(namespace: String!): VirtualServiceMutation
+    upstreams(namespace: String!):       UpstreamMutation!
+    virtualServices(namespace: String!): VirtualServiceMutation!
 }
 
 type UpstreamQuery {
