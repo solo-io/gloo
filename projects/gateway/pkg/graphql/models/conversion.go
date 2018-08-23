@@ -1,6 +1,9 @@
 package models
 
 import (
+	"log"
+	"sort"
+
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -411,24 +414,22 @@ func convertOutputMetadata(meta core.Metadata) Metadata {
 	}
 }
 
-func convertOutputStatus(status *v1.Status) *Status {
-	if status == nil {
-		return nil
-	}
+func convertOutputStatus(status core.Status) Status {
+	status = status.Flatten()
 	var state State
 	switch status.State {
-	case v1.Status_Pending:
+	case core.Status_Pending:
 		state = StatePending
-	case v1.Status_Accepted:
+	case core.Status_Accepted:
 		state = StateAccepted
-	case v1.Status_Rejected:
+	case core.Status_Rejected:
 		state = StateRejected
 	}
 	var reason *string
 	if status.Reason != "" {
 		reason = &status.Reason
 	}
-	return &Status{
+	return Status{
 		State:  state,
 		Reason: reason,
 	}
