@@ -124,21 +124,68 @@ func (r *upstreamQueryResolver) Get(ctx context.Context, obj *customtypes.Upstre
 
 type virtualServiceMutationResolver struct{ *Resolver }
 
-func (r *virtualServiceMutationResolver) Create(ctx context.Context, obj *customtypes.VirtualServiceMutation, upstream models.InputVirtualService) (*models.VirtualService, error) {
-	panic("not implemented")
+func (r *virtualServiceMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error) {
+	ups, err := r.Converter.ConvertInputVirtualService(virtualService)
+	if err != nil {
+		return nil, err
+	}
+	out, err := r.VirtualServices.Write(ups, clients.WriteOpts{
+		Ctx:               ctx,
+		OverwriteExisting: overwrite,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputVirtualService(out), nil
 }
-func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, upstream models.InputVirtualService) (*models.VirtualService, error) {
-	panic("not implemented")
+
+func (r *virtualServiceMutationResolver) Create(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error) {
+	return r.write(false, ctx, obj, virtualService)
+}
+func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error) {
+	return r.write(true, ctx, obj, virtualService)
 }
 func (r *virtualServiceMutationResolver) Delete(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string) (*models.VirtualService, error) {
-	panic("not implemented")
+	virtualService, err := r.VirtualServices.Read(obj.Namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		if errors.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	err = r.VirtualServices.Delete(obj.Namespace, name, clients.DeleteOpts{Ctx: ctx})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputVirtualService(virtualService), nil
 }
 
 type virtualServiceQueryResolver struct{ *Resolver }
 
 func (r *virtualServiceQueryResolver) List(ctx context.Context, obj *customtypes.VirtualServiceQuery, selector *customtypes.MapStringString) ([]*models.VirtualService, error) {
-	panic("not implemented")
+	var convertedSelector map[string]string
+	if selector != nil {
+		convertedSelector = selector.GetMap()
+	}
+	list, err := r.VirtualServices.List(obj.Namespace, clients.ListOpts{
+		Ctx:      ctx,
+		Selector: convertedSelector,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputVirtualServices(list), nil
 }
+
 func (r *virtualServiceQueryResolver) Get(ctx context.Context, obj *customtypes.VirtualServiceQuery, name string) (*models.VirtualService, error) {
-	panic("not implemented")
+	virtualService, err := r.VirtualServices.Read(obj.Namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputVirtualService(virtualService), nil
 }
