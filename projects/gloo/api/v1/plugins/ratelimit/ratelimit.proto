@@ -33,7 +33,7 @@ message Constraint {
     string value = 2;
    
     RateLimit rate_limit = 3;
-    repeated Constraint constraints = 5;
+    repeated Constraint constraints = 4;
 }
 
 message RateLimitConfig {
