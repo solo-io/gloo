@@ -6,46 +6,32 @@ option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugin
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-message Limit {
-    uint32 requests_per_unit = 1;
-    
+message RateLimit {
     enum Unit {
         UNKNOWN = 0;
         SECOND = 1;
         MINUTE = 2;
         HOUR = 3;
         DAY = 4;
-    };
-
-    Unit unit = 2;
+    }
+    Unit unit = 1;
+    uint32 requests_per_unit = 2;
 }
 
-message RateLimit {
-    string header = 1; // Defaults to authorization.
-    Limit authenticated = 2;
-    Limit anonymous = 3;
+
+// User Config
+message UserRateLimit {
+    string trusted_header = 1; // Defaults to authorization.
+    RateLimit authenticated = 2;
+    RateLimit anonymous = 3;
 }
 
 
 // Server config:
-// TODO: talk about this with scott - how to best depend on envoy protobufs.
-// Probably expect envoy dir somewhere and generate including it.
-// Q: How do we express dependencies? (put them in a file? bazel? put them in the script?)
 message Constraint {
     string key = 1;
     string value = 2;
-    enum Unit {
-        UNKNOWN = 0;
-        SECOND = 1;
-        MINUTE = 2;
-        HOUR = 3;
-        DAY = 4;
-    }
-    message RateLimit {
-        
-        Unit unit = 1;
-        uint32 requests_per_unit = 2;
-    }
+   
     RateLimit rate_limit = 3;
     repeated Constraint constraints = 5;
 }
