@@ -284,10 +284,9 @@ func convertInputQueryMatcher(queryM []InputKeyValueMatcher) []*v1.QueryParamete
 	return v1Query
 }
 
-func convertInputRoutePlugins(plugs *InputRoutePlugins) map[string]*v1.RoutePlugin {
-	v1Plugins := make(map[string]*v1.RoutePlugin)
+func convertInputRoutePlugins(plugs *InputRoutePlugins) *v1.RoutePlugins {
 	// TODO(ilackarms): convert route plugins when there are any
-	return v1Plugins
+	return nil
 }
 
 func convertInputDestinations(inputDests []InputWeightedDestination) ([]*v1.WeightedDestination, error) {
