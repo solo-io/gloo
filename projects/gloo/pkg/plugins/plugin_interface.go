@@ -73,6 +73,11 @@ type HttpFilterPlugin interface {
 	HttpFilters(params Params, listener *v1.HttpListener) ([]StagedHttpFilter, error)
 }
 
+type VirtualHostPlugin interface {
+	Plugin
+	ProcessVirtualHost(params Params, in *v1.VirtualHost, out *envoyroute.VirtualHost) error
+}
+
 type StagedHttpFilter struct {
 	HttpFilter *envoyhttp.HttpFilter
 	Stage      FilterStage

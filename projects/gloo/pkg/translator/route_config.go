@@ -66,7 +66,7 @@ func (t *translator) computeVirtualHost(params plugins.Params, virtualHost *v1.V
 		envoyRequireTls = envoyroute.VirtualHost_ALL
 	}
 
-	return envoyroute.VirtualHost{
+	out := envoyroute.VirtualHost{
 		Name:       virtualHost.Name,
 		Domains:    domains,
 		Routes:     envoyRoutes,
@@ -79,6 +79,18 @@ func (t *translator) computeVirtualHost(params plugins.Params, virtualHost *v1.V
 		//Cors: nil,
 		//Auth: nil,
 	}
+
+	// run the plugins
+	for _, plug := range t.plugins {
+		virtualHostPlugin, ok := plug.(plugins.VirtualHostPlugin)
+		if !ok {
+			continue
+		}
+		if err := virtualHostPlugin.ProcessVirtualHost(params, virtualHost, &out); err != nil {
+			report(err, "invalid virtual host")
+		}
+	}
+	return out
 }
 
 func (t *translator) envoyRoute(params plugins.Params, report reportFunc, in *v1.Route) envoyroute.Route {
