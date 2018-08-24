@@ -3,6 +3,8 @@ package graphql
 import (
 	"log"
 
+	"sort"
+
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -13,7 +15,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	"sort"
 )
 
 type Converter struct{}
@@ -538,6 +539,64 @@ func convertOutputTypeResolver(typeName string, typeResolver *sqoopv1.TypeResolv
 
 // TODO(ilacakrms): implement these
 func convertOutputResolver(resolver *sqoopv1.FieldResolver) Resolver {
+	switch resolver.Resolver.(type) {
+	case *sqoopv1.FieldResolver_GlooResolver:
+		return &GlooResolver{}
+	case *sqoopv1.FieldResolver_TemplateResolver:
+		return &TemplateResolver{}
+	case *sqoopv1.FieldResolver_NodejsResolver:
+		return &NodeJSResolver{}
+	}
+	log.Printf("invalid resolver type: %v", resolver)
+	return nil
+}
+
+func (c *Converter) ConvertInputResolverMaps(resolverMaps []*ResolverMap) ([]*sqoopv1.ResolverMap, error) {
+	var result []*ResolverMap
+	for _, us := range resolverMaps {
+		in, err := c.ConvertInputResolverMap(us)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, in)
+	}
+	return result, nil
+}
+
+func (c *Converter) ConvertInputResolverMap(resolverMap InputResolverMap) (*sqoopv1.ResolverMap, error) {
+	typeResolvers := make(map[string]*sqoopv1.TypeResolver)
+	for _, typeResolver := range resolverMap.Types {
+		res, err := convertInputTypeResolver(typeResolver.Fields)
+		if err != nil {
+			return nil, err
+		}
+		typeResolvers[typeResolver.TypeName] = res
+	}
+	return &sqoopv1.ResolverMap{
+		Metadata: convertInputMetadata(resolverMap.Metadata),
+		Types:    typeResolvers,
+	}, nil
+}
+
+func convertInputTypeResolver(typeName string, typeResolver *sqoopv1.TypeResolver) TypeResolver {
+	var fieldResolvers []FieldResolver
+	for fieldName, fieldResolver := range typeResolver.Fields {
+		fieldResolvers = append(fieldResolvers, FieldResolver{
+			FieldName: fieldName,
+			Resolver:  convertInputResolver(fieldResolver),
+		})
+	}
+	sort.SliceStable(fieldResolvers, func(i, j int) bool {
+		return fieldResolvers[i].FieldName < fieldResolvers[j].FieldName
+	})
+	return TypeResolver{
+		TypeName: typeName,
+		Fields:   fieldResolvers,
+	}
+}
+
+// TODO(ilacakrms): implement these
+func convertInputResolver(resolver *sqoopv1.FieldResolver) Resolver {
 	switch resolver.Resolver.(type) {
 	case *sqoopv1.FieldResolver_GlooResolver:
 		return &GlooResolver{}
