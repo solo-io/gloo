@@ -14,38 +14,38 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
-type Resolver struct {
+type ApiResolver struct {
 	Upstreams       v1.UpstreamClient
 	VirtualServices gatewayv1.VirtualServiceClient
 	Converter       *Converter
 }
 
-func (r *Resolver) Mutation() graph.MutationResolver {
+func (r *ApiResolver) Mutation() graph.MutationResolver {
 	return &mutationResolver{r}
 }
-func (r *Resolver) Query() graph.QueryResolver {
+func (r *ApiResolver) Query() graph.QueryResolver {
 	return &queryResolver{r}
 }
-func (r *Resolver) UpstreamMutation() graph.UpstreamMutationResolver {
+func (r *ApiResolver) UpstreamMutation() graph.UpstreamMutationResolver {
 	return &upstreamMutationResolver{r}
 }
-func (r *Resolver) UpstreamQuery() graph.UpstreamQueryResolver {
+func (r *ApiResolver) UpstreamQuery() graph.UpstreamQueryResolver {
 	return &upstreamQueryResolver{r}
 }
-func (r *Resolver) VirtualServiceMutation() graph.VirtualServiceMutationResolver {
+func (r *ApiResolver) VirtualServiceMutation() graph.VirtualServiceMutationResolver {
 	return &virtualServiceMutationResolver{r}
 }
-func (r *Resolver) VirtualServiceQuery() graph.VirtualServiceQueryResolver {
+func (r *ApiResolver) VirtualServiceQuery() graph.VirtualServiceQueryResolver {
 	return &virtualServiceQueryResolver{r}
 }
-func (r *Resolver) ResolverMapMutation() graph.ResolverMapMutationResolver {
+func (r *ApiResolver) ResolverMapMutation() graph.ResolverMapMutationResolver {
 	return &resolverMapMutationResolver{r}
 }
-func (r *Resolver) ResolverMapQuery() graph.ResolverMapQueryResolver {
+func (r *ApiResolver) ResolverMapQuery() graph.ResolverMapQueryResolver {
 	return &resolverMapQueryResolver{r}
 }
 
-type mutationResolver struct{ *Resolver }
+type mutationResolver struct{ *ApiResolver }
 
 func (r *mutationResolver) Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamMutation, error) {
 	return customtypes.UpstreamMutation{Namespace: namespace}, nil
@@ -57,7 +57,7 @@ func (r *mutationResolver) ResolverMaps(ctx context.Context, namespace string) (
 	panic("not implemented")
 }
 
-type queryResolver struct{ *Resolver }
+type queryResolver struct{ *ApiResolver }
 
 func (r *queryResolver) Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamQuery, error) {
 	return customtypes.UpstreamQuery{Namespace: namespace}, nil
@@ -69,7 +69,7 @@ func (r *queryResolver) ResolverMaps(ctx context.Context, namespace string) (cus
 	panic("not implemented")
 }
 
-type upstreamMutationResolver struct{ *Resolver }
+type upstreamMutationResolver struct{ *ApiResolver }
 
 func (r *upstreamMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error) {
 	ups := r.Converter.ConvertInputUpstream(upstream)
@@ -107,7 +107,7 @@ func (r *upstreamMutationResolver) Delete(ctx context.Context, obj *customtypes.
 	return r.Converter.ConvertOutputUpstream(upstream), nil
 }
 
-type upstreamQueryResolver struct{ *Resolver }
+type upstreamQueryResolver struct{ *ApiResolver }
 
 func (r *upstreamQueryResolver) List(ctx context.Context, obj *customtypes.UpstreamQuery, selector *customtypes.MapStringString) ([]*models.Upstream, error) {
 	var convertedSelector map[string]string
@@ -134,7 +134,7 @@ func (r *upstreamQueryResolver) Get(ctx context.Context, obj *customtypes.Upstre
 	return r.Converter.ConvertOutputUpstream(upstream), nil
 }
 
-type virtualServiceMutationResolver struct{ *Resolver }
+type virtualServiceMutationResolver struct{ *ApiResolver }
 
 func (r *virtualServiceMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error) {
 	ups, err := r.Converter.ConvertInputVirtualService(virtualService)
@@ -175,7 +175,7 @@ func (r *virtualServiceMutationResolver) Delete(ctx context.Context, obj *custom
 	return r.Converter.ConvertOutputVirtualService(virtualService), nil
 }
 
-type virtualServiceQueryResolver struct{ *Resolver }
+type virtualServiceQueryResolver struct{ *ApiResolver }
 
 func (r *virtualServiceQueryResolver) List(ctx context.Context, obj *customtypes.VirtualServiceQuery, selector *customtypes.MapStringString) ([]*models.VirtualService, error) {
 	var convertedSelector map[string]string
@@ -202,7 +202,7 @@ func (r *virtualServiceQueryResolver) Get(ctx context.Context, obj *customtypes.
 	return r.Converter.ConvertOutputVirtualService(virtualService), nil
 }
 
-type resolverMapMutationResolver struct{ *Resolver }
+type resolverMapMutationResolver struct{ *ApiResolver }
 
 func (r *resolverMapMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error) {
 	ups := r.Converter.ConvertInputResolverMap(resolverMap)
@@ -240,7 +240,7 @@ func (r *resolverMapMutationResolver) Delete(ctx context.Context, obj *customtyp
 	return r.Converter.ConvertOutputResolverMap(resolverMap), nil
 }
 
-type resolverMapQueryResolver struct{ *Resolver }
+type resolverMapQueryResolver struct{ *ApiResolver }
 
 func (r *resolverMapQueryResolver) List(ctx context.Context, obj *customtypes.ResolverMapQuery, selector *customtypes.MapStringString) ([]*models.ResolverMap, error) {
 	var convertedSelector map[string]string

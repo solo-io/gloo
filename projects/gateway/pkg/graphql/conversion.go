@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
+	"sort"
 )
 
 type Converter struct{}
@@ -505,10 +506,48 @@ func (c *Converter) ConvertOutputResolverMaps(resolverMaps []*sqoopv1.ResolverMa
 }
 
 func (c *Converter) ConvertOutputResolverMap(resolverMap *sqoopv1.ResolverMap) *ResolverMap {
+	var typeResolvers []TypeResolver
+	for typeName, typeResolver := range resolverMap.Types {
+		typeResolvers = append(typeResolvers, convertOutputTypeResolver(typeName, typeResolver))
+	}
+	sort.SliceStable(typeResolvers, func(i, j int) bool {
+		return typeResolvers[i].TypeName < typeResolvers[j].TypeName
+	})
 	return &ResolverMap{
 		Status:   convertOutputStatus(resolverMap.Status),
 		Metadata: convertOutputMetadata(resolverMap.Metadata),
 	}
+}
+
+func convertOutputTypeResolver(typeName string, typeResolver *sqoopv1.TypeResolver) TypeResolver {
+	var fieldResolvers []FieldResolver
+	for fieldName, fieldResolver := range typeResolver.Fields {
+		fieldResolvers = append(fieldResolvers, FieldResolver{
+			FieldName: fieldName,
+			Resolver:  convertOutputResolver(fieldResolver),
+		})
+	}
+	sort.SliceStable(fieldResolvers, func(i, j int) bool {
+		return fieldResolvers[i].FieldName < fieldResolvers[j].FieldName
+	})
+	return TypeResolver{
+		TypeName: typeName,
+		Fields:   fieldResolvers,
+	}
+}
+
+// TODO(ilacakrms): implement these
+func convertOutputResolver(resolver *sqoopv1.FieldResolver) Resolver {
+	switch resolver.Resolver.(type) {
+	case *sqoopv1.FieldResolver_GlooResolver:
+		return &GlooResolver{}
+	case *sqoopv1.FieldResolver_TemplateResolver:
+		return &TemplateResolver{}
+	case *sqoopv1.FieldResolver_NodejsResolver:
+		return &NodeJSResolver{}
+	}
+	log.Printf("invalid resolver type: %v", resolver)
+	return nil
 }
 
 // common
