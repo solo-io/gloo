@@ -106,7 +106,7 @@ func (c *Converter) ConvertInputRoutes(routes []InputRoute) ([]*v1.Route, error)
 }
 
 func (c *Converter) ConvertInputRoute(route InputRoute) (*v1.Route, error) {
-	match, err := convertInputRequestMatcher(route.Matcher)
+	match, err := convertInputMatcher(route.Matcher)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (c *Converter) ConvertInputRoute(route InputRoute) (*v1.Route, error) {
 		}
 		action.RouteAction.Destination = dest
 	case route.Destination.SingleDestination != nil:
-		weightedDestinations, err := convertDestinations(route.Destination.MultiDestination)
+		weightedDestinations, err := convertInputDestinations(route.Destination.MultiDestination)
 		if err != nil {
 			return nil, err
 		}
@@ -156,6 +156,8 @@ func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.Virtua
 		Metadata:  convertOutputMetadata(virtualService.Metadata),
 	}
 }
+
+// input `upstream
 
 func convertInputUpstreamSpec(spec InputUpstreamSpec) *v1.UpstreamSpec {
 	out := &v1.UpstreamSpec{}
@@ -218,6 +220,8 @@ func convertAzureFunctions(inputFuncs []InputAzureFunction) []*azure.UpstreamSpe
 	return funcs
 }
 
+// output upstream
+
 func convertOutputUpstreamSpec(spec *v1.UpstreamSpec) UpstreamSpec {
 	switch specType := spec.UpstreamType.(type) {
 	case *v1.UpstreamSpec_Aws:
@@ -266,7 +270,64 @@ func convertOutputAzureFunctions(azureFns []*azure.UpstreamSpec_FunctionSpec) []
 	return out
 }
 
-func convertDestinations(inputDests []InputWeightedDestination) ([]*v1.WeightedDestination, error) {
+// input virtual service
+
+func convertInputMatcher(match InputMatcher) (*v1.Matcher, error) {
+	v1Match := &v1.Matcher{
+		Headers:         convertInputHeaderMatcher(match.Headers),
+		QueryParameters: convertInputQueryMatcher(match.QueryParameters),
+		Methods:         match.Methods,
+	}
+	switch match.PathMatchType {
+	case PathMatchTypeRegex:
+		v1Match.PathSpecifier = &v1.Matcher_Regex{
+			Regex: match.PathMatch,
+		}
+	case PathMatchTypeExact:
+		v1Match.PathSpecifier = &v1.Matcher_Exact{
+			Exact: match.PathMatch,
+		}
+	case PathMatchTypePrefix:
+		v1Match.PathSpecifier = &v1.Matcher_Prefix{
+			Prefix: match.PathMatch,
+		}
+	default:
+		return nil, errors.Errorf("must specify one of PathPrefix PathRegex or PathExact")
+	}
+	return v1Match, nil
+}
+
+func convertInputHeaderMatcher(headers []InputKeyValueMatcher) []*v1.HeaderMatcher {
+	var v1Headers []*v1.HeaderMatcher
+	for _, h := range headers {
+		v1Headers = append(v1Headers, &v1.HeaderMatcher{
+			Name:  h.Name,
+			Value: h.Value,
+			Regex: h.IsRegex,
+		})
+	}
+	return v1Headers
+}
+
+func convertInputQueryMatcher(queryM []InputKeyValueMatcher) []*v1.QueryParameterMatcher {
+	var v1Query []*v1.QueryParameterMatcher
+	for _, h := range queryM {
+		v1Query = append(v1Query, &v1.QueryParameterMatcher{
+			Name:  h.Name,
+			Value: h.Value,
+			Regex: h.IsRegex,
+		})
+	}
+	return v1Query
+}
+
+func convertInputRoutePlugins(plugs *InputRoutePlugins) map[string]*v1.RoutePlugin {
+	v1Plugins := make(map[string]*v1.RoutePlugin)
+	// TODO(ilackarms): convert route plugins when there are any
+	return v1Plugins
+}
+
+func convertInputDestinations(inputDests []InputWeightedDestination) ([]*v1.WeightedDestination, error) {
 	var weightedDests []*v1.WeightedDestination
 	for _, inDest := range inputDests {
 		dest, err := convertInputSingleDestination(inDest.Destination)
@@ -298,35 +359,14 @@ func convertInputSingleDestination(inputDest InputSingleDestination) (*v1.Destin
 		return nil, err
 	}
 	return &v1.Destination{
-		UpstreamName: inputDest.UpstreamName,
+		UpstreamName:    inputDest.UpstreamName,
 		DestinationSpec: destSpec,
 	}, nil
 }
 
-func convertInputRequestMatcher(match InputRequestMatcher) (*v1.Route_RequestMatcher, error) {
-	v1Match := &v1.RequestMatcher{
-		Headers:     match.Headers.GetMap(),
-		QueryParams: match.QueryParams.GetMap(),
-		Verbs:       dePointerify(match.Verbs),
-	}
-	switch {
-	case match.PathExact != nil && match.PathPrefix == nil && match.PathRegex == nil:
-		v1Match.Path = &v1.RequestMatcher_PathExact{
-			PathExact: match.PathExact.Path,
-		}
-	case match.PathPrefix != nil && match.PathExact == nil && match.PathRegex == nil:
-		v1Match.Path = &v1.RequestMatcher_PathPrefix{
-			PathPrefix: match.PathPrefix.Path,
-		}
-	case match.PathRegex != nil && match.PathExact == nil && match.PathPrefix == nil:
-		v1Match.Path = &v1.RequestMatcher_PathRegex{
-			PathRegex: match.PathRegex.Path,
-		}
-	default:
-		return nil, errors.Errorf("must specify exactly one of PathPrefix PathRegex or PathExact")
-	}
-	return &v1.Route_RequestMatcher{RequestMatcher: v1Match}, nil
-}
+
+
+// old
 
 func convertOutputRoutes(routes []*v1.Route) []*Route {
 	var outRoutes []*Route
