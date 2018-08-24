@@ -15,9 +15,9 @@ It is generated from these files:
 It has these top-level messages:
 	Artifact
 	Endpoint
-	ListenerPlugin
-	VirtualHostPlugin
-	RoutePlugin
+	ListenerPlugins
+	VirtualHostPlugins
+	RoutePlugins
 	DestinationSpec
 	UpstreamSpec
 	Proxy

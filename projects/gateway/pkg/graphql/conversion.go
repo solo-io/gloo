@@ -346,53 +346,53 @@ func (c *Converter) ConvertOutputVirtualServices(virtualServices []*gatewayv1.Vi
 	return result
 }
 
-func convertOutputMatcher(match InputMatcher) (*v1.Matcher, error) {
-	v1Match := &v1.Matcher{
+func convertOutputMatcher(match *v1.Matcher) Matcher {
+	var (
+		path     string
+		pathType PathMatchType
+	)
+	switch p := match.PathSpecifier.(type) {
+	case *v1.Matcher_Exact:
+		path = p.Exact
+		pathType = PathMatchTypeExact
+	case *v1.Matcher_Regex:
+		path = p.Regex
+		pathType = PathMatchTypeRegex
+	case *v1.Matcher_Prefix:
+		path = p.Prefix
+		pathType = PathMatchTypePrefix
+	}
+	return Matcher{
 		Headers:         convertOutputHeaderMatcher(match.Headers),
 		QueryParameters: convertOutputQueryMatcher(match.QueryParameters),
 		Methods:         match.Methods,
+		PathMatch:       path,
+		PathMatchType:   pathType,
 	}
-	switch match.PathMatchType {
-	case PathMatchTypeRegex:
-		v1Match.PathSpecifier = &v1.Matcher_Regex{
-			Regex: match.PathMatch,
-		}
-	case PathMatchTypeExact:
-		v1Match.PathSpecifier = &v1.Matcher_Exact{
-			Exact: match.PathMatch,
-		}
-	case PathMatchTypePrefix:
-		v1Match.PathSpecifier = &v1.Matcher_Prefix{
-			Prefix: match.PathMatch,
-		}
-	default:
-		return nil, errors.Errorf("must specify one of PathPrefix PathRegex or PathExact")
-	}
-	return v1Match, nil
 }
 
-func convertOutputHeaderMatcher(headers []InputKeyValueMatcher) []*v1.HeaderMatcher {
-	var v1Headers []*v1.HeaderMatcher
+func convertOutputHeaderMatcher(headers []*v1.HeaderMatcher) []KeyValueMatcher {
+	var v1Headers []KeyValueMatcher
 	for _, h := range headers {
-		v1Headers = append(v1Headers, &v1.HeaderMatcher{
-			Name:  h.Name,
-			Value: h.Value,
-			Regex: h.IsRegex,
+		v1Headers = append(v1Headers, KeyValueMatcher{
+			Name:    h.Name,
+			Value:   h.Value,
+			IsRegex: h.Regex,
 		})
 	}
 	return v1Headers
 }
 
-func convertOutputQueryMatcher(queryM []InputKeyValueMatcher) []*v1.QueryParameterMatcher {
-	var v1Query []*v1.QueryParameterMatcher
-	for _, h := range queryM {
-		v1Query = append(v1Query, &v1.QueryParameterMatcher{
-			Name:  h.Name,
-			Value: h.Value,
-			Regex: h.IsRegex,
+func convertOutputQueryMatcher(headers []*v1.QueryParameterMatcher) []KeyValueMatcher {
+	var v1Headers []KeyValueMatcher
+	for _, h := range headers {
+		v1Headers = append(v1Headers, KeyValueMatcher{
+			Name:    h.Name,
+			Value:   h.Value,
+			IsRegex: h.Regex,
 		})
 	}
-	return v1Query
+	return v1Headers
 }
 
 func convertOutputRoutePlugins(plugs *InputRoutePlugins) map[string]*v1.RoutePlugin {
