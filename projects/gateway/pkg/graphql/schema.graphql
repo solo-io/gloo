@@ -324,7 +324,7 @@ input InputMultiDestination {
 }
 
 input InputWeightedDestination {
-    destination: InputDestination!
+    destination: InputSingleDestination!
     weight: Int!
 }
 

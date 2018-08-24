@@ -185,8 +185,8 @@ type InputVirtualServicePlugins struct {
 	Empty *string `json:"empty"`
 }
 type InputWeightedDestination struct {
-	Destination InputDestination `json:"destination"`
-	Weight      int              `json:"weight"`
+	Destination InputSingleDestination `json:"destination"`
+	Weight      int                    `json:"weight"`
 }
 type KeyValueMatcher struct {
 	Name    string `json:"name"`

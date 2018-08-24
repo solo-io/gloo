@@ -106,10 +106,17 @@ func (c *Converter) ConvertInputRoutes(routes []InputRoute) ([]*v1.Route, error)
 }
 
 func (c *Converter) ConvertInputRoute(route InputRoute) (*v1.Route, error) {
-
+	match, err := convertInputRequestMatcher(route.Matcher)
+	if err != nil {
+		return nil, err
+	}
+	action := &v1.Route_RouteAction{
+		RouteAction: &v1.RouteAction{},
+	}
 	v1Route := &v1.Route{
-		PrefixRewrite: prefixRewrite,
-		Extensions:    route.Extensions.GetStruct(),
+		Matcher:      match,
+		RoutePlugins: convertInputRoutePlugins(route.Plugins),
+		Action:       action,
 	}
 	switch {
 	case route.Destination.MultiDestination != nil:
@@ -117,32 +124,15 @@ func (c *Converter) ConvertInputRoute(route InputRoute) (*v1.Route, error) {
 		if err != nil {
 			return nil, err
 		}
-		v1Route.SingleDestination = dest
+		action.RouteAction.Destination = dest
 	case route.Destination.SingleDestination != nil:
-		weightedDestinations, err := convertDestinations(route.Destination.MultiDestinations)
+		weightedDestinations, err := convertDestinations(route.Destination.MultiDestination)
 		if err != nil {
 			return nil, err
 		}
-		v1Route.MultipleDestinations = weightedDestinations
+		action.RouteAction.Destination = weightedDestinations
 	default:
 		return nil, errors.Errorf("must specify exactly one of SingleDestination or MultiDestinations")
-	}
-
-	switch {
-	case route.Matcher.EventMatcher != nil && route.Matcher.RequestMatcher == nil:
-		v1Route.Matcher = &v1.Route_EventMatcher{
-			EventMatcher: &v1.EventMatcher{
-				EventType: route.Matcher.EventMatcher.EventType,
-			},
-		}
-	case route.Matcher.RequestMatcher != nil && route.Matcher.EventMatcher == nil:
-		match, err := convertInputRequestMatcher(*route.Matcher.RequestMatcher)
-		if err != nil {
-			return nil, err
-		}
-		v1Route.Matcher = match
-	default:
-		return nil, errors.Errorf("must specify exactly one of RequestMatcher or EventMatcher")
 	}
 	return v1Route, nil
 }
@@ -205,7 +195,7 @@ func convertInputUpstreamSpec(spec InputUpstreamSpec) *v1.UpstreamSpec {
 	return out
 }
 
-func convertLambdaFunctions(inputFuncs []*InputAwsLambdaFunction) []*aws.LambdaFunctionSpec {
+func convertLambdaFunctions(inputFuncs []InputAwsLambdaFunction) []*aws.LambdaFunctionSpec {
 	var funcs []*aws.LambdaFunctionSpec
 	for _, inFn := range inputFuncs {
 		funcs = append(funcs, &aws.LambdaFunctionSpec{
@@ -217,7 +207,7 @@ func convertLambdaFunctions(inputFuncs []*InputAwsLambdaFunction) []*aws.LambdaF
 	return funcs
 }
 
-func convertAzureFunctions(inputFuncs []*InputAzureFunction) []*azure.UpstreamSpec_FunctionSpec {
+func convertAzureFunctions(inputFuncs []InputAzureFunction) []*azure.UpstreamSpec_FunctionSpec {
 	var funcs []*azure.UpstreamSpec_FunctionSpec
 	for _, inFn := range inputFuncs {
 		funcs = append(funcs, &azure.UpstreamSpec_FunctionSpec{
@@ -253,28 +243,30 @@ func convertOutputUpstreamSpec(spec *v1.UpstreamSpec) UpstreamSpec {
 	return nil
 }
 
-func convertOutputLambdaFunctions(lambdas []*aws.LambdaFunctionSpec) []*AwsLambdaFunction {
-	var out []*AwsLambdaFunction
+func convertOutputLambdaFunctions(lambdas []*aws.LambdaFunctionSpec) []AwsLambdaFunction {
+	var out []AwsLambdaFunction
 	for _, l := range lambdas {
-		out = append(out, &AwsLambdaFunction{
+		out = append(out, AwsLambdaFunction{
 			LogicalName:  l.LogicalName,
 			FunctionName: l.LambdaFunctionName,
 			Qualifier:    l.Qualifier,
 		})
 	}
+	return out
 }
 
-func convertOutputAzureFunctions(azureFns []*azure.UpstreamSpec_FunctionSpec) []*AzureFunction {
-	var out []*AzureFunction
+func convertOutputAzureFunctions(azureFns []*azure.UpstreamSpec_FunctionSpec) []AzureFunction {
+	var out []AzureFunction
 	for _, l := range azureFns {
-		out = append(out, &AzureFunction{
+		out = append(out, AzureFunction{
 			FunctionName: l.FunctionName,
 			AuthLevel:    l.AuthLevel,
 		})
 	}
+	return out
 }
 
-func convertDestinations(inputDests []*InputWeightedDestination) ([]*v1.WeightedDestination, error) {
+func convertDestinations(inputDests []InputWeightedDestination) ([]*v1.WeightedDestination, error) {
 	var weightedDests []*v1.WeightedDestination
 	for _, inDest := range inputDests {
 		dest, err := convertInputDestination(inDest.Destination)

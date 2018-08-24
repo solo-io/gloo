@@ -5991,7 +5991,7 @@ func UnmarshalInputWeightedDestination(v interface{}) (models.InputWeightedDesti
 		switch k {
 		case "destination":
 			var err error
-			it.Destination, err = UnmarshalInputDestination(v)
+			it.Destination, err = UnmarshalInputSingleDestination(v)
 			if err != nil {
 				return it, err
 			}
@@ -6357,7 +6357,7 @@ input InputMultiDestination {
 }
 
 input InputWeightedDestination {
-    destination: InputDestination!
+    destination: InputSingleDestination!
     weight: Int!
 }
 
