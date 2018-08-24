@@ -91,7 +91,7 @@ message HttpListener {
     // Plugins should be specified here in the form of
     //   `"plugin_name": {..//plugin_config...}`
     // to allow specifying multiple plugins.
-    map<string, ListenerPlugin> listener_plugins = 2;
+    ListenerPlugins listener_plugins = 2;
 }
 
 /*
@@ -125,7 +125,7 @@ message VirtualHost {
     // Plugins should be specified here in the form of
     //   `"plugin_name": {..//plugin_config...}`
     // to allow specifying multiple plugins.
-    map<string, VirtualHostPlugin> virtual_host_plugins = 4;
+    VirtualHostPlugins virtual_host_plugins = 4;
 }
 
 /**
@@ -155,7 +155,7 @@ message Route {
     // Plugins should be specified here in the form of
     //   `"plugin_name": {..//plugin_config...}`
     // to allow specifying multiple plugins.
-    map<string, RoutePlugin> route_plugins = 5;
+    RoutePlugins route_plugins = 5;
 }
 
 // Parameters for matching routes to requests received by a Gloo-managed proxy
