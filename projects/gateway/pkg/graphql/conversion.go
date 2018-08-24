@@ -345,6 +345,48 @@ func (c *Converter) ConvertOutputVirtualServices(virtualServices []*gatewayv1.Vi
 	return result
 }
 
+func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.VirtualService) *VirtualService {
+	return &VirtualService{
+		Domains:   virtualService.VirtualHost.Domains,
+		Routes:    convertOutputRoutes(virtualService.VirtualHost.Routes),
+		SslConfig: convertOutputSSLConfig(virtualService.SslConfig),
+		Status:    convertOutputStatus(virtualService.Status),
+		Metadata:  convertOutputMetadata(virtualService.Metadata),
+	}
+}
+
+func convertOutputRoutes(routes []*v1.Route) []Route {
+	var outRoutes []Route
+	for _, r := range routes {
+		route, ok := convertOutputRoute(r)
+		if !ok {
+			continue
+		}
+		outRoutes = append(outRoutes, route)
+	}
+	return outRoutes
+}
+
+func convertOutputRoute(route *v1.Route) (Route, bool) {
+	action, ok := route.Action.(*v1.Route_RouteAction)
+	if !ok {
+		log.Printf("warning: %v does not have a RouteAction, ignoring", route)
+		return Route{}, false
+	}
+	var outDest Destination
+	switch dest := action.RouteAction.Destination.(type) {
+	case *v1.RouteAction_Single:
+		outDest = convertOutputSingleDestination(dest.Single)
+	case *v1.RouteAction_Multi:
+		outDest = convertOutputMultiDestination(dest.Multi.Destinations)
+	}
+	return Route{
+		Matcher:     convertOutputMatcher(route.Matcher),
+		Destination: outDest,
+		Plugins:     convertOutputRoutePlugins(route.RoutePlugins),
+	}, true
+}
+
 func convertOutputMatcher(match *v1.Matcher) Matcher {
 	var (
 		path     string
@@ -399,7 +441,7 @@ func convertOutputRoutePlugins(plugs *v1.RoutePlugins) *RoutePlugins {
 	return nil
 }
 
-func convertOutputDestinations(dests []*v1.WeightedDestination) ([]WeightedDestination, error) {
+func convertOutputMultiDestination(dests []*v1.WeightedDestination) *MultiDestination {
 	var weightedDests []WeightedDestination
 	for _, v1Dest := range dests {
 		weightedDests = append(weightedDests, WeightedDestination{
@@ -407,7 +449,7 @@ func convertOutputDestinations(dests []*v1.WeightedDestination) ([]WeightedDesti
 			Weight:      int(v1Dest.Weight),
 		})
 	}
-	return weightedDests, nil
+	return &MultiDestination{Destinations: weightedDests}
 }
 
 func convertOutputSingleDestination(dest *v1.Destination) SingleDestination {
@@ -439,26 +481,18 @@ func convertOutputDestinationSpec(spec *v1.DestinationSpec) DestinationSpec {
 	return nil
 }
 
-func convertOutputSSLConfig(ssl *InputSslConfig) *v1.SslConfig {
+func convertOutputSSLConfig(ssl *v1.SslConfig) *SslConfig {
 	if ssl == nil {
 		return nil
 	}
-	return &v1.SslConfig{
-		SslSecrets: &v1.SslConfig_SecretRef{
-			SecretRef: ssl.SecretRef,
-		},
+	secret, ok := ssl.SslSecrets.(*v1.SslConfig_SecretRef)
+	if !ok {
+		// file not supported atm
+		return nil
 	}
-}
 
-func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.VirtualService) *VirtualService {
-	return &VirtualService{
-		Name:      virtualService.Name,
-		Domains:   pointerify(virtualService.Domains),
-		Routes:    convertOutputRoutes(virtualService.Routes),
-		SslConfig: convertOutputSSLConfig(virtualService.SslConfig),
-		Roles:     pointerify(virtualService.Roles),
-		Status:    convertOutputStatus(virtualService.Status),
-		Metadata:  convertOutputMetadata(virtualService.Metadata),
+	return &SslConfig{
+		SecretRef: secret.SecretRef,
 	}
 }
 
