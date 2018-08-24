@@ -106,22 +106,19 @@ func (c *Converter) ConvertInputRoutes(routes []InputRoute) ([]*v1.Route, error)
 }
 
 func (c *Converter) ConvertInputRoute(route InputRoute) (*v1.Route, error) {
-	var prefixRewrite string
-	if route.PrefixRewrite != nil {
-		prefixRewrite = *route.PrefixRewrite
-	}
+
 	v1Route := &v1.Route{
 		PrefixRewrite: prefixRewrite,
 		Extensions:    route.Extensions.GetStruct(),
 	}
 	switch {
-	case route.Destination.MultiDestinations != nil && route.Destination.SingleDestination == nil:
+	case route.Destination.MultiDestination != nil:
 		dest, err := convertInputDestination(*route.Destination.SingleDestination)
 		if err != nil {
 			return nil, err
 		}
 		v1Route.SingleDestination = dest
-	case route.Destination.SingleDestination != nil && route.Destination.MultiDestinations == nil:
+	case route.Destination.SingleDestination != nil:
 		weightedDestinations, err := convertDestinations(route.Destination.MultiDestinations)
 		if err != nil {
 			return nil, err

@@ -133,8 +133,12 @@ type InputResolverMap struct {
 	Metadata InputMetadata       `json:"metadata"`
 }
 type InputRoute struct {
-	Matcher     InputMatcher     `json:"matcher"`
-	Destination InputDestination `json:"destination"`
+	Matcher     InputMatcher       `json:"matcher"`
+	Destination InputDestination   `json:"destination"`
+	Plugins     *InputRoutePlugins `json:"plugins"`
+}
+type InputRoutePlugins struct {
+	Empty *string `json:"empty"`
 }
 type InputServiceSpec struct {
 	Swagger *InputSwaggerServiceSpec `json:"swagger"`
@@ -222,8 +226,12 @@ type ResolverMap struct {
 	Status   Status         `json:"status"`
 }
 type Route struct {
-	Matcher     Matcher     `json:"matcher"`
-	Destination Destination `json:"destination"`
+	Matcher     Matcher       `json:"matcher"`
+	Destination Destination   `json:"destination"`
+	Plugins     *RoutePlugins `json:"plugins"`
+}
+type RoutePlugins struct {
+	Empty *string `json:"empty"`
 }
 type ServiceSpec interface{}
 type SingleDestination struct {

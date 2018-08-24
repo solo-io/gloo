@@ -216,6 +216,7 @@ type VirtualService {
 type Route {
     matcher: Matcher!
     destination: Destination!
+    plugins: RoutePlugins
 }
 
 # not implemented
@@ -268,6 +269,11 @@ type SslConfig {
     secretRef: String!
 }
 
+# not implemented
+type RoutePlugins {
+    empty: String
+}
+
 # InputVirtualService
 # InputVirtualService
 # InputVirtualService
@@ -285,6 +291,7 @@ input InputVirtualService {
 input InputRoute {
     matcher: InputMatcher!
     destination: InputDestination!
+    plugins: InputRoutePlugins
 }
 
 # not implemented
@@ -345,6 +352,11 @@ input InputSslConfig {
     secretRef: String!
 }
 
+
+# not implemented
+input InputRoutePlugins {
+    empty: String
+}
 
 
 ## ResolverMap

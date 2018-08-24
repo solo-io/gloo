@@ -2184,6 +2184,8 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "plugins":
+			out.Values[i] = ec._Route_plugins(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2233,6 +2235,75 @@ func (ec *executionContext) _Route_destination(ctx context.Context, field graphq
 	}
 	res := resTmp.(models.Destination)
 	return ec._Destination(ctx, field.Selections, &res)
+}
+
+func (ec *executionContext) _Route_plugins(ctx context.Context, field graphql.CollectedField, obj *models.Route) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Route",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Plugins, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.RoutePlugins)
+
+	if res == nil {
+		return graphql.Null
+	}
+	return ec._RoutePlugins(ctx, field.Selections, res)
+}
+
+var routePluginsImplementors = []string{"RoutePlugins"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _RoutePlugins(ctx context.Context, sel ast.SelectionSet, obj *models.RoutePlugins) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, routePluginsImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RoutePlugins")
+		case "empty":
+			out.Values[i] = ec._RoutePlugins_empty(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+func (ec *executionContext) _RoutePlugins_empty(ctx context.Context, field graphql.CollectedField, obj *models.RoutePlugins) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "RoutePlugins",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Empty, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
 }
 
 var singleDestinationImplementors = []string{"SingleDestination"}
@@ -5520,6 +5591,40 @@ func UnmarshalInputRoute(v interface{}) (models.InputRoute, error) {
 			if err != nil {
 				return it, err
 			}
+		case "plugins":
+			var err error
+			var ptr1 models.InputRoutePlugins
+			if v != nil {
+				ptr1, err = UnmarshalInputRoutePlugins(v)
+				it.Plugins = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputRoutePlugins(v interface{}) (models.InputRoutePlugins, error) {
+	var it models.InputRoutePlugins
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "empty":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.Empty = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -6144,6 +6249,7 @@ type VirtualService {
 type Route {
     matcher: Matcher!
     destination: Destination!
+    plugins: RoutePlugins
 }
 
 # not implemented
@@ -6196,6 +6302,11 @@ type SslConfig {
     secretRef: String!
 }
 
+# not implemented
+type RoutePlugins {
+    empty: String
+}
+
 # InputVirtualService
 # InputVirtualService
 # InputVirtualService
@@ -6213,6 +6324,7 @@ input InputVirtualService {
 input InputRoute {
     matcher: InputMatcher!
     destination: InputDestination!
+    plugins: InputRoutePlugins
 }
 
 # not implemented
@@ -6273,6 +6385,11 @@ input InputSslConfig {
     secretRef: String!
 }
 
+
+# not implemented
+input InputRoutePlugins {
+    empty: String
+}
 
 
 ## ResolverMap
