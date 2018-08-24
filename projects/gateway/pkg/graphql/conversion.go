@@ -554,7 +554,7 @@ func convertOutputResolver(resolver *sqoopv1.FieldResolver) Resolver {
 func (c *Converter) ConvertInputResolverMaps(resolverMaps []*InputResolverMap) ([]*sqoopv1.ResolverMap, error) {
 	var result []*sqoopv1.ResolverMap
 	for _, rm := range resolverMaps {
-		in, err := c.ConvertInputResolverMap(rm)
+		in, err := c.ConvertInputResolverMap(*rm)
 		if err != nil {
 			return nil, err
 		}
@@ -563,7 +563,7 @@ func (c *Converter) ConvertInputResolverMaps(resolverMaps []*InputResolverMap) (
 	return result, nil
 }
 
-func (c *Converter) ConvertInputResolverMap(resolverMap *InputResolverMap) (*sqoopv1.ResolverMap, error) {
+func (c *Converter) ConvertInputResolverMap(resolverMap InputResolverMap) (*sqoopv1.ResolverMap, error) {
 	typeResolvers := make(map[string]*sqoopv1.TypeResolver)
 	for _, typeResolver := range resolverMap.Types {
 		res, err := convertInputTypeResolver(typeResolver)
