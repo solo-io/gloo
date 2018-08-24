@@ -551,10 +551,10 @@ func convertOutputResolver(resolver *sqoopv1.FieldResolver) Resolver {
 	return nil
 }
 
-func (c *Converter) ConvertInputResolverMaps(resolverMaps []*ResolverMap) ([]*sqoopv1.ResolverMap, error) {
-	var result []*ResolverMap
-	for _, us := range resolverMaps {
-		in, err := c.ConvertInputResolverMap(us)
+func (c *Converter) ConvertInputResolverMaps(resolverMaps []*InputResolverMap) ([]*sqoopv1.ResolverMap, error) {
+	var result []*sqoopv1.ResolverMap
+	for _, rm := range resolverMaps {
+		in, err := c.ConvertInputResolverMap(rm)
 		if err != nil {
 			return nil, err
 		}
@@ -563,10 +563,10 @@ func (c *Converter) ConvertInputResolverMaps(resolverMaps []*ResolverMap) ([]*sq
 	return result, nil
 }
 
-func (c *Converter) ConvertInputResolverMap(resolverMap InputResolverMap) (*sqoopv1.ResolverMap, error) {
+func (c *Converter) ConvertInputResolverMap(resolverMap *InputResolverMap) (*sqoopv1.ResolverMap, error) {
 	typeResolvers := make(map[string]*sqoopv1.TypeResolver)
 	for _, typeResolver := range resolverMap.Types {
-		res, err := convertInputTypeResolver(typeResolver.Fields)
+		res, err := convertInputTypeResolver(typeResolver)
 		if err != nil {
 			return nil, err
 		}
@@ -578,35 +578,43 @@ func (c *Converter) ConvertInputResolverMap(resolverMap InputResolverMap) (*sqoo
 	}, nil
 }
 
-func convertInputTypeResolver(typeName string, typeResolver *sqoopv1.TypeResolver) TypeResolver {
-	var fieldResolvers []FieldResolver
-	for fieldName, fieldResolver := range typeResolver.Fields {
-		fieldResolvers = append(fieldResolvers, FieldResolver{
-			FieldName: fieldName,
-			Resolver:  convertInputResolver(fieldResolver),
-		})
+func convertInputTypeResolver(typeResolver InputTypeResolver) (*sqoopv1.TypeResolver, error) {
+	fieldResolvers := make(map[string]*sqoopv1.FieldResolver)
+	for _, fieldResolver := range typeResolver.Fields {
+		resolver, err := convertInputResolver(fieldResolver.Resolver)
+		if err != nil {
+			return nil, err
+		}
+		fieldResolvers[fieldResolver.FieldName] = resolver
 	}
-	sort.SliceStable(fieldResolvers, func(i, j int) bool {
-		return fieldResolvers[i].FieldName < fieldResolvers[j].FieldName
-	})
-	return TypeResolver{
-		TypeName: typeName,
+	return &sqoopv1.TypeResolver{
 		Fields:   fieldResolvers,
-	}
+	}, nil
 }
 
 // TODO(ilacakrms): implement these
-func convertInputResolver(resolver *sqoopv1.FieldResolver) Resolver {
-	switch resolver.Resolver.(type) {
-	case *sqoopv1.FieldResolver_GlooResolver:
-		return &GlooResolver{}
-	case *sqoopv1.FieldResolver_TemplateResolver:
-		return &TemplateResolver{}
-	case *sqoopv1.FieldResolver_NodejsResolver:
-		return &NodeJSResolver{}
+func convertInputResolver(resolver InputResolver) (*sqoopv1.FieldResolver, error) {
+	switch {
+	case resolver.GlooResolver != nil:
+		return &sqoopv1.FieldResolver{
+			Resolver: &sqoopv1.FieldResolver_GlooResolver{
+				GlooResolver: &sqoopv1.GlooResolver{},
+			},
+		}, nil
+	case resolver.TemplateResolver != nil:
+		return &sqoopv1.FieldResolver{
+			Resolver: &sqoopv1.FieldResolver_TemplateResolver{
+				TemplateResolver: &sqoopv1.TemplateResolver{},
+			},
+		}, nil
+	case resolver.NodeResolver != nil:
+		return &sqoopv1.FieldResolver{
+			Resolver: &sqoopv1.FieldResolver_NodejsResolver{
+				NodejsResolver: &sqoopv1.NodeJSResolver{},
+			},
+		}, nil
 	}
-	log.Printf("invalid resolver type: %v", resolver)
-	return nil
+	return nil, errors.Errorf("invalid input resolver: %#v", resolver)
 }
 
 // common
