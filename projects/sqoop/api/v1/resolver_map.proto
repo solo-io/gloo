@@ -20,12 +20,6 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
  * is read or updated if one does not alreay exist.
 */
 message ResolverMap {
-    // Name of the Resolver Map. Resolver Map names must be unique
-    //
-    // Resolver Map Names must be unique and follow the following syntax rules:
-    // One or more lowercase rfc1035/rfc1123 labels separated by '.' with a maximum length of 253 characters.
-    string name = 1;
-
     // Types is a map of Type Names (defined in the schema) to a TypeResolver, which contain resolvers for the
     // specific fields of the type
     map<string, TypeResolver> types = 3;

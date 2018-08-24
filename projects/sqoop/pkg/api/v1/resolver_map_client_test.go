@@ -63,7 +63,6 @@ func ResolverMapClientTest(namespace string, client ResolverMapClient) {
 	Expect(r1).To(BeAssignableToTypeOf(&ResolverMap{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
-	Expect(r1.Name).To(Equal(input.Name))
 	Expect(r1.Types).To(Equal(input.Types))
 
 	_, err = client.Write(input, clients.WriteOpts{
