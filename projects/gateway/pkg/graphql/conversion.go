@@ -32,133 +32,6 @@ func (c *Converter) ConvertInputUpstream(upstream InputUpstream) *v1.Upstream {
 	}
 }
 
-func (c *Converter) ConvertOutputUpstreams(upstreams []*v1.Upstream) []*Upstream {
-	var result []*Upstream
-	for _, us := range upstreams {
-		result = append(result, c.ConvertOutputUpstream(us))
-	}
-	return result
-}
-
-func (c *Converter) ConvertOutputUpstream(upstream *v1.Upstream) *Upstream {
-	return &Upstream{
-		Spec:     convertOutputUpstreamSpec(upstream.UpstreamSpec),
-		Metadata: convertOutputMetadata(upstream.Metadata),
-		Status:   convertOutputStatus(upstream.Status),
-	}
-}
-
-func (c *Converter) ConvertInputVirtualServices(virtualService []InputVirtualService) ([]*gatewayv1.VirtualService, error) {
-	var result []*gatewayv1.VirtualService
-	for _, vs := range virtualService {
-		converted, err := c.ConvertInputVirtualService(vs)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, converted)
-	}
-	return result, nil
-}
-
-func (c *Converter) ConvertInputVirtualService(virtualService InputVirtualService) (*gatewayv1.VirtualService, error) {
-	routes, err := c.ConvertInputRoutes(virtualService.Routes)
-	if err != nil {
-		return nil, errors.Wrap(err, "validating input routes")
-	}
-
-	return &gatewayv1.VirtualService{
-		VirtualHost: &v1.VirtualHost{
-			Domains: virtualService.Domains,
-			Routes:  routes,
-		},
-		SslConfig: convertInputSSLConfig(virtualService.SslConfig),
-		Metadata:  convertInputMetadata(virtualService.Metadata),
-	}, nil
-}
-
-func (c *Converter) ConvertOutputResolverMaps(resolverMaps []*sqoopv1.ResolverMap) []*ResolverMap {
-	var result []*ResolverMap
-	for _, us := range resolverMaps {
-		result = append(result, c.ConvertOutputResolverMap(us))
-	}
-	return result
-}
-
-func (c *Converter) ConvertOutputResolverMap(resolverMap *sqoopv1.ResolverMap) *ResolverMap {
-	return &ResolverMap{
-		Status:   convertOutputStatus(resolverMap.Status),
-		Metadata: convertOutputMetadata(resolverMap.Metadata),
-	}
-}
-
-// Extra
-
-func (c *Converter) ConvertInputRoutes(routes []InputRoute) ([]*v1.Route, error) {
-	var v1Routes []*v1.Route
-	for _, fn := range routes {
-		converted, err := c.ConvertInputRoute(fn)
-		if err != nil {
-			return nil, err
-		}
-		v1Routes = append(v1Routes, converted)
-	}
-	return v1Routes, nil
-}
-
-func (c *Converter) ConvertInputRoute(route InputRoute) (*v1.Route, error) {
-	match, err := convertInputMatcher(route.Matcher)
-	if err != nil {
-		return nil, err
-	}
-	action := &v1.Route_RouteAction{
-		RouteAction: &v1.RouteAction{},
-	}
-	v1Route := &v1.Route{
-		Matcher:      match,
-		RoutePlugins: convertInputRoutePlugins(route.Plugins),
-		Action:       action,
-	}
-	switch {
-	case route.Destination.MultiDestination != nil:
-		dest, err := convertInputSingleDestination(*route.Destination.SingleDestination)
-		if err != nil {
-			return nil, err
-		}
-		action.RouteAction.Destination = dest
-	case route.Destination.SingleDestination != nil:
-		weightedDestinations, err := convertInputDestinations(route.Destination.MultiDestination)
-		if err != nil {
-			return nil, err
-		}
-		action.RouteAction.Destination = weightedDestinations
-	default:
-		return nil, errors.Errorf("must specify exactly one of SingleDestination or MultiDestinations")
-	}
-	return v1Route, nil
-}
-
-func (c *Converter) ConvertOutputVirtualServices(virtualServices []*gatewayv1.VirtualService) []*VirtualService {
-	var result []*VirtualService
-	for _, vs := range virtualServices {
-		result = append(result, c.ConvertOutputVirtualService(vs))
-	}
-	return result
-}
-
-func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.VirtualService) *VirtualService {
-	return &VirtualService{
-		Name:      virtualService.Name,
-		Domains:   pointerify(virtualService.Domains),
-		Routes:    convertOutputRoutes(virtualService.Routes),
-		SslConfig: convertOutputSSLConfig(virtualService.SslConfig),
-		Roles:     pointerify(virtualService.Roles),
-		Status:    convertOutputStatus(virtualService.Status),
-		Metadata:  convertOutputMetadata(virtualService.Metadata),
-	}
-}
-
-// input `upstream
-
 func convertInputUpstreamSpec(spec InputUpstreamSpec) *v1.UpstreamSpec {
 	out := &v1.UpstreamSpec{}
 	switch {
@@ -220,7 +93,21 @@ func convertAzureFunctions(inputFuncs []InputAzureFunction) []*azure.UpstreamSpe
 	return funcs
 }
 
-// output upstream
+func (c *Converter) ConvertOutputUpstreams(upstreams []*v1.Upstream) []*Upstream {
+	var result []*Upstream
+	for _, us := range upstreams {
+		result = append(result, c.ConvertOutputUpstream(us))
+	}
+	return result
+}
+
+func (c *Converter) ConvertOutputUpstream(upstream *v1.Upstream) *Upstream {
+	return &Upstream{
+		Spec:     convertOutputUpstreamSpec(upstream.UpstreamSpec),
+		Metadata: convertOutputMetadata(upstream.Metadata),
+		Status:   convertOutputStatus(upstream.Status),
+	}
+}
 
 func convertOutputUpstreamSpec(spec *v1.UpstreamSpec) UpstreamSpec {
 	switch specType := spec.UpstreamType.(type) {
@@ -270,7 +157,83 @@ func convertOutputAzureFunctions(azureFns []*azure.UpstreamSpec_FunctionSpec) []
 	return out
 }
 
-// input virtual service
+func (c *Converter) ConvertInputVirtualServices(virtualService []InputVirtualService) ([]*gatewayv1.VirtualService, error) {
+	var result []*gatewayv1.VirtualService
+	for _, vs := range virtualService {
+		converted, err := c.ConvertInputVirtualService(vs)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, converted)
+	}
+	return result, nil
+}
+
+func (c *Converter) ConvertInputVirtualService(virtualService InputVirtualService) (*gatewayv1.VirtualService, error) {
+	routes, err := c.ConvertInputRoutes(virtualService.Routes)
+	if err != nil {
+		return nil, errors.Wrap(err, "validating input routes")
+	}
+
+	return &gatewayv1.VirtualService{
+		VirtualHost: &v1.VirtualHost{
+			Domains: virtualService.Domains,
+			Routes:  routes,
+		},
+		SslConfig: convertInputSSLConfig(virtualService.SslConfig),
+		Metadata:  convertInputMetadata(virtualService.Metadata),
+	}, nil
+}
+
+func (c *Converter) ConvertInputRoutes(routes []InputRoute) ([]*v1.Route, error) {
+	var v1Routes []*v1.Route
+	for _, fn := range routes {
+		converted, err := c.ConvertInputRoute(fn)
+		if err != nil {
+			return nil, err
+		}
+		v1Routes = append(v1Routes, converted)
+	}
+	return v1Routes, nil
+}
+
+func (c *Converter) ConvertInputRoute(route InputRoute) (*v1.Route, error) {
+	match, err := convertInputMatcher(route.Matcher)
+	if err != nil {
+		return nil, err
+	}
+	action := &v1.Route_RouteAction{
+		RouteAction: &v1.RouteAction{},
+	}
+	v1Route := &v1.Route{
+		Matcher:      match,
+		RoutePlugins: convertInputRoutePlugins(route.Plugins),
+		Action:       action,
+	}
+	switch {
+	case route.Destination.SingleDestination != nil:
+		dest, err := convertInputSingleDestination(*route.Destination.SingleDestination)
+		if err != nil {
+			return nil, err
+		}
+		action.RouteAction.Destination = &v1.RouteAction_Single{
+			Single: dest,
+		}
+	case route.Destination.MultiDestination != nil:
+		weightedDestinations, err := convertInputDestinations(route.Destination.MultiDestination.Destinations)
+		if err != nil {
+			return nil, err
+		}
+		action.RouteAction.Destination = &v1.RouteAction_Multi{
+			Multi: &v1.MultiDestination{
+				Destinations: weightedDestinations,
+			},
+		}
+	default:
+		return nil, errors.Errorf("must specify exactly one of SingleDestination or MultiDestinations")
+	}
+	return v1Route, nil
+}
 
 func convertInputMatcher(match InputMatcher) (*v1.Matcher, error) {
 	v1Match := &v1.Matcher{
@@ -364,104 +327,152 @@ func convertInputSingleDestination(inputDest InputSingleDestination) (*v1.Destin
 	}, nil
 }
 
-
-
-// old
-
-func convertOutputRoutes(routes []*v1.Route) []*Route {
-	var outRoutes []*Route
-	for _, route := range routes {
-		var (
-			prefixRewrite *string
-			matcher       Matcher
-		)
-		switch v1Match := route.Matcher.(type) {
-		case *v1.Route_RequestMatcher:
-			var path Path
-			switch v1Path := v1Match.RequestMatcher.Path.(type) {
-			case *v1.RequestMatcher_PathPrefix:
-				path = &PathPrefix{
-					Path: v1Path.PathPrefix,
-				}
-			case *v1.RequestMatcher_PathRegex:
-				path = &PathRegex{
-					Path: v1Path.PathRegex,
-				}
-			case *v1.RequestMatcher_PathExact:
-				path = &PathExact{
-					Path: v1Path.PathExact,
-				}
-			}
-			matcher = &RequestMatcher{
-				Path:        path,
-				Headers:     NewMapStringString(v1Match.RequestMatcher.Headers),
-				QueryParams: NewMapStringString(v1Match.RequestMatcher.QueryParams),
-				Verbs:       pointerify(v1Match.RequestMatcher.Verbs),
-			}
-		}
-		var destination Destination
-		switch {
-		case route.MultipleDestinations != nil:
-			var weightedDestinations []*WeightedDestination
-			for _, dest := range route.MultipleDestinations {
-				weightedDestinations = append(weightedDestinations, &WeightedDestination{
-					Destination: *convertSingleDestination(dest.Destination),
-					Weight:      int(dest.Weight),
-				})
-			}
-			destination = &MultiDestination{
-				WeighedDestinations: weightedDestinations,
-			}
-		case route.SingleDestination != nil:
-			destination = convertSingleDestination(route.SingleDestination)
-		}
-		if route.PrefixRewrite != "" {
-			prefixRewrite = &route.PrefixRewrite
-		}
-		outRoute := &Route{
-			Matcher:       matcher,
-			Destination:   destination,
-			PrefixRewrite: prefixRewrite,
-			Extensions:    NewStruct(route.Extensions),
-		}
-		outRoutes = append(outRoutes, outRoute)
-	}
-	return outRoutes
-}
-
-func convertInputSSLConfig(inSSL *InputSSLConfig) *v1.SSLConfig {
-	if inSSL == nil {
+func convertInputSSLConfig(ssl *InputSslConfig) *v1.SslConfig {
+	if ssl == nil {
 		return nil
 	}
-	return &v1.SSLConfig{
-		SecretRef: inSSL.SecretRef,
+	return &v1.SslConfig{
+		SslSecrets: &v1.SslConfig_SecretRef{
+			SecretRef: ssl.SecretRef,
+		},
 	}
 }
 
-func convertSingleDestination(dest *v1.Destination) *SingleDestination {
-	var destinationType SingleDestinationUnion
-	switch destType := dest.DestinationType.(type) {
-	case *v1.Destination_Upstream:
-		destinationType = &UpstreamDestination{
-			Name: destType.Upstream.Name,
-		}
-	case *v1.Destination_Function:
-		destinationType = &FunctionDestination{
-			UpstreamName: destType.Function.UpstreamName,
-			FunctionName: destType.Function.FunctionName,
-		}
+func (c *Converter) ConvertOutputVirtualServices(virtualServices []*gatewayv1.VirtualService) []*VirtualService {
+	var result []*VirtualService
+	for _, vs := range virtualServices {
+		result = append(result, c.ConvertOutputVirtualService(vs))
 	}
-	return &SingleDestination{
-		Destination: destinationType,
-	}
+	return result
 }
 
-func convertOutputSSLConfig(v1SSL *v1.SSLConfig) *SSLConfig {
-	if v1SSL == nil {
+func convertOutputMatcher(match InputMatcher) (*v1.Matcher, error) {
+	v1Match := &v1.Matcher{
+		Headers:         convertOutputHeaderMatcher(match.Headers),
+		QueryParameters: convertOutputQueryMatcher(match.QueryParameters),
+		Methods:         match.Methods,
+	}
+	switch match.PathMatchType {
+	case PathMatchTypeRegex:
+		v1Match.PathSpecifier = &v1.Matcher_Regex{
+			Regex: match.PathMatch,
+		}
+	case PathMatchTypeExact:
+		v1Match.PathSpecifier = &v1.Matcher_Exact{
+			Exact: match.PathMatch,
+		}
+	case PathMatchTypePrefix:
+		v1Match.PathSpecifier = &v1.Matcher_Prefix{
+			Prefix: match.PathMatch,
+		}
+	default:
+		return nil, errors.Errorf("must specify one of PathPrefix PathRegex or PathExact")
+	}
+	return v1Match, nil
+}
+
+func convertOutputHeaderMatcher(headers []InputKeyValueMatcher) []*v1.HeaderMatcher {
+	var v1Headers []*v1.HeaderMatcher
+	for _, h := range headers {
+		v1Headers = append(v1Headers, &v1.HeaderMatcher{
+			Name:  h.Name,
+			Value: h.Value,
+			Regex: h.IsRegex,
+		})
+	}
+	return v1Headers
+}
+
+func convertOutputQueryMatcher(queryM []InputKeyValueMatcher) []*v1.QueryParameterMatcher {
+	var v1Query []*v1.QueryParameterMatcher
+	for _, h := range queryM {
+		v1Query = append(v1Query, &v1.QueryParameterMatcher{
+			Name:  h.Name,
+			Value: h.Value,
+			Regex: h.IsRegex,
+		})
+	}
+	return v1Query
+}
+
+func convertOutputRoutePlugins(plugs *InputRoutePlugins) map[string]*v1.RoutePlugin {
+	v1Plugins := make(map[string]*v1.RoutePlugin)
+	// TODO(ilackarms): convert route plugins when there are any
+	return v1Plugins
+}
+
+func convertOutputDestinations(inputDests []InputWeightedDestination) ([]*v1.WeightedDestination, error) {
+	var weightedDests []*v1.WeightedDestination
+	for _, inDest := range inputDests {
+		dest, err := convertOutputSingleDestination(inDest.Destination)
+		if err != nil {
+			return nil, err
+		}
+		weightedDests = append(weightedDests, &v1.WeightedDestination{
+			Destination: dest,
+			Weight:      uint32(inDest.Weight),
+		})
+	}
+	return weightedDests, nil
+}
+
+func convertOutputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpec, error) {
+	if spec == nil {
+		return nil, nil
+	}
+	switch {
+	case spec.Aws != nil:
+
+	}
+	return nil, errors.Errorf("unknown destination spec type: %#v", spec)
+}
+
+func convertOutputSingleDestination(inputDest InputSingleDestination) (*v1.Destination, error) {
+	destSpec, err := convertOutputDestinationSpec(inputDest.DestinationSpec)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.Destination{
+		UpstreamName:    inputDest.UpstreamName,
+		DestinationSpec: destSpec,
+	}, nil
+}
+
+func convertOutputSSLConfig(ssl *InputSslConfig) *v1.SslConfig {
+	if ssl == nil {
 		return nil
 	}
-	return &SSLConfig{
-		SecretRef: v1SSL.SecretRef,
+	return &v1.SslConfig{
+		SslSecrets: &v1.SslConfig_SecretRef{
+			SecretRef: ssl.SecretRef,
+		},
+	}
+}
+
+func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.VirtualService) *VirtualService {
+	return &VirtualService{
+		Name:      virtualService.Name,
+		Domains:   pointerify(virtualService.Domains),
+		Routes:    convertOutputRoutes(virtualService.Routes),
+		SslConfig: convertOutputSSLConfig(virtualService.SslConfig),
+		Roles:     pointerify(virtualService.Roles),
+		Status:    convertOutputStatus(virtualService.Status),
+		Metadata:  convertOutputMetadata(virtualService.Metadata),
+	}
+}
+
+func (c *Converter) ConvertOutputResolverMaps(resolverMaps []*sqoopv1.ResolverMap) []*ResolverMap {
+	var result []*ResolverMap
+	for _, us := range resolverMaps {
+		result = append(result, c.ConvertOutputResolverMap(us))
+	}
+	return result
+}
+
+func (c *Converter) ConvertOutputResolverMap(resolverMap *sqoopv1.ResolverMap) *ResolverMap {
+	return &ResolverMap{
+		Status:   convertOutputStatus(resolverMap.Status),
+		Metadata: convertOutputMetadata(resolverMap.Metadata),
 	}
 }
 
