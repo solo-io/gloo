@@ -8,7 +8,6 @@ type UpstreamMutation struct {
 	Namespace string
 }
 
-
 type VirtualServiceQuery struct {
 	Namespace string
 }
@@ -16,7 +15,6 @@ type VirtualServiceQuery struct {
 type VirtualServiceMutation struct {
 	Namespace string
 }
-
 
 type ResolverMapQuery struct {
 	Namespace string

@@ -20,9 +20,9 @@ type AwsLambdaFunction struct {
 	Qualifier    string `json:"qualifier"`
 }
 type AwsUpstreamSpec struct {
-	Region    string               `json:"region"`
-	SecretRef string               `json:"secretRef"`
-	Functions []*AwsLambdaFunction `json:"functions"`
+	Region    string              `json:"region"`
+	SecretRef string              `json:"secretRef"`
+	Functions []AwsLambdaFunction `json:"functions"`
 }
 type AzureDestinationSpec struct {
 	FunctionName string `json:"functionName"`
@@ -32,9 +32,9 @@ type AzureFunction struct {
 	AuthLevel    string `json:"authLevel"`
 }
 type AzureUpstreamSpec struct {
-	FunctionAppName string           `json:"functionAppName"`
-	SecretRef       *string          `json:"secretRef"`
-	Functions       []*AzureFunction `json:"functions"`
+	FunctionAppName string          `json:"functionAppName"`
+	SecretRef       *string         `json:"secretRef"`
+	Functions       []AzureFunction `json:"functions"`
 }
 type Destination interface{}
 type DestinationSpec interface{}
@@ -58,9 +58,9 @@ type InputAwsLambdaFunction struct {
 	Qualifier    string `json:"qualifier"`
 }
 type InputAwsUpstreamSpec struct {
-	Region    string                    `json:"region"`
-	SecretRef string                    `json:"secretRef"`
-	Functions []*InputAwsLambdaFunction `json:"functions"`
+	Region    string                   `json:"region"`
+	SecretRef string                   `json:"secretRef"`
+	Functions []InputAwsLambdaFunction `json:"functions"`
 }
 type InputAzureDestinationSpec struct {
 	FunctionName string `json:"functionName"`
@@ -70,9 +70,9 @@ type InputAzureFunction struct {
 	AuthLevel    string `json:"authLevel"`
 }
 type InputAzureUpstreamSpec struct {
-	FunctionAppName string                `json:"functionAppName"`
-	SecretRef       *string               `json:"secretRef"`
-	Functions       []*InputAzureFunction `json:"functions"`
+	FunctionAppName string               `json:"functionAppName"`
+	SecretRef       *string              `json:"secretRef"`
+	Functions       []InputAzureFunction `json:"functions"`
 }
 type InputDestination struct {
 	SingleDestination *InputSingleDestination `json:"singleDestination"`
@@ -104,11 +104,11 @@ type InputKubeUpstreamSpec struct {
 	Selector         *customtypes.MapStringString `json:"selector"`
 }
 type InputMatcher struct {
-	PathMatch       string                  `json:"pathMatch"`
-	PathMatchType   PathMatchType           `json:"pathMatchType"`
-	Headers         []*InputKeyValueMatcher `json:"headers"`
-	QueryParameters []*InputKeyValueMatcher `json:"queryParameters"`
-	Methods         []*string               `json:"methods"`
+	PathMatch       string                 `json:"pathMatch"`
+	PathMatchType   PathMatchType          `json:"pathMatchType"`
+	Headers         []InputKeyValueMatcher `json:"headers"`
+	QueryParameters []InputKeyValueMatcher `json:"queryParameters"`
+	Methods         []string               `json:"methods"`
 }
 type InputMetadata struct {
 	Name            string                       `json:"name"`
@@ -118,7 +118,7 @@ type InputMetadata struct {
 	Annotations     *customtypes.MapStringString `json:"annotations"`
 }
 type InputMultiDestination struct {
-	Destinations []*InputWeightedDestination `json:"destinations"`
+	Destinations []InputWeightedDestination `json:"destinations"`
 }
 type InputNodeJSResolver struct {
 	Empty *string `json:"empty"`
@@ -129,8 +129,8 @@ type InputResolver struct {
 	NodeResolver     *InputNodeJSResolver   `json:"nodeResolver"`
 }
 type InputResolverMap struct {
-	Types    []*InputTypeResolver `json:"types"`
-	Metadata InputMetadata        `json:"metadata"`
+	Types    []InputTypeResolver `json:"types"`
+	Metadata InputMetadata       `json:"metadata"`
 }
 type InputRoute struct {
 	Matcher     InputMatcher     `json:"matcher"`
@@ -148,8 +148,8 @@ type InputSslConfig struct {
 	SecretRef string `json:"secretRef"`
 }
 type InputStatus struct {
-	State  State   `json:"state"`
-	Reason *string `json:"reason"`
+	State  State  `json:"state"`
+	Reason string `json:"reason"`
 }
 type InputSwaggerServiceSpec struct {
 	Empty *string `json:"empty"`
@@ -158,8 +158,8 @@ type InputTemplateResolver struct {
 	Empty *string `json:"empty"`
 }
 type InputTypeResolver struct {
-	TypeName string                `json:"typeName"`
-	Fields   []*InputFieldResolver `json:"fields"`
+	TypeName string               `json:"typeName"`
+	Fields   []InputFieldResolver `json:"fields"`
 }
 type InputUpstream struct {
 	Spec     InputUpstreamSpec `json:"spec"`
@@ -171,11 +171,11 @@ type InputUpstreamSpec struct {
 	Kube  *InputKubeUpstreamSpec  `json:"kube"`
 }
 type InputVirtualService struct {
-	Domains   []*string                   `json:"domains"`
-	Routes    []*InputRoute               `json:"routes"`
+	Domains   []string                    `json:"domains"`
+	Routes    []InputRoute                `json:"routes"`
 	SslConfig *InputSslConfig             `json:"sslConfig"`
 	Plugins   *InputVirtualServicePlugins `json:"plugins"`
-	Metadata  *InputMetadata              `json:"metadata"`
+	Metadata  InputMetadata               `json:"metadata"`
 }
 type InputVirtualServicePlugins struct {
 	Empty *string `json:"empty"`
@@ -196,11 +196,11 @@ type KubeUpstreamSpec struct {
 	Selector         *customtypes.MapStringString `json:"selector"`
 }
 type Matcher struct {
-	PathMatch       string             `json:"pathMatch"`
-	PathMatchType   PathMatchType      `json:"pathMatchType"`
-	Headers         []*KeyValueMatcher `json:"headers"`
-	QueryParameters []*KeyValueMatcher `json:"queryParameters"`
-	Methods         []*string          `json:"methods"`
+	PathMatch       string            `json:"pathMatch"`
+	PathMatchType   PathMatchType     `json:"pathMatchType"`
+	Headers         []KeyValueMatcher `json:"headers"`
+	QueryParameters []KeyValueMatcher `json:"queryParameters"`
+	Methods         []string          `json:"methods"`
 }
 type Metadata struct {
 	Name            string                       `json:"name"`
@@ -210,16 +210,16 @@ type Metadata struct {
 	Annotations     *customtypes.MapStringString `json:"annotations"`
 }
 type MultiDestination struct {
-	Destinations []*WeightedDestination `json:"destinations"`
+	Destinations []WeightedDestination `json:"destinations"`
 }
 type NodeJSResolver struct {
 	Empty *string `json:"empty"`
 }
 type Resolver interface{}
 type ResolverMap struct {
-	Types    []*TypeResolver `json:"types"`
-	Metadata Metadata        `json:"metadata"`
-	Status   Status          `json:"status"`
+	Types    []TypeResolver `json:"types"`
+	Metadata Metadata       `json:"metadata"`
+	Status   Status         `json:"status"`
 }
 type Route struct {
 	Matcher     Matcher     `json:"matcher"`
@@ -244,8 +244,8 @@ type TemplateResolver struct {
 	Empty *string `json:"empty"`
 }
 type TypeResolver struct {
-	TypeName string           `json:"typeName"`
-	Fields   []*FieldResolver `json:"fields"`
+	TypeName string          `json:"typeName"`
+	Fields   []FieldResolver `json:"fields"`
 }
 type Upstream struct {
 	Spec     UpstreamSpec `json:"spec"`
@@ -254,8 +254,8 @@ type Upstream struct {
 }
 type UpstreamSpec interface{}
 type VirtualService struct {
-	Domains   []*string              `json:"domains"`
-	Routes    []*Route               `json:"routes"`
+	Domains   []string               `json:"domains"`
+	Routes    []Route                `json:"routes"`
 	SslConfig *SslConfig             `json:"sslConfig"`
 	Plugins   *VirtualServicePlugins `json:"plugins"`
 	Metadata  Metadata               `json:"metadata"`

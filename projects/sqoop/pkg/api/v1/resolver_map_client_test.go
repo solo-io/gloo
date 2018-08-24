@@ -15,43 +15,43 @@ import (
 	"github.com/solo-io/solo-kit/test/tests/typed"
 )
 
-var _ = Describe("GatewayClient", func() {
+var _ = Describe("ResolverMapClient", func() {
 	var (
 		namespace string
 	)
 	for _, test := range []typed.ResourceClientTester{
-		&typed.KubeRcTester{Crd: GatewayCrd},
+		&typed.KubeRcTester{Crd: ResolverMapCrd},
 		&typed.ConsulRcTester{},
 		&typed.FileRcTester{},
 		&typed.MemoryRcTester{},
 	} {
 		Context("resource client backed by "+test.Description(), func() {
 			var (
-				client GatewayClient
+				client ResolverMapClient
 				err    error
 			)
 			BeforeEach(func() {
 				namespace = helpers.RandString(6)
 				factoryOpts := test.Setup(namespace)
-				client, err = NewGatewayClient(factory.NewResourceClientFactory(factoryOpts))
+				client, err = NewResolverMapClient(factory.NewResourceClientFactory(factoryOpts))
 				Expect(err).NotTo(HaveOccurred())
 			})
 			AfterEach(func() {
 				test.Teardown(namespace)
 			})
-			It("CRUDs Gateways", func() {
-				GatewayClientTest(namespace, client)
+			It("CRUDs ResolverMaps", func() {
+				ResolverMapClientTest(namespace, client)
 			})
 		})
 	}
 })
 
-func GatewayClientTest(namespace string, client GatewayClient) {
+func ResolverMapClientTest(namespace string, client ResolverMapClient) {
 	err := client.Register()
 	Expect(err).NotTo(HaveOccurred())
 
 	name := "foo"
-	input := NewGateway(namespace, name)
+	input := NewResolverMap(namespace, name)
 	input.Metadata.Namespace = namespace
 	r1, err := client.Write(input, clients.WriteOpts{})
 	Expect(err).NotTo(HaveOccurred())
@@ -60,13 +60,11 @@ func GatewayClientTest(namespace string, client GatewayClient) {
 	Expect(err).To(HaveOccurred())
 	Expect(errors.IsExist(err)).To(BeTrue())
 
-	Expect(r1).To(BeAssignableToTypeOf(&Gateway{}))
+	Expect(r1).To(BeAssignableToTypeOf(&ResolverMap{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
-	Expect(r1.VirtualServices).To(Equal(input.VirtualServices))
-	Expect(r1.BindAddress).To(Equal(input.BindAddress))
-	Expect(r1.BindPort).To(Equal(input.BindPort))
-	Expect(r1.Plugins).To(Equal(input.Plugins))
+	Expect(r1.Name).To(Equal(input.Name))
+	Expect(r1.Types).To(Equal(input.Types))
 
 	_, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,
@@ -88,7 +86,7 @@ func GatewayClientTest(namespace string, client GatewayClient) {
 	Expect(errors.IsNotExist(err)).To(BeTrue())
 
 	name = "boo"
-	input = &Gateway{}
+	input = &ResolverMap{}
 
 	// ignore return error because interfaces / oneofs mess it up
 	faker.FakeData(input)
@@ -140,7 +138,7 @@ func GatewayClientTest(namespace string, client GatewayClient) {
 		Expect(err).NotTo(HaveOccurred())
 
 		name = "goo"
-		input = &Gateway{}
+		input = &ResolverMap{}
 		// ignore return error because interfaces / oneofs mess it up
 		faker.FakeData(input)
 		Expect(err).NotTo(HaveOccurred())

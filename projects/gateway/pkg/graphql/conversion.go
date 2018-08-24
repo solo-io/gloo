@@ -1,4 +1,4 @@
-package models
+package graphql
 
 import (
 	"log"
@@ -7,10 +7,12 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/customtypes"
+	. "github.com/solo-io/solo-kit/projects/gateway/pkg/graphql/models"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
+	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 )
 
 type Converter struct{}
@@ -65,39 +67,33 @@ func (c *Converter) ConvertInputVirtualService(virtualService InputVirtualServic
 	}
 
 	return &gatewayv1.VirtualService{
-		Name:      virtualService.Name,
-		Domains:   dePointerify(virtualService.Domains),
-		Routes:    routes,
+		VirtualHost: &v1.VirtualHost{
+			Domains: virtualService.Domains,
+			Routes:  routes,
+		},
 		SslConfig: convertInputSSLConfig(virtualService.SslConfig),
-		Roles:     dePointerify(virtualService.Roles),
 		Metadata:  convertInputMetadata(virtualService.Metadata),
 	}, nil
 }
 
-func (c *Converter) ConvertOutputResolverMaps(upstreams []*v1.ResolverMap) []*ResolverMap {
+func (c *Converter) ConvertOutputResolverMaps(resolverMaps []*sqoopv1.ResolverMap) []*ResolverMap {
 	var result []*ResolverMap
-	for _, us := range upstreams {
+	for _, us := range resolverMaps {
 		result = append(result, c.ConvertOutputResolverMap(us))
 	}
 	return result
 }
 
-func (c *Converter) ConvertOutputResolverMap(upstream *v1.ResolverMap) *ResolverMap {
+func (c *Converter) ConvertOutputResolverMap(resolverMap *sqoopv1.ResolverMap) *ResolverMap {
 	return &ResolverMap{
-		Name:              upstream.Name,
-		Type:              upstream.Type,
-		ConnectionTimeout: NewDuration(upstream.ConnectionTimeout),
-		Spec:              NewStruct(upstream.Spec),
-		Functions:         convertOutputFunctions(upstream.Functions),
-		ServiceInfo:       convertOutputServiceInfo(upstream.ServiceInfo),
-		Status:            convertOutputStatus(upstream.Status),
-		Metadata:          convertOutputMetadata(upstream.Metadata),
+		Status:   convertOutputStatus(resolverMap.Status),
+		Metadata: convertOutputMetadata(resolverMap.Metadata),
 	}
 }
 
 // Extra
 
-func (c *Converter) ConvertInputRoutes(routes []*InputRoute) ([]*v1.Route, error) {
+func (c *Converter) ConvertInputRoutes(routes []InputRoute) ([]*v1.Route, error) {
 	var v1Routes []*v1.Route
 	for _, fn := range routes {
 		converted, err := c.ConvertInputRoute(fn)
@@ -109,7 +105,7 @@ func (c *Converter) ConvertInputRoutes(routes []*InputRoute) ([]*v1.Route, error
 	return v1Routes, nil
 }
 
-func (c *Converter) ConvertInputRoute(route *InputRoute) (*v1.Route, error) {
+func (c *Converter) ConvertInputRoute(route InputRoute) (*v1.Route, error) {
 	var prefixRewrite string
 	if route.PrefixRewrite != nil {
 		prefixRewrite = *route.PrefixRewrite
@@ -234,7 +230,6 @@ func convertAzureFunctions(inputFuncs []*InputAzureFunction) []*azure.UpstreamSp
 	}
 	return funcs
 }
-
 
 func convertOutputUpstreamSpec(spec *v1.UpstreamSpec) UpstreamSpec {
 	switch specType := spec.UpstreamType.(type) {
@@ -483,20 +478,4 @@ func convertOutputStatus(status core.Status) Status {
 		State:  state,
 		Reason: reason,
 	}
-}
-
-func dePointerify(in []*string) []string {
-	var out []string
-	for _, p := range in {
-		out = append(out, *p)
-	}
-	return out
-}
-
-func pointerify(in []string) []*string {
-	var out []*string
-	for _, p := range in {
-		out = append(out, &p)
-	}
-	return out
 }

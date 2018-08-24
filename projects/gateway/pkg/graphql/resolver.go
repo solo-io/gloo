@@ -45,7 +45,6 @@ func (r *Resolver) ResolverMapQuery() graph.ResolverMapQueryResolver {
 	return &resolverMapQueryResolver{r}
 }
 
-
 type mutationResolver struct{ *Resolver }
 
 func (r *mutationResolver) Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamMutation, error) {
@@ -202,7 +201,6 @@ func (r *virtualServiceQueryResolver) Get(ctx context.Context, obj *customtypes.
 	}
 	return r.Converter.ConvertOutputVirtualService(virtualService), nil
 }
-
 
 type resolverMapMutationResolver struct{ *Resolver }
 

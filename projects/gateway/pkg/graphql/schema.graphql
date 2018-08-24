@@ -39,6 +39,11 @@ type VirtualServiceMutation {
     create(virtualService: InputVirtualService!): VirtualService
     update(virtualService: InputVirtualService!): VirtualService
     delete(name: String!): VirtualService
+
+    addRoute(virtualServiceName: String!, index: Int!, route: InputRoute!) : VirtualService
+    updateRoute(virtualServiceName: String!, index: Int!, route: InputRoute!) : VirtualService
+    deleteRoute(virtualServiceName: String!, index: Int!) : VirtualService
+    swapRoutes(virtualServiceName: String!, index1: Int!, index2: Int!) : VirtualService
 }
 
 
@@ -69,13 +74,13 @@ union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec
 type AwsUpstreamSpec {
     region:    String!
     secretRef: String!
-    functions: [AwsLambdaFunction]
+    functions: [AwsLambdaFunction!]
 }
 
 type AzureUpstreamSpec {
     functionAppName: String!
     secretRef:       String
-    functions:       [AzureFunction]
+    functions:       [AzureFunction!]
 }
 
 type KubeUpstreamSpec {
@@ -129,13 +134,13 @@ input InputUpstreamSpec {
 input InputAwsUpstreamSpec {
     region:    String!
     secretRef: String!
-    functions: [InputAwsLambdaFunction]
+    functions: [InputAwsLambdaFunction!]
 }
 
 input InputAzureUpstreamSpec {
     functionAppName: String!
     secretRef:       String
-    functions:       [InputAzureFunction]
+    functions:       [InputAzureFunction!]
 }
 
 input InputKubeUpstreamSpec {
@@ -182,7 +187,7 @@ input InputMetadata {
 
 input InputStatus {
     state:  State!
-    reason: String
+    reason: String!
 }
 
 
@@ -198,8 +203,8 @@ input InputStatus {
 ## VirtualService
 
 type VirtualService {
-    domains: [String]
-    routes:  [Route]
+    domains: [String!]
+    routes:  [Route!]
     sslConfig: SslConfig
     plugins: VirtualServicePlugins
 
@@ -221,9 +226,9 @@ type VirtualServicePlugins {
 type Matcher {
     pathMatch: String!
     pathMatchType: PathMatchType!
-    headers: [KeyValueMatcher]
-    queryParameters: [KeyValueMatcher]
-    methods: [String]
+    headers: [KeyValueMatcher!]
+    queryParameters: [KeyValueMatcher!]
+    methods: [String!]
 }
 
 type KeyValueMatcher {
@@ -235,7 +240,7 @@ type KeyValueMatcher {
 union Destination = MultiDestination | SingleDestination
 
 type MultiDestination {
-    destinations: [WeightedDestination]
+    destinations: [WeightedDestination!]
 }
 
 type WeightedDestination {
@@ -269,11 +274,11 @@ type SslConfig {
 # InputVirtualService
 
 input InputVirtualService {
-    domains: [String]
-    routes:  [InputRoute]
+    domains: [String!]
+    routes:  [InputRoute!]
     sslConfig: InputSslConfig
     plugins: InputVirtualServicePlugins
-    metadata: InputMetadata
+    metadata: InputMetadata!
 }
 
 
@@ -290,9 +295,9 @@ input InputVirtualServicePlugins {
 input InputMatcher {
     pathMatch: String!
     pathMatchType: PathMatchType!
-    headers: [InputKeyValueMatcher]
-    queryParameters: [InputKeyValueMatcher]
-    methods: [String]
+    headers: [InputKeyValueMatcher!]
+    queryParameters: [InputKeyValueMatcher!]
+    methods: [String!]
 }
 
 input InputKeyValueMatcher {
@@ -308,7 +313,7 @@ input InputDestination {
 }
 
 input InputMultiDestination {
-    destinations: [InputWeightedDestination]
+    destinations: [InputWeightedDestination!]
 }
 
 input InputWeightedDestination {
@@ -362,7 +367,7 @@ type ResolverMap {
     # the trick with type resolvers is the typeNames must be unique!
     # this converts to a map in the server
     # what a novel idea for a type system. maps... who would have thunk it?
-    types: [TypeResolver]!
+    types: [TypeResolver!]!
     metadata: Metadata!
     status:   Status!
 }
@@ -370,7 +375,7 @@ type ResolverMap {
 type TypeResolver {
     typeName: String!
     # again, the fieldNames within this array must be unique
-    fields: [FieldResolver]!
+    fields: [FieldResolver!]!
 }
 
 type FieldResolver {
@@ -398,14 +403,14 @@ input InputResolverMap {
     # the trick with type resolvers is the typeNames must be unique!
     # this converts to a map in the server
     # what a novel idea for a type system. maps... who would have thunk it?
-    types: [InputTypeResolver]!
+    types: [InputTypeResolver!]!
     metadata: InputMetadata!
 }
 
 input InputTypeResolver {
     typeName: String!
     # again, the fieldNames within this array must be unique
-    fields: [InputFieldResolver]!
+    fields: [InputFieldResolver!]!
 }
 
 input InputFieldResolver {
