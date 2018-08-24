@@ -588,7 +588,7 @@ func convertInputTypeResolver(typeResolver InputTypeResolver) (*sqoopv1.TypeReso
 		fieldResolvers[fieldResolver.FieldName] = resolver
 	}
 	return &sqoopv1.TypeResolver{
-		Fields:   fieldResolvers,
+		Fields: fieldResolvers,
 	}, nil
 }
 

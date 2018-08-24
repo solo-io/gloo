@@ -75,10 +75,10 @@ type VirtualServiceMutationResolver interface {
 	Create(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error)
 	Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error)
 	Delete(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string) (*models.VirtualService, error)
-	AddRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, index int, route models.InputRoute) (*models.VirtualService, error)
-	UpdateRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, index int, route models.InputRoute) (*models.VirtualService, error)
-	DeleteRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, index int) (*models.VirtualService, error)
-	SwapRoutes(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, index1 int, index2 int) (*models.VirtualService, error)
+	AddRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error)
+	UpdateRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error)
+	DeleteRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int) (*models.VirtualService, error)
+	SwapRoutes(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index1 int, index2 int) (*models.VirtualService, error)
 }
 type VirtualServiceQueryResolver interface {
 	List(ctx context.Context, obj *customtypes.VirtualServiceQuery, selector *customtypes.MapStringString) ([]*models.VirtualService, error)
@@ -3396,26 +3396,36 @@ func (ec *executionContext) _VirtualServiceMutation_addRoute(ctx context.Context
 		}
 	}
 	args["virtualServiceName"] = arg0
-	var arg1 int
+	var arg1 string
+	if tmp, ok := rawArgs["resourceVersion"]; ok {
+		var err error
+		arg1, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["resourceVersion"] = arg1
+	var arg2 int
 	if tmp, ok := rawArgs["index"]; ok {
 		var err error
-		arg1, err = graphql.UnmarshalInt(tmp)
+		arg2, err = graphql.UnmarshalInt(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["index"] = arg1
-	var arg2 models.InputRoute
+	args["index"] = arg2
+	var arg3 models.InputRoute
 	if tmp, ok := rawArgs["route"]; ok {
 		var err error
-		arg2, err = UnmarshalInputRoute(tmp)
+		arg3, err = UnmarshalInputRoute(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["route"] = arg2
+	args["route"] = arg3
 	rctx := &graphql.ResolverContext{
 		Object: "VirtualServiceMutation",
 		Args:   args,
@@ -3423,7 +3433,7 @@ func (ec *executionContext) _VirtualServiceMutation_addRoute(ctx context.Context
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.VirtualServiceMutation().AddRoute(ctx, obj, args["virtualServiceName"].(string), args["index"].(int), args["route"].(models.InputRoute))
+		return ec.resolvers.VirtualServiceMutation().AddRoute(ctx, obj, args["virtualServiceName"].(string), args["resourceVersion"].(string), args["index"].(int), args["route"].(models.InputRoute))
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -3449,26 +3459,36 @@ func (ec *executionContext) _VirtualServiceMutation_updateRoute(ctx context.Cont
 		}
 	}
 	args["virtualServiceName"] = arg0
-	var arg1 int
+	var arg1 string
+	if tmp, ok := rawArgs["resourceVersion"]; ok {
+		var err error
+		arg1, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["resourceVersion"] = arg1
+	var arg2 int
 	if tmp, ok := rawArgs["index"]; ok {
 		var err error
-		arg1, err = graphql.UnmarshalInt(tmp)
+		arg2, err = graphql.UnmarshalInt(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["index"] = arg1
-	var arg2 models.InputRoute
+	args["index"] = arg2
+	var arg3 models.InputRoute
 	if tmp, ok := rawArgs["route"]; ok {
 		var err error
-		arg2, err = UnmarshalInputRoute(tmp)
+		arg3, err = UnmarshalInputRoute(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["route"] = arg2
+	args["route"] = arg3
 	rctx := &graphql.ResolverContext{
 		Object: "VirtualServiceMutation",
 		Args:   args,
@@ -3476,7 +3496,7 @@ func (ec *executionContext) _VirtualServiceMutation_updateRoute(ctx context.Cont
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.VirtualServiceMutation().UpdateRoute(ctx, obj, args["virtualServiceName"].(string), args["index"].(int), args["route"].(models.InputRoute))
+		return ec.resolvers.VirtualServiceMutation().UpdateRoute(ctx, obj, args["virtualServiceName"].(string), args["resourceVersion"].(string), args["index"].(int), args["route"].(models.InputRoute))
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -3502,16 +3522,26 @@ func (ec *executionContext) _VirtualServiceMutation_deleteRoute(ctx context.Cont
 		}
 	}
 	args["virtualServiceName"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["index"]; ok {
+	var arg1 string
+	if tmp, ok := rawArgs["resourceVersion"]; ok {
 		var err error
-		arg1, err = graphql.UnmarshalInt(tmp)
+		arg1, err = graphql.UnmarshalString(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["index"] = arg1
+	args["resourceVersion"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["index"]; ok {
+		var err error
+		arg2, err = graphql.UnmarshalInt(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["index"] = arg2
 	rctx := &graphql.ResolverContext{
 		Object: "VirtualServiceMutation",
 		Args:   args,
@@ -3519,7 +3549,7 @@ func (ec *executionContext) _VirtualServiceMutation_deleteRoute(ctx context.Cont
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.VirtualServiceMutation().DeleteRoute(ctx, obj, args["virtualServiceName"].(string), args["index"].(int))
+		return ec.resolvers.VirtualServiceMutation().DeleteRoute(ctx, obj, args["virtualServiceName"].(string), args["resourceVersion"].(string), args["index"].(int))
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -3545,18 +3575,18 @@ func (ec *executionContext) _VirtualServiceMutation_swapRoutes(ctx context.Conte
 		}
 	}
 	args["virtualServiceName"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["index1"]; ok {
+	var arg1 string
+	if tmp, ok := rawArgs["resourceVersion"]; ok {
 		var err error
-		arg1, err = graphql.UnmarshalInt(tmp)
+		arg1, err = graphql.UnmarshalString(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["index1"] = arg1
+	args["resourceVersion"] = arg1
 	var arg2 int
-	if tmp, ok := rawArgs["index2"]; ok {
+	if tmp, ok := rawArgs["index1"]; ok {
 		var err error
 		arg2, err = graphql.UnmarshalInt(tmp)
 		if err != nil {
@@ -3564,7 +3594,17 @@ func (ec *executionContext) _VirtualServiceMutation_swapRoutes(ctx context.Conte
 			return graphql.Null
 		}
 	}
-	args["index2"] = arg2
+	args["index1"] = arg2
+	var arg3 int
+	if tmp, ok := rawArgs["index2"]; ok {
+		var err error
+		arg3, err = graphql.UnmarshalInt(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["index2"] = arg3
 	rctx := &graphql.ResolverContext{
 		Object: "VirtualServiceMutation",
 		Args:   args,
@@ -3572,7 +3612,7 @@ func (ec *executionContext) _VirtualServiceMutation_swapRoutes(ctx context.Conte
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return ec.resolvers.VirtualServiceMutation().SwapRoutes(ctx, obj, args["virtualServiceName"].(string), args["index1"].(int), args["index2"].(int))
+		return ec.resolvers.VirtualServiceMutation().SwapRoutes(ctx, obj, args["virtualServiceName"].(string), args["resourceVersion"].(string), args["index1"].(int), args["index2"].(int))
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -6073,10 +6113,10 @@ type VirtualServiceMutation {
     update(virtualService: InputVirtualService!): VirtualService
     delete(name: String!): VirtualService
 
-    addRoute(virtualServiceName: String!, index: Int!, route: InputRoute!) : VirtualService
-    updateRoute(virtualServiceName: String!, index: Int!, route: InputRoute!) : VirtualService
-    deleteRoute(virtualServiceName: String!, index: Int!) : VirtualService
-    swapRoutes(virtualServiceName: String!, index1: Int!, index2: Int!) : VirtualService
+    addRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!, route: InputRoute!) : VirtualService
+    updateRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!, route: InputRoute!) : VirtualService
+    deleteRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!) : VirtualService
+    swapRoutes(virtualServiceName: String!, resourceVersion: String!, index1: Int!, index2: Int!) : VirtualService
 }
 
 

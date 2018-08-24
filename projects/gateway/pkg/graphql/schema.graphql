@@ -40,10 +40,10 @@ type VirtualServiceMutation {
     update(virtualService: InputVirtualService!): VirtualService
     delete(name: String!): VirtualService
 
-    addRoute(virtualServiceName: String!, index: Int!, route: InputRoute!) : VirtualService
-    updateRoute(virtualServiceName: String!, index: Int!, route: InputRoute!) : VirtualService
-    deleteRoute(virtualServiceName: String!, index: Int!) : VirtualService
-    swapRoutes(virtualServiceName: String!, index1: Int!, index2: Int!) : VirtualService
+    addRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!, route: InputRoute!) : VirtualService
+    updateRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!, route: InputRoute!) : VirtualService
+    deleteRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!) : VirtualService
+    swapRoutes(virtualServiceName: String!, resourceVersion: String!, index1: Int!, index2: Int!) : VirtualService
 }
 
 
