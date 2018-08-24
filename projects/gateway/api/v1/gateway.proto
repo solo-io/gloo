@@ -33,9 +33,6 @@ message Gateway {
     // bind ports must not conflict across gateways in a namespace
     uint32 bind_port = 4;
 
-    // If provided, the Gateway will serve TLS/SSL traffic on this port
-    gloo.solo.io.SslConfig ssl_config = 1;
-
     // top level plugin configuration for all routes on the gateway
     map<string, gloo.solo.io.ListenerPlugin> plugins = 5;
 
@@ -61,6 +58,9 @@ Domains must be unique across all virtual services within a gateway (i.e. no ove
 */
 message VirtualService {
     gloo.solo.io.VirtualHost virtual_host = 1;
+
+    // If provided, the Gateway will serve TLS/SSL traffic for this set of routes
+    gloo.solo.io.SslConfig ssl_config = 2;
 
     // Status indicates the validation status of this resource.
     // Status is read-only by clients, and set by gloo during validation
