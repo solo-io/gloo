@@ -105,7 +105,8 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 					return nil, err
 				}
 				hostname := GetHostname(upstreamSpec)
-
+				// TODO: this is removed by: https://github.com/envoyproxy/envoy/pull/4220
+				// TODO: use transformation filter?
 				ret := []*envoycore.HeaderValueOption{
 					header(":path", path),
 					header(":authority", hostname),
