@@ -394,47 +394,49 @@ func convertOutputQueryMatcher(headers []*v1.QueryParameterMatcher) []KeyValueMa
 	return v1Headers
 }
 
-func convertOutputRoutePlugins(plugs *InputRoutePlugins) map[string]*v1.RoutePlugin {
-	v1Plugins := make(map[string]*v1.RoutePlugin)
+func convertOutputRoutePlugins(plugs *v1.RoutePlugins) *RoutePlugins {
 	// TODO(ilackarms): convert route plugins when there are any
-	return v1Plugins
+	return nil
 }
 
-func convertOutputDestinations(inputDests []InputWeightedDestination) ([]*v1.WeightedDestination, error) {
-	var weightedDests []*v1.WeightedDestination
-	for _, inDest := range inputDests {
-		dest, err := convertOutputSingleDestination(inDest.Destination)
-		if err != nil {
-			return nil, err
-		}
-		weightedDests = append(weightedDests, &v1.WeightedDestination{
-			Destination: dest,
-			Weight:      uint32(inDest.Weight),
+func convertOutputDestinations(dests []*v1.WeightedDestination) ([]WeightedDestination, error) {
+	var weightedDests []WeightedDestination
+	for _, v1Dest := range dests {
+		weightedDests = append(weightedDests, WeightedDestination{
+			Destination: convertOutputSingleDestination(v1Dest.Destination),
+			Weight:      int(v1Dest.Weight),
 		})
 	}
 	return weightedDests, nil
 }
 
-func convertOutputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpec, error) {
-	if spec == nil {
-		return nil, nil
+func convertOutputSingleDestination(dest *v1.Destination) SingleDestination {
+	return SingleDestination{
+		UpstreamName:    dest.UpstreamName,
+		DestinationSpec: convertOutputDestinationSpec(dest.DestinationSpec),
 	}
-	switch {
-	case spec.Aws != nil:
-
-	}
-	return nil, errors.Errorf("unknown destination spec type: %#v", spec)
 }
 
-func convertOutputSingleDestination(inputDest InputSingleDestination) (*v1.Destination, error) {
-	destSpec, err := convertOutputDestinationSpec(inputDest.DestinationSpec)
-	if err != nil {
-		return nil, err
+func convertOutputDestinationSpec(spec *v1.DestinationSpec) DestinationSpec {
+	if spec == nil {
+		return nil
 	}
-	return &v1.Destination{
-		UpstreamName:    inputDest.UpstreamName,
-		DestinationSpec: destSpec,
-	}, nil
+	switch destSpec := spec.DestinationType.(type) {
+	case *v1.DestinationSpec_Aws:
+		var invocationStyle AwsLambdaInvocationStyle
+		switch destSpec.Aws.InvocationStyle {
+		case aws.DestinationSpec_ASYNC:
+			invocationStyle = AwsLambdaInvocationStyleAsync
+		case aws.DestinationSpec_SYNC:
+			invocationStyle = AwsLambdaInvocationStyleSync
+		}
+		return &AwsDestinationSpec{
+			LogicalName:     destSpec.Aws.LogicalName,
+			InvocationStyle: invocationStyle,
+		}
+	}
+	log.Printf("unknown destination spec type: %#v", spec)
+	return nil
 }
 
 func convertOutputSSLConfig(ssl *InputSslConfig) *v1.SslConfig {
