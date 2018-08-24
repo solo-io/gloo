@@ -75,20 +75,20 @@ install-plugin: $(OUTPUT_DIR)/protoc-gen-solo-kit
 
 
 #----------------------------------------------------------------------------------
-# Gateway
+# Apiserver
 #----------------------------------------------------------------------------------
 #
 #---------
 #--------- Graphql Stubs
 #---------
 
-GATEWAY_DIR=projects/gateway
-GATEWAY_GRAPHQL_DIR=$(GATEWAY_DIR)/pkg/graphql
-GATEWAY_GRAPHQL_GENERATED_FILES=$(GATEWAY_GRAPHQL_DIR)/models/generated.go $(GATEWAY_GRAPHQL_DIR)/graph/generated.go
+APISERVER_DIR=projects/apiserver
+APISERVER_GRAPHQL_DIR=$(APISERVER_DIR)/pkg/graphql
+APISERVER_GRAPHQL_GENERATED_FILES=$(APISERVER_GRAPHQL_DIR)/models/generated.go $(APISERVER_GRAPHQL_DIR)/graph/generated.go
 
-.PHONY: gateway
-gateway: $(GATEWAY_GRAPHQL_GENERATED_FILES)
-GATEWAY_SOURCES=$(shell find $(GATEWAY_GRAPHQL_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-$(GATEWAY_GRAPHQL_GENERATED_FILES): $(GATEWAY_GRAPHQL_DIR)/schema.graphql $(GATEWAY_GRAPHQL_DIR)/gqlgen.yaml $(GATEWAY_SOURCES)
-	cd $(GATEWAY_GRAPHQL_DIR) && \
+.PHONY: apiserver
+apiserver: $(APISERVER_GRAPHQL_GENERATED_FILES)
+APISERVER_SOURCES=$(shell find $(APISERVER_GRAPHQL_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+$(APISERVER_GRAPHQL_GENERATED_FILES): $(APISERVER_GRAPHQL_DIR)/schema.graphql $(APISERVER_GRAPHQL_DIR)/gqlgen.yaml $(APISERVER_SOURCES)
+	cd $(APISERVER_GRAPHQL_DIR) && \
 	gqlgen -v
