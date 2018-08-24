@@ -120,7 +120,7 @@ func (c *Converter) ConvertInputRoute(route InputRoute) (*v1.Route, error) {
 	}
 	switch {
 	case route.Destination.MultiDestination != nil:
-		dest, err := convertInputDestination(*route.Destination.SingleDestination)
+		dest, err := convertInputSingleDestination(*route.Destination.SingleDestination)
 		if err != nil {
 			return nil, err
 		}
@@ -269,7 +269,7 @@ func convertOutputAzureFunctions(azureFns []*azure.UpstreamSpec_FunctionSpec) []
 func convertDestinations(inputDests []InputWeightedDestination) ([]*v1.WeightedDestination, error) {
 	var weightedDests []*v1.WeightedDestination
 	for _, inDest := range inputDests {
-		dest, err := convertInputDestination(inDest.Destination)
+		dest, err := convertInputSingleDestination(inDest.Destination)
 		if err != nil {
 			return nil, err
 		}
@@ -281,28 +281,26 @@ func convertDestinations(inputDests []InputWeightedDestination) ([]*v1.WeightedD
 	return weightedDests, nil
 }
 
-func convertInputDestination(inputDest InputSingleDestination) (*v1.Destination, error) {
-	switch {
-	case inputDest.UpstreamDestination != nil && inputDest.FunctionDestination == nil:
-		return &v1.Destination{
-			DestinationType: &v1.Destination_Upstream{
-				Upstream: &v1.UpstreamDestination{
-					Name: inputDest.UpstreamDestination.Name,
-				},
-			},
-		}, nil
-	case inputDest.FunctionDestination != nil && inputDest.UpstreamDestination == nil:
-		return &v1.Destination{
-			DestinationType: &v1.Destination_Function{
-				Function: &v1.FunctionDestination{
-					UpstreamName: inputDest.FunctionDestination.UpstreamName,
-					FunctionName: inputDest.FunctionDestination.FunctionName,
-				},
-			},
-		}, nil
-	default:
-		return nil, errors.Errorf("must specify exactly one of UpstreamDestination or FunctionDestination")
+func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpec, error) {
+	if spec == nil {
+		return nil, nil
 	}
+	switch {
+	case spec.Aws != nil:
+
+	}
+	return nil, errors.Errorf("unknown destination spec type: %#v", spec)
+}
+
+func convertInputSingleDestination(inputDest InputSingleDestination) (*v1.Destination, error) {
+	destSpec, err := convertInputDestinationSpec(inputDest.DestinationSpec)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.Destination{
+		UpstreamName: inputDest.UpstreamName,
+		DestinationSpec: destSpec,
+	}, nil
 }
 
 func convertInputRequestMatcher(match InputRequestMatcher) (*v1.Route_RequestMatcher, error) {
