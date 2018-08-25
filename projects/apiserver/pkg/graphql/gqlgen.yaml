@@ -12,8 +12,8 @@ model:
 
 # Optional, turns on resolver stub generation
 resolver:
-  filename: resolver2.go # where to write them
-  type: Resolver2  # whats the resolver root implementation type called?
+  filename: resolver.go # where to write them
+  type: GraphqlResolver  # whats the resolver root implementation type called?
 
 # Tell gqlgen about any existing models you want to reuse for
 # graphql. These normally come from the db or a remote api.
