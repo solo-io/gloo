@@ -9,6 +9,8 @@ import (
 	"github.com/99designs/gqlgen/handler"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	apiserver "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -54,4 +56,71 @@ func Setup() error {
 	))
 
 	return http.ListenAndServe(":8080", nil)
+}
+
+func sampleData() (v1.UpstreamList, gatewayv1.VirtualServiceList, sqoopv1.ResolverMapList) {
+	return sampleUpstreams(), sampleVirtualServices(), sampleResolverMaps()
+}
+
+func sampleVirtualServices() gatewayv1.VirtualServiceList {
+		meta := makeMetadata(resources.Kind(&sqoopv1.ResolverMap{}), "some-namespace", 1)
+	return gatewayv1.VirtualServiceList{
+		{
+			Metadata:  meta,
+			SslConfig: &v1.SslConfig{SslSecrets: &v1.SslConfig_SecretRef{SecretRef: "some-secret"}},
+			VirtualHost: &v1.VirtualHost{
+				Name: meta.Name,
+				Domains: []string{"sqoop.didoop.com"},
+				Routes: []*v1.Route{
+					{},
+				},
+			},
+		},
+	}
+}
+
+func sampleResolverMaps() sqoopv1.ResolverMapList {
+	return sqoopv1.ResolverMapList{
+		{
+			Metadata: makeMetadata(resources.Kind(&sqoopv1.ResolverMap{}), "some-namespace", 1),
+			Types: map[string]*sqoopv1.TypeResolver{
+				"Foo": {
+					Fields: map[string]*sqoopv1.FieldResolver{
+						"field1": {Resolver: &sqoopv1.FieldResolver_GlooResolver{}},
+						"field2": {Resolver: &sqoopv1.FieldResolver_TemplateResolver{}},
+					},
+				},
+				"Bar": {
+					Fields: map[string]*sqoopv1.FieldResolver{
+						"field1": {Resolver: &sqoopv1.FieldResolver_GlooResolver{}},
+						"field2": {Resolver: &sqoopv1.FieldResolver_TemplateResolver{}},
+					},
+				},
+			},
+		},
+		{
+			Metadata: makeMetadata(resources.Kind(&sqoopv1.ResolverMap{}), "some-namespace", 2),
+			Types: map[string]*sqoopv1.TypeResolver{
+				"Baz": {
+					Fields: map[string]*sqoopv1.FieldResolver{
+						"field1": {Resolver: &sqoopv1.FieldResolver_GlooResolver{}},
+						"field2": {Resolver: &sqoopv1.FieldResolver_TemplateResolver{}},
+					},
+				},
+				"Qux": {
+					Fields: map[string]*sqoopv1.FieldResolver{
+						"field1": {Resolver: &sqoopv1.FieldResolver_GlooResolver{}},
+						"field2": {Resolver: &sqoopv1.FieldResolver_TemplateResolver{}},
+					},
+				},
+			},
+		},
+	}
+}
+
+func makeMetadata(kind, namespace string, i int) core.Metadata {
+	return core.Metadata{
+		Name:      fmt.Sprintf("%v-%v", kind, i),
+		Namespace: namespace,
+	}
 }
