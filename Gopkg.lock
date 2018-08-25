@@ -2,6 +2,22 @@
 
 
 [[projects]]
+  name = "github.com/99designs/gqlgen"
+  packages = [
+    "graphql",
+    "graphql/introspection",
+    "handler"
+  ]
+  revision = "6f6622c6b78098660f03d38fb8f0d459d428bdbe"
+  version = "v0.4.4"
+
+[[projects]]
+  name = "github.com/agnivade/levenshtein"
+  packages = ["."]
+  revision = "3d21ba515fe27b856f230847e856431ae1724adc"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/bxcodec/faker"
   packages = [
@@ -112,6 +128,12 @@
   ]
   revision = "7c663266750e7d82587642f65e60bc4083f1f84e"
   version = "v0.2.0"
+
+[[projects]]
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  revision = "3ff3320c2a1756a3691521efc290b4701575147c"
+  version = "v1.3.0"
 
 [[projects]]
   branch = "master"
@@ -424,17 +446,18 @@
   version = "v1.0.1"
 
 [[projects]]
-  name = "github.com/vektah/gqlgen"
+  branch = "master"
+  name = "github.com/vektah/gqlparser"
   packages = [
-    "graphql",
-    "neelance/common",
-    "neelance/errors",
-    "neelance/introspection",
-    "neelance/query",
-    "neelance/schema"
+    ".",
+    "ast",
+    "gqlerror",
+    "lexer",
+    "parser",
+    "validator",
+    "validator/rules"
   ]
-  revision = "381b34691fd93829e50ba8821412dc3467ec4821"
-  version = "0.3.0"
+  revision = "d0fbd67c7fe908a304fbd2e2a625b397d793af41"
 
 [[projects]]
   name = "go.uber.org/atomic"
@@ -755,6 +778,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5395544cd9d64a2a2dfaa6e1c3920541fedb920727e37b6f6a55a8a9deab5be0"
+  inputs-digest = "ed7ef292e82bf85642dfdf952dc50496356cb8d11b288c6c6c635f4c19898926"
   solver-name = "gps-cdcl"
   solver-version = 1
