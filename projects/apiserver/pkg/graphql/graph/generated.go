@@ -30,6 +30,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	MapStringString() MapStringStringResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	ResolverMapMutation() ResolverMapMutationResolver
@@ -41,6 +42,9 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+}
+type MapStringStringResolver interface {
+	Values(ctx context.Context, obj *customtypes.MapStringString) ([]models.Value, error)
 }
 type MutationResolver interface {
 	Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamMutation, error)
@@ -58,7 +62,7 @@ type ResolverMapMutationResolver interface {
 	Delete(ctx context.Context, obj *customtypes.ResolverMapMutation, name string) (*models.ResolverMap, error)
 }
 type ResolverMapQueryResolver interface {
-	List(ctx context.Context, obj *customtypes.ResolverMapQuery, selector *customtypes.MapStringString) ([]*models.ResolverMap, error)
+	List(ctx context.Context, obj *customtypes.ResolverMapQuery, selector *models.InputMapStringString) ([]*models.ResolverMap, error)
 	Get(ctx context.Context, obj *customtypes.ResolverMapQuery, name string) (*models.ResolverMap, error)
 }
 type UpstreamMutationResolver interface {
@@ -67,7 +71,7 @@ type UpstreamMutationResolver interface {
 	Delete(ctx context.Context, obj *customtypes.UpstreamMutation, name string) (*models.Upstream, error)
 }
 type UpstreamQueryResolver interface {
-	List(ctx context.Context, obj *customtypes.UpstreamQuery, selector *customtypes.MapStringString) ([]*models.Upstream, error)
+	List(ctx context.Context, obj *customtypes.UpstreamQuery, selector *models.InputMapStringString) ([]*models.Upstream, error)
 	Get(ctx context.Context, obj *customtypes.UpstreamQuery, name string) (*models.Upstream, error)
 }
 type VirtualServiceMutationResolver interface {
@@ -80,7 +84,7 @@ type VirtualServiceMutationResolver interface {
 	SwapRoutes(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index1 int, index2 int) (*models.VirtualService, error)
 }
 type VirtualServiceQueryResolver interface {
-	List(ctx context.Context, obj *customtypes.VirtualServiceQuery, selector *customtypes.MapStringString) ([]*models.VirtualService, error)
+	List(ctx context.Context, obj *customtypes.VirtualServiceQuery, selector *models.InputMapStringString) ([]*models.VirtualService, error)
 	Get(ctx context.Context, obj *customtypes.VirtualServiceQuery, name string) (*models.VirtualService, error)
 }
 
@@ -867,7 +871,65 @@ func (ec *executionContext) _KubeUpstreamSpec_selector(ctx context.Context, fiel
 	if res == nil {
 		return graphql.Null
 	}
-	return *res
+	return ec._MapStringString(ctx, field.Selections, res)
+}
+
+var mapStringStringImplementors = []string{"MapStringString"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _MapStringString(ctx context.Context, sel ast.SelectionSet, obj *customtypes.MapStringString) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, mapStringStringImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MapStringString")
+		case "values":
+			out.Values[i] = ec._MapStringString_values(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _MapStringString_values(ctx context.Context, field graphql.CollectedField, obj *customtypes.MapStringString) graphql.Marshaler {
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Object: "MapStringString",
+		Args:   nil,
+		Field:  field,
+	})
+	return graphql.Defer(func() (ret graphql.Marshaler) {
+		defer func() {
+			if r := recover(); r != nil {
+				userErr := ec.Recover(ctx, r)
+				ec.Error(ctx, userErr)
+				ret = graphql.Null
+			}
+		}()
+
+		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+			return ec.resolvers.MapStringString().Values(ctx, obj)
+		})
+		if resTmp == nil {
+			return graphql.Null
+		}
+		res := resTmp.([]models.Value)
+		arr1 := graphql.Array{}
+		for idx1 := range res {
+			arr1 = append(arr1, func() graphql.Marshaler {
+				rctx := graphql.GetResolverContext(ctx)
+				rctx.PushIndex(idx1)
+				defer rctx.Pop()
+				return ec._Value(ctx, field.Selections, &res[idx1])
+			}())
+		}
+		return arr1
+	})
 }
 
 var matcherImplementors = []string{"Matcher"}
@@ -1112,7 +1174,7 @@ func (ec *executionContext) _Metadata_labels(ctx context.Context, field graphql.
 	if res == nil {
 		return graphql.Null
 	}
-	return *res
+	return ec._MapStringString(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Metadata_annotations(ctx context.Context, field graphql.CollectedField, obj *models.Metadata) graphql.Marshaler {
@@ -1132,7 +1194,7 @@ func (ec *executionContext) _Metadata_annotations(ctx context.Context, field gra
 	if res == nil {
 		return graphql.Null
 	}
-	return *res
+	return ec._MapStringString(ctx, field.Selections, res)
 }
 
 var multiDestinationImplementors = []string{"MultiDestination"}
@@ -1811,12 +1873,12 @@ func (ec *executionContext) _ResolverMapQuery(ctx context.Context, sel ast.Selec
 func (ec *executionContext) _ResolverMapQuery_list(ctx context.Context, field graphql.CollectedField, obj *customtypes.ResolverMapQuery) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
-	var arg0 *customtypes.MapStringString
+	var arg0 *models.InputMapStringString
 	if tmp, ok := rawArgs["selector"]; ok {
 		var err error
-		var ptr1 customtypes.MapStringString
+		var ptr1 models.InputMapStringString
 		if tmp != nil {
-			err = (&ptr1).UnmarshalGQL(tmp)
+			ptr1, err = UnmarshalInputMapStringString(tmp)
 			arg0 = &ptr1
 		}
 
@@ -1841,7 +1903,7 @@ func (ec *executionContext) _ResolverMapQuery_list(ctx context.Context, field gr
 		}()
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.ResolverMapQuery().List(ctx, obj, args["selector"].(*customtypes.MapStringString))
+			return ec.resolvers.ResolverMapQuery().List(ctx, obj, args["selector"].(*models.InputMapStringString))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -2599,12 +2661,12 @@ func (ec *executionContext) _UpstreamQuery(ctx context.Context, sel ast.Selectio
 func (ec *executionContext) _UpstreamQuery_list(ctx context.Context, field graphql.CollectedField, obj *customtypes.UpstreamQuery) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
-	var arg0 *customtypes.MapStringString
+	var arg0 *models.InputMapStringString
 	if tmp, ok := rawArgs["selector"]; ok {
 		var err error
-		var ptr1 customtypes.MapStringString
+		var ptr1 models.InputMapStringString
 		if tmp != nil {
-			err = (&ptr1).UnmarshalGQL(tmp)
+			ptr1, err = UnmarshalInputMapStringString(tmp)
 			arg0 = &ptr1
 		}
 
@@ -2629,7 +2691,7 @@ func (ec *executionContext) _UpstreamQuery_list(ctx context.Context, field graph
 		}()
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.UpstreamQuery().List(ctx, obj, args["selector"].(*customtypes.MapStringString))
+			return ec.resolvers.UpstreamQuery().List(ctx, obj, args["selector"].(*models.InputMapStringString))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -2690,6 +2752,65 @@ func (ec *executionContext) _UpstreamQuery_get(ctx context.Context, field graphq
 		}
 		return ec._Upstream(ctx, field.Selections, res)
 	})
+}
+
+var valueImplementors = []string{"Value"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _Value(ctx context.Context, sel ast.SelectionSet, obj *models.Value) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, valueImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Value")
+		case "key":
+			out.Values[i] = ec._Value_key(ctx, field, obj)
+		case "value":
+			out.Values[i] = ec._Value_value(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _Value_key(ctx context.Context, field graphql.CollectedField, obj *models.Value) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Value"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Key, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _Value_value(ctx context.Context, field graphql.CollectedField, obj *models.Value) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Value"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Value, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
 }
 
 var virtualServiceImplementors = []string{"VirtualService"}
@@ -3354,12 +3475,12 @@ func (ec *executionContext) _VirtualServiceQuery(ctx context.Context, sel ast.Se
 func (ec *executionContext) _VirtualServiceQuery_list(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceQuery) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
-	var arg0 *customtypes.MapStringString
+	var arg0 *models.InputMapStringString
 	if tmp, ok := rawArgs["selector"]; ok {
 		var err error
-		var ptr1 customtypes.MapStringString
+		var ptr1 models.InputMapStringString
 		if tmp != nil {
-			err = (&ptr1).UnmarshalGQL(tmp)
+			ptr1, err = UnmarshalInputMapStringString(tmp)
 			arg0 = &ptr1
 		}
 
@@ -3384,7 +3505,7 @@ func (ec *executionContext) _VirtualServiceQuery_list(ctx context.Context, field
 		}()
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.VirtualServiceQuery().List(ctx, obj, args["selector"].(*customtypes.MapStringString))
+			return ec.resolvers.VirtualServiceQuery().List(ctx, obj, args["selector"].(*models.InputMapStringString))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -4848,12 +4969,41 @@ func UnmarshalInputKubeUpstreamSpec(v interface{}) (models.InputKubeUpstreamSpec
 			}
 		case "selector":
 			var err error
-			var ptr1 customtypes.MapStringString
+			var ptr1 models.InputMapStringString
 			if v != nil {
-				err = (&ptr1).UnmarshalGQL(v)
+				ptr1, err = UnmarshalInputMapStringString(v)
 				it.Selector = &ptr1
 			}
 
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputMapStringString(v interface{}) (models.InputMapStringString, error) {
+	var it models.InputMapStringString
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "values":
+			var err error
+			var rawIf1 []interface{}
+			if v != nil {
+				if tmp1, ok := v.([]interface{}); ok {
+					rawIf1 = tmp1
+				} else {
+					rawIf1 = []interface{}{v}
+				}
+			}
+			it.Values = make([]models.InputValue, len(rawIf1))
+			for idx1 := range rawIf1 {
+				it.Values[idx1], err = UnmarshalInputValue(rawIf1[idx1])
+			}
 			if err != nil {
 				return it, err
 			}
@@ -4964,9 +5114,9 @@ func UnmarshalInputMetadata(v interface{}) (models.InputMetadata, error) {
 			}
 		case "labels":
 			var err error
-			var ptr1 customtypes.MapStringString
+			var ptr1 models.InputMapStringString
 			if v != nil {
-				err = (&ptr1).UnmarshalGQL(v)
+				ptr1, err = UnmarshalInputMapStringString(v)
 				it.Labels = &ptr1
 			}
 
@@ -4975,9 +5125,9 @@ func UnmarshalInputMetadata(v interface{}) (models.InputMetadata, error) {
 			}
 		case "annotations":
 			var err error
-			var ptr1 customtypes.MapStringString
+			var ptr1 models.InputMapStringString
 			if v != nil {
-				err = (&ptr1).UnmarshalGQL(v)
+				ptr1, err = UnmarshalInputMapStringString(v)
 				it.Annotations = &ptr1
 			}
 
@@ -5435,6 +5585,30 @@ func UnmarshalInputUpstreamSpec(v interface{}) (models.InputUpstreamSpec, error)
 	return it, nil
 }
 
+func UnmarshalInputValue(v interface{}) (models.InputValue, error) {
+	var it models.InputValue
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "key":
+			var err error
+			it.Key, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+			it.Value, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputVirtualService(v interface{}) (models.InputVirtualService, error) {
 	var it models.InputVirtualService
 	var asMap = v.(map[string]interface{})
@@ -5593,7 +5767,7 @@ type Mutation {
 }
 
 type UpstreamQuery {
-    list(selector: MapStringString): [Upstream]
+    list(selector: InputMapStringString): [Upstream]
     get(name: String!):                Upstream
 }
 
@@ -5606,7 +5780,7 @@ type UpstreamMutation {
 
 
 type VirtualServiceQuery {
-    list(selector: MapStringString): [VirtualService]
+    list(selector: InputMapStringString): [VirtualService]
     get(name: String!):                VirtualService
 }
 
@@ -5624,7 +5798,7 @@ type VirtualServiceMutation {
 
 
 type ResolverMapQuery {
-    list(selector: MapStringString): [ResolverMap]
+    list(selector: InputMapStringString): [ResolverMap]
     get(name: String!):                ResolverMap
 }
 
@@ -5723,7 +5897,7 @@ input InputKubeUpstreamSpec {
     serviceName:      String!
     serviceNamespace: String!
     servicePort:      Int!
-    selector:         MapStringString
+    selector:         InputMapStringString
 }
 
 input InputAwsLambdaFunction {
@@ -5757,8 +5931,8 @@ input InputMetadata {
     name:            String!
     namespace:       String!
     resourceVersion: String!
-    labels:          MapStringString
-    annotations:     MapStringString
+    labels:          InputMapStringString
+    annotations:     InputMapStringString
 }
 
 input InputStatus {
@@ -6055,7 +6229,23 @@ enum State {
     REJECTED
 }
 
-scalar MapStringString
+type MapStringString {
+    values: [Value!]
+}
+
+input InputMapStringString {
+    values: [InputValue!]
+}
+
+type Value {
+    key: String!
+    value: String!
+}
+
+input InputValue {
+    key: String!
+    value: String!
+}
 
 enum PathMatchType {
     PREFIX

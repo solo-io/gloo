@@ -17,7 +17,7 @@ type Mutation {
 }
 
 type UpstreamQuery {
-    list(selector: MapStringString): [Upstream]
+    list(selector: InputMapStringString): [Upstream]
     get(name: String!):                Upstream
 }
 
@@ -30,7 +30,7 @@ type UpstreamMutation {
 
 
 type VirtualServiceQuery {
-    list(selector: MapStringString): [VirtualService]
+    list(selector: InputMapStringString): [VirtualService]
     get(name: String!):                VirtualService
 }
 
@@ -48,7 +48,7 @@ type VirtualServiceMutation {
 
 
 type ResolverMapQuery {
-    list(selector: MapStringString): [ResolverMap]
+    list(selector: InputMapStringString): [ResolverMap]
     get(name: String!):                ResolverMap
 }
 
@@ -147,7 +147,7 @@ input InputKubeUpstreamSpec {
     serviceName:      String!
     serviceNamespace: String!
     servicePort:      Int!
-    selector:         MapStringString
+    selector:         InputMapStringString
 }
 
 input InputAwsLambdaFunction {
@@ -181,8 +181,8 @@ input InputMetadata {
     name:            String!
     namespace:       String!
     resourceVersion: String!
-    labels:          MapStringString
-    annotations:     MapStringString
+    labels:          InputMapStringString
+    annotations:     InputMapStringString
 }
 
 input InputStatus {

@@ -98,10 +98,13 @@ type InputKeyValueMatcher struct {
 	IsRegex bool   `json:"isRegex"`
 }
 type InputKubeUpstreamSpec struct {
-	ServiceName      string                       `json:"serviceName"`
-	ServiceNamespace string                       `json:"serviceNamespace"`
-	ServicePort      int                          `json:"servicePort"`
-	Selector         *customtypes.MapStringString `json:"selector"`
+	ServiceName      string                `json:"serviceName"`
+	ServiceNamespace string                `json:"serviceNamespace"`
+	ServicePort      int                   `json:"servicePort"`
+	Selector         *InputMapStringString `json:"selector"`
+}
+type InputMapStringString struct {
+	Values []InputValue `json:"values"`
 }
 type InputMatcher struct {
 	PathMatch       string                 `json:"pathMatch"`
@@ -111,11 +114,11 @@ type InputMatcher struct {
 	Methods         []string               `json:"methods"`
 }
 type InputMetadata struct {
-	Name            string                       `json:"name"`
-	Namespace       string                       `json:"namespace"`
-	ResourceVersion string                       `json:"resourceVersion"`
-	Labels          *customtypes.MapStringString `json:"labels"`
-	Annotations     *customtypes.MapStringString `json:"annotations"`
+	Name            string                `json:"name"`
+	Namespace       string                `json:"namespace"`
+	ResourceVersion string                `json:"resourceVersion"`
+	Labels          *InputMapStringString `json:"labels"`
+	Annotations     *InputMapStringString `json:"annotations"`
 }
 type InputMultiDestination struct {
 	Destinations []InputWeightedDestination `json:"destinations"`
@@ -173,6 +176,10 @@ type InputUpstreamSpec struct {
 	Aws   *InputAwsUpstreamSpec   `json:"aws"`
 	Azure *InputAzureUpstreamSpec `json:"azure"`
 	Kube  *InputKubeUpstreamSpec  `json:"kube"`
+}
+type InputValue struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 type InputVirtualService struct {
 	Domains   []string                    `json:"domains"`
@@ -261,6 +268,10 @@ type Upstream struct {
 	Status   Status       `json:"status"`
 }
 type UpstreamSpec interface{}
+type Value struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
 type VirtualService struct {
 	Domains   []string               `json:"domains"`
 	Routes    []Route                `json:"routes"`
