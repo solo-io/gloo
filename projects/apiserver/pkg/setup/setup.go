@@ -7,6 +7,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -40,15 +41,14 @@ func Setup(port int) error {
 		return err
 	}
 
+	err = addSampleData(upstreams, virtualServices, resolverMaps)
+	if err != nil {
+		return err
+	}
+
 	http.Handle("/", handler.Playground("Starwars", "/query"))
 	http.Handle("/query", handler.GraphQL(graph.NewExecutableSchema(graph.Config{
-		Resolvers: &apiserver.ApiResolver{
-			Upstreams:       upstreams,
-			VirtualServices: virtualServices,
-			ResolverMaps:    resolverMaps,
-			// TODO(ilackarms): just make these private functions, remove converter
-			Converter: &apiserver.Converter{},
-		},
+		Resolvers: apiserver.NewResolvers(upstreams, virtualServices, resolverMaps),
 	}),
 		handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
 			rc := graphql.GetResolverContext(ctx)
@@ -60,6 +60,31 @@ func Setup(port int) error {
 	))
 
 	return http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
+}
+
+func addSampleData(usClient v1.UpstreamClient,
+	vsClient gatewayv1.VirtualServiceClient,
+	rmClient sqoopv1.ResolverMapClient) error {
+	upstreams, virtualServices, resolverMaps := sampleData()
+	for _, us := range upstreams {
+		_, err := usClient.Write(us, clients.WriteOpts{})
+		if err != nil {
+			return err
+		}
+	}
+	for _, vs := range virtualServices {
+		_, err := vsClient.Write(vs, clients.WriteOpts{})
+		if err != nil {
+			return err
+		}
+	}
+	for _, rm := range resolverMaps {
+		_, err := rmClient.Write(rm, clients.WriteOpts{})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func sampleData() (v1.UpstreamList, gatewayv1.VirtualServiceList, sqoopv1.ResolverMapList) {

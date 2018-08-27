@@ -20,6 +20,18 @@ type ApiResolver struct {
 	Converter       *Converter
 }
 
+func NewResolvers(upstreams v1.UpstreamClient,
+	virtualServices gatewayv1.VirtualServiceClient,
+	resolverMaps sqoopv1.ResolverMapClient) *ApiResolver {
+	return &ApiResolver{
+		Upstreams:       upstreams,
+		VirtualServices: virtualServices,
+		ResolverMaps:    resolverMaps,
+		// TODO(ilackarms): just make these private functions, remove converter
+		Converter: &Converter{},
+	}
+}
+
 func (r *ApiResolver) Mutation() graph.MutationResolver {
 	return &mutationResolver{r}
 }
