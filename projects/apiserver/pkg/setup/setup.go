@@ -45,7 +45,7 @@ func Setup(port int) error {
 		return err
 	}
 
-	http.Handle("/", handler.Playground("Starwars", "/query"))
+	http.Handle("/", handler.Playground("Solo-ApiServer", "/query"))
 	http.Handle("/query", handler.GraphQL(graph.NewExecutableSchema(graph.Config{
 		Resolvers: apiserver.NewResolvers(upstreams, virtualServices, resolverMaps),
 	}),
