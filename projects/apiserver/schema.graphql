@@ -479,7 +479,23 @@ enum State {
     REJECTED
 }
 
-scalar MapStringString
+type MapStringString {
+    values: [Value!]
+}
+
+input InputMapStringString {
+    values: [InputValue!]
+}
+
+type Value {
+    key: String!
+    value: String!
+}
+
+input InputValue {
+    key: String!
+    value: String!
+}
 
 enum PathMatchType {
     PREFIX
