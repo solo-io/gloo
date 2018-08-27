@@ -95,5 +95,34 @@ $(APISERVER_GRAPHQL_GENERATED_FILES): $(APISERVER_GRAPHQL_DIR)/schema.graphql $(
 
 .PHONY: apiserver
 apiserver: $(OUTPUT_DIR)/apiserver
-$(OUTPUT_DIR)/apiserver: apiserver-dependencies
-	go build -o $(OUTPUT_DIR)/apiserver projects/apiserver/cmd/main.go
+
+# TODO(ilackarms): put these inside of a loop or function of some kind
+$(OUTPUT_DIR)/apiserver: apiserver-dependencies $(SOURCES)
+	go build -o $@ projects/apiserver/cmd/main.go
+
+$(OUTPUT_DIR)/apiserver-linux-amd64:  $(SOURCES)
+	GOOS=linux go build -o $@ projects/apiserver/cmd/main.go
+
+$(OUTPUT_DIR)/apiserver-darwin-amd64:  $(SOURCES)
+	GOOS=darwin go build -o $@ projects/apiserver/cmd/main.go
+
+#----------------------------------------------------------------------------------
+# Release
+#----------------------------------------------------------------------------------
+
+VERSION:=1
+GH_ORG:=solo-io
+GH_REPO:=solo-kit
+
+RELEASE_BINARIES := \
+	$(OUTPUT_DIR)/apiserver-linux-amd64 \
+	$(OUTPUT_DIR)/apiserver-darwin-amd64
+
+.PHONY: release-binaries
+release-binaries: $(RELEASE_BINARIES)
+
+.PHONY: release
+release: release-binaries
+	hack/create-release.sh github_api_token=$(GITHUB_TOKEN) owner=$(GH_ORG) repo=$(GH_REPO) tag=v$(VERSION)
+	@$(foreach BINARY,$(RELEASE_BINARIES),hack/upload-github-release-asset.sh github_api_token=$(GITHUB_TOKEN) owner=solo-io repo=gloo tag=v$(VERSION) filename=$(BINARY);)
+
