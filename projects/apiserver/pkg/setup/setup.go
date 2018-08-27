@@ -111,7 +111,7 @@ func sampleUpstreams() v1.UpstreamList {
 						ServiceName:      "palmer-eldritch",
 						ServiceNamespace: "pkd",
 						ServicePort:      8080,
-						ServiceSpec:      &plugins.ServiceSpec{
+						ServiceSpec: &plugins.ServiceSpec{
 							PluginType: &plugins.ServiceSpec_Empty{
 								Empty: "eventually this will be replaced with an actual plugin (gRPC or Swagger)",
 							},

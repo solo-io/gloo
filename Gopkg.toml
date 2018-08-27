@@ -28,6 +28,11 @@
   go-tests = true
   unused-packages = true
 
+# this must match the version of the gqlgen binary we depend on
+[[constraint]]
+  version = "v0.4.4"
+  name = "github.com/99designs/gqlgen"
+
 [[constraint]]
   branch = "master"
   name = "github.com/bxcodec/faker"
