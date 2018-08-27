@@ -15,8 +15,10 @@ import (
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 )
 
@@ -75,14 +77,43 @@ func sampleUpstreams() v1.UpstreamList {
 						SecretRef: "some-secret",
 						LambdaFunctions: []*aws.LambdaFunctionSpec{
 							{
-								LogicalName: "my_func_v1",
+								LogicalName:        "my_func_v1",
 								LambdaFunctionName: "my_func",
-								Qualifier: "v1",
+								Qualifier:          "v1",
 							},
 							{
-								LogicalName: "my_func_v2",
+								LogicalName:        "my_func_v2",
 								LambdaFunctionName: "my_func",
-								Qualifier: "$LATEST",
+								Qualifier:          "$LATEST",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			Metadata: makeMetadata(resources.Kind(&v1.Upstream{}), "some-namespace", 2),
+			UpstreamSpec: &v1.UpstreamSpec{
+				UpstreamType: &v1.UpstreamSpec_Kube{
+					Kube: &kubernetes.UpstreamSpec{
+						ServiceName:      "perky-pat",
+						ServiceNamespace: "default",
+						ServicePort:      8080,
+					},
+				},
+			},
+		},
+		{
+			Metadata: makeMetadata(resources.Kind(&v1.Upstream{}), "some-namespace", 2),
+			UpstreamSpec: &v1.UpstreamSpec{
+				UpstreamType: &v1.UpstreamSpec_Kube{
+					Kube: &kubernetes.UpstreamSpec{
+						ServiceName:      "palmer-eldritch",
+						ServiceNamespace: "pkd",
+						ServicePort:      8080,
+						ServiceSpec:      &plugins.ServiceSpec{
+							PluginType: &plugins.ServiceSpec_Empty{
+								Empty: "eventually this will be replaced with an actual plugin (gRPC or Swagger)",
 							},
 						},
 					},
