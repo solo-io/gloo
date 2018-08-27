@@ -6,8 +6,6 @@ import (
 	fmt "fmt"
 	io "io"
 	strconv "strconv"
-
-	customtypes "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes"
 )
 
 type AwsDestinationSpec struct {
@@ -201,10 +199,13 @@ type KeyValueMatcher struct {
 	IsRegex bool   `json:"isRegex"`
 }
 type KubeUpstreamSpec struct {
-	ServiceName      string                       `json:"serviceName"`
-	ServiceNamespace string                       `json:"serviceNamespace"`
-	ServicePort      int                          `json:"servicePort"`
-	Selector         *customtypes.MapStringString `json:"selector"`
+	ServiceName      string           `json:"serviceName"`
+	ServiceNamespace string           `json:"serviceNamespace"`
+	ServicePort      int              `json:"servicePort"`
+	Selector         *MapStringString `json:"selector"`
+}
+type MapStringString struct {
+	Values []Value `json:"values"`
 }
 type Matcher struct {
 	PathMatch       string            `json:"pathMatch"`
@@ -214,11 +215,11 @@ type Matcher struct {
 	Methods         []string          `json:"methods"`
 }
 type Metadata struct {
-	Name            string                       `json:"name"`
-	Namespace       string                       `json:"namespace"`
-	ResourceVersion string                       `json:"resourceVersion"`
-	Labels          *customtypes.MapStringString `json:"labels"`
-	Annotations     *customtypes.MapStringString `json:"annotations"`
+	Name            string           `json:"name"`
+	Namespace       string           `json:"namespace"`
+	ResourceVersion string           `json:"resourceVersion"`
+	Labels          *MapStringString `json:"labels"`
+	Annotations     *MapStringString `json:"annotations"`
 }
 type MultiDestination struct {
 	Destinations []WeightedDestination `json:"destinations"`

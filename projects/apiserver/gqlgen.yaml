@@ -18,8 +18,6 @@ resolver:
 # Tell gqlgen about any existing models you want to reuse for
 # graphql. These normally come from the db or a remote api.
 models:
-  MapStringString:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.MapStringString
   UpstreamQuery:
     model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.UpstreamQuery
   UpstreamMutation:

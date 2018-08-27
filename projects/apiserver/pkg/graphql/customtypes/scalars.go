@@ -92,38 +92,3 @@ func (s *Struct) GetStruct() *types.Struct {
 	}
 	return &protoStruct
 }
-
-type MapStringString map[string]string
-
-func NewMapStringString(m map[string]string) *MapStringString {
-	if m == nil {
-		return nil
-	}
-	ourMapStringString := MapStringString(m)
-	return &ourMapStringString
-}
-
-// UnmarshalGQL implements the graphql.Marshaler interface
-func (m *MapStringString) UnmarshalGQL(v interface{}) error {
-	mapStruct, ok := v.(map[string]string)
-	if !ok {
-		return fmt.Errorf("structs must be map[string]string")
-	}
-
-	ourStruct := MapStringString(mapStruct)
-
-	m = &ourStruct
-	return nil
-}
-
-// MarshalGQL implements the graphql.Marshaler interface
-func (m MapStringString) MarshalGQL(w io.Writer) {
-	json.NewEncoder(w).Encode(m)
-}
-
-func (m *MapStringString) GetMap() map[string]string {
-	if m == nil {
-		return nil
-	}
-	return map[string]string(*m)
-}

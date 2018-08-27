@@ -84,7 +84,10 @@ func (r *queryResolver) ResolverMaps(ctx context.Context, namespace string) (cus
 type upstreamMutationResolver struct{ *ApiResolver }
 
 func (r *upstreamMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error) {
-	ups := r.Converter.ConvertInputUpstream(upstream)
+	ups, err := r.Converter.ConvertInputUpstream(upstream)
+	if err != nil {
+		return nil, err
+	}
 	out, err := r.Upstreams.Write(ups, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: overwrite,
@@ -121,10 +124,10 @@ func (r *upstreamMutationResolver) Delete(ctx context.Context, obj *customtypes.
 
 type upstreamQueryResolver struct{ *ApiResolver }
 
-func (r *upstreamQueryResolver) List(ctx context.Context, obj *customtypes.UpstreamQuery, selector *customtypes.MapStringString) ([]*models.Upstream, error) {
+func (r *upstreamQueryResolver) List(ctx context.Context, obj *customtypes.UpstreamQuery, selector *models.InputMapStringString) ([]*models.Upstream, error) {
 	var convertedSelector map[string]string
 	if selector != nil {
-		convertedSelector = selector.GetMap()
+		convertedSelector = selector.GoType()
 	}
 	list, err := r.Upstreams.List(obj.Namespace, clients.ListOpts{
 		Ctx:      ctx,
@@ -300,10 +303,10 @@ func (r *virtualServiceMutationResolver) SwapRoutes(ctx context.Context, obj *cu
 
 type virtualServiceQueryResolver struct{ *ApiResolver }
 
-func (r *virtualServiceQueryResolver) List(ctx context.Context, obj *customtypes.VirtualServiceQuery, selector *customtypes.MapStringString) ([]*models.VirtualService, error) {
+func (r *virtualServiceQueryResolver) List(ctx context.Context, obj *customtypes.VirtualServiceQuery, selector *models.InputMapStringString) ([]*models.VirtualService, error) {
 	var convertedSelector map[string]string
 	if selector != nil {
-		convertedSelector = selector.GetMap()
+		convertedSelector = selector.GoType()
 	}
 	list, err := r.VirtualServices.List(obj.Namespace, clients.ListOpts{
 		Ctx:      ctx,
@@ -368,10 +371,10 @@ func (r *resolverMapMutationResolver) Delete(ctx context.Context, obj *customtyp
 
 type resolverMapQueryResolver struct{ *ApiResolver }
 
-func (r *resolverMapQueryResolver) List(ctx context.Context, obj *customtypes.ResolverMapQuery, selector *customtypes.MapStringString) ([]*models.ResolverMap, error) {
+func (r *resolverMapQueryResolver) List(ctx context.Context, obj *customtypes.ResolverMapQuery, selector *models.InputMapStringString) ([]*models.ResolverMap, error) {
 	var convertedSelector map[string]string
 	if selector != nil {
-		convertedSelector = selector.GetMap()
+		convertedSelector = selector.GoType()
 	}
 	list, err := r.ResolverMaps.List(obj.Namespace, clients.ListOpts{
 		Ctx:      ctx,

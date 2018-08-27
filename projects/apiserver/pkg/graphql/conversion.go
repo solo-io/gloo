@@ -2,12 +2,10 @@ package graphql
 
 import (
 	"log"
-
 	"sort"
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes"
 	. "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/models"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -19,22 +17,30 @@ import (
 
 type Converter struct{}
 
-func (c *Converter) ConvertInputUpstreams(upstream []InputUpstream) []*v1.Upstream {
-	var result []*v1.Upstream
+func (c *Converter) ConvertInputUpstreams(upstream []InputUpstream) (v1.UpstreamList, error) {
+	var result v1.UpstreamList
 	for _, us := range upstream {
-		result = append(result, c.ConvertInputUpstream(us))
+		converted, err := c.ConvertInputUpstream(us)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, converted)
 	}
-	return result
+	return result, nil
 }
 
-func (c *Converter) ConvertInputUpstream(upstream InputUpstream) *v1.Upstream {
+func (c *Converter) ConvertInputUpstream(upstream InputUpstream) (*v1.Upstream, error) {
+	upstreamSpec, err := convertInputUpstreamSpec(upstream.Spec)
+	if err != nil {
+		return nil, err
+	}
 	return &v1.Upstream{
 		Metadata:     convertInputMetadata(upstream.Metadata),
-		UpstreamSpec: convertInputUpstreamSpec(upstream.Spec),
-	}
+		UpstreamSpec: upstreamSpec,
+	}, nil
 }
 
-func convertInputUpstreamSpec(spec InputUpstreamSpec) *v1.UpstreamSpec {
+func convertInputUpstreamSpec(spec InputUpstreamSpec) (*v1.UpstreamSpec, error) {
 	out := &v1.UpstreamSpec{}
 	switch {
 	case spec.Aws != nil:
@@ -58,9 +64,12 @@ func convertInputUpstreamSpec(spec InputUpstreamSpec) *v1.UpstreamSpec {
 			},
 		}
 	case spec.Kube != nil:
+		if err := spec.Kube.Selector.Validate(); err != nil {
+			return nil, errors.Wrapf(err, "invalid spec")
+		}
 		out.UpstreamType = &v1.UpstreamSpec_Kube{
 			Kube: &kubernetes.UpstreamSpec{
-				Selector:         spec.Kube.Selector.GetMap(),
+				Selector:         spec.Kube.Selector.GoType(),
 				ServiceName:      spec.Kube.ServiceName,
 				ServiceNamespace: spec.Kube.ServiceNamespace,
 				ServicePort:      uint32(spec.Kube.ServicePort),
@@ -69,7 +78,7 @@ func convertInputUpstreamSpec(spec InputUpstreamSpec) *v1.UpstreamSpec {
 	default:
 		log.Printf("invalid spec: %#v", spec)
 	}
-	return out
+	return out, nil
 }
 
 func convertLambdaFunctions(inputFuncs []InputAwsLambdaFunction) []*aws.LambdaFunctionSpec {
@@ -95,7 +104,7 @@ func convertAzureFunctions(inputFuncs []InputAzureFunction) []*azure.UpstreamSpe
 	return funcs
 }
 
-func (c *Converter) ConvertOutputUpstreams(upstreams []*v1.Upstream) []*Upstream {
+func (c *Converter) ConvertOutputUpstreams(upstreams v1.UpstreamList) []*Upstream {
 	var result []*Upstream
 	for _, us := range upstreams {
 		result = append(result, c.ConvertOutputUpstream(us))
@@ -129,7 +138,7 @@ func convertOutputUpstreamSpec(spec *v1.UpstreamSpec) UpstreamSpec {
 			ServicePort:      int(specType.Kube.ServicePort),
 			ServiceNamespace: specType.Kube.ServiceNamespace,
 			ServiceName:      specType.Kube.ServiceName,
-			Selector:         customtypes.NewMapStringString(specType.Kube.Selector),
+			Selector:         NewMapStringString(specType.Kube.Selector),
 		}
 	}
 	log.Printf("unsupported upstream type %v", spec)
@@ -159,8 +168,8 @@ func convertOutputAzureFunctions(azureFns []*azure.UpstreamSpec_FunctionSpec) []
 	return out
 }
 
-func (c *Converter) ConvertInputVirtualServices(virtualService []InputVirtualService) ([]*gatewayv1.VirtualService, error) {
-	var result []*gatewayv1.VirtualService
+func (c *Converter) ConvertInputVirtualServices(virtualService []InputVirtualService) (gatewayv1.VirtualServiceList, error) {
+	var result gatewayv1.VirtualServiceList
 	for _, vs := range virtualService {
 		converted, err := c.ConvertInputVirtualService(vs)
 		if err != nil {
@@ -339,7 +348,7 @@ func convertInputSSLConfig(ssl *InputSslConfig) *v1.SslConfig {
 	}
 }
 
-func (c *Converter) ConvertOutputVirtualServices(virtualServices []*gatewayv1.VirtualService) []*VirtualService {
+func (c *Converter) ConvertOutputVirtualServices(virtualServices gatewayv1.VirtualServiceList) []*VirtualService {
 	var result []*VirtualService
 	for _, vs := range virtualServices {
 		result = append(result, c.ConvertOutputVirtualService(vs))
@@ -498,7 +507,7 @@ func convertOutputSSLConfig(ssl *v1.SslConfig) *SslConfig {
 	}
 }
 
-func (c *Converter) ConvertOutputResolverMaps(resolverMaps []*sqoopv1.ResolverMap) []*ResolverMap {
+func (c *Converter) ConvertOutputResolverMaps(resolverMaps sqoopv1.ResolverMapList) []*ResolverMap {
 	var result []*ResolverMap
 	for _, us := range resolverMaps {
 		result = append(result, c.ConvertOutputResolverMap(us))
@@ -551,8 +560,8 @@ func convertOutputResolver(resolver *sqoopv1.FieldResolver) Resolver {
 	return nil
 }
 
-func (c *Converter) ConvertInputResolverMaps(resolverMaps []*InputResolverMap) ([]*sqoopv1.ResolverMap, error) {
-	var result []*sqoopv1.ResolverMap
+func (c *Converter) ConvertInputResolverMaps(resolverMaps []*InputResolverMap) (sqoopv1.ResolverMapList, error) {
+	var result sqoopv1.ResolverMapList
 	for _, rm := range resolverMaps {
 		in, err := c.ConvertInputResolverMap(*rm)
 		if err != nil {
@@ -623,8 +632,8 @@ func convertInputMetadata(inMeta InputMetadata) core.Metadata {
 		Namespace:       inMeta.Namespace,
 		Name:            inMeta.Name,
 		ResourceVersion: inMeta.ResourceVersion,
-		Labels:          inMeta.Labels.GetMap(),
-		Annotations:     inMeta.Annotations.GetMap(),
+		Labels:          inMeta.Labels.GoType(),
+		Annotations:     inMeta.Annotations.GoType(),
 	}
 }
 
@@ -633,8 +642,8 @@ func convertOutputMetadata(meta core.Metadata) Metadata {
 		Namespace:       meta.Namespace,
 		Name:            meta.Name,
 		ResourceVersion: meta.ResourceVersion,
-		Labels:          customtypes.NewMapStringString(meta.Labels),
-		Annotations:     customtypes.NewMapStringString(meta.Annotations),
+		Labels:          NewMapStringString(meta.Labels),
+		Annotations:     NewMapStringString(meta.Annotations),
 	}
 }
 

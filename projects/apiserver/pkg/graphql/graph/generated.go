@@ -30,7 +30,6 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	MapStringString() MapStringStringResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	ResolverMapMutation() ResolverMapMutationResolver
@@ -42,9 +41,6 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-}
-type MapStringStringResolver interface {
-	Values(ctx context.Context, obj *customtypes.MapStringString) ([]models.Value, error)
 }
 type MutationResolver interface {
 	Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamMutation, error)
@@ -867,7 +863,7 @@ func (ec *executionContext) _KubeUpstreamSpec_selector(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*customtypes.MapStringString)
+	res := resTmp.(*models.MapStringString)
 	if res == nil {
 		return graphql.Null
 	}
@@ -877,7 +873,7 @@ func (ec *executionContext) _KubeUpstreamSpec_selector(ctx context.Context, fiel
 var mapStringStringImplementors = []string{"MapStringString"}
 
 // nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _MapStringString(ctx context.Context, sel ast.SelectionSet, obj *customtypes.MapStringString) graphql.Marshaler {
+func (ec *executionContext) _MapStringString(ctx context.Context, sel ast.SelectionSet, obj *models.MapStringString) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, mapStringStringImplementors)
 
 	out := graphql.NewOrderedMap(len(fields))
@@ -897,39 +893,30 @@ func (ec *executionContext) _MapStringString(ctx context.Context, sel ast.Select
 	return out
 }
 
-func (ec *executionContext) _MapStringString_values(ctx context.Context, field graphql.CollectedField, obj *customtypes.MapStringString) graphql.Marshaler {
-	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
-		Object: "MapStringString",
-		Args:   nil,
-		Field:  field,
+func (ec *executionContext) _MapStringString_values(ctx context.Context, field graphql.CollectedField, obj *models.MapStringString) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "MapStringString"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Values, nil
 	})
-	return graphql.Defer(func() (ret graphql.Marshaler) {
-		defer func() {
-			if r := recover(); r != nil {
-				userErr := ec.Recover(ctx, r)
-				ec.Error(ctx, userErr)
-				ret = graphql.Null
-			}
-		}()
-
-		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.MapStringString().Values(ctx, obj)
-		})
-		if resTmp == nil {
-			return graphql.Null
-		}
-		res := resTmp.([]models.Value)
-		arr1 := graphql.Array{}
-		for idx1 := range res {
-			arr1 = append(arr1, func() graphql.Marshaler {
-				rctx := graphql.GetResolverContext(ctx)
-				rctx.PushIndex(idx1)
-				defer rctx.Pop()
-				return ec._Value(ctx, field.Selections, &res[idx1])
-			}())
-		}
-		return arr1
-	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]models.Value)
+	arr1 := graphql.Array{}
+	for idx1 := range res {
+		arr1 = append(arr1, func() graphql.Marshaler {
+			rctx := graphql.GetResolverContext(ctx)
+			rctx.PushIndex(idx1)
+			defer rctx.Pop()
+			return ec._Value(ctx, field.Selections, &res[idx1])
+		}())
+	}
+	return arr1
 }
 
 var matcherImplementors = []string{"Matcher"}
@@ -1170,7 +1157,7 @@ func (ec *executionContext) _Metadata_labels(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*customtypes.MapStringString)
+	res := resTmp.(*models.MapStringString)
 	if res == nil {
 		return graphql.Null
 	}
@@ -1190,7 +1177,7 @@ func (ec *executionContext) _Metadata_annotations(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*customtypes.MapStringString)
+	res := resTmp.(*models.MapStringString)
 	if res == nil {
 		return graphql.Null
 	}
