@@ -10,7 +10,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	apiserver "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
@@ -94,7 +93,7 @@ func sampleData() (v1.UpstreamList, gatewayv1.VirtualServiceList, sqoopv1.Resolv
 func sampleUpstreams() v1.UpstreamList {
 	return v1.UpstreamList{
 		{
-			Metadata: makeMetadata(resources.Kind(&v1.Upstream{}), "some-namespace", 1),
+			Metadata: makeMetadata("upstream", "some-namespace", 1),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Aws{
 					Aws: &aws.UpstreamSpec{
@@ -117,7 +116,7 @@ func sampleUpstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: makeMetadata(resources.Kind(&v1.Upstream{}), "some-namespace", 2),
+			Metadata: makeMetadata("upstream", "some-namespace", 2),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Kube{
 					Kube: &kubernetes.UpstreamSpec{
@@ -129,7 +128,7 @@ func sampleUpstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: makeMetadata(resources.Kind(&v1.Upstream{}), "some-namespace", 2),
+			Metadata: makeMetadata("upstream", "some-namespace", 3),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Kube{
 					Kube: &kubernetes.UpstreamSpec{
@@ -149,8 +148,8 @@ func sampleUpstreams() v1.UpstreamList {
 }
 
 func sampleVirtualServices() gatewayv1.VirtualServiceList {
-	meta1 := makeMetadata(resources.Kind(&sqoopv1.ResolverMap{}), "some-namespace", 1)
-	meta2 := makeMetadata(resources.Kind(&sqoopv1.ResolverMap{}), "some-namespace", 2)
+	meta1 := makeMetadata("virtualservice", "some-namespace", 1)
+	meta2 := makeMetadata("virtualservice", "some-namespace", 2)
 	return gatewayv1.VirtualServiceList{
 		{
 			Metadata:  meta1,
@@ -307,7 +306,7 @@ func sampleVirtualServices() gatewayv1.VirtualServiceList {
 func sampleResolverMaps() sqoopv1.ResolverMapList {
 	return sqoopv1.ResolverMapList{
 		{
-			Metadata: makeMetadata(resources.Kind(&sqoopv1.ResolverMap{}), "some-namespace", 1),
+			Metadata: makeMetadata("resolvermap", "some-namespace", 1),
 			Types: map[string]*sqoopv1.TypeResolver{
 				"Foo": {
 					Fields: map[string]*sqoopv1.FieldResolver{
@@ -324,7 +323,7 @@ func sampleResolverMaps() sqoopv1.ResolverMapList {
 			},
 		},
 		{
-			Metadata: makeMetadata(resources.Kind(&sqoopv1.ResolverMap{}), "some-namespace", 2),
+			Metadata: makeMetadata("resolvermap", "some-namespace", 2),
 			Types: map[string]*sqoopv1.TypeResolver{
 				"Baz": {
 					Fields: map[string]*sqoopv1.FieldResolver{

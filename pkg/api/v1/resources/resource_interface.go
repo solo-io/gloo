@@ -325,10 +325,10 @@ func Validate(resource Resource) error {
 func ValidateName(name string) error {
 	errs := validation.IsDNS1035Label(name)
 	if len(name) < 1 {
-		errs = append(errs, "name cannot be empty")
+		errs = append(errs, "name cannot be empty. Given: "+name)
 	}
 	if len(name) > 253 {
-		errs = append(errs, "name has a max length of 253 characters")
+		errs = append(errs, "name has a max length of 253 characters. Given: "+name)
 	}
 	if len(errs) > 0 {
 		return errors.Errors(errs)

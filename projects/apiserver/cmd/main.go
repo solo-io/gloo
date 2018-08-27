@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
+	"log"
 
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/setup"
 )
 
