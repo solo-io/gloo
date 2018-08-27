@@ -22,7 +22,7 @@ import (
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 )
 
-func Setup() error {
+func Setup(port int) error {
 	// TODO (ilackarms): pass in the factory with cli flags
 	inputFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
 		Cache: memory.NewInMemoryResourceCache(),
@@ -59,7 +59,7 @@ func Setup() error {
 		}),
 	))
 
-	return http.ListenAndServe(":8080", nil)
+	return http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
 }
 
 func sampleData() (v1.UpstreamList, gatewayv1.VirtualServiceList, sqoopv1.ResolverMapList) {
