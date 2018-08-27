@@ -64,6 +64,34 @@ func sampleData() (v1.UpstreamList, gatewayv1.VirtualServiceList, sqoopv1.Resolv
 	return sampleUpstreams(), sampleVirtualServices(), sampleResolverMaps()
 }
 
+func sampleUpstreams() v1.UpstreamList {
+	return v1.UpstreamList{
+		{
+			Metadata: makeMetadata(resources.Kind(&v1.Upstream{}), "some-namespace", 1),
+			UpstreamSpec: &v1.UpstreamSpec{
+				UpstreamType: &v1.UpstreamSpec_Aws{
+					Aws: &aws.UpstreamSpec{
+						Region:    "us-east-1",
+						SecretRef: "some-secret",
+						LambdaFunctions: []*aws.LambdaFunctionSpec{
+							{
+								LogicalName: "my_func_v1",
+								LambdaFunctionName: "my_func",
+								Qualifier: "v1",
+							},
+							{
+								LogicalName: "my_func_v2",
+								LambdaFunctionName: "my_func",
+								Qualifier: "$LATEST",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func sampleVirtualServices() gatewayv1.VirtualServiceList {
 	meta1 := makeMetadata(resources.Kind(&sqoopv1.ResolverMap{}), "some-namespace", 1)
 	meta2 := makeMetadata(resources.Kind(&sqoopv1.ResolverMap{}), "some-namespace", 2)
