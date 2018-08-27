@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-const separator = "~;~"
+const separator = ";"
 
 type InMemoryResourceCache interface {
 	Get(key string) (resources.Resource, bool)
@@ -186,7 +186,7 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resources.ResourceList, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
-	cachedResources := rc.cache.List(namespace + separator)
+	cachedResources := rc.cache.List(rc.Prefix(namespace))
 	var resourceList resources.ResourceList
 	for _, resource := range cachedResources {
 		if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
@@ -240,8 +240,12 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 	return resourcesChan, errs, nil
 }
 
+func (rc *ResourceClient) Prefix(namespace string) string {
+	return rc.Kind() + separator + namespace
+}
+
 func (rc *ResourceClient) key(namespace, name string) string {
-	return namespace + separator + name
+	return rc.Prefix(namespace) + separator + name
 }
 
 // util methods
