@@ -14,16 +14,21 @@ import (
 )
 
 type Opts struct {
-	namespace string
-	inputResourceOpts factory.ResourceClientFactoryOpts
-	secretOpts factory.ResourceClientFactoryOpts
-	artifactOpts factory.ResourceClientFactoryOpts
-	opts clients.WatchOpts
+	namespace       string
+	configBackend   factory.ResourceClientFactoryOpts
+	secretBackend   factory.ResourceClientFactoryOpts
+	artifactBackend factory.ResourceClientFactoryOpts
+	watchOpts       clients.WatchOpts
 }
 
-func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts, secretOpts factory.ResourceClientFactoryOpts, artifactOpts factory.ResourceClientFactoryOpts, opts clients.WatchOpts) error {
-	opts = opts.WithDefaults()
-	opts.Ctx = contextutils.WithLogger(opts.Ctx, "setup")
+func Setup(opts Opts) error {
+	watchOpts := opts.watchOpts.WithDefaults()
+	inputResourceOpts := opts.configBackend
+	secretOpts := opts.secretBackend
+	artifactOpts := opts.artifactBackend
+	namespace := opts.namespace
+
+	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")
 	inputFactory := factory.NewResourceClientFactory(inputResourceOpts)
 	secretFactory := factory.NewResourceClientFactory(secretOpts)
 	artifactFactory := factory.NewResourceClientFactory(artifactOpts)
@@ -76,33 +81,33 @@ func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts
 
 	errs := make(chan error)
 
-	udsErrs, err := discovery.RunUds(disc, opts, discovery.Opts{
+	udsErrs, err := discovery.RunUds(disc, watchOpts, discovery.Opts{
 	// TODO(ilackarms)
 	})
 	if err != nil {
 		return err
 	}
-	go errutils.AggregateErrs(opts.Ctx, errs, udsErrs, "uds.gloo")
+	go errutils.AggregateErrs(watchOpts.Ctx, errs, udsErrs, "uds.gloo")
 
-	edsErrs, err := discovery.RunEds(upstreamClient, disc, namespace, opts)
+	edsErrs, err := discovery.RunEds(upstreamClient, disc, namespace, watchOpts)
 	if err != nil {
 		return err
 	}
-	go errutils.AggregateErrs(opts.Ctx, errs, edsErrs, "eds.gloo")
+	go errutils.AggregateErrs(watchOpts.Ctx, errs, edsErrs, "eds.gloo")
 
-	eventLoopErrs, err := eventLoop.Run(namespace, opts)
+	eventLoopErrs, err := eventLoop.Run(namespace, watchOpts)
 	if err != nil {
 		return err
 	}
-	go errutils.AggregateErrs(opts.Ctx, errs, eventLoopErrs, "event_loop.gloo")
+	go errutils.AggregateErrs(watchOpts.Ctx, errs, eventLoopErrs, "event_loop.gloo")
 
-	logger := contextutils.LoggerFrom(opts.Ctx)
+	logger := contextutils.LoggerFrom(watchOpts.Ctx)
 
 	for {
 		select {
 		case err := <-errs:
 			logger.Errorf("error: %v", err)
-		case <-opts.Ctx.Done():
+		case <-watchOpts.Ctx.Done():
 			close(errs)
 			return nil
 		}
