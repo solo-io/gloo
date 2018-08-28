@@ -19,3 +19,9 @@ go build -o apiserver projects/apiserver/cmd/main.go
 ```
 
 By default runs on [http://localhost:8080](http://localhost:8080)
+
+
+# TODO:
+- auto generation of schema from protos
+- dockerize / kuberize
+- update when plugin api changes
