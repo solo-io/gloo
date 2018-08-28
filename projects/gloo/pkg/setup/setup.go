@@ -11,6 +11,8 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
+	"google.golang.org/grpc"
 )
 
 type Opts struct {
@@ -18,6 +20,7 @@ type Opts struct {
 	configBackend   factory.ResourceClientFactoryOpts
 	secretBackend   factory.ResourceClientFactoryOpts
 	artifactBackend factory.ResourceClientFactoryOpts
+	grpcServer      *grpc.Server
 	watchOpts       clients.WatchOpts
 }
 
@@ -66,16 +69,11 @@ func Setup(opts Opts) error {
 
 	disc := discovery.NewDiscovery(namespace, upstreamClient, endpointClient)
 
-	xdsCache, xdsServer, err := newXds()
-	if err != nil {
-		return err
-	}
-
-	go xdsServer.Run(ctx)
+	xdsHasher, xdsCache := xds.SetupEnvoyXds(opts.watchOpts.Ctx, opts.grpcServer, nil)
 
 	rpt := reporter.NewReporter("gloo", upstreamClient.BaseClient(), proxyClient.BaseClient())
 
-	sync := syncer.NewSyncer(translator.NewTranslator(), xdsCache, rpt)
+	sync := syncer.NewSyncer(namespace, translator.NewTranslator(), xdsCache, xdsHasher, rpt)
 
 	eventLoop := v1.NewEventLoop(cache, sync)
 

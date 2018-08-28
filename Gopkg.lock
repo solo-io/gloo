@@ -44,9 +44,11 @@
     "envoy/api/v2/route",
     "envoy/config/filter/accesslog/v2",
     "envoy/config/filter/network/http_connection_manager/v2",
+    "envoy/service/discovery/v2",
     "envoy/type",
     "pkg/cache",
     "pkg/log",
+    "pkg/server",
     "pkg/util"
   ]
   revision = "676016db8193d83324a507a986a78cd3642ad713"
@@ -778,6 +780,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d9e3c71dd5b8cd349f7144a1abd9c5a72a34e9da1d89e520c0b4c9d107327d44"
+  inputs-digest = "19e4dedb8741c842526f5c84744ff8c6c82cf0514abc9d54406443e698f79c87"
   solver-name = "gps-cdcl"
   solver-version = 1

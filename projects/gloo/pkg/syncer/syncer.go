@@ -10,24 +10,29 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
 )
 
 type syncer struct {
+	namespace  string
 	translator translator.Translator
 	xdsCache   envoycache.SnapshotCache
+	xdsHasher  *xds.EnvoyInstanceHasher
 	reporter   reporter.Reporter
 }
 
-func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCache, reporter reporter.Reporter) v1.Syncer {
+func NewSyncer(namespace string, translator translator.Translator, xdsCache envoycache.SnapshotCache, xdsHasher *xds.EnvoyInstanceHasher, reporter reporter.Reporter) v1.Syncer {
 	return &syncer{
+		namespace:  namespace,
 		translator: translator,
 		xdsCache:   xdsCache,
+		xdsHasher:  xdsHasher,
 		reporter:   reporter,
 	}
 }
 
 func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
-	ctx = contextutils.WithLogger(ctx, "gloo.syncer")
+	ctx = contextutils.WithLogger(ctx, "gloo.syncer."+s.namespace)
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("Beginning translation loop for snapshot %v", snap.Hash())
 	logger.Debugf("%v", snap)
@@ -39,6 +44,8 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 		Ctx:      ctx,
 		Snapshot: snap,
 	}
+
+	s.xdsHasher.SetValidKeys(s.namespace, snap.ProxyList.Names())
 
 	for _, proxy := range snap.ProxyList {
 		xdsSnapshot, resourceErrs := s.translator.Translate(params, proxy)
