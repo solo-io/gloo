@@ -16,7 +16,7 @@ import (
 )
 
 type Opts struct {
-	namespaces       []string
+	namespaces      []string
 	configBackend   factory.ResourceClientFactoryOpts
 	secretBackend   factory.ResourceClientFactoryOpts
 	artifactBackend factory.ResourceClientFactoryOpts
@@ -65,7 +65,6 @@ func Setup(opts Opts) error {
 	}
 
 	cache := v1.NewCache(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)
-
 
 	xdsHasher, xdsCache := xds.SetupEnvoyXds(opts.watchOpts.Ctx, opts.grpcServer, nil)
 

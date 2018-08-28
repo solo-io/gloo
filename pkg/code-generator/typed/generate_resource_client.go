@@ -30,6 +30,7 @@ const typedClientTemplateContents = `package {{ .PackageName }}
 import (
 	"sort"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -69,6 +70,7 @@ func (r *{{ .ResourceType }}) SetData(data map[string]string) {
 {{- end}}
 
 type {{ .ResourceType }}List []*{{ .ResourceType }}
+type {{ .ResourceType }}ListsByNamespace map[string]{{ .ResourceType }}List
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list {{ .ResourceType }}List) Find(namespace, name string) (*{{ .ResourceType }}, error) {
@@ -120,6 +122,45 @@ func (list {{ .ResourceType }}List) Sort() {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+}
+
+func (list {{ .ResourceType }}List) Clone() {{ .ResourceType }}List {
+	var {{ lowercase .ResourceType }}List {{ .ResourceType }}List
+	for _, {{ lowercase .ResourceType }} := range list {
+		{{ lowercase .ResourceType }}List = append({{ lowercase .ResourceType }}List, proto.Clone({{ lowercase .ResourceType }}).(*{{ .ResourceType }}))
+	}
+	return {{ lowercase .ResourceType }}List 
+}
+
+func (list {{ .ResourceType }}List) ByNamespace() {{ .ResourceType }}ListsByNamespace {
+	byNamespace := make({{ .ResourceType }}ListsByNamespace)
+	for _, {{ lowercase .ResourceType }} := range list {
+		byNamespace.Add({{ lowercase .ResourceType }})
+	}
+	return byNamespace
+}
+
+func (byNamespace {{ .ResourceType }}ListsByNamespace) Add({{ lowercase .ResourceType }} ... *{{ .ResourceType }}) {
+	for _, item := range {{ lowercase .ResourceType }} {
+		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+	}
+}
+
+func (byNamespace {{ .ResourceType }}ListsByNamespace) Clear(namespace string) {
+	delete(byNamespace, namespace)
+}
+
+func (byNamespace {{ .ResourceType }}ListsByNamespace) List() {{ .ResourceType }}List {
+	var list {{ .ResourceType }}List
+	for _, {{ lowercase .ResourceType }}List := range byNamespace {
+		list = append(list, {{ lowercase .ResourceType }}List...)
+	}
+	list.Sort()
+	return list
+}
+
+func (byNamespace {{ .ResourceType }}ListsByNamespace) Clone() {{ .ResourceType }}ListsByNamespace {
+	return byNamespace.List().Clone().ByNamespace()
 }
 
 var _ resources.Resource = &{{ .ResourceType }}{}
@@ -196,19 +237,19 @@ func (client *{{ lowercase .ResourceType }}Client) Watch(namespace string, opts 
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	{{ lowercase .ResourceType }}sChan := make(chan {{ .ResourceType }}List)
+	{{ lowercase .PluralName }}Chan := make(chan {{ .ResourceType }}List)
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				{{ lowercase .ResourceType }}sChan <- convertTo{{ .ResourceType }}(resourceList)
+				{{ lowercase .PluralName }}Chan <- convertTo{{ .ResourceType }}(resourceList)
 			case <-opts.Ctx.Done():
-				close({{ lowercase .ResourceType }}sChan)
+				close({{ lowercase .PluralName }}Chan)
 				return
 			}
 		}
 	}()
-	return {{ lowercase .ResourceType }}sChan, errs, nil
+	return {{ lowercase .PluralName }}Chan, errs, nil
 }
 
 func convertTo{{ .ResourceType }}(resources resources.ResourceList) {{ .ResourceType }}List {
