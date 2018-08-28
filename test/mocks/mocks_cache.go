@@ -1,55 +1,43 @@
 package mocks
 
 import (
-	"github.com/gogo/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
 type Snapshot struct {
-	MockResourceList MockResourceList
-	FakeResourceList FakeResourceList
-	MockDataList     MockDataList
+	Mocks     MockResourceListsByNamespace
+	Fakes     FakeResourceListsByNamespace
+	Mockdatas MockDataListsByNamespace
 }
 
 func (s Snapshot) Clone() Snapshot {
-	var mockResourceList []*MockResource
-	for _, mockResource := range s.MockResourceList {
-		mockResourceList = append(mockResourceList, proto.Clone(mockResource).(*MockResource))
-	}
-	var fakeResourceList []*FakeResource
-	for _, fakeResource := range s.FakeResourceList {
-		fakeResourceList = append(fakeResourceList, proto.Clone(fakeResource).(*FakeResource))
-	}
-	var mockDataList []*MockData
-	for _, mockData := range s.MockDataList {
-		mockDataList = append(mockDataList, proto.Clone(mockData).(*MockData))
-	}
 	return Snapshot{
-		MockResourceList: mockResourceList,
-		FakeResourceList: fakeResourceList,
-		MockDataList:     mockDataList,
+		Mocks:     s.Mocks.Clone(),
+		Fakes:     s.Fakes.Clone(),
+		Mockdatas: s.Mockdatas.Clone(),
 	}
 }
 
 func (s Snapshot) Hash() uint64 {
 	snapshotForHashing := s.Clone()
-	for _, mockResource := range snapshotForHashing.MockResourceList {
+	for _, mockResource := range snapshotForHashing.Mocks.List() {
 		resources.UpdateMetadata(mockResource, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
 		mockResource.SetStatus(core.Status{})
 	}
-	for _, fakeResource := range snapshotForHashing.FakeResourceList {
+	for _, fakeResource := range snapshotForHashing.Fakes.List() {
 		resources.UpdateMetadata(fakeResource, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
 		fakeResource.SetStatus(core.Status{})
 	}
-	for _, mockData := range snapshotForHashing.MockDataList {
+	for _, mockData := range snapshotForHashing.Mockdatas.List() {
 		resources.UpdateMetadata(mockData, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
@@ -67,7 +55,7 @@ type Cache interface {
 	MockResource() MockResourceClient
 	FakeResource() FakeResourceClient
 	MockData() MockDataClient
-	Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
+	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
 
 func NewCache(mockResourceClient MockResourceClient, fakeResourceClient FakeResourceClient, mockDataClient MockDataClient) Cache {
@@ -109,7 +97,7 @@ func (c *cache) MockData() MockDataClient {
 	return c.mockData
 }
 
-func (c *cache) Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
+func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
 	snapshots := make(chan *Snapshot)
 	errs := make(chan error)
 
@@ -122,41 +110,69 @@ func (c *cache) Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Sna
 		currentSnapshot = newSnapshot
 		snapshots <- &currentSnapshot
 	}
-	mockResourceChan, mockResourceErrs, err := c.mockResource.Watch(namespace, opts)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "starting MockResource watch")
-	}
-	fakeResourceChan, fakeResourceErrs, err := c.fakeResource.Watch(namespace, opts)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "starting FakeResource watch")
-	}
-	mockDataChan, mockDataErrs, err := c.mockData.Watch(namespace, opts)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "starting MockData watch")
+
+	for _, namespace := range watchNamespaces {
+		mockResourceChan, mockResourceErrs, err := c.mockResource.Watch(namespace, opts)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "starting MockResource watch")
+		}
+		go errutils.AggregateErrs(opts.Ctx, errs, mockResourceErrs, namespace+"-mocks")
+		go func() {
+			for {
+				select {
+				case <-opts.Ctx.Done():
+					return
+				case mockResourceList := <-mockResourceChan:
+					newSnapshot := currentSnapshot.Clone()
+					newSnapshot.Mocks.Clear(namespace)
+					newSnapshot.Mocks.Add(mockResourceList...)
+					sync(newSnapshot)
+				}
+			}
+		}()
+		fakeResourceChan, fakeResourceErrs, err := c.fakeResource.Watch(namespace, opts)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "starting FakeResource watch")
+		}
+		go errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
+		go func() {
+			for {
+				select {
+				case <-opts.Ctx.Done():
+					return
+				case fakeResourceList := <-fakeResourceChan:
+					newSnapshot := currentSnapshot.Clone()
+					newSnapshot.Fakes.Clear(namespace)
+					newSnapshot.Fakes.Add(fakeResourceList...)
+					sync(newSnapshot)
+				}
+			}
+		}()
+		mockDataChan, mockDataErrs, err := c.mockData.Watch(namespace, opts)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "starting MockData watch")
+		}
+		go errutils.AggregateErrs(opts.Ctx, errs, mockDataErrs, namespace+"-mockdatas")
+		go func() {
+			for {
+				select {
+				case <-opts.Ctx.Done():
+					return
+				case mockDataList := <-mockDataChan:
+					newSnapshot := currentSnapshot.Clone()
+					newSnapshot.Mockdatas.Clear(namespace)
+					newSnapshot.Mockdatas.Add(mockDataList...)
+					sync(newSnapshot)
+				}
+			}
+		}()
 	}
 
 	go func() {
-		for {
-			select {
-			case mockResourceList := <-mockResourceChan:
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.MockResourceList = mockResourceList
-				sync(newSnapshot)
-			case fakeResourceList := <-fakeResourceChan:
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.FakeResourceList = fakeResourceList
-				sync(newSnapshot)
-			case mockDataList := <-mockDataChan:
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.MockDataList = mockDataList
-				sync(newSnapshot)
-			case err := <-mockResourceErrs:
-				errs <- err
-			case err := <-fakeResourceErrs:
-				errs <- err
-			case err := <-mockDataErrs:
-				errs <- err
-			}
+		select {
+		case <-opts.Ctx.Done():
+			close(snapshots)
+			close(errs)
 		}
 	}()
 	return snapshots, errs, nil

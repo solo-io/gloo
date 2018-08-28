@@ -3,6 +3,7 @@ package v1
 import (
 	"sort"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -32,6 +33,7 @@ func (r *Proxy) SetMetadata(meta core.Metadata) {
 }
 
 type ProxyList []*Proxy
+type ProxyListsByNamespace map[string]ProxyList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list ProxyList) Find(namespace, name string) (*Proxy, error) {
@@ -81,6 +83,45 @@ func (list ProxyList) Sort() {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+}
+
+func (list ProxyList) Clone() ProxyList {
+	var proxyList ProxyList
+	for _, proxy := range list {
+		proxyList = append(proxyList, proto.Clone(proxy).(*Proxy))
+	}
+	return proxyList
+}
+
+func (list ProxyList) ByNamespace() ProxyListsByNamespace {
+	byNamespace := make(ProxyListsByNamespace)
+	for _, proxy := range list {
+		byNamespace.Add(proxy)
+	}
+	return byNamespace
+}
+
+func (byNamespace ProxyListsByNamespace) Add(proxy ...*Proxy) {
+	for _, item := range proxy {
+		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+	}
+}
+
+func (byNamespace ProxyListsByNamespace) Clear(namespace string) {
+	delete(byNamespace, namespace)
+}
+
+func (byNamespace ProxyListsByNamespace) List() ProxyList {
+	var list ProxyList
+	for _, proxyList := range byNamespace {
+		list = append(list, proxyList...)
+	}
+	list.Sort()
+	return list
+}
+
+func (byNamespace ProxyListsByNamespace) Clone() ProxyListsByNamespace {
+	return byNamespace.List().Clone().ByNamespace()
 }
 
 var _ resources.Resource = &Proxy{}
@@ -157,19 +198,19 @@ func (client *proxyClient) Watch(namespace string, opts clients.WatchOpts) (<-ch
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	proxysChan := make(chan ProxyList)
+	proxiesChan := make(chan ProxyList)
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				proxysChan <- convertToProxy(resourceList)
+				proxiesChan <- convertToProxy(resourceList)
 			case <-opts.Ctx.Done():
-				close(proxysChan)
+				close(proxiesChan)
 				return
 			}
 		}
 	}()
-	return proxysChan, errs, nil
+	return proxiesChan, errs, nil
 }
 
 func convertToProxy(resources resources.ResourceList) ProxyList {

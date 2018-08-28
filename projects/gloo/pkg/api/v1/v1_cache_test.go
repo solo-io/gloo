@@ -115,15 +115,15 @@ var _ = Describe("V1Cache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.Artifacts).To(ContainElement(artifact1))
+		Expect(snap.ArtifactList).To(ContainElement(artifact1))
 
 		artifact2, err := artifactClient.Write(NewArtifact(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Artifacts).To(ContainElement(artifact1))
-			Expect(snap.Artifacts).To(ContainElement(artifact2))
+			Expect(snap.ArtifactList).To(ContainElement(artifact1))
+			Expect(snap.ArtifactList).To(ContainElement(artifact2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -250,8 +250,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Artifacts).To(ContainElement(artifact1))
-			Expect(snap.Artifacts).NotTo(ContainElement(artifact2))
+			Expect(snap.ArtifactList).To(ContainElement(artifact1))
+			Expect(snap.ArtifactList).NotTo(ContainElement(artifact2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -263,8 +263,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Artifacts).NotTo(ContainElement(artifact1))
-			Expect(snap.Artifacts).NotTo(ContainElement(artifact2))
+			Expect(snap.ArtifactList).NotTo(ContainElement(artifact1))
+			Expect(snap.ArtifactList).NotTo(ContainElement(artifact2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):

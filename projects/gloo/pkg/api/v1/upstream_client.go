@@ -3,6 +3,7 @@ package v1
 import (
 	"sort"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -32,6 +33,7 @@ func (r *Upstream) SetMetadata(meta core.Metadata) {
 }
 
 type UpstreamList []*Upstream
+type UpstreamListsByNamespace map[string]UpstreamList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list UpstreamList) Find(namespace, name string) (*Upstream, error) {
@@ -81,6 +83,45 @@ func (list UpstreamList) Sort() {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+}
+
+func (list UpstreamList) Clone() UpstreamList {
+	var upstreamList UpstreamList
+	for _, upstream := range list {
+		upstreamList = append(upstreamList, proto.Clone(upstream).(*Upstream))
+	}
+	return upstreamList
+}
+
+func (list UpstreamList) ByNamespace() UpstreamListsByNamespace {
+	byNamespace := make(UpstreamListsByNamespace)
+	for _, upstream := range list {
+		byNamespace.Add(upstream)
+	}
+	return byNamespace
+}
+
+func (byNamespace UpstreamListsByNamespace) Add(upstream ...*Upstream) {
+	for _, item := range upstream {
+		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+	}
+}
+
+func (byNamespace UpstreamListsByNamespace) Clear(namespace string) {
+	delete(byNamespace, namespace)
+}
+
+func (byNamespace UpstreamListsByNamespace) List() UpstreamList {
+	var list UpstreamList
+	for _, upstreamList := range byNamespace {
+		list = append(list, upstreamList...)
+	}
+	list.Sort()
+	return list
+}
+
+func (byNamespace UpstreamListsByNamespace) Clone() UpstreamListsByNamespace {
+	return byNamespace.List().Clone().ByNamespace()
 }
 
 var _ resources.Resource = &Upstream{}

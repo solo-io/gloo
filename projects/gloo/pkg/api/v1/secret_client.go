@@ -3,6 +3,7 @@ package v1
 import (
 	"sort"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -32,6 +33,7 @@ func (r *Secret) SetData(data map[string]string) {
 }
 
 type SecretList []*Secret
+type SecretListsByNamespace map[string]SecretList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list SecretList) Find(namespace, name string) (*Secret, error) {
@@ -73,6 +75,45 @@ func (list SecretList) Sort() {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+}
+
+func (list SecretList) Clone() SecretList {
+	var secretList SecretList
+	for _, secret := range list {
+		secretList = append(secretList, proto.Clone(secret).(*Secret))
+	}
+	return secretList
+}
+
+func (list SecretList) ByNamespace() SecretListsByNamespace {
+	byNamespace := make(SecretListsByNamespace)
+	for _, secret := range list {
+		byNamespace.Add(secret)
+	}
+	return byNamespace
+}
+
+func (byNamespace SecretListsByNamespace) Add(secret ...*Secret) {
+	for _, item := range secret {
+		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+	}
+}
+
+func (byNamespace SecretListsByNamespace) Clear(namespace string) {
+	delete(byNamespace, namespace)
+}
+
+func (byNamespace SecretListsByNamespace) List() SecretList {
+	var list SecretList
+	for _, secretList := range byNamespace {
+		list = append(list, secretList...)
+	}
+	list.Sort()
+	return list
+}
+
+func (byNamespace SecretListsByNamespace) Clone() SecretListsByNamespace {
+	return byNamespace.List().Clone().ByNamespace()
 }
 
 var _ resources.Resource = &Secret{}

@@ -3,6 +3,7 @@ package v1
 import (
 	"sort"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -32,6 +33,7 @@ func (r *Gateway) SetMetadata(meta core.Metadata) {
 }
 
 type GatewayList []*Gateway
+type GatewayListsByNamespace map[string]GatewayList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list GatewayList) Find(namespace, name string) (*Gateway, error) {
@@ -81,6 +83,45 @@ func (list GatewayList) Sort() {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+}
+
+func (list GatewayList) Clone() GatewayList {
+	var gatewayList GatewayList
+	for _, gateway := range list {
+		gatewayList = append(gatewayList, proto.Clone(gateway).(*Gateway))
+	}
+	return gatewayList
+}
+
+func (list GatewayList) ByNamespace() GatewayListsByNamespace {
+	byNamespace := make(GatewayListsByNamespace)
+	for _, gateway := range list {
+		byNamespace.Add(gateway)
+	}
+	return byNamespace
+}
+
+func (byNamespace GatewayListsByNamespace) Add(gateway ...*Gateway) {
+	for _, item := range gateway {
+		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+	}
+}
+
+func (byNamespace GatewayListsByNamespace) Clear(namespace string) {
+	delete(byNamespace, namespace)
+}
+
+func (byNamespace GatewayListsByNamespace) List() GatewayList {
+	var list GatewayList
+	for _, gatewayList := range byNamespace {
+		list = append(list, gatewayList...)
+	}
+	list.Sort()
+	return list
+}
+
+func (byNamespace GatewayListsByNamespace) Clone() GatewayListsByNamespace {
+	return byNamespace.List().Clone().ByNamespace()
 }
 
 var _ resources.Resource = &Gateway{}

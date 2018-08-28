@@ -3,6 +3,7 @@ package v1
 import (
 	"sort"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -32,6 +33,7 @@ func (r *ResolverMap) SetMetadata(meta core.Metadata) {
 }
 
 type ResolverMapList []*ResolverMap
+type ResolverMapListsByNamespace map[string]ResolverMapList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list ResolverMapList) Find(namespace, name string) (*ResolverMap, error) {
@@ -81,6 +83,45 @@ func (list ResolverMapList) Sort() {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+}
+
+func (list ResolverMapList) Clone() ResolverMapList {
+	var resolverMapList ResolverMapList
+	for _, resolverMap := range list {
+		resolverMapList = append(resolverMapList, proto.Clone(resolverMap).(*ResolverMap))
+	}
+	return resolverMapList
+}
+
+func (list ResolverMapList) ByNamespace() ResolverMapListsByNamespace {
+	byNamespace := make(ResolverMapListsByNamespace)
+	for _, resolverMap := range list {
+		byNamespace.Add(resolverMap)
+	}
+	return byNamespace
+}
+
+func (byNamespace ResolverMapListsByNamespace) Add(resolverMap ...*ResolverMap) {
+	for _, item := range resolverMap {
+		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+	}
+}
+
+func (byNamespace ResolverMapListsByNamespace) Clear(namespace string) {
+	delete(byNamespace, namespace)
+}
+
+func (byNamespace ResolverMapListsByNamespace) List() ResolverMapList {
+	var list ResolverMapList
+	for _, resolverMapList := range byNamespace {
+		list = append(list, resolverMapList...)
+	}
+	list.Sort()
+	return list
+}
+
+func (byNamespace ResolverMapListsByNamespace) Clone() ResolverMapListsByNamespace {
+	return byNamespace.List().Clone().ByNamespace()
 }
 
 var _ resources.Resource = &ResolverMap{}
@@ -157,19 +198,19 @@ func (client *resolverMapClient) Watch(namespace string, opts clients.WatchOpts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	resolverMapsChan := make(chan ResolverMapList)
+	resolvermapsChan := make(chan ResolverMapList)
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				resolverMapsChan <- convertToResolverMap(resourceList)
+				resolvermapsChan <- convertToResolverMap(resourceList)
 			case <-opts.Ctx.Done():
-				close(resolverMapsChan)
+				close(resolvermapsChan)
 				return
 			}
 		}
 	}()
-	return resolverMapsChan, errs, nil
+	return resolvermapsChan, errs, nil
 }
 
 func convertToResolverMap(resources resources.ResourceList) ResolverMapList {

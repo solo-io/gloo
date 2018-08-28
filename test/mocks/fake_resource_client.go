@@ -3,6 +3,7 @@ package mocks
 import (
 	"sort"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -32,6 +33,7 @@ func (r *FakeResource) SetMetadata(meta core.Metadata) {
 }
 
 type FakeResourceList []*FakeResource
+type FakeResourceListsByNamespace map[string]FakeResourceList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list FakeResourceList) Find(namespace, name string) (*FakeResource, error) {
@@ -81,6 +83,45 @@ func (list FakeResourceList) Sort() {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+}
+
+func (list FakeResourceList) Clone() FakeResourceList {
+	var fakeResourceList FakeResourceList
+	for _, fakeResource := range list {
+		fakeResourceList = append(fakeResourceList, proto.Clone(fakeResource).(*FakeResource))
+	}
+	return fakeResourceList
+}
+
+func (list FakeResourceList) ByNamespace() FakeResourceListsByNamespace {
+	byNamespace := make(FakeResourceListsByNamespace)
+	for _, fakeResource := range list {
+		byNamespace.Add(fakeResource)
+	}
+	return byNamespace
+}
+
+func (byNamespace FakeResourceListsByNamespace) Add(fakeResource ...*FakeResource) {
+	for _, item := range fakeResource {
+		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+	}
+}
+
+func (byNamespace FakeResourceListsByNamespace) Clear(namespace string) {
+	delete(byNamespace, namespace)
+}
+
+func (byNamespace FakeResourceListsByNamespace) List() FakeResourceList {
+	var list FakeResourceList
+	for _, fakeResourceList := range byNamespace {
+		list = append(list, fakeResourceList...)
+	}
+	list.Sort()
+	return list
+}
+
+func (byNamespace FakeResourceListsByNamespace) Clone() FakeResourceListsByNamespace {
+	return byNamespace.List().Clone().ByNamespace()
 }
 
 var _ resources.Resource = &FakeResource{}
@@ -157,19 +198,19 @@ func (client *fakeResourceClient) Watch(namespace string, opts clients.WatchOpts
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	fakeResourcesChan := make(chan FakeResourceList)
+	fakesChan := make(chan FakeResourceList)
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				fakeResourcesChan <- convertToFakeResource(resourceList)
+				fakesChan <- convertToFakeResource(resourceList)
 			case <-opts.Ctx.Done():
-				close(fakeResourcesChan)
+				close(fakesChan)
 				return
 			}
 		}
 	}()
-	return fakeResourcesChan, errs, nil
+	return fakesChan, errs, nil
 }
 
 func convertToFakeResource(resources resources.ResourceList) FakeResourceList {

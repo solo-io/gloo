@@ -34,24 +34,19 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
 type Snapshot struct {
 {{- range .ResourceTypes}}
-	{{ . }}List {{ . }}List
+	{{ uppercase (resource . $).PluralName }} {{ . }}ListsByNamespace
 {{- end}}
 }
 
 func (s Snapshot) Clone() Snapshot {
-{{- range .ResourceTypes}}
-	var {{ lowercase . }}List []*{{ . }}
-	for _, {{ lowercase . }} := range s.{{ . }}List {
-		{{ lowercase . }}List = append({{ lowercase . }}List, proto.Clone({{ lowercase . }}).(*{{ . }}))
-	}
-{{- end}}
 	return Snapshot{
 {{- range .ResourceTypes}}
-		{{ . }}List: {{ lowercase . }}List,
+		{{ uppercase (resource . $).PluralName }}: s.{{ uppercase (resource . $).PluralName }}.Clone(),
 {{- end}}
 	}
 }
@@ -59,7 +54,7 @@ func (s Snapshot) Clone() Snapshot {
 func (s Snapshot) Hash() uint64 {
 	snapshotForHashing := s.Clone()
 {{- range .ResourceTypes}}
-	for _, {{ lowercase . }} := range snapshotForHashing.{{ . }}List {
+	for _, {{ lowercase . }} := range snapshotForHashing.{{ uppercase (resource . $).PluralName }}.List() {
 		resources.UpdateMetadata({{ lowercase . }}, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
@@ -80,7 +75,7 @@ type Cache interface {
 {{- range .ResourceTypes}}
 	{{ . }}() {{ . }}Client
 {{- end}}
-	Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
+	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
 
 func NewCache({{ clients . true }}) Cache {
@@ -113,7 +108,7 @@ func (c *cache) {{ . }}() {{ . }}Client {
 }
 {{- end}}
 
-func (c *cache) Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
+func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
 	snapshots := make(chan *Snapshot)
 	errs := make(chan error)
 
@@ -127,27 +122,35 @@ func (c *cache) Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Sna
 		snapshots <- &currentSnapshot
 	}
 
+	for _, namespace := range watchNamespaces {
 {{- range .ResourceTypes}}
-	{{ lowercase . }}Chan, {{ lowercase . }}Errs, err := c.{{ lowercase . }}.Watch(namespace, opts)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "starting {{ . }} watch")
-	}
+		{{ lowercase . }}Chan, {{ lowercase . }}Errs, err := c.{{ lowercase . }}.Watch(namespace, opts)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "starting {{ . }} watch")
+		}
+		go errutils.AggregateErrs(opts.Ctx, errs, {{ lowercase . }}Errs, namespace+"-{{ lowercase (resource . $).PluralName }}")
+		go func() {
+			for {
+				select {
+				case <-opts.Ctx.Done():
+					return
+				case {{ lowercase . }}List := <-{{ lowercase . }}Chan:
+					newSnapshot := currentSnapshot.Clone()
+					newSnapshot.{{ uppercase (resource . $).PluralName }}.Clear(namespace)
+					newSnapshot.{{ uppercase (resource . $).PluralName }}.Add({{ lowercase . }}List...)
+					sync(newSnapshot)
+				}
+			}
+		}()
 {{- end}}
+	}
+
 
 	go func() {
-		for {
-			select {
-{{- range .ResourceTypes}}
-			case {{ lowercase . }}List := <-{{ lowercase . }}Chan:
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.{{ . }}List = {{ lowercase . }}List
-				sync(newSnapshot)
-{{- end}}
-{{- range .ResourceTypes}}
-			case err := <-{{ lowercase . }}Errs:
-				errs <- err
-{{- end}}
-			}
+		select {
+		case <-opts.Ctx.Done():
+			close(snapshots)
+			close(errs)
 		}
 	}()
 	return snapshots, errs, nil

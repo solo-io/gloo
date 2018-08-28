@@ -3,6 +3,7 @@ package mocks
 import (
 	"sort"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -36,6 +37,7 @@ func (r *MockData) SetData(data map[string]string) {
 }
 
 type MockDataList []*MockData
+type MockDataListsByNamespace map[string]MockDataList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list MockDataList) Find(namespace, name string) (*MockData, error) {
@@ -85,6 +87,45 @@ func (list MockDataList) Sort() {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+}
+
+func (list MockDataList) Clone() MockDataList {
+	var mockDataList MockDataList
+	for _, mockData := range list {
+		mockDataList = append(mockDataList, proto.Clone(mockData).(*MockData))
+	}
+	return mockDataList
+}
+
+func (list MockDataList) ByNamespace() MockDataListsByNamespace {
+	byNamespace := make(MockDataListsByNamespace)
+	for _, mockData := range list {
+		byNamespace.Add(mockData)
+	}
+	return byNamespace
+}
+
+func (byNamespace MockDataListsByNamespace) Add(mockData ...*MockData) {
+	for _, item := range mockData {
+		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+	}
+}
+
+func (byNamespace MockDataListsByNamespace) Clear(namespace string) {
+	delete(byNamespace, namespace)
+}
+
+func (byNamespace MockDataListsByNamespace) List() MockDataList {
+	var list MockDataList
+	for _, mockDataList := range byNamespace {
+		list = append(list, mockDataList...)
+	}
+	list.Sort()
+	return list
+}
+
+func (byNamespace MockDataListsByNamespace) Clone() MockDataListsByNamespace {
+	return byNamespace.List().Clone().ByNamespace()
 }
 
 var _ resources.Resource = &MockData{}
@@ -161,19 +202,19 @@ func (client *mockDataClient) Watch(namespace string, opts clients.WatchOpts) (<
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	mockDatasChan := make(chan MockDataList)
+	mockdatasChan := make(chan MockDataList)
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				mockDatasChan <- convertToMockData(resourceList)
+				mockdatasChan <- convertToMockData(resourceList)
 			case <-opts.Ctx.Done():
-				close(mockDatasChan)
+				close(mockdatasChan)
 				return
 			}
 		}
 	}()
-	return mockDatasChan, errs, nil
+	return mockdatasChan, errs, nil
 }
 
 func convertToMockData(resources resources.ResourceList) MockDataList {

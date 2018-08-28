@@ -3,6 +3,7 @@ package mocks
 import (
 	"sort"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -32,6 +33,7 @@ func (r *MockResource) SetMetadata(meta core.Metadata) {
 }
 
 type MockResourceList []*MockResource
+type MockResourceListsByNamespace map[string]MockResourceList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list MockResourceList) Find(namespace, name string) (*MockResource, error) {
@@ -81,6 +83,45 @@ func (list MockResourceList) Sort() {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+}
+
+func (list MockResourceList) Clone() MockResourceList {
+	var mockResourceList MockResourceList
+	for _, mockResource := range list {
+		mockResourceList = append(mockResourceList, proto.Clone(mockResource).(*MockResource))
+	}
+	return mockResourceList
+}
+
+func (list MockResourceList) ByNamespace() MockResourceListsByNamespace {
+	byNamespace := make(MockResourceListsByNamespace)
+	for _, mockResource := range list {
+		byNamespace.Add(mockResource)
+	}
+	return byNamespace
+}
+
+func (byNamespace MockResourceListsByNamespace) Add(mockResource ...*MockResource) {
+	for _, item := range mockResource {
+		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+	}
+}
+
+func (byNamespace MockResourceListsByNamespace) Clear(namespace string) {
+	delete(byNamespace, namespace)
+}
+
+func (byNamespace MockResourceListsByNamespace) List() MockResourceList {
+	var list MockResourceList
+	for _, mockResourceList := range byNamespace {
+		list = append(list, mockResourceList...)
+	}
+	list.Sort()
+	return list
+}
+
+func (byNamespace MockResourceListsByNamespace) Clone() MockResourceListsByNamespace {
+	return byNamespace.List().Clone().ByNamespace()
 }
 
 var _ resources.Resource = &MockResource{}
@@ -157,19 +198,19 @@ func (client *mockResourceClient) Watch(namespace string, opts clients.WatchOpts
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	mockResourcesChan := make(chan MockResourceList)
+	mocksChan := make(chan MockResourceList)
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				mockResourcesChan <- convertToMockResource(resourceList)
+				mocksChan <- convertToMockResource(resourceList)
 			case <-opts.Ctx.Done():
-				close(mockResourcesChan)
+				close(mocksChan)
 				return
 			}
 		}
 	}()
-	return mockResourcesChan, errs, nil
+	return mocksChan, errs, nil
 }
 
 func convertToMockResource(resources resources.ResourceList) MockResourceList {

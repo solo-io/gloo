@@ -3,6 +3,7 @@ package v1
 import (
 	"sort"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -32,6 +33,7 @@ func (r *VirtualService) SetMetadata(meta core.Metadata) {
 }
 
 type VirtualServiceList []*VirtualService
+type VirtualServiceListsByNamespace map[string]VirtualServiceList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list VirtualServiceList) Find(namespace, name string) (*VirtualService, error) {
@@ -81,6 +83,45 @@ func (list VirtualServiceList) Sort() {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+}
+
+func (list VirtualServiceList) Clone() VirtualServiceList {
+	var virtualServiceList VirtualServiceList
+	for _, virtualService := range list {
+		virtualServiceList = append(virtualServiceList, proto.Clone(virtualService).(*VirtualService))
+	}
+	return virtualServiceList
+}
+
+func (list VirtualServiceList) ByNamespace() VirtualServiceListsByNamespace {
+	byNamespace := make(VirtualServiceListsByNamespace)
+	for _, virtualService := range list {
+		byNamespace.Add(virtualService)
+	}
+	return byNamespace
+}
+
+func (byNamespace VirtualServiceListsByNamespace) Add(virtualService ...*VirtualService) {
+	for _, item := range virtualService {
+		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+	}
+}
+
+func (byNamespace VirtualServiceListsByNamespace) Clear(namespace string) {
+	delete(byNamespace, namespace)
+}
+
+func (byNamespace VirtualServiceListsByNamespace) List() VirtualServiceList {
+	var list VirtualServiceList
+	for _, virtualServiceList := range byNamespace {
+		list = append(list, virtualServiceList...)
+	}
+	list.Sort()
+	return list
+}
+
+func (byNamespace VirtualServiceListsByNamespace) Clone() VirtualServiceListsByNamespace {
+	return byNamespace.List().Clone().ByNamespace()
 }
 
 var _ resources.Resource = &VirtualService{}
@@ -157,19 +198,19 @@ func (client *virtualServiceClient) Watch(namespace string, opts clients.WatchOp
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	virtualServicesChan := make(chan VirtualServiceList)
+	virtualservicesChan := make(chan VirtualServiceList)
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				virtualServicesChan <- convertToVirtualService(resourceList)
+				virtualservicesChan <- convertToVirtualService(resourceList)
 			case <-opts.Ctx.Done():
-				close(virtualServicesChan)
+				close(virtualservicesChan)
 				return
 			}
 		}
 	}()
-	return virtualServicesChan, errs, nil
+	return virtualservicesChan, errs, nil
 }
 
 func convertToVirtualService(resources resources.ResourceList) VirtualServiceList {

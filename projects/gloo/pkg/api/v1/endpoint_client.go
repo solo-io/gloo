@@ -3,6 +3,7 @@ package v1
 import (
 	"sort"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -28,6 +29,7 @@ func (r *Endpoint) SetMetadata(meta core.Metadata) {
 }
 
 type EndpointList []*Endpoint
+type EndpointListsByNamespace map[string]EndpointList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list EndpointList) Find(namespace, name string) (*Endpoint, error) {
@@ -69,6 +71,45 @@ func (list EndpointList) Sort() {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+}
+
+func (list EndpointList) Clone() EndpointList {
+	var endpointList EndpointList
+	for _, endpoint := range list {
+		endpointList = append(endpointList, proto.Clone(endpoint).(*Endpoint))
+	}
+	return endpointList
+}
+
+func (list EndpointList) ByNamespace() EndpointListsByNamespace {
+	byNamespace := make(EndpointListsByNamespace)
+	for _, endpoint := range list {
+		byNamespace.Add(endpoint)
+	}
+	return byNamespace
+}
+
+func (byNamespace EndpointListsByNamespace) Add(endpoint ...*Endpoint) {
+	for _, item := range endpoint {
+		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+	}
+}
+
+func (byNamespace EndpointListsByNamespace) Clear(namespace string) {
+	delete(byNamespace, namespace)
+}
+
+func (byNamespace EndpointListsByNamespace) List() EndpointList {
+	var list EndpointList
+	for _, endpointList := range byNamespace {
+		list = append(list, endpointList...)
+	}
+	list.Sort()
+	return list
+}
+
+func (byNamespace EndpointListsByNamespace) Clone() EndpointListsByNamespace {
+	return byNamespace.List().Clone().ByNamespace()
 }
 
 var _ resources.Resource = &Endpoint{}

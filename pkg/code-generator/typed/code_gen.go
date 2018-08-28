@@ -63,4 +63,7 @@ var funcs = template.FuncMap{
 		}
 		return false
 	},
+	"resource": func(resourceType string, params PackageLevelTemplateParams) *ResourceLevelTemplateParams {
+		return params.ResourceLevelParams[resourceType]
+	},
 }

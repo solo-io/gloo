@@ -3,6 +3,7 @@ package v1
 import (
 	"sort"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
@@ -11,7 +12,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"github.com/gogo/protobuf/proto"
 )
 
 // TODO: modify as needed to populate additional fields
@@ -82,6 +82,7 @@ func (list ArtifactList) Clone() ArtifactList {
 	for _, artifact := range list {
 		artifactList = append(artifactList, proto.Clone(artifact).(*Artifact))
 	}
+	return artifactList
 }
 
 func (list ArtifactList) ByNamespace() ArtifactListsByNamespace {
@@ -92,7 +93,7 @@ func (list ArtifactList) ByNamespace() ArtifactListsByNamespace {
 	return byNamespace
 }
 
-func (byNamespace ArtifactListsByNamespace) Add(artifact ... *Artifact) {
+func (byNamespace ArtifactListsByNamespace) Add(artifact ...*Artifact) {
 	for _, item := range artifact {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}

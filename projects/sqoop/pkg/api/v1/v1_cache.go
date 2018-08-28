@@ -1,31 +1,27 @@
 package v1
 
 import (
-	"github.com/gogo/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
 type Snapshot struct {
-	ResolverMapList ResolverMapList
+	Resolvermaps ResolverMapListsByNamespace
 }
 
 func (s Snapshot) Clone() Snapshot {
-	var resolverMapList []*ResolverMap
-	for _, resolverMap := range s.ResolverMapList {
-		resolverMapList = append(resolverMapList, proto.Clone(resolverMap).(*ResolverMap))
-	}
 	return Snapshot{
-		ResolverMapList: resolverMapList,
+		Resolvermaps: s.Resolvermaps.Clone(),
 	}
 }
 
 func (s Snapshot) Hash() uint64 {
 	snapshotForHashing := s.Clone()
-	for _, resolverMap := range snapshotForHashing.ResolverMapList {
+	for _, resolverMap := range snapshotForHashing.Resolvermaps.List() {
 		resources.UpdateMetadata(resolverMap, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
@@ -41,7 +37,7 @@ func (s Snapshot) Hash() uint64 {
 type Cache interface {
 	Register() error
 	ResolverMap() ResolverMapClient
-	Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
+	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
 
 func NewCache(resolverMapClient ResolverMapClient) Cache {
@@ -65,7 +61,7 @@ func (c *cache) ResolverMap() ResolverMapClient {
 	return c.resolverMap
 }
 
-func (c *cache) Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
+func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
 	snapshots := make(chan *Snapshot)
 	errs := make(chan error)
 
@@ -78,21 +74,33 @@ func (c *cache) Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Sna
 		currentSnapshot = newSnapshot
 		snapshots <- &currentSnapshot
 	}
-	resolverMapChan, resolverMapErrs, err := c.resolverMap.Watch(namespace, opts)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "starting ResolverMap watch")
+
+	for _, namespace := range watchNamespaces {
+		resolverMapChan, resolverMapErrs, err := c.resolverMap.Watch(namespace, opts)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "starting ResolverMap watch")
+		}
+		go errutils.AggregateErrs(opts.Ctx, errs, resolverMapErrs, namespace+"-resolvermaps")
+		go func() {
+			for {
+				select {
+				case <-opts.Ctx.Done():
+					return
+				case resolverMapList := <-resolverMapChan:
+					newSnapshot := currentSnapshot.Clone()
+					newSnapshot.Resolvermaps.Clear(namespace)
+					newSnapshot.Resolvermaps.Add(resolverMapList...)
+					sync(newSnapshot)
+				}
+			}
+		}()
 	}
 
 	go func() {
-		for {
-			select {
-			case resolverMapList := <-resolverMapChan:
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.ResolverMapList = resolverMapList
-				sync(newSnapshot)
-			case err := <-resolverMapErrs:
-				errs <- err
-			}
+		select {
+		case <-opts.Ctx.Done():
+			close(snapshots)
+			close(errs)
 		}
 	}()
 	return snapshots, errs, nil

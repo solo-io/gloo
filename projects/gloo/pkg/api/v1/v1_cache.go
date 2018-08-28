@@ -10,20 +10,20 @@ import (
 )
 
 type Snapshot struct {
-	Artifacts    ArtifactListsByNamespace
-	EndpointList EndpointList
-	ProxyList    ProxyList
-	SecretList   SecretList
-	UpstreamList UpstreamList
+	Artifacts ArtifactListsByNamespace
+	Endpoints EndpointListsByNamespace
+	Proxies   ProxyListsByNamespace
+	Secrets   SecretListsByNamespace
+	Upstreams UpstreamListsByNamespace
 }
 
 func (s Snapshot) Clone() Snapshot {
 	return Snapshot{
-		Artifacts:    s.Artifacts.Clone(),
-		EndpointList: endpointList,
-		ProxyList:    proxyList,
-		SecretList:   secretList,
-		UpstreamList: upstreamList,
+		Artifacts: s.Artifacts.Clone(),
+		Endpoints: s.Endpoints.Clone(),
+		Proxies:   s.Proxies.Clone(),
+		Secrets:   s.Secrets.Clone(),
+		Upstreams: s.Upstreams.Clone(),
 	}
 }
 
@@ -34,23 +34,23 @@ func (s Snapshot) Hash() uint64 {
 			meta.ResourceVersion = ""
 		})
 	}
-	for _, endpoint := range snapshotForHashing.EndpointList {
+	for _, endpoint := range snapshotForHashing.Endpoints.List() {
 		resources.UpdateMetadata(endpoint, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
 	}
-	for _, proxy := range snapshotForHashing.ProxyList {
+	for _, proxy := range snapshotForHashing.Proxies.List() {
 		resources.UpdateMetadata(proxy, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
 		proxy.SetStatus(core.Status{})
 	}
-	for _, secret := range snapshotForHashing.SecretList {
+	for _, secret := range snapshotForHashing.Secrets.List() {
 		resources.UpdateMetadata(secret, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
 	}
-	for _, upstream := range snapshotForHashing.UpstreamList {
+	for _, upstream := range snapshotForHashing.Upstreams.List() {
 		resources.UpdateMetadata(upstream, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
@@ -70,7 +70,7 @@ type Cache interface {
 	Proxy() ProxyClient
 	Secret() SecretClient
 	Upstream() UpstreamClient
-	Snapshots(namespace string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
+	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
 
 func NewCache(artifactClient ArtifactClient, endpointClient EndpointClient, proxyClient ProxyClient, secretClient SecretClient, upstreamClient UpstreamClient) Cache {
@@ -130,7 +130,7 @@ func (c *cache) Upstream() UpstreamClient {
 	return c.upstream
 }
 
-func (c *cache) Snapshots(namespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
+func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
 	snapshots := make(chan *Snapshot)
 	errs := make(chan error)
 
@@ -144,7 +144,7 @@ func (c *cache) Snapshots(namespaces []string, opts clients.WatchOpts) (<-chan *
 		snapshots <- &currentSnapshot
 	}
 
-	for _, namespace := range namespaces {
+	for _, namespace := range watchNamespaces {
 		artifactChan, artifactErrs, err := c.artifact.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Artifact watch")
@@ -159,6 +159,78 @@ func (c *cache) Snapshots(namespaces []string, opts clients.WatchOpts) (<-chan *
 					newSnapshot := currentSnapshot.Clone()
 					newSnapshot.Artifacts.Clear(namespace)
 					newSnapshot.Artifacts.Add(artifactList...)
+					sync(newSnapshot)
+				}
+			}
+		}()
+		endpointChan, endpointErrs, err := c.endpoint.Watch(namespace, opts)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "starting Endpoint watch")
+		}
+		go errutils.AggregateErrs(opts.Ctx, errs, endpointErrs, namespace+"-endpoints")
+		go func() {
+			for {
+				select {
+				case <-opts.Ctx.Done():
+					return
+				case endpointList := <-endpointChan:
+					newSnapshot := currentSnapshot.Clone()
+					newSnapshot.Endpoints.Clear(namespace)
+					newSnapshot.Endpoints.Add(endpointList...)
+					sync(newSnapshot)
+				}
+			}
+		}()
+		proxyChan, proxyErrs, err := c.proxy.Watch(namespace, opts)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "starting Proxy watch")
+		}
+		go errutils.AggregateErrs(opts.Ctx, errs, proxyErrs, namespace+"-proxies")
+		go func() {
+			for {
+				select {
+				case <-opts.Ctx.Done():
+					return
+				case proxyList := <-proxyChan:
+					newSnapshot := currentSnapshot.Clone()
+					newSnapshot.Proxies.Clear(namespace)
+					newSnapshot.Proxies.Add(proxyList...)
+					sync(newSnapshot)
+				}
+			}
+		}()
+		secretChan, secretErrs, err := c.secret.Watch(namespace, opts)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "starting Secret watch")
+		}
+		go errutils.AggregateErrs(opts.Ctx, errs, secretErrs, namespace+"-secrets")
+		go func() {
+			for {
+				select {
+				case <-opts.Ctx.Done():
+					return
+				case secretList := <-secretChan:
+					newSnapshot := currentSnapshot.Clone()
+					newSnapshot.Secrets.Clear(namespace)
+					newSnapshot.Secrets.Add(secretList...)
+					sync(newSnapshot)
+				}
+			}
+		}()
+		upstreamChan, upstreamErrs, err := c.upstream.Watch(namespace, opts)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "starting Upstream watch")
+		}
+		go errutils.AggregateErrs(opts.Ctx, errs, upstreamErrs, namespace+"-upstreams")
+		go func() {
+			for {
+				select {
+				case <-opts.Ctx.Done():
+					return
+				case upstreamList := <-upstreamChan:
+					newSnapshot := currentSnapshot.Clone()
+					newSnapshot.Upstreams.Clear(namespace)
+					newSnapshot.Upstreams.Add(upstreamList...)
 					sync(newSnapshot)
 				}
 			}
