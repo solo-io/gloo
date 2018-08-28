@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"github.com/gogo/protobuf/proto"
 )
 
 // TODO: modify as needed to populate additional fields
@@ -32,6 +33,7 @@ func (r *Artifact) SetData(data map[string]string) {
 }
 
 type ArtifactList []*Artifact
+type ArtifactListsByNamespace map[string]ArtifactList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list ArtifactList) Find(namespace, name string) (*Artifact, error) {
@@ -73,6 +75,44 @@ func (list ArtifactList) Sort() {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+}
+
+func (list ArtifactList) Clone() ArtifactList {
+	var artifactList ArtifactList
+	for _, artifact := range list {
+		artifactList = append(artifactList, proto.Clone(artifact).(*Artifact))
+	}
+}
+
+func (list ArtifactList) ByNamespace() ArtifactListsByNamespace {
+	byNamespace := make(ArtifactListsByNamespace)
+	for _, artifact := range list {
+		byNamespace.Add(artifact)
+	}
+	return byNamespace
+}
+
+func (byNamespace ArtifactListsByNamespace) Add(artifact ... *Artifact) {
+	for _, item := range artifact {
+		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+	}
+}
+
+func (byNamespace ArtifactListsByNamespace) Clear(namespace string) {
+	delete(byNamespace, namespace)
+}
+
+func (byNamespace ArtifactListsByNamespace) List() ArtifactList {
+	var list ArtifactList
+	for _, artifactList := range byNamespace {
+		list = append(list, artifactList...)
+	}
+	list.Sort()
+	return list
+}
+
+func (byNamespace ArtifactListsByNamespace) Clone() ArtifactListsByNamespace {
+	return byNamespace.List().Clone().ByNamespace()
 }
 
 var _ resources.Resource = &Artifact{}

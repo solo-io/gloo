@@ -16,7 +16,7 @@ import (
 )
 
 type Opts struct {
-	namespace       string
+	namespaces       []string
 	configBackend   factory.ResourceClientFactoryOpts
 	secretBackend   factory.ResourceClientFactoryOpts
 	artifactBackend factory.ResourceClientFactoryOpts
@@ -29,7 +29,6 @@ func Setup(opts Opts) error {
 	inputResourceOpts := opts.configBackend
 	secretOpts := opts.secretBackend
 	artifactOpts := opts.artifactBackend
-	namespace := opts.namespace
 
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")
 	inputFactory := factory.NewResourceClientFactory(inputResourceOpts)
@@ -67,14 +66,13 @@ func Setup(opts Opts) error {
 
 	cache := v1.NewCache(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)
 
-	disc := discovery.NewDiscovery(namespace, upstreamClient, endpointClient)
 
 	xdsHasher, xdsCache := xds.SetupEnvoyXds(opts.watchOpts.Ctx, opts.grpcServer, nil)
 
 	rpt := reporter.NewReporter("gloo", upstreamClient.BaseClient(), proxyClient.BaseClient())
 
+	disc := discovery.NewDiscovery(namespace, upstreamClient, endpointClient)
 	sync := syncer.NewSyncer(namespace, translator.NewTranslator(), xdsCache, xdsHasher, rpt)
-
 	eventLoop := v1.NewEventLoop(cache, sync)
 
 	errs := make(chan error)
@@ -110,4 +108,8 @@ func Setup(opts Opts) error {
 			return nil
 		}
 	}
+}
+
+func forNamespace(namespace string) error {
+
 }
