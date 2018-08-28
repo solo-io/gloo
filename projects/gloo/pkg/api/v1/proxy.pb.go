@@ -68,9 +68,7 @@ func (RedirectAction_RedirectResponseCode) EnumDescriptor() ([]byte, []int) {
 //
 // Proxy instances that register with Gloo are assigned the proxy configuration corresponding with
 // a proxy-specific identifier.
-// In the case of Envoy, proxy instances are identified by matching the following string pattern `PROXY_ID~IGNORED`
-// in the instance's [Node Id](https://www.envoyproxy.io/docs/envoy/latest/operations/cli). where
-// PROXY_ID is the name of the proxy the Gloo operator wishes to assign.
+// In the case of Envoy, proxy instances are identified by their Node ID. Node IDs must match a existing Proxy
 // Node ID can be specified in Envoy with the `--service-node` flag, or in the Envoy instance's bootstrap config.
 type Proxy struct {
 	// Define here each listener the proxy should create.

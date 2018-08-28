@@ -175,10 +175,7 @@ func (client *gatewayClient) Watch(namespace string, opts clients.WatchOpts) (<-
 func convertToGateway(resources resources.ResourceList) GatewayList {
 	var gatewayList GatewayList
 	for _, resource := range resources {
-		gateway, ok := resource.(*Gateway)
-		if ok {
-			gatewayList = append(gatewayList, gateway)
-		}
+		gatewayList = append(gatewayList, resource.(*Gateway))
 	}
 	return gatewayList
 }
