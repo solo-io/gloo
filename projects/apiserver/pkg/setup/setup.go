@@ -7,6 +7,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
+	"github.com/rs/cors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -29,6 +30,17 @@ func Setup(port int) error {
 		return err
 	}
 
+	// serve the query route such that it can be accessed from our UI during development
+	corsSettings := cors.New(cors.Options{
+		// the development server started by react-scripts defaults to ports 3000, 3001, etc. depending on what's available
+		// TODO: Pass debug and CORS urls as flags
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:8000", "localhost/:1"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+		// Enable Debugging for testing, consider disabling in production
+		Debug: true,
+	})
+
 	http.Handle("/", handler.Playground("Solo-ApiServer", "/query"))
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
@@ -47,7 +59,7 @@ func Setup(port int) error {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		handler.GraphQL(
+		corsSettings.Handler(handler.GraphQL(
 			graph.NewExecutableSchema(graph.Config{
 				Resolvers: apiserver.NewResolvers(upstreams, virtualServices, resolverMaps),
 			}),
@@ -58,7 +70,7 @@ func Setup(port int) error {
 				fmt.Println("Left", rc.Object, rc.Field.Name, "=>", res, err)
 				return res, err
 			}),
-		).ServeHTTP(w, r)
+		)).ServeHTTP(w, r)
 	})
 
 	return http.ListenAndServe(fmt.Sprintf(":%v", port), nil)

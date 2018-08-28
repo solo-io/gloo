@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	port := flag.Int("p", 8080, "port to bind")
+	port := flag.Int("p", 8082, "port to bind")
 	flag.Parse()
 	log.Printf("listening on :%v", *port)
 	if err := setup.Setup(*port); err != nil {
