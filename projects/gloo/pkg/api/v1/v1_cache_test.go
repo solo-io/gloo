@@ -94,7 +94,7 @@ var _ = Describe("V1Cache", func() {
 		err := cache.Register()
 		Expect(err).NotTo(HaveOccurred())
 
-		snapshots, errs, err := cache.Snapshots(namespace, clients.WatchOpts{
+		snapshots, errs, err := cache.Snapshots([]string{namespace}, clients.WatchOpts{
 			RefreshRate: time.Minute,
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -115,15 +115,15 @@ var _ = Describe("V1Cache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.ArtifactList).To(ContainElement(artifact1))
+		Expect(snap.Artifacts).To(ContainElement(artifact1))
 
 		artifact2, err := artifactClient.Write(NewArtifact(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.ArtifactList).To(ContainElement(artifact1))
-			Expect(snap.ArtifactList).To(ContainElement(artifact2))
+			Expect(snap.Artifacts).To(ContainElement(artifact1))
+			Expect(snap.Artifacts).To(ContainElement(artifact2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -144,15 +144,15 @@ var _ = Describe("V1Cache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.EndpointList).To(ContainElement(endpoint1))
+		Expect(snap.Endpoints).To(ContainElement(endpoint1))
 
 		endpoint2, err := endpointClient.Write(NewEndpoint(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.EndpointList).To(ContainElement(endpoint1))
-			Expect(snap.EndpointList).To(ContainElement(endpoint2))
+			Expect(snap.Endpoints).To(ContainElement(endpoint1))
+			Expect(snap.Endpoints).To(ContainElement(endpoint2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -173,15 +173,15 @@ var _ = Describe("V1Cache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.ProxyList).To(ContainElement(proxy1))
+		Expect(snap.Proxies).To(ContainElement(proxy1))
 
 		proxy2, err := proxyClient.Write(NewProxy(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.ProxyList).To(ContainElement(proxy1))
-			Expect(snap.ProxyList).To(ContainElement(proxy2))
+			Expect(snap.Proxies).To(ContainElement(proxy1))
+			Expect(snap.Proxies).To(ContainElement(proxy2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -202,15 +202,15 @@ var _ = Describe("V1Cache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.SecretList).To(ContainElement(secret1))
+		Expect(snap.Secrets).To(ContainElement(secret1))
 
 		secret2, err := secretClient.Write(NewSecret(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.SecretList).To(ContainElement(secret1))
-			Expect(snap.SecretList).To(ContainElement(secret2))
+			Expect(snap.Secrets).To(ContainElement(secret1))
+			Expect(snap.Secrets).To(ContainElement(secret2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -231,15 +231,15 @@ var _ = Describe("V1Cache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.UpstreamList).To(ContainElement(upstream1))
+		Expect(snap.Upstreams).To(ContainElement(upstream1))
 
 		upstream2, err := upstreamClient.Write(NewUpstream(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.UpstreamList).To(ContainElement(upstream1))
-			Expect(snap.UpstreamList).To(ContainElement(upstream2))
+			Expect(snap.Upstreams).To(ContainElement(upstream1))
+			Expect(snap.Upstreams).To(ContainElement(upstream2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -250,8 +250,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.ArtifactList).To(ContainElement(artifact1))
-			Expect(snap.ArtifactList).NotTo(ContainElement(artifact2))
+			Expect(snap.Artifacts).To(ContainElement(artifact1))
+			Expect(snap.Artifacts).NotTo(ContainElement(artifact2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -263,8 +263,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.ArtifactList).NotTo(ContainElement(artifact1))
-			Expect(snap.ArtifactList).NotTo(ContainElement(artifact2))
+			Expect(snap.Artifacts).NotTo(ContainElement(artifact1))
+			Expect(snap.Artifacts).NotTo(ContainElement(artifact2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -275,8 +275,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.EndpointList).To(ContainElement(endpoint1))
-			Expect(snap.EndpointList).NotTo(ContainElement(endpoint2))
+			Expect(snap.Endpoints).To(ContainElement(endpoint1))
+			Expect(snap.Endpoints).NotTo(ContainElement(endpoint2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -288,8 +288,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.EndpointList).NotTo(ContainElement(endpoint1))
-			Expect(snap.EndpointList).NotTo(ContainElement(endpoint2))
+			Expect(snap.Endpoints).NotTo(ContainElement(endpoint1))
+			Expect(snap.Endpoints).NotTo(ContainElement(endpoint2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -300,8 +300,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.ProxyList).To(ContainElement(proxy1))
-			Expect(snap.ProxyList).NotTo(ContainElement(proxy2))
+			Expect(snap.Proxies).To(ContainElement(proxy1))
+			Expect(snap.Proxies).NotTo(ContainElement(proxy2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -313,8 +313,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.ProxyList).NotTo(ContainElement(proxy1))
-			Expect(snap.ProxyList).NotTo(ContainElement(proxy2))
+			Expect(snap.Proxies).NotTo(ContainElement(proxy1))
+			Expect(snap.Proxies).NotTo(ContainElement(proxy2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -325,8 +325,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.SecretList).To(ContainElement(secret1))
-			Expect(snap.SecretList).NotTo(ContainElement(secret2))
+			Expect(snap.Secrets).To(ContainElement(secret1))
+			Expect(snap.Secrets).NotTo(ContainElement(secret2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -338,8 +338,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.SecretList).NotTo(ContainElement(secret1))
-			Expect(snap.SecretList).NotTo(ContainElement(secret2))
+			Expect(snap.Secrets).NotTo(ContainElement(secret1))
+			Expect(snap.Secrets).NotTo(ContainElement(secret2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -350,8 +350,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.UpstreamList).To(ContainElement(upstream1))
-			Expect(snap.UpstreamList).NotTo(ContainElement(upstream2))
+			Expect(snap.Upstreams).To(ContainElement(upstream1))
+			Expect(snap.Upstreams).NotTo(ContainElement(upstream2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -363,8 +363,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.UpstreamList).NotTo(ContainElement(upstream1))
-			Expect(snap.UpstreamList).NotTo(ContainElement(upstream2))
+			Expect(snap.Upstreams).NotTo(ContainElement(upstream1))
+			Expect(snap.Upstreams).NotTo(ContainElement(upstream2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):

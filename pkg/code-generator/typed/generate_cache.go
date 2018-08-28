@@ -244,7 +244,7 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		err := cache.Register()
 		Expect(err).NotTo(HaveOccurred())
 
-		snapshots, errs, err := cache.Snapshots(namespace, clients.WatchOpts{
+		snapshots, errs, err := cache.Snapshots([]string{namespace}, clients.WatchOpts{
 			RefreshRate: time.Minute,
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -267,15 +267,15 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.{{ . }}List).To(ContainElement({{ lowercase . }}1))
+		Expect(snap.{{ uppercase (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}1))
 
 		{{ lowercase . }}2, err := {{ lowercase . }}Client.Write(New{{ . }}(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ . }}List).To(ContainElement({{ lowercase . }}1))
-			Expect(snap.{{ . }}List).To(ContainElement({{ lowercase . }}2))
+			Expect(snap.{{ uppercase (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}1))
+			Expect(snap.{{ uppercase (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -289,8 +289,8 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ . }}List).To(ContainElement({{ lowercase . }}1))
-			Expect(snap.{{ . }}List).NotTo(ContainElement({{ lowercase . }}2))
+			Expect(snap.{{ uppercase (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}1))
+			Expect(snap.{{ uppercase (resource . $).PluralName }}).NotTo(ContainElement({{ lowercase . }}2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -302,8 +302,8 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ . }}List).NotTo(ContainElement({{ lowercase . }}1))
-			Expect(snap.{{ . }}List).NotTo(ContainElement({{ lowercase . }}2))
+			Expect(snap.{{ uppercase (resource . $).PluralName }}).NotTo(ContainElement({{ lowercase . }}1))
+			Expect(snap.{{ uppercase (resource . $).PluralName }}).NotTo(ContainElement({{ lowercase . }}2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
