@@ -13,6 +13,14 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 )
 
+type Opts struct {
+	namespace string
+	inputResourceOpts factory.ResourceClientFactoryOpts
+	secretOpts factory.ResourceClientFactoryOpts
+	artifactOpts factory.ResourceClientFactoryOpts
+	opts clients.WatchOpts
+}
+
 func Setup(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts, secretOpts factory.ResourceClientFactoryOpts, artifactOpts factory.ResourceClientFactoryOpts, opts clients.WatchOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "setup")
