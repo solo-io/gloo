@@ -9,7 +9,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-// TODO(ilackarms): pass a list of the known
+// TODO(ilackarms): create a new xds server on each sync if possible, need to know the names of the proxy configs
 
 // used to let nodes know they have a bad config
 // we assign a "fix me" virtualhost for bad nodes
