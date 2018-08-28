@@ -34,11 +34,11 @@ func Run(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts, 
 	cache := v1.NewCache(gatewayClient, virtualServicesClient)
 
 	rpt := reporter.NewReporter("gateway", gatewayClient.BaseClient(), virtualServicesClient.BaseClient())
+	writeErrs := make(chan error)
 
-	prop := propagator.NewPropagator("gateway", gatewayClient, virtualServicesClient, proxyClient)
+	prop := propagator.NewPropagator("gateway", gatewayClient, virtualServicesClient, proxyClient, writeErrs)
 
-	errs := make(chan error)
-	sync := syncer.NewSyncer(namespace, proxyClient, rpt, prop, errs)
+	sync := syncer.NewSyncer(namespace, proxyClient, rpt, prop, writeErrs)
 
 	eventLoop := v1.NewEventLoop(cache, sync)
 	eventLoop.Run(namespace, opts)
@@ -47,10 +47,10 @@ func Run(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts, 
 
 	for {
 		select {
-		case err := <-errs:
+		case err := <-writeErrs:
 			logger.Errorf("error: %v", err)
 		case <-opts.Ctx.Done():
-			close(errs)
+			close(writeErrs)
 			return nil
 		}
 	}

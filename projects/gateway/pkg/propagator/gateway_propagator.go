@@ -13,9 +13,10 @@ type Propagator struct {
 	gwClient    v1.GatewayClient
 	vsClient    v1.VirtualServiceClient
 	proxyClient gloov1.ProxyClient
+	writeErrs   chan error
 }
 
-func NewPropagator(controller string, gwClient v1.GatewayClient, vsClient v1.VirtualServiceClient, proxyClient gloov1.ProxyClient) *Propagator {
+func NewPropagator(controller string, gwClient v1.GatewayClient, vsClient v1.VirtualServiceClient, proxyClient gloov1.ProxyClient, writeErrs chan error) *Propagator {
 	return &Propagator{
 		controller:  controller,
 		gwClient:    gwClient,
@@ -26,10 +27,11 @@ func NewPropagator(controller string, gwClient v1.GatewayClient, vsClient v1.Vir
 
 func (p *Propagator) PropagateStatuses(snap *v1.Snapshot,
 	proxy *gloov1.Proxy,
-	writeErrs chan error,
 	opts clients.WatchOpts) error {
 	parents := append(snap.GatewayList.AsInputResources(), snap.VirtualServiceList.AsInputResources()...)
 	rcs := make(clients.ResourceClients)
+	// this is where buggy things happen
+	// would generics really solved this problem?
 	rcs.Add(p.gwClient.BaseClient(), p.vsClient.BaseClient(), p.proxyClient.BaseClient())
-	return propagator.NewPropagator(p.controller, parents, resources.InputResourceList{proxy}, rcs).PropagateStatuses(writeErrs, opts)
+	return propagator.NewPropagator(p.controller, parents, resources.InputResourceList{proxy}, rcs, p.writeErrs).PropagateStatuses(opts)
 }

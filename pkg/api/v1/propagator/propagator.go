@@ -18,19 +18,21 @@ type Propagator struct {
 	forController     string
 	children, parents resources.InputResourceList
 	resourceClients   clients.ResourceClients
+	writeErrs         chan error
 }
 
-func NewPropagator(forController string, parents, children resources.InputResourceList, ResourceClients clients.ResourceClients) *Propagator {
+func NewPropagator(forController string, parents, children resources.InputResourceList, ResourceClients clients.ResourceClients, writeErrs chan error) *Propagator {
 	return &Propagator{
 		forController:   forController,
 		children:        children,
 		parents:         parents,
 		resourceClients: ResourceClients,
+		writeErrs:       writeErrs,
 	}
 }
 
 // sources can be multiple types
-func (p *Propagator) PropagateStatuses(writeErrs chan error, opts clients.WatchOpts) error {
+func (p *Propagator) PropagateStatuses(opts clients.WatchOpts) error {
 	// each ressource by kind, then namespace
 	childrenByClientAndNamespace, err := byKindByNamespace(p.resourceClients, p.children)
 	if err != nil {
@@ -39,7 +41,7 @@ func (p *Propagator) PropagateStatuses(writeErrs chan error, opts clients.WatchO
 
 	childrenChannel := make(chan resources.ResourceList)
 
-	if err := createWatchForResources(childrenByClientAndNamespace, childrenChannel, writeErrs, opts); err != nil {
+	if err := createWatchForResources(childrenByClientAndNamespace, childrenChannel, p.writeErrs, opts); err != nil {
 		return errors.Wrapf(err, "creating watch for child resources")
 	}
 
@@ -49,7 +51,7 @@ func (p *Propagator) PropagateStatuses(writeErrs chan error, opts clients.WatchO
 	}
 	parentsChannel := make(chan resources.ResourceList)
 
-	if err := createWatchForResources(parentsByClientAndNamespace, parentsChannel, writeErrs, opts); err != nil {
+	if err := createWatchForResources(parentsByClientAndNamespace, parentsChannel, p.writeErrs, opts); err != nil {
 		return errors.Wrapf(err, "creating watch for child resources")
 	}
 
@@ -69,7 +71,7 @@ func (p *Propagator) PropagateStatuses(writeErrs chan error, opts clients.WatchO
 				}
 				lastChildren = uniqueChildren.List()
 				if err := p.syncStatuses(lastParents, lastChildren, opts); err != nil {
-					writeErrs <- errors.Wrapf(err, "syncing statuses from children to parents1")
+					p.writeErrs <- errors.Wrapf(err, "syncing statuses from children to parents1")
 				}
 			case parents := <-parentsChannel:
 				if parents.Equal(lastParents) {
@@ -80,7 +82,7 @@ func (p *Propagator) PropagateStatuses(writeErrs chan error, opts clients.WatchO
 				}
 				lastParents = uniqueParents.List()
 				if err := p.syncStatuses(lastParents, lastChildren, opts); err != nil {
-					writeErrs <- errors.Wrapf(err, "syncing statuses from children to parents2")
+					p.writeErrs <- errors.Wrapf(err, "syncing statuses from children to parents2")
 				}
 			case <-opts.Ctx.Done():
 				return
