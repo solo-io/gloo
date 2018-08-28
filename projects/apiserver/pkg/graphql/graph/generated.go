@@ -514,11 +514,8 @@ func (ec *executionContext) _AzureUpstreamSpec_secretRef(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
-	if res == nil {
-		return graphql.Null
-	}
-	return graphql.MarshalString(*res)
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
 }
 
 func (ec *executionContext) _AzureUpstreamSpec_functions(ctx context.Context, field graphql.CollectedField, obj *models.AzureUpstreamSpec) graphql.Marshaler {
@@ -5816,7 +5813,7 @@ type AwsUpstreamSpec {
 
 type AzureUpstreamSpec {
     functionAppName: String!
-    secretRef:       String
+    secretRef:       String!
     functions:       [AzureFunction!]
 }
 

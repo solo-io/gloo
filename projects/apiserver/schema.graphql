@@ -79,7 +79,7 @@ type AwsUpstreamSpec {
 
 type AzureUpstreamSpec {
     functionAppName: String!
-    secretRef:       String
+    secretRef:       String!
     functions:       [AzureFunction!]
 }
 

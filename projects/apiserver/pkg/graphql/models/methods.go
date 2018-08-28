@@ -24,7 +24,7 @@ func (m InputMapStringString) GoType() map[string]string {
 }
 
 func NewMapStringString(m map[string]string) *MapStringString {
-	if len(m) == 0{
+	if len(m) == 0 {
 		return nil
 	}
 	var values []Value

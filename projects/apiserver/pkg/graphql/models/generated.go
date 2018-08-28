@@ -31,7 +31,7 @@ type AzureFunction struct {
 }
 type AzureUpstreamSpec struct {
 	FunctionAppName string          `json:"functionAppName"`
-	SecretRef       *string         `json:"secretRef"`
+	SecretRef       string          `json:"secretRef"`
 	Functions       []AzureFunction `json:"functions"`
 }
 type Destination interface{}
