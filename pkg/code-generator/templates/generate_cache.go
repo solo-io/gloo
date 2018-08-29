@@ -188,7 +188,8 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		return
 	}
 	var (
-		namespace          string
+		namespace1          string
+		namespace2          string
 		cfg                *rest.Config
 		cache              Cache
 {{- range .ResourceTypes }}
@@ -200,9 +201,11 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 	)
 
 	BeforeEach(func() {
-		namespace = helpers.RandString(8)
-		err := services.SetupKubeForTest(namespace)
+		namespace1 = helpers.RandString(8)
+		namespace2 = helpers.RandString(8)
+		err := services.SetupKubeForTest(namespace1)
 		Expect(err).NotTo(HaveOccurred())
+		err = services.SetupKubeForTest(namespace2)
 		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
@@ -239,13 +242,16 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		cache = NewCache({{ clients . false }})
 	})
 	AfterEach(func() {
-		services.TeardownKube(namespace)
+		services.TeardownKube(namespace1)
+		services.TeardownKube(namespace2)
 	})
 	It("tracks snapshots on changes to any resource", func() {
+		ctx := context.Background()
 		err := cache.Register()
 		Expect(err).NotTo(HaveOccurred())
 
-		snapshots, errs, err := cache.Snapshots([]string{namespace}, clients.WatchOpts{
+		snapshots, errs, err := cache.Snapshots([]string{namespace1, namespace2}, clients.WatchOpts{
+			Ctx: ctx,
 			RefreshRate: time.Minute,
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -253,7 +259,9 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		var snap *Snapshot
 
 {{- range .ResourceTypes }}
-		{{ lower_camel . }}1, err := {{ lower_camel . }}Client.Write(New{{ . }}(namespace, "angela"), clients.WriteOpts{})
+		{{ lower_camel . }}1a, err := {{ lower_camel . }}Client.Write(New{{ . }}(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		{{ lower_camel . }}1b, err := {{ lower_camel . }}Client.Write(New{{ . }}(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 	drain{{ lower_camel . }}:
@@ -268,15 +276,20 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lower_camel . }}1))
+		Expect(snap.{{ (resource . $).PluralName }}.List()).To(ContainElement({{ lower_camel . }}1a))
+		Expect(snap.{{ (resource . $).PluralName }}.List()).To(ContainElement({{ lower_camel . }}1b))
 
-		{{ lower_camel . }}2, err := {{ lower_camel . }}Client.Write(New{{ . }}(namespace, "lane"), clients.WriteOpts{})
+		{{ lower_camel . }}2a, err := {{ lower_camel . }}Client.Write(New{{ . }}(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		{{ lower_camel . }}2b, err := {{ lower_camel . }}Client.Write(New{{ . }}(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lower_camel . }}1))
-			Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lower_camel . }}2))
+			Expect(snap.{{ (resource . $).PluralName }}.List()).To(ContainElement({{ lower_camel . }}1a))
+			Expect(snap.{{ (resource . $).PluralName }}.List()).To(ContainElement({{ lower_camel . }}1b))
+			Expect(snap.{{ (resource . $).PluralName }}.List()).To(ContainElement({{ lower_camel . }}2a))
+			Expect(snap.{{ (resource . $).PluralName }}.List()).To(ContainElement({{ lower_camel . }}2b))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -285,26 +298,34 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 {{- end}}
 
 {{- range .ResourceTypes }}
-		err = {{ lower_camel . }}Client.Delete({{ lower_camel . }}2.Metadata.Namespace, {{ lower_camel . }}2.Metadata.Name, clients.DeleteOpts{})
+		err = {{ lower_camel . }}Client.Delete({{ lower_camel . }}2a.Metadata.Namespace, {{ lower_camel . }}2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		err = {{ lower_camel . }}Client.Delete({{ lower_camel . }}2a.Metadata.Namespace, {{ lower_camel . }}2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lower_camel . }}1))
-			Expect(snap.{{ (resource . $).PluralName }}).NotTo(ContainElement({{ lower_camel . }}2))
+			Expect(snap.{{ (resource . $).PluralName }}.List()).To(ContainElement({{ lower_camel . }}1a))
+			Expect(snap.{{ (resource . $).PluralName }}.List()).To(ContainElement({{ lower_camel . }}1b))
+			Expect(snap.{{ (resource . $).PluralName }}.List()).NotTo(ContainElement({{ lower_camel . }}2a))
+			Expect(snap.{{ (resource . $).PluralName }}.List()).NotTo(ContainElement({{ lower_camel . }}2b))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
-		err = {{ lower_camel . }}Client.Delete({{ lower_camel . }}1.Metadata.Namespace, {{ lower_camel . }}1.Metadata.Name, clients.DeleteOpts{})
+		err = {{ lower_camel . }}Client.Delete({{ lower_camel . }}1a.Metadata.Namespace, {{ lower_camel . }}1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		err = {{ lower_camel . }}Client.Delete({{ lower_camel . }}1b.Metadata.Namespace, {{ lower_camel . }}1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ (resource . $).PluralName }}).NotTo(ContainElement({{ lower_camel . }}1))
-			Expect(snap.{{ (resource . $).PluralName }}).NotTo(ContainElement({{ lower_camel . }}2))
+			Expect(snap.{{ (resource . $).PluralName }}.List()).NotTo(ContainElement({{ lower_camel . }}1a))
+			Expect(snap.{{ (resource . $).PluralName }}.List()).NotTo(ContainElement({{ lower_camel . }}1b))
+			Expect(snap.{{ (resource . $).PluralName }}.List()).NotTo(ContainElement({{ lower_camel . }}2a))
+			Expect(snap.{{ (resource . $).PluralName }}.List()).NotTo(ContainElement({{ lower_camel . }}2b))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):

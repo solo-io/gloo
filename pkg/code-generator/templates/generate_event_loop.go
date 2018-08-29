@@ -40,7 +40,7 @@ type Syncer interface {
 }
 
 type EventLoop interface {
-	Run(namespace string, opts clients.WatchOpts) (<-chan error, error)
+	Run(namespaces []string, opts clients.WatchOpts) (<-chan error, error)
 }
 
 type eventLoop struct {
@@ -55,7 +55,7 @@ func NewEventLoop(cache Cache, syncer Syncer) EventLoop {
 	}
 }
 
-func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) (<-chan error, error) {
+func (el *eventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-chan error, error) {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "{{ .PackageName }}.event_loop")
 	logger := contextutils.LoggerFrom(opts.Ctx)
@@ -63,7 +63,7 @@ func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) (<-chan error
 
 	errs := make(chan error)
 
-	watch, cacheErrs, err := el.cache.Snapshots(namespace, opts)
+	watch, cacheErrs, err := el.cache.Snapshots(namespaces, opts)
 	if err != nil {
 		return nil, errors.Wrapf(err, "starting snapshot watch")
 	}
@@ -132,7 +132,7 @@ var _ = Describe("{{ uppercase .PackageName }}EventLoop", func() {
 {{- end}}
 		sync := &mockSyncer{}
 		el := NewEventLoop(cache, sync)
-		_, err := el.Run(namespace, clients.WatchOpts{})
+		_, err := el.Run([]string{namespace}, clients.WatchOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Eventually(func() bool { return sync.synced }, time.Second).Should(BeTrue())
 	})
