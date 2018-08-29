@@ -17,7 +17,7 @@ import (
 )
 
 type Updater struct {
-	functionalPlugins []FuncitonDiscovery
+	functionalPlugins []FunctionDiscovery
 	activeupstreams   map[string]context.CancelFunc
 	ctx               context.Context
 	resolver          Resolver
@@ -45,7 +45,7 @@ func getConcurrencyChan(maxoncurrency uint) chan struct{} {
 
 }
 
-func New(ctx context.Context, resolver Resolver, maxoncurrency uint, functionalPlugins []FuncitonDiscovery) *Updater {
+func NewUpdater(ctx context.Context, resolver Resolver, maxoncurrency uint, functionalPlugins []FunctionDiscovery) *Updater {
 	ctx = contextutils.WithLogger(ctx, "function-discovery-updater")
 	return &Updater{
 		logger:                 contextutils.LoggerFrom(ctx),
@@ -59,10 +59,10 @@ func New(ctx context.Context, resolver Resolver, maxoncurrency uint, functionalP
 
 type detectResult struct {
 	spec *plugins.ServiceSpec
-	fp   FuncitonDiscovery
+	fp   FunctionDiscovery
 }
 
-func (u *Updater) detectSingle(ctx context.Context, fp FuncitonDiscovery, url *url.URL, result chan detectResult) {
+func (u *Updater) detectSingle(ctx context.Context, fp FunctionDiscovery, url *url.URL, result chan detectResult) {
 
 	if u.maxInParallelSemaphore != nil {
 		select {
@@ -102,7 +102,7 @@ func (u *Updater) detectType(ctx context.Context, url *url.URL) (*detectResult, 
 	var waitgroup sync.WaitGroup
 	for _, fp := range u.functionalPlugins {
 		waitgroup.Add(1)
-		go func(functionalPlugin FuncitonDiscovery) {
+		go func(functionalPlugin FunctionDiscovery) {
 			defer waitgroup.Done()
 			u.detectSingle(ctx, functionalPlugin, url, result)
 		}(fp)
@@ -199,7 +199,7 @@ func (u *Updater) UpstreamRemoved(upstream *v1.Upstream) {
 func (u *Updater) RunForUpstream(ctx context.Context, upstream *v1.Upstream) error {
 
 	// see if anyone likes this upstream:
-	var discoveryForUpstream FuncitonDiscovery
+	var discoveryForUpstream FunctionDiscovery
 	for _, fp := range u.functionalPlugins {
 		if fp.IsUpstreamFunctional(upstream) {
 			discoveryForUpstream = fp
