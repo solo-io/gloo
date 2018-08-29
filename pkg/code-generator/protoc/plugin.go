@@ -9,7 +9,7 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/iancoleman/strcase"
 	"github.com/pseudomuto/protokit"
-	"github.com/solo-io/solo-kit/pkg/code-generator/typed"
+	"github.com/solo-io/solo-kit/pkg/code-generator/templates"
 )
 
 const (
@@ -19,21 +19,21 @@ const (
 // plugin is an implementation of protokit.Plugin
 type Plugin struct{}
 
-type resouceTemplateFunc func(params typed.ResourceLevelTemplateParams) (string, error)
-type packageTemplateFunc func(params typed.PackageLevelTemplateParams) (string, error)
+type resouceTemplateFunc func(params templates.ResourceLevelTemplateParams) (string, error)
+type packageTemplateFunc func(params templates.PackageLevelTemplateParams) (string, error)
 
 var resourceFilesToGenerate = map[string]resouceTemplateFunc{
-	"_client.go":      typed.GenerateResourceClientCode,
-	"_client_test.go": typed.GenerateResourceClientTestCode,
-	"_reconciler.go":  typed.GenerateReconcilerCode,
+	"_client.go":      templates.GenerateResourceClientCode,
+	"_client_test.go": templates.GenerateResourceClientTestCode,
+	"_reconciler.go":  templates.GenerateReconcilerCode,
 }
 
 var packageFilesToGenerate = map[string]packageTemplateFunc{
-	"_suite_test.go":      typed.GenerateTestSuiteCode,
-	"_cache.go":           typed.GenerateCacheCode,
-	"_cache_test.go":      typed.GenerateCacheTestCode,
-	"_event_loop.go":      typed.GenerateEventLoopCode,
-	"_event_loop_test.go": typed.GenerateEventLoopTestCode,
+	"_suite_test.go":      templates.GenerateTestSuiteCode,
+	"_cache.go":           templates.GenerateCacheCode,
+	"_cache_test.go":      templates.GenerateCacheTestCode,
+	"_event_loop.go":      templates.GenerateEventLoopCode,
+	"_event_loop_test.go": templates.GenerateEventLoopTestCode,
 }
 
 var descriptors []*protokit.FileDescriptor
@@ -43,13 +43,13 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 
 	resp := new(plugin_go.CodeGeneratorResponse)
 
-	resourcesByPackage := make(map[string][]*typed.ResourceLevelTemplateParams)
+	resourcesByPackage := make(map[string][]*templates.ResourceLevelTemplateParams)
 
 	resourceDescriptors := make(map[string]*protokit.Descriptor)
 
 	for _, d := range descriptors {
 		packageName := goPackage(d)
-		var resourceTypes []*typed.ResourceLevelTemplateParams
+		var resourceTypes []*templates.ResourceLevelTemplateParams
 		for _, msg := range d.Messages {
 			resourceType := msg.GetName()
 			var fields []string
@@ -84,13 +84,13 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 	for packageName, resourceParams := range resourcesByPackage {
 		var (
 			resourceTypes       []string
-			resourceLevelParams = make(map[string]*typed.ResourceLevelTemplateParams)
+			resourceLevelParams = make(map[string]*templates.ResourceLevelTemplateParams)
 		)
 		for _, resource := range resourceParams {
 			resourceTypes = append(resourceTypes, resource.ResourceType)
 			resourceLevelParams[resource.ResourceType] = resource
 		}
-		params := typed.PackageLevelTemplateParams{
+		params := templates.PackageLevelTemplateParams{
 			PackageName:         packageName,
 			ResourceTypes:       resourceTypes,
 			ResourceLevelParams: resourceLevelParams,
@@ -205,7 +205,7 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 //	return strings.Join(msgs, "\n\n"), nil
 //}
 
-func codegenParams(packageName string, msg *protokit.Descriptor, resourceType string, fields []string) *typed.ResourceLevelTemplateParams {
+func codegenParams(packageName string, msg *protokit.Descriptor, resourceType string, fields []string) *templates.ResourceLevelTemplateParams {
 	magicComments := strings.Split(msg.GetComments().Leading, "\n")
 	var (
 		isResource  bool
@@ -251,7 +251,7 @@ func codegenParams(packageName string, msg *protokit.Descriptor, resourceType st
 	if !isResource {
 		return nil
 	}
-	return &typed.ResourceLevelTemplateParams{
+	return &templates.ResourceLevelTemplateParams{
 		PackageName:           packageName,
 		ResourceType:          resourceType,
 		IsDataType:            isDataType,
@@ -265,7 +265,7 @@ func codegenParams(packageName string, msg *protokit.Descriptor, resourceType st
 	}
 }
 
-func generateResourceLevelFile(params typed.ResourceLevelTemplateParams, suffix string, genFunc resouceTemplateFunc) (*plugin_go.CodeGeneratorResponse_File, error) {
+func generateResourceLevelFile(params templates.ResourceLevelTemplateParams, suffix string, genFunc resouceTemplateFunc) (*plugin_go.CodeGeneratorResponse_File, error) {
 	fileName := strcase.ToSnake(params.ResourceType) + suffix
 	content, err := genFunc(params)
 	if err != nil {
@@ -277,7 +277,7 @@ func generateResourceLevelFile(params typed.ResourceLevelTemplateParams, suffix 
 	}, nil
 }
 
-func generatePackageLevelFile(params typed.PackageLevelTemplateParams, suffix string, genFunc packageTemplateFunc) (*plugin_go.CodeGeneratorResponse_File, error) {
+func generatePackageLevelFile(params templates.PackageLevelTemplateParams, suffix string, genFunc packageTemplateFunc) (*plugin_go.CodeGeneratorResponse_File, error) {
 	fileName := params.PackageName + suffix
 	content, err := genFunc(params)
 	if err != nil {

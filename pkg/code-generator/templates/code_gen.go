@@ -1,4 +1,4 @@
-package typed
+package templates
 
 import (
 	"strings"
