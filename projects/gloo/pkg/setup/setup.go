@@ -16,7 +16,7 @@ import (
 )
 
 type Opts struct {
-	namespaces      []string
+	writeNamespace  string
 	configBackend   factory.ResourceClientFactoryOpts
 	secretBackend   factory.ResourceClientFactoryOpts
 	artifactBackend factory.ResourceClientFactoryOpts
@@ -70,27 +70,28 @@ func Setup(opts Opts) error {
 
 	rpt := reporter.NewReporter("gloo", upstreamClient.BaseClient(), proxyClient.BaseClient())
 
-	disc := discovery.NewDiscovery(namespace, upstreamClient, endpointClient)
-	sync := syncer.NewSyncer(namespace, translator.NewTranslator(), xdsCache, xdsHasher, rpt)
+	disc := discovery.NewDiscovery(opts.writeNamespace, upstreamClient, endpointClient)
+
+	sync := syncer.NewSyncer(discoveredNamespaces, translator.NewTranslator(), xdsCache, xdsHasher, rpt)
 	eventLoop := v1.NewEventLoop(cache, sync)
 
 	errs := make(chan error)
 
 	udsErrs, err := discovery.RunUds(disc, watchOpts, discovery.Opts{
-	// TODO(ilackarms)
+		// TODO(ilackarms)
 	})
 	if err != nil {
 		return err
 	}
 	go errutils.AggregateErrs(watchOpts.Ctx, errs, udsErrs, "uds.gloo")
 
-	edsErrs, err := discovery.RunEds(upstreamClient, disc, namespace, watchOpts)
+	edsErrs, err := discovery.RunEds(upstreamClient, disc, opts.writeNamespace, watchOpts)
 	if err != nil {
 		return err
 	}
 	go errutils.AggregateErrs(watchOpts.Ctx, errs, edsErrs, "eds.gloo")
 
-	eventLoopErrs, err := eventLoop.Run(namespace, watchOpts)
+	eventLoopErrs, err := eventLoop.Run(discoveredNamespaces, watchOpts)
 	if err != nil {
 		return err
 	}
@@ -109,6 +110,3 @@ func Setup(opts Opts) error {
 	}
 }
 
-func forNamespace(namespace string) error {
-
-}
