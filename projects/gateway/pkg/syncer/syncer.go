@@ -51,36 +51,34 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	if desired == nil {
 		return s.proxyReconciler.Reconcile(s.namespace, nil, nil, clients.ListOpts{})
 	}
-	if err := s.proxyReconciler.Reconcile(s.namespace, nil, nil, clients.ListOpts{}); err != nil {
-		return
+	if err := s.proxyReconciler.Reconcile(s.namespace, gloov1.ProxyList{desired}, nil, clients.ListOpts{}); err != nil {
+		return err
 	}
 
 	// start propagating for new set of resources
-	return s.propagator.PropagateStatuses(snap, desired, s.writeErrs, clients.WatchOpts{
-		Ctx: ctx,
-	})
+	return s.propagator.PropagateStatuses(snap, desired, clients.WatchOpts{Ctx: ctx})
 }
 
 func translate(namespace string, snap *v1.Snapshot) (*gloov1.Proxy, reporter.ResourceErrors) {
 	resourceErrs := make(reporter.ResourceErrors)
-	resourceErrs.Initialize(snap.GatewayList.AsInputResources()...)
-	resourceErrs.Initialize(snap.VirtualServiceList.AsInputResources()...)
-	if len(snap.GatewayList) == 0 {
+	resourceErrs.Initialize(snap.Gateways.List().AsInputResources()...)
+	resourceErrs.Initialize(snap.VirtualServices.List().AsInputResources()...)
+	if len(snap.Gateways.List()) == 0 {
 		return nil, resourceErrs
 	}
-	if len(snap.VirtualServiceList) == 0 {
+	if len(snap.VirtualServices.List()) == 0 {
 		return nil, resourceErrs
 	}
-	validateGateways(snap.GatewayList, resourceErrs)
-	validateVirtualServices(snap.VirtualServiceList, resourceErrs)
+	validateGateways(snap.Gateways.List(), resourceErrs)
+	validateVirtualServices(snap.VirtualServices.List(), resourceErrs)
 	meta := core.Metadata{
-		Name:        joinGatewayNames(snap.GatewayList),
+		Name:        joinGatewayNames(snap.Gateways.List()),
 		Namespace:   namespace,
 		Annotations: map[string]string{"owner_ref": "gateway"},
 	}
 	var listeners []*gloov1.Listener
-	for _, gateway := range snap.GatewayList {
-		listener := desiredListener(gateway, snap.VirtualServiceList, resourceErrs)
+	for _, gateway := range snap.Gateways.List() {
+		listener := desiredListener(gateway, snap.VirtualServices.List(), resourceErrs)
 		listeners = append(listeners, listener)
 	}
 	return &gloov1.Proxy{
