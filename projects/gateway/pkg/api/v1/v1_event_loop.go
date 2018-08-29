@@ -14,7 +14,7 @@ type Syncer interface {
 }
 
 type EventLoop interface {
-	Run(namespace string, opts clients.WatchOpts) (<-chan error, error)
+	Run(namespaces []string, opts clients.WatchOpts) (<-chan error, error)
 }
 
 type eventLoop struct {
@@ -29,7 +29,7 @@ func NewEventLoop(cache Cache, syncer Syncer) EventLoop {
 	}
 }
 
-func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) (<-chan error, error) {
+func (el *eventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-chan error, error) {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "v1.event_loop")
 	logger := contextutils.LoggerFrom(opts.Ctx)
@@ -37,20 +37,20 @@ func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) (<-chan error
 
 	errs := make(chan error)
 
-	watch, cacheErrs, err := el.cache.Snapshots(namespace, opts)
+	watch, cacheErrs, err := el.cache.Snapshots(namespaces, opts)
 	if err != nil {
 		return nil, errors.Wrapf(err, "starting snapshot watch")
 	}
 	go errutils.AggregateErrs(opts.Ctx, errs, cacheErrs, "v1.cache errors")
 	go func() {
 		// create a new context for each loop, cancel it before each loop
-		var cancel context.CancelFunc
+		var cancel context.CancelFunc = func() {}
+		defer cancel()
 		for {
 			select {
 			case snapshot := <-watch:
-				if cancel != nil {
-					cancel()
-				}
+				// cancel any open watches from previous loop
+				cancel()
 				ctx, canc := context.WithCancel(opts.Ctx)
 				cancel = canc
 				err := el.syncer.Sync(ctx, snapshot)

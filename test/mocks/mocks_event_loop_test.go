@@ -49,7 +49,7 @@ var _ = Describe("MocksEventLoop", func() {
 		Expect(err).NotTo(HaveOccurred())
 		sync := &mockSyncer{}
 		el := NewEventLoop(cache, sync)
-		_, err := el.Run(namespace, clients.WatchOpts{})
+		_, err := el.Run([]string{namespace}, clients.WatchOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		Eventually(func() bool { return sync.synced }, time.Second).Should(BeTrue())
 	})
