@@ -83,7 +83,7 @@ func (u *Updater) detectSingle(ctx context.Context, fp FunctionDiscovery, url *u
 			fp:   fp,
 		}
 	}
-	if err == context.Canceled {
+	if ctx.Err() != nil {
 		return
 	}
 	if err != nil {
