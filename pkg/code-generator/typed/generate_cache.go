@@ -39,14 +39,14 @@ import (
 
 type Snapshot struct {
 {{- range .ResourceTypes}}
-	{{ uppercase (resource . $).PluralName }} {{ . }}ListsByNamespace
+	{{ (resource . $).PluralName }} {{ . }}ListsByNamespace
 {{- end}}
 }
 
 func (s Snapshot) Clone() Snapshot {
 	return Snapshot{
 {{- range .ResourceTypes}}
-		{{ uppercase (resource . $).PluralName }}: s.{{ uppercase (resource . $).PluralName }}.Clone(),
+		{{ (resource . $).PluralName }}: s.{{ (resource . $).PluralName }}.Clone(),
 {{- end}}
 	}
 }
@@ -54,7 +54,7 @@ func (s Snapshot) Clone() Snapshot {
 func (s Snapshot) Hash() uint64 {
 	snapshotForHashing := s.Clone()
 {{- range .ResourceTypes}}
-	for _, {{ lowercase . }} := range snapshotForHashing.{{ uppercase (resource . $).PluralName }}.List() {
+	for _, {{ lowercase . }} := range snapshotForHashing.{{ (resource . $).PluralName }}.List() {
 		resources.UpdateMetadata({{ lowercase . }}, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
@@ -136,8 +136,8 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					return
 				case {{ lowercase . }}List := <-{{ lowercase . }}Chan:
 					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.{{ uppercase (resource . $).PluralName }}.Clear(namespace)
-					newSnapshot.{{ uppercase (resource . $).PluralName }}.Add({{ lowercase . }}List...)
+					newSnapshot.{{ (resource . $).PluralName }}.Clear(namespace)
+					newSnapshot.{{ (resource . $).PluralName }}.Add({{ lowercase . }}List...)
 					sync(newSnapshot)
 				}
 			}
@@ -267,15 +267,15 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.{{ uppercase (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}1))
+		Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}1))
 
 		{{ lowercase . }}2, err := {{ lowercase . }}Client.Write(New{{ . }}(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ uppercase (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}1))
-			Expect(snap.{{ uppercase (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}2))
+			Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}1))
+			Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -289,8 +289,8 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ uppercase (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}1))
-			Expect(snap.{{ uppercase (resource . $).PluralName }}).NotTo(ContainElement({{ lowercase . }}2))
+			Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}1))
+			Expect(snap.{{ (resource . $).PluralName }}).NotTo(ContainElement({{ lowercase . }}2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -302,8 +302,8 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ uppercase (resource . $).PluralName }}).NotTo(ContainElement({{ lowercase . }}1))
-			Expect(snap.{{ uppercase (resource . $).PluralName }}).NotTo(ContainElement({{ lowercase . }}2))
+			Expect(snap.{{ (resource . $).PluralName }}).NotTo(ContainElement({{ lowercase . }}1))
+			Expect(snap.{{ (resource . $).PluralName }}).NotTo(ContainElement({{ lowercase . }}2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):

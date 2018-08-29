@@ -48,7 +48,7 @@ message Gateway {
 /*
 @solo-kit:resource
 @solo-kit:resource.short_name=vs
-@solo-kit:resource.plural_name=virtualservices
+@solo-kit:resource.plural_name=VirtualServices
 @solo-kit:resource.group_name=gateway.solo.io
 @solo-kit:resource.version=v1
 

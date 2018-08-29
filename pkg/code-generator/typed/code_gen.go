@@ -33,9 +33,11 @@ type PackageLevelTemplateParams struct {
 }
 
 var funcs = template.FuncMap{
-	"join":      strings.Join,
-	"lowercase": strcase.ToLowerCamel,
-	"uppercase": strcase.ToCamel,
+	"join":             strings.Join,
+	"strings.to_lower": strings.ToLower,
+	"lowercase":        strcase.ToLowerCamel,
+	"uppercase":        strcase.ToCamel,
+	"snakecase":        strcase.ToSnake,
 	"clients": func(params PackageLevelTemplateParams, withTypes bool) string {
 		var clientParams []string
 		for _, resource := range params.ResourceTypes {

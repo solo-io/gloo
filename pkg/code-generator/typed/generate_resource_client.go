@@ -272,7 +272,7 @@ func (o *{{ .ResourceType }}) DeepCopyObject() runtime.Object {
 }
 
 var {{ .ResourceType }}Crd = crd.NewCrd("{{ .GroupName }}",
-	"{{ .PluralName }}",
+	"{{ strings.to_lower .PluralName }}",
 	"{{ .GroupName }}",
 	"{{ .Version }}",
 	"{{ .ResourceType }}",
