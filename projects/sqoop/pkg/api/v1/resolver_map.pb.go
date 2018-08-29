@@ -41,7 +41,7 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 //
 // @solo-kit:resource
 // @solo-kit:resource.short_name=rm
-// @solo-kit:resource.plural_name=resolvermaps
+// @solo-kit:resource.plural_name=ResolverMaps
 // @solo-kit:resource.group_name=sqoop.solo.io
 // @solo-kit:resource.version=v1
 //

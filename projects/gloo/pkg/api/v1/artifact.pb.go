@@ -63,7 +63,7 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // @solo-kit:resource
 // @solo-kit:resource.data_type
 // @solo-kit:resource.short_name=art
-// @solo-kit:resource.plural_name=artifacts
+// @solo-kit:resource.plural_name=Artifacts
 // @solo-kit:resource.group_name=gloo.solo.io
 // @solo-kit:resource.version=v1
 //

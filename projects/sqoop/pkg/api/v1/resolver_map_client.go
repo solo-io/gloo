@@ -198,19 +198,19 @@ func (client *resolverMapClient) Watch(namespace string, opts clients.WatchOpts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	resolvermapsChan := make(chan ResolverMapList)
+	resolverMapsChan := make(chan ResolverMapList)
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				resolvermapsChan <- convertToResolverMap(resourceList)
+				resolverMapsChan <- convertToResolverMap(resourceList)
 			case <-opts.Ctx.Done():
-				close(resolvermapsChan)
+				close(resolverMapsChan)
 				return
 			}
 		}
 	}()
-	return resolvermapsChan, errs, nil
+	return resolverMapsChan, errs, nil
 }
 
 func convertToResolverMap(resources resources.ResourceList) ResolverMapList {

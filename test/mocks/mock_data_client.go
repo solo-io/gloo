@@ -202,19 +202,19 @@ func (client *mockDataClient) Watch(namespace string, opts clients.WatchOpts) (<
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	mockdatasChan := make(chan MockDataList)
+	mockDatasChan := make(chan MockDataList)
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				mockdatasChan <- convertToMockData(resourceList)
+				mockDatasChan <- convertToMockData(resourceList)
 			case <-opts.Ctx.Done():
-				close(mockdatasChan)
+				close(mockDatasChan)
 				return
 			}
 		}
 	}()
-	return mockdatasChan, errs, nil
+	return mockDatasChan, errs, nil
 }
 
 func convertToMockData(resources resources.ResourceList) MockDataList {

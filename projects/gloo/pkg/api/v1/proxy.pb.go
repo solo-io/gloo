@@ -55,7 +55,7 @@ func (RedirectAction_RedirectResponseCode) EnumDescriptor() ([]byte, []int) {
 //
 // @solo-kit:resource
 // @solo-kit:resource.short_name=px
-// @solo-kit:resource.plural_name=proxies
+// @solo-kit:resource.plural_name=Proxies
 // @solo-kit:resource.group_name=gloo.solo.io
 // @solo-kit:resource.version=v1
 //

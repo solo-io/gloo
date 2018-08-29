@@ -18,7 +18,7 @@ var _ = math.Inf
 // @solo-kit:resource
 // @solo-kit:resource.data_type
 // @solo-kit:resource.short_name=sec
-// @solo-kit:resource.plural_name=secrets
+// @solo-kit:resource.plural_name=Secrets
 // @solo-kit:resource.group_name=gloo.solo.io
 // @solo-kit:resource.version=v1
 //

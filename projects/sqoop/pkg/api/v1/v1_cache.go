@@ -10,18 +10,18 @@ import (
 )
 
 type Snapshot struct {
-	Resolvermaps ResolverMapListsByNamespace
+	ResolverMaps ResolverMapListsByNamespace
 }
 
 func (s Snapshot) Clone() Snapshot {
 	return Snapshot{
-		Resolvermaps: s.Resolvermaps.Clone(),
+		ResolverMaps: s.ResolverMaps.Clone(),
 	}
 }
 
 func (s Snapshot) Hash() uint64 {
 	snapshotForHashing := s.Clone()
-	for _, resolverMap := range snapshotForHashing.Resolvermaps.List() {
+	for _, resolverMap := range snapshotForHashing.ResolverMaps.List() {
 		resources.UpdateMetadata(resolverMap, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
@@ -80,7 +80,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting ResolverMap watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, resolverMapErrs, namespace+"-resolvermaps")
+		go errutils.AggregateErrs(opts.Ctx, errs, resolverMapErrs, namespace+"-resolverMaps")
 		go func() {
 			for {
 				select {
@@ -88,8 +88,8 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					return
 				case resolverMapList := <-resolverMapChan:
 					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.Resolvermaps.Clear(namespace)
-					newSnapshot.Resolvermaps.Add(resolverMapList...)
+					newSnapshot.ResolverMaps.Clear(namespace)
+					newSnapshot.ResolverMaps.Add(resolverMapList...)
 					sync(newSnapshot)
 				}
 			}

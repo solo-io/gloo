@@ -73,15 +73,15 @@ var _ = Describe("V1Cache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.Resolvermaps).To(ContainElement(resolverMap1))
+		Expect(snap.ResolverMaps).To(ContainElement(resolverMap1))
 
 		resolverMap2, err := resolverMapClient.Write(NewResolverMap(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Resolvermaps).To(ContainElement(resolverMap1))
-			Expect(snap.Resolvermaps).To(ContainElement(resolverMap2))
+			Expect(snap.ResolverMaps).To(ContainElement(resolverMap1))
+			Expect(snap.ResolverMaps).To(ContainElement(resolverMap2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -92,8 +92,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Resolvermaps).To(ContainElement(resolverMap1))
-			Expect(snap.Resolvermaps).NotTo(ContainElement(resolverMap2))
+			Expect(snap.ResolverMaps).To(ContainElement(resolverMap1))
+			Expect(snap.ResolverMaps).NotTo(ContainElement(resolverMap2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -105,8 +105,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Resolvermaps).NotTo(ContainElement(resolverMap1))
-			Expect(snap.Resolvermaps).NotTo(ContainElement(resolverMap2))
+			Expect(snap.ResolverMaps).NotTo(ContainElement(resolverMap1))
+			Expect(snap.ResolverMaps).NotTo(ContainElement(resolverMap2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):

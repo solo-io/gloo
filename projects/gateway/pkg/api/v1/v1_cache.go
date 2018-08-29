@@ -11,13 +11,13 @@ import (
 
 type Snapshot struct {
 	Gateways        GatewayListsByNamespace
-	Virtualservices VirtualServiceListsByNamespace
+	VirtualServices VirtualServiceListsByNamespace
 }
 
 func (s Snapshot) Clone() Snapshot {
 	return Snapshot{
 		Gateways:        s.Gateways.Clone(),
-		Virtualservices: s.Virtualservices.Clone(),
+		VirtualServices: s.VirtualServices.Clone(),
 	}
 }
 
@@ -29,7 +29,7 @@ func (s Snapshot) Hash() uint64 {
 		})
 		gateway.SetStatus(core.Status{})
 	}
-	for _, virtualService := range snapshotForHashing.Virtualservices.List() {
+	for _, virtualService := range snapshotForHashing.VirtualServices.List() {
 		resources.UpdateMetadata(virtualService, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
@@ -116,7 +116,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting VirtualService watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, virtualServiceErrs, namespace+"-virtualservices")
+		go errutils.AggregateErrs(opts.Ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
 		go func() {
 			for {
 				select {
@@ -124,8 +124,8 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					return
 				case virtualServiceList := <-virtualServiceChan:
 					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.Virtualservices.Clear(namespace)
-					newSnapshot.Virtualservices.Add(virtualServiceList...)
+					newSnapshot.VirtualServices.Clear(namespace)
+					newSnapshot.VirtualServices.Add(virtualServiceList...)
 					sync(newSnapshot)
 				}
 			}

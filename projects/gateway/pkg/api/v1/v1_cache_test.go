@@ -111,15 +111,15 @@ var _ = Describe("V1Cache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.Virtualservices).To(ContainElement(virtualService1))
+		Expect(snap.VirtualServices).To(ContainElement(virtualService1))
 
 		virtualService2, err := virtualServiceClient.Write(NewVirtualService(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Virtualservices).To(ContainElement(virtualService1))
-			Expect(snap.Virtualservices).To(ContainElement(virtualService2))
+			Expect(snap.VirtualServices).To(ContainElement(virtualService1))
+			Expect(snap.VirtualServices).To(ContainElement(virtualService2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -155,8 +155,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Virtualservices).To(ContainElement(virtualService1))
-			Expect(snap.Virtualservices).NotTo(ContainElement(virtualService2))
+			Expect(snap.VirtualServices).To(ContainElement(virtualService1))
+			Expect(snap.VirtualServices).NotTo(ContainElement(virtualService2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -168,8 +168,8 @@ var _ = Describe("V1Cache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Virtualservices).NotTo(ContainElement(virtualService1))
-			Expect(snap.Virtualservices).NotTo(ContainElement(virtualService2))
+			Expect(snap.VirtualServices).NotTo(ContainElement(virtualService1))
+			Expect(snap.VirtualServices).NotTo(ContainElement(virtualService2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):

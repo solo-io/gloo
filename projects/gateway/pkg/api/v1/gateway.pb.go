@@ -36,7 +36,7 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 //
 // @solo-kit:resource
 // @solo-kit:resource.short_name=gw
-// @solo-kit:resource.plural_name=gateways
+// @solo-kit:resource.plural_name=Gateways
 // @solo-kit:resource.group_name=gateway.solo.io
 // @solo-kit:resource.version=v1
 //
@@ -108,7 +108,7 @@ func (m *Gateway) GetMetadata() core_solo_io.Metadata {
 //
 // @solo-kit:resource
 // @solo-kit:resource.short_name=vs
-// @solo-kit:resource.plural_name=virtualservices
+// @solo-kit:resource.plural_name=VirtualServices
 // @solo-kit:resource.group_name=gateway.solo.io
 // @solo-kit:resource.version=v1
 //

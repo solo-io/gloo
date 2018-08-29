@@ -12,14 +12,14 @@ import (
 type Snapshot struct {
 	Mocks     MockResourceListsByNamespace
 	Fakes     FakeResourceListsByNamespace
-	Mockdatas MockDataListsByNamespace
+	MockDatas MockDataListsByNamespace
 }
 
 func (s Snapshot) Clone() Snapshot {
 	return Snapshot{
 		Mocks:     s.Mocks.Clone(),
 		Fakes:     s.Fakes.Clone(),
-		Mockdatas: s.Mockdatas.Clone(),
+		MockDatas: s.MockDatas.Clone(),
 	}
 }
 
@@ -37,7 +37,7 @@ func (s Snapshot) Hash() uint64 {
 		})
 		fakeResource.SetStatus(core.Status{})
 	}
-	for _, mockData := range snapshotForHashing.Mockdatas.List() {
+	for _, mockData := range snapshotForHashing.MockDatas.List() {
 		resources.UpdateMetadata(mockData, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
@@ -152,7 +152,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting MockData watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, mockDataErrs, namespace+"-mockdatas")
+		go errutils.AggregateErrs(opts.Ctx, errs, mockDataErrs, namespace+"-mockDatas")
 		go func() {
 			for {
 				select {
@@ -160,8 +160,8 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					return
 				case mockDataList := <-mockDataChan:
 					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.Mockdatas.Clear(namespace)
-					newSnapshot.Mockdatas.Add(mockDataList...)
+					newSnapshot.MockDatas.Clear(namespace)
+					newSnapshot.MockDatas.Add(mockDataList...)
 					sync(newSnapshot)
 				}
 			}

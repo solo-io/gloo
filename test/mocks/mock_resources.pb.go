@@ -35,7 +35,7 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 //
 // @solo-kit:resource
 // @solo-kit:resource.short_name=mk
-// @solo-kit:resource.plural_name=mocks
+// @solo-kit:resource.plural_name=Mocks
 // @solo-kit:resource.group_name=testing.solo.io
 // @solo-kit:resource.version=v1
 type MockResource struct {
@@ -73,7 +73,7 @@ func (m *MockResource) GetMetadata() core_solo_io.Metadata {
 //
 // @solo-kit:resource
 // @solo-kit:resource.short_name=fk
-// @solo-kit:resource.plural_name=fakes
+// @solo-kit:resource.plural_name=Fakes
 // @solo-kit:resource.group_name=testing.solo.io
 // @solo-kit:resource.version=v1
 type FakeResource struct {
@@ -112,7 +112,7 @@ func (m *FakeResource) GetMetadata() core_solo_io.Metadata {
 // @solo-kit:resource
 // @solo-kit:resource.data_type
 // @solo-kit:resource.short_name=mkd
-// @solo-kit:resource.plural_name=mockdatas
+// @solo-kit:resource.plural_name=MockDatas
 // @solo-kit:resource.group_name=testing.solo.io
 // @solo-kit:resource.version=v1
 type MockData struct {

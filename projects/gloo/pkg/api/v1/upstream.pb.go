@@ -18,7 +18,7 @@ var _ = math.Inf
 //
 // @solo-kit:resource
 // @solo-kit:resource.short_name=us
-// @solo-kit:resource.plural_name=upstreams
+// @solo-kit:resource.plural_name=Upstreams
 // @solo-kit:resource.group_name=gloo.solo.io
 // @solo-kit:resource.version=v1
 //

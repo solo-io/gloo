@@ -149,15 +149,15 @@ var _ = Describe("MocksCache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.Mockdatas).To(ContainElement(mockData1))
+		Expect(snap.MockDatas).To(ContainElement(mockData1))
 
 		mockData2, err := mockDataClient.Write(NewMockData(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Mockdatas).To(ContainElement(mockData1))
-			Expect(snap.Mockdatas).To(ContainElement(mockData2))
+			Expect(snap.MockDatas).To(ContainElement(mockData1))
+			Expect(snap.MockDatas).To(ContainElement(mockData2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -218,8 +218,8 @@ var _ = Describe("MocksCache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Mockdatas).To(ContainElement(mockData1))
-			Expect(snap.Mockdatas).NotTo(ContainElement(mockData2))
+			Expect(snap.MockDatas).To(ContainElement(mockData1))
+			Expect(snap.MockDatas).NotTo(ContainElement(mockData2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -231,8 +231,8 @@ var _ = Describe("MocksCache", func() {
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Mockdatas).NotTo(ContainElement(mockData1))
-			Expect(snap.Mockdatas).NotTo(ContainElement(mockData2))
+			Expect(snap.MockDatas).NotTo(ContainElement(mockData1))
+			Expect(snap.MockDatas).NotTo(ContainElement(mockData2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
