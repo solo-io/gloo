@@ -41,7 +41,7 @@ func (f *AWSLambdaFuncitonDiscovery) DetectUpstreamType(ctx context.Context, url
 
 // TODO: how to handle changes in secret or upstream (like the upstream ref)?
 // perhaps the in param for the upstream should be a function? in func() *v1.Upstream
-func (f *AWSLambdaFuncitonDiscovery) DetectFunctions(ctx context.Context, secrets v1.SecretList, in *v1.Upstream, updatecb func(discovery.UpstreamMutator) error) error {
+func (f *AWSLambdaFuncitonDiscovery) DetectFunctions(ctx context.Context, secrets func() v1.SecretList, in *v1.Upstream, updatecb func(discovery.UpstreamMutator) error) error {
 	for {
 		newfunctions, err := f.DetectFunctionsOnce(ctx, secrets, in)
 
@@ -61,12 +61,12 @@ func (f *AWSLambdaFuncitonDiscovery) DetectFunctions(ctx context.Context, secret
 		if err != nil {
 			return errors.Wrap(err, "unable to update upstream")
 		}
-		// sleep to now query to often
+		// sleep to not query too often
 		time.Sleep(time.Minute)
 	}
 }
 
-func (f *AWSLambdaFuncitonDiscovery) DetectFunctionsOnce(ctx context.Context, secrets v1.SecretList, in *v1.Upstream) ([]*glooaws.LambdaFunctionSpec, error) {
+func (f *AWSLambdaFuncitonDiscovery) DetectFunctionsOnce(ctx context.Context, secrets func() v1.SecretList, in *v1.Upstream) ([]*glooaws.LambdaFunctionSpec, error) {
 
 	// TODO :
 	/*
@@ -86,7 +86,7 @@ func (f *AWSLambdaFuncitonDiscovery) DetectFunctionsOnce(ctx context.Context, se
 		return nil, errors.New("not a lambda upstream spec")
 	}
 	lambdaSpec := awsspec.Aws
-	awsSecrets, err := secrets.Find(in.Metadata.Namespace, lambdaSpec.SecretRef)
+	awsSecrets, err := secrets().Find(in.Metadata.Namespace, lambdaSpec.SecretRef)
 	if err != nil {
 		return nil, errors.Wrapf(err, "secrets not found for secret ref %v", lambdaSpec.SecretRef)
 	}

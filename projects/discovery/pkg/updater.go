@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/url"
 	"sync"
+	"sync/atomic"
 
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"go.uber.org/zap"
@@ -26,6 +27,8 @@ type Updater struct {
 	secretClient   v1.SecretClient
 
 	maxInParallelSemaphore chan struct{}
+
+	secrets atomic.Value
 }
 
 func getConcurrencyChan(maxoncurrency uint) chan struct{} {
@@ -59,6 +62,35 @@ type detectResult struct {
 	fp   FuncitonDiscovery
 }
 
+func (u *Updater) detectSingle(ctx context.Context, fp FuncitonDiscovery, url *url.URL, result chan detectResult) {
+
+	if u.maxInParallelSemaphore != nil {
+		select {
+		// wait for our turn
+		case token := <-u.maxInParallelSemaphore:
+			// give back our token when we are done
+			defer func() { u.maxInParallelSemaphore <- token }()
+		case <-ctx.Done():
+			return //ctx.Err()
+		}
+	}
+
+	spec, err := fp.DetectUpstreamType(ctx, url)
+	if err == nil && spec != nil {
+		// success
+		result <- detectResult{
+			spec: spec,
+			fp:   fp,
+		}
+	}
+	if err == context.Canceled {
+		return
+	}
+	if err != nil {
+		// TODO retry + backoff:(
+	}
+}
+
 func (u *Updater) detectType(ctx context.Context, url *url.URL) (*detectResult, error) {
 	// TODO add global timeout?
 	ctx, cancel := context.WithCancel(ctx)
@@ -70,39 +102,16 @@ func (u *Updater) detectType(ctx context.Context, url *url.URL) (*detectResult, 
 	var waitgroup sync.WaitGroup
 	for _, fp := range u.functionalPlugins {
 		waitgroup.Add(1)
-		go func(functionalPlugins FuncitonDiscovery) {
+		go func(functionalPlugin FuncitonDiscovery) {
 			defer waitgroup.Done()
-
-			if u.maxInParallelSemaphore != nil {
-				select {
-				case token := <-u.maxInParallelSemaphore:
-					defer func() { u.maxInParallelSemaphore <- token }()
-				case <-ctx.Done():
-					return //ctx.Err()
-				}
-			}
-
-			spec, err := functionalPlugins.DetectUpstreamType(ctx, url)
-			if err == nil && spec != nil {
-				// success
-				result <- detectResult{
-					spec: spec,
-					fp:   functionalPlugins,
-				}
-			}
-			if err == context.Canceled {
-				return
-			}
-			if err != nil {
-				// TODO retry + backoff:(
-			}
+			u.detectSingle(ctx, functionalPlugin, url, result)
 		}(fp)
 	}
 	go func() {
 		waitgroup.Wait()
 		close(result)
-
 	}()
+
 	select {
 	case res, ok := <-result:
 		if ok {
@@ -143,7 +152,26 @@ func (u *Updater) Run() error {
 
 	// watch upstreams and the such.
 	return nil
+}
 
+func (u *Updater) SetSecrets(secretlist v1.SecretList) {
+	// set secrets should send a secrets update to all the upstreams.
+	// reload all upstreams for now, figureout something better later?
+	u.secrets.Store(secretlist)
+}
+
+func (u *Updater) GetSecrets() v1.SecretList {
+	sl := u.secrets.Load()
+	if sl == nil {
+		return nil
+	}
+	return sl.(v1.SecretList)
+}
+
+func (u *Updater) UpstreamUpdated(upstream *v1.Upstream) {
+	// remove and re-add for now. think if we want to be sophisticated later.
+	u.UpstreamRemoved(upstream)
+	u.UpstreamAdded(upstream)
 }
 
 func (u *Updater) UpstreamAdded(upstream *v1.Upstream) {
@@ -153,8 +181,11 @@ func (u *Updater) UpstreamAdded(upstream *v1.Upstream) {
 		return
 	}
 	ctx, cancel := context.WithCancel(u.ctx)
-	go u.RunForUpstream(ctx, upstream)
 	u.activeupstreams[key] = cancel
+	go func() {
+		u.RunForUpstream(ctx, upstream)
+		cancel()
+	}()
 }
 
 func (u *Updater) UpstreamRemoved(upstream *v1.Upstream) {
@@ -200,7 +231,6 @@ func (u *Updater) RunForUpstream(ctx context.Context, upstream *v1.Upstream) err
 		}
 		discoveryForUpstream = res.fp
 		upstreamSave(func(upstream *v1.Upstream) error {
-
 			servicespecupstream, ok := upstream.UpstreamSpec.UpstreamType.(supportSpec)
 			if !ok {
 				return errors.New("can't set spec")
@@ -211,6 +241,5 @@ func (u *Updater) RunForUpstream(ctx context.Context, upstream *v1.Upstream) err
 
 	}
 
-	// TODO: figure out how to get the secret list
-	return discoveryForUpstream.DetectFunctions(ctx, nil, upstream, upstreamSave)
+	return discoveryForUpstream.DetectFunctions(ctx, u.GetSecrets, upstream, upstreamSave)
 }

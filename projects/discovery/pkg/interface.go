@@ -44,7 +44,7 @@ type FuncitonDiscovery interface {
 	// if it detects the upstream is a known functional type, give us the
 	// service info and annotations to mark it with
 	// DetectFunctionalService(ctx context.Context, us *v1.Upstream, addr string) (*FuncitonDetectorResult, error)
-	DetectFunctions(ctx context.Context, secrets v1.SecretList, in *v1.Upstream, out func(UpstreamMutator) error) error
+	DetectFunctions(ctx context.Context, secrets func() v1.SecretList, in *v1.Upstream, out func(UpstreamMutator) error) error
 }
 
 type Resolver interface {
