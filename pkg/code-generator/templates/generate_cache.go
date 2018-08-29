@@ -160,6 +160,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 const cacheTestTemplateContents = `package {{ .PackageName }}
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"time"

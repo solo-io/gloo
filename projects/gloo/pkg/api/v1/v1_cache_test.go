@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"time"
@@ -24,7 +25,8 @@ var _ = Describe("V1Cache", func() {
 		return
 	}
 	var (
-		namespace      string
+		namespace1      string
+		namespace2      string
 		cfg            *rest.Config
 		cache          Cache
 		artifactClient ArtifactClient
@@ -36,9 +38,12 @@ var _ = Describe("V1Cache", func() {
 	)
 
 	BeforeEach(func() {
-		namespace = helpers.RandString(8)
-		err := services.SetupKubeForTest(namespace)
+
+		namespace1 = helpers.RandString(8)
+		namespace2 = helpers.RandString(8)
+		err := services.SetupKubeForTest(namespace1)
 		Expect(err).NotTo(HaveOccurred())
+		err = services.SetupKubeForTest(namespace2)
 		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
@@ -88,19 +93,25 @@ var _ = Describe("V1Cache", func() {
 		cache = NewCache(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)
 	})
 	AfterEach(func() {
-		services.TeardownKube(namespace)
+		services.TeardownKube(namespace1)
+		services.TeardownKube(namespace2)
 	})
 	It("tracks snapshots on changes to any resource", func() {
+		ctx := context.Background()
+
 		err := cache.Register()
 		Expect(err).NotTo(HaveOccurred())
 
-		snapshots, errs, err := cache.Snapshots([]string{namespace}, clients.WatchOpts{
+		snapshots, errs, err := cache.Snapshots([]string{namespace1, namespace2}, clients.WatchOpts{
+			Ctx: ctx,
 			RefreshRate: time.Minute,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
 		var snap *Snapshot
-		artifact1, err := artifactClient.Write(NewArtifact(namespace, "angela"), clients.WriteOpts{})
+		artifact1a, err := artifactClient.Write(NewArtifact(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		artifact1b, err := artifactClient.Write(NewArtifact(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 	drainartifact:
@@ -115,21 +126,25 @@ var _ = Describe("V1Cache", func() {
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.Artifacts).To(ContainElement(artifact1))
+		Expect(snap.Artifacts).To(ContainElement(artifact1a))
 
-		artifact2, err := artifactClient.Write(NewArtifact(namespace, "lane"), clients.WriteOpts{})
+		artifact2a, err := artifactClient.Write(NewArtifact(namespace1, "lane"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		artifact2b, err := artifactClient.Write(NewArtifact(namespace2, "shelley"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Artifacts).To(ContainElement(artifact1))
-			Expect(snap.Artifacts).To(ContainElement(artifact2))
+			Expect(snap.Artifacts.List()).To(ContainElement(artifact1a))
+			Expect(snap.Artifacts.List()).To(ContainElement(artifact1b))
+			Expect(snap.Artifacts.List()).To(ContainElement(artifact2a))
+			Expect(snap.Artifacts.List()).To(ContainElement(artifact2b))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		endpoint1, err := endpointClient.Write(NewEndpoint(namespace, "angela"), clients.WriteOpts{})
+		endpoint1, err := endpointClient.Write(NewEndpoint(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 	drainendpoint:
@@ -146,7 +161,7 @@ var _ = Describe("V1Cache", func() {
 		}
 		Expect(snap.Endpoints).To(ContainElement(endpoint1))
 
-		endpoint2, err := endpointClient.Write(NewEndpoint(namespace, "lane"), clients.WriteOpts{})
+		endpoint2, err := endpointClient.Write(NewEndpoint(namespace1, "lane"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -158,7 +173,7 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		proxy1, err := proxyClient.Write(NewProxy(namespace, "angela"), clients.WriteOpts{})
+		proxy1, err := proxyClient.Write(NewProxy(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 	drainproxy:
@@ -175,7 +190,7 @@ var _ = Describe("V1Cache", func() {
 		}
 		Expect(snap.Proxies).To(ContainElement(proxy1))
 
-		proxy2, err := proxyClient.Write(NewProxy(namespace, "lane"), clients.WriteOpts{})
+		proxy2, err := proxyClient.Write(NewProxy(namespace1, "lane"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -187,7 +202,7 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		secret1, err := secretClient.Write(NewSecret(namespace, "angela"), clients.WriteOpts{})
+		secret1, err := secretClient.Write(NewSecret(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 	drainsecret:
@@ -204,7 +219,7 @@ var _ = Describe("V1Cache", func() {
 		}
 		Expect(snap.Secrets).To(ContainElement(secret1))
 
-		secret2, err := secretClient.Write(NewSecret(namespace, "lane"), clients.WriteOpts{})
+		secret2, err := secretClient.Write(NewSecret(namespace1, "lane"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -216,7 +231,7 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		upstream1, err := upstreamClient.Write(NewUpstream(namespace, "angela"), clients.WriteOpts{})
+		upstream1, err := upstreamClient.Write(NewUpstream(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 	drainupstream:
@@ -233,7 +248,7 @@ var _ = Describe("V1Cache", func() {
 		}
 		Expect(snap.Upstreams).To(ContainElement(upstream1))
 
-		upstream2, err := upstreamClient.Write(NewUpstream(namespace, "lane"), clients.WriteOpts{})
+		upstream2, err := upstreamClient.Write(NewUpstream(namespace1, "lane"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -245,32 +260,32 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		err = artifactClient.Delete(artifact2.Metadata.Namespace, artifact2.Metadata.Name, clients.DeleteOpts{})
+		err = artifactClient.Delete(artifact2a.Metadata.Namespace, artifact2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Artifacts).To(ContainElement(artifact1))
-			Expect(snap.Artifacts).NotTo(ContainElement(artifact2))
+			Expect(snap.Artifacts).To(ContainElement(artifact1a))
+			Expect(snap.Artifacts).NotTo(ContainElement(artifact2a))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
-		err = artifactClient.Delete(artifact1.Metadata.Namespace, artifact1.Metadata.Name, clients.DeleteOpts{})
+		err = artifactClient.Delete(artifact1a.Metadata.Namespace, artifact1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.Artifacts).NotTo(ContainElement(artifact1))
-			Expect(snap.Artifacts).NotTo(ContainElement(artifact2))
+			Expect(snap.Artifacts).NotTo(ContainElement(artifact1a))
+			Expect(snap.Artifacts).NotTo(ContainElement(artifact2a))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		err = endpointClient.Delete(endpoint2.Metadata.Namespace, endpoint2.Metadata.Name, clients.DeleteOpts{})
+		err = endpointClient.Delete(endpoint2.Metadata.Namespace, endpoint2.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -283,7 +298,7 @@ var _ = Describe("V1Cache", func() {
 			Fail("expected snapshot before 1 second")
 		}
 
-		err = endpointClient.Delete(endpoint1.Metadata.Namespace, endpoint1.Metadata.Name, clients.DeleteOpts{})
+		err = endpointClient.Delete(endpoint1.Metadata.Namespace, endpoint1.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -295,7 +310,7 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		err = proxyClient.Delete(proxy2.Metadata.Namespace, proxy2.Metadata.Name, clients.DeleteOpts{})
+		err = proxyClient.Delete(proxy2.Metadata.Namespace, proxy2.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -308,7 +323,7 @@ var _ = Describe("V1Cache", func() {
 			Fail("expected snapshot before 1 second")
 		}
 
-		err = proxyClient.Delete(proxy1.Metadata.Namespace, proxy1.Metadata.Name, clients.DeleteOpts{})
+		err = proxyClient.Delete(proxy1.Metadata.Namespace, proxy1.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -320,7 +335,7 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		err = secretClient.Delete(secret2.Metadata.Namespace, secret2.Metadata.Name, clients.DeleteOpts{})
+		err = secretClient.Delete(secret2.Metadata.Namespace, secret2.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -333,7 +348,7 @@ var _ = Describe("V1Cache", func() {
 			Fail("expected snapshot before 1 second")
 		}
 
-		err = secretClient.Delete(secret1.Metadata.Namespace, secret1.Metadata.Name, clients.DeleteOpts{})
+		err = secretClient.Delete(secret1.Metadata.Namespace, secret1.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -345,7 +360,7 @@ var _ = Describe("V1Cache", func() {
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
-		err = upstreamClient.Delete(upstream2.Metadata.Namespace, upstream2.Metadata.Name, clients.DeleteOpts{})
+		err = upstreamClient.Delete(upstream2.Metadata.Namespace, upstream2.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -358,7 +373,7 @@ var _ = Describe("V1Cache", func() {
 			Fail("expected snapshot before 1 second")
 		}
 
-		err = upstreamClient.Delete(upstream1.Metadata.Namespace, upstream1.Metadata.Name, clients.DeleteOpts{})
+		err = upstreamClient.Delete(upstream1.Metadata.Namespace, upstream1.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {

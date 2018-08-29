@@ -37,7 +37,7 @@ func (el *eventLoop) Run(namespace string, opts clients.WatchOpts) (<-chan error
 
 	errs := make(chan error)
 
-	watch, cacheErrs, err := el.cache.Snapshots(namespace, opts)
+	watch, cacheErrs, err := el.cache.Snapshots([]string{namespace}, opts)
 	if err != nil {
 		return nil, errors.Wrapf(err, "starting snapshot watch")
 	}
