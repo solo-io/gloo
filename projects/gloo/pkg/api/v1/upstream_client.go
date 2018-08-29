@@ -33,7 +33,7 @@ func (r *Upstream) SetMetadata(meta core.Metadata) {
 }
 
 type UpstreamList []*Upstream
-type UpstreamListsByNamespace map[string]UpstreamList
+type UpstreamsByNamespace map[string]UpstreamList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list UpstreamList) Find(namespace, name string) (*Upstream, error) {
@@ -93,25 +93,25 @@ func (list UpstreamList) Clone() UpstreamList {
 	return upstreamList
 }
 
-func (list UpstreamList) ByNamespace() UpstreamListsByNamespace {
-	byNamespace := make(UpstreamListsByNamespace)
+func (list UpstreamList) ByNamespace() UpstreamsByNamespace {
+	byNamespace := make(UpstreamsByNamespace)
 	for _, upstream := range list {
 		byNamespace.Add(upstream)
 	}
 	return byNamespace
 }
 
-func (byNamespace UpstreamListsByNamespace) Add(upstream ...*Upstream) {
+func (byNamespace UpstreamsByNamespace) Add(upstream ...*Upstream) {
 	for _, item := range upstream {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace UpstreamListsByNamespace) Clear(namespace string) {
+func (byNamespace UpstreamsByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace UpstreamListsByNamespace) List() UpstreamList {
+func (byNamespace UpstreamsByNamespace) List() UpstreamList {
 	var list UpstreamList
 	for _, upstreamList := range byNamespace {
 		list = append(list, upstreamList...)
@@ -120,7 +120,7 @@ func (byNamespace UpstreamListsByNamespace) List() UpstreamList {
 	return list
 }
 
-func (byNamespace UpstreamListsByNamespace) Clone() UpstreamListsByNamespace {
+func (byNamespace UpstreamsByNamespace) Clone() UpstreamsByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 

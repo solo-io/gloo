@@ -10,7 +10,7 @@ import (
 )
 
 type Snapshot struct {
-	ResolverMaps ResolverMapListsByNamespace
+	ResolverMaps ResolverMapsByNamespace
 }
 
 func (s Snapshot) Clone() Snapshot {

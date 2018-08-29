@@ -33,7 +33,7 @@ func (r *Secret) SetData(data map[string]string) {
 }
 
 type SecretList []*Secret
-type SecretListsByNamespace map[string]SecretList
+type SecretsByNamespace map[string]SecretList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list SecretList) Find(namespace, name string) (*Secret, error) {
@@ -85,25 +85,25 @@ func (list SecretList) Clone() SecretList {
 	return secretList
 }
 
-func (list SecretList) ByNamespace() SecretListsByNamespace {
-	byNamespace := make(SecretListsByNamespace)
+func (list SecretList) ByNamespace() SecretsByNamespace {
+	byNamespace := make(SecretsByNamespace)
 	for _, secret := range list {
 		byNamespace.Add(secret)
 	}
 	return byNamespace
 }
 
-func (byNamespace SecretListsByNamespace) Add(secret ...*Secret) {
+func (byNamespace SecretsByNamespace) Add(secret ...*Secret) {
 	for _, item := range secret {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace SecretListsByNamespace) Clear(namespace string) {
+func (byNamespace SecretsByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace SecretListsByNamespace) List() SecretList {
+func (byNamespace SecretsByNamespace) List() SecretList {
 	var list SecretList
 	for _, secretList := range byNamespace {
 		list = append(list, secretList...)
@@ -112,7 +112,7 @@ func (byNamespace SecretListsByNamespace) List() SecretList {
 	return list
 }
 
-func (byNamespace SecretListsByNamespace) Clone() SecretListsByNamespace {
+func (byNamespace SecretsByNamespace) Clone() SecretsByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 

@@ -33,7 +33,7 @@ func (r *FakeResource) SetMetadata(meta core.Metadata) {
 }
 
 type FakeResourceList []*FakeResource
-type FakeResourceListsByNamespace map[string]FakeResourceList
+type FakesByNamespace map[string]FakeResourceList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list FakeResourceList) Find(namespace, name string) (*FakeResource, error) {
@@ -93,25 +93,25 @@ func (list FakeResourceList) Clone() FakeResourceList {
 	return fakeResourceList
 }
 
-func (list FakeResourceList) ByNamespace() FakeResourceListsByNamespace {
-	byNamespace := make(FakeResourceListsByNamespace)
+func (list FakeResourceList) ByNamespace() FakesByNamespace {
+	byNamespace := make(FakesByNamespace)
 	for _, fakeResource := range list {
 		byNamespace.Add(fakeResource)
 	}
 	return byNamespace
 }
 
-func (byNamespace FakeResourceListsByNamespace) Add(fakeResource ...*FakeResource) {
+func (byNamespace FakesByNamespace) Add(fakeResource ...*FakeResource) {
 	for _, item := range fakeResource {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace FakeResourceListsByNamespace) Clear(namespace string) {
+func (byNamespace FakesByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace FakeResourceListsByNamespace) List() FakeResourceList {
+func (byNamespace FakesByNamespace) List() FakeResourceList {
 	var list FakeResourceList
 	for _, fakeResourceList := range byNamespace {
 		list = append(list, fakeResourceList...)
@@ -120,7 +120,7 @@ func (byNamespace FakeResourceListsByNamespace) List() FakeResourceList {
 	return list
 }
 
-func (byNamespace FakeResourceListsByNamespace) Clone() FakeResourceListsByNamespace {
+func (byNamespace FakesByNamespace) Clone() FakesByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 

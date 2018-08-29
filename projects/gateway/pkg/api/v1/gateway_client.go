@@ -33,7 +33,7 @@ func (r *Gateway) SetMetadata(meta core.Metadata) {
 }
 
 type GatewayList []*Gateway
-type GatewayListsByNamespace map[string]GatewayList
+type GatewaysByNamespace map[string]GatewayList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list GatewayList) Find(namespace, name string) (*Gateway, error) {
@@ -93,25 +93,25 @@ func (list GatewayList) Clone() GatewayList {
 	return gatewayList
 }
 
-func (list GatewayList) ByNamespace() GatewayListsByNamespace {
-	byNamespace := make(GatewayListsByNamespace)
+func (list GatewayList) ByNamespace() GatewaysByNamespace {
+	byNamespace := make(GatewaysByNamespace)
 	for _, gateway := range list {
 		byNamespace.Add(gateway)
 	}
 	return byNamespace
 }
 
-func (byNamespace GatewayListsByNamespace) Add(gateway ...*Gateway) {
+func (byNamespace GatewaysByNamespace) Add(gateway ...*Gateway) {
 	for _, item := range gateway {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace GatewayListsByNamespace) Clear(namespace string) {
+func (byNamespace GatewaysByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace GatewayListsByNamespace) List() GatewayList {
+func (byNamespace GatewaysByNamespace) List() GatewayList {
 	var list GatewayList
 	for _, gatewayList := range byNamespace {
 		list = append(list, gatewayList...)
@@ -120,7 +120,7 @@ func (byNamespace GatewayListsByNamespace) List() GatewayList {
 	return list
 }
 
-func (byNamespace GatewayListsByNamespace) Clone() GatewayListsByNamespace {
+func (byNamespace GatewaysByNamespace) Clone() GatewaysByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 

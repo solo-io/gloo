@@ -39,7 +39,7 @@ import (
 
 type Snapshot struct {
 {{- range .ResourceTypes}}
-	{{ (resource . $).PluralName }} {{ . }}ListsByNamespace
+	{{ (resource . $).PluralName }} {{ (resource . $).PluralName }}ByNamespace
 {{- end}}
 }
 

@@ -29,7 +29,7 @@ func (r *Endpoint) SetMetadata(meta core.Metadata) {
 }
 
 type EndpointList []*Endpoint
-type EndpointListsByNamespace map[string]EndpointList
+type EndpointsByNamespace map[string]EndpointList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list EndpointList) Find(namespace, name string) (*Endpoint, error) {
@@ -81,25 +81,25 @@ func (list EndpointList) Clone() EndpointList {
 	return endpointList
 }
 
-func (list EndpointList) ByNamespace() EndpointListsByNamespace {
-	byNamespace := make(EndpointListsByNamespace)
+func (list EndpointList) ByNamespace() EndpointsByNamespace {
+	byNamespace := make(EndpointsByNamespace)
 	for _, endpoint := range list {
 		byNamespace.Add(endpoint)
 	}
 	return byNamespace
 }
 
-func (byNamespace EndpointListsByNamespace) Add(endpoint ...*Endpoint) {
+func (byNamespace EndpointsByNamespace) Add(endpoint ...*Endpoint) {
 	for _, item := range endpoint {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace EndpointListsByNamespace) Clear(namespace string) {
+func (byNamespace EndpointsByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace EndpointListsByNamespace) List() EndpointList {
+func (byNamespace EndpointsByNamespace) List() EndpointList {
 	var list EndpointList
 	for _, endpointList := range byNamespace {
 		list = append(list, endpointList...)
@@ -108,7 +108,7 @@ func (byNamespace EndpointListsByNamespace) List() EndpointList {
 	return list
 }
 
-func (byNamespace EndpointListsByNamespace) Clone() EndpointListsByNamespace {
+func (byNamespace EndpointsByNamespace) Clone() EndpointsByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 

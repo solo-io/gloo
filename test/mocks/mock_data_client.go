@@ -37,7 +37,7 @@ func (r *MockData) SetData(data map[string]string) {
 }
 
 type MockDataList []*MockData
-type MockDataListsByNamespace map[string]MockDataList
+type MockDatasByNamespace map[string]MockDataList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list MockDataList) Find(namespace, name string) (*MockData, error) {
@@ -97,25 +97,25 @@ func (list MockDataList) Clone() MockDataList {
 	return mockDataList
 }
 
-func (list MockDataList) ByNamespace() MockDataListsByNamespace {
-	byNamespace := make(MockDataListsByNamespace)
+func (list MockDataList) ByNamespace() MockDatasByNamespace {
+	byNamespace := make(MockDatasByNamespace)
 	for _, mockData := range list {
 		byNamespace.Add(mockData)
 	}
 	return byNamespace
 }
 
-func (byNamespace MockDataListsByNamespace) Add(mockData ...*MockData) {
+func (byNamespace MockDatasByNamespace) Add(mockData ...*MockData) {
 	for _, item := range mockData {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace MockDataListsByNamespace) Clear(namespace string) {
+func (byNamespace MockDatasByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace MockDataListsByNamespace) List() MockDataList {
+func (byNamespace MockDatasByNamespace) List() MockDataList {
 	var list MockDataList
 	for _, mockDataList := range byNamespace {
 		list = append(list, mockDataList...)
@@ -124,7 +124,7 @@ func (byNamespace MockDataListsByNamespace) List() MockDataList {
 	return list
 }
 
-func (byNamespace MockDataListsByNamespace) Clone() MockDataListsByNamespace {
+func (byNamespace MockDatasByNamespace) Clone() MockDatasByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 

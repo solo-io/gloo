@@ -70,7 +70,7 @@ func (r *{{ .ResourceType }}) SetData(data map[string]string) {
 {{- end}}
 
 type {{ .ResourceType }}List []*{{ .ResourceType }}
-type {{ .ResourceType }}ListsByNamespace map[string]{{ .ResourceType }}List
+type {{ .PluralName }}ByNamespace map[string]{{ .ResourceType }}List
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list {{ .ResourceType }}List) Find(namespace, name string) (*{{ .ResourceType }}, error) {
@@ -132,25 +132,25 @@ func (list {{ .ResourceType }}List) Clone() {{ .ResourceType }}List {
 	return {{ lower_camel .ResourceType }}List 
 }
 
-func (list {{ .ResourceType }}List) ByNamespace() {{ .ResourceType }}ListsByNamespace {
-	byNamespace := make({{ .ResourceType }}ListsByNamespace)
+func (list {{ .ResourceType }}List) ByNamespace() {{ .PluralName }}ByNamespace {
+	byNamespace := make({{ .PluralName }}ByNamespace)
 	for _, {{ lower_camel .ResourceType }} := range list {
 		byNamespace.Add({{ lower_camel .ResourceType }})
 	}
 	return byNamespace
 }
 
-func (byNamespace {{ .ResourceType }}ListsByNamespace) Add({{ lower_camel .ResourceType }} ... *{{ .ResourceType }}) {
+func (byNamespace {{ .PluralName }}ByNamespace) Add({{ lower_camel .ResourceType }} ... *{{ .ResourceType }}) {
 	for _, item := range {{ lower_camel .ResourceType }} {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace {{ .ResourceType }}ListsByNamespace) Clear(namespace string) {
+func (byNamespace {{ .PluralName }}ByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace {{ .ResourceType }}ListsByNamespace) List() {{ .ResourceType }}List {
+func (byNamespace {{ .PluralName }}ByNamespace) List() {{ .ResourceType }}List {
 	var list {{ .ResourceType }}List
 	for _, {{ lower_camel .ResourceType }}List := range byNamespace {
 		list = append(list, {{ lower_camel .ResourceType }}List...)
@@ -159,7 +159,7 @@ func (byNamespace {{ .ResourceType }}ListsByNamespace) List() {{ .ResourceType }
 	return list
 }
 
-func (byNamespace {{ .ResourceType }}ListsByNamespace) Clone() {{ .ResourceType }}ListsByNamespace {
+func (byNamespace {{ .PluralName }}ByNamespace) Clone() {{ .PluralName }}ByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 

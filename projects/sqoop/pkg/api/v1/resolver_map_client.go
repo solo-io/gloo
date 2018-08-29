@@ -33,7 +33,7 @@ func (r *ResolverMap) SetMetadata(meta core.Metadata) {
 }
 
 type ResolverMapList []*ResolverMap
-type ResolverMapListsByNamespace map[string]ResolverMapList
+type ResolverMapsByNamespace map[string]ResolverMapList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list ResolverMapList) Find(namespace, name string) (*ResolverMap, error) {
@@ -93,25 +93,25 @@ func (list ResolverMapList) Clone() ResolverMapList {
 	return resolverMapList
 }
 
-func (list ResolverMapList) ByNamespace() ResolverMapListsByNamespace {
-	byNamespace := make(ResolverMapListsByNamespace)
+func (list ResolverMapList) ByNamespace() ResolverMapsByNamespace {
+	byNamespace := make(ResolverMapsByNamespace)
 	for _, resolverMap := range list {
 		byNamespace.Add(resolverMap)
 	}
 	return byNamespace
 }
 
-func (byNamespace ResolverMapListsByNamespace) Add(resolverMap ...*ResolverMap) {
+func (byNamespace ResolverMapsByNamespace) Add(resolverMap ...*ResolverMap) {
 	for _, item := range resolverMap {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace ResolverMapListsByNamespace) Clear(namespace string) {
+func (byNamespace ResolverMapsByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace ResolverMapListsByNamespace) List() ResolverMapList {
+func (byNamespace ResolverMapsByNamespace) List() ResolverMapList {
 	var list ResolverMapList
 	for _, resolverMapList := range byNamespace {
 		list = append(list, resolverMapList...)
@@ -120,7 +120,7 @@ func (byNamespace ResolverMapListsByNamespace) List() ResolverMapList {
 	return list
 }
 
-func (byNamespace ResolverMapListsByNamespace) Clone() ResolverMapListsByNamespace {
+func (byNamespace ResolverMapsByNamespace) Clone() ResolverMapsByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 

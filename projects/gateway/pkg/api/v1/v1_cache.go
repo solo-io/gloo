@@ -10,8 +10,8 @@ import (
 )
 
 type Snapshot struct {
-	Gateways        GatewayListsByNamespace
-	VirtualServices VirtualServiceListsByNamespace
+	Gateways        GatewaysByNamespace
+	VirtualServices VirtualServicesByNamespace
 }
 
 func (s Snapshot) Clone() Snapshot {

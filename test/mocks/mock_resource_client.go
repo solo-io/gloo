@@ -33,7 +33,7 @@ func (r *MockResource) SetMetadata(meta core.Metadata) {
 }
 
 type MockResourceList []*MockResource
-type MockResourceListsByNamespace map[string]MockResourceList
+type MocksByNamespace map[string]MockResourceList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list MockResourceList) Find(namespace, name string) (*MockResource, error) {
@@ -93,25 +93,25 @@ func (list MockResourceList) Clone() MockResourceList {
 	return mockResourceList
 }
 
-func (list MockResourceList) ByNamespace() MockResourceListsByNamespace {
-	byNamespace := make(MockResourceListsByNamespace)
+func (list MockResourceList) ByNamespace() MocksByNamespace {
+	byNamespace := make(MocksByNamespace)
 	for _, mockResource := range list {
 		byNamespace.Add(mockResource)
 	}
 	return byNamespace
 }
 
-func (byNamespace MockResourceListsByNamespace) Add(mockResource ...*MockResource) {
+func (byNamespace MocksByNamespace) Add(mockResource ...*MockResource) {
 	for _, item := range mockResource {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace MockResourceListsByNamespace) Clear(namespace string) {
+func (byNamespace MocksByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace MockResourceListsByNamespace) List() MockResourceList {
+func (byNamespace MocksByNamespace) List() MockResourceList {
 	var list MockResourceList
 	for _, mockResourceList := range byNamespace {
 		list = append(list, mockResourceList...)
@@ -120,7 +120,7 @@ func (byNamespace MockResourceListsByNamespace) List() MockResourceList {
 	return list
 }
 
-func (byNamespace MockResourceListsByNamespace) Clone() MockResourceListsByNamespace {
+func (byNamespace MocksByNamespace) Clone() MocksByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 

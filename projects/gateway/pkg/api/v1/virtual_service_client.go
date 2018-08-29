@@ -33,7 +33,7 @@ func (r *VirtualService) SetMetadata(meta core.Metadata) {
 }
 
 type VirtualServiceList []*VirtualService
-type VirtualServiceListsByNamespace map[string]VirtualServiceList
+type VirtualServicesByNamespace map[string]VirtualServiceList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list VirtualServiceList) Find(namespace, name string) (*VirtualService, error) {
@@ -93,25 +93,25 @@ func (list VirtualServiceList) Clone() VirtualServiceList {
 	return virtualServiceList
 }
 
-func (list VirtualServiceList) ByNamespace() VirtualServiceListsByNamespace {
-	byNamespace := make(VirtualServiceListsByNamespace)
+func (list VirtualServiceList) ByNamespace() VirtualServicesByNamespace {
+	byNamespace := make(VirtualServicesByNamespace)
 	for _, virtualService := range list {
 		byNamespace.Add(virtualService)
 	}
 	return byNamespace
 }
 
-func (byNamespace VirtualServiceListsByNamespace) Add(virtualService ...*VirtualService) {
+func (byNamespace VirtualServicesByNamespace) Add(virtualService ...*VirtualService) {
 	for _, item := range virtualService {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace VirtualServiceListsByNamespace) Clear(namespace string) {
+func (byNamespace VirtualServicesByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace VirtualServiceListsByNamespace) List() VirtualServiceList {
+func (byNamespace VirtualServicesByNamespace) List() VirtualServiceList {
 	var list VirtualServiceList
 	for _, virtualServiceList := range byNamespace {
 		list = append(list, virtualServiceList...)
@@ -120,7 +120,7 @@ func (byNamespace VirtualServiceListsByNamespace) List() VirtualServiceList {
 	return list
 }
 
-func (byNamespace VirtualServiceListsByNamespace) Clone() VirtualServiceListsByNamespace {
+func (byNamespace VirtualServicesByNamespace) Clone() VirtualServicesByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 

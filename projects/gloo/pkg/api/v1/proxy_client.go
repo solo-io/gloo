@@ -33,7 +33,7 @@ func (r *Proxy) SetMetadata(meta core.Metadata) {
 }
 
 type ProxyList []*Proxy
-type ProxyListsByNamespace map[string]ProxyList
+type ProxiesByNamespace map[string]ProxyList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list ProxyList) Find(namespace, name string) (*Proxy, error) {
@@ -93,25 +93,25 @@ func (list ProxyList) Clone() ProxyList {
 	return proxyList
 }
 
-func (list ProxyList) ByNamespace() ProxyListsByNamespace {
-	byNamespace := make(ProxyListsByNamespace)
+func (list ProxyList) ByNamespace() ProxiesByNamespace {
+	byNamespace := make(ProxiesByNamespace)
 	for _, proxy := range list {
 		byNamespace.Add(proxy)
 	}
 	return byNamespace
 }
 
-func (byNamespace ProxyListsByNamespace) Add(proxy ...*Proxy) {
+func (byNamespace ProxiesByNamespace) Add(proxy ...*Proxy) {
 	for _, item := range proxy {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace ProxyListsByNamespace) Clear(namespace string) {
+func (byNamespace ProxiesByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace ProxyListsByNamespace) List() ProxyList {
+func (byNamespace ProxiesByNamespace) List() ProxyList {
 	var list ProxyList
 	for _, proxyList := range byNamespace {
 		list = append(list, proxyList...)
@@ -120,7 +120,7 @@ func (byNamespace ProxyListsByNamespace) List() ProxyList {
 	return list
 }
 
-func (byNamespace ProxyListsByNamespace) Clone() ProxyListsByNamespace {
+func (byNamespace ProxiesByNamespace) Clone() ProxiesByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 

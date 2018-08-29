@@ -33,7 +33,7 @@ func (r *Artifact) SetData(data map[string]string) {
 }
 
 type ArtifactList []*Artifact
-type ArtifactListsByNamespace map[string]ArtifactList
+type ArtifactsByNamespace map[string]ArtifactList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list ArtifactList) Find(namespace, name string) (*Artifact, error) {
@@ -85,25 +85,25 @@ func (list ArtifactList) Clone() ArtifactList {
 	return artifactList
 }
 
-func (list ArtifactList) ByNamespace() ArtifactListsByNamespace {
-	byNamespace := make(ArtifactListsByNamespace)
+func (list ArtifactList) ByNamespace() ArtifactsByNamespace {
+	byNamespace := make(ArtifactsByNamespace)
 	for _, artifact := range list {
 		byNamespace.Add(artifact)
 	}
 	return byNamespace
 }
 
-func (byNamespace ArtifactListsByNamespace) Add(artifact ...*Artifact) {
+func (byNamespace ArtifactsByNamespace) Add(artifact ...*Artifact) {
 	for _, item := range artifact {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
 
-func (byNamespace ArtifactListsByNamespace) Clear(namespace string) {
+func (byNamespace ArtifactsByNamespace) Clear(namespace string) {
 	delete(byNamespace, namespace)
 }
 
-func (byNamespace ArtifactListsByNamespace) List() ArtifactList {
+func (byNamespace ArtifactsByNamespace) List() ArtifactList {
 	var list ArtifactList
 	for _, artifactList := range byNamespace {
 		list = append(list, artifactList...)
@@ -112,7 +112,7 @@ func (byNamespace ArtifactListsByNamespace) List() ArtifactList {
 	return list
 }
 
-func (byNamespace ArtifactListsByNamespace) Clone() ArtifactListsByNamespace {
+func (byNamespace ArtifactsByNamespace) Clone() ArtifactsByNamespace {
 	return byNamespace.List().Clone().ByNamespace()
 }
 

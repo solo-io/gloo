@@ -10,9 +10,9 @@ import (
 )
 
 type Snapshot struct {
-	Mocks     MockResourceListsByNamespace
-	Fakes     FakeResourceListsByNamespace
-	MockDatas MockDataListsByNamespace
+	Mocks     MocksByNamespace
+	Fakes     FakesByNamespace
+	MockDatas MockDatasByNamespace
 }
 
 func (s Snapshot) Clone() Snapshot {
