@@ -99,7 +99,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 			return nil, nil, errors.Wrapf(err, "starting Gateway watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, gatewayErrs, namespace+"-gateways")
-		go func() {
+		go func(namespace string, gatewayChan <-chan GatewayList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -111,13 +111,13 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					sync(newSnapshot)
 				}
 			}
-		}()
+		}(namespace, gatewayChan)
 		virtualServiceChan, virtualServiceErrs, err := c.virtualService.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting VirtualService watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
-		go func() {
+		go func(namespace string, virtualServiceChan <-chan VirtualServiceList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -129,7 +129,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					sync(newSnapshot)
 				}
 			}
-		}()
+		}(namespace, virtualServiceChan)
 	}
 
 	go func() {

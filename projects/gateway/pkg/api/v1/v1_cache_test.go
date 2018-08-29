@@ -69,7 +69,7 @@ var _ = Describe("V1Cache", func() {
 
 		snapshots, errs, err := cache.Snapshots([]string{namespace1, namespace2}, clients.WatchOpts{
 			Ctx:         ctx,
-			RefreshRate: time.Minute,
+			RefreshRate: time.Second,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -83,32 +83,50 @@ var _ = Describe("V1Cache", func() {
 		for {
 			select {
 			case snap = <-snapshots:
+				// Expect(snap.Gateways.List()).To(ContainElement(gateway1a))
+				// Expect(snap.Gateways.List()).To(ContainElement(gateway1b))
+				_, err1 := snap.Gateways.List().Find(gateway1a.Metadata.ObjectRef())
+				_, err2 := snap.Gateways.List().Find(gateway1b.Metadata.ObjectRef())
+				if err1 == nil && err2 == nil {
+					break draingateway
+				}
 			case err := <-errs:
 				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Millisecond * 500):
-				break draingateway
-			case <-time.After(time.Second):
-				Fail("expected snapshot before 1 second")
+			case <-time.After(time.Second * 10):
+				nsList1, _ := gatewayClient.List(namespace1, clients.ListOpts{})
+				nsList2, _ := gatewayClient.List(namespace2, clients.ListOpts{})
+				combined := nsList1.ByNamespace()
+				combined.Add(nsList2...)
+				msg := log.Sprintf("expected final snapshot before 10 seconds.\nexpected %v\nreceived", combined.List(), snap.Gateways.List())
+				Fail(msg)
 			}
 		}
-		Expect(snap.Gateways.List()).To(ContainElement(gateway1a))
-		Expect(snap.Gateways.List()).To(ContainElement(gateway1b))
 
 		gateway2a, err := gatewayClient.Write(NewGateway(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		gateway2b, err := gatewayClient.Write(NewGateway(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.Gateways.List()).To(ContainElement(gateway1a))
-			Expect(snap.Gateways.List()).To(ContainElement(gateway1b))
-			Expect(snap.Gateways.List()).To(ContainElement(gateway2a))
-			Expect(snap.Gateways.List()).To(ContainElement(gateway2b))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
+	draingateway2:
+		for {
+			select {
+			case snap = <-snapshots:
+				_, err1 := snap.Gateways.List().Find(gateway1a.Metadata.ObjectRef())
+				_, err2 := snap.Gateways.List().Find(gateway1b.Metadata.ObjectRef())
+				_, err3 := snap.Gateways.List().Find(gateway2a.Metadata.ObjectRef())
+				_, err4 := snap.Gateways.List().Find(gateway2b.Metadata.ObjectRef())
+				if err1 == nil && err2 == nil && err3 == nil && err4 == nil {
+					break draingateway2
+				}
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Second * 10):
+				nsList1, _ := gatewayClient.List(namespace1, clients.ListOpts{})
+				nsList2, _ := gatewayClient.List(namespace2, clients.ListOpts{})
+				combined := nsList1.ByNamespace()
+				combined.Add(nsList2...)
+				Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
+			}
 		}
 		virtualService1a, err := virtualServiceClient.Write(NewVirtualService(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
@@ -119,36 +137,54 @@ var _ = Describe("V1Cache", func() {
 		for {
 			select {
 			case snap = <-snapshots:
+				// Expect(snap.VirtualServices.List()).To(ContainElement(virtualService1a))
+				// Expect(snap.VirtualServices.List()).To(ContainElement(virtualService1b))
+				_, err1 := snap.VirtualServices.List().Find(virtualService1a.Metadata.ObjectRef())
+				_, err2 := snap.VirtualServices.List().Find(virtualService1b.Metadata.ObjectRef())
+				if err1 == nil && err2 == nil {
+					break drainvirtualService
+				}
 			case err := <-errs:
 				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Millisecond * 500):
-				break drainvirtualService
-			case <-time.After(time.Second):
-				Fail("expected snapshot before 1 second")
+			case <-time.After(time.Second * 10):
+				nsList1, _ := virtualServiceClient.List(namespace1, clients.ListOpts{})
+				nsList2, _ := virtualServiceClient.List(namespace2, clients.ListOpts{})
+				combined := nsList1.ByNamespace()
+				combined.Add(nsList2...)
+				msg := log.Sprintf("expected final snapshot before 10 seconds.\nexpected %v\nreceived", combined.List(), snap.VirtualServices.List())
+				Fail(msg)
 			}
 		}
-		Expect(snap.VirtualServices.List()).To(ContainElement(virtualService1a))
-		Expect(snap.VirtualServices.List()).To(ContainElement(virtualService1b))
 
 		virtualService2a, err := virtualServiceClient.Write(NewVirtualService(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		virtualService2b, err := virtualServiceClient.Write(NewVirtualService(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.VirtualServices.List()).To(ContainElement(virtualService1a))
-			Expect(snap.VirtualServices.List()).To(ContainElement(virtualService1b))
-			Expect(snap.VirtualServices.List()).To(ContainElement(virtualService2a))
-			Expect(snap.VirtualServices.List()).To(ContainElement(virtualService2b))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
+	drainvirtualService2:
+		for {
+			select {
+			case snap = <-snapshots:
+				_, err1 := snap.VirtualServices.List().Find(virtualService1a.Metadata.ObjectRef())
+				_, err2 := snap.VirtualServices.List().Find(virtualService1b.Metadata.ObjectRef())
+				_, err3 := snap.VirtualServices.List().Find(virtualService2a.Metadata.ObjectRef())
+				_, err4 := snap.VirtualServices.List().Find(virtualService2b.Metadata.ObjectRef())
+				if err1 == nil && err2 == nil && err3 == nil && err4 == nil {
+					break drainvirtualService2
+				}
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Second * 10):
+				nsList1, _ := virtualServiceClient.List(namespace1, clients.ListOpts{})
+				nsList2, _ := virtualServiceClient.List(namespace2, clients.ListOpts{})
+				combined := nsList1.ByNamespace()
+				combined.Add(nsList2...)
+				Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
+			}
 		}
 		err = gatewayClient.Delete(gateway2a.Metadata.Namespace, gateway2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = gatewayClient.Delete(gateway2a.Metadata.Namespace, gateway2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = gatewayClient.Delete(gateway2b.Metadata.Namespace, gateway2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -181,7 +217,7 @@ var _ = Describe("V1Cache", func() {
 		}
 		err = virtualServiceClient.Delete(virtualService2a.Metadata.Namespace, virtualService2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = virtualServiceClient.Delete(virtualService2a.Metadata.Namespace, virtualService2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = virtualServiceClient.Delete(virtualService2b.Metadata.Namespace, virtualService2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {

@@ -81,7 +81,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 			return nil, nil, errors.Wrapf(err, "starting ResolverMap watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, resolverMapErrs, namespace+"-resolverMaps")
-		go func() {
+		go func(namespace string, resolverMapChan <-chan ResolverMapList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -93,7 +93,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					sync(newSnapshot)
 				}
 			}
-		}()
+		}(namespace, resolverMapChan)
 	}
 
 	go func() {

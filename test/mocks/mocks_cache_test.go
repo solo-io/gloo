@@ -78,7 +78,7 @@ var _ = Describe("MocksCache", func() {
 
 		snapshots, errs, err := cache.Snapshots([]string{namespace1, namespace2}, clients.WatchOpts{
 			Ctx:         ctx,
-			RefreshRate: time.Minute,
+			RefreshRate: time.Second,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -92,32 +92,50 @@ var _ = Describe("MocksCache", func() {
 		for {
 			select {
 			case snap = <-snapshots:
+				// Expect(snap.Mocks.List()).To(ContainElement(mockResource1a))
+				// Expect(snap.Mocks.List()).To(ContainElement(mockResource1b))
+				_, err1 := snap.Mocks.List().Find(mockResource1a.Metadata.ObjectRef())
+				_, err2 := snap.Mocks.List().Find(mockResource1b.Metadata.ObjectRef())
+				if err1 == nil && err2 == nil {
+					break drainmockResource
+				}
 			case err := <-errs:
 				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Millisecond * 500):
-				break drainmockResource
-			case <-time.After(time.Second):
-				Fail("expected snapshot before 1 second")
+			case <-time.After(time.Second * 10):
+				nsList1, _ := mockResourceClient.List(namespace1, clients.ListOpts{})
+				nsList2, _ := mockResourceClient.List(namespace2, clients.ListOpts{})
+				combined := nsList1.ByNamespace()
+				combined.Add(nsList2...)
+				msg := log.Sprintf("expected final snapshot before 10 seconds.\nexpected %v\nreceived", combined.List(), snap.Mocks.List())
+				Fail(msg)
 			}
 		}
-		Expect(snap.Mocks.List()).To(ContainElement(mockResource1a))
-		Expect(snap.Mocks.List()).To(ContainElement(mockResource1b))
 
 		mockResource2a, err := mockResourceClient.Write(NewMockResource(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		mockResource2b, err := mockResourceClient.Write(NewMockResource(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.Mocks.List()).To(ContainElement(mockResource1a))
-			Expect(snap.Mocks.List()).To(ContainElement(mockResource1b))
-			Expect(snap.Mocks.List()).To(ContainElement(mockResource2a))
-			Expect(snap.Mocks.List()).To(ContainElement(mockResource2b))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
+	drainmockResource2:
+		for {
+			select {
+			case snap = <-snapshots:
+				_, err1 := snap.Mocks.List().Find(mockResource1a.Metadata.ObjectRef())
+				_, err2 := snap.Mocks.List().Find(mockResource1b.Metadata.ObjectRef())
+				_, err3 := snap.Mocks.List().Find(mockResource2a.Metadata.ObjectRef())
+				_, err4 := snap.Mocks.List().Find(mockResource2b.Metadata.ObjectRef())
+				if err1 == nil && err2 == nil && err3 == nil && err4 == nil {
+					break drainmockResource2
+				}
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Second * 10):
+				nsList1, _ := mockResourceClient.List(namespace1, clients.ListOpts{})
+				nsList2, _ := mockResourceClient.List(namespace2, clients.ListOpts{})
+				combined := nsList1.ByNamespace()
+				combined.Add(nsList2...)
+				Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
+			}
 		}
 		fakeResource1a, err := fakeResourceClient.Write(NewFakeResource(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
@@ -128,32 +146,50 @@ var _ = Describe("MocksCache", func() {
 		for {
 			select {
 			case snap = <-snapshots:
+				// Expect(snap.Fakes.List()).To(ContainElement(fakeResource1a))
+				// Expect(snap.Fakes.List()).To(ContainElement(fakeResource1b))
+				_, err1 := snap.Fakes.List().Find(fakeResource1a.Metadata.ObjectRef())
+				_, err2 := snap.Fakes.List().Find(fakeResource1b.Metadata.ObjectRef())
+				if err1 == nil && err2 == nil {
+					break drainfakeResource
+				}
 			case err := <-errs:
 				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Millisecond * 500):
-				break drainfakeResource
-			case <-time.After(time.Second):
-				Fail("expected snapshot before 1 second")
+			case <-time.After(time.Second * 10):
+				nsList1, _ := fakeResourceClient.List(namespace1, clients.ListOpts{})
+				nsList2, _ := fakeResourceClient.List(namespace2, clients.ListOpts{})
+				combined := nsList1.ByNamespace()
+				combined.Add(nsList2...)
+				msg := log.Sprintf("expected final snapshot before 10 seconds.\nexpected %v\nreceived", combined.List(), snap.Fakes.List())
+				Fail(msg)
 			}
 		}
-		Expect(snap.Fakes.List()).To(ContainElement(fakeResource1a))
-		Expect(snap.Fakes.List()).To(ContainElement(fakeResource1b))
 
 		fakeResource2a, err := fakeResourceClient.Write(NewFakeResource(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		fakeResource2b, err := fakeResourceClient.Write(NewFakeResource(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.Fakes.List()).To(ContainElement(fakeResource1a))
-			Expect(snap.Fakes.List()).To(ContainElement(fakeResource1b))
-			Expect(snap.Fakes.List()).To(ContainElement(fakeResource2a))
-			Expect(snap.Fakes.List()).To(ContainElement(fakeResource2b))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
+	drainfakeResource2:
+		for {
+			select {
+			case snap = <-snapshots:
+				_, err1 := snap.Fakes.List().Find(fakeResource1a.Metadata.ObjectRef())
+				_, err2 := snap.Fakes.List().Find(fakeResource1b.Metadata.ObjectRef())
+				_, err3 := snap.Fakes.List().Find(fakeResource2a.Metadata.ObjectRef())
+				_, err4 := snap.Fakes.List().Find(fakeResource2b.Metadata.ObjectRef())
+				if err1 == nil && err2 == nil && err3 == nil && err4 == nil {
+					break drainfakeResource2
+				}
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Second * 10):
+				nsList1, _ := fakeResourceClient.List(namespace1, clients.ListOpts{})
+				nsList2, _ := fakeResourceClient.List(namespace2, clients.ListOpts{})
+				combined := nsList1.ByNamespace()
+				combined.Add(nsList2...)
+				Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
+			}
 		}
 		mockData1a, err := mockDataClient.Write(NewMockData(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
@@ -164,36 +200,54 @@ var _ = Describe("MocksCache", func() {
 		for {
 			select {
 			case snap = <-snapshots:
+				// Expect(snap.MockDatas.List()).To(ContainElement(mockData1a))
+				// Expect(snap.MockDatas.List()).To(ContainElement(mockData1b))
+				_, err1 := snap.MockDatas.List().Find(mockData1a.Metadata.ObjectRef())
+				_, err2 := snap.MockDatas.List().Find(mockData1b.Metadata.ObjectRef())
+				if err1 == nil && err2 == nil {
+					break drainmockData
+				}
 			case err := <-errs:
 				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Millisecond * 500):
-				break drainmockData
-			case <-time.After(time.Second):
-				Fail("expected snapshot before 1 second")
+			case <-time.After(time.Second * 10):
+				nsList1, _ := mockDataClient.List(namespace1, clients.ListOpts{})
+				nsList2, _ := mockDataClient.List(namespace2, clients.ListOpts{})
+				combined := nsList1.ByNamespace()
+				combined.Add(nsList2...)
+				msg := log.Sprintf("expected final snapshot before 10 seconds.\nexpected %v\nreceived", combined.List(), snap.MockDatas.List())
+				Fail(msg)
 			}
 		}
-		Expect(snap.MockDatas.List()).To(ContainElement(mockData1a))
-		Expect(snap.MockDatas.List()).To(ContainElement(mockData1b))
 
 		mockData2a, err := mockDataClient.Write(NewMockData(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		mockData2b, err := mockDataClient.Write(NewMockData(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.MockDatas.List()).To(ContainElement(mockData1a))
-			Expect(snap.MockDatas.List()).To(ContainElement(mockData1b))
-			Expect(snap.MockDatas.List()).To(ContainElement(mockData2a))
-			Expect(snap.MockDatas.List()).To(ContainElement(mockData2b))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
+	drainmockData2:
+		for {
+			select {
+			case snap = <-snapshots:
+				_, err1 := snap.MockDatas.List().Find(mockData1a.Metadata.ObjectRef())
+				_, err2 := snap.MockDatas.List().Find(mockData1b.Metadata.ObjectRef())
+				_, err3 := snap.MockDatas.List().Find(mockData2a.Metadata.ObjectRef())
+				_, err4 := snap.MockDatas.List().Find(mockData2b.Metadata.ObjectRef())
+				if err1 == nil && err2 == nil && err3 == nil && err4 == nil {
+					break drainmockData2
+				}
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Second * 10):
+				nsList1, _ := mockDataClient.List(namespace1, clients.ListOpts{})
+				nsList2, _ := mockDataClient.List(namespace2, clients.ListOpts{})
+				combined := nsList1.ByNamespace()
+				combined.Add(nsList2...)
+				Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
+			}
 		}
 		err = mockResourceClient.Delete(mockResource2a.Metadata.Namespace, mockResource2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = mockResourceClient.Delete(mockResource2a.Metadata.Namespace, mockResource2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = mockResourceClient.Delete(mockResource2b.Metadata.Namespace, mockResource2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -226,7 +280,7 @@ var _ = Describe("MocksCache", func() {
 		}
 		err = fakeResourceClient.Delete(fakeResource2a.Metadata.Namespace, fakeResource2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = fakeResourceClient.Delete(fakeResource2a.Metadata.Namespace, fakeResource2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = fakeResourceClient.Delete(fakeResource2b.Metadata.Namespace, fakeResource2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
@@ -259,7 +313,7 @@ var _ = Describe("MocksCache", func() {
 		}
 		err = mockDataClient.Delete(mockData2a.Metadata.Namespace, mockData2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = mockDataClient.Delete(mockData2a.Metadata.Namespace, mockData2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = mockDataClient.Delete(mockData2b.Metadata.Namespace, mockData2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {

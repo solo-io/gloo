@@ -150,7 +150,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 			return nil, nil, errors.Wrapf(err, "starting Artifact watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, artifactErrs, namespace+"-artifacts")
-		go func() {
+		go func(namespace string, artifactChan <-chan ArtifactList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -162,13 +162,13 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					sync(newSnapshot)
 				}
 			}
-		}()
+		}(namespace, artifactChan)
 		endpointChan, endpointErrs, err := c.endpoint.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Endpoint watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, endpointErrs, namespace+"-endpoints")
-		go func() {
+		go func(namespace string, endpointChan <-chan EndpointList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -180,13 +180,13 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					sync(newSnapshot)
 				}
 			}
-		}()
+		}(namespace, endpointChan)
 		proxyChan, proxyErrs, err := c.proxy.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Proxy watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, proxyErrs, namespace+"-proxies")
-		go func() {
+		go func(namespace string, proxyChan <-chan ProxyList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -198,13 +198,13 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					sync(newSnapshot)
 				}
 			}
-		}()
+		}(namespace, proxyChan)
 		secretChan, secretErrs, err := c.secret.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Secret watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, secretErrs, namespace+"-secrets")
-		go func() {
+		go func(namespace string, secretChan <-chan SecretList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -216,13 +216,13 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					sync(newSnapshot)
 				}
 			}
-		}()
+		}(namespace, secretChan)
 		upstreamChan, upstreamErrs, err := c.upstream.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Upstream watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, upstreamErrs, namespace+"-upstreams")
-		go func() {
+		go func(namespace string, upstreamChan <-chan UpstreamList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -234,7 +234,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					sync(newSnapshot)
 				}
 			}
-		}()
+		}(namespace, upstreamChan)
 	}
 
 	go func() {

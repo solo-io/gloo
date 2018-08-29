@@ -129,7 +129,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 			return nil, nil, errors.Wrapf(err, "starting {{ . }} watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, {{ lower_camel . }}Errs, namespace+"-{{ lower_camel (resource . $).PluralName }}")
-		go func() {
+		go func(namespace string, {{ lower_camel . }}Chan  <- chan {{ . }}List) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -141,7 +141,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					sync(newSnapshot)
 				}
 			}
-		}()
+		}(namespace, {{ lower_camel . }}Chan)
 {{- end}}
 	}
 

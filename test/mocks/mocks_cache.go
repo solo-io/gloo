@@ -117,7 +117,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 			return nil, nil, errors.Wrapf(err, "starting MockResource watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, mockResourceErrs, namespace+"-mocks")
-		go func() {
+		go func(namespace string, mockResourceChan <-chan MockResourceList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -129,13 +129,13 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					sync(newSnapshot)
 				}
 			}
-		}()
+		}(namespace, mockResourceChan)
 		fakeResourceChan, fakeResourceErrs, err := c.fakeResource.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting FakeResource watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
-		go func() {
+		go func(namespace string, fakeResourceChan <-chan FakeResourceList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -147,13 +147,13 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					sync(newSnapshot)
 				}
 			}
-		}()
+		}(namespace, fakeResourceChan)
 		mockDataChan, mockDataErrs, err := c.mockData.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting MockData watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, mockDataErrs, namespace+"-mockDatas")
-		go func() {
+		go func(namespace string, mockDataChan <-chan MockDataList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -165,7 +165,7 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 					sync(newSnapshot)
 				}
 			}
-		}()
+		}(namespace, mockDataChan)
 	}
 
 	go func() {
