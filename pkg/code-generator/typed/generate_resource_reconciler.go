@@ -31,33 +31,33 @@ type {{ .ResourceType }}Reconciler interface {
 	Reconcile(namespace string, desiredResources []*{{ .ResourceType }}, transition Transition{{ .ResourceType }}Func, opts clients.ListOpts) error
 }
 
-func {{ lowercase .ResourceType }}sToResources(list {{ .ResourceType }}List) resources.ResourceList {
+func {{ lower_camel .ResourceType }}sToResources(list {{ .ResourceType }}List) resources.ResourceList {
 	var resourceList resources.ResourceList
-	for _, {{ lowercase .ResourceType }} := range list {
-		resourceList = append(resourceList, {{ lowercase .ResourceType }})
+	for _, {{ lower_camel .ResourceType }} := range list {
+		resourceList = append(resourceList, {{ lower_camel .ResourceType }})
 	}
 	return resourceList
 }
 
 func New{{ .ResourceType }}Reconciler(client {{ .ResourceType }}Client) {{ .ResourceType }}Reconciler {
-	return &{{ lowercase .ResourceType }}Reconciler{
+	return &{{ lower_camel .ResourceType }}Reconciler{
 		base: reconcile.NewReconciler(client.BaseClient()),
 	}
 }
 
-type {{ lowercase .ResourceType }}Reconciler struct {
+type {{ lower_camel .ResourceType }}Reconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *{{ lowercase .ResourceType }}Reconciler) Reconcile(namespace string, desiredResources []*{{ .ResourceType }}, transition Transition{{ .ResourceType }}Func, opts clients.ListOpts) error {
+func (r *{{ lower_camel .ResourceType }}Reconciler) Reconcile(namespace string, desiredResources []*{{ .ResourceType }}, transition Transition{{ .ResourceType }}Func, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
-	opts.Ctx = contextutils.WithLogger(opts.Ctx, "{{ lowercase .ResourceType }}_reconciler")
+	opts.Ctx = contextutils.WithLogger(opts.Ctx, "{{ lower_camel .ResourceType }}_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
 		transitionResources = func(original, desired resources.Resource) error {
 			return transition(original.(*{{ .ResourceType }}), desired.(*{{ .ResourceType }}))
 		}
 	}
-	return r.base.Reconcile(namespace, {{ lowercase .ResourceType }}sToResources(desiredResources), transitionResources, opts)
+	return r.base.Reconcile(namespace, {{ lower_camel .ResourceType }}sToResources(desiredResources), transitionResources, opts)
 }
 `

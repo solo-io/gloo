@@ -54,12 +54,12 @@ func (s Snapshot) Clone() Snapshot {
 func (s Snapshot) Hash() uint64 {
 	snapshotForHashing := s.Clone()
 {{- range .ResourceTypes}}
-	for _, {{ lowercase . }} := range snapshotForHashing.{{ (resource . $).PluralName }}.List() {
-		resources.UpdateMetadata({{ lowercase . }}, func(meta *core.Metadata) {
+	for _, {{ lower_camel . }} := range snapshotForHashing.{{ (resource . $).PluralName }}.List() {
+		resources.UpdateMetadata({{ lower_camel . }}, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
 {{- if (index $.ResourceLevelParams .).IsInputType }}
-		{{ lowercase . }}.SetStatus(core.Status{})
+		{{ lower_camel . }}.SetStatus(core.Status{})
 {{- end }}
 	}
 {{- end}}
@@ -81,20 +81,20 @@ type Cache interface {
 func NewCache({{ clients . true }}) Cache {
 	return &cache{
 {{- range .ResourceTypes}}
-		{{ lowercase . }}: {{ lowercase . }}Client,
+		{{ lower_camel . }}: {{ lower_camel . }}Client,
 {{- end}}
 	}
 }
 
 type cache struct {
 {{- range .ResourceTypes}}
-	{{ lowercase . }} {{ . }}Client
+	{{ lower_camel . }} {{ . }}Client
 {{- end}}
 }
 
 func (c *cache) Register() error {
 {{- range .ResourceTypes}}
-	if err := c.{{ lowercase . }}.Register(); err != nil {
+	if err := c.{{ lower_camel . }}.Register(); err != nil {
 		return err
 	}
 {{- end}}
@@ -104,7 +104,7 @@ func (c *cache) Register() error {
 {{- range .ResourceTypes}}
 
 func (c *cache) {{ . }}() {{ . }}Client {
-	return c.{{ lowercase . }}
+	return c.{{ lower_camel . }}
 }
 {{- end}}
 
@@ -124,20 +124,20 @@ func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-c
 
 	for _, namespace := range watchNamespaces {
 {{- range .ResourceTypes}}
-		{{ lowercase . }}Chan, {{ lowercase . }}Errs, err := c.{{ lowercase . }}.Watch(namespace, opts)
+		{{ lower_camel . }}Chan, {{ lower_camel . }}Errs, err := c.{{ lower_camel . }}.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting {{ . }} watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, {{ lowercase . }}Errs, namespace+"-{{ lowercase (resource . $).PluralName }}")
+		go errutils.AggregateErrs(opts.Ctx, errs, {{ lower_camel . }}Errs, namespace+"-{{ lower_camel (resource . $).PluralName }}")
 		go func() {
 			for {
 				select {
 				case <-opts.Ctx.Done():
 					return
-				case {{ lowercase . }}List := <-{{ lowercase . }}Chan:
+				case {{ lower_camel . }}List := <-{{ lower_camel . }}Chan:
 					newSnapshot := currentSnapshot.Clone()
 					newSnapshot.{{ (resource . $).PluralName }}.Clear(namespace)
-					newSnapshot.{{ (resource . $).PluralName }}.Add({{ lowercase . }}List...)
+					newSnapshot.{{ (resource . $).PluralName }}.Add({{ lower_camel . }}List...)
 					sync(newSnapshot)
 				}
 			}
@@ -191,7 +191,7 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		cfg                *rest.Config
 		cache              Cache
 {{- range .ResourceTypes }}
-		{{ lowercase . }}Client {{ . }}Client
+		{{ lower_camel . }}Client {{ . }}Client
 {{- end}}
 {{- if (need_clientset .) }}
 		kube               kubernetes.Interface
@@ -210,7 +210,7 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 
 		// {{ . }} Constructor
 {{- if (index $.ResourceLevelParams .).IsInputType }}
-		{{ lowercase . }}ClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+		{{ lower_camel . }}ClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: {{ . }}Crd,
 			Cfg: cfg,
 		})
@@ -219,20 +219,20 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		Expect(err).NotTo(HaveOccurred())
 {{/* TODO(ilackarms): Come with a more generic way to specify that a resource is "Secret"*/}}
 {{- if (eq . "Secret") }}
-		{{ lowercase . }}ClientFactory := factory.NewResourceClientFactory(&factory.KubeSecretClientOpts{
+		{{ lower_camel . }}ClientFactory := factory.NewResourceClientFactory(&factory.KubeSecretClientOpts{
 			Clientset: kube,
 		})
 {{- else }}
-		{{ lowercase . }}ClientFactory := factory.NewResourceClientFactory(&factory.KubeConfigMapClientOpts{
+		{{ lower_camel . }}ClientFactory := factory.NewResourceClientFactory(&factory.KubeConfigMapClientOpts{
 			Clientset: kube,
 		})
 {{- end }}
 {{- else }}
-		{{ lowercase . }}ClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		{{ lower_camel . }}ClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
 			Cache: memory.NewInMemoryResourceCache(),
 		})
 {{- end }}
-		{{ lowercase . }}Client, err = New{{ . }}Client({{ lowercase . }}ClientFactory)
+		{{ lower_camel . }}Client, err = New{{ . }}Client({{ lower_camel . }}ClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 {{- end}}
 		cache = NewCache({{ clients . false }})
@@ -252,30 +252,30 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		var snap *Snapshot
 
 {{- range .ResourceTypes }}
-		{{ lowercase . }}1, err := {{ lowercase . }}Client.Write(New{{ . }}(namespace, "angela"), clients.WriteOpts{})
+		{{ lower_camel . }}1, err := {{ lower_camel . }}Client.Write(New{{ . }}(namespace, "angela"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-	drain{{ lowercase . }}:
+	drain{{ lower_camel . }}:
 		for {
 			select {
 			case snap = <-snapshots:
 			case err := <-errs:
 				Expect(err).NotTo(HaveOccurred())
 			case <-time.After(time.Millisecond * 500):
-				break drain{{ lowercase . }}
+				break drain{{ lower_camel . }}
 			case <-time.After(time.Second):
 				Fail("expected snapshot before 1 second")
 			}
 		}
-		Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}1))
+		Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lower_camel . }}1))
 
-		{{ lowercase . }}2, err := {{ lowercase . }}Client.Write(New{{ . }}(namespace, "lane"), clients.WriteOpts{})
+		{{ lower_camel . }}2, err := {{ lower_camel . }}Client.Write(New{{ . }}(namespace, "lane"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}1))
-			Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}2))
+			Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lower_camel . }}1))
+			Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lower_camel . }}2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
@@ -284,26 +284,26 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 {{- end}}
 
 {{- range .ResourceTypes }}
-		err = {{ lowercase . }}Client.Delete({{ lowercase . }}2.Metadata.Namespace, {{ lowercase . }}2.Metadata.Name, clients.DeleteOpts{})
+		err = {{ lower_camel . }}Client.Delete({{ lower_camel . }}2.Metadata.Namespace, {{ lower_camel . }}2.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lowercase . }}1))
-			Expect(snap.{{ (resource . $).PluralName }}).NotTo(ContainElement({{ lowercase . }}2))
+			Expect(snap.{{ (resource . $).PluralName }}).To(ContainElement({{ lower_camel . }}1))
+			Expect(snap.{{ (resource . $).PluralName }}).NotTo(ContainElement({{ lower_camel . }}2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):
 			Fail("expected snapshot before 1 second")
 		}
 
-		err = {{ lowercase . }}Client.Delete({{ lowercase . }}1.Metadata.Namespace, {{ lowercase . }}1.Metadata.Name, clients.DeleteOpts{})
+		err = {{ lower_camel . }}Client.Delete({{ lower_camel . }}1.Metadata.Namespace, {{ lower_camel . }}1.Metadata.Name, clients.DeleteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
 		select {
 		case snap := <-snapshots:
-			Expect(snap.{{ (resource . $).PluralName }}).NotTo(ContainElement({{ lowercase . }}1))
-			Expect(snap.{{ (resource . $).PluralName }}).NotTo(ContainElement({{ lowercase . }}2))
+			Expect(snap.{{ (resource . $).PluralName }}).NotTo(ContainElement({{ lower_camel . }}1))
+			Expect(snap.{{ (resource . $).PluralName }}).NotTo(ContainElement({{ lower_camel . }}2))
 		case err := <-errs:
 			Expect(err).NotTo(HaveOccurred())
 		case <-time.After(time.Second * 3):

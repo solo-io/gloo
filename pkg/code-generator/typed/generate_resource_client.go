@@ -74,20 +74,20 @@ type {{ .ResourceType }}ListsByNamespace map[string]{{ .ResourceType }}List
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list {{ .ResourceType }}List) Find(namespace, name string) (*{{ .ResourceType }}, error) {
-	for _, {{ lowercase .ResourceType }} := range list {
-		if {{ lowercase .ResourceType }}.Metadata.Name == name {
-			if namespace == "" || {{ lowercase .ResourceType }}.Metadata.Namespace == namespace {
-				return {{ lowercase .ResourceType }}, nil
+	for _, {{ lower_camel .ResourceType }} := range list {
+		if {{ lower_camel .ResourceType }}.Metadata.Name == name {
+			if namespace == "" || {{ lower_camel .ResourceType }}.Metadata.Namespace == namespace {
+				return {{ lower_camel .ResourceType }}, nil
 			}
 		}
 	}
-	return nil, errors.Errorf("list did not find {{ lowercase .ResourceType }} %v.%v", namespace, name)
+	return nil, errors.Errorf("list did not find {{ lower_camel .ResourceType }} %v.%v", namespace, name)
 }
 
 func (list {{ .ResourceType }}List) AsResources() resources.ResourceList {
 	var ress resources.ResourceList 
-	for _, {{ lowercase .ResourceType }} := range list {
-		ress = append(ress, {{ lowercase .ResourceType }})
+	for _, {{ lower_camel .ResourceType }} := range list {
+		ress = append(ress, {{ lower_camel .ResourceType }})
 	}
 	return ress
 }
@@ -95,8 +95,8 @@ func (list {{ .ResourceType }}List) AsResources() resources.ResourceList {
 {{ if $.IsInputType -}}
 func (list {{ .ResourceType }}List) AsInputResources() resources.InputResourceList {
 	var ress resources.InputResourceList
-	for _, {{ lowercase .ResourceType }} := range list {
-		ress = append(ress, {{ lowercase .ResourceType }})
+	for _, {{ lower_camel .ResourceType }} := range list {
+		ress = append(ress, {{ lower_camel .ResourceType }})
 	}
 	return ress
 }
@@ -104,16 +104,16 @@ func (list {{ .ResourceType }}List) AsInputResources() resources.InputResourceLi
 
 func (list {{ .ResourceType }}List) Names() []string {
 	var names []string
-	for _, {{ lowercase .ResourceType }} := range list {
-		names = append(names, {{ lowercase .ResourceType }}.Metadata.Name)
+	for _, {{ lower_camel .ResourceType }} := range list {
+		names = append(names, {{ lower_camel .ResourceType }}.Metadata.Name)
 	}
 	return names
 }
 
 func (list {{ .ResourceType }}List) NamespacesDotNames() []string {
 	var names []string
-	for _, {{ lowercase .ResourceType }} := range list {
-		names = append(names, {{ lowercase .ResourceType }}.Metadata.Namespace + "." + {{ lowercase .ResourceType }}.Metadata.Name)
+	for _, {{ lower_camel .ResourceType }} := range list {
+		names = append(names, {{ lower_camel .ResourceType }}.Metadata.Namespace + "." + {{ lower_camel .ResourceType }}.Metadata.Name)
 	}
 	return names
 }
@@ -125,23 +125,23 @@ func (list {{ .ResourceType }}List) Sort() {
 }
 
 func (list {{ .ResourceType }}List) Clone() {{ .ResourceType }}List {
-	var {{ lowercase .ResourceType }}List {{ .ResourceType }}List
-	for _, {{ lowercase .ResourceType }} := range list {
-		{{ lowercase .ResourceType }}List = append({{ lowercase .ResourceType }}List, proto.Clone({{ lowercase .ResourceType }}).(*{{ .ResourceType }}))
+	var {{ lower_camel .ResourceType }}List {{ .ResourceType }}List
+	for _, {{ lower_camel .ResourceType }} := range list {
+		{{ lower_camel .ResourceType }}List = append({{ lower_camel .ResourceType }}List, proto.Clone({{ lower_camel .ResourceType }}).(*{{ .ResourceType }}))
 	}
-	return {{ lowercase .ResourceType }}List 
+	return {{ lower_camel .ResourceType }}List 
 }
 
 func (list {{ .ResourceType }}List) ByNamespace() {{ .ResourceType }}ListsByNamespace {
 	byNamespace := make({{ .ResourceType }}ListsByNamespace)
-	for _, {{ lowercase .ResourceType }} := range list {
-		byNamespace.Add({{ lowercase .ResourceType }})
+	for _, {{ lower_camel .ResourceType }} := range list {
+		byNamespace.Add({{ lower_camel .ResourceType }})
 	}
 	return byNamespace
 }
 
-func (byNamespace {{ .ResourceType }}ListsByNamespace) Add({{ lowercase .ResourceType }} ... *{{ .ResourceType }}) {
-	for _, item := range {{ lowercase .ResourceType }} {
+func (byNamespace {{ .ResourceType }}ListsByNamespace) Add({{ lower_camel .ResourceType }} ... *{{ .ResourceType }}) {
+	for _, item := range {{ lower_camel .ResourceType }} {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
@@ -152,8 +152,8 @@ func (byNamespace {{ .ResourceType }}ListsByNamespace) Clear(namespace string) {
 
 func (byNamespace {{ .ResourceType }}ListsByNamespace) List() {{ .ResourceType }}List {
 	var list {{ .ResourceType }}List
-	for _, {{ lowercase .ResourceType }}List := range byNamespace {
-		list = append(list, {{ lowercase .ResourceType }}List...)
+	for _, {{ lower_camel .ResourceType }}List := range byNamespace {
+		list = append(list, {{ lower_camel .ResourceType }}List...)
 	}
 	list.Sort()
 	return list
@@ -175,7 +175,7 @@ type {{ .ResourceType }}Client interface {
 	Watch(namespace string, opts clients.WatchOpts) (<-chan {{ .ResourceType }}List, <-chan error, error)
 }
 
-type {{ lowercase .ResourceType }}Client struct {
+type {{ lower_camel .ResourceType }}Client struct {
 	rc clients.ResourceClient
 }
 
@@ -186,20 +186,20 @@ func New{{ .ResourceType }}Client(rcFactory factory.ResourceClientFactory) ({{ .
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base {{ .ResourceType }} resource client")
 	}
-	return &{{ lowercase .ResourceType }}Client{
+	return &{{ lower_camel .ResourceType }}Client{
 		rc: rc,
 	}, nil
 }
 
-func (client *{{ lowercase .ResourceType }}Client) BaseClient() clients.ResourceClient {
+func (client *{{ lower_camel .ResourceType }}Client) BaseClient() clients.ResourceClient {
 	return client.rc
 }
 
-func (client *{{ lowercase .ResourceType }}Client) Register() error {
+func (client *{{ lower_camel .ResourceType }}Client) Register() error {
 	return client.rc.Register()
 }
 
-func (client *{{ lowercase .ResourceType }}Client) Read(namespace, name string, opts clients.ReadOpts) (*{{ .ResourceType }}, error) {
+func (client *{{ lower_camel .ResourceType }}Client) Read(namespace, name string, opts clients.ReadOpts) (*{{ .ResourceType }}, error) {
 	opts = opts.WithDefaults()
 	resource, err := client.rc.Read(namespace, name, opts)
 	if err != nil {
@@ -208,21 +208,21 @@ func (client *{{ lowercase .ResourceType }}Client) Read(namespace, name string, 
 	return resource.(*{{ .ResourceType }}), nil
 }
 
-func (client *{{ lowercase .ResourceType }}Client) Write({{ lowercase .ResourceType }} *{{ .ResourceType }}, opts clients.WriteOpts) (*{{ .ResourceType }}, error) {
+func (client *{{ lower_camel .ResourceType }}Client) Write({{ lower_camel .ResourceType }} *{{ .ResourceType }}, opts clients.WriteOpts) (*{{ .ResourceType }}, error) {
 	opts = opts.WithDefaults()
-	resource, err := client.rc.Write({{ lowercase .ResourceType }}, opts)
+	resource, err := client.rc.Write({{ lower_camel .ResourceType }}, opts)
 	if err != nil {
 		return nil, err
 	}
 	return resource.(*{{ .ResourceType }}), nil
 }
 
-func (client *{{ lowercase .ResourceType }}Client) Delete(namespace, name string, opts clients.DeleteOpts) error {
+func (client *{{ lower_camel .ResourceType }}Client) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
 	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *{{ lowercase .ResourceType }}Client) List(namespace string, opts clients.ListOpts) ({{ .ResourceType }}List, error) {
+func (client *{{ lower_camel .ResourceType }}Client) List(namespace string, opts clients.ListOpts) ({{ .ResourceType }}List, error) {
 	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
@@ -231,33 +231,33 @@ func (client *{{ lowercase .ResourceType }}Client) List(namespace string, opts c
 	return convertTo{{ .ResourceType }}(resourceList), nil
 }
 
-func (client *{{ lowercase .ResourceType }}Client) Watch(namespace string, opts clients.WatchOpts) (<-chan {{ .ResourceType }}List, <-chan error, error) {
+func (client *{{ lower_camel .ResourceType }}Client) Watch(namespace string, opts clients.WatchOpts) (<-chan {{ .ResourceType }}List, <-chan error, error) {
 	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr
 	}
-	{{ lowercase .PluralName }}Chan := make(chan {{ .ResourceType }}List)
+	{{ lower_camel .PluralName }}Chan := make(chan {{ .ResourceType }}List)
 	go func() {
 		for {
 			select {
 			case resourceList := <-resourcesChan:
-				{{ lowercase .PluralName }}Chan <- convertTo{{ .ResourceType }}(resourceList)
+				{{ lower_camel .PluralName }}Chan <- convertTo{{ .ResourceType }}(resourceList)
 			case <-opts.Ctx.Done():
-				close({{ lowercase .PluralName }}Chan)
+				close({{ lower_camel .PluralName }}Chan)
 				return
 			}
 		}
 	}()
-	return {{ lowercase .PluralName }}Chan, errs, nil
+	return {{ lower_camel .PluralName }}Chan, errs, nil
 }
 
 func convertTo{{ .ResourceType }}(resources resources.ResourceList) {{ .ResourceType }}List {
-	var {{ lowercase .ResourceType }}List {{ .ResourceType }}List
+	var {{ lower_camel .ResourceType }}List {{ .ResourceType }}List
 	for _, resource := range resources {
-		{{ lowercase .ResourceType }}List = append({{ lowercase .ResourceType }}List, resource.(*{{ .ResourceType }}))
+		{{ lower_camel .ResourceType }}List = append({{ lower_camel .ResourceType }}List, resource.(*{{ .ResourceType }}))
 	}
-	return {{ lowercase .ResourceType }}List
+	return {{ lower_camel .ResourceType }}List
 }
 
 // Kubernetes Adapter for {{ .ResourceType }}
@@ -272,7 +272,7 @@ func (o *{{ .ResourceType }}) DeepCopyObject() runtime.Object {
 }
 
 var {{ .ResourceType }}Crd = crd.NewCrd("{{ .GroupName }}",
-	"{{ strings.to_lower .PluralName }}",
+	"{{ lowercase .PluralName }}",
 	"{{ .GroupName }}",
 	"{{ .Version }}",
 	"{{ .ResourceType }}",
