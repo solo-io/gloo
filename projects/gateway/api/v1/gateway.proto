@@ -16,7 +16,7 @@ import "plugins.proto";
 /*
 @solo-kit:resource
 @solo-kit:resource.short_name=gw
-@solo-kit:resource.plural_name=gateways
+@solo-kit:resource.plural_name=Gateways
 @solo-kit:resource.group_name=gateway.solo.io
 @solo-kit:resource.version=v1
 

@@ -11,7 +11,7 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
 /*
 @solo-kit:resource
 @solo-kit:resource.short_name=mk
-@solo-kit:resource.plural_name=mocks
+@solo-kit:resource.plural_name=Mocks
 @solo-kit:resource.group_name=testing.solo.io
 @solo-kit:resource.version=v1
 */
@@ -24,7 +24,7 @@ message MockResource {
 /*
 @solo-kit:resource
 @solo-kit:resource.short_name=fk
-@solo-kit:resource.plural_name=fakes
+@solo-kit:resource.plural_name=Fakes
 @solo-kit:resource.group_name=testing.solo.io
 @solo-kit:resource.version=v1
 */
@@ -38,7 +38,7 @@ message FakeResource {
 @solo-kit:resource
 @solo-kit:resource.data_type
 @solo-kit:resource.short_name=mkd
-@solo-kit:resource.plural_name=mockdatas
+@solo-kit:resource.plural_name=MockDatas
 @solo-kit:resource.group_name=testing.solo.io
 @solo-kit:resource.version=v1
 */
