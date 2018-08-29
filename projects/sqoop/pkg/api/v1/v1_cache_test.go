@@ -65,92 +65,65 @@ var _ = Describe("V1Cache", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		var snap *Snapshot
+
+		/*
+			ResolverMap
+		*/
+
+		assertSnapshotResolverMaps := func(expectResolverMaps ResolverMapList, unexpectResolverMaps ResolverMapList) {
+		drain:
+			for {
+				select {
+				case snap = <-snapshots:
+					for _, expected := range expectResolverMaps {
+						if _, err := snap.ResolverMaps.List().Find(expected.Metadata.ObjectRef()); err != nil {
+							continue drain
+						}
+					}
+					for _, unexpected := range unexpectResolverMaps {
+						if _, err := snap.ResolverMaps.List().Find(unexpected.Metadata.ObjectRef()); err == nil {
+							continue drain
+						}
+					}
+					break drain
+				case err := <-errs:
+					Expect(err).NotTo(HaveOccurred())
+				case <-time.After(time.Second * 10):
+					nsList1, _ := resolverMapClient.List(namespace1, clients.ListOpts{})
+					nsList2, _ := resolverMapClient.List(namespace2, clients.ListOpts{})
+					combined := nsList1.ByNamespace()
+					combined.Add(nsList2...)
+					Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
+				}
+			}
+		}
+
 		resolverMap1a, err := resolverMapClient.Write(NewResolverMap(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		resolverMap1b, err := resolverMapClient.Write(NewResolverMap(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-	drainresolverMap:
-		for {
-			select {
-			case snap = <-snapshots:
-				// Expect(snap.ResolverMaps.List()).To(ContainElement(resolverMap1a))
-				// Expect(snap.ResolverMaps.List()).To(ContainElement(resolverMap1b))
-				_, err1 := snap.ResolverMaps.List().Find(resolverMap1a.Metadata.ObjectRef())
-				_, err2 := snap.ResolverMaps.List().Find(resolverMap1b.Metadata.ObjectRef())
-				if err1 == nil && err2 == nil {
-					break drainresolverMap
-				}
-			case err := <-errs:
-				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Second * 10):
-				nsList1, _ := resolverMapClient.List(namespace1, clients.ListOpts{})
-				nsList2, _ := resolverMapClient.List(namespace2, clients.ListOpts{})
-				combined := nsList1.ByNamespace()
-				combined.Add(nsList2...)
-				msg := log.Sprintf("expected final snapshot before 10 seconds.\nexpected %v\nreceived", combined.List(), snap.ResolverMaps.List())
-				Fail(msg)
-			}
-		}
+		assertSnapshotResolverMaps(ResolverMapList{resolverMap1a, resolverMap1b}, nil)
 
 		resolverMap2a, err := resolverMapClient.Write(NewResolverMap(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		resolverMap2b, err := resolverMapClient.Write(NewResolverMap(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-	drainresolverMap2:
-		for {
-			select {
-			case snap = <-snapshots:
-				_, err1 := snap.ResolverMaps.List().Find(resolverMap1a.Metadata.ObjectRef())
-				_, err2 := snap.ResolverMaps.List().Find(resolverMap1b.Metadata.ObjectRef())
-				_, err3 := snap.ResolverMaps.List().Find(resolverMap2a.Metadata.ObjectRef())
-				_, err4 := snap.ResolverMaps.List().Find(resolverMap2b.Metadata.ObjectRef())
-				if err1 == nil && err2 == nil && err3 == nil && err4 == nil {
-					break drainresolverMap2
-				}
-			case err := <-errs:
-				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Second * 10):
-				nsList1, _ := resolverMapClient.List(namespace1, clients.ListOpts{})
-				nsList2, _ := resolverMapClient.List(namespace2, clients.ListOpts{})
-				combined := nsList1.ByNamespace()
-				combined.Add(nsList2...)
-				Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
-			}
-		}
+		assertSnapshotResolverMaps(ResolverMapList{resolverMap1a, resolverMap1b, resolverMap2a, resolverMap2b}, nil)
+
 		err = resolverMapClient.Delete(resolverMap2a.Metadata.Namespace, resolverMap2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = resolverMapClient.Delete(resolverMap2b.Metadata.Namespace, resolverMap2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.ResolverMaps.List()).To(ContainElement(resolverMap1a))
-			Expect(snap.ResolverMaps.List()).To(ContainElement(resolverMap1b))
-			Expect(snap.ResolverMaps.List()).NotTo(ContainElement(resolverMap2a))
-			Expect(snap.ResolverMaps.List()).NotTo(ContainElement(resolverMap2b))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
-		}
+		assertSnapshotResolverMaps(ResolverMapList{resolverMap1a, resolverMap1b}, ResolverMapList{resolverMap2a, resolverMap2b})
 
 		err = resolverMapClient.Delete(resolverMap1a.Metadata.Namespace, resolverMap1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = resolverMapClient.Delete(resolverMap1b.Metadata.Namespace, resolverMap1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.ResolverMaps.List()).NotTo(ContainElement(resolverMap1a))
-			Expect(snap.ResolverMaps.List()).NotTo(ContainElement(resolverMap1b))
-			Expect(snap.ResolverMaps.List()).NotTo(ContainElement(resolverMap2a))
-			Expect(snap.ResolverMaps.List()).NotTo(ContainElement(resolverMap2b))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
-		}
+		assertSnapshotResolverMaps(nil, ResolverMapList{resolverMap1a, resolverMap1b, resolverMap2a, resolverMap2b})
 	})
 })

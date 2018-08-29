@@ -257,98 +257,68 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		var snap *Snapshot
-
 {{- range .ResourceTypes }}
+
+		/*
+			{{ . }}
+		*/
+		
+		assertSnapshot{{ (resource . $).PluralName }} := func(expect{{ (resource . $).PluralName }} {{ . }}List, unexpect{{ (resource . $).PluralName }} {{ . }}List) {
+		drain:
+			for {
+				select {
+				case snap = <-snapshots:
+					for _, expected := range expect{{ (resource . $).PluralName }} {
+						if _, err := snap.{{ (resource . $).PluralName }}.List().Find(expected.Metadata.ObjectRef()); err != nil {
+							continue drain
+						}
+					}
+					for _, unexpected := range unexpect{{ (resource . $).PluralName }} {
+						if _, err := snap.{{ (resource . $).PluralName }}.List().Find(unexpected.Metadata.ObjectRef()); err == nil {
+							continue drain
+						}
+					}
+					break drain
+				case err := <-errs:
+					Expect(err).NotTo(HaveOccurred())
+				case <-time.After(time.Second * 10):
+					nsList1, _ := {{ lower_camel . }}Client.List(namespace1, clients.ListOpts{})
+					nsList2, _ := {{ lower_camel . }}Client.List(namespace2, clients.ListOpts{})
+					combined := nsList1.ByNamespace()
+					combined.Add(nsList2...)
+					Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
+				}
+			}
+		}	
+
+
 		{{ lower_camel . }}1a, err := {{ lower_camel . }}Client.Write(New{{ . }}(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		{{ lower_camel . }}1b, err := {{ lower_camel . }}Client.Write(New{{ . }}(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-	drain{{ lower_camel . }}:
-		for {
-			select {
-			case snap = <-snapshots:
-				// Expect(snap.{{ (resource . $).PluralName }}.List()).To(ContainElement({{ lower_camel . }}1a))
-				// Expect(snap.{{ (resource . $).PluralName }}.List()).To(ContainElement({{ lower_camel . }}1b))
-				_, err1 := snap.{{ (resource . $).PluralName }}.List().Find({{ lower_camel . }}1a.Metadata.ObjectRef())
-				_, err2 := snap.{{ (resource . $).PluralName }}.List().Find({{ lower_camel . }}1b.Metadata.ObjectRef())
-				if err1 == nil && err2 == nil {
-					break drain{{ lower_camel . }}
-				}
-			case err := <-errs:
-				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Second * 10):
-				nsList1, _ := {{ lower_camel . }}Client.List(namespace1, clients.ListOpts{})
-				nsList2, _ := {{ lower_camel . }}Client.List(namespace2, clients.ListOpts{})
-				combined := nsList1.ByNamespace()
-				combined.Add(nsList2...)
-				msg := log.Sprintf("expected final snapshot before 10 seconds.\nexpected %v\nreceived", combined.List(), snap.{{ (resource . $).PluralName }}.List())
-				Fail(msg)
-			}
-		}
+		assertSnapshot{{ (resource . $).PluralName }}({{ . }}List{ {{ lower_camel . }}1a, {{ lower_camel . }}1b }, nil)
 
 		{{ lower_camel . }}2a, err := {{ lower_camel . }}Client.Write(New{{ . }}(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		{{ lower_camel . }}2b, err := {{ lower_camel . }}Client.Write(New{{ . }}(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-	drain{{ lower_camel . }}2:
-		for {
-			select {
-			case snap = <-snapshots:
-				_, err1 := snap.{{ (resource . $).PluralName }}.List().Find({{ lower_camel . }}1a.Metadata.ObjectRef())
-				_, err2 := snap.{{ (resource . $).PluralName }}.List().Find({{ lower_camel . }}1b.Metadata.ObjectRef())
-				_, err3 := snap.{{ (resource . $).PluralName }}.List().Find({{ lower_camel . }}2a.Metadata.ObjectRef())
-				_, err4 := snap.{{ (resource . $).PluralName }}.List().Find({{ lower_camel . }}2b.Metadata.ObjectRef())
-				if err1 == nil && err2 == nil && err3 == nil && err4 == nil {
-					break drain{{ lower_camel . }}2
-				}
-			case err := <-errs:
-				Expect(err).NotTo(HaveOccurred())
-			case <-time.After(time.Second * 10):
-				nsList1, _ := {{ lower_camel . }}Client.List(namespace1, clients.ListOpts{})
-				nsList2, _ := {{ lower_camel . }}Client.List(namespace2, clients.ListOpts{})
-				combined := nsList1.ByNamespace()
-				combined.Add(nsList2...)
-				Fail("expected final snapshot before 10 seconds. expected "+log.Sprintf("%v", combined))
-			}
-		}
-{{- end}}
+		assertSnapshot{{ (resource . $).PluralName }}({{ . }}List{ {{ lower_camel . }}1a, {{ lower_camel . }}1b,  {{ lower_camel . }}2a, {{ lower_camel . }}2b  }, nil)
 
-{{- range .ResourceTypes }}
 		err = {{ lower_camel . }}Client.Delete({{ lower_camel . }}2a.Metadata.Namespace, {{ lower_camel . }}2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = {{ lower_camel . }}Client.Delete({{ lower_camel . }}2b.Metadata.Namespace, {{ lower_camel . }}2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.{{ (resource . $).PluralName }}.List()).To(ContainElement({{ lower_camel . }}1a))
-			Expect(snap.{{ (resource . $).PluralName }}.List()).To(ContainElement({{ lower_camel . }}1b))
-			Expect(snap.{{ (resource . $).PluralName }}.List()).NotTo(ContainElement({{ lower_camel . }}2a))
-			Expect(snap.{{ (resource . $).PluralName }}.List()).NotTo(ContainElement({{ lower_camel . }}2b))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
-		}
+		assertSnapshot{{ (resource . $).PluralName }}({{ . }}List{ {{ lower_camel . }}1a, {{ lower_camel . }}1b }, {{ . }}List{ {{ lower_camel . }}2a, {{ lower_camel . }}2b })
 
 		err = {{ lower_camel . }}Client.Delete({{ lower_camel . }}1a.Metadata.Namespace, {{ lower_camel . }}1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = {{ lower_camel . }}Client.Delete({{ lower_camel . }}1b.Metadata.Namespace, {{ lower_camel . }}1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case snap := <-snapshots:
-			Expect(snap.{{ (resource . $).PluralName }}.List()).NotTo(ContainElement({{ lower_camel . }}1a))
-			Expect(snap.{{ (resource . $).PluralName }}.List()).NotTo(ContainElement({{ lower_camel . }}1b))
-			Expect(snap.{{ (resource . $).PluralName }}.List()).NotTo(ContainElement({{ lower_camel . }}2a))
-			Expect(snap.{{ (resource . $).PluralName }}.List()).NotTo(ContainElement({{ lower_camel . }}2b))
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Second * 3):
-			Fail("expected snapshot before 1 second")
-		}
+		assertSnapshot{{ (resource . $).PluralName }}(nil, {{ . }}List{ {{ lower_camel . }}1a, {{ lower_camel . }}1b, {{ lower_camel . }}2a, {{ lower_camel . }}2b })
 {{- end}}
 	})
 })
