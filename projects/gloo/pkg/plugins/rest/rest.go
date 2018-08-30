@@ -18,8 +18,10 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	glooplugins "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
+	restapi "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
+
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
 )
 
@@ -86,7 +88,7 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			return nil, errors.Errorf("unknown function %v", funcname)
 		}
 
-		// TODO add extentions from the destination spec
+		// add extentions from the destination spec
 		var err error
 		transformation.Extractors, err = p.createRequestExtractors(restDestinationSpec.Rest.Parameters)
 		if err != nil {
@@ -107,7 +109,7 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 	})
 }
 
-func (p *plugin) createRequestExtractors(params *v1.RestSpec_Parameters) (map[string]*glooplugins.Extraction, error) {
+func (p *plugin) createRequestExtractors(params *restapi.DestinationSpec_Parameters) (map[string]*glooplugins.Extraction, error) {
 	extractors := make(map[string]*glooplugins.Extraction)
 	if params == nil {
 		return extractors, nil
