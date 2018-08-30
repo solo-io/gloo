@@ -241,7 +241,6 @@ func (u *Updater) RunForUpstream(ctx context.Context, upstream *v1.Upstream) err
 			servicespecupstream.SetServiceSpec(res.spec)
 			return nil
 		})
-
 	}
 
 	return discoveryForUpstream.DetectFunctions(ctx, u.GetSecrets, upstream, upstreamSave)
