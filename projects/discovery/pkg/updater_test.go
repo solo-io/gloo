@@ -11,7 +11,17 @@ import (
 	. "github.com/solo-io/solo-kit/projects/discovery/pkg"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	core_solo_io "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	kubernetes_plugins_gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 )
+
+type testUpstreamWriterClient struct{}
+
+func (t *testUpstreamWriterClient) Write(resource *v1.Upstream, opts clients.WriteOpts) (*v1.Upstream, error) {
+	return resource, nil
+}
 
 type testDiscovery struct {
 	isUpstreamFunctionalResult bool
@@ -55,19 +65,38 @@ func (t *fakeResolver) Resolve(u *v1.Upstream) (*url.URL, error) {
 var _ = Describe("Updater", func() {
 
 	var (
-		ctx      context.Context
-		cancel   context.CancelFunc
-		resolver *fakeResolver
-		testDisc *testDiscovery
-		updater  *Updater
+		ctx                  context.Context
+		cancel               context.CancelFunc
+		resolver             *fakeResolver
+		testDisc             *testDiscovery
+		updater              *Updater
+		up                   *v1.Upstream
+		upstreamWriterClient *testUpstreamWriterClient
 	)
 
 	BeforeEach(func() {
+		upstreamWriterClient = &testUpstreamWriterClient{}
 		ctx, cancel = context.WithCancel(context.Background())
-		resolver = &fakeResolver{}
+		u, err := url.Parse("http://solo.io")
+		Expect(err).NotTo(HaveOccurred())
+		resolver = &fakeResolver{
+			resolveUrl: u,
+		}
 		testDisc = &testDiscovery{}
-		updater = NewUpdater(ctx, resolver, 0, []FunctionDiscovery{testDisc})
+		updater = NewUpdater(ctx, resolver, upstreamWriterClient, 0, []FunctionDiscovery{testDisc})
+		up = &v1.Upstream{
+			Metadata: core_solo_io.Metadata{
+				Namespace: "ns",
+				Name:      "up",
+			},
+			UpstreamSpec: &v1.UpstreamSpec{
+				UpstreamType: &v1.UpstreamSpec_Kube{
+					Kube: &kubernetes_plugins_gloo_solo_io.UpstreamSpec{},
+				},
+			},
+		}
 	})
+
 	AfterEach(func() {
 		cancel()
 	})
@@ -78,6 +107,16 @@ var _ = Describe("Updater", func() {
 		time.Sleep(time.Second / 10)
 		Expect(testDisc.isUpstreamFunctional).To(BeTrue())
 		Expect(testDisc.detectUpstreamType).To(BeFalse())
+		Expect(testDisc.detectFunctions).To(BeTrue())
+	})
+
+	It("should detect functions when upstream type is known", func() {
+		testDisc.isUpstreamFunctionalResult = false
+		testDisc.serviceSpec = &plugins.ServiceSpec{}
+		updater.UpstreamAdded(up)
+		time.Sleep(time.Second / 10)
+		Expect(testDisc.isUpstreamFunctional).To(BeTrue())
+		Expect(testDisc.detectUpstreamType).To(BeTrue())
 		Expect(testDisc.detectFunctions).To(BeTrue())
 	})
 

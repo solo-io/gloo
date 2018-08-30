@@ -16,6 +16,10 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 )
 
+type UpstreamWriterClient interface {
+	Write(resource *v1.Upstream, opts clients.WriteOpts) (*v1.Upstream, error)
+}
+
 type Updater struct {
 	functionalPlugins []FunctionDiscovery
 	activeupstreams   map[string]context.CancelFunc
@@ -23,8 +27,7 @@ type Updater struct {
 	resolver          Resolver
 	logger            *zap.SugaredLogger
 
-	upstreamClient v1.UpstreamClient
-	secretClient   v1.SecretClient
+	upstreamWriter UpstreamWriterClient
 
 	maxInParallelSemaphore chan struct{}
 
@@ -45,7 +48,7 @@ func getConcurrencyChan(maxoncurrency uint) chan struct{} {
 
 }
 
-func NewUpdater(ctx context.Context, resolver Resolver, maxoncurrency uint, functionalPlugins []FunctionDiscovery) *Updater {
+func NewUpdater(ctx context.Context, resolver Resolver, upstreamclient UpstreamWriterClient, maxoncurrency uint, functionalPlugins []FunctionDiscovery) *Updater {
 	ctx = contextutils.WithLogger(ctx, "function-discovery-updater")
 	return &Updater{
 		logger:                 contextutils.LoggerFrom(ctx),
@@ -54,6 +57,7 @@ func NewUpdater(ctx context.Context, resolver Resolver, maxoncurrency uint, func
 		functionalPlugins:      functionalPlugins,
 		activeupstreams:        make(map[string]context.CancelFunc),
 		maxInParallelSemaphore: getConcurrencyChan(maxoncurrency),
+		upstreamWriter:         upstreamclient,
 	}
 }
 
@@ -135,7 +139,7 @@ func (u *Updater) saveUpstream(ctx context.Context, upstream *v1.Upstream, mutat
 	wo.OverwriteExisting = true
 
 	/* upstream, err = */
-	u.upstreamClient.Write(upstream, wo)
+	u.upstreamWriter.Write(upstream, wo)
 
 	// TODO: if write failed, due to resource conflict,
 	// get latest version, and if it still doesnt have a spec, mutate again and retry.
@@ -145,7 +149,6 @@ func (u *Updater) saveUpstream(ctx context.Context, upstream *v1.Upstream, mutat
 
 type supportSpec interface {
 	SetServiceSpec(*plugins.ServiceSpec)
-	GetServiceSpec()
 }
 
 func (u *Updater) Run() error {
