@@ -16,13 +16,15 @@ type DiscoverySyncer struct {
 
 func (d *DiscoverySyncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	// update the upstream and secrets
-	//	newupstreams = snap.UpstreamList
+	//	this will feed the update loop via a channel
 	return nil
 }
 
 func (d *DiscoverySyncer) Setup(context.Context) error {
+	/*
+		setup an event loop and an update loop
+	*/
 	return nil
-
 }
 
 func (d *DiscoverySyncer) Update(upstreams v1.UpstreamList, secrets v1.SecretList) error {
