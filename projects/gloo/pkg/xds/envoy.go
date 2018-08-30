@@ -11,6 +11,7 @@ import (
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	envoyserver "github.com/envoyproxy/go-control-plane/pkg/server"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"google.golang.org/grpc"
 )
 
@@ -27,11 +28,10 @@ const (
 	fallbackStatusCode = 500
 )
 
-// One hasher, like the cache, is meant to be shared between multiple event loops
-// Allows us to serve XDS for configurations in multiple namespaces
-type EnvoyInstanceHasher struct {
+type ProxyKeyHasher struct {
 	ctx       context.Context
-	validKeys map[string][]string
+	// (ilackarms) for the purpose of invalidation in the hasher
+	validKeys []string
 	lock      *sync.RWMutex
 }
 
@@ -40,39 +40,40 @@ Envoy proxies are assigned configuration by Gloo based on their Node ID.
 Proxies must register to Gloo with their node ID in the format "NAMESPACE~NAME"
 Where NAMESPACE and NAME are the namespace and name of the correlating Proxy resource.`
 
-func (h *EnvoyInstanceHasher) ID(node *core.Node) string {
-	h.lock.RLock()
-	defer h.lock.RUnlock()
-	for namespace, keys := range h.validKeys {
-		for _, key := range keys {
-			// This is where Node ID is defined from namespace~name
-			nodeId := fmt.Sprintf("%v~%v", namespace, key)
-			if nodeId == node.Id {
-				return nodeId
+func (h *ProxyKeyHasher) ID(node *core.Node) string {
+	for _, key := range h.validKeys {
+			if node.Id == key {
+				return key
 			}
-		}
 	}
 	contextutils.LoggerFrom(h.ctx).Warnf("invalid id provided by Envoy: %v", node.Id)
 	contextutils.LoggerFrom(h.ctx).Debugf(errorString)
 	return fallbackNodeKey
 }
 
-// Called in translator
-func (h *EnvoyInstanceHasher) SetValidKeys(namespace string, validKeys []string) {
-	h.lock.Unlock()
-	defer h.lock.Lock()
-	h.validKeys[namespace] = validKeys
+func xdsKey(proxy *v1.Proxy) string {
+	namespace, name := proxy.GetMetadata().ObjectRef()
+	return fmt.Sprintf("%v~%v", namespace, name)
 }
 
-func newNodeHasher(ctx context.Context) *EnvoyInstanceHasher {
-	return &EnvoyInstanceHasher{
+// Called in Syncer when a new set of proxies arrive
+func (h *ProxyKeyHasher) SetKeysFromProxies(proxies v1.ProxyList) {
+	var validKeys []string
+	// This is where we correlate Node ID with proxy namespace~name
+	for _, proxy := range proxies {
+		validKeys = append(validKeys, xdsKey(proxy))
+	}
+	h.validKeys = validKeys
+}
+
+func newNodeHasher(ctx context.Context) *ProxyKeyHasher {
+	return &ProxyKeyHasher{
 		ctx:       ctx,
-		validKeys: make(map[string][]string),
 		lock:      &sync.RWMutex{},
 	}
 }
 
-func SetupEnvoyXds(ctx context.Context, grpcServer *grpc.Server, callbacks envoyserver.Callbacks) (*EnvoyInstanceHasher, envoycache.SnapshotCache) {
+func SetupEnvoyXds(ctx context.Context, grpcServer *grpc.Server, callbacks envoyserver.Callbacks) (*ProxyKeyHasher, envoycache.SnapshotCache) {
 	ctx = contextutils.WithLogger(ctx, "envoy-xds-server")
 	hasher := newNodeHasher(ctx)
 	envoyCache := envoycache.NewSnapshotCache(true, hasher, contextutils.LoggerFrom(ctx))

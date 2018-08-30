@@ -14,16 +14,14 @@ import (
 )
 
 type syncer struct {
-	namespace  string
 	translator translator.Translator
 	xdsCache   envoycache.SnapshotCache
-	xdsHasher  *xds.EnvoyInstanceHasher
+	xdsHasher  *xds.ProxyKeyHasher
 	reporter   reporter.Reporter
 }
 
-func NewSyncer(namespace string, translator translator.Translator, xdsCache envoycache.SnapshotCache, xdsHasher *xds.EnvoyInstanceHasher, reporter reporter.Reporter) v1.Syncer {
+func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCache, xdsHasher *xds.ProxyKeyHasher, reporter reporter.Reporter) v1.Syncer {
 	return &syncer{
-		namespace:  namespace,
 		translator: translator,
 		xdsCache:   xdsCache,
 		xdsHasher:  xdsHasher,
@@ -32,22 +30,22 @@ func NewSyncer(namespace string, translator translator.Translator, xdsCache envo
 }
 
 func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
-	ctx = contextutils.WithLogger(ctx, "gloo.syncer."+s.namespace)
+	ctx = contextutils.WithLogger(ctx, "gloo.syncer")
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("Beginning translation loop for snapshot %v", snap.Hash())
 	logger.Debugf("%v", snap)
 	allResourceErrs := make(reporter.ResourceErrors)
-	allResourceErrs.Initialize(snap.UpstreamList.AsInputResources()...)
-	allResourceErrs.Initialize(snap.ProxyList.AsInputResources()...)
+	allResourceErrs.Initialize(snap.Upstreams.List().AsInputResources()...)
+	allResourceErrs.Initialize(snap.Proxies.List().AsInputResources()...)
 
 	params := plugins.Params{
 		Ctx:      ctx,
 		Snapshot: snap,
 	}
 
-	s.xdsHasher.SetValidKeys(s.namespace, snap.ProxyList.Names())
+	s.xdsHasher.SetKeysFromProxies(snap.Proxies.List())
 
-	for _, proxy := range snap.ProxyList {
+	for _, proxy := range snap.Proxies.List() {
 		xdsSnapshot, resourceErrs := s.translator.Translate(params, proxy)
 
 		allResourceErrs.Merge(resourceErrs)

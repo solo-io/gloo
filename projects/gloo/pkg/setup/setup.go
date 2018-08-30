@@ -5,6 +5,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
+	"github.com/solo-io/solo-kit/pkg/namespacing"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -20,11 +21,30 @@ type Opts struct {
 	configBackend   factory.ResourceClientFactoryOpts
 	secretBackend   factory.ResourceClientFactoryOpts
 	artifactBackend factory.ResourceClientFactoryOpts
+	namespacer      namespacing.Namespacer
 	grpcServer      *grpc.Server
 	watchOpts       clients.WatchOpts
 }
 
 func Setup(opts Opts) error {
+	namespaces, errs, err := opts.namespacer.Namespaces(opts.watchOpts)
+	if err != nil {
+		return err
+	}
+	for {
+		select {
+		case err := <-errs:
+			return err
+		case watchNamespaces := <-namespaces:
+			err := setupForNamespaces(watchNamespaces, opts)
+			if err != nil {
+				return err
+			}
+		}
+	}
+}
+
+func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 	watchOpts := opts.watchOpts.WithDefaults()
 	inputResourceOpts := opts.configBackend
 	secretOpts := opts.secretBackend
@@ -109,4 +129,3 @@ func Setup(opts Opts) error {
 		}
 	}
 }
-
