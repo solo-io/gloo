@@ -4,12 +4,10 @@ option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugin
 
 import "gogoproto/gogo.proto";
 
-import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation.proto";
+import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/rest/rest.proto";
+
 
 // TODO: cna't use plugins/rest/rest.proto as it creates a import cycle in the generated go.
-message RestServiceSpec {
-    map<string, envoy.api.v2.filter.http.TransformationTemplate> transformation = 1;
-}
 
 option (gogoproto.equal_all) = true;
 
@@ -22,6 +20,6 @@ message ServiceSpec {
     // to be usable by Gloo.
     oneof plugin_type {
         
-        RestServiceSpec rest = 1;
+        rest.plugins.gloo.solo.io.ServiceSpec rest = 1;
     }
 }

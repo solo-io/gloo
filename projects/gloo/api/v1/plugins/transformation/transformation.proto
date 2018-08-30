@@ -6,7 +6,7 @@ syntax = "proto3";
 
 package envoy.api.v2.filter.http;
 
-option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins";
+option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation";
 
 import "gogoproto/gogo.proto";
 

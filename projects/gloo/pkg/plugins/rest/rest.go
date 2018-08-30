@@ -19,6 +19,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	glooplugins "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 	restapi "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
+	transformapi "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
 
@@ -97,9 +98,9 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		// should be aws upstream
 
 		// get function
-		ret := &glooplugins.RouteTransformations{
-			RequestTransformation: &glooplugins.Transformation{
-				TransformationType: &glooplugins.Transformation_TransformationTemplate{
+		ret := &transformapi.RouteTransformations{
+			RequestTransformation: &transformapi.Transformation{
+				TransformationType: &transformapi.Transformation_TransformationTemplate{
 					TransformationTemplate: transformation,
 				},
 			},
@@ -109,8 +110,8 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 	})
 }
 
-func (p *plugin) createRequestExtractors(params *restapi.DestinationSpec_Parameters) (map[string]*glooplugins.Extraction, error) {
-	extractors := make(map[string]*glooplugins.Extraction)
+func (p *plugin) createRequestExtractors(params *restapi.DestinationSpec_Parameters) (map[string]*transformapi.Extraction, error) {
+	extractors := make(map[string]*transformapi.Extraction)
 	if params == nil {
 		return extractors, nil
 	}
@@ -139,7 +140,7 @@ func (p *plugin) createRequestExtractors(params *restapi.DestinationSpec_Paramet
 	return extractors, nil
 }
 
-func (p *plugin) addHeaderExtractorFromParam(header, parameter string, extractors map[string]*glooplugins.Extraction) error {
+func (p *plugin) addHeaderExtractorFromParam(header, parameter string, extractors map[string]*transformapi.Extraction) error {
 	if parameter == "" {
 		return nil
 	}
@@ -150,7 +151,7 @@ func (p *plugin) addHeaderExtractorFromParam(header, parameter string, extractor
 	if len(paramNames) == 0 {
 		// extract everything
 		// TODO(yuval): create a special extractor that doesn't use regex when we just want the whole thing
-		extract := &glooplugins.Extraction{
+		extract := &transformapi.Extraction{
 			Header:   header,
 			Regex:    "(.*)",
 			Subgroup: uint32(1),
@@ -169,7 +170,7 @@ func (p *plugin) addHeaderExtractorFromParam(header, parameter string, extractor
 
 	// otherwise it's regex, and we need to create an extraction for each variable name they defined
 	for i, name := range paramNames {
-		extract := &glooplugins.Extraction{
+		extract := &transformapi.Extraction{
 			Header:   header,
 			Regex:    regexMatcher,
 			Subgroup: uint32(i + 1),
