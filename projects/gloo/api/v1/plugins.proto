@@ -8,6 +8,7 @@ option (gogoproto.equal_all) = true;
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/aws/aws.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/azure/azure.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/kubernetes/kubernetes.proto";
+import "google/protobuf/wrappers.proto";
 
 // Plugin-specific configuration that lives on listeners
 // Each ListenerPlugin object contains configuration for a specific plugin
@@ -34,7 +35,36 @@ message DestinationSpec {
     oneof destination_type {
         aws.plugins.gloo.solo.io.DestinationSpec aws = 1;
         azure.plugins.gloo.solo.io.DestinationSpec azure = 2;
+        RestSpec rest = 3;
     }
+}
+
+// TODO: figure out import cycle mess.
+message RestSpec {
+    string function_name = 1;
+
+    message Parameters {
+        // headers that will be used to extract data for processing output templates
+        // Gloo will search for parameters by their name in header value strings, enclosed in single
+        // curly braces
+        // Example:
+        //   extensions:
+        //     parameters:
+        //         headers:
+        //           x-user-id: { userId }
+        map<string, string> headers = 1;
+        // part of the (or the entire) path that will be used extract data for processing output templates
+        // Gloo will search for parameters by their name in header value strings, enclosed in single
+        // curly braces
+        // Example:
+        //   extensions:
+        //     parameters:
+        //         path: /users/{ userId }
+        google.protobuf.StringValue path = 2;
+        //TODO: support query params
+        //TODO: support form params
+    }
+    Parameters parameters = 2;
 }
 
 // Each upstream in Gloo has a type. Supported types include `static`, `kubernetes`, `aws`, `consul`, and more.

@@ -13,8 +13,9 @@ import (
 )
 
 type InitParams struct {
-	Ctx       context.Context
-	Bootstrap bootstrap.Config
+	Ctx                 context.Context
+	Bootstrap           bootstrap.Config
+	TransformationAdded *bool
 }
 
 type Plugin interface {

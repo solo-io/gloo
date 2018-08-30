@@ -3,6 +3,14 @@ package plugins.gloo.solo.io;
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins";
 
 import "gogoproto/gogo.proto";
+
+import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation.proto";
+
+// TODO: cna't use plugins/rest/rest.proto as it creates a import cycle in the generated go.
+message RestServiceSpec {
+    map<string, envoy.api.v2.filter.http.TransformationTemplate> transformation = 1;
+}
+
 option (gogoproto.equal_all) = true;
 
 // Describes APIs and application-level information for services
@@ -13,7 +21,7 @@ message ServiceSpec {
     // Note to developers: new Service Plugins must be added to this oneof field
     // to be usable by Gloo.
     oneof plugin_type {
-        string empty = 1;
+        
+        RestServiceSpec rest = 1;
     }
 }
-

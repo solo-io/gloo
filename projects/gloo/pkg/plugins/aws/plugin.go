@@ -75,7 +75,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	}
 
 	// TODO(ilacakrms): consider if secretRef should be namespace+name
-	awsSecrets, err := params.Snapshot.SecretList.Find("", upstreamSpec.Aws.SecretRef)
+	awsSecrets, err := params.Snapshot.Secrets[in.Metadata.Namespace].Find("", upstreamSpec.Aws.SecretRef)
 	if err != nil {
 		return errors.Wrapf(err, "retrieving aws secret")
 	}

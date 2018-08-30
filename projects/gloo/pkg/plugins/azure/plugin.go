@@ -9,6 +9,7 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
 
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -16,6 +17,9 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
+
+	// TODO transformation will be moved to its own package (derived from the filter).
+	transformation "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 )
 
 const (
@@ -31,6 +35,7 @@ type plugin struct {
 	recordedUpstreams map[string]*azure.UpstreamSpec
 	apiKeys           map[string]string
 	ctx               context.Context
+	transformsAdded   *bool
 }
 
 func NewAzurePlugin() plugins.Plugin {
@@ -38,6 +43,7 @@ func NewAzurePlugin() plugins.Plugin {
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
+	p.transformsAdded = params.TransformationAdded
 	p.ctx = params.Ctx
 	return nil
 }
@@ -65,7 +71,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 
 	if azureUpstream.SecretRef != "" {
 		// TODO: namespace
-		azureSecrets, err := params.Snapshot.SecretList.Find("", azureUpstream.SecretRef)
+		azureSecrets, err := params.Snapshot.Secrets[in.Metadata.Namespace].Find("", azureUpstream.SecretRef)
 		if err != nil {
 			return errors.Wrapf(err, "azure secrets for ref %v not found", azureUpstream.SecretRef)
 		}
@@ -79,7 +85,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 }
 
 func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
-	return pluginutils.MarkHeaders(p.ctx, in, out, func(spec *v1.Destination) ([]*envoycore.HeaderValueOption, error) {
+	return pluginutils.MarkPerFilterConfig(p.ctx, in, out, transformation.FilterName, func(spec *v1.Destination) (proto.Message, error) {
 		// check if it's aws destination
 		if spec.DestinationSpec == nil {
 			return nil, nil
@@ -94,7 +100,6 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			// TODO(yuval-k): panic in debug
 			return nil, errors.Errorf("%v is not an Azure upstream", spec.UpstreamName)
 		}
-		// should be aws upstream
 
 		// get function
 		functionName := azureDestinationSpec.Azure.FunctionName
@@ -104,12 +109,29 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 				if err != nil {
 					return nil, err
 				}
+
+				*p.transformsAdded = true
+
 				hostname := GetHostname(upstreamSpec)
-				// TODO: this is removed by: https://github.com/envoyproxy/envoy/pull/4220
-				// TODO: use transformation filter?
-				ret := []*envoycore.HeaderValueOption{
-					header(":path", path),
-					header(":authority", hostname),
+				// TODO: consider adding a new add headers transformation allow adding headers with no templates to improve performance.
+				ret := &transformation.RouteTransformations{
+					RequestTransformation: &transformation.Transformation{
+						TransformationType: &transformation.Transformation_TransformationTemplate{
+							TransformationTemplate: &transformation.TransformationTemplate{
+								Headers: map[string]*transformation.InjaTemplate{
+									":path": &transformation.InjaTemplate{
+										Text: path,
+									},
+									":authority": &transformation.InjaTemplate{
+										Text: hostname,
+									},
+								},
+								BodyTransformation: &transformation.TransformationTemplate_Passthrough{
+									Passthrough: &transformation.Passthrough{},
+								},
+							},
+						},
+					},
 				}
 
 				return ret, nil
