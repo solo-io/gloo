@@ -1,4 +1,4 @@
-package templates
+package protoc
 
 import (
 	"strings"

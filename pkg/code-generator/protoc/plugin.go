@@ -2,8 +2,6 @@ package protoc
 
 import (
 	"strings"
-	"unicode"
-	"unicode/utf8"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -36,10 +34,8 @@ var packageFilesToGenerate = map[string]packageTemplateFunc{
 	"_event_loop_test.go": templates.GenerateEventLoopTestCode,
 }
 
-var descriptors []*protokit.FileDescriptor
-
 func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
-	descriptors = protokit.ParseCodeGenRequest(req)
+	descriptors := protokit.ParseCodeGenRequest(req)
 
 	resp := new(plugin_go.CodeGeneratorResponse)
 
@@ -112,98 +108,6 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 
 	return resp, nil
 }
-
-//type message struct {
-//	name   string
-//	fields []field
-//}
-//
-//type field struct {
-//	name  string
-//	ftype string
-//	// nil if scalar
-//	messagetype *message
-//}
-//
-//func findMessage(typeName string) *protokit.Descriptor {
-//
-//}
-//
-//func constructTree(topLevel *protokit.Descriptor) *message {
-//	msg := &message{
-//		name: topLevel.GetName(),
-//	}
-//	for _, f := range topLevel.GetField() {
-//		var fieldMsg *message
-//		if f.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
-//			fieldMsg = constructTree(findMessage(f.GetTypeName()))
-//		}
-//		var repeated string
-//		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
-//			repeated = "repeated "
-//		}
-//		field := field{
-//			name:        f.GetName(),
-//			ftype:       repeated + f.GetTypeName(),
-//			messagetype: fieldMsg,
-//		}
-//	}
-//	return msg
-//}
-//
-//func findProtoMessage(msgTypeName string) (*protokit.Descriptor, error) {
-//	packageName := strings.TrimPrefix(msgTypeName, ".")
-//	for _, d := range descriptors {
-//		if d.GetPackage()
-//		log.DefaultOut = os.Stderr
-//		log.Printf("%v", d)
-//		time.Sleep(time.Minute)
-//	}
-//	return nil, nil
-//}
-//
-//func genCmd(resourceDescriptors map[string]*protokit.Descriptor) ([]*plugin_go.CodeGeneratorResponse_File, error) {
-//	var files []*plugin_go.CodeGeneratorResponse_File
-//	for resourceName, descriptor := range resourceDescriptors {
-//		cmdFile, err := genCmdFile(descriptor)
-//		if err != nil {
-//			return nil, err
-//		}
-//		files = append(files, &plugin_go.CodeGeneratorResponse_File{
-//			Name:    proto.String("cmd/" + resourceName + ".json"),
-//			Content: proto.String(cmdFile),
-//		})
-//	}
-//	return files, nil
-//}
-//
-//func toString(fields []*protokit.FieldDescriptor) string {
-//	var msgs []string
-//	for _, f := range fields {
-//		msgs = append(msgs, fmt.Sprintf("- Name: %v", f.GetName()))
-//		if f.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
-//			msgs = append(msgs, fmt.Sprintf("  Type: []%v", f.GetTypeName()))
-//		} else {
-//			msgs = append(msgs, fmt.Sprintf("  Type: %v", f.GetTypeName()))
-//		}
-//		msgs = append(msgs, fmt.Sprintf("  Field Type: %v", f.GetType()))
-//	}
-//	return strings.Join(msgs, "\n")
-//}
-//
-//func genCmdFile(message *protokit.Descriptor) (string, error) {
-//	var msgs []string
-//	for _, v := range [][]interface{}{
-//		{"message.GetName:\n\t", message.GetName()},
-//		{"message.GetComments:\n\t", message.GetComments()},
-//		{"message.GetOptions:\n\t", message.GetOptions()},
-//		{"message.GetOneofDecl:\n\t", message.GetOneofDecl()},
-//		{"message.GetMessageFields:\n", toString(message.GetMessageFields())},
-//	} {
-//		msgs = append(msgs, fmt.Sprintf("%v%v", v[0].(string), v[1]))
-//	}
-//	return strings.Join(msgs, "\n\n"), nil
-//}
 
 func codegenParams(packageName string, msg *protokit.Descriptor, resourceType string, fields []string) *templates.ResourceLevelTemplateParams {
 	magicComments := strings.Split(msg.GetComments().Leading, "\n")
@@ -290,74 +194,4 @@ func generatePackageLevelFile(params templates.PackageLevelTemplateParams, suffi
 		Name:    proto.String(fileName),
 		Content: proto.String(content),
 	}, nil
-}
-
-// goPackageOption interprets the file's go_package option.
-// If there is no go_package, it returns ("", "", false).
-// If there's a simple name, it returns ("", pkg, true).
-// If the option implies an import path, it returns (impPath, pkg, true).
-func goPackage(d *protokit.FileDescriptor) string {
-	opt := d.GetOptions().GetGoPackage()
-	if opt == "" {
-		return ""
-	}
-	// A semicolon-delimited suffix delimits the import path and package name.
-	sc := strings.Index(opt, ";")
-	if sc >= 0 {
-		return cleanPackageName(opt[sc+1:])
-	}
-	// The presence of a slash implies there's an import path.
-	slash := strings.LastIndex(opt, "/")
-	if slash >= 0 {
-		return cleanPackageName(opt[slash+1:])
-	}
-	return cleanPackageName(opt)
-}
-
-var isGoKeyword = map[string]bool{
-	"break":       true,
-	"case":        true,
-	"chan":        true,
-	"const":       true,
-	"continue":    true,
-	"default":     true,
-	"else":        true,
-	"defer":       true,
-	"fallthrough": true,
-	"for":         true,
-	"func":        true,
-	"go":          true,
-	"goto":        true,
-	"if":          true,
-	"import":      true,
-	"interface":   true,
-	"map":         true,
-	"package":     true,
-	"range":       true,
-	"return":      true,
-	"select":      true,
-	"struct":      true,
-	"switch":      true,
-	"type":        true,
-	"var":         true,
-}
-
-func badToUnderscore(r rune) rune {
-	if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' {
-		return r
-	}
-	return '_'
-}
-
-func cleanPackageName(name string) string {
-	name = strings.Map(badToUnderscore, name)
-	// Identifier must not be keyword: insert _.
-	if isGoKeyword[name] {
-		name = "_" + name
-	}
-	// Identifier must not begin with digit: insert _.
-	if r, _ := utf8.DecodeRuneInString(name); unicode.IsDigit(r) {
-		name = "_" + name
-	}
-	return name
 }
