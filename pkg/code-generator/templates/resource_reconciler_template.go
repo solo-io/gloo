@@ -1,7 +1,10 @@
 package templates
 
-const typedReconcilerTemplateContents = `package {{ .PackageName }}
+import (
+	"text/template"
+)
 
+var ResourceReconcilerTemplate = template.Must(template.New("resource_client").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reconcile"
@@ -45,4 +48,4 @@ func (r *{{ lower_camel .ResourceType }}Reconciler) Reconcile(namespace string, 
 	}
 	return r.base.Reconcile(namespace, {{ lower_camel .ResourceType }}sToResources(desiredResources), transitionResources, opts)
 }
-`
+`))
