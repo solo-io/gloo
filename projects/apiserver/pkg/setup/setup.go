@@ -135,9 +135,30 @@ func sampleUpstreams() v1.UpstreamList {
 						ServiceName:      "palmer-eldritch",
 						ServiceNamespace: "pkd",
 						ServicePort:      8080,
-						ServiceSpec: &plugins.ServiceSpec{
-							PluginType: &plugins.ServiceSpec_Empty{
-								Empty: "eventually this will be replaced with an actual plugin (gRPC or Swagger)",
+						ServiceSpec:      &plugins.ServiceSpec{},
+					},
+				},
+			},
+		},
+		{
+			Metadata: makeMetadata("upstream", "some-namespace", 4),
+			UpstreamSpec: &v1.UpstreamSpec{
+				UpstreamType: &v1.UpstreamSpec_Azure{
+					Azure: &azure.UpstreamSpec{
+						FunctionAppName: "one-cloud-to-rule-them-all",
+						SecretRef:       "my-precious",
+						Functions: []*azure.UpstreamSpec_FunctionSpec{
+							{
+								FunctionName: "CreateRing",
+								AuthLevel:    "dwarf_lvl",
+							},
+							{
+								FunctionName: "DestroyRing",
+								AuthLevel:    "hobbit_lvl",
+							},
+							{
+								FunctionName: "TransportRing",
+								AuthLevel:    "hobbit_lvl",
 							},
 						},
 					},
