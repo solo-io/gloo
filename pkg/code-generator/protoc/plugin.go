@@ -47,6 +47,13 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 
 	resp := new(plugin_go.CodeGeneratorResponse)
 
+	for _, file := range code {
+		resp.File = append(resp.File, &plugin_go.CodeGeneratorResponse_File{
+			Name:    proto.String(file.Filename),
+			Content: proto.String(file.Content),
+		})
+	}
+
 	return resp, nil
 }
 

@@ -3,6 +3,7 @@ package codegen
 import (
 	"bytes"
 
+	"github.com/iancoleman/strcase"
 	"github.com/solo-io/solo-kit/pkg/code-generator/templates"
 )
 
@@ -19,14 +20,14 @@ func GenerateFiles(project *Project) (Files, error) {
 		return nil, err
 	}
 	for _, res := range project.Resources {
-		fs, err := generateFilesForResource(project, res)
+		fs, err := generateFilesForResource(res)
 		if err != nil {
 			return nil, err
 		}
 		files = append(files, fs...)
 	}
 	for _, grp := range project.ResourceGroups {
-		fs, err := generateFilesForResourceGroup(project, grp)
+		fs, err := generateFilesForResourceGroup(grp)
 		if err != nil {
 			return nil, err
 		}
@@ -35,13 +36,28 @@ func GenerateFiles(project *Project) (Files, error) {
 	return files, nil
 }
 
-func generateFilesForResource(project *Project, resource *Resource) (Files, error) {
+func generateFilesForResource(resource *Resource) (Files, error) {
 	var v Files
-
+	content, err := generateResourceExtensions(resource)
+	if err != nil {
+		return nil, err
+	}
+	v = append(v, File{
+		Filename: strcase.ToSnake(resource.Name) + ".go",
+		Content:  content,
+	})
+	content, err = generateResourceClient(resource)
+	if err != nil {
+		return nil, err
+	}
+	v = append(v, File{
+		Filename: strcase.ToSnake(resource.Name) + "_client.go",
+		Content:  content,
+	})
 	return v, nil
 }
 
-func generateFilesForResourceGroup(project *Project, resource *ResourceGroup) (Files, error) {
+func generateFilesForResourceGroup(resource *ResourceGroup) (Files, error) {
 	var v Files
 
 	return v, nil
@@ -51,6 +67,14 @@ func generateFilesForProject(project *Project) (Files, error) {
 	var v Files
 
 	return v, nil
+}
+
+func generateResourceExtensions(resource *Resource) (string, error) {
+	buf := &bytes.Buffer{}
+	if err := templates.ResourceExtensionTemplate.Execute(buf, resource); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 func generateResourceClient(resource *Resource) (string, error) {

@@ -15,14 +15,12 @@ var funcs = template.FuncMap{
 	"snake":       strcase.ToSnake,
 }
 
-var ResourceClientTemplate = template.Must(template.New("resource_client").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
+var ResourceExtensionTemplate = template.Must(template.New("resource_extensions").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
 
 import (
 	"sort"
 
 	"github.com/gogo/protobuf/proto"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -41,7 +39,7 @@ func New{{ .Name }}(namespace, name string) *{{ .Name }} {
 	}
 }
 
-{{- if $.IsInputType }}
+{{- if $.HasStatus }}
 
 func (r *{{ .Name }}) SetStatus(status core.Status) {
 	r.Status = status
@@ -52,7 +50,7 @@ func (r *{{ .Name }}) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
 
-{{- if .IsDataType}}
+{{- if .HasData}}
 
 func (r *{{ .Name }}) SetData(data map[string]string) {
 	r.Data = data
@@ -64,29 +62,29 @@ type {{ .PluralName }}ByNamespace map[string]{{ .Name }}List
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list {{ .Name }}List) Find(namespace, name string) (*{{ .Name }}, error) {
-	for _, {{ lower_camel .ResourceType }} := range list {
-		if {{ lower_camel .ResourceType }}.Metadata.Name == name {
-			if namespace == "" || {{ lower_camel .ResourceType }}.Metadata.Namespace == namespace {
-				return {{ lower_camel .ResourceType }}, nil
+	for _, {{ lower_camel .Name }} := range list {
+		if {{ lower_camel .Name }}.Metadata.Name == name {
+			if namespace == "" || {{ lower_camel .Name }}.Metadata.Namespace == namespace {
+				return {{ lower_camel .Name }}, nil
 			}
 		}
 	}
-	return nil, errors.Errorf("list did not find {{ lower_camel .ResourceType }} %v.%v", namespace, name)
+	return nil, errors.Errorf("list did not find {{ lower_camel .Name }} %v.%v", namespace, name)
 }
 
 func (list {{ .Name }}List) AsResources() resources.ResourceList {
 	var ress resources.ResourceList 
-	for _, {{ lower_camel .ResourceType }} := range list {
-		ress = append(ress, {{ lower_camel .ResourceType }})
+	for _, {{ lower_camel .Name }} := range list {
+		ress = append(ress, {{ lower_camel .Name }})
 	}
 	return ress
 }
 
-{{ if $.IsInputType -}}
+{{ if $.HasStatus -}}
 func (list {{ .Name }}List) AsInputResources() resources.InputResourceList {
 	var ress resources.InputResourceList
-	for _, {{ lower_camel .ResourceType }} := range list {
-		ress = append(ress, {{ lower_camel .ResourceType }})
+	for _, {{ lower_camel .Name }} := range list {
+		ress = append(ress, {{ lower_camel .Name }})
 	}
 	return ress
 }
@@ -94,16 +92,16 @@ func (list {{ .Name }}List) AsInputResources() resources.InputResourceList {
 
 func (list {{ .Name }}List) Names() []string {
 	var names []string
-	for _, {{ lower_camel .ResourceType }} := range list {
-		names = append(names, {{ lower_camel .ResourceType }}.Metadata.Name)
+	for _, {{ lower_camel .Name }} := range list {
+		names = append(names, {{ lower_camel .Name }}.Metadata.Name)
 	}
 	return names
 }
 
 func (list {{ .Name }}List) NamespacesDotNames() []string {
 	var names []string
-	for _, {{ lower_camel .ResourceType }} := range list {
-		names = append(names, {{ lower_camel .ResourceType }}.Metadata.Namespace + "." + {{ lower_camel .ResourceType }}.Metadata.Name)
+	for _, {{ lower_camel .Name }} := range list {
+		names = append(names, {{ lower_camel .Name }}.Metadata.Namespace + "." + {{ lower_camel .Name }}.Metadata.Name)
 	}
 	return names
 }
@@ -115,23 +113,23 @@ func (list {{ .Name }}List) Sort() {
 }
 
 func (list {{ .Name }}List) Clone() {{ .Name }}List {
-	var {{ lower_camel .ResourceType }}List {{ .Name }}List
-	for _, {{ lower_camel .ResourceType }} := range list {
-		{{ lower_camel .ResourceType }}List = append({{ lower_camel .ResourceType }}List, proto.Clone({{ lower_camel .ResourceType }}).(*{{ .Name }}))
+	var {{ lower_camel .Name }}List {{ .Name }}List
+	for _, {{ lower_camel .Name }} := range list {
+		{{ lower_camel .Name }}List = append({{ lower_camel .Name }}List, proto.Clone({{ lower_camel .Name }}).(*{{ .Name }}))
 	}
-	return {{ lower_camel .ResourceType }}List 
+	return {{ lower_camel .Name }}List 
 }
 
 func (list {{ .Name }}List) ByNamespace() {{ .PluralName }}ByNamespace {
 	byNamespace := make({{ .PluralName }}ByNamespace)
-	for _, {{ lower_camel .ResourceType }} := range list {
-		byNamespace.Add({{ lower_camel .ResourceType }})
+	for _, {{ lower_camel .Name }} := range list {
+		byNamespace.Add({{ lower_camel .Name }})
 	}
 	return byNamespace
 }
 
-func (byNamespace {{ .PluralName }}ByNamespace) Add({{ lower_camel .ResourceType }} ... *{{ .Name }}) {
-	for _, item := range {{ lower_camel .ResourceType }} {
+func (byNamespace {{ .PluralName }}ByNamespace) Add({{ lower_camel .Name }} ... *{{ .Name }}) {
+	for _, item := range {{ lower_camel .Name }} {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
 }
@@ -142,8 +140,8 @@ func (byNamespace {{ .PluralName }}ByNamespace) Clear(namespace string) {
 
 func (byNamespace {{ .PluralName }}ByNamespace) List() {{ .Name }}List {
 	var list {{ .Name }}List
-	for _, {{ lower_camel .ResourceType }}List := range byNamespace {
-		list = append(list, {{ lower_camel .ResourceType }}List...)
+	for _, {{ lower_camel .Name }}List := range byNamespace {
+		list = append(list, {{ lower_camel .Name }}List...)
 	}
 	list.Sort()
 	return list
@@ -155,6 +153,34 @@ func (byNamespace {{ .PluralName }}ByNamespace) Clone() {{ .PluralName }}ByNames
 
 var _ resources.Resource = &{{ .Name }}{}
 
+// Kubernetes Adapter for {{ .Name }}
+
+func (o *{{ .Name }}) GetObjectKind() schema.ObjectKind {
+	t := {{ .Name }}Crd.TypeMeta()
+	return &t
+}
+
+func (o *{{ .Name }}) DeepCopyObject() runtime.Object {
+	return resources.Clone(o).(*{{ .Name }})
+}
+
+var {{ .Name }}Crd = crd.NewCrd("{{ .Project.GroupName }}",
+	"{{ upper_camel .PluralName }}",
+	"{{ .Project.GroupName }}",
+	"{{ .Project.Version }}",
+	"{{ .Name }}",
+	"{{ .ShortName }}",
+	&{{ .Name }}{})
+`))
+var ResourceClientTemplate = template.Must(template.New("resource_client").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
+
+import (
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/errors"
+)
+
 type {{ .Name }}Client interface {
 	BaseClient() clients.ResourceClient
 	Register() error
@@ -165,7 +191,7 @@ type {{ .Name }}Client interface {
 	Watch(namespace string, opts clients.WatchOpts) (<-chan {{ .Name }}List, <-chan error, error)
 }
 
-type {{ lower_camel .ResourceType }}Client struct {
+type {{ lower_camel .Name }}Client struct {
 	rc clients.ResourceClient
 }
 
@@ -176,20 +202,20 @@ func New{{ .Name }}Client(rcFactory factory.ResourceClientFactory) ({{ .Name }}C
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base {{ .Name }} resource client")
 	}
-	return &{{ lower_camel .ResourceType }}Client{
+	return &{{ lower_camel .Name }}Client{
 		rc: rc,
 	}, nil
 }
 
-func (client *{{ lower_camel .ResourceType }}Client) BaseClient() clients.ResourceClient {
+func (client *{{ lower_camel .Name }}Client) BaseClient() clients.ResourceClient {
 	return client.rc
 }
 
-func (client *{{ lower_camel .ResourceType }}Client) Register() error {
+func (client *{{ lower_camel .Name }}Client) Register() error {
 	return client.rc.Register()
 }
 
-func (client *{{ lower_camel .ResourceType }}Client) Read(namespace, name string, opts clients.ReadOpts) (*{{ .Name }}, error) {
+func (client *{{ lower_camel .Name }}Client) Read(namespace, name string, opts clients.ReadOpts) (*{{ .Name }}, error) {
 	opts = opts.WithDefaults()
 	resource, err := client.rc.Read(namespace, name, opts)
 	if err != nil {
@@ -198,21 +224,21 @@ func (client *{{ lower_camel .ResourceType }}Client) Read(namespace, name string
 	return resource.(*{{ .Name }}), nil
 }
 
-func (client *{{ lower_camel .ResourceType }}Client) Write({{ lower_camel .ResourceType }} *{{ .Name }}, opts clients.WriteOpts) (*{{ .Name }}, error) {
+func (client *{{ lower_camel .Name }}Client) Write({{ lower_camel .Name }} *{{ .Name }}, opts clients.WriteOpts) (*{{ .Name }}, error) {
 	opts = opts.WithDefaults()
-	resource, err := client.rc.Write({{ lower_camel .ResourceType }}, opts)
+	resource, err := client.rc.Write({{ lower_camel .Name }}, opts)
 	if err != nil {
 		return nil, err
 	}
 	return resource.(*{{ .Name }}), nil
 }
 
-func (client *{{ lower_camel .ResourceType }}Client) Delete(namespace, name string, opts clients.DeleteOpts) error {
+func (client *{{ lower_camel .Name }}Client) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
 	return client.rc.Delete(namespace, name, opts)
 }
 
-func (client *{{ lower_camel .ResourceType }}Client) List(namespace string, opts clients.ListOpts) ({{ .Name }}List, error) {
+func (client *{{ lower_camel .Name }}Client) List(namespace string, opts clients.ListOpts) ({{ .Name }}List, error) {
 	opts = opts.WithDefaults()
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
@@ -221,7 +247,7 @@ func (client *{{ lower_camel .ResourceType }}Client) List(namespace string, opts
 	return convertTo{{ .Name }}(resourceList), nil
 }
 
-func (client *{{ lower_camel .ResourceType }}Client) Watch(namespace string, opts clients.WatchOpts) (<-chan {{ .Name }}List, <-chan error, error) {
+func (client *{{ lower_camel .Name }}Client) Watch(namespace string, opts clients.WatchOpts) (<-chan {{ .Name }}List, <-chan error, error) {
 	opts = opts.WithDefaults()
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
@@ -243,31 +269,13 @@ func (client *{{ lower_camel .ResourceType }}Client) Watch(namespace string, opt
 }
 
 func convertTo{{ .Name }}(resources resources.ResourceList) {{ .Name }}List {
-	var {{ lower_camel .ResourceType }}List {{ .Name }}List
+	var {{ lower_camel .Name }}List {{ .Name }}List
 	for _, resource := range resources {
-		{{ lower_camel .ResourceType }}List = append({{ lower_camel .ResourceType }}List, resource.(*{{ .Name }}))
+		{{ lower_camel .Name }}List = append({{ lower_camel .Name }}List, resource.(*{{ .Name }}))
 	}
-	return {{ lower_camel .ResourceType }}List
+	return {{ lower_camel .Name }}List
 }
 
-// Kubernetes Adapter for {{ .Name }}
-
-func (o *{{ .Name }}) GetObjectKind() schema.ObjectKind {
-	t := {{ .Name }}Crd.TypeMeta()
-	return &t
-}
-
-func (o *{{ .Name }}) DeepCopyObject() runtime.Object {
-	return resources.Clone(o).(*{{ .Name }})
-}
-
-var {{ .Name }}Crd = crd.NewCrd("{{ .GroupName }}",
-	"{{ .PluralName }}",
-	"{{ .GroupName }}",
-	"{{ .Version }}",
-	"{{ .Name }}",
-	"{{ .ShortName }}",
-	&{{ .Name }}{})
 `))
 
 const resourceClientTestTemplateContents = `package {{ .Project.PackageName }}
@@ -296,7 +304,7 @@ var _ = Describe("{{ .Name }}Client", func() {
 		&typed.ConsulRcTester{},
 		&typed.FileRcTester{},
 		&typed.MemoryRcTester{},
-	{{- if .IsDataType }}
+	{{- if .HasData }}
 		&typed.VaultRcTester{},
 		&typed.KubeSecretRcTester{},
 		&typed.KubeConfigMapRcTester{},
