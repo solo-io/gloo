@@ -90,6 +90,7 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 		if err != nil {
 			return nil, nil, err
 		}
+		resource.BelongsToProject = project
 		for _, group := range groups {
 			resourcesByGroup[group] = append(resourcesByGroup[group], resource)
 		}
@@ -99,7 +100,7 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 	var resourceGroups []*ResourceGroup
 
 	for group, resources := range resourcesByGroup {
-		log.Printf("%v", group)
+		log.Printf("group: %v", group)
 		rg := &ResourceGroup{
 			Name:             group,
 			BelongsToProject: project,
@@ -141,6 +142,10 @@ func describeResource(groupName string, msg *protokit.Descriptor) (*Resource, []
 
 	// optional flags
 	joinedResourceGroups, _ := getCommentValue(comments, resourceGroupsDeclaration)
+	resourceGroups := strings.Split(joinedResourceGroups, ",")
+	if resourceGroups[0] == "" {
+		resourceGroups = nil
+	}
 
 	hasStatus := hasField(msg, "status", statusTypeName)
 	dataTypeName := dataTypeForMessage(groupName, msg.GetName())
@@ -156,7 +161,7 @@ func describeResource(groupName string, msg *protokit.Descriptor) (*Resource, []
 		HasStatus:  hasStatus,
 		HasData:    hasData,
 		Fields:     fields,
-	}, strings.Split(joinedResourceGroups, ","), nil
+	}, resourceGroups, nil
 }
 
 func collectFields(msg *protokit.Descriptor) []*Field {
