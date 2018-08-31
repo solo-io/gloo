@@ -64,7 +64,7 @@ func (f *AWSLambdaFuncitonDiscovery) DetectFunctions(ctx context.Context, secret
 
 		// sleep so we are not hogging
 		if err := contextutils.Sleep(ctx, f.timetowait); err != nil {
-			return nil, err
+			return err
 		}
 	}
 }
