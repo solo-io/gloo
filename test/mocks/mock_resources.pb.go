@@ -33,11 +33,9 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 //
-// @solo-kit:resource
 // @solo-kit:resource.short_name=mk
-// @solo-kit:resource.plural_name=Mocks
-// @solo-kit:resource.group_name=testing.solo.io
-// @solo-kit:resource.version=v1
+// @solo-kit:resource.plural_name=mocks
+// @solo-kit:resource.resource_groups=testing.solo.io,blesting.solo.io
 type MockResource struct {
 	Data     string                `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	Status   core_solo_io1.Status  `protobuf:"bytes,6,opt,name=status" json:"status"`
@@ -74,8 +72,7 @@ func (m *MockResource) GetMetadata() core_solo_io.Metadata {
 // @solo-kit:resource
 // @solo-kit:resource.short_name=fk
 // @solo-kit:resource.plural_name=Fakes
-// @solo-kit:resource.group_name=testing.solo.io
-// @solo-kit:resource.version=v1
+// @solo-kit:resource.resource_groups=testing.solo.io,blesting.solo.io
 type FakeResource struct {
 	Count    uint32                `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
 	Status   core_solo_io1.Status  `protobuf:"bytes,6,opt,name=status" json:"status"`

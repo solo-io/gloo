@@ -1,4 +1,10 @@
-package mocks
+package templates
+
+import (
+	"text/template"
+)
+
+var ResourceClientTestTemplate = template.Must(template.New("resource_client_test").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
 
 import (
 	"time"
@@ -15,43 +21,48 @@ import (
 	"github.com/solo-io/solo-kit/test/tests/typed"
 )
 
-var _ = Describe("MockResourceClient", func() {
+var _ = Describe("{{ .Name }}Client", func() {
 	var (
 		namespace string
 	)
 	for _, test := range []typed.ResourceClientTester{
-		&typed.KubeRcTester{Crd: MockResourceCrd},
+		&typed.KubeRcTester{Crd: {{ .Name }}Crd},
 		&typed.ConsulRcTester{},
 		&typed.FileRcTester{},
 		&typed.MemoryRcTester{},
+	{{- if .HasData }}
+		&typed.VaultRcTester{},
+		&typed.KubeSecretRcTester{},
+		&typed.KubeConfigMapRcTester{},
+	{{- end}}
 	} {
 		Context("resource client backed by "+test.Description(), func() {
 			var (
-				client MockResourceClient
+				client {{ .Name }}Client
 				err    error
 			)
 			BeforeEach(func() {
 				namespace = helpers.RandString(6)
 				factoryOpts := test.Setup(namespace)
-				client, err = NewMockResourceClient(factory.NewResourceClientFactory(factoryOpts))
+				client, err = New{{ .Name }}Client(factory.NewResourceClientFactory(factoryOpts))
 				Expect(err).NotTo(HaveOccurred())
 			})
 			AfterEach(func() {
 				test.Teardown(namespace)
 			})
-			It("CRUDs MockResources", func() {
-				MockResourceClientTest(namespace, client)
+			It("CRUDs {{ .Name }}s", func() {
+				{{ .Name }}ClientTest(namespace, client)
 			})
 		})
 	}
 })
 
-func MockResourceClientTest(namespace string, client MockResourceClient) {
+func {{ .Name }}ClientTest(namespace string, client {{ .Name }}Client) {
 	err := client.Register()
 	Expect(err).NotTo(HaveOccurred())
 
 	name := "foo"
-	input := NewMockResource(namespace, name)
+	input := New{{ .Name }}(namespace, name)
 	input.Metadata.Namespace = namespace
 	r1, err := client.Write(input, clients.WriteOpts{})
 	Expect(err).NotTo(HaveOccurred())
@@ -60,12 +71,12 @@ func MockResourceClientTest(namespace string, client MockResourceClient) {
 	Expect(err).To(HaveOccurred())
 	Expect(errors.IsExist(err)).To(BeTrue())
 
-	Expect(r1).To(BeAssignableToTypeOf(&MockResource{}))
+	Expect(r1).To(BeAssignableToTypeOf(&{{ .Name }}{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
-	Expect(r1.Data).To(Equal(input.Data))
-	Expect(r1.Status).To(Equal(input.Status))
-	Expect(r1.Metadata).To(Equal(input.Metadata))
+	{{- range .Fields }}
+	Expect(r1.{{ upper_camel .Name }}).To(Equal(input.{{ upper_camel .Name }}))
+	{{- end }}
 
 	_, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,
@@ -87,7 +98,7 @@ func MockResourceClientTest(namespace string, client MockResourceClient) {
 	Expect(errors.IsNotExist(err)).To(BeTrue())
 
 	name = "boo"
-	input = &MockResource{}
+	input = &{{ .Name }}{}
 
 	// ignore return error because interfaces / oneofs mess it up
 	faker.FakeData(input)
@@ -139,7 +150,7 @@ func MockResourceClientTest(namespace string, client MockResourceClient) {
 		Expect(err).NotTo(HaveOccurred())
 
 		name = "goo"
-		input = &MockResource{}
+		input = &{{ .Name }}{}
 		// ignore return error because interfaces / oneofs mess it up
 		faker.FakeData(input)
 		Expect(err).NotTo(HaveOccurred())
@@ -176,3 +187,4 @@ drain:
 	Expect(list).To(ContainElement(r2))
 	Expect(list).To(ContainElement(r3))
 }
+`))

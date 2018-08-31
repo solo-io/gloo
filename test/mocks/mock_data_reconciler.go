@@ -1,5 +1,4 @@
 package mocks
-
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reconcile"
@@ -11,7 +10,7 @@ import (
 type TransitionMockDataFunc func(original, desired *MockData) error
 
 type MockDataReconciler interface {
-	Reconcile(namespace string, desiredResources []*MockData, transition TransitionMockDataFunc, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources MockDataList, transition TransitionMockDataFunc, opts clients.ListOpts) error
 }
 
 func mockDatasToResources(list MockDataList) resources.ResourceList {
@@ -32,7 +31,7 @@ type mockDataReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *mockDataReconciler) Reconcile(namespace string, desiredResources []*MockData, transition TransitionMockDataFunc, opts clients.ListOpts) error {
+func (r *mockDataReconciler) Reconcile(namespace string, desiredResources MockDataList, transition TransitionMockDataFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "mockData_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc

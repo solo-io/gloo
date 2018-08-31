@@ -1,11 +1,9 @@
 package setup
 
 import (
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
-	"github.com/solo-io/solo-kit/pkg/namespacing"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -13,18 +11,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
-	"google.golang.org/grpc"
 )
-
-type Opts struct {
-	writeNamespace  string
-	configBackend   factory.ResourceClientFactoryOpts
-	secretBackend   factory.ResourceClientFactoryOpts
-	artifactBackend factory.ResourceClientFactoryOpts
-	namespacer      namespacing.Namespacer
-	grpcServer      *grpc.Server
-	watchOpts       clients.WatchOpts
-}
 
 func Setup(opts Opts) error {
 	namespaces, errs, err := opts.namespacer.Namespaces(opts.watchOpts)
@@ -54,7 +41,6 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 	inputFactory := factory.NewResourceClientFactory(inputResourceOpts)
 	secretFactory := factory.NewResourceClientFactory(secretOpts)
 	artifactFactory := factory.NewResourceClientFactory(artifactOpts)
-	// endpoints are internal-only, therefore use the in-memory client
 	endpointsFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
 		Cache: memory.NewInMemoryResourceCache(),
 	})
@@ -92,7 +78,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 
 	disc := discovery.NewDiscovery(opts.writeNamespace, upstreamClient, endpointClient)
 
-	sync := syncer.NewSyncer(discoveredNamespaces, translator.NewTranslator(), xdsCache, xdsHasher, rpt)
+	sync := syncer.NewSyncer(translator.NewTranslator(), xdsCache, xdsHasher, rpt)
 	eventLoop := v1.NewEventLoop(cache, sync)
 
 	errs := make(chan error)

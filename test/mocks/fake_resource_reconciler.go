@@ -1,5 +1,4 @@
 package mocks
-
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reconcile"
@@ -11,7 +10,7 @@ import (
 type TransitionFakeResourceFunc func(original, desired *FakeResource) error
 
 type FakeResourceReconciler interface {
-	Reconcile(namespace string, desiredResources []*FakeResource, transition TransitionFakeResourceFunc, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources FakeResourceList, transition TransitionFakeResourceFunc, opts clients.ListOpts) error
 }
 
 func fakeResourcesToResources(list FakeResourceList) resources.ResourceList {
@@ -32,7 +31,7 @@ type fakeResourceReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *fakeResourceReconciler) Reconcile(namespace string, desiredResources []*FakeResource, transition TransitionFakeResourceFunc, opts clients.ListOpts) error {
+func (r *fakeResourceReconciler) Reconcile(namespace string, desiredResources FakeResourceList, transition TransitionFakeResourceFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "fakeResource_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
