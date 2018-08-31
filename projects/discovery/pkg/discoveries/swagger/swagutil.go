@@ -1,4 +1,4 @@
-package discoveries
+package swagger
 
 import (
 	"fmt"

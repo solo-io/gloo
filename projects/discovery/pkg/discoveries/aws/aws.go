@@ -1,4 +1,4 @@
-package discoveries
+package aws
 
 import (
 	"context"
