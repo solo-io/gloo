@@ -13,8 +13,10 @@ import (
 )
 
 type InitParams struct {
-	Ctx                 context.Context
-	Bootstrap           bootstrap.Config
+	Ctx       context.Context
+	Bootstrap bootstrap.Config
+	// TODO(yuval-k): Figure out a better way to share state between plugins.
+	// Perhaps move this to a domain specific package for transformation plugin.
 	TransformationAdded *bool
 }
 
