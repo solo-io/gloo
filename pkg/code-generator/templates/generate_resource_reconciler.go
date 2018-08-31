@@ -1,20 +1,5 @@
 package templates
 
-import (
-	"bytes"
-	"text/template"
-)
-
-func GenerateReconcilerCode(params ResourceLevelTemplateParams) (string, error) {
-	buf := &bytes.Buffer{}
-	if err := typedReconcilerTemplate.Execute(buf, params); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
-
-var typedReconcilerTemplate = template.Must(template.New("typed_client").Funcs(funcs).Parse(typedReconcilerTemplateContents))
-
 const typedReconcilerTemplateContents = `package {{ .PackageName }}
 
 import (

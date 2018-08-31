@@ -1,29 +1,12 @@
 package templates
 
 import (
-	"bytes"
 	"text/template"
 )
 
-func GenerateEventLoopCode(params PackageLevelTemplateParams) (string, error) {
-	buf := &bytes.Buffer{}
-	if err := eventLoopTemplate.Execute(buf, params); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
+var eventLoopTemplate = template.Must(template.New("event_loop").Parse(eventLoopTemplateContents))
 
-func GenerateEventLoopTestCode(params PackageLevelTemplateParams) (string, error) {
-	buf := &bytes.Buffer{}
-	if err := eventLoopTestTemplate.Execute(buf, params); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
-
-var eventLoopTemplate = template.Must(template.New("event_loop").Funcs(funcs).Parse(eventLoopTemplateContents))
-
-var eventLoopTestTemplate = template.Must(template.New("event_loop_test").Funcs(funcs).Parse(eventLoopTestTemplateContents))
+var eventLoopTestTemplate = template.Must(template.New("event_loop_test").Parse(eventLoopTestTemplateContents))
 
 const eventLoopTemplateContents = `package {{ .PackageName }}
 

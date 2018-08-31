@@ -1,30 +1,5 @@
 package templates
 
-import (
-	"bytes"
-	"text/template"
-)
-
-func GenerateCacheCode(params PackageLevelTemplateParams) (string, error) {
-	buf := &bytes.Buffer{}
-	if err := cacheTemplate.Execute(buf, params); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
-
-func GenerateCacheTestCode(params PackageLevelTemplateParams) (string, error) {
-	buf := &bytes.Buffer{}
-	if err := cacheTestTemplate.Execute(buf, params); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
-
-var cacheTemplate = template.Must(template.New("cache").Funcs(funcs).Parse(cacheTemplateContents))
-
-var cacheTestTemplate = template.Must(template.New("cache_test").Funcs(funcs).Parse(cacheTestTemplateContents))
-
 const cacheTemplateContents = `package {{ .PackageName }}
 
 import (
