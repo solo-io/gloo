@@ -15,7 +15,7 @@ var funcs = template.FuncMap{
 	"snake":       strcase.ToSnake,
 }
 
-var ResourceExtensionTemplate = template.Must(template.New("resource_extensions").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
+var ResourceTemplate = template.Must(template.New("resource").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
 
 import (
 	"sort"

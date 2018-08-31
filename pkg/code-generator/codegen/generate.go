@@ -39,7 +39,7 @@ func GenerateFiles(project *Project) (Files, error) {
 
 func generateFilesForResource(resource *Resource) (Files, error) {
 	var v Files
-	content, err := generatePerResourceFile(resource, templates.ResourceExtensionTemplate)
+	content, err := generatePerResourceFile(resource, templates.ResourceTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func generateFilesForResource(resource *Resource) (Files, error) {
 		return nil, err
 	}
 	v = append(v, File{
-		Filename: strcase.ToSnake(resource.Name) + "_client_test.go",
+		Filename: strcase.ToSnake(resource.Name) + "_reconciler.go",
 		Content:  content,
 	})
 	return v, nil
