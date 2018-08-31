@@ -79,20 +79,20 @@ func (u *Updater) detectSingle(ctx context.Context, fp FunctionDiscovery, url *u
 		}
 	}
 
-	spec, err := fp.DetectUpstreamType(ctx, url)
-	if err == nil && spec != nil {
-		// success
-		result <- detectResult{
-			spec: spec,
-			fp:   fp,
+	contextutils.NewExponentioalBackoff(0, nil, nil).Backoff(ctx, func(ctx context.Context) error {
+		spec, err := fp.DetectUpstreamType(ctx, url)
+		if err != nil {
+			return err
 		}
-	}
-	if ctx.Err() != nil {
-		return
-	}
-	if err != nil {
-		// TODO retry + backoff:(
-	}
+		if spec != nil {
+			// success
+			result <- detectResult{
+				spec: spec,
+				fp:   fp,
+			}
+		}
+		return nil
+	})
 }
 
 func (u *Updater) detectType(ctx context.Context, url *url.URL) (*detectResult, error) {
@@ -188,6 +188,8 @@ func (u *Updater) UpstreamAdded(upstream *v1.Upstream) {
 	go func() {
 		u.RunForUpstream(ctx, upstream)
 		cancel()
+		// TODO(yuval-k): consider removing upstream from map.
+		// need to be careful here as there might be a race if an update happens in the same time.
 	}()
 }
 
