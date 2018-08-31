@@ -17,7 +17,6 @@ const (
 	// required fields
 	metadataTypeName = ".core.solo.io.Metadata"
 	statusTypeName   = ".core.solo.io.Status"
-	dataTypeName     = ".core.solo.io.Data"
 
 	// magic comments
 	shortNameDeclaration      = "@solo-kit:resource.short_name="
@@ -44,8 +43,19 @@ func ParseRequest(req *plugin_go.CodeGeneratorRequest) (*Project, error) {
 		messages = append(messages, file.GetMessages()...)
 	}
 
+	var groupName string
+	for _, desc := range descriptors {
+		if groupName == "" {
+			groupName = desc.GetPackage()
+		}
+		if groupName != desc.GetPackage() {
+			return nil, errors.Errorf("package conflict: %v must match %v", groupName, desc.GetPackage())
+		}
+	}
+
 	project := &Project{
 		ProjectConfig: projectConfig,
+		GroupName:     groupName,
 	}
 	resources, resourceGroups, err := getResources(project, messages)
 	if err != nil {
@@ -56,6 +66,10 @@ func ParseRequest(req *plugin_go.CodeGeneratorRequest) (*Project, error) {
 	project.ResourceGroups = resourceGroups
 
 	return project, nil
+}
+
+func dataTypeForMessage(groupName, messageName string) string {
+	return "." + groupName + "." + messageName + ".DataEntry"
 }
 
 func loadProjectConfig(path string) (ProjectConfig, error) {
@@ -72,7 +86,7 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 	resourcesByGroup := make(map[string][]*Resource)
 	var resources []*Resource
 	for _, msg := range messages {
-		resource, groups, err := describeResource(msg)
+		resource, groups, err := describeResource(project.GroupName, msg)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -85,6 +99,7 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 	var resourceGroups []*ResourceGroup
 
 	for group, resources := range resourcesByGroup {
+		log.Printf("%v", group)
 		rg := &ResourceGroup{
 			Name:             group,
 			BelongsToProject: project,
@@ -105,7 +120,7 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 	return resources, resourceGroups, nil
 }
 
-func describeResource(msg *protokit.Descriptor) (*Resource, []string, error) {
+func describeResource(groupName string, msg *protokit.Descriptor) (*Resource, []string, error) {
 	// not a solo kit resource, or you messed up!
 	if !hasField(msg, "metadata", metadataTypeName) {
 		return nil, nil, nil
@@ -128,7 +143,11 @@ func describeResource(msg *protokit.Descriptor) (*Resource, []string, error) {
 	joinedResourceGroups, _ := getCommentValue(comments, resourceGroupsDeclaration)
 
 	hasStatus := hasField(msg, "status", statusTypeName)
+	dataTypeName := dataTypeForMessage(groupName, msg.GetName())
+	log.Printf("%v", dataTypeName)
 	hasData := hasField(msg, "data", dataTypeName)
+
+	fields := collectFields(msg)
 
 	return &Resource{
 		Name:       name,
@@ -136,7 +155,19 @@ func describeResource(msg *protokit.Descriptor) (*Resource, []string, error) {
 		PluralName: pluralName,
 		HasStatus:  hasStatus,
 		HasData:    hasData,
+		Fields:     fields,
 	}, strings.Split(joinedResourceGroups, ","), nil
+}
+
+func collectFields(msg *protokit.Descriptor) []*Field {
+	var fields []*Field
+	for _, f := range msg.GetField() {
+		fields = append(fields, &Field{
+			Name:     f.String(),
+			TypeName: f.GetTypeName(),
+		})
+	}
+	return fields
 }
 
 func hasField(msg *protokit.Descriptor, fieldName, fieldType string) bool {
