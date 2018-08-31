@@ -61,25 +61,16 @@ func (f *AWSLambdaFuncitonDiscovery) DetectFunctions(ctx context.Context, secret
 		if err != nil {
 			return errors.Wrap(err, "unable to update upstream")
 		}
-		// sleep to not query too often
-		time.Sleep(time.Minute)
+
+		// sleep so we are not hogging
+		if err := contextutils.Sleep(ctx, f.timetowait); err != nil {
+			return nil, err
+		}
 	}
 }
 
 func (f *AWSLambdaFuncitonDiscovery) DetectFunctionsOnce(ctx context.Context, secrets func() v1.SecretList, in *v1.Upstream) ([]*glooaws.LambdaFunctionSpec, error) {
 
-	// TODO :
-	/*
-
-		 change inout to
-		 getupstream()
-			?
-
-	*/
-	// sleep so we are not hogging
-	if err := contextutils.Sleep(ctx, f.timetowait); err != nil {
-		return nil, err
-	}
 	awsspec, ok := in.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Aws)
 
 	if !ok {
