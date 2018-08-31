@@ -102,9 +102,9 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 	for group, resources := range resourcesByGroup {
 		log.Printf("group: %v", group)
 		rg := &ResourceGroup{
-			Name:             group,
-			BelongsToProject: project,
-			Resources:        resources,
+			Name:      group,
+			Project:   project,
+			Resources: resources,
 		}
 		for _, res := range resources {
 			res.Project = project

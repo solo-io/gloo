@@ -36,7 +36,7 @@ type Field struct {
 }
 
 type ResourceGroup struct {
-	Name             string
-	BelongsToProject *Project
-	Resources        []*Resource
+	Name      string
+	Project   *Project
+	Resources []*Resource
 }

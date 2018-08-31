@@ -39,7 +39,7 @@ func GenerateFiles(project *Project) (Files, error) {
 
 func generateFilesForResource(resource *Resource) (Files, error) {
 	var v Files
-	content, err := generatePerResourceFile(resource, templates.ResourceTemplate)
+	content, err := generateResourceFile(resource, templates.ResourceTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func generateFilesForResource(resource *Resource) (Files, error) {
 		Filename: strcase.ToSnake(resource.Name) + ".go",
 		Content:  content,
 	})
-	content, err = generatePerResourceFile(resource, templates.ResourceClientTemplate)
+	content, err = generateResourceFile(resource, templates.ResourceClientTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func generateFilesForResource(resource *Resource) (Files, error) {
 		Filename: strcase.ToSnake(resource.Name) + "_client.go",
 		Content:  content,
 	})
-	content, err = generatePerResourceFile(resource, templates.ResourceClientTestTemplate)
+	content, err = generateResourceFile(resource, templates.ResourceClientTestTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func generateFilesForResource(resource *Resource) (Files, error) {
 		Filename: strcase.ToSnake(resource.Name) + "_client_test.go",
 		Content:  content,
 	})
-	content, err = generatePerResourceFile(resource, templates.ResourceReconcilerTemplate)
+	content, err = generateResourceFile(resource, templates.ResourceReconcilerTemplate)
 	if err != nil {
 		return nil, err
 	}
@@ -74,9 +74,16 @@ func generateFilesForResource(resource *Resource) (Files, error) {
 	return v, nil
 }
 
-func generateFilesForResourceGroup(resource *ResourceGroup) (Files, error) {
+func generateFilesForResourceGroup(rg *ResourceGroup) (Files, error) {
 	var v Files
-
+	content, err := generateResourceGroupFile(rg, templates.ResourceGroupSnapshotTemplate)
+	if err != nil {
+		return nil, err
+	}
+	v = append(v, File{
+		Filename: strcase.ToSnake(rg.Name) + "_reconciler.go",
+		Content:  content,
+	})
 	return v, nil
 }
 
@@ -86,9 +93,17 @@ func generateFilesForProject(project *Project) (Files, error) {
 	return v, nil
 }
 
-func generatePerResourceFile(resource *Resource, tmpl *template.Template) (string, error) {
+func generateResourceFile(resource *Resource, tmpl *template.Template) (string, error) {
 	buf := &bytes.Buffer{}
 	if err := tmpl.Execute(buf, resource); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
+func generateResourceGroupFile(rg *ResourceGroup, tmpl *template.Template) (string, error) {
+	buf := &bytes.Buffer{}
+	if err := tmpl.Execute(buf, rg); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
