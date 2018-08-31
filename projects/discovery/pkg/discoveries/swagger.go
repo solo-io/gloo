@@ -62,6 +62,7 @@ func (d *SwaggerFuncitonDiscovery) IsUpstreamFunctional(u *v1.Upstream) bool {
 	return getswagspec(u) != nil
 }
 
+// TODO: do we want to mark an upstream as undetected persistently so we do not detect it anymore?
 func (d *SwaggerFuncitonDiscovery) DetectUpstreamType(ctx context.Context, baseurl *url.URL) (*plugins.ServiceSpec, error) {
 	// run detection and get functions
 	var errs error
@@ -151,15 +152,24 @@ func (f *SwaggerFuncitonDiscovery) DetectFunctions(ctx context.Context, secrets 
 
 func (f *SwaggerFuncitonDiscovery) detectFunctionsFromUrl(ctx context.Context, url string, in *v1.Upstream, updatecb func(discovery.UpstreamMutator) error) error {
 	for {
-		// TODO we should probably do back-off here and not just return error.
-		// unless ofcourse it is a context error
-		spec, err := RetrieveSwaggerDocFromUrl(ctx, url)
+
+		err := contextutils.NewExponentioalBackoff(0, nil, nil).Backoff(ctx, func(ctx context.Context) error {
+
+			spec, err := RetrieveSwaggerDocFromUrl(ctx, url)
+			if err != nil {
+				return err
+			}
+			err = f.detectFunctionsFromSpec(ctx, spec, in, updatecb)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
-			return err
-		}
-		err = f.detectFunctionsFromSpec(ctx, spec, in, updatecb)
-		if err != nil {
-			return err
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			// ignore other erros as we would like to continue forever.
 		}
 
 		if err := contextutils.Sleep(ctx, f.timetowait); err != nil {

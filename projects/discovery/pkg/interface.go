@@ -28,6 +28,9 @@ type FunctionDiscovery interface {
 	// if it returns false and some error, try again later with back-off \ timeout.
 	IsUpstreamFunctional(u *v1.Upstream) bool
 
+	// Returns
+	// err != nil temporary error. try again
+	// err == nil spec == nil. no type detected, don't try again
 	DetectUpstreamType(ctx context.Context, url *url.URL) (*plugins.ServiceSpec, error)
 
 	DetectFunctions(ctx context.Context, secrets func() v1.SecretList, in *v1.Upstream, out func(UpstreamMutator) error) error

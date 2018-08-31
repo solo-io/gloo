@@ -43,23 +43,35 @@ func (f *AWSLambdaFuncitonDiscovery) DetectUpstreamType(ctx context.Context, url
 // perhaps the in param for the upstream should be a function? in func() *v1.Upstream
 func (f *AWSLambdaFuncitonDiscovery) DetectFunctions(ctx context.Context, secrets func() v1.SecretList, in *v1.Upstream, updatecb func(discovery.UpstreamMutator) error) error {
 	for {
-		newfunctions, err := f.DetectFunctionsOnce(ctx, secrets, in)
+		// TODO: get backoff values from config?
+		err := contextutils.NewExponentioalBackoff(0, nil, nil).Backoff(ctx, func(ctx context.Context) error {
 
-		if err != nil {
-			return err
-		}
+			newfunctions, err := f.DetectFunctionsOnce(ctx, secrets, in)
 
-		err = updatecb(func(out *v1.Upstream) error {
-			awsspec, ok := out.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Aws)
-			if !ok {
-				return errors.New("not aws upstream")
+			if err != nil {
+				return err
 			}
-			awsspec.Aws.LambdaFunctions = newfunctions
-			return nil
-		})
 
+			err = updatecb(func(out *v1.Upstream) error {
+				awsspec, ok := out.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Aws)
+				if !ok {
+					return errors.New("not aws upstream")
+				}
+				awsspec.Aws.LambdaFunctions = newfunctions
+				return nil
+			})
+
+			if err != nil {
+				return errors.Wrap(err, "unable to update upstream")
+			}
+			return nil
+
+		})
 		if err != nil {
-			return errors.Wrap(err, "unable to update upstream")
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			// ignore other erros as we would like to continue forever.
 		}
 
 		// sleep so we are not hogging
