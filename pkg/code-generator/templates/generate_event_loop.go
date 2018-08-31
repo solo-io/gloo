@@ -1,13 +1,5 @@
 package templates
 
-import (
-	"text/template"
-)
-
-var eventLoopTemplate = template.Must(template.New("event_loop").Parse(eventLoopTemplateContents))
-
-var eventLoopTestTemplate = template.Must(template.New("event_loop_test").Parse(eventLoopTestTemplateContents))
-
 const eventLoopTemplateContents = `package {{ .PackageName }}
 
 import (

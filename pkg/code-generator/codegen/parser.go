@@ -90,7 +90,7 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 		if err != nil {
 			return nil, nil, err
 		}
-		resource.BelongsToProject = project
+		resource.Project = project
 		for _, group := range groups {
 			resourcesByGroup[group] = append(resourcesByGroup[group], resource)
 		}
@@ -107,15 +107,15 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 			Resources:        resources,
 		}
 		for _, res := range resources {
-			res.BelongsToProject = project
-			res.BelongsToResourceGroups = append(res.BelongsToResourceGroups, rg)
+			res.Project = project
+			res.ResourceGroups = append(res.ResourceGroups, rg)
 		}
 		resourceGroups = append(resourceGroups, rg)
 	}
 	for _, res := range resources {
 		// sort for stability
-		sort.SliceStable(res.BelongsToResourceGroups, func(i, j int) bool {
-			return res.BelongsToResourceGroups[i].Name < res.BelongsToResourceGroups[j].Name
+		sort.SliceStable(res.ResourceGroups, func(i, j int) bool {
+			return res.ResourceGroups[i].Name < res.ResourceGroups[j].Name
 		})
 	}
 	return resources, resourceGroups, nil

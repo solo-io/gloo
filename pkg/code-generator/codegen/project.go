@@ -3,10 +3,10 @@ package codegen
 // SOLO-KIT Descriptors from which code can be generated
 
 type ProjectConfig struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	//PackageName string `json:"package_name"`
-	//GoPackage   string `json:"go_package"`
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	PackageName string `json:"package_name"`
+	// GoPackage   string `json:"go_package"`
 }
 
 type Project struct {
@@ -26,8 +26,8 @@ type Resource struct {
 	HasStatus bool
 	Fields    []*Field
 
-	BelongsToResourceGroups []*ResourceGroup
-	BelongsToProject        *Project
+	ResourceGroups []*ResourceGroup
+	Project        *Project
 }
 
 type Field struct {

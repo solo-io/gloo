@@ -1,10 +1,21 @@
 package templates
 
 import (
+	"strings"
 	"text/template"
+
+	"github.com/iancoleman/strcase"
 )
 
-var ResourceClientTemplate = template.Must(template.New("resource_client").Parse(`package {{ .PackageName }}
+var funcs = template.FuncMap{
+	"join":        strings.Join,
+	"lowercase":   strings.ToLower,
+	"lower_camel": strcase.ToLowerCamel,
+	"upper_camel": strcase.ToCamel,
+	"snake":       strcase.ToSnake,
+}
+
+var ResourceClientTemplate = template.Must(template.New("resource_client").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
 
 import (
 	"sort"
@@ -251,7 +262,7 @@ func (o *{{ .Name }}) DeepCopyObject() runtime.Object {
 }
 
 var {{ .Name }}Crd = crd.NewCrd("{{ .GroupName }}",
-	"{{ lowercase .PluralName }}",
+	"{{ .PluralName }}",
 	"{{ .GroupName }}",
 	"{{ .Version }}",
 	"{{ .Name }}",
@@ -259,7 +270,7 @@ var {{ .Name }}Crd = crd.NewCrd("{{ .GroupName }}",
 	&{{ .Name }}{})
 `))
 
-const resourceClientTestTemplateContents = `package {{ .PackageName }}
+const resourceClientTestTemplateContents = `package {{ .Project.PackageName }}
 
 import (
 	"time"

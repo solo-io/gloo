@@ -10,7 +10,7 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
 /*
 @solo-kit:resource.short_name=mk
-@solo-kit:resource.plural_name=Mocks
+@solo-kit:resource.plural_name=mocks
 @solo-kit:resource.resource_groups=testing.solo.io,blesting.solo.io
 */
 message MockResource {

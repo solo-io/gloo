@@ -34,7 +34,7 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 //
 // @solo-kit:resource.short_name=mk
-// @solo-kit:resource.plural_name=Mocks
+// @solo-kit:resource.plural_name=mocks
 // @solo-kit:resource.resource_groups=testing.solo.io,blesting.solo.io
 type MockResource struct {
 	Data     string                `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`

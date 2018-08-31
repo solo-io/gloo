@@ -1,4 +1,5 @@
 {
   "name": "solokit_test_project",
-  "version": "v1"
+  "version": "v1",
+  "package_name": "mocks"
 }
