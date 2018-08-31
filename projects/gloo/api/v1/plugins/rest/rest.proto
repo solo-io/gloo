@@ -11,10 +11,17 @@ option (gogoproto.equal_all) = true;
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation/transformation.proto";
 
 message ServiceSpec {
-    map<string, envoy.api.v2.filter.http.TransformationTemplate> transformation = 1;
+    map<string, envoy.api.v2.filter.http.TransformationTemplate> transformations = 1;
+    message SwaggerInfo {
+        oneof swagger_spec {
+            string url = 1;
+            string inline = 2;
+        }
+    }
+    SwaggerInfo swagger_info = 2;
 }
 
-// TODO: figure out import cycle mess.
+// This is only for upstream with REST service spec
 message DestinationSpec {
     string function_name = 1;
 
