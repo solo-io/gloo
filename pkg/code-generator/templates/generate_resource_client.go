@@ -4,11 +4,7 @@ import (
 	"text/template"
 )
 
-var ResourceClientTemplate = template.Must(template.New("resource_client").Parse(resourceClient))
-
-var resourceClientTestTemplate = template.Must(template.New("typed_client_kube_test").Funcs(funcs).Parse(resourceClientTestTemplateContents))
-
-const resourceClient = `package {{ .PackageName }}
+var ResourceClientTemplate = template.Must(template.New("resource_client").Parse(`package {{ .PackageName }}
 
 import (
 	"sort"
@@ -261,7 +257,7 @@ var {{ .Name }}Crd = crd.NewCrd("{{ .GroupName }}",
 	"{{ .Name }}",
 	"{{ .ShortName }}",
 	&{{ .Name }}{})
-`
+`))
 
 const resourceClientTestTemplateContents = `package {{ .PackageName }}
 

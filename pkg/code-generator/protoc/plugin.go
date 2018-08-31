@@ -37,8 +37,13 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 		return nil, err
 	}
 
+	code, err := codegen.GenerateFiles(project)
+	if err != nil {
+		return nil, err
+	}
+
 	log.Printf("%v", project.ResourceGroups[0].Name, project.ResourceGroups[0].Resources[0].Name, project.ResourceGroups[0].Resources[1].Name)
-	log.Printf("%v", codegen.GenerateFiles(project))
+	log.Printf("%v", code)
 
 	resp := new(plugin_go.CodeGeneratorResponse)
 
