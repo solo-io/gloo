@@ -1,13 +1,13 @@
 package codegen
 
-type file struct {
-	filename string
-	content  string
+type File struct {
+	Filename string
+	Content  string
 }
 
-type files []file
+type Files []File
 
-func generateFiles(project *Project) files {
+func GenerateFiles(project *Project) Files {
 	files := generateFilesForProject(project)
 	for _, res := range project.Resources {
 		files = append(files, generateFilesForResource(project, res)...)
@@ -18,20 +18,20 @@ func generateFiles(project *Project) files {
 	return files
 }
 
-func generateFilesForResource(project *Project, resource *Resource) files {
-	var v files
+func generateFilesForResource(project *Project, resource *Resource) Files {
+	var v Files
 
 	return v
 }
 
-func generateFilesForResourceGroup(project *Project, resource *ResourceGroup) files {
-	var v files
+func generateFilesForResourceGroup(project *Project, resource *ResourceGroup) Files {
+	var v Files
 
 	return v
 }
 
-func generateFilesForProject(project *Project) files {
-	var v files
+func generateFilesForProject(project *Project) Files {
+	var v Files
 
 	return v
 }
