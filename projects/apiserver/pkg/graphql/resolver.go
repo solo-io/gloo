@@ -66,7 +66,7 @@ func (r *mutationResolver) VirtualServices(ctx context.Context, namespace string
 	return customtypes.VirtualServiceMutation{Namespace: namespace}, nil
 }
 func (r *mutationResolver) ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapMutation, error) {
-	panic("not implemented")
+	return customtypes.ResolverMapMutation{Namespace: namespace}, nil
 }
 
 type queryResolver struct{ *ApiResolver }
@@ -78,7 +78,7 @@ func (r *queryResolver) VirtualServices(ctx context.Context, namespace string) (
 	return customtypes.VirtualServiceQuery{Namespace: namespace}, nil
 }
 func (r *queryResolver) ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapQuery, error) {
-	panic("not implemented")
+	return customtypes.ResolverMapQuery{Namespace: namespace}, nil
 }
 
 type upstreamMutationResolver struct{ *ApiResolver }
