@@ -37,7 +37,7 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 		return nil, err
 	}
 
-	log.Printf("%v", project)
+	log.Printf("%v", project.ResourceGroups[0].Name, project.ResourceGroups[0].Resources[0].Name, project.ResourceGroups[0].Resources[1].Name)
 
 	resp := new(plugin_go.CodeGeneratorResponse)
 

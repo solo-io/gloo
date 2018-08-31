@@ -23,8 +23,7 @@ message MockResource {
 @solo-kit:resource
 @solo-kit:resource.short_name=fk
 @solo-kit:resource.plural_name=Fakes
-@solo-kit:resource.group_name=testing.solo.io
-@solo-kit:resource.version=v1
+@solo-kit:resource.resource_groups=testing.solo.io,blesting.solo.io
 */
 message FakeResource {
     uint32 count = 1;
