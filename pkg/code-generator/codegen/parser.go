@@ -168,10 +168,11 @@ func collectFields(msg *protokit.Descriptor) []*Field {
 	var fields []*Field
 	for _, f := range msg.GetField() {
 		fields = append(fields, &Field{
-			Name:     f.String(),
+			Name:     f.GetName(),
 			TypeName: f.GetTypeName(),
 		})
 	}
+	log.Printf("%v", fields)
 	return fields
 }
 

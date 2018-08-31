@@ -16,7 +16,7 @@ import (
 type Transition{{ .Name }}Func func(original, desired *{{ .Name }}) error
 
 type {{ .Name }}Reconciler interface {
-	Reconcile(namespace string, desiredResources []*{{ .Name }}, transition Transition{{ .Name }}Func, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources {{ .Name }}List, transition Transition{{ .Name }}Func, opts clients.ListOpts) error
 }
 
 func {{ lower_camel .Name }}sToResources(list {{ .Name }}List) resources.ResourceList {
@@ -37,7 +37,7 @@ type {{ lower_camel .Name }}Reconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *{{ lower_camel .Name }}Reconciler) Reconcile(namespace string, desiredResources []*{{ .Name }}, transition Transition{{ .Name }}Func, opts clients.ListOpts) error {
+func (r *{{ lower_camel .Name }}Reconciler) Reconcile(namespace string, desiredResources {{ .Name }}List, transition Transition{{ .Name }}Func, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "{{ lower_camel .Name }}_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc

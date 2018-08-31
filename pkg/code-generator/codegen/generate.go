@@ -44,7 +44,7 @@ func generateFilesForResource(resource *Resource) (Files, error) {
 		return nil, err
 	}
 	v = append(v, File{
-		Filename: strcase.ToSnake(resource.PluralName) + ".go",
+		Filename: strcase.ToSnake(resource.Name) + ".go",
 		Content:  content,
 	})
 	content, err = generatePerResourceFile(resource, templates.ResourceClientTemplate)

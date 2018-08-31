@@ -3,15 +3,15 @@ package mocks
 import (
 	"time"
 
-	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/test/helpers"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/bxcodec/faker"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/test/tests/typed"
 )
 
@@ -67,6 +67,8 @@ func MockDataClientTest(namespace string, client MockDataClient) {
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 	Expect(r1.Data).To(Equal(input.Data))
+	Expect(r1.Status).To(Equal(input.Status))
+	Expect(r1.Metadata).To(Equal(input.Metadata))
 
 	_, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,

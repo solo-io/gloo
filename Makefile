@@ -5,7 +5,7 @@
 ROOTDIR := $(shell pwd)
 PACKAGE_PATH:=github.com/solo-io/solo-kit
 OUTPUT_DIR ?= $(ROOTDIR)/_output
-SOURCES := $(shell find . -name "*.go" | grep -v test)
+SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 
 #----------------------------------------------------------------------------------
 # Protobufs
@@ -65,12 +65,13 @@ $(OUTPUT_DIR)/.generated-code:
 # protoc plugin binary
 #----------------------------------------------------------------------------------
 
+.PHONY: install-plugin
+install-plugin: ${GOPATH}/bin/protoc-gen-solo-kit
+
 $(OUTPUT_DIR)/protoc-gen-solo-kit: $(SOURCES)
 	go build -o $@ cmd/generator/main.go
 
-
-.PHONY: install-plugin
-install-plugin: $(OUTPUT_DIR)/protoc-gen-solo-kit
+${GOPATH}/bin/protoc-gen-solo-kit: $(OUTPUT_DIR)/protoc-gen-solo-kit
 	cp $(OUTPUT_DIR)/protoc-gen-solo-kit ${GOPATH}/bin/
 
 

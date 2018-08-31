@@ -1,6 +1,7 @@
 package protoc
 
 import (
+	"bytes"
 	"os"
 
 	"github.com/golang/protobuf/proto"
@@ -31,7 +32,10 @@ var packageFilesToGenerate = map[string]packageTemplateFunc{
 }
 
 func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
-	log.DefaultOut = os.Stderr
+	log.DefaultOut = &bytes.Buffer{}
+	if false {
+		log.DefaultOut = os.Stderr
+	}
 	project, err := codegen.ParseRequest(req)
 	if err != nil {
 		return nil, err
