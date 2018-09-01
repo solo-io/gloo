@@ -15,7 +15,7 @@ func (t *translator) computeClusters(params plugins.Params, resourceErrs reporte
 	var (
 		clusters []*envoyapi.Cluster
 	)
-	for _, upstream := range params.Snapshot.UpstreamList {
+	for _, upstream := range params.Snapshot.Upstreams.List() {
 		cluster := t.computeCluster(params, upstream, resourceErrs)
 		clusters = append(clusters, cluster)
 	}
@@ -24,7 +24,7 @@ func (t *translator) computeClusters(params plugins.Params, resourceErrs reporte
 
 func (t *translator) computeCluster(params plugins.Params, upstream *v1.Upstream, resourceErrs reporter.ResourceErrors) *envoyapi.Cluster {
 	params.Ctx = contextutils.WithLogger(params.Ctx, upstream.Metadata.Name)
-	out := initializeCluster(upstream, params.Snapshot.EndpointList)
+	out := initializeCluster(upstream, params.Snapshot.Endpoints.List())
 
 	for _, plug := range t.plugins {
 		upstreamPlugin, ok := plug.(plugins.UpstreamPlugin)

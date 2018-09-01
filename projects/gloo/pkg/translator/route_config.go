@@ -23,7 +23,7 @@ func (t *translator) computeRouteConfig(params plugins.Params, proxy *v1.Proxy, 
 	virtualHosts := t.computeVirtualHosts(params, listener, report)
 
 	// validate ssl config if the listener specifies any
-	if err := validateListenerSslConfig(listener, params.Snapshot.SecretList); err != nil {
+	if err := validateListenerSslConfig(listener, params.Snapshot.Secrets.List()); err != nil {
 		report(err, "invalid listener %v", listener.Name)
 	}
 
@@ -128,7 +128,7 @@ func setMatch(in *v1.Route, out *envoyroute.Route) {
 func (t *translator) setAction(snap *v1.Snapshot, report reportFunc, in *v1.Route, out *envoyroute.Route) {
 	switch action := in.Action.(type) {
 	case *v1.Route_RouteAction:
-		if err := validateRouteDestinations(snap.UpstreamList, action.RouteAction); err != nil {
+		if err := validateRouteDestinations(snap.Upstreams.List(), action.RouteAction); err != nil {
 			report(err, "invalid route")
 		}
 
