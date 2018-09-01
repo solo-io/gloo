@@ -33,12 +33,12 @@ func Setup(opts Opts) error {
 
 func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 	watchOpts := opts.watchOpts.WithDefaults()
-	inputResourceOpts := opts.configBackend
 	secretOpts := opts.secretBackend
 	artifactOpts := opts.artifactBackend
 
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")
-	inputFactory := factory.NewResourceClientFactory(inputResourceOpts)
+	upstreamFactory := factory.NewResourceClientFactory(secretOpts)
+	proxyFactory := factory.NewResourceClientFactory(secretOpts)
 	secretFactory := factory.NewResourceClientFactory(secretOpts)
 	artifactFactory := factory.NewResourceClientFactory(artifactOpts)
 	endpointsFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
