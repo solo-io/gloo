@@ -34,7 +34,7 @@ func Setup(port int) error {
 	corsSettings := cors.New(cors.Options{
 		// the development server started by react-scripts defaults to ports 3000, 3001, etc. depending on what's available
 		// TODO: Pass debug and CORS urls as flags
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:8000", "localhost/:1"},
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:8000", "localhost/:1", "http://localhost:8082"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
 		// Enable Debugging for testing, consider disabling in production
