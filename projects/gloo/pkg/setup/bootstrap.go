@@ -16,6 +16,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"go.uber.org/zap"
+	"net"
 )
 
 type Opts struct {
@@ -25,6 +26,7 @@ type Opts struct {
 	secrets        factory.ResourceClientFactoryOpts
 	artifacts      factory.ResourceClientFactoryOpts
 	namespacer     namespacing.Namespacer
+	bindAddr       net.Addr
 	grpcServer     *grpc.Server
 	watchOpts      clients.WatchOpts
 }
@@ -72,6 +74,10 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 		watchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Minute,
+		},
+		bindAddr: &net.TCPAddr{
+			IP:   net.ParseIP("0.0.0.0"),
+			Port: 8080,
 		},
 		grpcServer: grpcServer,
 	}, nil

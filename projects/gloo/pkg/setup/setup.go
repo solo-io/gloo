@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
+	"net"
 )
 
 func Setup(opts Opts) error {
@@ -48,7 +49,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 	if err != nil {
 		return err
 	}
-	if err := upstreamClient.Register();  err != nil {
+	if err := upstreamClient.Register(); err != nil {
 		return err
 	}
 
@@ -56,7 +57,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 	if err != nil {
 		return err
 	}
-	if err := proxyClient.Register();  err != nil {
+	if err := proxyClient.Register(); err != nil {
 		return err
 	}
 
@@ -110,13 +111,23 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 
 	logger := contextutils.LoggerFrom(watchOpts.Ctx)
 
-	for {
-		select {
-		case err := <-errs:
-			logger.Errorf("error: %v", err)
-		case <-watchOpts.Ctx.Done():
-			close(errs)
-			return nil
+	go func() {
+
+		for {
+			select {
+			case err := <-errs:
+				logger.Errorf("error: %v", err)
+			case <-watchOpts.Ctx.Done():
+				close(errs)
+				return
+			}
 		}
+	}()
+
+	lis, err := net.Listen(opts.bindAddr.Network(), opts.bindAddr.String())
+	if err != nil {
+		return err
 	}
+	return opts.grpcServer.Serve(lis)
+
 }

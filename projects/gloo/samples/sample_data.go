@@ -18,10 +18,21 @@ func MakeMetadata(kind, namespace string, i int) core.Metadata {
 	}
 }
 
+func Secrets() v1.SecretList {
+	return v1.SecretList{
+		{
+			Metadata: MakeMetadata("secret", "default", 1),
+			Data: map[string]string{
+				//TODO(ilackarms)
+			},
+		},
+	}
+}
+
 func Upstreams() v1.UpstreamList {
 	return v1.UpstreamList{
 		{
-			Metadata: MakeMetadata("upstream", "some-namespace", 1),
+			Metadata: MakeMetadata("upstream", "gloo-system", 1),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Aws{
 					Aws: &aws.UpstreamSpec{
@@ -44,7 +55,7 @@ func Upstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("upstream", "some-namespace", 2),
+			Metadata: MakeMetadata("upstream", "gloo-system", 2),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Kube{
 					Kube: &kubernetes.UpstreamSpec{
@@ -56,7 +67,7 @@ func Upstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("upstream", "some-namespace", 3),
+			Metadata: MakeMetadata("upstream", "gloo-system", 3),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Kube{
 					Kube: &kubernetes.UpstreamSpec{
@@ -69,7 +80,7 @@ func Upstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("upstream", "some-namespace", 4),
+			Metadata: MakeMetadata("upstream", "gloo-system", 4),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Azure{
 					Azure: &azure.UpstreamSpec{
@@ -97,8 +108,8 @@ func Upstreams() v1.UpstreamList {
 }
 
 func VirtualServices() gatewayv1.VirtualServiceList {
-	meta1 := MakeMetadata("virtualservice", "some-namespace", 1)
-	meta2 := MakeMetadata("virtualservice", "some-namespace", 2)
+	meta1 := MakeMetadata("virtualservice", "gloo-system", 1)
+	meta2 := MakeMetadata("virtualservice", "gloo-system", 2)
 	return gatewayv1.VirtualServiceList{
 		{
 			Metadata:  meta1,
