@@ -28,7 +28,7 @@ func ParseRequest(req *plugin_go.CodeGeneratorRequest) (*Project, error) {
 	log.Printf("parsing request %v", req.FileToGenerate, req.GetParameter())
 	params := req.GetParameter()
 	if params == "" {
-		return nil, errors.Errorf("must provide path to project.json file")
+		return nil, errors.Errorf("must provide path to project.json file with --solo-kit_out=./project.json:${OUTDIR}")
 	}
 
 	log.Printf("got cli param from protoc invoke: %v", params)
