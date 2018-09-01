@@ -16,6 +16,8 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 )
 
+var errorUndetectableUpstream = errors.New("upstream type cannot be detected")
+
 type UpstreamWriterClient interface {
 	Write(resource *v1.Upstream, opts clients.WriteOpts) (*v1.Upstream, error)
 }
@@ -121,7 +123,7 @@ func (u *Updater) detectType(ctx context.Context, url *url.URL) (*detectResult, 
 		if ok {
 			return &res, nil
 		}
-		return nil, errors.New("upstream type cannot be detected")
+		return nil, errorUndetectableUpstream
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
@@ -232,6 +234,12 @@ func (u *Updater) RunForUpstream(ctx context.Context, upstream *v1.Upstream) err
 		// try to detect the type
 		res, err := u.detectType(ctx, url)
 		if err != nil {
+
+			if err == errorUndetectableUpstream {
+				// TODO(yuval-k): at this point all discoveries gave up.
+				// do we want to mark an upstream as undetected persistently so we do not detect it anymore?
+			}
+
 			return err
 		}
 		discoveryForUpstream = res.fp
