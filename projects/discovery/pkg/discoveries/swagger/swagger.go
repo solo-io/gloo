@@ -32,8 +32,14 @@ var commonSwaggerURIs = []string{
 	"/v2/swagger",
 }
 
+// TODO(yuval-k): run this in a back off for a limited amount of time, with high initial retry.
+// maybe backoff with initial 1 minute a total of 10 minutes till giving up. this should probably be configurable
+
 type SwaggerFuncitonDiscovery struct {
-	timetowait       time.Duration
+	DetectionTimeout   time.Duration
+	DetectionRetryBase time.Duration
+
+	FunctionPollTime time.Duration
 	swaggerUrisToTry []string
 }
 
@@ -62,8 +68,19 @@ func (d *SwaggerFuncitonDiscovery) IsUpstreamFunctional(u *v1.Upstream) bool {
 	return getswagspec(u) != nil
 }
 
-// TODO: do we want to mark an upstream as undetected persistently so we do not detect it anymore?
 func (d *SwaggerFuncitonDiscovery) DetectUpstreamType(ctx context.Context, baseurl *url.URL) (*plugins.ServiceSpec, error) {
+	var spec *plugins.ServiceSpec
+
+	err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{MaxDuration: &d.DetectionTimeout}).Backoff(ctx, func(ctx context.Context) error {
+		var err error
+		spec, err = d.detectUpstreamTypeOnce(ctx, baseurl)
+		return err
+	})
+
+	return spec, err
+}
+
+func (d *SwaggerFuncitonDiscovery) detectUpstreamTypeOnce(ctx context.Context, baseurl *url.URL) (*plugins.ServiceSpec, error) {
 	// run detection and get functions
 	var errs error
 	log := contextutils.LoggerFrom(ctx)
@@ -172,7 +189,7 @@ func (f *SwaggerFuncitonDiscovery) detectFunctionsFromUrl(ctx context.Context, u
 			// ignore other erros as we would like to continue forever.
 		}
 
-		if err := contextutils.Sleep(ctx, f.timetowait); err != nil {
+		if err := contextutils.Sleep(ctx, f.FunctionPollTime); err != nil {
 			return err
 		}
 	}
