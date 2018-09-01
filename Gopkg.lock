@@ -404,6 +404,17 @@
   version = "v1.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/jhump/protoreflect"
+  packages = [
+    "desc",
+    "desc/internal",
+    "grpcreflect",
+    "internal"
+  ]
+  revision = "95c5cbbeaee7fe3c2b5ecf0a163144140dfb4d61"
+
+[[projects]]
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
   revision = "0b12d6b5"
@@ -725,6 +736,7 @@
     "metadata",
     "naming",
     "peer",
+    "reflection/grpc_reflection_v1alpha",
     "resolver",
     "resolver/dns",
     "resolver/passthrough",
