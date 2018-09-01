@@ -4,6 +4,17 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 )
 
+type ServiceSpecGetter interface {
+	GetServiceSpec() *plugins.ServiceSpec
+}
+type ServiceSpecSetter interface {
+	SetServiceSpec(*plugins.ServiceSpec)
+}
+type ServiceSpecMutator interface {
+	ServiceSpecGetter
+	ServiceSpecSetter
+}
+
 /*
 	Add these two methods to any upstream spec that supports
 */

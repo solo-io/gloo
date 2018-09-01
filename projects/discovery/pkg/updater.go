@@ -77,10 +77,6 @@ type detectResult struct {
 	fp   UpstreamFunctionDiscovery
 }
 
-type supportSpec interface {
-	SetServiceSpec(*plugins.ServiceSpec)
-}
-
 func (u *Updater) Run() error {
 
 	// watch upstreams and the such.
@@ -243,7 +239,7 @@ func (u *updaterUpdater) Run() error {
 
 	if discoveryForUpstream == nil {
 		// TODO: this will probably not going to work unless the upstream type will also have the method required
-		_, ok := u.upstream.UpstreamSpec.UpstreamType.(supportSpec)
+		_, ok := u.upstream.UpstreamSpec.UpstreamType.(v1.ServiceSpecSetter)
 		if !ok {
 			// can't set a service spec - which is required from this point on, as hueristic detection requires spec
 			return errors.New("discovery not possible for upsteram")
@@ -267,7 +263,7 @@ func (u *updaterUpdater) Run() error {
 		}
 		discoveryForUpstream = res.fp
 		upstreamSave(func(upstream *v1.Upstream) error {
-			servicespecupstream, ok := upstream.UpstreamSpec.UpstreamType.(supportSpec)
+			servicespecupstream, ok := upstream.UpstreamSpec.UpstreamType.(v1.ServiceSpecSetter)
 			if !ok {
 				return errors.New("can't set spec")
 			}
