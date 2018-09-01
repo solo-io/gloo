@@ -66,5 +66,6 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	if err := s.reporter.WriteReports(ctx, allResourceErrs); err != nil {
 		return errors.Wrapf(err, "writing reports")
 	}
+	logger.Infof("finished translation loop %v", snap.Hash())
 	return nil
 }
