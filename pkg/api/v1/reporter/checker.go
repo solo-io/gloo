@@ -7,9 +7,9 @@ import (
 
 // check reports on objects
 type StatusHandler interface {
-	OnAccepted(resource *resources.Resource)
-	OnRejected(resource *resources.Resource)
-	OnPending(resource *resources.Resource)
+	OnAccepted(resource resources.Resource)
+	OnRejected(resource resources.Resource)
+	OnPending(resource resources.Resource)
 }
 
 func Check(handler StatusHandler, resources ...resources.InputResource) {
@@ -22,24 +22,24 @@ func Check(handler StatusHandler, resources ...resources.InputResource) {
 }
 
 type StatusHandlerFuncs struct {
-	OnAcceptedF func(resource *resources.Resource)
-	OnRejectedF func(resource *resources.Resource)
-	OnPendingF  func(resource *resources.Resource)
+	OnAcceptedF func(resource resources.Resource)
+	OnRejectedF func(resource resources.Resource)
+	OnPendingF  func(resource resources.Resource)
 }
 
-func (f *StatusHandlerFuncs) OnAccepted(resource *resources.Resource) {
+func (f *StatusHandlerFuncs) OnAccepted(resource resources.Resource) {
 	if f.OnAcceptedF != nil {
 		f.OnAcceptedF(resource)
 	}
 }
 
-func (f *StatusHandlerFuncs) OnRejected(resource *resources.Resource) {
+func (f *StatusHandlerFuncs) OnRejected(resource resources.Resource) {
 	if f.OnRejectedF != nil {
 		f.OnRejectedF(resource)
 	}
 }
 
-func (f *StatusHandlerFuncs) OnPending(resource *resources.Resource) {
+func (f *StatusHandlerFuncs) OnPending(resource resources.Resource) {
 	if f.OnPendingF != nil {
 		f.OnPendingF(resource)
 	}
