@@ -45,12 +45,12 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 		Cache: memory.NewInMemoryResourceCache(),
 	})
 
-	upstreamClient, err := v1.NewUpstreamClient(inputFactory)
+	upstreamClient, err := v1.NewUpstreamClient(upstreamFactory)
 	if err != nil {
 		return err
 	}
 
-	proxyClient, err := v1.NewProxyClient(inputFactory)
+	proxyClient, err := v1.NewProxyClient(proxyFactory)
 	if err != nil {
 		return err
 	}

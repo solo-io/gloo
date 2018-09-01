@@ -18,7 +18,7 @@ type Translator interface {
 }
 
 type translator struct {
-	pluginsCtors func() []Plugin
+	pluginsCtors func() []plugins.Plugin
 	plugins      []plugins.Plugin
 }
 
@@ -40,7 +40,7 @@ func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycac
 	logger.Debugf("computing envoy clusters for proxy: %v", proxy.Metadata.Name)
 	clusters := t.computeClusters(params, resourceErrs)
 	logger.Debugf("computing envoy endpoints for proxy: %v", proxy.Metadata.Name)
-	endpoints := computeClusterEndpoints(params.Snapshot.UpstreamList, params.Snapshot.EndpointList)
+	endpoints := computeClusterEndpoints(params.Snapshot.Upstreams.List(), params.Snapshot.Endpoints.List())
 
 	var (
 		routeConfigs []*envoyapi.RouteConfiguration
