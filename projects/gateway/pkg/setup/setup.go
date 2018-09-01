@@ -1,7 +1,6 @@
 package setup
 
 import (
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -11,22 +10,42 @@ import (
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
-func Run(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts, opts clients.WatchOpts) error {
-	opts = opts.WithDefaults()
-	opts.Ctx = contextutils.WithLogger(opts.Ctx, "setup")
-	inputFactory := factory.NewResourceClientFactory(inputResourceOpts)
+func Setup(opts Opts) error {
+	// TODO: Ilackarms: move this to multi-eventloop
+	namespaces, errs, err := opts.namespacer.Namespaces(opts.watchOpts)
+	if err != nil {
+		return err
+	}
+	for {
+		select {
+		case err := <-errs:
+			return err
+		case watchNamespaces := <-namespaces:
+			err := setupForNamespaces(watchNamespaces, opts)
+			if err != nil {
+				return err
+			}
+		}
+	}
+}
 
-	gatewayClient, err := v1.NewGatewayClient(inputFactory)
+func setupForNamespaces(watchNamespaces []string, opts Opts) error {
+	opts.watchOpts = opts.watchOpts.WithDefaults()
+	gatewayFactory := factory.NewResourceClientFactory(opts.gateways)
+	virtualServiceFactory := factory.NewResourceClientFactory(opts.virtualServices)
+	proxyFactory := factory.NewResourceClientFactory(opts.proxies)
+
+	gatewayClient, err := v1.NewGatewayClient(gatewayFactory)
 	if err != nil {
 		return err
 	}
 
-	virtualServicesClient, err := v1.NewVirtualServiceClient(inputFactory)
+	virtualServicesClient, err := v1.NewVirtualServiceClient(virtualServiceFactory)
 	if err != nil {
 		return err
 	}
 
-	proxyClient, err := gloov1.NewProxyClient(inputFactory)
+	proxyClient, err := gloov1.NewProxyClient(proxyFactory)
 	if err != nil {
 		return err
 	}
@@ -38,18 +57,18 @@ func Run(namespace string, inputResourceOpts factory.ResourceClientFactoryOpts, 
 
 	prop := propagator.NewPropagator("gateway", gatewayClient, virtualServicesClient, proxyClient, writeErrs)
 
-	sync := syncer.NewSyncer(namespace, proxyClient, rpt, prop, writeErrs)
+	sync := syncer.NewSyncer(opts.writeNamespace, proxyClient, rpt, prop, writeErrs)
 
 	eventLoop := v1.NewEventLoop(cache, sync)
-	eventLoop.Run(namespace, opts)
+	eventLoop.Run(watchNamespaces, opts.watchOpts)
 
-	logger := contextutils.LoggerFrom(opts.Ctx)
+	logger := contextutils.LoggerFrom(opts.watchOpts.Ctx)
 
 	for {
 		select {
 		case err := <-writeErrs:
 			logger.Errorf("error: %v", err)
-		case <-opts.Ctx.Done():
+		case <-opts.watchOpts.Ctx.Done():
 			close(writeErrs)
 			return nil
 		}

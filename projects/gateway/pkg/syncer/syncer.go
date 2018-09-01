@@ -15,16 +15,16 @@ import (
 )
 
 type syncer struct {
-	namespace       string
+	writeNamespace  string
 	reporter        reporter.Reporter
 	propagator      *propagator.Propagator
 	writeErrs       chan error
 	proxyReconciler gloov1.ProxyReconciler
 }
 
-func NewSyncer(namespace string, proxyClient gloov1.ProxyClient, reporter reporter.Reporter, propagator *propagator.Propagator, writeErrs chan error) v1.Syncer {
+func NewSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter reporter.Reporter, propagator *propagator.Propagator, writeErrs chan error) v1.Syncer {
 	return &syncer{
-		namespace:       namespace,
+		writeNamespace:  writeNamespace,
 		reporter:        reporter,
 		propagator:      propagator,
 		writeErrs:       writeErrs,
@@ -39,7 +39,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	logger.Infof("Beginning translation loop for snapshot %v", snap.Hash())
 	logger.Debugf("%v", snap)
 
-	desired, resourceErrs := translate(s.namespace, snap)
+	desired, resourceErrs := translate(s.writeNamespace, snap)
 	if err := s.reporter.WriteReports(ctx, resourceErrs); err != nil {
 		return errors.Wrapf(err, "writing reports")
 	}
@@ -49,9 +49,9 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	}
 	// proxy was deleted / none desired
 	if desired == nil {
-		return s.proxyReconciler.Reconcile(s.namespace, nil, nil, clients.ListOpts{})
+		return s.proxyReconciler.Reconcile(s.writeNamespace, nil, nil, clients.ListOpts{})
 	}
-	if err := s.proxyReconciler.Reconcile(s.namespace, gloov1.ProxyList{desired}, nil, clients.ListOpts{}); err != nil {
+	if err := s.proxyReconciler.Reconcile(s.writeNamespace, gloov1.ProxyList{desired}, nil, clients.ListOpts{}); err != nil {
 		return err
 	}
 
