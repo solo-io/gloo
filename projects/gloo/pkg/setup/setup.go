@@ -14,6 +14,7 @@ import (
 )
 
 func Setup(opts Opts) error {
+	// TODO: Ilackarms: move this to multi-eventloop
 	namespaces, errs, err := opts.namespacer.Namespaces(opts.watchOpts)
 	if err != nil {
 		return err
@@ -47,9 +48,15 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 	if err != nil {
 		return err
 	}
+	if err := upstreamClient.Register();  err != nil {
+		return err
+	}
 
 	proxyClient, err := v1.NewProxyClient(proxyFactory)
 	if err != nil {
+		return err
+	}
+	if err := proxyClient.Register();  err != nil {
 		return err
 	}
 
