@@ -22,9 +22,18 @@ type UpstreamWriterClient interface {
 	Write(resource *v1.Upstream, opts clients.WriteOpts) (*v1.Upstream, error)
 }
 
+type updaterUpdater struct {
+	cancel            context.CancelFunc
+	ctx               context.Context
+	upstream          *v1.Upstream
+	functionalPlugins []UpstreamFunctionDiscovery
+
+	parent *Updater
+}
+
 type Updater struct {
-	functionalPlugins []FunctionDiscovery
-	activeupstreams   map[string]context.CancelFunc
+	functionalPlugins []FunctionDiscoveryFactory
+	activeupstreams   map[string]*updaterUpdater
 	ctx               context.Context
 	resolver          Resolver
 	logger            *zap.SugaredLogger
@@ -50,14 +59,14 @@ func getConcurrencyChan(maxoncurrency uint) chan struct{} {
 
 }
 
-func NewUpdater(ctx context.Context, resolver Resolver, upstreamclient UpstreamWriterClient, maxoncurrency uint, functionalPlugins []FunctionDiscovery) *Updater {
+func NewUpdater(ctx context.Context, resolver Resolver, upstreamclient UpstreamWriterClient, maxoncurrency uint, functionalPlugins []FunctionDiscoveryFactory) *Updater {
 	ctx = contextutils.WithLogger(ctx, "function-discovery-updater")
 	return &Updater{
 		logger:                 contextutils.LoggerFrom(ctx),
 		ctx:                    ctx,
 		resolver:               resolver,
 		functionalPlugins:      functionalPlugins,
-		activeupstreams:        make(map[string]context.CancelFunc),
+		activeupstreams:        make(map[string]*updaterUpdater),
 		maxInParallelSemaphore: getConcurrencyChan(maxoncurrency),
 		upstreamWriter:         upstreamclient,
 	}
@@ -65,88 +74,7 @@ func NewUpdater(ctx context.Context, resolver Resolver, upstreamclient UpstreamW
 
 type detectResult struct {
 	spec *plugins.ServiceSpec
-	fp   FunctionDiscovery
-}
-
-func (u *Updater) detectSingle(ctx context.Context, fp FunctionDiscovery, url *url.URL, result chan detectResult) {
-
-	if u.maxInParallelSemaphore != nil {
-		select {
-		// wait for our turn
-		case token := <-u.maxInParallelSemaphore:
-			// give back our token when we are done
-			defer func() { u.maxInParallelSemaphore <- token }()
-		case <-ctx.Done():
-			return //ctx.Err()
-		}
-	}
-
-	contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
-		spec, err := fp.DetectUpstreamType(ctx, url)
-		if err != nil {
-			return err
-		}
-		if spec != nil {
-			// success
-			result <- detectResult{
-				spec: spec,
-				fp:   fp,
-			}
-		}
-		return nil
-	})
-}
-
-func (u *Updater) detectType(ctx context.Context, url *url.URL) (*detectResult, error) {
-	// TODO add global timeout?
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	result := make(chan detectResult, 1)
-
-	// run all detections in paralel
-	var waitgroup sync.WaitGroup
-	for _, fp := range u.functionalPlugins {
-		waitgroup.Add(1)
-		go func(functionalPlugin FunctionDiscovery) {
-			defer waitgroup.Done()
-			u.detectSingle(ctx, functionalPlugin, url, result)
-		}(fp)
-	}
-	go func() {
-		waitgroup.Wait()
-		close(result)
-	}()
-
-	select {
-	case res, ok := <-result:
-		if ok {
-			return &res, nil
-		}
-		return nil, errorUndetectableUpstream
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	}
-
-}
-
-func (u *Updater) saveUpstream(ctx context.Context, upstream *v1.Upstream, mutator UpstreamMutator) error {
-	err := mutator(upstream)
-	if err != nil {
-		return err
-	}
-
-	var wo clients.WriteOpts
-	wo.Ctx = ctx
-	wo.OverwriteExisting = true
-
-	/* upstream, err = */
-	u.upstreamWriter.Write(upstream, wo)
-
-	// TODO: if write failed, due to resource conflict,
-	// get latest version, and if it still doesnt have a spec, mutate again and retry.
-
-	return nil
+	fp   UpstreamFunctionDiscovery
 }
 
 type supportSpec interface {
@@ -173,6 +101,14 @@ func (u *Updater) GetSecrets() v1.SecretList {
 	return sl.(v1.SecretList)
 }
 
+func (u *Updater) createDiscoveries(upstream *v1.Upstream) []UpstreamFunctionDiscovery {
+	var ret []UpstreamFunctionDiscovery
+	for _, e := range u.functionalPlugins {
+		ret = append(ret, e.NewFunctionDiscovery(upstream))
+	}
+	return ret
+}
+
 func (u *Updater) UpstreamUpdated(upstream *v1.Upstream) {
 	// remove and re-add for now. think if we want to be sophisticated later.
 	u.UpstreamRemoved(upstream)
@@ -186,9 +122,15 @@ func (u *Updater) UpstreamAdded(upstream *v1.Upstream) {
 		return
 	}
 	ctx, cancel := context.WithCancel(u.ctx)
-	u.activeupstreams[key] = cancel
+	u.activeupstreams[key] = &updaterUpdater{
+		cancel:            cancel,
+		ctx:               ctx,
+		upstream:          upstream,
+		functionalPlugins: u.createDiscoveries(upstream),
+		parent:            u,
+	}
 	go func() {
-		u.RunForUpstream(ctx, upstream)
+		u.Run()
 		cancel()
 		// TODO(yuval-k): consider removing upstream from map.
 		// need to be careful here as there might be a race if an update happens in the same time.
@@ -197,42 +139,123 @@ func (u *Updater) UpstreamAdded(upstream *v1.Upstream) {
 
 func (u *Updater) UpstreamRemoved(upstream *v1.Upstream) {
 	key := resources.Key(upstream)
-	if cancel, ok := u.activeupstreams[key]; ok {
-		cancel()
+	if upstreamState, ok := u.activeupstreams[key]; ok {
+		upstreamState.cancel()
 		delete(u.activeupstreams, key)
 	}
 }
 
-func (u *Updater) RunForUpstream(ctx context.Context, upstream *v1.Upstream) error {
+func (u *updaterUpdater) saveUpstream(mutator UpstreamMutator) error {
+	err := mutator(u.upstream)
+	if err != nil {
+		return err
+	}
+
+	var wo clients.WriteOpts
+	wo.Ctx = u.ctx
+	wo.OverwriteExisting = true
+
+	/* upstream, err = */
+	u.parent.upstreamWriter.Write(u.upstream, wo)
+
+	// TODO: if write failed, due to resource conflict,
+	// get latest version, and if it still doesnt have a spec, mutate again and retry.
+
+	return nil
+}
+
+func (u *updaterUpdater) detectSingle(fp UpstreamFunctionDiscovery, url *url.URL, result chan detectResult) {
+
+	if u.parent.maxInParallelSemaphore != nil {
+		select {
+		// wait for our turn
+		case token := <-u.parent.maxInParallelSemaphore:
+			// give back our token when we are done
+			defer func() { u.parent.maxInParallelSemaphore <- token }()
+		case <-u.ctx.Done():
+			return //ctx.Err()
+		}
+	}
+
+	contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(u.ctx, func(ctx context.Context) error {
+		spec, err := fp.DetectType(ctx, url)
+		if err != nil {
+			return err
+		}
+		if spec != nil {
+			// success
+			result <- detectResult{
+				spec: spec,
+				fp:   fp,
+			}
+		}
+		return nil
+	})
+}
+
+func (u *updaterUpdater) detectType(url *url.URL) (*detectResult, error) {
+	// TODO add global timeout?
+	ctx, cancel := context.WithCancel(u.ctx)
+	defer cancel()
+
+	result := make(chan detectResult, 1)
+
+	// run all detections in paralel
+	var waitgroup sync.WaitGroup
+	for _, fp := range u.functionalPlugins {
+		waitgroup.Add(1)
+		go func(functionalPlugin UpstreamFunctionDiscovery) {
+			defer waitgroup.Done()
+			u.detectSingle(functionalPlugin, url, result)
+		}(fp)
+	}
+	go func() {
+		waitgroup.Wait()
+		close(result)
+	}()
+
+	select {
+	case res, ok := <-result:
+		if ok {
+			return &res, nil
+		}
+		return nil, errorUndetectableUpstream
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+
+}
+
+func (u *updaterUpdater) Run() error {
 
 	// see if anyone likes this upstream:
-	var discoveryForUpstream FunctionDiscovery
+	var discoveryForUpstream UpstreamFunctionDiscovery
 	for _, fp := range u.functionalPlugins {
-		if fp.IsUpstreamFunctional(upstream) {
+		if fp.IsFunctional() {
 			discoveryForUpstream = fp
 			break
 		}
 	}
 
 	upstreamSave := func(m UpstreamMutator) error {
-		return u.saveUpstream(ctx, upstream, m)
+		return u.saveUpstream(m)
 	}
 
 	if discoveryForUpstream == nil {
 		// TODO: this will probably not going to work unless the upstream type will also have the method required
-		_, ok := upstream.UpstreamSpec.UpstreamType.(supportSpec)
+		_, ok := u.upstream.UpstreamSpec.UpstreamType.(supportSpec)
 		if !ok {
 			// can't set a service spec - which is required from this point on, as hueristic detection requires spec
 			return errors.New("discovery not possible for upsteram")
 		}
 
 		// if we are here it means that the service upstream doesn't have a spec
-		url, err := u.resolver.Resolve(upstream)
+		url, err := u.parent.resolver.Resolve(u.upstream)
 		if err != nil {
 			return err
 		}
 		// try to detect the type
-		res, err := u.detectType(ctx, url)
+		res, err := u.detectType(url)
 		if err != nil {
 
 			if err == errorUndetectableUpstream {
@@ -253,5 +276,5 @@ func (u *Updater) RunForUpstream(ctx context.Context, upstream *v1.Upstream) err
 		})
 	}
 
-	return discoveryForUpstream.DetectFunctions(ctx, u.GetSecrets, upstream, upstreamSave)
+	return discoveryForUpstream.DetectFunctions(u.ctx, u.parent.GetSecrets, upstreamSave)
 }

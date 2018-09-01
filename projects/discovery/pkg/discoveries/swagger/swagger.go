@@ -35,12 +35,29 @@ var commonSwaggerURIs = []string{
 // TODO(yuval-k): run this in a back off for a limited amount of time, with high initial retry.
 // maybe backoff with initial 1 minute a total of 10 minutes till giving up. this should probably be configurable
 
-type SwaggerFuncitonDiscovery struct {
+type SwaggerFuncitonDiscoveryFactory struct {
 	DetectionTimeout   time.Duration
 	DetectionRetryBase time.Duration
+	FunctionPollTime   time.Duration
+	swaggerUrisToTry   []string
+}
 
-	FunctionPollTime time.Duration
-	swaggerUrisToTry []string
+func (f *SwaggerFuncitonDiscoveryFactory) NewFunctionDiscovery(u *v1.Upstream) discovery.UpstreamFunctionDiscovery {
+	return &SwaggerFuncitonDiscovery{
+		detectionTimeout:   f.DetectionTimeout,
+		detectionRetryBase: f.DetectionRetryBase,
+		functionPollTime:   f.FunctionPollTime,
+		swaggerUrisToTry:   f.swaggerUrisToTry,
+		upstream:           u,
+	}
+}
+
+type SwaggerFuncitonDiscovery struct {
+	detectionTimeout   time.Duration
+	detectionRetryBase time.Duration
+	functionPollTime   time.Duration
+	upstream           *v1.Upstream
+	swaggerUrisToTry   []string
 }
 
 type specable interface {
@@ -64,14 +81,14 @@ func getswagspec(u *v1.Upstream) *rest_plugins.ServiceSpec_SwaggerInfo {
 	return rest.SwaggerInfo
 }
 
-func (d *SwaggerFuncitonDiscovery) IsUpstreamFunctional(u *v1.Upstream) bool {
-	return getswagspec(u) != nil
+func (d *SwaggerFuncitonDiscovery) IsFunctional() bool {
+	return getswagspec(d.upstream) != nil
 }
 
-func (d *SwaggerFuncitonDiscovery) DetectUpstreamType(ctx context.Context, baseurl *url.URL) (*plugins.ServiceSpec, error) {
+func (d *SwaggerFuncitonDiscovery) DetectType(ctx context.Context, baseurl *url.URL) (*plugins.ServiceSpec, error) {
 	var spec *plugins.ServiceSpec
 
-	err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{MaxDuration: &d.DetectionTimeout}).Backoff(ctx, func(ctx context.Context) error {
+	err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{MaxDuration: &d.detectionTimeout}).Backoff(ctx, func(ctx context.Context) error {
 		var err error
 		spec, err = d.detectUpstreamTypeOnce(ctx, baseurl)
 		return err
@@ -151,7 +168,8 @@ func (d *SwaggerFuncitonDiscovery) detectUpstreamTypeOnce(ctx context.Context, b
 
 }
 
-func (f *SwaggerFuncitonDiscovery) DetectFunctions(ctx context.Context, secrets func() v1.SecretList, in *v1.Upstream, updatecb func(discovery.UpstreamMutator) error) error {
+func (f *SwaggerFuncitonDiscovery) DetectFunctions(ctx context.Context, secrets func() v1.SecretList, updatecb func(discovery.UpstreamMutator) error) error {
+	in := f.upstream
 	spec := getswagspec(in)
 	if spec == nil || spec.SwaggerSpec == nil {
 		// TODO: make this a fatal error that avoids restarts?
@@ -189,7 +207,7 @@ func (f *SwaggerFuncitonDiscovery) detectFunctionsFromUrl(ctx context.Context, u
 			// ignore other erros as we would like to continue forever.
 		}
 
-		if err := contextutils.Sleep(ctx, f.FunctionPollTime); err != nil {
+		if err := contextutils.Sleep(ctx, f.functionPollTime); err != nil {
 			return err
 		}
 	}
