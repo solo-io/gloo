@@ -47,4 +47,9 @@ message DestinationSpec {
         //TODO: support form params
     }
     Parameters parameters = 2;
+
+
+    envoy.api.v2.filter.http.TransformationTemplate response_transformation = 3;
+    // TODO(yuval-k): do we need this?
+    // Parameters response_parameters;
 }

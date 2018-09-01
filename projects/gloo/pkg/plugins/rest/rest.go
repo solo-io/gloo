@@ -81,14 +81,17 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			return nil, errors.Errorf("%v does not have a REST service spec", spec.Upstream)
 		}
 		funcname := restDestinationSpec.Rest.FunctionName
-		transform := restservicespec.Rest.Transformation[funcname]
-		if transform == nil {
+		transformationorig := restservicespec.Rest.Transformations[funcname]
+		if transformationorig == nil {
 			return nil, errors.Errorf("unknown function %v", funcname)
 		}
 
+		// copy to prevent changing the original in memoery.
+		transformation := *transformationorig
+
 		// add extentions from the destination spec
 		var err error
-		transform.Extractors, err = p.createRequestExtractors(restDestinationSpec.Rest.Parameters)
+		transformation.Extractors, err = p.createRequestExtractors(restDestinationSpec.Rest.Parameters)
 		if err != nil {
 			return nil, err
 		}
@@ -98,12 +101,20 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		ret := &transformapi.RouteTransformations{
 			RequestTransformation: &transformapi.Transformation{
 				TransformationType: &transformapi.Transformation_TransformationTemplate{
-					TransformationTemplate: transform,
+					TransformationTemplate: &transformation,
 				},
 			},
 		}
 
 		*p.transformsAdded = true
+		if restDestinationSpec.Rest.ResponseTransformation != nil {
+			// TODO(yuval-k): should we add \ support response parameters?
+			ret.ResponseTransformation = &transformapi.Transformation{
+				TransformationType: &transformapi.Transformation_TransformationTemplate{
+					TransformationTemplate: restDestinationSpec.Rest.ResponseTransformation,
+				},
+			}
+		}
 
 		return ret, nil
 	})
