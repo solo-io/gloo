@@ -17,6 +17,7 @@ import fmt "fmt"
 import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
 import rest_plugins_gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
+import grpc_plugins_gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/grpc"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -39,6 +40,7 @@ type ServiceSpec struct {
 	//
 	// Types that are valid to be assigned to PluginType:
 	//	*ServiceSpec_Rest
+	//	*ServiceSpec_Grpc
 	PluginType isServiceSpec_PluginType `protobuf_oneof:"plugin_type"`
 }
 
@@ -55,8 +57,12 @@ type isServiceSpec_PluginType interface {
 type ServiceSpec_Rest struct {
 	Rest *rest_plugins_gloo_solo_io.ServiceSpec `protobuf:"bytes,1,opt,name=rest,oneof"`
 }
+type ServiceSpec_Grpc struct {
+	Grpc *grpc_plugins_gloo_solo_io.ServiceSpec `protobuf:"bytes,2,opt,name=grpc,oneof"`
+}
 
 func (*ServiceSpec_Rest) isServiceSpec_PluginType() {}
+func (*ServiceSpec_Grpc) isServiceSpec_PluginType() {}
 
 func (m *ServiceSpec) GetPluginType() isServiceSpec_PluginType {
 	if m != nil {
@@ -72,10 +78,18 @@ func (m *ServiceSpec) GetRest() *rest_plugins_gloo_solo_io.ServiceSpec {
 	return nil
 }
 
+func (m *ServiceSpec) GetGrpc() *grpc_plugins_gloo_solo_io.ServiceSpec {
+	if x, ok := m.GetPluginType().(*ServiceSpec_Grpc); ok {
+		return x.Grpc
+	}
+	return nil
+}
+
 // XXX_OneofFuncs is for the internal use of the proto package.
 func (*ServiceSpec) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
 	return _ServiceSpec_OneofMarshaler, _ServiceSpec_OneofUnmarshaler, _ServiceSpec_OneofSizer, []interface{}{
 		(*ServiceSpec_Rest)(nil),
+		(*ServiceSpec_Grpc)(nil),
 	}
 }
 
@@ -86,6 +100,11 @@ func _ServiceSpec_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 	case *ServiceSpec_Rest:
 		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.Rest); err != nil {
+			return err
+		}
+	case *ServiceSpec_Grpc:
+		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Grpc); err != nil {
 			return err
 		}
 	case nil:
@@ -106,6 +125,14 @@ func _ServiceSpec_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Bu
 		err := b.DecodeMessage(msg)
 		m.PluginType = &ServiceSpec_Rest{msg}
 		return true, err
+	case 2: // plugin_type.grpc
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(grpc_plugins_gloo_solo_io.ServiceSpec)
+		err := b.DecodeMessage(msg)
+		m.PluginType = &ServiceSpec_Grpc{msg}
+		return true, err
 	default:
 		return false, nil
 	}
@@ -118,6 +145,11 @@ func _ServiceSpec_OneofSizer(msg proto.Message) (n int) {
 	case *ServiceSpec_Rest:
 		s := proto.Size(x.Rest)
 		n += proto.SizeVarint(1<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *ServiceSpec_Grpc:
+		s := proto.Size(x.Grpc)
+		n += proto.SizeVarint(2<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case nil:
@@ -180,6 +212,30 @@ func (this *ServiceSpec_Rest) Equal(that interface{}) bool {
 		return false
 	}
 	if !this.Rest.Equal(that1.Rest) {
+		return false
+	}
+	return true
+}
+func (this *ServiceSpec_Grpc) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*ServiceSpec_Grpc)
+	if !ok {
+		that2, ok := that.(ServiceSpec_Grpc)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Grpc.Equal(that1.Grpc) {
 		return false
 	}
 	return true

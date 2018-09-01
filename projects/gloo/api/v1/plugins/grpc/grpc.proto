@@ -1,0 +1,19 @@
+syntax = "proto3";
+package grpc.plugins.gloo.solo.io;
+
+option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/grpc";
+
+import "google/protobuf/wrappers.proto";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation/transformation.proto";
+
+message ServiceSpec {
+}
+
+// This is only for upstream with REST service spec
+message DestinationSpec {
+  
+}
