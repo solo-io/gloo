@@ -44,7 +44,7 @@ func (f *AWSLambdaFuncitonDiscovery) DetectUpstreamType(ctx context.Context, url
 func (f *AWSLambdaFuncitonDiscovery) DetectFunctions(ctx context.Context, secrets func() v1.SecretList, in *v1.Upstream, updatecb func(discovery.UpstreamMutator) error) error {
 	for {
 		// TODO: get backoff values from config?
-		err := contextutils.NewExponentioalBackoff(0, nil, nil).Backoff(ctx, func(ctx context.Context) error {
+		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
 
 			newfunctions, err := f.DetectFunctionsOnce(ctx, secrets, in)
 

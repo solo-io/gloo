@@ -79,7 +79,7 @@ func (u *Updater) detectSingle(ctx context.Context, fp FunctionDiscovery, url *u
 		}
 	}
 
-	contextutils.NewExponentioalBackoff(0, nil, nil).Backoff(ctx, func(ctx context.Context) error {
+	contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
 		spec, err := fp.DetectUpstreamType(ctx, url)
 		if err != nil {
 			return err
