@@ -100,7 +100,7 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		var snap *Snapshot
+		var snap *{{ .GoName }}Snapshot
 {{- range .Resources }}
 
 		/*

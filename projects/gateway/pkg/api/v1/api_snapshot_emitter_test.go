@@ -73,7 +73,7 @@ var _ = Describe("V1Emitter", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		var snap *Snapshot
+		var snap *ApiSnapshot
 
 		/*
 			Gateway
