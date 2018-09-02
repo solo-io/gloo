@@ -136,7 +136,7 @@ func (o *Gateway) DeepCopyObject() runtime.Object {
 }
 
 var GatewayCrd = crd.NewCrd("gateway.solo.io",
-	"Gateways",
+	"gateways",
 	"gateway.solo.io",
 	"v1",
 	"Gateway",

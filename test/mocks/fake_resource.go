@@ -136,7 +136,7 @@ func (o *FakeResource) DeepCopyObject() runtime.Object {
 }
 
 var FakeResourceCrd = crd.NewCrd("mocks.api.v1",
-	"Fakes",
+	"fakes",
 	"mocks.api.v1",
 	"v1",
 	"FakeResource",

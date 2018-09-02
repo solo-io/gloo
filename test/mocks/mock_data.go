@@ -140,7 +140,7 @@ func (o *MockData) DeepCopyObject() runtime.Object {
 }
 
 var MockDataCrd = crd.NewCrd("mocks.api.v1",
-	"MockDatas",
+	"mockdatas",
 	"mocks.api.v1",
 	"v1",
 	"MockData",

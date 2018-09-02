@@ -136,7 +136,7 @@ func (o *VirtualService) DeepCopyObject() runtime.Object {
 }
 
 var VirtualServiceCrd = crd.NewCrd("gateway.solo.io",
-	"VirtualServices",
+	"virtualservices",
 	"gateway.solo.io",
 	"v1",
 	"VirtualService",

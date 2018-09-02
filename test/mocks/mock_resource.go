@@ -136,7 +136,7 @@ func (o *MockResource) DeepCopyObject() runtime.Object {
 }
 
 var MockResourceCrd = crd.NewCrd("mocks.api.v1",
-	"Mocks",
+	"mocks",
 	"mocks.api.v1",
 	"v1",
 	"MockResource",
