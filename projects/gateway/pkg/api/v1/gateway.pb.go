@@ -35,11 +35,9 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 //
-// @solo-kit:resource
 // @solo-kit:resource.short_name=gw
-// @solo-kit:resource.plural_name=Gateways
-// @solo-kit:resource.group_name=gateway.solo.io
-// @solo-kit:resource.version=v1
+// @solo-kit:resource.plural_name=gateways
+// @solo-kit:resource.resource_groups=api.gateway.solo.io
 //
 // A gateway describes the routes to upstreams that are reachable via a specific port on the Gateway Proxy itself.
 type Gateway struct {
@@ -107,11 +105,9 @@ func (m *Gateway) GetMetadata() core_solo_io.Metadata {
 }
 
 //
-// @solo-kit:resource
 // @solo-kit:resource.short_name=vs
-// @solo-kit:resource.plural_name=VirtualServices
-// @solo-kit:resource.group_name=gateway.solo.io
-// @solo-kit:resource.version=v1
+// @solo-kit:resource.plural_name=virtual_services
+// @solo-kit:resource.resource_groups=api.gateway.solo.io
 //
 // A virtual service describes the set of routes to match for a set of domains.
 //
