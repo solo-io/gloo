@@ -20,7 +20,7 @@ type syncer struct {
 	reporter   reporter.Reporter
 }
 
-func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCache, xdsHasher *xds.ProxyKeyHasher, reporter reporter.Reporter) v1.Syncer {
+func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCache, xdsHasher *xds.ProxyKeyHasher, reporter reporter.Reporter) v1.ApiSyncer {
 	return &syncer{
 		translator: translator,
 		xdsCache:   xdsCache,
@@ -29,7 +29,7 @@ func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCac
 	}
 }
 
-func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
+func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	ctx = contextutils.WithLogger(ctx, "gloo.syncer")
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("Beginning translation loop for snapshot %v", snap.Hash())

@@ -22,7 +22,7 @@ type syncer struct {
 	proxyReconciler gloov1.ProxyReconciler
 }
 
-func NewSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter reporter.Reporter, propagator *propagator.Propagator, writeErrs chan error) v1.Syncer {
+func NewSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter reporter.Reporter, propagator *propagator.Propagator, writeErrs chan error) v1.ApiSyncer {
 	return &syncer{
 		writeNamespace:  writeNamespace,
 		reporter:        reporter,
@@ -32,7 +32,7 @@ func NewSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter r
 	}
 }
 
-func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
+func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	ctx = contextutils.WithLogger(ctx, "gateway.syncer")
 
 	logger := contextutils.LoggerFrom(ctx)
@@ -59,7 +59,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
 	return s.propagator.PropagateStatuses(snap, desired, clients.WatchOpts{Ctx: ctx})
 }
 
-func translate(namespace string, snap *v1.Snapshot) (*gloov1.Proxy, reporter.ResourceErrors) {
+func translate(namespace string, snap *v1.ApiSnapshot) (*gloov1.Proxy, reporter.ResourceErrors) {
 	resourceErrs := make(reporter.ResourceErrors)
 	resourceErrs.Initialize(snap.Gateways.List().AsInputResources()...)
 	resourceErrs.Initialize(snap.VirtualServices.List().AsInputResources()...)
