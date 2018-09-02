@@ -76,12 +76,12 @@ var _ = Describe("V1Cache", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectResolverMaps {
-						if _, err := snap.ResolverMaps.List().Find(expected.Metadata.ObjectRef()); err != nil {
+						if _, err := snap.ResolverMaps.List().Find(expected.Metadata.Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectResolverMaps {
-						if _, err := snap.ResolverMaps.List().Find(unexpected.Metadata.ObjectRef()); err == nil {
+						if _, err := snap.ResolverMaps.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
 							continue drain
 						}
 					}

@@ -94,12 +94,12 @@ var _ = Describe("MocksCache", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectMocks {
-						if _, err := snap.Mocks.List().Find(expected.Metadata.ObjectRef()); err != nil {
+						if _, err := snap.Mocks.List().Find(expected.Metadata.Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectMocks {
-						if _, err := snap.Mocks.List().Find(unexpected.Metadata.ObjectRef()); err == nil {
+						if _, err := snap.Mocks.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
@@ -154,12 +154,12 @@ var _ = Describe("MocksCache", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectFakes {
-						if _, err := snap.Fakes.List().Find(expected.Metadata.ObjectRef()); err != nil {
+						if _, err := snap.Fakes.List().Find(expected.Metadata.Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectFakes {
-						if _, err := snap.Fakes.List().Find(unexpected.Metadata.ObjectRef()); err == nil {
+						if _, err := snap.Fakes.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
@@ -214,12 +214,12 @@ var _ = Describe("MocksCache", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectMockDatas {
-						if _, err := snap.MockDatas.List().Find(expected.Metadata.ObjectRef()); err != nil {
+						if _, err := snap.MockDatas.List().Find(expected.Metadata.Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectMockDatas {
-						if _, err := snap.MockDatas.List().Find(unexpected.Metadata.ObjectRef()); err == nil {
+						if _, err := snap.MockDatas.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
 							continue drain
 						}
 					}

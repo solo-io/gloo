@@ -118,12 +118,12 @@ var _ = Describe("V1Cache", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectArtifacts {
-						if _, err := snap.Artifacts.List().Find(expected.Metadata.ObjectRef()); err != nil {
+						if _, err := snap.Artifacts.List().Find(expected.Metadata.Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectArtifacts {
-						if _, err := snap.Artifacts.List().Find(unexpected.Metadata.ObjectRef()); err == nil {
+						if _, err := snap.Artifacts.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
@@ -178,12 +178,12 @@ var _ = Describe("V1Cache", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectEndpoints {
-						if _, err := snap.Endpoints.List().Find(expected.Metadata.ObjectRef()); err != nil {
+						if _, err := snap.Endpoints.List().Find(expected.Metadata.Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectEndpoints {
-						if _, err := snap.Endpoints.List().Find(unexpected.Metadata.ObjectRef()); err == nil {
+						if _, err := snap.Endpoints.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
@@ -238,12 +238,12 @@ var _ = Describe("V1Cache", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectProxies {
-						if _, err := snap.Proxies.List().Find(expected.Metadata.ObjectRef()); err != nil {
+						if _, err := snap.Proxies.List().Find(expected.Metadata.Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectProxies {
-						if _, err := snap.Proxies.List().Find(unexpected.Metadata.ObjectRef()); err == nil {
+						if _, err := snap.Proxies.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
@@ -298,12 +298,12 @@ var _ = Describe("V1Cache", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectSecrets {
-						if _, err := snap.Secrets.List().Find(expected.Metadata.ObjectRef()); err != nil {
+						if _, err := snap.Secrets.List().Find(expected.Metadata.Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectSecrets {
-						if _, err := snap.Secrets.List().Find(unexpected.Metadata.ObjectRef()); err == nil {
+						if _, err := snap.Secrets.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
@@ -358,12 +358,12 @@ var _ = Describe("V1Cache", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectUpstreams {
-						if _, err := snap.Upstreams.List().Find(expected.Metadata.ObjectRef()); err != nil {
+						if _, err := snap.Upstreams.List().Find(expected.Metadata.Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectUpstreams {
-						if _, err := snap.Upstreams.List().Find(unexpected.Metadata.ObjectRef()); err == nil {
+						if _, err := snap.Upstreams.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
 							continue drain
 						}
 					}

@@ -7,6 +7,9 @@ func (m Metadata) Less(m2 Metadata) bool {
 	return m.Namespace < m2.Namespace
 }
 
-func (m Metadata) ObjectRef() (string, string) {
-	return m.Namespace, m.Name
+func (m Metadata) Ref() ResourceRef {
+	return ResourceRef{
+		Namespace: m.Namespace,
+		Name:      m.Name,
+	}
 }

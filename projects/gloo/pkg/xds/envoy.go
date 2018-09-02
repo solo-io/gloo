@@ -52,7 +52,7 @@ func (h *ProxyKeyHasher) ID(node *core.Node) string {
 }
 
 func xdsKey(proxy *v1.Proxy) string {
-	namespace, name := proxy.GetMetadata().ObjectRef()
+	namespace, name := proxy.GetMetadata().Ref().Strings()
 	return fmt.Sprintf("%v~%v", namespace, name)
 }
 

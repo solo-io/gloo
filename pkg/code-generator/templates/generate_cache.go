@@ -244,12 +244,12 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expect{{ (resource . $).PluralName }} {
-						if _, err := snap.{{ (resource . $).PluralName }}.List().Find(expected.Metadata.ObjectRef()); err != nil {
+						if _, err := snap.{{ (resource . $).PluralName }}.List().Find(expected.Metadata.Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpect{{ (resource . $).PluralName }} {
-						if _, err := snap.{{ (resource . $).PluralName }}.List().Find(unexpected.Metadata.ObjectRef()); err == nil {
+						if _, err := snap.{{ (resource . $).PluralName }}.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
