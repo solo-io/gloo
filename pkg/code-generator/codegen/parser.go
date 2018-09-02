@@ -95,6 +95,10 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 		if err != nil {
 			return nil, nil, err
 		}
+		if resource == nil {
+			// message is not a resource
+			continue
+		}
 		resource.Project = project
 		for _, group := range groups {
 			resourcesByGroup[group] = append(resourcesByGroup[group], resource)
