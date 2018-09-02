@@ -164,6 +164,9 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 
 	rc.cache.Set(key, clone)
 
+	// return another clone!
+	clone = proto.Clone(clone).(resources.Resource)
+
 	return clone, nil
 }
 

@@ -10,7 +10,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/bxcodec/faker"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/test/tests/typed"
 )
@@ -64,10 +63,9 @@ func MockResourceClientTest(namespace string, client MockResourceClient) {
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 	Expect(r1.Metadata.ResourceVersion).NotTo(Equal(input.Metadata.ResourceVersion))
-	input.Metadata.ResourceVersion = r1.Metadata.ResourceVersion
+	Expect(r1.Metadata.Ref()).To(Equal(input.Metadata.Ref()))
 	Expect(r1.Data).To(Equal(input.Data))
 	Expect(r1.Status).To(Equal(input.Status))
-	Expect(r1.Metadata).To(Equal(input.Metadata))
 
 	_, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,
@@ -90,9 +88,6 @@ func MockResourceClientTest(namespace string, client MockResourceClient) {
 
 	name = "boo"
 	input = &MockResource{}
-
-	// ignore return error because interfaces / oneofs mess it up
-	faker.FakeData(input)
 
 	input.Metadata = core.Metadata{
 		Name:      name,
@@ -142,8 +137,6 @@ func MockResourceClientTest(namespace string, client MockResourceClient) {
 
 		name = "goo"
 		input = &MockResource{}
-		// ignore return error because interfaces / oneofs mess it up
-		faker.FakeData(input)
 		Expect(err).NotTo(HaveOccurred())
 		input.Metadata = core.Metadata{
 			Name:      name,

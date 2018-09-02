@@ -16,7 +16,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/bxcodec/faker"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/test/tests/typed"
 )
@@ -75,9 +74,11 @@ func {{ .Name }}ClientTest(namespace string, client {{ .Name }}Client) {
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 	Expect(r1.Metadata.ResourceVersion).NotTo(Equal(input.Metadata.ResourceVersion))
-	input.Metadata.ResourceVersion = r1.Metadata.ResourceVersion
+	Expect(r1.Metadata.Ref()).To(Equal(input.Metadata.Ref()))
 	{{- range .Fields }}
+		{{- if (not (eq .Name "metadata")) }}
 	Expect(r1.{{ upper_camel .Name }}).To(Equal(input.{{ upper_camel .Name }}))
+		{{- end }}
 	{{- end }}
 
 	_, err = client.Write(input, clients.WriteOpts{
@@ -101,9 +102,6 @@ func {{ .Name }}ClientTest(namespace string, client {{ .Name }}Client) {
 
 	name = "boo"
 	input = &{{ .Name }}{}
-
-	// ignore return error because interfaces / oneofs mess it up
-	faker.FakeData(input)
 
 	input.Metadata = core.Metadata{
 		Name:      name,
@@ -153,8 +151,6 @@ func {{ .Name }}ClientTest(namespace string, client {{ .Name }}Client) {
 
 		name = "goo"
 		input = &{{ .Name }}{}
-		// ignore return error because interfaces / oneofs mess it up
-		faker.FakeData(input)
 		Expect(err).NotTo(HaveOccurred())
 		input.Metadata = core.Metadata{
 			Name:      name,
