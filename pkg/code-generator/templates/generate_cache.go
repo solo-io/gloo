@@ -1,6 +1,6 @@
 package templates
 
-const cacheTemplateContents = `package {{ .PackageName }}
+const emitterTemplateContents = `package {{ .PackageName }}
 
 import (
 	"github.com/gogo/protobuf/proto"
@@ -12,40 +12,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
-type Snapshot struct {
-{{- range .ResourceTypes}}
-	{{ (resource . $).PluralName }} {{ (resource . $).PluralName }}ByNamespace
-{{- end}}
-}
-
-func (s Snapshot) Clone() Snapshot {
-	return Snapshot{
-{{- range .ResourceTypes}}
-		{{ (resource . $).PluralName }}: s.{{ (resource . $).PluralName }}.Clone(),
-{{- end}}
-	}
-}
-
-func (s Snapshot) Hash() uint64 {
-	snapshotForHashing := s.Clone()
-{{- range .ResourceTypes}}
-	for _, {{ lower_camel . }} := range snapshotForHashing.{{ (resource . $).PluralName }}.List() {
-		resources.UpdateMetadata({{ lower_camel . }}, func(meta *core.Metadata) {
-			meta.ResourceVersion = ""
-		})
-{{- if (index $.ResourceLevelParams .).IsInputType }}
-		{{ lower_camel . }}.SetStatus(core.Status{})
-{{- end }}
-	}
-{{- end}}
-	h, err := hashstructure.Hash(snapshotForHashing, nil)
-	if err != nil {
-		panic(err)
-	}
-	return h
-}
-
-type Cache interface {
+type Emitter interface {
 	Register() error
 {{- range .ResourceTypes}}
 	{{ . }}() {{ . }}Client
@@ -53,21 +20,21 @@ type Cache interface {
 	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
 
-func NewCache({{ clients . true }}) Cache {
-	return &cache{
+func NewEmitter({{ clients . true }}) Emitter {
+	return &emitter{
 {{- range .ResourceTypes}}
 		{{ lower_camel . }}: {{ lower_camel . }}Client,
 {{- end}}
 	}
 }
 
-type cache struct {
+type emitter struct {
 {{- range .ResourceTypes}}
 	{{ lower_camel . }} {{ . }}Client
 {{- end}}
 }
 
-func (c *cache) Register() error {
+func (c *emitter) Register() error {
 {{- range .ResourceTypes}}
 	if err := c.{{ lower_camel . }}.Register(); err != nil {
 		return err
@@ -78,12 +45,12 @@ func (c *cache) Register() error {
 
 {{- range .ResourceTypes}}
 
-func (c *cache) {{ . }}() {{ . }}Client {
+func (c *emitter) {{ . }}() {{ . }}Client {
 	return c.{{ lower_camel . }}
 }
 {{- end}}
 
-func (c *cache) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
+func (c *emitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
 	snapshots := make(chan *Snapshot)
 	errs := make(chan error)
 
@@ -157,7 +124,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
+var _ = Describe("{{ uppercase .PackageName }}Emitter", func() {
 	if os.Getenv("RUN_KUBE_TESTS") != "1" {
 		log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
 		return
@@ -166,7 +133,7 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 		namespace1          string
 		namespace2          string
 		cfg                *rest.Config
-		cache              Cache
+		cache              Emitter
 {{- range .ResourceTypes }}
 		{{ lower_camel . }}Client {{ . }}Client
 {{- end}}
@@ -208,13 +175,13 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 {{- end }}
 {{- else }}
 		{{ lower_camel . }}ClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
-			Cache: memory.NewInMemoryResourceCache(),
+			Emitter: memory.NewInMemoryResourceCache(),
 		})
 {{- end }}
 		{{ lower_camel . }}Client, err = New{{ . }}Client({{ lower_camel . }}ClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 {{- end}}
-		cache = NewCache({{ clients . false }})
+		cache = NewEmitter({{ clients . false }})
 	})
 	AfterEach(func() {
 		services.TeardownKube(namespace1)
@@ -222,10 +189,10 @@ var _ = Describe("{{ uppercase .PackageName }}Cache", func() {
 	})
 	It("tracks snapshots on changes to any resource", func() {
 		ctx := context.Background()
-		err := cache.Register()
+		err := emitter.Register()
 		Expect(err).NotTo(HaveOccurred())
 
-		snapshots, errs, err := cache.Snapshots([]string{namespace1, namespace2}, clients.WatchOpts{
+		snapshots, errs, err := emitter.Snapshots([]string{namespace1, namespace2}, clients.WatchOpts{
 			Ctx: ctx,
 			RefreshRate: time.Second,
 		})

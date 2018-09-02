@@ -84,6 +84,14 @@ func generateFilesForResourceGroup(rg *ResourceGroup) (Files, error) {
 		Filename: strcase.ToSnake(rg.GoName) + "_snapshot.go",
 		Content:  content,
 	})
+	content, err = generateResourceGroupFile(rg, templates.ResourceGroupEmitterTemplate)
+	if err != nil {
+		return nil, err
+	}
+	v = append(v, File{
+		Filename: strcase.ToSnake(rg.GoName) + "_snapshot_emitter.go",
+		Content:  content,
+	})
 	return v, nil
 }
 
