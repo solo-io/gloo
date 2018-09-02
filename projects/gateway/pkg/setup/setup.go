@@ -63,7 +63,7 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 		return err
 	}
 
-	cache := v1.NewCache(gatewayClient, virtualServicesClient)
+	emitter := v1.NewApiEmitter(gatewayClient, virtualServicesClient)
 
 	rpt := reporter.NewReporter("gateway", gatewayClient.BaseClient(), virtualServicesClient.BaseClient())
 	writeErrs := make(chan error)
@@ -72,7 +72,7 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 
 	sync := syncer.NewSyncer(opts.writeNamespace, proxyClient, rpt, prop, writeErrs)
 
-	eventLoop := v1.NewEventLoop(cache, sync)
+	eventLoop := v1.NewApiEventLoop(emitter, sync)
 	eventLoop.Run(watchNamespaces, opts.watchOpts)
 
 	logger := contextutils.LoggerFrom(opts.watchOpts.Ctx)
