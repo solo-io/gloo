@@ -6,6 +6,12 @@ import (
 
 var ResourceGroupEmitterTemplate = template.Must(template.New("resource_group_emitter").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
 
+{{- $clients := new_str_slice }}
+{{- range .Resources}}
+{{- $clients := (append_str_slice $clients (printf "%vClient %vClient"  (lower_camel .Name) .Name)) }}
+{{- end}}
+{{- $clients := (join_str_slice $clients ", ") }}
+
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -19,12 +25,6 @@ type {{ .GoName }}Emitter interface {
 {{- end}}
 	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
-
-{{- $clients := str_slice }}
-{{- range .Resources}}
-{{- $clients := (append_string $clients (printf "%vClient %vClient"  (lower_camel .Name) .Name)) }}
-{{- end}}
-{{- $clients := (join_str_slice $clients ", ") }}
 
 func New{{ .GoName }}Emitter({{ $clients }}) {{ .GoName }}Emitter {
 	return &{{ lower_camel .GoName }}Emitter{

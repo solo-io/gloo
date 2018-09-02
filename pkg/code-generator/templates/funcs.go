@@ -13,15 +13,23 @@ var funcs = template.FuncMap{
 	"lower_camel": strcase.ToLowerCamel,
 	"upper_camel": strcase.ToCamel,
 	"snake":       strcase.ToSnake,
-	"str_slice": func() *[]string {
+	"new_str_slice": func() *[]string {
 		var v []string
 		return &v
 	},
-	"append_string": func(to *[]string, str string) *[]string {
+	"append_str_slice": func(to *[]string, str string) *[]string {
 		*to = append(*to, str)
 		return to
 	},
 	"join_str_slice": func(slc *[]string, sep string) string {
 		return strings.Join(*slc, sep)
+	},
+	"new_bool": func() *bool {
+		var v bool
+		return &v
+	},
+	"set_bool": func(v *bool, val bool) *bool {
+		*v = val
+		return v
 	},
 }
