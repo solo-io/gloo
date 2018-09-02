@@ -77,7 +77,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 		return err
 	}
 
-	cache := v1.NewCache(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)
+	cache := v1.NewApiEmitter(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)
 
 	xdsHasher, xdsCache := xds.SetupEnvoyXds(opts.watchOpts.Ctx, opts.grpcServer, nil)
 
@@ -86,7 +86,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 	disc := discovery.NewDiscovery(opts.writeNamespace, upstreamClient, endpointClient)
 
 	sync := syncer.NewSyncer(translator.NewTranslator(), xdsCache, xdsHasher, rpt)
-	eventLoop := v1.NewEventLoop(cache, sync)
+	eventLoop := v1.NewApiEventLoop(cache, sync)
 
 	errs := make(chan error)
 
