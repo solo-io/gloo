@@ -165,7 +165,7 @@ func (o *{{ .Name }}) DeepCopyObject() runtime.Object {
 }
 
 var {{ .Name }}Crd = crd.NewCrd("{{ .Project.GroupName }}",
-	"{{ upper_camel .PluralName }}",
+	"{{ lowercase (upper_camel .PluralName) }}",
 	"{{ .Project.GroupName }}",
 	"{{ .Project.Version }}",
 	"{{ .Name }}",
