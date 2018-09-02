@@ -56,7 +56,7 @@ func (RedirectAction_RedirectResponseCode) EnumDescriptor() ([]byte, []int) {
 // @solo-kit:resource
 // @solo-kit:resource.short_name=px
 // @solo-kit:resource.plural_name=Proxies
-// @solo-kit:resource.group_name=gloo.solo.io
+// @solo-kit:resource.group_name=api.gloo.solo.io
 // @solo-kit:resource.version=v1
 //
 // A Proxy is a container for the entire set of configuration that will to be applied to one or more Proxy instances.

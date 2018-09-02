@@ -19,7 +19,7 @@ var _ = math.Inf
 // @solo-kit:resource.data_type
 // @solo-kit:resource.short_name=sec
 // @solo-kit:resource.plural_name=Secrets
-// @solo-kit:resource.group_name=gloo.solo.io
+// @solo-kit:resource.group_name=api.gloo.solo.io
 // @solo-kit:resource.version=v1
 //
 // Certain plugins such as the AWS Lambda Plugin require the use of secrets for authentication, configuration of SSL Certificates, and other data that should not be stored in plaintext configuration.
