@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/protoc-gen-go/plugin"
+	"github.com/iancoleman/strcase"
 	"github.com/pseudomuto/protokit"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
@@ -82,6 +83,10 @@ func loadProjectConfig(path string) (ProjectConfig, error) {
 	return pc, err
 }
 
+func goName(n string) string {
+	return strcase.ToCamel(strings.Split(n, ".")[0])
+}
+
 func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resource, []*ResourceGroup, error) {
 	resourcesByGroup := make(map[string][]*Resource)
 	var resources []*Resource
@@ -103,6 +108,7 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 		log.Printf("group: %v", group)
 		rg := &ResourceGroup{
 			Name:      group,
+			GoName:    goName(group),
 			Project:   project,
 			Resources: resources,
 		}

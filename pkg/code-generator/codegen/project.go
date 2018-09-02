@@ -36,7 +36,8 @@ type Field struct {
 }
 
 type ResourceGroup struct {
-	Name      string
+	Name      string // eg. api.gloo.solo.io
+	GoName    string // will be Api
 	Project   *Project
 	Resources []*Resource
 }

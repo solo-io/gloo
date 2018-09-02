@@ -16,21 +16,21 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
-type {{ .Name }}Snapshot struct {
+type {{ .GoName }}Snapshot struct {
 {{- range .Resources}}
 	{{ upper_camel .PluralName }} {{ upper_camel .PluralName }}ByNamespace
 {{- end}}
 }
 
-func (s {{ .Name }}Snapshot) Clone() {{ .Name }}Snapshot {
-	return {{ .Name }}Snapshot{
+func (s {{ .GoName }}Snapshot) Clone() {{ .GoName }}Snapshot {
+	return {{ .GoName }}Snapshot{
 {{- range .Resources}}
 		{{ upper_camel .PluralName }}: s.{{ upper_camel .PluralName }}.Clone(),
 {{- end}}
 	}
 }
 
-func (s {{ .Name }}Snapshot) Hash() uint64 {
+func (s {{ .GoName }}Snapshot) Hash() uint64 {
 	snapshotForHashing := s.Clone()
 {{- range .Resources}}
 	for _, {{ lower_camel .Name }} := range snapshotForHashing.{{ upper_camel .PluralName }}.List() {
