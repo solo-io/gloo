@@ -32,7 +32,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 	if err != nil {
 		return Opts{}, err
 	}
-	ctx := contextutils.WithLogger(context.Background(), "main")
+	ctx := contextutils.WithLogger(context.Background(), "gateway")
 	return Opts{
 		writeNamespace: "gloo-system",
 		gateways: &factory.KubeResourceClientOpts{

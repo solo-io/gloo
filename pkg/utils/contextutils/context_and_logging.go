@@ -37,7 +37,7 @@ func init() {
 		// unfortunately falls back to noop.
 		fallbackLogger = zap.NewNop().Sugar()
 	} else {
-		fallbackLogger = logger.Named("fallback").Sugar()
+		fallbackLogger = logger.Sugar()
 	}
 }
 

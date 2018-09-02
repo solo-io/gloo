@@ -33,7 +33,7 @@ func NewSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter r
 }
 
 func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
-	ctx = contextutils.WithLogger(ctx, "gateway.syncer")
+	ctx = contextutils.WithLogger(ctx, "syncer")
 
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("Beginning translation loop for snapshot %v", snap.Hash())

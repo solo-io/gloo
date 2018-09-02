@@ -3,16 +3,15 @@ package contextutils
 import (
 	"context"
 
-	"github.com/knative/serving/pkg/logging"
 	"go.uber.org/zap"
 )
 
 func WithLogger(ctx context.Context, name string) context.Context {
-	return withLogger(ctx, logging.FromContext(ctx).Named(name))
+	return withLogger(ctx, fromContext(ctx).Named(name))
 }
 
 func LoggerFrom(ctx context.Context) *zap.SugaredLogger {
-	return logging.FromContext(ctx)
+	return fromContext(ctx)
 }
 
 type ErrorHandler interface {

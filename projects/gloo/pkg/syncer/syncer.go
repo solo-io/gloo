@@ -30,7 +30,7 @@ func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCac
 }
 
 func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
-	ctx = contextutils.WithLogger(ctx, "gloo.syncer")
+	ctx = contextutils.WithLogger(ctx, "syncer")
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("Beginning translation loop for snapshot %v", snap.Hash())
 	logger.Debugf("%v", snap)

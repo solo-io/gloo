@@ -43,7 +43,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 	if err != nil {
 		return Opts{}, err
 	}
-	ctx := contextutils.WithLogger(context.Background(), "main")
+	ctx := contextutils.WithLogger(context.Background(), "gloo")
 	logger := contextutils.LoggerFrom(ctx)
 	grpcServer := grpc.NewServer(grpc.StreamInterceptor(
 		grpc_middleware.ChainStreamServer(
