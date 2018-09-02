@@ -4,7 +4,7 @@ import (
 	"text/template"
 )
 
-var ResourceGroupSnapshotTemplate = template.Must(template.New("resource_group_snapshot").Funcs(funcs).Parse(`package {{ .PackageName }}
+var ResourceGroupSnapshotTemplate = template.Must(template.New("resource_group_snapshot").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
 
 import (
 	"github.com/gogo/protobuf/proto"
@@ -24,7 +24,7 @@ type {{ .Name }}Snapshot struct {
 
 func (s {{ .Name }}Snapshot) Clone() {{ .Name }}Snapshot {
 	return {{ .Name }}Snapshot{
-{{- range .ResourceTypes}}
+{{- range .Resources}}
 		{{ upper_camel .PluralName }}: s.{{ upper_camel .PluralName }}.Clone(),
 {{- end}}
 	}
@@ -32,13 +32,13 @@ func (s {{ .Name }}Snapshot) Clone() {{ .Name }}Snapshot {
 
 func (s {{ .Name }}Snapshot) Hash() uint64 {
 	snapshotForHashing := s.Clone()
-{{- range .ResourceTypes}}
-	for _, {{ lower_camel . }} := range snapshotForHashing.{{ upper_camel .PluralName }}.List() {
-		resources.UpdateMetadata({{ lower_camel . }}, func(meta *core.Metadata) {
+{{- range .Resources}}
+	for _, {{ lower_camel .Name }} := range snapshotForHashing.{{ upper_camel .PluralName }}.List() {
+		resources.UpdateMetadata({{ lower_camel .Name }}, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
-{{- if (index $.ResourceLevelParams .).IsInputType }}
-		{{ lower_camel . }}.SetStatus(core.Status{})
+{{- if .HasStatus }}
+		{{ lower_camel .Name }}.SetStatus(core.Status{})
 {{- end }}
 	}
 {{- end}}
