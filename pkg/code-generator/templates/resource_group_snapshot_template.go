@@ -7,13 +7,9 @@ import (
 var ResourceGroupSnapshotTemplate = template.Must(template.New("resource_group_snapshot").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
 
 import (
-	"github.com/gogo/protobuf/proto"
 	"github.com/mitchellh/hashstructure"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
 type {{ .GoName }}Snapshot struct {
