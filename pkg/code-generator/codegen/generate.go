@@ -81,7 +81,7 @@ func generateFilesForResourceGroup(rg *ResourceGroup) (Files, error) {
 		return nil, err
 	}
 	v = append(v, File{
-		Filename: strcase.ToSnake(rg.Name) + "_reconciler.go",
+		Filename: strcase.ToSnake(rg.GoName) + "_snapshot.go",
 		Content:  content,
 	})
 	return v, nil
