@@ -6,20 +6,6 @@ import (
 
 var ResourceGroupEmitterTestTemplate = template.Must(template.New("resource_group_emitter_test").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
 
-{{- $need_kube_clientset := new_bool }}
-{{- range .Resources }}
-	{{- if (.HasData) and (not .HasStatus) }}
-		{{- $need_memory_client := (set_bool $need_memory_client true) }}
-	{{- end}}
-{{- end}}
-
-{{- $need_memory_client := new_bool }}
-{{- range .Resources }}
-	{{- if (not .HasData) and (not .HasStatus) }}
-		{{- $need_memory_client := (set_bool $need_memory_client true) }}
-	{{- end}}
-{{- end}}
-
 {{- $clients := new_str_slice }}
 {{- range .Resources}}
 {{- $clients := (append_str_slice $clients (printf "%vClient"  (lower_camel .Name))) }}
@@ -37,15 +23,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-{{- if $need_memory_client }}
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-{{- end}}
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
 	"k8s.io/client-go/rest"
-{{- if $need_kube_clientset }}
-	"k8s.io/client-go/kubernetes"
-{{- end}}
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -61,9 +41,6 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 		emitter            {{ .GoName }}Emitter
 {{- range .Resources }}
 		{{ lower_camel .Name }}Client {{ .Name }}Client
-{{- end}}
-{{- if $need_kube_clientset }}
-		kube               kubernetes.Interface
 {{- end}}
 	)
 
@@ -89,7 +66,7 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 		kube, err = kubernetes.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
 {{/* TODO(ilackarms): Come with a more generic way to specify that a resource is "Secret"*/}}
-{{- if (eq . "Secret") }}
+{{- if (eq .Name "Secret") }}
 		{{ lower_camel .Name }}ClientFactory := factory.NewResourceClientFactory(&factory.KubeSecretClientOpts{
 			Clientset: kube,
 		})

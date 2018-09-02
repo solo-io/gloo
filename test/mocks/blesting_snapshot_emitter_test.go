@@ -11,11 +11,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -28,10 +26,9 @@ var _ = Describe("MocksEmitter", func() {
 		namespace1          string
 		namespace2          string
 		cfg                *rest.Config
-		emitter              BlestingEmitter
+		emitter            BlestingEmitter
 		mockResourceClient MockResourceClient
 		fakeResourceClient FakeResourceClient
-		kube               kubernetes.Interface
 	)
 
 	BeforeEach(func() {
