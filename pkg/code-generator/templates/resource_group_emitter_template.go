@@ -7,11 +7,7 @@ import (
 var ResourceGroupEmitterTemplate = template.Must(template.New("resource_group_emitter").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
 
 import (
-	"github.com/gogo/protobuf/proto"
-	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
@@ -24,10 +20,11 @@ type {{ .GoName }}Emitter interface {
 	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
 
-{{- $clients := "" }}
+{{- $clients := str_slice }}
 {{- range .Resources}}
-{{- $clients := printf "%v, %vClient %vClient"  $clients (lower_camel .Name) .Name}}
+{{- $clients := (append_string $clients (printf "%vClient %vClient"  (lower_camel .Name) .Name)) }}
 {{- end}}
+{{- $clients := (join_str_slice $clients ", ") }}
 
 func New{{ .GoName }}Emitter({{ $clients }}) {{ .GoName }}Emitter {
 	return &{{ lower_camel .GoName }}Emitter{

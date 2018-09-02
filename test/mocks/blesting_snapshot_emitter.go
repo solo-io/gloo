@@ -1,11 +1,7 @@
 package mocks
 
 import (
-	"github.com/gogo/protobuf/proto"
-	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
@@ -17,7 +13,7 @@ type BlestingEmitter interface {
 	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
 }
 
-func NewBlestingEmitter() BlestingEmitter {
+func NewBlestingEmitter(mockResourceClient MockResourceClient, fakeResourceClient FakeResourceClient) BlestingEmitter {
 	return &blestingEmitter{
 		mockResource: mockResourceClient,
 		fakeResource: fakeResourceClient,
