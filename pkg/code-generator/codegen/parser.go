@@ -145,6 +145,8 @@ func describeResource(groupName string, msg *protokit.Descriptor) (*Resource, []
 	if !ok {
 		return nil, nil, errors.Errorf("must provide %s", pluralNameDeclaration)
 	}
+	// always make it upper camel
+	pluralName = strcase.ToCamel(pluralName)
 
 	// optional flags
 	joinedResourceGroups, _ := getCommentValue(comments, resourceGroupsDeclaration)
