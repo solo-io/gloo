@@ -6,10 +6,12 @@ Package core is a generated protocol buffer package.
 
 It is generated from these files:
 	metadata.proto
+	ref.proto
 	status.proto
 
 It has these top-level messages:
 	Metadata
+	ResourceRef
 	Status
 */
 package core

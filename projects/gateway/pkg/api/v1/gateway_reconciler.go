@@ -1,5 +1,4 @@
 package v1
-
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reconcile"
@@ -11,7 +10,7 @@ import (
 type TransitionGatewayFunc func(original, desired *Gateway) error
 
 type GatewayReconciler interface {
-	Reconcile(namespace string, desiredResources []*Gateway, transition TransitionGatewayFunc, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources GatewayList, transition TransitionGatewayFunc, opts clients.ListOpts) error
 }
 
 func gatewaysToResources(list GatewayList) resources.ResourceList {
@@ -32,7 +31,7 @@ type gatewayReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *gatewayReconciler) Reconcile(namespace string, desiredResources []*Gateway, transition TransitionGatewayFunc, opts clients.ListOpts) error {
+func (r *gatewayReconciler) Reconcile(namespace string, desiredResources GatewayList, transition TransitionGatewayFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "gateway_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc

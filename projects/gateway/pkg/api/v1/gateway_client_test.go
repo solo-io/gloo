@@ -3,15 +3,15 @@ package v1
 import (
 	"time"
 
-	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/test/helpers"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/bxcodec/faker"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/test/tests/typed"
 )
 
@@ -67,6 +67,8 @@ func GatewayClientTest(namespace string, client GatewayClient) {
 	Expect(r1.BindAddress).To(Equal(input.BindAddress))
 	Expect(r1.BindPort).To(Equal(input.BindPort))
 	Expect(r1.Plugins).To(Equal(input.Plugins))
+	Expect(r1.Status).To(Equal(input.Status))
+	Expect(r1.Metadata).To(Equal(input.Metadata))
 
 	_, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,

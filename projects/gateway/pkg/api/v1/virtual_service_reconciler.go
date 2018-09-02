@@ -1,5 +1,4 @@
 package v1
-
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reconcile"
@@ -11,7 +10,7 @@ import (
 type TransitionVirtualServiceFunc func(original, desired *VirtualService) error
 
 type VirtualServiceReconciler interface {
-	Reconcile(namespace string, desiredResources []*VirtualService, transition TransitionVirtualServiceFunc, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources VirtualServiceList, transition TransitionVirtualServiceFunc, opts clients.ListOpts) error
 }
 
 func virtualServicesToResources(list VirtualServiceList) resources.ResourceList {
@@ -32,7 +31,7 @@ type virtualServiceReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *virtualServiceReconciler) Reconcile(namespace string, desiredResources []*VirtualService, transition TransitionVirtualServiceFunc, opts clients.ListOpts) error {
+func (r *virtualServiceReconciler) Reconcile(namespace string, desiredResources VirtualServiceList, transition TransitionVirtualServiceFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "virtualService_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
