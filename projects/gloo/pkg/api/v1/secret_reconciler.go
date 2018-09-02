@@ -11,7 +11,7 @@ import (
 type TransitionSecretFunc func(original, desired *Secret) error
 
 type SecretReconciler interface {
-	Reconcile(namespace string, desiredResources []*Secret, transition TransitionSecretFunc, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources SecretList, transition TransitionSecretFunc, opts clients.ListOpts) error
 }
 
 func secretsToResources(list SecretList) resources.ResourceList {
@@ -32,7 +32,7 @@ type secretReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *secretReconciler) Reconcile(namespace string, desiredResources []*Secret, transition TransitionSecretFunc, opts clients.ListOpts) error {
+func (r *secretReconciler) Reconcile(namespace string, desiredResources SecretList, transition TransitionSecretFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "secret_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc

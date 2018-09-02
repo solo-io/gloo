@@ -101,4 +101,3 @@ func convertToMockData(resources resources.ResourceList) MockDataList {
 	}
 	return mockDataList
 }
-

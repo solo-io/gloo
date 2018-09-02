@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestGateway(t *testing.T) {
+func TestGloo(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Gateway Suite")
+	RunSpecs(t, "Gloo Suite")
 }

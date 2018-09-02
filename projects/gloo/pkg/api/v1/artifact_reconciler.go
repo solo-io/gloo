@@ -11,7 +11,7 @@ import (
 type TransitionArtifactFunc func(original, desired *Artifact) error
 
 type ArtifactReconciler interface {
-	Reconcile(namespace string, desiredResources []*Artifact, transition TransitionArtifactFunc, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources ArtifactList, transition TransitionArtifactFunc, opts clients.ListOpts) error
 }
 
 func artifactsToResources(list ArtifactList) resources.ResourceList {
@@ -32,7 +32,7 @@ type artifactReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *artifactReconciler) Reconcile(namespace string, desiredResources []*Artifact, transition TransitionArtifactFunc, opts clients.ListOpts) error {
+func (r *artifactReconciler) Reconcile(namespace string, desiredResources ArtifactList, transition TransitionArtifactFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "artifact_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc

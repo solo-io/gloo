@@ -14,7 +14,7 @@ import (
 var _ = Describe("BlestingEventLoop", func() {
 	var (
 		namespace string
-		emitter     BlestingEmitter
+		emitter   BlestingEmitter
 		err       error
 	)
 

@@ -63,7 +63,7 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 			return nil, nil, errors.Wrapf(err, "starting MockResource watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, mockResourceErrs, namespace+"-mocks")
-		go func(namespace string, mockResourceChan  <- chan MockResourceList) {
+		go func(namespace string, mockResourceChan <-chan MockResourceList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -81,7 +81,7 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 			return nil, nil, errors.Wrapf(err, "starting FakeResource watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
-		go func(namespace string, fakeResourceChan  <- chan FakeResourceList) {
+		go func(namespace string, fakeResourceChan <-chan FakeResourceList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -95,7 +95,6 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 			}
 		}(namespace, fakeResourceChan)
 	}
-
 
 	go func() {
 		select {

@@ -3,7 +3,6 @@ package v1
 import (
 	"time"
 
-	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -63,6 +62,8 @@ func EndpointClientTest(namespace string, client EndpointClient) {
 	Expect(r1).To(BeAssignableToTypeOf(&Endpoint{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
+	Expect(r1.Metadata.ResourceVersion).NotTo(Equal(input.Metadata.ResourceVersion))
+	Expect(r1.Metadata.Ref()).To(Equal(input.Metadata.Ref()))
 	Expect(r1.UpstreamName).To(Equal(input.UpstreamName))
 	Expect(r1.Address).To(Equal(input.Address))
 	Expect(r1.Port).To(Equal(input.Port))
@@ -88,9 +89,6 @@ func EndpointClientTest(namespace string, client EndpointClient) {
 
 	name = "boo"
 	input = &Endpoint{}
-
-	// ignore return error because interfaces / oneofs mess it up
-	faker.FakeData(input)
 
 	input.Metadata = core.Metadata{
 		Name:      name,
@@ -140,8 +138,6 @@ func EndpointClientTest(namespace string, client EndpointClient) {
 
 		name = "goo"
 		input = &Endpoint{}
-		// ignore return error because interfaces / oneofs mess it up
-		faker.FakeData(input)
 		Expect(err).NotTo(HaveOccurred())
 		input.Metadata = core.Metadata{
 			Name:      name,

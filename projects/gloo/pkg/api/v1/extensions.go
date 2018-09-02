@@ -5,7 +5,7 @@ import (
 )
 
 /*
-	Add these two methods to any upstream spec that supports 
+	Add these two methods to any upstream spec that supports
 */
 func (us *UpstreamSpec_Kube) GetServiceSpec() *plugins.ServiceSpec {
 	return us.Kube.ServiceSpec

@@ -5,13 +5,12 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/bxcodec/faker"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/tests/typed"
 )
 
@@ -63,12 +62,13 @@ func GatewayClientTest(namespace string, client GatewayClient) {
 	Expect(r1).To(BeAssignableToTypeOf(&Gateway{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
+	Expect(r1.Metadata.ResourceVersion).NotTo(Equal(input.Metadata.ResourceVersion))
+	Expect(r1.Metadata.Ref()).To(Equal(input.Metadata.Ref()))
 	Expect(r1.VirtualServices).To(Equal(input.VirtualServices))
 	Expect(r1.BindAddress).To(Equal(input.BindAddress))
 	Expect(r1.BindPort).To(Equal(input.BindPort))
 	Expect(r1.Plugins).To(Equal(input.Plugins))
 	Expect(r1.Status).To(Equal(input.Status))
-	Expect(r1.Metadata).To(Equal(input.Metadata))
 
 	_, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,
@@ -91,9 +91,6 @@ func GatewayClientTest(namespace string, client GatewayClient) {
 
 	name = "boo"
 	input = &Gateway{}
-
-	// ignore return error because interfaces / oneofs mess it up
-	faker.FakeData(input)
 
 	input.Metadata = core.Metadata{
 		Name:      name,
@@ -143,8 +140,6 @@ func GatewayClientTest(namespace string, client GatewayClient) {
 
 		name = "goo"
 		input = &Gateway{}
-		// ignore return error because interfaces / oneofs mess it up
-		faker.FakeData(input)
 		Expect(err).NotTo(HaveOccurred())
 		input.Metadata = core.Metadata{
 			Name:      name,

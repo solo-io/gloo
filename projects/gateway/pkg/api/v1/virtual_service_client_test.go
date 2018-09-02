@@ -5,13 +5,12 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/bxcodec/faker"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/tests/typed"
 )
 
@@ -63,10 +62,11 @@ func VirtualServiceClientTest(namespace string, client VirtualServiceClient) {
 	Expect(r1).To(BeAssignableToTypeOf(&VirtualService{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
+	Expect(r1.Metadata.ResourceVersion).NotTo(Equal(input.Metadata.ResourceVersion))
+	Expect(r1.Metadata.Ref()).To(Equal(input.Metadata.Ref()))
 	Expect(r1.VirtualHost).To(Equal(input.VirtualHost))
 	Expect(r1.SslConfig).To(Equal(input.SslConfig))
 	Expect(r1.Status).To(Equal(input.Status))
-	Expect(r1.Metadata).To(Equal(input.Metadata))
 
 	_, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,
@@ -89,9 +89,6 @@ func VirtualServiceClientTest(namespace string, client VirtualServiceClient) {
 
 	name = "boo"
 	input = &VirtualService{}
-
-	// ignore return error because interfaces / oneofs mess it up
-	faker.FakeData(input)
 
 	input.Metadata = core.Metadata{
 		Name:      name,
@@ -141,8 +138,6 @@ func VirtualServiceClientTest(namespace string, client VirtualServiceClient) {
 
 		name = "goo"
 		input = &VirtualService{}
-		// ignore return error because interfaces / oneofs mess it up
-		faker.FakeData(input)
 		Expect(err).NotTo(HaveOccurred())
 		input.Metadata = core.Metadata{
 			Name:      name,

@@ -14,7 +14,7 @@ import (
 var _ = Describe("FestingEventLoop", func() {
 	var (
 		namespace string
-		emitter     FestingEmitter
+		emitter   FestingEmitter
 		err       error
 	)
 

@@ -15,13 +15,13 @@ type ApiEmitter interface {
 
 func NewApiEmitter(gatewayClient GatewayClient, virtualServiceClient VirtualServiceClient) ApiEmitter {
 	return &apiEmitter{
-		gateway: gatewayClient,
+		gateway:        gatewayClient,
 		virtualService: virtualServiceClient,
 	}
 }
 
 type apiEmitter struct {
-	gateway GatewayClient
+	gateway        GatewayClient
 	virtualService VirtualServiceClient
 }
 
@@ -63,7 +63,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 			return nil, nil, errors.Wrapf(err, "starting Gateway watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, gatewayErrs, namespace+"-gateways")
-		go func(namespace string, gatewayChan  <- chan GatewayList) {
+		go func(namespace string, gatewayChan <-chan GatewayList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -81,7 +81,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 			return nil, nil, errors.Wrapf(err, "starting VirtualService watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
-		go func(namespace string, virtualServiceChan  <- chan VirtualServiceList) {
+		go func(namespace string, virtualServiceChan <-chan VirtualServiceList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -95,7 +95,6 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 			}
 		}(namespace, virtualServiceChan)
 	}
-
 
 	go func() {
 		select {

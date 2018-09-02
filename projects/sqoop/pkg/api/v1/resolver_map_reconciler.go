@@ -11,7 +11,7 @@ import (
 type TransitionResolverMapFunc func(original, desired *ResolverMap) error
 
 type ResolverMapReconciler interface {
-	Reconcile(namespace string, desiredResources []*ResolverMap, transition TransitionResolverMapFunc, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources ResolverMapList, transition TransitionResolverMapFunc, opts clients.ListOpts) error
 }
 
 func resolverMapsToResources(list ResolverMapList) resources.ResourceList {
@@ -32,7 +32,7 @@ type resolverMapReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *resolverMapReconciler) Reconcile(namespace string, desiredResources []*ResolverMap, transition TransitionResolverMapFunc, opts clients.ListOpts) error {
+func (r *resolverMapReconciler) Reconcile(namespace string, desiredResources ResolverMapList, transition TransitionResolverMapFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "resolverMap_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc

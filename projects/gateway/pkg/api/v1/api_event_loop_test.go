@@ -14,7 +14,7 @@ import (
 var _ = Describe("ApiEventLoop", func() {
 	var (
 		namespace string
-		emitter     ApiEmitter
+		emitter   ApiEmitter
 		err       error
 	)
 
@@ -39,7 +39,7 @@ var _ = Describe("ApiEventLoop", func() {
 		Expect(err).NotTo(HaveOccurred())
 		_, err = emitter.VirtualService().Write(NewVirtualService(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
-		sync := &mockSyncer{}
+		sync := &mockApiSyncer{}
 		el := NewApiEventLoop(emitter, sync)
 		_, err := el.Run([]string{namespace}, clients.WatchOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -47,11 +47,11 @@ var _ = Describe("ApiEventLoop", func() {
 	})
 })
 
-type mockSyncer struct {
+type mockApiSyncer struct {
 	synced bool
 }
 
-func (s *mockSyncer) Sync(ctx context.Context, snap *ApiSnapshot) error {
+func (s *mockApiSyncer) Sync(ctx context.Context, snap *ApiSnapshot) error {
 	s.synced = true
 	return nil
 }

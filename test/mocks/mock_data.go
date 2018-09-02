@@ -50,7 +50,7 @@ func (list MockDataList) Find(namespace, name string) (*MockData, error) {
 }
 
 func (list MockDataList) AsResources() resources.ResourceList {
-	var ress resources.ResourceList 
+	var ress resources.ResourceList
 	for _, mockData := range list {
 		ress = append(ress, mockData)
 	}
@@ -76,7 +76,7 @@ func (list MockDataList) Names() []string {
 func (list MockDataList) NamespacesDotNames() []string {
 	var names []string
 	for _, mockData := range list {
-		names = append(names, mockData.Metadata.Namespace + "." + mockData.Metadata.Name)
+		names = append(names, mockData.Metadata.Namespace+"."+mockData.Metadata.Name)
 	}
 	return names
 }
@@ -92,7 +92,7 @@ func (list MockDataList) Clone() MockDataList {
 	for _, mockData := range list {
 		mockDataList = append(mockDataList, proto.Clone(mockData).(*MockData))
 	}
-	return mockDataList 
+	return mockDataList
 }
 
 func (list MockDataList) ByNamespace() MockDatasByNamespace {
@@ -103,7 +103,7 @@ func (list MockDataList) ByNamespace() MockDatasByNamespace {
 	return byNamespace
 }
 
-func (byNamespace MockDatasByNamespace) Add(mockData ... *MockData) {
+func (byNamespace MockDatasByNamespace) Add(mockData ...*MockData) {
 	for _, item := range mockData {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}

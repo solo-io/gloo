@@ -11,7 +11,7 @@ import (
 type TransitionEndpointFunc func(original, desired *Endpoint) error
 
 type EndpointReconciler interface {
-	Reconcile(namespace string, desiredResources []*Endpoint, transition TransitionEndpointFunc, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources EndpointList, transition TransitionEndpointFunc, opts clients.ListOpts) error
 }
 
 func endpointsToResources(list EndpointList) resources.ResourceList {
@@ -32,7 +32,7 @@ type endpointReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *endpointReconciler) Reconcile(namespace string, desiredResources []*Endpoint, transition TransitionEndpointFunc, opts clients.ListOpts) error {
+func (r *endpointReconciler) Reconcile(namespace string, desiredResources EndpointList, transition TransitionEndpointFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "endpoint_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc

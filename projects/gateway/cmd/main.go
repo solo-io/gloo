@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/solo-io/solo-kit/pkg/utils/log"
-	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
+	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 )
 
 func main() {
@@ -30,7 +30,6 @@ func runGloo() error {
 	}
 	return gloosetup.Setup(opts)
 }
-
 
 func runGateway() error {
 	opts, err := setup.DefaultKubernetesConstructOpts()

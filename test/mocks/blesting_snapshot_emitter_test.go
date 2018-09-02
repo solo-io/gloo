@@ -8,9 +8,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
 	"k8s.io/client-go/rest"
@@ -23,8 +23,8 @@ var _ = Describe("MocksEmitter", func() {
 		return
 	}
 	var (
-		namespace1          string
-		namespace2          string
+		namespace1         string
+		namespace2         string
 		cfg                *rest.Config
 		emitter            BlestingEmitter
 		fakeResourceClient FakeResourceClient
@@ -59,7 +59,7 @@ var _ = Describe("MocksEmitter", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		snapshots, errs, err := emitter.Snapshots([]string{namespace1, namespace2}, clients.WatchOpts{
-			Ctx: ctx,
+			Ctx:         ctx,
 			RefreshRate: time.Second,
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -69,7 +69,7 @@ var _ = Describe("MocksEmitter", func() {
 		/*
 			FakeResource
 		*/
-		
+
 		assertSnapshotFakes := func(expectFakes FakeResourceList, unexpectFakes FakeResourceList) {
 		drain:
 			for {
@@ -96,36 +96,34 @@ var _ = Describe("MocksEmitter", func() {
 					Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
 				}
 			}
-		}	
-
+		}
 
 		fakeResource1a, err := fakeResourceClient.Write(NewFakeResource(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		fakeResource1b, err := fakeResourceClient.Write(NewFakeResource(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotFakes(FakeResourceList{ fakeResource1a, fakeResource1b }, nil)
+		assertSnapshotFakes(FakeResourceList{fakeResource1a, fakeResource1b}, nil)
 
 		fakeResource2a, err := fakeResourceClient.Write(NewFakeResource(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		fakeResource2b, err := fakeResourceClient.Write(NewFakeResource(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotFakes(FakeResourceList{ fakeResource1a, fakeResource1b,  fakeResource2a, fakeResource2b  }, nil)
+		assertSnapshotFakes(FakeResourceList{fakeResource1a, fakeResource1b, fakeResource2a, fakeResource2b}, nil)
 
 		err = fakeResourceClient.Delete(fakeResource2a.Metadata.Namespace, fakeResource2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = fakeResourceClient.Delete(fakeResource2b.Metadata.Namespace, fakeResource2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotFakes(FakeResourceList{ fakeResource1a, fakeResource1b }, FakeResourceList{ fakeResource2a, fakeResource2b })
+		assertSnapshotFakes(FakeResourceList{fakeResource1a, fakeResource1b}, FakeResourceList{fakeResource2a, fakeResource2b})
 
 		err = fakeResourceClient.Delete(fakeResource1a.Metadata.Namespace, fakeResource1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = fakeResourceClient.Delete(fakeResource1b.Metadata.Namespace, fakeResource1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotFakes(nil, FakeResourceList{ fakeResource1a, fakeResource1b, fakeResource2a, fakeResource2b })
+		assertSnapshotFakes(nil, FakeResourceList{fakeResource1a, fakeResource1b, fakeResource2a, fakeResource2b})
 	})
 })
-

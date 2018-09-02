@@ -101,4 +101,3 @@ func convertToMockResource(resources resources.ResourceList) MockResourceList {
 	}
 	return mockResourceList
 }
-

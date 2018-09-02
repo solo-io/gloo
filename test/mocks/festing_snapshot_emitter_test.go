@@ -8,9 +8,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
 	"k8s.io/client-go/rest"
@@ -23,8 +23,8 @@ var _ = Describe("MocksEmitter", func() {
 		return
 	}
 	var (
-		namespace1          string
-		namespace2          string
+		namespace1         string
+		namespace2         string
 		cfg                *rest.Config
 		emitter            FestingEmitter
 		mockResourceClient MockResourceClient
@@ -59,7 +59,7 @@ var _ = Describe("MocksEmitter", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		snapshots, errs, err := emitter.Snapshots([]string{namespace1, namespace2}, clients.WatchOpts{
-			Ctx: ctx,
+			Ctx:         ctx,
 			RefreshRate: time.Second,
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -69,7 +69,7 @@ var _ = Describe("MocksEmitter", func() {
 		/*
 			MockResource
 		*/
-		
+
 		assertSnapshotMocks := func(expectMocks MockResourceList, unexpectMocks MockResourceList) {
 		drain:
 			for {
@@ -96,36 +96,34 @@ var _ = Describe("MocksEmitter", func() {
 					Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
 				}
 			}
-		}	
-
+		}
 
 		mockResource1a, err := mockResourceClient.Write(NewMockResource(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		mockResource1b, err := mockResourceClient.Write(NewMockResource(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotMocks(MockResourceList{ mockResource1a, mockResource1b }, nil)
+		assertSnapshotMocks(MockResourceList{mockResource1a, mockResource1b}, nil)
 
 		mockResource2a, err := mockResourceClient.Write(NewMockResource(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		mockResource2b, err := mockResourceClient.Write(NewMockResource(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotMocks(MockResourceList{ mockResource1a, mockResource1b,  mockResource2a, mockResource2b  }, nil)
+		assertSnapshotMocks(MockResourceList{mockResource1a, mockResource1b, mockResource2a, mockResource2b}, nil)
 
 		err = mockResourceClient.Delete(mockResource2a.Metadata.Namespace, mockResource2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = mockResourceClient.Delete(mockResource2b.Metadata.Namespace, mockResource2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotMocks(MockResourceList{ mockResource1a, mockResource1b }, MockResourceList{ mockResource2a, mockResource2b })
+		assertSnapshotMocks(MockResourceList{mockResource1a, mockResource1b}, MockResourceList{mockResource2a, mockResource2b})
 
 		err = mockResourceClient.Delete(mockResource1a.Metadata.Namespace, mockResource1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = mockResourceClient.Delete(mockResource1b.Metadata.Namespace, mockResource1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotMocks(nil, MockResourceList{ mockResource1a, mockResource1b, mockResource2a, mockResource2b })
+		assertSnapshotMocks(nil, MockResourceList{mockResource1a, mockResource1b, mockResource2a, mockResource2b})
 	})
 })
-

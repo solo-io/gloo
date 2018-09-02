@@ -101,4 +101,3 @@ func convertToVirtualService(resources resources.ResourceList) VirtualServiceLis
 	}
 	return virtualServiceList
 }
-

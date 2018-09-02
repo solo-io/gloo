@@ -53,7 +53,7 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 			return nil, nil, errors.Wrapf(err, "starting FakeResource watch")
 		}
 		go errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
-		go func(namespace string, fakeResourceChan  <- chan FakeResourceList) {
+		go func(namespace string, fakeResourceChan <-chan FakeResourceList) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -67,7 +67,6 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 			}
 		}(namespace, fakeResourceChan)
 	}
-
 
 	go func() {
 		select {

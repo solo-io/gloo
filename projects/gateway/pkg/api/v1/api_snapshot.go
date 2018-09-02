@@ -7,13 +7,13 @@ import (
 )
 
 type ApiSnapshot struct {
-	Gateways GatewaysByNamespace
+	Gateways        GatewaysByNamespace
 	VirtualServices VirtualServicesByNamespace
 }
 
 func (s ApiSnapshot) Clone() ApiSnapshot {
 	return ApiSnapshot{
-		Gateways: s.Gateways.Clone(),
+		Gateways:        s.Gateways.Clone(),
 		VirtualServices: s.VirtualServices.Clone(),
 	}
 }

@@ -101,4 +101,3 @@ func convertToFakeResource(resources resources.ResourceList) FakeResourceList {
 	}
 	return fakeResourceList
 }
-

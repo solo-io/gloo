@@ -46,7 +46,7 @@ func (list VirtualServiceList) Find(namespace, name string) (*VirtualService, er
 }
 
 func (list VirtualServiceList) AsResources() resources.ResourceList {
-	var ress resources.ResourceList 
+	var ress resources.ResourceList
 	for _, virtualService := range list {
 		ress = append(ress, virtualService)
 	}
@@ -72,7 +72,7 @@ func (list VirtualServiceList) Names() []string {
 func (list VirtualServiceList) NamespacesDotNames() []string {
 	var names []string
 	for _, virtualService := range list {
-		names = append(names, virtualService.Metadata.Namespace + "." + virtualService.Metadata.Name)
+		names = append(names, virtualService.Metadata.Namespace+"."+virtualService.Metadata.Name)
 	}
 	return names
 }
@@ -88,7 +88,7 @@ func (list VirtualServiceList) Clone() VirtualServiceList {
 	for _, virtualService := range list {
 		virtualServiceList = append(virtualServiceList, proto.Clone(virtualService).(*VirtualService))
 	}
-	return virtualServiceList 
+	return virtualServiceList
 }
 
 func (list VirtualServiceList) ByNamespace() VirtualServicesByNamespace {
@@ -99,7 +99,7 @@ func (list VirtualServiceList) ByNamespace() VirtualServicesByNamespace {
 	return byNamespace
 }
 
-func (byNamespace VirtualServicesByNamespace) Add(virtualService ... *VirtualService) {
+func (byNamespace VirtualServicesByNamespace) Add(virtualService ...*VirtualService) {
 	for _, item := range virtualService {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}

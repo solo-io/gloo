@@ -101,4 +101,3 @@ func convertToGateway(resources resources.ResourceList) GatewayList {
 	}
 	return gatewayList
 }
-

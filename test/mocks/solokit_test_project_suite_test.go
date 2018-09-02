@@ -11,8 +11,3 @@ func TestSolokitTestProject(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "SolokitTestProject Suite")
 }
-
-
-
-
-

@@ -11,7 +11,7 @@ import (
 type TransitionProxyFunc func(original, desired *Proxy) error
 
 type ProxyReconciler interface {
-	Reconcile(namespace string, desiredResources []*Proxy, transition TransitionProxyFunc, opts clients.ListOpts) error
+	Reconcile(namespace string, desiredResources ProxyList, transition TransitionProxyFunc, opts clients.ListOpts) error
 }
 
 func proxysToResources(list ProxyList) resources.ResourceList {
@@ -32,7 +32,7 @@ type proxyReconciler struct {
 	base reconcile.Reconciler
 }
 
-func (r *proxyReconciler) Reconcile(namespace string, desiredResources []*Proxy, transition TransitionProxyFunc, opts clients.ListOpts) error {
+func (r *proxyReconciler) Reconcile(namespace string, desiredResources ProxyList, transition TransitionProxyFunc, opts clients.ListOpts) error {
 	opts = opts.WithDefaults()
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "proxy_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
