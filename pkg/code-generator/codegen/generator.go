@@ -81,6 +81,7 @@ func generateFilesForResourceGroup(rg *ResourceGroup) (Files, error) {
 		"_snapshot_emitter.go":      templates.ResourceGroupEmitterTemplate,
 		"_snapshot_emitter_test.go": templates.ResourceGroupEmitterTestTemplate,
 		"_event_loop.go":            templates.ResourceGroupEventLoopTemplate,
+		"_event_loop_test.go":       templates.ResourceGroupEventLoopTestTemplate,
 	} {
 		content, err := generateResourceGroupFile(rg, tmpl)
 		if err != nil {

@@ -44,7 +44,7 @@ func (el *apiEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-chan
 	go func() {
 		// create a new context for each loop, cancel it before each loop
 		var cancel context.CancelFunc = func() {}
-		defer cancel()
+        defer cancel()
 		for {
 			select {
 			case snapshot := <-watch:
