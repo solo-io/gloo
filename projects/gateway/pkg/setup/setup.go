@@ -41,9 +41,15 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	if err != nil {
 		return err
 	}
+	if err := gatewayClient.Register(); err != nil {
+		return err
+	}
 
 	virtualServicesClient, err := v1.NewVirtualServiceClient(virtualServiceFactory)
 	if err != nil {
+		return err
+	}
+	if err := virtualServicesClient.Register(); err != nil {
 		return err
 	}
 
@@ -53,7 +59,7 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	}
 
 	// TODO(ilackarms): make this part of -dev mode
-	if err := addSampleData(gatewayClient, virtualServicesClient, proxyClient); err != nil {
+	if err := addSampleData(opts, virtualServicesClient); err != nil {
 		return err
 	}
 
@@ -82,11 +88,21 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	}
 }
 
-func addSampleData(vsClient v1.VirtualServiceClient, upstreamClient gloov1.UpstreamClient) error {
+func addSampleData(opts Opts, vsClient v1.VirtualServiceClient) error {
+	upstreamClient, err := gloov1.NewUpstreamClient(factory.NewResourceClientFactory(opts.upstreams))
+	if err != nil {
+		return err
+	}
 	virtualServices, upstreams := samples.VirtualServices(), samples.Upstreams()
 	for _, item := range virtualServices {
 		if _, err := vsClient.Write(item, clients.WriteOpts{}); err != nil {
 			return err
 		}
 	}
+	for _, item := range upstreams {
+		if _, err := upstreamClient.Write(item, clients.WriteOpts{}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
