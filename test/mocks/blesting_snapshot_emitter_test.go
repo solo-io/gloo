@@ -27,7 +27,6 @@ var _ = Describe("MocksEmitter", func() {
 		namespace2          string
 		cfg                *rest.Config
 		emitter            BlestingEmitter
-		mockResourceClient MockResourceClient
 		fakeResourceClient FakeResourceClient
 	)
 
@@ -41,14 +40,6 @@ var _ = Describe("MocksEmitter", func() {
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
-		// MockResource Constructor
-		mockResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd: MockResourceCrd,
-			Cfg: cfg,
-		})
-		mockResourceClient, err = NewMockResourceClient(mockResourceClientFactory)
-		Expect(err).NotTo(HaveOccurred())
-
 		// FakeResource Constructor
 		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
 			Crd: FakeResourceCrd,
@@ -56,7 +47,7 @@ var _ = Describe("MocksEmitter", func() {
 		})
 		fakeResourceClient, err = NewFakeResourceClient(fakeResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
-		emitter = NewBlestingEmitter(mockResourceClient, fakeResourceClient)
+		emitter = NewBlestingEmitter(fakeResourceClient)
 	})
 	AfterEach(func() {
 		services.TeardownKube(namespace1)
@@ -73,68 +64,7 @@ var _ = Describe("MocksEmitter", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		var snap *Snapshot
-
-		/*
-			MockResource
-		*/
-		
-		assertSnapshotMocks := func(expectMocks MockResourceList, unexpectMocks MockResourceList) {
-		drain:
-			for {
-				select {
-				case snap = <-snapshots:
-					for _, expected := range expectMocks {
-						if _, err := snap.Mocks.List().Find(expected.Metadata.Ref().Strings()); err != nil {
-							continue drain
-						}
-					}
-					for _, unexpected := range unexpectMocks {
-						if _, err := snap.Mocks.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
-							continue drain
-						}
-					}
-					break drain
-				case err := <-errs:
-					Expect(err).NotTo(HaveOccurred())
-				case <-time.After(time.Second * 10):
-					nsList1, _ := mockResourceClient.List(namespace1, clients.ListOpts{})
-					nsList2, _ := mockResourceClient.List(namespace2, clients.ListOpts{})
-					combined := nsList1.ByNamespace()
-					combined.Add(nsList2...)
-					Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
-				}
-			}
-		}	
-
-
-		mockResource1a, err := mockResourceClient.Write(NewMockResource(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-		mockResource1b, err := mockResourceClient.Write(NewMockResource(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-
-		assertSnapshotMocks(MockResourceList{ mockResource1a, mockResource1b }, nil)
-
-		mockResource2a, err := mockResourceClient.Write(NewMockResource(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-		mockResource2b, err := mockResourceClient.Write(NewMockResource(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-
-		assertSnapshotMocks(MockResourceList{ mockResource1a, mockResource1b,  mockResource2a, mockResource2b  }, nil)
-
-		err = mockResourceClient.Delete(mockResource2a.Metadata.Namespace, mockResource2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-		err = mockResourceClient.Delete(mockResource2b.Metadata.Namespace, mockResource2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-
-		assertSnapshotMocks(MockResourceList{ mockResource1a, mockResource1b }, MockResourceList{ mockResource2a, mockResource2b })
-
-		err = mockResourceClient.Delete(mockResource1a.Metadata.Namespace, mockResource1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-		err = mockResourceClient.Delete(mockResource1b.Metadata.Namespace, mockResource1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-
-		assertSnapshotMocks(nil, MockResourceList{ mockResource1a, mockResource1b, mockResource2a, mockResource2b })
+		var snap *BlestingSnapshot
 
 		/*
 			FakeResource

@@ -26,9 +26,8 @@ var _ = Describe("MocksEmitter", func() {
 		namespace1          string
 		namespace2          string
 		cfg                *rest.Config
-		emitter            TestingEmitter
+		emitter            FestingEmitter
 		mockResourceClient MockResourceClient
-		fakeResourceClient FakeResourceClient
 	)
 
 	BeforeEach(func() {
@@ -48,15 +47,7 @@ var _ = Describe("MocksEmitter", func() {
 		})
 		mockResourceClient, err = NewMockResourceClient(mockResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
-
-		// FakeResource Constructor
-		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
-			Crd: FakeResourceCrd,
-			Cfg: cfg,
-		})
-		fakeResourceClient, err = NewFakeResourceClient(fakeResourceClientFactory)
-		Expect(err).NotTo(HaveOccurred())
-		emitter = NewTestingEmitter(mockResourceClient, fakeResourceClient)
+		emitter = NewFestingEmitter(mockResourceClient)
 	})
 	AfterEach(func() {
 		services.TeardownKube(namespace1)
@@ -73,7 +64,7 @@ var _ = Describe("MocksEmitter", func() {
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		var snap *TestingSnapshot
+		var snap *FestingSnapshot
 
 		/*
 			MockResource
@@ -135,67 +126,6 @@ var _ = Describe("MocksEmitter", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotMocks(nil, MockResourceList{ mockResource1a, mockResource1b, mockResource2a, mockResource2b })
-
-		/*
-			FakeResource
-		*/
-		
-		assertSnapshotFakes := func(expectFakes FakeResourceList, unexpectFakes FakeResourceList) {
-		drain:
-			for {
-				select {
-				case snap = <-snapshots:
-					for _, expected := range expectFakes {
-						if _, err := snap.Fakes.List().Find(expected.Metadata.Ref().Strings()); err != nil {
-							continue drain
-						}
-					}
-					for _, unexpected := range unexpectFakes {
-						if _, err := snap.Fakes.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
-							continue drain
-						}
-					}
-					break drain
-				case err := <-errs:
-					Expect(err).NotTo(HaveOccurred())
-				case <-time.After(time.Second * 10):
-					nsList1, _ := fakeResourceClient.List(namespace1, clients.ListOpts{})
-					nsList2, _ := fakeResourceClient.List(namespace2, clients.ListOpts{})
-					combined := nsList1.ByNamespace()
-					combined.Add(nsList2...)
-					Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
-				}
-			}
-		}	
-
-
-		fakeResource1a, err := fakeResourceClient.Write(NewFakeResource(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-		fakeResource1b, err := fakeResourceClient.Write(NewFakeResource(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-
-		assertSnapshotFakes(FakeResourceList{ fakeResource1a, fakeResource1b }, nil)
-
-		fakeResource2a, err := fakeResourceClient.Write(NewFakeResource(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-		fakeResource2b, err := fakeResourceClient.Write(NewFakeResource(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-
-		assertSnapshotFakes(FakeResourceList{ fakeResource1a, fakeResource1b,  fakeResource2a, fakeResource2b  }, nil)
-
-		err = fakeResourceClient.Delete(fakeResource2a.Metadata.Namespace, fakeResource2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-		err = fakeResourceClient.Delete(fakeResource2b.Metadata.Namespace, fakeResource2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-
-		assertSnapshotFakes(FakeResourceList{ fakeResource1a, fakeResource1b }, FakeResourceList{ fakeResource2a, fakeResource2b })
-
-		err = fakeResourceClient.Delete(fakeResource1a.Metadata.Namespace, fakeResource1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-		err = fakeResourceClient.Delete(fakeResource1b.Metadata.Namespace, fakeResource1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-
-		assertSnapshotFakes(nil, FakeResourceList{ fakeResource1a, fakeResource1b, fakeResource2a, fakeResource2b })
 	})
 })
 

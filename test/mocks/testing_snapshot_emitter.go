@@ -10,7 +10,7 @@ type TestingEmitter interface {
 	Register() error
 	MockResource() MockResourceClient
 	FakeResource() FakeResourceClient
-	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
+	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *TestingSnapshot, <-chan error, error)
 }
 
 func NewTestingEmitter(mockResourceClient MockResourceClient, fakeResourceClient FakeResourceClient) TestingEmitter {
@@ -43,13 +43,13 @@ func (c *testingEmitter) FakeResource() FakeResourceClient {
 	return c.fakeResource
 }
 
-func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
-	snapshots := make(chan *Snapshot)
+func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *TestingSnapshot, <-chan error, error) {
+	snapshots := make(chan *TestingSnapshot)
 	errs := make(chan error)
 
-	currentSnapshot := Snapshot{}
+	currentSnapshot := TestingSnapshot{}
 
-	sync := func(newSnapshot Snapshot) {
+	sync := func(newSnapshot TestingSnapshot) {
 		if currentSnapshot.Hash() == newSnapshot.Hash() {
 			return
 		}

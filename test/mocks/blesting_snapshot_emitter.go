@@ -8,48 +8,38 @@ import (
 
 type BlestingEmitter interface {
 	Register() error
-	MockResource() MockResourceClient
 	FakeResource() FakeResourceClient
-	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
+	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *BlestingSnapshot, <-chan error, error)
 }
 
-func NewBlestingEmitter(mockResourceClient MockResourceClient, fakeResourceClient FakeResourceClient) BlestingEmitter {
+func NewBlestingEmitter(fakeResourceClient FakeResourceClient) BlestingEmitter {
 	return &blestingEmitter{
-		mockResource: mockResourceClient,
 		fakeResource: fakeResourceClient,
 	}
 }
 
 type blestingEmitter struct {
-	mockResource MockResourceClient
 	fakeResource FakeResourceClient
 }
 
 func (c *blestingEmitter) Register() error {
-	if err := c.mockResource.Register(); err != nil {
-		return err
-	}
 	if err := c.fakeResource.Register(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *blestingEmitter) MockResource() MockResourceClient {
-	return c.mockResource
-}
-
 func (c *blestingEmitter) FakeResource() FakeResourceClient {
 	return c.fakeResource
 }
 
-func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
-	snapshots := make(chan *Snapshot)
+func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *BlestingSnapshot, <-chan error, error) {
+	snapshots := make(chan *BlestingSnapshot)
 	errs := make(chan error)
 
-	currentSnapshot := Snapshot{}
+	currentSnapshot := BlestingSnapshot{}
 
-	sync := func(newSnapshot Snapshot) {
+	sync := func(newSnapshot BlestingSnapshot) {
 		if currentSnapshot.Hash() == newSnapshot.Hash() {
 			return
 		}
@@ -58,24 +48,6 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 	}
 
 	for _, namespace := range watchNamespaces {
-		mockResourceChan, mockResourceErrs, err := c.mockResource.Watch(namespace, opts)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "starting MockResource watch")
-		}
-		go errutils.AggregateErrs(opts.Ctx, errs, mockResourceErrs, namespace+"-mocks")
-		go func(namespace string, mockResourceChan  <- chan MockResourceList) {
-			for {
-				select {
-				case <-opts.Ctx.Done():
-					return
-				case mockResourceList := <-mockResourceChan:
-					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.Mocks.Clear(namespace)
-					newSnapshot.Mocks.Add(mockResourceList...)
-					sync(newSnapshot)
-				}
-			}
-		}(namespace, mockResourceChan)
 		fakeResourceChan, fakeResourceErrs, err := c.fakeResource.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting FakeResource watch")
