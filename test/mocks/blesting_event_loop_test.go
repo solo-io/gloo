@@ -31,7 +31,7 @@ var _ = Describe("BlestingEventLoop", func() {
 	It("runs sync function on a new snapshot", func() {
 		_, err = emitter.FakeResource().Write(NewFakeResource(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
-		sync := &mockSyncer{}
+		sync := &mockBlestingSyncer{}
 		el := NewBlestingEventLoop(emitter, sync)
 		_, err := el.Run([]string{namespace}, clients.WatchOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -39,11 +39,11 @@ var _ = Describe("BlestingEventLoop", func() {
 	})
 })
 
-type mockSyncer struct {
+type mockBlestingSyncer struct {
 	synced bool
 }
 
-func (s *mockSyncer) Sync(ctx context.Context, snap *BlestingSnapshot) error {
+func (s *mockBlestingSyncer) Sync(ctx context.Context, snap *BlestingSnapshot) error {
 	s.synced = true
 	return nil
 }

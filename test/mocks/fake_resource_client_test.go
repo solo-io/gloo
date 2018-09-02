@@ -63,6 +63,8 @@ func FakeResourceClientTest(namespace string, client FakeResourceClient) {
 	Expect(r1).To(BeAssignableToTypeOf(&FakeResource{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
+	Expect(r1.Metadata.ResourceVersion).NotTo(Equal(input.Metadata.ResourceVersion))
+	input.Metadata.ResourceVersion = r1.Metadata.ResourceVersion
 	Expect(r1.Count).To(Equal(input.Count))
 	Expect(r1.Status).To(Equal(input.Status))
 	Expect(r1.Metadata).To(Equal(input.Metadata))

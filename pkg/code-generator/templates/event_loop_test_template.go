@@ -47,7 +47,7 @@ var _ = Describe("{{ .GoName }}EventLoop", func() {
 		_, err = emitter.{{ .Name }}().Write(New{{ .Name }}(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 {{- end}}
-		sync := &mockSyncer{}
+		sync := &mock{{ .GoName }}Syncer{}
 		el := New{{ .GoName }}EventLoop(emitter, sync)
 		_, err := el.Run([]string{namespace}, clients.WatchOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -55,11 +55,11 @@ var _ = Describe("{{ .GoName }}EventLoop", func() {
 	})
 })
 
-type mockSyncer struct {
+type mock{{ .GoName }}Syncer struct {
 	synced bool
 }
 
-func (s *mockSyncer) Sync(ctx context.Context, snap *{{ .GoName }}Snapshot) error {
+func (s *mock{{ .GoName }}Syncer) Sync(ctx context.Context, snap *{{ .GoName }}Snapshot) error {
 	s.synced = true
 	return nil
 }

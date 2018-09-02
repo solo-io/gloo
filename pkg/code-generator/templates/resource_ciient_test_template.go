@@ -74,6 +74,8 @@ func {{ .Name }}ClientTest(namespace string, client {{ .Name }}Client) {
 	Expect(r1).To(BeAssignableToTypeOf(&{{ .Name }}{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
+	Expect(r1.Metadata.ResourceVersion).NotTo(Equal(input.Metadata.ResourceVersion))
+	input.Metadata.ResourceVersion = r1.Metadata.ResourceVersion
 	{{- range .Fields }}
 	Expect(r1.{{ upper_camel .Name }}).To(Equal(input.{{ upper_camel .Name }}))
 	{{- end }}

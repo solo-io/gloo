@@ -39,7 +39,7 @@ var _ = Describe("TestingEventLoop", func() {
 		Expect(err).NotTo(HaveOccurred())
 		_, err = emitter.FakeResource().Write(NewFakeResource(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
-		sync := &mockSyncer{}
+		sync := &mockTestingSyncer{}
 		el := NewTestingEventLoop(emitter, sync)
 		_, err := el.Run([]string{namespace}, clients.WatchOpts{})
 		Expect(err).NotTo(HaveOccurred())
@@ -47,11 +47,11 @@ var _ = Describe("TestingEventLoop", func() {
 	})
 })
 
-type mockSyncer struct {
+type mockTestingSyncer struct {
 	synced bool
 }
 
-func (s *mockSyncer) Sync(ctx context.Context, snap *TestingSnapshot) error {
+func (s *mockTestingSyncer) Sync(ctx context.Context, snap *TestingSnapshot) error {
 	s.synced = true
 	return nil
 }
