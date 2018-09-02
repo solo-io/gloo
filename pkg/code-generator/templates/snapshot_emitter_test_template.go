@@ -77,7 +77,7 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 {{- end }}
 {{- else }}
 		{{ lower_camel .Name }}ClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
-			{{ .GoName }}Emitter: memory.NewInMemoryResourceCache(),
+			Cache: memory.NewInMemoryResourceCache(),
 		})
 {{- end }}
 		{{ lower_camel .Name }}Client, err = New{{ .Name }}Client({{ lower_camel .Name }}ClientFactory)
