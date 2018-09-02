@@ -76,30 +76,21 @@ func generateFilesForResource(resource *Resource) (Files, error) {
 
 func generateFilesForResourceGroup(rg *ResourceGroup) (Files, error) {
 	var v Files
-	content, err := generateResourceGroupFile(rg, templates.ResourceGroupSnapshotTemplate)
-	if err != nil {
-		return nil, err
+	for suffix, tmpl := range map[string]*template.Template{
+		"_snapshot.go":              templates.ResourceGroupSnapshotTemplate,
+		"_snapshot_emitter.go":      templates.ResourceGroupEmitterTemplate,
+		"_snapshot_emitter_test.go": templates.ResourceGroupEmitterTestTemplate,
+		"_event_loop.go":            templates.ResourceGroupEventLoopTemplate,
+	} {
+		content, err := generateResourceGroupFile(rg, tmpl)
+		if err != nil {
+			return nil, err
+		}
+		v = append(v, File{
+			Filename: strcase.ToSnake(rg.GoName) + suffix,
+			Content:  content,
+		})
 	}
-	v = append(v, File{
-		Filename: strcase.ToSnake(rg.GoName) + "_snapshot.go",
-		Content:  content,
-	})
-	content, err = generateResourceGroupFile(rg, templates.ResourceGroupEmitterTemplate)
-	if err != nil {
-		return nil, err
-	}
-	v = append(v, File{
-		Filename: strcase.ToSnake(rg.GoName) + "_snapshot_emitter.go",
-		Content:  content,
-	})
-	content, err = generateResourceGroupFile(rg, templates.ResourceGroupEmitterTestTemplate)
-	if err != nil {
-		return nil, err
-	}
-	v = append(v, File{
-		Filename: strcase.ToSnake(rg.GoName) + "_snapshot_emitter_test.go",
-		Content:  content,
-	})
 	return v, nil
 }
 
