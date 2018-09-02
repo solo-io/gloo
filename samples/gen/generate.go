@@ -16,5 +16,5 @@ func main() {
 }
 
 func run(outdir string) error {
-
+	return nil
 }

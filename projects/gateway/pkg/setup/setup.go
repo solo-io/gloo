@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -9,7 +10,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/samples"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 )
 
 func Setup(opts Opts) error {

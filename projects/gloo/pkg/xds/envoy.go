@@ -29,7 +29,7 @@ const (
 )
 
 type ProxyKeyHasher struct {
-	ctx       context.Context
+	ctx context.Context
 	// (ilackarms) for the purpose of invalidation in the hasher
 	validKeys []string
 	lock      *sync.RWMutex
@@ -42,9 +42,9 @@ Where NAMESPACE and NAME are the namespace and name of the correlating Proxy res
 
 func (h *ProxyKeyHasher) ID(node *core.Node) string {
 	for _, key := range h.validKeys {
-			if node.Id == key {
-				return key
-			}
+		if node.Id == key {
+			return key
+		}
 	}
 	contextutils.LoggerFrom(h.ctx).Warnf("invalid id provided by Envoy: %v", node.Id)
 	contextutils.LoggerFrom(h.ctx).Debugf(errorString)
@@ -68,8 +68,8 @@ func (h *ProxyKeyHasher) SetKeysFromProxies(proxies v1.ProxyList) {
 
 func newNodeHasher(ctx context.Context) *ProxyKeyHasher {
 	return &ProxyKeyHasher{
-		ctx:       ctx,
-		lock:      &sync.RWMutex{},
+		ctx:  ctx,
+		lock: &sync.RWMutex{},
 	}
 }
 

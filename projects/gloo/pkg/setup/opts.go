@@ -1,22 +1,23 @@
 package setup
 
 import (
+	"context"
+	"net"
+	"time"
+
+	"github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/namespacing"
-	"google.golang.org/grpc"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-	"k8s.io/client-go/kubernetes"
 	"github.com/solo-io/solo-kit/pkg/namespacing/static"
-	"context"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"time"
-	"github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"go.uber.org/zap"
-	"net"
+	"google.golang.org/grpc"
+	"k8s.io/client-go/kubernetes"
 )
 
 type Opts struct {

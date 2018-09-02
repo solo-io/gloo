@@ -1,8 +1,8 @@
 package defaults
 
 import (
-	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
@@ -39,6 +39,5 @@ func LocalUpstream(writeNamespace string) *gloov1.Upstream {
 			Namespace: writeNamespace,
 		},
 		UpstreamSpec: &gloov1.UpstreamSpec{},
-
 	}
 }

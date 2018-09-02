@@ -1,14 +1,15 @@
 package setup
 
 import (
+	"context"
+	"time"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/namespacing"
-	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/namespacing/static"
-	"context"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"time"
+	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
@@ -18,10 +19,10 @@ type Opts struct {
 	gateways        factory.ResourceClientFactoryOpts
 	virtualServices factory.ResourceClientFactoryOpts
 	// TODO(ilackarms): remove upstreams here if not needed, right now only used for sample data
-	upstreams       factory.ResourceClientFactoryOpts
-	proxies         factory.ResourceClientFactoryOpts
-	namespacer      namespacing.Namespacer
-	watchOpts       clients.WatchOpts
+	upstreams  factory.ResourceClientFactoryOpts
+	proxies    factory.ResourceClientFactoryOpts
+	namespacer namespacing.Namespacer
+	watchOpts  clients.WatchOpts
 }
 
 //  ilackarms: We can just put any hacky stuff we need here

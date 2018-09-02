@@ -1,6 +1,8 @@
 package setup
 
 import (
+	"net"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
@@ -11,7 +13,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
-	"net"
 )
 
 func Setup(opts Opts) error {
@@ -90,7 +91,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 	errs := make(chan error)
 
 	udsErrs, err := discovery.RunUds(disc, watchOpts, discovery.Opts{
-		// TODO(ilackarms)
+	// TODO(ilackarms)
 	})
 	if err != nil {
 		return err
