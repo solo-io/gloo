@@ -15,7 +15,7 @@ import (
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/samples"
+	"github.com/solo-io/solo-kit/samples"
 )
 
 func Setup(port int) error {

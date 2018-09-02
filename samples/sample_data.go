@@ -29,6 +29,17 @@ func Secrets() v1.SecretList {
 	}
 }
 
+func Artifacts() v1.ArtifactList{
+	return v1.ArtifactList{
+		{
+			Metadata: MakeMetadata("secret", "default", 1),
+			Data: map[string]string{
+				//TODO(ilackarms)
+			},
+		},
+	}
+}
+
 func Upstreams() v1.UpstreamList {
 	return v1.UpstreamList{
 		{

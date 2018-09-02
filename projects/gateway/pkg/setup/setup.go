@@ -8,6 +8,8 @@ import (
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/propagator"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/samples"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 )
 
 func Setup(opts Opts) error {
@@ -50,6 +52,11 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 		return err
 	}
 
+	// TODO(ilackarms): make this part of -dev mode
+	if err := addSampleData(gatewayClient, virtualServicesClient, proxyClient); err != nil {
+		return err
+	}
+
 	cache := v1.NewCache(gatewayClient, virtualServicesClient)
 
 	rpt := reporter.NewReporter("gateway", gatewayClient.BaseClient(), virtualServicesClient.BaseClient())
@@ -71,6 +78,15 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 		case <-opts.watchOpts.Ctx.Done():
 			close(writeErrs)
 			return nil
+		}
+	}
+}
+
+func addSampleData(vsClient v1.VirtualServiceClient, upstreamClient gloov1.UpstreamClient) error {
+	virtualServices, upstreams := samples.VirtualServices(), samples.Upstreams()
+	for _, item := range virtualServices {
+		if _, err := vsClient.Write(item, clients.WriteOpts{}); err != nil {
+			return err
 		}
 	}
 }

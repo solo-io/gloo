@@ -22,6 +22,7 @@ func NewPropagator(controller string, gwClient v1.GatewayClient, vsClient v1.Vir
 		gwClient:    gwClient,
 		vsClient:    vsClient,
 		proxyClient: proxyClient,
+		writeErrs:   writeErrs,
 	}
 }
 
