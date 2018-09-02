@@ -4,6 +4,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
+	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/propagator"
@@ -95,12 +96,12 @@ func addSampleData(opts Opts, vsClient v1.VirtualServiceClient) error {
 	}
 	virtualServices, upstreams := samples.VirtualServices(), samples.Upstreams()
 	for _, item := range virtualServices {
-		if _, err := vsClient.Write(item, clients.WriteOpts{}); err != nil {
+		if _, err := vsClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
 			return err
 		}
 	}
 	for _, item := range upstreams {
-		if _, err := upstreamClient.Write(item, clients.WriteOpts{}); err != nil {
+		if _, err := upstreamClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
 			return err
 		}
 	}
