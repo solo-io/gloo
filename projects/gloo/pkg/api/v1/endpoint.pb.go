@@ -15,11 +15,9 @@ var _ = fmt.Errorf
 var _ = math.Inf
 
 //
-// @solo-kit:resource
 // @solo-kit:resource.short_name=ep
-// @solo-kit:resource.plural_name=Endpoints
-// @solo-kit:resource.group_name=api.gloo.solo.io
-// @solo-kit:resource.version=v1
+// @solo-kit:resource.plural_name=endpoints
+// @solo-kit:resource.resource_groups=api.gloo.solo.io
 //
 // Endpoints represent dynamically discovered address/ports where an upstream service is listening
 type Endpoint struct {
