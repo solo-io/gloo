@@ -23,7 +23,7 @@ type {{ .GoName }}Emitter interface {
 {{- range .Resources}}
 	{{ .Name }}() {{ .Name }}Client
 {{- end}}
-	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
+	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *{{ .GoName }}Snapshot, <-chan error, error)
 }
 
 func New{{ .GoName }}Emitter({{ $clients }}) {{ .GoName }}Emitter {
@@ -56,13 +56,13 @@ func (c *{{ lower_camel $.GoName }}Emitter) {{ .Name }}() {{ .Name }}Client {
 }
 {{- end}}
 
-func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
-	snapshots := make(chan *Snapshot)
+func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *{{ .GoName }}Snapshot, <-chan error, error) {
+	snapshots := make(chan *{{ .GoName }}Snapshot)
 	errs := make(chan error)
 
-	currentSnapshot := Snapshot{}
+	currentSnapshot := {{ .GoName }}Snapshot{}
 
-	sync := func(newSnapshot Snapshot) {
+	sync := func(newSnapshot {{ .GoName }}Snapshot) {
 		if currentSnapshot.Hash() == newSnapshot.Hash() {
 			return
 		}

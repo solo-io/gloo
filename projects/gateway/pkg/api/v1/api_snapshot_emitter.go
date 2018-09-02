@@ -10,7 +10,7 @@ type ApiEmitter interface {
 	Register() error
 	Gateway() GatewayClient
 	VirtualService() VirtualServiceClient
-	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error)
+	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error)
 }
 
 func NewApiEmitter(gatewayClient GatewayClient, virtualServiceClient VirtualServiceClient) ApiEmitter {
@@ -43,13 +43,13 @@ func (c *apiEmitter) VirtualService() VirtualServiceClient {
 	return c.virtualService
 }
 
-func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *Snapshot, <-chan error, error) {
-	snapshots := make(chan *Snapshot)
+func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
+	snapshots := make(chan *ApiSnapshot)
 	errs := make(chan error)
 
-	currentSnapshot := Snapshot{}
+	currentSnapshot := ApiSnapshot{}
 
-	sync := func(newSnapshot Snapshot) {
+	sync := func(newSnapshot ApiSnapshot) {
 		if currentSnapshot.Hash() == newSnapshot.Hash() {
 			return
 		}
