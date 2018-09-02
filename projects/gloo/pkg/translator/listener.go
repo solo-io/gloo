@@ -94,7 +94,7 @@ func (t *translator) computeListenerFilters(params plugins.Params, listener *v1.
 
 // create a duplicate of the listener filter chain for each ssl cert we want to serve
 // if there is no SSL config on the listener, the envoy listener will have one insecure filter chain
-func computeFilterChainsFromSslConfig(snap *v1.Snapshot, listener *v1.Listener, listenerFilters []envoylistener.Filter, report reportFunc) []envoylistener.FilterChain {
+func computeFilterChainsFromSslConfig(snap *v1.ApiSnapshot, listener *v1.Listener, listenerFilters []envoylistener.Filter, report reportFunc) []envoylistener.FilterChain {
 	// no filters = no filter chains
 	if len(listenerFilters) == 0 {
 		report(errors.Errorf("listener %v configured with 0 virtual services and 0 filters", listener.Name),

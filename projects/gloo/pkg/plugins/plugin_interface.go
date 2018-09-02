@@ -26,7 +26,7 @@ type Plugin interface {
 
 type Params struct {
 	Ctx      context.Context
-	Snapshot *v1.Snapshot
+	Snapshot *v1.ApiSnapshot
 }
 
 /*

@@ -84,7 +84,7 @@ var _ = Describe("Plugin", func() {
 			},
 		}
 
-		params.Snapshot = &v1.Snapshot{
+		params.Snapshot = &v1.ApiSnapshot{
 			SecretList: v1.SecretList{{
 				Metadata: core.Metadata{
 					Name: "secretref",

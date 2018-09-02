@@ -52,7 +52,7 @@ var _ = Describe("Plugin", func() {
 
 			BeforeEach(func() {
 				upstream.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Azure).Azure.SecretRef = "azure-secret1"
-				params.Snapshot = &v1.Snapshot{
+				params.Snapshot = &v1.ApiSnapshot{
 					SecretList: v1.SecretList{{
 						Metadata: core.Metadata{
 							Name: "azure-secret1",

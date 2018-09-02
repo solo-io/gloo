@@ -38,7 +38,7 @@ var _ = Describe("Syncer", func() {
 		c := &mockXdsCache{}
 		rep := reporter.NewReporter(ref, proxyClient, upstreamClient)
 		s := NewSyncer(&mockTranslator{true}, c, rep)
-		snap := &v1.Snapshot{
+		snap := &v1.ApiSnapshot{
 			ProxyList: []*v1.Proxy{
 				proxy,
 			},

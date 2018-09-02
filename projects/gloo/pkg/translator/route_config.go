@@ -125,7 +125,7 @@ func setMatch(in *v1.Route, out *envoyroute.Route) {
 	out.Match = match
 }
 
-func (t *translator) setAction(snap *v1.Snapshot, report reportFunc, in *v1.Route, out *envoyroute.Route) {
+func (t *translator) setAction(snap *v1.ApiSnapshot, report reportFunc, in *v1.Route, out *envoyroute.Route) {
 	switch action := in.Action.(type) {
 	case *v1.Route_RouteAction:
 		if err := validateRouteDestinations(snap.Upstreams.List(), action.RouteAction); err != nil {

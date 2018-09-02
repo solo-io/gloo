@@ -47,6 +47,10 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 			Crd: v1.ProxyCrd,
 			Cfg: cfg,
 		},
+		upstreams: &factory.KubeResourceClientOpts{
+			Crd: v1.UpstreamCrd,
+			Cfg: cfg,
+		},
 		namespacer: static.NewNamespacer([]string{"default", "gloo-system"}),
 		watchOpts: clients.WatchOpts{
 			Ctx:         ctx,

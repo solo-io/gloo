@@ -26,7 +26,7 @@ func NewPropagator(controller string, gwClient v1.GatewayClient, vsClient v1.Vir
 	}
 }
 
-func (p *Propagator) PropagateStatuses(snap *v1.Snapshot,
+func (p *Propagator) PropagateStatuses(snap *v1.ApiSnapshot,
 	proxy *gloov1.Proxy,
 	opts clients.WatchOpts) error {
 	parents := append(snap.Gateways.List().AsInputResources(), snap.VirtualServices.List().AsInputResources()...)
