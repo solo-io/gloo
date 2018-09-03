@@ -13,11 +13,12 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 )
 
-func Setup(opts Opts) error {
+func Setup(opts bootstrap.Opts) error {
 	// TODO: Ilackarms: move this to multi-eventloop
-	namespaces, errs, err := opts.namespacer.Namespaces(opts.watchOpts)
+	namespaces, errs, err := opts.Namespacer.Namespaces(opts.WatchOpts)
 	if err != nil {
 		return err
 	}
@@ -34,14 +35,14 @@ func Setup(opts Opts) error {
 	}
 }
 
-func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
-	watchOpts := opts.watchOpts.WithDefaults()
+func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) error {
+	watchOpts := opts.WatchOpts.WithDefaults()
 
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")
-	upstreamFactory := factory.NewResourceClientFactory(opts.upstreams)
-	proxyFactory := factory.NewResourceClientFactory(opts.proxies)
-	secretFactory := factory.NewResourceClientFactory(opts.secrets)
-	artifactFactory := factory.NewResourceClientFactory(opts.artifacts)
+	upstreamFactory := factory.NewResourceClientFactory(opts.Upstreams)
+	proxyFactory := factory.NewResourceClientFactory(opts.Proxies)
+	secretFactory := factory.NewResourceClientFactory(opts.Secrets)
+	artifactFactory := factory.NewResourceClientFactory(opts.Artifacts)
 	endpointsFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
 		Cache: memory.NewInMemoryResourceCache(),
 	})
@@ -79,26 +80,26 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 
 	cache := v1.NewApiEmitter(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)
 
-	xdsHasher, xdsCache := xds.SetupEnvoyXds(opts.watchOpts.Ctx, opts.grpcServer, nil)
+	xdsHasher, xdsCache := xds.SetupEnvoyXds(opts.WatchOpts.Ctx, opts.GrpcServer, nil)
 
 	rpt := reporter.NewReporter("gloo", upstreamClient.BaseClient(), proxyClient.BaseClient())
 
-	disc := discovery.NewDiscovery(opts.writeNamespace, upstreamClient, endpointClient)
+	disc := discovery.NewDiscovery(opts.WriteNamespace, upstreamClient, endpointClient)
 
-	sync := syncer.NewSyncer(translator.NewTranslator(), xdsCache, xdsHasher, rpt)
+	sync := syncer.NewSyncer(translator.NewTranslator(opts), xdsCache, xdsHasher, rpt)
 	eventLoop := v1.NewApiEventLoop(cache, sync)
 
 	errs := make(chan error)
 
 	udsErrs, err := discovery.RunUds(disc, watchOpts, discovery.Opts{
-	// TODO(ilackarms)
+		// TODO(ilackarms)
 	})
 	if err != nil {
 		return err
 	}
 	go errutils.AggregateErrs(watchOpts.Ctx, errs, udsErrs, "uds.gloo")
 
-	edsErrs, err := discovery.RunEds(upstreamClient, disc, opts.writeNamespace, watchOpts)
+	edsErrs, err := discovery.RunEds(upstreamClient, disc, opts.WriteNamespace, watchOpts)
 	if err != nil {
 		return err
 	}
@@ -125,9 +126,9 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 		}
 	}()
 
-	lis, err := net.Listen(opts.bindAddr.Network(), opts.bindAddr.String())
+	lis, err := net.Listen(opts.BindAddr.Network(), opts.BindAddr.String())
 	if err != nil {
 		return err
 	}
-	return opts.grpcServer.Serve(lis)
+	return opts.GrpcServer.Serve(lis)
 }

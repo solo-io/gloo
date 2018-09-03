@@ -1,4 +1,4 @@
-package plugins
+package registry
 
 import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/aws"
@@ -6,16 +6,17 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/kubernetes"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/rest"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 )
 
 type registry struct {
-	plugins []Plugin
+	plugins []plugins.Plugin
 }
 
 var globalRegistry = func() *registry{
 	transformationPlugin := transformation.NewPlugin()
 	return &registry{
-		plugins: []Plugin{
+		plugins: []plugins.Plugin{
 			// plugins should be added here
 			aws.NewPlugin(),
 			azure.NewPlugin(&transformationPlugin.RequireTransformationFilter),
@@ -26,6 +27,6 @@ var globalRegistry = func() *registry{
 	}
 }()
 
-func Plugins() []Plugin {
+func Plugins() []plugins.Plugin {
 	return globalRegistry.plugins
 }

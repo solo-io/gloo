@@ -10,7 +10,6 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/namespacing"
 	"github.com/solo-io/solo-kit/pkg/namespacing/static"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
@@ -18,30 +17,19 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 )
-
-type Opts struct {
-	writeNamespace string
-	upstreams      factory.ResourceClientFactoryOpts
-	proxies        factory.ResourceClientFactoryOpts
-	secrets        factory.ResourceClientFactoryOpts
-	artifacts      factory.ResourceClientFactoryOpts
-	namespacer     namespacing.Namespacer
-	bindAddr       net.Addr
-	grpcServer     *grpc.Server
-	watchOpts      clients.WatchOpts
-}
 
 //  ilackarms: We can just put any hacky stuff we need here
 
-func DefaultKubernetesConstructOpts() (Opts, error) {
+func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
 	cfg, err := kubeutils.GetConfig("", "")
 	if err != nil {
-		return Opts{}, err
+		return bootstrap.Opts{}, err
 	}
 	clientset, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
-		return Opts{}, err
+		return bootstrap.Opts{}, err
 	}
 	ctx := contextutils.WithLogger(context.Background(), "gloo")
 	logger := contextutils.LoggerFrom(ctx)
@@ -55,31 +43,32 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 			},
 		)),
 	)
-	return Opts{
-		writeNamespace: "gloo-system",
-		upstreams: &factory.KubeResourceClientOpts{
+	return bootstrap.Opts{
+		WriteNamespace: "gloo-system",
+		Upstreams: &factory.KubeResourceClientOpts{
 			Crd: v1.UpstreamCrd,
 			Cfg: cfg,
 		},
-		proxies: &factory.KubeResourceClientOpts{
+		Proxies: &factory.KubeResourceClientOpts{
 			Crd: v1.ProxyCrd,
 			Cfg: cfg,
 		},
-		secrets: &factory.KubeSecretClientOpts{
+		Secrets: &factory.KubeSecretClientOpts{
 			Clientset: clientset,
 		},
-		artifacts: &factory.KubeConfigMapClientOpts{
+		Artifacts: &factory.KubeConfigMapClientOpts{
 			Clientset: clientset,
 		},
-		namespacer: static.NewNamespacer([]string{"default", "gloo-system"}),
-		watchOpts: clients.WatchOpts{
+		Namespacer: static.NewNamespacer([]string{"default", "gloo-system"}),
+		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Minute,
 		},
-		bindAddr: &net.TCPAddr{
+		BindAddr: &net.TCPAddr{
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 8080,
 		},
-		grpcServer: grpcServer,
+		GrpcServer: grpcServer,
+		KubeClient: clientset,
 	}, nil
 }

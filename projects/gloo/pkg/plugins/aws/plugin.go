@@ -36,12 +36,8 @@ func getLambdaHostname(s *aws.UpstreamSpec) string {
 	return fmt.Sprintf("lambda.%s.amazonaws.com", s.Region)
 }
 
-func init() {
-	plugins.RegisterFunc(NewAwsPlugin)
-}
-
-func NewAwsPlugin() plugins.Plugin {
-	return &plugin{recordedUpstreams: make(map[string]*aws.UpstreamSpec)}
+func NewPlugin() plugins.Plugin {
+	return &plugin{}
 }
 
 type plugin struct {
@@ -51,6 +47,7 @@ type plugin struct {
 
 func (p *plugin) Init(params plugins.InitParams) error {
 	p.ctx = params.Ctx
+	p.recordedUpstreams = make(map[string]*aws.UpstreamSpec)
 	return nil
 }
 

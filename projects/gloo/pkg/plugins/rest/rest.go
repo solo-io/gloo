@@ -26,33 +26,29 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
 )
 
-type getspec interface {
+type UpstreamWithServiceSpec interface {
 	GetServiceSpec() *glooplugins.ServiceSpec
 }
 
 type plugin struct {
 	transformsAdded   *bool
-	recordedUpstreams map[string]getspec
+	recordedUpstreams map[string]UpstreamWithServiceSpec
 	ctx               context.Context
 }
 
-func init() {
-	plugins.RegisterFunc(NewRestPlugin)
-}
-
-func NewRestPlugin() plugins.Plugin {
-	return &plugin{}
+func NewPlugin(transformsAdded *bool) plugins.Plugin {
+	return &plugin{transformsAdded: transformsAdded}
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
-	p.transformsAdded = params.TransformationAdded
 	p.ctx = params.Ctx
+	p.recordedUpstreams = make(map[string]UpstreamWithServiceSpec)
 	return nil
 }
 
 func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, _ *envoyapi.Cluster) error {
-	if servicespec, ok := in.UpstreamSpec.UpstreamType.(getspec); ok {
-		p.recordedUpstreams[in.Metadata.Name] = servicespec
+	if withServiceSpec, ok := in.UpstreamSpec.UpstreamType.(UpstreamWithServiceSpec); ok {
+		p.recordedUpstreams[in.Metadata.Name] = withServiceSpec
 	}
 	return nil
 }
@@ -84,14 +80,14 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			return nil, errors.Errorf("%v does not have a REST service spec", spec.UpstreamName)
 		}
 		funcname := restDestinationSpec.Rest.FunctionName
-		transformation := restservicespec.Rest.Transformation[funcname]
-		if transformation == nil {
+		transform := restservicespec.Rest.Transformation[funcname]
+		if transform == nil {
 			return nil, errors.Errorf("unknown function %v", funcname)
 		}
 
 		// add extentions from the destination spec
 		var err error
-		transformation.Extractors, err = p.createRequestExtractors(restDestinationSpec.Rest.Parameters)
+		transform.Extractors, err = p.createRequestExtractors(restDestinationSpec.Rest.Parameters)
 		if err != nil {
 			return nil, err
 		}
@@ -101,10 +97,12 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		ret := &transformapi.RouteTransformations{
 			RequestTransformation: &transformapi.Transformation{
 				TransformationType: &transformapi.Transformation_TransformationTemplate{
-					TransformationTemplate: transformation,
+					TransformationTemplate: transform,
 				},
 			},
 		}
+
+		*p.transformsAdded = true
 
 		return ret, nil
 	})

@@ -11,25 +11,21 @@ const (
 	pluginStage = plugins.PostInAuth
 )
 
-type plugin struct {
-	transformsAdded *bool
+type Plugin struct {
+	RequireTransformationFilter bool
 }
 
-func init() {
-	plugins.RegisterFunc(NewTransformationPlugin)
+func NewPlugin() *Plugin {
+	return &Plugin{}
 }
 
-func NewTransformationPlugin() plugins.Plugin {
-	return &plugin{}
-}
-
-func (p *plugin) Init(params plugins.InitParams) error {
-	p.transformsAdded = params.TransformationAdded
+func (p *Plugin) Init(params plugins.InitParams) error {
+	p.RequireTransformationFilter = false
 	return nil
 }
 
-func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
-	if *p.transformsAdded {
+func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+	if p.RequireTransformationFilter {
 		return []plugins.StagedHttpFilter{
 			{
 				HttpFilter: &envoyhttp.HttpFilter{Name: FilterName},

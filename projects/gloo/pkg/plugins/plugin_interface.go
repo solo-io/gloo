@@ -8,16 +8,13 @@ import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 )
 
 type InitParams struct {
-	Ctx       context.Context
-	Bootstrap bootstrap.Config
-	// TODO(yuval-k): Figure out a better way to share state between plugins.
-	// Perhaps move this to a domain specific package for transformation plugin.
-	TransformationAdded *bool
+	Ctx  context.Context
+	Opts bootstrap.Opts
 }
 
 type Plugin interface {
@@ -89,7 +86,7 @@ type StagedHttpFilter struct {
 type FilterStage int
 
 const (
-	PreInAuth FilterStage = iota
+	PreInAuth  FilterStage = iota
 	InAuth
 	PostInAuth
 	PreOutAuth

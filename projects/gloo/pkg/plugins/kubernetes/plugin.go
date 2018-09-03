@@ -8,16 +8,20 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-type KubePlugin struct {
+type plugin struct {
 	kube kubernetes.Interface
 }
 
-func (p *KubePlugin) Init(params plugins.InitParams) error {
-	p.kube = params.Bootstrap.KubeClient()
+func NewPlugin() plugins.Plugin {
+	return &plugin{}
+}
+
+func (p *plugin) Init(params plugins.InitParams) error {
+	p.kube = params.Opts.KubeClient
 	return nil
 }
 
-func (p *KubePlugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *envoyapi.Cluster) error {
+func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *envoyapi.Cluster) error {
 	// not ours
 	_, ok := in.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
 	if !ok {

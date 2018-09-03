@@ -37,7 +37,8 @@ func (t *translator) computeCluster(params plugins.Params, upstream *v1.Upstream
 		}
 	}
 	if err := validateCluster(out); err != nil {
-		resourceErrs.AddError(upstream, err)
+		resourceErrs.AddError(upstream, errors.Wrapf(err, "cluster was configured improperly " +
+			"by one or more plugins: %v", out))
 	}
 	return out
 }
@@ -59,7 +60,7 @@ func initializeCluster(upstream *v1.Upstream, endpoints []*v1.Endpoint) *envoyap
 // TODO: add more validation here
 func validateCluster(c *envoyapi.Cluster) error {
 	if c.Type == envoyapi.Cluster_STATIC || c.Type == envoyapi.Cluster_STRICT_DNS || c.Type == envoyapi.Cluster_LOGICAL_DNS {
-		if (len(c.Hosts) == 0) && (c.LoadAssignment == nil || len(c.LoadAssignment.Endpoints) == 0) {
+		if len(c.Hosts) == 0 && (c.LoadAssignment == nil || len(c.LoadAssignment.Endpoints) == 0) {
 			return errors.Errorf("cluster type %v specified but LoadAssignment was empty", c.Type.String())
 		}
 	}

@@ -60,7 +60,10 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	s.xdsHasher.SetKeysFromProxies(snap.Proxies.List())
 
 	for _, proxy := range snap.Proxies.List() {
-		xdsSnapshot, resourceErrs := s.translator.Translate(params, proxy)
+		xdsSnapshot, resourceErrs, err := s.translator.Translate(params, proxy)
+		if err != nil {
+			return errors.Wrapf(err, "translation loop failed")
+		}
 
 		allResourceErrs.Merge(resourceErrs)
 

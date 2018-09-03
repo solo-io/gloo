@@ -6,30 +6,20 @@ import (
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
-	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-
 	"github.com/gogo/protobuf/proto"
-	"github.com/gogo/protobuf/types"
-
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
-
-	// TODO transformation will be moved to its own package (derived from the filter).
-	transformation "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
+	transformationapi "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
 )
 
 const (
-	pluginStage   = plugins.OutAuth
 	masterKeyName = "_master"
 )
-
-func init() {
-	plugins.RegisterFunc(NewAzurePlugin)
-}
 
 type plugin struct {
 	recordedUpstreams map[string]*azure.UpstreamSpec
@@ -38,13 +28,13 @@ type plugin struct {
 	transformsAdded   *bool
 }
 
-func NewAzurePlugin() plugins.Plugin {
-	return &plugin{recordedUpstreams: make(map[string]*azure.UpstreamSpec)}
+func NewPlugin(transformsAdded *bool) plugins.Plugin {
+	return &plugin{transformsAdded: transformsAdded}
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
-	p.transformsAdded = params.TransformationAdded
 	p.ctx = params.Ctx
+	p.recordedUpstreams = make(map[string]*azure.UpstreamSpec)
 	return nil
 }
 
@@ -114,20 +104,20 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 
 				hostname := GetHostname(upstreamSpec)
 				// TODO: consider adding a new add headers transformation allow adding headers with no templates to improve performance.
-				ret := &transformation.RouteTransformations{
-					RequestTransformation: &transformation.Transformation{
-						TransformationType: &transformation.Transformation_TransformationTemplate{
-							TransformationTemplate: &transformation.TransformationTemplate{
-								Headers: map[string]*transformation.InjaTemplate{
-									":path": &transformation.InjaTemplate{
+				ret := &transformationapi.RouteTransformations{
+					RequestTransformation: &transformationapi.Transformation{
+						TransformationType: &transformationapi.Transformation_TransformationTemplate{
+							TransformationTemplate: &transformationapi.TransformationTemplate{
+								Headers: map[string]*transformationapi.InjaTemplate{
+									":path": {
 										Text: path,
 									},
-									":authority": &transformation.InjaTemplate{
+									":authority": {
 										Text: hostname,
 									},
 								},
-								BodyTransformation: &transformation.TransformationTemplate_Passthrough{
-									Passthrough: &transformation.Passthrough{},
+								BodyTransformation: &transformationapi.TransformationTemplate_Passthrough{
+									Passthrough: &transformationapi.Passthrough{},
 								},
 							},
 						},
@@ -139,16 +129,6 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		}
 		return nil, errors.Errorf("unknown function %v", functionName)
 	})
-}
-
-func header(k, v string) *envoycore.HeaderValueOption {
-	return &envoycore.HeaderValueOption{
-		Header: &envoycore.HeaderValue{
-			Key:   k,
-			Value: v,
-		},
-		Append: &types.BoolValue{Value: false},
-	}
 }
 
 func getPath(functionSpec *azure.UpstreamSpec_FunctionSpec, apiKeys map[string]string) (string, error) {

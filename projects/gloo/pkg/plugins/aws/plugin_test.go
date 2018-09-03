@@ -29,7 +29,7 @@ var _ = Describe("Plugin", func() {
 		outroute *envoyroute.Route
 	)
 	BeforeEach(func() {
-		plugin = NewAwsPlugin()
+		plugin = NewPlugin()
 		plugin.Init(plugins.InitParams{})
 		upstreamName := "up"
 		clusterName := upstreamName

@@ -11,27 +11,36 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
 )
 
 type Translator interface {
-	Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors)
+	Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors, error)
 }
 
 type translator struct {
-	pluginsCtors func() []plugins.Plugin
-	plugins      []plugins.Plugin
+	opts    bootstrap.Opts
+	plugins []plugins.Plugin
 }
 
-func NewTranslator() Translator {
+func NewTranslator(opts bootstrap.Opts) Translator {
 	return &translator{
-		pluginsCtors: plugins.RegisteredPlugins(plugins.InitParams{}),
+		opts:    opts,
+		plugins: registry.Plugins(),
 	}
 }
 
-func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors) {
-	t.plugins = t.pluginsCtors()
-
+func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors, error) {
 	params.Ctx = contextutils.WithLogger(params.Ctx, "gloo.translator")
+	for _, p := range t.plugins {
+		if err := p.Init(plugins.InitParams{
+			Ctx:  params.Ctx,
+			Opts: t.opts,
+		}); err != nil {
+			return envoycache.Snapshot{}, nil, errors.Wrapf(err, "plugin init failed")
+		}
+	}
 	logger := contextutils.LoggerFrom(params.Ctx)
 
 	resourceErrs := make(reporter.ResourceErrors)
@@ -73,7 +82,7 @@ func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycac
 
 	xdsSnapshot := generateXDSSnapshot(clusters, endpoints, routeConfigs, listeners)
 
-	return xdsSnapshot, resourceErrs
+	return xdsSnapshot, resourceErrs, nil
 
 }
 
