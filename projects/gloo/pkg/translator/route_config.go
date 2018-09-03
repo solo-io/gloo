@@ -7,10 +7,10 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 type reportFunc func(error error, format string, args ...interface{})
@@ -173,7 +173,7 @@ func setRouteAction(in *v1.RouteAction, out *envoyroute.RouteAction) error {
 	switch dest := in.Destination.(type) {
 	case *v1.RouteAction_Single:
 		out.ClusterSpecifier = &envoyroute.RouteAction_Cluster{
-			Cluster: dest.Single.UpstreamName,
+			Cluster: dest.Single.Upstream.Key(),
 		}
 	case *v1.RouteAction_Multi:
 		return setWeightedClusters(dest.Multi, out)
@@ -193,9 +193,8 @@ func setWeightedClusters(multiDest *v1.MultiDestination, out *envoyroute.RouteAc
 	var totalWeight uint32
 	for _, weightedDest := range multiDest.Destinations {
 		totalWeight += weightedDest.Weight
-		upstreamName := weightedDest.Destination.UpstreamName
 		clusterSpecifier.WeightedClusters.Clusters = append(clusterSpecifier.WeightedClusters.Clusters, &envoyroute.WeightedCluster_ClusterWeight{
-			Name:   upstreamName,
+			Name:   weightedDest.Destination.Upstream.Key(),
 			Weight: &types.UInt32Value{Value: weightedDest.Weight},
 		})
 	}
@@ -311,13 +310,12 @@ func validateMultiDestination(upstreams []*v1.Upstream, destinations []*v1.Weigh
 }
 
 func validateSingleDestination(upstreams []*v1.Upstream, destination *v1.Destination) error {
-	upstreamName := destination.UpstreamName
 	for _, us := range upstreams {
-		if us.Metadata.Name == upstreamName {
+		if us.Metadata.Name == destination.Upstream.Key() {
 			return nil
 		}
 	}
-	return errors.Errorf("upstream %v was not found or had errors for upstream destination", upstreamName)
+	return errors.Errorf("upstream %v was not found or had errors for upstream destination", destination.Upstream.Key())
 }
 
 func validateListenerSslConfig(listener *v1.Listener, secrets []*v1.Secret) error {

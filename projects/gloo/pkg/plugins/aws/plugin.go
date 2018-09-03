@@ -18,6 +18,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 //go:generate protoc -I$GOPATH/src/github.com/lyft/protoc-gen-validate -I. -I$GOPATH/src/github.com/gogo/protobuf/protobuf --gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/ filter.proto
@@ -41,13 +42,13 @@ func NewPlugin() plugins.Plugin {
 }
 
 type plugin struct {
-	recordedUpstreams map[string]*aws.UpstreamSpec
+	recordedUpstreams map[core.ResourceRef]*aws.UpstreamSpec
 	ctx               context.Context
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
 	p.ctx = params.Ctx
-	p.recordedUpstreams = make(map[string]*aws.UpstreamSpec)
+	p.recordedUpstreams = make(map[core.ResourceRef]*aws.UpstreamSpec)
 	return nil
 }
 
@@ -115,7 +116,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	out.ExtensionProtocolOptions[filterName] = lpeStruct
 
 	// TODO(yuval-k): What about namespace?!
-	p.recordedUpstreams[in.Metadata.Name] = upstreamSpec.Aws
+	p.recordedUpstreams[in.Metadata.Ref()] = upstreamSpec.Aws
 
 	return nil
 }
@@ -131,10 +132,10 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			return nil, nil
 		}
 		// get upstream
-		lambdaSpec, ok := p.recordedUpstreams[spec.UpstreamName]
+		lambdaSpec, ok := p.recordedUpstreams[spec.Upstream]
 		if !ok {
 			// TODO(yuval-k): panic in debug
-			return nil, errors.Errorf("%v is not an AWS upstream", spec.UpstreamName)
+			return nil, errors.Errorf("%v is not an AWS upstream", spec.Upstream)
 		}
 		// should be aws upstream
 

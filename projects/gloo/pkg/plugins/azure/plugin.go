@@ -15,6 +15,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 const (
@@ -22,7 +23,7 @@ const (
 )
 
 type plugin struct {
-	recordedUpstreams map[string]*azure.UpstreamSpec
+	recordedUpstreams map[core.ResourceRef]*azure.UpstreamSpec
 	apiKeys           map[string]string
 	ctx               context.Context
 	transformsAdded   *bool
@@ -34,7 +35,7 @@ func NewPlugin(transformsAdded *bool) plugins.Plugin {
 
 func (p *plugin) Init(params plugins.InitParams) error {
 	p.ctx = params.Ctx
-	p.recordedUpstreams = make(map[string]*azure.UpstreamSpec)
+	p.recordedUpstreams = make(map[core.ResourceRef]*azure.UpstreamSpec)
 	return nil
 }
 
@@ -68,7 +69,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	}
 
 	// TODO(yuval-k): What about namespace?!
-	p.recordedUpstreams[in.Metadata.Name] = upstreamSpec.Azure
+	p.recordedUpstreams[in.Metadata.Ref()] = upstreamSpec.Azure
 
 	return nil
 }
@@ -84,10 +85,10 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			return nil, nil
 		}
 		// get upstream
-		upstreamSpec, ok := p.recordedUpstreams[spec.UpstreamName]
+		upstreamSpec, ok := p.recordedUpstreams[spec.Upstream]
 		if !ok {
 			// TODO(yuval-k): panic in debug
-			return nil, errors.Errorf("%v is not an Azure upstream", spec.UpstreamName)
+			return nil, errors.Errorf("%v is not an Azure upstream", spec.Upstream)
 		}
 
 		// get function

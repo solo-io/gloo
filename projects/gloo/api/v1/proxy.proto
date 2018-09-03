@@ -252,7 +252,7 @@ message RouteAction {
 // Destinations define routable destinations for proxied requests
 message Destination {
     // The upstream to route requests to
-    string upstream_name = 1;
+    core.solo.io.ResourceRef upstream = 1 [(gogoproto.nullable) = false];
 
     // Some upstreams utilize plugins which require or permit additional configuration on routes targeting them.
     // gRPC upstreams, for example, allow specifying REST-style parameters for JSON-to-gRPC transcoding in the

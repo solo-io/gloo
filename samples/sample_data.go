@@ -58,7 +58,7 @@ func Artifacts() v1.ArtifactList {
 func Upstreams() v1.UpstreamList {
 	return v1.UpstreamList{
 		{
-			Metadata: MakeMetadata("aws", "gloo-system"),
+			Metadata: MakeMetadata("my-aws-account-pls-donthack", "default"),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Aws{
 					Aws: &aws.UpstreamSpec{
@@ -199,7 +199,10 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 										Destinations: []*v1.WeightedDestination{
 											{
 												Destination: &v1.Destination{
-													UpstreamName: "my-aws-account-pls-donthack",
+													Upstream: core.ResourceRef{
+														Name:      "my-aws-account-pls-donthack",
+														Namespace: "default",
+													},
 													DestinationSpec: &v1.DestinationSpec{
 														DestinationType: &v1.DestinationSpec_Aws{
 															Aws: &aws.DestinationSpec{
@@ -213,7 +216,10 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 											},
 											{
 												Destination: &v1.Destination{
-													UpstreamName: "my-azure-account-pls-donthack",
+													Upstream: core.ResourceRef{
+														Name:      "azure",
+														Namespace: "gloo-system",
+													},
 													DestinationSpec: &v1.DestinationSpec{
 														DestinationType: &v1.DestinationSpec_Azure{
 															Azure: &azure.DestinationSpec{
@@ -244,7 +250,10 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 										Destinations: []*v1.WeightedDestination{
 											{
 												Destination: &v1.Destination{
-													UpstreamName: "my-aws-account-pls-donthack",
+													Upstream: core.ResourceRef{
+														Name:      "my-aws-account-pls-donthack",
+														Namespace: "default",
+													},
 													DestinationSpec: &v1.DestinationSpec{
 														DestinationType: &v1.DestinationSpec_Aws{
 															Aws: &aws.DestinationSpec{
@@ -258,7 +267,10 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 											},
 											{
 												Destination: &v1.Destination{
-													UpstreamName: "my-azure-account-pls-donthack",
+													Upstream: core.ResourceRef{
+														Name:      "azure",
+														Namespace: "gloo-system",
+													},
 													DestinationSpec: &v1.DestinationSpec{
 														DestinationType: &v1.DestinationSpec_Azure{
 															Azure: &azure.DestinationSpec{
@@ -295,7 +307,10 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 							RouteAction: &v1.RouteAction{
 								Destination: &v1.RouteAction_Single{
 									Single: &v1.Destination{
-										UpstreamName: "my-kube-service",
+										Upstream: core.ResourceRef{
+											Name:      "kube-1",
+											Namespace: "gloo-system",
+										},
 									},
 								},
 							},

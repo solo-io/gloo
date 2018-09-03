@@ -24,6 +24,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
 
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 type UpstreamWithServiceSpec interface {
@@ -32,7 +33,7 @@ type UpstreamWithServiceSpec interface {
 
 type plugin struct {
 	transformsAdded   *bool
-	recordedUpstreams map[string]UpstreamWithServiceSpec
+	recordedUpstreams map[core.ResourceRef]UpstreamWithServiceSpec
 	ctx               context.Context
 }
 
@@ -42,13 +43,13 @@ func NewPlugin(transformsAdded *bool) plugins.Plugin {
 
 func (p *plugin) Init(params plugins.InitParams) error {
 	p.ctx = params.Ctx
-	p.recordedUpstreams = make(map[string]UpstreamWithServiceSpec)
+	p.recordedUpstreams = make(map[core.ResourceRef]UpstreamWithServiceSpec)
 	return nil
 }
 
 func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, _ *envoyapi.Cluster) error {
 	if withServiceSpec, ok := in.UpstreamSpec.UpstreamType.(UpstreamWithServiceSpec); ok {
-		p.recordedUpstreams[in.Metadata.Name] = withServiceSpec
+		p.recordedUpstreams[in.Metadata.Ref()] = withServiceSpec
 	}
 	return nil
 }
@@ -64,20 +65,20 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			return nil, nil
 		}
 		// get upstream
-		getservicespec, ok := p.recordedUpstreams[spec.UpstreamName]
+		getservicespec, ok := p.recordedUpstreams[spec.Upstream]
 		if !ok {
 			// TODO(yuval-k): panic in debug
-			return nil, errors.Errorf("%v does not have a service spec", spec.UpstreamName)
+			return nil, errors.Errorf("%v does not have a service spec", spec.Upstream)
 		}
 
 		servicesoec := getservicespec.GetServiceSpec()
 		if servicesoec == nil {
-			return nil, errors.Errorf("%v does has an empty service spec", spec.UpstreamName)
+			return nil, errors.Errorf("%v does has an empty service spec", spec.Upstream)
 
 		}
 		restservicespec, ok := servicesoec.PluginType.(*glooplugins.ServiceSpec_Rest)
 		if restservicespec == nil || !ok {
-			return nil, errors.Errorf("%v does not have a REST service spec", spec.UpstreamName)
+			return nil, errors.Errorf("%v does not have a REST service spec", spec.Upstream)
 		}
 		funcname := restDestinationSpec.Rest.FunctionName
 		transform := restservicespec.Rest.Transformation[funcname]
