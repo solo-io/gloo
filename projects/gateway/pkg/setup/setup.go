@@ -12,6 +12,7 @@ import (
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/samples"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/defaults"
+	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
 func Setup(opts Opts) error {
@@ -81,7 +82,11 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	sync := syncer.NewSyncer(opts.writeNamespace, proxyClient, rpt, prop, writeErrs)
 
 	eventLoop := v1.NewApiEventLoop(emitter, sync)
-	eventLoop.Run(watchNamespaces, opts.watchOpts)
+	eventLoopErrs, err := eventLoop.Run(watchNamespaces, opts.watchOpts)
+	if err != nil {
+		return err
+	}
+	 go errutils.AggregateErrs(opts.watchOpts.Ctx, writeErrs, eventLoopErrs, "event_loop")
 
 	logger := contextutils.LoggerFrom(opts.watchOpts.Ctx)
 
