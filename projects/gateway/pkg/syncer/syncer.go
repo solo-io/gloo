@@ -36,10 +36,11 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	ctx = contextutils.WithLogger(ctx, "syncer")
 
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Infof("Beginning translation loop for snapshot %v", snap.Hash())
+	logger.Infof("gateway sync start %v", snap.Hash())
+	defer logger.Infof("gateway sync %v finished", snap.Hash())
 	logger.Debugf("%v", snap)
 
-	desired, resourceErrs := translate(s.writeNamespace, snap)
+	proxy, resourceErrs := translate(s.writeNamespace, snap)
 	if err := s.reporter.WriteReports(ctx, resourceErrs); err != nil {
 		return errors.Wrapf(err, "writing reports")
 	}
@@ -48,15 +49,16 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		return nil
 	}
 	// proxy was deleted / none desired
-	if desired == nil {
+	if proxy == nil {
 		return s.proxyReconciler.Reconcile(s.writeNamespace, nil, nil, clients.ListOpts{})
 	}
-	if err := s.proxyReconciler.Reconcile(s.writeNamespace, gloov1.ProxyList{desired}, nil, clients.ListOpts{}); err != nil {
+	logger.Debugf("creating proxy %v", proxy.Metadata.Ref())
+	if err := s.proxyReconciler.Reconcile(s.writeNamespace, gloov1.ProxyList{proxy}, nil, clients.ListOpts{}); err != nil {
 		return err
 	}
 
 	// start propagating for new set of resources
-	return s.propagator.PropagateStatuses(snap, desired, clients.WatchOpts{Ctx: ctx})
+	return s.propagator.PropagateStatuses(snap, proxy, clients.WatchOpts{Ctx: ctx})
 }
 
 func translate(namespace string, snap *v1.ApiSnapshot) (*gloov1.Proxy, reporter.ResourceErrors) {
@@ -71,18 +73,17 @@ func translate(namespace string, snap *v1.ApiSnapshot) (*gloov1.Proxy, reporter.
 	}
 	validateGateways(snap.Gateways.List(), resourceErrs)
 	validateVirtualServices(snap.VirtualServices.List(), resourceErrs)
-	meta := core.Metadata{
-		Name:        joinGatewayNames(snap.Gateways.List()),
-		Namespace:   namespace,
-		Annotations: map[string]string{"owner_ref": "gateway"},
-	}
 	var listeners []*gloov1.Listener
 	for _, gateway := range snap.Gateways.List() {
 		listener := desiredListener(gateway, snap.VirtualServices.List(), resourceErrs)
 		listeners = append(listeners, listener)
 	}
 	return &gloov1.Proxy{
-		Metadata:  meta,
+		Metadata: core.Metadata{
+			Name:        joinGatewayNames(snap.Gateways.List()) + "-proxy",
+			Namespace:   namespace,
+			Annotations: map[string]string{"owner_ref": "gateway"},
+		},
 		Listeners: listeners,
 	}, resourceErrs
 }
@@ -105,14 +106,6 @@ func validateVirtualServices(virtualServices v1.VirtualServiceList, resourceErrs
 }
 
 func desiredListener(gateway *v1.Gateway, virtualServices v1.VirtualServiceList, resourceErrs reporter.ResourceErrors) *gloov1.Listener {
-	if len(gateway.VirtualServices) == 0 {
-		resourceErrs.AddError(gateway, errors.Errorf("must specify at least one virtual service on gateway"))
-	}
-	var (
-		virtualHosts []*gloov1.VirtualHost
-		sslConfigs   []*gloov1.SslConfig
-	)
-
 	// add all virtual services if empty
 	if len(gateway.VirtualServices) == 0 {
 		for _, virtualService := range virtualServices {
@@ -122,6 +115,11 @@ func desiredListener(gateway *v1.Gateway, virtualServices v1.VirtualServiceList,
 			})
 		}
 	}
+
+	var (
+		virtualHosts []*gloov1.VirtualHost
+		sslConfigs   []*gloov1.SslConfig
+	)
 
 	for _, ref := range gateway.VirtualServices {
 		// virtual service must live in the same namespace as gateway

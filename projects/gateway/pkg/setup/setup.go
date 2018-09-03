@@ -6,13 +6,13 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gateway/pkg/defaults"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/propagator"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/samples"
-	"github.com/solo-io/solo-kit/projects/gateway/pkg/defaults"
-	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
 func Setup(opts Opts) error {
@@ -86,7 +86,7 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	if err != nil {
 		return err
 	}
-	 go errutils.AggregateErrs(opts.watchOpts.Ctx, writeErrs, eventLoopErrs, "event_loop")
+	go errutils.AggregateErrs(opts.watchOpts.Ctx, writeErrs, eventLoopErrs, "event_loop")
 
 	logger := contextutils.LoggerFrom(opts.watchOpts.Ctx)
 
