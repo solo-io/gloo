@@ -14,9 +14,9 @@ import (
 
 type reportFunc func(error error, format string, args ...interface{})
 
-func (t *translator) computeRouteConfig(params plugins.Params, proxy *v1.Proxy, listener *v1.Listener, routeCfgName string, report reportFunc) *envoyapi.RouteConfiguration {
-	report = func(err error, format string, args ...interface{}) {
-		report(err, "route_config."+format, args...)
+func (t *translator) computeRouteConfig(params plugins.Params, proxy *v1.Proxy, listener *v1.Listener, routeCfgName string, reportFn reportFunc) *envoyapi.RouteConfiguration {
+	report := func(err error, format string, args ...interface{}) {
+		reportFn(err, "route_config."+format, args...)
 	}
 	params.Ctx = contextutils.WithLogger(params.Ctx, "compute_route_config."+routeCfgName)
 
@@ -132,7 +132,9 @@ func (t *translator) setAction(snap *v1.ApiSnapshot, report reportFunc, in *v1.R
 			report(err, "invalid route")
 		}
 
-		out.Action = &envoyroute.Route_Route{}
+		out.Action = &envoyroute.Route_Route{
+			Route: &envoyroute.RouteAction{},
+		}
 		if err := setRouteAction(action.RouteAction, out.Action.(*envoyroute.Route_Route).Route); err != nil {
 			report(err, "error on route")
 		}

@@ -3,18 +3,19 @@ package syncer
 import (
 	"context"
 
+	"fmt"
+	"net/http"
+
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
+	"github.com/gorilla/mux"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
-	"github.com/gorilla/mux"
-	"net/http"
-	"fmt"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 
 type syncer struct {
