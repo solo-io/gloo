@@ -59,9 +59,8 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		Sni: hostname,
 	}
 
-	if azureUpstream.SecretRef != "" {
-		// TODO: namespace
-		azureSecrets, err := params.Snapshot.Secrets[in.Metadata.Namespace].Find("", azureUpstream.SecretRef)
+	if azureUpstream.SecretRef.Name != "" {
+		azureSecrets, err := params.Snapshot.Secrets[in.Metadata.Namespace].Find(azureUpstream.SecretRef.Strings())
 		if err != nil {
 			return errors.Wrapf(err, "azure secrets for ref %v not found", azureUpstream.SecretRef)
 		}

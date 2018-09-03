@@ -23,17 +23,22 @@ func MakeMetadata(name, namespace string) core.Metadata {
 func Secrets() v1.SecretList {
 	return v1.SecretList{
 		{
-			Metadata: MakeMetadata("some-secret", "default"),
+			Metadata: MakeMetadata("some-secret", "gloo-system"),
 			Data: map[string]string{
 				"access_key": os.Getenv("AWS_ACCESS_KEY"),
 				"secret_key": os.Getenv("AWS_SECRET_KEY"),
 			},
 		},
 		{
-			Metadata: MakeMetadata("my-precious", "default"),
+			Metadata: MakeMetadata("my-precious", "gloo-system"),
 			Data: map[string]string{
-				"access_key": os.Getenv("AWS_ACCESS_KEY"),
-				"secret_key": os.Getenv("AWS_SECRET_KEY"),
+				// TODO(ilackarms): azure secrets
+			},
+		},
+		{
+			Metadata: MakeMetadata("ssl-secret", "gloo-system"),
+			Data: map[string]string{
+				// TODO(ilackarms): ssl secret
 			},
 		},
 	}
@@ -57,8 +62,11 @@ func Upstreams() v1.UpstreamList {
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Aws{
 					Aws: &aws.UpstreamSpec{
-						Region:    "us-east-1",
-						SecretRef: "some-secret",
+						Region: "us-east-1",
+						SecretRef: core.ResourceRef{
+							Namespace: "default",
+							Name:      "some-secret",
+						},
 						LambdaFunctions: []*aws.LambdaFunctionSpec{
 							{
 								LogicalName:        "my_func_v1",
@@ -116,7 +124,10 @@ func Upstreams() v1.UpstreamList {
 				UpstreamType: &v1.UpstreamSpec_Azure{
 					Azure: &azure.UpstreamSpec{
 						FunctionAppName: "one-cloud-to-rule-them-all",
-						SecretRef:       core.ResourceRef{},
+						SecretRef: core.ResourceRef{
+							Name:      "my-precious",
+							Namespace: "default",
+						},
 						Functions: []*azure.UpstreamSpec_FunctionSpec{
 							{
 								FunctionName: "CreateRing",
@@ -143,8 +154,10 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 	meta2 := MakeMetadata("virtualservice2", "gloo-system")
 	return gatewayv1.VirtualServiceList{
 		{
-			Metadata:  meta1,
-			SslConfig: &v1.SslConfig{SslSecrets: &v1.SslConfig_SecretRef{SecretRef: "some-secret"}},
+			Metadata: meta1,
+			SslConfig: &v1.SslConfig{SslSecrets: &v1.SslConfig_SecretRef{
+				SecretRef: &core.ResourceRef{Name: "ssl-secret", Namespace: "gloo-sytsem"},
+			}},
 			VirtualHost: &v1.VirtualHost{
 				Name:    meta1.Name,
 				Domains: []string{"sqoop.didoop.com"},

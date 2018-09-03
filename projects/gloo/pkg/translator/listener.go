@@ -121,7 +121,7 @@ func computeFilterChainsFromSslConfig(snap *v1.ApiSnapshot, listener *v1.Listene
 			var err error
 			inlineDataSource = true
 			ref := sslSecrets.SecretRef
-			certChain, privateKey, rootCa, err = GetSslSecrets(ref, snap.Secrets.List())
+			certChain, privateKey, rootCa, err = GetSslSecrets(*ref, snap.Secrets.List())
 			if err != nil {
 				report(err, "invalid secrets for listener %v", listener.Name)
 				continue

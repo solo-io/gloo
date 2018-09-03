@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 type reportFunc func(error error, format string, args ...interface{})
@@ -323,7 +324,7 @@ func validateListenerSslConfig(listener *v1.Listener, secrets []*v1.Secret) erro
 	for _, ssl := range listener.SslConfiguations {
 		switch secret := ssl.SslSecrets.(type) {
 		case *v1.SslConfig_SecretRef:
-			if _, _, _, err := GetSslSecrets(secret.SecretRef, secrets); err != nil {
+			if _, _, _, err := GetSslSecrets(*secret.SecretRef, secrets); err != nil {
 				return err
 			}
 		case *v1.SslConfig_SslFiles:
@@ -339,17 +340,10 @@ const (
 	deprecatedSslPrivateKeyKey       = "private_key"
 )
 
-func GetSslSecrets(ref string, secrets []*v1.Secret) (string, string, string, error) {
-	var sslSecret *v1.Secret
-	for _, sec := range secrets {
-		if sec.Metadata.Name == ref {
-			sslSecret = sec
-			break
-		}
-	}
-
-	if sslSecret == nil {
-		return "", "", "", errors.Errorf("ssl secret not found for ref %v", ref)
+func GetSslSecrets(ref core.ResourceRef, secrets v1.SecretList) (string, string, string, error) {
+	sslSecret, err := secrets.Find(ref.Strings())
+	if err != nil {
+		return "", "", "", errors.Wrapf(err, "SSL secret not found")
 	}
 
 	certChain, ok := sslSecret.Data[SslCertificateChainKey]
