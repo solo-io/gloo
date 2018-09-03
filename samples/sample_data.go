@@ -1,7 +1,6 @@
 package samples
 
 import (
-	"fmt"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -9,11 +8,14 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
+	"os"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
 )
 
-func MakeMetadata(kind, namespace string, i int) core.Metadata {
+func MakeMetadata(name, namespace string) core.Metadata {
 	return core.Metadata{
-		Name:      fmt.Sprintf("%v-%v", kind, i),
+		Name:      name,
 		Namespace: namespace,
 	}
 }
@@ -21,20 +23,28 @@ func MakeMetadata(kind, namespace string, i int) core.Metadata {
 func Secrets() v1.SecretList {
 	return v1.SecretList{
 		{
-			Metadata: MakeMetadata("secret", "default", 1),
+			Metadata: MakeMetadata("some-secret", "default"),
 			Data: map[string]string{
-				//TODO(ilackarms)
+				"access_key": os.Getenv("AWS_ACCESS_KEY"),
+				"secret_key": os.Getenv("AWS_SECRET_KEY"),
+			},
+		},
+		{
+			Metadata: MakeMetadata("my-precious", "default"),
+			Data: map[string]string{
+				"access_key": os.Getenv("AWS_ACCESS_KEY"),
+				"secret_key": os.Getenv("AWS_SECRET_KEY"),
 			},
 		},
 	}
 }
 
-func Artifacts() v1.ArtifactList{
+func Artifacts() v1.ArtifactList {
 	return v1.ArtifactList{
 		{
-			Metadata: MakeMetadata("secret", "default", 1),
+			Metadata: MakeMetadata("artifact", "default"),
 			Data: map[string]string{
-				//TODO(ilackarms)
+				// TODO(ilackarms)
 			},
 		},
 	}
@@ -43,7 +53,7 @@ func Artifacts() v1.ArtifactList{
 func Upstreams() v1.UpstreamList {
 	return v1.UpstreamList{
 		{
-			Metadata: MakeMetadata("upstream", "gloo-system", 1),
+			Metadata: MakeMetadata("upstream", "gloo-system"),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Aws{
 					Aws: &aws.UpstreamSpec{
@@ -66,7 +76,7 @@ func Upstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("upstream", "gloo-system", 2),
+			Metadata: MakeMetadata("upstream", "gloo-system"),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Kube{
 					Kube: &kubernetes.UpstreamSpec{
@@ -78,20 +88,30 @@ func Upstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("upstream", "gloo-system", 3),
+			Metadata: MakeMetadata("upstream", "gloo-system"),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Kube{
 					Kube: &kubernetes.UpstreamSpec{
 						ServiceName:      "palmer-eldritch",
 						ServiceNamespace: "pkd",
 						ServicePort:      8080,
-						ServiceSpec:      &plugins.ServiceSpec{},
+						ServiceSpec: &plugins.ServiceSpec{
+							PluginType: &plugins.ServiceSpec_Rest{
+								Rest: &rest.ServiceSpec{
+									Transformation: map[string]*transformation.TransformationTemplate{
+										"my-rest-function": {
+											// TODO(ilackarms/yuval-k)
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
 		},
 		{
-			Metadata: MakeMetadata("upstream", "gloo-system", 4),
+			Metadata: MakeMetadata("upstream", "gloo-system"),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Azure{
 					Azure: &azure.UpstreamSpec{
@@ -119,8 +139,8 @@ func Upstreams() v1.UpstreamList {
 }
 
 func VirtualServices() gatewayv1.VirtualServiceList {
-	meta1 := MakeMetadata("virtualservice", "gloo-system", 1)
-	meta2 := MakeMetadata("virtualservice", "gloo-system", 2)
+	meta1 := MakeMetadata("virtualservice1", "gloo-system")
+	meta2 := MakeMetadata("virtualservice2", "gloo-system")
 	return gatewayv1.VirtualServiceList{
 		{
 			Metadata:  meta1,

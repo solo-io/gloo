@@ -89,7 +89,7 @@ func sampleData() (v1.UpstreamList, gatewayv1.VirtualServiceList, sqoopv1.Resolv
 func sampleResolverMaps() sqoopv1.ResolverMapList {
 	return sqoopv1.ResolverMapList{
 		{
-			Metadata: samples.MakeMetadata("resolvermap", "some-namespace", 1),
+			Metadata: samples.MakeMetadata("resolvermap1", "some-namespace"),
 			Types: map[string]*sqoopv1.TypeResolver{
 				"Foo": {
 					Fields: map[string]*sqoopv1.FieldResolver{
@@ -106,7 +106,7 @@ func sampleResolverMaps() sqoopv1.ResolverMapList {
 			},
 		},
 		{
-			Metadata: samples.MakeMetadata("resolvermap", "some-namespace", 2),
+			Metadata: samples.MakeMetadata("resolvermap2", "some-namespace"),
 			Types: map[string]*sqoopv1.TypeResolver{
 				"Baz": {
 					Fields: map[string]*sqoopv1.FieldResolver{
