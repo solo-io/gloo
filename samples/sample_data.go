@@ -58,13 +58,13 @@ func Artifacts() v1.ArtifactList {
 func Upstreams() v1.UpstreamList {
 	return v1.UpstreamList{
 		{
-			Metadata: MakeMetadata("upstream", "gloo-system"),
+			Metadata: MakeMetadata("aws", "gloo-system"),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Aws{
 					Aws: &aws.UpstreamSpec{
 						Region: "us-east-1",
 						SecretRef: core.ResourceRef{
-							Namespace: "default",
+							Namespace: "gloo-system",
 							Name:      "some-secret",
 						},
 						LambdaFunctions: []*aws.LambdaFunctionSpec{
@@ -84,7 +84,7 @@ func Upstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("upstream", "gloo-system"),
+			Metadata: MakeMetadata("kube-1", "gloo-system"),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Kube{
 					Kube: &kubernetes.UpstreamSpec{
@@ -96,7 +96,7 @@ func Upstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("upstream", "gloo-system"),
+			Metadata: MakeMetadata("kube-2", "gloo-system"),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Kube{
 					Kube: &kubernetes.UpstreamSpec{
@@ -119,14 +119,14 @@ func Upstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("upstream", "gloo-system"),
+			Metadata: MakeMetadata("azure", "gloo-system"),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Azure{
 					Azure: &azure.UpstreamSpec{
 						FunctionAppName: "one-cloud-to-rule-them-all",
 						SecretRef: core.ResourceRef{
 							Name:      "my-precious",
-							Namespace: "default",
+							Namespace: "gloo-system",
 						},
 						Functions: []*azure.UpstreamSpec_FunctionSpec{
 							{
