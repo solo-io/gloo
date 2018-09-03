@@ -106,6 +106,10 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 			return nil, errors.NewExistErr(meta)
 		}
 		if _, err := rc.kube.ResourcesV1().Resources(meta.Namespace).Update(resourceCrd); err != nil {
+			original, err := rc.kube.ResourcesV1().Resources(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+			if err == nil {
+				return nil, errors.Wrapf(err, "updating kube resource %v:%v (want %v)", resourceCrd.Name, resourceCrd.ResourceVersion, original.ResourceVersion)
+			}
 			return nil, errors.Wrapf(err, "updating kube resource %v", resourceCrd.Name)
 		}
 	} else {
