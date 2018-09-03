@@ -37,7 +37,7 @@ func (t *translator) computeCluster(params plugins.Params, upstream *v1.Upstream
 		}
 	}
 	if err := validateCluster(out); err != nil {
-		resourceErrs.AddError(upstream, errors.Wrapf(err, "cluster was configured improperly " +
+		resourceErrs.AddError(upstream, errors.Wrapf(err, "cluster was configured improperly "+
 			"by one or more plugins: %v", out))
 	}
 	return out

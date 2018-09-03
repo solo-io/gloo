@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"net"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/namespacing"

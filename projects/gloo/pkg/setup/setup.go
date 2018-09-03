@@ -9,11 +9,11 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 )
 
 func Setup(opts bootstrap.Opts) error {
@@ -92,7 +92,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 	errs := make(chan error)
 
 	udsErrs, err := discovery.RunUds(disc, watchOpts, discovery.Opts{
-		// TODO(ilackarms)
+	// TODO(ilackarms)
 	})
 	if err != nil {
 		return err

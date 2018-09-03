@@ -8,7 +8,7 @@ import fmt "fmt"
 import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
 import core_solo_io "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-import core_solo_io1 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+import core_solo_io2 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -29,7 +29,7 @@ type Upstream struct {
 	// The type-specific config for the upstream is called a spec.
 	UpstreamSpec *UpstreamSpec `protobuf:"bytes,2,opt,name=upstream_spec,json=upstreamSpec" json:"upstream_spec,omitempty"`
 	// Status indicates the validation status of the resource. Status is read-only by clients, and set by gloo during validation
-	Status core_solo_io1.Status `protobuf:"bytes,6,opt,name=status" json:"status" testdiff:"ignore"`
+	Status core_solo_io2.Status `protobuf:"bytes,6,opt,name=status" json:"status" testdiff:"ignore"`
 	// Metadata contains the object metadata for this resource
 	Metadata core_solo_io.Metadata `protobuf:"bytes,7,opt,name=metadata" json:"metadata"`
 	// Upstreams and their configuration can be automatically by Gloo Discovery
@@ -49,11 +49,11 @@ func (m *Upstream) GetUpstreamSpec() *UpstreamSpec {
 	return nil
 }
 
-func (m *Upstream) GetStatus() core_solo_io1.Status {
+func (m *Upstream) GetStatus() core_solo_io2.Status {
 	if m != nil {
 		return m.Status
 	}
-	return core_solo_io1.Status{}
+	return core_solo_io2.Status{}
 }
 
 func (m *Upstream) GetMetadata() core_solo_io.Metadata {

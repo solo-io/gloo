@@ -116,7 +116,7 @@ func Upstreams() v1.UpstreamList {
 				UpstreamType: &v1.UpstreamSpec_Azure{
 					Azure: &azure.UpstreamSpec{
 						FunctionAppName: "one-cloud-to-rule-them-all",
-						SecretRef:       "my-precious",
+						SecretRef:       core.ResourceRef{},
 						Functions: []*azure.UpstreamSpec_FunctionSpec{
 							{
 								FunctionName: "CreateRing",

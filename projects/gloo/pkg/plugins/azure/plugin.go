@@ -11,10 +11,10 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
+	transformationapi "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
-	transformationapi "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
 )
 
 const (
