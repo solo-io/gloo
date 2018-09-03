@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/samples"
+	"github.com/solo-io/solo-kit/projects/gateway/pkg/defaults"
 )
 
 func Setup(opts Opts) error {
@@ -56,6 +57,12 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 
 	proxyClient, err := gloov1.NewProxyClient(proxyFactory)
 	if err != nil {
+		return err
+	}
+
+	if _, err := gatewayClient.Write(defaults.DefaultGateway(opts.writeNamespace), clients.WriteOpts{
+		Ctx: opts.watchOpts.Ctx,
+	}); err != nil && !errors.IsExist(err) {
 		return err
 	}
 

@@ -14,7 +14,7 @@ func DefaultGateway(writeNamespace string) *v1.Gateway {
 		},
 		BindAddress:     "::",
 		BindPort:        80,
-		VirtualServices: []string{}, // all virtualservices
+		// all virtualservices
 	}
 }
 
