@@ -77,10 +77,11 @@ func (list VirtualServiceList) NamespacesDotNames() []string {
 	return names
 }
 
-func (list VirtualServiceList) Sort() {
+func (list VirtualServiceList) Sort() VirtualServiceList {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+	return list
 }
 
 func (list VirtualServiceList) Clone() VirtualServiceList {
@@ -114,8 +115,7 @@ func (byNamespace VirtualServicesByNamespace) List() VirtualServiceList {
 	for _, virtualServiceList := range byNamespace {
 		list = append(list, virtualServiceList...)
 	}
-	list.Sort()
-	return list
+	return list.Sort()
 }
 
 func (byNamespace VirtualServicesByNamespace) Clone() VirtualServicesByNamespace {

@@ -65,10 +65,11 @@ func (list EndpointList) NamespacesDotNames() []string {
 	return names
 }
 
-func (list EndpointList) Sort() {
+func (list EndpointList) Sort() EndpointList {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+	return list
 }
 
 func (list EndpointList) Clone() EndpointList {
@@ -102,8 +103,7 @@ func (byNamespace EndpointsByNamespace) List() EndpointList {
 	for _, endpointList := range byNamespace {
 		list = append(list, endpointList...)
 	}
-	list.Sort()
-	return list
+	return list.Sort()
 }
 
 func (byNamespace EndpointsByNamespace) Clone() EndpointsByNamespace {

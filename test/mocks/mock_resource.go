@@ -77,10 +77,11 @@ func (list MockResourceList) NamespacesDotNames() []string {
 	return names
 }
 
-func (list MockResourceList) Sort() {
+func (list MockResourceList) Sort() MockResourceList {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+	return list
 }
 
 func (list MockResourceList) Clone() MockResourceList {
@@ -114,8 +115,7 @@ func (byNamespace MocksByNamespace) List() MockResourceList {
 	for _, mockResourceList := range byNamespace {
 		list = append(list, mockResourceList...)
 	}
-	list.Sort()
-	return list
+	return list.Sort()
 }
 
 func (byNamespace MocksByNamespace) Clone() MocksByNamespace {

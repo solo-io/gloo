@@ -77,10 +77,11 @@ func (list UpstreamList) NamespacesDotNames() []string {
 	return names
 }
 
-func (list UpstreamList) Sort() {
+func (list UpstreamList) Sort() UpstreamList {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+	return list
 }
 
 func (list UpstreamList) Clone() UpstreamList {
@@ -114,8 +115,7 @@ func (byNamespace UpstreamsByNamespace) List() UpstreamList {
 	for _, upstreamList := range byNamespace {
 		list = append(list, upstreamList...)
 	}
-	list.Sort()
-	return list
+	return list.Sort()
 }
 
 func (byNamespace UpstreamsByNamespace) Clone() UpstreamsByNamespace {

@@ -81,10 +81,11 @@ func (list MockDataList) NamespacesDotNames() []string {
 	return names
 }
 
-func (list MockDataList) Sort() {
+func (list MockDataList) Sort() MockDataList {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+	return list
 }
 
 func (list MockDataList) Clone() MockDataList {
@@ -118,8 +119,7 @@ func (byNamespace MockDatasByNamespace) List() MockDataList {
 	for _, mockDataList := range byNamespace {
 		list = append(list, mockDataList...)
 	}
-	list.Sort()
-	return list
+	return list.Sort()
 }
 
 func (byNamespace MockDatasByNamespace) Clone() MockDatasByNamespace {

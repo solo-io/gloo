@@ -77,10 +77,11 @@ func (list GatewayList) NamespacesDotNames() []string {
 	return names
 }
 
-func (list GatewayList) Sort() {
+func (list GatewayList) Sort() GatewayList {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+	return list
 }
 
 func (list GatewayList) Clone() GatewayList {
@@ -114,8 +115,7 @@ func (byNamespace GatewaysByNamespace) List() GatewayList {
 	for _, gatewayList := range byNamespace {
 		list = append(list, gatewayList...)
 	}
-	list.Sort()
-	return list
+	return list.Sort()
 }
 
 func (byNamespace GatewaysByNamespace) Clone() GatewaysByNamespace {

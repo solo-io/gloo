@@ -69,10 +69,11 @@ func (list SecretList) NamespacesDotNames() []string {
 	return names
 }
 
-func (list SecretList) Sort() {
+func (list SecretList) Sort() SecretList {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+	return list
 }
 
 func (list SecretList) Clone() SecretList {
@@ -106,8 +107,7 @@ func (byNamespace SecretsByNamespace) List() SecretList {
 	for _, secretList := range byNamespace {
 		list = append(list, secretList...)
 	}
-	list.Sort()
-	return list
+	return list.Sort()
 }
 
 func (byNamespace SecretsByNamespace) Clone() SecretsByNamespace {

@@ -95,10 +95,11 @@ func (list {{ .Name }}List) NamespacesDotNames() []string {
 	return names
 }
 
-func (list {{ .Name }}List) Sort() {
+func (list {{ .Name }}List) Sort() {{ .Name }}List {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+	return list
 }
 
 func (list {{ .Name }}List) Clone() {{ .Name }}List {
@@ -132,8 +133,7 @@ func (byNamespace {{ .PluralName }}ByNamespace) List() {{ .Name }}List {
 	for _, {{ lower_camel .Name }}List := range byNamespace {
 		list = append(list, {{ lower_camel .Name }}List...)
 	}
-	list.Sort()
-	return list
+	return list.Sort()
 }
 
 func (byNamespace {{ .PluralName }}ByNamespace) Clone() {{ .PluralName }}ByNamespace {

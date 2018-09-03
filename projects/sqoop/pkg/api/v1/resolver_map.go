@@ -77,10 +77,11 @@ func (list ResolverMapList) NamespacesDotNames() []string {
 	return names
 }
 
-func (list ResolverMapList) Sort() {
+func (list ResolverMapList) Sort() ResolverMapList {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+	return list
 }
 
 func (list ResolverMapList) Clone() ResolverMapList {
@@ -114,8 +115,7 @@ func (byNamespace ResolverMapsByNamespace) List() ResolverMapList {
 	for _, resolverMapList := range byNamespace {
 		list = append(list, resolverMapList...)
 	}
-	list.Sort()
-	return list
+	return list.Sort()
 }
 
 func (byNamespace ResolverMapsByNamespace) Clone() ResolverMapsByNamespace {

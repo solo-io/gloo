@@ -77,10 +77,11 @@ func (list ProxyList) NamespacesDotNames() []string {
 	return names
 }
 
-func (list ProxyList) Sort() {
+func (list ProxyList) Sort() ProxyList {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+	return list
 }
 
 func (list ProxyList) Clone() ProxyList {
@@ -114,8 +115,7 @@ func (byNamespace ProxiesByNamespace) List() ProxyList {
 	for _, proxyList := range byNamespace {
 		list = append(list, proxyList...)
 	}
-	list.Sort()
-	return list
+	return list.Sort()
 }
 
 func (byNamespace ProxiesByNamespace) Clone() ProxiesByNamespace {

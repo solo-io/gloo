@@ -77,10 +77,11 @@ func (list FakeResourceList) NamespacesDotNames() []string {
 	return names
 }
 
-func (list FakeResourceList) Sort() {
+func (list FakeResourceList) Sort() FakeResourceList {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+	return list
 }
 
 func (list FakeResourceList) Clone() FakeResourceList {
@@ -114,8 +115,7 @@ func (byNamespace FakesByNamespace) List() FakeResourceList {
 	for _, fakeResourceList := range byNamespace {
 		list = append(list, fakeResourceList...)
 	}
-	list.Sort()
-	return list
+	return list.Sort()
 }
 
 func (byNamespace FakesByNamespace) Clone() FakesByNamespace {

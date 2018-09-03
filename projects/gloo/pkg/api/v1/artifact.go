@@ -69,10 +69,11 @@ func (list ArtifactList) NamespacesDotNames() []string {
 	return names
 }
 
-func (list ArtifactList) Sort() {
+func (list ArtifactList) Sort() ArtifactList {
 	sort.SliceStable(list, func(i, j int) bool {
 		return list[i].Metadata.Less(list[j].Metadata)
 	})
+	return list
 }
 
 func (list ArtifactList) Clone() ArtifactList {
@@ -106,8 +107,7 @@ func (byNamespace ArtifactsByNamespace) List() ArtifactList {
 	for _, artifactList := range byNamespace {
 		list = append(list, artifactList...)
 	}
-	list.Sort()
-	return list
+	return list.Sort()
 }
 
 func (byNamespace ArtifactsByNamespace) Clone() ArtifactsByNamespace {
