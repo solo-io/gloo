@@ -11,6 +11,10 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
+	"github.com/gorilla/mux"
+	"net/http"
+	"fmt"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 
 type syncer struct {
@@ -18,18 +22,24 @@ type syncer struct {
 	xdsCache   envoycache.SnapshotCache
 	xdsHasher  *xds.ProxyKeyHasher
 	reporter   reporter.Reporter
+	// used for debugging purposes only
+	latestSnap *v1.ApiSnapshot
 }
 
 func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCache, xdsHasher *xds.ProxyKeyHasher, reporter reporter.Reporter) v1.ApiSyncer {
-	return &syncer{
+	s := &syncer{
 		translator: translator,
 		xdsCache:   xdsCache,
 		xdsHasher:  xdsHasher,
 		reporter:   reporter,
 	}
+	// TODO(ilackarms): move this somewhere else, make it part of dev-mode
+	go s.ServeXdsSnapshots()
+	return s
 }
 
 func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
+	s.latestSnap = snap
 	ctx = contextutils.WithLogger(ctx, "syncer")
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("begin sync %v (%v resources)", snap.Hash(),
@@ -70,4 +80,16 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		return errors.Wrapf(err, "writing reports")
 	}
 	return nil
+}
+
+// TODO(ilackarms): move this somewhere else, make it part of dev-mode
+func (s *syncer) ServeXdsSnapshots() error {
+	r := mux.NewRouter()
+	r.HandleFunc("/xds", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, log.Sprintf("%v", s.xdsCache))
+	})
+	r.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, log.Sprintf("%v", s.latestSnap))
+	})
+	return http.ListenAndServe(":9090", r)
 }

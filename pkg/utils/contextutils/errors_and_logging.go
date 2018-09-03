@@ -6,6 +6,10 @@ import (
 	"go.uber.org/zap"
 )
 
+func SilenceLogger(ctx context.Context) context.Context {
+	return withLogger(ctx, zap.NewNop().Sugar())
+}
+
 func WithLogger(ctx context.Context, name string) context.Context {
 	return withLogger(ctx, fromContext(ctx).Named(name))
 }

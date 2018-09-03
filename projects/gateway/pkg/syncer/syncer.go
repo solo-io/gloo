@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"log"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -59,7 +61,8 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	}
 
 	// start propagating for new set of resources
-	return s.propagator.PropagateStatuses(snap, proxy, clients.WatchOpts{Ctx: ctx})
+	// TODO(ilackarms): reinstate propagator
+	return nil //s.propagator.PropagateStatuses(snap, proxy, clients.WatchOpts{Ctx: ctx})
 }
 
 func translate(namespace string, snap *v1.ApiSnapshot) (*gloov1.Proxy, reporter.ResourceErrors) {
@@ -67,9 +70,11 @@ func translate(namespace string, snap *v1.ApiSnapshot) (*gloov1.Proxy, reporter.
 	resourceErrs.Initialize(snap.Gateways.List().AsInputResources()...)
 	resourceErrs.Initialize(snap.VirtualServices.List().AsInputResources()...)
 	if len(snap.Gateways.List()) == 0 {
+		log.Printf("%v had no gateways", snap.Hash())
 		return nil, resourceErrs
 	}
 	if len(snap.VirtualServices.List()) == 0 {
+		log.Printf("%v had no virtual services", snap.Hash())
 		return nil, resourceErrs
 	}
 	validateGateways(snap.Gateways.List(), resourceErrs)

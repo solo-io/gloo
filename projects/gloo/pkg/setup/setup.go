@@ -1,18 +1,12 @@
 package setup
 
 import (
-	"fmt"
 	"net"
-	"net/http"
-
-	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
-	"github.com/gorilla/mux"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
@@ -96,7 +90,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 	errs := make(chan error)
 
 	udsErrs, err := discovery.RunUds(disc, watchOpts, discovery.Opts{
-	// TODO(ilackarms)
+		// TODO(ilackarms)
 	})
 	if err != nil {
 		return err
@@ -134,15 +128,5 @@ func setupForNamespaces(discoveredNamespaces []string, opts Opts) error {
 	if err != nil {
 		return err
 	}
-	go ServeXdsSnapshots(xdsCache)
 	return opts.grpcServer.Serve(lis)
-}
-
-// TODO(ilackarms): move this somewhere else, make it part of dev-mode
-func ServeXdsSnapshots(xdsCache envoycache.Cache) error {
-	r := mux.NewRouter()
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, log.Sprintf("%v", xdsCache))
-	})
-	return http.ListenAndServe(":9090", r)
 }
