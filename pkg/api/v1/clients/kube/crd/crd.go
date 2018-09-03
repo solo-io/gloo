@@ -2,6 +2,7 @@ package crd
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned/scheme"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
@@ -14,6 +15,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
+
+// TODO(ilackarms): evaluate this fix for concurrent map access in k8s.io/apimachinery/pkg/runtime.SchemaBuider
+var registerLock sync.Mutex
 
 type Crd struct {
 	GroupName string
@@ -119,6 +123,8 @@ func (d Crd) SchemeBuilder() runtime.SchemeBuilder {
 }
 
 func (d Crd) AddToScheme(s *runtime.Scheme) error {
+	registerLock.Lock()
+	defer registerLock.Unlock()
 	builder := d.SchemeBuilder()
 	return (&builder).AddToScheme(s)
 }
