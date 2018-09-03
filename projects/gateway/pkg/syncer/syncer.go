@@ -36,8 +36,9 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	ctx = contextutils.WithLogger(ctx, "syncer")
 
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Infof("gateway sync start %v", snap.Hash())
-	defer logger.Infof("gateway sync %v finished", snap.Hash())
+	logger.Infof("begin sync %v (%v resources)", snap.Hash(),
+		len(snap.VirtualServices)+len(snap.Gateways))
+	defer logger.Infof("end sync %v", snap.Hash())
 	logger.Debugf("%v", snap)
 
 	proxy, resourceErrs := translate(s.writeNamespace, snap)
