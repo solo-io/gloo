@@ -23,43 +23,60 @@ func Setup(port int) error {
 	inputFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
 		Cache: memory.NewInMemoryResourceCache(),
 	})
-	upstreams, err := v1.NewUpstreamClient(inputFactory)
-	if err != nil {
-		return err
-	}
-	virtualServices, err := gatewayv1.NewVirtualServiceClient(inputFactory)
-	if err != nil {
-		return err
-	}
-	resolverMaps, err := sqoopv1.NewResolverMapClient(inputFactory)
-	if err != nil {
-		return err
-	}
 
-	err = addSampleData(upstreams, virtualServices, resolverMaps)
+	err := addSampleData(inputFactory)
 	if err != nil {
 		return err
 	}
 
 	http.Handle("/", handler.Playground("Solo-ApiServer", "/query"))
-	http.Handle("/query", handler.GraphQL(graph.NewExecutableSchema(graph.Config{
-		Resolvers: apiserver.NewResolvers(upstreams, virtualServices, resolverMaps),
-	}),
-		handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
-			rc := graphql.GetResolverContext(ctx)
-			fmt.Println("Entered", rc.Object, rc.Field.Name)
-			res, err = next(ctx)
-			fmt.Println("Left", rc.Object, rc.Field.Name, "=>", res, err)
-			return res, err
-		}),
-	))
+	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("Authorization")
+		upstreams, err := v1.NewUpstreamClientWithToken(inputFactory, token)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		virtualServices, err := gatewayv1.NewVirtualServiceClientWithToken(inputFactory, token)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		resolverMaps, err := sqoopv1.NewResolverMapClientWithToken(inputFactory, token)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		handler.GraphQL(
+			graph.NewExecutableSchema(graph.Config{
+				Resolvers: apiserver.NewResolvers(upstreams, virtualServices, resolverMaps),
+			}),
+			handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
+				rc := graphql.GetResolverContext(ctx)
+				fmt.Println("Entered", rc.Object, rc.Field.Name)
+				res, err = next(ctx)
+				fmt.Println("Left", rc.Object, rc.Field.Name, "=>", res, err)
+				return res, err
+			}),
+		).ServeHTTP(w, r)
+	})
 
 	return http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
 }
 
-func addSampleData(usClient v1.UpstreamClient,
-	vsClient gatewayv1.VirtualServiceClient,
-	rmClient sqoopv1.ResolverMapClient) error {
+func addSampleData(inputFactory factory.ResourceClientFactory) error {
+	usClient, err := v1.NewUpstreamClient(inputFactory)
+	if err != nil {
+		return err
+	}
+	vsClient, err := gatewayv1.NewVirtualServiceClient(inputFactory)
+	if err != nil {
+		return err
+	}
+	rmClient, err := sqoopv1.NewResolverMapClient(inputFactory)
+	if err != nil {
+		return err
+	}
 	upstreams, virtualServices, resolverMaps := sampleData()
 	for _, us := range upstreams {
 		_, err := usClient.Write(us, clients.WriteOpts{})
