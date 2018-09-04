@@ -17,6 +17,7 @@ import (
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	glooplugins "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
@@ -27,25 +28,22 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
 )
 
-func init() {
-	plugins.RegisterFunc(NewGrcPlugin)
-}
-
 type ServicesAndDescriptor struct {
 	Spec        *grpcapi.ServiceSpec
 	Descriptors *descriptor.FileDescriptorSet
 }
 
-func NewGrcPlugin() plugins.Plugin {
+func NewPlugin(transformsAdded *bool) plugins.Plugin {
 	return &plugin{
-		recordedUpstreams: make(map[string]*v1.Upstream),
+		recordedUpstreams: make(map[core.ResourceRef]*v1.Upstream),
 		upstreamServices:  make(map[string]ServicesAndDescriptor),
+		transformsAdded:   transformsAdded,
 	}
 }
 
 type plugin struct {
 	transformsAdded   *bool
-	recordedUpstreams map[string]*v1.Upstream
+	recordedUpstreams map[core.ResourceRef]*v1.Upstream
 	upstreamServices  map[string]ServicesAndDescriptor
 
 	ctx context.Context
@@ -59,7 +57,6 @@ const (
 )
 
 func (p *plugin) Init(params plugins.InitParams) error {
-	p.transformsAdded = params.TransformationAdded
 	p.ctx = params.Ctx
 	return nil
 }
@@ -96,7 +93,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 
 	addWellKnownProtos(descriptors)
 
-	p.recordedUpstreams[in.Metadata.Name] = in
+	p.recordedUpstreams[in.Metadata.Ref()] = in
 	p.upstreamServices[in.Metadata.Name] = ServicesAndDescriptor{
 		Descriptors: descriptors,
 		Spec:        grpcspec,
@@ -155,7 +152,7 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		fullServiceName := genFullServiceName(grpcDestinationSpec.Package, grpcDestinationSpec.Service)
 		methodName := grpcDestinationSpec.Function
 
-		upstream := p.recordedUpstreams[spec.UpstreamName]
+		upstream := p.recordedUpstreams[spec.Upstream]
 		if upstream == nil {
 			return nil, errors.New("upstream was not recorded for grpc route")
 		}

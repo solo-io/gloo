@@ -4,6 +4,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/aws"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/azure"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/grpc"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/kubernetes"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/rest"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/static"
@@ -25,6 +26,7 @@ var globalRegistry = func() *registry {
 			rest.NewPlugin(&transformationPlugin.RequireTransformationFilter),
 			static.NewPlugin(),
 			transformationPlugin,
+			grpc.NewPlugin(&transformationPlugin.RequireTransformationFilter),
 		},
 	}
 }()
