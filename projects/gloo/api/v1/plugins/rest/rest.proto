@@ -9,6 +9,7 @@ import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation/transformation.proto";
+import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation/parameters.proto";
 
 message ServiceSpec {
     map<string, envoy.api.v2.filter.http.TransformationTemplate> transformations = 1;
@@ -25,29 +26,7 @@ message ServiceSpec {
 message DestinationSpec {
     string function_name = 1;
 
-    message Parameters {
-        // headers that will be used to extract data for processing output templates
-        // Gloo will search for parameters by their name in header value strings, enclosed in single
-        // curly braces
-        // Example:
-        //   extensions:
-        //     parameters:
-        //         headers:
-        //           x-user-id: { userId }
-        map<string, string> headers = 1;
-        // part of the (or the entire) path that will be used extract data for processing output templates
-        // Gloo will search for parameters by their name in header value strings, enclosed in single
-        // curly braces
-        // Example:
-        //   extensions:
-        //     parameters:
-        //         path: /users/{ userId }
-        google.protobuf.StringValue path = 2;
-        //TODO: support query params
-        //TODO: support form params
-    }
-    Parameters parameters = 2;
-
+    transformation.plugins.gloo.solo.io.Parameters parameters = 2;
 
     envoy.api.v2.filter.http.TransformationTemplate response_transformation = 3;
     // TODO(yuval-k): do we need this?

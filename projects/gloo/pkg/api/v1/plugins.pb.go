@@ -9,6 +9,7 @@ import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
 import aws_plugins_gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 import rest_plugins_gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
+import grpc_plugins_gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/grpc"
 import azure_plugins_gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
 import kubernetes_plugins_gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 import static_plugins_gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
@@ -63,6 +64,7 @@ type DestinationSpec struct {
 	//	*DestinationSpec_Aws
 	//	*DestinationSpec_Azure
 	//	*DestinationSpec_Rest
+	//	*DestinationSpec_Grpc
 	DestinationType isDestinationSpec_DestinationType `protobuf_oneof:"destination_type"`
 }
 
@@ -85,10 +87,14 @@ type DestinationSpec_Azure struct {
 type DestinationSpec_Rest struct {
 	Rest *rest_plugins_gloo_solo_io.DestinationSpec `protobuf:"bytes,3,opt,name=rest,oneof"`
 }
+type DestinationSpec_Grpc struct {
+	Grpc *grpc_plugins_gloo_solo_io.DestinationSpec `protobuf:"bytes,4,opt,name=grpc,oneof"`
+}
 
 func (*DestinationSpec_Aws) isDestinationSpec_DestinationType()   {}
 func (*DestinationSpec_Azure) isDestinationSpec_DestinationType() {}
 func (*DestinationSpec_Rest) isDestinationSpec_DestinationType()  {}
+func (*DestinationSpec_Grpc) isDestinationSpec_DestinationType()  {}
 
 func (m *DestinationSpec) GetDestinationType() isDestinationSpec_DestinationType {
 	if m != nil {
@@ -118,12 +124,20 @@ func (m *DestinationSpec) GetRest() *rest_plugins_gloo_solo_io.DestinationSpec {
 	return nil
 }
 
+func (m *DestinationSpec) GetGrpc() *grpc_plugins_gloo_solo_io.DestinationSpec {
+	if x, ok := m.GetDestinationType().(*DestinationSpec_Grpc); ok {
+		return x.Grpc
+	}
+	return nil
+}
+
 // XXX_OneofFuncs is for the internal use of the proto package.
 func (*DestinationSpec) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
 	return _DestinationSpec_OneofMarshaler, _DestinationSpec_OneofUnmarshaler, _DestinationSpec_OneofSizer, []interface{}{
 		(*DestinationSpec_Aws)(nil),
 		(*DestinationSpec_Azure)(nil),
 		(*DestinationSpec_Rest)(nil),
+		(*DestinationSpec_Grpc)(nil),
 	}
 }
 
@@ -144,6 +158,11 @@ func _DestinationSpec_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 	case *DestinationSpec_Rest:
 		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.Rest); err != nil {
+			return err
+		}
+	case *DestinationSpec_Grpc:
+		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Grpc); err != nil {
 			return err
 		}
 	case nil:
@@ -180,6 +199,14 @@ func _DestinationSpec_OneofUnmarshaler(msg proto.Message, tag, wire int, b *prot
 		err := b.DecodeMessage(msg)
 		m.DestinationType = &DestinationSpec_Rest{msg}
 		return true, err
+	case 4: // destination_type.grpc
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(grpc_plugins_gloo_solo_io.DestinationSpec)
+		err := b.DecodeMessage(msg)
+		m.DestinationType = &DestinationSpec_Grpc{msg}
+		return true, err
 	default:
 		return false, nil
 	}
@@ -202,6 +229,11 @@ func _DestinationSpec_OneofSizer(msg proto.Message) (n int) {
 	case *DestinationSpec_Rest:
 		s := proto.Size(x.Rest)
 		n += proto.SizeVarint(3<<3 | proto.WireBytes)
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *DestinationSpec_Grpc:
+		s := proto.Size(x.Grpc)
+		n += proto.SizeVarint(4<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
 	case nil:
@@ -568,6 +600,30 @@ func (this *DestinationSpec_Rest) Equal(that interface{}) bool {
 		return false
 	}
 	if !this.Rest.Equal(that1.Rest) {
+		return false
+	}
+	return true
+}
+func (this *DestinationSpec_Grpc) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*DestinationSpec_Grpc)
+	if !ok {
+		that2, ok := that.(DestinationSpec_Grpc)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Grpc.Equal(that1.Grpc) {
 		return false
 	}
 	return true

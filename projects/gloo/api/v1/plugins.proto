@@ -7,6 +7,7 @@ option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/aws/aws.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/rest/rest.proto";
+import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/grpc/grpc.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/azure/azure.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/kubernetes/kubernetes.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/static/static.proto";
@@ -37,6 +38,7 @@ message DestinationSpec {
         aws.plugins.gloo.solo.io.DestinationSpec aws = 1;
         azure.plugins.gloo.solo.io.DestinationSpec azure = 2;
         rest.plugins.gloo.solo.io.DestinationSpec rest = 3;
+        grpc.plugins.gloo.solo.io.DestinationSpec grpc = 4;
     }
 }
 
