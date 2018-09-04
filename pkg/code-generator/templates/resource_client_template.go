@@ -28,8 +28,13 @@ type {{ lower_camel .Name }}Client struct {
 }
 
 func New{{ .Name }}Client(rcFactory factory.ResourceClientFactory) ({{ .Name }}Client, error) {
+	return New{{ .Name }}ClientWithToken(rcFactory, "")
+}
+
+func New{{ .Name }}ClientWithToken(rcFactory factory.ResourceClientFactory, token string) ({{ .Name }}Client, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &{{ .Name }}{},
+		Token: token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base {{ .Name }} resource client")

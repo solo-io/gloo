@@ -22,8 +22,13 @@ type upstreamClient struct {
 }
 
 func NewUpstreamClient(rcFactory factory.ResourceClientFactory) (UpstreamClient, error) {
+	return NewUpstreamClientWithToken(rcFactory, "")
+}
+
+func NewUpstreamClientWithToken(rcFactory factory.ResourceClientFactory, token string) (UpstreamClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &Upstream{},
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base Upstream resource client")

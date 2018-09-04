@@ -22,8 +22,13 @@ type resolverMapClient struct {
 }
 
 func NewResolverMapClient(rcFactory factory.ResourceClientFactory) (ResolverMapClient, error) {
+	return NewResolverMapClientWithToken(rcFactory, "")
+}
+
+func NewResolverMapClientWithToken(rcFactory factory.ResourceClientFactory, token string) (ResolverMapClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &ResolverMap{},
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base ResolverMap resource client")

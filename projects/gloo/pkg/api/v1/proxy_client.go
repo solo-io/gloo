@@ -22,8 +22,13 @@ type proxyClient struct {
 }
 
 func NewProxyClient(rcFactory factory.ResourceClientFactory) (ProxyClient, error) {
+	return NewProxyClientWithToken(rcFactory, "")
+}
+
+func NewProxyClientWithToken(rcFactory factory.ResourceClientFactory, token string) (ProxyClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &Proxy{},
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base Proxy resource client")

@@ -22,8 +22,13 @@ type gatewayClient struct {
 }
 
 func NewGatewayClient(rcFactory factory.ResourceClientFactory) (GatewayClient, error) {
+	return NewGatewayClientWithToken(rcFactory, "")
+}
+
+func NewGatewayClientWithToken(rcFactory factory.ResourceClientFactory, token string) (GatewayClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &Gateway{},
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base Gateway resource client")

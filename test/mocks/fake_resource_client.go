@@ -22,8 +22,13 @@ type fakeResourceClient struct {
 }
 
 func NewFakeResourceClient(rcFactory factory.ResourceClientFactory) (FakeResourceClient, error) {
+	return NewFakeResourceClientWithToken(rcFactory, "")
+}
+
+func NewFakeResourceClientWithToken(rcFactory factory.ResourceClientFactory, token string) (FakeResourceClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &FakeResource{},
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base FakeResource resource client")

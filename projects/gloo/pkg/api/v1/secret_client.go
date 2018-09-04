@@ -22,8 +22,13 @@ type secretClient struct {
 }
 
 func NewSecretClient(rcFactory factory.ResourceClientFactory) (SecretClient, error) {
+	return NewSecretClientWithToken(rcFactory, "")
+}
+
+func NewSecretClientWithToken(rcFactory factory.ResourceClientFactory, token string) (SecretClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &Secret{},
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base Secret resource client")

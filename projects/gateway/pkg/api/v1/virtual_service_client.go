@@ -22,8 +22,13 @@ type virtualServiceClient struct {
 }
 
 func NewVirtualServiceClient(rcFactory factory.ResourceClientFactory) (VirtualServiceClient, error) {
+	return NewVirtualServiceClientWithToken(rcFactory, "")
+}
+
+func NewVirtualServiceClientWithToken(rcFactory factory.ResourceClientFactory, token string) (VirtualServiceClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &VirtualService{},
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base VirtualService resource client")

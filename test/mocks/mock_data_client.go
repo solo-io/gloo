@@ -22,8 +22,13 @@ type mockDataClient struct {
 }
 
 func NewMockDataClient(rcFactory factory.ResourceClientFactory) (MockDataClient, error) {
+	return NewMockDataClientWithToken(rcFactory, "")
+}
+
+func NewMockDataClientWithToken(rcFactory factory.ResourceClientFactory, token string) (MockDataClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &MockData{},
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base MockData resource client")

@@ -22,8 +22,13 @@ type artifactClient struct {
 }
 
 func NewArtifactClient(rcFactory factory.ResourceClientFactory) (ArtifactClient, error) {
+	return NewArtifactClientWithToken(rcFactory, "")
+}
+
+func NewArtifactClientWithToken(rcFactory factory.ResourceClientFactory, token string) (ArtifactClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &Artifact{},
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base Artifact resource client")

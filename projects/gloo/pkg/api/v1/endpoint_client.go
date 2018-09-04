@@ -22,8 +22,13 @@ type endpointClient struct {
 }
 
 func NewEndpointClient(rcFactory factory.ResourceClientFactory) (EndpointClient, error) {
+	return NewEndpointClientWithToken(rcFactory, "")
+}
+
+func NewEndpointClientWithToken(rcFactory factory.ResourceClientFactory, token string) (EndpointClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &Endpoint{},
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base Endpoint resource client")

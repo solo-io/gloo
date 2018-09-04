@@ -29,7 +29,7 @@ protoc -I=${IN} ${PROTOC_FLAGS} ${IN}/*.proto
 IN=${IN}/plugins
 
 # protoc made me do it
-protoc -I=${IN} ${PROTOC_FLAGS} github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/service_spec.proto
+protoc -I=${IN} ${PROTOC_FLAGS} ${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/service_spec.proto
 
 for plugin in azure aws kubernetes rest transformation; do
 mkdir -p ${OUT}/plugins/$plugin

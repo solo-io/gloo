@@ -21,7 +21,7 @@ type Opts struct {
 	virtualServices factory.ResourceClientFactoryOpts
 	// TODO(ilackarms): remove upstreams here if not needed, right now only used for sample data
 	upstreams  factory.ResourceClientFactoryOpts
-	secrets  factory.ResourceClientFactoryOpts
+	secrets    factory.ResourceClientFactoryOpts
 	proxies    factory.ResourceClientFactoryOpts
 	namespacer namespacing.Namespacer
 	watchOpts  clients.WatchOpts

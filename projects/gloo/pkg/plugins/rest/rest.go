@@ -23,8 +23,8 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
 
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
 )
 
 type UpstreamWithServiceSpec interface {
