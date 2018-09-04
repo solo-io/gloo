@@ -328,8 +328,8 @@ func (ec *executionContext) _AwsUpstreamSpec_secretRef(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
-	return graphql.MarshalString(res)
+	res := resTmp.(models.ResourceRef)
+	return ec._ResourceRef(ctx, field.Selections, &res)
 }
 
 func (ec *executionContext) _AwsUpstreamSpec_functions(ctx context.Context, field graphql.CollectedField, obj *models.AwsUpstreamSpec) graphql.Marshaler {
@@ -514,8 +514,8 @@ func (ec *executionContext) _AzureUpstreamSpec_secretRef(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
-	return graphql.MarshalString(res)
+	res := resTmp.(models.ResourceRef)
+	return ec._ResourceRef(ctx, field.Selections, &res)
 }
 
 func (ec *executionContext) _AzureUpstreamSpec_functions(ctx context.Context, field graphql.CollectedField, obj *models.AzureUpstreamSpec) graphql.Marshaler {
@@ -1950,6 +1950,65 @@ func (ec *executionContext) _ResolverMapQuery_get(ctx context.Context, field gra
 	})
 }
 
+var resourceRefImplementors = []string{"ResourceRef"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _ResourceRef(ctx context.Context, sel ast.SelectionSet, obj *models.ResourceRef) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, resourceRefImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ResourceRef")
+		case "name":
+			out.Values[i] = ec._ResourceRef_name(ctx, field, obj)
+		case "namespace":
+			out.Values[i] = ec._ResourceRef_namespace(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _ResourceRef_name(ctx context.Context, field graphql.CollectedField, obj *models.ResourceRef) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "ResourceRef"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Name, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _ResourceRef_namespace(ctx context.Context, field graphql.CollectedField, obj *models.ResourceRef) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "ResourceRef"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Namespace, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
+}
+
 var routeImplementors = []string{"Route"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -2169,8 +2228,8 @@ func (ec *executionContext) _SslConfig_secretRef(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
-	return graphql.MarshalString(res)
+	res := resTmp.(models.ResourceRef)
+	return ec._ResourceRef(ctx, field.Selections, &res)
 }
 
 var statusImplementors = []string{"Status"}
@@ -4644,7 +4703,7 @@ func UnmarshalInputAwsUpstreamSpec(v interface{}) (models.InputAwsUpstreamSpec, 
 			}
 		case "secretRef":
 			var err error
-			it.SecretRef, err = graphql.UnmarshalString(v)
+			it.SecretRef, err = UnmarshalInputResourceRef(v)
 			if err != nil {
 				return it, err
 			}
@@ -4727,9 +4786,9 @@ func UnmarshalInputAzureUpstreamSpec(v interface{}) (models.InputAzureUpstreamSp
 			}
 		case "secretRef":
 			var err error
-			var ptr1 string
+			var ptr1 models.InputResourceRef
 			if v != nil {
-				ptr1, err = graphql.UnmarshalString(v)
+				ptr1, err = UnmarshalInputResourceRef(v)
 				it.SecretRef = &ptr1
 			}
 
@@ -5256,6 +5315,30 @@ func UnmarshalInputResolverMap(v interface{}) (models.InputResolverMap, error) {
 	return it, nil
 }
 
+func UnmarshalInputResourceRef(v interface{}) (models.InputResourceRef, error) {
+	var it models.InputResourceRef
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "namespace":
+			var err error
+			it.Namespace, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputRoute(v interface{}) (models.InputRoute, error) {
 	var it models.InputRoute
 	var asMap = v.(map[string]interface{})
@@ -5385,7 +5468,7 @@ func UnmarshalInputSslConfig(v interface{}) (models.InputSslConfig, error) {
 		switch k {
 		case "secretRef":
 			var err error
-			it.SecretRef, err = graphql.UnmarshalString(v)
+			it.SecretRef, err = UnmarshalInputResourceRef(v)
 			if err != nil {
 				return it, err
 			}
@@ -5807,13 +5890,13 @@ union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec
 
 type AwsUpstreamSpec {
     region:    String!
-    secretRef: String!
+    secretRef: ResourceRef!
     functions: [AwsLambdaFunction!]
 }
 
 type AzureUpstreamSpec {
     functionAppName: String!
-    secretRef:       String!
+    secretRef:       ResourceRef!
     functions:       [AzureFunction!]
 }
 
@@ -5867,13 +5950,13 @@ input InputUpstreamSpec {
 
 input InputAwsUpstreamSpec {
     region:    String!
-    secretRef: String!
+    secretRef: InputResourceRef!
     functions: [InputAwsLambdaFunction!]
 }
 
 input InputAzureUpstreamSpec {
     functionAppName: String!
-    secretRef:       String
+    secretRef:       InputResourceRef
     functions:       [InputAzureFunction!]
 }
 
@@ -6000,7 +6083,7 @@ type AzureDestinationSpec {
 }
 
 type SslConfig {
-    secretRef: String!
+    secretRef: ResourceRef!
 }
 
 # not implemented
@@ -6083,7 +6166,7 @@ input InputAzureDestinationSpec {
 }
 
 input InputSslConfig {
-    secretRef: String!
+    secretRef: InputResourceRef!
 }
 
 
@@ -6202,7 +6285,15 @@ type Status {
     reason: String
 }
 
+type ResourceRef {
+    name: String!
+    namespace: String!
+}
 
+input InputResourceRef {
+    name: String!
+    namespace: String!
+}
 
 
 # Scalars / Extra

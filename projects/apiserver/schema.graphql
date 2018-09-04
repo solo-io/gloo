@@ -73,13 +73,13 @@ union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec
 
 type AwsUpstreamSpec {
     region:    String!
-    secretRef: String!
+    secretRef: ResourceRef!
     functions: [AwsLambdaFunction!]
 }
 
 type AzureUpstreamSpec {
     functionAppName: String!
-    secretRef:       String!
+    secretRef:       ResourceRef!
     functions:       [AzureFunction!]
 }
 
@@ -133,13 +133,13 @@ input InputUpstreamSpec {
 
 input InputAwsUpstreamSpec {
     region:    String!
-    secretRef: String!
+    secretRef: InputResourceRef!
     functions: [InputAwsLambdaFunction!]
 }
 
 input InputAzureUpstreamSpec {
     functionAppName: String!
-    secretRef:       String
+    secretRef:       InputResourceRef
     functions:       [InputAzureFunction!]
 }
 
@@ -266,7 +266,7 @@ type AzureDestinationSpec {
 }
 
 type SslConfig {
-    secretRef: String!
+    secretRef: ResourceRef!
 }
 
 # not implemented
@@ -349,7 +349,7 @@ input InputAzureDestinationSpec {
 }
 
 input InputSslConfig {
-    secretRef: String!
+    secretRef: InputResourceRef!
 }
 
 
@@ -468,7 +468,15 @@ type Status {
     reason: String
 }
 
+type ResourceRef {
+    name: String!
+    namespace: String!
+}
 
+input InputResourceRef {
+    name: String!
+    namespace: String!
+}
 
 
 # Scalars / Extra

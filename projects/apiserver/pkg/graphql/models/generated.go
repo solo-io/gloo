@@ -19,7 +19,7 @@ type AwsLambdaFunction struct {
 }
 type AwsUpstreamSpec struct {
 	Region    string              `json:"region"`
-	SecretRef string              `json:"secretRef"`
+	SecretRef ResourceRef         `json:"secretRef"`
 	Functions []AwsLambdaFunction `json:"functions"`
 }
 type AzureDestinationSpec struct {
@@ -31,7 +31,7 @@ type AzureFunction struct {
 }
 type AzureUpstreamSpec struct {
 	FunctionAppName string          `json:"functionAppName"`
-	SecretRef       string          `json:"secretRef"`
+	SecretRef       ResourceRef     `json:"secretRef"`
 	Functions       []AzureFunction `json:"functions"`
 }
 type Destination interface{}
@@ -57,7 +57,7 @@ type InputAwsLambdaFunction struct {
 }
 type InputAwsUpstreamSpec struct {
 	Region    string                   `json:"region"`
-	SecretRef string                   `json:"secretRef"`
+	SecretRef InputResourceRef         `json:"secretRef"`
 	Functions []InputAwsLambdaFunction `json:"functions"`
 }
 type InputAzureDestinationSpec struct {
@@ -69,7 +69,7 @@ type InputAzureFunction struct {
 }
 type InputAzureUpstreamSpec struct {
 	FunctionAppName string               `json:"functionAppName"`
-	SecretRef       *string              `json:"secretRef"`
+	SecretRef       *InputResourceRef    `json:"secretRef"`
 	Functions       []InputAzureFunction `json:"functions"`
 }
 type InputDestination struct {
@@ -133,6 +133,10 @@ type InputResolverMap struct {
 	Types    []InputTypeResolver `json:"types"`
 	Metadata InputMetadata       `json:"metadata"`
 }
+type InputResourceRef struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+}
 type InputRoute struct {
 	Matcher     InputMatcher       `json:"matcher"`
 	Destination InputDestination   `json:"destination"`
@@ -150,7 +154,7 @@ type InputSingleDestination struct {
 	DestinationSpec *InputDestinationSpec `json:"destinationSpec"`
 }
 type InputSslConfig struct {
-	SecretRef string `json:"secretRef"`
+	SecretRef InputResourceRef `json:"secretRef"`
 }
 type InputStatus struct {
 	State  State  `json:"state"`
@@ -233,6 +237,10 @@ type ResolverMap struct {
 	Metadata Metadata       `json:"metadata"`
 	Status   Status         `json:"status"`
 }
+type ResourceRef struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+}
 type Route struct {
 	Matcher     Matcher       `json:"matcher"`
 	Destination Destination   `json:"destination"`
@@ -247,7 +255,7 @@ type SingleDestination struct {
 	DestinationSpec DestinationSpec `json:"destinationSpec"`
 }
 type SslConfig struct {
-	SecretRef string `json:"secretRef"`
+	SecretRef ResourceRef `json:"secretRef"`
 }
 type Status struct {
 	State  State   `json:"state"`
