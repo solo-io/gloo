@@ -27,6 +27,7 @@ import (
 	"github.com/solo-io/solo-kit/test/services"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/kubernetes"
 )
 
 var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
@@ -42,6 +43,7 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 {{- range .Resources }}
 		{{ lower_camel .Name }}Client {{ .Name }}Client
 {{- end}}
+		kube           kubernetes.Interface
 	)
 
 	BeforeEach(func() {
@@ -53,6 +55,10 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
+
+		if kube == nil {
+			// this test does not require a kube clientset
+		}
 
 {{- range .Resources }}
 
