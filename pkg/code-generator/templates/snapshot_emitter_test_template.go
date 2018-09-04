@@ -62,10 +62,10 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 			Crd: {{ .Name }}Crd,
 			Cfg: cfg,
 		})
-{{- else if .HasData }}
+{{- else }}
+{{/* TODO(ilackarms): Come with a more generic way to specify that a resource is "Secret"*/}}
 		kube, err = kubernetes.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-{{/* TODO(ilackarms): Come with a more generic way to specify that a resource is "Secret"*/}}
 {{- if (eq .Name "Secret") }}
 		{{ lower_camel .Name }}ClientFactory := factory.NewResourceClientFactory(&factory.KubeSecretClientOpts{
 			Clientset: kube,
@@ -75,10 +75,6 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 			Clientset: kube,
 		})
 {{- end }}
-{{- else }}
-		{{ lower_camel .Name }}ClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
-			Cache: memory.NewInMemoryResourceCache(),
-		})
 {{- end }}
 		{{ lower_camel .Name }}Client, err = New{{ .Name }}Client({{ lower_camel .Name }}ClientFactory)
 		Expect(err).NotTo(HaveOccurred())

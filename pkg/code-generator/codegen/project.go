@@ -22,7 +22,6 @@ type Resource struct {
 	PluralName string
 	ShortName  string
 
-	HasData   bool
 	HasStatus bool
 	Fields    []*Field
 

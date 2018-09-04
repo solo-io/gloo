@@ -69,10 +69,6 @@ func ParseRequest(req *plugin_go.CodeGeneratorRequest) (*Project, error) {
 	return project, nil
 }
 
-func dataTypeForMessage(groupName, messageName string) string {
-	return "." + groupName + "." + messageName + ".DataEntry"
-}
-
 func loadProjectConfig(path string) (ProjectConfig, error) {
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -91,7 +87,7 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 	resourcesByGroup := make(map[string][]*Resource)
 	var resources []*Resource
 	for _, msg := range messages {
-		resource, groups, err := describeResource(project.GroupName, msg)
+		resource, groups, err := describeResource(msg)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -131,7 +127,7 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 	return resources, resourceGroups, nil
 }
 
-func describeResource(groupName string, msg *protokit.Descriptor) (*Resource, []string, error) {
+func describeResource(msg *protokit.Descriptor) (*Resource, []string, error) {
 	// not a solo kit resource, or you messed up!
 	if !hasField(msg, "metadata", metadataTypeName) {
 		return nil, nil, nil
@@ -160,9 +156,6 @@ func describeResource(groupName string, msg *protokit.Descriptor) (*Resource, []
 	}
 
 	hasStatus := hasField(msg, "status", statusTypeName)
-	dataTypeName := dataTypeForMessage(groupName, msg.GetName())
-	log.Printf("%v", dataTypeName)
-	hasData := hasField(msg, "data", dataTypeName)
 
 	fields := collectFields(msg)
 
@@ -171,7 +164,6 @@ func describeResource(groupName string, msg *protokit.Descriptor) (*Resource, []
 		ShortName:  shortName,
 		PluralName: pluralName,
 		HasStatus:  hasStatus,
-		HasData:    hasData,
 		Fields:     fields,
 	}, resourceGroups, nil
 }

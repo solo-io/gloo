@@ -39,13 +39,6 @@ func (r *{{ .Name }}) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
 
-{{- if .HasData}}
-
-func (r *{{ .Name }}) SetData(data map[string]string) {
-	r.Data = data
-}
-{{- end}}
-
 type {{ .Name }}List []*{{ .Name }}
 type {{ .PluralName }}ByNamespace map[string]{{ .Name }}List
 

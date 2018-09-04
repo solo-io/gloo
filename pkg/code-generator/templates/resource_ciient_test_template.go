@@ -29,11 +29,9 @@ var _ = Describe("{{ .Name }}Client", func() {
 		&typed.ConsulRcTester{},
 		&typed.FileRcTester{},
 		&typed.MemoryRcTester{},
-	{{- if .HasData }}
 		&typed.VaultRcTester{},
 		&typed.KubeSecretRcTester{},
 		&typed.KubeConfigMapRcTester{},
-	{{- end}}
 	} {
 		Context("resource client backed by "+test.Description(), func() {
 			var (
