@@ -54,9 +54,7 @@ func Artifacts() v1.ArtifactList {
 	return v1.ArtifactList{
 		{
 			Metadata: MakeMetadata("artifact", "default"),
-			Data: map[string]string{
-				// TODO(ilackarms)
-			},
+			Data: "// TODO(ilackarms)",
 		},
 	}
 }
