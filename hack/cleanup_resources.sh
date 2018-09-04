@@ -1,0 +1,1 @@
+for i in upstream proxy gateway virtualservice; do kubectl delete $i --all; kubectl delete $i -n default --all; done; kubectl delete secret my-precious; kubectl delete secret some-secret; kubectl delete secret ssl-secret
