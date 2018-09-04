@@ -67,11 +67,7 @@ func (factory *resourceClientFactory) NewResourceClient(params NewResourceClient
 		}
 		return configmap.NewResourceClient(opts.Clientset, dataResource)
 	case *KubeSecretClientOpts:
-		dataResource, ok := params.ResourceType.(resources.DataResource)
-		if !ok {
-			return nil, errors.Errorf("the kubernetes secret client can only be used for data resources, received type %v", resources.Kind(resourceType))
-		}
-		return kubesecret.NewResourceClient(opts.Clientset, dataResource)
+		return kubesecret.NewResourceClient(opts.Clientset, resourceType)
 	case *VaultSecretClientOpts:
 		dataResource, ok := params.ResourceType.(resources.DataResource)
 		if !ok {

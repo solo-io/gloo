@@ -26,10 +26,6 @@ func (r *Secret) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
 
-func (r *Secret) SetData(data map[string]string) {
-	r.Data = data
-}
-
 type SecretList []*Secret
 type SecretsByNamespace map[string]SecretList
 

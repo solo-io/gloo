@@ -72,11 +72,8 @@ var _ = Describe("V1Emitter", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// Secret Constructor
-		kube, err = kubernetes.NewForConfig(cfg)
-		Expect(err).NotTo(HaveOccurred())
-
-		secretClientFactory := factory.NewResourceClientFactory(&factory.KubeSecretClientOpts{
-			Clientset: kube,
+		secretClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+			Cache: memory.NewInMemoryResourceCache(),
 		})
 		secretClient, err = NewSecretClient(secretClientFactory)
 		Expect(err).NotTo(HaveOccurred())

@@ -5,11 +5,13 @@ import (
 	"sort"
 	"time"
 
+	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
+	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	"k8s.io/api/core/v1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -19,24 +21,37 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func fromKubeSecret(secret *v1.Secret, into resources.DataResource) {
+const dataKey = "data"
+
+func fromKubeSecret(secret *v1.Secret, into resources.Resource) error {
 	into.SetMetadata(kubeutils.FromKubeMeta(secret.ObjectMeta))
-	data := make(map[string]string)
-	for k, v := range secret.Data {
-		data[k] = string(v)
+	data, ok := secret.Data[dataKey]
+	if !ok {
+		return errors.Errorf("kubernetes secret %v missing required key \"data\"", secret.Name)
 	}
-	into.SetData(data)
+	// assumes the data is YAML-encoded
+	jsn, err := yaml.YAMLToJSON(data)
+	if err != nil {
+		return err
+	}
+	return protoutils.UnmarshalBytes(jsn, into)
 }
 
-func toKubeSecret(resource resources.DataResource) *v1.Secret {
-	data := make(map[string][]byte)
-	for k, v := range resource.GetData() {
-		data[k] = []byte(v)
+func toKubeSecret(resource resources.Resource) (*v1.Secret, error) {
+	jsn, err := protoutils.MarshalBytes(resource)
+	if err != nil {
+		return nil, err
+	}
+	data, err := yaml.JSONToYAML(jsn)
+	if err != nil {
+		return nil, err
 	}
 	return &v1.Secret{
 		ObjectMeta: kubeutils.ToKubeMeta(resource.GetMetadata()),
-		Data:       data,
-	}
+		Data: map[string][]byte{
+			dataKey: data,
+		},
+	}, nil
 }
 
 type ResourceClient struct {
@@ -44,10 +59,10 @@ type ResourceClient struct {
 	kube         kubernetes.Interface
 	ownerLabel   string
 	resourceName string
-	resourceType resources.DataResource
+	resourceType resources.Resource
 }
 
-func NewResourceClient(kube kubernetes.Interface, resourceType resources.DataResource) (*ResourceClient, error) {
+func NewResourceClient(kube kubernetes.Interface, resourceType resources.Resource) (*ResourceClient, error) {
 	return &ResourceClient{
 		kube:         kube,
 		resourceName: reflect.TypeOf(resourceType).Name(),
@@ -83,8 +98,10 @@ func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (r
 		}
 		return nil, errors.Wrapf(err, "reading secret from kubernetes")
 	}
-	resource := rc.NewResource().(resources.DataResource)
-	fromKubeSecret(secret, resource)
+	resource := rc.NewResource().(resources.Resource)
+	if err := fromKubeSecret(secret, resource); err != nil {
+		return nil, err
+	}
 	return resource, nil
 }
 
@@ -99,7 +116,10 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	// mutate and return clone
 	clone := proto.Clone(resource).(resources.Resource)
 	clone.SetMetadata(meta)
-	secret := toKubeSecret(resource.(resources.DataResource))
+	secret, err := toKubeSecret(resource.(resources.Resource))
+	if err != nil {
+		return nil, err
+	}
 
 	original, err := rc.Read(meta.Namespace, meta.Name, clients.ReadOpts{
 		Ctx: opts.Ctx,
@@ -151,8 +171,10 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resourc
 	}
 	var resourceList resources.ResourceList
 	for _, secret := range secretList.Items {
-		resource := rc.NewResource().(resources.DataResource)
-		fromKubeSecret(&secret, resource)
+		resource := rc.NewResource().(resources.Resource)
+		if err := fromKubeSecret(&secret, resource); err != nil {
+			return nil, err
+		}
 		resourceList = append(resourceList, resource)
 	}
 

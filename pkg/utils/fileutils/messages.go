@@ -11,6 +11,9 @@ import (
 
 func WriteToFile(filename string, pb proto.Message) error {
 	jsn, err := protoutils.MarshalBytes(pb)
+	if err != nil {
+		return err
+	}
 	data, err := yaml.JSONToYAML(jsn)
 	if err != nil {
 		return err

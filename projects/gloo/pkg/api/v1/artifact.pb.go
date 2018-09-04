@@ -37,6 +37,9 @@ It has these top-level messages:
 	SslConfig
 	SSLFiles
 	Secret
+	AwsSecret
+	AzureSecret
+	TlsSecret
 	Upstream
 	DiscoveryMetadata
 */

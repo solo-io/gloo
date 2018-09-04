@@ -1,1 +1,4 @@
-for i in upstream proxy gateway virtualservice; do kubectl delete $i --all; kubectl delete $i -n default --all; done; kubectl delete secret my-precious; kubectl delete secret some-secret; kubectl delete secret ssl-secret
+for ns in default gloo-system; do
+    for resource in upstream proxy gateway virtualservice; do kubectl delete -n $ns $resource --all; done;
+    for secret in  my-precious some-secret ssl-secret; do kubectl delete secret -n $ns $secret; done;
+done

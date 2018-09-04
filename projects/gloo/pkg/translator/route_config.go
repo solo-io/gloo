@@ -328,37 +328,20 @@ func validateListenerSslConfig(listener *v1.Listener, secrets []*v1.Secret) erro
 	return nil
 }
 
-//TODO(ilackarms): move to a common utils file
-const (
-	deprecatedSslCertificateChainKey = "ca_chain"
-	deprecatedSslPrivateKeyKey       = "private_key"
-)
-
 func GetSslSecrets(ref core.ResourceRef, secrets v1.SecretList) (string, string, string, error) {
-	sslSecret, err := secrets.Find(ref.Strings())
+	secret, err := secrets.Find(ref.Strings())
 	if err != nil {
 		return "", "", "", errors.Wrapf(err, "SSL secret not found")
 	}
 
-	certChain, ok := sslSecret.Data[SslCertificateChainKey]
+	sslSecret, ok := secret.Kind.(*v1.Secret_Tls)
 	if !ok {
-		certChain, ok = sslSecret.Data[deprecatedSslCertificateChainKey]
-		if !ok {
-			return "", "", "", errors.Errorf("neither %v nor %v key not found in ssl secrets",
-				SslCertificateChainKey, deprecatedSslCertificateChainKey)
-		}
+		return "", "", "", errors.Errorf("%v is not a TLS secret", secret.GetMetadata().Ref())
 	}
 
-	privateKey, ok := sslSecret.Data[SslPrivateKeyKey]
-	if !ok {
-		privateKey, ok = sslSecret.Data[deprecatedSslPrivateKeyKey]
-		if !ok {
-			return "", "", "", errors.Errorf("neither %v nor %v key not found in ssl secrets",
-				SslPrivateKeyKey, deprecatedSslPrivateKeyKey)
-		}
-	}
-
-	rootCa := sslSecret.Data[SslRootCaKey]
+	certChain := sslSecret.Tls.CertChain
+	privateKey := sslSecret.Tls.PrivateKey
+	rootCa := sslSecret.Tls.RootCa
 	return certChain, privateKey, rootCa, nil
 }
 

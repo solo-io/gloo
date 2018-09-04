@@ -24,21 +24,27 @@ func Secrets() v1.SecretList {
 	return v1.SecretList{
 		{
 			Metadata: MakeMetadata("some-secret", "gloo-system"),
-			Data: map[string]string{
-				"access_key": "TODO_REMOVE"+os.Getenv("AWS_ACCESS_KEY"),
-				"secret_key": "TODO_REMOVE"+os.Getenv("AWS_SECRET_KEY"),
+			Kind: &v1.Secret_Aws{
+				Aws: &v1.AwsSecret{
+					AccessKey: "TODO_REMOVE" + os.Getenv("AWS_ACCESS_KEY"),
+					SecretKey: "TODO_REMOVE" + os.Getenv("AWS_SECRET_KEY"),
+				},
 			},
 		},
 		{
 			Metadata: MakeMetadata("my-precious", "gloo-system"),
-			Data: map[string]string{
-				// TODO(ilackarms): azure secrets
+			Kind: &v1.Secret_Azure{
+				Azure: &v1.AzureSecret{
+					// TODO(ilackarms): azure secrets
+				},
 			},
 		},
 		{
 			Metadata: MakeMetadata("ssl-secret", "gloo-system"),
-			Data: map[string]string{
-				// TODO(ilackarms): ssl secret
+			Kind: &v1.Secret_Tls{
+				Tls: &v1.TlsSecret{
+					// TODO(ilackarms): ssl secret
+				},
 			},
 		},
 	}
@@ -118,34 +124,34 @@ func Upstreams() v1.UpstreamList {
 				},
 			},
 		},
-		{
-			Metadata: MakeMetadata("azure", "gloo-system"),
-			UpstreamSpec: &v1.UpstreamSpec{
-				UpstreamType: &v1.UpstreamSpec_Azure{
-					Azure: &azure.UpstreamSpec{
-						FunctionAppName: "one-cloud-to-rule-them-all",
-						SecretRef: core.ResourceRef{
-							Name:      "my-precious",
-							Namespace: "gloo-system",
-						},
-						Functions: []*azure.UpstreamSpec_FunctionSpec{
-							{
-								FunctionName: "CreateRing",
-								AuthLevel:    "dwarf_lvl",
-							},
-							{
-								FunctionName: "DestroyRing",
-								AuthLevel:    "hobbit_lvl",
-							},
-							{
-								FunctionName: "TransportRing",
-								AuthLevel:    "hobbit_lvl",
-							},
-						},
-					},
-				},
-			},
-		},
+		//{
+		//	Metadata: MakeMetadata("azure", "gloo-system"),
+		//	UpstreamSpec: &v1.UpstreamSpec{
+		//		UpstreamType: &v1.UpstreamSpec_Azure{
+		//			Azure: &azure.UpstreamSpec{
+		//				FunctionAppName: "one-cloud-to-rule-them-all",
+		//				SecretRef: core.ResourceRef{
+		//					Name:      "my-precious",
+		//					Namespace: "gloo-system",
+		//				},
+		//				Functions: []*azure.UpstreamSpec_FunctionSpec{
+		//					{
+		//						FunctionName: "CreateRing",
+		//						AuthLevel:    "dwarf_lvl",
+		//					},
+		//					{
+		//						FunctionName: "DestroyRing",
+		//						AuthLevel:    "hobbit_lvl",
+		//					},
+		//					{
+		//						FunctionName: "TransportRing",
+		//						AuthLevel:    "hobbit_lvl",
+		//					},
+		//				},
+		//			},
+		//		},
+		//	},
+		//},
 	}
 }
 
@@ -217,7 +223,7 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 											{
 												Destination: &v1.Destination{
 													Upstream: core.ResourceRef{
-														Name:      "azure",
+														Name:      "my-aws-account-pls-donthack",
 														Namespace: "gloo-system",
 													},
 													DestinationSpec: &v1.DestinationSpec{
