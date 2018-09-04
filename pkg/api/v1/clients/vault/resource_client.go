@@ -1,7 +1,6 @@
 package vault
 
 import (
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"reflect"
@@ -9,59 +8,58 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/proto"
 	"github.com/hashicorp/vault/api"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	"k8s.io/apimachinery/pkg/labels"
 )
 
 const (
-	keyMetadata = "_metadata"
-	//keyResourceName      = "_resource_name"
-	//keyResourceNamespace = "_resource_namespace"
-	//keyResourceVersion   = "_resource_version"
+	dataKey       = "data"
+	annotationKey = "resource_kind"
 )
 
-func toVaultSecret(resource resources.DataResource) map[string]interface{} {
-	values := make(map[string]interface{})
-	for k, v := range resource.GetData() {
-		values[k] = v
+func (rc *ResourceClient) fromVaultSecret(secret *api.Secret) (resources.Resource, error) {
+	// not our secret
+	// should be an error on a Read, ignored on a list
+	if secret.Data[annotationKey] != rc.Kind() {
+		return nil, nil
 	}
-	metaBytes, err := json.Marshal(resource.GetMetadata())
+
+	dataValue, ok := secret.Data[dataKey]
+	if !ok {
+		return nil, errors.Errorf("secret missing required key %v", dataKey)
+	}
+	data, ok := dataValue.(string)
+	if !ok {
+		return nil, errors.Errorf("key %v present but value was not string", dataKey)
+	}
+	// assumes the data is YAML-encoded
+	jsn, err := yaml.YAMLToJSON([]byte(data))
 	if err != nil {
-		panic("unexpected marshal err: " + err.Error())
+		return nil, err
 	}
-	values[keyMetadata] = string(metaBytes)
-	return values
+	resource := rc.NewResource()
+	return resource, protoutils.UnmarshalBytes(jsn, resource)
 }
 
-func fromVaultSecret(secret *api.Secret, into resources.DataResource) error {
-	values := make(map[string]string)
-	for k, v := range secret.Data {
-		if k == keyMetadata {
-			continue
-		}
-		values[k] = v.(string)
-	}
-	metaValue, ok := secret.Data[keyMetadata]
-	if !ok {
-		return errors.Errorf("secret missing required key %v", keyMetadata)
-	}
-	metaString, ok := metaValue.(string)
-	if !ok {
-		return errors.Errorf("key %v present but value was not string", keyMetadata)
-	}
-	var meta core.Metadata
-	err := json.Unmarshal([]byte(metaString), &meta)
+func (rc *ResourceClient) toVaultSecret(resource resources.Resource) (map[string]interface{}, error) {
+	values := make(map[string]interface{})
+	jsn, err := protoutils.MarshalBytes(resource)
 	if err != nil {
-		return errors.Wrapf(err, "key %v present but value was not string", keyMetadata)
+		return nil, err
 	}
-	into.SetData(values)
-	into.SetMetadata(meta)
-	return nil
+	data, err := yaml.JSONToYAML(jsn)
+	if err != nil {
+		return nil, err
+	}
+	values[dataKey] = string(data)
+	values[annotationKey] = rc.Kind()
+	return values, nil
 }
 
 // util methods
@@ -76,10 +74,10 @@ func newOrIncrementResourceVer(resourceVersion string) string {
 type ResourceClient struct {
 	vault        *api.Client
 	root         string
-	resourceType resources.DataResource
+	resourceType resources.Resource
 }
 
-func NewResourceClient(client *api.Client, rootKey string, resourceType resources.DataResource) *ResourceClient {
+func NewResourceClient(client *api.Client, rootKey string, resourceType resources.Resource) *ResourceClient {
 	return &ResourceClient{
 		vault:        client,
 		root:         rootKey,
@@ -114,9 +112,12 @@ func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (r
 		return nil, errors.NewNotExistErr(namespace, name)
 	}
 
-	resource := rc.NewResource()
-	if err = fromVaultSecret(secret, resource.(resources.DataResource)); err != nil {
-		return nil, errors.Wrapf(err, "parsing vault secret")
+	resource, err := rc.fromVaultSecret(secret)
+	if err != nil {
+		return nil, err
+	}
+	if resource == nil {
+		return nil, errors.Errorf("secret %v is not kind %v", rc.Kind())
 	}
 	return resource, nil
 }
@@ -141,11 +142,16 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	}
 
 	// mutate and return clone
-	clone := proto.Clone(resource).(resources.DataResource)
+	clone := proto.Clone(resource).(resources.Resource)
 	meta.ResourceVersion = newOrIncrementResourceVer(meta.ResourceVersion)
 	clone.SetMetadata(meta)
 
-	if _, err := rc.vault.Logical().Write(key, toVaultSecret(clone)); err != nil {
+	secret, err := rc.toVaultSecret(clone)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := rc.vault.Logical().Write(key, secret); err != nil {
 		return nil, errors.Wrapf(err, "writing to KV")
 	}
 	// return a read object to update the modify index
@@ -200,9 +206,13 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resourc
 			return nil, errors.Errorf("unexpected nil err on %v", key)
 		}
 
-		resource := rc.NewResource()
-		if err = fromVaultSecret(secret, resource.(resources.DataResource)); err != nil {
-			return nil, errors.Wrapf(err, "parsing vault secret")
+		resource, err := rc.fromVaultSecret(secret)
+		if err != nil {
+			return nil, err
+		}
+		// not our resource, ignore it
+		if resource == nil {
+			continue
 		}
 		if labels.SelectorFromSet(opts.Selector).Matches(labels.Set(resource.GetMetadata().Labels)) {
 			resourceList = append(resourceList, resource)

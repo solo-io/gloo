@@ -61,19 +61,11 @@ func (factory *resourceClientFactory) NewResourceClient(params NewResourceClient
 	case *MemoryResourceClientOpts:
 		return memory.NewResourceClient(opts.Cache, resourceType), nil
 	case *KubeConfigMapClientOpts:
-		dataResource, ok := params.ResourceType.(resources.DataResource)
-		if !ok {
-			return nil, errors.Errorf("the kubernetes configmap client can only be used for data resources, received type %v", resources.Kind(resourceType))
-		}
-		return configmap.NewResourceClient(opts.Clientset, dataResource)
+		return configmap.NewResourceClient(opts.Clientset, resourceType)
 	case *KubeSecretClientOpts:
 		return kubesecret.NewResourceClient(opts.Clientset, resourceType)
 	case *VaultSecretClientOpts:
-		dataResource, ok := params.ResourceType.(resources.DataResource)
-		if !ok {
-			return nil, errors.Errorf("the vault secret client can only be used for data resources, received type %v", resources.Kind(resourceType))
-		}
-		return vault.NewResourceClient(opts.Vault, opts.RootKey, dataResource), nil
+		return vault.NewResourceClient(opts.Vault, opts.RootKey, resourceType), nil
 	}
 	panic("unsupported type " + reflect.TypeOf(factory.opts).Name())
 }

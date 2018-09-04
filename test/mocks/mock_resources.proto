@@ -29,13 +29,3 @@ message FakeResource {
     core.solo.io.Status status = 6 [(gogoproto.nullable) = false];
     core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }
-
-/*
-@solo-kit:resource.short_name=mkd
-@solo-kit:resource.plural_name=mock_datas
-*/
-message MockData {
-    map<string,string> data = 1;
-    core.solo.io.Status status = 6 [(gogoproto.nullable) = false];
-    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
-}

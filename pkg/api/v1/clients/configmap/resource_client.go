@@ -5,11 +5,13 @@ import (
 	"sort"
 	"time"
 
+	"github.com/ghodss/yaml"
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
+	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	"k8s.io/api/core/v1"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -19,16 +21,49 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func fromKubeConfigMap(configMap *v1.ConfigMap, into resources.DataResource) {
-	into.SetMetadata(kubeutils.FromKubeMeta(configMap.ObjectMeta))
-	into.SetData(configMap.Data)
+const dataKey = "data"
+const annotationKey = "resource_kind"
+
+func (rc *ResourceClient) fromKubeConfigMap(configMap *v1.ConfigMap) (resources.Resource, error) {
+	resource := rc.NewResource()
+	// not our configMap
+	// should be an error on a Read, ignored on a list
+	if len(configMap.ObjectMeta.Annotations) == 0 || configMap.ObjectMeta.Annotations[annotationKey] != rc.Kind() {
+		return nil, nil
+	}
+	resource.SetMetadata(kubeutils.FromKubeMeta(configMap.ObjectMeta))
+	data, ok := configMap.Data[dataKey]
+	if !ok {
+		return nil, errors.Errorf("kubernetes configMap %v missing required key \"data\"", configMap.Name)
+	}
+	// assumes the data is YAML-encoded
+	jsn, err := yaml.YAMLToJSON([]byte(data))
+	if err != nil {
+		return nil, err
+	}
+	return resource, protoutils.UnmarshalBytes(jsn, resource)
 }
 
-func toKubeConfigMap(resource resources.DataResource) *v1.ConfigMap {
-	return &v1.ConfigMap{
-		ObjectMeta: kubeutils.ToKubeMeta(resource.GetMetadata()),
-		Data:       resource.GetData(),
+func (rc *ResourceClient) toKubeConfigMap(resource resources.Resource) (*v1.ConfigMap, error) {
+	jsn, err := protoutils.MarshalBytes(resource)
+	if err != nil {
+		return nil, err
 	}
+	data, err := yaml.JSONToYAML(jsn)
+	if err != nil {
+		return nil, err
+	}
+	meta := kubeutils.ToKubeMeta(resource.GetMetadata())
+	if meta.Annotations == nil {
+		meta.Annotations = make(map[string]string)
+	}
+	meta.Annotations[annotationKey] = rc.Kind()
+	return &v1.ConfigMap{
+		ObjectMeta: meta,
+		Data: map[string]string{
+			dataKey: string(data),
+		},
+	}, nil
 }
 
 type ResourceClient struct {
@@ -36,10 +71,10 @@ type ResourceClient struct {
 	kube         kubernetes.Interface
 	ownerLabel   string
 	resourceName string
-	resourceType resources.DataResource
+	resourceType resources.Resource
 }
 
-func NewResourceClient(kube kubernetes.Interface, resourceType resources.DataResource) (*ResourceClient, error) {
+func NewResourceClient(kube kubernetes.Interface, resourceType resources.Resource) (*ResourceClient, error) {
 	return &ResourceClient{
 		kube:         kube,
 		resourceName: reflect.TypeOf(resourceType).Name(),
@@ -75,8 +110,13 @@ func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (r
 		}
 		return nil, errors.Wrapf(err, "reading configMap from kubernetes")
 	}
-	resource := rc.NewResource().(resources.DataResource)
-	fromKubeConfigMap(configMap, resource)
+	resource, err := rc.fromKubeConfigMap(configMap)
+	if err != nil {
+		return nil, err
+	}
+	if resource == nil {
+		return nil, errors.Errorf("configMap %v is not kind %v", rc.Kind())
+	}
 	return resource, nil
 }
 
@@ -91,7 +131,10 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	// mutate and return clone
 	clone := proto.Clone(resource).(resources.Resource)
 	clone.SetMetadata(meta)
-	configMap := toKubeConfigMap(resource.(resources.DataResource))
+	configMap, err := rc.toKubeConfigMap(resource)
+	if err != nil {
+		return nil, err
+	}
 
 	original, err := rc.Read(meta.Namespace, meta.Name, clients.ReadOpts{
 		Ctx: opts.Ctx,
@@ -143,8 +186,13 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resourc
 	}
 	var resourceList resources.ResourceList
 	for _, configMap := range configMapList.Items {
-		resource := rc.NewResource().(resources.DataResource)
-		fromKubeConfigMap(&configMap, resource)
+		resource, err := rc.fromKubeConfigMap(&configMap)
+		if err != nil {
+			return nil, err
+		}
+		if resource == nil {
+			continue
+		}
 		resourceList = append(resourceList, resource)
 	}
 

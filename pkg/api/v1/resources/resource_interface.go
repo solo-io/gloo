@@ -29,12 +29,6 @@ type InputResource interface {
 	SetStatus(status core.Status)
 }
 
-type DataResource interface {
-	Resource
-	GetData() map[string]string
-	SetData(map[string]string)
-}
-
 type ResourceList []Resource
 type ResourcesById map[string]Resource
 type ResourcesByKind map[string]ResourceList
@@ -295,8 +289,6 @@ func (list InputResourceList) AsResourceList() ResourceList {
 	}
 	return resources
 }
-
-type DataResourceList []DataResource
 
 func Clone(resource Resource) Resource {
 	return proto.Clone(resource).(Resource)
