@@ -13,3 +13,7 @@ func (m Metadata) Ref() ResourceRef {
 		Name:      m.Name,
 	}
 }
+
+func (m Metadata) Match(ref ResourceRef) bool {
+	return m.Namespace == ref.Namespace && m.Name == ref.Name
+}

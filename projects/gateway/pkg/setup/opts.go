@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 type Opts struct {
@@ -20,6 +21,7 @@ type Opts struct {
 	virtualServices factory.ResourceClientFactoryOpts
 	// TODO(ilackarms): remove upstreams here if not needed, right now only used for sample data
 	upstreams  factory.ResourceClientFactoryOpts
+	secrets  factory.ResourceClientFactoryOpts
 	proxies    factory.ResourceClientFactoryOpts
 	namespacer namespacing.Namespacer
 	watchOpts  clients.WatchOpts
@@ -29,6 +31,10 @@ type Opts struct {
 
 func DefaultKubernetesConstructOpts() (Opts, error) {
 	cfg, err := kubeutils.GetConfig("", "")
+	if err != nil {
+		return Opts{}, err
+	}
+	clientset, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return Opts{}, err
 	}
@@ -51,6 +57,9 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 		upstreams: &factory.KubeResourceClientOpts{
 			Crd: v1.UpstreamCrd,
 			Cfg: cfg,
+		},
+		secrets: &factory.KubeSecretClientOpts{
+			Clientset: clientset,
 		},
 		namespacer: static.NewNamespacer([]string{"default", "gloo-system"}),
 		watchOpts: clients.WatchOpts{

@@ -106,7 +106,11 @@ func addSampleData(opts Opts, vsClient v1.VirtualServiceClient) error {
 	if err != nil {
 		return err
 	}
-	virtualServices, upstreams := samples.VirtualServices(), samples.Upstreams()
+	secretClient, err := gloov1.NewSecretClient(factory.NewResourceClientFactory(opts.secrets))
+	if err != nil {
+		return err
+	}
+	virtualServices, upstreams, secrets := samples.VirtualServices(), samples.Upstreams(), samples.Secrets()
 	for _, item := range virtualServices {
 		if _, err := vsClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
 			return err
@@ -114,6 +118,11 @@ func addSampleData(opts Opts, vsClient v1.VirtualServiceClient) error {
 	}
 	for _, item := range upstreams {
 		if _, err := upstreamClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
+			return err
+		}
+	}
+	for _, item := range secrets {
+		if _, err := secretClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
 			return err
 		}
 	}
