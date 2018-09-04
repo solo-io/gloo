@@ -5,6 +5,10 @@ import (
 )
 
 func (m *InputMapStringString) Validate() error {
+	// check nil since this can be called on optional values
+	if m == nil {
+		return nil
+	}
 	counted := make(map[string]int)
 	for _, val := range m.Values {
 		counted[val.Key]++
