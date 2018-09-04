@@ -22,22 +22,29 @@ import (
 )
 
 const dataKey = "data"
+const annotationKey = "resource_kind"
 
-func fromKubeSecret(secret *v1.Secret, into resources.Resource) error {
-	into.SetMetadata(kubeutils.FromKubeMeta(secret.ObjectMeta))
+func (rc *ResourceClient) fromKubeSecret(secret *v1.Secret) (resources.Resource, error) {
+	resource := rc.NewResource()
+	// not our secret
+	// should be an error on a Read, ignored on a list
+	if len(secret.ObjectMeta.Annotations) == 0 || secret.ObjectMeta.Annotations[annotationKey] != rc.Kind() {
+		return nil, nil
+	}
+	resource.SetMetadata(kubeutils.FromKubeMeta(secret.ObjectMeta))
 	data, ok := secret.Data[dataKey]
 	if !ok {
-		return errors.Errorf("kubernetes secret %v missing required key \"data\"", secret.Name)
+		return nil, errors.Errorf("kubernetes secret %v missing required key \"data\"", secret.Name)
 	}
 	// assumes the data is YAML-encoded
 	jsn, err := yaml.YAMLToJSON(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return protoutils.UnmarshalBytes(jsn, into)
+	return resource, protoutils.UnmarshalBytes(jsn, resource)
 }
 
-func toKubeSecret(resource resources.Resource) (*v1.Secret, error) {
+func (rc *ResourceClient) toKubeSecret(resource resources.Resource) (*v1.Secret, error) {
 	jsn, err := protoutils.MarshalBytes(resource)
 	if err != nil {
 		return nil, err
@@ -46,8 +53,13 @@ func toKubeSecret(resource resources.Resource) (*v1.Secret, error) {
 	if err != nil {
 		return nil, err
 	}
+	meta := kubeutils.ToKubeMeta(resource.GetMetadata())
+	if meta.Annotations == nil {
+		meta.Annotations = make(map[string]string)
+	}
+	meta.Annotations[annotationKey] = rc.Kind()
 	return &v1.Secret{
-		ObjectMeta: kubeutils.ToKubeMeta(resource.GetMetadata()),
+		ObjectMeta: meta,
 		Data: map[string][]byte{
 			dataKey: data,
 		},
@@ -98,9 +110,12 @@ func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (r
 		}
 		return nil, errors.Wrapf(err, "reading secret from kubernetes")
 	}
-	resource := rc.NewResource().(resources.Resource)
-	if err := fromKubeSecret(secret, resource); err != nil {
+	resource, err := rc.fromKubeSecret(secret)
+	if err != nil {
 		return nil, err
+	}
+	if resource == nil {
+		return nil, errors.Errorf("secret %v is not kind %v", rc.Kind())
 	}
 	return resource, nil
 }
@@ -116,7 +131,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	// mutate and return clone
 	clone := proto.Clone(resource).(resources.Resource)
 	clone.SetMetadata(meta)
-	secret, err := toKubeSecret(resource.(resources.Resource))
+	secret, err := rc.toKubeSecret(resource.(resources.Resource))
 	if err != nil {
 		return nil, err
 	}
@@ -171,9 +186,13 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resourc
 	}
 	var resourceList resources.ResourceList
 	for _, secret := range secretList.Items {
-		resource := rc.NewResource().(resources.Resource)
-		if err := fromKubeSecret(&secret, resource); err != nil {
+		resource, err := rc.fromKubeSecret(&secret)
+		if err != nil {
 			return nil, err
+		}
+		// not our resource, ignore it
+		if resource == nil {
+			continue
 		}
 		resourceList = append(resourceList, resource)
 	}
