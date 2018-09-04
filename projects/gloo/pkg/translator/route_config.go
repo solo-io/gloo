@@ -309,13 +309,9 @@ func validateMultiDestination(upstreams []*v1.Upstream, destinations []*v1.Weigh
 	return nil
 }
 
-func validateSingleDestination(upstreams []*v1.Upstream, destination *v1.Destination) error {
-	for _, us := range upstreams {
-		if us.Metadata.Name == destination.Upstream.Key() {
-			return nil
-		}
-	}
-	return errors.Errorf("upstream %v was not found or had errors for upstream destination", destination.Upstream.Key())
+func validateSingleDestination(upstreams v1.UpstreamList, destination *v1.Destination) error {
+	_, err := upstreams.Find(destination.Upstream.Strings())
+	return err
 }
 
 func validateListenerSslConfig(listener *v1.Listener, secrets []*v1.Secret) error {

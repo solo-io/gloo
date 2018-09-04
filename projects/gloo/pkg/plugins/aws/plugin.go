@@ -58,6 +58,8 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		// not ours
 		return nil
 	}
+	// even if it failed, route should still be valid
+	p.recordedUpstreams[in.Metadata.Ref()] = upstreamSpec.Aws
 
 	lambdaHostname := getLambdaHostname(upstreamSpec.Aws)
 
@@ -73,7 +75,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	}
 
 	// TODO(ilacakrms): consider if secretRef should be namespace+name
-	awsSecrets, err := params.Snapshot.Secrets[in.Metadata.Namespace].Find(upstreamSpec.Aws.SecretRef.Strings())
+	awsSecrets, err := params.Snapshot.Secrets.List().Find(upstreamSpec.Aws.SecretRef.Strings())
 	if err != nil {
 		return errors.Wrapf(err, "retrieving aws secret")
 	}
@@ -84,14 +86,14 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", accessKey))
 	}
 	if accessKey == "" || !utf8.Valid([]byte(accessKey)) {
-		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", accessKey))
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("access_key is not a valid string"))
 	}
 	secretKey, ok := awsSecrets.Data[secretKey]
 	if !ok {
 		secretErrs = multierror.Append(secretErrs, errors.Errorf("key %v missing from provided secret", secretKey))
 	}
 	if secretKey == "" || !utf8.Valid([]byte(secretKey)) {
-		secretErrs = multierror.Append(secretErrs, errors.Errorf("%s not a valid string", secretKey))
+		secretErrs = multierror.Append(secretErrs, errors.Errorf("secret_key is not a valid string"))
 	}
 
 	if secretErrs != nil {
@@ -115,9 +117,6 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	}
 	out.ExtensionProtocolOptions[filterName] = lpeStruct
 
-	// TODO(yuval-k): What about namespace?!
-	p.recordedUpstreams[in.Metadata.Ref()] = upstreamSpec.Aws
-
 	return nil
 }
 
@@ -134,7 +133,6 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		// get upstream
 		lambdaSpec, ok := p.recordedUpstreams[spec.Upstream]
 		if !ok {
-			// TODO(yuval-k): panic in debug
 			return nil, errors.Errorf("%v is not an AWS upstream", spec.Upstream)
 		}
 		// should be aws upstream

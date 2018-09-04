@@ -25,8 +25,8 @@ func Secrets() v1.SecretList {
 		{
 			Metadata: MakeMetadata("some-secret", "gloo-system"),
 			Data: map[string]string{
-				"access_key": os.Getenv("AWS_ACCESS_KEY"),
-				"secret_key": os.Getenv("AWS_SECRET_KEY"),
+				"access_key": "TODO_REMOVE"+os.Getenv("AWS_ACCESS_KEY"),
+				"secret_key": "TODO_REMOVE"+os.Getenv("AWS_SECRET_KEY"),
 			},
 		},
 		{
