@@ -223,7 +223,7 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 													DestinationSpec: &v1.DestinationSpec{
 														DestinationType: &v1.DestinationSpec_Azure{
 															Azure: &azure.DestinationSpec{
-																FunctionName: "my_other_func_v1",
+																FunctionName: "CreateRing",
 															},
 														},
 													},
@@ -274,7 +274,7 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 													DestinationSpec: &v1.DestinationSpec{
 														DestinationType: &v1.DestinationSpec_Azure{
 															Azure: &azure.DestinationSpec{
-																FunctionName: "my_other_func_v1",
+																FunctionName: "my_func_v2",
 															},
 														},
 													},
