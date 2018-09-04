@@ -2146,8 +2146,8 @@ func (ec *executionContext) _SingleDestination(ctx context.Context, sel ast.Sele
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SingleDestination")
-		case "upstreamName":
-			out.Values[i] = ec._SingleDestination_upstreamName(ctx, field, obj)
+		case "upstream":
+			out.Values[i] = ec._SingleDestination_upstream(ctx, field, obj)
 		case "destinationSpec":
 			out.Values[i] = ec._SingleDestination_destinationSpec(ctx, field, obj)
 		default:
@@ -2158,7 +2158,7 @@ func (ec *executionContext) _SingleDestination(ctx context.Context, sel ast.Sele
 	return out
 }
 
-func (ec *executionContext) _SingleDestination_upstreamName(ctx context.Context, field graphql.CollectedField, obj *models.SingleDestination) graphql.Marshaler {
+func (ec *executionContext) _SingleDestination_upstream(ctx context.Context, field graphql.CollectedField, obj *models.SingleDestination) graphql.Marshaler {
 	rctx := graphql.GetResolverContext(ctx)
 	rctx.Object = "SingleDestination"
 	rctx.Args = nil
@@ -2166,13 +2166,13 @@ func (ec *executionContext) _SingleDestination_upstreamName(ctx context.Context,
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return obj.UpstreamName, nil
+		return obj.Upstream, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
-	return graphql.MarshalString(res)
+	res := resTmp.(models.ResourceRef)
+	return ec._ResourceRef(ctx, field.Selections, &res)
 }
 
 func (ec *executionContext) _SingleDestination_destinationSpec(ctx context.Context, field graphql.CollectedField, obj *models.SingleDestination) graphql.Marshaler {
@@ -5437,9 +5437,9 @@ func UnmarshalInputSingleDestination(v interface{}) (models.InputSingleDestinati
 
 	for k, v := range asMap {
 		switch k {
-		case "upstreamName":
+		case "upstream":
 			var err error
-			it.UpstreamName, err = graphql.UnmarshalString(v)
+			it.Upstream, err = UnmarshalInputResourceRef(v)
 			if err != nil {
 				return it, err
 			}
@@ -6067,7 +6067,7 @@ type WeightedDestination {
 }
 
 type SingleDestination {
-    upstreamName: String!
+    upstream: ResourceRef!
     destinationSpec: DestinationSpec
 }
 
@@ -6146,7 +6146,7 @@ input InputWeightedDestination {
 }
 
 input InputSingleDestination {
-    upstreamName: String!
+    upstream: InputResourceRef!
     destinationSpec: InputDestinationSpec
 }
 

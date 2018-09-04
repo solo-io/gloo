@@ -250,7 +250,7 @@ type WeightedDestination {
 }
 
 type SingleDestination {
-    upstreamName: String!
+    upstream: ResourceRef!
     destinationSpec: DestinationSpec
 }
 
@@ -329,7 +329,7 @@ input InputWeightedDestination {
 }
 
 input InputSingleDestination {
-    upstreamName: String!
+    upstream: InputResourceRef!
     destinationSpec: InputDestinationSpec
 }
 

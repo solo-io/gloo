@@ -150,7 +150,7 @@ type InputServiceSpec struct {
 	Grpc    *InputGRPCServiceSpec    `json:"grpc"`
 }
 type InputSingleDestination struct {
-	UpstreamName    string                `json:"upstreamName"`
+	Upstream        InputResourceRef      `json:"upstream"`
 	DestinationSpec *InputDestinationSpec `json:"destinationSpec"`
 }
 type InputSslConfig struct {
@@ -251,7 +251,7 @@ type RoutePlugins struct {
 }
 type ServiceSpec interface{}
 type SingleDestination struct {
-	UpstreamName    string          `json:"upstreamName"`
+	Upstream        ResourceRef     `json:"upstream"`
 	DestinationSpec DestinationSpec `json:"destinationSpec"`
 }
 type SslConfig struct {

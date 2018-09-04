@@ -29,6 +29,20 @@ func (c *Converter) ConvertInputUpstreams(upstream []InputUpstream) (v1.Upstream
 	return result, nil
 }
 
+func convertInputRef(ref InputResourceRef) core.ResourceRef {
+	return core.ResourceRef{
+		Name:      ref.Name,
+		Namespace: ref.Namespace,
+	}
+}
+
+func convertOutputRef(ref core.ResourceRef) ResourceRef {
+	return ResourceRef{
+		Name:      ref.Name,
+		Namespace: ref.Namespace,
+	}
+}
+
 func (c *Converter) ConvertInputUpstream(upstream InputUpstream) (*v1.Upstream, error) {
 	upstreamSpec, err := convertInputUpstreamSpec(upstream.Spec)
 	if err != nil {
@@ -47,14 +61,14 @@ func convertInputUpstreamSpec(spec InputUpstreamSpec) (*v1.UpstreamSpec, error) 
 		out.UpstreamType = &v1.UpstreamSpec_Aws{
 			Aws: &aws.UpstreamSpec{
 				Region:          spec.Aws.Region,
-				SecretRef:       spec.Aws.SecretRef,
+				SecretRef:       convertInputRef(spec.Aws.SecretRef),
 				LambdaFunctions: convertLambdaFunctions(spec.Aws.Functions),
 			},
 		}
 	case spec.Azure != nil:
-		var ref string
+		var ref core.ResourceRef
 		if spec.Azure.SecretRef != nil {
-			ref = *spec.Azure.SecretRef
+			ref = convertInputRef(*spec.Azure.SecretRef)
 		}
 		out.UpstreamType = &v1.UpstreamSpec_Azure{
 			Azure: &azure.UpstreamSpec{
@@ -125,7 +139,7 @@ func convertOutputUpstreamSpec(spec *v1.UpstreamSpec) UpstreamSpec {
 	case *v1.UpstreamSpec_Aws:
 		return &AwsUpstreamSpec{
 			Region:    specType.Aws.Region,
-			SecretRef: specType.Aws.SecretRef,
+			SecretRef: convertOutputRef(specType.Aws.SecretRef),
 			Functions: convertOutputLambdaFunctions(specType.Aws.LambdaFunctions),
 		}
 	case *v1.UpstreamSpec_Azure:
@@ -332,7 +346,7 @@ func convertInputSingleDestination(inputDest InputSingleDestination) (*v1.Destin
 		return nil, err
 	}
 	return &v1.Destination{
-		UpstreamName:    inputDest.UpstreamName,
+		Upstream:        convertInputRef(inputDest.Upstream),
 		DestinationSpec: destSpec,
 	}, nil
 }
@@ -341,9 +355,10 @@ func convertInputSSLConfig(ssl *InputSslConfig) *v1.SslConfig {
 	if ssl == nil {
 		return nil
 	}
+	ref := convertInputRef(ssl.SecretRef)
 	return &v1.SslConfig{
 		SslSecrets: &v1.SslConfig_SecretRef{
-			SecretRef: ssl.SecretRef,
+			SecretRef: &ref,
 		},
 	}
 }
@@ -465,7 +480,7 @@ func convertOutputMultiDestination(dests []*v1.WeightedDestination) *MultiDestin
 
 func convertOutputSingleDestination(dest *v1.Destination) SingleDestination {
 	return SingleDestination{
-		UpstreamName:    dest.UpstreamName,
+		Upstream:        convertOutputRef(dest.Upstream),
 		DestinationSpec: convertOutputDestinationSpec(dest.DestinationSpec),
 	}
 }
@@ -502,8 +517,13 @@ func convertOutputSSLConfig(ssl *v1.SslConfig) *SslConfig {
 		return nil
 	}
 
+	var ref ResourceRef
+	if secret.SecretRef != nil {
+		ref = convertOutputRef(*secret.SecretRef)
+	}
+
 	return &SslConfig{
-		SecretRef: secret.SecretRef,
+		SecretRef: ref,
 	}
 }
 
