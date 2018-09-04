@@ -26,10 +26,6 @@ func (r *Artifact) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
 
-func (r *Artifact) SetData(data map[string]string) {
-	r.Data = data
-}
-
 type ArtifactList []*Artifact
 type ArtifactsByNamespace map[string]ArtifactList
 

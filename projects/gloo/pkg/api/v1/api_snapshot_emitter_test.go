@@ -10,7 +10,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
@@ -34,6 +33,7 @@ var _ = Describe("V1Emitter", func() {
 		proxyClient    ProxyClient
 		secretClient   SecretClient
 		upstreamClient UpstreamClient
+		kube           kubernetes.Interface
 	)
 
 	BeforeEach(func() {
@@ -46,10 +46,14 @@ var _ = Describe("V1Emitter", func() {
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
+		if kube == nil {
+			// this test does not require a kube clientset
+		}
+
 		// Artifact Constructor
+
 		kube, err = kubernetes.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-
 		artifactClientFactory := factory.NewResourceClientFactory(&factory.KubeConfigMapClientOpts{
 			Clientset: kube,
 		})
@@ -57,8 +61,11 @@ var _ = Describe("V1Emitter", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// Endpoint Constructor
-		endpointClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
-			Cache: memory.NewInMemoryResourceCache(),
+
+		kube, err = kubernetes.NewForConfig(cfg)
+		Expect(err).NotTo(HaveOccurred())
+		endpointClientFactory := factory.NewResourceClientFactory(&factory.KubeConfigMapClientOpts{
+			Clientset: kube,
 		})
 		endpointClient, err = NewEndpointClient(endpointClientFactory)
 		Expect(err).NotTo(HaveOccurred())
@@ -72,8 +79,11 @@ var _ = Describe("V1Emitter", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// Secret Constructor
-		secretClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
-			Cache: memory.NewInMemoryResourceCache(),
+
+		kube, err = kubernetes.NewForConfig(cfg)
+		Expect(err).NotTo(HaveOccurred())
+		secretClientFactory := factory.NewResourceClientFactory(&factory.KubeSecretClientOpts{
+			Clientset: kube,
 		})
 		secretClient, err = NewSecretClient(secretClientFactory)
 		Expect(err).NotTo(HaveOccurred())

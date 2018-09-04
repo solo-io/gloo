@@ -23,6 +23,9 @@ var _ = Describe("EndpointClient", func() {
 		&typed.ConsulRcTester{},
 		&typed.FileRcTester{},
 		&typed.MemoryRcTester{},
+		&typed.VaultRcTester{},
+		&typed.KubeSecretRcTester{},
+		&typed.KubeConfigMapRcTester{},
 	} {
 		Context("resource client backed by "+test.Description(), func() {
 			var (

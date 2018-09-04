@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -29,6 +30,7 @@ var _ = Describe("V1Emitter", func() {
 		emitter              ApiEmitter
 		gatewayClient        GatewayClient
 		virtualServiceClient VirtualServiceClient
+		kube                 kubernetes.Interface
 	)
 
 	BeforeEach(func() {
@@ -40,6 +42,10 @@ var _ = Describe("V1Emitter", func() {
 		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
+
+		if kube == nil {
+			// this test does not require a kube clientset
+		}
 
 		// Gateway Constructor
 		gatewayClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
