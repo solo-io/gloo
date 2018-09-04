@@ -160,7 +160,7 @@ func (d *SwaggerFuncitonDiscovery) detectUpstreamTypeOnce(ctx context.Context, b
 
 }
 
-func (f *SwaggerFuncitonDiscovery) DetectFunctions(ctx context.Context, secrets func() v1.SecretList, updatecb func(discovery.UpstreamMutator) error) error {
+func (f *SwaggerFuncitonDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(discovery.UpstreamMutator) error) error {
 	in := f.upstream
 	spec := getswagspec(in)
 	if spec == nil || spec.SwaggerSpec == nil {
@@ -179,7 +179,6 @@ func (f *SwaggerFuncitonDiscovery) DetectFunctions(ctx context.Context, secrets 
 
 func (f *SwaggerFuncitonDiscovery) detectFunctionsFromUrl(ctx context.Context, url string, in *v1.Upstream, updatecb func(discovery.UpstreamMutator) error) error {
 	for {
-
 		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
 
 			spec, err := RetrieveSwaggerDocFromUrl(ctx, url)

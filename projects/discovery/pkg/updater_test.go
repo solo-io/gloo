@@ -44,7 +44,7 @@ func (t *testDiscovery) DetectUpstreamType(ctx context.Context, url *url.URL) (*
 	return t.serviceSpec, t.detectUpstreamTypeError
 }
 
-func (t *testDiscovery) DetectFunctions(ctx context.Context, secrets func() v1.SecretList, in *v1.Upstream, out func(UpstreamMutator) error) error {
+func (t *testDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, in *v1.Upstream, out func(UpstreamMutator) error) error {
 	t.detectFunctions = true
 	if t.mutate != nil {
 		out(t.mutate)

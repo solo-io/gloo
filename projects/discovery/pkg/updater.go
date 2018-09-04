@@ -237,6 +237,8 @@ func (u *updaterUpdater) Run() error {
 		return u.saveUpstream(m)
 	}
 
+	resolvedUrl, resolvedErr := u.parent.resolver.Resolve(u.upstream)
+
 	if discoveryForUpstream == nil {
 		// TODO: this will probably not going to work unless the upstream type will also have the method required
 		_, ok := u.upstream.UpstreamSpec.UpstreamType.(v1.ServiceSpecSetter)
@@ -246,12 +248,11 @@ func (u *updaterUpdater) Run() error {
 		}
 
 		// if we are here it means that the service upstream doesn't have a spec
-		url, err := u.parent.resolver.Resolve(u.upstream)
-		if err != nil {
-			return err
+		if resolvedErr != nil {
+			return resolvedErr
 		}
 		// try to detect the type
-		res, err := u.detectType(url)
+		res, err := u.detectType(resolvedUrl)
 		if err != nil {
 
 			if err == errorUndetectableUpstream {
@@ -272,5 +273,5 @@ func (u *updaterUpdater) Run() error {
 		})
 	}
 
-	return discoveryForUpstream.DetectFunctions(u.ctx, u.parent.GetSecrets, upstreamSave)
+	return discoveryForUpstream.DetectFunctions(u.ctx, resolvedUrl, u.parent.GetSecrets, upstreamSave)
 }

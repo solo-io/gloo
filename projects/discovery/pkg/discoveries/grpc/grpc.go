@@ -19,8 +19,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	discovery "github.com/solo-io/solo-kit/projects/discovery/pkg"
 
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 	grpc_plugins "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/grpc"
@@ -65,6 +63,119 @@ func (f *UpstreamFunctionDiscovery) DetectType(ctx context.Context, url *url.URL
 	log := contextutils.LoggerFrom(ctx)
 	log.Debugf("attempting to detect GRPC for %s", f.upstream.Metadata.Name)
 
+	refClient, err := getclient(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = refClient.ListServices()
+	if err != nil {
+		return nil, errors.Wrapf(err, "listing services. are you sure %v implements reflection?", url)
+	}
+
+	svcInfo := &plugins.ServiceSpec{
+		PluginType: &plugins.ServiceSpec_Grpc{
+			Grpc: &grpc_plugins.ServiceSpec{},
+		},
+	}
+	return svcInfo, nil
+}
+
+func (f *UpstreamFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(discovery.UpstreamMutator) error) error {
+	for {
+		// TODO: get backoff values from config?
+		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
+			return f.DetectFunctionsOnce(ctx, url, updatecb)
+		})
+
+		if err != nil {
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			// ignore other erros as we would like to continue forever.
+		}
+
+		// sleep so we are not hogging
+		// TODO(yuval-k): customize time to sleep in config
+		if err := contextutils.Sleep(ctx, time.Minute); err != nil {
+			return err
+		}
+	}
+}
+
+func (f *UpstreamFunctionDiscovery) DetectFunctionsOnce(ctx context.Context, url *url.URL, updatecb func(discovery.UpstreamMutator) error) error {
+
+	log := contextutils.LoggerFrom(ctx)
+
+	log.Infof("%v discovered as a gRPC service", url)
+
+	refClient, err := getclient(ctx, url)
+	if err != nil {
+		return err
+	}
+
+	services, err := refClient.ListServices()
+	if err != nil {
+		return errors.Wrapf(err, "listing services. are you sure %v implements reflection?", url)
+	}
+
+	descriptors := &descriptor.FileDescriptorSet{}
+
+	var grpcservices []*grpc_plugins.ServiceSpec_GrpcService
+
+	for _, s := range services {
+		// ignore the reflection descriptor
+		if s == "grpc.reflection.v1alpha.ServerReflection" {
+			continue
+		}
+		// TODO(yuval-k): do not add the same file twice
+		root, err := refClient.FileContainingSymbol(s)
+		if err != nil {
+			return errors.Wrapf(err, "getting file for svc symbol %s", s)
+		}
+		files := getDepTree(root)
+
+		descriptors.File = append(descriptors.File, files...)
+
+		parts := strings.Split(s, ".")
+		serviceName := parts[len(parts)-1]
+		servicePackage := strings.Join(parts[:len(parts)-1], ".")
+		grpcservice := &grpc_plugins.ServiceSpec_GrpcService{
+			PackageName: servicePackage,
+			Name:        serviceName,
+		}
+		// find the service in the file and get its functions
+		for _, svc := range root.GetServices() {
+			if svc.GetName() == serviceName {
+				methods := svc.GetMethods()
+				for _, method := range methods {
+					methodname := method.GetName()
+					grpcservice.FunctionNames = append(grpcservice.FunctionNames, methodname)
+				}
+			}
+		}
+		grpcservices = append(grpcservices, grpcservice)
+	}
+
+	descriptorsbytes, err := proto.Marshal(descriptors)
+	if err != nil {
+		return errors.Wrap(err, "marshalling proto descriptors")
+	}
+
+	return updatecb(func(out *v1.Upstream) error {
+		svcspec := getgrpcspec(out)
+		if svcspec == nil {
+			return errors.New("not a GRPC upstream")
+		}
+		svcspec.GrpcServices = grpcservices
+		svcspec.Descriptors = descriptorsbytes
+		return nil
+	})
+
+}
+
+func getclient(ctx context.Context, url *url.URL) (*grpcreflect.Client, error) {
+
 	var dialopts []grpc.DialOption
 	if url.Scheme != "https" {
 		dialopts = append(dialopts, grpc.WithInsecure())
@@ -76,91 +187,16 @@ func (f *UpstreamFunctionDiscovery) DetectType(ctx context.Context, url *url.URL
 	if err != nil {
 		return nil, errors.Wrapf(err, "dialing grpc on %v", addr)
 	}
-	refClient := grpcreflect.NewClient(context.Background(), reflectpb.NewServerReflectionClient(cc))
+	refClient := grpcreflect.NewClient(ctx, reflectpb.NewServerReflectionClient(cc))
+	return refClient, nil
 
-	services, err := refClient.ListServices()
-	if err != nil {
-		return nil, errors.Wrapf(err, "listing services. are you sure %v implements reflection?", addr)
-	}
-	log.Infof("%v discovered as a gRPC service", addr)
-	var (
-		serviceNames []string
-	)
-	descriptors := &descriptor.FileDescriptorSet{}
-	for _, s := range services {
-		// ignore the reflection descriptor
-		if s == "grpc.reflection.v1alpha.ServerReflection" {
-			continue
-		}
-		files, err := getAllDescriptors(refClient, s)
-		if err != nil {
-			return nil, errors.Wrapf(err, "getting descriptors for svc %s", s)
-		}
-		descriptors.File = append(descriptors.File, files...)
-
-		parts := strings.Split(s, ".")
-		serviceSuffix := parts[len(parts)-1]
-		serviceNames = append(serviceNames, serviceSuffix)
-	}
-
-	b, err := proto.Marshal(descriptors)
-	if err != nil {
-		return nil, errors.Wrap(err, "marshalling proto descriptors")
-	}
-
-	// the : is a necessary separator for kube file storage
-	// otherwise it's just ignored
-	fileRef := fmt.Sprintf("%v:%v.descriptors",
-		"grpc-discovery",
-		strings.Join(serviceNames, "."))
-
-	file := &v1.Artifact{
-		Metadata: core.Metadata{
-			Name:      fileRef,
-			Namespace: f.upstream.Metadata.Namespace,
-		},
-		Data: map[string]string{
-			// TODO(yuval-k): this is not a string
-			"descriptors": string(b),
-		},
-	}
-
-	wo := clients.WriteOpts{
-		Ctx:               ctx,
-		OverwriteExisting: true,
-	}
-
-	if _, err := f.fileclient.Write(file, wo); err != nil {
-		return nil, errors.Wrap(err, "creating file for discovered descriptors")
-	}
-
-	svcInfo := &plugins.ServiceSpec{
-		PluginType: &plugins.ServiceSpec_Grpc{
-			Grpc: &grpc_plugins.ServiceSpec{},
-		},
-	}
-	return svcInfo, nil
-
-}
-
-func (f *UpstreamFunctionDiscovery) DetectFunctions(ctx context.Context, secrets func() v1.SecretList, out func(discovery.UpstreamMutator) error) error {
-	panic("TODO")
-}
-
-func getAllDescriptors(refClient *grpcreflect.Client, s string) ([]*descriptor.FileDescriptorProto, error) {
-	root, err := refClient.FileContainingSymbol(s)
-	if err != nil {
-		return nil, errors.Wrapf(err, "getting file for symbol %s", s)
-	}
-	files := getDepTree(root)
-	return files, nil
 }
 
 func getDepTree(root *desc.FileDescriptor) []*descriptor.FileDescriptorProto {
 	var deps []*descriptor.FileDescriptorProto
+	deps = append(deps, root.AsFileDescriptorProto())
 	for _, dep := range root.GetDependencies() {
 		deps = append(deps, getDepTree(dep)...)
 	}
-	deps = append(deps, root.AsFileDescriptorProto())
 	return deps
 }

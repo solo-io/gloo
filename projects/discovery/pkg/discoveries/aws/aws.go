@@ -53,7 +53,7 @@ func (f *AWSLambdaFuncitonDiscovery) DetectType(ctx context.Context, url *url.UR
 
 // TODO: how to handle changes in secret or upstream (like the upstream ref)?
 // perhaps the in param for the upstream should be a function? in func() *v1.Upstream
-func (f *AWSLambdaFuncitonDiscovery) DetectFunctions(ctx context.Context, secrets func() v1.SecretList, updatecb func(discovery.UpstreamMutator) error) error {
+func (f *AWSLambdaFuncitonDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(discovery.UpstreamMutator) error) error {
 	for {
 		// TODO: get backoff values from config?
 		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
