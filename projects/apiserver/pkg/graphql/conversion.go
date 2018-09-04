@@ -628,22 +628,13 @@ func convertInputResolver(resolver InputResolver) (*sqoopv1.FieldResolver, error
 
 // common
 func convertInputMetadata(inMeta InputMetadata) core.Metadata {
-	converted := core.Metadata{
+	return core.Metadata{
 		Namespace:       inMeta.Namespace,
 		Name:            inMeta.Name,
 		ResourceVersion: inMeta.ResourceVersion,
+		Labels:          inMeta.Labels.GoType(),
+		Annotations:     inMeta.Annotations.GoType(),
 	}
-	if inMeta.Labels != nil {
-		converted.Labels = inMeta.Labels.GoType()
-	} else {
-		converted.Labels = nil
-	}
-	if inMeta.Annotations != nil {
-		converted.Annotations = inMeta.Annotations.GoType()
-	} else {
-		converted.Annotations = nil
-	}
-	return converted
 }
 
 func convertOutputMetadata(meta core.Metadata) Metadata {

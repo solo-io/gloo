@@ -4,7 +4,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
-func (m InputMapStringString) Validate() error {
+func (m *InputMapStringString) Validate() error {
 	counted := make(map[string]int)
 	for _, val := range m.Values {
 		counted[val.Key]++
@@ -15,7 +15,11 @@ func (m InputMapStringString) Validate() error {
 	return nil
 }
 
-func (m InputMapStringString) GoType() map[string]string {
+func (m *InputMapStringString) GoType() map[string]string {
+	// check nil since this can be called on optional values
+	if m == nil {
+		return nil
+	}
 	goMap := make(map[string]string)
 	for _, val := range m.Values {
 		goMap[val.Key] = val.Value
