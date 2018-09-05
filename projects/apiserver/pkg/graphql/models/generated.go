@@ -249,6 +249,8 @@ type Route struct {
 type RoutePlugins struct {
 	Empty *string `json:"empty"`
 }
+type Schema struct {
+}
 type ServiceSpec interface{}
 type SingleDestination struct {
 	Upstream        ResourceRef     `json:"upstream"`

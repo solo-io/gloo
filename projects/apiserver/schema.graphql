@@ -8,12 +8,18 @@ type Query {
     upstreams(namespace: String!):       UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
     resolverMaps(namespace: String!): ResolverMapQuery!
+    schemas(namespace: String!): SchemaQuery!
+    secrets(namespace: String!): SecretQuery!
+    artifacts(namespace: String!): ArtifactQuery!
 }
 
 type Mutation {
     upstreams(namespace: String!):       UpstreamMutation!
     virtualServices(namespace: String!): VirtualServiceMutation!
     resolverMaps(namespace: String!): ResolverMapMutation!
+    schemas(namespace: String!): SchemaMutation!
+    secrets(namespace: String!): SecretMutation!
+    artifacts(namespace: String!): ArtifactMutation!
 }
 
 type UpstreamQuery {
@@ -56,6 +62,39 @@ type ResolverMapMutation {
     create(resolverMap: InputResolverMap!): ResolverMap
     update(resolverMap: InputResolverMap!): ResolverMap
     delete(name: String!): ResolverMap
+}
+
+type SchemaQuery {
+    list(selector: InputMapStringString): [Schema]
+    get(name: String!):                Schema
+}
+
+type SchemaMutation {
+    create(Schema: InputSchema!): Schema
+    update(Schema: InputSchema!): Schema
+    delete(name: String!): Schema
+}
+
+type SecretQuery {
+    list(selector: InputMapStringString): [Secret]
+    get(name: String!):                Secret
+}
+
+type SecretMutation {
+    create(Secret: InputSecret!): Secret
+    update(Secret: InputSecret!): Secret
+    delete(name: String!): Secret
+}
+
+type ArtifactQuery {
+    list(selector: InputMapStringString): [Secret]
+    get(name: String!):                Secret
+}
+
+type ArtifactMutation {
+    create(Artifact: InputArtifact!): Artifact
+    update(Artifact: InputArtifact!): Artifact
+    delete(name: String!): Artifact
 }
 
 # Upstream
@@ -447,6 +486,100 @@ input InputTemplateResolver {
 input InputNodeJSResolver {
     empty: String
 }
+
+
+## Schema
+## Schema
+## Schema
+## Schema
+## Schema
+
+type Schema {
+    resolverMap: ResourceRef!
+    inlineSchema: String!
+    metadata: Metadata!
+    status: Status!
+}
+
+input InputSchema {
+    resolverMap: InputResourceRef!
+    inlineSchema: String!
+    metadata: InputMetadata!
+}
+
+
+## Secret
+## Secret
+## Secret
+## Secret
+## Secret
+## Secret
+
+type Secret {
+    kind: SecretKind!
+    metadata: Metadata!
+}
+
+union SecretKind = AwsSecret | AzureSecret | TlsSecret
+
+type AwsSecret {
+    accessKey: String!
+    secretKey: String!
+}
+
+type AzureSecret {
+    apiKeys: MapStringString!
+}
+
+type TlsSecret {
+    certChain: String!
+    privateKey: String!
+    rootCa: String! # note: it is okay to leave this as an empty string
+}
+
+input InputSecret {
+    kind: InputSecretKind!
+    metadata: InputMetadata!
+}
+
+input InputSecretKind {
+    # oneof: aws, azure, tls
+    aws: InputAwsSecret
+    azure: InputAzureSecret
+    tls: InputTlsSecret
+}
+
+input InputAwsSecret {
+    accessKey: String!
+    secretKey: String!
+}
+
+input InputAzureSecret {
+    apiKeys: InputMapStringString!
+}
+
+input InputTlsSecret {
+    certChain: String!
+    privateKey: String!
+    rootCa: String! # note: it is okay to leave this as an empty string
+}
+
+## Artifact
+## Artifact
+## Artifact
+## Artifact
+## Artifact
+
+type Artifact {
+    data: String!
+    metadata: Metadata!
+}
+
+input InputArtifact {
+    data: String!
+    metadata: Metadata!
+}
+
 
 
 # Common output types

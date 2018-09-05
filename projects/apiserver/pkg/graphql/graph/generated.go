@@ -2133,6 +2133,27 @@ func (ec *executionContext) _RoutePlugins_empty(ctx context.Context, field graph
 	return graphql.MarshalString(*res)
 }
 
+var schemaImplementors = []string{"Schema"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _Schema(ctx context.Context, sel ast.SelectionSet, obj *models.Schema) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, schemaImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Schema")
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
 var singleDestinationImplementors = []string{"SingleDestination"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -6265,6 +6286,15 @@ input InputNodeJSResolver {
     empty: String
 }
 
+
+
+## Schema
+## Schema
+## Schema
+## Schema
+## Schema
+
+type Schema {}
 
 # Common output types
 # Common output types
