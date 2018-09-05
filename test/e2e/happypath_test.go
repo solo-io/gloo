@@ -66,7 +66,7 @@ var _ = Describe("Happypath", func() {
 			},
 			Listeners: []*gloov1.Listener{{
 				Name:        "listener",
-				BindAddress: "localhost",
+				BindAddress: "127.0.0.1",
 				BindPort:    envoyPort,
 				ListenerType: &gloov1.Listener_HttpListener{
 					HttpListener: &gloov1.HttpListener{
