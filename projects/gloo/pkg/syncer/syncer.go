@@ -71,11 +71,12 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 			logger.Warnf("proxy %v was rejected due to invalid config: %v\nxDS cache will not be updated.", err)
 			continue
 		}
-		if err := s.xdsCache.SetSnapshot(proxy.Metadata.Name, xdsSnapshot); err != nil {
+		key := xds.SnapshotKey(proxy)
+		if err := s.xdsCache.SetSnapshot(key, xdsSnapshot); err != nil {
 			return errors.Wrapf(err, "failed while updating xds snapshot cache")
 		}
-		logger.Infof("Setting xDS Snapshot for Proxy %v: %v clusters, %v listeners, %v route configs, %v endpoints",
-			proxy.Metadata.Name, len(xdsSnapshot.Clusters.Items), len(xdsSnapshot.Listeners.Items),
+		logger.Infof("Setting xDS Snapshot for Key %v: %v clusters, %v listeners, %v route configs, %v endpoints",
+			key, len(xdsSnapshot.Clusters.Items), len(xdsSnapshot.Listeners.Items),
 			len(xdsSnapshot.Routes.Items), len(xdsSnapshot.Endpoints.Items))
 
 		logger.Debugf("Full snapshot for proxy %v: %v", proxy.Metadata.Name, xdsSnapshot)

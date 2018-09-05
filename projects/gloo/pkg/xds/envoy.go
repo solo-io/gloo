@@ -51,7 +51,7 @@ func (h *ProxyKeyHasher) ID(node *core.Node) string {
 	return fallbackNodeKey
 }
 
-func xdsKey(proxy *v1.Proxy) string {
+func SnapshotKey(proxy *v1.Proxy) string {
 	namespace, name := proxy.GetMetadata().Ref().Strings()
 	return fmt.Sprintf("%v~%v", namespace, name)
 }
@@ -61,7 +61,7 @@ func (h *ProxyKeyHasher) SetKeysFromProxies(proxies v1.ProxyList) {
 	var validKeys []string
 	// This is where we correlate Node ID with proxy namespace~name
 	for _, proxy := range proxies {
-		validKeys = append(validKeys, xdsKey(proxy))
+		validKeys = append(validKeys, SnapshotKey(proxy))
 	}
 	h.validKeys = validKeys
 }
