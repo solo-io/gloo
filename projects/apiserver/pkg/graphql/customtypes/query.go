@@ -23,3 +23,28 @@ type ResolverMapQuery struct {
 type ResolverMapMutation struct {
 	Namespace string
 }
+
+
+type SchemaQuery struct {
+	Namespace string
+}
+
+type SchemaMutation struct {
+	Namespace string
+}
+
+type SecretQuery struct {
+	Namespace string
+}
+
+type SecretMutation struct {
+	Namespace string
+}
+
+type ArtifactQuery struct {
+	Namespace string
+}
+
+type ArtifactMutation struct {
+	Namespace string
+}

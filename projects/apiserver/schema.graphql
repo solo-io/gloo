@@ -577,7 +577,7 @@ type Artifact {
 
 input InputArtifact {
     data: String!
-    metadata: Metadata!
+    metadata: InputMetadata!
 }
 
 

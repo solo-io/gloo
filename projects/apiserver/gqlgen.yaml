@@ -30,3 +30,15 @@ models:
     model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.ResolverMapQuery
   ResolverMapMutation:
     model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.ResolverMapMutation
+  SchemaQuery:
+    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.SchemaQuery
+  SchemaMutation:
+    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.SchemaMutation
+  SecretQuery:
+    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.SecretQuery
+  SecretMutation:
+    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.SecretMutation
+  ArtifactQuery:
+    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.ArtifactQuery
+  ArtifactMutation:
+    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.ArtifactMutation

@@ -15,8 +15,11 @@ import (
 
 type ApiResolver struct {
 	Upstreams       v1.UpstreamClient
+	Secrets         v1.SecretClient
+	Artifacts       v1.ArtifactClient
 	VirtualServices gatewayv1.VirtualServiceClient
 	ResolverMaps    sqoopv1.ResolverMapClient
+	Schemas         sqoopv1.Schema
 	Converter       *Converter
 }
 
@@ -57,6 +60,22 @@ func (r *ApiResolver) ResolverMapQuery() graph.ResolverMapQueryResolver {
 	return &resolverMapQueryResolver{r}
 }
 
+func (r *ApiResolver) ArtifactMutation() graph.ArtifactMutationResolver {
+	return &artifactMutationResolver{r}
+}
+
+func (r *ApiResolver) ArtifactQuery() graph.ArtifactQueryResolver {
+	return &artifactQueryResolver{r}
+}
+
+func (r *ApiResolver) SecretMutation() graph.SecretMutationResolver {
+	return &secretMutationResolver{r}
+}
+
+func (r *ApiResolver) SecretQuery() graph.SecretQueryResolver {
+	return &secretQueryResolver{r}
+}
+
 type mutationResolver struct{ *ApiResolver }
 
 func (r *mutationResolver) Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamMutation, error) {
@@ -67,6 +86,15 @@ func (r *mutationResolver) VirtualServices(ctx context.Context, namespace string
 }
 func (r *mutationResolver) ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapMutation, error) {
 	return customtypes.ResolverMapMutation{Namespace: namespace}, nil
+}
+func (r *mutationResolver) Schemas(ctx context.Context, namespace string) (models.SchemaMutation, error) {
+	panic("not implemented")
+}
+func (r *mutationResolver) Secrets(ctx context.Context, namespace string) (customtypes.SecretMutation, error) {
+	panic("not implemented")
+}
+func (r *mutationResolver) Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactMutation, error) {
+	panic("not implemented")
 }
 
 type queryResolver struct{ *ApiResolver }
@@ -79,6 +107,15 @@ func (r *queryResolver) VirtualServices(ctx context.Context, namespace string) (
 }
 func (r *queryResolver) ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapQuery, error) {
 	return customtypes.ResolverMapQuery{Namespace: namespace}, nil
+}
+func (r *queryResolver) Schemas(ctx context.Context, namespace string) (models.SchemaQuery, error) {
+	panic("not implemented")
+}
+func (r *queryResolver) Secrets(ctx context.Context, namespace string) (customtypes.SecretQuery, error) {
+	panic("not implemented")
+}
+func (r *queryResolver) Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactQuery, error) {
+	panic("not implemented")
 }
 
 type upstreamMutationResolver struct{ *ApiResolver }
@@ -394,4 +431,208 @@ func (r *resolverMapQueryResolver) Get(ctx context.Context, obj *customtypes.Res
 		return nil, err
 	}
 	return r.Converter.ConvertOutputResolverMap(resolverMap), nil
+}
+
+type schemaMutationResolver struct{ *ApiResolver }
+
+func (r *schemaMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.SchemaMutation, schema models.InputSchema) (*models.Schema, error) {
+	ups, err := r.Converter.ConvertInputSchema(schema)
+	if err != nil {
+		return nil, err
+	}
+	out, err := r.Schemas.Write(ups, clients.WriteOpts{
+		Ctx:               ctx,
+		OverwriteExisting: overwrite,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputSchema(out), nil
+}
+
+func (r *schemaMutationResolver) Create(ctx context.Context, obj *customtypes.SchemaMutation, schema models.InputSchema) (*models.Schema, error) {
+	return r.write(false, ctx, obj, schema)
+}
+func (r *schemaMutationResolver) Update(ctx context.Context, obj *customtypes.SchemaMutation, schema models.InputSchema) (*models.Schema, error) {
+	return r.write(true, ctx, obj, schema)
+}
+func (r *schemaMutationResolver) Delete(ctx context.Context, obj *customtypes.SchemaMutation, name string) (*models.Schema, error) {
+	schema, err := r.Schemas.Read(obj.Namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		if errors.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	err = r.Schemas.Delete(obj.Namespace, name, clients.DeleteOpts{Ctx: ctx})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputSchema(schema), nil
+}
+
+type schemaQueryResolver struct{ *ApiResolver }
+
+func (r *schemaQueryResolver) List(ctx context.Context, obj *customtypes.SchemaQuery, selector *models.InputMapStringString) ([]*models.Schema, error) {
+	var convertedSelector map[string]string
+	if selector != nil {
+		convertedSelector = selector.GoType()
+	}
+	list, err := r.Schemas.List(obj.Namespace, clients.ListOpts{
+		Ctx:      ctx,
+		Selector: convertedSelector,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputSchemas(list), nil
+}
+
+func (r *schemaQueryResolver) Get(ctx context.Context, obj *customtypes.SchemaQuery, name string) (*models.Schema, error) {
+	schema, err := r.Schemas.Read(obj.Namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputSchema(schema), nil
+}
+
+type secretMutationResolver struct{ *ApiResolver }
+
+func (r *secretMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.SecretMutation, secret models.InputSecret) (*models.Secret, error) {
+	ups, err := r.Converter.ConvertInputSecret(secret)
+	if err != nil {
+		return nil, err
+	}
+	out, err := r.Secrets.Write(ups, clients.WriteOpts{
+		Ctx:               ctx,
+		OverwriteExisting: overwrite,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputSecret(out), nil
+}
+
+func (r *secretMutationResolver) Create(ctx context.Context, obj *customtypes.SecretMutation, secret models.InputSecret) (*models.Secret, error) {
+	return r.write(false, ctx, obj, secret)
+}
+func (r *secretMutationResolver) Update(ctx context.Context, obj *customtypes.SecretMutation, secret models.InputSecret) (*models.Secret, error) {
+	return r.write(true, ctx, obj, secret)
+}
+func (r *secretMutationResolver) Delete(ctx context.Context, obj *customtypes.SecretMutation, name string) (*models.Secret, error) {
+	secret, err := r.Secrets.Read(obj.Namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		if errors.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	err = r.Secrets.Delete(obj.Namespace, name, clients.DeleteOpts{Ctx: ctx})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputSecret(secret), nil
+}
+
+type secretQueryResolver struct{ *ApiResolver }
+
+func (r *secretQueryResolver) List(ctx context.Context, obj *customtypes.SecretQuery, selector *models.InputMapStringString) ([]*models.Secret, error) {
+	var convertedSelector map[string]string
+	if selector != nil {
+		convertedSelector = selector.GoType()
+	}
+	list, err := r.Secrets.List(obj.Namespace, clients.ListOpts{
+		Ctx:      ctx,
+		Selector: convertedSelector,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputSecrets(list), nil
+}
+
+func (r *secretQueryResolver) Get(ctx context.Context, obj *customtypes.SecretQuery, name string) (*models.Secret, error) {
+	secret, err := r.Secrets.Read(obj.Namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputSecret(secret), nil
+}
+
+type artifactMutationResolver struct{ *ApiResolver }
+
+func (r *artifactMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.ArtifactMutation, artifact models.InputArtifact) (*models.Artifact, error) {
+	ups, err := r.Converter.ConvertInputArtifact(artifact)
+	if err != nil {
+		return nil, err
+	}
+	out, err := r.Artifacts.Write(ups, clients.WriteOpts{
+		Ctx:               ctx,
+		OverwriteExisting: overwrite,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputArtifact(out), nil
+}
+
+func (r *artifactMutationResolver) Create(ctx context.Context, obj *customtypes.ArtifactMutation, artifact models.InputArtifact) (*models.Artifact, error) {
+	return r.write(false, ctx, obj, artifact)
+}
+func (r *artifactMutationResolver) Update(ctx context.Context, obj *customtypes.ArtifactMutation, artifact models.InputArtifact) (*models.Artifact, error) {
+	return r.write(true, ctx, obj, artifact)
+}
+func (r *artifactMutationResolver) Delete(ctx context.Context, obj *customtypes.ArtifactMutation, name string) (*models.Artifact, error) {
+	artifact, err := r.Artifacts.Read(obj.Namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		if errors.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	err = r.Artifacts.Delete(obj.Namespace, name, clients.DeleteOpts{Ctx: ctx})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputArtifact(artifact), nil
+}
+
+type artifactQueryResolver struct{ *ApiResolver }
+
+func (r *artifactQueryResolver) List(ctx context.Context, obj *customtypes.ArtifactQuery, selector *models.InputMapStringString) ([]*models.Artifact, error) {
+	var convertedSelector map[string]string
+	if selector != nil {
+		convertedSelector = selector.GoType()
+	}
+	list, err := r.Artifacts.List(obj.Namespace, clients.ListOpts{
+		Ctx:      ctx,
+		Selector: convertedSelector,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputArtifacts(list), nil
+}
+
+func (r *artifactQueryResolver) Get(ctx context.Context, obj *customtypes.ArtifactQuery, name string) (*models.Artifact, error) {
+	artifact, err := r.Artifacts.Read(obj.Namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputArtifact(artifact), nil
 }
