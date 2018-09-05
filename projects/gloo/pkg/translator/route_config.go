@@ -1,6 +1,8 @@
 package translator
 
 import (
+	"strings"
+
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
@@ -118,6 +120,14 @@ func setMatch(in *v1.Route, out *envoyroute.Route) {
 	match := envoyroute.RouteMatch{
 		Headers:         envoyHeaderMatcher(in.Matcher.Headers),
 		QueryParameters: envoyQueryMatcher(in.Matcher.QueryParameters),
+	}
+	if len(in.Matcher.Methods) > 0 {
+		match.Headers = append(match.Headers, &envoyroute.HeaderMatcher{
+			Name: ":method",
+			HeaderMatchSpecifier: &envoyroute.HeaderMatcher_RegexMatch{
+				RegexMatch: strings.Join(in.Matcher.Methods, "|"),
+			},
+		})
 	}
 	// need to do this because Go's proto implementation makes oneofs private
 	// which genius thought of that?
