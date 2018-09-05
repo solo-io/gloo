@@ -14,3 +14,11 @@ func (us *UpstreamSpec_Kube) GetServiceSpec() *plugins.ServiceSpec {
 func (us *UpstreamSpec_Kube) SetServiceSpec(spec *plugins.ServiceSpec) {
 	us.Kube.ServiceSpec = spec
 }
+
+func (us *UpstreamSpec_Static) GetServiceSpec() *plugins.ServiceSpec {
+	return us.Static.ServiceSpec
+}
+
+func (us *UpstreamSpec_Static) SetServiceSpec(spec *plugins.ServiceSpec) {
+	us.Static.ServiceSpec = spec
+}
