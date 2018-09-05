@@ -1,4 +1,4 @@
-package graphql
+	package graphql
 
 import (
 	"context"
@@ -95,13 +95,13 @@ func (r *mutationResolver) ResolverMaps(ctx context.Context, namespace string) (
 	return customtypes.ResolverMapMutation{Namespace: namespace}, nil
 }
 func (r *mutationResolver) Schemas(ctx context.Context, namespace string) (customtypes.SchemaMutation, error) {
-	panic("not implemented")
+	return customtypes.SchemaMutation{Namespace: namespace}, nil
 }
 func (r *mutationResolver) Secrets(ctx context.Context, namespace string) (customtypes.SecretMutation, error) {
-	panic("not implemented")
+	return customtypes.SecretMutation{Namespace: namespace}, nil
 }
 func (r *mutationResolver) Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactMutation, error) {
-	panic("not implemented")
+	return customtypes.ArtifactMutation{Namespace: namespace}, nil
 }
 
 type queryResolver struct{ *ApiResolver }
@@ -116,13 +116,13 @@ func (r *queryResolver) ResolverMaps(ctx context.Context, namespace string) (cus
 	return customtypes.ResolverMapQuery{Namespace: namespace}, nil
 }
 func (r *queryResolver) Schemas(ctx context.Context, namespace string) (customtypes.SchemaQuery, error) {
-	panic("not implemented")
+	return customtypes.SchemaQuery{Namespace: namespace}, nil
 }
 func (r *queryResolver) Secrets(ctx context.Context, namespace string) (customtypes.SecretQuery, error) {
-	panic("not implemented")
+	return customtypes.SecretQuery{Namespace: namespace}, nil
 }
 func (r *queryResolver) Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactQuery, error) {
-	panic("not implemented")
+	return customtypes.ArtifactQuery{Namespace: namespace}, nil
 }
 
 type upstreamMutationResolver struct{ *ApiResolver }
