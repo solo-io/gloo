@@ -11,6 +11,7 @@ import (
 	"os"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
 )
 
 func MakeMetadata(name, namespace string) core.Metadata {
@@ -145,6 +146,18 @@ func Upstreams() v1.UpstreamList {
 								FunctionName: "TransportRing",
 								AuthLevel:    azure.UpstreamSpec_FunctionSpec_Admin,
 							},
+						},
+					},
+				},
+			},
+		},
+		{
+			Metadata: MakeMetadata("static-1", "gloo-system"),
+			UpstreamSpec: &v1.UpstreamSpec{
+				UpstreamType: &v1.UpstreamSpec_Static{
+					Static: &static.UpstreamSpec{
+						Hosts: []*static.Host{
+							{Addr: "127.0.0.1", Port: 8000},
 						},
 					},
 				},
@@ -300,6 +313,26 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 				Name:    meta2.Name,
 				Domains: []string{"*"},
 				Routes: []*v1.Route{
+					{
+						Matcher: &v1.Matcher{
+							PathSpecifier: &v1.Matcher_Prefix{
+								"/pizza",
+							},
+							Methods: []string{"GET"},
+						},
+						Action: &v1.Route_RouteAction{
+							RouteAction: &v1.RouteAction{
+								Destination: &v1.RouteAction_Single{
+									Single: &v1.Destination{
+										Upstream: core.ResourceRef{
+											Name:      "static-1",
+											Namespace: "gloo-system",
+										},
+									},
+								},
+							},
+						},
+					},
 					{
 						Matcher: &v1.Matcher{
 							PathSpecifier: &v1.Matcher_Prefix{
