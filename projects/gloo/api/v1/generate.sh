@@ -31,10 +31,15 @@ IN=${IN}/plugins
 # protoc made me do it
 protoc -I=${IN} ${PROTOC_FLAGS} ${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/service_spec.proto
 
-for plugin in azure aws kubernetes rest transformation ratelimit static; do
+for plugindir in $(echo plugins/*/); do
+# remove folder
+plugin=${plugindir#"plugins/"}
+# remove trailing slash
+plugin=${plugin%"/"}
+
 mkdir -p ${OUT}/plugins/$plugin
 
 # we need ${GOPATH}/src/github.com/gogo/protobuf/protobuf
 # as the filter's protobufs use validate/validate.proto
-protoc -I=${IN} ${PROTOC_FLAGS} ${IN}/$plugin/$plugin.proto
+protoc -I=${IN} ${PROTOC_FLAGS} ${IN}/$plugin/*.proto
 done
