@@ -24,7 +24,6 @@ type ResolverMapMutation struct {
 	Namespace string
 }
 
-
 type SchemaQuery struct {
 	Namespace string
 }
