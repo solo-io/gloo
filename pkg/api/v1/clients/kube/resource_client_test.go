@@ -34,7 +34,7 @@ var _ = Describe("Base", func() {
 		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
-		client, err = NewResourceClient(mocks.MockResourceCrd, cfg, &mocks.MockData{})
+		client, err = NewResourceClient(mocks.MockResourceCrd, cfg, &mocks.MockResource{})
 		Expect(err).NotTo(HaveOccurred())
 	})
 	AfterEach(func() {

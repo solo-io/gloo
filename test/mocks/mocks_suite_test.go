@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestMockResourceFakeResourceMockData(t *testing.T) {
+func TestMockResourceFakeResourceMockResource(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "MockResourceFakeResourceMockData Suite")
+	RunSpecs(t, "MockResourceFakeResourceMockResource Suite")
 }

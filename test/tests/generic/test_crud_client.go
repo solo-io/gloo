@@ -18,8 +18,8 @@ import (
 func TestCrudClient(namespace string, client ResourceClient, refreshRate time.Duration) {
 	client.Register()
 	foo := "foo"
-	input := mocks.NewMockData(namespace, foo)
-	data := map[string]string{"hello": "goodbye"}
+	input := mocks.NewMockResource(namespace, foo)
+	data := "hello: goodbye"
 	input.Data = data
 	labels := map[string]string{"pick": "me"}
 	input.Metadata.Labels = labels
@@ -34,14 +34,14 @@ func TestCrudClient(namespace string, client ResourceClient, refreshRate time.Du
 	Expect(err).To(HaveOccurred())
 	Expect(errors.IsExist(err)).To(BeTrue())
 
-	Expect(r1).To(BeAssignableToTypeOf(&mocks.MockData{}))
+	Expect(r1).To(BeAssignableToTypeOf(&mocks.MockResource{}))
 	Expect(r1.GetMetadata().Name).To(Equal(foo))
 	if namespace == "" {
 		namespace = DefaultNamespace
 	}
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 	Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal(""))
-	Expect(r1.(*mocks.MockData).Data).To(Equal(data))
+	Expect(r1.(*mocks.MockResource).Data).To(Equal(data))
 
 	// if exists and resource ver was not updated, error
 	_, err = client.Write(input, clients.WriteOpts{
@@ -52,7 +52,7 @@ func TestCrudClient(namespace string, client ResourceClient, refreshRate time.Du
 	resources.UpdateMetadata(input, func(meta *core.Metadata) {
 		meta.ResourceVersion = r1.GetMetadata().ResourceVersion
 	})
-	data = map[string]string{"asdf": "qwer"}
+	data = "asdf: qwer"
 	input.Data = data
 
 	oldRv := r1.GetMetadata().ResourceVersion
@@ -73,7 +73,7 @@ func TestCrudClient(namespace string, client ResourceClient, refreshRate time.Du
 	Expect(errors.IsNotExist(err)).To(BeTrue())
 
 	boo := "boo"
-	input = &mocks.MockData{
+	input = &mocks.MockResource{
 		Data: data,
 		Metadata: core.Metadata{
 			Name:      boo,
@@ -129,7 +129,7 @@ func TestCrudClient(namespace string, client ResourceClient, refreshRate time.Du
 		r2, err = client.Write(r2, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		input = &mocks.MockData{
+		input = &mocks.MockResource{
 			Data: data,
 			Metadata: core.Metadata{
 				Name:      "goo",

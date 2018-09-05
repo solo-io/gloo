@@ -23,7 +23,7 @@ var _ = Describe("Base", func() {
 		c, err := api.NewClient(api.DefaultConfig())
 		Expect(err).NotTo(HaveOccurred())
 		consul = c
-		client = NewResourceClient(consul, rootKey, &mocks.MockData{})
+		client = NewResourceClient(consul, rootKey, &mocks.MockResource{})
 	})
 	AfterEach(func() {
 		consul.KV().DeleteTree(rootKey, nil)

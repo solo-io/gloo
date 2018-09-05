@@ -27,7 +27,7 @@ var _ = Describe("Base", func() {
 		c.SetToken(vaultInstance.Token())
 		Expect(err).NotTo(HaveOccurred())
 		vault = c
-		secrets = NewResourceClient(vault, rootKey, &mocks.MockData{})
+		secrets = NewResourceClient(vault, rootKey, &mocks.MockResource{})
 	})
 	AfterEach(func() {
 		vault.Logical().Delete(rootKey)

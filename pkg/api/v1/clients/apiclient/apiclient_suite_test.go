@@ -28,7 +28,7 @@ func TestApiclient(t *testing.T) {
 }
 
 var (
-	resourceClient = memory.NewResourceClient(memory.NewInMemoryResourceCache(), &mocks.MockData{})
+	resourceClient = memory.NewResourceClient(memory.NewInMemoryResourceCache(), &mocks.MockResource{})
 	port           = 1234
 	server         *grpc.Server
 )
@@ -47,7 +47,7 @@ var _ = BeforeSuite(func() {
 		)))
 	apiserver.NewApiServer(server, nil, factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
 		Cache: memory.NewInMemoryResourceCache(),
-	}), &mocks.MockData{})
+	}), &mocks.MockResource{})
 	log.Printf("grpc listening on %v", port)
 	go server.Serve(lis)
 })

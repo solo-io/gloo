@@ -37,7 +37,7 @@ var _ = Describe("Base", func() {
 		Expect(err).NotTo(HaveOccurred())
 		kube, err := kubernetes.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-		client, err = NewResourceClient(kube, &mocks.MockData{})
+		client, err = NewResourceClient(kube, &mocks.MockResource{})
 	})
 	AfterEach(func() {
 		services.TeardownKube(namespace)
