@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
 )
 
 type Converter struct{}
@@ -90,6 +91,25 @@ func convertInputUpstreamSpec(spec InputUpstreamSpec) (*v1.UpstreamSpec, error) 
 				ServicePort:      uint32(spec.Kube.ServicePort),
 			},
 		}
+	case spec.Static != nil:
+		serviceSpec, err := convertInputServiceSpec(spec.Static.ServiceSpec)
+		if err != nil {
+			return nil, errors.Wrapf(err, "invalid service spec")
+		}
+		var hosts []*static.Host
+		for _, h := range spec.Static.Hosts {
+			hosts = append(hosts, &static.Host{
+				Addr: h.Addr,
+				Port: uint32(h.Port),
+			})
+		}
+		out.UpstreamType = &v1.UpstreamSpec_Static{
+			Static: &static.UpstreamSpec{
+				Hosts:       hosts,
+				UseTls:      spec.Static.UseTLS,
+				ServiceSpec: serviceSpec,
+			},
+		}
 	default:
 		log.Printf("invalid spec: %#v", spec)
 	}
@@ -164,6 +184,19 @@ func convertOutputUpstreamSpec(spec *v1.UpstreamSpec) UpstreamSpec {
 			ServiceName:      specType.Kube.ServiceName,
 			Selector:         NewMapStringString(specType.Kube.Selector),
 			ServiceSpec:      convertOutputServiceSpec(specType.Kube.ServiceSpec),
+		}
+	case *v1.UpstreamSpec_Static:
+		var hosts []StaticHost
+		for _, h := range specType.Static.Hosts {
+			hosts = append(hosts, StaticHost{
+				Addr: h.Addr,
+				Port: int(h.Port),
+			})
+		}
+		return &StaticUpstreamSpec{
+			Hosts:       hosts,
+			UseTLS:      specType.Static.UseTls,
+			ServiceSpec: convertOutputServiceSpec(specType.Static.ServiceSpec),
 		}
 	}
 	log.Printf("unsupported upstream type %v", spec)
