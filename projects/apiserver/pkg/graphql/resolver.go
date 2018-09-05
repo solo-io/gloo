@@ -19,7 +19,7 @@ type ApiResolver struct {
 	Artifacts       v1.ArtifactClient
 	VirtualServices gatewayv1.VirtualServiceClient
 	ResolverMaps    sqoopv1.ResolverMapClient
-	Schemas         sqoopv1.Schema
+	Schemas         sqoopv1.SchemaClient
 	Converter       *Converter
 }
 
@@ -60,6 +60,13 @@ func (r *ApiResolver) ResolverMapQuery() graph.ResolverMapQueryResolver {
 	return &resolverMapQueryResolver{r}
 }
 
+func (r *ApiResolver) SchemaMutation() graph.SchemaMutationResolver {
+	return &schemaMutationResolver{r}
+}
+func (r *ApiResolver) SchemaQuery() graph.SchemaQueryResolver {
+	return &schemaQueryResolver{r}
+}
+
 func (r *ApiResolver) ArtifactMutation() graph.ArtifactMutationResolver {
 	return &artifactMutationResolver{r}
 }
@@ -87,7 +94,7 @@ func (r *mutationResolver) VirtualServices(ctx context.Context, namespace string
 func (r *mutationResolver) ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapMutation, error) {
 	return customtypes.ResolverMapMutation{Namespace: namespace}, nil
 }
-func (r *mutationResolver) Schemas(ctx context.Context, namespace string) (models.SchemaMutation, error) {
+func (r *mutationResolver) Schemas(ctx context.Context, namespace string) (customtypes.SchemaMutation, error) {
 	panic("not implemented")
 }
 func (r *mutationResolver) Secrets(ctx context.Context, namespace string) (customtypes.SecretMutation, error) {
@@ -108,7 +115,7 @@ func (r *queryResolver) VirtualServices(ctx context.Context, namespace string) (
 func (r *queryResolver) ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapQuery, error) {
 	return customtypes.ResolverMapQuery{Namespace: namespace}, nil
 }
-func (r *queryResolver) Schemas(ctx context.Context, namespace string) (models.SchemaQuery, error) {
+func (r *queryResolver) Schemas(ctx context.Context, namespace string) (customtypes.SchemaQuery, error) {
 	panic("not implemented")
 }
 func (r *queryResolver) Secrets(ctx context.Context, namespace string) (customtypes.SecretQuery, error) {

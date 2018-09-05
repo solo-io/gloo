@@ -7,6 +7,7 @@ option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
+import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 
 /*
 @solo-kit:resource.short_name=sc
@@ -17,13 +18,9 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
 * The Schema Object contains a Status field which is used by SQooP to validate the user's input schema.
 */
 message Schema {
-    // Schema Names must be unique and follow the following syntax rules:
-    // One or more lowercase rfc1035/rfc1123 labels separated by '.' with a maximum length of 253 characters.
-    string name = 1;
-
-    // name of the resolver map to use to resolve this schema.
-    // if the user leaves this empty, QLoo will generate the skeleton of a resolver map for the user
-    string resolver_map = 2;
+    // referenbce to the resolver map to use to resolve this schema.
+    // if the user leaves this empty, Sqoop will generate the skeleton of a resolver map for the user
+    core.solo.io.ResourceRef resolver_map = 2 [(gogoproto.nullable) = false];
 
     // inline the entire graphql schema as a string here
     string inline_schema = 3;

@@ -38,7 +38,7 @@ type AzureFunction struct {
 	AuthLevel    string `json:"authLevel"`
 }
 type AzureSecret struct {
-	APIKeys MapStringString `json:"apiKeys"`
+	APIKeys *MapStringString `json:"apiKeys"`
 }
 type AzureUpstreamSpec struct {
 	FunctionAppName string          `json:"functionAppName"`

@@ -54,8 +54,8 @@ type ArtifactMutationResolver interface {
 	Delete(ctx context.Context, obj *customtypes.ArtifactMutation, name string) (*models.Artifact, error)
 }
 type ArtifactQueryResolver interface {
-	List(ctx context.Context, obj *customtypes.ArtifactQuery, selector *models.InputMapStringString) ([]*models.Secret, error)
-	Get(ctx context.Context, obj *customtypes.ArtifactQuery, name string) (*models.Secret, error)
+	List(ctx context.Context, obj *customtypes.ArtifactQuery, selector *models.InputMapStringString) ([]*models.Artifact, error)
+	Get(ctx context.Context, obj *customtypes.ArtifactQuery, name string) (*models.Artifact, error)
 }
 type MutationResolver interface {
 	Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamMutation, error)
@@ -445,7 +445,7 @@ func (ec *executionContext) _ArtifactQuery_list(ctx context.Context, field graph
 		if resTmp == nil {
 			return graphql.Null
 		}
-		res := resTmp.([]*models.Secret)
+		res := resTmp.([]*models.Artifact)
 		arr1 := graphql.Array{}
 		for idx1 := range res {
 			arr1 = append(arr1, func() graphql.Marshaler {
@@ -455,7 +455,7 @@ func (ec *executionContext) _ArtifactQuery_list(ctx context.Context, field graph
 				if res[idx1] == nil {
 					return graphql.Null
 				}
-				return ec._Secret(ctx, field.Selections, res[idx1])
+				return ec._Artifact(ctx, field.Selections, res[idx1])
 			}())
 		}
 		return arr1
@@ -495,11 +495,11 @@ func (ec *executionContext) _ArtifactQuery_get(ctx context.Context, field graphq
 		if resTmp == nil {
 			return graphql.Null
 		}
-		res := resTmp.(*models.Secret)
+		res := resTmp.(*models.Artifact)
 		if res == nil {
 			return graphql.Null
 		}
-		return ec._Secret(ctx, field.Selections, res)
+		return ec._Artifact(ctx, field.Selections, res)
 	})
 }
 
@@ -921,8 +921,11 @@ func (ec *executionContext) _AzureSecret_apiKeys(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(models.MapStringString)
-	return ec._MapStringString(ctx, field.Selections, &res)
+	res := resTmp.(*models.MapStringString)
+	if res == nil {
+		return graphql.Null
+	}
+	return ec._MapStringString(ctx, field.Selections, res)
 }
 
 var azureUpstreamSpecImplementors = []string{"AzureUpstreamSpec"}
@@ -7577,8 +7580,8 @@ type SecretMutation {
 }
 
 type ArtifactQuery {
-    list(selector: InputMapStringString): [Secret]
-    get(name: String!):                Secret
+    list(selector: InputMapStringString): [Artifact]
+    get(name: String!):                Artifact
 }
 
 type ArtifactMutation {
@@ -8018,7 +8021,7 @@ type AwsSecret {
 }
 
 type AzureSecret {
-    apiKeys: MapStringString!
+    apiKeys: MapStringString
 }
 
 type TlsSecret {

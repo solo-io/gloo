@@ -12,7 +12,7 @@ model:
 
 # Optional, turns on resolver stub generation
 resolver:
-  filename: pkg/graphql/resolver2.go # where to write them
+  filename: pkg/graphql/resolver.go # where to write them
   type: GraphqlResolver  # whats the resolver root implementation type called?
 
 # Tell gqlgen about any existing models you want to reuse for

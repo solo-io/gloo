@@ -87,8 +87,8 @@ type SecretMutation {
 }
 
 type ArtifactQuery {
-    list(selector: InputMapStringString): [Secret]
-    get(name: String!):                Secret
+    list(selector: InputMapStringString): [Artifact]
+    get(name: String!):                Artifact
 }
 
 type ArtifactMutation {
@@ -528,7 +528,7 @@ type AwsSecret {
 }
 
 type AzureSecret {
-    apiKeys: MapStringString!
+    apiKeys: MapStringString
 }
 
 type TlsSecret {

@@ -310,7 +310,7 @@ func convertInputQueryMatcher(queryM []InputKeyValueMatcher) []*v1.QueryParamete
 }
 
 func convertInputRoutePlugins(plugs *InputRoutePlugins) *v1.RoutePlugins {
-	// TODO(ilackarms): convert route plugins when there are any
+	// TODO(ilackaitems): convert route plugins when there are any
 	return nil
 }
 
@@ -463,7 +463,7 @@ func convertOutputQueryMatcher(headers []*v1.QueryParameterMatcher) []KeyValueMa
 }
 
 func convertOutputRoutePlugins(plugs *v1.RoutePlugins) *RoutePlugins {
-	// TODO(ilackarms): convert route plugins when there are any
+	// TODO(ilackaitems): convert route plugins when there are any
 	return nil
 }
 
@@ -544,6 +544,7 @@ func (c *Converter) ConvertOutputResolverMap(resolverMap *sqoopv1.ResolverMap) *
 		return typeResolvers[i].TypeName < typeResolvers[j].TypeName
 	})
 	return &ResolverMap{
+		Types:    typeResolvers,
 		Status:   convertOutputStatus(resolverMap.Status),
 		Metadata: convertOutputMetadata(resolverMap.Metadata),
 	}
@@ -566,7 +567,7 @@ func convertOutputTypeResolver(typeName string, typeResolver *sqoopv1.TypeResolv
 	}
 }
 
-// TODO(ilacakrms): implement these
+// TODO(ilacakitems): implement these
 func convertOutputResolver(resolver *sqoopv1.FieldResolver) Resolver {
 	switch resolver.Resolver.(type) {
 	case *sqoopv1.FieldResolver_GlooResolver:
@@ -582,8 +583,8 @@ func convertOutputResolver(resolver *sqoopv1.FieldResolver) Resolver {
 
 func (c *Converter) ConvertInputResolverMaps(resolverMaps []*InputResolverMap) (sqoopv1.ResolverMapList, error) {
 	var result sqoopv1.ResolverMapList
-	for _, rm := range resolverMaps {
-		in, err := c.ConvertInputResolverMap(*rm)
+	for _, item := range resolverMaps {
+		in, err := c.ConvertInputResolverMap(*item)
 		if err != nil {
 			return nil, err
 		}
@@ -621,7 +622,7 @@ func convertInputTypeResolver(typeResolver InputTypeResolver) (*sqoopv1.TypeReso
 	}, nil
 }
 
-// TODO(ilacakrms): implement these
+// TODO(ilacakitems): implement these
 func convertInputResolver(resolver InputResolver) (*sqoopv1.FieldResolver, error) {
 	switch {
 	case resolver.GlooResolver != nil:
@@ -686,4 +687,150 @@ func convertOutputStatus(status core.Status) Status {
 		State:  state,
 		Reason: reason,
 	}
+}
+
+func (c *Converter) ConvertOutputSchemas(schemas sqoopv1.SchemaList) []*Schema {
+	var result []*Schema
+	for _, us := range schemas {
+		result = append(result, c.ConvertOutputSchema(us))
+	}
+	return result
+}
+
+func (c *Converter) ConvertOutputSchema(schema *sqoopv1.Schema) *Schema {
+	return &Schema{
+		ResolverMap:  convertOutputRef(schema.ResolverMap),
+		InlineSchema: schema.InlineSchema,
+		Status:       convertOutputStatus(schema.Status),
+		Metadata:     convertOutputMetadata(schema.Metadata),
+	}
+}
+
+func (c *Converter) ConvertInputSchemas(schemas []*InputSchema) (sqoopv1.SchemaList, error) {
+	var result sqoopv1.SchemaList
+	for _, item := range schemas {
+		in, err := c.ConvertInputSchema(*item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, in)
+	}
+	return result, nil
+}
+
+func (c *Converter) ConvertInputSchema(schema InputSchema) (*sqoopv1.Schema, error) {
+	return &sqoopv1.Schema{
+		Metadata:     convertInputMetadata(schema.Metadata),
+		ResolverMap:  convertInputRef(schema.ResolverMap),
+		InlineSchema: schema.InlineSchema,
+	}, nil
+}
+
+func (c *Converter) ConvertOutputSecrets(secrets v1.SecretList) []*Secret {
+	var result []*Secret
+	for _, us := range secrets {
+		result = append(result, c.ConvertOutputSecret(us))
+	}
+	return result
+}
+
+func (c *Converter) ConvertOutputSecret(secret *v1.Secret) *Secret {
+	out := &Secret{
+		Metadata: convertOutputMetadata(secret.Metadata),
+	}
+	switch sec := secret.Kind.(type) {
+	case *v1.Secret_Aws:
+		out.Kind = &AwsSecret{
+			AccessKey: sec.Aws.AccessKey,
+			SecretKey: sec.Aws.SecretKey,
+		}
+	case *v1.Secret_Azure:
+		out.Kind = &AzureSecret{
+			APIKeys: NewMapStringString(sec.Azure.ApiKeys),
+		}
+	case *v1.Secret_Tls:
+		out.Kind = &TlsSecret{
+			CertChain:  sec.Tls.CertChain,
+			RootCa:     sec.Tls.RootCa,
+			PrivateKey: sec.Tls.PrivateKey,
+		}
+	}
+	return out
+}
+
+func (c *Converter) ConvertInputSecrets(secrets []*InputSecret) (v1.SecretList, error) {
+	var result v1.SecretList
+	for _, item := range secrets {
+		in, err := c.ConvertInputSecret(*item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, in)
+	}
+	return result, nil
+}
+
+func (c *Converter) ConvertInputSecret(secret InputSecret) (*v1.Secret, error) {
+	out := &v1.Secret{
+		Metadata: convertInputMetadata(secret.Metadata),
+	}
+	switch {
+	case secret.Kind.Aws != nil:
+		out.Kind = &v1.Secret_Aws{
+			Aws: &v1.AwsSecret{
+				AccessKey: secret.Kind.Aws.AccessKey,
+				SecretKey: secret.Kind.Aws.SecretKey,
+			},
+		}
+	case secret.Kind.Azure != nil:
+		out.Kind = &v1.Secret_Azure{
+			Azure: &v1.AzureSecret{
+				ApiKeys: secret.Kind.Azure.APIKeys.GoType(),
+			},
+		}
+	case secret.Kind.TLS != nil:
+		out.Kind = &v1.Secret_Tls{
+			Tls: &v1.TlsSecret{
+				PrivateKey: secret.Kind.TLS.PrivateKey,
+				RootCa:     secret.Kind.TLS.RootCa,
+				CertChain:  secret.Kind.TLS.CertChain,
+			},
+		}
+	default:
+		return nil, errors.Errorf("invalid input secret:  requires one of Aws, Azure, or TLS set")
+	}
+	return out, nil
+}
+
+func (c *Converter) ConvertOutputArtifacts(artifacts v1.ArtifactList) []*Artifact {
+	var result []*Artifact
+	for _, us := range artifacts {
+		result = append(result, c.ConvertOutputArtifact(us))
+	}
+	return result
+}
+
+func (c *Converter) ConvertOutputArtifact(artifact *v1.Artifact) *Artifact {
+	return &Artifact{
+		Metadata: convertOutputMetadata(artifact.Metadata),
+	}
+}
+
+func (c *Converter) ConvertInputArtifacts(artifacts []*InputArtifact) (v1.ArtifactList, error) {
+	var result v1.ArtifactList
+	for _, item := range artifacts {
+		in, err := c.ConvertInputArtifact(*item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, in)
+	}
+	return result, nil
+}
+
+func (c *Converter) ConvertInputArtifact(artifact InputArtifact) (*v1.Artifact, error) {
+	return &v1.Artifact{
+		Metadata: convertInputMetadata(artifact.Metadata),
+		Data:     artifact.Data,
+	}, nil
 }
