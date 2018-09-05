@@ -6,6 +6,7 @@ Package v1 is a generated protocol buffer package.
 
 It is generated from these files:
 	resolver_map.proto
+	schema.proto
 
 It has these top-level messages:
 	ResolverMap
@@ -17,6 +18,7 @@ It has these top-level messages:
 	WeightedFunction
 	TemplateResolver
 	NodeJSResolver
+	Schema
 */
 package v1
 

@@ -1,0 +1,33 @@
+syntax = "proto3";
+package sqoop.solo.io;
+option go_package = "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/status.proto";
+
+/*
+@solo-kit:resource
+@solo-kit:resource.short_name=rm
+@solo-kit:resource.plural_name=ResolverMaps
+@solo-kit:resource.group_name=sqoop.solo.io
+@solo-kit:resource.version=v1
+
+
+* The Schema object wraps the user's GraphQL Schema, which is stored as an inline string.
+* The Schema Object contains a Status field which is used by SQooP to validate the user's input schema.
+*/
+message Schema {
+    // Schema Names must be unique and follow the following syntax rules:
+    // One or more lowercase rfc1035/rfc1123 labels separated by '.' with a maximum length of 253 characters.
+    string name = 1;
+
+    // name of the resolver map to use to resolve this schema.
+    // if the user leaves this empty, QLoo will generate the skeleton of a resolver map for the user
+    string resolver_map = 2;
+
+    // inline the entire graphql schema as a string here
+    string inline_schema = 3;
+}
