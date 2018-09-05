@@ -19,9 +19,12 @@ import (
 // we assign a "fix me" snapshot for bad nodes
 const fallbackNodeKey = "misconfigured-node"
 
+var (
+	FallbackBindPort = uint32(80)
+)
+
 const (
 	// TODO(ilackarms): expose these as a configuration option (maybe)
-	fallbackBindPort   = 80
 	fallbackBindAddr   = "::"
 	fallbackStatusCode = 500
 )
@@ -39,11 +42,24 @@ Proxies must register to Gloo with their node ID in the format "NAMESPACE~NAME"
 Where NAMESPACE and NAME are the namespace and name of the correlating Proxy resource.`
 
 func (h *ProxyKeyHasher) ID(node *core.Node) string {
-	for _, key := range h.validKeys {
-		if node.Id == key {
-			return key
+
+	roleValue := node.Metadata.Fields["role"]
+
+	if roleValue != nil {
+		role := roleValue.GetStringValue()
+		for _, key := range h.validKeys {
+			if role == key {
+				return key
+			}
+		}
+	} else {
+		for _, key := range h.validKeys {
+			if node.Id == key {
+				return key
+			}
 		}
 	}
+
 	contextutils.LoggerFrom(h.ctx).Warnf("invalid id provided by Envoy: %v", node.Id)
 	contextutils.LoggerFrom(h.ctx).Debugf(errorString)
 	return fallbackNodeKey
@@ -81,7 +97,7 @@ func SetupEnvoyXds(ctx context.Context, grpcServer *grpc.Server, callbacks envoy
 	v2.RegisterClusterDiscoveryServiceServer(grpcServer, xdsServer)
 	v2.RegisterRouteDiscoveryServiceServer(grpcServer, xdsServer)
 	v2.RegisterListenerDiscoveryServiceServer(grpcServer, xdsServer)
-	envoyCache.SetSnapshot(fallbackNodeKey, fallbackSnapshot(fallbackBindAddr, fallbackBindPort, fallbackStatusCode))
+	envoyCache.SetSnapshot(fallbackNodeKey, fallbackSnapshot(fallbackBindAddr, FallbackBindPort, fallbackStatusCode))
 
 	return hasher, envoyCache
 }

@@ -32,6 +32,8 @@ const envoyConfigTemplate = `
 node:
  cluster: ingress
  id: %s
+ metadata:
+  role: "default~proxy"
 
 static_resources:
   clusters:

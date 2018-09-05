@@ -27,6 +27,29 @@ type Opts struct {
 	watchOpts  clients.WatchOpts
 }
 
+func NewOpts(
+	writeNamespace string,
+	gateways,
+	virtualServices,
+	upstreams,
+	secrets,
+	proxies factory.ResourceClientFactoryOpts,
+	namespacer namespacing.Namespacer,
+	watchOpts clients.WatchOpts,
+
+) Opts {
+	return Opts{
+		writeNamespace:  writeNamespace,
+		gateways:        gateways,
+		virtualServices: virtualServices,
+		upstreams:       upstreams,
+		secrets:         secrets,
+		proxies:         proxies,
+		namespacer:      namespacer,
+		watchOpts:       watchOpts,
+	}
+}
+
 //  ilackarms: We can just put any hacky stuff we need here
 
 func DefaultKubernetesConstructOpts() (Opts, error) {

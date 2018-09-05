@@ -1,0 +1,117 @@
+package e2e_test
+
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"net/http"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gstruct"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/test/helpers"
+	"github.com/solo-io/solo-kit/test/services"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+)
+
+var _ = Describe("Happypath", func() {
+
+	var (
+		ctx           context.Context
+		cancel        context.CancelFunc
+		testClients   services.TestClients
+		envoyInstance *services.EnvoyInstance
+	)
+
+	BeforeEach(func() {
+		ctx, cancel = context.WithCancel(context.Background())
+		t := services.RunGateway(ctx)
+		testClients = t
+		var err error
+		envoyInstance, err = envoyFactory.NewEnvoyInstance()
+		Expect(err).NotTo(HaveOccurred())
+		err = envoyInstance.Run()
+		Expect(err).NotTo(HaveOccurred())
+
+	})
+
+	AfterEach(func() {
+		if envoyInstance != nil {
+			envoyInstance.Clean()
+		}
+		cancel()
+	})
+
+	It("should not crash", func() {
+		err := envoyInstance.Run()
+		Expect(err).NotTo(HaveOccurred())
+
+		tu := helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
+
+		var opts clients.WriteOpts
+		up := tu.Upstream
+		_, err = testClients.UpstreamClient.Write(up, opts)
+		Expect(err).NotTo(HaveOccurred())
+
+		proxycli := testClients.ProxyClient
+		envoyPort := uint32(8080)
+		proxy := &gloov1.Proxy{
+			Metadata: core.Metadata{
+				Name:      "proxy",
+				Namespace: "default",
+			},
+			Listeners: []*gloov1.Listener{{
+				Name:        "listener",
+				BindAddress: "localhost",
+				BindPort:    envoyPort,
+				ListenerType: &gloov1.Listener_HttpListener{
+					HttpListener: &gloov1.HttpListener{
+						VirtualHosts: []*gloov1.VirtualHost{{
+							Name:    "virt1",
+							Domains: []string{"*"},
+							Routes: []*gloov1.Route{{
+								Matcher: &gloov1.Matcher{
+									PathSpecifier: &gloov1.Matcher_Prefix{
+										Prefix: "/",
+									},
+								},
+								Action: &gloov1.Route_RouteAction{
+									RouteAction: &gloov1.RouteAction{
+										Destination: &gloov1.RouteAction_Single{
+											Single: &gloov1.Destination{
+												Upstream: up.Metadata.Ref(),
+											},
+										},
+									},
+								},
+							}},
+						}},
+					},
+				},
+			}},
+		}
+
+		_, err = proxycli.Write(proxy, opts)
+		Expect(err).NotTo(HaveOccurred())
+
+		body := []byte("solo.io test")
+
+		Eventually(func() error {
+			// send a request with a body
+			var buf bytes.Buffer
+			buf.Write(body)
+			_, err = http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "application/octet-stream", &buf)
+			return err
+		}, "5s", ".5s").Should(BeNil())
+
+		Eventually(tu.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+			"Method": Equal("POST"),
+			"Body":   Equal(body),
+		}))))
+
+	})
+})
