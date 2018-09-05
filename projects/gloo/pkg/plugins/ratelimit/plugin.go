@@ -53,9 +53,6 @@ constraints:
     rate_limit:
       unit: MINUTE
       requests_per_unit: 10
-
-
-- Yuval
 */
 
 const (
