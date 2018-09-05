@@ -43,24 +43,22 @@ Where NAMESPACE and NAME are the namespace and name of the correlating Proxy res
 
 func (h *ProxyKeyHasher) ID(node *core.Node) string {
 
-	roleValue := node.Metadata.Fields["role"]
+	role := ""
 
+	roleValue := node.Metadata.Fields["role"]
 	if roleValue != nil {
-		role := roleValue.GetStringValue()
-		for _, key := range h.validKeys {
-			if role == key {
-				return key
-			}
-		}
+		role = roleValue.GetStringValue()
 	} else {
-		for _, key := range h.validKeys {
-			if node.Id == key {
-				return key
-			}
+		role = node.Id
+	}
+
+	for _, key := range h.validKeys {
+		if role == key {
+			return key
 		}
 	}
 
-	contextutils.LoggerFrom(h.ctx).Warnf("invalid id provided by Envoy: %v", node.Id)
+	contextutils.LoggerFrom(h.ctx).Warnf("invalid id provided by Envoy: %v", role)
 	contextutils.LoggerFrom(h.ctx).Debugf(errorString)
 	return fallbackNodeKey
 }
