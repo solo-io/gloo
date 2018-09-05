@@ -46,6 +46,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		return nil
 	}
 	azureUpstream := upstreamSpec.Azure
+	p.recordedUpstreams[in.Metadata.Ref()] = azureUpstream
 
 	// configure Envoy cluster routing info
 	out.Type = envoyapi.Cluster_LOGICAL_DNS
@@ -71,9 +72,6 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		}
 		p.apiKeys = azureSecrets.Azure.ApiKeys
 	}
-
-	// TODO(yuval-k): What about namespace?!
-	p.recordedUpstreams[in.Metadata.Ref()] = upstreamSpec.Azure
 
 	return nil
 }
@@ -149,14 +147,14 @@ func getPath(functionSpec *azure.UpstreamSpec_FunctionSpec, apiKeys map[string]s
 func getPathParameters(functionSpec *azure.UpstreamSpec_FunctionSpec, apiKeys map[string]string) (string, error) {
 	var keyNames []string
 	switch functionSpec.AuthLevel {
-	case "anonymous":
+	case azure.UpstreamSpec_FunctionSpec_Anonymous:
 		return "", nil
-	case "function":
+	case azure.UpstreamSpec_FunctionSpec_Function:
 		// TODO(talnordan): Consider whether using the "function" authentication level should require
 		// using a function key and not a master key. This is a product decision. From the technical
 		// point of view, a master key does satisfy the "function" authentication level.
 		keyNames = []string{functionSpec.FunctionName, masterKeyName}
-	case "admin":
+	case azure.UpstreamSpec_FunctionSpec_Admin:
 		keyNames = []string{masterKeyName}
 	}
 
