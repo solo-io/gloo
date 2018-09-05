@@ -31,7 +31,7 @@ IN=${IN}/plugins
 # protoc made me do it
 protoc -I=${IN} ${PROTOC_FLAGS} ${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/service_spec.proto
 
-for plugin in azure aws kubernetes rest transformation ratelimit; do
+for plugin in azure aws kubernetes rest transformation ratelimit static; do
 mkdir -p ${OUT}/plugins/$plugin
 
 # we need ${GOPATH}/src/github.com/gogo/protobuf/protobuf
