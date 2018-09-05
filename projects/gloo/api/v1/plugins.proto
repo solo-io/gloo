@@ -9,6 +9,7 @@ import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/aws/aws.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/rest/rest.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/azure/azure.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/kubernetes/kubernetes.proto";
+import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/static/static.proto";
 
 // Plugin-specific configuration that lives on listeners
 // Each ListenerPlugin object contains configuration for a specific plugin
@@ -46,6 +47,7 @@ message UpstreamSpec {
     // to be usable by Gloo.
     oneof upstream_type {
         kubernetes.plugins.gloo.solo.io.UpstreamSpec kube = 1;
+        static.plugins.gloo.solo.io.UpstreamSpec static = 4;
         aws.plugins.gloo.solo.io.UpstreamSpec aws = 2;
         azure.plugins.gloo.solo.io.UpstreamSpec azure = 3;
     }

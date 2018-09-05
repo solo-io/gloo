@@ -18,7 +18,8 @@ message UpstreamSpec {
     repeated Host hosts = 1;
 
     // Attempt to use outbound TLS
-    bool tls = 3;
+    // Gloo will automatically set this to true for port 443
+    bool use_tls = 3;
 
     // An optional Service Spec describing the service listening at this address
     .plugins.gloo.solo.io.ServiceSpec service_spec = 5;
