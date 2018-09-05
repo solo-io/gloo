@@ -80,6 +80,7 @@ func (r *reporter) WriteReports(ctx context.Context, resourceErrs ResourceErrors
 		}); err != nil {
 			return errors.Wrapf(err, "failed to write status %v for resource %v", status, resource.GetMetadata().Name)
 		}
+		contextutils.LoggerFrom(ctx).Infof("wrote report %v : %v", resourceToWrite.GetMetadata().Ref(), status)
 	}
 	return nil
 }
