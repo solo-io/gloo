@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 )
 
 type Converter struct{}
@@ -110,9 +111,18 @@ func convertLambdaFunctions(inputFuncs []InputAwsLambdaFunction) []*aws.LambdaFu
 func convertAzureFunctions(inputFuncs []InputAzureFunction) []*azure.UpstreamSpec_FunctionSpec {
 	var funcs []*azure.UpstreamSpec_FunctionSpec
 	for _, inFn := range inputFuncs {
+		var authLevel azure.UpstreamSpec_FunctionSpec_AuthLevel
+		switch AzureFnAuthLevel(inFn.AuthLevel) {
+		case AzureFnAuthLevelAnonymous:
+			authLevel = azure.UpstreamSpec_FunctionSpec_Anonymous
+		case AzureFnAuthLevelAdmin:
+			authLevel = azure.UpstreamSpec_FunctionSpec_Admin
+		case AzureFnAuthLevelFunction:
+			authLevel = azure.UpstreamSpec_FunctionSpec_Function
+		}
 		funcs = append(funcs, &azure.UpstreamSpec_FunctionSpec{
 			FunctionName: inFn.FunctionName,
-			AuthLevel:    inFn.AuthLevel,
+			AuthLevel:    authLevel,
 		})
 	}
 	return funcs
@@ -153,10 +163,35 @@ func convertOutputUpstreamSpec(spec *v1.UpstreamSpec) UpstreamSpec {
 			ServiceNamespace: specType.Kube.ServiceNamespace,
 			ServiceName:      specType.Kube.ServiceName,
 			Selector:         NewMapStringString(specType.Kube.Selector),
+			ServiceSpec:      convertOutputServiceSpec(specType.Kube.ServiceSpec),
 		}
 	}
 	log.Printf("unsupported upstream type %v", spec)
 	return nil
+}
+
+// TODO (ilackarms): finish these methods
+func convertOutputServiceSpec(spec *plugins.ServiceSpec) ServiceSpec {
+	if spec == nil {
+		return nil
+	}
+	switch spec.PluginType.(type) {
+	case *plugins.ServiceSpec_Rest:
+		return &SwaggerServiceSpec{}
+	}
+	panic("unsupported")
+}
+
+// TODO (ilackarms): finish these methods
+func convertInputServiceSpec(spec *InputServiceSpec) (*plugins.ServiceSpec, error) {
+	if spec == nil {
+		return nil, nil
+	}
+	switch {
+	case spec.Swagger != nil:
+		return &plugins.ServiceSpec{PluginType: &plugins.ServiceSpec_Rest{}}, nil
+	}
+	return nil, errors.Errorf("unsupported spec: %v", spec)
 }
 
 func convertOutputLambdaFunctions(lambdas []*aws.LambdaFunctionSpec) []AwsLambdaFunction {
@@ -174,9 +209,18 @@ func convertOutputLambdaFunctions(lambdas []*aws.LambdaFunctionSpec) []AwsLambda
 func convertOutputAzureFunctions(azureFns []*azure.UpstreamSpec_FunctionSpec) []AzureFunction {
 	var out []AzureFunction
 	for _, l := range azureFns {
+		var authLevel AzureFnAuthLevel
+		switch l.AuthLevel {
+		case azure.UpstreamSpec_FunctionSpec_Anonymous:
+			authLevel = AzureFnAuthLevelAnonymous
+		case azure.UpstreamSpec_FunctionSpec_Admin:
+			authLevel = AzureFnAuthLevelAdmin
+		case azure.UpstreamSpec_FunctionSpec_Function:
+			authLevel = AzureFnAuthLevelFunction
+		}
 		out = append(out, AzureFunction{
 			FunctionName: l.FunctionName,
-			AuthLevel:    l.AuthLevel,
+			AuthLevel:    authLevel,
 		})
 	}
 	return out

@@ -881,8 +881,8 @@ func (ec *executionContext) _AzureFunction_authLevel(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
-	return graphql.MarshalString(res)
+	res := resTmp.(models.AzureFnAuthLevel)
+	return res
 }
 
 var azureSecretImplementors = []string{"AzureSecret"}
@@ -1259,6 +1259,8 @@ func (ec *executionContext) _KubeUpstreamSpec(ctx context.Context, sel ast.Selec
 			out.Values[i] = ec._KubeUpstreamSpec_servicePort(ctx, field, obj)
 		case "selector":
 			out.Values[i] = ec._KubeUpstreamSpec_selector(ctx, field, obj)
+		case "serviceSpec":
+			out.Values[i] = ec._KubeUpstreamSpec_serviceSpec(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -1336,6 +1338,23 @@ func (ec *executionContext) _KubeUpstreamSpec_selector(ctx context.Context, fiel
 		return graphql.Null
 	}
 	return ec._MapStringString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _KubeUpstreamSpec_serviceSpec(ctx context.Context, field graphql.CollectedField, obj *models.KubeUpstreamSpec) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "KubeUpstreamSpec"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.ServiceSpec, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(models.ServiceSpec)
+	return ec._ServiceSpec(ctx, field.Selections, &res)
 }
 
 var mapStringStringImplementors = []string{"MapStringString"}
@@ -3612,6 +3631,152 @@ func (ec *executionContext) _SslConfig_secretRef(ctx context.Context, field grap
 	}
 	res := resTmp.(models.ResourceRef)
 	return ec._ResourceRef(ctx, field.Selections, &res)
+}
+
+var staticHostImplementors = []string{"StaticHost"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _StaticHost(ctx context.Context, sel ast.SelectionSet, obj *models.StaticHost) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, staticHostImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StaticHost")
+		case "addr":
+			out.Values[i] = ec._StaticHost_addr(ctx, field, obj)
+		case "port":
+			out.Values[i] = ec._StaticHost_port(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _StaticHost_addr(ctx context.Context, field graphql.CollectedField, obj *models.StaticHost) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "StaticHost"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Addr, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _StaticHost_port(ctx context.Context, field graphql.CollectedField, obj *models.StaticHost) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "StaticHost"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Port, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	return graphql.MarshalInt(res)
+}
+
+var staticUpstreamSpecImplementors = []string{"StaticUpstreamSpec"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _StaticUpstreamSpec(ctx context.Context, sel ast.SelectionSet, obj *models.StaticUpstreamSpec) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, staticUpstreamSpecImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StaticUpstreamSpec")
+		case "hosts":
+			out.Values[i] = ec._StaticUpstreamSpec_hosts(ctx, field, obj)
+		case "serviceSpec":
+			out.Values[i] = ec._StaticUpstreamSpec_serviceSpec(ctx, field, obj)
+		case "useTls":
+			out.Values[i] = ec._StaticUpstreamSpec_useTls(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _StaticUpstreamSpec_hosts(ctx context.Context, field graphql.CollectedField, obj *models.StaticUpstreamSpec) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "StaticUpstreamSpec"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Hosts, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]models.StaticHost)
+	arr1 := graphql.Array{}
+	for idx1 := range res {
+		arr1 = append(arr1, func() graphql.Marshaler {
+			rctx := graphql.GetResolverContext(ctx)
+			rctx.PushIndex(idx1)
+			defer rctx.Pop()
+			return ec._StaticHost(ctx, field.Selections, &res[idx1])
+		}())
+	}
+	return arr1
+}
+
+func (ec *executionContext) _StaticUpstreamSpec_serviceSpec(ctx context.Context, field graphql.CollectedField, obj *models.StaticUpstreamSpec) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "StaticUpstreamSpec"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.ServiceSpec, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(models.ServiceSpec)
+	return ec._ServiceSpec(ctx, field.Selections, &res)
+}
+
+func (ec *executionContext) _StaticUpstreamSpec_useTls(ctx context.Context, field graphql.CollectedField, obj *models.StaticUpstreamSpec) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "StaticUpstreamSpec"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.UseTLS, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	return graphql.MarshalBoolean(res)
 }
 
 var statusImplementors = []string{"Status"}
@@ -6111,6 +6276,10 @@ func (ec *executionContext) _UpstreamSpec(ctx context.Context, sel ast.Selection
 		return ec._KubeUpstreamSpec(ctx, sel, &obj)
 	case *models.KubeUpstreamSpec:
 		return ec._KubeUpstreamSpec(ctx, sel, obj)
+	case models.StaticUpstreamSpec:
+		return ec._StaticUpstreamSpec(ctx, sel, &obj)
+	case *models.StaticUpstreamSpec:
+		return ec._StaticUpstreamSpec(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -6563,6 +6732,17 @@ func UnmarshalInputKubeUpstreamSpec(v interface{}) (models.InputKubeUpstreamSpec
 			if v != nil {
 				ptr1, err = UnmarshalInputMapStringString(v)
 				it.Selector = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "serviceSpec":
+			var err error
+			var ptr1 models.InputServiceSpec
+			if v != nil {
+				ptr1, err = UnmarshalInputServiceSpec(v)
+				it.ServiceSpec = &ptr1
 			}
 
 			if err != nil {
@@ -7124,6 +7304,76 @@ func UnmarshalInputSslConfig(v interface{}) (models.InputSslConfig, error) {
 	return it, nil
 }
 
+func UnmarshalInputStaticHost(v interface{}) (models.InputStaticHost, error) {
+	var it models.InputStaticHost
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "addr":
+			var err error
+			it.Addr, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "port":
+			var err error
+			it.Port, err = graphql.UnmarshalInt(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputStaticUpstreamSpec(v interface{}) (models.InputStaticUpstreamSpec, error) {
+	var it models.InputStaticUpstreamSpec
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "hosts":
+			var err error
+			var rawIf1 []interface{}
+			if v != nil {
+				if tmp1, ok := v.([]interface{}); ok {
+					rawIf1 = tmp1
+				} else {
+					rawIf1 = []interface{}{v}
+				}
+			}
+			it.Hosts = make([]models.InputStaticHost, len(rawIf1))
+			for idx1 := range rawIf1 {
+				it.Hosts[idx1], err = UnmarshalInputStaticHost(rawIf1[idx1])
+			}
+			if err != nil {
+				return it, err
+			}
+		case "serviceSpec":
+			var err error
+			var ptr1 models.InputServiceSpec
+			if v != nil {
+				ptr1, err = UnmarshalInputServiceSpec(v)
+				it.ServiceSpec = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "useTls":
+			var err error
+			it.UseTLS, err = graphql.UnmarshalBoolean(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputStatus(v interface{}) (models.InputStatus, error) {
 	var it models.InputStatus
 	var asMap = v.(map[string]interface{})
@@ -7317,6 +7567,17 @@ func UnmarshalInputUpstreamSpec(v interface{}) (models.InputUpstreamSpec, error)
 			if v != nil {
 				ptr1, err = UnmarshalInputKubeUpstreamSpec(v)
 				it.Kube = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "static":
+			var err error
+			var ptr1 models.InputStaticUpstreamSpec
+			if v != nil {
+				ptr1, err = UnmarshalInputStaticUpstreamSpec(v)
+				it.Static = &ptr1
 			}
 
 			if err != nil {
@@ -7601,7 +7862,7 @@ type Upstream {
     status:   Status!
 }
 
-union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec
+union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec | StaticUpstreamSpec
 
 type AwsUpstreamSpec {
     region:    String!
@@ -7620,6 +7881,18 @@ type KubeUpstreamSpec {
     serviceNamespace: String!
     servicePort:      Int!
     selector:         MapStringString
+    serviceSpec:      ServiceSpec
+}
+
+type StaticUpstreamSpec {
+    hosts:        [StaticHost!]
+    serviceSpec:  ServiceSpec
+    useTls:       Boolean!
+}
+
+type StaticHost {
+    addr: String!
+    port: Int!
 }
 
 type AwsLambdaFunction {
@@ -7630,7 +7903,7 @@ type AwsLambdaFunction {
 
 type AzureFunction {
     functionName: String!
-    authLevel:    String!
+    authLevel:    AzureFnAuthLevel!
 }
 
 union ServiceSpec = SwaggerServiceSpec | GRPCServiceSpec
@@ -7657,10 +7930,11 @@ input InputUpstream {
 }
 
 input InputUpstreamSpec {
-    # oneof: aws | azure | kube
+    # oneof: aws | azure | kube | static
     aws: InputAwsUpstreamSpec
     azure: InputAzureUpstreamSpec
     kube: InputKubeUpstreamSpec
+    static: InputStaticUpstreamSpec
 }
 
 input InputAwsUpstreamSpec {
@@ -7680,6 +7954,18 @@ input InputKubeUpstreamSpec {
     serviceNamespace: String!
     servicePort:      Int!
     selector:         InputMapStringString
+    serviceSpec:      InputServiceSpec
+}
+
+input InputStaticUpstreamSpec {
+    hosts:        [InputStaticHost!]
+    serviceSpec:  InputServiceSpec
+    useTls:       Boolean!
+}
+
+input InputStaticHost {
+    addr: String!
+    port: Int!
 }
 
 input InputAwsLambdaFunction {
@@ -8112,6 +8398,13 @@ enum State {
     ACCEPTED
     REJECTED
 }
+
+enum AzureFnAuthLevel {
+    ANONYMOUS
+    FUNCTION
+    ADMIN
+}
+
 
 type MapStringString {
     values: [Value!]

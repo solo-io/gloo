@@ -108,7 +108,7 @@ type Upstream {
     status:   Status!
 }
 
-union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec
+union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec | StaticUpstreamSpec
 
 type AwsUpstreamSpec {
     region:    String!
@@ -127,6 +127,18 @@ type KubeUpstreamSpec {
     serviceNamespace: String!
     servicePort:      Int!
     selector:         MapStringString
+    serviceSpec:      ServiceSpec
+}
+
+type StaticUpstreamSpec {
+    hosts:        [StaticHost!]
+    serviceSpec:  ServiceSpec
+    useTls:       Boolean!
+}
+
+type StaticHost {
+    addr: String!
+    port: Int!
 }
 
 type AwsLambdaFunction {
@@ -137,7 +149,7 @@ type AwsLambdaFunction {
 
 type AzureFunction {
     functionName: String!
-    authLevel:    String!
+    authLevel:    AzureFnAuthLevel!
 }
 
 union ServiceSpec = SwaggerServiceSpec | GRPCServiceSpec
@@ -164,10 +176,11 @@ input InputUpstream {
 }
 
 input InputUpstreamSpec {
-    # oneof: aws | azure | kube
+    # oneof: aws | azure | kube | static
     aws: InputAwsUpstreamSpec
     azure: InputAzureUpstreamSpec
     kube: InputKubeUpstreamSpec
+    static: InputStaticUpstreamSpec
 }
 
 input InputAwsUpstreamSpec {
@@ -187,6 +200,18 @@ input InputKubeUpstreamSpec {
     serviceNamespace: String!
     servicePort:      Int!
     selector:         InputMapStringString
+    serviceSpec:      InputServiceSpec
+}
+
+input InputStaticUpstreamSpec {
+    hosts:        [InputStaticHost!]
+    serviceSpec:  InputServiceSpec
+    useTls:       Boolean!
+}
+
+input InputStaticHost {
+    addr: String!
+    port: Int!
 }
 
 input InputAwsLambdaFunction {
@@ -619,6 +644,13 @@ enum State {
     ACCEPTED
     REJECTED
 }
+
+enum AzureFnAuthLevel {
+    ANONYMOUS
+    FUNCTION
+    ADMIN
+}
+
 
 type MapStringString {
     values: [Value!]

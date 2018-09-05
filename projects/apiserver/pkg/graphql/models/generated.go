@@ -34,8 +34,8 @@ type AzureDestinationSpec struct {
 	FunctionName string `json:"functionName"`
 }
 type AzureFunction struct {
-	FunctionName string `json:"functionName"`
-	AuthLevel    string `json:"authLevel"`
+	FunctionName string           `json:"functionName"`
+	AuthLevel    AzureFnAuthLevel `json:"authLevel"`
 }
 type AzureSecret struct {
 	APIKeys *MapStringString `json:"apiKeys"`
@@ -122,6 +122,7 @@ type InputKubeUpstreamSpec struct {
 	ServiceNamespace string                `json:"serviceNamespace"`
 	ServicePort      int                   `json:"servicePort"`
 	Selector         *InputMapStringString `json:"selector"`
+	ServiceSpec      *InputServiceSpec     `json:"serviceSpec"`
 }
 type InputMapStringString struct {
 	Values []InputValue `json:"values"`
@@ -192,6 +193,15 @@ type InputSingleDestination struct {
 type InputSslConfig struct {
 	SecretRef InputResourceRef `json:"secretRef"`
 }
+type InputStaticHost struct {
+	Addr string `json:"addr"`
+	Port int    `json:"port"`
+}
+type InputStaticUpstreamSpec struct {
+	Hosts       []InputStaticHost `json:"hosts"`
+	ServiceSpec *InputServiceSpec `json:"serviceSpec"`
+	UseTLS      bool              `json:"useTls"`
+}
 type InputStatus struct {
 	State  State  `json:"state"`
 	Reason string `json:"reason"`
@@ -216,9 +226,10 @@ type InputUpstream struct {
 	Metadata InputMetadata     `json:"metadata"`
 }
 type InputUpstreamSpec struct {
-	Aws   *InputAwsUpstreamSpec   `json:"aws"`
-	Azure *InputAzureUpstreamSpec `json:"azure"`
-	Kube  *InputKubeUpstreamSpec  `json:"kube"`
+	Aws    *InputAwsUpstreamSpec    `json:"aws"`
+	Azure  *InputAzureUpstreamSpec  `json:"azure"`
+	Kube   *InputKubeUpstreamSpec   `json:"kube"`
+	Static *InputStaticUpstreamSpec `json:"static"`
 }
 type InputValue struct {
 	Key   string `json:"key"`
@@ -248,6 +259,7 @@ type KubeUpstreamSpec struct {
 	ServiceNamespace string           `json:"serviceNamespace"`
 	ServicePort      int              `json:"servicePort"`
 	Selector         *MapStringString `json:"selector"`
+	ServiceSpec      ServiceSpec      `json:"serviceSpec"`
 }
 type MapStringString struct {
 	Values []Value `json:"values"`
@@ -308,6 +320,15 @@ type SingleDestination struct {
 }
 type SslConfig struct {
 	SecretRef ResourceRef `json:"secretRef"`
+}
+type StaticHost struct {
+	Addr string `json:"addr"`
+	Port int    `json:"port"`
+}
+type StaticUpstreamSpec struct {
+	Hosts       []StaticHost `json:"hosts"`
+	ServiceSpec ServiceSpec  `json:"serviceSpec"`
+	UseTLS      bool         `json:"useTls"`
 }
 type Status struct {
 	State  State   `json:"state"`
@@ -387,6 +408,43 @@ func (e *AwsLambdaInvocationStyle) UnmarshalGQL(v interface{}) error {
 }
 
 func (e AwsLambdaInvocationStyle) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type AzureFnAuthLevel string
+
+const (
+	AzureFnAuthLevelAnonymous AzureFnAuthLevel = "ANONYMOUS"
+	AzureFnAuthLevelFunction  AzureFnAuthLevel = "FUNCTION"
+	AzureFnAuthLevelAdmin     AzureFnAuthLevel = "ADMIN"
+)
+
+func (e AzureFnAuthLevel) IsValid() bool {
+	switch e {
+	case AzureFnAuthLevelAnonymous, AzureFnAuthLevelFunction, AzureFnAuthLevelAdmin:
+		return true
+	}
+	return false
+}
+
+func (e AzureFnAuthLevel) String() string {
+	return string(e)
+}
+
+func (e *AzureFnAuthLevel) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AzureFnAuthLevel(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AzureFnAuthLevel", str)
+	}
+	return nil
+}
+
+func (e AzureFnAuthLevel) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
