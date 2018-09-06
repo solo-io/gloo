@@ -24,8 +24,8 @@ const (
 	containerName = "e2e_envoy"
 )
 
-func buildBootstrap(nodeId, glooAddr string, xdsPort uint32) []byte {
-	return []byte(fmt.Sprintf(envoyConfigTemplate, nodeId, glooAddr, xdsPort))
+func buildBootstrap(nodeId, glooAddr string, xdsPort uint32) string {
+	return fmt.Sprintf(envoyConfigTemplate, nodeId, glooAddr, xdsPort)
 }
 
 const envoyConfigTemplate = `
@@ -158,46 +158,32 @@ func (ef *EnvoyFactory) Clean() error {
 }
 
 type EnvoyInstance struct {
-	envoypath    string
-	envoycfgpath string
-	tmpdir       string
-	logs         *bytes.Buffer
-	cmd          *exec.Cmd
-	useDocker    bool
-	localAddr    string // address for gloo and services
+	envoypath string
+	envoycfg  string
+	logs      *bytes.Buffer
+	cmd       *exec.Cmd
+	useDocker bool
+	localAddr string // address for gloo and services
 }
 
 func (ef *EnvoyFactory) NewEnvoyInstance() (*EnvoyInstance, error) {
 	gloo := "127.0.0.1"
-	var tmpdir string
 	var err error
+
 	if ef.useDocker {
 		gloo, err = localAddr()
 		if err != nil {
 			return nil, err
 		}
-		pwd, err := os.Getwd()
-		if err != nil {
-			return nil, err
-		}
-
-		tmpdir = filepath.Join(pwd, "_temp")
-		err = os.MkdirAll(tmpdir, 0755)
-	} else {
-		tmpdir, err = ioutil.TempDir(os.Getenv("HELPER_TMP"), "envoy")
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	envoyconfigyaml := filepath.Join(tmpdir, "envoyconfig.yaml")
-
 	return &EnvoyInstance{
-		envoypath:    ef.envoypath,
-		envoycfgpath: envoyconfigyaml,
-		tmpdir:       tmpdir,
-		useDocker:    ef.useDocker,
-		localAddr:    gloo,
+		envoypath: ef.envoypath,
+		useDocker: ef.useDocker,
+		localAddr: gloo,
 	}, nil
 
 }
@@ -221,24 +207,22 @@ func (ei *EnvoyInstance) runWithPort(id string, port uint32) error {
 	if id == "" {
 		id = "ingress~for-testing"
 	}
-	err := ioutil.WriteFile(ei.envoycfgpath, buildBootstrap(id, ei.localAddr, port), 0644)
-	if err != nil {
-		return err
-	}
+
+	ei.envoycfg = buildBootstrap(id, ei.localAddr, port)
 
 	if ei.useDocker {
-		err := runContainer(ei.envoycfgpath)
+		err := runContainer(ei.envoycfg)
 		if err != nil {
 			return err
 		}
 		return nil
 	}
 
-	args := []string{"-c", ei.envoycfgpath, "--v2-config-only"}
+	args := []string{"--config-yaml", ei.envoycfg, "--v2-config-only", "--disable-hot-restart"}
 
 	// run directly
 	cmd := exec.Command(ei.envoypath, args...)
-	cmd.Dir = ei.tmpdir
+
 	buf := &bytes.Buffer{}
 	ei.logs = buf
 	w := io.MultiWriter(ginkgo.GinkgoWriter, buf)
@@ -246,7 +230,7 @@ func (ei *EnvoyInstance) runWithPort(id string, port uint32) error {
 	cmd.Stderr = w
 
 	runner := Runner{Sourcepath: ei.envoypath, ComponentName: "ENVOY"}
-	cmd, err = runner.run(cmd)
+	cmd, err := runner.run(cmd)
 	if err != nil {
 		return err
 	}
@@ -267,9 +251,7 @@ func (ei *EnvoyInstance) Clean() error {
 		ei.cmd.Process.Kill()
 		ei.cmd.Wait()
 	}
-	if ei.tmpdir != "" {
-		os.RemoveAll(ei.tmpdir)
-	}
+
 	if ei.useDocker {
 		if err := stopContainer(); err != nil {
 			return err
@@ -292,8 +274,8 @@ func runContainer(cfgpath string) error {
 		"-p", "8443:8443",
 		"-p", "19000:19000",
 		image,
-		"/usr/local/bin/envoy", "--v2-config-only",
-		"-c", "/etc/config/" + filepath.Base(cfgpath),
+		"/usr/local/bin/envoy", "--v2-config-only", "--disable-hot-restart",
+		"--config-yaml", cfgpath,
 	}
 
 	fmt.Fprintln(ginkgo.GinkgoWriter, args)
