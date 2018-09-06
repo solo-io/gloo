@@ -220,10 +220,10 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		}
 		resourcesChan <- list.FilterByKind(rc.Kind())
 	}
-	go updateResourceList()
 	subscription := make(chan struct{})
 	rc.cache.Subscribe(subscription)
 	go func() {
+		updateResourceList()
 		for {
 			select {
 			case <-time.After(opts.RefreshRate):
@@ -231,10 +231,9 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 			case <-subscription:
 				updateResourceList()
 			case <-opts.Ctx.Done():
-				close(subscription)
+				rc.cache.Unsubscribe(subscription)
 				close(resourcesChan)
 				close(errs)
-				rc.cache.Unsubscribe(subscription)
 				return
 			}
 		}
