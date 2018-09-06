@@ -109,7 +109,7 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache) bo
 		Namespacer:     static.NewNamespacer([]string{"default", "gloo-system"}),
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
-			RefreshRate: time.Minute,
+			RefreshRate: time.Second / 10,
 		},
 		BindAddr: &net.TCPAddr{
 			IP:   net.ParseIP("0.0.0.0"),
