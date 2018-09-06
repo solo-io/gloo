@@ -59,58 +59,86 @@ func (c *{{ lower_camel $.GoName }}Emitter) {{ .Name }}() {{ .Name }}Client {
 {{- end}}
 
 func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *{{ .GoName }}Snapshot, <-chan error, error) {
-	snapshots := make(chan *{{ .GoName }}Snapshot)
+	
 	errs := make(chan error)
 	var done sync.WaitGroup
 
-	currentSnapshot := {{ .GoName }}Snapshot{}
 
-	sync := func(newSnapshot {{ .GoName }}Snapshot) {
-		if currentSnapshot.Hash() == newSnapshot.Hash() {
-			return
-		}
-		currentSnapshot = newSnapshot
-		snapshots <- &currentSnapshot
+{{- range .Resources}}
+	/* Create channel for {{ .Name }} */
+	type {{ lower_camel .Name }}ListWithNamespace struct {
+		list {{ .Name }}List
+		namespace string
 	}
+	{{ lower_camel .Name }}Chan := make(chan {{ lower_camel .Name }}ListWithNamespace)
+{{- end}}
 
 	for _, namespace := range watchNamespaces {
 {{- range .Resources}}
-		{{ lower_camel .Name }}Chan, {{ lower_camel .Name }}Errs, err := c.{{ lower_camel .Name }}.Watch(namespace, opts)
+		/* Setup watch for {{ .Name }} */
+		{{ lower_camel .Name }}NamespacesChan, {{ lower_camel .Name }}Errs, err := c.{{ lower_camel .Name }}.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting {{ .Name }} watch")
 		}
+
 		done.Add(1)
 		go func() {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, {{ lower_camel .Name }}Errs, namespace+"-{{ lower_camel .PluralName }}")
 		}()
 
+{{- end}}
 
-		done.Add(1)
-		go func(namespace string, {{ lower_camel .Name }}Chan  <- chan {{ .Name }}List) {
-			defer done.Done()
+
+		/* Watch for changes and update snapshot */
+		go func(namespace string) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
 					return
-				case {{ lower_camel .Name }}List := <-{{ lower_camel .Name }}Chan:
-					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.{{ .PluralName }}.Clear(namespace)
-					newSnapshot.{{ .PluralName }}.Add({{ lower_camel .Name }}List...)
-					sync(newSnapshot)
+{{- range .Resources}}
+				case {{ lower_camel .Name }}List := <- {{ lower_camel .Name }}NamespacesChan:
+					select {
+					case <-opts.Ctx.Done():
+						return
+					case {{ lower_camel .Name }}Chan <- {{ lower_camel .Name }}ListWithNamespace{list:{{ lower_camel .Name }}List, namespace:namespace}:
+					}
+{{- end}}
 				}
 			}
-		}(namespace, {{ lower_camel .Name }}Chan)
-{{- end}}
+		}(namespace)
 	}
 
-
+	
+	snapshots := make(chan *{{ .GoName }}Snapshot)
 	go func() {
-		select {
-		case <-opts.Ctx.Done():
-			done.Wait()
-			close(snapshots)
-			close(errs)
+		currentSnapshot := {{ .GoName }}Snapshot{}
+		sync := func(newSnapshot {{ .GoName }}Snapshot) {
+			if currentSnapshot.Hash() == newSnapshot.Hash() {
+				return
+			}
+			currentSnapshot = newSnapshot
+			sentSnapshot := currentSnapshot.Clone()
+			snapshots <- &sentSnapshot
+		}
+		for {
+			select {
+			case <-opts.Ctx.Done():
+				close(snapshots)
+				done.Wait()
+				close(errs)
+				return
+{{- range .Resources}}
+			case {{ lower_camel .Name }}NamespacedList := <- {{ lower_camel .Name }}Chan:
+				namespace := {{ lower_camel .Name }}NamespacedList.namespace
+				{{ lower_camel .Name }}List := {{ lower_camel .Name }}NamespacedList.list
+
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.{{ .PluralName }}.Clear(namespace)
+				newSnapshot.{{ .PluralName }}.Add({{ lower_camel .Name }}List...)
+				sync(newSnapshot)
+{{- end}}
+			}
 		}
 	}()
 	return snapshots, errs, nil
