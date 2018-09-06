@@ -14,7 +14,7 @@ type DiscoverySyncer struct {
 	prevupstreams v1.UpstreamList
 }
 
-func (d *DiscoverySyncer) Sync(ctx context.Context, snap *v1.Snapshot) error {
+func (d *DiscoverySyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	// update the upstream and secrets
 	//	this will feed the update loop via a channel
 	return nil
@@ -58,7 +58,8 @@ func diff(one, two v1.UpstreamList) v1.UpstreamList {
 	newlist := make([]*v1.Upstream, 0, len(one))
 
 	for _, up := range two {
-		if _, err := one.Find(up.Metadata.ObjectRef()); err != nil {
+		meta := up.Metadata
+		if _, err := one.Find(meta.Namespace, meta.Name); err != nil {
 			// upstream from two is not present in one. add it to result list
 			newlist = append(newlist, up)
 		}

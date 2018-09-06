@@ -101,22 +101,20 @@ func (f *AWSLambdaFuncitonDiscovery) DetectFunctionsOnce(ctx context.Context, se
 		return nil, errors.New("not a lambda upstream spec")
 	}
 	lambdaSpec := awsspec.Aws
-	awsSecrets, err := secrets().Find(in.Metadata.Namespace, lambdaSpec.SecretRef)
+	awsSecrets, err := secrets().Find(lambdaSpec.SecretRef.Namespace, lambdaSpec.SecretRef.Name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "secrets not found for secret ref %v", lambdaSpec.SecretRef)
 	}
 
-	accessKey, ok := awsSecrets.Data[awsAccessKey]
+	awsSecret, ok := awsSecrets.Kind.(*v1.Secret_Aws)
 	if !ok {
-		return nil, errors.Errorf("key %v missing from provided secret", awsAccessKey)
+		return nil, errors.Errorf("provided secret is not an aws secret")
 	}
+	accessKey := awsSecret.Aws.AccessKey
 	if accessKey != "" && !utf8.Valid([]byte(accessKey)) {
 		return nil, errors.Errorf("%s not a valid string", awsAccessKey)
 	}
-	secretKey, ok := awsSecrets.Data[awsSecretKey]
-	if !ok {
-		return nil, errors.Errorf("key %v missing from provided secret", awsSecretKey)
-	}
+	secretKey := awsSecret.Aws.SecretKey
 	if secretKey != "" && !utf8.Valid([]byte(secretKey)) {
 		return nil, errors.Errorf("%s not a valid string", awsSecretKey)
 	}
