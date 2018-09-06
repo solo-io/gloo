@@ -15,8 +15,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-// TODO(ilackarms): create a new xds server on each sync if possible, need to know the names of the proxy configs
-
 // used to let nodes know they have a bad config
 // we assign a "fix me" snapshot for bad nodes
 const fallbackNodeKey = "misconfigured-node"

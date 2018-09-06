@@ -83,8 +83,8 @@ type ResolverMapQueryResolver interface {
 	Get(ctx context.Context, obj *customtypes.ResolverMapQuery, name string) (*models.ResolverMap, error)
 }
 type SchemaMutationResolver interface {
-	Create(ctx context.Context, obj *customtypes.SchemaMutation, Schema models.InputSchema) (*models.Schema, error)
-	Update(ctx context.Context, obj *customtypes.SchemaMutation, Schema models.InputSchema) (*models.Schema, error)
+	Create(ctx context.Context, obj *customtypes.SchemaMutation, schema models.InputSchema) (*models.Schema, error)
+	Update(ctx context.Context, obj *customtypes.SchemaMutation, schema models.InputSchema) (*models.Schema, error)
 	Delete(ctx context.Context, obj *customtypes.SchemaMutation, name string) (*models.Schema, error)
 }
 type SchemaQueryResolver interface {
@@ -2964,7 +2964,7 @@ func (ec *executionContext) _SchemaMutation_create(ctx context.Context, field gr
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 models.InputSchema
-	if tmp, ok := rawArgs["Schema"]; ok {
+	if tmp, ok := rawArgs["schema"]; ok {
 		var err error
 		arg0, err = UnmarshalInputSchema(tmp)
 		if err != nil {
@@ -2972,7 +2972,7 @@ func (ec *executionContext) _SchemaMutation_create(ctx context.Context, field gr
 			return graphql.Null
 		}
 	}
-	args["Schema"] = arg0
+	args["schema"] = arg0
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "SchemaMutation",
 		Args:   args,
@@ -2988,7 +2988,7 @@ func (ec *executionContext) _SchemaMutation_create(ctx context.Context, field gr
 		}()
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.SchemaMutation().Create(ctx, obj, args["Schema"].(models.InputSchema))
+			return ec.resolvers.SchemaMutation().Create(ctx, obj, args["schema"].(models.InputSchema))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -3005,7 +3005,7 @@ func (ec *executionContext) _SchemaMutation_update(ctx context.Context, field gr
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 models.InputSchema
-	if tmp, ok := rawArgs["Schema"]; ok {
+	if tmp, ok := rawArgs["schema"]; ok {
 		var err error
 		arg0, err = UnmarshalInputSchema(tmp)
 		if err != nil {
@@ -3013,7 +3013,7 @@ func (ec *executionContext) _SchemaMutation_update(ctx context.Context, field gr
 			return graphql.Null
 		}
 	}
-	args["Schema"] = arg0
+	args["schema"] = arg0
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "SchemaMutation",
 		Args:   args,
@@ -3029,7 +3029,7 @@ func (ec *executionContext) _SchemaMutation_update(ctx context.Context, field gr
 		}()
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.SchemaMutation().Update(ctx, obj, args["Schema"].(models.InputSchema))
+			return ec.resolvers.SchemaMutation().Update(ctx, obj, args["schema"].(models.InputSchema))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -7824,8 +7824,8 @@ type SchemaQuery {
 }
 
 type SchemaMutation {
-    create(Schema: InputSchema!): Schema
-    update(Schema: InputSchema!): Schema
+    create(schema: InputSchema!): Schema
+    update(schema: InputSchema!): Schema
     delete(name: String!): Schema
 }
 

@@ -70,8 +70,8 @@ type SchemaQuery {
 }
 
 type SchemaMutation {
-    create(Schema: InputSchema!): Schema
-    update(Schema: InputSchema!): Schema
+    create(schema: InputSchema!): Schema
+    update(schema: InputSchema!): Schema
     delete(name: String!): Schema
 }
 

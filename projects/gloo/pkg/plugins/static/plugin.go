@@ -8,15 +8,14 @@ import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyendpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	"github.com/gogo/protobuf/types"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/gogo/protobuf/types"
 )
 
-type plugin struct{	hostRewriteUpstreams map[core.ResourceRef]bool}
-
+type plugin struct{ hostRewriteUpstreams map[core.ResourceRef]bool }
 
 func NewPlugin() plugins.Plugin {
 	return &plugin{}
@@ -112,7 +111,6 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	}
 	return nil
 }
-
 
 func (p *plugin) ProcessRouteAction(params plugins.Params, in *v1.RouteAction, _ map[string]*plugins.RoutePlugin, out *envoyroute.RouteAction) error {
 	upstreams := destinationUpstreams(in)

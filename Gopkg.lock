@@ -43,6 +43,7 @@
     "envoy/api/v2/listener",
     "envoy/api/v2/route",
     "envoy/config/filter/accesslog/v2",
+    "envoy/config/filter/http/rate_limit/v2",
     "envoy/config/filter/network/http_connection_manager/v2",
     "envoy/service/discovery/v2",
     "envoy/type",
@@ -130,6 +131,18 @@
   ]
   revision = "7c663266750e7d82587642f65e60bc4083f1f84e"
   version = "v0.2.0"
+
+[[projects]]
+  name = "github.com/gorilla/context"
+  packages = ["."]
+  revision = "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+  version = "v1.1.1"
+
+[[projects]]
+  name = "github.com/gorilla/mux"
+  packages = ["."]
+  revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+  version = "v1.6.2"
 
 [[projects]]
   name = "github.com/gorilla/websocket"
@@ -297,15 +310,6 @@
     "darwincgo"
   ]
   revision = "668c8856d9992f97248b3177d45743d2cc1068db"
-
-[[projects]]
-  name = "github.com/knative/serving"
-  packages = [
-    "pkg/logging",
-    "pkg/logging/logkey"
-  ]
-  revision = "091d4519394bb7bee5ae4d3ab764c3f4f6f2a51b"
-  version = "v0.1.0"
 
 [[projects]]
   name = "github.com/lyft/protoc-gen-validate"
@@ -786,6 +790,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "211ab35359a8af76b6f575b6b2daa22f66dc3f5e4a9d7c547ce531ccf8c10a4b"
+  inputs-digest = "b0747b1ccf61f3ab7bddeb524da7831a03d6247d657b72c017afb84e1f3b698e"
   solver-name = "gps-cdcl"
   solver-version = 1
