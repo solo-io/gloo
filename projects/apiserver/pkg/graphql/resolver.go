@@ -24,12 +24,18 @@ type ApiResolver struct {
 }
 
 func NewResolvers(upstreams v1.UpstreamClient,
+	schemas sqoopv1.SchemaClient,
+	artifacts v1.ArtifactClient,
+	secrets v1.SecretClient,
 	virtualServices gatewayv1.VirtualServiceClient,
 	resolverMaps sqoopv1.ResolverMapClient) *ApiResolver {
 	return &ApiResolver{
 		Upstreams:       upstreams,
 		VirtualServices: virtualServices,
 		ResolverMaps:    resolverMaps,
+		Schemas:         schemas,
+		Artifacts:       artifacts,
+		Secrets:         secrets,
 		// TODO(ilackarms): just make these private functions, remove converter
 		Converter: &Converter{},
 	}

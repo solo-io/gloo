@@ -49,6 +49,16 @@ func Setup(port int) error {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		secrets, err := v1.NewSecretClientWithToken(inputFactory, token)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		artifacts, err := v1.NewArtifactClientWithToken(inputFactory, token)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		virtualServices, err := gatewayv1.NewVirtualServiceClientWithToken(inputFactory, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -59,9 +69,14 @@ func Setup(port int) error {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		schemas, err := sqoopv1.NewSchemaClientWithToken(inputFactory, token)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		corsSettings.Handler(handler.GraphQL(
 			graph.NewExecutableSchema(graph.Config{
-				Resolvers: apiserver.NewResolvers(upstreams, virtualServices, resolverMaps),
+				Resolvers: apiserver.NewResolvers(upstreams, schemas, artifacts, secrets, virtualServices, resolverMaps),
 			}),
 			handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
 				rc := graphql.GetResolverContext(ctx)
