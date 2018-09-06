@@ -183,7 +183,7 @@ func setRouteAction(in *v1.RouteAction, out *envoyroute.RouteAction) error {
 	switch dest := in.Destination.(type) {
 	case *v1.RouteAction_Single:
 		out.ClusterSpecifier = &envoyroute.RouteAction_Cluster{
-			Cluster: dest.Single.Upstream.Key(),
+			Cluster: UpstreamToClusterName(dest.Single.Upstream),
 		}
 	case *v1.RouteAction_Multi:
 		return setWeightedClusters(dest.Multi, out)
@@ -204,7 +204,7 @@ func setWeightedClusters(multiDest *v1.MultiDestination, out *envoyroute.RouteAc
 	for _, weightedDest := range multiDest.Destinations {
 		totalWeight += weightedDest.Weight
 		clusterSpecifier.WeightedClusters.Clusters = append(clusterSpecifier.WeightedClusters.Clusters, &envoyroute.WeightedCluster_ClusterWeight{
-			Name:   weightedDest.Destination.Upstream.Key(),
+			Name:   UpstreamToClusterName(weightedDest.Destination.Upstream),
 			Weight: &types.UInt32Value{Value: weightedDest.Weight},
 		})
 	}

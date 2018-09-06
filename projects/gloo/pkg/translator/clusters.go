@@ -45,7 +45,7 @@ func (t *translator) computeCluster(params plugins.Params, upstream *v1.Upstream
 
 func initializeCluster(upstream *v1.Upstream, endpoints []*v1.Endpoint) *envoyapi.Cluster {
 	out := &envoyapi.Cluster{
-		Name:     upstream.Metadata.Name,
+		Name:     UpstreamToClusterName(upstream.Metadata.Ref()),
 		Metadata: new(envoycore.Metadata),
 	}
 	// set Type = EDS if we have endpoints for the upstream

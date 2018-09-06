@@ -15,7 +15,7 @@ func computeClusterEndpoints(upstreams []*v1.Upstream, endpoints []*v1.Endpoint)
 		clusterEndpoints := endpointsForUpstream(upstream, endpoints)
 		// if there are any endpoints for this upstream, it's using eds and we need to create a load assignment for it
 		if len(clusterEndpoints) > 0 {
-			loadAssignment := loadAssignmentForCluster(upstream.Metadata.Name, clusterEndpoints)
+			loadAssignment := loadAssignmentForCluster(UpstreamToClusterName(upstream.Metadata.Ref()), clusterEndpoints)
 			clusterEndpointAssignments = append(clusterEndpointAssignments, loadAssignment)
 		}
 	}
