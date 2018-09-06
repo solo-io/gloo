@@ -68,6 +68,18 @@ $(OUTPUT_DIR)/.generated-code:
 .PHONY: install-plugin
 install-plugin: ${GOPATH}/bin/protoc-gen-solo-kit
 
+.PHONY: install-gqlgen
+install-gqlgen: ${GOPATH}/bin/gqlgen
+${GOPATH}/bin/gqlgen: ${GOPATH}/src/github.com/99designs/gqlgen/
+	cd ${GOPATH}/src/github.com/99designs/gqlgen/ && \
+	dep ensure && \
+	go install
+
+${GOPATH}/src/github.com/99designs/gqlgen/:
+	mkdir -p ${GOPATH}/src/github.com/99designs && \
+	cd ${GOPATH}/src/github.com/99designs
+	git clone --branch v0.4.4 --depth 1 https://github.com/99designs/gqlgen/
+
 $(OUTPUT_DIR)/protoc-gen-solo-kit: $(SOURCES)
 	go build -o $@ cmd/generator/main.go
 
