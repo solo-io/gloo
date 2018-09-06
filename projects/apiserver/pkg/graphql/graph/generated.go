@@ -49,8 +49,8 @@ type ResolverRoot interface {
 type DirectiveRoot struct {
 }
 type ArtifactMutationResolver interface {
-	Create(ctx context.Context, obj *customtypes.ArtifactMutation, Artifact models.InputArtifact) (*models.Artifact, error)
-	Update(ctx context.Context, obj *customtypes.ArtifactMutation, Artifact models.InputArtifact) (*models.Artifact, error)
+	Create(ctx context.Context, obj *customtypes.ArtifactMutation, artifact models.InputArtifact) (*models.Artifact, error)
+	Update(ctx context.Context, obj *customtypes.ArtifactMutation, artifact models.InputArtifact) (*models.Artifact, error)
 	Delete(ctx context.Context, obj *customtypes.ArtifactMutation, name string) (*models.Artifact, error)
 }
 type ArtifactQueryResolver interface {
@@ -92,8 +92,8 @@ type SchemaQueryResolver interface {
 	Get(ctx context.Context, obj *customtypes.SchemaQuery, name string) (*models.Schema, error)
 }
 type SecretMutationResolver interface {
-	Create(ctx context.Context, obj *customtypes.SecretMutation, Secret models.InputSecret) (*models.Secret, error)
-	Update(ctx context.Context, obj *customtypes.SecretMutation, Secret models.InputSecret) (*models.Secret, error)
+	Create(ctx context.Context, obj *customtypes.SecretMutation, secret models.InputSecret) (*models.Secret, error)
+	Update(ctx context.Context, obj *customtypes.SecretMutation, secret models.InputSecret) (*models.Secret, error)
 	Delete(ctx context.Context, obj *customtypes.SecretMutation, name string) (*models.Secret, error)
 }
 type SecretQueryResolver interface {
@@ -263,7 +263,7 @@ func (ec *executionContext) _ArtifactMutation_create(ctx context.Context, field 
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 models.InputArtifact
-	if tmp, ok := rawArgs["Artifact"]; ok {
+	if tmp, ok := rawArgs["artifact"]; ok {
 		var err error
 		arg0, err = UnmarshalInputArtifact(tmp)
 		if err != nil {
@@ -271,7 +271,7 @@ func (ec *executionContext) _ArtifactMutation_create(ctx context.Context, field 
 			return graphql.Null
 		}
 	}
-	args["Artifact"] = arg0
+	args["artifact"] = arg0
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "ArtifactMutation",
 		Args:   args,
@@ -287,7 +287,7 @@ func (ec *executionContext) _ArtifactMutation_create(ctx context.Context, field 
 		}()
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.ArtifactMutation().Create(ctx, obj, args["Artifact"].(models.InputArtifact))
+			return ec.resolvers.ArtifactMutation().Create(ctx, obj, args["artifact"].(models.InputArtifact))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -304,7 +304,7 @@ func (ec *executionContext) _ArtifactMutation_update(ctx context.Context, field 
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 models.InputArtifact
-	if tmp, ok := rawArgs["Artifact"]; ok {
+	if tmp, ok := rawArgs["artifact"]; ok {
 		var err error
 		arg0, err = UnmarshalInputArtifact(tmp)
 		if err != nil {
@@ -312,7 +312,7 @@ func (ec *executionContext) _ArtifactMutation_update(ctx context.Context, field 
 			return graphql.Null
 		}
 	}
-	args["Artifact"] = arg0
+	args["artifact"] = arg0
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "ArtifactMutation",
 		Args:   args,
@@ -328,7 +328,7 @@ func (ec *executionContext) _ArtifactMutation_update(ctx context.Context, field 
 		}()
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.ArtifactMutation().Update(ctx, obj, args["Artifact"].(models.InputArtifact))
+			return ec.resolvers.ArtifactMutation().Update(ctx, obj, args["artifact"].(models.InputArtifact))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -3294,7 +3294,7 @@ func (ec *executionContext) _SecretMutation_create(ctx context.Context, field gr
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 models.InputSecret
-	if tmp, ok := rawArgs["Secret"]; ok {
+	if tmp, ok := rawArgs["secret"]; ok {
 		var err error
 		arg0, err = UnmarshalInputSecret(tmp)
 		if err != nil {
@@ -3302,7 +3302,7 @@ func (ec *executionContext) _SecretMutation_create(ctx context.Context, field gr
 			return graphql.Null
 		}
 	}
-	args["Secret"] = arg0
+	args["secret"] = arg0
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "SecretMutation",
 		Args:   args,
@@ -3318,7 +3318,7 @@ func (ec *executionContext) _SecretMutation_create(ctx context.Context, field gr
 		}()
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.SecretMutation().Create(ctx, obj, args["Secret"].(models.InputSecret))
+			return ec.resolvers.SecretMutation().Create(ctx, obj, args["secret"].(models.InputSecret))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -3335,7 +3335,7 @@ func (ec *executionContext) _SecretMutation_update(ctx context.Context, field gr
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
 	var arg0 models.InputSecret
-	if tmp, ok := rawArgs["Secret"]; ok {
+	if tmp, ok := rawArgs["secret"]; ok {
 		var err error
 		arg0, err = UnmarshalInputSecret(tmp)
 		if err != nil {
@@ -3343,7 +3343,7 @@ func (ec *executionContext) _SecretMutation_update(ctx context.Context, field gr
 			return graphql.Null
 		}
 	}
-	args["Secret"] = arg0
+	args["secret"] = arg0
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "SecretMutation",
 		Args:   args,
@@ -3359,7 +3359,7 @@ func (ec *executionContext) _SecretMutation_update(ctx context.Context, field gr
 		}()
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.SecretMutation().Update(ctx, obj, args["Secret"].(models.InputSecret))
+			return ec.resolvers.SecretMutation().Update(ctx, obj, args["secret"].(models.InputSecret))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -7835,8 +7835,8 @@ type SecretQuery {
 }
 
 type SecretMutation {
-    create(Secret: InputSecret!): Secret
-    update(Secret: InputSecret!): Secret
+    create(secret: InputSecret!): Secret
+    update(secret: InputSecret!): Secret
     delete(name: String!): Secret
 }
 
@@ -7846,8 +7846,8 @@ type ArtifactQuery {
 }
 
 type ArtifactMutation {
-    create(Artifact: InputArtifact!): Artifact
-    update(Artifact: InputArtifact!): Artifact
+    create(artifact: InputArtifact!): Artifact
+    update(artifact: InputArtifact!): Artifact
     delete(name: String!): Artifact
 }
 

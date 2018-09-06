@@ -81,8 +81,8 @@ type SecretQuery {
 }
 
 type SecretMutation {
-    create(Secret: InputSecret!): Secret
-    update(Secret: InputSecret!): Secret
+    create(secret: InputSecret!): Secret
+    update(secret: InputSecret!): Secret
     delete(name: String!): Secret
 }
 
@@ -92,8 +92,8 @@ type ArtifactQuery {
 }
 
 type ArtifactMutation {
-    create(Artifact: InputArtifact!): Artifact
-    update(Artifact: InputArtifact!): Artifact
+    create(artifact: InputArtifact!): Artifact
+    update(artifact: InputArtifact!): Artifact
     delete(name: String!): Artifact
 }
 
