@@ -100,6 +100,7 @@
     "envoy/api/v2/route",
     "envoy/config/filter/accesslog/v2",
     "envoy/config/filter/http/rate_limit/v2",
+    "envoy/config/filter/http/transcoder/v2",
     "envoy/config/filter/network/http_connection_manager/v2",
     "envoy/service/discovery/v2",
     "envoy/type",
@@ -942,6 +943,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8a76a5f4536916b74ecdabfd5a56e1b0823cf0e7d05803d5f36edc746baa0ac2"
+  inputs-digest = "1f2646b8367d1ae74378df49fecc44a380912b6ae35bfd6a46996e7e1936e7cd"
   solver-name = "gps-cdcl"
   solver-version = 1
