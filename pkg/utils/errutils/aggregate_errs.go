@@ -13,7 +13,11 @@ func AggregateErrs(ctx context.Context, dest chan error, src <-chan error, srcIn
 			if !ok {
 				return
 			}
-			dest <- errors.Wrapf(err, srcInfo)
+			select {
+			case <-ctx.Done():
+				return
+			case dest <- errors.Wrapf(err, srcInfo):
+			}
 		case <-ctx.Done():
 			return
 		}

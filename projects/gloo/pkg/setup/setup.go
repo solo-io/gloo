@@ -92,7 +92,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 	errs := make(chan error)
 
 	udsErrs, err := discovery.RunUds(disc, watchOpts, discovery.Opts{
-	// TODO(ilackarms)
+		// TODO(ilackarms)
 	})
 	if err != nil {
 		return err
@@ -120,7 +120,6 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 			case err := <-errs:
 				logger.Errorf("error: %v", err)
 			case <-watchOpts.Ctx.Done():
-				close(errs)
 				return
 			}
 		}
