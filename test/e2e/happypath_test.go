@@ -48,14 +48,12 @@ var _ = Describe("Happypath", func() {
 	})
 
 	It("should not crash", func() {
-		err := envoyInstance.Run()
-		Expect(err).NotTo(HaveOccurred())
 
 		tu := helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
 
 		var opts clients.WriteOpts
 		up := tu.Upstream
-		_, err = testClients.UpstreamClient.Write(up, opts)
+		_, err := testClients.UpstreamClient.Write(up, opts)
 		Expect(err).NotTo(HaveOccurred())
 
 		proxycli := testClients.ProxyClient
