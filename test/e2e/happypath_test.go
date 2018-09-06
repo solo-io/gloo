@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -104,8 +105,10 @@ var _ = Describe("Happypath", func() {
 			// send a request with a body
 			var buf bytes.Buffer
 			buf.Write(body)
-			_, err = http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "application/octet-stream", &buf)
-			return err
+
+			res, err := http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "application/octet-stream", &buf)
+			if err != nil {
+				return err
 		}, "5s", ".5s").Should(BeNil())
 
 		Eventually(tu.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
