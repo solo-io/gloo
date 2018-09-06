@@ -6,6 +6,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
+
+	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
 )
 
@@ -26,6 +28,7 @@ var _ = AfterSuite(func() {
 })
 
 func TestE2e(t *testing.T) {
-	RegisterFailHandler(Fail)
+	helpers.RegisterCommonFailHandlers()
+	// RegisterFailHandler(Fail)
 	RunSpecs(t, "E2e Suite")
 }
