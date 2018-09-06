@@ -13,6 +13,8 @@ var ResourceGroupEmitterTemplate = template.Must(template.New("resource_group_em
 {{- $clients := (join_str_slice $clients ", ") }}
 
 import (
+	"sync"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
@@ -59,6 +61,7 @@ func (c *{{ lower_camel $.GoName }}Emitter) {{ .Name }}() {{ .Name }}Client {
 func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *{{ .GoName }}Snapshot, <-chan error, error) {
 	snapshots := make(chan *{{ .GoName }}Snapshot)
 	errs := make(chan error)
+	var done sync.WaitGroup
 
 	currentSnapshot := {{ .GoName }}Snapshot{}
 
@@ -76,8 +79,16 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting {{ .Name }} watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, {{ lower_camel .Name }}Errs, namespace+"-{{ lower_camel .PluralName }}")
+		done.Add(1)
+		go func() {
+			defer done.Done()
+			errutils.AggregateErrs(opts.Ctx, errs, {{ lower_camel .Name }}Errs, namespace+"-{{ lower_camel .PluralName }}")
+		}()
+
+
+		done.Add(1)
 		go func(namespace string, {{ lower_camel .Name }}Chan  <- chan {{ .Name }}List) {
+			defer done.Done()
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -97,6 +108,7 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 	go func() {
 		select {
 		case <-opts.Ctx.Done():
+			done.Wait()
 			close(snapshots)
 			close(errs)
 		}
