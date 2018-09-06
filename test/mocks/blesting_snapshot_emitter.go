@@ -36,54 +36,73 @@ func (c *blestingEmitter) FakeResource() FakeResourceClient {
 }
 
 func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *BlestingSnapshot, <-chan error, error) {
-	snapshots := make(chan *BlestingSnapshot)
+
 	errs := make(chan error)
 	var done sync.WaitGroup
-
-	currentSnapshot := BlestingSnapshot{}
-
-	sync := func(newSnapshot BlestingSnapshot) {
-		if currentSnapshot.Hash() == newSnapshot.Hash() {
-			return
-		}
-		currentSnapshot = newSnapshot
-		snapshots <- &currentSnapshot
+	/* Create channel for FakeResource */
+	type fakeResourceListWithNamespace struct {
+		list      FakeResourceList
+		namespace string
 	}
+	fakeResourceChan := make(chan fakeResourceListWithNamespace)
 
 	for _, namespace := range watchNamespaces {
-		fakeResourceChan, fakeResourceErrs, err := c.fakeResource.Watch(namespace, opts)
+		/* Setup watch for FakeResource */
+		fakeResourceNamespacesChan, fakeResourceErrs, err := c.fakeResource.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting FakeResource watch")
 		}
+
 		done.Add(1)
 		go func() {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
 		}()
 
-		done.Add(1)
-		go func(namespace string, fakeResourceChan <-chan FakeResourceList) {
-			defer done.Done()
+		/* Watch for changes and update snapshot */
+		go func(namespace string) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
 					return
-				case fakeResourceList := <-fakeResourceChan:
-					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.Fakes.Clear(namespace)
-					newSnapshot.Fakes.Add(fakeResourceList...)
-					sync(newSnapshot)
+				case fakeResourceList := <-fakeResourceNamespacesChan:
+					select {
+					case <-opts.Ctx.Done():
+						return
+					case fakeResourceChan <- fakeResourceListWithNamespace{list: fakeResourceList, namespace: namespace}:
+					}
 				}
 			}
-		}(namespace, fakeResourceChan)
+		}(namespace)
 	}
 
+	snapshots := make(chan *BlestingSnapshot)
 	go func() {
-		select {
-		case <-opts.Ctx.Done():
-			done.Wait()
-			close(snapshots)
-			close(errs)
+		currentSnapshot := BlestingSnapshot{}
+		sync := func(newSnapshot BlestingSnapshot) {
+			if currentSnapshot.Hash() == newSnapshot.Hash() {
+				return
+			}
+			currentSnapshot = newSnapshot
+			sentSnapshot := currentSnapshot.Clone()
+			snapshots <- &sentSnapshot
+		}
+		for {
+			select {
+			case <-opts.Ctx.Done():
+				close(snapshots)
+				done.Wait()
+				close(errs)
+				return
+			case fakeResourceNamespacedList := <-fakeResourceChan:
+				namespace := fakeResourceNamespacedList.namespace
+				fakeResourceList := fakeResourceNamespacedList.list
+
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.Fakes.Clear(namespace)
+				newSnapshot.Fakes.Add(fakeResourceList...)
+				sync(newSnapshot)
+			}
 		}
 	}()
 	return snapshots, errs, nil

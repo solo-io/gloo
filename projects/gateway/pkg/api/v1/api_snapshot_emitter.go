@@ -46,79 +46,104 @@ func (c *apiEmitter) VirtualService() VirtualServiceClient {
 }
 
 func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
-	snapshots := make(chan *ApiSnapshot)
+
 	errs := make(chan error)
 	var done sync.WaitGroup
-
-	currentSnapshot := ApiSnapshot{}
-
-	sync := func(newSnapshot ApiSnapshot) {
-		if currentSnapshot.Hash() == newSnapshot.Hash() {
-			return
-		}
-		currentSnapshot = newSnapshot
-		snapshots <- &currentSnapshot
+	/* Create channel for Gateway */
+	type gatewayListWithNamespace struct {
+		list      GatewayList
+		namespace string
 	}
+	gatewayChan := make(chan gatewayListWithNamespace)
+	/* Create channel for VirtualService */
+	type virtualServiceListWithNamespace struct {
+		list      VirtualServiceList
+		namespace string
+	}
+	virtualServiceChan := make(chan virtualServiceListWithNamespace)
 
 	for _, namespace := range watchNamespaces {
-		gatewayChan, gatewayErrs, err := c.gateway.Watch(namespace, opts)
+		/* Setup watch for Gateway */
+		gatewayNamespacesChan, gatewayErrs, err := c.gateway.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Gateway watch")
 		}
+
 		done.Add(1)
 		go func() {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, gatewayErrs, namespace+"-gateways")
 		}()
-
-		done.Add(1)
-		go func(namespace string, gatewayChan <-chan GatewayList) {
-			defer done.Done()
-			for {
-				select {
-				case <-opts.Ctx.Done():
-					return
-				case gatewayList := <-gatewayChan:
-					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.Gateways.Clear(namespace)
-					newSnapshot.Gateways.Add(gatewayList...)
-					sync(newSnapshot)
-				}
-			}
-		}(namespace, gatewayChan)
-		virtualServiceChan, virtualServiceErrs, err := c.virtualService.Watch(namespace, opts)
+		/* Setup watch for VirtualService */
+		virtualServiceNamespacesChan, virtualServiceErrs, err := c.virtualService.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting VirtualService watch")
 		}
+
 		done.Add(1)
 		go func() {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
 		}()
 
-		done.Add(1)
-		go func(namespace string, virtualServiceChan <-chan VirtualServiceList) {
-			defer done.Done()
+		/* Watch for changes and update snapshot */
+		go func(namespace string) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
 					return
-				case virtualServiceList := <-virtualServiceChan:
-					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.VirtualServices.Clear(namespace)
-					newSnapshot.VirtualServices.Add(virtualServiceList...)
-					sync(newSnapshot)
+				case gatewayList := <-gatewayNamespacesChan:
+					select {
+					case <-opts.Ctx.Done():
+						return
+					case gatewayChan <- gatewayListWithNamespace{list: gatewayList, namespace: namespace}:
+					}
+				case virtualServiceList := <-virtualServiceNamespacesChan:
+					select {
+					case <-opts.Ctx.Done():
+						return
+					case virtualServiceChan <- virtualServiceListWithNamespace{list: virtualServiceList, namespace: namespace}:
+					}
 				}
 			}
-		}(namespace, virtualServiceChan)
+		}(namespace)
 	}
 
+	snapshots := make(chan *ApiSnapshot)
 	go func() {
-		select {
-		case <-opts.Ctx.Done():
-			done.Wait()
-			close(snapshots)
-			close(errs)
+		currentSnapshot := ApiSnapshot{}
+		sync := func(newSnapshot ApiSnapshot) {
+			if currentSnapshot.Hash() == newSnapshot.Hash() {
+				return
+			}
+			currentSnapshot = newSnapshot
+			sentSnapshot := currentSnapshot.Clone()
+			snapshots <- &sentSnapshot
+		}
+		for {
+			select {
+			case <-opts.Ctx.Done():
+				close(snapshots)
+				done.Wait()
+				close(errs)
+				return
+			case gatewayNamespacedList := <-gatewayChan:
+				namespace := gatewayNamespacedList.namespace
+				gatewayList := gatewayNamespacedList.list
+
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.Gateways.Clear(namespace)
+				newSnapshot.Gateways.Add(gatewayList...)
+				sync(newSnapshot)
+			case virtualServiceNamespacedList := <-virtualServiceChan:
+				namespace := virtualServiceNamespacedList.namespace
+				virtualServiceList := virtualServiceNamespacedList.list
+
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.VirtualServices.Clear(namespace)
+				newSnapshot.VirtualServices.Add(virtualServiceList...)
+				sync(newSnapshot)
+			}
 		}
 	}()
 	return snapshots, errs, nil

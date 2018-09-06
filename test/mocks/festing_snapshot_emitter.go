@@ -36,54 +36,73 @@ func (c *festingEmitter) MockResource() MockResourceClient {
 }
 
 func (c *festingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *FestingSnapshot, <-chan error, error) {
-	snapshots := make(chan *FestingSnapshot)
+
 	errs := make(chan error)
 	var done sync.WaitGroup
-
-	currentSnapshot := FestingSnapshot{}
-
-	sync := func(newSnapshot FestingSnapshot) {
-		if currentSnapshot.Hash() == newSnapshot.Hash() {
-			return
-		}
-		currentSnapshot = newSnapshot
-		snapshots <- &currentSnapshot
+	/* Create channel for MockResource */
+	type mockResourceListWithNamespace struct {
+		list      MockResourceList
+		namespace string
 	}
+	mockResourceChan := make(chan mockResourceListWithNamespace)
 
 	for _, namespace := range watchNamespaces {
-		mockResourceChan, mockResourceErrs, err := c.mockResource.Watch(namespace, opts)
+		/* Setup watch for MockResource */
+		mockResourceNamespacesChan, mockResourceErrs, err := c.mockResource.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting MockResource watch")
 		}
+
 		done.Add(1)
 		go func() {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, mockResourceErrs, namespace+"-mocks")
 		}()
 
-		done.Add(1)
-		go func(namespace string, mockResourceChan <-chan MockResourceList) {
-			defer done.Done()
+		/* Watch for changes and update snapshot */
+		go func(namespace string) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
 					return
-				case mockResourceList := <-mockResourceChan:
-					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.Mocks.Clear(namespace)
-					newSnapshot.Mocks.Add(mockResourceList...)
-					sync(newSnapshot)
+				case mockResourceList := <-mockResourceNamespacesChan:
+					select {
+					case <-opts.Ctx.Done():
+						return
+					case mockResourceChan <- mockResourceListWithNamespace{list: mockResourceList, namespace: namespace}:
+					}
 				}
 			}
-		}(namespace, mockResourceChan)
+		}(namespace)
 	}
 
+	snapshots := make(chan *FestingSnapshot)
 	go func() {
-		select {
-		case <-opts.Ctx.Done():
-			done.Wait()
-			close(snapshots)
-			close(errs)
+		currentSnapshot := FestingSnapshot{}
+		sync := func(newSnapshot FestingSnapshot) {
+			if currentSnapshot.Hash() == newSnapshot.Hash() {
+				return
+			}
+			currentSnapshot = newSnapshot
+			sentSnapshot := currentSnapshot.Clone()
+			snapshots <- &sentSnapshot
+		}
+		for {
+			select {
+			case <-opts.Ctx.Done():
+				close(snapshots)
+				done.Wait()
+				close(errs)
+				return
+			case mockResourceNamespacedList := <-mockResourceChan:
+				namespace := mockResourceNamespacedList.namespace
+				mockResourceList := mockResourceNamespacedList.list
+
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.Mocks.Clear(namespace)
+				newSnapshot.Mocks.Add(mockResourceList...)
+				sync(newSnapshot)
+			}
 		}
 	}()
 	return snapshots, errs, nil

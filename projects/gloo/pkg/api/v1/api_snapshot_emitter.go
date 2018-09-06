@@ -76,154 +76,197 @@ func (c *apiEmitter) Upstream() UpstreamClient {
 }
 
 func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
-	snapshots := make(chan *ApiSnapshot)
+
 	errs := make(chan error)
 	var done sync.WaitGroup
-
-	currentSnapshot := ApiSnapshot{}
-
-	sync := func(newSnapshot ApiSnapshot) {
-		if currentSnapshot.Hash() == newSnapshot.Hash() {
-			return
-		}
-		currentSnapshot = newSnapshot
-		snapshots <- &currentSnapshot
+	/* Create channel for Artifact */
+	type artifactListWithNamespace struct {
+		list      ArtifactList
+		namespace string
 	}
+	artifactChan := make(chan artifactListWithNamespace)
+	/* Create channel for Endpoint */
+	type endpointListWithNamespace struct {
+		list      EndpointList
+		namespace string
+	}
+	endpointChan := make(chan endpointListWithNamespace)
+	/* Create channel for Proxy */
+	type proxyListWithNamespace struct {
+		list      ProxyList
+		namespace string
+	}
+	proxyChan := make(chan proxyListWithNamespace)
+	/* Create channel for Secret */
+	type secretListWithNamespace struct {
+		list      SecretList
+		namespace string
+	}
+	secretChan := make(chan secretListWithNamespace)
+	/* Create channel for Upstream */
+	type upstreamListWithNamespace struct {
+		list      UpstreamList
+		namespace string
+	}
+	upstreamChan := make(chan upstreamListWithNamespace)
 
 	for _, namespace := range watchNamespaces {
-		artifactChan, artifactErrs, err := c.artifact.Watch(namespace, opts)
+		/* Setup watch for Artifact */
+		artifactNamespacesChan, artifactErrs, err := c.artifact.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Artifact watch")
 		}
+
 		done.Add(1)
 		go func() {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, artifactErrs, namespace+"-artifacts")
 		}()
-
-		done.Add(1)
-		go func(namespace string, artifactChan <-chan ArtifactList) {
-			defer done.Done()
-			for {
-				select {
-				case <-opts.Ctx.Done():
-					return
-				case artifactList := <-artifactChan:
-					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.Artifacts.Clear(namespace)
-					newSnapshot.Artifacts.Add(artifactList...)
-					sync(newSnapshot)
-				}
-			}
-		}(namespace, artifactChan)
-		endpointChan, endpointErrs, err := c.endpoint.Watch(namespace, opts)
+		/* Setup watch for Endpoint */
+		endpointNamespacesChan, endpointErrs, err := c.endpoint.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Endpoint watch")
 		}
+
 		done.Add(1)
 		go func() {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, endpointErrs, namespace+"-endpoints")
 		}()
-
-		done.Add(1)
-		go func(namespace string, endpointChan <-chan EndpointList) {
-			defer done.Done()
-			for {
-				select {
-				case <-opts.Ctx.Done():
-					return
-				case endpointList := <-endpointChan:
-					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.Endpoints.Clear(namespace)
-					newSnapshot.Endpoints.Add(endpointList...)
-					sync(newSnapshot)
-				}
-			}
-		}(namespace, endpointChan)
-		proxyChan, proxyErrs, err := c.proxy.Watch(namespace, opts)
+		/* Setup watch for Proxy */
+		proxyNamespacesChan, proxyErrs, err := c.proxy.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Proxy watch")
 		}
+
 		done.Add(1)
 		go func() {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, proxyErrs, namespace+"-proxies")
 		}()
-
-		done.Add(1)
-		go func(namespace string, proxyChan <-chan ProxyList) {
-			defer done.Done()
-			for {
-				select {
-				case <-opts.Ctx.Done():
-					return
-				case proxyList := <-proxyChan:
-					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.Proxies.Clear(namespace)
-					newSnapshot.Proxies.Add(proxyList...)
-					sync(newSnapshot)
-				}
-			}
-		}(namespace, proxyChan)
-		secretChan, secretErrs, err := c.secret.Watch(namespace, opts)
+		/* Setup watch for Secret */
+		secretNamespacesChan, secretErrs, err := c.secret.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Secret watch")
 		}
+
 		done.Add(1)
 		go func() {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, secretErrs, namespace+"-secrets")
 		}()
-
-		done.Add(1)
-		go func(namespace string, secretChan <-chan SecretList) {
-			defer done.Done()
-			for {
-				select {
-				case <-opts.Ctx.Done():
-					return
-				case secretList := <-secretChan:
-					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.Secrets.Clear(namespace)
-					newSnapshot.Secrets.Add(secretList...)
-					sync(newSnapshot)
-				}
-			}
-		}(namespace, secretChan)
-		upstreamChan, upstreamErrs, err := c.upstream.Watch(namespace, opts)
+		/* Setup watch for Upstream */
+		upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Upstream watch")
 		}
+
 		done.Add(1)
 		go func() {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, upstreamErrs, namespace+"-upstreams")
 		}()
 
-		done.Add(1)
-		go func(namespace string, upstreamChan <-chan UpstreamList) {
-			defer done.Done()
+		/* Watch for changes and update snapshot */
+		go func(namespace string) {
 			for {
 				select {
 				case <-opts.Ctx.Done():
 					return
-				case upstreamList := <-upstreamChan:
-					newSnapshot := currentSnapshot.Clone()
-					newSnapshot.Upstreams.Clear(namespace)
-					newSnapshot.Upstreams.Add(upstreamList...)
-					sync(newSnapshot)
+				case artifactList := <-artifactNamespacesChan:
+					select {
+					case <-opts.Ctx.Done():
+						return
+					case artifactChan <- artifactListWithNamespace{list: artifactList, namespace: namespace}:
+					}
+				case endpointList := <-endpointNamespacesChan:
+					select {
+					case <-opts.Ctx.Done():
+						return
+					case endpointChan <- endpointListWithNamespace{list: endpointList, namespace: namespace}:
+					}
+				case proxyList := <-proxyNamespacesChan:
+					select {
+					case <-opts.Ctx.Done():
+						return
+					case proxyChan <- proxyListWithNamespace{list: proxyList, namespace: namespace}:
+					}
+				case secretList := <-secretNamespacesChan:
+					select {
+					case <-opts.Ctx.Done():
+						return
+					case secretChan <- secretListWithNamespace{list: secretList, namespace: namespace}:
+					}
+				case upstreamList := <-upstreamNamespacesChan:
+					select {
+					case <-opts.Ctx.Done():
+						return
+					case upstreamChan <- upstreamListWithNamespace{list: upstreamList, namespace: namespace}:
+					}
 				}
 			}
-		}(namespace, upstreamChan)
+		}(namespace)
 	}
 
+	snapshots := make(chan *ApiSnapshot)
 	go func() {
-		select {
-		case <-opts.Ctx.Done():
-			done.Wait()
-			close(snapshots)
-			close(errs)
+		currentSnapshot := ApiSnapshot{}
+		sync := func(newSnapshot ApiSnapshot) {
+			if currentSnapshot.Hash() == newSnapshot.Hash() {
+				return
+			}
+			currentSnapshot = newSnapshot
+			sentSnapshot := currentSnapshot.Clone()
+			snapshots <- &sentSnapshot
+		}
+		for {
+			select {
+			case <-opts.Ctx.Done():
+				close(snapshots)
+				done.Wait()
+				close(errs)
+				return
+			case artifactNamespacedList := <-artifactChan:
+				namespace := artifactNamespacedList.namespace
+				artifactList := artifactNamespacedList.list
+
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.Artifacts.Clear(namespace)
+				newSnapshot.Artifacts.Add(artifactList...)
+				sync(newSnapshot)
+			case endpointNamespacedList := <-endpointChan:
+				namespace := endpointNamespacedList.namespace
+				endpointList := endpointNamespacedList.list
+
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.Endpoints.Clear(namespace)
+				newSnapshot.Endpoints.Add(endpointList...)
+				sync(newSnapshot)
+			case proxyNamespacedList := <-proxyChan:
+				namespace := proxyNamespacedList.namespace
+				proxyList := proxyNamespacedList.list
+
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.Proxies.Clear(namespace)
+				newSnapshot.Proxies.Add(proxyList...)
+				sync(newSnapshot)
+			case secretNamespacedList := <-secretChan:
+				namespace := secretNamespacedList.namespace
+				secretList := secretNamespacedList.list
+
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.Secrets.Clear(namespace)
+				newSnapshot.Secrets.Add(secretList...)
+				sync(newSnapshot)
+			case upstreamNamespacedList := <-upstreamChan:
+				namespace := upstreamNamespacedList.namespace
+				upstreamList := upstreamNamespacedList.list
+
+				newSnapshot := currentSnapshot.Clone()
+				newSnapshot.Upstreams.Clear(namespace)
+				newSnapshot.Upstreams.Add(upstreamList...)
+				sync(newSnapshot)
+			}
 		}
 	}()
 	return snapshots, errs, nil
