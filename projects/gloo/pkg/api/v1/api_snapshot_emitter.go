@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"sync"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
@@ -76,6 +78,7 @@ func (c *apiEmitter) Upstream() UpstreamClient {
 func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
 	snapshots := make(chan *ApiSnapshot)
 	errs := make(chan error)
+	var done sync.WaitGroup
 
 	currentSnapshot := ApiSnapshot{}
 
@@ -92,8 +95,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Artifact watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, artifactErrs, namespace+"-artifacts")
+		done.Add(1)
+		go func() {
+			defer done.Done()
+			errutils.AggregateErrs(opts.Ctx, errs, artifactErrs, namespace+"-artifacts")
+		}()
+
+		done.Add(1)
 		go func(namespace string, artifactChan <-chan ArtifactList) {
+			defer done.Done()
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -110,8 +120,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Endpoint watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, endpointErrs, namespace+"-endpoints")
+		done.Add(1)
+		go func() {
+			defer done.Done()
+			errutils.AggregateErrs(opts.Ctx, errs, endpointErrs, namespace+"-endpoints")
+		}()
+
+		done.Add(1)
 		go func(namespace string, endpointChan <-chan EndpointList) {
+			defer done.Done()
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -128,8 +145,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Proxy watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, proxyErrs, namespace+"-proxies")
+		done.Add(1)
+		go func() {
+			defer done.Done()
+			errutils.AggregateErrs(opts.Ctx, errs, proxyErrs, namespace+"-proxies")
+		}()
+
+		done.Add(1)
 		go func(namespace string, proxyChan <-chan ProxyList) {
+			defer done.Done()
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -146,8 +170,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Secret watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, secretErrs, namespace+"-secrets")
+		done.Add(1)
+		go func() {
+			defer done.Done()
+			errutils.AggregateErrs(opts.Ctx, errs, secretErrs, namespace+"-secrets")
+		}()
+
+		done.Add(1)
 		go func(namespace string, secretChan <-chan SecretList) {
+			defer done.Done()
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -164,8 +195,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Upstream watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, upstreamErrs, namespace+"-upstreams")
+		done.Add(1)
+		go func() {
+			defer done.Done()
+			errutils.AggregateErrs(opts.Ctx, errs, upstreamErrs, namespace+"-upstreams")
+		}()
+
+		done.Add(1)
 		go func(namespace string, upstreamChan <-chan UpstreamList) {
+			defer done.Done()
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -183,6 +221,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	go func() {
 		select {
 		case <-opts.Ctx.Done():
+			done.Wait()
 			close(snapshots)
 			close(errs)
 		}

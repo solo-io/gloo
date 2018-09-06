@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"sync"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
@@ -46,6 +48,7 @@ func (c *apiEmitter) VirtualService() VirtualServiceClient {
 func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
 	snapshots := make(chan *ApiSnapshot)
 	errs := make(chan error)
+	var done sync.WaitGroup
 
 	currentSnapshot := ApiSnapshot{}
 
@@ -62,8 +65,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Gateway watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, gatewayErrs, namespace+"-gateways")
+		done.Add(1)
+		go func() {
+			defer done.Done()
+			errutils.AggregateErrs(opts.Ctx, errs, gatewayErrs, namespace+"-gateways")
+		}()
+
+		done.Add(1)
 		go func(namespace string, gatewayChan <-chan GatewayList) {
+			defer done.Done()
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -80,8 +90,15 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting VirtualService watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
+		done.Add(1)
+		go func() {
+			defer done.Done()
+			errutils.AggregateErrs(opts.Ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
+		}()
+
+		done.Add(1)
 		go func(namespace string, virtualServiceChan <-chan VirtualServiceList) {
+			defer done.Done()
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -99,6 +116,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	go func() {
 		select {
 		case <-opts.Ctx.Done():
+			done.Wait()
 			close(snapshots)
 			close(errs)
 		}

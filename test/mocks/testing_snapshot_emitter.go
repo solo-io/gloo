@@ -1,6 +1,8 @@
 package mocks
 
 import (
+	"sync"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
@@ -46,6 +48,7 @@ func (c *testingEmitter) FakeResource() FakeResourceClient {
 func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *TestingSnapshot, <-chan error, error) {
 	snapshots := make(chan *TestingSnapshot)
 	errs := make(chan error)
+	var done sync.WaitGroup
 
 	currentSnapshot := TestingSnapshot{}
 
@@ -62,8 +65,15 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting MockResource watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, mockResourceErrs, namespace+"-mocks")
+		done.Add(1)
+		go func() {
+			defer done.Done()
+			errutils.AggregateErrs(opts.Ctx, errs, mockResourceErrs, namespace+"-mocks")
+		}()
+
+		done.Add(1)
 		go func(namespace string, mockResourceChan <-chan MockResourceList) {
+			defer done.Done()
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -80,8 +90,15 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting FakeResource watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
+		done.Add(1)
+		go func() {
+			defer done.Done()
+			errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
+		}()
+
+		done.Add(1)
 		go func(namespace string, fakeResourceChan <-chan FakeResourceList) {
+			defer done.Done()
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -99,6 +116,7 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 	go func() {
 		select {
 		case <-opts.Ctx.Done():
+			done.Wait()
 			close(snapshots)
 			close(errs)
 		}

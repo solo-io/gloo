@@ -1,6 +1,8 @@
 package mocks
 
 import (
+	"sync"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
@@ -36,6 +38,7 @@ func (c *blestingEmitter) FakeResource() FakeResourceClient {
 func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *BlestingSnapshot, <-chan error, error) {
 	snapshots := make(chan *BlestingSnapshot)
 	errs := make(chan error)
+	var done sync.WaitGroup
 
 	currentSnapshot := BlestingSnapshot{}
 
@@ -52,8 +55,15 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting FakeResource watch")
 		}
-		go errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
+		done.Add(1)
+		go func() {
+			defer done.Done()
+			errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
+		}()
+
+		done.Add(1)
 		go func(namespace string, fakeResourceChan <-chan FakeResourceList) {
+			defer done.Done()
 			for {
 				select {
 				case <-opts.Ctx.Done():
@@ -71,6 +81,7 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 	go func() {
 		select {
 		case <-opts.Ctx.Done():
+			done.Wait()
 			close(snapshots)
 			close(errs)
 		}
