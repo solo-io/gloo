@@ -30,7 +30,7 @@ var _ = Describe("Happypath", func() {
 
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
-		t := services.RunGateway(ctx)
+		t := services.RunGateway(ctx, true)
 		testClients = t
 		var err error
 		envoyInstance, err = envoyFactory.NewEnvoyInstance()

@@ -35,14 +35,18 @@ type TestClients struct {
 	UpstreamClient gloov1.UpstreamClient
 }
 
-func RunGateway(ctx context.Context) TestClients {
+func RunGateway(ctx context.Context, justgloo bool) TestClients {
 	cache := memory.NewInMemoryResourceCache()
 
-	opts := DefaultTestConstructOpts(ctx, cache)
 	glooopts := DefaultGlooOpts(ctx, cache)
 
-	go setup.Setup(opts)
+	// no gateway for now
+	if !justgloo {
+		opts := DefaultTestConstructOpts(ctx, cache)
+		go setup.Setup(opts)
+	}
 	go gloosetup.Setup(glooopts)
+
 	// construct our own resources:
 	a := &factory.MemoryResourceClientOpts{
 		Cache: cache,
