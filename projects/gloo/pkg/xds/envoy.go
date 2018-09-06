@@ -19,12 +19,9 @@ import (
 // we assign a "fix me" snapshot for bad nodes
 const fallbackNodeKey = "misconfigured-node"
 
-var (
-	FallbackBindPort = uint32(80)
-)
-
 const (
 	// TODO(ilackarms): expose these as a configuration option (maybe)
+	fallbackBindPort   = 80
 	fallbackBindAddr   = "::"
 	fallbackStatusCode = 500
 )
@@ -48,8 +45,6 @@ func (h *ProxyKeyHasher) ID(node *core.Node) string {
 	roleValue := node.Metadata.Fields["role"]
 	if roleValue != nil {
 		role = roleValue.GetStringValue()
-	} else {
-		role = node.Id
 	}
 
 	for _, key := range h.validKeys {
@@ -95,7 +90,7 @@ func SetupEnvoyXds(ctx context.Context, grpcServer *grpc.Server, callbacks envoy
 	v2.RegisterClusterDiscoveryServiceServer(grpcServer, xdsServer)
 	v2.RegisterRouteDiscoveryServiceServer(grpcServer, xdsServer)
 	v2.RegisterListenerDiscoveryServiceServer(grpcServer, xdsServer)
-	envoyCache.SetSnapshot(fallbackNodeKey, fallbackSnapshot(fallbackBindAddr, FallbackBindPort, fallbackStatusCode))
+	envoyCache.SetSnapshot(fallbackNodeKey, fallbackSnapshot(fallbackBindAddr, fallbackBindPort, fallbackStatusCode))
 
 	return hasher, envoyCache
 }
