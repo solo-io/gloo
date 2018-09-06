@@ -107,6 +107,11 @@ var _ = Describe("Happypath", func() {
 			res, err := http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "application/octet-stream", &buf)
 			if err != nil {
 				return err
+			}
+			if res.StatusCode != http.StatusOK {
+				return errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
+			}
+			return nil
 		}, "5s", ".5s").Should(BeNil())
 
 		Eventually(tu.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
