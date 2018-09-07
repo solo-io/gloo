@@ -29,8 +29,9 @@ const (
 type ProxyKeyHasher struct {
 	ctx context.Context
 	// (ilackarms) for the purpose of invalidation in the hasher
-	validKeys []string
-	lock      *sync.RWMutex
+	validKeysLock sync.Mutex
+	validKeys     []string
+	lock          *sync.RWMutex
 }
 
 const errorString = `
@@ -47,7 +48,11 @@ func (h *ProxyKeyHasher) ID(node *core.Node) string {
 		role = roleValue.GetStringValue()
 	}
 
-	for _, key := range h.validKeys {
+	h.validKeysLock.Lock()
+	validKeys := h.validKeys
+	h.validKeysLock.Unlock()
+
+	for _, key := range validKeys {
 		if role == key {
 			return key
 		}
@@ -70,7 +75,10 @@ func (h *ProxyKeyHasher) SetKeysFromProxies(proxies v1.ProxyList) {
 	for _, proxy := range proxies {
 		validKeys = append(validKeys, SnapshotKey(proxy))
 	}
+
+	h.validKeysLock.Lock()
 	h.validKeys = validKeys
+	h.validKeysLock.Unlock()
 }
 
 func newNodeHasher(ctx context.Context) *ProxyKeyHasher {
