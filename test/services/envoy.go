@@ -23,7 +23,7 @@ const (
 	containerName = "e2e_envoy"
 )
 
-func buildBootstrap(nodeId, glooAddr string, xdsPort uint32) string {
+func buildBootstrap(role, nodeId, glooAddr string, xdsPort uint32) string {
 	return fmt.Sprintf(envoyConfigTemplate, nodeId, glooAddr, xdsPort)
 }
 
@@ -32,7 +32,7 @@ node:
  cluster: ingress
  id: %s
  metadata:
-  role: "default~proxy"
+  role: "%s"
 
 static_resources:
   clusters:
@@ -188,11 +188,14 @@ func (ef *EnvoyFactory) NewEnvoyInstance() (*EnvoyInstance, error) {
 }
 
 func (ei *EnvoyInstance) RunWithId(id string) error {
-	return ei.runWithPort(id, 8081)
+	return ei.runWithPort("default~proxy", id, 8081)
 }
 
 func (ei *EnvoyInstance) Run(port int) error {
-	return ei.runWithPort("", uint32(port))
+	return ei.runWithPort("default~proxy", "", uint32(port))
+}
+func (ei *EnvoyInstance) RunWithRole(role string, port int) error {
+	return ei.runWithPort(role, "", uint32(port))
 }
 
 /*
@@ -203,12 +206,12 @@ func (ei *EnvoyInstance) DebugMode() error {
 	return err
 }
 */
-func (ei *EnvoyInstance) runWithPort(id string, port uint32) error {
+func (ei *EnvoyInstance) runWithPort(role, id string, port uint32) error {
 	if id == "" {
 		id = "ingress~for-testing"
 	}
 
-	ei.envoycfg = buildBootstrap(id, ei.localAddr, port)
+	ei.envoycfg = buildBootstrap(role, id, ei.localAddr, port)
 
 	if ei.useDocker {
 		err := runContainer(ei.envoycfg)
