@@ -82,10 +82,10 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, {{ lower_camel .Name }}Errs, namespace+"-{{ lower_camel .PluralName }}")
-		}()
+		}(namespace)
 
 {{- end}}
 
