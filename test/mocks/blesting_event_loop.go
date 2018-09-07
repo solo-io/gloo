@@ -48,7 +48,10 @@ func (el *blestingEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<
 		defer cancel()
 		for {
 			select {
-			case snapshot := <-watch:
+			case snapshot, ok := <-watch:
+				if !ok {
+					return
+				}
 				// cancel any open watches from previous loop
 				cancel()
 				ctx, canc := context.WithCancel(opts.Ctx)
