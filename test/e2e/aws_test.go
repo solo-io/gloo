@@ -126,8 +126,6 @@ var _ = Describe("AWS Lambda", func() {
 		var err error
 		envoyInstance, err = envoyFactory.NewEnvoyInstance()
 		Expect(err).NotTo(HaveOccurred())
-		err = envoyInstance.Run(t.GlooPort)
-		Expect(err).NotTo(HaveOccurred())
 
 		addCreds()
 		addUpstream()
@@ -142,6 +140,8 @@ var _ = Describe("AWS Lambda", func() {
 	})
 
 	It("be able to call lambda", func() {
+		err := envoyInstance.Run(testClients.GlooPort)
+		Expect(err).NotTo(HaveOccurred())
 
 		proxycli := testClients.ProxyClient
 		envoyPort := uint32(8080)
@@ -189,13 +189,16 @@ var _ = Describe("AWS Lambda", func() {
 		}
 
 		var opts clients.WriteOpts
-		_, err := proxycli.Write(proxy, opts)
+		_, err = proxycli.Write(proxy, opts)
 		Expect(err).NotTo(HaveOccurred())
 
 		validateLambda(envoyPort)
 	})
 
 	It("be able to call lambda via gateway", func() {
+		err := envoyInstance.RunWithRole("gloo-system~gateway-proxy", testClients.GlooPort)
+		Expect(err).NotTo(HaveOccurred())
+
 		envoyPort := uint32(8080)
 
 		vs := &gw1.VirtualService{
@@ -233,7 +236,7 @@ var _ = Describe("AWS Lambda", func() {
 		}
 
 		var opts clients.WriteOpts
-		_, err := testClients.VirtualServiceClient.Write(vs, opts)
+		_, err = testClients.VirtualServiceClient.Write(vs, opts)
 		Expect(err).NotTo(HaveOccurred())
 
 		/*
