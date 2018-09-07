@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/solo-kit/test/services"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	gw1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 
 	aws_plugin "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
@@ -24,34 +25,18 @@ import (
 )
 
 var _ = Describe("AWS Lambda", func() {
+	const region = "us-east-1"
 
 	var (
 		ctx           context.Context
 		cancel        context.CancelFunc
 		testClients   services.TestClients
 		envoyInstance *services.EnvoyInstance
+		secret        *gloov1.Secret
+		upstream      *gloov1.Upstream
 	)
 
-	BeforeEach(func() {
-		ctx, cancel = context.WithCancel(context.Background())
-		t := services.RunGateway(ctx, false)
-		testClients = t
-		var err error
-		envoyInstance, err = envoyFactory.NewEnvoyInstance()
-		Expect(err).NotTo(HaveOccurred())
-		err = envoyInstance.Run(t.GlooPort)
-		Expect(err).NotTo(HaveOccurred())
-
-	})
-
-	AfterEach(func() {
-		if envoyInstance != nil {
-			envoyInstance.Clean()
-		}
-		cancel()
-	})
-
-	It("be able to call lambda", func() {
+	addCreds := func() {
 
 		localawscreds := credentials.NewSharedCredentials("", "")
 		v, err := localawscreds.Get()
@@ -62,9 +47,8 @@ var _ = Describe("AWS Lambda", func() {
 
 		accesskey := v.AccessKeyID
 		secretkey := v.SecretAccessKey
-		region := "us-east-1"
 
-		secret := &gloov1.Secret{
+		secret = &gloov1.Secret{
 			Metadata: core.Metadata{
 				Namespace: "default",
 				Name:      region,
@@ -79,8 +63,10 @@ var _ = Describe("AWS Lambda", func() {
 
 		_, err = testClients.SecretClient.Write(secret, opts)
 		Expect(err).NotTo(HaveOccurred())
+	}
 
-		up := &gloov1.Upstream{
+	addUpstream := func() {
+		upstream = &gloov1.Upstream{
 			Metadata: core.Metadata{
 				Namespace: "default",
 				Name:      region,
@@ -99,8 +85,63 @@ var _ = Describe("AWS Lambda", func() {
 				},
 			},
 		}
-		_, err = testClients.UpstreamClient.Write(up, opts)
+
+		var opts clients.WriteOpts
+		_, err := testClients.UpstreamClient.Write(upstream, opts)
 		Expect(err).NotTo(HaveOccurred())
+
+	}
+
+	validateLambda := func(envoyPort uint32) {
+
+		body := []byte("\"solo.io\"")
+
+		Eventually(func() (string, error) {
+			// send a request with a body
+			var buf bytes.Buffer
+			buf.Write(body)
+
+			res, err := http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "application/octet-stream", &buf)
+			if err != nil {
+				return "", err
+			}
+			if res.StatusCode != http.StatusOK {
+				return "", errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
+			}
+
+			defer res.Body.Close()
+			body, err := ioutil.ReadAll(res.Body)
+			if err != nil {
+				return "", err
+			}
+
+			return string(body), nil
+		}, "10s", "1s").Should(ContainSubstring("SOLO.IO"))
+	}
+
+	BeforeEach(func() {
+		ctx, cancel = context.WithCancel(context.Background())
+		t := services.RunGateway(ctx, false)
+		testClients = t
+		var err error
+		envoyInstance, err = envoyFactory.NewEnvoyInstance()
+		Expect(err).NotTo(HaveOccurred())
+		err = envoyInstance.Run(t.GlooPort)
+		Expect(err).NotTo(HaveOccurred())
+
+		addCreds()
+		addUpstream()
+
+	})
+
+	AfterEach(func() {
+		if envoyInstance != nil {
+			envoyInstance.Clean()
+		}
+		cancel()
+	})
+
+	It("be able to call lambda", func() {
 
 		proxycli := testClients.ProxyClient
 		envoyPort := uint32(8080)
@@ -128,7 +169,7 @@ var _ = Describe("AWS Lambda", func() {
 									RouteAction: &gloov1.RouteAction{
 										Destination: &gloov1.RouteAction_Single{
 											Single: &gloov1.Destination{
-												Upstream: up.Metadata.Ref(),
+												Upstream: upstream.Metadata.Ref(),
 												DestinationSpec: &gloov1.DestinationSpec{
 													DestinationType: &gloov1.DestinationSpec_Aws{
 														Aws: &aws_plugin.DestinationSpec{
@@ -147,32 +188,69 @@ var _ = Describe("AWS Lambda", func() {
 			}},
 		}
 
-		_, err = proxycli.Write(proxy, opts)
+		var opts clients.WriteOpts
+		_, err := proxycli.Write(proxy, opts)
 		Expect(err).NotTo(HaveOccurred())
 
-		body := []byte("\"solo.io\"")
+		validateLambda(envoyPort)
+	})
 
-		Eventually(func() (string, error) {
-			// send a request with a body
-			var buf bytes.Buffer
-			buf.Write(body)
+	It("be able to call lambda via gateway", func() {
+		envoyPort := uint32(8080)
 
-			res, err := http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "application/octet-stream", &buf)
-			if err != nil {
-				return "", err
+		vs := &gw1.VirtualService{
+			Metadata: core.Metadata{
+				Name:      "app",
+				Namespace: "default",
+			},
+			VirtualHost: &gloov1.VirtualHost{
+				Name:    "app",
+				Domains: []string{"*"},
+				Routes: []*gloov1.Route{{
+					Matcher: &gloov1.Matcher{
+						PathSpecifier: &gloov1.Matcher_Prefix{
+							Prefix: "/",
+						},
+					},
+					Action: &gloov1.Route_RouteAction{
+						RouteAction: &gloov1.RouteAction{
+							Destination: &gloov1.RouteAction_Single{
+								Single: &gloov1.Destination{
+									Upstream: upstream.Metadata.Ref(),
+									DestinationSpec: &gloov1.DestinationSpec{
+										DestinationType: &gloov1.DestinationSpec_Aws{
+											Aws: &aws_plugin.DestinationSpec{
+												LogicalName: "uppercase",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				}},
+			},
+		}
+
+		var opts clients.WriteOpts
+		_, err := testClients.VirtualServiceClient.Write(vs, opts)
+		Expect(err).NotTo(HaveOccurred())
+
+		/*
+
+			gateway := &gw1.Gateway{
+				Metadata: core.Metadata{
+					Name:      "ingress",
+					Namespace: "default",
+				},
+				VirtualServices: []core.ResourceRef{vs.Metadata.Ref()},
+				BindPort:        envoyPort,
+				BindAddress:     "127.0.0.1",
 			}
-			if res.StatusCode != http.StatusOK {
-				return "", errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
-			}
 
-			defer res.Body.Close()
-			body, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				return "", err
-			}
-
-			return string(body), nil
-		}, "10s", "1s").Should(ContainSubstring("SOLO.IO"))
-
+			_, err = testClients.GatewayClient.Write(gateway, opts)
+			Expect(err).NotTo(HaveOccurred())
+		*/
+		validateLambda(envoyPort)
 	})
 })

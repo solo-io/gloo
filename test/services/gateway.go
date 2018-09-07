@@ -31,11 +31,12 @@ import (
 )
 
 type TestClients struct {
-	GatewayClient  gatewayv1.GatewayClient
-	ProxyClient    gloov1.ProxyClient
-	UpstreamClient gloov1.UpstreamClient
-	SecretClient   gloov1.SecretClient
-	GlooPort       int
+	GatewayClient        gatewayv1.GatewayClient
+	VirtualServiceClient gatewayv1.VirtualServiceClient
+	ProxyClient          gloov1.ProxyClient
+	UpstreamClient       gloov1.UpstreamClient
+	SecretClient         gloov1.SecretClient
+	GlooPort             int
 }
 
 var glooPort int32 = 8100
@@ -62,6 +63,8 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 
 	gatewayClient, err := gatewayv1.NewGatewayClient(factory)
 	Expect(err).NotTo(HaveOccurred())
+	virtualServiceClient, err := gatewayv1.NewVirtualServiceClient(factory)
+	Expect(err).NotTo(HaveOccurred())
 	upstreamClient, err := gloov1.NewUpstreamClient(factory)
 	Expect(err).NotTo(HaveOccurred())
 	secretClient, err := gloov1.NewSecretClient(factory)
@@ -70,11 +73,12 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 	Expect(err).NotTo(HaveOccurred())
 
 	return TestClients{
-		GatewayClient:  gatewayClient,
-		UpstreamClient: upstreamClient,
-		SecretClient:   secretClient,
-		ProxyClient:    proxyClient,
-		GlooPort:       int(localglooPort),
+		GatewayClient:        gatewayClient,
+		VirtualServiceClient: virtualServiceClient,
+		UpstreamClient:       upstreamClient,
+		SecretClient:         secretClient,
+		ProxyClient:          proxyClient,
+		GlooPort:             int(localglooPort),
 	}
 }
 
