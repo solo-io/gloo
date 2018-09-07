@@ -42,10 +42,11 @@ Where NAMESPACE and NAME are the namespace and name of the correlating Proxy res
 func (h *ProxyKeyHasher) ID(node *core.Node) string {
 
 	role := ""
-
-	roleValue := node.Metadata.Fields["role"]
-	if roleValue != nil {
-		role = roleValue.GetStringValue()
+	if node.Metadata != nil {
+		roleValue := node.Metadata.Fields["role"]
+		if roleValue != nil {
+			role = roleValue.GetStringValue()
+		}
 	}
 
 	h.validKeysLock.Lock()
