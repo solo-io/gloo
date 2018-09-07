@@ -53,7 +53,10 @@ func (el *{{ lower_camel .GoName }}EventLoop) Run(namespaces []string, opts clie
         defer cancel()
 		for {
 			select {
-			case snapshot := <-watch:
+			case snapshot, ok := <-watch:
+				if !ok {
+					return
+				}
 				// cancel any open watches from previous loop
 				cancel()
 				ctx, canc := context.WithCancel(opts.Ctx)
