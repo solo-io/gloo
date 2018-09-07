@@ -3,7 +3,6 @@ package services
 import (
 	"fmt"
 	"net"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -192,17 +191,18 @@ func (ei *EnvoyInstance) RunWithId(id string) error {
 	return ei.runWithPort(id, 8081)
 }
 
-func (ei *EnvoyInstance) Run() error {
-	return ei.runWithPort("", 8081)
+func (ei *EnvoyInstance) Run(port int) error {
+	return ei.runWithPort("", uint32(port))
 }
 
+/*
 func (ei *EnvoyInstance) DebugMode() error {
 
 	_, err := http.Get("http://localhost:19000/logging?level=debug")
 
 	return err
 }
-
+*/
 func (ei *EnvoyInstance) runWithPort(id string, port uint32) error {
 	if id == "" {
 		id = "ingress~for-testing"
@@ -218,7 +218,7 @@ func (ei *EnvoyInstance) runWithPort(id string, port uint32) error {
 		return nil
 	}
 
-	args := []string{"--config-yaml", ei.envoycfg, "--v2-config-only", "--disable-hot-restart"}
+	args := []string{"--config-yaml", ei.envoycfg, "--v2-config-only", "--disable-hot-restart", "--log-level", "debug"}
 
 	// run directly
 	cmd := exec.Command(ei.envoypath, args...)
@@ -274,7 +274,7 @@ func runContainer(cfgpath string) error {
 		"-p", "8443:8443",
 		"-p", "19000:19000",
 		image,
-		"/usr/local/bin/envoy", "--v2-config-only", "--disable-hot-restart",
+		"/usr/local/bin/envoy", "--v2-config-only", "--disable-hot-restart", "--log-level", "debug",
 		"--config-yaml", cfgpath,
 	}
 
