@@ -70,10 +70,10 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, resolverMapErrs, namespace+"-resolverMaps")
-		}()
+		}(namespace)
 		/* Setup watch for Schema */
 		schemaNamespacesChan, schemaErrs, err := c.schema.Watch(namespace, opts)
 		if err != nil {
@@ -81,10 +81,10 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, schemaErrs, namespace+"-schemas")
-		}()
+		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {

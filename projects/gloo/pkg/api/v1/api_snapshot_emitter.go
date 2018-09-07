@@ -118,10 +118,10 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, artifactErrs, namespace+"-artifacts")
-		}()
+		}(namespace)
 		/* Setup watch for Endpoint */
 		endpointNamespacesChan, endpointErrs, err := c.endpoint.Watch(namespace, opts)
 		if err != nil {
@@ -129,10 +129,10 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, endpointErrs, namespace+"-endpoints")
-		}()
+		}(namespace)
 		/* Setup watch for Proxy */
 		proxyNamespacesChan, proxyErrs, err := c.proxy.Watch(namespace, opts)
 		if err != nil {
@@ -140,10 +140,10 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, proxyErrs, namespace+"-proxies")
-		}()
+		}(namespace)
 		/* Setup watch for Secret */
 		secretNamespacesChan, secretErrs, err := c.secret.Watch(namespace, opts)
 		if err != nil {
@@ -151,10 +151,10 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, secretErrs, namespace+"-secrets")
-		}()
+		}(namespace)
 		/* Setup watch for Upstream */
 		upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, opts)
 		if err != nil {
@@ -162,10 +162,10 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, upstreamErrs, namespace+"-upstreams")
-		}()
+		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {

@@ -70,10 +70,10 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, gatewayErrs, namespace+"-gateways")
-		}()
+		}(namespace)
 		/* Setup watch for VirtualService */
 		virtualServiceNamespacesChan, virtualServiceErrs, err := c.virtualService.Watch(namespace, opts)
 		if err != nil {
@@ -81,10 +81,10 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
-		}()
+		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {

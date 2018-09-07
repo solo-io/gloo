@@ -54,10 +54,10 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
-		}()
+		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {

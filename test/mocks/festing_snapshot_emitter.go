@@ -54,10 +54,10 @@ func (c *festingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, mockResourceErrs, namespace+"-mocks")
-		}()
+		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {

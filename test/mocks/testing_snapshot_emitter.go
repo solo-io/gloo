@@ -70,10 +70,10 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, mockResourceErrs, namespace+"-mocks")
-		}()
+		}(namespace)
 		/* Setup watch for FakeResource */
 		fakeResourceNamespacesChan, fakeResourceErrs, err := c.fakeResource.Watch(namespace, opts)
 		if err != nil {
@@ -81,10 +81,10 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 		}
 
 		done.Add(1)
-		go func() {
+		go func(namespace string) {
 			defer done.Done()
 			errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
-		}()
+		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {
