@@ -22,7 +22,7 @@ type InMemoryResourceCache interface {
 	Delete(key string)
 	Set(key string, resource resources.Resource)
 	List(prefix string) resources.ResourceList
-	Subscribe(subscription chan struct{})
+	Subscribe() chan struct{}
 	Unsubscribe(subscription chan struct{})
 }
 
@@ -34,9 +34,11 @@ type inMemoryResourceCache struct {
 
 func (c *inMemoryResourceCache) signalUpdate() {
 	for _, subscription := range c.subscribers {
-		go func() {
-			subscription <- struct{}{}
-		}()
+		select {
+		case subscription <- struct{}{}:
+		default:
+			// already in signaled state, nothing to do
+		}
 	}
 }
 
@@ -74,10 +76,12 @@ func (c *inMemoryResourceCache) List(prefix string) resources.ResourceList {
 	return ress
 }
 
-func (c *inMemoryResourceCache) Subscribe(subscription chan struct{}) {
+func (c *inMemoryResourceCache) Subscribe() chan struct{} {
+	subscription := make(chan struct{}, 1)
 	c.lock.Lock()
 	c.subscribers = append(c.subscribers, subscription)
 	c.lock.Unlock()
+	return subscription
 }
 
 func (c *inMemoryResourceCache) Unsubscribe(subscription chan struct{}) {
@@ -220,8 +224,8 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		}
 		resourcesChan <- list.FilterByKind(rc.Kind())
 	}
-	subscription := make(chan struct{})
-	rc.cache.Subscribe(subscription)
+
+	subscription := rc.cache.Subscribe()
 	go func() {
 		updateResourceList()
 		for {
