@@ -24,7 +24,7 @@ const (
 )
 
 func buildBootstrap(role, nodeId, glooAddr string, xdsPort uint32) string {
-	return fmt.Sprintf(envoyConfigTemplate, nodeId, glooAddr, xdsPort)
+	return fmt.Sprintf(envoyConfigTemplate, nodeId, role, glooAddr, xdsPort)
 }
 
 const envoyConfigTemplate = `
