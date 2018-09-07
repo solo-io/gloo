@@ -36,11 +36,6 @@ func NewSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter r
 
 func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 
-	// TODO(yuval-k): @ilackarms, why do we get nil here sometimes?
-	if snap == nil {
-		return nil
-	}
-
 	ctx = contextutils.WithLogger(ctx, "syncer")
 
 	logger := contextutils.LoggerFrom(ctx)

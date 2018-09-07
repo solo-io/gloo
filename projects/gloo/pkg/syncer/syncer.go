@@ -40,10 +40,6 @@ func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCac
 }
 
 func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
-	// TODO(yuval-k): @ilackarms, why do we get nil here sometimes?
-	if snap == nil {
-		return nil
-	}
 	s.latestSnap = snap
 	ctx = contextutils.WithLogger(ctx, "syncer")
 	logger := contextutils.LoggerFrom(ctx)
