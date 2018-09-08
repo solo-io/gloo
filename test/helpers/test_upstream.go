@@ -74,6 +74,7 @@ func RunTestServer(ctx context.Context) (uint32, <-chan *ReceivedRequest) {
 			r.Body.Close()
 			if len(body) != 0 {
 				rr.Body = body
+				rw.Write(body)
 			}
 		}
 
