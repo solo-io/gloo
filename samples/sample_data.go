@@ -1,6 +1,8 @@
 package samples
 
 import (
+	"os"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -8,10 +10,9 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
-	"os"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
 )
 
 func MakeMetadata(name, namespace string) core.Metadata {
@@ -36,7 +37,7 @@ func Secrets() v1.SecretList {
 			Metadata: MakeMetadata("my-precious", "gloo-system"),
 			Kind: &v1.Secret_Azure{
 				Azure: &v1.AzureSecret{
-					ApiKeys: map[string]string{"TO":"DO"},
+					ApiKeys: map[string]string{"TO": "DO"},
 				},
 			},
 		},
@@ -55,7 +56,7 @@ func Artifacts() v1.ArtifactList {
 	return v1.ArtifactList{
 		{
 			Metadata: MakeMetadata("artifact", "default"),
-			Data: "// TODO(ilackarms)",
+			Data:     "// TODO(ilackarms)",
 		},
 	}
 }
