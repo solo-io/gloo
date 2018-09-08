@@ -48,7 +48,7 @@ var _ = Describe("Transformations", func() {
 		cancel()
 	})
 
-	FIt("should should transform json to html response", func() {
+	It("should should transform json to html response", func() {
 
 		tu := helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
 
