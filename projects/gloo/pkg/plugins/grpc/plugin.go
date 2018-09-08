@@ -67,6 +67,13 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 		return nil
 	}
 
+	if servicespec.GetServiceSpec() == nil {
+		return nil
+	}
+	if servicespec.GetServiceSpec().PluginType == nil {
+		return nil
+	}
+
 	grpcwrapper, ok := servicespec.GetServiceSpec().PluginType.(*glooplugins.ServiceSpec_Grpc)
 	if !ok {
 		return nil
