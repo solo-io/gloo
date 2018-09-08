@@ -70,16 +70,16 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			return nil, errors.Errorf("%v does not have a service spec", spec.Upstream)
 		}
 
-		servicesoec := getservicespec.GetServiceSpec()
-		if servicesoec == nil {
-			return nil, errors.Errorf("%v does has an empty service spec", spec.Upstream)
+		serviceSpec := getservicespec.GetServiceSpec()
+		if serviceSpec == nil {
+			return nil, errors.Errorf("%v has an empty service spec", spec.Upstream)
 		}
 
-		if servicesoec.PluginType == nil {
-			return nil, errors.Errorf("%v does has an nil service spec type", spec.Upstream)
+		if serviceSpec.PluginType == nil {
+			return nil, errors.Errorf("%v has an nil service spec type", spec.Upstream)
 		}
 
-		restservicespec, ok := servicesoec.PluginType.(*glooplugins.ServiceSpec_Rest)
+		restservicespec, ok := serviceSpec.PluginType.(*glooplugins.ServiceSpec_Rest)
 		if restservicespec == nil || !ok {
 			return nil, errors.Errorf("%v does not have a REST service spec", spec.Upstream)
 		}
