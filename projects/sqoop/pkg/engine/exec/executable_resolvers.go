@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/qloo/pkg/dynamic"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/dynamic"
 )
 
 // store all the user resolvers

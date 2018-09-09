@@ -6,12 +6,12 @@ import (
 	"sync"
 
 	"github.com/gorilla/mux"
-	"github.com/solo-io/gloo/pkg/log"
 	"github.com/vektah/gqlgen/graphql"
 	"github.com/vektah/gqlgen/handler"
 	"fmt"
 	"html/template"
 	"bytes"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 
 type Router struct {
