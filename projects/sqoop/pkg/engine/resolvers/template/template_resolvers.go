@@ -2,13 +2,12 @@ package template
 
 import (
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/types/v1"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/exec"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/util"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/exec"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/util"
 )
 
-func NewTemplateResolver(resolver *v1.TemplateResolver) (exec.RawResolver, error) {
-	tmpl, err := util.Template(resolver.InlineTemplate)
+func NewTemplateResolver(inlineTemplate string) (exec.RawResolver, error) {
+	tmpl, err := util.Template(inlineTemplate)
 	if err != nil {
 		return nil, errors.Wrap(err, "parsing inline template")
 	}
