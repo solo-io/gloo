@@ -111,7 +111,7 @@ func Upstreams() v1.UpstreamList {
 						ServiceSpec: &plugins.ServiceSpec{
 							PluginType: &plugins.ServiceSpec_Rest{
 								Rest: &rest.ServiceSpec{
-									Transformation: map[string]*transformation.TransformationTemplate{
+									Transformations: map[string]*transformation.TransformationTemplate{
 										"my-rest-function": {
 											// TODO(ilackarms/yuval-k)
 										},
