@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"text/template"
+
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/exec"
 )
 

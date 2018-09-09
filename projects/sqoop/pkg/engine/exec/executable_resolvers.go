@@ -7,8 +7,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/dynamic"
-	"github.com/vektah/gqlgen/neelance/schema"
 	"github.com/vektah/gqlgen/neelance/common"
+	"github.com/vektah/gqlgen/neelance/schema"
 )
 
 // store all the user resolvers

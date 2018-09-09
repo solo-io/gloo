@@ -58,7 +58,7 @@ func (rf *ResolverFactory) newResolver(typeName, fieldName string, contentType s
 		body := &bytes.Buffer{}
 
 		switch {
-		case requestTemplate != nil :
+		case requestTemplate != nil:
 			buf, err := util.ExecTemplate(requestTemplate, params)
 			if err != nil {
 				// TODO: sanitize

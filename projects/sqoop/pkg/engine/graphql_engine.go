@@ -3,10 +3,10 @@ package engine
 import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	"github.com/vektah/gqlgen/neelance/schema"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/resolvers"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/exec"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/resolvers"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/router"
+	"github.com/vektah/gqlgen/neelance/schema"
 )
 
 type Engine struct {
@@ -17,6 +17,8 @@ func NewEngine(sidecarAddr string) *Engine {
 	return &Engine{sidecarAddr: sidecarAddr}
 }
 
+// first error is for schema
+// second is for resolvermap
 func (en *Engine) CreateGraphqlEndpoint(schema *v1.Schema, resolverMap *v1.ResolverMap) (*router.Endpoint, error, error) {
 	resolverFactory := resolvers.NewResolverFactory(en.sidecarAddr, resolverMap)
 	parsedSchema, err := parseSchemaString(schema)
