@@ -4,7 +4,7 @@
 
 syntax = "proto3";
 
-package envoy.api.v2.filter.http;
+package transformation.plugins.gloo.solo.io;
 
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation";
 

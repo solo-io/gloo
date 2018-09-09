@@ -12,7 +12,7 @@ import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation/
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation/parameters.proto";
 
 message ServiceSpec {
-    map<string, envoy.api.v2.filter.http.TransformationTemplate> transformations = 1;
+    map<string, transformation.plugins.gloo.solo.io.TransformationTemplate> transformations = 1;
     message SwaggerInfo {
         oneof swagger_spec {
             string url = 1;
@@ -28,7 +28,7 @@ message DestinationSpec {
 
     transformation.plugins.gloo.solo.io.Parameters parameters = 2;
 
-    envoy.api.v2.filter.http.TransformationTemplate response_transformation = 3;
+    transformation.plugins.gloo.solo.io.TransformationTemplate response_transformation = 3;
     // TODO(yuval-k): do we need this?
     // Parameters response_parameters;
 }
