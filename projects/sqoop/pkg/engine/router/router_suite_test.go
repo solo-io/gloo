@@ -1,4 +1,4 @@
-package graphql_test
+package router
 
 import (
 	"testing"

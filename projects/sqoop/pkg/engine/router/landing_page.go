@@ -1,4 +1,4 @@
-package graphql
+package router
 
 const landingPageTemplateString = `
 <!DOCTYPE html>
