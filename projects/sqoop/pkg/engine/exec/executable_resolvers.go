@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/dynamic"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/dynamic"
+	"github.com/vektah/gqlgen/neelance/schema"
+	"github.com/vektah/gqlgen/neelance/common"
 )
 
 // store all the user resolvers

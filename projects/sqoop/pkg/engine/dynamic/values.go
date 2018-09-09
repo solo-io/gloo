@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/vektah/gqlgen/graphql"
+	"github.com/vektah/gqlgen/neelance/common"
+	"github.com/vektah/gqlgen/neelance/schema"
 )
 
 type Value interface {

@@ -611,8 +611,7 @@
     "neelance/schema",
     "neelance/validation"
   ]
-  revision = "381b34691fd93829e50ba8821412dc3467ec4821"
-  version = "0.3.0"
+  revision = "6b3b338d5f9c8b5a80ad4ea1e2e37aa58677ea9d"
 
 [[projects]]
   branch = "master"
@@ -958,6 +957,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5327a2ed9af840b15b521d75af0a5b6c8b17b1845de5155a8e2e653b95574e29"
+  inputs-digest = "0eaac7a9fc152c7a5ada2763dfc652287749ba4b8969b606ab79be1368b9d9a8"
   solver-name = "gps-cdcl"
   solver-version = 1
