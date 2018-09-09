@@ -12,10 +12,11 @@ import (
 )
 
 type Syncer struct {
-	writeNamespace  string
-	reporter        reporter.Reporter
-	writeErrs       chan error
-	proxyReconciler gloov1.ProxyReconciler
+	writeNamespace        string
+	reporter              reporter.Reporter
+	writeErrs             chan error
+	proxyReconciler       gloov1.ProxyReconciler
+	resolverMapReconciler v1.ResolverMapReconciler
 }
 
 func (s *Syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
@@ -30,7 +31,7 @@ func (s *Syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	defer logger.Infof("end sync %v", snap.Hash())
 	logger.Debugf("%v", snap)
 
-	proxy, resourceErrs := translator.Translate(s.writeNamespace, snap)
+	proxy, resolverMaps, resourceErrs := translator.Translate(s.writeNamespace, snap)
 	if err := s.reporter.WriteReports(ctx, resourceErrs); err != nil {
 		return errors.Wrapf(err, "writing reports")
 	}

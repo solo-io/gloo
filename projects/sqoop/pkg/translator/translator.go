@@ -7,11 +7,14 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
-func Translate(namespace string, snap *v1.ApiSnapshot) (*gloov1.Proxy, reporter.ResourceErrors) {
+// trnslate a snapshot of schemas to:
+// - 1 resolvermap (skeleton, only write for create) per schema
+// - 1 proxy for the snapshot, assigned to the sqoop sidecar
+func Translate(namespace string, snap *v1.ApiSnapshot) (*gloov1.Proxy, []*v1.ResolverMap, reporter.ResourceErrors) {
 	resourceErrs := make(reporter.ResourceErrors)
 	resourceErrs.Initialize(snap.Gateways.List().AsInputResources()...)
 	resourceErrs.Initialize(snap.VirtualServices.List().AsInputResources()...)
