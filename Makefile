@@ -111,13 +111,54 @@ apiserver: $(OUTPUT_DIR)/apiserver
 
 # TODO(ilackarms): put these inside of a loop or function of some kind
 $(OUTPUT_DIR)/apiserver: apiserver-dependencies $(SOURCES)
-	go build -o $@ projects/apiserver/cmd/main.go
+	CGO_ENABLED=0 go build -o $@ projects/apiserver/cmd/main.go
 
 $(OUTPUT_DIR)/apiserver-linux-amd64:  $(SOURCES)
-	GOOS=linux go build -o $@ projects/apiserver/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ projects/apiserver/cmd/main.go
 
 $(OUTPUT_DIR)/apiserver-darwin-amd64:  $(SOURCES)
-	GOOS=darwin go build -o $@ projects/apiserver/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -o $@ projects/apiserver/cmd/main.go
+
+#----------------------------------------------------------------------------------
+# Gateway
+#----------------------------------------------------------------------------------
+
+GATEWAY_DIR=projects/gateway
+GATEWAY_SOURCES=$(shell find $(GATEWAY_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+
+$(OUTPUT_DIR)/gateway-linux-amd64: $(GATEWAY_SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(GATEWAY_DIR)/cmd/main.go
+
+
+.PHONY: gateway
+gateway: $(OUTPUT_DIR)/gateway-linux-amd64
+
+#----------------------------------------------------------------------------------
+# Discovery
+#----------------------------------------------------------------------------------
+
+DISCOVERY_DIR=projects/discovery
+DISCOVERY_SOURCES=$(shell find $(DISCOVERY_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+
+$(OUTPUT_DIR)/discovery-linux-amd64: $(DISCOVERY_SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(DISCOVERY_DIR)/cmd/main.go
+
+
+.PHONY: gateway
+gateway: $(OUTPUT_DIR)/gateway-linux-amd64
+
+#----------------------------------------------------------------------------------
+# Envot init
+#----------------------------------------------------------------------------------
+
+ENVOYINIT_DIR=cmd/envoyinit
+ENVOYINIT_SOURCES=$(shell find $(ENVOYINIT_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+
+$(OUTPUT_DIR)/envoyinit-linux-amd64: $(ENVOYINIT_SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(ENVOYINIT_DIR)/main.go
+
+.PHONY: envoyinit
+envoyinit: $(OUTPUT_DIR)/envoyinit-linux-amd64
 
 #----------------------------------------------------------------------------------
 # Release
@@ -129,7 +170,10 @@ GH_REPO:=solo-kit
 
 RELEASE_BINARIES := \
 	$(OUTPUT_DIR)/apiserver-linux-amd64 \
-	$(OUTPUT_DIR)/apiserver-darwin-amd64
+	$(OUTPUT_DIR)/apiserver-darwin-amd64 \
+	$(OUTPUT_DIR)/gateway-linux-amd64 \
+	$(OUTPUT_DIR)/discovery-linux-amd64 \
+	$(OUTPUT_DIR)/envoyinit-linux-amd64
 
 .PHONY: release-binaries
 release-binaries: $(RELEASE_BINARIES)
