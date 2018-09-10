@@ -11,7 +11,6 @@ import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/grpc/grpc.proto
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/azure/azure.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/kubernetes/kubernetes.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/static/static.proto";
-
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation/transformation.proto";
 
 // Plugin-specific configuration that lives on listeners
