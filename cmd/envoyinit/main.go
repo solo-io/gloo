@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	inputfile := "/config/envoy.yaml"
+	inputfile := "/etc/envoy/envoy.yaml"
 	outfile := "/tmp/envoy.yaml"
 
 	transformer := downward.NewTransformer()
