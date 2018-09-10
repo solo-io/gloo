@@ -26,6 +26,25 @@ type Syncer struct {
 	router            *router.Router
 }
 
+func NewSyncer(writeNamespace string,
+	reporter reporter.Reporter,
+	writeErrs chan error,
+	proxyReconciler gloov1.ProxyReconciler,
+	resolverMapClient v1.ResolverMapClient,
+	engine *engine.Engine,
+	router *router.Router) v1.ApiSyncer {
+	s := &Syncer{
+		writeNamespace:    writeNamespace,
+		reporter:          reporter,
+		writeErrs:         writeErrs,
+		proxyReconciler:   proxyReconciler,
+		resolverMapClient: resolverMapClient,
+		engine:            engine,
+		router:            router,
+	}
+	return s
+}
+
 func (s *Syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	ctx = contextutils.WithLogger(ctx, "syncer")
 
