@@ -6,6 +6,7 @@ ROOTDIR := $(shell pwd)
 PACKAGE_PATH:=github.com/solo-io/solo-kit
 OUTPUT_DIR ?= $(ROOTDIR)/_output
 SOURCES := $(shell find . -name "*.go" | grep -v test.go)
+VERSION ?= $(shell git describe --tags)
 
 #----------------------------------------------------------------------------------
 # Protobufs
@@ -133,6 +134,13 @@ $(OUTPUT_DIR)/gateway-linux-amd64: $(GATEWAY_SOURCES)
 .PHONY: gateway
 gateway: $(OUTPUT_DIR)/gateway-linux-amd64
 
+$(OUTPUT_DIR)/Dockerfile.gateway: $(GATEWAY_DIR)/cmd/Dockerfile
+	cp $< $@
+
+gateway-docker: $(OUTPUT_DIR)/gateway-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gateway
+	docker build -t soloio/control-plane-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gateway
+
+contorl-plane-docker: gateway-docker
 #----------------------------------------------------------------------------------
 # Discovery
 #----------------------------------------------------------------------------------
@@ -144,8 +152,14 @@ $(OUTPUT_DIR)/discovery-linux-amd64: $(DISCOVERY_SOURCES)
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(DISCOVERY_DIR)/cmd/main.go
 
 
-.PHONY: gateway
-gateway: $(OUTPUT_DIR)/gateway-linux-amd64
+.PHONY: discovery
+discovery: $(OUTPUT_DIR)/discovery-linux-amd64
+
+$(OUTPUT_DIR)/Dockerfile.discovery: $(DISCOVERY_DIR)/cmd/Dockerfile
+	cp $< $@
+
+discovery-docker: $(OUTPUT_DIR)/discovery-linux-amd64 $(OUTPUT_DIR)/Dockerfile.discovery
+	docker build -t soloio/discovery-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.discovery
 
 #----------------------------------------------------------------------------------
 # Envot init
@@ -160,11 +174,17 @@ $(OUTPUT_DIR)/envoyinit-linux-amd64: $(ENVOYINIT_SOURCES)
 .PHONY: envoyinit
 envoyinit: $(OUTPUT_DIR)/envoyinit-linux-amd64
 
+
+$(OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile
+	cp $< $@
+
+data-plane-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
+	docker build -t soloio/data-plane-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
+
+
 #----------------------------------------------------------------------------------
 # Release
 #----------------------------------------------------------------------------------
-
-VERSION:=1
 GH_ORG:=solo-io
 GH_REPO:=solo-kit
 
