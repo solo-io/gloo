@@ -30,7 +30,7 @@ func (rf *ResolverFactory) CreateResolver(typeName, fieldName string) (exec.RawR
 		return nil, errors.Errorf("type %v not found in resolver map %v", typeName, rf.resolverMap.Metadata.Ref())
 	}
 	if len(typeResolver.Fields) == 0 {
-		return nil, errors.Errorf("no fields defined for type %v in resolver map %v", typeName, rf.resolverMap.Name)
+		return nil, errors.Errorf("no fields defined for type %v in resolver map %v", typeName, rf.resolverMap.Metadata.Ref())
 	}
 	fieldResolver, ok := typeResolver.Fields[fieldName]
 	if !ok {
@@ -40,10 +40,10 @@ func (rf *ResolverFactory) CreateResolver(typeName, fieldName string) (exec.RawR
 	switch resolver := fieldResolver.Resolver.(type) {
 	case *v1.FieldResolver_NodejsResolver:
 		return node.NewNodeResolver(resolver.NodejsResolver)
-	case *v1.TemplateResolver:
-		return template.NewTemplateResolver(resolver.InlineTemplate)
+	case *v1.FieldResolver_TemplateResolver:
+		return template.NewTemplateResolver(resolver.TemplateResolver.InlineTemplate)
 	case *v1.FieldResolver_GlooResolver:
-		return rf.glooResolverFactory.CreateResolver(typeName, fieldName, resolver.GlooResolver)
+		return rf.glooResolverFactory.CreateResolver(rf.resolverMap.Metadata.Ref(), typeName, fieldName, resolver.GlooResolver)
 	}
 	// no resolver has been defined
 	return nil, nil

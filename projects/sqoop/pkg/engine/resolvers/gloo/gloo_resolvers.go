@@ -8,10 +8,11 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/types/v1"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/exec"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/operator"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/util"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/exec"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/util"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/translator"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 type ResolverFactory struct {
@@ -24,7 +25,7 @@ func NewResolverFactory(proxyAddr string) *ResolverFactory {
 	}
 }
 
-func (rf *ResolverFactory) CreateResolver(typeName, fieldName string, glooResolver *v1.GlooResolver) (exec.RawResolver, error) {
+func (rf *ResolverFactory) CreateResolver(resolverMap core.ResourceRef, typeName, fieldName string, glooResolver *v1.GlooResolver) (exec.RawResolver, error) {
 	requestBodyTemplate := glooResolver.RequestTemplate
 	responseBodyTemplate := glooResolver.ResponseTemplate
 	contentType := glooResolver.ContentType
@@ -50,10 +51,10 @@ func (rf *ResolverFactory) CreateResolver(typeName, fieldName string, glooResolv
 		}
 	}
 
-	return rf.newResolver(typeName, fieldName, contentType, requestTemplate, responseTemplate), nil
+	return rf.newResolver(resolverMap, typeName, fieldName, contentType, requestTemplate, responseTemplate), nil
 }
 
-func (rf *ResolverFactory) newResolver(typeName, fieldName string, contentType string, requestTemplate, responseTemplate *template.Template) exec.RawResolver {
+func (rf *ResolverFactory) newResolver(resolverMap core.ResourceRef, typeName, fieldName string, contentType string, requestTemplate, responseTemplate *template.Template) exec.RawResolver {
 	return func(params exec.Params) ([]byte, error) {
 		body := &bytes.Buffer{}
 
@@ -71,7 +72,7 @@ func (rf *ResolverFactory) newResolver(typeName, fieldName string, contentType s
 			}
 		}
 
-		url := "http://" + rf.proxyAddr + operator.RoutePath(typeName, fieldName)
+		url := "http://" + rf.proxyAddr + translator.RoutePath(resolverMap, typeName, fieldName)
 		res, err := http.Post(url, contentType, body)
 		if err != nil {
 			return nil, errors.Wrap(err, "performing http post")

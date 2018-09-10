@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	. "github.com/solo-io/solo-kit/projects/sqoop/pkg/exec"
+	. "github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/exec"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/resolvers"
 	"github.com/solo-io/solo-kit/projects/sqoop/test"
 )
