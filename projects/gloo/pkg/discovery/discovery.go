@@ -38,7 +38,7 @@ type Discovery struct {
 func NewDiscovery(writeNamespace string,
 	upstreamClient v1.UpstreamClient,
 	endpointsClient v1.EndpointClient,
-	discoveryPlugins ...DiscoveryPlugin) *Discovery {
+	discoveryPlugins []DiscoveryPlugin) *Discovery {
 	return &Discovery{
 		writeNamespace:     writeNamespace,
 		upstreamReconciler: v1.NewUpstreamReconciler(upstreamClient),

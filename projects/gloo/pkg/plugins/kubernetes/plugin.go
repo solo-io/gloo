@@ -6,18 +6,20 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"k8s.io/client-go/kubernetes"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 )
 
 type plugin struct {
 	kube kubernetes.Interface
 }
 
-func NewPlugin() plugins.Plugin {
-	return &plugin{}
+func NewPlugin(opts bootstrap.Opts) plugins.Plugin {
+	return &plugin{
+		kube: opts.KubeClient,
+	}
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
-	p.kube = params.Opts.KubeClient
 	return nil
 }
 

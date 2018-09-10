@@ -9,28 +9,29 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/rest"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/static"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 )
 
 type registry struct {
 	plugins []plugins.Plugin
 }
 
-var globalRegistry = func() *registry {
+var globalRegistry = func(opts bootstrap.Opts) *registry {
 	transformationPlugin := transformation.NewPlugin()
 	return &registry{
 		plugins: []plugins.Plugin{
 			// plugins should be added here
 			aws.NewPlugin(),
 			azure.NewPlugin(&transformationPlugin.RequireTransformationFilter),
-			kubernetes.NewPlugin(),
+			kubernetes.NewPlugin(opts),
 			rest.NewPlugin(&transformationPlugin.RequireTransformationFilter),
 			static.NewPlugin(),
 			transformationPlugin,
 			grpc.NewPlugin(&transformationPlugin.RequireTransformationFilter),
 		},
 	}
-}()
+}
 
-func Plugins() []plugins.Plugin {
-	return globalRegistry.plugins
+func Plugins(opts bootstrap.Opts) []plugins.Plugin {
+	return globalRegistry(opts).plugins
 }

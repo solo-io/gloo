@@ -10,9 +10,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
 )
 
 type Translator interface {
@@ -20,14 +18,12 @@ type Translator interface {
 }
 
 type translator struct {
-	opts    bootstrap.Opts
 	plugins []plugins.Plugin
 }
 
-func NewTranslator(opts bootstrap.Opts) Translator {
+func NewTranslator(plugins []plugins.Plugin) Translator {
 	return &translator{
-		opts:    opts,
-		plugins: registry.Plugins(),
+		plugins: plugins,
 	}
 }
 
@@ -35,8 +31,7 @@ func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycac
 	params.Ctx = contextutils.WithLogger(params.Ctx, "gloo.translator")
 	for _, p := range t.plugins {
 		if err := p.Init(plugins.InitParams{
-			Ctx:  params.Ctx,
-			Opts: t.opts,
+			Ctx: params.Ctx,
 		}); err != nil {
 			return envoycache.Snapshot{}, nil, errors.Wrapf(err, "plugin init failed")
 		}

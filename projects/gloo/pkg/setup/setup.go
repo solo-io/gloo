@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
 )
 
 func Setup(opts bootstrap.Opts) error {
@@ -80,15 +81,24 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 
 	rpt := reporter.NewReporter("gloo", upstreamClient.BaseClient(), proxyClient.BaseClient())
 
-	disc := discovery.NewDiscovery(opts.WriteNamespace, upstreamClient, endpointClient)
+	plugins := registry.Plugins(opts)
 
-	sync := syncer.NewSyncer(translator.NewTranslator(opts), xdsCache, xdsHasher, rpt, opts.DevMode)
+	var discoveryPlugins []discovery.DiscoveryPlugin
+	for _, plug := range plugins {
+		disc, ok := plug.(discovery.DiscoveryPlugin)
+		if ok {
+			discoveryPlugins = append(discoveryPlugins, disc)
+		}
+	}
+	disc := discovery.NewDiscovery(opts.WriteNamespace, upstreamClient, endpointClient, discoveryPlugins)
+
+	sync := syncer.NewSyncer(translator.NewTranslator(plugins), xdsCache, xdsHasher, rpt, opts.DevMode)
 	eventLoop := v1.NewApiEventLoop(cache, sync)
 
 	errs := make(chan error)
 
 	udsErrs, err := discovery.RunUds(disc, watchOpts, discovery.Opts{
-	// TODO(ilackarms)
+		// TODO(ilackarms)
 	})
 	if err != nil {
 		return err

@@ -9,12 +9,10 @@ import (
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 )
 
 type InitParams struct {
 	Ctx  context.Context
-	Opts bootstrap.Opts
 }
 
 type Plugin interface {
