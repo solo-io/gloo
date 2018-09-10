@@ -67,10 +67,11 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 		return err
 	}
 
-	// TODO(ilackarms): make this part of -dev mode
-	// if err := addSampleData(opts, virtualServicesClient); err != nil {
-	// 	return err
-	// }
+	if opts.devMode {
+		if err := addSampleData(opts, virtualServicesClient); err != nil {
+			return err
+		}
+	}
 
 	emitter := v1.NewApiEmitter(gatewayClient, virtualServicesClient)
 

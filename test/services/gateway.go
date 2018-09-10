@@ -85,6 +85,7 @@ func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResource
 			Ctx:         ctx,
 			RefreshRate: time.Minute,
 		},
+		false,
 	)
 }
 

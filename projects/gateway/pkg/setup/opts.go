@@ -25,6 +25,7 @@ type Opts struct {
 	proxies    factory.ResourceClientFactoryOpts
 	namespacer namespacing.Namespacer
 	watchOpts  clients.WatchOpts
+	devMode    bool
 }
 
 func NewOpts(
@@ -36,7 +37,7 @@ func NewOpts(
 	proxies factory.ResourceClientFactoryOpts,
 	namespacer namespacing.Namespacer,
 	watchOpts clients.WatchOpts,
-
+	devMode bool,
 ) Opts {
 	return Opts{
 		writeNamespace:  writeNamespace,
