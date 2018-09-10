@@ -13,8 +13,9 @@ type Artifact struct {
 	Metadata Metadata `json:"metadata"`
 }
 type AwsDestinationSpec struct {
-	LogicalName     string                   `json:"logicalName"`
-	InvocationStyle AwsLambdaInvocationStyle `json:"invocationStyle"`
+	LogicalName            string                   `json:"logicalName"`
+	InvocationStyle        AwsLambdaInvocationStyle `json:"invocationStyle"`
+	ResponseTransformation bool                     `json:"responseTransformation"`
 }
 type AwsLambdaFunction struct {
 	LogicalName  string `json:"logicalName"`
@@ -62,8 +63,9 @@ type InputArtifact struct {
 	Metadata InputMetadata `json:"metadata"`
 }
 type InputAwsDestinationSpec struct {
-	LogicalName     string                   `json:"logicalName"`
-	InvocationStyle AwsLambdaInvocationStyle `json:"invocationStyle"`
+	LogicalName            string                   `json:"logicalName"`
+	InvocationStyle        AwsLambdaInvocationStyle `json:"invocationStyle"`
+	ResponseTransformation bool                     `json:"responseTransformation"`
 }
 type InputAwsLambdaFunction struct {
 	LogicalName  string `json:"logicalName"`

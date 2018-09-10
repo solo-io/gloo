@@ -323,6 +323,7 @@ union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec
 type AwsDestinationSpec {
     logicalName: String!
     invocationStyle: AwsLambdaInvocationStyle!
+    responseTransformation: Boolean!
 }
 
 type AzureDestinationSpec {
@@ -406,6 +407,7 @@ input InputDestinationSpec {
 input InputAwsDestinationSpec {
     logicalName: String!
     invocationStyle: AwsLambdaInvocationStyle!
+    responseTransformation: Boolean!
 }
 
 input InputAzureDestinationSpec {

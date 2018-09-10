@@ -520,6 +520,8 @@ func (ec *executionContext) _AwsDestinationSpec(ctx context.Context, sel ast.Sel
 			out.Values[i] = ec._AwsDestinationSpec_logicalName(ctx, field, obj)
 		case "invocationStyle":
 			out.Values[i] = ec._AwsDestinationSpec_invocationStyle(ctx, field, obj)
+		case "responseTransformation":
+			out.Values[i] = ec._AwsDestinationSpec_responseTransformation(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -560,6 +562,23 @@ func (ec *executionContext) _AwsDestinationSpec_invocationStyle(ctx context.Cont
 	}
 	res := resTmp.(models.AwsLambdaInvocationStyle)
 	return res
+}
+
+func (ec *executionContext) _AwsDestinationSpec_responseTransformation(ctx context.Context, field graphql.CollectedField, obj *models.AwsDestinationSpec) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "AwsDestinationSpec"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.ResponseTransformation, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	return graphql.MarshalBoolean(res)
 }
 
 var awsLambdaFunctionImplementors = []string{"AwsLambdaFunction"}
@@ -6327,6 +6346,12 @@ func UnmarshalInputAwsDestinationSpec(v interface{}) (models.InputAwsDestination
 			if err != nil {
 				return it, err
 			}
+		case "responseTransformation":
+			var err error
+			it.ResponseTransformation, err = graphql.UnmarshalBoolean(v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -8077,6 +8102,7 @@ union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec
 type AwsDestinationSpec {
     logicalName: String!
     invocationStyle: AwsLambdaInvocationStyle!
+    responseTransformation: Boolean!
 }
 
 type AzureDestinationSpec {
@@ -8160,6 +8186,7 @@ input InputDestinationSpec {
 input InputAwsDestinationSpec {
     logicalName: String!
     invocationStyle: AwsLambdaInvocationStyle!
+    responseTransformation: Boolean!
 }
 
 input InputAzureDestinationSpec {
