@@ -11,7 +11,7 @@ import (
 type UpstreamMutator func(*v1.Upstream) error
 
 /*
-upstreams can be obviously funcitonal like AWS λ, fission,...  or an upstream that was already detected and marked as such.
+upstreams can be obviously functional like AWS λ, fission,...  or an upstream that was already detected and marked as such.
 or potentially like static upstreams.
 */
 // detectors detect a specific type of functional service

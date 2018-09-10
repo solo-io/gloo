@@ -26,34 +26,34 @@ const (
 	awsSecretKey = "secret_key"
 )
 
-type AWSLambdaFuncitonDiscoveryFactory struct {
+type AWSLambdaFunctionDiscoveryFactory struct {
 	PollingTime time.Duration
 }
 
-func (f *AWSLambdaFuncitonDiscoveryFactory) NewFunctionDiscovery(u *v1.Upstream) discovery.UpstreamFunctionDiscovery {
-	return &AWSLambdaFuncitonDiscovery{
+func (f *AWSLambdaFunctionDiscoveryFactory) NewFunctionDiscovery(u *v1.Upstream) discovery.UpstreamFunctionDiscovery {
+	return &AWSLambdaFunctionDiscovery{
 		timetowait: f.PollingTime,
 		upstream:   u,
 	}
 }
 
-type AWSLambdaFuncitonDiscovery struct {
+type AWSLambdaFunctionDiscovery struct {
 	timetowait time.Duration
 	upstream   *v1.Upstream
 }
 
-func (f *AWSLambdaFuncitonDiscovery) IsFunctional() bool {
+func (f *AWSLambdaFunctionDiscovery) IsFunctional() bool {
 	_, ok := f.upstream.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Aws)
 	return ok
 }
 
-func (f *AWSLambdaFuncitonDiscovery) DetectType(ctx context.Context, url *url.URL) (*plugins.ServiceSpec, error) {
+func (f *AWSLambdaFunctionDiscovery) DetectType(ctx context.Context, url *url.URL) (*plugins.ServiceSpec, error) {
 	return nil, nil
 }
 
 // TODO: how to handle changes in secret or upstream (like the upstream ref)?
 // perhaps the in param for the upstream should be a function? in func() *v1.Upstream
-func (f *AWSLambdaFuncitonDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(discovery.UpstreamMutator) error) error {
+func (f *AWSLambdaFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(discovery.UpstreamMutator) error) error {
 	for {
 		// TODO: get backoff values from config?
 		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
@@ -93,7 +93,7 @@ func (f *AWSLambdaFuncitonDiscovery) DetectFunctions(ctx context.Context, url *u
 	}
 }
 
-func (f *AWSLambdaFuncitonDiscovery) DetectFunctionsOnce(ctx context.Context, secrets func() v1.SecretList) ([]*glooaws.LambdaFunctionSpec, error) {
+func (f *AWSLambdaFunctionDiscovery) DetectFunctionsOnce(ctx context.Context, secrets func() v1.SecretList) ([]*glooaws.LambdaFunctionSpec, error) {
 	in := f.upstream
 	awsspec, ok := in.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Aws)
 
