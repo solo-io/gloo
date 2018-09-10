@@ -6,10 +6,13 @@ import (
 
 var ResourceGroupEmitterTemplate = template.Must(template.New("resource_group_emitter").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
 
+{{- $client_declarations := new_str_slice }}
 {{- $clients := new_str_slice }}
 {{- range .Resources}}
-{{- $clients := (append_str_slice $clients (printf "%vClient %vClient"  (lower_camel .Name) .Name)) }}
+{{- $client_declarations := (append_str_slice $client_declarations (printf "%vClient %vClient"  (lower_camel .Name) .Name)) }}
+{{- $clients := (append_str_slice $clients (printf "%vClient"  (lower_camel .Name))) }}
 {{- end}}
+{{- $client_declarations := (join_str_slice $client_declarations ", ") }}
 {{- $clients := (join_str_slice $clients ", ") }}
 
 import (
@@ -28,15 +31,21 @@ type {{ .GoName }}Emitter interface {
 	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *{{ .GoName }}Snapshot, <-chan error, error)
 }
 
-func New{{ .GoName }}Emitter({{ $clients }}) {{ .GoName }}Emitter {
+func New{{ .GoName }}Emitter({{ $client_declarations }}) {{ .GoName }}Emitter {
+	return New{{ .GoName }}EmitterWithEmit({{ $clients }}, make(chan struct{}))
+}
+
+func New{{ .GoName }}EmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) {{ .GoName }}Emitter {
 	return &{{ lower_camel .GoName }}Emitter{
 {{- range .Resources}}
 		{{ lower_camel .Name }}: {{ lower_camel .Name }}Client,
 {{- end}}
+		forceEmit: emit,
 	}
 }
 
 type {{ lower_camel .GoName }}Emitter struct {
+	forceEmit <- chan struct{}
 {{- range .Resources}}
 	{{ lower_camel .Name }} {{ .Name }}Client
 {{- end}}
@@ -59,7 +68,6 @@ func (c *{{ lower_camel $.GoName }}Emitter) {{ .Name }}() {{ .Name }}Client {
 {{- end}}
 
 func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *{{ .GoName }}Snapshot, <-chan error, error) {
-	
 	errs := make(chan error)
 	var done sync.WaitGroup
 
@@ -128,6 +136,9 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 				done.Wait()
 				close(errs)
 				return
+			case <-c.forceEmit:
+				sentSnapshot := currentSnapshot.Clone()
+				snapshots <- &sentSnapshot
 {{- range .Resources}}
 			case {{ lower_camel .Name }}NamespacedList := <- {{ lower_camel .Name }}Chan:
 				namespace := {{ lower_camel .Name }}NamespacedList.namespace
