@@ -79,12 +79,12 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			return nil, errors.Errorf("%v has an nil service spec type", spec.Upstream)
 		}
 
-		restservicespec, ok := serviceSpec.PluginType.(*glooplugins.ServiceSpec_Rest)
-		if restservicespec == nil || !ok {
+		restServiceSpec, ok := serviceSpec.PluginType.(*glooplugins.ServiceSpec_Rest)
+		if restServiceSpec == nil || !ok {
 			return nil, errors.Errorf("%v does not have a REST service spec", spec.Upstream)
 		}
 		funcname := restDestinationSpec.Rest.FunctionName
-		transformationorig := restservicespec.Rest.Transformations[funcname]
+		transformationorig := restServiceSpec.Rest.Transformations[funcname]
 		if transformationorig == nil {
 			return nil, errors.Errorf("unknown function %v", funcname)
 		}
