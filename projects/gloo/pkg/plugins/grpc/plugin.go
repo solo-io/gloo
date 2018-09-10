@@ -62,30 +62,30 @@ func (p *plugin) Init(params plugins.InitParams) error {
 }
 
 func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *envoyapi.Cluster) error {
-	servicespec, ok := in.UpstreamSpec.UpstreamType.(v1.ServiceSpecGetter)
+	upstreamType, ok := in.UpstreamSpec.UpstreamType.(v1.ServiceSpecGetter)
 	if !ok {
 		return nil
 	}
 
-	if servicespec.GetServiceSpec() == nil {
+	if upstreamType.GetServiceSpec() == nil {
 		return nil
 	}
 
-	grpcwrapper, ok := servicespec.GetServiceSpec().PluginType.(*glooplugins.ServiceSpec_Grpc)
+	grpcWrapper, ok := upstreamType.GetServiceSpec().PluginType.(*glooplugins.ServiceSpec_Grpc)
 	if !ok {
 		return nil
 	}
-	grpcspec := grpcwrapper.Grpc
+	grpcSpec := grpcWrapper.Grpc
 
-	if len(grpcspec.GrpcServices) == 0 {
+	if len(grpcSpec.GrpcServices) == 0 {
 		return errors.New("service_info.properties.service_names cannot be empty")
 	}
-	descriptors, err := convertProto(grpcspec.Descriptors)
+	descriptors, err := convertProto(grpcSpec.Descriptors)
 	if err != nil {
 		return errors.Wrapf(err, "parsing grpc spec as a proto descriptor set")
 	}
 
-	for _, svc := range grpcspec.GrpcServices {
+	for _, svc := range grpcSpec.GrpcServices {
 
 		// find the relevant service
 
@@ -100,7 +100,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 	p.recordedUpstreams[in.Metadata.Ref()] = in
 	p.upstreamServices[in.Metadata.Name] = ServicesAndDescriptor{
 		Descriptors: descriptors,
-		Spec:        grpcspec,
+		Spec:        grpcSpec,
 	}
 
 	out.Http2ProtocolOptions = &envoycore.Http2ProtocolOptions{}

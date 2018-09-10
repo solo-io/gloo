@@ -64,13 +64,13 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			return nil, nil
 		}
 		// get upstream
-		getservicespec, ok := p.recordedUpstreams[spec.Upstream]
+		upstreamType, ok := p.recordedUpstreams[spec.Upstream]
 		if !ok {
 			// TODO(yuval-k): panic in debug
 			return nil, errors.Errorf("%v does not have a service spec", spec.Upstream)
 		}
 
-		serviceSpec := getservicespec.GetServiceSpec()
+		serviceSpec := upstreamType.GetServiceSpec()
 		if serviceSpec == nil {
 			return nil, errors.Errorf("%v has an empty service spec", spec.Upstream)
 		}
