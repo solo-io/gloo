@@ -13,7 +13,7 @@ import (
 
 type ResourceErrors map[resources.InputResource]error
 
-func (e ResourceErrors) Initialize(res ...resources.InputResource) ResourceErrors {
+func (e ResourceErrors) Accept(res ...resources.InputResource) ResourceErrors {
 	for _, r := range res {
 		e[r] = nil
 	}

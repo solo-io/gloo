@@ -49,8 +49,8 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 
 	logger.Debugf("%v", snap)
 	allResourceErrs := make(reporter.ResourceErrors)
-	allResourceErrs.Initialize(snap.Upstreams.List().AsInputResources()...)
-	allResourceErrs.Initialize(snap.Proxies.List().AsInputResources()...)
+	allResourceErrs.Accept(snap.Upstreams.List().AsInputResources()...)
+	allResourceErrs.Accept(snap.Proxies.List().AsInputResources()...)
 
 	params := plugins.Params{
 		Ctx:      ctx,

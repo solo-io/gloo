@@ -13,8 +13,8 @@ import (
 
 func Translate(namespace string, snap *v1.ApiSnapshot) (*gloov1.Proxy, reporter.ResourceErrors) {
 	resourceErrs := make(reporter.ResourceErrors)
-	resourceErrs.Initialize(snap.Gateways.List().AsInputResources()...)
-	resourceErrs.Initialize(snap.VirtualServices.List().AsInputResources()...)
+	resourceErrs.Accept(snap.Gateways.List().AsInputResources()...)
+	resourceErrs.Accept(snap.VirtualServices.List().AsInputResources()...)
 	if len(snap.Gateways.List()) == 0 {
 		log.Printf("%v had no gateways", snap.Hash())
 		return nil, resourceErrs
