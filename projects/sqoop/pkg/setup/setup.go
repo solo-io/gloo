@@ -16,6 +16,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/router"
+	"github.com/solo-io/solo-kit/samples"
+	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
 type Opts struct {
@@ -92,6 +94,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 			Ctx:         ctx,
 			RefreshRate: time.Minute,
 		},
+		devMode: true,
 	}, nil
 }
 
@@ -146,6 +149,12 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 		return err
 	}
 
+	if opts.devMode {
+		if err := addSampleData(opts, schemaClient, resolverMapClient); err != nil {
+			return err
+		}
+	}
+
 	// TODO(ilackarms): Default Resource stuff. (might be a concern for solo-kit)
 	// if _, err := gatewayClient.Write(defaults.DefaultGateway(opts.writeNamespace), clients.WriteOpts{
 	// 	Ctx: opts.watchOpts.Ctx,
@@ -195,31 +204,27 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	}
 }
 
-//
-// func addSampleData(opts Opts, vsClient v1.VirtualServiceClient) error {
-// 	upstreamClient, err := gloov1.NewUpstreamClient(factory.NewResourceClientFactory(opts.upstreams))
-// 	if err != nil {
-// 		return err
-// 	}
-// 	secretClient, err := gloov1.NewSecretClient(factory.NewResourceClientFactory(opts.secrets))
-// 	if err != nil {
-// 		return err
-// 	}
-// 	virtualServices, upstreams, secrets := samples.VirtualServices(), samples.Upstreams(), samples.Secrets()
-// 	for _, item := range virtualServices {
-// 		if _, err := vsClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
-// 			return err
-// 		}
-// 	}
-// 	for _, item := range upstreams {
-// 		if _, err := upstreamClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
-// 			return err
-// 		}
-// 	}
-// 	for _, item := range secrets {
-// 		if _, err := secretClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
-// 			return err
-// 		}
-// 	}
-// 	return nil
-// }
+
+func addSampleData(opts Opts, schemaClient v1.SchemaClient, resolverMapClient v1.ResolverMapClient) error {
+	upstreamClient, err := gloov1.NewUpstreamClient(factory.NewResourceClientFactory(opts.upstreams))
+	if err != nil {
+		return err
+	}
+	schemas, resolverMaps, upstreams := samples.Schemas(), samples.ResolverMaps(), samples.Upstreams()
+	for _, item := range upstreams {
+		if _, err := upstreamClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
+			return err
+		}
+	}
+	for _, item := range schemas {
+		if _, err := schemaClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
+			return err
+		}
+	}
+	for _, item := range resolverMaps {
+		if _, err := resolverMapClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
+			return err
+		}
+	}
+	return nil
+}
