@@ -29,6 +29,10 @@ func routesForResolverMaps(resolverMaps v1.ResolverMapList, resourceErrs reporte
 				if !ok {
 					continue
 				}
+				if glooResolver.GlooResolver == nil {
+					resourceErrs.AddError(resolverMap, errors.Errorf("gloo resolver cannot be nil"))
+					continue
+				}
 				if glooResolver.GlooResolver.Action == nil {
 					resourceErrs.AddError(resolverMap, errors.Errorf("resolver action cannot be nil"))
 					continue
