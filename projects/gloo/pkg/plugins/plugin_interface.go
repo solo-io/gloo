@@ -12,7 +12,7 @@ import (
 )
 
 type InitParams struct {
-	Ctx  context.Context
+	Ctx context.Context
 }
 
 type Plugin interface {
