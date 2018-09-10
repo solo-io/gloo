@@ -19,7 +19,7 @@ func NewTestingEmitter(mockResourceClient MockResourceClient, fakeResourceClient
 	return NewTestingEmitterWithEmit(mockResourceClient, fakeResourceClient, make(chan struct{}))
 }
 
-func NewTestingEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) TestingEmitter {
+func NewTestingEmitterWithEmit(mockResourceClient MockResourceClient, fakeResourceClient FakeResourceClient, emit <-chan struct{}) TestingEmitter {
 	return &testingEmitter{
 		mockResource: mockResourceClient,
 		fakeResource: fakeResourceClient,

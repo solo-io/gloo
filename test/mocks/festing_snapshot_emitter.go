@@ -18,7 +18,7 @@ func NewFestingEmitter(mockResourceClient MockResourceClient) FestingEmitter {
 	return NewFestingEmitterWithEmit(mockResourceClient, make(chan struct{}))
 }
 
-func NewFestingEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) FestingEmitter {
+func NewFestingEmitterWithEmit(mockResourceClient MockResourceClient, emit <-chan struct{}) FestingEmitter {
 	return &festingEmitter{
 		mockResource: mockResourceClient,
 		forceEmit:    emit,

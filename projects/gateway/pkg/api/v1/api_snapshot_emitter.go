@@ -19,7 +19,7 @@ func NewApiEmitter(gatewayClient GatewayClient, virtualServiceClient VirtualServ
 	return NewApiEmitterWithEmit(gatewayClient, virtualServiceClient, make(chan struct{}))
 }
 
-func NewApiEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) ApiEmitter {
+func NewApiEmitterWithEmit(gatewayClient GatewayClient, virtualServiceClient VirtualServiceClient, emit <-chan struct{}) ApiEmitter {
 	return &apiEmitter{
 		gateway:        gatewayClient,
 		virtualService: virtualServiceClient,

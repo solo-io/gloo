@@ -22,7 +22,7 @@ func NewApiEmitter(artifactClient ArtifactClient, endpointClient EndpointClient,
 	return NewApiEmitterWithEmit(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient, make(chan struct{}))
 }
 
-func NewApiEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) ApiEmitter {
+func NewApiEmitterWithEmit(artifactClient ArtifactClient, endpointClient EndpointClient, proxyClient ProxyClient, secretClient SecretClient, upstreamClient UpstreamClient, emit <-chan struct{}) ApiEmitter {
 	return &apiEmitter{
 		artifact:  artifactClient,
 		endpoint:  endpointClient,

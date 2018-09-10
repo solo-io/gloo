@@ -35,7 +35,7 @@ func New{{ .GoName }}Emitter({{ $client_declarations }}) {{ .GoName }}Emitter {
 	return New{{ .GoName }}EmitterWithEmit({{ $clients }}, make(chan struct{}))
 }
 
-func New{{ .GoName }}EmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) {{ .GoName }}Emitter {
+func New{{ .GoName }}EmitterWithEmit({{ $client_declarations }}, emit <-chan struct{}) {{ .GoName }}Emitter {
 	return &{{ lower_camel .GoName }}Emitter{
 {{- range .Resources}}
 		{{ lower_camel .Name }}: {{ lower_camel .Name }}Client,

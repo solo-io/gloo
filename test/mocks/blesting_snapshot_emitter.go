@@ -18,7 +18,7 @@ func NewBlestingEmitter(fakeResourceClient FakeResourceClient) BlestingEmitter {
 	return NewBlestingEmitterWithEmit(fakeResourceClient, make(chan struct{}))
 }
 
-func NewBlestingEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) BlestingEmitter {
+func NewBlestingEmitterWithEmit(fakeResourceClient FakeResourceClient, emit <-chan struct{}) BlestingEmitter {
 	return &blestingEmitter{
 		fakeResource: fakeResourceClient,
 		forceEmit:    emit,

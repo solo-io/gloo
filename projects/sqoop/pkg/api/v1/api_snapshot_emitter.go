@@ -19,7 +19,7 @@ func NewApiEmitter(resolverMapClient ResolverMapClient, schemaClient SchemaClien
 	return NewApiEmitterWithEmit(resolverMapClient, schemaClient, make(chan struct{}))
 }
 
-func NewApiEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) ApiEmitter {
+func NewApiEmitterWithEmit(resolverMapClient ResolverMapClient, schemaClient SchemaClient, emit <-chan struct{}) ApiEmitter {
 	return &apiEmitter{
 		resolverMap: resolverMapClient,
 		schema:      schemaClient,
