@@ -167,7 +167,7 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints *
 						continue
 					}
 					hash, _ := hashstructure.Hash([]interface{}{subset, addr}, nil)
-					endpointName := fmt.Sprintf("%v.%v", eps.Name, hash)
+					endpointName := fmt.Sprintf("%v-%x", eps.Name, hash)
 
 					ep := createEndpoint(writeNamespace, endpointName, usName, addr.IP, port)
 					endpoints = append(endpoints, ep)
