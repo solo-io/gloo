@@ -80,6 +80,7 @@ func convertService(svc kubev1.Service, writeNamespace string) v1.UpstreamList {
 
 func createUpstream(meta metav1.ObjectMeta, port kubev1.ServicePort, writeNamespace string) *v1.Upstream {
 	coremeta := kubeutils.FromKubeMeta(meta)
+	coremeta.ResourceVersion = ""
 	coremeta.Name = upstreamName(meta.Namespace, meta.Name, port.Port)
 	coremeta.Namespace = writeNamespace
 	return &v1.Upstream{
@@ -123,6 +124,9 @@ func (p *plugin) UpdateUpstream(original, desired *v1.Upstream) error {
 	desiredSpec.Kube.ServiceSpec = originalSpec.Kube.ServiceSpec
 	// copy labels; user may have written them over. cannot be auto-discovered
 	desiredSpec.Kube.Selector = originalSpec.Kube.Selector
+
+	// to support updates
+	desired.Metadata.ResourceVersion = original.Metadata.ResourceVersion
 
 	return nil
 }
