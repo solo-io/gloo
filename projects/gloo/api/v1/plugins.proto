@@ -30,7 +30,7 @@ message VirtualHostPlugins {}
 // Note to developers: new Route Plugins must be added to this struct
 // to be usable by Gloo.
 message RoutePlugins {
-    envoy.api.v2.filter.http.RouteTransformations transformations = 1;
+    transformation.plugins.gloo.solo.io.RouteTransformations transformations = 1;
 }
 
 // Configuration for Destinations that are tied to the UpstreamSpec or ServiceSpec on that destination
