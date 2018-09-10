@@ -128,15 +128,21 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	}
 	proxyReconciler := gloov1.NewProxyReconciler(proxyClient)
 
-	schemaClientFactory := factory.NewResourceClientFactory(opts.proxies)
+	schemaClientFactory := factory.NewResourceClientFactory(opts.schemas)
 	schemaClient, err := v1.NewSchemaClient(schemaClientFactory)
 	if err != nil {
 		return err
 	}
+	if err := schemaClient.Register(); err != nil {
+		return err
+	}
 
-	resolverMapClientFactory := factory.NewResourceClientFactory(opts.proxies)
+	resolverMapClientFactory := factory.NewResourceClientFactory(opts.resolverMaps)
 	resolverMapClient, err := v1.NewResolverMapClient(resolverMapClientFactory)
 	if err != nil {
+		return err
+	}
+	if err := resolverMapClient.Register(); err != nil {
 		return err
 	}
 
