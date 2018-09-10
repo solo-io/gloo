@@ -15,13 +15,19 @@ type DiscoveryEmitter interface {
 }
 
 func NewDiscoveryEmitter(upstreamClient UpstreamClient) DiscoveryEmitter {
+	return NewDiscoveryEmitterWithEmit(upstreamClient, make(chan struct{}))
+}
+
+func NewDiscoveryEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) DiscoveryEmitter {
 	return &discoveryEmitter{
-		upstream: upstreamClient,
+		upstream:  upstreamClient,
+		forceEmit: emit,
 	}
 }
 
 type discoveryEmitter struct {
-	upstream UpstreamClient
+	forceEmit <-chan struct{}
+	upstream  UpstreamClient
 }
 
 func (c *discoveryEmitter) Register() error {
@@ -36,7 +42,6 @@ func (c *discoveryEmitter) Upstream() UpstreamClient {
 }
 
 func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *DiscoverySnapshot, <-chan error, error) {
-
 	errs := make(chan error)
 	var done sync.WaitGroup
 	/* Create channel for Upstream */
@@ -94,6 +99,9 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 				done.Wait()
 				close(errs)
 				return
+			case <-c.forceEmit:
+				sentSnapshot := currentSnapshot.Clone()
+				snapshots <- &sentSnapshot
 			case upstreamNamespacedList := <-upstreamChan:
 				namespace := upstreamNamespacedList.namespace
 				upstreamList := upstreamNamespacedList.list

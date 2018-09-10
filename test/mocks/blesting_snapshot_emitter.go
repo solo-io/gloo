@@ -15,12 +15,18 @@ type BlestingEmitter interface {
 }
 
 func NewBlestingEmitter(fakeResourceClient FakeResourceClient) BlestingEmitter {
+	return NewBlestingEmitterWithEmit(fakeResourceClient, make(chan struct{}))
+}
+
+func NewBlestingEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) BlestingEmitter {
 	return &blestingEmitter{
 		fakeResource: fakeResourceClient,
+		forceEmit:    emit,
 	}
 }
 
 type blestingEmitter struct {
+	forceEmit    <-chan struct{}
 	fakeResource FakeResourceClient
 }
 
@@ -36,7 +42,6 @@ func (c *blestingEmitter) FakeResource() FakeResourceClient {
 }
 
 func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *BlestingSnapshot, <-chan error, error) {
-
 	errs := make(chan error)
 	var done sync.WaitGroup
 	/* Create channel for FakeResource */
@@ -94,6 +99,9 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 				done.Wait()
 				close(errs)
 				return
+			case <-c.forceEmit:
+				sentSnapshot := currentSnapshot.Clone()
+				snapshots <- &sentSnapshot
 			case fakeResourceNamespacedList := <-fakeResourceChan:
 				namespace := fakeResourceNamespacedList.namespace
 				fakeResourceList := fakeResourceNamespacedList.list

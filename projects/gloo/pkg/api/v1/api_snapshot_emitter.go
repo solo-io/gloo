@@ -19,21 +19,27 @@ type ApiEmitter interface {
 }
 
 func NewApiEmitter(artifactClient ArtifactClient, endpointClient EndpointClient, proxyClient ProxyClient, secretClient SecretClient, upstreamClient UpstreamClient) ApiEmitter {
+	return NewApiEmitterWithEmit(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient, make(chan struct{}))
+}
+
+func NewApiEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) ApiEmitter {
 	return &apiEmitter{
-		artifact: artifactClient,
-		endpoint: endpointClient,
-		proxy:    proxyClient,
-		secret:   secretClient,
-		upstream: upstreamClient,
+		artifact:  artifactClient,
+		endpoint:  endpointClient,
+		proxy:     proxyClient,
+		secret:    secretClient,
+		upstream:  upstreamClient,
+		forceEmit: emit,
 	}
 }
 
 type apiEmitter struct {
-	artifact ArtifactClient
-	endpoint EndpointClient
-	proxy    ProxyClient
-	secret   SecretClient
-	upstream UpstreamClient
+	forceEmit <-chan struct{}
+	artifact  ArtifactClient
+	endpoint  EndpointClient
+	proxy     ProxyClient
+	secret    SecretClient
+	upstream  UpstreamClient
 }
 
 func (c *apiEmitter) Register() error {
@@ -76,7 +82,6 @@ func (c *apiEmitter) Upstream() UpstreamClient {
 }
 
 func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
-
 	errs := make(chan error)
 	var done sync.WaitGroup
 	/* Create channel for Artifact */
@@ -226,6 +231,9 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				done.Wait()
 				close(errs)
 				return
+			case <-c.forceEmit:
+				sentSnapshot := currentSnapshot.Clone()
+				snapshots <- &sentSnapshot
 			case artifactNamespacedList := <-artifactChan:
 				namespace := artifactNamespacedList.namespace
 				artifactList := artifactNamespacedList.list

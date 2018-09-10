@@ -16,13 +16,19 @@ type TestingEmitter interface {
 }
 
 func NewTestingEmitter(mockResourceClient MockResourceClient, fakeResourceClient FakeResourceClient) TestingEmitter {
+	return NewTestingEmitterWithEmit(mockResourceClient, fakeResourceClient, make(chan struct{}))
+}
+
+func NewTestingEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) TestingEmitter {
 	return &testingEmitter{
 		mockResource: mockResourceClient,
 		fakeResource: fakeResourceClient,
+		forceEmit:    emit,
 	}
 }
 
 type testingEmitter struct {
+	forceEmit    <-chan struct{}
 	mockResource MockResourceClient
 	fakeResource FakeResourceClient
 }
@@ -46,7 +52,6 @@ func (c *testingEmitter) FakeResource() FakeResourceClient {
 }
 
 func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *TestingSnapshot, <-chan error, error) {
-
 	errs := make(chan error)
 	var done sync.WaitGroup
 	/* Create channel for MockResource */
@@ -127,6 +132,9 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 				done.Wait()
 				close(errs)
 				return
+			case <-c.forceEmit:
+				sentSnapshot := currentSnapshot.Clone()
+				snapshots <- &sentSnapshot
 			case mockResourceNamespacedList := <-mockResourceChan:
 				namespace := mockResourceNamespacedList.namespace
 				mockResourceList := mockResourceNamespacedList.list

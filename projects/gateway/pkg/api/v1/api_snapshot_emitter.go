@@ -16,13 +16,19 @@ type ApiEmitter interface {
 }
 
 func NewApiEmitter(gatewayClient GatewayClient, virtualServiceClient VirtualServiceClient) ApiEmitter {
+	return NewApiEmitterWithEmit(gatewayClient, virtualServiceClient, make(chan struct{}))
+}
+
+func NewApiEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) ApiEmitter {
 	return &apiEmitter{
 		gateway:        gatewayClient,
 		virtualService: virtualServiceClient,
+		forceEmit:      emit,
 	}
 }
 
 type apiEmitter struct {
+	forceEmit      <-chan struct{}
 	gateway        GatewayClient
 	virtualService VirtualServiceClient
 }
@@ -46,7 +52,6 @@ func (c *apiEmitter) VirtualService() VirtualServiceClient {
 }
 
 func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
-
 	errs := make(chan error)
 	var done sync.WaitGroup
 	/* Create channel for Gateway */
@@ -127,6 +132,9 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				done.Wait()
 				close(errs)
 				return
+			case <-c.forceEmit:
+				sentSnapshot := currentSnapshot.Clone()
+				snapshots <- &sentSnapshot
 			case gatewayNamespacedList := <-gatewayChan:
 				namespace := gatewayNamespacedList.namespace
 				gatewayList := gatewayNamespacedList.list

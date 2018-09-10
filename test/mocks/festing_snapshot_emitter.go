@@ -15,12 +15,18 @@ type FestingEmitter interface {
 }
 
 func NewFestingEmitter(mockResourceClient MockResourceClient) FestingEmitter {
+	return NewFestingEmitterWithEmit(mockResourceClient, make(chan struct{}))
+}
+
+func NewFestingEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) FestingEmitter {
 	return &festingEmitter{
 		mockResource: mockResourceClient,
+		forceEmit:    emit,
 	}
 }
 
 type festingEmitter struct {
+	forceEmit    <-chan struct{}
 	mockResource MockResourceClient
 }
 
@@ -36,7 +42,6 @@ func (c *festingEmitter) MockResource() MockResourceClient {
 }
 
 func (c *festingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *FestingSnapshot, <-chan error, error) {
-
 	errs := make(chan error)
 	var done sync.WaitGroup
 	/* Create channel for MockResource */
@@ -94,6 +99,9 @@ func (c *festingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 				done.Wait()
 				close(errs)
 				return
+			case <-c.forceEmit:
+				sentSnapshot := currentSnapshot.Clone()
+				snapshots <- &sentSnapshot
 			case mockResourceNamespacedList := <-mockResourceChan:
 				namespace := mockResourceNamespacedList.namespace
 				mockResourceList := mockResourceNamespacedList.list

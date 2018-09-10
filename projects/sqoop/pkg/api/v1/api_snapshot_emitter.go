@@ -16,13 +16,19 @@ type ApiEmitter interface {
 }
 
 func NewApiEmitter(resolverMapClient ResolverMapClient, schemaClient SchemaClient) ApiEmitter {
+	return NewApiEmitterWithEmit(resolverMapClient, schemaClient, make(chan struct{}))
+}
+
+func NewApiEmitterWithEmit(upstreamClient UpstreamClient, emit <-chan struct{}) ApiEmitter {
 	return &apiEmitter{
 		resolverMap: resolverMapClient,
 		schema:      schemaClient,
+		forceEmit:   emit,
 	}
 }
 
 type apiEmitter struct {
+	forceEmit   <-chan struct{}
 	resolverMap ResolverMapClient
 	schema      SchemaClient
 }
@@ -46,7 +52,6 @@ func (c *apiEmitter) Schema() SchemaClient {
 }
 
 func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
-
 	errs := make(chan error)
 	var done sync.WaitGroup
 	/* Create channel for ResolverMap */
@@ -127,6 +132,9 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				done.Wait()
 				close(errs)
 				return
+			case <-c.forceEmit:
+				sentSnapshot := currentSnapshot.Clone()
+				snapshots <- &sentSnapshot
 			case resolverMapNamespacedList := <-resolverMapChan:
 				namespace := resolverMapNamespacedList.namespace
 				resolverMapList := resolverMapNamespacedList.list
