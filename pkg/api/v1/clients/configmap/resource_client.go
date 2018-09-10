@@ -225,10 +225,10 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		}
 		resourcesChan <- list
 	}
-	// watch should open up with an initial read
-	go updateResourceList()
 
 	go func() {
+		// watch should open up with an initial read
+		updateResourceList()
 		for {
 			select {
 			case <-time.After(opts.RefreshRate):

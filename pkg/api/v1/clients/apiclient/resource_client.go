@@ -166,7 +166,6 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 
 	resourcesChan := make(chan resources.ResourceList)
 	errs := make(chan error)
-	// watch should open up with an initial read
 	go func() {
 		list, err := rc.List(namespace, clients.ListOpts{
 			Ctx:      opts.Ctx,

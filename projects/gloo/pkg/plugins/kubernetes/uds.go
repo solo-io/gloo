@@ -27,7 +27,7 @@ func (p *plugin) WatchUpstreams(writeNamespace string, opts clients.WatchOpts, d
 	}
 	upstreamsChan := make(chan v1.UpstreamList)
 	errs := make(chan error)
-	syncUpstreams := func() {
+	discoverUpstreams := func() {
 		list, err := p.kube.CoreV1().Services("").List(metav1.ListOptions{
 			LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
 		})
@@ -37,20 +37,19 @@ func (p *plugin) WatchUpstreams(writeNamespace string, opts clients.WatchOpts, d
 		}
 		upstreamsChan <- convertServices(list.Items, discOpts, writeNamespace)
 	}
-	// watch should open up with an initial read
-	go syncUpstreams()
-
 	go func() {
+		// watch should open up with an initial read
+		discoverUpstreams()
 		for {
 			select {
 			case <-time.After(opts.RefreshRate):
-				syncUpstreams()
+				discoverUpstreams()
 			case event := <-serviceWatch.ResultChan():
 				switch event.Type {
 				case kubewatch.Error:
 					errs <- errors.Errorf("error during pod watch: %v", event)
 				default:
-					syncUpstreams()
+					discoverUpstreams()
 				}
 			case <-opts.Ctx.Done():
 				return

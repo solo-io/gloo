@@ -153,18 +153,6 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		return nil, nil, errors.Wrapf(err, "starting watch on namespace dir")
 	}
 	resourcesChan := make(chan resources.ResourceList)
-	go func() {
-		// watch should open up with an initial read
-		list, err := rc.List(namespace, clients.ListOpts{
-			Ctx:      opts.Ctx,
-			Selector: opts.Selector,
-		})
-		if err != nil {
-			errs <- err
-			return
-		}
-		resourcesChan <- list
-	}()
 	updateResourceList := func() {
 		list, err := rc.List(namespace, clients.ListOpts{
 			Ctx:      opts.Ctx,
@@ -177,6 +165,7 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		resourcesChan <- list
 	}
 	go func() {
+		updateResourceList()
 		for {
 			select {
 			case <-events:

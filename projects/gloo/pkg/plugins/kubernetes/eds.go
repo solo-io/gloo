@@ -22,7 +22,7 @@ import (
 func (p *plugin) WatchEndpoints(writeNamespace string, upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
 	opts = opts.WithDefaults()
 
-	return newEndpointsWatcher(p.kube, upstreamsToTrack).Watch(writeNamespace, opts)
+	return newEndpointsWatcher(p.kube, upstreamsToTrack).watch(writeNamespace, opts)
 }
 
 type edsWatcher struct {
@@ -46,7 +46,7 @@ func newEndpointsWatcher(kube kubernetes.Interface, upstreams v1.UpstreamList) *
 	}
 }
 
-func (c *edsWatcher) List(namespace string, opts clients.ListOpts) (v1.EndpointList, error) {
+func (c *edsWatcher) List(writeNamespace string, opts clients.ListOpts) (v1.EndpointList, error) {
 	endpoints, err := c.kube.CoreV1().Endpoints("").List(metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
 	})
@@ -61,10 +61,10 @@ func (c *edsWatcher) List(namespace string, opts clients.ListOpts) (v1.EndpointL
 		return nil, err
 	}
 
-	return filterEndpoints(opts.Ctx, namespace, endpoints, pods, c.upstreams), nil
+	return filterEndpoints(opts.Ctx, writeNamespace, endpoints, pods, c.upstreams), nil
 }
 
-func (c *edsWatcher) Watch(namespace string, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
+func (c *edsWatcher) watch(writeNamespace string, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
 	endpointsWatch, err := c.kube.CoreV1().Endpoints("").Watch(metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
 	})
@@ -79,10 +79,10 @@ func (c *edsWatcher) Watch(namespace string, opts clients.WatchOpts) (<-chan v1.
 		return nil, nil, errors.Wrapf(err, "initiating kube watch")
 	}
 
-	resourcesChan := make(chan v1.EndpointList)
+	endpointsChan := make(chan v1.EndpointList)
 	errs := make(chan error)
 	updateResourceList := func() {
-		list, err := c.List(namespace, clients.ListOpts{
+		list, err := c.List(writeNamespace, clients.ListOpts{
 			Ctx:      opts.Ctx,
 			Selector: opts.Selector,
 		})
@@ -90,12 +90,12 @@ func (c *edsWatcher) Watch(namespace string, opts clients.WatchOpts) (<-chan v1.
 			errs <- err
 			return
 		}
-		resourcesChan <- list
+		endpointsChan <- list
 	}
-	// watch should open up with an initial read
-	go updateResourceList()
-
 	go func() {
+		// watch should open up with an initial read
+		updateResourceList()
+
 		for {
 			select {
 			case <-time.After(opts.RefreshRate):
@@ -117,14 +117,14 @@ func (c *edsWatcher) Watch(namespace string, opts clients.WatchOpts) (<-chan v1.
 			case <-opts.Ctx.Done():
 				endpointsWatch.Stop()
 				podsWatch.Stop()
-				close(resourcesChan)
+				close(endpointsChan)
 				close(errs)
 				return
 			}
 		}
 	}()
 
-	return resourcesChan, errs, nil
+	return endpointsChan, errs, nil
 }
 
 func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints *kubev1.EndpointsList, pods *kubev1.PodList, upstreams map[string]*kubeplugin.UpstreamSpec) v1.EndpointList {

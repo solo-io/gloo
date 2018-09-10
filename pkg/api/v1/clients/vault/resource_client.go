@@ -245,8 +245,6 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		}
 		cached = list
 		resourcesChan <- list
-	}()
-	go func() {
 		for {
 			select {
 			case <-time.After(opts.RefreshRate):
