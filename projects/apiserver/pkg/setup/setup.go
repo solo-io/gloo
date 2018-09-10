@@ -127,44 +127,6 @@ func addSampleData(inputFactory factory.ResourceClientFactory) error {
 }
 
 func sampleData() (v1.UpstreamList, gatewayv1.VirtualServiceList, sqoopv1.ResolverMapList) {
-	return samples.Upstreams(), samples.VirtualServices(), sampleResolverMaps()
+	return samples.Upstreams(), samples.VirtualServices(), samples.ResolverMaps()
 }
 
-func sampleResolverMaps() sqoopv1.ResolverMapList {
-	return sqoopv1.ResolverMapList{
-		{
-			Metadata: samples.MakeMetadata("resolvermap1", "some-namespace"),
-			Types: map[string]*sqoopv1.TypeResolver{
-				"Foo": {
-					Fields: map[string]*sqoopv1.FieldResolver{
-						"field1": {Resolver: &sqoopv1.FieldResolver_GlooResolver{}},
-						"field2": {Resolver: &sqoopv1.FieldResolver_TemplateResolver{}},
-					},
-				},
-				"Bar": {
-					Fields: map[string]*sqoopv1.FieldResolver{
-						"field1": {Resolver: &sqoopv1.FieldResolver_GlooResolver{}},
-						"field2": {Resolver: &sqoopv1.FieldResolver_TemplateResolver{}},
-					},
-				},
-			},
-		},
-		{
-			Metadata: samples.MakeMetadata("resolvermap2", "some-namespace"),
-			Types: map[string]*sqoopv1.TypeResolver{
-				"Baz": {
-					Fields: map[string]*sqoopv1.FieldResolver{
-						"field1": {Resolver: &sqoopv1.FieldResolver_GlooResolver{}},
-						"field2": {Resolver: &sqoopv1.FieldResolver_TemplateResolver{}},
-					},
-				},
-				"Qux": {
-					Fields: map[string]*sqoopv1.FieldResolver{
-						"field1": {Resolver: &sqoopv1.FieldResolver_GlooResolver{}},
-						"field2": {Resolver: &sqoopv1.FieldResolver_TemplateResolver{}},
-					},
-				},
-			},
-		},
-	}
-}

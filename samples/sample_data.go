@@ -5,6 +5,7 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
+	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
@@ -356,6 +357,118 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 					},
 				},
 			},
+		},
+	}
+}
+
+func ResolverMaps() sqoopv1.ResolverMapList {
+	return sqoopv1.ResolverMapList{
+		{
+			Metadata: MakeMetadata("resolvermap1", "gloo-system"),
+			Types: map[string]*sqoopv1.TypeResolver{
+				"Foo": {
+					Fields: map[string]*sqoopv1.FieldResolver{
+						"field1": {Resolver: &sqoopv1.FieldResolver_GlooResolver{}},
+						"field2": {Resolver: &sqoopv1.FieldResolver_TemplateResolver{}},
+					},
+				},
+				"Bar": {
+					Fields: map[string]*sqoopv1.FieldResolver{
+						"field1": {Resolver: &sqoopv1.FieldResolver_GlooResolver{}},
+						"field2": {Resolver: &sqoopv1.FieldResolver_TemplateResolver{}},
+					},
+				},
+			},
+		},
+		{
+			Metadata: MakeMetadata("resolvermap2", "gloo-system"),
+			Types: map[string]*sqoopv1.TypeResolver{
+				"Baz": {
+					Fields: map[string]*sqoopv1.FieldResolver{
+						"field1": {Resolver: &sqoopv1.FieldResolver_GlooResolver{}},
+						"field2": {Resolver: &sqoopv1.FieldResolver_TemplateResolver{}},
+					},
+				},
+				"Qux": {
+					Fields: map[string]*sqoopv1.FieldResolver{
+						"field1": {Resolver: &sqoopv1.FieldResolver_GlooResolver{}},
+						"field2": {Resolver: &sqoopv1.FieldResolver_TemplateResolver{}},
+					},
+				},
+			},
+		},
+	}
+}
+
+func Schemas() sqoopv1.SchemaList {
+	return sqoopv1.SchemaList{
+		{
+			Metadata:    MakeMetadata("petstore-gen", "gloo-system"),
+			ResolverMap: core.ResourceRef{}, // intentionally empty, test generation
+			InlineSchema: `
+# The query type, represents all of the entry points into our object graph
+type Query {
+    pets: [Pet]
+    pet(id: Int!): Pet
+}
+
+type Mutation {
+    addPet(pet: InputPet!): Pet
+}
+
+type Pet{
+    id: ID!
+    name: String!
+    status: Status!
+}
+
+input InputPet{
+    id: ID!
+    name: String!
+    tag: String
+}
+
+enum Status {
+    pending
+    available
+}
+`,
+		},
+
+		{
+			Metadata: MakeMetadata("petstore", "gloo-system"),
+			ResolverMap: core.ResourceRef{
+				Name:      "petstore",
+				Namespace: "gloo-system",
+			},
+			InlineSchema: `
+# The query type, represents all of the entry points into our object graph
+type Query {
+    pets: [Pet]
+    pet(id: Int!): Pet
+}
+
+type Mutation {
+    addPet(pet: InputPet!): Pet
+}
+
+type Pet{
+    id: ID!
+    name: String!
+    status: Status!
+}
+
+input InputPet{
+    id: ID!
+    name: String!
+    tag: String
+}
+
+enum Status {
+    pending
+    available
+}
+`,
 		},
 	}
 }
