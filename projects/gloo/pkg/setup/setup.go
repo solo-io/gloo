@@ -86,7 +86,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 
 	disc := discovery.NewDiscovery(opts.WriteNamespace, upstreamClient, endpointClient)
 
-	sync := syncer.NewSyncer(translator.NewTranslator(opts), xdsCache, xdsHasher, rpt)
+	sync := syncer.NewSyncer(translator.NewTranslator(opts), xdsCache, xdsHasher, rpt, opts.DevMode)
 	eventLoop := v1.NewApiEventLoop(cache, sync)
 
 	errs := make(chan error)

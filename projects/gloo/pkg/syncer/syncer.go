@@ -27,15 +27,17 @@ type syncer struct {
 	latestSnap *v1.ApiSnapshot
 }
 
-func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCache, xdsHasher *xds.ProxyKeyHasher, reporter reporter.Reporter) v1.ApiSyncer {
+func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCache, xdsHasher *xds.ProxyKeyHasher, reporter reporter.Reporter, devMode bool) v1.ApiSyncer {
 	s := &syncer{
 		translator: translator,
 		xdsCache:   xdsCache,
 		xdsHasher:  xdsHasher,
 		reporter:   reporter,
 	}
-	// TODO(ilackarms): move this somewhere else, make it part of dev-mode
-	go s.ServeXdsSnapshots()
+	if devMode {
+		// TODO(ilackarms): move this somewhere else?
+		go s.ServeXdsSnapshots()
+	}
 	return s
 }
 

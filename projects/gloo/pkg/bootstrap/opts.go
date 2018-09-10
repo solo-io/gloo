@@ -21,4 +21,5 @@ type Opts struct {
 	GrpcServer     *grpc.Server
 	KubeClient     kubernetes.Interface
 	WatchOpts      clients.WatchOpts
+	DevMode        bool
 }
