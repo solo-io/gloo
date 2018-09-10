@@ -36,7 +36,7 @@ var _ = Describe("Transformations", func() {
 		var err error
 		envoyInstance, err = envoyFactory.NewEnvoyInstance()
 		Expect(err).NotTo(HaveOccurred())
-		err = envoyInstance.Run()
+		err = envoyInstance.Run(testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 
 	})
