@@ -15,8 +15,14 @@ func Translate(writeNamespace string, snap *v1.ApiSnapshot, resourceErrs reporte
 
 	var routes []*gloov1.Route
 
-	for _, r := range  ourRoutes {
+	for _, r := range ourRoutes {
 		routes = append(routes, &gloov1.Route{
+			Matcher: &gloov1.Matcher{
+				PathSpecifier: &gloov1.Matcher_Exact{
+					Exact: r.path,
+				},
+				Methods: []string{"POST"},
+			},
 			Action: &gloov1.Route_RouteAction{RouteAction: r.action},
 		})
 	}
