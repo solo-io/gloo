@@ -13,12 +13,7 @@ import (
 
 type route struct {
 	path   string
-	action gloov1.RouteAction
-}
-
-type destination struct {
-	upstreamRef core.ResourceRef
-	weight      uint32
+	action *gloov1.RouteAction
 }
 
 func RoutePath(resolverMap core.ResourceRef, typeName, fieldName string) string {
@@ -40,7 +35,7 @@ func routesForResolverMaps(resolverMaps v1.ResolverMapList, resourceErrs reporte
 				}
 				routes = append(routes, route{
 					path:   RoutePath(resolverMap.Metadata.Ref(), typeName, fieldName),
-					action: *glooResolver.GlooResolver.Action,
+					action: glooResolver.GlooResolver.Action,
 				})
 			}
 		}
@@ -48,5 +43,5 @@ func routesForResolverMaps(resolverMaps v1.ResolverMapList, resourceErrs reporte
 	sort.SliceStable(routes, func(i, j int) bool {
 		return routes[i].path < routes[j].path
 	})
-	return routes, nil
+	return routes
 }
