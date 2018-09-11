@@ -120,6 +120,13 @@ $(OUTPUT_DIR)/apiserver-linux-amd64:  $(SOURCES)
 $(OUTPUT_DIR)/apiserver-darwin-amd64:  $(SOURCES)
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -o $@ projects/apiserver/cmd/main.go
 
+
+$(OUTPUT_DIR)/Dockerfile.apiserver: $(APISERVER_DIR)/cmd/Dockerfile
+	cp $< $@
+
+apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.apiserver
+	docker build -t soloio/apiserver-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.apiserver
+
 #----------------------------------------------------------------------------------
 # Gateway
 #----------------------------------------------------------------------------------
