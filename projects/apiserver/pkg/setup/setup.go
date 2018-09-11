@@ -41,7 +41,7 @@ func Setup(port int) error {
 		Debug: true,
 	})
 
-	http.Handle("/graphiql", handler.Playground("Solo-ApiServer", "/query"))
+	http.Handle("/playground", handler.Playground("Solo-ApiServer", "/query"))
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
 		upstreams, err := v1.NewUpstreamClientWithToken(inputFactory, token)
