@@ -66,6 +66,7 @@ type MutationResolver interface {
 	Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactMutation, error)
 }
 type QueryResolver interface {
+	GetOAuthEndpoint(ctx context.Context) (string, error)
 	Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamQuery, error)
 	VirtualServices(ctx context.Context, namespace string) (customtypes.VirtualServiceQuery, error)
 	ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapQuery, error)
@@ -2010,6 +2011,8 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "getOAuthEndpoint":
+			out.Values[i] = ec._Query_getOAuthEndpoint(ctx, field)
 		case "upstreams":
 			out.Values[i] = ec._Query_upstreams(ctx, field)
 		case "virtualServices":
@@ -2032,6 +2035,32 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	}
 
 	return out
+}
+
+func (ec *executionContext) _Query_getOAuthEndpoint(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Object: "Query",
+		Args:   nil,
+		Field:  field,
+	})
+	return graphql.Defer(func() (ret graphql.Marshaler) {
+		defer func() {
+			if r := recover(); r != nil {
+				userErr := ec.Recover(ctx, r)
+				ec.Error(ctx, userErr)
+				ret = graphql.Null
+			}
+		}()
+
+		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+			return ec.resolvers.Query().GetOAuthEndpoint(ctx)
+		})
+		if resTmp == nil {
+			return graphql.Null
+		}
+		res := resTmp.(string)
+		return graphql.MarshalString(res)
+	})
 }
 
 func (ec *executionContext) _Query_upstreams(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -7784,6 +7813,8 @@ schema {
 }
 
 type Query {
+    getOAuthEndpoint: String!
+
     upstreams(namespace: String!):       UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
     resolverMaps(namespace: String!): ResolverMapQuery!

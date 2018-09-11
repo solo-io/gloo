@@ -5,6 +5,8 @@ schema {
 }
 
 type Query {
+    getOAuthEndpoint: String!
+
     upstreams(namespace: String!):       UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
     resolverMaps(namespace: String!): ResolverMapQuery!

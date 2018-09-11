@@ -129,4 +129,3 @@ func addSampleData(inputFactory factory.ResourceClientFactory) error {
 func sampleData() (v1.UpstreamList, gatewayv1.VirtualServiceList, sqoopv1.ResolverMapList) {
 	return samples.Upstreams(), samples.VirtualServices(), samples.ResolverMaps()
 }
-
