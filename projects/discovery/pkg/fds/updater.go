@@ -1,4 +1,4 @@
-package pkg
+package fds
 
 import (
 	"context"
@@ -59,7 +59,7 @@ func getConcurrencyChan(maxoncurrency uint) chan struct{} {
 
 }
 
-func NewUpdater(ctx context.Context, resolver Resolver, upstreamclient UpstreamWriterClient, maxoncurrency uint, functionalPlugins []FunctionDiscoveryFactory) *Updater {
+func NewUpdater(ctx context.Context, resolver Resolver, upstreamclient UpstreamWriterClient, maxconncurrency uint, functionalPlugins []FunctionDiscoveryFactory) *Updater {
 	ctx = contextutils.WithLogger(ctx, "function-discovery-updater")
 	return &Updater{
 		logger:                 contextutils.LoggerFrom(ctx),
@@ -67,7 +67,7 @@ func NewUpdater(ctx context.Context, resolver Resolver, upstreamclient UpstreamW
 		resolver:               resolver,
 		functionalPlugins:      functionalPlugins,
 		activeupstreams:        make(map[string]*updaterUpdater),
-		maxInParallelSemaphore: getConcurrencyChan(maxoncurrency),
+		maxInParallelSemaphore: getConcurrencyChan(maxconncurrency),
 		upstreamWriter:         upstreamclient,
 	}
 }

@@ -1,4 +1,4 @@
-package pkg
+package fds
 
 import (
 	"context"
@@ -28,7 +28,6 @@ func (d *DiscoverySyncer) Setup(context.Context) error {
 }
 
 func (d *DiscoverySyncer) Update(upstreams v1.UpstreamList, secrets v1.SecretList) error {
-
 	d.updater.SetSecrets(secrets)
 	// get new snapshot from sync and update the upstreams and secrets in the updater
 	old := d.prevupstreams
