@@ -22,11 +22,9 @@ import (
 	"github.com/solo-io/solo-kit/samples"
 )
 
-// TODO (ilackarms): prod overwrites bool
 func Setup(port int, prod bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
-	// TODO (ilackarms): pass in the factory with cli flags # already started
-
 	// override with memory stuff
+	// TODO(ilackarms): move this into a bootstrap package where it can be shared
 	if !prod {
 		inMemory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
@@ -35,7 +33,9 @@ func Setup(port int, prod bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetu
 		glooOpts.Secrets = inMemory
 		glooOpts.Proxies = inMemory
 		glooOpts.Upstreams = inMemory
-		//gatewayOpts.
+		gatewayOpts.VirtualServices = inMemory
+		sqoopOpts.Schemas = inMemory
+		sqoopOpts.ResolverMaps = inMemory
 
 		err := addSampleData(inMemory)
 		if err != nil {
@@ -62,27 +62,27 @@ func Setup(port int, prod bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetu
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		secrets, err := v1.NewSecretClientWithToken(inputFactory, token)
+		secrets, err := v1.NewSecretClientWithToken(glooOpts.Secrets, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		artifacts, err := v1.NewArtifactClientWithToken(inputFactory, token)
+		artifacts, err := v1.NewArtifactClientWithToken(glooOpts.Artifacts, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		virtualServices, err := gatewayv1.NewVirtualServiceClientWithToken(inputFactory, token)
+		virtualServices, err := gatewayv1.NewVirtualServiceClientWithToken(gatewayOpts.VirtualServices, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		resolverMaps, err := sqoopv1.NewResolverMapClientWithToken(inputFactory, token)
+		resolverMaps, err := sqoopv1.NewResolverMapClientWithToken(sqoopOpts.ResolverMaps, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		schemas, err := sqoopv1.NewSchemaClientWithToken(inputFactory, token)
+		schemas, err := sqoopv1.NewSchemaClientWithToken(sqoopOpts.Schemas, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
