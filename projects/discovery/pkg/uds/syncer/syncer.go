@@ -3,16 +3,16 @@ package syncer
 import (
 	"context"
 
-	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
+	"time"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"time"
 )
 
 type syncer struct {
-	uds *discovery.UpstreamDiscovery
+	uds         *discovery.UpstreamDiscovery
 	refreshRate time.Duration
 	discOpts    discovery.Opts
 }
@@ -33,8 +33,6 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.DiscoverySnapshot) error {
 	defer logger.Infof("end sync %v", snap.Hash())
 
 	logger.Debugf("%v", snap)
-	allResourceErrs := make(reporter.ResourceErrors)
-	allResourceErrs.Accept(snap.Upstreams.List().AsInputResources()...)
 
 	opts := clients.WatchOpts{
 		Ctx:         ctx,

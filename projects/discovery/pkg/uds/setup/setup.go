@@ -3,11 +3,11 @@ package setup
 import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/uds/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/uds/syncer"
 )
 
 func Setup(opts bootstrap.Opts) error {

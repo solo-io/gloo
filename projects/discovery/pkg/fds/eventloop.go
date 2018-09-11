@@ -6,28 +6,31 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
-// func Run(opts bootstrap.Options, discoveryOpts options.DiscoveryOptions) error {
-// }
-//
-type DiscoverySyncer struct {
+type FunctionDiscovery struct {
 	updater       *Updater
 	prevupstreams v1.UpstreamList
 }
 
-func (d *DiscoverySyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
+func NewFunctionDiscovery(updater *Updater) *FunctionDiscovery {
+	return &FunctionDiscovery{
+		updater: updater,
+	}
+}
+
+func (d *FunctionDiscovery) Sync(ctx context.Context, snap *v1.DiscoverySnapshot) error {
 	// update the upstream and secrets
 	//	this will feed the update loop via a channel
 	return nil
 }
 
-func (d *DiscoverySyncer) Setup(context.Context) error {
+func (d *FunctionDiscovery) Setup(context.Context) error {
 	/*
 		setup an event loop and an update loop
 	*/
 	return nil
 }
 
-func (d *DiscoverySyncer) Update(upstreams v1.UpstreamList, secrets v1.SecretList) error {
+func (d *FunctionDiscovery) Update(upstreams v1.UpstreamList, secrets v1.SecretList) error {
 	d.updater.SetSecrets(secrets)
 	// get new snapshot from sync and update the upstreams and secrets in the updater
 	old := d.prevupstreams

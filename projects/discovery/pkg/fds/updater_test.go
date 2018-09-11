@@ -1,4 +1,4 @@
-package fds
+package fds_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/solo-kit/projects/discovery/pkg"
+	. "github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 
@@ -33,6 +33,10 @@ type testDiscovery struct {
 	isUpstreamFunctional bool
 	detectUpstreamType   bool
 	detectFunctions      bool
+}
+
+func (t *testDiscovery) NewFunctionDiscovery(u *v1.Upstream) UpstreamFunctionDiscovery {
+	panic("implement me")
 }
 
 func (t *testDiscovery) IsUpstreamFunctional(u *v1.Upstream) bool {
@@ -83,7 +87,7 @@ var _ = Describe("Updater", func() {
 			resolveUrl: u,
 		}
 		testDisc = &testDiscovery{}
-		updater = NewUpdater(ctx, resolver, upstreamWriterClient, 0, []FunctionDiscovery{testDisc})
+		updater = NewUpdater(ctx, resolver, upstreamWriterClient, 0, []FunctionDiscoveryFactory{testDisc})
 		up = &v1.Upstream{
 			Metadata: core_solo_io.Metadata{
 				Namespace: "ns",
