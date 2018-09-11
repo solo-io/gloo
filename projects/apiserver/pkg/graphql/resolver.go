@@ -52,7 +52,7 @@ func (r *queryResolver) GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpo
 		return models.OAuthEndpoint{}, errors.Errorf("apiserver configured improperly, OAUTH_CLIENT environment variable is not set")
 	}
 	return models.OAuthEndpoint{
-		URL: oauthUrl,
+		URL:        oauthUrl,
 		ClientName: oauthClient,
 	}, nil
 }

@@ -1,23 +1,24 @@
 package setup
 
 import (
+	"context"
+	"time"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/utils/errutils"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
-	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"context"
-	"time"
+	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/namespacing"
 	"github.com/solo-io/solo-kit/pkg/namespacing/static"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
+	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/router"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-kit/samples"
-	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
 type Opts struct {
@@ -174,10 +175,10 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	rpt := reporter.NewReporter("sqoop", resolverMapClient.BaseClient(), schemaClient.BaseClient())
 	writeErrs := make(chan error)
 	/*
-			proxyReconciler:   proxyReconciler,
-			engine:            engine,
-			router:            router,
-	 */
+		proxyReconciler:   proxyReconciler,
+		engine:            engine,
+		router:            router,
+	*/
 	eng := engine.NewEngine(opts.sidecarAddr)
 
 	rtr := router.NewRouter()
@@ -203,7 +204,6 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 		}
 	}
 }
-
 
 func addSampleData(opts Opts, schemaClient v1.SchemaClient, resolverMapClient v1.ResolverMapClient) error {
 	upstreamClient, err := gloov1.NewUpstreamClient(factory.NewResourceClientFactory(opts.upstreams))
