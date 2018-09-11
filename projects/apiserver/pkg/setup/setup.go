@@ -19,7 +19,7 @@ import (
 	"github.com/solo-io/solo-kit/samples"
 )
 
-func Setup(port int, appDir string) error {
+func Setup(port int) error {
 	// TODO (ilackarms): pass in the factory with cli flags
 	inputFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
 		Cache: memory.NewInMemoryResourceCache(),
@@ -87,7 +87,6 @@ func Setup(port int, appDir string) error {
 			}),
 		)).ServeHTTP(w, r)
 	})
-	http.Handle("/", http.FileServer(http.Dir(appDir)))
 
 	return http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
 }

@@ -13,9 +13,9 @@ RUN yarn install --frozen-lockfile --no-cache --production --ignore-engines
 RUN yarn build
 
 # production environment
-FROM alpine:3.6 as prod
-RUN mkdir -p /bin/gloo-ui/build
-ADD apiserver /bin/gloo-ui
-COPY --from=builder /usr/src/app/build /bin/gloo-ui/build
-EXPOSE 8082
-CMD ["/bin/gloo-ui/apiserver", "-d", "/bin/gloo-ui/build"]
+FROM nginx:1.13.9-alpine
+RUN rm -rf /etc/nginx/conf.d
+COPY conf /etc/nginx
+COPY --from=builder /usr/src/app/build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

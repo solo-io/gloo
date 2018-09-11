@@ -1,3 +1,4 @@
+#!/bin/bash
+TAG="${TAG:-dev}"
 git clone git@github.com:solo-io/gloo-i.git gloo-i/
-GOOS=linux go build -o apiserver cmd/main.go
 docker build -t soloio/gloo-i:$TAG .
