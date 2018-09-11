@@ -9,6 +9,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 type DiscoveryPlugin interface {
@@ -17,7 +19,7 @@ type DiscoveryPlugin interface {
 	// UDS API
 	// send us an updated list of upstreams on every change
 	// namespace is for writing to, not necessarily reading from
-	WatchUpstreams(namespace string, opts clients.WatchOpts, discOpts Opts) (chan v1.UpstreamList, chan error, error)
+	DiscoverUpstreams(namespace string, opts clients.WatchOpts, discOpts Opts) (chan v1.UpstreamList, chan error, error)
 	// finalize any changes to the desired upstream before it gets written
 	// for example, copying the functions from the old upstream to the new.
 	// a value of false indicates that the resource does not need to be updated
@@ -29,45 +31,66 @@ type DiscoveryPlugin interface {
 	WatchEndpoints(writeNamespace string, upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error)
 }
 
-type Discovery struct {
+type UpstreamDiscovery struct {
 	writeNamespace     string
 	upstreamReconciler v1.UpstreamReconciler
+	discoveryPlugins   []DiscoveryPlugin
+}
+
+type EndpointDiscovery struct {
+	writeNamespace     string
 	endpointReconciler v1.EndpointReconciler
 	discoveryPlugins   []DiscoveryPlugin
 }
 
-func NewDiscovery(writeNamespace string,
+func NewUpstreamDiscovery(writeNamespace string,
 	upstreamClient v1.UpstreamClient,
-	endpointsClient v1.EndpointClient,
-	discoveryPlugins []DiscoveryPlugin) *Discovery {
-	return &Discovery{
+	discoveryPlugins []DiscoveryPlugin) *UpstreamDiscovery {
+	return &UpstreamDiscovery{
 		writeNamespace:     writeNamespace,
 		upstreamReconciler: v1.NewUpstreamReconciler(upstreamClient),
+		discoveryPlugins:   discoveryPlugins,
+	}
+}
+
+func NewEndpointDiscovery(writeNamespace string,
+	endpointsClient v1.EndpointClient,
+	discoveryPlugins []DiscoveryPlugin) *EndpointDiscovery {
+	return &EndpointDiscovery{
+		writeNamespace:     writeNamespace,
 		endpointReconciler: v1.NewEndpointReconciler(endpointsClient),
 		discoveryPlugins:   discoveryPlugins,
 	}
 }
 
 // launch a goroutine for all the UDS plugins
-func (d *Discovery) StartUds(opts clients.WatchOpts, discOpts Opts) (chan error, error) {
+func (d *UpstreamDiscovery) StartUds(opts clients.WatchOpts, discOpts Opts) (chan error, error) {
 	aggregatedErrs := make(chan error)
 	upstreamsByUds := make(map[DiscoveryPlugin]v1.UpstreamList)
 	lock := sync.Mutex{}
 	for _, uds := range d.discoveryPlugins {
-		upstreams, errs, err := uds.WatchUpstreams(d.writeNamespace, opts, discOpts)
+		upstreams, errs, err := uds.DiscoverUpstreams(d.writeNamespace, opts, discOpts)
 		if err != nil {
 			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(uds).Name())
 		}
 		go func(uds DiscoveryPlugin) {
+			udsName := reflect.TypeOf(uds).Name()
+			selector := map[string]string{
+				"discovered_by": udsName,
+			}
+			for k, v := range opts.Selector {
+				selector[k] = v
+			}
 			for {
 				select {
 				case upstreamList := <-upstreams:
 					lock.Lock()
+					upstreamList = setLabels(udsName, upstreamList)
 					upstreamsByUds[uds] = upstreamList
 					desiredUpstreams := aggregateUpstreams(upstreamsByUds)
 					if err := d.upstreamReconciler.Reconcile(d.writeNamespace, desiredUpstreams, uds.UpdateUpstream, clients.ListOpts{
 						Ctx:      opts.Ctx,
-						Selector: opts.Selector,
+						Selector: selector,
 					}); err != nil {
 						aggregatedErrs <- err
 					}
@@ -83,6 +106,19 @@ func (d *Discovery) StartUds(opts clients.WatchOpts, discOpts Opts) (chan error,
 	return aggregatedErrs, nil
 }
 
+func setLabels(udsName string, upstreamList v1.UpstreamList) v1.UpstreamList {
+	clone := upstreamList.Clone()
+	for _, us := range clone {
+		resources.UpdateMetadata(us, func(meta *core.Metadata) {
+			if meta.Labels == nil {
+				meta.Labels = make(map[string]string)
+			}
+			meta.Labels["discovered_by"] = udsName
+		})
+	}
+	return clone
+}
+
 func aggregateUpstreams(endpointsByUds map[DiscoveryPlugin]v1.UpstreamList) v1.UpstreamList {
 	var upstreams v1.UpstreamList
 	for _, upstreamList := range endpointsByUds {
@@ -95,7 +131,7 @@ func aggregateUpstreams(endpointsByUds map[DiscoveryPlugin]v1.UpstreamList) v1.U
 }
 
 // launch a goroutine for all the UDS plugins with a single cancel to close them all
-func (d *Discovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (chan error, error) {
+func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (chan error, error) {
 	aggregatedErrs := make(chan error)
 	endpointsByUds := make(map[DiscoveryPlugin]v1.EndpointList)
 	lock := sync.Mutex{}

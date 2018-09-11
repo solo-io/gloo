@@ -5,6 +5,7 @@ import (
 	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
 	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/setup"
+	uds "github.com/solo-io/solo-kit/projects/discovery/pkg/uds/setup"
 )
 
 func main() {
@@ -23,6 +24,9 @@ func run() error {
 	}()
 	go func() {
 		errs <- runSqoop()
+	}()
+	go func() {
+		errs <- runUds()
 	}()
 	return <-errs
 }
@@ -49,4 +53,13 @@ func runSqoop() error {
 		return err
 	}
 	return setup.Setup(opts)
+}
+
+
+func runUds() error {
+	opts, err := gloosetup.DefaultKubernetesConstructOpts()
+	if err != nil {
+		return err
+	}
+	return uds.Setup(opts)
 }

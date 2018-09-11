@@ -9,17 +9,8 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
-// run once then ya done
-func RunUds(disc *Discovery, opts clients.WatchOpts, discOpts Opts) (chan error, error) {
-	errs, err := disc.StartUds(opts, discOpts)
-	if err != nil {
-		return nil, err
-	}
-	return errs, nil
-}
-
 // run once, watch upstreams
-func RunEds(upstreamClient v1.UpstreamClient, disc *Discovery, watchNamespace string, opts clients.WatchOpts) (chan error, error) {
+func RunEds(upstreamClient v1.UpstreamClient, disc *EndpointDiscovery, watchNamespace string, opts clients.WatchOpts) (chan error, error) {
 	errs := make(chan error)
 	upstreams, upstreamErrs, err := upstreamClient.Watch(watchNamespace, opts)
 	if err != nil {

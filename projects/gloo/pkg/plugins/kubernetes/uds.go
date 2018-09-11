@@ -17,7 +17,7 @@ import (
 	kubewatch "k8s.io/apimachinery/pkg/watch"
 )
 
-func (p *plugin) WatchUpstreams(writeNamespace string, opts clients.WatchOpts, discOpts discovery.Opts) (chan v1.UpstreamList, chan error, error) {
+func (p *plugin) DiscoverUpstreams(writeNamespace string, opts clients.WatchOpts, discOpts discovery.Opts) (chan v1.UpstreamList, chan error, error) {
 	opts = opts.WithDefaults()
 	serviceWatch, err := p.kube.CoreV1().Services("").Watch(metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),

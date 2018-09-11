@@ -90,22 +90,14 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 			discoveryPlugins = append(discoveryPlugins, disc)
 		}
 	}
-	disc := discovery.NewDiscovery(opts.WriteNamespace, upstreamClient, endpointClient, discoveryPlugins)
+	eds := discovery.NewEndpointDiscovery(opts.WriteNamespace, endpointClient, discoveryPlugins)
 
 	sync := syncer.NewSyncer(translator.NewTranslator(plugins), xdsCache, xdsHasher, rpt, opts.DevMode)
 	eventLoop := v1.NewApiEventLoop(cache, sync)
 
 	errs := make(chan error)
 
-	udsErrs, err := discovery.RunUds(disc, watchOpts, discovery.Opts{
-	// TODO(ilackarms)
-	})
-	if err != nil {
-		return err
-	}
-	go errutils.AggregateErrs(watchOpts.Ctx, errs, udsErrs, "uds.gloo")
-
-	edsErrs, err := discovery.RunEds(upstreamClient, disc, opts.WriteNamespace, watchOpts)
+	edsErrs, err := discovery.RunEds(upstreamClient, eds, opts.WriteNamespace, watchOpts)
 	if err != nil {
 		return err
 	}
