@@ -1,0 +1,69 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ template "gloo_i.fullname" . }}
+  labels:
+    gloo: gloo-i
+    chart: {{ template "gloo-ee.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.gloo_i.replicaCount }}
+  selector:
+    matchLabels:
+      gloo: gloo-i
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        gloo: gloo-i
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: gloo-i
+          image: "{{ .Values.gloo_i.image.repository }}:{{ .Values.gloo_i.image.tag }}"
+          imagePullPolicy: {{ .Values.gloo_i.image.pullPolicy }}
+          ports:
+            - name: grpc-ads
+              containerPort: {{ .Values.gloo_i.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+{{ toYaml .Values.gloo_i.resources | indent 12 }}
+    {{- with .Values.gloo_i.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.gloo_i.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.gloo_i.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ template "gloo_i.fullname" . }}
+  labels:
+    gloo: gloo-i
+    release: {{ .Release.Name }}
+spec:
+  ports:
+    - port: {{ .Values.gloo_i.port }}
+      protocol: TCP
+      name: grpc-ads
+  selector:
+    gloo: gloo-i
+    release: {{ .Release.Name }}

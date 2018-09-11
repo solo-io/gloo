@@ -1,0 +1,128 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ template "data_plane.fullname" . }}
+  labels:
+    gloo: data-plane
+    chart: {{ template "gloo-ee.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.data_plane.replicaCount }}
+  selector:
+    matchLabels:
+      gloo: data-plane
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        gloo: data-plane
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: data-plane
+          image: "{{ .Values.data_plane.image }}:{{ .Values.data_plane.imageTag }}"
+          imagePullPolicy: {{ .Values.data_plane.imagePullPolicy }}
+          ports: 
+          - containerPort: {{ .Values.data_plane.port }}
+            name: http
+          - containerPort: {{ .Values.data_plane.securePort }} 
+            name: https
+          - containerPort: {{ .Values.data_plane.adminPort }}
+            name: admin
+          volumeMounts:
+          - name: envoy-config
+            mountPath: /etc/envoy/
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: {{ template "data-plane.fullname" .}}
+
+          resources:
+{{ toYaml .Values.data_plane.resources | indent 12 }}
+    {{- with .Values.data_plane.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.data_plane.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.data_plane.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ template "data_plane.fullname" . }}
+  labels:
+    gloo: data-plane
+    release: {{ .Release.Name }}
+spec:
+  ports:
+    - port: {{ .Values.data_plane.port }}
+      protocol: TCP
+      name: http
+    - port: {{ .Values.data_plane.securePort }}
+      protocol: TCP
+      name: https
+      
+  selector:
+    gloo: data-plane
+    release: {{ .Release.Name }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ template "data_plane.fullname" . }}
+data:
+  envoy.yaml: |
+    node:
+      cluster: data-plane
+      id: {{.PodName}}.{{.PodNamespace}}
+      metadata:
+        role: data-plane # TODO: @ilackarms - what should be here? perhaps value from the template?
+    static_resources:
+      clusters:
+      - name: xds_cluster
+        connect_timeout: 5.000s
+        endpoints:
+        - lb_endpoints:
+          - endpoint:
+              address:
+                socket_address:
+                  address: {{ template "control_plane.fullname" . }}
+                  port_value: {{ .Values.control_plane.port }}
+        http2_protocol_options: {}
+        type: STRICT_DNS
+    dynamic_resources:
+      ads_config:
+        api_type: GRPC
+        grpc_services:
+        - envoy_grpc: {cluster_name: xds_cluster}
+      cds_config:
+        ads: {}
+      lds_config:
+        ads: {}
+    admin:
+      access_log_path: /dev/null
+      address:
+        socket_address:
+          address: 127.0.0.1
+          port_value: {{ .Values.data_plane.adminPort }}
