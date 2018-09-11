@@ -5,7 +5,7 @@ schema {
 }
 
 type Query {
-    getOAuthEndpoint: String!
+    getOAuthEndpoint: OAuthEndpoint!
 
     upstreams(namespace: String!):       UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
@@ -13,6 +13,11 @@ type Query {
     schemas(namespace: String!): SchemaQuery!
     secrets(namespace: String!): SecretQuery!
     artifacts(namespace: String!): ArtifactQuery!
+}
+
+type OAuthEndpoint {
+    url: String!
+    clientName: String!
 }
 
 type Mutation {

@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+	"os"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -11,7 +12,6 @@ import (
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	"os"
 )
 
 type ApiResolver struct {
@@ -42,12 +42,19 @@ func NewResolvers(upstreams v1.UpstreamClient,
 	}
 }
 
-func (r *queryResolver) GetOAuthEndpoint(ctx context.Context) (string, error) {
-	oauthAddr := os.Getenv("OAUTH_SERVER") // ip:port of openshift server
-	if oauthAddr == "" {
-		return "", errors.Errorf("apiserver configured improperly, OAUTH_SERVER environment variable is not set")
+func (r *queryResolver) GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpoint, error) {
+	oauthUrl := os.Getenv("OAUTH_SERVER") // ip:port of openshift server
+	if oauthUrl == "" {
+		return models.OAuthEndpoint{}, errors.Errorf("apiserver configured improperly, OAUTH_SERVER environment variable is not set")
 	}
-	return oauthAddr, nil
+	oauthClient := os.Getenv("OAUTH_CLIENT") // ip:port of openshift server
+	if oauthClient == "" {
+		return models.OAuthEndpoint{}, errors.Errorf("apiserver configured improperly, OAUTH_CLIENT environment variable is not set")
+	}
+	return models.OAuthEndpoint{
+		URL: oauthUrl,
+		ClientName: oauthClient,
+	}, nil
 }
 
 func (r *ApiResolver) Mutation() graph.MutationResolver {

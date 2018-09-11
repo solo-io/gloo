@@ -286,6 +286,10 @@ type MultiDestination struct {
 type NodeJSResolver struct {
 	Empty *string `json:"empty"`
 }
+type OAuthEndpoint struct {
+	URL        string `json:"url"`
+	ClientName string `json:"clientName"`
+}
 type Resolver interface{}
 type ResolverMap struct {
 	Types    []TypeResolver `json:"types"`

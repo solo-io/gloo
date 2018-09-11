@@ -66,7 +66,7 @@ type MutationResolver interface {
 	Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactMutation, error)
 }
 type QueryResolver interface {
-	GetOAuthEndpoint(ctx context.Context) (string, error)
+	GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpoint, error)
 	Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamQuery, error)
 	VirtualServices(ctx context.Context, namespace string) (customtypes.VirtualServiceQuery, error)
 	ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapQuery, error)
@@ -1994,6 +1994,65 @@ func (ec *executionContext) _NodeJSResolver_empty(ctx context.Context, field gra
 	return graphql.MarshalString(*res)
 }
 
+var oAuthEndpointImplementors = []string{"OAuthEndpoint"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _OAuthEndpoint(ctx context.Context, sel ast.SelectionSet, obj *models.OAuthEndpoint) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, oAuthEndpointImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OAuthEndpoint")
+		case "url":
+			out.Values[i] = ec._OAuthEndpoint_url(ctx, field, obj)
+		case "clientName":
+			out.Values[i] = ec._OAuthEndpoint_clientName(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _OAuthEndpoint_url(ctx context.Context, field graphql.CollectedField, obj *models.OAuthEndpoint) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "OAuthEndpoint"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.URL, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _OAuthEndpoint_clientName(ctx context.Context, field graphql.CollectedField, obj *models.OAuthEndpoint) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "OAuthEndpoint"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.ClientName, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
+}
+
 var queryImplementors = []string{"Query"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -2058,8 +2117,8 @@ func (ec *executionContext) _Query_getOAuthEndpoint(ctx context.Context, field g
 		if resTmp == nil {
 			return graphql.Null
 		}
-		res := resTmp.(string)
-		return graphql.MarshalString(res)
+		res := resTmp.(models.OAuthEndpoint)
+		return ec._OAuthEndpoint(ctx, field.Selections, &res)
 	})
 }
 
@@ -7813,7 +7872,7 @@ schema {
 }
 
 type Query {
-    getOAuthEndpoint: String!
+    getOAuthEndpoint: OAuthEndpoint!
 
     upstreams(namespace: String!):       UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
@@ -7821,6 +7880,11 @@ type Query {
     schemas(namespace: String!): SchemaQuery!
     secrets(namespace: String!): SecretQuery!
     artifacts(namespace: String!): ArtifactQuery!
+}
+
+type OAuthEndpoint {
+    url: String!
+    clientName: String!
 }
 
 type Mutation {
