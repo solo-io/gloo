@@ -739,7 +739,7 @@ func (c *Converter) ConvertInputResolverMap(resolverMap InputResolverMap) (*sqoo
 func convertInputTypeResolver(typeResolver InputTypeResolver) (*sqoopv1.TypeResolver, error) {
 	fieldResolvers := make(map[string]*sqoopv1.FieldResolver)
 	for _, fieldResolver := range typeResolver.Fields {
-		resolver, err := convertInputResolver(fieldResolver.Resolver)
+		resolver, err := ConvertInputResolver(fieldResolver.Resolver)
 		if err != nil {
 			return nil, err
 		}
@@ -751,7 +751,7 @@ func convertInputTypeResolver(typeResolver InputTypeResolver) (*sqoopv1.TypeReso
 }
 
 // TODO(ilacakitems): implement these
-func convertInputResolver(resolver InputResolver) (*sqoopv1.FieldResolver, error) {
+func ConvertInputResolver(resolver InputResolver) (*sqoopv1.FieldResolver, error) {
 	switch {
 	case resolver.GlooResolver != nil:
 		action, err := convertInputDestinationToAction(resolver.GlooResolver.Destination)
@@ -763,7 +763,7 @@ func convertInputResolver(resolver InputResolver) (*sqoopv1.FieldResolver, error
 				GlooResolver: &sqoopv1.GlooResolver{
 					RequestTemplate:  convertInputRequestTemplate(resolver.GlooResolver.RequestTemplate),
 					ResponseTemplate: convertInputResponseTemplate(resolver.GlooResolver.ResponseTemplate),
-					Action: action,
+					Action:           action,
 				},
 			},
 		}, nil

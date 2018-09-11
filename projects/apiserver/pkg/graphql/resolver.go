@@ -396,6 +396,36 @@ func (r *virtualServiceQueryResolver) Get(ctx context.Context, obj *customtypes.
 
 type resolverMapMutationResolver struct{ *ApiResolver }
 
+func (r *resolverMapMutationResolver) SetResolver(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMapName, resourceVersion, typeName, fieldName string, resolver models.InputGlooResolver) (*models.ResolverMap, error) {
+	v1Resolver, err := ConvertInputResolver(models.InputResolver{GlooResolver: &resolver})
+	if err != nil {
+		return nil, err
+	}
+
+	resolverMap, err := r.ResolverMaps.Read(obj.Namespace, resolverMapName, clients.ReadOpts{Ctx: ctx})
+	if err != nil {
+		return nil, err
+	}
+	if resolverMap.Metadata.ResourceVersion != resourceVersion {
+		return nil, errors.Errorf("resource version mismatch. received %v, want %v", resourceVersion, resolverMap.Metadata.ResourceVersion)
+	}
+
+	typResolver, ok := resolverMap.Types[typeName]
+	if !ok {
+		return nil, errors.Errorf("no type %v in resolver map %v", typeName, resolverMapName)
+	}
+	typResolver.Fields[fieldName] = v1Resolver
+
+	out, err := r.ResolverMaps.Write(resolverMap, clients.WriteOpts{
+		Ctx:               ctx,
+		OverwriteExisting: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputResolverMap(out), nil
+}
+
 func (r *resolverMapMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error) {
 	ups, err := r.Converter.ConvertInputResolverMap(resolverMap)
 	if err != nil {

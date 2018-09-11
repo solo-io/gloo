@@ -69,8 +69,7 @@ type ResolverMapMutation {
     create(resolverMap: InputResolverMap!): ResolverMap
     update(resolverMap: InputResolverMap!): ResolverMap
     delete(name: String!): ResolverMap
-    # LATER
-    setResolver(resolverMap: InputResourceRef!, typeName: String!, fieldName: String!, resolver: InputGlooResolver!): ResolverMap
+    setResolver(resolverMapName: String!, resourceVersion: String!, typeName: String!, fieldName: String!, glooResolver: InputGlooResolver!): ResolverMap
 }
 
 type SchemaQuery {

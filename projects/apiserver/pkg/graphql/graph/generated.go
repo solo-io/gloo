@@ -78,7 +78,7 @@ type ResolverMapMutationResolver interface {
 	Create(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error)
 	Update(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error)
 	Delete(ctx context.Context, obj *customtypes.ResolverMapMutation, name string) (*models.ResolverMap, error)
-	SetResolver(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResourceRef, typeName string, fieldName string, resolver models.InputGlooResolver) (*models.ResolverMap, error)
+	SetResolver(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMapName string, resourceVersion string, typeName string, fieldName string, glooResolver models.InputGlooResolver) (*models.ResolverMap, error)
 }
 type ResolverMapQueryResolver interface {
 	List(ctx context.Context, obj *customtypes.ResolverMapQuery, selector *models.InputMapStringString) ([]*models.ResolverMap, error)
@@ -2786,18 +2786,18 @@ func (ec *executionContext) _ResolverMapMutation_delete(ctx context.Context, fie
 func (ec *executionContext) _ResolverMapMutation_setResolver(ctx context.Context, field graphql.CollectedField, obj *customtypes.ResolverMapMutation) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
-	var arg0 models.InputResourceRef
-	if tmp, ok := rawArgs["resolverMap"]; ok {
+	var arg0 string
+	if tmp, ok := rawArgs["resolverMapName"]; ok {
 		var err error
-		arg0, err = UnmarshalInputResourceRef(tmp)
+		arg0, err = graphql.UnmarshalString(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["resolverMap"] = arg0
+	args["resolverMapName"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["typeName"]; ok {
+	if tmp, ok := rawArgs["resourceVersion"]; ok {
 		var err error
 		arg1, err = graphql.UnmarshalString(tmp)
 		if err != nil {
@@ -2805,9 +2805,9 @@ func (ec *executionContext) _ResolverMapMutation_setResolver(ctx context.Context
 			return graphql.Null
 		}
 	}
-	args["typeName"] = arg1
+	args["resourceVersion"] = arg1
 	var arg2 string
-	if tmp, ok := rawArgs["fieldName"]; ok {
+	if tmp, ok := rawArgs["typeName"]; ok {
 		var err error
 		arg2, err = graphql.UnmarshalString(tmp)
 		if err != nil {
@@ -2815,17 +2815,27 @@ func (ec *executionContext) _ResolverMapMutation_setResolver(ctx context.Context
 			return graphql.Null
 		}
 	}
-	args["fieldName"] = arg2
-	var arg3 models.InputGlooResolver
-	if tmp, ok := rawArgs["resolver"]; ok {
+	args["typeName"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["fieldName"]; ok {
 		var err error
-		arg3, err = UnmarshalInputGlooResolver(tmp)
+		arg3, err = graphql.UnmarshalString(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["resolver"] = arg3
+	args["fieldName"] = arg3
+	var arg4 models.InputGlooResolver
+	if tmp, ok := rawArgs["glooResolver"]; ok {
+		var err error
+		arg4, err = UnmarshalInputGlooResolver(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["glooResolver"] = arg4
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "ResolverMapMutation",
 		Args:   args,
@@ -2841,7 +2851,7 @@ func (ec *executionContext) _ResolverMapMutation_setResolver(ctx context.Context
 		}()
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.ResolverMapMutation().SetResolver(ctx, obj, args["resolverMap"].(models.InputResourceRef), args["typeName"].(string), args["fieldName"].(string), args["resolver"].(models.InputGlooResolver))
+			return ec.resolvers.ResolverMapMutation().SetResolver(ctx, obj, args["resolverMapName"].(string), args["resourceVersion"].(string), args["typeName"].(string), args["fieldName"].(string), args["glooResolver"].(models.InputGlooResolver))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -8300,8 +8310,7 @@ type ResolverMapMutation {
     create(resolverMap: InputResolverMap!): ResolverMap
     update(resolverMap: InputResolverMap!): ResolverMap
     delete(name: String!): ResolverMap
-    # LATER
-    setResolver(resolverMap: InputResourceRef!, typeName: String!, fieldName: String!, resolver: InputGlooResolver!): ResolverMap
+    setResolver(resolverMapName: String!, resourceVersion: String!, typeName: String!, fieldName: String!, glooResolver: InputGlooResolver!): ResolverMap
 }
 
 type SchemaQuery {
