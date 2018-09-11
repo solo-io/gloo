@@ -40,8 +40,8 @@ var _ = Describe("{{ .Name }}Client", func() {
 			)
 			BeforeEach(func() {
 				namespace = helpers.RandString(6)
-				factoryOpts := test.Setup(namespace)
-				client, err = New{{ .Name }}Client(factory.NewResourceClientFactory(factoryOpts))
+				factory := test.Setup(namespace)
+				client, err = New{{ .Name }}Client(factory)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			AfterEach(func() {

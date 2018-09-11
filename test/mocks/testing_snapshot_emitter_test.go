@@ -48,18 +48,18 @@ var _ = Describe("MocksEmitter", func() {
 		}
 
 		// MockResource Constructor
-		mockResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+		mockResourceClientFactory := &factory.KubeResourceClientFactory{
 			Crd: MockResourceCrd,
 			Cfg: cfg,
-		})
+		}
 		mockResourceClient, err = NewMockResourceClient(mockResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		// FakeResource Constructor
-		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+		fakeResourceClientFactory := &factory.KubeResourceClientFactory{
 			Crd: FakeResourceCrd,
 			Cfg: cfg,
-		})
+		}
 		fakeResourceClient, err = NewFakeResourceClient(fakeResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 		emitter = NewTestingEmitter(mockResourceClient, fakeResourceClient)

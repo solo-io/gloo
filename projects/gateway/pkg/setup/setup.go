@@ -2,7 +2,6 @@ package setup
 
 import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -17,7 +16,7 @@ import (
 
 func Setup(opts Opts) error {
 	// TODO: Ilackarms: move this to multi-eventloop
-	namespaces, errs, err := opts.namespacer.Namespaces(opts.watchOpts)
+	namespaces, errs, err := opts.Namespacer.Namespaces(opts.WatchOpts)
 	if err != nil {
 		return err
 	}
@@ -35,12 +34,9 @@ func Setup(opts Opts) error {
 }
 
 func setupForNamespaces(watchNamespaces []string, opts Opts) error {
-	opts.watchOpts = opts.watchOpts.WithDefaults()
-	gatewayFactory := factory.NewResourceClientFactory(opts.gateways)
-	virtualServiceFactory := factory.NewResourceClientFactory(opts.virtualServices)
-	proxyFactory := factory.NewResourceClientFactory(opts.proxies)
+	opts.WatchOpts = opts.WatchOpts.WithDefaults()
 
-	gatewayClient, err := v1.NewGatewayClient(gatewayFactory)
+	gatewayClient, err := v1.NewGatewayClient(opts.Gateways)
 	if err != nil {
 		return err
 	}
@@ -48,7 +44,7 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 		return err
 	}
 
-	virtualServicesClient, err := v1.NewVirtualServiceClient(virtualServiceFactory)
+	virtualServicesClient, err := v1.NewVirtualServiceClient(opts.VirtualServices)
 	if err != nil {
 		return err
 	}
@@ -56,18 +52,18 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 		return err
 	}
 
-	proxyClient, err := gloov1.NewProxyClient(proxyFactory)
+	proxyClient, err := gloov1.NewProxyClient(opts.Proxies)
 	if err != nil {
 		return err
 	}
 
-	if _, err := gatewayClient.Write(defaults.DefaultGateway(opts.writeNamespace), clients.WriteOpts{
-		Ctx: opts.watchOpts.Ctx,
+	if _, err := gatewayClient.Write(defaults.DefaultGateway(opts.WriteNamespace), clients.WriteOpts{
+		Ctx: opts.WatchOpts.Ctx,
 	}); err != nil && !errors.IsExist(err) {
 		return err
 	}
 
-	if opts.devMode {
+	if opts.DevMode {
 		if err := addSampleData(opts, virtualServicesClient); err != nil {
 			return err
 		}
@@ -80,22 +76,22 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 
 	prop := propagator.NewPropagator("gateway", gatewayClient, virtualServicesClient, proxyClient, writeErrs)
 
-	sync := syncer.NewSyncer(opts.writeNamespace, proxyClient, rpt, prop, writeErrs)
+	sync := syncer.NewSyncer(opts.WriteNamespace, proxyClient, rpt, prop, writeErrs)
 
 	eventLoop := v1.NewApiEventLoop(emitter, sync)
-	eventLoopErrs, err := eventLoop.Run(watchNamespaces, opts.watchOpts)
+	eventLoopErrs, err := eventLoop.Run(watchNamespaces, opts.WatchOpts)
 	if err != nil {
 		return err
 	}
-	go errutils.AggregateErrs(opts.watchOpts.Ctx, writeErrs, eventLoopErrs, "event_loop")
+	go errutils.AggregateErrs(opts.WatchOpts.Ctx, writeErrs, eventLoopErrs, "event_loop")
 
-	logger := contextutils.LoggerFrom(opts.watchOpts.Ctx)
+	logger := contextutils.LoggerFrom(opts.WatchOpts.Ctx)
 
 	for {
 		select {
 		case err := <-writeErrs:
 			logger.Errorf("error: %v", err)
-		case <-opts.watchOpts.Ctx.Done():
+		case <-opts.WatchOpts.Ctx.Done():
 			close(writeErrs)
 			return nil
 		}
@@ -103,11 +99,11 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 }
 
 func addSampleData(opts Opts, vsClient v1.VirtualServiceClient) error {
-	upstreamClient, err := gloov1.NewUpstreamClient(factory.NewResourceClientFactory(opts.upstreams))
+	upstreamClient, err := gloov1.NewUpstreamClient(opts.Upstreams)
 	if err != nil {
 		return err
 	}
-	secretClient, err := gloov1.NewSecretClient(factory.NewResourceClientFactory(opts.secrets))
+	secretClient, err := gloov1.NewSecretClient(opts.Secrets)
 	if err != nil {
 		return err
 	}

@@ -48,18 +48,18 @@ var _ = Describe("V1Emitter", func() {
 		}
 
 		// Gateway Constructor
-		gatewayClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+		gatewayClientFactory := &factory.KubeResourceClientFactory{
 			Crd: GatewayCrd,
 			Cfg: cfg,
-		})
+		}
 		gatewayClient, err = NewGatewayClient(gatewayClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		// VirtualService Constructor
-		virtualServiceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+		virtualServiceClientFactory := &factory.KubeResourceClientFactory{
 			Crd: VirtualServiceCrd,
 			Cfg: cfg,
-		})
+		}
 		virtualServiceClient, err = NewVirtualServiceClient(virtualServiceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 		emitter = NewApiEmitter(gatewayClient, virtualServiceClient)

@@ -20,9 +20,9 @@ var _ = Describe("FestingEventLoop", func() {
 
 	BeforeEach(func() {
 
-		mockResourceClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		mockResourceClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		mockResourceClient, err := NewMockResourceClient(mockResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 

@@ -53,13 +53,13 @@ var _ = Describe("Propagator", func() {
 			child1,
 			child2,
 		}
-		mockRc, err := mocks.NewMockResourceClient(factory.NewResourceClientFactory(&factory.FileResourceClientOpts{
+		mockRc, err := mocks.NewMockResourceClient(&factory.FileResourceClientFactory{
 			RootDir: tmpdir,
-		}))
+		})
 		Expect(err).NotTo(HaveOccurred())
-		fakeRc, err := mocks.NewFakeResourceClient(factory.NewResourceClientFactory(&factory.FileResourceClientOpts{
+		fakeRc, err := mocks.NewFakeResourceClient(&factory.FileResourceClientFactory{
 			RootDir: tmpdir,
-		}))
+		})
 		Expect(err).NotTo(HaveOccurred())
 
 		resourceClients := make(clients.ResourceClients)

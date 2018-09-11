@@ -18,7 +18,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var _ = Describe("V1Emitter", func() {
+var _ = FDescribe("V1Emitter", func() {
 	if os.Getenv("RUN_KUBE_TESTS") != "1" {
 		log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
 		return
@@ -54,9 +54,9 @@ var _ = Describe("V1Emitter", func() {
 
 		kube, err = kubernetes.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-		artifactClientFactory := factory.NewResourceClientFactory(&factory.KubeConfigMapClientOpts{
+		artifactClientFactory := &factory.KubeConfigMapClientFactory{
 			Clientset: kube,
-		})
+		}
 		artifactClient, err = NewArtifactClient(artifactClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -64,17 +64,17 @@ var _ = Describe("V1Emitter", func() {
 
 		kube, err = kubernetes.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-		endpointClientFactory := factory.NewResourceClientFactory(&factory.KubeConfigMapClientOpts{
+		endpointClientFactory := &factory.KubeConfigMapClientFactory{
 			Clientset: kube,
-		})
+		}
 		endpointClient, err = NewEndpointClient(endpointClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		// Proxy Constructor
-		proxyClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+		proxyClientFactory := &factory.KubeResourceClientFactory{
 			Crd: ProxyCrd,
 			Cfg: cfg,
-		})
+		}
 		proxyClient, err = NewProxyClient(proxyClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -82,17 +82,17 @@ var _ = Describe("V1Emitter", func() {
 
 		kube, err = kubernetes.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
-		secretClientFactory := factory.NewResourceClientFactory(&factory.KubeSecretClientOpts{
+		secretClientFactory := &factory.KubeSecretClientFactory{
 			Clientset: kube,
-		})
+		}
 		secretClient, err = NewSecretClient(secretClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		// Upstream Constructor
-		upstreamClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+		upstreamClientFactory := &factory.KubeResourceClientFactory{
 			Crd: UpstreamCrd,
 			Cfg: cfg,
-		})
+		}
 		upstreamClient, err = NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 		emitter = NewApiEmitter(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)

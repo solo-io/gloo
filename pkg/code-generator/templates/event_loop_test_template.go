@@ -33,9 +33,9 @@ var _ = Describe("{{ .GoName }}EventLoop", func() {
 	BeforeEach(func() {
 {{- range .Resources}}
 
-		{{ lower_camel .Name }}ClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		{{ lower_camel .Name }}ClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		{{ lower_camel .Name }}Client, err := New{{ .Name }}Client({{ lower_camel .Name }}ClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 {{- end}}

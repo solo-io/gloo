@@ -14,20 +14,33 @@ import (
 	apiserver "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
+	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
+	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/setup"
 	"github.com/solo-io/solo-kit/samples"
 )
 
-func Setup(port int) error {
-	// TODO (ilackarms): pass in the factory with cli flags
-	inputFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
-		Cache: memory.NewInMemoryResourceCache(),
-	})
+// TODO (ilackarms): prod overwrites bool
+func Setup(port int, prod bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
+	// TODO (ilackarms): pass in the factory with cli flags # already started
 
-	err := addSampleData(inputFactory)
-	if err != nil {
-		return err
+	// override with memory stuff
+	if !prod {
+		inMemory := &factory.MemoryResourceClientFactory{
+			Cache: memory.NewInMemoryResourceCache(),
+		}
+
+		glooOpts.Secrets = inMemory
+		glooOpts.Proxies = inMemory
+		glooOpts.Upstreams = inMemory
+		//gatewayOpts.
+
+		err := addSampleData(inMemory)
+		if err != nil {
+			return err
+		}
 	}
 
 	// serve the query route such that it can be accessed from our UI during development
@@ -44,7 +57,7 @@ func Setup(port int) error {
 	http.Handle("/playground", handler.Playground("Solo-ApiServer", "/query"))
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
-		upstreams, err := v1.NewUpstreamClientWithToken(inputFactory, token)
+		upstreams, err := v1.NewUpstreamClientWithToken(glooOpts.Upstreams, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

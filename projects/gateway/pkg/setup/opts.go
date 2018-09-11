@@ -16,16 +16,16 @@ import (
 )
 
 type Opts struct {
-	writeNamespace  string
-	gateways        factory.ResourceClientFactoryOpts
-	virtualServices factory.ResourceClientFactoryOpts
-	// TODO(ilackarms): remove upstreams here if not needed, right now only used for sample data
-	upstreams  factory.ResourceClientFactoryOpts
-	secrets    factory.ResourceClientFactoryOpts
-	proxies    factory.ResourceClientFactoryOpts
-	namespacer namespacing.Namespacer
-	watchOpts  clients.WatchOpts
-	devMode    bool
+	WriteNamespace  string
+	Gateways        factory.ResourceClientFactory
+	VirtualServices factory.ResourceClientFactory
+	// TODO(ilackarms): remove Upstreams here if not needed, right now only used for sample data
+	Upstreams  factory.ResourceClientFactory
+	Secrets    factory.ResourceClientFactory
+	Proxies    factory.ResourceClientFactory
+	Namespacer namespacing.Namespacer
+	WatchOpts  clients.WatchOpts
+	DevMode    bool
 }
 
 func NewOpts(
@@ -34,20 +34,20 @@ func NewOpts(
 	virtualServices,
 	upstreams,
 	secrets,
-	proxies factory.ResourceClientFactoryOpts,
+	proxies factory.ResourceClientFactory,
 	namespacer namespacing.Namespacer,
 	watchOpts clients.WatchOpts,
 	devMode bool,
 ) Opts {
 	return Opts{
-		writeNamespace:  writeNamespace,
-		gateways:        gateways,
-		virtualServices: virtualServices,
-		upstreams:       upstreams,
-		secrets:         secrets,
-		proxies:         proxies,
-		namespacer:      namespacer,
-		watchOpts:       watchOpts,
+		WriteNamespace:  writeNamespace,
+		Gateways:        gateways,
+		VirtualServices: virtualServices,
+		Upstreams:       upstreams,
+		Secrets:         secrets,
+		Proxies:         proxies,
+		Namespacer:      namespacer,
+		WatchOpts:       watchOpts,
 	}
 }
 
@@ -65,28 +65,28 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 	ctx := contextutils.WithLogger(context.Background(), "gateway")
 	ctx = contextutils.SilenceLogger(ctx)
 	return Opts{
-		writeNamespace: "gloo-system",
-		gateways: &factory.KubeResourceClientOpts{
+		WriteNamespace: "gloo-system",
+		Gateways: &factory.KubeResourceClientFactory{
 			Crd: gatewayv1.GatewayCrd,
 			Cfg: cfg,
 		},
-		virtualServices: &factory.KubeResourceClientOpts{
+		VirtualServices: &factory.KubeResourceClientFactory{
 			Crd: gatewayv1.VirtualServiceCrd,
 			Cfg: cfg,
 		},
-		proxies: &factory.KubeResourceClientOpts{
+		Proxies: &factory.KubeResourceClientFactory{
 			Crd: v1.ProxyCrd,
 			Cfg: cfg,
 		},
-		upstreams: &factory.KubeResourceClientOpts{
+		Upstreams: &factory.KubeResourceClientFactory{
 			Crd: v1.UpstreamCrd,
 			Cfg: cfg,
 		},
-		secrets: &factory.KubeSecretClientOpts{
+		Secrets: &factory.KubeSecretClientFactory{
 			Clientset: clientset,
 		},
-		namespacer: static.NewNamespacer([]string{"default", "gloo-system"}),
-		watchOpts: clients.WatchOpts{
+		Namespacer: static.NewNamespacer([]string{"default", "gloo-system"}),
+		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Minute,
 		},

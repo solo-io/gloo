@@ -12,10 +12,10 @@ import (
 
 type Opts struct {
 	WriteNamespace string
-	Upstreams      factory.ResourceClientFactoryOpts
-	Proxies        factory.ResourceClientFactoryOpts
-	Secrets        factory.ResourceClientFactoryOpts
-	Artifacts      factory.ResourceClientFactoryOpts
+	Upstreams      factory.ResourceClientFactory
+	Proxies        factory.ResourceClientFactory
+	Secrets        factory.ResourceClientFactory
+	Artifacts      factory.ResourceClientFactory
 	Namespacer     namespacing.Namespacer
 	BindAddr       net.Addr
 	GrpcServer     *grpc.Server

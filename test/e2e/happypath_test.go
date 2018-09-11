@@ -12,11 +12,11 @@ import (
 	. "github.com/onsi/gomega/gstruct"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/test/v1helpers"
 )
 
 var _ = Describe("Happypath", func() {
@@ -49,7 +49,7 @@ var _ = Describe("Happypath", func() {
 
 	It("should not crash", func() {
 
-		tu := helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
+		tu := v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
 
 		var opts clients.WriteOpts
 		up := tu.Upstream

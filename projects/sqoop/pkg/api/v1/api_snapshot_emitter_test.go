@@ -48,18 +48,18 @@ var _ = Describe("V1Emitter", func() {
 		}
 
 		// ResolverMap Constructor
-		resolverMapClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+		resolverMapClientFactory := &factory.KubeResourceClientFactory{
 			Crd: ResolverMapCrd,
 			Cfg: cfg,
-		})
+		}
 		resolverMapClient, err = NewResolverMapClient(resolverMapClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		// Schema Constructor
-		schemaClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+		schemaClientFactory := &factory.KubeResourceClientFactory{
 			Crd: SchemaCrd,
 			Cfg: cfg,
-		})
+		}
 		schemaClient, err = NewSchemaClient(schemaClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 		emitter = NewApiEmitter(resolverMapClient, schemaClient)

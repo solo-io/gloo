@@ -20,15 +20,15 @@ var _ = Describe("ApiEventLoop", func() {
 
 	BeforeEach(func() {
 
-		gatewayClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		gatewayClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		gatewayClient, err := NewGatewayClient(gatewayClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		virtualServiceClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		virtualServiceClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		virtualServiceClient, err := NewVirtualServiceClient(virtualServiceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 

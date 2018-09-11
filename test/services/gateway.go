@@ -56,10 +56,9 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 	go gloosetup.Setup(glooopts)
 
 	// construct our own resources:
-	a := &factory.MemoryResourceClientOpts{
+	factory := &factory.MemoryResourceClientFactory{
 		Cache: cache,
 	}
-	factory := factory.NewResourceClientFactory(a)
 
 	gatewayClient, err := gatewayv1.NewGatewayClient(factory)
 	Expect(err).NotTo(HaveOccurred())
@@ -85,7 +84,7 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResourceCache) setup.Opts {
 	ctx = contextutils.WithLogger(ctx, "gateway")
 	ctx = contextutils.SilenceLogger(ctx)
-	f := &factory.MemoryResourceClientOpts{
+	f := &factory.MemoryResourceClientFactory{
 		Cache: cache,
 	}
 	return setup.NewOpts(
@@ -117,7 +116,7 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache) bo
 			},
 		)),
 	)
-	f := &factory.MemoryResourceClientOpts{
+	f := &factory.MemoryResourceClientFactory{
 		Cache: cache,
 	}
 	return bootstrap.Opts{

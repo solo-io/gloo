@@ -20,15 +20,15 @@ var _ = Describe("ApiEventLoop", func() {
 
 	BeforeEach(func() {
 
-		resolverMapClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		resolverMapClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		resolverMapClient, err := NewResolverMapClient(resolverMapClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		schemaClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		schemaClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		schemaClient, err := NewSchemaClient(schemaClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 

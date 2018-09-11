@@ -20,33 +20,33 @@ var _ = Describe("ApiEventLoop", func() {
 
 	BeforeEach(func() {
 
-		artifactClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		artifactClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		artifactClient, err := NewArtifactClient(artifactClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		endpointClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		endpointClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		endpointClient, err := NewEndpointClient(endpointClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		proxyClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		proxyClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		proxyClient, err := NewProxyClient(proxyClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		secretClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		secretClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		secretClient, err := NewSecretClient(secretClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		upstreamClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		upstreamClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		upstreamClient, err := NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 

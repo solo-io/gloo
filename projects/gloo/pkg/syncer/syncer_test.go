@@ -22,9 +22,9 @@ import (
 var _ = Describe("Syncer", func() {
 	It("writes the reports the translator spits out and calls SetSnapshot on the cache", func() {
 		ref := "syncer-test"
-		resourceClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		resourceClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		proxyClient, err := resourceClientFactory.NewResourceClient(factory.NewResourceClientParams{ResourceType: &v1.Proxy{}})
 		Expect(err).NotTo(HaveOccurred())
 

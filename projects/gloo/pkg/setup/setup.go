@@ -39,15 +39,11 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 	watchOpts := opts.WatchOpts.WithDefaults()
 
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")
-	upstreamFactory := factory.NewResourceClientFactory(opts.Upstreams)
-	proxyFactory := factory.NewResourceClientFactory(opts.Proxies)
-	secretFactory := factory.NewResourceClientFactory(opts.Secrets)
-	artifactFactory := factory.NewResourceClientFactory(opts.Artifacts)
-	endpointsFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+	endpointsFactory := &factory.MemoryResourceClientFactory{
 		Cache: memory.NewInMemoryResourceCache(),
-	})
+	}
 
-	upstreamClient, err := v1.NewUpstreamClient(upstreamFactory)
+	upstreamClient, err := v1.NewUpstreamClient(opts.Upstreams)
 	if err != nil {
 		return err
 	}
@@ -55,7 +51,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 		return err
 	}
 
-	proxyClient, err := v1.NewProxyClient(proxyFactory)
+	proxyClient, err := v1.NewProxyClient(opts.Proxies)
 	if err != nil {
 		return err
 	}
@@ -68,12 +64,12 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 		return err
 	}
 
-	secretClient, err := v1.NewSecretClient(secretFactory)
+	secretClient, err := v1.NewSecretClient(opts.Secrets)
 	if err != nil {
 		return err
 	}
 
-	artifactClient, err := v1.NewArtifactClient(artifactFactory)
+	artifactClient, err := v1.NewArtifactClient(opts.Artifacts)
 	if err != nil {
 		return err
 	}

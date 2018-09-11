@@ -20,9 +20,9 @@ var _ = Describe("BlestingEventLoop", func() {
 
 	BeforeEach(func() {
 
-		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		fakeResourceClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		fakeResourceClient, err := NewFakeResourceClient(fakeResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 

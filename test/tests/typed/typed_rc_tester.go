@@ -20,7 +20,7 @@ import (
 type ResourceClientTester interface {
 	Description() string
 	Skip() bool
-	Setup(namespace string) factory.ResourceClientFactoryOpts
+	Setup(namespace string) factory.ResourceClientFactory
 	Teardown(namespace string)
 }
 
@@ -50,13 +50,13 @@ func (rct *KubeRcTester) Skip() bool {
 	return skipKubeTests()
 }
 
-func (rct *KubeRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
+func (rct *KubeRcTester) Setup(namespace string) factory.ResourceClientFactory {
 	err := services.SetupKubeForTest(namespace)
 	Expect(err).NotTo(HaveOccurred())
 	kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 	cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	Expect(err).NotTo(HaveOccurred())
-	return &factory.KubeResourceClientOpts{
+	return &factory.KubeResourceClientFactory{
 		Crd: rct.Crd,
 		Cfg: cfg,
 	}
@@ -88,7 +88,7 @@ func (rct *ConsulRcTester) Skip() bool {
 	return false
 }
 
-func (rct *ConsulRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
+func (rct *ConsulRcTester) Setup(namespace string) factory.ResourceClientFactory {
 	var err error
 	rct.consulFactory, err = services.NewConsulFactory()
 	Expect(err).NotTo(HaveOccurred())
@@ -99,7 +99,7 @@ func (rct *ConsulRcTester) Setup(namespace string) factory.ResourceClientFactory
 
 	consul, err := api.NewClient(api.DefaultConfig())
 	Expect(err).NotTo(HaveOccurred())
-	return &factory.ConsulResourceClientOpts{
+	return &factory.ConsulResourceClientFactory{
 		Consul:  consul,
 		RootKey: namespace,
 	}
@@ -127,11 +127,11 @@ func (rct *FileRcTester) Skip() bool {
 	return false
 }
 
-func (rct *FileRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
+func (rct *FileRcTester) Setup(namespace string) factory.ResourceClientFactory {
 	var err error
 	rct.rootDir, err = ioutil.TempDir("", "base_test")
 	Expect(err).NotTo(HaveOccurred())
-	return &factory.FileResourceClientOpts{
+	return &factory.FileResourceClientFactory{
 		RootDir: rct.rootDir,
 	}
 }
@@ -157,11 +157,11 @@ func (rct *MemoryRcTester) Skip() bool {
 	return false
 }
 
-func (rct *MemoryRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
+func (rct *MemoryRcTester) Setup(namespace string) factory.ResourceClientFactory {
 	var err error
 	rct.rootDir, err = ioutil.TempDir("", "base_test")
 	Expect(err).NotTo(HaveOccurred())
-	return &factory.MemoryResourceClientOpts{
+	return &factory.MemoryResourceClientFactory{
 		Cache: memory.NewInMemoryResourceCache(),
 	}
 }
@@ -183,7 +183,7 @@ func (rct *KubeConfigMapRcTester) Skip() bool {
 	return skipKubeTests()
 }
 
-func (rct *KubeConfigMapRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
+func (rct *KubeConfigMapRcTester) Setup(namespace string) factory.ResourceClientFactory {
 	err := services.SetupKubeForTest(namespace)
 	Expect(err).NotTo(HaveOccurred())
 	kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
@@ -191,7 +191,7 @@ func (rct *KubeConfigMapRcTester) Setup(namespace string) factory.ResourceClient
 	Expect(err).NotTo(HaveOccurred())
 	kube, err := kubernetes.NewForConfig(cfg)
 	Expect(err).NotTo(HaveOccurred())
-	return &factory.KubeConfigMapClientOpts{
+	return &factory.KubeConfigMapClientFactory{
 		Clientset: kube,
 	}
 }
@@ -215,7 +215,7 @@ func (rct *KubeSecretRcTester) Skip() bool {
 	return skipKubeTests()
 }
 
-func (rct *KubeSecretRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
+func (rct *KubeSecretRcTester) Setup(namespace string) factory.ResourceClientFactory {
 	err := services.SetupKubeForTest(namespace)
 	Expect(err).NotTo(HaveOccurred())
 	kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
@@ -223,7 +223,7 @@ func (rct *KubeSecretRcTester) Setup(namespace string) factory.ResourceClientFac
 	Expect(err).NotTo(HaveOccurred())
 	kube, err := kubernetes.NewForConfig(cfg)
 	Expect(err).NotTo(HaveOccurred())
-	return &factory.KubeSecretClientOpts{
+	return &factory.KubeSecretClientFactory{
 		Clientset: kube,
 	}
 }
@@ -254,7 +254,7 @@ func (rct *VaultRcTester) Skip() bool {
 	return false
 }
 
-func (rct *VaultRcTester) Setup(namespace string) factory.ResourceClientFactoryOpts {
+func (rct *VaultRcTester) Setup(namespace string) factory.ResourceClientFactory {
 	var err error
 	rct.vaultFactory, err = services.NewVaultFactory()
 	Expect(err).NotTo(HaveOccurred())
@@ -268,7 +268,7 @@ func (rct *VaultRcTester) Setup(namespace string) factory.ResourceClientFactoryO
 	vault, err := vaultapi.NewClient(cfg)
 	vault.SetToken(rct.vaultInstance.Token())
 	Expect(err).NotTo(HaveOccurred())
-	return &factory.VaultSecretClientOpts{
+	return &factory.VaultSecretClientFactory{
 		RootKey: rootKey,
 		Vault:   vault,
 	}

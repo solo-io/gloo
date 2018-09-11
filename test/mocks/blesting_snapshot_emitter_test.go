@@ -47,10 +47,10 @@ var _ = Describe("MocksEmitter", func() {
 		}
 
 		// FakeResource Constructor
-		fakeResourceClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+		fakeResourceClientFactory := &factory.KubeResourceClientFactory{
 			Crd: FakeResourceCrd,
 			Cfg: cfg,
-		})
+		}
 		fakeResourceClient, err = NewFakeResourceClient(fakeResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 		emitter = NewBlestingEmitter(fakeResourceClient)

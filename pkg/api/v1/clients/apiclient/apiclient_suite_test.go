@@ -45,9 +45,9 @@ var _ = BeforeSuite(func() {
 				return handler(srv, ss)
 			},
 		)))
-	apiserver.NewApiServer(server, nil, factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+	apiserver.NewApiServer(server, nil, &factory.MemoryResourceClientFactory{
 		Cache: memory.NewInMemoryResourceCache(),
-	}), &mocks.MockResource{})
+	}, &mocks.MockResource{})
 	log.Printf("grpc listening on %v", port)
 	go server.Serve(lis)
 })

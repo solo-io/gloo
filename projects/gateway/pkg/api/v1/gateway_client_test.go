@@ -6,7 +6,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -34,8 +33,8 @@ var _ = Describe("GatewayClient", func() {
 			)
 			BeforeEach(func() {
 				namespace = helpers.RandString(6)
-				factoryOpts := test.Setup(namespace)
-				client, err = NewGatewayClient(factory.NewResourceClientFactory(factoryOpts))
+				factory := test.Setup(namespace)
+				client, err = NewGatewayClient(factory)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			AfterEach(func() {

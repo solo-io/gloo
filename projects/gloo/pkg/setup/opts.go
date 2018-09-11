@@ -45,18 +45,18 @@ func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
 	)
 	return bootstrap.Opts{
 		WriteNamespace: "gloo-system",
-		Upstreams: &factory.KubeResourceClientOpts{
+		Upstreams: &factory.KubeResourceClientFactory{
 			Crd: v1.UpstreamCrd,
 			Cfg: cfg,
 		},
-		Proxies: &factory.KubeResourceClientOpts{
+		Proxies: &factory.KubeResourceClientFactory{
 			Crd: v1.ProxyCrd,
 			Cfg: cfg,
 		},
-		Secrets: &factory.KubeSecretClientOpts{
+		Secrets: &factory.KubeSecretClientFactory{
 			Clientset: clientset,
 		},
-		Artifacts: &factory.KubeConfigMapClientOpts{
+		Artifacts: &factory.KubeConfigMapClientFactory{
 			Clientset: clientset,
 		},
 		Namespacer: static.NewNamespacer([]string{"default", "gloo-system"}),

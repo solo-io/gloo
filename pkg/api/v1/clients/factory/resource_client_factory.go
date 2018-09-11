@@ -20,21 +20,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-type ResourceClientFactory interface {
-	NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error)
-}
-
-type resourceClientFactory struct {
-	opts ResourceClientFactoryOpts
-}
-
-func NewResourceClientFactory(opts ResourceClientFactoryOpts) ResourceClientFactory {
-	if opts == nil {
-		panic("resource client factory opts cannot be nil")
-	}
-	return &resourceClientFactory{
-		opts: opts,
-	}
+type genericResourceClientFactory struct {
+	opts ResourceClientFactory
 }
 
 type NewResourceClientParams struct {
@@ -42,10 +29,10 @@ type NewResourceClientParams struct {
 	Token        string
 }
 
-func (factory *resourceClientFactory) NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error) {
+func newResourceClient(factory ResourceClientFactory, params NewResourceClientParams) (clients.ResourceClient, error) {
 	resourceType := params.ResourceType
-	switch opts := factory.opts.(type) {
-	case *KubeResourceClientOpts:
+	switch opts := factory.(type) {
+	case *KubeResourceClientFactory:
 		if params.Token != "" {
 			opts.Cfg.BearerToken = params.Token
 		}
@@ -54,68 +41,82 @@ func (factory *resourceClientFactory) NewResourceClient(params NewResourceClient
 			return nil, errors.Errorf("the kubernetes crd client can only be used for input resources, received type %v", resources.Kind(resourceType))
 		}
 		return kube.NewResourceClient(opts.Crd, opts.Cfg, inputResource)
-	case *ConsulResourceClientOpts:
+	case *ConsulResourceClientFactory:
 		return consul.NewResourceClient(opts.Consul, opts.RootKey, resourceType), nil
-	case *FileResourceClientOpts:
+	case *FileResourceClientFactory:
 		return file.NewResourceClient(opts.RootDir, resourceType), nil
-	case *MemoryResourceClientOpts:
+	case *MemoryResourceClientFactory:
 		return memory.NewResourceClient(opts.Cache, resourceType), nil
-	case *KubeConfigMapClientOpts:
+	case *KubeConfigMapClientFactory:
 		return configmap.NewResourceClient(opts.Clientset, resourceType)
-	case *KubeSecretClientOpts:
+	case *KubeSecretClientFactory:
 		return kubesecret.NewResourceClient(opts.Clientset, resourceType)
-	case *VaultSecretClientOpts:
+	case *VaultSecretClientFactory:
 		return vault.NewResourceClient(opts.Vault, opts.RootKey, resourceType), nil
 	}
-	panic("unsupported type " + reflect.TypeOf(factory.opts).Name())
+	panic("unsupported type " + reflect.TypeOf(factory).Name())
 }
 
 // https://golang.org/doc/faq#generics
-type ResourceClientFactoryOpts interface {
-	isResourceClientOpts()
+type ResourceClientFactory interface {
+	NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error)
 }
 
-type KubeResourceClientOpts struct {
+type KubeResourceClientFactory struct {
 	Crd crd.Crd
 	Cfg *rest.Config
 }
 
-func (o *KubeResourceClientOpts) isResourceClientOpts() {}
+func (f *KubeResourceClientFactory) NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error) {
+	return newResourceClient(f, params)
+}
 
-type ConsulResourceClientOpts struct {
+type ConsulResourceClientFactory struct {
 	Consul  *api.Client
 	RootKey string
 }
 
-func (o *ConsulResourceClientOpts) isResourceClientOpts() {}
+func (f *ConsulResourceClientFactory) NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error) {
+	return newResourceClient(f, params)
+}
 
-type FileResourceClientOpts struct {
+type FileResourceClientFactory struct {
 	RootDir string
 }
 
-func (o *FileResourceClientOpts) isResourceClientOpts() {}
+func (f *FileResourceClientFactory) NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error) {
+	return newResourceClient(f, params)
+}
 
-type MemoryResourceClientOpts struct {
+type MemoryResourceClientFactory struct {
 	Cache memory.InMemoryResourceCache
 }
 
-func (o *MemoryResourceClientOpts) isResourceClientOpts() {}
+func (f *MemoryResourceClientFactory) NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error) {
+	return newResourceClient(f, params)
+}
 
-type KubeConfigMapClientOpts struct {
+type KubeConfigMapClientFactory struct {
 	Clientset kubernetes.Interface
 }
 
-func (o *KubeConfigMapClientOpts) isResourceClientOpts() {}
+func (f *KubeConfigMapClientFactory) NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error) {
+	return newResourceClient(f, params)
+}
 
-type KubeSecretClientOpts struct {
+type KubeSecretClientFactory struct {
 	Clientset kubernetes.Interface
 }
 
-func (o *KubeSecretClientOpts) isResourceClientOpts() {}
+func (f *KubeSecretClientFactory) NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error) {
+	return newResourceClient(f, params)
+}
 
-type VaultSecretClientOpts struct {
+type VaultSecretClientFactory struct {
 	Vault   *vaultapi.Client
 	RootKey string
 }
 
-func (o *VaultSecretClientOpts) isResourceClientOpts() {}
+func (f *VaultSecretClientFactory) NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error) {
+	return newResourceClient(f, params)
+}

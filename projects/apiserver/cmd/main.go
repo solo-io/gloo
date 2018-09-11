@@ -9,9 +9,10 @@ import (
 
 func main() {
 	port := flag.Int("p", 8082, "port to bind")
+	prod := flag.Bool("prod", false, "connect to real gloo storage")
 	flag.Parse()
 	log.Printf("listening on :%v", *port)
-	if err := setup.Setup(*port); err != nil {
+	if err := setup.Setup(*port, *prod); err != nil {
 		log.Fatalf("%v", err)
 	}
 }
