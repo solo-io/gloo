@@ -7,8 +7,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-// Option to copy anything from the original to the desired before writing
-type TransitionMockResourceFunc func(original, desired *MockResource) error
+// Option to copy anything from the original to the desired before writing. Return value of false means don't update
+type TransitionMockResourceFunc func(original, desired *MockResource) (bool, error)
 
 type MockResourceReconciler interface {
 	Reconcile(namespace string, desiredResources MockResourceList, transition TransitionMockResourceFunc, opts clients.ListOpts) error
@@ -37,7 +37,7 @@ func (r *mockResourceReconciler) Reconcile(namespace string, desiredResources Mo
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "mockResource_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) error {
+		transitionResources = func(original, desired resources.Resource) (bool, error) {
 			return transition(original.(*MockResource), desired.(*MockResource))
 		}
 	}

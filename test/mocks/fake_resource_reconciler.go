@@ -7,8 +7,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-// Option to copy anything from the original to the desired before writing
-type TransitionFakeResourceFunc func(original, desired *FakeResource) error
+// Option to copy anything from the original to the desired before writing. Return value of false means don't update
+type TransitionFakeResourceFunc func(original, desired *FakeResource) (bool, error)
 
 type FakeResourceReconciler interface {
 	Reconcile(namespace string, desiredResources FakeResourceList, transition TransitionFakeResourceFunc, opts clients.ListOpts) error
@@ -37,7 +37,7 @@ func (r *fakeResourceReconciler) Reconcile(namespace string, desiredResources Fa
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "fakeResource_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) error {
+		transitionResources = func(original, desired resources.Resource) (bool, error) {
 			return transition(original.(*FakeResource), desired.(*FakeResource))
 		}
 	}

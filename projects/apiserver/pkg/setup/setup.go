@@ -108,11 +108,11 @@ func Setup(port int, prod bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetu
 	return http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
 }
 
-
 // TODO(ilackarms): move to solo kit
 type registrant interface {
 	Register() error
 }
+
 func registerAll(clients ...registrant) error {
 	for _, client := range clients {
 		if err := client.Register(); err != nil {

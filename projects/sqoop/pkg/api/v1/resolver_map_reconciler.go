@@ -7,8 +7,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-// Option to copy anything from the original to the desired before writing
-type TransitionResolverMapFunc func(original, desired *ResolverMap) error
+// Option to copy anything from the original to the desired before writing. Return value of false means don't update
+type TransitionResolverMapFunc func(original, desired *ResolverMap) (bool, error)
 
 type ResolverMapReconciler interface {
 	Reconcile(namespace string, desiredResources ResolverMapList, transition TransitionResolverMapFunc, opts clients.ListOpts) error
@@ -37,7 +37,7 @@ func (r *resolverMapReconciler) Reconcile(namespace string, desiredResources Res
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "resolverMap_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) error {
+		transitionResources = func(original, desired resources.Resource) (bool, error) {
 			return transition(original.(*ResolverMap), desired.(*ResolverMap))
 		}
 	}

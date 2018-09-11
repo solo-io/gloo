@@ -7,7 +7,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-// Option to copy anything from the original to the desired before writing
+// Option to copy anything from the original to the desired before writing. Return value of false means don't update
 type TransitionUpstreamFunc func(original, desired *Upstream) (bool, error)
 
 type UpstreamReconciler interface {

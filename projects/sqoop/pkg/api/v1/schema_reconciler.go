@@ -7,8 +7,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-// Option to copy anything from the original to the desired before writing
-type TransitionSchemaFunc func(original, desired *Schema) error
+// Option to copy anything from the original to the desired before writing. Return value of false means don't update
+type TransitionSchemaFunc func(original, desired *Schema) (bool, error)
 
 type SchemaReconciler interface {
 	Reconcile(namespace string, desiredResources SchemaList, transition TransitionSchemaFunc, opts clients.ListOpts) error
@@ -37,7 +37,7 @@ func (r *schemaReconciler) Reconcile(namespace string, desiredResources SchemaLi
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "schema_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) error {
+		transitionResources = func(original, desired resources.Resource) (bool, error) {
 			return transition(original.(*Schema), desired.(*Schema))
 		}
 	}

@@ -7,8 +7,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-// Option to copy anything from the original to the desired before writing
-type TransitionEndpointFunc func(original, desired *Endpoint) error
+// Option to copy anything from the original to the desired before writing. Return value of false means don't update
+type TransitionEndpointFunc func(original, desired *Endpoint) (bool, error)
 
 type EndpointReconciler interface {
 	Reconcile(namespace string, desiredResources EndpointList, transition TransitionEndpointFunc, opts clients.ListOpts) error
@@ -37,7 +37,7 @@ func (r *endpointReconciler) Reconcile(namespace string, desiredResources Endpoi
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "endpoint_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) error {
+		transitionResources = func(original, desired resources.Resource) (bool, error) {
 			return transition(original.(*Endpoint), desired.(*Endpoint))
 		}
 	}

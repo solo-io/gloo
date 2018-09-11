@@ -7,8 +7,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-// Option to copy anything from the original to the desired before writing
-type TransitionVirtualServiceFunc func(original, desired *VirtualService) error
+// Option to copy anything from the original to the desired before writing. Return value of false means don't update
+type TransitionVirtualServiceFunc func(original, desired *VirtualService) (bool, error)
 
 type VirtualServiceReconciler interface {
 	Reconcile(namespace string, desiredResources VirtualServiceList, transition TransitionVirtualServiceFunc, opts clients.ListOpts) error
@@ -37,7 +37,7 @@ func (r *virtualServiceReconciler) Reconcile(namespace string, desiredResources 
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "virtualService_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) error {
+		transitionResources = func(original, desired resources.Resource) (bool, error) {
 			return transition(original.(*VirtualService), desired.(*VirtualService))
 		}
 	}

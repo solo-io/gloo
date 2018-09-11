@@ -7,8 +7,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-// Option to copy anything from the original to the desired before writing
-type TransitionArtifactFunc func(original, desired *Artifact) error
+// Option to copy anything from the original to the desired before writing. Return value of false means don't update
+type TransitionArtifactFunc func(original, desired *Artifact) (bool, error)
 
 type ArtifactReconciler interface {
 	Reconcile(namespace string, desiredResources ArtifactList, transition TransitionArtifactFunc, opts clients.ListOpts) error
@@ -37,7 +37,7 @@ func (r *artifactReconciler) Reconcile(namespace string, desiredResources Artifa
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "artifact_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) error {
+		transitionResources = func(original, desired resources.Resource) (bool, error) {
 			return transition(original.(*Artifact), desired.(*Artifact))
 		}
 	}

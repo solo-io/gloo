@@ -7,8 +7,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-// Option to copy anything from the original to the desired before writing
-type TransitionProxyFunc func(original, desired *Proxy) error
+// Option to copy anything from the original to the desired before writing. Return value of false means don't update
+type TransitionProxyFunc func(original, desired *Proxy) (bool, error)
 
 type ProxyReconciler interface {
 	Reconcile(namespace string, desiredResources ProxyList, transition TransitionProxyFunc, opts clients.ListOpts) error
@@ -37,7 +37,7 @@ func (r *proxyReconciler) Reconcile(namespace string, desiredResources ProxyList
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "proxy_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) error {
+		transitionResources = func(original, desired resources.Resource) (bool, error) {
 			return transition(original.(*Proxy), desired.(*Proxy))
 		}
 	}

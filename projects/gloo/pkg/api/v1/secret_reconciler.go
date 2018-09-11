@@ -7,8 +7,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-// Option to copy anything from the original to the desired before writing
-type TransitionSecretFunc func(original, desired *Secret) error
+// Option to copy anything from the original to the desired before writing. Return value of false means don't update
+type TransitionSecretFunc func(original, desired *Secret) (bool, error)
 
 type SecretReconciler interface {
 	Reconcile(namespace string, desiredResources SecretList, transition TransitionSecretFunc, opts clients.ListOpts) error
@@ -37,7 +37,7 @@ func (r *secretReconciler) Reconcile(namespace string, desiredResources SecretLi
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "secret_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) error {
+		transitionResources = func(original, desired resources.Resource) (bool, error) {
 			return transition(original.(*Secret), desired.(*Secret))
 		}
 	}

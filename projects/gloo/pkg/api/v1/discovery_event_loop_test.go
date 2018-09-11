@@ -20,9 +20,9 @@ var _ = Describe("DiscoveryEventLoop", func() {
 
 	BeforeEach(func() {
 
-		upstreamClientFactory := factory.NewResourceClientFactory(&factory.MemoryResourceClientOpts{
+		upstreamClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
-		})
+		}
 		upstreamClient, err := NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 

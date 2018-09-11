@@ -47,10 +47,10 @@ var _ = Describe("V1Emitter", func() {
 		}
 
 		// Upstream Constructor
-		upstreamClientFactory := factory.NewResourceClientFactory(&factory.KubeResourceClientOpts{
+		upstreamClientFactory := &factory.KubeResourceClientFactory{
 			Crd: UpstreamCrd,
 			Cfg: cfg,
-		})
+		}
 		upstreamClient, err = NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 		emitter = NewDiscoveryEmitter(upstreamClient)
