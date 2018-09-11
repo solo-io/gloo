@@ -84,14 +84,14 @@ func (d *Discovery) StartUds(opts clients.WatchOpts, discOpts Opts) (chan error,
 }
 
 func aggregateUpstreams(endpointsByUds map[DiscoveryPlugin]v1.UpstreamList) v1.UpstreamList {
-	var endpoints v1.UpstreamList
-	for _, endpointList := range endpointsByUds {
-		endpoints = append(endpoints, endpointList...)
+	var upstreams v1.UpstreamList
+	for _, upstreamList := range endpointsByUds {
+		upstreams = append(upstreams, upstreamList...)
 	}
-	sort.SliceStable(endpoints, func(i, j int) bool {
-		return endpoints[i].Metadata.Less(endpoints[j].Metadata)
+	sort.SliceStable(upstreams, func(i, j int) bool {
+		return upstreams[i].Metadata.Less(upstreams[j].Metadata)
 	})
-	return endpoints
+	return upstreams
 }
 
 // launch a goroutine for all the UDS plugins with a single cancel to close them all
