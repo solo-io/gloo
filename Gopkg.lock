@@ -104,10 +104,15 @@
     "envoy/api/v2/endpoint",
     "envoy/api/v2/listener",
     "envoy/api/v2/route",
+    "envoy/config/bootstrap/v2",
     "envoy/config/filter/accesslog/v2",
     "envoy/config/filter/http/rate_limit/v2",
     "envoy/config/filter/http/transcoder/v2",
     "envoy/config/filter/network/http_connection_manager/v2",
+    "envoy/config/metrics/v2",
+    "envoy/config/overload/v2alpha",
+    "envoy/config/ratelimit/v2",
+    "envoy/config/trace/v2",
     "envoy/service/discovery/v2",
     "envoy/type",
     "pkg/cache",
@@ -634,6 +639,11 @@
   packages = ["."]
   revision = "572520ed46dbddaed19ea3d9541bdd0494163693"
   version = "v0.1"
+
+[[projects]]
+  name = "github.com/solo-io/envoy-operator"
+  packages = ["pkg/downward"]
+  revision = "c71f318a203bca8433268be67336086379a2bf9f"
 
 [[projects]]
   name = "github.com/spf13/cobra"

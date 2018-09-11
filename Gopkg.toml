@@ -74,3 +74,10 @@
 #[[constraint]]
 #  name = "k8s.io/client-go"
 #  branch = "master"
+
+
+[[constraint]]
+  name = "github.com/solo-io/envoy-operator"
+  revision = "c71f318a203bca8433268be67336086379a2bf9f"
+
+
