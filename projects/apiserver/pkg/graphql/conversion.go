@@ -410,9 +410,24 @@ func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpe
 	if spec == nil {
 		return nil, nil
 	}
+	var invocationstyle aws.DestinationSpec_InvocationStyle
 	switch {
 	case spec.Aws != nil:
-
+	switch spec.Aws.InvocationStyle {
+	case AwsLambdaInvocationStyleAsync:
+		invocationstyle = aws.DestinationSpec_ASYNC
+	case AwsLambdaInvocationStyleSync:
+		invocationstyle = aws.DestinationSpec_SYNC
+	}
+		return &v1.DestinationSpec{
+			DestinationType: &v1.DestinationSpec_Aws{
+				Aws: &aws.DestinationSpec{
+					LogicalName:     spec.Aws.LogicalName,
+					InvocationStyle: invocationstyle,
+					ResponseTrasnformation: spec.Aws.ResponseTransformation,
+				},
+			},
+		}, nil
 	}
 	return nil, errors.Errorf("unknown destination spec type: %#v", spec)
 }
