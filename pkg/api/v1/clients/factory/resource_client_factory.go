@@ -2,6 +2,7 @@ package factory
 
 import (
 	"reflect"
+	"strings"
 
 	"github.com/hashicorp/consul/api"
 	vaultapi "github.com/hashicorp/vault/api"
@@ -34,7 +35,7 @@ func newResourceClient(factory ResourceClientFactory, params NewResourceClientPa
 	switch opts := factory.(type) {
 	case *KubeResourceClientFactory:
 		if params.Token != "" {
-			opts.Cfg.BearerToken = params.Token
+			opts.Cfg.BearerToken = strings.TrimPrefix(params.Token, "Bearer ")
 		}
 		inputResource, ok := params.ResourceType.(resources.InputResource)
 		if !ok {
