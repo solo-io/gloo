@@ -118,22 +118,23 @@ func skip(svc kubev1.Service, opts discovery.Opts) bool {
 	return false
 }
 
-func (p *plugin) UpdateUpstream(original, desired *v1.Upstream) error {
+func (p *plugin) UpdateUpstream(original, desired *v1.Upstream) (bool, error) {
 	originalSpec, ok := original.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
 	if !ok {
-		return errors.Errorf("internal error: expected *v1.UpstreamSpec_Kube, got %v", reflect.TypeOf(original.UpstreamSpec.UpstreamType).Name())
+		return false, errors.Errorf("internal error: expected *v1.UpstreamSpec_Kube, got %v", reflect.TypeOf(original.UpstreamSpec.UpstreamType).Name())
 	}
 	desiredSpec, ok := desired.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
 	if !ok {
-		return errors.Errorf("internal error: expected *v1.UpstreamSpec_Kube, got %v", reflect.TypeOf(original.UpstreamSpec.UpstreamType).Name())
+		return false, errors.Errorf("internal error: expected *v1.UpstreamSpec_Kube, got %v", reflect.TypeOf(original.UpstreamSpec.UpstreamType).Name())
 	}
+	if originalSpec.Equal(desiredSpec) {
+		return false, nil
+	}
+
 	// copy service spec, we don't want to overwrite that
 	desiredSpec.Kube.ServiceSpec = originalSpec.Kube.ServiceSpec
 	// copy labels; user may have written them over. cannot be auto-discovered
 	desiredSpec.Kube.Selector = originalSpec.Kube.Selector
 
-	// to support updates
-	desired.Metadata.ResourceVersion = original.Metadata.ResourceVersion
-
-	return nil
+	return true, nil
 }

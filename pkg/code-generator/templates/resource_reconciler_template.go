@@ -12,8 +12,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-// Option to copy anything from the original to the desired before writing
-type Transition{{ .Name }}Func func(original, desired *{{ .Name }}) error
+// Option to copy anything from the original to the desired before writing. Return value of false means don't update
+type Transition{{ .Name }}Func func(original, desired *{{ .Name }}) (bool, error)
 
 type {{ .Name }}Reconciler interface {
 	Reconcile(namespace string, desiredResources {{ .Name }}List, transition Transition{{ .Name }}Func, opts clients.ListOpts) error
@@ -42,7 +42,7 @@ func (r *{{ lower_camel .Name }}Reconciler) Reconcile(namespace string, desiredR
 	opts.Ctx = contextutils.WithLogger(opts.Ctx, "{{ lower_camel .Name }}_reconciler")
 	var transitionResources reconcile.TransitionResourcesFunc
 	if transition != nil {
-		transitionResources = func(original, desired resources.Resource) error {
+		transitionResources = func(original, desired resources.Resource) (bool, error) {
 			return transition(original.(*{{ .Name }}), desired.(*{{ .Name }}))
 		}
 	}

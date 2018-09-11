@@ -11,7 +11,7 @@ import (
 )
 
 // Option to copy anything from the original to the desired before writing
-type TransitionResourcesFunc func(original, desired resources.Resource) error
+type TransitionResourcesFunc func(original, desired resources.Resource) (bool, error)
 
 type Reconciler interface {
 	Reconcile(namespace string, desiredResources resources.ResourceList, transitionFunc TransitionResourcesFunc, opts clients.ListOpts) error
@@ -67,8 +67,12 @@ func (r *reconciler) syncResource(ctx context.Context, desired resources.Resourc
 			desiredInput.SetStatus(core.Status{})
 		}
 		if transition != nil {
-			if err := transition(original, desired); err != nil {
+			needsUpdate, err := transition(original, desired)
+			if err != nil {
 				return err
+			}
+			if !needsUpdate {
+				return nil
 			}
 		}
 	}

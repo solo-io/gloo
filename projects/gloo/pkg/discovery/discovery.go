@@ -20,7 +20,8 @@ type DiscoveryPlugin interface {
 	WatchUpstreams(namespace string, opts clients.WatchOpts, discOpts Opts) (chan v1.UpstreamList, chan error, error)
 	// finalize any changes to the desired upstream before it gets written
 	// for example, copying the functions from the old upstream to the new.
-	UpdateUpstream(original, desired *v1.Upstream) error
+	// a value of false indicates that the resource does not need to be updated
+	UpdateUpstream(original, desired *v1.Upstream) (bool, error)
 
 	// EDS API
 	// start the EDS watch which sends a new list of endpoints on any change
