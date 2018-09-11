@@ -17,11 +17,10 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	discovery "github.com/solo-io/solo-kit/projects/discovery/pkg"
-
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 	grpc_plugins "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/grpc"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
 )
 
 func getgrpcspec(u *v1.Upstream) *grpc_plugins.ServiceSpec {
@@ -44,7 +43,7 @@ type FunctionDiscoveryFactory struct {
 	fileclient         v1.ArtifactClient
 }
 
-func NewFunctionDiscovery(u *v1.Upstream) discovery.UpstreamFunctionDiscovery {
+func NewFunctionDiscovery(u *v1.Upstream) fds.UpstreamFunctionDiscovery {
 	return &UpstreamFunctionDiscovery{
 		upstream: u,
 	}
@@ -81,7 +80,7 @@ func (f *UpstreamFunctionDiscovery) DetectType(ctx context.Context, url *url.URL
 	return svcInfo, nil
 }
 
-func (f *UpstreamFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(discovery.UpstreamMutator) error) error {
+func (f *UpstreamFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(fds.UpstreamMutator) error) error {
 	for {
 		// TODO: get backoff values from config?
 		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
@@ -103,7 +102,7 @@ func (f *UpstreamFunctionDiscovery) DetectFunctions(ctx context.Context, url *ur
 	}
 }
 
-func (f *UpstreamFunctionDiscovery) DetectFunctionsOnce(ctx context.Context, url *url.URL, updatecb func(discovery.UpstreamMutator) error) error {
+func (f *UpstreamFunctionDiscovery) DetectFunctionsOnce(ctx context.Context, url *url.URL, updatecb func(fds.UpstreamMutator) error) error {
 
 	log := contextutils.LoggerFrom(ctx)
 

@@ -15,9 +15,9 @@ import (
 	glooaws "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	discovery "github.com/solo-io/solo-kit/projects/discovery/pkg"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
 )
 
 const (
@@ -30,7 +30,7 @@ type AWSLambdaFunctionDiscoveryFactory struct {
 	PollingTime time.Duration
 }
 
-func (f *AWSLambdaFunctionDiscoveryFactory) NewFunctionDiscovery(u *v1.Upstream) discovery.UpstreamFunctionDiscovery {
+func (f *AWSLambdaFunctionDiscoveryFactory) NewFunctionDiscovery(u *v1.Upstream) fds.UpstreamFunctionDiscovery {
 	return &AWSLambdaFunctionDiscovery{
 		timetowait: f.PollingTime,
 		upstream:   u,
@@ -53,7 +53,7 @@ func (f *AWSLambdaFunctionDiscovery) DetectType(ctx context.Context, url *url.UR
 
 // TODO: how to handle changes in secret or upstream (like the upstream ref)?
 // perhaps the in param for the upstream should be a function? in func() *v1.Upstream
-func (f *AWSLambdaFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(discovery.UpstreamMutator) error) error {
+func (f *AWSLambdaFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(fds.UpstreamMutator) error) error {
 	for {
 		// TODO: get backoff values from config?
 		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
