@@ -45,8 +45,8 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	s.latestSnap = snap
 	ctx = contextutils.WithLogger(ctx, "syncer")
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Infof("begin sync %v (%v resources)", snap.Hash(),
-		len(snap.Upstreams)+len(snap.Secrets)+len(snap.Artifacts)+len(snap.Proxies)+len(snap.Endpoints))
+	logger.Infof("begin sync %v (%v upstreams, %v secrets, %v artifacts, %v proxxies, %v endpoints)", snap.Hash(),
+		len(snap.Upstreams.List()), len(snap.Secrets.List()), len(snap.Artifacts.List()), len(snap.Proxies.List()), len(snap.Endpoints.List()))
 	defer logger.Infof("end sync %v", snap.Hash())
 
 	logger.Debugf("%v", snap)
