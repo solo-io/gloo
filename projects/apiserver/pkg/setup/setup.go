@@ -87,6 +87,10 @@ func Setup(port int, prod bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetu
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		if err := registerAll(upstreams, secrets, artifacts, virtualServices, resolverMaps, schemas); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		corsSettings.Handler(handler.GraphQL(
 			graph.NewExecutableSchema(graph.Config{
 				Resolvers: apiserver.NewResolvers(upstreams, schemas, artifacts, secrets, virtualServices, resolverMaps),
@@ -102,6 +106,20 @@ func Setup(port int, prod bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetu
 	})
 
 	return http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
+}
+
+
+// TODO(ilackarms): move to solo kit
+type registrant interface {
+	Register() error
+}
+func registerAll(clients ...registrant) error {
+	for _, client := range clients {
+		if err := client.Register(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func addSampleData(inputFactory factory.ResourceClientFactory) error {
