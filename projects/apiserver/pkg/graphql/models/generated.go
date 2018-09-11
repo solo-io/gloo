@@ -56,7 +56,9 @@ type GRPCServiceSpec struct {
 	Empty *string `json:"empty"`
 }
 type GlooResolver struct {
-	Empty *string `json:"empty"`
+	RequestTemplate  *RequestTemplate  `json:"requestTemplate"`
+	ResponseTemplate *ResponseTemplate `json:"responseTemplate"`
+	Destination      Destination       `json:"destination"`
 }
 type InputArtifact struct {
 	Data     string        `json:"data"`
@@ -112,7 +114,9 @@ type InputGRPCServiceSpec struct {
 	Empty *string `json:"empty"`
 }
 type InputGlooResolver struct {
-	Empty *string `json:"empty"`
+	RequestTemplate  *InputRequestTemplate  `json:"requestTemplate"`
+	ResponseTemplate *InputResponseTemplate `json:"responseTemplate"`
+	Destination      InputDestination       `json:"destination"`
 }
 type InputKeyValueMatcher struct {
 	Name    string `json:"name"`
@@ -149,6 +153,12 @@ type InputMultiDestination struct {
 type InputNodeJSResolver struct {
 	Empty *string `json:"empty"`
 }
+type InputRequestTemplate struct {
+	Verb    string                `json:"verb"`
+	Path    string                `json:"path"`
+	Body    string                `json:"body"`
+	Headers *InputMapStringString `json:"headers"`
+}
 type InputResolver struct {
 	GlooResolver     *InputGlooResolver     `json:"glooResolver"`
 	TemplateResolver *InputTemplateResolver `json:"templateResolver"`
@@ -161,6 +171,10 @@ type InputResolverMap struct {
 type InputResourceRef struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
+}
+type InputResponseTemplate struct {
+	Body    string                `json:"body"`
+	Headers *InputMapStringString `json:"headers"`
 }
 type InputRoute struct {
 	Matcher     InputMatcher       `json:"matcher"`
@@ -290,6 +304,12 @@ type OAuthEndpoint struct {
 	URL        string `json:"url"`
 	ClientName string `json:"clientName"`
 }
+type RequestTemplate struct {
+	Verb    string           `json:"verb"`
+	Path    string           `json:"path"`
+	Body    string           `json:"body"`
+	Headers *MapStringString `json:"headers"`
+}
 type Resolver interface{}
 type ResolverMap struct {
 	Types    []TypeResolver `json:"types"`
@@ -299,6 +319,10 @@ type ResolverMap struct {
 type ResourceRef struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
+}
+type ResponseTemplate struct {
+	Body    string           `json:"body"`
+	Headers *MapStringString `json:"headers"`
 }
 type Route struct {
 	Matcher     Matcher       `json:"matcher"`
@@ -344,7 +368,7 @@ type SwaggerServiceSpec struct {
 	Empty *string `json:"empty"`
 }
 type TemplateResolver struct {
-	Empty *string `json:"empty"`
+	InlineTemplate *string `json:"inlineTemplate"`
 }
 type TlsSecret struct {
 	CertChain  string `json:"certChain"`

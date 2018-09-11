@@ -78,6 +78,7 @@ type ResolverMapMutationResolver interface {
 	Create(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error)
 	Update(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error)
 	Delete(ctx context.Context, obj *customtypes.ResolverMapMutation, name string) (*models.ResolverMap, error)
+	SetResolver(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResourceRef, typeName string, fieldName string, resolver models.InputGlooResolver) (*models.ResolverMap, error)
 }
 type ResolverMapQueryResolver interface {
 	List(ctx context.Context, obj *customtypes.ResolverMapQuery, selector *models.InputMapStringString) ([]*models.ResolverMap, error)
@@ -1150,8 +1151,12 @@ func (ec *executionContext) _GlooResolver(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("GlooResolver")
-		case "empty":
-			out.Values[i] = ec._GlooResolver_empty(ctx, field, obj)
+		case "requestTemplate":
+			out.Values[i] = ec._GlooResolver_requestTemplate(ctx, field, obj)
+		case "responseTemplate":
+			out.Values[i] = ec._GlooResolver_responseTemplate(ctx, field, obj)
+		case "destination":
+			out.Values[i] = ec._GlooResolver_destination(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -1160,7 +1165,7 @@ func (ec *executionContext) _GlooResolver(ctx context.Context, sel ast.Selection
 	return out
 }
 
-func (ec *executionContext) _GlooResolver_empty(ctx context.Context, field graphql.CollectedField, obj *models.GlooResolver) graphql.Marshaler {
+func (ec *executionContext) _GlooResolver_requestTemplate(ctx context.Context, field graphql.CollectedField, obj *models.GlooResolver) graphql.Marshaler {
 	rctx := graphql.GetResolverContext(ctx)
 	rctx.Object = "GlooResolver"
 	rctx.Args = nil
@@ -1168,16 +1173,53 @@ func (ec *executionContext) _GlooResolver_empty(ctx context.Context, field graph
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return obj.Empty, nil
+		return obj.RequestTemplate, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*models.RequestTemplate)
 	if res == nil {
 		return graphql.Null
 	}
-	return graphql.MarshalString(*res)
+	return ec._RequestTemplate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GlooResolver_responseTemplate(ctx context.Context, field graphql.CollectedField, obj *models.GlooResolver) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "GlooResolver"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.ResponseTemplate, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.ResponseTemplate)
+	if res == nil {
+		return graphql.Null
+	}
+	return ec._ResponseTemplate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GlooResolver_destination(ctx context.Context, field graphql.CollectedField, obj *models.GlooResolver) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "GlooResolver"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Destination, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(models.Destination)
+	return ec._Destination(ctx, field.Selections, &res)
 }
 
 var keyValueMatcherImplementors = []string{"KeyValueMatcher"}
@@ -2402,6 +2444,106 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.___Schema(ctx, field.Selections, res)
 }
 
+var requestTemplateImplementors = []string{"RequestTemplate"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _RequestTemplate(ctx context.Context, sel ast.SelectionSet, obj *models.RequestTemplate) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, requestTemplateImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RequestTemplate")
+		case "verb":
+			out.Values[i] = ec._RequestTemplate_verb(ctx, field, obj)
+		case "path":
+			out.Values[i] = ec._RequestTemplate_path(ctx, field, obj)
+		case "body":
+			out.Values[i] = ec._RequestTemplate_body(ctx, field, obj)
+		case "headers":
+			out.Values[i] = ec._RequestTemplate_headers(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _RequestTemplate_verb(ctx context.Context, field graphql.CollectedField, obj *models.RequestTemplate) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "RequestTemplate"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Verb, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _RequestTemplate_path(ctx context.Context, field graphql.CollectedField, obj *models.RequestTemplate) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "RequestTemplate"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Path, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _RequestTemplate_body(ctx context.Context, field graphql.CollectedField, obj *models.RequestTemplate) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "RequestTemplate"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Body, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _RequestTemplate_headers(ctx context.Context, field graphql.CollectedField, obj *models.RequestTemplate) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "RequestTemplate"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Headers, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.MapStringString)
+	if res == nil {
+		return graphql.Null
+	}
+	return ec._MapStringString(ctx, field.Selections, res)
+}
+
 var resolverMapImplementors = []string{"ResolverMap"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -2508,6 +2650,8 @@ func (ec *executionContext) _ResolverMapMutation(ctx context.Context, sel ast.Se
 			out.Values[i] = ec._ResolverMapMutation_update(ctx, field, obj)
 		case "delete":
 			out.Values[i] = ec._ResolverMapMutation_delete(ctx, field, obj)
+		case "setResolver":
+			out.Values[i] = ec._ResolverMapMutation_setResolver(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2627,6 +2771,77 @@ func (ec *executionContext) _ResolverMapMutation_delete(ctx context.Context, fie
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
 			return ec.resolvers.ResolverMapMutation().Delete(ctx, obj, args["name"].(string))
+		})
+		if resTmp == nil {
+			return graphql.Null
+		}
+		res := resTmp.(*models.ResolverMap)
+		if res == nil {
+			return graphql.Null
+		}
+		return ec._ResolverMap(ctx, field.Selections, res)
+	})
+}
+
+func (ec *executionContext) _ResolverMapMutation_setResolver(ctx context.Context, field graphql.CollectedField, obj *customtypes.ResolverMapMutation) graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args := map[string]interface{}{}
+	var arg0 models.InputResourceRef
+	if tmp, ok := rawArgs["resolverMap"]; ok {
+		var err error
+		arg0, err = UnmarshalInputResourceRef(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["resolverMap"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["typeName"]; ok {
+		var err error
+		arg1, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["typeName"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["fieldName"]; ok {
+		var err error
+		arg2, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["fieldName"] = arg2
+	var arg3 models.InputGlooResolver
+	if tmp, ok := rawArgs["resolver"]; ok {
+		var err error
+		arg3, err = UnmarshalInputGlooResolver(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["resolver"] = arg3
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Object: "ResolverMapMutation",
+		Args:   args,
+		Field:  field,
+	})
+	return graphql.Defer(func() (ret graphql.Marshaler) {
+		defer func() {
+			if r := recover(); r != nil {
+				userErr := ec.Recover(ctx, r)
+				ec.Error(ctx, userErr)
+				ret = graphql.Null
+			}
+		}()
+
+		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+			return ec.resolvers.ResolverMapMutation().SetResolver(ctx, obj, args["resolverMap"].(models.InputResourceRef), args["typeName"].(string), args["fieldName"].(string), args["resolver"].(models.InputGlooResolver))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -2817,6 +3032,68 @@ func (ec *executionContext) _ResourceRef_namespace(ctx context.Context, field gr
 	}
 	res := resTmp.(string)
 	return graphql.MarshalString(res)
+}
+
+var responseTemplateImplementors = []string{"ResponseTemplate"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _ResponseTemplate(ctx context.Context, sel ast.SelectionSet, obj *models.ResponseTemplate) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, responseTemplateImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ResponseTemplate")
+		case "body":
+			out.Values[i] = ec._ResponseTemplate_body(ctx, field, obj)
+		case "headers":
+			out.Values[i] = ec._ResponseTemplate_headers(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _ResponseTemplate_body(ctx context.Context, field graphql.CollectedField, obj *models.ResponseTemplate) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "ResponseTemplate"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Body, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _ResponseTemplate_headers(ctx context.Context, field graphql.CollectedField, obj *models.ResponseTemplate) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "ResponseTemplate"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Headers, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.MapStringString)
+	if res == nil {
+		return graphql.Null
+	}
+	return ec._MapStringString(ctx, field.Selections, res)
 }
 
 var routeImplementors = []string{"Route"}
@@ -4004,8 +4281,8 @@ func (ec *executionContext) _TemplateResolver(ctx context.Context, sel ast.Selec
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("TemplateResolver")
-		case "empty":
-			out.Values[i] = ec._TemplateResolver_empty(ctx, field, obj)
+		case "inlineTemplate":
+			out.Values[i] = ec._TemplateResolver_inlineTemplate(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4014,7 +4291,7 @@ func (ec *executionContext) _TemplateResolver(ctx context.Context, sel ast.Selec
 	return out
 }
 
-func (ec *executionContext) _TemplateResolver_empty(ctx context.Context, field graphql.CollectedField, obj *models.TemplateResolver) graphql.Marshaler {
+func (ec *executionContext) _TemplateResolver_inlineTemplate(ctx context.Context, field graphql.CollectedField, obj *models.TemplateResolver) graphql.Marshaler {
 	rctx := graphql.GetResolverContext(ctx)
 	rctx.Object = "TemplateResolver"
 	rctx.Args = nil
@@ -4022,7 +4299,7 @@ func (ec *executionContext) _TemplateResolver_empty(ctx context.Context, field g
 	rctx.PushField(field.Alias)
 	defer rctx.Pop()
 	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return obj.Empty, nil
+		return obj.InlineTemplate, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -6768,14 +7045,31 @@ func UnmarshalInputGlooResolver(v interface{}) (models.InputGlooResolver, error)
 
 	for k, v := range asMap {
 		switch k {
-		case "empty":
+		case "requestTemplate":
 			var err error
-			var ptr1 string
+			var ptr1 models.InputRequestTemplate
 			if v != nil {
-				ptr1, err = graphql.UnmarshalString(v)
-				it.Empty = &ptr1
+				ptr1, err = UnmarshalInputRequestTemplate(v)
+				it.RequestTemplate = &ptr1
 			}
 
+			if err != nil {
+				return it, err
+			}
+		case "responseTemplate":
+			var err error
+			var ptr1 models.InputResponseTemplate
+			if v != nil {
+				ptr1, err = UnmarshalInputResponseTemplate(v)
+				it.ResponseTemplate = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "destination":
+			var err error
+			it.Destination, err = UnmarshalInputDestination(v)
 			if err != nil {
 				return it, err
 			}
@@ -7075,6 +7369,47 @@ func UnmarshalInputNodeJSResolver(v interface{}) (models.InputNodeJSResolver, er
 	return it, nil
 }
 
+func UnmarshalInputRequestTemplate(v interface{}) (models.InputRequestTemplate, error) {
+	var it models.InputRequestTemplate
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "verb":
+			var err error
+			it.Verb, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "path":
+			var err error
+			it.Path, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "body":
+			var err error
+			it.Body, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "headers":
+			var err error
+			var ptr1 models.InputMapStringString
+			if v != nil {
+				ptr1, err = UnmarshalInputMapStringString(v)
+				it.Headers = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputResolver(v interface{}) (models.InputResolver, error) {
 	var it models.InputResolver
 	var asMap = v.(map[string]interface{})
@@ -7170,6 +7505,35 @@ func UnmarshalInputResourceRef(v interface{}) (models.InputResourceRef, error) {
 		case "namespace":
 			var err error
 			it.Namespace, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputResponseTemplate(v interface{}) (models.InputResponseTemplate, error) {
+	var it models.InputResponseTemplate
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "body":
+			var err error
+			it.Body, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "headers":
+			var err error
+			var ptr1 models.InputMapStringString
+			if v != nil {
+				ptr1, err = UnmarshalInputMapStringString(v)
+				it.Headers = &ptr1
+			}
+
 			if err != nil {
 				return it, err
 			}
@@ -7936,7 +8300,8 @@ type ResolverMapMutation {
     create(resolverMap: InputResolverMap!): ResolverMap
     update(resolverMap: InputResolverMap!): ResolverMap
     delete(name: String!): ResolverMap
-    #setResolver(resolverMap: InputResourceRef!, typeName: String!, fieldName: String!, )
+    # LATER
+    setResolver(resolverMap: InputResourceRef!, typeName: String!, fieldName: String!, resolver: InputGlooResolver!): ResolverMap
 }
 
 type SchemaQuery {
@@ -8338,13 +8703,28 @@ type FieldResolver {
 
 union Resolver = GlooResolver | TemplateResolver | NodeJSResolver
 
-# not implemented (ilackarms)
 type GlooResolver {
-    empty: String
+    requestTemplate: RequestTemplate
+    responseTemplate: ResponseTemplate
+    destination: Destination!
 }
+
+type RequestTemplate {
+    verb: String!
+    path: String!
+    body: String!
+    headers: MapStringString
+}
+
+type ResponseTemplate {
+    body: String!
+    headers: MapStringString
+}
+
 type TemplateResolver {
-    empty: String
+    inlineTemplate: String
 }
+
 type NodeJSResolver {
     empty: String
 }
@@ -8378,9 +8758,22 @@ input InputResolver {
     nodeResolver: InputNodeJSResolver
 }
 
-# not implemented (ilackarms)
 input InputGlooResolver {
-    empty: String
+    requestTemplate: InputRequestTemplate
+    responseTemplate: InputResponseTemplate
+    destination: InputDestination!
+}
+
+input InputRequestTemplate {
+    verb: String!
+    path: String!
+    body: String!
+    headers: InputMapStringString
+}
+
+input InputResponseTemplate {
+    body: String!
+    headers: InputMapStringString
 }
 input InputTemplateResolver {
     empty: String

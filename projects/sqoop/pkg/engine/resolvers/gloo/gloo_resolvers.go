@@ -25,27 +25,38 @@ func NewResolverFactory(proxyAddr string) *ResolverFactory {
 	}
 }
 
+// TODO(ilackarms): support more than just Body in request/response template
 func (rf *ResolverFactory) CreateResolver(resolverMap core.ResourceRef, typeName, fieldName string, glooResolver *v1.GlooResolver) (exec.RawResolver, error) {
 	requestBodyTemplate := glooResolver.RequestTemplate
 	responseBodyTemplate := glooResolver.ResponseTemplate
-	contentType := glooResolver.ContentType
-	if contentType == "" {
-		contentType = "application/json"
+
+	contentType := "application/json"
+	if requestBodyTemplate != nil {
+		// TODO(ilackarms): find package that allows us to convert from http1->http2 header style
+		ct := requestBodyTemplate.Headers[":content-type"]
+		if ct != "" {
+			contentType = ct
+		}
+		ct = requestBodyTemplate.Headers["Content-Type"]
+		if ct != "" {
+			contentType = ct
+		}
 	}
+
 	var (
 		requestTemplate  *template.Template
 		responseTemplate *template.Template
 		err              error
 	)
 
-	if requestBodyTemplate != "" {
-		requestTemplate, err = util.Template(requestBodyTemplate)
+	if requestBodyTemplate != nil {
+		requestTemplate, err = util.Template(requestBodyTemplate.Body)
 		if err != nil {
 			return nil, errors.Wrap(err, "parsing request body template failed")
 		}
 	}
-	if responseBodyTemplate != "" {
-		responseTemplate, err = util.Template(responseBodyTemplate)
+	if responseBodyTemplate != nil {
+		responseTemplate, err = util.Template(responseBodyTemplate.Body)
 		if err != nil {
 			return nil, errors.Wrap(err, "parsing response body template failed")
 		}

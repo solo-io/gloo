@@ -474,7 +474,7 @@ union Resolver = GlooResolver | TemplateResolver | NodeJSResolver
 
 type GlooResolver {
     requestTemplate: RequestTemplate
-    responseTemplate: ResponseTempalte
+    responseTemplate: ResponseTemplate
     destination: Destination!
 }
 
@@ -482,12 +482,12 @@ type RequestTemplate {
     verb: String!
     path: String!
     body: String!
-    headers: [KeyValueMatcher!]
+    headers: MapStringString
 }
 
 type ResponseTemplate {
     body: String!
-    headers: [KeyValueMatcher!]
+    headers: MapStringString
 }
 
 type TemplateResolver {
@@ -527,14 +527,9 @@ input InputResolver {
     nodeResolver: InputNodeJSResolver
 }
 
-# not implemented (ilackarms)
-input InputGlooResolver {
-    empty: String
-}
-
 input InputGlooResolver {
     requestTemplate: InputRequestTemplate
-    responseTemplate: InputResponseTempalte
+    responseTemplate: InputResponseTemplate
     destination: InputDestination!
 }
 
@@ -542,12 +537,12 @@ input InputRequestTemplate {
     verb: String!
     path: String!
     body: String!
-    headers: [InputKeyValueMatcher!]
+    headers: InputMapStringString
 }
 
 input InputResponseTemplate {
     body: String!
-    headers: [InputKeyValueMatcher!]
+    headers: InputMapStringString
 }
 input InputTemplateResolver {
     empty: String

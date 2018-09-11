@@ -304,29 +304,36 @@ func (c *Converter) ConvertInputRoute(route InputRoute) (*v1.Route, error) {
 	if err != nil {
 		return nil, err
 	}
-	action := &v1.Route_RouteAction{
-		RouteAction: &v1.RouteAction{},
+	action, err := convertInputDestinationToAction(route.Destination)
+	if err != nil {
+		return nil, err
 	}
-	v1Route := &v1.Route{
+	return &v1.Route{
 		Matcher:      match,
 		RoutePlugins: convertInputRoutePlugins(route.Plugins),
-		Action:       action,
-	}
+		Action: &v1.Route_RouteAction{
+			RouteAction: action,
+		},
+	}, nil
+}
+
+func convertInputDestinationToAction(dest InputDestination) (*v1.RouteAction, error) {
+	action := &v1.RouteAction{}
 	switch {
-	case route.Destination.SingleDestination != nil:
-		dest, err := convertInputSingleDestination(*route.Destination.SingleDestination)
+	case dest.SingleDestination != nil:
+		dest, err := convertInputSingleDestination(*dest.SingleDestination)
 		if err != nil {
 			return nil, err
 		}
-		action.RouteAction.Destination = &v1.RouteAction_Single{
+		action.Destination = &v1.RouteAction_Single{
 			Single: dest,
 		}
-	case route.Destination.MultiDestination != nil:
-		weightedDestinations, err := convertInputDestinations(route.Destination.MultiDestination.Destinations)
+	case dest.MultiDestination != nil:
+		weightedDestinations, err := convertInputDestinations(dest.MultiDestination.Destinations)
 		if err != nil {
 			return nil, err
 		}
-		action.RouteAction.Destination = &v1.RouteAction_Multi{
+		action.Destination = &v1.RouteAction_Multi{
 			Multi: &v1.MultiDestination{
 				Destinations: weightedDestinations,
 			},
@@ -334,7 +341,7 @@ func (c *Converter) ConvertInputRoute(route InputRoute) (*v1.Route, error) {
 	default:
 		return nil, errors.Errorf("must specify exactly one of SingleDestination or MultiDestinations")
 	}
-	return v1Route, nil
+	return action, nil
 }
 
 func convertInputMatcher(match InputMatcher) (*v1.Matcher, error) {
@@ -491,18 +498,22 @@ func convertOutputRoute(route *v1.Route) (Route, bool) {
 		log.Printf("warning: %v does not have a RouteAction, ignoring", route)
 		return Route{}, false
 	}
+	return Route{
+		Matcher:     convertOutputMatcher(route.Matcher),
+		Destination: convertOutputDestination(action.RouteAction),
+		Plugins:     convertOutputRoutePlugins(route.RoutePlugins),
+	}, true
+}
+
+func convertOutputDestination(action *v1.RouteAction) Destination {
 	var outDest Destination
-	switch dest := action.RouteAction.Destination.(type) {
+	switch dest := action.Destination.(type) {
 	case *v1.RouteAction_Single:
 		outDest = convertOutputSingleDestination(dest.Single)
 	case *v1.RouteAction_Multi:
 		outDest = convertOutputMultiDestination(dest.Multi.Destinations)
 	}
-	return Route{
-		Matcher:     convertOutputMatcher(route.Matcher),
-		Destination: outDest,
-		Plugins:     convertOutputRoutePlugins(route.RoutePlugins),
-	}, true
+	return outDest
 }
 
 func convertOutputMatcher(match *v1.Matcher) Matcher {
@@ -659,11 +670,14 @@ func convertOutputTypeResolver(typeName string, typeResolver *sqoopv1.TypeResolv
 	}
 }
 
-// TODO(ilacakitems): implement these
 func convertOutputResolver(resolver *sqoopv1.FieldResolver) Resolver {
-	switch resolver.Resolver.(type) {
+	switch res := resolver.Resolver.(type) {
 	case *sqoopv1.FieldResolver_GlooResolver:
-		return &GlooResolver{}
+		return &GlooResolver{
+			RequestTemplate:  convertOutputRequestTemplate(res.GlooResolver.RequestTemplate),
+			ResponseTemplate: convertOutputResponseTemplate(res.GlooResolver.ResponseTemplate),
+			Destination:      convertOutputDestination(res.GlooResolver.Action),
+		}
 	case *sqoopv1.FieldResolver_TemplateResolver:
 		return &TemplateResolver{}
 	case *sqoopv1.FieldResolver_NodejsResolver:
@@ -671,6 +685,28 @@ func convertOutputResolver(resolver *sqoopv1.FieldResolver) Resolver {
 	}
 	log.Printf("invalid resolver type: %v", resolver)
 	return nil
+}
+
+func convertOutputRequestTemplate(t *sqoopv1.RequestTemplate) *RequestTemplate {
+	if t == nil {
+		return nil
+	}
+	return &RequestTemplate{
+		Verb:    t.Verb,
+		Path:    t.Path,
+		Body:    t.Body,
+		Headers: NewMapStringString(t.Headers),
+	}
+}
+
+func convertOutputResponseTemplate(t *sqoopv1.ResponseTemplate) *ResponseTemplate {
+	if t == nil {
+		return nil
+	}
+	return &ResponseTemplate{
+		Body:    t.Body,
+		Headers: NewMapStringString(t.Headers),
+	}
 }
 
 func (c *Converter) ConvertInputResolverMaps(resolverMaps []*InputResolverMap) (sqoopv1.ResolverMapList, error) {
@@ -718,9 +754,17 @@ func convertInputTypeResolver(typeResolver InputTypeResolver) (*sqoopv1.TypeReso
 func convertInputResolver(resolver InputResolver) (*sqoopv1.FieldResolver, error) {
 	switch {
 	case resolver.GlooResolver != nil:
+		action, err := convertInputDestinationToAction(resolver.GlooResolver.Destination)
+		if err != nil {
+			return nil, err
+		}
 		return &sqoopv1.FieldResolver{
 			Resolver: &sqoopv1.FieldResolver_GlooResolver{
-				GlooResolver: &sqoopv1.GlooResolver{},
+				GlooResolver: &sqoopv1.GlooResolver{
+					RequestTemplate:  convertInputRequestTemplate(resolver.GlooResolver.RequestTemplate),
+					ResponseTemplate: convertInputResponseTemplate(resolver.GlooResolver.ResponseTemplate),
+					Action: action,
+				},
 			},
 		}, nil
 	case resolver.TemplateResolver != nil:
@@ -737,6 +781,28 @@ func convertInputResolver(resolver InputResolver) (*sqoopv1.FieldResolver, error
 		}, nil
 	}
 	return nil, errors.Errorf("invalid input resolver: %#v", resolver)
+}
+
+func convertInputRequestTemplate(t *InputRequestTemplate) *sqoopv1.RequestTemplate {
+	if t == nil {
+		return nil
+	}
+	return &sqoopv1.RequestTemplate{
+		Verb:    t.Verb,
+		Path:    t.Path,
+		Body:    t.Body,
+		Headers: t.Headers.GoType(),
+	}
+}
+
+func convertInputResponseTemplate(t *InputResponseTemplate) *sqoopv1.ResponseTemplate {
+	if t == nil {
+		return nil
+	}
+	return &sqoopv1.ResponseTemplate{
+		Body:    t.Body,
+		Headers: t.Headers.GoType(),
+	}
 }
 
 // common
