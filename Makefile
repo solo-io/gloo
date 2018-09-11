@@ -149,10 +149,30 @@ gateway: $(OUTPUT_DIR)/gateway-linux-amd64
 $(OUTPUT_DIR)/Dockerfile.gateway: $(GATEWAY_DIR)/cmd/Dockerfile
 	cp $< $@
 
-gateway-docker: $(OUTPUT_DIR)/gateway-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gateway
-	docker build -t soloio/control-plane-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gateway
+# gateway-docker: $(OUTPUT_DIR)/gateway-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gateway
+# 	docker build -t soloio/control-plane-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gateway
 
-contorl-plane-docker: gateway-docker
+#----------------------------------------------------------------------------------
+# Sqoop
+#----------------------------------------------------------------------------------
+
+SQOOP_DIR=projects/sqoop
+SQOOP_SOURCES=$(shell find $(SQOOP_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+
+$(OUTPUT_DIR)/sqoop-linux-amd64: $(SQOOP_SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(SQOOP_DIR)/cmd/main.go
+
+
+.PHONY: sqoop
+sqoop: $(OUTPUT_DIR)/sqoop-linux-amd64
+
+$(OUTPUT_DIR)/Dockerfile.sqoop: $(SQOOP_DIR)/cmd/Dockerfile
+	cp $< $@
+
+sqoop-docker: $(OUTPUT_DIR)/sqoop-linux-amd64 $(OUTPUT_DIR)/Dockerfile.sqoop
+	docker build -t soloio/control-plane-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.sqoop
+
+control-plane-docker: sqoop-docker
 #----------------------------------------------------------------------------------
 # Discovery
 #----------------------------------------------------------------------------------
