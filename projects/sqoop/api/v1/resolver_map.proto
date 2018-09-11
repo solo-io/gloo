@@ -58,22 +58,25 @@ message GlooResolver {
     // the Request Template, if specified, will become the body of the HTTP request used to invoke a function through Gloo
     // input parameters, if needed, should be specified in the request template. See Sqoop's [Resolver documentation](TODO)
     // for more information on Request Templates.
-    string request_template = 1;
+    RequestTemplate request_template = 1;
     // The response template, if specified, will transform the body of HTTP responses returned by Gloo functions.
     // This field should be used if the object returned by the Gloo Function does not match the type specified in the GraphQL schema.
     // It can also be used to modify or transform responses from their original state. See Sqoop's [Resolver documentation](TODO)
     // for more information on Response Templates.
-    string response_template = 2;
-    // Optional. Use to set the outbound HTTP Request header `Content-Type`. Defaults to `application/json`
-    string content_type = 3;
-    // Specify the destination Sqoop should invoke. The function must be one registered to Gloo.
+    ResponseTemplate response_template = 2;
 
-    // the routing action to take when resolver is executed
+    // the routing action to take when resolver is executed. usually this is a Route destination
     gloo.solo.io.RouteAction action = 4;
 }
 
 message RequestTemplate {
-    string path = 1;
+    string verb = 1;
+    string path = 2;
+    string body = 3;
+    map<string, string> headers = 3;
+}
+
+message ResponseTemplate {
     string body = 2;
     map<string, string> headers = 3;
 }

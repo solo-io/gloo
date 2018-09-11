@@ -69,7 +69,8 @@ type ResolverMapMutation {
     create(resolverMap: InputResolverMap!): ResolverMap
     update(resolverMap: InputResolverMap!): ResolverMap
     delete(name: String!): ResolverMap
-    setResolver(resolverMap: InputResourceRef!, typeName: String!, fieldName: String!, resolver: !InputGlooResolver): ResolverMap
+    # LATER
+    setResolver(resolverMap: InputResourceRef!, typeName: String!, fieldName: String!, resolver: InputGlooResolver!): ResolverMap
 }
 
 type SchemaQuery {
@@ -471,10 +472,22 @@ type FieldResolver {
 
 union Resolver = GlooResolver | TemplateResolver | NodeJSResolver
 
-# not implemented (ilackarms)
 type GlooResolver {
+    requestTemplate: RequestTemplate
+    responseTemplate: ResponseTempalte
+    destination: Destination!
+}
 
-    empty: String
+type RequestTemplate {
+    verb: String!
+    path: String!
+    body: String!
+    headers: [KeyValueMatcher!]
+}
+
+type ResponseTemplate {
+    body: String!
+    headers: [KeyValueMatcher!]
 }
 
 type TemplateResolver {
@@ -517,6 +530,24 @@ input InputResolver {
 # not implemented (ilackarms)
 input InputGlooResolver {
     empty: String
+}
+
+input InputGlooResolver {
+    requestTemplate: InputRequestTemplate
+    responseTemplate: InputResponseTempalte
+    destination: InputDestination!
+}
+
+input InputRequestTemplate {
+    verb: String!
+    path: String!
+    body: String!
+    headers: [InputKeyValueMatcher!]
+}
+
+input InputResponseTemplate {
+    body: String!
+    headers: [InputKeyValueMatcher!]
 }
 input InputTemplateResolver {
     empty: String
