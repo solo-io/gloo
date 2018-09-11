@@ -70,6 +70,6 @@ func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
 		},
 		GrpcServer: grpcServer,
 		KubeClient: clientset,
-		DevMode:    true,
+		DevMode:    false,
 	}, nil
 }

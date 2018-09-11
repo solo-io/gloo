@@ -18,7 +18,7 @@ func main() {
 
 func run() error {
 	port := flag.Int("p", 8082, "port to bind")
-	prod := flag.Bool("prod", false, "connect to real gloo storage")
+	dev := flag.Bool("dev", false, "use memory instead of connecting to real gloo storage")
 	flag.Parse()
 	glooOpts, err := gloosetup.DefaultKubernetesConstructOpts()
 	if err != nil {
@@ -34,7 +34,7 @@ func run() error {
 	}
 
 	log.Printf("listening on :%v", *port)
-	if err := setup.Setup(*port, *prod, glooOpts, gatewayOpts, sqoopOpts); err != nil {
+	if err := setup.Setup(*port, *dev, glooOpts, gatewayOpts, sqoopOpts); err != nil {
 		return err
 	}
 	return nil

@@ -48,10 +48,9 @@ func NewOpts(
 		Proxies:         proxies,
 		Namespacer:      namespacer,
 		WatchOpts:       watchOpts,
+		DevMode:         devMode,
 	}
 }
-
-//  ilackarms: We can just put any hacky stuff we need here
 
 func DefaultKubernetesConstructOpts() (Opts, error) {
 	cfg, err := kubeutils.GetConfig("", "")
@@ -90,5 +89,6 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 			Ctx:         ctx,
 			RefreshRate: time.Minute,
 		},
+		DevMode: false,
 	}, nil
 }

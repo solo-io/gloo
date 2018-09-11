@@ -95,7 +95,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 			Ctx:         ctx,
 			RefreshRate: time.Minute,
 		},
-		DevMode: true,
+		DevMode: false,
 	}, nil
 }
 
@@ -160,12 +160,6 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	// 	return err
 	// }
 
-	// TODO(ilackarms): Sample Resource stuff. (might be a concern for solo-kit)
-	// if opts.DevMode {
-	// 	if err := addSampleData(opts, virtualServicesClient); err != nil {
-	// 		return err
-	// 	}
-	// }
 
 	emitter := v1.NewApiEmitter(resolverMapClient, schemaClient)
 

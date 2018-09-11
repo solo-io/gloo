@@ -22,10 +22,10 @@ import (
 	"github.com/solo-io/solo-kit/samples"
 )
 
-func Setup(port int, prod bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
+func Setup(port int, dev bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
 	// override with memory stuff
 	// TODO(ilackarms): move this into a bootstrap package where it can be shared
-	if !prod {
+	if dev {
 		inMemory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
 		}
