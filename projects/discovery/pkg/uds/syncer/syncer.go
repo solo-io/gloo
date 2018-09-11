@@ -12,14 +12,14 @@ import (
 )
 
 type syncer struct {
-	disc        *discovery.UpstreamDiscovery
+	uds *discovery.UpstreamDiscovery
 	refreshRate time.Duration
 	discOpts    discovery.Opts
 }
 
 func NewSyncer(disc *discovery.UpstreamDiscovery, discOpts discovery.Opts, refreshRate time.Duration) v1.DiscoverySyncer {
 	s := &syncer{
-		disc:        disc,
+		uds:         disc,
 		refreshRate: refreshRate,
 		discOpts:    discOpts,
 	}
@@ -41,7 +41,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.DiscoverySnapshot) error {
 		RefreshRate: s.refreshRate,
 	}
 
-	udsErrs, err := s.disc.StartUds(opts, s.discOpts)
+	udsErrs, err := s.uds.StartUds(opts, s.discOpts)
 	if err != nil {
 		return err
 	}
