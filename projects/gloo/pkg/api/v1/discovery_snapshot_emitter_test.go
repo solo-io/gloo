@@ -28,6 +28,7 @@ var _ = Describe("V1Emitter", func() {
 		namespace2     string
 		cfg            *rest.Config
 		emitter        DiscoveryEmitter
+		secretClient   SecretClient
 		upstreamClient UpstreamClient
 		kube           kubernetes.Interface
 	)
@@ -46,6 +47,16 @@ var _ = Describe("V1Emitter", func() {
 			// this test does not require a kube clientset
 		}
 
+		// Secret Constructor
+
+		kube, err = kubernetes.NewForConfig(cfg)
+		Expect(err).NotTo(HaveOccurred())
+		secretClientFactory := &factory.KubeSecretClientFactory{
+			Clientset: kube,
+		}
+		secretClient, err = NewSecretClient(secretClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+
 		// Upstream Constructor
 		upstreamClientFactory := &factory.KubeResourceClientFactory{
 			Crd: UpstreamCrd,
@@ -53,7 +64,7 @@ var _ = Describe("V1Emitter", func() {
 		}
 		upstreamClient, err = NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
-		emitter = NewDiscoveryEmitter(upstreamClient)
+		emitter = NewDiscoveryEmitter(secretClient, upstreamClient)
 	})
 	AfterEach(func() {
 		services.TeardownKube(namespace1)
@@ -71,6 +82,66 @@ var _ = Describe("V1Emitter", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		var snap *DiscoverySnapshot
+
+		/*
+			Secret
+		*/
+
+		assertSnapshotSecrets := func(expectSecrets SecretList, unexpectSecrets SecretList) {
+		drain:
+			for {
+				select {
+				case snap = <-snapshots:
+					for _, expected := range expectSecrets {
+						if _, err := snap.Secrets.List().Find(expected.Metadata.Ref().Strings()); err != nil {
+							continue drain
+						}
+					}
+					for _, unexpected := range unexpectSecrets {
+						if _, err := snap.Secrets.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
+							continue drain
+						}
+					}
+					break drain
+				case err := <-errs:
+					Expect(err).NotTo(HaveOccurred())
+				case <-time.After(time.Second * 10):
+					nsList1, _ := secretClient.List(namespace1, clients.ListOpts{})
+					nsList2, _ := secretClient.List(namespace2, clients.ListOpts{})
+					combined := nsList1.ByNamespace()
+					combined.Add(nsList2...)
+					Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
+				}
+			}
+		}
+
+		secret1a, err := secretClient.Write(NewSecret(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		secret1b, err := secretClient.Write(NewSecret(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+
+		assertSnapshotSecrets(SecretList{secret1a, secret1b}, nil)
+
+		secret2a, err := secretClient.Write(NewSecret(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		secret2b, err := secretClient.Write(NewSecret(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+
+		assertSnapshotSecrets(SecretList{secret1a, secret1b, secret2a, secret2b}, nil)
+
+		err = secretClient.Delete(secret2a.Metadata.Namespace, secret2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		err = secretClient.Delete(secret2b.Metadata.Namespace, secret2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+
+		assertSnapshotSecrets(SecretList{secret1a, secret1b}, SecretList{secret2a, secret2b})
+
+		err = secretClient.Delete(secret1a.Metadata.Namespace, secret1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		err = secretClient.Delete(secret1b.Metadata.Namespace, secret1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+
+		assertSnapshotSecrets(nil, SecretList{secret1a, secret1b, secret2a, secret2b})
 
 		/*
 			Upstream
