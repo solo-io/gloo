@@ -127,6 +127,11 @@ $(OUTPUT_DIR)/Dockerfile.apiserver: $(APISERVER_DIR)/cmd/Dockerfile
 apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.apiserver
 	docker build -t soloio/apiserver-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.apiserver
 
+
+gloo-i-docker:
+	cd projects/apiserver/ui && if [ -d gloo-i ]; then cd gloo-i && git pull && cd ..; else  git clone git@github.com:solo-io/gloo-i.git gloo-i/; fi
+	cd projects/apiserver/ui && docker build -t soloio/gloo-i:$(VERSION) .
+
 #----------------------------------------------------------------------------------
 # Gateway
 #----------------------------------------------------------------------------------
