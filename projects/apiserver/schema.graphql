@@ -473,11 +473,14 @@ union Resolver = GlooResolver | TemplateResolver | NodeJSResolver
 
 # not implemented (ilackarms)
 type GlooResolver {
+
     empty: String
 }
+
 type TemplateResolver {
-    empty: String
+    inlineTemplate: String
 }
+
 type NodeJSResolver {
     empty: String
 }
