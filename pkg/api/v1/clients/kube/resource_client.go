@@ -105,12 +105,12 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 		if !opts.OverwriteExisting {
 			return nil, errors.NewExistErr(meta)
 		}
-		if _, err := rc.kube.ResourcesV1().Resources(meta.Namespace).Update(resourceCrd); err != nil {
+		if _, updateerr := rc.kube.ResourcesV1().Resources(meta.Namespace).Update(resourceCrd); updateerr != nil {
 			original, err := rc.kube.ResourcesV1().Resources(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			if err == nil {
-				return nil, errors.Wrapf(err, "updating kube resource %v:%v (want %v)", resourceCrd.Name, resourceCrd.ResourceVersion, original.ResourceVersion)
+				return nil, errors.Wrapf(updateerr, "updating kube resource %v:%v (want %v)", resourceCrd.Name, resourceCrd.ResourceVersion, original.ResourceVersion)
 			}
-			return nil, errors.Wrapf(err, "updating kube resource %v", resourceCrd.Name)
+			return nil, errors.Wrapf(updateerr, "updating kube resource %v", resourceCrd.Name)
 		}
 	} else {
 		if _, err := rc.kube.ResourcesV1().Resources(meta.Namespace).Create(resourceCrd); err != nil {
