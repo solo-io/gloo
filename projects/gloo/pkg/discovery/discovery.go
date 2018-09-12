@@ -19,7 +19,7 @@ type DiscoveryPlugin interface {
 	// UDS API
 	// send us an updated list of upstreams on every change
 	// namespace is for writing to, not necessarily reading from
-	DiscoverUpstreams(namespace string, opts clients.WatchOpts, discOpts Opts) (chan v1.UpstreamList, chan error, error)
+	DiscoverUpstreams(watchNamespaces []string, writeNamespace string, opts clients.WatchOpts, discOpts Opts) (chan v1.UpstreamList, chan error, error)
 	// finalize any changes to the desired upstream before it gets written
 	// for example, copying the functions from the old upstream to the new.
 	// a value of false indicates that the resource does not need to be updated
@@ -32,6 +32,7 @@ type DiscoveryPlugin interface {
 }
 
 type UpstreamDiscovery struct {
+	watchNamespaces    []string
 	writeNamespace     string
 	upstreamReconciler v1.UpstreamReconciler
 	discoveryPlugins   []DiscoveryPlugin
@@ -43,10 +44,11 @@ type EndpointDiscovery struct {
 	discoveryPlugins   []DiscoveryPlugin
 }
 
-func NewUpstreamDiscovery(writeNamespace string,
+func NewUpstreamDiscovery(watchNamespaces []string, writeNamespace string,
 	upstreamClient v1.UpstreamClient,
 	discoveryPlugins []DiscoveryPlugin) *UpstreamDiscovery {
 	return &UpstreamDiscovery{
+		watchNamespaces:    watchNamespaces,
 		writeNamespace:     writeNamespace,
 		upstreamReconciler: v1.NewUpstreamReconciler(upstreamClient),
 		discoveryPlugins:   discoveryPlugins,
@@ -69,7 +71,7 @@ func (d *UpstreamDiscovery) StartUds(opts clients.WatchOpts, discOpts Opts) (cha
 	upstreamsByUds := make(map[DiscoveryPlugin]v1.UpstreamList)
 	lock := sync.Mutex{}
 	for _, uds := range d.discoveryPlugins {
-		upstreams, errs, err := uds.DiscoverUpstreams(d.writeNamespace, opts, discOpts)
+		upstreams, errs, err := uds.DiscoverUpstreams(d.watchNamespaces, d.writeNamespace, opts, discOpts)
 		if err != nil {
 			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(uds).Name())
 		}

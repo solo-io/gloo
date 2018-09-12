@@ -17,14 +17,8 @@ import (
 	kubewatch "k8s.io/apimachinery/pkg/watch"
 )
 
-func (p *plugin) DiscoverUpstreams(writeNamespace string, opts clients.WatchOpts, discOpts discovery.Opts) (chan v1.UpstreamList, chan error, error) {
+func (p *plugin) DiscoverUpstreams(watchNamespaces []string, writeNamespace string, opts clients.WatchOpts, discOpts discovery.Opts) (chan v1.UpstreamList, chan error, error) {
 	opts = opts.WithDefaults()
-	serviceWatch, err := p.kube.CoreV1().Services("").Watch(metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
-	})
-	if err != nil {
-		return nil, nil, err
-	}
 	upstreamsChan := make(chan v1.UpstreamList)
 	errs := make(chan error)
 	discoverUpstreams := func() {
@@ -37,6 +31,30 @@ func (p *plugin) DiscoverUpstreams(writeNamespace string, opts clients.WatchOpts
 		}
 		upstreamsChan <- convertServices(list.Items, discOpts, writeNamespace)
 	}
+
+	events := make(chan kubewatch.Event)
+	for _, ns := range watchNamespaces {
+		serviceWatch, err := p.kube.CoreV1().Services(ns).Watch(metav1.ListOptions{
+			LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
+		})
+		if err != nil {
+			return nil, nil, err
+		}
+		go func(w kubewatch.Interface) {
+			for  {
+				select {
+				case event, ok := <- w.ResultChan():
+					if !ok {
+						return
+					}
+					events <- event
+				case <-opts.Ctx.Done():
+					serviceWatch.Stop()
+					return
+				}
+			}
+		}(serviceWatch)
+	}
 	go func() {
 		// watch should open up with an initial read
 		discoverUpstreams()
@@ -44,7 +62,7 @@ func (p *plugin) DiscoverUpstreams(writeNamespace string, opts clients.WatchOpts
 			select {
 			case <-time.After(opts.RefreshRate):
 				discoverUpstreams()
-			case event := <-serviceWatch.ResultChan():
+			case event := <-events:
 				switch event.Type {
 				case kubewatch.Error:
 					errs <- errors.Errorf("error during pod watch: %v", event)

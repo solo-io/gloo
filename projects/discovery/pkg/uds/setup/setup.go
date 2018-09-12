@@ -29,7 +29,7 @@ func Setup(opts bootstrap.Opts) error {
 	}
 }
 
-func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) error {
+func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 	watchOpts := opts.WatchOpts.WithDefaults()
 
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")
@@ -61,7 +61,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 			discoveryPlugins = append(discoveryPlugins, disc)
 		}
 	}
-	disc := discovery.NewUpstreamDiscovery(opts.WriteNamespace, upstreamClient, discoveryPlugins)
+	disc := discovery.NewUpstreamDiscovery(watchNamespaces, opts.WriteNamespace, upstreamClient, discoveryPlugins)
 
 	sync := syncer.NewSyncer(disc,
 		discovery.Opts{}, // TODO(ilackarms)
@@ -70,7 +70,7 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 
 	errs := make(chan error)
 
-	eventLoopErrs, err := eventLoop.Run(discoveredNamespaces, watchOpts)
+	eventLoopErrs, err := eventLoop.Run(watchNamespaces, watchOpts)
 	if err != nil {
 		return err
 	}
