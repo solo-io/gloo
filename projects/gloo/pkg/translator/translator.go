@@ -28,7 +28,7 @@ func NewTranslator(plugins []plugins.Plugin) Translator {
 }
 
 func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors, error) {
-	params.Ctx = contextutils.WithLogger(params.Ctx, "gloo.translator")
+	params.Ctx = contextutils.WithLogger(params.Ctx, "translator")
 	for _, p := range t.plugins {
 		if err := p.Init(plugins.InitParams{
 			Ctx: params.Ctx,
