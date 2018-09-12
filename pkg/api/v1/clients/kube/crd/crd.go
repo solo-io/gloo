@@ -36,7 +36,7 @@ func NewCrd(GroupName string,
 	KindName string,
 	ShortName string,
 	Type runtime.Object) Crd {
-	return Crd{
+	c := Crd{
 		GroupName: GroupName,
 		Plural:    Plural,
 		Group:     Group,
@@ -45,10 +45,11 @@ func NewCrd(GroupName string,
 		ShortName: ShortName,
 		Type:      Type,
 	}
+	c.AddToScheme(scheme.Scheme)
+	return c
 }
 
 func (d Crd) Register(apiexts apiexts.Interface) error {
-	d.AddToScheme(scheme.Scheme)
 	toRegister := &v1beta1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{Name: d.FullName()},
 		Spec: v1beta1.CustomResourceDefinitionSpec{
