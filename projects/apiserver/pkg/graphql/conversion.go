@@ -673,6 +673,10 @@ func convertOutputTypeResolver(typeName string, typeResolver *sqoopv1.TypeResolv
 func convertOutputResolver(resolver *sqoopv1.FieldResolver) Resolver {
 	switch res := resolver.Resolver.(type) {
 	case *sqoopv1.FieldResolver_GlooResolver:
+		// Until implemented - bypass. TODO -implement
+		if res.GlooResolver == nil {
+			return nil
+		}
 		return &GlooResolver{
 			RequestTemplate:  convertOutputRequestTemplate(res.GlooResolver.RequestTemplate),
 			ResponseTemplate: convertOutputResponseTemplate(res.GlooResolver.ResponseTemplate),
