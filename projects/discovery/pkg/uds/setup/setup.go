@@ -42,7 +42,15 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 		return err
 	}
 
-	cache := v1.NewDiscoveryEmitter(upstreamClient)
+	secretClient, err := v1.NewSecretClient(opts.Secrets)
+	if err != nil {
+		return err
+	}
+	if err := secretClient.Register(); err != nil {
+		return err
+	}
+
+	cache := v1.NewDiscoveryEmitter(secretClient, upstreamClient)
 
 	plugins := registry.Plugins(opts)
 

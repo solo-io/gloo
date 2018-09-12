@@ -17,11 +17,11 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 
 	"github.com/pkg/errors"
-	discovery "github.com/solo-io/solo-kit/projects/discovery/pkg"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 	rest_plugins "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
 	transformation_plugins "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
 )
 
 var commonSwaggerURIs = []string{
@@ -36,25 +36,22 @@ var commonSwaggerURIs = []string{
 // maybe backoff with initial 1 minute a total of 10 minutes till giving up. this should probably be configurable
 
 type SwaggerFunctionDiscoveryFactory struct {
-	DetectionTimeout   time.Duration
-	DetectionRetryBase time.Duration
-	FunctionPollTime   time.Duration
-	swaggerUrisToTry   []string
+	DetectionTimeout time.Duration
+	FunctionPollTime time.Duration
+	SwaggerUrisToTry []string
 }
 
-func (f *SwaggerFunctionDiscoveryFactory) NewFunctionDiscovery(u *v1.Upstream) discovery.UpstreamFunctionDiscovery {
+func (f *SwaggerFunctionDiscoveryFactory) NewFunctionDiscovery(u *v1.Upstream) fds.UpstreamFunctionDiscovery {
 	return &SwaggerFunctionDiscovery{
 		detectionTimeout:   f.DetectionTimeout,
-		detectionRetryBase: f.DetectionRetryBase,
 		functionPollTime:   f.FunctionPollTime,
-		swaggerUrisToTry:   f.swaggerUrisToTry,
+		swaggerUrisToTry:   append(f.SwaggerUrisToTry, commonSwaggerURIs...),
 		upstream:           u,
 	}
 }
 
 type SwaggerFunctionDiscovery struct {
 	detectionTimeout   time.Duration
-	detectionRetryBase time.Duration
 	functionPollTime   time.Duration
 	upstream           *v1.Upstream
 	swaggerUrisToTry   []string
@@ -160,7 +157,7 @@ func (d *SwaggerFunctionDiscovery) detectUpstreamTypeOnce(ctx context.Context, b
 
 }
 
-func (f *SwaggerFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(discovery.UpstreamMutator) error) error {
+func (f *SwaggerFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(fds.UpstreamMutator) error) error {
 	in := f.upstream
 	spec := getswagspec(in)
 	if spec == nil || spec.SwaggerSpec == nil {
@@ -177,7 +174,7 @@ func (f *SwaggerFunctionDiscovery) DetectFunctions(ctx context.Context, url *url
 	return errors.New("upstream doesn't have a swagger source")
 }
 
-func (f *SwaggerFunctionDiscovery) detectFunctionsFromUrl(ctx context.Context, url string, in *v1.Upstream, updatecb func(discovery.UpstreamMutator) error) error {
+func (f *SwaggerFunctionDiscovery) detectFunctionsFromUrl(ctx context.Context, url string, in *v1.Upstream, updatecb func(fds.UpstreamMutator) error) error {
 	for {
 		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
 
@@ -205,7 +202,7 @@ func (f *SwaggerFunctionDiscovery) detectFunctionsFromUrl(ctx context.Context, u
 
 }
 
-func (f *SwaggerFunctionDiscovery) detectFunctionsFromInline(ctx context.Context, document string, in *v1.Upstream, updatecb func(discovery.UpstreamMutator) error) error {
+func (f *SwaggerFunctionDiscovery) detectFunctionsFromInline(ctx context.Context, document string, in *v1.Upstream, updatecb func(fds.UpstreamMutator) error) error {
 	spec, err := parseSwaggerDoc([]byte(document))
 	if err != nil {
 		return err
@@ -213,7 +210,7 @@ func (f *SwaggerFunctionDiscovery) detectFunctionsFromInline(ctx context.Context
 	return f.detectFunctionsFromSpec(ctx, spec, in, updatecb)
 }
 
-func (f *SwaggerFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, swaggerSpec *spec.Swagger, in *v1.Upstream, updatecb func(discovery.UpstreamMutator) error) error {
+func (f *SwaggerFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, swaggerSpec *spec.Swagger, in *v1.Upstream, updatecb func(fds.UpstreamMutator) error) error {
 	var consumesJson bool
 	if len(swaggerSpec.Consumes) == 0 {
 		consumesJson = true

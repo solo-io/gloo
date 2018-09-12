@@ -6,6 +6,7 @@ import (
 
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
+	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
 type UpstreamMutator func(*v1.Upstream) error
@@ -47,7 +48,22 @@ type Resolver interface {
 		tcp if not known
 		http \ https if known or perhaps nats?
 	*/
-	Resolve(u *v1.Upstream) (*url.URL, error)
+	Resolve(us *v1.Upstream) (*url.URL, error)
+}
+
+type Resolvers []Resolver
+
+func (resolvers Resolvers) Resolve(us *v1.Upstream) (*url.URL, error) {
+	for _, res := range resolvers {
+		u, err := res.Resolve(us)
+		if err != nil {
+			return nil, err
+		}
+		if u != nil {
+			return u, nil
+		}
+	}
+	return nil, errors.Errorf("no resolver found for upstream %v", us.Metadata.Name)
 }
 
 // STEP ONE, for generic upstream, detect

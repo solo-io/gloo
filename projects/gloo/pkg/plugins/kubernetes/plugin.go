@@ -7,10 +7,21 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"k8s.io/client-go/kubernetes"
+	"net/url"
+	"fmt"
 )
 
 type plugin struct {
 	kube kubernetes.Interface
+}
+
+func (p *plugin) Resolve(u *v1.Upstream) (*url.URL, error) {
+	kubeSpec, ok := u.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
+	if !ok {
+		return nil, nil
+	}
+
+	return url.Parse(fmt.Sprintf("tcp://%v.%v.svc.cluster.local:%v", kubeSpec.Kube.ServiceName, kubeSpec.Kube.ServiceNamespace, kubeSpec.Kube.ServicePort))
 }
 
 func NewPlugin(opts bootstrap.Opts) plugins.Plugin {

@@ -6,8 +6,11 @@ import (
 	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/aws"
+	"time"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/swagger"
 )
 
 func Setup(opts bootstrap.Opts) error {
@@ -41,23 +44,40 @@ func setupForNamespaces(discoveredNamespaces []string, opts bootstrap.Opts) erro
 	if err := upstreamClient.Register(); err != nil {
 		return err
 	}
+	secretClient, err := v1.NewSecretClient(opts.Secrets)
+	if err != nil {
+		return err
+	}
+	if err := secretClient.Register(); err != nil {
+		return err
+	}
 
-	cache := v1.NewDiscoveryEmitter(upstreamClient)
+	cache := v1.NewDiscoveryEmitter(secretClient, upstreamClient)
 
-	plugins := registry.Plugins(opts)
-
-	var discoveryPlugins []discovery.DiscoveryPlugin
-	for _, plug := range plugins {
-		disc, ok := plug.(discovery.DiscoveryPlugin)
+	var resolvers fds.Resolvers
+	for _, plug := range registry.Plugins(opts) {
+		resolver, ok := plug.(fds.Resolver)
 		if ok {
-			discoveryPlugins = append(discoveryPlugins, disc)
+			resolvers = append(resolvers, resolver)
 		}
 	}
-	disc := discovery.NewUpstreamDiscovery(opts.WriteNamespace, upstreamClient, discoveryPlugins)
 
-	sync := syncer.NewSyncer(disc,
-		discovery.Opts{}, // TODO(ilackarms)
-		watchOpts.RefreshRate)
+	// TODO: unhardcode
+	functionalPlugins := []fds.FunctionDiscoveryFactory{
+		&aws.AWSLambdaFunctionDiscoveryFactory{
+			PollingTime: time.Second,
+		},
+		&swagger.SwaggerFunctionDiscoveryFactory{
+			DetectionTimeout: time.Minute,
+			FunctionPollTime: time.Second * 15,
+		},
+	}
+
+	// TODO(yuval-k): max Concurrency here
+	updater := fds.NewUpdater(watchOpts.Ctx, resolvers, upstreamClient, 0, functionalPlugins)
+	disc := fds.NewFunctionDiscovery(updater)
+
+	sync := syncer.NewSyncer(disc)
 	eventLoop := v1.NewDiscoveryEventLoop(cache, sync)
 
 	errs := make(chan error)
