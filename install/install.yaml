@@ -241,7 +241,7 @@ spec:
               containerPort: 80
               protocol: TCP
         - name: apiserver
-          image: soloio/apiserver-ee:v1-359-gbb0fd4c
+          image: soloio/apiserver-ee:v1-362-ge03c888
           env:
           - name: OAUTH_CLIENT
             value: gloo
