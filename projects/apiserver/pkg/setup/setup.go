@@ -87,10 +87,14 @@ func Setup(port int, dev bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if err := registerAll(upstreams, secrets, artifacts, virtualServices, resolverMaps, schemas); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+
+		if dev {
+			if err := registerAll(upstreams, secrets, artifacts, virtualServices, resolverMaps, schemas); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
+
 		corsSettings.Handler(handler.GraphQL(
 			graph.NewExecutableSchema(graph.Config{
 				Resolvers: apiserver.NewResolvers(upstreams, schemas, artifacts, secrets, virtualServices, resolverMaps),
