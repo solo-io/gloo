@@ -21,7 +21,7 @@ var globalRegistry = func(opts bootstrap.Opts) *registry {
 	return &registry{
 		plugins: []plugins.Plugin{
 			// plugins should be added here
-			aws.NewPlugin(),
+			aws.NewPlugin(&transformationPlugin.RequireTransformationFilter),
 			azure.NewPlugin(&transformationPlugin.RequireTransformationFilter),
 			kubernetes.NewPlugin(opts),
 			rest.NewPlugin(&transformationPlugin.RequireTransformationFilter),

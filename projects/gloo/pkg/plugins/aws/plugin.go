@@ -9,6 +9,8 @@ import (
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	envoy_transform "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
+
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
@@ -19,6 +21,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
 )
 
 //go:generate protoc -I$GOPATH/src/github.com/lyft/protoc-gen-validate -I. -I$GOPATH/src/github.com/gogo/protobuf/protobuf --gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/ filter.proto
@@ -37,13 +40,15 @@ func getLambdaHostname(s *aws.UpstreamSpec) string {
 	return fmt.Sprintf("lambda.%s.amazonaws.com", s.Region)
 }
 
-func NewPlugin() plugins.Plugin {
-	return &plugin{}
+func NewPlugin(transformsAdded *bool) plugins.Plugin {
+	return &plugin{
+		transformsAdded: transformsAdded}
 }
 
 type plugin struct {
 	recordedUpstreams map[core.ResourceRef]*aws.UpstreamSpec
 	ctx               context.Context
+	transformsAdded   *bool
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
@@ -121,7 +126,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 }
 
 func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
-	return pluginutils.MarkPerFilterConfig(p.ctx, in, out, filterName, func(spec *v1.Destination) (proto.Message, error) {
+	err := pluginutils.MarkPerFilterConfig(p.ctx, in, out, filterName, func(spec *v1.Destination) (proto.Message, error) {
 		// check if it's aws destination
 		if spec.DestinationSpec == nil {
 			return nil, nil
@@ -152,6 +157,44 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			}
 		}
 		return nil, errors.Errorf("unknown function %v", logicalName)
+	})
+
+	if err != nil {
+		return err
+	}
+	return pluginutils.MarkPerFilterConfig(p.ctx, in, out, transformation.FilterName, func(spec *v1.Destination) (proto.Message, error) {
+		// check if it's aws destination
+		if spec.DestinationSpec == nil {
+			return nil, nil
+		}
+		awsDestinationSpec, ok := spec.DestinationSpec.DestinationType.(*v1.DestinationSpec_Aws)
+		if !ok {
+			return nil, nil
+		}
+
+		repsonsetransform := awsDestinationSpec.Aws.ResponseTrasnformation
+		if !repsonsetransform {
+			return nil, nil
+		}
+		*p.transformsAdded = true
+		return &envoy_transform.RouteTransformations{
+			ResponseTransformation: &envoy_transform.Transformation{
+				TransformationType: &envoy_transform.Transformation_TransformationTemplate{
+					TransformationTemplate: &envoy_transform.TransformationTemplate{
+						BodyTransformation: &envoy_transform.TransformationTemplate_Body{
+							Body: &envoy_transform.InjaTemplate{
+								Text: "{{body}}",
+							},
+						},
+						Headers: map[string]*envoy_transform.InjaTemplate{
+							"content-type": {
+								Text: "text/html",
+							},
+						},
+					},
+				},
+			},
+		}, nil
 	})
 }
 

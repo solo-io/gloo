@@ -78,7 +78,13 @@ var _ = Describe("AWS Lambda", func() {
 							LambdaFunctionName: "uppercase",
 							Qualifier:          "",
 							LogicalName:        "uppercase",
-						}},
+						},
+							{
+								LambdaFunctionName: "contact-form",
+								Qualifier:          "",
+								LogicalName:        "contact-form",
+							},
+						},
 						Region:    region,
 						SecretRef: secret.Metadata.Ref(),
 					},
@@ -92,7 +98,7 @@ var _ = Describe("AWS Lambda", func() {
 
 	}
 
-	validateLambda := func(envoyPort uint32) {
+	validateLambda := func(envoyPort uint32, substring string) {
 
 		body := []byte("\"solo.io\"")
 
@@ -116,12 +122,14 @@ var _ = Describe("AWS Lambda", func() {
 			}
 
 			return string(body), nil
-		}, "10s", "1s").Should(ContainSubstring("SOLO.IO"))
+		}, "10s", "1s").Should(ContainSubstring(substring))
 	}
-
+	validateLambdaUppercase := func(envoyPort uint32) {
+		validateLambda(envoyPort, "SOLO.IO")
+	}
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
-		t := services.RunGateway(ctx, false)
+		t := services.RunGateway(ctx, true)
 		testClients = t
 		var err error
 		envoyInstance, err = envoyFactory.NewEnvoyInstance()
@@ -192,7 +200,64 @@ var _ = Describe("AWS Lambda", func() {
 		_, err = proxycli.Write(proxy, opts)
 		Expect(err).NotTo(HaveOccurred())
 
-		validateLambda(envoyPort)
+		validateLambdaUppercase(envoyPort)
+	})
+
+	It("be able lambda with response transform", func() {
+		err := envoyInstance.Run(testClients.GlooPort)
+		Expect(err).NotTo(HaveOccurred())
+
+		proxycli := testClients.ProxyClient
+		envoyPort := uint32(8080)
+		proxy := &gloov1.Proxy{
+			Metadata: core.Metadata{
+				Name:      "proxy",
+				Namespace: "default",
+			},
+			Listeners: []*gloov1.Listener{{
+				Name:        "listener",
+				BindAddress: "127.0.0.1",
+				BindPort:    envoyPort,
+				ListenerType: &gloov1.Listener_HttpListener{
+					HttpListener: &gloov1.HttpListener{
+						VirtualHosts: []*gloov1.VirtualHost{{
+							Name:    "virt1",
+							Domains: []string{"*"},
+							Routes: []*gloov1.Route{{
+								Matcher: &gloov1.Matcher{
+									PathSpecifier: &gloov1.Matcher_Prefix{
+										Prefix: "/",
+									},
+								},
+								Action: &gloov1.Route_RouteAction{
+									RouteAction: &gloov1.RouteAction{
+										Destination: &gloov1.RouteAction_Single{
+											Single: &gloov1.Destination{
+												Upstream: upstream.Metadata.Ref(),
+												DestinationSpec: &gloov1.DestinationSpec{
+													DestinationType: &gloov1.DestinationSpec_Aws{
+														Aws: &aws_plugin.DestinationSpec{
+															LogicalName:            "contact-form",
+															ResponseTrasnformation: true,
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							}},
+						}},
+					},
+				},
+			}},
+		}
+
+		var opts clients.WriteOpts
+		_, err = proxycli.Write(proxy, opts)
+		Expect(err).NotTo(HaveOccurred())
+
+		validateLambda(envoyPort, `<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>`)
 	})
 
 	It("be able to call lambda via gateway", func() {
@@ -254,6 +319,6 @@ var _ = Describe("AWS Lambda", func() {
 			_, err = testClients.GatewayClient.Write(gateway, opts)
 			Expect(err).NotTo(HaveOccurred())
 		*/
-		validateLambda(envoyPort)
+		validateLambdaUppercase(envoyPort)
 	})
 })

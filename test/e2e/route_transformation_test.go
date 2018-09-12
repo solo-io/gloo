@@ -13,8 +13,8 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	envoy_transform "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
-	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
+	"github.com/solo-io/solo-kit/test/v1helpers"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -50,7 +50,7 @@ var _ = Describe("Transformations", func() {
 
 	It("should should transform json to html response", func() {
 
-		tu := helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
+		tu := v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
 
 		var opts clients.WriteOpts
 		up := tu.Upstream
@@ -85,7 +85,7 @@ var _ = Describe("Transformations", func() {
 														},
 													},
 													Headers: map[string]*envoy_transform.InjaTemplate{
-														"content-type:": {
+														"content-type": {
 															Text: "text/html",
 														},
 													},
