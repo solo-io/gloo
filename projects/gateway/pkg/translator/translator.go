@@ -5,6 +5,8 @@ import (
 
 	"log"
 
+	"fmt"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -80,6 +82,7 @@ func desiredListener(gateway *v1.Gateway, virtualServices v1.VirtualServiceList,
 			resourceErrs.AddError(gateway, err)
 			continue
 		}
+		virtualService.VirtualHost.Name = fmt.Sprintf("%v.%v", ref.Namespace, ref.Name)
 		virtualHosts = append(virtualHosts, virtualService.VirtualHost)
 	}
 	return &gloov1.Listener{
