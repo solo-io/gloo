@@ -436,7 +436,7 @@ func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpe
 			},
 		}, nil
 	}
-	return nil, errors.Errorf("unknown destination spec type: %#v", spec)
+	return nil, nil
 }
 
 func convertInputSingleDestination(inputDest InputSingleDestination) (*v1.Destination, error) {
