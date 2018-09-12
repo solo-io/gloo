@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"google.golang.org/grpc"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 )
 
 // used to let nodes know they have a bad config
@@ -21,7 +22,7 @@ const fallbackNodeKey = "misconfigured-node"
 
 const (
 	// TODO(ilackarms): expose these as a configuration option (maybe)
-	fallbackBindPort   = 80
+	fallbackBindPort   = defaults.HttpPort
 	fallbackBindAddr   = "::"
 	fallbackStatusCode = 500
 )

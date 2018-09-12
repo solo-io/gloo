@@ -4,6 +4,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 )
 
 func DefaultGateway(writeNamespace string) *v1.Gateway {
@@ -13,7 +14,7 @@ func DefaultGateway(writeNamespace string) *v1.Gateway {
 			Namespace: writeNamespace,
 		},
 		BindAddress: "::",
-		BindPort:    80,
+		BindPort:    defaults.HttpPort,
 		// all virtualservices
 	}
 }
