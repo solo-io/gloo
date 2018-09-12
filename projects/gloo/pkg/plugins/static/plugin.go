@@ -13,12 +13,26 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"net/url"
+	"fmt"
 )
 
 type plugin struct{ hostRewriteUpstreams map[core.ResourceRef]bool }
 
 func NewPlugin() plugins.Plugin {
 	return &plugin{}
+}
+
+func (p *plugin) Resolve(u *v1.Upstream) (*url.URL, error) {
+	staticSpec, ok := u.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Static)
+	if !ok {
+		return nil, nil
+	}
+	if len(staticSpec.Static.Hosts) == 0 {
+		return nil, errors.Errorf("must provide at least 1 host in static spec")
+	}
+
+	return url.Parse(fmt.Sprintf("tcp://%v:%v", staticSpec.Static.Hosts[0].Addr, staticSpec.Static.Hosts[0].Port))
 }
 
 func (p *plugin) Init(params plugins.InitParams) error {
