@@ -242,8 +242,6 @@ spec:
               protocol: TCP
         - name: apiserver
           image: soloio/apiserver-ee:v1-359-gbb0fd4c
-          args:
-          - "-prod"
           env:
           - name: OAUTH_CLIENT
             value: gloo
