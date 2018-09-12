@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 )
 
 func MakeMetadata(name, namespace string) core.Metadata {
@@ -26,7 +27,7 @@ func MakeMetadata(name, namespace string) core.Metadata {
 func Secrets() v1.SecretList {
 	return v1.SecretList{
 		{
-			Metadata: MakeMetadata("some-secret", "gloo-system"),
+			Metadata: MakeMetadata("some-secret", defaults.GlooSystem),
 			Kind: &v1.Secret_Aws{
 				Aws: &v1.AwsSecret{
 					AccessKey: "TODO_REMOVE" + os.Getenv("AWS_ACCESS_KEY"),
@@ -35,7 +36,7 @@ func Secrets() v1.SecretList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("my-precious", "gloo-system"),
+			Metadata: MakeMetadata("my-precious", defaults.GlooSystem),
 			Kind: &v1.Secret_Azure{
 				Azure: &v1.AzureSecret{
 					ApiKeys: map[string]string{"TO": "DO"},
@@ -43,7 +44,7 @@ func Secrets() v1.SecretList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("ssl-secret", "gloo-system"),
+			Metadata: MakeMetadata("ssl-secret", defaults.GlooSystem),
 			Kind: &v1.Secret_Tls{
 				Tls: &v1.TlsSecret{
 					// TODO(ilackarms): ssl secret
@@ -71,7 +72,7 @@ func Upstreams() v1.UpstreamList {
 					Aws: &aws.UpstreamSpec{
 						Region: "us-east-1",
 						SecretRef: core.ResourceRef{
-							Namespace: "gloo-system",
+							Namespace: defaults.GlooSystem,
 							Name:      "some-secret",
 						},
 						LambdaFunctions: []*aws.LambdaFunctionSpec{
@@ -91,7 +92,7 @@ func Upstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("kube-1", "gloo-system"),
+			Metadata: MakeMetadata("kube-1", defaults.GlooSystem),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Kube{
 					Kube: &kubernetes.UpstreamSpec{
@@ -103,7 +104,7 @@ func Upstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("kube-2", "gloo-system"),
+			Metadata: MakeMetadata("kube-2", defaults.GlooSystem),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Kube{
 					Kube: &kubernetes.UpstreamSpec{
@@ -126,14 +127,14 @@ func Upstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("azure", "gloo-system"),
+			Metadata: MakeMetadata("azure", defaults.GlooSystem),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Azure{
 					Azure: &azure.UpstreamSpec{
 						FunctionAppName: "one-cloud-to-rule-them-all",
 						SecretRef: core.ResourceRef{
 							Name:      "my-precious",
-							Namespace: "gloo-system",
+							Namespace: defaults.GlooSystem,
 						},
 						Functions: []*azure.UpstreamSpec_FunctionSpec{
 							{
@@ -154,7 +155,7 @@ func Upstreams() v1.UpstreamList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("static-1", "gloo-system"),
+			Metadata: MakeMetadata("static-1", defaults.GlooSystem),
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Static{
 					Static: &static.UpstreamSpec{
@@ -169,8 +170,8 @@ func Upstreams() v1.UpstreamList {
 }
 
 func VirtualServices() gatewayv1.VirtualServiceList {
-	meta1 := MakeMetadata("virtualservice1", "gloo-system")
-	meta2 := MakeMetadata("virtualservice2", "gloo-system")
+	meta1 := MakeMetadata("virtualservice1", defaults.GlooSystem)
+	meta2 := MakeMetadata("virtualservice2", defaults.GlooSystem)
 	return gatewayv1.VirtualServiceList{
 		{
 			Metadata: meta1,
@@ -237,7 +238,7 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 												Destination: &v1.Destination{
 													Upstream: core.ResourceRef{
 														Name:      "azure",
-														Namespace: "gloo-system",
+														Namespace: defaults.GlooSystem,
 													},
 													DestinationSpec: &v1.DestinationSpec{
 														DestinationType: &v1.DestinationSpec_Azure{
@@ -288,7 +289,7 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 												Destination: &v1.Destination{
 													Upstream: core.ResourceRef{
 														Name:      "azure",
-														Namespace: "gloo-system",
+														Namespace: defaults.GlooSystem,
 													},
 													DestinationSpec: &v1.DestinationSpec{
 														DestinationType: &v1.DestinationSpec_Azure{
@@ -328,7 +329,7 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 									Single: &v1.Destination{
 										Upstream: core.ResourceRef{
 											Name:      "static-1",
-											Namespace: "gloo-system",
+											Namespace: defaults.GlooSystem,
 										},
 									},
 								},
@@ -348,7 +349,7 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 									Single: &v1.Destination{
 										Upstream: core.ResourceRef{
 											Name:      "kube-1",
-											Namespace: "gloo-system",
+											Namespace: defaults.GlooSystem,
 										},
 									},
 								},
@@ -364,7 +365,7 @@ func VirtualServices() gatewayv1.VirtualServiceList {
 func ResolverMaps() sqoopv1.ResolverMapList {
 	return sqoopv1.ResolverMapList{
 		{
-			Metadata: MakeMetadata("resolvermap1", "gloo-system"),
+			Metadata: MakeMetadata("resolvermap1", defaults.GlooSystem),
 			Types: map[string]*sqoopv1.TypeResolver{
 				"Foo": {
 					Fields: map[string]*sqoopv1.FieldResolver{
@@ -381,7 +382,7 @@ func ResolverMaps() sqoopv1.ResolverMapList {
 			},
 		},
 		{
-			Metadata: MakeMetadata("resolvermap2", "gloo-system"),
+			Metadata: MakeMetadata("resolvermap2", defaults.GlooSystem),
 			Types: map[string]*sqoopv1.TypeResolver{
 				"Baz": {
 					Fields: map[string]*sqoopv1.FieldResolver{
@@ -403,7 +404,7 @@ func ResolverMaps() sqoopv1.ResolverMapList {
 func Schemas() sqoopv1.SchemaList {
 	return sqoopv1.SchemaList{
 		{
-			Metadata:    MakeMetadata("petstore-gen", "gloo-system"),
+			Metadata:    MakeMetadata("petstore-gen", defaults.GlooSystem),
 			ResolverMap: core.ResourceRef{}, // intentionally empty, test generation
 			InlineSchema: `
 # The query type, represents all of the entry points into our object graph
@@ -436,10 +437,10 @@ enum Status {
 		},
 
 		{
-			Metadata: MakeMetadata("petstore", "gloo-system"),
+			Metadata: MakeMetadata("petstore", defaults.GlooSystem),
 			ResolverMap: core.ResourceRef{
 				Name:      "petstore",
-				Namespace: "gloo-system",
+				Namespace: defaults.GlooSystem,
 			},
 			InlineSchema: `
 # The query type, represents all of the entry points into our object graph

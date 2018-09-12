@@ -28,6 +28,7 @@ import (
 	"go.uber.org/zap"
 
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 )
 
 type TestClients struct {
@@ -88,13 +89,13 @@ func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResource
 		Cache: cache,
 	}
 	return setup.NewOpts(
-		"gloo-system",
+		defaults.GlooSystem,
 		f,
 		f,
 		f,
 		f,
 		f,
-		static.NewNamespacer([]string{"default", "gloo-system"}),
+		static.NewNamespacer([]string{"default", defaults.GlooSystem}),
 		clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Minute,
@@ -120,12 +121,12 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache) bo
 		Cache: cache,
 	}
 	return bootstrap.Opts{
-		WriteNamespace: "gloo-system",
+		WriteNamespace: defaults.GlooSystem,
 		Upstreams:      f,
 		Proxies:        f,
 		Secrets:        f,
 		Artifacts:      f,
-		Namespacer:     static.NewNamespacer([]string{"default", "gloo-system"}),
+		Namespacer:     static.NewNamespacer([]string{"default", defaults.GlooSystem}),
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Second / 10,

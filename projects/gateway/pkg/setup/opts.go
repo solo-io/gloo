@@ -13,6 +13,7 @@ import (
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"k8s.io/client-go/kubernetes"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 )
 
 type Opts struct {
@@ -64,7 +65,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 	ctx := contextutils.WithLogger(context.Background(), "gateway")
 	ctx = contextutils.SilenceLogger(ctx)
 	return Opts{
-		WriteNamespace: "gloo-system",
+		WriteNamespace: defaults.GlooSystem,
 		Gateways: &factory.KubeResourceClientFactory{
 			Crd: gatewayv1.GatewayCrd,
 			Cfg: cfg,
@@ -84,7 +85,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 		Secrets: &factory.KubeSecretClientFactory{
 			Clientset: clientset,
 		},
-		Namespacer: static.NewNamespacer([]string{"default", "gloo-system"}),
+		Namespacer: static.NewNamespacer([]string{"default", defaults.GlooSystem}),
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Minute,

@@ -19,6 +19,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/router"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-kit/samples"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 )
 
 type Opts struct {
@@ -73,7 +74,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 	ctx := contextutils.WithLogger(context.Background(), "gateway")
 	ctx = contextutils.SilenceLogger(ctx)
 	return Opts{
-		WriteNamespace: "gloo-system",
+		WriteNamespace: defaults.GlooSystem,
 		Schemas: &factory.KubeResourceClientFactory{
 			Crd: v1.SchemaCrd,
 			Cfg: cfg,
@@ -90,7 +91,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 			Crd: gloov1.UpstreamCrd,
 			Cfg: cfg,
 		},
-		Namespacer: static.NewNamespacer([]string{"default", "gloo-system"}),
+		Namespacer: static.NewNamespacer([]string{"default", defaults.GlooSystem}),
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Minute,

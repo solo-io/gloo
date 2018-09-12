@@ -18,6 +18,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 )
 
 //  ilackarms: We can just put any hacky stuff we need here
@@ -44,7 +45,7 @@ func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
 		)),
 	)
 	return bootstrap.Opts{
-		WriteNamespace: "gloo-system",
+		WriteNamespace: defaults.GlooSystem,
 		Upstreams: &factory.KubeResourceClientFactory{
 			Crd: v1.UpstreamCrd,
 			Cfg: cfg,
@@ -59,7 +60,7 @@ func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
 		Artifacts: &factory.KubeConfigMapClientFactory{
 			Clientset: clientset,
 		},
-		Namespacer: static.NewNamespacer([]string{"default", "gloo-system"}),
+		Namespacer: static.NewNamespacer([]string{"default", defaults.GlooSystem}),
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Minute,
