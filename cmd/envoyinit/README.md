@@ -4,7 +4,9 @@
 cat <<EOF > /tmp/envoy.yaml
 node:
   cluster: doesntmatter
-  id: gloo-system~gateway-proxy
+  id: imspecial
+  metadata:
+    role: "gloo-system~gateway-proxy"
 
 static_resources:
   clusters:
@@ -41,4 +43,4 @@ admin:
 
 EOF
 
-docker run --rm -ti -v /tmp/envoy.yaml:/etc/envoy/envoy.yaml:ro soloio/data-plane-ee:v1-304-gce45551
+docker run --rm -ti --network=host -v /tmp/envoy.yaml:/etc/envoy/envoy.yaml:ro soloio/data-plane-ee:v1-304-gce45551
