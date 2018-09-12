@@ -3,8 +3,6 @@ package setup
 import (
 	"context"
 	"net"
-	"time"
-
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -63,7 +61,7 @@ func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
 		Namespacer: static.NewNamespacer([]string{"default", defaults.GlooSystem}),
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
-			RefreshRate: time.Minute,
+			RefreshRate: defaults.RefreshRate,
 		},
 		BindAddr: &net.TCPAddr{
 			IP:   net.ParseIP("0.0.0.0"),

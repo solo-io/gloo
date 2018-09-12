@@ -2,8 +2,6 @@ package setup
 
 import (
 	"context"
-	"time"
-
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
@@ -95,7 +93,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 		Namespacer: static.NewNamespacer([]string{"default", defaults.GlooSystem}),
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
-			RefreshRate: time.Minute,
+			RefreshRate: defaults.RefreshRate,
 		},
 		DevMode: false,
 	}, nil
