@@ -101,18 +101,8 @@ func (t *translator) envoyRoute(params plugins.Params, report reportFunc, in *v1
 
 	setMatch(in, out)
 
-	t.setAction(params.Snapshot, report, in, out)
+	t.setAction(params, report, in, out)
 
-	// run the plugins
-	for _, plug := range t.plugins {
-		routePlugin, ok := plug.(plugins.RoutePlugin)
-		if !ok {
-			continue
-		}
-		if err := routePlugin.ProcessRoute(params, in, out); err != nil {
-			report(err, "invalid route")
-		}
-	}
 	return *out
 }
 
@@ -136,10 +126,10 @@ func setMatch(in *v1.Route, out *envoyroute.Route) {
 	out.Match = match
 }
 
-func (t *translator) setAction(snap *v1.ApiSnapshot, report reportFunc, in *v1.Route, out *envoyroute.Route) {
+func (t *translator) setAction(params plugins.Params, report reportFunc, in *v1.Route, out *envoyroute.Route) {
 	switch action := in.Action.(type) {
 	case *v1.Route_RouteAction:
-		if err := validateRouteDestinations(snap.Upstreams.List(), action.RouteAction); err != nil {
+		if err := validateRouteDestinations(params.Snapshot.Upstreams.List(), action.RouteAction); err != nil {
 			report(err, "invalid route")
 		}
 
@@ -147,7 +137,18 @@ func (t *translator) setAction(snap *v1.ApiSnapshot, report reportFunc, in *v1.R
 			Route: &envoyroute.RouteAction{},
 		}
 		if err := setRouteAction(action.RouteAction, out.Action.(*envoyroute.Route_Route).Route); err != nil {
-			report(err, "error on route")
+			report(err, "translator error on route")
+		}
+
+		// run the plugins
+		for _, plug := range t.plugins {
+			routePlugin, ok := plug.(plugins.RoutePlugin)
+			if !ok {
+				continue
+			}
+			if err := routePlugin.ProcessRoute(params, in, out); err != nil {
+				report(err, "plugin error on route")
+			}
 		}
 	case *v1.Route_DirectResponseAction:
 		out.Action = &envoyroute.Route_DirectResponse{
