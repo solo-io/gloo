@@ -29,6 +29,7 @@ type Opts struct {
 	Proxies        factory.ResourceClientFactory
 	WatchOpts      clients.WatchOpts
 	DevMode        bool
+	SampleData     bool
 
 	Namespacer namespacing.Namespacer
 
@@ -148,7 +149,7 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 		return err
 	}
 
-	if opts.DevMode {
+	if opts.SampleData {
 		if err := addSampleData(opts, schemaClient, resolverMapClient); err != nil {
 			return err
 		}

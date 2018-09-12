@@ -61,6 +61,7 @@ func getConcurrencyChan(maxoncurrency uint) chan struct{} {
 
 func NewUpdater(ctx context.Context, resolver Resolver, upstreamclient UpstreamWriterClient, maxconncurrency uint, functionalPlugins []FunctionDiscoveryFactory) *Updater {
 	ctx = contextutils.WithLogger(ctx, "function-discovery-updater")
+	ctx = contextutils.SilenceLogger(ctx)
 	return &Updater{
 		logger:                 contextutils.LoggerFrom(ctx),
 		ctx:                    ctx,
