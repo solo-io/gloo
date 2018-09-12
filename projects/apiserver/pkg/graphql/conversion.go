@@ -442,6 +442,14 @@ func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpe
 				},
 			},
 		}, nil
+	case spec.Azure != nil:
+		return &v1.DestinationSpec{
+			DestinationType: &v1.DestinationSpec_Azure{
+				Azure: &azure.DestinationSpec{
+					FunctionName: spec.Azure.FunctionName,
+				},
+			},
+		}, nil
 	}
 	return nil, nil
 }
@@ -611,6 +619,10 @@ func convertOutputDestinationSpec(spec *v1.DestinationSpec) DestinationSpec {
 		return &AwsDestinationSpec{
 			LogicalName:     destSpec.Aws.LogicalName,
 			InvocationStyle: invocationStyle,
+		}
+	case *v1.DestinationSpec_Azure:
+		return &AzureDestinationSpec{
+			FunctionName: destSpec.Azure.FunctionName,
 		}
 	}
 	log.Printf("unknown destination spec type: %#v", spec)
