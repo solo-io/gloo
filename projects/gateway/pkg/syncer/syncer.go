@@ -49,7 +49,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	if proxy == nil {
 		return s.proxyReconciler.Reconcile(s.writeNamespace, nil, nil, clients.ListOpts{})
 	}
-	logger.Debugf("creating proxy %v", proxy.Metadata.Ref())
+	logger.Infof("creating proxy %v", proxy.Metadata.Ref())
 	if err := s.proxyReconciler.Reconcile(s.writeNamespace, gloov1.ProxyList{proxy}, nil, clients.ListOpts{}); err != nil {
 		return err
 	}

@@ -67,7 +67,7 @@ func (s *Syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		logger.Errorf("snapshot %v was rejected due to invalid config: %v", err)
 		return nil
 	}
-	logger.Debugf("creating proxy %v", proxy.Metadata.Ref())
+	logger.Infof("creating proxy %v", proxy.Metadata.Ref())
 	if err := s.proxyReconciler.Reconcile(s.writeNamespace, gloov1.ProxyList{proxy}, nil, clients.ListOpts{}); err != nil {
 		return err
 	}

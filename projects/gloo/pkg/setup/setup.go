@@ -38,6 +38,7 @@ func Setup(opts bootstrap.Opts) error {
 
 func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 	watchOpts := opts.WatchOpts.WithDefaults()
+	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gloo")
 
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")
 	endpointsFactory := &factory.MemoryResourceClientFactory{

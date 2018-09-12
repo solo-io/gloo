@@ -39,7 +39,7 @@ func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
 			grpc_ctxtags.StreamServerInterceptor(),
 			grpc_zap.StreamServerInterceptor(zap.NewNop()),
 			func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-				logger.Debugf("gRPC call: %v", info.FullMethod)
+				logger.Infof("gRPC call: %v", info.FullMethod)
 				return handler(srv, ss)
 			},
 		)),

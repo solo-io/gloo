@@ -35,6 +35,7 @@ func Setup(opts Opts) error {
 
 func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	opts.WatchOpts = opts.WatchOpts.WithDefaults()
+	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gateway")
 
 	gatewayClient, err := v1.NewGatewayClient(opts.Gateways)
 	if err != nil {

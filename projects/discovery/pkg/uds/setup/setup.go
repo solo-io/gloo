@@ -31,8 +31,7 @@ func Setup(opts bootstrap.Opts) error {
 
 func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 	watchOpts := opts.WatchOpts.WithDefaults()
-
-	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")
+	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "uds")
 
 	upstreamClient, err := v1.NewUpstreamClient(opts.Upstreams)
 	if err != nil {

@@ -41,9 +41,9 @@ func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycac
 	resourceErrs := make(reporter.ResourceErrors)
 
 	// endpoints and listeners are shared between listeners
-	logger.Debugf("computing envoy clusters for proxy: %v", proxy.Metadata.Name)
+	logger.Infof("computing envoy clusters for proxy: %v", proxy.Metadata.Name)
 	clusters := t.computeClusters(params, resourceErrs)
-	logger.Debugf("computing envoy endpoints for proxy: %v", proxy.Metadata.Name)
+	logger.Infof("computing envoy endpoints for proxy: %v", proxy.Metadata.Name)
 	endpoints := computeClusterEndpoints(params.Snapshot.Upstreams.List(), params.Snapshot.Endpoints.List())
 
 	var (
@@ -51,7 +51,7 @@ func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycac
 		listeners    []*envoyapi.Listener
 	)
 	for _, listener := range proxy.Listeners {
-		logger.Debugf("computing envoy resources for listener: %v", listener.Name)
+		logger.Infof("computing envoy resources for listener: %v", listener.Name)
 		report := func(err error, format string, args ...interface{}) {
 			resourceErrs.AddError(proxy, errors.Wrapf(err, format, args...))
 		}
