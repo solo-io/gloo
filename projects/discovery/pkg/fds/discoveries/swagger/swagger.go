@@ -62,7 +62,11 @@ func getswagspec(u *v1.Upstream) *rest_plugins.ServiceSpec_SwaggerInfo {
 	if !ok {
 		return nil
 	}
-	restwrapper, ok := spec.GetServiceSpec().PluginType.(*plugins.ServiceSpec_Rest)
+	serviceSpec := spec.GetServiceSpec()
+	if serviceSpec == nil {
+		return nil
+	}
+	restwrapper, ok := serviceSpec.PluginType.(*plugins.ServiceSpec_Rest)
 	if !ok {
 		return nil
 	}

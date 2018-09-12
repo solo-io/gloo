@@ -77,12 +77,6 @@ type detectResult struct {
 	fp   UpstreamFunctionDiscovery
 }
 
-func (u *Updater) Run() error {
-
-	// watch upstreams and the such.
-	return nil
-}
-
 func (u *Updater) SetSecrets(secretlist v1.SecretList) {
 	// set secrets should send a secrets update to all the upstreams.
 	// reload all upstreams for now, figureout something better later?
@@ -118,15 +112,16 @@ func (u *Updater) UpstreamAdded(upstream *v1.Upstream) {
 		return
 	}
 	ctx, cancel := context.WithCancel(u.ctx)
-	u.activeupstreams[key] = &updaterUpdater{
+	updater := &updaterUpdater{
 		cancel:            cancel,
 		ctx:               ctx,
 		upstream:          upstream,
 		functionalPlugins: u.createDiscoveries(upstream),
 		parent:            u,
 	}
+	u.activeupstreams[key] = updater
 	go func() {
-		u.Run()
+		updater.Run()
 		cancel()
 		// TODO(yuval-k): consider removing upstream from map.
 		// need to be careful here as there might be a race if an update happens in the same time.
