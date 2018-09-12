@@ -5,7 +5,6 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/propagator"
@@ -41,9 +40,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	logger.Debugf("%v", snap)
 
 	proxy, resourceErrs := translator.Translate(s.writeNamespace, snap)
-	if err := s.reporter.WriteReports(ctx, resourceErrs); err != nil {
-		return errors.Wrapf(err, "writing reports")
-	}
+	reporterErr := s.reporter.WriteReports(ctx, resourceErrs)
 	if err := resourceErrs.Validate(); err != nil {
 		logger.Warnf("gateway %v was rejected due to invalid config: %v\nxDS cache will not be updated.", err)
 		return nil
@@ -59,5 +56,5 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 
 	// start propagating for new set of resources
 	// TODO(ilackarms): reinstate propagator
-	return nil //s.propagator.PropagateStatuses(snap, proxy, clients.WatchOpts{Ctx: ctx})
+	return reporterErr //s.propagator.PropagateStatuses(snap, proxy, clients.WatchOpts{Ctx: ctx})
 }
