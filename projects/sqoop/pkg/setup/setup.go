@@ -160,7 +160,6 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	// 	return err
 	// }
 
-
 	emitter := v1.NewApiEmitter(resolverMapClient, schemaClient)
 
 	rpt := reporter.NewReporter("sqoop", resolverMapClient.BaseClient(), schemaClient.BaseClient())

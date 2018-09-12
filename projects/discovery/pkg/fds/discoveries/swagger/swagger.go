@@ -17,11 +17,11 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 
 	"github.com/pkg/errors"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 	rest_plugins "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
 	transformation_plugins "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
 )
 
 var commonSwaggerURIs = []string{
@@ -43,18 +43,18 @@ type SwaggerFunctionDiscoveryFactory struct {
 
 func (f *SwaggerFunctionDiscoveryFactory) NewFunctionDiscovery(u *v1.Upstream) fds.UpstreamFunctionDiscovery {
 	return &SwaggerFunctionDiscovery{
-		detectionTimeout:   f.DetectionTimeout,
-		functionPollTime:   f.FunctionPollTime,
-		swaggerUrisToTry:   append(f.SwaggerUrisToTry, commonSwaggerURIs...),
-		upstream:           u,
+		detectionTimeout: f.DetectionTimeout,
+		functionPollTime: f.FunctionPollTime,
+		swaggerUrisToTry: append(f.SwaggerUrisToTry, commonSwaggerURIs...),
+		upstream:         u,
 	}
 }
 
 type SwaggerFunctionDiscovery struct {
-	detectionTimeout   time.Duration
-	functionPollTime   time.Duration
-	upstream           *v1.Upstream
-	swaggerUrisToTry   []string
+	detectionTimeout time.Duration
+	functionPollTime time.Duration
+	upstream         *v1.Upstream
+	swaggerUrisToTry []string
 }
 
 func getswagspec(u *v1.Upstream) *rest_plugins.ServiceSpec_SwaggerInfo {

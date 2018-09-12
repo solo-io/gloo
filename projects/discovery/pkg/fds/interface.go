@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/url"
 
+	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
-	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
 type UpstreamMutator func(*v1.Upstream) error

@@ -1,14 +1,15 @@
 package kubernetes
 
 import (
+	"fmt"
+	"net/url"
+
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"k8s.io/client-go/kubernetes"
-	"net/url"
-	"fmt"
 )
 
 type plugin struct {

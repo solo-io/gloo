@@ -1,16 +1,17 @@
 package setup
 
 import (
+	"time"
+
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/aws"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/swagger"
 	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/aws"
-	"time"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/swagger"
 )
 
 func Setup(opts bootstrap.Opts) error {
