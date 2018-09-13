@@ -29,7 +29,9 @@ import (
 )
 
 var (
-	MLists = stats.Int64("kube/lists", "The number of lists", "1")
+	MLists    = stats.Int64("kube/lists", "The number of lists", "1")
+	MWatches  = stats.Int64("kube/watches", "The number of watches", "1")
+	MWatchLen = stats.Float64("kube/watch", "The length of a watch session", "ms")
 
 	KeyNamespace, _ = tag.NewKey("namespace")
 	KeyKind, _      = tag.NewKey("kind")
@@ -44,10 +46,31 @@ var (
 			KeyKind,
 		},
 	}
+	WatchCountView = &view.View{
+		Name:        "kube/watch-count",
+		Measure:     MWatches,
+		Description: "The number of watch calls",
+		Aggregation: view.Count(),
+		TagKeys: []tag.Key{
+			KeyNamespace,
+			KeyKind,
+		},
+	}
+	WatchSeesionView = &view.View{
+		Name:        "kube/watch-session",
+		Description: "Watch session lengths in buckets",
+		Measure:     MWatchLen,
+		// [>=0ms, >=25ms, >=50ms, >=75ms, >=100ms, >=200ms, >=400ms, >=600ms, >=800ms, >=1s, >=2s, >=4s, >=6s]
+		Aggregation: view.Distribution(0, 25, 50, 75, 100, 200, 400, 600, 800, 1000, 2000, 4000, 6000, 10000),
+		TagKeys: []tag.Key{
+			KeyNamespace,
+			KeyKind,
+		},
+	}
 )
 
 func init() {
-	view.Register(ListCountView)
+	view.Register(ListCountView, WatchCountView, WatchSeesionView)
 }
 
 type ResourceClient struct {
@@ -234,7 +257,15 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		mxdelay := time.Second * 10
 		be := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{MaxDelay: &mxdelay})
 
+		ctx = contextutils.WithLogger(ctx, "watchloop")
+
 		be.Backoff(ctx, func(ctx context.Context) error {
+			startTime := time.Now()
+			defer func() {
+				ms := float64(time.Since(startTime).Nanoseconds()) / 1e6
+				stats.Record(ctx, MWatches.M(1), MWatchLen.M(ms))
+			}()
+
 			return rc.watch(ctx, namespace, opts.Selector, opts.RefreshRate, updateResourceList, errs)
 		})
 	}()
@@ -244,7 +275,7 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 
 func (rc *ResourceClient) watch(ctx context.Context, namespace string, selector map[string]string, refresh time.Duration, updateResourceList func(), errs chan<- error) error {
 
-	logger := contextutils.LoggerFrom(contextutils.WithLogger(ctx, "watchloop"))
+	logger := contextutils.LoggerFrom(ctx)
 
 	watch, err := rc.kube.ResourcesV1().Resources(namespace).Watch(metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(selector).String(),
