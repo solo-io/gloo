@@ -9,7 +9,7 @@ import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
 import core_solo_io "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 import core_solo_io1 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-import core_solo_io2 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+import _ "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal

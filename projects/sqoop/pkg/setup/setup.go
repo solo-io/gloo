@@ -2,7 +2,6 @@ package setup
 
 import (
 	"context"
-
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
@@ -19,6 +18,9 @@ import (
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/router"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-kit/samples"
+	"net/http"
+	"fmt"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
 )
 
 type Opts struct {
@@ -175,6 +177,11 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	rtr := router.NewRouter()
 
 	sync := syncer.NewSyncer(opts.WriteNamespace, rpt, writeErrs, proxyReconciler, resolverMapClient, eng, rtr)
+
+	go func() {
+		contextutils.LoggerFrom(opts.WatchOpts.Ctx).Fatalf("failed starting sqoop server: %v",
+			http.ListenAndServe(fmt.Sprintf(":%v", TODO.SqoopServerBindPort), rtr))
+	}()
 
 	eventLoop := v1.NewApiEventLoop(emitter, sync)
 	eventLoopErrs, err := eventLoop.Run(watchNamespaces, opts.WatchOpts)

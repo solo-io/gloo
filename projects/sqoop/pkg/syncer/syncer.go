@@ -12,9 +12,9 @@ import (
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/router"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/translator"
 	"github.com/vektah/gqlgen/neelance/schema"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
 )
 
 type Syncer struct {

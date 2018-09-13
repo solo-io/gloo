@@ -184,7 +184,7 @@ func aggregateEndpoints(endpointsByUds map[DiscoveryPlugin]v1.EndpointList) v1.E
 }
 
 func txnEndpoint(original, desired *v1.Endpoint) (bool, error) {
-	 equal := original.UpstreamName == desired.UpstreamName &&
+	equal := original.UpstreamName == desired.UpstreamName &&
 		original.Address == desired.Address &&
 		original.Port == desired.Port
 	return !equal, nil

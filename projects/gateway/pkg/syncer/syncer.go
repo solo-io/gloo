@@ -53,7 +53,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		desiredResources = gloov1.ProxyList{proxy}
 	}
 	if err := s.proxyReconciler.Reconcile(s.writeNamespace, desiredResources, TODO.TransitionFunction, clients.ListOpts{
-		Ctx:      ctx,
+		Ctx: ctx,
 		Selector: map[string]string{
 			"created_by": "gateway",
 		},
