@@ -46,6 +46,26 @@ func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycac
 	logger.Infof("computing envoy endpoints for proxy: %v", proxy.Metadata.Name)
 	endpoints := computeClusterEndpoints(params.Snapshot.Upstreams.List(), params.Snapshot.Endpoints.List())
 
+	// find all the eds clusters without endpoints (can happen with kube service that have no enpoints), and create a zero sized load assignment
+	// this is important as otherwise envoy will wait for them forever wondering their fate and not doing much else.
+
+ClusterLoop:
+	for _, c := range clusters {
+		if c.Type != envoyapi.Cluster_EDS {
+			continue
+		}
+		for _, ep := range endpoints {
+			if ep.ClusterName == c.Name {
+				continue ClusterLoop
+			}
+		}
+		emptyendpointlist := &envoyapi.ClusterLoadAssignment{
+			ClusterName: c.Name,
+		}
+
+		endpoints = append(endpoints, emptyendpointlist)
+	}
+
 	var (
 		routeConfigs []*envoyapi.RouteConfiguration
 		listeners    []*envoyapi.Listener
