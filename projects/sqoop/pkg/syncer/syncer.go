@@ -82,7 +82,8 @@ func (s *Syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	var resolverMapsToGenerate v1.ResolverMapList
 	var schemasToUpdate v1.SchemaList
 	for _, schema := range snap.Schemas.List() {
-		if schema.ResolverMap.Name == "" {
+		resolverMap, err := snap.ResolverMaps.List().Find(schema.Metadata.Ref().Strings())
+		if err != nil {
 			newMeta := core.Metadata{
 				Name:        schema.Metadata.Name,
 				Namespace:   schema.Metadata.Namespace,
@@ -104,7 +105,8 @@ func (s *Syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		}
 		resourceErrs.Accept(schema)
 
-		resolverMap, err := snap.ResolverMaps.List().Find(schema.ResolverMap.Strings())
+		// this time should succeed
+		resolverMap, err = snap.ResolverMaps.List().Find(schema.Metadata.Ref().Strings())
 		if err != nil {
 			resourceErrs.AddError(schema, errors.Wrapf(err, "finding resolvermap for schema"))
 			continue
@@ -126,7 +128,7 @@ func (s *Syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	}
 	s.router.UpdateEndpoints(endpoints)
 	for _, rm := range resolverMapsToGenerate {
-		if _, err := s.resolverMapClient.Write(rm, clients.WriteOpts{}); err != nil {
+		if _, err := s.resolverMapClient.Write(rm, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
 			return errors.Wrapf(err, "writing generated resolver maps to storage")
 		}
 	}

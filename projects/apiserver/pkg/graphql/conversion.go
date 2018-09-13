@@ -880,7 +880,6 @@ func (c *Converter) ConvertOutputSchemas(schemas sqoopv1.SchemaList) []*Schema {
 
 func (c *Converter) ConvertOutputSchema(schema *sqoopv1.Schema) *Schema {
 	return &Schema{
-		ResolverMap:  convertOutputRef(schema.ResolverMap),
 		InlineSchema: schema.InlineSchema,
 		Status:       convertOutputStatus(schema.Status),
 		Metadata:     convertOutputMetadata(schema.Metadata),
@@ -902,7 +901,6 @@ func (c *Converter) ConvertInputSchemas(schemas []*InputSchema) (sqoopv1.SchemaL
 func (c *Converter) ConvertInputSchema(schema InputSchema) (*sqoopv1.Schema, error) {
 	return &sqoopv1.Schema{
 		Metadata:     convertInputMetadata(schema.Metadata),
-		ResolverMap:  convertInputRef(schema.ResolverMap),
 		InlineSchema: schema.InlineSchema,
 	}, nil
 }

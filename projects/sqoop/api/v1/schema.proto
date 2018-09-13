@@ -16,12 +16,10 @@ import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 
 * The Schema object wraps the user's GraphQL Schema, which is stored as an inline string.
 * The Schema Object contains a Status field which is used by SQooP to validate the user's input schema.
+
+* Schemas are matched to resolver maps in the same namespace with the same name
 */
 message Schema {
-    // referenbce to the resolver map to use to resolve this schema.
-    // if the user leaves this empty, Sqoop will generate the skeleton of a resolver map for the user
-    core.solo.io.ResourceRef resolver_map = 2 [(gogoproto.nullable) = false];
-
     // inline the entire graphql schema as a string here
     string inline_schema = 3;
 

@@ -405,10 +405,6 @@ func Schemas() sqoopv1.SchemaList {
 	return sqoopv1.SchemaList{
 		{
 			Metadata: MakeMetadata("petstore", defaults.GlooSystem),
-			ResolverMap: core.ResourceRef{
-				Name:      "petstore",
-				Namespace: defaults.GlooSystem,
-			},
 			InlineSchema: `# The query type, represents all of the entry points into our object graph
 type Query {
     pets: [Pet]

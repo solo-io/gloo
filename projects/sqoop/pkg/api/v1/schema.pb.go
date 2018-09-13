@@ -24,9 +24,6 @@ var _ = math.Inf
 // The Schema object wraps the user's GraphQL Schema, which is stored as an inline string.
 // The Schema Object contains a Status field which is used by SQooP to validate the user's input schema.
 type Schema struct {
-	// referenbce to the resolver map to use to resolve this schema.
-	// if the user leaves this empty, Sqoop will generate the skeleton of a resolver map for the user
-	ResolverMap core_solo_io2.ResourceRef `protobuf:"bytes,2,opt,name=resolver_map,json=resolverMap" json:"resolver_map"`
 	// inline the entire graphql schema as a string here
 	InlineSchema string `protobuf:"bytes,3,opt,name=inline_schema,json=inlineSchema,proto3" json:"inline_schema,omitempty"`
 	// Status indicates the validation status of this resource.

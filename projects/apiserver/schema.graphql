@@ -563,14 +563,12 @@ input InputNodeJSResolver {
 ## Schema
 
 type Schema {
-    resolverMap: ResourceRef!
     inlineSchema: String!
     metadata: Metadata!
     status: Status!
 }
 
 input InputSchema {
-    resolverMap: InputResourceRef!
     inlineSchema: String!
     metadata: InputMetadata!
 }
