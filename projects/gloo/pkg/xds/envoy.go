@@ -12,8 +12,8 @@ import (
 	envoyserver "github.com/envoyproxy/go-control-plane/pkg/server"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"google.golang.org/grpc"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"google.golang.org/grpc"
 )
 
 // used to let nodes know they have a bad config

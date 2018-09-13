@@ -13,9 +13,9 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
 )
 
 type Converter struct{}

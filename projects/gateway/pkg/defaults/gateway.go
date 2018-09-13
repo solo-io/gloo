@@ -32,12 +32,11 @@ func DefaultVirtualService(namespace, name string) *v1.VirtualService {
 				Matcher: &gloov1.Matcher{
 					PathSpecifier: &gloov1.Matcher_Prefix{Prefix: "/"},
 				},
-				Action: &gloov1.Route_DirectResponseAction{DirectResponseAction:
-				&gloov1.DirectResponseAction{
+				Action: &gloov1.Route_DirectResponseAction{DirectResponseAction: &gloov1.DirectResponseAction{
 					Status: 200,
-					Body:`Gloo and Envoy are configured correctly!
+					Body: `Gloo and Envoy are configured correctly!
 
-Delete the '`+name+` Virtual Service to get started. 
+Delete the '` + name + ` Virtual Service to get started. 
 `,
 				}},
 			}},

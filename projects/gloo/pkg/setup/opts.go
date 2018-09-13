@@ -3,6 +3,7 @@ package setup
 import (
 	"context"
 	"net"
+
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -13,10 +14,10 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 )
 
 //  ilackarms: We can just put any hacky stuff we need here

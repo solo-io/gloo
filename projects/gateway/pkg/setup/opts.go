@@ -2,6 +2,7 @@ package setup
 
 import (
 	"context"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/namespacing"
@@ -10,8 +11,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"k8s.io/client-go/kubernetes"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"k8s.io/client-go/kubernetes"
 )
 
 type Opts struct {
