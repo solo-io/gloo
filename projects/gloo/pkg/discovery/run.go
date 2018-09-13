@@ -16,17 +16,19 @@ func RunEds(upstreamClient v1.UpstreamClient, disc *EndpointDiscovery, watchName
 	if err != nil {
 		return nil, errors.Wrapf(err, "beginning upstream watch")
 	}
-	var cancel context.CancelFunc
+	var cancel context.CancelFunc = func() {}
 	ctx := opts.Ctx
 	go func() {
+		defer cancel()
 		for {
 			select {
-			case err := <-upstreamErrs:
+			case err, ok := <-upstreamErrs:
+				if !ok {
+					return
+				}
 				errs <- err
 			case upstreamList := <-upstreams:
-				if cancel != nil {
-					cancel()
-				}
+				cancel()
 				opts.Ctx, cancel = context.WithCancel(ctx)
 
 				edsErrs, err := disc.StartEds(upstreamList, opts)

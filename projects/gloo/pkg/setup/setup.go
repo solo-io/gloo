@@ -116,7 +116,10 @@ func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 
 		for {
 			select {
-			case err := <-errs:
+			case err, ok := <-errs:
+				if !ok {
+					return
+				}
 				logger.Errorf("error: %v", err)
 			case <-watchOpts.Ctx.Done():
 				return
