@@ -190,7 +190,7 @@ spec:
       - name: solo-bot-docker-hub
       containers:
         - name: control-plane
-          image: soloio/control-plane-ee:v1-371-gaa23302
+          image: soloio/control-plane-ee:v1-400-gdd4f388
           ports:
             - name: grpc-ads
               containerPort: 8080
@@ -235,13 +235,13 @@ spec:
       - name: solo-bot-docker-hub
       containers:
         - name: gloo-i
-          image: soloio/gloo-i:v1-374-g13a1701
+          image: soloio/gloo-i:v1-400-gdd4f388
           ports:
             - name: grpc-ads
               containerPort: 80
               protocol: TCP
         - name: apiserver
-          image: soloio/apiserver-ee:v1-373-g0cfd719
+          image: soloio/apiserver-ee:v1-400-gdd4f388
           env:
           - name: OAUTH_CLIENT
             value: gloo
@@ -295,7 +295,7 @@ spec:
       - name: solo-bot-docker-hub
       containers:
       - name: ingress
-        image: soloio/data-plane-ee:v1-304-gce45551
+        image: soloio/data-plane-ee:v1-400-gdd4f388
         ports:
           - name: http
             containerPort: 8080
