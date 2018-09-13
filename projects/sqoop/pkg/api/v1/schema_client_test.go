@@ -66,7 +66,6 @@ func SchemaClientTest(namespace string, client SchemaClient) {
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 	Expect(r1.Metadata.ResourceVersion).NotTo(Equal(input.Metadata.ResourceVersion))
 	Expect(r1.Metadata.Ref()).To(Equal(input.Metadata.Ref()))
-	Expect(r1.ResolverMap).To(Equal(input.ResolverMap))
 	Expect(r1.InlineSchema).To(Equal(input.InlineSchema))
 	Expect(r1.Status).To(Equal(input.Status))
 
