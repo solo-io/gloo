@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"context"
 	"reflect"
 	"sort"
 	"strings"
@@ -204,12 +205,6 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resourc
 func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan resources.ResourceList, <-chan error, error) {
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
-	watch, err := rc.kube.ResourcesV1().Resources(namespace).Watch(metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
-	})
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "initiating kube watch in %v", namespace)
-	}
 	resourcesChan := make(chan resources.ResourceList)
 	errs := make(chan error)
 	ctx := opts.Ctx
@@ -234,33 +229,51 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 	go func() {
 		defer close(resourcesChan)
 		defer close(errs)
-		logger := contextutils.LoggerFrom(contextutils.WithLogger(opts.Ctx, "watchloop"))
 
 		updateResourceList()
-		for {
-			select {
-			case <-time.After(opts.RefreshRate):
-				updateResourceList()
-			case event, ok := <-watch.ResultChan():
-				if !ok {
-					return
-				}
-				switch event.Type {
-				case kubewatch.Error:
-					// TODO(yuval-k): do we want to select on this channel?
-					errs <- errors.Errorf("error during watch: %v", event)
-				default:
-					logger.Infof("got event - updating %v", event)
-					updateResourceList()
-				}
-			case <-opts.Ctx.Done():
-				watch.Stop()
-				return
-			}
-		}
+		mxdelay := time.Second * 10
+		be := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{MaxDelay: &mxdelay})
+
+		be.Backoff(ctx, func(ctx context.Context) error {
+			return rc.watch(ctx, namespace, opts.Selector, opts.RefreshRate, updateResourceList, errs)
+		})
 	}()
 
 	return resourcesChan, errs, nil
+}
+
+func (rc *ResourceClient) watch(ctx context.Context, namespace string, selector map[string]string, refresh time.Duration, updateResourceList func(), errs chan<- error) error {
+
+	logger := contextutils.LoggerFrom(contextutils.WithLogger(ctx, "watchloop"))
+
+	watch, err := rc.kube.ResourcesV1().Resources(namespace).Watch(metav1.ListOptions{
+		LabelSelector: labels.SelectorFromSet(selector).String(),
+	})
+	if err != nil {
+		return errors.Wrapf(err, "initiating kube watch in %v", namespace)
+	}
+	for {
+		select {
+		case <-time.After(refresh):
+			updateResourceList()
+		case event, ok := <-watch.ResultChan():
+			if !ok {
+				logger.Warnf("watch was closed")
+				return errors.Errorf("watch closed")
+			}
+			switch event.Type {
+			case kubewatch.Error:
+				// TODO(yuval-k): do we want to select on this channel?
+				errs <- errors.Errorf("error during watch: %v", event)
+			default:
+				logger.Infof("got event - updating %v", event)
+				updateResourceList()
+			}
+		case <-ctx.Done():
+			watch.Stop()
+			return ctx.Err()
+		}
+	}
 }
 
 func (rc *ResourceClient) exist(namespace, name string) bool {
