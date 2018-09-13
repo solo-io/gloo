@@ -103,8 +103,9 @@ type InputDestination struct {
 	MultiDestination  *InputMultiDestination  `json:"multiDestination"`
 }
 type InputDestinationSpec struct {
-	Aws   *InputAwsDestinationSpec   `json:"aws"`
-	Azure *InputAzureDestinationSpec `json:"azure"`
+	Aws     *InputAwsDestinationSpec    `json:"aws"`
+	Azure   *InputAzureDestinationSpec  `json:"azure"`
+	Swagger *InputSwaggerDestiationSpec `json:"swagger"`
 }
 type InputFieldResolver struct {
 	FieldName string        `json:"fieldName"`
@@ -221,6 +222,9 @@ type InputStaticUpstreamSpec struct {
 type InputStatus struct {
 	State  State  `json:"state"`
 	Reason string `json:"reason"`
+}
+type InputSwaggerDestiationSpec struct {
+	FunctionName string `json:"functionName"`
 }
 type InputSwaggerServiceSpec struct {
 	Empty *string `json:"empty"`

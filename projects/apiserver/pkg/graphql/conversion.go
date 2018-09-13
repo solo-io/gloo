@@ -15,6 +15,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
 )
 
 type Converter struct{}
@@ -419,6 +420,12 @@ func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpe
 	}
 	var invocationstyle aws.DestinationSpec_InvocationStyle
 	switch {
+	case spec.Swagger != nil:
+		return &v1.DestinationSpec{DestinationType: &v1.DestinationSpec_Rest{
+			Rest: &rest.DestinationSpec{
+				FunctionName: spec.Swagger.FunctionName,
+			},
+		}}, nil
 	case spec.Aws != nil:
 		switch spec.Aws.InvocationStyle {
 		case AwsLambdaInvocationStyleAsync:

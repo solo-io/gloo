@@ -6996,6 +6996,17 @@ func UnmarshalInputDestinationSpec(v interface{}) (models.InputDestinationSpec, 
 			if err != nil {
 				return it, err
 			}
+		case "swagger":
+			var err error
+			var ptr1 models.InputSwaggerDestiationSpec
+			if v != nil {
+				ptr1, err = UnmarshalInputSwaggerDestiationSpec(v)
+				it.Swagger = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -7885,6 +7896,24 @@ func UnmarshalInputStatus(v interface{}) (models.InputStatus, error) {
 	return it, nil
 }
 
+func UnmarshalInputSwaggerDestiationSpec(v interface{}) (models.InputSwaggerDestiationSpec, error) {
+	var it models.InputSwaggerDestiationSpec
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "functionName":
+			var err error
+			it.FunctionName, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputSwaggerServiceSpec(v interface{}) (models.InputSwaggerServiceSpec, error) {
 	var it models.InputSwaggerServiceSpec
 	var asMap = v.(map[string]interface{})
@@ -8651,6 +8680,11 @@ input InputDestinationSpec {
     # oneof: aws | azure
     aws: InputAwsDestinationSpec
     azure: InputAzureDestinationSpec
+    swagger: InputSwaggerDestiationSpec
+}
+
+input InputSwaggerDestiationSpec {
+    functionName: String!
 }
 
 input InputAwsDestinationSpec {

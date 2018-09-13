@@ -410,6 +410,11 @@ input InputDestinationSpec {
     # oneof: aws | azure
     aws: InputAwsDestinationSpec
     azure: InputAzureDestinationSpec
+    swagger: InputSwaggerDestiationSpec
+}
+
+input InputSwaggerDestiationSpec {
+    functionName: String!
 }
 
 input InputAwsDestinationSpec {
