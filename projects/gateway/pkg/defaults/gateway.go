@@ -18,16 +18,28 @@ func DefaultGateway(writeNamespace string) *v1.Gateway {
 	}
 }
 
-func DefaultVirtualService(writeNamespace string) *v1.VirtualService {
+func DefaultVirtualService(namespace, name string) *v1.VirtualService {
 	return &v1.VirtualService{
 		Metadata: core.Metadata{
-			Name:      "routeman",
-			Namespace: writeNamespace,
+			Name:      name,
+			Namespace: namespace,
 		},
 		VirtualHost: &gloov1.VirtualHost{
 			Name:    "routes",
 			Domains: []string{"*"},
-			Routes:  []*gloov1.Route{},
+			Routes: []*gloov1.Route{{
+				Matcher: &gloov1.Matcher{
+					PathSpecifier: &gloov1.Matcher_Prefix{Prefix: "/"},
+				},
+				Action: &gloov1.Route_DirectResponseAction{DirectResponseAction:
+				&gloov1.DirectResponseAction{
+					Status: 200,
+					Body:`Gloo and Envoy are configured correctly!
+
+Delete the '`+name+` Virtual Service to get started. 
+`,
+				}},
+			}},
 		},
 	}
 }

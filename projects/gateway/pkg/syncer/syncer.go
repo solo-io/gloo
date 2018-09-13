@@ -34,8 +34,8 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	ctx = contextutils.WithLogger(ctx, "syncer")
 
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Infof("begin sync %v (%v resources)", snap.Hash(),
-		len(snap.VirtualServices)+len(snap.Gateways))
+	logger.Infof("begin sync %v (%v virtual services, %v gateways)", snap.Hash(),
+		len(snap.VirtualServices), len(snap.Gateways))
 	defer logger.Infof("end sync %v", snap.Hash())
 	logger.Debugf("%v", snap)
 
