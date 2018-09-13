@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"strings"
 )
 
 type DiscoveryPlugin interface {
@@ -76,7 +77,9 @@ func (d *UpstreamDiscovery) StartUds(opts clients.WatchOpts, discOpts Opts) (cha
 			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(uds).Name())
 		}
 		go func(uds DiscoveryPlugin) {
-			udsName := reflect.TypeOf(uds).Name()
+			// TODO (ilackarms): when we have less problems, solve this
+			udsName := strings.Replace(reflect.TypeOf(uds).String(), "*", "", -1)
+			udsName = strings.Replace(udsName, ".", "", -1)
 			selector := map[string]string{
 				"discovered_by": udsName,
 			}
