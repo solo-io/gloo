@@ -63,7 +63,6 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 		return Opts{}, err
 	}
 	ctx := contextutils.WithLogger(context.Background(), "gateway")
-	ctx = contextutils.SilenceLogger(ctx)
 	return Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Gateways: &factory.KubeResourceClientFactory{
