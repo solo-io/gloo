@@ -98,5 +98,5 @@ func (s *syncer) ServeXdsSnapshots() error {
 	r.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, log.Sprintf("%v", s.latestSnap))
 	})
-	return http.ListenAndServe(":9090", r)
+	return http.ListenAndServe(":10010", r)
 }
