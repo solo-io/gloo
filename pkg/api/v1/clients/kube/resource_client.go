@@ -3,7 +3,11 @@ package kube
 import (
 	"reflect"
 	"sort"
+	"strings"
 	"time"
+
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -12,7 +16,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
+	"go.opencensus.io/tag"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,6 +26,28 @@ import (
 	kubewatch "k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/rest"
 )
+
+var (
+	MLists = stats.Int64("kube/lists", "The number of lists", "1")
+
+	KeyNamespace, _ = tag.NewKey("namespace")
+	KeyKind, _      = tag.NewKey("kind")
+
+	ListCountView = &view.View{
+		Name:        "kube/lists-count",
+		Measure:     MLists,
+		Description: "The number of list calls",
+		Aggregation: view.Count(),
+		TagKeys: []tag.Key{
+			KeyNamespace,
+			KeyKind,
+		},
+	}
+)
+
+func init() {
+	view.Register(ListCountView)
+}
 
 type ResourceClient struct {
 	crd          crd.Crd
@@ -39,11 +67,14 @@ func NewResourceClient(crd crd.Crd, cfg *rest.Config, resourceType resources.Inp
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating crd client")
 	}
+	typeof := reflect.TypeOf(resourceType)
+	resourceName := strings.Replace(typeof.String(), "*", "", -1)
+	resourceName = strings.Replace(resourceName, ".", "", -1)
 	return &ResourceClient{
 		crd:          crd,
 		apiexts:      apiExts,
 		kube:         crdClient,
-		resourceName: reflect.TypeOf(resourceType).Name(),
+		resourceName: resourceName,
 		resourceType: resourceType,
 	}, nil
 }
@@ -181,9 +212,15 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 	}
 	resourcesChan := make(chan resources.ResourceList)
 	errs := make(chan error)
+	ctx := opts.Ctx
+	if ctx2, err := tag.New(opts.Ctx, tag.Insert(KeyNamespace, namespace), tag.Insert(KeyKind, rc.resourceName)); err == nil {
+		ctx = ctx2
+	}
+
 	updateResourceList := func() {
+		stats.Record(ctx, MLists.M(1))
 		list, err := rc.List(namespace, clients.ListOpts{
-			Ctx:      opts.Ctx,
+			Ctx:      ctx,
 			Selector: opts.Selector,
 		})
 		if err != nil {
@@ -195,22 +232,29 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 	// watch should open up with an initial read
 
 	go func() {
+		defer close(resourcesChan)
+		defer close(errs)
+		logger := contextutils.LoggerFrom(contextutils.WithLogger(opts.Ctx, "watchloop"))
+
 		updateResourceList()
 		for {
 			select {
 			case <-time.After(opts.RefreshRate):
 				updateResourceList()
-			case event := <-watch.ResultChan():
+			case event, ok := <-watch.ResultChan():
+				if !ok {
+					return
+				}
 				switch event.Type {
 				case kubewatch.Error:
+					// TODO(yuval-k): do we want to select on this channel?
 					errs <- errors.Errorf("error during watch: %v", event)
 				default:
+					logger.Infof("got event - updating %v", event)
 					updateResourceList()
 				}
 			case <-opts.Ctx.Done():
 				watch.Stop()
-				close(resourcesChan)
-				close(errs)
 				return
 			}
 		}
