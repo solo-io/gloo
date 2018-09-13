@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/propagator"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/translator"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
 )
 
 type syncer struct {
@@ -51,7 +52,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		logger.Infof("creating proxy %v", proxy.Metadata.Ref())
 		desiredResources = gloov1.ProxyList{proxy}
 	}
-	if err := s.proxyReconciler.Reconcile(s.writeNamespace, desiredResources, nil, clients.ListOpts{
+	if err := s.proxyReconciler.Reconcile(s.writeNamespace, desiredResources, TODO.TransitionFunction, clients.ListOpts{
 		Ctx:      ctx,
 		Selector: map[string]string{
 			"created_by": "gateway",

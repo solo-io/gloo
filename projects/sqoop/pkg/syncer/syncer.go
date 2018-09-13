@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/router"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/translator"
 	"github.com/vektah/gqlgen/neelance/schema"
+	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
 )
 
 type Syncer struct {
@@ -68,8 +69,8 @@ func (s *Syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		return nil
 	}
 	logger.Infof("creating proxy %v", proxy.Metadata.Ref())
-	if err := s.proxyReconciler.Reconcile(s.writeNamespace, gloov1.ProxyList{proxy}, nil, clients.ListOpts{
-		Ctx:      ctx,
+	if err := s.proxyReconciler.Reconcile(s.writeNamespace, gloov1.ProxyList{proxy}, TODO.TransitionFunction, clients.ListOpts{
+		Ctx: ctx,
 		Selector: map[string]string{
 			"created_by": "sqoop",
 		},

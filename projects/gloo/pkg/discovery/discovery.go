@@ -154,7 +154,7 @@ func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clie
 					lock.Lock()
 					endpointsByUds[eds] = endpointList
 					desiredEndpoints := aggregateEndpoints(endpointsByUds)
-					if err := d.endpointReconciler.Reconcile(d.writeNamespace, desiredEndpoints, nil, clients.ListOpts{
+					if err := d.endpointReconciler.Reconcile(d.writeNamespace, desiredEndpoints, txnEndpoint, clients.ListOpts{
 						Ctx:      opts.Ctx,
 						Selector: opts.Selector,
 					}); err != nil {
@@ -181,4 +181,11 @@ func aggregateEndpoints(endpointsByUds map[DiscoveryPlugin]v1.EndpointList) v1.E
 		return endpoints[i].Metadata.Less(endpoints[j].Metadata)
 	})
 	return endpoints
+}
+
+func txnEndpoint(original, desired *v1.Endpoint) (bool, error) {
+	 equal := original.UpstreamName == desired.UpstreamName &&
+		original.Address == desired.Address &&
+		original.Port == desired.Port
+	return !equal, nil
 }
