@@ -63,7 +63,11 @@ func (el *{{ lower_camel .GoName }}EventLoop) Run(namespaces []string, opts clie
 				cancel = canc
 				err := el.syncer.Sync(ctx, snapshot)
 				if err != nil {
-					errs <- err
+					select {
+					case errs <- err:
+					default:
+						logger.Errorf("write error channel is full! could not propagate err: %v", err)
+					}
 				}
 			case <-opts.Ctx.Done():
 				return
