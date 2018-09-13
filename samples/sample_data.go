@@ -404,46 +404,12 @@ func ResolverMaps() sqoopv1.ResolverMapList {
 func Schemas() sqoopv1.SchemaList {
 	return sqoopv1.SchemaList{
 		{
-			Metadata:    MakeMetadata("petstore-gen", defaults.GlooSystem),
-			ResolverMap: core.ResourceRef{}, // intentionally empty, test generation
-			InlineSchema: `
-# The query type, represents all of the entry points into our object graph
-type Query {
-    pets: [Pet]
-    pet(id: Int!): Pet
-}
-
-type Mutation {
-    addPet(pet: InputPet!): Pet
-}
-
-type Pet{
-    id: ID!
-    name: String!
-    status: Status!
-}
-
-input InputPet{
-    id: ID!
-    name: String!
-    tag: String
-}
-
-enum Status {
-    pending
-    available
-}
-`,
-		},
-
-		{
 			Metadata: MakeMetadata("petstore", defaults.GlooSystem),
 			ResolverMap: core.ResourceRef{
 				Name:      "petstore",
 				Namespace: defaults.GlooSystem,
 			},
-			InlineSchema: `
-# The query type, represents all of the entry points into our object graph
+			InlineSchema: `# The query type, represents all of the entry points into our object graph
 type Query {
     pets: [Pet]
     pet(id: Int!): Pet

@@ -34,9 +34,11 @@ func Translate(namespace string, snap *v1.ApiSnapshot) (*gloov1.Proxy, reporter.
 	}
 	return &gloov1.Proxy{
 		Metadata: core.Metadata{
-			Name:        joinGatewayNames(snap.Gateways.List()) + "-proxy",
-			Namespace:   namespace,
-			Annotations: map[string]string{"owner_ref": "gateway"},
+			Name:      joinGatewayNames(snap.Gateways.List()) + "-proxy",
+			Namespace: namespace,
+			Annotations: map[string]string{
+				"created_by": "gateway",
+			},
 		},
 		Listeners: listeners,
 	}, resourceErrs

@@ -136,6 +136,6 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache) bo
 			Port: 8081,
 		},
 		GrpcServer: grpcServer,
-		DevMode:    false,
+		DevMode:    true,
 	}
 }

@@ -29,9 +29,11 @@ func Translate(writeNamespace string, snap *v1.ApiSnapshot, resourceErrs reporte
 
 	return &gloov1.Proxy{
 		Metadata: core.Metadata{
-			Name:        "-proxy",
+			Name:        "sqoop-proxy",
 			Namespace:   writeNamespace,
-			Annotations: map[string]string{"owner_ref": "gateway"},
+			Labels: map[string]string{
+				"created_by": "sqoop",
+			},
 		},
 		Listeners: []*gloov1.Listener{
 			{

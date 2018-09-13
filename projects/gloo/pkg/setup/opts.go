@@ -20,8 +20,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-//  ilackarms: We can just put any hacky stuff we need here
-
 func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
 	cfg, err := kubeutils.GetConfig("", "")
 	if err != nil {
@@ -70,6 +68,6 @@ func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
 		},
 		GrpcServer: grpcServer,
 		KubeClient: clientset,
-		DevMode:    false,
+		DevMode:    true,
 	}, nil
 }
