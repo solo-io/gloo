@@ -2,7 +2,7 @@ node:
   cluster: doesntmatter
   id: imspecial
   metadata:
-    role: "gloo-system~gateway-proxy"
+    role: "gloo-system~sqoop-proxy"
 
 static_resources:
   clusters:
