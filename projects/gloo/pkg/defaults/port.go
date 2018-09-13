@@ -1,3 +1,3 @@
 package defaults
 
-const HttpPort = 1234
+const HttpPort = 80
