@@ -7,9 +7,11 @@ import (
 	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
 	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/setup"
+	"github.com/solo-io/solo-kit/pkg/utils/stats"
 )
 
 func main() {
+	stats.StartStatsServer()
 	if err := run(); err != nil {
 		log.Fatalf("err in main: %v", err.Error())
 	}
