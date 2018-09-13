@@ -41,13 +41,18 @@ func (p *plugin) DiscoverUpstreams(watchNamespaces []string, writeNamespace stri
 			return nil, nil, err
 		}
 		go func(w kubewatch.Interface) {
-			for  {
+			for {
 				select {
-				case event, ok := <- w.ResultChan():
+				case event, ok := <-w.ResultChan():
 					if !ok {
 						return
 					}
-					events <- event
+					select {
+					case events <- event:
+					case <-opts.Ctx.Done():
+						serviceWatch.Stop()
+						return
+					}
 				case <-opts.Ctx.Done():
 					serviceWatch.Stop()
 					return
