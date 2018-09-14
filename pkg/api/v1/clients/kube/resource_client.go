@@ -297,7 +297,7 @@ func (rc *ResourceClient) watch(ctx context.Context, namespace string, selector 
 				// TODO(yuval-k): do we want to select on this channel?
 				errs <- errors.Errorf("error during watch: %v", event)
 			default:
-				logger.Infof("got event - updating %v", event)
+				logger.Debugf("got event - updating %v", event)
 				updateResourceList()
 			}
 		case <-ctx.Done():

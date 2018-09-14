@@ -154,7 +154,7 @@ func (d *SwaggerFunctionDiscovery) detectUpstreamTypeOnce(ctx context.Context, b
 		errs = multierror.Append(errs, errors.Errorf("path: %v response code: %v headers: %v", uri, res.Status, res.Header))
 
 	}
-	log.Infof("failed to detect swagger for %s: %v", baseurl.String(), errs.Error())
+	log.Debugf("failed to detect swagger for %s: %v", baseurl.String(), errs.Error())
 	// not a swagger upstream
 	return nil, errors.Wrapf(errs, "service at %s does not implement swagger at a known endpoint, "+
 		"or was unreachable", baseurl.String())
