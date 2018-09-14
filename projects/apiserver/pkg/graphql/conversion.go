@@ -17,6 +17,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
+	"github.com/gogo/protobuf/types"
 )
 
 type Converter struct{}
@@ -491,12 +492,6 @@ func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpe
 	}
 	var invocationstyle aws.DestinationSpec_InvocationStyle
 	switch {
-	case spec.Rest != nil:
-		return &v1.DestinationSpec{DestinationType: &v1.DestinationSpec_Rest{
-			Rest: &rest.DestinationSpec{
-				FunctionName: spec.Rest.FunctionName,
-			},
-		}}, nil
 	case spec.Aws != nil:
 		switch spec.Aws.InvocationStyle {
 		case AwsLambdaInvocationStyleAsync:
@@ -518,6 +513,29 @@ func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpe
 			DestinationType: &v1.DestinationSpec_Azure{
 				Azure: &azure.DestinationSpec{
 					FunctionName: spec.Azure.FunctionName,
+				},
+			},
+		}, nil
+	case spec.Rest != nil:
+		var params *transformation.Parameters
+		if spec.Rest.Parameters != nil {
+			headers := spec.Rest.Parameters.Headers.GoType()
+			var path *types.StringValue
+			if inPath := spec.Rest.Parameters.Path; inPath != nil {
+				path = &types.StringValue{Value: *inPath}
+			}
+			if headers != nil || path != nil {
+				params = &transformation.Parameters{
+					Headers: headers,
+					Path:    path,
+				}
+			}
+		}
+		return &v1.DestinationSpec{
+			DestinationType: &v1.DestinationSpec_Rest{
+				Rest: &rest.DestinationSpec{
+					FunctionName: spec.Rest.FunctionName,
+					Parameters:   params,
 				},
 			},
 		}, nil
