@@ -3,10 +3,38 @@ package v1
 import (
 	"sync"
 
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
+
+var (
+	mDiscoverySnapshotIn  = stats.Int64("discovery_snap_emitter/snap_in", "The number of snapshots in", "1")
+	mDiscoverySnapshotOut = stats.Int64("discovery_snap_emitter/snap_out", "The number of snapshots out", "1")
+
+	discoverysnapshotInView = &view.View{
+		Name:        "discovery_snap_emitter/snap_in",
+		Measure:     mDiscoverySnapshotIn,
+		Description: "The number of snapshots updates coming in",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
+	discoverysnapshotOutView = &view.View{
+		Name:        "discovery_snap_emitter/snap_out",
+		Measure:     mDiscoverySnapshotOut,
+		Description: "The number of snapshots updates going out",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
+)
+
+func init() {
+	view.Register(discoverysnapshotInView, discoverysnapshotOutView)
+}
 
 type DiscoveryEmitter interface {
 	Register() error
@@ -54,6 +82,7 @@ func (c *discoveryEmitter) Upstream() UpstreamClient {
 func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *DiscoverySnapshot, <-chan error, error) {
 	errs := make(chan error)
 	var done sync.WaitGroup
+	ctx := opts.Ctx
 	/* Create channel for Secret */
 	type secretListWithNamespace struct {
 		list      SecretList
@@ -77,7 +106,7 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, secretErrs, namespace+"-secrets")
+			errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-secrets")
 		}(namespace)
 		/* Setup watch for Upstream */
 		upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, opts)
@@ -88,24 +117,24 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, upstreamErrs, namespace+"-upstreams")
+			errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
 		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {
 			for {
 				select {
-				case <-opts.Ctx.Done():
+				case <-ctx.Done():
 					return
 				case secretList := <-secretNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case secretChan <- secretListWithNamespace{list: secretList, namespace: namespace}:
 					}
 				case upstreamList := <-upstreamNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case upstreamChan <- upstreamListWithNamespace{list: upstreamList, namespace: namespace}:
 					}
@@ -123,11 +152,13 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 			}
 			currentSnapshot = newSnapshot
 			sentSnapshot := currentSnapshot.Clone()
+
+			stats.Record(ctx, mDiscoverySnapshotOut.M(1))
 			snapshots <- &sentSnapshot
 		}
 		for {
 			select {
-			case <-opts.Ctx.Done():
+			case <-ctx.Done():
 				close(snapshots)
 				done.Wait()
 				close(errs)
@@ -152,6 +183,9 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 				newSnapshot.Upstreams.Add(upstreamList...)
 				sync(newSnapshot)
 			}
+
+			// if we got here its because a new entry in the channel
+			stats.Record(ctx, mDiscoverySnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil

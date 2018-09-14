@@ -13,33 +13,27 @@ import (
 )
 
 var (
-	MSnapshotIn  = stats.Int64("snapemitter/snapin", "The number of snapshots in", "1")
-	MSnapshotOut = stats.Int64("snapemitter/snapout", "The number of snapshots out", "1")
+	mApiSnapshotIn  = stats.Int64("api_snap_emitter/snap_in", "The number of snapshots in", "1")
+	mApiSnapshotOut = stats.Int64("api_snap_emitter/snap_out", "The number of snapshots out", "1")
 
-	//	KeyNamespace, _ = tag.NewKey("namespace")
-
-	SnapshotInView = &view.View{
-		Name:        "snapemitter/snapin",
-		Measure:     MSnapshotIn,
+	apisnapshotInView = &view.View{
+		Name:        "api_snap_emitter/snap_in",
+		Measure:     mApiSnapshotIn,
 		Description: "The number of snapshots updates coming in",
 		Aggregation: view.Count(),
-		TagKeys:     []tag.Key{
-			//		KeyNamespace,
-		},
+		TagKeys:     []tag.Key{},
 	}
-	SnapshotOutView = &view.View{
-		Name:        "snapemitter/snapout",
-		Measure:     MSnapshotOut,
+	apisnapshotOutView = &view.View{
+		Name:        "api_snap_emitter/snap_out",
+		Measure:     mApiSnapshotOut,
 		Description: "The number of snapshots updates going out",
 		Aggregation: view.Count(),
-		TagKeys:     []tag.Key{
-			//			KeyNamespace,
-		},
+		TagKeys:     []tag.Key{},
 	}
 )
 
 func init() {
-	view.Register(SnapshotInView, SnapshotOutView)
+	view.Register(apisnapshotInView, apisnapshotOutView)
 }
 
 type ApiEmitter interface {
@@ -116,11 +110,9 @@ func (c *apiEmitter) Upstream() UpstreamClient {
 }
 
 func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
-
-	ctx := opts.Ctx
-
 	errs := make(chan error)
 	var done sync.WaitGroup
+	ctx := opts.Ctx
 	/* Create channel for Artifact */
 	type artifactListWithNamespace struct {
 		list      ArtifactList
@@ -251,18 +243,16 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	}
 
 	snapshots := make(chan *ApiSnapshot)
-
 	go func() {
 		currentSnapshot := ApiSnapshot{}
 		sync := func(newSnapshot ApiSnapshot) {
-
 			if currentSnapshot.Hash() == newSnapshot.Hash() {
 				return
 			}
 			currentSnapshot = newSnapshot
 			sentSnapshot := currentSnapshot.Clone()
 
-			stats.Record(ctx, MSnapshotOut.M(1))
+			stats.Record(ctx, mApiSnapshotOut.M(1))
 			snapshots <- &sentSnapshot
 		}
 		for {
@@ -316,8 +306,9 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				newSnapshot.Upstreams.Add(upstreamList...)
 				sync(newSnapshot)
 			}
+
 			// if we got here its because a new entry in the channel
-			stats.Record(ctx, MSnapshotIn.M(1))
+			stats.Record(ctx, mApiSnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil

@@ -3,10 +3,38 @@ package mocks
 import (
 	"sync"
 
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
+
+var (
+	mTestingSnapshotIn  = stats.Int64("testing_snap_emitter/snap_in", "The number of snapshots in", "1")
+	mTestingSnapshotOut = stats.Int64("testing_snap_emitter/snap_out", "The number of snapshots out", "1")
+
+	testingsnapshotInView = &view.View{
+		Name:        "testing_snap_emitter/snap_in",
+		Measure:     mTestingSnapshotIn,
+		Description: "The number of snapshots updates coming in",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
+	testingsnapshotOutView = &view.View{
+		Name:        "testing_snap_emitter/snap_out",
+		Measure:     mTestingSnapshotOut,
+		Description: "The number of snapshots updates going out",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
+)
+
+func init() {
+	view.Register(testingsnapshotInView, testingsnapshotOutView)
+}
 
 type TestingEmitter interface {
 	Register() error
@@ -54,6 +82,7 @@ func (c *testingEmitter) FakeResource() FakeResourceClient {
 func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *TestingSnapshot, <-chan error, error) {
 	errs := make(chan error)
 	var done sync.WaitGroup
+	ctx := opts.Ctx
 	/* Create channel for MockResource */
 	type mockResourceListWithNamespace struct {
 		list      MockResourceList
@@ -77,7 +106,7 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, mockResourceErrs, namespace+"-mocks")
+			errutils.AggregateErrs(ctx, errs, mockResourceErrs, namespace+"-mocks")
 		}(namespace)
 		/* Setup watch for FakeResource */
 		fakeResourceNamespacesChan, fakeResourceErrs, err := c.fakeResource.Watch(namespace, opts)
@@ -88,24 +117,24 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
+			errutils.AggregateErrs(ctx, errs, fakeResourceErrs, namespace+"-fakes")
 		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {
 			for {
 				select {
-				case <-opts.Ctx.Done():
+				case <-ctx.Done():
 					return
 				case mockResourceList := <-mockResourceNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case mockResourceChan <- mockResourceListWithNamespace{list: mockResourceList, namespace: namespace}:
 					}
 				case fakeResourceList := <-fakeResourceNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case fakeResourceChan <- fakeResourceListWithNamespace{list: fakeResourceList, namespace: namespace}:
 					}
@@ -123,11 +152,13 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 			}
 			currentSnapshot = newSnapshot
 			sentSnapshot := currentSnapshot.Clone()
+
+			stats.Record(ctx, mTestingSnapshotOut.M(1))
 			snapshots <- &sentSnapshot
 		}
 		for {
 			select {
-			case <-opts.Ctx.Done():
+			case <-ctx.Done():
 				close(snapshots)
 				done.Wait()
 				close(errs)
@@ -152,6 +183,9 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 				newSnapshot.Fakes.Add(fakeResourceList...)
 				sync(newSnapshot)
 			}
+
+			// if we got here its because a new entry in the channel
+			stats.Record(ctx, mTestingSnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil

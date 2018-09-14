@@ -3,10 +3,38 @@ package mocks
 import (
 	"sync"
 
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
+
+var (
+	mFestingSnapshotIn  = stats.Int64("festing_snap_emitter/snap_in", "The number of snapshots in", "1")
+	mFestingSnapshotOut = stats.Int64("festing_snap_emitter/snap_out", "The number of snapshots out", "1")
+
+	festingsnapshotInView = &view.View{
+		Name:        "festing_snap_emitter/snap_in",
+		Measure:     mFestingSnapshotIn,
+		Description: "The number of snapshots updates coming in",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
+	festingsnapshotOutView = &view.View{
+		Name:        "festing_snap_emitter/snap_out",
+		Measure:     mFestingSnapshotOut,
+		Description: "The number of snapshots updates going out",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
+)
+
+func init() {
+	view.Register(festingsnapshotInView, festingsnapshotOutView)
+}
 
 type FestingEmitter interface {
 	Register() error
@@ -44,6 +72,7 @@ func (c *festingEmitter) MockResource() MockResourceClient {
 func (c *festingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *FestingSnapshot, <-chan error, error) {
 	errs := make(chan error)
 	var done sync.WaitGroup
+	ctx := opts.Ctx
 	/* Create channel for MockResource */
 	type mockResourceListWithNamespace struct {
 		list      MockResourceList
@@ -61,18 +90,18 @@ func (c *festingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, mockResourceErrs, namespace+"-mocks")
+			errutils.AggregateErrs(ctx, errs, mockResourceErrs, namespace+"-mocks")
 		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {
 			for {
 				select {
-				case <-opts.Ctx.Done():
+				case <-ctx.Done():
 					return
 				case mockResourceList := <-mockResourceNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case mockResourceChan <- mockResourceListWithNamespace{list: mockResourceList, namespace: namespace}:
 					}
@@ -90,11 +119,13 @@ func (c *festingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 			}
 			currentSnapshot = newSnapshot
 			sentSnapshot := currentSnapshot.Clone()
+
+			stats.Record(ctx, mFestingSnapshotOut.M(1))
 			snapshots <- &sentSnapshot
 		}
 		for {
 			select {
-			case <-opts.Ctx.Done():
+			case <-ctx.Done():
 				close(snapshots)
 				done.Wait()
 				close(errs)
@@ -111,6 +142,9 @@ func (c *festingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 				newSnapshot.Mocks.Add(mockResourceList...)
 				sync(newSnapshot)
 			}
+
+			// if we got here its because a new entry in the channel
+			stats.Record(ctx, mFestingSnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil

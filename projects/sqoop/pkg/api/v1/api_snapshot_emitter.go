@@ -3,10 +3,38 @@ package v1
 import (
 	"sync"
 
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
+
+var (
+	mApiSnapshotIn  = stats.Int64("api_snap_emitter/snap_in", "The number of snapshots in", "1")
+	mApiSnapshotOut = stats.Int64("api_snap_emitter/snap_out", "The number of snapshots out", "1")
+
+	apisnapshotInView = &view.View{
+		Name:        "api_snap_emitter/snap_in",
+		Measure:     mApiSnapshotIn,
+		Description: "The number of snapshots updates coming in",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
+	apisnapshotOutView = &view.View{
+		Name:        "api_snap_emitter/snap_out",
+		Measure:     mApiSnapshotOut,
+		Description: "The number of snapshots updates going out",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
+)
+
+func init() {
+	view.Register(apisnapshotInView, apisnapshotOutView)
+}
 
 type ApiEmitter interface {
 	Register() error
@@ -54,6 +82,7 @@ func (c *apiEmitter) Schema() SchemaClient {
 func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
 	errs := make(chan error)
 	var done sync.WaitGroup
+	ctx := opts.Ctx
 	/* Create channel for ResolverMap */
 	type resolverMapListWithNamespace struct {
 		list      ResolverMapList
@@ -77,7 +106,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, resolverMapErrs, namespace+"-resolverMaps")
+			errutils.AggregateErrs(ctx, errs, resolverMapErrs, namespace+"-resolverMaps")
 		}(namespace)
 		/* Setup watch for Schema */
 		schemaNamespacesChan, schemaErrs, err := c.schema.Watch(namespace, opts)
@@ -88,24 +117,24 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, schemaErrs, namespace+"-schemas")
+			errutils.AggregateErrs(ctx, errs, schemaErrs, namespace+"-schemas")
 		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {
 			for {
 				select {
-				case <-opts.Ctx.Done():
+				case <-ctx.Done():
 					return
 				case resolverMapList := <-resolverMapNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case resolverMapChan <- resolverMapListWithNamespace{list: resolverMapList, namespace: namespace}:
 					}
 				case schemaList := <-schemaNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case schemaChan <- schemaListWithNamespace{list: schemaList, namespace: namespace}:
 					}
@@ -123,11 +152,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 			}
 			currentSnapshot = newSnapshot
 			sentSnapshot := currentSnapshot.Clone()
+
+			stats.Record(ctx, mApiSnapshotOut.M(1))
 			snapshots <- &sentSnapshot
 		}
 		for {
 			select {
-			case <-opts.Ctx.Done():
+			case <-ctx.Done():
 				close(snapshots)
 				done.Wait()
 				close(errs)
@@ -152,6 +183,9 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				newSnapshot.Schemas.Add(schemaList...)
 				sync(newSnapshot)
 			}
+
+			// if we got here its because a new entry in the channel
+			stats.Record(ctx, mApiSnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil

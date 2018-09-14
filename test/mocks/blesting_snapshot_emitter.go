@@ -3,10 +3,38 @@ package mocks
 import (
 	"sync"
 
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
+
+var (
+	mBlestingSnapshotIn  = stats.Int64("blesting_snap_emitter/snap_in", "The number of snapshots in", "1")
+	mBlestingSnapshotOut = stats.Int64("blesting_snap_emitter/snap_out", "The number of snapshots out", "1")
+
+	blestingsnapshotInView = &view.View{
+		Name:        "blesting_snap_emitter/snap_in",
+		Measure:     mBlestingSnapshotIn,
+		Description: "The number of snapshots updates coming in",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
+	blestingsnapshotOutView = &view.View{
+		Name:        "blesting_snap_emitter/snap_out",
+		Measure:     mBlestingSnapshotOut,
+		Description: "The number of snapshots updates going out",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
+)
+
+func init() {
+	view.Register(blestingsnapshotInView, blestingsnapshotOutView)
+}
 
 type BlestingEmitter interface {
 	Register() error
@@ -44,6 +72,7 @@ func (c *blestingEmitter) FakeResource() FakeResourceClient {
 func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *BlestingSnapshot, <-chan error, error) {
 	errs := make(chan error)
 	var done sync.WaitGroup
+	ctx := opts.Ctx
 	/* Create channel for FakeResource */
 	type fakeResourceListWithNamespace struct {
 		list      FakeResourceList
@@ -61,18 +90,18 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, fakeResourceErrs, namespace+"-fakes")
+			errutils.AggregateErrs(ctx, errs, fakeResourceErrs, namespace+"-fakes")
 		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {
 			for {
 				select {
-				case <-opts.Ctx.Done():
+				case <-ctx.Done():
 					return
 				case fakeResourceList := <-fakeResourceNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case fakeResourceChan <- fakeResourceListWithNamespace{list: fakeResourceList, namespace: namespace}:
 					}
@@ -90,11 +119,13 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 			}
 			currentSnapshot = newSnapshot
 			sentSnapshot := currentSnapshot.Clone()
+
+			stats.Record(ctx, mBlestingSnapshotOut.M(1))
 			snapshots <- &sentSnapshot
 		}
 		for {
 			select {
-			case <-opts.Ctx.Done():
+			case <-ctx.Done():
 				close(snapshots)
 				done.Wait()
 				close(errs)
@@ -111,6 +142,9 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 				newSnapshot.Fakes.Add(fakeResourceList...)
 				sync(newSnapshot)
 			}
+
+			// if we got here its because a new entry in the channel
+			stats.Record(ctx, mBlestingSnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil
