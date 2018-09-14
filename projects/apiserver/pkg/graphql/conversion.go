@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
 )
 
 type Converter struct{}
@@ -209,11 +210,43 @@ func convertOutputServiceSpec(spec *plugins.ServiceSpec) ServiceSpec {
 	if spec == nil {
 		return nil
 	}
-	switch spec.PluginType.(type) {
+	switch serviceSpec := spec.PluginType.(type) {
 	case *plugins.ServiceSpec_Rest:
-		return &SwaggerServiceSpec{}
+		return &RestServiceSpec{
+			Functions: convertOutputTransformations(serviceSpec.Rest.Transformations),
+		}
 	}
 	panic("unsupported")
+}
+
+func convertOutputTransformations(transformations map[string]*transformation.TransformationTemplate) []Transformation {
+	var transforms []Transformation
+	for fnName, trans := range transformations {
+		var body *string
+		if trans.BodyTransformation != nil {
+			bodyTransform, ok := trans.BodyTransformation.(*transformation.TransformationTemplate_Body)
+			if ok && bodyTransform.Body != nil {
+				body = &bodyTransform.Body.Text
+			}
+		}
+		var headers *MapStringString
+		if len(trans.Headers) > 0 {
+			h := make(map[string]string)
+			for k, v := range trans.Headers {
+				if v == nil {
+					continue
+				}
+				h[k] = v.Text
+			}
+			headers = NewMapStringString(h)
+		}
+		transforms = append(transforms, Transformation{
+			FunctionName: fnName,
+			Body:         body,
+			Headers:      headers,
+		})
+	}
+	return transforms
 }
 
 // TODO (ilackarms): finish these methods
@@ -222,7 +255,7 @@ func convertInputServiceSpec(spec *InputServiceSpec) (*plugins.ServiceSpec, erro
 		return nil, nil
 	}
 	switch {
-	case spec.Swagger != nil:
+	case spec.Rest != nil:
 		return &plugins.ServiceSpec{PluginType: &plugins.ServiceSpec_Rest{}}, nil
 	}
 	return nil, errors.Errorf("unsupported spec: %v", spec)
@@ -420,10 +453,10 @@ func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpe
 	}
 	var invocationstyle aws.DestinationSpec_InvocationStyle
 	switch {
-	case spec.Swagger != nil:
+	case spec.Rest != nil:
 		return &v1.DestinationSpec{DestinationType: &v1.DestinationSpec_Rest{
 			Rest: &rest.DestinationSpec{
-				FunctionName: spec.Swagger.FunctionName,
+				FunctionName: spec.Rest.FunctionName,
 			},
 		}}, nil
 	case spec.Aws != nil:
