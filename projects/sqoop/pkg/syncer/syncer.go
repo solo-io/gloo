@@ -127,6 +127,8 @@ func (s *Syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		endpoints = append(endpoints, endpoint)
 	}
 	s.router.UpdateEndpoints(endpoints)
+	// TODO(ilackarms): use reconciler, and allow resolvermaps to transition between snapshots
+	// then we can always generate ratehr than only generating for nonexisting!
 	for _, rm := range resolverMapsToGenerate {
 		if _, err := s.resolverMapClient.Write(rm, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
 			return errors.Wrapf(err, "writing generated resolver maps to storage")

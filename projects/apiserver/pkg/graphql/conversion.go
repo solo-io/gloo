@@ -66,7 +66,7 @@ func convertInputUpstreamSpec(spec InputUpstreamSpec) (*v1.UpstreamSpec, error) 
 			Aws: &aws.UpstreamSpec{
 				Region:          spec.Aws.Region,
 				SecretRef:       convertInputRef(spec.Aws.SecretRef),
-				LambdaFunctions: convertLambdaFunctions(spec.Aws.Functions),
+				LambdaFunctions: convertInputLambdaFunctions(spec.Aws.Functions),
 			},
 		}
 	case spec.Azure != nil:
@@ -78,7 +78,7 @@ func convertInputUpstreamSpec(spec InputUpstreamSpec) (*v1.UpstreamSpec, error) 
 			Azure: &azure.UpstreamSpec{
 				FunctionAppName: spec.Azure.FunctionAppName,
 				SecretRef:       ref,
-				Functions:       convertAzureFunctions(spec.Azure.Functions),
+				Functions:       convertInputAzureFunctions(spec.Azure.Functions),
 			},
 		}
 	case spec.Kube != nil:
@@ -118,7 +118,7 @@ func convertInputUpstreamSpec(spec InputUpstreamSpec) (*v1.UpstreamSpec, error) 
 	return out, nil
 }
 
-func convertLambdaFunctions(inputFuncs []InputAwsLambdaFunction) []*aws.LambdaFunctionSpec {
+func convertInputLambdaFunctions(inputFuncs []InputAwsLambdaFunction) []*aws.LambdaFunctionSpec {
 	var funcs []*aws.LambdaFunctionSpec
 	for _, inFn := range inputFuncs {
 		funcs = append(funcs, &aws.LambdaFunctionSpec{
@@ -130,7 +130,7 @@ func convertLambdaFunctions(inputFuncs []InputAwsLambdaFunction) []*aws.LambdaFu
 	return funcs
 }
 
-func convertAzureFunctions(inputFuncs []InputAzureFunction) []*azure.UpstreamSpec_FunctionSpec {
+func convertInputAzureFunctions(inputFuncs []InputAzureFunction) []*azure.UpstreamSpec_FunctionSpec {
 	var funcs []*azure.UpstreamSpec_FunctionSpec
 	for _, inFn := range inputFuncs {
 		var authLevel azure.UpstreamSpec_FunctionSpec_AuthLevel
@@ -148,6 +148,56 @@ func convertAzureFunctions(inputFuncs []InputAzureFunction) []*azure.UpstreamSpe
 		})
 	}
 	return funcs
+}
+
+// TODO (ilackarms): finish these methods
+func convertInputServiceSpec(spec *InputServiceSpec) (*plugins.ServiceSpec, error) {
+	if spec == nil {
+		return nil, nil
+	}
+	switch {
+	case spec.Rest != nil:
+		var swaggerInfo *rest.ServiceSpec_SwaggerInfo
+		if spec.Rest.InlineSwaggerDoc != nil {
+			swaggerInfo = &rest.ServiceSpec_SwaggerInfo{
+				SwaggerSpec: &rest.ServiceSpec_SwaggerInfo_Inline{Inline: *spec.Rest.InlineSwaggerDoc},
+			}
+		}
+		return &plugins.ServiceSpec{PluginType: &plugins.ServiceSpec_Rest{
+			Rest: &rest.ServiceSpec{
+				Transformations: convertInputTransformations(spec.Rest.Functions),
+				SwaggerInfo:     swaggerInfo,
+			},
+		}}, nil
+	}
+	return nil, errors.Errorf("unsupported spec: %v", spec)
+}
+
+func convertInputTransformations(in []InputTransformation) map[string]*transformation.TransformationTemplate {
+	transforms := make(map[string]*transformation.TransformationTemplate)
+	for _, trans := range in {
+		glooTransformation := &transformation.TransformationTemplate{}
+		if trans.Body != nil {
+			glooTransformation.BodyTransformation = &transformation.TransformationTemplate_Body{
+				Body: injaTemplateFromString(*trans.Body),
+			}
+		}
+		if headers := trans.Headers.GoType(); len(headers) > 0 {
+			glooHeaders := make(map[string]*transformation.InjaTemplate)
+			for k, v := range headers {
+				glooHeaders[k] = injaTemplateFromString(v)
+			}
+			glooTransformation.Headers = glooHeaders
+		}
+		transforms[trans.FunctionName] = glooTransformation
+	}
+	return transforms
+}
+
+func injaTemplateFromString(str string) *transformation.InjaTemplate {
+	return &transformation.InjaTemplate{
+		Text: str,
+	}
 }
 
 func (c *Converter) ConvertOutputUpstreams(upstreams v1.UpstreamList) []*Upstream {
@@ -247,18 +297,6 @@ func convertOutputTransformations(transformations map[string]*transformation.Tra
 		})
 	}
 	return transforms
-}
-
-// TODO (ilackarms): finish these methods
-func convertInputServiceSpec(spec *InputServiceSpec) (*plugins.ServiceSpec, error) {
-	if spec == nil {
-		return nil, nil
-	}
-	switch {
-	case spec.Rest != nil:
-		return &plugins.ServiceSpec{PluginType: &plugins.ServiceSpec_Rest{}}, nil
-	}
-	return nil, errors.Errorf("unsupported spec: %v", spec)
 }
 
 func convertOutputLambdaFunctions(lambdas []*aws.LambdaFunctionSpec) []AwsLambdaFunction {

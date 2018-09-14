@@ -182,7 +182,8 @@ type InputRestDestinationSpec struct {
 	Parameters   *InputTransformationParameters `json:"parameters"`
 }
 type InputRestServiceSpec struct {
-	Functions []InputTransformation `json:"functions"`
+	Functions        []InputTransformation `json:"functions"`
+	InlineSwaggerDoc *string               `json:"inlineSwaggerDoc"`
 }
 type InputRoute struct {
 	Matcher     InputMatcher       `json:"matcher"`

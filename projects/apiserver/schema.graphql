@@ -247,6 +247,7 @@ input InputServiceSpec  {
 
 input InputRestServiceSpec  {
     functions: [InputTransformation!]
+    inlineSwaggerDoc: String
 }
 
 input InputTransformation {

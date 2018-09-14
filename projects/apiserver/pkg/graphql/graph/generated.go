@@ -7818,6 +7818,17 @@ func UnmarshalInputRestServiceSpec(v interface{}) (models.InputRestServiceSpec, 
 			if err != nil {
 				return it, err
 			}
+		case "inlineSwaggerDoc":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.InlineSwaggerDoc = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -8804,6 +8815,7 @@ input InputServiceSpec  {
 
 input InputRestServiceSpec  {
     functions: [InputTransformation!]
+    inlineSwaggerDoc: String
 }
 
 input InputTransformation {
