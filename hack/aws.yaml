@@ -1,0 +1,50 @@
+---
+# upstream
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: aws
+  namespace: gloo-system
+spec:
+  metadata:
+    name: aws
+    namespace: gloo-system
+  upstream_spec:
+    aws:
+      region: us-east-1
+      secret_ref:
+        name: aws
+        namespace: gloo-system
+status: {}
+
+---
+# vs
+
+apiVersion: v1
+items:
+- apiVersion: gateway.solo.io/v1
+  kind: VirtualService
+  metadata:
+    name: vs
+    namespace: gloo-system
+  spec:
+    metadata:
+      name: vs
+      namespace: gloo-system
+    status: {}
+    virtual_host:
+      domains:
+      - '*'
+      routes:
+      - matcher:
+          prefix: /foo
+        route_action:
+          single:
+            destination_spec:
+              aws:
+                logical_name: gloo-hello
+            upstream:
+              name: aws
+              namespace: gloo-system
+  status: {}
+kind: List
