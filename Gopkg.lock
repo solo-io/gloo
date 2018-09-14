@@ -5,7 +5,6 @@
   name = "github.com/99designs/gqlgen"
   packages = [
     "graphql",
-    "graphql/introspection",
     "handler"
   ]
   revision = "6f6622c6b78098660f03d38fb8f0d459d428bdbe"
@@ -1027,6 +1026,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1fcbf79e8845eeef23a19061499309a641789b89a4c262db0fae66d3da879a95"
+  inputs-digest = "0a18b48e2cdadd9ea2349c41e35ae37f232bf7138d147ca39b213ad77963cc9a"
   solver-name = "gps-cdcl"
   solver-version = 1
