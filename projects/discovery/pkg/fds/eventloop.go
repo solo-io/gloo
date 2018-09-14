@@ -1,8 +1,6 @@
 package fds
 
 import (
-	"context"
-
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
@@ -15,19 +13,6 @@ func NewFunctionDiscovery(updater *Updater) *FunctionDiscovery {
 	return &FunctionDiscovery{
 		updater: updater,
 	}
-}
-
-func (d *FunctionDiscovery) Sync(ctx context.Context, snap *v1.DiscoverySnapshot) error {
-	// update the upstream and secrets
-	//	this will feed the update loop via a channel
-	return nil
-}
-
-func (d *FunctionDiscovery) Setup(context.Context) error {
-	/*
-		setup an event loop and an update loop
-	*/
-	return nil
 }
 
 func (d *FunctionDiscovery) Update(upstreams v1.UpstreamList, secrets v1.SecretList) error {
