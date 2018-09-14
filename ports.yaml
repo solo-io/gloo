@@ -3,6 +3,8 @@ gloo: 8080
 gateway-envoy: 80
 sqoop-envoy: 9090
 sqoop-graphql: 9095
-stats: 9091
+stats:loc 9091
+apiserver: 8082
+ui: 80
 
 petstore: 1234

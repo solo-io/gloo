@@ -4,6 +4,20 @@ set -x -e
 
 ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/..
 
+cat << EOF | oc apply -f -
+kind: OAuthClient
+apiVersion: oauth.openshift.io/v1
+metadata:
+ name: yuval
+secret: yuval
+redirectURIs:
+ - "http://localhost"
+grantMethod: prompt
+EOF
+
+export OAUTH_SERVER="https://$(minishift ip):8443/oauth/authorize"
+export OAUTH_CLIENT=yuval
+
 # minikube should be running
 echo RUNNING SQOOP+GLOO+GATEWAY+DISCOVERY
 #go run projects/sqoop/cmd/main.go &
@@ -20,7 +34,8 @@ docker run -i -p 1234:8080 --rm soloio/petstore-example:latest &
 echo "Don't forget to add a static upstream for 127.0.0.1:1234"
 
 ## requires latest envoy in solo-kit/..
-../envoy -c hack/envoy.yaml --disable-hot-restart &
+../envoy -c hack/envoy-sqoop.yaml --disable-hot-restart &
+#../envoy -c hack/envoy-gateway.yaml --disable-hot-restart &
 
 trap 'sudo kill $(jobs -p)' EXIT
 
