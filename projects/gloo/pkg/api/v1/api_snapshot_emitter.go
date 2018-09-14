@@ -3,10 +3,44 @@ package v1
 import (
 	"sync"
 
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
+
+var (
+	MSnapshotIn  = stats.Int64("snapemitter/snapin", "The number of snapshots in", "1")
+	MSnapshotOut = stats.Int64("snapemitter/snapout", "The number of snapshots out", "1")
+
+	//	KeyNamespace, _ = tag.NewKey("namespace")
+
+	SnapshotInView = &view.View{
+		Name:        "snapemitter/snapin",
+		Measure:     MSnapshotIn,
+		Description: "The number of snapshots updates coming in",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{
+			//		KeyNamespace,
+		},
+	}
+	SnapshotOutView = &view.View{
+		Name:        "snapemitter/snapout",
+		Measure:     MSnapshotOut,
+		Description: "The number of snapshots updates going out",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{
+			//			KeyNamespace,
+		},
+	}
+)
+
+func init() {
+	view.Register(SnapshotInView, SnapshotOutView)
+}
 
 type ApiEmitter interface {
 	Register() error
@@ -82,6 +116,9 @@ func (c *apiEmitter) Upstream() UpstreamClient {
 }
 
 func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *ApiSnapshot, <-chan error, error) {
+
+	ctx := opts.Ctx
+
 	errs := make(chan error)
 	var done sync.WaitGroup
 	/* Create channel for Artifact */
@@ -125,7 +162,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, artifactErrs, namespace+"-artifacts")
+			errutils.AggregateErrs(ctx, errs, artifactErrs, namespace+"-artifacts")
 		}(namespace)
 		/* Setup watch for Endpoint */
 		endpointNamespacesChan, endpointErrs, err := c.endpoint.Watch(namespace, opts)
@@ -136,7 +173,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, endpointErrs, namespace+"-endpoints")
+			errutils.AggregateErrs(ctx, errs, endpointErrs, namespace+"-endpoints")
 		}(namespace)
 		/* Setup watch for Proxy */
 		proxyNamespacesChan, proxyErrs, err := c.proxy.Watch(namespace, opts)
@@ -147,7 +184,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, proxyErrs, namespace+"-proxies")
+			errutils.AggregateErrs(ctx, errs, proxyErrs, namespace+"-proxies")
 		}(namespace)
 		/* Setup watch for Secret */
 		secretNamespacesChan, secretErrs, err := c.secret.Watch(namespace, opts)
@@ -158,7 +195,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, secretErrs, namespace+"-secrets")
+			errutils.AggregateErrs(ctx, errs, secretErrs, namespace+"-secrets")
 		}(namespace)
 		/* Setup watch for Upstream */
 		upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, opts)
@@ -169,42 +206,42 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, upstreamErrs, namespace+"-upstreams")
+			errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
 		}(namespace)
 
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {
 			for {
 				select {
-				case <-opts.Ctx.Done():
+				case <-ctx.Done():
 					return
 				case artifactList := <-artifactNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case artifactChan <- artifactListWithNamespace{list: artifactList, namespace: namespace}:
 					}
 				case endpointList := <-endpointNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case endpointChan <- endpointListWithNamespace{list: endpointList, namespace: namespace}:
 					}
 				case proxyList := <-proxyNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case proxyChan <- proxyListWithNamespace{list: proxyList, namespace: namespace}:
 					}
 				case secretList := <-secretNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case secretChan <- secretListWithNamespace{list: secretList, namespace: namespace}:
 					}
 				case upstreamList := <-upstreamNamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case upstreamChan <- upstreamListWithNamespace{list: upstreamList, namespace: namespace}:
 					}
@@ -214,19 +251,23 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	}
 
 	snapshots := make(chan *ApiSnapshot)
+
 	go func() {
 		currentSnapshot := ApiSnapshot{}
 		sync := func(newSnapshot ApiSnapshot) {
+
 			if currentSnapshot.Hash() == newSnapshot.Hash() {
 				return
 			}
 			currentSnapshot = newSnapshot
 			sentSnapshot := currentSnapshot.Clone()
+
+			stats.Record(ctx, MSnapshotOut.M(1))
 			snapshots <- &sentSnapshot
 		}
 		for {
 			select {
-			case <-opts.Ctx.Done():
+			case <-ctx.Done():
 				close(snapshots)
 				done.Wait()
 				close(errs)
@@ -275,6 +316,8 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				newSnapshot.Upstreams.Add(upstreamList...)
 				sync(newSnapshot)
 			}
+			// if we got here its because a new entry in the channel
+			stats.Record(ctx, MSnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil
