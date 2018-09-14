@@ -18,10 +18,40 @@ var ResourceGroupEmitterTemplate = template.Must(template.New("resource_group_em
 import (
 	"sync"
 
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
+
+var (
+	m{{ .GoName }}SnapshotIn  = stats.Int64("{{ lower_camel .GoName }}_snap_emitter/snap_in", "The number of snapshots in", "1")
+	m{{ .GoName }}SnapshotOut = stats.Int64("{{ lower_camel .GoName }}_snap_emitter/snap_out", "The number of snapshots out", "1")
+
+	{{ lower_camel .GoName }}snapshotInView = &view.View{
+		Name:        "{{ lower_camel .GoName }}_snap_emitter/snap_in",
+		Measure:     m{{ .GoName }}SnapshotIn,
+		Description: "The number of snapshots updates coming in",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{
+		},
+	}
+	{{ lower_camel .GoName }}snapshotOutView = &view.View{
+		Name:        "{{ lower_camel .GoName }}_snap_emitter/snap_out",
+		Measure:     m{{ .GoName }}SnapshotOut,
+		Description: "The number of snapshots updates going out",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{
+		},
+	}
+)
+
+func init() {
+	view.Register({{ lower_camel .GoName }}snapshotInView, {{ lower_camel .GoName }}snapshotOutView)
+}
 
 type {{ .GoName }}Emitter interface {
 	Register() error
@@ -70,6 +100,7 @@ func (c *{{ lower_camel $.GoName }}Emitter) {{ .Name }}() {{ .Name }}Client {
 func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *{{ .GoName }}Snapshot, <-chan error, error) {
 	errs := make(chan error)
 	var done sync.WaitGroup
+	ctx := opts.Ctx
 
 
 {{- range .Resources}}
@@ -92,7 +123,7 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 		done.Add(1)
 		go func(namespace string) {
 			defer done.Done()
-			errutils.AggregateErrs(opts.Ctx, errs, {{ lower_camel .Name }}Errs, namespace+"-{{ lower_camel .PluralName }}")
+			errutils.AggregateErrs(ctx, errs, {{ lower_camel .Name }}Errs, namespace+"-{{ lower_camel .PluralName }}")
 		}(namespace)
 
 {{- end}}
@@ -102,12 +133,12 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 		go func(namespace string) {
 			for {
 				select {
-				case <-opts.Ctx.Done():
+				case <-ctx.Done():
 					return
 {{- range .Resources}}
 				case {{ lower_camel .Name }}List := <- {{ lower_camel .Name }}NamespacesChan:
 					select {
-					case <-opts.Ctx.Done():
+					case <-ctx.Done():
 						return
 					case {{ lower_camel .Name }}Chan <- {{ lower_camel .Name }}ListWithNamespace{list:{{ lower_camel .Name }}List, namespace:namespace}:
 					}
@@ -127,11 +158,13 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 			}
 			currentSnapshot = newSnapshot
 			sentSnapshot := currentSnapshot.Clone()
+
+			stats.Record(ctx, m{{ .GoName }}SnapshotOut.M(1))
 			snapshots <- &sentSnapshot
 		}
 		for {
 			select {
-			case <-opts.Ctx.Done():
+			case <-ctx.Done():
 				close(snapshots)
 				done.Wait()
 				close(errs)
@@ -150,6 +183,9 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 				sync(newSnapshot)
 {{- end}}
 			}
+
+			// if we got here its because a new entry in the channel
+			stats.Record(ctx, m{{ .GoName }}SnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil
