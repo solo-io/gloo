@@ -3106,6 +3106,117 @@ func (ec *executionContext) _ResponseTemplate_headers(ctx context.Context, field
 	return ec._MapStringString(ctx, field.Selections, res)
 }
 
+var restDestinationSpecImplementors = []string{"RestDestinationSpec"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _RestDestinationSpec(ctx context.Context, sel ast.SelectionSet, obj *models.RestDestinationSpec) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, restDestinationSpecImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RestDestinationSpec")
+		case "functionName":
+			out.Values[i] = ec._RestDestinationSpec_functionName(ctx, field, obj)
+		case "parameters":
+			out.Values[i] = ec._RestDestinationSpec_parameters(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _RestDestinationSpec_functionName(ctx context.Context, field graphql.CollectedField, obj *models.RestDestinationSpec) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "RestDestinationSpec"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.FunctionName, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _RestDestinationSpec_parameters(ctx context.Context, field graphql.CollectedField, obj *models.RestDestinationSpec) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "RestDestinationSpec"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Parameters, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.TransformationParameters)
+	if res == nil {
+		return graphql.Null
+	}
+	return ec._TransformationParameters(ctx, field.Selections, res)
+}
+
+var restServiceSpecImplementors = []string{"RestServiceSpec"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _RestServiceSpec(ctx context.Context, sel ast.SelectionSet, obj *models.RestServiceSpec) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, restServiceSpecImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RestServiceSpec")
+		case "functions":
+			out.Values[i] = ec._RestServiceSpec_functions(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _RestServiceSpec_functions(ctx context.Context, field graphql.CollectedField, obj *models.RestServiceSpec) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "RestServiceSpec"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Functions, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]models.Transformation)
+	arr1 := graphql.Array{}
+	for idx1 := range res {
+		arr1 = append(arr1, func() graphql.Marshaler {
+			rctx := graphql.GetResolverContext(ctx)
+			rctx.PushIndex(idx1)
+			defer rctx.Pop()
+			return ec._Transformation(ctx, field.Selections, &res[idx1])
+		}())
+	}
+	return arr1
+}
+
 var routeImplementors = []string{"Route"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -4216,49 +4327,6 @@ func (ec *executionContext) _Status_reason(ctx context.Context, field graphql.Co
 	return graphql.MarshalString(*res)
 }
 
-var swaggerServiceSpecImplementors = []string{"SwaggerServiceSpec"}
-
-// nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _SwaggerServiceSpec(ctx context.Context, sel ast.SelectionSet, obj *models.SwaggerServiceSpec) graphql.Marshaler {
-	fields := graphql.CollectFields(ctx, sel, swaggerServiceSpecImplementors)
-
-	out := graphql.NewOrderedMap(len(fields))
-	for i, field := range fields {
-		out.Keys[i] = field.Alias
-
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("SwaggerServiceSpec")
-		case "empty":
-			out.Values[i] = ec._SwaggerServiceSpec_empty(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-
-	return out
-}
-
-func (ec *executionContext) _SwaggerServiceSpec_empty(ctx context.Context, field graphql.CollectedField, obj *models.SwaggerServiceSpec) graphql.Marshaler {
-	rctx := graphql.GetResolverContext(ctx)
-	rctx.Object = "SwaggerServiceSpec"
-	rctx.Args = nil
-	rctx.Field = field
-	rctx.PushField(field.Alias)
-	defer rctx.Pop()
-	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-		return obj.Empty, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	if res == nil {
-		return graphql.Null
-	}
-	return graphql.MarshalString(*res)
-}
-
 var templateResolverImplementors = []string{"TemplateResolver"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -4378,6 +4446,155 @@ func (ec *executionContext) _TlsSecret_rootCa(ctx context.Context, field graphql
 	}
 	res := resTmp.(string)
 	return graphql.MarshalString(res)
+}
+
+var transformationImplementors = []string{"Transformation"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _Transformation(ctx context.Context, sel ast.SelectionSet, obj *models.Transformation) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, transformationImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Transformation")
+		case "functionName":
+			out.Values[i] = ec._Transformation_functionName(ctx, field, obj)
+		case "body":
+			out.Values[i] = ec._Transformation_body(ctx, field, obj)
+		case "headers":
+			out.Values[i] = ec._Transformation_headers(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _Transformation_functionName(ctx context.Context, field graphql.CollectedField, obj *models.Transformation) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Transformation"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.FunctionName, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	return graphql.MarshalString(res)
+}
+
+func (ec *executionContext) _Transformation_body(ctx context.Context, field graphql.CollectedField, obj *models.Transformation) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Transformation"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Body, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+func (ec *executionContext) _Transformation_headers(ctx context.Context, field graphql.CollectedField, obj *models.Transformation) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "Transformation"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Headers, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.MapStringString)
+	if res == nil {
+		return graphql.Null
+	}
+	return ec._MapStringString(ctx, field.Selections, res)
+}
+
+var transformationParametersImplementors = []string{"TransformationParameters"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _TransformationParameters(ctx context.Context, sel ast.SelectionSet, obj *models.TransformationParameters) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, transformationParametersImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TransformationParameters")
+		case "headers":
+			out.Values[i] = ec._TransformationParameters_headers(ctx, field, obj)
+		case "path":
+			out.Values[i] = ec._TransformationParameters_path(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	return out
+}
+
+func (ec *executionContext) _TransformationParameters_headers(ctx context.Context, field graphql.CollectedField, obj *models.TransformationParameters) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "TransformationParameters"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Headers, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.MapStringString)
+	if res == nil {
+		return graphql.Null
+	}
+	return ec._MapStringString(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TransformationParameters_path(ctx context.Context, field graphql.CollectedField, obj *models.TransformationParameters) graphql.Marshaler {
+	rctx := graphql.GetResolverContext(ctx)
+	rctx.Object = "TransformationParameters"
+	rctx.Args = nil
+	rctx.Field = field
+	rctx.PushField(field.Alias)
+	defer rctx.Pop()
+	resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+		return obj.Path, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
 }
 
 var typeResolverImplementors = []string{"TypeResolver"}
@@ -6571,6 +6788,10 @@ func (ec *executionContext) _DestinationSpec(ctx context.Context, sel ast.Select
 		return ec._AzureDestinationSpec(ctx, sel, &obj)
 	case *models.AzureDestinationSpec:
 		return ec._AzureDestinationSpec(ctx, sel, obj)
+	case models.RestDestinationSpec:
+		return ec._RestDestinationSpec(ctx, sel, &obj)
+	case *models.RestDestinationSpec:
+		return ec._RestDestinationSpec(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -6622,10 +6843,10 @@ func (ec *executionContext) _ServiceSpec(ctx context.Context, sel ast.SelectionS
 	switch obj := (*obj).(type) {
 	case nil:
 		return graphql.Null
-	case models.SwaggerServiceSpec:
-		return ec._SwaggerServiceSpec(ctx, sel, &obj)
-	case *models.SwaggerServiceSpec:
-		return ec._SwaggerServiceSpec(ctx, sel, obj)
+	case models.RestServiceSpec:
+		return ec._RestServiceSpec(ctx, sel, &obj)
+	case *models.RestServiceSpec:
+		return ec._RestServiceSpec(ctx, sel, obj)
 	case models.GRPCServiceSpec:
 		return ec._GRPCServiceSpec(ctx, sel, &obj)
 	case *models.GRPCServiceSpec:
@@ -6977,12 +7198,12 @@ func UnmarshalInputDestinationSpec(v interface{}) (models.InputDestinationSpec, 
 			if err != nil {
 				return it, err
 			}
-		case "swagger":
+		case "rest":
 			var err error
-			var ptr1 models.InputSwaggerDestiationSpec
+			var ptr1 models.InputRestDestinationSpec
 			if v != nil {
-				ptr1, err = UnmarshalInputSwaggerDestiationSpec(v)
-				it.Swagger = &ptr1
+				ptr1, err = UnmarshalInputRestDestinationSpec(v)
+				it.Rest = &ptr1
 			}
 
 			if err != nil {
@@ -7545,6 +7766,64 @@ func UnmarshalInputResponseTemplate(v interface{}) (models.InputResponseTemplate
 	return it, nil
 }
 
+func UnmarshalInputRestDestinationSpec(v interface{}) (models.InputRestDestinationSpec, error) {
+	var it models.InputRestDestinationSpec
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "functionName":
+			var err error
+			it.FunctionName, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "parameters":
+			var err error
+			var ptr1 models.InputTransformationParameters
+			if v != nil {
+				ptr1, err = UnmarshalInputTransformationParameters(v)
+				it.Parameters = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputRestServiceSpec(v interface{}) (models.InputRestServiceSpec, error) {
+	var it models.InputRestServiceSpec
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "functions":
+			var err error
+			var rawIf1 []interface{}
+			if v != nil {
+				if tmp1, ok := v.([]interface{}); ok {
+					rawIf1 = tmp1
+				} else {
+					rawIf1 = []interface{}{v}
+				}
+			}
+			it.Functions = make([]models.InputTransformation, len(rawIf1))
+			for idx1 := range rawIf1 {
+				it.Functions[idx1], err = UnmarshalInputTransformation(rawIf1[idx1])
+			}
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputRoute(v interface{}) (models.InputRoute, error) {
 	var it models.InputRoute
 	var asMap = v.(map[string]interface{})
@@ -7702,12 +7981,12 @@ func UnmarshalInputServiceSpec(v interface{}) (models.InputServiceSpec, error) {
 
 	for k, v := range asMap {
 		switch k {
-		case "swagger":
+		case "rest":
 			var err error
-			var ptr1 models.InputSwaggerServiceSpec
+			var ptr1 models.InputRestServiceSpec
 			if v != nil {
-				ptr1, err = UnmarshalInputSwaggerServiceSpec(v)
-				it.Swagger = &ptr1
+				ptr1, err = UnmarshalInputRestServiceSpec(v)
+				it.Rest = &ptr1
 			}
 
 			if err != nil {
@@ -7871,47 +8150,6 @@ func UnmarshalInputStatus(v interface{}) (models.InputStatus, error) {
 	return it, nil
 }
 
-func UnmarshalInputSwaggerDestiationSpec(v interface{}) (models.InputSwaggerDestiationSpec, error) {
-	var it models.InputSwaggerDestiationSpec
-	var asMap = v.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "functionName":
-			var err error
-			it.FunctionName, err = graphql.UnmarshalString(v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func UnmarshalInputSwaggerServiceSpec(v interface{}) (models.InputSwaggerServiceSpec, error) {
-	var it models.InputSwaggerServiceSpec
-	var asMap = v.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "empty":
-			var err error
-			var ptr1 string
-			if v != nil {
-				ptr1, err = graphql.UnmarshalString(v)
-				it.Empty = &ptr1
-			}
-
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func UnmarshalInputTemplateResolver(v interface{}) (models.InputTemplateResolver, error) {
 	var it models.InputTemplateResolver
 	var asMap = v.(map[string]interface{})
@@ -7956,6 +8194,80 @@ func UnmarshalInputTlsSecret(v interface{}) (models.InputTlsSecret, error) {
 		case "rootCa":
 			var err error
 			it.RootCa, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputTransformation(v interface{}) (models.InputTransformation, error) {
+	var it models.InputTransformation
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "functionName":
+			var err error
+			it.FunctionName, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "body":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.Body = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "headers":
+			var err error
+			var ptr1 models.InputMapStringString
+			if v != nil {
+				ptr1, err = UnmarshalInputMapStringString(v)
+				it.Headers = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputTransformationParameters(v interface{}) (models.InputTransformationParameters, error) {
+	var it models.InputTransformationParameters
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "headers":
+			var err error
+			var ptr1 models.InputMapStringString
+			if v != nil {
+				ptr1, err = UnmarshalInputMapStringString(v)
+				it.Headers = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "path":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.Path = &ptr1
+			}
+
 			if err != nil {
 				return it, err
 			}
@@ -8405,11 +8717,17 @@ type AzureFunction {
     authLevel:    AzureFnAuthLevel!
 }
 
-union ServiceSpec = SwaggerServiceSpec | GRPCServiceSpec
+union ServiceSpec = RestServiceSpec | GRPCServiceSpec
 
 # Not implemented yet
-type SwaggerServiceSpec  {
-    empty: String
+type RestServiceSpec  {
+    functions: [Transformation!]
+}
+
+type Transformation {
+    functionName: String!
+    body: String
+    headers: MapStringString
 }
 
 # Not implemented yet
@@ -8479,15 +8797,21 @@ input InputAzureFunction {
 }
 
 input InputServiceSpec  {
-    # oneof: swagger | grpc
-    swagger: InputSwaggerServiceSpec
+    # oneof: Rest | grpc
+    rest: InputRestServiceSpec
     grpc:    InputGRPCServiceSpec
 }
 
-# Not implemented yet
-input InputSwaggerServiceSpec  {
-    empty: String
+input InputRestServiceSpec  {
+    functions: [InputTransformation!]
 }
+
+input InputTransformation {
+    functionName: String!
+    body: String
+    headers: InputMapStringString
+}
+
 
 # Not implemented yet
 input InputGRPCServiceSpec {
@@ -8571,7 +8895,7 @@ type SingleDestination {
     destinationSpec: DestinationSpec
 }
 
-union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec
+union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec | RestDestinationSpec
 
 type AwsDestinationSpec {
     logicalName: String!
@@ -8581,6 +8905,16 @@ type AwsDestinationSpec {
 
 type AzureDestinationSpec {
     functionName: String!
+}
+
+type RestDestinationSpec {
+    functionName: String!
+    parameters: TransformationParameters
+}
+
+type TransformationParameters {
+    headers: MapStringString
+    path: String
 }
 
 type SslConfig {
@@ -8655,11 +8989,17 @@ input InputDestinationSpec {
     # oneof: aws | azure
     aws: InputAwsDestinationSpec
     azure: InputAzureDestinationSpec
-    swagger: InputSwaggerDestiationSpec
+    rest: InputRestDestinationSpec
 }
 
-input InputSwaggerDestiationSpec {
+input InputRestDestinationSpec {
     functionName: String!
+    parameters: InputTransformationParameters
+}
+
+input InputTransformationParameters {
+    headers: InputMapStringString
+    path: String
 }
 
 input InputAwsDestinationSpec {

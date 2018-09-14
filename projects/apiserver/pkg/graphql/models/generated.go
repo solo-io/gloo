@@ -103,9 +103,9 @@ type InputDestination struct {
 	MultiDestination  *InputMultiDestination  `json:"multiDestination"`
 }
 type InputDestinationSpec struct {
-	Aws     *InputAwsDestinationSpec    `json:"aws"`
-	Azure   *InputAzureDestinationSpec  `json:"azure"`
-	Swagger *InputSwaggerDestiationSpec `json:"swagger"`
+	Aws   *InputAwsDestinationSpec   `json:"aws"`
+	Azure *InputAzureDestinationSpec `json:"azure"`
+	Rest  *InputRestDestinationSpec  `json:"rest"`
 }
 type InputFieldResolver struct {
 	FieldName string        `json:"fieldName"`
@@ -177,6 +177,13 @@ type InputResponseTemplate struct {
 	Body    string                `json:"body"`
 	Headers *InputMapStringString `json:"headers"`
 }
+type InputRestDestinationSpec struct {
+	FunctionName string                         `json:"functionName"`
+	Parameters   *InputTransformationParameters `json:"parameters"`
+}
+type InputRestServiceSpec struct {
+	Functions []InputTransformation `json:"functions"`
+}
 type InputRoute struct {
 	Matcher     InputMatcher       `json:"matcher"`
 	Destination InputDestination   `json:"destination"`
@@ -199,8 +206,8 @@ type InputSecretKind struct {
 	TLS   *InputTlsSecret   `json:"tls"`
 }
 type InputServiceSpec struct {
-	Swagger *InputSwaggerServiceSpec `json:"swagger"`
-	Grpc    *InputGRPCServiceSpec    `json:"grpc"`
+	Rest *InputRestServiceSpec `json:"rest"`
+	Grpc *InputGRPCServiceSpec `json:"grpc"`
 }
 type InputSingleDestination struct {
 	Upstream        InputResourceRef      `json:"upstream"`
@@ -222,12 +229,6 @@ type InputStatus struct {
 	State  State  `json:"state"`
 	Reason string `json:"reason"`
 }
-type InputSwaggerDestiationSpec struct {
-	FunctionName string `json:"functionName"`
-}
-type InputSwaggerServiceSpec struct {
-	Empty *string `json:"empty"`
-}
 type InputTemplateResolver struct {
 	Empty *string `json:"empty"`
 }
@@ -235,6 +236,15 @@ type InputTlsSecret struct {
 	CertChain  string `json:"certChain"`
 	PrivateKey string `json:"privateKey"`
 	RootCa     string `json:"rootCa"`
+}
+type InputTransformation struct {
+	FunctionName string                `json:"functionName"`
+	Body         *string               `json:"body"`
+	Headers      *InputMapStringString `json:"headers"`
+}
+type InputTransformationParameters struct {
+	Headers *InputMapStringString `json:"headers"`
+	Path    *string               `json:"path"`
 }
 type InputTypeResolver struct {
 	TypeName string               `json:"typeName"`
@@ -327,6 +337,13 @@ type ResponseTemplate struct {
 	Body    string           `json:"body"`
 	Headers *MapStringString `json:"headers"`
 }
+type RestDestinationSpec struct {
+	FunctionName string                    `json:"functionName"`
+	Parameters   *TransformationParameters `json:"parameters"`
+}
+type RestServiceSpec struct {
+	Functions []Transformation `json:"functions"`
+}
 type Route struct {
 	Matcher     Matcher       `json:"matcher"`
 	Destination Destination   `json:"destination"`
@@ -366,9 +383,6 @@ type Status struct {
 	State  State   `json:"state"`
 	Reason *string `json:"reason"`
 }
-type SwaggerServiceSpec struct {
-	Empty *string `json:"empty"`
-}
 type TemplateResolver struct {
 	InlineTemplate *string `json:"inlineTemplate"`
 }
@@ -376,6 +390,15 @@ type TlsSecret struct {
 	CertChain  string `json:"certChain"`
 	PrivateKey string `json:"privateKey"`
 	RootCa     string `json:"rootCa"`
+}
+type Transformation struct {
+	FunctionName string           `json:"functionName"`
+	Body         *string          `json:"body"`
+	Headers      *MapStringString `json:"headers"`
+}
+type TransformationParameters struct {
+	Headers *MapStringString `json:"headers"`
+	Path    *string          `json:"path"`
 }
 type TypeResolver struct {
 	TypeName string          `json:"typeName"`

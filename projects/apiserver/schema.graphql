@@ -160,11 +160,17 @@ type AzureFunction {
     authLevel:    AzureFnAuthLevel!
 }
 
-union ServiceSpec = SwaggerServiceSpec | GRPCServiceSpec
+union ServiceSpec = RestServiceSpec | GRPCServiceSpec
 
 # Not implemented yet
-type SwaggerServiceSpec  {
-    empty: String
+type RestServiceSpec  {
+    functions: [Transformation!]
+}
+
+type Transformation {
+    functionName: String!
+    body: String
+    headers: MapStringString
 }
 
 # Not implemented yet
@@ -234,15 +240,21 @@ input InputAzureFunction {
 }
 
 input InputServiceSpec  {
-    # oneof: swagger | grpc
-    swagger: InputSwaggerServiceSpec
+    # oneof: Rest | grpc
+    rest: InputRestServiceSpec
     grpc:    InputGRPCServiceSpec
 }
 
-# Not implemented yet
-input InputSwaggerServiceSpec  {
-    empty: String
+input InputRestServiceSpec  {
+    functions: [InputTransformation!]
 }
+
+input InputTransformation {
+    functionName: String!
+    body: String
+    headers: InputMapStringString
+}
+
 
 # Not implemented yet
 input InputGRPCServiceSpec {
@@ -326,7 +338,7 @@ type SingleDestination {
     destinationSpec: DestinationSpec
 }
 
-union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec
+union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec | RestDestinationSpec
 
 type AwsDestinationSpec {
     logicalName: String!
@@ -336,6 +348,16 @@ type AwsDestinationSpec {
 
 type AzureDestinationSpec {
     functionName: String!
+}
+
+type RestDestinationSpec {
+    functionName: String!
+    parameters: TransformationParameters
+}
+
+type TransformationParameters {
+    headers: MapStringString
+    path: String
 }
 
 type SslConfig {
@@ -410,11 +432,17 @@ input InputDestinationSpec {
     # oneof: aws | azure
     aws: InputAwsDestinationSpec
     azure: InputAzureDestinationSpec
-    swagger: InputSwaggerDestiationSpec
+    rest: InputRestDestinationSpec
 }
 
-input InputSwaggerDestiationSpec {
+input InputRestDestinationSpec {
     functionName: String!
+    parameters: InputTransformationParameters
+}
+
+input InputTransformationParameters {
+    headers: InputMapStringString
+    path: String
 }
 
 input InputAwsDestinationSpec {
