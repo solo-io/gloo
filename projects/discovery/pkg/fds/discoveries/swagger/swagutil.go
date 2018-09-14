@@ -94,6 +94,11 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 		headerTemplatesForTransform[":path"] = &transformation_plugins.InjaTemplate{Text: path}
 	}
 
+	if method == "POST" {
+		needsTransformation = true
+		headerTemplatesForTransform[":content-type"] = &transformation_plugins.InjaTemplate{Text: "application/json"}
+	}
+
 	// this function doesn't request any kind of transformation
 	if !needsTransformation {
 		return fnName, nil

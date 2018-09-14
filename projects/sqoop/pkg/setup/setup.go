@@ -98,6 +98,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 			RefreshRate: defaults.RefreshRate,
 		},
 		DevMode: false,
+		SidecarAddr: fmt.Sprintf("%v:%v", "127.0.0.1", TODO.SqoopSidecarBindPort),
 	}, nil
 }
 
