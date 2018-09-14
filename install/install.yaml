@@ -190,7 +190,7 @@ spec:
       - name: solo-bot-docker-hub
       containers:
         - name: control-plane
-          image: soloio/control-plane-ee:v1-404-gad98c79
+          image: soloio/control-plane-ee:v1-417-g3bb2dca
           ports:
             - name: grpc-ads
               containerPort: 8080
@@ -235,7 +235,7 @@ spec:
       - name: solo-bot-docker-hub
       containers:
         - name: gloo-i
-          image: soloio/gloo-i:v1-400-gdd4f388
+          image: soloio/gloo-i:v1-417-g3bb2dca
           ports:
             - name: grpc-ads
               containerPort: 80
