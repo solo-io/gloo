@@ -20,7 +20,7 @@ export OAUTH_CLIENT=yuval
 
 # minikube should be running
 echo RUNNING SQOOP+GLOO+GATEWAY+DISCOVERY
-#go run projects/sqoop/cmd/main.go &
+go run projects/sqoop/cmd/main.go &
 
 echo RUNNING APISERVER
 go run projects/apiserver/cmd/main.go &
