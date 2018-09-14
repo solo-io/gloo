@@ -33,12 +33,17 @@ var fallbackLogger *zap.SugaredLogger
 
 func init() {
 	if logger, err := zap.NewProduction(); err != nil {
+
 		// We failed to create a fallback logger. Our fallback
 		// unfortunately falls back to noop.
 		fallbackLogger = zap.NewNop().Sugar()
 	} else {
 		fallbackLogger = logger.Sugar()
 	}
+}
+
+func SetFallbackLogger(logger *zap.SugaredLogger) {
+	fallbackLogger = logger
 }
 
 // WithLogger returns a copy of parent context in which the
