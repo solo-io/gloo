@@ -2,6 +2,9 @@ package setup
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
@@ -17,10 +20,8 @@ import (
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/router"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
-	"github.com/solo-io/solo-kit/samples"
-	"net/http"
-	"fmt"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
+	"github.com/solo-io/solo-kit/samples"
 )
 
 type Opts struct {
@@ -97,7 +98,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 			Ctx:         ctx,
 			RefreshRate: defaults.RefreshRate,
 		},
-		DevMode: false,
+		DevMode:     false,
 		SidecarAddr: fmt.Sprintf("%v:%v", "127.0.0.1", TODO.SqoopSidecarBindPort),
 	}, nil
 }
