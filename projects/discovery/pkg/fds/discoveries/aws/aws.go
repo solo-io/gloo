@@ -65,6 +65,18 @@ func (f *AWSLambdaFunctionDiscovery) DetectFunctions(ctx context.Context, url *u
 			}
 
 			err = updatecb(func(out *v1.Upstream) error {
+				// TODO(yuval-k): this should never happen. but it did. add logs?
+				if out == nil {
+					return errors.New("nil upstream")
+				}
+				if out.UpstreamSpec == nil {
+					return errors.New("nil upstream spec")
+				}
+
+				if out.UpstreamSpec.UpstreamType == nil {
+					return errors.New("nil upstream type")
+				}
+
 				awsspec, ok := out.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Aws)
 				if !ok {
 					return errors.New("not aws upstream")
