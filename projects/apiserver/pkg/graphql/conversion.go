@@ -695,6 +695,28 @@ func convertOutputDestinationSpec(spec *v1.DestinationSpec) DestinationSpec {
 		return &AzureDestinationSpec{
 			FunctionName: destSpec.Azure.FunctionName,
 		}
+	case *v1.DestinationSpec_Rest:
+		var params *TransformationParameters
+		if destSpec.Rest.Parameters != nil {
+			var headers *MapStringString
+			if len(destSpec.Rest.Parameters.Headers) > 0 {
+				headers = NewMapStringString(destSpec.Rest.Parameters.Headers)
+			}
+			var path *string
+			if destSpec.Rest.Parameters.Path != nil {
+				path = &destSpec.Rest.Parameters.Path.Value
+			}
+			if path != nil || headers != nil {
+				params = &TransformationParameters{
+					Path:    path,
+					Headers: headers,
+				}
+			}
+		}
+		return &RestDestinationSpec{
+			FunctionName: destSpec.Rest.FunctionName,
+			Parameters:   params,
+		}
 	}
 	log.Printf("unknown destination spec type: %#v", spec)
 	return nil
