@@ -107,8 +107,11 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 		Headers: headerTemplatesForTransform,
 	}
 
-	transtemplate.BodyTransformation = &transformation_plugins.TransformationTemplate_Passthrough{
-		Passthrough: &transformation_plugins.Passthrough{}}
+	if method == "POST" || method == "PATCH" || method == "PUT" {
+		transtemplate.BodyTransformation = &transformation_plugins.TransformationTemplate_Passthrough{
+			Passthrough: &transformation_plugins.Passthrough{}}
+	}
+
 	if body != nil {
 		transtemplate.BodyTransformation = &transformation_plugins.TransformationTemplate_Body{
 			Body: &transformation_plugins.InjaTemplate{
