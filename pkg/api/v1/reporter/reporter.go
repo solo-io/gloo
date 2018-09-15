@@ -65,6 +65,10 @@ func NewReporter(reporterRef string, resourceClients ...clients.ResourceClient) 
 
 func (r *reporter) WriteReports(ctx context.Context, resourceErrs ResourceErrors) error {
 	ctx = contextutils.WithLogger(ctx, "reporter")
+	logger := contextutils.LoggerFrom(ctx)
+
+	var merr *multierror.Error
+
 	for resource, validationError := range resourceErrs {
 		kind := resources.Kind(resource)
 		client, ok := r.clients[kind]
@@ -78,11 +82,14 @@ func (r *reporter) WriteReports(ctx context.Context, resourceErrs ResourceErrors
 			Ctx:               ctx,
 			OverwriteExisting: true,
 		}); err != nil {
-			return errors.Wrapf(err, "failed to write status %v for resource %v", status, resource.GetMetadata().Name)
+			err := errors.Wrapf(err, "failed to write status %v for resource %v", status, resource.GetMetadata().Name)
+			logger.Warn(err)
+			merr = multierror.Append(merr, err)
+			continue
 		}
-		contextutils.LoggerFrom(ctx).Infof("wrote report %v : %v", resourceToWrite.GetMetadata().Ref(), status)
+		logger.Infof("wrote report %v : %v", resourceToWrite.GetMetadata().Ref(), status)
 	}
-	return nil
+	return merr.ErrorOrNil()
 }
 
 func statusFromError(ref string, err error) core.Status {
