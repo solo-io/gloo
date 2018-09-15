@@ -40,7 +40,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	defer logger.Infof("end sync %v", snap.Hash())
 	logger.Debugf("%v", snap)
 
-	proxy, resourceErrs := translator.Translate(s.writeNamespace, snap)
+	proxy, resourceErrs := translator.Translate(ctx, s.writeNamespace, snap)
 	reporterErr := s.reporter.WriteReports(ctx, resourceErrs)
 	if err := resourceErrs.Validate(); err != nil {
 		logger.Warnf("gateway %v was rejected due to invalid config: %v\nxDS cache will not be updated.", err)

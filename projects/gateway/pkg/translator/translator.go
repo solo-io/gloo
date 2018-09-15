@@ -1,11 +1,11 @@
 package translator
 
 import (
+	"context"
+	"fmt"
 	"strings"
 
-	"log"
-
-	"fmt"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -13,16 +13,18 @@ import (
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 )
 
-func Translate(namespace string, snap *v1.ApiSnapshot) (*gloov1.Proxy, reporter.ResourceErrors) {
+func Translate(ctx context.Context, namespace string, snap *v1.ApiSnapshot) (*gloov1.Proxy, reporter.ResourceErrors) {
+	log := contextutils.LoggerFrom(ctx)
+
 	resourceErrs := make(reporter.ResourceErrors)
 	resourceErrs.Accept(snap.Gateways.List().AsInputResources()...)
 	resourceErrs.Accept(snap.VirtualServices.List().AsInputResources()...)
 	if len(snap.Gateways.List()) == 0 {
-		log.Printf("%v had no gateways", snap.Hash())
+		log.Debugf("%v had no gateways", snap.Hash())
 		return nil, resourceErrs
 	}
 	if len(snap.VirtualServices.List()) == 0 {
-		log.Printf("%v had no virtual services", snap.Hash())
+		log.Debugf("%v had no virtual services", snap.Hash())
 		return nil, resourceErrs
 	}
 	validateGateways(snap.Gateways.List(), resourceErrs)
