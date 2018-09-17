@@ -15,9 +15,188 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
+	"context"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"k8s.io/client-go/rest"
+	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
+	"path/filepath"
+	"k8s.io/client-go/kubernetes"
+	"github.com/solo-io/solo-kit/pkg/namespacing/static"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"strings"
+	"strconv"
 )
 
+type setupSync struct{}
+
+func (s *setupSync) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
+	switch {
+	case len(snap.Settings.List()) == 0:
+		return errors.Errorf("no settings files found")
+	case len(snap.Settings.List()) > 1:
+		return errors.Errorf("multiple settings files found")
+	}
+	settings := snap.Settings.List()[0]
+}
+
+func SetupWithSettings(ctx context.Context, settings *v1.Settings) error {
+	var (
+		upstreamFactory factory.ResourceClientFactory
+		proxyFactory    factory.ResourceClientFactory
+		secretFactory   factory.ResourceClientFactory
+		artifactFactory factory.ResourceClientFactory
+	)
+	var cfg *rest.Config
+	var clientset kubernetes.Interface
+	cache := memory.NewInMemoryResourceCache()
+
+	if settings.ConfigSource == nil {
+		upstreamFactory = &factory.MemoryResourceClientFactory{
+			Cache: cache,
+		}
+		proxyFactory = &factory.MemoryResourceClientFactory{
+			Cache: cache,
+		}
+	} else {
+		switch source := settings.ConfigSource.(type) {
+		case *v1.Settings_KubernetesConfigSource:
+			var err error
+			if cfg == nil {
+				cfg, err = kubeutils.GetConfig("", "")
+				if err != nil {
+					return err
+				}
+			}
+			upstreamFactory = &factory.KubeResourceClientFactory{
+				Crd: v1.UpstreamCrd,
+				Cfg: cfg,
+			}
+			proxyFactory = &factory.KubeResourceClientFactory{
+				Crd: v1.ProxyCrd,
+				Cfg: cfg,
+			}
+		case *v1.Settings_DirectoryConfigSource:
+			upstreamFactory = &factory.FileResourceClientFactory{
+				RootDir: filepath.Join(source.DirectoryConfigSource.Directory + "upstreams"),
+			}
+			proxyFactory = &factory.FileResourceClientFactory{
+				RootDir: filepath.Join(source.DirectoryConfigSource.Directory + "proxies"),
+			}
+		default:
+			return errors.Errorf("invalid config source type")
+		}
+	}
+
+	if settings.SecretSource == nil {
+		secretFactory = &factory.MemoryResourceClientFactory{
+			Cache: cache,
+		}
+	} else {
+		switch source := settings.SecretSource.(type) {
+		case *v1.Settings_KubernetesSecretSource:
+			var err error
+			if cfg == nil {
+				cfg, err = kubeutils.GetConfig("", "")
+				if err != nil {
+					return err
+				}
+			}
+			if clientset == nil {
+				clientset, err = kubernetes.NewForConfig(cfg)
+				if err != nil {
+					return err
+				}
+			}
+			secretFactory = &factory.KubeSecretClientFactory{
+				Clientset: clientset,
+			}
+		case *v1.Settings_VaultSecretSource:
+			return errors.Errorf("vault configuration not implemented")
+		case *v1.Settings_DirectorySecretSource:
+			secretFactory = &factory.FileResourceClientFactory{
+				RootDir: filepath.Join(source.DirectorySecretSource.Directory + "secrets"),
+			}
+		default:
+			return errors.Errorf("invalid config source type")
+		}
+	}
+
+	if settings.ArtifactSource == nil {
+		artifactFactory = &factory.MemoryResourceClientFactory{
+			Cache: cache,
+		}
+		switch source := settings.ArtifactSource.(type) {
+		case *v1.Settings_KubernetesArtifactSource:
+			var err error
+			if cfg == nil {
+				cfg, err = kubeutils.GetConfig("", "")
+				if err != nil {
+					return err
+				}
+			}
+			if clientset == nil {
+				clientset, err = kubernetes.NewForConfig(cfg)
+				if err != nil {
+					return err
+				}
+			}
+			artifactFactory = &factory.KubeSecretClientFactory{
+				Clientset: clientset,
+			}
+		case *v1.Settings_DirectoryArtifactSource:
+			artifactFactory = &factory.FileResourceClientFactory{
+				RootDir: filepath.Join(source.DirectoryArtifactSource.Directory + "artifacts"),
+			}
+		default:
+			return errors.Errorf("invalid config source type")
+		}
+	}
+
+	ipPort := strings.Split(settings.BindAddr, ":")
+	if len(ipPort) != 2 {
+		return errors.Errorf("invalid bind addr: %v", settings.BindAddr)
+	}
+	port, err := strconv.Atoi(ipPort[1])
+	if err != nil {
+		return errors.Wrapf(err, "invalid bind addr: %v", settings.BindAddr)
+	}
+	return Setup(bootstrap.Opts{
+		WriteNamespace: settings.DiscoveryNamespace,
+		Upstreams:      upstreamFactory,
+		Proxies:        proxyFactory,
+		Secrets:        secretFactory,
+		Artifacts:      artifactFactory,
+		Namespacer:     static.NewNamespacer([]string{"default", defaults.GlooSystem}),
+		BindAddr:       &net.TCPAddr{
+			IP:   net.ParseIP(ipPort[0]),
+			Port: port,
+		},
+	})
+
+	writeNamespace := settings.DiscoveryNamespace
+	if writeNamespace == "" {
+		writeNamespace = defaults.GlooSystem
+	}
+	opts := bootstrap.Opts{
+		WriteNamespace: defaults.GlooSystem,
+		Namespacer:     static.NewNamespacer([]string{"default", defaults.GlooSystem}),
+		WatchOpts: clients.WatchOpts{
+			Ctx:         ctx,
+			RefreshRate: defaults.RefreshRate,
+		},
+		BindAddr: &net.TCPAddr{
+			IP:   net.ParseIP("0.0.0.0"),
+			Port: 8080,
+		},
+		GrpcServer: grpcServer,
+		KubeClient: clientset,
+		DevMode:    true,
+	}
+}
+
 func Setup(opts bootstrap.Opts) error {
+
 	// TODO: Ilackarms: move this to multi-eventloop
 	namespaces, errs, err := opts.Namespacer.Namespaces(opts.WatchOpts)
 	if err != nil {

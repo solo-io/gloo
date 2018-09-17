@@ -53,7 +53,9 @@ message Settings {
     message KubernetesSecrets{} // watch kube secrets
     message VaultSecrets{} // watch vault secrets
     message KubernetesConfigmaps{}
-    message Directory{} // watch a directory
+    message Directory{
+        string directory = 1;
+    } // watch a directory
 
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 14 [(gogoproto.nullable) = false];
