@@ -35,11 +35,19 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func SetupRoot(configdir string) error {
-	el := 
+func SetupRoot(settingsDir string) error {
+	settingsClient, err := v1.NewSettingsClient(&factory.FileResourceClientFactory{
+		RootDir: settingsDir,
+	})
+	if err != nil {
+		return err
+	}
+	cache := v1.NewSetupEmitter(settingsClient)
+	eventLoop := v1.NewSetupEventLoop(cache, NewSetupSyncer())
+	eventLoop.Run()
 }
 
-func NewSettingsSync() v1.SetupSyncer {
+func NewSetupSyncer() v1.SetupSyncer {
 	return &settingsSyncer{
 		grpcServer: func(ctx context.Context) *grpc.Server {
 			return grpc.NewServer(grpc.StreamInterceptor(
@@ -56,7 +64,7 @@ func NewSettingsSync() v1.SetupSyncer {
 	}
 }
 
-type settingsSyncer struct{
+type settingsSyncer struct {
 	grpcServer func(ctx context.Context) *grpc.Server
 }
 
@@ -230,12 +238,10 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 		DevMode:    true,
 	}
 
-	return Setup(opts)
+	return RunGloo(opts)
 }
 
-func Setup(opts bootstrap.Opts) error {
-
-	// TODO: Ilackarms: move this to multi-eventloop
+func RunGloo(opts bootstrap.Opts) error {
 	namespaces, errs, err := opts.Namespacer.Namespaces(opts.WatchOpts)
 	if err != nil {
 		return err
@@ -357,5 +363,15 @@ func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 	if err != nil {
 		return err
 	}
+	go func() {
+		<-opts.WatchOpts.Ctx.Done()
+		opts.GrpcServer.Stop()
+		err := lis.Close()
+		if err != nil {
+			logger.Errorf("failed to close listener on %v", opts.BindAddr)
+		}
+	}()
+
 	return opts.GrpcServer.Serve(lis)
+
 }

@@ -54,7 +54,7 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 		opts := DefaultTestConstructOpts(ctx, cache)
 		go setup.Setup(opts)
 	}
-	go gloosetup.Setup(glooopts)
+	go gloosetup.RunGloo(glooopts)
 
 	// construct our own resources:
 	factory := &factory.MemoryResourceClientFactory{

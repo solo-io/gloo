@@ -10,7 +10,7 @@ import (
 	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 )
 
-var _ = Describe("Setup", func() {
+var _ = Describe("RunGloo", func() {
 	It("works", func() {
 		Expect(runFds()).To(BeNil())
 

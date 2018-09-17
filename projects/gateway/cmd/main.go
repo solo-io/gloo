@@ -28,7 +28,7 @@ func runGloo() error {
 	if err != nil {
 		return err
 	}
-	return gloosetup.Setup(opts)
+	return gloosetup.RunGloo(opts)
 }
 
 func runGateway() error {

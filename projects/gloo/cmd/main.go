@@ -16,5 +16,5 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	return setup.Setup(opts)
+	return setup.RunGloo(opts)
 }
