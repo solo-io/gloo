@@ -18,8 +18,8 @@ type Opts struct {
 	Artifacts      factory.ResourceClientFactory
 	Namespacer     namespacing.Namespacer
 	BindAddr       net.Addr
-	GrpcServer     *grpc.Server
 	KubeClient     kubernetes.Interface
 	WatchOpts      clients.WatchOpts
 	DevMode        bool
+	GrpcServer     *grpc.Server
 }

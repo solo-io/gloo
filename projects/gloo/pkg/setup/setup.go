@@ -8,6 +8,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/golang/protobuf/ptypes"
+	"github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -25,9 +29,26 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
+
+func SetupRoot(configdir string) error {
+	grpcServer := func(ctx context.Context) {
+		grpc.NewServer(grpc.StreamInterceptor(
+			grpc_middleware.ChainStreamServer(
+				grpc_ctxtags.StreamServerInterceptor(),
+				grpc_zap.StreamServerInterceptor(zap.NewNop()),
+				func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+					contextutils.LoggerFrom(ctx).Infof("gRPC call: %v", info.FullMethod)
+					return handler(srv, ss)
+				},
+			)),
+		)
+	}
+}
 
 type setupSync struct{}
 
@@ -39,6 +60,7 @@ func (s *setupSync) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		return errors.Errorf("multiple settings files found")
 	}
 	settings := snap.Settings.List()[0]
+	return
 }
 
 func SetupWithSettings(ctx context.Context, settings *v1.Settings) error {
@@ -162,6 +184,10 @@ func SetupWithSettings(ctx context.Context, settings *v1.Settings) error {
 	if err != nil {
 		return errors.Wrapf(err, "invalid bind addr: %v", settings.BindAddr)
 	}
+	refreshRate, err := ptypes.Duration(settings.RefreshRate)
+	if err != nil {
+		return err
+	}
 	return Setup(bootstrap.Opts{
 		WriteNamespace: settings.DiscoveryNamespace,
 		Upstreams:      upstreamFactory,
@@ -173,6 +199,13 @@ func SetupWithSettings(ctx context.Context, settings *v1.Settings) error {
 			IP:   net.ParseIP(ipPort[0]),
 			Port: port,
 		},
+		// if nil, kube plugin disabled
+		KubeClient: clientset,
+		WatchOpts: clients.WatchOpts{
+			Ctx:         ctx,
+			RefreshRate: refreshRate,
+		},
+		DevMode: settings.DevMode,
 	})
 
 	writeNamespace := settings.DiscoveryNamespace
