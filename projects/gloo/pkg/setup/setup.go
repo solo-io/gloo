@@ -33,9 +33,10 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"time"
 )
 
-func SetupRoot(settingsDir string) error {
+func Main(settingsDir string) error {
 	settingsClient, err := v1.NewSettingsClient(&factory.FileResourceClientFactory{
 		RootDir: settingsDir,
 	})
@@ -43,8 +44,19 @@ func SetupRoot(settingsDir string) error {
 		return err
 	}
 	cache := v1.NewSetupEmitter(settingsClient)
+	ctx := contextutils.WithLogger(context.Background(), "main")
 	eventLoop := v1.NewSetupEventLoop(cache, NewSetupSyncer())
-	eventLoop.Run()
+	errs, err := eventLoop.Run([]string{"settings"}, clients.WatchOpts{
+		Ctx:         ctx,
+		RefreshRate: time.Minute,
+	})
+	if err != nil {
+		return err
+	}
+	for err := range errs {
+		contextutils.LoggerFrom(ctx).Errorf("error in setup: %v", err)
+	}
+	return nil
 }
 
 func NewSetupSyncer() v1.SetupSyncer {
@@ -60,7 +72,7 @@ func NewSetupSyncer() v1.SetupSyncer {
 					},
 				)),
 			)
-		}
+		},
 	}
 }
 
