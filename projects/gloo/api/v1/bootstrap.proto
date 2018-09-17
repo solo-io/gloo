@@ -21,30 +21,30 @@ message Settings {
     // where to read user config (upstream, proxy) from
     // if nil, use only in memory config
     oneof config_source {
-        KubernetesCrds kubernetes = 4;
-        Directory directory = 5;
+        KubernetesCrds kubernetes_config_source = 4;
+        Directory directory_config_source = 5;
     };
 
     // where to read secrets from (vault, k8s)
     oneof secret_source {
-        KubernetesSecrets kubernetes = 6;
-        VaultSecrets vault = 7;
-        Directory directory = 8;
+        KubernetesSecrets kubernetes_secret_source = 6;
+        VaultSecrets vault_secret_source = 7;
+        Directory directory_secret_source = 8;
     };
 
 
     // where to read artifacts from (configmap, file)
     oneof artifact_source {
-        KubernetesConfigmaps kubernetes = 9;
-        Directory directory = 10;
+        KubernetesConfigmaps kubernetes_artifact_source = 9;
+        Directory directory_artifact_source = 10;
     };
 
     // where the gloo xds server should bind (should not need configuration by user)
-    string bind_addr = 6;
+    string bind_addr = 11;
     // how frequently to resync watches, etc
-    google.protobuf.Duration refresh_rate = 7;
+    google.protobuf.Duration refresh_rate = 12;
     // enable serving debug data on port 9090
-    bool DevMode = 8;
+    bool DevMode = 13;
 
 
     // ilackarms(todo: make sure these are configurable)

@@ -6,6 +6,7 @@ Package v1 is a generated protocol buffer package.
 
 It is generated from these files:
 	artifact.proto
+	bootstrap.proto
 	endpoint.proto
 	plugins.proto
 	proxy.proto
@@ -14,6 +15,7 @@ It is generated from these files:
 
 It has these top-level messages:
 	Artifact
+	Settings
 	Endpoint
 	ListenerPlugins
 	VirtualHostPlugins
