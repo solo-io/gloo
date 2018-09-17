@@ -17,7 +17,7 @@ message Settings {
     // namespace to write discovered data
     string discovery_namespace = 1;
     // namespaces to watch for user config as well as
-    string watch_namespaces = 2;
+    repeated string watch_namespaces = 2;
 
     // where to read user config (upstream, proxy) from
     // if nil, use only in memory config
