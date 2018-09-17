@@ -5,6 +5,7 @@ option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "google/protobuf/duration.proto";
 
 /*
@@ -53,4 +54,7 @@ message Settings {
     message VaultSecrets{} // watch vault secrets
     message KubernetesConfigmaps{}
     message Directory{} // watch a directory
+
+    // Metadata contains the object metadata for this resource
+    core.solo.io.Metadata metadata = 14 [(gogoproto.nullable) = false];
 }
