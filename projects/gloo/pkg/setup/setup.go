@@ -3,29 +3,30 @@ package setup
 import (
 	"net"
 
+	"context"
+	"path/filepath"
+	"strconv"
+	"strings"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/namespacing/static"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
+	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
-	"context"
-	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
-	"k8s.io/client-go/rest"
-	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-	"path/filepath"
 	"k8s.io/client-go/kubernetes"
-	"github.com/solo-io/solo-kit/pkg/namespacing/static"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"strings"
-	"strconv"
+	"k8s.io/client-go/rest"
 )
 
 type setupSync struct{}
@@ -168,7 +169,7 @@ func SetupWithSettings(ctx context.Context, settings *v1.Settings) error {
 		Secrets:        secretFactory,
 		Artifacts:      artifactFactory,
 		Namespacer:     static.NewNamespacer([]string{"default", defaults.GlooSystem}),
-		BindAddr:       &net.TCPAddr{
+		BindAddr: &net.TCPAddr{
 			IP:   net.ParseIP(ipPort[0]),
 			Port: port,
 		},

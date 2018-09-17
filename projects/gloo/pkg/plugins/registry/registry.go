@@ -18,18 +18,21 @@ type registry struct {
 
 var globalRegistry = func(opts bootstrap.Opts) *registry {
 	transformationPlugin := transformation.NewPlugin()
-	return &registry{
-		plugins: []plugins.Plugin{
-			// plugins should be added here
-			aws.NewPlugin(&transformationPlugin.RequireTransformationFilter),
-			azure.NewPlugin(&transformationPlugin.RequireTransformationFilter),
-			kubernetes.NewPlugin(opts),
-			rest.NewPlugin(&transformationPlugin.RequireTransformationFilter),
-			static.NewPlugin(),
-			transformationPlugin,
-			grpc.NewPlugin(&transformationPlugin.RequireTransformationFilter),
-		},
+	reg := &registry{}
+	// plugins should be added here
+	reg.plugins = append(reg.plugins,
+		azure.NewPlugin(&transformationPlugin.RequireTransformationFilter),
+		aws.NewPlugin(&transformationPlugin.RequireTransformationFilter),
+		rest.NewPlugin(&transformationPlugin.RequireTransformationFilter),
+		rest.NewPlugin(&transformationPlugin.RequireTransformationFilter),
+		static.NewPlugin(),
+		transformationPlugin,
+		grpc.NewPlugin(&transformationPlugin.RequireTransformationFilter),
+	)
+	if opts.KubeClient != nil {
+		reg.plugins = append(reg.plugins, kubernetes.NewPlugin(opts))
 	}
+	return reg
 }
 
 func Plugins(opts bootstrap.Opts) []plugins.Plugin {
