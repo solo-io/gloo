@@ -36,23 +36,31 @@ import (
 )
 
 func SetupRoot(configdir string) error {
-	grpcServer := func(ctx context.Context) {
-		grpc.NewServer(grpc.StreamInterceptor(
-			grpc_middleware.ChainStreamServer(
-				grpc_ctxtags.StreamServerInterceptor(),
-				grpc_zap.StreamServerInterceptor(zap.NewNop()),
-				func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-					contextutils.LoggerFrom(ctx).Infof("gRPC call: %v", info.FullMethod)
-					return handler(srv, ss)
-				},
-			)),
-		)
+	el := 
+}
+
+func NewSettingsSync() v1.SetupSyncer {
+	return &settingsSyncer{
+		grpcServer: func(ctx context.Context) *grpc.Server {
+			return grpc.NewServer(grpc.StreamInterceptor(
+				grpc_middleware.ChainStreamServer(
+					grpc_ctxtags.StreamServerInterceptor(),
+					grpc_zap.StreamServerInterceptor(zap.NewNop()),
+					func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+						contextutils.LoggerFrom(ctx).Infof("gRPC call: %v", info.FullMethod)
+						return handler(srv, ss)
+					},
+				)),
+			)
+		}
 	}
 }
 
-type setupSync struct{}
+type settingsSyncer struct{
+	grpcServer func(ctx context.Context) *grpc.Server
+}
 
-func (s *setupSync) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
+func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 	switch {
 	case len(snap.Settings.List()) == 0:
 		return errors.Errorf("no settings files found")
@@ -60,10 +68,7 @@ func (s *setupSync) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		return errors.Errorf("multiple settings files found")
 	}
 	settings := snap.Settings.List()[0]
-	return
-}
 
-func SetupWithSettings(ctx context.Context, settings *v1.Settings) error {
 	var (
 		upstreamFactory factory.ResourceClientFactory
 		proxyFactory    factory.ResourceClientFactory
@@ -188,45 +193,44 @@ func SetupWithSettings(ctx context.Context, settings *v1.Settings) error {
 	if err != nil {
 		return err
 	}
-	return Setup(bootstrap.Opts{
-		WriteNamespace: settings.DiscoveryNamespace,
-		Upstreams:      upstreamFactory,
-		Proxies:        proxyFactory,
-		Secrets:        secretFactory,
-		Artifacts:      artifactFactory,
-		Namespacer:     static.NewNamespacer([]string{"default", defaults.GlooSystem}),
-		BindAddr: &net.TCPAddr{
-			IP:   net.ParseIP(ipPort[0]),
-			Port: port,
-		},
-		// if nil, kube plugin disabled
-		KubeClient: clientset,
-		WatchOpts: clients.WatchOpts{
-			Ctx:         ctx,
-			RefreshRate: refreshRate,
-		},
-		DevMode: settings.DevMode,
-	})
 
 	writeNamespace := settings.DiscoveryNamespace
 	if writeNamespace == "" {
 		writeNamespace = defaults.GlooSystem
 	}
+	watchNamespaces := settings.WatchNamespaces
+	var writeNamespaceProvided bool
+	for _, ns := range watchNamespaces {
+		if ns == writeNamespace {
+			writeNamespaceProvided = true
+			break
+		}
+	}
+	if !writeNamespaceProvided {
+		watchNamespaces = append(watchNamespaces, writeNamespace)
+	}
 	opts := bootstrap.Opts{
-		WriteNamespace: defaults.GlooSystem,
-		Namespacer:     static.NewNamespacer([]string{"default", defaults.GlooSystem}),
+		WriteNamespace: writeNamespace,
+		Namespacer:     static.NewNamespacer(watchNamespaces),
+		Upstreams:      upstreamFactory,
+		Proxies:        proxyFactory,
+		Secrets:        secretFactory,
+		Artifacts:      artifactFactory,
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
-			RefreshRate: defaults.RefreshRate,
+			RefreshRate: refreshRate,
 		},
 		BindAddr: &net.TCPAddr{
-			IP:   net.ParseIP("0.0.0.0"),
-			Port: 8080,
+			IP:   net.ParseIP(ipPort[0]),
+			Port: port,
 		},
-		GrpcServer: grpcServer,
+		GrpcServer: s.grpcServer(ctx),
+		// if nil, kube plugin disabled
 		KubeClient: clientset,
 		DevMode:    true,
 	}
+
+	return Setup(opts)
 }
 
 func Setup(opts bootstrap.Opts) error {
