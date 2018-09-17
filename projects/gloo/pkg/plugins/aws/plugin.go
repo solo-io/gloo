@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
@@ -138,7 +139,9 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		// get upstream
 		lambdaSpec, ok := p.recordedUpstreams[spec.Upstream]
 		if !ok {
-			return nil, errors.Errorf("%v is not an AWS upstream", spec.Upstream)
+			err := errors.Errorf("%v is not an AWS upstream", spec.Upstream)
+			contextutils.LoggerFrom(p.ctx).Error(err)
+			return nil, err
 		}
 		// should be aws upstream
 

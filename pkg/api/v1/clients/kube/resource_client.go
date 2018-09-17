@@ -289,7 +289,7 @@ func (rc *ResourceClient) watch(ctx context.Context, namespace string, selector 
 			updateResourceList()
 		case event, ok := <-watch.ResultChan():
 			if !ok {
-				logger.Warnf("watch was closed")
+				logger.Debugf("watch was closed")
 				return errors.Errorf("watch closed")
 			}
 			switch event.Type {
