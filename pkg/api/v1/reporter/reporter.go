@@ -77,6 +77,10 @@ func (r *reporter) WriteReports(ctx context.Context, resourceErrs ResourceErrors
 		}
 		status := statusFromError(r.ref, validationError)
 		resourceToWrite := resources.Clone(resource).(resources.InputResource)
+		if status.Equal(resource.GetStatus()) {
+			logger.Debugf("skipping report for %v as it has not changed", resourceToWrite.GetMetadata().Ref())
+			continue
+		}
 		resourceToWrite.SetStatus(status)
 		if _, err := client.Write(resourceToWrite, clients.WriteOpts{
 			Ctx:               ctx,
