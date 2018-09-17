@@ -1,0 +1,56 @@
+syntax = "proto3";
+package gloo.solo.io;
+option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "google/protobuf/duration.proto";
+
+/*
+@solo-kit:resource.short_name=st
+@solo-kit:resource.plural_name=settings
+@solo-kit:resource.resource_groups=setup.gloo.solo.io
+*/
+message Settings {
+    // namespace to write discovered data
+    string discovery_namespace = 1;
+    // namespaces to watch for user config as well as
+    string watch_namespaces = 2;
+
+    // where to read user config (upstream, proxy) from
+    // if nil, use only in memory config
+    oneof config_source {
+        KubernetesCrds kubernetes = 4;
+        Directory directory = 5;
+    };
+
+    // where to read secrets from (vault, k8s)
+    oneof secret_source {
+        KubernetesSecrets kubernetes = 6;
+        VaultSecrets vault = 7;
+        Directory directory = 8;
+    };
+
+
+    // where to read artifacts from (configmap, file)
+    oneof artifact_source {
+        KubernetesConfigmaps kubernetes = 9;
+        Directory directory = 10;
+    };
+
+    // where the gloo xds server should bind (should not need configuration by user)
+    string bind_addr = 6;
+    // how frequently to resync watches, etc
+    google.protobuf.Duration refresh_rate = 7;
+    // enable serving debug data on port 9090
+    bool DevMode = 8;
+
+
+    // ilackarms(todo: make sure these are configurable)
+    message KubernetesCrds{} // watch kubernetes Crds
+    message KubernetesSecrets{} // watch kube secrets
+    message VaultSecrets{} // watch vault secrets
+    message KubernetesConfigmaps{}
+    message Directory{} // watch a directory
+}
