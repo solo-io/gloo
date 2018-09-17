@@ -6,16 +6,15 @@ Package v1 is a generated protocol buffer package.
 
 It is generated from these files:
 	artifact.proto
-	bootstrap.proto
 	endpoint.proto
 	plugins.proto
 	proxy.proto
 	secret.proto
+	settings.proto
 	upstream.proto
 
 It has these top-level messages:
 	Artifact
-	Settings
 	Endpoint
 	ListenerPlugins
 	VirtualHostPlugins
@@ -42,6 +41,7 @@ It has these top-level messages:
 	AwsSecret
 	AzureSecret
 	TlsSecret
+	Settings
 	Upstream
 	DiscoveryMetadata
 */
