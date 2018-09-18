@@ -1,14 +1,14 @@
 package setup
 
 import (
-	"net"
-
 	"context"
+	"net"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/golang/protobuf/ptypes"
+	"github.com/gogo/protobuf/types"
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -33,7 +33,6 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"time"
 )
 
 func Main(settingsDir string) error {
@@ -209,7 +208,7 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 	if err != nil {
 		return errors.Wrapf(err, "invalid bind addr: %v", settings.BindAddr)
 	}
-	refreshRate, err := ptypes.Duration(settings.RefreshRate)
+	refreshRate, err := types.DurationFromProto(settings.RefreshRate)
 	if err != nil {
 		return err
 	}

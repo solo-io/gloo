@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/duration"
+	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/apiserver"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -153,7 +153,7 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 	secs := opts.RefreshRate.Seconds()
 	nanos := int64(opts.RefreshRate.Seconds()) % int64(time.Duration(opts.RefreshRate.Seconds())*time.Second)
 	resp, err := rc.grpc.Watch(opts.Ctx, &apiserver.WatchRequest{
-		SyncFrequency: &duration.Duration{
+		SyncFrequency: &types.Duration{
 			Seconds: int64(secs),
 			Nanos:   int32(nanos),
 		},

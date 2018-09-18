@@ -7,7 +7,7 @@ import (
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
-	"github.com/golang/protobuf/ptypes"
+	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
@@ -214,7 +214,7 @@ func (s *ApiServer) Watch(req *WatchRequest, watch ApiServer_WatchServer) error 
 	ctx := contextutils.WithLogger(watch.Context(), "apiserver.read")
 	var duration time.Duration
 	if req.SyncFrequency != nil {
-		duration, err = ptypes.Duration(req.SyncFrequency)
+		duration, err = types.DurationFromProto(req.SyncFrequency)
 		if err != nil {
 			return err
 		}
