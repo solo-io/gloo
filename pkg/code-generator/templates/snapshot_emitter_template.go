@@ -152,7 +152,7 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 	
 	snapshots := make(chan *{{ .GoName }}Snapshot)
 	go func() {
-		originalSnapshot := ApiSnapshot{}
+		originalSnapshot := {{ .GoName }}Snapshot{}
 		currentSnapshot := originalSnapshot.Clone()
 		timer := time.NewTicker(time.Second * 5)
 		sync := func() {
