@@ -33,9 +33,41 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
+func writeSettings(settingsDir string) error {
+	cli, err := v1.NewSettingsClient(&factory.FileResourceClientFactory{RootDir: settingsDir})
+	if err != nil {
+		return err
+	}
+	settings := &v1.Settings{
+		ConfigSource: &v1.Settings_KubernetesConfigSource{
+			KubernetesConfigSource: &v1.Settings_KubernetesCrds{},
+		},
+		ArtifactSource: &v1.Settings_KubernetesArtifactSource{
+			KubernetesArtifactSource: &v1.Settings_KubernetesConfigmaps{},
+		},
+		SecretSource: &v1.Settings_KubernetesSecretSource{
+			KubernetesSecretSource: &v1.Settings_KubernetesSecrets{},
+		},
+		BindAddr:    "0.0.0.0:9977",
+		RefreshRate: types.DurationProto(time.Minute),
+		DevMode:     true,
+		Metadata: core.Metadata{
+			Namespace: "settings",
+			Name:      "gloo.yaml",
+		},
+	}
+	cli.Delete(settings.Metadata.Namespace, settings.Metadata.Name, clients.DeleteOpts{})
+	_, err = cli.Write(settings, clients.WriteOpts{})
+	return err
+}
+
 func Main(settingsDir string) error {
+	if err := writeSettings(settingsDir); err != nil {
+		return err
+	}
 	settingsClient, err := v1.NewSettingsClient(&factory.FileResourceClientFactory{
 		RootDir: settingsDir,
 	})
