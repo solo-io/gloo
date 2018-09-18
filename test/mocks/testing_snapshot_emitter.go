@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"sync"
+	"time"
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -145,19 +146,41 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 
 	snapshots := make(chan *TestingSnapshot)
 	go func() {
-		currentSnapshot := TestingSnapshot{}
-		sync := func(newSnapshot TestingSnapshot) {
-			if currentSnapshot.Hash() == newSnapshot.Hash() {
+		originalSnapshot := TestingSnapshot{}
+		currentSnapshot := originalSnapshot.Clone()
+		timer := time.NewTicker(time.Second * 5)
+		sync := func() {
+			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
 			}
-			currentSnapshot = newSnapshot
+			originalSnapshot = currentSnapshot.Clone()
 			sentSnapshot := currentSnapshot.Clone()
-
-			stats.Record(ctx, mTestingSnapshotOut.M(1))
 			snapshots <- &sentSnapshot
 		}
+
+		/* TODO (yuval-k): figure out how to make this work to avoid a stale snapshot.
+		   		// construct the first snapshot from all the configs that are currently there
+		   		// that guarantees that the first snapshot contains all the data.
+		   		for range watchNamespaces {
+		      mockResourceNamespacedList := <- mockResourceChan:
+		   	namespace := mockResourceNamespacedList.namespace
+		   	mockResourceList := mockResourceNamespacedList.list
+
+		   	currentSnapshot.Mocks.Clear(namespace)
+		   	currentSnapshot.Mocks.Add(mockResourceList...)
+		      fakeResourceNamespacedList := <- fakeResourceChan:
+		   	namespace := fakeResourceNamespacedList.namespace
+		   	fakeResourceList := fakeResourceNamespacedList.list
+
+		   	currentSnapshot.Fakes.Clear(namespace)
+		   	currentSnapshot.Fakes.Add(fakeResourceList...)
+		   		}
+		*/
+
 		for {
 			select {
+			case <-timer.C:
+				sync()
 			case <-ctx.Done():
 				close(snapshots)
 				done.Wait()
@@ -170,18 +193,14 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 				namespace := mockResourceNamespacedList.namespace
 				mockResourceList := mockResourceNamespacedList.list
 
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.Mocks.Clear(namespace)
-				newSnapshot.Mocks.Add(mockResourceList...)
-				sync(newSnapshot)
+				currentSnapshot.Mocks.Clear(namespace)
+				currentSnapshot.Mocks.Add(mockResourceList...)
 			case fakeResourceNamespacedList := <-fakeResourceChan:
 				namespace := fakeResourceNamespacedList.namespace
 				fakeResourceList := fakeResourceNamespacedList.list
 
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.Fakes.Clear(namespace)
-				newSnapshot.Fakes.Add(fakeResourceList...)
-				sync(newSnapshot)
+				currentSnapshot.Fakes.Clear(namespace)
+				currentSnapshot.Fakes.Add(fakeResourceList...)
 			}
 
 			// if we got here its because a new entry in the channel

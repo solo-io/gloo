@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"sync"
+	"time"
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -112,19 +113,35 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 
 	snapshots := make(chan *BlestingSnapshot)
 	go func() {
-		currentSnapshot := BlestingSnapshot{}
-		sync := func(newSnapshot BlestingSnapshot) {
-			if currentSnapshot.Hash() == newSnapshot.Hash() {
+		originalSnapshot := BlestingSnapshot{}
+		currentSnapshot := originalSnapshot.Clone()
+		timer := time.NewTicker(time.Second * 5)
+		sync := func() {
+			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
 			}
-			currentSnapshot = newSnapshot
+			originalSnapshot = currentSnapshot.Clone()
 			sentSnapshot := currentSnapshot.Clone()
-
-			stats.Record(ctx, mBlestingSnapshotOut.M(1))
 			snapshots <- &sentSnapshot
 		}
+
+		/* TODO (yuval-k): figure out how to make this work to avoid a stale snapshot.
+		   		// construct the first snapshot from all the configs that are currently there
+		   		// that guarantees that the first snapshot contains all the data.
+		   		for range watchNamespaces {
+		      fakeResourceNamespacedList := <- fakeResourceChan:
+		   	namespace := fakeResourceNamespacedList.namespace
+		   	fakeResourceList := fakeResourceNamespacedList.list
+
+		   	currentSnapshot.Fakes.Clear(namespace)
+		   	currentSnapshot.Fakes.Add(fakeResourceList...)
+		   		}
+		*/
+
 		for {
 			select {
+			case <-timer.C:
+				sync()
 			case <-ctx.Done():
 				close(snapshots)
 				done.Wait()
@@ -137,10 +154,8 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 				namespace := fakeResourceNamespacedList.namespace
 				fakeResourceList := fakeResourceNamespacedList.list
 
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.Fakes.Clear(namespace)
-				newSnapshot.Fakes.Add(fakeResourceList...)
-				sync(newSnapshot)
+				currentSnapshot.Fakes.Clear(namespace)
+				currentSnapshot.Fakes.Add(fakeResourceList...)
 			}
 
 			// if we got here its because a new entry in the channel

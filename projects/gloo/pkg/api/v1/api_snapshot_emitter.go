@@ -2,6 +2,7 @@ package v1
 
 import (
 	"sync"
+	"time"
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -244,19 +245,59 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 
 	snapshots := make(chan *ApiSnapshot)
 	go func() {
-		currentSnapshot := ApiSnapshot{}
-		sync := func(newSnapshot ApiSnapshot) {
-			if currentSnapshot.Hash() == newSnapshot.Hash() {
+		originalSnapshot := ApiSnapshot{}
+		currentSnapshot := originalSnapshot.Clone()
+		timer := time.NewTicker(time.Second * 5)
+		sync := func() {
+			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
 			}
-			currentSnapshot = newSnapshot
+			originalSnapshot = currentSnapshot.Clone()
 			sentSnapshot := currentSnapshot.Clone()
-
-			stats.Record(ctx, mApiSnapshotOut.M(1))
 			snapshots <- &sentSnapshot
 		}
+
+		/* TODO (yuval-k): figure out how to make this work to avoid a stale snapshot.
+		   		// construct the first snapshot from all the configs that are currently there
+		   		// that guarantees that the first snapshot contains all the data.
+		   		for range watchNamespaces {
+		      artifactNamespacedList := <- artifactChan:
+		   	namespace := artifactNamespacedList.namespace
+		   	artifactList := artifactNamespacedList.list
+
+		   	currentSnapshot.Artifacts.Clear(namespace)
+		   	currentSnapshot.Artifacts.Add(artifactList...)
+		      endpointNamespacedList := <- endpointChan:
+		   	namespace := endpointNamespacedList.namespace
+		   	endpointList := endpointNamespacedList.list
+
+		   	currentSnapshot.Endpoints.Clear(namespace)
+		   	currentSnapshot.Endpoints.Add(endpointList...)
+		      proxyNamespacedList := <- proxyChan:
+		   	namespace := proxyNamespacedList.namespace
+		   	proxyList := proxyNamespacedList.list
+
+		   	currentSnapshot.Proxies.Clear(namespace)
+		   	currentSnapshot.Proxies.Add(proxyList...)
+		      secretNamespacedList := <- secretChan:
+		   	namespace := secretNamespacedList.namespace
+		   	secretList := secretNamespacedList.list
+
+		   	currentSnapshot.Secrets.Clear(namespace)
+		   	currentSnapshot.Secrets.Add(secretList...)
+		      upstreamNamespacedList := <- upstreamChan:
+		   	namespace := upstreamNamespacedList.namespace
+		   	upstreamList := upstreamNamespacedList.list
+
+		   	currentSnapshot.Upstreams.Clear(namespace)
+		   	currentSnapshot.Upstreams.Add(upstreamList...)
+		   		}
+		*/
+
 		for {
 			select {
+			case <-timer.C:
+				sync()
 			case <-ctx.Done():
 				close(snapshots)
 				done.Wait()
@@ -269,42 +310,32 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				namespace := artifactNamespacedList.namespace
 				artifactList := artifactNamespacedList.list
 
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.Artifacts.Clear(namespace)
-				newSnapshot.Artifacts.Add(artifactList...)
-				sync(newSnapshot)
+				currentSnapshot.Artifacts.Clear(namespace)
+				currentSnapshot.Artifacts.Add(artifactList...)
 			case endpointNamespacedList := <-endpointChan:
 				namespace := endpointNamespacedList.namespace
 				endpointList := endpointNamespacedList.list
 
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.Endpoints.Clear(namespace)
-				newSnapshot.Endpoints.Add(endpointList...)
-				sync(newSnapshot)
+				currentSnapshot.Endpoints.Clear(namespace)
+				currentSnapshot.Endpoints.Add(endpointList...)
 			case proxyNamespacedList := <-proxyChan:
 				namespace := proxyNamespacedList.namespace
 				proxyList := proxyNamespacedList.list
 
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.Proxies.Clear(namespace)
-				newSnapshot.Proxies.Add(proxyList...)
-				sync(newSnapshot)
+				currentSnapshot.Proxies.Clear(namespace)
+				currentSnapshot.Proxies.Add(proxyList...)
 			case secretNamespacedList := <-secretChan:
 				namespace := secretNamespacedList.namespace
 				secretList := secretNamespacedList.list
 
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.Secrets.Clear(namespace)
-				newSnapshot.Secrets.Add(secretList...)
-				sync(newSnapshot)
+				currentSnapshot.Secrets.Clear(namespace)
+				currentSnapshot.Secrets.Add(secretList...)
 			case upstreamNamespacedList := <-upstreamChan:
 				namespace := upstreamNamespacedList.namespace
 				upstreamList := upstreamNamespacedList.list
 
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.Upstreams.Clear(namespace)
-				newSnapshot.Upstreams.Add(upstreamList...)
-				sync(newSnapshot)
+				currentSnapshot.Upstreams.Clear(namespace)
+				currentSnapshot.Upstreams.Add(upstreamList...)
 			}
 
 			// if we got here its because a new entry in the channel

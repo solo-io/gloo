@@ -2,6 +2,7 @@ package v1
 
 import (
 	"sync"
+	"time"
 
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -145,19 +146,41 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 
 	snapshots := make(chan *ApiSnapshot)
 	go func() {
-		currentSnapshot := ApiSnapshot{}
-		sync := func(newSnapshot ApiSnapshot) {
-			if currentSnapshot.Hash() == newSnapshot.Hash() {
+		originalSnapshot := ApiSnapshot{}
+		currentSnapshot := originalSnapshot.Clone()
+		timer := time.NewTicker(time.Second * 5)
+		sync := func() {
+			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
 			}
-			currentSnapshot = newSnapshot
+			originalSnapshot = currentSnapshot.Clone()
 			sentSnapshot := currentSnapshot.Clone()
-
-			stats.Record(ctx, mApiSnapshotOut.M(1))
 			snapshots <- &sentSnapshot
 		}
+
+		/* TODO (yuval-k): figure out how to make this work to avoid a stale snapshot.
+		   		// construct the first snapshot from all the configs that are currently there
+		   		// that guarantees that the first snapshot contains all the data.
+		   		for range watchNamespaces {
+		      resolverMapNamespacedList := <- resolverMapChan:
+		   	namespace := resolverMapNamespacedList.namespace
+		   	resolverMapList := resolverMapNamespacedList.list
+
+		   	currentSnapshot.ResolverMaps.Clear(namespace)
+		   	currentSnapshot.ResolverMaps.Add(resolverMapList...)
+		      schemaNamespacedList := <- schemaChan:
+		   	namespace := schemaNamespacedList.namespace
+		   	schemaList := schemaNamespacedList.list
+
+		   	currentSnapshot.Schemas.Clear(namespace)
+		   	currentSnapshot.Schemas.Add(schemaList...)
+		   		}
+		*/
+
 		for {
 			select {
+			case <-timer.C:
+				sync()
 			case <-ctx.Done():
 				close(snapshots)
 				done.Wait()
@@ -170,18 +193,14 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				namespace := resolverMapNamespacedList.namespace
 				resolverMapList := resolverMapNamespacedList.list
 
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.ResolverMaps.Clear(namespace)
-				newSnapshot.ResolverMaps.Add(resolverMapList...)
-				sync(newSnapshot)
+				currentSnapshot.ResolverMaps.Clear(namespace)
+				currentSnapshot.ResolverMaps.Add(resolverMapList...)
 			case schemaNamespacedList := <-schemaChan:
 				namespace := schemaNamespacedList.namespace
 				schemaList := schemaNamespacedList.list
 
-				newSnapshot := currentSnapshot.Clone()
-				newSnapshot.Schemas.Clear(namespace)
-				newSnapshot.Schemas.Add(schemaList...)
-				sync(newSnapshot)
+				currentSnapshot.Schemas.Clear(namespace)
+				currentSnapshot.Schemas.Add(schemaList...)
 			}
 
 			// if we got here its because a new entry in the channel
