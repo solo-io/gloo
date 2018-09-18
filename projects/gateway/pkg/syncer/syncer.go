@@ -48,16 +48,16 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		return err
 	}
 
-	var desiredResources gloov1.ProxyList
-	if proxy != nil {
-		logger.Infof("creating proxy %v", proxy.Metadata.Ref())
-		desiredResources = gloov1.ProxyList{proxy}
-	}
 	labels := map[string]string{
 		"created_by": "gateway",
 	}
 
-	proxy.Metadata.Labels = labels
+	var desiredResources gloov1.ProxyList
+	if proxy != nil {
+		logger.Infof("creating proxy %v", proxy.Metadata.Ref())
+		proxy.Metadata.Labels = labels
+		desiredResources = gloov1.ProxyList{proxy}
+	}
 
 	if err := s.proxyReconciler.Reconcile(s.writeNamespace, desiredResources, TODO.TransitionFunction, clients.ListOpts{
 		Ctx:      ctx,
