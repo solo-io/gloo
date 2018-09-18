@@ -32,6 +32,7 @@ func NewSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter r
 }
 
 func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
+
 	ctx = contextutils.WithLogger(ctx, "syncer")
 
 	logger := contextutils.LoggerFrom(ctx)
@@ -44,7 +45,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	reporterErr := s.reporter.WriteReports(ctx, resourceErrs)
 	if err := resourceErrs.Validate(); err != nil {
 		logger.Warnf("gateway %v was rejected due to invalid config: %v\nxDS cache will not be updated.", err)
-		return nil
+		return err
 	}
 
 	var desiredResources gloov1.ProxyList
@@ -52,11 +53,15 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		logger.Infof("creating proxy %v", proxy.Metadata.Ref())
 		desiredResources = gloov1.ProxyList{proxy}
 	}
+	labels := map[string]string{
+		"created_by": "gateway",
+	}
+
+	proxy.Metadata.Labels = labels
+
 	if err := s.proxyReconciler.Reconcile(s.writeNamespace, desiredResources, TODO.TransitionFunction, clients.ListOpts{
-		Ctx: ctx,
-		Selector: map[string]string{
-			"created_by": "gateway",
-		},
+		Ctx:      ctx,
+		Selector: labels,
 	}); err != nil {
 		return err
 	}
