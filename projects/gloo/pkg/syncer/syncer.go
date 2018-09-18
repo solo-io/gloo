@@ -45,7 +45,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	s.latestSnap = snap
 	ctx = contextutils.WithLogger(ctx, "syncer")
 	logger := contextutils.LoggerFrom(ctx)
-	logger.Infof("begin sync %v (%v proxxies, %v upstreams, %v endpoints, %v secrets, %v artifacts, )", snap.Hash(),
+	logger.Infof("begin sync %v (%v proxies, %v upstreams, %v endpoints, %v secrets, %v artifacts, )", snap.Hash(),
 		len(snap.Proxies.List()), len(snap.Upstreams.List()), len(snap.Endpoints.List()), len(snap.Secrets.List()), len(snap.Artifacts.List()))
 	defer logger.Infof("end sync %v", snap.Hash())
 
@@ -84,6 +84,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		logger.Debugf("Full snapshot for proxy %v: %v", proxy.Metadata.Name, xdsSnapshot)
 	}
 	if err := s.reporter.WriteReports(ctx, allResourceErrs); err != nil {
+		logger.Debugf("Failed writing report for proxies: %v", err)
 		return errors.Wrapf(err, "writing reports")
 	}
 	return nil
