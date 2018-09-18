@@ -38,6 +38,7 @@ func newEndpointsWatcher(kube kubernetes.Interface, upstreams v1.UpstreamList) *
 		if !ok {
 			continue
 		}
+		// TODO(yuval-k): change to ref
 		upstreamSpecs[us.Metadata.Name] = kubeUpstream.Kube
 	}
 	return &edsWatcher{
@@ -96,18 +97,28 @@ func (c *edsWatcher) watch(writeNamespace string, opts clients.WatchOpts) (<-cha
 		// watch should open up with an initial read
 		updateResourceList()
 
+		// TODO(yuval-k): need to check if these watches ever close.
+		// we should really consdier using triple factory pattern.
 		for {
 			select {
 			case <-time.After(opts.RefreshRate):
 				updateResourceList()
-			case event := <-endpointsWatch.ResultChan():
+			case event, ok := <-endpointsWatch.ResultChan():
+				if !ok {
+					// TODO(yuval-k): use shared informer factory
+					return
+				}
 				switch event.Type {
 				case kubewatch.Error:
 					errs <- errors.Errorf("error during watch: %v", event)
 				default:
 					updateResourceList()
 				}
-			case event := <-podsWatch.ResultChan():
+			case event, ok := <-podsWatch.ResultChan():
+				if !ok {
+					// TODO(yuval-k): use shared informer factory!!!!
+					return
+				}
 				switch event.Type {
 				case kubewatch.Error:
 					errs <- errors.Errorf("error during watch: %v", event)
