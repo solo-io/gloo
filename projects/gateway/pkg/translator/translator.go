@@ -38,9 +38,6 @@ func Translate(ctx context.Context, namespace string, snap *v1.ApiSnapshot) (*gl
 		Metadata: core.Metadata{
 			Name:      joinGatewayNames(snap.Gateways.List()) + "-proxy",
 			Namespace: namespace,
-			Annotations: map[string]string{
-				"created_by": "gateway",
-			},
 		},
 		Listeners: listeners,
 	}, resourceErrs
