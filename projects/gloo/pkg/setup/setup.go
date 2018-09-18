@@ -56,7 +56,7 @@ func writeSettings(settingsDir string) error {
 		DevMode:     true,
 		Metadata: core.Metadata{
 			Namespace: "settings",
-			Name:      "gloo.yaml",
+			Name:      "gloo",
 		},
 	}
 	cli.Delete(settings.Metadata.Namespace, settings.Metadata.Name, clients.DeleteOpts{})
