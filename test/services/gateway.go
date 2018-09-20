@@ -17,8 +17,6 @@ import (
 
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
-
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	"google.golang.org/grpc"
 
@@ -29,6 +27,7 @@ import (
 
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 )
 
 type TestClients struct {
@@ -52,9 +51,9 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 	// no gateway for now
 	if !justgloo {
 		opts := DefaultTestConstructOpts(ctx, cache)
-		go setup.Setup(opts)
+		go setup.RunGateway(opts)
 	}
-	go gloosetup.RunGloo(glooopts)
+	go syncer.RunGloo(glooopts)
 
 	// construct our own resources:
 	factory := &factory.MemoryResourceClientFactory{

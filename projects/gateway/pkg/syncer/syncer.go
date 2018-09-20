@@ -13,7 +13,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
 )
 
-type syncer struct {
+type translatorSyncer struct {
 	writeNamespace  string
 	reporter        reporter.Reporter
 	propagator      *propagator.Propagator
@@ -21,8 +21,8 @@ type syncer struct {
 	proxyReconciler gloov1.ProxyReconciler
 }
 
-func NewSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter reporter.Reporter, propagator *propagator.Propagator, writeErrs chan error) v1.ApiSyncer {
-	return &syncer{
+func NewTranslatorSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter reporter.Reporter, propagator *propagator.Propagator, writeErrs chan error) v1.ApiSyncer {
+	return &translatorSyncer{
 		writeNamespace:  writeNamespace,
 		reporter:        reporter,
 		propagator:      propagator,
@@ -31,8 +31,8 @@ func NewSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter r
 	}
 }
 
-func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
-	ctx = contextutils.WithLogger(ctx, "syncer")
+func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
+	ctx = contextutils.WithLogger(ctx, "translatorSyncer")
 
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("begin sync %v (%v virtual services, %v gateways)", snap.Hash(),

@@ -8,6 +8,7 @@ import (
 	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
 	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/setup"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 )
 
 func main() {
@@ -42,7 +43,7 @@ func runGloo() error {
 	if err != nil {
 		return err
 	}
-	return gloosetup.RunGloo(opts)
+	return syncer.RunGloo(opts)
 }
 
 func runGateway() error {
@@ -50,7 +51,7 @@ func runGateway() error {
 	if err != nil {
 		return err
 	}
-	return gatewaysetup.Setup(opts)
+	return gatewaysetup.RunGateway(opts)
 }
 
 func runSqoop() error {

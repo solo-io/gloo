@@ -3,15 +3,23 @@ package syncer
 import (
 	"context"
 	"net"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"github.com/gogo/protobuf/types"
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/namespacing/static"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
@@ -22,14 +30,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
-	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-	"path/filepath"
-	"strings"
-	"strconv"
-	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
-	"github.com/solo-io/solo-kit/pkg/namespacing/static"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 )
 
 func NewSetupSyncer() v1.SetupSyncer {
@@ -63,42 +63,51 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 	settings := snap.Settings.List()[0]
 
 	var (
-		cfg       *rest.Config
-		clientset kubernetes.Interface
+		upstreamFactory factory.ResourceClientFactory
+		proxyFactory    factory.ResourceClientFactory
+		secretFactory   factory.ResourceClientFactory
+		artifactFactory factory.ResourceClientFactory
 	)
+	var cfg *rest.Config
+	var clientset kubernetes.Interface
 	cache := memory.NewInMemoryResourceCache()
 
-	upstreamFactory, err := bootstrap.ConfigFactoryForSettings(
-		settings,
-		cache,
-		v1.UpstreamCrd,
-		&cfg,
-	)
-	if err != nil {
-		return err
+	if settings.ConfigSource == nil {
+		upstreamFactory = &factory.MemoryResourceClientFactory{
+			Cache: cache,
+		}
+		proxyFactory = &factory.MemoryResourceClientFactory{
+			Cache: cache,
+		}
+	} else {
+		switch source := settings.ConfigSource.(type) {
+		case *v1.Settings_KubernetesConfigSource:
+			var err error
+			if cfg == nil {
+				cfg, err = kubeutils.GetConfig("", "")
+				if err != nil {
+					return err
+				}
+			}
+			upstreamFactory = &factory.KubeResourceClientFactory{
+				Crd: v1.UpstreamCrd,
+				Cfg: cfg,
+			}
+			proxyFactory = &factory.KubeResourceClientFactory{
+				Crd: v1.ProxyCrd,
+				Cfg: cfg,
+			}
+		case *v1.Settings_DirectoryConfigSource:
+			upstreamFactory = &factory.FileResourceClientFactory{
+				RootDir: filepath.Join(source.DirectoryConfigSource.Directory + "upstreams"),
+			}
+			proxyFactory = &factory.FileResourceClientFactory{
+				RootDir: filepath.Join(source.DirectoryConfigSource.Directory + "proxies"),
+			}
+		default:
+			return errors.Errorf("invalid config source type")
+		}
 	}
-
-	proxyFactory, err := bootstrap.ConfigFactoryForSettings(
-		settings,
-		cache,
-		v1.ProxyCrd,
-		&cfg,
-	)
-	if err != nil {
-		return err
-	}
-
-	secretFactory, err := bootstrap.SecretFactoryForSettings(
-		settings,
-		cache,
-		&cfg,
-		&clientset,
-	)
-	if err != nil {
-		return err
-	}
-
-
 
 	if settings.SecretSource == nil {
 		secretFactory = &factory.MemoryResourceClientFactory{
@@ -290,13 +299,13 @@ func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 			discoveryPlugins = append(discoveryPlugins, disc)
 		}
 	}
+	eds := discovery.NewEndpointDiscovery(opts.WriteNamespace, endpointClient, discoveryPlugins)
 
 	sync := NewTranslatorSyncer(translator.NewTranslator(plugins), xdsCache, xdsHasher, rpt, opts.DevMode)
 	eventLoop := v1.NewApiEventLoop(cache, sync)
 
 	errs := make(chan error)
 
-	eds := discovery.NewEndpointDiscovery(opts.WriteNamespace, endpointClient, discoveryPlugins)
 	edsErrs, err := discovery.RunEds(upstreamClient, eds, opts.WriteNamespace, watchOpts)
 	if err != nil {
 		return err
