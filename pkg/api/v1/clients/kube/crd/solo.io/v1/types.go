@@ -5,6 +5,7 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // +genclient
@@ -32,6 +33,11 @@ type ResourceList struct {
 
 // spec implements deepcopy
 type Spec map[string]interface{}
+
+func (in *Resource) GetObjectKind() schema.ObjectKind {
+	t := in.TypeMeta
+	return &t
+}
 
 func (in *Spec) DeepCopyInto(out *Spec) {
 	if in == nil {

@@ -137,6 +137,9 @@ func (u *Updater) UpstreamRemoved(upstream *v1.Upstream) {
 }
 
 func (u *updaterUpdater) saveUpstream(mutator UpstreamMutator) error {
+	logger := contextutils.LoggerFrom(u.ctx)
+	logger.Debugf("Updating upstream %v with functions", u.upstream.Metadata.Name)
+
 	err := mutator(u.upstream)
 	if err != nil {
 		return err
@@ -147,8 +150,18 @@ func (u *updaterUpdater) saveUpstream(mutator UpstreamMutator) error {
 	wo.OverwriteExisting = true
 
 	/* upstream, err = */
-	u.parent.upstreamWriter.Write(u.upstream, wo)
-
+	newupstream, err := u.parent.upstreamWriter.Write(u.upstream, wo)
+	if err != nil {
+		logger.Warnf("error updating upstream  %v on first try", u.upstream.Metadata.Name)
+	} else {
+		return nil
+	}
+	// try again with the new one
+	mutator(newupstream)
+	_, err = u.parent.upstreamWriter.Write(newupstream, wo)
+	if err != nil {
+		logger.Warnf("error updating upstream  %v on second try", u.upstream.Metadata.Name)
+	}
 	// TODO: if write failed, due to resource conflict,
 	// get latest version, and if it still doesnt have a spec, mutate again and retry.
 

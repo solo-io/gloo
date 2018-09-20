@@ -117,7 +117,8 @@ func (d Crd) Resource(resource string) schema.GroupResource {
 
 func (d Crd) SchemeBuilder() runtime.SchemeBuilder {
 	return runtime.NewSchemeBuilder(func(scheme *runtime.Scheme) error {
-		scheme.AddKnownTypes(d.SchemeGroupVersion(), d.Type)
+		scheme.AddKnownTypeWithName(d.SchemeGroupVersion().WithKind(d.KindName), &v1.Resource{})
+
 		metav1.AddToGroupVersion(scheme, d.SchemeGroupVersion())
 		return nil
 	})

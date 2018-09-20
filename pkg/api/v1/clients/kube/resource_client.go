@@ -2,84 +2,86 @@ package kube
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"sort"
 	"strings"
+	"sync"
 	"time"
-
-	"go.opencensus.io/stats"
-	"go.opencensus.io/stats/view"
-	"go.opencensus.io/tag"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/client/clientset/versioned"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	kubewatch "k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
 var (
-	MLists    = stats.Int64("kube/lists", "The number of lists", "1")
-	MWatches  = stats.Int64("kube/watches", "The number of watches", "1")
-	MWatchLen = stats.Float64("kube/watch", "The length of a watch session", "ms")
+	clientFactory = NewResourceClientSharedInformerFactory()
 
-	KeyNamespace, _ = tag.NewKey("namespace")
-	KeyKind, _      = tag.NewKey("kind")
+	cacheUpdatedWatchers      []chan struct{}
+	cacheUpdatedWatchersMutex sync.Mutex
 
-	ListCountView = &view.View{
-		Name:        "kube/lists-count",
-		Measure:     MLists,
-		Description: "The number of list calls",
-		Aggregation: view.Count(),
-		TagKeys: []tag.Key{
-			KeyNamespace,
-			KeyKind,
-		},
-	}
-	WatchCountView = &view.View{
-		Name:        "kube/watch-count",
-		Measure:     MWatches,
-		Description: "The number of watch calls",
-		Aggregation: view.Count(),
-		TagKeys: []tag.Key{
-			KeyNamespace,
-			KeyKind,
-		},
-	}
-	WatchSeesionView = &view.View{
-		Name:        "kube/watch-session",
-		Description: "Watch session lengths in buckets",
-		Measure:     MWatchLen,
-		// [>=0ms, >=25ms, >=50ms, >=75ms, >=100ms, >=200ms, >=400ms, >=600ms, >=800ms, >=1s, >=2s, >=4s, >=6s]
-		Aggregation: view.Distribution(0, 25, 50, 75, 100, 200, 400, 600, 800, 1000, 2000, 4000, 6000, 10000),
-		TagKeys: []tag.Key{
-			KeyNamespace,
-			KeyKind,
-		},
-	}
+	factoryStarter sync.Once
 )
 
-func init() {
-	view.Register(ListCountView, WatchCountView, WatchSeesionView)
+func addWatch() <-chan struct{} {
+	cacheUpdatedWatchersMutex.Lock()
+	defer cacheUpdatedWatchersMutex.Unlock()
+	c := make(chan struct{}, 1)
+	cacheUpdatedWatchers = append(cacheUpdatedWatchers, c)
+	return c
 }
+func removeWatch(c <-chan struct{}) {
+	cacheUpdatedWatchersMutex.Lock()
+	defer cacheUpdatedWatchersMutex.Unlock()
+	for i, cacheUpdated := range cacheUpdatedWatchers {
+		if cacheUpdated == c {
+			cacheUpdatedWatchers = append(cacheUpdatedWatchers[:i], cacheUpdatedWatchers[i+1:]...)
+			return
+		}
+	}
+}
+
+func startFactory(ctx context.Context, client kubernetes.Interface) {
+	factoryStarter.Do(func() {
+		clientFactory.Start(ctx, client, updatedOccured)
+	})
+}
+
+func updatedOccured() {
+	cacheUpdatedWatchersMutex.Lock()
+	defer cacheUpdatedWatchersMutex.Unlock()
+	for _, cacheUpdated := range cacheUpdatedWatchers {
+		select {
+		case cacheUpdated <- struct{}{}:
+		default:
+		}
+	}
+}
+
+// lazy start in list & watch
+// register informers in register
 
 type ResourceClient struct {
 	crd          crd.Crd
 	apiexts      apiexts.Interface
 	kube         versioned.Interface
+	kubeClient   kubernetes.Interface
 	ownerLabel   string
 	resourceName string
 	resourceType resources.InputResource
+	cacheUpdated <-chan struct{}
 }
 
 func NewResourceClient(crd crd.Crd, cfg *rest.Config, resourceType resources.InputResource) (*ResourceClient, error) {
@@ -91,15 +93,26 @@ func NewResourceClient(crd crd.Crd, cfg *rest.Config, resourceType resources.Inp
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating crd client")
 	}
+
+	kubeClient, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create kube clientset: %v", err)
+	}
+
 	typeof := reflect.TypeOf(resourceType)
 	resourceName := strings.Replace(typeof.String(), "*", "", -1)
 	resourceName = strings.Replace(resourceName, ".", "", -1)
+
+	cacheUpdated := addWatch()
+
 	return &ResourceClient{
 		crd:          crd,
 		apiexts:      apiExts,
 		kube:         crdClient,
+		kubeClient:   kubeClient,
 		resourceName: resourceName,
 		resourceType: resourceType,
+		cacheUpdated: cacheUpdated,
 	}, nil
 }
 
@@ -114,6 +127,12 @@ func (rc *ResourceClient) NewResource() resources.Resource {
 }
 
 func (rc *ResourceClient) Register() error {
+	/*
+		shared informer factory for all namespaces; and then filter desired namespace in list and watch!
+		zbam!
+
+	*/
+	clientFactory.Register(rc)
 	return rc.crd.Register(rc.apiexts)
 }
 
@@ -193,17 +212,26 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 }
 
 func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resources.ResourceList, error) {
-	opts = opts.WithDefaults()
-	namespace = clients.DefaultNamespaceIfEmpty(namespace)
+	startFactory(context.TODO(), rc.kubeClient)
 
-	resourceCrdList, err := rc.kube.ResourcesV1().Resources(namespace).List(metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
-	})
+	lister := clientFactory.GetLister(rc.crd.Type)
+	allResources, err := lister.List(labels.SelectorFromSet(opts.Selector))
 	if err != nil {
 		return nil, errors.Wrapf(err, "listing resources in %v", namespace)
 	}
+	var listedResources []*v1.Resource
+	if namespace != "" {
+		for _, r := range allResources {
+			if r.ObjectMeta.Namespace == namespace {
+				listedResources = append(listedResources, r)
+			}
+		}
+	} else {
+		listedResources = allResources
+	}
+
 	var resourceList resources.ResourceList
-	for _, resourceCrd := range resourceCrdList.Items {
+	for _, resourceCrd := range listedResources {
 		resource := rc.NewResource()
 		if resourceCrd.Spec != nil {
 			if err := protoutils.UnmarshalMap(*resourceCrd.Spec, resource); err != nil {
@@ -226,17 +254,15 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resourc
 }
 
 func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan resources.ResourceList, <-chan error, error) {
+	startFactory(context.TODO(), rc.kubeClient)
+
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
 	resourcesChan := make(chan resources.ResourceList)
 	errs := make(chan error)
 	ctx := opts.Ctx
-	if ctx2, err := tag.New(opts.Ctx, tag.Insert(KeyNamespace, namespace), tag.Insert(KeyKind, rc.resourceName)); err == nil {
-		ctx = ctx2
-	}
 
 	updateResourceList := func() {
-		stats.Record(ctx, MLists.M(1))
 		list, err := rc.List(namespace, clients.ListOpts{
 			Ctx:      ctx,
 			Selector: opts.Selector,
@@ -254,61 +280,25 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		defer close(errs)
 
 		updateResourceList()
-		mxdelay := time.Second * 10
-		be := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{MaxDelay: &mxdelay})
 
-		ctx = contextutils.WithLogger(ctx, "watchloop")
+		for {
+			select {
+			case <-time.After(opts.RefreshRate): // TODO(yuval-k): can we remove this? is the factory takes care of that...
+				updateResourceList()
+			case <-rc.cacheUpdated:
+				updateResourceList()
+			case <-ctx.Done():
+				return
+			}
+		}
 
-		be.Backoff(ctx, func(ctx context.Context) error {
-			startTime := time.Now()
-			defer func() {
-				ms := float64(time.Since(startTime).Nanoseconds()) / 1e6
-				stats.Record(ctx, MWatches.M(1), MWatchLen.M(ms))
-			}()
-
-			return rc.watch(ctx, namespace, opts.Selector, opts.RefreshRate, updateResourceList, errs)
-		})
 	}()
 
 	return resourcesChan, errs, nil
 }
 
-func (rc *ResourceClient) watch(ctx context.Context, namespace string, selector map[string]string, refresh time.Duration, updateResourceList func(), errs chan<- error) error {
-
-	logger := contextutils.LoggerFrom(ctx)
-
-	watch, err := rc.kube.ResourcesV1().Resources(namespace).Watch(metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(selector).String(),
-	})
-	if err != nil {
-		return errors.Wrapf(err, "initiating kube watch in %v", namespace)
-	}
-	for {
-		select {
-		case <-time.After(refresh):
-			updateResourceList()
-		case event, ok := <-watch.ResultChan():
-			if !ok {
-				logger.Debugf("watch was closed")
-				return errors.Errorf("watch closed")
-			}
-			switch event.Type {
-			case kubewatch.Error:
-				// TODO(yuval-k): do we want to select on this channel?
-				errs <- errors.Errorf("error during watch: %v", event)
-			default:
-				logger.Debugf("got event - updating %v", event)
-				updateResourceList()
-			}
-		case <-ctx.Done():
-			watch.Stop()
-			return ctx.Err()
-		}
-	}
-}
-
 func (rc *ResourceClient) exist(namespace, name string) bool {
-	_, err := rc.kube.ResourcesV1().Resources(namespace).Get(name, metav1.GetOptions{})
+	_, err := rc.kube.ResourcesV1().Resources(namespace).Get(name, metav1.GetOptions{}) // TODO(yuval-k): check error for real
 	return err == nil
 
 }
