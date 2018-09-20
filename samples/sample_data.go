@@ -15,7 +15,40 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 )
+
+
+func AddSampleData(opts bootstrap.Opts, vsClient gatewayv1.VirtualServiceClient) error {
+	upstreamClient, err := v1.NewUpstreamClient(opts.Upstreams)
+	if err != nil {
+		return err
+	}
+	secretClient, err := v1.NewSecretClient(opts.Secrets)
+	if err != nil {
+		return err
+	}
+	virtualServices, upstreams, secrets := VirtualServices(), Upstreams(), Secrets()
+	for _, item := range virtualServices {
+		if _, err := vsClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
+			return err
+		}
+	}
+	for _, item := range upstreams {
+		if _, err := upstreamClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
+			return err
+		}
+	}
+	for _, item := range secrets {
+		if _, err := secretClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
+			return err
+		}
+	}
+	return nil
+}
+
 
 func MakeMetadata(name, namespace string) core.Metadata {
 	return core.Metadata{

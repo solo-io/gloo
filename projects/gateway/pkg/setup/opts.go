@@ -19,22 +19,17 @@ type Opts struct {
 	WriteNamespace  string
 	Gateways        factory.ResourceClientFactory
 	VirtualServices factory.ResourceClientFactory
-	// TODO(ilackarms): remove Upstreams here if not needed, right now only used for sample data
-	Upstreams  factory.ResourceClientFactory
-	Secrets    factory.ResourceClientFactory
-	Proxies    factory.ResourceClientFactory
-	Namespacer namespacing.Namespacer
-	WatchOpts  clients.WatchOpts
-	DevMode    bool
-	SampleData bool
+	Proxies         factory.ResourceClientFactory
+	Namespacer      namespacing.Namespacer
+	WatchOpts       clients.WatchOpts
+	DevMode         bool
+	SampleData      bool
 }
 
 func NewOpts(
 	writeNamespace string,
 	gateways,
 	virtualServices,
-	upstreams,
-	secrets,
 	proxies factory.ResourceClientFactory,
 	namespacer namespacing.Namespacer,
 	watchOpts clients.WatchOpts,
@@ -44,8 +39,6 @@ func NewOpts(
 		WriteNamespace:  writeNamespace,
 		Gateways:        gateways,
 		VirtualServices: virtualServices,
-		Upstreams:       upstreams,
-		Secrets:         secrets,
 		Proxies:         proxies,
 		Namespacer:      namespacer,
 		WatchOpts:       watchOpts,
@@ -76,13 +69,6 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 		Proxies: &factory.KubeResourceClientFactory{
 			Crd: v1.ProxyCrd,
 			Cfg: cfg,
-		},
-		Upstreams: &factory.KubeResourceClientFactory{
-			Crd: v1.UpstreamCrd,
-			Cfg: cfg,
-		},
-		Secrets: &factory.KubeSecretClientFactory{
-			Clientset: clientset,
 		},
 		Namespacer: static.NewNamespacer([]string{"default", defaults.GlooSystem}),
 		WatchOpts: clients.WatchOpts{
