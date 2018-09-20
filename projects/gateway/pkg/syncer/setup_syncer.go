@@ -1,59 +1,32 @@
 package syncer
 
 import (
-	"context"
-	"net"
-	"path/filepath"
-	"strconv"
-	"strings"
-	"github.com/gogo/protobuf/types"
-	"github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
-	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/namespacing/static"
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"github.com/solo-io/solo-kit/pkg/utils/errutils"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/utils/errutils"
+	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gateway/pkg/defaults"
+	"github.com/solo-io/solo-kit/projects/gateway/pkg/propagator"
+	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"context"
+	"github.com/gogo/protobuf/types"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
+	"github.com/solo-io/solo-kit/pkg/namespacing/static"
+	"k8s.io/client-go/rest"
+	gloodefaults "github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
 )
 
-func NewSetupSyncer() v1.SetupSyncer {
-	return &settingsSyncer{
-		grpcServer: func(ctx context.Context) *grpc.Server {
-			return grpc.NewServer(grpc.StreamInterceptor(
-				grpc_middleware.ChainStreamServer(
-					grpc_ctxtags.StreamServerInterceptor(),
-					grpc_zap.StreamServerInterceptor(zap.NewNop()),
-					func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-						contextutils.LoggerFrom(ctx).Infof("gRPC call: %v", info.FullMethod)
-						return handler(srv, ss)
-					},
-				)),
-			)
-		},
-	}
+func NewSetupSyncer() gloov1.SetupSyncer {
+	return &settingsSyncer{}
 }
 
-type settingsSyncer struct {
-	grpcServer func(ctx context.Context) *grpc.Server
-}
+type settingsSyncer struct{}
 
-func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
+func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) error {
 	switch {
 	case len(snap.Settings.List()) == 0:
 		return errors.Errorf("no settings files found")
@@ -63,125 +36,40 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 	settings := snap.Settings.List()[0]
 
 	var (
-		upstreamFactory factory.ResourceClientFactory
-		proxyFactory    factory.ResourceClientFactory
-		secretFactory   factory.ResourceClientFactory
-		artifactFactory factory.ResourceClientFactory
+		cfg       *rest.Config
 	)
-	var cfg *rest.Config
-	var clientset kubernetes.Interface
 	cache := memory.NewInMemoryResourceCache()
 
-	if settings.ConfigSource == nil {
-		upstreamFactory = &factory.MemoryResourceClientFactory{
-			Cache: cache,
-		}
-		proxyFactory = &factory.MemoryResourceClientFactory{
-			Cache: cache,
-		}
-	} else {
-		switch source := settings.ConfigSource.(type) {
-		case *v1.Settings_KubernetesConfigSource:
-			var err error
-			if cfg == nil {
-				cfg, err = kubeutils.GetConfig("", "")
-				if err != nil {
-					return err
-				}
-			}
-			upstreamFactory = &factory.KubeResourceClientFactory{
-				Crd: v1.UpstreamCrd,
-				Cfg: cfg,
-			}
-			proxyFactory = &factory.KubeResourceClientFactory{
-				Crd: v1.ProxyCrd,
-				Cfg: cfg,
-			}
-		case *v1.Settings_DirectoryConfigSource:
-			upstreamFactory = &factory.FileResourceClientFactory{
-				RootDir: filepath.Join(source.DirectoryConfigSource.Directory + "upstreams"),
-			}
-			proxyFactory = &factory.FileResourceClientFactory{
-				RootDir: filepath.Join(source.DirectoryConfigSource.Directory + "proxies"),
-			}
-		default:
-			return errors.Errorf("invalid config source type")
-		}
-	}
-
-	if settings.SecretSource == nil {
-		secretFactory = &factory.MemoryResourceClientFactory{
-			Cache: cache,
-		}
-	} else {
-		switch source := settings.SecretSource.(type) {
-		case *v1.Settings_KubernetesSecretSource:
-			var err error
-			if cfg == nil {
-				cfg, err = kubeutils.GetConfig("", "")
-				if err != nil {
-					return err
-				}
-			}
-			if clientset == nil {
-				clientset, err = kubernetes.NewForConfig(cfg)
-				if err != nil {
-					return err
-				}
-			}
-			secretFactory = &factory.KubeSecretClientFactory{
-				Clientset: clientset,
-			}
-		case *v1.Settings_VaultSecretSource:
-			return errors.Errorf("vault configuration not implemented")
-		case *v1.Settings_DirectorySecretSource:
-			secretFactory = &factory.FileResourceClientFactory{
-				RootDir: filepath.Join(source.DirectorySecretSource.Directory + "secrets"),
-			}
-		default:
-			return errors.Errorf("invalid config source type")
-		}
-	}
-
-	if settings.ArtifactSource == nil {
-		artifactFactory = &factory.MemoryResourceClientFactory{
-			Cache: cache,
-		}
-		switch source := settings.ArtifactSource.(type) {
-		case *v1.Settings_KubernetesArtifactSource:
-			var err error
-			if cfg == nil {
-				cfg, err = kubeutils.GetConfig("", "")
-				if err != nil {
-					return err
-				}
-			}
-			if clientset == nil {
-				clientset, err = kubernetes.NewForConfig(cfg)
-				if err != nil {
-					return err
-				}
-			}
-			artifactFactory = &factory.KubeSecretClientFactory{
-				Clientset: clientset,
-			}
-		case *v1.Settings_DirectoryArtifactSource:
-			artifactFactory = &factory.FileResourceClientFactory{
-				RootDir: filepath.Join(source.DirectoryArtifactSource.Directory + "artifacts"),
-			}
-		default:
-			return errors.Errorf("invalid config source type")
-		}
-	}
-
-	ipPort := strings.Split(settings.BindAddr, ":")
-	if len(ipPort) != 2 {
-		return errors.Errorf("invalid bind addr: %v", settings.BindAddr)
-	}
-	port, err := strconv.Atoi(ipPort[1])
+	proxyFactory, err := bootstrap.ConfigFactoryForSettings(
+		settings,
+		cache,
+		gloov1.ProxyCrd,
+		&cfg,
+	)
 	if err != nil {
-		return errors.Wrapf(err, "invalid bind addr: %v", settings.BindAddr)
+		return err
 	}
+
+	virtualServiceFactory, err := bootstrap.ConfigFactoryForSettings(
+		settings,
+		cache,
+		v1.VirtualServiceCrd,
+		&cfg,
+	)
+	if err != nil {
+		return err
+	}
+
+	gatewayFactory, err := bootstrap.ConfigFactoryForSettings(
+		settings,
+		cache,
+		v1.GatewayCrd,
+		&cfg,
+	)
+	if err != nil {
+		return err
+	}
+
 	refreshRate, err := types.DurationFromProto(settings.RefreshRate)
 	if err != nil {
 		return err
@@ -189,7 +77,7 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 
 	writeNamespace := settings.DiscoveryNamespace
 	if writeNamespace == "" {
-		writeNamespace = defaults.GlooSystem
+		writeNamespace = gloodefaults.GlooSystem
 	}
 	watchNamespaces := settings.WatchNamespaces
 	var writeNamespaceProvided bool
@@ -202,31 +90,24 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 	if !writeNamespaceProvided {
 		watchNamespaces = append(watchNamespaces, writeNamespace)
 	}
-	opts := bootstrap.Opts{
-		WriteNamespace: writeNamespace,
-		Namespacer:     static.NewNamespacer(watchNamespaces),
-		Upstreams:      upstreamFactory,
-		Proxies:        proxyFactory,
-		Secrets:        secretFactory,
-		Artifacts:      artifactFactory,
+	opts := setup.Opts{
+		WriteNamespace:  writeNamespace,
+		Namespacer:      static.NewNamespacer(watchNamespaces),
+		Gateways:        gatewayFactory,
+		VirtualServices: virtualServiceFactory,
+		Proxies:         proxyFactory,
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: refreshRate,
 		},
-		BindAddr: &net.TCPAddr{
-			IP:   net.ParseIP(ipPort[0]),
-			Port: port,
-		},
-		GrpcServer: s.grpcServer(ctx),
-		// if nil, kube plugin disabled
-		KubeClient: clientset,
-		DevMode:    true,
+		DevMode: true,
 	}
 
-	return RunGloo(opts)
+	return RunGateway(opts)
 }
 
-func RunGloo(opts bootstrap.Opts) error {
+func RunGateway(opts setup.Opts) error {
+	// TODO: Ilackarms: move this to multi-eventloop
 	namespaces, errs, err := opts.Namespacer.Namespaces(opts.WatchOpts)
 	if err != nil {
 		return err
@@ -244,109 +125,62 @@ func RunGloo(opts bootstrap.Opts) error {
 	}
 }
 
-func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
-	watchOpts := opts.WatchOpts.WithDefaults()
-	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gloo")
+func setupForNamespaces(watchNamespaces []string, opts setup.Opts) error {
+	opts.WatchOpts = opts.WatchOpts.WithDefaults()
+	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gateway")
 
-	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "setup")
-	endpointsFactory := &factory.MemoryResourceClientFactory{
-		Cache: memory.NewInMemoryResourceCache(),
-	}
-
-	upstreamClient, err := v1.NewUpstreamClient(opts.Upstreams)
+	gatewayClient, err := v1.NewGatewayClient(opts.Gateways)
 	if err != nil {
 		return err
 	}
-	if err := upstreamClient.Register(); err != nil {
+	if err := gatewayClient.Register(); err != nil {
 		return err
 	}
 
-	proxyClient, err := v1.NewProxyClient(opts.Proxies)
+	virtualServicesClient, err := v1.NewVirtualServiceClient(opts.VirtualServices)
 	if err != nil {
 		return err
 	}
-	if err := proxyClient.Register(); err != nil {
+	if err := virtualServicesClient.Register(); err != nil {
 		return err
 	}
 
-	endpointClient, err := v1.NewEndpointClient(endpointsFactory)
+	proxyClient, err := gloov1.NewProxyClient(opts.Proxies)
 	if err != nil {
 		return err
 	}
 
-	secretClient, err := v1.NewSecretClient(opts.Secrets)
-	if err != nil {
+	if _, err := gatewayClient.Write(defaults.DefaultGateway(opts.WriteNamespace), clients.WriteOpts{
+		Ctx: opts.WatchOpts.Ctx,
+	}); err != nil && !errors.IsExist(err) {
 		return err
 	}
 
-	artifactClient, err := v1.NewArtifactClient(opts.Artifacts)
+	emitter := v1.NewApiEmitter(gatewayClient, virtualServicesClient)
+
+	rpt := reporter.NewReporter("gateway", gatewayClient.BaseClient(), virtualServicesClient.BaseClient())
+	writeErrs := make(chan error)
+
+	prop := propagator.NewPropagator("gateway", gatewayClient, virtualServicesClient, proxyClient, writeErrs)
+
+	sync := NewTranslatorSyncer(opts.WriteNamespace, proxyClient, rpt, prop, writeErrs)
+
+	eventLoop := v1.NewApiEventLoop(emitter, sync)
+	eventLoopErrs, err := eventLoop.Run(watchNamespaces, opts.WatchOpts)
 	if err != nil {
 		return err
 	}
+	go errutils.AggregateErrs(opts.WatchOpts.Ctx, writeErrs, eventLoopErrs, "event_loop")
 
-	cache := v1.NewApiEmitter(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)
+	logger := contextutils.LoggerFrom(opts.WatchOpts.Ctx)
 
-	xdsHasher, xdsCache := xds.SetupEnvoyXds(opts.WatchOpts.Ctx, opts.GrpcServer, nil)
-
-	rpt := reporter.NewReporter("gloo", upstreamClient.BaseClient(), proxyClient.BaseClient())
-
-	plugins := registry.Plugins(opts)
-
-	var discoveryPlugins []discovery.DiscoveryPlugin
-	for _, plug := range plugins {
-		disc, ok := plug.(discovery.DiscoveryPlugin)
-		if ok {
-			discoveryPlugins = append(discoveryPlugins, disc)
+	for {
+		select {
+		case err := <-writeErrs:
+			logger.Errorf("error: %v", err)
+		case <-opts.WatchOpts.Ctx.Done():
+			close(writeErrs)
+			return nil
 		}
 	}
-	eds := discovery.NewEndpointDiscovery(opts.WriteNamespace, endpointClient, discoveryPlugins)
-
-	sync := NewTranslatorSyncer(translator.NewTranslator(plugins), xdsCache, xdsHasher, rpt, opts.DevMode)
-	eventLoop := v1.NewApiEventLoop(cache, sync)
-
-	errs := make(chan error)
-
-	edsErrs, err := discovery.RunEds(upstreamClient, eds, opts.WriteNamespace, watchOpts)
-	if err != nil {
-		return err
-	}
-	go errutils.AggregateErrs(watchOpts.Ctx, errs, edsErrs, "eds.gloo")
-
-	eventLoopErrs, err := eventLoop.Run(watchNamespaces, watchOpts)
-	if err != nil {
-		return err
-	}
-	go errutils.AggregateErrs(watchOpts.Ctx, errs, eventLoopErrs, "event_loop.gloo")
-
-	logger := contextutils.LoggerFrom(watchOpts.Ctx)
-
-	go func() {
-
-		for {
-			select {
-			case err, ok := <-errs:
-				if !ok {
-					return
-				}
-				logger.Errorf("error: %v", err)
-			case <-watchOpts.Ctx.Done():
-				return
-			}
-		}
-	}()
-
-	lis, err := net.Listen(opts.BindAddr.Network(), opts.BindAddr.String())
-	if err != nil {
-		return err
-	}
-	go func() {
-		<-opts.WatchOpts.Ctx.Done()
-		opts.GrpcServer.Stop()
-		err := lis.Close()
-		if err != nil {
-			logger.Errorf("failed to close listener on %v", opts.BindAddr)
-		}
-	}()
-
-	return opts.GrpcServer.Serve(lis)
 }
