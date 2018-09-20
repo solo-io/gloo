@@ -22,8 +22,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
-	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-	"path/filepath"
 	"strings"
 	"strconv"
 	"github.com/gogo/protobuf/types"
@@ -91,6 +89,7 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 	secretFactory, err := bootstrap.SecretFactoryForSettings(
 		settings,
 		cache,
+		v1.SecretCrd.Plural,
 		&cfg,
 		&clientset,
 	)
@@ -98,71 +97,15 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 		return err
 	}
 
-
-
-	if settings.SecretSource == nil {
-		secretFactory = &factory.MemoryResourceClientFactory{
-			Cache: cache,
-		}
-	} else {
-		switch source := settings.SecretSource.(type) {
-		case *v1.Settings_KubernetesSecretSource:
-			var err error
-			if cfg == nil {
-				cfg, err = kubeutils.GetConfig("", "")
-				if err != nil {
-					return err
-				}
-			}
-			if clientset == nil {
-				clientset, err = kubernetes.NewForConfig(cfg)
-				if err != nil {
-					return err
-				}
-			}
-			secretFactory = &factory.KubeSecretClientFactory{
-				Clientset: clientset,
-			}
-		case *v1.Settings_VaultSecretSource:
-			return errors.Errorf("vault configuration not implemented")
-		case *v1.Settings_DirectorySecretSource:
-			secretFactory = &factory.FileResourceClientFactory{
-				RootDir: filepath.Join(source.DirectorySecretSource.Directory + "secrets"),
-			}
-		default:
-			return errors.Errorf("invalid config source type")
-		}
-	}
-
-	if settings.ArtifactSource == nil {
-		artifactFactory = &factory.MemoryResourceClientFactory{
-			Cache: cache,
-		}
-		switch source := settings.ArtifactSource.(type) {
-		case *v1.Settings_KubernetesArtifactSource:
-			var err error
-			if cfg == nil {
-				cfg, err = kubeutils.GetConfig("", "")
-				if err != nil {
-					return err
-				}
-			}
-			if clientset == nil {
-				clientset, err = kubernetes.NewForConfig(cfg)
-				if err != nil {
-					return err
-				}
-			}
-			artifactFactory = &factory.KubeSecretClientFactory{
-				Clientset: clientset,
-			}
-		case *v1.Settings_DirectoryArtifactSource:
-			artifactFactory = &factory.FileResourceClientFactory{
-				RootDir: filepath.Join(source.DirectoryArtifactSource.Directory + "artifacts"),
-			}
-		default:
-			return errors.Errorf("invalid config source type")
-		}
+	artifactFactory, err := bootstrap.ArtifactFactoryForSettings(
+		settings,
+		cache,
+		v1.ArtifactCrd.Plural,
+		&cfg,
+		&clientset,
+	)
+	if err != nil {
+		return err
 	}
 
 	ipPort := strings.Split(settings.BindAddr, ":")

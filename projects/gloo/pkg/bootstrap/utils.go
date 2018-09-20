@@ -49,9 +49,9 @@ func ConfigFactoryForSettings(settings *v1.Settings,
 }
 
 // sharedCach OR resourceCrd+cfg must be non-nil
-func SecretFactoryForSettings(pluralName string,
-	settings *v1.Settings,
+func SecretFactoryForSettings(settings *v1.Settings,
 	sharedCache memory.InMemoryResourceCache,
+	pluralName string,
 	cfg **rest.Config,
 	clientset *kubernetes.Interface) (factory.ResourceClientFactory, error) {
 	if settings.SecretSource == nil {
@@ -88,6 +88,49 @@ func SecretFactoryForSettings(pluralName string,
 	case *v1.Settings_DirectorySecretSource:
 		return &factory.FileResourceClientFactory{
 			RootDir: filepath.Join(source.DirectorySecretSource.Directory, pluralName),
+		}, nil
+	}
+	return nil, errors.Errorf("invalid config source type")
+}
+
+// sharedCach OR resourceCrd+cfg must be non-nil
+func ArtifactFactoryForSettings(settings *v1.Settings,
+	sharedCache memory.InMemoryResourceCache,
+	pluralName string,
+	cfg **rest.Config,
+	clientset *kubernetes.Interface) (factory.ResourceClientFactory, error) {
+	if settings.SecretSource == nil {
+		if sharedCache == nil {
+			return nil, errors.Errorf("internal error: shared cache cannot be nil")
+		}
+		return &factory.MemoryResourceClientFactory{
+			Cache: sharedCache,
+		}, nil
+	}
+
+	switch source := settings.ArtifactSource.(type) {
+	case *v1.Settings_KubernetesArtifactSource:
+		if cfg == nil {
+			c, err := kubeutils.GetConfig("", "")
+			if err != nil {
+				return nil, err
+			}
+			*cfg = c
+		}
+
+		if clientset == nil {
+			cs, err := kubernetes.NewForConfig(*cfg)
+			if err != nil {
+				return nil, err
+			}
+			*clientset = cs
+		}
+		return &factory.KubeSecretClientFactory{
+			Clientset: clientset,
+		}, nil
+	case *v1.Settings_DirectoryArtifactSource:
+		return &factory.FileResourceClientFactory{
+			RootDir: filepath.Join(source.DirectoryArtifactSource.Directory, pluralName),
 		}, nil
 	}
 	return nil, errors.Errorf("invalid config source type")
