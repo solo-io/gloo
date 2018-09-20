@@ -43,7 +43,6 @@ message Gateway {
     core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }
 
-
 /*
 @solo-kit:resource.short_name=vs
 @solo-kit:resource.plural_name=virtual_services

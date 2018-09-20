@@ -199,7 +199,7 @@ func (u *updaterUpdater) detectSingle(fp UpstreamFunctionDiscovery, url *url.URL
 			// give back our token when we are done
 			defer func() { u.parent.maxInParallelSemaphore <- token }()
 		case <-u.ctx.Done():
-			return //ctx.Err()
+			return // ctx.Err()
 		}
 	}
 

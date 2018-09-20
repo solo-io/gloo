@@ -67,5 +67,5 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 
 	// start propagating for new set of resources
 	// TODO(ilackarms): reinstate propagator
-	return reporterErr //s.propagator.PropagateStatuses(snap, proxy, clients.WatchOpts{Ctx: ctx})
+	return reporterErr // s.propagator.PropagateStatuses(snap, proxy, clients.WatchOpts{Ctx: ctx})
 }

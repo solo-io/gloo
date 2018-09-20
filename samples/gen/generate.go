@@ -10,7 +10,7 @@ import (
 func main() {
 	outdir := flag.String("o", "../", "outdir")
 	flag.Parse()
-	if err := run(*outdir) ; err != nil {
+	if err := run(*outdir); err != nil {
 		log.Fatalf("generate yaml samples err: %v", err)
 	}
 }

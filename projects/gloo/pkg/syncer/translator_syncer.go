@@ -25,7 +25,7 @@ var (
 	proxyNameKey, _ = tag.NewKey("proxyname")
 )
 
-type syncer struct {
+type translatorSyncer struct {
 	translator translator.Translator
 	xdsCache   envoycache.SnapshotCache
 	xdsHasher  *xds.ProxyKeyHasher
@@ -34,8 +34,8 @@ type syncer struct {
 	latestSnap *v1.ApiSnapshot
 }
 
-func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCache, xdsHasher *xds.ProxyKeyHasher, reporter reporter.Reporter, devMode bool) v1.ApiSyncer {
-	s := &syncer{
+func NewTranslatorSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCache, xdsHasher *xds.ProxyKeyHasher, reporter reporter.Reporter, devMode bool) v1.ApiSyncer {
+	s := &translatorSyncer{
 		translator: translator,
 		xdsCache:   xdsCache,
 		xdsHasher:  xdsHasher,
@@ -48,13 +48,13 @@ func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCac
 	return s
 }
 
-func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
+func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 
 	ctx, span := trace.StartSpan(ctx, "gloo.syncer.Sync")
 	defer span.End()
 
 	s.latestSnap = snap
-	ctx = contextutils.WithLogger(ctx, "syncer")
+	ctx = contextutils.WithLogger(ctx, "translatorSyncer")
 	logger := contextutils.LoggerFrom(ctx)
 	logger.Infof("begin sync %v (%v proxies, %v upstreams, %v endpoints, %v secrets, %v artifacts, )", snap.Hash(),
 		len(snap.Proxies.List()), len(snap.Upstreams.List()), len(snap.Endpoints.List()), len(snap.Secrets.List()), len(snap.Artifacts.List()))
@@ -108,7 +108,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 }
 
 // TODO(ilackarms): move this somewhere else, make it part of dev-mode
-func (s *syncer) ServeXdsSnapshots() error {
+func (s *translatorSyncer) ServeXdsSnapshots() error {
 	r := mux.NewRouter()
 	r.HandleFunc("/xds", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, log.Sprintf("%v", s.xdsCache))

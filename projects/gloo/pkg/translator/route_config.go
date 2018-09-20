@@ -74,13 +74,13 @@ func (t *translator) computeVirtualHost(params plugins.Params, virtualHost *v1.V
 		Domains:    domains,
 		Routes:     envoyRoutes,
 		RequireTls: envoyRequireTls,
-		//TODO (ilackarms): plugins for these
-		//VirtualClusters: nil,
-		//RateLimits: nil,
-		//RequestHeadersToAdd: nil,
-		//ResponseHeadersToRemove: nil,
-		//Cors: nil,
-		//Auth: nil,
+		// TODO (ilackarms): plugins for these
+		// VirtualClusters: nil,
+		// RateLimits: nil,
+		// RequestHeadersToAdd: nil,
+		// ResponseHeadersToRemove: nil,
+		// Cors: nil,
+		// Auth: nil,
 	}
 
 	// run the plugins
