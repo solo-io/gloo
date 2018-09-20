@@ -157,7 +157,7 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 	go func() {
 		originalSnapshot := {{ .GoName }}Snapshot{}
 		currentSnapshot := originalSnapshot.Clone()
-		timer := time.NewTicker(time.Second * 5)
+		timer := time.NewTicker(time.Second * 1)
 		sync := func() {
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
@@ -172,11 +172,9 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 		// that guarantees that the first snapshot contains all the data.
 		for range watchNamespaces {
 {{- range .Resources}}
-   {{ lower_camel .Name }}NamespacedList := <- {{ lower_camel .Name }}Chan:
-	namespace := {{ lower_camel .Name }}NamespacedList.namespace
-	{{ lower_camel .Name }}List := {{ lower_camel .Name }}NamespacedList.list
-
-	currentSnapshot.{{ .PluralName }}.Clear(namespace)
+   {{ lower_camel .Name }}NamespacedList := <- {{ lower_camel .Name }}Chan
+   currentSnapshot.{{ .PluralName }}.Clear({{ lower_camel .Name }}NamespacedList.namespace)
+   {{ lower_camel .Name }}List := {{ lower_camel .Name }}NamespacedList.list
 	currentSnapshot.{{ .PluralName }}.Add({{ lower_camel .Name }}List...)
 
 {{- end}}
