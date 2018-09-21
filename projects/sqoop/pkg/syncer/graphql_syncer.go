@@ -17,7 +17,7 @@ import (
 	"github.com/vektah/gqlgen/neelance/schema"
 )
 
-type Syncer struct {
+type GraphQLSyncer struct {
 	writeNamespace    string
 	reporter          reporter.Reporter
 	writeErrs         chan error
@@ -27,14 +27,14 @@ type Syncer struct {
 	router            *router.Router
 }
 
-func NewSyncer(writeNamespace string,
+func NewGraphQLSyncer(writeNamespace string,
 	reporter reporter.Reporter,
 	writeErrs chan error,
 	proxyReconciler gloov1.ProxyReconciler,
 	resolverMapClient v1.ResolverMapClient,
 	engine *engine.Engine,
 	router *router.Router) v1.ApiSyncer {
-	s := &Syncer{
+	s := &GraphQLSyncer{
 		writeNamespace:    writeNamespace,
 		reporter:          reporter,
 		writeErrs:         writeErrs,
@@ -46,7 +46,7 @@ func NewSyncer(writeNamespace string,
 	return s
 }
 
-func (s *Syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
+func (s *GraphQLSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	ctx = contextutils.WithLogger(ctx, "syncer")
 
 	logger := contextutils.LoggerFrom(ctx)
