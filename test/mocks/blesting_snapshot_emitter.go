@@ -117,7 +117,7 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 	go func() {
 		originalSnapshot := BlestingSnapshot{}
 		currentSnapshot := originalSnapshot.Clone()
-		timer := time.NewTicker(time.Second * 5)
+		timer := time.NewTicker(time.Second * 1)
 		sync := func() {
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
@@ -131,11 +131,9 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 		   		// construct the first snapshot from all the configs that are currently there
 		   		// that guarantees that the first snapshot contains all the data.
 		   		for range watchNamespaces {
-		      fakeResourceNamespacedList := <- fakeResourceChan:
-		   	namespace := fakeResourceNamespacedList.namespace
-		   	fakeResourceList := fakeResourceNamespacedList.list
-
-		   	currentSnapshot.Fakes.Clear(namespace)
+		      fakeResourceNamespacedList := <- fakeResourceChan
+		      currentSnapshot.Fakes.Clear(fakeResourceNamespacedList.namespace)
+		      fakeResourceList := fakeResourceNamespacedList.list
 		   	currentSnapshot.Fakes.Add(fakeResourceList...)
 		   		}
 		*/

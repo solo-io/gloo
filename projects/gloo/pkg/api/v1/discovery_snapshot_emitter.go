@@ -150,7 +150,7 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 	go func() {
 		originalSnapshot := DiscoverySnapshot{}
 		currentSnapshot := originalSnapshot.Clone()
-		timer := time.NewTicker(time.Second * 5)
+		timer := time.NewTicker(time.Second * 1)
 		sync := func() {
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
@@ -164,17 +164,13 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 		   		// construct the first snapshot from all the configs that are currently there
 		   		// that guarantees that the first snapshot contains all the data.
 		   		for range watchNamespaces {
-		      secretNamespacedList := <- secretChan:
-		   	namespace := secretNamespacedList.namespace
-		   	secretList := secretNamespacedList.list
-
-		   	currentSnapshot.Secrets.Clear(namespace)
+		      secretNamespacedList := <- secretChan
+		      currentSnapshot.Secrets.Clear(secretNamespacedList.namespace)
+		      secretList := secretNamespacedList.list
 		   	currentSnapshot.Secrets.Add(secretList...)
-		      upstreamNamespacedList := <- upstreamChan:
-		   	namespace := upstreamNamespacedList.namespace
-		   	upstreamList := upstreamNamespacedList.list
-
-		   	currentSnapshot.Upstreams.Clear(namespace)
+		      upstreamNamespacedList := <- upstreamChan
+		      currentSnapshot.Upstreams.Clear(upstreamNamespacedList.namespace)
+		      upstreamList := upstreamNamespacedList.list
 		   	currentSnapshot.Upstreams.Add(upstreamList...)
 		   		}
 		*/

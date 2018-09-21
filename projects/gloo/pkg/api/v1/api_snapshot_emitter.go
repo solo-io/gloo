@@ -249,7 +249,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	go func() {
 		originalSnapshot := ApiSnapshot{}
 		currentSnapshot := originalSnapshot.Clone()
-		timer := time.NewTicker(time.Second * 5)
+		timer := time.NewTicker(time.Second * 1)
 		sync := func() {
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
@@ -263,35 +263,25 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		   		// construct the first snapshot from all the configs that are currently there
 		   		// that guarantees that the first snapshot contains all the data.
 		   		for range watchNamespaces {
-		      artifactNamespacedList := <- artifactChan:
-		   	namespace := artifactNamespacedList.namespace
-		   	artifactList := artifactNamespacedList.list
-
-		   	currentSnapshot.Artifacts.Clear(namespace)
+		      artifactNamespacedList := <- artifactChan
+		      currentSnapshot.Artifacts.Clear(artifactNamespacedList.namespace)
+		      artifactList := artifactNamespacedList.list
 		   	currentSnapshot.Artifacts.Add(artifactList...)
-		      endpointNamespacedList := <- endpointChan:
-		   	namespace := endpointNamespacedList.namespace
-		   	endpointList := endpointNamespacedList.list
-
-		   	currentSnapshot.Endpoints.Clear(namespace)
+		      endpointNamespacedList := <- endpointChan
+		      currentSnapshot.Endpoints.Clear(endpointNamespacedList.namespace)
+		      endpointList := endpointNamespacedList.list
 		   	currentSnapshot.Endpoints.Add(endpointList...)
-		      proxyNamespacedList := <- proxyChan:
-		   	namespace := proxyNamespacedList.namespace
-		   	proxyList := proxyNamespacedList.list
-
-		   	currentSnapshot.Proxies.Clear(namespace)
+		      proxyNamespacedList := <- proxyChan
+		      currentSnapshot.Proxies.Clear(proxyNamespacedList.namespace)
+		      proxyList := proxyNamespacedList.list
 		   	currentSnapshot.Proxies.Add(proxyList...)
-		      secretNamespacedList := <- secretChan:
-		   	namespace := secretNamespacedList.namespace
-		   	secretList := secretNamespacedList.list
-
-		   	currentSnapshot.Secrets.Clear(namespace)
+		      secretNamespacedList := <- secretChan
+		      currentSnapshot.Secrets.Clear(secretNamespacedList.namespace)
+		      secretList := secretNamespacedList.list
 		   	currentSnapshot.Secrets.Add(secretList...)
-		      upstreamNamespacedList := <- upstreamChan:
-		   	namespace := upstreamNamespacedList.namespace
-		   	upstreamList := upstreamNamespacedList.list
-
-		   	currentSnapshot.Upstreams.Clear(namespace)
+		      upstreamNamespacedList := <- upstreamChan
+		      currentSnapshot.Upstreams.Clear(upstreamNamespacedList.namespace)
+		      upstreamList := upstreamNamespacedList.list
 		   	currentSnapshot.Upstreams.Add(upstreamList...)
 		   		}
 		*/

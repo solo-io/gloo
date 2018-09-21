@@ -150,7 +150,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	go func() {
 		originalSnapshot := ApiSnapshot{}
 		currentSnapshot := originalSnapshot.Clone()
-		timer := time.NewTicker(time.Second * 5)
+		timer := time.NewTicker(time.Second * 1)
 		sync := func() {
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
@@ -164,17 +164,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		   		// construct the first snapshot from all the configs that are currently there
 		   		// that guarantees that the first snapshot contains all the data.
 		   		for range watchNamespaces {
-		      gatewayNamespacedList := <- gatewayChan:
-		   	namespace := gatewayNamespacedList.namespace
-		   	gatewayList := gatewayNamespacedList.list
-
-		   	currentSnapshot.Gateways.Clear(namespace)
+		      gatewayNamespacedList := <- gatewayChan
+		      currentSnapshot.Gateways.Clear(gatewayNamespacedList.namespace)
+		      gatewayList := gatewayNamespacedList.list
 		   	currentSnapshot.Gateways.Add(gatewayList...)
-		      virtualServiceNamespacedList := <- virtualServiceChan:
-		   	namespace := virtualServiceNamespacedList.namespace
-		   	virtualServiceList := virtualServiceNamespacedList.list
-
-		   	currentSnapshot.VirtualServices.Clear(namespace)
+		      virtualServiceNamespacedList := <- virtualServiceChan
+		      currentSnapshot.VirtualServices.Clear(virtualServiceNamespacedList.namespace)
+		      virtualServiceList := virtualServiceNamespacedList.list
 		   	currentSnapshot.VirtualServices.Add(virtualServiceList...)
 		   		}
 		*/

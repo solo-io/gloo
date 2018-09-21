@@ -150,7 +150,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	go func() {
 		originalSnapshot := ApiSnapshot{}
 		currentSnapshot := originalSnapshot.Clone()
-		timer := time.NewTicker(time.Second * 5)
+		timer := time.NewTicker(time.Second * 1)
 		sync := func() {
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
@@ -164,17 +164,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		   		// construct the first snapshot from all the configs that are currently there
 		   		// that guarantees that the first snapshot contains all the data.
 		   		for range watchNamespaces {
-		      resolverMapNamespacedList := <- resolverMapChan:
-		   	namespace := resolverMapNamespacedList.namespace
-		   	resolverMapList := resolverMapNamespacedList.list
-
-		   	currentSnapshot.ResolverMaps.Clear(namespace)
+		      resolverMapNamespacedList := <- resolverMapChan
+		      currentSnapshot.ResolverMaps.Clear(resolverMapNamespacedList.namespace)
+		      resolverMapList := resolverMapNamespacedList.list
 		   	currentSnapshot.ResolverMaps.Add(resolverMapList...)
-		      schemaNamespacedList := <- schemaChan:
-		   	namespace := schemaNamespacedList.namespace
-		   	schemaList := schemaNamespacedList.list
-
-		   	currentSnapshot.Schemas.Clear(namespace)
+		      schemaNamespacedList := <- schemaChan
+		      currentSnapshot.Schemas.Clear(schemaNamespacedList.namespace)
+		      schemaList := schemaNamespacedList.list
 		   	currentSnapshot.Schemas.Add(schemaList...)
 		   		}
 		*/

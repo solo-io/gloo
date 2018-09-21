@@ -150,7 +150,7 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 	go func() {
 		originalSnapshot := TestingSnapshot{}
 		currentSnapshot := originalSnapshot.Clone()
-		timer := time.NewTicker(time.Second * 5)
+		timer := time.NewTicker(time.Second * 1)
 		sync := func() {
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
@@ -164,17 +164,13 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 		   		// construct the first snapshot from all the configs that are currently there
 		   		// that guarantees that the first snapshot contains all the data.
 		   		for range watchNamespaces {
-		      mockResourceNamespacedList := <- mockResourceChan:
-		   	namespace := mockResourceNamespacedList.namespace
-		   	mockResourceList := mockResourceNamespacedList.list
-
-		   	currentSnapshot.Mocks.Clear(namespace)
+		      mockResourceNamespacedList := <- mockResourceChan
+		      currentSnapshot.Mocks.Clear(mockResourceNamespacedList.namespace)
+		      mockResourceList := mockResourceNamespacedList.list
 		   	currentSnapshot.Mocks.Add(mockResourceList...)
-		      fakeResourceNamespacedList := <- fakeResourceChan:
-		   	namespace := fakeResourceNamespacedList.namespace
-		   	fakeResourceList := fakeResourceNamespacedList.list
-
-		   	currentSnapshot.Fakes.Clear(namespace)
+		      fakeResourceNamespacedList := <- fakeResourceChan
+		      currentSnapshot.Fakes.Clear(fakeResourceNamespacedList.namespace)
+		      fakeResourceList := fakeResourceNamespacedList.list
 		   	currentSnapshot.Fakes.Add(fakeResourceList...)
 		   		}
 		*/
