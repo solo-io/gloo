@@ -41,30 +41,6 @@ type Opts struct {
 	Upstreams factory.ResourceClientFactory
 }
 
-func NewOpts(
-	writeNamespace string,
-	schemas,
-	resolverMaps,
-	upstreams,
-	proxies factory.ResourceClientFactory,
-	namespacer namespacing.Namespacer,
-	watchOpts clients.WatchOpts,
-	sidecarAddr string,
-	devMode bool,
-) Opts {
-	return Opts{
-		WriteNamespace: writeNamespace,
-		Schemas:        schemas,
-		ResolverMaps:   resolverMaps,
-		Upstreams:      upstreams,
-		Proxies:        proxies,
-		Namespacer:     namespacer,
-		WatchOpts:      watchOpts,
-		DevMode:        devMode,
-		SidecarAddr:    sidecarAddr,
-	}
-}
-
 func DefaultKubernetesConstructOpts() (Opts, error) {
 	cfg, err := kubeutils.GetConfig("", "")
 	if err != nil {
@@ -178,7 +154,7 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 
 	rtr := router.NewRouter()
 
-	sync := syncer.NewSyncer(opts.WriteNamespace, rpt, writeErrs, proxyReconciler, resolverMapClient, eng, rtr)
+	sync := syncer.NewGraphQLSyncer(opts.WriteNamespace, rpt, writeErrs, proxyReconciler, resolverMapClient, eng, rtr)
 
 	go func() {
 		contextutils.LoggerFrom(opts.WatchOpts.Ctx).Fatalf("failed starting sqoop server: %v",

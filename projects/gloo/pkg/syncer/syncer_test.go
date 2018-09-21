@@ -19,7 +19,7 @@ import (
 	"github.com/solo-io/solo-kit/test/helpers"
 )
 
-var _ = Describe("Syncer", func() {
+var _ = Describe("GraphQLSyncer", func() {
 	It("writes the reports the translator spits out and calls SetSnapshot on the cache", func() {
 		ref := "syncer-test"
 		resourceClientFactory := &factory.MemoryResourceClientFactory{
