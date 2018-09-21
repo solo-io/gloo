@@ -59,6 +59,7 @@ func startFactory(ctx context.Context, client kubernetes.Interface) {
 	})
 }
 
+// TODO(yuval-k): See if we can get more fine grained updates here, about which resources was udpated
 func updatedOccured() {
 	cacheUpdatedWatchersMutex.Lock()
 	defer cacheUpdatedWatchersMutex.Unlock()
