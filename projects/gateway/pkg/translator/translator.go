@@ -14,17 +14,17 @@ import (
 )
 
 func Translate(ctx context.Context, namespace string, snap *v1.ApiSnapshot) (*gloov1.Proxy, reporter.ResourceErrors) {
-	log := contextutils.LoggerFrom(ctx)
+	logger := contextutils.LoggerFrom(ctx)
 
 	resourceErrs := make(reporter.ResourceErrors)
 	resourceErrs.Accept(snap.Gateways.List().AsInputResources()...)
 	resourceErrs.Accept(snap.VirtualServices.List().AsInputResources()...)
 	if len(snap.Gateways.List()) == 0 {
-		log.Debugf("%v had no gateways", snap.Hash())
+		logger.Debugf("%v had no gateways", snap.Hash())
 		return nil, resourceErrs
 	}
 	if len(snap.VirtualServices.List()) == 0 {
-		log.Debugf("%v had no virtual services", snap.Hash())
+		logger.Debugf("%v had no virtual services", snap.Hash())
 		return nil, resourceErrs
 	}
 	validateGateways(snap.Gateways.List(), resourceErrs)

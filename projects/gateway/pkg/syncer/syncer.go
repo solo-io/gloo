@@ -32,7 +32,6 @@ func NewSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter r
 }
 
 func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
-
 	ctx = contextutils.WithLogger(ctx, "syncer")
 
 	logger := contextutils.LoggerFrom(ctx)
