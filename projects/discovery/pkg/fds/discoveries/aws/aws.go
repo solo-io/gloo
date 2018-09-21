@@ -64,6 +64,9 @@ func (f *AWSLambdaFunctionDiscovery) DetectFunctions(ctx context.Context, url *u
 				return err
 			}
 
+			// TODO(yuval-k): only update functions if newfunctions != oldfunctions
+			// no need to constantly write to storage
+
 			err = updatecb(func(out *v1.Upstream) error {
 				// TODO(yuval-k): this should never happen. but it did. add logs?
 				if out == nil {
