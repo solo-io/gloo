@@ -81,7 +81,6 @@ type ResourceClient struct {
 	ownerLabel   string
 	resourceName string
 	resourceType resources.InputResource
-	cacheUpdated <-chan struct{}
 }
 
 func NewResourceClient(crd crd.Crd, cfg *rest.Config, resourceType resources.InputResource) (*ResourceClient, error) {
@@ -103,8 +102,6 @@ func NewResourceClient(crd crd.Crd, cfg *rest.Config, resourceType resources.Inp
 	resourceName := strings.Replace(typeof.String(), "*", "", -1)
 	resourceName = strings.Replace(resourceName, ".", "", -1)
 
-	cacheUpdated := addWatch()
-
 	return &ResourceClient{
 		crd:          crd,
 		apiexts:      apiExts,
@@ -112,7 +109,6 @@ func NewResourceClient(crd crd.Crd, cfg *rest.Config, resourceType resources.Inp
 		kubeClient:   kubeClient,
 		resourceName: resourceName,
 		resourceType: resourceType,
-		cacheUpdated: cacheUpdated,
 	}, nil
 }
 
@@ -274,8 +270,10 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		resourcesChan <- list
 	}
 	// watch should open up with an initial read
+	cacheUpdated := addWatch()
 
 	go func() {
+		defer removeWatch(cacheUpdated)
 		defer close(resourcesChan)
 		defer close(errs)
 
@@ -285,7 +283,7 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 			select {
 			case <-time.After(opts.RefreshRate): // TODO(yuval-k): can we remove this? is the factory takes care of that...
 				updateResourceList()
-			case <-rc.cacheUpdated:
+			case <-cacheUpdated:
 				updateResourceList()
 			case <-ctx.Done():
 				return
