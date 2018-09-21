@@ -163,20 +163,24 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints *
 					continue
 				}
 				for _, addr := range subset.Addresses {
-					// determine whether labels for the owner of this ip (pod) matches the spec
-					podLabels, err := getPodLabelsForIp(addr.IP, pods.Items)
-					if err != nil {
-						// pod not found for ip? what's that about?
-						logger.Warnf("error for upstream %v service %v: ", usName, spec.ServiceName, err)
-						continue
+					if len(spec.Selector) != 0 {
+
+						// determine whether labels for the owner of this ip (pod) matches the spec
+						podLabels, err := getPodLabelsForIp(addr.IP, pods.Items)
+						if err != nil {
+							// pod not found for ip? what's that about?
+							logger.Warnf("error for upstream %v service %v: ", usName, spec.ServiceName, err)
+							continue
+						}
+						if !labels.AreLabelsInWhiteList(spec.Selector, podLabels) {
+							continue
+						}
+						// pod hasn't been assigned address yet
+						if addr.IP == "" {
+							continue
+						}
 					}
-					if !labels.AreLabelsInWhiteList(spec.Selector, podLabels) {
-						continue
-					}
-					// pod hasn't been assigned address yet
-					if addr.IP == "" {
-						continue
-					}
+
 					hash, _ := hashstructure.Hash([]interface{}{subset, addr}, nil)
 					endpointName := fmt.Sprintf("%v-%x", eps.Name, hash)
 
