@@ -7,10 +7,10 @@ import (
 	uds "github.com/solo-io/solo-kit/projects/discovery/pkg/uds/setup"
 	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
 	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/setup"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
-	gatewaysyncer "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
-	sqoopsyncer "github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
+	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/setup"
+	"flag"
+	"os"
+	"path/filepath"
 )
 
 func main() {
@@ -21,15 +21,18 @@ func main() {
 }
 
 func run() error {
+	dir := flag.String("dir", "gloo", "directory for config")
+	flag.Parse()
+	os.MkdirAll(filepath.Join(*dir, "settings"), 0755)
 	errs := make(chan error)
 	go func() {
-		errs <- runGloo()
+		errs <- gloosetup.Main(*dir)
 	}()
 	go func() {
-		errs <- runGateway()
+		errs <- gatewaysetup.Main(*dir)
 	}()
 	go func() {
-		errs <- runSqoop()
+		errs <- sqoopsetup.Main(*dir)
 	}()
 	go func() {
 		errs <- runUds()
@@ -38,30 +41,6 @@ func run() error {
 		errs <- runFds()
 	}()
 	return <-errs
-}
-
-func runGloo() error {
-	opts, err := gloosetup.DefaultKubernetesConstructOpts()
-	if err != nil {
-		return err
-	}
-	return syncer.RunGloo(opts)
-}
-
-func runGateway() error {
-	opts, err := gatewaysetup.DefaultKubernetesConstructOpts()
-	if err != nil {
-		return err
-	}
-	return gatewaysyncer.RunGateway(opts)
-}
-
-func runSqoop() error {
-	opts, err := setup.DefaultKubernetesConstructOpts()
-	if err != nil {
-		return err
-	}
-	return sqoopsyncer.RunSqoop(opts)
 }
 
 func runUds() error {
