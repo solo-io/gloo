@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-
+	"time"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/namespacing"
 	"github.com/solo-io/solo-kit/pkg/namespacing/static"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -21,8 +20,30 @@ import (
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/router"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
-	"github.com/solo-io/solo-kit/samples"
 )
+
+func Main(settingsDir string) error {
+	settingsClient, err := gloov1.NewSettingsClient(&factory.FileResourceClientFactory{
+		RootDir: settingsDir,
+	})
+	if err != nil {
+		return err
+	}
+	cache := gloov1.NewSetupEmitter(settingsClient)
+	ctx := contextutils.WithLogger(context.Background(), "main")
+	eventLoop := gloov1.NewSetupEventLoop(cache, syncer.NewSetupSyncer())
+	errs, err := eventLoop.Run([]string{"settings"}, clients.WatchOpts{
+		Ctx:         ctx,
+		RefreshRate: time.Minute,
+	})
+	if err != nil {
+		return err
+	}
+	for err := range errs {
+		contextutils.LoggerFrom(ctx).Errorf("error in setup: %v", err)
+	}
+	return nil
+}
 
 type Opts struct {
 	WriteNamespace string
@@ -31,14 +52,9 @@ type Opts struct {
 	Proxies        factory.ResourceClientFactory
 	WatchOpts      clients.WatchOpts
 	DevMode        bool
-	SampleData     bool
 
 	Namespacer namespacing.Namespacer
-
 	SidecarAddr string
-
-	// TODO(ilackarms): remove Upstreams here if not needed, right now only used for sample data
-	Upstreams factory.ResourceClientFactory
 }
 
 func DefaultKubernetesConstructOpts() (Opts, error) {
@@ -65,10 +81,6 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 			Crd: gloov1.ProxyCrd,
 			Cfg: cfg,
 		},
-		Upstreams: &factory.KubeResourceClientFactory{
-			Crd: gloov1.UpstreamCrd,
-			Cfg: cfg,
-		},
 		Namespacer: static.NewNamespacer([]string{"default", defaults.GlooSystem}),
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
@@ -80,7 +92,6 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 }
 
 func Setup(opts Opts) error {
-	// TODO: Ilackarms: move this to multi-eventloop
 	namespaces, errs, err := opts.Namespacer.Namespaces(opts.WatchOpts)
 	if err != nil {
 		return err
@@ -128,12 +139,6 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 		return err
 	}
 
-	if opts.SampleData {
-		if err := addSampleData(opts, schemaClient, resolverMapClient); err != nil {
-			return err
-		}
-	}
-
 	// TODO(ilackarms): Default Resource stuff. (might be a concern for solo-kit)
 	// if _, err := gatewayClient.Write(defaults.DefaultGateway(opts.WriteNamespace), clients.WriteOpts{
 	// 	Ctx: opts.WatchOpts.Ctx,
@@ -179,28 +184,4 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 			return nil
 		}
 	}
-}
-
-func addSampleData(opts Opts, schemaClient v1.SchemaClient, resolverMapClient v1.ResolverMapClient) error {
-	upstreamClient, err := gloov1.NewUpstreamClient(opts.Upstreams)
-	if err != nil {
-		return err
-	}
-	schemas, resolverMaps, upstreams := samples.Schemas(), samples.ResolverMaps(), samples.Upstreams()
-	for _, item := range upstreams {
-		if _, err := upstreamClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
-			return err
-		}
-	}
-	for _, item := range schemas {
-		if _, err := schemaClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
-			return err
-		}
-	}
-	for _, item := range resolverMaps {
-		if _, err := resolverMapClient.Write(item, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
-			return err
-		}
-	}
-	return nil
 }

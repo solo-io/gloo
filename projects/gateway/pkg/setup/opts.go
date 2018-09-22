@@ -23,7 +23,6 @@ type Opts struct {
 	Namespacer      namespacing.Namespacer
 	WatchOpts       clients.WatchOpts
 	DevMode         bool
-	SampleData      bool
 }
 
 func NewOpts(
