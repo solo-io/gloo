@@ -12,7 +12,6 @@ import (
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
-	"k8s.io/client-go/kubernetes"
 )
 
 type Opts struct {
@@ -47,10 +46,6 @@ func NewOpts(
 
 func DefaultKubernetesConstructOpts() (Opts, error) {
 	cfg, err := kubeutils.GetConfig("", "")
-	if err != nil {
-		return Opts{}, err
-	}
-	clientset, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return Opts{}, err
 	}

@@ -81,7 +81,7 @@ func SecretFactoryForSettings(settings *v1.Settings,
 			*clientset = cs
 		}
 		return &factory.KubeSecretClientFactory{
-			Clientset: clientset,
+			Clientset: *clientset,
 		}, nil
 	case *v1.Settings_VaultSecretSource:
 		return nil, errors.Errorf("vault configuration not implemented")
@@ -126,7 +126,7 @@ func ArtifactFactoryForSettings(settings *v1.Settings,
 			*clientset = cs
 		}
 		return &factory.KubeSecretClientFactory{
-			Clientset: clientset,
+			Clientset: *clientset,
 		}, nil
 	case *v1.Settings_DirectoryArtifactSource:
 		return &factory.FileResourceClientFactory{
