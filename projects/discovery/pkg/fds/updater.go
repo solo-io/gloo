@@ -20,6 +20,7 @@ var errorUndetectableUpstream = errors.New("upstream type cannot be detected")
 
 type UpstreamWriterClient interface {
 	Write(resource *v1.Upstream, opts clients.WriteOpts) (*v1.Upstream, error)
+	Read(namespace, name string, opts clients.ReadOpts) (*v1.Upstream, error)
 }
 
 type updaterUpdater struct {
@@ -138,7 +139,7 @@ func (u *Updater) UpstreamRemoved(upstream *v1.Upstream) {
 
 func (u *updaterUpdater) saveUpstream(mutator UpstreamMutator) error {
 	logger := contextutils.LoggerFrom(u.ctx)
-	logger.Debugf("Updating upstream %v with functions", u.upstream.Metadata.Name)
+	logger.Debugw("Updating upstream with functions", "upstream", u.upstream.Metadata.Name)
 
 	err := mutator(u.upstream)
 	if err != nil {
@@ -152,18 +153,24 @@ func (u *updaterUpdater) saveUpstream(mutator UpstreamMutator) error {
 	/* upstream, err = */
 	newupstream, err := u.parent.upstreamWriter.Write(u.upstream, wo)
 	if err != nil {
-		logger.Warnf("error updating upstream  %v on first try", u.upstream.Metadata.Name)
+		logger.Warnw("error updating upstream on first try", "upstream", u.upstream.Metadata.Name, "error", err)
+		newupstream, err = u.parent.upstreamWriter.Read(u.upstream.Metadata.Namespace, u.upstream.Metadata.Name, clients.ReadOpts{Ctx: u.ctx})
+		if err != nil {
+			logger.Warnw("can't read updated upstream for second try", "upstream", u.upstream.Metadata.Name, "error", err)
+			return err
+		}
 	} else {
+		u.upstream = newupstream
 		return nil
 	}
 	// try again with the new one
 	mutator(newupstream)
-	_, err = u.parent.upstreamWriter.Write(newupstream, wo)
+	newupstream, err = u.parent.upstreamWriter.Write(newupstream, wo)
 	if err != nil {
-		logger.Warnf("error updating upstream  %v on second try", u.upstream.Metadata.Name)
+		logger.Warnw("error updating upstream on second try", "upstream", u.upstream.Metadata.Name, "error", err)
 	}
-	// TODO: if write failed, due to resource conflict,
-	// get latest version, and if it still doesnt have a spec, mutate again and retry.
+	u.upstream = newupstream
+	// TODO: if write failed, we are retrying. we should consider verifying that the error is indeed due to resource conflict,
 
 	return nil
 }
