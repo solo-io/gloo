@@ -7,6 +7,8 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/gogo/protobuf/proto"
+
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"go.uber.org/zap"
 
@@ -140,10 +142,15 @@ func (u *Updater) UpstreamRemoved(upstream *v1.Upstream) {
 func (u *updaterUpdater) saveUpstream(mutator UpstreamMutator) error {
 	logger := contextutils.LoggerFrom(u.ctx)
 	logger.Debugw("Updating upstream with functions", "upstream", u.upstream.Metadata.Name)
-
-	err := mutator(u.upstream)
+	newupstream := proto.Clone(u.upstream).(*v1.Upstream)
+	err := mutator(newupstream)
 	if err != nil {
 		return err
+	}
+
+	if u.upstream.Equal(newupstream) {
+		// nothing to update!
+		return nil
 	}
 
 	var wo clients.WriteOpts
@@ -151,7 +158,7 @@ func (u *updaterUpdater) saveUpstream(mutator UpstreamMutator) error {
 	wo.OverwriteExisting = true
 
 	/* upstream, err = */
-	newupstream, err := u.parent.upstreamWriter.Write(u.upstream, wo)
+	newupstream, err = u.parent.upstreamWriter.Write(newupstream, wo)
 	if err != nil {
 		logger.Warnw("error updating upstream on first try", "upstream", u.upstream.Metadata.Name, "error", err)
 		newupstream, err = u.parent.upstreamWriter.Read(u.upstream.Metadata.Namespace, u.upstream.Metadata.Name, clients.ReadOpts{Ctx: u.ctx})
@@ -164,7 +171,15 @@ func (u *updaterUpdater) saveUpstream(mutator UpstreamMutator) error {
 		return nil
 	}
 	// try again with the new one
-	mutator(newupstream)
+	err = mutator(newupstream)
+	if err != nil {
+		return err
+	}
+	if u.upstream.Equal(newupstream) {
+		// nothing to update!
+		return nil
+	}
+
 	newupstream, err = u.parent.upstreamWriter.Write(newupstream, wo)
 	if err != nil {
 		logger.Warnw("error updating upstream on second try", "upstream", u.upstream.Metadata.Name, "error", err)

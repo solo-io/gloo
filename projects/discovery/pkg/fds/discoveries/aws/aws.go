@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"sort"
 	"time"
 	"unicode/utf8"
 
@@ -63,6 +64,11 @@ func (f *AWSLambdaFunctionDiscovery) DetectFunctions(ctx context.Context, url *u
 			if err != nil {
 				return err
 			}
+
+			// sort for idempotency
+			sort.Slice(newfunctions, func(i, j int) bool {
+				return newfunctions[i].LogicalName < newfunctions[j].LogicalName
+			})
 
 			// TODO(yuval-k): only update functions if newfunctions != oldfunctions
 			// no need to constantly write to storage
