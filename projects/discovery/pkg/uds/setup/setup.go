@@ -49,7 +49,13 @@ func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 		return err
 	}
 
-	cache := v1.NewDiscoveryEmitter(secretClient, upstreamClient)
+	emit := make(chan struct{})
+	emitter := v1.NewDiscoveryEmitterWithEmit(secretClient, upstreamClient, emit)
+
+	// jump start all the watches
+	go func() {
+		emit <- struct{}{}
+	}()
 
 	plugins := registry.Plugins(opts)
 
@@ -65,7 +71,7 @@ func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 	sync := syncer.NewSyncer(disc,
 		discovery.Opts{}, // TODO(ilackarms)
 		watchOpts.RefreshRate)
-	eventLoop := v1.NewDiscoveryEventLoop(cache, sync)
+	eventLoop := v1.NewDiscoveryEventLoop(emitter, sync)
 
 	errs := make(chan error)
 
