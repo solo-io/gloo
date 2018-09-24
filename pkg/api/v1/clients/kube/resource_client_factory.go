@@ -22,13 +22,23 @@ import (
 )
 
 var (
-	MLists = stats.Int64("kube/lists", "The number of lists", "1")
+	MLists   = stats.Int64("kube/lists", "The number of lists", "1")
+	MWatches = stats.Int64("kube/lists", "The  number of watches", "1")
 
 	KeyKind, _ = tag.NewKey("kind")
 
 	ListCountView = &view.View{
 		Name:        "kube/lists-count",
 		Measure:     MLists,
+		Description: "The number of list calls",
+		Aggregation: view.Count(),
+		TagKeys: []tag.Key{
+			KeyKind,
+		},
+	}
+	WatchCountView = &view.View{
+		Name:        "kube/watches-count",
+		Measure:     MWatches,
 		Description: "The number of list calls",
 		Aggregation: view.Count(),
 		TagKeys: []tag.Key{
@@ -65,8 +75,8 @@ func NewResourceClientSharedInformerFactory() *ResourceClientSharedInformerFacto
 
 func (f *ResourceClientSharedInformerFactory) Register(rc *ResourceClient) {
 	ctx := context.TODO()
-	if ctx2, err := tag.New(ctx, tag.Insert(KeyKind, rc.resourceName)); err == nil {
-		ctx = ctx2
+	if ctxWithTags, err := tag.New(ctx, tag.Insert(KeyKind, rc.resourceName)); err == nil {
+		ctx = ctxWithTags
 	}
 
 	list := rc.kube.ResourcesV1().Resources(metav1.NamespaceAll).List
@@ -77,13 +87,25 @@ func (f *ResourceClientSharedInformerFactory) Register(rc *ResourceClient) {
 				//if tweakListOptions != nil {
 				//	tweakListOptions(&options)
 				//}
-				stats.Record(ctx, MLists.M(1))
+
+				if ctxWithTags, err := tag.New(ctx, tag.Insert(KeyOpKind, "list")); err == nil {
+					ctx = ctxWithTags
+				}
+				stats.Record(ctx, MLists.M(1), MInFlight.M(1))
+				defer stats.Record(ctx, MInFlight.M(-1))
 				return list(options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (kubewatch.Interface, error) {
 				// if tweakListOptions != nil {
 				// 	tweakListOptions(&options)
 				// }
+
+				if ctxWithTags, err := tag.New(ctx, tag.Insert(KeyOpKind, "watch")); err == nil {
+					ctx = ctxWithTags
+				}
+
+				stats.Record(ctx, MWatches.M(1), MInFlight.M(1))
+				defer stats.Record(ctx, MInFlight.M(-1))
 				return watch(options)
 			},
 		},

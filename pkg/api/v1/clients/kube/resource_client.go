@@ -61,10 +61,24 @@ var (
 			KeyKind,
 		},
 	}
+
+	KeyOpKind, _ = tag.NewKey("op")
+
+	MInFlight       = stats.Int64("kube/req_in_flight", "The number of requests in flight", "1")
+	InFlightSumView = &view.View{
+		Name:        "kube/req-in-flight",
+		Measure:     MInFlight,
+		Description: "The number of list calls",
+		Aggregation: view.Sum(),
+		TagKeys: []tag.Key{
+			KeyOpKind,
+			KeyKind,
+		},
+	}
 )
 
 func init() {
-	view.Register(CreateCountView, UpdateCountView, DeleteCountView)
+	view.Register(CreateCountView, UpdateCountView, DeleteCountView, InFlightSumView)
 }
 
 var (
@@ -180,8 +194,15 @@ func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (r
 	}
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
+	ctx := opts.Ctx
 
+	if ctxWithTags, err := tag.New(ctx, tag.Insert(KeyKind, rc.resourceName), tag.Insert(KeyOpKind, "read")); err == nil {
+		ctx = ctxWithTags
+	}
+
+	stats.Record(ctx, MInFlight.M(1))
 	resourceCrd, err := rc.kube.ResourcesV1().Resources(namespace).Get(name, metav1.GetOptions{})
+	stats.Record(ctx, MInFlight.M(-1))
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, errors.NewNotExistErr(namespace, name, err)
@@ -215,15 +236,16 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	resourceCrd := rc.crd.KubeResource(clone)
 
 	ctx := opts.Ctx
-	if ctxWithTags, err := tag.New(ctx, tag.Insert(KeyKind, rc.resourceName)); err == nil {
+	if ctxWithTags, err := tag.New(ctx, tag.Insert(KeyKind, rc.resourceName), tag.Insert(KeyOpKind, "write")); err == nil {
 		ctx = ctxWithTags
 	}
 
-	if rc.exist(meta.Namespace, meta.Name) {
+	if rc.exist(ctx, meta.Namespace, meta.Name) {
 		if !opts.OverwriteExisting {
 			return nil, errors.NewExistErr(meta)
 		}
-		stats.Record(ctx, MUpdates.M(1))
+		stats.Record(ctx, MUpdates.M(1), MInFlight.M(1))
+		defer stats.Record(ctx, MInFlight.M(-1))
 		if _, updateerr := rc.kube.ResourcesV1().Resources(meta.Namespace).Update(resourceCrd); updateerr != nil {
 			original, err := rc.kube.ResourcesV1().Resources(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			if err == nil {
@@ -232,7 +254,8 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 			return nil, errors.Wrapf(updateerr, "updating kube resource %v", resourceCrd.Name)
 		}
 	} else {
-		stats.Record(ctx, MCreates.M(1))
+		stats.Record(ctx, MCreates.M(1), MInFlight.M(1))
+		defer stats.Record(ctx, MInFlight.M(-1))
 		if _, err := rc.kube.ResourcesV1().Resources(meta.Namespace).Create(resourceCrd); err != nil {
 			return nil, errors.Wrapf(err, "creating kube resource %v", resourceCrd.Name)
 		}
@@ -246,18 +269,21 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 	opts = opts.WithDefaults()
 
 	ctx := opts.Ctx
-	if ctxWithTags, err := tag.New(ctx, tag.Insert(KeyKind, rc.resourceName)); err == nil {
+
+	if ctxWithTags, err := tag.New(ctx, tag.Insert(KeyKind, rc.resourceName), tag.Insert(KeyOpKind, "delete")); err == nil {
 		ctx = ctxWithTags
 	}
 	stats.Record(ctx, MDeletes.M(1))
 
-	if !rc.exist(namespace, name) {
+	if !rc.exist(ctx, namespace, name) {
 		if !opts.IgnoreNotExist {
 			return errors.NewNotExistErr(namespace, name)
 		}
 		return nil
 	}
 
+	stats.Record(ctx, MInFlight.M(1))
+	defer stats.Record(ctx, MInFlight.M(-1))
 	if err := rc.kube.ResourcesV1().Resources(namespace).Delete(name, nil); err != nil {
 		return errors.Wrapf(err, "deleting resource %v", name)
 	}
@@ -352,7 +378,15 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 	return resourcesChan, errs, nil
 }
 
-func (rc *ResourceClient) exist(namespace, name string) bool {
+func (rc *ResourceClient) exist(ctx context.Context, namespace, name string) bool {
+
+	if ctxWithTags, err := tag.New(ctx, tag.Insert(KeyKind, rc.resourceName), tag.Upsert(KeyOpKind, "get")); err == nil {
+		ctx = ctxWithTags
+	}
+
+	stats.Record(ctx, MInFlight.M(1))
+	defer stats.Record(ctx, MInFlight.M(-1))
+
 	_, err := rc.kube.ResourcesV1().Resources(namespace).Get(name, metav1.GetOptions{}) // TODO(yuval-k): check error for real
 	return err == nil
 
