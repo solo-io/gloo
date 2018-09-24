@@ -18,6 +18,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
 	apiexts "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,6 +28,44 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
+
+var (
+	MCreates        = stats.Int64("kube/creates", "The number of creates", "1")
+	CreateCountView = &view.View{
+		Name:        "kube/creates-count",
+		Measure:     MCreates,
+		Description: "The number of list calls",
+		Aggregation: view.Count(),
+		TagKeys: []tag.Key{
+			KeyKind,
+		},
+	}
+	MUpdates        = stats.Int64("kube/updates", "The number of updates", "1")
+	UpdateCountView = &view.View{
+		Name:        "kube/updates-count",
+		Measure:     MUpdates,
+		Description: "The number of list calls",
+		Aggregation: view.Count(),
+		TagKeys: []tag.Key{
+			KeyKind,
+		},
+	}
+
+	MDeletes        = stats.Int64("kube/deletes", "The number of deletes", "1")
+	DeleteCountView = &view.View{
+		Name:        "kube/deletes-count",
+		Measure:     MDeletes,
+		Description: "The number of list calls",
+		Aggregation: view.Count(),
+		TagKeys: []tag.Key{
+			KeyKind,
+		},
+	}
+)
+
+func init() {
+	view.Register(CreateCountView, UpdateCountView, DeleteCountView)
+}
 
 var (
 	clientFactory = NewResourceClientSharedInformerFactory()
@@ -160,6 +201,7 @@ func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (r
 }
 
 func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteOpts) (resources.Resource, error) {
+
 	opts = opts.WithDefaults()
 	if err := resources.Validate(resource); err != nil {
 		return nil, errors.Wrapf(err, "validation error")
@@ -172,10 +214,16 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	clone.SetMetadata(meta)
 	resourceCrd := rc.crd.KubeResource(clone)
 
+	ctx := opts.Ctx
+	if ctxWithTags, err := tag.New(ctx, tag.Insert(KeyKind, rc.resourceName)); err == nil {
+		ctx = ctxWithTags
+	}
+
 	if rc.exist(meta.Namespace, meta.Name) {
 		if !opts.OverwriteExisting {
 			return nil, errors.NewExistErr(meta)
 		}
+		stats.Record(ctx, MUpdates.M(1))
 		if _, updateerr := rc.kube.ResourcesV1().Resources(meta.Namespace).Update(resourceCrd); updateerr != nil {
 			original, err := rc.kube.ResourcesV1().Resources(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			if err == nil {
@@ -184,6 +232,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 			return nil, errors.Wrapf(updateerr, "updating kube resource %v", resourceCrd.Name)
 		}
 	} else {
+		stats.Record(ctx, MCreates.M(1))
 		if _, err := rc.kube.ResourcesV1().Resources(meta.Namespace).Create(resourceCrd); err != nil {
 			return nil, errors.Wrapf(err, "creating kube resource %v", resourceCrd.Name)
 		}
@@ -195,6 +244,13 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 
 func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
+
+	ctx := opts.Ctx
+	if ctxWithTags, err := tag.New(ctx, tag.Insert(KeyKind, rc.resourceName)); err == nil {
+		ctx = ctxWithTags
+	}
+	stats.Record(ctx, MDeletes.M(1))
+
 	if !rc.exist(namespace, name) {
 		if !opts.IgnoreNotExist {
 			return errors.NewNotExistErr(namespace, name)
