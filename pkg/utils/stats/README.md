@@ -10,7 +10,7 @@ curl -XPUT -d '{"level":"debug"}' -H"content-type: application/json" http://loca
 
 see them here:
 
-localhost:9091/debug/tracez
+localhost:9091/zpages/tracez
 
 # Local Prometheus
 
@@ -39,4 +39,25 @@ Prometheus will be available in `localhost:9090`.
 To see the rate of incoming snapshots, try this query:
 ```
 rate(api_snap_emitter_snap_in[5m])
+```
+
+# Profiling
+## CPU tracing
+```
+$ curl http://localhost:9091/debug/pprof/trace?seconds=5 -o trace.out
+$ go tool trace trace.out
+```
+
+## profiling
+```
+$ curl http://localhost:9091/debug/pprof/trace?seconds=5 -o pprof.out
+$ go tool pprof pprof.out
+(pprof) top
+(pprof) web
+```
+
+## Stack traces
+See go routines:
+```
+$ curl http://localhost:9091/debug/pprof/goroutine?debug=2
 ```
