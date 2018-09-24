@@ -29,7 +29,7 @@ func ConfigFactoryForSettings(settings *v1.Settings,
 	switch source := settings.ConfigSource.(type) {
 	// this is at trick to reuse the same cfg across multiple clients
 	case *v1.Settings_KubernetesConfigSource:
-		if cfg == nil {
+		if *cfg == nil {
 			c, err := kubeutils.GetConfig("", "")
 			if err != nil {
 				return nil, err
@@ -73,7 +73,7 @@ func SecretFactoryForSettings(settings *v1.Settings,
 			*cfg = c
 		}
 
-		if clientset == nil {
+		if *clientset == nil {
 			cs, err := kubernetes.NewForConfig(*cfg)
 			if err != nil {
 				return nil, err
