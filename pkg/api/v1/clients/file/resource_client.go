@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gogo/protobuf/proto"
@@ -18,6 +19,13 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/fileutils"
 	"k8s.io/apimachinery/pkg/labels"
 )
+
+func ignoreFile(filename string) bool {
+	if strings.HasSuffix(filename, ".yaml") || strings.HasSuffix(filename, ".yml") {
+		return false
+	}
+	return true
+}
 
 type ResourceClient struct {
 	dir          string
@@ -126,6 +134,9 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resourc
 
 	var resourceList resources.ResourceList
 	for _, file := range files {
+		if ignoreFile(file.Name()) {
+			continue
+		}
 		resource := rc.NewResource()
 		path := filepath.Join(namespaceDir, file.Name())
 		if err := fileutils.ReadFileInto(path, resource); err != nil {
