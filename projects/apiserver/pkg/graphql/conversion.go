@@ -520,15 +520,17 @@ func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpe
 		var params *transformation.Parameters
 		if spec.Rest.Parameters != nil {
 			headers := spec.Rest.Parameters.Headers.GoType()
-			var path *types.StringValue
-			if inPath := spec.Rest.Parameters.Path; inPath != nil {
-				path = &types.StringValue{Value: *inPath}
-			}
-			if headers != nil || path != nil {
-				params = &transformation.Parameters{
-					Headers: headers,
-					Path:    path,
+			if len(headers) > 0 {
+				if params == nil {
+					params = &transformation.Parameters{}
 				}
+				params.Headers = headers
+			}
+			if inPath := spec.Rest.Parameters.Path; inPath != nil && *inPath != "" {
+				if params == nil {
+					params = &transformation.Parameters{}
+				}
+				params.Path = &types.StringValue{Value: *inPath}
 			}
 		}
 		return &v1.DestinationSpec{
@@ -921,6 +923,9 @@ func convertInputRequestTemplate(t *InputRequestTemplate) *sqoopv1.RequestTempla
 	if t == nil {
 		return nil
 	}
+	if t.Verb == "" && t.Path == "" && t.Body == "" && len(t.Headers.GoType()) == 0 {
+		return nil
+	}
 	return &sqoopv1.RequestTemplate{
 		Verb:    t.Verb,
 		Path:    t.Path,
@@ -931,6 +936,9 @@ func convertInputRequestTemplate(t *InputRequestTemplate) *sqoopv1.RequestTempla
 
 func convertInputResponseTemplate(t *InputResponseTemplate) *sqoopv1.ResponseTemplate {
 	if t == nil {
+		return nil
+	}
+	if t.Body == "" && len(t.Headers.GoType()) == 0 {
 		return nil
 	}
 	return &sqoopv1.ResponseTemplate{
