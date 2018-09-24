@@ -21,6 +21,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/namespacing/static"
 	"net"
+	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
 // TODO(ilackarms): remove this or move it to a test package, only use settings watch for prodution gloo
@@ -53,7 +54,7 @@ func writeSettings(settingsDir string) error {
 }
 
 func Main(settingsDir string) error {
-	if err := writeSettings(settingsDir); err != nil {
+	if err := writeSettings(settingsDir); err != nil && !errors.IsExist(err) {
 		return err
 	}
 	settingsClient, err := v1.NewSettingsClient(&factory.FileResourceClientFactory{
