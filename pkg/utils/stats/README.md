@@ -50,7 +50,7 @@ $ go tool trace trace.out
 
 ## profiling
 ```
-$ curl http://localhost:9091/debug/pprof/trace?seconds=5 -o pprof.out
+$ curl http://localhost:9091/debug/pprof/profile?seconds=5 -o pprof.out
 $ go tool pprof pprof.out
 (pprof) top
 (pprof) web
