@@ -8,6 +8,8 @@ import (
 	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
 	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/setup"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"context"
 )
 
 func main() {
@@ -33,7 +35,7 @@ func run() error {
 		return err
 	}
 
-	log.Printf("listening on :%v", *port)
+	contextutils.LoggerFrom(context.TODO()).Infof("listening on :%v", *port)
 	if err := setup.Setup(*port, *dev, glooOpts, gatewayOpts, sqoopOpts); err != nil {
 		return err
 	}

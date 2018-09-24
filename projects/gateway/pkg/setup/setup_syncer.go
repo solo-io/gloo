@@ -149,6 +149,9 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	if err != nil {
 		return err
 	}
+	if err := proxyClient.Register(); err != nil {
+		return err
+	}
 
 	if _, err := gatewayClient.Write(defaults.DefaultGateway(opts.WriteNamespace), clients.WriteOpts{
 		Ctx: opts.WatchOpts.Ctx,
