@@ -301,7 +301,10 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resources.ResourceList, error) {
 	startFactory(context.TODO(), rc.kubeClient)
 
-	lister := clientFactory.GetLister(rc.crd.Type)
+	lister, err := clientFactory.GetLister(rc.crd.Type)
+	if err != nil {
+		return nil, err
+	}
 	allResources, err := lister.List(labels.SelectorFromSet(opts.Selector))
 	if err != nil {
 		return nil, errors.Wrapf(err, "listing resources in %v", namespace)

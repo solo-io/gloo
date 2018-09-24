@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 
+	"github.com/solo-io/solo-kit/pkg/errors"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -163,12 +164,12 @@ func (f *ResourceClientSharedInformerFactory) Start(ctx context.Context, kubeCli
 
 }
 
-func (f *ResourceClientSharedInformerFactory) GetLister(obj runtime.Object) ResourceLister {
+func (f *ResourceClientSharedInformerFactory) GetLister(obj runtime.Object) (ResourceLister, error) {
 	informer := f.GetInformer(obj)
 	if informer == nil {
-		return nil
+		return nil, errors.Errorf("no lister has been registered for ObjectKind %v", obj.GetObjectKind())
 	}
-	return &resourceLister{indexer: informer.GetIndexer()}
+	return &resourceLister{indexer: informer.GetIndexer()}, nil
 
 }
 
