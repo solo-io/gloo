@@ -1,15 +1,12 @@
 # build environment
-FROM alpine:3.6 as builder
+FROM node:9.6.1 as builder
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 ENV PATH /usr/src/app/node_modules/.bin:$PATH
 
-RUN apk add yarn --no-cache
-RUN yarn --version
-
 COPY ./gloo-i /usr/src/app/
-RUN yarn install --frozen-lockfile --no-cache --production --ignore-engines
+RUN yarn install
 RUN yarn build
 
 # production environment
