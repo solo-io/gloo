@@ -75,10 +75,18 @@ var (
 			KeyKind,
 		},
 	}
+
+	MEvents         = stats.Int64("kube/events", "The number of events", "1")
+	EventsCountView = &view.View{
+		Name:        "kube/events-count",
+		Measure:     MEvents,
+		Description: "The number of events sent from kuberenets to us",
+		Aggregation: view.Count(),
+	}
 )
 
 func init() {
-	view.Register(CreateCountView, UpdateCountView, DeleteCountView, InFlightSumView)
+	view.Register(CreateCountView, UpdateCountView, DeleteCountView, InFlightSumView, EventsCountView)
 }
 
 var (
@@ -116,6 +124,7 @@ func startFactory(ctx context.Context, client kubernetes.Interface) {
 
 // TODO(yuval-k): See if we can get more fine grained updates here, about which resources was udpated
 func updatedOccured() {
+	stats.Record(context.TODO(), MEvents.M(1))
 	cacheUpdatedWatchersMutex.Lock()
 	defer cacheUpdatedWatchersMutex.Unlock()
 	for _, cacheUpdated := range cacheUpdatedWatchers {
