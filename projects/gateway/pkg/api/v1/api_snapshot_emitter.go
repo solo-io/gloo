@@ -178,6 +178,8 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		*/
 
 		for {
+			record := func() { stats.Record(ctx, mApiSnapshotIn.M(1)) }
+
 			select {
 			case <-timer.C:
 				sync()
@@ -190,21 +192,22 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				sentSnapshot := currentSnapshot.Clone()
 				snapshots <- &sentSnapshot
 			case gatewayNamespacedList := <-gatewayChan:
+				record()
+
 				namespace := gatewayNamespacedList.namespace
 				gatewayList := gatewayNamespacedList.list
 
 				currentSnapshot.Gateways.Clear(namespace)
 				currentSnapshot.Gateways.Add(gatewayList...)
 			case virtualServiceNamespacedList := <-virtualServiceChan:
+				record()
+
 				namespace := virtualServiceNamespacedList.namespace
 				virtualServiceList := virtualServiceNamespacedList.list
 
 				currentSnapshot.VirtualServices.Clear(namespace)
 				currentSnapshot.VirtualServices.Add(virtualServiceList...)
 			}
-
-			// if we got here its because a new entry in the channel
-			stats.Record(ctx, mApiSnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil

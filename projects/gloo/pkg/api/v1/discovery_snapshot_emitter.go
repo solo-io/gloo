@@ -178,6 +178,8 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 		*/
 
 		for {
+			record := func() { stats.Record(ctx, mDiscoverySnapshotIn.M(1)) }
+
 			select {
 			case <-timer.C:
 				sync()
@@ -190,21 +192,22 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 				sentSnapshot := currentSnapshot.Clone()
 				snapshots <- &sentSnapshot
 			case secretNamespacedList := <-secretChan:
+				record()
+
 				namespace := secretNamespacedList.namespace
 				secretList := secretNamespacedList.list
 
 				currentSnapshot.Secrets.Clear(namespace)
 				currentSnapshot.Secrets.Add(secretList...)
 			case upstreamNamespacedList := <-upstreamChan:
+				record()
+
 				namespace := upstreamNamespacedList.namespace
 				upstreamList := upstreamNamespacedList.list
 
 				currentSnapshot.Upstreams.Clear(namespace)
 				currentSnapshot.Upstreams.Add(upstreamList...)
 			}
-
-			// if we got here its because a new entry in the channel
-			stats.Record(ctx, mDiscoverySnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil

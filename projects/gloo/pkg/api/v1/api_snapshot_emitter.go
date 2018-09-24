@@ -289,6 +289,8 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		*/
 
 		for {
+			record := func() { stats.Record(ctx, mApiSnapshotIn.M(1)) }
+
 			select {
 			case <-timer.C:
 				sync()
@@ -301,39 +303,46 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				sentSnapshot := currentSnapshot.Clone()
 				snapshots <- &sentSnapshot
 			case artifactNamespacedList := <-artifactChan:
+				record()
+
 				namespace := artifactNamespacedList.namespace
 				artifactList := artifactNamespacedList.list
 
 				currentSnapshot.Artifacts.Clear(namespace)
 				currentSnapshot.Artifacts.Add(artifactList...)
 			case endpointNamespacedList := <-endpointChan:
+				record()
+
 				namespace := endpointNamespacedList.namespace
 				endpointList := endpointNamespacedList.list
 
 				currentSnapshot.Endpoints.Clear(namespace)
 				currentSnapshot.Endpoints.Add(endpointList...)
 			case proxyNamespacedList := <-proxyChan:
+				record()
+
 				namespace := proxyNamespacedList.namespace
 				proxyList := proxyNamespacedList.list
 
 				currentSnapshot.Proxies.Clear(namespace)
 				currentSnapshot.Proxies.Add(proxyList...)
 			case secretNamespacedList := <-secretChan:
+				record()
+
 				namespace := secretNamespacedList.namespace
 				secretList := secretNamespacedList.list
 
 				currentSnapshot.Secrets.Clear(namespace)
 				currentSnapshot.Secrets.Add(secretList...)
 			case upstreamNamespacedList := <-upstreamChan:
+				record()
+
 				namespace := upstreamNamespacedList.namespace
 				upstreamList := upstreamNamespacedList.list
 
 				currentSnapshot.Upstreams.Clear(namespace)
 				currentSnapshot.Upstreams.Add(upstreamList...)
 			}
-
-			// if we got here its because a new entry in the channel
-			stats.Record(ctx, mApiSnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil

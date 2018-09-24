@@ -178,6 +178,8 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 		*/
 
 		for {
+			record := func() { stats.Record(ctx, mTestingSnapshotIn.M(1)) }
+
 			select {
 			case <-timer.C:
 				sync()
@@ -190,21 +192,22 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 				sentSnapshot := currentSnapshot.Clone()
 				snapshots <- &sentSnapshot
 			case mockResourceNamespacedList := <-mockResourceChan:
+				record()
+
 				namespace := mockResourceNamespacedList.namespace
 				mockResourceList := mockResourceNamespacedList.list
 
 				currentSnapshot.Mocks.Clear(namespace)
 				currentSnapshot.Mocks.Add(mockResourceList...)
 			case fakeResourceNamespacedList := <-fakeResourceChan:
+				record()
+
 				namespace := fakeResourceNamespacedList.namespace
 				fakeResourceList := fakeResourceNamespacedList.list
 
 				currentSnapshot.Fakes.Clear(namespace)
 				currentSnapshot.Fakes.Add(fakeResourceList...)
 			}
-
-			// if we got here its because a new entry in the channel
-			stats.Record(ctx, mTestingSnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil

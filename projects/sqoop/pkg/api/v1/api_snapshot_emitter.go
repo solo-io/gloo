@@ -178,6 +178,8 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 		*/
 
 		for {
+			record := func() { stats.Record(ctx, mApiSnapshotIn.M(1)) }
+
 			select {
 			case <-timer.C:
 				sync()
@@ -190,21 +192,22 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 				sentSnapshot := currentSnapshot.Clone()
 				snapshots <- &sentSnapshot
 			case resolverMapNamespacedList := <-resolverMapChan:
+				record()
+
 				namespace := resolverMapNamespacedList.namespace
 				resolverMapList := resolverMapNamespacedList.list
 
 				currentSnapshot.ResolverMaps.Clear(namespace)
 				currentSnapshot.ResolverMaps.Add(resolverMapList...)
 			case schemaNamespacedList := <-schemaChan:
+				record()
+
 				namespace := schemaNamespacedList.namespace
 				schemaList := schemaNamespacedList.list
 
 				currentSnapshot.Schemas.Clear(namespace)
 				currentSnapshot.Schemas.Add(schemaList...)
 			}
-
-			// if we got here its because a new entry in the channel
-			stats.Record(ctx, mApiSnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil

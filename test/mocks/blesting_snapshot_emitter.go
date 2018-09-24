@@ -141,6 +141,8 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 		*/
 
 		for {
+			record := func() { stats.Record(ctx, mBlestingSnapshotIn.M(1)) }
+
 			select {
 			case <-timer.C:
 				sync()
@@ -153,15 +155,14 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 				sentSnapshot := currentSnapshot.Clone()
 				snapshots <- &sentSnapshot
 			case fakeResourceNamespacedList := <-fakeResourceChan:
+				record()
+
 				namespace := fakeResourceNamespacedList.namespace
 				fakeResourceList := fakeResourceNamespacedList.list
 
 				currentSnapshot.Fakes.Clear(namespace)
 				currentSnapshot.Fakes.Add(fakeResourceList...)
 			}
-
-			// if we got here its because a new entry in the channel
-			stats.Record(ctx, mBlestingSnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil
