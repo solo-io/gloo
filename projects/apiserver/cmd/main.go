@@ -35,7 +35,9 @@ func run() error {
 		return err
 	}
 
-	contextutils.LoggerFrom(context.TODO()).Infof("listening on :%v", *port)
+	ctx := contextutils.WithLogger(context.Background(), "apiserver")
+
+	contextutils.LoggerFrom(ctx).Infof("listening on :%v", *port)
 	if err := setup.Setup(*port, *dev, glooOpts, gatewayOpts, sqoopOpts); err != nil {
 		return err
 	}
