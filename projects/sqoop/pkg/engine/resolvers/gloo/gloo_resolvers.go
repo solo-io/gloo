@@ -108,20 +108,14 @@ func (rf *ResolverFactory) newResolver(resolverMap core.ResourceRef, typeName, f
 			return data, nil
 		}
 
-		// requires output to be json object
-		var result map[string]interface{}
+		var result interface{}
 		if err := json.Unmarshal(data, &result); err != nil {
 			return nil, errors.Wrap(err, "failed to parse response as json object. "+
 				"response templates may only be used with JSON responses")
 		}
-		input := struct {
-			Result map[string]interface{}
-		}{
-			Result: result,
-		}
 		buf := &bytes.Buffer{}
-		if err := responseTemplate.Execute(buf, input); err != nil {
-			return nil, errors.Wrapf(err, "executing response template for response %v", input)
+		if err := responseTemplate.Execute(buf, result); err != nil {
+			return nil, errors.Wrapf(err, "executing response template for response %v", result)
 		}
 		return buf.Bytes(), nil
 	}
