@@ -23,6 +23,50 @@ import (
 )
 
 func Setup(port int, dev bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
+	// initial resource registration
+	upstreams, err := v1.NewUpstreamClient(glooOpts.Upstreams)
+	if err != nil {
+		return err
+	}
+	if err := upstreams.Register(); err != nil {
+		return err
+	}
+	secrets, err := v1.NewSecretClient(glooOpts.Secrets)
+	if err != nil {
+		return err
+	}
+	if err := secrets.Register(); err != nil {
+		return err
+	}
+	artifacts, err := v1.NewArtifactClient(glooOpts.Artifacts)
+	if err != nil {
+		return err
+	}
+	if err := artifacts.Register(); err != nil {
+		return err
+	}
+	virtualServices, err := gatewayv1.NewVirtualServiceClient(gatewayOpts.VirtualServices)
+	if err != nil {
+		return err
+	}
+	if err := virtualServices.Register(); err != nil {
+		return err
+	}
+	resolverMaps, err := sqoopv1.NewResolverMapClient(sqoopOpts.ResolverMaps)
+	if err != nil {
+		return err
+	}
+	if err := resolverMaps.Register(); err != nil {
+		return err
+	}
+	schemas, err := sqoopv1.NewSchemaClient(sqoopOpts.Schemas)
+	if err != nil {
+		return err
+	}
+	if err := schemas.Register(); err != nil {
+		return err
+	}
+
 	// override with memory stuff
 	// TODO(ilackarms): move this into a bootstrap package where it can be shared
 	if dev {
