@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/namespacing"
@@ -47,7 +48,7 @@ type Opts struct {
 	WatchOpts      clients.WatchOpts
 	DevMode        bool
 
-	Namespacer namespacing.Namespacer
+	Namespacer  namespacing.Namespacer
 	SidecarAddr string
 }
 

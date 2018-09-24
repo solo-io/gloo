@@ -1,6 +1,10 @@
 package main
 
 import (
+	"flag"
+	"os"
+	"path/filepath"
+
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/pkg/utils/stats"
 	fdssetup "github.com/solo-io/solo-kit/projects/discovery/pkg/fds/setup"
@@ -8,9 +12,6 @@ import (
 	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
 	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/setup"
-	"flag"
-	"os"
-	"path/filepath"
 )
 
 func main() {

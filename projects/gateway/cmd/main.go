@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/solo-io/solo-kit/pkg/utils/log"
-	"github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
-	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 	"flag"
 	"os"
 	"path/filepath"
+
+	"github.com/solo-io/solo-kit/pkg/utils/log"
+	"github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
+	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 )
 
 func main() {
