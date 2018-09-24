@@ -122,6 +122,8 @@ func (c *festingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
 			}
+
+			stats.Record(ctx, mFestingSnapshotOut.M(1))
 			originalSnapshot = currentSnapshot.Clone()
 			sentSnapshot := currentSnapshot.Clone()
 			snapshots <- &sentSnapshot

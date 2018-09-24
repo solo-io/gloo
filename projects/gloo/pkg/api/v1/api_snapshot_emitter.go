@@ -254,6 +254,8 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
 			}
+
+			stats.Record(ctx, mApiSnapshotOut.M(1))
 			originalSnapshot = currentSnapshot.Clone()
 			sentSnapshot := currentSnapshot.Clone()
 			snapshots <- &sentSnapshot

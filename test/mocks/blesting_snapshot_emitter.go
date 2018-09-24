@@ -122,6 +122,8 @@ func (c *blestingEmitter) Snapshots(watchNamespaces []string, opts clients.Watch
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
 			}
+
+			stats.Record(ctx, mBlestingSnapshotOut.M(1))
 			originalSnapshot = currentSnapshot.Clone()
 			sentSnapshot := currentSnapshot.Clone()
 			snapshots <- &sentSnapshot

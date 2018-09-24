@@ -155,6 +155,8 @@ func (c *discoveryEmitter) Snapshots(watchNamespaces []string, opts clients.Watc
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
 			}
+
+			stats.Record(ctx, mDiscoverySnapshotOut.M(1))
 			originalSnapshot = currentSnapshot.Clone()
 			sentSnapshot := currentSnapshot.Clone()
 			snapshots <- &sentSnapshot

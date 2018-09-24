@@ -155,6 +155,8 @@ func (c *testingEmitter) Snapshots(watchNamespaces []string, opts clients.WatchO
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
 			}
+
+			stats.Record(ctx, mTestingSnapshotOut.M(1))
 			originalSnapshot = currentSnapshot.Clone()
 			sentSnapshot := currentSnapshot.Clone()
 			snapshots <- &sentSnapshot
