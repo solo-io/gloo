@@ -24,7 +24,7 @@ func Main(settingsDir string) error {
 		return err
 	}
 	cache := gloov1.NewSetupEmitter(settingsClient)
-	ctx := contextutils.WithLogger(context.Background(), "main")
+	ctx := contextutils.WithLogger(context.Background(), "sqoop")
 	eventLoop := gloov1.NewSetupEventLoop(cache, NewSetupSyncer())
 	errs, err := eventLoop.Run([]string{"settings"}, clients.WatchOpts{
 		Ctx:         ctx,

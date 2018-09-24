@@ -63,7 +63,7 @@ func Main(settingsDir string) error {
 		return err
 	}
 	cache := v1.NewSetupEmitter(settingsClient)
-	ctx := contextutils.WithLogger(context.Background(), "main")
+	ctx := contextutils.WithLogger(context.Background(), "gloo")
 	eventLoop := v1.NewSetupEventLoop(cache, syncer.NewSetupSyncer())
 	errs, err := eventLoop.Run([]string{"settings"}, clients.WatchOpts{
 		Ctx:         ctx,
