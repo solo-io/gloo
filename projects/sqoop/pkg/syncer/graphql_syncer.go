@@ -61,13 +61,6 @@ func (s *GraphQLSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	resourceErrs := make(reporter.ResourceErrors)
 
 	proxy := translator.Translate(s.writeNamespace, snap, resourceErrs)
-	if err := s.reporter.WriteReports(ctx, resourceErrs); err != nil {
-		return errors.Wrapf(err, "writing reports")
-	}
-	if err := resourceErrs.Validate(); err != nil {
-		logger.Errorf("snapshot %v was rejected due to invalid config: %v", err)
-		return nil
-	}
 	logger.Infof("creating proxy %v", proxy.Metadata.Ref())
 	if err := s.proxyReconciler.Reconcile(s.writeNamespace, gloov1.ProxyList{proxy}, TODO.TransitionFunction, clients.ListOpts{
 		Ctx: ctx,
@@ -126,7 +119,17 @@ func (s *GraphQLSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		}
 		endpoints = append(endpoints, endpoint)
 	}
+	if err := s.reporter.WriteReports(ctx, resourceErrs); err != nil {
+		return errors.Wrapf(err, "writing reports")
+	}
+	if err := resourceErrs.Validate(); err != nil {
+		logger.Errorf("snapshot %v was rejected due to invalid config: %v", err)
+		return nil
+	}
+
+	// final results
 	s.router.UpdateEndpoints(endpoints)
+
 	// TODO(ilackarms): use reconciler, and allow resolvermaps to transition between snapshots
 	// then we can always generate ratehr than only generating for nonexisting!
 	for _, rm := range resolverMapsToGenerate {
