@@ -47,7 +47,6 @@ type Opts struct {
 	Proxies        factory.ResourceClientFactory
 	WatchOpts      clients.WatchOpts
 	DevMode        bool
-
 	Namespacer  namespacing.Namespacer
 	SidecarAddr string
 }

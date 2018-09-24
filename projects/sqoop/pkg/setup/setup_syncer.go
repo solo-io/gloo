@@ -104,7 +104,8 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 			Ctx:         ctx,
 			RefreshRate: refreshRate,
 		},
-		DevMode: true,
+		SidecarAddr: fmt.Sprintf("%v:%v", "127.0.0.1", TODO.SqoopSidecarBindPort),
+
 	}
 
 	return RunSqoop(opts)
