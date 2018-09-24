@@ -7,7 +7,6 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
-	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 )
 
 func main() {
@@ -22,18 +21,7 @@ func main() {
 func run(dir string) error {
 	errs := make(chan error)
 	go func() {
-		errs <- runGloo(dir)
-	}()
-	go func() {
-		errs <- runGateway(dir)
+		errs <- setup.Main(dir)
 	}()
 	return <-errs
-}
-
-func runGloo(dir string) error {
-	return gloosetup.Main(dir)
-}
-
-func runGateway(dir string) error {
-	return setup.Main(dir)
 }
