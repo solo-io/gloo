@@ -184,6 +184,8 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 */
 
 		for {
+			record := func(){stats.Record(ctx, m{{ .GoName }}SnapshotIn.M(1))}
+			
 			select {
 			case <-timer.C:
 				sync()
@@ -197,17 +199,15 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 				snapshots <- &sentSnapshot
 {{- range .Resources}}
 			case {{ lower_camel .Name }}NamespacedList := <- {{ lower_camel .Name }}Chan:
+				record()
+
 				namespace := {{ lower_camel .Name }}NamespacedList.namespace
 				{{ lower_camel .Name }}List := {{ lower_camel .Name }}NamespacedList.list
 
 				currentSnapshot.{{ .PluralName }}.Clear(namespace)
 				currentSnapshot.{{ .PluralName }}.Add({{ lower_camel .Name }}List...)
-
 {{- end}}
 			}
-
-			// if we got here its because a new entry in the channel
-			stats.Record(ctx, m{{ .GoName }}SnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil
