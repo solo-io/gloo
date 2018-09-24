@@ -287,10 +287,6 @@ func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 	go func() {
 		<-opts.WatchOpts.Ctx.Done()
 		opts.GrpcServer.Stop()
-		err := lis.Close()
-		if err != nil {
-			logger.Errorf("failed to close listener on %v", opts.BindAddr)
-		}
 	}()
 
 	defer opts.GrpcServer.Stop()

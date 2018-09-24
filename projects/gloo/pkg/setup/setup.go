@@ -69,7 +69,7 @@ func Main(settingsDir string) error {
 	eventLoop := v1.NewSetupEventLoop(cache, syncer.NewSetupSyncer())
 	errs, err := eventLoop.Run([]string{"settings"}, clients.WatchOpts{
 		Ctx:         ctx,
-		RefreshRate: time.Minute,
+		RefreshRate: time.Second,
 	})
 	if err != nil {
 		return err
