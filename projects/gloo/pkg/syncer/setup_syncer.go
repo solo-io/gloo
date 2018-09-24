@@ -165,17 +165,32 @@ func RunGloo(opts bootstrap.Opts) error {
 	if err != nil {
 		return err
 	}
-	for {
-		select {
-		case err := <-errs:
-			return err
-		case watchNamespaces := <-namespaces:
-			err := setupForNamespaces(watchNamespaces, opts)
-			if err != nil {
-				return err
+	logger := contextutils.LoggerFrom(opts.WatchOpts.Ctx)
+	go func() {
+		for {
+			select {
+			case <-opts.WatchOpts.Ctx.Done():
+				return
+			case err, ok := <-errs:
+				if !ok {
+					return
+				}
+				logger.Errorf("error: %v", err)
+			case watchNamespaces, ok := <-namespaces:
+				if !ok {
+					return
+				}
+				err := setupForNamespaces(watchNamespaces, opts)
+				if !ok {
+					return
+				}
+				if err != nil {
+					logger.Errorf("setup failed!: %v", err)
+				}
 			}
 		}
-	}
+	}()
+	return nil
 }
 
 func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
@@ -255,15 +270,10 @@ func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 	logger := contextutils.LoggerFrom(watchOpts.Ctx)
 
 	go func() {
-
 		for {
 			select {
-			case err, ok := <-errs:
-				if !ok {
-					return
-				}
-				logger.Errorf("error: %v", err)
 			case <-watchOpts.Ctx.Done():
+				logger.Debugf("context cancelled")
 				return
 			}
 		}
@@ -282,5 +292,6 @@ func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 		}
 	}()
 
+	defer opts.GrpcServer.Stop()
 	return opts.GrpcServer.Serve(lis)
 }
