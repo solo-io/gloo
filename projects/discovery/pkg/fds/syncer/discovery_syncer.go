@@ -12,7 +12,7 @@ type syncer struct {
 	fd *fds.FunctionDiscovery
 }
 
-func NewSyncer(fd *fds.FunctionDiscovery) v1.DiscoverySyncer {
+func NewDiscoverySyncer(fd *fds.FunctionDiscovery) v1.DiscoverySyncer {
 	s := &syncer{
 		fd: fd,
 	}

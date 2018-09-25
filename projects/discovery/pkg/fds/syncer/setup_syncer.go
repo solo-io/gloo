@@ -8,13 +8,17 @@ import (
 	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
 	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/aws"
 	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/swagger"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
+	gloosyncer "github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 )
 
-func Setup(opts bootstrap.Opts) error {
+func NewSetupSyncer() v1.SetupSyncer {
+	return gloosyncer.NewSetupSyncerWithRunFunc(RunFDS)
+}
+
+func RunFDS(opts bootstrap.Opts) error {
 	watchOpts := opts.WatchOpts.WithDefaults()
 	watchOpts.Ctx = contextutils.WithLogger(watchOpts.Ctx, "fds")
 
@@ -58,7 +62,7 @@ func Setup(opts bootstrap.Opts) error {
 	updater := fds.NewUpdater(watchOpts.Ctx, resolvers, upstreamClient, 0, functionalPlugins)
 	disc := fds.NewFunctionDiscovery(updater)
 
-	sync := syncer.NewSyncer(disc)
+	sync := NewDiscoverySyncer(disc)
 	eventLoop := v1.NewDiscoveryEventLoop(cache, sync)
 
 	errs := make(chan error)
