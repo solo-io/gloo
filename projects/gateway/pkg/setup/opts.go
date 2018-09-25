@@ -5,8 +5,6 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/namespacing"
-	"github.com/solo-io/solo-kit/pkg/namespacing/static"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -16,10 +14,10 @@ import (
 
 type Opts struct {
 	WriteNamespace  string
+	WatchNamespaces []string
 	Gateways        factory.ResourceClientFactory
 	VirtualServices factory.ResourceClientFactory
 	Proxies         factory.ResourceClientFactory
-	Namespacer      namespacing.Namespacer
 	WatchOpts       clients.WatchOpts
 	DevMode         bool
 }
@@ -29,7 +27,7 @@ func NewOpts(
 	gateways,
 	virtualServices,
 	proxies factory.ResourceClientFactory,
-	namespacer namespacing.Namespacer,
+	namespaces []string,
 	watchOpts clients.WatchOpts,
 	devMode bool,
 ) Opts {
@@ -38,7 +36,7 @@ func NewOpts(
 		Gateways:        gateways,
 		VirtualServices: virtualServices,
 		Proxies:         proxies,
-		Namespacer:      namespacer,
+		WatchNamespaces: namespaces,
 		WatchOpts:       watchOpts,
 		DevMode:         devMode,
 	}
@@ -64,7 +62,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 			Crd: v1.ProxyCrd,
 			Cfg: cfg,
 		},
-		Namespacer: static.NewNamespacer([]string{"default", defaults.GlooSystem}),
+		WatchNamespaces: []string{"default", defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: defaults.RefreshRate,

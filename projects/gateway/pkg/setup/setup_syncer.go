@@ -8,7 +8,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/namespacing/static"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -93,7 +92,7 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 	}
 	opts := Opts{
 		WriteNamespace:  writeNamespace,
-		Namespacer:      static.NewNamespacer(watchNamespaces),
+		WatchNamespaces: watchNamespaces,
 		Gateways:        gatewayFactory,
 		VirtualServices: virtualServiceFactory,
 		Proxies:         proxyFactory,
@@ -108,24 +107,6 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 }
 
 func RunGateway(opts Opts) error {
-	namespaces, errs, err := opts.Namespacer.Namespaces(opts.WatchOpts)
-	if err != nil {
-		return err
-	}
-	for {
-		select {
-		case err := <-errs:
-			return err
-		case watchNamespaces := <-namespaces:
-			err := setupForNamespaces(watchNamespaces, opts)
-			if err != nil {
-				return err
-			}
-		}
-	}
-}
-
-func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	opts.WatchOpts = opts.WatchOpts.WithDefaults()
 	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gateway")
 
@@ -169,7 +150,7 @@ func setupForNamespaces(watchNamespaces []string, opts Opts) error {
 	sync := syncer.NewTranslatorSyncer(opts.WriteNamespace, proxyClient, rpt, prop, writeErrs)
 
 	eventLoop := v1.NewApiEventLoop(emitter, sync)
-	eventLoopErrs, err := eventLoop.Run(watchNamespaces, opts.WatchOpts)
+	eventLoopErrs, err := eventLoop.Run(opts.WatchNamespaces, opts.WatchOpts)
 	if err != nil {
 		return err
 	}

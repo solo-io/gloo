@@ -7,8 +7,6 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/namespacing"
-	"github.com/solo-io/solo-kit/pkg/namespacing/static"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -41,14 +39,14 @@ func Main(settingsDir string) error {
 }
 
 type Opts struct {
-	WriteNamespace string
-	Schemas        factory.ResourceClientFactory
-	ResolverMaps   factory.ResourceClientFactory
-	Proxies        factory.ResourceClientFactory
-	WatchOpts      clients.WatchOpts
-	DevMode        bool
-	Namespacer  namespacing.Namespacer
-	SidecarAddr string
+	WriteNamespace  string
+	WatchNamespaces []string
+	Schemas         factory.ResourceClientFactory
+	ResolverMaps    factory.ResourceClientFactory
+	Proxies         factory.ResourceClientFactory
+	WatchOpts       clients.WatchOpts
+	DevMode         bool
+	SidecarAddr     string
 }
 
 func DefaultKubernetesConstructOpts() (Opts, error) {
@@ -75,7 +73,7 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 			Crd: gloov1.ProxyCrd,
 			Cfg: cfg,
 		},
-		Namespacer: static.NewNamespacer([]string{"default", defaults.GlooSystem}),
+		WatchNamespaces: []string{"default", defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: defaults.RefreshRate,

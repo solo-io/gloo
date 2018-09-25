@@ -10,7 +10,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/namespacing/static"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -95,42 +94,23 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 		watchNamespaces = append(watchNamespaces, writeNamespace)
 	}
 	opts := Opts{
-		WriteNamespace: writeNamespace,
-		Namespacer:     static.NewNamespacer(watchNamespaces),
-		Schemas:        schemaFactory,
-		ResolverMaps:   resolverMapFactory,
-		Proxies:        proxyFactory,
+		WriteNamespace:  writeNamespace,
+		WatchNamespaces: watchNamespaces,
+		Schemas:         schemaFactory,
+		ResolverMaps:    resolverMapFactory,
+		Proxies:         proxyFactory,
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: refreshRate,
 		},
 		SidecarAddr: fmt.Sprintf("%v:%v", "127.0.0.1", TODO.SqoopSidecarBindPort),
-
 	}
 
 	return RunSqoop(opts)
 }
 
 func RunSqoop(opts Opts) error {
-	// TODO: Ilackarms: move this to multi-eventloop
-	namespaces, errs, err := opts.Namespacer.Namespaces(opts.WatchOpts)
-	if err != nil {
-		return err
-	}
-	for {
-		select {
-		case err := <-errs:
-			return err
-		case watchNamespaces := <-namespaces:
-			err := setupForNamespaces(watchNamespaces, opts)
-			if err != nil {
-				return err
-			}
-		}
-	}
-}
-
-func setupForNamespaces(watchNamespaces []string, opts Opts) error {
+	watchNamespaces := opts.WatchNamespaces
 	opts.WatchOpts = opts.WatchOpts.WithDefaults()
 	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gateway")
 

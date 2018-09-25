@@ -15,7 +15,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/namespacing/static"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -31,7 +30,10 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func NewSetupSyncer() v1.SetupSyncer {
+type RunFunc func(opts bootstrap.Opts) error
+
+// for use by UDS, FDS, other v1.SetupSyncers
+func NewSetupSyncerWithRunFunc(runFunc RunFunc) v1.SetupSyncer {
 	return &settingsSyncer{
 		grpcServer: func(ctx context.Context) *grpc.Server {
 			return grpc.NewServer(grpc.StreamInterceptor(
@@ -45,10 +47,16 @@ func NewSetupSyncer() v1.SetupSyncer {
 				)),
 			)
 		},
+		runFunc: runFunc,
 	}
 }
 
+func NewSetupSyncer() v1.SetupSyncer {
+	return NewSetupSyncerWithRunFunc(RunGloo)
+}
+
 type settingsSyncer struct {
+	runFunc    RunFunc
 	grpcServer func(ctx context.Context) *grpc.Server
 }
 
@@ -138,12 +146,12 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 		watchNamespaces = append(watchNamespaces, writeNamespace)
 	}
 	opts := bootstrap.Opts{
-		WriteNamespace: writeNamespace,
-		Namespacer:     static.NewNamespacer(watchNamespaces),
-		Upstreams:      upstreamFactory,
-		Proxies:        proxyFactory,
-		Secrets:        secretFactory,
-		Artifacts:      artifactFactory,
+		WriteNamespace:  writeNamespace,
+		WatchNamespaces: watchNamespaces,
+		Upstreams:       upstreamFactory,
+		Proxies:         proxyFactory,
+		Secrets:         secretFactory,
+		Artifacts:       artifactFactory,
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: refreshRate,
@@ -158,43 +166,10 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 		DevMode:    true,
 	}
 
-	return RunGloo(opts)
+	return s.runFunc(opts)
 }
 
 func RunGloo(opts bootstrap.Opts) error {
-	namespaces, errs, err := opts.Namespacer.Namespaces(opts.WatchOpts)
-	if err != nil {
-		return err
-	}
-	logger := contextutils.LoggerFrom(opts.WatchOpts.Ctx)
-	go func() {
-		for {
-			select {
-			case <-opts.WatchOpts.Ctx.Done():
-				return
-			case err, ok := <-errs:
-				if !ok {
-					return
-				}
-				logger.Errorf("error: %v", err)
-			case watchNamespaces, ok := <-namespaces:
-				if !ok {
-					return
-				}
-				err := setupForNamespaces(watchNamespaces, opts)
-				if !ok {
-					return
-				}
-				if err != nil {
-					logger.Errorf("setup failed!: %v", err)
-				}
-			}
-		}
-	}()
-	return nil
-}
-
-func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 	watchOpts := opts.WatchOpts.WithDefaults()
 	opts.WatchOpts.Ctx = contextutils.WithLogger(opts.WatchOpts.Ctx, "gloo")
 
@@ -262,7 +237,7 @@ func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 	}
 	go errutils.AggregateErrs(watchOpts.Ctx, errs, edsErrs, "eds.gloo")
 
-	eventLoopErrs, err := eventLoop.Run(watchNamespaces, watchOpts)
+	eventLoopErrs, err := eventLoop.Run(opts.WatchNamespaces, watchOpts)
 	if err != nil {
 		return err
 	}

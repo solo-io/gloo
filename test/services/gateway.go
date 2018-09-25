@@ -94,7 +94,7 @@ func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResource
 		f,
 		f,
 		f,
-		static.NewNamespacer([]string{"default", defaults.GlooSystem}),
+		[]string{"default", defaults.GlooSystem},
 		clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Minute,

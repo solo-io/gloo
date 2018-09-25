@@ -39,26 +39,10 @@ func run() error {
 		errs <- sqoopsetup.Main(*dir)
 	}()
 	go func() {
-		errs <- runUds()
+		errs <- uds.Main(*dir)
 	}()
 	go func() {
-		errs <- runFds()
+		errs <- fdssetup.Main(*dir)
 	}()
 	return <-errs
-}
-
-func runUds() error {
-	opts, err := gloosetup.DefaultKubernetesConstructOpts()
-	if err != nil {
-		return err
-	}
-	return uds.Setup(opts)
-}
-
-func runFds() error {
-	opts, err := gloosetup.DefaultKubernetesConstructOpts()
-	if err != nil {
-		return err
-	}
-	return fdssetup.Setup(opts)
 }
