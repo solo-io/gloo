@@ -148,7 +148,8 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 						}
 					}
 					key := epkey{addr.IP, port}
-					endpointsMap[key] = append(endpointsMap[key], &usRef)
+					copyRef := usRef
+					endpointsMap[key] = append(endpointsMap[key], &copyRef)
 
 				}
 			}
