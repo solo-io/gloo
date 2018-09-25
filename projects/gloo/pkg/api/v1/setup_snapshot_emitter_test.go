@@ -42,14 +42,13 @@ var _ = Describe("V1Emitter", func() {
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
-		if kube == nil {
-			// this test does not require a kube clientset
-		}
+		cache := kuberc.NewKubeCache()
 
 		// Settings Constructor
 		settingsClientFactory := &factory.KubeResourceClientFactory{
-			Crd: SettingsCrd,
-			Cfg: cfg,
+			Crd:         SettingsCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
 		}
 		settingsClient, err = NewSettingsClient(settingsClientFactory)
 		Expect(err).NotTo(HaveOccurred())

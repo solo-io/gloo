@@ -7,6 +7,7 @@ import (
 
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -21,7 +22,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
 	"k8s.io/client-go/rest"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 func NewSetupSyncer() gloov1.SetupSyncer {
@@ -110,7 +110,6 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 		},
 		SidecarAddr: fmt.Sprintf("%v:%v", "127.0.0.1", TODO.SqoopSidecarBindPort),
 	}
-
 	return RunSqoop(opts)
 }
 

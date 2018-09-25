@@ -7,6 +7,7 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -14,7 +15,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 func Main(settingsDir string) error {

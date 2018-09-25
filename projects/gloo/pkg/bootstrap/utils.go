@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -11,7 +12,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 // sharedCache OR resourceCrd+cfg must be non-nil

@@ -46,9 +46,7 @@ var _ = Describe("V1Emitter", func() {
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
-		if kube == nil {
-			// this test does not require a kube clientset
-		}
+		cache := kuberc.NewKubeCache()
 
 		// Artifact Constructor
 
@@ -72,8 +70,9 @@ var _ = Describe("V1Emitter", func() {
 
 		// Proxy Constructor
 		proxyClientFactory := &factory.KubeResourceClientFactory{
-			Crd: ProxyCrd,
-			Cfg: cfg,
+			Crd:         ProxyCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
 		}
 		proxyClient, err = NewProxyClient(proxyClientFactory)
 		Expect(err).NotTo(HaveOccurred())
@@ -90,8 +89,9 @@ var _ = Describe("V1Emitter", func() {
 
 		// Upstream Constructor
 		upstreamClientFactory := &factory.KubeResourceClientFactory{
-			Crd: UpstreamCrd,
-			Cfg: cfg,
+			Crd:         UpstreamCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
 		}
 		upstreamClient, err = NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())

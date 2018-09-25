@@ -16,7 +16,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	kuberc "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 var _ = Describe("V1Emitter", func() {
@@ -46,14 +45,10 @@ var _ = Describe("V1Emitter", func() {
 
 		cache := kuberc.NewKubeCache()
 
-		if kube == nil {
-			// this test does not require a kube clientset
-		}
-
 		// Gateway Constructor
 		gatewayClientFactory := &factory.KubeResourceClientFactory{
-			Crd: GatewayCrd,
-			Cfg: cfg,
+			Crd:         GatewayCrd,
+			Cfg:         cfg,
 			SharedCache: cache,
 		}
 		gatewayClient, err = NewGatewayClient(gatewayClientFactory)
@@ -61,8 +56,8 @@ var _ = Describe("V1Emitter", func() {
 
 		// VirtualService Constructor
 		virtualServiceClientFactory := &factory.KubeResourceClientFactory{
-			Crd: VirtualServiceCrd,
-			Cfg: cfg,
+			Crd:         VirtualServiceCrd,
+			Cfg:         cfg,
 			SharedCache: cache,
 		}
 		virtualServiceClient, err = NewVirtualServiceClient(virtualServiceClientFactory)

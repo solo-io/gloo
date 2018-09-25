@@ -5,12 +5,12 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 type Opts struct {
@@ -53,18 +53,18 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 	return Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Gateways: &factory.KubeResourceClientFactory{
-			Crd: gatewayv1.GatewayCrd,
-			Cfg: cfg,
+			Crd:         gatewayv1.GatewayCrd,
+			Cfg:         cfg,
 			SharedCache: cache,
 		},
 		VirtualServices: &factory.KubeResourceClientFactory{
-			Crd: gatewayv1.VirtualServiceCrd,
-			Cfg: cfg,
+			Crd:         gatewayv1.VirtualServiceCrd,
+			Cfg:         cfg,
 			SharedCache: cache,
 		},
 		Proxies: &factory.KubeResourceClientFactory{
-			Crd: v1.ProxyCrd,
-			Cfg: cfg,
+			Crd:         v1.ProxyCrd,
+			Cfg:         cfg,
 			SharedCache: cache,
 		},
 		WatchNamespaces: []string{"default", defaults.GlooSystem},

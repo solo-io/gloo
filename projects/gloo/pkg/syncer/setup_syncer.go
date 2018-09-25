@@ -12,6 +12,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -28,7 +29,6 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 type RunFunc func(opts bootstrap.Opts) error

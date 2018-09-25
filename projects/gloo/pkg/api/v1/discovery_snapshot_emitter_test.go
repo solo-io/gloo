@@ -43,9 +43,7 @@ var _ = Describe("V1Emitter", func() {
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
-		if kube == nil {
-			// this test does not require a kube clientset
-		}
+		cache := kuberc.NewKubeCache()
 
 		// Secret Constructor
 
@@ -59,8 +57,9 @@ var _ = Describe("V1Emitter", func() {
 
 		// Upstream Constructor
 		upstreamClientFactory := &factory.KubeResourceClientFactory{
-			Crd: UpstreamCrd,
-			Cfg: cfg,
+			Crd:         UpstreamCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
 		}
 		upstreamClient, err = NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())

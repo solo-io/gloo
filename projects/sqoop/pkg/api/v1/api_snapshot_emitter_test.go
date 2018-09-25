@@ -43,22 +43,22 @@ var _ = Describe("V1Emitter", func() {
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
-		if kube == nil {
-			// this test does not require a kube clientset
-		}
+		cache := kuberc.NewKubeCache()
 
 		// ResolverMap Constructor
 		resolverMapClientFactory := &factory.KubeResourceClientFactory{
-			Crd: ResolverMapCrd,
-			Cfg: cfg,
+			Crd:         ResolverMapCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
 		}
 		resolverMapClient, err = NewResolverMapClient(resolverMapClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		// Schema Constructor
 		schemaClientFactory := &factory.KubeResourceClientFactory{
-			Crd: SchemaCrd,
-			Cfg: cfg,
+			Crd:         SchemaCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
 		}
 		schemaClient, err = NewSchemaClient(schemaClientFactory)
 		Expect(err).NotTo(HaveOccurred())

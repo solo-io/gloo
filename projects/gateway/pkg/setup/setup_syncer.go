@@ -5,6 +5,7 @@ import (
 
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -18,7 +19,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	gloodefaults "github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"k8s.io/client-go/rest"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 func NewSetupSyncer() gloov1.SetupSyncer {

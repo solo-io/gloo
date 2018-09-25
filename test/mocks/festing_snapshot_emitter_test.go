@@ -42,14 +42,13 @@ var _ = Describe("MocksEmitter", func() {
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
-		if kube == nil {
-			// this test does not require a kube clientset
-		}
+		cache := kuberc.NewKubeCache()
 
 		// MockResource Constructor
 		mockResourceClientFactory := &factory.KubeResourceClientFactory{
-			Crd: MockResourceCrd,
-			Cfg: cfg,
+			Crd:         MockResourceCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
 		}
 		mockResourceClient, err = NewMockResourceClient(mockResourceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
