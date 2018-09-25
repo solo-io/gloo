@@ -4,6 +4,7 @@ import (
 	"log"
 	"sort"
 
+	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	. "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/models"
@@ -15,9 +16,8 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
-	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
-	"github.com/gogo/protobuf/types"
+	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 )
 
 type Converter struct{}
