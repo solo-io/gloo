@@ -10,9 +10,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
-	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 )
 
 func Main(settingsDir string) error {
@@ -26,7 +26,7 @@ func Main(settingsDir string) error {
 	cache := v1.NewSetupEmitter(settingsClient)
 	ctx := contextutils.WithLogger(context.Background(), "gloo")
 	eventLoop := v1.NewSetupEventLoop(cache, syncer.NewSetupSyncer())
-	errs, err := eventLoop.Run([]string{"settings"}, clients.WatchOpts{
+	errs, err := eventLoop.Run([]string{"gloo-system"}, clients.WatchOpts{
 		Ctx:         ctx,
 		RefreshRate: time.Second,
 	})
@@ -69,7 +69,7 @@ func writeSettings(cli v1.SettingsClient) error {
 		RefreshRate: types.DurationProto(time.Minute),
 		DevMode:     true,
 		Metadata: core.Metadata{
-			Namespace: "settings",
+			Namespace: "gloo-system",
 			Name:      "gloo",
 		},
 	}

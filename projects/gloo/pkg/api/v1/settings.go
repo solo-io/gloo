@@ -22,6 +22,10 @@ func NewSettings(namespace, name string) *Settings {
 	}
 }
 
+func (r *Settings) SetStatus(status core.Status) {
+	r.Status = status
+}
+
 func (r *Settings) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
 }
@@ -43,6 +47,14 @@ func (list SettingsList) Find(namespace, name string) (*Settings, error) {
 
 func (list SettingsList) AsResources() resources.ResourceList {
 	var ress resources.ResourceList
+	for _, settings := range list {
+		ress = append(ress, settings)
+	}
+	return ress
+}
+
+func (list SettingsList) AsInputResources() resources.InputResourceList {
+	var ress resources.InputResourceList
 	for _, settings := range list {
 		ress = append(ress, settings)
 	}

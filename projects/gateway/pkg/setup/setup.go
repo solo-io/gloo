@@ -18,7 +18,7 @@ func Main(settingsDir string) error {
 	cache := v1.NewSetupEmitter(settingsClient)
 	ctx := contextutils.WithLogger(context.Background(), "gateway")
 	eventLoop := v1.NewSetupEventLoop(cache, NewSetupSyncer())
-	errs, err := eventLoop.Run([]string{"settings"}, clients.WatchOpts{
+	errs, err := eventLoop.Run([]string{"gloo-system"}, clients.WatchOpts{
 		Ctx:         ctx,
 		RefreshRate: time.Second,
 	})

@@ -21,7 +21,7 @@ func main() {
 func run() error {
 	dir := flag.String("dir", "gloo", "directory for config")
 	flag.Parse()
-	os.MkdirAll(filepath.Join(*dir, "settings"), 0755)
+	os.MkdirAll(filepath.Join(*dir, "gloo-system"), 0755)
 	errs := make(chan error)
 	go func() {
 		errs <- uds.Main(*dir)
