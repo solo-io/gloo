@@ -38,7 +38,7 @@ func runUds() error {
 	if err != nil {
 		return err
 	}
-	return uds.Setup(opts)
+	return uds.RunUDS(opts)
 }
 
 func runFds() error {

@@ -17,7 +17,7 @@ type syncer struct {
 	discOpts    discovery.Opts
 }
 
-func NewSyncer(disc *discovery.UpstreamDiscovery, discOpts discovery.Opts, refreshRate time.Duration) v1.DiscoverySyncer {
+func NewDiscoverySyncer(disc *discovery.UpstreamDiscovery, discOpts discovery.Opts, refreshRate time.Duration) v1.DiscoverySyncer {
 	s := &syncer{
 		uds:         disc,
 		refreshRate: refreshRate,
