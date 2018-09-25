@@ -184,8 +184,22 @@ func aggregateEndpoints(endpointsByUds map[DiscoveryPlugin]v1.EndpointList) v1.E
 }
 
 func txnEndpoint(original, desired *v1.Endpoint) (bool, error) {
-	equal := original.UpstreamName == desired.UpstreamName &&
+	equal := refsEqual(original.Upstreams, desired.Upstreams) &&
 		original.Address == desired.Address &&
 		original.Port == desired.Port
 	return !equal, nil
+}
+
+func refsEqual(a, b []*core.ResourceRef) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+
+	return true
 }

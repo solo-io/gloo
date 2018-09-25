@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -102,8 +103,14 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 
 	logger := contextutils.LoggerFrom(contextutils.WithLogger(ctx, "kubernetes_eds"))
 
+	type epkey struct {
+		address string
+		port    uint32
+	}
+	endpointsMap := make(map[epkey][]*core.ResourceRef)
+
 	// for each upstream
-	for usName, spec := range upstreams {
+	for usRef, spec := range upstreams {
 		// find each matching endpoint
 		for _, eps := range kubeEndpoints {
 			if eps.Namespace != spec.ServiceNamespace || eps.Name != spec.ServiceName {
@@ -118,7 +125,7 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 					}
 				}
 				if port == 0 {
-					logger.Warnf("upstream %v: port %v not found for service %v", usName, spec.ServicePort, spec.ServiceName)
+					logger.Warnf("upstream %v: port %v not found for service %v", usRef.Key(), spec.ServicePort, spec.ServiceName)
 					continue
 				}
 				for _, addr := range subset.Addresses {
@@ -128,7 +135,7 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 						podLabels, err := getPodLabelsForIp(addr.IP, pods)
 						if err != nil {
 							// pod not found for ip? what's that about?
-							logger.Warnf("error for upstream %v service %v: ", usName, spec.ServiceName, err)
+							logger.Warnf("error for upstream %v service %v: ", usRef.Key(), spec.ServiceName, err)
 							continue
 						}
 						if !labels.AreLabelsInWhiteList(spec.Selector, podLabels) {
@@ -139,29 +146,38 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 							continue
 						}
 					}
+					key := epkey{addr.IP, port}
+					endpointsMap[key] = append(endpointsMap[key], &usRef)
 
-					hash, _ := hashstructure.Hash([]interface{}{subset, addr}, nil)
-					endpointName := fmt.Sprintf("%v-%x", eps.Name, hash)
-
-					ep := createEndpoint(writeNamespace, endpointName, usName, addr.IP, port)
-					endpoints = append(endpoints, ep)
 				}
 			}
 		}
-
 	}
+
+	for addr, refs := range endpointsMap {
+
+		// sort refs for idempotency
+		sort.Slice(refs, func(i, j int) bool { return refs[i].Key() < refs[j].Key() })
+
+		hash, _ := hashstructure.Hash([]interface{}{refs, addr}, nil)
+
+		endpointName := fmt.Sprintf("%v-%v-%x", addr.address, addr.port, hash)
+		ep := createEndpoint(writeNamespace, endpointName, refs, addr.address, addr.port)
+		endpoints = append(endpoints, ep)
+	}
+
 	return endpoints
 }
 
-func createEndpoint(namespace, name string, upstreamName core.ResourceRef, address string, port uint32) *v1.Endpoint {
+func createEndpoint(namespace, name string, upstreams []*core.ResourceRef, address string, port uint32) *v1.Endpoint {
 	return &v1.Endpoint{
 		Metadata: core.Metadata{
 			Namespace: namespace,
 			Name:      name,
 		},
-		UpstreamName: upstreamName.Key(), // TODO(yuval-k): should this be Ref?
-		Address:      address,
-		Port:         port,
+		Upstreams: upstreams,
+		Address:   address,
+		Port:      port,
 	}
 }
 

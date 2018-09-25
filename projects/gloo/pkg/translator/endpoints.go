@@ -54,8 +54,10 @@ func loadAssignmentForCluster(clusterName string, clusterEndpoints []*v1.Endpoin
 func endpointsForUpstream(upstream *v1.Upstream, endpoints []*v1.Endpoint) []*v1.Endpoint {
 	var clusterEndpoints []*v1.Endpoint
 	for _, ep := range endpoints {
-		if ep.UpstreamName == upstream.Metadata.Name {
-			clusterEndpoints = append(clusterEndpoints, ep)
+		for _, upstreamRef := range ep.Upstreams {
+			if *upstreamRef == upstream.Metadata.Ref() {
+				clusterEndpoints = append(clusterEndpoints, ep)
+			}
 		}
 	}
 	return clusterEndpoints
