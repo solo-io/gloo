@@ -67,7 +67,7 @@ type ResourceClientSharedInformerFactory struct {
 
 func NewResourceClientSharedInformerFactory() *ResourceClientSharedInformerFactory {
 	return &ResourceClientSharedInformerFactory{
-		defaultResync:    time.Minute,
+		defaultResync:    12 * time.Hour,
 		informers:        make(map[reflect.Type]cache.SharedIndexInformer),
 		startedInformers: make(map[reflect.Type]bool),
 	}
