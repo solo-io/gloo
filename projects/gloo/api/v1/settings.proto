@@ -6,6 +6,7 @@ import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/status.proto";
 import "google/protobuf/duration.proto";
 
 /*
@@ -59,4 +60,8 @@ message Settings {
 
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 14 [(gogoproto.nullable) = false];
+
+    // Status indicates the validation status of this resource.
+    // Status is read-only by clients, and set by gloo during validation
+    core.solo.io.Status status = 15 [(gogoproto.nullable) = false, (gogoproto.moretags) = "testdiff:\"ignore\""];
 }
