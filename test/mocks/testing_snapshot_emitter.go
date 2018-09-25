@@ -16,18 +16,18 @@ import (
 )
 
 var (
-	mTestingSnapshotIn  = stats.Int64("testing_snap_emitter/snap_in", "The number of snapshots in", "1")
-	mTestingSnapshotOut = stats.Int64("testing_snap_emitter/snap_out", "The number of snapshots out", "1")
+	mTestingSnapshotIn  = stats.Int64("testing.solo.io/snap_emitter/snap_in", "The number of snapshots in", "1")
+	mTestingSnapshotOut = stats.Int64("testing.solo.io/snap_emitter/snap_out", "The number of snapshots out", "1")
 
 	testingsnapshotInView = &view.View{
-		Name:        "testing_snap_emitter/snap_in",
+		Name:        "testing.solo.io_snap_emitter/snap_in",
 		Measure:     mTestingSnapshotIn,
 		Description: "The number of snapshots updates coming in",
 		Aggregation: view.Count(),
 		TagKeys:     []tag.Key{},
 	}
 	testingsnapshotOutView = &view.View{
-		Name:        "testing_snap_emitter/snap_out",
+		Name:        "testing.solo.io/snap_emitter/snap_out",
 		Measure:     mTestingSnapshotOut,
 		Description: "The number of snapshots updates going out",
 		Aggregation: view.Count(),

@@ -16,18 +16,18 @@ import (
 )
 
 var (
-	mApiSnapshotIn  = stats.Int64("api_snap_emitter/snap_in", "The number of snapshots in", "1")
-	mApiSnapshotOut = stats.Int64("api_snap_emitter/snap_out", "The number of snapshots out", "1")
+	mApiSnapshotIn  = stats.Int64("api.sqoop.solo.io/snap_emitter/snap_in", "The number of snapshots in", "1")
+	mApiSnapshotOut = stats.Int64("api.sqoop.solo.io/snap_emitter/snap_out", "The number of snapshots out", "1")
 
 	apisnapshotInView = &view.View{
-		Name:        "api_snap_emitter/snap_in",
+		Name:        "api.sqoop.solo.io_snap_emitter/snap_in",
 		Measure:     mApiSnapshotIn,
 		Description: "The number of snapshots updates coming in",
 		Aggregation: view.Count(),
 		TagKeys:     []tag.Key{},
 	}
 	apisnapshotOutView = &view.View{
-		Name:        "api_snap_emitter/snap_out",
+		Name:        "api.sqoop.solo.io/snap_emitter/snap_out",
 		Measure:     mApiSnapshotOut,
 		Description: "The number of snapshots updates going out",
 		Aggregation: view.Count(),

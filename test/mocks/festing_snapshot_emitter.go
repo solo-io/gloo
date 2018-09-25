@@ -16,18 +16,18 @@ import (
 )
 
 var (
-	mFestingSnapshotIn  = stats.Int64("festing_snap_emitter/snap_in", "The number of snapshots in", "1")
-	mFestingSnapshotOut = stats.Int64("festing_snap_emitter/snap_out", "The number of snapshots out", "1")
+	mFestingSnapshotIn  = stats.Int64("festing.solo.io/snap_emitter/snap_in", "The number of snapshots in", "1")
+	mFestingSnapshotOut = stats.Int64("festing.solo.io/snap_emitter/snap_out", "The number of snapshots out", "1")
 
 	festingsnapshotInView = &view.View{
-		Name:        "festing_snap_emitter/snap_in",
+		Name:        "festing.solo.io_snap_emitter/snap_in",
 		Measure:     mFestingSnapshotIn,
 		Description: "The number of snapshots updates coming in",
 		Aggregation: view.Count(),
 		TagKeys:     []tag.Key{},
 	}
 	festingsnapshotOutView = &view.View{
-		Name:        "festing_snap_emitter/snap_out",
+		Name:        "festing.solo.io/snap_emitter/snap_out",
 		Measure:     mFestingSnapshotOut,
 		Description: "The number of snapshots updates going out",
 		Aggregation: view.Count(),

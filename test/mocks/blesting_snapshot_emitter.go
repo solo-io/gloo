@@ -16,18 +16,18 @@ import (
 )
 
 var (
-	mBlestingSnapshotIn  = stats.Int64("blesting_snap_emitter/snap_in", "The number of snapshots in", "1")
-	mBlestingSnapshotOut = stats.Int64("blesting_snap_emitter/snap_out", "The number of snapshots out", "1")
+	mBlestingSnapshotIn  = stats.Int64("blesting.solo.io/snap_emitter/snap_in", "The number of snapshots in", "1")
+	mBlestingSnapshotOut = stats.Int64("blesting.solo.io/snap_emitter/snap_out", "The number of snapshots out", "1")
 
 	blestingsnapshotInView = &view.View{
-		Name:        "blesting_snap_emitter/snap_in",
+		Name:        "blesting.solo.io_snap_emitter/snap_in",
 		Measure:     mBlestingSnapshotIn,
 		Description: "The number of snapshots updates coming in",
 		Aggregation: view.Count(),
 		TagKeys:     []tag.Key{},
 	}
 	blestingsnapshotOutView = &view.View{
-		Name:        "blesting_snap_emitter/snap_out",
+		Name:        "blesting.solo.io/snap_emitter/snap_out",
 		Measure:     mBlestingSnapshotOut,
 		Description: "The number of snapshots updates going out",
 		Aggregation: view.Count(),

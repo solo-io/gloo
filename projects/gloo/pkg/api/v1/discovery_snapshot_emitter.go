@@ -16,18 +16,18 @@ import (
 )
 
 var (
-	mDiscoverySnapshotIn  = stats.Int64("discovery_snap_emitter/snap_in", "The number of snapshots in", "1")
-	mDiscoverySnapshotOut = stats.Int64("discovery_snap_emitter/snap_out", "The number of snapshots out", "1")
+	mDiscoverySnapshotIn  = stats.Int64("discovery.gloo.solo.io/snap_emitter/snap_in", "The number of snapshots in", "1")
+	mDiscoverySnapshotOut = stats.Int64("discovery.gloo.solo.io/snap_emitter/snap_out", "The number of snapshots out", "1")
 
 	discoverysnapshotInView = &view.View{
-		Name:        "discovery_snap_emitter/snap_in",
+		Name:        "discovery.gloo.solo.io_snap_emitter/snap_in",
 		Measure:     mDiscoverySnapshotIn,
 		Description: "The number of snapshots updates coming in",
 		Aggregation: view.Count(),
 		TagKeys:     []tag.Key{},
 	}
 	discoverysnapshotOutView = &view.View{
-		Name:        "discovery_snap_emitter/snap_out",
+		Name:        "discovery.gloo.solo.io/snap_emitter/snap_out",
 		Measure:     mDiscoverySnapshotOut,
 		Description: "The number of snapshots updates going out",
 		Aggregation: view.Count(),
