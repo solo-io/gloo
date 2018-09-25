@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -160,8 +161,16 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 		sort.Slice(refs, func(i, j int) bool { return refs[i].Key() < refs[j].Key() })
 
 		hash, _ := hashstructure.Hash([]interface{}{refs, addr}, nil)
-
-		endpointName := fmt.Sprintf("%v-%v-%x", addr.address, addr.port, hash)
+		dnsname := strings.Map(func(r rune) rune {
+			if '0' <= r && r <= '9' {
+				return r
+			}
+			if 'a' <= r && r <= 'z' {
+				return r
+			}
+			return '-'
+		}, addr.address)
+		endpointName := fmt.Sprintf("ep-%v-%v-%x", dnsname, addr.port, hash)
 		ep := createEndpoint(writeNamespace, endpointName, refs, addr.address, addr.port)
 		endpoints = append(endpoints, ep)
 	}
