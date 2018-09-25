@@ -3,7 +3,6 @@ package kubernetes
 import (
 	"fmt"
 	"reflect"
-	"time"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -14,66 +13,38 @@ import (
 	kubev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	kubewatch "k8s.io/apimachinery/pkg/watch"
 )
 
 func (p *plugin) DiscoverUpstreams(watchNamespaces []string, writeNamespace string, opts clients.WatchOpts, discOpts discovery.Opts) (chan v1.UpstreamList, chan error, error) {
+	startInformerFactoryOnce(p.kube)
+
+	watch := kubePlugin.subscribe()
+
 	opts = opts.WithDefaults()
 	upstreamsChan := make(chan v1.UpstreamList)
 	errs := make(chan error)
 	discoverUpstreams := func() {
-		list, err := p.kube.CoreV1().Services("").List(metav1.ListOptions{
-			LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
-		})
+		list, err := kubePlugin.servicesLister.List(labels.SelectorFromSet(opts.Selector))
 		if err != nil {
 			errs <- err
 			return
 		}
-		upstreamsChan <- convertServices(list.Items, discOpts, writeNamespace)
+		upstreamsChan <- convertServices(watchNamespaces, list, discOpts, writeNamespace)
 	}
 
-	events := make(chan kubewatch.Event)
-	for _, ns := range watchNamespaces {
-		serviceWatch, err := p.kube.CoreV1().Services(ns).Watch(metav1.ListOptions{
-			LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
-		})
-		if err != nil {
-			return nil, nil, err
-		}
-		go func(w kubewatch.Interface) {
-			for {
-				select {
-				case event, ok := <-w.ResultChan():
-					if !ok {
-						return
-					}
-					select {
-					case events <- event:
-					case <-opts.Ctx.Done():
-						serviceWatch.Stop()
-						return
-					}
-				case <-opts.Ctx.Done():
-					serviceWatch.Stop()
-					return
-				}
-			}
-		}(serviceWatch)
-	}
 	go func() {
+		defer kubePlugin.unsubscribe(watch)
+		defer close(upstreamsChan)
+		defer close(errs)
 		// watch should open up with an initial read
 		discoverUpstreams()
 		for {
 			select {
-			case <-time.After(opts.RefreshRate):
-				discoverUpstreams()
-			case event := <-events:
-				switch event.Type {
-				case kubewatch.Error:
-					errs <- errors.Errorf("error during pod watch: %v", event)
-				default:
-					discoverUpstreams()
+			case _, ok := <-watch:
+				if !ok {
+					return
 				}
+				discoverUpstreams()
 			case <-opts.Ctx.Done():
 				return
 			}
@@ -82,18 +53,32 @@ func (p *plugin) DiscoverUpstreams(watchNamespaces []string, writeNamespace stri
 	return upstreamsChan, errs, nil
 }
 
-func convertServices(list []kubev1.Service, opts discovery.Opts, writeNamespace string) v1.UpstreamList {
+func convertServices(watchNamespaces []string, list []*kubev1.Service, opts discovery.Opts, writeNamespace string) v1.UpstreamList {
 	var upstreams v1.UpstreamList
 	for _, svc := range list {
 		if skip(svc, opts) {
 			continue
 		}
+
+		if !containsString(svc.Namespace, watchNamespaces) {
+			continue
+		}
+
 		upstreams = append(upstreams, convertService(svc, writeNamespace)...)
 	}
 	return upstreams
 }
 
-func convertService(svc kubev1.Service, writeNamespace string) v1.UpstreamList {
+func containsString(s string, slice []string) bool {
+	for _, s2 := range slice {
+		if s2 == s {
+			return true
+		}
+	}
+	return false
+}
+
+func convertService(svc *kubev1.Service, writeNamespace string) v1.UpstreamList {
 	var upstreams v1.UpstreamList
 	for _, port := range svc.Spec.Ports {
 		upstreams = append(upstreams, createUpstream(svc.ObjectMeta, port, writeNamespace))
@@ -129,7 +114,7 @@ func upstreamName(serviceNamespace, serviceName string, servicePort int32) strin
 	return fmt.Sprintf("%s-%s-%v", serviceNamespace, serviceName, servicePort)
 }
 
-func skip(svc kubev1.Service, opts discovery.Opts) bool {
+func skip(svc *kubev1.Service, opts discovery.Opts) bool {
 	if len(svc.Spec.Selector) == 0 {
 		return true
 	}

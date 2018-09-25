@@ -3,7 +3,6 @@ package kubernetes
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -13,13 +12,12 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	kubeplugin "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	kubev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	kubewatch "k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 )
 
 func (p *plugin) WatchEndpoints(writeNamespace string, upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
+	startInformerFactoryOnce(p.kube)
 	opts = opts.WithDefaults()
 
 	return newEndpointsWatcher(p.kube, upstreamsToTrack).watch(writeNamespace, opts)
@@ -27,19 +25,18 @@ func (p *plugin) WatchEndpoints(writeNamespace string, upstreamsToTrack v1.Upstr
 
 type edsWatcher struct {
 	kube      kubernetes.Interface
-	upstreams map[string]*kubeplugin.UpstreamSpec
+	upstreams map[core.ResourceRef]*kubeplugin.UpstreamSpec
 }
 
 func newEndpointsWatcher(kube kubernetes.Interface, upstreams v1.UpstreamList) *edsWatcher {
-	upstreamSpecs := make(map[string]*kubeplugin.UpstreamSpec)
+	upstreamSpecs := make(map[core.ResourceRef]*kubeplugin.UpstreamSpec)
 	for _, us := range upstreams {
 		kubeUpstream, ok := us.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
 		// only care about kube upstreams
 		if !ok {
 			continue
 		}
-		// TODO(yuval-k): change to ref
-		upstreamSpecs[us.Metadata.Name] = kubeUpstream.Kube
+		upstreamSpecs[us.Metadata.Ref()] = kubeUpstream.Kube
 	}
 	return &edsWatcher{
 		kube:      kube,
@@ -48,16 +45,12 @@ func newEndpointsWatcher(kube kubernetes.Interface, upstreams v1.UpstreamList) *
 }
 
 func (c *edsWatcher) List(writeNamespace string, opts clients.ListOpts) (v1.EndpointList, error) {
-	endpoints, err := c.kube.CoreV1().Endpoints("").List(metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
-	})
+	endpoints, err := kubePlugin.endpointsLister.List(labels.SelectorFromSet(opts.Selector))
 	if err != nil {
 		return nil, err
 	}
 
-	pods, err := c.kube.CoreV1().Pods("").List(metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
-	})
+	pods, err := kubePlugin.podsLister.List(labels.SelectorFromSet(opts.Selector))
 	if err != nil {
 		return nil, err
 	}
@@ -66,19 +59,7 @@ func (c *edsWatcher) List(writeNamespace string, opts clients.ListOpts) (v1.Endp
 }
 
 func (c *edsWatcher) watch(writeNamespace string, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
-	endpointsWatch, err := c.kube.CoreV1().Endpoints("").Watch(metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
-	})
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "initiating kube watch")
-	}
-
-	podsWatch, err := c.kube.CoreV1().Pods("").Watch(metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(opts.Selector).String(),
-	})
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "initiating kube watch")
-	}
+	watch := kubePlugin.subscribe()
 
 	endpointsChan := make(chan v1.EndpointList)
 	errs := make(chan error)
@@ -93,52 +74,30 @@ func (c *edsWatcher) watch(writeNamespace string, opts clients.WatchOpts) (<-cha
 		}
 		endpointsChan <- list
 	}
-	go func() {
-		// watch should open up with an initial read
-		updateResourceList()
 
-		// TODO(yuval-k): need to check if these watches ever close.
-		// we should really consdier using triple factory pattern.
+	go func() {
+		defer kubePlugin.unsubscribe(watch)
+		defer close(endpointsChan)
+		defer close(errs)
+
+		updateResourceList()
 		for {
 			select {
-			case <-time.After(opts.RefreshRate):
+			case _, ok := <-watch:
+				if !ok {
+					return
+				}
 				updateResourceList()
-			case event, ok := <-endpointsWatch.ResultChan():
-				if !ok {
-					// TODO(yuval-k): use shared informer factory
-					return
-				}
-				switch event.Type {
-				case kubewatch.Error:
-					errs <- errors.Errorf("error during watch: %v", event)
-				default:
-					updateResourceList()
-				}
-			case event, ok := <-podsWatch.ResultChan():
-				if !ok {
-					// TODO(yuval-k): use shared informer factory!!!!
-					return
-				}
-				switch event.Type {
-				case kubewatch.Error:
-					errs <- errors.Errorf("error during watch: %v", event)
-				default:
-					updateResourceList()
-				}
 			case <-opts.Ctx.Done():
-				endpointsWatch.Stop()
-				podsWatch.Stop()
-				close(endpointsChan)
-				close(errs)
 				return
 			}
 		}
-	}()
 
+	}()
 	return endpointsChan, errs, nil
 }
 
-func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints *kubev1.EndpointsList, pods *kubev1.PodList, upstreams map[string]*kubeplugin.UpstreamSpec) v1.EndpointList {
+func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints []*kubev1.Endpoints, pods []*kubev1.Pod, upstreams map[core.ResourceRef]*kubeplugin.UpstreamSpec) v1.EndpointList {
 	var endpoints v1.EndpointList
 
 	logger := contextutils.LoggerFrom(contextutils.WithLogger(ctx, "kubernetes_eds"))
@@ -146,7 +105,7 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints *
 	// for each upstream
 	for usName, spec := range upstreams {
 		// find each matching endpoint
-		for _, eps := range kubeEndpoints.Items {
+		for _, eps := range kubeEndpoints {
 			if eps.Namespace != spec.ServiceNamespace || eps.Name != spec.ServiceName {
 				continue
 			}
@@ -166,7 +125,7 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints *
 					if len(spec.Selector) != 0 {
 
 						// determine whether labels for the owner of this ip (pod) matches the spec
-						podLabels, err := getPodLabelsForIp(addr.IP, pods.Items)
+						podLabels, err := getPodLabelsForIp(addr.IP, pods)
 						if err != nil {
 							// pod not found for ip? what's that about?
 							logger.Warnf("error for upstream %v service %v: ", usName, spec.ServiceName, err)
@@ -194,19 +153,19 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints *
 	return endpoints
 }
 
-func createEndpoint(namespace, name, upstreamName, address string, port uint32) *v1.Endpoint {
+func createEndpoint(namespace, name string, upstreamName core.ResourceRef, address string, port uint32) *v1.Endpoint {
 	return &v1.Endpoint{
 		Metadata: core.Metadata{
 			Namespace: namespace,
 			Name:      name,
 		},
-		UpstreamName: upstreamName,
+		UpstreamName: upstreamName.Key(), // TODO(yuval-k): should this be Ref?
 		Address:      address,
 		Port:         port,
 	}
 }
 
-func getPodLabelsForIp(ip string, pods []kubev1.Pod) (map[string]string, error) {
+func getPodLabelsForIp(ip string, pods []*kubev1.Pod) (map[string]string, error) {
 	for _, pod := range pods {
 		if pod.Status.PodIP == ip && pod.Status.Phase == kubev1.PodRunning {
 			return pod.Labels, nil
