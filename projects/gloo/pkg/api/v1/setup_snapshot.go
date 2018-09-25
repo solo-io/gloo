@@ -22,6 +22,7 @@ func (s SetupSnapshot) Hash() uint64 {
 		resources.UpdateMetadata(settings, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
 		})
+		settings.SetStatus(core.Status{})
 	}
 	h, err := hashstructure.Hash(snapshotForHashing, nil)
 	if err != nil {

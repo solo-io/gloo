@@ -16,6 +16,9 @@ func Main(settingsDir string) error {
 	if err != nil {
 		return err
 	}
+	if err := settingsClient.Register(); err != nil {
+		return err
+	}
 	cache := v1.NewSetupEmitter(settingsClient)
 	ctx := contextutils.WithLogger(context.Background(), "uds")
 	eventLoop := v1.NewSetupEventLoop(cache, syncer.NewSetupSyncer())

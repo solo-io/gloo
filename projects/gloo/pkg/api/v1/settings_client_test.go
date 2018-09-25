@@ -78,6 +78,7 @@ func SettingsClientTest(namespace string, client SettingsClient) {
 	Expect(r1.BindAddr).To(Equal(input.BindAddr))
 	Expect(r1.RefreshRate).To(Equal(input.RefreshRate))
 	Expect(r1.DevMode).To(Equal(input.DevMode))
+	Expect(r1.Status).To(Equal(input.Status))
 
 	_, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,

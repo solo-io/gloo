@@ -47,11 +47,9 @@ var _ = Describe("V1Emitter", func() {
 		}
 
 		// Settings Constructor
-
-		kube, err = kubernetes.NewForConfig(cfg)
-		Expect(err).NotTo(HaveOccurred())
-		settingsClientFactory := &factory.KubeConfigMapClientFactory{
-			Clientset: kube,
+		settingsClientFactory := &factory.KubeResourceClientFactory{
+			Crd: SettingsCrd,
+			Cfg: cfg,
 		}
 		settingsClient, err = NewSettingsClient(settingsClientFactory)
 		Expect(err).NotTo(HaveOccurred())
