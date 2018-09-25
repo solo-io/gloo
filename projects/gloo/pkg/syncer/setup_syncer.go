@@ -268,6 +268,10 @@ func RunGloo(opts bootstrap.Opts) error {
 		opts.GrpcServer.Stop()
 	}()
 
-	defer opts.GrpcServer.Stop()
-	return opts.GrpcServer.Serve(lis)
+	go func() {
+		if err := opts.GrpcServer.Serve(lis); err != nil {
+			logger.Errorf("grpc server failed to start")
+		}
+	}()
+	return nil
 }

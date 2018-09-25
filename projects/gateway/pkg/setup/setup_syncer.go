@@ -163,13 +163,16 @@ func RunGateway(opts Opts) error {
 
 	logger := contextutils.LoggerFrom(opts.WatchOpts.Ctx)
 
-	for {
-		select {
-		case err := <-writeErrs:
-			logger.Errorf("error: %v", err)
-		case <-opts.WatchOpts.Ctx.Done():
-			close(writeErrs)
-			return nil
+	go func() {
+		for {
+			select {
+			case err := <-writeErrs:
+				logger.Errorf("error: %v", err)
+			case <-opts.WatchOpts.Ctx.Done():
+				close(writeErrs)
+				return
+			}
 		}
-	}
+	}()
+	return nil
 }

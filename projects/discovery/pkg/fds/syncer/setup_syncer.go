@@ -75,12 +75,16 @@ func RunFDS(opts bootstrap.Opts) error {
 
 	logger := contextutils.LoggerFrom(watchOpts.Ctx)
 
-	for {
-		select {
-		case err := <-errs:
-			logger.Errorf("error: %v", err)
-		case <-watchOpts.Ctx.Done():
-			return nil
+	go func() {
+
+		for {
+			select {
+			case err := <-errs:
+				logger.Errorf("error: %v", err)
+			case <-watchOpts.Ctx.Done():
+				return
+			}
 		}
-	}
+	}()
+	return nil
 }
