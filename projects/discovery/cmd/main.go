@@ -9,7 +9,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/stats"
 	fdssetup "github.com/solo-io/solo-kit/projects/discovery/pkg/fds/setup"
 	uds "github.com/solo-io/solo-kit/projects/discovery/pkg/uds/setup"
-	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 )
 
 func main() {
@@ -25,26 +24,10 @@ func run() error {
 	os.MkdirAll(filepath.Join(*dir, "settings"), 0755)
 	errs := make(chan error)
 	go func() {
-		errs <- runUds()
+		errs <- uds.Main(*dir)
 	}()
 	go func() {
-		errs <- runFds()
+		errs <- fdssetup.Main(*dir)
 	}()
 	return <-errs
-}
-
-func runUds() error {
-	opts, err := gloosetup.DefaultKubernetesConstructOpts()
-	if err != nil {
-		return err
-	}
-	return uds.RunUDS(opts)
-}
-
-func runFds() error {
-	opts, err := gloosetup.DefaultKubernetesConstructOpts()
-	if err != nil {
-		return err
-	}
-	return fdssetup.Setup(opts)
 }
