@@ -10,6 +10,7 @@ import (
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 type Opts struct {
@@ -47,20 +48,24 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 	if err != nil {
 		return Opts{}, err
 	}
+	cache := kube.NewKubeCache()
 	ctx := contextutils.WithLogger(context.Background(), "gateway")
 	return Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Gateways: &factory.KubeResourceClientFactory{
 			Crd: gatewayv1.GatewayCrd,
 			Cfg: cfg,
+			SharedCache: cache,
 		},
 		VirtualServices: &factory.KubeResourceClientFactory{
 			Crd: gatewayv1.VirtualServiceCrd,
 			Cfg: cfg,
+			SharedCache: cache,
 		},
 		Proxies: &factory.KubeResourceClientFactory{
 			Crd: v1.ProxyCrd,
 			Cfg: cfg,
+			SharedCache: cache,
 		},
 		WatchNamespaces: []string{"default", defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{

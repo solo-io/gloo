@@ -8,6 +8,7 @@ import fmt "fmt"
 import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
 import core_solo_io "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+import core_solo_io2 "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 import google_protobuf2 "github.com/gogo/protobuf/types"
 
 // Reference imports to suppress errors if they are not otherwise used.

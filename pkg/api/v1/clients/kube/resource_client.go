@@ -91,43 +91,52 @@ func init() {
 
 var (
 	clientFactory = NewResourceClientSharedInformerFactory()
+)
 
+type KubeCache struct {
+	sharedInformerFactory     *ResourceClientSharedInformerFactory
 	cacheUpdatedWatchers      []chan struct{}
 	cacheUpdatedWatchersMutex sync.Mutex
 
 	factoryStarter sync.Once
-)
+}
 
-func addWatch() <-chan struct{} {
-	cacheUpdatedWatchersMutex.Lock()
-	defer cacheUpdatedWatchersMutex.Unlock()
+func NewKubeCache() *KubeCache {
+	return &KubeCache{
+		sharedInformerFactory: NewResourceClientSharedInformerFactory(),
+	}
+}
+
+func (kc *KubeCache) addWatch() <-chan struct{} {
+	kc.cacheUpdatedWatchersMutex.Lock()
+	defer kc.cacheUpdatedWatchersMutex.Unlock()
 	c := make(chan struct{}, 1)
-	cacheUpdatedWatchers = append(cacheUpdatedWatchers, c)
+	kc.cacheUpdatedWatchers = append(kc.cacheUpdatedWatchers, c)
 	return c
 }
-func removeWatch(c <-chan struct{}) {
-	cacheUpdatedWatchersMutex.Lock()
-	defer cacheUpdatedWatchersMutex.Unlock()
-	for i, cacheUpdated := range cacheUpdatedWatchers {
+func (kc *KubeCache) removeWatch(c <-chan struct{}) {
+	kc.cacheUpdatedWatchersMutex.Lock()
+	defer kc.cacheUpdatedWatchersMutex.Unlock()
+	for i, cacheUpdated := range kc.cacheUpdatedWatchers {
 		if cacheUpdated == c {
-			cacheUpdatedWatchers = append(cacheUpdatedWatchers[:i], cacheUpdatedWatchers[i+1:]...)
+			kc.cacheUpdatedWatchers = append(kc.cacheUpdatedWatchers[:i], kc.cacheUpdatedWatchers[i+1:]...)
 			return
 		}
 	}
 }
 
-func startFactory(ctx context.Context, client kubernetes.Interface) {
-	factoryStarter.Do(func() {
-		clientFactory.Start(ctx, client, updatedOccured)
+func (kc *KubeCache) startFactory(ctx context.Context, client kubernetes.Interface) {
+	kc.factoryStarter.Do(func() {
+		kc.sharedInformerFactory.Start(ctx, client, kc.updatedOccured)
 	})
 }
 
 // TODO(yuval-k): See if we can get more fine grained updates here, about which resources was udpated
-func updatedOccured() {
+func (kc *KubeCache) updatedOccured() {
 	stats.Record(context.TODO(), MEvents.M(1))
-	cacheUpdatedWatchersMutex.Lock()
-	defer cacheUpdatedWatchersMutex.Unlock()
-	for _, cacheUpdated := range cacheUpdatedWatchers {
+	kc.cacheUpdatedWatchersMutex.Lock()
+	defer kc.cacheUpdatedWatchersMutex.Unlock()
+	for _, cacheUpdated := range kc.cacheUpdatedWatchers {
 		select {
 		case cacheUpdated <- struct{}{}:
 		default:
@@ -146,9 +155,10 @@ type ResourceClient struct {
 	ownerLabel   string
 	resourceName string
 	resourceType resources.InputResource
+	sharedCache  *KubeCache
 }
 
-func NewResourceClient(crd crd.Crd, cfg *rest.Config, resourceType resources.InputResource) (*ResourceClient, error) {
+func NewResourceClient(crd crd.Crd, cfg *rest.Config, sharedCache *KubeCache, resourceType resources.InputResource) (*ResourceClient, error) {
 	apiExts, err := apiexts.NewForConfig(cfg)
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating api extensions client")
@@ -174,6 +184,7 @@ func NewResourceClient(crd crd.Crd, cfg *rest.Config, resourceType resources.Inp
 		kubeClient:   kubeClient,
 		resourceName: resourceName,
 		resourceType: resourceType,
+		sharedCache:  sharedCache,
 	}, nil
 }
 
@@ -193,7 +204,7 @@ func (rc *ResourceClient) Register() error {
 		zbam!
 
 	*/
-	clientFactory.Register(rc)
+	rc.sharedCache.sharedInformerFactory.Register(rc)
 	return rc.crd.Register(rc.apiexts)
 }
 
@@ -299,9 +310,9 @@ func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts
 }
 
 func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resources.ResourceList, error) {
-	startFactory(context.TODO(), rc.kubeClient)
+	rc.sharedCache.startFactory(context.TODO(), rc.kubeClient)
 
-	lister, err := clientFactory.GetLister(rc.crd.Type)
+	lister, err := rc.sharedCache.sharedInformerFactory.GetLister(rc.crd.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -344,7 +355,7 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resourc
 }
 
 func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-chan resources.ResourceList, <-chan error, error) {
-	startFactory(context.TODO(), rc.kubeClient)
+	rc.sharedCache.startFactory(context.TODO(), rc.kubeClient)
 
 	opts = opts.WithDefaults()
 	namespace = clients.DefaultNamespaceIfEmpty(namespace)
@@ -364,10 +375,10 @@ func (rc *ResourceClient) Watch(namespace string, opts clients.WatchOpts) (<-cha
 		resourcesChan <- list
 	}
 	// watch should open up with an initial read
-	cacheUpdated := addWatch()
+	cacheUpdated := rc.sharedCache.addWatch()
 
 	go func() {
-		defer removeWatch(cacheUpdated)
+		defer rc.sharedCache.removeWatch(cacheUpdated)
 		defer close(resourcesChan)
 		defer close(errs)
 

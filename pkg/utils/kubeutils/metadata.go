@@ -7,12 +7,17 @@ import (
 )
 
 func FromKubeMeta(meta metav1.ObjectMeta) core.Metadata {
+	annotations := make(map[string]string)
+	for k, v := range meta.Annotations {
+		annotations[k] = v
+	}
+	delete(annotations, "kubectl.kubernetes.io/last-applied-configuration")
 	return core.Metadata{
 		Name:            meta.Name,
 		Namespace:       meta.Namespace,
 		ResourceVersion: meta.ResourceVersion,
 		Labels:          meta.Labels,
-		Annotations:     meta.Annotations,
+		Annotations:     annotations,
 	}
 }
 

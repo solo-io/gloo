@@ -56,9 +56,7 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
-		if kube == nil {
-			// this test does not require a kube clientset
-		}
+		cache := kuberc.NewKubeCache()
 
 {{- range .Resources }}
 
@@ -67,6 +65,7 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 		{{ lower_camel .Name }}ClientFactory := &factory.KubeResourceClientFactory{
 			Crd: {{ .Name }}Crd,
 			Cfg: cfg,
+		    SharedCache: cache,
 		}
 {{- else }}
 {{/* TODO(ilackarms): Come with a more generic way to specify that a resource is "Secret"*/}}

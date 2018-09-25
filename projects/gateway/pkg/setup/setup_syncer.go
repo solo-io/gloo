@@ -18,6 +18,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	gloodefaults "github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"k8s.io/client-go/rest"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 func NewSetupSyncer() gloov1.SetupSyncer {
@@ -39,10 +40,12 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 		cfg *rest.Config
 	)
 	cache := memory.NewInMemoryResourceCache()
+	kubeCache := kube.NewKubeCache()
 
 	proxyFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
 		cache,
+		kubeCache,
 		gloov1.ProxyCrd,
 		&cfg,
 	)
@@ -53,6 +56,7 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 	virtualServiceFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
 		cache,
+		kubeCache,
 		v1.VirtualServiceCrd,
 		&cfg,
 	)
@@ -63,6 +67,7 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 	gatewayFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
 		cache,
+		kubeCache,
 		v1.GatewayCrd,
 		&cfg,
 	)

@@ -14,11 +14,15 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 func Main(settingsDir string) error {
 	settingsClient, err := setup.KubeOrFileSettingsClient(settingsDir)
 	if err != nil {
+		return err
+	}
+	if err := settingsClient.Register(); err != nil {
 		return err
 	}
 	cache := gloov1.NewSetupEmitter(settingsClient)
@@ -53,24 +57,25 @@ func DefaultKubernetesConstructOpts() (Opts, error) {
 	if err != nil {
 		return Opts{}, err
 	}
-	// clientset, err := kubernetes.NewForConfig(cfg)
-	// if err != nil {
-	// 	return Opts{}, err
-	// }
+	cache := kube.NewKubeCache()
+
 	ctx := contextutils.WithLogger(context.Background(), "gateway")
 	return Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Schemas: &factory.KubeResourceClientFactory{
-			Crd: v1.SchemaCrd,
-			Cfg: cfg,
+			Crd:         v1.SchemaCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
 		},
 		ResolverMaps: &factory.KubeResourceClientFactory{
-			Crd: v1.ResolverMapCrd,
-			Cfg: cfg,
+			Crd:         v1.ResolverMapCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
 		},
 		Proxies: &factory.KubeResourceClientFactory{
-			Crd: gloov1.ProxyCrd,
-			Cfg: cfg,
+			Crd:         gloov1.ProxyCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
 		},
 		WatchNamespaces: []string{"default", defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{

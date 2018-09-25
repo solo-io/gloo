@@ -11,11 +11,13 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 // sharedCache OR resourceCrd+cfg must be non-nil
 func ConfigFactoryForSettings(settings *v1.Settings,
 	sharedCache memory.InMemoryResourceCache,
+	cache *kube.KubeCache,
 	resourceCrd crd.Crd,
 	cfg **rest.Config) (factory.ResourceClientFactory, error) {
 	if settings.ConfigSource == nil {
@@ -38,8 +40,9 @@ func ConfigFactoryForSettings(settings *v1.Settings,
 			*cfg = c
 		}
 		return &factory.KubeResourceClientFactory{
-			Crd: resourceCrd,
-			Cfg: *cfg,
+			Crd:         resourceCrd,
+			Cfg:         *cfg,
+			SharedCache: cache,
 		}, nil
 	case *v1.Settings_DirectoryConfigSource:
 		return &factory.FileResourceClientFactory{

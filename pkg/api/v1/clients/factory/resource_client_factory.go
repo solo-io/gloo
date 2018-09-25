@@ -30,6 +30,7 @@ type NewResourceClientParams struct {
 	Token        string
 }
 
+// TODO(ilackarms): more opts validation
 func newResourceClient(factory ResourceClientFactory, params NewResourceClientParams) (clients.ResourceClient, error) {
 	resourceType := params.ResourceType
 	switch opts := factory.(type) {
@@ -41,7 +42,16 @@ func newResourceClient(factory ResourceClientFactory, params NewResourceClientPa
 		if !ok {
 			return nil, errors.Errorf("the kubernetes crd client can only be used for input resources, received type %v", resources.Kind(resourceType))
 		}
-		return kube.NewResourceClient(opts.Crd, opts.Cfg, inputResource)
+		if opts.Crd.Type == nil {
+			return nil, errors.Errorf("must provide a crd for the kube resource client")
+		}
+		if opts.SharedCache == nil {
+			return nil, errors.Errorf("must provide a shared cache for the kube resource client")
+		}
+		if opts.Cfg == nil {
+			return nil, errors.Errorf("must provide a resclient.Config for the kube resource client")
+		}
+		return kube.NewResourceClient(opts.Crd, opts.Cfg, opts.SharedCache, inputResource)
 	case *ConsulResourceClientFactory:
 		return consul.NewResourceClient(opts.Consul, opts.RootKey, resourceType), nil
 	case *FileResourceClientFactory:
@@ -64,8 +74,9 @@ type ResourceClientFactory interface {
 }
 
 type KubeResourceClientFactory struct {
-	Crd crd.Crd
-	Cfg *rest.Config
+	Crd         crd.Crd
+	Cfg         *rest.Config
+	SharedCache *kube.KubeCache
 }
 
 func (f *KubeResourceClientFactory) NewResourceClient(params NewResourceClientParams) (clients.ResourceClient, error) {

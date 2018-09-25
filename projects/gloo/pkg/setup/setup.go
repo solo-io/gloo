@@ -13,11 +13,15 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 func Main(settingsDir string) error {
 	settingsClient, err := KubeOrFileSettingsClient(settingsDir)
 	if err != nil {
+		return err
+	}
+	if err := settingsClient.Register(); err != nil {
 		return err
 	}
 	if err := writeSettings(settingsClient); err != nil && !errors.IsExist(err) {
@@ -44,8 +48,9 @@ func KubeOrFileSettingsClient(settingsDir string) (v1.SettingsClient, error) {
 	cfg, err := kubeutils.GetConfig("", "")
 	if err == nil {
 		return v1.NewSettingsClient(&factory.KubeResourceClientFactory{
-			Crd: v1.SettingsCrd,
-			Cfg: cfg,
+			Crd:         v1.SettingsCrd,
+			Cfg:         cfg,
+			SharedCache: kube.NewKubeCache(),
 		})
 	}
 	return v1.NewSettingsClient(&factory.FileResourceClientFactory{

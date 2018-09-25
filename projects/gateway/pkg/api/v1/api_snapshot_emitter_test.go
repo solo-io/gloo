@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	kuberc "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 var _ = Describe("V1Emitter", func() {
@@ -43,6 +44,8 @@ var _ = Describe("V1Emitter", func() {
 		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 
+		cache := kuberc.NewKubeCache()
+
 		if kube == nil {
 			// this test does not require a kube clientset
 		}
@@ -51,6 +54,7 @@ var _ = Describe("V1Emitter", func() {
 		gatewayClientFactory := &factory.KubeResourceClientFactory{
 			Crd: GatewayCrd,
 			Cfg: cfg,
+			SharedCache: cache,
 		}
 		gatewayClient, err = NewGatewayClient(gatewayClientFactory)
 		Expect(err).NotTo(HaveOccurred())
@@ -59,6 +63,7 @@ var _ = Describe("V1Emitter", func() {
 		virtualServiceClientFactory := &factory.KubeResourceClientFactory{
 			Crd: VirtualServiceCrd,
 			Cfg: cfg,
+			SharedCache: cache,
 		}
 		virtualServiceClient, err = NewVirtualServiceClient(virtualServiceClientFactory)
 		Expect(err).NotTo(HaveOccurred())

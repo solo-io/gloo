@@ -21,6 +21,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
 	"k8s.io/client-go/rest"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 func NewSetupSyncer() gloov1.SetupSyncer {
@@ -42,10 +43,12 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 		cfg *rest.Config
 	)
 	cache := memory.NewInMemoryResourceCache()
+	kubeCache := kube.NewKubeCache()
 
 	proxyFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
 		cache,
+		kubeCache,
 		gloov1.ProxyCrd,
 		&cfg,
 	)
@@ -56,6 +59,7 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 	schemaFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
 		cache,
+		kubeCache,
 		v1.SchemaCrd,
 		&cfg,
 	)
@@ -66,6 +70,7 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 	resolverMapFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
 		cache,
+		kubeCache,
 		v1.ResolverMapCrd,
 		&cfg,
 	)

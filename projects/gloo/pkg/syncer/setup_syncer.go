@@ -28,6 +28,7 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 type RunFunc func(opts bootstrap.Opts) error
@@ -74,10 +75,12 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 		clientset kubernetes.Interface
 	)
 	cache := memory.NewInMemoryResourceCache()
+	kubeCache := kube.NewKubeCache()
 
 	upstreamFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
 		cache,
+		kubeCache,
 		v1.UpstreamCrd,
 		&cfg,
 	)
@@ -88,6 +91,7 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 	proxyFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
 		cache,
+		kubeCache,
 		v1.ProxyCrd,
 		&cfg,
 	)
