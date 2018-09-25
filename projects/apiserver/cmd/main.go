@@ -3,13 +3,13 @@ package main
 import (
 	"flag"
 	"log"
+	"context"
 
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/setup"
 	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
-	gloosetup "github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/setup"
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"context"
+	"github.com/solo-io/solo-kit/test/config"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func run() error {
 	port := flag.Int("p", 8082, "port to bind")
 	dev := flag.Bool("dev", false, "use memory instead of connecting to real gloo storage")
 	flag.Parse()
-	glooOpts, err := gloosetup.DefaultKubernetesConstructOpts()
+	glooOpts, err := config.DefaultKubernetesConstructOpts()
 	if err != nil {
 		return err
 	}
