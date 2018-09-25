@@ -3,6 +3,8 @@ package translator
 import (
 	"fmt"
 
+	"go.opencensus.io/trace"
+
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/mitchellh/hashstructure"
@@ -28,6 +30,11 @@ func NewTranslator(plugins []plugins.Plugin) Translator {
 }
 
 func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycache.Snapshot, reporter.ResourceErrors, error) {
+
+	ctx, span := trace.StartSpan(params.Ctx, "gloo.translator.Translate")
+	params.Ctx = ctx
+	defer span.End()
+
 	params.Ctx = contextutils.WithLogger(params.Ctx, "translator")
 	for _, p := range t.plugins {
 		if err := p.Init(plugins.InitParams{
@@ -44,7 +51,8 @@ func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycac
 	logger.Debugf("computing envoy clusters for proxy: %v", proxy.Metadata.Name)
 	clusters := t.computeClusters(params, resourceErrs)
 	logger.Debugf("computing envoy endpoints for proxy: %v", proxy.Metadata.Name)
-	endpoints := computeClusterEndpoints(params.Snapshot.Upstreams.List(), params.Snapshot.Endpoints.List())
+
+	endpoints := computeClusterEndpoints(params.Ctx, params.Snapshot.Upstreams.List(), params.Snapshot.Endpoints.List())
 
 	// find all the eds clusters without endpoints (can happen with kube service that have no enpoints), and create a zero sized load assignment
 	// this is important as otherwise envoy will wait for them forever wondering their fate and not doing much else.
@@ -109,6 +117,10 @@ type listenerResources struct {
 }
 
 func (t *translator) computeListenerResources(params plugins.Params, proxy *v1.Proxy, listener *v1.Listener, report reportFunc) *listenerResources {
+	ctx, span := trace.StartSpan(params.Ctx, "gloo.translator.Translate")
+	params.Ctx = ctx
+	defer span.End()
+
 	rdsName := routeConfigName(listener)
 
 	routeConfig := t.computeRouteConfig(params, proxy, listener, rdsName, report)

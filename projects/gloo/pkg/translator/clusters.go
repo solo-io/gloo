@@ -8,9 +8,15 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"go.opencensus.io/trace"
 )
 
 func (t *translator) computeClusters(params plugins.Params, resourceErrs reporter.ResourceErrors) []*envoyapi.Cluster {
+
+	ctx, span := trace.StartSpan(params.Ctx, "gloo.translator.computeClusters")
+	params.Ctx = ctx
+	defer span.End()
+
 	params.Ctx = contextutils.WithLogger(params.Ctx, "compute_clusters")
 	var (
 		clusters []*envoyapi.Cluster

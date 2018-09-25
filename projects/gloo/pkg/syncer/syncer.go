@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.opencensus.io/tag"
+	"go.opencensus.io/trace"
+
 	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/gorilla/mux"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
@@ -16,6 +19,10 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
+)
+
+var (
+	proxyNameKey, _ = tag.NewKey("proxyname")
 )
 
 type syncer struct {
@@ -42,6 +49,10 @@ func NewSyncer(translator translator.Translator, xdsCache envoycache.SnapshotCac
 }
 
 func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
+
+	ctx, span := trace.StartSpan(ctx, "gloo.syncer.Sync")
+	defer span.End()
+
 	s.latestSnap = snap
 	ctx = contextutils.WithLogger(ctx, "syncer")
 	logger := contextutils.LoggerFrom(ctx)
@@ -54,14 +65,19 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	allResourceErrs.Accept(snap.Upstreams.List().AsInputResources()...)
 	allResourceErrs.Accept(snap.Proxies.List().AsInputResources()...)
 
-	params := plugins.Params{
-		Ctx:      ctx,
-		Snapshot: snap,
-	}
-
 	s.xdsHasher.SetKeysFromProxies(snap.Proxies.List())
 
 	for _, proxy := range snap.Proxies.List() {
+
+		if ctxWithTags, err := tag.New(ctx, tag.Insert(proxyNameKey, proxy.Metadata.Ref().Key())); err == nil {
+			ctx = ctxWithTags
+		}
+
+		params := plugins.Params{
+			Ctx:      ctx,
+			Snapshot: snap,
+		}
+
 		xdsSnapshot, resourceErrs, err := s.translator.Translate(params, proxy)
 		if err != nil {
 			return errors.Wrapf(err, "translation loop failed")
@@ -83,6 +99,7 @@ func (s *syncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 
 		logger.Debugf("Full snapshot for proxy %v: %v", proxy.Metadata.Name, xdsSnapshot)
 	}
+
 	if err := s.reporter.WriteReports(ctx, allResourceErrs); err != nil {
 		logger.Debugf("Failed writing report for proxies: %v", err)
 		return errors.Wrapf(err, "writing reports")

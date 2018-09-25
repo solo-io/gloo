@@ -1,6 +1,10 @@
 package translator
 
 import (
+	"context"
+
+	"go.opencensus.io/trace"
+
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyendpoints "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
@@ -9,7 +13,11 @@ import (
 
 // Endpoints
 
-func computeClusterEndpoints(upstreams []*v1.Upstream, endpoints []*v1.Endpoint) []*envoyapi.ClusterLoadAssignment {
+func computeClusterEndpoints(ctx context.Context, upstreams []*v1.Upstream, endpoints []*v1.Endpoint) []*envoyapi.ClusterLoadAssignment {
+
+	_, span := trace.StartSpan(ctx, "gloo.translator.computeClusterEndpoints")
+	defer span.End()
+
 	var clusterEndpointAssignments []*envoyapi.ClusterLoadAssignment
 	for _, upstream := range upstreams {
 		clusterEndpoints := endpointsForUpstream(upstream, endpoints)
