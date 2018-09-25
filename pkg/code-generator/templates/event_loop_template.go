@@ -8,6 +8,9 @@ var ResourceGroupEventLoopTemplate = template.Must(template.New("resource_group_
 
 import (
 	"context"
+
+	"go.opencensus.io/trace"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -48,6 +51,8 @@ func (el *{{ lower_camel .GoName }}EventLoop) Run(namespaces []string, opts clie
 	}
 	go errutils.AggregateErrs(opts.Ctx, errs, emitterErrs, "{{ .Project.PackageName }}.emitter errors")
 	go func() {
+
+		
 		// create a new context for each loop, cancel it before each loop
 		var cancel context.CancelFunc = func() {}
         defer cancel()
@@ -59,9 +64,13 @@ func (el *{{ lower_camel .GoName }}EventLoop) Run(namespaces []string, opts clie
 				}
 				// cancel any open watches from previous loop
 				cancel()
-				ctx, canc := context.WithCancel(opts.Ctx)
+
+				ctx, span := trace.StartSpan(opts.Ctx, "{{ .Name }}.EventLoopSync")
+				ctx, canc := context.WithCancel(ctx)
 				cancel = canc
 				err := el.syncer.Sync(ctx, snapshot)
+				span.End()
+
 				if err != nil {
 					select {
 					case errs <- err:
