@@ -32,11 +32,11 @@ import (
 )
 
 var (
-	m{{ .GoName }}SnapshotIn  = stats.Int64("{{ lower_camel .GoName }}_snap_emitter/snap_in", "The number of snapshots in", "1")
-	m{{ .GoName }}SnapshotOut = stats.Int64("{{ lower_camel .GoName }}_snap_emitter/snap_out", "The number of snapshots out", "1")
+	m{{ .GoName }}SnapshotIn  = stats.Int64("{{ .Name }}/snap_emitter/snap_in", "The number of snapshots in", "1")
+	m{{ .GoName }}SnapshotOut = stats.Int64("{{ .Name }}/snap_emitter/snap_out", "The number of snapshots out", "1")
 
 	{{ lower_camel .GoName }}snapshotInView = &view.View{
-		Name:        "{{ lower_camel .GoName }}_snap_emitter/snap_in",
+		Name:        "{{ .Name }}_snap_emitter/snap_in",
 		Measure:     m{{ .GoName }}SnapshotIn,
 		Description: "The number of snapshots updates coming in",
 		Aggregation: view.Count(),
@@ -44,7 +44,7 @@ var (
 		},
 	}
 	{{ lower_camel .GoName }}snapshotOutView = &view.View{
-		Name:        "{{ lower_camel .GoName }}_snap_emitter/snap_out",
+		Name:        "{{ .Name }}/snap_emitter/snap_out",
 		Measure:     m{{ .GoName }}SnapshotOut,
 		Description: "The number of snapshots updates going out",
 		Aggregation: view.Count(),
