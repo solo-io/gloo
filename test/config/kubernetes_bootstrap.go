@@ -17,6 +17,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 )
 
 // DEPRECATED: TODO(ilackarms): remove without breaking things, move to a test package
@@ -41,15 +42,18 @@ func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
 			},
 		)),
 	)
+	cache := kube.NewKubeCache()
 	return bootstrap.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Upstreams: &factory.KubeResourceClientFactory{
 			Crd: v1.UpstreamCrd,
 			Cfg: cfg,
+			SharedCache: cache,
 		},
 		Proxies: &factory.KubeResourceClientFactory{
 			Crd: v1.ProxyCrd,
 			Cfg: cfg,
+			SharedCache: cache,
 		},
 		Secrets: &factory.KubeSecretClientFactory{
 			Clientset: clientset,
