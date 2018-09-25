@@ -13,12 +13,11 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
 )
 
 func Main(settingsDir string) error {
-	settingsClient, err := gloov1.NewSettingsClient(&factory.FileResourceClientFactory{
-		RootDir: settingsDir,
-	})
+	settingsClient, err := setup.KubeOrFileSettingsClient(settingsDir)
 	if err != nil {
 		return err
 	}
