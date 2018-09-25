@@ -166,6 +166,9 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 		endpoints = append(endpoints, ep)
 	}
 
+	// sort refs for idempotency
+	sort.Slice(endpoints, func(i, j int) bool { return endpoints[i].Metadata.Name < endpoints[j].Metadata.Name })
+
 	return endpoints
 }
 
