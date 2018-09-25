@@ -65,14 +65,23 @@ func setupForNamespaces(watchNamespaces []string, opts bootstrap.Opts) error {
 	if err != nil {
 		return err
 	}
+	if err := endpointClient.Register(); err != nil {
+		return err
+	}
 
 	secretClient, err := v1.NewSecretClient(opts.Secrets)
 	if err != nil {
 		return err
 	}
+	if err := secretClient.Register(); err != nil {
+		return err
+	}
 
 	artifactClient, err := v1.NewArtifactClient(opts.Artifacts)
 	if err != nil {
+		return err
+	}
+	if err := artifactClient.Register(); err != nil {
 		return err
 	}
 
