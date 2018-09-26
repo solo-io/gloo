@@ -342,7 +342,7 @@ metadata:
 data:
   envoy.yaml: |
     node:
-      cluster: ignress
+      cluster: ingress
       id: "{{.PodName}}.{{.PodNamespace}}"
       metadata:
         role: "gloo-system~gateway-proxy"
