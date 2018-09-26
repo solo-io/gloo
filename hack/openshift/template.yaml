@@ -254,6 +254,9 @@ objects:
           - name: gloo-i
             image: ${UI_IMAGE}:${UI_IMAGE_TAG}
             imagePullPolicy: ${IMAGE_PULL_POLICY}
+            volumeMounts:
+            - name: ui-nginx-config
+              mountPath: /etc/nginx/conf
             ports:
               - name: static
                 containerPort: ${UI_STATIC_PORT}
@@ -270,6 +273,10 @@ objects:
               - name: graphql
                 containerPort: ${APISERVER_GRAPHQL_PORT}
                 protocol: TCP
+        volumes:
+        - name: ui-nginx-config
+          configMap:
+            name: ui-nginx-config
 - # service
   apiVersion: v1
   kind: Service
@@ -288,6 +295,36 @@ objects:
         name: graphql
     selector:
       gloo: apiserver-ui
+- # configmap
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: ui-nginx-config
+    namespace: ${NAMESPACE}
+  data:
+    default.conf: |
+      server {
+        listen ${UI_STATIC_PORT};
+        location /playground {
+          proxy_pass http://apiserver-ui:${APISERVER_GRAPHQL_PORT};
+        }
+        location /query {
+          proxy_pass http://apiserver-ui:${APISERVER_GRAPHQL_PORT};
+        }
+        location /sqoop {
+          rewrite /sqoop/(.*) /$1  break;
+          proxy_pass http://sqoop:${SQOOP_GRAPHQL_PORT};
+        }
+        location / {
+          root   /usr/share/nginx/html;
+          index  index.html index.htm;
+          try_files $uri $uri/ /index.html;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+          root   /usr/share/nginx/html;
+        }
+      }
 
 ### Ingress/Gateway Proxy
 - # pod
