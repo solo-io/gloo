@@ -30,7 +30,7 @@ func RunEds(upstreamClient v1.UpstreamClient, disc *EndpointDiscovery, watchName
 	ctx := opts.Ctx
 	go func() {
 		var cancel context.CancelFunc = func() {}
-		defer cancel()
+		defer func() { cancel() }()
 		for {
 			select {
 			case err, ok := <-upstreamErrs:
