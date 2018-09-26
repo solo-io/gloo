@@ -48,7 +48,7 @@ func (el *festingEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-
 
 		// create a new context for each loop, cancel it before each loop
 		var cancel context.CancelFunc = func() {}
-		defer cancel()
+		defer func() { cancel() }()
 		for {
 			select {
 			case snapshot, ok := <-watch:
