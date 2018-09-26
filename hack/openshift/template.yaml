@@ -11,12 +11,14 @@ objects:
 ### Misc
 - # RBAC
   kind: ClusterRoleBinding
-  apiVersion: rbac.authorization.k8s.io/v1
+  apiVersion: authorization.openshift.io/v1
   metadata:
     name: gloo-cluster-MEGA-admin-binding
+    namespace: ${NAMESPACE}
   subjects:
   - kind: ServiceAccount
     name: default
+    namespace: ${NAMESPACE}
   roleRef:
     kind: ClusterRole
     name: cluster-admin
@@ -24,10 +26,11 @@ objects:
 
 ### Gloo
 - # pod
-  apiVersion: apps/v1beta2
+  apiVersion: extensions/v1beta1
   kind: Deployment
   metadata:
     name: gloo
+    namespace: ${NAMESPACE}
     labels:
       gloo: gloo
   spec:
@@ -54,6 +57,7 @@ objects:
   kind: Service
   metadata:
     name: gloo
+    namespace: ${NAMESPACE}
     labels:
       gloo: gloo
   spec:
@@ -66,10 +70,11 @@ objects:
 
 ### Discovery
 - # pod
-  apiVersion: apps/v1beta2
+  apiVersion: extensions/v1beta1
   kind: Deployment
   metadata:
     name: discovery
+    namespace: ${NAMESPACE}
     labels:
       gloo: discovery
   spec:
@@ -90,10 +95,11 @@ objects:
 
 ### Gateway
 - # pod
-  apiVersion: apps/v1beta2
+  apiVersion: extensions/v1beta1
   kind: Deployment
   metadata:
     name: gateway
+    namespace: ${NAMESPACE}
     labels:
       gloo: gateway
   spec:
@@ -114,10 +120,11 @@ objects:
 
 ### Sqoop
 - # pod
-  apiVersion: apps/v1beta2
+  apiVersion: extensions/v1beta1
   kind: Deployment
   metadata:
     name: sqoop
+    namespace: ${NAMESPACE}
     labels:
       gloo: sqoop
   spec:
@@ -162,6 +169,7 @@ objects:
   kind: Service
   metadata:
     name: sqoop
+    namespace: ${NAMESPACE}
     labels:
       gloo: sqoop
   spec:
@@ -176,6 +184,7 @@ objects:
   kind: ConfigMap
   metadata:
     name: sqoop-envoy-config
+    namespace: ${NAMESPACE}
   data:
     envoy.yaml: |
       node:
@@ -217,10 +226,11 @@ objects:
 
 ### Apiserver + UI
 - # pod
-  apiVersion: apps/v1beta2
+  apiVersion: extensions/v1beta1
   kind: Deployment
   metadata:
     name: apiserver-ui
+    namespace: ${NAMESPACE}
     labels:
       gloo: apiserver-ui
   spec:
@@ -258,6 +268,7 @@ objects:
   kind: Service
   metadata:
     name: apiserver-ui
+    namespace: ${NAMESPACE}
     labels:
       gloo: apiserver-ui
   spec:
@@ -273,11 +284,11 @@ objects:
 
 ### Ingress/Gateway Proxy
 - # pod
-  apiVersion: apps/v1beta2
+  apiVersion: extensions/v1beta1
   kind: Deployment
   metadata:
-    namespace: gloo-system
     name: gateway-proxy
+    namespace: ${NAMESPACE}
     labels:
       gloo: gateway-proxy
   spec:
@@ -294,7 +305,7 @@ objects:
         - name: solo-bot-docker-hub
         containers:
         - name: gateway-proxy
-          image: soloio/data-plane-ee:v1-400-gdd4f388
+          image: ${ENVOY_IMAGE}:${ENVOY_IMAGE_TAG}
           ports:
             - name: http
               containerPort: ${GATEWAY_PROXY_PORT}
@@ -319,8 +330,8 @@ objects:
   apiVersion: v1
   kind: Service
   metadata:
-    namespace: gloo-system
     name: gateway-proxy
+    namespace: ${NAMESPACE}
     labels:
       gloo: gateway-proxy
   spec:
@@ -339,6 +350,7 @@ objects:
   kind: ConfigMap
   metadata:
     name: gateway-envoy-config
+    namespace: ${NAMESPACE}
   data:
     envoy.yaml: |
       node:
@@ -508,13 +520,13 @@ parameters:
 
 # Envoy
 
-- name: Envoy_IMAGE
+- name: ENVOY_IMAGE
   required: true
-  description: Docker image for Gateway
-  value: soloio/envoy-ee
+  description: Docker image for Envoy
+  value: soloio/data-plane-ee
 
-- name: GATEWAY_IMAGE_TAG
+- name: ENVOY_IMAGE_TAG
   required: true
-  description: Docker image Tag +for Gloo
-  value: ilackarms
+  description: Docker image Tag +for Envoy
+  value: "v1-400-gdd4f388"
 
