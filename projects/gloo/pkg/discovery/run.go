@@ -27,7 +27,10 @@ func RunEds(upstreamClient v1.UpstreamClient, disc *EndpointDiscovery, watchName
 					return
 				}
 				errs <- err
-			case upstreamList := <-upstreams:
+			case upstreamList, ok := <-upstreams:
+				if !ok {
+					return
+				}
 				cancel()
 				opts.Ctx, cancel = context.WithCancel(ctx)
 
