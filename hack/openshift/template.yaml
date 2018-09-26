@@ -48,6 +48,7 @@ objects:
         containers:
           - name: gloo
             image: ${GLOO_IMAGE}:${GLOO_IMAGE_TAG}
+            imagePullPolicy: ${IMAGE_PULL_POLICY}
             ports:
               - name: xds
                 containerPort: ${GLOO_XDS_PORT}
@@ -92,6 +93,7 @@ objects:
         containers:
           - name: discovery
             image: ${DISCOVERY_IMAGE}:${DISCOVERY_IMAGE_TAG}
+            imagePullPolicy: ${IMAGE_PULL_POLICY}
 
 ### Gateway
 - # pod
@@ -117,6 +119,7 @@ objects:
         containers:
           - name: gateway
             image: ${GATEWAY_IMAGE}:${GATEWAY_IMAGE_TAG}
+            imagePullPolicy: ${IMAGE_PULL_POLICY}
 
 ### Sqoop
 - # pod
@@ -142,13 +145,15 @@ objects:
         containers:
           - name: sqoop
             image: ${SQOOP_IMAGE}:${SQOOP_IMAGE_TAG}
-            ports:
+            imagePullPolicy: ${IMAGE_PULL_POLICY}
+          ports:
               - name: graphql
                 containerPort: ${SQOOP_GRAPHQL_PORT}
                 protocol: TCP
           - name: envoy
             image: ${ENVOY_IMAGE}:${ENVOY_IMAGE_TAG}
-        volumeMounts:
+            imagePullPolicy: ${IMAGE_PULL_POLICY}
+      volumeMounts:
         - name: envoy-config
           mountPath: /etc/envoy
         env:
@@ -248,12 +253,14 @@ objects:
         containers:
           - name: gloo-i
             image: ${UI_IMAGE}:${UI_IMAGE_TAG}
+            imagePullPolicy: ${IMAGE_PULL_POLICY}
             ports:
               - name: static
                 containerPort: ${UI_STATIC_PORT}
                 protocol: TCP
           - name: apiserver
             image: ${APISERVER_IMAGE}:${APISERVER_IMAGE_TAG}
+            imagePullPolicy: ${IMAGE_PULL_POLICY}
             env:
             - name: OAUTH_CLIENT
               value: ${APISERVER_OAUTH_CLIENT}
@@ -306,6 +313,7 @@ objects:
         containers:
         - name: gateway-proxy
           image: ${ENVOY_IMAGE}:${ENVOY_IMAGE_TAG}
+          imagePullPolicy: ${IMAGE_PULL_POLICY}
           ports:
             - name: http
               containerPort: ${GATEWAY_PROXY_PORT}
@@ -399,6 +407,11 @@ parameters:
     Valid secret name (must be in ${NAMESPACE}) for kubernetes image pull.
     See https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#create-a-secret-in-the-cluster-that-holds-your-authorization-token
   value: solo-bot-docker-hub
+
+- name: IMAGE_PULL_POLICY
+  description: |
+    Whether or not to always pull new images or use what's cached
+  value: Always
 
 - name: NAMESPACE
   required: true
