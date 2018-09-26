@@ -5,20 +5,31 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"go.uber.org/zap"
 )
 
 // run once, watch upstreams
 func RunEds(upstreamClient v1.UpstreamClient, disc *EndpointDiscovery, watchNamespace string, opts clients.WatchOpts) (chan error, error) {
 	errs := make(chan error)
+
+	publsherr := func(err error) {
+		select {
+		case errs <- err:
+		default:
+			contextutils.LoggerFrom(opts.Ctx).Desugar().Warn("received error and cannot aggregate it.", zap.Error(err))
+		}
+	}
+
 	upstreams, upstreamErrs, err := upstreamClient.Watch(watchNamespace, opts)
 	if err != nil {
 		return nil, errors.Wrapf(err, "beginning upstream watch")
 	}
-	var cancel context.CancelFunc = func() {}
 	ctx := opts.Ctx
 	go func() {
+		var cancel context.CancelFunc = func() {}
 		defer cancel()
 		for {
 			select {
@@ -26,7 +37,7 @@ func RunEds(upstreamClient v1.UpstreamClient, disc *EndpointDiscovery, watchName
 				if !ok {
 					return
 				}
-				errs <- err
+				publsherr(err)
 			case upstreamList, ok := <-upstreams:
 				if !ok {
 					return
@@ -36,7 +47,7 @@ func RunEds(upstreamClient v1.UpstreamClient, disc *EndpointDiscovery, watchName
 
 				edsErrs, err := disc.StartEds(upstreamList, opts)
 				if err != nil {
-					errs <- err
+					publsherr(err)
 					continue
 				}
 				go errutils.AggregateErrs(opts.Ctx, errs, edsErrs, "eds.discovery.gloo")

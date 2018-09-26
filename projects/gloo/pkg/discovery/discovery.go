@@ -3,14 +3,16 @@ package discovery
 import (
 	"reflect"
 	"sort"
+	"strings"
 	"sync"
 
-	"strings"
+	"go.uber.org/zap"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 )
@@ -150,7 +152,10 @@ func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clie
 		go func(eds DiscoveryPlugin) {
 			for {
 				select {
-				case endpointList := <-endpoints:
+				case endpointList, ok := <-endpoints:
+					if !ok {
+						return
+					}
 					lock.Lock()
 					endpointsByUds[eds] = endpointList
 					desiredEndpoints := aggregateEndpoints(endpointsByUds)
@@ -161,8 +166,15 @@ func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clie
 						aggregatedErrs <- err
 					}
 					lock.Unlock()
-				case err := <-errs:
-					aggregatedErrs <- errors.Wrapf(err, "error in eds plugin %v", reflect.TypeOf(eds).Name())
+				case err, ok := <-errs:
+					if !ok {
+						return
+					}
+					select {
+					case aggregatedErrs <- errors.Wrapf(err, "error in eds plugin %v", reflect.TypeOf(eds).Name()):
+					default:
+						contextutils.LoggerFrom(opts.Ctx).Desugar().Warn("received error and cannot aggregate it.", zap.Error(err))
+					}
 				case <-opts.Ctx.Done():
 					return
 				}
