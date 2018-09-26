@@ -1,0 +1,520 @@
+---
+apiVersion: v1
+kind: Template
+metadata:
+  name: gloo-ee-installation-template
+  annotations:
+    description: "Gloo Enterprise"
+    iconClass: "icon-go-gopher"
+    tags: "ingress,gateway,graphql,envoy"
+objects:
+### Misc
+- # RBAC
+  kind: ClusterRoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: gloo-cluster-MEGA-admin-binding
+  subjects:
+  - kind: ServiceAccount
+    name: default
+  roleRef:
+    kind: ClusterRole
+    name: cluster-admin
+    apiGroup: rbac.authorization.k8s.io
+
+### Gloo
+- # pod
+  apiVersion: apps/v1beta2
+  kind: Deployment
+  metadata:
+    name: gloo
+    labels:
+      gloo: gloo
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        gloo: gloo
+    template:
+      metadata:
+        labels:
+          gloo: gloo
+      spec:
+        imagePullSecrets:
+        - name: ${IMAGE_PULL_SECRET}
+        containers:
+          - name: gloo
+            image: ${GLOO_IMAGE}:${GLOO_IMAGE_TAG}
+            ports:
+              - name: xds
+                containerPort: ${GLOO_XDS_PORT}
+                protocol: TCP
+- # service
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: gloo
+    labels:
+      gloo: gloo
+  spec:
+    ports:
+      - port: ${GLOO_XDS_PORT}
+        protocol: TCP
+        name: xds
+    selector:
+      gloo: gloo
+
+### Discovery
+- # pod
+  apiVersion: apps/v1beta2
+  kind: Deployment
+  metadata:
+    name: discovery
+    labels:
+      gloo: discovery
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        gloo: discovery
+    template:
+      metadata:
+        labels:
+          gloo: discovery
+      spec:
+        imagePullSecrets:
+        - name: ${IMAGE_PULL_SECRET}
+        containers:
+          - name: discovery
+            image: ${DISCOVERY_IMAGE}:${DISCOVERY_IMAGE_TAG}
+
+### Gateway
+- # pod
+  apiVersion: apps/v1beta2
+  kind: Deployment
+  metadata:
+    name: gateway
+    labels:
+      gloo: gateway
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        gloo: gateway
+    template:
+      metadata:
+        labels:
+          gloo: gateway
+      spec:
+        imagePullSecrets:
+        - name: ${IMAGE_PULL_SECRET}
+        containers:
+          - name: gateway
+            image: ${GATEWAY_IMAGE}:${GATEWAY_IMAGE_TAG}
+
+### Sqoop
+- # pod
+  apiVersion: apps/v1beta2
+  kind: Deployment
+  metadata:
+    name: sqoop
+    labels:
+      gloo: sqoop
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        gloo: sqoop
+    template:
+      metadata:
+        labels:
+          gloo: sqoop
+      spec:
+        imagePullSecrets:
+        - name: ${IMAGE_PULL_SECRET}
+        containers:
+          - name: sqoop
+            image: ${SQOOP_IMAGE}:${SQOOP_IMAGE_TAG}
+            ports:
+              - name: graphql
+                containerPort: ${SQOOP_GRAPHQL_PORT}
+                protocol: TCP
+          - name: envoy
+            image: ${ENVOY_IMAGE}:${ENVOY_IMAGE_TAG}
+        volumeMounts:
+        - name: envoy-config
+          mountPath: /etc/envoy
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+      volumes:
+      - name: envoy-config
+        configMap:
+          name: sqoop-envoy-config
+- # service
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: sqoop
+    labels:
+      gloo: sqoop
+  spec:
+    ports:
+      - port: ${SQOOP_GRAPHQL_PORT}
+        protocol: TCP
+        name: graphql
+    selector:
+      gloo: sqoop
+- # configmap
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: sqoop-envoy-config
+  data:
+    envoy.yaml: |
+      node:
+        id: "{{.PodName}}.{{.PodNamespace}}"
+        metadata:
+          # this line must match !
+          role: "${NAMESPACE}~sqoop-proxy"
+      static_resources:
+        clusters:
+        - name: xds_cluster
+          connect_timeout: 5.000s
+          load_assignment:
+            cluster_name: xds_cluster
+            endpoints:
+            - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: gloo
+                      port_value: ${GLOO_XDS_PORT}
+          http2_protocol_options: {}
+          type: STRICT_DNS
+      dynamic_resources:
+        ads_config:
+          api_type: GRPC
+          grpc_services:
+          - envoy_grpc: {cluster_name: xds_cluster}
+        cds_config:
+          ads: {}
+        lds_config:
+          ads: {}
+      admin:
+        access_log_path: /dev/null
+        address:
+          socket_address:
+            address: 127.0.0.1
+            port_value: 19000
+
+
+### Apiserver + UI
+- # pod
+  apiVersion: apps/v1beta2
+  kind: Deployment
+  metadata:
+    name: apiserver-ui
+    labels:
+      gloo: apiserver-ui
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        gloo: apiserver-ui
+    template:
+      metadata:
+        labels:
+          gloo: apiserver-ui
+      spec:
+        imagePullSecrets:
+        - name: ${IMAGE_PULL_SECRET}
+        containers:
+          - name: gloo-i
+            image: ${UI_IMAGE}:${UI_IMAGE_TAG}
+            ports:
+              - name: static
+                containerPort: ${UI_STATIC_PORT}
+                protocol: TCP
+          - name: apiserver
+            image: ${APISERVER_IMAGE}:${APISERVER_IMAGE_TAG}
+            env:
+            - name: OAUTH_CLIENT
+              value: ${APISERVER_OAUTH_CLIENT}
+            - name: OAUTH_SERVER
+              value: ${APISERVER_OAUTH_SERVER}
+            ports:
+              - name: graphql
+                containerPort: ${APISERVER_GRAPHQL_PORT}
+                protocol: TCP
+- # service
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: apiserver-ui
+    labels:
+      gloo: apiserver-ui
+  spec:
+    ports:
+      - port: ${UI_STATIC_PORT}
+        protocol: TCP
+        name: static
+      - port: ${APISERVER_GRAPHQL_PORT}
+        protocol: TCP
+        name: graphql
+    selector:
+      gloo: apiserver-ui
+
+### Ingress/Gateway Proxy
+- # pod
+  apiVersion: apps/v1beta2
+  kind: Deployment
+  metadata:
+    namespace: gloo-system
+    name: gateway-proxy
+    labels:
+      gloo: gateway-proxy
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        gloo: gateway-proxy
+    template:
+      metadata:
+        labels:
+          gloo: gateway-proxy
+      spec:
+        imagePullSecrets:
+        - name: solo-bot-docker-hub
+        containers:
+        - name: gateway-proxy
+          image: soloio/data-plane-ee:v1-400-gdd4f388
+          ports:
+            - name: http
+              containerPort: ${GATEWAY_PROXY_PORT}
+              protocol: TCP
+          volumeMounts:
+          - name: envoy-config
+            mountPath: /etc/envoy
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        volumes:
+        - name: envoy-config
+          configMap:
+            name: gateway-envoy-config
+- # service
+  apiVersion: v1
+  kind: Service
+  metadata:
+    namespace: gloo-system
+    name: gateway-proxy
+    labels:
+      gloo: gateway-proxy
+  spec:
+    type: LoadBalancer
+    ports:
+      # TODO (lackarms): have this section generated by something watching the CRDs (want to see gateway crd here)
+      # defaults to port 80 (not currently configurable through the apiserver)
+      # match the value of gloo/pkg/defaults.HttpPort
+      - port: ${GATEWAY_PROXY_PORT}
+        protocol: TCP
+    selector:
+      gloo: gateway-proxy
+
+- # configmap
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: gateway-envoy-config
+  data:
+    envoy.yaml: |
+      node:
+        id: "{{.PodName}}.{{.PodNamespace}}"
+        metadata:
+          # this line must match !
+          role: "${NAMESPACE}~gateway-proxy"
+      static_resources:
+        clusters:
+        - name: xds_cluster
+          connect_timeout: 5.000s
+          load_assignment:
+            cluster_name: xds_cluster
+            endpoints:
+            - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: gloo
+                      port_value: ${GLOO_XDS_PORT}
+          http2_protocol_options: {}
+          type: STRICT_DNS
+      dynamic_resources:
+        ads_config:
+          api_type: GRPC
+          grpc_services:
+          - envoy_grpc: {cluster_name: xds_cluster}
+        cds_config:
+          ads: {}
+        lds_config:
+          ads: {}
+      admin:
+        access_log_path: /dev/null
+        address:
+          socket_address:
+            address: 127.0.0.1
+            port_value: 19000
+
+
+
+parameters:
+
+# General
+
+- name: IMAGE_PULL_SECRET
+  description: |
+    Valid secret name (must be in ${NAMESPACE}) for kubernetes image pull.
+    See https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#create-a-secret-in-the-cluster-that-holds-your-authorization-token
+  value: solo-bot-docker-hub
+
+- name: NAMESPACE
+  required: true
+  description: Destination namespace for installation
+  value: gloo-system
+
+# Gloo
+
+- name: GLOO_IMAGE
+  required: true
+  description: Docker image for Gloo
+  value: soloio/control-plane-ee
+
+- name: GLOO_IMAGE_TAG
+  required: true
+  description: Docker image Tag +for Gloo
+  value: ilackarms
+
+- name: GLOO_XDS_PORT
+  required: true
+  description: Port where Gloo accepts XDS Connections
+  value: "9977"
+
+# Gateway
+
+- name: GATEWAY_IMAGE
+  required: true
+  description: Docker image for Gateway
+  value: soloio/gateway-ee
+
+- name: GATEWAY_IMAGE_TAG
+  required: true
+  description: Docker image Tag +for Gateway
+  value: ilackarms
+
+- name: GATEWAY_PROXY_PORT
+  required: true
+  description: |
+    Port where the Gateway Proxy listens. This will eventually be deprecated,
+    allowing the Gateway Resource to be the single source of truth for the proxy port.
+  value: "80"
+
+# Sqoop
+
+- name: SQOOP_IMAGE
+  required: true
+  description: Docker image for Sqoop
+  value: soloio/sqoop-ee
+
+- name: SQOOP_IMAGE_TAG
+  required: true
+  description: Docker image Tag +for Sqoop
+  value: ilackarms
+
+- name: SQOOP_GRAPHQL_PORT
+  required: true
+  description: Port where Sqoop serves GraphQL Endpoints
+  value: "9095"
+
+# Discovery
+
+- name: DISCOVERY_IMAGE
+  required: true
+  description: Docker image for Discovery
+  value: soloio/discovery-ee
+
+- name: DISCOVERY_IMAGE_TAG
+  required: true
+  description: Docker image Tag +for Discovery
+  value: ilackarms
+
+
+# Apiserver
+
+- name: APISERVER_IMAGE
+  required: true
+  description: Docker image for Apiserver
+  value: soloio/apiserver-ee
+
+- name: APISERVER_IMAGE_TAG
+  required: true
+  description: Docker image Tag +for Apiserver
+  value: ilackarms
+
+- name: APISERVER_GRAPHQL_PORT
+  required: true
+  description: Port where APIServer serves Api Requests
+  value: "8082"
+
+- name: APISERVER_OAUTH_CLIENT
+  required: true
+  description: Client name for OAuth request to Kubernetes APIServer
+  value: gloo
+
+- name: APISERVER_OAUTH_SERVER
+  required: true
+  description: The Publicly addressable URL of the openshift oauth endpoint. In the fututure this will be discovered automatically. For now, simply copy the value from the browser.
+  value: https://<openshift-master-ip>:8443/oauth/authorize
+
+
+# UI
+
+- name: UI_IMAGE_TAG
+  required: true
+  description: Docker image for Apiserver
+  value: soloio/gloo-i-ee
+
+- name: UI_IMAGE_TAG
+  required: true
+  description: Docker image Tag +for Apiserver
+  value: ilackarms
+
+- name: UI_STATIC_PORT
+  required: true
+  description: Port where the Browser UI is served
+  value: "80"
+
+
+# Envoy
+
+- name: Envoy_IMAGE
+  required: true
+  description: Docker image for Gateway
+  value: soloio/envoy-ee
+
+- name: GATEWAY_IMAGE_TAG
+  required: true
+  description: Docker image Tag +for Gloo
+  value: ilackarms
+
