@@ -344,7 +344,6 @@ objects:
         protocol: TCP
     selector:
       gloo: gateway-proxy
-
 - # configmap
   apiVersion: v1
   kind: ConfigMap
