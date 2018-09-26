@@ -88,6 +88,27 @@ ${GOPATH}/bin/protoc-gen-solo-kit: $(OUTPUT_DIR)/protoc-gen-solo-kit
 	cp $(OUTPUT_DIR)/protoc-gen-solo-kit ${GOPATH}/bin/
 
 
+
+#################
+#################
+#               #
+#     Build     #
+#               #
+#               #
+#################
+#################
+#################
+
+.PHONY: docker docker-push
+docker: apiserver-docker gateway-docker gloo-docker sqoop-docker
+docker-push:
+	docker push soloio/sqoop-ee:$(VERSION) && \
+	docker push soloio/gateway-ee:$(VERSION) && \
+	docker push soloio/apiserver-ee:$(VERSION) && \
+	docker push soloio/discovery-ee:$(VERSION) && \
+	docker push soloio/gloo-ee:$(VERSION) && \
+	docker push soloio/gloo-i-ee:$(VERSION)
+
 #----------------------------------------------------------------------------------
 # Apiserver
 #----------------------------------------------------------------------------------
@@ -130,7 +151,7 @@ apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.a
 
 gloo-i-docker:
 	cd projects/apiserver/ui && if [ -d gloo-i ]; then cd gloo-i && git pull && cd ..; else  git clone git@github.com:solo-io/gloo-i.git gloo-i/; fi
-	cd projects/apiserver/ui && docker build -t soloio/gloo-i:$(VERSION) .
+	cd projects/apiserver/ui && docker build -t soloio/gloo-i-ee:$(VERSION) .
 
 #----------------------------------------------------------------------------------
 # Gateway
@@ -149,8 +170,8 @@ gateway: $(OUTPUT_DIR)/gateway-linux-amd64
 $(OUTPUT_DIR)/Dockerfile.gateway: $(GATEWAY_DIR)/cmd/Dockerfile
 	cp $< $@
 
-# gateway-docker: $(OUTPUT_DIR)/gateway-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gateway
-# 	docker build -t soloio/control-plane-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gateway
+gateway-docker: $(OUTPUT_DIR)/gateway-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gateway
+	docker build -t soloio/gateway-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gateway
 
 #----------------------------------------------------------------------------------
 # Sqoop
@@ -170,9 +191,8 @@ $(OUTPUT_DIR)/Dockerfile.sqoop: $(SQOOP_DIR)/cmd/Dockerfile
 	cp $< $@
 
 sqoop-docker: $(OUTPUT_DIR)/sqoop-linux-amd64 $(OUTPUT_DIR)/Dockerfile.sqoop
-	docker build -t soloio/control-plane-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.sqoop
+	docker build -t soloio/sqoop-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.sqoop
 
-control-plane-docker: sqoop-docker
 #----------------------------------------------------------------------------------
 # Discovery
 #----------------------------------------------------------------------------------
@@ -192,6 +212,26 @@ $(OUTPUT_DIR)/Dockerfile.discovery: $(DISCOVERY_DIR)/cmd/Dockerfile
 
 discovery-docker: $(OUTPUT_DIR)/discovery-linux-amd64 $(OUTPUT_DIR)/Dockerfile.discovery
 	docker build -t soloio/discovery-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.discovery
+
+#----------------------------------------------------------------------------------
+# Gloo
+#----------------------------------------------------------------------------------
+
+GLOO_DIR=projects/gloo
+GLOO_SOURCES=$(shell find $(GLOO_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+
+$(OUTPUT_DIR)/gloo-linux-amd64: $(GLOO_SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(GLOO_DIR)/cmd/main.go
+
+
+.PHONY: gloo
+gloo: $(OUTPUT_DIR)/gloo-linux-amd64
+
+$(OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
+	cp $< $@
+
+gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
+	docker build -t soloio/gloo-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo
 
 #----------------------------------------------------------------------------------
 # Envot init
@@ -224,6 +264,7 @@ RELEASE_BINARIES := \
 	$(OUTPUT_DIR)/apiserver-linux-amd64 \
 	$(OUTPUT_DIR)/apiserver-darwin-amd64 \
 	$(OUTPUT_DIR)/gateway-linux-amd64 \
+	$(OUTPUT_DIR)/gloo-linux-amd64 \
 	$(OUTPUT_DIR)/discovery-linux-amd64 \
 	$(OUTPUT_DIR)/envoyinit-linux-amd64
 
