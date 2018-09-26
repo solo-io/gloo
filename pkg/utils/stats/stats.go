@@ -20,6 +20,8 @@ func StartStatsServer() {
 	logger, logerr := logconfig.Build()
 	contextutils.SetFallbackLogger(logger.Sugar())
 
+	go RunGoroutineStat()
+
 	go func() {
 
 		mux := new(http.ServeMux)
@@ -76,8 +78,27 @@ var profileDescriptions = map[string]string{
 	"/debug/pprof/": `PProf related things:<br/>
 	<a href="/debug/pprof/goroutine?debug=2">full goroutine stack dump</a>
 	`,
-	"/zpages":  `Tracing. See <a href="/zpages/tracez">list of spans</a>`,
-	"/logging": "View \\ change the log level of the program",
+	"/zpages": `Tracing. See <a href="/zpages/tracez">list of spans</a>`,
+	"/logging": `View \ change the log level of the program. <br/>
+	
+log level:
+<select id="loglevelselector">
+<option value="debug">debug</option>
+<option value="info">info</option>
+<option value="warn">warn</option>
+<option value="error">error</option>
+</select>
+<button onclick="setlevel(document.getElementById('loglevelselector').value)">click</button>
+
+<script>	
+function setlevel(l) {
+	var xhr = new XMLHttpRequest();
+	xhr.open('PUT', '/logging', true);
+	xhr.setRequestHeader("Content-Type", "application/json");
+	xhr.send('{"level":"' + l + '"}');
+}
+</script>
+	`,
 	"/metrics": "Prometheus format metrics",
 }
 
