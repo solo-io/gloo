@@ -231,7 +231,6 @@ func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (r
 }
 
 func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteOpts) (resources.Resource, error) {
-
 	opts = opts.WithDefaults()
 	if err := resources.Validate(resource); err != nil {
 		return nil, errors.Wrapf(err, "validation error")

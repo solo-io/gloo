@@ -51,8 +51,6 @@ func (el *{{ lower_camel .GoName }}EventLoop) Run(namespaces []string, opts clie
 	}
 	go errutils.AggregateErrs(opts.Ctx, errs, emitterErrs, "{{ .Project.PackageName }}.emitter errors")
 	go func() {
-
-		
 		// create a new context for each loop, cancel it before each loop
 		var cancel context.CancelFunc = func() {}
 		defer func() { cancel() }()
