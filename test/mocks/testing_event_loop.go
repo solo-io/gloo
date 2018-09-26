@@ -45,7 +45,6 @@ func (el *testingEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-
 	}
 	go errutils.AggregateErrs(opts.Ctx, errs, emitterErrs, "mocks.emitter errors")
 	go func() {
-
 		// create a new context for each loop, cancel it before each loop
 		var cancel context.CancelFunc = func() {}
 		defer func() { cancel() }()

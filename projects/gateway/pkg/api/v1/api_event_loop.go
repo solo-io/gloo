@@ -45,7 +45,6 @@ func (el *apiEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-chan
 	}
 	go errutils.AggregateErrs(opts.Ctx, errs, emitterErrs, "v1.emitter errors")
 	go func() {
-
 		// create a new context for each loop, cancel it before each loop
 		var cancel context.CancelFunc = func() {}
 		defer func() { cancel() }()
