@@ -99,16 +99,6 @@ ${GOPATH}/bin/protoc-gen-solo-kit: $(OUTPUT_DIR)/protoc-gen-solo-kit
 #################
 #################
 
-.PHONY: docker docker-push
-docker: apiserver-docker gateway-docker gloo-docker sqoop-docker
-docker-push:
-	docker push soloio/sqoop-ee:$(VERSION) && \
-	docker push soloio/gateway-ee:$(VERSION) && \
-	docker push soloio/apiserver-ee:$(VERSION) && \
-	docker push soloio/discovery-ee:$(VERSION) && \
-	docker push soloio/gloo-ee:$(VERSION) && \
-	docker push soloio/gloo-i-ee:$(VERSION)
-
 #----------------------------------------------------------------------------------
 # Apiserver
 #----------------------------------------------------------------------------------
@@ -276,3 +266,20 @@ release: release-binaries
 	hack/create-release.sh github_api_token=$(GITHUB_TOKEN) owner=$(GH_ORG) repo=$(GH_REPO) tag=v$(VERSION)
 	@$(foreach BINARY,$(RELEASE_BINARIES),hack/upload-github-release-asset.sh github_api_token=$(GITHUB_TOKEN) owner=solo-io repo=gloo tag=v$(VERSION) filename=$(BINARY);)
 
+#----------------------------------------------------------------------------------
+# Docker
+#----------------------------------------------------------------------------------
+#
+#---------
+#--------- Push
+#---------
+
+.PHONY: docker docker-push
+docker: apiserver-docker gateway-docker gloo-docker sqoop-docker
+docker-push:
+	docker push soloio/sqoop-ee:$(VERSION) && \
+	docker push soloio/gateway-ee:$(VERSION) && \
+	docker push soloio/apiserver-ee:$(VERSION) && \
+	docker push soloio/discovery-ee:$(VERSION) && \
+	docker push soloio/gloo-ee:$(VERSION) && \
+	docker push soloio/gloo-i-ee:$(VERSION)
