@@ -261,22 +261,22 @@ objects:
         - name: envoy
           image: ${ENVOY_IMAGE}:${ENVOY_IMAGE_TAG}
           imagePullPolicy: ${IMAGE_PULL_POLICY}
-      volumeMounts:
-      - name: envoy-config
-        mountPath: /etc/envoy
-        env:
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-      volumes:
-      - name: envoy-config
-        configMap:
-          name: sqoop-envoy-config
+          volumeMounts:
+          - name: envoy-config
+            mountPath: /etc/envoy
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        volumes:
+        - name: envoy-config
+          configMap:
+            name: sqoop-envoy-config
 - # service
   apiVersion: v1
   kind: Service
