@@ -377,7 +377,7 @@ objects:
             - name: OAUTH_CLIENT
               value: ${APISERVER_OAUTH_CLIENT}
             - name: OAUTH_SERVER
-              value: ${APISERVER_OAUTH_SERVER}
+              value: https://${APISERVER_OPENSHIFT_MASTER_IP}:8443/oauth/authorize
             ports:
             - name: graphql
               containerPort: ${{APISERVER_GRAPHQL_PORT}}
@@ -544,7 +544,7 @@ parameters:
   description: Client name for OAuth request to Kubernetes APIServer
   value: gloo
 
-- name: APISERVER_OAUTH_SERVER
+- name: APISERVER_OPENSHIFT_MASTER_IP
   required: true
   description: The Publicly addressable URL of the openshift oauth endpoint. In the fututure this will be discovered automatically. For now, simply copy the value from the browser.
   value: https://<openshift-master-ip>:8443/oauth/authorize
