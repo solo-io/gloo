@@ -193,6 +193,7 @@ objects:
   data:
     envoy.yaml: |
       node:
+        cluster: sqoop
         id: "{{.PodName}}.{{.PodNamespace}}"
         metadata:
           # this line must match !
@@ -398,6 +399,7 @@ objects:
   data:
     envoy.yaml: |
       node:
+        cluster: gateway
         id: "{{.PodName}}.{{.PodNamespace}}"
         metadata:
           # this line must match !
