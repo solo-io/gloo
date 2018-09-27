@@ -150,9 +150,9 @@ objects:
           - name: graphql
             containerPort: ${{SQOOP_GRAPHQL_PORT}}
             protocol: TCP
-          - name: envoy
-            image: ${ENVOY_IMAGE}:${ENVOY_IMAGE_TAG}
-            imagePullPolicy: ${IMAGE_PULL_POLICY}
+        - name: envoy
+          image: ${ENVOY_IMAGE}:${ENVOY_IMAGE_TAG}
+          imagePullPolicy: ${IMAGE_PULL_POLICY}
       volumeMounts:
       - name: envoy-config
         mountPath: /etc/envoy
