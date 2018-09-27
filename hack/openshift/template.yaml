@@ -209,7 +209,7 @@ objects:
                   address:
                     socket_address:
                       address: gloo
-                      port_value: ${{GLOO_XDS_PORT}}
+                      port_value: ${GLOO_XDS_PORT}
           http2_protocol_options: {}
           type: STRICT_DNS
       dynamic_resources:
@@ -414,7 +414,7 @@ objects:
                   address:
                     socket_address:
                       address: gloo
-                      port_value: ${{GLOO_XDS_PORT}}
+                      port_value: ${GLOO_XDS_PORT}
           http2_protocol_options: {}
           type: STRICT_DNS
       dynamic_resources:
