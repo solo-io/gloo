@@ -1,5 +1,5 @@
 #!/bin/bash
 TAG="${TAG:-dev}"
 
-git clone git@github.com:solo-io/gloo-i.git gloo-i/
+git clone https://github.com/solo-io/gloo-i gloo-i/
 docker build -t soloio/gloo-i:$TAG .
