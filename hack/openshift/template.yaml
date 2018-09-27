@@ -551,7 +551,7 @@ parameters:
 
 # UI
 
-- name: UI_IMAGE_TAG
+- name: UI_IMAGE
   required: true
   description: Docker image for Apiserver
   value: soloio/gloo-i-ee
