@@ -50,13 +50,10 @@ func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 }
 
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
-	if p.RequireTransformationFilter {
-		return []plugins.StagedHttpFilter{
-			{
-				HttpFilter: &envoyhttp.HttpFilter{Name: FilterName},
-				Stage:      pluginStage,
-			},
-		}, nil
-	}
-	return nil, nil
+	return []plugins.StagedHttpFilter{
+		{
+			HttpFilter: &envoyhttp.HttpFilter{Name: FilterName},
+			Stage:      pluginStage,
+		},
+	}, nil
 }
