@@ -143,19 +143,19 @@ objects:
         imagePullSecrets:
         - name: ${IMAGE_PULL_SECRET}
         containers:
-          - name: sqoop
-            image: ${SQOOP_IMAGE}:${SQOOP_IMAGE_TAG}
-            imagePullPolicy: ${IMAGE_PULL_POLICY}
+        - name: sqoop
+          image: ${SQOOP_IMAGE}:${SQOOP_IMAGE_TAG}
+          imagePullPolicy: ${IMAGE_PULL_POLICY}
           ports:
-              - name: graphql
-                containerPort: ${SQOOP_GRAPHQL_PORT}
-                protocol: TCP
+          - name: graphql
+            containerPort: ${SQOOP_GRAPHQL_PORT}
+            protocol: TCP
           - name: envoy
             image: ${ENVOY_IMAGE}:${ENVOY_IMAGE_TAG}
             imagePullPolicy: ${IMAGE_PULL_POLICY}
       volumeMounts:
-        - name: envoy-config
-          mountPath: /etc/envoy
+      - name: envoy-config
+        mountPath: /etc/envoy
         env:
         - name: POD_NAMESPACE
           valueFrom:
