@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.uber.org/zap"
+
 	"go.opencensus.io/tag"
 	"go.opencensus.io/trace"
 
@@ -68,30 +70,34 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error
 	s.xdsHasher.SetKeysFromProxies(snap.Proxies.List())
 
 	for _, proxy := range snap.Proxies.List() {
-
-		if ctxWithTags, err := tag.New(ctx, tag.Insert(proxyNameKey, proxy.Metadata.Ref().Key())); err == nil {
-			ctx = ctxWithTags
+		proxyCtx := ctx
+		if ctxWithTags, err := tag.New(proxyCtx, tag.Insert(proxyNameKey, proxy.Metadata.Ref().Key())); err == nil {
+			proxyCtx = ctxWithTags
 		}
 
 		params := plugins.Params{
-			Ctx:      ctx,
+			Ctx:      proxyCtx,
 			Snapshot: snap,
 		}
 
 		xdsSnapshot, resourceErrs, err := s.translator.Translate(params, proxy)
 		if err != nil {
-			return errors.Wrapf(err, "translation loop failed")
+			err := errors.Wrapf(err, "translation loop failed")
+			logger.DPanicw("", zap.Error(err))
+			return err
 		}
 
 		allResourceErrs.Merge(resourceErrs)
 
-		if err := resourceErrs.Validate(); err != nil {
+		if xdsSnapshot, err = validateSnapshot(snap, xdsSnapshot, resourceErrs, logger); err != nil {
 			logger.Warnf("proxy %v was rejected due to invalid config: %v\nxDS cache will not be updated.", err)
 			continue
 		}
 		key := xds.SnapshotKey(proxy)
 		if err := s.xdsCache.SetSnapshot(key, xdsSnapshot); err != nil {
-			return errors.Wrapf(err, "failed while updating xds snapshot cache")
+			err := errors.Wrapf(err, "failed while updating xds snapshot cache")
+			logger.DPanicw("", zap.Error(err))
+			return err
 		}
 		logger.Infof("Setting xDS Snapshot for Key %v: %v clusters, %v listeners, %v route configs, %v endpoints",
 			key, len(xdsSnapshot.Clusters.Items), len(xdsSnapshot.Listeners.Items),
@@ -117,4 +123,29 @@ func (s *translatorSyncer) ServeXdsSnapshots() error {
 		fmt.Fprintf(w, log.Sprintf("%v", s.latestSnap))
 	})
 	return http.ListenAndServe(":10010", r)
+}
+
+func validateSnapshot(snap *v1.ApiSnapshot, snapshot envoycache.Snapshot, errs reporter.ResourceErrors, logger *zap.SugaredLogger) (envoycache.Snapshot, error) {
+
+	// find all the errored upstreams and remove them. if the snapshot is still consistent, we are good to go
+	resourcesErr := errs.Validate()
+	if resourcesErr == nil {
+		return snapshot, nil
+	}
+
+	logger.Debug("removing errored upstream and checking consistency")
+
+	for _, up := range snap.Upstreams.List().AsInputResources() {
+		if errs[up] != nil {
+			clusterName := translator.UpstreamToClusterName(up.GetMetadata().Ref())
+			// remove cluster and endpoints
+			delete(snapshot.Clusters.Items, clusterName)
+			delete(snapshot.Endpoints.Items, clusterName)
+		}
+	}
+
+	if snapshot.Consistent() != nil {
+		return snapshot, resourcesErr
+	}
+	return snapshot, nil
 }
