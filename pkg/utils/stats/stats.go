@@ -95,6 +95,14 @@ function setlevel(l) {
 	var xhr = new XMLHttpRequest();
 	xhr.open('PUT', '/logging', true);
 	xhr.setRequestHeader("Content-Type", "application/json");
+
+	xhr.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			var resp = JSON.parse(this.responseText);
+			alert("log level set to:" + resp["level"]);
+		}
+	};
+
 	xhr.send('{"level":"' + l + '"}');
 }
 </script>
