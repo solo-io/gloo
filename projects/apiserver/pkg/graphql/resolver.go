@@ -388,8 +388,8 @@ func (r *virtualServiceMutationResolver) ShiftRoutes(ctx context.Context, obj *c
 		}
 	} else {
 		// anchor on the toIndex and swap until all updated
-		for i := fromIndex; i > toIndex; i-- {
-			virtualService.VirtualHost.Routes[toIndex], virtualService.VirtualHost.Routes[i] = virtualService.VirtualHost.Routes[i], virtualService.VirtualHost.Routes[toIndex]
+		for i := toIndex; i > fromIndex; i-- {
+			virtualService.VirtualHost.Routes[fromIndex], virtualService.VirtualHost.Routes[i] = virtualService.VirtualHost.Routes[i], virtualService.VirtualHost.Routes[fromIndex]
 		}
 	}
 
