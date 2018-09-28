@@ -21,4 +21,5 @@ type Opts struct {
 	WatchOpts       clients.WatchOpts
 	DevMode         bool
 	GrpcServer      *grpc.Server
+	StartGrpcServer bool
 }

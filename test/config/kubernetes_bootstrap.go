@@ -71,6 +71,7 @@ func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
 			Port: 8080,
 		},
 		GrpcServer: grpcServer,
+		StartGrpcServer: true,
 		KubeClient: clientset,
 		DevMode:    true,
 	}, nil

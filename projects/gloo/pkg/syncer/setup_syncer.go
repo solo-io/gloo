@@ -42,7 +42,7 @@ func NewSetupSyncerWithRunFunc(runFunc RunFunc) v1.SetupSyncer {
 					grpc_ctxtags.StreamServerInterceptor(),
 					grpc_zap.StreamServerInterceptor(zap.NewNop()),
 					func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-						contextutils.LoggerFrom(ctx).Infof("gRPC call: %v", info.FullMethod)
+						contextutils.LoggerFrom(ctx).Debugf("gRPC call: %v", info.FullMethod)
 						return handler(srv, ss)
 					},
 				)),
@@ -57,8 +57,10 @@ func NewSetupSyncer() v1.SetupSyncer {
 }
 
 type settingsSyncer struct {
-	runFunc    RunFunc
-	grpcServer func(ctx context.Context) *grpc.Server
+	runFunc            RunFunc
+	grpcServer         func(ctx context.Context) *grpc.Server
+	previousBindAddr   string
+	previousGrpcServer *grpc.Server
 }
 
 func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
@@ -149,6 +151,17 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 	if !writeNamespaceProvided {
 		watchNamespaces = append(watchNamespaces, writeNamespace)
 	}
+
+	var restartGrpcServer bool
+	grpcServer := s.previousGrpcServer
+	if settings.BindAddr != s.previousBindAddr {
+		// port changed, restart grpc server
+		grpcServer = s.grpcServer(ctx)
+		restartGrpcServer = true
+	}
+
+	s.previousGrpcServer = grpcServer
+
 	opts := bootstrap.Opts{
 		WriteNamespace:  writeNamespace,
 		WatchNamespaces: watchNamespaces,
@@ -164,7 +177,8 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 			IP:   net.ParseIP(ipPort[0]),
 			Port: port,
 		},
-		GrpcServer: s.grpcServer(ctx),
+		GrpcServer:      grpcServer,
+		StartGrpcServer: restartGrpcServer,
 		// if nil, kube plugin disabled
 		KubeClient: clientset,
 		DevMode:    true,
@@ -258,6 +272,10 @@ func RunGloo(opts bootstrap.Opts) error {
 			}
 		}
 	}()
+
+	if !opts.StartGrpcServer {
+		return nil
+	}
 
 	lis, err := net.Listen(opts.BindAddr.Network(), opts.BindAddr.String())
 	if err != nil {
