@@ -13,6 +13,7 @@ secret: yuval
 redirectURIs:
  - "http://localhost"
  - "http://localhost:80"
+ - "http://localhost:8080"
  - "http://localhost:8000"
  - "http://localhost:8082"
 grantMethod: prompt

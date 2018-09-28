@@ -34,7 +34,6 @@ message Settings {
         Directory directory_secret_source = 8;
     };
 
-
     // where to read artifacts from (configmap, file)
     oneof artifact_source {
         KubernetesConfigmaps kubernetes_artifact_source = 9;

@@ -366,6 +366,10 @@ objects:
             volumeMounts:
             - name: ui-nginx-config
               mountPath: /etc/nginx/conf
+            - name: empty-cache
+              mountPath: /var/cache/nginx
+            - name: empty-run
+              mountPath: /var/run
             ports:
             - name: static
               containerPort: ${{UI_STATIC_PORT}}
@@ -386,6 +390,10 @@ objects:
         - name: ui-nginx-config
           configMap:
             name: ui-nginx-config
+        - name: empty-cache
+          emptyDir: {}
+        - name: empty-run
+          emptyDir: {}
 - # service
   apiVersion: v1
   kind: Service

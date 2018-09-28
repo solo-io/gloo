@@ -1,10 +1,10 @@
 # reference for ports in use
-gloo: 8080
+gloo: 9977
 gateway-envoy: 80
 sqoop-envoy: 9090
 sqoop-graphql: 9095
 stats:loc 9091
 apiserver: 8082
-ui: 80
+ui: 8080
 
 petstore: 1234
