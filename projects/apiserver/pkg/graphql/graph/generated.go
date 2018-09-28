@@ -119,6 +119,7 @@ type VirtualServiceMutationResolver interface {
 	UpdateRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error)
 	DeleteRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int) (*models.VirtualService, error)
 	SwapRoutes(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index1 int, index2 int) (*models.VirtualService, error)
+	ShiftRoutes(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, fromIndex int, toIndex int) (*models.VirtualService, error)
 }
 type VirtualServiceQueryResolver interface {
 	List(ctx context.Context, obj *customtypes.VirtualServiceQuery, selector *models.InputMapStringString) ([]*models.VirtualService, error)
@@ -5259,6 +5260,8 @@ func (ec *executionContext) _VirtualServiceMutation(ctx context.Context, sel ast
 			out.Values[i] = ec._VirtualServiceMutation_deleteRoute(ctx, field, obj)
 		case "swapRoutes":
 			out.Values[i] = ec._VirtualServiceMutation_swapRoutes(ctx, field, obj)
+		case "shiftRoutes":
+			out.Values[i] = ec._VirtualServiceMutation_shiftRoutes(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5652,6 +5655,77 @@ func (ec *executionContext) _VirtualServiceMutation_swapRoutes(ctx context.Conte
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
 			return ec.resolvers.VirtualServiceMutation().SwapRoutes(ctx, obj, args["virtualServiceName"].(string), args["resourceVersion"].(string), args["index1"].(int), args["index2"].(int))
+		})
+		if resTmp == nil {
+			return graphql.Null
+		}
+		res := resTmp.(*models.VirtualService)
+		if res == nil {
+			return graphql.Null
+		}
+		return ec._VirtualService(ctx, field.Selections, res)
+	})
+}
+
+func (ec *executionContext) _VirtualServiceMutation_shiftRoutes(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["virtualServiceName"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["virtualServiceName"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["resourceVersion"]; ok {
+		var err error
+		arg1, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["resourceVersion"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["fromIndex"]; ok {
+		var err error
+		arg2, err = graphql.UnmarshalInt(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["fromIndex"] = arg2
+	var arg3 int
+	if tmp, ok := rawArgs["toIndex"]; ok {
+		var err error
+		arg3, err = graphql.UnmarshalInt(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["toIndex"] = arg3
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Object: "VirtualServiceMutation",
+		Args:   args,
+		Field:  field,
+	})
+	return graphql.Defer(func() (ret graphql.Marshaler) {
+		defer func() {
+			if r := recover(); r != nil {
+				userErr := ec.Recover(ctx, r)
+				ec.Error(ctx, userErr)
+				ret = graphql.Null
+			}
+		}()
+
+		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
+			return ec.resolvers.VirtualServiceMutation().ShiftRoutes(ctx, obj, args["virtualServiceName"].(string), args["resourceVersion"].(string), args["fromIndex"].(int), args["toIndex"].(int))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -8625,6 +8699,7 @@ type VirtualServiceMutation {
     updateRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!, route: InputRoute!) : VirtualService
     deleteRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!) : VirtualService
     swapRoutes(virtualServiceName: String!, resourceVersion: String!, index1: Int!, index2: Int!) : VirtualService
+    shiftRoutes(virtualServiceName: String!, resourceVersion: String!, fromIndex: Int!, toIndex: Int!) : VirtualService
 }
 
 

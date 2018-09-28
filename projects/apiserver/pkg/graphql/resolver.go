@@ -350,11 +350,48 @@ func (r *virtualServiceMutationResolver) SwapRoutes(ctx context.Context, obj *cu
 		return nil, errors.Errorf("resource version mismatch. received %v, want %v", resourceVersion, virtualService.Metadata.ResourceVersion)
 	}
 
-	if index1 > len(virtualService.VirtualHost.Routes) || index2 > len(virtualService.VirtualHost.Routes) {
+	if index1 > len(virtualService.VirtualHost.Routes) || index2 > len(virtualService.VirtualHost.Routes) || index1 < 0 || index2 < 0 {
 		return nil, errors.Errorf("index out of bounds")
 	}
 
 	virtualService.VirtualHost.Routes[index1], virtualService.VirtualHost.Routes[index2] = virtualService.VirtualHost.Routes[index2], virtualService.VirtualHost.Routes[index1]
+	out, err := r.VirtualServices.Write(virtualService, clients.WriteOpts{
+		Ctx:               ctx,
+		OverwriteExisting: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputVirtualService(out), nil
+
+}
+
+// Removes the route at fromIndex and inserts it at toIndex.
+// Any routes in between shift to fill the hole or to make room.
+func (r *virtualServiceMutationResolver) ShiftRoutes(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, fromIndex int, toIndex int) (*models.VirtualService, error) {
+	virtualService, err := r.VirtualServices.Read(obj.Namespace, virtualServiceName, clients.ReadOpts{Ctx: ctx})
+	if err != nil {
+		return nil, err
+	}
+	if virtualService.Metadata.ResourceVersion != resourceVersion {
+		return nil, errors.Errorf("resource version mismatch. received %v, want %v", resourceVersion, virtualService.Metadata.ResourceVersion)
+	}
+
+	if fromIndex > len(virtualService.VirtualHost.Routes) || toIndex > len(virtualService.VirtualHost.Routes) || fromIndex < 0 || toIndex < 0 {
+		return nil, errors.Errorf("index out of bounds")
+	}
+
+	if toIndex < fromIndex {
+		// anchor on the fromIndex and swap until all updated
+		for i := toIndex; i < fromIndex; i++ {
+			virtualService.VirtualHost.Routes[fromIndex], virtualService.VirtualHost.Routes[i] = virtualService.VirtualHost.Routes[i], virtualService.VirtualHost.Routes[fromIndex]
+		}
+	} else {
+		// anchor on the toIndex and swap until all updated
+		for i := fromIndex; i > toIndex; i-- {
+			virtualService.VirtualHost.Routes[toIndex], virtualService.VirtualHost.Routes[i] = virtualService.VirtualHost.Routes[i], virtualService.VirtualHost.Routes[toIndex]
+		}
+	}
 
 	out, err := r.VirtualServices.Write(virtualService, clients.WriteOpts{
 		Ctx:               ctx,
