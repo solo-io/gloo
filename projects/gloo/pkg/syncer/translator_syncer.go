@@ -105,8 +105,7 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error
 
 		logger.Debugf("Full snapshot for proxy %v: %v", proxy.Metadata.Name, xdsSnapshot)
 	}
-
-	if err := s.reporter.WriteReports(ctx, allResourceErrs); err != nil {
+	if err := s.reporter.WriteReports(ctx, allResourceErrs, nil); err != nil {
 		logger.Debugf("Failed writing report for proxies: %v", err)
 		return errors.Wrapf(err, "writing reports")
 	}

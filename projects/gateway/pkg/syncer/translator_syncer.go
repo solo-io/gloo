@@ -2,6 +2,9 @@ package syncer
 
 import (
 	"context"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/errors"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
@@ -18,19 +21,26 @@ type translatorSyncer struct {
 	reporter        reporter.Reporter
 	propagator      *propagator.Propagator
 	writeErrs       chan error
+	proxyClient     gloov1.ProxyClient
+	gwClient        v1.GatewayClient
+	vsClient        v1.VirtualServiceClient
 	proxyReconciler gloov1.ProxyReconciler
 }
 
-func NewTranslatorSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, reporter reporter.Reporter, propagator *propagator.Propagator, writeErrs chan error) v1.ApiSyncer {
+func NewTranslatorSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, gwClient v1.GatewayClient, vsClient v1.VirtualServiceClient, reporter reporter.Reporter, propagator *propagator.Propagator, writeErrs chan error) v1.ApiSyncer {
 	return &translatorSyncer{
 		writeNamespace:  writeNamespace,
 		reporter:        reporter,
 		propagator:      propagator,
 		writeErrs:       writeErrs,
+		proxyClient:     proxyClient,
+		gwClient:     gwClient,
+		vsClient:     vsClient,
 		proxyReconciler: gloov1.NewProxyReconciler(proxyClient),
 	}
 }
 
+// TODO (ilackarms): make sure that sync happens if proxies get updated as well; may need to resync
 func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	ctx = contextutils.WithLogger(ctx, "translatorSyncer")
 
@@ -41,9 +51,11 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error
 	logger.Debugf("%v", snap)
 
 	proxy, resourceErrs := translator.Translate(ctx, s.writeNamespace, snap)
-	reporterErr := s.reporter.WriteReports(ctx, resourceErrs)
 	if err := resourceErrs.Validate(); err != nil {
-		logger.Warnf("gateway %v was rejected due to invalid config: %v\nxDS cache will not be updated.", err)
+		if err := s.reporter.WriteReports(ctx, resourceErrs, nil); err != nil {
+			contextutils.LoggerFrom(ctx).Errorf("failed to write reports: %v", err)
+		}
+		logger.Warnf("snapshot %v was rejected due to invalid config: %v\nxDS cache will not be updated.", snap.Hash(), err)
 		return err
 	}
 
@@ -66,6 +78,70 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error
 	}
 
 	// start propagating for new set of resources
-	// TODO(ilackarms): reinstate propagator
-	return reporterErr // s.propagator.PropagateStatuses(snap, proxy, clients.WatchOpts{Ctx: ctx})
+	if err := s.propagateProxyStatus(ctx, snap, proxy, resourceErrs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *translatorSyncer)  propagateProxyStatus(ctx context.Context, snap *v1.ApiSnapshot, proxy *gloov1.Proxy, resourceErrs reporter.ResourceErrors) error {
+	statuses, err := watchProxyStatus(ctx, s.proxyClient, proxy)
+	if err != nil {
+		return err
+	}
+	var lastStatus core.Status
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case status := <-statuses:
+				if status.Equal(lastStatus) {
+					continue
+				}
+				lastStatus = status
+				subresourceStatuses := map[string]*core.Status{
+					resources.Key(proxy): &status,
+				}
+				err := s.reporter.WriteReports(ctx, resourceErrs, subresourceStatuses)
+				if err != nil {
+					contextutils.LoggerFrom(ctx).Errorf("err: updating dependent statuses: %v", err)
+				}
+			}
+		}
+	}()
+	return nil
+}
+
+func watchProxyStatus(ctx context.Context, proxyClient gloov1.ProxyClient, proxy *gloov1.Proxy) (<-chan core.Status, error) {
+	ctx = contextutils.WithLogger(ctx, "proxy-err-propagator")
+	proxies, errs, err := proxyClient.Watch(proxy.Metadata.Namespace, clients.WatchOpts{
+		Ctx:      ctx,
+		Selector: proxy.Metadata.Labels,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "creating watch for proxy %v", proxy.Metadata.Ref())
+	}
+	statuses := make(chan core.Status)
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				close(statuses)
+				return
+			case err := <-errs:
+				contextutils.LoggerFrom(ctx).Error(err)
+			case list := <-proxies:
+				proxy, err := list.Find(proxy.Metadata.Namespace, proxy.Metadata.Name)
+				if err != nil {
+					contextutils.LoggerFrom(ctx).Error(err)
+					continue
+				}
+				statuses <- proxy.Status
+			}
+		}
+	}()
+
+	return statuses, nil
 }

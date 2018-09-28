@@ -35,7 +35,7 @@ var _ = Describe("Reporter", func() {
 			r1.(*mocks.MockResource): fmt.Errorf("everyone makes mistakes"),
 			r2.(*mocks.MockResource): fmt.Errorf("try your best"),
 		}
-		err = reporter.WriteReports(context.TODO(), resourceErrs)
+		err = reporter.WriteReports(context.TODO(), resourceErrs, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		r1, err = mockResourceClient.Read(r1.GetMetadata().Namespace, r1.GetMetadata().Name, clients.ReadOpts{})

@@ -123,11 +123,11 @@ func RunGateway(opts Opts) error {
 		return err
 	}
 
-	virtualServicesClient, err := v1.NewVirtualServiceClient(opts.VirtualServices)
+	virtualServiceClient, err := v1.NewVirtualServiceClient(opts.VirtualServices)
 	if err != nil {
 		return err
 	}
-	if err := virtualServicesClient.Register(); err != nil {
+	if err := virtualServiceClient.Register(); err != nil {
 		return err
 	}
 
@@ -145,14 +145,14 @@ func RunGateway(opts Opts) error {
 		return err
 	}
 
-	emitter := v1.NewApiEmitter(gatewayClient, virtualServicesClient)
+	emitter := v1.NewApiEmitter(gatewayClient, virtualServiceClient)
 
-	rpt := reporter.NewReporter("gateway", gatewayClient.BaseClient(), virtualServicesClient.BaseClient())
+	rpt := reporter.NewReporter("gateway", gatewayClient.BaseClient(), virtualServiceClient.BaseClient())
 	writeErrs := make(chan error)
 
-	prop := propagator.NewPropagator("gateway", gatewayClient, virtualServicesClient, proxyClient, writeErrs)
+	prop := propagator.NewPropagator("gateway", gatewayClient, virtualServiceClient, proxyClient, writeErrs)
 
-	sync := syncer.NewTranslatorSyncer(opts.WriteNamespace, proxyClient, rpt, prop, writeErrs)
+	sync := syncer.NewTranslatorSyncer(opts.WriteNamespace, proxyClient, gatewayClient, virtualServiceClient, rpt, prop, writeErrs)
 
 	eventLoop := v1.NewApiEventLoop(emitter, sync)
 	eventLoopErrs, err := eventLoop.Run(opts.WatchNamespaces, opts.WatchOpts)

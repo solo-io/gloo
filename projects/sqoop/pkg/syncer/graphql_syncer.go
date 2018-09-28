@@ -119,7 +119,7 @@ func (s *GraphQLSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 		}
 		endpoints = append(endpoints, endpoint)
 	}
-	if err := s.reporter.WriteReports(ctx, resourceErrs); err != nil {
+	if err := s.reporter.WriteReports(ctx, resourceErrs, nil); err != nil {
 		return errors.Wrapf(err, "writing reports")
 	}
 	if err := resourceErrs.Validate(); err != nil {
