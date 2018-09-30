@@ -45,6 +45,7 @@ func Main(settingsDir string) error {
 	return nil
 }
 
+// TODO (ilackarms): instead of using an heuristic here, read from a CLI flagg
 // first attempt to use kube crd, otherwise fall back to file
 func KubeOrFileSettingsClient(settingsDir string) (v1.SettingsClient, error) {
 	cfg, err := kubeutils.GetConfig("", "")
