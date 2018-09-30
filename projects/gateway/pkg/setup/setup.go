@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -21,7 +23,7 @@ func Main(settingsDir string) error {
 	cache := v1.NewSetupEmitter(settingsClient)
 	ctx := contextutils.WithLogger(context.Background(), "gateway")
 	eventLoop := v1.NewSetupEventLoop(cache, NewSetupSyncer())
-	errs, err := eventLoop.Run([]string{"gloo-system"}, clients.WatchOpts{
+	errs, err := eventLoop.Run([]string{defaults.GlooSystem}, clients.WatchOpts{
 		Ctx:         ctx,
 		RefreshRate: time.Second,
 	})

@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -30,7 +32,7 @@ func Main(settingsDir string) error {
 	cache := v1.NewSetupEmitter(settingsClient)
 	ctx := contextutils.WithLogger(context.Background(), "gloo")
 	eventLoop := v1.NewSetupEventLoop(cache, syncer.NewSetupSyncer())
-	errs, err := eventLoop.Run([]string{"gloo-system"}, clients.WatchOpts{
+	errs, err := eventLoop.Run([]string{defaults.GlooSystem}, clients.WatchOpts{
 		Ctx:         ctx,
 		RefreshRate: time.Second,
 	})
@@ -74,7 +76,7 @@ func writeSettings(cli v1.SettingsClient) error {
 		RefreshRate: types.DurationProto(time.Minute),
 		DevMode:     true,
 		Metadata: core.Metadata{
-			Namespace: "gloo-system",
+			Namespace: defaults.GlooSystem,
 			Name:      "gloo",
 		},
 	}

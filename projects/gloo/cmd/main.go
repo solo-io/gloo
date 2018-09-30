@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+
 	"os"
 	"path/filepath"
 
@@ -13,7 +15,7 @@ import (
 func main() {
 	dir := flag.String("dir", "gloo", "directory for config")
 	flag.Parse()
-	os.MkdirAll(filepath.Join(*dir, "gloo-system"), 0755)
+	os.MkdirAll(filepath.Join(*dir, defaults.GlooSystem), 0755)
 	if err := run(*dir); err != nil {
 		log.Fatalf("err in main: %v", err.Error())
 	}

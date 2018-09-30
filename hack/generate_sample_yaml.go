@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/samples"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/setup"
@@ -30,7 +31,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	resolvermaps, err := resoverMapsClient.List("gloo-system", clients.ListOpts{})
+	resolvermaps, err := resoverMapsClient.List(defaults.GlooSystem, clients.ListOpts{})
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,7 @@ var rm = &v1.ResolverMap{
 							Action: &gloov1.RouteAction{
 								Destination: &gloov1.RouteAction_Single{
 									Single: &gloov1.Destination{
-										Upstream: core.ResourceRef{Name: "petstir", Namespace: "gloo-system"},
+										Upstream: core.ResourceRef{Name: "petstir", Namespace: defaults.GlooSystem},
 										DestinationSpec: &gloov1.DestinationSpec{
 											DestinationType: &gloov1.DestinationSpec_Rest{
 												Rest: &rest.DestinationSpec{
@@ -88,7 +89,7 @@ var rm = &v1.ResolverMap{
 							Action: &gloov1.RouteAction{
 								Destination: &gloov1.RouteAction_Single{
 									Single: &gloov1.Destination{
-										Upstream: core.ResourceRef{Name: "petstir", Namespace: "gloo-system"},
+										Upstream: core.ResourceRef{Name: "petstir", Namespace: defaults.GlooSystem},
 										DestinationSpec: &gloov1.DestinationSpec{
 											DestinationType: &gloov1.DestinationSpec_Rest{
 												Rest: &rest.DestinationSpec{
@@ -133,7 +134,7 @@ var rm = &v1.ResolverMap{
 	},
 	Metadata: core.Metadata{
 		Name:      "petstore",
-		Namespace: "gloo-system",
+		Namespace: defaults.GlooSystem,
 		Annotations: map[string]string{
 			"created_for": "petstore",
 		},

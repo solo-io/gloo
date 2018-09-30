@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/pkg/utils/stats"
 	fdssetup "github.com/solo-io/solo-kit/projects/discovery/pkg/fds/setup"
@@ -21,7 +23,7 @@ func main() {
 func run() error {
 	dir := flag.String("dir", "gloo", "directory for config")
 	flag.Parse()
-	os.MkdirAll(filepath.Join(*dir, "gloo-system"), 0755)
+	os.MkdirAll(filepath.Join(*dir, defaults.GlooSystem), 0755)
 	errs := make(chan error)
 	go func() {
 		errs <- uds.Main(*dir)

@@ -28,7 +28,7 @@ func Main(settingsDir string) error {
 	cache := gloov1.NewSetupEmitter(settingsClient)
 	ctx := contextutils.WithLogger(context.Background(), "sqoop")
 	eventLoop := gloov1.NewSetupEventLoop(cache, NewSetupSyncer())
-	errs, err := eventLoop.Run([]string{"gloo-system"}, clients.WatchOpts{
+	errs, err := eventLoop.Run([]string{defaults.GlooSystem}, clients.WatchOpts{
 		Ctx:         ctx,
 		RefreshRate: time.Second,
 	})
