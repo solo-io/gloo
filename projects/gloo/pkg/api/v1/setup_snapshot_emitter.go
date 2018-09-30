@@ -16,18 +16,18 @@ import (
 )
 
 var (
-	mSetupSnapshotIn  = stats.Int64("setup_snap_emitter/snap_in", "The number of snapshots in", "1")
-	mSetupSnapshotOut = stats.Int64("setup_snap_emitter/snap_out", "The number of snapshots out", "1")
+	mSetupSnapshotIn  = stats.Int64("setup.gloo.solo.io/snap_emitter/snap_in", "The number of snapshots in", "1")
+	mSetupSnapshotOut = stats.Int64("setup.gloo.solo.io/snap_emitter/snap_out", "The number of snapshots out", "1")
 
 	setupsnapshotInView = &view.View{
-		Name:        "setup_snap_emitter/snap_in",
+		Name:        "setup.gloo.solo.io_snap_emitter/snap_in",
 		Measure:     mSetupSnapshotIn,
 		Description: "The number of snapshots updates coming in",
 		Aggregation: view.Count(),
 		TagKeys:     []tag.Key{},
 	}
 	setupsnapshotOutView = &view.View{
-		Name:        "setup_snap_emitter/snap_out",
+		Name:        "setup.gloo.solo.io/snap_emitter/snap_out",
 		Measure:     mSetupSnapshotOut,
 		Description: "The number of snapshots updates going out",
 		Aggregation: view.Count(),
@@ -122,6 +122,8 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return
 			}
+
+			stats.Record(ctx, mSetupSnapshotOut.M(1))
 			originalSnapshot = currentSnapshot.Clone()
 			sentSnapshot := currentSnapshot.Clone()
 			snapshots <- &sentSnapshot
@@ -139,6 +141,8 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 		*/
 
 		for {
+			record := func() { stats.Record(ctx, mSetupSnapshotIn.M(1)) }
+
 			select {
 			case <-timer.C:
 				sync()
@@ -151,15 +155,14 @@ func (c *setupEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpt
 				sentSnapshot := currentSnapshot.Clone()
 				snapshots <- &sentSnapshot
 			case settingsNamespacedList := <-settingsChan:
+				record()
+
 				namespace := settingsNamespacedList.namespace
 				settingsList := settingsNamespacedList.list
 
 				currentSnapshot.Settings.Clear(namespace)
 				currentSnapshot.Settings.Add(settingsList...)
 			}
-
-			// if we got here its because a new entry in the channel
-			stats.Record(ctx, mSetupSnapshotIn.M(1))
 		}
 	}()
 	return snapshots, errs, nil

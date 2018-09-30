@@ -3,6 +3,8 @@ package v1
 import (
 	"context"
 
+	"go.opencensus.io/trace"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -45,7 +47,7 @@ func (el *setupEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-ch
 	go func() {
 		// create a new context for each loop, cancel it before each loop
 		var cancel context.CancelFunc = func() {}
-		defer cancel()
+		defer func() { cancel() }()
 		for {
 			select {
 			case snapshot, ok := <-watch:
@@ -54,9 +56,13 @@ func (el *setupEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-ch
 				}
 				// cancel any open watches from previous loop
 				cancel()
-				ctx, canc := context.WithCancel(opts.Ctx)
+
+				ctx, span := trace.StartSpan(opts.Ctx, "setup.gloo.solo.io.EventLoopSync")
+				ctx, canc := context.WithCancel(ctx)
 				cancel = canc
 				err := el.syncer.Sync(ctx, snapshot)
+				span.End()
+
 				if err != nil {
 					select {
 					case errs <- err:

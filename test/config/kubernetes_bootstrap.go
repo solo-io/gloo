@@ -46,13 +46,13 @@ func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
 	return bootstrap.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Upstreams: &factory.KubeResourceClientFactory{
-			Crd: v1.UpstreamCrd,
-			Cfg: cfg,
+			Crd:         v1.UpstreamCrd,
+			Cfg:         cfg,
 			SharedCache: cache,
 		},
 		Proxies: &factory.KubeResourceClientFactory{
-			Crd: v1.ProxyCrd,
-			Cfg: cfg,
+			Crd:         v1.ProxyCrd,
+			Cfg:         cfg,
 			SharedCache: cache,
 		},
 		Secrets: &factory.KubeSecretClientFactory{
