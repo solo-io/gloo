@@ -64,6 +64,7 @@ type ResourceClientSharedInformerFactory struct {
 	// startedInformers is used for tracking which informers have been started.
 	// This allows Start() to be called multiple times safely.
 	startedInformers map[reflect.Type]bool
+	started          bool
 }
 
 func NewResourceClientSharedInformerFactory() *ResourceClientSharedInformerFactory {
@@ -122,6 +123,10 @@ func (f *ResourceClientSharedInformerFactory) RegisterInformer(obj runtime.Objec
 	f.lock.Lock()
 	defer f.lock.Unlock()
 
+	if f.started {
+		panic("can't register informer after factory has started. this may change in the future")
+	}
+
 	informerType := reflect.TypeOf(obj)
 	informer, exists := f.informers[informerType]
 	if exists {
@@ -155,6 +160,8 @@ func (f *ResourceClientSharedInformerFactory) Start(ctx context.Context, kubeCli
 				sharedInformers = append(sharedInformers, informer)
 			}
 		}
+
+		f.started = true
 	}()
 
 	kubeController := kubecontroller.NewController("solo-resource-controller", kubeClient,
