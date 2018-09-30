@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd/solo.io/v1"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 
 	"github.com/solo-io/kubecontroller"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -116,15 +117,15 @@ func (f *ResourceClientSharedInformerFactory) Register(rc *ResourceClient) {
 		cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc},
 	)
 
-	f.RegisterInformer(rc.crd.Type, sharedInformer)
+	f.RegisterInformer(ctx, rc.crd.Type, sharedInformer)
 }
 
-func (f *ResourceClientSharedInformerFactory) RegisterInformer(obj runtime.Object, newInformer cache.SharedIndexInformer) cache.SharedIndexInformer {
+func (f *ResourceClientSharedInformerFactory) RegisterInformer(ctx context.Context, obj runtime.Object, newInformer cache.SharedIndexInformer) cache.SharedIndexInformer {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 
 	if f.started {
-		panic("can't register informer after factory has started. this may change in the future")
+		contextutils.LoggerFrom(ctx).DPanic("can't register informer after factory has started. this may change in the future")
 	}
 
 	informerType := reflect.TypeOf(obj)
