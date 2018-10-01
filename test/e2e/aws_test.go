@@ -18,6 +18,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gw1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 
 	aws_plugin "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 
@@ -129,7 +130,7 @@ var _ = Describe("AWS Lambda", func() {
 	}
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
-		t := services.RunGateway(ctx, true)
+		t := services.RunGateway(ctx, false)
 		testClients = t
 		var err error
 		envoyInstance, err = envoyFactory.NewEnvoyInstance()
@@ -264,7 +265,7 @@ var _ = Describe("AWS Lambda", func() {
 		err := envoyInstance.RunWithRole("gloo-system~gateway-proxy", testClients.GlooPort)
 		Expect(err).NotTo(HaveOccurred())
 
-		envoyPort := uint32(8080)
+		envoyPort := uint32(defaults.HttpPort)
 
 		vs := &gw1.VirtualService{
 			Metadata: core.Metadata{
@@ -304,20 +305,20 @@ var _ = Describe("AWS Lambda", func() {
 		_, err = testClients.VirtualServiceClient.Write(vs, opts)
 		Expect(err).NotTo(HaveOccurred())
 
-		/*
+		/* // TODO(yuval-k): i dont think we need this as we can use the default gateway.
 
-			gateway := &gw1.Gateway{
-				Metadata: core.Metadata{
-					Name:      "ingress",
-					Namespace: "default",
-				},
-				VirtualServices: []core.ResourceRef{vs.Metadata.Ref()},
-				BindPort:        envoyPort,
-				BindAddress:     "127.0.0.1",
-			}
+		gateway := &gw1.Gateway{
+			Metadata: core.Metadata{
+				Name:      "ingress",
+				Namespace: "default",
+			},
+			VirtualServices: []core.ResourceRef{vs.Metadata.Ref()},
+			BindPort:        envoyPort,
+			BindAddress:     "127.0.0.1",
+		}
 
-			_, err = testClients.GatewayClient.Write(gateway, opts)
-			Expect(err).NotTo(HaveOccurred())
+		_, err = testClients.GatewayClient.Write(gateway, opts)
+		Expect(err).NotTo(HaveOccurred())
 		*/
 		validateLambdaUppercase(envoyPort)
 	})
