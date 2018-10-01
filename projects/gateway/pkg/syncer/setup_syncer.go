@@ -1,4 +1,4 @@
-package setup
+package syncer
 
 import (
 	"context"
@@ -14,20 +14,25 @@ import (
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/defaults"
 	"github.com/solo-io/solo-kit/projects/gateway/pkg/propagator"
-	"github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	gloodefaults "github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"k8s.io/client-go/rest"
 )
 
-func NewSetupSyncer() gloov1.SetupSyncer {
-	return &settingsSyncer{}
+func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) gloov1.SetupSyncer {
+	return &setupSyncer{
+		inMemoryCache: inMemoryCache,
+		kubeCache:     kubeCache,
+	}
 }
 
-type settingsSyncer struct{}
+type setupSyncer struct {
+	kubeCache     *kube.KubeCache
+	inMemoryCache memory.InMemoryResourceCache
+}
 
-func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) error {
+func (s *setupSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) error {
 	switch {
 	case len(snap.Settings.List()) == 0:
 		return errors.Errorf("no settings files found")
@@ -39,8 +44,8 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 	var (
 		cfg *rest.Config
 	)
-	cache := memory.NewInMemoryResourceCache()
-	kubeCache := kube.NewKubeCache()
+	cache := s.inMemoryCache
+	kubeCache := s.kubeCache
 
 	proxyFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
@@ -152,7 +157,7 @@ func RunGateway(opts Opts) error {
 
 	prop := propagator.NewPropagator("gateway", gatewayClient, virtualServiceClient, proxyClient, writeErrs)
 
-	sync := syncer.NewTranslatorSyncer(opts.WriteNamespace, proxyClient, gatewayClient, virtualServiceClient, rpt, prop, writeErrs)
+	sync := NewTranslatorSyncer(opts.WriteNamespace, proxyClient, gatewayClient, virtualServiceClient, rpt, prop, writeErrs)
 
 	eventLoop := v1.NewApiEventLoop(emitter, sync)
 	eventLoopErrs, err := eventLoop.Run(opts.WatchNamespaces, opts.WatchOpts)

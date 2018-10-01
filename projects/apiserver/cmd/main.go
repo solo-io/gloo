@@ -7,8 +7,8 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/setup"
-	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
-	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/setup"
+	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
+	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-kit/test/config"
 )
 

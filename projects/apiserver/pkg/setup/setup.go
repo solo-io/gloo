@@ -14,11 +14,11 @@ import (
 	apiserver "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
-	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
+	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/setup"
+	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-kit/samples"
 )
 

@@ -81,7 +81,7 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 	}
 }
 
-func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResourceCache) setup.Opts {
+func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResourceCache) syncer.Opts {
 	ctx = contextutils.WithLogger(ctx, "gateway")
 	ctx = contextutils.SilenceLogger(ctx)
 	f := &factory.MemoryResourceClientFactory{
