@@ -1,10 +1,9 @@
 package services
 
 import (
+	gatewaysyncer "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
 	"net"
 	"time"
-
-	"github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
 
 	"context"
 	"sync/atomic"
@@ -50,7 +49,7 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 	// no gateway for now
 	if !justgloo {
 		opts := DefaultTestConstructOpts(ctx, cache)
-		go setup.RunGateway(opts)
+		go gatewaysyncer.RunGateway(opts)
 	}
 	glooopts.StartGrpcServer = true
 	go syncer.RunGloo(glooopts)
@@ -81,25 +80,25 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 	}
 }
 
-func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResourceCache) syncer.Opts {
+func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResourceCache) gatewaysyncer.Opts {
 	ctx = contextutils.WithLogger(ctx, "gateway")
 	ctx = contextutils.SilenceLogger(ctx)
 	f := &factory.MemoryResourceClientFactory{
 		Cache: cache,
 	}
 
-	return setup.NewOpts(
-		defaults.GlooSystem,
-		f, // gateways
-		f, // virtual services
-		f, // proxies
-		[]string{"default", defaults.GlooSystem},
-		clients.WatchOpts{
+	return gatewaysyncer.Opts{
+		WriteNamespace: defaults.GlooSystem,
+		WatchNamespaces:		[]string{"default", defaults.GlooSystem},
+		Gateways:        f,
+		VirtualServices: f,
+		Proxies:         f,
+		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Minute,
 		},
-		false,
-	)
+		DevMode: false,
+	}
 }
 
 func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache) bootstrap.Opts {
