@@ -15,6 +15,10 @@ import (
 
 func waitOnFail() {
 
+	if os.Getenv("WAIT_ON_FAIL") == "0" {
+		return
+	}
+
 	if os.Getenv("WAIT_ON_FAIL") == "1" || IsDebuggerPresent() {
 		// wait for sig usr1
 		c := make(chan os.Signal, 1)
