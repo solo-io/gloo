@@ -2,6 +2,7 @@ package syncer
 
 import (
 	"context"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -34,8 +35,8 @@ func NewTranslatorSyncer(writeNamespace string, proxyClient gloov1.ProxyClient, 
 		propagator:      propagator,
 		writeErrs:       writeErrs,
 		proxyClient:     proxyClient,
-		gwClient:     gwClient,
-		vsClient:     vsClient,
+		gwClient:        gwClient,
+		vsClient:        vsClient,
 		proxyReconciler: gloov1.NewProxyReconciler(proxyClient),
 	}
 }
@@ -85,7 +86,10 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error
 	return nil
 }
 
-func (s *translatorSyncer)  propagateProxyStatus(ctx context.Context, snap *v1.ApiSnapshot, proxy *gloov1.Proxy, resourceErrs reporter.ResourceErrors) error {
+func (s *translatorSyncer) propagateProxyStatus(ctx context.Context, snap *v1.ApiSnapshot, proxy *gloov1.Proxy, resourceErrs reporter.ResourceErrors) error {
+	if proxy == nil {
+		return nil
+	}
 	statuses, err := watchProxyStatus(ctx, s.proxyClient, proxy)
 	if err != nil {
 		return err
