@@ -125,10 +125,10 @@ func watchProxyStatus(ctx context.Context, proxyClient gloov1.ProxyClient, proxy
 	}
 	statuses := make(chan core.Status)
 	go func() {
+		defer close(statuses)
 		for {
 			select {
 			case <-ctx.Done():
-				close(statuses)
 				return
 			case err := <-errs:
 				contextutils.LoggerFrom(ctx).Error(err)
