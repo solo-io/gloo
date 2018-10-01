@@ -1,6 +1,8 @@
 package syncer
 
 import (
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -10,8 +12,8 @@ import (
 	gloosyncer "github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 )
 
-func NewSetupSyncer() v1.SetupSyncer {
-	return gloosyncer.NewSetupSyncerWithRunFunc(RunUDS)
+func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) v1.SetupSyncer {
+	return gloosyncer.NewSetupSyncerWithRunFunc(inMemoryCache, kubeCache, RunUDS)
 }
 
 func RunUDS(opts bootstrap.Opts) error {
