@@ -138,7 +138,11 @@ func watchProxyStatus(ctx context.Context, proxyClient gloov1.ProxyClient, proxy
 					contextutils.LoggerFrom(ctx).Error(err)
 					continue
 				}
-				statuses <- proxy.Status
+				select {
+				case <-ctx.Done():
+					return
+				case statuses <- proxy.Status:
+				}
 			}
 		}
 	}()
