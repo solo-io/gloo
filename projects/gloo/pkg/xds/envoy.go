@@ -49,20 +49,8 @@ func (h *ProxyKeyHasher) ID(node *core.Node) string {
 			role = roleValue.GetStringValue()
 		}
 	}
-
-	h.validKeysLock.Lock()
-	validKeys := h.validKeys
-	h.validKeysLock.Unlock()
-
-	for _, key := range validKeys {
-		if role == key {
-			return key
-		}
-	}
-
-	contextutils.LoggerFrom(h.ctx).Warnf("invalid id provided by Envoy: %v", role)
-	contextutils.LoggerFrom(h.ctx).Debugf(errorString)
-	return fallbackNodeKey
+	// TODO(yuval-k): once go-control-plane is implemented here we can implement default snapshot in it.
+	return role
 }
 
 func SnapshotKey(proxy *v1.Proxy) string {
