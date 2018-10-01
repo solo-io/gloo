@@ -1,12 +1,11 @@
-package setup
+package syncer
 
 import (
 	"context"
 	"fmt"
-	"net/http"
-
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
@@ -19,18 +18,34 @@ import (
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/router"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
 	"k8s.io/client-go/rest"
+	"net/http"
 )
 
-func NewSetupSyncer() gloov1.SetupSyncer {
-	return &settingsSyncer{}
+type Opts struct {
+	WriteNamespace  string
+	WatchNamespaces []string
+	Schemas         factory.ResourceClientFactory
+	ResolverMaps    factory.ResourceClientFactory
+	Proxies         factory.ResourceClientFactory
+	WatchOpts       clients.WatchOpts
+	DevMode         bool
+	SidecarAddr     string
 }
 
-type settingsSyncer struct{}
+func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) gloov1.SetupSyncer {
+	return &setupSyncer{
+		inMemoryCache: inMemoryCache,
+		kubeCache:     kubeCache,}
+}
 
-func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) error {
+type setupSyncer struct {
+	kubeCache     *kube.KubeCache
+	inMemoryCache memory.InMemoryResourceCache
+}
+
+func (s *setupSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) error {
 	switch {
 	case len(snap.Settings.List()) == 0:
 		return errors.Errorf("no settings files found")
@@ -42,8 +57,8 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) e
 	var (
 		cfg *rest.Config
 	)
-	cache := memory.NewInMemoryResourceCache()
-	kubeCache := kube.NewKubeCache()
+	cache := s.inMemoryCache
+	kubeCache := s.kubeCache
 
 	proxyFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
@@ -157,7 +172,7 @@ func RunSqoop(opts Opts) error {
 
 	rtr := router.NewRouter()
 
-	sync := syncer.NewGraphQLSyncer(opts.WriteNamespace, rpt, writeErrs, proxyReconciler, resolverMapClient, eng, rtr)
+	sync := NewGraphQLSyncer(opts.WriteNamespace, rpt, writeErrs, proxyReconciler, resolverMapClient, eng, rtr)
 
 	go func() {
 		contextutils.LoggerFrom(opts.WatchOpts.Ctx).Fatalf("failed starting sqoop server: %v",
