@@ -52,6 +52,7 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 		opts := DefaultTestConstructOpts(ctx, cache)
 		go setup.RunGateway(opts)
 	}
+	glooopts.StartGrpcServer = true
 	go syncer.RunGloo(glooopts)
 
 	// construct our own resources:
@@ -118,12 +119,12 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache) bo
 		Cache: cache,
 	}
 	return bootstrap.Opts{
-		WriteNamespace: defaults.GlooSystem,
-		Upstreams:      f,
-		Proxies:        f,
-		Secrets:        f,
-		Artifacts:      f,
-		WatchNamespaces:     []string{"default", defaults.GlooSystem},
+		WriteNamespace:  defaults.GlooSystem,
+		Upstreams:       f,
+		Proxies:         f,
+		Secrets:         f,
+		Artifacts:       f,
+		WatchNamespaces: []string{"default", defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Second / 10,
