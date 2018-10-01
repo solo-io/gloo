@@ -44,7 +44,7 @@ rm -rf protobuf
 
 curl -sL https://github.com/protocolbuffers/protobuf/archive/${PROTOBUF_SHA}.tar.gz | tar xz --wildcards '*.proto'
 mkdir -p "${protodir}/google/protobuf"
-cp protobuf-*/src/google/protobuf/{timestamp,descriptor,duration,struct}.proto "${protodir}/google/protobuf"
+cp protobuf-*/src/google/protobuf/{timestamp,descriptor,duration,struct,wrappers,empty,any}.proto "${protodir}/google/protobuf"
 
 curl -sL https://github.com/googleapis/googleapis/archive/${GOOGLEAPIS_SHA}.tar.gz | tar xz --wildcards '*.proto'
 mkdir -p "${protodir}/google/api"
