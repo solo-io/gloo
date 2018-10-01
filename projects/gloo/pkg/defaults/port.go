@@ -1,3 +1,3 @@
 package defaults
 
-const HttpPort = 80
+var HttpPort uint32 = 80

@@ -20,9 +20,10 @@ import (
 // we assign a "fix me" snapshot for bad nodes
 const fallbackNodeKey = "misconfigured-node"
 
+// TODO(ilackarms): expose these as a configuration option (maybe)
+var fallbackBindPort = defaults.HttpPort
+
 const (
-	// TODO(ilackarms): expose these as a configuration option (maybe)
-	fallbackBindPort   = defaults.HttpPort
 	fallbackBindAddr   = "::"
 	fallbackStatusCode = 500
 )
