@@ -34,7 +34,7 @@ objects:
     labels:
       gloo: gloo
   spec:
-    replicas: 1
+    replicas: ${GLOO_REPLICAS}
     selector:
       matchLabels:
         gloo: gloo
@@ -79,7 +79,7 @@ objects:
     labels:
       gloo: discovery
   spec:
-    replicas: 1
+    replicas: ${DISCOVERY_REPLICAS}
     selector:
       matchLabels:
         gloo: discovery
@@ -105,7 +105,7 @@ objects:
     labels:
       gloo: gateway
   spec:
-    replicas: 1
+    replicas: ${GATEWAY_REPLICAS}
     selector:
       matchLabels:
         gloo: gateway
@@ -130,7 +130,7 @@ objects:
     labels:
       gloo: gateway-proxy
   spec:
-    replicas: 1
+    replicas: ${GATEWAY_PROXY_REPLICAS}
     selector:
       matchLabels:
         gloo: gateway-proxy
@@ -239,7 +239,7 @@ objects:
     labels:
       gloo: sqoop
   spec:
-    replicas: 1
+    replicas: ${SQOOP_PROXY_REPLICAS}
     selector:
       matchLabels:
         gloo: sqoop
@@ -348,7 +348,7 @@ objects:
     labels:
       gloo: apiserver-ui
   spec:
-    replicas: 1
+    replicas: ${APISERVER_REPLICAS}
     selector:
       matchLabels:
         gloo: apiserver-ui
@@ -476,6 +476,11 @@ parameters:
   description: Docker image Tag +for Gloo
   value: ilackarms
 
+- name: GLOO_REPLICAS
+  required: true
+  description: Number of replicas to run of Gloo
+  value: "1"
+
 - name: GLOO_XDS_PORT
   required: true
   description: Port where Gloo accepts XDS Connections
@@ -492,6 +497,16 @@ parameters:
   required: true
   description: Docker image Tag +for Gateway
   value: ilackarms
+
+- name: GATEWAY_REPLICAS
+  required: true
+  description: Number of replicas to run of Gateway
+  value: "1"
+
+- name: GATEWAY_PROXY_REPLICAS
+  required: true
+  description: Number of replicas to run of Gateway Proxy
+  value: "1"
 
 - name: GATEWAY_PROXY_PORT
   required: true
@@ -512,6 +527,11 @@ parameters:
   description: Docker image Tag +for Sqoop
   value: ilackarms
 
+- name: SQOOP_REPLICAS
+  required: true
+  description: Number of replicas to run of Sqoop
+  value: "1"
+
 - name: SQOOP_GRAPHQL_PORT
   required: true
   description: Port where Sqoop serves GraphQL Endpoints
@@ -529,6 +549,12 @@ parameters:
   description: Docker image Tag +for Discovery
   value: ilackarms
 
+- name: DISCOVERY_REPLICAS
+  required: true
+  description: Number of replicas to run of Discovery
+  value: "1"
+
+
 
 # Apiserver
 
@@ -541,6 +567,11 @@ parameters:
   required: true
   description: Docker image Tag +for Apiserver
   value: ilackarms
+
+- name: APISERVER_REPLICAS
+  required: true
+  description: Number of replicas to run of Apiserver
+  value: "1"
 
 - name: APISERVER_GRAPHQL_PORT
   required: true
@@ -557,6 +588,8 @@ parameters:
   description: The Publicly addressable URL of the openshift oauth endpoint. In the fututure this will be discovered automatically. For now, simply copy the value from the browser.
   value: https://<openshift-master-ip>:8443/oauth/authorize
 
+
+## SIDECARS (no replicas)
 
 # UI
 
