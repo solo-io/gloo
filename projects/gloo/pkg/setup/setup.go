@@ -29,9 +29,9 @@ func Main(settingsDir string) error {
 	if err := writeSettings(settingsClient); err != nil && !errors.IsExist(err) {
 		return err
 	}
-	cache := v1.NewSetupEmitter(settingsClient)
+	emitter := v1.NewSetupEmitter(settingsClient)
 	ctx := contextutils.WithLogger(context.Background(), "gloo")
-	eventLoop := v1.NewSetupEventLoop(cache, syncer.NewSetupSyncer())
+	eventLoop := v1.NewSetupEventLoop(emitter, syncer.NewSetupSyncer())
 	errs, err := eventLoop.Run([]string{defaults.GlooSystem}, clients.WatchOpts{
 		Ctx:         ctx,
 		RefreshRate: time.Second,
