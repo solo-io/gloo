@@ -12,7 +12,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-kit/pkg/namespacing/static"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -87,13 +86,12 @@ func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResource
 	f := &factory.MemoryResourceClientFactory{
 		Cache: cache,
 	}
+
 	return setup.NewOpts(
 		defaults.GlooSystem,
-		f,
-		f,
-		f,
-		f,
-		f,
+		f, // gateways
+		f, // virtual services
+		f, // proxies
 		[]string{"default", defaults.GlooSystem},
 		clients.WatchOpts{
 			Ctx:         ctx,
@@ -125,7 +123,7 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache) bo
 		Proxies:        f,
 		Secrets:        f,
 		Artifacts:      f,
-		Namespacer:     static.NewNamespacer([]string{"default", defaults.GlooSystem}),
+		WatchNamespaces:     []string{"default", defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Second / 10,
