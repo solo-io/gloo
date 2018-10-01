@@ -22,5 +22,5 @@ func main() {
 }
 
 func run(dir string) error {
-	return setup.Main(dir)
+	return setup.Main(true, dir)
 }

@@ -33,9 +33,13 @@ import (
 
 type RunFunc func(opts bootstrap.Opts) error
 
+func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) v1.SetupSyncer {
+	return NewSetupSyncerWithRunFunc(inMemoryCache, kubeCache, RunGloo)
+}
+
 // for use by UDS, FDS, other v1.SetupSyncers
-func NewSetupSyncerWithRunFunc(runFunc RunFunc) v1.SetupSyncer {
-	return &settingsSyncer{
+func NewSetupSyncerWithRunFunc(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache, runFunc RunFunc) v1.SetupSyncer {
+	return &setupSyncer{
 		grpcServer: func(ctx context.Context) *grpc.Server {
 			return grpc.NewServer(grpc.StreamInterceptor(
 				grpc_middleware.ChainStreamServer(
@@ -49,21 +53,21 @@ func NewSetupSyncerWithRunFunc(runFunc RunFunc) v1.SetupSyncer {
 			)
 		},
 		runFunc: runFunc,
+		inMemoryCache: inMemoryCache,
+		kubeCache:     kubeCache,
 	}
 }
 
-func NewSetupSyncer() v1.SetupSyncer {
-	return NewSetupSyncerWithRunFunc(RunGloo)
-}
-
-type settingsSyncer struct {
+type setupSyncer struct {
 	runFunc            RunFunc
 	grpcServer         func(ctx context.Context) *grpc.Server
 	previousBindAddr   string
 	previousGrpcServer *grpc.Server
+	kubeCache     *kube.KubeCache
+	inMemoryCache memory.InMemoryResourceCache
 }
 
-func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
+func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 	switch {
 	case len(snap.Settings.List()) == 0:
 		return errors.Errorf("no settings files found")
@@ -76,8 +80,8 @@ func (s *settingsSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error
 		cfg       *rest.Config
 		clientset kubernetes.Interface
 	)
-	cache := memory.NewInMemoryResourceCache()
-	kubeCache := kube.NewKubeCache()
+	cache := s.inMemoryCache
+	kubeCache := s.kubeCache
 
 	upstreamFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,

@@ -32,7 +32,7 @@ func run() error {
 	os.MkdirAll(filepath.Join(*dir, defaults.GlooSystem), 0755)
 	errs := make(chan error)
 	go func() {
-		errs <- gloosetup.Main(*dir)
+		errs <- gloosetup.Main(true, *dir)
 	}()
 	go func() {
 		errs <- gatewaysetup.Main(*dir)
