@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -ex
-
+oc project gloo-system
 oc apply -f hack/openshift/template.yaml
 oc process gloo-ee-installation-template \
  -p APISERVER_OPENSHIFT_MASTER_IP=$(minishift ip) \
