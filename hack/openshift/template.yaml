@@ -34,7 +34,7 @@ objects:
     labels:
       gloo: gloo
   spec:
-    replicas: ${GLOO_REPLICAS}
+    replicas: ${{GLOO_REPLICAS}}
     selector:
       matchLabels:
         gloo: gloo
@@ -79,7 +79,7 @@ objects:
     labels:
       gloo: discovery
   spec:
-    replicas: ${DISCOVERY_REPLICAS}
+    replicas: ${{DISCOVERY_REPLICAS}}
     selector:
       matchLabels:
         gloo: discovery
@@ -105,7 +105,7 @@ objects:
     labels:
       gloo: gateway
   spec:
-    replicas: ${GATEWAY_REPLICAS}
+    replicas: ${{GATEWAY_REPLICAS}}
     selector:
       matchLabels:
         gloo: gateway
@@ -130,7 +130,7 @@ objects:
     labels:
       gloo: gateway-proxy
   spec:
-    replicas: ${GATEWAY_PROXY_REPLICAS}
+    replicas: ${{GATEWAY_PROXY_REPLICAS}}
     selector:
       matchLabels:
         gloo: gateway-proxy
@@ -239,7 +239,7 @@ objects:
     labels:
       gloo: sqoop
   spec:
-    replicas: ${SQOOP_PROXY_REPLICAS}
+    replicas: ${{SQOOP_PROXY_REPLICAS}}
     selector:
       matchLabels:
         gloo: sqoop
@@ -348,7 +348,7 @@ objects:
     labels:
       gloo: apiserver-ui
   spec:
-    replicas: ${APISERVER_REPLICAS}
+    replicas: ${{APISERVER_REPLICAS}}
     selector:
       matchLabels:
         gloo: apiserver-ui
