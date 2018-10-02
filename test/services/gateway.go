@@ -1,9 +1,10 @@
 package services
 
 import (
-	gatewaysyncer "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
 	"net"
 	"time"
+
+	gatewaysyncer "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
 
 	"context"
 	"sync/atomic"
@@ -24,6 +25,7 @@ import (
 	"go.uber.org/zap"
 
 	. "github.com/onsi/gomega"
+	fds_syncer "github.com/solo-io/solo-kit/projects/discovery/pkg/fds/syncer"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
 )
@@ -53,6 +55,7 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 	}
 	glooopts.StartGrpcServer = true
 	go syncer.RunGloo(glooopts)
+	go fds_syncer.RunFDS(glooopts)
 
 	// construct our own resources:
 	factory := &factory.MemoryResourceClientFactory{
@@ -88,8 +91,8 @@ func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResource
 	}
 
 	return gatewaysyncer.Opts{
-		WriteNamespace: defaults.GlooSystem,
-		WatchNamespaces:		[]string{"default", defaults.GlooSystem},
+		WriteNamespace:  defaults.GlooSystem,
+		WatchNamespaces: []string{"default", defaults.GlooSystem},
 		Gateways:        f,
 		VirtualServices: f,
 		Proxies:         f,
