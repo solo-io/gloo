@@ -5,10 +5,13 @@
 set -e
 set -x
 
-basedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../api/external/ && pwd )"
-outputdir=$basedir/generated
-protodir=$basedir/proto/
+basedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../api && pwd )"
+outputdir=$basedir/external/generated
+protodir=$basedir/external/proto/
 envoyprotodir=$protodir/envoy
+
+# TODO once we move to go mod this can be $(go env GOMOD)/api
+gobasepkg=github.com/solo-io/solo-kit/api/
 
 protoc=$(which protoc)
 
@@ -44,7 +47,7 @@ do
     path_protos=(${path}/*.proto)
     for path_proto in "${path_protos[@]}"
     do
-      mapping=${path_proto##${protodir}/}=github.com/solo-io/solo-kit/api/external/generated/${path##${protodir}/}
+      mapping=${path_proto##${protodir}/}=${gobasepkg}/${path##${protodir}/}
       gogoarg+=",M$mapping"
     done
   fi
