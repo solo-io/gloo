@@ -532,6 +532,11 @@ parameters:
   description: Number of replicas to run of Sqoop
   value: "1"
 
+- name: SQOOP_PROXY_REPLICAS
+  required: true
+  description: Number of replicas to run of Sqoop
+  value: "1"
+
 - name: SQOOP_GRAPHQL_PORT
   required: true
   description: Port where Sqoop serves GraphQL Endpoints
