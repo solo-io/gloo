@@ -1,6 +1,6 @@
 # reference for ports in use
 gloo: 9977
-gateway-envoy: 80
+gateway-envoy: 8080
 sqoop-envoy: 9090
 sqoop-graphql: 9095
 stats:loc 9091

@@ -1,3 +1,3 @@
 package defaults
 
-var HttpPort uint32 = 80
+var HttpPort uint32 = 8080

@@ -237,8 +237,8 @@ spec:
         - name: gloo-i
           image: soloio/gloo-i:v1-462-g3ff17af
           ports:
-            - name: grpc-ads
-              containerPort: 80
+            - name: static
+              containerPort: 8080
               protocol: TCP
         - name: apiserver
           image: soloio/apiserver-ee:v1-466-gec98f58
@@ -262,9 +262,9 @@ metadata:
     gloo: gloo-i
 spec:
   ports:
-    - port: 80
+    - port: 8080
       protocol: TCP
-      name: grpc-ads
+      name: static
   selector:
     gloo: gloo-i
 
