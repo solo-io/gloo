@@ -1,6 +1,8 @@
 package setup
 
 import (
+	"time"
+
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -11,7 +13,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
-	"time"
 )
 
 func Main(devMode bool, settingsDir string) error {
@@ -44,9 +45,10 @@ func writeSettings(cli v1.SettingsClient) error {
 		SecretSource: &v1.Settings_KubernetesSecretSource{
 			KubernetesSecretSource: &v1.Settings_KubernetesSecrets{},
 		},
-		BindAddr:    "0.0.0.0:9977",
-		RefreshRate: types.DurationProto(time.Minute),
-		DevMode:     true,
+		BindAddr:        "0.0.0.0:9977",
+		RefreshRate:     types.DurationProto(time.Minute),
+		DevMode:         true,
+		WatchNamespaces: []string{"default", defaults.GlooSystem},
 		Metadata: core.Metadata{
 			Namespace: defaults.GlooSystem,
 			Name:      "gloo",
