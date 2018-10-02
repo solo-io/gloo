@@ -12,6 +12,14 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+type KubePluginSharedFactory interface {
+	EndpointsLister() kubelisters.EndpointsLister
+	ServicesLister() kubelisters.ServiceLister
+	PodsLister() kubelisters.PodLister
+	Subscribe() <-chan struct{}
+	Unsubscribe(<-chan struct{})
+}
+
 type KubePluginListers struct {
 	endpointsLister kubelisters.EndpointsLister
 	servicesLister  kubelisters.ServiceLister
@@ -21,14 +29,15 @@ type KubePluginListers struct {
 	cacheUpdatedWatchersMutex sync.Mutex
 }
 
-var kubePlugin *KubePluginListers
-var kubePluginOnce sync.Once
+var kubePluginSharedFactory *KubePluginListers
+var kubePluginSharedFactoryOnce sync.Once
 
 // TODO(yuval-k): MUST MAKE SURE THAT THIS CLIENT DOESNT HAVE A CONTEXT THAT IS GOING TO EXPIRE!!
-func startInformerFactoryOnce(client kubernetes.Interface) {
-	kubePluginOnce.Do(func() {
-		kubePlugin = startInformerFactory(context.TODO(), client)
+func getInformerFactory(client kubernetes.Interface) *KubePluginListers {
+	kubePluginSharedFactoryOnce.Do(func() {
+		kubePluginSharedFactory = startInformerFactory(context.TODO(), client)
 	})
+	return kubePluginSharedFactory
 }
 
 func startInformerFactory(ctx context.Context, client kubernetes.Interface) *KubePluginListers {
@@ -55,8 +64,19 @@ func startInformerFactory(ctx context.Context, client kubernetes.Interface) *Kub
 	return k
 }
 
-func (k *KubePluginListers) subscribe() chan struct{} {
+func (k *KubePluginListers) EndpointsLister() kubelisters.EndpointsLister {
+	return k.endpointsLister
+}
 
+func (k *KubePluginListers) ServicesLister() kubelisters.ServiceLister {
+	return k.servicesLister
+}
+
+func (k *KubePluginListers) PodsLister() kubelisters.PodLister {
+	return k.podsLister
+}
+
+func (k *KubePluginListers) Subscribe() <-chan struct{} {
 	k.cacheUpdatedWatchersMutex.Lock()
 	defer k.cacheUpdatedWatchersMutex.Unlock()
 	c := make(chan struct{}, 1)
@@ -64,7 +84,7 @@ func (k *KubePluginListers) subscribe() chan struct{} {
 	return c
 }
 
-func (k *KubePluginListers) unsubscribe(c chan struct{}) {
+func (k *KubePluginListers) Unsubscribe(c <-chan struct{}) {
 
 	k.cacheUpdatedWatchersMutex.Lock()
 	defer k.cacheUpdatedWatchersMutex.Unlock()

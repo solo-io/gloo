@@ -14,6 +14,8 @@ import (
 
 type plugin struct {
 	kube kubernetes.Interface
+
+	kubeShareFactory KubePluginSharedFactory
 }
 
 func (p *plugin) Resolve(u *v1.Upstream) (*url.URL, error) {

@@ -16,15 +16,17 @@ import (
 )
 
 func (p *plugin) DiscoverUpstreams(watchNamespaces []string, writeNamespace string, opts clients.WatchOpts, discOpts discovery.Opts) (chan v1.UpstreamList, chan error, error) {
-	startInformerFactoryOnce(p.kube)
+	if p.kubeShareFactory == nil {
+		p.kubeShareFactory = getInformerFactory(p.kube)
+	}
 
-	watch := kubePlugin.subscribe()
+	watch := p.kubeShareFactory.Subscribe()
 
 	opts = opts.WithDefaults()
 	upstreamsChan := make(chan v1.UpstreamList)
 	errs := make(chan error)
 	discoverUpstreams := func() {
-		list, err := kubePlugin.servicesLister.List(labels.SelectorFromSet(opts.Selector))
+		list, err := p.kubeShareFactory.ServicesLister().List(labels.SelectorFromSet(opts.Selector))
 		if err != nil {
 			errs <- err
 			return
@@ -33,7 +35,7 @@ func (p *plugin) DiscoverUpstreams(watchNamespaces []string, writeNamespace stri
 	}
 
 	go func() {
-		defer kubePlugin.unsubscribe(watch)
+		defer p.kubeShareFactory.Unsubscribe(watch)
 		defer close(upstreamsChan)
 		defer close(errs)
 		// watch should open up with an initial read

@@ -19,18 +19,21 @@ import (
 )
 
 func (p *plugin) WatchEndpoints(writeNamespace string, upstreamsToTrack v1.UpstreamList, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
-	startInformerFactoryOnce(p.kube)
+	if p.kubeShareFactory == nil {
+		p.kubeShareFactory = getInformerFactory(p.kube)
+	}
 	opts = opts.WithDefaults()
 
-	return newEndpointsWatcher(p.kube, upstreamsToTrack).watch(writeNamespace, opts)
+	return newEndpointsWatcher(p.kube, p.kubeShareFactory, upstreamsToTrack).watch(writeNamespace, opts)
 }
 
 type edsWatcher struct {
-	kube      kubernetes.Interface
-	upstreams map[core.ResourceRef]*kubeplugin.UpstreamSpec
+	kube             kubernetes.Interface
+	upstreams        map[core.ResourceRef]*kubeplugin.UpstreamSpec
+	kubeShareFactory KubePluginSharedFactory
 }
 
-func newEndpointsWatcher(kube kubernetes.Interface, upstreams v1.UpstreamList) *edsWatcher {
+func newEndpointsWatcher(kube kubernetes.Interface, kubeShareFactory KubePluginSharedFactory, upstreams v1.UpstreamList) *edsWatcher {
 	upstreamSpecs := make(map[core.ResourceRef]*kubeplugin.UpstreamSpec)
 	for _, us := range upstreams {
 		kubeUpstream, ok := us.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
@@ -41,18 +44,19 @@ func newEndpointsWatcher(kube kubernetes.Interface, upstreams v1.UpstreamList) *
 		upstreamSpecs[us.Metadata.Ref()] = kubeUpstream.Kube
 	}
 	return &edsWatcher{
-		kube:      kube,
-		upstreams: upstreamSpecs,
+		kube:             kube,
+		upstreams:        upstreamSpecs,
+		kubeShareFactory: kubeShareFactory,
 	}
 }
 
 func (c *edsWatcher) List(writeNamespace string, opts clients.ListOpts) (v1.EndpointList, error) {
-	endpoints, err := kubePlugin.endpointsLister.List(labels.SelectorFromSet(opts.Selector))
+	endpoints, err := c.kubeShareFactory.EndpointsLister().List(labels.SelectorFromSet(opts.Selector))
 	if err != nil {
 		return nil, err
 	}
 
-	pods, err := kubePlugin.podsLister.List(labels.SelectorFromSet(opts.Selector))
+	pods, err := c.kubeShareFactory.PodsLister().List(labels.SelectorFromSet(opts.Selector))
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +65,7 @@ func (c *edsWatcher) List(writeNamespace string, opts clients.ListOpts) (v1.Endp
 }
 
 func (c *edsWatcher) watch(writeNamespace string, opts clients.WatchOpts) (<-chan v1.EndpointList, <-chan error, error) {
-	watch := kubePlugin.subscribe()
+	watch := c.kubeShareFactory.Subscribe()
 
 	endpointsChan := make(chan v1.EndpointList)
 	errs := make(chan error)
@@ -78,7 +82,7 @@ func (c *edsWatcher) watch(writeNamespace string, opts clients.WatchOpts) (<-cha
 	}
 
 	go func() {
-		defer kubePlugin.unsubscribe(watch)
+		defer c.kubeShareFactory.Unsubscribe(watch)
 		defer close(endpointsChan)
 		defer close(errs)
 
