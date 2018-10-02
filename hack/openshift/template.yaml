@@ -457,7 +457,7 @@ parameters:
 - name: IMAGE_PULL_POLICY
   description: |
     Whether or not to always pull new images or use what's cached
-  value: Always
+  value: IfNotPresent
 
 - name: NAMESPACE
   required: true
