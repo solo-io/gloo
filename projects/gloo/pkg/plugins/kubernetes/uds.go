@@ -137,14 +137,14 @@ func (p *plugin) UpdateUpstream(original, desired *v1.Upstream) (bool, error) {
 	if !ok {
 		return false, errors.Errorf("internal error: expected *v1.UpstreamSpec_Kube, got %v", reflect.TypeOf(original.UpstreamSpec.UpstreamType).Name())
 	}
-	if originalSpec.Equal(desiredSpec) {
-		return false, nil
-	}
-
 	// copy service spec, we don't want to overwrite that
 	desiredSpec.Kube.ServiceSpec = originalSpec.Kube.ServiceSpec
 	// copy labels; user may have written them over. cannot be auto-discovered
 	desiredSpec.Kube.Selector = originalSpec.Kube.Selector
+
+	if originalSpec.Equal(desiredSpec) {
+		return false, nil
+	}
 
 	return true, nil
 }
