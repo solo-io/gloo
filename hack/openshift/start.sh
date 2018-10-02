@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
+BASEDIR=$(dirname "$0")
 
 set -ex
 oc project gloo-system
-oc apply -f hack/openshift/template.yaml
-oc process gloo-ee-installation-template \
+oc process -f ${BASEDIR}/template.yaml \
  -p APISERVER_OPENSHIFT_MASTER_IP=$(minishift ip) \
   | oc apply -f -
 
