@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
+set -ex
+
 BASEDIR=$(dirname "$0")
 
-set -ex
 oc project gloo-system
 oc process -f ${BASEDIR}/template.yaml \
  -p APISERVER_OPENSHIFT_MASTER_IP=$(minishift ip) \

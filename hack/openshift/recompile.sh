@@ -4,6 +4,8 @@
 
 set -ex
 
+BASEDIR=$(dirname "$0")
+
 PROJECT=$1
 export VERSION=$2
 if [ "$#" -ne 2 ]; then
