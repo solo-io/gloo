@@ -183,8 +183,9 @@ func (u *updaterUpdater) saveUpstream(mutator UpstreamMutator) error {
 	newupstream, err = u.parent.upstreamWriter.Write(newupstream, wo)
 	if err != nil {
 		logger.Warnw("error updating upstream on second try", "upstream", u.upstream.Metadata.Name, "error", err)
+	} else {
+		u.upstream = newupstream
 	}
-	u.upstream = newupstream
 	// TODO: if write failed, we are retrying. we should consider verifying that the error is indeed due to resource conflict,
 
 	return nil
