@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 
+	"github.com/ghodss/yaml"
+
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
@@ -38,6 +40,16 @@ func UnmarshalStruct(structuredData *types.Struct, into interface{}) error {
 
 func UnmarshalBytes(data []byte, into proto.Message) error {
 	return jsonpb.Unmarshal(bytes.NewBuffer(data), into)
+}
+
+func UnmarshalYaml(data []byte, into proto.Message) error {
+
+	jsn, err := yaml.YAMLToJSON([]byte(data))
+	if err != nil {
+		return err
+	}
+
+	return jsonpb.Unmarshal(bytes.NewBuffer(jsn), into)
 }
 
 func MarshalBytes(pb proto.Message) ([]byte, error) {

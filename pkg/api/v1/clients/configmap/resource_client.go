@@ -37,11 +37,7 @@ func (rc *ResourceClient) fromKubeConfigMap(configMap *v1.ConfigMap) (resources.
 		return nil, errors.Errorf("kubernetes configMap %v missing required key \"data\"", configMap.Name)
 	}
 	// assumes the data is YAML-encoded
-	jsn, err := yaml.YAMLToJSON([]byte(data))
-	if err != nil {
-		return nil, err
-	}
-	return resource, protoutils.UnmarshalBytes(jsn, resource)
+	return resource, protoutils.UnmarshalYaml([]byte(data), resource)
 }
 
 func (rc *ResourceClient) toKubeConfigMap(resource resources.Resource) (*v1.ConfigMap, error) {
