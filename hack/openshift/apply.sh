@@ -19,4 +19,4 @@ redirectURIs:
 grantMethod: prompt
 EOF
 
-kubectl port-forward deployment/apiserver-ui 8080
+oc port-forward deployment/apiserver-ui 8080
