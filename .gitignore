@@ -13,3 +13,4 @@
 vendor/
 _output/
 gloo/
+*-ee-image.tar
