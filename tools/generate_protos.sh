@@ -6,12 +6,12 @@ set -e
 set -x
 
 basedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../api && pwd )"
-outputdir=$basedir/external/generated
+outputdir=$basedir/external/
 protodir=$basedir/external/proto/
 envoyprotodir=$protodir/envoy
 
-# TODO once we move to go mod this can be $(go env GOMOD)/api
-gobasepkg=github.com/solo-io/solo-kit/api/
+# TODO once we move to go mod this can be $(go env GOMOD)/api/external
+gobasepkg=github.com/solo-io/solo-kit/api/external
 
 protoc=$(which protoc)
 
