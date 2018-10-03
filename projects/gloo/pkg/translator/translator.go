@@ -6,13 +6,14 @@ import (
 	"go.opencensus.io/trace"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/mitchellh/hashstructure"
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	envoycache "github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
 )
 
 type Translator interface {
@@ -40,7 +41,7 @@ func (t *translator) Translate(params plugins.Params, proxy *v1.Proxy) (envoycac
 		if err := p.Init(plugins.InitParams{
 			Ctx: params.Ctx,
 		}); err != nil {
-			return envoycache.Snapshot{}, nil, errors.Wrapf(err, "plugin init failed")
+			return nil, nil, errors.Wrapf(err, "plugin init failed")
 		}
 	}
 	logger := contextutils.LoggerFrom(params.Ctx)
@@ -138,24 +139,24 @@ func generateXDSSnapshot(clusters []*envoyapi.Cluster,
 	listeners []*envoyapi.Listener) envoycache.Snapshot {
 	var endpointsProto, clustersProto, routesProto, listenersProto []envoycache.Resource
 	for _, ep := range endpoints {
-		endpointsProto = append(endpointsProto, ep)
+		endpointsProto = append(endpointsProto, xds.NewEnvoyResource(ep))
 	}
 	for _, cluster := range clusters {
-		clustersProto = append(clustersProto, cluster)
+		clustersProto = append(clustersProto, xds.NewEnvoyResource(cluster))
 	}
 	for _, routeCfg := range routeConfigs {
 		// don't add empty route configs, envoy will complain
 		if len(routeCfg.VirtualHosts) < 1 {
 			continue
 		}
-		routesProto = append(routesProto, routeCfg)
+		routesProto = append(routesProto, xds.NewEnvoyResource(routeCfg))
 	}
 	for _, listener := range listeners {
 		// don't add empty listeners, envoy will complain
 		if len(listener.FilterChains) < 1 {
 			continue
 		}
-		listenersProto = append(listenersProto, listener)
+		listenersProto = append(listenersProto, xds.NewEnvoyResource(listener))
 	}
 	// construct version
 	// TODO: investigate whether we need a more sophisticated versionining algorithm
@@ -169,7 +170,7 @@ func generateXDSSnapshot(clusters []*envoyapi.Cluster,
 		panic(errors.Wrap(err, "constructing version hash for envoy snapshot components"))
 	}
 
-	return envoycache.NewSnapshot(fmt.Sprintf("%v", version), endpointsProto, clustersProto, routesProto, listenersProto)
+	return xds.NewSnapshot(fmt.Sprintf("%v", version), endpointsProto, clustersProto, routesProto, listenersProto)
 }
 
 func deduplicateClusters(clusters []*envoyapi.Cluster) []*envoyapi.Cluster {

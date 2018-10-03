@@ -8,10 +8,11 @@ import (
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyv2 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
-	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
-	envoyserver "github.com/envoyproxy/go-control-plane/pkg/server"
+
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	envoycache "github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
+	envoyserver "github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/server"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"google.golang.org/grpc"
 )
@@ -84,11 +85,15 @@ func SetupEnvoyXds(ctx context.Context, grpcServer *grpc.Server, callbacks envoy
 	hasher := newNodeHasher(ctx)
 	envoyCache := envoycache.NewSnapshotCache(true, hasher, contextutils.LoggerFrom(ctx))
 	xdsServer := envoyserver.NewServer(envoyCache, callbacks)
+	// TODO(yuval-k): once we support generic cache, move this to a higher level.
+	// we will probably invert dependencies and have this function received the cache, rather than produce it.
 	envoyv2.RegisterAggregatedDiscoveryServiceServer(grpcServer, xdsServer)
-	v2.RegisterEndpointDiscoveryServiceServer(grpcServer, xdsServer)
-	v2.RegisterClusterDiscoveryServiceServer(grpcServer, xdsServer)
-	v2.RegisterRouteDiscoveryServiceServer(grpcServer, xdsServer)
-	v2.RegisterListenerDiscoveryServiceServer(grpcServer, xdsServer)
+	envoyServer := NewEnvoyServer(xdsServer)
+
+	v2.RegisterEndpointDiscoveryServiceServer(grpcServer, envoyServer)
+	v2.RegisterClusterDiscoveryServiceServer(grpcServer, envoyServer)
+	v2.RegisterRouteDiscoveryServiceServer(grpcServer, envoyServer)
+	v2.RegisterListenerDiscoveryServiceServer(grpcServer, envoyServer)
 	envoyCache.SetSnapshot(fallbackNodeKey, fallbackSnapshot(fallbackBindAddr, fallbackBindPort, fallbackStatusCode))
 
 	return hasher, envoyCache

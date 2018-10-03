@@ -11,13 +11,13 @@ import (
 	"go.opencensus.io/tag"
 	"go.opencensus.io/trace"
 
-	envoycache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/gorilla/mux"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	envoycache "github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
@@ -98,9 +98,12 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error
 			logger.DPanicw("", zap.Error(err))
 			return err
 		}
-		logger.Infof("Setting xDS Snapshot for Key %v: %v clusters, %v listeners, %v route configs, %v endpoints",
-			key, len(xdsSnapshot.Clusters.Items), len(xdsSnapshot.Listeners.Items),
-			len(xdsSnapshot.Routes.Items), len(xdsSnapshot.Endpoints.Items))
+
+		logger.Infow("Setting xDS Snapshot", "key", key,
+			"clusters", len(xdsSnapshot.GetResources(xds.ClusterType).Items),
+			"listeners", len(xdsSnapshot.GetResources(xds.ListenerType).Items),
+			"routes", len(xdsSnapshot.GetResources(xds.RouteType).Items),
+			"endpoints", len(xdsSnapshot.GetResources(xds.EndpointType).Items))
 
 		logger.Debugf("Full snapshot for proxy %v: %v", proxy.Metadata.Name, xdsSnapshot)
 	}
@@ -133,14 +136,24 @@ func validateSnapshot(snap *v1.ApiSnapshot, snapshot envoycache.Snapshot, errs r
 
 	logger.Debug("removing errored upstream and checking consistency")
 
+	clusters := snapshot.GetResources(xds.ClusterType)
+	endpoints := snapshot.GetResources(xds.EndpointType)
+
 	for _, up := range snap.Upstreams.List().AsInputResources() {
 		if errs[up] != nil {
 			clusterName := translator.UpstreamToClusterName(up.GetMetadata().Ref())
 			// remove cluster and endpoints
-			delete(snapshot.Clusters.Items, clusterName)
-			delete(snapshot.Endpoints.Items, clusterName)
+			delete(clusters.Items, clusterName)
+			delete(endpoints.Items, clusterName)
 		}
 	}
+
+	snapshot = xds.NewSnapshotFromResources(
+		endpoints,
+		clusters,
+		snapshot.GetResources(xds.RouteType),
+		snapshot.GetResources(xds.ListenerType),
+	)
 
 	if snapshot.Consistent() != nil {
 		return snapshot, resourcesErr
