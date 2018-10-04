@@ -50,7 +50,7 @@ type VirtualServiceQuery {
 
 type VirtualServiceMutation {
     create(virtualService: InputVirtualService!): VirtualService
-    update(name: String!, resourceVersion: String!, virtualService: InputUpdateVirtualService!): VirtualService
+    update(name: String!, resourceVersion: String!, updates: InputUpdateVirtualService!): VirtualService
     delete(name: String!): VirtualService
 
     addRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!, route: InputRoute!) : VirtualService

@@ -113,7 +113,7 @@ type UpstreamQueryResolver interface {
 }
 type VirtualServiceMutationResolver interface {
 	Create(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error)
-	Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string, resourceVersion string, virtualService models.InputUpdateVirtualService) (*models.VirtualService, error)
+	Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string, resourceVersion string, updates models.InputUpdateVirtualService) (*models.VirtualService, error)
 	Delete(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string) (*models.VirtualService, error)
 	AddRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error)
 	UpdateRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error)
@@ -5335,7 +5335,7 @@ func (ec *executionContext) _VirtualServiceMutation_update(ctx context.Context, 
 	}
 	args["resourceVersion"] = arg1
 	var arg2 models.InputUpdateVirtualService
-	if tmp, ok := rawArgs["virtualService"]; ok {
+	if tmp, ok := rawArgs["updates"]; ok {
 		var err error
 		arg2, err = UnmarshalInputUpdateVirtualService(tmp)
 		if err != nil {
@@ -5343,7 +5343,7 @@ func (ec *executionContext) _VirtualServiceMutation_update(ctx context.Context, 
 			return graphql.Null
 		}
 	}
-	args["virtualService"] = arg2
+	args["updates"] = arg2
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "VirtualServiceMutation",
 		Args:   args,
@@ -5359,7 +5359,7 @@ func (ec *executionContext) _VirtualServiceMutation_update(ctx context.Context, 
 		}()
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.VirtualServiceMutation().Update(ctx, obj, args["name"].(string), args["resourceVersion"].(string), args["virtualService"].(models.InputUpdateVirtualService))
+			return ec.resolvers.VirtualServiceMutation().Update(ctx, obj, args["name"].(string), args["resourceVersion"].(string), args["updates"].(models.InputUpdateVirtualService))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -8819,7 +8819,7 @@ type VirtualServiceQuery {
 
 type VirtualServiceMutation {
     create(virtualService: InputVirtualService!): VirtualService
-    update(name: String!, resourceVersion: String!, virtualService: InputUpdateVirtualService!): VirtualService
+    update(name: String!, resourceVersion: String!, updates: InputUpdateVirtualService!): VirtualService
     delete(name: String!): VirtualService
 
     addRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!, route: InputRoute!) : VirtualService
