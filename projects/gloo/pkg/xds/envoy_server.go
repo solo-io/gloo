@@ -32,8 +32,6 @@ type EnvoyServer interface {
 	v2.ClusterDiscoveryServiceServer
 	v2.RouteDiscoveryServiceServer
 	v2.ListenerDiscoveryServiceServer
-
-	server.Server
 }
 
 type envoyServer struct {
