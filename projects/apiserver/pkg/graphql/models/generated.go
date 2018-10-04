@@ -251,6 +251,17 @@ type InputTypeResolver struct {
 	TypeName string               `json:"typeName"`
 	Fields   []InputFieldResolver `json:"fields"`
 }
+type InputUpdateMetadata struct {
+	Name        *string               `json:"name"`
+	Labels      *InputMapStringString `json:"labels"`
+	Annotations *InputMapStringString `json:"annotations"`
+}
+type InputUpdateVirtualService struct {
+	Domains   []string                    `json:"domains"`
+	SslConfig *InputSslConfig             `json:"sslConfig"`
+	Plugins   *InputVirtualServicePlugins `json:"plugins"`
+	Metadata  *InputUpdateMetadata        `json:"metadata"`
+}
 type InputUpstream struct {
 	Spec     InputUpstreamSpec `json:"spec"`
 	Metadata InputMetadata     `json:"metadata"`

@@ -113,7 +113,7 @@ type UpstreamQueryResolver interface {
 }
 type VirtualServiceMutationResolver interface {
 	Create(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error)
-	Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error)
+	Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string, resourceVersion string, virtualService models.InputUpdateVirtualService) (*models.VirtualService, error)
 	Delete(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string) (*models.VirtualService, error)
 	AddRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error)
 	UpdateRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error)
@@ -5314,16 +5314,36 @@ func (ec *executionContext) _VirtualServiceMutation_create(ctx context.Context, 
 func (ec *executionContext) _VirtualServiceMutation_update(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args := map[string]interface{}{}
-	var arg0 models.InputVirtualService
-	if tmp, ok := rawArgs["virtualService"]; ok {
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
 		var err error
-		arg0, err = UnmarshalInputVirtualService(tmp)
+		arg0, err = graphql.UnmarshalString(tmp)
 		if err != nil {
 			ec.Error(ctx, err)
 			return graphql.Null
 		}
 	}
-	args["virtualService"] = arg0
+	args["name"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["resourceVersion"]; ok {
+		var err error
+		arg1, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["resourceVersion"] = arg1
+	var arg2 models.InputUpdateVirtualService
+	if tmp, ok := rawArgs["virtualService"]; ok {
+		var err error
+		arg2, err = UnmarshalInputUpdateVirtualService(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return graphql.Null
+		}
+	}
+	args["virtualService"] = arg2
 	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
 		Object: "VirtualServiceMutation",
 		Args:   args,
@@ -5339,7 +5359,7 @@ func (ec *executionContext) _VirtualServiceMutation_update(ctx context.Context, 
 		}()
 
 		resTmp := ec.FieldMiddleware(ctx, func(ctx context.Context) (interface{}, error) {
-			return ec.resolvers.VirtualServiceMutation().Update(ctx, obj, args["virtualService"].(models.InputVirtualService))
+			return ec.resolvers.VirtualServiceMutation().Update(ctx, obj, args["name"].(string), args["resourceVersion"].(string), args["virtualService"].(models.InputUpdateVirtualService))
 		})
 		if resTmp == nil {
 			return graphql.Null
@@ -8397,6 +8417,113 @@ func UnmarshalInputTypeResolver(v interface{}) (models.InputTypeResolver, error)
 	return it, nil
 }
 
+func UnmarshalInputUpdateMetadata(v interface{}) (models.InputUpdateMetadata, error) {
+	var it models.InputUpdateMetadata
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.Name = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "labels":
+			var err error
+			var ptr1 models.InputMapStringString
+			if v != nil {
+				ptr1, err = UnmarshalInputMapStringString(v)
+				it.Labels = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "annotations":
+			var err error
+			var ptr1 models.InputMapStringString
+			if v != nil {
+				ptr1, err = UnmarshalInputMapStringString(v)
+				it.Annotations = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputUpdateVirtualService(v interface{}) (models.InputUpdateVirtualService, error) {
+	var it models.InputUpdateVirtualService
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "domains":
+			var err error
+			var rawIf1 []interface{}
+			if v != nil {
+				if tmp1, ok := v.([]interface{}); ok {
+					rawIf1 = tmp1
+				} else {
+					rawIf1 = []interface{}{v}
+				}
+			}
+			it.Domains = make([]string, len(rawIf1))
+			for idx1 := range rawIf1 {
+				it.Domains[idx1], err = graphql.UnmarshalString(rawIf1[idx1])
+			}
+			if err != nil {
+				return it, err
+			}
+		case "sslConfig":
+			var err error
+			var ptr1 models.InputSslConfig
+			if v != nil {
+				ptr1, err = UnmarshalInputSslConfig(v)
+				it.SslConfig = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "plugins":
+			var err error
+			var ptr1 models.InputVirtualServicePlugins
+			if v != nil {
+				ptr1, err = UnmarshalInputVirtualServicePlugins(v)
+				it.Plugins = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "metadata":
+			var err error
+			var ptr1 models.InputUpdateMetadata
+			if v != nil {
+				ptr1, err = UnmarshalInputUpdateMetadata(v)
+				it.Metadata = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputUpstream(v interface{}) (models.InputUpstream, error) {
 	var it models.InputUpstream
 	var asMap = v.(map[string]interface{})
@@ -8692,7 +8819,7 @@ type VirtualServiceQuery {
 
 type VirtualServiceMutation {
     create(virtualService: InputVirtualService!): VirtualService
-    update(virtualService: InputVirtualService!): VirtualService
+    update(name: String!, resourceVersion: String!, virtualService: InputUpdateVirtualService!): VirtualService
     delete(name: String!): VirtualService
 
     addRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!, route: InputRoute!) : VirtualService
@@ -8913,6 +9040,12 @@ input InputMetadata {
     annotations:     InputMapStringString
 }
 
+input InputUpdateMetadata {
+    name:            String
+    labels:          InputMapStringString
+    annotations:     InputMapStringString
+}
+
 input InputStatus {
     state:  State!
     reason: String!
@@ -9026,6 +9159,12 @@ input InputVirtualService {
     metadata: InputMetadata!
 }
 
+input InputUpdateVirtualService {
+    domains: [String!]
+    sslConfig: InputSslConfig
+    plugins: InputVirtualServicePlugins
+    metadata: InputUpdateMetadata
+}
 
 input InputRoute {
     matcher: InputMatcher!

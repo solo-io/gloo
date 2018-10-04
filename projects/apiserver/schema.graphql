@@ -50,7 +50,7 @@ type VirtualServiceQuery {
 
 type VirtualServiceMutation {
     create(virtualService: InputVirtualService!): VirtualService
-    update(virtualService: InputVirtualService!): VirtualService
+    update(name: String!, resourceVersion: String!, virtualService: InputUpdateVirtualService!): VirtualService
     delete(name: String!): VirtualService
 
     addRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!, route: InputRoute!) : VirtualService
@@ -271,6 +271,12 @@ input InputMetadata {
     annotations:     InputMapStringString
 }
 
+input InputUpdateMetadata {
+    name:            String
+    labels:          InputMapStringString
+    annotations:     InputMapStringString
+}
+
 input InputStatus {
     state:  State!
     reason: String!
@@ -384,6 +390,12 @@ input InputVirtualService {
     metadata: InputMetadata!
 }
 
+input InputUpdateVirtualService {
+    domains: [String!]
+    sslConfig: InputSslConfig
+    plugins: InputVirtualServicePlugins
+    metadata: InputUpdateMetadata
+}
 
 input InputRoute {
     matcher: InputMatcher!

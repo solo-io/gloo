@@ -235,8 +235,50 @@ func (r *virtualServiceMutationResolver) write(overwrite bool, ctx context.Conte
 func (r *virtualServiceMutationResolver) Create(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error) {
 	return r.write(false, ctx, obj, virtualService)
 }
-func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error) {
-	return r.write(true, ctx, obj, virtualService)
+
+// Reads the virtual service identifed for update from storage
+// Steps through the update object and applies only the requested updates
+func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string, resourceVersion string, updates models.InputUpdateVirtualService) (*models.VirtualService, error) {
+	virtualService, err := r.VirtualServices.Read(obj.Namespace, name, clients.ReadOpts{Ctx: ctx})
+	if err != nil {
+		return nil, err
+	}
+	if virtualService.Metadata.ResourceVersion != resourceVersion {
+		return nil, errors.Errorf("resource version mismatch. received %v, want %v", resourceVersion, virtualService.Metadata.ResourceVersion)
+	}
+
+	if updates.Domains != nil {
+		virtualService.VirtualHost.Domains = updates.Domains
+	}
+
+	if updates.Metadata != nil {
+		if updates.Metadata.Name != nil {
+			return nil, errors.Errorf("Changing name is not a valid operation. Please delete and recreate this resource.")
+			// return an error for now.
+			// We could delete and recreate the resource under a new name with:
+			// virtualService.Metadata.Name = *updates.Metadata.Name
+			// virtualService.Metadata.ResourceVersion = ""
+			// ...But that's probably not what the user wants
+			// Consider adding a "Reference Name" field to allow the user to update the displayed name without changing the CRD ID
+		}
+	}
+
+	if updates.SslConfig != nil {
+		return nil, errors.Errorf("SSLConfig updates are not yet supported.")
+	}
+
+	if updates.Plugins != nil {
+		return nil, errors.Errorf("Plugin updates are not yet supported.")
+	}
+
+	out, err := r.VirtualServices.Write(virtualService, clients.WriteOpts{
+		Ctx:               ctx,
+		OverwriteExisting: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputVirtualService(out), nil
 }
 func (r *virtualServiceMutationResolver) Delete(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string) (*models.VirtualService, error) {
 	virtualService, err := r.VirtualServices.Read(obj.Namespace, name, clients.ReadOpts{
