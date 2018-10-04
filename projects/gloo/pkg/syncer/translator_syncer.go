@@ -51,7 +51,6 @@ func NewTranslatorSyncer(translator translator.Translator, xdsCache envoycache.S
 }
 
 func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
-
 	ctx, span := trace.StartSpan(ctx, "gloo.syncer.Sync")
 	defer span.End()
 
