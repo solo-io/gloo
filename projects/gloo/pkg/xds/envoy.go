@@ -1,15 +1,12 @@
 package xds
 
 import (
-	"context"
 	"fmt"
 	"sync"
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	envoyv2 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
 
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	envoycache "github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
 	envoyserver "github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/server"
@@ -30,11 +27,10 @@ const (
 )
 
 type ProxyKeyHasher struct {
-	ctx context.Context
 	// (ilackarms) for the purpose of invalidation in the hasher
 	validKeysLock sync.Mutex
 	validKeys     []string
-	lock          *sync.RWMutex
+	lock          sync.RWMutex
 }
 
 const errorString = `
@@ -73,21 +69,13 @@ func (h *ProxyKeyHasher) SetKeysFromProxies(proxies v1.ProxyList) {
 	h.validKeysLock.Unlock()
 }
 
-func newNodeHasher(ctx context.Context) *ProxyKeyHasher {
-	return &ProxyKeyHasher{
-		ctx:  ctx,
-		lock: &sync.RWMutex{},
-	}
+func newNodeHasher() *ProxyKeyHasher {
+	return &ProxyKeyHasher{}
 }
 
-func SetupEnvoyXds(ctx context.Context, grpcServer *grpc.Server, callbacks envoyserver.Callbacks) (*ProxyKeyHasher, envoycache.SnapshotCache) {
-	ctx = contextutils.WithLogger(ctx, "envoy-xds-server")
-	hasher := newNodeHasher(ctx)
-	envoyCache := envoycache.NewSnapshotCache(true, hasher, contextutils.LoggerFrom(ctx))
-	xdsServer := envoyserver.NewServer(envoyCache, callbacks)
-	// TODO(yuval-k): once we support generic cache, move this to a higher level.
-	// we will probably invert dependencies and have this function received the cache, rather than produce it.
-	envoyv2.RegisterAggregatedDiscoveryServiceServer(grpcServer, xdsServer)
+func SetupEnvoyXds(grpcServer *grpc.Server, xdsServer envoyserver.Server, envoyCache envoycache.SnapshotCache) *ProxyKeyHasher {
+	hasher := newNodeHasher()
+
 	envoyServer := NewEnvoyServer(xdsServer)
 
 	v2.RegisterEndpointDiscoveryServiceServer(grpcServer, envoyServer)
@@ -96,5 +84,5 @@ func SetupEnvoyXds(ctx context.Context, grpcServer *grpc.Server, callbacks envoy
 	v2.RegisterListenerDiscoveryServiceServer(grpcServer, envoyServer)
 	envoyCache.SetSnapshot(fallbackNodeKey, fallbackSnapshot(fallbackBindAddr, fallbackBindPort, fallbackStatusCode))
 
-	return hasher, envoyCache
+	return hasher
 }

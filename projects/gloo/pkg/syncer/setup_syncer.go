@@ -25,6 +25,12 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
+
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/server"
+
+	envoyv2 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
+
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
@@ -52,19 +58,32 @@ func NewSetupSyncerWithRunFunc(inMemoryCache memory.InMemoryResourceCache, kubeC
 				)),
 			)
 		},
-		runFunc: runFunc,
+		runFunc:       runFunc,
 		inMemoryCache: inMemoryCache,
 		kubeCache:     kubeCache,
 	}
 }
 
 type setupSyncer struct {
-	runFunc            RunFunc
-	grpcServer         func(ctx context.Context) *grpc.Server
-	previousBindAddr   string
-	previousGrpcServer *grpc.Server
-	kubeCache     *kube.KubeCache
-	inMemoryCache memory.InMemoryResourceCache
+	runFunc          RunFunc
+	grpcServer       func(ctx context.Context) *grpc.Server
+	previousBindAddr string
+	controlPlane     bootstrap.ControlPlane
+	kubeCache        *kube.KubeCache
+	inMemoryCache    memory.InMemoryResourceCache
+}
+
+func NewControlPlane(ctx context.Context, grpcServer *grpc.Server) bootstrap.ControlPlane {
+	var c bootstrap.ControlPlane
+	c.GrpcServer = grpcServer
+	hasher := &xds.ProxyKeyHasher{}
+	snapshotCache := cache.NewSnapshotCache(true, hasher, contextutils.LoggerFrom(ctx))
+	var callbacks server.Callbacks // TODO(yuval-k): allow callbacks so we can wireup nack detector
+	xdsServer := server.NewServer(snapshotCache, callbacks)
+	envoyv2.RegisterAggregatedDiscoveryServiceServer(c.GrpcServer, xdsServer)
+	c.SnapshotCache = snapshotCache
+	c.XDSServer = xdsServer
+	return c
 }
 
 func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
@@ -80,12 +99,12 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		cfg       *rest.Config
 		clientset kubernetes.Interface
 	)
-	cache := s.inMemoryCache
+	memCache := s.inMemoryCache
 	kubeCache := s.kubeCache
 
 	upstreamFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
-		cache,
+		memCache,
 		kubeCache,
 		v1.UpstreamCrd,
 		&cfg,
@@ -96,7 +115,7 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 
 	proxyFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
-		cache,
+		memCache,
 		kubeCache,
 		v1.ProxyCrd,
 		&cfg,
@@ -107,7 +126,7 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 
 	secretFactory, err := bootstrap.SecretFactoryForSettings(
 		settings,
-		cache,
+		memCache,
 		v1.SecretCrd.Plural,
 		&cfg,
 		&clientset,
@@ -118,7 +137,7 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 
 	artifactFactory, err := bootstrap.ArtifactFactoryForSettings(
 		settings,
-		cache,
+		memCache,
 		v1.ArtifactCrd.Plural,
 		&cfg,
 		&clientset,
@@ -155,16 +174,18 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 	if !writeNamespaceProvided {
 		watchNamespaces = append(watchNamespaces, writeNamespace)
 	}
+	empty := bootstrap.ControlPlane{}
 
 	var restartGrpcServer bool
-	grpcServer := s.previousGrpcServer
 	if settings.BindAddr != s.previousBindAddr {
-		// port changed, restart grpc server
-		grpcServer = s.grpcServer(ctx)
-		restartGrpcServer = true
+		s.controlPlane = empty
 	}
 
-	s.previousGrpcServer = grpcServer
+	if s.controlPlane == empty {
+		// TODO(yuval-k): we are using the todo context as the grpc server might survive multiple iterations of this loop.
+		ctx := context.TODO()
+		s.controlPlane = NewControlPlane(ctx, s.grpcServer(ctx))
+	}
 
 	opts := bootstrap.Opts{
 		WriteNamespace:  writeNamespace,
@@ -181,7 +202,7 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 			IP:   net.ParseIP(ipPort[0]),
 			Port: port,
 		},
-		GrpcServer:      grpcServer,
+		ControlPlane:    s.controlPlane,
 		StartGrpcServer: restartGrpcServer,
 		// if nil, kube plugin disabled
 		KubeClient: clientset,
@@ -233,7 +254,7 @@ func RunGloo(opts bootstrap.Opts) error {
 
 	cache := v1.NewApiEmitter(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)
 
-	xdsHasher, xdsCache := xds.SetupEnvoyXds(opts.WatchOpts.Ctx, opts.GrpcServer, nil)
+	xdsHasher := xds.SetupEnvoyXds(opts.ControlPlane.GrpcServer, opts.ControlPlane.XDSServer, opts.ControlPlane.SnapshotCache)
 
 	rpt := reporter.NewReporter("gloo", upstreamClient.BaseClient(), proxyClient.BaseClient())
 
@@ -247,7 +268,7 @@ func RunGloo(opts bootstrap.Opts) error {
 		}
 	}
 
-	sync := NewTranslatorSyncer(translator.NewTranslator(plugins), xdsCache, xdsHasher, rpt, opts.DevMode)
+	sync := NewTranslatorSyncer(translator.NewTranslator(plugins), opts.ControlPlane.SnapshotCache, xdsHasher, rpt, opts.DevMode)
 	eventLoop := v1.NewApiEventLoop(cache, sync)
 
 	errs := make(chan error)
@@ -287,11 +308,11 @@ func RunGloo(opts bootstrap.Opts) error {
 	}
 	go func() {
 		<-opts.WatchOpts.Ctx.Done()
-		opts.GrpcServer.Stop()
+		opts.ControlPlane.GrpcServer.Stop()
 	}()
 
 	go func() {
-		if err := opts.GrpcServer.Serve(lis); err != nil {
+		if err := opts.ControlPlane.GrpcServer.Serve(lis); err != nil {
 			logger.Errorf("grpc server failed to start")
 		}
 	}()
