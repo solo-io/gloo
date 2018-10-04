@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -ex
 
-BASEDIR=$(dirname "$0")
+BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 oc project gloo-system
 oc process -f ${BASEDIR}/template.yaml \
