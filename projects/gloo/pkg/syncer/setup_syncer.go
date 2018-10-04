@@ -65,12 +65,13 @@ func NewSetupSyncerWithRunFunc(inMemoryCache memory.InMemoryResourceCache, kubeC
 }
 
 type setupSyncer struct {
-	runFunc          RunFunc
-	grpcServer       func(ctx context.Context) *grpc.Server
-	previousBindAddr string
-	controlPlane     bootstrap.ControlPlane
-	kubeCache        *kube.KubeCache
-	inMemoryCache    memory.InMemoryResourceCache
+	runFunc            RunFunc
+	grpcServer         func(ctx context.Context) *grpc.Server
+	previousBindAddr   string
+	controlPlane       bootstrap.ControlPlane
+	cancelControlPlane context.CancelFunc
+	kubeCache          *kube.KubeCache
+	inMemoryCache      memory.InMemoryResourceCache
 }
 
 func NewControlPlane(ctx context.Context, grpcServer *grpc.Server) bootstrap.ControlPlane {
@@ -178,13 +179,18 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 
 	var restartGrpcServer bool
 	if settings.BindAddr != s.previousBindAddr {
+		if s.cancelControlPlane != nil {
+			s.cancelControlPlane()
+			s.cancelControlPlane = nil
+		}
 		s.controlPlane = empty
 	}
 
 	if s.controlPlane == empty {
-		// TODO(yuval-k): we are using the todo context as the grpc server might survive multiple iterations of this loop.
-		ctx := context.TODO()
+		// create new context as the grpc server might survive multiple iterations of this loop.
+		ctx, cancel := context.WithCancel(context.Background())
 		s.controlPlane = NewControlPlane(ctx, s.grpcServer(ctx))
+		s.cancelControlPlane = cancel
 	}
 
 	opts := bootstrap.Opts{
