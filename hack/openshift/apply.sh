@@ -8,15 +8,8 @@ oc process -f ${BASEDIR}/template.yaml \
  -p APISERVER_OPENSHIFT_MASTER_IP=$(minishift ip) \
   | oc apply -f -
 
-cat << EOF | oc apply -f -
-kind: OAuthClient
-apiVersion: oauth.openshift.io/v1
-metadata:
- name: gloo
-secret: gloo
-redirectURIs:
- - "http://localhost:8080"
-grantMethod: prompt
-EOF
-
-oc port-forward deployment/apiserver-ui 8080
+if [ "$1" -eq "-w" ]; then
+    echo "attempting to attach to ui"
+    sleep 1 # TODO implement actual wait (do we really care?)
+    oc port-forward deployment/apiserver-ui 8080
+fi
