@@ -17,6 +17,4 @@ fi
 # won't work for ui...
 # need to modify ui make target
 make -C ${BASEDIR}/../.. $PROJECT-docker
-docker save soloio/$PROJECT-ee:$VERSION > $PROJECT-ee-image.tar
-eval $(minishift docker-env)
-docker load < $PROJECT-ee-image.tar
+docker save soloio/$PROJECT-ee:$VERSION | ( eval $(minishift docker-env) && docker load)
