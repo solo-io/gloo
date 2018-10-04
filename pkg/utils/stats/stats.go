@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func StartStatsServer() {
+func StartStatsServer(addhandlers ...func(mux *http.ServeMux, profiles map[string]string)) {
 	logconfig := zap.NewProductionConfig()
 
 	logger, logerr := logconfig.Build()
@@ -23,30 +23,47 @@ func StartStatsServer() {
 	go RunGoroutineStat()
 
 	go func() {
-
 		mux := new(http.ServeMux)
+
 		if logerr == nil {
 			mux.Handle("/logging", logconfig.Level)
 		}
 
-		mux.HandleFunc("/debug/pprof/", pprof.Index)
-		mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+		addhandlers = append(addhandlers, addPprof, addStats)
 
-		exporter, err := prometheus.NewExporter(prometheus.Options{})
-		if err == nil {
-			view.RegisterExporter(exporter)
-			mux.Handle("/metrics", exporter)
+		for _, addhandler := range addhandlers {
+			addhandler(mux, profileDescriptions)
 		}
 
-		zpages.Handle(mux, "/zpages")
-
+		// add the index
 		mux.HandleFunc("/", Index)
-
 		http.ListenAndServe("localhost:9091", mux)
 	}()
+}
+
+func addPprof(mux *http.ServeMux, profiles map[string]string) {
+	mux.HandleFunc("/debug/pprof/", pprof.Index)
+	mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	profiles["/debug/pprof/"] = `PProf related things:<br/>
+	<a href="/debug/pprof/goroutine?debug=2">full goroutine stack dump</a>
+	`
+}
+
+func addStats(mux *http.ServeMux, profiles map[string]string) {
+	exporter, err := prometheus.NewExporter(prometheus.Options{})
+	if err == nil {
+		view.RegisterExporter(exporter)
+		mux.Handle("/metrics", exporter)
+
+		profiles["/metrics"] = "Prometheus format metrics"
+	}
+
+	zpages.Handle(mux, "/zpages")
+	profiles["/zpages"] = `Tracing. See <a href="/zpages/tracez">list of spans</a>`
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -75,10 +92,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 }
 
 var profileDescriptions = map[string]string{
-	"/debug/pprof/": `PProf related things:<br/>
-	<a href="/debug/pprof/goroutine?debug=2">full goroutine stack dump</a>
-	`,
-	"/zpages": `Tracing. See <a href="/zpages/tracez">list of spans</a>`,
+
 	"/logging": `View \ change the log level of the program. <br/>
 	
 log level:
@@ -107,7 +121,6 @@ function setlevel(l) {
 }
 </script>
 	`,
-	"/metrics": "Prometheus format metrics",
 }
 
 var indexTmpl = template.Must(template.New("index").Parse(`<!DOCTYPE html><html>
