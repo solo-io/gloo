@@ -279,7 +279,7 @@ release: release-binaries
 #---------
 
 .PHONY: docker docker-push
-docker: apiserver-docker gateway-docker gloo-docker sqoop-docker
+docker: apiserver-docker discovery-docker gateway-docker gloo-docker sqoop-docker
 docker-push:
 	docker push soloio/sqoop-ee:$(VERSION) && \
 	docker push soloio/gateway-ee:$(VERSION) && \
