@@ -39,7 +39,7 @@ func run() error {
 	port := flag.Int("p", 8082, "port to bind")
 	dev := flag.Bool("dev", false, "use memory instead of connecting to real gloo storage")
 	flag.Parse()
-	glooOpts, err := DefaultKubernetesConstructOpts()
+	settingsClient, glooOpts, err := DefaultKubernetesConstructOpts()
 	if err != nil {
 		return err
 	}
@@ -55,25 +55,36 @@ func run() error {
 	ctx := contextutils.WithLogger(context.Background(), "apiserver")
 
 	contextutils.LoggerFrom(ctx).Infof("listening on :%v", *port)
-	if err := setup.Setup(*port, *dev, glooOpts, gatewayOpts, sqoopOpts); err != nil {
+	if err := setup.Setup(*port, *dev, settingsClient, glooOpts, gatewayOpts, sqoopOpts); err != nil {
 		return err
 	}
 	return nil
 }
 
 // DEPRECATED: TODO(ilackarms): remove without breaking things, move to a test package
-func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
+func DefaultKubernetesConstructOpts() (v1.SettingsClient, bootstrap.Opts, error) {
 	cfg, err := kubeutils.GetConfig("", "")
 	if err != nil {
-		return bootstrap.Opts{}, err
+		return nil, bootstrap.Opts{}, err
 	}
 	clientset, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
-		return bootstrap.Opts{}, err
+		return nil, bootstrap.Opts{}, err
 	}
 	ctx := contextutils.WithLogger(context.Background(), "gloo")
 	cache := kube.NewKubeCache()
-	return bootstrap.Opts{
+
+	// TODO(ilackarms): pass in settings configuration from an environment variable or CLI flag, rather than hard-coding to k8s
+	settingsClient, err := v1.NewSettingsClient(&factory.KubeResourceClientFactory{
+		Crd:         v1.SettingsCrd,
+		Cfg:         cfg,
+		SharedCache: cache,
+	})
+	if err != nil {
+		return nil, bootstrap.Opts{}, err
+	}
+
+	return settingsClient, bootstrap.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Upstreams: &factory.KubeResourceClientFactory{
 			Crd:         v1.UpstreamCrd,

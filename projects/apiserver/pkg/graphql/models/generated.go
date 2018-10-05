@@ -6,6 +6,8 @@ import (
 	fmt "fmt"
 	io "io"
 	strconv "strconv"
+
+	customtypes "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes"
 )
 
 type Artifact struct {
@@ -278,6 +280,12 @@ type InputServiceSpec struct {
 	Grpc *InputGRPCServiceSpec `json:"grpc"`
 }
 
+type InputSettings struct {
+	WatchNamespaces []string              `json:"watchNamespaces"`
+	RefreshRate     *customtypes.Duration `json:"refreshRate"`
+	Metadata        InputMetadata         `json:"metadata"`
+}
+
 type InputSingleDestination struct {
 	Upstream        InputResourceRef      `json:"upstream"`
 	DestinationSpec *InputDestinationSpec `json:"destinationSpec"`
@@ -497,6 +505,12 @@ type SecretKind interface {
 
 type ServiceSpec interface {
 	IsServiceSpec()
+}
+
+type Settings struct {
+	WatchNamespaces []string              `json:"watchNamespaces"`
+	RefreshRate     *customtypes.Duration `json:"refreshRate"`
+	Metadata        Metadata              `json:"metadata"`
 }
 
 type SingleDestination struct {

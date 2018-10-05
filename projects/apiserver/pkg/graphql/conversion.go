@@ -4,6 +4,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"log"
 	"sort"
+	"time"
+
+	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes"
 
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
@@ -1118,6 +1121,19 @@ func (c *Converter) ConvertOutputArtifact(artifact *v1.Artifact) *Artifact {
 	}
 }
 
+func (c *Converter) ConvertOutputSettings(settings *v1.Settings) *Settings {
+	refreshRate, err := types.DurationFromProto(settings.RefreshRate)
+	if err != nil {
+		log.Printf("weird error trying to convert duration from proto: %v", err)
+	}
+	dur := customtypes.Duration(refreshRate)
+	return &Settings{
+		WatchNamespaces: settings.WatchNamespaces,
+		RefreshRate:     &dur,
+		Metadata:        convertOutputMetadata(settings.Metadata),
+	}
+}
+
 func (c *Converter) ConvertInputArtifacts(artifacts []*InputArtifact) (v1.ArtifactList, error) {
 	var result v1.ArtifactList
 	for _, item := range artifacts {
@@ -1134,5 +1150,17 @@ func (c *Converter) ConvertInputArtifact(artifact InputArtifact) (*v1.Artifact, 
 	return &v1.Artifact{
 		Metadata: convertInputMetadata(artifact.Metadata),
 		Data:     artifact.Data,
+	}, nil
+}
+
+func (c *Converter) ConvertInputSettings(settings InputSettings) (*v1.Settings, error) {
+	var refreshRate *types.Duration
+	if settings.RefreshRate != nil {
+		refreshRate = types.DurationProto(time.Duration(*settings.RefreshRate))
+	}
+	return &v1.Settings{
+		WatchNamespaces: settings.WatchNamespaces,
+		RefreshRate:     refreshRate,
+		Metadata:        convertInputMetadata(settings.Metadata),
 	}, nil
 }

@@ -43,6 +43,8 @@ type ResolverRoot interface {
 	SchemaQuery() SchemaQueryResolver
 	SecretMutation() SecretMutationResolver
 	SecretQuery() SecretQueryResolver
+	SettingsMutation() SettingsMutationResolver
+	SettingsQuery() SettingsQueryResolver
 	Subscription() SubscriptionResolver
 	UpstreamMutation() UpstreamMutationResolver
 	UpstreamQuery() UpstreamQueryResolver
@@ -173,6 +175,7 @@ type ComplexityRoot struct {
 		Schemas         func(childComplexity int, namespace string) int
 		Secrets         func(childComplexity int, namespace string) int
 		Artifacts       func(childComplexity int, namespace string) int
+		Settings        func(childComplexity int) int
 	}
 
 	NodeJsresolver struct {
@@ -192,6 +195,7 @@ type ComplexityRoot struct {
 		Schemas          func(childComplexity int, namespace string) int
 		Secrets          func(childComplexity int, namespace string) int
 		Artifacts        func(childComplexity int, namespace string) int
+		Settings         func(childComplexity int) int
 	}
 
 	RequestTemplate struct {
@@ -279,6 +283,20 @@ type ComplexityRoot struct {
 	SecretQuery struct {
 		List func(childComplexity int, selector *models.InputMapStringString) int
 		Get  func(childComplexity int, name string) int
+	}
+
+	Settings struct {
+		WatchNamespaces func(childComplexity int) int
+		RefreshRate     func(childComplexity int) int
+		Metadata        func(childComplexity int) int
+	}
+
+	SettingsMutation struct {
+		Update func(childComplexity int, settings models.InputSettings) int
+	}
+
+	SettingsQuery struct {
+		Get func(childComplexity int) int
 	}
 
 	SingleDestination struct {
@@ -410,6 +428,7 @@ type MutationResolver interface {
 	Schemas(ctx context.Context, namespace string) (customtypes.SchemaMutation, error)
 	Secrets(ctx context.Context, namespace string) (customtypes.SecretMutation, error)
 	Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactMutation, error)
+	Settings(ctx context.Context) (customtypes.SettingsMutation, error)
 }
 type QueryResolver interface {
 	GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpoint, error)
@@ -419,6 +438,7 @@ type QueryResolver interface {
 	Schemas(ctx context.Context, namespace string) (customtypes.SchemaQuery, error)
 	Secrets(ctx context.Context, namespace string) (customtypes.SecretQuery, error)
 	Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactQuery, error)
+	Settings(ctx context.Context) (customtypes.SettingsQuery, error)
 }
 type ResolverMapMutationResolver interface {
 	Create(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error)
@@ -447,6 +467,12 @@ type SecretMutationResolver interface {
 type SecretQueryResolver interface {
 	List(ctx context.Context, obj *customtypes.SecretQuery, selector *models.InputMapStringString) ([]*models.Secret, error)
 	Get(ctx context.Context, obj *customtypes.SecretQuery, name string) (*models.Secret, error)
+}
+type SettingsMutationResolver interface {
+	Update(ctx context.Context, obj *customtypes.SettingsMutation, settings models.InputSettings) (*models.Settings, error)
+}
+type SettingsQueryResolver interface {
+	Get(ctx context.Context, obj *customtypes.SettingsQuery) (*models.Settings, error)
 }
 type SubscriptionResolver interface {
 	Upstreams(ctx context.Context, namespace string, selector *models.InputMapStringString) (<-chan []*models.Upstream, error)
@@ -1038,6 +1064,21 @@ func field_SecretQuery_get_args(rawArgs map[string]interface{}) (map[string]inte
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+
+}
+
+func field_SettingsMutation_update_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 models.InputSettings
+	if tmp, ok := rawArgs["settings"]; ok {
+		var err error
+		arg0, err = UnmarshalInputSettings(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["settings"] = arg0
 	return args, nil
 
 }
@@ -1983,6 +2024,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.Artifacts(childComplexity, args["namespace"].(string)), true
 
+	case "Mutation.settings":
+		if e.complexity.Mutation.Settings == nil {
+			break
+		}
+
+		return e.complexity.Mutation.Settings(childComplexity), true
+
 	case "NodeJSResolver.empty":
 		if e.complexity.NodeJsresolver.Empty == nil {
 			break
@@ -2082,6 +2130,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Artifacts(childComplexity, args["namespace"].(string)), true
+
+	case "Query.settings":
+		if e.complexity.Query.Settings == nil {
+			break
+		}
+
+		return e.complexity.Query.Settings(childComplexity), true
 
 	case "RequestTemplate.verb":
 		if e.complexity.RequestTemplate.Verb == nil {
@@ -2435,6 +2490,46 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SecretQuery.Get(childComplexity, args["name"].(string)), true
+
+	case "Settings.watchNamespaces":
+		if e.complexity.Settings.WatchNamespaces == nil {
+			break
+		}
+
+		return e.complexity.Settings.WatchNamespaces(childComplexity), true
+
+	case "Settings.refreshRate":
+		if e.complexity.Settings.RefreshRate == nil {
+			break
+		}
+
+		return e.complexity.Settings.RefreshRate(childComplexity), true
+
+	case "Settings.metadata":
+		if e.complexity.Settings.Metadata == nil {
+			break
+		}
+
+		return e.complexity.Settings.Metadata(childComplexity), true
+
+	case "SettingsMutation.update":
+		if e.complexity.SettingsMutation.Update == nil {
+			break
+		}
+
+		args, err := field_SettingsMutation_update_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.SettingsMutation.Update(childComplexity, args["settings"].(models.InputSettings)), true
+
+	case "SettingsQuery.get":
+		if e.complexity.SettingsQuery.Get == nil {
+			break
+		}
+
+		return e.complexity.SettingsQuery.Get(childComplexity), true
 
 	case "SingleDestination.upstream":
 		if e.complexity.SingleDestination.Upstream == nil {
@@ -5200,6 +5295,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "settings":
+			out.Values[i] = ec._Mutation_settings(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5389,6 +5489,30 @@ func (ec *executionContext) _Mutation_artifacts(ctx context.Context, field graph
 	rctx.Result = res
 
 	return ec._ArtifactMutation(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Mutation_settings(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Mutation",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Settings(rctx)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(customtypes.SettingsMutation)
+	rctx.Result = res
+
+	return ec._SettingsMutation(ctx, field.Selections, &res)
 }
 
 var nodeJSResolverImplementors = []string{"NodeJSResolver"}
@@ -5600,6 +5724,15 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
 				out.Values[i] = ec._Query_artifacts(ctx, field)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
+		case "settings":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_settings(ctx, field)
 				if out.Values[i] == graphql.Null {
 					invalid = true
 				}
@@ -5822,6 +5955,30 @@ func (ec *executionContext) _Query_artifacts(ctx context.Context, field graphql.
 	rctx.Result = res
 
 	return ec._ArtifactQuery(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_settings(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Settings(rctx)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(customtypes.SettingsQuery)
+	rctx.Result = res
+
+	return ec._SettingsQuery(ctx, field.Selections, &res)
 }
 
 // nolint: vetshadow
@@ -7678,6 +7835,237 @@ func (ec *executionContext) _SecretQuery_get(ctx context.Context, field graphql.
 	}
 
 	return ec._Secret(ctx, field.Selections, res)
+}
+
+var settingsImplementors = []string{"Settings"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _Settings(ctx context.Context, sel ast.SelectionSet, obj *models.Settings) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, settingsImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Settings")
+		case "watchNamespaces":
+			out.Values[i] = ec._Settings_watchNamespaces(ctx, field, obj)
+		case "refreshRate":
+			out.Values[i] = ec._Settings_refreshRate(ctx, field, obj)
+		case "metadata":
+			out.Values[i] = ec._Settings_metadata(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Settings_watchNamespaces(ctx context.Context, field graphql.CollectedField, obj *models.Settings) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Settings",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WatchNamespaces, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	rctx.Result = res
+
+	arr1 := make(graphql.Array, len(res))
+
+	for idx1 := range res {
+		arr1[idx1] = func() graphql.Marshaler {
+			return graphql.MarshalString(res[idx1])
+		}()
+	}
+
+	return arr1
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Settings_refreshRate(ctx context.Context, field graphql.CollectedField, obj *models.Settings) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Settings",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RefreshRate, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*customtypes.Duration)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+	return *res
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Settings_metadata(ctx context.Context, field graphql.CollectedField, obj *models.Settings) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Settings",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Metadata, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.Metadata)
+	rctx.Result = res
+
+	return ec._Metadata(ctx, field.Selections, &res)
+}
+
+var settingsMutationImplementors = []string{"SettingsMutation"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _SettingsMutation(ctx context.Context, sel ast.SelectionSet, obj *customtypes.SettingsMutation) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, settingsMutationImplementors)
+
+	var wg sync.WaitGroup
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SettingsMutation")
+		case "update":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._SettingsMutation_update(ctx, field, obj)
+				wg.Done()
+			}(i, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	wg.Wait()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _SettingsMutation_update(ctx context.Context, field graphql.CollectedField, obj *customtypes.SettingsMutation) graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_SettingsMutation_update_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "SettingsMutation",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SettingsMutation().Update(rctx, obj, args["settings"].(models.InputSettings))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Settings)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._Settings(ctx, field.Selections, res)
+}
+
+var settingsQueryImplementors = []string{"SettingsQuery"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _SettingsQuery(ctx context.Context, sel ast.SelectionSet, obj *customtypes.SettingsQuery) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, settingsQueryImplementors)
+
+	var wg sync.WaitGroup
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SettingsQuery")
+		case "get":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._SettingsQuery_get(ctx, field, obj)
+				wg.Done()
+			}(i, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	wg.Wait()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _SettingsQuery_get(ctx context.Context, field graphql.CollectedField, obj *customtypes.SettingsQuery) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "SettingsQuery",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SettingsQuery().Get(rctx, obj)
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Settings)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._Settings(ctx, field.Selections, res)
 }
 
 var singleDestinationImplementors = []string{"SingleDestination"}
@@ -12555,6 +12943,52 @@ func UnmarshalInputServiceSpec(v interface{}) (models.InputServiceSpec, error) {
 	return it, nil
 }
 
+func UnmarshalInputSettings(v interface{}) (models.InputSettings, error) {
+	var it models.InputSettings
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "watchNamespaces":
+			var err error
+			var rawIf1 []interface{}
+			if v != nil {
+				if tmp1, ok := v.([]interface{}); ok {
+					rawIf1 = tmp1
+				} else {
+					rawIf1 = []interface{}{v}
+				}
+			}
+			it.WatchNamespaces = make([]string, len(rawIf1))
+			for idx1 := range rawIf1 {
+				it.WatchNamespaces[idx1], err = graphql.UnmarshalString(rawIf1[idx1])
+			}
+			if err != nil {
+				return it, err
+			}
+		case "refreshRate":
+			var err error
+			var ptr1 customtypes.Duration
+			if v != nil {
+				err = (&ptr1).UnmarshalGQL(v)
+				it.RefreshRate = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "metadata":
+			var err error
+			it.Metadata, err = UnmarshalInputMetadata(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputSingleDestination(v interface{}) (models.InputSingleDestination, error) {
 	var it models.InputSingleDestination
 	var asMap = v.(map[string]interface{})
@@ -13222,18 +13656,13 @@ schema {
 
 type Query {
     getOAuthEndpoint: OAuthEndpoint!
-
     upstreams(namespace: String!):       UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
     resolverMaps(namespace: String!): ResolverMapQuery!
     schemas(namespace: String!): SchemaQuery!
     secrets(namespace: String!): SecretQuery!
     artifacts(namespace: String!): ArtifactQuery!
-}
-
-type OAuthEndpoint {
-    url: String!
-    clientName: String!
+    settings: SettingsQuery!
 }
 
 type Mutation {
@@ -13243,11 +13672,17 @@ type Mutation {
     schemas(namespace: String!): SchemaMutation!
     secrets(namespace: String!): SecretMutation!
     artifacts(namespace: String!): ArtifactMutation!
+    settings: SettingsMutation!
 }
 
 type Subscription {
     upstreams(namespace: String!, selector: InputMapStringString): [Upstream]
     virtualServices(namespace: String!, selector: InputMapStringString): [VirtualService]
+}
+
+type OAuthEndpoint {
+    url: String!
+    clientName: String!
 }
 
 type UpstreamQuery {
@@ -13325,6 +13760,14 @@ type ArtifactMutation {
     create(artifact: InputArtifact!): Artifact
     update(artifact: InputArtifact!): Artifact
     delete(name: String!): Artifact
+}
+
+type SettingsQuery {
+    get:                Settings
+}
+
+type SettingsMutation {
+    update(settings: InputSettings!): Settings
 }
 
 # Upstream
@@ -13909,6 +14352,24 @@ input InputArtifact {
     metadata: InputMetadata!
 }
 
+## Settings
+## Settings
+## Settings
+## Settings
+## Settings
+
+type Settings {
+    watchNamespaces: [String!]
+    refreshRate: Duration
+    metadata: Metadata!
+}
+
+input InputSettings {
+    watchNamespaces: [String!]
+    refreshRate: Duration
+    metadata: InputMetadata!
+}
+
 
 
 # Common output types
@@ -13956,7 +14417,6 @@ enum AzureFnAuthLevel {
     ADMIN
 }
 
-
 type MapStringString {
     values: [Value!]
 }
@@ -13985,5 +14445,6 @@ enum AwsLambdaInvocationStyle {
     SYNC
     ASYNC
 }
-`},
+
+scalar Duration`},
 )

@@ -13,6 +13,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/models"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 )
 
@@ -20,6 +21,7 @@ type ApiResolver struct {
 	Upstreams       v1.UpstreamClient
 	Secrets         v1.SecretClient
 	Artifacts       v1.ArtifactClient
+	Settings        v1.SettingsClient
 	VirtualServices gatewayv1.VirtualServiceClient
 	ResolverMaps    sqoopv1.ResolverMapClient
 	Schemas         sqoopv1.SchemaClient
@@ -29,6 +31,7 @@ type ApiResolver struct {
 func NewResolvers(upstreams v1.UpstreamClient,
 	schemas sqoopv1.SchemaClient,
 	artifacts v1.ArtifactClient,
+	settings v1.SettingsClient,
 	secrets v1.SecretClient,
 	virtualServices gatewayv1.VirtualServiceClient,
 	resolverMaps sqoopv1.ResolverMapClient) *ApiResolver {
@@ -38,6 +41,7 @@ func NewResolvers(upstreams v1.UpstreamClient,
 		ResolverMaps:    resolverMaps,
 		Schemas:         schemas,
 		Artifacts:       artifacts,
+		Settings:        settings,
 		Secrets:         secrets,
 		// TODO(ilackarms): just make these private functions, remove converter
 		Converter: &Converter{},
@@ -84,6 +88,14 @@ func (r *ApiResolver) ArtifactQuery() graph.ArtifactQueryResolver {
 	return &artifactQueryResolver{r}
 }
 
+func (r *ApiResolver) SettingsMutation() graph.SettingsMutationResolver {
+	return &settingsMutationResolver{r}
+}
+
+func (r *ApiResolver) SettingsQuery() graph.SettingsQueryResolver {
+	return &settingsQueryResolver{r}
+}
+
 func (r *ApiResolver) SecretMutation() graph.SecretMutationResolver {
 	return &secretMutationResolver{r}
 }
@@ -111,6 +123,9 @@ func (r *mutationResolver) Secrets(ctx context.Context, namespace string) (custo
 }
 func (r *mutationResolver) Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactMutation, error) {
 	return customtypes.ArtifactMutation{Namespace: namespace}, nil
+}
+func (r *mutationResolver) Settings(ctx context.Context) (customtypes.SettingsMutation, error) {
+	return customtypes.SettingsMutation{}, nil
 }
 
 type queryResolver struct{ *ApiResolver }
@@ -146,6 +161,9 @@ func (r *queryResolver) Secrets(ctx context.Context, namespace string) (customty
 }
 func (r *queryResolver) Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactQuery, error) {
 	return customtypes.ArtifactQuery{Namespace: namespace}, nil
+}
+func (r *queryResolver) Settings(ctx context.Context) (customtypes.SettingsQuery, error) {
+	return customtypes.SettingsQuery{}, nil
 }
 
 type upstreamMutationResolver struct{ *ApiResolver }
@@ -749,6 +767,26 @@ func (r *artifactMutationResolver) Delete(ctx context.Context, obj *customtypes.
 	return r.Converter.ConvertOutputArtifact(artifact), nil
 }
 
+type settingsMutationResolver struct{ *ApiResolver }
+
+func (r *settingsMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.SettingsMutation, settings models.InputSettings) (*models.Settings, error) {
+	ups, err := r.Converter.ConvertInputSettings(settings)
+	if err != nil {
+		return nil, err
+	}
+	out, err := r.Settings.Write(ups, clients.WriteOpts{
+		Ctx:               ctx,
+		OverwriteExisting: overwrite,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputSettings(out), nil
+}
+func (r *settingsMutationResolver) Update(ctx context.Context, obj *customtypes.SettingsMutation, settings models.InputSettings) (*models.Settings, error) {
+	return r.write(true, ctx, obj, settings)
+}
+
 type artifactQueryResolver struct{ *ApiResolver }
 
 func (r *artifactQueryResolver) List(ctx context.Context, obj *customtypes.ArtifactQuery, selector *models.InputMapStringString) ([]*models.Artifact, error) {
@@ -774,6 +812,20 @@ func (r *artifactQueryResolver) Get(ctx context.Context, obj *customtypes.Artifa
 		return nil, err
 	}
 	return r.Converter.ConvertOutputArtifact(artifact), nil
+}
+
+type settingsQueryResolver struct{ *ApiResolver }
+
+func (r *settingsQueryResolver) Get(ctx context.Context, obj *customtypes.SettingsQuery) (*models.Settings, error) {
+	namespace := defaults.GlooSystem
+	name := defaults.SettingsName
+	settings, err := r.Settings.Read(namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputSettings(settings), nil
 }
 
 func (r *ApiResolver) Subscription() graph.SubscriptionResolver {
@@ -836,9 +888,6 @@ func (r subscriptionResolver) VirtualServices(ctx context.Context, namespace str
 		Ctx:         ctx,
 		Selector:    convertedSelector,
 	})
-	if err != nil {
-		return nil, err
-	}
 	virtualServicesChan := make(chan []*models.VirtualService)
 	go func() {
 		defer close(virtualServicesChan)

@@ -709,14 +709,14 @@ input InputArtifact {
 ## Settings
 
 type Settings {
-    watch_namespaces: [String!]
-    refresh_rate: Duration
+    watchNamespaces: [String!]
+    refreshRate: Duration
     metadata: Metadata!
 }
 
 input InputSettings {
-    watch_namespaces: [String!]
-    refresh_rate: Duration
+    watchNamespaces: [String!]
+    refreshRate: Duration
     metadata: InputMetadata!
 }
 

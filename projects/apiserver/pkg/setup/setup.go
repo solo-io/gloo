@@ -22,7 +22,7 @@ import (
 	"github.com/solo-io/solo-kit/samples"
 )
 
-func Setup(port int, dev bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
+func Setup(port int, dev bool, settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
 	// initial resource registration
 	upstreams, err := v1.NewUpstreamClient(glooOpts.Upstreams)
 	if err != nil {
@@ -141,7 +141,7 @@ func Setup(port int, dev bool, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup
 
 		corsSettings.Handler(handler.GraphQL(
 			graph.NewExecutableSchema(graph.Config{
-				Resolvers: apiserver.NewResolvers(upstreams, schemas, artifacts, secrets, virtualServices, resolverMaps),
+				Resolvers: apiserver.NewResolvers(upstreams, schemas, artifacts, settings, secrets, virtualServices, resolverMaps),
 			}),
 			handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
 				rc := graphql.GetResolverContext(ctx)
