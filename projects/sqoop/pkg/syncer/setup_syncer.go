@@ -3,6 +3,8 @@ package syncer
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -20,7 +22,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/router"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
 	"k8s.io/client-go/rest"
-	"net/http"
 )
 
 type Opts struct {
@@ -37,7 +38,7 @@ type Opts struct {
 func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) gloov1.SetupSyncer {
 	return &setupSyncer{
 		inMemoryCache: inMemoryCache,
-		kubeCache:     kubeCache,}
+		kubeCache:     kubeCache}
 }
 
 type setupSyncer struct {

@@ -26,8 +26,8 @@ type Opts struct {
 }
 
 type ControlPlane struct {
-	GrpcServer    *grpc.Server
+	GrpcServer      *grpc.Server
 	StartGrpcServer bool
-	SnapshotCache cache.SnapshotCache
-	XDSServer     server.Server
+	SnapshotCache   cache.SnapshotCache
+	XDSServer       server.Server
 }

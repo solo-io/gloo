@@ -209,7 +209,7 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 			IP:   net.ParseIP(ipPort[0]),
 			Port: port,
 		},
-		ControlPlane:    s.controlPlane,
+		ControlPlane: s.controlPlane,
 		// if nil, kube plugin disabled
 		KubeClient: clientset,
 		DevMode:    true,

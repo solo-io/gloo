@@ -6,18 +6,12 @@ schema {
 
 type Query {
     getOAuthEndpoint: OAuthEndpoint!
-
     upstreams(namespace: String!):       UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
     resolverMaps(namespace: String!): ResolverMapQuery!
     schemas(namespace: String!): SchemaQuery!
     secrets(namespace: String!): SecretQuery!
     artifacts(namespace: String!): ArtifactQuery!
-}
-
-type OAuthEndpoint {
-    url: String!
-    clientName: String!
 }
 
 type Mutation {
@@ -32,6 +26,11 @@ type Mutation {
 type Subscription {
     upstreams(namespace: String!, selector: InputMapStringString): [Upstream]
     virtualServices(namespace: String!, selector: InputMapStringString): [VirtualService]
+}
+
+type OAuthEndpoint {
+    url: String!
+    clientName: String!
 }
 
 type UpstreamQuery {

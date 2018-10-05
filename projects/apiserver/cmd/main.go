@@ -17,6 +17,8 @@ import (
 
 	"flag"
 	"fmt"
+	"log"
+
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/setup"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
@@ -24,7 +26,6 @@ import (
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
-	"log"
 )
 
 func main() {
