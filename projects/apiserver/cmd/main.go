@@ -2,22 +2,27 @@ package main
 
 import (
 	"context"
-	"flag"
-	"fmt"
+	"net"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"k8s.io/client-go/kubernetes"
+
+	"flag"
+	"fmt"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/setup"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
-	"github.com/solo-io/solo-kit/test/config"
 	"log"
 )
 
@@ -31,7 +36,7 @@ func run() error {
 	port := flag.Int("p", 8082, "port to bind")
 	dev := flag.Bool("dev", false, "use memory instead of connecting to real gloo storage")
 	flag.Parse()
-	glooOpts, err := config.DefaultKubernetesConstructOpts()
+	glooOpts, err := DefaultKubernetesConstructOpts()
 	if err != nil {
 		return err
 	}
@@ -51,6 +56,50 @@ func run() error {
 		return err
 	}
 	return nil
+}
+
+// DEPRECATED: TODO(ilackarms): remove without breaking things, move to a test package
+func DefaultKubernetesConstructOpts() (bootstrap.Opts, error) {
+	cfg, err := kubeutils.GetConfig("", "")
+	if err != nil {
+		return bootstrap.Opts{}, err
+	}
+	clientset, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return bootstrap.Opts{}, err
+	}
+	ctx := contextutils.WithLogger(context.Background(), "gloo")
+	cache := kube.NewKubeCache()
+	return bootstrap.Opts{
+		WriteNamespace: defaults.GlooSystem,
+		Upstreams: &factory.KubeResourceClientFactory{
+			Crd:         v1.UpstreamCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
+		},
+		Proxies: &factory.KubeResourceClientFactory{
+			Crd:         v1.ProxyCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
+		},
+		Secrets: &factory.KubeSecretClientFactory{
+			Clientset: clientset,
+		},
+		Artifacts: &factory.KubeConfigMapClientFactory{
+			Clientset: clientset,
+		},
+		WatchNamespaces: []string{"default", defaults.GlooSystem},
+		WatchOpts: clients.WatchOpts{
+			Ctx:         ctx,
+			RefreshRate: defaults.RefreshRate,
+		},
+		BindAddr: &net.TCPAddr{
+			IP:   net.ParseIP("0.0.0.0"),
+			Port: 8080,
+		},
+		KubeClient: clientset,
+		DevMode:    true,
+	}, nil
 }
 
 func DefaultGatewayOpts() (gatewaysetup.Opts, error) {

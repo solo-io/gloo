@@ -53,7 +53,7 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 		opts := DefaultTestConstructOpts(ctx, cache)
 		go gatewaysyncer.RunGateway(opts)
 	}
-	glooopts.StartGrpcServer = true
+	glooopts.ControlPlane.StartGrpcServer = true
 	go syncer.RunGloo(glooopts)
 	go fds_syncer.RunFDS(glooopts)
 
@@ -131,7 +131,7 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache) bo
 			Ctx:         ctx,
 			RefreshRate: time.Second / 10,
 		},
-		ControlPlane: syncer.NewControlPlane(ctx,grpcServer),
+		ControlPlane: syncer.NewControlPlane(ctx,grpcServer, true),
 		BindAddr: &net.TCPAddr{
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 8081,

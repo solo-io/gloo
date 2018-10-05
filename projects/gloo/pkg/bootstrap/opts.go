@@ -23,11 +23,11 @@ type Opts struct {
 	WatchOpts       clients.WatchOpts
 	DevMode         bool
 	ControlPlane    ControlPlane
-	StartGrpcServer bool
 }
 
 type ControlPlane struct {
 	GrpcServer    *grpc.Server
+	StartGrpcServer bool
 	SnapshotCache cache.SnapshotCache
 	XDSServer     server.Server
 }

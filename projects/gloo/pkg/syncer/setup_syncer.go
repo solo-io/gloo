@@ -74,7 +74,7 @@ type setupSyncer struct {
 	inMemoryCache      memory.InMemoryResourceCache
 }
 
-func NewControlPlane(ctx context.Context, grpcServer *grpc.Server) bootstrap.ControlPlane {
+func NewControlPlane(ctx context.Context, grpcServer *grpc.Server, start bool) bootstrap.ControlPlane {
 	var c bootstrap.ControlPlane
 	c.GrpcServer = grpcServer
 	hasher := &xds.ProxyKeyHasher{}
@@ -84,6 +84,7 @@ func NewControlPlane(ctx context.Context, grpcServer *grpc.Server) bootstrap.Con
 	envoyv2.RegisterAggregatedDiscoveryServiceServer(c.GrpcServer, xdsServer)
 	c.SnapshotCache = snapshotCache
 	c.XDSServer = xdsServer
+	c.StartGrpcServer = start
 	return c
 }
 
@@ -177,7 +178,6 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 	}
 	empty := bootstrap.ControlPlane{}
 
-	var restartGrpcServer bool
 	if settings.BindAddr != s.previousBindAddr {
 		if s.cancelControlPlane != nil {
 			s.cancelControlPlane()
@@ -186,10 +186,11 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		s.controlPlane = empty
 	}
 
+	// enter this block either on the first loop, or if bind addr changed
 	if s.controlPlane == empty {
 		// create new context as the grpc server might survive multiple iterations of this loop.
 		ctx, cancel := context.WithCancel(context.Background())
-		s.controlPlane = NewControlPlane(ctx, s.grpcServer(ctx))
+		s.controlPlane = NewControlPlane(ctx, s.grpcServer(ctx), true)
 		s.cancelControlPlane = cancel
 	}
 
@@ -209,7 +210,6 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 			Port: port,
 		},
 		ControlPlane:    s.controlPlane,
-		StartGrpcServer: restartGrpcServer,
 		// if nil, kube plugin disabled
 		KubeClient: clientset,
 		DevMode:    true,
@@ -304,7 +304,7 @@ func RunGloo(opts bootstrap.Opts) error {
 		}
 	}()
 
-	if !opts.StartGrpcServer {
+	if !opts.ControlPlane.StartGrpcServer {
 		return nil
 	}
 
