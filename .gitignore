@@ -12,4 +12,3 @@
 *.out
 vendor/
 _output/
-gloo/
