@@ -1142,6 +1142,19 @@ func (c *Converter) ConvertOutputSettings(settings *v1.Settings) *Settings {
 	}
 }
 
+func (c *Converter) ConvertOutputSettings(settings *v1.Settings) *Settings {
+	refreshRate, err := types.DurationFromProto(settings.RefreshRate)
+	if err != nil {
+		log.Printf("weird error trying to convert duration from proto: %v", err)
+	}
+	dur := customtypes.Duration(refreshRate)
+	return &Settings{
+		WatchNamespaces: settings.WatchNamespaces,
+		RefreshRate:     &dur,
+		Metadata:        convertOutputMetadata(settings.Metadata),
+	}
+}
+
 func (c *Converter) ConvertInputArtifacts(artifacts []*InputArtifact) (v1.ArtifactList, error) {
 	var result v1.ArtifactList
 	for _, item := range artifacts {

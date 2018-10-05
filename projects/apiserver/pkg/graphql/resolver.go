@@ -830,6 +830,26 @@ func (r *settingsMutationResolver) Update(ctx context.Context, obj *customtypes.
 	return r.write(true, ctx, obj, settings)
 }
 
+type settingsMutationResolver struct{ *ApiResolver }
+
+func (r *settingsMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.SettingsMutation, settings models.InputSettings) (*models.Settings, error) {
+	ups, err := r.Converter.ConvertInputSettings(settings)
+	if err != nil {
+		return nil, err
+	}
+	out, err := r.Settings.Write(ups, clients.WriteOpts{
+		Ctx:               ctx,
+		OverwriteExisting: overwrite,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputSettings(out), nil
+}
+func (r *settingsMutationResolver) Update(ctx context.Context, obj *customtypes.SettingsMutation, settings models.InputSettings) (*models.Settings, error) {
+	return r.write(true, ctx, obj, settings)
+}
+
 type artifactQueryResolver struct{ *ApiResolver }
 
 func (r *artifactQueryResolver) List(ctx context.Context, obj *customtypes.ArtifactQuery, selector *models.InputMapStringString) ([]*models.Artifact, error) {
@@ -869,6 +889,20 @@ func (r *settingsQueryResolver) Get(ctx context.Context, obj *customtypes.Settin
 		return nil, err
 	}
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputSettings(settings), nil
+}
+
+type settingsQueryResolver struct{ *ApiResolver }
+
+func (r *settingsQueryResolver) Get(ctx context.Context, obj *customtypes.SettingsQuery) (*models.Settings, error) {
+	namespace := defaults.GlooSystem
+	name := defaults.SettingsName
+	settings, err := r.Settings.Read(namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.Converter.ConvertOutputSettings(settings), nil
 }
 
 func (r *ApiResolver) Subscription() graph.SubscriptionResolver {
@@ -931,9 +965,6 @@ func (r subscriptionResolver) VirtualServices(ctx context.Context, namespace str
 		Ctx:         ctx,
 		Selector:    convertedSelector,
 	})
-	if err != nil {
-		return nil, err
-	}
 	virtualServicesChan := make(chan []*models.VirtualService)
 	go func() {
 		defer close(virtualServicesChan)
