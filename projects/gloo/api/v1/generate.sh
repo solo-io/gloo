@@ -13,14 +13,18 @@ done
 
 IN="$( cd -P "$( dirname "$SOURCE" )" >/dev/null && pwd )"
 OUT=${IN}/../../pkg/api/v1
-GOGO_OUT_FLAG="--gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/descriptor.proto=github.com/gogo/protobuf/protoc-gen-gogo/descriptor:${GOPATH}/src/"
+
+GOGO_OUT_FLAG="--gogo_out=plugins=grpc,"
+GOGO_OUT_FLAG+="Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/descriptor.proto=github.com/gogo/protobuf/protoc-gen-gogo/descriptor,"
+GOGO_OUT_FLAG+="Menvoy/api/v2/discovery.proto=github.com/envoyproxy/go-control-plane/envoy/api/v2"
+GOGO_OUT_FLAG+=":${GOPATH}/src/"
+
 SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=${PWD}/project.json:${OUT}"
 
 mkdir -p ${OUT}/plugins
 
 PROTOC_FLAGS="-I=${GOPATH}/src \
-    -I=${GOPATH}/src/github.com/gogo/protobuf/protobuf \
-    -I=${GOPATH}/src/github.com/gogo/protobuf \
+    -I=${GOPATH}/src/github.com/solo-io/solo-kit/api/external/proto \
     ${GOGO_OUT_FLAG} \
     ${SOLO_KIT_FLAG}"
 
