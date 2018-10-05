@@ -2,7 +2,6 @@ syntax = "proto3";
 package plugins.gloo.solo.io;
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/ratelimit";
 
-
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
@@ -18,32 +17,8 @@ message RateLimit {
     uint32 requests_per_unit = 2;
 }
 
-
-// User Config
-message UserRateLimit {
-    string trusted_header = 1; // Defaults to authorization.
-    RateLimit authenticated = 2;
-    RateLimit anonymous = 3;
-}
-
-
-// Server config:
-message Constraint {
-    string key = 1;
-    string value = 2;
-   
-    RateLimit rate_limit = 3;
-    repeated Constraint constraints = 4;
-}
-
-message RateLimitConfig {
-    string domain = 1;
-    repeated Constraint constraints = 2;
-}
-
-// this config will reside inside the gloo virtual service and will get
-// translated to rate limit config for the rate limit server. and rate limit config in envoy's virtual host.
-message IngressRateLimitConfig {
+message IngressRateLimit {
+    
     string authrorized_header = 1;
     RateLimit authorized_limits = 2;
     RateLimit anonymous_limits = 3;
