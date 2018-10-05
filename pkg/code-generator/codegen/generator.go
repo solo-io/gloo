@@ -34,9 +34,33 @@ func GenerateFiles(project *Project) (Files, error) {
 		}
 		files = append(files, fs...)
 	}
+
+	for _, res := range project.XDSResources {
+		fs, err := generateFilesForXdsResource(res)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, fs...)
+	}
 	return files, nil
 }
 
+func generateFilesForXdsResource(resource *XDSResource) (Files, error) {
+	var v Files
+	for suffix, tmpl := range map[string]*template.Template{
+		"_xds.sk.go": templates.XdsTemplate,
+	} {
+		content, err := generateXdsResourceFile(resource, tmpl)
+		if err != nil {
+			return nil, err
+		}
+		v = append(v, File{
+			Filename: strcase.ToSnake(resource.Name) + suffix,
+			Content:  content,
+		})
+	}
+	return v, nil
+}
 func generateFilesForResource(resource *Resource) (Files, error) {
 	var v Files
 	for suffix, tmpl := range map[string]*template.Template{
@@ -93,6 +117,14 @@ func generateFilesForProject(project *Project) (Files, error) {
 		})
 	}
 	return v, nil
+}
+
+func generateXdsResourceFile(resource *XDSResource, tmpl *template.Template) (string, error) {
+	buf := &bytes.Buffer{}
+	if err := tmpl.Execute(buf, resource); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 func generateResourceFile(resource *Resource, tmpl *template.Template) (string, error) {

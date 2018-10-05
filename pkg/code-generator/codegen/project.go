@@ -15,6 +15,8 @@ type Project struct {
 
 	Resources      []*Resource
 	ResourceGroups []*ResourceGroup
+
+	XDSResources []*XDSResource
 }
 
 type Resource struct {
@@ -39,4 +41,13 @@ type ResourceGroup struct {
 	GoName    string // will be Api
 	Project   *Project
 	Resources []*Resource
+}
+
+type XDSResource struct {
+	Name         string
+	MessageType  string
+	NameField    string
+	NoReferences bool
+
+	Project *Project
 }
