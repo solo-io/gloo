@@ -42,3 +42,9 @@ models:
     model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.ArtifactQuery
   ArtifactMutation:
     model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.ArtifactMutation
+  SettingsQuery:
+    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.SettingsQuery
+  SettingsMutation:
+    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.SettingsMutation
+  Duration:
+    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.Duration

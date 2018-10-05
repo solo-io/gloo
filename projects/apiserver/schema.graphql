@@ -12,6 +12,7 @@ type Query {
     schemas(namespace: String!): SchemaQuery!
     secrets(namespace: String!): SecretQuery!
     artifacts(namespace: String!): ArtifactQuery!
+    settings: SettingsQuery!
 }
 
 type Mutation {
@@ -21,6 +22,7 @@ type Mutation {
     schemas(namespace: String!): SchemaMutation!
     secrets(namespace: String!): SecretMutation!
     artifacts(namespace: String!): ArtifactMutation!
+    settings: SettingsMutation!
 }
 
 type Subscription {
@@ -108,6 +110,14 @@ type ArtifactMutation {
     create(artifact: InputArtifact!): Artifact
     update(artifact: InputArtifact!): Artifact
     delete(name: String!): Artifact
+}
+
+type SettingsQuery {
+    get:                Settings
+}
+
+type SettingsMutation {
+    update(settings: InputSettings!): Settings
 }
 
 # Upstream
@@ -692,6 +702,24 @@ input InputArtifact {
     metadata: InputMetadata!
 }
 
+## Settings
+## Settings
+## Settings
+## Settings
+## Settings
+
+type Settings {
+    watch_namespaces: [String!]
+    refresh_rate: Duration
+    metadata: Metadata!
+}
+
+input InputSettings {
+    watch_namespaces: [String!]
+    refresh_rate: Duration
+    metadata: Metadata!
+}
+
 
 
 # Common output types
@@ -739,7 +767,6 @@ enum AzureFnAuthLevel {
     ADMIN
 }
 
-
 type MapStringString {
     values: [Value!]
 }
@@ -768,3 +795,5 @@ enum AwsLambdaInvocationStyle {
     SYNC
     ASYNC
 }
+
+scalar Duration
