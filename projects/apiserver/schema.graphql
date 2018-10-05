@@ -717,7 +717,7 @@ type Settings {
 input InputSettings {
     watch_namespaces: [String!]
     refresh_rate: Duration
-    metadata: Metadata!
+    metadata: InputMetadata!
 }
 
 

@@ -17,7 +17,8 @@ import "google/protobuf/duration.proto";
 message Settings {
     // namespace to write discovered data
     string discovery_namespace = 1;
-    // namespaces to watch for user config as well as
+    // namespaces to watch for user config as well as services
+    // TODO(ilackarms): split out watch_namespaces and service_discovery_namespaces...
     repeated string watch_namespaces = 2;
 
     // where to read user config (upstream, proxy) from

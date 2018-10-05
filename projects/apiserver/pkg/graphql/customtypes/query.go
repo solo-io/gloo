@@ -47,3 +47,7 @@ type ArtifactQuery struct {
 type ArtifactMutation struct {
 	Namespace string
 }
+
+type SettingsQuery struct{}
+
+type SettingsMutation struct{}

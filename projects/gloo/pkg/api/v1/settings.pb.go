@@ -23,7 +23,8 @@ var _ = math.Inf
 type Settings struct {
 	// namespace to write discovered data
 	DiscoveryNamespace string `protobuf:"bytes,1,opt,name=discovery_namespace,json=discoveryNamespace,proto3" json:"discovery_namespace,omitempty"`
-	// namespaces to watch for user config as well as
+	// namespaces to watch for user config as well as services
+	// TODO(ilackarms): split out watch_namespaces and service_discovery_namespaces...
 	WatchNamespaces []string `protobuf:"bytes,2,rep,name=watch_namespaces,json=watchNamespaces" json:"watch_namespaces,omitempty"`
 	// where to read user config (upstream, proxy) from
 	// if nil, use only in memory config
