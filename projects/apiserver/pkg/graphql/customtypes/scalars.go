@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 	"time"
 
 	"github.com/gogo/protobuf/types"
@@ -30,8 +31,9 @@ func (d *Duration) UnmarshalGQL(v interface{}) error {
 
 // MarshalGQL implements the graphql.Marshaler interface
 func (d Duration) MarshalGQL(w io.Writer) {
-	str := time.Duration(d).String()
-	w.Write([]byte(str))
+	timeDuration := time.Duration(d)
+	// time.Duration is an int64. 4 decimal places will serve our needs
+	w.Write([]byte(strconv.FormatFloat(timeDuration.Seconds(), 'f', 4, 64)))
 }
 
 func NewDuration(duration time.Duration) *Duration {
