@@ -29,6 +29,10 @@ type Mutation {
     artifacts(namespace: String!): ArtifactMutation!
 }
 
+type Subscription {
+    upstreams(namespace: String!, selector: InputMapStringString): [Upstream]
+}
+
 type UpstreamQuery {
     list(selector: InputMapStringString): [Upstream]
     get(name: String!):                Upstream

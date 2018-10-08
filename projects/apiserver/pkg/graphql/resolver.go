@@ -2,7 +2,10 @@ package graphql
 
 import (
 	"context"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"os"
+	"runtime/trace"
+	"time"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -40,21 +43,6 @@ func NewResolvers(upstreams v1.UpstreamClient,
 		// TODO(ilackarms): just make these private functions, remove converter
 		Converter: &Converter{},
 	}
-}
-
-func (r *queryResolver) GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpoint, error) {
-	oauthUrl := os.Getenv("OAUTH_SERVER") // ip:port of openshift server
-	if oauthUrl == "" {
-		return models.OAuthEndpoint{}, errors.Errorf("apiserver configured improperly, OAUTH_SERVER environment variable is not set")
-	}
-	oauthClient := os.Getenv("OAUTH_CLIENT") // ip:port of openshift server
-	if oauthClient == "" {
-		return models.OAuthEndpoint{}, errors.Errorf("apiserver configured improperly, OAUTH_CLIENT environment variable is not set")
-	}
-	return models.OAuthEndpoint{
-		URL:        oauthUrl,
-		ClientName: oauthClient,
-	}, nil
 }
 
 func (r *ApiResolver) Mutation() graph.MutationResolver {
@@ -128,6 +116,20 @@ func (r *mutationResolver) Artifacts(ctx context.Context, namespace string) (cus
 
 type queryResolver struct{ *ApiResolver }
 
+func (r *queryResolver) GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpoint, error) {
+	oauthUrl := os.Getenv("OAUTH_SERVER") // ip:port of openshift server
+	if oauthUrl == "" {
+		return models.OAuthEndpoint{}, errors.Errorf("apiserver configured improperly, OAUTH_SERVER environment variable is not set")
+	}
+	oauthClient := os.Getenv("OAUTH_CLIENT") // ip:port of openshift server
+	if oauthClient == "" {
+		return models.OAuthEndpoint{}, errors.Errorf("apiserver configured improperly, OAUTH_CLIENT environment variable is not set")
+	}
+	return models.OAuthEndpoint{
+		URL:        oauthUrl,
+		ClientName: oauthClient,
+	}, nil
+}
 func (r *queryResolver) Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamQuery, error) {
 	return customtypes.UpstreamQuery{Namespace: namespace}, nil
 }
@@ -773,4 +775,60 @@ func (r *artifactQueryResolver) Get(ctx context.Context, obj *customtypes.Artifa
 		return nil, err
 	}
 	return r.Converter.ConvertOutputArtifact(artifact), nil
+}
+
+func (r *ApiResolver) Subscription() graph.SubscriptionResolver {
+	return &subscriptionResolver{r}
+}
+
+type subscriptionResolver struct{ *ApiResolver }
+
+func (r subscriptionResolver) Upstreams(ctx context.Context, namespace string, selector *models.InputMapStringString) (<-chan []*models.Upstream, error) {
+	var convertedSelector map[string]string
+	if selector != nil {
+		convertedSelector = selector.GoType()
+	}
+	watch, errs, err := r.ApiResolver.Upstreams.Watch(namespace, clients.WatchOpts{
+		// TODO(ilackarms): refresh rate
+		RefreshRate: time.Minute * 10,
+		Ctx:         ctx,
+		Selector:    convertedSelector,
+	})
+	if err != nil {
+		return nil, err
+	}
+	upstreamsChan := make(chan []*models.Upstream)
+	go func() {
+		defer close(upstreamsChan)
+		for {
+			select {
+			case list, ok := <-watch:
+				if !ok {
+					return
+				}
+				upstreams := r.Converter.ConvertOutputUpstreams(list)
+				select {
+				case upstreamsChan <- upstreams:
+				default:
+					contextutils.LoggerFrom(ctx).Errorf("upstream channel full, cannot send list of %v upstreams", len(list))
+				}
+			case err, ok := <-errs:
+				if !ok {
+					return
+				}
+				contextutils.LoggerFrom(ctx).Errorf("error in upstream subscription: %v", err)
+			case <-ctx.Done():
+				go func(){
+					time.Sleep(time.Second * 5)
+					f, _ := os.Create("/home/ilackarms/foo")
+					trace.Start(f)
+					time.Sleep(time.Second * 10)
+					trace.Stop()
+				}()
+				return
+			}
+		}
+	}()
+
+	return upstreamsChan, nil
 }

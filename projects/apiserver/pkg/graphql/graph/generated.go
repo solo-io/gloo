@@ -40,6 +40,7 @@ type ResolverRoot interface {
 	SchemaQuery() SchemaQueryResolver
 	SecretMutation() SecretMutationResolver
 	SecretQuery() SecretQueryResolver
+	Subscription() SubscriptionResolver
 	UpstreamMutation() UpstreamMutationResolver
 	UpstreamQuery() UpstreamQueryResolver
 	VirtualServiceMutation() VirtualServiceMutationResolver
@@ -101,6 +102,9 @@ type SecretMutationResolver interface {
 type SecretQueryResolver interface {
 	List(ctx context.Context, obj *customtypes.SecretQuery, selector *models.InputMapStringString) ([]*models.Secret, error)
 	Get(ctx context.Context, obj *customtypes.SecretQuery, name string) (*models.Secret, error)
+}
+type SubscriptionResolver interface {
+	Upstreams(ctx context.Context, namespace string, selector *models.InputMapStringString) (<-chan []*models.Upstream, error)
 }
 type UpstreamMutationResolver interface {
 	Create(ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error)
@@ -168,7 +172,35 @@ func (e *executableSchema) Mutation(ctx context.Context, op *ast.OperationDefini
 }
 
 func (e *executableSchema) Subscription(ctx context.Context, op *ast.OperationDefinition) func() *graphql.Response {
-	return graphql.OneShot(graphql.ErrorResponse(ctx, "subscriptions are not supported"))
+	ec := executionContext{graphql.GetRequestContext(ctx), e}
+
+	next := ec._Subscription(ctx, op.SelectionSet)
+	if ec.Errors != nil {
+		return graphql.OneShot(&graphql.Response{Data: []byte("null"), Errors: ec.Errors})
+	}
+
+	var buf bytes.Buffer
+	return func() *graphql.Response {
+		buf := ec.RequestMiddleware(ctx, func(ctx context.Context) []byte {
+			buf.Reset()
+			data := next()
+
+			if data == nil {
+				return nil
+			}
+			data.MarshalGQL(&buf)
+			return buf.Bytes()
+		})
+
+		if buf == nil {
+			return nil
+		}
+
+		return &graphql.Response{
+			Data:   buf,
+			Errors: ec.Errors,
+		}
+	}
 }
 
 type executionContext struct {
@@ -4326,6 +4358,86 @@ func (ec *executionContext) _Status_reason(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	return graphql.MarshalString(*res)
+}
+
+var subscriptionImplementors = []string{"Subscription"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _Subscription(ctx context.Context, sel ast.SelectionSet) func() graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, subscriptionImplementors)
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Object: "Subscription",
+	})
+	if len(fields) != 1 {
+		ec.Errorf(ctx, "must subscribe to exactly one stream")
+		return nil
+	}
+
+	switch fields[0].Name {
+	case "upstreams":
+		return ec._Subscription_upstreams(ctx, fields[0])
+	default:
+		panic("unknown field " + strconv.Quote(fields[0].Name))
+	}
+}
+
+func (ec *executionContext) _Subscription_upstreams(ctx context.Context, field graphql.CollectedField) func() graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["namespace"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			ec.Error(ctx, err)
+			return nil
+		}
+	}
+	args["namespace"] = arg0
+	var arg1 *models.InputMapStringString
+	if tmp, ok := rawArgs["selector"]; ok {
+		var err error
+		var ptr1 models.InputMapStringString
+		if tmp != nil {
+			ptr1, err = UnmarshalInputMapStringString(tmp)
+			arg1 = &ptr1
+		}
+
+		if err != nil {
+			ec.Error(ctx, err)
+			return nil
+		}
+	}
+	args["selector"] = arg1
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{Field: field})
+	results, err := ec.resolvers.Subscription().Upstreams(ctx, args["namespace"].(string), args["selector"].(*models.InputMapStringString))
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-results
+		if !ok {
+			return nil
+		}
+		var out graphql.OrderedMap
+		out.Add(field.Alias, func() graphql.Marshaler {
+			arr1 := graphql.Array{}
+			for idx1 := range res {
+				arr1 = append(arr1, func() graphql.Marshaler {
+					rctx := graphql.GetResolverContext(ctx)
+					rctx.PushIndex(idx1)
+					defer rctx.Pop()
+					if res[idx1] == nil {
+						return graphql.Null
+					}
+					return ec._Upstream(ctx, field.Selections, res[idx1])
+				}())
+			}
+			return arr1
+		}())
+		return &out
+	}
 }
 
 var templateResolverImplementors = []string{"TemplateResolver"}
@@ -8796,6 +8908,10 @@ type Mutation {
     schemas(namespace: String!): SchemaMutation!
     secrets(namespace: String!): SecretMutation!
     artifacts(namespace: String!): ArtifactMutation!
+}
+
+type Subscription {
+    upstreams(namespace: String!, selector: InputMapStringString): [Upstream]
 }
 
 type UpstreamQuery {
