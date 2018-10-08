@@ -155,6 +155,7 @@
     "envoy/api/v2/core",
     "envoy/api/v2/endpoint",
     "envoy/api/v2/listener",
+    "envoy/api/v2/ratelimit",
     "envoy/api/v2/route",
     "envoy/config/bootstrap/v2",
     "envoy/config/filter/accesslog/v2",
@@ -168,6 +169,7 @@
     "envoy/config/ratelimit/v2",
     "envoy/config/trace/v2",
     "envoy/service/discovery/v2",
+    "envoy/service/ratelimit/v2",
     "envoy/type",
     "pkg/cache",
     "pkg/log",
@@ -614,6 +616,12 @@
   version = "v2.3.0"
 
 [[projects]]
+  name = "github.com/kelseyhightower/envconfig"
+  packages = ["."]
+  revision = "f611eb38b3875cc3bd991ca91c51d06446afa14c"
+  version = "v1.3.0"
+
+[[projects]]
   branch = "master"
   digest = "1:6bc9f1251db7b9e95316813d9564d158a886b796f5073e767151b2c1178c7109"
   name = "github.com/keybase/go-ps"
@@ -623,6 +631,12 @@
   ]
   pruneopts = "UT"
   revision = "668c8856d9992f97248b3177d45743d2cc1068db"
+
+[[projects]]
+  name = "github.com/konsorten/go-windows-terminal-sequences"
+  packages = ["."]
+  revision = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
+  version = "v1.0.1"
 
 [[projects]]
   digest = "1:dfe5159383dfcd370555c35374ac99022906f987b55cc65a830fb9ced970b4b1"
@@ -667,6 +681,15 @@
   pruneopts = "UT"
   revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
   version = "v1.0.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mediocregopher/radix.v2"
+  packages = [
+    "pool",
+    "redis"
+  ]
+  revision = "94360be262532d465b7e4760c7a67195d3319a87"
 
 [[projects]]
   branch = "master"
@@ -859,6 +882,12 @@
   version = "v0.1"
 
 [[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "a67f783a3814b8729bd2dac5780b5f78f8dbd64d"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:1fe9f1cf46deb81923e9e0dba06762f1a4e850f3fc0b41e2371128266b7d8482"
   name = "github.com/solo-io/envoy-operator"
   packages = ["pkg/downward"]
@@ -888,6 +917,17 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "421003c15226e9ad2c16066c5c898f94a4688fae"
+
+[[projects]]
+  name = "github.com/solo-io/rate-limiter"
+  packages = [
+    "pkg/config",
+    "pkg/redis",
+    "pkg/server",
+    "pkg/service",
+    "pkg/settings"
+  ]
+  revision = "86ac4126b60e84edc111fcbb88ac59bc9e535f0b"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -1082,8 +1122,10 @@
   branch = "master"
   digest = "1:601e63e7d4577f907118bec825902505291918859d223bce015539e79f1160e3"
   name = "google.golang.org/genproto"
-  packages = ["googleapis/rpc/status"]
-  pruneopts = "UT"
+  packages = [
+    "googleapis/api/annotations",
+    "googleapis/rpc/status"
+  ]
   revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
 
 [[projects]]
@@ -1100,6 +1142,8 @@
     "encoding",
     "encoding/proto",
     "grpclog",
+    "health",
+    "health/grpc_health_v1",
     "internal",
     "internal/backoff",
     "internal/channelz",
