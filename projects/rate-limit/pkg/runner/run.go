@@ -72,6 +72,11 @@ func startClient(ctx context.Context, s Settings, service ratelimit.RateLimitSer
 	}
 	nodeinfo.Cluster = "ratelimit"
 
+	go clientLoop(ctx, s.GlooAddress, nodeinfo, service)
+	return nil
+}
+
+func clientLoop(ctx context.Context, dialString string, nodeinfo core.Node, service ratelimit.RateLimitServerConfigMutator) {
 	generator := configproto.NewConfigGenerator(contextutils.LoggerFrom(ctx))
 
 	contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
@@ -84,8 +89,6 @@ func startClient(ctx context.Context, s Settings, service ratelimit.RateLimitSer
 			return nil
 		})
 
-		dialString := s.GlooAddress
-
 		// We are using non secure grpc to gloo with the asumption that it will be
 		// secured by envoy. if this assumption is not correct this needs to change.
 		conn, err := grpc.DialContext(ctx, dialString, grpc.WithInsecure())
@@ -96,9 +99,6 @@ func startClient(ctx context.Context, s Settings, service ratelimit.RateLimitSer
 
 		return client.Start(ctx, conn)
 	})
-
-	return nil
-
 }
 
 func addConfigDumpHandler(service ratelimit.RateLimitServiceServer) func(mux *http.ServeMux, profiles map[string]string) {
