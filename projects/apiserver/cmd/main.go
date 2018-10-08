@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/solo-io/solo-kit/pkg/utils/stats"
 	"net"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -33,6 +34,7 @@ func main() {
 }
 
 func run() error {
+	stats.StartStatsServer()
 	port := flag.Int("p", 8082, "port to bind")
 	dev := flag.Bool("dev", false, "use memory instead of connecting to real gloo storage")
 	flag.Parse()
