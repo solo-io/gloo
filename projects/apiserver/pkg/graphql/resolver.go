@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"os"
-	"runtime/trace"
 	"time"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -818,13 +817,6 @@ func (r subscriptionResolver) Upstreams(ctx context.Context, namespace string, s
 				}
 				contextutils.LoggerFrom(ctx).Errorf("error in upstream subscription: %v", err)
 			case <-ctx.Done():
-				go func(){
-					time.Sleep(time.Second * 5)
-					f, _ := os.Create("/home/ilackarms/foo")
-					trace.Start(f)
-					time.Sleep(time.Second * 10)
-					trace.Stop()
-				}()
 				return
 			}
 		}

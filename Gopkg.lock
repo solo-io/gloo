@@ -4,12 +4,13 @@
 [[projects]]
   name = "github.com/99designs/gqlgen"
   packages = [
+    "complexity",
     "graphql",
     "graphql/introspection",
     "handler"
   ]
-  revision = "6f6622c6b78098660f03d38fb8f0d459d428bdbe"
-  version = "v0.4.4"
+  revision = "6f486bde038887adf67c3e3766624ef111ea95cf"
+  version = "v0.6.0"
 
 [[projects]]
   name = "github.com/PuerkitoBio/purell"
@@ -117,7 +118,6 @@
     "envoy/type",
     "pkg/cache",
     "pkg/log",
-    "pkg/server",
     "pkg/util"
   ]
   revision = "676016db8193d83324a507a986a78cd3642ad713"
@@ -659,6 +659,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/solo-io/go-control-plane"
+  packages = ["pkg/util"]
+  revision = "d4f00d3a04b486b638826ce0f704aeb772e5d56e"
+
+[[projects]]
+  branch = "master"
   name = "github.com/solo-io/kubecontroller"
   packages = ["."]
   revision = "421003c15226e9ad2c16066c5c898f94a4688fae"
@@ -1135,6 +1141,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a0a320ce2604d9a73efe3d367911da5b76a66ca62c55ebdc92a43928fc4c9921"
+  inputs-digest = "898884e6aa48cccee1e98c99edb87d04d37e15850d6c599fb7e752b9c597e73c"
   solver-name = "gps-cdcl"
   solver-version = 1
