@@ -15,6 +15,9 @@ import (
 )
 
 func StartStatsServer(addhandlers ...func(mux *http.ServeMux, profiles map[string]string)) {
+	StartStatsServerWithPort("9091", addhandlers...)
+}
+func StartStatsServerWithPort(port string, addhandlers ...func(mux *http.ServeMux, profiles map[string]string)) {
 	logconfig := zap.NewProductionConfig()
 
 	logger, logerr := logconfig.Build()
@@ -37,7 +40,7 @@ func StartStatsServer(addhandlers ...func(mux *http.ServeMux, profiles map[strin
 
 		// add the index
 		mux.HandleFunc("/", Index)
-		http.ListenAndServe("localhost:9091", mux)
+		http.ListenAndServe("localhost:"+port, mux)
 	}()
 }
 
