@@ -25,7 +25,8 @@ func (d *Duration) UnmarshalGQL(v interface{}) error {
 		return err
 	}
 	ourDur := Duration(dur)
-	d = &ourDur
+	*d = ourDur
+
 	return nil
 }
 

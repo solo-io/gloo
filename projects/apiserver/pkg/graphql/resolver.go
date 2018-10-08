@@ -769,12 +769,8 @@ func (r *artifactMutationResolver) Delete(ctx context.Context, obj *customtypes.
 
 type settingsMutationResolver struct{ *ApiResolver }
 
-func (r *settingsMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.SettingsMutation, settings models.InputSettings) (*models.Settings, error) {
-	ups, err := r.Converter.ConvertInputSettings(settings)
-	if err != nil {
-		return nil, err
-	}
-	out, err := r.Settings.Write(ups, clients.WriteOpts{
+func (r *settingsMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.SettingsMutation, settings *v1.Settings) (*models.Settings, error) {
+	out, err := r.Settings.Write(settings, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: overwrite,
 	})
@@ -783,7 +779,31 @@ func (r *settingsMutationResolver) write(overwrite bool, ctx context.Context, ob
 	}
 	return r.Converter.ConvertOutputSettings(out), nil
 }
-func (r *settingsMutationResolver) Update(ctx context.Context, obj *customtypes.SettingsMutation, settings models.InputSettings) (*models.Settings, error) {
+func (r *settingsMutationResolver) Update(ctx context.Context, obj *customtypes.SettingsMutation, rawUpdates models.InputSettings) (*models.Settings, error) {
+	updates, err := r.Converter.ConvertInputSettings(rawUpdates)
+	if err != nil {
+		return nil, err
+	}
+
+	namespace := updates.Metadata.Namespace
+	name := updates.Metadata.Name
+	settings, err := r.Settings.Read(namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// preserve the given metadata to ensure request was made with latest resourceVersion
+	settings.Metadata = updates.Metadata
+
+	// only apply changes to the provided fields
+	if updates.RefreshRate != nil {
+		settings.RefreshRate = updates.RefreshRate
+	}
+	if updates.WatchNamespaces != nil {
+		settings.WatchNamespaces = updates.WatchNamespaces
+	}
 	return r.write(true, ctx, obj, settings)
 }
 
