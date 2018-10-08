@@ -20,27 +20,27 @@ import (
 const RateLimitConfigType = cache.TypePrefix + "/solo.api." + "RateLimitConfig"
 
 /* Defined a resource - to be used by snapshot */
-type RateLimitConfigResource struct {
+type RateLimitConfigXdsResourceWrapper struct {
 	resourceProto *RateLimitConfig
 }
 
 // Make sure the Resource interface is implemented
-var _ cache.Resource = &RateLimitConfigResource{}
+var _ cache.Resource = &RateLimitConfigXdsResourceWrapper{}
 
-func NewRateLimitConfigResource(resourceProto *RateLimitConfig) *RateLimitConfigResource {
-	return &RateLimitConfigResource{
+func NewRateLimitConfigXdsResourceWrapper(resourceProto *RateLimitConfig) *RateLimitConfigXdsResourceWrapper {
+	return &RateLimitConfigXdsResourceWrapper{
 		resourceProto: resourceProto,
 	}
 }
 
-func (e *RateLimitConfigResource) Self() cache.ResourceReference {
-	return cache.ResourceReference{Name: e.resourceProto.Domain, Type: RateLimitConfigType}
+func (e *RateLimitConfigXdsResourceWrapper) Self() cache.XdsResourceReference {
+	return cache.XdsResourceReference{Name: e.resourceProto.Domain, Type: RateLimitConfigType}
 }
 
-func (e *RateLimitConfigResource) ResourceProto() cache.ResourceProto {
+func (e *RateLimitConfigXdsResourceWrapper) ResourceProto() cache.ResourceProto {
 	return e.resourceProto
 }
-func (e *RateLimitConfigResource) References() []cache.ResourceReference {
+func (e *RateLimitConfigXdsResourceWrapper) References() []cache.XdsResourceReference {
 	return nil
 }
 
@@ -53,7 +53,7 @@ var RateLimitConfigTypeRecord = client.NewTypeRecord(
 
 	// Covert the message to a resource suitable for use for protobuf's Any.
 	func(r cache.ResourceProto) cache.Resource {
-		return &RateLimitConfigResource{resourceProto: r.(*RateLimitConfig)}
+		return &RateLimitConfigXdsResourceWrapper{resourceProto: r.(*RateLimitConfig)}
 	},
 )
 
