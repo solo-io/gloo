@@ -306,7 +306,8 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		Upstreams func(childComplexity int, namespace string, selector *models.InputMapStringString) int
+		Upstreams       func(childComplexity int, namespace string, selector *models.InputMapStringString) int
+		VirtualServices func(childComplexity int, namespace string, selector *models.InputMapStringString) int
 	}
 
 	TemplateResolver struct {
@@ -448,6 +449,7 @@ type SecretQueryResolver interface {
 }
 type SubscriptionResolver interface {
 	Upstreams(ctx context.Context, namespace string, selector *models.InputMapStringString) (<-chan []*models.Upstream, error)
+	VirtualServices(ctx context.Context, namespace string, selector *models.InputMapStringString) (<-chan []*models.VirtualService, error)
 }
 type UpstreamMutationResolver interface {
 	Create(ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error)
@@ -1040,6 +1042,35 @@ func field_SecretQuery_get_args(rawArgs map[string]interface{}) (map[string]inte
 }
 
 func field_Subscription_upstreams_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["namespace"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["namespace"] = arg0
+	var arg1 *models.InputMapStringString
+	if tmp, ok := rawArgs["selector"]; ok {
+		var err error
+		var ptr1 models.InputMapStringString
+		if tmp != nil {
+			ptr1, err = UnmarshalInputMapStringString(tmp)
+			arg1 = &ptr1
+		}
+
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["selector"] = arg1
+	return args, nil
+
+}
+
+func field_Subscription_virtualServices_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["namespace"]; ok {
@@ -2478,6 +2509,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Subscription.Upstreams(childComplexity, args["namespace"].(string), args["selector"].(*models.InputMapStringString)), true
+
+	case "Subscription.virtualServices":
+		if e.complexity.Subscription.VirtualServices == nil {
+			break
+		}
+
+		args, err := field_Subscription_virtualServices_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.VirtualServices(childComplexity, args["namespace"].(string), args["selector"].(*models.InputMapStringString)), true
 
 	case "TemplateResolver.inlineTemplate":
 		if e.complexity.TemplateResolver.InlineTemplate == nil {
@@ -8039,6 +8082,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	switch fields[0].Name {
 	case "upstreams":
 		return ec._Subscription_upstreams(ctx, fields[0])
+	case "virtualServices":
+		return ec._Subscription_virtualServices(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
@@ -8093,6 +8138,71 @@ func (ec *executionContext) _Subscription_upstreams(ctx context.Context, field g
 						}
 
 						return ec._Upstream(ctx, field.Selections, res[idx1])
+					}()
+				}
+				if isLen1 {
+					f(idx1)
+				} else {
+					go f(idx1)
+				}
+
+			}
+			wg.Wait()
+			return arr1
+		}())
+		return &out
+	}
+}
+
+func (ec *executionContext) _Subscription_virtualServices(ctx context.Context, field graphql.CollectedField) func() graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Subscription_virtualServices_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Field: field,
+	})
+	rctx := ctx // FIXME: subscriptions are missing request middleware stack https://github.com/99designs/gqlgen/issues/259
+	results, err := ec.resolvers.Subscription().VirtualServices(rctx, args["namespace"].(string), args["selector"].(*models.InputMapStringString))
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-results
+		if !ok {
+			return nil
+		}
+		var out graphql.OrderedMap
+		out.Add(field.Alias, func() graphql.Marshaler {
+			arr1 := make(graphql.Array, len(res))
+			var wg sync.WaitGroup
+
+			isLen1 := len(res) == 1
+			if !isLen1 {
+				wg.Add(len(res))
+			}
+
+			for idx1 := range res {
+				idx1 := idx1
+				rctx := &graphql.ResolverContext{
+					Index:  &idx1,
+					Result: res[idx1],
+				}
+				ctx := graphql.WithResolverContext(ctx, rctx)
+				f := func(idx1 int) {
+					if !isLen1 {
+						defer wg.Done()
+					}
+					arr1[idx1] = func() graphql.Marshaler {
+
+						if res[idx1] == nil {
+							return graphql.Null
+						}
+
+						return ec._VirtualService(ctx, field.Selections, res[idx1])
 					}()
 				}
 				if isLen1 {
@@ -13101,6 +13211,7 @@ type Mutation {
 
 type Subscription {
     upstreams(namespace: String!, selector: InputMapStringString): [Upstream]
+    virtualServices(namespace: String!, selector: InputMapStringString): [VirtualService]
 }
 
 type UpstreamQuery {
