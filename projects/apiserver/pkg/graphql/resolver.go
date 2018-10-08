@@ -908,6 +908,9 @@ func (r subscriptionResolver) VirtualServices(ctx context.Context, namespace str
 		Ctx:         ctx,
 		Selector:    convertedSelector,
 	})
+	if err != nil {
+		return nil, err
+	}
 	virtualServicesChan := make(chan []*models.VirtualService)
 	go func() {
 		defer close(virtualServicesChan)
