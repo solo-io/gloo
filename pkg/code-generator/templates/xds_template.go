@@ -26,29 +26,29 @@ import (
 const {{ upper_camel .MessageType }}Type = cache.TypePrefix + "/solo.api." + "{{ upper_camel .MessageType }}"
 
 /* Defined a resource - to be used by snapshot */
-type {{ upper_camel .MessageType }}Resource struct {
+type {{ upper_camel .MessageType }}XdsResourceWrapper struct {
 	resourceProto *{{ upper_camel .MessageType }}
 }
 
 // Make sure the Resource interface is implemented
-var _ cache.Resource = &{{ upper_camel .MessageType }}Resource{}
+var _ cache.Resource = &{{ upper_camel .MessageType }}XdsResourceWrapper{}
 
-func New{{ upper_camel .MessageType }}Resource(resourceProto *{{ upper_camel .MessageType }}) *{{ upper_camel .MessageType }}Resource {
-	return &{{ upper_camel .MessageType }}Resource{
+func New{{ upper_camel .MessageType }}XdsResourceWrapper(resourceProto *{{ upper_camel .MessageType }}) *{{ upper_camel .MessageType }}XdsResourceWrapper {
+	return &{{ upper_camel .MessageType }}XdsResourceWrapper{
 		resourceProto: resourceProto,
 	}
 }
 
-func (e *{{ upper_camel .MessageType }}Resource) Self() cache.ResourceReference {
+func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) Self() cache.ResourceReference {
 	return cache.ResourceReference{Name: e.resourceProto.{{ upper_camel .NameField }}, Type: {{ upper_camel .MessageType }}Type}
 }
 
-func (e *{{ upper_camel .MessageType }}Resource) ResourceProto() cache.ResourceProto {
+func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) ResourceProto() cache.ResourceProto {
 	return e.resourceProto
 }
 
 {{- if .NoReferences }}
-func (e *{{ upper_camel .MessageType }}Resource) References() []cache.ResourceReference {
+func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) References() []cache.ResourceReference {
 	return nil
 }
 {{- else }}
@@ -56,7 +56,7 @@ func (e *{{ upper_camel .MessageType }}Resource) References() []cache.ResourceRe
 	// Please copy it, and implement it in a different file (so it doesn't get overwritten).
 	// Alternativly, specify the annotation @solo-kit:resource.no_references in the comments for the 
 	// {{ upper_camel .MessageType }} to indicate that there are no references.
-	//	func (e *{{ upper_camel .MessageType }}Resource) References() []cache.ResourceReference {
+	//	func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) References() []cache.ResourceReference {
 	//		panic("not implemented")
 	//	}
 {{- end }}
@@ -70,7 +70,7 @@ var {{ upper_camel .MessageType }}TypeRecord = client.NewTypeRecord(
 	
 	// Covert the message to a resource suitable for use for protobuf's Any.
 	func(r cache.ResourceProto) cache.Resource {
-		return &{{ upper_camel .MessageType }}Resource{resourceProto: r.(*{{ upper_camel .MessageType }})}
+		return &{{ upper_camel .MessageType }}XdsResourceWrapper{resourceProto: r.(*{{ upper_camel .MessageType }})}
 	},
 )
 
