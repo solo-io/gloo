@@ -27,15 +27,15 @@ type ResourceProto interface {
 
 type ResourceProto = proto.Message
 
-type ResourceReference struct {
+type XdsResourceReference struct {
 	Type string
 	Name string
 }
 
 type Resource interface {
-	Self() ResourceReference
+	Self() XdsResourceReference
 	ResourceProto() ResourceProto
-	References() []ResourceReference
+	References() []XdsResourceReference
 }
 
 // AnyType is used only by ADS

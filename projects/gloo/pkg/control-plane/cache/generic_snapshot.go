@@ -91,7 +91,7 @@ func (s *GenericSnapshot) Consistent() error {
 		return nil
 	}
 
-	var required []ResourceReference
+	var required []XdsResourceReference
 
 	for _, resources := range s.typedResources {
 		for _, resource := range resources.Items {

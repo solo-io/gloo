@@ -50,8 +50,8 @@ var (
 	}
 )
 
-func (e *EnvoyResource) Self() cache.ResourceReference {
-	return cache.ResourceReference{
+func (e *EnvoyResource) Self() cache.XdsResourceReference {
+	return cache.XdsResourceReference{
 		Name: e.Name(),
 		Type: e.Type(),
 	}
@@ -92,8 +92,8 @@ func (e *EnvoyResource) Type() string {
 	}
 }
 
-func (e *EnvoyResource) References() []cache.ResourceReference {
-	out := make(map[cache.ResourceReference]bool)
+func (e *EnvoyResource) References() []cache.XdsResourceReference {
+	out := make(map[cache.XdsResourceReference]bool)
 	res := e.resourceProto
 	if res == nil {
 		return nil
@@ -104,7 +104,7 @@ func (e *EnvoyResource) References() []cache.ResourceReference {
 	case *v2.Cluster:
 		// for EDS type, use cluster name or ServiceName override
 		if v.Type == v2.Cluster_EDS {
-			rr := cache.ResourceReference{
+			rr := cache.XdsResourceReference{
 				Type: EndpointType,
 			}
 			if v.EdsClusterConfig != nil && v.EdsClusterConfig.ServiceName != "" {
@@ -129,10 +129,10 @@ func (e *EnvoyResource) References() []cache.ResourceReference {
 				config := &hcm.HttpConnectionManager{}
 				if util.StructToMessage(filter.Config, config) == nil && config != nil {
 					if rds, ok := config.RouteSpecifier.(*hcm.HttpConnectionManager_Rds); ok && rds != nil && rds.Rds != nil {
-						rr := cache.ResourceReference{
+						rr := cache.XdsResourceReference{
 							Type: RouteType,
+							Name: rds.Rds.RouteConfigName,
 						}
-						rr.Name = rds.Rds.RouteConfigName
 						out[rr] = true
 					}
 				}
@@ -140,7 +140,7 @@ func (e *EnvoyResource) References() []cache.ResourceReference {
 		}
 	}
 
-	var references []cache.ResourceReference
+	var references []cache.XdsResourceReference
 	for k, _ := range out {
 		references = append(references, k)
 	}

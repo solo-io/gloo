@@ -39,8 +39,8 @@ func New{{ upper_camel .MessageType }}XdsResourceWrapper(resourceProto *{{ upper
 	}
 }
 
-func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) Self() cache.ResourceReference {
-	return cache.ResourceReference{Name: e.resourceProto.{{ upper_camel .NameField }}, Type: {{ upper_camel .MessageType }}Type}
+func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) Self() cache.XdsResourceReference {
+	return cache.XdsResourceReference{Name: e.resourceProto.{{ upper_camel .NameField }}, Type: {{ upper_camel .MessageType }}Type}
 }
 
 func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) ResourceProto() cache.ResourceProto {
@@ -48,7 +48,7 @@ func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) ResourceProto() cache
 }
 
 {{- if .NoReferences }}
-func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) References() []cache.ResourceReference {
+func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) References() []cache.XdsResourceReference {
 	return nil
 }
 {{- else }}
@@ -56,7 +56,7 @@ func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) References() []cache.
 	// Please copy it, and implement it in a different file (so it doesn't get overwritten).
 	// Alternativly, specify the annotation @solo-kit:resource.no_references in the comments for the 
 	// {{ upper_camel .MessageType }} to indicate that there are no references.
-	//	func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) References() []cache.ResourceReference {
+	//	func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) References() []cache.XdsResourceReference {
 	//		panic("not implemented")
 	//	}
 {{- end }}
