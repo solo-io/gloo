@@ -11,6 +11,7 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 
+	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
 	"github.com/solo-io/rate-limiter/pkg/redis"
 	"github.com/solo-io/rate-limiter/pkg/server"
 	"github.com/solo-io/rate-limiter/pkg/service"
@@ -34,14 +35,7 @@ func Run() {
 	}
 	redisPool := redis.NewPoolImpl(s.RedisSocketType, s.RedisUrl, s.RedisPoolSize)
 
-	service := ratelimit.NewService(
-		redis.NewRateLimitCacheImpl(
-			redisPool,
-			perSecondPool,
-			redis.NewTimeSourceImpl(),
-			rand.New(redis.NewLockedSource(time.Now().Unix())),
-			s.ExpirationJitterMaxSeconds),
-	)
+	service := NewService(s, redisPool, perSecondPool)
 
 	debugPort := fmt.Sprintf("%d", s.DebugPort)
 	// TODO(yuval-k): we need to start the stats server before calling contextutils
@@ -51,15 +45,33 @@ func Run() {
 	ctx := context.Background()
 	ctx = contextutils.WithLogger(ctx, "ratelimit")
 
-	srv := server.NewServer("ratelimit", s)
+	StartRateLimit(ctx, s, clientSettings, service)
+}
 
+func NewService(s settings.Settings, redisPool, perSecondPool redis.Pool) ratelimit.RateLimitServiceServer {
+	return ratelimit.NewService(
+		redis.NewRateLimitCacheImpl(
+			redisPool,
+			perSecondPool,
+			redis.NewTimeSourceImpl(),
+			rand.New(redis.NewLockedSource(time.Now().Unix())),
+			s.ExpirationJitterMaxSeconds),
+	)
+}
+
+func StartRateLimit(ctx context.Context, s settings.Settings, clientSettings Settings, service ratelimit.RateLimitServiceServer) {
+	srv := server.NewServer("ratelimit", s)
+	StartRateLimitWithGrpcServer(ctx, clientSettings, service, srv.GrpcServer())
+	srv.Start()
+}
+
+func StartRateLimitWithGrpcServer(ctx context.Context, clientSettings Settings, service ratelimit.RateLimitServiceServer, grpcServer *grpc.Server) {
 	err := startClient(ctx, clientSettings, service)
 	if err != nil {
 		panic(err)
 	}
 
-	srv.Start()
-
+	pb.RegisterRateLimitServiceServer(grpcServer, service)
 }
 
 func startClient(ctx context.Context, s Settings, service ratelimit.RateLimitServerConfigMutator) error {
@@ -96,7 +108,7 @@ func clientLoop(ctx context.Context, dialString string, nodeinfo core.Node, serv
 			return err
 		}
 		// TODO(yuval-k): a stat that indicates we are connected, with the reverse one deferred.
-
+		// TODO(yuval-k): write a warning log
 		return client.Start(ctx, conn)
 	})
 }
