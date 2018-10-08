@@ -130,7 +130,7 @@ func (c *client) Start(ctx context.Context, cc *grpc.ClientConn) error {
 		// If we have an error, don't update version info to signal NACK.
 		if err != nil {
 			dr.ErrorDetail = &google_rpc.Status{
-				Code:    int32(google_rpc.UNKNOWN),
+				Code:    int32(google_rpc.INVALID_ARGUMENT),
 				Message: err.Error(),
 			}
 		} else if err = c.apply(resources); err != nil {
