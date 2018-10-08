@@ -29,13 +29,8 @@ import (
 func Run() {
 	s := settings.NewSettings()
 	clientSettings := NewSettings()
-	var perSecondPool redis.Pool
-	if s.RedisPerSecond {
-		perSecondPool = redis.NewPoolImpl(s.RedisPerSecondSocketType, s.RedisPerSecondUrl, s.RedisPerSecondPoolSize)
-	}
-	redisPool := redis.NewPoolImpl(s.RedisSocketType, s.RedisUrl, s.RedisPoolSize)
 
-	service := NewService(s, redisPool, perSecondPool)
+	service := NewService(s)
 
 	debugPort := fmt.Sprintf("%d", s.DebugPort)
 	// TODO(yuval-k): we need to start the stats server before calling contextutils
@@ -48,7 +43,14 @@ func Run() {
 	StartRateLimit(ctx, s, clientSettings, service)
 }
 
-func NewService(s settings.Settings, redisPool, perSecondPool redis.Pool) ratelimit.RateLimitServiceServer {
+func NewService(s settings.Settings) ratelimit.RateLimitServiceServer {
+	var perSecondPool redis.Pool
+
+	if s.RedisPerSecond {
+		perSecondPool = redis.NewPoolImpl(s.RedisPerSecondSocketType, s.RedisPerSecondUrl, s.RedisPerSecondPoolSize)
+	}
+	redisPool := redis.NewPoolImpl(s.RedisSocketType, s.RedisUrl, s.RedisPoolSize)
+
 	return ratelimit.NewService(
 		redis.NewRateLimitCacheImpl(
 			redisPool,
