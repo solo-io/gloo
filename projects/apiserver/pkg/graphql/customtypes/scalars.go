@@ -1,14 +1,10 @@
 package customtypes
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
 	"time"
-
-	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 )
 
 type Duration time.Duration
@@ -47,51 +43,4 @@ func (d *Duration) GetDuration() time.Duration {
 		return 0
 	}
 	return time.Duration(*d)
-}
-
-type Struct map[string]interface{}
-
-func NewStruct(protoStruct *types.Struct) *Struct {
-	if protoStruct == nil {
-		return nil
-	}
-	m, err := protoutils.MarshalMap(protoStruct)
-	if err != nil {
-		panic(err)
-	}
-	ourStruct := Struct(m)
-	return &ourStruct
-}
-
-// UnmarshalGQL implements the graphql.Marshaler interface
-func (s *Struct) UnmarshalGQL(v interface{}) error {
-	if v == nil {
-		s = nil
-		return nil
-	}
-	mapStruct, ok := v.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("structs must be map[string]interface")
-	}
-
-	ourStruct := Struct(mapStruct)
-
-	s = &ourStruct
-	return nil
-}
-
-// MarshalGQL implements the graphql.Marshaler interface
-func (s Struct) MarshalGQL(w io.Writer) {
-	json.NewEncoder(w).Encode(s)
-}
-
-func (s *Struct) GetStruct() *types.Struct {
-	if s == nil {
-		return nil
-	}
-	var protoStruct types.Struct
-	if err := protoutils.UnmarshalMap(map[string]interface{}(*s), &protoStruct); err != nil {
-		panic(err)
-	}
-	return &protoStruct
 }
