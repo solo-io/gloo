@@ -159,6 +159,7 @@ type ComplexityRoot struct {
 		ResourceVersion func(childComplexity int) int
 		Labels          func(childComplexity int) int
 		Annotations     func(childComplexity int) int
+		Guid            func(childComplexity int) int
 	}
 
 	MultiDestination struct {
@@ -1895,6 +1896,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Metadata.Annotations(childComplexity), true
+
+	case "Metadata.guid":
+		if e.complexity.Metadata.Guid == nil {
+			break
+		}
+
+		return e.complexity.Metadata.Guid(childComplexity), true
 
 	case "MultiDestination.destinations":
 		if e.complexity.MultiDestination.Destinations == nil {
@@ -4906,6 +4914,11 @@ func (ec *executionContext) _Metadata(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._Metadata_labels(ctx, field, obj)
 		case "annotations":
 			out.Values[i] = ec._Metadata_annotations(ctx, field, obj)
+		case "guid":
+			out.Values[i] = ec._Metadata_guid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5034,6 +5047,29 @@ func (ec *executionContext) _Metadata_annotations(ctx context.Context, field gra
 	}
 
 	return ec._MapStringString(ctx, field.Selections, res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Metadata_guid(ctx context.Context, field graphql.CollectedField, obj *models.Metadata) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Metadata",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GUID, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
 }
 
 var multiDestinationImplementors = []string{"MultiDestination"}
@@ -13887,6 +13923,7 @@ type Metadata {
     resourceVersion: String!
     labels:          MapStringString
     annotations:     MapStringString
+    guid:            String!
 }
 
 type Status {

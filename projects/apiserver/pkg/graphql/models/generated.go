@@ -410,6 +410,7 @@ type Metadata struct {
 	ResourceVersion string           `json:"resourceVersion"`
 	Labels          *MapStringString `json:"labels"`
 	Annotations     *MapStringString `json:"annotations"`
+	GUID            string           `json:"guid"`
 }
 
 type MultiDestination struct {

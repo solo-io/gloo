@@ -11,6 +11,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
+const delim = " "
+
 type Resource interface {
 	proto.Message
 	GetMetadata() core.Metadata
@@ -19,7 +21,7 @@ type Resource interface {
 }
 
 func Key(resource Resource) string {
-	return fmt.Sprintf("%v.%v.%v", Kind(resource), resource.GetMetadata().Namespace,
+	return fmt.Sprintf("%v%v%v%v%v", Kind(resource), delim, resource.GetMetadata().Namespace, delim,
 		resource.GetMetadata().Name)
 }
 

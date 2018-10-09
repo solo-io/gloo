@@ -707,6 +707,7 @@ type Metadata {
     resourceVersion: String!
     labels:          MapStringString
     annotations:     MapStringString
+    guid:            String!
 }
 
 type Status {

@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"log"
 	"sort"
 
@@ -212,7 +213,7 @@ func (c *Converter) ConvertOutputUpstreams(upstreams v1.UpstreamList) []*Upstrea
 func (c *Converter) ConvertOutputUpstream(upstream *v1.Upstream) *Upstream {
 	return &Upstream{
 		Spec:     convertOutputUpstreamSpec(upstream.UpstreamSpec),
-		Metadata: convertOutputMetadata(upstream.Metadata),
+		Metadata: convertOutputMetadata(&v1.Upstream{}, upstream.Metadata),
 		Status:   convertOutputStatus(upstream.Status),
 	}
 }
@@ -582,7 +583,7 @@ func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.Virtua
 		Routes:    convertOutputRoutes(virtualService.VirtualHost.Routes),
 		SslConfig: convertOutputSSLConfig(virtualService.SslConfig),
 		Status:    convertOutputStatus(virtualService.Status),
-		Metadata:  convertOutputMetadata(virtualService.Metadata),
+		Metadata:  convertOutputMetadata(&gatewayv1.VirtualService{}, virtualService.Metadata),
 	}
 }
 
@@ -781,7 +782,7 @@ func (c *Converter) ConvertOutputResolverMap(resolverMap *sqoopv1.ResolverMap) *
 	return &ResolverMap{
 		Types:    typeResolvers,
 		Status:   convertOutputStatus(resolverMap.Status),
-		Metadata: convertOutputMetadata(resolverMap.Metadata),
+		Metadata: convertOutputMetadata(&sqoopv1.ResolverMap{}, resolverMap.Metadata),
 	}
 }
 
@@ -958,16 +959,6 @@ func convertInputMetadata(inMeta InputMetadata) core.Metadata {
 	}
 }
 
-func convertOutputMetadata(meta core.Metadata) Metadata {
-	return Metadata{
-		Namespace:       meta.Namespace,
-		Name:            meta.Name,
-		ResourceVersion: meta.ResourceVersion,
-		Labels:          NewMapStringString(meta.Labels),
-		Annotations:     NewMapStringString(meta.Annotations),
-	}
-}
-
 func convertOutputStatus(status core.Status) Status {
 	status = status.Flatten()
 	var state State
@@ -989,6 +980,19 @@ func convertOutputStatus(status core.Status) Status {
 	}
 }
 
+func convertOutputMetadata(resource resources.Resource, meta core.Metadata) Metadata {
+	resource = resources.Clone(resource)
+	resource.SetMetadata(meta)
+	return Metadata{
+		GUID:            resources.Key(resource),
+		Namespace:       meta.Namespace,
+		Name:            meta.Name,
+		ResourceVersion: meta.ResourceVersion,
+		Labels:          NewMapStringString(meta.Labels),
+		Annotations:     NewMapStringString(meta.Annotations),
+	}
+}
+
 func (c *Converter) ConvertOutputSchemas(schemas sqoopv1.SchemaList) []*Schema {
 	var result []*Schema
 	for _, us := range schemas {
@@ -1001,7 +1005,7 @@ func (c *Converter) ConvertOutputSchema(schema *sqoopv1.Schema) *Schema {
 	return &Schema{
 		InlineSchema: schema.InlineSchema,
 		Status:       convertOutputStatus(schema.Status),
-		Metadata:     convertOutputMetadata(schema.Metadata),
+		Metadata:     convertOutputMetadata(&sqoopv1.Schema{}, schema.Metadata),
 	}
 }
 
@@ -1034,7 +1038,7 @@ func (c *Converter) ConvertOutputSecrets(secrets v1.SecretList) []*Secret {
 
 func (c *Converter) ConvertOutputSecret(secret *v1.Secret) *Secret {
 	out := &Secret{
-		Metadata: convertOutputMetadata(secret.Metadata),
+		Metadata: convertOutputMetadata(&v1.Secret{}, secret.Metadata),
 	}
 	switch sec := secret.Kind.(type) {
 	case *v1.Secret_Aws:
@@ -1110,7 +1114,7 @@ func (c *Converter) ConvertOutputArtifacts(artifacts v1.ArtifactList) []*Artifac
 
 func (c *Converter) ConvertOutputArtifact(artifact *v1.Artifact) *Artifact {
 	return &Artifact{
-		Metadata: convertOutputMetadata(artifact.Metadata),
+		Metadata: convertOutputMetadata(&v1.Artifact{}, artifact.Metadata),
 	}
 }
 
