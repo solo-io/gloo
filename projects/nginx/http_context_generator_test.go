@@ -7,13 +7,33 @@ import (
 )
 
 var _ = Describe("HTTP context", func() {
-	It("should be an empty context", func() {
-		httpContext, err := GenerateHttpContext()
-		Expect(err).NotTo(HaveOccurred())
-		expected := `
+	Context("when the `Http` instance is empty", func() {
+		It("should be an empty context", func() {
+			http := &Http{}
+			httpContext, err := GenerateHttpContext(http)
+			Expect(err).NotTo(HaveOccurred())
+			expected := `
 http {
 }
 `
-		Expect(string(httpContext)).To(Equal(expected))
+			Expect(string(httpContext)).To(Equal(expected))
+		})
+	})
+	Context("when the `Http` instance contains a `Server`", func() {
+		It("should contain a server context", func() {
+			server := &Server{}
+			http := &Http{
+				Server: server,
+			}
+			httpContext, err := GenerateHttpContext(http)
+			Expect(err).NotTo(HaveOccurred())
+			expected := `
+http {
+	server {
+	}
+}
+`
+			Expect(string(httpContext)).To(Equal(expected))
+		})
 	})
 })
