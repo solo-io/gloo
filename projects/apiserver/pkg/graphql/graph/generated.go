@@ -188,6 +188,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		Resource         func(childComplexity int, guid string) int
 		GetOauthEndpoint func(childComplexity int) int
 		Upstreams        func(childComplexity int, namespace string) int
 		VirtualServices  func(childComplexity int, namespace string) int
@@ -431,6 +432,7 @@ type MutationResolver interface {
 	Settings(ctx context.Context) (customtypes.SettingsMutation, error)
 }
 type QueryResolver interface {
+	Resource(ctx context.Context, guid string) (models.Resource, error)
 	GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpoint, error)
 	Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamQuery, error)
 	VirtualServices(ctx context.Context, namespace string) (customtypes.VirtualServiceQuery, error)
@@ -668,6 +670,21 @@ func field_Mutation_artifacts_args(rawArgs map[string]interface{}) (map[string]i
 		}
 	}
 	args["namespace"] = arg0
+	return args, nil
+
+}
+
+func field_Query_resource_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["guid"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["guid"] = arg0
 	return args, nil
 
 }
@@ -2051,6 +2068,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OauthEndpoint.ClientName(childComplexity), true
+
+	case "Query.resource":
+		if e.complexity.Query.Resource == nil {
+			break
+		}
+
+		args, err := field_Query_resource_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Resource(childComplexity, args["guid"].(string)), true
 
 	case "Query.getOAuthEndpoint":
 		if e.complexity.Query.GetOauthEndpoint == nil {
@@ -5666,6 +5695,15 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "resource":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_resource(ctx, field)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
 		case "getOAuthEndpoint":
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
@@ -5751,6 +5789,36 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		return graphql.Null
 	}
 	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_resource(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Query_resource_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Resource(rctx, args["guid"].(string))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.Resource)
+	rctx.Result = res
+
+	return ec._Resource(ctx, field.Selections, &res)
 }
 
 // nolint: vetshadow
@@ -11741,6 +11809,43 @@ func (ec *executionContext) _Resolver(ctx context.Context, sel ast.SelectionSet,
 	}
 }
 
+func (ec *executionContext) _Resource(ctx context.Context, sel ast.SelectionSet, obj *models.Resource) graphql.Marshaler {
+	switch obj := (*obj).(type) {
+	case nil:
+		return graphql.Null
+	case models.Upstream:
+		return ec._Upstream(ctx, sel, &obj)
+	case *models.Upstream:
+		return ec._Upstream(ctx, sel, obj)
+	case models.VirtualService:
+		return ec._VirtualService(ctx, sel, &obj)
+	case *models.VirtualService:
+		return ec._VirtualService(ctx, sel, obj)
+	case models.ResolverMap:
+		return ec._ResolverMap(ctx, sel, &obj)
+	case *models.ResolverMap:
+		return ec._ResolverMap(ctx, sel, obj)
+	case models.Schema:
+		return ec._Schema(ctx, sel, &obj)
+	case *models.Schema:
+		return ec._Schema(ctx, sel, obj)
+	case models.Secret:
+		return ec._Secret(ctx, sel, &obj)
+	case *models.Secret:
+		return ec._Secret(ctx, sel, obj)
+	case models.Artifact:
+		return ec._Artifact(ctx, sel, &obj)
+	case *models.Artifact:
+		return ec._Artifact(ctx, sel, obj)
+	case models.Settings:
+		return ec._Settings(ctx, sel, &obj)
+	case *models.Settings:
+		return ec._Settings(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 func (ec *executionContext) _SecretKind(ctx context.Context, sel ast.SelectionSet, obj *models.SecretKind) graphql.Marshaler {
 	switch obj := (*obj).(type) {
 	case nil:
@@ -13655,6 +13760,7 @@ schema {
 }
 
 type Query {
+    resource(guid: String!): Resource!
     getOAuthEndpoint: OAuthEndpoint!
     upstreams(namespace: String!):       UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
@@ -13679,6 +13785,8 @@ type Subscription {
     upstreams(namespace: String!, selector: InputMapStringString): [Upstream]
     virtualServices(namespace: String!, selector: InputMapStringString): [VirtualService]
 }
+
+union Resource = Upstream | VirtualService | ResolverMap | Schema | Secret | Artifact | Settings
 
 type OAuthEndpoint {
     url: String!

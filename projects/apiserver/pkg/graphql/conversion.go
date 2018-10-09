@@ -1130,7 +1130,7 @@ func (c *Converter) ConvertOutputSettings(settings *v1.Settings) *Settings {
 	return &Settings{
 		WatchNamespaces: settings.WatchNamespaces,
 		RefreshRate:     &dur,
-		Metadata:        convertOutputMetadata(settings.Metadata),
+		Metadata:        convertOutputMetadata(&v1.Settings{}, settings.Metadata),
 	}
 }
 

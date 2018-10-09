@@ -5,6 +5,7 @@ schema {
 }
 
 type Query {
+    resource(guid: String!): Resource!
     getOAuthEndpoint: OAuthEndpoint!
     upstreams(namespace: String!):       UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
@@ -29,6 +30,8 @@ type Subscription {
     upstreams(namespace: String!, selector: InputMapStringString): [Upstream]
     virtualServices(namespace: String!, selector: InputMapStringString): [VirtualService]
 }
+
+union Resource = Upstream | VirtualService | ResolverMap | Schema | Secret | Artifact | Settings
 
 type OAuthEndpoint {
     url: String!

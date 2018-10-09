@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"os"
 	"time"
@@ -129,6 +130,72 @@ func (r *mutationResolver) Settings(ctx context.Context) (customtypes.SettingsMu
 }
 
 type queryResolver struct{ *ApiResolver }
+
+func (r *queryResolver) Resource(ctx context.Context, guid string) (models.Resource, error) {
+	kind, namespace, name, err := resources.SplitKey(guid)
+	if err != nil {
+		return nil, err
+	}
+	switch kind {
+	case resources.Kind(&v1.Upstream{}):
+		res, err := r.ApiResolver.Upstreams.Read(namespace, name, clients.ReadOpts{
+			Ctx: ctx,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return r.Converter.ConvertOutputUpstream(res), nil
+	case resources.Kind(&gatewayv1.VirtualService{}):
+		res, err := r.ApiResolver.VirtualServices.Read(namespace, name, clients.ReadOpts{
+			Ctx: ctx,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return r.Converter.ConvertOutputVirtualService(res), nil
+	case resources.Kind(&sqoopv1.ResolverMap{}):
+		res, err := r.ApiResolver.ResolverMaps.Read(namespace, name, clients.ReadOpts{
+			Ctx: ctx,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return r.Converter.ConvertOutputResolverMap(res), nil
+	case resources.Kind(&sqoopv1.Schema{}):
+		res, err := r.ApiResolver.Schemas.Read(namespace, name, clients.ReadOpts{
+			Ctx: ctx,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return r.Converter.ConvertOutputSchema(res), nil
+	case resources.Kind(&v1.Secret{}):
+		res, err := r.ApiResolver.Secrets.Read(namespace, name, clients.ReadOpts{
+			Ctx: ctx,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return r.Converter.ConvertOutputSecret(res), nil
+	case resources.Kind(&v1.Artifact{}):
+		res, err := r.ApiResolver.Artifacts.Read(namespace, name, clients.ReadOpts{
+			Ctx: ctx,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return r.Converter.ConvertOutputArtifact(res), nil
+	case resources.Kind(&v1.Settings{}):
+		res, err := r.ApiResolver.Settings.Read(namespace, name, clients.ReadOpts{
+			Ctx: ctx,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return r.Converter.ConvertOutputSettings(res), nil
+	}
+	return nil, errors.Errorf("unknown kind %v", kind)
+}
 
 func (r *queryResolver) GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpoint, error) {
 	oauthUrl := os.Getenv("OAUTH_SERVER") // ip:port of openshift server
