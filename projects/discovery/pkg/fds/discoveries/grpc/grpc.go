@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"fmt"
+	"encoding/base64"
 	"net/url"
 	"strings"
 	"time"
@@ -163,10 +163,12 @@ func (f *UpstreamFunctionDiscovery) DetectFunctionsOnce(ctx context.Context, url
 		grpcservices = append(grpcservices, grpcservice)
 	}
 
-	descriptorsbytes, err := proto.Marshal(descriptors)
+	rawDescriptors, err := proto.Marshal(descriptors)
 	if err != nil {
 		return errors.Wrap(err, "marshalling proto descriptors")
 	}
+
+	encodedDescriptors := []byte(base64.StdEncoding.EncodeToString(rawDescriptors))
 
 	return updatecb(func(out *v1.Upstream) error {
 		svcspec := getgrpcspec(out)
@@ -174,28 +176,23 @@ func (f *UpstreamFunctionDiscovery) DetectFunctionsOnce(ctx context.Context, url
 			return errors.New("not a GRPC upstream")
 		}
 		svcspec.GrpcServices = grpcservices
-		svcspec.Descriptors = descriptorsbytes
+		svcspec.Descriptors = encodedDescriptors
 		return nil
 	})
-
 }
 
 func getclient(ctx context.Context, url *url.URL) (*grpcreflect.Client, error) {
-
 	var dialopts []grpc.DialOption
 	if url.Scheme != "https" {
 		dialopts = append(dialopts, grpc.WithInsecure())
 	}
 
-	addr := fmt.Sprintf("%s:%d", url.Host, url.Port)
-
-	cc, err := grpc.Dial(addr, dialopts...)
+	cc, err := grpc.Dial(url.Host, dialopts...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "dialing grpc on %v", addr)
+		return nil, errors.Wrapf(err, "dialing grpc on %v", url.Host)
 	}
 	refClient := grpcreflect.NewClient(ctx, reflectpb.NewServerReflectionClient(cc))
 	return refClient, nil
-
 }
 
 func getDepTree(root *desc.FileDescriptor) []*descriptor.FileDescriptorProto {
