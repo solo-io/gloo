@@ -23,7 +23,7 @@ func (r *virtualServiceQueryResolver) List(ctx context.Context, obj *customtypes
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualServices(list), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualServices(list)
 }
 
 func (r *virtualServiceQueryResolver) Get(ctx context.Context, obj *customtypes.VirtualServiceQuery, name string) (*models.VirtualService, error) {
@@ -33,7 +33,7 @@ func (r *virtualServiceQueryResolver) Get(ctx context.Context, obj *customtypes.
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(virtualService), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(virtualService)
 }
 
 type virtualServiceMutationResolver struct{ *ApiResolver }
@@ -50,7 +50,7 @@ func (r *virtualServiceMutationResolver) write(overwrite bool, ctx context.Conte
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
 }
 
 func (r *virtualServiceMutationResolver) Create(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error) {
@@ -99,7 +99,7 @@ func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *custom
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
 }
 func (r *virtualServiceMutationResolver) Delete(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string) (*models.VirtualService, error) {
 	virtualService, err := r.VirtualServices.Read(obj.Namespace, name, clients.ReadOpts{
@@ -116,7 +116,7 @@ func (r *virtualServiceMutationResolver) Delete(ctx context.Context, obj *custom
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(virtualService), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(virtualService)
 }
 func (r *virtualServiceMutationResolver) AddRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error) {
 	v1Route, err := NewConverter(r.ApiResolver, ctx).ConvertInputRoute(route)
@@ -146,7 +146,7 @@ func (r *virtualServiceMutationResolver) AddRoute(ctx context.Context, obj *cust
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
 }
 
 func (r *virtualServiceMutationResolver) UpdateRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error) {
@@ -176,7 +176,7 @@ func (r *virtualServiceMutationResolver) UpdateRoute(ctx context.Context, obj *c
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
 }
 
 func (r *virtualServiceMutationResolver) DeleteRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int) (*models.VirtualService, error) {
@@ -201,7 +201,7 @@ func (r *virtualServiceMutationResolver) DeleteRoute(ctx context.Context, obj *c
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
 }
 
 func (r *virtualServiceMutationResolver) SwapRoutes(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index1 int, index2 int) (*models.VirtualService, error) {
@@ -225,7 +225,7 @@ func (r *virtualServiceMutationResolver) SwapRoutes(ctx context.Context, obj *cu
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
 
 }
 
@@ -263,6 +263,6 @@ func (r *virtualServiceMutationResolver) ShiftRoutes(ctx context.Context, obj *c
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
 
 }

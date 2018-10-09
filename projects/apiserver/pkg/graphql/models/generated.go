@@ -41,6 +41,7 @@ func (AwsSecret) IsSecretKind() {}
 type AwsUpstreamSpec struct {
 	Region    string              `json:"region"`
 	SecretRef ResourceRef         `json:"secretRef"`
+	Secret    Secret              `json:"secret"`
 	Functions []AwsLambdaFunction `json:"functions"`
 }
 
@@ -66,6 +67,7 @@ func (AzureSecret) IsSecretKind() {}
 type AzureUpstreamSpec struct {
 	FunctionAppName string          `json:"functionAppName"`
 	SecretRef       ResourceRef     `json:"secretRef"`
+	Secret          Secret          `json:"secret"`
 	Functions       []AzureFunction `json:"functions"`
 }
 
@@ -528,7 +530,7 @@ type Settings struct {
 func (Settings) IsResource() {}
 
 type SingleDestination struct {
-	Upstream        ResourceRef     `json:"upstream"`
+	Upstream        Upstream        `json:"upstream"`
 	DestinationSpec DestinationSpec `json:"destinationSpec"`
 }
 

@@ -203,7 +203,7 @@ func (r *upstreamMutationResolver) write(overwrite bool, ctx context.Context, ob
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstream(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstream(out)
 }
 
 func (r *upstreamMutationResolver) Create(ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error) {
@@ -227,7 +227,7 @@ func (r *upstreamMutationResolver) Delete(ctx context.Context, obj *customtypes.
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstream(upstream), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstream(upstream)
 }
 
 type upstreamQueryResolver struct{ *ApiResolver }
@@ -244,7 +244,7 @@ func (r *upstreamQueryResolver) List(ctx context.Context, obj *customtypes.Upstr
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstreams(list), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstreams(list)
 }
 
 func (r *upstreamQueryResolver) Get(ctx context.Context, obj *customtypes.UpstreamQuery, name string) (*models.Upstream, error) {
@@ -254,7 +254,7 @@ func (r *upstreamQueryResolver) Get(ctx context.Context, obj *customtypes.Upstre
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstream(upstream), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstream(upstream)
 }
 
 type resolverMapMutationResolver struct{ *ApiResolver }
@@ -286,7 +286,7 @@ func (r *resolverMapMutationResolver) SetResolver(ctx context.Context, obj *cust
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMap(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMap(out)
 }
 
 func (r *resolverMapMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error) {
@@ -301,7 +301,7 @@ func (r *resolverMapMutationResolver) write(overwrite bool, ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMap(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMap(out)
 }
 
 func (r *resolverMapMutationResolver) Create(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error) {
@@ -325,7 +325,7 @@ func (r *resolverMapMutationResolver) Delete(ctx context.Context, obj *customtyp
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMap(resolverMap), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMap(resolverMap)
 }
 
 type resolverMapQueryResolver struct{ *ApiResolver }
@@ -342,7 +342,7 @@ func (r *resolverMapQueryResolver) List(ctx context.Context, obj *customtypes.Re
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMaps(list), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMaps(list)
 }
 
 func (r *resolverMapQueryResolver) Get(ctx context.Context, obj *customtypes.ResolverMapQuery, name string) (*models.ResolverMap, error) {
@@ -352,7 +352,7 @@ func (r *resolverMapQueryResolver) Get(ctx context.Context, obj *customtypes.Res
 	if err != nil {
 		return nil, err
 	}
-	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMap(resolverMap), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMap(resolverMap)
 }
 
 type schemaMutationResolver struct{ *ApiResolver }
@@ -642,7 +642,11 @@ func (r subscriptionResolver) Upstreams(ctx context.Context, namespace string, s
 				if !ok {
 					return
 				}
-				upstreams := NewConverter(r.ApiResolver, ctx).ConvertOutputUpstreams(list)
+				upstreams, err := NewConverter(r.ApiResolver, ctx).ConvertOutputUpstreams(list)
+				if err != nil {
+					// TODO(mitchdraft) log this
+					return
+				}
 				select {
 				case upstreamsChan <- upstreams:
 				default:
@@ -685,7 +689,11 @@ func (r subscriptionResolver) VirtualServices(ctx context.Context, namespace str
 				if !ok {
 					return
 				}
-				virtualServices := NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualServices(list)
+				virtualServices, err := NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualServices(list)
+				if err != nil {
+					// TODO(mitchdraft) log this
+					return
+				}
 				select {
 				case virtualServicesChan <- virtualServices:
 				default:

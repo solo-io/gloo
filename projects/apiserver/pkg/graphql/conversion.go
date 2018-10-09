@@ -213,35 +213,54 @@ func injaTemplateFromString(str string) *transformation.InjaTemplate {
 	}
 }
 
-func (c *Converter) ConvertOutputUpstreams(upstreams v1.UpstreamList) []*Upstream {
+func (c *Converter) ConvertOutputUpstreams(upstreams v1.UpstreamList) ([]*Upstream, error) {
 	var result []*Upstream
 	for _, us := range upstreams {
-		result = append(result, c.ConvertOutputUpstream(us))
+		gqlUpstream, err := c.ConvertOutputUpstream(us)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, gqlUpstream)
 	}
-	return result
+	return result, nil
 }
 
-func (c *Converter) ConvertOutputUpstream(upstream *v1.Upstream) *Upstream {
+func (c *Converter) ConvertOutputUpstream(upstream *v1.Upstream) (*Upstream, error) {
+	usSpec, err := c.convertOutputUpstreamSpec(upstream.UpstreamSpec)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Upstream{
-		Spec:     convertOutputUpstreamSpec(upstream.UpstreamSpec),
+		Spec:     usSpec,
 		Metadata: convertOutputMetadata(&v1.Upstream{}, upstream.Metadata),
 		Status:   convertOutputStatus(upstream.Status),
-	}
+	}, nil
 }
 
-func convertOutputUpstreamSpec(spec *v1.UpstreamSpec) UpstreamSpec {
+func (c *Converter) convertOutputUpstreamSpec(spec *v1.UpstreamSpec) (UpstreamSpec, error) {
 	switch specType := spec.UpstreamType.(type) {
 	case *v1.UpstreamSpec_Aws:
+		gqlSecret, err := c.r.SecretQuery().Get(c.ctx, &customtypes.SecretQuery{Namespace: specType.Aws.SecretRef.Namespace}, specType.Aws.SecretRef.Name)
+		if err != nil {
+			return nil, err
+		}
 		return &AwsUpstreamSpec{
 			Region:    specType.Aws.Region,
 			SecretRef: convertOutputRef(specType.Aws.SecretRef),
+			Secret:    *gqlSecret,
 			Functions: convertOutputLambdaFunctions(specType.Aws.LambdaFunctions),
-		}
+		}, nil
 	case *v1.UpstreamSpec_Azure:
+		gqlSecret, err := c.r.SecretQuery().Get(c.ctx, &customtypes.SecretQuery{Namespace: specType.Azure.SecretRef.Namespace}, specType.Azure.SecretRef.Name)
+		if err != nil {
+			return nil, err
+		}
 		return &AzureUpstreamSpec{
 			FunctionAppName: specType.Azure.FunctionAppName,
 			Functions:       convertOutputAzureFunctions(specType.Azure.Functions),
-		}
+			Secret:          *gqlSecret,
+		}, nil
 	case *v1.UpstreamSpec_Kube:
 		return &KubeUpstreamSpec{
 			ServicePort:      int(specType.Kube.ServicePort),
@@ -249,7 +268,7 @@ func convertOutputUpstreamSpec(spec *v1.UpstreamSpec) UpstreamSpec {
 			ServiceName:      specType.Kube.ServiceName,
 			Selector:         NewMapStringString(specType.Kube.Selector),
 			ServiceSpec:      convertOutputServiceSpec(specType.Kube.ServiceSpec),
-		}
+		}, nil
 	case *v1.UpstreamSpec_Static:
 		var hosts []StaticHost
 		for _, h := range specType.Static.Hosts {
@@ -262,10 +281,10 @@ func convertOutputUpstreamSpec(spec *v1.UpstreamSpec) UpstreamSpec {
 			Hosts:       hosts,
 			UseTLS:      specType.Static.UseTls,
 			ServiceSpec: convertOutputServiceSpec(specType.Static.ServiceSpec),
-		}
+		}, nil
 	}
 	log.Printf("unsupported upstream type %v", spec)
-	return nil
+	return nil, nil
 }
 
 // TODO (ilackarms): finish these methods
@@ -580,58 +599,78 @@ func convertInputSSLConfig(ssl *InputSslConfig) *v1.SslConfig {
 	}
 }
 
-func (c *Converter) ConvertOutputVirtualServices(virtualServices gatewayv1.VirtualServiceList) []*VirtualService {
+func (c *Converter) ConvertOutputVirtualServices(virtualServices gatewayv1.VirtualServiceList) ([]*VirtualService, error) {
 	var result []*VirtualService
 	for _, vs := range virtualServices {
-		result = append(result, c.ConvertOutputVirtualService(vs))
+		gqlVs, err := c.ConvertOutputVirtualService(vs)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, gqlVs)
 	}
-	return result
+	return result, nil
 }
 
-func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.VirtualService) *VirtualService {
+func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.VirtualService) (*VirtualService, error) {
+	gqlRoutes, err := c.convertOutputRoutes(virtualService.VirtualHost.Routes)
+	if err != nil {
+		return nil, err
+	}
 	return &VirtualService{
 		Domains:   virtualService.VirtualHost.Domains,
-		Routes:    convertOutputRoutes(virtualService.VirtualHost.Routes),
+		Routes:    gqlRoutes,
 		SslConfig: c.convertOutputSSLConfig(virtualService.SslConfig),
 		Status:    convertOutputStatus(virtualService.Status),
 		Metadata:  convertOutputMetadata(&gatewayv1.VirtualService{}, virtualService.Metadata),
-	}
+	}, nil
 }
 
-func convertOutputRoutes(routes []*v1.Route) []Route {
+func (c *Converter) convertOutputRoutes(routes []*v1.Route) ([]Route, error) {
 	var outRoutes []Route
 	for _, r := range routes {
-		route, ok := convertOutputRoute(r)
-		if !ok {
-			continue
+		route, err := c.convertOutputRoute(r)
+		if err != nil {
+			return nil, err
 		}
 		outRoutes = append(outRoutes, route)
 	}
-	return outRoutes
+	return outRoutes, nil
 }
 
-func convertOutputRoute(route *v1.Route) (Route, bool) {
+func (c *Converter) convertOutputRoute(route *v1.Route) (Route, error) {
 	action, ok := route.Action.(*v1.Route_RouteAction)
 	if !ok {
 		log.Printf("warning: %v does not have a RouteAction, ignoring", route)
-		return Route{}, false
+		return Route{}, nil
+	}
+	gqlDest, err := c.convertOutputDestination(action.RouteAction)
+	if err != nil {
+		return Route{}, err
 	}
 	return Route{
 		Matcher:     convertOutputMatcher(route.Matcher),
-		Destination: convertOutputDestination(action.RouteAction),
+		Destination: gqlDest,
 		Plugins:     convertOutputRoutePlugins(route.RoutePlugins),
-	}, true
+	}, nil
 }
 
-func convertOutputDestination(action *v1.RouteAction) Destination {
+func (c *Converter) convertOutputDestination(action *v1.RouteAction) (Destination, error) {
 	var outDest Destination
 	switch dest := action.Destination.(type) {
 	case *v1.RouteAction_Single:
-		outDest = convertOutputSingleDestination(dest.Single)
+		gqlDest, err := c.convertOutputSingleDestination(dest.Single)
+		if err != nil {
+			return nil, err
+		}
+		outDest = gqlDest
 	case *v1.RouteAction_Multi:
-		outDest = convertOutputMultiDestination(dest.Multi.Destinations)
+		gqlDest, err := c.convertOutputMultiDestination(dest.Multi.Destinations)
+		if err != nil {
+			return nil, err
+		}
+		outDest = gqlDest
 	}
-	return outDest
+	return outDest, nil
 }
 
 func convertOutputMatcher(match *v1.Matcher) Matcher {
@@ -688,22 +727,30 @@ func convertOutputRoutePlugins(plugs *v1.RoutePlugins) *RoutePlugins {
 	return nil
 }
 
-func convertOutputMultiDestination(dests []*v1.WeightedDestination) *MultiDestination {
+func (c *Converter) convertOutputMultiDestination(dests []*v1.WeightedDestination) (*MultiDestination, error) {
 	var weightedDests []WeightedDestination
 	for _, v1Dest := range dests {
+		gqlDest, err := c.convertOutputSingleDestination(v1Dest.Destination)
+		if err != nil {
+			return nil, err
+		}
 		weightedDests = append(weightedDests, WeightedDestination{
-			Destination: convertOutputSingleDestination(v1Dest.Destination),
+			Destination: gqlDest,
 			Weight:      int(v1Dest.Weight),
 		})
 	}
-	return &MultiDestination{Destinations: weightedDests}
+	return &MultiDestination{Destinations: weightedDests}, nil
 }
 
-func convertOutputSingleDestination(dest *v1.Destination) SingleDestination {
-	return SingleDestination{
-		Upstream:        convertOutputRef(dest.Upstream),
-		DestinationSpec: convertOutputDestinationSpec(dest.DestinationSpec),
+func (c *Converter) convertOutputSingleDestination(dest *v1.Destination) (SingleDestination, error) {
+	gqlUs, err := c.r.UpstreamQuery().Get(c.ctx, &customtypes.UpstreamQuery{Namespace: dest.Upstream.Namespace}, dest.Upstream.Name)
+	if err != nil {
+		return SingleDestination{}, err
 	}
+	return SingleDestination{
+		Upstream:        *gqlUs,
+		DestinationSpec: convertOutputDestinationSpec(dest.DestinationSpec),
+	}, nil
 }
 
 func convertOutputDestinationSpec(spec *v1.DestinationSpec) DestinationSpec {
@@ -782,18 +829,26 @@ func (c *Converter) convertOutputSSLConfig(ssl *v1.SslConfig) *SslConfig {
 	}
 }
 
-func (c *Converter) ConvertOutputResolverMaps(resolverMaps sqoopv1.ResolverMapList) []*ResolverMap {
+func (c *Converter) ConvertOutputResolverMaps(resolverMaps sqoopv1.ResolverMapList) ([]*ResolverMap, error) {
 	var result []*ResolverMap
 	for _, us := range resolverMaps {
-		result = append(result, c.ConvertOutputResolverMap(us))
+		gqlRm, err := c.ConvertOutputResolverMap(us)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, gqlRm)
 	}
-	return result
+	return result, nil
 }
 
-func (c *Converter) ConvertOutputResolverMap(resolverMap *sqoopv1.ResolverMap) *ResolverMap {
+func (c *Converter) ConvertOutputResolverMap(resolverMap *sqoopv1.ResolverMap) (*ResolverMap, error) {
 	var typeResolvers []TypeResolver
 	for typeName, typeResolver := range resolverMap.Types {
-		typeResolvers = append(typeResolvers, convertOutputTypeResolver(typeName, typeResolver))
+		gqlTr, err := c.convertOutputTypeResolver(typeName, typeResolver)
+		if err != nil {
+			return nil, err
+		}
+		typeResolvers = append(typeResolvers, gqlTr)
 	}
 	sort.SliceStable(typeResolvers, func(i, j int) bool {
 		return typeResolvers[i].TypeName < typeResolvers[j].TypeName
@@ -802,15 +857,19 @@ func (c *Converter) ConvertOutputResolverMap(resolverMap *sqoopv1.ResolverMap) *
 		Types:    typeResolvers,
 		Status:   convertOutputStatus(resolverMap.Status),
 		Metadata: convertOutputMetadata(&sqoopv1.ResolverMap{}, resolverMap.Metadata),
-	}
+	}, nil
 }
 
-func convertOutputTypeResolver(typeName string, typeResolver *sqoopv1.TypeResolver) TypeResolver {
+func (c *Converter) convertOutputTypeResolver(typeName string, typeResolver *sqoopv1.TypeResolver) (TypeResolver, error) {
 	var fieldResolvers []FieldResolver
 	for fieldName, fieldResolver := range typeResolver.Fields {
+		gqlResolver, err := c.convertOutputResolver(fieldResolver)
+		if err != nil {
+			return TypeResolver{}, err
+		}
 		fieldResolvers = append(fieldResolvers, FieldResolver{
 			FieldName: fieldName,
-			Resolver:  convertOutputResolver(fieldResolver),
+			Resolver:  gqlResolver,
 		})
 	}
 	sort.SliceStable(fieldResolvers, func(i, j int) bool {
@@ -819,28 +878,32 @@ func convertOutputTypeResolver(typeName string, typeResolver *sqoopv1.TypeResolv
 	return TypeResolver{
 		TypeName: typeName,
 		Fields:   fieldResolvers,
-	}
+	}, nil
 }
 
-func convertOutputResolver(resolver *sqoopv1.FieldResolver) Resolver {
+func (c *Converter) convertOutputResolver(resolver *sqoopv1.FieldResolver) (Resolver, error) {
 	switch res := resolver.Resolver.(type) {
 	case *sqoopv1.FieldResolver_GlooResolver:
 		// Until implemented - bypass. TODO -implement
 		if res.GlooResolver == nil {
-			return nil
+			return nil, nil
+		}
+		gqlDest, err := c.convertOutputDestination(res.GlooResolver.Action)
+		if err != nil {
+			return nil, err
 		}
 		return &GlooResolver{
 			RequestTemplate:  convertOutputRequestTemplate(res.GlooResolver.RequestTemplate),
 			ResponseTemplate: convertOutputResponseTemplate(res.GlooResolver.ResponseTemplate),
-			Destination:      convertOutputDestination(res.GlooResolver.Action),
-		}
+			Destination:      gqlDest,
+		}, nil
 	case *sqoopv1.FieldResolver_TemplateResolver:
-		return &TemplateResolver{}
+		return &TemplateResolver{}, nil
 	case *sqoopv1.FieldResolver_NodejsResolver:
-		return &NodeJSResolver{}
+		return &NodeJSResolver{}, nil
 	}
 	log.Printf("invalid resolver type: %v", resolver)
-	return nil
+	return nil, nil
 }
 
 func convertOutputRequestTemplate(t *sqoopv1.RequestTemplate) *RequestTemplate {

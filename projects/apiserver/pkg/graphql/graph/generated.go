@@ -92,6 +92,7 @@ type ComplexityRoot struct {
 	AwsUpstreamSpec struct {
 		Region    func(childComplexity int) int
 		SecretRef func(childComplexity int) int
+		Secret    func(childComplexity int) int
 		Functions func(childComplexity int) int
 	}
 
@@ -111,6 +112,7 @@ type ComplexityRoot struct {
 	AzureUpstreamSpec struct {
 		FunctionAppName func(childComplexity int) int
 		SecretRef       func(childComplexity int) int
+		Secret          func(childComplexity int) int
 		Functions       func(childComplexity int) int
 	}
 
@@ -1725,6 +1727,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AwsUpstreamSpec.SecretRef(childComplexity), true
 
+	case "AwsUpstreamSpec.secret":
+		if e.complexity.AwsUpstreamSpec.Secret == nil {
+			break
+		}
+
+		return e.complexity.AwsUpstreamSpec.Secret(childComplexity), true
+
 	case "AwsUpstreamSpec.functions":
 		if e.complexity.AwsUpstreamSpec.Functions == nil {
 			break
@@ -1773,6 +1782,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AzureUpstreamSpec.SecretRef(childComplexity), true
+
+	case "AzureUpstreamSpec.secret":
+		if e.complexity.AzureUpstreamSpec.Secret == nil {
+			break
+		}
+
+		return e.complexity.AzureUpstreamSpec.Secret(childComplexity), true
 
 	case "AzureUpstreamSpec.functions":
 		if e.complexity.AzureUpstreamSpec.Functions == nil {
@@ -3766,6 +3782,11 @@ func (ec *executionContext) _AwsUpstreamSpec(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "secret":
+			out.Values[i] = ec._AwsUpstreamSpec_secret(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "functions":
 			out.Values[i] = ec._AwsUpstreamSpec_functions(ctx, field, obj)
 		default:
@@ -3824,6 +3845,30 @@ func (ec *executionContext) _AwsUpstreamSpec_secretRef(ctx context.Context, fiel
 	rctx.Result = res
 
 	return ec._ResourceRef(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _AwsUpstreamSpec_secret(ctx context.Context, field graphql.CollectedField, obj *models.AwsUpstreamSpec) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "AwsUpstreamSpec",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Secret, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.Secret)
+	rctx.Result = res
+
+	return ec._Secret(ctx, field.Selections, &res)
 }
 
 // nolint: vetshadow
@@ -4089,6 +4134,11 @@ func (ec *executionContext) _AzureUpstreamSpec(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "secret":
+			out.Values[i] = ec._AzureUpstreamSpec_secret(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "functions":
 			out.Values[i] = ec._AzureUpstreamSpec_functions(ctx, field, obj)
 		default:
@@ -4147,6 +4197,30 @@ func (ec *executionContext) _AzureUpstreamSpec_secretRef(ctx context.Context, fi
 	rctx.Result = res
 
 	return ec._ResourceRef(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _AzureUpstreamSpec_secret(ctx context.Context, field graphql.CollectedField, obj *models.AzureUpstreamSpec) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "AzureUpstreamSpec",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Secret, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.Secret)
+	rctx.Result = res
+
+	return ec._Secret(ctx, field.Selections, &res)
 }
 
 // nolint: vetshadow
@@ -8194,10 +8268,10 @@ func (ec *executionContext) _SingleDestination_upstream(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.ResourceRef)
+	res := resTmp.(models.Upstream)
 	rctx.Result = res
 
-	return ec._ResourceRef(ctx, field.Selections, &res)
+	return ec._Upstream(ctx, field.Selections, &res)
 }
 
 // nolint: vetshadow
@@ -13931,14 +14005,14 @@ union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec | St
 type AwsUpstreamSpec {
     region:    String!
     secretRef: ResourceRef!
-    #secret: Secret!
+    secret: Secret!
     functions: [AwsLambdaFunction!]
 }
 
 type AzureUpstreamSpec {
     functionAppName: String!
     secretRef:       ResourceRef!
-    # secret: Secret!
+    secret: Secret!
     functions:       [AzureFunction!]
 }
 
@@ -14153,9 +14227,7 @@ type WeightedDestination {
 }
 
 type SingleDestination {
-    upstream: ResourceRef!
-#    upstream: Upstream!
-#    resourceRef: ResourceRef!
+    upstream: Upstream!
     destinationSpec: DestinationSpec
 }
 
