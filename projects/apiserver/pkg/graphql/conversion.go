@@ -630,8 +630,7 @@ func (c *Converter) convertOutputRoutes(routes []*v1.Route) ([]Route, error) {
 func (c *Converter) convertOutputRoute(route *v1.Route) (Route, error) {
 	action, ok := route.Action.(*v1.Route_RouteAction)
 	if !ok {
-		log.Printf("warning: %v does not have a RouteAction, ignoring", route)
-		return Route{}, nil
+		return Route{}, errors.Errorf("%v does not have a RouteAction", route)
 	}
 	gqlDest, err := c.convertOutputDestination(action.RouteAction)
 	if err != nil {
@@ -733,6 +732,9 @@ func (c *Converter) convertOutputMultiDestination(dests []*v1.WeightedDestinatio
 }
 
 func (c *Converter) convertOutputSingleDestination(dest *v1.Destination) (SingleDestination, error) {
+	if dest.Upstream.Namespace == "" || dest.Upstream.Name == "" {
+		return SingleDestination{}, errors.Errorf("must provide destination upstream")
+	}
 	gqlUs, err := c.r.UpstreamQuery().Get(c.ctx, &customtypes.UpstreamQuery{Namespace: dest.Upstream.Namespace}, dest.Upstream.Name)
 	if err != nil {
 		return SingleDestination{}, err
