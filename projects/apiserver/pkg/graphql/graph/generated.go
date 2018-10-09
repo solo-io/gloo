@@ -307,6 +307,7 @@ type ComplexityRoot struct {
 
 	SslConfig struct {
 		SecretRef func(childComplexity int) int
+		Secret    func(childComplexity int) int
 	}
 
 	StaticHost struct {
@@ -2580,6 +2581,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SslConfig.SecretRef(childComplexity), true
+
+	case "SslConfig.secret":
+		if e.complexity.SslConfig.Secret == nil {
+			break
+		}
+
+		return e.complexity.SslConfig.Secret(childComplexity), true
 
 	case "StaticHost.addr":
 		if e.complexity.StaticHost.Addr == nil {
@@ -8232,6 +8240,11 @@ func (ec *executionContext) _SslConfig(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "secret":
+			out.Values[i] = ec._SslConfig_secret(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8265,6 +8278,30 @@ func (ec *executionContext) _SslConfig_secretRef(ctx context.Context, field grap
 	rctx.Result = res
 
 	return ec._ResourceRef(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _SslConfig_secret(ctx context.Context, field graphql.CollectedField, obj *models.SslConfig) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "SslConfig",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Secret, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.Secret)
+	rctx.Result = res
+
+	return ec._Secret(ctx, field.Selections, &res)
 }
 
 var staticHostImplementors = []string{"StaticHost"}
@@ -13894,12 +13931,14 @@ union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec | St
 type AwsUpstreamSpec {
     region:    String!
     secretRef: ResourceRef!
+    #secret: Secret!
     functions: [AwsLambdaFunction!]
 }
 
 type AzureUpstreamSpec {
     functionAppName: String!
     secretRef:       ResourceRef!
+    # secret: Secret!
     functions:       [AzureFunction!]
 }
 
@@ -14115,6 +14154,8 @@ type WeightedDestination {
 
 type SingleDestination {
     upstream: ResourceRef!
+#    upstream: Upstream!
+#    resourceRef: ResourceRef!
     destinationSpec: DestinationSpec
 }
 
@@ -14142,6 +14183,7 @@ type TransformationParameters {
 
 type SslConfig {
     secretRef: ResourceRef!
+    secret: Secret!
 }
 
 # not implemented

@@ -536,6 +536,7 @@ func (SingleDestination) IsDestination() {}
 
 type SslConfig struct {
 	SecretRef ResourceRef `json:"secretRef"`
+	Secret    Secret      `json:"secret"`
 }
 
 type StaticHost struct {

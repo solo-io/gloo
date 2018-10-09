@@ -25,8 +25,8 @@ import (
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 )
 
-type Converter struct{
-	r *ApiResolver
+type Converter struct {
+	r   *ApiResolver
 	ctx context.Context
 }
 
@@ -592,7 +592,7 @@ func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.Virtua
 	return &VirtualService{
 		Domains:   virtualService.VirtualHost.Domains,
 		Routes:    convertOutputRoutes(virtualService.VirtualHost.Routes),
-		SslConfig: convertOutputSSLConfig(virtualService.SslConfig),
+		SslConfig: c.convertOutputSSLConfig(virtualService.SslConfig),
 		Status:    convertOutputStatus(virtualService.Status),
 		Metadata:  convertOutputMetadata(&gatewayv1.VirtualService{}, virtualService.Metadata),
 	}
@@ -754,7 +754,7 @@ func convertOutputDestinationSpec(spec *v1.DestinationSpec) DestinationSpec {
 	return nil
 }
 
-func convertOutputSSLConfig(ssl *v1.SslConfig) *SslConfig {
+func (c *Converter) convertOutputSSLConfig(ssl *v1.SslConfig) *SslConfig {
 	if ssl == nil {
 		return nil
 	}
@@ -769,8 +769,16 @@ func convertOutputSSLConfig(ssl *v1.SslConfig) *SslConfig {
 		ref = convertOutputRef(*secret.SecretRef)
 	}
 
+	// gqlSecret := convertOutputSecret(secret)
+	gqlSecret, err := c.r.SecretQuery().Get(c.ctx, &customtypes.SecretQuery{Namespace: secret.SecretRef.Namespace}, secret.SecretRef.Name)
+	if err != nil {
+		// TODO(mitchdraft) handle
+		panic(err)
+	}
+
 	return &SslConfig{
 		SecretRef: ref,
+		Secret:    *gqlSecret,
 	}
 }
 
@@ -1048,6 +1056,10 @@ func (c *Converter) ConvertOutputSecrets(secrets v1.SecretList) []*Secret {
 }
 
 func (c *Converter) ConvertOutputSecret(secret *v1.Secret) *Secret {
+	return convertOutputSecret(secret)
+}
+
+func convertOutputSecret(secret *v1.Secret) *Secret {
 	out := &Secret{
 		Metadata: convertOutputMetadata(&v1.Secret{}, secret.Metadata),
 	}
@@ -1139,19 +1151,6 @@ func (c *Converter) ConvertOutputSettings(settings *v1.Settings) *Settings {
 		WatchNamespaces: settings.WatchNamespaces,
 		RefreshRate:     &dur,
 		Metadata:        convertOutputMetadata(&v1.Settings{}, settings.Metadata),
-	}
-}
-
-func (c *Converter) ConvertOutputSettings(settings *v1.Settings) *Settings {
-	refreshRate, err := types.DurationFromProto(settings.RefreshRate)
-	if err != nil {
-		log.Printf("weird error trying to convert duration from proto: %v", err)
-	}
-	dur := customtypes.Duration(refreshRate)
-	return &Settings{
-		WatchNamespaces: settings.WatchNamespaces,
-		RefreshRate:     &dur,
-		Metadata:        convertOutputMetadata(settings.Metadata),
 	}
 }
 

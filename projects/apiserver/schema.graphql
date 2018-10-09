@@ -139,12 +139,14 @@ union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec | St
 type AwsUpstreamSpec {
     region:    String!
     secretRef: ResourceRef!
+    #secret: Secret!
     functions: [AwsLambdaFunction!]
 }
 
 type AzureUpstreamSpec {
     functionAppName: String!
     secretRef:       ResourceRef!
+    # secret: Secret!
     functions:       [AzureFunction!]
 }
 
@@ -360,6 +362,8 @@ type WeightedDestination {
 
 type SingleDestination {
     upstream: ResourceRef!
+#    upstream: Upstream!
+#    resourceRef: ResourceRef!
     destinationSpec: DestinationSpec
 }
 
@@ -387,6 +391,7 @@ type TransformationParameters {
 
 type SslConfig {
     secretRef: ResourceRef!
+    secret: Secret!
 }
 
 # not implemented
