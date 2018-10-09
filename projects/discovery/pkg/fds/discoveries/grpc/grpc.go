@@ -24,11 +24,16 @@ import (
 )
 
 func getgrpcspec(u *v1.Upstream) *grpc_plugins.ServiceSpec {
-	spec, ok := u.UpstreamSpec.UpstreamType.(v1.ServiceSpecGetter)
+	upstreamType, ok := u.UpstreamSpec.UpstreamType.(v1.ServiceSpecGetter)
 	if !ok {
 		return nil
 	}
-	grpcwrapper, ok := spec.GetServiceSpec().PluginType.(*plugins.ServiceSpec_Grpc)
+
+	if upstreamType.GetServiceSpec() == nil {
+		return nil
+	}
+
+	grpcwrapper, ok := upstreamType.GetServiceSpec().PluginType.(*plugins.ServiceSpec_Grpc)
 	if !ok {
 		return nil
 	}
