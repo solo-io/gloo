@@ -138,61 +138,19 @@ func (r *queryResolver) Resource(ctx context.Context, guid string) (models.Resou
 	}
 	switch kind {
 	case resources.Kind(&v1.Upstream{}):
-		res, err := r.ApiResolver.Upstreams.Read(namespace, name, clients.ReadOpts{
-			Ctx: ctx,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return r.Converter.ConvertOutputUpstream(res), nil
+		return r.UpstreamQuery().Get(ctx, &customtypes.UpstreamQuery{Namespace: namespace}, name)
 	case resources.Kind(&gatewayv1.VirtualService{}):
-		res, err := r.ApiResolver.VirtualServices.Read(namespace, name, clients.ReadOpts{
-			Ctx: ctx,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return r.Converter.ConvertOutputVirtualService(res), nil
+		return r.VirtualServiceQuery().Get(ctx, &customtypes.VirtualServiceQuery{Namespace: namespace}, name)
 	case resources.Kind(&sqoopv1.ResolverMap{}):
-		res, err := r.ApiResolver.ResolverMaps.Read(namespace, name, clients.ReadOpts{
-			Ctx: ctx,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return r.Converter.ConvertOutputResolverMap(res), nil
+		return r.ResolverMapQuery().Get(ctx, &customtypes.ResolverMapQuery{Namespace: namespace}, name)
 	case resources.Kind(&sqoopv1.Schema{}):
-		res, err := r.ApiResolver.Schemas.Read(namespace, name, clients.ReadOpts{
-			Ctx: ctx,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return r.Converter.ConvertOutputSchema(res), nil
+		return r.SchemaQuery().Get(ctx, &customtypes.SchemaQuery{Namespace: namespace}, name)
 	case resources.Kind(&v1.Secret{}):
-		res, err := r.ApiResolver.Secrets.Read(namespace, name, clients.ReadOpts{
-			Ctx: ctx,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return r.Converter.ConvertOutputSecret(res), nil
+		return r.SecretQuery().Get(ctx, &customtypes.SecretQuery{Namespace: namespace}, name)
 	case resources.Kind(&v1.Artifact{}):
-		res, err := r.ApiResolver.Artifacts.Read(namespace, name, clients.ReadOpts{
-			Ctx: ctx,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return r.Converter.ConvertOutputArtifact(res), nil
+		return r.ArtifactQuery().Get(ctx, &customtypes.ArtifactQuery{Namespace: namespace}, name)
 	case resources.Kind(&v1.Settings{}):
-		res, err := r.ApiResolver.Settings.Read(namespace, name, clients.ReadOpts{
-			Ctx: ctx,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return r.Converter.ConvertOutputSettings(res), nil
+		return r.SettingsQuery().Get(ctx, &customtypes.SettingsQuery{})
 	}
 	return nil, errors.Errorf("unknown kind %v", kind)
 }
