@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -23,6 +24,17 @@ type Resource interface {
 func Key(resource Resource) string {
 	return fmt.Sprintf("%v%v%v%v%v", Kind(resource), delim, resource.GetMetadata().Namespace, delim,
 		resource.GetMetadata().Name)
+}
+
+func SplitKey(key string) (string, string, string, error) {
+	parts := strings.Split(key, delim)
+	if len(parts) != 3 {
+		return "", "", "", errors.Errorf("%v was not a valid key", key)
+	}
+	kind := parts[0]
+	namespace := parts[1]
+	name := parts[2]
+	return kind, namespace, name, nil
 }
 
 type InputResource interface {
