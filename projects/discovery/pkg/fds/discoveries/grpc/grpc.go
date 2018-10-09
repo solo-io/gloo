@@ -98,7 +98,7 @@ func (f *UpstreamFunctionDiscovery) DetectFunctions(ctx context.Context, url *ur
 			if ctx.Err() != nil {
 				return ctx.Err()
 			}
-			// ignore other erros as we would like to continue forever.
+			// ignore other errors as we would like to continue forever.
 		}
 
 		// sleep so we are not hogging
@@ -110,7 +110,6 @@ func (f *UpstreamFunctionDiscovery) DetectFunctions(ctx context.Context, url *ur
 }
 
 func (f *UpstreamFunctionDiscovery) DetectFunctionsOnce(ctx context.Context, url *url.URL, updatecb func(fds.UpstreamMutator) error) error {
-
 	log := contextutils.LoggerFrom(ctx)
 
 	log.Infof("%v discovered as a gRPC service", url)

@@ -192,7 +192,6 @@ func (u *updaterUpdater) saveUpstream(mutator UpstreamMutator) error {
 }
 
 func (u *updaterUpdater) detectSingle(fp UpstreamFunctionDiscovery, url *url.URL, result chan detectResult) {
-
 	if u.parent.maxInParallelSemaphore != nil {
 		select {
 		// wait for our turn
@@ -254,7 +253,6 @@ func (u *updaterUpdater) detectType(url *url.URL) (*detectResult, error) {
 }
 
 func (u *updaterUpdater) Run() error {
-
 	// see if anyone likes this upstream:
 	var discoveryForUpstream UpstreamFunctionDiscovery
 	for _, fp := range u.functionalPlugins {
@@ -285,12 +283,10 @@ func (u *updaterUpdater) Run() error {
 		// try to detect the type
 		res, err := u.detectType(resolvedUrl)
 		if err != nil {
-
 			if err == errorUndetectableUpstream {
 				// TODO(yuval-k): at this point all discoveries gave up.
 				// do we want to mark an upstream as undetected persistently so we do not detect it anymore?
 			}
-
 			return err
 		}
 		discoveryForUpstream = res.fp
