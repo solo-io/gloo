@@ -26,7 +26,6 @@ type ApiResolver struct {
 	VirtualServices gatewayv1.VirtualServiceClient
 	ResolverMaps    sqoopv1.ResolverMapClient
 	Schemas         sqoopv1.SchemaClient
-	Converter       *Converter
 }
 
 func NewResolvers(upstreams v1.UpstreamClient,
@@ -45,7 +44,6 @@ func NewResolvers(upstreams v1.UpstreamClient,
 		Settings:        settings,
 		Secrets:         secrets,
 		// TODO(ilackarms): just make these private functions, remove converter
-		Converter: &Converter{},
 	}
 }
 
@@ -194,7 +192,7 @@ func (r *queryResolver) Settings(ctx context.Context) (customtypes.SettingsQuery
 type upstreamMutationResolver struct{ *ApiResolver }
 
 func (r *upstreamMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error) {
-	ups, err := r.Converter.ConvertInputUpstream(upstream)
+	ups, err := NewConverter(r.ApiResolver, ctx).ConvertInputUpstream(upstream)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +203,7 @@ func (r *upstreamMutationResolver) write(overwrite bool, ctx context.Context, ob
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputUpstream(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstream(out), nil
 }
 
 func (r *upstreamMutationResolver) Create(ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error) {
@@ -229,7 +227,7 @@ func (r *upstreamMutationResolver) Delete(ctx context.Context, obj *customtypes.
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputUpstream(upstream), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstream(upstream), nil
 }
 
 type upstreamQueryResolver struct{ *ApiResolver }
@@ -246,7 +244,7 @@ func (r *upstreamQueryResolver) List(ctx context.Context, obj *customtypes.Upstr
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputUpstreams(list), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstreams(list), nil
 }
 
 func (r *upstreamQueryResolver) Get(ctx context.Context, obj *customtypes.UpstreamQuery, name string) (*models.Upstream, error) {
@@ -256,13 +254,13 @@ func (r *upstreamQueryResolver) Get(ctx context.Context, obj *customtypes.Upstre
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputUpstream(upstream), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstream(upstream), nil
 }
 
 type virtualServiceMutationResolver struct{ *ApiResolver }
 
 func (r *virtualServiceMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error) {
-	v1VirtualService, err := r.Converter.ConvertInputVirtualService(virtualService)
+	v1VirtualService, err := NewConverter(r.ApiResolver, ctx).ConvertInputVirtualService(virtualService)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +271,7 @@ func (r *virtualServiceMutationResolver) write(overwrite bool, ctx context.Conte
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
 }
 
 func (r *virtualServiceMutationResolver) Create(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error) {
@@ -322,7 +320,7 @@ func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *custom
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
 }
 func (r *virtualServiceMutationResolver) Delete(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string) (*models.VirtualService, error) {
 	virtualService, err := r.VirtualServices.Read(obj.Namespace, name, clients.ReadOpts{
@@ -339,10 +337,10 @@ func (r *virtualServiceMutationResolver) Delete(ctx context.Context, obj *custom
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputVirtualService(virtualService), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(virtualService), nil
 }
 func (r *virtualServiceMutationResolver) AddRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error) {
-	v1Route, err := r.Converter.ConvertInputRoute(route)
+	v1Route, err := NewConverter(r.ApiResolver, ctx).ConvertInputRoute(route)
 	if err != nil {
 		return nil, err
 	}
@@ -369,11 +367,11 @@ func (r *virtualServiceMutationResolver) AddRoute(ctx context.Context, obj *cust
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
 }
 
 func (r *virtualServiceMutationResolver) UpdateRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error) {
-	v1Route, err := r.Converter.ConvertInputRoute(route)
+	v1Route, err := NewConverter(r.ApiResolver, ctx).ConvertInputRoute(route)
 	if err != nil {
 		return nil, err
 	}
@@ -399,7 +397,7 @@ func (r *virtualServiceMutationResolver) UpdateRoute(ctx context.Context, obj *c
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
 }
 
 func (r *virtualServiceMutationResolver) DeleteRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int) (*models.VirtualService, error) {
@@ -424,7 +422,7 @@ func (r *virtualServiceMutationResolver) DeleteRoute(ctx context.Context, obj *c
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
 }
 
 func (r *virtualServiceMutationResolver) SwapRoutes(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index1 int, index2 int) (*models.VirtualService, error) {
@@ -448,7 +446,7 @@ func (r *virtualServiceMutationResolver) SwapRoutes(ctx context.Context, obj *cu
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
 
 }
 
@@ -486,7 +484,7 @@ func (r *virtualServiceMutationResolver) ShiftRoutes(ctx context.Context, obj *c
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputVirtualService(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out), nil
 
 }
 
@@ -504,7 +502,7 @@ func (r *virtualServiceQueryResolver) List(ctx context.Context, obj *customtypes
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputVirtualServices(list), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualServices(list), nil
 }
 
 func (r *virtualServiceQueryResolver) Get(ctx context.Context, obj *customtypes.VirtualServiceQuery, name string) (*models.VirtualService, error) {
@@ -514,7 +512,7 @@ func (r *virtualServiceQueryResolver) Get(ctx context.Context, obj *customtypes.
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputVirtualService(virtualService), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(virtualService), nil
 }
 
 type resolverMapMutationResolver struct{ *ApiResolver }
@@ -546,11 +544,11 @@ func (r *resolverMapMutationResolver) SetResolver(ctx context.Context, obj *cust
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputResolverMap(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMap(out), nil
 }
 
 func (r *resolverMapMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error) {
-	ups, err := r.Converter.ConvertInputResolverMap(resolverMap)
+	ups, err := NewConverter(r.ApiResolver, ctx).ConvertInputResolverMap(resolverMap)
 	if err != nil {
 		return nil, err
 	}
@@ -561,7 +559,7 @@ func (r *resolverMapMutationResolver) write(overwrite bool, ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputResolverMap(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMap(out), nil
 }
 
 func (r *resolverMapMutationResolver) Create(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error) {
@@ -585,7 +583,7 @@ func (r *resolverMapMutationResolver) Delete(ctx context.Context, obj *customtyp
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputResolverMap(resolverMap), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMap(resolverMap), nil
 }
 
 type resolverMapQueryResolver struct{ *ApiResolver }
@@ -602,7 +600,7 @@ func (r *resolverMapQueryResolver) List(ctx context.Context, obj *customtypes.Re
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputResolverMaps(list), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMaps(list), nil
 }
 
 func (r *resolverMapQueryResolver) Get(ctx context.Context, obj *customtypes.ResolverMapQuery, name string) (*models.ResolverMap, error) {
@@ -612,13 +610,13 @@ func (r *resolverMapQueryResolver) Get(ctx context.Context, obj *customtypes.Res
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputResolverMap(resolverMap), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMap(resolverMap), nil
 }
 
 type schemaMutationResolver struct{ *ApiResolver }
 
 func (r *schemaMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.SchemaMutation, schema models.InputSchema) (*models.Schema, error) {
-	ups, err := r.Converter.ConvertInputSchema(schema)
+	ups, err := NewConverter(r.ApiResolver, ctx).ConvertInputSchema(schema)
 	if err != nil {
 		return nil, err
 	}
@@ -629,7 +627,7 @@ func (r *schemaMutationResolver) write(overwrite bool, ctx context.Context, obj 
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputSchema(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputSchema(out), nil
 }
 
 func (r *schemaMutationResolver) Create(ctx context.Context, obj *customtypes.SchemaMutation, schema models.InputSchema) (*models.Schema, error) {
@@ -653,7 +651,7 @@ func (r *schemaMutationResolver) Delete(ctx context.Context, obj *customtypes.Sc
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputSchema(schema), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputSchema(schema), nil
 }
 
 type schemaQueryResolver struct{ *ApiResolver }
@@ -670,7 +668,7 @@ func (r *schemaQueryResolver) List(ctx context.Context, obj *customtypes.SchemaQ
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputSchemas(list), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputSchemas(list), nil
 }
 
 func (r *schemaQueryResolver) Get(ctx context.Context, obj *customtypes.SchemaQuery, name string) (*models.Schema, error) {
@@ -680,13 +678,13 @@ func (r *schemaQueryResolver) Get(ctx context.Context, obj *customtypes.SchemaQu
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputSchema(schema), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputSchema(schema), nil
 }
 
 type secretMutationResolver struct{ *ApiResolver }
 
 func (r *secretMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.SecretMutation, secret models.InputSecret) (*models.Secret, error) {
-	ups, err := r.Converter.ConvertInputSecret(secret)
+	ups, err := NewConverter(r.ApiResolver, ctx).ConvertInputSecret(secret)
 	if err != nil {
 		return nil, err
 	}
@@ -697,7 +695,7 @@ func (r *secretMutationResolver) write(overwrite bool, ctx context.Context, obj 
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputSecret(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputSecret(out), nil
 }
 
 func (r *secretMutationResolver) Create(ctx context.Context, obj *customtypes.SecretMutation, secret models.InputSecret) (*models.Secret, error) {
@@ -721,7 +719,7 @@ func (r *secretMutationResolver) Delete(ctx context.Context, obj *customtypes.Se
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputSecret(secret), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputSecret(secret), nil
 }
 
 type secretQueryResolver struct{ *ApiResolver }
@@ -738,7 +736,7 @@ func (r *secretQueryResolver) List(ctx context.Context, obj *customtypes.SecretQ
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputSecrets(list), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputSecrets(list), nil
 }
 
 func (r *secretQueryResolver) Get(ctx context.Context, obj *customtypes.SecretQuery, name string) (*models.Secret, error) {
@@ -748,13 +746,13 @@ func (r *secretQueryResolver) Get(ctx context.Context, obj *customtypes.SecretQu
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputSecret(secret), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputSecret(secret), nil
 }
 
 type artifactMutationResolver struct{ *ApiResolver }
 
 func (r *artifactMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.ArtifactMutation, artifact models.InputArtifact) (*models.Artifact, error) {
-	ups, err := r.Converter.ConvertInputArtifact(artifact)
+	ups, err := NewConverter(r.ApiResolver, ctx).ConvertInputArtifact(artifact)
 	if err != nil {
 		return nil, err
 	}
@@ -765,7 +763,7 @@ func (r *artifactMutationResolver) write(overwrite bool, ctx context.Context, ob
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputArtifact(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputArtifact(out), nil
 }
 
 func (r *artifactMutationResolver) Create(ctx context.Context, obj *customtypes.ArtifactMutation, artifact models.InputArtifact) (*models.Artifact, error) {
@@ -789,7 +787,7 @@ func (r *artifactMutationResolver) Delete(ctx context.Context, obj *customtypes.
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputArtifact(artifact), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputArtifact(artifact), nil
 }
 
 type settingsMutationResolver struct{ *ApiResolver }
@@ -802,10 +800,10 @@ func (r *settingsMutationResolver) write(overwrite bool, ctx context.Context, ob
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputSettings(out), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputSettings(out), nil
 }
 func (r *settingsMutationResolver) Update(ctx context.Context, obj *customtypes.SettingsMutation, rawUpdates models.InputSettings) (*models.Settings, error) {
-	updates, err := r.Converter.ConvertInputSettings(rawUpdates)
+	updates, err := NewConverter(r.ApiResolver, ctx).ConvertInputSettings(rawUpdates)
 	if err != nil {
 		return nil, err
 	}
@@ -846,7 +844,7 @@ func (r *artifactQueryResolver) List(ctx context.Context, obj *customtypes.Artif
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputArtifacts(list), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputArtifacts(list), nil
 }
 
 func (r *artifactQueryResolver) Get(ctx context.Context, obj *customtypes.ArtifactQuery, name string) (*models.Artifact, error) {
@@ -856,7 +854,7 @@ func (r *artifactQueryResolver) Get(ctx context.Context, obj *customtypes.Artifa
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputArtifact(artifact), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputArtifact(artifact), nil
 }
 
 type settingsQueryResolver struct{ *ApiResolver }
@@ -870,7 +868,7 @@ func (r *settingsQueryResolver) Get(ctx context.Context, obj *customtypes.Settin
 	if err != nil {
 		return nil, err
 	}
-	return r.Converter.ConvertOutputSettings(settings), nil
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputSettings(settings), nil
 }
 
 func (r *ApiResolver) Subscription() graph.SubscriptionResolver {
@@ -902,7 +900,7 @@ func (r subscriptionResolver) Upstreams(ctx context.Context, namespace string, s
 				if !ok {
 					return
 				}
-				upstreams := r.Converter.ConvertOutputUpstreams(list)
+				upstreams := NewConverter(r.ApiResolver, ctx).ConvertOutputUpstreams(list)
 				select {
 				case upstreamsChan <- upstreams:
 				default:
@@ -945,7 +943,7 @@ func (r subscriptionResolver) VirtualServices(ctx context.Context, namespace str
 				if !ok {
 					return
 				}
-				virtualServices := r.Converter.ConvertOutputVirtualServices(list)
+				virtualServices := NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualServices(list)
 				select {
 				case virtualServicesChan <- virtualServices:
 				default:

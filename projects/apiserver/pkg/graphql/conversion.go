@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"context"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"log"
 	"sort"
@@ -24,7 +25,14 @@ import (
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 )
 
-type Converter struct{}
+type Converter struct{
+	r *ApiResolver
+	ctx context.Context
+}
+
+func NewConverter(r *ApiResolver, ctx context.Context) *Converter {
+	return &Converter{r: r, ctx: ctx}
+}
 
 func (c *Converter) ConvertInputUpstreams(upstream []InputUpstream) (v1.UpstreamList, error) {
 	var result v1.UpstreamList
