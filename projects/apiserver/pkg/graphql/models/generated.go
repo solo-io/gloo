@@ -41,7 +41,6 @@ func (AwsSecret) IsSecretKind() {}
 type AwsUpstreamSpec struct {
 	Region    string              `json:"region"`
 	SecretRef ResourceRef         `json:"secretRef"`
-	Secret    Secret              `json:"secret"`
 	Functions []AwsLambdaFunction `json:"functions"`
 }
 
@@ -67,7 +66,6 @@ func (AzureSecret) IsSecretKind() {}
 type AzureUpstreamSpec struct {
 	FunctionAppName string          `json:"functionAppName"`
 	SecretRef       ResourceRef     `json:"secretRef"`
-	Secret          Secret          `json:"secret"`
 	Functions       []AzureFunction `json:"functions"`
 }
 
@@ -538,7 +536,6 @@ func (SingleDestination) IsDestination() {}
 
 type SslConfig struct {
 	SecretRef ResourceRef `json:"secretRef"`
-	Secret    Secret      `json:"secret"`
 }
 
 type StaticHost struct {

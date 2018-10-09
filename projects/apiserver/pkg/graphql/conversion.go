@@ -241,25 +241,15 @@ func (c *Converter) ConvertOutputUpstream(upstream *v1.Upstream) (*Upstream, err
 func (c *Converter) convertOutputUpstreamSpec(spec *v1.UpstreamSpec) (UpstreamSpec, error) {
 	switch specType := spec.UpstreamType.(type) {
 	case *v1.UpstreamSpec_Aws:
-		gqlSecret, err := c.r.SecretQuery().Get(c.ctx, &customtypes.SecretQuery{Namespace: specType.Aws.SecretRef.Namespace}, specType.Aws.SecretRef.Name)
-		if err != nil {
-			return nil, err
-		}
 		return &AwsUpstreamSpec{
 			Region:    specType.Aws.Region,
 			SecretRef: convertOutputRef(specType.Aws.SecretRef),
-			Secret:    *gqlSecret,
 			Functions: convertOutputLambdaFunctions(specType.Aws.LambdaFunctions),
 		}, nil
 	case *v1.UpstreamSpec_Azure:
-		gqlSecret, err := c.r.SecretQuery().Get(c.ctx, &customtypes.SecretQuery{Namespace: specType.Azure.SecretRef.Namespace}, specType.Azure.SecretRef.Name)
-		if err != nil {
-			return nil, err
-		}
 		return &AzureUpstreamSpec{
 			FunctionAppName: specType.Azure.FunctionAppName,
 			Functions:       convertOutputAzureFunctions(specType.Azure.Functions),
-			Secret:          *gqlSecret,
 		}, nil
 	case *v1.UpstreamSpec_Kube:
 		return &KubeUpstreamSpec{
@@ -816,16 +806,8 @@ func (c *Converter) convertOutputSSLConfig(ssl *v1.SslConfig) *SslConfig {
 		ref = convertOutputRef(*secret.SecretRef)
 	}
 
-	// gqlSecret := convertOutputSecret(secret)
-	gqlSecret, err := c.r.SecretQuery().Get(c.ctx, &customtypes.SecretQuery{Namespace: secret.SecretRef.Namespace}, secret.SecretRef.Name)
-	if err != nil {
-		// TODO(mitchdraft) handle
-		panic(err)
-	}
-
 	return &SslConfig{
 		SecretRef: ref,
-		Secret:    *gqlSecret,
 	}
 }
 

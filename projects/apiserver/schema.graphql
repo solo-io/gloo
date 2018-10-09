@@ -139,14 +139,12 @@ union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec | St
 type AwsUpstreamSpec {
     region:    String!
     secretRef: ResourceRef!
-    secret: Secret!
     functions: [AwsLambdaFunction!]
 }
 
 type AzureUpstreamSpec {
     functionAppName: String!
     secretRef:       ResourceRef!
-    secret: Secret!
     functions:       [AzureFunction!]
 }
 
@@ -387,10 +385,8 @@ type TransformationParameters {
     path: String
 }
 
-# TODO(mitchdraft) deprecate ResourceRef
 type SslConfig {
     secretRef: ResourceRef!
-    secret: Secret!
 }
 
 # not implemented
