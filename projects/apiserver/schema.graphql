@@ -178,7 +178,7 @@ type AzureFunction {
     authLevel:    AzureFnAuthLevel!
 }
 
-union ServiceSpec = RestServiceSpec | GRPCServiceSpec
+union ServiceSpec = RestServiceSpec | GrpcServiceSpec
 
 # Not implemented yet
 type RestServiceSpec  {
@@ -192,8 +192,14 @@ type Transformation {
 }
 
 # Not implemented yet
-type GRPCServiceSpec {
-    empty: String
+type GrpcServiceSpec {
+    grpcServices: [GrpcService]
+}
+
+type GrpcService {
+    packageName: String!
+    serviceName: String!
+    functionNames: [String!]
 }
 
 
@@ -260,7 +266,7 @@ input InputAzureFunction {
 input InputServiceSpec  {
     # oneof: Rest | grpc
     rest: InputRestServiceSpec
-    grpc:    InputGRPCServiceSpec
+    grpc:    InputGrpcServiceSpec
 }
 
 input InputRestServiceSpec  {
@@ -276,7 +282,7 @@ input InputTransformation {
 
 
 # Not implemented yet
-input InputGRPCServiceSpec {
+input InputGrpcServiceSpec {
     empty: String
 }
 
@@ -363,7 +369,7 @@ type SingleDestination {
     destinationSpec: DestinationSpec
 }
 
-union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec | RestDestinationSpec
+union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec | RestDestinationSpec | GrpcDestinationSpec
 
 type AwsDestinationSpec {
     logicalName: String!
@@ -376,6 +382,11 @@ type AzureDestinationSpec {
 }
 
 type RestDestinationSpec {
+    functionName: String!
+    parameters: TransformationParameters
+}
+
+type GrpcDestinationSpec {
     functionName: String!
     parameters: TransformationParameters
 }
