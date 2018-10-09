@@ -196,7 +196,7 @@ ignored = ["github.com/envoyproxy/data-plane-api*"]
 
 [[constraint]]
   name = "k8s.io/client-go"
-  version = "7.0.0"
+  version = "kubernetes-1.10.0"
 
 [[override]]
   name = "k8s.io/kubernetes"
