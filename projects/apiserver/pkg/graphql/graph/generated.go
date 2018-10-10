@@ -126,8 +126,10 @@ type ComplexityRoot struct {
 	}
 
 	GrpcDestinationSpec struct {
-		FunctionName func(childComplexity int) int
-		Parameters   func(childComplexity int) int
+		Package    func(childComplexity int) int
+		Service    func(childComplexity int) int
+		Function   func(childComplexity int) int
+		Parameters func(childComplexity int) int
 	}
 
 	GrpcService struct {
@@ -1826,12 +1828,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GlooResolver.Destination(childComplexity), true
 
-	case "GrpcDestinationSpec.functionName":
-		if e.complexity.GrpcDestinationSpec.FunctionName == nil {
+	case "GrpcDestinationSpec.package":
+		if e.complexity.GrpcDestinationSpec.Package == nil {
 			break
 		}
 
-		return e.complexity.GrpcDestinationSpec.FunctionName(childComplexity), true
+		return e.complexity.GrpcDestinationSpec.Package(childComplexity), true
+
+	case "GrpcDestinationSpec.service":
+		if e.complexity.GrpcDestinationSpec.Service == nil {
+			break
+		}
+
+		return e.complexity.GrpcDestinationSpec.Service(childComplexity), true
+
+	case "GrpcDestinationSpec.function":
+		if e.complexity.GrpcDestinationSpec.Function == nil {
+			break
+		}
+
+		return e.complexity.GrpcDestinationSpec.Function(childComplexity), true
 
 	case "GrpcDestinationSpec.parameters":
 		if e.complexity.GrpcDestinationSpec.Parameters == nil {
@@ -4444,8 +4460,18 @@ func (ec *executionContext) _GrpcDestinationSpec(ctx context.Context, sel ast.Se
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("GrpcDestinationSpec")
-		case "functionName":
-			out.Values[i] = ec._GrpcDestinationSpec_functionName(ctx, field, obj)
+		case "package":
+			out.Values[i] = ec._GrpcDestinationSpec_package(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "service":
+			out.Values[i] = ec._GrpcDestinationSpec_service(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "function":
+			out.Values[i] = ec._GrpcDestinationSpec_function(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -4463,7 +4489,7 @@ func (ec *executionContext) _GrpcDestinationSpec(ctx context.Context, sel ast.Se
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _GrpcDestinationSpec_functionName(ctx context.Context, field graphql.CollectedField, obj *models.GrpcDestinationSpec) graphql.Marshaler {
+func (ec *executionContext) _GrpcDestinationSpec_package(ctx context.Context, field graphql.CollectedField, obj *models.GrpcDestinationSpec) graphql.Marshaler {
 	rctx := &graphql.ResolverContext{
 		Object: "GrpcDestinationSpec",
 		Args:   nil,
@@ -4472,7 +4498,53 @@ func (ec *executionContext) _GrpcDestinationSpec_functionName(ctx context.Contex
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.FunctionName, nil
+		return obj.Package, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _GrpcDestinationSpec_service(ctx context.Context, field graphql.CollectedField, obj *models.GrpcDestinationSpec) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "GrpcDestinationSpec",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Service, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _GrpcDestinationSpec_function(ctx context.Context, field graphql.CollectedField, obj *models.GrpcDestinationSpec) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "GrpcDestinationSpec",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Function, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -14417,7 +14489,9 @@ type RestDestinationSpec {
 }
 
 type GrpcDestinationSpec {
-    functionName: String!
+    package: String!
+    service: String!
+    function: String!
     parameters: TransformationParameters
 }
 

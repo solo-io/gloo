@@ -93,8 +93,10 @@ type GlooResolver struct {
 func (GlooResolver) IsResolver() {}
 
 type GrpcDestinationSpec struct {
-	FunctionName string                    `json:"functionName"`
-	Parameters   *TransformationParameters `json:"parameters"`
+	Package    string                    `json:"package"`
+	Service    string                    `json:"service"`
+	Function   string                    `json:"function"`
+	Parameters *TransformationParameters `json:"parameters"`
 }
 
 func (GrpcDestinationSpec) IsDestinationSpec() {}

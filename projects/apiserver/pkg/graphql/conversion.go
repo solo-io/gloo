@@ -22,6 +22,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/grpc"
 )
 
 type Converter struct {
@@ -286,8 +287,27 @@ func convertOutputServiceSpec(spec *plugins.ServiceSpec) ServiceSpec {
 		return &RestServiceSpec{
 			Functions: convertOutputTransformations(serviceSpec.Rest.Transformations),
 		}
+	case *plugins.ServiceSpec_Grpc:
+		return &GrpcServiceSpec{
+			GrpcServices:convertOutputGrpcServices(serviceSpec.Grpc.GrpcServices),
+		}
 	}
 	panic("unsupported")
+}
+
+func convertOutputGrpcServices(grpcServices []*grpc.ServiceSpec_GrpcService) []*GrpcService {
+	if len(grpcServices) == 0 {
+		return nil
+	}
+	var convertedGrpcServices []*GrpcService
+	for _, svc := range grpcServices {
+		convertedGrpcServices = append(convertedGrpcServices, &GrpcService{
+			PackageName: svc.PackageName,
+			ServiceName: svc.ServiceName,
+			FunctionNames: svc.FunctionNames,
+		})
+	}
+	return convertedGrpcServices
 }
 
 func convertOutputTransformations(transformations map[string]*transformation.TransformationTemplate) []Transformation {
@@ -608,7 +628,7 @@ func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.Virtua
 	return &VirtualService{
 		Domains:   virtualService.VirtualHost.Domains,
 		Routes:    gqlRoutes,
-		SslConfig: c.convertOutputSSLConfig(virtualService.SslConfig),
+		SslConfig: convertOutputSSLConfig(virtualService.SslConfig),
 		Status:    convertOutputStatus(virtualService.Status),
 		Metadata:  convertOutputMetadata(&gatewayv1.VirtualService{}, virtualService.Metadata),
 	}, nil
@@ -766,33 +786,44 @@ func convertOutputDestinationSpec(spec *v1.DestinationSpec) DestinationSpec {
 			FunctionName: destSpec.Azure.FunctionName,
 		}
 	case *v1.DestinationSpec_Rest:
-		var params *TransformationParameters
-		if destSpec.Rest.Parameters != nil {
-			var headers *MapStringString
-			if len(destSpec.Rest.Parameters.Headers) > 0 {
-				headers = NewMapStringString(destSpec.Rest.Parameters.Headers)
-			}
-			var path *string
-			if destSpec.Rest.Parameters.Path != nil {
-				path = &destSpec.Rest.Parameters.Path.Value
-			}
-			if path != nil || headers != nil {
-				params = &TransformationParameters{
-					Path:    path,
-					Headers: headers,
-				}
-			}
-		}
 		return &RestDestinationSpec{
 			FunctionName: destSpec.Rest.FunctionName,
-			Parameters:   params,
+			Parameters:   convertOutputTransformation(destSpec.Rest.Parameters),
+		}
+	case *v1.DestinationSpec_Grpc:
+		return &GrpcDestinationSpec{
+			Package:    destSpec.Grpc.Package,
+			Service:    destSpec.Grpc.Service,
+			Function:   destSpec.Grpc.Function,
+			Parameters: convertOutputTransformation(destSpec.Grpc.Parameters),
 		}
 	}
 	log.Printf("unknown destination spec type: %#v", spec)
 	return nil
 }
 
-func (c *Converter) convertOutputSSLConfig(ssl *v1.SslConfig) *SslConfig {
+func convertOutputTransformation(params *transformation.Parameters) *TransformationParameters {
+	if params == nil {
+		return nil
+	}
+	var headers *MapStringString
+	if len(params.Headers) > 0 {
+		headers = NewMapStringString(params.Headers)
+	}
+	var path *string
+	if params.Path != nil {
+		path = &params.Path.Value
+	}
+	if path != nil || headers != nil {
+		return &TransformationParameters{
+			Path:    path,
+			Headers: headers,
+		}
+	}
+	return nil
+}
+
+func convertOutputSSLConfig(ssl *v1.SslConfig) *SslConfig {
 	if ssl == nil {
 		return nil
 	}

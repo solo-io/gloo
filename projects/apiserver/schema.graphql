@@ -387,7 +387,9 @@ type RestDestinationSpec {
 }
 
 type GrpcDestinationSpec {
-    functionName: String!
+    package: String!
+    service: String!
+    function: String!
     parameters: TransformationParameters
 }
 
