@@ -84,12 +84,6 @@ type FieldResolver struct {
 	Resolver  Resolver `json:"resolver"`
 }
 
-type GRPCServiceSpec struct {
-	Empty *string `json:"empty"`
-}
-
-func (GRPCServiceSpec) IsServiceSpec() {}
-
 type GlooResolver struct {
 	RequestTemplate  *RequestTemplate  `json:"requestTemplate"`
 	ResponseTemplate *ResponseTemplate `json:"responseTemplate"`
@@ -97,6 +91,25 @@ type GlooResolver struct {
 }
 
 func (GlooResolver) IsResolver() {}
+
+type GrpcDestinationSpec struct {
+	FunctionName string                    `json:"functionName"`
+	Parameters   *TransformationParameters `json:"parameters"`
+}
+
+func (GrpcDestinationSpec) IsDestinationSpec() {}
+
+type GrpcService struct {
+	PackageName   string   `json:"packageName"`
+	ServiceName   string   `json:"serviceName"`
+	FunctionNames []string `json:"functionNames"`
+}
+
+type GrpcServiceSpec struct {
+	GrpcServices []*GrpcService `json:"grpcServices"`
+}
+
+func (GrpcServiceSpec) IsServiceSpec() {}
 
 type InputArtifact struct {
 	Data     string        `json:"data"`
@@ -161,14 +174,14 @@ type InputFieldResolver struct {
 	Resolver  InputResolver `json:"resolver"`
 }
 
-type InputGRPCServiceSpec struct {
-	Empty *string `json:"empty"`
-}
-
 type InputGlooResolver struct {
 	RequestTemplate  *InputRequestTemplate  `json:"requestTemplate"`
 	ResponseTemplate *InputResponseTemplate `json:"responseTemplate"`
 	Destination      InputDestination       `json:"destination"`
+}
+
+type InputGrpcServiceSpec struct {
+	Empty *string `json:"empty"`
 }
 
 type InputKeyValueMatcher struct {
@@ -279,7 +292,7 @@ type InputSecretKind struct {
 
 type InputServiceSpec struct {
 	Rest *InputRestServiceSpec `json:"rest"`
-	Grpc *InputGRPCServiceSpec `json:"grpc"`
+	Grpc *InputGrpcServiceSpec `json:"grpc"`
 }
 
 type InputSettings struct {

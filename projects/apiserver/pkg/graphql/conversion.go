@@ -2,16 +2,15 @@ package graphql
 
 import (
 	"context"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"log"
 	"sort"
 	"time"
 
-	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes"
-
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes"
 	. "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/models"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"

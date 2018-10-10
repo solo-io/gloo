@@ -119,14 +119,25 @@ type ComplexityRoot struct {
 		Resolver  func(childComplexity int) int
 	}
 
-	GrpcserviceSpec struct {
-		Empty func(childComplexity int) int
-	}
-
 	GlooResolver struct {
 		RequestTemplate  func(childComplexity int) int
 		ResponseTemplate func(childComplexity int) int
 		Destination      func(childComplexity int) int
+	}
+
+	GrpcDestinationSpec struct {
+		FunctionName func(childComplexity int) int
+		Parameters   func(childComplexity int) int
+	}
+
+	GrpcService struct {
+		PackageName   func(childComplexity int) int
+		ServiceName   func(childComplexity int) int
+		FunctionNames func(childComplexity int) int
+	}
+
+	GrpcServiceSpec struct {
+		GrpcServices func(childComplexity int) int
 	}
 
 	KeyValueMatcher struct {
@@ -1794,13 +1805,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FieldResolver.Resolver(childComplexity), true
 
-	case "GRPCServiceSpec.empty":
-		if e.complexity.GrpcserviceSpec.Empty == nil {
-			break
-		}
-
-		return e.complexity.GrpcserviceSpec.Empty(childComplexity), true
-
 	case "GlooResolver.requestTemplate":
 		if e.complexity.GlooResolver.RequestTemplate == nil {
 			break
@@ -1821,6 +1825,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GlooResolver.Destination(childComplexity), true
+
+	case "GrpcDestinationSpec.functionName":
+		if e.complexity.GrpcDestinationSpec.FunctionName == nil {
+			break
+		}
+
+		return e.complexity.GrpcDestinationSpec.FunctionName(childComplexity), true
+
+	case "GrpcDestinationSpec.parameters":
+		if e.complexity.GrpcDestinationSpec.Parameters == nil {
+			break
+		}
+
+		return e.complexity.GrpcDestinationSpec.Parameters(childComplexity), true
+
+	case "GrpcService.packageName":
+		if e.complexity.GrpcService.PackageName == nil {
+			break
+		}
+
+		return e.complexity.GrpcService.PackageName(childComplexity), true
+
+	case "GrpcService.serviceName":
+		if e.complexity.GrpcService.ServiceName == nil {
+			break
+		}
+
+		return e.complexity.GrpcService.ServiceName(childComplexity), true
+
+	case "GrpcService.functionNames":
+		if e.complexity.GrpcService.FunctionNames == nil {
+			break
+		}
+
+		return e.complexity.GrpcService.FunctionNames(childComplexity), true
+
+	case "GrpcServiceSpec.grpcServices":
+		if e.complexity.GrpcServiceSpec.GrpcServices == nil {
+			break
+		}
+
+		return e.complexity.GrpcServiceSpec.GrpcServices(childComplexity), true
 
 	case "KeyValueMatcher.name":
 		if e.complexity.KeyValueMatcher.Name == nil {
@@ -4276,57 +4322,6 @@ func (ec *executionContext) _FieldResolver_resolver(ctx context.Context, field g
 	return ec._Resolver(ctx, field.Selections, &res)
 }
 
-var gRPCServiceSpecImplementors = []string{"GRPCServiceSpec"}
-
-// nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _GRPCServiceSpec(ctx context.Context, sel ast.SelectionSet, obj *models.GRPCServiceSpec) graphql.Marshaler {
-	fields := graphql.CollectFields(ctx, sel, gRPCServiceSpecImplementors)
-
-	out := graphql.NewOrderedMap(len(fields))
-	invalid := false
-	for i, field := range fields {
-		out.Keys[i] = field.Alias
-
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("GRPCServiceSpec")
-		case "empty":
-			out.Values[i] = ec._GRPCServiceSpec_empty(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-
-	if invalid {
-		return graphql.Null
-	}
-	return out
-}
-
-// nolint: vetshadow
-func (ec *executionContext) _GRPCServiceSpec_empty(ctx context.Context, field graphql.CollectedField, obj *models.GRPCServiceSpec) graphql.Marshaler {
-	rctx := &graphql.ResolverContext{
-		Object: "GRPCServiceSpec",
-		Args:   nil,
-		Field:  field,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Empty, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-
-	if res == nil {
-		return graphql.Null
-	}
-	return graphql.MarshalString(*res)
-}
-
 var glooResolverImplementors = []string{"GlooResolver"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -4433,6 +4428,282 @@ func (ec *executionContext) _GlooResolver_destination(ctx context.Context, field
 	rctx.Result = res
 
 	return ec._Destination(ctx, field.Selections, &res)
+}
+
+var grpcDestinationSpecImplementors = []string{"GrpcDestinationSpec"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _GrpcDestinationSpec(ctx context.Context, sel ast.SelectionSet, obj *models.GrpcDestinationSpec) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, grpcDestinationSpecImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GrpcDestinationSpec")
+		case "functionName":
+			out.Values[i] = ec._GrpcDestinationSpec_functionName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "parameters":
+			out.Values[i] = ec._GrpcDestinationSpec_parameters(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _GrpcDestinationSpec_functionName(ctx context.Context, field graphql.CollectedField, obj *models.GrpcDestinationSpec) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "GrpcDestinationSpec",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FunctionName, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _GrpcDestinationSpec_parameters(ctx context.Context, field graphql.CollectedField, obj *models.GrpcDestinationSpec) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "GrpcDestinationSpec",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Parameters, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.TransformationParameters)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._TransformationParameters(ctx, field.Selections, res)
+}
+
+var grpcServiceImplementors = []string{"GrpcService"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _GrpcService(ctx context.Context, sel ast.SelectionSet, obj *models.GrpcService) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, grpcServiceImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GrpcService")
+		case "packageName":
+			out.Values[i] = ec._GrpcService_packageName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "serviceName":
+			out.Values[i] = ec._GrpcService_serviceName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "functionNames":
+			out.Values[i] = ec._GrpcService_functionNames(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _GrpcService_packageName(ctx context.Context, field graphql.CollectedField, obj *models.GrpcService) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "GrpcService",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PackageName, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _GrpcService_serviceName(ctx context.Context, field graphql.CollectedField, obj *models.GrpcService) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "GrpcService",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceName, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _GrpcService_functionNames(ctx context.Context, field graphql.CollectedField, obj *models.GrpcService) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "GrpcService",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FunctionNames, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	rctx.Result = res
+
+	arr1 := make(graphql.Array, len(res))
+
+	for idx1 := range res {
+		arr1[idx1] = func() graphql.Marshaler {
+			return graphql.MarshalString(res[idx1])
+		}()
+	}
+
+	return arr1
+}
+
+var grpcServiceSpecImplementors = []string{"GrpcServiceSpec"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _GrpcServiceSpec(ctx context.Context, sel ast.SelectionSet, obj *models.GrpcServiceSpec) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, grpcServiceSpecImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GrpcServiceSpec")
+		case "grpcServices":
+			out.Values[i] = ec._GrpcServiceSpec_grpcServices(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _GrpcServiceSpec_grpcServices(ctx context.Context, field graphql.CollectedField, obj *models.GrpcServiceSpec) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "GrpcServiceSpec",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GrpcServices, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.GrpcService)
+	rctx.Result = res
+
+	arr1 := make(graphql.Array, len(res))
+	var wg sync.WaitGroup
+
+	isLen1 := len(res) == 1
+	if !isLen1 {
+		wg.Add(len(res))
+	}
+
+	for idx1 := range res {
+		idx1 := idx1
+		rctx := &graphql.ResolverContext{
+			Index:  &idx1,
+			Result: res[idx1],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(idx1 int) {
+			if !isLen1 {
+				defer wg.Done()
+			}
+			arr1[idx1] = func() graphql.Marshaler {
+
+				if res[idx1] == nil {
+					return graphql.Null
+				}
+
+				return ec._GrpcService(ctx, field.Selections, res[idx1])
+			}()
+		}
+		if isLen1 {
+			f(idx1)
+		} else {
+			go f(idx1)
+		}
+
+	}
+	wg.Wait()
+	return arr1
 }
 
 var keyValueMatcherImplementors = []string{"KeyValueMatcher"}
@@ -11783,6 +12054,10 @@ func (ec *executionContext) _DestinationSpec(ctx context.Context, sel ast.Select
 		return ec._RestDestinationSpec(ctx, sel, &obj)
 	case *models.RestDestinationSpec:
 		return ec._RestDestinationSpec(ctx, sel, obj)
+	case models.GrpcDestinationSpec:
+		return ec._GrpcDestinationSpec(ctx, sel, &obj)
+	case *models.GrpcDestinationSpec:
+		return ec._GrpcDestinationSpec(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -11875,10 +12150,10 @@ func (ec *executionContext) _ServiceSpec(ctx context.Context, sel ast.SelectionS
 		return ec._RestServiceSpec(ctx, sel, &obj)
 	case *models.RestServiceSpec:
 		return ec._RestServiceSpec(ctx, sel, obj)
-	case models.GRPCServiceSpec:
-		return ec._GRPCServiceSpec(ctx, sel, &obj)
-	case *models.GRPCServiceSpec:
-		return ec._GRPCServiceSpec(ctx, sel, obj)
+	case models.GrpcServiceSpec:
+		return ec._GrpcServiceSpec(ctx, sel, &obj)
+	case *models.GrpcServiceSpec:
+		return ec._GrpcServiceSpec(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -12267,29 +12542,6 @@ func UnmarshalInputFieldResolver(v interface{}) (models.InputFieldResolver, erro
 	return it, nil
 }
 
-func UnmarshalInputGRPCServiceSpec(v interface{}) (models.InputGRPCServiceSpec, error) {
-	var it models.InputGRPCServiceSpec
-	var asMap = v.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "empty":
-			var err error
-			var ptr1 string
-			if v != nil {
-				ptr1, err = graphql.UnmarshalString(v)
-				it.Empty = &ptr1
-			}
-
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func UnmarshalInputGlooResolver(v interface{}) (models.InputGlooResolver, error) {
 	var it models.InputGlooResolver
 	var asMap = v.(map[string]interface{})
@@ -12321,6 +12573,29 @@ func UnmarshalInputGlooResolver(v interface{}) (models.InputGlooResolver, error)
 		case "destination":
 			var err error
 			it.Destination, err = UnmarshalInputDestination(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputGrpcServiceSpec(v interface{}) (models.InputGrpcServiceSpec, error) {
+	var it models.InputGrpcServiceSpec
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "empty":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.Empty = &ptr1
+			}
+
 			if err != nil {
 				return it, err
 			}
@@ -13033,9 +13308,9 @@ func UnmarshalInputServiceSpec(v interface{}) (models.InputServiceSpec, error) {
 			}
 		case "grpc":
 			var err error
-			var ptr1 models.InputGRPCServiceSpec
+			var ptr1 models.InputGrpcServiceSpec
 			if v != nil {
-				ptr1, err = UnmarshalInputGRPCServiceSpec(v)
+				ptr1, err = UnmarshalInputGrpcServiceSpec(v)
 				it.Grpc = &ptr1
 			}
 
@@ -13933,7 +14208,7 @@ type AzureFunction {
     authLevel:    AzureFnAuthLevel!
 }
 
-union ServiceSpec = RestServiceSpec | GRPCServiceSpec
+union ServiceSpec = RestServiceSpec | GrpcServiceSpec
 
 # Not implemented yet
 type RestServiceSpec  {
@@ -13947,8 +14222,14 @@ type Transformation {
 }
 
 # Not implemented yet
-type GRPCServiceSpec {
-    empty: String
+type GrpcServiceSpec {
+    grpcServices: [GrpcService]
+}
+
+type GrpcService {
+    packageName: String!
+    serviceName: String!
+    functionNames: [String!]
 }
 
 
@@ -14015,7 +14296,7 @@ input InputAzureFunction {
 input InputServiceSpec  {
     # oneof: Rest | grpc
     rest: InputRestServiceSpec
-    grpc:    InputGRPCServiceSpec
+    grpc:    InputGrpcServiceSpec
 }
 
 input InputRestServiceSpec  {
@@ -14031,7 +14312,7 @@ input InputTransformation {
 
 
 # Not implemented yet
-input InputGRPCServiceSpec {
+input InputGrpcServiceSpec {
     empty: String
 }
 
@@ -14118,7 +14399,7 @@ type SingleDestination {
     destinationSpec: DestinationSpec
 }
 
-union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec | RestDestinationSpec
+union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec | RestDestinationSpec | GrpcDestinationSpec
 
 type AwsDestinationSpec {
     logicalName: String!
@@ -14131,6 +14412,11 @@ type AzureDestinationSpec {
 }
 
 type RestDestinationSpec {
+    functionName: String!
+    parameters: TransformationParameters
+}
+
+type GrpcDestinationSpec {
     functionName: String!
     parameters: TransformationParameters
 }

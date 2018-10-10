@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
-	"github.com/solo-io/solo-kit/pkg/utils/stats"
+	"flag"
+	"fmt"
+	"log"
 	"net"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -10,22 +12,18 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
-	"k8s.io/client-go/kubernetes"
-
-	"flag"
-	"fmt"
-	"log"
-
+	"github.com/solo-io/solo-kit/pkg/utils/stats"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/setup"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
+	"k8s.io/client-go/kubernetes"
 )
 
 func main() {

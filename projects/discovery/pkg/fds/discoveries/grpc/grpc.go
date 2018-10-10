@@ -147,7 +147,7 @@ func (f *UpstreamFunctionDiscovery) DetectFunctionsOnce(ctx context.Context, url
 		servicePackage := strings.Join(parts[:len(parts)-1], ".")
 		grpcservice := &grpc_plugins.ServiceSpec_GrpcService{
 			PackageName: servicePackage,
-			ServiceName:        serviceName,
+			ServiceName: serviceName,
 		}
 		// find the service in the file and get its functions
 		for _, svc := range root.GetServices() {
