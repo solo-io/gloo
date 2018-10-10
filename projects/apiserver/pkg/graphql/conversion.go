@@ -17,12 +17,12 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/grpc"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/grpc"
 )
 
 type Converter struct {
@@ -289,7 +289,7 @@ func convertOutputServiceSpec(spec *plugins.ServiceSpec) ServiceSpec {
 		}
 	case *plugins.ServiceSpec_Grpc:
 		return &GrpcServiceSpec{
-			GrpcServices:convertOutputGrpcServices(serviceSpec.Grpc.GrpcServices),
+			GrpcServices: convertOutputGrpcServices(serviceSpec.Grpc.GrpcServices),
 		}
 	}
 	panic("unsupported")
@@ -302,8 +302,8 @@ func convertOutputGrpcServices(grpcServices []*grpc.ServiceSpec_GrpcService) []*
 	var convertedGrpcServices []*GrpcService
 	for _, svc := range grpcServices {
 		convertedGrpcServices = append(convertedGrpcServices, &GrpcService{
-			PackageName: svc.PackageName,
-			ServiceName: svc.ServiceName,
+			PackageName:   svc.PackageName,
+			ServiceName:   svc.ServiceName,
 			FunctionNames: svc.FunctionNames,
 		})
 	}
