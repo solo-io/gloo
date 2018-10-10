@@ -91,7 +91,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 
 		err := addHttpRulesToProto(in, svc, descriptors)
 		if err != nil {
-			return errors.Wrapf(err, "failed to generate http rules for service %s in proto descriptors", svc.Name)
+			return errors.Wrapf(err, "failed to generate http rules for service %s in proto descriptors", svc.ServiceName)
 		}
 	}
 
@@ -191,11 +191,11 @@ func addHttpRulesToProto(upstream *v1.Upstream, currentsvc *grpcapi.ServiceSpec_
 			continue
 		}
 		for _, svc := range file.Service {
-			if svc.Name == nil || *svc.Name != currentsvc.Name {
+			if svc.Name == nil || *svc.Name != currentsvc.ServiceName {
 				continue
 			}
 			for _, method := range svc.Method {
-				fullServiceName := genFullServiceName(currentsvc.PackageName, currentsvc.Name)
+				fullServiceName := genFullServiceName(currentsvc.PackageName, currentsvc.ServiceName)
 				if method.Options == nil {
 					method.Options = &descriptor.MethodOptions{}
 				}
@@ -266,7 +266,7 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		}
 		var fullServiceNames []string
 		for _, grpcsvc := range serviceAndDescriptor.Spec.GrpcServices {
-			fullName := genFullServiceName(grpcsvc.PackageName, grpcsvc.Name)
+			fullName := genFullServiceName(grpcsvc.PackageName, grpcsvc.ServiceName)
 			fullServiceNames = append(fullServiceNames, fullName)
 		}
 		filterConfig, err := util.MessageToStruct(&envoytranscoder.GrpcJsonTranscoder{
