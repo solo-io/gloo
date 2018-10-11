@@ -15,6 +15,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
 	gloosyncer "github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/grpc"
 )
 
 func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) v1.SetupSyncer {
@@ -56,6 +57,10 @@ func RunFDS(opts bootstrap.Opts) error {
 			PollingTime: time.Second,
 		},
 		&swagger.SwaggerFunctionDiscoveryFactory{
+			DetectionTimeout: time.Minute,
+			FunctionPollTime: time.Second * 15,
+		},
+		&grpc.FunctionDiscoveryFactory{
 			DetectionTimeout: time.Minute,
 			FunctionPollTime: time.Second * 15,
 		},

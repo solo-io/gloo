@@ -4,14 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
-
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 )
 
 func Main(loggingPrefix string, setupSyncer v1.SetupSyncer, settingsDir string) error {
