@@ -269,11 +269,11 @@ func (u *updaterUpdater) Run() error {
 	resolvedUrl, resolvedErr := u.parent.resolver.Resolve(u.upstream)
 
 	if discoveryForUpstream == nil {
-		// TODO: this will probably not going to work unless the upstream type will also have the method required
+		// TODO: this is probably not going to work unless the upstream type will also have the method required
 		_, ok := u.upstream.UpstreamSpec.UpstreamType.(v1.ServiceSpecSetter)
 		if !ok {
-			// can't set a service spec - which is required from this point on, as hueristic detection requires spec
-			return errors.New("discovery not possible for upsteram")
+			// can't set a service spec - which is required from this point on, as heuristic detection requires spec
+			return errors.New("discovery not possible for upstream")
 		}
 
 		// if we are here it means that the service upstream doesn't have a spec
