@@ -175,10 +175,8 @@ func (f *ResourceClientSharedInformerFactory) Start(ctx context.Context, kubeCli
 		sharedInformers...)
 	go kubeController.Run(2, stop)
 
-	ready := make(chan struct{})
-
 	for _, informer := range sharedInformers {
-		ok := cache.WaitForCacheSync(ready, informer.HasSynced)
+		ok := cache.WaitForCacheSync(stop, informer.HasSynced)
 		if !ok {
 			// if initError is non-nil, the kube resource client will panic
 			f.initError = errors.Errorf("waiting for initial cache sync failed")
