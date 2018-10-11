@@ -26,6 +26,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
+	"encoding/base64"
 )
 
 type ServicesAndDescriptor struct {
@@ -112,10 +113,17 @@ func genFullServiceName(packageName, serviceName string) string {
 	return packageName + "." + serviceName
 }
 
-func convertProto(b []byte) (*descriptor.FileDescriptorSet, error) {
+func convertProto(encodedBytes []byte) (*descriptor.FileDescriptorSet, error) {
+	// base-64 encoded by function discovery
+	rawDescriptors, err := base64.StdEncoding.DecodeString(string(encodedBytes))
+	if err != nil {
+		return nil, err
+	}
 	var fileDescriptor descriptor.FileDescriptorSet
-	err := proto.Unmarshal(b, &fileDescriptor)
-	return &fileDescriptor, err
+	if err := proto.Unmarshal(rawDescriptors, &fileDescriptor); err != nil {
+		return nil, err
+	}
+	return &fileDescriptor, nil
 }
 
 func getPath(matcher *v1.Matcher) string {
