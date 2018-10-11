@@ -7,13 +7,37 @@ import (
 )
 
 var _ = Describe("Server context", func() {
-	It("should be an empty context", func() {
-		serverContext, err := GenerateServerContext()
-		Expect(err).NotTo(HaveOccurred())
-		expected := `
+	Context("when the `Server` instance is empty", func() {
+		It("should be an empty context", func() {
+			server := &Server{}
+			serverContext, err := GenerateServerContext(server)
+			Expect(err).NotTo(HaveOccurred())
+			expected := `
 server {
 }
 `
-		Expect(string(serverContext)).To(Equal(expected))
+			Expect(string(serverContext)).To(Equal(expected))
+		})
+	})
+	Context("when the `Server` instance contains a single `Location`", func() {
+		It("should contain a single location context", func() {
+			location := &Location{
+				Prefix: "/",
+				Root:   "/data/www",
+			}
+			server := &Server{
+				Location: location,
+			}
+			serverContext, err := GenerateServerContext(server)
+			Expect(err).NotTo(HaveOccurred())
+			expected := `
+server {
+    location / {
+        root /data/www;
+    }
+}
+`
+			Expect(string(serverContext)).To(Equal(expected))
+		})
 	})
 })
