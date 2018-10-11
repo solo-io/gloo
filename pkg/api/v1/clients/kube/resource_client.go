@@ -131,7 +131,7 @@ func (kc *KubeCache) startFactory(ctx context.Context, client kubernetes.Interfa
 	// we want to panic here because the initial bootstrap of the cache failed
 	// this should be a rare error, and if we are restarted should not happen again
 	if err := kc.sharedInformerFactory.InitErr(); err != nil {
-		contextutils.LoggerFrom(ctx).DPanicf("failed to intiialize kube shared informer factory: %v", err)
+		contextutils.LoggerFrom(ctx).Panicf("failed to intiialize kube shared informer factory: %v", err)
 	}
 }
 
