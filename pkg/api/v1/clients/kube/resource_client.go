@@ -89,10 +89,6 @@ func init() {
 	view.Register(CreateCountView, UpdateCountView, DeleteCountView, InFlightSumView, EventsCountView)
 }
 
-var (
-	clientFactory = NewResourceClientSharedInformerFactory()
-)
-
 type KubeCache struct {
 	sharedInformerFactory     *ResourceClientSharedInformerFactory
 	cacheUpdatedWatchers      []chan struct{}
