@@ -7,7 +7,6 @@ location {{.Prefix}} {
 }
 `
 
-// TODO(talnordan): Deduplicate common code with `GenerateHttpContext()`
 func GenerateLocationContext(location *Location) ([]byte, error) {
 	return generateContext(locationContextTemplateText, location)
 }
