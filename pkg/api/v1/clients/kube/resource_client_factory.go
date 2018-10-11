@@ -170,6 +170,16 @@ func (f *ResourceClientSharedInformerFactory) Start(ctx context.Context, kubeCli
 		sharedInformers...)
 	go kubeController.Run(2, stop)
 
+	ready := make(chan struct{})
+
+	for _, informer := range sharedInformers {
+		ok := cache.WaitForCacheSync(ready, informer.HasSynced)
+		if !ok {
+			// we want to panic here because the initial bootstrap of the cache failed
+			// this should be a rare error, and if we are restarted should not happen again
+			panic("waiting for initial cache sync failed")
+		}
+	}
 }
 
 func (f *ResourceClientSharedInformerFactory) GetLister(obj runtime.Object) (ResourceLister, error) {
