@@ -58,6 +58,8 @@ type ResourceLister interface {
 }
 
 type ResourceClientSharedInformerFactory struct {
+	initError error
+
 	lock          sync.Mutex
 	defaultResync time.Duration
 
@@ -74,6 +76,9 @@ func NewResourceClientSharedInformerFactory() *ResourceClientSharedInformerFacto
 		informers:        make(map[reflect.Type]cache.SharedIndexInformer),
 		startedInformers: make(map[reflect.Type]bool),
 	}
+}
+func (f *ResourceClientSharedInformerFactory) InitErr() error {
+	return f.initError
 }
 
 func (f *ResourceClientSharedInformerFactory) Register(rc *ResourceClient) {
@@ -175,9 +180,9 @@ func (f *ResourceClientSharedInformerFactory) Start(ctx context.Context, kubeCli
 	for _, informer := range sharedInformers {
 		ok := cache.WaitForCacheSync(ready, informer.HasSynced)
 		if !ok {
-			// we want to panic here because the initial bootstrap of the cache failed
-			// this should be a rare error, and if we are restarted should not happen again
-			panic("waiting for initial cache sync failed")
+			// if initError is non-nil, the kube resource client will panic
+			f.initError = errors.Errorf("waiting for initial cache sync failed")
+			return
 		}
 	}
 }

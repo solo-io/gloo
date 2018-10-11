@@ -17,6 +17,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -110,6 +111,7 @@ func (kc *KubeCache) addWatch() <-chan struct{} {
 	kc.cacheUpdatedWatchers = append(kc.cacheUpdatedWatchers, c)
 	return c
 }
+
 func (kc *KubeCache) removeWatch(c <-chan struct{}) {
 	kc.cacheUpdatedWatchersMutex.Lock()
 	defer kc.cacheUpdatedWatchersMutex.Unlock()
@@ -125,6 +127,12 @@ func (kc *KubeCache) startFactory(ctx context.Context, client kubernetes.Interfa
 	kc.factoryStarter.Do(func() {
 		kc.sharedInformerFactory.Start(ctx, client, kc.updatedOccured)
 	})
+
+	// we want to panic here because the initial bootstrap of the cache failed
+	// this should be a rare error, and if we are restarted should not happen again
+	if err := kc.sharedInformerFactory.InitErr(); err != nil {
+		contextutils.LoggerFrom(ctx).DPanicf("failed to intiialize kube shared informer factory: %v", err)
+	}
 }
 
 // TODO(yuval-k): See if we can get more fine grained updates here, about which resources was udpated
