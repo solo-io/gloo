@@ -15,6 +15,11 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
+const (
+	discoveryAnnotationKey = "gloo.solo.io/discover"
+	discoveryAnnotationTrue = "true"
+)
+
 func (p *plugin) DiscoverUpstreams(watchNamespaces []string, writeNamespace string, opts clients.WatchOpts, discOpts discovery.Opts) (chan v1.UpstreamList, chan error, error) {
 	if p.kubeShareFactory == nil {
 		p.kubeShareFactory = getInformerFactory(p.kube)
@@ -117,6 +122,11 @@ func upstreamName(serviceNamespace, serviceName string, servicePort int32) strin
 }
 
 func skip(svc *kubev1.Service, opts discovery.Opts) bool {
+	// ilackarms: allow user to override the skip with an annotation
+	// force discovery for a service with no selector
+	if svc.ObjectMeta.Annotations[discoveryAnnotationKey] == discoveryAnnotationTrue {
+		return false
+	}
 	if len(svc.Spec.Selector) == 0 {
 		return true
 	}
