@@ -1,0 +1,14 @@
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: static
+  namespace: gloo-system
+spec:
+  metadata:
+    name: static
+    namespace: gloo-system
+  upstream_spec:
+    static:
+      hosts:
+      - addr: 127.0.0.1
+        port: 8081
