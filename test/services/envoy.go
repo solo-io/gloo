@@ -51,8 +51,8 @@ static_resources:
     connect_timeout: 5.000s
     hosts:
     - socket_address:
-      address: {{.RatelimitAddr}}
-      port_value: {{.RatelimitPort}}
+        address: {{.RatelimitAddr}}
+        port_value: {{.RatelimitPort}}
     http2_protocol_options: {}
     type: STATIC
 {{end}}
@@ -79,7 +79,7 @@ rate_limit_service:
   grpc_service:
     envoy_grpc:
       cluster_name: ratelimit_cluster
-      use_data_plane_proto: true
+  use_data_plane_proto: true
 {{end}}
 `
 
