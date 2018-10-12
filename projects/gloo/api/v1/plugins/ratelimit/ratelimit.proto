@@ -1,5 +1,5 @@
 syntax = "proto3";
-package plugins.gloo.solo.io;
+package ratelimit.plugins.gloo.solo.io;
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/ratelimit";
 
 import "gogoproto/gogo.proto";

@@ -4,7 +4,7 @@ option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1";
 
 import "envoy/api/v2/discovery.proto";
 import "google/api/annotations.proto";
-import "plugins/ratelimit/ratelimit.proto";
+import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/ratelimit/ratelimit.proto";
 
 
 import "gogoproto/gogo.proto";
@@ -15,7 +15,7 @@ message Constraint {
     string key = 1;
     string value = 2;
    
-    plugins.gloo.solo.io.RateLimit rate_limit = 3;
+    ratelimit.plugins.gloo.solo.io.RateLimit rate_limit = 3;
     repeated Constraint constraints = 4;
 }
 

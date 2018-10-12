@@ -13,6 +13,7 @@ import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/kubernetes/kube
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/static/static.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation/transformation.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/faultinjection/fault.proto";
+import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/ratelimit/ratelimit.proto";
 
 // Plugin-specific configuration that lives on listeners
 // Each ListenerPlugin object contains configuration for a specific plugin
@@ -24,7 +25,9 @@ message ListenerPlugins {}
 // Each VirtualHostPlugin object contains configuration for a specific plugin
 // Note to developers: new Virtual Host Plugins must be added to this struct
 // to be usable by Gloo.
-message VirtualHostPlugins {}
+message VirtualHostPlugins {
+    ratelimit.plugins.gloo.solo.io.IngressRateLimit rate_limits = 1;
+}
 
 // Plugin-specific configuration that lives on routes
 // Each RoutePlugin object contains configuration for a specific plugin
