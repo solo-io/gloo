@@ -83,5 +83,5 @@
 
 [[constraint]]
   name = "github.com/solo-io/rate-limiter"
-  revision = "86ac4126b60e84edc111fcbb88ac59bc9e535f0b"
+  revision = "32838befd54a98ecd76e6f1bf0ca6df602646a04"
   

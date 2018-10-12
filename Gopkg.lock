@@ -764,6 +764,8 @@
   packages = [
     ".",
     "format",
+    "gbytes",
+    "gexec",
     "gstruct",
     "gstruct/errors",
     "internal/assertion",
@@ -927,7 +929,7 @@
     "pkg/service",
     "pkg/settings"
   ]
-  revision = "86ac4126b60e84edc111fcbb88ac59bc9e535f0b"
+  revision = "32838befd54a98ecd76e6f1bf0ca6df602646a04"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
