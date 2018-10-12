@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/faultinjection"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/grpc"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/kubernetes"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/rest"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/static"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
@@ -25,6 +26,7 @@ var globalRegistry = func(opts bootstrap.Opts) *registry {
 		azure.NewPlugin(&transformationPlugin.RequireTransformationFilter),
 		aws.NewPlugin(&transformationPlugin.RequireTransformationFilter),
 		rest.NewPlugin(&transformationPlugin.RequireTransformationFilter),
+		ratelimit.NewPlugin(),
 		static.NewPlugin(),
 		transformationPlugin,
 		grpc.NewPlugin(&transformationPlugin.RequireTransformationFilter),

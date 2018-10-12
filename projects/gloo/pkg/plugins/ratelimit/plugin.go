@@ -4,10 +4,16 @@ import (
 	"errors"
 	"time"
 
+	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyvhostratelimit "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rate_limit/v2"
+	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
+
 	types "github.com/gogo/protobuf/types"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 )
 
 /*
@@ -70,43 +76,100 @@ const (
 	remoteAddress = "remote_address"
 )
 
-func translateUserConfigToRateLimitServerConfig(userRl ratelimit.UserRateLimit) (*ratelimit.RateLimitConfig, error) {
+const (
+	filterName = "envoy.rate_limit"
+	// rate limiting should happen after auth
+	filterStage = plugins.PostInAuth
+)
 
-	rl := &ratelimit.RateLimitConfig{
+type Plugin struct {
+	rlconfig *v1.RateLimitConfig
+}
+
+func NewPlugin() plugins.Plugin {
+	return &Plugin{}
+}
+
+func (p *Plugin) Init(params plugins.InitParams) error {
+	return nil
+}
+
+func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+	if in.VirtualHostPlugins == nil {
+		return nil
+	}
+	if in.VirtualHostPlugins.RateLimits == nil {
+		return nil
+	}
+	cfg, err := translateUserConfigToRateLimitServerConfig(*in.VirtualHostPlugins.RateLimits)
+	if err != nil {
+		return err
+	}
+
+	vhost := generateEnvoyConfigForVhost(in.VirtualHostPlugins.RateLimits.AuthrorizedHeader)
+	out.RateLimits = vhost
+
+	p.rlconfig = cfg
+	return nil
+}
+
+func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+	conf, err := protoutils.MarshalPbStruct(generateEnvoyConfigForFilter())
+	if err != nil {
+		return nil, err
+	}
+	return []plugins.StagedHttpFilter{
+		{
+			HttpFilter: &envoyhttp.HttpFilter{Name: filterName,
+				Config: conf},
+			Stage: filterStage,
+		},
+	}, nil
+}
+
+/*
+translate virtual hosts
+save them
+then translate get rate limit configs
+*/
+
+func translateUserConfigToRateLimitServerConfig(ingressRl ratelimit.IngressRateLimit) (*v1.RateLimitConfig, error) {
+
+	rl := &v1.RateLimitConfig{
 		Domain: domain,
 	}
-	if userRl.Anonymous != nil {
+	if ingressRl.AnonymousLimits != nil {
 
-		if userRl.Anonymous.Unit == ratelimit.RateLimit_UNKNOWN {
+		if ingressRl.AnonymousLimits.Unit == ratelimit.RateLimit_UNKNOWN {
 			return nil, errors.New("unknown unit for anonymous config")
 		}
 
-		c := &ratelimit.Constraint{
+		c := &v1.Constraint{
 			Key:   headerMatch,
 			Value: anonymous,
-			Constraints: []*ratelimit.Constraint{
+			Constraints: []*v1.Constraint{
 				{
 					Key:       remoteAddress,
-					RateLimit: userRl.Anonymous,
+					RateLimit: ingressRl.AnonymousLimits,
 				},
 			},
 		}
 		rl.Constraints = append(rl.Constraints, c)
 	}
 
-	if userRl.Authenticated != nil {
+	if ingressRl.AuthorizedLimits != nil {
 
-		if userRl.Authenticated.Unit == ratelimit.RateLimit_UNKNOWN {
+		if ingressRl.AuthorizedLimits.Unit == ratelimit.RateLimit_UNKNOWN {
 			return nil, errors.New("unknown unit for authenticated config")
 		}
 
-		c := &ratelimit.Constraint{
+		c := &v1.Constraint{
 			Key:   headerMatch,
 			Value: authenticated,
-			Constraints: []*ratelimit.Constraint{
+			Constraints: []*v1.Constraint{
 				{
 					Key:       userid,
-					RateLimit: userRl.Authenticated,
+					RateLimit: ingressRl.AuthorizedLimits,
 				},
 			},
 		}
@@ -117,14 +180,25 @@ func translateUserConfigToRateLimitServerConfig(userRl ratelimit.UserRateLimit) 
 
 }
 
-func generateEnvoyConfig(headername string) (*envoyratelimit.RateLimit, []*envoyvhostratelimit.RateLimit) {
-	// the filter config, virtual host config are always the same:
+func generateEnvoyConfigForFilter() *envoyratelimit.RateLimit {
 	timeout := timeout
 	envoyrl := envoyratelimit.RateLimit{
 		Domain:      domain,
 		Stage:       stage,
 		RequestType: requestType,
 		Timeout:     &timeout,
+	}
+	return &envoyrl
+}
+
+func generateEnvoyConfigForVhost(headername string) []*envoyvhostratelimit.RateLimit {
+	// the filter config, virtual host config are always the same:
+
+	empty := headername == ""
+
+	if empty {
+		// TODO(yuval-k): fix this hack
+		headername = "not-a-header"
 	}
 
 	headersmatcher := []*envoyvhostratelimit.HeaderMatcher{{
@@ -139,6 +213,7 @@ func generateEnvoyConfig(headername string) (*envoyratelimit.RateLimit, []*envoy
 				{
 					ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch_{
 						HeaderValueMatch: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch{
+
 							DescriptorValue: authenticated,
 							ExpectMatch:     &types.BoolValue{Value: true},
 							Headers:         headersmatcher,
@@ -175,5 +250,5 @@ func generateEnvoyConfig(headername string) (*envoyratelimit.RateLimit, []*envoy
 			},
 		},
 	}
-	return &envoyrl, vhostrl
+	return vhostrl
 }
