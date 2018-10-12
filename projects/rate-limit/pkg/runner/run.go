@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/gogo/protobuf/types"
+
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 
 	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
@@ -32,7 +34,8 @@ func Run() {
 
 	service := NewService(s)
 
-	debugPort := fmt.Sprintf("%d", s.DebugPort)
+	// TODO(yuval-k): ugly hack - the server from rate limit also starts a debug server. we need to disable that
+	debugPort := fmt.Sprintf("%d", s.DebugPort+1)
 	// TODO(yuval-k): we need to start the stats server before calling contextutils
 	// need to think of a better way to express this dependency, or preferably, fix it.
 	stats.StartStatsServerWithPort(debugPort, addConfigDumpHandler(service))
@@ -64,7 +67,13 @@ func NewService(s settings.Settings) ratelimit.RateLimitServiceServer {
 func StartRateLimit(ctx context.Context, s settings.Settings, clientSettings Settings, service ratelimit.RateLimitServiceServer) {
 	srv := server.NewServer("ratelimit", s)
 	StartRateLimitWithGrpcServer(ctx, clientSettings, service, srv.GrpcServer())
-	srv.Start()
+	err := srv.Start(ctx)
+	if err != nil {
+		if ctx.Err == nil {
+			// not a context error - panic
+			panic(err)
+		}
+	}
 }
 
 func StartRateLimitWithGrpcServer(ctx context.Context, clientSettings Settings, service ratelimit.RateLimitServiceServer, grpcServer *grpc.Server) {
@@ -85,6 +94,16 @@ func startClient(ctx context.Context, s Settings, service ratelimit.RateLimitSer
 		nodeinfo.Id = "ratelimit-unknown"
 	}
 	nodeinfo.Cluster = "ratelimit"
+	role := "ratelimit"
+	nodeinfo.Metadata = &types.Struct{
+		Fields: map[string]*types.Value{
+			"role": &types.Value{
+				Kind: &types.Value_StringValue{
+					StringValue: role,
+				},
+			},
+		},
+	}
 
 	go clientLoop(ctx, s.GlooAddress, nodeinfo, service)
 	return nil
