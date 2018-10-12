@@ -12,10 +12,8 @@ var _ = Describe("HTTP context", func() {
 			http := &Http{}
 			httpContext, err := GenerateHttpContext(http)
 			Expect(err).NotTo(HaveOccurred())
-			expected := `
-http {
-}
-`
+			expected := `http {
+}`
 			Expect(string(httpContext)).To(Equal(expected))
 		})
 	})
@@ -27,12 +25,10 @@ http {
 			}
 			httpContext, err := GenerateHttpContext(http)
 			Expect(err).NotTo(HaveOccurred())
-			expected := `
-http {
+			expected := `http {
 	server {
 	}
-}
-`
+}`
 			Expect(string(httpContext)).To(Equal(expected))
 		})
 	})

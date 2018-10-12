@@ -12,31 +12,57 @@ var _ = Describe("Server context", func() {
 			server := &Server{}
 			serverContext, err := GenerateServerContext(server)
 			Expect(err).NotTo(HaveOccurred())
-			expected := `
-server {
-}
-`
+			expected := `server {
+}`
 			Expect(string(serverContext)).To(Equal(expected))
 		})
 	})
 	Context("when the `Server` instance contains a single `Location`", func() {
 		It("should contain a single location context", func() {
-			location := &Location{
-				Prefix: "/",
-				Root:   "/data/www",
+			locations := []Location{
+				{
+					Prefix: "/",
+					Root:   "/data/www",
+				},
 			}
 			server := &Server{
-				Location: location,
+				Locations: locations,
 			}
 			serverContext, err := GenerateServerContext(server)
 			Expect(err).NotTo(HaveOccurred())
-			expected := `
-server {
+			expected := `server {
     location / {
         root /data/www;
     }
-}
-`
+}`
+			Expect(string(serverContext)).To(Equal(expected))
+		})
+	})
+	Context("when the `Server` instance contains multiple `Location`s", func() {
+		It("should contain multiple location contexts", func() {
+			locations := []Location{
+				{
+					Prefix: "/",
+					Root:   "/data/www",
+				},
+				{
+					Prefix: "/images/",
+					Root:   "/data",
+				},
+			}
+			server := &Server{
+				Locations: locations,
+			}
+			serverContext, err := GenerateServerContext(server)
+			Expect(err).NotTo(HaveOccurred())
+			expected := `server {
+    location / {
+        root /data/www;
+    }
+    location /images/ {
+        root /data;
+    }
+}`
 			Expect(string(serverContext)).To(Equal(expected))
 		})
 	})

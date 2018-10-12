@@ -13,13 +13,11 @@ var _ = Describe("Location context", func() {
 				Prefix: "/",
 				Root:   "/data/www",
 			}
-			locationContext, err := GenerateLocationContext(location)
+			locationContext, err := location.GenerateContext()
 			Expect(err).NotTo(HaveOccurred())
-			expected := `
-location / {
+			expected := `location / {
     root /data/www;
-}
-`
+}`
 			Expect(string(locationContext)).To(Equal(expected))
 		})
 	})
@@ -29,13 +27,11 @@ location / {
 				Prefix:    "/",
 				ProxyPass: "http://localhost:8080/",
 			}
-			locationContext, err := GenerateLocationContext(location)
+			locationContext, err := location.GenerateContext()
 			Expect(err).NotTo(HaveOccurred())
-			expected := `
-location / {
+			expected := `location / {
     proxy_pass http://localhost:8080/;
-}
-`
+}`
 			Expect(string(locationContext)).To(Equal(expected))
 		})
 	})
