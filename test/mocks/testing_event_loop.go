@@ -5,6 +5,8 @@ import (
 
 	"go.opencensus.io/trace"
 
+	"github.com/hashicorp/go-multierror"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -13,6 +15,18 @@ import (
 
 type TestingSyncer interface {
 	Sync(context.Context, *TestingSnapshot) error
+}
+
+type TestingSyncers []TestingSyncer
+
+func (s TestingSyncers) Sync(ctx context.Context, snapshot *TestingSnapshot) error {
+	var multiErr *multierror.Error
+	for _, syncer := range s {
+		if err := syncer.Sync(ctx, snapshot); err != nil {
+			multiErr = multierror.Append(multiErr, err)
+		}
+	}
+	return multiErr.ErrorOrNil()
 }
 
 type TestingEventLoop interface {
