@@ -37,6 +37,17 @@ func MarshalPbStruct(m proto.Message) (*types.Struct, error) {
 	return &pb, err
 }
 
+// TODO(yuval-k): Marshal using jsonbp all the way. need to check if we should use this instead of MarshalStruct.
+func MarshalPbStruct(m proto.Message) (*types.Struct, error) {
+	data, err := MarshalBytes(m)
+	if err != nil {
+		return nil, err
+	}
+	var pb types.Struct
+	err = jsonpb.UnmarshalString(string(data), &pb)
+	return &pb, err
+}
+
 func UnmarshalStruct(structuredData *types.Struct, into interface{}) error {
 	if structuredData == nil {
 		return errors.New("cannot unmarshal nil proto struct")
