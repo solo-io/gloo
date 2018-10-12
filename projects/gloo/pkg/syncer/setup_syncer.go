@@ -35,6 +35,8 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/ratelimit"
 )
 
 type RunFunc func(opts bootstrap.Opts) error
@@ -275,7 +277,9 @@ func RunGloo(opts bootstrap.Opts) error {
 	}
 
 	sync := NewTranslatorSyncer(translator.NewTranslator(plugins), opts.ControlPlane.SnapshotCache, xdsHasher, rpt, opts.DevMode)
-	eventLoop := v1.NewApiEventLoop(cache, sync)
+	sync2 := ratelimit.NewTranslator(plugins, opts.ControlPlane.SnapshotCache)
+	syncers := v1.ApiSyncers{sync, sync2}
+	eventLoop := v1.NewApiEventLoop(cache, syncers)
 
 	errs := make(chan error)
 
