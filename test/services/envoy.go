@@ -77,8 +77,9 @@ admin:
 {{if .RatelimitAddr}}
 rate_limit_service:
   grpc_service:
-	envoy_grpc:
-	  cluster_name: ratelimit_cluster
+    envoy_grpc:
+      cluster_name: ratelimit_cluster
+      use_data_plane_proto: true
 {{end}}
 `
 
@@ -244,7 +245,6 @@ func (ei *EnvoyInstance) runWithPort(port uint32) error {
 	ei.Port = port
 
 	ei.envoycfg = ei.buildBootstrap()
-
 	if ei.useDocker {
 		err := runContainer(ei.envoycfg)
 		if err != nil {
