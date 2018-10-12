@@ -2,13 +2,13 @@ package services
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
-
-	"io/ioutil"
+	"text/template"
 
 	"bytes"
 	"io"
@@ -23,16 +23,18 @@ const (
 	containerName = "e2e_envoy"
 )
 
-func buildBootstrap(role, nodeId, glooAddr string, xdsPort uint32) string {
-	return fmt.Sprintf(envoyConfigTemplate, nodeId, role, glooAddr, xdsPort)
+func (ei *EnvoyInstance) buildBootstrap() string {
+	var b bytes.Buffer
+	parsedTemplate.Execute(&b, ei)
+	return b.String()
 }
 
 const envoyConfigTemplate = `
 node:
  cluster: ingress
- id: %s
+ id: {{.ID}}
  metadata:
-  role: "%s"
+  role: {{.Role}}
 
 static_resources:
   clusters:
@@ -40,10 +42,20 @@ static_resources:
     connect_timeout: 5.000s
     hosts:
     - socket_address:
-        address: %s
-        port_value: %d
+        address: {{.GlooAddr}}
+        port_value: {{.Port}}
     http2_protocol_options: {}
     type: STATIC
+{{if .RatelimitAddr}}
+  - name: ratelimit_cluster
+    connect_timeout: 5.000s
+    hosts:
+    - socket_address:
+      address: {{.RatelimitAddr}}
+      port_value: {{.RatelimitPort}}
+    http2_protocol_options: {}
+    type: STATIC
+{{end}}
 
 dynamic_resources:
   ads_config:
@@ -62,7 +74,15 @@ admin:
       address: 0.0.0.0
       port_value: 19000
 
+{{if .RatelimitAddr}}
+rate_limit_service:
+  grpc_service:
+	envoy_grpc:
+	  cluster_name: ratelimit_cluster
+{{end}}
 `
+
+var parsedTemplate = template.Must(template.New("bootstrap").Parse(envoyConfigTemplate))
 
 type EnvoyFactory struct {
 	envoypath string
@@ -157,12 +177,17 @@ func (ef *EnvoyFactory) Clean() error {
 }
 
 type EnvoyInstance struct {
-	envoypath string
-	envoycfg  string
-	logs      *bytes.Buffer
-	cmd       *exec.Cmd
-	useDocker bool
-	localAddr string // address for gloo and services
+	RatelimitAddr string
+	RatelimitPort uint32
+	ID            string
+	Role          string
+	envoypath     string
+	envoycfg      string
+	logs          *bytes.Buffer
+	cmd           *exec.Cmd
+	useDocker     bool
+	GlooAddr      string // address for gloo and services
+	Port          uint32
 }
 
 func (ef *EnvoyFactory) NewEnvoyInstance() (*EnvoyInstance, error) {
@@ -182,20 +207,26 @@ func (ef *EnvoyFactory) NewEnvoyInstance() (*EnvoyInstance, error) {
 	return &EnvoyInstance{
 		envoypath: ef.envoypath,
 		useDocker: ef.useDocker,
-		localAddr: gloo,
+		GlooAddr:  gloo,
 	}, nil
 
 }
 
 func (ei *EnvoyInstance) RunWithId(id string) error {
-	return ei.runWithPort("default~proxy", id, 8081)
+	ei.ID = id
+	ei.Role = "default~proxy"
+
+	return ei.runWithPort(8081)
 }
 
 func (ei *EnvoyInstance) Run(port int) error {
-	return ei.runWithPort("default~proxy", "", uint32(port))
+	ei.Role = "default~proxy"
+
+	return ei.runWithPort(uint32(port))
 }
 func (ei *EnvoyInstance) RunWithRole(role string, port int) error {
-	return ei.runWithPort(role, "", uint32(port))
+	ei.Role = role
+	return ei.runWithPort(uint32(port))
 }
 
 /*
@@ -206,12 +237,13 @@ func (ei *EnvoyInstance) DebugMode() error {
 	return err
 }
 */
-func (ei *EnvoyInstance) runWithPort(role, id string, port uint32) error {
-	if id == "" {
-		id = "ingress~for-testing"
+func (ei *EnvoyInstance) runWithPort(port uint32) error {
+	if ei.ID == "" {
+		ei.ID = "ingress~for-testing"
 	}
+	ei.Port = port
 
-	ei.envoycfg = buildBootstrap(role, id, ei.localAddr, port)
+	ei.envoycfg = ei.buildBootstrap()
 
 	if ei.useDocker {
 		err := runContainer(ei.envoycfg)
@@ -246,7 +278,7 @@ func (ei *EnvoyInstance) Binary() string {
 }
 
 func (ei *EnvoyInstance) LocalAddr() string {
-	return ei.localAddr
+	return ei.GlooAddr
 }
 
 func (ei *EnvoyInstance) Clean() error {
