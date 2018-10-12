@@ -196,9 +196,9 @@ func getclient(ctx context.Context, url *url.URL) (*grpcreflect.Client, error) {
 
 func getDepTree(root *desc.FileDescriptor) []*descriptor.FileDescriptorProto {
 	var deps []*descriptor.FileDescriptorProto
-	deps = append(deps, root.AsFileDescriptorProto())
 	for _, dep := range root.GetDependencies() {
 		deps = append(deps, getDepTree(dep)...)
 	}
+	deps = append(deps, root.AsFileDescriptorProto())
 	return deps
 }
