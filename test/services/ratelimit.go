@@ -6,12 +6,17 @@ import (
 	"github.com/solo-io/rate-limiter/pkg/settings"
 	"github.com/solo-io/solo-kit/projects/rate-limit/pkg/runner"
 
+	"github.com/solo-io/rate-limiter/pkg/service"
+
 	"context"
 )
 
-func RunRatelimit(ctx context.Context, glooport int) {
+func RunRatelimit(ctx context.Context, glooport int) ratelimit.RateLimitServiceServer {
 	s := settings.NewSettings()
 	var c runner.Settings
 	c.GlooAddress = fmt.Sprintf("localhost:%d", glooport)
-	runner.StartRateLimit(ctx, s, c, runner.NewService(s))
+	service := runner.NewService(s)
+
+	go runner.StartRateLimit(ctx, s, c, service)
+	return service
 }
