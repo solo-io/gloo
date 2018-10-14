@@ -125,10 +125,10 @@ apiserver: $(OUTPUT_DIR)/apiserver
 $(OUTPUT_DIR)/apiserver: apiserver-dependencies $(SOURCES)
 	CGO_ENABLED=0 go build -o $@ projects/apiserver/cmd/main.go
 
-$(OUTPUT_DIR)/apiserver-linux-amd64:  $(SOURCES)
+$(OUTPUT_DIR)/apiserver-linux-amd64: apiserver-dependencies $(SOURCES)
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ projects/apiserver/cmd/main.go
 
-$(OUTPUT_DIR)/apiserver-darwin-amd64:  $(SOURCES)
+$(OUTPUT_DIR)/apiserver-darwin-amd64: apiserver-dependencies $(SOURCES)
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -o $@ projects/apiserver/cmd/main.go
 
 
