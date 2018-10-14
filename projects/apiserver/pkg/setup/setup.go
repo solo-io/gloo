@@ -8,9 +8,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
 	"github.com/rs/cors"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	apiserver "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -19,10 +17,12 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
-	"github.com/solo-io/solo-kit/samples"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"sync"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
-func Setup(port int, dev bool, settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
+func Setup(ctx context.Context, port int, dev bool, settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
 	// initial resource registration
 	upstreams, err := v1.NewUpstreamClient(glooOpts.Upstreams)
 	if err != nil {
@@ -67,26 +67,6 @@ func Setup(port int, dev bool, settings v1.SettingsClient, glooOpts bootstrap.Op
 		return err
 	}
 
-	// override with memory stuff
-	// TODO(ilackarms): move this into a bootstrap package where it can be shared
-	if dev {
-		inMemory := &factory.MemoryResourceClientFactory{
-			Cache: memory.NewInMemoryResourceCache(),
-		}
-
-		glooOpts.Secrets = inMemory
-		glooOpts.Proxies = inMemory
-		glooOpts.Upstreams = inMemory
-		gatewayOpts.VirtualServices = inMemory
-		sqoopOpts.Schemas = inMemory
-		sqoopOpts.ResolverMaps = inMemory
-
-		err := addSampleData(inMemory)
-		if err != nil {
-			return err
-		}
-	}
-
 	// serve the query route such that it can be accessed from our UI during development
 	corsSettings := cors.New(cors.Options{
 		// the development server started by react-scripts defaults to ports 3000, 3001, etc. depending on what's available
@@ -98,34 +78,59 @@ func Setup(port int, dev bool, settings v1.SettingsClient, glooOpts bootstrap.Op
 		Debug: true,
 	})
 
+	// TODO ilackarms: refactor this to be less kube-specific, move to its own setup syncer or special ClientFactory
+	lock := sync.Mutex{}
+	insertCacheIntoRcFactory := func(perTokenCaches map[string]*kube.KubeCache, token string, fact factory.ResourceClientFactory) {
+		lock.Lock()
+		defer lock.Unlock()
+		switch fact := fact.(type) {
+		case *factory.KubeResourceClientFactory:
+			cacheForToken, ok := perTokenCaches[token]
+			if !ok {
+				cacheForToken = kube.NewKubeCache()
+				perTokenCaches[token] = cacheForToken
+			}
+			fact.SharedCache = cacheForToken
+		default:
+			contextutils.LoggerFrom(ctx).Warnf("not initializing a per-token cache for resource client %v", fact)
+		}
+	}
+	perTokenCaches := make(map[string]*kube.KubeCache)
+
 	http.Handle("/playground", handler.Playground("Solo-ApiServer", "/query"))
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
+		insertCacheIntoRcFactory(perTokenCaches, token, glooOpts.Upstreams)
 		upstreams, err := v1.NewUpstreamClientWithToken(glooOpts.Upstreams, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		insertCacheIntoRcFactory(perTokenCaches, token, glooOpts.Secrets)
 		secrets, err := v1.NewSecretClientWithToken(glooOpts.Secrets, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		insertCacheIntoRcFactory(perTokenCaches, token, glooOpts.Artifacts)
 		artifacts, err := v1.NewArtifactClientWithToken(glooOpts.Artifacts, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		insertCacheIntoRcFactory(perTokenCaches, token, gatewayOpts.VirtualServices)
 		virtualServices, err := gatewayv1.NewVirtualServiceClientWithToken(gatewayOpts.VirtualServices, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		insertCacheIntoRcFactory(perTokenCaches, token, sqoopOpts.ResolverMaps)
 		resolverMaps, err := sqoopv1.NewResolverMapClientWithToken(sqoopOpts.ResolverMaps, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		insertCacheIntoRcFactory(perTokenCaches, token, sqoopOpts.Schemas)
 		schemas, err := sqoopv1.NewSchemaClientWithToken(sqoopOpts.Schemas, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -168,43 +173,4 @@ func registerAll(clients ...registrant) error {
 		}
 	}
 	return nil
-}
-
-func addSampleData(inputFactory factory.ResourceClientFactory) error {
-	usClient, err := v1.NewUpstreamClient(inputFactory)
-	if err != nil {
-		return err
-	}
-	vsClient, err := gatewayv1.NewVirtualServiceClient(inputFactory)
-	if err != nil {
-		return err
-	}
-	rmClient, err := sqoopv1.NewResolverMapClient(inputFactory)
-	if err != nil {
-		return err
-	}
-	upstreams, virtualServices, resolverMaps := sampleData()
-	for _, us := range upstreams {
-		_, err := usClient.Write(us, clients.WriteOpts{})
-		if err != nil {
-			return err
-		}
-	}
-	for _, vs := range virtualServices {
-		_, err := vsClient.Write(vs, clients.WriteOpts{})
-		if err != nil {
-			return err
-		}
-	}
-	for _, rm := range resolverMaps {
-		_, err := rmClient.Write(rm, clients.WriteOpts{})
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func sampleData() (v1.UpstreamList, gatewayv1.VirtualServiceList, sqoopv1.ResolverMapList) {
-	return samples.Upstreams(), samples.VirtualServices(), samples.ResolverMaps()
 }
