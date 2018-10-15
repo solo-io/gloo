@@ -25,7 +25,7 @@ import (
 	"github.com/solo-io/solo-kit/test/v1helpers"
 )
 
-var _ = FDescribe("Rate Limit", func() {
+var _ = Describe("Rate Limit", func() {
 
 	var (
 		ctx          context.Context
