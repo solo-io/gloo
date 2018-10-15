@@ -198,10 +198,6 @@ func NewClientSet(token string, settings v1.SettingsClient, glooOpts bootstrap.O
 	if err != nil {
 		return nil, err
 	}
-	if err := virtualServices.Register(); err != nil {
-		return nil, err
-	}
-
 	resolverMaps, err := sqoopv1.NewResolverMapClientWithToken(sqoopOpts.ResolverMaps, token)
 	if err != nil {
 		return nil, err
