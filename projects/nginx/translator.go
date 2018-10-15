@@ -7,14 +7,11 @@ import (
 )
 
 func virtualHostsFromVirtualServices(virtualServices []v1.VirtualService) []*gloo_solo_io1.VirtualHost {
-	virtualServiceQuery := linq.From(virtualServices)
-	virtualHosts := virtualServiceQuery.SelectT(func(virtualService v1.VirtualService) *gloo_solo_io1.VirtualHost {
-		return virtualService.VirtualHost
-	})
-
-	var result []*gloo_solo_io1.VirtualHost
-	virtualHosts.ToSlice(&result)
-	return result
+	var virtualHosts []*gloo_solo_io1.VirtualHost
+	for _, virtualService := range virtualServices {
+		virtualHosts = append(virtualHosts, virtualService.VirtualHost)
+	}
+	return virtualHosts
 }
 
 func locationsFromVirtualHosts(virtualHosts []*gloo_solo_io1.VirtualHost) []Location {
