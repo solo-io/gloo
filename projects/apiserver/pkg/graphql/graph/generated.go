@@ -4277,9 +4277,6 @@ func (ec *executionContext) _FieldResolver(ctx context.Context, sel ast.Selectio
 			}
 		case "resolver":
 			out.Values[i] = ec._FieldResolver_resolver(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4327,9 +4324,6 @@ func (ec *executionContext) _FieldResolver_resolver(ctx context.Context, field g
 		return obj.Resolver, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(models.Resolver)
@@ -14645,7 +14639,7 @@ type TypeResolver {
 
 type FieldResolver {
     fieldName: String!
-    resolver: Resolver!
+    resolver: Resolver
 }
 
 union Resolver = GlooResolver | TemplateResolver | NodeJSResolver

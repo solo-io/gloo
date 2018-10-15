@@ -543,7 +543,7 @@ type TypeResolver {
 
 type FieldResolver {
     fieldName: String!
-    resolver: Resolver!
+    resolver: Resolver
 }
 
 union Resolver = GlooResolver | TemplateResolver | NodeJSResolver
