@@ -3,10 +3,9 @@ package translator
 import (
 	"fmt"
 
-	"go.opencensus.io/trace"
-
-	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/mitchellh/hashstructure"
+	"go.opencensus.io/trace"
+	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -107,7 +106,6 @@ ClusterLoop:
 	xdsSnapshot := generateXDSSnapshot(clusters, endpoints, routeConfigs, listeners)
 
 	return xdsSnapshot, resourceErrs, nil
-
 }
 
 // the set of resources returned by one iteration for a single v1.Listener

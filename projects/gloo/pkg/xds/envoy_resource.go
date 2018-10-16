@@ -22,13 +22,13 @@ import (
 )
 
 type EnvoyResource struct {
-	resourceProto cache.ResourceProto
+	ProtoMessage cache.ResourceProto
 }
 
 var _ cache.Resource = &EnvoyResource{}
 
 func NewEnvoyResource(r cache.ResourceProto) *EnvoyResource {
-	return &EnvoyResource{resourceProto: r}
+	return &EnvoyResource{ProtoMessage: r}
 }
 
 // Resource types in xDS v2.
@@ -59,7 +59,7 @@ func (e *EnvoyResource) Self() cache.XdsResourceReference {
 
 // GetResourceName returns the resource name for a valid xDS response type.
 func (e *EnvoyResource) Name() string {
-	switch v := e.resourceProto.(type) {
+	switch v := e.ProtoMessage.(type) {
 	case *v2.ClusterLoadAssignment:
 		return v.GetClusterName()
 	case *v2.Cluster:
@@ -74,11 +74,11 @@ func (e *EnvoyResource) Name() string {
 }
 
 func (e *EnvoyResource) ResourceProto() cache.ResourceProto {
-	return e.resourceProto
+	return e.ProtoMessage
 }
 
 func (e *EnvoyResource) Type() string {
-	switch e.resourceProto.(type) {
+	switch e.ProtoMessage.(type) {
 	case *v2.ClusterLoadAssignment:
 		return EndpointType
 	case *v2.Cluster:
@@ -94,7 +94,7 @@ func (e *EnvoyResource) Type() string {
 
 func (e *EnvoyResource) References() []cache.XdsResourceReference {
 	out := make(map[cache.XdsResourceReference]bool)
-	res := e.resourceProto
+	res := e.ProtoMessage
 	if res == nil {
 		return nil
 	}
