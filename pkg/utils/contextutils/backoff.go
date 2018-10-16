@@ -67,6 +67,7 @@ func (e *exponentioalBackoff) Backoff(ctx context.Context, f func(ctx context.Co
 		if err == nil {
 			return nil
 		}
+		LoggerFrom(ctx).Debugf("error in exponential backoff: %v", err)
 		if e.MaxRetries != 0 && retries > e.MaxRetries {
 			return errors.New("max retries exceeded")
 		}
