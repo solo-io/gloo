@@ -2,6 +2,8 @@ package kubernetes
 
 import (
 	"context"
+	"github.com/pkg/errors"
+	"k8s.io/client-go/tools/cache"
 	"sync"
 	"time"
 
@@ -21,6 +23,8 @@ type KubePluginSharedFactory interface {
 }
 
 type KubePluginListers struct {
+	initError error
+
 	endpointsLister kubelisters.EndpointsLister
 	servicesLister  kubelisters.ServiceLister
 	podsLister      kubelisters.PodLister
@@ -37,6 +41,9 @@ func getInformerFactory(client kubernetes.Interface) *KubePluginListers {
 	kubePluginSharedFactoryOnce.Do(func() {
 		kubePluginSharedFactory = startInformerFactory(context.TODO(), client)
 	})
+	if kubePluginSharedFactory.initError != nil {
+		panic(kubePluginSharedFactory.initError)
+	}
 	return kubePluginSharedFactory
 }
 
@@ -61,6 +68,16 @@ func startInformerFactory(ctx context.Context, client kubernetes.Interface) *Kub
 	stop := ctx.Done()
 	go kubeInformerFactory.Start(stop)
 	go kubeController.Run(2, stop)
+
+	ok := cache.WaitForCacheSync(stop,
+		endpointInformer.Informer().HasSynced,
+		podsInformer.Informer().HasSynced,
+		servicesInformer.Informer().HasSynced)
+	if !ok {
+		// if initError is non-nil, the kube resource client will panic
+		k.initError = errors.Errorf("waiting for kube pod, endpoints, services cache sync failed")
+	}
+
 	return k
 }
 
