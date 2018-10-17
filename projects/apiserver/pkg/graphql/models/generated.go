@@ -169,6 +169,7 @@ type InputDestinationSpec struct {
 	Aws   *InputAwsDestinationSpec   `json:"aws"`
 	Azure *InputAzureDestinationSpec `json:"azure"`
 	Rest  *InputRestDestinationSpec  `json:"rest"`
+	Grpc  *InputGrpcDestinationSpec  `json:"grpc"`
 }
 
 type InputFieldResolver struct {
@@ -180,6 +181,12 @@ type InputGlooResolver struct {
 	RequestTemplate  *InputRequestTemplate  `json:"requestTemplate"`
 	ResponseTemplate *InputResponseTemplate `json:"responseTemplate"`
 	Destination      InputDestination       `json:"destination"`
+}
+
+type InputGrpcDestinationSpec struct {
+	Package  string `json:"package"`
+	Service  string `json:"service"`
+	Function string `json:"function"`
 }
 
 type InputGrpcServiceSpec struct {

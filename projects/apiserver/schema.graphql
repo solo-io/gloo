@@ -477,11 +477,18 @@ input InputDestinationSpec {
     aws: InputAwsDestinationSpec
     azure: InputAzureDestinationSpec
     rest: InputRestDestinationSpec
+    grpc: InputGrpcDestinationSpec
 }
 
 input InputRestDestinationSpec {
     functionName: String!
     parameters: InputTransformationParameters
+}
+
+input InputGrpcDestinationSpec {
+    package: String!
+    service: String!
+    function: String!
 }
 
 input InputTransformationParameters {

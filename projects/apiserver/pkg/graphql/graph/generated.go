@@ -12578,6 +12578,17 @@ func UnmarshalInputDestinationSpec(v interface{}) (models.InputDestinationSpec, 
 			if err != nil {
 				return it, err
 			}
+		case "grpc":
+			var err error
+			var ptr1 models.InputGrpcDestinationSpec
+			if v != nil {
+				ptr1, err = UnmarshalInputGrpcDestinationSpec(v)
+				it.Grpc = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -12639,6 +12650,36 @@ func UnmarshalInputGlooResolver(v interface{}) (models.InputGlooResolver, error)
 		case "destination":
 			var err error
 			it.Destination, err = UnmarshalInputDestination(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputGrpcDestinationSpec(v interface{}) (models.InputGrpcDestinationSpec, error) {
+	var it models.InputGrpcDestinationSpec
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "package":
+			var err error
+			it.Package, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "service":
+			var err error
+			it.Service, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "function":
+			var err error
+			it.Function, err = graphql.UnmarshalString(v)
 			if err != nil {
 				return it, err
 			}
@@ -14573,11 +14614,18 @@ input InputDestinationSpec {
     aws: InputAwsDestinationSpec
     azure: InputAzureDestinationSpec
     rest: InputRestDestinationSpec
+    grpc: InputGrpcDestinationSpec
 }
 
 input InputRestDestinationSpec {
     functionName: String!
     parameters: InputTransformationParameters
+}
+
+input InputGrpcDestinationSpec {
+    package: String!
+    service: String!
+    function: String!
 }
 
 input InputTransformationParameters {
