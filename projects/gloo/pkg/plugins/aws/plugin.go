@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"unicode/utf8"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
@@ -152,7 +153,7 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 
 				lambdaRouteFunc := &LambdaPerRoute{
 					Async:     awsDestinationSpec.Aws.InvocationStyle == aws.DestinationSpec_ASYNC,
-					Qualifier: lambdaFunc.Qualifier,
+					Qualifier: url.QueryEscape(lambdaFunc.Qualifier),
 					Name:      lambdaFunc.LambdaFunctionName,
 				}
 
