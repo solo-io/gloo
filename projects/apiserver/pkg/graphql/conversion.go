@@ -587,7 +587,7 @@ func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpe
 				Grpc: &grpc.DestinationSpec{
 					Package:  spec.Grpc.Package,
 					Service:  spec.Grpc.Service,
-					Function: spec.Grpc.Service,
+					Function: spec.Grpc.Function,
 				},
 			},
 		}, nil
