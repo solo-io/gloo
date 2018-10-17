@@ -624,7 +624,7 @@ parameters:
 - name: ENVOY_IMAGE_TAG
   required: true
   description: Docker image Tag +for Envoy
-  value: v1-400-gdd4f388
+  value: v1-754-g2d30d128
 
 # label everything app=gloo
 labels:
