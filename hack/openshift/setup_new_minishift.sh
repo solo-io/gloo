@@ -15,5 +15,6 @@ metadata:
 secret: gloo
 redirectURIs:
  - "http://localhost:8080"
+ - "http://localhost:8082"
 grantMethod: prompt
 EOF
