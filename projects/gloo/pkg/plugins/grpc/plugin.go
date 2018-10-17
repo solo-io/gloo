@@ -177,18 +177,22 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 
 		// we always choose post
 		httpMethod := "POST"
-		return &transformapi.TransformationTemplate{
-			Headers: map[string]*transformapi.InjaTemplate{
-				":method": {Text: httpMethod},
-				":path":   {Text: outPath},
-			},
-			BodyTransformation: &transformapi.TransformationTemplate_MergeExtractorsToBody{
-				MergeExtractorsToBody: &transformapi.MergeExtractorsToBody{},
+		return &transformapi.RouteTransformations{
+			RequestTransformation: &transformapi.Transformation{
+				TransformationType: &transformapi.Transformation_TransformationTemplate{
+					TransformationTemplate: &transformapi.TransformationTemplate{
+						Headers: map[string]*transformapi.InjaTemplate{
+							":method": {Text: httpMethod},
+							":path":   {Text: outPath},
+						},
+						BodyTransformation: &transformapi.TransformationTemplate_MergeExtractorsToBody{
+							MergeExtractorsToBody: &transformapi.MergeExtractorsToBody{},
+						},
+					},
+				},
 			},
 		}, nil
-
 	})
-
 }
 
 // returns package name
