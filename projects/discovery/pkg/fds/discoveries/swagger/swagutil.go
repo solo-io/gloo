@@ -66,9 +66,7 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 	}
 
 	headersTemplate := map[string]string{":method": method}
-	if body != nil && *body != "" {
-		headersTemplate["Content-Type"] = "application/json"
-	}
+
 	for _, name := range headerParams {
 		headersTemplate[name] = fmt.Sprintf("{{default(%v, \"\")}}", name)
 	}
@@ -94,9 +92,16 @@ func createFunctionForOpertaion(method string, basePath, functionPath string, op
 		headerTemplatesForTransform[":path"] = &transformation_plugins.InjaTemplate{Text: path}
 	}
 
-	if method == "POST" {
+	if method == "GET" || method == "HEAD" {
+		// this tells envoy to remove the body and content-type header completely
+		headerTemplatesForTransform["content-type"] = &transformation_plugins.InjaTemplate{Text: ""}
+		headerTemplatesForTransform["content-length"] = &transformation_plugins.InjaTemplate{Text: "0"}
+		headerTemplatesForTransform["transfer-encoding"] = &transformation_plugins.InjaTemplate{Text: ""}
+		clearBody := ""
+		body = &clearBody
+	} else {
 		needsTransformation = true
-		headerTemplatesForTransform[":content-type"] = &transformation_plugins.InjaTemplate{Text: "application/json"}
+		headerTemplatesForTransform["content-type"] = &transformation_plugins.InjaTemplate{Text: "application/json"}
 	}
 
 	// this function doesn't request any kind of transformation
