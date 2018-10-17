@@ -14,6 +14,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
 
+	"encoding/base64"
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
@@ -26,7 +27,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
-	"encoding/base64"
 )
 
 type ServicesAndDescriptor struct {
@@ -139,7 +139,6 @@ func getPath(matcher *v1.Matcher) string {
 }
 
 func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
-
 	return pluginutils.MarkPerFilterConfig(p.ctx, in, out, transformation.FilterName, func(spec *v1.Destination) (proto.Message, error) {
 		// check if it's grpc destination
 		if spec.DestinationSpec == nil {
