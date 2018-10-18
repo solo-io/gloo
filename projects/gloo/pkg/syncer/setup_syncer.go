@@ -277,7 +277,7 @@ func RunGloo(opts bootstrap.Opts) error {
 	}
 
 	sync := NewTranslatorSyncer(translator.NewTranslator(plugins), opts.ControlPlane.SnapshotCache, xdsHasher, rpt, opts.DevMode)
-	sync2 := ratelimit.NewTranslator(plugins, opts.ControlPlane.SnapshotCache)
+	sync2 := ratelimit.NewTranslatorSyncer(plugins, opts.ControlPlane.SnapshotCache)
 	syncers := v1.ApiSyncers{sync, sync2}
 	eventLoop := v1.NewApiEventLoop(cache, syncers)
 

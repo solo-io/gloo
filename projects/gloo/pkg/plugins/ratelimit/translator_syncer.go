@@ -11,26 +11,26 @@ import (
 	envoycache "github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
 )
 
-type Translator struct {
+type translatorSyncer struct {
 	rlplugin *Plugin
 	xdsCache envoycache.SnapshotCache
 }
 
-func NewTranslator(plugins []plugins.Plugin, xdsCache envoycache.SnapshotCache) *Translator {
+func NewTranslatorSyncer(plugins []plugins.Plugin, xdsCache envoycache.SnapshotCache) *translatorSyncer {
 	// find the instance of our plugin
 	for _, plug := range plugins {
 		if rlplug, ok := plug.(*Plugin); ok {
-			return &Translator{
+			return &translatorSyncer{
 				rlplugin: rlplug,
 				xdsCache: xdsCache,
 			}
 		}
 	}
 
-	return &Translator{}
+	return &translatorSyncer{}
 }
 
-func (t *Translator) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
+func (t *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	if t.rlplugin == nil {
 		return nil
 	}
