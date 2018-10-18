@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -42,8 +41,6 @@ var _ = Describe("Rate Limit", func() {
 	)
 
 	BeforeEach(func() {
-		// give the previous rate limit time to shutdown
-		time.Sleep(time.Second)
 		var err error
 		os.Setenv("REDIS_URL", fmt.Sprintf("%s:%d", redisaddr, redisport))
 		os.Setenv("REDIS_SOCKET_TYPE", "tcp")
