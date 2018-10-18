@@ -2,7 +2,9 @@ package ratelimit
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
@@ -39,8 +41,11 @@ func (t *Translator) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 
 	resource := v1.NewRateLimitConfigXdsResourceWrapper(t.rlplugin.rlconfig)
 	resources := []envoycache.Resource{resource}
-	// TODO(yuval-k): un-hardcode
-	rlsnap := envoycache.NewEasyGenericSnapshot("1", resources)
+	h, err := hashstructure.Hash(resources, nil)
+	if err != nil {
+		panic(err)
+	}
+	rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
 	t.xdsCache.SetSnapshot("ratelimit", rlsnap)
 	// find our plugin
 	return nil
