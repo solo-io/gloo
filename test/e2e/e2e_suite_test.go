@@ -33,6 +33,7 @@ func TestE2e(t *testing.T) {
 	defaults.HttpPort = 8081
 
 	helpers.RegisterCommonFailHandlers()
+	helpers.SetupLog()
 	// RegisterFailHandler(Fail)
 	RunSpecs(t, "E2e Suite")
 }
