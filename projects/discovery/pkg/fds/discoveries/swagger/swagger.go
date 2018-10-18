@@ -78,12 +78,12 @@ func (d *SwaggerFunctionDiscovery) IsFunctional() bool {
 	return getswagspec(d.upstream) != nil
 }
 
-func (d *SwaggerFunctionDiscovery) DetectType(ctx context.Context, baseurl *url.URL) (*plugins.ServiceSpec, error) {
+func (d *SwaggerFunctionDiscovery) DetectType(ctx context.Context, baseurl url.URL) (*plugins.ServiceSpec, error) {
 	var spec *plugins.ServiceSpec
 
 	err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{MaxDuration: &d.detectionTimeout}).Backoff(ctx, func(ctx context.Context) error {
 		var err error
-		spec, err = d.detectUpstreamTypeOnce(ctx, baseurl)
+		spec, err = d.detectUpstreamTypeOnce(ctx, &baseurl)
 		return err
 	})
 
@@ -161,7 +161,7 @@ func (d *SwaggerFunctionDiscovery) detectUpstreamTypeOnce(ctx context.Context, b
 
 }
 
-func (f *SwaggerFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(fds.UpstreamMutator) error) error {
+func (f *SwaggerFunctionDiscovery) DetectFunctions(ctx context.Context, url url.URL, secrets func() v1.SecretList, updatecb func(fds.UpstreamMutator) error) error {
 	in := f.upstream
 	spec := getswagspec(in)
 	if spec == nil || spec.SwaggerSpec == nil {

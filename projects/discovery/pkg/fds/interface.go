@@ -37,10 +37,10 @@ type UpstreamFunctionDiscovery interface {
 	// err != nil temporary error. try again
 	// err == nil spec == nil. no type detected, don't try again
 	// url is never nil
-	DetectType(ctx context.Context, url *url.URL) (*plugins.ServiceSpec, error)
+	DetectType(ctx context.Context, url url.URL) (*plugins.ServiceSpec, error)
 
 	// url maybe nil if it couldnt be resolved
-	DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, out func(UpstreamMutator) error) error
+	DetectFunctions(ctx context.Context, url url.URL, secrets func() v1.SecretList, out func(UpstreamMutator) error) error
 }
 
 type Resolver interface {

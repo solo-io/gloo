@@ -13,11 +13,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/pkg/errors"
-	glooaws "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
+	glooaws "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
 )
 
 const (
@@ -47,13 +47,13 @@ func (f *AWSLambdaFunctionDiscovery) IsFunctional() bool {
 	return ok
 }
 
-func (f *AWSLambdaFunctionDiscovery) DetectType(ctx context.Context, url *url.URL) (*plugins.ServiceSpec, error) {
+func (f *AWSLambdaFunctionDiscovery) DetectType(ctx context.Context, url url.URL) (*plugins.ServiceSpec, error) {
 	return nil, nil
 }
 
 // TODO: how to handle changes in secret or upstream (like the upstream ref)?
 // perhaps the in param for the upstream should be a function? in func() *v1.Upstream
-func (f *AWSLambdaFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(fds.UpstreamMutator) error) error {
+func (f *AWSLambdaFunctionDiscovery) DetectFunctions(ctx context.Context, url url.URL, secrets func() v1.SecretList, updatecb func(fds.UpstreamMutator) error) error {
 	for {
 		// TODO: get backoff values from config?
 		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {

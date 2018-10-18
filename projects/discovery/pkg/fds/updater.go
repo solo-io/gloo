@@ -191,7 +191,7 @@ func (u *updaterUpdater) saveUpstream(mutator UpstreamMutator) error {
 	return nil
 }
 
-func (u *updaterUpdater) detectSingle(fp UpstreamFunctionDiscovery, url *url.URL, result chan detectResult) {
+func (u *updaterUpdater) detectSingle(fp UpstreamFunctionDiscovery, url url.URL, result chan detectResult) {
 	if u.parent.maxInParallelSemaphore != nil {
 		select {
 		// wait for our turn
@@ -219,7 +219,7 @@ func (u *updaterUpdater) detectSingle(fp UpstreamFunctionDiscovery, url *url.URL
 	})
 }
 
-func (u *updaterUpdater) detectType(url *url.URL) (*detectResult, error) {
+func (u *updaterUpdater) detectType(url url.URL) (*detectResult, error) {
 	// TODO add global timeout?
 	ctx, cancel := context.WithCancel(u.ctx)
 	defer cancel()
@@ -281,7 +281,7 @@ func (u *updaterUpdater) Run() error {
 			return resolvedErr
 		}
 		// try to detect the type
-		res, err := u.detectType(resolvedUrl)
+		res, err := u.detectType(*resolvedUrl)
 		if err != nil {
 			if err == errorUndetectableUpstream {
 				// TODO(yuval-k): at this point all discoveries gave up.
@@ -300,5 +300,5 @@ func (u *updaterUpdater) Run() error {
 		})
 	}
 
-	return discoveryForUpstream.DetectFunctions(u.ctx, resolvedUrl, u.parent.GetSecrets, upstreamSave)
+	return discoveryForUpstream.DetectFunctions(u.ctx, *resolvedUrl, u.parent.GetSecrets, upstreamSave)
 }

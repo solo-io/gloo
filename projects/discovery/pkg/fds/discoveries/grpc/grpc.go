@@ -65,11 +65,11 @@ func (f *UpstreamFunctionDiscovery) IsFunctional() bool {
 	return getgrpcspec(f.upstream) != nil
 }
 
-func (f *UpstreamFunctionDiscovery) DetectType(ctx context.Context, url *url.URL) (*plugins.ServiceSpec, error) {
+func (f *UpstreamFunctionDiscovery) DetectType(ctx context.Context, url url.URL) (*plugins.ServiceSpec, error) {
 	log := contextutils.LoggerFrom(ctx)
 	log.Debugf("attempting to detect GRPC for %s", f.upstream.Metadata.Name)
 
-	refClient, err := getclient(ctx, url)
+	refClient, err := getclient(ctx, &url)
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +87,11 @@ func (f *UpstreamFunctionDiscovery) DetectType(ctx context.Context, url *url.URL
 	return svcInfo, nil
 }
 
-func (f *UpstreamFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(fds.UpstreamMutator) error) error {
+func (f *UpstreamFunctionDiscovery) DetectFunctions(ctx context.Context, url url.URL, secrets func() v1.SecretList, updatecb func(fds.UpstreamMutator) error) error {
 	for {
 		// TODO: get backoff values from config?
 		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {
-			return f.DetectFunctionsOnce(ctx, url, updatecb)
+			return f.DetectFunctionsOnce(ctx, &url, updatecb)
 		})
 
 		if err != nil {
