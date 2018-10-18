@@ -27,7 +27,8 @@ const {{ upper_camel .MessageType }}Type = cache.TypePrefix + "/solo.api." + "{{
 
 /* Defined a resource - to be used by snapshot */
 type {{ upper_camel .MessageType }}XdsResourceWrapper struct {
-	resourceProto *{{ upper_camel .MessageType }}
+	// TODO(yuval-k): This is public for mitchellh hashstructure to work properly. consider better alternatives.
+	Resource *{{ upper_camel .MessageType }}
 }
 
 // Make sure the Resource interface is implemented
@@ -35,16 +36,16 @@ var _ cache.Resource = &{{ upper_camel .MessageType }}XdsResourceWrapper{}
 
 func New{{ upper_camel .MessageType }}XdsResourceWrapper(resourceProto *{{ upper_camel .MessageType }}) *{{ upper_camel .MessageType }}XdsResourceWrapper {
 	return &{{ upper_camel .MessageType }}XdsResourceWrapper{
-		resourceProto: resourceProto,
+		Resource: resourceProto,
 	}
 }
 
 func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) Self() cache.XdsResourceReference {
-	return cache.XdsResourceReference{Name: e.resourceProto.{{ upper_camel .NameField }}, Type: {{ upper_camel .MessageType }}Type}
+	return cache.XdsResourceReference{Name: e.Resource.{{ upper_camel .NameField }}, Type: {{ upper_camel .MessageType }}Type}
 }
 
 func (e *{{ upper_camel .MessageType }}XdsResourceWrapper) ResourceProto() cache.ResourceProto {
-	return e.resourceProto
+	return e.Resource
 }
 
 {{- if .NoReferences }}
@@ -70,7 +71,7 @@ var {{ upper_camel .MessageType }}TypeRecord = client.NewTypeRecord(
 	
 	// Covert the message to a resource suitable for use for protobuf's Any.
 	func(r cache.ResourceProto) cache.Resource {
-		return &{{ upper_camel .MessageType }}XdsResourceWrapper{resourceProto: r.(*{{ upper_camel .MessageType }})}
+		return &{{ upper_camel .MessageType }}XdsResourceWrapper{Resource: r.(*{{ upper_camel .MessageType }})}
 	},
 )
 
