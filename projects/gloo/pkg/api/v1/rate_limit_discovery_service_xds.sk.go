@@ -21,7 +21,8 @@ const RateLimitConfigType = cache.TypePrefix + "/solo.api." + "RateLimitConfig"
 
 /* Defined a resource - to be used by snapshot */
 type RateLimitConfigXdsResourceWrapper struct {
-	resourceProto *RateLimitConfig
+	// TODO(yuval-k): This is public for mitchellh hashstructure to work properly. consider better alternatives.
+	Resource *RateLimitConfig
 }
 
 // Make sure the Resource interface is implemented
@@ -29,16 +30,16 @@ var _ cache.Resource = &RateLimitConfigXdsResourceWrapper{}
 
 func NewRateLimitConfigXdsResourceWrapper(resourceProto *RateLimitConfig) *RateLimitConfigXdsResourceWrapper {
 	return &RateLimitConfigXdsResourceWrapper{
-		resourceProto: resourceProto,
+		Resource: resourceProto,
 	}
 }
 
 func (e *RateLimitConfigXdsResourceWrapper) Self() cache.XdsResourceReference {
-	return cache.XdsResourceReference{Name: e.resourceProto.Domain, Type: RateLimitConfigType}
+	return cache.XdsResourceReference{Name: e.Resource.Domain, Type: RateLimitConfigType}
 }
 
 func (e *RateLimitConfigXdsResourceWrapper) ResourceProto() cache.ResourceProto {
-	return e.resourceProto
+	return e.Resource
 }
 func (e *RateLimitConfigXdsResourceWrapper) References() []cache.XdsResourceReference {
 	return nil
@@ -53,7 +54,7 @@ var RateLimitConfigTypeRecord = client.NewTypeRecord(
 
 	// Covert the message to a resource suitable for use for protobuf's Any.
 	func(r cache.ResourceProto) cache.Resource {
-		return &RateLimitConfigXdsResourceWrapper{resourceProto: r.(*RateLimitConfig)}
+		return &RateLimitConfigXdsResourceWrapper{Resource: r.(*RateLimitConfig)}
 	},
 )
 
