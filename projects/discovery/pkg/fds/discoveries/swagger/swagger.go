@@ -233,6 +233,10 @@ func (f *SwaggerFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, 
 
 	funcs := make(map[string]*transformation_plugins.TransformationTemplate)
 
+	if swaggerSpec.Paths == nil {
+		return errors.Errorf("swagger spec paths was nil: %v", swaggerSpec.Paths)
+	}
+
 	for functionPath, pathItem := range swaggerSpec.Paths.Paths {
 		createFunctionsForPath(funcs, swaggerSpec.BasePath, functionPath, pathItem.PathItemProps, swaggerSpec.Definitions)
 	}
