@@ -2,8 +2,6 @@ package graphql
 
 import (
 	"context"
-	"os"
-
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes"
