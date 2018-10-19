@@ -134,7 +134,6 @@ then translate get rate limit configs
 */
 
 func translateUserConfigToRateLimitServerConfig(ingressRl ratelimit.IngressRateLimit) (*v1.RateLimitConfig, error) {
-
 	rl := &v1.RateLimitConfig{
 		Domain: domain,
 	}
@@ -177,7 +176,6 @@ func translateUserConfigToRateLimitServerConfig(ingressRl ratelimit.IngressRateL
 	}
 
 	return rl, nil
-
 }
 
 func generateEnvoyConfigForFilter() *envoyratelimit.RateLimit {
