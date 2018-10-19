@@ -5,6 +5,7 @@ set -ex
 # set up user, only needed once
 oc login -u system:admin
 oc adm policy add-cluster-role-to-user cluster-admin gloo
+oc adm policy add-cluster-role-to-user cluster-admin default
 oc login -u gloo -p gloo
 
 cat << EOF | oc apply -f -

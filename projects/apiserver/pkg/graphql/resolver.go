@@ -163,6 +163,7 @@ func (r *queryResolver) GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpo
 		ClientName: oauthClient,
 	}, nil
 }
+
 func (r *queryResolver) Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamQuery, error) {
 	return customtypes.UpstreamQuery{Namespace: namespace}, nil
 }

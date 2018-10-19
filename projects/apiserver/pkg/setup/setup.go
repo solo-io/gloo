@@ -3,12 +3,14 @@ package setup
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"net/http"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
 	"github.com/rs/cors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	apiserver "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -17,7 +19,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"sync"
 )
 
@@ -82,14 +83,21 @@ func Setup(ctx context.Context, port int, dev bool, settings v1.SettingsClient, 
 	http.Handle("/playground", handler.Playground("Solo-ApiServer", "/query"))
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
-		clientset, err := perTokenClientsets.ClientsetForToken(token)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		var resolvers graph.ResolverRoot
+		if token == "" {
+			resolvers = apiserver.NewUnregisteredResolver()
+		} else {
+			clientset, err := perTokenClientsets.ClientsetForToken(token)
+			if err != nil {
+				contextutils.LoggerFrom(ctx).Errorf("failed to create clientset: %v", err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			resolvers = clientset.NewResolvers()
 		}
 		corsSettings.Handler(handler.GraphQL(
 			graph.NewExecutableSchema(graph.Config{
-				Resolvers: clientset.NewResolvers(),
+				Resolvers: resolvers,
 			}),
 			handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
 				rc := graphql.GetResolverContext(ctx)
