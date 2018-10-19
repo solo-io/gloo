@@ -150,18 +150,7 @@ func (r *queryResolver) Resource(ctx context.Context, guid string) (models.Resou
 }
 
 func (r *queryResolver) GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpoint, error) {
-	oauthUrl := os.Getenv("OAUTH_SERVER") // ip:port of openshift server
-	if oauthUrl == "" {
-		return models.OAuthEndpoint{}, errors.Errorf("apiserver configured improperly, OAUTH_SERVER environment variable is not set")
-	}
-	oauthClient := os.Getenv("OAUTH_CLIENT") // ip:port of openshift server
-	if oauthClient == "" {
-		return models.OAuthEndpoint{}, errors.Errorf("apiserver configured improperly, OAUTH_CLIENT environment variable is not set")
-	}
-	return models.OAuthEndpoint{
-		URL:        oauthUrl,
-		ClientName: oauthClient,
-	}, nil
+	return getOAuthEndpoint()
 }
 
 func (r *queryResolver) Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamQuery, error) {
