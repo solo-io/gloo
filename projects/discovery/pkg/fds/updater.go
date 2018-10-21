@@ -204,7 +204,7 @@ func (u *updaterUpdater) detectSingle(fp UpstreamFunctionDiscovery, url url.URL,
 	}
 
 	contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(u.ctx, func(ctx context.Context) error {
-		spec, err := fp.DetectType(ctx, url)
+		spec, err := fp.DetectType(ctx, &url)
 		if err != nil {
 			return err
 		}
@@ -219,7 +219,7 @@ func (u *updaterUpdater) detectSingle(fp UpstreamFunctionDiscovery, url url.URL,
 	})
 }
 
-func (u *updaterUpdater) detectType(url url.URL) (*detectResult, error) {
+func (u *updaterUpdater) detectType(url_ url.URL) (*detectResult, error) {
 	// TODO add global timeout?
 	ctx, cancel := context.WithCancel(u.ctx)
 	defer cancel()
@@ -230,10 +230,10 @@ func (u *updaterUpdater) detectType(url url.URL) (*detectResult, error) {
 	var waitgroup sync.WaitGroup
 	for _, fp := range u.functionalPlugins {
 		waitgroup.Add(1)
-		go func(functionalPlugin UpstreamFunctionDiscovery) {
+		go func(functionalPlugin UpstreamFunctionDiscovery, url url.URL) {
 			defer waitgroup.Done()
 			u.detectSingle(functionalPlugin, url, result)
-		}(fp)
+		}(fp, url_)
 	}
 	go func() {
 		waitgroup.Wait()
@@ -300,5 +300,5 @@ func (u *updaterUpdater) Run() error {
 		})
 	}
 
-	return discoveryForUpstream.DetectFunctions(u.ctx, *resolvedUrl, u.parent.GetSecrets, upstreamSave)
+	return discoveryForUpstream.DetectFunctions(u.ctx, resolvedUrl, u.parent.GetSecrets, upstreamSave)
 }
