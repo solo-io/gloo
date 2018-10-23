@@ -83,7 +83,6 @@ const (
 )
 
 type Plugin struct {
-	rlconfig *v1.RateLimitConfig
 }
 
 func NewPlugin() plugins.Plugin {
@@ -101,7 +100,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 	if in.VirtualHostPlugins.RateLimits == nil {
 		return nil
 	}
-	cfg, err := translateUserConfigToRateLimitServerConfig(*in.VirtualHostPlugins.RateLimits)
+	_, err := translateUserConfigToRateLimitServerConfig(*in.VirtualHostPlugins.RateLimits)
 	if err != nil {
 		return err
 	}
@@ -109,7 +108,6 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 	vhost := generateEnvoyConfigForVhost(in.VirtualHostPlugins.RateLimits.AuthrorizedHeader)
 	out.RateLimits = vhost
 
-	p.rlconfig = cfg
 	return nil
 }
 
