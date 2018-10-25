@@ -7,9 +7,6 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-
-	"sync"
-
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
 	"github.com/rs/cors"
