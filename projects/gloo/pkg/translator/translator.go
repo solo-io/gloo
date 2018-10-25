@@ -3,9 +3,8 @@ package translator
 import (
 	"fmt"
 
-	"github.com/mitchellh/hashstructure"
-	"go.opencensus.io/trace"
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	"github.com/mitchellh/hashstructure"
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -13,6 +12,7 @@ import (
 	envoycache "github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
+	"go.opencensus.io/trace"
 )
 
 type Translator interface {

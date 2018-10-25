@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	discoveryAnnotationKey = "gloo.solo.io/discover"
+	discoveryAnnotationKey  = "gloo.solo.io/discover"
 	discoveryAnnotationTrue = "true"
 )
 
