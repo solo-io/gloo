@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -37,6 +38,7 @@ func run() error {
 	port := flag.Int("p", 8082, "port to bind")
 	dev := flag.Bool("dev", false, "use memory instead of connecting to real gloo storage")
 	flag.Parse()
+	debugMode := os.Getenv("DEBUG") == "1"
 	settingsClient, glooOpts, err := DefaultKubernetesConstructOpts()
 	if err != nil {
 		return err
@@ -53,7 +55,7 @@ func run() error {
 	ctx := contextutils.WithLogger(context.Background(), "apiserver")
 
 	contextutils.LoggerFrom(ctx).Infof("listening on :%v", *port)
-	if err := setup.Setup(ctx, *port, *dev, settingsClient, glooOpts, gatewayOpts, sqoopOpts); err != nil {
+	if err := setup.Setup(ctx, *port, *dev, debugMode, settingsClient, glooOpts, gatewayOpts, sqoopOpts); err != nil {
 		return err
 	}
 	return nil

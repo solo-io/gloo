@@ -11,6 +11,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 	apiserver "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -22,7 +23,8 @@ import (
 	"sync"
 )
 
-func Setup(ctx context.Context, port int, dev bool, settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
+// Setup initializes the apiserver
+func Setup(ctx context.Context, port int, dev bool, debugMode bool, settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
 	// initial resource registration
 	upstreams, err := v1.NewUpstreamClient(glooOpts.Upstreams)
 	if err != nil {
@@ -74,8 +76,7 @@ func Setup(ctx context.Context, port int, dev bool, settings v1.SettingsClient, 
 		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:8000", "localhost/:1", "http://localhost:8082", "http://localhost"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
-		// Enable Debugging for testing, consider disabling in production
-		Debug: true,
+		Debug:            debugMode,
 	})
 
 	perTokenClientsets := NewPerTokenClientsets(settings, glooOpts, gatewayOpts, sqoopOpts)
@@ -101,9 +102,9 @@ func Setup(ctx context.Context, port int, dev bool, settings v1.SettingsClient, 
 			}),
 			handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
 				rc := graphql.GetResolverContext(ctx)
-				fmt.Println("Entered", rc.Object, rc.Field.Name)
+				log.Debugf("Entered %v % v", rc.Object, rc.Field.Name)
 				res, err = next(ctx)
-				fmt.Println("Left", rc.Object, rc.Field.Name, "=>", res, err)
+				log.Debugf("Left %v %v => %v %v", rc.Object, rc.Field.Name, res, err)
 				return res, err
 			}),
 		)).ServeHTTP(w, r)
@@ -126,6 +127,9 @@ func registerAll(clients ...registrant) error {
 	return nil
 }
 
+// PerTokenClientsets contains global settings and user-specific resource clients
+// clients is a map from user token to resource clients
+// the token is also used for authorizing actions on the resource clients
 type PerTokenClientsets struct {
 	lock        sync.RWMutex
 	clients     map[string]*Clientset
@@ -135,6 +139,7 @@ type PerTokenClientsets struct {
 	sqoopOpts   sqoopsetup.Opts
 }
 
+// NewPerTokenClientsets - helper function
 func NewPerTokenClientsets(settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) PerTokenClientsets {
 	return PerTokenClientsets{
 		clients:     make(map[string]*Clientset),
@@ -161,6 +166,7 @@ func (ptc PerTokenClientsets) ClientsetForToken(token string) (*Clientset, error
 	return clientset, nil
 }
 
+// Clientset is a collection of all the exposed resource clients
 type Clientset struct {
 	v1.UpstreamClient
 	gatewayv1.VirtualServiceClient
@@ -177,6 +183,7 @@ func setKubeFactoryCache(fact factory.ResourceClientFactory, cache *kube.KubeCac
 	}
 }
 
+// NewClientSet - helper function
 // Warning! this will write to opts
 // Todo: ilackarms: refactor this so opts is copied
 func NewClientSet(token string, settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) (*Clientset, error) {
@@ -228,6 +235,7 @@ func NewClientSet(token string, settings v1.SettingsClient, glooOpts bootstrap.O
 	}, nil
 }
 
+// NewResolvers - helper function
 func (c Clientset) NewResolvers() *apiserver.ApiResolver {
 	return apiserver.NewResolvers(c.UpstreamClient,
 		c.SchemaClient,
