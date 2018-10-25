@@ -14,6 +14,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"github.com/solo-io/solo-kit/projects/apiserver/pkg/auth"
 	apiserver "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -84,8 +85,8 @@ func Setup(ctx context.Context, port int, dev bool, debugMode bool, settings v1.
 
 	http.Handle("/playground", handler.Playground("Solo-ApiServer", "/query"))
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
 		var resolvers graph.ResolverRoot
+		token := auth.GetToken(w, r)
 		if token == "" {
 			resolvers = apiserver.NewUnregisteredResolver()
 		} else {
