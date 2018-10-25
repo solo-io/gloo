@@ -17,5 +17,8 @@ secret: gloo
 redirectURIs:
  - "http://localhost:8080"
  - "http://localhost:8082"
+ - "http://localhost:3000"
+ - "http://localhost:3001"
+ - "http://localhost:3002"
 grantMethod: prompt
 EOF
