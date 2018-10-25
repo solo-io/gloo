@@ -1,14 +1,17 @@
 package faultinjection
 
 import (
-	"github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	envoyfault "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/fault/v2"
+	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	envoyfault "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/fault/v2"
 	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 
+	"github.com/gogo/protobuf/proto"
+
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
 )
 
 const (
@@ -28,16 +31,20 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 }
 
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
-	conf, err := protoutils.MarshalPbStruct(generateEnvoyConfigForHttpFault())
-	if err != nil {
-		return nil, err
-	}
+	// put the filter in the chain, but the actual faults will be configured on the routes
 	return []plugins.StagedHttpFilter{
 		{
-			HttpFilter: &envoyhttp.HttpFilter{Name: FilterName, Config: conf},
+			HttpFilter: &envoyhttp.HttpFilter{Name: FilterName},
 			Stage:      pluginStage,
 		},
 	}, nil
+}
+
+func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
+	markFilterConfigFunc := func(spec *v1.Destination) (proto.Message, error) {
+		return protoutils.MarshalPbStruct(generateEnvoyConfigForHttpFault())
+	}
+	return pluginutils.MarkPerFilterConfig(params.Ctx, in, out, FilterName, markFilterConfigFunc)
 }
 
 func generateEnvoyConfigForHttpFault() *envoyfault.HTTPFault {
@@ -58,7 +65,7 @@ func generateEnvoyConfigForHttpFault() *envoyfault.HTTPFault {
 		// TODO (rducott): allow configuration of delay faults
 		DownstreamNodes: []string{},
 		UpstreamCluster: "",
-		Headers: []*route.HeaderMatcher{},
+		Headers: []*envoyroute.HeaderMatcher{},
 	}
 	return &httpfault
 }
