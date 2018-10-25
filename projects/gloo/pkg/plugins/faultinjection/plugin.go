@@ -56,7 +56,7 @@ func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 }
 
 func generateEnvoyConfigForHttpFault(routeFault *faultinjection.RouteFault) *envoyfault.HTTPFault {
-	percentage := envoytype.FractionalPercent{
+	percentage := &envoytype.FractionalPercent{
 		Numerator:   uint32(routeFault.Percentage),
 		Denominator: envoytype.FractionalPercent_HUNDRED,
 	}
@@ -64,7 +64,7 @@ func generateEnvoyConfigForHttpFault(routeFault *faultinjection.RouteFault) *env
 		HttpStatus: uint32(routeFault.HttpStatus),
 	}
 	abort := envoyfault.FaultAbort{
-		Percentage: &percentage,
+		Percentage: percentage,
 		ErrorType:  errorType,
 	}
 	return &envoyfault.HTTPFault{
