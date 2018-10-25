@@ -1,7 +1,6 @@
 package faultinjection
 
 import (
-	"github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyfault "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/fault/v2"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
@@ -12,7 +11,7 @@ import (
 )
 
 const (
-	FilterName  = "io.solo.fault"
+	FilterName  = "envoy.fault"
 	pluginStage = plugins.PreInAuth // TODO (rick): ensure this is the first filter that gets applied
 )
 
@@ -27,7 +26,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	// TODO (rick): switch to MarshalPbStruct (?) when rate limit PR merges
 	conf, err := protoutils.MarshalStruct(generateEnvoyConfigForHttpFault())
 	if err != nil {
@@ -41,15 +40,13 @@ func HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.St
 	}, nil
 }
 
-
-
 func generateEnvoyConfigForHttpFault() *envoyfault.HTTPFault {
 	percentage := envoytype.FractionalPercent{
+		Numerator: uint32(100),
 		Denominator: envoytype.FractionalPercent_HUNDRED,
-		Numerator: 0,
 	}
 	errorType := envoyfault.FaultAbort_HttpStatus{
-		HttpStatus: 503,
+		HttpStatus: uint32(503),
 	}
 	abort := envoyfault.FaultAbort{
 		Percentage: &percentage,
@@ -59,9 +56,9 @@ func generateEnvoyConfigForHttpFault() *envoyfault.HTTPFault {
 	httpfault := envoyfault.HTTPFault{
 		Abort: &abort,
 		// TODO (rducott): allow configuration of delay faults
-		DownstreamNodes: []string{},
-		UpstreamCluster: "",
-		Headers: []*route.HeaderMatcher{},
+		//DownstreamNodes: []string{},
+		//UpstreamCluster: "",
+		//Headers: []*route.HeaderMatcher{},
 	}
 	return &httpfault
 }
