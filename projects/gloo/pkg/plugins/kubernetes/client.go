@@ -2,10 +2,11 @@ package kubernetes
 
 import (
 	"context"
-	"github.com/pkg/errors"
-	"k8s.io/client-go/tools/cache"
 	"sync"
 	"time"
+
+	"github.com/pkg/errors"
+	"k8s.io/client-go/tools/cache"
 
 	"github.com/solo-io/kubecontroller"
 	kubeinformers "k8s.io/client-go/informers"

@@ -3,8 +3,11 @@ package setup
 import (
 	"context"
 	"fmt"
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"net/http"
+
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+
+	"sync"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
@@ -19,7 +22,6 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
-	"sync"
 )
 
 // Setup initializes the apiserver
