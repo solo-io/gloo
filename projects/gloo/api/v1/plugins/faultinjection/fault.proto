@@ -1,0 +1,19 @@
+// TODO: this was copied form the transformation filter.
+// TODO: instead of manually copying, we want to do it via script, similar to the java-control-plane
+// TODO: to solo-kit/api/envoy
+
+syntax = "proto3";
+
+package fault.plugins.gloo.solo.io;
+
+option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/faultinjection";
+
+import "gogoproto/gogo.proto";
+
+// TODO: can we get rid of this?
+option (gogoproto.equal_all) = true;
+
+message RouteFault {
+    uint32 percentage = 1;
+    uint32 http_status = 2;
+}
