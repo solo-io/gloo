@@ -1,6 +1,7 @@
 package faultinjection
 
 import (
+	"github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyfault "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/fault/v2"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
@@ -27,8 +28,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 }
 
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
-	// TODO (rick): switch to MarshalPbStruct (?) when rate limit PR merges
-	conf, err := protoutils.MarshalStruct(generateEnvoyConfigForHttpFault())
+	conf, err := protoutils.MarshalPbStruct(generateEnvoyConfigForHttpFault())
 	if err != nil {
 		return nil, err
 	}
@@ -45,20 +45,20 @@ func generateEnvoyConfigForHttpFault() *envoyfault.HTTPFault {
 		Numerator: uint32(100),
 		Denominator: envoytype.FractionalPercent_HUNDRED,
 	}
-	errorType := envoyfault.FaultAbort_HttpStatus{
+	errorType := &envoyfault.FaultAbort_HttpStatus{
 		HttpStatus: uint32(503),
 	}
 	abort := envoyfault.FaultAbort{
 		Percentage: &percentage,
-		ErrorType: &errorType,
+		ErrorType: errorType,
 	}
 
 	httpfault := envoyfault.HTTPFault{
 		Abort: &abort,
 		// TODO (rducott): allow configuration of delay faults
-		//DownstreamNodes: []string{},
-		//UpstreamCluster: "",
-		//Headers: []*route.HeaderMatcher{},
+		DownstreamNodes: []string{},
+		UpstreamCluster: "",
+		Headers: []*route.HeaderMatcher{},
 	}
 	return &httpfault
 }
