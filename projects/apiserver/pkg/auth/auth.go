@@ -1,8 +1,9 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 
 // GetToken returns an oauth bearer token
@@ -31,7 +32,7 @@ func setBearerCookie(w http.ResponseWriter, r *http.Request, token string) {
 func getBearerCookie(r *http.Request) string {
 	c, err := r.Cookie("cBearer")
 	if err != nil {
-		fmt.Printf("could not read bearer token cookie %v\n", err)
+		log.Warnf("could not read bearer token cookie %v\n", err)
 		return ""
 	}
 	return c.Value
