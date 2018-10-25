@@ -11,7 +11,6 @@ import (
 	"github.com/rs/cors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 	apiserver "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -102,9 +101,15 @@ func Setup(ctx context.Context, port int, dev bool, debugMode bool, settings v1.
 			}),
 			handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
 				rc := graphql.GetResolverContext(ctx)
-				log.Debugf("Entered %v % v", rc.Object, rc.Field.Name)
+				if debugMode {
+					// note: many of our queries will produce cyclic objects
+					// printing truncated string representations is an easy alternative to cycle detection
+					fmt.Println("Entered", rc.Object, rc.Field.Name)
+				}
 				res, err = next(ctx)
-				log.Debugf("Left %v %v => %v %v", rc.Object, rc.Field.Name, res, err)
+				if debugMode {
+					fmt.Println("Left", rc.Object, rc.Field.Name, "=>", res, err)
+				}
 				return res, err
 			}),
 		)).ServeHTTP(w, r)
