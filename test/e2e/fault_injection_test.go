@@ -6,6 +6,7 @@ import (
 	"fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/faultinjection"
 	"net/http"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -50,7 +51,7 @@ var _ = Describe("Fault Injection", func() {
 			}
 		})
 
-		FIt("should cause envoy fault", func() {
+		It("should cause envoy fault", func() {
 			tu := v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
 			// drain channel as we dont care about it
 			go func() {
@@ -91,6 +92,12 @@ var _ = Describe("Fault Injection", func() {
 													Upstream: up.Metadata.Ref(),
 												},
 											},
+										},
+									},
+									RoutePlugins: &gloov1.RoutePlugins{
+										Fault: &faultinjection.RouteFault{
+											HttpStatus: uint32(503),
+											Percentage: uint32(100),
 										},
 									},
 								}},
