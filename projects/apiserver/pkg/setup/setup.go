@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/websocket"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 
 	"sync"
@@ -114,6 +115,11 @@ func Setup(ctx context.Context, port int, dev bool, debugMode bool, settings v1.
 					fmt.Println("Left", rc.Object, rc.Field.Name, "=>", res, err)
 				}
 				return res, err
+			}),
+				handler.WebsocketUpgrader(websocket.Upgrader{
+				CheckOrigin: func(r *http.Request) bool {
+					return true
+				},
 			}),
 		)).ServeHTTP(w, r)
 	})
