@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/faultinjection"
-	"net/http"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/test/services"
@@ -101,8 +102,7 @@ var _ = Describe("Fault Injection", func() {
 										},
 									},
 								}},
-								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-								},
+								VirtualHostPlugins: &gloov1.VirtualHostPlugins{},
 							}},
 						},
 					},
@@ -127,5 +127,3 @@ var _ = Describe("Fault Injection", func() {
 		})
 	})
 })
-
-

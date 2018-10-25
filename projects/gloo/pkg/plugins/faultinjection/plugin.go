@@ -2,8 +2,8 @@ package faultinjection
 
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	envoyfault "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/fault/v2"
+	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/faultinjection"
@@ -57,7 +57,7 @@ func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 
 func generateEnvoyConfigForHttpFault(routeFault *faultinjection.RouteFault) *envoyfault.HTTPFault {
 	percentage := envoytype.FractionalPercent{
-		Numerator: uint32(routeFault.Percentage),
+		Numerator:   uint32(routeFault.Percentage),
 		Denominator: envoytype.FractionalPercent_HUNDRED,
 	}
 	errorType := &envoyfault.FaultAbort_HttpStatus{
@@ -65,13 +65,13 @@ func generateEnvoyConfigForHttpFault(routeFault *faultinjection.RouteFault) *env
 	}
 	abort := envoyfault.FaultAbort{
 		Percentage: &percentage,
-		ErrorType: errorType,
+		ErrorType:  errorType,
 	}
 	return &envoyfault.HTTPFault{
 		Abort: &abort,
 		// TODO (rducott): allow configuration of delay faults
 		DownstreamNodes: []string{},
 		UpstreamCluster: "",
-		Headers: []*envoyroute.HeaderMatcher{},
+		Headers:         []*envoyroute.HeaderMatcher{},
 	}
 }
