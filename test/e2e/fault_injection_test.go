@@ -103,7 +103,7 @@ var _ = Describe("Fault Injection", func() {
 			fixedDelay := time.Duration(3000000000) // 3 seconds in ns
 			delay := &fault.RouteDelay{
 				FixedDelayNano: uint64(fixedDelay.Nanoseconds()),
-				Percentage: uint32(100),
+				Percentage:     uint32(100),
 			}
 			proxy := getGlooProxy(nil, delay, envoyPort, up)
 
