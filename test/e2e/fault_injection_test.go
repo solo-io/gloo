@@ -100,7 +100,7 @@ var _ = Describe("Fault Injection", func() {
 			Expect(err).NotTo(HaveOccurred())
 			envoyPort := uint32(8080)
 			proxycli := testClients.ProxyClient
-			fixedDelay := time.Duration(100000000)
+			fixedDelay := time.Duration(3000000000) // 3 seconds in ns
 			delay := &fault.RouteDelay{
 				FixedDelayNano: uint64(fixedDelay.Nanoseconds()),
 				Percentage: uint32(100),
@@ -116,10 +116,9 @@ var _ = Describe("Fault Injection", func() {
 				if err != nil {
 					return err
 				}
-				elapsed := time.Since(start)
-				fmt.Printf("Elapsed time %d", elapsed) // TODO (rick): I don't think this is right...
+				elapsed := time.Now().Sub(start)
 				if elapsed < fixedDelay {
-					return errors.New(fmt.Sprintf("Elapsed time %d not longer than delay %d", elapsed, fixedDelay))
+					return errors.New(fmt.Sprintf("Elapsed time %s not longer than delay %s", elapsed.String(), fixedDelay.String()))
 				}
 				return nil
 			}, "5s", ".1s").Should(BeNil())
