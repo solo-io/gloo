@@ -8,7 +8,7 @@
 # Test binary, build with `go test -c`
 *.test
 
-# IDE files
+# IDEA files
 *.idea/
 
 # Output of the go coverage tool, specifically when used with LiteIDE
