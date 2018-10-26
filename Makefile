@@ -9,6 +9,15 @@ SOURCES := $(shell find . -name "*.go" | grep -v test.go)
 VERSION ?= $(shell git describe --tags)
 
 #----------------------------------------------------------------------------------
+# Repo init
+#----------------------------------------------------------------------------------
+
+# https://www.viget.com/articles/two-ways-to-share-git-hooks-with-your-team/
+.PHONY: init
+init:
+	git config core.hooksPath .githooks
+
+#----------------------------------------------------------------------------------
 # Protobufs
 #----------------------------------------------------------------------------------
 
