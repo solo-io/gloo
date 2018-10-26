@@ -53,27 +53,35 @@ var _ = Describe("Fault Injection", func() {
 			}
 		})
 
-		It("should cause envoy abort fault", func() {
+		envoyPort := uint32(8080)
+		setupUpstream := func() *gloov1.Upstream {
 			tu := v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
 			// drain channel as we dont care about it
 			go func() {
 				for range tu.C {
 				}
 			}()
+			return tu.Upstream
+		}
+		setupProxy := func(proxy *gloov1.Proxy, up *gloov1.Upstream) {
 			var opts clients.WriteOpts
-			up := tu.Upstream
 			_, err := testClients.UpstreamClient.Write(up, opts)
 			Expect(err).NotTo(HaveOccurred())
-			envoyPort := uint32(8080)
-			proxycli := testClients.ProxyClient
+
+			proxyCli := testClients.ProxyClient
+			_, err = proxyCli.Write(proxy, opts)
+			Expect(err).NotTo(HaveOccurred())
+		}
+
+		It("should cause envoy abort fault", func() {
+			up := setupUpstream()
 			abort := &fault.RouteAbort{
 				HttpStatus: uint32(503),
 				Percentage: uint32(100),
 			}
 			proxy := getGlooProxy(abort, nil, envoyPort, up)
+			setupProxy(proxy, up)
 
-			_, err = proxycli.Write(proxy, opts)
-			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(func() error {
 				res, err := http.Get(fmt.Sprintf("http://%s:%d/status/200", "localhost", envoyPort))
@@ -88,27 +96,14 @@ var _ = Describe("Fault Injection", func() {
 		})
 
 		It("should cause envoy delay fault", func() {
-			tu := v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
-			// drain channel as we dont care about it
-			go func() {
-				for range tu.C {
-				}
-			}()
-			var opts clients.WriteOpts
-			up := tu.Upstream
-			_, err := testClients.UpstreamClient.Write(up, opts)
-			Expect(err).NotTo(HaveOccurred())
-			envoyPort := uint32(8080)
-			proxycli := testClients.ProxyClient
+			up := setupUpstream()
 			fixedDelay := time.Duration(3000000000) // 3 seconds in ns
 			delay := &fault.RouteDelay{
 				FixedDelayNano: uint64(fixedDelay.Nanoseconds()),
 				Percentage:     uint32(100),
 			}
 			proxy := getGlooProxy(nil, delay, envoyPort, up)
-
-			_, err = proxycli.Write(proxy, opts)
-			Expect(err).NotTo(HaveOccurred())
+			setupProxy(proxy, up)
 
 			Eventually(func() error {
 				start := time.Now()
