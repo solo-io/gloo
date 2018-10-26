@@ -82,7 +82,6 @@ var _ = Describe("Fault Injection", func() {
 			proxy := getGlooProxy(abort, nil, envoyPort, up)
 			setupProxy(proxy, up)
 
-
 			Eventually(func() error {
 				res, err := http.Get(fmt.Sprintf("http://%s:%d/status/200", "localhost", envoyPort))
 				if err != nil {
