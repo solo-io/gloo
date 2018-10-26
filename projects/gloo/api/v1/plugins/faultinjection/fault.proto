@@ -14,11 +14,18 @@ import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 message RouteAbort {
+    // Percentage of requests that should be aborted, defaulting to 0.
+    // This should be a value between 0 and 100, otherwise the behavior is undefined
     uint32 percentage = 1;
+    // This should be a standard HTTP status, i.e. 503. Defaults to 0.
     uint32 http_status = 2;
 }
 
 message RouteDelay {
+    // Percentage of requests that should be delayed, defaulting to 0.
+    // This should be a value between 0 and 100, otherwise the behavior is undefined
     uint32 percentage = 1;
+    // Fixed delay in nanoseconds, defaulting to 0.
+    // For example, for a 3 second delay this should be 3000000000.
     uint64 fixed_delay_nano = 2;
 }
