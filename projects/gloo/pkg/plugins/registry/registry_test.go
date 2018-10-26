@@ -1,16 +1,17 @@
 package registry
 
 import (
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	"reflect"
 	"testing"
+
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 )
 
 func TestPlugins(t *testing.T) {
 	opts := bootstrap.Opts{}
 	plugins := Plugins(opts)
 	pluginTypes := make(map[reflect.Type]int)
-	for index,plugin := range plugins {
+	for index, plugin := range plugins {
 		pluginType := reflect.TypeOf(plugin)
 		pluginTypes[pluginType] = index
 	}
