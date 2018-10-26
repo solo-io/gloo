@@ -2,13 +2,14 @@ package faultinjection
 
 import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	"github.com/envoyproxy/go-control-plane/envoy/config/filter/fault/v2"
 	envoyfault "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/fault/v2"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
-	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/faultinjection"
-
 	"github.com/gogo/protobuf/proto"
+	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
+	fault "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/faultinjection"
+	"time"
 
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
@@ -46,30 +47,57 @@ func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		if in.RoutePlugins == nil {
 			return nil, nil
 		}
-		if in.RoutePlugins.Fault == nil {
+		routeAbort := in.GetRoutePlugins().GetAbort()
+		routeDelay := in.GetRoutePlugins().GetDelay()
+		if routeAbort == nil && routeDelay == nil {
 			return nil, nil
 		}
-		routeFault := in.GetRoutePlugins().GetFault()
-		return protoutils.MarshalPbStruct(generateEnvoyConfigForHttpFault(routeFault))
+		return protoutils.MarshalPbStruct(generateEnvoyConfigForHttpFault(routeAbort, routeDelay))
 	}
 	return pluginutils.MarkPerFilterConfig(params.Ctx, in, out, FilterName, markFilterConfigFunc)
 }
 
-func generateEnvoyConfigForHttpFault(routeFault *faultinjection.RouteFault) *envoyfault.HTTPFault {
+func toEnvoyAbort(abort *fault.RouteAbort) *envoyfault.FaultAbort {
+	if abort == nil {
+		return nil
+	}
 	percentage := &envoytype.FractionalPercent{
-		Numerator:   uint32(routeFault.Percentage),
+		Numerator:   uint32(abort.Percentage),
 		Denominator: envoytype.FractionalPercent_HUNDRED,
 	}
 	errorType := &envoyfault.FaultAbort_HttpStatus{
-		HttpStatus: uint32(routeFault.HttpStatus),
+		HttpStatus: uint32(abort.HttpStatus),
 	}
-	abort := envoyfault.FaultAbort{
+	return &envoyfault.FaultAbort{
 		Percentage: percentage,
 		ErrorType:  errorType,
 	}
+}
+
+func toEnvoyDelay(delay *fault.RouteDelay) *v2.FaultDelay {
+	if delay == nil {
+		return nil
+	}
+	percentage := &envoytype.FractionalPercent{
+		Numerator:   uint32(delay.Percentage),
+		Denominator: envoytype.FractionalPercent_HUNDRED,
+	}
+	fixedDelayDuration := time.Duration(delay.GetFixedDelayNano())
+	delaySpec := &v2.FaultDelay_FixedDelay{
+		FixedDelay: &fixedDelayDuration,
+	}
+	return &v2.FaultDelay{
+		Percentage:         percentage,
+		FaultDelaySecifier: delaySpec,
+	}
+}
+
+func generateEnvoyConfigForHttpFault(routeAbort *fault.RouteAbort, routeDelay *fault.RouteDelay) *envoyfault.HTTPFault {
+	abort := toEnvoyAbort(routeAbort)
+	delay := toEnvoyDelay(routeDelay)
 	return &envoyfault.HTTPFault{
-		Abort: &abort,
-		// TODO (rducott): allow configuration of delay faults
+		Abort:           abort,
+		Delay:           delay,
 		DownstreamNodes: []string{},
 		UpstreamCluster: "",
 		Headers:         []*envoyroute.HeaderMatcher{},

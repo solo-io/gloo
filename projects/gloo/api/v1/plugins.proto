@@ -32,7 +32,8 @@ message VirtualHostPlugins {}
 // to be usable by Gloo.
 message RoutePlugins {
     transformation.plugins.gloo.solo.io.RouteTransformations transformations = 1;
-    fault.plugins.gloo.solo.io.RouteFault fault = 2;
+    fault.plugins.gloo.solo.io.RouteAbort abort = 2;
+    fault.plugins.gloo.solo.io.RouteDelay delay = 3;
 }
 
 // Configuration for Destinations that are tied to the UpstreamSpec or ServiceSpec on that destination
