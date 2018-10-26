@@ -87,7 +87,7 @@ var _ = Describe("Fault Injection", func() {
 			}, "5s", ".1s").Should(BeNil())
 		})
 
-		FIt("should cause envoy delay fault", func() {
+		It("should cause envoy delay fault", func() {
 			tu := v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
 			// drain channel as we dont care about it
 			go func() {
