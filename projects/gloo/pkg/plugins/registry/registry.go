@@ -24,7 +24,6 @@ var globalRegistry = func(opts bootstrap.Opts) *registry {
 		azure.NewPlugin(&transformationPlugin.RequireTransformationFilter),
 		aws.NewPlugin(&transformationPlugin.RequireTransformationFilter),
 		rest.NewPlugin(&transformationPlugin.RequireTransformationFilter),
-		rest.NewPlugin(&transformationPlugin.RequireTransformationFilter),
 		static.NewPlugin(),
 		transformationPlugin,
 		grpc.NewPlugin(&transformationPlugin.RequireTransformationFilter),
