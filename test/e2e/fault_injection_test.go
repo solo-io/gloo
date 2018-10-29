@@ -38,8 +38,8 @@ var _ = Describe("Fault Injection", func() {
 
 		var (
 			envoyInstance *services.EnvoyInstance
-			up *gloov1.Upstream
-			opts clients.WriteOpts
+			up            *gloov1.Upstream
+			opts          clients.WriteOpts
 		)
 
 		setupProxy := func(proxy *gloov1.Proxy, up *gloov1.Upstream) {
@@ -142,8 +142,8 @@ var _ = Describe("Fault Injection", func() {
 func getGlooProxy(abort *fault.RouteAbort, delay *fault.RouteDelay, envoyPort uint32, up *gloov1.Upstream, resourceVersion string) *gloov1.Proxy {
 	return &gloov1.Proxy{
 		Metadata: core.Metadata{
-			Name:      "proxy",
-			Namespace: "default",
+			Name:            "proxy",
+			Namespace:       "default",
 			ResourceVersion: resourceVersion,
 		},
 		Listeners: []*gloov1.Listener{{
@@ -171,8 +171,10 @@ func getGlooProxy(abort *fault.RouteAbort, delay *fault.RouteDelay, envoyPort ui
 								},
 							},
 							RoutePlugins: &gloov1.RoutePlugins{
-								Abort: abort,
-								Delay: delay,
+								Faults: &fault.RouteFaults{
+									Abort: abort,
+									Delay: delay,
+								},
 							},
 						}},
 						VirtualHostPlugins: &gloov1.VirtualHostPlugins{},

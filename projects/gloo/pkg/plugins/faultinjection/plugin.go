@@ -21,7 +21,7 @@ import (
 
 const (
 	FilterName  = "envoy.fault"
-	pluginStage = plugins.PreInAuth // TODO (rick): ensure this is the first filter that gets applied
+	pluginStage = plugins.FaultFilter
 )
 
 type Plugin struct {
@@ -50,8 +50,12 @@ func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		if in.RoutePlugins == nil {
 			return nil, nil
 		}
-		routeAbort := in.GetRoutePlugins().GetAbort()
-		routeDelay := in.GetRoutePlugins().GetDelay()
+		routeFaults := in.GetRoutePlugins().GetFaults()
+		if routeFaults == nil {
+			return nil, nil
+		}
+		routeAbort := routeFaults.GetAbort()
+		routeDelay := routeFaults.GetDelay()
 		if routeAbort == nil && routeDelay == nil {
 			return nil, nil
 		}

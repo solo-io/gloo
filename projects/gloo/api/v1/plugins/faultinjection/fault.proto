@@ -29,3 +29,8 @@ message RouteDelay {
     // Fixed delay, defaulting to 0.
     google.protobuf.Duration fixed_delay = 2;
 }
+
+message RouteFaults {
+    RouteAbort abort = 1;
+    RouteDelay delay = 2;
+}
