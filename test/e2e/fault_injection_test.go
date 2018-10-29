@@ -38,7 +38,40 @@ var _ = Describe("Fault Injection", func() {
 
 		var (
 			envoyInstance *services.EnvoyInstance
+			up *gloov1.Upstream
+			opts clients.WriteOpts
 		)
+
+		setupProxy := func(proxy *gloov1.Proxy, up *gloov1.Upstream) {
+			proxyCli := testClients.ProxyClient
+			_, err := proxyCli.Write(proxy, opts)
+			Expect(err).NotTo(HaveOccurred())
+		}
+		envoyPort := uint32(8080)
+		setupInitialProxy := func() {
+			proxy := getGlooProxy(nil, nil, envoyPort, up, "")
+			setupProxy(proxy, up)
+			Eventually(func() error {
+				_, err := http.Get(fmt.Sprintf("http://%s:%d/status/200", "localhost", envoyPort))
+				if err != nil {
+					return err
+				}
+				return nil
+			}, "5s", ".1s").Should(BeNil())
+		}
+
+		setupUpstream := func() {
+			tu := v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
+			// drain channel as we dont care about it
+			go func() {
+				for range tu.C {
+				}
+			}()
+			var opts clients.WriteOpts
+			up = tu.Upstream
+			_, err := testClients.UpstreamClient.Write(up, opts)
+			Expect(err).NotTo(HaveOccurred())
+		}
 
 		BeforeEach(func() {
 			var err error
@@ -47,6 +80,9 @@ var _ = Describe("Fault Injection", func() {
 
 			err = envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
+
+			setupUpstream()
+			setupInitialProxy()
 		})
 
 		AfterEach(func() {
@@ -55,33 +91,13 @@ var _ = Describe("Fault Injection", func() {
 			}
 		})
 
-		envoyPort := uint32(8080)
-		setupUpstream := func() *gloov1.Upstream {
-			tu := v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
-			// drain channel as we dont care about it
-			go func() {
-				for range tu.C {
-				}
-			}()
-			return tu.Upstream
-		}
-		setupProxy := func(proxy *gloov1.Proxy, up *gloov1.Upstream) {
-			var opts clients.WriteOpts
-			_, err := testClients.UpstreamClient.Write(up, opts)
-			Expect(err).NotTo(HaveOccurred())
-
-			proxyCli := testClients.ProxyClient
-			_, err = proxyCli.Write(proxy, opts)
-			Expect(err).NotTo(HaveOccurred())
-		}
-
 		It("should cause envoy abort fault", func() {
-			up := setupUpstream()
 			abort := &fault.RouteAbort{
 				HttpStatus: uint32(503),
 				Percentage: float32(100),
 			}
-			proxy := getGlooProxy(abort, nil, envoyPort, up)
+			proxy := getGlooProxy(abort, nil, envoyPort, up, "3")
+			opts.OverwriteExisting = true
 			setupProxy(proxy, up)
 
 			Eventually(func() error {
@@ -97,13 +113,13 @@ var _ = Describe("Fault Injection", func() {
 		})
 
 		It("should cause envoy delay fault", func() {
-			up := setupUpstream()
 			fixedDelay := types.Duration{Seconds: 3}
 			delay := &fault.RouteDelay{
 				FixedDelay: &fixedDelay,
 				Percentage: float32(100),
 			}
-			proxy := getGlooProxy(nil, delay, envoyPort, up)
+			proxy := getGlooProxy(nil, delay, envoyPort, up, "3")
+			opts.OverwriteExisting = true
 			setupProxy(proxy, up)
 
 			Eventually(func() error {
@@ -123,11 +139,12 @@ var _ = Describe("Fault Injection", func() {
 	})
 })
 
-func getGlooProxy(abort *fault.RouteAbort, delay *fault.RouteDelay, envoyPort uint32, up *gloov1.Upstream) *gloov1.Proxy {
+func getGlooProxy(abort *fault.RouteAbort, delay *fault.RouteDelay, envoyPort uint32, up *gloov1.Upstream, resourceVersion string) *gloov1.Proxy {
 	return &gloov1.Proxy{
 		Metadata: core.Metadata{
 			Name:      "proxy",
 			Namespace: "default",
+			ResourceVersion: resourceVersion,
 		},
 		Listeners: []*gloov1.Listener{{
 			Name:        "listener",
