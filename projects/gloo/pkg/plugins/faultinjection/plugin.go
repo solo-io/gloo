@@ -64,10 +64,7 @@ func toEnvoyAbort(abort *fault.RouteAbort) *envoyfault.FaultAbort {
 	if abort == nil {
 		return nil
 	}
-	percentage := &envoytype.FractionalPercent{
-		Numerator:   uint32(abort.Percentage),
-		Denominator: envoytype.FractionalPercent_HUNDRED,
-	}
+	percentage := toEnvoyPercentage(abort.Percentage)
 	errorType := &envoyfault.FaultAbort_HttpStatus{
 		HttpStatus: uint32(abort.HttpStatus),
 	}
@@ -82,14 +79,18 @@ func toGoDuration(protoDuration *types.Duration) time.Duration {
 	return time.Duration(protoDuration.GetNanos()) + seconds
 }
 
+func toEnvoyPercentage(percentage float32) *envoytype.FractionalPercent {
+	return &envoytype.FractionalPercent{
+		Numerator:   uint32(percentage * 1000000),
+		Denominator: envoytype.FractionalPercent_MILLION,
+	}
+}
+
 func toEnvoyDelay(delay *fault.RouteDelay) *v2.FaultDelay {
 	if delay == nil {
 		return nil
 	}
-	percentage := &envoytype.FractionalPercent{
-		Numerator:   uint32(delay.Percentage),
-		Denominator: envoytype.FractionalPercent_HUNDRED,
-	}
+	percentage := toEnvoyPercentage(delay.Percentage)
 	fixedDelayDuration := toGoDuration(delay.GetFixedDelay())
 	delaySpec := &v2.FaultDelay_FixedDelay{
 		FixedDelay: &fixedDelayDuration,

@@ -24,7 +24,7 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 type RouteAbort struct {
 	// Percentage of requests that should be aborted, defaulting to 0.
-	// This should be a value between 0 and 100, otherwise the behavior is undefined
+	// This should be a value between 0.0 and 100.0, with up to 6 significant digits.
 	Percentage float32 `protobuf:"fixed32,1,opt,name=percentage,proto3" json:"percentage,omitempty"`
 	// This should be a standard HTTP status, i.e. 503. Defaults to 0.
 	HttpStatus           uint32   `protobuf:"varint,2,opt,name=http_status,json=httpStatus,proto3" json:"http_status,omitempty"`
@@ -37,7 +37,7 @@ func (m *RouteAbort) Reset()         { *m = RouteAbort{} }
 func (m *RouteAbort) String() string { return proto.CompactTextString(m) }
 func (*RouteAbort) ProtoMessage()    {}
 func (*RouteAbort) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fault_49716030ca259551, []int{0}
+	return fileDescriptor_fault_8dd8e4a9b58e51b4, []int{0}
 }
 func (m *RouteAbort) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RouteAbort.Unmarshal(m, b)
@@ -73,10 +73,9 @@ func (m *RouteAbort) GetHttpStatus() uint32 {
 
 type RouteDelay struct {
 	// Percentage of requests that should be delayed, defaulting to 0.
-	// This should be a value between 0 and 100, otherwise the behavior is undefined
+	// This should be a value between 0.0 and 100.0, with up to 6 significant digits.
 	Percentage float32 `protobuf:"fixed32,1,opt,name=percentage,proto3" json:"percentage,omitempty"`
 	// Fixed delay, defaulting to 0.
-	// For example, for a 3 second delay this should be 3000000000.
 	FixedDelay           *types.Duration `protobuf:"bytes,2,opt,name=fixed_delay,json=fixedDelay" json:"fixed_delay,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
 	XXX_unrecognized     []byte          `json:"-"`
@@ -87,7 +86,7 @@ func (m *RouteDelay) Reset()         { *m = RouteDelay{} }
 func (m *RouteDelay) String() string { return proto.CompactTextString(m) }
 func (*RouteDelay) ProtoMessage()    {}
 func (*RouteDelay) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fault_49716030ca259551, []int{1}
+	return fileDescriptor_fault_8dd8e4a9b58e51b4, []int{1}
 }
 func (m *RouteDelay) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RouteDelay.Unmarshal(m, b)
@@ -186,9 +185,9 @@ func (this *RouteDelay) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("faultinjection/fault.proto", fileDescriptor_fault_49716030ca259551) }
+func init() { proto.RegisterFile("faultinjection/fault.proto", fileDescriptor_fault_8dd8e4a9b58e51b4) }
 
-var fileDescriptor_fault_49716030ca259551 = []byte{
+var fileDescriptor_fault_8dd8e4a9b58e51b4 = []byte{
 	// 265 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x90, 0xb1, 0x4e, 0xf4, 0x30,
 	0x10, 0x84, 0x95, 0x2b, 0xfe, 0xc2, 0xd1, 0xdf, 0x44, 0x14, 0x47, 0x8a, 0x70, 0xba, 0xea, 0x1a,
