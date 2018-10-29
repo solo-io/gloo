@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gogo/protobuf/types"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	fault "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/faultinjection"
@@ -77,7 +79,7 @@ var _ = Describe("Fault Injection", func() {
 			up := setupUpstream()
 			abort := &fault.RouteAbort{
 				HttpStatus: uint32(503),
-				Percentage: uint32(100),
+				Percentage: float32(100),
 			}
 			proxy := getGlooProxy(abort, nil, envoyPort, up)
 			setupProxy(proxy, up)
@@ -96,10 +98,10 @@ var _ = Describe("Fault Injection", func() {
 
 		It("should cause envoy delay fault", func() {
 			up := setupUpstream()
-			fixedDelay := time.Duration(3000000000) // 3 seconds in ns
+			fixedDelay := types.Duration{Seconds: 3}
 			delay := &fault.RouteDelay{
-				FixedDelayNano: uint64(fixedDelay.Nanoseconds()),
-				Percentage:     uint32(100),
+				FixedDelay: &fixedDelay,
+				Percentage: float32(100),
 			}
 			proxy := getGlooProxy(nil, delay, envoyPort, up)
 			setupProxy(proxy, up)
@@ -111,7 +113,7 @@ var _ = Describe("Fault Injection", func() {
 					return err
 				}
 				elapsed := time.Now().Sub(start)
-				if elapsed < fixedDelay {
+				if elapsed < (3 * time.Second) {
 					return errors.New(fmt.Sprintf("Elapsed time %s not longer than delay %s", elapsed.String(), fixedDelay.String()))
 				}
 				return nil

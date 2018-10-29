@@ -3,6 +3,8 @@ package faultinjection
 import (
 	"time"
 
+	"github.com/gogo/protobuf/types"
+
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	"github.com/envoyproxy/go-control-plane/envoy/config/filter/fault/v2"
 	envoyfault "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/fault/v2"
@@ -75,6 +77,11 @@ func toEnvoyAbort(abort *fault.RouteAbort) *envoyfault.FaultAbort {
 	}
 }
 
+func toGoDuration(protoDuration *types.Duration) time.Duration {
+	seconds := time.Duration(protoDuration.Seconds) * time.Second
+	return time.Duration(protoDuration.GetNanos()) + seconds
+}
+
 func toEnvoyDelay(delay *fault.RouteDelay) *v2.FaultDelay {
 	if delay == nil {
 		return nil
@@ -83,7 +90,7 @@ func toEnvoyDelay(delay *fault.RouteDelay) *v2.FaultDelay {
 		Numerator:   uint32(delay.Percentage),
 		Denominator: envoytype.FractionalPercent_HUNDRED,
 	}
-	fixedDelayDuration := time.Duration(delay.GetFixedDelayNano())
+	fixedDelayDuration := toGoDuration(delay.GetFixedDelay())
 	delaySpec := &v2.FaultDelay_FixedDelay{
 		FixedDelay: &fixedDelayDuration,
 	}
