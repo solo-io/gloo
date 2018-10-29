@@ -9,6 +9,7 @@ package fault.plugins.gloo.solo.io;
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/faultinjection";
 
 import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
 
 // TODO: can we get rid of this?
 option (gogoproto.equal_all) = true;
@@ -25,7 +26,7 @@ message RouteDelay {
     // Percentage of requests that should be delayed, defaulting to 0.
     // This should be a value between 0 and 100, otherwise the behavior is undefined
     uint32 percentage = 1;
-    // Fixed delay in nanoseconds, defaulting to 0.
+    // Fixed delay, defaulting to 0.
     // For example, for a 3 second delay this should be 3000000000.
-    uint64 fixed_delay_nano = 2;
+    google.protobuf.Duration fixed_delay = 2;
 }
