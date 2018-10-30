@@ -8,7 +8,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
 )
 
@@ -79,11 +78,10 @@ const (
 )
 
 type Plugin struct {
-	rlconfig *v1.RateLimitConfig
 }
 
-func NewPlugin(xdscache cache.SnapshotCache) plugins.Plugin {
-	return &Plugin{xdscache}
+func NewPlugin() plugins.Plugin {
+	return &Plugin{}
 }
 
 func (p *Plugin) Init(params plugins.InitParams) error {
