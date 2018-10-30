@@ -4,15 +4,19 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-
 	"github.com/gorilla/websocket"
+
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+
+	"sync"
+
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
 	"github.com/rs/cors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/auth"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 	apiserver "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
