@@ -10,7 +10,7 @@ option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugin
 
 import "google/protobuf/duration.proto";
 
-import "github.com/solo-io/solo-kit/api/external/proto/validate/validate.proto";
+import "validate/validate.proto";
 import "gogoproto/gogo.proto";
 
 // TODO: can we get rid of this?
