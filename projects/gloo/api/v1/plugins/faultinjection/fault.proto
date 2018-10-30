@@ -8,8 +8,10 @@ package fault.plugins.gloo.solo.io;
 
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/faultinjection";
 
-import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
+
+import "github.com/solo-io/solo-kit/api/external/proto/validate/validate.proto";
+import "gogoproto/gogo.proto";
 
 // TODO: can we get rid of this?
 option (gogoproto.equal_all) = true;
@@ -27,7 +29,8 @@ message RouteDelay {
     // This should be a value between 0.0 and 100.0, with up to 6 significant digits.
     float percentage = 1;
     // Fixed delay, defaulting to 0.
-    google.protobuf.Duration fixed_delay = 2;
+    google.protobuf.Duration fixed_delay = 2
+        [(validate.rules).duration.gt = {}, (gogoproto.stdduration) = true];
 }
 
 message RouteFaults {

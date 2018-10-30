@@ -109,10 +109,7 @@ func generateEnvoyConfigForHttpFault(routeAbort *fault.RouteAbort, routeDelay *f
 	abort := toEnvoyAbort(routeAbort)
 	delay := toEnvoyDelay(routeDelay)
 	return &envoyfault.HTTPFault{
-		Abort:           abort,
-		Delay:           delay,
-		DownstreamNodes: []string{},
-		UpstreamCluster: "",
-		Headers:         []*envoyroute.HeaderMatcher{},
+		Abort: abort,
+		Delay: delay,
 	}
 }
