@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gogo/protobuf/types"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	fault "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/faultinjection"
@@ -113,7 +111,7 @@ var _ = Describe("Fault Injection", func() {
 		})
 
 		It("should cause envoy delay fault", func() {
-			fixedDelay := types.Duration{Seconds: 3}
+			fixedDelay := time.Second * 3
 			delay := &fault.RouteDelay{
 				FixedDelay: &fixedDelay,
 				Percentage: float32(100),
