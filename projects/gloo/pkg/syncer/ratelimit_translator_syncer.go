@@ -27,6 +27,9 @@ func (s *translatorSyncer) SyncRateLimit(ctx context.Context, snap *v1.ApiSnapsh
 					continue
 				}
 				cfg, err := ratelimit.TranslateUserConfigToRateLimitServerConfig(*virtualHost.VirtualHostPlugins.RateLimits)
+				if err != nil {
+					return err
+				}
 				resource := v1.NewRateLimitConfigXdsResourceWrapper(cfg)
 				resources := []envoycache.Resource{resource}
 				h, err := hashstructure.Hash(resources, nil)
