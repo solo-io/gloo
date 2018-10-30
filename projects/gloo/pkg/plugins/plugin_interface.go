@@ -84,7 +84,8 @@ type StagedHttpFilter struct {
 type FilterStage int
 
 const (
-	PreInAuth FilterStage = iota
+	FaultFilter FilterStage = iota
+	PreInAuth
 	InAuth
 	PostInAuth
 	PreOutAuth
