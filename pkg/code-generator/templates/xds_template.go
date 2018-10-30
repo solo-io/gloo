@@ -82,7 +82,7 @@ type {{ lower_camel .Name }}Server struct {
 	server.Server
 }
 
-func NewServer(genericServer server.Server) {{ upper_camel .Name }}Server {
+func New{{ upper_camel .Name }}Server(genericServer server.Server) {{ upper_camel .Name }}Server {
 	return &{{ lower_camel .Name }}Server{Server: genericServer}
 }
 
@@ -111,7 +111,7 @@ func (s *{{ lower_camel .Name }}Server) Incremental{{ upper_camel .MessageType }
 type Apply{{ upper_camel .MessageType }} func(version string, resources []*{{ upper_camel .MessageType }}) error
 
 // Convert the strongly typed apply to a generic apply.
-func apply(rlapply Apply{{ upper_camel .MessageType }}) func(cache.Resources) error {
+func apply{{ upper_camel .MessageType }}(typedApply Apply{{ upper_camel .MessageType }}) func(cache.Resources) error {
 	return func(resources cache.Resources) error {
 
 		var configs []*{{ upper_camel .MessageType }}
@@ -123,12 +123,12 @@ func apply(rlapply Apply{{ upper_camel .MessageType }}) func(cache.Resources) er
 			}
 		}
 
-		return rlapply(resources.Version, configs)
+		return typedApply(resources.Version, configs)
 	}
 }
 
-func New{{ upper_camel .MessageType }}Client(nodeinfo *core.Node, rlapply Apply{{ upper_camel .MessageType }}) client.Client {
-	return client.NewClient(nodeinfo, {{ upper_camel .MessageType }}TypeRecord, apply(rlapply))
+func New{{ upper_camel .MessageType }}Client(nodeinfo *core.Node, typedApply Apply{{ upper_camel .MessageType }}) client.Client {
+	return client.NewClient(nodeinfo, {{ upper_camel .MessageType }}TypeRecord, apply{{ upper_camel .MessageType }}(typedApply))
 }
 
 `))
