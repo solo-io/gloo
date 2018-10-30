@@ -1,4 +1,4 @@
-package ratelimit
+package syncer
 
 import (
 	"context"
@@ -8,18 +8,10 @@ import (
 
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	envoycache "github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/ratelimit"
 )
 
-type translatorSyncer struct {
-	xdsCache envoycache.SnapshotCache
-}
-
-func NewTranslatorSyncer(xdsCache envoycache.SnapshotCache) *translatorSyncer {
-
-	return &translatorSyncer{xdsCache: xdsCache}
-}
-
-func (t *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
+func (s *translatorSyncer) SyncRateLimit(ctx context.Context, snap *v1.ApiSnapshot) error {
 	for _, proxy := range snap.Proxies.List() {
 		for _, listener := range proxy.Listeners {
 			httpListener, ok := listener.ListenerType.(*v1.Listener_HttpListener)
@@ -34,7 +26,7 @@ func (t *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error
 				if virtualHost.VirtualHostPlugins.RateLimits == nil {
 					continue
 				}
-				cfg, err := translateUserConfigToRateLimitServerConfig(*virtualHost.VirtualHostPlugins.RateLimits)
+				cfg, err := ratelimit.TranslateUserConfigToRateLimitServerConfig(*virtualHost.VirtualHostPlugins.RateLimits)
 				resource := v1.NewRateLimitConfigXdsResourceWrapper(cfg)
 				resources := []envoycache.Resource{resource}
 				h, err := hashstructure.Hash(resources, nil)
@@ -42,8 +34,7 @@ func (t *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error
 					panic(err)
 				}
 				rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
-				t.xdsCache.SetSnapshot("ratelimit", rlsnap)
-				// TODO(yuval-k): For now we don't support more than one rate limit config, we need to solve this
+				s.xdsCache.SetSnapshot("ratelimit", rlsnap)
 				// very soon. either buy changing the plugin or potentially the filter.
 				return nil
 

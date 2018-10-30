@@ -35,8 +35,6 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/ratelimit"
 )
 
 type RunFunc func(opts bootstrap.Opts) error
@@ -277,15 +275,7 @@ func RunGloo(opts bootstrap.Opts) error {
 	}
 
 	sync := NewTranslatorSyncer(translator.NewTranslator(plugins), opts.ControlPlane.SnapshotCache, xdsHasher, rpt, opts.DevMode)
-	rlSyncer := ratelimit.NewTranslatorSyncer( opts.ControlPlane.SnapshotCache)
-	// TODO(yuval-k): there is a weird coupling here that's hard to express:
-	// the translators both rely on the same snapshot that maybe generate errors.
-	// if the rate limit config is invalid we don't want to update either envoy nor the ratelimit server
-	// and currently this decision happens independently.
-	// consider refactor the syncers to expose a snapshot error so we can avoid updating the snpashot cache entirely.
-	// on the other hand, I'm not sure if we want to be to eager, and error the whole snapshot if only one virtual host in it is broken.
-	syncers := v1.ApiSyncers{sync, rlSyncer}
-	eventLoop := v1.NewApiEventLoop(cache, syncers)
+	eventLoop := v1.NewApiEventLoop(cache, sync)
 
 	errs := make(chan error)
 
