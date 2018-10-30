@@ -45,8 +45,9 @@ func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error
 		return err
 	}
 
-	err := s.SyncRateLimit(ctx, snap)
+	err = s.SyncRateLimit(ctx, snap)
 	if err != nil {
 		return err
 	}
+	return nil
 }
