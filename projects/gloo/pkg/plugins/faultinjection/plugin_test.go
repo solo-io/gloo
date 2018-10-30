@@ -6,22 +6,7 @@ import (
 	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
 
 	"testing"
-	"time"
-
-	"github.com/gogo/protobuf/types"
 )
-
-func TestToGoDuration(t *testing.T) {
-	assertEqualDurations(&types.Duration{Seconds: 3}, 3*time.Second, t)
-	assertEqualDurations(&types.Duration{Nanos: 3}, 3*time.Nanosecond, t)
-	assertEqualDurations(&types.Duration{Seconds: 3, Nanos: 3}, 3*time.Second+3, t)
-}
-
-func assertEqualDurations(protoDuration *types.Duration, expectedGoDuration time.Duration, t *testing.T) {
-	if toGoDuration(protoDuration) != expectedGoDuration {
-		t.Errorf("Duration %v should have been %v.", protoDuration, expectedGoDuration)
-	}
-}
 
 func TestToEnvoyPercentage(t *testing.T) {
 	assertEqualPercent(1, 1000000, t)
