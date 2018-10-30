@@ -260,7 +260,9 @@ func RunGloo(opts bootstrap.Opts) error {
 
 	cache := v1.NewApiEmitter(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)
 
+	// Register grpc endpoints to the grpc server
 	xdsHasher := xds.SetupEnvoyXds(opts.ControlPlane.GrpcServer, opts.ControlPlane.XDSServer, opts.ControlPlane.SnapshotCache)
+	v1.RegisterRateLimitDiscoveryServiceServer(opts.ControlPlane.GrpcServer, v1.NewRateLimitDiscoveryServiceServer(opts.ControlPlane.XDSServer))
 
 	rpt := reporter.NewReporter("gloo", upstreamClient.BaseClient(), proxyClient.BaseClient())
 
