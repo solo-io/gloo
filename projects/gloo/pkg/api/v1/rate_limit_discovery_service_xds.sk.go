@@ -65,7 +65,7 @@ type rateLimitDiscoveryServiceServer struct {
 	server.Server
 }
 
-func NewServer(genericServer server.Server) RateLimitDiscoveryServiceServer {
+func NewRateLimitDiscoveryServiceServer(genericServer server.Server) RateLimitDiscoveryServiceServer {
 	return &rateLimitDiscoveryServiceServer{Server: genericServer}
 }
 
@@ -93,7 +93,7 @@ func (s *rateLimitDiscoveryServiceServer) IncrementalRateLimitConfig(_ RateLimit
 type ApplyRateLimitConfig func(version string, resources []*RateLimitConfig) error
 
 // Convert the strongly typed apply to a generic apply.
-func apply(rlapply ApplyRateLimitConfig) func(cache.Resources) error {
+func applyRateLimitConfig(typedApply ApplyRateLimitConfig) func(cache.Resources) error {
 	return func(resources cache.Resources) error {
 
 		var configs []*RateLimitConfig
@@ -105,10 +105,10 @@ func apply(rlapply ApplyRateLimitConfig) func(cache.Resources) error {
 			}
 		}
 
-		return rlapply(resources.Version, configs)
+		return typedApply(resources.Version, configs)
 	}
 }
 
-func NewRateLimitConfigClient(nodeinfo *core.Node, rlapply ApplyRateLimitConfig) client.Client {
-	return client.NewClient(nodeinfo, RateLimitConfigTypeRecord, apply(rlapply))
+func NewRateLimitConfigClient(nodeinfo *core.Node, typedApply ApplyRateLimitConfig) client.Client {
+	return client.NewClient(nodeinfo, RateLimitConfigTypeRecord, applyRateLimitConfig(typedApply))
 }
