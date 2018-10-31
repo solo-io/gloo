@@ -71,10 +71,10 @@ $(OUTPUT_DIR)/.generated-code:
 	goimports -w $(SUBDIRS)
 	touch $@
 
+
 #----------------------------------------------------------------------------------
 # protoc plugin binary
 #----------------------------------------------------------------------------------
-
 .PHONY: install-plugin
 install-plugin: ${GOPATH}/bin/protoc-gen-solo-kit
 
@@ -97,6 +97,16 @@ ${GOPATH}/bin/protoc-gen-solo-kit: $(OUTPUT_DIR)/protoc-gen-solo-kit
 	cp $(OUTPUT_DIR)/protoc-gen-solo-kit ${GOPATH}/bin/
 
 
+GOGO_PROTO_VERSION=v$(shell grep -C 1 github.com/gogo/protobuf  Gopkg.toml|grep version |cut -d'"' -f 2)
+.PHONY: install-gen-tools
+install-gogo-proto: ${GOPATH}/bin/protoc-gen-solo-kit
+	mkdir -p  ${GOPATH}/src/github.com/gogo/ 
+	cd  ${GOPATH}/src/github.com/gogo/ && if [ -d protobuf ]; then cd protobuf && git fetch && git checkout $(GOGO_PROTO_VERSION); \
+		else  git clone --branch $(GOGO_PROTO_VERSION) http://github.com/gogo/protobuf; fi
+	go install github.com/gogo/protobuf/protoc-gen-gogo
+
+.PHONY: install-gen-tools
+install-gen-tools: install-gogo-proto install-gqlgen install-plugin
 
 #################
 #################
