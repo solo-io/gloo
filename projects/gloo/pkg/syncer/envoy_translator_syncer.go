@@ -20,7 +20,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (s *translatorSyncer) SyncEnvoy(ctx context.Context, snap *v1.ApiSnapshot) error {
+func (s *translatorSyncer) syncEnvoy(ctx context.Context, snap *v1.ApiSnapshot) error {
 
 	ctx, span := trace.StartSpan(ctx, "gloo.syncer.Sync")
 	defer span.End()

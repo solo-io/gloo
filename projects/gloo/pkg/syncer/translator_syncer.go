@@ -40,12 +40,12 @@ func NewTranslatorSyncer(translator translator.Translator, xdsCache envoycache.S
 }
 
 func (s *translatorSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
-	err := s.SyncEnvoy(ctx, snap)
+	err := s.syncEnvoy(ctx, snap)
 	if err != nil {
 		return err
 	}
 
-	err = s.SyncRateLimit(ctx, snap)
+	err = s.syncRateLimit(ctx, snap)
 	if err != nil {
 		return err
 	}

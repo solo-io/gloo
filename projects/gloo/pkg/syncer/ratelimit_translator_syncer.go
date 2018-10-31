@@ -11,7 +11,7 @@ import (
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/ratelimit"
 )
 
-func (s *translatorSyncer) SyncRateLimit(ctx context.Context, snap *v1.ApiSnapshot) error {
+func (s *translatorSyncer) syncRateLimit(ctx context.Context, snap *v1.ApiSnapshot) error {
 	for _, proxy := range snap.Proxies.List() {
 		for _, listener := range proxy.Listeners {
 			httpListener, ok := listener.ListenerType.(*v1.Listener_HttpListener)
