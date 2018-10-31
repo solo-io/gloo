@@ -108,7 +108,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 }
 
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
-	conf, err := protoutils.MarshalPbStruct(generateEnvoyConfigForFilter())
+	conf, err := protoutils.MarshalStruct(generateEnvoyConfigForFilter())
 	if err != nil {
 		return nil, err
 	}

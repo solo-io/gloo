@@ -16,18 +16,7 @@ var jsonpbMarshaler = &jsonpb.Marshaler{OrigName: true}
 
 // this function is designed for converting go object (that is not a proto.Message) into a
 // pb Struct, based on json struct tags
-func MarshalStruct(m interface{}) (*types.Struct, error) {
-	data, err := json.Marshal(m)
-	if err != nil {
-		return nil, err
-	}
-	var pb types.Struct
-	err = jsonpb.UnmarshalString(string(data), &pb)
-	return &pb, err
-}
-
-// TODO(yuval-k): Marshal using jsonbp all the way. need to check if we should use this instead of MarshalStruct.
-func MarshalPbStruct(m proto.Message) (*types.Struct, error) {
+func MarshalStruct(m proto.Message) (*types.Struct, error) {
 	data, err := MarshalBytes(m)
 	if err != nil {
 		return nil, err

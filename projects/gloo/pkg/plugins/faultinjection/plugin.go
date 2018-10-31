@@ -55,7 +55,7 @@ func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 		if routeAbort == nil && routeDelay == nil {
 			return nil, nil
 		}
-		return protoutils.MarshalPbStruct(generateEnvoyConfigForHttpFault(routeAbort, routeDelay))
+		return protoutils.MarshalStruct(generateEnvoyConfigForHttpFault(routeAbort, routeDelay))
 	}
 	return pluginutils.MarkPerFilterConfig(params.Ctx, in, out, FilterName, markFilterConfigFunc)
 }
