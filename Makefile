@@ -98,11 +98,15 @@ ${GOPATH}/bin/protoc-gen-solo-kit: $(OUTPUT_DIR)/protoc-gen-solo-kit
 
 
 GOGO_PROTO_VERSION=v$(shell grep -C 1 github.com/gogo/protobuf  Gopkg.toml|grep version |cut -d'"' -f 2)
+GOLANG_PROTO_VERSION=v$(shell grep -C 1 github.com/golang/protobuf  Gopkg.toml|grep version |cut -d'"' -f 2)
 .PHONY: install-gen-tools
 install-gogo-proto: ${GOPATH}/bin/protoc-gen-solo-kit
 	mkdir -p  ${GOPATH}/src/github.com/gogo/ 
+	mkdir -p  ${GOPATH}/src/github.com/golang/ 
 	cd  ${GOPATH}/src/github.com/gogo/ && if [ -d protobuf ]; then cd protobuf && git fetch && git checkout $(GOGO_PROTO_VERSION); \
 		else  git clone --branch $(GOGO_PROTO_VERSION) http://github.com/gogo/protobuf; fi
+	cd  ${GOPATH}/src/github.com/golang/ && if [ -d protobuf ]; then cd protobuf && git fetch && git checkout $(GOLANG_PROTO_VERSION); \
+		else  git clone --branch $(GOLANG_PROTO_VERSION) http://github.com/golang/protobuf; fi
 	go install github.com/gogo/protobuf/protoc-gen-gogo
 
 .PHONY: install-gen-tools
