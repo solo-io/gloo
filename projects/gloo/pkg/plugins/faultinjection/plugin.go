@@ -76,7 +76,7 @@ func toEnvoyAbort(abort *fault.RouteAbort) *envoyfault.FaultAbort {
 
 func toEnvoyPercentage(percentage float32) *envoytype.FractionalPercent {
 	return &envoytype.FractionalPercent{
-		Numerator:   uint32(percentage * 1000000),
+		Numerator:   uint32(percentage * 10000),
 		Denominator: envoytype.FractionalPercent_MILLION,
 	}
 }

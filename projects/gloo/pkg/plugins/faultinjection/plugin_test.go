@@ -9,8 +9,10 @@ import (
 )
 
 func TestToEnvoyPercentage(t *testing.T) {
-	assertEqualPercent(1, 1000000, t)
-	assertEqualPercent(50.0005, 50000500, t)
+	assertEqualPercent(.0001, 1, t) // from the docs
+	assertEqualPercent(1, 10000, t)
+	assertEqualPercent(50.0005, 500005, t)
+	assertEqualPercent(100, 1000000, t)
 	// assertEqualPercent(50.000005, 50000005, t) cannot test for this level of precision
 }
 
