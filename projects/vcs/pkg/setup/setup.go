@@ -16,6 +16,7 @@ import (
 	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/projects/vcs/pkg/file"
 )
 
 func Setup(ctx context.Context, port int) error {
@@ -36,16 +37,25 @@ func Setup(ctx context.Context, port int) error {
 		return err
 	}
 
-	go ListCo(ctx, vsClientKube, vsClientFile)
+	dc, err := file.NewDualClient("kube")
+	if err != nil {
+		return err
+	}
+
+	// go ListCo(ctx, vsClientKube, vsClientFile)
+	// go ListCo(ctx, dc.Kube.VirtualServiceClient, dc.File.VirtualServiceClient)
+	go ListCo(ctx, dc)
 
 	return http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
 }
 
-func ListCo(ctx context.Context, vsClientK gatewayv1.VirtualServiceClient, vsClientF gatewayv1.VirtualServiceClient) {
+func ListCo(ctx context.Context, dc file.DualClientSet) {
 	// make a few edits
 	for i := 0; i < 2; i++ {
 		time.Sleep(1000 * time.Millisecond)
-		List(ctx, vsClientK, vsClientF)
+		// List(ctx, vsClientK, vsClientF)
+		// file.WriteVirtualServices(ctx, "gloo-system", vsClientK, vsClientF)
+		file.GenerateFilesystem(ctx, "gloo-system", dc)
 	}
 }
 
@@ -125,9 +135,12 @@ func List(ctx context.Context, vsk gatewayv1.VirtualServiceClient, vsf gatewayv1
 func Write(ctx context.Context, vsk gatewayv1.VirtualServiceClient, vsf gatewayv1.VirtualServiceClient) {
 	var convertedSelector map[string]string
 	listK, err := vsk.List("gloo-system", clients.ListOpts{
-		Ctx:      ctx,
-		Selector: convertedSelector,
+		Ctx: ctx,
 	})
+	if len(listK) == 0 {
+		fmt.Printf("please make a virtual service\n")
+		return
+	}
 	virtualServiceK, err := vsk.Read(listK[0].Metadata.Namespace, listK[0].Metadata.Name, clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
@@ -139,8 +152,9 @@ func Write(ctx context.Context, vsk gatewayv1.VirtualServiceClient, vsf gatewayv
 	if len(listF) > 0 {
 		virtualServiceF, err := vsf.Read(listF[0].Metadata.Namespace, listF[0].Metadata.Name, clients.ReadOpts{Ctx: ctx})
 		if err != nil {
-			fmt.Printf("kube err: %v\n", err)
+			fmt.Printf("file read err: %v\n", err)
 		}
+		fmt.Printf("file rv: %v\n", virtualServiceF.Metadata.ResourceVersion)
 
 		virtualServiceK.VirtualHost.Domains = append([]string{fmt.Sprintf("%v.co", len(listK[0].VirtualHost.Domains))}, listK[0].VirtualHost.Domains...)
 
@@ -149,9 +163,19 @@ func Write(ctx context.Context, vsk gatewayv1.VirtualServiceClient, vsf gatewayv
 			Ctx:               ctx,
 			OverwriteExisting: true,
 		})
+		if err != nil {
+			fmt.Printf("kube write err: %v\n", err)
+		}
+
+		virtualServiceF, err = vsf.Read(listF[0].Metadata.Namespace, listF[0].Metadata.Name, clients.ReadOpts{Ctx: ctx})
+		if err != nil {
+			fmt.Printf("file read err: %v\n", err)
+		}
+		fmt.Printf("file rv: %v\n", virtualServiceF.Metadata.ResourceVersion)
 
 		rvk := virtualServiceK.Metadata.ResourceVersion
 		rvf := virtualServiceF.Metadata.ResourceVersion
+		fmt.Printf("file rv: %v\n", rvf)
 		fmt.Printf("%v, %v, (rvs)\n", rvk, rvf)
 		virtualServiceK.Metadata.ResourceVersion = rvf
 	}
@@ -162,7 +186,7 @@ func Write(ctx context.Context, vsk gatewayv1.VirtualServiceClient, vsf gatewayv
 		OverwriteExisting: true,
 	})
 	if err != nil {
-		fmt.Printf("file err: %v\n", err)
+		fmt.Printf("file write err: %v\n", err)
 		// panic for faster dev iterations
 		panic("ouch")
 	}
