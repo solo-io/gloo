@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/projects/vcs/pkg/setup"
+	"github.com/solo-io/solo-kit/projects/vcs/pkg/file"
 )
 
 func main() {
@@ -17,8 +17,13 @@ func main() {
 }
 
 func run() error {
-	port := flag.Int("p", 8083, "port to bind")
-	fmt.Println("running")
+	action := flag.String("a", "vs", "action to take")
+	fmt.Printf("running, action: %v\n", *action)
 	ctx := contextutils.WithLogger(context.Background(), "vcs")
-	return setup.Setup(ctx, *port)
+	dc, err := file.NewDualClient("kube")
+	if err != nil {
+		return err
+	}
+	file.GenerateFilesystem(ctx, "gloo-system", dc)
+	return nil
 }
