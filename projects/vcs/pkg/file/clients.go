@@ -130,6 +130,10 @@ func registerClients(settings gloov1.SettingsClient, glooOpts bootstrap.Opts, ga
 	if err := proxies.Register(); err != nil {
 		return ClientSet{}, err
 	}
+	// ( we already created a settingsClient )
+	if err := settings.Register(); err != nil {
+		return ClientSet{}, err
+	}
 	resolverMaps, err := sqoopv1.NewResolverMapClient(sqoopOpts.ResolverMaps)
 	if err != nil {
 		return ClientSet{}, err

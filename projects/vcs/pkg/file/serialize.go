@@ -16,6 +16,8 @@ func GenerateFilesystem(ctx context.Context, namespace string, dc DualClientSet)
 	writeSchemas(ctx, namespace, dc.Kube.SchemaClient, dc.File.SchemaClient)
 	writeResolverMaps(ctx, namespace, dc.Kube.ResolverMapClient, dc.File.ResolverMapClient)
 	writeGateways(ctx, namespace, dc.Kube.GatewayClient, dc.File.GatewayClient)
+	writeProxies(ctx, namespace, dc.Kube.ProxyClient, dc.File.ProxyClient)
+	writeSettings(ctx, namespace, dc.Kube.SettingsClient, dc.File.SettingsClient)
 }
 
 func writeVirtualServices(ctx context.Context, namespace string, vsk gatewayv1.VirtualServiceClient, vsf gatewayv1.VirtualServiceClient) {
@@ -150,6 +152,28 @@ func writeProxies(ctx context.Context, namespace string, vsk gloov1.ProxyClient,
 	})
 	if len(listKube) == 0 {
 		fmt.Printf("please make a proxy\n")
+		return
+	}
+	for _, kubeResource := range listKube {
+		fmt.Printf("writing: %v\n", kubeResource.Metadata.Name)
+		_, err = vsf.Write(kubeResource, clients.WriteOpts{
+			Ctx:               ctx,
+			OverwriteExisting: true,
+		})
+		if err != nil {
+			fmt.Printf("file write err: %v\n", err)
+		}
+	}
+}
+
+func writeSettings(ctx context.Context, namespace string, vsk gloov1.SettingsClient, vsf gloov1.SettingsClient) {
+	// TODO get resource type from reflection
+	fmt.Printf("Writing settings to file\n")
+	listKube, err := vsk.List(namespace, clients.ListOpts{
+		Ctx: ctx,
+	})
+	if len(listKube) == 0 {
+		fmt.Printf("please make a setting\n")
 		return
 	}
 	for _, kubeResource := range listKube {
