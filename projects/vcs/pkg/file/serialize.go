@@ -6,6 +6,7 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
+	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 )
 
@@ -127,6 +128,28 @@ func writeGateways(ctx context.Context, namespace string, vsk gatewayv1.GatewayC
 	})
 	if len(listKube) == 0 {
 		fmt.Printf("please make a gateway\n")
+		return
+	}
+	for _, kubeResource := range listKube {
+		fmt.Printf("writing: %v\n", kubeResource.Metadata.Name)
+		_, err = vsf.Write(kubeResource, clients.WriteOpts{
+			Ctx:               ctx,
+			OverwriteExisting: true,
+		})
+		if err != nil {
+			fmt.Printf("file write err: %v\n", err)
+		}
+	}
+}
+
+func writeProxies(ctx context.Context, namespace string, vsk gloov1.ProxyClient, vsf gloov1.ProxyClient) {
+	// TODO get resource type from reflection
+	fmt.Printf("Writing proxies to file\n")
+	listKube, err := vsk.List(namespace, clients.ListOpts{
+		Ctx: ctx,
+	})
+	if len(listKube) == 0 {
+		fmt.Printf("please make a proxy\n")
 		return
 	}
 	for _, kubeResource := range listKube {

@@ -14,7 +14,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
 	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
@@ -32,12 +31,13 @@ type DualClientSet struct {
 }
 
 type ClientSet struct {
-	v1.UpstreamClient
+	gloov1.UpstreamClient
 	gatewayv1.VirtualServiceClient
 	gatewayv1.GatewayClient
-	v1.SettingsClient
-	v1.SecretClient
-	v1.ArtifactClient
+	gloov1.ProxyClient
+	gloov1.SettingsClient
+	gloov1.SecretClient
+	gloov1.ArtifactClient
 	sqoopv1.ResolverMapClient
 	sqoopv1.SchemaClient
 }
@@ -86,23 +86,23 @@ func NewDualClient(deploymentType string) (DualClientSet, error) {
 	}, nil
 }
 
-func registerClients(settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) (ClientSet, error) {
+func registerClients(settings gloov1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) (ClientSet, error) {
 	// initial resource registration
-	upstreams, err := v1.NewUpstreamClient(glooOpts.Upstreams)
+	upstreams, err := gloov1.NewUpstreamClient(glooOpts.Upstreams)
 	if err != nil {
 		return ClientSet{}, err
 	}
 	if err := upstreams.Register(); err != nil {
 		return ClientSet{}, err
 	}
-	secrets, err := v1.NewSecretClient(glooOpts.Secrets)
+	secrets, err := gloov1.NewSecretClient(glooOpts.Secrets)
 	if err != nil {
 		return ClientSet{}, err
 	}
 	if err := secrets.Register(); err != nil {
 		return ClientSet{}, err
 	}
-	artifacts, err := v1.NewArtifactClient(glooOpts.Artifacts)
+	artifacts, err := gloov1.NewArtifactClient(glooOpts.Artifacts)
 	if err != nil {
 		return ClientSet{}, err
 	}
@@ -123,6 +123,13 @@ func registerClients(settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewa
 	if err := gateways.Register(); err != nil {
 		return ClientSet{}, err
 	}
+	proxies, err := gloov1.NewProxyClient(glooOpts.Proxies)
+	if err != nil {
+		return ClientSet{}, err
+	}
+	if err := proxies.Register(); err != nil {
+		return ClientSet{}, err
+	}
 	resolverMaps, err := sqoopv1.NewResolverMapClient(sqoopOpts.ResolverMaps)
 	if err != nil {
 		return ClientSet{}, err
@@ -141,6 +148,7 @@ func registerClients(settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewa
 		UpstreamClient:       upstreams,
 		VirtualServiceClient: virtualServices,
 		GatewayClient:        gateways,
+		ProxyClient:          proxies,
 		SettingsClient:       settings,
 		SecretClient:         secrets,
 		ArtifactClient:       artifacts,
@@ -263,7 +271,7 @@ func FileSqoopOpts() (sqoopsetup.Opts, error) {
 	}, nil
 }
 
-func KubernetesConstructOpts() (v1.SettingsClient, bootstrap.Opts, error) {
+func KubernetesConstructOpts() (gloov1.SettingsClient, bootstrap.Opts, error) {
 	cfg, err := kubeutils.GetConfig("", "")
 	if err != nil {
 		return nil, bootstrap.Opts{}, err
@@ -276,8 +284,8 @@ func KubernetesConstructOpts() (v1.SettingsClient, bootstrap.Opts, error) {
 	cache := kube.NewKubeCache()
 
 	// TODO(ilackarms): pass in settings configuration from an environment variable or CLI flag, rather than hard-coding to k8s
-	settingsClient, err := v1.NewSettingsClient(&factory.KubeResourceClientFactory{
-		Crd:         v1.SettingsCrd,
+	settingsClient, err := gloov1.NewSettingsClient(&factory.KubeResourceClientFactory{
+		Crd:         gloov1.SettingsCrd,
 		Cfg:         cfg,
 		SharedCache: cache,
 	})
@@ -288,12 +296,12 @@ func KubernetesConstructOpts() (v1.SettingsClient, bootstrap.Opts, error) {
 	return settingsClient, bootstrap.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Upstreams: &factory.KubeResourceClientFactory{
-			Crd:         v1.UpstreamCrd,
+			Crd:         gloov1.UpstreamCrd,
 			Cfg:         cfg,
 			SharedCache: cache,
 		},
 		Proxies: &factory.KubeResourceClientFactory{
-			Crd:         v1.ProxyCrd,
+			Crd:         gloov1.ProxyCrd,
 			Cfg:         cfg,
 			SharedCache: cache,
 		},
@@ -317,11 +325,11 @@ func KubernetesConstructOpts() (v1.SettingsClient, bootstrap.Opts, error) {
 	}, nil
 }
 
-func FileConstructOpts() (v1.SettingsClient, bootstrap.Opts, error) {
+func FileConstructOpts() (gloov1.SettingsClient, bootstrap.Opts, error) {
 	ctx := contextutils.WithLogger(context.Background(), "gloo")
 
 	// TODO(ilackarms): pass in settings configuration from an environment variable or CLI flag, rather than hard-coding to k8s
-	settingsClient, err := v1.NewSettingsClient(&factory.FileResourceClientFactory{
+	settingsClient, err := gloov1.NewSettingsClient(&factory.FileResourceClientFactory{
 		RootDir: "gloo/settings",
 	})
 	if err != nil {
