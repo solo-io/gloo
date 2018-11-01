@@ -76,21 +76,60 @@ func writeVirtualServices(ctx context.Context, namespace string, vsk gatewayv1.V
 func writeSchemas(ctx context.Context, namespace string, vsk sqoopv1.SchemaClient, vsf sqoopv1.SchemaClient) {
 	// TODO get resource type from reflection
 	fmt.Printf("Writing schemas to file\n")
-	listKube, err := vsk.List(namespace, clients.ListOpts{
+	listK, err := vsk.List(namespace, clients.ListOpts{
 		Ctx: ctx,
 	})
-	if len(listKube) == 0 {
+	if len(listK) == 0 {
 		fmt.Printf("please make a schema\n")
 		return
 	}
-	for _, kubeResource := range listKube {
-		fmt.Printf("writing: %v\n", kubeResource.Metadata.Name)
-		_, err = vsf.Write(kubeResource, clients.WriteOpts{
+	for resource, i := listK {
+fmt.Printf("stuff: %v, %v\n", resource, i)
+	}
+	kubeResource, err := vsk.Read(listK[0].Metadata.Namespace, listK[0].Metadata.Name, clients.ReadOpts{Ctx: ctx})
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+	}
+	listF, err := vsf.List(namespace, clients.ListOpts{
+		Ctx: ctx,
+	})
+	if len(listF) > 0 {
+		fileResource, err := vsf.Read(listF[0].Metadata.Namespace, listF[0].Metadata.Name, clients.ReadOpts{Ctx: ctx})
+		if err != nil {
+			fmt.Printf("file read err: %v\n", err)
+		}
+		fmt.Printf("file rv: %v\n", fileResource.Metadata.ResourceVersion)
+
+		fmt.Println("writing to kubernetes")
+		_, err = vsk.Write(kubeResource, clients.WriteOpts{
 			Ctx:               ctx,
 			OverwriteExisting: true,
 		})
 		if err != nil {
-			fmt.Printf("file write err: %v\n", err)
+			fmt.Printf("kube write err: %v\n", err)
 		}
+
+		fileResource, err = vsf.Read(listF[0].Metadata.Namespace, listF[0].Metadata.Name, clients.ReadOpts{Ctx: ctx})
+		if err != nil {
+			fmt.Printf("file read err: %v\n", err)
+		}
+		fmt.Printf("file rv: %v\n", fileResource.Metadata.ResourceVersion)
+
+		rvk := kubeResource.Metadata.ResourceVersion
+		rvf := fileResource.Metadata.ResourceVersion
+		fmt.Printf("file rv: %v\n", rvf)
+		fmt.Printf("%v, %v, (rvs)\n", rvk, rvf)
+		kubeResource.Metadata.ResourceVersion = rvf
+	}
+	// copy the first VS to the file system (just for some sample data)
+	fmt.Println("writing to file")
+	_, err = vsf.Write(kubeResource, clients.WriteOpts{
+		Ctx:               ctx,
+		OverwriteExisting: true,
+	})
+	if err != nil {
+		fmt.Printf("file write err: %v\n", err)
+		// panic for faster dev iterations
+		panic("ouch")
 	}
 }
