@@ -13,6 +13,8 @@ import (
 func GenerateFilesystem(ctx context.Context, namespace string, dc DualClientSet) {
 	writeVirtualServices(ctx, namespace, dc.Kube.VirtualServiceClient, dc.File.VirtualServiceClient)
 	writeSchemas(ctx, namespace, dc.Kube.SchemaClient, dc.File.SchemaClient)
+	writeResolverMaps(ctx, namespace, dc.Kube.ResolverMapClient, dc.File.ResolverMapClient)
+	writeGateways(ctx, namespace, dc.Kube.GatewayClient, dc.File.GatewayClient)
 }
 
 func writeVirtualServices(ctx context.Context, namespace string, vsk gatewayv1.VirtualServiceClient, vsf gatewayv1.VirtualServiceClient) {
@@ -81,6 +83,50 @@ func writeSchemas(ctx context.Context, namespace string, vsk sqoopv1.SchemaClien
 	})
 	if len(listKube) == 0 {
 		fmt.Printf("please make a schema\n")
+		return
+	}
+	for _, kubeResource := range listKube {
+		fmt.Printf("writing: %v\n", kubeResource.Metadata.Name)
+		_, err = vsf.Write(kubeResource, clients.WriteOpts{
+			Ctx:               ctx,
+			OverwriteExisting: true,
+		})
+		if err != nil {
+			fmt.Printf("file write err: %v\n", err)
+		}
+	}
+}
+
+func writeResolverMaps(ctx context.Context, namespace string, vsk sqoopv1.ResolverMapClient, vsf sqoopv1.ResolverMapClient) {
+	// TODO get resource type from reflection
+	fmt.Printf("Writing resolvermaps to file\n")
+	listKube, err := vsk.List(namespace, clients.ListOpts{
+		Ctx: ctx,
+	})
+	if len(listKube) == 0 {
+		fmt.Printf("please make a resolvermap\n")
+		return
+	}
+	for _, kubeResource := range listKube {
+		fmt.Printf("writing: %v\n", kubeResource.Metadata.Name)
+		_, err = vsf.Write(kubeResource, clients.WriteOpts{
+			Ctx:               ctx,
+			OverwriteExisting: true,
+		})
+		if err != nil {
+			fmt.Printf("file write err: %v\n", err)
+		}
+	}
+}
+
+func writeGateways(ctx context.Context, namespace string, vsk gatewayv1.GatewayClient, vsf gatewayv1.GatewayClient) {
+	// TODO get resource type from reflection
+	fmt.Printf("Writing gateways to file\n")
+	listKube, err := vsk.List(namespace, clients.ListOpts{
+		Ctx: ctx,
+	})
+	if len(listKube) == 0 {
+		fmt.Printf("please make a gateway\n")
 		return
 	}
 	for _, kubeResource := range listKube {

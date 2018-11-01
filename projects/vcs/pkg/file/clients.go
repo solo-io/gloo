@@ -34,6 +34,7 @@ type DualClientSet struct {
 type ClientSet struct {
 	v1.UpstreamClient
 	gatewayv1.VirtualServiceClient
+	gatewayv1.GatewayClient
 	v1.SettingsClient
 	v1.SecretClient
 	v1.ArtifactClient
@@ -79,9 +80,6 @@ func NewDualClient(deploymentType string) (DualClientSet, error) {
 	if err != nil {
 		return DualClientSet{}, err
 	}
-	// TODO -- placeholder
-	// kubeClients, err := registerClients(kubeSettingsClient, kubeGlooOpts, kubeGatewayOpts, kubeSqoopOpts)
-	// fileClients, err := registerClients(fileSettingsClient, fileGlooOpts, fileGatewayOpts, fileSqoopOpts)
 	return DualClientSet{
 		Kube: kubeClients,
 		File: fileClients,
@@ -118,6 +116,13 @@ func registerClients(settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewa
 	if err := virtualServices.Register(); err != nil {
 		return ClientSet{}, err
 	}
+	gateways, err := gatewayv1.NewGatewayClient(gatewayOpts.Gateways)
+	if err != nil {
+		return ClientSet{}, err
+	}
+	if err := gateways.Register(); err != nil {
+		return ClientSet{}, err
+	}
 	resolverMaps, err := sqoopv1.NewResolverMapClient(sqoopOpts.ResolverMaps)
 	if err != nil {
 		return ClientSet{}, err
@@ -135,6 +140,7 @@ func registerClients(settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewa
 	return ClientSet{
 		UpstreamClient:       upstreams,
 		VirtualServiceClient: virtualServices,
+		GatewayClient:        gateways,
 		SettingsClient:       settings,
 		SecretClient:         secrets,
 		ArtifactClient:       artifacts,
