@@ -3,8 +3,8 @@ package setup
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"github.com/gorilla/websocket"
+	"net/http"
 
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 
@@ -16,7 +16,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/auth"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
+	"github.com/solo-io/solo-kit/projects/apiserver/pkg/config"
 	apiserver "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
 	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
@@ -29,6 +29,8 @@ import (
 
 // Setup initializes the apiserver
 func Setup(ctx context.Context, port int, dev bool, debugMode bool, settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
+	// fail fast if the environment is not correctly configured
+	config.ValidateEnvVars()
 	// initial resource registration
 	upstreams, err := v1.NewUpstreamClient(glooOpts.Upstreams)
 	if err != nil {
@@ -117,7 +119,7 @@ func Setup(ctx context.Context, port int, dev bool, debugMode bool, settings v1.
 				}
 				return res, err
 			}),
-				handler.WebsocketUpgrader(websocket.Upgrader{
+			handler.WebsocketUpgrader(websocket.Upgrader{
 				CheckOrigin: func(r *http.Request) bool {
 					return true
 				},
