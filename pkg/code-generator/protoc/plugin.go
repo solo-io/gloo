@@ -78,18 +78,18 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 		}
 	}
 
+	collectedDescriptorsBytes, err := proto.Marshal(req)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to marshal %+v", req)
+	}
+	if err := ioutil.WriteFile(collectedDescriptorsFile, collectedDescriptorsBytes, 0644); err != nil {
+		return nil, errors.Wrapf(err, "failed to write %v", collectedDescriptorsFile)
+	}
+	// only purpose in the collection run is to build up our request
+	return new(plugin_go.CodeGeneratorResponse), nil
 	if params.CollectionRun {
-		collectedDescriptorsBytes, err := proto.Marshal(req)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to marshal %+v", req)
-		}
-		if err := ioutil.WriteFile(collectedDescriptorsFile, collectedDescriptorsBytes, 0644); err != nil {
-			return nil, errors.Wrapf(err, "failed to write %v", collectedDescriptorsFile)
-		}
-		// only purpose in the collection run is to build up our request
-		return new(plugin_go.CodeGeneratorResponse), nil
 	} else {
-		os.Remove(collectedDescriptorsFile)
+		return &plugin_go.CodeGeneratorResponse{}, nil
 	}
 
 	project, err := codegen.ParseRequest(params, req)

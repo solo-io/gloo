@@ -1,0 +1,119 @@
+syntax = "proto3";
+package supergloo.solo.io;
+option go_package = "github.com/solo-io/solo-kit/projects/supergloo/pkg/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/status.proto";
+
+import "route_config.proto";
+
+/*
+@solo-kit:resource.short_name=mesh
+@solo-kit:resource.plural_name=meshes
+@solo-kit:resource.resource_groups=translator.supergloo.solo.io
+
+ *
+// Initial API thoughts based on potential user workflows: https://github.com/solo-io/supergloo/wiki/User-Workflows
+// Notes on what Itsio and Linkerd1 support on wiki: https://github.com/solo-io/supergloo/wiki
+
+// Any user-configurable settings for a service mesh
+// This isn't meant to cover install or initial configuration of the mesh
+// The supergloo server would apply CRUD on MeshConfigs
+*/
+message Mesh {
+    // Status indicates the validation status of this resource.
+    // Status is read-only by clients, and set by gloo during validation
+    core.solo.io.Status status = 6 [(gogoproto.nullable) = false, (gogoproto.moretags) = "testdiff:\"ignore\""];
+
+    // Metadata contains the object metadata for this resource
+    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
+
+    TargetMesh target_mesh = 2;
+
+    Routing routing = 1;
+
+//    MeshMetadata mesh_metadata = 99;
+//    Encryption encryption = 98;
+//    Ingress ingress = 80;
+//    repeated Route routes = 40;
+}
+
+message TargetMesh {
+    MeshType mesh_type = 1;
+    oneof deployment_location {
+        KubeLocation kube_location = 2;
+    };
+}
+
+message KubeLocation {
+    string kubeconfig = 1;
+    string master_address = 2;
+    string namespace = 3;
+}
+
+// TODO: Eventually we want to plug in new meshes easier, but for now it's useful to enumerate in the config
+enum MeshType {
+    ISTIO = 0;
+    LINKERD1 = 1;
+}
+
+//message MeshMetadata {
+//    string name = 1;
+//    MeshType meshType = 2;
+//}
+//
+//// Defines mesh-level configuration for encryption. Supports communication within a mesh and through ingress.
+//// Communicating between TLS and non-TLS enabled services is not supported. TODO: Is this ok?
+//// TODO: What do we need to support communication across mesh?
+//message Encryption {
+//    // If set to true, TLS is enabled across the entire mesh.
+//    bool tlsEnabled = 1;
+//    // If TLS is enabled, this is the name of the secret containing the certs.
+//    // When using Istio, this should either be "istio.default", meaning Istio is using the default Citadel cert
+//    // generation, or "cacert", which is a custom-uploaded Kubernetes secret containing all the cert files.
+//    // When using Linkerd, this is the name of a secret that will be mounted into the linkerd Kubernetes DaemonSet.
+//    string certSecret = 2;
+//}
+//
+//// Defines Ingress for the service mesh. The Ingress port is 80 for HTTP with no TLS, and 443 for HTTP with TLS.
+//message Ingress {
+//    // The name of the gateway. In Istio, a Gateway is configured with this name, and a VirtualService references
+//    // this gateway name. In Linkerd1, an Ingress is configured with this name.
+//    string name = 1;
+//    repeated IngressHost host = 2;
+//}
+//
+//message IngressHost {
+//    string host = 1;
+//    repeated Path paths = 2;
+//}
+//
+//message Path {
+//    string pathPrefix = 1;
+//    Destination destination = 2;
+//}
+//
+//message Destination {
+//    // In Itsio, this is the name of the Kubernetes VirtualService. In Linkerd1, this is the name of the Kubernetes Service.
+//    string name = 1;
+//    int32 port = 2;
+//    map<string,string> labels = 3;
+//}
+//
+//// TODO: Do we require users to enumerate all mesh routes in the config? Or just the routes necessary for supergloo workflows?
+//message Route {
+//    string name = 1;
+//    string host = 2;
+//    string pathPrefix = 3;
+//    string rewrite = 4;
+//    Destination destination = 5;
+//    repeated RoutePlugin routePlugins = 6;
+//}
+//
+//message RoutePlugin {
+//    // ... delay, abort, weights
+//}
+//
