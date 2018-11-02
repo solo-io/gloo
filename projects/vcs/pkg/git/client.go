@@ -1,4 +1,4 @@
-package main
+package git
 
 import (
 	"errors"
@@ -220,17 +220,4 @@ func (r *Repository) getWorkTree() (*goGit.Worktree, *goGit.Repository, error) {
 	}
 
 	return workTree, repo, nil
-}
-
-func main() {
-
-	repo := Repository{root: "/Users/marco/code/repo_test"}
-
-	hash, err := repo.Commit("second commit")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(hash)
-
 }
