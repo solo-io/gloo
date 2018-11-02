@@ -86,9 +86,7 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 		return nil, errors.Wrapf(err, "failed to write %v", collectedDescriptorsFile)
 	}
 	// only purpose in the collection run is to build up our request
-	return new(plugin_go.CodeGeneratorResponse), nil
 	if params.CollectionRun {
-	} else {
 		return &plugin_go.CodeGeneratorResponse{}, nil
 	}
 
