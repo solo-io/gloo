@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// use this to debug without running
-	if true {
+	if os.Getenv("REAL") != "1" {
 		f, err := os.Open("projects/supergloo/api/v1/project.json.descriptors")
 		if err != nil {
 			log.Fatal(err)
