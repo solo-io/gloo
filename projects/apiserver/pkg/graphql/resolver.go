@@ -152,6 +152,10 @@ func (r *queryResolver) GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpo
 	return getOAuthEndpoint()
 }
 
+func (r *queryResolver) Version(ctx context.Context) (string, error) {
+	return getAPIVersion(), nil
+}
+
 func (r *queryResolver) Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamQuery, error) {
 	return customtypes.UpstreamQuery{Namespace: namespace}, nil
 }

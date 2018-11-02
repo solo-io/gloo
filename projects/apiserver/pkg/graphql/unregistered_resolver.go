@@ -19,6 +19,10 @@ func (r *UnregisteredResolver) GetOAuthEndpoint(ctx context.Context) (models.OAu
 	return getOAuthEndpoint()
 }
 
+func (r *UnregisteredResolver) Version(ctx context.Context) (string, error) {
+	return getAPIVersion(), nil
+}
+
 func (r *UnregisteredResolver) ArtifactMutation() graph.ArtifactMutationResolver {
 	panic("client must present a token to access this feature")
 }

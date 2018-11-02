@@ -203,6 +203,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Resource         func(childComplexity int, guid string) int
 		GetOauthEndpoint func(childComplexity int) int
+		Version          func(childComplexity int) int
 		Upstreams        func(childComplexity int, namespace string) int
 		VirtualServices  func(childComplexity int, namespace string) int
 		ResolverMaps     func(childComplexity int, namespace string) int
@@ -447,6 +448,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Resource(ctx context.Context, guid string) (models.Resource, error)
 	GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpoint, error)
+	Version(ctx context.Context) (string, error)
 	Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamQuery, error)
 	VirtualServices(ctx context.Context, namespace string) (customtypes.VirtualServiceQuery, error)
 	ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapQuery, error)
@@ -2149,6 +2151,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetOauthEndpoint(childComplexity), true
+
+	case "Query.version":
+		if e.complexity.Query.Version == nil {
+			break
+		}
+
+		return e.complexity.Query.Version(childComplexity), true
 
 	case "Query.upstreams":
 		if e.complexity.Query.Upstreams == nil {
@@ -6050,6 +6059,15 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				wg.Done()
 			}(i, field)
+		case "version":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_version(ctx, field)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
 		case "upstreams":
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
@@ -6180,6 +6198,29 @@ func (ec *executionContext) _Query_getOAuthEndpoint(ctx context.Context, field g
 	rctx.Result = res
 
 	return ec._OAuthEndpoint(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_version(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Version(rctx)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
 }
 
 // nolint: vetshadow
@@ -14144,6 +14185,7 @@ schema {
 type Query {
     resource(guid: String!): Resource!
     getOAuthEndpoint: OAuthEndpoint!
+    version: String!
     upstreams(namespace: String!):       UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
     resolverMaps(namespace: String!): ResolverMapQuery!
