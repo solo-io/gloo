@@ -2,10 +2,11 @@ package protoc
 
 import (
 	"bytes"
-	"encoding/json"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	"io/ioutil"
 	"os"
+	"strings"
+
+	"github.com/solo-io/solo-kit/pkg/errors"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -16,6 +17,23 @@ import (
 // plugin is an implementation of protokit.Plugin
 type Plugin struct{}
 
+func parseParamsString(paramString string) codegen.Params {
+	var params codegen.Params
+	pairs := strings.Split(paramString, ",")
+	for _, pair := range pairs {
+		split := strings.Split(pair, "=")
+		key := split[0]
+		val := split[1]
+		switch key {
+		case "project_file":
+			params.ProjectFile = val
+		case "collection_run":
+			params.CollectionRun = val == "true"
+		}
+	}
+	return params
+}
+
 func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
 	log.DefaultOut = &bytes.Buffer{}
 	if false {
@@ -25,13 +43,10 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 	log.Printf("parsing request %v", req.FileToGenerate, req.GetParameter())
 	paramString := req.GetParameter()
 	if paramString == "" {
-		return nil, errors.Errorf(`must provide project params via --solo-kit_out={"project_file": "${PWD}/project.json:${OUTDIR}"}`)
+		return nil, errors.Errorf(`must provide project params via --solo-kit_out=project_file=${PWD}/project.json,collection_run=true:${OUT}`)
 	}
 
-	var params codegen.Params
-	if err := json.Unmarshal([]byte(paramString), &params); err != nil {
-		return nil, errors.Wrapf(err, "failed to parse  param string %v", paramString)
-	}
+	params := parseParamsString(paramString)
 
 	// append descriptors if they already exist
 	collectedDescriptorsFile := params.ProjectFile + ".descriptors"
@@ -66,13 +81,13 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 	if params.CollectionRun {
 		collectedDescriptorsBytes, err := proto.Marshal(req)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "failed to marshal %+v", req)
 		}
 		if err := ioutil.WriteFile(collectedDescriptorsFile, collectedDescriptorsBytes, 0644); err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "failed to write %v", collectedDescriptorsFile)
 		}
 		// only purpose in the collection run is to build up our request
-		return nil, nil
+		return new(plugin_go.CodeGeneratorResponse), nil
 	} else {
 		os.Remove(collectedDescriptorsFile)
 	}

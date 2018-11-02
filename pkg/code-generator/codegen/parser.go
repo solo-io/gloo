@@ -14,8 +14,8 @@ import (
 )
 
 type Params struct {
-	ProjectFile   string `json:"project_file"`
-	CollectionRun bool   `json:"collection_run"`
+	ProjectFile   string
+	CollectionRun bool
 }
 
 func ParseRequest(params Params, req *plugin_go.CodeGeneratorRequest) (*Project, error) {
