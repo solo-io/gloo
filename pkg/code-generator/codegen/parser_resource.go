@@ -51,6 +51,9 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 			Project:   project,
 			Resources: resources,
 		}
+		if !strings.HasSuffix("."+rg.Name, project.GroupName) {
+			continue
+		}
 		for _, res := range resources {
 			res.Project = project
 			res.ResourceGroups = append(res.ResourceGroups, rg)
@@ -100,6 +103,7 @@ func describeResource(msg *protokit.Descriptor) (*Resource, []string, error) {
 
 	return &Resource{
 		Name:       name,
+		GroupName:  msg.GetPackage(),
 		ShortName:  shortName,
 		PluralName: pluralName,
 		HasStatus:  hasStatus,

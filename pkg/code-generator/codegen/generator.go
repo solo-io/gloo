@@ -21,6 +21,10 @@ func GenerateFiles(project *Project) (Files, error) {
 		return nil, err
 	}
 	for _, res := range project.Resources {
+		// only generate files for the resources in our group, otherwise we import
+		if res.GroupName != project.GroupName {
+			continue
+		}
 		fs, err := generateFilesForResource(res)
 		if err != nil {
 			return nil, err

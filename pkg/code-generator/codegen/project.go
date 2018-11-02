@@ -11,7 +11,7 @@ type ProjectConfig struct {
 
 type Project struct {
 	ProjectConfig
-	GroupName string // eg. gloo.solo.io
+	GroupName string
 
 	Resources      []*Resource
 	ResourceGroups []*ResourceGroup
@@ -23,6 +23,7 @@ type Resource struct {
 	Name       string
 	PluralName string
 	ShortName  string
+	GroupName  string // eg. gloo.solo.io
 
 	HasStatus bool
 	Fields    []*Field
