@@ -13,15 +13,14 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 
-func ParseRequest(req *plugin_go.CodeGeneratorRequest) (*Project, error) {
-	log.Printf("parsing request %v", req.FileToGenerate, req.GetParameter())
-	params := req.GetParameter()
-	if params == "" {
-		return nil, errors.Errorf("must provide path to project.json file with --solo-kit_out=${PWD}/project.json:${OUTDIR}")
-	}
+type Params struct {
+	ProjectFile   string `json:"project_file"`
+	CollectionRun bool   `json:"collection_run"`
+}
 
-	log.Printf("got cli param from protoc invoke: %v", params)
-	projectConfig, err := loadProjectConfig(params)
+func ParseRequest(params Params, req *plugin_go.CodeGeneratorRequest) (*Project, error) {
+	log.Printf("using params: %v", params)
+	projectConfig, err := loadProjectConfig(params.ProjectFile)
 	if err != nil {
 		return nil, err
 	}
