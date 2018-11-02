@@ -9,7 +9,6 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/iancoleman/strcase"
 	"github.com/pseudomuto/protokit"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 
@@ -36,19 +35,9 @@ func ParseRequest(params Params, req *plugin_go.CodeGeneratorRequest) (*Project,
 		services = append(services, file.GetServices()...)
 	}
 
-	var groupName string
-	for _, desc := range descriptors {
-		if groupName == "" {
-			groupName = desc.GetPackage()
-		}
-		if groupName != desc.GetPackage() {
-			return nil, errors.Errorf("package conflict: %v must match %v", groupName, desc.GetPackage())
-		}
-	}
-
 	project := &Project{
 		ProjectConfig: projectConfig,
-		GroupName:     groupName,
+		GroupName:     projectConfig.Name+".solo.io",
 	}
 	resources, resourceGroups, err := getResources(project, messages)
 	if err != nil {

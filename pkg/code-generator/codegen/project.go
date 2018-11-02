@@ -11,7 +11,7 @@ type ProjectConfig struct {
 
 type Project struct {
 	ProjectConfig
-	GroupName string `json:"group_name"` // eg. gloo.solo.io
+	GroupName string // eg. gloo.solo.io
 
 	Resources      []*Resource
 	ResourceGroups []*ResourceGroup
