@@ -3,11 +3,10 @@
 package v1
 
 import (
-	"go.uber.org/zap"
-
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"go.uber.org/zap"
 )
 
 type DiscoverySnapshot struct {

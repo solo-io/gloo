@@ -28,7 +28,7 @@ func NewMeshClient(rcFactory factory.ResourceClientFactory) (MeshClient, error) 
 func NewMeshClientWithToken(rcFactory factory.ResourceClientFactory, token string) (MeshClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &Mesh{},
-		Token: token,
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base Mesh resource client")
@@ -106,4 +106,3 @@ func convertToMesh(resources resources.ResourceList) MeshList {
 	}
 	return meshList
 }
-

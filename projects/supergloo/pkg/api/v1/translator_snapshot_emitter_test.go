@@ -8,14 +8,14 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/kubernetes"
 )
 
 var _ = Describe("V1Emitter", func() {
@@ -24,11 +24,11 @@ var _ = Describe("V1Emitter", func() {
 		return
 	}
 	var (
-		namespace1          string
-		namespace2          string
-		cfg                *rest.Config
-		emitter            TranslatorEmitter
-		meshClient MeshClient
+		namespace1     string
+		namespace2     string
+		cfg            *rest.Config
+		emitter        TranslatorEmitter
+		meshClient     MeshClient
 		upstreamClient UpstreamClient
 		kube           kubernetes.Interface
 	)
@@ -47,18 +47,18 @@ var _ = Describe("V1Emitter", func() {
 
 		// Mesh Constructor
 		meshClientFactory := &factory.KubeResourceClientFactory{
-			Crd: MeshCrd,
-			Cfg: cfg,
-		    SharedCache: cache,
+			Crd:         MeshCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
 		}
 		meshClient, err = NewMeshClient(meshClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		// Upstream Constructor
 		upstreamClientFactory := &factory.KubeResourceClientFactory{
-			Crd: UpstreamCrd,
-			Cfg: cfg,
-		    SharedCache: cache,
+			Crd:         UpstreamCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
 		}
 		upstreamClient, err = NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
@@ -74,7 +74,7 @@ var _ = Describe("V1Emitter", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		snapshots, errs, err := emitter.Snapshots([]string{namespace1, namespace2}, clients.WatchOpts{
-			Ctx: ctx,
+			Ctx:         ctx,
 			RefreshRate: time.Second,
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -84,7 +84,7 @@ var _ = Describe("V1Emitter", func() {
 		/*
 			Mesh
 		*/
-		
+
 		assertSnapshotMeshes := func(expectMeshes MeshList, unexpectMeshes MeshList) {
 		drain:
 			for {
@@ -111,41 +111,40 @@ var _ = Describe("V1Emitter", func() {
 					Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
 				}
 			}
-		}	
-
+		}
 
 		mesh1a, err := meshClient.Write(NewMesh(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		mesh1b, err := meshClient.Write(NewMesh(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotMeshes(MeshList{ mesh1a, mesh1b }, nil)
+		assertSnapshotMeshes(MeshList{mesh1a, mesh1b}, nil)
 
 		mesh2a, err := meshClient.Write(NewMesh(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		mesh2b, err := meshClient.Write(NewMesh(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotMeshes(MeshList{ mesh1a, mesh1b,  mesh2a, mesh2b  }, nil)
+		assertSnapshotMeshes(MeshList{mesh1a, mesh1b, mesh2a, mesh2b}, nil)
 
 		err = meshClient.Delete(mesh2a.Metadata.Namespace, mesh2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = meshClient.Delete(mesh2b.Metadata.Namespace, mesh2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotMeshes(MeshList{ mesh1a, mesh1b }, MeshList{ mesh2a, mesh2b })
+		assertSnapshotMeshes(MeshList{mesh1a, mesh1b}, MeshList{mesh2a, mesh2b})
 
 		err = meshClient.Delete(mesh1a.Metadata.Namespace, mesh1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = meshClient.Delete(mesh1b.Metadata.Namespace, mesh1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotMeshes(nil, MeshList{ mesh1a, mesh1b, mesh2a, mesh2b })
+		assertSnapshotMeshes(nil, MeshList{mesh1a, mesh1b, mesh2a, mesh2b})
 
 		/*
 			Upstream
 		*/
-		
+
 		assertSnapshotUpstreams := func(expectUpstreams UpstreamList, unexpectUpstreams UpstreamList) {
 		drain:
 			for {
@@ -172,36 +171,34 @@ var _ = Describe("V1Emitter", func() {
 					Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
 				}
 			}
-		}	
-
+		}
 
 		upstream1a, err := upstreamClient.Write(NewUpstream(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		upstream1b, err := upstreamClient.Write(NewUpstream(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotUpstreams(UpstreamList{ upstream1a, upstream1b }, nil)
+		assertSnapshotUpstreams(UpstreamList{upstream1a, upstream1b}, nil)
 
 		upstream2a, err := upstreamClient.Write(NewUpstream(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		upstream2b, err := upstreamClient.Write(NewUpstream(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotUpstreams(UpstreamList{ upstream1a, upstream1b,  upstream2a, upstream2b  }, nil)
+		assertSnapshotUpstreams(UpstreamList{upstream1a, upstream1b, upstream2a, upstream2b}, nil)
 
 		err = upstreamClient.Delete(upstream2a.Metadata.Namespace, upstream2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = upstreamClient.Delete(upstream2b.Metadata.Namespace, upstream2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotUpstreams(UpstreamList{ upstream1a, upstream1b }, UpstreamList{ upstream2a, upstream2b })
+		assertSnapshotUpstreams(UpstreamList{upstream1a, upstream1b}, UpstreamList{upstream2a, upstream2b})
 
 		err = upstreamClient.Delete(upstream1a.Metadata.Namespace, upstream1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = upstreamClient.Delete(upstream1b.Metadata.Namespace, upstream1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotUpstreams(nil, UpstreamList{ upstream1a, upstream1b, upstream2a, upstream2b })
+		assertSnapshotUpstreams(nil, UpstreamList{upstream1a, upstream1b, upstream2a, upstream2b})
 	})
 })
-

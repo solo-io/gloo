@@ -46,7 +46,7 @@ func (list MeshList) Find(namespace, name string) (*Mesh, error) {
 }
 
 func (list MeshList) AsResources() resources.ResourceList {
-	var ress resources.ResourceList 
+	var ress resources.ResourceList
 	for _, mesh := range list {
 		ress = append(ress, mesh)
 	}
@@ -72,7 +72,7 @@ func (list MeshList) Names() []string {
 func (list MeshList) NamespacesDotNames() []string {
 	var names []string
 	for _, mesh := range list {
-		names = append(names, mesh.Metadata.Namespace + "." + mesh.Metadata.Name)
+		names = append(names, mesh.Metadata.Namespace+"."+mesh.Metadata.Name)
 	}
 	return names
 }
@@ -89,7 +89,7 @@ func (list MeshList) Clone() MeshList {
 	for _, mesh := range list {
 		meshList = append(meshList, proto.Clone(mesh).(*Mesh))
 	}
-	return meshList 
+	return meshList
 }
 
 func (list MeshList) ByNamespace() MeshesByNamespace {
@@ -100,7 +100,7 @@ func (list MeshList) ByNamespace() MeshesByNamespace {
 	return byNamespace
 }
 
-func (byNamespace MeshesByNamespace) Add(mesh ... *Mesh) {
+func (byNamespace MeshesByNamespace) Add(mesh ...*Mesh) {
 	for _, item := range mesh {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}

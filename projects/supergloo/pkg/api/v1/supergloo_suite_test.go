@@ -11,8 +11,3 @@ func TestSupergloo(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Supergloo Suite")
 }
-
-
-
-
-

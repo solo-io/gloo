@@ -7,7 +7,7 @@ import (
 	"time"
 
 	gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	
+
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -26,16 +26,14 @@ var (
 		Measure:     mTranslatorSnapshotIn,
 		Description: "The number of snapshots updates coming in",
 		Aggregation: view.Count(),
-		TagKeys:     []tag.Key{
-		},
+		TagKeys:     []tag.Key{},
 	}
 	translatorsnapshotOutView = &view.View{
 		Name:        "translator.supergloo.solo.io/snap_emitter/snap_out",
 		Measure:     mTranslatorSnapshotOut,
 		Description: "The number of snapshots updates going out",
 		Aggregation: view.Count(),
-		TagKeys:     []tag.Key{
-		},
+		TagKeys:     []tag.Key{},
 	}
 )
 
@@ -56,16 +54,16 @@ func NewTranslatorEmitter(meshClient MeshClient, upstreamClient UpstreamClient) 
 
 func NewTranslatorEmitterWithEmit(meshClient MeshClient, upstreamClient UpstreamClient, emit <-chan struct{}) TranslatorEmitter {
 	return &translatorEmitter{
-		mesh: meshClient,
-		upstream: gloo_solo_io.upstreamClient,
+		mesh:      meshClient,
+		upstream:  gloo_solo_io.upstreamClient,
 		forceEmit: emit,
 	}
 }
 
 type translatorEmitter struct {
-	forceEmit <- chan struct{}
-	mesh MeshClient
-	upstream gloo_solo_io.UpstreamClient
+	forceEmit <-chan struct{}
+	mesh      MeshClient
+	upstream  gloo_solo_io.UpstreamClient
 }
 
 func (c *translatorEmitter) Register() error {
@@ -92,13 +90,13 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 	ctx := opts.Ctx
 	/* Create channel for Mesh */
 	type meshListWithNamespace struct {
-		list MeshList
+		list      MeshList
 		namespace string
 	}
 	meshChan := make(chan meshListWithNamespace)
 	/* Create channel for Upstream */
 	type upstreamListWithNamespace struct {
-		list gloo_solo_io.UpstreamList
+		list      gloo_solo_io.UpstreamList
 		namespace string
 	}
 	upstreamChan := make(chan upstreamListWithNamespace)
@@ -127,31 +125,29 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 			errutils.AggregateErrs(ctx, errs, upstreamErrs, namespace+"-upstreams")
 		}(namespace)
 
-
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {
 			for {
 				select {
 				case <-ctx.Done():
 					return
-				case meshList := <- meshNamespacesChan:
+				case meshList := <-meshNamespacesChan:
 					select {
 					case <-ctx.Done():
 						return
-					case meshChan <- meshListWithNamespace{list:meshList, namespace:namespace}:
+					case meshChan <- meshListWithNamespace{list: meshList, namespace: namespace}:
 					}
-				case upstreamList := <- upstreamNamespacesChan:
+				case upstreamList := <-upstreamNamespacesChan:
 					select {
 					case <-ctx.Done():
 						return
-					case upstreamChan <- upstreamListWithNamespace{list:upstreamList, namespace:namespace}:
+					case upstreamChan <- upstreamListWithNamespace{list: upstreamList, namespace: namespace}:
 					}
 				}
 			}
 		}(namespace)
 	}
 
-	
 	snapshots := make(chan *TranslatorSnapshot)
 	go func() {
 		originalSnapshot := TranslatorSnapshot{}
@@ -168,24 +164,24 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 			snapshots <- &sentSnapshot
 		}
 
-/* TODO (yuval-k): figure out how to make this work to avoid a stale snapshot.
-		// construct the first snapshot from all the configs that are currently there
-		// that guarantees that the first snapshot contains all the data.
-		for range watchNamespaces {
-   meshNamespacedList := <- meshChan
-   currentSnapshot.Meshes.Clear(meshNamespacedList.namespace)
-   meshList := meshNamespacedList.list
-	currentSnapshot.Meshes.Add(meshList...)
-   upstreamNamespacedList := <- upstreamChan
-   currentSnapshot.Upstreams.Clear(upstreamNamespacedList.namespace)
-   upstreamList := upstreamNamespacedList.list
-	currentSnapshot.Upstreams.Add(upstreamList...)
-		}
-*/
+		/* TODO (yuval-k): figure out how to make this work to avoid a stale snapshot.
+		   		// construct the first snapshot from all the configs that are currently there
+		   		// that guarantees that the first snapshot contains all the data.
+		   		for range watchNamespaces {
+		      meshNamespacedList := <- meshChan
+		      currentSnapshot.Meshes.Clear(meshNamespacedList.namespace)
+		      meshList := meshNamespacedList.list
+		   	currentSnapshot.Meshes.Add(meshList...)
+		      upstreamNamespacedList := <- upstreamChan
+		      currentSnapshot.Upstreams.Clear(upstreamNamespacedList.namespace)
+		      upstreamList := upstreamNamespacedList.list
+		   	currentSnapshot.Upstreams.Add(upstreamList...)
+		   		}
+		*/
 
 		for {
-			record := func(){stats.Record(ctx, mTranslatorSnapshotIn.M(1))}
-			
+			record := func() { stats.Record(ctx, mTranslatorSnapshotIn.M(1)) }
+
 			select {
 			case <-timer.C:
 				sync()
@@ -197,7 +193,7 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 			case <-c.forceEmit:
 				sentSnapshot := currentSnapshot.Clone()
 				snapshots <- &sentSnapshot
-			case meshNamespacedList := <- meshChan:
+			case meshNamespacedList := <-meshChan:
 				record()
 
 				namespace := meshNamespacedList.namespace
@@ -205,7 +201,7 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 
 				currentSnapshot.Meshes.Clear(namespace)
 				currentSnapshot.Meshes.Add(meshList...)
-			case upstreamNamespacedList := <- upstreamChan:
+			case upstreamNamespacedList := <-upstreamChan:
 				record()
 
 				namespace := upstreamNamespacedList.namespace

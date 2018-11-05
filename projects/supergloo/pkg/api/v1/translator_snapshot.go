@@ -4,21 +4,21 @@ package v1
 
 import (
 	gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	
-	"go.uber.org/zap"
+
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"go.uber.org/zap"
 )
 
 type TranslatorSnapshot struct {
-	Meshes MeshesByNamespace
+	Meshes    MeshesByNamespace
 	Upstreams gloo_solo_io.UpstreamsByNamespace
 }
 
 func (s TranslatorSnapshot) Clone() TranslatorSnapshot {
 	return TranslatorSnapshot{
-		Meshes: s.Meshes.Clone(),
+		Meshes:    s.Meshes.Clone(),
 		Upstreams: s.Upstreams.Clone(),
 	}
 }
@@ -43,25 +43,23 @@ func (s TranslatorSnapshot) snapshotToHash() TranslatorSnapshot {
 
 func (s TranslatorSnapshot) Hash() uint64 {
 	return s.hashStruct(s.snapshotToHash())
- }
+}
 
- func (s TranslatorSnapshot) HashFields() []zap.Field {
+func (s TranslatorSnapshot) HashFields() []zap.Field {
 	snapshotForHashing := s.snapshotToHash()
 	var fields []zap.Field
 	meshes := s.hashStruct(snapshotForHashing.Meshes.List())
-	fields = append(fields, zap.Uint64("meshes", meshes ))
+	fields = append(fields, zap.Uint64("meshes", meshes))
 	upstreams := s.hashStruct(snapshotForHashing.Upstreams.List())
-	fields = append(fields, zap.Uint64("upstreams", upstreams ))
+	fields = append(fields, zap.Uint64("upstreams", upstreams))
 
-	return append(fields, zap.Uint64("snapshotHash",  s.hashStruct(snapshotForHashing)))
- }
- 
+	return append(fields, zap.Uint64("snapshotHash", s.hashStruct(snapshotForHashing)))
+}
+
 func (s TranslatorSnapshot) hashStruct(v interface{}) uint64 {
 	h, err := hashstructure.Hash(v, nil)
-	 if err != nil {
-		 panic(err)
-	 }
-	 return h
- }
-
-
+	if err != nil {
+		panic(err)
+	}
+	return h
+}

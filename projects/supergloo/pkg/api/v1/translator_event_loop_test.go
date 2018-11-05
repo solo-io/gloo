@@ -14,7 +14,7 @@ import (
 var _ = Describe("TranslatorEventLoop", func() {
 	var (
 		namespace string
-		emitter     TranslatorEmitter
+		emitter   TranslatorEmitter
 		err       error
 	)
 

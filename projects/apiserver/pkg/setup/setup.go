@@ -3,18 +3,16 @@ package setup
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"net/http"
-
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-
 	"sync"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
+	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/auth"
 	"github.com/solo-io/solo-kit/projects/apiserver/pkg/config"
 	apiserver "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql"
