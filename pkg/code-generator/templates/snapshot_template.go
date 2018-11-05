@@ -10,8 +10,8 @@ var ResourceGroupSnapshotTemplate = template.Must(template.New("resource_group_s
 package {{ .Project.PackageName }}
 
 import (
+	{{ .Imports }}
 	"go.uber.org/zap"
-
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -19,7 +19,7 @@ import (
 
 type {{ .GoName }}Snapshot struct {
 {{- range .Resources}}
-	{{ upper_camel .PluralName }} {{ upper_camel .PluralName }}ByNamespace
+	{{ upper_camel .PluralName }} {{ .ImportPrefix }}{{ upper_camel .PluralName }}ByNamespace
 {{- end}}
 }
 

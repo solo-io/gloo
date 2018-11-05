@@ -3,8 +3,9 @@
 package v1
 
 import (
+	gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	
 	"go.uber.org/zap"
-
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -12,7 +13,7 @@ import (
 
 type TranslatorSnapshot struct {
 	Meshes MeshesByNamespace
-	Upstreams UpstreamsByNamespace
+	Upstreams gloo_solo_io.UpstreamsByNamespace
 }
 
 func (s TranslatorSnapshot) Clone() TranslatorSnapshot {
