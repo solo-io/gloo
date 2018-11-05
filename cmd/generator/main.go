@@ -9,18 +9,20 @@ import (
 )
 
 func main() {
-	// use this to debug without running
-	if os.Getenv("REAL") != "1" {
+	outputDescriptors := os.Getenv("OUTPUT") == "1"
+	plugin := &protoc.Plugin{OutputDescriptors: outputDescriptors}
+	// use this to debug without running protoc
+	if os.Getenv("DEBUG") == "1" {
 		f, err := os.Open("projects/supergloo/api/v1/project.json.descriptors")
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := protokit.RunPluginWithIO(new(protoc.Plugin), f, os.Stdout); err != nil {
+		return
+		if err := protokit.RunPluginWithIO(plugin, f, os.Stdout); err != nil {
 			log.Fatal(err)
 		}
-		return
 	}
-	if err := protokit.RunPlugin(new(protoc.Plugin)); err != nil {
+	if err := protokit.RunPlugin(plugin); err != nil {
 		log.Fatal(err)
 	}
 }

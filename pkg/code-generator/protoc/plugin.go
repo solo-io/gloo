@@ -15,7 +15,9 @@ import (
 )
 
 // plugin is an implementation of protokit.Plugin
-type Plugin struct{}
+type Plugin struct {
+	OutputDescriptors bool
+}
 
 func parseParamsString(paramString string) codegen.Params {
 	var params codegen.Params
@@ -48,45 +50,16 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 
 	params := parseParamsString(paramString)
 
-	// append descriptors if they already exist
-	collectedDescriptorsFile := params.ProjectFile + ".descriptors"
-	descriptorBytes, err := ioutil.ReadFile(collectedDescriptorsFile)
-	if err == nil {
-		var previousDescriptors plugin_go.CodeGeneratorRequest
-		if err := proto.Unmarshal(descriptorBytes, &previousDescriptors); err != nil {
-			return nil, errors.Wrapf(err, "unmarshalling previous request")
+	// if OutputDescriptors==true save request as a descriptors file and exit
+	if p.OutputDescriptors {
+		collectedDescriptorsBytes, err := proto.Marshal(req)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to marshal %+v", req)
 		}
-		// append all unique
-		for _, prev := range previousDescriptors.ProtoFile {
-			var duplicate bool
-			for _, desc := range req.ProtoFile {
-				if desc.GetName() == prev.GetName() {
-					duplicate = true
-					break
-				}
-			}
-			if duplicate {
-				continue
-			}
-			req.ProtoFile = append(req.ProtoFile, prev)
-			for _, genFile := range previousDescriptors.FileToGenerate {
-				if genFile == prev.GetName() {
-					req.FileToGenerate = append(req.FileToGenerate, genFile)
-					break
-				}
-			}
+		if err := ioutil.WriteFile(params.ProjectFile+".descriptors", collectedDescriptorsBytes, 0644); err != nil {
+			return nil, errors.Wrapf(err, "failed to write %v", params.ProjectFile+".descriptors")
 		}
-	}
-
-	collectedDescriptorsBytes, err := proto.Marshal(req)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to marshal %+v", req)
-	}
-	if err := ioutil.WriteFile(collectedDescriptorsFile, collectedDescriptorsBytes, 0644); err != nil {
-		return nil, errors.Wrapf(err, "failed to write %v", collectedDescriptorsFile)
-	}
-	// only purpose in the collection run is to build up our request
-	if params.CollectionRun {
+		// only purpose in the output run is to generate our file
 		return &plugin_go.CodeGeneratorResponse{}, nil
 	}
 
