@@ -6,21 +6,28 @@ PROJECTS="$( cd -P "$( dirname "$PROJECTS" )" >/dev/null && pwd )"/../../..
 
 GOGO_OUT_FLAG="--gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/"
 
-# Step 1: Gloo Protos
-GLOO_IN=${PROJECTS}/gloo/api/v1/
-SUPERGLOO_IN=${PROJECTS}/supergloo/api/v1/
 OUT=${PROJECTS}/supergloo/pkg/api/v1/
 
 mkdir -p ${OUT}
 
+GLOO_IN=${PROJECTS}/gloo/api/v1/
+
+SUPERGLOO_IN=${PROJECTS}/supergloo/api/v1/
+
+IMPORTS="-I=${GLOO_IN} \
+    -I=${SUPERGLOO_IN} \
+    -I=${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/api/v1"
+
 SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=project_file=${PWD}/project.json:${OUT}"
+
 PROTOC_FLAGS="-I=${GOPATH}/src \
     -I=${GOPATH}/src/github.com/solo-io/solo-kit/api/external/proto \
     ${GOGO_OUT_FLAG} \
     ${SOLO_KIT_FLAG}"
 
-protoc -I=${GLOO_IN} \
-    -I=${SUPERGLOO_IN} \
-    -I=${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/api/v1 \
+INPUT_PROTOS="${SUPERGLOO_IN}/*.proto ${GLOO_IN}/upstream.proto"
+
+protoc ${IMPORTS} \
     ${PROTOC_FLAGS} \
-    ${SUPERGLOO_IN}/*.proto
+    ${INPUT_PROTOS}
+

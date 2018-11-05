@@ -40,7 +40,7 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 		log.DefaultOut = os.Stderr
 	}
 
-	log.Printf("parsing request %v", req.FileToGenerate, req.GetParameter())
+	log.Printf("received request files: %v | params: %v", req.FileToGenerate, req.GetParameter())
 	paramString := req.GetParameter()
 	if paramString == "" {
 		return nil, errors.Errorf(`must provide project params via --solo-kit_out=project_file=${PWD}/project.json,collection_run=true:${OUT}`)
@@ -57,8 +57,6 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 		if err := ioutil.WriteFile(params.ProjectFile+".descriptors", collectedDescriptorsBytes, 0644); err != nil {
 			return nil, errors.Wrapf(err, "failed to write %v", params.ProjectFile+".descriptors")
 		}
-		// only purpose in the output run is to generate our file
-		return &plugin_go.CodeGeneratorResponse{}, nil
 	}
 
 	project, err := codegen.ParseRequest(params, req)
