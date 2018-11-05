@@ -61,7 +61,7 @@ func getResources(project *Project, messages []ProtoMessageWrapper) ([]*Resource
 			Project:   project,
 			Resources: resources,
 		}
-		if !strings.HasSuffix("."+rg.Name, project.GroupName) {
+		if !strings.HasSuffix(rg.Name, "."+project.GroupName) {
 			continue
 		}
 		for _, res := range resources {
