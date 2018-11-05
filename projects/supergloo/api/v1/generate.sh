@@ -4,8 +4,6 @@ set -ex
 
 PROJECTS="$( cd -P "$( dirname "$PROJECTS" )" >/dev/null && pwd )"/../../..
 
-GOGO_OUT_FLAG="--gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/"
-
 OUT=${PROJECTS}/supergloo/pkg/api/v1/
 
 mkdir -p ${OUT}
@@ -16,18 +14,25 @@ SUPERGLOO_IN=${PROJECTS}/supergloo/api/v1/
 
 IMPORTS="-I=${GLOO_IN} \
     -I=${SUPERGLOO_IN} \
-    -I=${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/api/v1"
+    -I=${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/api/v1 \
+    -I=${GOPATH}/src \
+    -I=${GOPATH}/src/github.com/solo-io/solo-kit/api/external/proto"
 
+# Run protoc once for gogo
+GOGO_FLAG="--gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/"
+
+INPUT_PROTOS="${SUPERGLOO_IN}/*.proto"
+
+protoc ${IMPORTS} \
+    ${GOGO_FLAG} \
+    ${INPUT_PROTOS}
+
+# Run protoc once for solo kit
 SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=project_file=${PWD}/project.json:${OUT}"
-
-PROTOC_FLAGS="-I=${GOPATH}/src \
-    -I=${GOPATH}/src/github.com/solo-io/solo-kit/api/external/proto \
-    ${GOGO_OUT_FLAG} \
-    ${SOLO_KIT_FLAG}"
 
 INPUT_PROTOS="${SUPERGLOO_IN}/*.proto ${GLOO_IN}/upstream.proto"
 
 protoc ${IMPORTS} \
-    ${PROTOC_FLAGS} \
+    ${SOLO_KIT_FLAG} \
     ${INPUT_PROTOS}
 

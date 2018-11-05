@@ -7,7 +7,6 @@ Package v1 is a generated protocol buffer package.
 It is generated from these files:
 	mesh.proto
 	route_config.proto
-	upstream.proto
 
 It has these top-level messages:
 	Mesh
@@ -28,8 +27,6 @@ It has these top-level messages:
 	HTTPFaultInjection
 	PortSelector
 	Percent
-	Upstream
-	DiscoveryMetadata
 */
 package v1
 
