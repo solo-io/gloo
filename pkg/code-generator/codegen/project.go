@@ -24,6 +24,12 @@ type Resource struct {
 	PluralName string
 	ShortName  string
 	GroupName  string // eg. gloo.solo.io
+	// ImportPrefix will equal GroupName+"." if the resource does not belong to the project
+	// else it will be empty string. used in event loop files
+	ImportPrefix string
+	// empty unless resource is external
+	// format "github.com/solo-io/solo-kit/foo/bar"
+	GoPackage string
 
 	HasStatus bool
 	Fields    []*Field
@@ -40,6 +46,7 @@ type Field struct {
 type ResourceGroup struct {
 	Name      string // eg. api.gloo.solo.io
 	GoName    string // will be Api
+	Imports   string // if this resource group contains any imports from other projects
 	Project   *Project
 	Resources []*Resource
 }
@@ -50,5 +57,6 @@ type XDSResource struct {
 	NameField    string
 	NoReferences bool
 
-	Project *Project
+	Project   *Project
+	GroupName string // eg. gloo.solo.io
 }

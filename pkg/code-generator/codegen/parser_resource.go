@@ -22,7 +22,13 @@ const (
 	resourceGroupsDeclaration = "@solo-kit:resource.resource_groups="
 )
 
-func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resource, []*ResourceGroup, error) {
+// add some data we need to the regular proto message
+type ProtoMessageWrapper struct {
+	GoPackage string
+	Message   *protokit.Descriptor
+}
+
+func getResources(project *Project, messages []ProtoMessageWrapper) ([]*Resource, []*ResourceGroup, error) {
 	resourcesByGroup := make(map[string][]*Resource)
 	var resources []*Resource
 	for _, msg := range messages {
@@ -36,6 +42,10 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 		}
 		resource.Project = project
 		for _, group := range groups {
+			if resource.GroupName != project.GroupName {
+				importPrefix := strings.Replace(resource.GroupName, ".", "_", -1) + "."
+				resource.ImportPrefix = importPrefix
+			}
 			resourcesByGroup[group] = append(resourcesByGroup[group], resource)
 		}
 		resources = append(resources, resource)
@@ -58,6 +68,24 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 			res.Project = project
 			res.ResourceGroups = append(res.ResourceGroups, rg)
 		}
+
+		imports := make(map[string]string)
+		for _, res := range rg.Resources {
+			// only generate files for the resources in our group, otherwise we import
+			if res.GroupName != rg.Project.GroupName {
+				// add import
+				imports[strings.TrimSuffix(res.ImportPrefix, ".")] = res.GoPackage
+			}
+		}
+		var sortedImports []string
+		for k := range imports {
+			sortedImports = append(sortedImports, k)
+		}
+		sort.Strings(sortedImports)
+		for _, imp := range sortedImports {
+			rg.Imports = imp + " \"" + imports[imp] + "\"\n\t"
+		}
+
 		resourceGroups = append(resourceGroups, rg)
 	}
 	for _, res := range resources {
@@ -69,7 +97,8 @@ func getResources(project *Project, messages []*protokit.Descriptor) ([]*Resourc
 	return resources, resourceGroups, nil
 }
 
-func describeResource(msg *protokit.Descriptor) (*Resource, []string, error) {
+func describeResource(messageWrapper ProtoMessageWrapper) (*Resource, []string, error) {
+	msg := messageWrapper.Message
 	// not a solo kit resource, or you messed up!
 	if !hasField(msg, "metadata", metadataTypeName) {
 		return nil, nil, nil
@@ -104,6 +133,7 @@ func describeResource(msg *protokit.Descriptor) (*Resource, []string, error) {
 	return &Resource{
 		Name:       name,
 		GroupName:  msg.GetPackage(),
+		GoPackage:  messageWrapper.GoPackage,
 		ShortName:  shortName,
 		PluralName: pluralName,
 		HasStatus:  hasStatus,

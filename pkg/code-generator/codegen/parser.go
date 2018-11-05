@@ -9,6 +9,7 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/iancoleman/strcase"
 	"github.com/pseudomuto/protokit"
+	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 
@@ -25,9 +26,17 @@ func ParseRequest(params Params, req *plugin_go.CodeGeneratorRequest) (*Project,
 	}
 
 	descriptors := protokit.ParseCodeGenRequest(req)
-	var messages []*protokit.Descriptor
+	var messages []ProtoMessageWrapper
 	for _, file := range descriptors {
-		messages = append(messages, file.GetMessages()...)
+		if file.Options == nil || file.Options.GoPackage == nil {
+			return nil, errors.Errorf("file %v must provide proto option go_package", file.GetName())
+		}
+		for _, msg := range file.GetMessages() {
+			messages = append(messages, ProtoMessageWrapper{
+				Message:   msg,
+				GoPackage: *file.Options.GoPackage,
+			})
+		}
 	}
 
 	var services []*protokit.ServiceDescriptor

@@ -20,28 +20,31 @@ const (
 type xdsService struct {
 	name            string
 	messageTypeName string
+	groupName       string
 }
 
 type xdsMessage struct {
 	name            string
 	serviceTypeName string
-
-	nameField string
-
-	noReferences bool
+	nameField       string
+	noReferences    bool
+	groupName       string
 }
 
-func getXdsResources(project *Project, messages []*protokit.Descriptor, services []*protokit.ServiceDescriptor) ([]*XDSResource, error) {
+func getXdsResources(project *Project, messages []ProtoMessageWrapper, services []*protokit.ServiceDescriptor) ([]*XDSResource, error) {
 	var msgs []*xdsMessage
 	var svcs []*xdsService
 
 	for _, msg := range messages {
-		msg, err := describeXdsResource(msg)
+		msg, err := describeXdsResource(msg.Message)
 		if err != nil {
 			return nil, err
 		}
 		if msg == nil {
 			// message is not a resource
+			continue
+		}
+		if msg.groupName != project.GroupName {
 			continue
 		}
 		msgs = append(msgs, msg)
@@ -55,6 +58,9 @@ func getXdsResources(project *Project, messages []*protokit.Descriptor, services
 			// message is not a resource
 			continue
 		}
+		if service.groupName != project.GroupName {
+			continue
+		}
 		svcs = append(svcs, service)
 	}
 
@@ -64,7 +70,6 @@ func getXdsResources(project *Project, messages []*protokit.Descriptor, services
 }
 
 func processMessagesAndServices(project *Project, msgs []*xdsMessage, svcs []*xdsService) ([]*XDSResource, error) {
-
 	var resources []*XDSResource
 	for _, svc := range svcs {
 		var message *xdsMessage
@@ -84,6 +89,7 @@ func processMessagesAndServices(project *Project, msgs []*xdsMessage, svcs []*xd
 			Name:         svc.name,
 			NameField:    message.nameField,
 			NoReferences: message.noReferences,
+			GroupName:    message.groupName,
 			Project:      project,
 		})
 	}
@@ -100,7 +106,6 @@ func processMessagesAndServices(project *Project, msgs []*xdsMessage, svcs []*xd
 }
 
 func describeXdsResource(msg *protokit.Descriptor) (*xdsMessage, error) {
-
 	commentsString := msg.GetComments().Leading
 	comments := strings.Split(commentsString, "\n")
 	service, ok := getCommentValue(comments, serviceDeclaration)
@@ -142,11 +147,11 @@ func describeXdsResource(msg *protokit.Descriptor) (*xdsMessage, error) {
 		serviceTypeName: service,
 		nameField:       name,
 		noReferences:    noRefs,
+		groupName:       msg.GetPackage(),
 	}, nil
 }
 
 func describeXdsService(service *protokit.ServiceDescriptor) (*xdsService, error) {
-
 	comments := service.Comments.Leading
 	if !strings.Contains(comments, xdsEnabledDeclaration) {
 		return nil, nil
@@ -177,5 +182,6 @@ func describeXdsService(service *protokit.ServiceDescriptor) (*xdsService, error
 	return &xdsService{
 		name:            service.GetName(),
 		messageTypeName: msgConfig,
+		groupName:       service.GetPackage(),
 	}, nil
 }
