@@ -6,8 +6,6 @@ import (
 	"github.com/solo-io/rate-limiter/pkg/settings"
 	"github.com/solo-io/solo-kit/projects/rate-limit/pkg/runner"
 
-	"github.com/solo-io/rate-limiter/pkg/service"
-
 	"context"
 )
 
