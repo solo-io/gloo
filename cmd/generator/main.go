@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	outputDescriptors := os.Getenv("OUTPUT") == "1"
+	outputDescriptors := os.Getenv("OUTPUT_DESCRIPTORS") == "1"
 	plugin := &protoc.Plugin{OutputDescriptors: outputDescriptors}
 	// use this to debug without running protoc
 	if os.Getenv("DEBUG") == "1" {
