@@ -22,6 +22,7 @@ import (
 	"sync"
 	"time"
 
+	{{ .Imports }}
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -60,7 +61,7 @@ func init() {
 type {{ .GoName }}Emitter interface {
 	Register() error
 {{- range .Resources}}
-	{{ .Name }}() {{ .Name }}Client
+	{{ .Name }}() {{ .ImportPrefix }}{{ .Name }}Client
 {{- end}}
 	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *{{ .GoName }}Snapshot, <-chan error, error)
 }
@@ -72,7 +73,7 @@ func New{{ .GoName }}Emitter({{ $client_declarations }}) {{ .GoName }}Emitter {
 func New{{ .GoName }}EmitterWithEmit({{ $client_declarations }}, emit <-chan struct{}) {{ .GoName }}Emitter {
 	return &{{ lower_camel .GoName }}Emitter{
 {{- range .Resources}}
-		{{ lower_camel .Name }}: {{ lower_camel .Name }}Client,
+		{{ lower_camel .Name }}: {{ .ImportPrefix }}{{ lower_camel .Name }}Client,
 {{- end}}
 		forceEmit: emit,
 	}
@@ -81,7 +82,7 @@ func New{{ .GoName }}EmitterWithEmit({{ $client_declarations }}, emit <-chan str
 type {{ lower_camel .GoName }}Emitter struct {
 	forceEmit <- chan struct{}
 {{- range .Resources}}
-	{{ lower_camel .Name }} {{ .Name }}Client
+	{{ lower_camel .Name }} {{ .ImportPrefix }}{{ .Name }}Client
 {{- end}}
 }
 
@@ -96,7 +97,7 @@ func (c *{{ lower_camel .GoName }}Emitter) Register() error {
 
 {{- range .Resources}}
 
-func (c *{{ lower_camel $.GoName }}Emitter) {{ .Name }}() {{ .Name }}Client {
+func (c *{{ lower_camel $.GoName }}Emitter) {{ .Name }}() {{ .ImportPrefix }}{{ .Name }}Client {
 	return c.{{ lower_camel .Name }}
 }
 {{- end}}
@@ -110,7 +111,7 @@ func (c *{{ lower_camel .GoName }}Emitter) Snapshots(watchNamespaces []string, o
 {{- range .Resources}}
 	/* Create channel for {{ .Name }} */
 	type {{ lower_camel .Name }}ListWithNamespace struct {
-		list {{ .Name }}List
+		list {{ .ImportPrefix }}{{ .Name }}List
 		namespace string
 	}
 	{{ lower_camel .Name }}Chan := make(chan {{ lower_camel .Name }}ListWithNamespace)

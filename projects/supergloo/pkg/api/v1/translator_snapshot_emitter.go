@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -44,7 +46,7 @@ func init() {
 type TranslatorEmitter interface {
 	Register() error
 	Mesh() MeshClient
-	Upstream() UpstreamClient
+	Upstream() gloo_solo_io.UpstreamClient
 	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *TranslatorSnapshot, <-chan error, error)
 }
 
@@ -55,7 +57,7 @@ func NewTranslatorEmitter(meshClient MeshClient, upstreamClient UpstreamClient) 
 func NewTranslatorEmitterWithEmit(meshClient MeshClient, upstreamClient UpstreamClient, emit <-chan struct{}) TranslatorEmitter {
 	return &translatorEmitter{
 		mesh: meshClient,
-		upstream: upstreamClient,
+		upstream: gloo_solo_io.upstreamClient,
 		forceEmit: emit,
 	}
 }
@@ -63,7 +65,7 @@ func NewTranslatorEmitterWithEmit(meshClient MeshClient, upstreamClient Upstream
 type translatorEmitter struct {
 	forceEmit <- chan struct{}
 	mesh MeshClient
-	upstream UpstreamClient
+	upstream gloo_solo_io.UpstreamClient
 }
 
 func (c *translatorEmitter) Register() error {
@@ -80,7 +82,7 @@ func (c *translatorEmitter) Mesh() MeshClient {
 	return c.mesh
 }
 
-func (c *translatorEmitter) Upstream() UpstreamClient {
+func (c *translatorEmitter) Upstream() gloo_solo_io.UpstreamClient {
 	return c.upstream
 }
 
@@ -96,7 +98,7 @@ func (c *translatorEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 	meshChan := make(chan meshListWithNamespace)
 	/* Create channel for Upstream */
 	type upstreamListWithNamespace struct {
-		list UpstreamList
+		list gloo_solo_io.UpstreamList
 		namespace string
 	}
 	upstreamChan := make(chan upstreamListWithNamespace)
