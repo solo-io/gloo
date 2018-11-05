@@ -6,7 +6,6 @@ type ProjectConfig struct {
 	Name        string `json:"name"`
 	Version     string `json:"version"`
 	PackageName string `json:"package_name"`
-	// GoPackage   string `json:"go_package"`
 }
 
 type Project struct {

@@ -17,7 +17,6 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		return
 		if err := protokit.RunPluginWithIO(plugin, f, os.Stdout); err != nil {
 			log.Fatal(err)
 		}

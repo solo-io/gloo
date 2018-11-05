@@ -29,8 +29,6 @@ func parseParamsString(paramString string) codegen.Params {
 		switch key {
 		case "project_file":
 			params.ProjectFile = val
-		case "collection_run":
-			params.CollectionRun = val == "true"
 		}
 	}
 	return params
