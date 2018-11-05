@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"github.com/solo-io/solo-kit/pkg/errors"
 
@@ -19,21 +18,6 @@ type Plugin struct {
 	OutputDescriptors bool
 }
 
-func parseParamsString(paramString string) codegen.Params {
-	var params codegen.Params
-	pairs := strings.Split(paramString, ",")
-	for _, pair := range pairs {
-		split := strings.Split(pair, "=")
-		key := split[0]
-		val := split[1]
-		switch key {
-		case "project_file":
-			params.ProjectFile = val
-		}
-	}
-	return params
-}
-
 func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeGeneratorResponse, error) {
 	log.DefaultOut = &bytes.Buffer{}
 	if false {
@@ -41,12 +25,10 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 	}
 
 	log.Printf("received request files: %v | params: %v", req.FileToGenerate, req.GetParameter())
-	paramString := req.GetParameter()
-	if paramString == "" {
-		return nil, errors.Errorf(`must provide project params via --solo-kit_out=project_file=${PWD}/project.json,collection_run=true:${OUT}`)
+	projectFile := req.GetParameter()
+	if projectFile == "" {
+		return nil, errors.Errorf(`must provide project file via --solo-kit_out=${PWD}/project.json:${OUT}`)
 	}
-
-	params := parseParamsString(paramString)
 
 	// if OutputDescriptors==true save request as a descriptors file and exit
 	if p.OutputDescriptors {
@@ -54,12 +36,12 @@ func (p *Plugin) Generate(req *plugin_go.CodeGeneratorRequest) (*plugin_go.CodeG
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to marshal %+v", req)
 		}
-		if err := ioutil.WriteFile(params.ProjectFile+".descriptors", collectedDescriptorsBytes, 0644); err != nil {
-			return nil, errors.Wrapf(err, "failed to write %v", params.ProjectFile+".descriptors")
+		if err := ioutil.WriteFile(projectFile+".descriptors", collectedDescriptorsBytes, 0644); err != nil {
+			return nil, errors.Wrapf(err, "failed to write %v", projectFile+".descriptors")
 		}
 	}
 
-	project, err := codegen.ParseRequest(params, req)
+	project, err := codegen.ParseRequest(projectFile, req)
 	if err != nil {
 		return nil, err
 	}

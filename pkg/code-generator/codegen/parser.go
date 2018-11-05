@@ -13,13 +13,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 
-type Params struct {
-	ProjectFile string
-}
-
-func ParseRequest(params Params, req *plugin_go.CodeGeneratorRequest) (*Project, error) {
-	log.Printf("using params: %v", params)
-	projectConfig, err := loadProjectConfig(params.ProjectFile)
+func ParseRequest(projectFile string, req *plugin_go.CodeGeneratorRequest) (*Project, error) {
+	log.Printf("using project file: %v", projectFile)
+	projectConfig, err := loadProjectConfig(projectFile)
 	if err != nil {
 		return nil, err
 	}
