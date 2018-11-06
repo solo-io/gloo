@@ -8,7 +8,6 @@ import fmt "fmt"
 import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
 import types "github.com/gogo/protobuf/types"
-import wrappers "github.com/golang/protobuf/ptypes/wrappers"
 import v1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 
 import bytes "bytes"
@@ -1289,10 +1288,10 @@ type CorsPolicy struct {
 	// Indicates whether the caller is allowed to send the actual request
 	// (not the preflight) using credentials. Translates to
 	// Access-Control-Allow-Credentials header.
-	AllowCredentials     *wrappers.BoolValue `protobuf:"bytes,6,opt,name=allow_credentials,json=allowCredentials" json:"allow_credentials,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
-	XXX_unrecognized     []byte              `json:"-"`
-	XXX_sizecache        int32               `json:"-"`
+	AllowCredentials     *types.BoolValue `protobuf:"bytes,6,opt,name=allow_credentials,json=allowCredentials" json:"allow_credentials,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
 }
 
 func (m *CorsPolicy) Reset()         { *m = CorsPolicy{} }
@@ -1354,7 +1353,7 @@ func (m *CorsPolicy) GetMaxAge() *types.Duration {
 	return nil
 }
 
-func (m *CorsPolicy) GetAllowCredentials() *wrappers.BoolValue {
+func (m *CorsPolicy) GetAllowCredentials() *types.BoolValue {
 	if m != nil {
 		return m.AllowCredentials
 	}
