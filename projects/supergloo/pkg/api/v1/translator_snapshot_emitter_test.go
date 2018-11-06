@@ -2,6 +2,8 @@ package v1
 
 import (
 	"context"
+	kuberc "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"os"
 	"path/filepath"
 	"time"
@@ -13,7 +15,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -29,8 +30,7 @@ var _ = Describe("V1Emitter", func() {
 		cfg            *rest.Config
 		emitter        TranslatorEmitter
 		meshClient     MeshClient
-		upstreamClient UpstreamClient
-		kube           kubernetes.Interface
+		upstreamClient v1.UpstreamClient
 	)
 
 	BeforeEach(func() {
@@ -56,11 +56,11 @@ var _ = Describe("V1Emitter", func() {
 
 		// Upstream Constructor
 		upstreamClientFactory := &factory.KubeResourceClientFactory{
-			Crd:         UpstreamCrd,
+			Crd:         v1.UpstreamCrd,
 			Cfg:         cfg,
 			SharedCache: cache,
 		}
-		upstreamClient, err = NewUpstreamClient(upstreamClientFactory)
+		upstreamClient, err = v1.NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 		emitter = NewTranslatorEmitter(meshClient, upstreamClient)
 	})
@@ -145,7 +145,7 @@ var _ = Describe("V1Emitter", func() {
 			Upstream
 		*/
 
-		assertSnapshotUpstreams := func(expectUpstreams UpstreamList, unexpectUpstreams UpstreamList) {
+		assertSnapshotUpstreams := func(expectUpstreams v1.UpstreamList, unexpectUpstreams v1.UpstreamList) {
 		drain:
 			for {
 				select {
@@ -173,32 +173,32 @@ var _ = Describe("V1Emitter", func() {
 			}
 		}
 
-		upstream1a, err := upstreamClient.Write(NewUpstream(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
+		upstream1a, err := upstreamClient.Write(v1.NewUpstream(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		upstream1b, err := upstreamClient.Write(NewUpstream(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-
-		assertSnapshotUpstreams(UpstreamList{upstream1a, upstream1b}, nil)
-
-		upstream2a, err := upstreamClient.Write(NewUpstream(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-		upstream2b, err := upstreamClient.Write(NewUpstream(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
+		upstream1b, err := upstreamClient.Write(v1.NewUpstream(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotUpstreams(UpstreamList{upstream1a, upstream1b, upstream2a, upstream2b}, nil)
+		assertSnapshotUpstreams(v1.UpstreamList{upstream1a, upstream1b}, nil)
+
+		upstream2a, err := upstreamClient.Write(v1.NewUpstream(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		upstream2b, err := upstreamClient.Write(v1.NewUpstream(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+
+		assertSnapshotUpstreams(v1.UpstreamList{upstream1a, upstream1b, upstream2a, upstream2b}, nil)
 
 		err = upstreamClient.Delete(upstream2a.Metadata.Namespace, upstream2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = upstreamClient.Delete(upstream2b.Metadata.Namespace, upstream2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotUpstreams(UpstreamList{upstream1a, upstream1b}, UpstreamList{upstream2a, upstream2b})
+		assertSnapshotUpstreams(v1.UpstreamList{upstream1a, upstream1b}, v1.UpstreamList{upstream2a, upstream2b})
 
 		err = upstreamClient.Delete(upstream1a.Metadata.Namespace, upstream1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = upstreamClient.Delete(upstream1b.Metadata.Namespace, upstream1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotUpstreams(nil, UpstreamList{upstream1a, upstream1b, upstream2a, upstream2b})
+		assertSnapshotUpstreams(nil, v1.UpstreamList{upstream1a, upstream1b, upstream2a, upstream2b})
 	})
 })
