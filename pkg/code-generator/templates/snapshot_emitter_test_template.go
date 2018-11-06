@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"time"
 
+	{{ .Imports }}
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
@@ -25,6 +26,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
+	kuberc "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/kubernetes"
@@ -41,9 +43,8 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 		cfg                *rest.Config
 		emitter            {{ .GoName }}Emitter
 {{- range .Resources }}
-		{{ lower_camel .Name }}Client {{ .Name }}Client
+		{{ lower_camel .Name }}Client {{ .ImportPrefix }}{{ .Name }}Client
 {{- end}}
-		kube           kubernetes.Interface
 	)
 
 	BeforeEach(func() {
@@ -63,7 +64,7 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 		// {{ .Name }} Constructor
 {{- if .HasStatus }}
 		{{ lower_camel .Name }}ClientFactory := &factory.KubeResourceClientFactory{
-			Crd: {{ .Name }}Crd,
+			Crd: {{ .ImportPrefix }}{{ .Name }}Crd,
 			Cfg: cfg,
 		    SharedCache: cache,
 		}
@@ -81,7 +82,7 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 		}
 {{- end }}
 {{- end }}
-		{{ lower_camel .Name }}Client, err = New{{ .Name }}Client({{ lower_camel .Name }}ClientFactory)
+		{{ lower_camel .Name }}Client, err = {{ .ImportPrefix }}New{{ .Name }}Client({{ lower_camel .Name }}ClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 {{- end}}
 		emitter = New{{ .GoName }}Emitter({{ $clients }})
@@ -108,7 +109,7 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 			{{ .Name }}
 		*/
 		
-		assertSnapshot{{ .PluralName }} := func(expect{{ .PluralName }} {{ .Name }}List, unexpect{{ .PluralName }} {{ .Name }}List) {
+		assertSnapshot{{ .PluralName }} := func(expect{{ .PluralName }} {{ .ImportPrefix }}{{ .Name }}List, unexpect{{ .PluralName }} {{ .ImportPrefix }}{{ .Name }}List) {
 		drain:
 			for {
 				select {
@@ -137,33 +138,33 @@ var _ = Describe("{{ upper_camel .Project.PackageName }}Emitter", func() {
 		}	
 
 
-		{{ lower_camel .Name }}1a, err := {{ lower_camel .Name }}Client.Write(New{{ .Name }}(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
+		{{ lower_camel .Name }}1a, err := {{ lower_camel .Name }}Client.Write({{ .ImportPrefix }}New{{ .Name }}(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		{{ lower_camel .Name }}1b, err := {{ lower_camel .Name }}Client.Write(New{{ .Name }}(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-
-		assertSnapshot{{ .PluralName }}({{ .Name }}List{ {{ lower_camel .Name }}1a, {{ lower_camel .Name }}1b }, nil)
-
-		{{ lower_camel .Name }}2a, err := {{ lower_camel .Name }}Client.Write(New{{ .Name }}(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-		{{ lower_camel .Name }}2b, err := {{ lower_camel .Name }}Client.Write(New{{ .Name }}(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
+		{{ lower_camel .Name }}1b, err := {{ lower_camel .Name }}Client.Write({{ .ImportPrefix }}New{{ .Name }}(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshot{{ .PluralName }}({{ .Name }}List{ {{ lower_camel .Name }}1a, {{ lower_camel .Name }}1b,  {{ lower_camel .Name }}2a, {{ lower_camel .Name }}2b  }, nil)
+		assertSnapshot{{ .PluralName }}({{ .ImportPrefix }}{{ .Name }}List{ {{ lower_camel .Name }}1a, {{ lower_camel .Name }}1b }, nil)
+
+		{{ lower_camel .Name }}2a, err := {{ lower_camel .Name }}Client.Write({{ .ImportPrefix }}New{{ .Name }}(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		{{ lower_camel .Name }}2b, err := {{ lower_camel .Name }}Client.Write({{ .ImportPrefix }}New{{ .Name }}(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+
+		assertSnapshot{{ .PluralName }}({{ .ImportPrefix }}{{ .Name }}List{ {{ lower_camel .Name }}1a, {{ lower_camel .Name }}1b,  {{ lower_camel .Name }}2a, {{ lower_camel .Name }}2b  }, nil)
 
 		err = {{ lower_camel .Name }}Client.Delete({{ lower_camel .Name }}2a.Metadata.Namespace, {{ lower_camel .Name }}2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = {{ lower_camel .Name }}Client.Delete({{ lower_camel .Name }}2b.Metadata.Namespace, {{ lower_camel .Name }}2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshot{{ .PluralName }}({{ .Name }}List{ {{ lower_camel .Name }}1a, {{ lower_camel .Name }}1b }, {{ .Name }}List{ {{ lower_camel .Name }}2a, {{ lower_camel .Name }}2b })
+		assertSnapshot{{ .PluralName }}({{ .ImportPrefix }}{{ .Name }}List{ {{ lower_camel .Name }}1a, {{ lower_camel .Name }}1b }, {{ .ImportPrefix }}{{ .Name }}List{ {{ lower_camel .Name }}2a, {{ lower_camel .Name }}2b })
 
 		err = {{ lower_camel .Name }}Client.Delete({{ lower_camel .Name }}1a.Metadata.Namespace, {{ lower_camel .Name }}1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = {{ lower_camel .Name }}Client.Delete({{ lower_camel .Name }}1b.Metadata.Namespace, {{ lower_camel .Name }}1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshot{{ .PluralName }}(nil, {{ .Name }}List{ {{ lower_camel .Name }}1a, {{ lower_camel .Name }}1b, {{ lower_camel .Name }}2a, {{ lower_camel .Name }}2b })
+		assertSnapshot{{ .PluralName }}(nil, {{ .ImportPrefix }}{{ .Name }}List{ {{ lower_camel .Name }}1a, {{ lower_camel .Name }}1b, {{ lower_camel .Name }}2a, {{ lower_camel .Name }}2b })
 {{- end}}
 	})
 })

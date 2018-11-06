@@ -2,16 +2,17 @@ package v1
 
 import (
 	"context"
-	kuberc "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"os"
 	"path/filepath"
 	"time"
+
+	gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	kuberc "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/services"
@@ -30,7 +31,7 @@ var _ = Describe("V1Emitter", func() {
 		cfg            *rest.Config
 		emitter        TranslatorEmitter
 		meshClient     MeshClient
-		upstreamClient v1.UpstreamClient
+		upstreamClient gloo_solo_io.UpstreamClient
 	)
 
 	BeforeEach(func() {
@@ -56,11 +57,11 @@ var _ = Describe("V1Emitter", func() {
 
 		// Upstream Constructor
 		upstreamClientFactory := &factory.KubeResourceClientFactory{
-			Crd:         v1.UpstreamCrd,
+			Crd:         gloo_solo_io.UpstreamCrd,
 			Cfg:         cfg,
 			SharedCache: cache,
 		}
-		upstreamClient, err = v1.NewUpstreamClient(upstreamClientFactory)
+		upstreamClient, err = gloo_solo_io.NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 		emitter = NewTranslatorEmitter(meshClient, upstreamClient)
 	})
@@ -145,7 +146,7 @@ var _ = Describe("V1Emitter", func() {
 			Upstream
 		*/
 
-		assertSnapshotUpstreams := func(expectUpstreams v1.UpstreamList, unexpectUpstreams v1.UpstreamList) {
+		assertSnapshotUpstreams := func(expectUpstreams gloo_solo_io.UpstreamList, unexpectUpstreams gloo_solo_io.UpstreamList) {
 		drain:
 			for {
 				select {
@@ -173,32 +174,32 @@ var _ = Describe("V1Emitter", func() {
 			}
 		}
 
-		upstream1a, err := upstreamClient.Write(v1.NewUpstream(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
+		upstream1a, err := upstreamClient.Write(gloo_solo_io.NewUpstream(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		upstream1b, err := upstreamClient.Write(v1.NewUpstream(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-
-		assertSnapshotUpstreams(v1.UpstreamList{upstream1a, upstream1b}, nil)
-
-		upstream2a, err := upstreamClient.Write(v1.NewUpstream(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
-		Expect(err).NotTo(HaveOccurred())
-		upstream2b, err := upstreamClient.Write(v1.NewUpstream(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
+		upstream1b, err := upstreamClient.Write(gloo_solo_io.NewUpstream(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotUpstreams(v1.UpstreamList{upstream1a, upstream1b, upstream2a, upstream2b}, nil)
+		assertSnapshotUpstreams(gloo_solo_io.UpstreamList{upstream1a, upstream1b}, nil)
+
+		upstream2a, err := upstreamClient.Write(gloo_solo_io.NewUpstream(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		upstream2b, err := upstreamClient.Write(gloo_solo_io.NewUpstream(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+
+		assertSnapshotUpstreams(gloo_solo_io.UpstreamList{upstream1a, upstream1b, upstream2a, upstream2b}, nil)
 
 		err = upstreamClient.Delete(upstream2a.Metadata.Namespace, upstream2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = upstreamClient.Delete(upstream2b.Metadata.Namespace, upstream2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotUpstreams(v1.UpstreamList{upstream1a, upstream1b}, v1.UpstreamList{upstream2a, upstream2b})
+		assertSnapshotUpstreams(gloo_solo_io.UpstreamList{upstream1a, upstream1b}, gloo_solo_io.UpstreamList{upstream2a, upstream2b})
 
 		err = upstreamClient.Delete(upstream1a.Metadata.Namespace, upstream1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 		err = upstreamClient.Delete(upstream1b.Metadata.Namespace, upstream1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
-		assertSnapshotUpstreams(nil, v1.UpstreamList{upstream1a, upstream1b, upstream2a, upstream2b})
+		assertSnapshotUpstreams(nil, gloo_solo_io.UpstreamList{upstream1a, upstream1b, upstream2a, upstream2b})
 	})
 })

@@ -12,7 +12,7 @@ package {{ .Project.PackageName }}
 {{- $client_declarations := new_str_slice }}
 {{- $clients := new_str_slice }}
 {{- range .Resources}}
-{{- $client_declarations := (append_str_slice $client_declarations (printf "%vClient %vClient"  (lower_camel .Name) .Name)) }}
+{{- $client_declarations := (append_str_slice $client_declarations (printf "%vClient %v%vClient"  (lower_camel .Name) .ImportPrefix .Name)) }}
 {{- $clients := (append_str_slice $clients (printf "%vClient"  (lower_camel .Name))) }}
 {{- end}}
 {{- $client_declarations := (join_str_slice $client_declarations ", ") }}
@@ -73,7 +73,7 @@ func New{{ .GoName }}Emitter({{ $client_declarations }}) {{ .GoName }}Emitter {
 func New{{ .GoName }}EmitterWithEmit({{ $client_declarations }}, emit <-chan struct{}) {{ .GoName }}Emitter {
 	return &{{ lower_camel .GoName }}Emitter{
 {{- range .Resources}}
-		{{ lower_camel .Name }}: {{ .ImportPrefix }}{{ lower_camel .Name }}Client,
+		{{ lower_camel .Name }}:{{ lower_camel .Name }}Client,
 {{- end}}
 		forceEmit: emit,
 	}

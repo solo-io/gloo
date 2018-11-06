@@ -2,8 +2,9 @@ package v1
 
 import (
 	"context"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"time"
+
+	gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -30,7 +31,7 @@ var _ = Describe("TranslatorEventLoop", func() {
 		upstreamClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
 		}
-		upstreamClient, err := v1.NewUpstreamClient(upstreamClientFactory)
+		upstreamClient, err := gloo_solo_io.NewUpstreamClient(upstreamClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		emitter = NewTranslatorEmitter(meshClient, upstreamClient)
@@ -38,7 +39,7 @@ var _ = Describe("TranslatorEventLoop", func() {
 	It("runs sync function on a new snapshot", func() {
 		_, err = emitter.Mesh().Write(NewMesh(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
-		_, err = emitter.Upstream().Write(v1.NewUpstream(namespace, "jerry"), clients.WriteOpts{})
+		_, err = emitter.Upstream().Write(gloo_solo_io.NewUpstream(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		sync := &mockTranslatorSyncer{}
 		el := NewTranslatorEventLoop(emitter, sync)

@@ -16,6 +16,7 @@ import (
 	"context"
 	"time"
 
+	{{ .Imports }}
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -36,7 +37,7 @@ var _ = Describe("{{ .GoName }}EventLoop", func() {
 		{{ lower_camel .Name }}ClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
 		}
-		{{ lower_camel .Name }}Client, err := New{{ .Name }}Client({{ lower_camel .Name }}ClientFactory)
+		{{ lower_camel .Name }}Client, err := {{ .ImportPrefix }}New{{ .Name }}Client({{ lower_camel .Name }}ClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 {{- end}}
 
@@ -44,7 +45,7 @@ var _ = Describe("{{ .GoName }}EventLoop", func() {
 	})
 	It("runs sync function on a new snapshot", func() {
 {{- range .Resources  }}
-		_, err = emitter.{{ .Name }}().Write(New{{ .Name }}(namespace, "jerry"), clients.WriteOpts{})
+		_, err = emitter.{{ .Name }}().Write({{ .ImportPrefix }}New{{ .Name }}(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 {{- end}}
 		sync := &mock{{ .GoName }}Syncer{}

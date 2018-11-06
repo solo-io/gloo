@@ -48,14 +48,14 @@ type TranslatorEmitter interface {
 	Snapshots(watchNamespaces []string, opts clients.WatchOpts) (<-chan *TranslatorSnapshot, <-chan error, error)
 }
 
-func NewTranslatorEmitter(meshClient MeshClient, upstreamClient UpstreamClient) TranslatorEmitter {
+func NewTranslatorEmitter(meshClient MeshClient, upstreamClient gloo_solo_io.UpstreamClient) TranslatorEmitter {
 	return NewTranslatorEmitterWithEmit(meshClient, upstreamClient, make(chan struct{}))
 }
 
-func NewTranslatorEmitterWithEmit(meshClient MeshClient, upstreamClient UpstreamClient, emit <-chan struct{}) TranslatorEmitter {
+func NewTranslatorEmitterWithEmit(meshClient MeshClient, upstreamClient gloo_solo_io.UpstreamClient, emit <-chan struct{}) TranslatorEmitter {
 	return &translatorEmitter{
 		mesh:      meshClient,
-		upstream:  gloo_solo_io.upstreamClient,
+		upstream:  upstreamClient,
 		forceEmit: emit,
 	}
 }
