@@ -16,7 +16,7 @@ message Routing {
     // ports with protocol HTTP/HTTP2/GRPC/ TLS-terminated-HTTPS and service
     // entry ports using HTTP/HTTP2/GRPC protocols.  The first rule matching
     // an incoming request is used.
-    repeated HTTPRoute mesh_http_routes = 2;
+    repeated HTTPRule mesh_http_rules = 2;
 
     // An ordered list of route rules for HTTP traffic inside the mesh, applied globally
     // HTTP routes will be
@@ -24,12 +24,21 @@ message Routing {
     // ports with protocol HTTP/HTTP2/GRPC/ TLS-terminated-HTTPS and service
     // entry ports using HTTP/HTTP2/GRPC protocols.  The first rule matching
     // an incoming request is used.
-    repeated HTTPRoute ingress_http_routes = 1; // ignored
+    repeated HTTPRule ingress_http_rules = 1; // ignored
+}
+
+// origin of a request. typically a pod in the mesh
+message Source {
+    string name = 1;
+    map<string,string> selector = 2;
 }
 
 // Describes match conditions and actions for routing HTTP/1.1, HTTP2, and
 // gRPC traffic. See VirtualService for usage examples.
-message HTTPRoute {
+message HTTPRule {
+    // the sources to which this rule will be applied
+    repeated Source sources = 10;
+
     // Match conditions to be satisfied for the rule to be
     // activated. All conditions inside a single match block have AND
     // semantics, while the list of match blocks have OR semantics. The rule
@@ -41,20 +50,6 @@ message HTTPRoute {
     // glossary in beginning of document). Weights associated with the
     // service version determine the proportion of traffic it receives.
     repeated HTTPRouteDestination route = 2;
-
-    // A http rule can either redirect or forward (default) traffic. If
-    // traffic passthrough option is specified in the rule,
-    // route/redirect will be ignored. The redirect primitive can be used to
-    // send a HTTP 301 redirect to a different URI or Authority.
-    HTTPRedirect redirect = 3;
-
-    // Rewrite HTTP URIs and Authority headers. Rewrite cannot be used with
-    // Redirect primitive. Rewrite will be performed before forwarding.
-    HTTPRewrite rewrite = 4;
-
-    // Deprecated. Websocket upgrades are done automatically starting from Istio 1.0.
-    // $hide_from_docs
-    bool websocket_upgrade = 5;
 
     // Timeout for HTTP requests.
     google.protobuf.Duration timeout = 6;
@@ -139,17 +134,6 @@ message HTTPMatchRequest {
     //
     StringMatch uri = 1;
 
-    // URI Scheme
-    // values are case-sensitive and formatted as follows:
-    //
-    // - `exact: "value"` for exact string match
-    //
-    // - `prefix: "value"` for prefix-based match
-    //
-    // - `regex: "value"` for ECMAscript style regex-based match
-    //
-    StringMatch scheme = 2;
-
     // HTTP Method
     // values are case-sensitive and formatted as follows:
     //
@@ -160,17 +144,6 @@ message HTTPMatchRequest {
     // - `regex: "value"` for ECMAscript style regex-based match
     //
     StringMatch method = 3;
-
-    // HTTP Authority
-    // values are case-sensitive and formatted as follows:
-    //
-    // - `exact: "value"` for exact string match
-    //
-    // - `prefix: "value"` for prefix-based match
-    //
-    // - `regex: "value"` for ECMAscript style regex-based match
-    //
-    StringMatch authority = 4;
 
     // The header keys must be lowercase and use hyphen as the separator,
     // e.g. _x-request-id_.
@@ -185,22 +158,6 @@ message HTTPMatchRequest {
     //
     // **Note:** The keys `uri`, `scheme`, `method`, and `authority` will be ignored.
     map<string, StringMatch> headers = 5;
-
-    // Specifies the ports on the host that is being addressed. Many services
-    // only expose a single port or label ports with the protocols they support,
-    // in these cases it is not required to explicitly select the port.
-    uint32 port = 6;
-
-    // One or more labels that constrain the applicability of a rule to
-    // workloads with the given labels. If the VirtualService has a list of
-    // gateways specified at the top, it should include the reserved gateway
-    // `mesh` in order for this field to be applicable.
-    map<string, string> source_labels = 7;
-
-    // Names of gateways where the rule should be applied to. Gateway names
-    // at the top of the VirtualService (if any) are overridden. The gateway match is
-    // independent of sourceLabels.
-    repeated string gateways = 8;
 }
 
 // Each routing rule is associated with one or more service versions (see
