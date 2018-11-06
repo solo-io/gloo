@@ -233,15 +233,10 @@ func (rc *ResourceClient) Read(namespace, name string, opts clients.ReadOpts) (r
 		}
 		return nil, errors.Wrapf(err, "reading resource from kubernetes")
 	}
-	resource := rc.NewResource()
-	if resourceCrd.Spec != nil {
-		if err := protoutils.UnmarshalMap(*resourceCrd.Spec, resource); err != nil {
-			return nil, errors.Wrapf(err, "reading crd spec into %v", rc.resourceName)
-		}
+	resource, err := rc.convertCrdToResource(resourceCrd)
+	if err != nil {
+		return nil, errors.Wrapf(err, "converting output crd")
 	}
-	resources.UpdateMetadata(resource, func(meta *core.Metadata) {
-		meta.ResourceVersion = resourceCrd.ResourceVersion
-	})
 	return resource, nil
 }
 
@@ -337,17 +332,10 @@ func (rc *ResourceClient) List(namespace string, opts clients.ListOpts) (resourc
 
 	var resourceList resources.ResourceList
 	for _, resourceCrd := range listedResources {
-		resource := rc.NewResource()
-		if resourceCrd.Spec != nil {
-			if err := protoutils.UnmarshalMap(*resourceCrd.Spec, resource); err != nil {
-				return nil, errors.Wrapf(err, "reading crd spec into %v", rc.resourceName)
-			}
+		resource, err := rc.convertCrdToResource(resourceCrd)
+		if err != nil {
+			return nil, errors.Wrapf(err, "converting output crd")
 		}
-		resources.UpdateMetadata(resource, func(meta *core.Metadata) {
-			meta.Namespace = resourceCrd.Namespace
-			meta.Name = resourceCrd.Name
-			meta.ResourceVersion = resourceCrd.ResourceVersion
-		})
 		resourceList = append(resourceList, resource)
 	}
 
@@ -416,4 +404,24 @@ func (rc *ResourceClient) exist(ctx context.Context, namespace, name string) boo
 	_, err := rc.kube.ResourcesV1().Resources(namespace).Get(name, metav1.GetOptions{}) // TODO(yuval-k): check error for real
 	return err == nil
 
+}
+
+func (rc *ResourceClient) convertCrdToResource(resourceCrd *v1.Resource) (resources.Resource, error) {
+	resource := rc.NewResource()
+	if resourceCrd.Spec != nil {
+		if err := protoutils.UnmarshalMap(*resourceCrd.Spec, resource); err != nil {
+			return nil, errors.Wrapf(err, "reading crd spec into %v", rc.resourceName)
+		}
+	}
+	resources.UpdateMetadata(resource, func(meta *core.Metadata) {
+		meta.Namespace = resourceCrd.Namespace
+		meta.Name = resourceCrd.Name
+		meta.ResourceVersion = resourceCrd.ResourceVersion
+	})
+	if withStatus, ok := resource.(resources.InputResource); ok {
+		resources.UpdateStatus(withStatus, func(status *core.Status) {
+			*status = resourceCrd.Status
+		})
+	}
+	return resource, nil
 }
