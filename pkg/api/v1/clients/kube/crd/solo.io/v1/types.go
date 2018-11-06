@@ -18,7 +18,7 @@ type Resource struct {
 	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	Status            core.Status `json:"status"`
-	Spec              *Spec       `json:"spec"`
+	*Spec
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
