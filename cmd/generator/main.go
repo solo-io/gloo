@@ -12,8 +12,9 @@ func main() {
 	outputDescriptors := os.Getenv("OUTPUT_DESCRIPTORS") == "1"
 	plugin := &protoc.Plugin{OutputDescriptors: outputDescriptors}
 	// use this to debug without running protoc
-	if os.Getenv("DEBUG") == "1" {
-		f, err := os.Open("projects/supergloo/api/v1/project.json.descriptors")
+	if descriptorsFile := os.Getenv("USE_DESCRIPTORS"); descriptorsFile != "" {
+		// descriptorsFile e.g.: "projects/supergloo/api/v1/project.json.descriptors"
+		f, err := os.Open(descriptorsFile)
 		if err != nil {
 			log.Fatal(err)
 		}
