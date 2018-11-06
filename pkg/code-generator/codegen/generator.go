@@ -75,10 +75,10 @@ func generateFilesForXdsResource(resource *XDSResource) (Files, error) {
 func generateFilesForResource(resource *Resource) (Files, error) {
 	var v Files
 	for suffix, tmpl := range map[string]*template.Template{
-		".sk.go":             templates.ResourceTemplate,
-		"_client.sk.go":      templates.ResourceClientTemplate,
-		"_client_test.sk.go": templates.ResourceClientTestTemplate,
-		"_reconciler.sk.go":  templates.ResourceReconcilerTemplate,
+		".sk.go":            templates.ResourceTemplate,
+		"_client.sk.go":     templates.ResourceClientTemplate,
+		"_client_test.go":   templates.ResourceClientTestTemplate,
+		"_reconciler.sk.go": templates.ResourceReconcilerTemplate,
 	} {
 		content, err := generateResourceFile(resource, tmpl)
 		if err != nil {
@@ -95,11 +95,11 @@ func generateFilesForResource(resource *Resource) (Files, error) {
 func generateFilesForResourceGroup(rg *ResourceGroup) (Files, error) {
 	var v Files
 	for suffix, tmpl := range map[string]*template.Template{
-		"_snapshot.sk.go":              templates.ResourceGroupSnapshotTemplate,
-		"_snapshot_emitter.sk.go":      templates.ResourceGroupEmitterTemplate,
-		"_snapshot_emitter_test.sk.go": templates.ResourceGroupEmitterTestTemplate,
-		"_event_loop.sk.go":            templates.ResourceGroupEventLoopTemplate,
-		"_event_loop_test.sk.go":       templates.ResourceGroupEventLoopTestTemplate,
+		"_snapshot.sk.go":           templates.ResourceGroupSnapshotTemplate,
+		"_snapshot_emitter.sk.go":   templates.ResourceGroupEmitterTemplate,
+		"_snapshot_emitter_test.go": templates.ResourceGroupEmitterTestTemplate,
+		"_event_loop.sk.go":         templates.ResourceGroupEventLoopTemplate,
+		"_event_loop_test.go":       templates.ResourceGroupEventLoopTestTemplate,
 	} {
 		content, err := generateResourceGroupFile(rg, tmpl)
 		if err != nil {
@@ -116,7 +116,7 @@ func generateFilesForResourceGroup(rg *ResourceGroup) (Files, error) {
 func generateFilesForProject(project *Project) (Files, error) {
 	var v Files
 	for suffix, tmpl := range map[string]*template.Template{
-		"_suite_test.sk.go": templates.ProjectTestSuiteTemplate,
+		"_suite_test.go": templates.ProjectTestSuiteTemplate,
 	} {
 		content, err := generateProjectFile(project, tmpl)
 		if err != nil {
