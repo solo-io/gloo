@@ -1,12 +1,12 @@
 package services
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/solo-io/rate-limiter/pkg/service"
 	"github.com/solo-io/rate-limiter/pkg/settings"
 	"github.com/solo-io/solo-kit/projects/rate-limit/pkg/runner"
-
-	"context"
 )
 
 func RunRatelimit(ctx context.Context, glooport int) ratelimit.RateLimitServiceServer {

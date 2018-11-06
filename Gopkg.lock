@@ -2,33 +2,13 @@
 
 
 [[projects]]
-  digest = "1:8f900abdf29dc2d624d287293c8b29153b39dbbb825c8a4858eb0b2b174d9a7b"
+  digest = "1:73d52ad0467263233e26833b71c8bbb4d991c9b59d57a18761ff5c07bbe22f10"
   name = "github.com/99designs/gqlgen"
   packages = [
-    "client",
-    "cmd",
-    "codegen",
-    "codegen/templates",
-    "codegen/testserver",
-    "codegen/testserver/introspection",
-    "codegen/testserver/invalid-packagename",
     "complexity",
-    "example/chat",
-    "example/config",
-    "example/dataloader",
-    "example/scalars",
-    "example/scalars/model",
-    "example/selection",
-    "example/starwars",
-    "example/todo",
     "graphql",
     "graphql/introspection",
     "handler",
-    "integration",
-    "integration/models-go",
-    "internal/gopath",
-    "internal/imports",
-    "opentracing",
   ]
   pruneopts = "UT"
   revision = "6f486bde038887adf67c3e3766624ef111ea95cf"
@@ -73,14 +53,6 @@
   pruneopts = "UT"
   revision = "3d21ba515fe27b856f230847e856431ae1724adc"
   version = "v1.0.0"
-
-[[projects]]
-  digest = "1:e2921241c77283579f383d04139a68aaca100668a26de5e1bc56d29d896ee304"
-  name = "github.com/ahmetb/go-linq"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "7e71c124c1f903df09ca08678f145f68b45d125e"
-  version = "v3.0.0"
 
 [[projects]]
   digest = "1:8f5416c7f59da8600725ae1ff00a99af1da8b04c211ae6f3c8f8bcab0164f650"
@@ -215,14 +187,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:b9914f85d95a0968bafd1be1908ba29e2eafafd88d6fd13696be42bf5368c380"
-  name = "github.com/go-chi/chi"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "b5294d10673813fac8558e7f47242bc9e61b4c25"
-  version = "v3.3.3"
-
-[[projects]]
   digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"
   name = "github.com/go-ini/ini"
   packages = ["."]
@@ -309,11 +273,10 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:90617798016cda8ebb96ea4b5ebe729a28d76ae2367db269fe08349371779463"
+  digest = "1:35621fe20f140f05a0c4ef662c26c0ab4ee50bca78aa30fe87d33120bd28165e"
   name = "github.com/gogo/protobuf"
   packages = [
     "gogoproto",
-    "io",
     "jsonpb",
     "proto",
     "protoc-gen-gogo/descriptor",
@@ -341,7 +304,7 @@
   revision = "6f2cf27854a4a29e3811b0371547be335d411b8b"
 
 [[projects]]
-  digest = "1:98d8bcc9b013ef48532bd746254dbd0bd2fb94d2c7dc5b4961f08c23908d214a"
+  digest = "1:dec81f0b3382876dc2653d2b812fe8383c7f984f666e5e95064f4f9408ac8256"
   name = "github.com/golang/protobuf"
   packages = [
     "jsonpb",
@@ -353,6 +316,7 @@
     "ptypes/duration",
     "ptypes/struct",
     "ptypes/timestamp",
+    "ptypes/wrappers",
   ]
   pruneopts = "UT"
   revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
@@ -820,37 +784,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:264f2848854a41b03a6525ea6c1e858762caa34964a63dde898dc4bba339e50f"
-  name = "github.com/opentracing-contrib/go-stdlib"
-  packages = ["nethttp"]
-  pruneopts = "UT"
-  revision = "07a764486eb10927e8cf38337918a40d430524ee"
-
-[[projects]]
-  digest = "1:d07bd28263c09c5d7f6502e8ddac63e027eca0eafcd07632790d958b50360317"
-  name = "github.com/opentracing/basictracer-go"
-  packages = [
-    ".",
-    "wire",
-  ]
-  pruneopts = "UT"
-  revision = "1b32af207119a14b1b231d451df3ed04a72efebf"
-  version = "v1.0.0"
-
-[[projects]]
-  digest = "1:450b7623b185031f3a456801155c8320209f75d0d4c4e633c6b1e59d44d6e392"
-  name = "github.com/opentracing/opentracing-go"
-  packages = [
-    ".",
-    "ext",
-    "log",
-  ]
-  pruneopts = "UT"
-  revision = "1949ddbfd147afd4d964a9f00b24eb291e0e7c38"
-  version = "v1.0.2"
-
-[[projects]]
-  branch = "master"
   digest = "1:3bf17a6e6eaa6ad24152148a631d18662f7212e21637c2699bff3369b7f00fa2"
   name = "github.com/petar/GoLLRB"
   packages = ["llrb"]
@@ -872,14 +805,6 @@
   pruneopts = "UT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
-
-[[projects]]
-  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
-  name = "github.com/pmezard/go-difflib"
-  packages = ["difflib"]
-  pruneopts = "UT"
-  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
-  version = "v1.0.0"
 
 [[projects]]
   digest = "1:d14a5f4bfecf017cb780bdde1b6483e5deb87e12c332544d2c430eda58734bcb"
@@ -958,22 +883,6 @@
   version = "v0.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:7ca2584fa7da0520cd2d1136a10194fe5a5b220bdb215074ab6f7b5ad91115f4"
-  name = "github.com/shurcooL/httpfs"
-  packages = ["vfsutil"]
-  pruneopts = "UT"
-  revision = "809beceb23714880abc4a382a00c05f89d13b1cc"
-
-[[projects]]
-  branch = "master"
-  digest = "1:da947121c0a7abeab824f2bf6732762af118aa17b292e2d77886921eeedd6c51"
-  name = "github.com/shurcooL/vfsgen"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "a97a25d856cadfe6481325baeb35a70d6723ca0c"
-
-[[projects]]
   digest = "1:dc2d85c13ac22c22a1f3170a41a8e1b897fa05134aaf533f16df44f66a25b4a1"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
@@ -1040,25 +949,6 @@
   pruneopts = "UT"
   revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
   version = "v1.0.1"
-
-[[projects]]
-  digest = "1:c40d65817cdd41fac9aa7af8bed56927bb2d6d47e4fea566a74880f5c2b1c41e"
-  name = "github.com/stretchr/testify"
-  packages = [
-    "assert",
-    "require",
-  ]
-  pruneopts = "UT"
-  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
-  version = "v1.2.2"
-
-[[projects]]
-  digest = "1:b24d38b282bacf9791408a080f606370efa3d364e4b5fd9ba0f7b87786d3b679"
-  name = "github.com/urfave/cli"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
-  version = "v1.20.0"
 
 [[projects]]
   digest = "1:768c1db4944fa5ab6944d11847200ba4b8b9e2b45458b7a20b4272fe599a1de0"
@@ -1232,22 +1122,6 @@
   packages = ["rate"]
   pruneopts = "UT"
   revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
-
-[[projects]]
-  branch = "master"
-  digest = "1:756a0ad87b2a82fc1f22f4f11a4cc1c0a101b18da225bf5d51e20c611e54c31a"
-  name = "golang.org/x/tools"
-  packages = [
-    "go/ast/astutil",
-    "go/buildutil",
-    "go/internal/cgo",
-    "go/loader",
-    "imports",
-    "internal/fastwalk",
-    "internal/gopathwalk",
-  ]
-  pruneopts = "UT"
-  revision = "3a10b9bf0a52df7e992a8c3eb712a86d3c896c75"
 
 [[projects]]
   branch = "master"
@@ -1588,57 +1462,14 @@
   pruneopts = "UT"
   revision = "e3762e86a74c878ffed47484592986685639c2cd"
 
-[[projects]]
-  branch = "master"
-  digest = "1:3657d2aab4a1ba9582b6d1bb3d0e8527588b6a451c9df21b4446ece1432a2695"
-  name = "sourcegraph.com/sourcegraph/appdash"
-  packages = [
-    ".",
-    "httptrace",
-    "internal/wire",
-    "opentracing",
-    "sqltrace",
-    "traceapp",
-    "traceapp/tmpl",
-  ]
-  pruneopts = "UT"
-  revision = "4c381bd170b46de54530ae6170358c98fdaa515f"
-
-[[projects]]
-  branch = "master"
-  digest = "1:8e0a2957fe342f22d70a543c3fcdf390f7627419c3d82d87ab4fd715a9ef5716"
-  name = "sourcegraph.com/sourcegraph/appdash-data"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "73f23eafcf67cad684fba328dd545a116ac273ff"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/99designs/gqlgen/client",
-    "github.com/99designs/gqlgen/cmd",
-    "github.com/99designs/gqlgen/codegen",
-    "github.com/99designs/gqlgen/codegen/templates",
-    "github.com/99designs/gqlgen/codegen/testserver",
-    "github.com/99designs/gqlgen/codegen/testserver/introspection",
-    "github.com/99designs/gqlgen/codegen/testserver/invalid-packagename",
-    "github.com/99designs/gqlgen/example/chat",
-    "github.com/99designs/gqlgen/example/config",
-    "github.com/99designs/gqlgen/example/dataloader",
-    "github.com/99designs/gqlgen/example/scalars",
-    "github.com/99designs/gqlgen/example/scalars/model",
-    "github.com/99designs/gqlgen/example/selection",
-    "github.com/99designs/gqlgen/example/starwars",
-    "github.com/99designs/gqlgen/example/todo",
     "github.com/99designs/gqlgen/graphql",
     "github.com/99designs/gqlgen/graphql/introspection",
     "github.com/99designs/gqlgen/handler",
-    "github.com/99designs/gqlgen/integration",
-    "github.com/99designs/gqlgen/integration/models-go",
-    "github.com/99designs/gqlgen/opentracing",
     "github.com/Masterminds/sprig",
-    "github.com/ahmetb/go-linq",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/session",
@@ -1663,7 +1494,6 @@
     "github.com/envoyproxy/go-control-plane/pkg/util",
     "github.com/fgrosse/zaptest",
     "github.com/ghodss/yaml",
-    "github.com/go-chi/chi",
     "github.com/go-openapi/loads",
     "github.com/go-openapi/spec",
     "github.com/go-openapi/swag",
@@ -1677,6 +1507,7 @@
     "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/protoc-gen-go/descriptor",
     "github.com/golang/protobuf/protoc-gen-go/plugin",
+    "github.com/golang/protobuf/ptypes/wrappers",
     "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
     "github.com/grpc-ecosystem/go-grpc-middleware",
@@ -1694,16 +1525,11 @@
     "github.com/keybase/go-ps",
     "github.com/lyft/protoc-gen-validate/validate",
     "github.com/mitchellh/hashstructure",
-    "github.com/mitchellh/mapstructure",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/gbytes",
     "github.com/onsi/gomega/gexec",
     "github.com/onsi/gomega/gstruct",
-    "github.com/opentracing-contrib/go-stdlib/nethttp",
-    "github.com/opentracing/opentracing-go",
-    "github.com/opentracing/opentracing-go/ext",
-    "github.com/opentracing/opentracing-go/log",
     "github.com/pkg/errors",
     "github.com/pseudomuto/protokit",
     "github.com/radovskyb/watcher",
@@ -1717,8 +1543,6 @@
     "github.com/solo-io/rate-limiter/pkg/service",
     "github.com/solo-io/rate-limiter/pkg/settings",
     "github.com/spf13/cobra",
-    "github.com/stretchr/testify/assert",
-    "github.com/stretchr/testify/require",
     "github.com/vektah/gqlgen/graphql",
     "github.com/vektah/gqlgen/handler",
     "github.com/vektah/gqlgen/neelance/common",
@@ -1727,8 +1551,6 @@
     "github.com/vektah/gqlgen/neelance/schema",
     "github.com/vektah/gqlparser",
     "github.com/vektah/gqlparser/ast",
-    "github.com/vektah/gqlparser/gqlerror",
-    "github.com/vektah/gqlparser/validator",
     "go.opencensus.io/exporter/prometheus",
     "go.opencensus.io/stats",
     "go.opencensus.io/stats/view",
@@ -1737,15 +1559,12 @@
     "go.opencensus.io/zpages",
     "go.uber.org/zap",
     "golang.org/x/net/context",
-    "golang.org/x/tools/go/loader",
-    "golang.org/x/tools/imports",
     "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
     "google.golang.org/grpc/metadata",
     "google.golang.org/grpc/reflection/grpc_reflection_v1alpha",
     "google.golang.org/grpc/status",
-    "gopkg.in/yaml.v2",
     "k8s.io/api/core/v1",
     "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1",
     "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset",
@@ -1767,9 +1586,6 @@
     "k8s.io/client-go/tools/clientcmd",
     "k8s.io/client-go/tools/clientcmd/api",
     "k8s.io/client-go/util/flowcontrol",
-    "sourcegraph.com/sourcegraph/appdash",
-    "sourcegraph.com/sourcegraph/appdash/opentracing",
-    "sourcegraph.com/sourcegraph/appdash/traceapp",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

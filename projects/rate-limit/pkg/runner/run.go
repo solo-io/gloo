@@ -16,6 +16,7 @@ import (
 	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
 	"github.com/solo-io/rate-limiter/pkg/redis"
 	"github.com/solo-io/rate-limiter/pkg/server"
+	"github.com/solo-io/rate-limiter/pkg/service"
 	"github.com/solo-io/rate-limiter/pkg/settings"
 	configproto "github.com/solo-io/solo-kit/projects/rate-limit/pkg/config"
 
