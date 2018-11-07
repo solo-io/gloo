@@ -4,7 +4,7 @@ import (
 	"text/template"
 )
 
-var ResourceTemplate = template.Must(template.New("resource").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
+var ResourceTemplate = template.Must(template.New("resource").Funcs(funcs).Parse(`package {{ .Project.Version }}
 
 import (
 	"sort"

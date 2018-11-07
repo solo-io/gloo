@@ -41,7 +41,7 @@ func ParseRequest(projectFile string, req *plugin_go.CodeGeneratorRequest) (*Pro
 
 	project := &Project{
 		ProjectConfig: projectConfig,
-		GroupName:     projectConfig.Name + ".solo.io",
+		GroupName:     projectConfig.Name,
 	}
 	resources, resourceGroups, err := getResources(project, messages)
 	if err != nil {

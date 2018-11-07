@@ -4,7 +4,7 @@ import (
 	"text/template"
 )
 
-var ResourceClientTestTemplate = template.Must(template.New("resource_client_test").Funcs(funcs).Parse(`package {{ .Project.PackageName }}
+var ResourceClientTestTemplate = template.Must(template.New("resource_client_test").Funcs(funcs).Parse(`package {{ .Project.Version }}
 
 import (
 	"time"

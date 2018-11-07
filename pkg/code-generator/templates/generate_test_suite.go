@@ -1,6 +1,6 @@
 package templates
 
-const testSuiteTemplateContents = `package {{ .PackageName }}
+const testSuiteTemplateContents = `package {{ .Version }}
 
 import (
 	"testing"

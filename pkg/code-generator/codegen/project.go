@@ -3,9 +3,8 @@ package codegen
 // SOLO-KIT Descriptors from which code can be generated
 
 type ProjectConfig struct {
-	Name        string `json:"name"`
-	Version     string `json:"version"`
-	PackageName string `json:"package_name"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
 }
 
 type Project struct {

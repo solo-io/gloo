@@ -1,5 +1,4 @@
 {
-  "name": "gateway",
-  "version": "v1",
-  "package_name": "v1"
+  "name": "gateway.solo.io",
+  "version": "v1"
 }

@@ -5,7 +5,7 @@ import (
 )
 
 var ResourceGroupSnapshotTemplate = template.Must(template.New("resource_group_snapshot").Funcs(funcs).Parse(
-	`package {{ .Project.PackageName }}
+	`package {{ .Project.Version }}
 
 import (
 	{{ .Imports }}
