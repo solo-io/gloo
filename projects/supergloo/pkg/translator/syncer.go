@@ -3,6 +3,8 @@ package translator
 import (
 	"context"
 	"fmt"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"sort"
 
 	"github.com/solo-io/solo-kit/pkg/errors"
 
@@ -12,16 +14,69 @@ import (
 	"github.com/solo-io/solo-kit/projects/supergloo/pkg/api/v1"
 )
 
-type Syncer struct{}
+type Syncer struct {
+	WriteSelector             map[string]string // for reconciling only our resources
+	WriteNamespace            string
+	DestinationRuleReconciler v1alpha3.DestinationRuleReconciler
+	VirtualServiceReconciler  v1alpha3.VirtualServiceReconciler
+}
 
-func (s *Syncer) Sync(context.Context, *v1.TranslatorSnapshot) error {
-	panic("implement me")
+func (s *Syncer) Sync(ctx context.Context, snap *v1.TranslatorSnapshot) error {
+	destinationRules := createSubsets(snap.Upstreams.List())
+	virtualServices, err := createVirtualServices(snap.Meshes.List(), snap.Upstreams.List())
+	if err != nil {
+		return errors.Wrapf(err, "creating virtual services from snapshot")
+	}
+	return s.writeIstioCrds(ctx, destinationRules, virtualServices)
+}
+
+func (s *Syncer) writeIstioCrds(ctx context.Context, destinationRules v1alpha3.DestinationRuleList, virtualServices v1alpha3.VirtualServiceList) error {
+	opts := clients.ListOpts{
+		Ctx:      ctx,
+		Selector: s.WriteSelector,
+	}
+	if err := s.DestinationRuleReconciler.Reconcile(s.WriteNamespace, destinationRules, func(original, desired *v1alpha3.DestinationRule) (bool, error) {
+
+	}, opts); err != nil {
+		return errors.Wrapf(err, "reconciling destination rules")
+	}
+	if err := s.VirtualServiceReconciler.Reconcile(s.WriteNamespace, virtualServices, func(original, desired *v1alpha3.VirtualService) (bool, error) {
+
+	}, opts); err != nil {
+		return errors.Wrapf(err, "reconciling destination rules")
+	}
 }
 
 type translator struct{}
 
-func subsetsForUpstreams() []*v1alpha3.DestinationRule {
-
+func createSubsets(upstreams gloov1.UpstreamList) v1alpha3.DestinationRuleList {
+	subsetsByDestination := make(map[string][]*v1alpha3.Subset)
+	// only support kube upstreams for now
+	for _, us := range upstreams {
+		switch specType := us.UpstreamSpec.UpstreamType.(type) {
+		case *gloov1.UpstreamSpec_Kube:
+			if len(specType.Kube.Selector) == 0 {
+				// no need for a subset 
+				continue
+			}
+			host := fmt.Sprintf("%.%v.svc.cluster.local", specType.Kube.ServiceName, specType.Kube.ServiceNamespace)
+			subsetsByDestination[host] = append(subsetsByDestination[host], &v1alpha3.Subset{
+				Name:   fmt.Sprintf("%v.%v", us.Metadata.Namespace, us.Metadata.Name),
+				Labels: specType.Kube.Selector,
+			})
+		}
+	}
+	var destinationRules v1alpha3.DestinationRuleList
+	for host, subsets := range subsetsByDestination {
+		destinationRules = append(destinationRules, &v1alpha3.DestinationRule{
+			Host:    host,
+			Subsets: subsets,
+		})
+	}
+	sort.SliceStable(destinationRules, func(i, j int) bool {
+		return destinationRules[i].Host < destinationRules[j].Host
+	})
+	return destinationRules
 }
 
 func getHostsForUpstream(us *gloov1.Upstream) ([]string, error) {
@@ -45,27 +100,29 @@ func getHostsForUpstream(us *gloov1.Upstream) ([]string, error) {
 	return nil, errors.Errorf("unsupported upstream type %v", us)
 }
 
-func (t *translator) translateIstioRouting(routing *v1.Routing, upstreams gloov1.UpstreamList) ([]*v1alpha3.VirtualService, error) {
-	var virtualServices []*v1alpha3.VirtualService
-	for i, dest := range routing.DestinationRules {
-		upstream, err := upstreams.Find(dest.Destination.Upstream.Namespace, dest.Destination.Upstream.Name)
-		if err != nil {
-			return nil, errors.Wrapf(err, "invalid destination for rule %v", i)
+func createVirtualServices(meshes v1.MeshList, upstreams gloov1.UpstreamList) (v1alpha3.VirtualServiceList, error) {
+	var virtualServices v1alpha3.VirtualServiceList
+	for _, mesh := range meshes {
+		for i, dest := range mesh.Routing.DestinationRules {
+			upstream, err := upstreams.Find(dest.Destination.Upstream.Namespace, dest.Destination.Upstream.Name)
+			if err != nil {
+				return nil, errors.Wrapf(err, "invalid destination for rule %v", i)
+			}
+			hosts, err := getHostsForUpstream(upstream)
+			if err != nil {
+				return nil, errors.Wrapf(err, "cannot get hosts for dest rule %v", i)
+			}
+			routes, err := convertHttpRules(dest.MeshHttpRules, upstreams)
+			if err != nil {
+				return nil, errors.Wrapf(err, "cannot get hosts for dest rule %v", i)
+			}
+			vs := &v1alpha3.VirtualService{
+				Gateways: []string{}, // equivalent to "mesh"
+				Hosts:    hosts,
+				Http:     routes,
+			}
+			virtualServices = append(virtualServices, vs)
 		}
-		hosts, err := getHostsForUpstream(upstream)
-		if err != nil {
-			return nil, errors.Wrapf(err, "cannot get hosts for dest rule %v", i)
-		}
-		routes, err := convertHttpRules(dest.MeshHttpRules, upstreams)
-		if err != nil {
-			return nil, errors.Wrapf(err, "cannot get hosts for dest rule %v", i)
-		}
-		vs := &v1alpha3.VirtualService{
-			Gateways: []string{}, // equivalent to "mesh"
-			Hosts:    hosts,
-			Http:     routes,
-		}
-		virtualServices = append(virtualServices, vs)
 	}
 	return virtualServices, nil
 }
