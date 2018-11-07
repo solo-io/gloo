@@ -9,21 +9,22 @@ option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/proxy.proto";
 
+// global routing config for a single mesh
 message Routing {
-    // An ordered list of route rules for HTTP traffic inside the mesh, applied globally
-    // HTTP routes will be
-    // applied to platform service ports named 'http-*'/'http2-*'/'grpc-*', gateway
-    // ports with protocol HTTP/HTTP2/GRPC/ TLS-terminated-HTTPS and service
-    // entry ports using HTTP/HTTP2/GRPC protocols.  The first rule matching
-    // an incoming request is used.
+    // all of the http/routing config for each destination is contained here
+    repeated DestinationRule destination_rules = 1;
+}
+
+// Rules for traffic to a particular destination. Applied to any traffic regardless of source,
+// as long as the destination matches
+message DestinationRule {
+    // the destination to which these http rules are applied
+    gloo.solo.io.Destination destination = 3;
+
+    // Route Rules applied to In-Mesh-Service-to-Destination traffic
     repeated HTTPRule mesh_http_rules = 2;
 
-    // An ordered list of route rules for HTTP traffic inside the mesh, applied globally
-    // HTTP routes will be
-    // applied to platform service ports named 'http-*'/'http2-*'/'grpc-*', gateway
-    // ports with protocol HTTP/HTTP2/GRPC/ TLS-terminated-HTTPS and service
-    // entry ports using HTTP/HTTP2/GRPC protocols.  The first rule matching
-    // an incoming request is used.
+    // Route Rules applied to Ingress-to-Destination traffic
     repeated HTTPRule ingress_http_rules = 1; // ignored
 }
 
@@ -74,10 +75,6 @@ message HTTPRule {
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
     // for further details about cross origin resource sharing.
     CorsPolicy cors_policy = 10;
-
-    // Use of `append_headers` is deprecated. Use the `append_request_headers`
-    // field instead.
-    map<string, string> append_headers = 11 [deprecated=true];
 
     // HTTP headers to remove before returning a response to the caller.
     repeated string remove_response_headers = 12;
