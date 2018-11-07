@@ -3,8 +3,6 @@ package grpc.plugins.gloo.solo.io;
 
 option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/grpc";
 
-import "google/protobuf/descriptor.proto";
-
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
