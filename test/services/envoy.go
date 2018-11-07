@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,6 +23,8 @@ import (
 const (
 	containerName = "e2e_envoy"
 )
+
+var adminPort = 19000
 
 func (ei *EnvoyInstance) buildBootstrap() string {
 	var b bytes.Buffer
@@ -72,7 +75,7 @@ admin:
   address:
     socket_address:
       address: 0.0.0.0
-      port_value: 19000
+      port_value: {{.AdminPort}}
 
 {{if .RatelimitAddr}}
 rate_limit_service:
@@ -89,6 +92,7 @@ type EnvoyFactory struct {
 	envoypath string
 	tmpdir    string
 	useDocker bool
+	instances []*EnvoyInstance
 }
 
 func NewEnvoyFactory() (*EnvoyFactory, error) {
@@ -172,7 +176,11 @@ func (ef *EnvoyFactory) Clean() error {
 	}
 	if ef.tmpdir != "" {
 		os.RemoveAll(ef.tmpdir)
-
+	}
+	instances := ef.instances
+	ef.instances = nil
+	for _, ei := range instances {
+		ei.Clean()
 	}
 	return nil
 }
@@ -189,9 +197,12 @@ type EnvoyInstance struct {
 	useDocker     bool
 	GlooAddr      string // address for gloo and services
 	Port          uint32
+	AdminPort     int32
 }
 
 func (ef *EnvoyFactory) NewEnvoyInstance() (*EnvoyInstance, error) {
+	adminPort = adminPort + 1
+
 	gloo := "127.0.0.1"
 	var err error
 
@@ -205,11 +216,14 @@ func (ef *EnvoyFactory) NewEnvoyInstance() (*EnvoyInstance, error) {
 		return nil, err
 	}
 
-	return &EnvoyInstance{
+	ei := &EnvoyInstance{
 		envoypath: ef.envoypath,
 		useDocker: ef.useDocker,
 		GlooAddr:  gloo,
-	}, nil
+		AdminPort: int32(adminPort),
+	}
+	ef.instances = append(ef.instances, ei)
+	return ei, nil
 
 }
 
@@ -282,6 +296,7 @@ func (ei *EnvoyInstance) LocalAddr() string {
 }
 
 func (ei *EnvoyInstance) Clean() error {
+	http.Post(fmt.Sprintf("http://localhost:%d/quitquitquit", ei.AdminPort), "", nil)
 	if ei.cmd != nil {
 		ei.cmd.Process.Kill()
 		ei.cmd.Wait()

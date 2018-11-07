@@ -814,15 +814,18 @@
   version = "v0.8.0"
 
 [[projects]]
-  digest = "1:d14a5f4bfecf017cb780bdde1b6483e5deb87e12c332544d2c430eda58734bcb"
+  digest = "1:feed74c407cbdb93182566543cb4949d672dad7ba2eedf5430d56960d8bff7cd"
   name = "github.com/prometheus/client_golang"
   packages = [
+    "api",
+    "api/prometheus/v1",
     "prometheus",
+    "prometheus/internal",
     "prometheus/promhttp",
   ]
   pruneopts = "UT"
-  revision = "c5b7fccd204277076155f10851dad72b76a49317"
-  version = "v0.8.0"
+  revision = "abad2d1bd44235a26707c172eab6bca5bf2dbad3"
+  version = "v0.9.1"
 
 [[projects]]
   branch = "master"
@@ -856,6 +859,14 @@
   ]
   pruneopts = "UT"
   revision = "05ee40e3a273f7245e8777337fc7b46e533a9a92"
+
+[[projects]]
+  digest = "1:8911a11a3a86ed203519bf4ad20915f2c1b13556af944ad4adb31ac6c91da089"
+  name = "github.com/prometheus/prometheus"
+  packages = ["discovery/targetgroup"]
+  pruneopts = "UT"
+  revision = "167a4b4e73a8eca8df648d2d2043e21bdb9a7449"
+  version = "v2.4.3"
 
 [[projects]]
   digest = "1:37fe5a9adb37233d7f2d764dcdef5e2537d0d927bf57a6095f178817c8c616e5"
@@ -1538,6 +1549,10 @@
     "github.com/onsi/gomega/gexec",
     "github.com/onsi/gomega/gstruct",
     "github.com/pkg/errors",
+    "github.com/prometheus/client_golang/api",
+    "github.com/prometheus/client_golang/api/prometheus/v1",
+    "github.com/prometheus/common/model",
+    "github.com/prometheus/prometheus/discovery/targetgroup",
     "github.com/pseudomuto/protokit",
     "github.com/radovskyb/watcher",
     "github.com/rs/cors",

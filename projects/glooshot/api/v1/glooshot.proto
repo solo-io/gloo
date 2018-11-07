@@ -1,0 +1,67 @@
+syntax = "proto3";
+package glooshot.solo.io;
+option go_package = "github.com/solo-io/solo-kit/projects/glooshot/pkg/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "google/protobuf/duration.proto";
+import "github.com/solo-io/solo-kit/api/v1/status.proto";
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/projects/gloo/api/v1/proxy.proto";
+import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/faultinjection/fault.proto";
+
+/*
+@solo-kit:resource.short_name=exp
+@solo-kit:resource.plural_name=experiments
+@solo-kit:resource.resource_groups=api.glooshot.solo.io
+*/
+message Experiment {
+
+    // Metadata contains the object metadata for this resource
+    core.solo.io.Metadata metadata = 1 [(gogoproto.nullable) = false];
+
+    ExperimentSpec spec = 2;
+
+    // Status indicates the validation status of the resource. Status is read-only by clients, and set by gloo during validation
+    core.solo.io.Status status = 3 [(gogoproto.nullable) = false, (gogoproto.moretags) = "testdiff:\"ignore\""];
+}
+
+message ExperimentSpec {
+    message InjectedFault {
+        // TODO(yuval-k) should this be an upstream ref?
+        gloo.solo.io.Destination service = 1;
+        fault.plugins.gloo.solo.io.RouteFaults fault = 2;
+    }
+
+    repeated InjectedFault faults = 1;
+
+    StopCondition stop_condition = 2;
+    
+
+    // TODO: this should probably go in the status. consult with ilackarms
+    enum State {
+        Init = 0;
+        Running = 1;
+        Done = 2;
+    }
+    // State is the enum indicating the state of the resource
+    State state = 4;
+}
+
+message StopCondition {
+    google.protobuf.Duration duration = 1 [(gogoproto.stdduration) = true];
+    repeated MetricThreshold metric = 2;
+}
+
+message MetricThreshold {
+    string metric_name = 1;
+    double value = 2;
+}
+
+message ChaosSettings {
+    /*
+    - specify promethues?
+    - 
+    */
+}
