@@ -57,7 +57,7 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
 // actual choice of the version is determined by the proxy/sidecar, enabling the
 // application code to decouple itself from the evolution of dependent
 // services.
-package istio.networking.v1alpha3;
+package networking.istio.io;
 
 option go_package = "github.com/solo-io/solo-kit/projects/supergloo/pkg/api/external/istio/networking/v1alpha3";
 

@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestIstionetworkingv1Alpha3(t *testing.T) {
+func TestNetworkingistioio(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Istionetworkingv1Alpha3 Suite")
+	RunSpecs(t, "Networkingistioio Suite")
 }

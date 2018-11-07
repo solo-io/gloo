@@ -75,6 +75,8 @@ func (d Crd) KubeResource(resource resources.InputResource) *v1.Resource {
 	if err != nil {
 		panic(fmt.Sprintf("internal error: failed to marshal resource to map: %v", err))
 	}
+	delete(data, "metadata")
+	delete(data, "status")
 	spec := v1.Spec(data)
 	return &v1.Resource{
 		TypeMeta: d.TypeMeta(),
@@ -83,6 +85,7 @@ func (d Crd) KubeResource(resource resources.InputResource) *v1.Resource {
 			Name:            resource.GetMetadata().Name,
 			ResourceVersion: resource.GetMetadata().ResourceVersion,
 			Labels:          resource.GetMetadata().Labels,
+			Annotations:     resource.GetMetadata().Annotations,
 		},
 		Status: resource.GetStatus(),
 		Spec:   &spec,

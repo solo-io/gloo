@@ -417,6 +417,8 @@ func (rc *ResourceClient) convertCrdToResource(resourceCrd *v1.Resource) (resour
 		meta.Namespace = resourceCrd.Namespace
 		meta.Name = resourceCrd.Name
 		meta.ResourceVersion = resourceCrd.ResourceVersion
+		meta.Labels = resourceCrd.Labels
+		meta.Annotations = resourceCrd.Annotations
 	})
 	if withStatus, ok := resource.(resources.InputResource); ok {
 		resources.UpdateStatus(withStatus, func(status *core.Status) {
