@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestGateway(t *testing.T) {
+func TestSupergloosoloio(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Gateway Suite")
+	RunSpecs(t, "Supergloosoloio Suite")
 }

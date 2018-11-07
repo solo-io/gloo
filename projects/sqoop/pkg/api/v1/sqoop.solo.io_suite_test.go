@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestGloo(t *testing.T) {
+func TestSqoopsoloio(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Gloo Suite")
+	RunSpecs(t, "Sqoopsoloio Suite")
 }
