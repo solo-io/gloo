@@ -49,7 +49,7 @@ func (m *Artifact) Reset()         { *m = Artifact{} }
 func (m *Artifact) String() string { return proto.CompactTextString(m) }
 func (*Artifact) ProtoMessage()    {}
 func (*Artifact) Descriptor() ([]byte, []int) {
-	return fileDescriptor_artifact_23999e449f90ce2e, []int{0}
+	return fileDescriptor_artifact_d28b3a19b997a723, []int{0}
 }
 func (m *Artifact) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Artifact.Unmarshal(m, b)
@@ -117,9 +117,9 @@ func (this *Artifact) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("artifact.proto", fileDescriptor_artifact_23999e449f90ce2e) }
+func init() { proto.RegisterFile("artifact.proto", fileDescriptor_artifact_d28b3a19b997a723) }
 
-var fileDescriptor_artifact_23999e449f90ce2e = []byte{
+var fileDescriptor_artifact_d28b3a19b997a723 = []byte{
 	// 197 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4b, 0x2c, 0x2a, 0xc9,
 	0x4c, 0x4b, 0x4c, 0x2e, 0xd1, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x49, 0xcf, 0xc9, 0xcf,

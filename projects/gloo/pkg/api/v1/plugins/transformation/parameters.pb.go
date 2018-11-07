@@ -49,7 +49,7 @@ func (m *Parameters) Reset()         { *m = Parameters{} }
 func (m *Parameters) String() string { return proto.CompactTextString(m) }
 func (*Parameters) ProtoMessage()    {}
 func (*Parameters) Descriptor() ([]byte, []int) {
-	return fileDescriptor_parameters_abbb4af1abf029df, []int{0}
+	return fileDescriptor_parameters_9529e00b2c95666b, []int{0}
 }
 func (m *Parameters) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Parameters.Unmarshal(m, b)
@@ -124,10 +124,10 @@ func (this *Parameters) Equal(that interface{}) bool {
 }
 
 func init() {
-	proto.RegisterFile("transformation/parameters.proto", fileDescriptor_parameters_abbb4af1abf029df)
+	proto.RegisterFile("transformation/parameters.proto", fileDescriptor_parameters_9529e00b2c95666b)
 }
 
-var fileDescriptor_parameters_abbb4af1abf029df = []byte{
+var fileDescriptor_parameters_9529e00b2c95666b = []byte{
 	// 293 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x90, 0xbd, 0x4e, 0xc3, 0x30,
 	0x14, 0x85, 0xe5, 0x96, 0x1f, 0xd5, 0x65, 0x40, 0x51, 0x87, 0x28, 0x42, 0x25, 0x82, 0x25, 0x0b,

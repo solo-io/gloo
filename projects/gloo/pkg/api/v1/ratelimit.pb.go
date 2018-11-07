@@ -41,7 +41,7 @@ func (m *Constraint) Reset()         { *m = Constraint{} }
 func (m *Constraint) String() string { return proto.CompactTextString(m) }
 func (*Constraint) ProtoMessage()    {}
 func (*Constraint) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ratelimit_f959b705bd5a029c, []int{0}
+	return fileDescriptor_ratelimit_a8c29b8391e4d06a, []int{0}
 }
 func (m *Constraint) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Constraint.Unmarshal(m, b)
@@ -105,7 +105,7 @@ func (m *RateLimitConfig) Reset()         { *m = RateLimitConfig{} }
 func (m *RateLimitConfig) String() string { return proto.CompactTextString(m) }
 func (*RateLimitConfig) ProtoMessage()    {}
 func (*RateLimitConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ratelimit_f959b705bd5a029c, []int{1}
+	return fileDescriptor_ratelimit_a8c29b8391e4d06a, []int{1}
 }
 func (m *RateLimitConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RateLimitConfig.Unmarshal(m, b)
@@ -423,9 +423,9 @@ var _RateLimitDiscoveryService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "ratelimit.proto",
 }
 
-func init() { proto.RegisterFile("ratelimit.proto", fileDescriptor_ratelimit_f959b705bd5a029c) }
+func init() { proto.RegisterFile("ratelimit.proto", fileDescriptor_ratelimit_a8c29b8391e4d06a) }
 
-var fileDescriptor_ratelimit_f959b705bd5a029c = []byte{
+var fileDescriptor_ratelimit_a8c29b8391e4d06a = []byte{
 	// 438 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x93, 0xc1, 0x6e, 0xd4, 0x30,
 	0x10, 0x86, 0xf1, 0x2e, 0x54, 0xaa, 0x17, 0xa9, 0xc8, 0x5a, 0x50, 0x88, 0x4a, 0x59, 0xe5, 0x94,

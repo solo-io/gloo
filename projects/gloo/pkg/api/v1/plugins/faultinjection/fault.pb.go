@@ -41,7 +41,7 @@ func (m *RouteAbort) Reset()         { *m = RouteAbort{} }
 func (m *RouteAbort) String() string { return proto.CompactTextString(m) }
 func (*RouteAbort) ProtoMessage()    {}
 func (*RouteAbort) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fault_3dbbe1a49d1a30f7, []int{0}
+	return fileDescriptor_fault_e939f07741fbbe56, []int{0}
 }
 func (m *RouteAbort) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RouteAbort.Unmarshal(m, b)
@@ -90,7 +90,7 @@ func (m *RouteDelay) Reset()         { *m = RouteDelay{} }
 func (m *RouteDelay) String() string { return proto.CompactTextString(m) }
 func (*RouteDelay) ProtoMessage()    {}
 func (*RouteDelay) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fault_3dbbe1a49d1a30f7, []int{1}
+	return fileDescriptor_fault_e939f07741fbbe56, []int{1}
 }
 func (m *RouteDelay) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RouteDelay.Unmarshal(m, b)
@@ -136,7 +136,7 @@ func (m *RouteFaults) Reset()         { *m = RouteFaults{} }
 func (m *RouteFaults) String() string { return proto.CompactTextString(m) }
 func (*RouteFaults) ProtoMessage()    {}
 func (*RouteFaults) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fault_3dbbe1a49d1a30f7, []int{2}
+	return fileDescriptor_fault_e939f07741fbbe56, []int{2}
 }
 func (m *RouteFaults) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RouteFaults.Unmarshal(m, b)
@@ -272,9 +272,9 @@ func (this *RouteFaults) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("faultinjection/fault.proto", fileDescriptor_fault_3dbbe1a49d1a30f7) }
+func init() { proto.RegisterFile("faultinjection/fault.proto", fileDescriptor_fault_e939f07741fbbe56) }
 
-var fileDescriptor_fault_3dbbe1a49d1a30f7 = []byte{
+var fileDescriptor_fault_e939f07741fbbe56 = []byte{
 	// 344 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x52, 0x31, 0x4e, 0xc3, 0x30,
 	0x14, 0xc5, 0x45, 0x65, 0x70, 0x04, 0x43, 0x84, 0x44, 0xc9, 0xd0, 0x56, 0x1d, 0x50, 0x85, 0x84,

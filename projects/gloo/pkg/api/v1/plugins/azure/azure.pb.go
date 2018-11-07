@@ -45,7 +45,7 @@ func (x UpstreamSpec_FunctionSpec_AuthLevel) String() string {
 	return proto.EnumName(UpstreamSpec_FunctionSpec_AuthLevel_name, int32(x))
 }
 func (UpstreamSpec_FunctionSpec_AuthLevel) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_azure_43fcc6394f86b044, []int{0, 0, 0}
+	return fileDescriptor_azure_d75eb746cae57f7b, []int{0, 0, 0}
 }
 
 // Upstream Spec for Azure Functions Upstreams
@@ -68,7 +68,7 @@ func (m *UpstreamSpec) Reset()         { *m = UpstreamSpec{} }
 func (m *UpstreamSpec) String() string { return proto.CompactTextString(m) }
 func (*UpstreamSpec) ProtoMessage()    {}
 func (*UpstreamSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_azure_43fcc6394f86b044, []int{0}
+	return fileDescriptor_azure_d75eb746cae57f7b, []int{0}
 }
 func (m *UpstreamSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpstreamSpec.Unmarshal(m, b)
@@ -126,7 +126,7 @@ func (m *UpstreamSpec_FunctionSpec) Reset()         { *m = UpstreamSpec_Function
 func (m *UpstreamSpec_FunctionSpec) String() string { return proto.CompactTextString(m) }
 func (*UpstreamSpec_FunctionSpec) ProtoMessage()    {}
 func (*UpstreamSpec_FunctionSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_azure_43fcc6394f86b044, []int{0, 0}
+	return fileDescriptor_azure_d75eb746cae57f7b, []int{0, 0}
 }
 func (m *UpstreamSpec_FunctionSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpstreamSpec_FunctionSpec.Unmarshal(m, b)
@@ -172,7 +172,7 @@ func (m *DestinationSpec) Reset()         { *m = DestinationSpec{} }
 func (m *DestinationSpec) String() string { return proto.CompactTextString(m) }
 func (*DestinationSpec) ProtoMessage()    {}
 func (*DestinationSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_azure_43fcc6394f86b044, []int{1}
+	return fileDescriptor_azure_d75eb746cae57f7b, []int{1}
 }
 func (m *DestinationSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DestinationSpec.Unmarshal(m, b)
@@ -301,9 +301,9 @@ func (this *DestinationSpec) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("azure/azure.proto", fileDescriptor_azure_43fcc6394f86b044) }
+func init() { proto.RegisterFile("azure/azure.proto", fileDescriptor_azure_d75eb746cae57f7b) }
 
-var fileDescriptor_azure_43fcc6394f86b044 = []byte{
+var fileDescriptor_azure_d75eb746cae57f7b = []byte{
 	// 381 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x92, 0xcd, 0xaa, 0xd3, 0x40,
 	0x14, 0xc7, 0x6f, 0x6e, 0x55, 0xcc, 0xdc, 0x5c, 0xdb, 0x0e, 0x2e, 0x6a, 0x16, 0x5a, 0xea, 0xa6,

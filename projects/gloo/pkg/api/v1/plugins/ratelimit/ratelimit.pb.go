@@ -50,7 +50,7 @@ func (x RateLimit_Unit) String() string {
 	return proto.EnumName(RateLimit_Unit_name, int32(x))
 }
 func (RateLimit_Unit) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_ratelimit_19d0b9f2ff272cbb, []int{0, 0}
+	return fileDescriptor_ratelimit_d64391d12c4094be, []int{0, 0}
 }
 
 type RateLimit struct {
@@ -65,7 +65,7 @@ func (m *RateLimit) Reset()         { *m = RateLimit{} }
 func (m *RateLimit) String() string { return proto.CompactTextString(m) }
 func (*RateLimit) ProtoMessage()    {}
 func (*RateLimit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ratelimit_19d0b9f2ff272cbb, []int{0}
+	return fileDescriptor_ratelimit_d64391d12c4094be, []int{0}
 }
 func (m *RateLimit) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RateLimit.Unmarshal(m, b)
@@ -112,7 +112,7 @@ func (m *IngressRateLimit) Reset()         { *m = IngressRateLimit{} }
 func (m *IngressRateLimit) String() string { return proto.CompactTextString(m) }
 func (*IngressRateLimit) ProtoMessage()    {}
 func (*IngressRateLimit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ratelimit_19d0b9f2ff272cbb, []int{1}
+	return fileDescriptor_ratelimit_d64391d12c4094be, []int{1}
 }
 func (m *IngressRateLimit) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_IngressRateLimit.Unmarshal(m, b)
@@ -223,10 +223,10 @@ func (this *IngressRateLimit) Equal(that interface{}) bool {
 }
 
 func init() {
-	proto.RegisterFile("ratelimit/ratelimit.proto", fileDescriptor_ratelimit_19d0b9f2ff272cbb)
+	proto.RegisterFile("ratelimit/ratelimit.proto", fileDescriptor_ratelimit_d64391d12c4094be)
 }
 
-var fileDescriptor_ratelimit_19d0b9f2ff272cbb = []byte{
+var fileDescriptor_ratelimit_d64391d12c4094be = []byte{
 	// 360 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x92, 0xdd, 0x4e, 0xea, 0x40,
 	0x10, 0x80, 0x4f, 0xa1, 0x81, 0xc3, 0x92, 0x73, 0x58, 0x36, 0xe7, 0xe2, 0xe8, 0x05, 0x21, 0x5c,

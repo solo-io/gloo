@@ -46,7 +46,7 @@ func (m *Endpoint) Reset()         { *m = Endpoint{} }
 func (m *Endpoint) String() string { return proto.CompactTextString(m) }
 func (*Endpoint) ProtoMessage()    {}
 func (*Endpoint) Descriptor() ([]byte, []int) {
-	return fileDescriptor_endpoint_6ed8fa4952765695, []int{0}
+	return fileDescriptor_endpoint_dc40c5c4b6fef21f, []int{0}
 }
 func (m *Endpoint) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Endpoint.Unmarshal(m, b)
@@ -139,9 +139,9 @@ func (this *Endpoint) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("endpoint.proto", fileDescriptor_endpoint_6ed8fa4952765695) }
+func init() { proto.RegisterFile("endpoint.proto", fileDescriptor_endpoint_dc40c5c4b6fef21f) }
 
-var fileDescriptor_endpoint_6ed8fa4952765695 = []byte{
+var fileDescriptor_endpoint_dc40c5c4b6fef21f = []byte{
 	// 263 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x90, 0xbf, 0x4e, 0xc3, 0x30,
 	0x18, 0xc4, 0x31, 0xad, 0x68, 0xeb, 0x02, 0x83, 0x85, 0x90, 0xe9, 0x00, 0x11, 0x53, 0x06, 0xb0,

@@ -42,7 +42,7 @@ func (x DestinationSpec_InvocationStyle) String() string {
 	return proto.EnumName(DestinationSpec_InvocationStyle_name, int32(x))
 }
 func (DestinationSpec_InvocationStyle) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_aws_fdbfe72a2c53ca6c, []int{2, 0}
+	return fileDescriptor_aws_391020329cf19860, []int{2, 0}
 }
 
 // Upstream Spec for AWS Lambda Upstreams
@@ -71,7 +71,7 @@ func (m *UpstreamSpec) Reset()         { *m = UpstreamSpec{} }
 func (m *UpstreamSpec) String() string { return proto.CompactTextString(m) }
 func (*UpstreamSpec) ProtoMessage()    {}
 func (*UpstreamSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_aws_fdbfe72a2c53ca6c, []int{0}
+	return fileDescriptor_aws_391020329cf19860, []int{0}
 }
 func (m *UpstreamSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpstreamSpec.Unmarshal(m, b)
@@ -133,7 +133,7 @@ func (m *LambdaFunctionSpec) Reset()         { *m = LambdaFunctionSpec{} }
 func (m *LambdaFunctionSpec) String() string { return proto.CompactTextString(m) }
 func (*LambdaFunctionSpec) ProtoMessage()    {}
 func (*LambdaFunctionSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_aws_fdbfe72a2c53ca6c, []int{1}
+	return fileDescriptor_aws_391020329cf19860, []int{1}
 }
 func (m *LambdaFunctionSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_LambdaFunctionSpec.Unmarshal(m, b)
@@ -191,7 +191,7 @@ func (m *DestinationSpec) Reset()         { *m = DestinationSpec{} }
 func (m *DestinationSpec) String() string { return proto.CompactTextString(m) }
 func (*DestinationSpec) ProtoMessage()    {}
 func (*DestinationSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_aws_fdbfe72a2c53ca6c, []int{2}
+	return fileDescriptor_aws_391020329cf19860, []int{2}
 }
 func (m *DestinationSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DestinationSpec.Unmarshal(m, b)
@@ -343,9 +343,9 @@ func (this *DestinationSpec) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("aws/aws.proto", fileDescriptor_aws_fdbfe72a2c53ca6c) }
+func init() { proto.RegisterFile("aws/aws.proto", fileDescriptor_aws_391020329cf19860) }
 
-var fileDescriptor_aws_fdbfe72a2c53ca6c = []byte{
+var fileDescriptor_aws_391020329cf19860 = []byte{
 	// 443 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x92, 0xc1, 0x6e, 0xd3, 0x40,
 	0x10, 0x86, 0xbb, 0x4d, 0x5b, 0x35, 0x9b, 0x42, 0xa2, 0x55, 0x55, 0x4c, 0x85, 0x20, 0xe4, 0x80,

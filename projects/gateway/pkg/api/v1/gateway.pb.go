@@ -53,7 +53,7 @@ func (m *Gateway) Reset()         { *m = Gateway{} }
 func (m *Gateway) String() string { return proto.CompactTextString(m) }
 func (*Gateway) ProtoMessage()    {}
 func (*Gateway) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_8455ec6f909a94e9, []int{0}
+	return fileDescriptor_gateway_445feca83b848857, []int{0}
 }
 func (m *Gateway) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Gateway.Unmarshal(m, b)
@@ -141,7 +141,7 @@ func (m *VirtualService) Reset()         { *m = VirtualService{} }
 func (m *VirtualService) String() string { return proto.CompactTextString(m) }
 func (*VirtualService) ProtoMessage()    {}
 func (*VirtualService) Descriptor() ([]byte, []int) {
-	return fileDescriptor_gateway_8455ec6f909a94e9, []int{1}
+	return fileDescriptor_gateway_445feca83b848857, []int{1}
 }
 func (m *VirtualService) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_VirtualService.Unmarshal(m, b)
@@ -277,9 +277,9 @@ func (this *VirtualService) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("gateway.proto", fileDescriptor_gateway_8455ec6f909a94e9) }
+func init() { proto.RegisterFile("gateway.proto", fileDescriptor_gateway_445feca83b848857) }
 
-var fileDescriptor_gateway_8455ec6f909a94e9 = []byte{
+var fileDescriptor_gateway_445feca83b848857 = []byte{
 	// 450 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x93, 0xc1, 0x6e, 0xd3, 0x40,
 	0x10, 0x86, 0x71, 0x5a, 0x92, 0x66, 0xdd, 0x50, 0x58, 0x55, 0xe0, 0x04, 0x41, 0x43, 0x4e, 0x39,

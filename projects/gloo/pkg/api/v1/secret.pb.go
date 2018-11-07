@@ -54,7 +54,7 @@ func (m *Secret) Reset()         { *m = Secret{} }
 func (m *Secret) String() string { return proto.CompactTextString(m) }
 func (*Secret) ProtoMessage()    {}
 func (*Secret) Descriptor() ([]byte, []int) {
-	return fileDescriptor_secret_c1e1f9e79835f32c, []int{0}
+	return fileDescriptor_secret_8bf383bd4b17c1b7, []int{0}
 }
 func (m *Secret) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Secret.Unmarshal(m, b)
@@ -233,7 +233,7 @@ func (m *AwsSecret) Reset()         { *m = AwsSecret{} }
 func (m *AwsSecret) String() string { return proto.CompactTextString(m) }
 func (*AwsSecret) ProtoMessage()    {}
 func (*AwsSecret) Descriptor() ([]byte, []int) {
-	return fileDescriptor_secret_c1e1f9e79835f32c, []int{1}
+	return fileDescriptor_secret_8bf383bd4b17c1b7, []int{1}
 }
 func (m *AwsSecret) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AwsSecret.Unmarshal(m, b)
@@ -278,7 +278,7 @@ func (m *AzureSecret) Reset()         { *m = AzureSecret{} }
 func (m *AzureSecret) String() string { return proto.CompactTextString(m) }
 func (*AzureSecret) ProtoMessage()    {}
 func (*AzureSecret) Descriptor() ([]byte, []int) {
-	return fileDescriptor_secret_c1e1f9e79835f32c, []int{2}
+	return fileDescriptor_secret_8bf383bd4b17c1b7, []int{2}
 }
 func (m *AzureSecret) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AzureSecret.Unmarshal(m, b)
@@ -318,7 +318,7 @@ func (m *TlsSecret) Reset()         { *m = TlsSecret{} }
 func (m *TlsSecret) String() string { return proto.CompactTextString(m) }
 func (*TlsSecret) ProtoMessage()    {}
 func (*TlsSecret) Descriptor() ([]byte, []int) {
-	return fileDescriptor_secret_c1e1f9e79835f32c, []int{3}
+	return fileDescriptor_secret_8bf383bd4b17c1b7, []int{3}
 }
 func (m *TlsSecret) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_TlsSecret.Unmarshal(m, b)
@@ -570,9 +570,9 @@ func (this *TlsSecret) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("secret.proto", fileDescriptor_secret_c1e1f9e79835f32c) }
+func init() { proto.RegisterFile("secret.proto", fileDescriptor_secret_8bf383bd4b17c1b7) }
 
-var fileDescriptor_secret_c1e1f9e79835f32c = []byte{
+var fileDescriptor_secret_8bf383bd4b17c1b7 = []byte{
 	// 417 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x52, 0x41, 0x8e, 0xd3, 0x30,
 	0x14, 0x9d, 0x34, 0x33, 0xe9, 0xe4, 0xa7, 0x0b, 0x64, 0x8d, 0x98, 0x50, 0x09, 0x06, 0x65, 0x81,
