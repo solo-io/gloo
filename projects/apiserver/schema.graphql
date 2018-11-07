@@ -179,9 +179,8 @@ type AzureFunction {
     authLevel:    AzureFnAuthLevel!
 }
 
-union ServiceSpec = RestServiceSpec | GrpcServiceSpec
+union ServiceSpec = RestServiceSpec | GrpcServiceSpec | SqoopServiceSpec
 
-# Not implemented yet
 type RestServiceSpec  {
     functions: [Transformation!]
 }
@@ -192,7 +191,6 @@ type Transformation {
     headers: MapStringString
 }
 
-# Not implemented yet
 type GrpcServiceSpec {
     grpcServices: [GrpcService]
 }
@@ -202,6 +200,11 @@ type GrpcService {
     serviceName: String!
     functionNames: [String!]
 }
+
+type SqoopServiceSpec {
+    schemas: [Schema]!
+}
+
 
 
 # Upstream Mutation
@@ -370,7 +373,7 @@ type SingleDestination {
     destinationSpec: DestinationSpec
 }
 
-union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec | RestDestinationSpec | GrpcDestinationSpec
+union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec | RestDestinationSpec | GrpcDestinationSpec | SqoopDestinationSpec
 
 type AwsDestinationSpec {
     logicalName: String!
@@ -392,6 +395,11 @@ type GrpcDestinationSpec {
     service: String!
     function: String!
     parameters: TransformationParameters
+}
+
+type SqoopDestinationSpec {
+    schema: Schema!
+    playground: Boolean!
 }
 
 type TransformationParameters {
@@ -479,6 +487,7 @@ input InputDestinationSpec {
     azure: InputAzureDestinationSpec
     rest: InputRestDestinationSpec
     grpc: InputGrpcDestinationSpec
+    sqoop: InputSqoopDestinationSpec
 }
 
 input InputRestDestinationSpec {
@@ -490,6 +499,12 @@ input InputGrpcDestinationSpec {
     package: String!
     service: String!
     function: String!
+}
+
+input InputSqoopDestinationSpec {
+    schemaName: String!
+    schemaNamespace: String!
+    playground: Boolean!
 }
 
 input InputTransformationParameters {

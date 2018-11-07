@@ -32,7 +32,7 @@ type UpstreamWithServiceSpec interface {
 
 type plugin struct {
 	transformsAdded   *bool
-	recordedUpstreams map[core.ResourceRef]UpstreamWithServiceSpec
+	recordedUpstreams map[core.ResourceRef]*glooplugins.ServiceSpec_Rest
 	ctx               context.Context
 }
 
@@ -42,13 +42,29 @@ func NewPlugin(transformsAdded *bool) plugins.Plugin {
 
 func (p *plugin) Init(params plugins.InitParams) error {
 	p.ctx = params.Ctx
-	p.recordedUpstreams = make(map[core.ResourceRef]UpstreamWithServiceSpec)
+	p.recordedUpstreams = make(map[core.ResourceRef]*glooplugins.ServiceSpec_Rest)
 	return nil
 }
 
 func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, _ *envoyapi.Cluster) error {
 	if withServiceSpec, ok := in.UpstreamSpec.UpstreamType.(UpstreamWithServiceSpec); ok {
-		p.recordedUpstreams[in.Metadata.Ref()] = withServiceSpec
+		serviceSpec := withServiceSpec.GetServiceSpec()
+		if serviceSpec == nil {
+			return nil
+		}
+
+		if serviceSpec.PluginType == nil {
+			return nil
+		}
+
+		restServiceSpec, ok := serviceSpec.PluginType.(*glooplugins.ServiceSpec_Rest)
+		if !ok {
+			return nil
+		}
+		if restServiceSpec.Rest == nil {
+			return errors.Errorf("%v has an empty rest service spec", in.Metadata.Ref())
+		}
+		p.recordedUpstreams[in.Metadata.Ref()] = restServiceSpec
 	}
 	return nil
 }
@@ -64,24 +80,9 @@ func (p *plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			return nil, nil
 		}
 		// get upstream
-		upstreamType, ok := p.recordedUpstreams[spec.Upstream]
+		restServiceSpec, ok := p.recordedUpstreams[spec.Upstream]
 		if !ok {
-			// TODO(yuval-k): panic in debug
-			return nil, errors.Errorf("%v does not have a service spec", spec.Upstream)
-		}
-
-		serviceSpec := upstreamType.GetServiceSpec()
-		if serviceSpec == nil {
-			return nil, errors.Errorf("%v has an empty service spec", spec.Upstream)
-		}
-
-		if serviceSpec.PluginType == nil {
-			return nil, errors.Errorf("%v has an nil service spec type", spec.Upstream)
-		}
-
-		restServiceSpec, ok := serviceSpec.PluginType.(*glooplugins.ServiceSpec_Rest)
-		if restServiceSpec == nil || !ok {
-			return nil, errors.Errorf("%v does not have a REST service spec", spec.Upstream)
+			return nil, errors.Errorf("%v does not have a rest service spec", spec.Upstream)
 		}
 		funcname := restDestinationSpec.Rest.FunctionName
 		transformationorig := restServiceSpec.Rest.Transformations[funcname]

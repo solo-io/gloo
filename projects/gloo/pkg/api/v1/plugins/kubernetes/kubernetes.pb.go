@@ -49,7 +49,7 @@ func (m *UpstreamSpec) Reset()         { *m = UpstreamSpec{} }
 func (m *UpstreamSpec) String() string { return proto.CompactTextString(m) }
 func (*UpstreamSpec) ProtoMessage()    {}
 func (*UpstreamSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_kubernetes_a66de43ae270721c, []int{0}
+	return fileDescriptor_kubernetes_f5170fb37a4a30d1, []int{0}
 }
 func (m *UpstreamSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpstreamSpec.Unmarshal(m, b)
@@ -154,10 +154,10 @@ func (this *UpstreamSpec) Equal(that interface{}) bool {
 }
 
 func init() {
-	proto.RegisterFile("kubernetes/kubernetes.proto", fileDescriptor_kubernetes_a66de43ae270721c)
+	proto.RegisterFile("kubernetes/kubernetes.proto", fileDescriptor_kubernetes_f5170fb37a4a30d1)
 }
 
-var fileDescriptor_kubernetes_a66de43ae270721c = []byte{
+var fileDescriptor_kubernetes_f5170fb37a4a30d1 = []byte{
 	// 333 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x91, 0x4f, 0x4b, 0x33, 0x31,
 	0x10, 0xc6, 0xd9, 0xf6, 0xed, 0xcb, 0xfb, 0xa6, 0x2d, 0xd4, 0xd0, 0xc3, 0x52, 0x41, 0xb7, 0x9e,

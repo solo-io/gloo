@@ -87,7 +87,7 @@ func (f *UpstreamFunctionDiscovery) DetectType(ctx context.Context, url *url.URL
 	return svcInfo, nil
 }
 
-func (f *UpstreamFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(fds.UpstreamMutator) error) error {
+func (f *UpstreamFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, _ func() fds.Dependencies, updatecb func(fds.UpstreamMutator) error) error {
 	for {
 		// TODO: get backoff values from config?
 		err := contextutils.NewExponentioalBackoff(contextutils.ExponentioalBackoff{}).Backoff(ctx, func(ctx context.Context) error {

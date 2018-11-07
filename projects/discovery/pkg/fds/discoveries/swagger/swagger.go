@@ -161,7 +161,7 @@ func (d *SwaggerFunctionDiscovery) detectUpstreamTypeOnce(ctx context.Context, b
 
 }
 
-func (f *SwaggerFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, updatecb func(fds.UpstreamMutator) error) error {
+func (f *SwaggerFunctionDiscovery) DetectFunctions(ctx context.Context, url *url.URL, _ func() fds.Dependencies, updatecb func(fds.UpstreamMutator) error) error {
 	in := f.upstream
 	spec := getswagspec(in)
 	if spec == nil || spec.SwaggerSpec == nil {
@@ -242,11 +242,11 @@ func (f *SwaggerFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, 
 	}
 
 	return updatecb(func(u *v1.Upstream) error {
-		upstremaspec, ok := u.UpstreamSpec.UpstreamType.(v1.ServiceSpecMutator)
+		upstreamSpec, ok := u.UpstreamSpec.UpstreamType.(v1.ServiceSpecMutator)
 		if !ok {
 			return errors.New("not a valid upstream")
 		}
-		spec := upstremaspec.GetServiceSpec()
+		spec := upstreamSpec.GetServiceSpec()
 		if spec == nil {
 			spec = &plugins.ServiceSpec{}
 		}
@@ -260,7 +260,7 @@ func (f *SwaggerFunctionDiscovery) detectFunctionsFromSpec(ctx context.Context, 
 		restspec.Rest.Transformations = funcs
 		spec.PluginType = restspec
 
-		upstremaspec.SetServiceSpec(spec)
+		upstreamSpec.SetServiceSpec(spec)
 		return nil
 	})
 }

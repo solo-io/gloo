@@ -2,7 +2,8 @@
 
 set -ex
 
-# set up user, only needed once
+minishift addons enable admin-user
+
 oc login -u system:admin
 oc adm policy add-cluster-role-to-user cluster-admin gloo
 oc adm policy add-cluster-role-to-user cluster-admin default

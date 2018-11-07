@@ -18,6 +18,7 @@ type Opts struct {
 	Proxies         factory.ResourceClientFactory
 	Secrets         factory.ResourceClientFactory
 	Artifacts       factory.ResourceClientFactory
+	Schemas         factory.ResourceClientFactory
 	BindAddr        net.Addr
 	KubeClient      kubernetes.Interface
 	WatchOpts       clients.WatchOpts

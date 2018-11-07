@@ -24,6 +24,10 @@ type FunctionDiscoveryFactory interface {
 	NewFunctionDiscovery(u *v1.Upstream) UpstreamFunctionDiscovery
 }
 
+type Dependencies struct {
+	Secrets v1.SecretList
+}
+
 type UpstreamFunctionDiscovery interface {
 	// if this returns true we can skip DetectUpstreamType and go straight to DetectFunctions
 	// if this returns false we should call detect upstream type.
@@ -40,7 +44,7 @@ type UpstreamFunctionDiscovery interface {
 	DetectType(ctx context.Context, url *url.URL) (*plugins.ServiceSpec, error)
 
 	// url maybe nil if it couldnt be resolved
-	DetectFunctions(ctx context.Context, url *url.URL, secrets func() v1.SecretList, out func(UpstreamMutator) error) error
+	DetectFunctions(ctx context.Context, url *url.URL, dependencies func() Dependencies, out func(UpstreamMutator) error) error
 }
 
 type Resolver interface {

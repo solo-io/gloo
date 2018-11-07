@@ -319,6 +319,15 @@ type ComplexityRoot struct {
 		DestinationSpec func(childComplexity int) int
 	}
 
+	SqoopDestinationSpec struct {
+		Schema     func(childComplexity int) int
+		Playground func(childComplexity int) int
+	}
+
+	SqoopServiceSpec struct {
+		Schemas func(childComplexity int) int
+	}
+
 	SslConfig struct {
 		SecretRef func(childComplexity int) int
 	}
@@ -2644,6 +2653,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SingleDestination.DestinationSpec(childComplexity), true
+
+	case "SqoopDestinationSpec.schema":
+		if e.complexity.SqoopDestinationSpec.Schema == nil {
+			break
+		}
+
+		return e.complexity.SqoopDestinationSpec.Schema(childComplexity), true
+
+	case "SqoopDestinationSpec.playground":
+		if e.complexity.SqoopDestinationSpec.Playground == nil {
+			break
+		}
+
+		return e.complexity.SqoopDestinationSpec.Playground(childComplexity), true
+
+	case "SqoopServiceSpec.schemas":
+		if e.complexity.SqoopServiceSpec.Schemas == nil {
+			break
+		}
+
+		return e.complexity.SqoopServiceSpec.Schemas(childComplexity), true
 
 	case "SslConfig.secretRef":
 		if e.complexity.SslConfig.SecretRef == nil {
@@ -8591,6 +8621,178 @@ func (ec *executionContext) _SingleDestination_destinationSpec(ctx context.Conte
 	return ec._DestinationSpec(ctx, field.Selections, &res)
 }
 
+var sqoopDestinationSpecImplementors = []string{"SqoopDestinationSpec"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _SqoopDestinationSpec(ctx context.Context, sel ast.SelectionSet, obj *models.SqoopDestinationSpec) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, sqoopDestinationSpecImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SqoopDestinationSpec")
+		case "schema":
+			out.Values[i] = ec._SqoopDestinationSpec_schema(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "playground":
+			out.Values[i] = ec._SqoopDestinationSpec_playground(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _SqoopDestinationSpec_schema(ctx context.Context, field graphql.CollectedField, obj *models.SqoopDestinationSpec) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "SqoopDestinationSpec",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Schema, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.Schema)
+	rctx.Result = res
+
+	return ec._Schema(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _SqoopDestinationSpec_playground(ctx context.Context, field graphql.CollectedField, obj *models.SqoopDestinationSpec) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "SqoopDestinationSpec",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Playground, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	return graphql.MarshalBoolean(res)
+}
+
+var sqoopServiceSpecImplementors = []string{"SqoopServiceSpec"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _SqoopServiceSpec(ctx context.Context, sel ast.SelectionSet, obj *models.SqoopServiceSpec) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, sqoopServiceSpecImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SqoopServiceSpec")
+		case "schemas":
+			out.Values[i] = ec._SqoopServiceSpec_schemas(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _SqoopServiceSpec_schemas(ctx context.Context, field graphql.CollectedField, obj *models.SqoopServiceSpec) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "SqoopServiceSpec",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Schemas, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Schema)
+	rctx.Result = res
+
+	arr1 := make(graphql.Array, len(res))
+	var wg sync.WaitGroup
+
+	isLen1 := len(res) == 1
+	if !isLen1 {
+		wg.Add(len(res))
+	}
+
+	for idx1 := range res {
+		idx1 := idx1
+		rctx := &graphql.ResolverContext{
+			Index:  &idx1,
+			Result: res[idx1],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(idx1 int) {
+			if !isLen1 {
+				defer wg.Done()
+			}
+			arr1[idx1] = func() graphql.Marshaler {
+
+				if res[idx1] == nil {
+					return graphql.Null
+				}
+
+				return ec._Schema(ctx, field.Selections, res[idx1])
+			}()
+		}
+		if isLen1 {
+			f(idx1)
+		} else {
+			go f(idx1)
+		}
+
+	}
+	wg.Wait()
+	return arr1
+}
+
 var sslConfigImplementors = []string{"SslConfig"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -12165,6 +12367,10 @@ func (ec *executionContext) _DestinationSpec(ctx context.Context, sel ast.Select
 		return ec._GrpcDestinationSpec(ctx, sel, &obj)
 	case *models.GrpcDestinationSpec:
 		return ec._GrpcDestinationSpec(ctx, sel, obj)
+	case models.SqoopDestinationSpec:
+		return ec._SqoopDestinationSpec(ctx, sel, &obj)
+	case *models.SqoopDestinationSpec:
+		return ec._SqoopDestinationSpec(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -12261,6 +12467,10 @@ func (ec *executionContext) _ServiceSpec(ctx context.Context, sel ast.SelectionS
 		return ec._GrpcServiceSpec(ctx, sel, &obj)
 	case *models.GrpcServiceSpec:
 		return ec._GrpcServiceSpec(ctx, sel, obj)
+	case models.SqoopServiceSpec:
+		return ec._SqoopServiceSpec(ctx, sel, &obj)
+	case *models.SqoopServiceSpec:
+		return ec._SqoopServiceSpec(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -12625,6 +12835,17 @@ func UnmarshalInputDestinationSpec(v interface{}) (models.InputDestinationSpec, 
 			if v != nil {
 				ptr1, err = UnmarshalInputGrpcDestinationSpec(v)
 				it.Grpc = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "sqoop":
+			var err error
+			var ptr1 models.InputSqoopDestinationSpec
+			if v != nil {
+				ptr1, err = UnmarshalInputSqoopDestinationSpec(v)
+				it.Sqoop = &ptr1
 			}
 
 			if err != nil {
@@ -13546,6 +13767,36 @@ func UnmarshalInputSingleDestination(v interface{}) (models.InputSingleDestinati
 	return it, nil
 }
 
+func UnmarshalInputSqoopDestinationSpec(v interface{}) (models.InputSqoopDestinationSpec, error) {
+	var it models.InputSqoopDestinationSpec
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "schemaName":
+			var err error
+			it.SchemaName, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "schemaNamespace":
+			var err error
+			it.SchemaNamespace, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "playground":
+			var err error
+			it.Playground, err = graphql.UnmarshalBoolean(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputSslConfig(v interface{}) (models.InputSslConfig, error) {
 	var it models.InputSslConfig
 	var asMap = v.(map[string]interface{})
@@ -14357,9 +14608,8 @@ type AzureFunction {
     authLevel:    AzureFnAuthLevel!
 }
 
-union ServiceSpec = RestServiceSpec | GrpcServiceSpec
+union ServiceSpec = RestServiceSpec | GrpcServiceSpec | SqoopServiceSpec
 
-# Not implemented yet
 type RestServiceSpec  {
     functions: [Transformation!]
 }
@@ -14370,7 +14620,6 @@ type Transformation {
     headers: MapStringString
 }
 
-# Not implemented yet
 type GrpcServiceSpec {
     grpcServices: [GrpcService]
 }
@@ -14380,6 +14629,11 @@ type GrpcService {
     serviceName: String!
     functionNames: [String!]
 }
+
+type SqoopServiceSpec {
+    schemas: [Schema]!
+}
+
 
 
 # Upstream Mutation
@@ -14548,7 +14802,7 @@ type SingleDestination {
     destinationSpec: DestinationSpec
 }
 
-union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec | RestDestinationSpec | GrpcDestinationSpec
+union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec | RestDestinationSpec | GrpcDestinationSpec | SqoopDestinationSpec
 
 type AwsDestinationSpec {
     logicalName: String!
@@ -14570,6 +14824,11 @@ type GrpcDestinationSpec {
     service: String!
     function: String!
     parameters: TransformationParameters
+}
+
+type SqoopDestinationSpec {
+    schema: Schema!
+    playground: Boolean!
 }
 
 type TransformationParameters {
@@ -14657,6 +14916,7 @@ input InputDestinationSpec {
     azure: InputAzureDestinationSpec
     rest: InputRestDestinationSpec
     grpc: InputGrpcDestinationSpec
+    sqoop: InputSqoopDestinationSpec
 }
 
 input InputRestDestinationSpec {
@@ -14668,6 +14928,12 @@ input InputGrpcDestinationSpec {
     package: String!
     service: String!
     function: String!
+}
+
+input InputSqoopDestinationSpec {
+    schemaName: String!
+    schemaNamespace: String!
+    playground: Boolean!
 }
 
 input InputTransformationParameters {

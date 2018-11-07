@@ -10,6 +10,7 @@ import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/rest/rest.proto
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/grpc/grpc.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/azure/azure.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/kubernetes/kubernetes.proto";
+import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/sqoop/sqoop.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/static/static.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation/transformation.proto";
 import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/faultinjection/fault.proto";
@@ -47,6 +48,7 @@ message DestinationSpec {
         azure.plugins.gloo.solo.io.DestinationSpec azure = 2;
         rest.plugins.gloo.solo.io.DestinationSpec rest = 3;
         grpc.plugins.gloo.solo.io.DestinationSpec grpc = 4;
+        sqoop.plugins.gloo.solo.io.DestinationSpec sqoop = 5;
     }
 }
 

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"github.com/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/exec"
 	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/resolvers"
@@ -32,8 +33,8 @@ func (en *Engine) CreateGraphqlEndpoint(schema *v1.Schema, resolverMap *v1.Resol
 	executableSchema := exec.NewExecutableSchema(parsedSchema, executableResolvers)
 	return &router.Endpoint{
 		SchemaName: schema.Metadata.Name,
-		RootPath:   "/" + schema.Metadata.Name,
-		QueryPath:  "/" + schema.Metadata.Name + "/query",
+		RootPath:   SqoopPlaygroundPath(schema.Metadata.Ref()),
+		QueryPath:  SqoopQueryPath(schema.Metadata.Ref()),
 		ExecSchema: executableSchema,
 	}, nil, nil
 }
@@ -41,4 +42,12 @@ func (en *Engine) CreateGraphqlEndpoint(schema *v1.Schema, resolverMap *v1.Resol
 func parseSchemaString(sch *v1.Schema) (*schema.Schema, error) {
 	parsedSchema := schema.New()
 	return parsedSchema, parsedSchema.Parse(sch.InlineSchema)
+}
+
+func SqoopQueryPath(schemaRef core.ResourceRef) string {
+	return "/" + schemaRef.Namespace + "/" + schemaRef.Name + "/query"
+}
+
+func SqoopPlaygroundPath(schemaRef core.ResourceRef) string {
+	return "/" + schemaRef.Namespace + "/" + schemaRef.Name
 }

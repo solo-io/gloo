@@ -170,6 +170,7 @@ type InputDestinationSpec struct {
 	Azure *InputAzureDestinationSpec `json:"azure"`
 	Rest  *InputRestDestinationSpec  `json:"rest"`
 	Grpc  *InputGrpcDestinationSpec  `json:"grpc"`
+	Sqoop *InputSqoopDestinationSpec `json:"sqoop"`
 }
 
 type InputFieldResolver struct {
@@ -313,6 +314,12 @@ type InputSettings struct {
 type InputSingleDestination struct {
 	Upstream        InputResourceRef      `json:"upstream"`
 	DestinationSpec *InputDestinationSpec `json:"destinationSpec"`
+}
+
+type InputSqoopDestinationSpec struct {
+	SchemaName      string `json:"schemaName"`
+	SchemaNamespace string `json:"schemaNamespace"`
+	Playground      bool   `json:"playground"`
 }
 
 type InputSslConfig struct {
@@ -555,6 +562,19 @@ type SingleDestination struct {
 }
 
 func (SingleDestination) IsDestination() {}
+
+type SqoopDestinationSpec struct {
+	Schema     Schema `json:"schema"`
+	Playground bool   `json:"playground"`
+}
+
+func (SqoopDestinationSpec) IsDestinationSpec() {}
+
+type SqoopServiceSpec struct {
+	Schemas []*Schema `json:"schemas"`
+}
+
+func (SqoopServiceSpec) IsServiceSpec() {}
 
 type SslConfig struct {
 	SecretRef ResourceRef `json:"secretRef"`

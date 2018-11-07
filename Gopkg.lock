@@ -55,6 +55,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:e2921241c77283579f383d04139a68aaca100668a26de5e1bc56d29d896ee304"
+  name = "github.com/ahmetb/go-linq"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "7e71c124c1f903df09ca08678f145f68b45d125e"
+  version = "v3.0.0"
+
+[[projects]]
   digest = "1:8f5416c7f59da8600725ae1ff00a99af1da8b04c211ae6f3c8f8bcab0164f650"
   name = "github.com/aokoli/goutils"
   packages = ["."]
@@ -304,7 +312,7 @@
   revision = "6f2cf27854a4a29e3811b0371547be335d411b8b"
 
 [[projects]]
-  digest = "1:dec81f0b3382876dc2653d2b812fe8383c7f984f666e5e95064f4f9408ac8256"
+  digest = "1:98d8bcc9b013ef48532bd746254dbd0bd2fb94d2c7dc5b4961f08c23908d214a"
   name = "github.com/golang/protobuf"
   packages = [
     "jsonpb",
@@ -316,7 +324,6 @@
     "ptypes/duration",
     "ptypes/struct",
     "ptypes/timestamp",
-    "ptypes/wrappers",
   ]
   pruneopts = "UT"
   revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
@@ -1470,6 +1477,7 @@
     "github.com/99designs/gqlgen/graphql/introspection",
     "github.com/99designs/gqlgen/handler",
     "github.com/Masterminds/sprig",
+    "github.com/ahmetb/go-linq",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/session",
@@ -1507,7 +1515,6 @@
     "github.com/golang/protobuf/proto",
     "github.com/golang/protobuf/protoc-gen-go/descriptor",
     "github.com/golang/protobuf/protoc-gen-go/plugin",
-    "github.com/golang/protobuf/ptypes/wrappers",
     "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
     "github.com/grpc-ecosystem/go-grpc-middleware",

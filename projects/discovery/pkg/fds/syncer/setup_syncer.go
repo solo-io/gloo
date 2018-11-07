@@ -11,11 +11,13 @@ import (
 	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
 	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/aws"
 	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/grpc"
+	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/sqoop"
 	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/swagger"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
 	gloosyncer "github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
+	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 )
 
 func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) v1.SetupSyncer {
@@ -38,6 +40,13 @@ func RunFDS(opts bootstrap.Opts) error {
 		return err
 	}
 	if err := secretClient.Register(); err != nil {
+		return err
+	}
+	schemaClient, err := sqoopv1.NewSchemaClient(opts.Schemas)
+	if err != nil {
+		return err
+	}
+	if err := schemaClient.Register(); err != nil {
 		return err
 	}
 
@@ -63,6 +72,9 @@ func RunFDS(opts bootstrap.Opts) error {
 		&grpc.FunctionDiscoveryFactory{
 			DetectionTimeout: time.Minute,
 			FunctionPollTime: time.Second * 15,
+		},
+		&sqoop.FunctionDiscoveryFactory{
+			SchemaClient: schemaClient,
 		},
 	}
 

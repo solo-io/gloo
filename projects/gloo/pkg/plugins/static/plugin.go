@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
 )
 
 type plugin struct{ hostRewriteUpstreams map[core.ResourceRef]bool }
@@ -128,7 +129,7 @@ func (p *plugin) ProcessUpstream(params plugins.Params, in *v1.Upstream, out *en
 }
 
 func (p *plugin) ProcessRouteAction(params plugins.Params, in *v1.RouteAction, _ map[string]*plugins.RoutePlugin, out *envoyroute.RouteAction) error {
-	upstreams := destinationUpstreams(in)
+	upstreams := pluginutils.DestinationUpstreams(in)
 	for _, ref := range upstreams {
 		if _, ok := p.hostRewriteUpstreams[ref]; !ok {
 			continue
@@ -144,18 +145,4 @@ func (p *plugin) ProcessRouteAction(params plugins.Params, in *v1.RouteAction, _
 		break
 	}
 	return nil
-}
-
-func destinationUpstreams(in *v1.RouteAction) []core.ResourceRef {
-	switch dest := in.Destination.(type) {
-	case *v1.RouteAction_Single:
-		return []core.ResourceRef{dest.Single.Upstream}
-	case *v1.RouteAction_Multi:
-		var upstreams []core.ResourceRef
-		for _, dest := range dest.Multi.Destinations {
-			upstreams = append(upstreams, dest.Destination.Upstream)
-		}
-		return upstreams
-	}
-	panic("invalid route")
 }

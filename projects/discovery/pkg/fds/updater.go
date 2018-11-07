@@ -252,6 +252,12 @@ func (u *updaterUpdater) detectType(url_ url.URL) (*detectResult, error) {
 
 }
 
+func (u *updaterUpdater) dependencies() Dependencies {
+	return Dependencies{
+		Secrets: u.parent.GetSecrets(),
+	}
+}
+
 func (u *updaterUpdater) Run() error {
 	// see if anyone likes this upstream:
 	var discoveryForUpstream UpstreamFunctionDiscovery
@@ -300,5 +306,5 @@ func (u *updaterUpdater) Run() error {
 		})
 	}
 
-	return discoveryForUpstream.DetectFunctions(u.ctx, resolvedUrl, u.parent.GetSecrets, upstreamSave)
+	return discoveryForUpstream.DetectFunctions(u.ctx, resolvedUrl, u.dependencies, upstreamSave)
 }

@@ -31,6 +31,7 @@ import (
 
 	envoyv2 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
 
+	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
@@ -126,6 +127,17 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		return err
 	}
 
+	schemaFactory, err := bootstrap.ConfigFactoryForSettings(
+		settings,
+		memCache,
+		kubeCache,
+		sqoopv1.SchemaCrd,
+		&cfg,
+	)
+	if err != nil {
+		return err
+	}
+
 	secretFactory, err := bootstrap.SecretFactoryForSettings(
 		settings,
 		memCache,
@@ -201,6 +213,7 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
 		Proxies:         proxyFactory,
 		Secrets:         secretFactory,
 		Artifacts:       artifactFactory,
+		Schemas:         schemaFactory,
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: refreshRate,

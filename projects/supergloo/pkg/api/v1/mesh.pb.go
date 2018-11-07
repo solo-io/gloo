@@ -43,7 +43,7 @@ func (x MeshType) String() string {
 	return proto.EnumName(MeshType_name, int32(x))
 }
 func (MeshType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_mesh_bcf9a972e0869198, []int{0}
+	return fileDescriptor_mesh_a9475a5355db748d, []int{0}
 }
 
 //
@@ -75,7 +75,7 @@ func (m *Mesh) Reset()         { *m = Mesh{} }
 func (m *Mesh) String() string { return proto.CompactTextString(m) }
 func (*Mesh) ProtoMessage()    {}
 func (*Mesh) Descriptor() ([]byte, []int) {
-	return fileDescriptor_mesh_bcf9a972e0869198, []int{0}
+	return fileDescriptor_mesh_a9475a5355db748d, []int{0}
 }
 func (m *Mesh) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Mesh.Unmarshal(m, b)
@@ -137,7 +137,7 @@ func (m *TargetMesh) Reset()         { *m = TargetMesh{} }
 func (m *TargetMesh) String() string { return proto.CompactTextString(m) }
 func (*TargetMesh) ProtoMessage()    {}
 func (*TargetMesh) Descriptor() ([]byte, []int) {
-	return fileDescriptor_mesh_bcf9a972e0869198, []int{1}
+	return fileDescriptor_mesh_a9475a5355db748d, []int{1}
 }
 func (m *TargetMesh) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_TargetMesh.Unmarshal(m, b)
@@ -257,7 +257,7 @@ func (m *KubeLocation) Reset()         { *m = KubeLocation{} }
 func (m *KubeLocation) String() string { return proto.CompactTextString(m) }
 func (*KubeLocation) ProtoMessage()    {}
 func (*KubeLocation) Descriptor() ([]byte, []int) {
-	return fileDescriptor_mesh_bcf9a972e0869198, []int{2}
+	return fileDescriptor_mesh_a9475a5355db748d, []int{2}
 }
 func (m *KubeLocation) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_KubeLocation.Unmarshal(m, b)
@@ -434,9 +434,9 @@ func (this *KubeLocation) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("mesh.proto", fileDescriptor_mesh_bcf9a972e0869198) }
+func init() { proto.RegisterFile("mesh.proto", fileDescriptor_mesh_a9475a5355db748d) }
 
-var fileDescriptor_mesh_bcf9a972e0869198 = []byte{
+var fileDescriptor_mesh_a9475a5355db748d = []byte{
 	// 473 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x52, 0xdb, 0x6e, 0xd3, 0x40,
 	0x10, 0x8d, 0xa1, 0xa4, 0xf1, 0x34, 0xad, 0xda, 0xa5, 0x20, 0x13, 0xa0, 0x41, 0x46, 0x48, 0x08,

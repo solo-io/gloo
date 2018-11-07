@@ -102,6 +102,11 @@ func DefaultKubernetesConstructOpts() (v1.SettingsClient, bootstrap.Opts, error)
 		Artifacts: &factory.KubeConfigMapClientFactory{
 			Clientset: clientset,
 		},
+		Schemas: &factory.KubeResourceClientFactory{
+			Crd:         sqoopv1.SchemaCrd,
+			Cfg:         cfg,
+			SharedCache: cache,
+		},
 		WatchNamespaces: []string{"default", defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,

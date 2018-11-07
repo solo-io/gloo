@@ -252,12 +252,16 @@ func (c *Converter) convertOutputUpstreamSpec(spec *v1.UpstreamSpec) (UpstreamSp
 			Functions:       convertOutputAzureFunctions(specType.Azure.Functions),
 		}, nil
 	case *v1.UpstreamSpec_Kube:
+		serviceSpec, err := c.convertOutputServiceSpec(specType.Kube.ServiceSpec)
+		if err != nil {
+			return nil, err
+		}
 		return &KubeUpstreamSpec{
 			ServicePort:      int(specType.Kube.ServicePort),
 			ServiceNamespace: specType.Kube.ServiceNamespace,
 			ServiceName:      specType.Kube.ServiceName,
 			Selector:         NewMapStringString(specType.Kube.Selector),
-			ServiceSpec:      convertOutputServiceSpec(specType.Kube.ServiceSpec),
+			ServiceSpec:      serviceSpec,
 		}, nil
 	case *v1.UpstreamSpec_Static:
 		var hosts []StaticHost
@@ -267,10 +271,14 @@ func (c *Converter) convertOutputUpstreamSpec(spec *v1.UpstreamSpec) (UpstreamSp
 				Port: int(h.Port),
 			})
 		}
+		serviceSpec, err := c.convertOutputServiceSpec(specType.Static.ServiceSpec)
+		if err != nil {
+			return nil, err
+		}
 		return &StaticUpstreamSpec{
 			Hosts:       hosts,
 			UseTLS:      specType.Static.UseTls,
-			ServiceSpec: convertOutputServiceSpec(specType.Static.ServiceSpec),
+			ServiceSpec: serviceSpec,
 		}, nil
 	}
 	log.Printf("unsupported upstream type %v", spec)
@@ -278,19 +286,31 @@ func (c *Converter) convertOutputUpstreamSpec(spec *v1.UpstreamSpec) (UpstreamSp
 }
 
 // TODO (ilackarms): finish these methods
-func convertOutputServiceSpec(spec *plugins.ServiceSpec) ServiceSpec {
+func (c *Converter) convertOutputServiceSpec(spec *plugins.ServiceSpec) (ServiceSpec, error) {
 	if spec == nil {
-		return nil
+		return nil, nil
 	}
 	switch serviceSpec := spec.PluginType.(type) {
 	case *plugins.ServiceSpec_Rest:
 		return &RestServiceSpec{
 			Functions: convertOutputTransformations(serviceSpec.Rest.Transformations),
-		}
+		}, nil
 	case *plugins.ServiceSpec_Grpc:
 		return &GrpcServiceSpec{
 			GrpcServices: convertOutputGrpcServices(serviceSpec.Grpc.GrpcServices),
+		}, nil
+	case *plugins.ServiceSpec_Sqoop:
+		var schemas []*Schema
+		for _, schemaRef := range serviceSpec.Sqoop.Schemas {
+			schema, err := c.r.SchemaQuery().Get(c.ctx, &customtypes.SchemaQuery{Namespace: schemaRef.Namespace}, schemaRef.Name)
+			if err != nil {
+				return nil, err
+			}
+			schemas = append(schemas, schema)
 		}
+		return &SqoopServiceSpec{
+			Schemas: schemas,
+		}, nil
 	}
 	panic("unsupported")
 }
@@ -768,15 +788,19 @@ func (c *Converter) convertOutputSingleDestination(dest *v1.Destination) (Single
 	if err != nil {
 		return SingleDestination{}, err
 	}
+	ds, err := c.convertOutputDestinationSpec(dest.DestinationSpec)
+	if err != nil {
+		return SingleDestination{}, err
+	}
 	return SingleDestination{
 		Upstream:        *gqlUs,
-		DestinationSpec: convertOutputDestinationSpec(dest.DestinationSpec),
+		DestinationSpec: ds,
 	}, nil
 }
 
-func convertOutputDestinationSpec(spec *v1.DestinationSpec) DestinationSpec {
+func (c *Converter) convertOutputDestinationSpec(spec *v1.DestinationSpec) (DestinationSpec, error) {
 	if spec == nil {
-		return nil
+		return nil, nil
 	}
 	switch destSpec := spec.DestinationType.(type) {
 	case *v1.DestinationSpec_Aws:
@@ -790,26 +814,34 @@ func convertOutputDestinationSpec(spec *v1.DestinationSpec) DestinationSpec {
 		return &AwsDestinationSpec{
 			LogicalName:     destSpec.Aws.LogicalName,
 			InvocationStyle: invocationStyle,
-		}
+		}, nil
 	case *v1.DestinationSpec_Azure:
 		return &AzureDestinationSpec{
 			FunctionName: destSpec.Azure.FunctionName,
-		}
+		}, nil
 	case *v1.DestinationSpec_Rest:
 		return &RestDestinationSpec{
 			FunctionName: destSpec.Rest.FunctionName,
 			Parameters:   convertOutputTransformation(destSpec.Rest.Parameters),
-		}
+		}, nil
 	case *v1.DestinationSpec_Grpc:
 		return &GrpcDestinationSpec{
 			Package:    destSpec.Grpc.Package,
 			Service:    destSpec.Grpc.Service,
 			Function:   destSpec.Grpc.Function,
 			Parameters: convertOutputTransformation(destSpec.Grpc.Parameters),
+		}, nil
+	case *v1.DestinationSpec_Sqoop:
+		schema, err := c.r.SchemaQuery().Get(c.ctx, &customtypes.SchemaQuery{Namespace: destSpec.Sqoop.Schema.Namespace}, destSpec.Sqoop.Schema.Name)
+		if err != nil {
+			return nil, err
 		}
+		return &SqoopDestinationSpec{
+			Schema:     *schema,
+			Playground: destSpec.Sqoop.Playground,
+		}, nil
 	}
-	log.Printf("unknown destination spec type: %#v", spec)
-	return nil
+	return nil, errors.Errorf("unknown destination spec type: %v", spec)
 }
 
 func convertOutputTransformation(params *transformation.Parameters) *TransformationParameters {

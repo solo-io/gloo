@@ -125,6 +125,7 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache) bo
 		Upstreams:       f,
 		Proxies:         f,
 		Secrets:         f,
+		Schemas:         f,
 		Artifacts:       f,
 		WatchNamespaces: []string{"default", defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{

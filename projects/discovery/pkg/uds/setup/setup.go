@@ -8,6 +8,6 @@ import (
 )
 
 func Main(settingsDir string) error {
-	return setuputils.Main("fds", syncer.NewSetupSyncer(memory.NewInMemoryResourceCache(), kube.NewKubeCache()), settingsDir)
+	return setuputils.Main("uds", syncer.NewSetupSyncer(memory.NewInMemoryResourceCache(), kube.NewKubeCache()), settingsDir)
 
 }

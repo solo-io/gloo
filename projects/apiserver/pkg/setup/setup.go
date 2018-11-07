@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
-	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"

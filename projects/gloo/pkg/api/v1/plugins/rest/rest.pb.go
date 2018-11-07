@@ -35,7 +35,7 @@ func (m *ServiceSpec) Reset()         { *m = ServiceSpec{} }
 func (m *ServiceSpec) String() string { return proto.CompactTextString(m) }
 func (*ServiceSpec) ProtoMessage()    {}
 func (*ServiceSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_rest_74c20132cfaeb65d, []int{0}
+	return fileDescriptor_rest_acf42895fc628f38, []int{0}
 }
 func (m *ServiceSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ServiceSpec.Unmarshal(m, b)
@@ -83,7 +83,7 @@ func (m *ServiceSpec_SwaggerInfo) Reset()         { *m = ServiceSpec_SwaggerInfo
 func (m *ServiceSpec_SwaggerInfo) String() string { return proto.CompactTextString(m) }
 func (*ServiceSpec_SwaggerInfo) ProtoMessage()    {}
 func (*ServiceSpec_SwaggerInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_rest_74c20132cfaeb65d, []int{0, 1}
+	return fileDescriptor_rest_acf42895fc628f38, []int{0, 1}
 }
 func (m *ServiceSpec_SwaggerInfo) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ServiceSpec_SwaggerInfo.Unmarshal(m, b)
@@ -219,7 +219,7 @@ func (m *DestinationSpec) Reset()         { *m = DestinationSpec{} }
 func (m *DestinationSpec) String() string { return proto.CompactTextString(m) }
 func (*DestinationSpec) ProtoMessage()    {}
 func (*DestinationSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_rest_74c20132cfaeb65d, []int{1}
+	return fileDescriptor_rest_acf42895fc628f38, []int{1}
 }
 func (m *DestinationSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DestinationSpec.Unmarshal(m, b)
@@ -416,9 +416,9 @@ func (this *DestinationSpec) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("rest/rest.proto", fileDescriptor_rest_74c20132cfaeb65d) }
+func init() { proto.RegisterFile("rest/rest.proto", fileDescriptor_rest_acf42895fc628f38) }
 
-var fileDescriptor_rest_74c20132cfaeb65d = []byte{
+var fileDescriptor_rest_acf42895fc628f38 = []byte{
 	// 444 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x92, 0xdf, 0x8a, 0xd3, 0x40,
 	0x14, 0xc6, 0xcd, 0x06, 0x17, 0x9c, 0xac, 0x56, 0x86, 0x45, 0x63, 0x2f, 0x96, 0xb2, 0xde, 0xf4,

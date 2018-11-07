@@ -37,7 +37,7 @@ func (m *ServiceSpec) Reset()         { *m = ServiceSpec{} }
 func (m *ServiceSpec) String() string { return proto.CompactTextString(m) }
 func (*ServiceSpec) ProtoMessage()    {}
 func (*ServiceSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_grpc_92363635b38d9c7a, []int{0}
+	return fileDescriptor_grpc_2f13b0c1e75b5291, []int{0}
 }
 func (m *ServiceSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ServiceSpec.Unmarshal(m, b)
@@ -84,7 +84,7 @@ func (m *ServiceSpec_GrpcService) Reset()         { *m = ServiceSpec_GrpcService
 func (m *ServiceSpec_GrpcService) String() string { return proto.CompactTextString(m) }
 func (*ServiceSpec_GrpcService) ProtoMessage()    {}
 func (*ServiceSpec_GrpcService) Descriptor() ([]byte, []int) {
-	return fileDescriptor_grpc_92363635b38d9c7a, []int{0, 0}
+	return fileDescriptor_grpc_2f13b0c1e75b5291, []int{0, 0}
 }
 func (m *ServiceSpec_GrpcService) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ServiceSpec_GrpcService.Unmarshal(m, b)
@@ -140,7 +140,7 @@ func (m *DestinationSpec) Reset()         { *m = DestinationSpec{} }
 func (m *DestinationSpec) String() string { return proto.CompactTextString(m) }
 func (*DestinationSpec) ProtoMessage()    {}
 func (*DestinationSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_grpc_92363635b38d9c7a, []int{1}
+	return fileDescriptor_grpc_2f13b0c1e75b5291, []int{1}
 }
 func (m *DestinationSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DestinationSpec.Unmarshal(m, b)
@@ -303,9 +303,9 @@ func (this *DestinationSpec) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("grpc/grpc.proto", fileDescriptor_grpc_92363635b38d9c7a) }
+func init() { proto.RegisterFile("grpc/grpc.proto", fileDescriptor_grpc_2f13b0c1e75b5291) }
 
-var fileDescriptor_grpc_92363635b38d9c7a = []byte{
+var fileDescriptor_grpc_2f13b0c1e75b5291 = []byte{
 	// 386 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x52, 0xcd, 0x8e, 0xd3, 0x30,
 	0x10, 0x56, 0x1a, 0x04, 0xd4, 0x69, 0xa9, 0x14, 0x71, 0x08, 0x39, 0xa0, 0x50, 0x09, 0x29, 0x17,
