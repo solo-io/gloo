@@ -37,7 +37,7 @@ message Source {
 // gRPC traffic. See VirtualService for usage examples.
 message HTTPRule {
     // the sources to which this rule will be applied
-    repeated Source sources = 10;
+    repeated Source sources = 75;
 
     // Match conditions to be satisfied for the rule to be
     // activated. All conditions inside a single match block have AND

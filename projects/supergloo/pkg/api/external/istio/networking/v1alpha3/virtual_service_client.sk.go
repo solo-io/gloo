@@ -30,7 +30,7 @@ func NewVirtualServiceClient(rcFactory factory.ResourceClientFactory) (VirtualSe
 func NewVirtualServiceClientWithToken(rcFactory factory.ResourceClientFactory, token string) (VirtualServiceClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &VirtualService{},
-		Token: token,
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base VirtualService resource client")
@@ -108,4 +108,3 @@ func convertToVirtualService(resources resources.ResourceList) VirtualServiceLis
 	}
 	return virtualServiceList
 }
-

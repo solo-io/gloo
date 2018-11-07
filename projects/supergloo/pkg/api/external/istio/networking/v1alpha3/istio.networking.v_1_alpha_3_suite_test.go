@@ -13,8 +13,3 @@ func TestIstionetworkingv1Alpha3(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Istionetworkingv1Alpha3 Suite")
 }
-
-
-
-
-
