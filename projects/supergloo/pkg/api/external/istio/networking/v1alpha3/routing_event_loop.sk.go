@@ -73,7 +73,7 @@ func (el *routingEventLoop) Run(namespaces []string, opts clients.WatchOpts) (<-
 				// cancel any open watches from previous loop
 				cancel()
 
-				ctx, span := trace.StartSpan(opts.Ctx, "routing.istio.networking.v1alpha3.EventLoopSync")
+				ctx, span := trace.StartSpan(opts.Ctx, "routing.networking.istio.io.EventLoopSync")
 				ctx, canc := context.WithCancel(ctx)
 				cancel = canc
 				err := el.syncer.Sync(ctx, snapshot)

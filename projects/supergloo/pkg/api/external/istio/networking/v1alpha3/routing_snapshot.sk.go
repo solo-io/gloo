@@ -10,17 +10,25 @@ import (
 )
 
 type RoutingSnapshot struct {
-	Virtualservices VirtualservicesByNamespace
+	Destinationrules DestinationrulesByNamespace
+	Virtualservices  VirtualservicesByNamespace
 }
 
 func (s RoutingSnapshot) Clone() RoutingSnapshot {
 	return RoutingSnapshot{
-		Virtualservices: s.Virtualservices.Clone(),
+		Destinationrules: s.Destinationrules.Clone(),
+		Virtualservices:  s.Virtualservices.Clone(),
 	}
 }
 
 func (s RoutingSnapshot) snapshotToHash() RoutingSnapshot {
 	snapshotForHashing := s.Clone()
+	for _, destinationRule := range snapshotForHashing.Destinationrules.List() {
+		resources.UpdateMetadata(destinationRule, func(meta *core.Metadata) {
+			meta.ResourceVersion = ""
+		})
+		destinationRule.SetStatus(core.Status{})
+	}
 	for _, virtualService := range snapshotForHashing.Virtualservices.List() {
 		resources.UpdateMetadata(virtualService, func(meta *core.Metadata) {
 			meta.ResourceVersion = ""
@@ -38,6 +46,8 @@ func (s RoutingSnapshot) Hash() uint64 {
 func (s RoutingSnapshot) HashFields() []zap.Field {
 	snapshotForHashing := s.snapshotToHash()
 	var fields []zap.Field
+	destinationrules := s.hashStruct(snapshotForHashing.Destinationrules.List())
+	fields = append(fields, zap.Uint64("destinationrules", destinationrules))
 	virtualservices := s.hashStruct(snapshotForHashing.Virtualservices.List())
 	fields = append(fields, zap.Uint64("virtualservices", virtualservices))
 

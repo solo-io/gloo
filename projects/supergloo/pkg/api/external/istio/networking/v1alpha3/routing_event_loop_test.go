@@ -22,15 +22,23 @@ var _ = Describe("RoutingEventLoop", func() {
 
 	BeforeEach(func() {
 
+		destinationRuleClientFactory := &factory.MemoryResourceClientFactory{
+			Cache: memory.NewInMemoryResourceCache(),
+		}
+		destinationRuleClient, err := NewDestinationRuleClient(destinationRuleClientFactory)
+		Expect(err).NotTo(HaveOccurred())
+
 		virtualServiceClientFactory := &factory.MemoryResourceClientFactory{
 			Cache: memory.NewInMemoryResourceCache(),
 		}
 		virtualServiceClient, err := NewVirtualServiceClient(virtualServiceClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
-		emitter = NewRoutingEmitter(virtualServiceClient)
+		emitter = NewRoutingEmitter(destinationRuleClient, virtualServiceClient)
 	})
 	It("runs sync function on a new snapshot", func() {
+		_, err = emitter.DestinationRule().Write(NewDestinationRule(namespace, "jerry"), clients.WriteOpts{})
+		Expect(err).NotTo(HaveOccurred())
 		_, err = emitter.VirtualService().Write(NewVirtualService(namespace, "jerry"), clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 		sync := &mockRoutingSyncer{}

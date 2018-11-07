@@ -63,7 +63,7 @@ option go_package = "github.com/solo-io/solo-kit/projects/supergloo/pkg/api/exte
 
 //@solo-kit:resource.short_name=virtualservice
 //@solo-kit:resource.plural_name=virtualservices
-//@solo-kit:resource.resource_groups=routing.istio.networking.v1alpha3
+//@solo-kit:resource.resource_groups=routing.networking.istio.io
 // A `VirtualService` defines a set of traffic routing rules to apply when a host is
 // addressed. Each routing rule defines matching criteria for traffic of a specific
 // protocol. If the traffic is matched, then it is sent to a named destination service
