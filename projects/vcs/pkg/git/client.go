@@ -16,24 +16,37 @@ import (
 )
 
 const (
-	Author            = "gitbot"
-	AuthorEmail       = "gitbot@solo.io"
-	LocalBranchPrefix = "refs/heads/"
+	Author             = "gitbot"
+	AuthorEmail        = "gitbot@solo.io"
+	LocalBranchPrefix  = "refs/heads/"
+	RemoteBranchPrefix = "refs/remotes/origin/"
 
 	gitDirName = ".git"
 	repoTitle  = "Gloo state repository"
 	readmeFile = "README.md"
 )
 
-var AbsPathNotInRepo = errors.New("the given absolute path does not point to a file in the repository")
+// TODO: enhance errors, include more info
+var (
+	AbsPathNotInRepo    = errors.New("the given absolute path does not point to a file in the repository")
+	CloneInExistingRepo = errors.New("cannot clone into an existing repository")
+)
 
 type Repository struct {
-	Root string
+	root string
+}
+
+func NewRepo(root string) *Repository {
+	return &Repository{root}
+}
+
+func (r *Repository) Root() string {
+	return r.root
 }
 
 // Returns true if a non-bare git repository already exists
 func (r *Repository) IsRepo() (bool, error) {
-	_, err := os.Stat(path.Join(r.Root, gitDirName))
+	_, err := os.Stat(path.Join(r.root, gitDirName))
 	if err == nil {
 		return true, nil
 	}
@@ -48,7 +61,7 @@ func (r *Repository) Init() error {
 
 	// For an explanation of bare vs non-bare, see here:
 	// http://www.saintsjd.com/2011/01/what-is-a-bare-git-repository/
-	repo, err := goGit.PlainInit(r.Root, false)
+	repo, err := goGit.PlainInit(r.root, false)
 	if err != nil {
 		return err
 	}
@@ -76,7 +89,7 @@ func (r *Repository) Init() error {
 
 // List all branches
 func (r *Repository) ListBranches(includeRemotes bool) ([]string, error) {
-	repo, err := goGit.PlainOpen(r.Root)
+	repo, err := goGit.PlainOpen(r.root)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +117,7 @@ func (r *Repository) ListBranches(includeRemotes bool) ([]string, error) {
 
 // Create a new branch
 func (r *Repository) NewBranch(name string) error {
-	repo, err := goGit.PlainOpen(r.Root)
+	repo, err := goGit.PlainOpen(r.root)
 	if err != nil {
 		return err
 	}
@@ -123,14 +136,32 @@ func (r *Repository) NewBranch(name string) error {
 }
 
 // Checkout a branch by name
-func (r *Repository) Checkout(name string) error {
-	workTree, _, err := r.getWorkTree()
+func (r *Repository) Checkout(name string, remote bool) error {
+	workTree, repo, err := r.getWorkTree()
 	if err != nil {
 		return err
 	}
 
+	// in case of remote ref, check that only one is available and use its name in the ref prefix
+	var fullBranchName string
+	if remote {
+		remotes, err := repo.Remotes()
+		if err != nil {
+			return err
+		}
+		if len(remotes) == 0 {
+			return errors.New("could not find any remote repository")
+		}
+		if len(remotes) > 1 {
+			return errors.New(fmt.Sprintf("currently only one remote repository supported. Found %v", len(remotes)))
+		}
+		fullBranchName = RemoteBranchPrefix + name
+	} else {
+		fullBranchName = LocalBranchPrefix + name
+	}
+
 	return workTree.Checkout(&goGit.CheckoutOptions{
-		Branch: plumbing.ReferenceName(fmt.Sprint(LocalBranchPrefix, name)),
+		Branch: plumbing.ReferenceName(fullBranchName),
 	})
 }
 
@@ -169,9 +200,29 @@ func (r *Repository) Commit(msg string) (string, error) {
 	return hash.String(), nil
 }
 
-// Create a simple README file at the Root of the given repository
+// Clone the repository at the given URL
+func (r *Repository) Clone(remoteUrl string) error {
+
+	if isRepo, _ := r.IsRepo(); isRepo {
+		return CloneInExistingRepo
+	}
+
+	_, err := goGit.PlainClone(r.root, false, &goGit.CloneOptions{URL: remoteUrl})
+
+	return err
+}
+
+func (r *Repository) Push(remoteUrl string) error {
+	repo, err := goGit.PlainOpen(r.root)
+	if err != nil {
+		return err
+	}
+	return repo.Push(&goGit.PushOptions{})
+}
+
+// Create a simple README file at the root of the given repository
 func createReadMeFile(r *Repository) (string, error) {
-	filename := path.Join(r.Root, readmeFile)
+	filename := path.Join(r.root, readmeFile)
 	err := ioutil.WriteFile(filename, []byte(fmt.Sprint("# ", repoTitle, "\n")), 0644)
 	return readmeFile, err
 }
@@ -187,16 +238,16 @@ func signature() *object.Signature {
 
 // Checks whether the given path (absolute or relative) correctly points to a file/directory in the repository.
 //
-// Returns a path relative to the Root of the repository.
+// Returns a path relative to the root of the repository.
 func validatePath(filePath string, r *Repository) (string, error) {
 
 	// path is absolute
 	if path.IsAbs(filePath) {
-		if !strings.Contains(filePath, r.Root) {
+		if !strings.Contains(filePath, r.root) {
 			return "", AbsPathNotInRepo
 		}
 
-		filePath = strings.Replace(filePath, r.Root, "", -1)
+		filePath = strings.Replace(filePath, r.root, "", -1)
 
 		// Remove leading '/'
 		if len(filePath) > 0 && filePath[0] == '/' {
@@ -205,7 +256,7 @@ func validatePath(filePath string, r *Repository) (string, error) {
 	}
 
 	// At this point the path is relative
-	_, err := os.Stat(path.Join(r.Root, filePath))
+	_, err := os.Stat(path.Join(r.root, filePath))
 	if err == nil {
 		return filePath, nil
 	} else {
@@ -214,7 +265,7 @@ func validatePath(filePath string, r *Repository) (string, error) {
 }
 
 func (r *Repository) getWorkTree() (*goGit.Worktree, *goGit.Repository, error) {
-	repo, err := goGit.PlainOpen(r.Root)
+	repo, err := goGit.PlainOpen(r.root)
 	if err != nil {
 		return nil, nil, err
 	}

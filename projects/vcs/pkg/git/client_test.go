@@ -17,103 +17,183 @@ import (
 var _ = Describe("Git Client", func() {
 
 	var (
-		repoRoot   string
 		repoClient *git.Repository
 		err        error
 	)
 
-	// Initialize git repository in os.TempDir
-	BeforeEach(func() {
-		repoRoot, err = ioutil.TempDir("", "go_git_client_test")
-		Expect(err).To(BeNil())
-		Expect(repoRoot).To(BeADirectory())
+	Context("working with a local repository", func() {
 
-		repoClient = &git.Repository{Root: repoRoot}
-		Expect(repoClient).NotTo(BeNil())
-
-		err = repoClient.Init()
-	})
-
-	// Clean up
-	AfterEach(func() {
-		os.RemoveAll(repoRoot)
-	})
-
-	Describe("initializing the client", func() {
-
-		It("does not generate an error", func() {
-			Expect(err).To(BeNil())
-		})
-
-		It("creates a non-bare repository", func() {
-			isRepo, err := repoClient.IsRepo()
-			Expect(err).To(BeNil())
-			Expect(isRepo).To(BeTrue())
-		})
-
-		It("creates a master branch", func() {
-			repo, err := goGit.PlainOpen(repoRoot)
-			Expect(err).To(BeNil())
-
-			refIterator, err := repo.Branches()
-			Expect(err).To(BeNil())
-
-			branches := make([]string, 0)
-			refIterator.ForEach(func(b *plumbing.Reference) error {
-				branches = append(branches, b.Name().String())
-				return nil
-			})
-
-			Expect(branches).To(ConsistOf(git.LocalBranchPrefix + "master"))
-		})
-
-		It("generated a README file", func() {
-			_, err = os.Stat(path.Join(repoRoot, "README.md"))
-			Expect(err).To(BeNil())
-		})
-	})
-
-	// TODO: update when adding remotes
-	Describe("listing branches", func() {
-
-		It("lists the existing local branches", func() {
-			branches, err := repoClient.ListBranches(false)
-			Expect(err).To(BeNil())
-			Expect(branches).To(ConsistOf(git.LocalBranchPrefix + "master"))
-		})
-	})
-
-	Describe("committing a file", func() {
-
-		var (
-			fileName  = "test.txt"
-			fileDir   string
-			commitMsg = "Added file: " + fileName
-			hash      string
-		)
-
+		// Initialize git repository in a random temp directory
 		BeforeEach(func() {
-			fileDir = repoRoot
-		})
-
-		JustBeforeEach(func() {
-			filePath := path.Join(fileDir, fileName)
-			err = ioutil.WriteFile(filePath, []byte(fmt.Sprint("Some random content...\n")), 0644)
+			root, err := ioutil.TempDir("", "go_git_client_test")
 			Expect(err).To(BeNil())
+			Expect(root).To(BeADirectory())
 
-			// Stage the file
-			err = repoClient.Add(filePath)
+			repoClient = git.NewRepo(root)
+			Expect(repoClient).NotTo(BeNil())
+
+			err = repoClient.Init()
 		})
 
-		Context("when the file is staged for commit", func() {
+		// Clean up
+		AfterEach(func() {
+			os.RemoveAll(repoClient.Root())
+		})
+
+		Describe("initializing a repository", func() {
 
 			It("does not generate an error", func() {
 				Expect(err).To(BeNil())
 			})
 
-			It("file is present in the index", func() {
+			It("creates a non-bare repository", func() {
+				isRepo, err := repoClient.IsRepo()
+				Expect(err).To(BeNil())
+				Expect(isRepo).To(BeTrue())
+			})
 
-				repo, err := goGit.PlainOpen(repoRoot)
+			It("creates a master branch", func() {
+				repo, err := goGit.PlainOpen(repoClient.Root())
+				Expect(err).To(BeNil())
+
+				refIterator, err := repo.Branches()
+				Expect(err).To(BeNil())
+
+				branches := make([]string, 0)
+				refIterator.ForEach(func(b *plumbing.Reference) error {
+					branches = append(branches, b.Name().String())
+					return nil
+				})
+
+				Expect(branches).To(ConsistOf(git.LocalBranchPrefix + "master"))
+			})
+
+			It("generated a README file", func() {
+				_, err = os.Stat(path.Join(repoClient.Root(), "README.md"))
+				Expect(err).To(BeNil())
+			})
+		})
+
+		// TODO: update when adding remotes
+		Describe("listing branches", func() {
+
+			It("lists the existing local branches", func() {
+				branches, err := repoClient.ListBranches(false)
+				Expect(err).To(BeNil())
+				Expect(branches).To(ConsistOf(git.LocalBranchPrefix + "master"))
+			})
+		})
+
+		Describe("committing a file", func() {
+
+			var (
+				fileName  = "test.txt"
+				fileDir   string
+				commitMsg = "Added file: " + fileName
+				hash      string
+			)
+
+			BeforeEach(func() {
+				fileDir = repoClient.Root()
+			})
+
+			JustBeforeEach(func() {
+
+				filePath := path.Join(fileDir, fileName)
+				err = ioutil.WriteFile(filePath, []byte(fmt.Sprint("Some random content...\n")), 0644)
+				Expect(err).To(BeNil())
+
+				// Stage the file
+				err = repoClient.Add(filePath)
+			})
+
+			Context("when the file is staged for commit", func() {
+
+				It("does not generate an error", func() {
+					Expect(err).To(BeNil())
+				})
+
+				It("file is present in the index", func() {
+					repo, err := goGit.PlainOpen(repoClient.Root())
+					Expect(err).To(BeNil())
+
+					workTree, err := repo.Worktree()
+					Expect(err).To(BeNil())
+
+					status, err := workTree.Status()
+					Expect(err).To(BeNil())
+					Expect(status.IsClean()).To(BeFalse())
+					Expect(status.File(fileName).Staging).To(BeEquivalentTo(goGit.Added))
+				})
+			})
+
+			Context("when we try to stage a file that is not in the repository", func() {
+
+				BeforeEach(func() {
+					fileDir, _ = ioutil.TempDir("", "go_git_client_test")
+				})
+
+				It("generates an error", func() {
+					Expect(err).To(HaveOccurred())
+				})
+
+				AfterEach(func() {
+					os.RemoveAll(fileDir)
+				})
+			})
+
+			Describe("when the file is committed", func() {
+				BeforeEach(func() {
+					hash, err = repoClient.Commit(commitMsg)
+				})
+
+				It("does not generate an error", func() {
+					Expect(err).To(BeNil())
+				})
+
+				It("does return a non-empty hash", func() {
+					Expect(hash).To(Not(BeEmpty()))
+				})
+
+				It("correctly stores the commit", func() {
+					repo, err := goGit.PlainOpen(repoClient.Root())
+					Expect(err).To(BeNil())
+
+					commit, err := repo.CommitObject(plumbing.NewHash(hash))
+					Expect(err).To(BeNil())
+					Expect(commit).To(Not(BeNil()))
+					Expect(commit.Message).To(BeEquivalentTo(commitMsg))
+					Expect(commit.Author.Name).To(BeEquivalentTo(git.Author))
+					Expect(commit.Author.Email).To(BeEquivalentTo(git.AuthorEmail))
+				})
+			})
+		})
+
+		Describe("committing a directory structure", func() {
+
+			var file1, file2, file3, hash string
+
+			BeforeEach(func() {
+				err = os.MkdirAll(repoClient.Root()+"/dir1/dir2", os.ModePerm)
+				Expect(err).To(BeNil())
+
+				file1 = path.Join(repoClient.Root(), "dir1", "file_1_1")
+				file2 = path.Join(repoClient.Root(), "dir1", "file_1_2")
+				file3 = path.Join(repoClient.Root(), "dir1", "dir2", "file_2_1")
+
+				err = ioutil.WriteFile(file1, []byte(fmt.Sprint("Some random content...\n")), 0644)
+				Expect(err).To(BeNil())
+				err = ioutil.WriteFile(file2, []byte(fmt.Sprint("Some random content...\n")), 0644)
+				Expect(err).To(BeNil())
+				err = ioutil.WriteFile(file3, []byte(fmt.Sprint("Some random content...\n")), 0644)
+				Expect(err).To(BeNil())
+
+				err = repoClient.Add(repoClient.Root())
+				Expect(err).To(BeNil())
+			})
+
+			It("all files have been added correctly", func() {
+				repo, err := goGit.PlainOpen(repoClient.Root())
 				Expect(err).To(BeNil())
 
 				workTree, err := repo.Worktree()
@@ -122,205 +202,238 @@ var _ = Describe("Git Client", func() {
 				status, err := workTree.Status()
 				Expect(err).To(BeNil())
 				Expect(status.IsClean()).To(BeFalse())
-				Expect(status.File(fileName).Staging).To(BeEquivalentTo(goGit.Added))
+
+				Expect(status.File(strings.Replace(file1, repoClient.Root(), "", -1)[1:]).Staging).To(BeEquivalentTo(goGit.Added))
+				Expect(status.File(strings.Replace(file2, repoClient.Root(), "", -1)[1:]).Staging).To(BeEquivalentTo(goGit.Added))
+				Expect(status.File(strings.Replace(file3, repoClient.Root(), "", -1)[1:]).Staging).To(BeEquivalentTo(goGit.Added))
+			})
+
+			Describe("when the contents of the index are committed", func() {
+
+				BeforeEach(func() {
+					hash, err = repoClient.Commit("Multiple files")
+				})
+
+				It("does not generate an error", func() {
+					Expect(err).To(BeNil())
+				})
+
+				It("does return a non-empty hash", func() {
+					Expect(hash).To(Not(BeEmpty()))
+				})
+
+				It("generates a valid commit", func() {
+					repo, err := goGit.PlainOpen(repoClient.Root())
+					Expect(err).To(BeNil())
+
+					commit, err := repo.CommitObject(plumbing.NewHash(hash))
+					Expect(err).To(BeNil())
+					Expect(commit).To(Not(BeNil()))
+					Expect(commit.Message).To(BeEquivalentTo("Multiple files"))
+					Expect(commit.Author.Name).To(BeEquivalentTo(git.Author))
+					Expect(commit.Author.Email).To(BeEquivalentTo(git.AuthorEmail))
+				})
 			})
 		})
 
-		Context("when we try to stage a file that is not in the repository", func() {
+		Describe("creating a new branch", func() {
+
+			const branchName = "newBranch"
 
 			BeforeEach(func() {
-				fileDir = os.TempDir()
-			})
-
-			It("generates an error", func() {
-				Expect(err).To(HaveOccurred())
-			})
-
-			AfterEach(func() {
-				os.RemoveAll(fileDir)
-			})
-
-		})
-
-		Describe("when the file is committed", func() {
-			BeforeEach(func() {
-				hash, err = repoClient.Commit(commitMsg)
+				err = repoClient.NewBranch(branchName)
 			})
 
 			It("does not generate an error", func() {
 				Expect(err).To(BeNil())
 			})
 
-			It("does return a non-empty hash", func() {
-				Expect(hash).To(Not(BeEmpty()))
+			It("the branch has been successfully created", func() {
+				repo, _ := goGit.PlainOpen(repoClient.Root())
+				refIterator, _ := repo.Branches()
+
+				branches := make([]string, 0)
+				refIterator.ForEach(func(b *plumbing.Reference) error {
+					branches = append(branches, b.Name().String())
+					return nil
+				})
+
+				Expect(err).To(BeNil())
+				Expect(branches).To(Not(BeNil()))
+				Expect(branches).To(ConsistOf(
+					git.LocalBranchPrefix+"master",
+					git.LocalBranchPrefix+branchName,
+				))
 			})
 
-			It("correctly stores the commit", func() {
-				repo, err := goGit.PlainOpen(repoRoot)
-				Expect(err).To(BeNil())
+			Describe("checking out the new branch", func() {
 
-				commit, err := repo.CommitObject(plumbing.NewHash(hash))
-				Expect(err).To(BeNil())
-				Expect(commit).To(Not(BeNil()))
-				Expect(commit.Message).To(BeEquivalentTo(commitMsg))
-				Expect(commit.Author.Name).To(BeEquivalentTo(git.Author))
-				Expect(commit.Author.Email).To(BeEquivalentTo(git.AuthorEmail))
+				BeforeEach(func() {
+					err = repoClient.Checkout(branchName, false)
+				})
+
+				It("does not generate an error", func() {
+					Expect(err).To(BeNil())
+				})
+
+				It("the correct branch has been checked out", func() {
+					repo, err := goGit.PlainOpen(repoClient.Root())
+					Expect(err).To(BeNil())
+
+					ref, err := repo.Head()
+					Expect(err).To(BeNil())
+
+					Expect(ref.Name()).To(BeEquivalentTo(git.LocalBranchPrefix + branchName))
+				})
+			})
+
+			Describe("new file committed to new branch", func() {
+
+				const (
+					fileName  = "only_on_new_branch.txt"
+					commitMsg = "Another file: " + fileName
+				)
+				var filePath, hash string
+
+				BeforeEach(func() {
+					_ = repoClient.Checkout(branchName, false)
+
+					filePath = path.Join(repoClient.Root(), fileName)
+					err = ioutil.WriteFile(filePath, []byte(fmt.Sprint("I am just using up memory...\n")), 0644)
+					Expect(err).To(BeNil())
+
+					repoClient.Add(filePath)
+					hash, _ = repoClient.Commit(commitMsg)
+				})
+
+				It("commit has been created", func() {
+					repo, err := goGit.PlainOpen(repoClient.Root())
+					Expect(err).To(BeNil())
+
+					commit, err := repo.CommitObject(plumbing.NewHash(hash))
+					Expect(err).To(BeNil())
+					Expect(commit).To(Not(BeNil()))
+				})
+
+				It("file is not present on master branch", func() {
+					repoClient.Checkout("master", false)
+					_, err = os.Stat(path.Join(repoClient.Root(), fileName))
+					Expect(os.IsNotExist(err)).To(BeTrue())
+				})
 			})
 		})
 	})
 
-	Describe("committing a directory structure", func() {
+	Context("working with remote repositories", func() {
 
-		var file1, file2, file3, hash string
+		var remoteClient *git.Repository
 
 		BeforeEach(func() {
-			err = os.MkdirAll(repoRoot+"/dir1/dir2", os.ModePerm)
-			Expect(err).To(BeNil())
+			repoRoot, _ := ioutil.TempDir("", "go_git_client_remotes_test")
+			remoteRoot, _ := ioutil.TempDir("", "go_git_client_remotes_test")
 
-			file1 = path.Join(repoRoot, "dir1", "file_1_1")
-			file2 = path.Join(repoRoot, "dir1", "file_1_2")
-			file3 = path.Join(repoRoot, "dir1", "dir2", "file_2_1")
+			// Initialize git repository in a random temp dir
+			repoClient = git.NewRepo(repoRoot)
+			Expect(repoClient.IsRepo()).To(BeFalse())
 
-			err = ioutil.WriteFile(file1, []byte(fmt.Sprint("Some random content...\n")), 0644)
-			Expect(err).To(BeNil())
-			err = ioutil.WriteFile(file2, []byte(fmt.Sprint("Some random content...\n")), 0644)
-			Expect(err).To(BeNil())
-			err = ioutil.WriteFile(file3, []byte(fmt.Sprint("Some random content...\n")), 0644)
-			Expect(err).To(BeNil())
+			// Initialize another local repository that will act as remote
+			remoteClient = git.NewRepo(remoteRoot)
+			Expect(remoteClient.Init()).To(BeNil())
 
-			err = repoClient.Add(repoRoot)
+			// Create another branch on the remote
+			remoteClient.NewBranch("branch_1")
+			remoteClient.Checkout("branch_1", false)
+			Expect(ioutil.WriteFile(path.Join(remoteClient.Root(), "test_file"), []byte("Lorem ipsum..."), 0644)).To(BeNil())
+			Expect(remoteClient.Add(path.Join(remoteClient.Root(), "test_file"))).To(BeNil())
+			_, err := remoteClient.Commit("commit on branch_1")
 			Expect(err).To(BeNil())
+			remoteClient.Checkout("master", false)
 		})
 
-		It("all files have been added correctly", func() {
+		Describe("cloning a remote repository", func() {
 
-			repo, err := goGit.PlainOpen(repoRoot)
-			Expect(err).To(BeNil())
-
-			workTree, err := repo.Worktree()
-			Expect(err).To(BeNil())
-
-			status, err := workTree.Status()
-			Expect(err).To(BeNil())
-			Expect(status.IsClean()).To(BeFalse())
-
-			Expect(status.File(strings.Replace(file1, repoRoot, "", -1)[1:]).Staging).To(BeEquivalentTo(goGit.Added))
-			Expect(status.File(strings.Replace(file2, repoRoot, "", -1)[1:]).Staging).To(BeEquivalentTo(goGit.Added))
-			Expect(status.File(strings.Replace(file3, repoRoot, "", -1)[1:]).Staging).To(BeEquivalentTo(goGit.Added))
-		})
-
-		Describe("when the contents of the index are committed", func() {
 			BeforeEach(func() {
-				hash, err = repoClient.Commit("Multiple files")
+				err = repoClient.Clone(remoteClient.Root())
 			})
 
 			It("does not generate an error", func() {
 				Expect(err).To(BeNil())
 			})
 
-			It("does return a non-empty hash", func() {
-				Expect(hash).To(Not(BeEmpty()))
+			It("creates a repository in the given directory", func() {
+				Expect(repoClient.IsRepo()).To(BeTrue())
 			})
 
-			It("generates a valid commit", func() {
-				repo, err := goGit.PlainOpen(repoRoot)
+			It("the local repository points to the correct remote", func() {
+				repo, _ := goGit.PlainOpen(repoClient.Root())
+				remotes, err := repo.Remotes()
+
 				Expect(err).To(BeNil())
+				Expect(len(remotes)).To(BeEquivalentTo(1))
+				Expect(remotes[0].Config().URLs[0]).To(BeEquivalentTo(remoteClient.Root()))
+			})
 
-				commit, err := repo.CommitObject(plumbing.NewHash(hash))
+			It("lists the existing remote branches", func() {
+				branches, err := repoClient.ListBranches(true)
+
 				Expect(err).To(BeNil())
-				Expect(commit).To(Not(BeNil()))
-				Expect(commit.Message).To(BeEquivalentTo("Multiple files"))
-				Expect(commit.Author.Name).To(BeEquivalentTo(git.Author))
-				Expect(commit.Author.Email).To(BeEquivalentTo(git.AuthorEmail))
-			})
-		})
-
-	})
-
-	Describe("creating a new branch", func() {
-
-		const branchName = "newBranch"
-
-		BeforeEach(func() {
-			err = repoClient.NewBranch(branchName)
-		})
-
-		It("does not generate an error", func() {
-			Expect(err).To(BeNil())
-		})
-
-		It("the branch has been successfully created", func() {
-			repo, _ := goGit.PlainOpen(repoRoot)
-			refIterator, _ := repo.Branches()
-
-			branches := make([]string, 0)
-			refIterator.ForEach(func(b *plumbing.Reference) error {
-				branches = append(branches, b.Name().String())
-				return nil
+				Expect(len(branches)).To(BeEquivalentTo(3)) // 1 local (master) + 2 remote branches
+				Expect(branches).To(ContainElement("refs/remotes/origin/master"))
+				Expect(branches).To(ContainElement("refs/remotes/origin/branch_1"))
 			})
 
-			Expect(err).To(BeNil())
-			Expect(branches).To(Not(BeNil()))
-			Expect(branches).To(ConsistOf(
-				git.LocalBranchPrefix+"master",
-				git.LocalBranchPrefix+branchName,
-			))
-		})
-
-		Describe("checking out the new branch", func() {
-
-			BeforeEach(func() {
-				err = repoClient.Checkout(branchName)
-			})
-
-			It("does not generate an error", func() {
-				Expect(err).To(BeNil())
-			})
-
-			It("the correct branch has been checked out", func() {
-				repo, err := goGit.PlainOpen(repoRoot)
-				Expect(err).To(BeNil())
-
+			It("is on the master branch", func() {
+				repo, _ := goGit.PlainOpen(repoClient.Root())
 				ref, err := repo.Head()
-				Expect(err).To(BeNil())
 
-				Expect(ref.Name()).To(BeEquivalentTo(git.LocalBranchPrefix + branchName))
+				Expect(err).To(BeNil())
+				Expect(ref.Name()).To(BeEquivalentTo(git.LocalBranchPrefix + "master"))
+			})
+
+			It("can check out the other remote branch", func() {
+				err = repoClient.Checkout("branch_1", true)
+				Expect(err).To(BeNil())
 			})
 		})
 
-		Describe("new file committed to new branch", func() {
+		Describe("pushing a commit to a remote repository", func() {
 
-			const (
-				fileName  = "only_on_new_branch.txt"
-				commitMsg = "Another file: " + fileName
-			)
-			var filePath, hash string
+			var hash string
 
 			BeforeEach(func() {
-
-				_ = repoClient.Checkout(branchName)
-
-				filePath = path.Join(repoRoot, fileName)
-				err = ioutil.WriteFile(filePath, []byte(fmt.Sprint("I am just using up memory...\n")), 0644)
+				Expect(repoClient.Clone(remoteClient.Root())).To(BeNil())
+				Expect(repoClient.NewBranch("to_be_pushed")).To(BeNil())
+				Expect(repoClient.Checkout("to_be_pushed", false)).To(BeNil())
+				Expect(ioutil.WriteFile(path.Join(repoClient.Root(), "test_push"), []byte("to be pushed..."), 0777)).To(BeNil())
+				Expect(repoClient.Add(path.Join(repoClient.Root(), "test_push"))).To(BeNil())
+				hash, err = repoClient.Commit("Commit on branch to be pushed")
 				Expect(err).To(BeNil())
+				Expect(hash).To(Not(BeNil()))
 
-				repoClient.Add(filePath)
-				hash, _ = repoClient.Commit(commitMsg)
+				err = repoClient.Push(remoteClient.Root())
 			})
 
-			It("commit has been created", func() {
-				repo, err := goGit.PlainOpen(repoRoot)
+			It("does not generate an error", func() {
 				Expect(err).To(BeNil())
-
-				commit, err := repo.CommitObject(plumbing.NewHash(hash))
-				Expect(err).To(BeNil())
-				Expect(commit).To(Not(BeNil()))
 			})
 
-			It("file is not present on master branch", func() {
-				repoClient.Checkout("master")
-				_, err = os.Stat(path.Join(repoRoot, fileName))
-				Expect(os.IsNotExist(err)).To(BeTrue())
+			It("correctly pushed the branch to the remote", func() {
+				branches, err := repoClient.ListBranches(true)
+				Expect(err).To(BeNil())
+				Expect(branches).To(ContainElement("refs/remotes/origin/to_be_pushed"))
+			})
+
+			It("the remote branch contains the commit", func() {
+
+				// Clone the remote into a new location and check that the file exists
+				newRepoRoot, _ := ioutil.TempDir("", "go_git_client_remotes_test")
+				newRepoClient := git.NewRepo(newRepoRoot)
+				Expect(newRepoClient.Clone(remoteClient.Root())).To(BeNil())
+				Expect(newRepoClient.Checkout("to_be_pushed", true)).To(BeNil())
+
+				fileInfo, err := os.Stat(path.Join(newRepoRoot, "test_push"))
+				Expect(err).To(BeNil())
+				Expect(fileInfo.Name()).To(BeEquivalentTo("test_push"))
 			})
 		})
 	})
