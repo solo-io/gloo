@@ -19,6 +19,8 @@ import "google/protobuf/duration.proto";
 import "virtual_service.proto";
 import "gogoproto/gogo.proto";
 
+option (gogoproto.equal_all) = true;
+
 option go_package = "github.com/solo-io/solo-kit/projects/supergloo/pkg/api/external/istio/networking/v1alpha3";
 
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";

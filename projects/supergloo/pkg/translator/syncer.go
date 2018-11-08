@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 
@@ -28,6 +31,28 @@ func (s *Syncer) Sync(ctx context.Context, snap *v1.TranslatorSnapshot) error {
 	virtualServices, err := createVirtualServices(snap.Meshes.List(), snap.Upstreams.List())
 	if err != nil {
 		return errors.Wrapf(err, "creating virtual services from snapshot")
+	}
+	for _, res := range destinationRules {
+		resources.UpdateMetadata(res, func(meta *core.Metadata) {
+			if meta.Annotations == nil {
+				meta.Annotations = make(map[string]string)
+			}
+			meta.Annotations["created_by"] = "supergloo"
+			for k, v := range s.WriteSelector {
+				meta.Labels[k] = v
+			}
+		})
+	}
+	for _, res := range virtualServices {
+		resources.UpdateMetadata(res, func(meta *core.Metadata) {
+			if meta.Annotations == nil {
+				meta.Annotations = make(map[string]string)
+			}
+			meta.Annotations["created_by"] = "supergloo"
+			for k, v := range s.WriteSelector {
+				meta.Labels[k] = v
+			}
+		})
 	}
 	return s.writeIstioCrds(ctx, destinationRules, virtualServices)
 }
@@ -53,8 +78,6 @@ func (s *Syncer) writeIstioCrds(ctx context.Context, destinationRules v1alpha3.D
 	}
 	return nil
 }
-
-type translator struct{}
 
 func createSubsets(upstreams gloov1.UpstreamList) v1alpha3.DestinationRuleList {
 	subsetsByDestination := make(map[string][]*v1alpha3.Subset)
