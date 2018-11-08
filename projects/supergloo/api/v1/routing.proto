@@ -40,16 +40,8 @@ message HTTPRule {
     // the sources to which this rule will be applied
     repeated Source sources = 75;
 
-    // Match conditions to be satisfied for the rule to be
-    // activated. All conditions inside a single match block have AND
-    // semantics, while the list of match blocks have OR semantics. The rule
-    // is matched if any one of the match blocks succeed.
-    repeated HTTPMatchRequest match = 1;
+   repeated HTTPMatchRequest match = 1;
 
-    // A http rule can either redirect or forward (default) traffic. The
-    // forwarding target can be one of several versions of a service (see
-    // glossary in beginning of document). Weights associated with the
-    // service version determine the proportion of traffic it receives.
     repeated HTTPRouteDestination route = 2;
 
     // Timeout for HTTP requests.
@@ -224,9 +216,9 @@ message HTTPMatchRequest {
 //       weight: 75
 // ```
 message HTTPRouteDestination {
-    // REQUIRED. Destination uniquely identifies the instances of a service
-    // to which the request/connection should be forwarded to.
-    gloo.solo.io.Destination destination = 1;
+    // optional. use if the destination for this route should be other
+    // than the original destination specified on the root Destination Rule
+    gloo.solo.io.Destination alternate_destination = 1;
 
     // REQUIRED. The proportion of traffic to be forwarded to the service
     // version. (0-100). Sum of weights across destinations SHOULD BE == 100.

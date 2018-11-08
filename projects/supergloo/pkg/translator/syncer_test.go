@@ -2,13 +2,14 @@ package translator_test
 
 import (
 	"context"
+	"os"
+	"path/filepath"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	"github.com/solo-io/solo-kit/projects/supergloo/pkg/api/v1"
-	"os"
-	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -25,8 +26,8 @@ var _ = Describe("Syncer", func() {
 		cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
 		vsClient, err := v1alpha3.NewVirtualServiceClient(&factory.KubeResourceClientFactory{
-			Crd: v1alpha3.VirtualServiceCrd,
-			Cfg: cfg,
+			Crd:         v1alpha3.VirtualServiceCrd,
+			Cfg:         cfg,
 			SharedCache: kube.NewKubeCache(),
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -34,8 +35,8 @@ var _ = Describe("Syncer", func() {
 		Expect(err).NotTo(HaveOccurred())
 		vsReconciler := v1alpha3.NewVirtualServiceReconciler(vsClient)
 		drClient, err := v1alpha3.NewDestinationRuleClient(&factory.KubeResourceClientFactory{
-			Crd: v1alpha3.DestinationRuleCrd,
-			Cfg: cfg,
+			Crd:         v1alpha3.DestinationRuleCrd,
+			Cfg:         cfg,
 			SharedCache: kube.NewKubeCache(),
 		})
 		Expect(err).NotTo(HaveOccurred())

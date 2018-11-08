@@ -3,9 +3,10 @@ package translator
 import (
 	"context"
 	"fmt"
+	"sort"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"sort"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -168,7 +169,7 @@ func createVirtualServices(meshes v1.MeshList, upstreams gloov1.UpstreamList) (v
 			if err != nil {
 				return nil, errors.Wrapf(err, "cannot get hosts for dest rule %v", i)
 			}
-			routes, err := convertHttpRules(dest.MeshHttpRules, upstreams)
+			routes, err := convertHttpRules(dest.Destination, dest.MeshHttpRules, upstreams)
 			if err != nil {
 				return nil, errors.Wrapf(err, "cannot get hosts for dest rule %v", i)
 			}
@@ -186,10 +187,10 @@ func createVirtualServices(meshes v1.MeshList, upstreams gloov1.UpstreamList) (v
 	return virtualServices, nil
 }
 
-func convertHttpRules(rules []*v1.HTTPRule, upstreams gloov1.UpstreamList) ([]*v1alpha3.HTTPRoute, error) {
+func convertHttpRules(originalDestination *gloov1.Destination, rules []*v1.HTTPRule, upstreams gloov1.UpstreamList) ([]*v1alpha3.HTTPRoute, error) {
 	var istioRoutes []*v1alpha3.HTTPRoute
 	for _, rule := range rules {
-		istioRoute, err := convertRoute(rule.Route, upstreams)
+		istioRoute, err := convertRoute(originalDestination, rule.Route, upstreams)
 		if err != nil {
 			return nil, errors.Wrapf(err, "converting rule route %v", rule.Route)
 		}
@@ -311,12 +312,16 @@ func convertMatch(match []*v1.HTTPMatchRequest) []*v1alpha3.HTTPMatchRequest {
 	return istioMatch
 }
 
-func convertRoute(route []*v1.HTTPRouteDestination, upstreams gloov1.UpstreamList) ([]*v1alpha3.HTTPRouteDestination, error) {
+func convertRoute(originalDestination *gloov1.Destination, route []*v1.HTTPRouteDestination, upstreams gloov1.UpstreamList) ([]*v1alpha3.HTTPRouteDestination, error) {
 	var istioMatch []*v1alpha3.HTTPRouteDestination
 	for _, m := range route {
-		istioDestination, err := convertDestination(m.Destination, upstreams)
+		destination := originalDestination
+		if m.AlternateDestination != nil {
+			destination = m.AlternateDestination
+		}
+		istioDestination, err := convertDestination(destination, upstreams)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to convert destination %v", m.Destination)
+			return nil, errors.Wrapf(err, "failed to convert destination %v", destination)
 		}
 		istioMatch = append(istioMatch, &v1alpha3.HTTPRouteDestination{
 			Destination:           istioDestination,
