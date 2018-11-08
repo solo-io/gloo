@@ -48,6 +48,9 @@ func (s *Syncer) Sync(ctx context.Context, snap *v1.TranslatorSnapshot) error {
 			if meta.Annotations == nil {
 				meta.Annotations = make(map[string]string)
 			}
+			if meta.Labels == nil {
+				meta.Labels = make(map[string]string)
+			}
 			meta.Annotations["created_by"] = "supergloo"
 			for k, v := range s.WriteSelector {
 				meta.Labels[k] = v
@@ -89,7 +92,7 @@ func createSubsets(upstreams gloov1.UpstreamList) v1alpha3.DestinationRuleList {
 				// no need for a subset
 				continue
 			}
-			host := fmt.Sprintf("%.%v.svc.cluster.local", specType.Kube.ServiceName, specType.Kube.ServiceNamespace)
+			host := fmt.Sprintf("%v.%v.svc.cluster.local", specType.Kube.ServiceName, specType.Kube.ServiceNamespace)
 			subsetsByDestination[host] = append(subsetsByDestination[host], &v1alpha3.Subset{
 				Name:   fmt.Sprintf("%v.%v", us.Metadata.Namespace, us.Metadata.Name),
 				Labels: specType.Kube.Selector,
@@ -117,7 +120,7 @@ func getHostsForUpstream(us *gloov1.Upstream) ([]string, error) {
 		return nil, errors.Errorf("azure not implemented")
 	case *gloov1.UpstreamSpec_Kube:
 		return []string{
-			fmt.Sprintf("%.%v.svc.cluster.local", specType.Kube.ServiceName, specType.Kube.ServiceNamespace),
+			fmt.Sprintf("%v.%v.svc.cluster.local", specType.Kube.ServiceName, specType.Kube.ServiceNamespace),
 			specType.Kube.ServiceName,
 		}, nil
 	case *gloov1.UpstreamSpec_Static:
@@ -207,12 +210,18 @@ func convertHttpRules(rules []*v1.HTTPRule, upstreams gloov1.UpstreamList) ([]*v
 }
 
 func convertRetry(retry *v1.HTTPRetry) *v1alpha3.HTTPRetry {
+	if retry == nil {
+		return nil
+	}
 	return &v1alpha3.HTTPRetry{
 		Attempts:      retry.Attempts,
 		PerTryTimeout: retry.PerTryTimeout,
 	}
 }
 func convertFault(fault *v1.HTTPFaultInjection) *v1alpha3.HTTPFaultInjection {
+	if fault == nil {
+		return nil
+	}
 	var delay *v1alpha3.HTTPFaultInjection_Delay
 	if fault.Delay != nil {
 		delay = &v1alpha3.HTTPFaultInjection_Delay{
@@ -269,6 +278,9 @@ func convertPercentage(percent *v1.Percent) *v1alpha3.Percent {
 }
 
 func convertCorsPolicy(cors *v1.CorsPolicy) *v1alpha3.CorsPolicy {
+	if cors == nil {
+		return nil
+	}
 	return &v1alpha3.CorsPolicy{
 		AllowOrigin:      cors.AllowOrigin,
 		AllowMethods:     cors.AllowMethods,
