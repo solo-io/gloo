@@ -27,6 +27,10 @@ gcloud kms keys add-iam-policy-binding \
     --role=roles/cloudkms.cryptoKeyEncrypterDecrypter
 ```
 
+# Github key
+
+ssh-keyscan -t rsa github.com > ./ci/github_known_hosts
+
 ## Encrypt secrets:
 Get the solobot private key and use this to encrypt:
 
@@ -55,3 +59,7 @@ Run a build with:
 ```
 gcloud builds submit --config ./cloudbuild.yaml .
 ```
+
+# More info:
+https://cloud.google.com/cloud-build/docs/securing-builds/use-encrypted-secrets-credentials
+https://cloud.google.com/cloud-build/docs/access-private-github-repos

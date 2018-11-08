@@ -14,21 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -e
 
-# get the key
-SSHDIR=$HOME/.ssh
-echo Copying ssh key to $SSHDIR
-
-mkdir -p $SSHDIR/
-cp ./ci/id_rsa $SSHDIR/
-
-# setup git
-echo "Configuring git for solo"
+# configure git for solo
 git config --global url."ssh://git@github.com/solo-io".insteadOf https://github.com/solo-io
-
-# trust github
-echo "Trusting github"
-ssh-keyscan -H github.com >> $SSHDIR/known_hosts
 
 . /builder/prepare_workspace.inc
 prepare_workspace || exit
