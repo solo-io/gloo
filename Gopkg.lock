@@ -972,14 +972,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e36b329f571eb3b2cc117affb0db0e920a6cdb31b568439fe18c6dbead43278e"
-  name = "github.com/solo-io/go-control-plane"
-  packages = ["pkg/util"]
-  pruneopts = "UT"
-  revision = "d4f00d3a04b486b638826ce0f704aeb772e5d56e"
-
-[[projects]]
-  branch = "master"
   digest = "1:dea5143f6437b99c1ef3860c669e634992d69fccc310668cdf571d144446b40a"
   name = "github.com/solo-io/kubecontroller"
   packages = ["."]
@@ -1712,7 +1704,6 @@
     "github.com/radovskyb/watcher",
     "github.com/rs/cors",
     "github.com/solo-io/envoy-operator/pkg/downward",
-    "github.com/solo-io/go-control-plane/pkg/util",
     "github.com/solo-io/kubecontroller",
     "github.com/solo-io/rate-limiter/pkg/config",
     "github.com/solo-io/rate-limiter/pkg/redis",

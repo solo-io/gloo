@@ -22,7 +22,7 @@ import (
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	"github.com/solo-io/go-control-plane/pkg/util"
+	"github.com/envoyproxy/go-control-plane/pkg/util"
 )
 
 func TestConversion(t *testing.T) {
