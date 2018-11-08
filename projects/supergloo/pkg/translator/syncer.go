@@ -3,9 +3,10 @@ package translator
 import (
 	"context"
 	"fmt"
+	"sort"
+
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"sort"
 
 	"github.com/solo-io/solo-kit/pkg/errors"
 
@@ -62,7 +63,7 @@ func createSubsets(upstreams gloov1.UpstreamList) v1alpha3.DestinationRuleList {
 		switch specType := us.UpstreamSpec.UpstreamType.(type) {
 		case *gloov1.UpstreamSpec_Kube:
 			if len(specType.Kube.Selector) == 0 {
-				// no need for a subset 
+				// no need for a subset
 				continue
 			}
 			host := fmt.Sprintf("%.%v.svc.cluster.local", specType.Kube.ServiceName, specType.Kube.ServiceNamespace)
@@ -159,12 +160,100 @@ func convertHttpRules(rules []*v1.HTTPRule, upstreams gloov1.UpstreamList) ([]*v
 		if err != nil {
 			return nil, errors.Wrapf(err, "converting rule route %v", rule.Route)
 		}
+		var mirror *v1alpha3.Destination
+		if rule.Mirror != nil {
+			mirror, err = convertDestination(rule.Mirror, upstreams)
+			if err != nil {
+				return nil, errors.Wrapf(err, "converting rule mirror %v", rule.Mirror)
+			}
+		}
 		istioRoutes = append(istioRoutes, &v1alpha3.HTTPRoute{
-			Match: convertMatch(rule.Match),
-			Route: istioRoute,
+			Match:                 convertMatch(rule.Match),
+			Route:                 istioRoute,
+			Timeout:               rule.Timeout,
+			Retries:               convertRetry(rule.Retries),
+			Fault:                 convertFault(rule.Fault),
+			Mirror:                mirror,
+			CorsPolicy:            convertCorsPolicy(rule.CorsPolicy),
+			RemoveResponseHeaders: rule.RemoveResponseHeaders,
+			AppendResponseHeaders: rule.AppendResponseHeaders,
+			RemoveRequestHeaders:  rule.RemoveRequestHeaders,
 		})
 	}
 	return istioRoutes, nil
+}
+
+func convertRetry(retry *v1.HTTPRetry) *v1alpha3.HTTPRetry {
+	return &v1alpha3.HTTPRetry{
+		Attempts:      retry.Attempts,
+		PerTryTimeout: retry.PerTryTimeout,
+	}
+}
+func convertFault(fault *v1.HTTPFaultInjection) *v1alpha3.HTTPFaultInjection {
+	var delay *v1alpha3.HTTPFaultInjection_Delay
+	if fault.Delay != nil {
+		delay = &v1alpha3.HTTPFaultInjection_Delay{
+			Percentage: convertPercentage(fault.Delay.Percentage),
+		}
+		if fault.Delay.HttpDelayType != nil {
+			switch delayType := fault.Delay.HttpDelayType.(type) {
+			case *v1.HTTPFaultInjection_Delay_FixedDelay:
+				delay.HttpDelayType = &v1alpha3.HTTPFaultInjection_Delay_FixedDelay{
+					FixedDelay: delayType.FixedDelay,
+				}
+			case *v1.HTTPFaultInjection_Delay_ExponentialDelay:
+				delay.HttpDelayType = &v1alpha3.HTTPFaultInjection_Delay_ExponentialDelay{
+					ExponentialDelay: delayType.ExponentialDelay,
+				}
+			}
+		}
+	}
+	var abort *v1alpha3.HTTPFaultInjection_Abort
+	if fault.Abort != nil {
+		abort = &v1alpha3.HTTPFaultInjection_Abort{
+			Percentage: convertPercentage(fault.Abort.Percentage),
+		}
+		if fault.Abort.ErrorType != nil {
+			switch errType := fault.Abort.ErrorType.(type) {
+			case *v1.HTTPFaultInjection_Abort_HttpStatus:
+				abort.ErrorType = &v1alpha3.HTTPFaultInjection_Abort_HttpStatus{
+					HttpStatus: errType.HttpStatus,
+				}
+			case *v1.HTTPFaultInjection_Abort_GrpcStatus:
+				abort.ErrorType = &v1alpha3.HTTPFaultInjection_Abort_GrpcStatus{
+					GrpcStatus: errType.GrpcStatus,
+				}
+			case *v1.HTTPFaultInjection_Abort_Http2Error:
+				abort.ErrorType = &v1alpha3.HTTPFaultInjection_Abort_Http2Error{
+					Http2Error: errType.Http2Error,
+				}
+			}
+		}
+	}
+	return &v1alpha3.HTTPFaultInjection{
+		Delay: delay,
+		Abort: abort,
+	}
+}
+
+func convertPercentage(percent *v1.Percent) *v1alpha3.Percent {
+	if percent == nil {
+		return nil
+	}
+	return &v1alpha3.Percent{
+		Value: percent.Value,
+	}
+}
+
+func convertCorsPolicy(cors *v1.CorsPolicy) *v1alpha3.CorsPolicy {
+	return &v1alpha3.CorsPolicy{
+		AllowOrigin:      cors.AllowOrigin,
+		AllowMethods:     cors.AllowMethods,
+		AllowHeaders:     cors.AllowHeaders,
+		ExposeHeaders:    cors.ExposeHeaders,
+		MaxAge:           cors.MaxAge,
+		AllowCredentials: cors.AllowCredentials,
+	}
 }
 
 func convertMatch(match []*v1.HTTPMatchRequest) []*v1alpha3.HTTPMatchRequest {
