@@ -29,6 +29,7 @@ type xdsMessage struct {
 	nameField       string
 	noReferences    bool
 	groupName       string
+	protoPackage    string
 }
 
 func getXdsResources(project *Project, messages []ProtoMessageWrapper, services []*protokit.ServiceDescriptor) ([]*XDSResource, error) {
@@ -90,6 +91,7 @@ func processMessagesAndServices(project *Project, msgs []*xdsMessage, svcs []*xd
 			NameField:    message.nameField,
 			NoReferences: message.noReferences,
 			GroupName:    message.groupName,
+			Package:      message.protoPackage,
 			Project:      project,
 		})
 	}
@@ -148,6 +150,7 @@ func describeXdsResource(msg *protokit.Descriptor) (*xdsMessage, error) {
 		nameField:       name,
 		noReferences:    noRefs,
 		groupName:       msg.GetPackage(),
+		protoPackage:    msg.GetPackage(),
 	}, nil
 }
 

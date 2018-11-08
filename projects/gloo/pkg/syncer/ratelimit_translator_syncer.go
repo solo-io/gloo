@@ -6,8 +6,8 @@ import (
 
 	"github.com/mitchellh/hashstructure"
 
+	envoycache "github.com/solo-io/solo-kit/pkg/control-plane/cache"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	envoycache "github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/ratelimit"
 )
 

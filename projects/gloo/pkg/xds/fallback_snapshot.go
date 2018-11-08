@@ -6,8 +6,8 @@ import (
 	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttpconnectionmanager "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/util"
+	"github.com/solo-io/solo-kit/pkg/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/control-plane/util"
 )
 
 func fallbackSnapshot(bindAddress string, port, invalidConfigStatusCode uint32) cache.Snapshot {

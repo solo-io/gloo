@@ -16,14 +16,14 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/client"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/server"
+	"github.com/solo-io/solo-kit/pkg/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/control-plane/client"
+	"github.com/solo-io/solo-kit/pkg/control-plane/server"
 )
 
 // Type Definitions:
 
-const {{ upper_camel .MessageType }}Type = cache.TypePrefix + "/solo.api." + "{{ upper_camel .MessageType }}"
+const {{ upper_camel .MessageType }}Type = cache.TypePrefix + "/{{ .Package }}.{{ upper_camel .MessageType }}"
 
 /* Defined a resource - to be used by snapshot */
 type {{ upper_camel .MessageType }}XdsResourceWrapper struct {

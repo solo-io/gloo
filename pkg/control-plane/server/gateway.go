@@ -23,7 +23,7 @@ import (
 	"github.com/gogo/protobuf/jsonpb"
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/log"
+	"github.com/solo-io/solo-kit/pkg/control-plane/log"
 )
 
 // HTTPGateway is a custom implementation of [gRPC gateway](https://github.com/grpc-ecosystem/grpc-gateway)

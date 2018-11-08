@@ -12,14 +12,14 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/cache"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/client"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/server"
+	"github.com/solo-io/solo-kit/pkg/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/control-plane/client"
+	"github.com/solo-io/solo-kit/pkg/control-plane/server"
 )
 
 // Type Definitions:
 
-const RateLimitConfigType = cache.TypePrefix + "/solo.api." + "RateLimitConfig"
+const RateLimitConfigType = cache.TypePrefix + "/gloo.solo.io.RateLimitConfig"
 
 /* Defined a resource - to be used by snapshot */
 type RateLimitConfigXdsResourceWrapper struct {

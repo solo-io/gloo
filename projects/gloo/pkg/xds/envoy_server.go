@@ -23,7 +23,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/server"
+	"github.com/solo-io/solo-kit/pkg/control-plane/server"
 )
 
 // Server is a collection of handlers for streaming discovery requests.

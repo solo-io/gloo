@@ -57,4 +57,5 @@ type XDSResource struct {
 
 	Project   *Project
 	GroupName string // eg. gloo.solo.io
+	Package   string // proto package for the message
 }

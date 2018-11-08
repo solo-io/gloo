@@ -22,7 +22,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/control-plane/log"
+	"github.com/solo-io/solo-kit/pkg/control-plane/log"
 )
 
 // SnapshotCache is a snapshot-based cache that maintains a single versioned
