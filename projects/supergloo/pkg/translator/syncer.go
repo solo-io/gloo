@@ -3,6 +3,7 @@ package translator
 import (
 	"context"
 	"fmt"
+	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"sort"
 
@@ -36,15 +37,20 @@ func (s *Syncer) writeIstioCrds(ctx context.Context, destinationRules v1alpha3.D
 		Selector: s.WriteSelector,
 	}
 	if err := s.DestinationRuleReconciler.Reconcile(s.WriteNamespace, destinationRules, func(original, desired *v1alpha3.DestinationRule) (bool, error) {
-
+		original.Metadata = desired.Metadata
+		original.Status = desired.Status
+		return !proto.Equal(original, desired), nil
 	}, opts); err != nil {
 		return errors.Wrapf(err, "reconciling destination rules")
 	}
 	if err := s.VirtualServiceReconciler.Reconcile(s.WriteNamespace, virtualServices, func(original, desired *v1alpha3.VirtualService) (bool, error) {
-
+		original.Metadata = desired.Metadata
+		original.Status = desired.Status
+		return !proto.Equal(original, desired), nil
 	}, opts); err != nil {
 		return errors.Wrapf(err, "reconciling destination rules")
 	}
+	return nil
 }
 
 type translator struct{}
