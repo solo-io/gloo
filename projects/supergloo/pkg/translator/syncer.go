@@ -3,10 +3,9 @@ package translator
 import (
 	"context"
 	"fmt"
-	"sort"
-
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"sort"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -27,13 +26,14 @@ type Syncer struct {
 }
 
 func (s *Syncer) Sync(ctx context.Context, snap *v1.TranslatorSnapshot) error {
-	destinationRules := createSubsets(snap.Upstreams.List())
+	destinationRules := createDestinationRules(snap.Upstreams.List())
 	virtualServices, err := createVirtualServices(snap.Meshes.List(), snap.Upstreams.List())
 	if err != nil {
 		return errors.Wrapf(err, "creating virtual services from snapshot")
 	}
 	for _, res := range destinationRules {
 		resources.UpdateMetadata(res, func(meta *core.Metadata) {
+			meta.Namespace = s.WriteNamespace
 			if meta.Annotations == nil {
 				meta.Annotations = make(map[string]string)
 			}
@@ -45,6 +45,7 @@ func (s *Syncer) Sync(ctx context.Context, snap *v1.TranslatorSnapshot) error {
 	}
 	for _, res := range virtualServices {
 		resources.UpdateMetadata(res, func(meta *core.Metadata) {
+			meta.Namespace = s.WriteNamespace
 			if meta.Annotations == nil {
 				meta.Annotations = make(map[string]string)
 			}
@@ -77,12 +78,12 @@ func (s *Syncer) writeIstioCrds(ctx context.Context, destinationRules v1alpha3.D
 		original.Status = desired.Status
 		return !proto.Equal(original, desired), nil
 	}, opts); err != nil {
-		return errors.Wrapf(err, "reconciling destination rules")
+		return errors.Wrapf(err, "reconciling virtual services")
 	}
 	return nil
 }
 
-func createSubsets(upstreams gloov1.UpstreamList) v1alpha3.DestinationRuleList {
+func createDestinationRules(upstreams gloov1.UpstreamList) v1alpha3.DestinationRuleList {
 	subsetsByDestination := make(map[string][]*v1alpha3.Subset)
 	// only support kube upstreams for now
 	for _, us := range upstreams {
@@ -102,6 +103,9 @@ func createSubsets(upstreams gloov1.UpstreamList) v1alpha3.DestinationRuleList {
 	var destinationRules v1alpha3.DestinationRuleList
 	for host, subsets := range subsetsByDestination {
 		destinationRules = append(destinationRules, &v1alpha3.DestinationRule{
+			Metadata: core.Metadata{
+				Name: host,
+			},
 			Host:    host,
 			Subsets: subsets,
 		})
@@ -169,6 +173,9 @@ func createVirtualServices(meshes v1.MeshList, upstreams gloov1.UpstreamList) (v
 				return nil, errors.Wrapf(err, "cannot get hosts for dest rule %v", i)
 			}
 			vs := &v1alpha3.VirtualService{
+				Metadata: core.Metadata{
+					Name: "supergloo-" + dest.Destination.Upstream.Name,
+				},
 				Gateways: []string{}, // equivalent to "mesh"
 				Hosts:    hosts,
 				Http:     routes,
