@@ -401,10 +401,6 @@ message HTTPRoute {
   // for further details about cross origin resource sharing.
   CorsPolicy cors_policy = 10;
 
-  // Use of `append_headers` is deprecated. Use the `append_request_headers`
-  // field instead.
-  map<string, string> append_headers = 11 [deprecated=true];
-
   // HTTP headers to remove before returning a response to the caller.
   repeated string remove_response_headers = 12;
 
@@ -996,10 +992,6 @@ message HTTPFaultInjection {
   // The optional _percentage_ field can be used to only delay a certain
   // percentage of requests. If left unspecified, all request will be delayed.
   message Delay {
-    // Percentage of requests on which the delay will be injected (0-100).
-    // Use of integer `percent` value is deprecated. Use the double `percentage`
-    // field instead.
-    int32 percent = 1 [deprecated=true];
 
     oneof http_delay_type {
       // REQUIRED. Add a fixed delay before forwarding the request. Format:
@@ -1043,11 +1035,6 @@ message HTTPFaultInjection {
   // abort a certain percentage of requests. If not specified, all requests are
   // aborted.
   message Abort {
-    // Percentage of requests to be aborted with the error code provided (0-100).
-    // Use of integer `percent` value is deprecated. Use the double `percentage`
-    // field instead.
-    int32 percent = 1 [deprecated=true];
-
     oneof error_type {
       // REQUIRED. HTTP status code to use to abort the Http request.
       int32 http_status = 2;
