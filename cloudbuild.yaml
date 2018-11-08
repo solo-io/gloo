@@ -40,11 +40,11 @@ steps:
   env: ['PROJECT_ROOT=github.com/solo-io/solo-kit']
 
 - name: 'gcr.io/cloud-builders/go'
-  args: ['build', '-o', 'sqoop-linux-amd64', 'github.com/solo-io/solo-kit/projects/hypergloo']
+  args: ['build', '-o', 'hypergloo', 'github.com/solo-io/solo-kit/projects/hypergloo']
   env: ['PROJECT_ROOT=github.com/solo-io/solo-kit']
 
 
 artifacts:
   objects:
     location: 'gs://artifacts.solo.io/'
-    paths: ['sqoop-linux-amd64']
+    paths: ['sqoop-linux-amd64', 'hypergloo']
