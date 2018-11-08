@@ -106,6 +106,25 @@ func getHostsForUpstream(us *gloov1.Upstream) ([]string, error) {
 	return nil, errors.Errorf("unsupported upstream type %v", us)
 }
 
+// TODO ilackarms: currently unused
+func getPortForUpstream(us *gloov1.Upstream) (uint32, error) {
+	switch specType := us.UpstreamSpec.UpstreamType.(type) {
+	case *gloov1.UpstreamSpec_Aws:
+		return 0, errors.Errorf("aws not implemented")
+	case *gloov1.UpstreamSpec_Azure:
+		return 0, errors.Errorf("azure not implemented")
+	case *gloov1.UpstreamSpec_Kube:
+		return specType.Kube.ServicePort, nil
+	case *gloov1.UpstreamSpec_Static:
+		// TODO(ilackarms): handle cases where port changes between hosts
+		for _, h := range specType.Static.Hosts {
+			return h.Port, nil
+		}
+		return 0, errors.Errorf("no hosts found on static upstream")
+	}
+	return 0, errors.Errorf("unknown upstream type")
+}
+
 func createVirtualServices(meshes v1.MeshList, upstreams gloov1.UpstreamList) (v1alpha3.VirtualServiceList, error) {
 	var virtualServices v1alpha3.VirtualServiceList
 	for _, mesh := range meshes {
@@ -155,6 +174,7 @@ func convertMatch(match []*v1.HTTPMatchRequest) []*v1alpha3.HTTPMatchRequest {
 			Uri:     convertStringMatch(m.Uri),
 			Method:  convertStringMatch(m.Method),
 			Headers: convertHeaders(m.Headers),
+			// TODO: port and sourcelabels?
 		})
 	}
 	return istioMatch
@@ -164,13 +184,19 @@ func convertRoute(route []*v1.HTTPRouteDestination, upstreams gloov1.UpstreamLis
 	var istioMatch []*v1alpha3.HTTPRouteDestination
 	for _, m := range route {
 		istioDestination, err := convertDestination(m.Destination, upstreams)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to convert destination %v", m.Destination)
+		}
 		istioMatch = append(istioMatch, &v1alpha3.HTTPRouteDestination{
-			Uri:     convertStringMatch(m.Uri),
-			Method:  convertStringMatch(m.Method),
-			Headers: convertHeaders(m.Headers),
+			Destination:           istioDestination,
+			Weight:                m.Weight,
+			RemoveRequestHeaders:  m.RemoveRequestHeaders,
+			RemoveResponseHeaders: m.RemoveResponseHeaders,
+			AppendRequestHeaders:  m.AppendRequestHeaders,
+			AppendResponseHeaders: m.AppendResponseHeaders,
 		})
 	}
-	return istioMatch
+	return istioMatch, nil
 }
 
 func convertDestination(dest *gloov1.Destination, upstreams gloov1.UpstreamList) (*v1alpha3.Destination, error) {
