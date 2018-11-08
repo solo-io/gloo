@@ -1,4 +1,4 @@
-package services
+package ratelimit
 
 import (
 	"context"

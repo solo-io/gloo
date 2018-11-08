@@ -15,6 +15,7 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/test/services"
+	ratelimitservice "github.com/solo-io/solo-kit/test/services/ratelimit"
 
 	rlservice "github.com/solo-io/rate-limiter/pkg/service"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/ratelimit"
@@ -56,7 +57,7 @@ var _ = Describe("Rate Limit", func() {
 		t := services.RunGateway(ctx, true)
 		testClients = t
 
-		rlService = services.RunRatelimit(ctx, t.GlooPort)
+		rlService = ratelimitservice.RunRatelimit(ctx, t.GlooPort)
 	})
 
 	AfterEach(func() {
