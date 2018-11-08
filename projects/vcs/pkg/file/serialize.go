@@ -10,9 +10,12 @@ import (
 	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
 )
 
+// NOTE: This file is wip/demo only
+// The functionality will be replaced by calls to reconcilers
+
 // GenerateFilesystem
 func GenerateFilesystem(ctx context.Context, namespace string, dc DualClientSet) {
-	writeVirtualServices(ctx, namespace, dc.Kube.VirtualServiceClient, dc.File.VirtualServiceClient)
+	transposeVirtualServices(ctx, namespace, dc.File.VirtualServiceClient, dc.Kube.VirtualServiceClient)
 	writeSchemas(ctx, namespace, dc.Kube.SchemaClient, dc.File.SchemaClient)
 	writeResolverMaps(ctx, namespace, dc.Kube.ResolverMapClient, dc.File.ResolverMapClient)
 	writeGateways(ctx, namespace, dc.Kube.GatewayClient, dc.File.GatewayClient)
@@ -20,62 +23,8 @@ func GenerateFilesystem(ctx context.Context, namespace string, dc DualClientSet)
 	writeSettings(ctx, namespace, dc.Kube.SettingsClient, dc.File.SettingsClient)
 }
 
-func writeVirtualServices(ctx context.Context, namespace string, vsk gatewayv1.VirtualServiceClient, vsf gatewayv1.VirtualServiceClient) {
-	listK, err := vsk.List(namespace, clients.ListOpts{
-		Ctx: ctx,
-	})
-	if len(listK) == 0 {
-		fmt.Printf("please make a virtual service\n")
-		return
-	}
-	virtualServiceK, err := vsk.Read(listK[0].Metadata.Namespace, listK[0].Metadata.Name, clients.ReadOpts{Ctx: ctx})
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-	}
-	listF, err := vsf.List(namespace, clients.ListOpts{
-		Ctx: ctx,
-	})
-	if len(listF) > 0 {
-		virtualServiceF, err := vsf.Read(listF[0].Metadata.Namespace, listF[0].Metadata.Name, clients.ReadOpts{Ctx: ctx})
-		if err != nil {
-			fmt.Printf("file read err: %v\n", err)
-		}
-		fmt.Printf("file rv: %v\n", virtualServiceF.Metadata.ResourceVersion)
-
-		virtualServiceK.VirtualHost.Domains = append([]string{fmt.Sprintf("%v.co", len(listK[0].VirtualHost.Domains))}, listK[0].VirtualHost.Domains...)
-
-		fmt.Println("writing to kubernetes")
-		_, err = vsk.Write(virtualServiceK, clients.WriteOpts{
-			Ctx:               ctx,
-			OverwriteExisting: true,
-		})
-		if err != nil {
-			fmt.Printf("kube write err: %v\n", err)
-		}
-
-		virtualServiceF, err = vsf.Read(listF[0].Metadata.Namespace, listF[0].Metadata.Name, clients.ReadOpts{Ctx: ctx})
-		if err != nil {
-			fmt.Printf("file read err: %v\n", err)
-		}
-		fmt.Printf("file rv: %v\n", virtualServiceF.Metadata.ResourceVersion)
-
-		rvk := virtualServiceK.Metadata.ResourceVersion
-		rvf := virtualServiceF.Metadata.ResourceVersion
-		fmt.Printf("file rv: %v\n", rvf)
-		fmt.Printf("%v, %v, (rvs)\n", rvk, rvf)
-		virtualServiceK.Metadata.ResourceVersion = rvf
-	}
-	// copy the first VS to the file system (just for some sample data)
-	fmt.Println("writing to file")
-	_, err = vsf.Write(virtualServiceK, clients.WriteOpts{
-		Ctx:               ctx,
-		OverwriteExisting: true,
-	})
-	if err != nil {
-		fmt.Printf("file write err: %v\n", err)
-		// panic for faster dev iterations
-		panic("ouch")
-	}
+func UpdateKube(ctx context.Context, namespace string, dc DualClientSet) {
+	transposeVirtualServices(ctx, namespace, dc.Kube.VirtualServiceClient, dc.File.VirtualServiceClient)
 }
 
 func writeSchemas(ctx context.Context, namespace string, vsk sqoopv1.SchemaClient, vsf sqoopv1.SchemaClient) {
@@ -184,6 +133,89 @@ func writeSettings(ctx context.Context, namespace string, vsk gloov1.SettingsCli
 		})
 		if err != nil {
 			fmt.Printf("file write err: %v\n", err)
+		}
+	}
+}
+
+func writeVirtualServicesToKube(ctx context.Context, namespace string, toClient gatewayv1.VirtualServiceClient, fromClient gatewayv1.VirtualServiceClient) {
+	listK, err := fromClient.List(namespace, clients.ListOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		fmt.Printf("source list err: %v\n", err)
+		return
+	}
+	if len(listK) == 0 {
+		fmt.Printf("please make a virtual service\n")
+		return
+	}
+	for _, vs := range listK {
+		virtualServiceK, err := fromClient.Read(vs.Metadata.Namespace, listK[0].Metadata.Name, clients.ReadOpts{Ctx: ctx})
+		if err != nil {
+			fmt.Printf("source read err: %v\n", err)
+		}
+		listF, err := toClient.List(namespace, clients.ListOpts{
+			Ctx: ctx,
+		})
+		if len(listF) > 0 {
+			virtualServiceF, err := toClient.Read(vs.Metadata.Namespace, vs.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+			if err != nil {
+				fmt.Printf("target read err: %v\n", err)
+			}
+
+			// overwrite the resource version
+			rvf := virtualServiceF.Metadata.ResourceVersion
+			virtualServiceK.Metadata.ResourceVersion = rvf
+		}
+		// copy the first VS to the file system (just for some sample data)
+		fmt.Println("writing to kube")
+		_, err = toClient.Write(virtualServiceK, clients.WriteOpts{
+			Ctx:               ctx,
+			OverwriteExisting: true,
+		})
+		if err != nil {
+			fmt.Printf("file write err: %v\n", err)
+			// panic for faster dev iterations
+			panic("ouch")
+		}
+	}
+}
+
+func transposeVirtualServices(ctx context.Context, namespace string, toClient gatewayv1.VirtualServiceClient, fromClient gatewayv1.VirtualServiceClient) {
+	sourceResources, err := fromClient.List(namespace, clients.ListOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		fmt.Printf("source list err: %v\n", err)
+		return
+	}
+	if len(sourceResources) == 0 {
+		fmt.Printf("no virtual services exist in source client\n")
+		return
+	}
+	for _, sourceResource := range sourceResources {
+		if err != nil {
+			fmt.Printf("source read err: %v\n", err)
+		}
+		targetResource, err := toClient.Read(sourceResource.Metadata.Namespace, sourceResource.Metadata.Name, clients.ReadOpts{Ctx: ctx})
+		if err != nil {
+			fmt.Printf("target read err: %v\nres: %v\n", err, targetResource)
+		}
+		if targetResource != nil {
+			// resource exists, overwrite the resource version
+			targetRV := targetResource.Metadata.ResourceVersion
+			sourceResource.Metadata.ResourceVersion = targetRV
+		}
+
+		fmt.Println("writing to target client")
+		_, err = toClient.Write(sourceResource, clients.WriteOpts{
+			Ctx:               ctx,
+			OverwriteExisting: true,
+		})
+		if err != nil {
+			fmt.Printf("file write err: %v\n", err)
+			// panic for faster dev iterations
+			panic("ouch")
 		}
 	}
 }
