@@ -186,13 +186,16 @@ func createVirtualServices(meshes v1.MeshList, upstreams gloov1.UpstreamList) (v
 			}
 			routes, err := convertHttpRules(dest.Destination, dest.MeshHttpRules, upstreams)
 			if err != nil {
-				return nil, errors.Wrapf(err, "cannot get hosts for dest rule %v", i)
+				return nil, errors.Wrapf(err, "cannot generate routes for destination rule %v", i)
 			}
-			vs := &v1alpha3.VirtualService{
+ 			vs := &v1alpha3.VirtualService{
 				Metadata: core.Metadata{
 					Name: "supergloo-" + dest.Destination.Upstream.Name,
 				},
-				Gateways: []string{}, // equivalent to "mesh"
+				// in istio api, this is equivalent to []string{"mesh"}
+				// which includes all pods in the mesh, with no selectors
+				// and no ingresses
+				Gateways: []string{},
 				Hosts:    hosts,
 				Http:     routes,
 			}
