@@ -35,7 +35,7 @@ func (m *ServiceSpec) Reset()         { *m = ServiceSpec{} }
 func (m *ServiceSpec) String() string { return proto.CompactTextString(m) }
 func (*ServiceSpec) ProtoMessage()    {}
 func (*ServiceSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_sqoop_a0647a23f9dc94e2, []int{0}
+	return fileDescriptor_sqoop_9be529d30dd3184b, []int{0}
 }
 func (m *ServiceSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ServiceSpec.Unmarshal(m, b)
@@ -76,7 +76,7 @@ func (m *DestinationSpec) Reset()         { *m = DestinationSpec{} }
 func (m *DestinationSpec) String() string { return proto.CompactTextString(m) }
 func (*DestinationSpec) ProtoMessage()    {}
 func (*DestinationSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_sqoop_a0647a23f9dc94e2, []int{1}
+	return fileDescriptor_sqoop_9be529d30dd3184b, []int{1}
 }
 func (m *DestinationSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DestinationSpec.Unmarshal(m, b)
@@ -177,9 +177,9 @@ func (this *DestinationSpec) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("sqoop/sqoop.proto", fileDescriptor_sqoop_a0647a23f9dc94e2) }
+func init() { proto.RegisterFile("sqoop/sqoop.proto", fileDescriptor_sqoop_9be529d30dd3184b) }
 
-var fileDescriptor_sqoop_a0647a23f9dc94e2 = []byte{
+var fileDescriptor_sqoop_9be529d30dd3184b = []byte{
 	// 260 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x90, 0xb1, 0x4e, 0xc3, 0x30,
 	0x18, 0x84, 0x49, 0x41, 0x05, 0xb9, 0x03, 0x22, 0x62, 0x08, 0x19, 0x4a, 0xd4, 0xa9, 0x03, 0xd8,

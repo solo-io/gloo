@@ -73,7 +73,7 @@ func (m *Settings) Reset()         { *m = Settings{} }
 func (m *Settings) String() string { return proto.CompactTextString(m) }
 func (*Settings) ProtoMessage()    {}
 func (*Settings) Descriptor() ([]byte, []int) {
-	return fileDescriptor_settings_f17e7c5537eccb6d, []int{0}
+	return fileDescriptor_settings_4b7a143def75973d, []int{0}
 }
 func (m *Settings) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Settings.Unmarshal(m, b)
@@ -457,7 +457,7 @@ func (m *Settings_KubernetesCrds) Reset()         { *m = Settings_KubernetesCrds
 func (m *Settings_KubernetesCrds) String() string { return proto.CompactTextString(m) }
 func (*Settings_KubernetesCrds) ProtoMessage()    {}
 func (*Settings_KubernetesCrds) Descriptor() ([]byte, []int) {
-	return fileDescriptor_settings_f17e7c5537eccb6d, []int{0, 0}
+	return fileDescriptor_settings_4b7a143def75973d, []int{0, 0}
 }
 func (m *Settings_KubernetesCrds) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Settings_KubernetesCrds.Unmarshal(m, b)
@@ -487,7 +487,7 @@ func (m *Settings_KubernetesSecrets) Reset()         { *m = Settings_KubernetesS
 func (m *Settings_KubernetesSecrets) String() string { return proto.CompactTextString(m) }
 func (*Settings_KubernetesSecrets) ProtoMessage()    {}
 func (*Settings_KubernetesSecrets) Descriptor() ([]byte, []int) {
-	return fileDescriptor_settings_f17e7c5537eccb6d, []int{0, 1}
+	return fileDescriptor_settings_4b7a143def75973d, []int{0, 1}
 }
 func (m *Settings_KubernetesSecrets) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Settings_KubernetesSecrets.Unmarshal(m, b)
@@ -517,7 +517,7 @@ func (m *Settings_VaultSecrets) Reset()         { *m = Settings_VaultSecrets{} }
 func (m *Settings_VaultSecrets) String() string { return proto.CompactTextString(m) }
 func (*Settings_VaultSecrets) ProtoMessage()    {}
 func (*Settings_VaultSecrets) Descriptor() ([]byte, []int) {
-	return fileDescriptor_settings_f17e7c5537eccb6d, []int{0, 2}
+	return fileDescriptor_settings_4b7a143def75973d, []int{0, 2}
 }
 func (m *Settings_VaultSecrets) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Settings_VaultSecrets.Unmarshal(m, b)
@@ -547,7 +547,7 @@ func (m *Settings_KubernetesConfigmaps) Reset()         { *m = Settings_Kubernet
 func (m *Settings_KubernetesConfigmaps) String() string { return proto.CompactTextString(m) }
 func (*Settings_KubernetesConfigmaps) ProtoMessage()    {}
 func (*Settings_KubernetesConfigmaps) Descriptor() ([]byte, []int) {
-	return fileDescriptor_settings_f17e7c5537eccb6d, []int{0, 3}
+	return fileDescriptor_settings_4b7a143def75973d, []int{0, 3}
 }
 func (m *Settings_KubernetesConfigmaps) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Settings_KubernetesConfigmaps.Unmarshal(m, b)
@@ -578,7 +578,7 @@ func (m *Settings_Directory) Reset()         { *m = Settings_Directory{} }
 func (m *Settings_Directory) String() string { return proto.CompactTextString(m) }
 func (*Settings_Directory) ProtoMessage()    {}
 func (*Settings_Directory) Descriptor() ([]byte, []int) {
-	return fileDescriptor_settings_f17e7c5537eccb6d, []int{0, 4}
+	return fileDescriptor_settings_4b7a143def75973d, []int{0, 4}
 }
 func (m *Settings_Directory) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Settings_Directory.Unmarshal(m, b)
@@ -982,9 +982,9 @@ func (this *Settings_Directory) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("settings.proto", fileDescriptor_settings_f17e7c5537eccb6d) }
+func init() { proto.RegisterFile("settings.proto", fileDescriptor_settings_4b7a143def75973d) }
 
-var fileDescriptor_settings_f17e7c5537eccb6d = []byte{
+var fileDescriptor_settings_4b7a143def75973d = []byte{
 	// 639 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x54, 0xcd, 0x6e, 0xd3, 0x4c,
 	0x14, 0xad, 0xfb, 0xf5, 0x6b, 0xe3, 0x69, 0x9a, 0x34, 0x6e, 0x29, 0x8e, 0x41, 0x6d, 0x14, 0x84,

@@ -49,7 +49,7 @@ func (m *ResolverMap) Reset()         { *m = ResolverMap{} }
 func (m *ResolverMap) String() string { return proto.CompactTextString(m) }
 func (*ResolverMap) ProtoMessage()    {}
 func (*ResolverMap) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resolver_map_11cb71322a66d618, []int{0}
+	return fileDescriptor_resolver_map_1f3be8eff760be27, []int{0}
 }
 func (m *ResolverMap) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ResolverMap.Unmarshal(m, b)
@@ -103,7 +103,7 @@ func (m *TypeResolver) Reset()         { *m = TypeResolver{} }
 func (m *TypeResolver) String() string { return proto.CompactTextString(m) }
 func (*TypeResolver) ProtoMessage()    {}
 func (*TypeResolver) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resolver_map_11cb71322a66d618, []int{1}
+	return fileDescriptor_resolver_map_1f3be8eff760be27, []int{1}
 }
 func (m *TypeResolver) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_TypeResolver.Unmarshal(m, b)
@@ -148,7 +148,7 @@ func (m *FieldResolver) Reset()         { *m = FieldResolver{} }
 func (m *FieldResolver) String() string { return proto.CompactTextString(m) }
 func (*FieldResolver) ProtoMessage()    {}
 func (*FieldResolver) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resolver_map_11cb71322a66d618, []int{2}
+	return fileDescriptor_resolver_map_1f3be8eff760be27, []int{2}
 }
 func (m *FieldResolver) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_FieldResolver.Unmarshal(m, b)
@@ -330,7 +330,7 @@ func (m *GlooResolver) Reset()         { *m = GlooResolver{} }
 func (m *GlooResolver) String() string { return proto.CompactTextString(m) }
 func (*GlooResolver) ProtoMessage()    {}
 func (*GlooResolver) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resolver_map_11cb71322a66d618, []int{3}
+	return fileDescriptor_resolver_map_1f3be8eff760be27, []int{3}
 }
 func (m *GlooResolver) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GlooResolver.Unmarshal(m, b)
@@ -385,7 +385,7 @@ func (m *RequestTemplate) Reset()         { *m = RequestTemplate{} }
 func (m *RequestTemplate) String() string { return proto.CompactTextString(m) }
 func (*RequestTemplate) ProtoMessage()    {}
 func (*RequestTemplate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resolver_map_11cb71322a66d618, []int{4}
+	return fileDescriptor_resolver_map_1f3be8eff760be27, []int{4}
 }
 func (m *RequestTemplate) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RequestTemplate.Unmarshal(m, b)
@@ -445,7 +445,7 @@ func (m *ResponseTemplate) Reset()         { *m = ResponseTemplate{} }
 func (m *ResponseTemplate) String() string { return proto.CompactTextString(m) }
 func (*ResponseTemplate) ProtoMessage()    {}
 func (*ResponseTemplate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resolver_map_11cb71322a66d618, []int{5}
+	return fileDescriptor_resolver_map_1f3be8eff760be27, []int{5}
 }
 func (m *ResponseTemplate) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ResponseTemplate.Unmarshal(m, b)
@@ -494,7 +494,7 @@ func (m *TemplateResolver) Reset()         { *m = TemplateResolver{} }
 func (m *TemplateResolver) String() string { return proto.CompactTextString(m) }
 func (*TemplateResolver) ProtoMessage()    {}
 func (*TemplateResolver) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resolver_map_11cb71322a66d618, []int{6}
+	return fileDescriptor_resolver_map_1f3be8eff760be27, []int{6}
 }
 func (m *TemplateResolver) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_TemplateResolver.Unmarshal(m, b)
@@ -533,7 +533,7 @@ func (m *NodeJSResolver) Reset()         { *m = NodeJSResolver{} }
 func (m *NodeJSResolver) String() string { return proto.CompactTextString(m) }
 func (*NodeJSResolver) ProtoMessage()    {}
 func (*NodeJSResolver) Descriptor() ([]byte, []int) {
-	return fileDescriptor_resolver_map_11cb71322a66d618, []int{7}
+	return fileDescriptor_resolver_map_1f3be8eff760be27, []int{7}
 }
 func (m *NodeJSResolver) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NodeJSResolver.Unmarshal(m, b)
@@ -913,9 +913,9 @@ func (this *NodeJSResolver) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("resolver_map.proto", fileDescriptor_resolver_map_11cb71322a66d618) }
+func init() { proto.RegisterFile("resolver_map.proto", fileDescriptor_resolver_map_1f3be8eff760be27) }
 
-var fileDescriptor_resolver_map_11cb71322a66d618 = []byte{
+var fileDescriptor_resolver_map_1f3be8eff760be27 = []byte{
 	// 692 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x54, 0x4f, 0x6f, 0xd3, 0x4e,
 	0x10, 0xad, 0x93, 0x34, 0x6d, 0x26, 0x69, 0x93, 0xae, 0xaa, 0x9f, 0xdc, 0xfc, 0xa0, 0xa9, 0x22,
