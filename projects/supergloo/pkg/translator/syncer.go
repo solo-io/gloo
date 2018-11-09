@@ -166,6 +166,15 @@ func getPortForUpstream(us *gloov1.Upstream) (uint32, error) {
 func createVirtualServices(meshes v1.MeshList, upstreams gloov1.UpstreamList) (v1alpha3.VirtualServiceList, error) {
 	var virtualServices v1alpha3.VirtualServiceList
 	for _, mesh := range meshes {
+		if mesh.TargetMesh == nil {
+			return nil, errors.Errorf("invalid mesh %v: target_mesh required", mesh.Metadata.Ref())
+		}
+		if mesh.TargetMesh.MeshType != v1.MeshType_ISTIO {
+			continue
+		}
+		if mesh.Routing == nil {
+			continue
+		}
 		for i, dest := range mesh.Routing.DestinationRules {
 			upstream, err := upstreams.Find(dest.Destination.Upstream.Namespace, dest.Destination.Upstream.Name)
 			if err != nil {
