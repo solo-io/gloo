@@ -40,7 +40,7 @@ message HTTPRule {
     // the sources to which this rule will be applied
     repeated Source sources = 75;
 
-   repeated HTTPMatchRequest match = 1;
+    repeated HTTPMatchRequest match = 1;
 
     repeated HTTPRouteDestination route = 2;
 

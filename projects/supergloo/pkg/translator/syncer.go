@@ -67,21 +67,27 @@ func (s *Syncer) writeIstioCrds(ctx context.Context, destinationRules v1alpha3.D
 		Ctx:      ctx,
 		Selector: s.WriteSelector,
 	}
-	if err := s.DestinationRuleReconciler.Reconcile(s.WriteNamespace, destinationRules, func(original, desired *v1alpha3.DestinationRule) (bool, error) {
-		original.Metadata = desired.Metadata
-		original.Status = desired.Status
-		return !proto.Equal(original, desired), nil
-	}, opts); err != nil {
+	if err := s.DestinationRuleReconciler.Reconcile(s.WriteNamespace, destinationRules, preserveDestinationRule, opts); err != nil {
 		return errors.Wrapf(err, "reconciling destination rules")
 	}
-	if err := s.VirtualServiceReconciler.Reconcile(s.WriteNamespace, virtualServices, func(original, desired *v1alpha3.VirtualService) (bool, error) {
-		original.Metadata = desired.Metadata
-		original.Status = desired.Status
-		return !proto.Equal(original, desired), nil
-	}, opts); err != nil {
+	if err := s.VirtualServiceReconciler.Reconcile(s.WriteNamespace, virtualServices, preserveVirtualService, opts); err != nil {
 		return errors.Wrapf(err, "reconciling virtual services")
 	}
 	return nil
+}
+
+
+func preserveDestinationRule(original, desired *v1alpha3.DestinationRule) (bool, error) {
+	original.Metadata = desired.Metadata
+	original.Status = desired.Status
+	return !proto.Equal(original, desired), nil
+}
+
+
+func preserveVirtualService(original, desired *v1alpha3.VirtualService) (bool, error) {
+	original.Metadata = desired.Metadata
+	original.Status = desired.Status
+	return !proto.Equal(original, desired), nil
 }
 
 func createDestinationRules(upstreams gloov1.UpstreamList) v1alpha3.DestinationRuleList {
