@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
-	envoycache "github.com/solo-io/solo-kit/pkg/control-plane/cache"
+	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/log"

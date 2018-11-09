@@ -16,9 +16,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/solo-io/solo-kit/pkg/control-plane/cache"
-	"github.com/solo-io/solo-kit/pkg/control-plane/client"
-	"github.com/solo-io/solo-kit/pkg/control-plane/server"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/client"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 )
 
 // Type Definitions:

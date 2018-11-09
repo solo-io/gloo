@@ -18,7 +18,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/solo-io/solo-kit/pkg/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 )
 
 // Snapshot is an internally consistent snapshot of xDS resources.

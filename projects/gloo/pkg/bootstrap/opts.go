@@ -5,8 +5,8 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/control-plane/cache"
-	"github.com/solo-io/solo-kit/pkg/control-plane/server"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
 )

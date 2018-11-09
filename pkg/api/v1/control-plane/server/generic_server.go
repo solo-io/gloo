@@ -28,7 +28,7 @@ import (
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
-	"github.com/solo-io/solo-kit/pkg/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"google.golang.org/grpc"
 )
 

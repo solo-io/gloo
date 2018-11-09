@@ -7,8 +7,8 @@ import (
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 
-	envoycache "github.com/solo-io/solo-kit/pkg/control-plane/cache"
-	envoyserver "github.com/solo-io/solo-kit/pkg/control-plane/server"
+	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	envoyserver "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
 	"google.golang.org/grpc"
