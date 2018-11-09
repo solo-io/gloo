@@ -46,21 +46,18 @@ message ChangeSet {
     // Description of the changeset. This will be the git commit message
     google.protobuf.StringValue description = 6 [(gogoproto.nullable) = false];
 
-    // Commit message of the root commit
-    google.protobuf.StringValue root_description = 7 [(gogoproto.nullable) = false];
-
     // The number of edits that the user applied to the previous commit.
     // A value greater than zero represents a dirty work tree.
-    google.protobuf.UInt32Value edit_count = 8 [(gogoproto.nullable) = false];
+    google.protobuf.UInt32Value edit_count = 7 [(gogoproto.nullable) = false];
 
     // The user who owns this changeset TODO: use dedicated message?
-    google.protobuf.StringValue user_id = 9 [(gogoproto.nullable) = false];
+    google.protobuf.StringValue user_id = 8 [(gogoproto.nullable) = false];
 
     // Description of the changeset. This will be the git commit message
-    google.protobuf.StringValue error_msg = 10 [(gogoproto.nullable) = false];
+    google.protobuf.StringValue error_msg = 9 [(gogoproto.nullable) = false];
 
     // The actual changes
-    Data data = 11 [(gogoproto.nullable) = false];
+    Data data = 10 [(gogoproto.nullable) = false];
 }
 
 // The commit that the changeset represents an increment upon.
