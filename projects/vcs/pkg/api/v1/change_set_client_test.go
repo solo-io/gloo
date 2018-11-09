@@ -70,7 +70,7 @@ func ChangeSetClientTest(namespace string, client ChangeSetClient) {
 	Expect(r1.Metadata.Ref()).To(Equal(input.Metadata.Ref()))
 	Expect(r1.Status).To(Equal(input.Status))
 	Expect(r1.Branch).To(Equal(input.Branch))
-	Expect(r1.ToCommit).To(Equal(input.ToCommit))
+	Expect(r1.CommitPending).To(Equal(input.CommitPending))
 	Expect(r1.Description).To(Equal(input.Description))
 	Expect(r1.EditCount).To(Equal(input.EditCount))
 	Expect(r1.UserId).To(Equal(input.UserId))

@@ -35,34 +35,34 @@ message ChangeSet {
     core.solo.io.Metadata metadata = 2 [(gogoproto.nullable) = false];
 
     // The name of the git branch the changes will be applied to
-    google.protobuf.StringValue branch = 4 [(gogoproto.nullable) = false];
+    google.protobuf.StringValue branch = 3 [(gogoproto.nullable) = false];
 
-    // Indicates whether this changeset has been submitted for commit
-    google.protobuf.BoolValue to_commit = 5 [(gogoproto.nullable) = false];
+    // Indicates whether this changeset has been submitted for commit and is waiting to be pushed
+    google.protobuf.BoolValue commit_pending = 4 [(gogoproto.nullable) = false];
 
     // Description of the changeset. This will be the git commit message
-    google.protobuf.StringValue description = 6 [(gogoproto.nullable) = false];
+    google.protobuf.StringValue description = 5 [(gogoproto.nullable) = false];
 
     // The number of edits that the user applied to the previous commit.
     // A value greater than zero represents a dirty work tree.
-    google.protobuf.UInt32Value edit_count = 7 [(gogoproto.nullable) = false];
+    google.protobuf.UInt32Value edit_count = 6 [(gogoproto.nullable) = false];
 
     // The user who owns this changeset
     // TODO use dedicated message? Also, determine how to handle secrets?
-    google.protobuf.StringValue user_id = 8 [(gogoproto.nullable) = false];
+    google.protobuf.StringValue user_id = 7 [(gogoproto.nullable) = false];
 
     // The hash of the commit that the changeset represents an increment upon
-    google.protobuf.StringValue root_commit = 9 [(gogoproto.nullable) = false];
+    google.protobuf.StringValue root_commit = 8 [(gogoproto.nullable) = false];
 
     // The git commit message for the root commit
-    google.protobuf.StringValue root_description = 10 [(gogoproto.nullable) = false];
+    google.protobuf.StringValue root_description = 9 [(gogoproto.nullable) = false];
 
     // If a git commit attempt fails, this field will be populated with a user-friendly error message
     // No further git commit attempts will be possible until the user clears this field
-    google.protobuf.StringValue error_msg = 11;
+    google.protobuf.StringValue error_msg = 10;
 
     // A collection of Gloo resources
-    Data data = 12 [(gogoproto.nullable) = false];
+    Data data = 11 [(gogoproto.nullable) = false];
 }
 
 // A user-specific snapshot of all gloo resources at a given commit plus any non-committed changes made by the user
