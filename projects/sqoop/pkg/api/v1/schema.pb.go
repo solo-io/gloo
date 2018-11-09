@@ -48,7 +48,7 @@ func (m *Schema) Reset()         { *m = Schema{} }
 func (m *Schema) String() string { return proto.CompactTextString(m) }
 func (*Schema) ProtoMessage()    {}
 func (*Schema) Descriptor() ([]byte, []int) {
-	return fileDescriptor_schema_fc636277f7876e01, []int{0}
+	return fileDescriptor_schema_31d5a7bc66cf25bd, []int{0}
 }
 func (m *Schema) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Schema.Unmarshal(m, b)
@@ -126,9 +126,9 @@ func (this *Schema) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("schema.proto", fileDescriptor_schema_fc636277f7876e01) }
+func init() { proto.RegisterFile("schema.proto", fileDescriptor_schema_31d5a7bc66cf25bd) }
 
-var fileDescriptor_schema_fc636277f7876e01 = []byte{
+var fileDescriptor_schema_31d5a7bc66cf25bd = []byte{
 	// 263 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x29, 0x4e, 0xce, 0x48,
 	0xcd, 0x4d, 0xd4, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x2d, 0x2e, 0xcc, 0xcf, 0x2f, 0xd0,

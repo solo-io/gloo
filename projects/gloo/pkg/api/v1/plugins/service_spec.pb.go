@@ -46,7 +46,7 @@ func (m *ServiceSpec) Reset()         { *m = ServiceSpec{} }
 func (m *ServiceSpec) String() string { return proto.CompactTextString(m) }
 func (*ServiceSpec) ProtoMessage()    {}
 func (*ServiceSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_service_spec_6c36d6f4c1e8e975, []int{0}
+	return fileDescriptor_service_spec_5dbf79e74d349daf, []int{0}
 }
 func (m *ServiceSpec) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ServiceSpec.Unmarshal(m, b)
@@ -315,9 +315,9 @@ func (this *ServiceSpec_Sqoop) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("service_spec.proto", fileDescriptor_service_spec_6c36d6f4c1e8e975) }
+func init() { proto.RegisterFile("service_spec.proto", fileDescriptor_service_spec_5dbf79e74d349daf) }
 
-var fileDescriptor_service_spec_6c36d6f4c1e8e975 = []byte{
+var fileDescriptor_service_spec_5dbf79e74d349daf = []byte{
 	// 257 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x90, 0xbf, 0x4a, 0x04, 0x31,
 	0x10, 0xc6, 0x5d, 0xff, 0x15, 0x59, 0x6c, 0xc2, 0x15, 0xcb, 0x15, 0x22, 0x16, 0x6a, 0xe3, 0x0c,

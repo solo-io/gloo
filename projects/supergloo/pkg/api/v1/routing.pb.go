@@ -36,7 +36,7 @@ func (m *Routing) Reset()         { *m = Routing{} }
 func (m *Routing) String() string { return proto.CompactTextString(m) }
 func (*Routing) ProtoMessage()    {}
 func (*Routing) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{0}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{0}
 }
 func (m *Routing) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Routing.Unmarshal(m, b)
@@ -81,7 +81,7 @@ func (m *DestinationRule) Reset()         { *m = DestinationRule{} }
 func (m *DestinationRule) String() string { return proto.CompactTextString(m) }
 func (*DestinationRule) ProtoMessage()    {}
 func (*DestinationRule) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{1}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{1}
 }
 func (m *DestinationRule) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DestinationRule.Unmarshal(m, b)
@@ -135,7 +135,7 @@ func (m *Source) Reset()         { *m = Source{} }
 func (m *Source) String() string { return proto.CompactTextString(m) }
 func (*Source) ProtoMessage()    {}
 func (*Source) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{2}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{2}
 }
 func (m *Source) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Source.Unmarshal(m, b)
@@ -215,7 +215,7 @@ func (m *HTTPRule) Reset()         { *m = HTTPRule{} }
 func (m *HTTPRule) String() string { return proto.CompactTextString(m) }
 func (*HTTPRule) ProtoMessage()    {}
 func (*HTTPRule) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{3}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{3}
 }
 func (m *HTTPRule) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPRule.Unmarshal(m, b)
@@ -389,7 +389,7 @@ func (m *HTTPMatchRequest) Reset()         { *m = HTTPMatchRequest{} }
 func (m *HTTPMatchRequest) String() string { return proto.CompactTextString(m) }
 func (*HTTPMatchRequest) ProtoMessage()    {}
 func (*HTTPMatchRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{4}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{4}
 }
 func (m *HTTPMatchRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPMatchRequest.Unmarshal(m, b)
@@ -525,7 +525,7 @@ func (m *HTTPRouteDestination) Reset()         { *m = HTTPRouteDestination{} }
 func (m *HTTPRouteDestination) String() string { return proto.CompactTextString(m) }
 func (*HTTPRouteDestination) ProtoMessage()    {}
 func (*HTTPRouteDestination) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{5}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{5}
 }
 func (m *HTTPRouteDestination) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPRouteDestination.Unmarshal(m, b)
@@ -605,7 +605,7 @@ func (m *RouteDestination) Reset()         { *m = RouteDestination{} }
 func (m *RouteDestination) String() string { return proto.CompactTextString(m) }
 func (*RouteDestination) ProtoMessage()    {}
 func (*RouteDestination) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{6}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{6}
 }
 func (m *RouteDestination) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RouteDestination.Unmarshal(m, b)
@@ -671,7 +671,7 @@ func (m *L4MatchAttributes) Reset()         { *m = L4MatchAttributes{} }
 func (m *L4MatchAttributes) String() string { return proto.CompactTextString(m) }
 func (*L4MatchAttributes) ProtoMessage()    {}
 func (*L4MatchAttributes) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{7}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{7}
 }
 func (m *L4MatchAttributes) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_L4MatchAttributes.Unmarshal(m, b)
@@ -763,7 +763,7 @@ func (m *TLSMatchAttributes) Reset()         { *m = TLSMatchAttributes{} }
 func (m *TLSMatchAttributes) String() string { return proto.CompactTextString(m) }
 func (*TLSMatchAttributes) ProtoMessage()    {}
 func (*TLSMatchAttributes) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{8}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{8}
 }
 func (m *TLSMatchAttributes) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_TLSMatchAttributes.Unmarshal(m, b)
@@ -865,7 +865,7 @@ func (m *HTTPRedirect) Reset()         { *m = HTTPRedirect{} }
 func (m *HTTPRedirect) String() string { return proto.CompactTextString(m) }
 func (*HTTPRedirect) ProtoMessage()    {}
 func (*HTTPRedirect) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{9}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{9}
 }
 func (m *HTTPRedirect) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPRedirect.Unmarshal(m, b)
@@ -941,7 +941,7 @@ func (m *HTTPRewrite) Reset()         { *m = HTTPRewrite{} }
 func (m *HTTPRewrite) String() string { return proto.CompactTextString(m) }
 func (*HTTPRewrite) ProtoMessage()    {}
 func (*HTTPRewrite) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{10}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{10}
 }
 func (m *HTTPRewrite) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPRewrite.Unmarshal(m, b)
@@ -992,7 +992,7 @@ func (m *StringMatch) Reset()         { *m = StringMatch{} }
 func (m *StringMatch) String() string { return proto.CompactTextString(m) }
 func (*StringMatch) ProtoMessage()    {}
 func (*StringMatch) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{11}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{11}
 }
 func (m *StringMatch) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StringMatch.Unmarshal(m, b)
@@ -1178,7 +1178,7 @@ func (m *HTTPRetry) Reset()         { *m = HTTPRetry{} }
 func (m *HTTPRetry) String() string { return proto.CompactTextString(m) }
 func (*HTTPRetry) ProtoMessage()    {}
 func (*HTTPRetry) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{12}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{12}
 }
 func (m *HTTPRetry) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPRetry.Unmarshal(m, b)
@@ -1276,7 +1276,7 @@ func (m *CorsPolicy) Reset()         { *m = CorsPolicy{} }
 func (m *CorsPolicy) String() string { return proto.CompactTextString(m) }
 func (*CorsPolicy) ProtoMessage()    {}
 func (*CorsPolicy) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{13}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{13}
 }
 func (m *CorsPolicy) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CorsPolicy.Unmarshal(m, b)
@@ -1362,7 +1362,7 @@ func (m *HTTPFaultInjection) Reset()         { *m = HTTPFaultInjection{} }
 func (m *HTTPFaultInjection) String() string { return proto.CompactTextString(m) }
 func (*HTTPFaultInjection) ProtoMessage()    {}
 func (*HTTPFaultInjection) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{14}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{14}
 }
 func (m *HTTPFaultInjection) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPFaultInjection.Unmarshal(m, b)
@@ -1447,7 +1447,7 @@ func (m *HTTPFaultInjection_Delay) Reset()         { *m = HTTPFaultInjection_Del
 func (m *HTTPFaultInjection_Delay) String() string { return proto.CompactTextString(m) }
 func (*HTTPFaultInjection_Delay) ProtoMessage()    {}
 func (*HTTPFaultInjection_Delay) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{14, 0}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{14, 0}
 }
 func (m *HTTPFaultInjection_Delay) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPFaultInjection_Delay.Unmarshal(m, b)
@@ -1641,7 +1641,7 @@ func (m *HTTPFaultInjection_Abort) Reset()         { *m = HTTPFaultInjection_Abo
 func (m *HTTPFaultInjection_Abort) String() string { return proto.CompactTextString(m) }
 func (*HTTPFaultInjection_Abort) ProtoMessage()    {}
 func (*HTTPFaultInjection_Abort) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{14, 1}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{14, 1}
 }
 func (m *HTTPFaultInjection_Abort) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HTTPFaultInjection_Abort.Unmarshal(m, b)
@@ -1819,7 +1819,7 @@ func (m *PortSelector) Reset()         { *m = PortSelector{} }
 func (m *PortSelector) String() string { return proto.CompactTextString(m) }
 func (*PortSelector) ProtoMessage()    {}
 func (*PortSelector) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{15}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{15}
 }
 func (m *PortSelector) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PortSelector.Unmarshal(m, b)
@@ -1952,7 +1952,7 @@ func (m *Percent) Reset()         { *m = Percent{} }
 func (m *Percent) String() string { return proto.CompactTextString(m) }
 func (*Percent) ProtoMessage()    {}
 func (*Percent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_routing_9277b78ebe8d3647, []int{16}
+	return fileDescriptor_routing_749d1b0b01ebdd12, []int{16}
 }
 func (m *Percent) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Percent.Unmarshal(m, b)
@@ -3053,9 +3053,9 @@ func (this *Percent) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("routing.proto", fileDescriptor_routing_9277b78ebe8d3647) }
+func init() { proto.RegisterFile("routing.proto", fileDescriptor_routing_749d1b0b01ebdd12) }
 
-var fileDescriptor_routing_9277b78ebe8d3647 = []byte{
+var fileDescriptor_routing_749d1b0b01ebdd12 = []byte{
 	// 1497 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x58, 0xcd, 0x6e, 0xdb, 0x46,
 	0x10, 0x0e, 0x25, 0x4b, 0xb2, 0x46, 0x52, 0x6c, 0x6f, 0x1d, 0x87, 0x51, 0xd2, 0xd4, 0x51, 0x10,

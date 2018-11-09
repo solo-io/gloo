@@ -76,13 +76,11 @@ func (s *Syncer) writeIstioCrds(ctx context.Context, destinationRules v1alpha3.D
 	return nil
 }
 
-
 func preserveDestinationRule(original, desired *v1alpha3.DestinationRule) (bool, error) {
 	original.Metadata = desired.Metadata
 	original.Status = desired.Status
 	return !proto.Equal(original, desired), nil
 }
-
 
 func preserveVirtualService(original, desired *v1alpha3.VirtualService) (bool, error) {
 	original.Metadata = desired.Metadata
@@ -188,7 +186,7 @@ func createVirtualServices(meshes v1.MeshList, upstreams gloov1.UpstreamList) (v
 			if err != nil {
 				return nil, errors.Wrapf(err, "cannot generate routes for destination rule %v", i)
 			}
- 			vs := &v1alpha3.VirtualService{
+			vs := &v1alpha3.VirtualService{
 				Metadata: core.Metadata{
 					Name: "supergloo-" + dest.Destination.Upstream.Name,
 				},
