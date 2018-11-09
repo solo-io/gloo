@@ -27,7 +27,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 //
-// @solo-kit:resource.short_name=cs
+// @solo-kit:resource.short_name=chg
 // @solo-kit:resource.plural_name=changesets
 // @solo-kit:resource.resource_groups=api.vcs.solo.io
 //
@@ -69,7 +69,7 @@ func (m *ChangeSet) Reset()         { *m = ChangeSet{} }
 func (m *ChangeSet) String() string { return proto.CompactTextString(m) }
 func (*ChangeSet) ProtoMessage()    {}
 func (*ChangeSet) Descriptor() ([]byte, []int) {
-	return fileDescriptor_changeset_d1b35786815e37c6, []int{0}
+	return fileDescriptor_changeset_eb2a83324ead99cc, []int{0}
 }
 func (m *ChangeSet) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ChangeSet.Unmarshal(m, b)
@@ -184,7 +184,7 @@ func (m *Data) Reset()         { *m = Data{} }
 func (m *Data) String() string { return proto.CompactTextString(m) }
 func (*Data) ProtoMessage()    {}
 func (*Data) Descriptor() ([]byte, []int) {
-	return fileDescriptor_changeset_d1b35786815e37c6, []int{1}
+	return fileDescriptor_changeset_eb2a83324ead99cc, []int{1}
 }
 func (m *Data) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Data.Unmarshal(m, b)
@@ -395,9 +395,9 @@ func (this *Data) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("changeset.proto", fileDescriptor_changeset_d1b35786815e37c6) }
+func init() { proto.RegisterFile("changeset.proto", fileDescriptor_changeset_eb2a83324ead99cc) }
 
-var fileDescriptor_changeset_d1b35786815e37c6 = []byte{
+var fileDescriptor_changeset_eb2a83324ead99cc = []byte{
 	// 677 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x94, 0xcd, 0x4e, 0x1b, 0x3b,
 	0x14, 0xc7, 0x2f, 0x24, 0xe4, 0xc3, 0xe1, 0xd3, 0x97, 0x8b, 0x7c, 0xa3, 0x2b, 0xb8, 0xca, 0x0a,

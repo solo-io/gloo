@@ -142,5 +142,5 @@ var ChangeSetCrd = crd.NewCrd("vcs.solo.io",
 	"vcs.solo.io",
 	"v1",
 	"ChangeSet",
-	"cs",
+	"chg",
 	&ChangeSet{})
