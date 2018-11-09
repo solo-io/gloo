@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 
@@ -18,33 +17,26 @@ func main() {
 }
 
 func run() error {
-	action := flag.String("a", "k2f", "action to take")
-	flag.Parse()
 	printUsage()
-	fmt.Printf("running, action: %v\n", *action)
 	ctx := contextutils.WithLogger(context.Background(), "vcs")
 	dc, err := file.NewDualClient("kube")
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("begin applying changes")
 	syncer.ApplyVcsToDeployment(ctx, dc)
+	fmt.Println("done applying changes")
 
-	// switch *action {
-	// case "k2f":
-	// 	file.GenerateFilesystem(ctx, "gloo-system", dc)
-	// case "f2k":
-	// 	file.UpdateKube(ctx, "gloo-system", dc)
-	// default:
-	// 	fmt.Printf("Action not recognized: %v\n", *action)
-	// }
 	return nil
 }
 
 func printUsage() {
 	fmt.Printf(`Usage of this demo script
-go run main -a k2f - writes kubernetes data to a filesystem
-go run main -a f2k - writes filesystem data to kubernetes
+Run the dualClient script to create a local file system
+Edit the filesystem
+Run this script to sync your local changes to kubernetes
+(this script will be moved to an e2e eventually)
 ----------------------------
 `)
 }
