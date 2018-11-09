@@ -27,7 +27,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 //
-// @solo-kit:resource.short_name=cs
+// @solo-kit:resource.short_name=chg
 // @solo-kit:resource.plural_name=changesets
 // @solo-kit:resource.resource_groups=api.vcs.solo.io
 //
