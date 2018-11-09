@@ -1,0 +1,87 @@
+syntax = "proto3";
+package vcs.solo.io;
+option go_package = "github.com/solo-io/solo-kit/projects/vcs/pkg/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "google/protobuf/wrappers.proto";
+
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/status.proto";
+
+import "gateway.proto";
+import "proxy.proto";
+import "settings.proto";
+import "upstream.proto";
+import "resolver_map.proto";
+import "schema.proto";
+
+/*
+@solo-kit:resource.short_name=cs
+@solo-kit:resource.plural_name=changesets
+@solo-kit:resource.resource_groups=api.vcs.solo.io
+
+* The ChangeSet object represents the current status of a Gloo user's working directory. Each element in the "data"
+* element represents the complete snapshot of a resource that has been modified.
+
+*/
+message ChangeSet {
+
+    // Status indicates the validation status of this resource
+    core.solo.io.Status status = 1 [(gogoproto.nullable) = false, (gogoproto.moretags) = "testdiff:\"ignore\""];
+
+    // Metadata for this resource
+    core.solo.io.Metadata metadata = 2 [(gogoproto.nullable) = false];
+
+    // The parent commit
+    RootCommit root = 3 [(gogoproto.nullable) = false];
+
+    // The name of the git branch the changes will be applied to
+    google.protobuf.StringValue branch = 4 [(gogoproto.nullable) = false];
+
+    // Indicates whether this changeset has been submitted for commit
+    google.protobuf.BoolValue to_commit = 5 [(gogoproto.nullable) = false];
+
+    // Description of the changeset. This will be the git commit message
+    google.protobuf.StringValue description = 6 [(gogoproto.nullable) = false];
+
+    // Commit message of the root commit
+    google.protobuf.StringValue root_description = 7 [(gogoproto.nullable) = false];
+
+    // The number of edits that the user applied to the previous commit.
+    // A value greater than zero represents a dirty work tree.
+    google.protobuf.UInt32Value edit_count = 8 [(gogoproto.nullable) = false];
+
+    // The user who owns this changeset TODO: use dedicated message?
+    google.protobuf.StringValue user_id = 9 [(gogoproto.nullable) = false];
+
+    // Description of the changeset. This will be the git commit message
+    google.protobuf.StringValue error_msg = 10 [(gogoproto.nullable) = false];
+
+    // The actual changes
+    Data data = 11 [(gogoproto.nullable) = false];
+}
+
+// The commit that the changeset represents an increment upon.
+message RootCommit {
+
+    // The hash of the commit
+    google.protobuf.StringValue hash = 1 [(gogoproto.nullable) = false];
+
+    // The git commit message
+    google.protobuf.StringValue description = 2 [(gogoproto.nullable) = false];
+
+}
+
+// Represents the actual changes to the gloo resources
+message Data {
+
+    repeated gateway.solo.io.Gateway gateways = 1;
+    repeated gateway.solo.io.VirtualService virtual_services = 2;
+    repeated gloo.solo.io.Proxy proxies = 3;
+    repeated gloo.solo.io.Settings settings = 4;
+    repeated gloo.solo.io.Upstream upstreams = 5;
+    repeated sqoop.solo.io.ResolverMap resolver_maps = 6;
+    repeated sqoop.solo.io.Schema schemas = 7;
+}
