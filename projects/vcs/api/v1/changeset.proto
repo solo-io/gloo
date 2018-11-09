@@ -23,7 +23,7 @@ import "schema.proto";
 @solo-kit:resource.resource_groups=api.vcs.solo.io
 
 * The ChangeSet object represents the current status of a Gloo user's working directory. Each element in the "data"
-* element represents the complete snapshot of a resource that has been modified.
+* element represents the complete snapshot of a resource.
 
 */
 message ChangeSet {
@@ -33,9 +33,6 @@ message ChangeSet {
 
     // Metadata for this resource
     core.solo.io.Metadata metadata = 2 [(gogoproto.nullable) = false];
-
-    // The parent commit
-    RootCommit root = 3 [(gogoproto.nullable) = false];
 
     // The name of the git branch the changes will be applied to
     google.protobuf.StringValue branch = 4 [(gogoproto.nullable) = false];
@@ -50,28 +47,25 @@ message ChangeSet {
     // A value greater than zero represents a dirty work tree.
     google.protobuf.UInt32Value edit_count = 7 [(gogoproto.nullable) = false];
 
-    // The user who owns this changeset TODO: use dedicated message?
+    // The user who owns this changeset
+    // TODO use dedicated message? Also, determine how to handle secrets?
     google.protobuf.StringValue user_id = 8 [(gogoproto.nullable) = false];
 
-    // Description of the changeset. This will be the git commit message
-    google.protobuf.StringValue error_msg = 9 [(gogoproto.nullable) = false];
+    // The hash of the commit that the changeset represents an increment upon
+    google.protobuf.StringValue root_commit = 9 [(gogoproto.nullable) = false];
 
-    // The actual changes
-    Data data = 10 [(gogoproto.nullable) = false];
+    // The git commit message for the root commit
+    google.protobuf.StringValue root_description = 10 [(gogoproto.nullable) = false];
+
+    // If a git commit attempt fails, this field will be populated with a user-friendly error message
+    // No further git commit attempts will be possible until the user clears this field
+    google.protobuf.StringValue error_msg = 11;
+
+    // A collection of Gloo resources
+    Data data = 12 [(gogoproto.nullable) = false];
 }
 
-// The commit that the changeset represents an increment upon.
-message RootCommit {
-
-    // The hash of the commit
-    google.protobuf.StringValue hash = 1 [(gogoproto.nullable) = false];
-
-    // The git commit message
-    google.protobuf.StringValue description = 2 [(gogoproto.nullable) = false];
-
-}
-
-// Represents the actual changes to the gloo resources
+// A user-specific snapshot of all gloo resources at a given commit plus any non-committed changes made by the user
 message Data {
 
     repeated gateway.solo.io.Gateway gateways = 1;
