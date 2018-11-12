@@ -3,6 +3,8 @@ package git
 import (
 	"errors"
 	"fmt"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"io/ioutil"
 	"os"
 	"path"
@@ -34,10 +36,23 @@ var (
 
 type Repository struct {
 	root string
+	auth transport.AuthMethod
 }
 
 func NewRepo(root string) *Repository {
-	return &Repository{root}
+	return &Repository{root: root}
+}
+
+// Configure client for token authentication with remote
+func (r *Repository) WithTokenAuth(token string) *Repository {
+	r.auth = &http.BasicAuth{Username: "gitbot", Password: token} // username just has to be a non-empty string
+	return r
+}
+
+// Configure client for basic authentication with remote
+func (r *Repository) WithBasicAuth(username, password string) *Repository {
+	r.auth = &http.BasicAuth{Username: username, Password: password}
+	return r
 }
 
 func (r *Repository) Root() string {
@@ -207,7 +222,7 @@ func (r *Repository) Clone(remoteUrl string) error {
 		return CloneInExistingRepo
 	}
 
-	_, err := goGit.PlainClone(r.root, false, &goGit.CloneOptions{URL: remoteUrl})
+	_, err := goGit.PlainClone(r.root, false, &goGit.CloneOptions{URL: remoteUrl, Auth: r.auth})
 
 	return err
 }
@@ -217,7 +232,7 @@ func (r *Repository) Push(remoteUrl string) error {
 	if err != nil {
 		return err
 	}
-	return repo.Push(&goGit.PushOptions{})
+	return repo.Push(&goGit.PushOptions{Auth: r.auth})
 }
 
 // Create a simple README file at the root of the given repository
