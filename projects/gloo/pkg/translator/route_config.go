@@ -11,8 +11,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins"
 )
 
 type reportFunc func(error error, format string, args ...interface{})

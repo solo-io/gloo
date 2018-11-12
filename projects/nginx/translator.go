@@ -2,8 +2,8 @@ package nginx
 
 import (
 	linq "github.com/ahmetb/go-linq"
-	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
-	gloo_solo_io1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
+	gloo_solo_io1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 )
 
 func virtualHostsFromVirtualServices(virtualServices []v1.VirtualService) []*gloo_solo_io1.VirtualHost {

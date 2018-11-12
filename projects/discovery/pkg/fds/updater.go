@@ -14,8 +14,8 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins"
 )
 
 var errorUndetectableUpstream = errors.New("upstream type cannot be detected")

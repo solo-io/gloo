@@ -3,9 +3,9 @@ package graphql
 import (
 	"context"
 
-	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes"
-	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
-	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/models"
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/graph"
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 )
 
 // If client does not present a token, we allow them to still query certain functions

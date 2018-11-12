@@ -5,12 +5,12 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes"
-	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/graph"
-	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/models"
-	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/graph"
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
+	gatewayv1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 )
 
 type ApiResolver struct {

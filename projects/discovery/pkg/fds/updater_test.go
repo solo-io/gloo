@@ -8,13 +8,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
+	. "github.com/solo-io/solo-projects/projects/discovery/pkg/fds"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	core_solo_io "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	kubernetes_plugins_gloo_solo_io "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/kubernetes"
+	kubernetes_plugins_gloo_solo_io "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/kubernetes"
 )
 
 type testUpstreamWriterClient struct{}

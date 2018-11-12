@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/dynamic"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/dynamic"
 	"github.com/vektah/gqlgen/graphql"
 	"github.com/vektah/gqlgen/neelance/introspection"
 	"github.com/vektah/gqlgen/neelance/query"

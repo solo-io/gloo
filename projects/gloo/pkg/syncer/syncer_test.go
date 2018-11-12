@@ -3,7 +3,7 @@ package syncer_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins"
 
 	"context"
 
@@ -14,8 +14,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	. "github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	. "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer"
 	"github.com/solo-io/solo-kit/test/helpers"
 )
 

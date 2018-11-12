@@ -10,12 +10,12 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
-	transformationapi "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/azure"
+	transformationapi "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/transformation"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/pluginutils"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/transformation"
 )
 
 const (

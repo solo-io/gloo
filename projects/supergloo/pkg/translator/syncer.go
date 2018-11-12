@@ -13,10 +13,10 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/errors"
 
-	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 
-	"github.com/solo-io/solo-kit/projects/supergloo/pkg/api/external/istio/networking/v1alpha3"
-	"github.com/solo-io/solo-kit/projects/supergloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/supergloo/pkg/api/external/istio/networking/v1alpha3"
+	"github.com/solo-io/solo-projects/projects/supergloo/pkg/api/v1"
 )
 
 type Syncer struct {

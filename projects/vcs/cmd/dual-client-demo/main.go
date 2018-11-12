@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/projects/vcs/pkg/file"
+	"github.com/solo-io/solo-projects/projects/vcs/pkg/file"
 )
 
 func main() {

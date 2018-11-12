@@ -8,11 +8,11 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/sqoop"
-	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/sqoop"
+	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 )
 
 // ilackarms:: this is a very dumb plugin that looks for the sqoop service annotation and injects the service spec

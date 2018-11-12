@@ -1,6 +1,6 @@
 syntax = "proto3";
 package ratelimit.plugins.gloo.solo.io;
-option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/ratelimit";
+option go_package = "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit";
 
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;

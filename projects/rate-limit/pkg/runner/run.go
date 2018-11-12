@@ -18,12 +18,12 @@ import (
 	"github.com/solo-io/rate-limiter/pkg/server"
 	"github.com/solo-io/rate-limiter/pkg/service"
 	"github.com/solo-io/rate-limiter/pkg/settings"
-	configproto "github.com/solo-io/solo-kit/projects/rate-limit/pkg/config"
+	configproto "github.com/solo-io/solo-projects/projects/rate-limit/pkg/config"
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 
 	"github.com/solo-io/solo-kit/pkg/utils/stats"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 
 	"google.golang.org/grpc"
 )

@@ -11,12 +11,12 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
-	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gateway/pkg/defaults"
-	"github.com/solo-io/solo-kit/projects/gateway/pkg/propagator"
-	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
-	gloodefaults "github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gateway/pkg/defaults"
+	"github.com/solo-io/solo-projects/projects/gateway/pkg/propagator"
+	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
+	gloodefaults "github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
 	"k8s.io/client-go/rest"
 )
 

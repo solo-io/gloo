@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	gatewaysyncer "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
+	gatewaysyncer "github.com/solo-io/solo-projects/projects/gateway/pkg/syncer"
 
 	"context"
 	"sync/atomic"
@@ -14,9 +14,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 
-	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
-	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
+	gatewayv1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
+	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
 	"google.golang.org/grpc"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware"
@@ -25,9 +25,9 @@ import (
 	"go.uber.org/zap"
 
 	. "github.com/onsi/gomega"
-	fds_syncer "github.com/solo-io/solo-kit/projects/discovery/pkg/fds/syncer"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
+	fds_syncer "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/syncer"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer"
 )
 
 type TestClients struct {

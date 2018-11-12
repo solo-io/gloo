@@ -17,11 +17,11 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
-	rest_plugins "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest"
-	transformation_plugins "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins"
+	rest_plugins "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/rest"
+	transformation_plugins "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/transformation"
 )
 
 var commonSwaggerURIs = []string{

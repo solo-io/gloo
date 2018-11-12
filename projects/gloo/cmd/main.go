@@ -3,13 +3,13 @@ package main
 import (
 	"flag"
 
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
 
 	"os"
 	"path/filepath"
 
 	"github.com/solo-io/solo-kit/pkg/utils/log"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/setup"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
 )
 
 func main() {

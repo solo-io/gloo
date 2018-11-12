@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/solo-io/solo-kit/projects/rate-limit/pkg/runner"
+	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/runner"
 )
 
 func main() {

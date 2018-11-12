@@ -7,7 +7,7 @@ import (
 	io "io"
 	strconv "strconv"
 
-	customtypes "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes"
+	customtypes "github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 )
 
 type Artifact struct {

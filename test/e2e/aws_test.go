@@ -13,14 +13,14 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 
-	"github.com/solo-io/solo-kit/test/services"
+	"github.com/solo-io/solo-projects/test/services"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	gw1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
-	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	gw1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
+	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
 
-	aws_plugin "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
+	aws_plugin "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/aws"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 )

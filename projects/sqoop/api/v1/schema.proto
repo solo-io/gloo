@@ -1,6 +1,6 @@
 syntax = "proto3";
 package sqoop.solo.io;
-option go_package = "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1";
+option go_package = "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1";
 
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;

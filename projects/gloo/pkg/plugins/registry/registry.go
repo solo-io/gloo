@@ -1,17 +1,17 @@
 package registry
 
 import (
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/aws"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/azure"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/faultinjection"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/grpc"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/kubernetes"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/ratelimit"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/rest"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/static"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/aws"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/azure"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/faultinjection"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/grpc"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/kubernetes"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rest"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/static"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/transformation"
 )
 
 type registry struct {

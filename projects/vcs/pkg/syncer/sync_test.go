@@ -3,9 +3,9 @@ package syncer
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
-	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
+	gatewayv1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
+	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 )
 
 var _ = Describe("Vcs Sync", func() {

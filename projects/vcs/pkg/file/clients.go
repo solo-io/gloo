@@ -12,14 +12,14 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
-	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
-	gatewaysetup "github.com/solo-io/solo-kit/projects/gateway/pkg/syncer"
-	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
-	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	sqoopsetup "github.com/solo-io/solo-kit/projects/sqoop/pkg/syncer"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/todo"
+	gatewayv1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
+	gatewaysetup "github.com/solo-io/solo-projects/projects/gateway/pkg/syncer"
+	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
+	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	sqoopsetup "github.com/solo-io/solo-projects/projects/sqoop/pkg/syncer"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
 )
 
 // in the future, this may include other types of clients

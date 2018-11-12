@@ -14,10 +14,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
-	glooaws "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/aws"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins"
+	glooaws "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/aws"
 )
 
 const (

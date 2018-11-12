@@ -2,8 +2,8 @@ package template
 
 import (
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/exec"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/util"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/exec"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/util"
 )
 
 func NewTemplateResolver(inlineTemplate string) (exec.RawResolver, error) {

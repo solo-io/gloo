@@ -3,7 +3,7 @@ package nginx_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/solo-io/solo-kit/projects/nginx"
+	. "github.com/solo-io/solo-projects/projects/nginx"
 )
 
 var _ = Describe("Server", func() {

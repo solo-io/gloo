@@ -9,7 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 )
 
 type HeadersToAddFunc func(spec *v1.Destination) ([]*envoycore.HeaderValueOption, error)

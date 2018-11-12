@@ -11,8 +11,8 @@ import (
 
 	graphql "github.com/99designs/gqlgen/graphql"
 	introspection "github.com/99designs/gqlgen/graphql/introspection"
-	customtypes "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes"
-	models "github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/models"
+	customtypes "github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
+	models "github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 	gqlparser "github.com/vektah/gqlparser"
 	ast "github.com/vektah/gqlparser/ast"
 )

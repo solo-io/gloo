@@ -7,8 +7,8 @@ import (
 	"github.com/mitchellh/hashstructure"
 
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 )
 
 func (s *translatorSyncer) syncRateLimit(ctx context.Context, snap *v1.ApiSnapshot) error {

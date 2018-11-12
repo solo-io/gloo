@@ -1,13 +1,13 @@
 syntax = "proto3";
 package rest.plugins.gloo.solo.io;
 
-option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/rest";
+option go_package = "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/rest";
 
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation/transformation.proto";
-import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/transformation/parameters.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/transformation/transformation.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/transformation/parameters.proto";
 
 message ServiceSpec {
     map<string, transformation.plugins.gloo.solo.io.TransformationTemplate> transformations = 1;

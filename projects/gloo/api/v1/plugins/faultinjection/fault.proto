@@ -6,7 +6,7 @@ syntax = "proto3";
 
 package fault.plugins.gloo.solo.io;
 
-option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/faultinjection";
+option go_package = "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/faultinjection";
 
 import "google/protobuf/duration.proto";
 

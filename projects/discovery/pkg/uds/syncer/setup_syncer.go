@@ -5,11 +5,11 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/discovery"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
-	gloosyncer "github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/discovery"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/registry"
+	gloosyncer "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer"
 )
 
 func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) v1.SetupSyncer {

@@ -3,9 +3,9 @@ package nginx_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
-	gloo_solo_io1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	. "github.com/solo-io/solo-kit/projects/nginx"
+	"github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
+	gloo_solo_io1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	. "github.com/solo-io/solo-projects/projects/nginx"
 )
 
 var _ = Describe("Translator", func() {

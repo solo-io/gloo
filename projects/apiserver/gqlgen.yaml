@@ -19,32 +19,32 @@ resolver:
 # graphql. These normally come from the db or a remote api.
 models:
   UpstreamQuery:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.UpstreamQuery
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.UpstreamQuery
   UpstreamMutation:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.UpstreamMutation
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.UpstreamMutation
   VirtualServiceQuery:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.VirtualServiceQuery
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.VirtualServiceQuery
   VirtualServiceMutation:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.VirtualServiceMutation
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.VirtualServiceMutation
   ResolverMapQuery:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.ResolverMapQuery
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.ResolverMapQuery
   ResolverMapMutation:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.ResolverMapMutation
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.ResolverMapMutation
   SchemaQuery:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.SchemaQuery
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.SchemaQuery
   SchemaMutation:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.SchemaMutation
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.SchemaMutation
   SecretQuery:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.SecretQuery
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.SecretQuery
   SecretMutation:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.SecretMutation
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.SecretMutation
   ArtifactQuery:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.ArtifactQuery
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.ArtifactQuery
   ArtifactMutation:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.ArtifactMutation
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.ArtifactMutation
   SettingsQuery:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.SettingsQuery
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.SettingsQuery
   SettingsMutation:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.SettingsMutation
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.SettingsMutation
   Duration:
-    model: github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/customtypes.Duration
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.Duration

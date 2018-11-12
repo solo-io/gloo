@@ -7,9 +7,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 
-	. "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
+	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/pluginutils"
 )
 
 var _ = Describe("PerFilterConfig", func() {

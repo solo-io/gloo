@@ -11,8 +11,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
-	"github.com/solo-io/solo-kit/projects/vcs/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-projects/projects/vcs/pkg/api/v1"
 )
 
 // TODO(marco): This is just a very simple and temporary way of bootstrapping the main loop

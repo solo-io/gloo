@@ -1,7 +1,7 @@
 package fds
 
 import (
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 )
 
 type FunctionDiscovery struct {

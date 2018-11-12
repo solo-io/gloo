@@ -2,11 +2,11 @@ package resolvers
 
 import (
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/exec"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/resolvers/gloo"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/resolvers/node"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/resolvers/template"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/exec"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/resolvers/gloo"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/resolvers/node"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/resolvers/template"
 )
 
 type ResolverFactory struct {

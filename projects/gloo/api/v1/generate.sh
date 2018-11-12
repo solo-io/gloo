@@ -33,7 +33,7 @@ protoc -I=${IN} ${PROTOC_FLAGS} ${IN}/*.proto
 IN=${IN}/plugins
 
 # protoc made me do it
-protoc -I=${IN} ${PROTOC_FLAGS} ${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/service_spec.proto
+protoc -I=${IN} ${PROTOC_FLAGS} ${GOPATH}/src/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/service_spec.proto
 
 for plugindir in $(echo plugins/*/); do
 # remove folder

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"text/template"
 
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/exec"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/exec"
 )
 
 func Template(tmplString string) (*template.Template, error) {

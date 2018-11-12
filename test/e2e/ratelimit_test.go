@@ -14,15 +14,15 @@ import (
 	"github.com/onsi/gomega/gexec"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/test/services"
-	ratelimitservice "github.com/solo-io/solo-kit/test/services/ratelimit"
+	"github.com/solo-io/solo-projects/test/services"
+	ratelimitservice "github.com/solo-io/solo-projects/test/services/ratelimit"
 
 	rlservice "github.com/solo-io/rate-limiter/pkg/service"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/test/v1helpers"
+	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/test/v1helpers"
 )
 
 var _ = Describe("Rate Limit", func() {

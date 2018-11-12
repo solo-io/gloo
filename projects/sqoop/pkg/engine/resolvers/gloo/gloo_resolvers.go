@@ -9,10 +9,10 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/exec"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/util"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/translator"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/exec"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/util"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/translator"
 )
 
 type ResolverFactory struct {

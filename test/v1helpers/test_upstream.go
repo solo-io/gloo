@@ -13,8 +13,8 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	static_plugin_gloo "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/static"
+	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	static_plugin_gloo "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/static"
 )
 
 type ReceivedRequest struct {

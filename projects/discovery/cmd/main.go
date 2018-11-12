@@ -5,12 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
 
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/pkg/utils/stats"
-	fdssetup "github.com/solo-io/solo-kit/projects/discovery/pkg/fds/setup"
-	uds "github.com/solo-io/solo-kit/projects/discovery/pkg/uds/setup"
+	fdssetup "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/setup"
+	uds "github.com/solo-io/solo-projects/projects/discovery/pkg/uds/setup"
 )
 
 func main() {

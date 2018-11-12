@@ -7,9 +7,9 @@ import (
 
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/translator"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/xds"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/translator"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/xds"
 )
 
 var (

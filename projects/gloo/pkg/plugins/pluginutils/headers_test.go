@@ -3,12 +3,12 @@ package pluginutils_test
 import (
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
+	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/pluginutils"
 )
 
 var _ = Describe("Headers", func() {

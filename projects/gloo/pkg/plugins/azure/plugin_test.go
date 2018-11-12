@@ -3,14 +3,14 @@ package azure_test
 import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/azure"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/azure"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/azure"
+	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/azure"
 )
 
 var _ = Describe("Plugin", func() {

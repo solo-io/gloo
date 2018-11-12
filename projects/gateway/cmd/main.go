@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
 
 	"github.com/solo-io/solo-kit/pkg/utils/log"
-	"github.com/solo-io/solo-kit/projects/gateway/pkg/setup"
+	"github.com/solo-io/solo-projects/projects/gateway/pkg/setup"
 )
 
 func main() {

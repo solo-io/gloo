@@ -14,7 +14,7 @@ SUPERGLOO_IN=${PROJECTS}/supergloo/api/v1/
 
 IMPORTS="-I=${GLOO_IN} \
     -I=${SUPERGLOO_IN} \
-    -I=${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/api/v1 \
+    -I=${GOPATH}/src/github.com/solo-io/solo-projects/projects/gloo/api/v1 \
     -I=${GOPATH}/src \
     -I=${GOPATH}/src/github.com/solo-io/solo-kit/api/external/proto"
 

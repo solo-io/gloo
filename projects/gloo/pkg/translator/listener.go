@@ -10,8 +10,8 @@ import (
 	gogo_types "github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins"
 )
 
 func (t *translator) computeListener(params plugins.Params, proxy *v1.Proxy, listener *v1.Listener, report reportFunc) *envoyapi.Listener {

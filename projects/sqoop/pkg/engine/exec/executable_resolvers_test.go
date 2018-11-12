@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	. "github.com/solo-io/solo-kit/projects/sqoop/pkg/engine/exec"
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/resolvers"
-	"github.com/solo-io/solo-kit/projects/sqoop/test"
+	. "github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/exec"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/resolvers"
+	"github.com/solo-io/solo-projects/projects/sqoop/test"
 )
 
 var _ = Describe("ExecutableResolverMap", func() {

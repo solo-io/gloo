@@ -13,7 +13,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 
 	prommodel "github.com/prometheus/common/model"
-	"github.com/solo-io/solo-kit/test/services"
+	"github.com/solo-io/solo-projects/test/services"
 )
 
 var _ = Describe("Mesh", func() {
@@ -34,7 +34,7 @@ var _ = Describe("Mesh", func() {
 
 	BeforeSuite(func() {
 		var err error
-		pathToService, err = gexec.Build("github.com/solo-io/solo-kit/projects/glooshot/test/svc")
+		pathToService, err = gexec.Build("github.com/solo-io/solo-projects/projects/glooshot/test/svc")
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 

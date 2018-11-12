@@ -8,16 +8,16 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/aws"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/grpc"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/sqoop"
-	"github.com/solo-io/solo-kit/projects/discovery/pkg/fds/discoveries/swagger"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/bootstrap"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/registry"
-	gloosyncer "github.com/solo-io/solo-kit/projects/gloo/pkg/syncer"
-	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/aws"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/grpc"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/sqoop"
+	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds/discoveries/swagger"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/registry"
+	gloosyncer "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer"
+	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 )
 
 func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) v1.SetupSyncer {

@@ -5,11 +5,11 @@ import (
 	"sync"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	gatewayv1 "github.com/solo-io/solo-kit/projects/gateway/pkg/api/v1"
+	gatewayv1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
 
-	gloov1 "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	sqoopv1 "github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/vcs/pkg/file"
+	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/vcs/pkg/file"
 )
 
 // ApplyVcsToDeployment takes a dual client and applies the file client's configuration to the kubernetes client

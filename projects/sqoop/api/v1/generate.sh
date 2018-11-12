@@ -23,7 +23,7 @@ PROTOC_FLAGS="-I=${GOPATH}/src \
 
 mkdir -p ${OUT}
 protoc -I=${IN} \
-    -I=${GOPATH}/src/github.com/solo-io/solo-kit/projects/gloo/api/v1 \
+    -I=${GOPATH}/src/github.com/solo-io/solo-projects/projects/gloo/api/v1 \
     ${PROTOC_FLAGS} \
     ${IN}/*.proto
 

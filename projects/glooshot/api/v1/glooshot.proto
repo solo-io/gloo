@@ -1,6 +1,6 @@
 syntax = "proto3";
 package glooshot.solo.io;
-option go_package = "github.com/solo-io/solo-kit/projects/glooshot/pkg/api/v1";
+option go_package = "github.com/solo-io/solo-projects/projects/glooshot/pkg/api/v1";
 
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
@@ -8,8 +8,8 @@ option (gogoproto.equal_all) = true;
 import "google/protobuf/duration.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
-import "github.com/solo-io/solo-kit/projects/gloo/api/v1/proxy.proto";
-import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/faultinjection/fault.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/proxy.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/faultinjection/fault.proto";
 
 /*
 @solo-kit:resource.short_name=exp

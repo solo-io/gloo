@@ -8,11 +8,11 @@ import (
 	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
 	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
-	fault "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/faultinjection"
+	fault "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/faultinjection"
 
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/pluginutils"
 )
 
 const (

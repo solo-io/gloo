@@ -21,13 +21,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1"
-	glooplugins "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins"
-	grpcapi "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/grpc"
-	transformapi "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins/transformation"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/pluginutils"
-	"github.com/solo-io/solo-kit/projects/gloo/pkg/plugins/transformation"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	glooplugins "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins"
+	grpcapi "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/grpc"
+	transformapi "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/transformation"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/pluginutils"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/transformation"
 )
 
 type ServicesAndDescriptor struct {

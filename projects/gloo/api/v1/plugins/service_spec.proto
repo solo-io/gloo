@@ -1,12 +1,12 @@
 syntax = "proto3";
 package plugins.gloo.solo.io;
-option go_package = "github.com/solo-io/solo-kit/projects/gloo/pkg/api/v1/plugins";
+option go_package = "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins";
 
 import "gogoproto/gogo.proto";
 
-import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/rest/rest.proto";
-import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/grpc/grpc.proto";
-import "github.com/solo-io/solo-kit/projects/gloo/api/v1/plugins/sqoop/sqoop.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/rest/rest.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/grpc/grpc.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/sqoop/sqoop.proto";
 
 
 // TODO: cna't use plugins/rest/rest.proto as it creates a import cycle in the generated go.

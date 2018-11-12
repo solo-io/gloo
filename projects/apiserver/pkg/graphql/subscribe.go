@@ -6,7 +6,7 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/projects/apiserver/pkg/graphql/models"
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 )
 
 type subscriptionResolver struct{ *ApiResolver }

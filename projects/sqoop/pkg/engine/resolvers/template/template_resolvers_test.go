@@ -4,9 +4,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/solo-io/solo-kit/projects/sqoop/pkg/api/v1"
-	. "github.com/solo-io/solo-kit/projects/sqoop/pkg/resolvers/template"
-	"github.com/solo-io/solo-kit/projects/sqoop/test"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	. "github.com/solo-io/solo-projects/projects/sqoop/pkg/resolvers/template"
+	"github.com/solo-io/solo-projects/projects/sqoop/test"
 )
 
 var _ = Describe("TemplateResolvers", func() {
