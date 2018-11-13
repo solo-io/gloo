@@ -25,6 +25,7 @@ type Mutation {
     secrets(namespace: String!): SecretMutation!
     artifacts(namespace: String!): ArtifactMutation!
     settings: SettingsMutation!
+    vcs(username: String!): VcsMutation!
 }
 
 type Subscription {
@@ -122,6 +123,15 @@ type SettingsQuery {
 
 type SettingsMutation {
     update(settings: InputSettings!): Settings
+}
+
+type VcsMutation {
+    commit(message: String!): String
+    clearError(): String
+    createBranch(branchName: String!): String
+    resetChanges(): String
+    checkoutBranch(branchName: String!): String
+    checkoutCommit(hash: String!): String
 }
 
 # Upstream

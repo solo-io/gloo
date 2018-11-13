@@ -51,3 +51,7 @@ type ArtifactMutation struct {
 type SettingsQuery struct{}
 
 type SettingsMutation struct{}
+
+type VcsMutation struct {
+	Username string
+}

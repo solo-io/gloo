@@ -48,6 +48,7 @@ type ResolverRoot interface {
 	Subscription() SubscriptionResolver
 	UpstreamMutation() UpstreamMutationResolver
 	UpstreamQuery() UpstreamQueryResolver
+	VcsMutation() VcsMutationResolver
 	VirtualServiceMutation() VirtualServiceMutationResolver
 	VirtualServiceQuery() VirtualServiceQueryResolver
 }
@@ -189,6 +190,7 @@ type ComplexityRoot struct {
 		Secrets         func(childComplexity int, namespace string) int
 		Artifacts       func(childComplexity int, namespace string) int
 		Settings        func(childComplexity int) int
+		Vcs             func(childComplexity int, username string) int
 	}
 
 	NodeJsresolver struct {
@@ -401,6 +403,15 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	VcsMutation struct {
+		Commit         func(childComplexity int, message string) int
+		ClearError     func(childComplexity int) int
+		CreateBranch   func(childComplexity int, branchName string) int
+		ResetChanges   func(childComplexity int) int
+		CheckoutBranch func(childComplexity int, branchName string) int
+		CheckoutCommit func(childComplexity int, hash string) int
+	}
+
 	VirtualService struct {
 		Domains   func(childComplexity int) int
 		Routes    func(childComplexity int) int
@@ -453,6 +464,7 @@ type MutationResolver interface {
 	Secrets(ctx context.Context, namespace string) (customtypes.SecretMutation, error)
 	Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactMutation, error)
 	Settings(ctx context.Context) (customtypes.SettingsMutation, error)
+	Vcs(ctx context.Context, username string) (customtypes.VcsMutation, error)
 }
 type QueryResolver interface {
 	Resource(ctx context.Context, guid string) (models.Resource, error)
@@ -512,6 +524,14 @@ type UpstreamMutationResolver interface {
 type UpstreamQueryResolver interface {
 	List(ctx context.Context, obj *customtypes.UpstreamQuery, selector *models.InputMapStringString) ([]*models.Upstream, error)
 	Get(ctx context.Context, obj *customtypes.UpstreamQuery, name string) (*models.Upstream, error)
+}
+type VcsMutationResolver interface {
+	Commit(ctx context.Context, obj *customtypes.VcsMutation, message string) (*string, error)
+	ClearError(ctx context.Context, obj *customtypes.VcsMutation) (*string, error)
+	CreateBranch(ctx context.Context, obj *customtypes.VcsMutation, branchName string) (*string, error)
+	ResetChanges(ctx context.Context, obj *customtypes.VcsMutation) (*string, error)
+	CheckoutBranch(ctx context.Context, obj *customtypes.VcsMutation, branchName string) (*string, error)
+	CheckoutCommit(ctx context.Context, obj *customtypes.VcsMutation, hash string) (*string, error)
 }
 type VirtualServiceMutationResolver interface {
 	Create(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error)
@@ -694,6 +714,21 @@ func field_Mutation_artifacts_args(rawArgs map[string]interface{}) (map[string]i
 		}
 	}
 	args["namespace"] = arg0
+	return args, nil
+
+}
+
+func field_Mutation_vcs_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["username"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg0
 	return args, nil
 
 }
@@ -1258,6 +1293,66 @@ func field_UpstreamQuery_get_args(rawArgs map[string]interface{}) (map[string]in
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+
+}
+
+func field_VcsMutation_commit_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["message"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["message"] = arg0
+	return args, nil
+
+}
+
+func field_VcsMutation_createBranch_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["branchName"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["branchName"] = arg0
+	return args, nil
+
+}
+
+func field_VcsMutation_checkoutBranch_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["branchName"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["branchName"] = arg0
+	return args, nil
+
+}
+
+func field_VcsMutation_checkoutCommit_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["hash"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["hash"] = arg0
 	return args, nil
 
 }
@@ -2121,6 +2216,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.Settings(childComplexity), true
 
+	case "Mutation.vcs":
+		if e.complexity.Mutation.Vcs == nil {
+			break
+		}
+
+		args, err := field_Mutation_vcs_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Vcs(childComplexity, args["username"].(string)), true
+
 	case "NodeJSResolver.empty":
 		if e.complexity.NodeJsresolver.Empty == nil {
 			break
@@ -2926,6 +3033,68 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Value.Value(childComplexity), true
+
+	case "VcsMutation.commit":
+		if e.complexity.VcsMutation.Commit == nil {
+			break
+		}
+
+		args, err := field_VcsMutation_commit_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.VcsMutation.Commit(childComplexity, args["message"].(string)), true
+
+	case "VcsMutation.clearError":
+		if e.complexity.VcsMutation.ClearError == nil {
+			break
+		}
+
+		return e.complexity.VcsMutation.ClearError(childComplexity), true
+
+	case "VcsMutation.createBranch":
+		if e.complexity.VcsMutation.CreateBranch == nil {
+			break
+		}
+
+		args, err := field_VcsMutation_createBranch_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.VcsMutation.CreateBranch(childComplexity, args["branchName"].(string)), true
+
+	case "VcsMutation.resetChanges":
+		if e.complexity.VcsMutation.ResetChanges == nil {
+			break
+		}
+
+		return e.complexity.VcsMutation.ResetChanges(childComplexity), true
+
+	case "VcsMutation.checkoutBranch":
+		if e.complexity.VcsMutation.CheckoutBranch == nil {
+			break
+		}
+
+		args, err := field_VcsMutation_checkoutBranch_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.VcsMutation.CheckoutBranch(childComplexity, args["branchName"].(string)), true
+
+	case "VcsMutation.checkoutCommit":
+		if e.complexity.VcsMutation.CheckoutCommit == nil {
+			break
+		}
+
+		args, err := field_VcsMutation_checkoutCommit_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.VcsMutation.CheckoutCommit(childComplexity, args["hash"].(string)), true
 
 	case "VirtualService.domains":
 		if e.complexity.VirtualService.Domains == nil {
@@ -5705,6 +5874,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "vcs":
+			out.Values[i] = ec._Mutation_vcs(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5918,6 +6092,36 @@ func (ec *executionContext) _Mutation_settings(ctx context.Context, field graphq
 	rctx.Result = res
 
 	return ec._SettingsMutation(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Mutation_vcs(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Mutation_vcs_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Mutation",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Vcs(rctx, args["username"].(string))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(customtypes.VcsMutation)
+	rctx.Result = res
+
+	return ec._VcsMutation(ctx, field.Selections, &res)
 }
 
 var nodeJSResolverImplementors = []string{"NodeJSResolver"}
@@ -10211,6 +10415,236 @@ func (ec *executionContext) _Value_value(ctx context.Context, field graphql.Coll
 	return graphql.MarshalString(res)
 }
 
+var vcsMutationImplementors = []string{"VcsMutation"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _VcsMutation(ctx context.Context, sel ast.SelectionSet, obj *customtypes.VcsMutation) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, vcsMutationImplementors)
+
+	var wg sync.WaitGroup
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("VcsMutation")
+		case "commit":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._VcsMutation_commit(ctx, field, obj)
+				wg.Done()
+			}(i, field)
+		case "clearError":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._VcsMutation_clearError(ctx, field, obj)
+				wg.Done()
+			}(i, field)
+		case "createBranch":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._VcsMutation_createBranch(ctx, field, obj)
+				wg.Done()
+			}(i, field)
+		case "resetChanges":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._VcsMutation_resetChanges(ctx, field, obj)
+				wg.Done()
+			}(i, field)
+		case "checkoutBranch":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._VcsMutation_checkoutBranch(ctx, field, obj)
+				wg.Done()
+			}(i, field)
+		case "checkoutCommit":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._VcsMutation_checkoutCommit(ctx, field, obj)
+				wg.Done()
+			}(i, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	wg.Wait()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VcsMutation_commit(ctx context.Context, field graphql.CollectedField, obj *customtypes.VcsMutation) graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_VcsMutation_commit_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "VcsMutation",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.VcsMutation().Commit(rctx, obj, args["message"].(string))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VcsMutation_clearError(ctx context.Context, field graphql.CollectedField, obj *customtypes.VcsMutation) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "VcsMutation",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.VcsMutation().ClearError(rctx, obj)
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VcsMutation_createBranch(ctx context.Context, field graphql.CollectedField, obj *customtypes.VcsMutation) graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_VcsMutation_createBranch_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "VcsMutation",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.VcsMutation().CreateBranch(rctx, obj, args["branchName"].(string))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VcsMutation_resetChanges(ctx context.Context, field graphql.CollectedField, obj *customtypes.VcsMutation) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "VcsMutation",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.VcsMutation().ResetChanges(rctx, obj)
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VcsMutation_checkoutBranch(ctx context.Context, field graphql.CollectedField, obj *customtypes.VcsMutation) graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_VcsMutation_checkoutBranch_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "VcsMutation",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.VcsMutation().CheckoutBranch(rctx, obj, args["branchName"].(string))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VcsMutation_checkoutCommit(ctx context.Context, field graphql.CollectedField, obj *customtypes.VcsMutation) graphql.Marshaler {
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_VcsMutation_checkoutCommit_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "VcsMutation",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.VcsMutation().CheckoutCommit(rctx, obj, args["hash"].(string))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
 var virtualServiceImplementors = []string{"VirtualService"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -14454,6 +14888,7 @@ type Mutation {
     secrets(namespace: String!): SecretMutation!
     artifacts(namespace: String!): ArtifactMutation!
     settings: SettingsMutation!
+    vcs(username: String!): VcsMutation!
 }
 
 type Subscription {
@@ -14551,6 +14986,15 @@ type SettingsQuery {
 
 type SettingsMutation {
     update(settings: InputSettings!): Settings
+}
+
+type VcsMutation {
+    commit(message: String!): String
+    clearError(): String
+    createBranch(branchName: String!): String
+    resetChanges(): String
+    checkoutBranch(branchName: String!): String
+    checkoutCommit(hash: String!): String
 }
 
 # Upstream

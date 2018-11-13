@@ -122,3 +122,7 @@ func (r *UnregisteredResolver) Artifacts(ctx context.Context, namespace string) 
 func (r *UnregisteredResolver) Settings(ctx context.Context) (customtypes.SettingsQuery, error) {
 	panic("client must present a token to access this feature")
 }
+
+func (r *UnregisteredResolver) VcsMutation() graph.VcsMutationResolver {
+	panic("client must present a token to access this feature")
+}
