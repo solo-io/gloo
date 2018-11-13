@@ -2,14 +2,15 @@ package git
 
 import (
 	"fmt"
-	"github.com/solo-io/solo-kit/pkg/errors"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 
 	goGit "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -72,34 +73,34 @@ func (r *Repository) IsRepo() (bool, error) {
 }
 
 // Create a working directory
-func (r *Repository) Init() error {
+func (r *Repository) Init() (string, error) {
 
 	// For an explanation of bare vs non-bare, see here:
 	// http://www.saintsjd.com/2011/01/what-is-a-bare-git-repository/
 	repo, err := goGit.PlainInit(r.root, false)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	w, err := repo.Worktree()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// create a file for first commit
 	filePath, err := createReadMeFile(r)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// add it to the index
 	if err = r.Add(filePath); err != nil {
-		return err
+		return "", err
 	}
 
-	_, err = w.Commit("First commit", &goGit.CommitOptions{Author: signature()})
+	hash, err := w.Commit("First commit", &goGit.CommitOptions{Author: signature()})
 
-	return err
+	return hash.String(), err
 }
 
 // List all branches
@@ -169,9 +170,9 @@ func (r *Repository) Head() (string, error) {
 	return headRef.Hash().String(), nil
 }
 
-// Checkout a branch by name
+// Checkout a reference by name
 // Name must be a short refname (without the refs/... prefix)
-func (r *Repository) Checkout(name string, remote bool) error {
+func (r *Repository) CheckoutBranch(name string, remote bool) error {
 	workTree, repo, err := r.getWorkTree()
 	if err != nil {
 		return err
@@ -197,6 +198,17 @@ func (r *Repository) Checkout(name string, remote bool) error {
 
 	return workTree.Checkout(&goGit.CheckoutOptions{
 		Branch: plumbing.ReferenceName(fullBranchName),
+	})
+}
+
+// Checkout a commit by its hash. HEAD will be in detached mode.
+func (r *Repository) CheckoutCommit(hash string) error {
+	workTree, _, err := r.getWorkTree()
+	if err != nil {
+		return err
+	}
+	return workTree.Checkout(&goGit.CheckoutOptions{
+		Hash: plumbing.NewHash(hash),
 	})
 }
 

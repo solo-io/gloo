@@ -17,8 +17,9 @@ import (
 var _ = Describe("Git Client", func() {
 
 	var (
-		repoClient *git.Repository
-		err        error
+		repoClient       *git.Repository
+		masterCommitHash string
+		err              error
 	)
 
 	Context("working with a local repository", func() {
@@ -32,7 +33,7 @@ var _ = Describe("Git Client", func() {
 			repoClient = git.NewRepo(root)
 			Expect(repoClient).NotTo(BeNil())
 
-			err = repoClient.Init()
+			masterCommitHash, err = repoClient.Init()
 		})
 
 		// Clean up
@@ -44,6 +45,10 @@ var _ = Describe("Git Client", func() {
 
 			It("does not generate an error", func() {
 				Expect(err).To(BeNil())
+			})
+
+			It("generated a commit hash", func() {
+				Expect(masterCommitHash).To(Not(BeEmpty()))
 			})
 
 			It("creates a non-bare repository", func() {
@@ -87,10 +92,8 @@ var _ = Describe("Git Client", func() {
 		Describe("committing a file", func() {
 
 			var (
-				fileName  = "test.txt"
-				fileDir   string
-				commitMsg = "Added file: " + fileName
-				hash      string
+				fileName = "test.txt"
+				fileDir  string
 			)
 
 			BeforeEach(func() {
@@ -98,7 +101,6 @@ var _ = Describe("Git Client", func() {
 			})
 
 			JustBeforeEach(func() {
-
 				filePath := path.Join(fileDir, fileName)
 				err = ioutil.WriteFile(filePath, []byte(fmt.Sprint("Some random content...\n")), 0644)
 				Expect(err).To(BeNil())
@@ -143,7 +145,15 @@ var _ = Describe("Git Client", func() {
 			})
 
 			Describe("when the file is committed", func() {
-				BeforeEach(func() {
+
+				var (
+					commitMsg = "Added file: " + fileName
+					hash      string
+				)
+
+				// We need a JustBeforeEach instead of a BeforeEach to execute these preconditions in the correct order
+				// given the JustBeforeEach in the enclosing function
+				JustBeforeEach(func() {
 					hash, err = repoClient.Commit(commitMsg)
 				})
 
@@ -165,6 +175,61 @@ var _ = Describe("Git Client", func() {
 					Expect(commit.Message).To(BeEquivalentTo(commitMsg))
 					Expect(commit.Author.Name).To(BeEquivalentTo(git.Author))
 					Expect(commit.Author.Email).To(BeEquivalentTo(git.AuthorEmail))
+				})
+
+				It("the working tree is clean", func() {
+					repo, err := goGit.PlainOpen(repoClient.Root())
+					Expect(err).To(BeNil())
+
+					workTree, err := repo.Worktree()
+					Expect(err).To(BeNil())
+
+					status, err := workTree.Status()
+					Expect(err).To(BeNil())
+					Expect(status.IsClean()).To(BeTrue())
+				})
+
+				Describe("when we check the current HEAD", func() {
+
+					var headRef string
+
+					// We need a JustBeforeEach instead of a BeforeEach to execute these preconditions in the correct order
+					// given the JustBeforeEach in the enclosing function
+					JustBeforeEach(func() {
+						headRef, err = repoClient.Head()
+					})
+
+					It("does not generate an error", func() {
+						Expect(err).To(BeNil())
+					})
+
+					It("points to the right commit", func() {
+						Expect(headRef).To(BeEquivalentTo(hash))
+					})
+				})
+
+				Describe("when we checkout the previous commit by its hash", func() {
+
+					// We need a JustBeforeEach instead of a BeforeEach to execute these preconditions in the correct order
+					// given the JustBeforeEach in the enclosing function
+					JustBeforeEach(func() {
+						err = repoClient.CheckoutCommit(masterCommitHash)
+					})
+
+					It("does not generate an error", func() {
+						Expect(err).To(BeNil())
+					})
+
+					It("the new HEAD points to the right commit", func() {
+						newHead, err := repoClient.Head()
+						Expect(err).To(BeNil())
+						Expect(newHead).To(BeEquivalentTo(masterCommitHash))
+					})
+
+					It("the file we just committed does not exists", func() {
+						_, err = os.Stat(path.Join(fileDir, fileName))
+						Expect(os.IsNotExist(err)).To(BeTrue())
+					})
 				})
 			})
 		})
@@ -269,7 +334,7 @@ var _ = Describe("Git Client", func() {
 			Describe("checking out the new branch", func() {
 
 				BeforeEach(func() {
-					err = repoClient.Checkout(branchName, false)
+					err = repoClient.CheckoutBranch(branchName, false)
 				})
 
 				It("does not generate an error", func() {
@@ -296,7 +361,7 @@ var _ = Describe("Git Client", func() {
 				var filePath, hash string
 
 				BeforeEach(func() {
-					_ = repoClient.Checkout(branchName, false)
+					_ = repoClient.CheckoutBranch(branchName, false)
 
 					filePath = path.Join(repoClient.Root(), fileName)
 					err = ioutil.WriteFile(filePath, []byte(fmt.Sprint("I am just using up memory...\n")), 0644)
@@ -316,7 +381,7 @@ var _ = Describe("Git Client", func() {
 				})
 
 				It("file is not present on master branch", func() {
-					repoClient.Checkout("master", false)
+					repoClient.CheckoutBranch("master", false)
 					_, err = os.Stat(path.Join(repoClient.Root(), fileName))
 					Expect(os.IsNotExist(err)).To(BeTrue())
 				})
@@ -338,16 +403,17 @@ var _ = Describe("Git Client", func() {
 
 			// Initialize another local repository that will act as remote
 			remoteClient = git.NewRepo(remoteRoot)
-			Expect(remoteClient.Init()).To(BeNil())
+			_, err = remoteClient.Init()
+			Expect(err).To(BeNil())
 
 			// Create another branch on the remote
 			remoteClient.NewBranch("branch_1")
-			remoteClient.Checkout("branch_1", false)
+			remoteClient.CheckoutBranch("branch_1", false)
 			Expect(ioutil.WriteFile(path.Join(remoteClient.Root(), "test_file"), []byte("Lorem ipsum..."), 0644)).To(BeNil())
 			Expect(remoteClient.Add(path.Join(remoteClient.Root(), "test_file"))).To(BeNil())
 			_, err := remoteClient.Commit("commit on branch_1")
 			Expect(err).To(BeNil())
-			remoteClient.Checkout("master", false)
+			remoteClient.CheckoutBranch("master", false)
 		})
 
 		Describe("cloning a remote repository", func() {
@@ -391,7 +457,7 @@ var _ = Describe("Git Client", func() {
 			})
 
 			It("can check out the other remote branch", func() {
-				err = repoClient.Checkout("branch_1", true)
+				err = repoClient.CheckoutBranch("branch_1", true)
 				Expect(err).To(BeNil())
 			})
 		})
@@ -403,7 +469,7 @@ var _ = Describe("Git Client", func() {
 			BeforeEach(func() {
 				Expect(repoClient.Clone(remoteClient.Root())).To(BeNil())
 				Expect(repoClient.NewBranch("to_be_pushed")).To(BeNil())
-				Expect(repoClient.Checkout("to_be_pushed", false)).To(BeNil())
+				Expect(repoClient.CheckoutBranch("to_be_pushed", false)).To(BeNil())
 				Expect(ioutil.WriteFile(path.Join(repoClient.Root(), "test_push"), []byte("to be pushed..."), 0777)).To(BeNil())
 				Expect(repoClient.Add(path.Join(repoClient.Root(), "test_push"))).To(BeNil())
 				hash, err = repoClient.Commit("Commit on branch to be pushed")
@@ -429,7 +495,7 @@ var _ = Describe("Git Client", func() {
 				newRepoRoot, _ := ioutil.TempDir("", "go_git_client_remotes_test")
 				newRepoClient := git.NewRepo(newRepoRoot)
 				Expect(newRepoClient.Clone(remoteClient.Root())).To(BeNil())
-				Expect(newRepoClient.Checkout("to_be_pushed", true)).To(BeNil())
+				Expect(newRepoClient.CheckoutBranch("to_be_pushed", true)).To(BeNil())
 
 				fileInfo, err := os.Stat(path.Join(newRepoRoot, "test_push"))
 				Expect(err).To(BeNil())

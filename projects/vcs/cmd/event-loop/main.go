@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
+	"github.com/solo-io/solo-projects/projects/vcs/pkg"
+	"github.com/solo-io/solo-projects/projects/vcs/pkg/git"
+	"k8s.io/client-go/rest"
 	"log"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -22,19 +24,32 @@ func main() {
 	}
 }
 
-// start an event loop watching the changeset resources in the glo
+// Start the event loop watching the changeset resources
 func run() error {
 
+	ctx := contextutils.WithLogger(context.Background(), pkg.AppName)
+
+	// TODO: remove
 	configPath := flag.String("kube-config", "", "Path to the KUBECONFIG file. Leave blank for in-cluster configuration")
 	flag.Parse()
 
-	csClient, err := buildChangeSetClient(configPath)
+	// Retrieve kubernetes configuration
+	cfg, err := kubeutils.GetConfig("", *configPath)
 	if err != nil {
 		return err
 	}
 
-	ctx := contextutils.WithLogger(context.Background(), "vcs")
-	errs, err := v1.NewApiEventLoop(v1.NewApiEmitter(csClient), &mockApiSyncer{}).Run(
+	// Configure changeset resource client
+	csClient, err := buildChangeSetClient(cfg)
+	if err != nil {
+		return err
+	}
+
+	// Configure changeset snapshot emitter (producer)
+	emitter := v1.NewApiEmitter(csClient)
+
+	// Start event loop
+	errs, err := v1.NewApiEventLoop(emitter, &git.RemoteSyncer{}).Run(
 		[]string{defaults.GlooSystem},
 		clients.WatchOpts{Ctx: ctx})
 
@@ -42,6 +57,7 @@ func run() error {
 		return err
 	}
 
+	// Receive from error channel until it closes
 	for err := range errs {
 		contextutils.LoggerFrom(ctx).Errorf("error in setup: %v", err)
 	}
@@ -50,15 +66,10 @@ func run() error {
 }
 
 // Creates and registers a client for the changeset resource
-func buildChangeSetClient(configPath *string) (v1.ChangeSetClient, error) {
-	cfg, err := kubeutils.GetConfig("", *configPath)
-	if err != nil {
-		return nil, err
-	}
-
+func buildChangeSetClient(config *rest.Config) (v1.ChangeSetClient, error) {
 	csClient, err := v1.NewChangeSetClient(&factory.KubeResourceClientFactory{
 		Crd:         v1.ChangeSetCrd,
-		Cfg:         cfg,
+		Cfg:         config,
 		SharedCache: kube.NewKubeCache(),
 	})
 	if err != nil {
@@ -71,24 +82,4 @@ func buildChangeSetClient(configPath *string) (v1.ChangeSetClient, error) {
 	}
 
 	return csClient, nil
-}
-
-type mockApiSyncer struct {
-	synced bool
-}
-
-func (s *mockApiSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
-
-	// iterate over all available changesets
-	for _, cs := range snap.Changesets[defaults.GlooSystem] {
-		fmt.Printf("Changeset with name [%v] has to be commited? [%v]\n", cs.Metadata.Name, cs.CommitPending.GetValue())
-
-		// TODO: If commit_pending == true -> push changes to github
-		if cs.CommitPending.GetValue() {
-			fmt.Printf("Committing changeset: [%v]\n", cs.Metadata.Name)
-		}
-	}
-	s.synced = true
-
-	return nil
 }
