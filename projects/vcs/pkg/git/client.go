@@ -1,8 +1,8 @@
 package git
 
 import (
-	"errors"
 	"fmt"
+	"github.com/solo-io/solo-kit/pkg/errors"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"io/ioutil"
@@ -30,8 +30,8 @@ const (
 
 // TODO: enhance errors, include more info
 var (
-	AbsPathNotInRepo    = errors.New("the given absolute path does not point to a file in the repository")
-	CloneInExistingRepo = errors.New("cannot clone into an existing repository")
+	AbsPathNotInRepo    = errors.Errorf("the given absolute path does not point to a file in the repository")
+	CloneInExistingRepo = errors.Errorf("cannot clone into an existing repository")
 )
 
 type Repository struct {
@@ -150,7 +150,27 @@ func (r *Repository) NewBranch(name string) error {
 	return repo.Storer.SetReference(ref)
 }
 
+// Returns the reference where HEAD is pointing to
+func (r *Repository) Head() (string, error) {
+	repo, err := goGit.PlainOpen(r.root)
+	if err != nil {
+		return "", err
+	}
+
+	headRef, err := repo.Head()
+	if err != nil {
+		return "", err
+	}
+
+	if headRef.Type() != plumbing.HashReference {
+		return "", errors.Errorf("Unsupported reference type [%v] for reference [%v]", headRef.Type(), headRef.Hash())
+	}
+
+	return headRef.Hash().String(), nil
+}
+
 // Checkout a branch by name
+// Name must be a short refname (without the refs/... prefix)
 func (r *Repository) Checkout(name string, remote bool) error {
 	workTree, repo, err := r.getWorkTree()
 	if err != nil {
@@ -165,10 +185,10 @@ func (r *Repository) Checkout(name string, remote bool) error {
 			return err
 		}
 		if len(remotes) == 0 {
-			return errors.New("could not find any remote repository")
+			return errors.Errorf("could not find any remote repository")
 		}
 		if len(remotes) > 1 {
-			return errors.New(fmt.Sprintf("currently only one remote repository supported. Found %v", len(remotes)))
+			return errors.Errorf("currently only one remote repository supported. Found %v", len(remotes))
 		}
 		fullBranchName = RemoteBranchPrefix + name
 	} else {
