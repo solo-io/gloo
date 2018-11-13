@@ -48,3 +48,5 @@ models:
     model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.SettingsMutation
   Duration:
     model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.Duration
+  VcsMutation:
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.VcsMutation

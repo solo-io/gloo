@@ -98,6 +98,10 @@ func (r *ApiResolver) SecretQuery() graph.SecretQueryResolver {
 	return &secretQueryResolver{r}
 }
 
+func (r *ApiResolver) VcsMutation() graph.VcsMutationResolver {
+	return &vcsMutationResolver{r}
+}
+
 type mutationResolver struct{ *ApiResolver }
 
 func (r *mutationResolver) Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamMutation, error) {
@@ -120,6 +124,9 @@ func (r *mutationResolver) Artifacts(ctx context.Context, namespace string) (cus
 }
 func (r *mutationResolver) Settings(ctx context.Context) (customtypes.SettingsMutation, error) {
 	return customtypes.SettingsMutation{}, nil
+}
+func (r *mutationResolver) Vcs(ctx context.Context, username string) (customtypes.VcsMutation, error) {
+	return customtypes.VcsMutation{Username: username}, nil
 }
 
 type queryResolver struct{ *ApiResolver }
