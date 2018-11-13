@@ -22,7 +22,7 @@ func run() error {
 	printUsage()
 	fmt.Printf("running, action: %v\n", *action)
 	ctx := contextutils.WithLogger(context.Background(), "vcs")
-	dc, err := file.NewDualClient("kube")
+	dc, err := file.NewDualClient("kube", "gloo")
 	if err != nil {
 		return err
 	}

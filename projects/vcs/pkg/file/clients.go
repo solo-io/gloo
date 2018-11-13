@@ -3,15 +3,11 @@ package file
 import (
 	"context"
 	"fmt"
-	"net"
-
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-	"k8s.io/client-go/kubernetes"
-
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	gatewayv1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
 	gatewaysetup "github.com/solo-io/solo-projects/projects/gateway/pkg/syncer"
 	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
@@ -20,6 +16,8 @@ import (
 	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	sqoopsetup "github.com/solo-io/solo-projects/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
+	"k8s.io/client-go/kubernetes"
+	"net"
 )
 
 // in the future, this may include other types of clients
@@ -42,7 +40,7 @@ type ClientSet struct {
 	sqoopv1.SchemaClient
 }
 
-func NewDualClient(deploymentType string) (DualClientSet, error) {
+func NewDualClient(deploymentType, fileClientRootDir string) (DualClientSet, error) {
 	if deploymentType != "kube" {
 		panic("we only support kubernetes clients at this time")
 	}
@@ -64,15 +62,15 @@ func NewDualClient(deploymentType string) (DualClientSet, error) {
 		return DualClientSet{}, err
 	}
 
-	fileSettingsClient, fileGlooOpts, err := FileConstructOpts()
+	fileSettingsClient, fileGlooOpts, err := FileConstructOpts(fileClientRootDir)
 	if err != nil {
 		return DualClientSet{}, err
 	}
-	fileGatewayOpts, err := FileGatewayOpts()
+	fileGatewayOpts, err := FileGatewayOpts(fileClientRootDir)
 	if err != nil {
 		return DualClientSet{}, err
 	}
-	fileSqoopOpts, err := FileSqoopOpts()
+	fileSqoopOpts, err := FileSqoopOpts(fileClientRootDir)
 	if err != nil {
 		return DualClientSet{}, err
 	}
@@ -194,19 +192,19 @@ func KubeGatewayOpts() (gatewaysetup.Opts, error) {
 	}, nil
 }
 
-func FileGatewayOpts() (gatewaysetup.Opts, error) {
+func FileGatewayOpts(path string) (gatewaysetup.Opts, error) {
 	ctx := contextutils.WithLogger(context.Background(), "gateway")
 	return gatewaysetup.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Gateways: &factory.FileResourceClientFactory{
 			// TODO(mitchdraft) make these constants
-			RootDir: "gloo/gateways",
+			RootDir: path + "/gateways",
 		},
 		VirtualServices: &factory.FileResourceClientFactory{
-			RootDir: "gloo/virtualservices",
+			RootDir: path + "/virtualservices",
 		},
 		Proxies: &factory.FileResourceClientFactory{
-			RootDir: "gloo/proxies",
+			RootDir: path + "/proxies",
 		},
 		WatchNamespaces: []string{"default", defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
@@ -252,18 +250,18 @@ func KubeSqoopOpts() (sqoopsetup.Opts, error) {
 	}, nil
 }
 
-func FileSqoopOpts() (sqoopsetup.Opts, error) {
+func FileSqoopOpts(path string) (sqoopsetup.Opts, error) {
 	ctx := contextutils.WithLogger(context.Background(), "gateway")
 	return sqoopsetup.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Schemas: &factory.FileResourceClientFactory{
-			RootDir: "gloo/schemas",
+			RootDir: path + "/schemas",
 		},
 		ResolverMaps: &factory.FileResourceClientFactory{
-			RootDir: "gloo/resolvermaps",
+			RootDir: path + "/resolvermaps",
 		},
 		Proxies: &factory.FileResourceClientFactory{
-			RootDir: "gloo/proxies",
+			RootDir: path + "/proxies",
 		},
 		WatchNamespaces: []string{"default", defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
@@ -329,12 +327,12 @@ func KubernetesConstructOpts() (gloov1.SettingsClient, bootstrap.Opts, error) {
 	}, nil
 }
 
-func FileConstructOpts() (gloov1.SettingsClient, bootstrap.Opts, error) {
+func FileConstructOpts(path string) (gloov1.SettingsClient, bootstrap.Opts, error) {
 	ctx := contextutils.WithLogger(context.Background(), "gloo")
 
 	// TODO(ilackarms): pass in settings configuration from an environment variable or CLI flag, rather than hard-coding to k8s
 	settingsClient, err := gloov1.NewSettingsClient(&factory.FileResourceClientFactory{
-		RootDir: "gloo/settings",
+		RootDir: path + "/settings",
 	})
 	if err != nil {
 		return nil, bootstrap.Opts{}, err
@@ -353,10 +351,10 @@ func FileConstructOpts() (gloov1.SettingsClient, bootstrap.Opts, error) {
 	return settingsClient, bootstrap.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Upstreams: &factory.FileResourceClientFactory{
-			RootDir: "gloo/upstreams",
+			RootDir: path + "/upstreams",
 		},
 		Proxies: &factory.FileResourceClientFactory{
-			RootDir: "gloo/proxies",
+			RootDir: path + "/proxies",
 		},
 		// TODO - make less sketchy (fileClients don't store secrets so we're using kube for that - find a good way to fill in the git/fileClient missing pieces)
 		Secrets: &factory.KubeSecretClientFactory{
