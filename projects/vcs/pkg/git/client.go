@@ -170,6 +170,24 @@ func (r *Repository) Head() (string, error) {
 	return headRef.Hash().String(), nil
 }
 
+// Returns the hash and message for the last commit
+func (r *Repository) LastCommit() (hash, message string, e error) {
+	repo, err := goGit.PlainOpen(r.root)
+	if err != nil {
+		return "", "", err
+	}
+	commitIter, err := repo.Log(&goGit.LogOptions{})
+	if err != nil {
+		return "", "", err
+	}
+	commit, err := commitIter.Next()
+	if err != nil {
+		return "", "", err
+	}
+
+	return commit.Hash.String(), commit.Message, nil
+}
+
 // Checkout a reference by name
 // Name must be a short refname (without the refs/... prefix)
 func (r *Repository) CheckoutBranch(name string, remote bool) error {
@@ -202,6 +220,7 @@ func (r *Repository) CheckoutBranch(name string, remote bool) error {
 }
 
 // Checkout a commit by its hash. HEAD will be in detached mode.
+// The hash parameter must be the full 40-byte hexadecimal commit object name.
 func (r *Repository) CheckoutCommit(hash string) error {
 	workTree, _, err := r.getWorkTree()
 	if err != nil {

@@ -79,7 +79,6 @@ var _ = Describe("Git Client", func() {
 			})
 		})
 
-		// TODO: update when adding remotes
 		Describe("listing branches", func() {
 
 			It("lists the existing local branches", func() {
@@ -205,6 +204,29 @@ var _ = Describe("Git Client", func() {
 
 					It("points to the right commit", func() {
 						Expect(headRef).To(BeEquivalentTo(hash))
+					})
+				})
+
+				Describe("when we check the last commit", func() {
+
+					var lastHash, lastMsg string
+
+					// We need a JustBeforeEach instead of a BeforeEach to execute these preconditions in the correct order
+					// given the JustBeforeEach in the enclosing function
+					JustBeforeEach(func() {
+						lastHash, lastMsg, err = repoClient.LastCommit()
+					})
+
+					It("does not generate an error", func() {
+						Expect(err).To(BeNil())
+					})
+
+					It("points to the right commit", func() {
+						Expect(lastHash).To(BeEquivalentTo(hash))
+					})
+
+					It("returns the right commit message", func() {
+						Expect(lastMsg).To(BeEquivalentTo(commitMsg))
 					})
 				})
 
