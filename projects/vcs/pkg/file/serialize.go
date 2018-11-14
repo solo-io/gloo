@@ -14,17 +14,17 @@ import (
 // The functionality will be replaced by calls to reconcilers
 
 // GenerateFilesystem
-func GenerateFilesystem(ctx context.Context, namespace string, dc DualClientSet) {
-	transposeVirtualServices(ctx, namespace, dc.File.VirtualServiceClient, dc.Kube.VirtualServiceClient)
-	writeSchemas(ctx, namespace, dc.Kube.SchemaClient, dc.File.SchemaClient)
-	writeResolverMaps(ctx, namespace, dc.Kube.ResolverMapClient, dc.File.ResolverMapClient)
-	writeGateways(ctx, namespace, dc.Kube.GatewayClient, dc.File.GatewayClient)
-	writeProxies(ctx, namespace, dc.Kube.ProxyClient, dc.File.ProxyClient)
-	writeSettings(ctx, namespace, dc.Kube.SettingsClient, dc.File.SettingsClient)
+func GenerateFilesystem(ctx context.Context, namespace string, fc, kc ClientSet) {
+	transposeVirtualServices(ctx, namespace, fc.VirtualServiceClient, kc.VirtualServiceClient)
+	writeSchemas(ctx, namespace, kc.SchemaClient, fc.SchemaClient)
+	writeResolverMaps(ctx, namespace, kc.ResolverMapClient, fc.ResolverMapClient)
+	writeGateways(ctx, namespace, kc.GatewayClient, fc.GatewayClient)
+	writeProxies(ctx, namespace, kc.ProxyClient, fc.ProxyClient)
+	writeSettings(ctx, namespace, kc.SettingsClient, fc.SettingsClient)
 }
 
-func UpdateKube(ctx context.Context, namespace string, dc DualClientSet) {
-	transposeVirtualServices(ctx, namespace, dc.Kube.VirtualServiceClient, dc.File.VirtualServiceClient)
+func UpdateKube(ctx context.Context, namespace string, fc, kc ClientSet) {
+	transposeVirtualServices(ctx, namespace, kc.VirtualServiceClient, fc.VirtualServiceClient)
 }
 
 func writeSchemas(ctx context.Context, namespace string, vsk sqoopv1.SchemaClient, vsf sqoopv1.SchemaClient) {

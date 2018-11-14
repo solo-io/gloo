@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
+
 	"github.com/solo-io/solo-projects/projects/vcs/pkg"
 	"github.com/solo-io/solo-projects/projects/vcs/pkg/git"
 	"k8s.io/client-go/rest"
-	"log"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"

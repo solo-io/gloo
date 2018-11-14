@@ -3,6 +3,8 @@ package file
 import (
 	"context"
 	"fmt"
+	"net"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -17,16 +19,17 @@ import (
 	sqoopsetup "github.com/solo-io/solo-projects/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
 	"k8s.io/client-go/kubernetes"
-	"net"
 )
 
-// in the future, this may include other types of clients
-// there should always be two, a file client for working with git
-// and a client that matches the particular deployment
-type DualClientSet struct {
-	Kube ClientSet
-	File ClientSet
-}
+const (
+	gatewayRootDir        = "/gateways"
+	virtualServiceRootDir = "/virtual-services"
+	proxyRootDir          = "/proxies"
+	schemaRootDir         = "/schemas"
+	resolverMapRootDir    = "/resolver-maps"
+	upstreamRootDir       = "/upstreams"
+	settingsRootDir       = "/settings"
+)
 
 type ClientSet struct {
 	gloov1.UpstreamClient
@@ -40,48 +43,37 @@ type ClientSet struct {
 	sqoopv1.SchemaClient
 }
 
-func NewDualClient(deploymentType, fileClientRootDir string) (DualClientSet, error) {
-	if deploymentType != "kube" {
-		panic("we only support kubernetes clients at this time")
-	}
+func NewFileClient(rootDir string) (ClientSet, error) {
 
+	fileSettingsClient, fileGlooOpts, err := FileConstructOpts(rootDir)
+	if err != nil {
+		return ClientSet{}, err
+	}
+	fileGatewayOpts, err := FileGatewayOpts(rootDir)
+	if err != nil {
+		return ClientSet{}, err
+	}
+	fileSqoopOpts, err := FileSqoopOpts(rootDir)
+	if err != nil {
+		return ClientSet{}, err
+	}
+	return registerClients(fileSettingsClient, fileGlooOpts, fileGatewayOpts, fileSqoopOpts)
+}
+
+func NewKubeClient() (ClientSet, error) {
 	kubeSettingsClient, kubeGlooOpts, err := KubernetesConstructOpts()
 	if err != nil {
-		return DualClientSet{}, err
+		return ClientSet{}, err
 	}
 	kubeGatewayOpts, err := KubeGatewayOpts()
 	if err != nil {
-		return DualClientSet{}, err
+		return ClientSet{}, err
 	}
 	kubeSqoopOpts, err := KubeSqoopOpts()
 	if err != nil {
-		return DualClientSet{}, err
+		return ClientSet{}, err
 	}
-	kubeClients, err := registerClients(kubeSettingsClient, kubeGlooOpts, kubeGatewayOpts, kubeSqoopOpts)
-	if err != nil {
-		return DualClientSet{}, err
-	}
-
-	fileSettingsClient, fileGlooOpts, err := FileConstructOpts(fileClientRootDir)
-	if err != nil {
-		return DualClientSet{}, err
-	}
-	fileGatewayOpts, err := FileGatewayOpts(fileClientRootDir)
-	if err != nil {
-		return DualClientSet{}, err
-	}
-	fileSqoopOpts, err := FileSqoopOpts(fileClientRootDir)
-	if err != nil {
-		return DualClientSet{}, err
-	}
-	fileClients, err := registerClients(fileSettingsClient, fileGlooOpts, fileGatewayOpts, fileSqoopOpts)
-	if err != nil {
-		return DualClientSet{}, err
-	}
-	return DualClientSet{
-		Kube: kubeClients,
-		File: fileClients,
-	}, nil
+	return registerClients(kubeSettingsClient, kubeGlooOpts, kubeGatewayOpts, kubeSqoopOpts)
 }
 
 func registerClients(settings gloov1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) (ClientSet, error) {
@@ -107,6 +99,13 @@ func registerClients(settings gloov1.SettingsClient, glooOpts bootstrap.Opts, ga
 	if err := artifacts.Register(); err != nil {
 		return ClientSet{}, err
 	}
+	proxies, err := gloov1.NewProxyClient(glooOpts.Proxies)
+	if err != nil {
+		return ClientSet{}, err
+	}
+	if err := proxies.Register(); err != nil {
+		return ClientSet{}, err
+	}
 	virtualServices, err := gatewayv1.NewVirtualServiceClient(gatewayOpts.VirtualServices)
 	if err != nil {
 		return ClientSet{}, err
@@ -119,17 +118,6 @@ func registerClients(settings gloov1.SettingsClient, glooOpts bootstrap.Opts, ga
 		return ClientSet{}, err
 	}
 	if err := gateways.Register(); err != nil {
-		return ClientSet{}, err
-	}
-	proxies, err := gloov1.NewProxyClient(glooOpts.Proxies)
-	if err != nil {
-		return ClientSet{}, err
-	}
-	if err := proxies.Register(); err != nil {
-		return ClientSet{}, err
-	}
-	// ( we already created a settingsClient )
-	if err := settings.Register(); err != nil {
 		return ClientSet{}, err
 	}
 	resolverMaps, err := sqoopv1.NewResolverMapClient(sqoopOpts.ResolverMaps)
@@ -146,6 +134,12 @@ func registerClients(settings gloov1.SettingsClient, glooOpts bootstrap.Opts, ga
 	if err := schemas.Register(); err != nil {
 		return ClientSet{}, err
 	}
+
+	// ( we already created a settingsClient )
+	if err := settings.Register(); err != nil {
+		return ClientSet{}, err
+	}
+
 	return ClientSet{
 		UpstreamClient:       upstreams,
 		VirtualServiceClient: virtualServices,
@@ -178,12 +172,7 @@ func KubeGatewayOpts() (gatewaysetup.Opts, error) {
 			Cfg:         cfg,
 			SharedCache: cache,
 		},
-		Proxies: &factory.KubeResourceClientFactory{
-			Crd:         gloov1.ProxyCrd,
-			Cfg:         cfg,
-			SharedCache: cache,
-		},
-		WatchNamespaces: []string{"default", defaults.GlooSystem},
+		WatchNamespaces: []string{clients.DefaultNamespace, defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: defaults.RefreshRate,
@@ -197,16 +186,12 @@ func FileGatewayOpts(path string) (gatewaysetup.Opts, error) {
 	return gatewaysetup.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Gateways: &factory.FileResourceClientFactory{
-			// TODO(mitchdraft) make these constants
-			RootDir: path + "/gateways",
+			RootDir: path + gatewayRootDir,
 		},
 		VirtualServices: &factory.FileResourceClientFactory{
-			RootDir: path + "/virtualservices",
+			RootDir: path + virtualServiceRootDir,
 		},
-		Proxies: &factory.FileResourceClientFactory{
-			RootDir: path + "/proxies",
-		},
-		WatchNamespaces: []string{"default", defaults.GlooSystem},
+		WatchNamespaces: []string{defaults.GlooSystem, defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: defaults.RefreshRate,
@@ -222,7 +207,7 @@ func KubeSqoopOpts() (sqoopsetup.Opts, error) {
 	}
 	cache := kube.NewKubeCache()
 
-	ctx := contextutils.WithLogger(context.Background(), "gateway")
+	ctx := contextutils.WithLogger(context.Background(), "sqoop")
 	return sqoopsetup.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Schemas: &factory.KubeResourceClientFactory{
@@ -235,12 +220,7 @@ func KubeSqoopOpts() (sqoopsetup.Opts, error) {
 			Cfg:         cfg,
 			SharedCache: cache,
 		},
-		Proxies: &factory.KubeResourceClientFactory{
-			Crd:         gloov1.ProxyCrd,
-			Cfg:         cfg,
-			SharedCache: cache,
-		},
-		WatchNamespaces: []string{"default", defaults.GlooSystem},
+		WatchNamespaces: []string{clients.DefaultNamespace, defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: defaults.RefreshRate,
@@ -251,19 +231,16 @@ func KubeSqoopOpts() (sqoopsetup.Opts, error) {
 }
 
 func FileSqoopOpts(path string) (sqoopsetup.Opts, error) {
-	ctx := contextutils.WithLogger(context.Background(), "gateway")
+	ctx := contextutils.WithLogger(context.Background(), "sqoop")
 	return sqoopsetup.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Schemas: &factory.FileResourceClientFactory{
-			RootDir: path + "/schemas",
+			RootDir: path + schemaRootDir,
 		},
 		ResolverMaps: &factory.FileResourceClientFactory{
-			RootDir: path + "/resolvermaps",
+			RootDir: path + resolverMapRootDir,
 		},
-		Proxies: &factory.FileResourceClientFactory{
-			RootDir: path + "/proxies",
-		},
-		WatchNamespaces: []string{"default", defaults.GlooSystem},
+		WatchNamespaces: []string{clients.DefaultNamespace, defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: defaults.RefreshRate,
@@ -313,7 +290,7 @@ func KubernetesConstructOpts() (gloov1.SettingsClient, bootstrap.Opts, error) {
 		Artifacts: &factory.KubeConfigMapClientFactory{
 			Clientset: clientset,
 		},
-		WatchNamespaces: []string{"default", defaults.GlooSystem},
+		WatchNamespaces: []string{clients.DefaultNamespace, defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: defaults.RefreshRate,
@@ -332,7 +309,7 @@ func FileConstructOpts(path string) (gloov1.SettingsClient, bootstrap.Opts, erro
 
 	// TODO(ilackarms): pass in settings configuration from an environment variable or CLI flag, rather than hard-coding to k8s
 	settingsClient, err := gloov1.NewSettingsClient(&factory.FileResourceClientFactory{
-		RootDir: path + "/settings",
+		RootDir: path + settingsRootDir,
 	})
 	if err != nil {
 		return nil, bootstrap.Opts{}, err
@@ -351,10 +328,10 @@ func FileConstructOpts(path string) (gloov1.SettingsClient, bootstrap.Opts, erro
 	return settingsClient, bootstrap.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Upstreams: &factory.FileResourceClientFactory{
-			RootDir: path + "/upstreams",
+			RootDir: path + upstreamRootDir,
 		},
 		Proxies: &factory.FileResourceClientFactory{
-			RootDir: path + "/proxies",
+			RootDir: path + proxyRootDir,
 		},
 		// TODO - make less sketchy (fileClients don't store secrets so we're using kube for that - find a good way to fill in the git/fileClient missing pieces)
 		Secrets: &factory.KubeSecretClientFactory{
@@ -364,7 +341,7 @@ func FileConstructOpts(path string) (gloov1.SettingsClient, bootstrap.Opts, erro
 		Artifacts: &factory.KubeConfigMapClientFactory{
 			Clientset: clientset,
 		},
-		WatchNamespaces: []string{"default", defaults.GlooSystem},
+		WatchNamespaces: []string{clients.DefaultNamespace, defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: defaults.RefreshRate,

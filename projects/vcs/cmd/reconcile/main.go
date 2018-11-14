@@ -19,13 +19,17 @@ func main() {
 func run() error {
 	printUsage()
 	ctx := contextutils.WithLogger(context.Background(), "vcs")
-	dc, err := file.NewDualClient("kube")
+	fc, err := file.NewFileClient("testRoot")
+	if err != nil {
+		return err
+	}
+	kc, err := file.NewKubeClient()
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("begin applying changes")
-	syncer.ApplyVcsToDeployment(ctx, dc)
+	syncer.ApplyVcsToDeployment(ctx, fc, kc)
 	fmt.Println("done applying changes")
 
 	return nil
