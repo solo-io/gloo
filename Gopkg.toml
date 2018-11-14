@@ -40,10 +40,6 @@
   name = "github.com/99designs/gqlgen"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/bxcodec/faker"
-
-[[constraint]]
   revision = "676016db8193d83324a507a986a78cd3642ad713"
   name = "github.com/envoyproxy/go-control-plane"
 
@@ -84,4 +80,8 @@
 [[constraint]]
   name = "github.com/solo-io/rate-limiter"
   revision = "32838befd54a98ecd76e6f1bf0ca6df602646a04"
-  
+
+
+[[constraint]]
+  name = "github.com/solo-io/solo-kit"
+  revision = "be5abcd0136c0426ced477799e974551d9a1230e"

@@ -18,7 +18,7 @@ IMPORTS="-I=${VCS_IN} \
     -I=${SQOOP_IN} \
     -I=${GATEWAY_IN} \
     -I=${GOPATH}/src \
-    -I=${GOPATH}/src/github.com/solo-io/solo-kit/api/external/proto"
+    -I=${GOPATH}/src/github.com/solo-io/solo-kit/api/external"
 
 GOGO_FLAG="--gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types:${GOPATH}/src/"
 

@@ -973,8 +973,7 @@
   revision = "32838befd54a98ecd76e6f1bf0ca6df602646a04"
 
 [[projects]]
-  branch = "configmap-resource-client-redesign"
-  digest = "1:31f885e3d30ebaaf6b178910408da394e183987c93275b4be72bcecf286090b6"
+  digest = "1:9035ccec0c6978d8d891296141ecb457dee90e4314a8983fe92fe1f7cfd1cbe0"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1009,55 +1008,12 @@
     "pkg/utils/log",
     "pkg/utils/protoutils",
     "pkg/utils/stats",
-    "projects/discovery/pkg/fds",
-    "projects/discovery/pkg/fds/discoveries/aws",
-    "projects/discovery/pkg/fds/discoveries/grpc",
-    "projects/discovery/pkg/fds/discoveries/sqoop",
-    "projects/discovery/pkg/fds/discoveries/swagger",
-    "projects/discovery/pkg/fds/syncer",
-    "projects/gateway/pkg/api/v1",
-    "projects/gateway/pkg/defaults",
-    "projects/gateway/pkg/propagator",
-    "projects/gateway/pkg/syncer",
-    "projects/gateway/pkg/translator",
-    "projects/gloo/pkg/api/v1",
-    "projects/gloo/pkg/api/v1/plugins",
-    "projects/gloo/pkg/api/v1/plugins/aws",
-    "projects/gloo/pkg/api/v1/plugins/azure",
-    "projects/gloo/pkg/api/v1/plugins/faultinjection",
-    "projects/gloo/pkg/api/v1/plugins/grpc",
-    "projects/gloo/pkg/api/v1/plugins/kubernetes",
-    "projects/gloo/pkg/api/v1/plugins/ratelimit",
-    "projects/gloo/pkg/api/v1/plugins/rest",
-    "projects/gloo/pkg/api/v1/plugins/sqoop",
-    "projects/gloo/pkg/api/v1/plugins/static",
-    "projects/gloo/pkg/api/v1/plugins/transformation",
-    "projects/gloo/pkg/bootstrap",
-    "projects/gloo/pkg/defaults",
-    "projects/gloo/pkg/discovery",
-    "projects/gloo/pkg/plugins",
-    "projects/gloo/pkg/plugins/aws",
-    "projects/gloo/pkg/plugins/azure",
-    "projects/gloo/pkg/plugins/faultinjection",
-    "projects/gloo/pkg/plugins/grpc",
-    "projects/gloo/pkg/plugins/kubernetes",
-    "projects/gloo/pkg/plugins/pluginutils",
-    "projects/gloo/pkg/plugins/ratelimit",
-    "projects/gloo/pkg/plugins/registry",
-    "projects/gloo/pkg/plugins/rest",
-    "projects/gloo/pkg/plugins/static",
-    "projects/gloo/pkg/plugins/transformation",
-    "projects/gloo/pkg/syncer",
-    "projects/gloo/pkg/translator",
-    "projects/gloo/pkg/xds",
-    "projects/sqoop/pkg/api/v1",
-    "projects/sqoop/pkg/todo",
     "test/helpers",
-    "test/services",
+    "test/setup",
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "fc0b22b76d35b2cb19b4a57feee66fa594fc2f4f"
+  revision = "be5abcd0136c0426ced477799e974551d9a1230e"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -1787,6 +1743,7 @@
     "github.com/solo-io/solo-kit/pkg/utils/protoutils",
     "github.com/solo-io/solo-kit/pkg/utils/stats",
     "github.com/solo-io/solo-kit/test/helpers",
+    "github.com/solo-io/solo-kit/test/setup",
     "github.com/solo-io/solo-kit/test/tests/typed",
     "github.com/spf13/cobra",
     "github.com/vektah/gqlgen/graphql",

@@ -17,7 +17,7 @@ GOGO_OUT_FLAG="--gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf
 SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=${PWD}/project.json:${OUT}"
 
 PROTOC_FLAGS="-I=${GOPATH}/src \
-    -I=${GOPATH}/src/github.com/solo-io/solo-kit/api/external/proto \
+    -I=${GOPATH}/src/github.com/solo-io/solo-kit/api/external \
     ${GOGO_OUT_FLAG} \
     ${SOLO_KIT_FLAG}"
 

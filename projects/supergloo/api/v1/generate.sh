@@ -16,7 +16,7 @@ IMPORTS="-I=${GLOO_IN} \
     -I=${SUPERGLOO_IN} \
     -I=${GOPATH}/src/github.com/solo-io/solo-projects/projects/gloo/api/v1 \
     -I=${GOPATH}/src \
-    -I=${GOPATH}/src/github.com/solo-io/solo-kit/api/external/proto"
+    -I=${GOPATH}/src/github.com/solo-io/solo-kit/api/external"
 
 # Run protoc once for gogo
 GOGO_FLAG="--gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types:${GOPATH}/src/"

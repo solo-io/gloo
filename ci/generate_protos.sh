@@ -7,7 +7,7 @@ set -x
 
 basedir="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../api && pwd )"
 outputdir=$basedir/external/
-protodir=$basedir/external/proto/
+protodir=$basedir/external/
 envoyprotodir=$protodir/envoy
 
 # TODO once we move to go mod this can be $(go env GOMOD)/api/external

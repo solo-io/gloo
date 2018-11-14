@@ -14,9 +14,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer"
-	"github.com/solo-io/solo-kit/test/helpers"
 )
 
 var _ = Describe("GraphQLSyncer", func() {

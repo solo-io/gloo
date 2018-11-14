@@ -11,7 +11,7 @@ __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source "${__dir}/API_SHAS"
 
-protodir="${__dir}/../api/external/proto"
+protodir="${__dir}/../api/external"
 tmpdir=`mktemp -d 2>/dev/null || mktemp -d -t 'tmpdir'`
 
 # Check if the temp dir was created.
