@@ -49,7 +49,7 @@ func (x Action) String() string {
 	return proto.EnumName(Action_name, int32(x))
 }
 func (Action) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_changeset_db94f55338728721, []int{0}
+	return fileDescriptor_changeset_0e7a782a5d0bcd6c, []int{0}
 }
 
 //
@@ -67,7 +67,7 @@ type ChangeSet struct {
 	Metadata core.Metadata `protobuf:"bytes,2,opt,name=metadata" json:"metadata"`
 	// The name of the git branch the changes will be applied to
 	Branch types.StringValue `protobuf:"bytes,3,opt,name=branch" json:"branch"`
-	// Represents an action that has to be performed on this changeset.
+	// Represents an action that this changeset is waiting to be performed. The default value is NONE.
 	PendingAction Action `protobuf:"varint,4,opt,name=pending_action,json=pendingAction,proto3,enum=vcs.solo.io.Action" json:"pending_action,omitempty"`
 	// Description of the changeset. This will be the git commit message
 	Description types.StringValue `protobuf:"bytes,5,opt,name=description" json:"description"`
@@ -95,7 +95,7 @@ func (m *ChangeSet) Reset()         { *m = ChangeSet{} }
 func (m *ChangeSet) String() string { return proto.CompactTextString(m) }
 func (*ChangeSet) ProtoMessage()    {}
 func (*ChangeSet) Descriptor() ([]byte, []int) {
-	return fileDescriptor_changeset_db94f55338728721, []int{0}
+	return fileDescriptor_changeset_0e7a782a5d0bcd6c, []int{0}
 }
 func (m *ChangeSet) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ChangeSet.Unmarshal(m, b)
@@ -210,7 +210,7 @@ func (m *Data) Reset()         { *m = Data{} }
 func (m *Data) String() string { return proto.CompactTextString(m) }
 func (*Data) ProtoMessage()    {}
 func (*Data) Descriptor() ([]byte, []int) {
-	return fileDescriptor_changeset_db94f55338728721, []int{1}
+	return fileDescriptor_changeset_0e7a782a5d0bcd6c, []int{1}
 }
 func (m *Data) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Data.Unmarshal(m, b)
@@ -422,9 +422,9 @@ func (this *Data) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("changeset.proto", fileDescriptor_changeset_db94f55338728721) }
+func init() { proto.RegisterFile("changeset.proto", fileDescriptor_changeset_0e7a782a5d0bcd6c) }
 
-var fileDescriptor_changeset_db94f55338728721 = []byte{
+var fileDescriptor_changeset_0e7a782a5d0bcd6c = []byte{
 	// 717 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x94, 0xdf, 0x4e, 0x23, 0x37,
 	0x14, 0xc6, 0x09, 0x09, 0xf9, 0x73, 0x42, 0x42, 0x30, 0x14, 0xb9, 0xa8, 0x02, 0x94, 0x2b, 0xd4,
