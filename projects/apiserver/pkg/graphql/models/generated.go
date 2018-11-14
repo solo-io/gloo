@@ -84,6 +84,15 @@ type FieldResolver struct {
 	Resolver  Resolver `json:"resolver"`
 }
 
+type GitBranch struct {
+	Name string `json:"name"`
+	Hash string `json:"hash"`
+}
+
+type GitRepo struct {
+	Branches []*GitBranch `json:"branches"`
+}
+
 type GlooResolver struct {
 	RequestTemplate  *RequestTemplate  `json:"requestTemplate"`
 	ResponseTemplate *ResponseTemplate `json:"responseTemplate"`
@@ -640,9 +649,25 @@ type UpstreamSpec interface {
 	IsUpstreamSpec()
 }
 
+type UserChangeset struct {
+	Branch          *string `json:"branch"`
+	CommitPending   bool    `json:"commitPending"`
+	Description     *string `json:"description"`
+	EditCount       int     `json:"editCount"`
+	UserID          string  `json:"userId"`
+	RootCommit      *string `json:"rootCommit"`
+	RootDescription *string `json:"rootDescription"`
+	ErrorMsg        *string `json:"errorMsg"`
+}
+
 type Value struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
+}
+
+type VcsQuery struct {
+	UserChangeset UserChangeset `json:"userChangeset"`
+	Repo          GitRepo       `json:"repo"`
 }
 
 type VirtualService struct {

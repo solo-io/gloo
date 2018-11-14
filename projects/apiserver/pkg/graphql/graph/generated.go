@@ -120,6 +120,15 @@ type ComplexityRoot struct {
 		Resolver  func(childComplexity int) int
 	}
 
+	GitBranch struct {
+		Name func(childComplexity int) int
+		Hash func(childComplexity int) int
+	}
+
+	GitRepo struct {
+		Branches func(childComplexity int) int
+	}
+
 	GlooResolver struct {
 		RequestTemplate  func(childComplexity int) int
 		ResponseTemplate func(childComplexity int) int
@@ -213,6 +222,7 @@ type ComplexityRoot struct {
 		Secrets          func(childComplexity int, namespace string) int
 		Artifacts        func(childComplexity int, namespace string) int
 		Settings         func(childComplexity int) int
+		Vcs              func(childComplexity int) int
 	}
 
 	RequestTemplate struct {
@@ -398,6 +408,17 @@ type ComplexityRoot struct {
 		Get  func(childComplexity int, name string) int
 	}
 
+	UserChangeset struct {
+		Branch          func(childComplexity int) int
+		CommitPending   func(childComplexity int) int
+		Description     func(childComplexity int) int
+		EditCount       func(childComplexity int) int
+		UserId          func(childComplexity int) int
+		RootCommit      func(childComplexity int) int
+		RootDescription func(childComplexity int) int
+		ErrorMsg        func(childComplexity int) int
+	}
+
 	Value struct {
 		Key   func(childComplexity int) int
 		Value func(childComplexity int) int
@@ -410,6 +431,11 @@ type ComplexityRoot struct {
 		ResetChanges   func(childComplexity int) int
 		CheckoutBranch func(childComplexity int, branchName string) int
 		CheckoutCommit func(childComplexity int, hash string) int
+	}
+
+	VcsQuery struct {
+		UserChangeset func(childComplexity int) int
+		Repo          func(childComplexity int) int
 	}
 
 	VirtualService struct {
@@ -477,6 +503,7 @@ type QueryResolver interface {
 	Secrets(ctx context.Context, namespace string) (customtypes.SecretQuery, error)
 	Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactQuery, error)
 	Settings(ctx context.Context) (customtypes.SettingsQuery, error)
+	Vcs(ctx context.Context) (models.VcsQuery, error)
 }
 type ResolverMapMutationResolver interface {
 	Create(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error)
@@ -1913,6 +1940,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FieldResolver.Resolver(childComplexity), true
 
+	case "GitBranch.name":
+		if e.complexity.GitBranch.Name == nil {
+			break
+		}
+
+		return e.complexity.GitBranch.Name(childComplexity), true
+
+	case "GitBranch.hash":
+		if e.complexity.GitBranch.Hash == nil {
+			break
+		}
+
+		return e.complexity.GitBranch.Hash(childComplexity), true
+
+	case "GitRepo.branches":
+		if e.complexity.GitRepo.Branches == nil {
+			break
+		}
+
+		return e.complexity.GitRepo.Branches(childComplexity), true
+
 	case "GlooResolver.requestTemplate":
 		if e.complexity.GlooResolver.RequestTemplate == nil {
 			break
@@ -2353,6 +2401,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Settings(childComplexity), true
+
+	case "Query.vcs":
+		if e.complexity.Query.Vcs == nil {
+			break
+		}
+
+		return e.complexity.Query.Vcs(childComplexity), true
 
 	case "RequestTemplate.verb":
 		if e.complexity.RequestTemplate.Verb == nil {
@@ -3020,6 +3075,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UpstreamQuery.Get(childComplexity, args["name"].(string)), true
 
+	case "UserChangeset.branch":
+		if e.complexity.UserChangeset.Branch == nil {
+			break
+		}
+
+		return e.complexity.UserChangeset.Branch(childComplexity), true
+
+	case "UserChangeset.commitPending":
+		if e.complexity.UserChangeset.CommitPending == nil {
+			break
+		}
+
+		return e.complexity.UserChangeset.CommitPending(childComplexity), true
+
+	case "UserChangeset.description":
+		if e.complexity.UserChangeset.Description == nil {
+			break
+		}
+
+		return e.complexity.UserChangeset.Description(childComplexity), true
+
+	case "UserChangeset.editCount":
+		if e.complexity.UserChangeset.EditCount == nil {
+			break
+		}
+
+		return e.complexity.UserChangeset.EditCount(childComplexity), true
+
+	case "UserChangeset.userId":
+		if e.complexity.UserChangeset.UserId == nil {
+			break
+		}
+
+		return e.complexity.UserChangeset.UserId(childComplexity), true
+
+	case "UserChangeset.rootCommit":
+		if e.complexity.UserChangeset.RootCommit == nil {
+			break
+		}
+
+		return e.complexity.UserChangeset.RootCommit(childComplexity), true
+
+	case "UserChangeset.rootDescription":
+		if e.complexity.UserChangeset.RootDescription == nil {
+			break
+		}
+
+		return e.complexity.UserChangeset.RootDescription(childComplexity), true
+
+	case "UserChangeset.errorMsg":
+		if e.complexity.UserChangeset.ErrorMsg == nil {
+			break
+		}
+
+		return e.complexity.UserChangeset.ErrorMsg(childComplexity), true
+
 	case "Value.key":
 		if e.complexity.Value.Key == nil {
 			break
@@ -3095,6 +3206,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.VcsMutation.CheckoutCommit(childComplexity, args["hash"].(string)), true
+
+	case "VcsQuery.userChangeset":
+		if e.complexity.VcsQuery.UserChangeset == nil {
+			break
+		}
+
+		return e.complexity.VcsQuery.UserChangeset(childComplexity), true
+
+	case "VcsQuery.repo":
+		if e.complexity.VcsQuery.Repo == nil {
+			break
+		}
+
+		return e.complexity.VcsQuery.Repo(childComplexity), true
 
 	case "VirtualService.domains":
 		if e.complexity.VirtualService.Domains == nil {
@@ -4538,6 +4663,177 @@ func (ec *executionContext) _FieldResolver_resolver(ctx context.Context, field g
 	rctx.Result = res
 
 	return ec._Resolver(ctx, field.Selections, &res)
+}
+
+var gitBranchImplementors = []string{"GitBranch"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _GitBranch(ctx context.Context, sel ast.SelectionSet, obj *models.GitBranch) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, gitBranchImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GitBranch")
+		case "name":
+			out.Values[i] = ec._GitBranch_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "hash":
+			out.Values[i] = ec._GitBranch_hash(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _GitBranch_name(ctx context.Context, field graphql.CollectedField, obj *models.GitBranch) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "GitBranch",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _GitBranch_hash(ctx context.Context, field graphql.CollectedField, obj *models.GitBranch) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "GitBranch",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Hash, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
+}
+
+var gitRepoImplementors = []string{"GitRepo"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _GitRepo(ctx context.Context, sel ast.SelectionSet, obj *models.GitRepo) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, gitRepoImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GitRepo")
+		case "branches":
+			out.Values[i] = ec._GitRepo_branches(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _GitRepo_branches(ctx context.Context, field graphql.CollectedField, obj *models.GitRepo) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "GitRepo",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Branches, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.GitBranch)
+	rctx.Result = res
+
+	arr1 := make(graphql.Array, len(res))
+	var wg sync.WaitGroup
+
+	isLen1 := len(res) == 1
+	if !isLen1 {
+		wg.Add(len(res))
+	}
+
+	for idx1 := range res {
+		idx1 := idx1
+		rctx := &graphql.ResolverContext{
+			Index:  &idx1,
+			Result: res[idx1],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(idx1 int) {
+			if !isLen1 {
+				defer wg.Done()
+			}
+			arr1[idx1] = func() graphql.Marshaler {
+
+				if res[idx1] == nil {
+					return graphql.Null
+				}
+
+				return ec._GitBranch(ctx, field.Selections, res[idx1])
+			}()
+		}
+		if isLen1 {
+			f(idx1)
+		} else {
+			go f(idx1)
+		}
+
+	}
+	wg.Wait()
+	return arr1
 }
 
 var glooResolverImplementors = []string{"GlooResolver"}
@@ -6365,6 +6661,15 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				wg.Done()
 			}(i, field)
+		case "vcs":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_vcs(ctx, field)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -6659,6 +6964,30 @@ func (ec *executionContext) _Query_settings(ctx context.Context, field graphql.C
 	rctx.Result = res
 
 	return ec._SettingsQuery(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_vcs(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Vcs(rctx)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.VcsQuery)
+	rctx.Result = res
+
+	return ec._VcsQuery(ctx, field.Selections, &res)
 }
 
 // nolint: vetshadow
@@ -10334,6 +10663,245 @@ func (ec *executionContext) _UpstreamQuery_get(ctx context.Context, field graphq
 	return ec._Upstream(ctx, field.Selections, res)
 }
 
+var userChangesetImplementors = []string{"UserChangeset"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _UserChangeset(ctx context.Context, sel ast.SelectionSet, obj *models.UserChangeset) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, userChangesetImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserChangeset")
+		case "branch":
+			out.Values[i] = ec._UserChangeset_branch(ctx, field, obj)
+		case "commitPending":
+			out.Values[i] = ec._UserChangeset_commitPending(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "description":
+			out.Values[i] = ec._UserChangeset_description(ctx, field, obj)
+		case "editCount":
+			out.Values[i] = ec._UserChangeset_editCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "userId":
+			out.Values[i] = ec._UserChangeset_userId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "rootCommit":
+			out.Values[i] = ec._UserChangeset_rootCommit(ctx, field, obj)
+		case "rootDescription":
+			out.Values[i] = ec._UserChangeset_rootDescription(ctx, field, obj)
+		case "errorMsg":
+			out.Values[i] = ec._UserChangeset_errorMsg(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _UserChangeset_branch(ctx context.Context, field graphql.CollectedField, obj *models.UserChangeset) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "UserChangeset",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Branch, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _UserChangeset_commitPending(ctx context.Context, field graphql.CollectedField, obj *models.UserChangeset) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "UserChangeset",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CommitPending, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	return graphql.MarshalBoolean(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _UserChangeset_description(ctx context.Context, field graphql.CollectedField, obj *models.UserChangeset) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "UserChangeset",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _UserChangeset_editCount(ctx context.Context, field graphql.CollectedField, obj *models.UserChangeset) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "UserChangeset",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EditCount, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	return graphql.MarshalInt(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _UserChangeset_userId(ctx context.Context, field graphql.CollectedField, obj *models.UserChangeset) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "UserChangeset",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _UserChangeset_rootCommit(ctx context.Context, field graphql.CollectedField, obj *models.UserChangeset) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "UserChangeset",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RootCommit, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _UserChangeset_rootDescription(ctx context.Context, field graphql.CollectedField, obj *models.UserChangeset) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "UserChangeset",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RootDescription, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _UserChangeset_errorMsg(ctx context.Context, field graphql.CollectedField, obj *models.UserChangeset) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "UserChangeset",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorMsg, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
 var valueImplementors = []string{"Value"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -10643,6 +11211,89 @@ func (ec *executionContext) _VcsMutation_checkoutCommit(ctx context.Context, fie
 		return graphql.Null
 	}
 	return graphql.MarshalString(*res)
+}
+
+var vcsQueryImplementors = []string{"VcsQuery"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _VcsQuery(ctx context.Context, sel ast.SelectionSet, obj *models.VcsQuery) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, vcsQueryImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("VcsQuery")
+		case "userChangeset":
+			out.Values[i] = ec._VcsQuery_userChangeset(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "repo":
+			out.Values[i] = ec._VcsQuery_repo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VcsQuery_userChangeset(ctx context.Context, field graphql.CollectedField, obj *models.VcsQuery) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "VcsQuery",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserChangeset, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.UserChangeset)
+	rctx.Result = res
+
+	return ec._UserChangeset(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VcsQuery_repo(ctx context.Context, field graphql.CollectedField, obj *models.VcsQuery) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "VcsQuery",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Repo, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.GitRepo)
+	rctx.Result = res
+
+	return ec._GitRepo(ctx, field.Selections, &res)
 }
 
 var virtualServiceImplementors = []string{"VirtualService"}
@@ -14878,6 +15529,7 @@ type Query {
     secrets(namespace: String!): SecretQuery!
     artifacts(namespace: String!): ArtifactQuery!
     settings: SettingsQuery!
+    vcs: VcsQuery!
 }
 
 type Mutation {
@@ -14986,6 +15638,11 @@ type SettingsQuery {
 
 type SettingsMutation {
     update(settings: InputSettings!): Settings
+}
+
+type VcsQuery {
+    userChangeset: UserChangeset!
+    repo: GitRepo!
 }
 
 type VcsMutation {
@@ -15630,6 +16287,32 @@ input InputSettings {
     watchNamespaces: [String!]
     refreshRate: Duration
     metadata: InputMetadata!
+}
+
+## Vcs
+## Vcs
+## Vcs
+## Vcs
+## Vcs
+
+type UserChangeset {
+    branch: String
+    commitPending: Boolean!
+    description: String
+    editCount: Int!
+    userId: String!
+    rootCommit: String
+    rootDescription: String
+    errorMsg: String
+}
+
+type GitRepo {
+    branches: [GitBranch]!
+}
+
+type GitBranch {
+    name: String!
+    hash: String!
 }
 
 

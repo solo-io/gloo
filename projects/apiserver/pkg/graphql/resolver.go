@@ -184,6 +184,9 @@ func (r *queryResolver) Artifacts(ctx context.Context, namespace string) (custom
 func (r *queryResolver) Settings(ctx context.Context) (customtypes.SettingsQuery, error) {
 	return customtypes.SettingsQuery{}, nil
 }
+func (r *queryResolver) Vcs(ctx context.Context) (models.VcsQuery, error) {
+	return getVcs(ctx)
+}
 func (r *ApiResolver) Subscription() graph.SubscriptionResolver {
 	return &subscriptionResolver{r}
 }

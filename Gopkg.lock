@@ -127,17 +127,6 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
-  branch = "master"
-  digest = "1:4aa085bf1b0a3ad59c3cf7b5abc0d011859e574c05744b27811089a953425796"
-  name = "github.com/bxcodec/faker"
-  packages = [
-    ".",
-    "support/slice",
-  ]
-  pruneopts = "UT"
-  revision = "886f57703256b3d02e9198410de4a83864f976d1"
-
-[[projects]]
   digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]

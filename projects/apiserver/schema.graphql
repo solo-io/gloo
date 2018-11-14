@@ -15,6 +15,7 @@ type Query {
     secrets(namespace: String!): SecretQuery!
     artifacts(namespace: String!): ArtifactQuery!
     settings: SettingsQuery!
+    vcs: VcsQuery!
 }
 
 type Mutation {
@@ -123,6 +124,11 @@ type SettingsQuery {
 
 type SettingsMutation {
     update(settings: InputSettings!): Settings
+}
+
+type VcsQuery {
+    userChangeset: UserChangeset!
+    repo: GitRepo!
 }
 
 type VcsMutation {
@@ -767,6 +773,32 @@ input InputSettings {
     watchNamespaces: [String!]
     refreshRate: Duration
     metadata: InputMetadata!
+}
+
+## Vcs
+## Vcs
+## Vcs
+## Vcs
+## Vcs
+
+type UserChangeset {
+    branch: String
+    commitPending: Boolean!
+    description: String
+    editCount: Int!
+    userId: String!
+    rootCommit: String
+    rootDescription: String
+    errorMsg: String
+}
+
+type GitRepo {
+    branches: [GitBranch]!
+}
+
+type GitBranch {
+    name: String!
+    hash: String!
 }
 
 

@@ -123,6 +123,10 @@ func (r *UnregisteredResolver) Settings(ctx context.Context) (customtypes.Settin
 	panic("client must present a token to access this feature")
 }
 
+func (r *UnregisteredResolver) Vcs(ctx context.Context) (models.VcsQuery, error) {
+	panic("client must present a token to access this feature")
+}
+
 func (r *UnregisteredResolver) VcsMutation() graph.VcsMutationResolver {
 	panic("client must present a token to access this feature")
 }
