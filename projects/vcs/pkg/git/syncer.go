@@ -40,7 +40,7 @@ func (s *RemoteSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 	for _, cs := range snap.Changesets[defaults.GlooSystem] {
 
 		// If this commit is pending, push it to the git remote
-		if cs.CommitPending.GetValue() {
+		if cs.PendingAction == v1.Action_COMMIT {
 
 			s.pushChanges(cs, ctx)
 

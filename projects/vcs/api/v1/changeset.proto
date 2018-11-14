@@ -37,8 +37,8 @@ message ChangeSet {
     // The name of the git branch the changes will be applied to
     google.protobuf.StringValue branch = 3 [(gogoproto.nullable) = false];
 
-    // Indicates whether this changeset has been submitted for commit and is waiting to be pushed
-    google.protobuf.BoolValue commit_pending = 4 [(gogoproto.nullable) = false];
+    // Represents an action that this changeset is waiting to be performed. The default value is NONE.
+    Action pending_action = 4;
 
     // Description of the changeset. This will be the git commit message
     google.protobuf.StringValue description = 5 [(gogoproto.nullable) = false];
@@ -75,4 +75,10 @@ message Data {
     repeated gloo.solo.io.Upstream upstreams = 5;
     repeated sqoop.solo.io.ResolverMap resolver_maps = 6;
     repeated sqoop.solo.io.Schema schemas = 7;
+}
+
+enum Action {
+    NONE = 0; // this os the default value as per the proto3 spec
+    COMMIT = 1;
+    CHECK_OUT = 2;
 }
