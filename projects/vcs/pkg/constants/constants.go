@@ -11,6 +11,6 @@ const (
 	UpstreamRootDir       = "upstreams"
 	SettingsRootDir       = "settings"
 
-	// Name of the environment variable that holds the token used to authenticate with the git remote (gi
+	// Name of the environment variable that holds the token used to authenticate with the git remote
 	AuthTokenEnvVariableName = "SOLO_GITHUB_TOKEN"
 )

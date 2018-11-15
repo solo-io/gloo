@@ -6,10 +6,10 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	v12 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
-	v13 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	gatewayV1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
+	glooV1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
-	v14 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	sqoopV1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/vcs/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/vcs/pkg/constants"
 	"github.com/solo-io/solo-projects/projects/vcs/pkg/file"
@@ -33,7 +33,7 @@ func (r *Repository) ToChangeSetData() (*v1.Data, error) {
 		if err != nil {
 			return data, errors.Errorf("Error reading virtual services from temp directory")
 		}
-		data.VirtualServices = make([]*v12.VirtualService, 0)
+		data.VirtualServices = make([]*gatewayV1.VirtualService, 0)
 		for _, vs := range virtualServices {
 			data.VirtualServices = append(data.VirtualServices, vs)
 		}
@@ -44,7 +44,7 @@ func (r *Repository) ToChangeSetData() (*v1.Data, error) {
 		if err != nil {
 			return data, errors.Errorf("Error reading gateways from temp directory")
 		}
-		data.Gateways = make([]*v12.Gateway, 0)
+		data.Gateways = make([]*gatewayV1.Gateway, 0)
 		for _, gateway := range gateways {
 			data.Gateways = append(data.Gateways, gateway)
 		}
@@ -55,7 +55,7 @@ func (r *Repository) ToChangeSetData() (*v1.Data, error) {
 		if err != nil {
 			return data, errors.Errorf("Error reading proxies from temp directory")
 		}
-		data.Proxies = make([]*v13.Proxy, 0)
+		data.Proxies = make([]*glooV1.Proxy, 0)
 		for _, proxy := range proxies {
 			data.Proxies = append(data.Proxies, proxy)
 		}
@@ -66,7 +66,7 @@ func (r *Repository) ToChangeSetData() (*v1.Data, error) {
 		if err != nil {
 			return data, errors.Errorf("Error reading resolver maps from temp directory")
 		}
-		data.ResolverMaps = make([]*v14.ResolverMap, 0)
+		data.ResolverMaps = make([]*sqoopV1.ResolverMap, 0)
 		for _, resolverMap := range resolverMaps {
 			data.ResolverMaps = append(data.ResolverMaps, resolverMap)
 		}
@@ -77,7 +77,7 @@ func (r *Repository) ToChangeSetData() (*v1.Data, error) {
 		if err != nil {
 			return data, errors.Errorf("Error reading schemas from temp directory")
 		}
-		data.Schemas = make([]*v14.Schema, 0)
+		data.Schemas = make([]*sqoopV1.Schema, 0)
 		for _, schema := range schemas {
 			data.Schemas = append(data.Schemas, schema)
 		}
@@ -88,7 +88,7 @@ func (r *Repository) ToChangeSetData() (*v1.Data, error) {
 		if err != nil {
 			return data, errors.Errorf("Error reading settings from temp directory")
 		}
-		data.Settings = make([]*v13.Settings, 0)
+		data.Settings = make([]*glooV1.Settings, 0)
 		for _, setting := range settings {
 			data.Settings = append(data.Settings, setting)
 		}
@@ -99,7 +99,7 @@ func (r *Repository) ToChangeSetData() (*v1.Data, error) {
 		if err != nil {
 			return data, errors.Errorf("Error reading settings from temp directory")
 		}
-		data.Upstreams = make([]*v13.Upstream, 0)
+		data.Upstreams = make([]*glooV1.Upstream, 0)
 		for _, upstream := range upstreams {
 			data.Upstreams = append(data.Upstreams, upstream)
 		}
