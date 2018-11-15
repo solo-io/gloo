@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"log"
 	"os"
 
@@ -36,30 +35,25 @@ func run() error {
 		contextutils.LoggerFrom(ctx).Panicf("Environment variable %v is not set", constants.AuthTokenEnvVariableName)
 	}
 
-	// TODO: remove
-	configPath := flag.String("kube-config", "", "Path to the KUBECONFIG file. Leave blank for in-cluster configuration")
-	flag.Parse()
-
 	// Retrieve kubernetes configuration
-	cfg, err := kubeutils.GetConfig("", *configPath)
+	cfg, err := kubeutils.GetConfig("", "")
 	if err != nil {
 		return err
 	}
 
-	// Configure changeset resource client
-	csClient, err := buildChangeSetClient(cfg)
+	// Configure changeset resource client for emitter
+	emitterCsClient, syncerCsClient, err := buildChangeSetClients(cfg)
 	if err != nil {
 		return err
 	}
 
 	// Configure changeset snapshot emitter (producer)
-	emitter := v1.NewApiEmitter(csClient)
+	emitter := v1.NewApiEmitter(emitterCsClient)
 
 	// Start event loop
-	errs, err := v1.NewApiEventLoop(emitter, &git.RemoteSyncer{CsClient: &csClient}).Run(
+	errs, err := v1.NewApiEventLoop(emitter, &git.RemoteSyncer{CsClient: &syncerCsClient}).Run(
 		[]string{defaults.GlooSystem},
 		clients.WatchOpts{Ctx: ctx})
-
 	if err != nil {
 		return err
 	}
@@ -72,21 +66,35 @@ func run() error {
 	return nil
 }
 
-// Creates and registers a client for the changeset resource
-func buildChangeSetClient(config *rest.Config) (v1.ChangeSetClient, error) {
-	csClient, err := v1.NewChangeSetClient(&factory.KubeResourceClientFactory{
+// Creates and registers two clients for the changeset resource
+func buildChangeSetClients(config *rest.Config) (v1.ChangeSetClient, v1.ChangeSetClient, error) {
+	csClient1, err := v1.NewChangeSetClient(&factory.KubeResourceClientFactory{
 		Crd:         v1.ChangeSetCrd,
 		Cfg:         config,
 		SharedCache: kube.NewKubeCache(),
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	err = csClient.Register()
+	err = csClient1.Register()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return csClient, nil
+	csClient2, err := v1.NewChangeSetClient(&factory.KubeResourceClientFactory{
+		Crd:         v1.ChangeSetCrd,
+		Cfg:         config,
+		SharedCache: kube.NewKubeCache(),
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = csClient1.Register()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return csClient1, csClient2, nil
 }

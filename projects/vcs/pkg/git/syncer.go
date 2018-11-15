@@ -159,7 +159,7 @@ func (s *RemoteSyncer) pushChanges(ctx context.Context, cs *v1.ChangeSet) error 
 func (s *RemoteSyncer) checkout(ctx context.Context, cs *v1.ChangeSet) error {
 
 	// Either branch name OR commit hash will be non-empty
-	branchName, commitHash, err := validate(cs)
+	branchName, commitHash, err := validateForCheckout(cs)
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func (s *RemoteSyncer) markChangesetAsFailed(ctx context.Context, cs *v1.ChangeS
 }
 
 // Verifies that only one between branch and hash is present
-func validate(cs *v1.ChangeSet) (branch, hash string, err error) {
+func validateForCheckout(cs *v1.ChangeSet) (branch, hash string, err error) {
 	branchName, commitHash := cs.Branch.GetValue(), cs.RootCommit.GetValue()
 
 	if !goutils.IsEmpty(branchName) && !goutils.IsEmpty(commitHash) {
