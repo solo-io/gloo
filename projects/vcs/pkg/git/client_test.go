@@ -357,7 +357,7 @@ var _ = Describe("Git Client", func() {
 			Describe("checking out the new branch", func() {
 
 				BeforeEach(func() {
-					err = repoClient.CheckoutBranch(branchName, false)
+					err = repoClient.CheckoutBranch(branchName)
 				})
 
 				It("does not generate an error", func() {
@@ -384,7 +384,7 @@ var _ = Describe("Git Client", func() {
 				var filePath, hash string
 
 				BeforeEach(func() {
-					_ = repoClient.CheckoutBranch(branchName, false)
+					_ = repoClient.CheckoutBranch(branchName)
 
 					filePath = path.Join(repoClient.Root(), fileName)
 					err = ioutil.WriteFile(filePath, []byte(fmt.Sprint("I am just using up memory...\n")), 0644)
@@ -404,7 +404,7 @@ var _ = Describe("Git Client", func() {
 				})
 
 				It("file is not present on master branch", func() {
-					repoClient.CheckoutBranch("master", false)
+					repoClient.CheckoutBranch("master")
 					_, err = os.Stat(path.Join(repoClient.Root(), fileName))
 					Expect(os.IsNotExist(err)).To(BeTrue())
 				})
@@ -434,15 +434,15 @@ var _ = Describe("Git Client", func() {
 
 			// Create another branch on the remote
 			remoteClient.NewBranch("branch_1")
-			remoteClient.CheckoutBranch("branch_1", false)
+			remoteClient.CheckoutBranch("branch_1")
 			Expect(ioutil.WriteFile(path.Join(remoteClient.Root(), "test_file"), []byte("Lorem ipsum..."), 0644)).To(BeNil())
 			Expect(remoteClient.Add(path.Join(remoteClient.Root(), "test_file"))).To(BeNil())
 			_, err := remoteClient.Commit("commit on branch_1")
 			Expect(err).To(BeNil())
-			remoteClient.CheckoutBranch("master", false)
+			remoteClient.CheckoutBranch("master")
 		})
 
-		Describe("cloning a remote repository", func() {
+		Describe("cloning a remote repository (with two branches)", func() {
 
 			BeforeEach(func() {
 				err = repoClient.Clone(remoteClient.Root())
@@ -465,11 +465,13 @@ var _ = Describe("Git Client", func() {
 				Expect(remotes[0].Config().URLs[0]).To(BeEquivalentTo(remoteClient.Root()))
 			})
 
-			It("lists the existing remote branches", func() {
+			It("creates both local and remote-tracking refs for the remote refs", func() {
 				branches, err := repoClient.ListBranches(true)
 
 				Expect(err).To(BeNil())
-				Expect(len(branches)).To(BeEquivalentTo(3)) // 1 local (master) + 2 remote branches
+				Expect(len(branches)).To(BeEquivalentTo(4))
+				Expect(branches).To(ContainElement("refs/heads/master"))
+				Expect(branches).To(ContainElement("refs/heads/branch_1"))
 				Expect(branches).To(ContainElement("refs/remotes/origin/master"))
 				Expect(branches).To(ContainElement("refs/remotes/origin/branch_1"))
 			})
@@ -483,7 +485,7 @@ var _ = Describe("Git Client", func() {
 			})
 
 			It("can check out the other remote branch", func() {
-				err = repoClient.CheckoutBranch("branch_1", true)
+				err = repoClient.CheckoutBranch("branch_1")
 				Expect(err).To(BeNil())
 			})
 		})
@@ -495,7 +497,7 @@ var _ = Describe("Git Client", func() {
 			BeforeEach(func() {
 				Expect(repoClient.Clone(remoteClient.Root())).To(BeNil())
 				Expect(repoClient.NewBranch("to_be_pushed")).To(BeNil())
-				Expect(repoClient.CheckoutBranch("to_be_pushed", false)).To(BeNil())
+				Expect(repoClient.CheckoutBranch("to_be_pushed")).To(BeNil())
 				Expect(ioutil.WriteFile(path.Join(repoClient.Root(), "test_push"), []byte("to be pushed..."), 0777)).To(BeNil())
 				Expect(repoClient.Add(path.Join(repoClient.Root(), "test_push"))).To(BeNil())
 				hash, err = repoClient.Commit("Commit on branch to be pushed")
@@ -522,7 +524,7 @@ var _ = Describe("Git Client", func() {
 				newRepoClient, err := git.NewRepo(newRepoRoot)
 				Expect(err).To(BeNil())
 				Expect(newRepoClient.Clone(remoteClient.Root())).To(BeNil())
-				Expect(newRepoClient.CheckoutBranch("to_be_pushed", true)).To(BeNil())
+				Expect(newRepoClient.CheckoutBranch("to_be_pushed")).To(BeNil())
 
 				fileInfo, err := os.Stat(path.Join(newRepoRoot, "test_push"))
 				Expect(err).To(BeNil())

@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/src-d/go-git.v4/config"
+
 	"github.com/solo-io/solo-projects/projects/vcs/pkg/constants"
 
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -21,10 +23,9 @@ import (
 )
 
 const (
-	Author             = "gitbot"
-	AuthorEmail        = "gitbot@solo.io"
-	LocalBranchPrefix  = "refs/heads/"
-	RemoteBranchPrefix = "refs/remotes/origin/"
+	Author            = "gitbot"
+	AuthorEmail       = "gitbot@solo.io"
+	LocalBranchPrefix = "refs/heads/"
 
 	gitDirName = ".git"
 	repoTitle  = "Gloo state repository"
@@ -33,8 +34,9 @@ const (
 
 // TODO: enhance errors, include more info
 var (
-	AbsPathNotInRepo    = errors.Errorf("the given absolute path does not point to a file in the repository")
-	CloneInExistingRepo = errors.Errorf("cannot clone into an existing repository")
+	AbsPathNotInRepo    = errors.Errorf("The given absolute path does not point to a file in the repository")
+	CloneInExistingRepo = errors.Errorf("Cannot clone into an existing repository")
+	InvalidBranchName   = errors.Errorf("The branch name cannot contain the '/' character")
 )
 
 type Repository struct {
@@ -212,29 +214,17 @@ func (r *Repository) LastCommit() (hash, message string, e error) {
 
 // Checkout a reference by name
 // Name must be a short refname (without the refs/... prefix)
-func (r *Repository) CheckoutBranch(name string, remote bool) error {
-	workTree, repo, err := r.getWorkTree()
+func (r *Repository) CheckoutBranch(name string) error {
+	workTree, _, err := r.getWorkTree()
 	if err != nil {
 		return err
 	}
 
-	// in case of remote ref, check that only one is available and use its name in the ref prefix
-	var fullBranchName string
-	if remote {
-		remotes, err := repo.Remotes()
-		if err != nil {
-			return err
-		}
-		if len(remotes) == 0 {
-			return errors.Errorf("could not find any remote repository")
-		}
-		if len(remotes) > 1 {
-			return errors.Errorf("currently only one remote repository supported. Found %v", len(remotes))
-		}
-		fullBranchName = RemoteBranchPrefix + name
-	} else {
-		fullBranchName = LocalBranchPrefix + name
+	if len(strings.Split(name, "/")) > 1 {
+		return InvalidBranchName
 	}
+
+	fullBranchName := LocalBranchPrefix + name
 
 	return workTree.Checkout(&goGit.CheckoutOptions{
 		Branch: plumbing.ReferenceName(fullBranchName),
@@ -295,7 +285,29 @@ func (r *Repository) Clone(remoteUrl string) error {
 		return CloneInExistingRepo
 	}
 
-	_, err := goGit.PlainClone(r.root, false, &goGit.CloneOptions{URL: remoteUrl, Auth: r.auth})
+	repo, err := goGit.PlainClone(r.root, false, &goGit.CloneOptions{URL: remoteUrl, Auth: r.auth})
+	if err != nil {
+		return err
+	}
+
+	// The ref spec creates local references for all the remote references.
+	//
+	// If e.g. the remote contains
+	// [
+	// 		refs/heads/master,
+	// 		refs/heads/branch_1
+	// ]
+	// after this method is called the local repo will contain
+	// [
+	// 		refs/heads/master,
+	// 		refs/heads/branch_1,
+	// 		refs/remotes/origin/master,
+	// 		refs/remotes/origin/branch_1
+	// ]
+	// This allows us to avoid distinguishing between local and remote-tracking references during checkout.
+	err = repo.Fetch(&goGit.FetchOptions{
+		RefSpecs: []config.RefSpec{"+refs/heads/*:refs/heads/*"}, Auth: r.auth,
+	})
 
 	return err
 }

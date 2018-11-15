@@ -61,13 +61,11 @@ func (s *RemoteSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 func (s *RemoteSyncer) pushChanges(ctx context.Context, cs *v1.ChangeSet) error {
 	contextutils.LoggerFrom(ctx).Infof("Preparing to commit changeset [%v] ", cs.Metadata.Name)
 
-	// TODO: WATCH OUT! pending flag has to be set to false at some point to not get stuck in an infinite loop
 	if cs.EditCount.Value == 0 {
 		contextutils.LoggerFrom(ctx).Error("Changeset edit count is zero. Nothing to commit.")
 		return errors.Errorf("Changeset %v does not contain any edits", cs.Metadata.Name)
 	}
 
-	// TODO: improve error handling
 	if cs.Branch.GetValue() == "master" {
 		contextutils.LoggerFrom(ctx).Error("Direct changes to master are not allowed.")
 		return errors.Errorf("Changeset %v contains edits to the master branch", cs.Metadata.Name)
@@ -89,7 +87,7 @@ func (s *RemoteSyncer) pushChanges(ctx context.Context, cs *v1.ChangeSet) error 
 	}
 
 	// Switch to master branch if somehow the remote HEAD is pointing to another branch
-	err = repo.CheckoutBranch("master", true)
+	err = repo.CheckoutBranch("master")
 	if err != nil {
 		return err
 	}
@@ -111,7 +109,7 @@ func (s *RemoteSyncer) pushChanges(ctx context.Context, cs *v1.ChangeSet) error 
 
 	// Switch to the branch specified in the changeset
 	contextutils.LoggerFrom(ctx).Infof("Checking out branch [%v].", cs.Branch.GetValue())
-	err = repo.CheckoutBranch(cs.Branch.GetValue(), false)
+	err = repo.CheckoutBranch(cs.Branch.GetValue())
 	if err != nil {
 		return err
 	}
@@ -181,7 +179,7 @@ func (s *RemoteSyncer) checkout(ctx context.Context, cs *v1.ChangeSet) error {
 
 	if !goutils.IsEmpty(branchName) {
 		contextutils.LoggerFrom(ctx).Infof("Checking out branch [%v]", branchName)
-		err = repo.CheckoutBranch(branchName, true)
+		err = repo.CheckoutBranch(branchName)
 		if err != nil {
 			if err == plumbing.ErrReferenceNotFound {
 				err = errors.Errorf("Could not find any branch with name [%v]", branchName)
