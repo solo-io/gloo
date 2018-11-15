@@ -69,7 +69,7 @@ func StartRateLimit(ctx context.Context, s settings.Settings, clientSettings Set
 	StartRateLimitWithGrpcServer(ctx, clientSettings, service, srv.GrpcServer())
 	err := srv.Start(ctx)
 	if err != nil {
-		if ctx.Err == nil {
+		if ctx.Err() == nil {
 			// not a context error - panic
 			panic(err)
 		}
