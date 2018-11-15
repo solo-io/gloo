@@ -127,6 +127,17 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  branch = "master"
+  digest = "1:7310ec5042e3a0dd73ed9f23f812e73ce0ae88d08039e4473472ebba20bf2996"
+  name = "github.com/bxcodec/faker"
+  packages = [
+    ".",
+    "support/slice",
+  ]
+  pruneopts = "UT"
+  revision = "bf89c38ff1742f295e15df0bd5e8b3e81da95855"
+
+[[projects]]
   digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -962,7 +973,7 @@
   revision = "32838befd54a98ecd76e6f1bf0ca6df602646a04"
 
 [[projects]]
-  digest = "1:9035ccec0c6978d8d891296141ecb457dee90e4314a8983fe92fe1f7cfd1cbe0"
+  digest = "1:c0a8ec247406239d30f74ba75fdd5e5383e87d73b1328b792c07602f4f677cdd"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1002,7 +1013,7 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "be5abcd0136c0426ced477799e974551d9a1230e"
+  revision = "87eea1cad4cc48afc2d7186a8b9cbe703bd4dff4"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
