@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/solo-io/solo-projects/projects/vcs/pkg/constants"
+
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
@@ -40,8 +42,27 @@ type Repository struct {
 	auth transport.AuthMethod
 }
 
-func NewRepo(root string) *Repository {
-	return &Repository{root: root}
+// Creates a repository in the default temporary files directory
+func NewTempRepo() (*Repository, error) {
+	tempDir, err := ioutil.TempDir("", constants.AppName)
+	if err != nil {
+		return &Repository{}, err
+	}
+	return NewRepo(tempDir)
+}
+
+// Creates a repository in the given directory
+func NewRepo(root string) (*Repository, error) {
+	_, err := os.Stat(root)
+	if err != nil {
+		return &Repository{}, err
+	}
+	return &Repository{root: root}, nil
+}
+
+// Deletes the directory that contains the repository
+func (r *Repository) Delete() error {
+	return os.RemoveAll(r.root)
 }
 
 // Configure client for token authentication with remote
@@ -72,7 +93,8 @@ func (r *Repository) IsRepo() (bool, error) {
 	return false, err
 }
 
-// Create a working directory
+// Initialize the repository
+// Creates a first commit containing a dummy README file on the master branch
 func (r *Repository) Init() (string, error) {
 
 	// For an explanation of bare vs non-bare, see here:

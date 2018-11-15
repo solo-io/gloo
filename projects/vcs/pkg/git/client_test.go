@@ -30,7 +30,8 @@ var _ = Describe("Git Client", func() {
 			Expect(err).To(BeNil())
 			Expect(root).To(BeADirectory())
 
-			repoClient = git.NewRepo(root)
+			repoClient, err = git.NewRepo(root)
+			Expect(err).To(BeNil())
 			Expect(repoClient).NotTo(BeNil())
 
 			masterCommitHash, err = repoClient.Init()
@@ -420,11 +421,14 @@ var _ = Describe("Git Client", func() {
 			remoteRoot, _ := ioutil.TempDir("", "go_git_client_remotes_test")
 
 			// Initialize git repository in a random temp dir
-			repoClient = git.NewRepo(repoRoot)
+			repoClient, err = git.NewRepo(repoRoot)
+			Expect(err).To(BeNil())
 			Expect(repoClient.IsRepo()).To(BeFalse())
 
 			// Initialize another local repository that will act as remote
-			remoteClient = git.NewRepo(remoteRoot)
+			remoteClient, err = git.NewRepo(remoteRoot)
+			Expect(err).To(BeNil())
+
 			_, err = remoteClient.Init()
 			Expect(err).To(BeNil())
 
@@ -515,7 +519,8 @@ var _ = Describe("Git Client", func() {
 
 				// Clone the remote into a new location and check that the file exists
 				newRepoRoot, _ := ioutil.TempDir("", "go_git_client_remotes_test")
-				newRepoClient := git.NewRepo(newRepoRoot)
+				newRepoClient, err := git.NewRepo(newRepoRoot)
+				Expect(err).To(BeNil())
 				Expect(newRepoClient.Clone(remoteClient.Root())).To(BeNil())
 				Expect(newRepoClient.CheckoutBranch("to_be_pushed", true)).To(BeNil())
 

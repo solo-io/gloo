@@ -1660,6 +1660,7 @@
     "github.com/99designs/gqlgen/handler",
     "github.com/Masterminds/sprig",
     "github.com/ahmetb/go-linq",
+    "github.com/aokoli/goutils",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/session",

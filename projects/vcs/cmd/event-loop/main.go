@@ -4,8 +4,10 @@ import (
 	"context"
 	"flag"
 	"log"
+	"os"
 
-	"github.com/solo-io/solo-projects/projects/vcs/pkg"
+	"github.com/solo-io/solo-projects/projects/vcs/pkg/constants"
+
 	"github.com/solo-io/solo-projects/projects/vcs/pkg/git"
 	"k8s.io/client-go/rest"
 
@@ -28,7 +30,11 @@ func main() {
 // Start the event loop watching the changeset resources
 func run() error {
 
-	ctx := contextutils.WithLogger(context.Background(), pkg.AppName)
+	ctx := contextutils.WithLogger(context.Background(), constants.AppName)
+
+	if os.Getenv(constants.AuthTokenEnvVariableName) == "" {
+		contextutils.LoggerFrom(ctx).Panicf("Environment variable %v is not set", constants.AuthTokenEnvVariableName)
+	}
 
 	// TODO: remove
 	configPath := flag.String("kube-config", "", "Path to the KUBECONFIG file. Leave blank for in-cluster configuration")
@@ -50,7 +56,7 @@ func run() error {
 	emitter := v1.NewApiEmitter(csClient)
 
 	// Start event loop
-	errs, err := v1.NewApiEventLoop(emitter, &git.RemoteSyncer{}).Run(
+	errs, err := v1.NewApiEventLoop(emitter, &git.RemoteSyncer{CsClient: &csClient}).Run(
 		[]string{defaults.GlooSystem},
 		clients.WatchOpts{Ctx: ctx})
 

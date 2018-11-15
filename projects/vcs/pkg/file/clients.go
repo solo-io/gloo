@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"path/filepath"
+
+	"github.com/solo-io/solo-projects/projects/vcs/pkg/constants"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -19,16 +22,6 @@ import (
 	sqoopsetup "github.com/solo-io/solo-projects/projects/sqoop/pkg/syncer"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
 	"k8s.io/client-go/kubernetes"
-)
-
-const (
-	gatewayRootDir        = "/gateways"
-	virtualServiceRootDir = "/virtual-services"
-	proxyRootDir          = "/proxies"
-	schemaRootDir         = "/schemas"
-	resolverMapRootDir    = "/resolver-maps"
-	upstreamRootDir       = "/upstreams"
-	settingsRootDir       = "/settings"
 )
 
 type ClientSet struct {
@@ -186,10 +179,10 @@ func FileGatewayOpts(path string) (gatewaysetup.Opts, error) {
 	return gatewaysetup.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Gateways: &factory.FileResourceClientFactory{
-			RootDir: path + gatewayRootDir,
+			RootDir: filepath.Join(path, constants.GatewayRootDir),
 		},
 		VirtualServices: &factory.FileResourceClientFactory{
-			RootDir: path + virtualServiceRootDir,
+			RootDir: filepath.Join(path, constants.VirtualServiceRootDir),
 		},
 		WatchNamespaces: []string{defaults.GlooSystem, defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
@@ -235,10 +228,10 @@ func FileSqoopOpts(path string) (sqoopsetup.Opts, error) {
 	return sqoopsetup.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Schemas: &factory.FileResourceClientFactory{
-			RootDir: path + schemaRootDir,
+			RootDir: filepath.Join(path, constants.SchemaRootDir),
 		},
 		ResolverMaps: &factory.FileResourceClientFactory{
-			RootDir: path + resolverMapRootDir,
+			RootDir: filepath.Join(path, constants.ResolverMapRootDir),
 		},
 		WatchNamespaces: []string{clients.DefaultNamespace, defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
@@ -309,7 +302,7 @@ func FileConstructOpts(path string) (gloov1.SettingsClient, bootstrap.Opts, erro
 
 	// TODO(ilackarms): pass in settings configuration from an environment variable or CLI flag, rather than hard-coding to k8s
 	settingsClient, err := gloov1.NewSettingsClient(&factory.FileResourceClientFactory{
-		RootDir: path + settingsRootDir,
+		RootDir: filepath.Join(path, constants.SettingsRootDir),
 	})
 	if err != nil {
 		return nil, bootstrap.Opts{}, err
@@ -328,10 +321,10 @@ func FileConstructOpts(path string) (gloov1.SettingsClient, bootstrap.Opts, erro
 	return settingsClient, bootstrap.Opts{
 		WriteNamespace: defaults.GlooSystem,
 		Upstreams: &factory.FileResourceClientFactory{
-			RootDir: path + upstreamRootDir,
+			RootDir: filepath.Join(path, constants.UpstreamRootDir),
 		},
 		Proxies: &factory.FileResourceClientFactory{
-			RootDir: path + proxyRootDir,
+			RootDir: filepath.Join(path, constants.ProxyRootDir),
 		},
 		// TODO - make less sketchy (fileClients don't store secrets so we're using kube for that - find a good way to fill in the git/fileClient missing pieces)
 		Secrets: &factory.KubeSecretClientFactory{
