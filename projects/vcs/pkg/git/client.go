@@ -162,7 +162,7 @@ func (r *Repository) ListBranches(includeRemotes bool) ([]string, error) {
 }
 
 // Create a new local branch starting from the current HEAD
-func (r *Repository) NewBranch(name string) error {
+func (r *Repository) NewBranchFromHEAD(name string) error {
 	if !branchNameRegExp.MatchString(name) {
 		return InvalidBranchName
 	}
@@ -183,6 +183,23 @@ func (r *Repository) NewBranch(name string) error {
 		headRef.Hash())
 
 	return repo.Storer.SetReference(ref)
+}
+
+// Create a new branch with the given name starting at the given commit hash and checks it out.
+// The given branch name must not exists and the hash must exist, otherwise an error is returned.
+func (r *Repository) NewBranchFromHash(name, hash string) error {
+	if !branchNameRegExp.MatchString(name) {
+		return InvalidBranchName
+	}
+	workTree, _, err := r.getWorkTree()
+	if err != nil {
+		return err
+	}
+
+	return workTree.Checkout(&goGit.CheckoutOptions{
+		Hash:   plumbing.NewHash(hash),
+		Branch: plumbing.ReferenceName(LocalBranchPrefix + name),
+		Create: true})
 }
 
 // Returns the reference where HEAD is pointing to
@@ -218,20 +235,19 @@ func (r *Repository) LastCommit() (hash, message string, e error) {
 	if err != nil {
 		return "", "", err
 	}
-
 	return commit.Hash.String(), commit.Message, nil
 }
 
 // Checkout a reference by name
 // Name must be a short refname (without the refs/... prefix)
 func (r *Repository) CheckoutBranch(name string) error {
+	if !branchNameRegExp.MatchString(name) {
+		return InvalidBranchName
+	}
+
 	workTree, _, err := r.getWorkTree()
 	if err != nil {
 		return err
-	}
-
-	if !branchNameRegExp.MatchString(name) {
-		return InvalidBranchName
 	}
 
 	return workTree.Checkout(&goGit.CheckoutOptions{
@@ -284,6 +300,19 @@ func (r *Repository) Commit(msg string) (string, error) {
 	}
 
 	return hash.String(), nil
+}
+
+// Returns true if a commit with the given hash exists
+func (r *Repository) CommitExists(hash string) bool {
+	repo, err := goGit.PlainOpen(r.root)
+	if err != nil {
+		return false
+	}
+	_, err = repo.CommitObject(plumbing.NewHash(hash))
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 // Clone the repository at the given URL

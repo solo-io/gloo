@@ -7,6 +7,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/solo-io/solo-projects/projects/vcs/pkg/constants"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-projects/projects/vcs/pkg/git"
@@ -71,7 +73,7 @@ var _ = Describe("Git Client", func() {
 					return nil
 				})
 
-				Expect(branches).To(ConsistOf(git.LocalBranchPrefix + "master"))
+				Expect(branches).To(ConsistOf(git.LocalBranchPrefix + constants.MasterBranchName))
 			})
 
 			It("generated a README file", func() {
@@ -85,7 +87,7 @@ var _ = Describe("Git Client", func() {
 			It("lists the existing local branches", func() {
 				branches, err := repoClient.ListBranches(false)
 				Expect(err).To(BeNil())
-				Expect(branches).To(ConsistOf(git.LocalBranchPrefix + "master"))
+				Expect(branches).To(ConsistOf(git.LocalBranchPrefix + constants.MasterBranchName))
 			})
 		})
 
@@ -329,7 +331,7 @@ var _ = Describe("Git Client", func() {
 			const branchName = "newBranch"
 
 			BeforeEach(func() {
-				err = repoClient.NewBranch(branchName)
+				err = repoClient.NewBranchFromHEAD(branchName)
 			})
 
 			It("does not generate an error", func() {
@@ -349,7 +351,7 @@ var _ = Describe("Git Client", func() {
 				Expect(err).To(BeNil())
 				Expect(branches).To(Not(BeNil()))
 				Expect(branches).To(ConsistOf(
-					git.LocalBranchPrefix+"master",
+					git.LocalBranchPrefix+constants.MasterBranchName,
 					git.LocalBranchPrefix+branchName,
 				))
 			})
@@ -375,14 +377,15 @@ var _ = Describe("Git Client", func() {
 				})
 			})
 
-			Describe("checking out the new branch", func() {
+			Describe("checking out a branch with an invalid name", func() {
 
 				BeforeEach(func() {
-					err = repoClient.CheckoutBranch(branchName)
+					err = repoClient.CheckoutBranch("should/not/contain/slashes")
 				})
 
 				It("does not generate an error", func() {
-					Expect(err).To(BeNil())
+					Expect(err).To(HaveOccurred())
+					Expect(err).To(BeEquivalentTo(git.InvalidBranchName))
 				})
 			})
 
@@ -415,7 +418,7 @@ var _ = Describe("Git Client", func() {
 				})
 
 				It("file is not present on master branch", func() {
-					repoClient.CheckoutBranch("master")
+					repoClient.CheckoutBranch(constants.MasterBranchName)
 					_, err = os.Stat(path.Join(repoClient.Root(), fileName))
 					Expect(os.IsNotExist(err)).To(BeTrue())
 				})
@@ -444,13 +447,13 @@ var _ = Describe("Git Client", func() {
 			Expect(err).To(BeNil())
 
 			// Create another branch on the remote
-			remoteClient.NewBranch("branch_1")
+			remoteClient.NewBranchFromHEAD("branch_1")
 			remoteClient.CheckoutBranch("branch_1")
 			Expect(ioutil.WriteFile(path.Join(remoteClient.Root(), "test_file"), []byte("Lorem ipsum..."), 0644)).To(BeNil())
 			Expect(remoteClient.Add(path.Join(remoteClient.Root(), "test_file"))).To(BeNil())
 			_, err := remoteClient.Commit("commit on branch_1")
 			Expect(err).To(BeNil())
-			remoteClient.CheckoutBranch("master")
+			remoteClient.CheckoutBranch(constants.MasterBranchName)
 		})
 
 		Describe("cloning a remote repository (with two branches)", func() {
@@ -492,7 +495,7 @@ var _ = Describe("Git Client", func() {
 				ref, err := repo.Head()
 
 				Expect(err).To(BeNil())
-				Expect(ref.Name()).To(BeEquivalentTo(git.LocalBranchPrefix + "master"))
+				Expect(ref.Name()).To(BeEquivalentTo(git.LocalBranchPrefix + constants.MasterBranchName))
 			})
 
 			It("can check out the other remote branch", func() {
@@ -507,7 +510,7 @@ var _ = Describe("Git Client", func() {
 
 			BeforeEach(func() {
 				Expect(repoClient.Clone(remoteClient.Root())).To(BeNil())
-				Expect(repoClient.NewBranch("to_be_pushed")).To(BeNil())
+				Expect(repoClient.NewBranchFromHEAD("to_be_pushed")).To(BeNil())
 				Expect(repoClient.CheckoutBranch("to_be_pushed")).To(BeNil())
 				Expect(ioutil.WriteFile(path.Join(repoClient.Root(), "test_push"), []byte("to be pushed..."), 0777)).To(BeNil())
 				Expect(repoClient.Add(path.Join(repoClient.Root(), "test_push"))).To(BeNil())

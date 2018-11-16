@@ -19,7 +19,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/vcs/pkg/api/v1"
 )
 
-// TODO(marco): This is just a very simple and temporary way of bootstrapping the main loop
 func main() {
 	if err := run(); err != nil {
 		log.Fatalf("%v", err)
@@ -29,11 +28,7 @@ func main() {
 // Start the event loop watching the changeset resources
 func run() error {
 
-	ctx := contextutils.WithLogger(context.Background(), constants.AppName)
-
-	if os.Getenv(constants.AuthTokenEnvVariableName) == "" {
-		contextutils.LoggerFrom(ctx).Panicf("Environment variable %v is not set", constants.AuthTokenEnvVariableName)
-	}
+	ctx := validateEnv()
 
 	// Retrieve kubernetes configuration
 	cfg, err := kubeutils.GetConfig("", "")
@@ -64,6 +59,19 @@ func run() error {
 	}
 
 	return nil
+}
+
+// Verifies that the required env variables have been set
+func validateEnv() context.Context {
+	ctx := contextutils.WithLogger(context.Background(), constants.AppName)
+
+	if os.Getenv(constants.AuthTokenEnvVariableName) == "" {
+		contextutils.LoggerFrom(ctx).Panicf("Environment variable %v is not set", constants.AuthTokenEnvVariableName)
+	}
+	if os.Getenv(constants.RemoteUriEnvVariableName) == "" {
+		contextutils.LoggerFrom(ctx).Panicf("Environment variable %v is not set", constants.RemoteUriEnvVariableName)
+	}
+	return ctx
 }
 
 // Creates and registers two clients for the changeset resource

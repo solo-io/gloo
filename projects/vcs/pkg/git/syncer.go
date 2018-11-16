@@ -18,11 +18,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/vcs/pkg/api/v1"
 )
 
-const (
-	// TODO: temporary, get from env variable
-	remoteUrl = "https://github.com/solo-io/gitbot-test"
-)
-
 type RemoteSyncer struct {
 	CsClient *v1.ChangeSetClient
 }
@@ -47,82 +42,84 @@ func (s *RemoteSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 			err = s.checkout(ctx, cs)
 		}
 
+		// If an error occurred, set the error message on the changeset and set its pending_action to NONE
 		if err != nil {
+			contextutils.LoggerFrom(ctx).Error(err)
 			err = s.markChangesetAsFailed(ctx, cs, err)
 			if err != nil {
-				// Panic if we can't mark the changeset as failed
-				panic(err)
+				// Panic if we can't mark the changeset as failed to avoid getting stuck in a loop
+				contextutils.LoggerFrom(ctx).Panicf("Could not mark changeset [%v] as failed. Root cause: [%v]",
+					cs.Metadata.Name, err)
 			}
 		}
 	}
 	return nil
 }
 
+// Pushes the state of the repository to the remote
 func (s *RemoteSyncer) pushChanges(ctx context.Context, cs *v1.ChangeSet) error {
 	contextutils.LoggerFrom(ctx).Infof("Preparing to commit changeset [%v] ", cs.Metadata.Name)
 
-	if cs.EditCount.Value == 0 {
-		contextutils.LoggerFrom(ctx).Error("Changeset edit count is zero. Nothing to commit.")
-		return errors.Errorf("Changeset %v does not contain any edits", cs.Metadata.Name)
-	}
-
-	if cs.Branch.GetValue() == constants.MasterBranchName {
-		contextutils.LoggerFrom(ctx).Errorf("Direct changes to master branch [%v] are not allowed.", constants.MasterBranchName)
-		return errors.Errorf("Changeset %v contains edits to the master branch [%v]", cs.Metadata.Name, constants.MasterBranchName)
+	err := validateForPush(cs)
+	if err != nil {
+		return err
 	}
 
 	// Create a new repository and delete it once the method returns
-	repo, err := NewTempRepo()
-	if err != nil {
-		return err
-	}
+	repo, err := cloneRemote(os.Getenv(constants.RemoteUriEnvVariableName))
 	defer repo.Delete()
 
-	// Set token for authentication with remote
-	repo = repo.WithTokenAuth(os.Getenv(constants.AuthTokenEnvVariableName))
-
-	err = repo.Clone(remoteUrl)
-	if err != nil {
-		return err
+	// Check whether the given root commit exists
+	if !repo.CommitExists(cs.RootCommit.GetValue()) {
+		errors.Errorf("Could not find a commit with hash [%v]", cs.RootCommit.GetValue())
 	}
 
-	// Switch to master branch if somehow the remote HEAD is pointing to another branch
-	err = repo.CheckoutBranch("master")
-	if err != nil {
-		return err
-	}
-
+	// Get all the existing branches
 	branches, err := repo.ListBranches(true)
 	if err != nil {
 		return err
 	}
 
+	// Check if the changeset branch exists
 	if exists, name := branchExists(branches, cs.Branch.GetValue()); exists {
 		contextutils.LoggerFrom(ctx).Infof("Found branch [%v] matching changeset branch [%v].", name, cs.Branch.GetValue())
+
+		// If the branch exists, check if the HEAD of the branch matches the changeset root commit. If the commit that
+		// HEAD points to is different than the root commit, it means the working copy is stale. Return an error.
+
+		// Switch to the branch specified in the changeset
+		contextutils.LoggerFrom(ctx).Infof("Checking out branch [%v].", cs.Branch.GetValue())
+		err = repo.CheckoutBranch(cs.Branch.GetValue())
+		if err != nil {
+			return err
+		}
+
+		// Get the HEAD and compare it to the root commit hash specified in the changeset
+		headRef, err := repo.Head()
+		if err != nil {
+			return err
+		}
+		if headRef != cs.RootCommit.GetValue() {
+			return errors.Errorf("Changeset has root commit [%v] but the target branch [%v] is at commit [%v]. "+
+				"Your working copy is stale. To solve this, either specify a different branch name or check out the branch again.",
+				cs.RootCommit.GetValue(), cs.Branch.GetValue(), headRef)
+
+		}
+		contextutils.LoggerFrom(ctx).Infof("Current HEAD: [%v] ", headRef)
+
 	} else {
-		contextutils.LoggerFrom(ctx).Infof("No branch matching changeset branch [%v] found. Creating new branch.", name, cs.Branch.GetValue())
-		err = repo.NewBranch(cs.Branch.GetValue())
+
+		// If the branch does not exists, create a new branch starting at the given hash
+
+		contextutils.LoggerFrom(ctx).Infof("No branch matching changeset branch [%v] found. "+
+			"Creating new branch starting at [%v].", name, cs.Branch.GetValue(), cs.RootCommit.GetValue())
+		err = repo.NewBranchFromHash(cs.Branch.GetValue(), cs.RootCommit.GetValue())
 		if err != nil {
 			return err
 		}
 	}
 
-	// Switch to the branch specified in the changeset
-	contextutils.LoggerFrom(ctx).Infof("Checking out branch [%v].", cs.Branch.GetValue())
-	err = repo.CheckoutBranch(cs.Branch.GetValue())
-	if err != nil {
-		return err
-	}
-
-	// Get the HEAD and compare it to the root commit hash specified in the changeset
-	headRef, err := repo.Head()
-	if err != nil {
-		return err
-	}
-	if headRef != cs.RootCommit.GetValue() {
-		contextutils.LoggerFrom(ctx).Errorf("Changeset root hash [%v] does not match the HEAD [%v] of branch [%v]", cs.RootCommit.GetValue(), headRef, cs.Branch.GetValue())
-	}
-	contextutils.LoggerFrom(ctx).Infof("Current HEAD: [%v] ", headRef)
+	// At this point we are on the desired branch
 
 	// Write the content of the changeset to the local repository
 	err = repo.Import(cs)
@@ -140,13 +137,15 @@ func (s *RemoteSyncer) pushChanges(ctx context.Context, cs *v1.ChangeSet) error 
 	if err != nil {
 		return err
 	}
+	contextutils.LoggerFrom(ctx).Infof("Created new commit [%v] on branch [%v].", hash, cs.Branch.GetValue())
 
-	err = repo.Push(remoteUrl)
+	contextutils.LoggerFrom(ctx).Infof("Pushing branch to remote [%v]", os.Getenv(constants.RemoteUriEnvVariableName))
+	err = repo.Push(os.Getenv(constants.RemoteUriEnvVariableName))
 	if err != nil {
 		return err
 	}
 
-	// TODO maybe get message from commit object itself
+	cs.PendingAction = v1.Action_NONE
 	cs.RootCommit.Value = hash
 	cs.RootDescription.Value = cs.Description.Value
 	_, err = (*s.CsClient).Write(cs, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
@@ -154,6 +153,7 @@ func (s *RemoteSyncer) pushChanges(ctx context.Context, cs *v1.ChangeSet) error 
 	return err
 }
 
+// Copies the state of the repository into the changeset
 func (s *RemoteSyncer) checkout(ctx context.Context, cs *v1.ChangeSet) error {
 
 	// Either branch name OR commit hash will be non-empty
@@ -163,19 +163,8 @@ func (s *RemoteSyncer) checkout(ctx context.Context, cs *v1.ChangeSet) error {
 	}
 
 	// Create a new repository and delete it once the method returns
-	repo, err := NewTempRepo()
-	if err != nil {
-		return err
-	}
+	repo, err := cloneRemote(os.Getenv(constants.RemoteUriEnvVariableName))
 	defer repo.Delete()
-
-	// Set token for authentication with remote
-	repo = repo.WithTokenAuth(os.Getenv(constants.AuthTokenEnvVariableName))
-
-	err = repo.Clone(remoteUrl)
-	if err != nil {
-		return err
-	}
 
 	if !goutils.IsEmpty(branchName) {
 		contextutils.LoggerFrom(ctx).Infof("Checking out branch [%v]", branchName)
@@ -243,6 +232,31 @@ func validateForCheckout(cs *v1.ChangeSet) (branch, hash string, err error) {
 	return branchName, commitHash, nil
 }
 
+func validateForPush(cs *v1.ChangeSet) error {
+
+	if cs.EditCount.Value == 0 {
+		return errors.Errorf("Changeset %v does not contain any edits", cs.Metadata.Name)
+	}
+
+	if cs.Branch.GetValue() == "master" {
+		return errors.Errorf("Changeset %v contains edits to the master branch", cs.Metadata.Name)
+	}
+
+	if cs.Description.GetValue() == "" {
+		return errors.Errorf("A commit message must be provided", cs.Metadata.Name)
+	}
+
+	if cs.Branch.GetValue() == "" {
+		return errors.Errorf("No branch name specified", cs.Metadata.Name)
+	}
+
+	if cs.RootCommit.GetValue() == "" {
+		return errors.Errorf("Root commit hash missing", cs.Metadata.Name)
+	}
+
+	return nil
+}
+
 func branchExists(branches []string, name string) (bool, string) {
 	for _, branchName := range branches {
 		if strings.Contains(branchName, name) {
@@ -250,4 +264,21 @@ func branchExists(branches []string, name string) (bool, string) {
 		}
 	}
 	return false, ""
+}
+
+func cloneRemote(url string) (*Repository, error) {
+	// Create a new repository and delete it once the method returns
+	repo, err := NewTempRepo()
+	if err != nil {
+		return nil, err
+	}
+
+	// Set token for authentication with remote
+	repo = repo.WithTokenAuth(os.Getenv(constants.AuthTokenEnvVariableName))
+
+	err = repo.Clone(url)
+	if err != nil {
+		return nil, err
+	}
+	return repo, nil
 }
