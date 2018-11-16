@@ -5,12 +5,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 	"time"
 
-	"gopkg.in/src-d/go-git.v4/config"
-
 	"github.com/solo-io/solo-projects/projects/vcs/pkg/constants"
+	"gopkg.in/src-d/go-git.v4/config"
 
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
@@ -36,7 +36,9 @@ const (
 var (
 	AbsPathNotInRepo    = errors.Errorf("The given absolute path does not point to a file in the repository")
 	CloneInExistingRepo = errors.Errorf("Cannot clone into an existing repository")
-	InvalidBranchName   = errors.Errorf("The branch name cannot contain the '/' character")
+	InvalidBranchName   = errors.Errorf("The branch name can contain only alphanumeric characters, hyphens, and underscores")
+
+	branchNameRegExp = regexp.MustCompile(constants.BranchRegExp)
 )
 
 type Repository struct {
@@ -127,7 +129,11 @@ func (r *Repository) Init() (string, error) {
 	return hash.String(), err
 }
 
-// List all branches
+// List all branches.
+// If the parameter is 'true', this will include remote-tracking branches that do not have local ref. Clients should
+// never have to use this feature. It is mainly present for tests.
+//
+// Note: this is a slightly modified version of go-git.Repository.Branches()
 func (r *Repository) ListBranches(includeRemotes bool) ([]string, error) {
 	repo, err := goGit.PlainOpen(r.root)
 	if err != nil {
@@ -155,8 +161,12 @@ func (r *Repository) ListBranches(includeRemotes bool) ([]string, error) {
 	return branches, nil
 }
 
-// Create a new branch
+// Create a new local branch starting from the current HEAD
 func (r *Repository) NewBranch(name string) error {
+	if !branchNameRegExp.MatchString(name) {
+		return InvalidBranchName
+	}
+
 	repo, err := goGit.PlainOpen(r.root)
 	if err != nil {
 		return err
@@ -220,14 +230,12 @@ func (r *Repository) CheckoutBranch(name string) error {
 		return err
 	}
 
-	if len(strings.Split(name, "/")) > 1 {
+	if !branchNameRegExp.MatchString(name) {
 		return InvalidBranchName
 	}
 
-	fullBranchName := LocalBranchPrefix + name
-
 	return workTree.Checkout(&goGit.CheckoutOptions{
-		Branch: plumbing.ReferenceName(fullBranchName),
+		Branch: plumbing.ReferenceName(LocalBranchPrefix + name),
 	})
 }
 

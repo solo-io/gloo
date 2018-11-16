@@ -66,9 +66,9 @@ func (s *RemoteSyncer) pushChanges(ctx context.Context, cs *v1.ChangeSet) error 
 		return errors.Errorf("Changeset %v does not contain any edits", cs.Metadata.Name)
 	}
 
-	if cs.Branch.GetValue() == "master" {
-		contextutils.LoggerFrom(ctx).Error("Direct changes to master are not allowed.")
-		return errors.Errorf("Changeset %v contains edits to the master branch", cs.Metadata.Name)
+	if cs.Branch.GetValue() == constants.MasterBranchName {
+		contextutils.LoggerFrom(ctx).Errorf("Direct changes to master branch [%v] are not allowed.", constants.MasterBranchName)
+		return errors.Errorf("Changeset %v contains edits to the master branch [%v]", cs.Metadata.Name, constants.MasterBranchName)
 	}
 
 	// Create a new repository and delete it once the method returns

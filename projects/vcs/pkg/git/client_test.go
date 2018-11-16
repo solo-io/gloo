@@ -375,6 +375,17 @@ var _ = Describe("Git Client", func() {
 				})
 			})
 
+			Describe("checking out the new branch", func() {
+
+				BeforeEach(func() {
+					err = repoClient.CheckoutBranch(branchName)
+				})
+
+				It("does not generate an error", func() {
+					Expect(err).To(BeNil())
+				})
+			})
+
 			Describe("new file committed to new branch", func() {
 
 				const (
