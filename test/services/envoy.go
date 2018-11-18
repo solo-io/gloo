@@ -82,7 +82,6 @@ rate_limit_service:
   grpc_service:
     envoy_grpc:
       cluster_name: ratelimit_cluster
-  use_data_plane_proto: true
 {{end}}
 `
 

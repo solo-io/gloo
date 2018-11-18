@@ -146,7 +146,7 @@ func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clie
 	for _, eds := range d.discoveryPlugins {
 		endpoints, errs, err := eds.WatchEndpoints(d.writeNamespace, upstreamsToTrack, opts)
 		if err != nil {
-			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(eds).Name())
+			return nil, errors.Wrapf(err, "initializing EDS for %v", reflect.TypeOf(eds).Name())
 		}
 
 		go func(eds DiscoveryPlugin) {

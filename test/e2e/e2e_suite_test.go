@@ -13,18 +13,22 @@ import (
 )
 
 var (
-	envoyFactory *services.EnvoyFactory
+	envoyFactory  *services.EnvoyFactory
+	consulFactory *services.ConsulFactory
 )
 
 var _ = BeforeSuite(func() {
 	var err error
 	envoyFactory, err = services.NewEnvoyFactory()
 	Expect(err).NotTo(HaveOccurred())
+	consulFactory, err = services.NewConsulFactory()
+	Expect(err).NotTo(HaveOccurred())
 
 })
 
 var _ = AfterSuite(func() {
 	envoyFactory.Clean()
+	consulFactory.Clean()
 })
 
 func TestE2e(t *testing.T) {

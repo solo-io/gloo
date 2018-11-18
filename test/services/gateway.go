@@ -26,6 +26,7 @@ import (
 
 	. "github.com/onsi/gomega"
 	fds_syncer "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/syncer"
+	uds_syncer "github.com/solo-io/solo-projects/projects/discovery/pkg/uds/syncer"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer"
 )
@@ -56,6 +57,7 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 	glooopts.ControlPlane.StartGrpcServer = true
 	go syncer.RunGloo(glooopts)
 	go fds_syncer.RunFDS(glooopts)
+	go uds_syncer.RunUDS(glooopts)
 
 	// construct our own resources:
 	factory := &factory.MemoryResourceClientFactory{

@@ -5,6 +5,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/aws"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/azure"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/consul"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/faultinjection"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/grpc"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/kubernetes"
@@ -29,12 +30,14 @@ var globalRegistry = func(opts bootstrap.Opts) *registry {
 		ratelimit.NewPlugin(),
 		static.NewPlugin(),
 		transformationPlugin,
+		consul.NewPlugin(),
 		grpc.NewPlugin(&transformationPlugin.RequireTransformationFilter),
 		faultinjection.NewPlugin(),
 	)
 	if opts.KubeClient != nil {
 		reg.plugins = append(reg.plugins, kubernetes.NewPlugin(opts))
 	}
+
 	return reg
 }
 
