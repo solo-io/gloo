@@ -46,8 +46,9 @@ var _ = Describe("Fault Injection", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 		envoyPort := uint32(8080)
+
 		setupInitialProxy := func() {
-			proxy := getGlooProxy(nil, nil, envoyPort, up, "")
+			proxy := getGlooProxyWithVersion(nil, nil, envoyPort, up, "")
 			setupProxy(proxy, up)
 			Eventually(func() error {
 				_, err := http.Get(fmt.Sprintf("http://%s:%d/status/200", "localhost", envoyPort))
@@ -94,9 +95,14 @@ var _ = Describe("Fault Injection", func() {
 				HttpStatus: uint32(503),
 				Percentage: float32(100),
 			}
-			proxy := getGlooProxy(abort, nil, envoyPort, up, "3")
-			opts.OverwriteExisting = true
-			setupProxy(proxy, up)
+
+			Eventually(func() error {
+				proxy := getGlooProxy(testClients, abort, nil, envoyPort, up)
+				opts.OverwriteExisting = true
+				setupProxy(proxy, up)
+				return nil
+			}, "5s", ".1s").Should(BeNil())
+
 
 			Eventually(func() error {
 				res, err := http.Get(fmt.Sprintf("http://%s:%d/status/200", "localhost", envoyPort))
@@ -116,9 +122,13 @@ var _ = Describe("Fault Injection", func() {
 				FixedDelay: &fixedDelay,
 				Percentage: float32(100),
 			}
-			proxy := getGlooProxy(nil, delay, envoyPort, up, "3")
-			opts.OverwriteExisting = true
-			setupProxy(proxy, up)
+
+			Eventually(func() error {
+				proxy := getGlooProxy(testClients, nil, delay, envoyPort, up)
+				opts.OverwriteExisting = true
+				setupProxy(proxy, up)
+				return nil
+			}, "5s", ".1s").Should(BeNil())
 
 			Eventually(func() error {
 				start := time.Now()
@@ -137,7 +147,13 @@ var _ = Describe("Fault Injection", func() {
 	})
 })
 
-func getGlooProxy(abort *fault.RouteAbort, delay *fault.RouteDelay, envoyPort uint32, up *gloov1.Upstream, resourceVersion string) *gloov1.Proxy {
+func getGlooProxy(testClients services.TestClients, abort *fault.RouteAbort, delay *fault.RouteDelay, envoyPort uint32, up *gloov1.Upstream) *gloov1.Proxy {
+	readProxy, err := testClients.ProxyClient.Read("default", "proxy", clients.ReadOpts{})
+	Expect(err).Should(BeNil())
+	return getGlooProxyWithVersion(abort, delay, envoyPort, up, readProxy.Metadata.ResourceVersion)
+}
+
+func getGlooProxyWithVersion(abort *fault.RouteAbort, delay *fault.RouteDelay, envoyPort uint32, up *gloov1.Upstream, resourceVersion string) *gloov1.Proxy {
 	return &gloov1.Proxy{
 		Metadata: core.Metadata{
 			Name:            "proxy",
