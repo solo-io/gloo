@@ -94,7 +94,23 @@ func (c *upstreamController) discoverUpstreamsOnce() (v1.UpstreamList, error) {
 		// we will use this to generate an upstream for each unique set
 		var consulServices []consulService
 
+		// find all services
+		var nonConnectServices []string
 		for svcName := range services {
+			serviceInstances, _, err := c.consul.Catalog().Service(svcName, "", &api.QueryOptions{RequireConsistent: true})
+			if err != nil {
+				return errors.Wrapf(err, "failed to get instances of service %s", svcName)
+			}
+			for _, inst := range serviceInstances {
+				if inst.ServiceProxy != nil && len(inst.ServiceProxy.DestinationServiceName) != 0 {
+					nonConnectServices = append(nonConnectServices, inst.ServiceProxy.DestinationServiceName)
+				} else {
+					nonConnectServices = append(nonConnectServices, svcName)
+				}
+			}
+		}
+
+		for _, svcName := range nonConnectServices {
 			serviceInstances, _, err := c.consul.Catalog().Service(svcName, "", &api.QueryOptions{RequireConsistent: true})
 			if err != nil {
 				return errors.Wrapf(err, "failed to get instances of service %s", svcName)
