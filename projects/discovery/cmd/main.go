@@ -22,14 +22,17 @@ func main() {
 
 func run() error {
 	dir := flag.String("dir", "gloo", "directory for config")
+	udsonly := flag.Bool("udsonly", false, "only run UDS, without FDS")
 	flag.Parse()
 	os.MkdirAll(filepath.Join(*dir, defaults.GlooSystem), 0755)
 	errs := make(chan error)
 	go func() {
 		errs <- uds.Main(*dir)
 	}()
-	go func() {
-		errs <- fdssetup.Main(*dir)
-	}()
+	if !*udsonly {
+		go func() {
+			errs <- fdssetup.Main(*dir)
+		}()
+	}
 	return <-errs
 }
