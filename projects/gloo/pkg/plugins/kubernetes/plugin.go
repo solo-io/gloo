@@ -7,7 +7,6 @@ import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins"
 	"k8s.io/client-go/kubernetes"
 )
@@ -27,9 +26,9 @@ func (p *plugin) Resolve(u *v1.Upstream) (*url.URL, error) {
 	return url.Parse(fmt.Sprintf("tcp://%v.%v.svc.cluster.local:%v", kubeSpec.Kube.ServiceName, kubeSpec.Kube.ServiceNamespace, kubeSpec.Kube.ServicePort))
 }
 
-func NewPlugin(opts bootstrap.Opts) plugins.Plugin {
+func NewPlugin(kube kubernetes.Interface) plugins.Plugin {
 	return &plugin{
-		kube: opts.KubeClient,
+		kube: kube,
 	}
 }
 

@@ -35,7 +35,7 @@ var globalRegistry = func(opts bootstrap.Opts) *registry {
 		faultinjection.NewPlugin(),
 	)
 	if opts.KubeClient != nil {
-		reg.plugins = append(reg.plugins, kubernetes.NewPlugin(opts))
+		reg.plugins = append(reg.plugins, kubernetes.NewPlugin(opts.KubeClient))
 	}
 
 	return reg

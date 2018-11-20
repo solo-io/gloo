@@ -135,7 +135,6 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 				}
 				for _, addr := range subset.Addresses {
 					if len(spec.Selector) != 0 {
-
 						// determine whether labels for the owner of this ip (pod) matches the spec
 						podLabels, err := getPodLabelsForIp(addr.IP, pods)
 						if err != nil {

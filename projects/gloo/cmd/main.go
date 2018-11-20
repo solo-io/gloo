@@ -24,5 +24,5 @@ func main() {
 func run(dir string) error {
 	// TODO(ilackarms): devMode writes settings to the crds on boot. move this to a CLI flag or a separate process
 	// that does it rather than gloo (such as a cluster setup script)
-	return setup.Main(true, dir)
+	return setup.Main(dir)
 }
