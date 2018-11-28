@@ -84,7 +84,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/solo-kit"
-  revision = "87eea1cad4cc48afc2d7186a8b9cbe703bd4dff4"
+  version = "0.1.2"
 
 [[constraint]]
   name = "github.com/hashicorp/consul"

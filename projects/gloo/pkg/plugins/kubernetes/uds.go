@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"crypto/md5"
 	"fmt"
 	"reflect"
 	"sort"
@@ -20,6 +21,13 @@ const (
 	discoveryAnnotationKey  = "gloo.solo.io/discover"
 	discoveryAnnotationTrue = "true"
 )
+
+var ignoredLabels = []string{
+	"pod-template-hash",        // it is common and provides nothing useful for discovery
+	"controller-revision-hash", // set by helm
+	"pod-template-generation",  // set by helm
+	"release",                  // set by helm
+}
 
 func (p *plugin) DiscoverUpstreams(watchNamespaces []string, writeNamespace string, opts clients.WatchOpts, discOpts discovery.Opts) (chan v1.UpstreamList, chan error, error) {
 	if p.kubeShareFactory == nil {
@@ -83,49 +91,46 @@ func convertServices(watchNamespaces []string, services []*kubev1.Service, pods 
 	return upstreams
 }
 
-
 func upstreamsForService(svc *kubev1.Service, pods []*kubev1.Pod, writeNamespace string) v1.UpstreamList {
 	var upstreams v1.UpstreamList
-	for _, port := range svc.Spec.Ports {
-		var extendedLabelSets []map[string]string
-		for _, pod := range pods {
-			if pod.Namespace != svc.Namespace {
-				continue
-			}
-			if !labels.AreLabelsInWhiteList(svc.Spec.Selector, pod.Labels) {
-				continue
-			}
-			if reflect.DeepEqual(svc.Spec.Selector, pod.Labels) {
-				continue
-			}
 
-			// create upstreams for the extra labels beyond the selector
-			extendedLabels := make(map[string]string)
-			for k, v := range pod.Labels {
-				// special case we ignore
-				// it is common and provides nothing useful for discovery
-				if k == "pod-template-hash" {
-					continue
+	uniqueLabelSets := []map[string]string{
+		svc.Spec.Selector,
+	}
+	for _, pod := range pods {
+		if pod.Namespace != svc.Namespace {
+			continue
+		}
+		if !labels.AreLabelsInWhiteList(svc.Spec.Selector, pod.Labels) {
+			continue
+		}
+
+		// create upstreams for the extra labels beyond the selector
+		extendedLabels := make(map[string]string)
+	addExtendedLabels:
+		for k, v := range pod.Labels {
+			// special cases we ignore
+			for _, ignoredLabel := range ignoredLabels {
+				if k == ignoredLabel {
+					continue addExtendedLabels
 				}
-				extendedLabels[k] = v
 			}
-			if len(extendedLabels) > 0 {
-				extendedLabelSets = append(extendedLabelSets, extendedLabels)
-			}
+			extendedLabels[k] = v
 		}
-		if len(extendedLabelSets) > 0 {
-			extendedLabelSets = uniqueLabelSets(extendedLabelSets)
-			for _, extendedLabels := range extendedLabelSets {
-				upstreams = append(upstreams, createUpstream(writeNamespace, svc, port, extendedLabels))
-			}
+		if len(extendedLabels) > 0 && !containsMap(uniqueLabelSets, extendedLabels) {
+			uniqueLabelSets = append(uniqueLabelSets, extendedLabels)
 		}
-		upstreams = append(upstreams, createUpstream(writeNamespace, svc, port, svc.Spec.Selector))
+	}
+
+	for _, extendedLabels := range uniqueLabelSets {
+		for _, port := range svc.Spec.Ports {
+			upstreams = append(upstreams, createUpstream(writeNamespace, svc, port, extendedLabels))
+		}
 	}
 	return upstreams
 }
 
-func createUpstream(writeNamespace string, svc *kubev1.Service, port kubev1.ServicePort,
-	labels map[string]string) *v1.Upstream {
+func createUpstream(writeNamespace string, svc *kubev1.Service, port kubev1.ServicePort, labels map[string]string) *v1.Upstream {
 	meta := svc.ObjectMeta
 	coremeta := kubeutils.FromKubeMeta(meta)
 	coremeta.ResourceVersion = ""
@@ -167,14 +172,16 @@ func upstreamName(serviceNamespace, serviceName string, servicePort int32, extra
 	}
 	name := fmt.Sprintf("%s-%s%s-%v", serviceNamespace, serviceName, labelsTag, servicePort)
 	if len(name) > 63 {
+		hash := md5.Sum([]byte(name))
+		name = fmt.Sprintf("%s-%s-%v-%x", serviceNamespace, serviceName, servicePort, hash)
 		// todo: ilackarms: handle potential collisions
 		name = name[:63]
 	}
+	name = strings.Replace(name, ".", "-", -1)
 	return name
 }
 
 // TODO: move to a utils package
-//guaranteed to be same length
 
 func containsString(s string, slice []string) bool {
 	for _, s2 := range slice {
@@ -185,53 +192,13 @@ func containsString(s string, slice []string) bool {
 	return false
 }
 
-func mapLess(m1, m2 map[string]string) bool {
-	if len(m1) != len(m2) {
-		return len(m1) < len(m2)
-	}
-	var keys1, keys2 []string
-	for k := range m1 {
-		keys1 = append(keys1, k)
-	}
-	sort.SliceStable(keys1, func(i, j int) bool {
-		return keys1[i] < keys1[j]
-	})
-	for k := range m2 {
-		keys2 = append(keys2, k)
-	}
-	sort.SliceStable(keys2, func(i, j int) bool {
-		return keys2[i] < keys2[j]
-	})
-	for i := range keys1 {
-		if keys1[i] != keys2[i] {
-			return keys1[i] < keys2[i]
-		}
-		if m1[keys1[i]] != m2[keys2[i]] {
-			return m1[keys1[i]] < m2[keys2[i]]
+func containsMap(maps []map[string]string, item map[string]string) bool {
+	for _, m := range maps {
+		if reflect.DeepEqual(m, item) {
+			return true
 		}
 	}
 	return false
-}
-
-func uniqueLabelSets(in []map[string]string) []map[string]string {
-	var out []map[string]string
-	for _, set := range in {
-		var found bool
-		for _, outSet := range out {
-			if reflect.DeepEqual(set, outSet) {
-				found = true
-				break
-			}
-		}
-		if found {
-			continue
-		}
-		out = append(out, set)
-	}
-	sort.SliceStable(out, func(i, j int) bool {
-		return mapLess(out[i], out[j])
-	})
-	return in
 }
 
 func keysAndValues(m map[string]string) ([]string, []string) {

@@ -21,7 +21,18 @@ import (
 
 func Main(loggingPrefix string, setupFunc SetupFunc) error {
 	if len(discoveryNamespaces) == 0 {
-		discoveryNamespaces = []string{"default", defaults.GlooSystem, setupNamespace}
+		discoveryNamespaces = []string{"default", defaults.GlooSystem}
+	}
+
+	var containsSetupNs bool
+	for _, ns := range discoveryNamespaces {
+		if ns == setupNamespace {
+			containsSetupNs = true
+			break
+		}
+	}
+	if !containsSetupNs {
+		discoveryNamespaces = append(discoveryNamespaces, setupNamespace)
 	}
 
 	settingsClient, err := KubeOrFileSettingsClient(setupDir)
