@@ -11,7 +11,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
@@ -35,32 +34,10 @@ type Opts struct {
 	SidecarAddr     string
 }
 
-func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) gloov1.SetupSyncer {
-	return &setupSyncer{
-		inMemoryCache: inMemoryCache,
-		kubeCache:     kubeCache}
-}
-
-type setupSyncer struct {
-	kubeCache     *kube.KubeCache
-	inMemoryCache memory.InMemoryResourceCache
-}
-
-func (s *setupSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) error {
-	switch {
-	case len(snap.Settings.List()) == 0:
-		return errors.Errorf("no settings files found")
-	case len(snap.Settings.List()) > 1:
-		return errors.Errorf("multiple settings files found")
-	}
-	settings := snap.Settings.List()[0]
-
+func Setup(ctx context.Context, kubeCache *kube.KubeCache, cache memory.InMemoryResourceCache, settings *gloov1.Settings) error {
 	var (
 		cfg *rest.Config
 	)
-	cache := s.inMemoryCache
-	kubeCache := s.kubeCache
-
 	proxyFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
 		cache,

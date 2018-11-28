@@ -3,9 +3,6 @@ package syncer
 import (
 	"time"
 
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds"
@@ -16,13 +13,8 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/registry"
-	gloosyncer "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer"
 	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 )
-
-func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) v1.SetupSyncer {
-	return gloosyncer.NewSetupSyncerWithRunFunc(inMemoryCache, kubeCache, RunFDS)
-}
 
 func RunFDS(opts bootstrap.Opts) error {
 	watchOpts := opts.WatchOpts.WithDefaults()
@@ -91,7 +83,7 @@ func RunFDS(opts bootstrap.Opts) error {
 	if err != nil {
 		return err
 	}
-	go errutils.AggregateErrs(watchOpts.Ctx, errs, eventLoopErrs, "event_loop.gloo")
+	go errutils.AggregateErrs(watchOpts.Ctx, errs, eventLoopErrs, "event_loop.fds")
 
 	logger := contextutils.LoggerFrom(watchOpts.Ctx)
 

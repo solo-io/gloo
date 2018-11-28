@@ -1,3 +1,3 @@
 package defaults
 
-const SettingsName = "gloo"
+const SettingsName = "default"

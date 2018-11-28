@@ -3,11 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
-	"path/filepath"
-
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
-
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/solo-kit/pkg/utils/stats"
@@ -27,24 +22,22 @@ func main() {
 
 func run() error {
 	contextutils.LoggerFrom(context.TODO()).Infof("hypergloo!")
-	dir := flag.String("dir", "gloo", "directory for config")
 	flag.Parse()
-	os.MkdirAll(filepath.Join(*dir, defaults.GlooSystem), 0755)
 	errs := make(chan error)
 	go func() {
-		errs <- gloosetup.Main(*dir)
+		errs <- gloosetup.Main()
 	}()
 	go func() {
-		errs <- gatewaysetup.Main(*dir)
+		errs <- gatewaysetup.Main()
 	}()
 	go func() {
-		errs <- sqoopsetup.Main(*dir)
+		errs <- sqoopsetup.Main()
 	}()
 	go func() {
-		errs <- uds.Main(*dir)
+		errs <- uds.Main()
 	}()
 	go func() {
-		errs <- fdssetup.Main(*dir)
+		errs <- fdssetup.Main()
 	}()
 	return <-errs
 }

@@ -1,5 +1,38 @@
-# solo-kit
-Tools for Building Declarative API, stateless Projects
+# solo-projects
+
+Shared (-source) projects across Solo.io. This repo contains the git history for Gloo and Solo-Kit. 
+
+Currently init is shared in `pkg/utils/setuputils`
+
+Flags are available here:
+
+```bash
+Usage:
+  -alsologtostderr
+        log to standard error as well as files
+  -dir string
+        directory to find bootstrap settings if not using kubernetes crds
+  -discover default
+        repeated list of namespaces to watch for configuration. if none are specified, defaults to default and `gloo-system`
+  -log_backtrace_at value
+        when logging hits line file:N, emit a stack trace
+  -log_dir string
+        If non-empty, write log files in this directory
+  -logtostderr
+        log to standard error instead of files
+  -name string
+        name of settings crd/file to use (default "default")
+  -namespace string
+        namespace to watch for settings crd/file (default "gloo-system")
+  -stderrthreshold value
+        logs at or above this threshold go to stderr
+  -v value
+        log level for V logs
+  -vmodule value
+        comma-separated list of pattern=N settings for file-filtered logging
+
+```
+
 
 # Dev cycle usage notes
 ## basic init

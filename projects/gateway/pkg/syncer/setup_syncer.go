@@ -20,36 +20,13 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) gloov1.SetupSyncer {
-	return &setupSyncer{
-		inMemoryCache: inMemoryCache,
-		kubeCache:     kubeCache,
-	}
-}
-
-type setupSyncer struct {
-	kubeCache     *kube.KubeCache
-	inMemoryCache memory.InMemoryResourceCache
-}
-
-func (s *setupSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) error {
-	switch {
-	case len(snap.Settings.List()) == 0:
-		return errors.Errorf("no settings files found")
-	case len(snap.Settings.List()) > 1:
-		return errors.Errorf("multiple settings files found")
-	}
-	settings := snap.Settings.List()[0]
-
+func Setup(ctx context.Context, kubeCache *kube.KubeCache, inMemoryCache memory.InMemoryResourceCache, settings *gloov1.Settings) error {
 	var (
 		cfg *rest.Config
 	)
-	cache := s.inMemoryCache
-	kubeCache := s.kubeCache
-
 	proxyFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
-		cache,
+		inMemoryCache,
 		kubeCache,
 		gloov1.ProxyCrd,
 		&cfg,
@@ -60,7 +37,7 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) erro
 
 	virtualServiceFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
-		cache,
+		inMemoryCache,
 		kubeCache,
 		v1.VirtualServiceCrd,
 		&cfg,
@@ -71,7 +48,7 @@ func (s *setupSyncer) Sync(ctx context.Context, snap *gloov1.SetupSnapshot) erro
 
 	gatewayFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,
-		cache,
+		inMemoryCache,
 		kubeCache,
 		v1.GatewayCrd,
 		&cfg,

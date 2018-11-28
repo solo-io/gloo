@@ -18,6 +18,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
+	"github.com/solo-io/solo-projects/pkg/utils/setuputils"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
@@ -40,13 +41,13 @@ import (
 
 type RunFunc func(opts bootstrap.Opts) error
 
-func NewSetupSyncer(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache) v1.SetupSyncer {
-	return NewSetupSyncerWithRunFunc(inMemoryCache, kubeCache, RunGloo)
+func NewSetupFunc() setuputils.SetupFunc {
+	return NewSetupFuncWithRun(RunGloo)
 }
 
 // for use by UDS, FDS, other v1.SetupSyncers
-func NewSetupSyncerWithRunFunc(inMemoryCache memory.InMemoryResourceCache, kubeCache *kube.KubeCache, runFunc RunFunc) v1.SetupSyncer {
-	return &setupSyncer{
+func NewSetupFuncWithRun(runFunc RunFunc) setuputils.SetupFunc {
+	s := &setupSyncer{
 		grpcServer: func(ctx context.Context) *grpc.Server {
 			return grpc.NewServer(grpc.StreamInterceptor(
 				grpc_middleware.ChainStreamServer(
@@ -59,10 +60,9 @@ func NewSetupSyncerWithRunFunc(inMemoryCache memory.InMemoryResourceCache, kubeC
 				)),
 			)
 		},
-		runFunc:       runFunc,
-		inMemoryCache: inMemoryCache,
-		kubeCache:     kubeCache,
+		runFunc: runFunc,
 	}
+	return s.Setup
 }
 
 type setupSyncer struct {
@@ -71,8 +71,6 @@ type setupSyncer struct {
 	previousBindAddr   string
 	controlPlane       bootstrap.ControlPlane
 	cancelControlPlane context.CancelFunc
-	kubeCache          *kube.KubeCache
-	inMemoryCache      memory.InMemoryResourceCache
 }
 
 func NewControlPlane(ctx context.Context, grpcServer *grpc.Server, start bool) bootstrap.ControlPlane {
@@ -89,21 +87,11 @@ func NewControlPlane(ctx context.Context, grpcServer *grpc.Server, start bool) b
 	return c
 }
 
-func (s *setupSyncer) Sync(ctx context.Context, snap *v1.SetupSnapshot) error {
-	switch {
-	case len(snap.Settings.List()) == 0:
-		return errors.Errorf("no settings files found")
-	case len(snap.Settings.List()) > 1:
-		return errors.Errorf("multiple settings files found")
-	}
-	settings := snap.Settings.List()[0]
-
+func (s *setupSyncer) Setup(ctx context.Context, kubeCache *kube.KubeCache, memCache memory.InMemoryResourceCache, settings *v1.Settings) error {
 	var (
 		cfg       *rest.Config
 		clientset kubernetes.Interface
 	)
-	memCache := s.inMemoryCache
-	kubeCache := s.kubeCache
 
 	upstreamFactory, err := bootstrap.ConfigFactoryForSettings(
 		settings,

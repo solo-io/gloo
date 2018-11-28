@@ -19,22 +19,28 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
 )
 
-func Main(loggingPrefix string, setupSyncer v1.SetupSyncer, settingsDir string) error {
-	settingsClient, err := KubeOrFileSettingsClient(settingsDir)
+func Main(loggingPrefix string, setupFunc SetupFunc) error {
+	if len(discoveryNamespaces) == 0 {
+		discoveryNamespaces = []string{"default", defaults.GlooSystem, setupNamespace}
+	}
+
+	settingsClient, err := KubeOrFileSettingsClient(setupDir)
 	if err != nil {
 		return err
 	}
 	if err := settingsClient.Register(); err != nil {
 		return err
 	}
-	if err := writeDefaultSettings(settingsClient); err != nil {
+
+	if err := writeDefaultSettings(setupNamespace, setupName, discoveryNamespaces, settingsClient); err != nil {
 		return err
 	}
 
 	emitter := v1.NewSetupEmitter(settingsClient)
 	ctx := contextutils.WithLogger(context.Background(), loggingPrefix)
-	eventLoop := v1.NewSetupEventLoop(emitter, setupSyncer)
-	errs, err := eventLoop.Run([]string{defaults.GlooSystem}, clients.WatchOpts{
+	settingsRef := core.ResourceRef{Namespace: setupNamespace, Name: setupName}
+	eventLoop := v1.NewSetupEventLoop(emitter, NewSetupSyncer(settingsRef, setupFunc))
+	errs, err := eventLoop.Run([]string{setupNamespace}, clients.WatchOpts{
 		Ctx:         ctx,
 		RefreshRate: time.Second,
 	})
@@ -64,7 +70,7 @@ func KubeOrFileSettingsClient(settingsDir string) (v1.SettingsClient, error) {
 }
 
 // TODO(ilackarms): remove this or move it to a test package, only use settings watch for production gloo
-func writeDefaultSettings(cli v1.SettingsClient) error {
+func writeDefaultSettings(settingsNamespace, name string, discoveryNamespaces []string, cli v1.SettingsClient) error {
 	settings := &v1.Settings{
 		ConfigSource: &v1.Settings_KubernetesConfigSource{
 			KubernetesConfigSource: &v1.Settings_KubernetesCrds{},
@@ -75,14 +81,15 @@ func writeDefaultSettings(cli v1.SettingsClient) error {
 		SecretSource: &v1.Settings_KubernetesSecretSource{
 			KubernetesSecretSource: &v1.Settings_KubernetesSecrets{},
 		},
-		BindAddr:        "0.0.0.0:9977",
-		RefreshRate:     types.DurationProto(time.Minute),
-		DevMode:         true,
-		WatchNamespaces: []string{"default", defaults.GlooSystem},
-		Metadata:        core.Metadata{Namespace: defaults.GlooSystem, Name: "gloo"},
+		BindAddr:           "0.0.0.0:9977",
+		RefreshRate:        types.DurationProto(time.Minute),
+		DevMode:            true,
+		WatchNamespaces:    discoveryNamespaces,
+		DiscoveryNamespace: settingsNamespace,
+		Metadata:           core.Metadata{Namespace: settingsNamespace, Name: name},
 	}
 	if _, err := cli.Write(settings, clients.WriteOpts{}); err != nil && !errors.IsExist(err) {
-		return err
+		return errors.Wrapf(err, "failed to create default settings")
 	}
 	return nil
 }
