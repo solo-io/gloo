@@ -47,3 +47,6 @@ mkdir -p ${OUT}/plugins/$plugin
 # as the filter's protobufs use validate/validate.proto
 protoc -I=${IN} ${PROTOC_FLAGS} ${IN}/$plugin/*.proto
 done
+
+gofmt -w ${OUT}
+goimports -w ${OUT}
