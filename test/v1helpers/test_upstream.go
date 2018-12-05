@@ -33,6 +33,7 @@ type TestUpstream struct {
 	Upstream *gloov1.Upstream
 	C        <-chan *ReceivedRequest
 	Address  string
+	Port     uint32
 }
 
 var id = 0
@@ -61,6 +62,7 @@ func newTestUpstream(addr string, port uint32, responses <-chan *ReceivedRequest
 		Upstream: u,
 		C:        responses,
 		Address:  fmt.Sprintf("%s:%d", addr, port),
+		Port:     port,
 	}
 }
 

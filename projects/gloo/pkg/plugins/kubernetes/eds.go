@@ -139,7 +139,7 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 						podLabels, err := getPodLabelsForIp(addr.IP, pods)
 						if err != nil {
 							// pod not found for ip? what's that about?
-							logger.Warnf("error for upstream %v service %v: ", usRef.Key(), spec.ServiceName, err)
+							logger.Warnf("error for upstream %v service %v: %v", usRef.Key(), spec.ServiceName, err)
 							continue
 						}
 						if !labels.AreLabelsInWhiteList(spec.Selector, podLabels) {

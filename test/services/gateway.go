@@ -29,6 +29,8 @@ import (
 	uds_syncer "github.com/solo-io/solo-projects/projects/discovery/pkg/uds/syncer"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer"
+
+	"k8s.io/client-go/kubernetes"
 )
 
 type TestClients struct {
@@ -43,15 +45,19 @@ type TestClients struct {
 var glooPort int32 = 8100
 
 func RunGateway(ctx context.Context, justgloo bool) TestClients {
+	return RunGatewayWithNamespaceAndKubeClient(ctx, justgloo, defaults.GlooSystem, nil)
+}
+
+func RunGatewayWithNamespaceAndKubeClient(ctx context.Context, justgloo bool, ns string, kubeclient kubernetes.Interface) TestClients {
 	localglooPort := atomic.AddInt32(&glooPort, 1)
 
 	cache := memory.NewInMemoryResourceCache()
 
-	glooopts := DefaultGlooOpts(ctx, cache)
+	glooopts := DefaultGlooOpts(ctx, cache, ns, kubeclient)
 	glooopts.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
 	// no gateway for now
 	if !justgloo {
-		opts := DefaultTestConstructOpts(ctx, cache)
+		opts := DefaultTestConstructOpts(ctx, cache, ns)
 		go gatewaysyncer.RunGateway(opts)
 	}
 	glooopts.ControlPlane.StartGrpcServer = true
@@ -85,7 +91,7 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 	}
 }
 
-func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResourceCache) gatewaysyncer.Opts {
+func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns string) gatewaysyncer.Opts {
 	ctx = contextutils.WithLogger(ctx, "gateway")
 	ctx = contextutils.SilenceLogger(ctx)
 	f := &factory.MemoryResourceClientFactory{
@@ -93,8 +99,8 @@ func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResource
 	}
 
 	return gatewaysyncer.Opts{
-		WriteNamespace:  defaults.GlooSystem,
-		WatchNamespaces: []string{"default", defaults.GlooSystem},
+		WriteNamespace:  ns,
+		WatchNamespaces: []string{"default", ns},
 		Gateways:        f,
 		VirtualServices: f,
 		Proxies:         f,
@@ -106,7 +112,7 @@ func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResource
 	}
 }
 
-func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache) bootstrap.Opts {
+func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns string, kubeclient kubernetes.Interface) bootstrap.Opts {
 	ctx = contextutils.WithLogger(ctx, "gloo")
 	logger := contextutils.LoggerFrom(ctx)
 	grpcServer := grpc.NewServer(grpc.StreamInterceptor(
@@ -123,13 +129,13 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache) bo
 		Cache: cache,
 	}
 	return bootstrap.Opts{
-		WriteNamespace:  defaults.GlooSystem,
+		WriteNamespace:  ns,
 		Upstreams:       f,
 		Proxies:         f,
 		Secrets:         f,
 		Schemas:         f,
 		Artifacts:       f,
-		WatchNamespaces: []string{"default", defaults.GlooSystem},
+		WatchNamespaces: []string{"default", ns},
 		WatchOpts: clients.WatchOpts{
 			Ctx:         ctx,
 			RefreshRate: time.Second / 10,
@@ -139,6 +145,7 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache) bo
 			IP:   net.ParseIP("0.0.0.0"),
 			Port: 8081,
 		},
-		DevMode: true,
+		KubeClient: kubeclient,
+		DevMode:    true,
 	}
 }

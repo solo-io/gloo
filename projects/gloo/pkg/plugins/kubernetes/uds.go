@@ -207,7 +207,7 @@ func keysAndValues(m map[string]string) ([]string, []string) {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	var values [] string
+	var values []string
 	for _, k := range keys {
 		values = append(values, m[k])
 	}
@@ -219,9 +219,6 @@ func skip(svc *kubev1.Service, opts discovery.Opts) bool {
 	// force discovery for a service with no selector
 	if svc.ObjectMeta.Annotations[discoveryAnnotationKey] == discoveryAnnotationTrue {
 		return false
-	}
-	if len(svc.Spec.Selector) == 0 {
-		return true
 	}
 	// note: ilackarms: IgnoredServices is not set anywhere
 	for _, name := range opts.KubeOpts.IgnoredServices {

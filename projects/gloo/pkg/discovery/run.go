@@ -45,6 +45,10 @@ func RunEds(upstreamClient v1.UpstreamClient, disc *EndpointDiscovery, watchName
 				cancel()
 				opts.Ctx, cancel = context.WithCancel(ctx)
 
+				if len(upstreamList) == 0 {
+					continue
+				}
+
 				edsErrs, err := disc.StartEds(upstreamList, opts)
 				if err != nil {
 					publsherr(err)

@@ -77,8 +77,10 @@ func (d *UpstreamDiscovery) StartUds(opts clients.WatchOpts, discOpts Opts) (cha
 	for _, uds := range d.discoveryPlugins {
 		upstreams, errs, err := uds.DiscoverUpstreams(d.watchNamespaces, d.writeNamespace, opts, discOpts)
 		if err != nil {
-			return nil, errors.Wrapf(err, "initializing UDS for %v", reflect.TypeOf(uds).Name())
+			contextutils.LoggerFrom(opts.Ctx).Warnw("initializing UDS plugin failed", "plugin", reflect.TypeOf(uds).String(), "error", err)
+			continue
 		}
+
 		go func(uds DiscoveryPlugin) {
 			// TODO (ilackarms): when we have less problems, solve this
 			udsName := strings.Replace(reflect.TypeOf(uds).String(), "*", "", -1)
@@ -146,7 +148,8 @@ func (d *EndpointDiscovery) StartEds(upstreamsToTrack v1.UpstreamList, opts clie
 	for _, eds := range d.discoveryPlugins {
 		endpoints, errs, err := eds.WatchEndpoints(d.writeNamespace, upstreamsToTrack, opts)
 		if err != nil {
-			return nil, errors.Wrapf(err, "initializing EDS for %v", reflect.TypeOf(eds).Name())
+			contextutils.LoggerFrom(opts.Ctx).Warnw("initializing EDS plugin failed", "plugin", reflect.TypeOf(eds).String(), "error", err)
+			continue
 		}
 
 		go func(eds DiscoveryPlugin) {
