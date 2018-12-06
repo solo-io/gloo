@@ -4,10 +4,9 @@ package v1
 
 import (
 	"context"
-	"time"
 	"sync"
+	"time"
 
-	
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -18,7 +17,7 @@ import (
 var _ = Describe("ApiEventLoop", func() {
 	var (
 		namespace string
-		emitter     ApiEmitter
+		emitter   ApiEmitter
 		err       error
 	)
 

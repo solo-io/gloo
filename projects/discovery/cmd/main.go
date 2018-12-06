@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/solo-io/solo-kit/pkg/utils/log"
-	"github.com/solo-io/solo-kit/pkg/utils/stats"
 	fdssetup "github.com/solo-io/gloo/projects/discovery/pkg/fds/setup"
 	uds "github.com/solo-io/gloo/projects/discovery/pkg/uds/setup"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
+	"github.com/solo-io/solo-kit/pkg/utils/stats"
 )
 
 func main() {

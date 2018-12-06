@@ -30,7 +30,7 @@ func NewGatewayClient(rcFactory factory.ResourceClientFactory) (GatewayClient, e
 func NewGatewayClientWithToken(rcFactory factory.ResourceClientFactory, token string) (GatewayClient, error) {
 	rc, err := rcFactory.NewResourceClient(factory.NewResourceClientParams{
 		ResourceType: &Gateway{},
-		Token: token,
+		Token:        token,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base Gateway resource client")
@@ -108,4 +108,3 @@ func convertToGateway(resources resources.ResourceList) GatewayList {
 	}
 	return gatewayList
 }
-

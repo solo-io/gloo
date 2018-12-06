@@ -3,21 +3,20 @@
 package v1
 
 import (
-	
-	"go.uber.org/zap"
 	"github.com/mitchellh/hashstructure"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"go.uber.org/zap"
 )
 
 type ApiSnapshot struct {
-	Gateways GatewaysByNamespace
+	Gateways        GatewaysByNamespace
 	VirtualServices VirtualServicesByNamespace
 }
 
 func (s ApiSnapshot) Clone() ApiSnapshot {
 	return ApiSnapshot{
-		Gateways: s.Gateways.Clone(),
+		Gateways:        s.Gateways.Clone(),
 		VirtualServices: s.VirtualServices.Clone(),
 	}
 }
@@ -42,25 +41,23 @@ func (s ApiSnapshot) snapshotToHash() ApiSnapshot {
 
 func (s ApiSnapshot) Hash() uint64 {
 	return s.hashStruct(s.snapshotToHash())
- }
+}
 
- func (s ApiSnapshot) HashFields() []zap.Field {
+func (s ApiSnapshot) HashFields() []zap.Field {
 	snapshotForHashing := s.snapshotToHash()
 	var fields []zap.Field
 	gateways := s.hashStruct(snapshotForHashing.Gateways.List())
-	fields = append(fields, zap.Uint64("gateways", gateways ))
+	fields = append(fields, zap.Uint64("gateways", gateways))
 	virtualServices := s.hashStruct(snapshotForHashing.VirtualServices.List())
-	fields = append(fields, zap.Uint64("virtualServices", virtualServices ))
+	fields = append(fields, zap.Uint64("virtualServices", virtualServices))
 
-	return append(fields, zap.Uint64("snapshotHash",  s.hashStruct(snapshotForHashing)))
- }
- 
+	return append(fields, zap.Uint64("snapshotHash", s.hashStruct(snapshotForHashing)))
+}
+
 func (s ApiSnapshot) hashStruct(v interface{}) uint64 {
 	h, err := hashstructure.Hash(v, nil)
-	 if err != nil {
-		 panic(err)
-	 }
-	 return h
- }
-
-
+	if err != nil {
+		panic(err)
+	}
+	return h
+}

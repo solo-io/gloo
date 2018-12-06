@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"github.com/solo-io/gloo/projects/gloo/pkg/setup"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 
 func main() {

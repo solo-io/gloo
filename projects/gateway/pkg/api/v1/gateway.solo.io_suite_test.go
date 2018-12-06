@@ -13,8 +13,3 @@ func TestGatewaysoloio(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Gatewaysoloio Suite")
 }
-
-
-
-
-

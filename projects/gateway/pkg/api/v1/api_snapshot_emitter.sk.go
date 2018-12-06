@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -25,16 +24,14 @@ var (
 		Measure:     mApiSnapshotIn,
 		Description: "The number of snapshots updates coming in",
 		Aggregation: view.Count(),
-		TagKeys:     []tag.Key{
-		},
+		TagKeys:     []tag.Key{},
 	}
 	apisnapshotOutView = &view.View{
 		Name:        "api.gateway.solo.io/snap_emitter/snap_out",
 		Measure:     mApiSnapshotOut,
 		Description: "The number of snapshots updates going out",
 		Aggregation: view.Count(),
-		TagKeys:     []tag.Key{
-		},
+		TagKeys:     []tag.Key{},
 	}
 )
 
@@ -55,15 +52,15 @@ func NewApiEmitter(gatewayClient GatewayClient, virtualServiceClient VirtualServ
 
 func NewApiEmitterWithEmit(gatewayClient GatewayClient, virtualServiceClient VirtualServiceClient, emit <-chan struct{}) ApiEmitter {
 	return &apiEmitter{
-		gateway:gatewayClient,
-		virtualService:virtualServiceClient,
-		forceEmit: emit,
+		gateway:        gatewayClient,
+		virtualService: virtualServiceClient,
+		forceEmit:      emit,
 	}
 }
 
 type apiEmitter struct {
-	forceEmit <- chan struct{}
-	gateway GatewayClient
+	forceEmit      <-chan struct{}
+	gateway        GatewayClient
 	virtualService VirtualServiceClient
 }
 
@@ -91,13 +88,13 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	ctx := opts.Ctx
 	/* Create channel for Gateway */
 	type gatewayListWithNamespace struct {
-		list GatewayList
+		list      GatewayList
 		namespace string
 	}
 	gatewayChan := make(chan gatewayListWithNamespace)
 	/* Create channel for VirtualService */
 	type virtualServiceListWithNamespace struct {
-		list VirtualServiceList
+		list      VirtualServiceList
 		namespace string
 	}
 	virtualServiceChan := make(chan virtualServiceListWithNamespace)
@@ -126,31 +123,29 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 			errutils.AggregateErrs(ctx, errs, virtualServiceErrs, namespace+"-virtualServices")
 		}(namespace)
 
-
 		/* Watch for changes and update snapshot */
 		go func(namespace string) {
 			for {
 				select {
 				case <-ctx.Done():
 					return
-				case gatewayList := <- gatewayNamespacesChan:
+				case gatewayList := <-gatewayNamespacesChan:
 					select {
 					case <-ctx.Done():
 						return
-					case gatewayChan <- gatewayListWithNamespace{list:gatewayList, namespace:namespace}:
+					case gatewayChan <- gatewayListWithNamespace{list: gatewayList, namespace: namespace}:
 					}
-				case virtualServiceList := <- virtualServiceNamespacesChan:
+				case virtualServiceList := <-virtualServiceNamespacesChan:
 					select {
 					case <-ctx.Done():
 						return
-					case virtualServiceChan <- virtualServiceListWithNamespace{list:virtualServiceList, namespace:namespace}:
+					case virtualServiceChan <- virtualServiceListWithNamespace{list: virtualServiceList, namespace: namespace}:
 					}
 				}
 			}
 		}(namespace)
 	}
 
-	
 	snapshots := make(chan *ApiSnapshot)
 	go func() {
 		originalSnapshot := ApiSnapshot{}
@@ -167,24 +162,24 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 			snapshots <- &sentSnapshot
 		}
 
-/* TODO (yuval-k): figure out how to make this work to avoid a stale snapshot.
-		// construct the first snapshot from all the configs that are currently there
-		// that guarantees that the first snapshot contains all the data.
-		for range watchNamespaces {
-   gatewayNamespacedList := <- gatewayChan
-   currentSnapshot.Gateways.Clear(gatewayNamespacedList.namespace)
-   gatewayList := gatewayNamespacedList.list
-	currentSnapshot.Gateways.Add(gatewayList...)
-   virtualServiceNamespacedList := <- virtualServiceChan
-   currentSnapshot.VirtualServices.Clear(virtualServiceNamespacedList.namespace)
-   virtualServiceList := virtualServiceNamespacedList.list
-	currentSnapshot.VirtualServices.Add(virtualServiceList...)
-		}
-*/
+		/* TODO (yuval-k): figure out how to make this work to avoid a stale snapshot.
+		   		// construct the first snapshot from all the configs that are currently there
+		   		// that guarantees that the first snapshot contains all the data.
+		   		for range watchNamespaces {
+		      gatewayNamespacedList := <- gatewayChan
+		      currentSnapshot.Gateways.Clear(gatewayNamespacedList.namespace)
+		      gatewayList := gatewayNamespacedList.list
+		   	currentSnapshot.Gateways.Add(gatewayList...)
+		      virtualServiceNamespacedList := <- virtualServiceChan
+		      currentSnapshot.VirtualServices.Clear(virtualServiceNamespacedList.namespace)
+		      virtualServiceList := virtualServiceNamespacedList.list
+		   	currentSnapshot.VirtualServices.Add(virtualServiceList...)
+		   		}
+		*/
 
 		for {
-			record := func(){stats.Record(ctx, mApiSnapshotIn.M(1))}
-			
+			record := func() { stats.Record(ctx, mApiSnapshotIn.M(1)) }
+
 			select {
 			case <-timer.C:
 				sync()
@@ -196,7 +191,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 			case <-c.forceEmit:
 				sentSnapshot := currentSnapshot.Clone()
 				snapshots <- &sentSnapshot
-			case gatewayNamespacedList := <- gatewayChan:
+			case gatewayNamespacedList := <-gatewayChan:
 				record()
 
 				namespace := gatewayNamespacedList.namespace
@@ -204,7 +199,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 
 				currentSnapshot.Gateways.Clear(namespace)
 				currentSnapshot.Gateways.Add(gatewayList...)
-			case virtualServiceNamespacedList := <- virtualServiceChan:
+			case virtualServiceNamespacedList := <-virtualServiceChan:
 				record()
 
 				namespace := virtualServiceNamespacedList.namespace

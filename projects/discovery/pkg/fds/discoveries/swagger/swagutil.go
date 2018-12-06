@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/go-openapi/spec"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 	transformation_plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 
 func createFunctionsForPath(pathFunctions map[string]*transformation_plugins.TransformationTemplate, basePath, functionPath string, path spec.PathItemProps, definitions spec.Definitions) {

@@ -8,8 +8,8 @@ import (
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
 type HeadersToAddFunc func(spec *v1.Destination) ([]*envoycore.HeaderValueOption, error)

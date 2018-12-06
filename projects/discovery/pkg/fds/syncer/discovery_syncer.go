@@ -3,9 +3,9 @@ package syncer
 import (
 	"context"
 
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/gloo/projects/discovery/pkg/fds"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 )
 
 type syncer struct {

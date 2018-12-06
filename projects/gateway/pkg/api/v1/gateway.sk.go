@@ -48,7 +48,7 @@ func (list GatewayList) Find(namespace, name string) (*Gateway, error) {
 }
 
 func (list GatewayList) AsResources() resources.ResourceList {
-	var ress resources.ResourceList 
+	var ress resources.ResourceList
 	for _, gateway := range list {
 		ress = append(ress, gateway)
 	}
@@ -74,7 +74,7 @@ func (list GatewayList) Names() []string {
 func (list GatewayList) NamespacesDotNames() []string {
 	var names []string
 	for _, gateway := range list {
-		names = append(names, gateway.Metadata.Namespace + "." + gateway.Metadata.Name)
+		names = append(names, gateway.Metadata.Namespace+"."+gateway.Metadata.Name)
 	}
 	return names
 }
@@ -91,7 +91,7 @@ func (list GatewayList) Clone() GatewayList {
 	for _, gateway := range list {
 		gatewayList = append(gatewayList, proto.Clone(gateway).(*Gateway))
 	}
-	return gatewayList 
+	return gatewayList
 }
 
 func (list GatewayList) ByNamespace() GatewaysByNamespace {
@@ -102,7 +102,7 @@ func (list GatewayList) ByNamespace() GatewaysByNamespace {
 	return byNamespace
 }
 
-func (byNamespace GatewaysByNamespace) Add(gateway ... *Gateway) {
+func (byNamespace GatewaysByNamespace) Add(gateway ...*Gateway) {
 	for _, item := range gateway {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
 	}
