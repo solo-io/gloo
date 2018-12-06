@@ -130,8 +130,6 @@ GH_ORG:=solo-io
 GH_REPO:=solo-projects
 
 RELEASE_BINARIES := \
-	$(OUTPUT_DIR)/apiserver-linux-amd64 \
-	$(OUTPUT_DIR)/apiserver-darwin-amd64 \
 	$(OUTPUT_DIR)/gateway-linux-amd64 \
 	$(OUTPUT_DIR)/gloo-linux-amd64 \
 	$(OUTPUT_DIR)/discovery-linux-amd64 \
@@ -154,15 +152,11 @@ release: release-binaries
 #---------
 
 .PHONY: docker docker-push
-docker: apiserver-docker discovery-docker gateway-docker gloo-docker sqoop-docker
+docker: discovery-docker gateway-docker gloo-docker
 docker-push:
-	docker push soloio/sqoop-ee:$(VERSION) && \
 	docker push soloio/gateway-ee:$(VERSION) && \
-	docker push soloio/apiserver-ee:$(VERSION) && \
 	docker push soloio/discovery-ee:$(VERSION) && \
 	docker push soloio/gloo-ee:$(VERSION) && \
-	docker push soloio/gloo-i-ee:$(VERSION)
-
 
 #----------------------------------------------------------------------------------
 # protoc plugin binary
