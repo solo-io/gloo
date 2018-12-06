@@ -1,0 +1,20 @@
+// TODO: this was copied form the transformation filter.
+// TODO: instead of manually copying, we want to do it via script, similar to the java-control-plane
+// TODO: to solo-kit/api/envoy
+
+syntax = "proto3";
+
+package transformation.plugins.gloo.solo.io;
+
+option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation";
+
+import "gogoproto/gogo.proto";
+
+// TODO: can we get rid of this?
+option (gogoproto.equal_all) = true;
+
+// if set, prefix_rewrite will be used to rewrite the matched HTTP Path prefix on requests to this value.
+message PrefixRewrite {
+    // Set to an empty string to remove the matched HTTP Path prefix
+    string prefix_rewrite = 1;
+}
