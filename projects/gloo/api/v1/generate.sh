@@ -17,7 +17,7 @@ IN=.
 OUT=${IN}/../../pkg/api/v1/
 mkdir -p $OUT
 
-SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=${PWD}/project.json:${OUT}"
+SOLO_KIT_FLAG="--solo-kit_out=${PWD}/project.json:${OUT}"
 
 GOGO_OUT_FLAG="--gogo_out=plugins=grpc,"
 GOGO_OUT_FLAG+="Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/descriptor.proto=github.com/gogo/protobuf/protoc-gen-gogo/descriptor,"

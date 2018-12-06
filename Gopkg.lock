@@ -159,7 +159,7 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:1c2554a9e53f785648157ec5c8f5f6a57f275d622a4c7ae8bb4b448bf7416749"
+  digest = "1:99a541d432754c36cb44332017a1f330f9db7d54b1d521c229ab7e6ee0d620cc"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -169,15 +169,18 @@
     "envoy/api/v2/endpoint",
     "envoy/api/v2/listener",
     "envoy/api/v2/route",
+    "envoy/config/bootstrap/v2",
     "envoy/config/filter/accesslog/v2",
     "envoy/config/filter/fault/v2",
     "envoy/config/filter/http/fault/v2",
     "envoy/config/filter/http/transcoder/v2",
     "envoy/config/filter/network/http_connection_manager/v2",
+    "envoy/config/metrics/v2",
+    "envoy/config/overload/v2alpha",
+    "envoy/config/ratelimit/v2",
+    "envoy/config/trace/v2",
     "envoy/service/discovery/v2",
     "envoy/type",
-    "pkg/cache",
-    "pkg/log",
     "pkg/util",
   ]
   pruneopts = "UT"
@@ -317,12 +320,13 @@
   revision = "6f2cf27854a4a29e3811b0371547be335d411b8b"
 
 [[projects]]
-  digest = "1:fa5e9e1af8a8645086811ec5ab003806026babc57c8bb3a6f7e1ab34b80e2ff1"
+  digest = "1:98d8bcc9b013ef48532bd746254dbd0bd2fb94d2c7dc5b4961f08c23908d214a"
   name = "github.com/golang/protobuf"
   packages = [
     "jsonpb",
     "proto",
     "protoc-gen-go/descriptor",
+    "protoc-gen-go/plugin",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
@@ -656,6 +660,22 @@
   revision = "a1dbeea552b7c8df4b542c66073e393de198a800"
 
 [[projects]]
+  branch = "master"
+  digest = "1:89cd2208bdeb192cc83ee287216af3c987fc87a90b9087718ad6631b636cefcf"
+  name = "github.com/iancoleman/strcase"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3605ed457bf7f8caa1371b4fafadadc026673479"
+
+[[projects]]
+  digest = "1:5258ca648f4cf40b7bc7c52b85009546699332616f9ed23d89b6798baca6f707"
+  name = "github.com/ilackarms/protoc-gen-doc"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "728a624b38e5ae90bb3e5da5f406e05138f1517c"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:3e260afa138eab6492b531a3b3d10ab4cb70512d423faa78b8949dec76e66a21"
   name = "github.com/imdario/mergo"
   packages = ["."]
@@ -974,6 +994,22 @@
   version = "v2.5.0"
 
 [[projects]]
+  digest = "1:d7aa51c836ace8d00a3d88b4058c470624bdd7045cd3b0f58c2d6ba7ab4433dc"
+  name = "github.com/pseudomuto/protoc-gen-doc"
+  packages = ["parser"]
+  pruneopts = "UT"
+  revision = "728a624b38e5ae90bb3e5da5f406e05138f1517c"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:37fe5a9adb37233d7f2d764dcdef5e2537d0d927bf57a6095f178817c8c616e5"
+  name = "github.com/pseudomuto/protokit"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "7037620bf27b13fcdc10b1b17ddef82540db670b"
+  version = "v0.1.0"
+
+[[projects]]
   digest = "1:0665976cc6d8c2e60dafca32820b6b7eca70f37ded0bcccc103388e1c0d05c53"
   name = "github.com/radovskyb/watcher"
   packages = ["."]
@@ -998,6 +1034,13 @@
   revision = "e2103e2c35297fb7e17febb81e49b312087a2372"
 
 [[projects]]
+  digest = "1:1fe9f1cf46deb81923e9e0dba06762f1a4e850f3fc0b41e2371128266b7d8482"
+  name = "github.com/solo-io/envoy-operator"
+  packages = ["pkg/downward"]
+  pruneopts = "UT"
+  revision = "c71f318a203bca8433268be67336086379a2bf9f"
+
+[[projects]]
   branch = "master"
   digest = "1:898faa8b0ea3e2a812fb293db0d9d3359c15669559f7128f15d11e597012fdee"
   name = "github.com/solo-io/kubecontroller"
@@ -1006,7 +1049,7 @@
   revision = "241bc627d5400a0794853220df4fdefeeb2af0e0"
 
 [[projects]]
-  digest = "1:88be9d3115557c816c825c9f0546f7d0cf476e9b5d3852ee201f853ef88140c2"
+  digest = "1:c486bf6e450732c2b1d5b310f6843ebd484cc5ec0ffda007f26940cf30ae894b"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1021,6 +1064,7 @@
     "pkg/api/v1/clients/kube/crd/client/clientset/versioned/typed/solo.io/v1",
     "pkg/api/v1/clients/kube/crd/solo.io/v1",
     "pkg/api/v1/clients/kubesecret",
+    "pkg/api/v1/clients/kubesecretplain",
     "pkg/api/v1/clients/memory",
     "pkg/api/v1/clients/vault",
     "pkg/api/v1/control-plane/cache",
@@ -1032,6 +1076,13 @@
     "pkg/api/v1/reporter",
     "pkg/api/v1/resources",
     "pkg/api/v1/resources/core",
+    "pkg/code-generator",
+    "pkg/code-generator/codegen",
+    "pkg/code-generator/codegen/templates",
+    "pkg/code-generator/docgen",
+    "pkg/code-generator/docgen/templates",
+    "pkg/code-generator/model",
+    "pkg/code-generator/parser",
     "pkg/errors",
     "pkg/utils/contextutils",
     "pkg/utils/errutils",
@@ -1045,8 +1096,8 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "72a27ce2507817bfe4c6633bec8cab34c48eb6ac"
-  version = "0.1.2"
+  revision = "fb669c96821dd1464cb1619ac10debb92c024ab8"
+  version = "0.1.6"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -1631,7 +1682,6 @@
     "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2",
     "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2",
     "github.com/envoyproxy/go-control-plane/envoy/type",
-    "github.com/envoyproxy/go-control-plane/pkg/cache",
     "github.com/envoyproxy/go-control-plane/pkg/util",
     "github.com/go-openapi/loads",
     "github.com/go-openapi/spec",
@@ -1663,6 +1713,7 @@
     "github.com/prometheus/client_golang/api",
     "github.com/prometheus/client_golang/api/prometheus/v1",
     "github.com/prometheus/prometheus/discovery/targetgroup",
+    "github.com/solo-io/envoy-operator/pkg/downward",
     "github.com/solo-io/kubecontroller",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/factory",
@@ -1677,6 +1728,7 @@
     "github.com/solo-io/solo-kit/pkg/api/v1/reporter",
     "github.com/solo-io/solo-kit/pkg/api/v1/resources",
     "github.com/solo-io/solo-kit/pkg/api/v1/resources/core",
+    "github.com/solo-io/solo-kit/pkg/code-generator",
     "github.com/solo-io/solo-kit/pkg/errors",
     "github.com/solo-io/solo-kit/pkg/utils/contextutils",
     "github.com/solo-io/solo-kit/pkg/utils/errutils",
