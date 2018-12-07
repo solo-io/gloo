@@ -97,29 +97,32 @@ func upstreamsForService(svc *kubev1.Service, pods []*kubev1.Pod, writeNamespace
 	uniqueLabelSets := []map[string]string{
 		svc.Spec.Selector,
 	}
-	for _, pod := range pods {
-		if pod.Namespace != svc.Namespace {
-			continue
-		}
-		if !labels.AreLabelsInWhiteList(svc.Spec.Selector, pod.Labels) {
-			continue
+	if len(svc.Spec.Selector) > 0 {
+		for _, pod := range pods {
+			if pod.Namespace != svc.Namespace {
+				continue
+			}
+			if !labels.AreLabelsInWhiteList(svc.Spec.Selector, pod.Labels) {
+				continue
+			}
+
+			// create upstreams for the extra labels beyond the selector
+			extendedLabels := make(map[string]string)
+		addExtendedLabels:
+			for k, v := range pod.Labels {
+				// special cases we ignore
+				for _, ignoredLabel := range ignoredLabels {
+					if k == ignoredLabel {
+						continue addExtendedLabels
+					}
+				}
+				extendedLabels[k] = v
+			}
+			if len(extendedLabels) > 0 && !containsMap(uniqueLabelSets, extendedLabels) {
+				uniqueLabelSets = append(uniqueLabelSets, extendedLabels)
+			}
 		}
 
-		// create upstreams for the extra labels beyond the selector
-		extendedLabels := make(map[string]string)
-	addExtendedLabels:
-		for k, v := range pod.Labels {
-			// special cases we ignore
-			for _, ignoredLabel := range ignoredLabels {
-				if k == ignoredLabel {
-					continue addExtendedLabels
-				}
-			}
-			extendedLabels[k] = v
-		}
-		if len(extendedLabels) > 0 && !containsMap(uniqueLabelSets, extendedLabels) {
-			uniqueLabelSets = append(uniqueLabelSets, extendedLabels)
-		}
 	}
 
 	for _, extendedLabels := range uniqueLabelSets {
