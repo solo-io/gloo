@@ -5,7 +5,7 @@
 ROOTDIR := $(shell pwd)
 PACKAGE_PATH:=github.com/solo-io/solo-projects
 OUTPUT_DIR ?= $(ROOTDIR)/_output
-SOURCES := $(shell find . -name "*.go" | grep -v test.go)
+SOURCES := $(shell find . -name "*.go" | grep -v test.go | grep -v '\.\#*')
 VERSION ?= $(shell git describe --tags)
 
 #----------------------------------------------------------------------------------
@@ -16,6 +16,15 @@ VERSION ?= $(shell git describe --tags)
 .PHONY: init
 init:
 	git config core.hooksPath .githooks
+
+#----------------------------------------------------------------------------------
+# Clean
+#----------------------------------------------------------------------------------
+
+# Important to clean before pushing new releases. Dockerfiles and binaries may not update properly
+.PHONY: clean
+clean:
+	rm -rf _output
 
 #----------------------------------------------------------------------------------
 # Generated Code
@@ -41,6 +50,31 @@ $(OUTPUT_DIR)/.generated-code: $(OUTPUT_DIR)/protoc-gen-solo-kit
 #################
 #################
 #################
+
+
+#----------------------------------------------------------------------------------
+# glooctl
+#----------------------------------------------------------------------------------
+
+CLI_DIR=projects/gloo/cli
+
+$(OUTPUT_DIR)/glooctl: $(SOURCES)
+	go build -ldflags="-X main.Version=$(VERSION)" -o $@ $(CLI_DIR)/cmd/main.go
+
+
+$(OUTPUT_DIR)/glooctl-linux-amd64: $(SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-X main.Version=$(VERSION)" -o $@ $(CLI_DIR)/cmd/main.go
+
+
+$(OUTPUT_DIR)/glooctl-darwin-amd64: $(SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -ldflags="-X main.Version=$(VERSION)" -o $@ $(CLI_DIR)/cmd/main.go
+
+.PHONY: glooctl
+glooctl: $(OUTPUT_DIR)/glooctl
+.PHONY: glooctl-linux-amd64
+glooctl-linux-amd64: $(OUTPUT_DIR)/glooctl-linux-amd64
+.PHONY: glooctl-darwin-amd64
+glooctl-darwin-amd64: $(OUTPUT_DIR)/glooctl-darwin-amd64
 
 #----------------------------------------------------------------------------------
 # Gateway

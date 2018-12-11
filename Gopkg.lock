@@ -354,6 +354,22 @@
   revision = "e89373fe6b4a7413d7acd6da1725b83ef713e6e4"
 
 [[projects]]
+  digest = "1:34bd52916ea0a9e4d95d34dab5bc4f125a7ee7b1e11b1a531d2ea43f41b4f4e8"
+  name = "github.com/google/go-github"
+  packages = ["github"]
+  pruneopts = "UT"
+  revision = "35781f7f4db7b3d7fc3359527472838da65023c6"
+  version = "v19.1.0"
+
+[[projects]]
+  digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
+  name = "github.com/google/go-querystring"
+  packages = ["query"]
+  pruneopts = "UT"
+  revision = "44c6ddd0a2342c386950e880b658017258da92fc"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   digest = "1:3ee90c0d94da31b442dde97c99635aaafec68d0b8a3c12ee2075c6bdabeec6bb"
   name = "github.com/google/gofuzz"
@@ -522,12 +538,12 @@
   revision = "6d291a969b86c4b633730bfc6b8b9d64c3aafed9"
 
 [[projects]]
-  digest = "1:12ed7dcca9531e58c65cdadb8af0052724bef7fa1581380523fb9cb1215faf0d"
+  branch = "master"
+  digest = "1:f14364057165381ea296e49f8870a9ffce2b8a95e34d6ae06c759106aaef428c"
   name = "github.com/hashicorp/go-uuid"
   packages = ["."]
   pruneopts = "UT"
-  revision = "de160f5c59f693fed329e73e291bb751fe4ea4dc"
-  version = "v1.0.0"
+  revision = "4f571afc59f3043a65f8fe6bf46d887b10a01d43"
 
 [[projects]]
   digest = "1:77395dd3847dac9c45118c668f5dab85aedf0163dc3b38aea6578c5cf0d502f9"
@@ -684,6 +700,18 @@
   version = "v0.3.5"
 
 [[projects]]
+  branch = "master"
+  digest = "1:f3b0cfd42716269884bf06df5d5be9e54161d5af0a2f0ccca08717928dd45fc5"
+  name = "github.com/inconshreveable/go-update"
+  packages = [
+    ".",
+    "internal/binarydist",
+    "internal/osext",
+  ]
+  pruneopts = "UT"
+  revision = "8152e7eb6ccf8679a64582a66b78519688d156ad"
+
+[[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
@@ -775,6 +803,14 @@
   version = "v0.0.3"
 
 [[projects]]
+  digest = "1:cdb899c199f907ac9fb50495ec71212c95cb5b0e0a8ee0800da0238036091033"
+  name = "github.com/mattn/go-runewidth"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ce7b0b5c7b45a81508558cd1dba6bb1e4ddb51bb"
+  version = "v0.0.3"
+
+[[projects]]
   digest = "1:ff5ebae34cfbf047d505ee150de27e60570e8c394b3b8fdbb720ff6ac71985fc"
   name = "github.com/matttproud/golang_protobuf_extensions"
   packages = ["pbutil"]
@@ -853,6 +889,14 @@
   pruneopts = "UT"
   revision = "4b7aa43c6742a2c18fdef89dd197aaae7dac7ccd"
   version = "1.0.1"
+
+[[projects]]
+  digest = "1:abcdbf03ca6ca13d3697e2186edc1f33863bbdac2b3a44dfa39015e8903f7409"
+  name = "github.com/olekukonko/tablewriter"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e6d60cf7ba1f42d86d54cdf5508611c4aafb3970"
+  version = "v0.0.1"
 
 [[projects]]
   digest = "1:42e29deef12327a69123b9cb2cb45fee4af5c12c2a23c6e477338279a052703f"
@@ -1084,6 +1128,7 @@
     "pkg/code-generator/model",
     "pkg/code-generator/parser",
     "pkg/errors",
+    "pkg/utils/cliutils",
     "pkg/utils/contextutils",
     "pkg/utils/errutils",
     "pkg/utils/fileutils",
@@ -1367,6 +1412,18 @@
   pruneopts = "UT"
   revision = "168a6198bcb0ef175f7dacec0b8691fc141dc9b8"
   version = "v1.13.0"
+
+[[projects]]
+  digest = "1:8aebecf08fbcb288d879a0e21de4636389c2bc58ab45789a05d7f7e94577482f"
+  name = "gopkg.in/AlecAivazis/survey.v1"
+  packages = [
+    ".",
+    "core",
+    "terminal",
+  ]
+  pruneopts = "UT"
+  revision = "fb519f89e19299d852ffdd9b734af122d2dcbd30"
+  version = "v1.7.0"
 
 [[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
@@ -1683,6 +1740,7 @@
     "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2",
     "github.com/envoyproxy/go-control-plane/envoy/type",
     "github.com/envoyproxy/go-control-plane/pkg/util",
+    "github.com/ghodss/yaml",
     "github.com/go-openapi/loads",
     "github.com/go-openapi/spec",
     "github.com/go-openapi/swag",
@@ -1692,6 +1750,7 @@
     "github.com/gogo/protobuf/protoc-gen-gogo/descriptor",
     "github.com/gogo/protobuf/types",
     "github.com/golang/protobuf/protoc-gen-go/descriptor",
+    "github.com/google/go-github/github",
     "github.com/gorilla/mux",
     "github.com/grpc-ecosystem/go-grpc-middleware",
     "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap",
@@ -1699,11 +1758,13 @@
     "github.com/hashicorp/consul/agent/config",
     "github.com/hashicorp/consul/api",
     "github.com/hashicorp/go-multierror",
+    "github.com/inconshreveable/go-update",
     "github.com/jhump/protoreflect/desc",
     "github.com/jhump/protoreflect/grpcreflect",
     "github.com/keybase/go-ps",
     "github.com/lyft/protoc-gen-validate/validate",
     "github.com/mitchellh/hashstructure",
+    "github.com/olekukonko/tablewriter",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/gbytes",
@@ -1714,6 +1775,7 @@
     "github.com/prometheus/client_golang/api/prometheus/v1",
     "github.com/prometheus/prometheus/discovery/targetgroup",
     "github.com/solo-io/envoy-operator/pkg/downward",
+    "github.com/solo-io/go-checkpoint",
     "github.com/solo-io/kubecontroller",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/factory",
@@ -1730,9 +1792,9 @@
     "github.com/solo-io/solo-kit/pkg/api/v1/resources/core",
     "github.com/solo-io/solo-kit/pkg/code-generator",
     "github.com/solo-io/solo-kit/pkg/errors",
+    "github.com/solo-io/solo-kit/pkg/utils/cliutils",
     "github.com/solo-io/solo-kit/pkg/utils/contextutils",
     "github.com/solo-io/solo-kit/pkg/utils/errutils",
-    "github.com/solo-io/solo-kit/pkg/utils/fileutils",
     "github.com/solo-io/solo-kit/pkg/utils/kubeutils",
     "github.com/solo-io/solo-kit/pkg/utils/log",
     "github.com/solo-io/solo-kit/pkg/utils/protoutils",
@@ -1751,6 +1813,7 @@
     "google.golang.org/grpc/reflection/grpc_reflection_v1alpha",
     "google.golang.org/grpc/status",
     "k8s.io/api/core/v1",
+    "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/labels",
     "k8s.io/apimachinery/pkg/runtime",
