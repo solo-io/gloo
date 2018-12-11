@@ -1,16 +1,17 @@
 package main
 
 import (
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
-	"github.com/solo-io/solo-projects/samples"
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/setup"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"context"
+
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/rest"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/setup"
+	"github.com/solo-io/solo-projects/samples"
 )
 
 func main() {

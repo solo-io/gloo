@@ -13,8 +13,9 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
+VM=${VM:-kube}
 
 # won't work for ui...
 # need to modify ui make target
 make -C ${BASEDIR}/../.. $PROJECT-docker
-docker save soloio/$PROJECT-ee:$VERSION | ( eval $(minishift docker-env) && docker load)
+docker save soloio/$PROJECT-ee:$VERSION | ( eval $(mini${VM} docker-env) && docker load)

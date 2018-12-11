@@ -3,9 +3,10 @@ package samples
 import (
 	"os"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/errors"
 	gatewayv1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
-	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/aws"
@@ -14,12 +15,10 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/rest"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/transformation"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
+	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 )
-
 
 func AddSampleData(opts bootstrap.Opts, vsClient gatewayv1.VirtualServiceClient) error {
 	upstreamClient, err := v1.NewUpstreamClient(opts.Upstreams)
@@ -48,7 +47,6 @@ func AddSampleData(opts bootstrap.Opts, vsClient gatewayv1.VirtualServiceClient)
 	}
 	return nil
 }
-
 
 func MakeMetadata(name, namespace string) core.Metadata {
 	return core.Metadata{

@@ -5,7 +5,7 @@
 ROOTDIR := $(shell pwd)
 PACKAGE_PATH:=github.com/solo-io/solo-projects
 OUTPUT_DIR ?= $(ROOTDIR)/_output
-SOURCES := $(shell find . -name "*.go" | grep -v test.go)
+SOURCES := $(shell find . -name "*.go" | grep -v test.go | grep -v '\.\#*')
 VERSION ?= $(shell git describe --tags)
 
 #----------------------------------------------------------------------------------
@@ -16,6 +16,15 @@ VERSION ?= $(shell git describe --tags)
 .PHONY: init
 init:
 	git config core.hooksPath .githooks
+
+#----------------------------------------------------------------------------------
+# Clean
+#----------------------------------------------------------------------------------
+
+# Important to clean before pushing new releases. Dockerfiles and binaries may not update properly
+.PHONY: clean
+clean:
+	rm -rf _output
 
 #----------------------------------------------------------------------------------
 # Generated Code
@@ -41,6 +50,31 @@ $(OUTPUT_DIR)/.generated-code:
 #################
 #################
 #################
+
+
+#----------------------------------------------------------------------------------
+# glooctl
+#----------------------------------------------------------------------------------
+
+CLI_DIR=projects/gloo/cli
+
+$(OUTPUT_DIR)/glooctl: $(SOURCES)
+	go build -ldflags="-X main.Version=$(VERSION)" -o $@ $(CLI_DIR)/cmd/main.go
+
+
+$(OUTPUT_DIR)/glooctl-linux-amd64: $(SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-X main.Version=$(VERSION)" -o $@ $(CLI_DIR)/cmd/main.go
+
+
+$(OUTPUT_DIR)/glooctl-darwin-amd64: $(SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -ldflags="-X main.Version=$(VERSION)" -o $@ $(CLI_DIR)/cmd/main.go
+
+.PHONY: glooctl
+glooctl: $(OUTPUT_DIR)/glooctl
+.PHONY: glooctl-linux-amd64
+glooctl-linux-amd64: $(OUTPUT_DIR)/glooctl-linux-amd64
+.PHONY: glooctl-darwin-amd64
+glooctl-darwin-amd64: $(OUTPUT_DIR)/glooctl-darwin-amd64
 
 #----------------------------------------------------------------------------------
 # Apiserver
@@ -109,6 +143,25 @@ $(OUTPUT_DIR)/Dockerfile.gateway: $(GATEWAY_DIR)/cmd/Dockerfile
 
 gateway-docker: $(OUTPUT_DIR)/gateway-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gateway
 	docker build -t soloio/gateway-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gateway
+
+#----------------------------------------------------------------------------------
+# RateLimit
+#----------------------------------------------------------------------------------
+
+RATELIMIT_DIR=projects/rate-limit
+RATELIMIT_SOURCES=$(shell find $(RATELIMIT_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+
+$(OUTPUT_DIR)/rate-limit-linux-amd64: $(RATELIMIT_SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(RATELIMIT_DIR)/cmd/main.go
+
+.PHONY: rate-limit
+rate-limit: $(OUTPUT_DIR)/rate-limit-linux-amd64
+
+$(OUTPUT_DIR)/Dockerfile.rate-limit: $(RATELIMIT_DIR)/cmd/Dockerfile
+	cp $< $@
+
+rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.rate-limit
+	docker build -t soloio/rate-limit-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.rate-limit
 
 #----------------------------------------------------------------------------------
 # Sqoop
@@ -201,6 +254,7 @@ RELEASE_BINARIES := \
 	$(OUTPUT_DIR)/apiserver-linux-amd64 \
 	$(OUTPUT_DIR)/apiserver-darwin-amd64 \
 	$(OUTPUT_DIR)/gateway-linux-amd64 \
+	$(OUTPUT_DIR)/rate-limit-linux-amd64 \
 	$(OUTPUT_DIR)/gloo-linux-amd64 \
 	$(OUTPUT_DIR)/discovery-linux-amd64 \
 	$(OUTPUT_DIR)/envoyinit-linux-amd64
@@ -222,10 +276,11 @@ release: release-binaries
 #---------
 
 .PHONY: docker docker-push
-docker: apiserver-docker discovery-docker gateway-docker gloo-docker sqoop-docker
+docker: apiserver-docker discovery-docker gateway-docker rate-limit-docker gloo-docker sqoop-docker
 docker-push:
 	docker push soloio/sqoop-ee:$(VERSION) && \
 	docker push soloio/gateway-ee:$(VERSION) && \
+	docker push soloio/rate-limit-ee:$(VERSION) && \
 	docker push soloio/apiserver-ee:$(VERSION) && \
 	docker push soloio/discovery-ee:$(VERSION) && \
 	docker push soloio/gloo-ee:$(VERSION) && \

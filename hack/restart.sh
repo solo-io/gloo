@@ -1,4 +1,5 @@
-cd $SOLO_KIT_DIR/hack/openshift
+#!/usr/bin/env bash
+cd $SOLO_PROJECTS_DIR/hack/openshift
 minishift delete
 minishift start
 minishift addon apply admin-user

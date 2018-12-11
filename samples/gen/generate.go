@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 	"flag"
+
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 
 //go:generate go run ./generate.go -o ../

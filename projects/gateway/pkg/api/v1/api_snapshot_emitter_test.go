@@ -45,7 +45,6 @@ var _ = Describe("V1Emitter", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		cache := kuberc.NewKubeCache()
-
 		// Gateway Constructor
 		gatewayClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         GatewayCrd,
@@ -54,7 +53,6 @@ var _ = Describe("V1Emitter", func() {
 		}
 		gatewayClient, err = NewGatewayClient(gatewayClientFactory)
 		Expect(err).NotTo(HaveOccurred())
-
 		// VirtualService Constructor
 		virtualServiceClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         VirtualServiceCrd,

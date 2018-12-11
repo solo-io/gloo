@@ -103,7 +103,6 @@ var _ = Describe("Fault Injection", func() {
 				return nil
 			}, "5s", ".1s").Should(BeNil())
 
-
 			Eventually(func() error {
 				res, err := http.Get(fmt.Sprintf("http://%s:%d/status/200", "localhost", envoyPort))
 				if err != nil {

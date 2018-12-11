@@ -45,7 +45,6 @@ var _ = Describe("V1Emitter", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		cache := kuberc.NewKubeCache()
-
 		// ResolverMap Constructor
 		resolverMapClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         ResolverMapCrd,
@@ -54,7 +53,6 @@ var _ = Describe("V1Emitter", func() {
 		}
 		resolverMapClient, err = NewResolverMapClient(resolverMapClientFactory)
 		Expect(err).NotTo(HaveOccurred())
-
 		// Schema Constructor
 		schemaClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         SchemaCrd,
