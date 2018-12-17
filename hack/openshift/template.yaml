@@ -477,7 +477,7 @@ parameters:
 - name: GLOO_IMAGE_TAG
   required: true
   description: Docker image Tag +for Gloo
-  value: ilackarms
+  value: 0.1.0
 
 - name: GLOO_REPLICAS
   required: true
@@ -499,7 +499,7 @@ parameters:
 - name: GATEWAY_IMAGE_TAG
   required: true
   description: Docker image Tag +for Gateway
-  value: ilackarms
+  value: 0.1.0
 
 - name: GATEWAY_REPLICAS
   required: true
@@ -528,7 +528,7 @@ parameters:
 - name: SQOOP_IMAGE_TAG
   required: true
   description: Docker image Tag +for Sqoop
-  value: ilackarms
+  value: 0.1.0
 
 - name: SQOOP_REPLICAS
   required: true
@@ -555,7 +555,7 @@ parameters:
 - name: DISCOVERY_IMAGE_TAG
   required: true
   description: Docker image Tag +for Discovery
-  value: ilackarms
+  value: 0.1.0
 
 - name: DISCOVERY_REPLICAS
   required: true
@@ -574,7 +574,7 @@ parameters:
 - name: APISERVER_IMAGE_TAG
   required: true
   description: Docker image Tag +for Apiserver
-  value: ilackarms
+  value: 0.1.0
 
 - name: APISERVER_REPLICAS
   required: true
@@ -609,7 +609,7 @@ parameters:
 - name: UI_IMAGE_TAG
   required: true
   description: Docker image Tag +for Apiserver
-  value: ilackarms
+  value: 0.1.0
 
 - name: UI_STATIC_PORT
   required: true
