@@ -3,9 +3,9 @@ package surveyutils
 import (
 	"fmt"
 
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/gloo/pkg/cliutil"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
 	"gopkg.in/AlecAivazis/survey.v1"
 )

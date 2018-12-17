@@ -4,8 +4,8 @@ import (
 	"os"
 	"time"
 
-	check "github.com/solo-io/go-checkpoint"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd"
+	check "github.com/solo-io/go-checkpoint"
 )
 
 var Version = "dev" // overwritten by linker flag

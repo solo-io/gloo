@@ -4,10 +4,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/solo-io/solo-kit/pkg/utils/cliutils"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/pkg/utils/cliutils"
 )
 
 func PrintUpstreams(upstreams v1.UpstreamList, outputType string) {

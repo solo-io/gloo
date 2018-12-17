@@ -3,10 +3,10 @@ package del
 import (
 	"fmt"
 
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/spf13/cobra"
 )
 

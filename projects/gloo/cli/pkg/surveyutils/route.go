@@ -5,8 +5,6 @@ import (
 	"sort"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/gloo/pkg/cliutil"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
@@ -14,6 +12,8 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/rest"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 const (
