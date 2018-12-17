@@ -76,13 +76,13 @@ func toValue(data []byte, typ common.Type) (dynamic.Value, error) {
 	case *schema.Object, *schema.Interface:
 		var rawResult map[string]interface{}
 		if err := json.Unmarshal(data, &rawResult); err != nil {
-			return nil, errors.Wrap(err, "parsing response as json")
+			return nil, errors.Wrapf(err, "parsing response '%s' as json object", data)
 		}
 		return convertValue(fieldType, rawResult)
 	case *common.List:
 		var rawResult []interface{}
 		if err := json.Unmarshal(data, &rawResult); err != nil {
-			return nil, errors.Wrap(err, "parsing response as json")
+			return nil, errors.Wrapf(err, "parsing response '%s='as json array", data)
 		}
 		return convertValue(fieldType, rawResult)
 	case *schema.Scalar:
