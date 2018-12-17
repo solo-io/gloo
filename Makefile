@@ -3,7 +3,6 @@
 #----------------------------------------------------------------------------------
 
 ROOTDIR := $(shell pwd)
-PACKAGE_PATH:=github.com/solo-io/solo-projects
 OUTPUT_DIR ?= $(ROOTDIR)/_output
 SOURCES := $(shell find . -name "*.go" | grep -v test.go | grep -v '\.\#*')
 VERSION ?= $(shell git describe --tags)

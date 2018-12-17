@@ -757,6 +757,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:400e113a367b511b9b09ca642ee11d9885485a93838526d697033af334a2fdde"
+  name = "github.com/kballard/go-shellquote"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "95032a82bc518f77982ea72343cc1ade730072f0"
+
+[[projects]]
+  branch = "master"
   digest = "1:6bc9f1251db7b9e95316813d9564d158a886b796f5073e767151b2c1178c7109"
   name = "github.com/keybase/go-ps"
   packages = [
@@ -817,6 +825,14 @@
   pruneopts = "UT"
   revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
   version = "v1.0.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:2b32af4d2a529083275afc192d1067d8126b578c7a9613b26600e4df9c735155"
+  name = "github.com/mgutz/ansi"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9520e82c474b0a04dd04f8a40959027271bab992"
 
 [[projects]]
   digest = "1:702ff5d8a0196ccb0627f35996efd1081be00c8ae1719402adbffc6e0f8f59ac"
@@ -1083,6 +1099,14 @@
   packages = ["pkg/downward"]
   pruneopts = "UT"
   revision = "c71f318a203bca8433268be67336086379a2bf9f"
+
+[[projects]]
+  digest = "1:d2631be1cb671b8a86338ecb2c194c3ad5be9b346e0b1a169beff38c8cdb1601"
+  name = "github.com/solo-io/go-checkpoint"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "bdea1405611a5bbc025564545ce100bb10b684b8"
+  version = "0.0.3"
 
 [[projects]]
   branch = "master"
@@ -1803,6 +1827,7 @@
     "github.com/solo-io/solo-kit/test/setup",
     "github.com/solo-io/solo-kit/test/tests/typed",
     "github.com/spf13/cobra",
+    "github.com/spf13/pflag",
     "go.opencensus.io/stats",
     "go.opencensus.io/stats/view",
     "go.opencensus.io/tag",
@@ -1812,6 +1837,7 @@
     "google.golang.org/grpc/codes",
     "google.golang.org/grpc/reflection/grpc_reflection_v1alpha",
     "google.golang.org/grpc/status",
+    "gopkg.in/AlecAivazis/survey.v1",
     "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
