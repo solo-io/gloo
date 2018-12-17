@@ -14,7 +14,7 @@ done
 IN="$( cd -P "$( dirname "$SOURCE" )" >/dev/null && pwd )"
 OUT=${IN}/../../pkg/api/v1/
 GOGO_OUT_FLAG="--gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/"
-SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=${PWD}/project.json:${OUT}"
+SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=${OUT} --solo-kit_opt=${PWD}/project.json"
 
 PROTOC_FLAGS="-I=${GOPATH}/src \
     -I=${GOPATH}/src/github.com/solo-io/solo-kit/api/external \
@@ -26,4 +26,3 @@ protoc -I=${IN} \
     -I=${GOPATH}/src/github.com/solo-io/solo-projects/projects/gloo/api/v1 \
     ${PROTOC_FLAGS} \
     ${IN}/*.proto
-

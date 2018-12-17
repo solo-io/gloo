@@ -51,7 +51,7 @@ func (m *Upstream) Reset()         { *m = Upstream{} }
 func (m *Upstream) String() string { return proto.CompactTextString(m) }
 func (*Upstream) ProtoMessage()    {}
 func (*Upstream) Descriptor() ([]byte, []int) {
-	return fileDescriptor_upstream_afa4af8e0d322f93, []int{0}
+	return fileDescriptor_upstream_234bcf5b3d16de31, []int{0}
 }
 func (m *Upstream) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Upstream.Unmarshal(m, b)
@@ -110,7 +110,7 @@ func (m *DiscoveryMetadata) Reset()         { *m = DiscoveryMetadata{} }
 func (m *DiscoveryMetadata) String() string { return proto.CompactTextString(m) }
 func (*DiscoveryMetadata) ProtoMessage()    {}
 func (*DiscoveryMetadata) Descriptor() ([]byte, []int) {
-	return fileDescriptor_upstream_afa4af8e0d322f93, []int{1}
+	return fileDescriptor_upstream_234bcf5b3d16de31, []int{1}
 }
 func (m *DiscoveryMetadata) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DiscoveryMetadata.Unmarshal(m, b)
@@ -195,9 +195,9 @@ func (this *DiscoveryMetadata) Equal(that interface{}) bool {
 	return true
 }
 
-func init() { proto.RegisterFile("upstream.proto", fileDescriptor_upstream_afa4af8e0d322f93) }
+func init() { proto.RegisterFile("upstream.proto", fileDescriptor_upstream_234bcf5b3d16de31) }
 
-var fileDescriptor_upstream_afa4af8e0d322f93 = []byte{
+var fileDescriptor_upstream_234bcf5b3d16de31 = []byte{
 	// 319 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x91, 0x4d, 0x4a, 0x03, 0x31,
 	0x14, 0xc7, 0x6d, 0x91, 0x5a, 0x62, 0x2b, 0x34, 0x16, 0xa9, 0x5d, 0x58, 0x99, 0x95, 0x1b, 0x13,

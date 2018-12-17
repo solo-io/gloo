@@ -15,3 +15,5 @@
 *.out
 vendor/
 _output/
+doc/site/
+projects/gloo/doc/site/

@@ -11,6 +11,7 @@ import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
 import "gateway.proto";
+import "virtual_service.proto";
 import "proxy.proto";
 import "settings.proto";
 import "upstream.proto";

@@ -22,9 +22,7 @@ IMPORTS="-I=${VCS_IN} \
 
 GOGO_FLAG="--gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types:${GOPATH}/src/"
 
-SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit \
-    --solo-kit_out=${PWD}/project.json:${OUT}"
-
+SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=${OUT} --solo-kit_opt=${PWD}/project.json"
 INPUT_PROTOS="${VCS_IN}/*.proto"
 
 protoc ${IMPORTS} \

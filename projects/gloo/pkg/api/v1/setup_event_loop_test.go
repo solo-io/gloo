@@ -4,6 +4,7 @@ package v1
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -37,15 +38,24 @@ var _ = Describe("SetupEventLoop", func() {
 		el := NewSetupEventLoop(emitter, sync)
 		_, err := el.Run([]string{namespace}, clients.WatchOpts{})
 		Expect(err).NotTo(HaveOccurred())
-		Eventually(func() bool { return sync.synced }, time.Second).Should(BeTrue())
+		Eventually(sync.Synced, 5*time.Second).Should(BeTrue())
 	})
 })
 
 type mockSetupSyncer struct {
 	synced bool
+	mutex  sync.Mutex
+}
+
+func (s *mockSetupSyncer) Synced() bool {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.synced
 }
 
 func (s *mockSetupSyncer) Sync(ctx context.Context, snap *SetupSnapshot) error {
+	s.mutex.Lock()
 	s.synced = true
+	s.mutex.Unlock()
 	return nil
 }

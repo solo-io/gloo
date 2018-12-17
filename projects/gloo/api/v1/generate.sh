@@ -19,7 +19,7 @@ GOGO_OUT_FLAG+="Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgo
 GOGO_OUT_FLAG+="Menvoy/api/v2/discovery.proto=github.com/envoyproxy/go-control-plane/envoy/api/v2"
 GOGO_OUT_FLAG+=":${GOPATH}/src/"
 
-SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=${PWD}/project.json:${OUT}"
+SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=${OUT} --solo-kit_opt=${PWD}/project.json"
 
 mkdir -p ${OUT}/plugins
 

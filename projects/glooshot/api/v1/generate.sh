@@ -28,7 +28,7 @@ protoc ${IMPORTS} \
     ${INPUT_PROTOS}
 
 # Run protoc once for solo kit
-SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=${PWD}/project.json:${OUT}"
+SOLO_KIT_FLAG="--plugin=protoc-gen-solo-kit=${GOPATH}/bin/protoc-gen-solo-kit --solo-kit_out=${OUT} --solo-kit_opt=${PWD}/project.json"
 
 INPUT_PROTOS="${GLOOSHOT_IN}/*.proto"
 
