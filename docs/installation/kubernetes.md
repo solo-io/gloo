@@ -25,30 +25,27 @@ Check that the Gloo pods and services have been created:
 ```bash
 kubectl get all -n gloo-system
 
-NAME                                           READY   STATUS    RESTARTS   AGE
-pod/control-plane-6fc6dc7545-xrllk             1/1     Running   0          11m
-pod/function-discovery-544c596dcd-gk8x7        1/1     Running   0          11m
-pod/ingress-64f75ccb7-4z299                    1/1     Running   0          11m
-pod/kube-ingress-controller-665d59bc7d-t6lwk   1/1     Running   0          11m
-pod/upstream-discovery-74db4d7475-gqrst        1/1     Running   0          11m
+NAME                                 READY   STATUS    RESTARTS   AGE
+pod/discovery-8497c769bd-ccz8h       1/1     Running   0          30s
+pod/gateway-57d6bd8684-tqgw9         1/1     Running   0          30s
+pod/gateway-proxy-798cbc584c-dm6p4   1/1     Running   0          30s
+pod/gloo-868c6644c9-jl2x8            1/1     Running   0          30s
 
-NAME                    TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                         AGE
-service/control-plane   ClusterIP      10.101.206.34    <none>        8081/TCP                        11m
-service/ingress         LoadBalancer   10.108.115.187   <pending>     8080:32608/TCP,8443:30634/TCP   11m
+NAME                    TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+service/gateway-proxy   LoadBalancer   10.105.143.110   <pending>     8080:32218/TCP   30s
+service/gloo            ClusterIP      10.101.197.139   <none>        9977/TCP         30s
 
-NAME                                      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/control-plane             1         1         1            1           11m
-deployment.apps/function-discovery        1         1         1            1           11m
-deployment.apps/ingress                   1         1         1            1           11m
-deployment.apps/kube-ingress-controller   1         1         1            1           11m
-deployment.apps/upstream-discovery        1         1         1            1           11m
+NAME                            DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/discovery       1         1         1            1           30s
+deployment.apps/gateway         1         1         1            1           30s
+deployment.apps/gateway-proxy   1         1         1            1           30s
+deployment.apps/gloo            1         1         1            1           31s
 
-NAME                                                 DESIRED   CURRENT   READY   AGE
-replicaset.apps/control-plane-6fc6dc7545             1         1         1       11m
-replicaset.apps/function-discovery-544c596dcd        1         1         1       11m
-replicaset.apps/ingress-64f75ccb7                    1         1         1       11m
-replicaset.apps/kube-ingress-controller-665d59bc7d   1         1         1       11m
-replicaset.apps/upstream-discovery-74db4d7475        1         1         1       11m
+NAME                                       DESIRED   CURRENT   READY   AGE
+replicaset.apps/discovery-8497c769bd       1         1         1       30s
+replicaset.apps/gateway-57d6bd8684         1         1         1       30s
+replicaset.apps/gateway-proxy-798cbc584c   1         1         1       30s
+replicaset.apps/gloo-868c6644c9            1         1         1       30s
 ```
 
 Everything should be up and running. If this process does not work, please [open an issue](https://github.com/solo-io/gloo/issues/new). We are happy to answer
