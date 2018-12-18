@@ -7,6 +7,7 @@ PACKAGE_PATH:=github.com/solo-io/solo-projects
 OUTPUT_DIR ?= $(ROOTDIR)/_output
 SOURCES := $(shell find . -name "*.go" | grep -v test.go | grep -v '\.\#*')
 VERSION ?= $(shell git describe --tags)
+LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 
 #----------------------------------------------------------------------------------
 # Repo init
@@ -42,15 +43,15 @@ $(OUTPUT_DIR)/.generated-code:
 
 
 #################
-#################
-#               #
 #     Build     #
-#               #
-#               #
-#################
-#################
 #################
 
+#----------------------------------------------------------------------------------
+# allprojects
+#----------------------------------------------------------------------------------
+# helper for testing
+.PHONY: allprojects
+allprojects: apiserver discovery gateway gloo glooctl rate-limit sqoop
 
 #----------------------------------------------------------------------------------
 # glooctl
@@ -59,15 +60,15 @@ $(OUTPUT_DIR)/.generated-code:
 CLI_DIR=projects/gloo/cli
 
 $(OUTPUT_DIR)/glooctl: $(SOURCES)
-	go build -ldflags="-X main.Version=$(VERSION)" -o $@ $(CLI_DIR)/cmd/main.go
+	go build -ldflags=$(LDFLAGS) -o $@ $(CLI_DIR)/cmd/main.go
 
 
 $(OUTPUT_DIR)/glooctl-linux-amd64: $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-X main.Version=$(VERSION)" -o $@ $(CLI_DIR)/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(CLI_DIR)/cmd/main.go
 
 
 $(OUTPUT_DIR)/glooctl-darwin-amd64: $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -ldflags="-X main.Version=$(VERSION)" -o $@ $(CLI_DIR)/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -ldflags=$(LDFLAGS) -o $@ $(CLI_DIR)/cmd/main.go
 
 .PHONY: glooctl
 glooctl: $(OUTPUT_DIR)/glooctl
@@ -100,13 +101,13 @@ apiserver: $(OUTPUT_DIR)/apiserver
 
 # TODO(ilackarms): put these inside of a loop or function of some kind
 $(OUTPUT_DIR)/apiserver: apiserver-dependencies $(SOURCES)
-	CGO_ENABLED=0 go build -o $@ projects/apiserver/cmd/main.go
+	CGO_ENABLED=0 go build -ldflags=$(LDFLAGS) -o $@ projects/apiserver/cmd/main.go
 
 $(OUTPUT_DIR)/apiserver-linux-amd64: apiserver-dependencies $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ projects/apiserver/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ projects/apiserver/cmd/main.go
 
 $(OUTPUT_DIR)/apiserver-darwin-amd64: apiserver-dependencies $(SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -o $@ projects/apiserver/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -ldflags=$(LDFLAGS) -o $@ projects/apiserver/cmd/main.go
 
 
 $(OUTPUT_DIR)/Dockerfile.apiserver: $(APISERVER_DIR)/cmd/Dockerfile
@@ -132,7 +133,7 @@ GATEWAY_DIR=projects/gateway
 GATEWAY_SOURCES=$(shell find $(GATEWAY_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/gateway-linux-amd64: $(GATEWAY_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(GATEWAY_DIR)/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(GATEWAY_DIR)/cmd/main.go
 
 
 .PHONY: gateway
@@ -152,7 +153,7 @@ RATELIMIT_DIR=projects/rate-limit
 RATELIMIT_SOURCES=$(shell find $(RATELIMIT_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/rate-limit-linux-amd64: $(RATELIMIT_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(RATELIMIT_DIR)/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(RATELIMIT_DIR)/cmd/main.go
 
 .PHONY: rate-limit
 rate-limit: $(OUTPUT_DIR)/rate-limit-linux-amd64
@@ -171,7 +172,7 @@ SQOOP_DIR=projects/sqoop
 SQOOP_SOURCES=$(shell find $(SQOOP_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/sqoop-linux-amd64: $(SQOOP_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(SQOOP_DIR)/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(SQOOP_DIR)/cmd/main.go
 
 
 .PHONY: sqoop
@@ -191,7 +192,7 @@ DISCOVERY_DIR=projects/discovery
 DISCOVERY_SOURCES=$(shell find $(DISCOVERY_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/discovery-linux-amd64: $(DISCOVERY_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(DISCOVERY_DIR)/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(DISCOVERY_DIR)/cmd/main.go
 
 
 .PHONY: discovery
@@ -211,7 +212,7 @@ GLOO_DIR=projects/gloo
 GLOO_SOURCES=$(shell find $(GLOO_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/gloo-linux-amd64: $(GLOO_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(GLOO_DIR)/cmd/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(GLOO_DIR)/cmd/main.go
 
 
 .PHONY: gloo
@@ -231,7 +232,7 @@ ENVOYINIT_DIR=cmd/envoyinit
 ENVOYINIT_SOURCES=$(shell find $(ENVOYINIT_DIR) -name "*.go" | grep -v test | grep -v generated.go)
 
 $(OUTPUT_DIR)/envoyinit-linux-amd64: $(ENVOYINIT_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o $@ $(ENVOYINIT_DIR)/main.go
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(ENVOYINIT_DIR)/main.go
 
 .PHONY: envoyinit
 envoyinit: $(OUTPUT_DIR)/envoyinit-linux-amd64
