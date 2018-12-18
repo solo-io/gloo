@@ -41,12 +41,20 @@ var _ = Describe("Rate Limit", func() {
 		rlport    = uint32(18081)
 	)
 
+	getRedisPath := func() string {
+		binaryPath := os.Getenv("REDIS_BINARY")
+		if binaryPath != "" {
+			return binaryPath
+		}
+		return "redis_server"
+	}
+
 	BeforeEach(func() {
 		var err error
 		os.Setenv("REDIS_URL", fmt.Sprintf("%s:%d", redisaddr, redisport))
 		os.Setenv("REDIS_SOCKET_TYPE", "tcp")
 
-		command := exec.Command("redis-server", "--port", "6379")
+		command := exec.Command(getRedisPath(), "--port", "6379")
 		redisSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())
 

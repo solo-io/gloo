@@ -11,7 +11,6 @@ steps:
   volumes:
   - name: 'ssh'
     path: /root/.ssh
-
 - name: 'gcr.io/cloud-builders/git'
   entrypoint: 'bash'
   args:
@@ -27,22 +26,57 @@ steps:
   volumes:
   - name: 'ssh'
     path: /root/.ssh
-
 - name: 'soloio/dep'
   args: ['ensure']
   env: ['PROJECT_ROOT=github.com/solo-io/solo-projects']
   volumes:
   - name: 'ssh'
     path: /root/.ssh
+  id: 'dep'
 
-- name: 'gcr.io/cloud-builders/go'
-  args: ['build', '-o', 'sqoop-linux-amd64', 'github.com/solo-io/solo-projects/projects/sqoop/cmd']
-  env: ['PROJECT_ROOT=github.com/solo-io/solo-projects']
+- name: gcr.io/cloud-builders/gsutil
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    gsutil cp gs://artifacts.solo.io/envoy/265f5f50b0b17b42442bcc8d7f7572a9b47a073a/envoy.stripped /workspace/envoy
+    chmod +x /workspace/envoy
+  waitFor: ['-']
+  id: 'get-envoy'
+
+- name: gcr.io/cloud-builders/gcloud
+  args:
+  - kms
+  - decrypt
+  - --ciphertext-file=ci/aws_credentials.enc
+  - --plaintext-file=/workspace/aws_credentials
+  - --location=global
+  - --keyring=build
+  - --key=build-key
+  waitFor: ['-']
+  id: 'setup-aws-creds'
+
+# e2e-go is produced from https://github.com/solo-io/cloud-builders/e2e-go
+# sets up redis, consul, kubectl, go with required environment variables
+# need to use the provided entrypoint
+- name: 'gcr.io/$PROJECT_ID/e2e-go'
+  env:
+  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+  - 'ENVOY_BINARY=/workspace/envoy'
+  - 'AWS_SHARED_CREDENTIALS_FILE=/workspace/aws_credentials'
+  - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=test-cluster'
+  - 'RUN_KUBE_TESTS=1'
+  args: ['test', '-v', 'github.com/solo-io/solo-projects/test/e2e']
+  waitFor: ['dep', 'get-envoy', 'setup-aws-creds']
 
 - name: 'gcr.io/cloud-builders/go'
   args: ['build', '-o', 'hypergloo', 'github.com/solo-io/solo-projects/projects/hypergloo']
   env: ['PROJECT_ROOT=github.com/solo-io/solo-projects']
 
+- name: 'gcr.io/cloud-builders/go'
+  args: ['build', '-o', 'sqoop-linux-amd64', 'github.com/solo-io/solo-projects/projects/sqoop/cmd']
+  env: ['PROJECT_ROOT=github.com/solo-io/solo-projects']
 
 artifacts:
   objects:
