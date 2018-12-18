@@ -136,7 +136,7 @@ gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
 	docker build -t soloio/gloo:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo
 
 #----------------------------------------------------------------------------------
-# Envot init
+# Envoy init
 #----------------------------------------------------------------------------------
 
 ENVOYINIT_DIR=projects/envoyinit/cmd
@@ -152,21 +152,23 @@ envoyinit: $(OUTPUT_DIR)/envoyinit-linux-amd64
 $(OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile
 	cp $< $@
 
-data-plane-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
-	docker build -t soloio/data-plane:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
+gloo-envoy-wrapper: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
+	docker build -t soloio/gloo-envoy-wrapper:0.5.0 $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
 
 
 #----------------------------------------------------------------------------------
 # Release
 #----------------------------------------------------------------------------------
 GH_ORG:=solo-io
-GH_REPO:=solo-projects
+GH_REPO:=gloo
 
 RELEASE_BINARIES := \
 	$(OUTPUT_DIR)/gateway-linux-amd64 \
 	$(OUTPUT_DIR)/gloo-linux-amd64 \
 	$(OUTPUT_DIR)/discovery-linux-amd64 \
-	$(OUTPUT_DIR)/envoyinit-linux-amd64
+	$(OUTPUT_DIR)/envoyinit-linux-amd64 \
+    $(OUTPUT_DIR)/glooctl-linux-amd64 \
+    $(OUTPUT_DIR)/glooctl-darwin-amd64
 
 .PHONY: release-binaries
 release-binaries: $(RELEASE_BINARIES)
@@ -190,6 +192,7 @@ docker-push:
 	docker push soloio/gateway:$(VERSION) && \
 	docker push soloio/discovery:$(VERSION) && \
 	docker push soloio/gloo:$(VERSION) && \
+	docker push soloio/gloo-envoy-wrapper:$(VERSION)
 
 #----------------------------------------------------------------------------------
 # protoc plugin binary
