@@ -1,4 +1,5 @@
 {
   "name": "gateway.solo.io",
-  "version": "v1"
+  "version": "v1",
+  "docs_dir": "../gloo/doc/docs/v1"
 }
