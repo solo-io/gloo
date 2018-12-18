@@ -180,119 +180,6 @@ spec:
 
 ########################################################################
 ###                                                                  ###
-###                        Rate-Limit                                ###
-###                                                                  ###
-########################################################################
-
-# pod
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  labels:
-    app: gloo
-    gloo: rate-limit
-  name: rate-limit
-  namespace: gloo-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      gloo: rate-limit
-  template:
-    metadata:
-      labels:
-        gloo: rate-limit
-    spec:
-      containers:
-      - image: soloio/rate-limit-ee:0.1.0
-        imagePullPolicy: Always
-        name: rate-limit
-        env:
-        - name: GLOO_ADDRESS
-          value: gloo:9977
-        - name: REDIS_URL
-          value: redis:6379
-        - name: REDIS_SOCKET_TYPE
-          value: tcp
-      imagePullSecrets:
-      - name: solo-io-docker-secret
-
----
-# service
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: gloo
-    gloo: rate-limit
-  name: rate-limit
-  namespace: gloo-system
-spec:
-  ports:
-    - name: grpc
-      port: 18081
-      protocol: TCP
-  selector:
-    gloo: rate-limit
-
----
-
-# redis pod for rate limit
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: redis
-  namespace: gloo-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      gloo: redis
-  template:
-    metadata:
-      labels:
-        gloo: redis
-    spec:
-      containers:
-      - image: kubernetes/redis:v1
-        imagePullPolicy: Always
-        name: redis
-        ports:
-        - containerPort: 6379
-        env:
-        - name: MASTER
-          value: "true"
-        volumeMounts:
-        - mountPath: /redis-master-data
-          name: data
-      imagePullSecrets:
-      - name: solo-io-docker-secret
-      volumes:
-      - name: data
-        emptyDir: {}
-
----
-# service
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: redis
-    gloo: redis
-  name: redis
-  namespace: gloo-system
-spec:
-  ports:
-  - name: redis
-    port: 6379
-    protocol: TCP
-  selector:
-    gloo: redis
-
----
-
-########################################################################
-###                                                                  ###
 ###                     Gateway-Proxy                                ###
 ###                                                                  ###
 ########################################################################
@@ -375,11 +262,6 @@ data:
       metadata:
         # this line must match !
         role: "gloo-system~gateway-proxy"
-    rate_limit_service:
-      use_data_plane_proto: true
-      grpc_service:
-        envoy_grpc:
-          cluster_name: rate_limit_cluster
     static_resources:
       clusters:
       - name: xds_cluster
@@ -393,19 +275,6 @@ data:
                   socket_address:
                     address: gloo
                     port_value: 9977
-        http2_protocol_options: {}
-        type: STRICT_DNS
-      - name: rate_limit_cluster
-        connect_timeout: 5.000s
-        load_assignment:
-          cluster_name: rate_limit_cluster
-          endpoints:
-          - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: rate-limit
-                    port_value: 18081
         http2_protocol_options: {}
         type: STRICT_DNS
     dynamic_resources:
