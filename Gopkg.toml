@@ -65,10 +65,10 @@
   name = "github.com/solo-io/envoy-operator"
   revision = "c71f318a203bca8433268be67336086379a2bf9f"
 
-
+# TODO (rick): use tagged version when this commit merges
 [[constraint]]
   name = "github.com/solo-io/solo-kit"
-  version = "0.1.6"
+  revision = "0cbeb685f8af75f5ad2eb9ed7757216b4a917613"
 
 [[constraint]]
   name = "github.com/hashicorp/consul"

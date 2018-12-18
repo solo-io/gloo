@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/solo-io/solo-kit/pkg/code-generator"
+	"github.com/solo-io/solo-kit/pkg/code-generator/cmd"
 )
 
 func main() {
-	code_generator.Main()
+	cmd.Main()
 }
