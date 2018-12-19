@@ -11,7 +11,7 @@ import aws "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/aw
 import azure "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/azure"
 import consul "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/consul"
 import faultinjection "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/faultinjection"
-import grpc1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/grpc"
+import grpc "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/grpc"
 import kubernetes "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/kubernetes"
 import ratelimit "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 import rest "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/rest"
@@ -222,7 +222,7 @@ type DestinationSpec_Rest struct {
 	Rest *rest.DestinationSpec `protobuf:"bytes,3,opt,name=rest,oneof"`
 }
 type DestinationSpec_Grpc struct {
-	Grpc *grpc1.DestinationSpec `protobuf:"bytes,4,opt,name=grpc,oneof"`
+	Grpc *grpc.DestinationSpec `protobuf:"bytes,4,opt,name=grpc,oneof"`
 }
 type DestinationSpec_Sqoop struct {
 	Sqoop *sqoop.DestinationSpec `protobuf:"bytes,5,opt,name=sqoop,oneof"`
@@ -262,7 +262,7 @@ func (m *DestinationSpec) GetRest() *rest.DestinationSpec {
 	return nil
 }
 
-func (m *DestinationSpec) GetGrpc() *grpc1.DestinationSpec {
+func (m *DestinationSpec) GetGrpc() *grpc.DestinationSpec {
 	if x, ok := m.GetDestinationType().(*DestinationSpec_Grpc); ok {
 		return x.Grpc
 	}
@@ -354,7 +354,7 @@ func _DestinationSpec_OneofUnmarshaler(msg proto.Message, tag, wire int, b *prot
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(grpc1.DestinationSpec)
+		msg := new(grpc.DestinationSpec)
 		err := b.DecodeMessage(msg)
 		m.DestinationType = &DestinationSpec_Grpc{msg}
 		return true, err

@@ -16,26 +16,26 @@ pages:
   - Artifacts: v1/artifact.proto.sk.md
   - Plugins:
     - Plugin Overview: v1/plugins.proto.sk.md
-    - Transformation: v1/transformation/transformation.proto.sk.md
-    - Transformation Parameters: v1/transformation/parameters.proto.sk.md
-    - Transformation Prefix Rewrite: v1/transformation/prefix_rewrite.proto.sk.md
-    - Service Spec: v1/service_spec.proto.sk.md
-    - Aws: v1/aws/aws.proto.sk.md
-    - Azure: v1/azure/azure.proto.sk.md
-    - Rest: v1/rest/rest.proto.sk.md
-    - Settings: v1/settings.proto.sk.md
-    - Static: v1/static/static.proto.sk.md
-    - Consul: v1/consul/consul.proto.sk.md
-    - Kubernetes: v1/kubernetes/kubernetes.proto.sk.md
-    - Sqoop: v1/sqoop/sqoop.proto.sk.md
-    - Rate Limit: v1/ratelimit/ratelimit.proto.sk.md
-    - gRPC: v1/grpc/grpc.proto.sk.md
-    - Fault Injection: v1/faultinjection/fault.proto.sk.md
+    - Transformation: v1/plugins/transformation/transformation.proto.sk.md
+    - Transformation Parameters: v1/plugins/transformation/parameters.proto.sk.md
+    - Transformation Prefix Rewrite: v1/plugins/transformation/prefix_rewrite.proto.sk.md
+    - Service Spec: v1/plugins/service_spec.proto.sk.md
+    - Aws: v1/plugins/aws/aws.proto.sk.md
+    - Azure: v1/plugins/azure/azure.proto.sk.md
+    - Rest: v1/plugins/rest/rest.proto.sk.md
+    - Static: v1/plugins/static/static.proto.sk.md
+    - Consul: v1/plugins/consul/consul.proto.sk.md
+    - Kubernetes: v1/plugins/kubernetes/kubernetes.proto.sk.md
+    - Sqoop: v1/plugins/sqoop/sqoop.proto.sk.md
+    - Rate Limit: v1/plugins/ratelimit/ratelimit.proto.sk.md
+    - gRPC: v1/plugins/grpc/grpc.proto.sk.md
+    - Fault Injection: v1/plugins/faultinjection/fault.proto.sk.md
   - Core:
-    - Metadata: v1/metadata.proto.sk.md
-    - Status: v1/status.proto.sk.md
-    - ResourceRef: v1/ref.proto.sk.md
+    - Metadata: v1/core/metadata.proto.sk.md
+    - Status: v1/core/status.proto.sk.md
+    - ResourceRef: v1/core/ref.proto.sk.md
   - Advanced:
+    - Settings: v1/settings.proto.sk.md
     - Gateways: v1/gateway.proto.sk.md
     - Proxies: v1/proxy.proto.sk.md
 
