@@ -30,15 +30,27 @@ clean:
 #----------------------------------------------------------------------------------
 
 .PHONY: generated-code
-generated-code: $(OUTPUT_DIR)/.generated-code
+generated-code: generated-docs-and-code
 
-SUBDIRS:=projects
-$(OUTPUT_DIR)/.generated-code:
-	go generate ./...
-	gofmt -w $(SUBDIRS)
-	goimports -w $(SUBDIRS)
-	touch $@
+generated-docs-and-code: docs-and-code/v1
 
+docs-and-code/v1:
+	go run $(GOPATH)/src/github.com/solo-io/gloo/cmd/solo-kit-gen/main.go -r projects/gateway -i projects/gloo/api
+	go run $(GOPATH)/src/github.com/solo-io/gloo/cmd/solo-kit-gen/main.go -r projects/gloo
+	# TODO ilackarms: make sure projects aren't creating docs for other projects
+	# which gateway does for gloo here
+	# rm -rf docs/v1/github.com/
+
+site: docs/index.md generated-docs-and-code
+	mkdocs build
+
+.PHONY: docker-site
+docker-site: site
+	docker build -t soloio/gloo-docs:$(VERSION) .
+
+.PHONY: docker-site-push
+docker-site-push: docker-site
+	docker push soloio/gloo-docs:$(VERSION)
 
 #################
 #################
@@ -193,10 +205,3 @@ docker-push:
 	docker push soloio/discovery:$(VERSION) && \
 	docker push soloio/gloo:$(VERSION) && \
 	docker push soloio/gloo-envoy-wrapper:$(VERSION)
-
-#----------------------------------------------------------------------------------
-# protoc plugin binary
-#----------------------------------------------------------------------------------
-
-$(OUTPUT_DIR)/protoc-gen-solo-kit: $(SOURCES)
-	go build -o $@ cmd/protoc-gen-solo-kit/main.go
