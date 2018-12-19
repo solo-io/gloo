@@ -153,7 +153,7 @@ $(OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile
 	cp $< $@
 
 gloo-envoy-wrapper: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
-	docker build -t soloio/gloo-envoy-wrapper:0.5.0 $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
+	docker build -t soloio/gloo-envoy-wrapper:$(VERSION) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
 
 
 #----------------------------------------------------------------------------------
@@ -167,8 +167,8 @@ RELEASE_BINARIES := \
 	$(OUTPUT_DIR)/gloo-linux-amd64 \
 	$(OUTPUT_DIR)/discovery-linux-amd64 \
 	$(OUTPUT_DIR)/envoyinit-linux-amd64 \
-    $(OUTPUT_DIR)/glooctl-linux-amd64 \
-    $(OUTPUT_DIR)/glooctl-darwin-amd64
+	$(OUTPUT_DIR)/glooctl-linux-amd64 \
+	$(OUTPUT_DIR)/glooctl-darwin-amd64
 
 .PHONY: release-binaries
 release-binaries: $(RELEASE_BINARIES)
