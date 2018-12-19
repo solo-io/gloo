@@ -16,61 +16,21 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/auth"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/config"
-	apiserver "github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql"
+	apiServer "github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/graph"
-	gatewayv1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
-	gatewaysetup "github.com/solo-io/solo-projects/projects/gateway/pkg/syncer"
+	gatewayV1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
-	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
-	sqoopsetup "github.com/solo-io/solo-projects/projects/sqoop/pkg/syncer"
+	sqoopV1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 )
 
-// Setup initializes the apiserver
-func Setup(ctx context.Context, port int, dev bool, debugMode bool, settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) error {
+// Setup initializes the api server
+func Setup(ctx context.Context, port int, dev bool, debugMode bool, opts ApiServerOpts) error {
+
 	// fail fast if the environment is not correctly configured
 	config.ValidateEnvVars()
+
 	// initial resource registration
-	upstreams, err := v1.NewUpstreamClient(glooOpts.Upstreams)
-	if err != nil {
-		return err
-	}
-	if err := upstreams.Register(); err != nil {
-		return err
-	}
-	secrets, err := v1.NewSecretClient(glooOpts.Secrets)
-	if err != nil {
-		return err
-	}
-	if err := secrets.Register(); err != nil {
-		return err
-	}
-	artifacts, err := v1.NewArtifactClient(glooOpts.Artifacts)
-	if err != nil {
-		return err
-	}
-	if err := artifacts.Register(); err != nil {
-		return err
-	}
-	virtualServices, err := gatewayv1.NewVirtualServiceClient(gatewayOpts.VirtualServices)
-	if err != nil {
-		return err
-	}
-	if err := virtualServices.Register(); err != nil {
-		return err
-	}
-	resolverMaps, err := sqoopv1.NewResolverMapClient(sqoopOpts.ResolverMaps)
-	if err != nil {
-		return err
-	}
-	if err := resolverMaps.Register(); err != nil {
-		return err
-	}
-	schemas, err := sqoopv1.NewSchemaClient(sqoopOpts.Schemas)
-	if err != nil {
-		return err
-	}
-	if err := schemas.Register(); err != nil {
+	if err := initialResourceRegistration(opts); err != nil {
 		return err
 	}
 
@@ -84,14 +44,14 @@ func Setup(ctx context.Context, port int, dev bool, debugMode bool, settings v1.
 		Debug:            debugMode,
 	})
 
-	perTokenClientsets := NewPerTokenClientsets(settings, glooOpts, gatewayOpts, sqoopOpts)
+	perTokenClientsets := NewPerTokenClientsets(opts)
 
 	http.Handle("/playground", handler.Playground("Solo-ApiServer", "/query"))
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		var resolvers graph.ResolverRoot
 		token := auth.GetToken(w, r)
 		if token == "" {
-			resolvers = apiserver.NewUnregisteredResolver()
+			resolvers = apiServer.NewUnregisteredResolver()
 		} else {
 			clientset, err := perTokenClientsets.ClientsetForToken(token)
 			if err != nil {
@@ -129,6 +89,126 @@ func Setup(ctx context.Context, port int, dev bool, debugMode bool, settings v1.
 	return http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
 }
 
+// PerTokenClientsets contains global settings and user-specific resource clients
+// clients is a map from user token to resource clients
+// the token is also used for authorizing actions on the resource clients
+type PerTokenClientsets struct {
+	lock    sync.RWMutex
+	clients map[string]*ClientSet
+	opts    ApiServerOpts
+}
+
+// NewPerTokenClientsets - helper function
+func NewPerTokenClientsets(opts ApiServerOpts) PerTokenClientsets {
+	return PerTokenClientsets{
+		clients: make(map[string]*ClientSet),
+		opts:    opts,
+	}
+}
+
+func (ptc PerTokenClientsets) ClientsetForToken(token string) (*ClientSet, error) {
+	ptc.lock.Lock()
+	defer ptc.lock.Unlock()
+	clientsetForToken, ok := ptc.clients[token]
+	if ok {
+		return clientsetForToken, nil
+	}
+	// the new clientset has a new cache
+	clientset, err := NewClientSet(token, ptc.opts)
+	if err != nil {
+		return nil, err
+	}
+	ptc.clients[token] = clientset
+	return clientset, nil
+}
+
+// ClientSet is a collection of all the exposed resource clients
+type ClientSet struct {
+	v1.UpstreamClient
+	gatewayV1.VirtualServiceClient
+	v1.SettingsClient
+	v1.SecretClient
+	v1.ArtifactClient
+	sqoopV1.ResolverMapClient
+	sqoopV1.SchemaClient
+}
+
+// NewClientSet - helper function
+// Warning! this will write to opts
+// Todo: ilackarms: refactor this so opts is copied
+func NewClientSet(token string, opts ApiServerOpts) (*ClientSet, error) {
+
+	// Create a new cache for the token
+	cache := kube.NewKubeCache()
+
+	// todo: be sure to add new resource clients here
+	for _, rcFactory := range []factory.ResourceClientFactory{
+		opts.UpstreamsRCF,
+		opts.VirtualServicesRCF,
+		opts.SchemasRCF,
+		opts.ResolverMapsRCF,
+		opts.SecretsRCF,
+		opts.ArtifactsRCF,
+	} {
+		setKubeFactoryCache(rcFactory, cache)
+	}
+
+	upstreams, err := v1.NewUpstreamClientWithToken(opts.UpstreamsRCF, token)
+	if err != nil {
+		return nil, err
+	}
+	secrets, err := v1.NewSecretClientWithToken(opts.SecretsRCF, token)
+	if err != nil {
+		return nil, err
+	}
+	artifacts, err := v1.NewArtifactClientWithToken(opts.ArtifactsRCF, token)
+	if err != nil {
+		return nil, err
+	}
+	virtualServices, err := gatewayV1.NewVirtualServiceClientWithToken(opts.VirtualServicesRCF, token)
+	if err != nil {
+		return nil, err
+	}
+	resolverMaps, err := sqoopV1.NewResolverMapClientWithToken(opts.ResolverMapsRCF, token)
+	if err != nil {
+		return nil, err
+	}
+	schemas, err := sqoopV1.NewSchemaClientWithToken(opts.SchemasRCF, token)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := registerAll(upstreams, secrets, artifacts, virtualServices, resolverMaps, schemas); err != nil {
+		return nil, err
+	}
+	return &ClientSet{
+		UpstreamClient:       upstreams,
+		ArtifactClient:       artifacts,
+		SecretClient:         secrets,
+		ResolverMapClient:    resolverMaps,
+		SchemaClient:         schemas,
+		VirtualServiceClient: virtualServices,
+		SettingsClient:       opts.SettingsClient,
+	}, nil
+}
+
+// NewResolvers - helper function
+func (c ClientSet) NewResolvers() *apiServer.ApiResolver {
+	return apiServer.NewResolvers(c.UpstreamClient,
+		c.SchemaClient,
+		c.ArtifactClient,
+		c.SettingsClient,
+		c.SecretClient,
+		c.VirtualServiceClient,
+		c.ResolverMapClient)
+}
+
+func setKubeFactoryCache(fact factory.ResourceClientFactory, cache *kube.KubeCache) {
+	if kubeFactory, ok := fact.(*factory.KubeResourceClientFactory); ok {
+		kubeFactory.SharedCache = cache
+	}
+}
+
 // TODO(ilackarms): move to solo kit
 type registrant interface {
 	Register() error
@@ -143,121 +223,48 @@ func registerAll(clients ...registrant) error {
 	return nil
 }
 
-// PerTokenClientsets contains global settings and user-specific resource clients
-// clients is a map from user token to resource clients
-// the token is also used for authorizing actions on the resource clients
-type PerTokenClientsets struct {
-	lock        sync.RWMutex
-	clients     map[string]*Clientset
-	settings    v1.SettingsClient
-	glooOpts    bootstrap.Opts
-	gatewayOpts gatewaysetup.Opts
-	sqoopOpts   sqoopsetup.Opts
-}
-
-// NewPerTokenClientsets - helper function
-func NewPerTokenClientsets(settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) PerTokenClientsets {
-	return PerTokenClientsets{
-		clients:     make(map[string]*Clientset),
-		settings:    settings,
-		glooOpts:    glooOpts,
-		gatewayOpts: gatewayOpts,
-		sqoopOpts:   sqoopOpts,
-	}
-}
-
-func (ptc PerTokenClientsets) ClientsetForToken(token string) (*Clientset, error) {
-	ptc.lock.Lock()
-	defer ptc.lock.Unlock()
-	clientsetForToken, ok := ptc.clients[token]
-	if ok {
-		return clientsetForToken, nil
-	}
-	// the new clientset has a new cache
-	clientset, err := NewClientSet(token, ptc.settings, ptc.glooOpts, ptc.gatewayOpts, ptc.sqoopOpts)
+func initialResourceRegistration(opts ApiServerOpts) error {
+	upstreams, err := v1.NewUpstreamClient(opts.UpstreamsRCF)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	ptc.clients[token] = clientset
-	return clientset, nil
-}
-
-// Clientset is a collection of all the exposed resource clients
-type Clientset struct {
-	v1.UpstreamClient
-	gatewayv1.VirtualServiceClient
-	v1.SettingsClient
-	v1.SecretClient
-	v1.ArtifactClient
-	sqoopv1.ResolverMapClient
-	sqoopv1.SchemaClient
-}
-
-func setKubeFactoryCache(fact factory.ResourceClientFactory, cache *kube.KubeCache) {
-	if kubeFactory, ok := fact.(*factory.KubeResourceClientFactory); ok {
-		kubeFactory.SharedCache = cache
+	if err := upstreams.Register(); err != nil {
+		return err
 	}
-}
-
-// NewClientSet - helper function
-// Warning! this will write to opts
-// Todo: ilackarms: refactor this so opts is copied
-func NewClientSet(token string, settings v1.SettingsClient, glooOpts bootstrap.Opts, gatewayOpts gatewaysetup.Opts, sqoopOpts sqoopsetup.Opts) (*Clientset, error) {
-	cache := kube.NewKubeCache()
-	// todo: be sure to add new resource clients here
-	setKubeFactoryCache(glooOpts.Proxies, cache)
-	setKubeFactoryCache(glooOpts.Upstreams, cache)
-	setKubeFactoryCache(glooOpts.Artifacts, cache)
-	setKubeFactoryCache(glooOpts.Secrets, cache)
-	setKubeFactoryCache(gatewayOpts.VirtualServices, cache)
-	setKubeFactoryCache(gatewayOpts.Gateways, cache)
-	setKubeFactoryCache(sqoopOpts.Schemas, cache)
-	setKubeFactoryCache(sqoopOpts.ResolverMaps, cache)
-	upstreams, err := v1.NewUpstreamClientWithToken(glooOpts.Upstreams, token)
+	secrets, err := v1.NewSecretClient(opts.SecretsRCF)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	secrets, err := v1.NewSecretClientWithToken(glooOpts.Secrets, token)
+	if err := secrets.Register(); err != nil {
+		return err
+	}
+	artifacts, err := v1.NewArtifactClient(opts.ArtifactsRCF)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	artifacts, err := v1.NewArtifactClientWithToken(glooOpts.Artifacts, token)
+	if err := artifacts.Register(); err != nil {
+		return err
+	}
+	virtualServices, err := gatewayV1.NewVirtualServiceClient(opts.VirtualServicesRCF)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	virtualServices, err := gatewayv1.NewVirtualServiceClientWithToken(gatewayOpts.VirtualServices, token)
+	if err := virtualServices.Register(); err != nil {
+		return err
+	}
+	resolverMaps, err := sqoopV1.NewResolverMapClient(opts.ResolverMapsRCF)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	resolverMaps, err := sqoopv1.NewResolverMapClientWithToken(sqoopOpts.ResolverMaps, token)
+	if err := resolverMaps.Register(); err != nil {
+		return err
+	}
+	schemas, err := sqoopV1.NewSchemaClient(opts.SchemasRCF)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	schemas, err := sqoopv1.NewSchemaClientWithToken(sqoopOpts.Schemas, token)
-	if err != nil {
-		return nil, err
+	if err := schemas.Register(); err != nil {
+		return err
 	}
-	if err := registerAll(upstreams, secrets, artifacts, virtualServices, resolverMaps, schemas); err != nil {
-		return nil, err
-	}
-	return &Clientset{
-		UpstreamClient:       upstreams,
-		ArtifactClient:       artifacts,
-		SecretClient:         secrets,
-		ResolverMapClient:    resolverMaps,
-		SchemaClient:         schemas,
-		VirtualServiceClient: virtualServices,
-		SettingsClient:       settings,
-	}, nil
-}
-
-// NewResolvers - helper function
-func (c Clientset) NewResolvers() *apiserver.ApiResolver {
-	return apiserver.NewResolvers(c.UpstreamClient,
-		c.SchemaClient,
-		c.ArtifactClient,
-		c.SettingsClient,
-		c.SecretClient,
-		c.VirtualServiceClient,
-		c.ResolverMapClient)
+	return nil
 }
