@@ -7,7 +7,7 @@ import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
-import grpc "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/grpc"
+import grpc1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/grpc"
 import rest "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/rest"
 import sqoop "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/sqoop"
 
@@ -75,7 +75,7 @@ type ServiceSpec_Rest struct {
 	Rest *rest.ServiceSpec `protobuf:"bytes,1,opt,name=rest,oneof"`
 }
 type ServiceSpec_Grpc struct {
-	Grpc *grpc.ServiceSpec `protobuf:"bytes,2,opt,name=grpc,oneof"`
+	Grpc *grpc1.ServiceSpec `protobuf:"bytes,2,opt,name=grpc,oneof"`
 }
 type ServiceSpec_Sqoop struct {
 	Sqoop *sqoop.ServiceSpec `protobuf:"bytes,3,opt,name=sqoop,oneof"`
@@ -99,7 +99,7 @@ func (m *ServiceSpec) GetRest() *rest.ServiceSpec {
 	return nil
 }
 
-func (m *ServiceSpec) GetGrpc() *grpc.ServiceSpec {
+func (m *ServiceSpec) GetGrpc() *grpc1.ServiceSpec {
 	if x, ok := m.GetPluginType().(*ServiceSpec_Grpc); ok {
 		return x.Grpc
 	}
@@ -163,7 +163,7 @@ func _ServiceSpec_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Bu
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(grpc.ServiceSpec)
+		msg := new(grpc1.ServiceSpec)
 		err := b.DecodeMessage(msg)
 		m.PluginType = &ServiceSpec_Grpc{msg}
 		return true, err

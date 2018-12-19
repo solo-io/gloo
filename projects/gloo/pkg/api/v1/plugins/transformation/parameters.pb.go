@@ -7,7 +7,7 @@ import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
-import wrappers "github.com/golang/protobuf/ptypes/wrappers"
+import types "github.com/gogo/protobuf/types"
 
 import bytes "bytes"
 
@@ -39,10 +39,10 @@ type Parameters struct {
 	//   extensions:
 	//     parameters:
 	//         path: /users/{ userId }
-	Path                 *wrappers.StringValue `protobuf:"bytes,2,opt,name=path" json:"path,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
-	XXX_unrecognized     []byte                `json:"-"`
-	XXX_sizecache        int32                 `json:"-"`
+	Path                 *types.StringValue `protobuf:"bytes,2,opt,name=path" json:"path,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
 }
 
 func (m *Parameters) Reset()         { *m = Parameters{} }
@@ -76,7 +76,7 @@ func (m *Parameters) GetHeaders() map[string]string {
 	return nil
 }
 
-func (m *Parameters) GetPath() *wrappers.StringValue {
+func (m *Parameters) GetPath() *types.StringValue {
 	if m != nil {
 		return m.Path
 	}

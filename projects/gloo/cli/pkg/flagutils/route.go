@@ -13,7 +13,7 @@ func AddRouteFlags(set *pflag.FlagSet, route *options.InputRoute) {
 	set.StringVarP(&route.Matcher.PathExact, "path-exact", "e", "", "regex matcher for route. "+
 		"note: only one of path-exact, path-regex, or path-prefix should be set")
 	set.StringVarP(&route.Matcher.PathRegex, "path-regex", "r", "", "exact path to match route")
-	set.StringVarP(&route.Matcher.PathRegex, "path-prefix", "p", "", "path prefix to match route")
+	set.StringVarP(&route.Matcher.PathPrefix, "path-prefix", "p", "", "path prefix to match route")
 	set.StringSliceVarP(&route.Matcher.Methods, "method", "m", []string{},
 		"the HTTP methods (GET, POST, etc.) to match on the request. if empty, all methods will match ")
 	set.StringSliceVarP(&route.Matcher.HeaderMatcher.Entries, "header", "d", []string{},
@@ -23,9 +23,6 @@ func AddRouteFlags(set *pflag.FlagSet, route *options.InputRoute) {
 		"name of the destination upstream for this route")
 	set.StringVarP(&route.Destination.Upstream.Namespace, "dest-namespace", "s", defaults.GlooSystem,
 		"namespace of the destination upstream for this route")
-	set.StringVarP(&route.Destination.DestinationSpec.DestinationType, "dest-type", "t", "",
-		"type of the destination being routed to. this is optional depending on the upstream type. required if you "+
-			"wish to invoke a function, e.g. invoke a Lambda function or gRPC method.")
 
 	set.StringVarP(&route.Destination.DestinationSpec.Aws.LogicalName, "aws-function-name", "a", "",
 		"logical name of the AWS lambda to invoke with this route. use if destination is an AWS upstream")
@@ -40,4 +37,7 @@ func AddRouteFlags(set *pflag.FlagSet, route *options.InputRoute) {
 			"'header_name=extractor_string' where header_name is the HTTP2 equivalent header (':path' for HTTP 1 path).\n\n"+
 			"For example, to extract the variable 'id' from the following request path /users/1, where 1 is the id:\n"+
 			"--rest-parameters ':path='/users/{id}'")
+
+	set.Var(&route.Plugins.PrefixRewrite, "prefix-rewrite", "rewrite the matched portion of HTTP requests with this prefix.\n"+
+		"note that this will be overridden if your routes point to function destinations")
 }

@@ -42,7 +42,7 @@ func addRouteCmd(opts *options.Options) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return addRoute(opts, args)
+			return addRoute(opts)
 		},
 	}
 	pflags := cmd.PersistentFlags()
@@ -55,8 +55,10 @@ func addRouteCmd(opts *options.Options) *cobra.Command {
 func selectOrCreateVirtualService(opts *options.Options) (*gatewayv1.VirtualService, error) {
 	vsClient := helpers.MustVirtualServiceClient()
 	if opts.Metadata.Name != "" {
-		return vsClient.Read(opts.Metadata.Namespace, opts.Metadata.Name,
-			clients.ReadOpts{Ctx: opts.Top.Ctx})
+		if existing, err := vsClient.Read(opts.Metadata.Namespace, opts.Metadata.Name,
+			clients.ReadOpts{Ctx: opts.Top.Ctx}); err == nil {
+			return existing, nil
+		}
 	}
 
 	for _, ns := range helpers.MustGetNamespaces() {
@@ -76,7 +78,9 @@ func selectOrCreateVirtualService(opts *options.Options) (*gatewayv1.VirtualServ
 	}
 
 	// TODO: edge case: check that default vs does not already exist with no * domains
-	opts.Metadata.Name = "default"
+	if opts.Metadata.Name == "" {
+		opts.Metadata.Name = "default"
+	}
 
 	// no vs exist with default domain
 	fmt.Printf("creating virtualservice %v with default domain *\n", opts.Metadata.Name)
@@ -88,7 +92,7 @@ func selectOrCreateVirtualService(opts *options.Options) (*gatewayv1.VirtualServ
 	}, nil
 }
 
-func addRoute(opts *options.Options, args []string) error {
+func addRoute(opts *options.Options) error {
 	match, err := matcherFromInput(opts.Add.Route.Matcher)
 	if err != nil {
 		return err
@@ -97,10 +101,15 @@ func addRoute(opts *options.Options, args []string) error {
 	if err != nil {
 		return err
 	}
+	plugins, err := pluginsFromInput(opts.Add.Route.Plugins)
+	if err != nil {
+		return err
+	}
 
 	v1Route := &v1.Route{
-		Matcher: match,
-		Action:  action,
+		Matcher:      match,
+		Action:       action,
+		RoutePlugins: plugins,
 	}
 
 	index := int(opts.Add.Route.InsertIndex)
@@ -189,9 +198,20 @@ func actionFromInput(input options.InputRoute) (*v1.Route_RouteAction, error) {
 	return a, nil
 }
 
+func pluginsFromInput(input options.RoutePlugins) (*v1.RoutePlugins, error) {
+	if input.PrefixRewrite.Value == nil {
+		return nil, nil
+	}
+	return &v1.RoutePlugins{
+		PrefixRewrite: &transformation.PrefixRewrite{
+			PrefixRewrite: *input.PrefixRewrite.Value,
+		},
+	}, nil
+}
+
 func destSpecFromInput(input options.DestinationSpec) (*v1.DestinationSpec, error) {
-	switch input.DestinationType {
-	case options.DestinationType_Aws:
+	switch {
+	case input.Aws.LogicalName != "":
 		return &v1.DestinationSpec{
 			DestinationType: &v1.DestinationSpec_Aws{
 				Aws: &aws.DestinationSpec{
@@ -200,7 +220,7 @@ func destSpecFromInput(input options.DestinationSpec) (*v1.DestinationSpec, erro
 				},
 			},
 		}, nil
-	case options.DestinationType_Rest:
+	case input.Rest.FunctionName != "":
 		return &v1.DestinationSpec{
 			DestinationType: &v1.DestinationSpec_Rest{
 				Rest: &rest.DestinationSpec{
@@ -212,5 +232,5 @@ func destSpecFromInput(input options.DestinationSpec) (*v1.DestinationSpec, erro
 			},
 		}, nil
 	}
-	return nil, errors.Errorf("unimplemented destination type: %v", input.DestinationType)
+	return nil, nil // errors.Errorf("unimplemented destination type: %v", input.DestinationType)
 }

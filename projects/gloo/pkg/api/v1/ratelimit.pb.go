@@ -6,12 +6,17 @@ package v1 // import "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
-import _ "envoy/api/v2"
+import v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 import _ "github.com/gogo/protobuf/gogoproto"
 import ratelimit "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 import _ "google.golang.org/genproto/googleapis/api/annotations"
 
 import bytes "bytes"
+
+import (
+	context "golang.org/x/net/context"
+	grpc "google.golang.org/grpc"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -215,6 +220,209 @@ func (this *RateLimitConfig) Equal(that interface{}) bool {
 		return false
 	}
 	return true
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion4
+
+// RateLimitDiscoveryServiceClient is the client API for RateLimitDiscoveryService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type RateLimitDiscoveryServiceClient interface {
+	StreamRateLimitConfig(ctx context.Context, opts ...grpc.CallOption) (RateLimitDiscoveryService_StreamRateLimitConfigClient, error)
+	IncrementalRateLimitConfig(ctx context.Context, opts ...grpc.CallOption) (RateLimitDiscoveryService_IncrementalRateLimitConfigClient, error)
+	FetchRateLimitConfig(ctx context.Context, in *v2.DiscoveryRequest, opts ...grpc.CallOption) (*v2.DiscoveryResponse, error)
+}
+
+type rateLimitDiscoveryServiceClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewRateLimitDiscoveryServiceClient(cc *grpc.ClientConn) RateLimitDiscoveryServiceClient {
+	return &rateLimitDiscoveryServiceClient{cc}
+}
+
+func (c *rateLimitDiscoveryServiceClient) StreamRateLimitConfig(ctx context.Context, opts ...grpc.CallOption) (RateLimitDiscoveryService_StreamRateLimitConfigClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_RateLimitDiscoveryService_serviceDesc.Streams[0], "/gloo.solo.io.RateLimitDiscoveryService/StreamRateLimitConfig", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &rateLimitDiscoveryServiceStreamRateLimitConfigClient{stream}
+	return x, nil
+}
+
+type RateLimitDiscoveryService_StreamRateLimitConfigClient interface {
+	Send(*v2.DiscoveryRequest) error
+	Recv() (*v2.DiscoveryResponse, error)
+	grpc.ClientStream
+}
+
+type rateLimitDiscoveryServiceStreamRateLimitConfigClient struct {
+	grpc.ClientStream
+}
+
+func (x *rateLimitDiscoveryServiceStreamRateLimitConfigClient) Send(m *v2.DiscoveryRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *rateLimitDiscoveryServiceStreamRateLimitConfigClient) Recv() (*v2.DiscoveryResponse, error) {
+	m := new(v2.DiscoveryResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *rateLimitDiscoveryServiceClient) IncrementalRateLimitConfig(ctx context.Context, opts ...grpc.CallOption) (RateLimitDiscoveryService_IncrementalRateLimitConfigClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_RateLimitDiscoveryService_serviceDesc.Streams[1], "/gloo.solo.io.RateLimitDiscoveryService/IncrementalRateLimitConfig", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &rateLimitDiscoveryServiceIncrementalRateLimitConfigClient{stream}
+	return x, nil
+}
+
+type RateLimitDiscoveryService_IncrementalRateLimitConfigClient interface {
+	Send(*v2.IncrementalDiscoveryRequest) error
+	Recv() (*v2.IncrementalDiscoveryResponse, error)
+	grpc.ClientStream
+}
+
+type rateLimitDiscoveryServiceIncrementalRateLimitConfigClient struct {
+	grpc.ClientStream
+}
+
+func (x *rateLimitDiscoveryServiceIncrementalRateLimitConfigClient) Send(m *v2.IncrementalDiscoveryRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *rateLimitDiscoveryServiceIncrementalRateLimitConfigClient) Recv() (*v2.IncrementalDiscoveryResponse, error) {
+	m := new(v2.IncrementalDiscoveryResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *rateLimitDiscoveryServiceClient) FetchRateLimitConfig(ctx context.Context, in *v2.DiscoveryRequest, opts ...grpc.CallOption) (*v2.DiscoveryResponse, error) {
+	out := new(v2.DiscoveryResponse)
+	err := c.cc.Invoke(ctx, "/gloo.solo.io.RateLimitDiscoveryService/FetchRateLimitConfig", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// RateLimitDiscoveryServiceServer is the server API for RateLimitDiscoveryService service.
+type RateLimitDiscoveryServiceServer interface {
+	StreamRateLimitConfig(RateLimitDiscoveryService_StreamRateLimitConfigServer) error
+	IncrementalRateLimitConfig(RateLimitDiscoveryService_IncrementalRateLimitConfigServer) error
+	FetchRateLimitConfig(context.Context, *v2.DiscoveryRequest) (*v2.DiscoveryResponse, error)
+}
+
+func RegisterRateLimitDiscoveryServiceServer(s *grpc.Server, srv RateLimitDiscoveryServiceServer) {
+	s.RegisterService(&_RateLimitDiscoveryService_serviceDesc, srv)
+}
+
+func _RateLimitDiscoveryService_StreamRateLimitConfig_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(RateLimitDiscoveryServiceServer).StreamRateLimitConfig(&rateLimitDiscoveryServiceStreamRateLimitConfigServer{stream})
+}
+
+type RateLimitDiscoveryService_StreamRateLimitConfigServer interface {
+	Send(*v2.DiscoveryResponse) error
+	Recv() (*v2.DiscoveryRequest, error)
+	grpc.ServerStream
+}
+
+type rateLimitDiscoveryServiceStreamRateLimitConfigServer struct {
+	grpc.ServerStream
+}
+
+func (x *rateLimitDiscoveryServiceStreamRateLimitConfigServer) Send(m *v2.DiscoveryResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *rateLimitDiscoveryServiceStreamRateLimitConfigServer) Recv() (*v2.DiscoveryRequest, error) {
+	m := new(v2.DiscoveryRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _RateLimitDiscoveryService_IncrementalRateLimitConfig_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(RateLimitDiscoveryServiceServer).IncrementalRateLimitConfig(&rateLimitDiscoveryServiceIncrementalRateLimitConfigServer{stream})
+}
+
+type RateLimitDiscoveryService_IncrementalRateLimitConfigServer interface {
+	Send(*v2.IncrementalDiscoveryResponse) error
+	Recv() (*v2.IncrementalDiscoveryRequest, error)
+	grpc.ServerStream
+}
+
+type rateLimitDiscoveryServiceIncrementalRateLimitConfigServer struct {
+	grpc.ServerStream
+}
+
+func (x *rateLimitDiscoveryServiceIncrementalRateLimitConfigServer) Send(m *v2.IncrementalDiscoveryResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *rateLimitDiscoveryServiceIncrementalRateLimitConfigServer) Recv() (*v2.IncrementalDiscoveryRequest, error) {
+	m := new(v2.IncrementalDiscoveryRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _RateLimitDiscoveryService_FetchRateLimitConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v2.DiscoveryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RateLimitDiscoveryServiceServer).FetchRateLimitConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gloo.solo.io.RateLimitDiscoveryService/FetchRateLimitConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RateLimitDiscoveryServiceServer).FetchRateLimitConfig(ctx, req.(*v2.DiscoveryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _RateLimitDiscoveryService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "gloo.solo.io.RateLimitDiscoveryService",
+	HandlerType: (*RateLimitDiscoveryServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "FetchRateLimitConfig",
+			Handler:    _RateLimitDiscoveryService_FetchRateLimitConfig_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StreamRateLimitConfig",
+			Handler:       _RateLimitDiscoveryService_StreamRateLimitConfig_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "IncrementalRateLimitConfig",
+			Handler:       _RateLimitDiscoveryService_IncrementalRateLimitConfig_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
+	Metadata: "ratelimit.proto",
 }
 
 func init() { proto.RegisterFile("ratelimit.proto", fileDescriptor_ratelimit_ea029df602ccc5b3) }
