@@ -8,9 +8,7 @@ option (gogoproto.equal_all) = true;
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
-// the imports heree must be the same in all files
-// means the -I must include -I=${GOPATH}/src/github.com/solo-io/solo-projects/projects/gloo/api/v1
-import "proxy.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto";
 
 /*
 @solo-kit:resource.short_name=vs

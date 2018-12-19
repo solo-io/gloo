@@ -40,26 +40,3 @@ message Gateway {
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
 }
-
-/*
-@solo-kit:resource.short_name=vs
-@solo-kit:resource.plural_name=virtual_services
-@solo-kit:resource.resource_groups=api.gateway.solo.io
-
-A virtual service describes the set of routes to match for a set of domains.
-
-Domains must be unique across all virtual services within a gateway (i.e. no overlap between sets).
-*/
-message VirtualService {
-    gloo.solo.io.VirtualHost virtual_host = 1;
-
-    // If provided, the Gateway will serve TLS/SSL traffic for this set of routes
-    gloo.solo.io.SslConfig ssl_config = 2;
-
-    // Status indicates the validation status of this resource.
-    // Status is read-only by clients, and set by gloo during validation
-    core.solo.io.Status status = 6 [(gogoproto.nullable) = false, (gogoproto.moretags) = "testdiff:\"ignore\""];
-
-    // Metadata contains the object metadata for this resource
-    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
-}
