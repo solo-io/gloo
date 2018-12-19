@@ -68,9 +68,10 @@
 # TODO (rick): use tagged version when this commit merges
 [[constraint]]
   name = "github.com/solo-io/solo-kit"
-  revision = "0cbeb685f8af75f5ad2eb9ed7757216b4a917613"
+  version = "0.2.1"
 
 [[constraint]]
+
   name = "github.com/hashicorp/consul"
   revision = "eba25a143821cec25bdb48fe64dd7b7a6152d01d"
 
