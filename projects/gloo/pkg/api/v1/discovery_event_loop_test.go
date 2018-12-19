@@ -4,7 +4,6 @@ package v1
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -46,24 +45,15 @@ var _ = Describe("DiscoveryEventLoop", func() {
 		el := NewDiscoveryEventLoop(emitter, sync)
 		_, err := el.Run([]string{namespace}, clients.WatchOpts{})
 		Expect(err).NotTo(HaveOccurred())
-		Eventually(sync.Synced, 5*time.Second).Should(BeTrue())
+		Eventually(func() bool { return sync.synced }, time.Second).Should(BeTrue())
 	})
 })
 
 type mockDiscoverySyncer struct {
 	synced bool
-	mutex  sync.Mutex
-}
-
-func (s *mockDiscoverySyncer) Synced() bool {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	return s.synced
 }
 
 func (s *mockDiscoverySyncer) Sync(ctx context.Context, snap *DiscoverySnapshot) error {
-	s.mutex.Lock()
 	s.synced = true
-	s.mutex.Unlock()
 	return nil
 }

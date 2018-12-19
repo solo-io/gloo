@@ -33,8 +33,8 @@ clean:
 generated-code: $(OUTPUT_DIR)/.generated-code
 
 SUBDIRS:=projects
-$(OUTPUT_DIR)/.generated-code: $(OUTPUT_DIR)/protoc-gen-solo-kit
-	PATH=$(OUTPUT_DIR):$${PATH} go generate ./...
+$(OUTPUT_DIR)/.generated-code:
+	go generate ./...
 	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)
 	touch $@
