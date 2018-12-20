@@ -1,0 +1,45 @@
+steps:
+- name: 'soloio/dep'
+  args: ['ensure']
+  env: ['PROJECT_ROOT=github.com/solo-io/gloo']
+  id: 'dep'
+
+- name: gcr.io/cloud-builders/gsutil
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    gsutil cp gs://solo-public-artifacts.solo.io/envoy/547421c3922fbfab04ac90a732396c4b9878a052/envoy.stripped /workspace/envoy
+    chmod +x /workspace/envoy
+  waitFor: ['-']
+  id: 'get-envoy'
+
+- name: gcr.io/cloud-builders/gcloud
+  args:
+  - kms
+  - decrypt
+  - --ciphertext-file=ci/aws_credentials.enc
+  - --plaintext-file=/workspace/aws_credentials
+  - --location=global
+  - --keyring=build
+  - --key=build-key
+  waitFor: ['-']
+  id: 'setup-aws-creds'
+
+# e2e-go is produced from https://github.com/solo-io/cloud-builders/e2e-go
+# sets up redis, consul, kubectl, go with required environment variables
+# need to use the provided entrypoint
+- name: 'gcr.io/$PROJECT_ID/e2e-go'
+  env:
+  - 'PROJECT_ROOT=github.com/solo-io/gloo'
+  - 'ENVOY_BINARY=/workspace/envoy'
+  - 'AWS_SHARED_CREDENTIALS_FILE=/workspace/aws_credentials'
+  - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=test-cluster'
+  - 'RUN_KUBE_TESTS=1'
+  args: ['test', '-v', 'github.com/solo-io/gloo/test/e2e']
+  waitFor: ['dep', 'get-envoy', 'setup-aws-creds']
+
+# Not producing artifacts yet. Artifacts need to be produced with the makefile because of
+# setting the version at compile time with a linker flag. Release binaries/images were
+# manually produced for 0.5.0
