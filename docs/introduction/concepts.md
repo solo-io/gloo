@@ -21,8 +21,7 @@ The two top-level concepts in Gloo are **Virtual Services** and **Upstreams**.
 Route rules consist of a *matcher*, which specifies the kind of function calls to match (requests and events,  are currently supported), and the name of the destination (or destinations) to route them to.
 
 - **Upstreams** define destinations for routes. Upstreams tell Gloo what to route to. Upstreams may also define 
-[functions](../v1/upstream.md#Function) for *function-level routing*.
-
+[functions](../v1/plugins/aws/aws.proto.sk.md#LambdaFunctionSpec) and [service specs](../v1/plugins/service_spec.proto.sk.md) for *function-level routing*.
 
 
 
@@ -114,8 +113,8 @@ to a server which is expected to handle the request once it has been admitted (a
 **Function Destinations** allow requests to be routed directly to *functions* that live on various upstreams. A function
 can be a serverless function call (e.g. Lambda, Google Cloud Function, OpenFaaS function, etc.), an API call on a service
 (e.g. a REST API call, OpenAPI operation, XML/SOAP request etc.), or publishing to a message queue (e.g. NATS, AMQP, etc.).
-Function-level routing is enabled in Envoy by Gloo's functional filters<!--(TODO)-->. Gloo supports the addition of new upstream
-types as well as new function types through our plugin interface<!--(TODO)-->.
+Function-level routing is enabled in Envoy by Gloo's function-level filters. Gloo supports the addition of new upstream
+types as well as new function types through our plugin interface.
 
 
 
@@ -124,27 +123,42 @@ types as well as new function types through our plugin interface<!--(TODO)-->.
 ### Upstreams
 
 **Upstreams** define destinations for routes. Upstreams tell Gloo what to route to and how to route to them. Gloo determines
-how to handle routing for the upstream based on its `type` field. Upstreams have a `type`-specific `spec` field which must 
-be used to provide routing information to Gloo based on the type of upstream.
+how to handle routing for the upstream based on its `spec` field. Upstreams have a type-specific `spec` field which must 
+be used to provide routing information to Gloo.
 
-The most basic upstream type is the `service` upstream type<!--(TODO)-->, which simply tells Gloo
-of which hosts an upstream consists. More sophisticated upstream types include the kubernetes upstream type<!--(TODO)-->, 
-and the [AWS Lambda upstream type](../plugins/aws.md).
+The most basic upstream type is the [`static` upstream type](../v1/plugins/static/static.proto.sk.md), which tells Gloo
+a list of static hosts or dns names logically grouped together for an upstream. 
+More sophisticated upstream types include the kubernetes upstream and the 
+[AWS Lambda upstream](../v1/plugins/aws/aws.proto.sk.md).
 
 Let's walk through an example of a kubernetes upstream in order to understand how this works.
 
 Gloo reads in a configuration that looks like the following: 
 
 ```yaml
-name: my-upstream
-type: kubernetes
-spec:
-  service_name: my-k8s-service
-  service_namespace: default
+---
+metadata:
+  labels:
+    app: redis
+    discovered_by: kubernetesplugin
+  name: default-redis-6379
+  namespace: gloo-system
+  resourceVersion: "7010"
+status:
+  reportedBy: gloo
+  state: Accepted
+upstreamSpec:
+  kube:
+    selector:
+      gloo: redis
+    serviceName: redis
+    serviceNamespace: gloo-system
+    servicePort: 6379
+
 ```
 
 - `name` tells Gloo what the identifier for this upstream will be (for routes that point to it).
-- `type: kubernetes` tells Gloo that the kubernetes plugin<!--(TODO)--> knows how to route to this upstream
+- `type: kubernetes` tells Gloo that the kubernetes plugin knows how to route to this upstream
 - `spec: ...` tells the kubernetes plugin the service name and namespace, which is used by Gloo for routing  
 
 
@@ -163,18 +177,29 @@ An example of a virtual service with a route to this upstream:
 
 ```yaml
 
-name: my-app
-routes:
-- request_matcher:
-    path_regex: /users/.*
-  single_destination:
-    function:
-      upstream_name: my-upstream
-      function_name: get_users
-  extensions:
-    parameters:
-    - from: path
-      match: /users/{id}
+metadata:
+  name: default
+  namespace: default
+  resourceVersion: "7306"
+status:
+  reportedBy: gateway
+  state: Accepted
+  subresourceStatuses:
+    '*v1.Proxy gloo-system gateway-proxy': {}
+virtualHost:
+  domains:
+  - '*'
+  name: default.default
+  routes:
+  - matcher:
+      prefix: /
+    routeAction:
+      single:
+        upstream:
+          name: gloo-system-redis-6379
+          namespace: gloo-system
+    routePlugins:
+      prefixRewrite: {}
 
 ```
 
@@ -189,8 +214,8 @@ section.
 
 ### Secrets
 
-Certain plugins such as the [AWS Lambda Plugin](../plugins/aws.md) require the use of secrets for authentication,
-configuration of SSL Certificates<!--(TODO)-->, and other data that should not be stored in plaintext configuration.
+Certain plugins such as the [AWS Lambda Plugin](../v1/plugins/aws/aws.proto.sk.md) require the use of secrets for authentication,
+configuration of SSL Certificates, and other data that should not be stored in plaintext configuration.
 
 Gloo runs an independent (goroutine) controller to monitor secrets. Secrets are stored in their own secret storage layer.
 Gloo can monitor secrets stored in the following secret storage services:
@@ -200,5 +225,3 @@ Gloo can monitor secrets stored in the following secret storage services:
 - Plaintext files (recommended only for testing)
 
 Secrets must adhere to a structure, specified by the plugin that requires them.
-
-Gloo's secret backend can be configured in Gloo's [bootstrap options](../advanced/bootstrap_options.md) 

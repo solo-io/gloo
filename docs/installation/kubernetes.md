@@ -8,11 +8,19 @@
 <a name="Simple Installation"></a>
 ### Simple Installation
 
-#### What you'll need
+### What you'll need
 
 1. Kubernetes v1.8+ or higher deployed. We recommend using [minikube](https://kubernetes.io/docs/getting-started-guides/minikube/) to get a demo cluster up quickly.
 1. [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/) installed on your local machine.
-1. [`glooctl`] installed or built from this repository
+
+### Install
+
+#### 1. Install Glooctl
+
+Download the latest `glooctl` from the releases page and place it on your `PATH`. 
+
+
+#### 2. Install Gloo to your Kubernetes Cluster using Glooctl
 
 Once your Kubernetes cluster is up and running, run the following command to deploy Gloo and Envoy to the `gloo-system` namespace:
 
@@ -52,3 +60,15 @@ Everything should be up and running. If this process does not work, please [open
 questions on our [diligently staffed Slack channel](https://slack.solo.io/).
 
 See [Getting Started on Kubernetes](../getting_started/kubernetes/1.md) to get started creating routes with Gloo.
+
+
+### Uninstall 
+
+To tear down the installation at any point, you can simply run
+
+```bash
+
+kubectl delete namespace gloo-system
+```
+
+<!-- end -->
