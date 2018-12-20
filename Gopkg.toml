@@ -79,3 +79,7 @@
 [[override]]
   name = "github.com/hashicorp/serf"
   revision = "19bbd39e421bdf3559d5025fb2c760f5ffa56233"
+
+[[constraint]]
+  name = "github.com/solo-io/go-checkpoint"
+  version = "0.0.4"
