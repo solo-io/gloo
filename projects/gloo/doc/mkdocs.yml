@@ -1,6 +1,10 @@
 site_name: GlooE
 pages:
 - Index: index.md
+- About:
+  - Architecture: introduction/architecture.md
+  - Concepts: introduction/concepts.md
+  - Developer Guide: dev/README.md
 - Installation:
   - Installing on Kubernetes: installation/kubernetes.md
 - Getting Started:
