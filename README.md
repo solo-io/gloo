@@ -1,7 +1,7 @@
 
 
 <h1 align="center">
-    <img src="img/Gloo-01.png" alt="Gloo" width="200" height="242">
+    <img src="docs/img/Gloo-01.png" alt="Gloo" width="200" height="242">
   <br>
   The Hybrid App Gateway
 </h1>
