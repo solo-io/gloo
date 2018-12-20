@@ -1,13 +1,5 @@
 # Installing on Kubernetes
 
-- [Simple Installation](#simple-installation)
-- [Advanced  Installation](#advanced-installation)
-
-
-
-<a name="Simple Installation"></a>
-### Simple Installation
-
 ### What you'll need
 
 1. Kubernetes v1.8+ or higher deployed. We recommend using [minikube](https://kubernetes.io/docs/getting-started-guides/minikube/) to get a demo cluster up quickly.
