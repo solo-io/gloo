@@ -69,9 +69,14 @@ func (s *RemoteSyncer) pushChanges(ctx context.Context, cs *v1.ChangeSet) error 
 	repo, err := cloneRemote(os.Getenv(constants.RemoteUriEnvVariableName))
 	defer repo.Delete()
 
+	// TODO
+	if err != nil {
+		return err
+	}
+
 	// Check whether the given root commit exists
 	if !repo.CommitExists(cs.RootCommit.GetValue()) {
-		errors.Errorf("Could not find a commit with hash [%v]", cs.RootCommit.GetValue())
+		return errors.Errorf("Could not find a commit with hash [%v]", cs.RootCommit.GetValue())
 	}
 
 	// Get all the existing branches
@@ -146,6 +151,7 @@ func (s *RemoteSyncer) pushChanges(ctx context.Context, cs *v1.ChangeSet) error 
 	}
 
 	cs.PendingAction = v1.Action_NONE
+	cs.EditCount = types.UInt32Value{Value: 0}
 	cs.RootCommit.Value = hash
 	cs.RootDescription.Value = cs.Description.Value
 	_, err = (*s.CsClient).Write(cs, clients.WriteOpts{Ctx: ctx, OverwriteExisting: true})
