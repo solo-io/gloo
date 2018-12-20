@@ -94,26 +94,35 @@ type Destination struct {
 }
 
 type RoutePlugins struct {
+	PrefixRewrite PrefixRewrite
 }
 
-const (
-	DestinationType_Aws   = "aws"
-	DestinationType_Azure = "azure"
-	DestinationType_Rest  = "rest"
-	DestinationType_Grpc  = "grpc"
-)
+type PrefixRewrite struct {
+	Value *string
+}
 
-var DestinationTypes = []string{
-	DestinationType_Aws,
-	DestinationType_Azure,
-	DestinationType_Rest,
-	DestinationType_Grpc,
+func (p *PrefixRewrite) String() string {
+	if p == nil || p.Value == nil {
+		return "<nil>"
+	}
+	return *p.Value
+}
+
+func (p *PrefixRewrite) Set(s string) error {
+	if p == nil {
+		p = &PrefixRewrite{}
+	}
+	p.Value = &s
+	return nil
+}
+
+func (p *PrefixRewrite) Type() string {
+	return "string"
 }
 
 type DestinationSpec struct {
-	DestinationType string
-	Aws             AwsDestinationSpec
-	Rest            RestDestinationSpec
+	Aws  AwsDestinationSpec
+	Rest RestDestinationSpec
 }
 
 type AwsDestinationSpec struct {

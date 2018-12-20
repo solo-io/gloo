@@ -8,6 +8,19 @@ import (
 	"gopkg.in/AlecAivazis/survey.v1"
 )
 
+func GetYesInput(msg string) (bool, error) {
+	var yesAnswer string
+
+	if err := GetStringInputDefault(
+		msg,
+		&yesAnswer,
+		"N",
+	); err != nil {
+		return false, err
+	}
+	return strings.ToLower(yesAnswer) != "y", nil
+}
+
 func GetStringInput(msg string, value *string) error {
 	return GetStringInputDefault(msg, value, "")
 }

@@ -113,7 +113,6 @@ func getDestinationInteractive(dest *options.Destination) error {
 	dest.Upstream = us.Metadata.Ref()
 	switch ut := us.UpstreamSpec.UpstreamType.(type) {
 	case *v1.UpstreamSpec_Aws:
-		dest.DestinationSpec.DestinationType = options.DestinationType_Aws
 		if err := getAwsDestinationSpecInteractive(&dest.DestinationSpec.Aws, ut.Aws); err != nil {
 			return err
 		}
@@ -124,12 +123,33 @@ func getDestinationInteractive(dest *options.Destination) error {
 		}
 		switch svcType := svcSpec.PluginType.(type) {
 		case *plugins.ServiceSpec_Rest:
-			dest.DestinationSpec.DestinationType = options.DestinationType_Rest
 			if err := getRestDestinationSpecInteractive(&dest.DestinationSpec.Rest, svcType.Rest); err != nil {
 				return err
 			}
 		}
 	}
+	return nil
+}
+
+func getPluginsInteractive(dest *options.RoutePlugins) error {
+	yes, err := cliutil.GetYesInput("do you wish to add a prefix-rewrite transformation to the route [y/n]?\n" +
+		"note that this will be overridden if your routes point to function destinations")
+	if err != nil {
+		return err
+	}
+
+	if !yes {
+		return nil
+	}
+
+	var prefixRewrite string
+
+	if err := cliutil.GetStringInput("rewrite the matched portion of HTTP requests with this prefix: ", &prefixRewrite); err != nil {
+		return err
+	}
+
+	dest.PrefixRewrite.Value = &prefixRewrite
+
 	return nil
 }
 
@@ -218,6 +238,9 @@ func AddRouteFlagsInteractive(opts *options.Options) error {
 		return err
 	}
 	if err := getDestinationInteractive(&opts.Add.Route.Destination); err != nil {
+		return err
+	}
+	if err := getPluginsInteractive(&opts.Add.Route.Plugins); err != nil {
 		return err
 	}
 
