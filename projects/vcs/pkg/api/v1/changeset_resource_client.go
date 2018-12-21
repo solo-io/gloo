@@ -2,6 +2,9 @@ package v1
 
 import (
 	"fmt"
+	"strconv"
+
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
@@ -22,6 +25,7 @@ func (e UnsupportedResourceTypeError) Error() string {
 }
 
 type ChangesetResourceClientFactory struct {
+	ChangesetName   string
 	ChangesetClient ChangeSetClient
 }
 
@@ -29,13 +33,7 @@ func (f *ChangesetResourceClientFactory) NewResourceClient(params factory.NewRes
 	if err := validateResourceType(params.ResourceType); err != nil {
 		return nil, err
 	}
-
-	if params.Token == "" {
-		return nil, errors.Errorf("token must not be empty")
-	}
-
-	// TODO(marco): temporarily use the token as changeset name. Find more robust approach once we implement changeset authorization
-	return NewResourceClient(f.ChangesetClient, params.ResourceType, params.Token), nil
+	return NewResourceClient(f.ChangesetClient, params.ResourceType, f.ChangesetName), nil
 }
 
 type ResourceClient struct {
@@ -108,10 +106,19 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 		if !opts.OverwriteExisting {
 			return nil, errors.NewExistErr(changesetResource.GetMetadata())
 		}
+		// Check whether version of input resource matches the one in the changeset
+		if inputMeta.ResourceVersion != changesetResource.GetMetadata().ResourceVersion {
+			return nil, errors.NewResourceVersionErr(inputMeta.Namespace, inputMeta.Name, inputMeta.ResourceVersion, changesetResource.GetMetadata().ResourceVersion)
+		}
 	}
 
+	// Create a clone with updated metadata
+	clone := proto.Clone(resource).(resources.Resource)
+	inputMeta.ResourceVersion = newOrIncrementResourceVer(inputMeta.ResourceVersion)
+	clone.SetMetadata(inputMeta)
+
 	// Write the updated resource the changeset
-	changeset.updateDataField(resource)
+	changeset.updateDataField(clone)
 
 	// Increase the changeset edit count by 1
 	changeset.EditCount.Value = changeset.EditCount.Value + 1
@@ -122,7 +129,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 		return nil, err
 	}
 
-	return resource, nil
+	return clone, nil
 }
 
 func (rc *ResourceClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
@@ -437,4 +444,12 @@ func validateResourceType(kind resources.Resource) error {
 	default:
 		return UnsupportedResourceTypeError{Kind: resources.Kind(kind)}
 	}
+}
+
+func newOrIncrementResourceVer(resourceVersion string) string {
+	curr, err := strconv.Atoi(resourceVersion)
+	if err != nil {
+		curr = 1
+	}
+	return fmt.Sprintf("%v", curr+1)
 }

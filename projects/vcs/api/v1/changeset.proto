@@ -79,7 +79,7 @@ message Data {
 }
 
 enum Action {
-    NONE = 0; // this os the default value as per the proto3 spec
+    NONE = 0; // this is the default value as per the proto3 spec
     COMMIT = 1;
     CHECK_OUT = 2;
 }

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -79,16 +80,21 @@ var _ = Describe("using the changeset resource client factory", func() {
 
 	Describe("using the factory to create a client for an unsupported resource type", func() {
 		It("causes an error", func() {
-			_, err = v12.NewSecretClientWithToken(&ChangesetResourceClientFactory{ChangesetClient: csClient}, changesetName)
+			_, err = v12.NewSecretClient(&ChangesetResourceClientFactory{
+				ChangesetClient: csClient,
+				ChangesetName:   changesetName,
+			})
 			Expect(err).To(Not(BeNil()))
 		})
 	})
 
 	Describe("creating a resource client with a factory that points to a non-existing changeset", func() {
 		It("causes an error when we try to use the client", func() {
-			invalidClient, err := v1.NewVirtualServiceClientWithToken(
-				&ChangesetResourceClientFactory{ChangesetClient: csClient},
-				"non-existing-changeset",
+			invalidClient, err := v1.NewVirtualServiceClient(
+				&ChangesetResourceClientFactory{
+					ChangesetClient: csClient,
+					ChangesetName:   "non-existing-changeset",
+				},
 			)
 			Expect(err).To(BeNil())
 
@@ -109,10 +115,11 @@ var _ = Describe("using the changeset resource client factory", func() {
 		)
 
 		BeforeEach(func() {
-			vsClient, err = v1.NewVirtualServiceClientWithToken(
-				&ChangesetResourceClientFactory{ChangesetClient: csClient},
-				changesetName,
-			)
+			vsClient, err = v1.NewVirtualServiceClient(
+				&ChangesetResourceClientFactory{
+					ChangesetClient: csClient,
+					ChangesetName:   changesetName,
+				})
 			Expect(err).To(BeNil())
 			vs, err = vsClient.Read(defaults.GlooSystem, initialVs.Metadata.Name, clients.ReadOpts{})
 		})
@@ -134,10 +141,11 @@ var _ = Describe("using the changeset resource client factory", func() {
 		)
 
 		BeforeEach(func() {
-			vsClient, err = v1.NewVirtualServiceClientWithToken(
-				&ChangesetResourceClientFactory{ChangesetClient: csClient},
-				changesetName,
-			)
+			vsClient, err = v1.NewVirtualServiceClient(
+				&ChangesetResourceClientFactory{
+					ChangesetClient: csClient,
+					ChangesetName:   changesetName,
+				})
 			Expect(err).To(BeNil())
 		})
 
@@ -261,20 +269,23 @@ var _ = Describe("using the changeset resource client factory", func() {
 
 		var (
 			initiallyReadVs, updatedVs *v1.VirtualService
+			initialVsVersion           int
 			vsClient                   v1.VirtualServiceClient
 			newVirtualHostName         = "new-virtual-host-name"
 		)
 
 		BeforeEach(func() {
-			vsClient, err = v1.NewVirtualServiceClientWithToken(
-				&ChangesetResourceClientFactory{ChangesetClient: csClient},
-				changesetName,
-			)
+			vsClient, err = v1.NewVirtualServiceClient(
+				&ChangesetResourceClientFactory{
+					ChangesetClient: csClient,
+					ChangesetName:   changesetName,
+				})
 			Expect(err).To(BeNil())
 
 			initiallyReadVs, err = vsClient.Read(defaults.GlooSystem, initialVs.Metadata.Name, clients.ReadOpts{})
 			Expect(err).To(BeNil())
 
+			initialVsVersion, err = strconv.Atoi(initiallyReadVs.Metadata.ResourceVersion)
 			Expect(err).To(BeNil())
 
 			Expect(initiallyReadVs.VirtualHost.Name).To(BeEquivalentTo("my-virtual-host-1"))
@@ -301,10 +312,39 @@ var _ = Describe("using the changeset resource client factory", func() {
 				Expect(updatedVs.VirtualHost.Name).To(BeEquivalentTo(newVirtualHostName))
 			})
 
+			It("increases the resource version number", func() {
+				newVersion, err := strconv.Atoi(updatedVs.Metadata.ResourceVersion)
+				Expect(err).To(BeNil())
+				Expect(newVersion).To(BeNumerically(">", initialVsVersion))
+			})
+
 			It("increments the changeset edit count", func() {
 				cs, err := csClient.Read(defaults.GlooSystem, initialChangeset.Metadata.Name, clients.ReadOpts{})
 				Expect(err).To(BeNil())
 				Expect(cs.EditCount.Value).To(BeEquivalentTo(initEditCount + 1))
+			})
+		})
+
+		Context("resource is stale", func() {
+			It("does cause an error", func() {
+
+				// someone else updates the resource after we retrieved it and before we submit our update
+				concurrentlyReadVs, err := vsClient.Read(defaults.GlooSystem, initialVs.Metadata.Name, clients.ReadOpts{})
+				Expect(err).To(BeNil())
+				concurrentlyReadVs.VirtualHost.Name = "some-other-vh-name"
+
+				concurrentlyUpdatedVs, err := vsClient.Write(concurrentlyReadVs, clients.WriteOpts{OverwriteExisting: true})
+				Expect(err).To(BeNil())
+				Expect(concurrentlyUpdatedVs.VirtualHost.Name).To(BeEquivalentTo("some-other-vh-name"))
+				Expect(strconv.Atoi(concurrentlyUpdatedVs.Metadata.ResourceVersion)).To(BeNumerically(">", initialVsVersion))
+
+				// We update our stale version and try to write it
+				initiallyReadVs.VirtualHost.Name = newVirtualHostName
+				_, err = vsClient.Write(initiallyReadVs, clients.WriteOpts{OverwriteExisting: true})
+
+				// We get an error
+				Expect(err).To(Not(BeNil()))
+				Expect(errors.IsResourceVersion(err)).To(BeTrue())
 			})
 		})
 	})
@@ -316,10 +356,10 @@ var _ = Describe("using the changeset resource client factory", func() {
 			Expect(err).To(BeNil())
 			initEditCount := cs.EditCount.Value
 
-			vsClient, err := v1.NewVirtualServiceClientWithToken(
-				&ChangesetResourceClientFactory{ChangesetClient: csClient},
-				changesetName,
-			)
+			vsClient, err := v1.NewVirtualServiceClient(
+				&ChangesetResourceClientFactory{ChangesetClient: csClient,
+					ChangesetName: changesetName,
+				})
 			Expect(err).To(BeNil())
 
 			// Read and up[date 3 times
@@ -351,10 +391,11 @@ var _ = Describe("using the changeset resource client factory", func() {
 
 		It("notifies us when a change has occurred", func() {
 
-			vsClient, err := v1.NewVirtualServiceClientWithToken(
-				&ChangesetResourceClientFactory{ChangesetClient: csClient},
-				changesetName,
-			)
+			vsClient, err := v1.NewVirtualServiceClient(
+				&ChangesetResourceClientFactory{
+					ChangesetClient: csClient,
+					ChangesetName:   changesetName,
+				})
 			Expect(err).To(BeNil())
 
 			vsListChan, errChan, err := vsClient.Watch(defaults.GlooSystem, clients.WatchOpts{RefreshRate: 10 * time.Millisecond})
