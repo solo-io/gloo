@@ -3,7 +3,7 @@
 set -eu
 
 
-GLOO_VERSION=$(curl -H"Accept: application/vnd.github.v3+json" https://api.github.com/repos/solo-io/gloo/releases/latest| python -c "import sys, json; print(json.load(sys.stdin)['tag_name'])" )
+GLOO_VERSION=$(curl -H"Accept: application/vnd.github.v3+json" https://api.github.com/repos/solo-io/solo-projects/releases/latest| python -c "import sys, json; print(json.load(sys.stdin)['tag_name'])" )
 
 if [ "$(uname -s)" = "Darwin" ]; then
   OS=darwin
@@ -13,7 +13,7 @@ fi
 
 tmp=$(mktemp -d /tmp/gloo.XXXXXX)
 filename="glooctl-${OS}-amd64"
-url="https://github.com/solo-io/supergloo/releases/download/${GLOO_VERSION}/${filename}"
+url="https://github.com/solo-io/solo-projects/releases/download/${GLOO_VERSION}/${filename}"
 (
   cd "$tmp"
 

@@ -23,8 +23,6 @@ Gloo is a feature-rich Kubernetes-native ingress controler and next-generation A
 - [**Using Gloo**](#using-gloo)
 - [**What makes Gloo unique**](#what-makes-gloo-unique)
 - [**Features**](#features)
-- [**Roadmap**](#Roadmap)
-- [**Vision**](#vision)
 
 
 ## Using Gloo

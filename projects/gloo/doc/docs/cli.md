@@ -42,22 +42,14 @@ using Gloo easy.
 
 #### Install the CLI
 
-To get the latest `glooctl` binary for your platform, simly run
-
-```bash
-curl -sL https://run.solo.io/gloo/install | sh
-```
-
-Which will download `glooctl` and place it in `$HOME/.gloo/bin`.
-
-Add `$HOME/.gloo/bin` to your `PATH` for easy access to `glooctl`.
-
-If you prefer to download `glooctl` manually, a list of releases can be found 
-on our [GitHub releases page](https://github.com/solo-io/gloo/releases)
+Deploy `glooctl` binary onto your `PATH`. If you don't have the enterprise Gloo CLI, please contact Solo 
+at https://www.solo.io/enterprise.
 
 ---
 
 #### Upgrade the CLI
+
+**NOTE: This feature is not currently supported on Gloo Enterprise. Contact solo.io for upgrades.**
 
 Once you have installed `glooctl`, you can use it to upgrade `glooctl` (and your installation) without 
 any other steps.

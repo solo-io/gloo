@@ -1,13 +1,5 @@
 # Installing on Kubernetes
 
-- [Simple Installation](#simple-installation)
-- [Advanced  Installation](#advanced-installation)
-
-
-
-<a name="Simple Installation"></a>
-### Simple Installation
-
 ### What you'll need
 
 1. Kubernetes v1.8+ or higher deployed. We recommend using [minikube](https://kubernetes.io/docs/getting-started-guides/minikube/) to get a demo cluster up quickly.
@@ -18,26 +10,13 @@
 
 #### 1. Install Glooctl
 
-```bash
-
-curl -sL https://run.solo.io/glooctl/install | sh
-
-```
+Deploy `glooctl` binary onto your `PATH`. If you don't have the enterprise Gloo CLI, please contact Solo 
+at https://www.solo.io/enterprise.
 
 
 #### 2. Install Gloo to your Kubernetes Cluster using Glooctl
 
 Once your Kubernetes cluster is up and running, run the following command to deploy Gloo and Envoy to the `gloo-system` namespace:
-
-```bash
-
-glooctl install kube 
-
-```
-
-If you are installing Gloo Enterprise, images, you'll need to install 
-Gloo with using Docker credentials that have been authenticated to the Gloo Enterprise 
-docker registry. To do so, modify the above command as follows:
 
 ```bash
 
@@ -47,6 +26,10 @@ glooctl install kube \
    --docker-email==your-authorized-docker-email
 
 ```
+
+Since you are installing Gloo Enterprise, you'll need to install Gloo using 
+Docker credentials that have been authenticated to the Gloo Enterprise 
+docker registry. 
 
 Check that the Gloo pods and services have been created:
 
@@ -94,7 +77,6 @@ See [Getting Started on Kubernetes](../getting_started/kubernetes/1.md) to get s
 To tear down the installation at any point, you can simply run
 
 ```bash
-
 kubectl delete namespace gloo-system
 ```
 
