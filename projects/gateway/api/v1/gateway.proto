@@ -11,8 +11,8 @@ import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 
 // the imports heree must be the same in all files
 // means the -I must include -I=${GOPATH}/src/github.com/solo-io/solo-projects/projects/gloo/api/v1
-import "proxy.proto";
-import "plugins.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/proxy.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins.proto";
 
 /*
 @solo-kit:resource.short_name=gw

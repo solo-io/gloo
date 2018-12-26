@@ -10,13 +10,13 @@ import "google/protobuf/wrappers.proto";
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 
-import "gateway.proto";
-import "virtual_service.proto";
-import "proxy.proto";
-import "settings.proto";
-import "upstream.proto";
-import "resolver_map.proto";
-import "schema.proto";
+import "github.com/solo-io/solo-projects/projects/gateway/api/v1/gateway.proto";
+import "github.com/solo-io/solo-projects/projects/gateway/api/v1/virtual_service.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/proxy.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/settings.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/upstream.proto";
+import "github.com/solo-io/solo-projects/projects/sqoop/api/v1/resolver_map.proto";
+import "github.com/solo-io/solo-projects/projects/sqoop/api/v1/schema.proto";
 
 /*
 @solo-kit:resource.short_name=chg

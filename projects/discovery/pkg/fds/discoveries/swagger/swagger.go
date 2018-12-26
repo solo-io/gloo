@@ -14,7 +14,6 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/discovery/pkg/fds"
@@ -307,7 +306,6 @@ func loadHTTPBytes(ctx context.Context) func(path string) ([]byte, error) {
 func parseSwaggerDoc(docBytes []byte) (*spec.Swagger, error) {
 	doc, err := loads.Analyzed(docBytes, "")
 	if err != nil {
-		log.Warnf("parsing doc as json failed, falling back to yaml")
 		jsn, err := swag.YAMLToJSON(docBytes)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to convert yaml to json (after falling back to yaml parsing)")

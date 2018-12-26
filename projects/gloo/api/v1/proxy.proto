@@ -9,7 +9,7 @@ import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 
-import "plugins.proto";
+import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins.proto";
 
 /*
 @solo-kit:resource.short_name=px
@@ -279,7 +279,7 @@ message WeightedDestination {
 }
 
 // TODO(ilackarms): evaluate how much to differentiate (or if even to include) RedirectAction
-// Notice: RedirectAction is copioed directly from https://github.com/envoyproxy/envoy/blob/master/api/envoy/api/v2/route/route.proto
+// Note: RedirectAction is based directly on https://github.com/envoyproxy/envoy/blob/master/api/envoy/api/v2/route/route.proto
 message RedirectAction {
     // The host portion of the URL will be swapped with this value.
     string host_redirect = 1;

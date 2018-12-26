@@ -11,7 +11,7 @@
 
 Gloo aggregates back end services and provides function-to-function translation for clients, allowing decoupling from back end APIs
 
-![Overview](high_level_architecture.png "High Level Architecture")
+![Overview](gloo_diagram.png "High Level Architecture")
 
 Clients issue requests or [emit events](https://github.com/solo-io/gloo-sdk-go) to routes defined on Gloo. These routes are mapped
 to functions on upstream services by Gloo's configuration (provided by clients of Gloo's API). 
@@ -46,9 +46,9 @@ updates and responding immediately with v2 gRPC updates to Envoy.
 ![Component Architecture](component_architecture.png "Component Architecture")
 
 * The **Config Watcher** watches the storage layer for updates to user configuration objects ([Upstreams](concepts.md#Upstreams) and [Virtual Services](concepts.md#Virtual Services))
-* The **Secret Watcher** watches a secret store for updates to secrets (which are required for certain plugins such as the [AWS Lambda Plugin](../v1/plugins/aws/aws.proto.sk.md))
+* The **Secret Watcher** watches a secret store for updates to secrets (which are required for certain plugins such as the [AWS Lambda Plugin](../v1/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/aws/aws.proto.sk.md))
 * **Endpoint Discovery** watches service registries such as Kubernetes, Cloud Foundry, and Consul for IPs associated with services. 
-Endpoint Discovery is plugin-specific. For example, the [Kubernetes Plugin](../v1/plugins/kubernetes/kubernetes.proto.sk.md) runs its own Endpoint Discovery goroutine.
+Endpoint Discovery is plugin-specific. For example, the [Kubernetes Plugin](../v1/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/kubernetes/kubernetes.proto.sk.md) runs its own Endpoint Discovery goroutine.
 * The **Translator** receives snapshots of the entire state, composed of user configuration, secrets, and discovery information 
 and initiates a new *translation loop*, creating a new Envoy xDS Snapshot.
     1. The translation cycle starts by creating **[Envoy clusters](https://www.envoyproxy.io/docs/envoy/latest/api-v1/cluster_manager/cluster.html?highlight=cluster)** from all configured upstreams. Each upstream has a **type**,
@@ -59,7 +59,7 @@ and initiates a new *translation loop*, creating a new Envoy xDS Snapshot.
     filters.
     1. The next step generates all of the **[Envoy routes](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/route/route.proto.html?highlight=route)** 
     via the route plugins . Routes are generated for 
-    each route rule defined on the [virtual service objects](../v1/virtual_service.proto.sk.md). When all of the routes are created, the translator aggregates them
+    each route rule defined on the [virtual service objects](../v1/github.com/solo-io/solo-projects/projects/gateway/api/v1/virtual_service.proto.sk.md). When all of the routes are created, the translator aggregates them
     into [Envoy virtual services](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/vService.html?highlight=virtual%20host)
     and adds them to a new [Envoy HTTP Connection Manager](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/vService.html?highlight=virtual%20host)
     configuration.
