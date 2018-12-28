@@ -17,14 +17,14 @@ import (
 func (t *translator) computeListener(params plugins.Params, proxy *v1.Proxy, listener *v1.Listener, report reportFunc) *envoyapi.Listener {
 	params.Ctx = contextutils.WithLogger(params.Ctx, "compute_listener."+listener.Name)
 
-	report = func(err error, format string, args ...interface{}) {
+	reportFn := func(err error, format string, args ...interface{}) {
 		report(err, "listener."+format, args...)
 	}
-	validateListenerPorts(proxy, report)
+	validateListenerPorts(proxy, reportFn)
 
-	listenerFilters := t.computeListenerFilters(params, listener, report)
+	listenerFilters := t.computeListenerFilters(params, listener, reportFn)
 
-	filterChains := computeFilterChainsFromSslConfig(params.Snapshot, listener, listenerFilters, report)
+	filterChains := computeFilterChainsFromSslConfig(params.Snapshot, listener, listenerFilters, reportFn)
 
 	out := &envoyapi.Listener{
 		Name: listener.Name,
@@ -50,7 +50,7 @@ func (t *translator) computeListener(params plugins.Params, proxy *v1.Proxy, lis
 			continue
 		}
 		if err := listenerPlugin.ProcessListener(params, listener, out); err != nil {
-			report(err, "plugin error on listener")
+			reportFn(err, "plugin error on listener")
 		}
 	}
 
