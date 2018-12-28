@@ -244,6 +244,33 @@ $(OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile
 data-plane-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
 	docker build -t soloio/data-plane-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
 
+#----------------------------------------------------------------------------------
+# LicensingServer
+#----------------------------------------------------------------------------------
+
+LICENSING_SERVER_DIR=projects/licensingserver
+LICENSING_SERVER_SOURCES=$(shell find $(LICENSING_SERVER_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+
+$(OUTPUT_DIR)/licensing-server-linux-amd64: $(LICENSING_SERVER_SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(LICENSING_SERVER_DIR)/cmd/main.go
+
+.PHONY: licensing-server
+licensing-server: $(OUTPUT_DIR)/licensing-server-linux-amd64
+
+$(OUTPUT_DIR)/Dockerfile.licensing-server: $(LICENSING_SERVER_DIR)/cmd/Dockerfile
+	cp $< $@
+
+licensing-server-docker: $(OUTPUT_DIR)/licensing-server-linux-amd64 $(OUTPUT_DIR)/Dockerfile.licensing-server
+	docker build -t soloio/licensing-server-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.licensing-server
+
+.PHONY: licensing-server-generate
+licensing-server-generate:
+	$(LICENSING_SERVER_DIR)/hack/protos.sh
+
+.PHONY: licensing-server-test
+licensing-server-test:
+	go test -v $(PACKAGE_PATH)/$(LICENSING_SERVER_DIR)/test/...
+
 
 #----------------------------------------------------------------------------------
 # Release
@@ -258,7 +285,8 @@ RELEASE_BINARIES := \
 	$(OUTPUT_DIR)/rate-limit-linux-amd64 \
 	$(OUTPUT_DIR)/gloo-linux-amd64 \
 	$(OUTPUT_DIR)/discovery-linux-amd64 \
-	$(OUTPUT_DIR)/envoyinit-linux-amd64
+	$(OUTPUT_DIR)/envoyinit-linux-amd64 \
+	$(OUTPUT_DIR)/licensing-server-linux-amd64
 
 .PHONY: release-binaries
 release-binaries: $(RELEASE_BINARIES)
@@ -285,4 +313,5 @@ docker-push:
 	docker push soloio/apiserver-ee:$(VERSION) && \
 	docker push soloio/discovery-ee:$(VERSION) && \
 	docker push soloio/gloo-ee:$(VERSION) && \
-	docker push soloio/gloo-i-ee:$(VERSION)
+	docker push soloio/gloo-i-ee:$(VERSION) \
+	docker push soloio/licensing-server-ee:$(VERSION)

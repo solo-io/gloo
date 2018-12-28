@@ -1289,6 +1289,18 @@
   version = "0.0.4"
 
 [[projects]]
+  digest = "1:d2370c4e8141adaf767e5cd4b3f5ba2af3aa8f689f803c9bd9bdbc01ccc9aa99"
+  name = "github.com/solo-io/keygen"
+  packages = [
+    ".",
+    "model",
+    "services",
+  ]
+  pruneopts = "UT"
+  revision = "76c33b6cd8340fb8062a684452b42c7dfa2e511a"
+  version = "v0.1.0"
+
+[[projects]]
   branch = "master"
   digest = "1:dea5143f6437b99c1ef3860c669e634992d69fccc310668cdf571d144446b40a"
   name = "github.com/solo-io/kubecontroller"
@@ -1584,6 +1596,14 @@
   ]
   pruneopts = "UT"
   revision = "8f65e3013ebad444f13bc19536f7865efc793816"
+
+[[projects]]
+  branch = "master"
+  digest = "1:b521f10a2d8fa85c04a8ef4e62f2d1e14d303599a55d64dabf9f5a02f84d35eb"
+  name = "golang.org/x/sync"
+  packages = ["errgroup"]
+  pruneopts = "UT"
+  revision = "37e7f081c4d4c64e13b10787722085407fe5d15f"
 
 [[projects]]
   branch = "master"
@@ -2156,6 +2176,8 @@
     "github.com/rs/cors",
     "github.com/solo-io/envoy-operator/pkg/downward",
     "github.com/solo-io/go-checkpoint",
+    "github.com/solo-io/keygen",
+    "github.com/solo-io/keygen/services",
     "github.com/solo-io/kubecontroller",
     "github.com/solo-io/rate-limiter/pkg/config",
     "github.com/solo-io/rate-limiter/pkg/redis",
@@ -2204,9 +2226,12 @@
     "go.opencensus.io/trace",
     "go.uber.org/zap",
     "golang.org/x/net/context",
+    "golang.org/x/sync/errgroup",
     "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
+    "google.golang.org/grpc/health",
+    "google.golang.org/grpc/health/grpc_health_v1",
     "google.golang.org/grpc/reflection/grpc_reflection_v1alpha",
     "google.golang.org/grpc/status",
     "gopkg.in/AlecAivazis/survey.v1",

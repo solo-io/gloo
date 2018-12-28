@@ -31,7 +31,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 
 	envoyv2 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
-
 	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"

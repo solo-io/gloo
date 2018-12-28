@@ -88,6 +88,9 @@ spec:
         - containerPort: 9977
           name: xds
           protocol: TCP
+        env:
+          - name: LICENSE_KEY
+            value: "5"
       imagePullSecrets:
       - name: solo-io-docker-secret
 ---
@@ -175,6 +178,82 @@ spec:
         name: gateway
       imagePullSecrets:
       - name: solo-io-docker-secret
+
+---
+
+########################################################################
+###                                                                  ###
+###                        Licensing                                 ###
+###                                                                  ###
+########################################################################
+
+# pod
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    service: licensing-service
+    gloo: licensing
+  name: licensing
+  namespace: gloo-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: licensing
+  template:
+    metadata:
+      labels:
+        gloo: licensing
+    spec:
+      containers:
+        - image: soloio/licensing-server-ee:0.1.0
+          ports:
+            - name: licensing
+              containerPort: 9000
+            - name: health-check
+              containerPort: 9001
+          imagePullPolicy: Always
+          name: licensing-container
+          env:
+            - name: KEYGEN_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: licensing
+                  key: authtoken
+            - name: KEYGEN_ACCOUNT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: licensing
+                  key: accountid
+      imagePullSecrets:
+        - name: solo-io-docker-secret
+
+---
+
+#service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gloo
+    gloo: licensing
+    service: licensing-service
+  name: licensing
+  namespace: gloo-system
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 9000
+      name: grpc
+    - port: 81
+      protocol: TCP
+      targetPort: 9001
+      name: http
+  selector:
+    gloo: licensing
 
 ---
 

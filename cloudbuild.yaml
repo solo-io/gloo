@@ -56,6 +56,19 @@ steps:
   waitFor: ['-']
   id: 'setup-aws-creds'
 
+- name: gcr.io/cloud-builders/gcloud
+  args:
+    - kms
+    - decrypt
+    - --ciphertext-file=ci/keygen_creds.json.enc
+    - --plaintext-file=/workspace/keygen_creds.json
+    - --location=global
+    - --keyring=build
+    - --key=build-key
+  waitFor: ['-']
+  id: 'setup-keygen-creds'
+
+
 # e2e-go is produced from https://github.com/solo-io/cloud-builders/e2e-go
 # sets up redis, consul, kubectl, go with required environment variables
 # need to use the provided entrypoint
@@ -77,6 +90,22 @@ steps:
 - name: 'gcr.io/cloud-builders/go'
   args: ['build', '-o', 'sqoop-linux-amd64', 'github.com/solo-io/solo-projects/projects/sqoop/cmd']
   env: ['PROJECT_ROOT=github.com/solo-io/solo-projects']
+
+- name: 'gcr.io/cloud-builders/go'
+  args: ['build', '-o', 'licensing-server', 'github.com/solo-io/solo-projects/projects/licensingserver/cmd']
+  env: ['PROJECT_ROOT=github.com/solo-io/solo-projects']
+
+- name: 'gcr.io/cloud-builders/go'
+  args:
+    - 'test'
+    - 'github.com/solo-io/solo-projects/projects/licensingserver/test/unit'
+    - 'github.com/solo-io/solo-projects/projects/licensingserver/test/keygen'
+  env:
+    - 'CLOUD_BUILD=1'
+    - 'KEYGEN_CREDENTIALS_FILE=/workspace/keygen_creds.json'
+    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+
+  waitFor: ['setup-keygen-creds', 'dep']
 
 artifacts:
   objects:
