@@ -1,17 +1,12 @@
 package main
 
 import (
-	"context"
-
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/rest"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/setup"
-	"github.com/solo-io/solo-projects/samples"
 )
 
 func main() {
@@ -22,34 +17,36 @@ func main() {
 	log.Printf("finished.")
 }
 
-func run() error {
-	opts, err := setup.DefaultKubernetesConstructOpts()
-	if err != nil {
-		return err
-	}
-	schemas := samples.Schemas()
-	resoverMapsClient, err := v1.NewResolverMapClient(opts.ResolverMaps)
-	if err != nil {
-		return err
-	}
-	resolvermaps, err := resoverMapsClient.List(defaults.GlooSystem, clients.ListOpts{})
-	if err != nil {
-		return err
-	}
-	err = resoverMapsClient.Delete(rm.Metadata.Namespace, rm.Metadata.Name, clients.DeleteOpts{})
-	_, err = resoverMapsClient.Write(rm, clients.WriteOpts{})
-	log.Printf("%v, %v", err, resolvermaps)
 
-	schemaClient, err := v1.NewSchemaClient(opts.Schemas)
-	if err != nil {
-		return err
-	}
-	for _, sch := range schemas {
-		_, err := schemaClient.Write(sch, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true})
-		if err != nil {
-			log.Printf("failed writing schema %v", err)
-		}
-	}
+// TODO (ilackarms): fix or delete
+func run() error {
+	//opts, err := setup.DefaultKubernetesConstructOpts()
+	//if err != nil {
+	//	return err
+	//}
+	//schemas := samples.Schemas()
+	//resoverMapsClient, err := v1.NewResolverMapClient(opts.ResolverMaps)
+	//if err != nil {
+	//	return err
+	//}
+	//resolvermaps, err := resoverMapsClient.List(defaults.GlooSystem, clients.ListOpts{})
+	//if err != nil {
+	//	return err
+	//}
+	//err = resoverMapsClient.Delete(rm.Metadata.Namespace, rm.Metadata.Name, clients.DeleteOpts{})
+	//_, err = resoverMapsClient.Write(rm, clients.WriteOpts{})
+	//log.Printf("%v, %v", err, resolvermaps)
+	//
+	//schemaClient, err := v1.NewSchemaClient(opts.Schemas)
+	//if err != nil {
+	//	return err
+	//}
+	//for _, sch := range schemas {
+	//	_, err := schemaClient.Write(sch, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true})
+	//	if err != nil {
+	//		log.Printf("failed writing schema %v", err)
+	//	}
+	//}
 	return nil
 }
 

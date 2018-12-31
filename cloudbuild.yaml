@@ -1,4 +1,6 @@
 steps:
+
+# These are required before dep
 - name: gcr.io/cloud-builders/gcloud
   args:
   - kms
@@ -11,6 +13,7 @@ steps:
   volumes:
   - name: 'ssh'
     path: /root/.ssh
+
 - name: 'gcr.io/cloud-builders/git'
   entrypoint: 'bash'
   args:
@@ -26,7 +29,11 @@ steps:
   volumes:
   - name: 'ssh'
     path: /root/.ssh
-- name: 'soloio/dep'
+
+# Using dep container from github.com/solo-io/cloud-builders/dep
+# This copies files into the proper workspace layout and so must be run before other tasks
+# Subsequent steps should set GOPATH variable to avoid setting up unnecessary sym link
+- name: 'gcr.io/$PROJECT_ID/dep'
   args: ['ensure']
   env: ['PROJECT_ROOT=github.com/solo-io/solo-projects']
   volumes:
@@ -34,6 +41,7 @@ steps:
     path: /root/.ssh
   id: 'dep'
 
+# Setup and run e2es
 - name: gcr.io/cloud-builders/gsutil
   entrypoint: 'bash'
   args:
@@ -41,40 +49,26 @@ steps:
   - |
     gsutil cp gs://artifacts.solo.io/envoy/265f5f50b0b17b42442bcc8d7f7572a9b47a073a/envoy.stripped /workspace/envoy
     chmod +x /workspace/envoy
-  waitFor: ['-']
+  waitFor: ['dep']
   id: 'get-envoy'
-
 - name: gcr.io/cloud-builders/gcloud
   args:
   - kms
   - decrypt
-  - --ciphertext-file=ci/aws_credentials.enc
+  - --ciphertext-file=./gopath/src/github.com/solo-io/solo-projects/ci/aws_credentials.enc
   - --plaintext-file=/workspace/aws_credentials
   - --location=global
   - --keyring=build
   - --key=build-key
-  waitFor: ['-']
+  waitFor: ['dep']
   id: 'setup-aws-creds'
-
-- name: gcr.io/cloud-builders/gcloud
-  args:
-    - kms
-    - decrypt
-    - --ciphertext-file=ci/keygen_creds.json.enc
-    - --plaintext-file=/workspace/keygen_creds.json
-    - --location=global
-    - --keyring=build
-    - --key=build-key
-  waitFor: ['-']
-  id: 'setup-keygen-creds'
-
-
 # e2e-go is produced from https://github.com/solo-io/cloud-builders/e2e-go
 # sets up redis, consul, kubectl, go with required environment variables
 # need to use the provided entrypoint
 - name: 'gcr.io/$PROJECT_ID/e2e-go'
   env:
   - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+  - 'GOPATH=/workspace/gopath'
   - 'ENVOY_BINARY=/workspace/envoy'
   - 'AWS_SHARED_CREDENTIALS_FILE=/workspace/aws_credentials'
   - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
@@ -83,31 +77,48 @@ steps:
   args: ['test', '-v', 'github.com/solo-io/solo-projects/test/e2e']
   waitFor: ['dep', 'get-envoy', 'setup-aws-creds']
 
-- name: 'gcr.io/cloud-builders/go'
-  args: ['build', '-o', 'hypergloo', 'github.com/solo-io/solo-projects/projects/hypergloo']
-  env: ['PROJECT_ROOT=github.com/solo-io/solo-projects']
-
-- name: 'gcr.io/cloud-builders/go'
-  args: ['build', '-o', 'sqoop-linux-amd64', 'github.com/solo-io/solo-projects/projects/sqoop/cmd']
-  env: ['PROJECT_ROOT=github.com/solo-io/solo-projects']
-
-- name: 'gcr.io/cloud-builders/go'
-  args: ['build', '-o', 'licensing-server', 'github.com/solo-io/solo-projects/projects/licensingserver/cmd']
-  env: ['PROJECT_ROOT=github.com/solo-io/solo-projects']
-
+# Setup and run keygen tests
+- name: gcr.io/cloud-builders/gcloud
+  args:
+  - kms
+  - decrypt
+  - --ciphertext-file=./gopath/src/github.com/solo-io/solo-projects/ci/keygen_creds.json.enc
+  - --plaintext-file=/workspace/keygen_creds.json
+  - --location=global
+  - --keyring=build
+  - --key=build-key
+  waitFor: ['dep']
+  id: 'setup-keygen-creds'
 - name: 'gcr.io/cloud-builders/go'
   args:
-    - 'test'
-    - 'github.com/solo-io/solo-projects/projects/licensingserver/test/unit'
-    - 'github.com/solo-io/solo-projects/projects/licensingserver/test/keygen'
+  - 'test'
+  - 'github.com/solo-io/solo-projects/projects/licensingserver/test/unit'
+  - 'github.com/solo-io/solo-projects/projects/licensingserver/test/keygen'
   env:
-    - 'CLOUD_BUILD=1'
-    - 'KEYGEN_CREDENTIALS_FILE=/workspace/keygen_creds.json'
-    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-
+  - 'CLOUD_BUILD=1'
+  - 'KEYGEN_CREDENTIALS_FILE=/workspace/keygen_creds.json'
+  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+  - 'GOPATH=/workspace/gopath'
   waitFor: ['setup-keygen-creds', 'dep']
+
+# Build artifacts
+- name: 'gcr.io/cloud-builders/go'
+  args: ['build', '-o', 'hypergloo', 'github.com/solo-io/solo-projects/projects/hypergloo']
+  env:
+  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+  - 'GOPATH=/workspace/gopath'
+- name: 'gcr.io/cloud-builders/go'
+  args: ['build', '-o', 'sqoop-linux-amd64', 'github.com/solo-io/solo-projects/projects/sqoop/cmd']
+  env:
+  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+  - 'GOPATH=/workspace/gopath'
+- name: 'gcr.io/cloud-builders/go'
+  args: ['build', '-o', 'licensing-server', 'github.com/solo-io/solo-projects/projects/licensingserver/cmd']
+  env:
+  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+  - 'GOPATH=/workspace/gopath'
 
 artifacts:
   objects:
     location: 'gs://artifacts.solo.io/'
-    paths: ['sqoop-linux-amd64', 'hypergloo']
+    paths: ['sqoop-linux-amd64', 'hypergloo', 'licensing-server']

@@ -30,9 +30,10 @@ func ensureGrpcParams(r *ro.Options, s *plugins.ServiceSpec_Grpc, static bool) e
 		return err
 	}
 
-	if err := ensureCommonRestGrpcParameters(r, static); err != nil {
-		return err
-	}
+	//TODO (mitchdraft): fix or delete
+	//if err := ensureCommonRestGrpcParameters(r, static); err != nil {
+	//	return err
+	//}
 
 	generateGrpcDestinationSpec(r)
 
@@ -47,7 +48,7 @@ func generateGrpcDestinationSpec(r *ro.Options) *gloov1.DestinationSpec {
 				Package:    gOpts.Package,
 				Service:    gOpts.Service,
 				Function:   gOpts.Function,
-				Parameters: generateParametersFromInput(r),
+				// Parameters: generateParametersFromInput(r), TODO (mitchdraft): fix or delete
 			},
 		},
 	}
