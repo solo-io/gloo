@@ -23,11 +23,6 @@ docs/index.md: ../README.md
 site: docs/index.md
 	mkdocs build
 
-.PHONY: docker-site
-docker-site: site
-	docker build -t soloio/gloo-ee-docs:$(VERSION) .
-
-.PHONY: docker-site-push
-docker-site-push: docker-site
-	docker push soloio/gloo-ee-docs:$(VERSION)
-
+.PHONY: deploy-site
+deploy-site: site
+	firebase deploy --only hosting:glooe-site
