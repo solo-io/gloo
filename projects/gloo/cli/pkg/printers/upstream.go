@@ -5,10 +5,10 @@ import (
 	"io"
 	"sort"
 
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
 // PrintTable prints virtual services using tables to io.Writer

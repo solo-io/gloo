@@ -1,21 +1,11 @@
 syntax = "proto3";
 package gloo.solo.io;
-option go_package = "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1";
+option go_package = "github.com/solo-io/gloo/projects/gloo/pkg/api/v1";
 
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
-import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/aws/aws.proto";
-import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/rest/rest.proto";
-import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/grpc/grpc.proto";
-import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/azure/azure.proto";
-import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/consul/consul.proto";
-import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/kubernetes/kubernetes.proto";
 import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/sqoop/sqoop.proto";
-import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/static/static.proto";
-import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/transformation/prefix_rewrite.proto";
-import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/transformation/transformation.proto";
-import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/faultinjection/fault.proto";
 import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit.proto";
 
 // Plugin-specific configuration that lives on listeners
@@ -37,9 +27,6 @@ message VirtualHostPlugins {
 // Note to developers: new Route Plugins must be added to this struct
 // to be usable by Gloo.
 message RoutePlugins {
-    transformation.plugins.gloo.solo.io.RouteTransformations transformations = 1;
-    fault.plugins.gloo.solo.io.RouteFaults faults = 2;
-    transformation.plugins.gloo.solo.io.PrefixRewrite prefix_rewrite = 3;
 }
 
 // Configuration for Destinations that are tied to the UpstreamSpec or ServiceSpec on that destination
@@ -47,10 +34,6 @@ message DestinationSpec {
     // Note to developers: new DestinationSpecs must be added to this oneof field
     // to be usable by Gloo.
     oneof destination_type {
-        aws.plugins.gloo.solo.io.DestinationSpec aws = 1;
-        azure.plugins.gloo.solo.io.DestinationSpec azure = 2;
-        rest.plugins.gloo.solo.io.DestinationSpec rest = 3;
-        grpc.plugins.gloo.solo.io.DestinationSpec grpc = 4;
         sqoop.plugins.gloo.solo.io.DestinationSpec sqoop = 5;
     }
 }
@@ -61,10 +44,5 @@ message UpstreamSpec {
     // Note to developers: new Upstream Plugins must be added to this oneof field
     // to be usable by Gloo.
     oneof upstream_type {
-        kubernetes.plugins.gloo.solo.io.UpstreamSpec kube = 1;
-        static.plugins.gloo.solo.io.UpstreamSpec static = 4;
-        aws.plugins.gloo.solo.io.UpstreamSpec aws = 2;
-        azure.plugins.gloo.solo.io.UpstreamSpec azure = 3;
-        consul.plugins.gloo.solo.io.UpstreamSpec consul = 5;
     }
 }

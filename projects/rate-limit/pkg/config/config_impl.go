@@ -9,7 +9,7 @@ import (
 	pb_struct "github.com/envoyproxy/go-control-plane/envoy/api/v2/ratelimit"
 
 	pb_rls "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
-	solo "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	glooee "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	solorl "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 
 	"go.uber.org/zap"
@@ -118,7 +118,7 @@ func (this rateLimitConfig) GetLimit(
 	return rateLimit
 }
 
-func (this *rateLimitDescriptor) loadDescriptors(logger *zap.SugaredLogger, parentKey string, descriptors []*solo.Constraint) error {
+func (this *rateLimitDescriptor) loadDescriptors(logger *zap.SugaredLogger, parentKey string, descriptors []*glooee.Constraint) error {
 
 	for _, descriptorConfig := range descriptors {
 		if descriptorConfig.Key == "" {
@@ -174,7 +174,7 @@ func NewConfigGenerator(logger *zap.SugaredLogger) RateLimitConfigGenerator {
 	}
 }
 
-func (this *rateLimitConfigGenerator) GenerateConfig(configs []*solo.RateLimitConfig) (config.RateLimitConfig, error) {
+func (this *rateLimitConfigGenerator) GenerateConfig(configs []*glooee.RateLimitConfig) (config.RateLimitConfig, error) {
 	limits := rateLimitConfig{
 		domains: make(map[string]*rateLimitDomain),
 		logger:  this.logger,
@@ -198,7 +198,7 @@ func (this *rateLimitConfigGenerator) GenerateConfig(configs []*solo.RateLimitCo
 
 }
 
-func (this *rateLimitConfigGenerator) makeConfig(rc *solo.RateLimitConfig) (*rateLimitDomain, error) {
+func (this *rateLimitConfigGenerator) makeConfig(rc *glooee.RateLimitConfig) (*rateLimitDomain, error) {
 
 	newDomain := &rateLimitDomain{rateLimitDescriptor{map[string]*rateLimitDescriptor{}, nil}}
 	newDomain.loadDescriptors(this.logger, rc.Domain+".", rc.Constraints)

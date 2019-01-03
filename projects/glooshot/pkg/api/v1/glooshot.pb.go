@@ -9,8 +9,8 @@ import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
 import _ "github.com/gogo/protobuf/types"
 import core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-import v1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
-import faultinjection "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/faultinjection"
+import v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+import faultinjection "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/faultinjection"
 
 import time "time"
 

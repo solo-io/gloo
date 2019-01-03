@@ -8,7 +8,7 @@ import fmt "fmt"
 import math "math"
 import _ "github.com/gogo/protobuf/gogoproto"
 import core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-import v1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+import v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
 import bytes "bytes"
 

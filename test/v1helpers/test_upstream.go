@@ -12,9 +12,9 @@ import (
 	. "github.com/onsi/ginkgo"
 
 	"github.com/gogo/protobuf/proto"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
-	static_plugin_gloo "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/static"
 )
 
 type ReceivedRequest struct {

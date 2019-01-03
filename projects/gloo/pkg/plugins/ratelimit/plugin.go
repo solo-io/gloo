@@ -1,14 +1,17 @@
 package ratelimit
 
 import (
+	"github.com/pkg/errors"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 	"time"
 
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/pkg/utils/proto"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 )
 
 /*
@@ -57,6 +60,7 @@ constraints:
 */
 
 const (
+	PluginName = "rate-limit"
 	domain      = "ingress"
 	requestType = "external"
 	userid      = "userid"
@@ -93,15 +97,21 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 	if in.VirtualHostPlugins == nil {
 		return nil
 	}
-	if in.VirtualHostPlugins.RateLimits == nil {
+	if in.VirtualHostPlugins.Plugins == nil {
 		return nil
 	}
-	_, err := TranslateUserConfigToRateLimitServerConfig(*in.VirtualHostPlugins.RateLimits)
+	plugins := in.VirtualHostPlugins.Plugins
+	var rateLimit ratelimit.IngressRateLimit
+	err := proto.UnmarshalAnyFromMap(plugins, PluginName, &rateLimit)
+	if err != nil {
+		return errors.Wrapf(err, "Error converting proto any to ingress rate limit plugin")
+	}
+	_, err = TranslateUserConfigToRateLimitServerConfig(rateLimit)
 	if err != nil {
 		return err
 	}
 
-	vhost := generateEnvoyConfigForVhost(in.VirtualHostPlugins.RateLimits.AuthrorizedHeader)
+	vhost := generateEnvoyConfigForVhost(rateLimit.AuthrorizedHeader)
 	out.RateLimits = vhost
 
 	return nil

@@ -8,6 +8,10 @@ import (
 	"os"
 	"os/exec"
 
+	ratelimit2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
+
+	"github.com/gogo/protobuf/types"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -20,8 +24,8 @@ import (
 	rlservice "github.com/solo-io/rate-limiter/pkg/service"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/test/v1helpers"
 )
 
@@ -46,7 +50,7 @@ var _ = Describe("Rate Limit", func() {
 		if binaryPath != "" {
 			return binaryPath
 		}
-		return "redis_server"
+		return "redis-server"
 	}
 
 	BeforeEach(func() {
@@ -83,6 +87,19 @@ var _ = Describe("Rate Limit", func() {
 
 		proxycli := testClients.ProxyClient
 		envoyPort := uint32(8080)
+
+		rateLimits := &ratelimit.IngressRateLimit{
+			AnonymousLimits: &ratelimit.RateLimit{
+				RequestsPerUnit: 1,
+				Unit:            ratelimit.RateLimit_SECOND,
+			},
+		}
+		rateLimitsAny, err := types.MarshalAny(rateLimits)
+		Expect(err).NotTo(HaveOccurred())
+		protos := map[string]*types.Any{
+			ratelimit2.PluginName: rateLimitsAny,
+		}
+
 		proxy := &gloov1.Proxy{
 			Metadata: core.Metadata{
 				Name:      "proxy",
@@ -114,12 +131,7 @@ var _ = Describe("Rate Limit", func() {
 								},
 							}},
 							VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-								RateLimits: &ratelimit.IngressRateLimit{
-									AnonymousLimits: &ratelimit.RateLimit{
-										RequestsPerUnit: 1,
-										Unit:            ratelimit.RateLimit_SECOND,
-									},
-								},
+								Plugins: protos,
 							},
 						}},
 					},
@@ -169,6 +181,18 @@ var _ = Describe("Rate Limit", func() {
 			_, err := testClients.UpstreamClient.Write(up, opts)
 			Expect(err).NotTo(HaveOccurred())
 
+			rateLimits := &ratelimit.IngressRateLimit{
+				AnonymousLimits: &ratelimit.RateLimit{
+					RequestsPerUnit: 1,
+					Unit:            ratelimit.RateLimit_SECOND,
+				},
+			}
+			rateLimitsAny, err := types.MarshalAny(rateLimits)
+			Expect(err).NotTo(HaveOccurred())
+			protos := map[string]*types.Any{
+				ratelimit2.PluginName: rateLimitsAny,
+			}
+
 			proxycli := testClients.ProxyClient
 			envoyPort := uint32(8080)
 			proxy := &gloov1.Proxy{
@@ -202,12 +226,7 @@ var _ = Describe("Rate Limit", func() {
 									},
 								}},
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-									RateLimits: &ratelimit.IngressRateLimit{
-										AnonymousLimits: &ratelimit.RateLimit{
-											RequestsPerUnit: 1,
-											Unit:            ratelimit.RateLimit_SECOND,
-										},
-									},
+									Plugins: protos,
 								},
 							}},
 						},

@@ -10,10 +10,10 @@ import (
 	"github.com/solo-io/solo-projects/pkg/cliutil"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/helpers"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/aws"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/rest"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/rest"
 )
 
 const (

@@ -1,18 +1,20 @@
 package create
 
 import (
+	"github.com/gogo/protobuf/types"
+	"github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/argsutils"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/constants"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/helpers"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/surveyutils"
-	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	ratelimit2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/spf13/cobra"
 )
 
@@ -84,12 +86,20 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 		if !ok {
 			return nil, errors.Errorf("invalid time unit specified: %v", rateLimitOpts.TimeUnit)
 		}
-		vs.VirtualHost.VirtualHostPlugins.RateLimits = &ratelimit.IngressRateLimit{
+		ingressRateLimit := &ratelimit.IngressRateLimit{
 			AnonymousLimits: &ratelimit.RateLimit{
 				Unit:            ratelimit.RateLimit_Unit(timeUnit),
 				RequestsPerUnit: input.RateLimit.RequestsPerTimeUnit,
 			},
 		}
+		ingressRateLimitAny, err := types.MarshalAny(ingressRateLimit)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Error marshalling ingress rate limit")
+		}
+		if vs.VirtualHost.VirtualHostPlugins.Plugins == nil {
+			vs.VirtualHost.VirtualHostPlugins.Plugins = make(map[string]*types.Any)
+		}
+		vs.VirtualHost.VirtualHostPlugins.Plugins[ratelimit2.PluginName] = ingressRateLimitAny
 	}
 
 	return vs, nil

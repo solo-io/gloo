@@ -1,10 +1,11 @@
 package services
 
 import (
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
 	"net"
 	"time"
 
-	gatewaysyncer "github.com/solo-io/solo-projects/projects/gateway/pkg/syncer"
+	gatewaysyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
 
 	"context"
 	"sync/atomic"
@@ -14,9 +15,9 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 
-	gatewayv1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
-	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/bootstrap"
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"google.golang.org/grpc"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware"
@@ -25,10 +26,10 @@ import (
 	"go.uber.org/zap"
 
 	. "github.com/onsi/gomega"
-	fds_syncer "github.com/solo-io/solo-projects/projects/discovery/pkg/fds/syncer"
-	uds_syncer "github.com/solo-io/solo-projects/projects/discovery/pkg/uds/syncer"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer"
+	fds_syncer "github.com/solo-io/gloo/projects/discovery/pkg/fds/syncer"
+	uds_syncer "github.com/solo-io/gloo/projects/discovery/pkg/uds/syncer"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 
 	"k8s.io/client-go/kubernetes"
 )
@@ -61,7 +62,7 @@ func RunGatewayWithNamespaceAndKubeClient(ctx context.Context, justgloo bool, ns
 		go gatewaysyncer.RunGateway(opts)
 	}
 	glooopts.ControlPlane.StartGrpcServer = true
-	go syncer.RunGloo(glooopts)
+	go syncer.RunGlooWithExtensions(glooopts, setup.GetGlooEeExtensions())
 	go fds_syncer.RunFDS(glooopts)
 	go uds_syncer.RunUDS(glooopts)
 
@@ -129,11 +130,11 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 		Cache: cache,
 	}
 	return bootstrap.Opts{
-		WriteNamespace:  ns,
-		Upstreams:       f,
-		Proxies:         f,
-		Secrets:         f,
-		Schemas:         f,
+		WriteNamespace: ns,
+		Upstreams:      f,
+		Proxies:        f,
+		Secrets:        f,
+
 		Artifacts:       f,
 		WatchNamespaces: []string{"default", ns},
 		WatchOpts: clients.WatchOpts{

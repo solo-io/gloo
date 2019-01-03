@@ -1,7 +1,7 @@
 package TODO
 
 import (
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
 const SqoopSidecarBindAddr = "127.0.0.1"

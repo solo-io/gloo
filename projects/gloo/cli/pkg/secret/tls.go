@@ -13,7 +13,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/helpers"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/secret/inputsecret"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/surveyutils"
-	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/spf13/cobra"
 )
 

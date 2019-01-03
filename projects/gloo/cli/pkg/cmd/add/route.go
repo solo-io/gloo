@@ -5,17 +5,17 @@ import (
 	"sort"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	gatewayv1 "github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/helpers"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/aws"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/rest"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/transformation"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/rest"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation"
 
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/surveyutils"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/spf13/cobra"
 )
 

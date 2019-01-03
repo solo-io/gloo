@@ -1,7 +1,7 @@
 package flagutils
 
 import (
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 	"github.com/spf13/pflag"

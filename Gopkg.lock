@@ -227,7 +227,7 @@
   version = "v1.12.0"
 
 [[projects]]
-  digest = "1:29960dad7010531942678b70b4973d5839284df9270ffb23b42b847d063283c8"
+  digest = "1:aa489ba3da8358a8ac0772230b26b7071bf476d1b818465c45d8be09ac5a2156"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -252,8 +252,6 @@
     "envoy/service/discovery/v2",
     "envoy/service/ratelimit/v2",
     "envoy/type",
-    "pkg/cache",
-    "pkg/log",
     "pkg/util",
   ]
   pruneopts = "UT"
@@ -276,6 +274,17 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:7fb51688eadf38272411852d7a2b3538c7caff53309abee6c0964a83c00fe69e"
+  name = "github.com/globalsign/mgo"
+  packages = [
+    "bson",
+    "internal/json",
+  ]
+  pruneopts = "UT"
+  revision = "eeefdecb41b842af6dc652aaea4026e8403e62df"
+
+[[projects]]
   digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"
   name = "github.com/go-ini/ini"
   packages = ["."]
@@ -284,71 +293,71 @@
   version = "v1.38.2"
 
 [[projects]]
-  digest = "1:50d6bc4aa3e70803230bb98a4b0e0f1331fefc2eb324e087adf7e986b8da082e"
+  digest = "1:8c4be86399428a81749056c2d67feba95c1784b742ccf03ac7527d0b426bf22a"
   name = "github.com/go-openapi/analysis"
   packages = [
     ".",
     "internal",
   ]
   pruneopts = "UT"
-  revision = "7c1bef8f6d9fa6148ce0d8a0ebf5339a084a6639"
-  version = "0.16.0"
+  revision = "e2f3fdbb7ed0e56e070ccbfb6fc75b288a33c014"
+  version = "v0.18.0"
 
 [[projects]]
-  digest = "1:7a90552bf0ad97b41a4ac036d42aad77956c19b28398188ff7a5cc70b0c8bbf4"
+  digest = "1:d4a14966fe8f1ec9306792aaa4d135392b04ab5eb5830d485199dbf0ddb1132b"
   name = "github.com/go-openapi/errors"
   packages = ["."]
   pruneopts = "UT"
-  revision = "b2b2befaf267d082d779bcef52d682a47c779517"
-  version = "0.16.0"
+  revision = "7a7ff1b7b8020f22574411a32f28b4d168d69237"
+  version = "v0.18.0"
 
 [[projects]]
-  digest = "1:2997679181d901ac8aaf4330d11138ecf3974c6d3334995ff36f20cbd597daf8"
+  digest = "1:953a2628e4c5c72856b53f5470ed5e071c55eccf943d798d42908102af2a610f"
   name = "github.com/go-openapi/jsonpointer"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3a0015ad55fa9873f41605d3e8f28cd279c32ab2"
-  version = "0.16.0"
+  revision = "ef5f0afec364d3b9396b7b77b43dbe26bf1f8004"
+  version = "v0.18.0"
 
 [[projects]]
-  digest = "1:1ae3f233d75a731b164ca9feafd8ed646cbedf1784095876ed6988ce8aa88b1f"
+  digest = "1:81210e0af657a0fb3638932ec68e645236bceefa4c839823db0c4d918f080895"
   name = "github.com/go-openapi/jsonreference"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3fb327e6747da3043567ee86abd02bb6376b6be2"
-  version = "0.16.0"
+  revision = "8483a886a90412cd6858df4ea3483dce9c8e35a3"
+  version = "v0.18.0"
 
 [[projects]]
-  digest = "1:ff04019588fc028ac28c3c565ce5316461a4641df197555041ee66cf45d213e3"
+  digest = "1:208878abf5fc4e435f9c382a06678f46be91270d0efa1f475134543f6ed7784a"
   name = "github.com/go-openapi/loads"
   packages = ["."]
   pruneopts = "UT"
-  revision = "2a2b323bab96e6b1fdee110e57d959322446e9c9"
-  version = "0.16.0"
+  revision = "74628589c3b94e3526a842d24f46589980f5ab22"
+  version = "v0.18.0"
 
 [[projects]]
-  digest = "1:3e5bdbd2a071c72c778c28fd7b5dfde95cdfbcef412f364377e031877205e418"
+  digest = "1:08656ef9c5a45ddccb7f206ca2d67e12e9fcda4122a83dc0544b5c967267cefa"
   name = "github.com/go-openapi/spec"
   packages = ["."]
   pruneopts = "UT"
-  revision = "384415f06ee238aae1df5caad877de6ceac3a5c4"
-  version = "0.16.0"
+  revision = "5b6cdde3200976e3ecceb2868706ee39b6aff3e4"
+  version = "v0.18.0"
 
 [[projects]]
-  digest = "1:c19e41854708ff52816cff12f30d454135f350a1e4fe6ab62a8be8df75458eb0"
+  digest = "1:ce88cd5bf52c202bbb1cf404fcfec4752d9259daa0fc5913d327f23bf0982677"
   name = "github.com/go-openapi/strfmt"
   packages = ["."]
   pruneopts = "UT"
-  revision = "913ee058e387ac83a67e2d9f13acecdcd5769fc6"
-  version = "0.16.0"
+  revision = "e471370ae57ac74eaf0afe816a66e4ddd7f1b027"
+  version = "v0.18.0"
 
 [[projects]]
-  digest = "1:c80984d4a9bb79539743aff5af91b595d84f513700150b0ed73c1697d1200d54"
+  digest = "1:0005186c6608dd542239ac8e4f4f1e2e7c24d493e999113c46b93332f0362fc0"
   name = "github.com/go-openapi/swag"
   packages = ["."]
   pruneopts = "UT"
-  revision = "becd2f08beafcca035645a8a101e0e3e18140458"
-  version = "0.16.0"
+  revision = "1d29f06aebd59ccdf11ae04aa0334ded96e2d909"
+  version = "v0.18.0"
 
 [[projects]]
   digest = "1:d661a50b937259fd2a6324af7ee4cb62fa506bd9b82cd2fd96e23122af7c006f"
@@ -362,13 +371,14 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:35621fe20f140f05a0c4ef662c26c0ab4ee50bca78aa30fe87d33120bd28165e"
+  digest = "1:60731c5aecf6061614be06333160462b47be4f7cd2369845e50d5da38bfd6a54"
   name = "github.com/gogo/protobuf"
   packages = [
     "gogoproto",
     "jsonpb",
     "proto",
     "protoc-gen-gogo/descriptor",
+    "protoc-gen-gogo/plugin",
     "sortkeys",
     "types",
   ]
@@ -789,6 +799,13 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:99bafffd60368afd17d11302671600e044137f5c6ba9babb950a47c84ed5a71d"
+  name = "github.com/ilackarms/protokit"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ee2393f3bbf04700fc5d611077496c47ec1937ed"
+
+[[projects]]
   digest = "1:3e260afa138eab6492b531a3b3d10ab4cb70512d423faa78b8949dec76e66a21"
   name = "github.com/imdario/mergo"
   packages = ["."]
@@ -825,8 +842,7 @@
   revision = "d14ea06fba99483203c19d92cfcd13ebe73135f4"
 
 [[projects]]
-  branch = "master"
-  digest = "1:ae09cf9493c4c7b9f5561b613cacf78613303ecd0b6d68c2bb2944d33e334da1"
+  digest = "1:cf96a6d71a6a05f7f44cc48575d56b772979e2389c24e40aac3b3005067f6c1c"
   name = "github.com/jhump/protoreflect"
   packages = [
     "desc",
@@ -835,7 +851,8 @@
     "internal",
   ]
   pruneopts = "UT"
-  revision = "95c5cbbeaee7fe3c2b5ecf0a163144140dfb4d61"
+  revision = "f90aa080ba36727321f2bc4c61f2a282f756bfab"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:e22af8c7518e1eab6f2eab2b7d7558927f816262586cd6ed9f349c97a6c285c4"
@@ -1210,14 +1227,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:37fe5a9adb37233d7f2d764dcdef5e2537d0d927bf57a6095f178817c8c616e5"
-  name = "github.com/pseudomuto/protokit"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "7037620bf27b13fcdc10b1b17ddef82540db670b"
-  version = "v0.1.0"
-
-[[projects]]
   digest = "1:0665976cc6d8c2e60dafca32820b6b7eca70f37ded0bcccc103388e1c0d05c53"
   name = "github.com/radovskyb/watcher"
   packages = ["."]
@@ -1273,12 +1282,61 @@
   revision = "c71f318a203bca8433268be67336086379a2bf9f"
 
 [[projects]]
-  digest = "1:f7f7da71a6c6474b75fd41b6c3eab9785938355434b56186a20a20f623d7476f"
+  digest = "1:dc93504414361a966d697cc08bc0863740560536c904938f35f8d6bcd023bd4b"
   name = "github.com/solo-io/gloo"
-  packages = ["pkg/log"]
+  packages = [
+    "pkg/utils/proto",
+    "pkg/utils/setuputils",
+    "projects/discovery/pkg/fds",
+    "projects/discovery/pkg/fds/discoveries/aws",
+    "projects/discovery/pkg/fds/discoveries/grpc",
+    "projects/discovery/pkg/fds/discoveries/swagger",
+    "projects/discovery/pkg/fds/setup",
+    "projects/discovery/pkg/fds/syncer",
+    "projects/discovery/pkg/uds/setup",
+    "projects/discovery/pkg/uds/syncer",
+    "projects/gateway/pkg/api/v1",
+    "projects/gateway/pkg/defaults",
+    "projects/gateway/pkg/propagator",
+    "projects/gateway/pkg/setup",
+    "projects/gateway/pkg/syncer",
+    "projects/gateway/pkg/todo",
+    "projects/gateway/pkg/translator",
+    "projects/gloo/pkg/api/v1",
+    "projects/gloo/pkg/api/v1/plugins",
+    "projects/gloo/pkg/api/v1/plugins/aws",
+    "projects/gloo/pkg/api/v1/plugins/azure",
+    "projects/gloo/pkg/api/v1/plugins/consul",
+    "projects/gloo/pkg/api/v1/plugins/faultinjection",
+    "projects/gloo/pkg/api/v1/plugins/grpc",
+    "projects/gloo/pkg/api/v1/plugins/kubernetes",
+    "projects/gloo/pkg/api/v1/plugins/rest",
+    "projects/gloo/pkg/api/v1/plugins/sqoop",
+    "projects/gloo/pkg/api/v1/plugins/static",
+    "projects/gloo/pkg/api/v1/plugins/transformation",
+    "projects/gloo/pkg/bootstrap",
+    "projects/gloo/pkg/defaults",
+    "projects/gloo/pkg/discovery",
+    "projects/gloo/pkg/plugins",
+    "projects/gloo/pkg/plugins/aws",
+    "projects/gloo/pkg/plugins/azure",
+    "projects/gloo/pkg/plugins/consul",
+    "projects/gloo/pkg/plugins/faultinjection",
+    "projects/gloo/pkg/plugins/grpc",
+    "projects/gloo/pkg/plugins/kubernetes",
+    "projects/gloo/pkg/plugins/pluginutils",
+    "projects/gloo/pkg/plugins/prefixrewrite",
+    "projects/gloo/pkg/plugins/registry",
+    "projects/gloo/pkg/plugins/rest",
+    "projects/gloo/pkg/plugins/static",
+    "projects/gloo/pkg/plugins/transformation",
+    "projects/gloo/pkg/syncer",
+    "projects/gloo/pkg/translator",
+    "projects/gloo/pkg/xds",
+  ]
   pruneopts = "UT"
-  revision = "e96b8261627ae550413094e59cf914a6ed0657c6"
-  version = "v1"
+  revision = "e0e0edaaf83e8e5c2baa1abfb799ca82951c9487"
+  version = "v0.5.2"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1302,11 +1360,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:dea5143f6437b99c1ef3860c669e634992d69fccc310668cdf571d144446b40a"
+  digest = "1:299e82a55d4ae516cc54524c662361bbe69acd31136142b94384dc54a8f0d8ee"
   name = "github.com/solo-io/kubecontroller"
   packages = ["."]
   pruneopts = "UT"
-  revision = "421003c15226e9ad2c16066c5c898f94a4688fae"
+  revision = "5752d70e15b697ef118f5bf53cc3381ebef055e4"
 
 [[projects]]
   digest = "1:864531fe916b5a5d0937abd80932d02f6d014aa0f8350d437a92ff1a5399461d"
@@ -1322,7 +1380,7 @@
   revision = "32838befd54a98ecd76e6f1bf0ca6df602646a04"
 
 [[projects]]
-  digest = "1:2771c6cdb871724d1cc1f5f2fce31d9662534abd11b603d8b34037b04a25a088"
+  digest = "1:a9bf1eaeb940ccb33710adce9ec45fd6c164ddbbf58b042076b69b42a3eea0b9"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1331,6 +1389,7 @@
     "pkg/api/v1/clients/factory",
     "pkg/api/v1/clients/file",
     "pkg/api/v1/clients/kube",
+    "pkg/api/v1/clients/kube/controller",
     "pkg/api/v1/clients/kube/crd",
     "pkg/api/v1/clients/kube/crd/client/clientset/versioned",
     "pkg/api/v1/clients/kube/crd/client/clientset/versioned/scheme",
@@ -1364,6 +1423,7 @@
     "pkg/utils/contextutils",
     "pkg/utils/errutils",
     "pkg/utils/fileutils",
+    "pkg/utils/hashutils",
     "pkg/utils/kubeutils",
     "pkg/utils/log",
     "pkg/utils/protoutils",
@@ -1374,8 +1434,8 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "6e53f1205d96b96270269ffc281d709324cf8fb2"
-  version = "0.2.4"
+  revision = "7874fbfaf3cc61865a14442a5ba0f77f665b3ab7"
+  version = "v0.2.11"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -1757,17 +1817,6 @@
   version = "v0.9.1"
 
 [[projects]]
-  branch = "v2"
-  digest = "1:2642fd0b6900c77247d61d80cf2eb59a374ef4ffc2d25a1b95b87dc355b2894e"
-  name = "gopkg.in/mgo.v2"
-  packages = [
-    "bson",
-    "internal/json",
-  ]
-  pruneopts = "UT"
-  revision = "9856a29383ce1c59f308dd1cf0363a79b5bef6b5"
-
-[[projects]]
   digest = "1:866df945fc92cd221d2b384dca7de5f3131a6113b9f72a7a8019ae5046abe828"
   name = "gopkg.in/src-d/go-billy.v4"
   packages = [
@@ -2115,37 +2164,18 @@
     "github.com/Masterminds/sprig",
     "github.com/ahmetb/go-linq",
     "github.com/aokoli/goutils",
-    "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/credentials",
-    "github.com/aws/aws-sdk-go/aws/session",
-    "github.com/aws/aws-sdk-go/service/lambda",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2",
-    "github.com/envoyproxy/go-control-plane/envoy/api/v2/auth",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/core",
-    "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint",
-    "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/ratelimit",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/route",
-    "github.com/envoyproxy/go-control-plane/envoy/config/filter/fault/v2",
-    "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/fault/v2",
     "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rate_limit/v2",
-    "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/transcoder/v2",
     "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2",
-    "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2",
     "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2",
-    "github.com/envoyproxy/go-control-plane/envoy/type",
-    "github.com/envoyproxy/go-control-plane/pkg/cache",
-    "github.com/envoyproxy/go-control-plane/pkg/util",
     "github.com/ghodss/yaml",
-    "github.com/go-openapi/loads",
-    "github.com/go-openapi/spec",
-    "github.com/go-openapi/swag",
-    "github.com/gogo/googleapis/google/api",
     "github.com/gogo/protobuf/gogoproto",
     "github.com/gogo/protobuf/proto",
-    "github.com/gogo/protobuf/protoc-gen-gogo/descriptor",
     "github.com/gogo/protobuf/types",
-    "github.com/golang/protobuf/protoc-gen-go/descriptor",
     "github.com/google/go-github/github",
     "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
@@ -2153,14 +2183,10 @@
     "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap",
     "github.com/grpc-ecosystem/go-grpc-middleware/tags",
     "github.com/hashicorp/consul/agent/config",
-    "github.com/hashicorp/consul/api",
     "github.com/hashicorp/go-multierror",
     "github.com/inconshreveable/go-update",
-    "github.com/jhump/protoreflect/desc",
-    "github.com/jhump/protoreflect/grpcreflect",
     "github.com/kelseyhightower/envconfig",
     "github.com/keybase/go-ps",
-    "github.com/lyft/protoc-gen-validate/validate",
     "github.com/mitchellh/hashstructure",
     "github.com/olekukonko/tablewriter",
     "github.com/onsi/ginkgo",
@@ -2175,10 +2201,35 @@
     "github.com/prometheus/prometheus/discovery/targetgroup",
     "github.com/rs/cors",
     "github.com/solo-io/envoy-operator/pkg/downward",
+    "github.com/solo-io/gloo/pkg/utils/proto",
+    "github.com/solo-io/gloo/pkg/utils/setuputils",
+    "github.com/solo-io/gloo/projects/discovery/pkg/fds/setup",
+    "github.com/solo-io/gloo/projects/discovery/pkg/fds/syncer",
+    "github.com/solo-io/gloo/projects/discovery/pkg/uds/setup",
+    "github.com/solo-io/gloo/projects/discovery/pkg/uds/syncer",
+    "github.com/solo-io/gloo/projects/gateway/pkg/api/v1",
+    "github.com/solo-io/gloo/projects/gateway/pkg/setup",
+    "github.com/solo-io/gloo/projects/gateway/pkg/syncer",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/azure",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/consul",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/faultinjection",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/grpc",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/kubernetes",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/rest",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation",
+    "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap",
+    "github.com/solo-io/gloo/projects/gloo/pkg/defaults",
+    "github.com/solo-io/gloo/projects/gloo/pkg/plugins",
+    "github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils",
+    "github.com/solo-io/gloo/projects/gloo/pkg/plugins/transformation",
+    "github.com/solo-io/gloo/projects/gloo/pkg/syncer",
     "github.com/solo-io/go-checkpoint",
     "github.com/solo-io/keygen",
     "github.com/solo-io/keygen/services",
-    "github.com/solo-io/kubecontroller",
     "github.com/solo-io/rate-limiter/pkg/config",
     "github.com/solo-io/rate-limiter/pkg/redis",
     "github.com/solo-io/rate-limiter/pkg/server",
@@ -2192,8 +2243,6 @@
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache",
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/client",
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server",
-    "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util",
-    "github.com/solo-io/solo-kit/pkg/api/v1/propagator",
     "github.com/solo-io/solo-kit/pkg/api/v1/reconcile",
     "github.com/solo-io/solo-kit/pkg/api/v1/reporter",
     "github.com/solo-io/solo-kit/pkg/api/v1/resources",
@@ -2232,7 +2281,6 @@
     "google.golang.org/grpc/codes",
     "google.golang.org/grpc/health",
     "google.golang.org/grpc/health/grpc_health_v1",
-    "google.golang.org/grpc/reflection/grpc_reflection_v1alpha",
     "google.golang.org/grpc/status",
     "gopkg.in/AlecAivazis/survey.v1",
     "gopkg.in/src-d/go-git.v4",
@@ -2245,15 +2293,11 @@
     "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
-    "k8s.io/apimachinery/pkg/labels",
     "k8s.io/apimachinery/pkg/runtime",
     "k8s.io/apimachinery/pkg/runtime/schema",
-    "k8s.io/client-go/informers",
     "k8s.io/client-go/kubernetes",
-    "k8s.io/client-go/listers/core/v1",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/client-go/rest",
-    "k8s.io/client-go/tools/cache",
     "k8s.io/client-go/tools/clientcmd",
   ]
   solver-name = "gps-cdcl"

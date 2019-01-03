@@ -10,7 +10,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 
 	"github.com/gogo/protobuf/types"
-	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
 var routeActionType = struct {

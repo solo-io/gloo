@@ -1,16 +1,28 @@
 package setup
 
 import (
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
+	syncerExtensions "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer"
 	"time"
 
 	check "github.com/solo-io/go-checkpoint"
-	"github.com/solo-io/solo-projects/pkg/utils/setuputils"
+	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	"github.com/solo-io/solo-projects/pkg/version"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/syncer"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 )
 
 func Main() error {
 	start := time.Now()
-	check.CallCheck("gloo", version.Version, start)
-	return setuputils.Main("gloo", syncer.NewSetupFunc())
+	check.CallCheck("gloo-ee", version.Version, start)
+	return setuputils.Main("gloo-ee", syncer.NewSetupFuncWithExtensions(GetGlooEeExtensions()))
+}
+
+func GetGlooEeExtensions() syncer.Extensions {
+	rateLimitSyncer := syncerExtensions.NewTranslatorSyncerExtension()
+	rateLimitPlugin := ratelimit.NewPlugin()
+	return syncer.Extensions{
+		SyncerExtensions: []syncer.TranslatorSyncerExtension{rateLimitSyncer},
+		PluginExtensions: []plugins.Plugin{rateLimitPlugin},
+	}
 }

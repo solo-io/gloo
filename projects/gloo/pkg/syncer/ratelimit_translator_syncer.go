@@ -3,18 +3,30 @@ package syncer
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
+	"github.com/solo-io/gloo/pkg/utils/proto"
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 
 	"github.com/mitchellh/hashstructure"
 
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	rateLimitPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 )
 
-func (s *translatorSyncer) syncRateLimit(ctx context.Context, snap *v1.ApiSnapshot) error {
+type RateLimitTranslatorSyncerExtension struct {
+}
+
+func NewTranslatorSyncerExtension() syncer.TranslatorSyncerExtension {
+	return &RateLimitTranslatorSyncerExtension{}
+}
+
+func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
 	for _, proxy := range snap.Proxies.List() {
 		for _, listener := range proxy.Listeners {
-			httpListener, ok := listener.ListenerType.(*v1.Listener_HttpListener)
+			httpListener, ok := listener.ListenerType.(*gloov1.Listener_HttpListener)
 			if !ok {
 				continue
 			}
@@ -23,10 +35,20 @@ func (s *translatorSyncer) syncRateLimit(ctx context.Context, snap *v1.ApiSnapsh
 				if virtualHost.VirtualHostPlugins == nil {
 					continue
 				}
-				if virtualHost.VirtualHostPlugins.RateLimits == nil {
+				if virtualHost.VirtualHostPlugins.Plugins == nil {
 					continue
 				}
-				cfg, err := ratelimit.TranslateUserConfigToRateLimitServerConfig(*virtualHost.VirtualHostPlugins.RateLimits)
+				plugins := virtualHost.VirtualHostPlugins.Plugins
+				var rateLimit ratelimit.IngressRateLimit
+				err := proto.UnmarshalAnyFromMap(plugins, rateLimitPlugin.PluginName, &rateLimit)
+				if err != nil {
+					if err == proto.NotFoundError {
+						continue
+					}
+					return errors.Wrapf(err, "Error converting proto any to ingress rate limit plugin")
+				}
+
+				cfg, err := rateLimitPlugin.TranslateUserConfigToRateLimitServerConfig(rateLimit)
 				if err != nil {
 					return err
 				}
@@ -37,7 +59,7 @@ func (s *translatorSyncer) syncRateLimit(ctx context.Context, snap *v1.ApiSnapsh
 					panic(err)
 				}
 				rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
-				s.xdsCache.SetSnapshot("ratelimit", rlsnap)
+				xdsCache.SetSnapshot("ratelimit", rlsnap)
 				// very soon. either buy changing the plugin or potentially the filter.
 				return nil
 

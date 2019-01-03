@@ -4,7 +4,7 @@ import (
 	"flag"
 	"strings"
 
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/defaults"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 )
 
 // TODO (ilackarms): move to a flags package

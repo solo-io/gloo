@@ -8,8 +8,8 @@ option (gogoproto.equal_all) = true;
 import "google/protobuf/duration.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
-import "github.com/solo-io/solo-projects/projects/gloo/api/v1/proxy.proto";
-import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/faultinjection/fault.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/faultinjection/fault.proto";
 
 /*
 @solo-kit:resource.short_name=exp

@@ -2,13 +2,16 @@ package printers
 
 import (
 	"fmt"
+	"github.com/solo-io/gloo/pkg/utils/proto"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	rateLimitPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	"io"
 	"strconv"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/solo-io/solo-projects/projects/gateway/pkg/api/v1"
-	gloov1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
 // PrintTable prints virtual services using tables to io.Writer
@@ -54,7 +57,13 @@ func routeList(v *v1.VirtualService) []string {
 func vhPlugins(v *v1.VirtualService) string {
 	var pluginStr string
 	if v.VirtualHost.VirtualHostPlugins != nil {
-		if v.VirtualHost.VirtualHostPlugins.RateLimits != nil {
+		plugins := v.VirtualHost.VirtualHostPlugins.Plugins
+		var rateLimit ratelimit.IngressRateLimit
+		err := proto.UnmarshalAnyFromMap(plugins, rateLimitPlugin.PluginName, &rateLimit)
+		if err != nil && err != proto.NotFoundError {
+			return fmt.Sprintf("Error converting proto any to ingress rate limit plugin: %v", err)
+		}
+		if err == nil {
 			pluginStr += "ratelimit "
 		}
 	}
