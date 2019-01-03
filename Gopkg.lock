@@ -1117,7 +1117,7 @@
   revision = "241bc627d5400a0794853220df4fdefeeb2af0e0"
 
 [[projects]]
-  digest = "1:a9f3b19f59c3284748b8ac9810bd08cd0258445b215ffc77d0e8ae854054a3d0"
+  digest = "1:b5dd3704debad220fee641cce0dd2f7dad09b801b7e5ca75e1b05bfb786676e2"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1159,6 +1159,7 @@
     "pkg/utils/contextutils",
     "pkg/utils/errutils",
     "pkg/utils/fileutils",
+    "pkg/utils/hashutils",
     "pkg/utils/kubeutils",
     "pkg/utils/log",
     "pkg/utils/protoutils",
@@ -1823,6 +1824,7 @@
     "github.com/solo-io/solo-kit/pkg/utils/cliutils",
     "github.com/solo-io/solo-kit/pkg/utils/contextutils",
     "github.com/solo-io/solo-kit/pkg/utils/errutils",
+    "github.com/solo-io/solo-kit/pkg/utils/hashutils",
     "github.com/solo-io/solo-kit/pkg/utils/kubeutils",
     "github.com/solo-io/solo-kit/pkg/utils/log",
     "github.com/solo-io/solo-kit/pkg/utils/protoutils",
