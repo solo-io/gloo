@@ -69,17 +69,11 @@ Note to developers: new Route Plugins must be added to this struct
 to be usable by Gloo.
 
 ```yaml
-"transformations": .transformation.plugins.gloo.solo.io.RouteTransformations
-"faults": .fault.plugins.gloo.solo.io.RouteFaults
-"prefix_rewrite": .transformation.plugins.gloo.solo.io.PrefixRewrite
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `transformations` | [.transformation.plugins.gloo.solo.io.RouteTransformations](plugins/transformation/transformation.proto.sk.md#RouteTransformations) |  |  |
-| `faults` | [.fault.plugins.gloo.solo.io.RouteFaults](plugins/faultinjection/fault.proto.sk.md#RouteFaults) |  |  |
-| `prefix_rewrite` | [.transformation.plugins.gloo.solo.io.PrefixRewrite](plugins/transformation/prefix_rewrite.proto.sk.md#PrefixRewrite) |  |  |
 
 
 
@@ -91,20 +85,12 @@ to be usable by Gloo.
 Configuration for Destinations that are tied to the UpstreamSpec or ServiceSpec on that destination
 
 ```yaml
-"aws": .aws.plugins.gloo.solo.io.DestinationSpec
-"azure": .azure.plugins.gloo.solo.io.DestinationSpec
-"rest": .rest.plugins.gloo.solo.io.DestinationSpec
-"grpc": .grpc.plugins.gloo.solo.io.DestinationSpec
 "sqoop": .sqoop.plugins.gloo.solo.io.DestinationSpec
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `aws` | [.aws.plugins.gloo.solo.io.DestinationSpec](plugins/aws/aws.proto.sk.md#DestinationSpec) |  |  |
-| `azure` | [.azure.plugins.gloo.solo.io.DestinationSpec](plugins/azure/azure.proto.sk.md#DestinationSpec) |  |  |
-| `rest` | [.rest.plugins.gloo.solo.io.DestinationSpec](plugins/rest/rest.proto.sk.md#DestinationSpec) |  |  |
-| `grpc` | [.grpc.plugins.gloo.solo.io.DestinationSpec](plugins/grpc/grpc.proto.sk.md#DestinationSpec) |  |  |
 | `sqoop` | [.sqoop.plugins.gloo.solo.io.DestinationSpec](plugins/sqoop/sqoop.proto.sk.md#DestinationSpec) |  |  |
 
 
@@ -118,21 +104,11 @@ Each upstream in Gloo has a type. Supported types include `static`, `kubernetes`
 Each upstream type is handled by a corresponding Gloo plugin.
 
 ```yaml
-"kube": .kubernetes.plugins.gloo.solo.io.UpstreamSpec
-"static": .static.plugins.gloo.solo.io.UpstreamSpec
-"aws": .aws.plugins.gloo.solo.io.UpstreamSpec
-"azure": .azure.plugins.gloo.solo.io.UpstreamSpec
-"consul": .consul.plugins.gloo.solo.io.UpstreamSpec
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `kube` | [.kubernetes.plugins.gloo.solo.io.UpstreamSpec](plugins/kubernetes/kubernetes.proto.sk.md#UpstreamSpec) |  |  |
-| `static` | [.static.plugins.gloo.solo.io.UpstreamSpec](plugins/static/static.proto.sk.md#UpstreamSpec) |  |  |
-| `aws` | [.aws.plugins.gloo.solo.io.UpstreamSpec](plugins/aws/aws.proto.sk.md#UpstreamSpec) |  |  |
-| `azure` | [.azure.plugins.gloo.solo.io.UpstreamSpec](plugins/azure/azure.proto.sk.md#UpstreamSpec) |  |  |
-| `consul` | [.consul.plugins.gloo.solo.io.UpstreamSpec](plugins/consul/consul.proto.sk.md#UpstreamSpec) |  |  |
 
 
 

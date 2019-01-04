@@ -1,9 +1,9 @@
 package translator
 
 import (
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
 )

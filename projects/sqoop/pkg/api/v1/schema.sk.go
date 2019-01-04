@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/hashutils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -30,6 +31,15 @@ func (r *Schema) SetStatus(status core.Status) {
 
 func (r *Schema) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
+}
+
+func (r *Schema) Hash() uint64 {
+	metaCopy := r.GetMetadata()
+	metaCopy.ResourceVersion = ""
+	return hashutils.HashAll(
+		metaCopy,
+		r.InlineSchema,
+	)
 }
 
 type SchemaList []*Schema
@@ -92,6 +102,20 @@ func (list SchemaList) Clone() SchemaList {
 		schemaList = append(schemaList, proto.Clone(schema).(*Schema))
 	}
 	return schemaList
+}
+
+func (list SchemaList) Each(f func(element *Schema)) {
+	for _, schema := range list {
+		f(schema)
+	}
+}
+
+func (list SchemaList) AsInterfaces() []interface{} {
+	var asInterfaces []interface{}
+	list.Each(func(element *Schema) {
+		asInterfaces = append(asInterfaces, element)
+	})
+	return asInterfaces
 }
 
 func (list SchemaList) ByNamespace() SchemasByNamespace {

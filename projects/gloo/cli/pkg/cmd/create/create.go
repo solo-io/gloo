@@ -6,13 +6,13 @@ import (
 	"os"
 
 	"github.com/ghodss/yaml"
+	"github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
-	"github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/helpers"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/secret"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"

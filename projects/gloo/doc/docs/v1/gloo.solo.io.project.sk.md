@@ -9,17 +9,15 @@ Gloo is a high-performance, plugin-extendable, platform-agnostic API Gateway bui
 
 
 ### API Resources:
-- [Proxy](./github.com/solo-io/solo-projects/projects/gloo/api/v1/proxy.proto.sk.md#Proxy)
-- [Gateway](./github.com/solo-io/solo-projects/projects/gateway/api/v1/gateway.proto.sk.md#Gateway)
-- [VirtualService](./github.com/solo-io/solo-projects/projects/gateway/api/v1/virtual_service.proto.sk.md#VirtualService)
-- [Artifact](./github.com/solo-io/solo-projects/projects/gloo/api/v1/artifact.proto.sk.md#Artifact)
-- [Endpoint](./github.com/solo-io/solo-projects/projects/gloo/api/v1/endpoint.proto.sk.md#Endpoint)
-- [Secret](./github.com/solo-io/solo-projects/projects/gloo/api/v1/secret.proto.sk.md#Secret)
-- [Settings](./github.com/solo-io/solo-projects/projects/gloo/api/v1/settings.proto.sk.md#Settings)
-- [Upstream](./github.com/solo-io/solo-projects/projects/gloo/api/v1/upstream.proto.sk.md#Upstream)
+- [Proxy](./github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk.md#Proxy)
 - [Experiment](./github.com/solo-io/solo-projects/projects/glooshot/api/v1/glooshot.proto.sk.md#Experiment)
+- [LicenseKey](./github.com/solo-io/solo-projects/projects/licensingserver/api/v1/license.proto.sk.md#LicenseKey)
 - [ResolverMap](./github.com/solo-io/solo-projects/projects/sqoop/api/v1/resolver_map.proto.sk.md#ResolverMap)
 - [Schema](./github.com/solo-io/solo-projects/projects/sqoop/api/v1/schema.proto.sk.md#Schema)
+- [Gateway](./github.com/solo-io/gloo/projects/gateway/api/v1/gateway.proto.sk.md#Gateway)
+- [VirtualService](./github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service.proto.sk.md#VirtualService)
+- [Settings](./github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto.sk.md#Settings)
+- [Upstream](./github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto.sk.md#Upstream)
 - [ChangeSet](./github.com/solo-io/solo-projects/projects/vcs/api/v1/changeset.proto.sk.md#ChangeSet)
 
 <!-- Start of HubSpot Embed Code -->

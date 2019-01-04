@@ -4,13 +4,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/argsutils"
-	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
-	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/flagutils"
-	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/helpers"
-	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/surveyutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws"
@@ -20,6 +13,13 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/rest"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/argsutils"
+	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
+	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/flagutils"
+	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/helpers"
+	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/surveyutils"
 	"github.com/spf13/cobra"
 )
 

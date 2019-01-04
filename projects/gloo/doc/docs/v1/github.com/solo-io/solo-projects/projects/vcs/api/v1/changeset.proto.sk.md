@@ -82,11 +82,11 @@ A user-specific snapshot of all gloo resources at a given commit plus any non-co
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `gateways` | [[]gateway.solo.io.Gateway](../../../gateway/api/v1/gateway.proto.sk.md#Gateway) |  |  |
-| `virtual_services` | [[]gateway.solo.io.VirtualService](../../../gateway/api/v1/virtual_service.proto.sk.md#VirtualService) |  |  |
-| `proxies` | [[]gloo.solo.io.Proxy](../../../gloo/api/v1/proxy.proto.sk.md#Proxy) |  |  |
-| `settings` | [[]gloo.solo.io.Settings](../../../gloo/api/v1/settings.proto.sk.md#Settings) |  |  |
-| `upstreams` | [[]gloo.solo.io.Upstream](../../../gloo/api/v1/upstream.proto.sk.md#Upstream) |  |  |
+| `gateways` | [[]gateway.solo.io.Gateway](../../../../../gloo/projects/gateway/api/v1/gateway.proto.sk.md#Gateway) |  |  |
+| `virtual_services` | [[]gateway.solo.io.VirtualService](../../../../../gloo/projects/gateway/api/v1/virtual_service.proto.sk.md#VirtualService) |  |  |
+| `proxies` | [[]gloo.solo.io.Proxy](../../../../../gloo/projects/gloo/api/v1/proxy.proto.sk.md#Proxy) |  |  |
+| `settings` | [[]gloo.solo.io.Settings](../../../../../gloo/projects/gloo/api/v1/settings.proto.sk.md#Settings) |  |  |
+| `upstreams` | [[]gloo.solo.io.Upstream](../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk.md#Upstream) |  |  |
 | `resolver_maps` | [[]sqoop.solo.io.ResolverMap](../../../sqoop/api/v1/resolver_map.proto.sk.md#ResolverMap) |  |  |
 | `schemas` | [[]sqoop.solo.io.Schema](../../../sqoop/api/v1/schema.proto.sk.md#Schema) |  |  |
 

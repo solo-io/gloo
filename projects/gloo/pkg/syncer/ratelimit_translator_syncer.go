@@ -3,6 +3,7 @@ package syncer
 import (
 	"context"
 	"fmt"
+
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/pkg/utils/proto"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"

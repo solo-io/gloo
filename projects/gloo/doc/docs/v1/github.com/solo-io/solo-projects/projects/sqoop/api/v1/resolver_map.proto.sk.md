@@ -104,7 +104,7 @@ GlooResolvers are the "meat" of Sqoop. GlooResolvers tell Sqoop how to invoke a 
 | ----- | ---- | ----------- |----------- | 
 | `request_template` | [.sqoop.solo.io.RequestTemplate](resolver_map.proto.sk.md#RequestTemplate) | the Request Template, if specified, will become the body of the HTTP request used to invoke a function through Gloo input parameters, if needed, should be specified in the request template. See Sqoop's [Resolver documentation](TODO) for more information on Request Templates. |  |
 | `response_template` | [.sqoop.solo.io.ResponseTemplate](resolver_map.proto.sk.md#ResponseTemplate) | The response template, if specified, will transform the body of HTTP responses returned by Gloo functions. This field should be used if the object returned by the Gloo Function does not match the type specified in the GraphQL schema. It can also be used to modify or transform responses from their original state. See Sqoop's [Resolver documentation](TODO) for more information on Response Templates. |  |
-| `action` | [.gloo.solo.io.RouteAction](../../../gloo/api/v1/proxy.proto.sk.md#RouteAction) | the routing action to take when resolver is executed. usually this is a Route destination |  |
+| `action` | [.gloo.solo.io.RouteAction](../../../../../gloo/projects/gloo/api/v1/proxy.proto.sk.md#RouteAction) | the routing action to take when resolver is executed. usually this is a Route destination |  |
 
 
 

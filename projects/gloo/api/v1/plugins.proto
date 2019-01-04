@@ -43,6 +43,6 @@ message DestinationSpec {
 message UpstreamSpec {
     // Note to developers: new Upstream Plugins must be added to this oneof field
     // to be usable by Gloo.
-    oneof upstream_type {
-    }
+//    oneof upstream_type {
+//    }
 }

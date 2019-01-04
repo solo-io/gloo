@@ -1,12 +1,18 @@
 syntax = "proto3";
-
 package licensing.solo.io;
+option go_package = "github.com/solo-io/solo-projects/projects/licensingserver/pkg/api/v1";
 
-// Interface exported by the server.
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+
+
 service LicenseValidation {
     // Returns the validity of a given License key
     rpc ValidateKey(ValidateKeyRequest) returns (ValidateKeyReponse) {}
 }
+
 
 message ValidateKeyRequest {
     LicenseKey key = 1;
@@ -16,6 +22,22 @@ message ValidateKeyReponse {
     bool valid = 1;
 }
 
+/*
+@solo-kit:resource.short_name=lc
+@solo-kit:resource.plural_name=licenses
+@solo-kit:resource.resource_groups=api.gloo.solo.io
+
+Interface exported by the server.
+*/
 message LicenseKey {
     string key =1;
+
+    enum Type {
+        GLOO = 0;
+        SQUASH = 1;
+    }
+
+    Type type = 2;
+    // Metadata contains the object metadata for this resource
+    core.solo.io.Metadata metadata = 4 [(gogoproto.nullable) = false];
 }

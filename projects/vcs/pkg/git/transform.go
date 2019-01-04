@@ -4,11 +4,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/errors"
 	gatewayV1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	glooV1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/errors"
 	sqoopV1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/vcs/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/vcs/pkg/constants"

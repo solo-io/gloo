@@ -1,9 +1,10 @@
 package ratelimit
 
 import (
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
-	"time"
 
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
@@ -60,7 +61,7 @@ constraints:
 */
 
 const (
-	PluginName = "rate-limit"
+	PluginName  = "rate-limit"
 	domain      = "ingress"
 	requestType = "external"
 	userid      = "userid"

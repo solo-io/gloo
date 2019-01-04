@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/hashutils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -30,6 +31,15 @@ func (r *ResolverMap) SetStatus(status core.Status) {
 
 func (r *ResolverMap) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
+}
+
+func (r *ResolverMap) Hash() uint64 {
+	metaCopy := r.GetMetadata()
+	metaCopy.ResourceVersion = ""
+	return hashutils.HashAll(
+		metaCopy,
+		r.Types,
+	)
 }
 
 type ResolverMapList []*ResolverMap
@@ -92,6 +102,20 @@ func (list ResolverMapList) Clone() ResolverMapList {
 		resolverMapList = append(resolverMapList, proto.Clone(resolverMap).(*ResolverMap))
 	}
 	return resolverMapList
+}
+
+func (list ResolverMapList) Each(f func(element *ResolverMap)) {
+	for _, resolverMap := range list {
+		f(resolverMap)
+	}
+}
+
+func (list ResolverMapList) AsInterfaces() []interface{} {
+	var asInterfaces []interface{}
+	list.Each(func(element *ResolverMap) {
+		asInterfaces = append(asInterfaces, element)
+	})
+	return asInterfaces
 }
 
 func (list ResolverMapList) ByNamespace() ResolverMapsByNamespace {

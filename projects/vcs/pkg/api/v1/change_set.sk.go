@@ -10,6 +10,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/hashutils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -30,6 +31,23 @@ func (r *ChangeSet) SetStatus(status core.Status) {
 
 func (r *ChangeSet) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
+}
+
+func (r *ChangeSet) Hash() uint64 {
+	metaCopy := r.GetMetadata()
+	metaCopy.ResourceVersion = ""
+	return hashutils.HashAll(
+		metaCopy,
+		r.Branch,
+		r.PendingAction,
+		r.Description,
+		r.EditCount,
+		r.UserId,
+		r.RootCommit,
+		r.RootDescription,
+		r.ErrorMsg,
+		r.Data,
+	)
 }
 
 type ChangeSetList []*ChangeSet
@@ -92,6 +110,20 @@ func (list ChangeSetList) Clone() ChangeSetList {
 		changeSetList = append(changeSetList, proto.Clone(changeSet).(*ChangeSet))
 	}
 	return changeSetList
+}
+
+func (list ChangeSetList) Each(f func(element *ChangeSet)) {
+	for _, changeSet := range list {
+		f(changeSet)
+	}
+}
+
+func (list ChangeSetList) AsInterfaces() []interface{} {
+	var asInterfaces []interface{}
+	list.Each(func(element *ChangeSet) {
+		asInterfaces = append(asInterfaces, element)
+	})
+	return asInterfaces
 }
 
 func (list ChangeSetList) ByNamespace() ChangesetsByNamespace {

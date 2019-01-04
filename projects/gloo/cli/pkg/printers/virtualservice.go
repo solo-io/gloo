@@ -2,12 +2,13 @@ package printers
 
 import (
 	"fmt"
-	"github.com/solo-io/gloo/pkg/utils/proto"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
-	rateLimitPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	"io"
 	"strconv"
 	"strings"
+
+	"github.com/solo-io/gloo/pkg/utils/proto"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	rateLimitPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/solo-io/gloo/projects/gateway/pkg/api/v1"

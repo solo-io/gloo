@@ -3,11 +3,11 @@ package actions
 import (
 	"fmt"
 
-	"github.com/solo-io/solo-projects/pkg/cliutil"
-	ro "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/route/options"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/grpc"
+	"github.com/solo-io/solo-projects/pkg/cliutil"
+	ro "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/route/options"
 )
 
 // TODO: integrate this function to the route add command
@@ -45,9 +45,9 @@ func generateGrpcDestinationSpec(r *ro.Options) *gloov1.DestinationSpec {
 	return &gloov1.DestinationSpec{
 		DestinationType: &gloov1.DestinationSpec_Grpc{
 			Grpc: &grpc.DestinationSpec{
-				Package:    gOpts.Package,
-				Service:    gOpts.Service,
-				Function:   gOpts.Function,
+				Package:  gOpts.Package,
+				Service:  gOpts.Service,
+				Function: gOpts.Function,
 				// Parameters: generateParametersFromInput(r), TODO (mitchdraft): fix or delete
 			},
 		},

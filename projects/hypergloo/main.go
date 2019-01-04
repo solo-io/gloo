@@ -4,12 +4,12 @@ import (
 	"context"
 	"flag"
 
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/utils/log"
-	"github.com/solo-io/solo-kit/pkg/utils/stats"
 	fdssetup "github.com/solo-io/gloo/projects/discovery/pkg/fds/setup"
 	uds "github.com/solo-io/gloo/projects/discovery/pkg/uds/setup"
 	gatewaysetup "github.com/solo-io/gloo/projects/gateway/pkg/setup"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
+	"github.com/solo-io/solo-kit/pkg/utils/stats"
 	gloosetup "github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
 	sqoopsetup "github.com/solo-io/solo-projects/projects/sqoop/pkg/setup"
 )

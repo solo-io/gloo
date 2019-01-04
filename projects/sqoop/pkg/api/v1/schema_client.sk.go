@@ -35,9 +35,13 @@ func NewSchemaClientWithToken(rcFactory factory.ResourceClientFactory, token str
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base Schema resource client")
 	}
+	return NewSchemaClientWithBase(rc), nil
+}
+
+func NewSchemaClientWithBase(rc clients.ResourceClient) SchemaClient {
 	return &schemaClient{
 		rc: rc,
-	}, nil
+	}
 }
 
 func (client *schemaClient) BaseClient() clients.ResourceClient {

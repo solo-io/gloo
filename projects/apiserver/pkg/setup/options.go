@@ -1,11 +1,11 @@
 package setup
 
 import (
+	gatewayV1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	glooV1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-	gatewayV1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	glooV1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	sqoopV1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	"k8s.io/client-go/kubernetes"
 )

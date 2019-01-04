@@ -3,9 +3,7 @@
 package v1
 
 import (
-	"github.com/mitchellh/hashstructure"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/utils/hashutils"
 	"go.uber.org/zap"
 )
 
@@ -19,35 +17,19 @@ func (s ApiSnapshot) Clone() ApiSnapshot {
 	}
 }
 
-func (s ApiSnapshot) snapshotToHash() ApiSnapshot {
-	snapshotForHashing := s.Clone()
-	for _, changeSet := range snapshotForHashing.Changesets.List() {
-		resources.UpdateMetadata(changeSet, func(meta *core.Metadata) {
-			meta.ResourceVersion = ""
-		})
-		changeSet.SetStatus(core.Status{})
-	}
-
-	return snapshotForHashing
+func (s ApiSnapshot) Hash() uint64 {
+	return hashutils.HashAll(
+		s.hashChangesets(),
+	)
 }
 
-func (s ApiSnapshot) Hash() uint64 {
-	return s.hashStruct(s.snapshotToHash())
+func (s ApiSnapshot) hashChangesets() uint64 {
+	return hashutils.HashAll(s.Changesets.List().AsInterfaces()...)
 }
 
 func (s ApiSnapshot) HashFields() []zap.Field {
-	snapshotForHashing := s.snapshotToHash()
 	var fields []zap.Field
-	changesets := s.hashStruct(snapshotForHashing.Changesets.List())
-	fields = append(fields, zap.Uint64("changesets", changesets))
+	fields = append(fields, zap.Uint64("changesets", s.hashChangesets()))
 
-	return append(fields, zap.Uint64("snapshotHash", s.hashStruct(snapshotForHashing)))
-}
-
-func (s ApiSnapshot) hashStruct(v interface{}) uint64 {
-	h, err := hashstructure.Hash(v, nil)
-	if err != nil {
-		panic(err)
-	}
-	return h
+	return append(fields, zap.Uint64("snapshotHash", s.Hash()))
 }

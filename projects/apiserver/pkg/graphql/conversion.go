@@ -8,10 +8,6 @@ import (
 
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
-	. "github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins"
@@ -22,6 +18,10 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/rest"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
+	. "github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 )
 

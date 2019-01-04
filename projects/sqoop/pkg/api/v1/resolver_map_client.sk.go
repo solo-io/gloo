@@ -35,9 +35,13 @@ func NewResolverMapClientWithToken(rcFactory factory.ResourceClientFactory, toke
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base ResolverMap resource client")
 	}
+	return NewResolverMapClientWithBase(rc), nil
+}
+
+func NewResolverMapClientWithBase(rc clients.ResourceClient) ResolverMapClient {
 	return &resolverMapClient{
 		rc: rc,
-	}, nil
+	}
 }
 
 func (client *resolverMapClient) BaseClient() clients.ResourceClient {

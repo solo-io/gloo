@@ -77,8 +77,8 @@
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `service` | [.gloo.solo.io.Destination](../../../gloo/api/v1/proxy.proto.sk.md#Destination) | TODO(yuval-k) should this be an upstream ref? |  |
-| `fault` | [.fault.plugins.gloo.solo.io.RouteFaults](../../../gloo/api/v1/plugins/faultinjection/fault.proto.sk.md#RouteFaults) |  |  |
+| `service` | [.gloo.solo.io.Destination](../../../../../gloo/projects/gloo/api/v1/proxy.proto.sk.md#Destination) | TODO(yuval-k) should this be an upstream ref? |  |
+| `fault` | [.fault.plugins.gloo.solo.io.RouteFaults](../../../../../gloo/projects/gloo/api/v1/plugins/faultinjection/fault.proto.sk.md#RouteFaults) |  |  |
 
 
 

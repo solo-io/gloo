@@ -35,9 +35,13 @@ func NewChangeSetClientWithToken(rcFactory factory.ResourceClientFactory, token 
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating base ChangeSet resource client")
 	}
+	return NewChangeSetClientWithBase(rc), nil
+}
+
+func NewChangeSetClientWithBase(rc clients.ResourceClient) ChangeSetClient {
 	return &changeSetClient{
 		rc: rc,
-	}, nil
+	}
 }
 
 func (client *changeSetClient) BaseClient() clients.ResourceClient {

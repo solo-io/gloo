@@ -6,6 +6,6 @@ import (
 )
 
 type EnterpriseOpts struct {
-	Schemas         factory.ResourceClientFactory
+	Schemas factory.ResourceClientFactory
 	*bootstrap.Opts
 }

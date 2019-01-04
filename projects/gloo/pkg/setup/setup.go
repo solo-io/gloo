@@ -1,15 +1,16 @@
 package setup
 
 import (
+	"time"
+
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	syncerExtensions "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer"
-	"time"
 
-	check "github.com/solo-io/go-checkpoint"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
-	"github.com/solo-io/solo-projects/pkg/version"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	check "github.com/solo-io/go-checkpoint"
+	"github.com/solo-io/solo-projects/pkg/version"
 )
 
 func Main() error {
