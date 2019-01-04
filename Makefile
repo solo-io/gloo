@@ -51,7 +51,7 @@ $(OUTPUT_DIR)/.generated-code:
 #----------------------------------------------------------------------------------
 # helper for testing
 .PHONY: allprojects
-allprojects: apiserver discovery gateway gloo glooctl rate-limit sqoop
+allprojects: apiserver gloo glooctl rate-limit sqoop
 
 #----------------------------------------------------------------------------------
 # glooctl
@@ -126,26 +126,6 @@ gloo-i-docker:
 	cd projects/apiserver/ui && docker build -t soloio/gloo-i-ee:$(VERSION) .
 
 #----------------------------------------------------------------------------------
-# Gateway
-#----------------------------------------------------------------------------------
-
-GATEWAY_DIR=projects/gateway
-GATEWAY_SOURCES=$(shell find $(GATEWAY_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-
-$(OUTPUT_DIR)/gateway-linux-amd64: $(GATEWAY_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(GATEWAY_DIR)/cmd/main.go
-
-
-.PHONY: gateway
-gateway: $(OUTPUT_DIR)/gateway-linux-amd64
-
-$(OUTPUT_DIR)/Dockerfile.gateway: $(GATEWAY_DIR)/cmd/Dockerfile
-	cp $< $@
-
-gateway-docker: $(OUTPUT_DIR)/gateway-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gateway
-	docker build -t soloio/gateway-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gateway
-
-#----------------------------------------------------------------------------------
 # RateLimit
 #----------------------------------------------------------------------------------
 
@@ -183,26 +163,6 @@ $(OUTPUT_DIR)/Dockerfile.sqoop: $(SQOOP_DIR)/cmd/Dockerfile
 
 sqoop-docker: $(OUTPUT_DIR)/sqoop-linux-amd64 $(OUTPUT_DIR)/Dockerfile.sqoop
 	docker build -t soloio/sqoop-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.sqoop
-
-#----------------------------------------------------------------------------------
-# Discovery
-#----------------------------------------------------------------------------------
-
-DISCOVERY_DIR=projects/discovery
-DISCOVERY_SOURCES=$(shell find $(DISCOVERY_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-
-$(OUTPUT_DIR)/discovery-linux-amd64: $(DISCOVERY_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(DISCOVERY_DIR)/cmd/main.go
-
-
-.PHONY: discovery
-discovery: $(OUTPUT_DIR)/discovery-linux-amd64
-
-$(OUTPUT_DIR)/Dockerfile.discovery: $(DISCOVERY_DIR)/cmd/Dockerfile
-	cp $< $@
-
-discovery-docker: $(OUTPUT_DIR)/discovery-linux-amd64 $(OUTPUT_DIR)/Dockerfile.discovery
-	docker build -t soloio/discovery-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.discovery
 
 #----------------------------------------------------------------------------------
 # Gloo
@@ -281,10 +241,8 @@ GH_REPO:=solo-projects
 RELEASE_BINARIES := \
 	$(OUTPUT_DIR)/apiserver-linux-amd64 \
 	$(OUTPUT_DIR)/apiserver-darwin-amd64 \
-	$(OUTPUT_DIR)/gateway-linux-amd64 \
 	$(OUTPUT_DIR)/rate-limit-linux-amd64 \
 	$(OUTPUT_DIR)/gloo-linux-amd64 \
-	$(OUTPUT_DIR)/discovery-linux-amd64 \
 	$(OUTPUT_DIR)/envoyinit-linux-amd64 \
 	$(OUTPUT_DIR)/licensing-server-linux-amd64
 
@@ -305,13 +263,11 @@ release: release-binaries
 #---------
 
 .PHONY: docker docker-push
-docker: apiserver-docker discovery-docker gateway-docker rate-limit-docker gloo-docker sqoop-docker
+docker: apiserver-docker rate-limit-docker gloo-docker sqoop-docker
 docker-push:
 	docker push soloio/sqoop-ee:$(VERSION) && \
-	docker push soloio/gateway-ee:$(VERSION) && \
 	docker push soloio/rate-limit-ee:$(VERSION) && \
 	docker push soloio/apiserver-ee:$(VERSION) && \
-	docker push soloio/discovery-ee:$(VERSION) && \
 	docker push soloio/gloo-ee:$(VERSION) && \
 	docker push soloio/gloo-i-ee:$(VERSION) \
 	docker push soloio/licensing-server-ee:$(VERSION)
