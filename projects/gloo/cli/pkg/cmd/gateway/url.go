@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/solo-io/go-utils/cliutils"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/solo-kit/pkg/errors"
@@ -16,7 +18,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func urlCmd(opts *options.Options) *cobra.Command {
+func urlCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "url",
 		Short: "print the http endpoint for the gateway ingress",
@@ -34,6 +36,7 @@ func urlCmd(opts *options.Options) *cobra.Command {
 		"If Kubernetes is running locally with minikube, specify 'Minikube' or leave empty. Note, this is not required if yoru "+
 		"kubernetes service is connected to an external load balancer, such as AWS ELB")
 	flagutils.AddNamespaceFlag(cmd.PersistentFlags(), &opts.Metadata.Namespace)
+	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
 }
 

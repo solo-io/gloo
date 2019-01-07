@@ -2,10 +2,11 @@ package gateway
 
 import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+	"github.com/solo-io/go-utils/cliutils"
 	"github.com/spf13/cobra"
 )
 
-func Cmd(opts *options.Options) *cobra.Command {
+func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "gateway",
 		Aliases: []string{"gw"},
@@ -17,5 +18,6 @@ func Cmd(opts *options.Options) *cobra.Command {
 	cmd.AddCommand(dumpCmd(opts))
 	cmd.AddCommand(logsCmd(opts))
 	cmd.AddCommand(statsCmd(opts))
+	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
 }
