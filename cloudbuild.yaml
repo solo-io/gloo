@@ -41,6 +41,19 @@ steps:
     path: /root/.ssh
   id: 'dep'
 
+# Setup keygen creds
+- name: gcr.io/cloud-builders/gcloud
+  args:
+    - kms
+    - decrypt
+    - --ciphertext-file=./gopath/src/github.com/solo-io/solo-projects/ci/keygen_creds.json.enc
+    - --plaintext-file=/workspace/keygen_creds.json
+    - --location=global
+    - --keyring=build
+    - --key=build-key
+  waitFor: ['dep']
+  id: 'setup-keygen-creds'
+
 # Setup and run e2es
 - name: gcr.io/cloud-builders/gsutil
   entrypoint: 'bash'
@@ -62,44 +75,23 @@ steps:
   - --key=build-key
   waitFor: ['dep']
   id: 'setup-aws-creds'
-# e2e-go is produced from https://github.com/solo-io/cloud-builders/e2e-go
+# e2e-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-ginkgo
 # sets up redis, consul, kubectl, go with required environment variables
 # need to use the provided entrypoint
-- name: 'gcr.io/$PROJECT_ID/e2e-go'
+- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo'
+  dir: './gopath/src/github.com/solo-io/solo-projects'
   env:
   - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  - 'GOPATH=/workspace/gopath'
   - 'ENVOY_BINARY=/workspace/envoy'
   - 'AWS_SHARED_CREDENTIALS_FILE=/workspace/aws_credentials'
   - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
   - 'CLOUDSDK_CONTAINER_CLUSTER=test-cluster'
   - 'RUN_KUBE_TESTS=1'
-  args: ['test', '-v', 'github.com/solo-io/solo-projects/test/e2e']
-  waitFor: ['dep', 'get-envoy', 'setup-aws-creds']
-
-# Setup and run keygen tests
-- name: gcr.io/cloud-builders/gcloud
-  args:
-  - kms
-  - decrypt
-  - --ciphertext-file=./gopath/src/github.com/solo-io/solo-projects/ci/keygen_creds.json.enc
-  - --plaintext-file=/workspace/keygen_creds.json
-  - --location=global
-  - --keyring=build
-  - --key=build-key
-  waitFor: ['dep']
-  id: 'setup-keygen-creds'
-- name: 'gcr.io/cloud-builders/go'
-  args:
-  - 'test'
-  - 'github.com/solo-io/solo-projects/projects/licensingserver/test/unit'
-  - 'github.com/solo-io/solo-projects/projects/licensingserver/test/keygen'
-  env:
   - 'CLOUD_BUILD=1'
   - 'KEYGEN_CREDENTIALS_FILE=/workspace/keygen_creds.json'
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
   - 'GOPATH=/workspace/gopath'
-  waitFor: ['setup-keygen-creds', 'dep']
+  args: ['-r']
+  waitFor: ['dep', 'get-envoy', 'setup-aws-creds', 'setup-keygen-creds']
 
 # Build artifacts
 - name: 'gcr.io/cloud-builders/go'

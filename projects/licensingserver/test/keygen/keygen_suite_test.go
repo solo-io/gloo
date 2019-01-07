@@ -1,13 +1,20 @@
 package keygen_test
 
 import (
+	"os"
 	"testing"
+
+	"github.com/solo-io/solo-kit/pkg/utils/log"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-func TestTest(t *testing.T) {
+func TestKeygen(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "e2e test Suite")
+	if os.Getenv(RUN_KEYGEN_TESTS) == "1" {
+		RunSpecs(t, "keygen test Suite")
+	} else {
+		log.Printf("Skipping keygen test suite, to run set RUN_KEYGEN_TESTS=1")
+	}
 }

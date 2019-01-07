@@ -12,6 +12,8 @@ type Settings struct {
 	HealthPort int    `envconfig:"HTTP_PORT" default:"9001"` // This port serves simple health check responses
 	GrpcPort   int    `envconfig:"GRPC_PORT" default:"9000"` // This port serves Licensing server requests
 	LogLevel   string `envconfig:"LOG_LEVEL" default:"WARN"`
+	Client     string `envconfig:"CLIENT" default:"keygen"` // Licensing client to validate with
+	Debug      int    `envconfig:"DEBUG" default:"0"`
 }
 
 func Setup(ctx context.Context, settings Settings, debugMode bool, licensingClient LicensingClient) error {

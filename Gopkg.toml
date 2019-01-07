@@ -90,10 +90,6 @@
   name = "github.com/solo-io/gloo"
   version = "0.5.2"
 
-[[constraint]]
-  name = "github.com/hashicorp/consul"
-  revision = "eba25a143821cec25bdb48fe64dd7b7a6152d01d"
-
 # go versioning story not ideal, so we have to pin serf to the version consul expects
 [[override]]
   name = "github.com/hashicorp/serf"

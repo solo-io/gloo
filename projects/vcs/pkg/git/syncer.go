@@ -249,15 +249,15 @@ func validateForPush(cs *v1.ChangeSet) error {
 	}
 
 	if cs.Description.GetValue() == "" {
-		return errors.Errorf("A commit message must be provided", cs.Metadata.Name)
+		return errors.Errorf("A commit message must be provided: %s", cs.Metadata.Name)
 	}
 
 	if cs.Branch.GetValue() == "" {
-		return errors.Errorf("No branch name specified", cs.Metadata.Name)
+		return errors.Errorf("No branch name specified: %s", cs.Metadata.Name)
 	}
 
 	if cs.RootCommit.GetValue() == "" {
-		return errors.Errorf("Root commit hash missing", cs.Metadata.Name)
+		return errors.Errorf("Root commit hash missing: %s", cs.Metadata.Name)
 	}
 
 	return nil

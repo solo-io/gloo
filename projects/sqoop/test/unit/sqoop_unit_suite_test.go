@@ -1,4 +1,4 @@
-package gloo_test
+package unit_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestGloo(t *testing.T) {
+func TestDynamic(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Gloo Suite")
+	RunSpecs(t, "Sqoop unit Suite")
 }

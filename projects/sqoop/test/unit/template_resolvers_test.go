@@ -1,23 +1,20 @@
-package template_test
+package unit_test
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
-	. "github.com/solo-io/solo-projects/projects/sqoop/pkg/resolvers/template"
-	"github.com/solo-io/solo-projects/projects/sqoop/test"
+	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/resolvers/template"
+	"github.com/solo-io/solo-projects/projects/sqoop/test/testdata"
 )
 
 var _ = Describe("TemplateResolvers", func() {
 	Context("happy path with simple template and params", func() {
-		tResolver := &v1.TemplateResolver{
-			InlineTemplate: "{{ marshal . }}",
-		}
+		tResolver := "{{ marshal . }}"
 		It("returns a resolver which renders the template", func() {
-			rawResolver, err := NewTemplateResolver(tResolver)
+			rawResolver, err := template.NewTemplateResolver(tResolver)
 			Expect(err).NotTo(HaveOccurred())
-			b, err := rawResolver(test.LukeSkywalkerParams)
+			b, err := rawResolver(testdata.LukeSkywalkerParams)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(b).To(Equal([]byte(`{"Args":{"acting":5,"best_scene":"cloud city"},` +
 				`"Parent":{"CharacterFields":{"AppearsIn":["NEWHOPE","EMPIRE","JEDI"],` +

@@ -16,7 +16,7 @@ import (
 	"github.com/solo-io/solo-projects/test/services"
 )
 
-var _ = Describe("Mesh", func() {
+var _ = PDescribe("Mesh", func() {
 
 	var (
 		ctx    context.Context

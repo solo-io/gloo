@@ -14,6 +14,10 @@ import (
 	"github.com/solo-io/solo-projects/projects/licensingserver/pkg/server"
 )
 
+const (
+	RUN_KEYGEN_TESTS = "RUN_KEYGEN_TESTS"
+)
+
 var _ = Describe("e2e", func() {
 
 	var (
@@ -45,6 +49,7 @@ var _ = Describe("e2e", func() {
 	}
 
 	BeforeSuite(func() {
+
 		Expect(decodeAuth()).NotTo(HaveOccurred())
 		var err error
 		settings := server.Settings{

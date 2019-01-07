@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"os"
 
 	"github.com/kelseyhightower/envconfig"
 
@@ -29,15 +28,26 @@ func run() error {
 	}
 
 	stats.StartStatsServer()
-	debugMode := os.Getenv("DEBUG") == "1"
+	debugMode := s.Debug == 1
 	ctx := contextutils.WithLogger(context.Background(), "apiserver")
 
-	// Start the api server
-	var kla clients.KeygenAuthConfig
-	err = envconfig.Process(clients.KEYGEN_ENV_EXPANSION, &kla)
-	klc, err := clients.NewKeygenLicensingClient(&kla)
-	if err != nil {
-		return err
+	var lc server.LicensingClient
+	switch s.Client {
+	case "test":
+		lc = &testClient{}
+	default:
+		var kla clients.KeygenAuthConfig
+		err = envconfig.Process(clients.KEYGEN_ENV_EXPANSION, &kla)
+		lc, err = clients.NewKeygenLicensingClient(&kla)
+		if err != nil {
+			return err
+		}
 	}
-	return server.Setup(ctx, s, debugMode, klc)
+	return server.Setup(ctx, s, debugMode, lc)
+}
+
+type testClient struct{}
+
+func (*testClient) Validate(key string) (bool, error) {
+	return true, nil
 }

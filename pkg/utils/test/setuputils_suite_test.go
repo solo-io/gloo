@@ -1,4 +1,4 @@
-package dynamic_test
+package utils_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestDynamic(t *testing.T) {
+func TestSetuputils(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Dynamic Suite")
+	RunSpecs(t, "Setuputils Suite")
 }
