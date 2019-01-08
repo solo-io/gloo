@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/go-ps"
+	ps "github.com/keybase/go-ps"
 )
 
 type Runner struct {
