@@ -7,6 +7,8 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
+
 	"github.com/solo-io/go-utils/cliutils"
 
 	"github.com/inconshreveable/go-update"
@@ -19,9 +21,9 @@ import (
 
 func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "upgrade",
-		Aliases: []string{"ug"},
-		Short:   "upgrade glooctl binary",
+		Use:     constants.UPGRADE_COMMAND.Use,
+		Aliases: constants.UPGRADE_COMMAND.Aliases,
+		Short:   constants.UPGRADE_COMMAND.Short,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return upgradeGlooCtl(opts.Top.Ctx, opts.Upgrade)
 		},
