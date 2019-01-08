@@ -19,10 +19,11 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"google.golang.org/grpc"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
-	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"go.uber.org/zap"
+
+	"github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 
 	. "github.com/onsi/gomega"
 	fds_syncer "github.com/solo-io/gloo/projects/discovery/pkg/fds/syncer"

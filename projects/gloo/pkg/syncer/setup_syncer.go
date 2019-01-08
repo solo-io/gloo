@@ -9,9 +9,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 
 	"github.com/gogo/protobuf/types"
-	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
-	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
@@ -33,7 +31,8 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 
 	envoyv2 "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
-
+	"github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
@@ -265,7 +264,7 @@ func RunGlooWithExtensions(opts bootstrap.Opts, extensions Extensions) error {
 		return err
 	}
 
-	cache := v1.NewApiEmitter(proxyClient, artifactClient, endpointClient, secretClient, upstreamClient)
+	cache := v1.NewApiEmitter(artifactClient, endpointClient, proxyClient, secretClient, upstreamClient)
 
 	// Register grpc endpoints to the grpc server
 	xdsHasher := xds.SetupEnvoyXds(opts.ControlPlane.GrpcServer, opts.ControlPlane.XDSServer, opts.ControlPlane.SnapshotCache)
