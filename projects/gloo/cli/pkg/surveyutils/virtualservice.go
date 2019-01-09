@@ -7,15 +7,9 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 )
 
-func AddVirtualServiceFlagsInteractive(vs *options.InputVirtualService) error {
-	if err := cliutil.GetStringSliceInput(
-		fmt.Sprintf("Add another domain for this virtual service (empty to skip)? %v", vs.Domains),
-		&vs.Domains,
-	); err != nil {
-		return err
-	}
+func AddVirtualServiceFlagsInteractive(rl *options.RateLimit) error {
 
-	if err := rateLimitingSurvey(&vs.RateLimit); err != nil {
+	if err := rateLimitingSurvey(rl); err != nil {
 		return err
 	}
 
