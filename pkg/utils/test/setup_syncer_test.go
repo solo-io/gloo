@@ -19,7 +19,7 @@ var _ = Describe("SetupSyncer", func() {
 		expectedSettings := &v1.Settings{
 			Metadata: core.Metadata{Name: "hello", Namespace: "goodbye"},
 		}
-		setupSyncer := NewSetupSyncer(expectedSettings.Metadata.Ref(), func(ctx context.Context, kubeCache *kube.KubeCache, inMemoryCache memory.InMemoryResourceCache, settings *v1.Settings) error {
+		setupSyncer := NewSetupSyncer(expectedSettings.Metadata.Ref(), func(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory.InMemoryResourceCache, settings *v1.Settings) error {
 			actualSettings = expectedSettings
 			return nil
 		})

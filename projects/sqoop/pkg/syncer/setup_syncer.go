@@ -34,7 +34,7 @@ type Opts struct {
 	SidecarAddr     string
 }
 
-func Setup(ctx context.Context, kubeCache *kube.KubeCache, cache memory.InMemoryResourceCache, settings *gloov1.Settings) error {
+func Setup(ctx context.Context, kubeCache kube.SharedCache, cache memory.InMemoryResourceCache, settings *gloov1.Settings) error {
 	var (
 		cfg *rest.Config
 	)

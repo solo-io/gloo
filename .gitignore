@@ -17,3 +17,6 @@ vendor/
 _output/
 doc/site/
 projects/gloo/doc/site/
+
+# Spurious files
+.DS_Store

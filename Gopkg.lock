@@ -1074,7 +1074,8 @@
   revision = "c71f318a203bca8433268be67336086379a2bf9f"
 
 [[projects]]
-  digest = "1:788a2485bbe2b10dd0bb30ce8ab8add4207f90d31378df87d66ce998b30d0d71"
+  branch = "master"
+  digest = "1:dae470d8d14c25b9c217ef686cc8699ee23311fd09f403eefe51aace54d833cc"
   name = "github.com/solo-io/gloo"
   packages = [
     "pkg/cliutil",
@@ -1145,8 +1146,7 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "4ef73e6da679cf253aaa99a666268ccb48f23f79"
-  version = "v0.5.4"
+  revision = "7a1215d61d7b359d2e589f0a2e5a8c1f5c14549d"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1202,7 +1202,7 @@
   revision = "32838befd54a98ecd76e6f1bf0ca6df602646a04"
 
 [[projects]]
-  digest = "1:04a61a936e5840e708fba1f3c59c01f07c5f7b19bcc46ad387dde9ef65a438cd"
+  digest = "1:99c51492e32d24a1f2853bf2ead3c7e484cf27915f196ff4a290440cae9d3108"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1256,8 +1256,8 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "f2b636e31041dfcad17ed8deb4f52c19d19840de"
-  version = "v0.2.12"
+  revision = "84371fa5a6dda2fe2092229dc3c9e0e91f4e4ab2"
+  version = "v0.2.13"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -2051,6 +2051,7 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/syncer",
     "github.com/solo-io/go-checkpoint",
     "github.com/solo-io/go-utils/cliutils",
+    "github.com/solo-io/go-utils/errors",
     "github.com/solo-io/keygen",
     "github.com/solo-io/keygen/services",
     "github.com/solo-io/rate-limiter/pkg/config",
@@ -2114,9 +2115,12 @@
     "gopkg.in/src-d/go-git.v4/plumbing/storer",
     "gopkg.in/src-d/go-git.v4/plumbing/transport",
     "gopkg.in/src-d/go-git.v4/plumbing/transport/http",
+    "k8s.io/api/authentication/v1",
+    "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/runtime",
     "k8s.io/apimachinery/pkg/runtime/schema",
     "k8s.io/client-go/kubernetes",
+    "k8s.io/client-go/kubernetes/typed/authentication/v1",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/client-go/rest",
     "k8s.io/client-go/tools/clientcmd",

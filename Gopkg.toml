@@ -1,29 +1,3 @@
-# Gopkg.toml example
-#
-# Refer to https://golang.github.io/dep/docs/Gopkg.toml.html
-# for detailed Gopkg.toml documentation.
-#
-# required = ["github.com/user/thing/cmd/thing"]
-# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
-#
-# [[constraint]]
-#   name = "github.com/user/project"
-#   version = "1.0.0"
-#
-# [[constraint]]
-#   name = "github.com/user/project2"
-#   branch = "dev"
-#   source = "github.com/myfork/project2"
-#
-# [[override]]
-#   name = "github.com/x/y"
-#   version = "2.4.0"
-#
-# [prune]
-#   non-go = false
-#   go-tests = true
-#   unused-packages = true
-
 [prune]
   go-tests = true
   unused-packages = true
@@ -75,22 +49,6 @@
   version = "1.2.0"
   name = "github.com/golang/protobuf"
 
-#[[constraint]]
-#  revision = "e9c5d9645c437ab1b204cff969a2c0fb16cd4276"
-#  name = "github.com/grpc-ecosystem/go-grpc-middleware"
-#
-#[[constraint]]
-#  branch = "master"
-#  name = "k8s.io/apiextensions-apiserver"
-#
-#[[constraint]]
-#  branch = "master"
-#  name = "k8s.io/apimachinery"
-#
-#[[constraint]]
-#  name = "k8s.io/client-go"
-#  branch = "master"
-
 
 [[constraint]]
   name = "github.com/solo-io/envoy-operator"
@@ -104,11 +62,11 @@
 
 [[constraint]]
   name = "github.com/solo-io/solo-kit"
-  version = ">=0.2.11"
+  version = "0.2.13"
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  version = "0.5.4"
+  branch = "master"
 
 # go versioning story not ideal, so we have to pin serf to the version consul expects
 [[override]]

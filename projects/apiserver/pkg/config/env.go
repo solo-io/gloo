@@ -16,15 +16,16 @@ func ValidateEnvVars() {
 	}
 }
 
-func getOauthURL() string {
-	return os.Getenv("OAUTH_SERVER") // ip:port of openshift server
-}
-func getOauthClient() string {
-	return os.Getenv("OAUTH_CLIENT")
-}
-
 // GetOAuthEndpointValues returns the URL and Client needed for OAuth
 // ValidateEnvVars must be called beforehand (on initialization)
 func GetOAuthEndpointValues() (string, string) {
 	return getOauthURL(), getOauthClient()
+}
+
+func getOauthURL() string {
+	return os.Getenv("OAUTH_SERVER") // ip:port of openshift server
+}
+
+func getOauthClient() string {
+	return os.Getenv("OAUTH_CLIENT")
 }

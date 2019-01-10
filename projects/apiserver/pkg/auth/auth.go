@@ -30,7 +30,10 @@ var (
 )
 
 func init() {
-	view.Register(apiserverGetToken, apiserverAuthFail)
+	if err := view.Register(apiserverGetToken, apiserverAuthFail); err != nil {
+		log.Warnf("failed to register stats views [%v, %v]", apiserverGetToken, apiserverAuthFail)
+
+	}
 }
 
 // GetToken returns an oauth bearer token
