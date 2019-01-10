@@ -8,7 +8,7 @@ type Query {
     resource(guid: String!): Resource!
     getOAuthEndpoint: OAuthEndpoint!
     version: String!
-    upstreams(namespace: String!):       UpstreamQuery!
+    upstreams(namespace: String!): UpstreamQuery!
     virtualServices(namespace: String!): VirtualServiceQuery!
     resolverMaps(namespace: String!): ResolverMapQuery!
     schemas(namespace: String!): SchemaQuery!
@@ -16,17 +16,19 @@ type Query {
     artifacts(namespace: String!): ArtifactQuery!
     settings: SettingsQuery!
     vcs: VcsQuery!
+    versioned(branch: String!): VersionedQuery!
 }
 
 type Mutation {
-    upstreams(namespace: String!):       UpstreamMutation!
+    upstreams(namespace: String!): UpstreamMutation!
     virtualServices(namespace: String!): VirtualServiceMutation!
     resolverMaps(namespace: String!): ResolverMapMutation!
     schemas(namespace: String!): SchemaMutation!
     secrets(namespace: String!): SecretMutation!
     artifacts(namespace: String!): ArtifactMutation!
     settings: SettingsMutation!
-    vcs(username: String!): VcsMutation!
+    vcs: VcsMutation!
+    versioned(branch: String!): VersionedMutation!
 }
 
 type Subscription {
@@ -126,18 +128,24 @@ type SettingsMutation {
     update(settings: InputSettings!): Settings
 }
 
+# TODO: add other versioned resources
+# Queries resources inside a changeset
+type VersionedQuery {
+    virtualServices(namespace: String!): VirtualServiceQuery!
+}
+
+# TODO: add other versioned resources
+# Mutates resources inside a changeset
+type VersionedMutation {
+    virtualServices(namespace: String!): VirtualServiceMutation!
+}
+
 type VcsQuery {
-    userChangeset: UserChangeset!
-    repo: GitRepo!
+    branches: [Branch]!
 }
 
 type VcsMutation {
-    commit(message: String!): String
-    clearError(): String
-    createBranch(branchName: String!): String
-    resetChanges(): String
     checkoutBranch(branchName: String!): String
-    checkoutCommit(hash: String!): String
 }
 
 # Upstream
@@ -781,26 +789,11 @@ input InputSettings {
 ## Vcs
 ## Vcs
 
-type UserChangeset {
-    branch: String
-    commitPending: Boolean!
-    description: String
-    editCount: Int!
-    userId: String!
-    rootCommit: String
-    rootDescription: String
-    errorMsg: String
-}
-
-type GitRepo {
-    branches: [GitBranch]!
-}
-
-type GitBranch {
+type Branch {
     name: String!
     hash: String!
+    lastCommitMsg: String!
 }
-
 
 
 # Common output types

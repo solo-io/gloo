@@ -125,8 +125,11 @@ func (r *mutationResolver) Artifacts(ctx context.Context, namespace string) (cus
 func (r *mutationResolver) Settings(ctx context.Context) (customtypes.SettingsMutation, error) {
 	return customtypes.SettingsMutation{}, nil
 }
-func (r *mutationResolver) Vcs(ctx context.Context, username string) (customtypes.VcsMutation, error) {
-	return customtypes.VcsMutation{Username: username}, nil
+func (r *mutationResolver) Vcs(ctx context.Context) (customtypes.VcsMutation, error) {
+	return customtypes.VcsMutation{}, nil
+}
+func (r *mutationResolver) Versioned(ctx context.Context, branch string) (models.VersionedMutation, error) {
+	return models.VersionedMutation{}, nil
 }
 
 type queryResolver struct{ *ApiResolver }
@@ -186,6 +189,9 @@ func (r *queryResolver) Settings(ctx context.Context) (customtypes.SettingsQuery
 }
 func (r *queryResolver) Vcs(ctx context.Context) (models.VcsQuery, error) {
 	return getVcs(ctx)
+}
+func (r *queryResolver) Versioned(ctx context.Context, branch string) (models.VersionedQuery, error) {
+	return models.VersionedQuery{}, nil
 }
 func (r *ApiResolver) Subscription() graph.SubscriptionResolver {
 	return &subscriptionResolver{r}

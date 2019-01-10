@@ -52,6 +52,4 @@ type SettingsQuery struct{}
 
 type SettingsMutation struct{}
 
-type VcsMutation struct {
-	Username string
-}
+type VcsMutation struct{}

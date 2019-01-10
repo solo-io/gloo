@@ -10,7 +10,7 @@
   version = "v0.33.1"
 
 [[projects]]
-  digest = "1:73d52ad0467263233e26833b71c8bbb4d991c9b59d57a18761ff5c07bbe22f10"
+  digest = "1:3089f35bd501306a647bafe197d25cedd362c71b7aeca0d6805fc47ccec95b22"
   name = "github.com/99designs/gqlgen"
   packages = [
     "complexity",
@@ -19,8 +19,8 @@
     "handler",
   ]
   pruneopts = "UT"
-  revision = "6f486bde038887adf67c3e3766624ef111ea95cf"
-  version = "v0.6.0"
+  revision = "3a7f37c7e22a8fedce430c4d340ad5c1351198f4"
+  version = "v0.7.1"
 
 [[projects]]
   digest = "1:55388fd080150b9a072912f97b1f5891eb0b50df43401f8b75fb4273d3fec9fc"
@@ -1305,8 +1305,7 @@
   revision = "6b3b338d5f9c8b5a80ad4ea1e2e37aa58677ea9d"
 
 [[projects]]
-  branch = "master"
-  digest = "1:1ae7d9d18f0ea153eeaf8693863ae9ffb48a4801af9b34a266ff97956f2ee1d2"
+  digest = "1:ed6a41de3eedd8d4868eea057837860453ebbe08c5e385fd50d4c24e5642ec18"
   name = "github.com/vektah/gqlparser"
   packages = [
     ".",
@@ -1318,7 +1317,8 @@
     "validator/rules",
   ]
   pruneopts = "UT"
-  revision = "d0fbd67c7fe908a304fbd2e2a625b397d793af41"
+  revision = "e805d08bb209b1accdea76bd2327811858d81985"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:afc0b8068986a01e2d8f449917829753a54f6bd4d1265c2b4ad9cba75560020f"
