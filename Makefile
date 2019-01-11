@@ -7,7 +7,9 @@ OUTPUT_DIR ?= $(ROOTDIR)/_output
 SOURCES := $(shell find . -name "*.go" | grep -v test.go | grep -v '\.\#*')
 RELEASE := "true"
 ifeq ($(TAGGED_VERSION),)
-	TAGGED_VERSION := $(shell git describe --tags)
+	# TAGGED_VERSION := $(shell git describe --tags)
+	# This doesn't work in CI, need to find another way...
+	TAGGED_VERSION := vdev	
 	RELEASE := "false"
 endif
 VERSION := $(shell echo $(TAGGED_VERSION) | cut -c 2-)
@@ -232,11 +234,13 @@ endif
 
 .PHONY: docker docker-push
 docker: discovery-docker gateway-docker gloo-docker gloo-envoy-wrapper-docker
-docker-push:
+docker-push: docker
+ifeq ($(RELEASE),"true")
 	docker push soloio/gateway:$(VERSION) && \
 	docker push soloio/discovery:$(VERSION) && \
 	docker push soloio/gloo:$(VERSION) && \
 	docker push soloio/gloo-envoy-wrapper:$(VERSION)
+endif
 
 .PHONY: check-format
 check-format:
