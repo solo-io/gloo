@@ -1,4 +1,4 @@
-package prefixrewrite_test
+package basicroute_test
 
 import (
 	"testing"
