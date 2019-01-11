@@ -24,7 +24,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/solo-kit"
-  version = "0.2.12"
+  version = "v0.2.14"
 
 [[constraint]]
   name = "github.com/hashicorp/consul"
@@ -47,7 +47,7 @@
 # make sure all kubernetes code is the same version.
 # when updating, update all in the same time.
 
-[[constraint]]
+[[override]]
   name = "k8s.io/kubernetes"
   version = "=v1.13.1"
 
@@ -55,11 +55,11 @@
   name = "k8s.io/api"
   version = "kubernetes-1.13.1"
 
-[[constraint]]
+[[override]]
   name = "k8s.io/client-go"
   version = "kubernetes-1.13.1"
 
-[[constraint]]
+[[override]]
   name = "k8s.io/apimachinery"
   version = "kubernetes-1.13.1"
 
