@@ -134,7 +134,7 @@ func RunGateway(opts Opts) error {
 
 	prop := propagator.NewPropagator("gateway", gatewayClient, virtualServiceClient, proxyClient, writeErrs)
 
-	sync := NewTranslatorSyncer(opts.WriteNamespace, proxyClient, gatewayClient, virtualServiceClient, rpt, prop, writeErrs)
+	sync := NewTranslatorSyncer(opts.WriteNamespace, proxyClient, gatewayClient, virtualServiceClient, rpt, prop)
 
 	eventLoop := v1.NewApiEventLoop(emitter, sync)
 	eventLoopErrs, err := eventLoop.Run(opts.WatchNamespaces, opts.WatchOpts)

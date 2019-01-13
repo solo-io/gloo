@@ -1,0 +1,26 @@
+syntax = "proto3";
+package ingress.solo.io;
+option go_package = "github.com/solo-io/gloo/projects/ingress/pkg/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+import "google/protobuf/any.proto";
+
+import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/status.proto";
+import "github.com/solo-io/solo-kit/api/v1/solo-kit.proto";
+/*
+@solo-kit:resource.short_name=ig
+@solo-kit:resource.plural_name=ingresses
+
+A simple wrapper for a Kubernetes Ingress Object.
+*/
+message Ingress{
+    // a raw byte representation of the kubernetes ingress this resource wraps
+    google.protobuf.Any kube_ingress_spec = 1;
+    // a raw byte representation of the ingress status of the kubernetes ingress object
+    google.protobuf.Any kube_ingress_status = 2 [(core.solo.io.skip_hashing) = true];
+
+    // Metadata contains the object metadata for this resource
+    core.solo.io.Metadata metadata = 7 [(gogoproto.nullable) = false];
+}

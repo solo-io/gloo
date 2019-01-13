@@ -33,17 +33,7 @@ type RetryPolicy struct {
 	// Specifies the allowed number of retries. This parameter is optional and
 	// defaults to 1. These are the same conditions [documented for Envoy](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/router_filter#config-http-filters-router-x-envoy-retry-on)
 	NumRetries uint32 `protobuf:"varint,2,opt,name=num_retries,json=numRetries,proto3" json:"num_retries,omitempty"`
-	// Specifies a non-zero upstream timeout per retry attempt. This parameter is optional. The
-	// same conditions documented for
-	// :ref:`config_http_filters_router_x-envoy-upstream-rq-per-try-timeout-ms` apply.
-	//
-	// .. note::
-	//
-	//   If left unspecified, Envoy will use the global
-	//   :ref:`route timeout <envoy_api_field_route.RouteAction.timeout>` for the request.
-	//   Consequently, when using a :ref:`5xx <config_http_filters_router_x-envoy-retry-on>` based
-	//   retry policy, a request that times out will not be retried as the total timeout budget
-	//   would have been exhausted.
+	// Specifies a non-zero upstream timeout per retry attempt. This parameter is optional.
 	PerTryTimeout        *time.Duration `protobuf:"bytes,3,opt,name=per_try_timeout,json=perTryTimeout,stdduration" json:"per_try_timeout,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
 	XXX_unrecognized     []byte         `json:"-"`
@@ -54,7 +44,7 @@ func (m *RetryPolicy) Reset()         { *m = RetryPolicy{} }
 func (m *RetryPolicy) String() string { return proto.CompactTextString(m) }
 func (*RetryPolicy) ProtoMessage()    {}
 func (*RetryPolicy) Descriptor() ([]byte, []int) {
-	return fileDescriptor_retries_1bd1920a07e0f19b, []int{0}
+	return fileDescriptor_retries_7206010145c5283a, []int{0}
 }
 func (m *RetryPolicy) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RetryPolicy.Unmarshal(m, b)
@@ -139,10 +129,10 @@ func (this *RetryPolicy) Equal(that interface{}) bool {
 }
 
 func init() {
-	proto.RegisterFile("github.com/solo-io/gloo/projects/gloo/api/v1/plugins/retries/retries.proto", fileDescriptor_retries_1bd1920a07e0f19b)
+	proto.RegisterFile("github.com/solo-io/gloo/projects/gloo/api/v1/plugins/retries/retries.proto", fileDescriptor_retries_7206010145c5283a)
 }
 
-var fileDescriptor_retries_1bd1920a07e0f19b = []byte{
+var fileDescriptor_retries_7206010145c5283a = []byte{
 	// 272 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x90, 0xcf, 0x4a, 0x03, 0x31,
 	0x10, 0x87, 0x89, 0x8a, 0x7f, 0x52, 0x8a, 0xb0, 0x78, 0xd8, 0x16, 0x69, 0x17, 0x4f, 0x7b, 0x31,

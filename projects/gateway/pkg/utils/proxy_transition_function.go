@@ -1,10 +1,9 @@
-package TODO
+package utils
 
 import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
-// TODO(ilackarms): make this a global function
 func TransitionFunction(original, desired *v1.Proxy) (bool, error) {
 	if len(original.Listeners) != len(desired.Listeners) {
 		return true, nil

@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    gloo: ingress
+  name: ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.deployment.ingress.replicas }}
+  selector:
+    matchLabels:
+      gloo: ingress
+  template:
+    metadata:
+      labels:
+        gloo: ingress
+    spec:
+      containers:
+      - image: {{ .Values.deployment.ingress.image }}
+        imagePullPolicy: {{ .Values.deployment.imagePullPolicy }}
+        name: ingress
+        args: ["--namespace", "{{.Release.Namespace}}" ]

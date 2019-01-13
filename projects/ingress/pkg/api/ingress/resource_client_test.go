@@ -1,0 +1,93 @@
+package ingress_test
+
+import (
+	"os"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	. "github.com/solo-io/gloo/projects/ingress/pkg/api/ingress"
+	"github.com/solo-io/gloo/projects/ingress/pkg/api/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
+	"github.com/solo-io/solo-kit/pkg/utils/log"
+	"github.com/solo-io/solo-kit/test/helpers"
+	"github.com/solo-io/solo-kit/test/setup"
+	"k8s.io/api/extensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/kubernetes"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"k8s.io/client-go/rest"
+)
+
+var _ = Describe("ResourceClient", func() {
+	if os.Getenv("RUN_KUBE_TESTS") != "1" {
+		log.Printf("This test creates kubernetes resources and is disabled by default. To enable, set RUN_KUBE_TESTS=1 in your env.")
+		return
+	}
+	var (
+		namespace string
+		cfg       *rest.Config
+	)
+
+	BeforeEach(func() {
+		namespace = helpers.RandString(8)
+		err := setup.SetupKubeForTest(namespace)
+		Expect(err).NotTo(HaveOccurred())
+		cfg, err = kubeutils.GetConfig("", "")
+		Expect(err).NotTo(HaveOccurred())
+	})
+	AfterEach(func() {
+		setup.TeardownKube(namespace)
+	})
+
+	It("can CRUD on v1beta1 ingresses", func() {
+		kube, err := kubernetes.NewForConfig(cfg)
+		Expect(err).NotTo(HaveOccurred())
+		baseClient := NewResourceClient(kube, &v1.Ingress{})
+		ingressClient := v1.NewIngressClientWithBase(baseClient)
+		Expect(err).NotTo(HaveOccurred())
+		kubeIngressClient := kube.ExtensionsV1beta1().Ingresses(namespace)
+		backend := &v1beta1.IngressBackend{
+			ServiceName: "foo",
+			ServicePort: intstr.IntOrString{
+				IntVal: 8080,
+			},
+		}
+		kubeIng, err := kubeIngressClient.Create(&v1beta1.Ingress{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "rusty",
+				Namespace: namespace,
+			},
+			Spec: v1beta1.IngressSpec{
+				Backend: backend,
+				TLS: []v1beta1.IngressTLS{
+					{
+						Hosts:      []string{"some.host"},
+						SecretName: "doesntexistanyway",
+					},
+				},
+				Rules: []v1beta1.IngressRule{
+					{
+						Host: "some.host",
+						IngressRuleValue: v1beta1.IngressRuleValue{
+							HTTP: &v1beta1.HTTPIngressRuleValue{
+								Paths: []v1beta1.HTTPIngressPath{
+									{
+										Backend: *backend,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		})
+		Expect(err).NotTo(HaveOccurred())
+		ingressResource, err := ingressClient.Read(kubeIng.Namespace, kubeIng.Name, clients.ReadOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		convertedIng, err := ToKube(ingressResource)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(convertedIng.Spec).To(Equal(kubeIng.Spec))
+	})
+})

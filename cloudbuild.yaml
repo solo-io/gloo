@@ -29,6 +29,23 @@ steps:
   waitFor: ['dep']
   id: 'setup-aws-creds'
 
+- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo'
+  entrypoint: mkdir
+  args: ['/workspace/.docker']
+  id: 'create-docker-creds-dir'
+
+- name: gcr.io/cloud-builders/gcloud
+  args:
+  - kms
+  - decrypt
+  - --ciphertext-file=./gopath/src/github.com/solo-io/gloo/ci/dockerhub_credentials.enc
+  - --plaintext-file=/workspace/.docker/config.json
+  - --location=global
+  - --keyring=build
+  - --key=build-key
+  waitFor: ['dep', 'create-docker-creds-dir']
+  id: 'setup-docker-creds'
+
 # e2e-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-ginkgo
 # sets up redis, consul, kubectl, go with required environment variables
 # need to use the provided entrypoint
@@ -51,9 +68,10 @@ steps:
   - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
   - 'CLOUDSDK_CONTAINER_CLUSTER=test-cluster'
   - 'RUN_KUBE_TESTS=1'
+  - 'DOCKER_CONFIG=/workspace/.docker/'
   dir: './gopath/src/github.com/solo-io/gloo'
   args: ['-r', '-failFast']
-  waitFor: ['get-envoy', 'setup-aws-creds']
+  waitFor: ['get-envoy', 'setup-aws-creds', 'setup-docker-creds']
 
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
@@ -75,4 +93,4 @@ secrets:
     DOCKER_HUB_PASSWORD: CiQABlzmSW0u+qhXDvTCxLnbi09Zm88eCU0wSdvFn1W+6WOpTgQSTgCCPGSGTAlMndrEkYOynPhDzTXrW1q1eAsQYjKOWOwZKodcQZ2WIzdvpOOjv+WrGTssWWg1uPFV4CnajT7DzeNAb7USkla1epatm6OnuQ==
     FIREBASE_TOKEN: CiQABlzmSc0BWpPfrGRtDscrxOfp9ZBkZO9fkO79tjEmA14c8ZESVwCCPGSG8uZtLSmFucmEEJGJ0080ON7Zw5TjLe2YdwuxnSOA5YzZryVwLFAMzRmfb6OBxyThTZKvGZzgfXyv6CeLwYX0exk20u7k2bnrWbFHO0Aa4TiQqw==
 
-timeout: 1800s
+timeout: 6600s

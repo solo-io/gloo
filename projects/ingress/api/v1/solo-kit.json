@@ -1,0 +1,30 @@
+{
+  "name": "ingress.solo.io",
+  "version": "v1",
+  "resource_groups": {
+    "translator.ingress.solo.io": [
+      {
+        "name": "Secret",
+        "package": "gloo.solo.io"
+      },
+      {
+        "name": "Upstream",
+        "package": "gloo.solo.io"
+      },
+      {
+        "name": "Ingress",
+        "package": "ingress.solo.io"
+      }
+    ],
+    "status.ingress.solo.io": [
+      {
+        "name": "KubeService",
+        "package": "ingress.solo.io"
+      },
+      {
+        "name": "Ingress",
+        "package": "ingress.solo.io"
+      }
+    ]
+  }
+}
