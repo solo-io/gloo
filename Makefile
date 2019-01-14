@@ -6,7 +6,14 @@ ROOTDIR := $(shell pwd)
 PACKAGE_PATH:=github.com/solo-io/solo-projects
 OUTPUT_DIR ?= $(ROOTDIR)/_output
 SOURCES := $(shell find . -name "*.go" | grep -v test.go | grep -v '\.\#*')
-VERSION ?= $(shell git describe --tags)
+RELEASE := "true"
+ifeq ($(TAGGED_VERSION),)
+	# TAGGED_VERSION := $(shell git describe --tags)
+	# This doesn't work in CI, need to find another way...
+	TAGGED_VERSION := vdev
+	RELEASE := "false"
+endif
+VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 
 #----------------------------------------------------------------------------------
@@ -116,7 +123,6 @@ $(OUTPUT_DIR)/Dockerfile.apiserver: $(APISERVER_DIR)/cmd/Dockerfile
 apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.apiserver
 	docker build -t soloio/apiserver-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.apiserver
 
-
 gloo-i-docker-update:
 	cd projects/apiserver/ui && if [ -d gloo-i ]; then cd gloo-i && git pull && cd ..; else  git clone https://github.com/solo-io/gloo-i gloo-i/; fi
 	cd projects/apiserver/ui && docker build -t soloio/gloo-i-ee:$(VERSION) .
@@ -201,8 +207,9 @@ envoyinit: $(OUTPUT_DIR)/envoyinit-linux-amd64
 $(OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile
 	cp $< $@
 
-data-plane-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
-	docker build -t soloio/data-plane-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
+.PHONY: gloo-ee-envoy-wrapper-docker
+gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
+	docker build -t soloio/gloo-ee-envoy-wrapper:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
 
 #----------------------------------------------------------------------------------
 # LicensingServer
@@ -238,21 +245,29 @@ licensing-server-test:
 GH_ORG:=solo-io
 GH_REPO:=solo-projects
 
-RELEASE_BINARIES := \
-	$(OUTPUT_DIR)/apiserver-linux-amd64 \
-	$(OUTPUT_DIR)/apiserver-darwin-amd64 \
-	$(OUTPUT_DIR)/rate-limit-linux-amd64 \
-	$(OUTPUT_DIR)/gloo-linux-amd64 \
-	$(OUTPUT_DIR)/envoyinit-linux-amd64 \
-	$(OUTPUT_DIR)/licensing-server-linux-amd64
+# For now, expecting people using the release to start from a glooctl CLI we provide, not
+# installing the binaries locally / directly. So only uploading the CLI binaries to Github.
+# The other binaries can be built manually and used, and docker images for everything will
+# be published on release.
+RELEASE_BINARIES := 
+ifeq ($(RELEASE),"true")
+	RELEASE_BINARIES := \
+		$(OUTPUT_DIR)/glooctl-linux-amd64 \
+		$(OUTPUT_DIR)/glooctl-darwin-amd64
+endif
 
 .PHONY: release-binaries
 release-binaries: $(RELEASE_BINARIES)
 
+# This is invoked by cloudbuild. When the bot gets a release notification, it kicks of a build with and provides a tag
+# variable that gets passed through to here as $TAGGED_VERSION. If no tag is provided, this is a no-op. If a tagged
+# version is provided, all the release binaries are uploaded to github.
+# Create new releases by clicking "Draft a new release" from https://github.com/solo-io/solo-projects/releases
 .PHONY: release
 release: release-binaries
-	hack/create-release.sh github_api_token=$(GITHUB_TOKEN) owner=$(GH_ORG) repo=$(GH_REPO) tag=v$(VERSION)
-	@$(foreach BINARY,$(RELEASE_BINARIES),hack/upload-github-release-asset.sh github_api_token=$(GITHUB_TOKEN) owner=solo-io repo=gloo tag=v$(VERSION) filename=$(BINARY);)
+ifeq ($(RELEASE),"true")
+	@$(foreach BINARY,$(RELEASE_BINARIES),ci/upload-github-release-asset.sh owner=solo-io repo=solo-projects tag=$(TAGGED_VERSION) filename=$(BINARY);)
+endif
 
 #----------------------------------------------------------------------------------
 # Docker
@@ -262,12 +277,24 @@ release: release-binaries
 #--------- Push
 #---------
 
+DOCKER_IMAGES := 
+ifeq ($(RELEASE),"true")
+	DOCKER_IMAGES := docker
+endif		
+
 .PHONY: docker docker-push
-docker: apiserver-docker rate-limit-docker gloo-docker sqoop-docker
-docker-push:
+docker: apiserver-docker rate-limit-docker gloo-docker gloo-ee-envoy-wrapper-docker sqoop-docker licensing-server-docker
+
+# Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op). 
+# This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker` 
+# to be used for local testing. 
+# docker-push is intended to be run by CI
+docker-push: $(DOCKER_IMAGES)
+ifeq ($(RELEASE),"true")
 	docker push soloio/sqoop-ee:$(VERSION) && \
 	docker push soloio/rate-limit-ee:$(VERSION) && \
 	docker push soloio/apiserver-ee:$(VERSION) && \
 	docker push soloio/gloo-ee:$(VERSION) && \
-	docker push soloio/gloo-i-ee:$(VERSION) \
+	docker push soloio/gloo-ee-envoy-wrapper:$(VERSION) && \
 	docker push soloio/licensing-server-ee:$(VERSION)
+endif

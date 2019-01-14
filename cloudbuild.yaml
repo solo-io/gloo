@@ -75,6 +75,7 @@ steps:
   - --key=build-key
   waitFor: ['dep']
   id: 'setup-aws-creds'
+
 # e2e-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-ginkgo
 # sets up redis, consul, kubectl, go with required environment variables
 # need to use the provided entrypoint
@@ -93,24 +94,29 @@ steps:
   args: ['-r']
   waitFor: ['dep', 'get-envoy', 'setup-aws-creds', 'setup-keygen-creds']
 
-# Build artifacts
-- name: 'gcr.io/cloud-builders/go'
-  args: ['build', '-o', 'hypergloo', 'github.com/solo-io/solo-projects/projects/hypergloo']
-  env:
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  - 'GOPATH=/workspace/gopath'
-- name: 'gcr.io/cloud-builders/go'
-  args: ['build', '-o', 'sqoop-linux-amd64', 'github.com/solo-io/solo-projects/projects/sqoop/cmd']
-  env:
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  - 'GOPATH=/workspace/gopath'
-- name: 'gcr.io/cloud-builders/go'
-  args: ['build', '-o', 'licensing-server', 'github.com/solo-io/solo-projects/projects/licensingserver/cmd']
-  env:
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  - 'GOPATH=/workspace/gopath'
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker login --username soloiobot --password $$DOCKER_HUB_PASSWORD']
+  secretEnv: ['DOCKER_HUB_PASSWORD']
 
-artifacts:
-  objects:
-    location: 'gs://artifacts.solo.io/'
-    paths: ['sqoop-linux-amd64', 'hypergloo', 'licensing-server']
+# go-make is produced from https://github.com/solo-io/cloud-builders/go-make
+- name: 'gcr.io/$PROJECT_ID/go-make'
+  args: ['release', 'docker-push']
+  env:
+  - 'TAGGED_VERSION=$TAG_NAME'
+  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+  - 'GOPATH=/workspace/gopath'
+  dir: './gopath/src/github.com/solo-io/solo-projects'
+  secretEnv: ['GITHUB_TOKEN', 'FIREBASE_TOKEN']
+
+secrets:
+- kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key
+  secretEnv:
+    GITHUB_TOKEN: CiQAwdWthuYFxQbzNslvN5opNww0KH8mIk6jp2ssPt/TTfOMx/8SUgD5SXFIfzHxaluWqddSMDHquY6cxof/DAHuwW3JoQqSrylt7VF0zy7SRlGzK+jJUEdAuMwf0nI6pPsDmiq+euKWiZqAHCKTsqTv2n/eyU2//UM=
+    DOCKER_HUB_PASSWORD: CiQAwdWthnPx474iTBxC0Wn3IqXOtKE9GKcwo6BzRLFjsDEpybsSTgD5SXFIkjIL4U5PvBc7GqCg3SLHbxktlFByfWa0qSWE6RVMJoTbeOi0iNj1gLQifb9PeQwLIlJiv0D4TUWV8nvL7DbNSxsjdOvFeV/Vpw==
+    FIREBASE_TOKEN: CiQAwdWthjhACaGIgkXZBr7vY1fXPf2JOVYB0MM2ZYuhJhn2V90SVwD5SXFIhTrx6gnp45XMlTChRmReaf6qVMq+RkI+2mFxcXCb3wWtBaf9HEgaJyNGFV1h9Jh6nDp1OC+VtLmihBznpAZVWqhEOYy1Yq+a7SLDKKH19xpusg==
+
+# Overall build timeout of 30m. The release builds take extra time for uploading and pushing artifacts. We can
+# set timeouts on specific steps (dep, tests, etc) if we want to limit the time in sections, but want a forgiving
+# timeout for the final step, and the default (10m) is not enough.
+timeout: 1800s
