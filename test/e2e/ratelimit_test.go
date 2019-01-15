@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 
+	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	ratelimit2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 
 	"github.com/gogo/protobuf/types"
@@ -94,10 +95,10 @@ var _ = Describe("Rate Limit", func() {
 				Unit:            ratelimit.RateLimit_SECOND,
 			},
 		}
-		rateLimitsAny, err := types.MarshalAny(rateLimits)
+		rateLimitStruct, err := envoyutil.MessageToStruct(rateLimits)
 		Expect(err).NotTo(HaveOccurred())
-		protos := map[string]*types.Any{
-			ratelimit2.PluginName: rateLimitsAny,
+		protos := map[string]*types.Struct{
+			ratelimit2.ExtensionName: rateLimitStruct,
 		}
 
 		proxy := &gloov1.Proxy{
@@ -131,7 +132,9 @@ var _ = Describe("Rate Limit", func() {
 								},
 							}},
 							VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-								Plugins: protos,
+								Extensions: &gloov1.Extensions{
+									Configs: protos,
+								},
 							},
 						}},
 					},
@@ -187,10 +190,10 @@ var _ = Describe("Rate Limit", func() {
 					Unit:            ratelimit.RateLimit_SECOND,
 				},
 			}
-			rateLimitsAny, err := types.MarshalAny(rateLimits)
+			rateLimitStruct, err := envoyutil.MessageToStruct(rateLimits)
 			Expect(err).NotTo(HaveOccurred())
-			protos := map[string]*types.Any{
-				ratelimit2.PluginName: rateLimitsAny,
+			protos := map[string]*types.Struct{
+				ratelimit2.ExtensionName: rateLimitStruct,
 			}
 
 			proxycli := testClients.ProxyClient
@@ -226,7 +229,9 @@ var _ = Describe("Rate Limit", func() {
 									},
 								}},
 								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-									Plugins: protos,
+									Extensions: &gloov1.Extensions{
+										Configs: protos,
+									},
 								},
 							}},
 						},

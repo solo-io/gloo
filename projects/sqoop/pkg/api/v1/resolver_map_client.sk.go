@@ -54,6 +54,7 @@ func (client *resolverMapClient) Register() error {
 
 func (client *resolverMapClient) Read(namespace, name string, opts clients.ReadOpts) (*ResolverMap, error) {
 	opts = opts.WithDefaults()
+
 	resource, err := client.rc.Read(namespace, name, opts)
 	if err != nil {
 		return nil, err
@@ -72,11 +73,13 @@ func (client *resolverMapClient) Write(resolverMap *ResolverMap, opts clients.Wr
 
 func (client *resolverMapClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
+
 	return client.rc.Delete(namespace, name, opts)
 }
 
 func (client *resolverMapClient) List(namespace string, opts clients.ListOpts) (ResolverMapList, error) {
 	opts = opts.WithDefaults()
+
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
 		return nil, err
@@ -86,6 +89,7 @@ func (client *resolverMapClient) List(namespace string, opts clients.ListOpts) (
 
 func (client *resolverMapClient) Watch(namespace string, opts clients.WatchOpts) (<-chan ResolverMapList, <-chan error, error) {
 	opts = opts.WithDefaults()
+
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr

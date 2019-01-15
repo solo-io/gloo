@@ -167,4 +167,5 @@ var SchemaCrd = crd.NewCrd("sqoop.solo.io",
 	"v1",
 	"Schema",
 	"sc",
+	false,
 	&Schema{})

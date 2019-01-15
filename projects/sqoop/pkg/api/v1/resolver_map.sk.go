@@ -167,4 +167,5 @@ var ResolverMapCrd = crd.NewCrd("sqoop.solo.io",
 	"v1",
 	"ResolverMap",
 	"rm",
+	false,
 	&ResolverMap{})

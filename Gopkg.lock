@@ -23,6 +23,21 @@
   version = "v0.7.1"
 
 [[projects]]
+  digest = "1:1fe87891e29a291377b0b2224b99fd857553dff7dce8a6ffb5fda003ce52a8b0"
+  name = "github.com/Azure/go-autorest"
+  packages = [
+    "autorest",
+    "autorest/adal",
+    "autorest/azure",
+    "autorest/date",
+    "logger",
+    "version",
+  ]
+  pruneopts = "UT"
+  revision = "4b7f49dc5db2e1e6d528524d269b4181981a7ebf"
+  version = "v11.1.1"
+
+[[projects]]
   digest = "1:55388fd080150b9a072912f97b1f5891eb0b50df43401f8b75fb4273d3fec9fc"
   name = "github.com/Masterminds/semver"
   packages = ["."]
@@ -160,6 +175,14 @@
   pruneopts = "UT"
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
+
+[[projects]]
+  digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
 
 [[projects]]
   digest = "1:b498b36dbb2b306d1c5205ee5236c9e60352be8f9eea9bf08186723a9f75b4f3"
@@ -429,6 +452,22 @@
   pruneopts = "UT"
   revision = "7c663266750e7d82587642f65e60bc4083f1f84e"
   version = "v0.2.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:0f81ad0b38cbd916ca43a8701dc2507c3f3fce9955fc787318fcc440fef9db56"
+  name = "github.com/gophercloud/gophercloud"
+  packages = [
+    ".",
+    "openstack",
+    "openstack/identity/v2/tenants",
+    "openstack/identity/v2/tokens",
+    "openstack/identity/v3/tokens",
+    "openstack/utils",
+    "pagination",
+  ]
+  pruneopts = "UT"
+  revision = "a9f90060ebd9d4e0be53e429d2623746b700468c"
 
 [[projects]]
   digest = "1:c79fb010be38a59d657c48c6ba1d003a8aa651fa56b579d959d74573b7dff8e1"
@@ -1075,12 +1114,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:dae470d8d14c25b9c217ef686cc8699ee23311fd09f403eefe51aace54d833cc"
+  digest = "1:d3cccb22ee2ee11159a0dabab152a989312f723b6019d72dec5a3ebda723b5e1"
   name = "github.com/solo-io/gloo"
   packages = [
     "pkg/cliutil",
-    "pkg/utils/proto",
     "pkg/utils/setuputils",
+    "pkg/version",
     "projects/discovery/pkg/fds",
     "projects/discovery/pkg/fds/discoveries/aws",
     "projects/discovery/pkg/fds/discoveries/grpc",
@@ -1094,8 +1133,8 @@
     "projects/gateway/pkg/propagator",
     "projects/gateway/pkg/setup",
     "projects/gateway/pkg/syncer",
-    "projects/gateway/pkg/todo",
     "projects/gateway/pkg/translator",
+    "projects/gateway/pkg/utils",
     "projects/gloo/cli/pkg/argsutils",
     "projects/gloo/cli/pkg/cmd",
     "projects/gloo/cli/pkg/cmd/add",
@@ -1122,6 +1161,7 @@
     "projects/gloo/pkg/api/v1/plugins/grpc",
     "projects/gloo/pkg/api/v1/plugins/kubernetes",
     "projects/gloo/pkg/api/v1/plugins/rest",
+    "projects/gloo/pkg/api/v1/plugins/retries",
     "projects/gloo/pkg/api/v1/plugins/sqoop",
     "projects/gloo/pkg/api/v1/plugins/static",
     "projects/gloo/pkg/api/v1/plugins/transformation",
@@ -1131,22 +1171,23 @@
     "projects/gloo/pkg/plugins",
     "projects/gloo/pkg/plugins/aws",
     "projects/gloo/pkg/plugins/azure",
+    "projects/gloo/pkg/plugins/basicroute",
     "projects/gloo/pkg/plugins/consul",
     "projects/gloo/pkg/plugins/faultinjection",
     "projects/gloo/pkg/plugins/grpc",
     "projects/gloo/pkg/plugins/kubernetes",
     "projects/gloo/pkg/plugins/pluginutils",
-    "projects/gloo/pkg/plugins/prefixrewrite",
     "projects/gloo/pkg/plugins/registry",
     "projects/gloo/pkg/plugins/rest",
     "projects/gloo/pkg/plugins/static",
     "projects/gloo/pkg/plugins/transformation",
+    "projects/gloo/pkg/plugins/utils",
     "projects/gloo/pkg/syncer",
     "projects/gloo/pkg/translator",
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "7a1215d61d7b359d2e589f0a2e5a8c1f5c14549d"
+  revision = "658fb24ca87daad9a3feb98d481ddee6d087a55b"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1202,7 +1243,7 @@
   revision = "32838befd54a98ecd76e6f1bf0ca6df602646a04"
 
 [[projects]]
-  digest = "1:99c51492e32d24a1f2853bf2ead3c7e484cf27915f196ff4a290440cae9d3108"
+  digest = "1:70484857b2a4135518adc6c3aa407ee3f83be664efd146a9b5e6949ac9187291"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1256,8 +1297,8 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "84371fa5a6dda2fe2092229dc3c9e0e91f4e4ab2"
-  version = "v0.2.13"
+  revision = "d46d5027113b8ee70fd1d23f866c8facbfbaf87a"
+  version = "v0.2.17"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -1796,7 +1837,7 @@
   version = "kubernetes-1.13.0"
 
 [[projects]]
-  digest = "1:c4efe76be7ab545700a944bc19a6e15805ddab5a0bb044817ef6a073da5b039d"
+  digest = "1:44832d7faa91bbb0fc2a6d88a71a9677327c6cbda9cc43c772b82a093eb8ddee"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -1912,8 +1953,12 @@
     "pkg/apis/clientauthentication/v1alpha1",
     "pkg/apis/clientauthentication/v1beta1",
     "pkg/version",
+    "plugin/pkg/client/auth",
+    "plugin/pkg/client/auth/azure",
     "plugin/pkg/client/auth/exec",
     "plugin/pkg/client/auth/gcp",
+    "plugin/pkg/client/auth/oidc",
+    "plugin/pkg/client/auth/openstack",
     "rest",
     "rest/watch",
     "third_party/forked/golang/template",
@@ -2008,7 +2053,6 @@
     "github.com/prometheus/prometheus/discovery/targetgroup",
     "github.com/rs/cors",
     "github.com/solo-io/envoy-operator/pkg/downward",
-    "github.com/solo-io/gloo/pkg/utils/proto",
     "github.com/solo-io/gloo/pkg/utils/setuputils",
     "github.com/solo-io/gloo/projects/discovery/pkg/fds/setup",
     "github.com/solo-io/gloo/projects/discovery/pkg/fds/syncer",
@@ -2048,6 +2092,7 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins",
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils",
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins/transformation",
+    "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils",
     "github.com/solo-io/gloo/projects/gloo/pkg/syncer",
     "github.com/solo-io/go-checkpoint",
     "github.com/solo-io/go-utils/cliutils",

@@ -1,8 +1,9 @@
 package create
 
 import (
+	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
@@ -105,14 +106,17 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 				RequestsPerUnit: rl.RequestsPerTimeUnit,
 			},
 		}
-		ingressRateLimitAny, err := types.MarshalAny(ingressRateLimit)
+		ingressRateLimitStruct, err := envoyutil.MessageToStruct(ingressRateLimit)
 		if err != nil {
 			return nil, errors.Wrapf(err, "Error marshalling ingress rate limit")
 		}
-		if vs.VirtualHost.VirtualHostPlugins.Plugins == nil {
-			vs.VirtualHost.VirtualHostPlugins.Plugins = make(map[string]*types.Any)
+		if vs.VirtualHost.VirtualHostPlugins.Extensions == nil {
+			vs.VirtualHost.VirtualHostPlugins.Extensions = new(gloov1.Extensions)
 		}
-		vs.VirtualHost.VirtualHostPlugins.Plugins[ratelimit2.PluginName] = ingressRateLimitAny
+		if vs.VirtualHost.VirtualHostPlugins.Extensions.Configs == nil {
+			vs.VirtualHost.VirtualHostPlugins.Extensions.Configs = make(map[string]*types.Struct)
+		}
+		vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[ratelimit2.ExtensionName] = ingressRateLimitStruct
 	}
 
 	return vs, nil

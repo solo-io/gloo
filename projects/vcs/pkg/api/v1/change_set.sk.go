@@ -175,4 +175,5 @@ var ChangeSetCrd = crd.NewCrd("vcs.solo.io",
 	"v1",
 	"ChangeSet",
 	"chg",
+	false,
 	&ChangeSet{})

@@ -32,9 +32,11 @@ var _ = Describe("SchemaClient", func() {
 	} {
 		Context("resource client backed by "+test.Description(), func() {
 			var (
-				client SchemaClient
-				err    error
+				client              SchemaClient
+				err                 error
+				name1, name2, name3 = "foo" + helpers.RandString(3), "boo" + helpers.RandString(3), "goo" + helpers.RandString(3)
 			)
+
 			BeforeEach(func() {
 				namespace = helpers.RandString(6)
 				factory := test.Setup(namespace)
@@ -44,18 +46,18 @@ var _ = Describe("SchemaClient", func() {
 			AfterEach(func() {
 				test.Teardown(namespace)
 			})
-			It("CRUDs Schemas", func() {
-				SchemaClientTest(namespace, client)
+			It("CRUDs Schemas "+test.Description(), func() {
+				SchemaClientTest(namespace, client, name1, name2, name3)
 			})
 		})
 	}
 })
 
-func SchemaClientTest(namespace string, client SchemaClient) {
+func SchemaClientTest(namespace string, client SchemaClient, name1, name2, name3 string) {
 	err := client.Register()
 	Expect(err).NotTo(HaveOccurred())
 
-	name := "foo"
+	name := name1
 	input := NewSchema(namespace, name)
 	input.Metadata.Namespace = namespace
 	r1, err := client.Write(input, clients.WriteOpts{})
@@ -83,16 +85,14 @@ func SchemaClientTest(namespace string, client SchemaClient) {
 		OverwriteExisting: true,
 	})
 	Expect(err).NotTo(HaveOccurred())
-
 	read, err := client.Read(namespace, name, clients.ReadOpts{})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(read).To(Equal(r1))
-
 	_, err = client.Read("doesntexist", name, clients.ReadOpts{})
 	Expect(err).To(HaveOccurred())
 	Expect(errors.IsNotExist(err)).To(BeTrue())
 
-	name = "boo"
+	name = name2
 	input = &Schema{}
 
 	input.Metadata = core.Metadata{
@@ -102,28 +102,30 @@ func SchemaClientTest(namespace string, client SchemaClient) {
 
 	r2, err := client.Write(input, clients.WriteOpts{})
 	Expect(err).NotTo(HaveOccurred())
-
 	list, err := client.List(namespace, clients.ListOpts{})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(list).To(ContainElement(r1))
 	Expect(list).To(ContainElement(r2))
-
 	err = client.Delete(namespace, "adsfw", clients.DeleteOpts{})
 	Expect(err).To(HaveOccurred())
 	Expect(errors.IsNotExist(err)).To(BeTrue())
-
 	err = client.Delete(namespace, "adsfw", clients.DeleteOpts{
 		IgnoreNotExist: true,
 	})
 	Expect(err).NotTo(HaveOccurred())
-
 	err = client.Delete(namespace, r2.GetMetadata().Name, clients.DeleteOpts{})
 	Expect(err).NotTo(HaveOccurred())
-	list, err = client.List(namespace, clients.ListOpts{})
-	Expect(err).NotTo(HaveOccurred())
-	Expect(list).To(ContainElement(r1))
-	Expect(list).NotTo(ContainElement(r2))
 
+	Eventually(func() SchemaList {
+		list, err = client.List(namespace, clients.ListOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		return list
+	}, time.Second*10).Should(ContainElement(r1))
+	Eventually(func() SchemaList {
+		list, err = client.List(namespace, clients.ListOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		return list
+	}, time.Second*10).ShouldNot(ContainElement(r2))
 	w, errs, err := client.Watch(namespace, clients.WatchOpts{
 		RefreshRate: time.Hour,
 	})
@@ -141,7 +143,7 @@ func SchemaClientTest(namespace string, client SchemaClient) {
 		r2, err = client.Write(r2, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
-		name = "goo"
+		name = name3
 		input = &Schema{}
 		Expect(err).NotTo(HaveOccurred())
 		input.Metadata = core.Metadata{

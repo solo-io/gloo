@@ -84,7 +84,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	changeSetChan := make(chan changeSetListWithNamespace)
 
 	for _, namespace := range watchNamespaces {
-		/* Setup watch for ChangeSet */
+		/* Setup namespaced watch for ChangeSet */
 		changeSetNamespacesChan, changeSetErrs, err := c.changeSet.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting ChangeSet watch")

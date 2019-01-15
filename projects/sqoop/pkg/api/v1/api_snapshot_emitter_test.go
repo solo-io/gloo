@@ -5,11 +5,11 @@ package v1
 import (
 	"context"
 	"os"
-	"path/filepath"
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	kuberc "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -17,7 +17,9 @@ import (
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/setup"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
+
+	// Needed to run tests in GKE
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	// From https://github.com/kubernetes/client-go/blob/53c7adfd0294caa142d961e1f780f74081d5b15f/examples/out-of-cluster-client-configuration/main.go#L31
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -31,6 +33,7 @@ var _ = Describe("V1Emitter", func() {
 	var (
 		namespace1        string
 		namespace2        string
+		name1, name2      = "angela" + helpers.RandString(3), "bob" + helpers.RandString(3)
 		cfg               *rest.Config
 		emitter           ApiEmitter
 		resolverMapClient ResolverMapClient
@@ -40,19 +43,18 @@ var _ = Describe("V1Emitter", func() {
 	BeforeEach(func() {
 		namespace1 = helpers.RandString(8)
 		namespace2 = helpers.RandString(8)
-		err := setup.SetupKubeForTest(namespace1)
+		var err error
+		cfg, err = kubeutils.GetConfig("", "")
+		Expect(err).NotTo(HaveOccurred())
+		err = setup.SetupKubeForTest(namespace1)
 		Expect(err).NotTo(HaveOccurred())
 		err = setup.SetupKubeForTest(namespace2)
-		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
-		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
-
-		cache := kuberc.NewKubeCache()
 		// ResolverMap Constructor
 		resolverMapClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         ResolverMapCrd,
 			Cfg:         cfg,
-			SharedCache: cache,
+			SharedCache: kuberc.NewKubeCache(),
 		}
 		resolverMapClient, err = NewResolverMapClient(resolverMapClientFactory)
 		Expect(err).NotTo(HaveOccurred())
@@ -60,7 +62,7 @@ var _ = Describe("V1Emitter", func() {
 		schemaClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         SchemaCrd,
 			Cfg:         cfg,
-			SharedCache: cache,
+			SharedCache: kuberc.NewKubeCache(),
 		}
 		schemaClient, err = NewSchemaClient(schemaClientFactory)
 		Expect(err).NotTo(HaveOccurred())
@@ -114,17 +116,15 @@ var _ = Describe("V1Emitter", func() {
 				}
 			}
 		}
-
-		resolverMap1a, err := resolverMapClient.Write(NewResolverMap(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
+		resolverMap1a, err := resolverMapClient.Write(NewResolverMap(namespace1, name1), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		resolverMap1b, err := resolverMapClient.Write(NewResolverMap(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
+		resolverMap1b, err := resolverMapClient.Write(NewResolverMap(namespace2, name1), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotResolverMaps(ResolverMapList{resolverMap1a, resolverMap1b}, nil)
-
-		resolverMap2a, err := resolverMapClient.Write(NewResolverMap(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
+		resolverMap2a, err := resolverMapClient.Write(NewResolverMap(namespace1, name2), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		resolverMap2b, err := resolverMapClient.Write(NewResolverMap(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
+		resolverMap2b, err := resolverMapClient.Write(NewResolverMap(namespace2, name2), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotResolverMaps(ResolverMapList{resolverMap1a, resolverMap1b, resolverMap2a, resolverMap2b}, nil)
@@ -174,17 +174,15 @@ var _ = Describe("V1Emitter", func() {
 				}
 			}
 		}
-
-		schema1a, err := schemaClient.Write(NewSchema(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
+		schema1a, err := schemaClient.Write(NewSchema(namespace1, name1), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		schema1b, err := schemaClient.Write(NewSchema(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
+		schema1b, err := schemaClient.Write(NewSchema(namespace2, name1), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotSchemas(SchemaList{schema1a, schema1b}, nil)
-
-		schema2a, err := schemaClient.Write(NewSchema(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
+		schema2a, err := schemaClient.Write(NewSchema(namespace1, name2), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		schema2b, err := schemaClient.Write(NewSchema(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
+		schema2b, err := schemaClient.Write(NewSchema(namespace2, name2), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotSchemas(SchemaList{schema1a, schema1b, schema2a, schema2b}, nil)

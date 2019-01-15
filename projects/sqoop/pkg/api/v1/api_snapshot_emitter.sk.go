@@ -100,7 +100,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 	schemaChan := make(chan schemaListWithNamespace)
 
 	for _, namespace := range watchNamespaces {
-		/* Setup watch for ResolverMap */
+		/* Setup namespaced watch for ResolverMap */
 		resolverMapNamespacesChan, resolverMapErrs, err := c.resolverMap.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting ResolverMap watch")
@@ -111,7 +111,7 @@ func (c *apiEmitter) Snapshots(watchNamespaces []string, opts clients.WatchOpts)
 			defer done.Done()
 			errutils.AggregateErrs(ctx, errs, resolverMapErrs, namespace+"-resolverMaps")
 		}(namespace)
-		/* Setup watch for Schema */
+		/* Setup namespaced watch for Schema */
 		schemaNamespacesChan, schemaErrs, err := c.schema.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Schema watch")

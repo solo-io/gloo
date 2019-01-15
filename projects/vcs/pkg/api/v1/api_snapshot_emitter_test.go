@@ -5,11 +5,11 @@ package v1
 import (
 	"context"
 	"os"
-	"path/filepath"
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	kuberc "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -17,7 +17,9 @@ import (
 	"github.com/solo-io/solo-kit/test/helpers"
 	"github.com/solo-io/solo-kit/test/setup"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
+
+	// Needed to run tests in GKE
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	// From https://github.com/kubernetes/client-go/blob/53c7adfd0294caa142d961e1f780f74081d5b15f/examples/out-of-cluster-client-configuration/main.go#L31
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -31,6 +33,7 @@ var _ = Describe("V1Emitter", func() {
 	var (
 		namespace1      string
 		namespace2      string
+		name1, name2    = "angela" + helpers.RandString(3), "bob" + helpers.RandString(3)
 		cfg             *rest.Config
 		emitter         ApiEmitter
 		changeSetClient ChangeSetClient
@@ -39,19 +42,18 @@ var _ = Describe("V1Emitter", func() {
 	BeforeEach(func() {
 		namespace1 = helpers.RandString(8)
 		namespace2 = helpers.RandString(8)
-		err := setup.SetupKubeForTest(namespace1)
+		var err error
+		cfg, err = kubeutils.GetConfig("", "")
+		Expect(err).NotTo(HaveOccurred())
+		err = setup.SetupKubeForTest(namespace1)
 		Expect(err).NotTo(HaveOccurred())
 		err = setup.SetupKubeForTest(namespace2)
-		kubeconfigPath := filepath.Join(os.Getenv("HOME"), ".kube", "config")
-		cfg, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 		Expect(err).NotTo(HaveOccurred())
-
-		cache := kuberc.NewKubeCache()
 		// ChangeSet Constructor
 		changeSetClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         ChangeSetCrd,
 			Cfg:         cfg,
-			SharedCache: cache,
+			SharedCache: kuberc.NewKubeCache(),
 		}
 		changeSetClient, err = NewChangeSetClient(changeSetClientFactory)
 		Expect(err).NotTo(HaveOccurred())
@@ -105,17 +107,15 @@ var _ = Describe("V1Emitter", func() {
 				}
 			}
 		}
-
-		changeSet1a, err := changeSetClient.Write(NewChangeSet(namespace1, "angela"), clients.WriteOpts{Ctx: ctx})
+		changeSet1a, err := changeSetClient.Write(NewChangeSet(namespace1, name1), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		changeSet1b, err := changeSetClient.Write(NewChangeSet(namespace2, "angela"), clients.WriteOpts{Ctx: ctx})
+		changeSet1b, err := changeSetClient.Write(NewChangeSet(namespace2, name1), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotChangesets(ChangeSetList{changeSet1a, changeSet1b}, nil)
-
-		changeSet2a, err := changeSetClient.Write(NewChangeSet(namespace1, "bob"), clients.WriteOpts{Ctx: ctx})
+		changeSet2a, err := changeSetClient.Write(NewChangeSet(namespace1, name2), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		changeSet2b, err := changeSetClient.Write(NewChangeSet(namespace2, "bob"), clients.WriteOpts{Ctx: ctx})
+		changeSet2b, err := changeSetClient.Write(NewChangeSet(namespace2, name2), clients.WriteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotChangesets(ChangeSetList{changeSet1a, changeSet1b, changeSet2a, changeSet2b}, nil)

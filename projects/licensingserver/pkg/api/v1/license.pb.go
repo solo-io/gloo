@@ -11,8 +11,10 @@ import core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
 import bytes "bytes"
 
-import context "golang.org/x/net/context"
-import grpc "google.golang.org/grpc"
+import (
+	context "golang.org/x/net/context"
+	grpc "google.golang.org/grpc"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -287,8 +289,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for LicenseValidation service
-
+// LicenseValidationClient is the client API for LicenseValidation service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type LicenseValidationClient interface {
 	// Returns the validity of a given License key
 	ValidateKey(ctx context.Context, in *ValidateKeyRequest, opts ...grpc.CallOption) (*ValidateKeyReponse, error)
@@ -311,8 +314,7 @@ func (c *licenseValidationClient) ValidateKey(ctx context.Context, in *ValidateK
 	return out, nil
 }
 
-// Server API for LicenseValidation service
-
+// LicenseValidationServer is the server API for LicenseValidation service.
 type LicenseValidationServer interface {
 	// Returns the validity of a given License key
 	ValidateKey(context.Context, *ValidateKeyRequest) (*ValidateKeyReponse, error)

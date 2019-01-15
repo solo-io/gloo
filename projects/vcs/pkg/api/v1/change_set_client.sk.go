@@ -54,6 +54,7 @@ func (client *changeSetClient) Register() error {
 
 func (client *changeSetClient) Read(namespace, name string, opts clients.ReadOpts) (*ChangeSet, error) {
 	opts = opts.WithDefaults()
+
 	resource, err := client.rc.Read(namespace, name, opts)
 	if err != nil {
 		return nil, err
@@ -72,11 +73,13 @@ func (client *changeSetClient) Write(changeSet *ChangeSet, opts clients.WriteOpt
 
 func (client *changeSetClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
+
 	return client.rc.Delete(namespace, name, opts)
 }
 
 func (client *changeSetClient) List(namespace string, opts clients.ListOpts) (ChangeSetList, error) {
 	opts = opts.WithDefaults()
+
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
 		return nil, err
@@ -86,6 +89,7 @@ func (client *changeSetClient) List(namespace string, opts clients.ListOpts) (Ch
 
 func (client *changeSetClient) Watch(namespace string, opts clients.WatchOpts) (<-chan ChangeSetList, <-chan error, error) {
 	opts = opts.WithDefaults()
+
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr

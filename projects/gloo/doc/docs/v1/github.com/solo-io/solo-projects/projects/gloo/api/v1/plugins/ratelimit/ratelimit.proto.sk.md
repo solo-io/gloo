@@ -58,7 +58,7 @@
 
 
 ```yaml
-"authrorized_header": string
+"authorized_header": string
 "authorized_limits": .ratelimit.plugins.gloo.solo.io.RateLimit
 "anonymous_limits": .ratelimit.plugins.gloo.solo.io.RateLimit
 
@@ -66,7 +66,7 @@
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `authrorized_header` | `string` |  |  |
+| `authorized_header` | `string` |  |  |
 | `authorized_limits` | [.ratelimit.plugins.gloo.solo.io.RateLimit](ratelimit.proto.sk.md#RateLimit) |  |  |
 | `anonymous_limits` | [.ratelimit.plugins.gloo.solo.io.RateLimit](ratelimit.proto.sk.md#RateLimit) |  |  |
 

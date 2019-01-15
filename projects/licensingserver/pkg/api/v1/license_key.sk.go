@@ -156,4 +156,5 @@ var LicenseKeyCrd = crd.NewCrd("licensing.solo.io",
 	"v1",
 	"LicenseKey",
 	"lc",
+	false,
 	&LicenseKey{})

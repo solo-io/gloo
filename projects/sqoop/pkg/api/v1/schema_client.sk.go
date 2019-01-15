@@ -54,6 +54,7 @@ func (client *schemaClient) Register() error {
 
 func (client *schemaClient) Read(namespace, name string, opts clients.ReadOpts) (*Schema, error) {
 	opts = opts.WithDefaults()
+
 	resource, err := client.rc.Read(namespace, name, opts)
 	if err != nil {
 		return nil, err
@@ -72,11 +73,13 @@ func (client *schemaClient) Write(schema *Schema, opts clients.WriteOpts) (*Sche
 
 func (client *schemaClient) Delete(namespace, name string, opts clients.DeleteOpts) error {
 	opts = opts.WithDefaults()
+
 	return client.rc.Delete(namespace, name, opts)
 }
 
 func (client *schemaClient) List(namespace string, opts clients.ListOpts) (SchemaList, error) {
 	opts = opts.WithDefaults()
+
 	resourceList, err := client.rc.List(namespace, opts)
 	if err != nil {
 		return nil, err
@@ -86,6 +89,7 @@ func (client *schemaClient) List(namespace string, opts clients.ListOpts) (Schem
 
 func (client *schemaClient) Watch(namespace string, opts clients.WatchOpts) (<-chan SchemaList, <-chan error, error) {
 	opts = opts.WithDefaults()
+
 	resourcesChan, errs, initErr := client.rc.Watch(namespace, opts)
 	if initErr != nil {
 		return nil, nil, initErr

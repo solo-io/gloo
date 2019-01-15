@@ -10,9 +10,9 @@ import (
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 
-	"github.com/solo-io/gloo/pkg/utils/proto"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 )
 
 /*
@@ -61,10 +61,10 @@ constraints:
 */
 
 const (
-	PluginName  = "rate-limit"
-	domain      = "ingress"
-	requestType = "external"
-	userid      = "userid"
+	ExtensionName = "rate-limit"
+	domain        = "ingress"
+	requestType   = "external"
+	userid        = "userid"
 
 	authenticated = "is-authenticated"
 	anonymous     = "not-authenticated"
@@ -95,16 +95,12 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 }
 
 func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
-	if in.VirtualHostPlugins == nil {
-		return nil
-	}
-	if in.VirtualHostPlugins.Plugins == nil {
-		return nil
-	}
-	plugins := in.VirtualHostPlugins.Plugins
 	var rateLimit ratelimit.IngressRateLimit
-	err := proto.UnmarshalAnyFromMap(plugins, PluginName, &rateLimit)
+	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &rateLimit)
 	if err != nil {
+		if err == utils.NotFoundError {
+			return nil
+		}
 		return errors.Wrapf(err, "Error converting proto any to ingress rate limit plugin")
 	}
 	_, err = TranslateUserConfigToRateLimitServerConfig(rateLimit)
@@ -112,7 +108,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 		return err
 	}
 
-	vhost := generateEnvoyConfigForVhost(rateLimit.AuthrorizedHeader)
+	vhost := generateEnvoyConfigForVhost(rateLimit.AuthorizedHeader)
 	out.RateLimits = vhost
 
 	return nil

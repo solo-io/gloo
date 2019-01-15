@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/pkg/utils/proto"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 
 	"github.com/mitchellh/hashstructure"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 	rateLimitPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 )
@@ -33,17 +33,10 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 			}
 			virtualHosts := httpListener.HttpListener.VirtualHosts
 			for _, virtualHost := range virtualHosts {
-				if virtualHost.VirtualHostPlugins == nil {
-					continue
-				}
-				if virtualHost.VirtualHostPlugins.Plugins == nil {
-					continue
-				}
-				plugins := virtualHost.VirtualHostPlugins.Plugins
 				var rateLimit ratelimit.IngressRateLimit
-				err := proto.UnmarshalAnyFromMap(plugins, rateLimitPlugin.PluginName, &rateLimit)
+				err := utils.UnmarshalExtension(virtualHost.VirtualHostPlugins, rateLimitPlugin.ExtensionName, &rateLimit)
 				if err != nil {
-					if err == proto.NotFoundError {
+					if err == utils.NotFoundError {
 						continue
 					}
 					return errors.Wrapf(err, "Error converting proto any to ingress rate limit plugin")

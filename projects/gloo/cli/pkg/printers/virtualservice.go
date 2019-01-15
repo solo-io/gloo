@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/solo-io/gloo/pkg/utils/proto"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 	rateLimitPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/utils"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 )
 
@@ -58,10 +58,9 @@ func routeList(v *v1.VirtualService) []string {
 func vhPlugins(v *v1.VirtualService) string {
 	var pluginStr string
 	if v.VirtualHost.VirtualHostPlugins != nil {
-		plugins := v.VirtualHost.VirtualHostPlugins.Plugins
 		var rateLimit ratelimit.IngressRateLimit
-		err := proto.UnmarshalAnyFromMap(plugins, rateLimitPlugin.PluginName, &rateLimit)
-		if err != nil && err != proto.NotFoundError {
+		err := utils.UnmarshalExtension(v.VirtualHost.VirtualHostPlugins, rateLimitPlugin.ExtensionName, &rateLimit)
+		if err != nil && err != utils.NotFoundError {
 			return fmt.Sprintf("Error converting proto any to ingress rate limit plugin: %v", err)
 		}
 		if err == nil {
