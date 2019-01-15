@@ -29,3 +29,6 @@ func getOauthURL() string {
 func getOauthClient() string {
 	return os.Getenv("OAUTH_CLIENT")
 }
+
+// TODO: temporary used to disable authentication
+var SkipAuth = os.Getenv("NO_AUTH")

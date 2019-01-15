@@ -123,13 +123,9 @@ $(OUTPUT_DIR)/Dockerfile.apiserver: $(APISERVER_DIR)/cmd/Dockerfile
 apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.apiserver
 	docker build -t soloio/apiserver-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.apiserver
 
-gloo-i-docker-update:
-	cd projects/apiserver/ui && if [ -d gloo-i ]; then cd gloo-i && git pull && cd ..; else  git clone https://github.com/solo-io/gloo-i gloo-i/; fi
-	cd projects/apiserver/ui && docker build -t soloio/gloo-i-ee:$(VERSION) .
-
 gloo-i-docker:
 	cd projects/apiserver/ui && if [ -d gloo-i ]; then cd gloo-i && git pull && cd ..; else  git clone https://github.com/solo-io/gloo-i gloo-i/; fi
-	cd projects/apiserver/ui && docker build -t soloio/gloo-i-ee:$(VERSION) .
+	cd projects/apiserver/ui && docker build --build-arg NO_AUTH=${NO_AUTH} -t soloio/gloo-i-ee:$(VERSION) .
 
 #----------------------------------------------------------------------------------
 # RateLimit
@@ -191,7 +187,7 @@ gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
 	docker build -t soloio/gloo-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo
 
 #----------------------------------------------------------------------------------
-# Envot init
+# Envoy init
 #----------------------------------------------------------------------------------
 
 ENVOYINIT_DIR=cmd/envoyinit
@@ -249,7 +245,7 @@ GH_REPO:=solo-projects
 # installing the binaries locally / directly. So only uploading the CLI binaries to Github.
 # The other binaries can be built manually and used, and docker images for everything will
 # be published on release.
-RELEASE_BINARIES := 
+RELEASE_BINARIES :=
 ifeq ($(RELEASE),"true")
 	RELEASE_BINARIES := \
 		$(OUTPUT_DIR)/glooctl-linux-amd64 \
@@ -277,17 +273,17 @@ endif
 #--------- Push
 #---------
 
-DOCKER_IMAGES := 
+DOCKER_IMAGES :=
 ifeq ($(RELEASE),"true")
 	DOCKER_IMAGES := docker
-endif		
+endif
 
 .PHONY: docker docker-push
 docker: apiserver-docker rate-limit-docker gloo-docker gloo-ee-envoy-wrapper-docker sqoop-docker licensing-server-docker
 
-# Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op). 
-# This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker` 
-# to be used for local testing. 
+# Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
+# This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
+# to be used for local testing.
 # docker-push is intended to be run by CI
 docker-push: $(DOCKER_IMAGES)
 ifeq ($(RELEASE),"true")

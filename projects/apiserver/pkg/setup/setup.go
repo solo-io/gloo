@@ -35,7 +35,12 @@ func Setup(ctx context.Context, port int, debugMode bool) error {
 	http.HandleFunc("/query", func(w http.ResponseWriter, r *http.Request) {
 		var resolvers graph.ResolverRoot
 		token := auth.GetToken(w, r)
-		if token == "" {
+		/*
+		 *	TODO: temporary hack to bypass authentication.
+		 *  If SkipAuth is set, ClientsetForToken("") will return a clientset
+		 *  that uses the pod service account to call the Kubernetes API.
+		 */
+		if token == "" && config.SkipAuth == "" {
 			resolvers = apiServer.NewUnregisteredResolver()
 		} else {
 

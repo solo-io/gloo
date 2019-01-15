@@ -1,8 +1,11 @@
 package setup
 
 import (
+	"log"
 	"os"
 	"sync"
+
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/config"
 
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/graph"
 
@@ -85,6 +88,14 @@ func (c ClientSet) NewResolvers() graph.ResolverRoot {
 
 // Returns a set of clients that use Kubernetes as storage
 func NewClientSet(token string) (*ClientSet, error) {
+
+	// TODO: temporary solution to bypass authentication.
+	if token == "" {
+		if config.SkipAuth == "" {
+			log.Panic("token is empty and auth is not bypassed. Should never happen.")
+		}
+		return newAdminClientSet()
+	}
 
 	// When running in-cluster, this configuration will hold a token associated with the pod service account
 	cfg, err := kubeutils.GetConfig("", "")
@@ -316,4 +327,77 @@ func registerAll(clients ...registrant) error {
 		}
 	}
 	return nil
+}
+
+// Returns a set of clients that use Kubernetes as storage
+// Uses the InClusterConfig k8s configuration
+func newAdminClientSet() (*ClientSet, error) {
+
+	// When running in-cluster, this configuration will hold a token associated with the pod service account
+	cfg, err := kubeutils.GetConfig("", "")
+	if err != nil {
+		return nil, err
+	}
+	kubeClientset, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	// New shared cache
+	cache := kube.NewKubeCache()
+
+	upstreamClient, err := gloov1.NewUpstreamClient(factoryFor(gloov1.UpstreamCrd, *cfg, cache))
+	if err != nil {
+		return nil, err
+	}
+
+	schemaClient, err := sqoopv1.NewSchemaClient(factoryFor(sqoopv1.SchemaCrd, *cfg, cache))
+	if err != nil {
+		return nil, err
+	}
+
+	rmClient, err := sqoopv1.NewResolverMapClient(factoryFor(sqoopv1.ResolverMapCrd, *cfg, cache))
+	if err != nil {
+		return nil, err
+	}
+
+	vsClient, err := gatewayv1.NewVirtualServiceClient(factoryFor(gatewayv1.VirtualServiceCrd, *cfg, cache))
+	if err != nil {
+		return nil, err
+	}
+
+	settingsClient, err := gloov1.NewSettingsClient(factoryFor(gloov1.SettingsCrd, *cfg, cache))
+	if err != nil {
+		return nil, err
+	}
+
+	// Needed only for the clients backed by the KubeResourceClientFactory
+	// so that they register with the cache they share
+	if err = registerAll(upstreamClient, schemaClient, rmClient, vsClient); err != nil {
+		return nil, err
+	}
+
+	secretClient, err := gloov1.NewSecretClient(&factory.KubeSecretClientFactory{
+		Clientset: kubeClientset,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	artifactClient, err := gloov1.NewArtifactClient(&factory.KubeConfigMapClientFactory{
+		Clientset: kubeClientset,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ClientSet{
+		UpstreamClient:       upstreamClient,
+		SchemaClient:         schemaClient,
+		ResolverMapClient:    rmClient,
+		VirtualServiceClient: vsClient,
+		SettingsClient:       settingsClient,
+		SecretClient:         secretClient,
+		ArtifactClient:       artifactClient,
+	}, nil
 }
