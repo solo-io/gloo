@@ -1,4 +1,4 @@
-package proto_test
+package utils_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestProto(t *testing.T) {
+func TestUtils(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Proto Suite")
+	RunSpecs(t, "Utils Suite")
 }
