@@ -7,11 +7,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	"go.uber.org/zap"
 
 	"github.com/mitchellh/hashstructure"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
+	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	v1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 	rateLimitPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
@@ -31,6 +33,11 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 			if !ok {
 				continue
 			}
+
+			rl := &v1.RateLimitConfig{
+				Domain: rateLimitPlugin.IngressDomain,
+			}
+
 			virtualHosts := httpListener.HttpListener.VirtualHosts
 			for _, virtualHost := range virtualHosts {
 				var rateLimit ratelimit.IngressRateLimit
@@ -42,22 +49,22 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 					return errors.Wrapf(err, "Error converting proto any to ingress rate limit plugin")
 				}
 
-				cfg, err := rateLimitPlugin.TranslateUserConfigToRateLimitServerConfig(rateLimit)
+				vhostConstraint, err := rateLimitPlugin.TranslateUserConfigToRateLimitServerConfig(virtualHost.Name, rateLimit)
 				if err != nil {
 					return err
 				}
-				resource := v1.NewRateLimitConfigXdsResourceWrapper(cfg)
-				resources := []envoycache.Resource{resource}
-				h, err := hashstructure.Hash(resources, nil)
-				if err != nil {
-					panic(err)
-				}
-				rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
-				xdsCache.SetSnapshot("ratelimit", rlsnap)
-				// very soon. either buy changing the plugin or potentially the filter.
-				return nil
-
+				rl.Constraints = append(rl.Constraints, vhostConstraint)
 			}
+
+			resource := v1.NewRateLimitConfigXdsResourceWrapper(rl)
+			resources := []envoycache.Resource{resource}
+			h, err := hashstructure.Hash(resources, nil)
+			if err != nil {
+				contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing rate limit")
+				return err
+			}
+			rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
+			xdsCache.SetSnapshot("ratelimit", rlsnap)
 		}
 	}
 

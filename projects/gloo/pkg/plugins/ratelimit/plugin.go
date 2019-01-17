@@ -44,25 +44,28 @@ If not (the second actions\descriptor), then the remote address is retrieved so 
 Given this envoy configuraiton, the appropriate server configuration would be:
 
 constraints:
-- key: header_match
-  value: not-authenticated
+- key: generic_key
+  value: <vhost_name>
   constraints:
-  - key: remote_address
-    rate_limit:
-      unit: MINUTE
-      requests_per_unit: 3
-- key: header_match
-  value: is-authenticated
-  constraints:
-  - key: userid
-    rate_limit:
-      unit: MINUTE
-      requests_per_unit: 10
+  - key: header_match
+    value: not-authenticated
+    constraints:
+    - key: remote_address
+      rate_limit:
+        unit: MINUTE
+        requests_per_unit: 3
+  - key: header_match
+    value: is-authenticated
+    constraints:
+    - key: userid
+      rate_limit:
+        unit: MINUTE
+        requests_per_unit: 10
 */
 
 const (
 	ExtensionName = "rate-limit"
-	domain        = "ingress"
+	IngressDomain = "ingress"
 	requestType   = "external"
 	userid        = "userid"
 
@@ -73,6 +76,7 @@ const (
 	timeout = 20 * time.Millisecond
 
 	headerMatch   = "header_match"
+	genericKey    = "generic_key"
 	remoteAddress = "remote_address"
 )
 
@@ -103,12 +107,12 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 		}
 		return errors.Wrapf(err, "Error converting proto any to ingress rate limit plugin")
 	}
-	_, err = TranslateUserConfigToRateLimitServerConfig(rateLimit)
+	_, err = TranslateUserConfigToRateLimitServerConfig(in.Name, rateLimit)
 	if err != nil {
 		return err
 	}
 
-	vhost := generateEnvoyConfigForVhost(rateLimit.AuthorizedHeader)
+	vhost := generateEnvoyConfigForVhost(in.Name, rateLimit.AuthorizedHeader)
 	out.RateLimits = vhost
 
 	return nil

@@ -7,7 +7,7 @@ import (
 	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rate_limit/v2"
 
 	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 )
 
@@ -17,10 +17,14 @@ save them
 then translate get rate limit configs
 */
 
-func TranslateUserConfigToRateLimitServerConfig(ingressRl ratelimit.IngressRateLimit) (*v1.RateLimitConfig, error) {
-	rl := &v1.RateLimitConfig{
-		Domain: domain,
+func TranslateUserConfigToRateLimitServerConfig(vhostname string, ingressRl ratelimit.IngressRateLimit) (*v1.Constraint, error) {
+
+	vhostConstraint := &v1.Constraint{
+		Key:         genericKey,
+		Value:       vhostname,
+		Constraints: []*v1.Constraint{},
 	}
+
 	if ingressRl.AnonymousLimits != nil {
 
 		if ingressRl.AnonymousLimits.Unit == ratelimit.RateLimit_UNKNOWN {
@@ -37,7 +41,8 @@ func TranslateUserConfigToRateLimitServerConfig(ingressRl ratelimit.IngressRateL
 				},
 			},
 		}
-		rl.Constraints = append(rl.Constraints, c)
+
+		vhostConstraint.Constraints = append(vhostConstraint.Constraints, c)
 	}
 
 	if ingressRl.AuthorizedLimits != nil {
@@ -56,16 +61,16 @@ func TranslateUserConfigToRateLimitServerConfig(ingressRl ratelimit.IngressRateL
 				},
 			},
 		}
-		rl.Constraints = append(rl.Constraints, c)
+		vhostConstraint.Constraints = append(vhostConstraint.Constraints, c)
 	}
 
-	return rl, nil
+	return vhostConstraint, nil
 }
 
 func generateEnvoyConfigForFilter() *envoyratelimit.RateLimit {
 	timeout := timeout
 	envoyrl := envoyratelimit.RateLimit{
-		Domain:      domain,
+		Domain:      IngressDomain,
 		Stage:       stage,
 		RequestType: requestType,
 		Timeout:     &timeout,
@@ -73,64 +78,89 @@ func generateEnvoyConfigForFilter() *envoyratelimit.RateLimit {
 	return &envoyrl
 }
 
-func generateEnvoyConfigForVhost(headername string) []*envoyvhostratelimit.RateLimit {
+func generateEnvoyConfigForVhost(vhostname, headername string) []*envoyvhostratelimit.RateLimit {
 	// the filter config, virtual host config are always the same:
 
 	empty := headername == ""
-
 	if empty {
 		// TODO(yuval-k): fix this hack
 		headername = "not-a-header"
 	}
 
-	headersmatcher := []*envoyvhostratelimit.HeaderMatcher{{
-		Name:                 headername,
-		HeaderMatchSpecifier: &envoyvhostratelimit.HeaderMatcher_PresentMatch{PresentMatch: true},
-	}}
-	//:[{"name":"Authorization", "present_match":true}]
+	vhostAction := getPerVhostRateLimit(vhostname)
+
 	vhostrl := []*envoyvhostratelimit.RateLimit{
 		{
 			Stage: &types.UInt32Value{Value: stage},
 			Actions: []*envoyvhostratelimit.RateLimit_Action{
-				{
-					ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch_{
-						HeaderValueMatch: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch{
-
-							DescriptorValue: authenticated,
-							ExpectMatch:     &types.BoolValue{Value: true},
-							Headers:         headersmatcher,
-						},
-					},
-				},
-				{
-					ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_RequestHeaders_{
-						RequestHeaders: &envoyvhostratelimit.RateLimit_Action_RequestHeaders{
-							DescriptorKey: userid,
-							HeaderName:    headername,
-						},
-					},
-				},
+				vhostAction,
+				getAuthHeaderRateLimit(headername, true),
+				getUserIdRateLimit(headername),
 			},
 		},
 		{
 			Stage: &types.UInt32Value{Value: stage},
 			Actions: []*envoyvhostratelimit.RateLimit_Action{
-				{
-					ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch_{
-						HeaderValueMatch: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch{
-							DescriptorValue: anonymous,
-							ExpectMatch:     &types.BoolValue{Value: false},
-							Headers:         headersmatcher,
-						},
-					},
-				},
-				{
-					ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_RemoteAddress_{
-						RemoteAddress: &envoyvhostratelimit.RateLimit_Action_RemoteAddress{},
-					},
-				},
+				vhostAction,
+				getAuthHeaderRateLimit(vhostname, false),
+				getPerIpRateLimit(),
 			},
 		},
 	}
 	return vhostrl
+}
+
+func getPerVhostRateLimit(vhostname string) *envoyvhostratelimit.RateLimit_Action {
+	return &envoyvhostratelimit.RateLimit_Action{
+		ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_GenericKey_{
+			GenericKey: &envoyvhostratelimit.RateLimit_Action_GenericKey{
+				DescriptorValue: vhostname,
+			},
+		},
+	}
+}
+
+func getAuthHeaderRateLimit(headername string, match bool) *envoyvhostratelimit.RateLimit_Action {
+
+	headersmatcher := []*envoyvhostratelimit.HeaderMatcher{{
+		Name:                 headername,
+		HeaderMatchSpecifier: &envoyvhostratelimit.HeaderMatcher_PresentMatch{PresentMatch: true},
+	}}
+
+	var value string
+	if match {
+		value = authenticated
+	} else {
+		value = anonymous
+	}
+
+	return &envoyvhostratelimit.RateLimit_Action{
+		ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch_{
+			HeaderValueMatch: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch{
+
+				DescriptorValue: value,
+				ExpectMatch:     &types.BoolValue{Value: match},
+				Headers:         headersmatcher,
+			},
+		},
+	}
+}
+
+func getUserIdRateLimit(headername string) *envoyvhostratelimit.RateLimit_Action {
+	return &envoyvhostratelimit.RateLimit_Action{
+		ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_RequestHeaders_{
+			RequestHeaders: &envoyvhostratelimit.RateLimit_Action_RequestHeaders{
+				DescriptorKey: userid,
+				HeaderName:    headername,
+			},
+		},
+	}
+}
+
+func getPerIpRateLimit() *envoyvhostratelimit.RateLimit_Action {
+	return &envoyvhostratelimit.RateLimit_Action{
+		ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_RemoteAddress_{
+			RemoteAddress: &envoyvhostratelimit.RateLimit_Action_RemoteAddress{},
+		},
+	}
 }

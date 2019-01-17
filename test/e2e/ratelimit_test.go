@@ -153,6 +153,8 @@ var _ = Describe("Rate Limit", func() {
 
 		var (
 			envoyInstance *services.EnvoyInstance
+			testUpstream  *v1helpers.TestUpstream
+			envoyPort     = uint32(8080)
 		)
 
 		BeforeEach(func() {
@@ -165,7 +167,19 @@ var _ = Describe("Rate Limit", func() {
 
 			err = envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
+
+			testUpstream = v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
+			// drain channel as we dont care about it
+			go func() {
+				for range testUpstream.C {
+				}
+			}()
+			var opts clients.WriteOpts
+			up := testUpstream.Upstream
+			_, err = testClients.UpstreamClient.Write(up, opts)
+			Expect(err).NotTo(HaveOccurred())
 		})
+
 		AfterEach(func() {
 			if envoyInstance != nil {
 				envoyInstance.Clean()
@@ -173,88 +187,164 @@ var _ = Describe("Rate Limit", func() {
 		})
 
 		It("should should rate limit envoy", func() {
-			tu := v1helpers.NewTestHttpUpstream(ctx, envoyInstance.LocalAddr())
-			// drain channel as we dont care about it
-			go func() {
-				for range tu.C {
-				}
-			}()
-			var opts clients.WriteOpts
-			up := tu.Upstream
-			_, err := testClients.UpstreamClient.Write(up, opts)
+
+			hosts := map[string]bool{"host1": true}
+			proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
+
+			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
-			rateLimits := &ratelimit.IngressRateLimit{
-				AnonymousLimits: &ratelimit.RateLimit{
-					RequestsPerUnit: 1,
-					Unit:            ratelimit.RateLimit_SECOND,
-				},
-			}
-			rateLimitStruct, err := envoyutil.MessageToStruct(rateLimits)
-			Expect(err).NotTo(HaveOccurred())
-			protos := map[string]*types.Struct{
-				ratelimit2.ExtensionName: rateLimitStruct,
-			}
+			rls := rlService
+			Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
+			EventuallyRateLimited("host1", envoyPort)
+		})
 
-			proxycli := testClients.ProxyClient
-			envoyPort := uint32(8080)
-			proxy := &gloov1.Proxy{
-				Metadata: core.Metadata{
-					Name:      "proxy",
-					Namespace: "default",
-				},
-				Listeners: []*gloov1.Listener{{
-					Name:        "listener",
-					BindAddress: "127.0.0.1",
-					BindPort:    envoyPort,
-					ListenerType: &gloov1.Listener_HttpListener{
-						HttpListener: &gloov1.HttpListener{
-							VirtualHosts: []*gloov1.VirtualHost{{
-								Name:    "virt1",
-								Domains: []string{"*"},
-								Routes: []*gloov1.Route{{
-									Matcher: &gloov1.Matcher{
-										PathSpecifier: &gloov1.Matcher_Prefix{
-											Prefix: "/",
-										},
-									},
-									Action: &gloov1.Route_RouteAction{
-										RouteAction: &gloov1.RouteAction{
-											Destination: &gloov1.RouteAction_Single{
-												Single: &gloov1.Destination{
-													Upstream: up.Metadata.Ref(),
-												},
-											},
-										},
-									},
-								}},
-								VirtualHostPlugins: &gloov1.VirtualHostPlugins{
-									Extensions: &gloov1.Extensions{
-										Configs: protos,
-									},
-								},
-							}},
-						},
-					},
-				}},
-			}
+		It("should should rate limit two vhosts", func() {
 
-			_, err = proxycli.Write(proxy, opts)
+			hosts := map[string]bool{"host1": true, "host2": true}
+			proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
+
+			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
 			Expect(err).NotTo(HaveOccurred())
 
 			rls := rlService
 			Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
 
-			Eventually(func() error {
-				res, err := http.Get(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort))
-				if err != nil {
-					return err
-				}
-				if res.StatusCode != http.StatusTooManyRequests {
-					return errors.New(fmt.Sprintf("%v is not TooManyRequests", res.StatusCode))
-				}
-				return nil
-			}, "5s", ".1s").Should(BeNil())
+			EventuallyRateLimited("host1", envoyPort)
+			EventuallyRateLimited("host2", envoyPort)
+		})
+		It("should should rate limit one vhosts", func() {
+
+			hosts := map[string]bool{"host1": false, "host2": true}
+			proxy := getProxy(envoyPort, testUpstream.Upstream.Metadata.Ref(), hosts)
+
+			_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+			Expect(err).NotTo(HaveOccurred())
+
+			rls := rlService
+			Eventually(rls.GetCurrentConfig, "5s").Should(Not(BeNil()))
+
+			// waiting for envoy to start, so that consistently works
+			EventuallyOk("host1", envoyPort)
+
+			ConsistentlyNotRateLimited("host1", envoyPort)
+			EventuallyRateLimited("host2", envoyPort)
 		})
 	})
 })
+
+func EventuallyOk(hostname string, port uint32) {
+	EventuallyWithOffset(1, func() error {
+		res, err := get(hostname, port)
+		if err != nil {
+			return err
+		}
+		if res.StatusCode != http.StatusOK {
+			return errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
+		}
+		return nil
+	}, "5s", ".1s").Should(BeNil())
+}
+
+func ConsistentlyNotRateLimited(hostname string, port uint32) {
+	ConsistentlyWithOffset(1, func() error {
+		res, err := get(hostname, port)
+		if err != nil {
+			return err
+		}
+		if res.StatusCode != http.StatusOK {
+			return errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
+		}
+		return nil
+	}, "5s", ".1s").Should(BeNil())
+}
+func EventuallyRateLimited(hostname string, port uint32) {
+	EventuallyWithOffset(1, func() error {
+		res, err := get(hostname, port)
+		if err != nil {
+			return err
+		}
+		if res.StatusCode != http.StatusTooManyRequests {
+			return errors.New(fmt.Sprintf("%v is not TooManyRequests", res.StatusCode))
+		}
+		return nil
+	}, "5s", ".1s").Should(BeNil())
+}
+
+func get(hostname string, port uint32) (*http.Response, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/1", "localhost", port), nil)
+	Expect(err).NotTo(HaveOccurred())
+	req.Host = hostname
+	return http.DefaultClient.Do(req)
+}
+
+func getProxy(envoyPort uint32, upstream core.ResourceRef, hostsToRateLimits map[string]bool) *gloov1.Proxy {
+	var extensions *gloov1.Extensions
+
+	rateLimits := &ratelimit.IngressRateLimit{
+		AnonymousLimits: &ratelimit.RateLimit{
+			RequestsPerUnit: 1,
+			Unit:            ratelimit.RateLimit_SECOND,
+		},
+	}
+	rateLimitStruct, err := envoyutil.MessageToStruct(rateLimits)
+	Expect(err).NotTo(HaveOccurred())
+	protos := map[string]*types.Struct{
+		ratelimit2.ExtensionName: rateLimitStruct,
+	}
+
+	extensions = &gloov1.Extensions{
+		Configs: protos,
+	}
+
+	var vhosts []*gloov1.VirtualHost
+
+	for hostname, enableRateLimits := range hostsToRateLimits {
+		vhost := &gloov1.VirtualHost{
+			Name:    "virt1",
+			Domains: []string{hostname},
+			Routes: []*gloov1.Route{{
+				Matcher: &gloov1.Matcher{
+					PathSpecifier: &gloov1.Matcher_Prefix{
+						Prefix: "/",
+					},
+				},
+				Action: &gloov1.Route_RouteAction{
+					RouteAction: &gloov1.RouteAction{
+						Destination: &gloov1.RouteAction_Single{
+							Single: &gloov1.Destination{
+								Upstream: upstream,
+							},
+						},
+					},
+				},
+			}},
+		}
+
+		if enableRateLimits {
+			vhost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{
+				Extensions: extensions,
+			}
+		}
+		vhosts = append(vhosts, vhost)
+	}
+
+	p := &gloov1.Proxy{
+		Metadata: core.Metadata{
+			Name:      "proxy",
+			Namespace: "default",
+		},
+		Listeners: []*gloov1.Listener{{
+			Name:        "listener",
+			BindAddress: "127.0.0.1",
+			BindPort:    envoyPort,
+			ListenerType: &gloov1.Listener_HttpListener{
+				HttpListener: &gloov1.HttpListener{
+					VirtualHosts: vhosts,
+				},
+			},
+		}},
+	}
+
+	return p
+}

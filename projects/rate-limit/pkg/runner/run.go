@@ -16,14 +16,14 @@ import (
 	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
 	"github.com/solo-io/rate-limiter/pkg/redis"
 	"github.com/solo-io/rate-limiter/pkg/server"
-	"github.com/solo-io/rate-limiter/pkg/service"
+	ratelimit "github.com/solo-io/rate-limiter/pkg/service"
 	"github.com/solo-io/rate-limiter/pkg/settings"
 	configproto "github.com/solo-io/solo-projects/projects/rate-limit/pkg/config"
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 
 	"github.com/solo-io/solo-kit/pkg/utils/stats"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 
 	"google.golang.org/grpc"
 )
@@ -67,6 +67,14 @@ func NewService(s settings.Settings) ratelimit.RateLimitServiceServer {
 func StartRateLimit(ctx context.Context, s settings.Settings, clientSettings Settings, service ratelimit.RateLimitServiceServer) {
 	srv := server.NewServer("ratelimit", s)
 	StartRateLimitWithGrpcServer(ctx, clientSettings, service, srv.GrpcServer())
+
+	srv.AddDebugHttpEndpoint(
+		"/rlconfig",
+		"print out the currently loaded configuration for debugging",
+		func(writer http.ResponseWriter, request *http.Request) {
+			io.WriteString(writer, service.GetCurrentConfig().Dump())
+		})
+
 	err := srv.Start(ctx)
 	if err != nil {
 		if ctx.Err() == nil {
