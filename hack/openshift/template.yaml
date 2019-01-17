@@ -609,7 +609,7 @@ parameters:
 - name: UI_IMAGE_TAG
   required: true
   description: Docker image Tag +for Apiserver
-  value: 0.1.0
+  value: 0.0.1
 
 - name: UI_STATIC_PORT
   required: true
