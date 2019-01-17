@@ -1,0 +1,19 @@
+type SettingsQuery {
+  get: Settings
+}
+
+type SettingsMutation {
+  update(settings: InputSettings!): Settings
+}
+
+type Settings {
+  watchNamespaces: [String!]
+  refreshRate: Duration
+  metadata: Metadata!
+}
+
+input InputSettings {
+  watchNamespaces: [String!]
+  refreshRate: Duration
+  metadata: InputMetadata!
+}

@@ -1,0 +1,191 @@
+type UpstreamQuery {
+  list(selector: InputMapStringString): [Upstream]
+  get(name: String!): Upstream
+}
+
+type UpstreamMutation {
+  create(upstream: InputUpstream!): Upstream
+  update(upstream: InputUpstream!): Upstream
+  delete(name: String!): Upstream
+}
+
+type Upstream {
+  spec: UpstreamSpec!
+  metadata: Metadata!
+  status: Status!
+}
+
+union UpstreamSpec =
+    AwsUpstreamSpec
+  | AzureUpstreamSpec
+  | KubeUpstreamSpec
+  | StaticUpstreamSpec
+
+type AwsUpstreamSpec {
+  region: String!
+  secretRef: ResourceRef!
+  functions: [AwsLambdaFunction!]
+}
+
+type AzureUpstreamSpec {
+  functionAppName: String!
+  secretRef: ResourceRef!
+  functions: [AzureFunction!]
+}
+
+type KubeUpstreamSpec {
+  serviceName: String!
+  serviceNamespace: String!
+  servicePort: Int!
+  selector: MapStringString
+  serviceSpec: ServiceSpec
+}
+
+type StaticUpstreamSpec {
+  hosts: [StaticHost!]
+  serviceSpec: ServiceSpec
+  useTls: Boolean!
+}
+
+type StaticHost {
+  addr: String!
+  port: Int!
+}
+
+type AwsLambdaFunction {
+  logicalName: String!
+  functionName: String!
+  qualifier: String!
+}
+
+type AzureFunction {
+  functionName: String!
+  authLevel: AzureFnAuthLevel!
+}
+
+union ServiceSpec = RestServiceSpec | GrpcServiceSpec | SqoopServiceSpec
+
+type RestServiceSpec {
+  functions: [Transformation!]
+}
+
+type Transformation {
+  functionName: String!
+  body: String
+  headers: MapStringString
+}
+
+type GrpcServiceSpec {
+  grpcServices: [GrpcService]
+}
+
+type GrpcService {
+  packageName: String!
+  serviceName: String!
+  functionNames: [String!]
+}
+
+type SqoopServiceSpec {
+  schemas: [Schema]!
+}
+
+# Upstream Mutation
+# Upstream Mutation
+# Upstream Mutation
+# Upstream Mutation
+
+input InputUpstream {
+  spec: InputUpstreamSpec!
+  metadata: InputMetadata!
+}
+
+input InputUpstreamSpec {
+  # oneof: aws | azure | kube | static
+  aws: InputAwsUpstreamSpec
+  azure: InputAzureUpstreamSpec
+  kube: InputKubeUpstreamSpec
+  static: InputStaticUpstreamSpec
+}
+
+input InputAwsUpstreamSpec {
+  region: String!
+  secretRef: InputResourceRef!
+  functions: [InputAwsLambdaFunction!]
+}
+
+input InputAzureUpstreamSpec {
+  functionAppName: String!
+  secretRef: InputResourceRef
+  functions: [InputAzureFunction!]
+}
+
+input InputKubeUpstreamSpec {
+  serviceName: String!
+  serviceNamespace: String!
+  servicePort: Int!
+  selector: InputMapStringString
+  serviceSpec: InputServiceSpec
+}
+
+input InputStaticUpstreamSpec {
+  hosts: [InputStaticHost!]
+  serviceSpec: InputServiceSpec
+  useTls: Boolean!
+}
+
+input InputStaticHost {
+  addr: String!
+  port: Int!
+}
+
+input InputAwsLambdaFunction {
+  logicalName: String!
+  functionName: String!
+  qualifier: String!
+}
+
+input InputAzureFunction {
+  functionName: String!
+  authLevel: String!
+}
+
+input InputServiceSpec {
+  # oneof: Rest | grpc
+  rest: InputRestServiceSpec
+  grpc: InputGrpcServiceSpec
+}
+
+input InputRestServiceSpec {
+  functions: [InputTransformation!]
+  inlineSwaggerDoc: String
+}
+
+input InputTransformation {
+  functionName: String!
+  body: String
+  headers: InputMapStringString
+}
+
+# Not implemented yet
+input InputGrpcServiceSpec {
+  empty: String
+}
+
+input InputMetadata {
+  name: String!
+  namespace: String!
+  resourceVersion: String!
+  labels: InputMapStringString
+  annotations: InputMapStringString
+}
+
+input InputUpdateMetadata {
+  name: String
+  labels: InputMapStringString
+  annotations: InputMapStringString
+}
+
+input InputStatus {
+  state: State!
+  reason: String!
+}

@@ -1,0 +1,30 @@
+type SchemaQuery {
+  list(selector: InputMapStringString): [Schema]
+  get(name: String!): Schema
+}
+
+type SchemaMutation {
+  create(schema: InputSchema!): Schema
+  update(schema: InputSchema!): Schema
+  delete(name: String!): Schema
+}
+
+type SqoopServiceSpec {
+  schemas: [Schema]!
+}
+
+type SqoopDestinationSpec {
+  schema: Schema!
+  playground: Boolean!
+}
+
+type Schema {
+  inlineSchema: String!
+  metadata: Metadata!
+  status: Status!
+}
+
+input InputSchema {
+  inlineSchema: String!
+  metadata: InputMetadata!
+}

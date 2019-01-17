@@ -1,0 +1,68 @@
+type Metadata {
+  name: String!
+  namespace: String!
+  resourceVersion: String!
+  labels: MapStringString
+  annotations: MapStringString
+  guid: String!
+}
+
+type Status {
+  state: State!
+  reason: String
+}
+
+type ResourceRef {
+  name: String!
+  namespace: String!
+}
+
+input InputResourceRef {
+  name: String!
+  namespace: String!
+}
+
+# Scalars / Extra
+
+enum State {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum AzureFnAuthLevel {
+  ANONYMOUS
+  FUNCTION
+  ADMIN
+}
+
+type MapStringString {
+  values: [Value!]
+}
+
+input InputMapStringString {
+  values: [InputValue!]
+}
+
+type Value {
+  key: String!
+  value: String!
+}
+
+input InputValue {
+  key: String!
+  value: String!
+}
+
+enum PathMatchType {
+  PREFIX
+  REGEX
+  EXACT
+}
+
+enum AwsLambdaInvocationStyle {
+  SYNC
+  ASYNC
+}
+
+scalar Duration

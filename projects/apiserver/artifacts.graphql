@@ -1,0 +1,19 @@
+type ArtifactQuery {
+  list(selector: InputMapStringString): [Artifact]
+  get(name: String!): Artifact
+}
+
+type ArtifactMutation {
+  create(artifact: InputArtifact!): Artifact
+  update(artifact: InputArtifact!): Artifact
+  delete(name: String!): Artifact
+}
+type Artifact {
+  data: String!
+  metadata: Metadata!
+}
+
+input InputArtifact {
+  data: String!
+  metadata: InputMetadata!
+}

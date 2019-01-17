@@ -1,0 +1,164 @@
+type VirtualServiceQuery {
+  list(selector: InputMapStringString): [VirtualService]
+  get(name: String!): VirtualService
+}
+
+type VirtualServiceMutation {
+  create(virtualService: InputVirtualService!): VirtualService
+  update(
+    name: String!
+    resourceVersion: String!
+    updates: InputUpdateVirtualService!
+  ): VirtualService
+
+  delete(name: String!): VirtualService
+
+  addRoute(
+    virtualServiceName: String!
+    resourceVersion: String!
+    index: Int!
+    route: InputRoute!
+  ): VirtualService
+
+  updateRoute(
+    virtualServiceName: String!
+    resourceVersion: String!
+    index: Int!
+    route: InputRoute!
+  ): VirtualService
+
+  deleteRoute(
+    virtualServiceName: String!
+    resourceVersion: String!
+    index: Int!
+  ): VirtualService
+
+  swapRoutes(
+    virtualServiceName: String!
+    resourceVersion: String!
+    index1: Int!
+    index2: Int!
+  ): VirtualService
+
+  shiftRoutes(
+    virtualServiceName: String!
+    resourceVersion: String!
+    fromIndex: Int!
+    toIndex: Int!
+  ): VirtualService
+}
+
+type VirtualService {
+  domains: [String!]
+  routes: [Route!]
+  sslConfig: SslConfig
+  plugins: VirtualServicePlugins
+  metadata: Metadata!
+  status: Status!
+}
+
+type Route {
+  matcher: Matcher!
+  destination: Destination!
+  plugins: RoutePlugins
+}
+
+type Matcher {
+  pathMatch: String!
+  pathMatchType: PathMatchType!
+  headers: [KeyValueMatcher!]
+  queryParameters: [KeyValueMatcher!]
+  methods: [String!]
+}
+# not implemented
+type VirtualServicePlugins {
+  empty: String
+}
+
+union Destination = MultiDestination | SingleDestination
+
+type MultiDestination {
+  destinations: [WeightedDestination!]
+}
+
+type WeightedDestination {
+  destination: SingleDestination!
+  weight: Int!
+}
+
+type SingleDestination {
+  upstream: Upstream!
+  destinationSpec: DestinationSpec
+}
+
+union DestinationSpec =
+    AwsDestinationSpec
+  | AzureDestinationSpec
+  | RestDestinationSpec
+  | GrpcDestinationSpec
+  | SqoopDestinationSpec
+
+type AwsDestinationSpec {
+  logicalName: String!
+  invocationStyle: AwsLambdaInvocationStyle!
+  responseTransformation: Boolean!
+}
+
+type AzureDestinationSpec {
+  functionName: String!
+}
+
+type RestDestinationSpec {
+  functionName: String!
+  parameters: TransformationParameters
+}
+
+type GrpcDestinationSpec {
+  package: String!
+  service: String!
+  function: String!
+  parameters: TransformationParameters
+}
+
+type SqoopDestinationSpec {
+  schema: Schema!
+  playground: Boolean!
+}
+# not implemented
+type RoutePlugins {
+  empty: String
+}
+
+input InputVirtualService {
+  domains: [String!]
+  routes: [InputRoute!]
+  sslConfig: InputSslConfig
+  plugins: InputVirtualServicePlugins
+  metadata: InputMetadata!
+}
+
+input InputUpdateVirtualService {
+  domains: [String!]
+  sslConfig: InputSslConfig
+  plugins: InputVirtualServicePlugins
+  metadata: InputUpdateMetadata
+}
+
+input InputRoute {
+  matcher: InputMatcher!
+  destination: InputDestination!
+  plugins: InputRoutePlugins
+}
+
+# not implemented
+input InputVirtualServicePlugins {
+  empty: String
+}
+
+input InputMatcher {
+  pathMatch: String!
+  pathMatchType: PathMatchType!
+  headers: [InputKeyValueMatcher!]
+  queryParameters: [InputKeyValueMatcher!]
+  methods: [String!]
+}

@@ -1,0 +1,13 @@
+type VcsQuery {
+  branches: [Branch]!
+}
+
+type VcsMutation {
+  checkoutBranch(branchName: String!): String
+}
+
+type Branch {
+  name: String!
+  hash: String!
+  lastCommitMsg: String!
+}
