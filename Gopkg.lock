@@ -1054,7 +1054,7 @@
   version = "v0.0.1"
 
 [[projects]]
-  digest = "1:42e29deef12327a69123b9cb2cb45fee4af5c12c2a23c6e477338279a052703f"
+  digest = "1:5f4b78246f0bcb105b1e3b2b9e22b52a57cd02f57a8078572fe27c62f4a75ff7"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -1077,11 +1077,11 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "3774a09d95489ccaa16032e0770d08ea77ba6184"
-  version = "v1.6.0"
+  revision = "2e1be8f7d90e9d3e3e58b0ce470f2f14d075406f"
+  version = "v1.7.0"
 
 [[projects]]
-  digest = "1:910491a4e78ff2c3fee357cfc14e62f40431f5bda4f68cf18dade2b448cde1dc"
+  digest = "1:28ec8420931441ba18ea81668a7c7b52212e00a656a268dd9fa8adaa710bb12e"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -1102,8 +1102,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "b6ea1ea48f981d0f615a154a45eabb9dd466556d"
-  version = "v1.4.1"
+  revision = "65fb64232476ad9046e57c26cd0bff3d3a8dc6cd"
+  version = "v1.4.3"
 
 [[projects]]
   digest = "1:ee4d4af67d93cc7644157882329023ce9a7bcfce956a079069a9405521c7cc8d"
@@ -1248,16 +1248,20 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:1fbae7b7218b4d4e8d417c12e0fa88936cca20a9f77a09b97ca6ecf14a5840b5"
+  digest = "1:7def1707ff7a7c62ec678468266b2738fa54f0a9a0777d743c6530936b0d7fb0"
   name = "github.com/solo-io/go-utils"
   packages = [
     "cliutils",
+    "contextutils",
     "errors",
+    "kubeinstallutils",
     "kubeutils",
+    "logger",
     "protoutils",
+    "testutils",
   ]
   pruneopts = "UT"
-  revision = "67428b92743fd710ab708665d5fff86e06ff1612"
+  revision = "0a2351c6daabdf85e7f72e2254d5f782b1747fe7"
 
 [[projects]]
   branch = "master"
@@ -2052,6 +2056,8 @@
     "github.com/solo-io/go-utils/cliutils",
     "github.com/solo-io/go-utils/errors",
     "github.com/solo-io/go-utils/kubeutils",
+    "github.com/solo-io/go-utils/protoutils",
+    "github.com/solo-io/go-utils/testutils",
     "github.com/solo-io/kubecontroller",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/factory",
