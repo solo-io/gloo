@@ -262,6 +262,9 @@ endif
 install/kube.yaml: $(shell find install/helm/gloo)
 	helm template install/helm/gloo --namespace gloo-system > $@
 
+install/kube-knative.yaml: $(shell find install/helm/gloo)
+	helm template install/helm/gloo --namespace gloo-system --values install/helm/gloo/values-knative.yaml > $@
+
 #----------------------------------------------------------------------------------
 # Release
 #----------------------------------------------------------------------------------
