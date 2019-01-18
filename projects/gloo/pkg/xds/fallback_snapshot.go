@@ -90,8 +90,8 @@ func fallbackSnapshot(bindAddress string, port, invalidConfigStatusCode uint32) 
 		FilterChains: []envoylistener.FilterChain{{
 			Filters: []envoylistener.Filter{
 				{
-					Name:   "envoy.http_connection_manager",
-					Config: pbst,
+					Name:       "envoy.http_connection_manager",
+					ConfigType: &envoylistener.Filter_Config{Config: pbst},
 				},
 			},
 		}},

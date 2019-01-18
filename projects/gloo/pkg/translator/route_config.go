@@ -9,7 +9,7 @@ import (
 	"github.com/gogo/protobuf/types"
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
@@ -160,10 +160,10 @@ func (t *translator) setAction(params plugins.Params, report reportFunc, in *v1.
 	case *v1.Route_RedirectAction:
 		out.Action = &envoyroute.Route_Redirect{
 			Redirect: &envoyroute.RedirectAction{
-				HostRedirect:  action.RedirectAction.HostRedirect,
-				ResponseCode:  envoyroute.RedirectAction_RedirectResponseCode(action.RedirectAction.ResponseCode),
-				HttpsRedirect: action.RedirectAction.HttpsRedirect,
-				StripQuery:    action.RedirectAction.StripQuery,
+				HostRedirect:           action.RedirectAction.HostRedirect,
+				ResponseCode:           envoyroute.RedirectAction_RedirectResponseCode(action.RedirectAction.ResponseCode),
+				SchemeRewriteSpecifier: &envoyroute.RedirectAction_HttpsRedirect{HttpsRedirect: action.RedirectAction.HttpsRedirect},
+				StripQuery:             action.RedirectAction.StripQuery,
 			},
 		}
 

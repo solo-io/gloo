@@ -193,7 +193,8 @@
   version = "v2.7.0"
 
 [[projects]]
-  digest = "1:99a541d432754c36cb44332017a1f330f9db7d54b1d521c229ab7e6ee0d620cc"
+  branch = "master"
+  digest = "1:fd622670f9758275fd5b197911186488f7d8ea9b563729d58eb80b28d5c4e739"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -215,10 +216,11 @@
     "envoy/config/trace/v2",
     "envoy/service/discovery/v2",
     "envoy/type",
+    "envoy/type/matcher",
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "676016db8193d83324a507a986a78cd3642ad713"
+  revision = "a09b615551f6665e7f8321bbb899670b384224c0"
 
 [[projects]]
   digest = "1:f1f2bd73c025d24c3b93abf6364bccb802cf2fdedaa44360804c67800e8fab8d"
@@ -1272,7 +1274,7 @@
   revision = "241bc627d5400a0794853220df4fdefeeb2af0e0"
 
 [[projects]]
-  digest = "1:de84f859aa3ec1714c0c35d6b643a85ffb0e0aec4095c93d4835d2c32dd68556"
+  digest = "1:70484857b2a4135518adc6c3aa407ee3f83be664efd146a9b5e6949ac9187291"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1292,6 +1294,7 @@
     "pkg/api/v1/clients/memory",
     "pkg/api/v1/clients/vault",
     "pkg/api/v1/control-plane/cache",
+    "pkg/api/v1/control-plane/client",
     "pkg/api/v1/control-plane/log",
     "pkg/api/v1/control-plane/server",
     "pkg/api/v1/control-plane/util",
@@ -1325,8 +1328,20 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "d46d5027113b8ee70fd1d23f866c8facbfbaf87a"
-  version = "v0.2.17"
+  revision = "4aa5df4fc9a5f7af01daf6c4cf1a8adce340deb2"
+  version = "v0.2.18"
+
+[[projects]]
+  digest = "1:a22ff8961b8b7f66155e883ebbace876527ed10ece528a10cf237cf9ef67e281"
+  name = "github.com/solo-io/solo-projects"
+  packages = [
+    "projects/gloo/pkg/api/v1/plugins/ratelimit",
+    "projects/gloo/pkg/api/v1/plugins/sqoop",
+    "projects/licensingserver/pkg/api/v1",
+  ]
+  pruneopts = "UT"
+  revision = "af3d63fd52996aa761f426776705e2a659004fb5"
+  version = "v0.0.6"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -1564,9 +1579,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:601e63e7d4577f907118bec825902505291918859d223bce015539e79f1160e3"
+  digest = "1:eff11a4ed88d9d3e28dd697961c550af1c4d0d3dccdc6252715b9a65a1d541bb"
   name = "google.golang.org/genproto"
-  packages = ["googleapis/rpc/status"]
+  packages = [
+    "googleapis/api/annotations",
+    "googleapis/rpc/status",
+  ]
   pruneopts = "UT"
   revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
 
@@ -2057,7 +2075,6 @@
     "github.com/solo-io/go-utils/cliutils",
     "github.com/solo-io/go-utils/errors",
     "github.com/solo-io/go-utils/kubeutils",
-    "github.com/solo-io/go-utils/protoutils",
     "github.com/solo-io/go-utils/testutils",
     "github.com/solo-io/kubecontroller",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients",
@@ -2066,6 +2083,7 @@
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/memory",
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache",
+    "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/client",
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server",
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util",
     "github.com/solo-io/solo-kit/pkg/api/v1/propagator",
@@ -2086,6 +2104,9 @@
     "github.com/solo-io/solo-kit/test/helpers",
     "github.com/solo-io/solo-kit/test/setup",
     "github.com/solo-io/solo-kit/test/tests/typed",
+    "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit",
+    "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/sqoop",
+    "github.com/solo-io/solo-projects/projects/licensingserver/pkg/api/v1",
     "github.com/spf13/cobra",
     "github.com/spf13/pflag",
     "go.opencensus.io/stats",
@@ -2093,6 +2114,8 @@
     "go.opencensus.io/tag",
     "go.opencensus.io/trace",
     "go.uber.org/zap",
+    "golang.org/x/net/context",
+    "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
     "google.golang.org/grpc/reflection/grpc_reflection_v1alpha",

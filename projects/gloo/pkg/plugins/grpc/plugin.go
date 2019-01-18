@@ -19,7 +19,7 @@ import (
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	glooplugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins"
 	grpcapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/grpc"
 	transformapi "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation"
@@ -293,8 +293,8 @@ func (p *plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		}
 		filters = append(filters, plugins.StagedHttpFilter{
 			HttpFilter: &envoyhttp.HttpFilter{
-				Name:   filterName,
-				Config: filterConfig,
+				Name:       filterName,
+				ConfigType: &envoyhttp.HttpFilter_Config{Config: filterConfig},
 			},
 			Stage: pluginStage,
 		})

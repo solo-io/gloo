@@ -8,7 +8,7 @@ import (
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
@@ -39,8 +39,8 @@ func (t *translator) computeHttpConnectionManagerFilter(params plugins.Params, l
 		panic(errors.Wrap(err, "failed to convert proto message to struct"))
 	}
 	return envoylistener.Filter{
-		Name:   envoyutil.HTTPConnectionManager,
-		Config: httpConnMgrCfg,
+		Name:       envoyutil.HTTPConnectionManager,
+		ConfigType: &envoylistener.Filter_Config{Config: httpConnMgrCfg},
 	}
 }
 

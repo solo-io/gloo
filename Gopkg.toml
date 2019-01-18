@@ -3,7 +3,7 @@
   unused-packages = true
 
 [[constraint]]
-  revision = "676016db8193d83324a507a986a78cd3642ad713"
+  branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
 
 [[constraint]]

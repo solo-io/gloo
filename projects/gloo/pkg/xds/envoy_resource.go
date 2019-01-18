@@ -15,8 +15,10 @@
 package xds
 
 import (
-	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	"github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
 	hcm "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 )
@@ -127,14 +129,25 @@ func (e *EnvoyResource) References() []cache.XdsResourceReference {
 				}
 
 				config := &hcm.HttpConnectionManager{}
-				if util.StructToMessage(filter.Config, config) == nil && config != nil {
-					if rds, ok := config.RouteSpecifier.(*hcm.HttpConnectionManager_Rds); ok && rds != nil && rds.Rds != nil {
-						rr := cache.XdsResourceReference{
-							Type: RouteType,
-							Name: rds.Rds.RouteConfigName,
-						}
-						out[rr] = true
+
+				switch filterConfig := filter.ConfigType.(type) {
+				case *listener.Filter_Config:
+					if util.StructToMessage(filterConfig.Config, config) != nil {
+						continue
+
 					}
+				case *listener.Filter_TypedConfig:
+					if types.UnmarshalAny(filterConfig.TypedConfig, config) != nil {
+						continue
+					}
+				}
+
+				if rds, ok := config.RouteSpecifier.(*hcm.HttpConnectionManager_Rds); ok && rds != nil && rds.Rds != nil {
+					rr := cache.XdsResourceReference{
+						Type: RouteType,
+						Name: rds.Rds.RouteConfigName,
+					}
+					out[rr] = true
 				}
 			}
 		}
@@ -180,11 +193,23 @@ func GetResourceReferences(resources map[string]cache.Resource) map[string]bool 
 					}
 
 					config := &hcm.HttpConnectionManager{}
-					if util.StructToMessage(filter.Config, config) == nil && config != nil {
-						if rds, ok := config.RouteSpecifier.(*hcm.HttpConnectionManager_Rds); ok && rds != nil && rds.Rds != nil {
-							out[rds.Rds.RouteConfigName] = true
+
+					switch filterConfig := filter.ConfigType.(type) {
+					case *listener.Filter_Config:
+						if util.StructToMessage(filterConfig.Config, config) != nil {
+							continue
+
+						}
+					case *listener.Filter_TypedConfig:
+						if types.UnmarshalAny(filterConfig.TypedConfig, config) != nil {
+							continue
 						}
 					}
+
+					if rds, ok := config.RouteSpecifier.(*hcm.HttpConnectionManager_Rds); ok && rds != nil && rds.Rds != nil {
+						out[rds.Rds.RouteConfigName] = true
+					}
+
 				}
 			}
 		}
