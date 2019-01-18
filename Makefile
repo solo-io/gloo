@@ -96,10 +96,11 @@ APISERVER_DIR=projects/apiserver
 APISERVER_GRAPHQL_DIR=$(APISERVER_DIR)/pkg/graphql
 APISERVER_GRAPHQL_GENERATED_FILES=$(APISERVER_GRAPHQL_DIR)/models/generated.go $(APISERVER_GRAPHQL_DIR)/graph/generated.go
 APISERVER_SOURCES=$(shell find $(APISERVER_GRAPHQL_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+APISERVER_GQL_SCHEMAS=$(shell find $(APISERVER_DIR)/gql_schemas -name "*.graphql")
 
 .PHONY: apiserver-dependencies
 apiserver-dependencies: $(APISERVER_GRAPHQL_GENERATED_FILES)
-$(APISERVER_GRAPHQL_GENERATED_FILES): $(APISERVER_DIR)/schema.graphql $(APISERVER_DIR)/gqlgen.yaml $(APISERVER_SOURCES)
+$(APISERVER_GRAPHQL_GENERATED_FILES): $(APISERVER_GQL_SCHEMAS) $(APISERVER_DIR)/gqlgen.yaml $(APISERVER_SOURCES)
 	cd $(APISERVER_DIR) && \
 	gqlgen -v
 

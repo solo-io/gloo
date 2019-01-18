@@ -1,5 +1,5 @@
 schema: 
- - "*.graphql"
+ - "gql_schemas/*.graphql"
 
 # Let gqlgen know where to put the generated server
 exec:

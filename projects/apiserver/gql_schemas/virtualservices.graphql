@@ -55,6 +55,7 @@ type VirtualService {
   routes: [Route!]
   sslConfig: SslConfig
   rateLimitConfig: RateLimitConfig
+  plugins: VirtualServicePlugins @deprecated(reason: "Use `rateLimitConfig`.")
 }
 
 type Route {
@@ -135,6 +136,11 @@ enum TimeUnit {
 }
 
 # not implemented
+type VirtualServicePlugins {
+  empty: String
+}
+
+# not implemented
 type RoutePlugins {
   empty: String
 }
@@ -145,6 +151,7 @@ input InputVirtualService {
   sslConfig: InputSslConfig
   rateLimitConfig: InputRateLimitConfig
   metadata: InputMetadata!
+  plugins: InputVirtualServicePlugins @deprecated(reason: "Use `rateLimitConfig`.")
 }
 
 input InputUpdateVirtualService {
@@ -152,6 +159,7 @@ input InputUpdateVirtualService {
   sslConfig: InputSslConfig
   rateLimitConfig: InputRateLimitConfig
   metadata: InputUpdateMetadata
+  plugins: InputVirtualServicePlugins @deprecated(reason: "Use `rateLimitConfig`.")
 }
 
 input InputRoute {
@@ -177,6 +185,11 @@ input InputRateLimitConfig {
 input InputRateLimit {
   unit: TimeUnit!
   requestsPerUnit: UnsignedInt!
+}
+
+# not implemented
+input InputVirtualServicePlugins {
+  empty: String
 }
 
 input InputDestination {

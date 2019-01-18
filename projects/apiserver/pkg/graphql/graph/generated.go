@@ -443,6 +443,7 @@ type ComplexityRoot struct {
 		Routes          func(childComplexity int) int
 		SslConfig       func(childComplexity int) int
 		RateLimitConfig func(childComplexity int) int
+		Plugins         func(childComplexity int) int
 	}
 
 	VirtualServiceMutation struct {
@@ -454,6 +455,10 @@ type ComplexityRoot struct {
 		DeleteRoute func(childComplexity int, virtualServiceName string, resourceVersion string, index int) int
 		SwapRoutes  func(childComplexity int, virtualServiceName string, resourceVersion string, index1 int, index2 int) int
 		ShiftRoutes func(childComplexity int, virtualServiceName string, resourceVersion string, fromIndex int, toIndex int) int
+	}
+
+	VirtualServicePlugins struct {
+		Empty func(childComplexity int) int
 	}
 
 	VirtualServiceQuery struct {
@@ -3155,6 +3160,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.VirtualService.RateLimitConfig(childComplexity), true
 
+	case "VirtualService.plugins":
+		if e.complexity.VirtualService.Plugins == nil {
+			break
+		}
+
+		return e.complexity.VirtualService.Plugins(childComplexity), true
+
 	case "VirtualServiceMutation.create":
 		if e.complexity.VirtualServiceMutation.Create == nil {
 			break
@@ -3250,6 +3262,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.VirtualServiceMutation.ShiftRoutes(childComplexity, args["virtualServiceName"].(string), args["resourceVersion"].(string), args["fromIndex"].(int), args["toIndex"].(int)), true
+
+	case "VirtualServicePlugins.empty":
+		if e.complexity.VirtualServicePlugins.Empty == nil {
+			break
+		}
+
+		return e.complexity.VirtualServicePlugins.Empty(childComplexity), true
 
 	case "VirtualServiceQuery.list":
 		if e.complexity.VirtualServiceQuery.List == nil {
@@ -11708,6 +11727,8 @@ func (ec *executionContext) _VirtualService(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._VirtualService_sslConfig(ctx, field, obj)
 		case "rateLimitConfig":
 			out.Values[i] = ec._VirtualService_rateLimitConfig(ctx, field, obj)
+		case "plugins":
+			out.Values[i] = ec._VirtualService_plugins(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11921,6 +11942,35 @@ func (ec *executionContext) _VirtualService_rateLimitConfig(ctx context.Context,
 	}
 
 	return ec._RateLimitConfig(ctx, field.Selections, res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VirtualService_plugins(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "VirtualService",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Plugins, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.VirtualServicePlugins)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._VirtualServicePlugins(ctx, field.Selections, res)
 }
 
 var virtualServiceMutationImplementors = []string{"VirtualServiceMutation"}
@@ -12275,6 +12325,61 @@ func (ec *executionContext) _VirtualServiceMutation_shiftRoutes(ctx context.Cont
 	}
 
 	return ec._VirtualService(ctx, field.Selections, res)
+}
+
+var virtualServicePluginsImplementors = []string{"VirtualServicePlugins"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _VirtualServicePlugins(ctx context.Context, sel ast.SelectionSet, obj *models.VirtualServicePlugins) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, virtualServicePluginsImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("VirtualServicePlugins")
+		case "empty":
+			out.Values[i] = ec._VirtualServicePlugins_empty(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VirtualServicePlugins_empty(ctx context.Context, field graphql.CollectedField, obj *models.VirtualServicePlugins) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "VirtualServicePlugins",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Empty, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
 }
 
 var virtualServiceQueryImplementors = []string{"VirtualServiceQuery"}
@@ -15858,6 +15963,17 @@ func UnmarshalInputUpdateVirtualService(v interface{}) (models.InputUpdateVirtua
 			if err != nil {
 				return it, err
 			}
+		case "plugins":
+			var err error
+			var ptr1 models.InputVirtualServicePlugins
+			if v != nil {
+				ptr1, err = UnmarshalInputVirtualServicePlugins(v)
+				it.Plugins = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -16036,6 +16152,40 @@ func UnmarshalInputVirtualService(v interface{}) (models.InputVirtualService, er
 			if err != nil {
 				return it, err
 			}
+		case "plugins":
+			var err error
+			var ptr1 models.InputVirtualServicePlugins
+			if v != nil {
+				ptr1, err = UnmarshalInputVirtualServicePlugins(v)
+				it.Plugins = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputVirtualServicePlugins(v interface{}) (models.InputVirtualServicePlugins, error) {
+	var it models.InputVirtualServicePlugins
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "empty":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.Empty = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -16090,7 +16240,7 @@ func (ec *executionContext) introspectType(name string) *introspection.Type {
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(
-	&ast.Source{Name: "artifacts.graphql", Input: `type ArtifactQuery {
+	&ast.Source{Name: "gql_schemas/artifacts.graphql", Input: `type ArtifactQuery {
   list(selector: InputMapStringString): [Artifact]
   get(name: String!): Artifact
 }
@@ -16110,7 +16260,7 @@ input InputArtifact {
   metadata: InputMetadata!
 }
 `},
-	&ast.Source{Name: "metadata.graphql", Input: `type Metadata {
+	&ast.Source{Name: "gql_schemas/metadata.graphql", Input: `type Metadata {
   name: String!
   namespace: String!
   resourceVersion: String!
@@ -16179,12 +16329,12 @@ enum AwsLambdaInvocationStyle {
 
 scalar Duration
 scalar UnsignedInt`},
-	&ast.Source{Name: "oauth.graphql", Input: `type OAuthEndpoint {
+	&ast.Source{Name: "gql_schemas/oauth.graphql", Input: `type OAuthEndpoint {
   url: String!
   clientName: String!
 }
 `},
-	&ast.Source{Name: "resolvermaps.graphql", Input: `type ResolverMapQuery {
+	&ast.Source{Name: "gql_schemas/resolvermaps.graphql", Input: `type ResolverMapQuery {
   list(selector: InputMapStringString): [ResolverMap]
   get(name: String!): ResolverMap
 }
@@ -16302,7 +16452,7 @@ input InputNodeJSResolver {
   empty: String
 }
 `},
-	&ast.Source{Name: "schema.graphql", Input: `# Top Level
+	&ast.Source{Name: "gql_schemas/schema.graphql", Input: `# Top Level
 schema {
   query: Query
   mutation: Mutation
@@ -16361,7 +16511,7 @@ type VersionedMutation {
   virtualServices(namespace: String!): VirtualServiceMutation!
 }
 `},
-	&ast.Source{Name: "schemas.graphql", Input: `type SchemaQuery {
+	&ast.Source{Name: "gql_schemas/schemas.graphql", Input: `type SchemaQuery {
   list(selector: InputMapStringString): [Schema]
   get(name: String!): Schema
 }
@@ -16392,7 +16542,7 @@ input InputSchema {
   metadata: InputMetadata!
 }
 `},
-	&ast.Source{Name: "secrets.graphql", Input: `type SecretQuery {
+	&ast.Source{Name: "gql_schemas/secrets.graphql", Input: `type SecretQuery {
   list(selector: InputMapStringString): [Secret]
   get(name: String!): Secret
 }
@@ -16452,7 +16602,7 @@ input InputTlsSecret {
   rootCa: String! # note: it is okay to leave this as an empty string
 }
 `},
-	&ast.Source{Name: "settings.graphql", Input: `type SettingsQuery {
+	&ast.Source{Name: "gql_schemas/settings.graphql", Input: `type SettingsQuery {
   get: Settings
 }
 
@@ -16472,7 +16622,7 @@ input InputSettings {
   metadata: InputMetadata!
 }
 `},
-	&ast.Source{Name: "upstreams.graphql", Input: `type UpstreamQuery {
+	&ast.Source{Name: "gql_schemas/upstreams.graphql", Input: `type UpstreamQuery {
   list(selector: InputMapStringString): [Upstream]
   get(name: String!): Upstream
 }
@@ -16660,7 +16810,7 @@ input InputStatus {
   reason: String!
 }
 `},
-	&ast.Source{Name: "vcs.graphql", Input: `type VcsQuery {
+	&ast.Source{Name: "gql_schemas/vcs.graphql", Input: `type VcsQuery {
   branches: [Branch]!
 }
 
@@ -16674,8 +16824,8 @@ type Branch {
   lastCommitMsg: String!
 }
 `},
-	&ast.Source{Name: "version.graphql", Input: ``},
-	&ast.Source{Name: "virtualservices.graphql", Input: `type VirtualServiceQuery {
+	&ast.Source{Name: "gql_schemas/version.graphql", Input: ``},
+	&ast.Source{Name: "gql_schemas/virtualservices.graphql", Input: `type VirtualServiceQuery {
   list(selector: InputMapStringString): [VirtualService]
   get(name: String!): VirtualService
 }
@@ -16732,6 +16882,7 @@ type VirtualService {
   routes: [Route!]
   sslConfig: SslConfig
   rateLimitConfig: RateLimitConfig
+  plugins: VirtualServicePlugins @deprecated(reason: "Use ` + "`" + `rateLimitConfig` + "`" + `.")
 }
 
 type Route {
@@ -16812,6 +16963,11 @@ enum TimeUnit {
 }
 
 # not implemented
+type VirtualServicePlugins {
+  empty: String
+}
+
+# not implemented
 type RoutePlugins {
   empty: String
 }
@@ -16822,6 +16978,7 @@ input InputVirtualService {
   sslConfig: InputSslConfig
   rateLimitConfig: InputRateLimitConfig
   metadata: InputMetadata!
+  plugins: InputVirtualServicePlugins @deprecated(reason: "Use ` + "`" + `rateLimitConfig` + "`" + `.")
 }
 
 input InputUpdateVirtualService {
@@ -16829,6 +16986,7 @@ input InputUpdateVirtualService {
   sslConfig: InputSslConfig
   rateLimitConfig: InputRateLimitConfig
   metadata: InputUpdateMetadata
+  plugins: InputVirtualServicePlugins @deprecated(reason: "Use ` + "`" + `rateLimitConfig` + "`" + `.")
 }
 
 input InputRoute {
@@ -16854,6 +17012,11 @@ input InputRateLimitConfig {
 input InputRateLimit {
   unit: TimeUnit!
   requestsPerUnit: UnsignedInt!
+}
+
+# not implemented
+input InputVirtualServicePlugins {
+  empty: String
 }
 
 input InputDestination {

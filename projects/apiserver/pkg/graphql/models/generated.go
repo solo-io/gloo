@@ -392,10 +392,11 @@ type InputUpdateMetadata struct {
 }
 
 type InputUpdateVirtualService struct {
-	Domains         []string              `json:"domains"`
-	SslConfig       *InputSslConfig       `json:"sslConfig"`
-	RateLimitConfig *InputRateLimitConfig `json:"rateLimitConfig"`
-	Metadata        *InputUpdateMetadata  `json:"metadata"`
+	Domains         []string                    `json:"domains"`
+	SslConfig       *InputSslConfig             `json:"sslConfig"`
+	RateLimitConfig *InputRateLimitConfig       `json:"rateLimitConfig"`
+	Metadata        *InputUpdateMetadata        `json:"metadata"`
+	Plugins         *InputVirtualServicePlugins `json:"plugins"`
 }
 
 type InputUpstream struct {
@@ -416,11 +417,16 @@ type InputValue struct {
 }
 
 type InputVirtualService struct {
-	Domains         []string              `json:"domains"`
-	Routes          []InputRoute          `json:"routes"`
-	SslConfig       *InputSslConfig       `json:"sslConfig"`
-	RateLimitConfig *InputRateLimitConfig `json:"rateLimitConfig"`
-	Metadata        InputMetadata         `json:"metadata"`
+	Domains         []string                    `json:"domains"`
+	Routes          []InputRoute                `json:"routes"`
+	SslConfig       *InputSslConfig             `json:"sslConfig"`
+	RateLimitConfig *InputRateLimitConfig       `json:"rateLimitConfig"`
+	Metadata        InputMetadata               `json:"metadata"`
+	Plugins         *InputVirtualServicePlugins `json:"plugins"`
+}
+
+type InputVirtualServicePlugins struct {
+	Empty *string `json:"empty"`
 }
 
 type InputWeightedDestination struct {
@@ -682,15 +688,20 @@ type VersionedQuery struct {
 }
 
 type VirtualService struct {
-	Metadata        Metadata         `json:"metadata"`
-	Status          Status           `json:"status"`
-	Domains         []string         `json:"domains"`
-	Routes          []Route          `json:"routes"`
-	SslConfig       *SslConfig       `json:"sslConfig"`
-	RateLimitConfig *RateLimitConfig `json:"rateLimitConfig"`
+	Metadata        Metadata               `json:"metadata"`
+	Status          Status                 `json:"status"`
+	Domains         []string               `json:"domains"`
+	Routes          []Route                `json:"routes"`
+	SslConfig       *SslConfig             `json:"sslConfig"`
+	RateLimitConfig *RateLimitConfig       `json:"rateLimitConfig"`
+	Plugins         *VirtualServicePlugins `json:"plugins"`
 }
 
 func (VirtualService) IsResource() {}
+
+type VirtualServicePlugins struct {
+	Empty *string `json:"empty"`
+}
 
 type WeightedDestination struct {
 	Destination SingleDestination `json:"destination"`
