@@ -85,10 +85,6 @@ type GrpcService {
   functionNames: [String!]
 }
 
-type SqoopServiceSpec {
-  schemas: [Schema]!
-}
-
 # Upstream Mutation
 # Upstream Mutation
 # Upstream Mutation

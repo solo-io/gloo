@@ -210,18 +210,26 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Resource         func(childComplexity int, guid string) int
-		GetOauthEndpoint func(childComplexity int) int
-		Version          func(childComplexity int) int
-		Upstreams        func(childComplexity int, namespace string) int
-		VirtualServices  func(childComplexity int, namespace string) int
-		ResolverMaps     func(childComplexity int, namespace string) int
-		Schemas          func(childComplexity int, namespace string) int
-		Secrets          func(childComplexity int, namespace string) int
-		Artifacts        func(childComplexity int, namespace string) int
-		Settings         func(childComplexity int) int
-		Vcs              func(childComplexity int) int
-		Versioned        func(childComplexity int, branch string) int
+		Resource        func(childComplexity int, guid string) int
+		Version         func(childComplexity int) int
+		Upstreams       func(childComplexity int, namespace string) int
+		VirtualServices func(childComplexity int, namespace string) int
+		Schemas         func(childComplexity int, namespace string) int
+		Secrets         func(childComplexity int, namespace string) int
+		Settings        func(childComplexity int) int
+		Vcs             func(childComplexity int) int
+		Versioned       func(childComplexity int, branch string) int
+	}
+
+	RateLimit struct {
+		Unit            func(childComplexity int) int
+		RequestsPerUnit func(childComplexity int) int
+	}
+
+	RateLimitConfig struct {
+		AuthorizedHeader func(childComplexity int) int
+		AuthorizedLimits func(childComplexity int) int
+		AnonymousLimits  func(childComplexity int) int
 	}
 
 	RequestTemplate struct {
@@ -429,12 +437,12 @@ type ComplexityRoot struct {
 	}
 
 	VirtualService struct {
-		Domains   func(childComplexity int) int
-		Routes    func(childComplexity int) int
-		SslConfig func(childComplexity int) int
-		Plugins   func(childComplexity int) int
-		Metadata  func(childComplexity int) int
-		Status    func(childComplexity int) int
+		Metadata        func(childComplexity int) int
+		Status          func(childComplexity int) int
+		Domains         func(childComplexity int) int
+		Routes          func(childComplexity int) int
+		SslConfig       func(childComplexity int) int
+		RateLimitConfig func(childComplexity int) int
 	}
 
 	VirtualServiceMutation struct {
@@ -446,10 +454,6 @@ type ComplexityRoot struct {
 		DeleteRoute func(childComplexity int, virtualServiceName string, resourceVersion string, index int) int
 		SwapRoutes  func(childComplexity int, virtualServiceName string, resourceVersion string, index1 int, index2 int) int
 		ShiftRoutes func(childComplexity int, virtualServiceName string, resourceVersion string, fromIndex int, toIndex int) int
-	}
-
-	VirtualServicePlugins struct {
-		Empty func(childComplexity int) int
 	}
 
 	VirtualServiceQuery struct {
@@ -485,14 +489,11 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Resource(ctx context.Context, guid string) (models.Resource, error)
-	GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpoint, error)
 	Version(ctx context.Context) (string, error)
 	Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamQuery, error)
 	VirtualServices(ctx context.Context, namespace string) (customtypes.VirtualServiceQuery, error)
-	ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapQuery, error)
 	Schemas(ctx context.Context, namespace string) (customtypes.SchemaQuery, error)
 	Secrets(ctx context.Context, namespace string) (customtypes.SecretQuery, error)
-	Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactQuery, error)
 	Settings(ctx context.Context) (customtypes.SettingsQuery, error)
 	Vcs(ctx context.Context) (models.VcsQuery, error)
 	Versioned(ctx context.Context, branch string) (models.VersionedQuery, error)
@@ -792,21 +793,6 @@ func field_Query_virtualServices_args(rawArgs map[string]interface{}) (map[strin
 
 }
 
-func field_Query_resolverMaps_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["namespace"]; ok {
-		var err error
-		arg0, err = graphql.UnmarshalString(tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["namespace"] = arg0
-	return args, nil
-
-}
-
 func field_Query_schemas_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	args := map[string]interface{}{}
 	var arg0 string
@@ -823,21 +809,6 @@ func field_Query_schemas_args(rawArgs map[string]interface{}) (map[string]interf
 }
 
 func field_Query_secrets_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["namespace"]; ok {
-		var err error
-		arg0, err = graphql.UnmarshalString(tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["namespace"] = arg0
-	return args, nil
-
-}
-
-func field_Query_artifacts_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["namespace"]; ok {
@@ -2303,13 +2274,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Resource(childComplexity, args["guid"].(string)), true
 
-	case "Query.getOAuthEndpoint":
-		if e.complexity.Query.GetOauthEndpoint == nil {
-			break
-		}
-
-		return e.complexity.Query.GetOauthEndpoint(childComplexity), true
-
 	case "Query.version":
 		if e.complexity.Query.Version == nil {
 			break
@@ -2341,18 +2305,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.VirtualServices(childComplexity, args["namespace"].(string)), true
 
-	case "Query.resolverMaps":
-		if e.complexity.Query.ResolverMaps == nil {
-			break
-		}
-
-		args, err := field_Query_resolverMaps_args(rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ResolverMaps(childComplexity, args["namespace"].(string)), true
-
 	case "Query.schemas":
 		if e.complexity.Query.Schemas == nil {
 			break
@@ -2376,18 +2328,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Secrets(childComplexity, args["namespace"].(string)), true
-
-	case "Query.artifacts":
-		if e.complexity.Query.Artifacts == nil {
-			break
-		}
-
-		args, err := field_Query_artifacts_args(rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Artifacts(childComplexity, args["namespace"].(string)), true
 
 	case "Query.settings":
 		if e.complexity.Query.Settings == nil {
@@ -2414,6 +2354,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Versioned(childComplexity, args["branch"].(string)), true
+
+	case "RateLimit.unit":
+		if e.complexity.RateLimit.Unit == nil {
+			break
+		}
+
+		return e.complexity.RateLimit.Unit(childComplexity), true
+
+	case "RateLimit.requestsPerUnit":
+		if e.complexity.RateLimit.RequestsPerUnit == nil {
+			break
+		}
+
+		return e.complexity.RateLimit.RequestsPerUnit(childComplexity), true
+
+	case "RateLimitConfig.authorizedHeader":
+		if e.complexity.RateLimitConfig.AuthorizedHeader == nil {
+			break
+		}
+
+		return e.complexity.RateLimitConfig.AuthorizedHeader(childComplexity), true
+
+	case "RateLimitConfig.authorizedLimits":
+		if e.complexity.RateLimitConfig.AuthorizedLimits == nil {
+			break
+		}
+
+		return e.complexity.RateLimitConfig.AuthorizedLimits(childComplexity), true
+
+	case "RateLimitConfig.anonymousLimits":
+		if e.complexity.RateLimitConfig.AnonymousLimits == nil {
+			break
+		}
+
+		return e.complexity.RateLimitConfig.AnonymousLimits(childComplexity), true
 
 	case "RequestTemplate.verb":
 		if e.complexity.RequestTemplate.Verb == nil {
@@ -3138,6 +3113,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.VersionedQuery.VirtualServices(childComplexity, args["namespace"].(string)), true
 
+	case "VirtualService.metadata":
+		if e.complexity.VirtualService.Metadata == nil {
+			break
+		}
+
+		return e.complexity.VirtualService.Metadata(childComplexity), true
+
+	case "VirtualService.status":
+		if e.complexity.VirtualService.Status == nil {
+			break
+		}
+
+		return e.complexity.VirtualService.Status(childComplexity), true
+
 	case "VirtualService.domains":
 		if e.complexity.VirtualService.Domains == nil {
 			break
@@ -3159,26 +3148,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.VirtualService.SslConfig(childComplexity), true
 
-	case "VirtualService.plugins":
-		if e.complexity.VirtualService.Plugins == nil {
+	case "VirtualService.rateLimitConfig":
+		if e.complexity.VirtualService.RateLimitConfig == nil {
 			break
 		}
 
-		return e.complexity.VirtualService.Plugins(childComplexity), true
-
-	case "VirtualService.metadata":
-		if e.complexity.VirtualService.Metadata == nil {
-			break
-		}
-
-		return e.complexity.VirtualService.Metadata(childComplexity), true
-
-	case "VirtualService.status":
-		if e.complexity.VirtualService.Status == nil {
-			break
-		}
-
-		return e.complexity.VirtualService.Status(childComplexity), true
+		return e.complexity.VirtualService.RateLimitConfig(childComplexity), true
 
 	case "VirtualServiceMutation.create":
 		if e.complexity.VirtualServiceMutation.Create == nil {
@@ -3275,13 +3250,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.VirtualServiceMutation.ShiftRoutes(childComplexity, args["virtualServiceName"].(string), args["resourceVersion"].(string), args["fromIndex"].(int), args["toIndex"].(int)), true
-
-	case "VirtualServicePlugins.empty":
-		if e.complexity.VirtualServicePlugins.Empty == nil {
-			break
-		}
-
-		return e.complexity.VirtualServicePlugins.Empty(childComplexity), true
 
 	case "VirtualServiceQuery.list":
 		if e.complexity.VirtualServiceQuery.List == nil {
@@ -6760,15 +6728,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				wg.Done()
 			}(i, field)
-		case "getOAuthEndpoint":
-			wg.Add(1)
-			go func(i int, field graphql.CollectedField) {
-				out.Values[i] = ec._Query_getOAuthEndpoint(ctx, field)
-				if out.Values[i] == graphql.Null {
-					invalid = true
-				}
-				wg.Done()
-			}(i, field)
 		case "version":
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
@@ -6796,15 +6755,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				wg.Done()
 			}(i, field)
-		case "resolverMaps":
-			wg.Add(1)
-			go func(i int, field graphql.CollectedField) {
-				out.Values[i] = ec._Query_resolverMaps(ctx, field)
-				if out.Values[i] == graphql.Null {
-					invalid = true
-				}
-				wg.Done()
-			}(i, field)
 		case "schemas":
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
@@ -6818,15 +6768,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
 				out.Values[i] = ec._Query_secrets(ctx, field)
-				if out.Values[i] == graphql.Null {
-					invalid = true
-				}
-				wg.Done()
-			}(i, field)
-		case "artifacts":
-			wg.Add(1)
-			go func(i int, field graphql.CollectedField) {
-				out.Values[i] = ec._Query_artifacts(ctx, field)
 				if out.Values[i] == graphql.Null {
 					invalid = true
 				}
@@ -6906,34 +6847,6 @@ func (ec *executionContext) _Query_resource(ctx context.Context, field graphql.C
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 
 	return ec._Resource(ctx, field.Selections, &res)
-}
-
-// nolint: vetshadow
-func (ec *executionContext) _Query_getOAuthEndpoint(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
-	rctx := &graphql.ResolverContext{
-		Object: "Query",
-		Args:   nil,
-		Field:  field,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetOAuthEndpoint(rctx)
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(models.OAuthEndpoint)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-
-	return ec._OAuthEndpoint(ctx, field.Selections, &res)
 }
 
 // nolint: vetshadow
@@ -7032,40 +6945,6 @@ func (ec *executionContext) _Query_virtualServices(ctx context.Context, field gr
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Query_resolverMaps(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := field_Query_resolverMaps_args(rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx := &graphql.ResolverContext{
-		Object: "Query",
-		Args:   args,
-		Field:  field,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ResolverMaps(rctx, args["namespace"].(string))
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(customtypes.ResolverMapQuery)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-
-	return ec._ResolverMapQuery(ctx, field.Selections, &res)
-}
-
-// nolint: vetshadow
 func (ec *executionContext) _Query_schemas(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer ec.Tracer.EndFieldExecution(ctx)
@@ -7131,40 +7010,6 @@ func (ec *executionContext) _Query_secrets(ctx context.Context, field graphql.Co
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 
 	return ec._SecretQuery(ctx, field.Selections, &res)
-}
-
-// nolint: vetshadow
-func (ec *executionContext) _Query_artifacts(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := field_Query_artifacts_args(rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx := &graphql.ResolverContext{
-		Object: "Query",
-		Args:   args,
-		Field:  field,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Artifacts(rctx, args["namespace"].(string))
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(customtypes.ArtifactQuery)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-
-	return ec._ArtifactQuery(ctx, field.Selections, &res)
 }
 
 // nolint: vetshadow
@@ -7319,6 +7164,214 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	}
 
 	return ec.___Schema(ctx, field.Selections, res)
+}
+
+var rateLimitImplementors = []string{"RateLimit"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _RateLimit(ctx context.Context, sel ast.SelectionSet, obj *models.RateLimit) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, rateLimitImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RateLimit")
+		case "unit":
+			out.Values[i] = ec._RateLimit_unit(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "requestsPerUnit":
+			out.Values[i] = ec._RateLimit_requestsPerUnit(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _RateLimit_unit(ctx context.Context, field graphql.CollectedField, obj *models.RateLimit) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "RateLimit",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Unit, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.TimeUnit)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return res
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _RateLimit_requestsPerUnit(ctx context.Context, field graphql.CollectedField, obj *models.RateLimit) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "RateLimit",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RequestsPerUnit, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(customtypes.UnsignedInt)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return res
+}
+
+var rateLimitConfigImplementors = []string{"RateLimitConfig"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _RateLimitConfig(ctx context.Context, sel ast.SelectionSet, obj *models.RateLimitConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, rateLimitConfigImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RateLimitConfig")
+		case "authorizedHeader":
+			out.Values[i] = ec._RateLimitConfig_authorizedHeader(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "authorizedLimits":
+			out.Values[i] = ec._RateLimitConfig_authorizedLimits(ctx, field, obj)
+		case "anonymousLimits":
+			out.Values[i] = ec._RateLimitConfig_anonymousLimits(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _RateLimitConfig_authorizedHeader(ctx context.Context, field graphql.CollectedField, obj *models.RateLimitConfig) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "RateLimitConfig",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthorizedHeader, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _RateLimitConfig_authorizedLimits(ctx context.Context, field graphql.CollectedField, obj *models.RateLimitConfig) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "RateLimitConfig",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthorizedLimits, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.RateLimit)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._RateLimit(ctx, field.Selections, res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _RateLimitConfig_anonymousLimits(ctx context.Context, field graphql.CollectedField, obj *models.RateLimitConfig) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "RateLimitConfig",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AnonymousLimits, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.RateLimit)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._RateLimit(ctx, field.Selections, res)
 }
 
 var requestTemplateImplementors = []string{"RequestTemplate"}
@@ -11637,14 +11690,6 @@ func (ec *executionContext) _VirtualService(ctx context.Context, sel ast.Selecti
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("VirtualService")
-		case "domains":
-			out.Values[i] = ec._VirtualService_domains(ctx, field, obj)
-		case "routes":
-			out.Values[i] = ec._VirtualService_routes(ctx, field, obj)
-		case "sslConfig":
-			out.Values[i] = ec._VirtualService_sslConfig(ctx, field, obj)
-		case "plugins":
-			out.Values[i] = ec._VirtualService_plugins(ctx, field, obj)
 		case "metadata":
 			out.Values[i] = ec._VirtualService_metadata(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -11655,6 +11700,14 @@ func (ec *executionContext) _VirtualService(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "domains":
+			out.Values[i] = ec._VirtualService_domains(ctx, field, obj)
+		case "routes":
+			out.Values[i] = ec._VirtualService_routes(ctx, field, obj)
+		case "sslConfig":
+			out.Values[i] = ec._VirtualService_sslConfig(ctx, field, obj)
+		case "rateLimitConfig":
+			out.Values[i] = ec._VirtualService_rateLimitConfig(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11664,6 +11717,62 @@ func (ec *executionContext) _VirtualService(ctx context.Context, sel ast.Selecti
 		return graphql.Null
 	}
 	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VirtualService_metadata(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "VirtualService",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Metadata, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.Metadata)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	return ec._Metadata(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VirtualService_status(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "VirtualService",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.Status)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	return ec._Status(ctx, field.Selections, &res)
 }
 
 // nolint: vetshadow
@@ -11786,7 +11895,7 @@ func (ec *executionContext) _VirtualService_sslConfig(ctx context.Context, field
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _VirtualService_plugins(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
+func (ec *executionContext) _VirtualService_rateLimitConfig(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer ec.Tracer.EndFieldExecution(ctx)
 	rctx := &graphql.ResolverContext{
@@ -11798,12 +11907,12 @@ func (ec *executionContext) _VirtualService_plugins(ctx context.Context, field g
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Plugins, nil
+		return obj.RateLimitConfig, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.VirtualServicePlugins)
+	res := resTmp.(*models.RateLimitConfig)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 
@@ -11811,63 +11920,7 @@ func (ec *executionContext) _VirtualService_plugins(ctx context.Context, field g
 		return graphql.Null
 	}
 
-	return ec._VirtualServicePlugins(ctx, field.Selections, res)
-}
-
-// nolint: vetshadow
-func (ec *executionContext) _VirtualService_metadata(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
-	rctx := &graphql.ResolverContext{
-		Object: "VirtualService",
-		Args:   nil,
-		Field:  field,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Metadata, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(models.Metadata)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-
-	return ec._Metadata(ctx, field.Selections, &res)
-}
-
-// nolint: vetshadow
-func (ec *executionContext) _VirtualService_status(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
-	rctx := &graphql.ResolverContext{
-		Object: "VirtualService",
-		Args:   nil,
-		Field:  field,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Status, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(models.Status)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-
-	return ec._Status(ctx, field.Selections, &res)
+	return ec._RateLimitConfig(ctx, field.Selections, res)
 }
 
 var virtualServiceMutationImplementors = []string{"VirtualServiceMutation"}
@@ -12222,61 +12275,6 @@ func (ec *executionContext) _VirtualServiceMutation_shiftRoutes(ctx context.Cont
 	}
 
 	return ec._VirtualService(ctx, field.Selections, res)
-}
-
-var virtualServicePluginsImplementors = []string{"VirtualServicePlugins"}
-
-// nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _VirtualServicePlugins(ctx context.Context, sel ast.SelectionSet, obj *models.VirtualServicePlugins) graphql.Marshaler {
-	fields := graphql.CollectFields(ctx, sel, virtualServicePluginsImplementors)
-
-	out := graphql.NewOrderedMap(len(fields))
-	invalid := false
-	for i, field := range fields {
-		out.Keys[i] = field.Alias
-
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("VirtualServicePlugins")
-		case "empty":
-			out.Values[i] = ec._VirtualServicePlugins_empty(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-
-	if invalid {
-		return graphql.Null
-	}
-	return out
-}
-
-// nolint: vetshadow
-func (ec *executionContext) _VirtualServicePlugins_empty(ctx context.Context, field graphql.CollectedField, obj *models.VirtualServicePlugins) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
-	rctx := &graphql.ResolverContext{
-		Object: "VirtualServicePlugins",
-		Args:   nil,
-		Field:  field,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Empty, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-
-	if res == nil {
-		return graphql.Null
-	}
-	return graphql.MarshalString(*res)
 }
 
 var virtualServiceQueryImplementors = []string{"VirtualServiceQuery"}
@@ -14888,6 +14886,70 @@ func UnmarshalInputNodeJSResolver(v interface{}) (models.InputNodeJSResolver, er
 	return it, nil
 }
 
+func UnmarshalInputRateLimit(v interface{}) (models.InputRateLimit, error) {
+	var it models.InputRateLimit
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "unit":
+			var err error
+			err = (&it.Unit).UnmarshalGQL(v)
+			if err != nil {
+				return it, err
+			}
+		case "requestsPerUnit":
+			var err error
+			err = (&it.RequestsPerUnit).UnmarshalGQL(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputRateLimitConfig(v interface{}) (models.InputRateLimitConfig, error) {
+	var it models.InputRateLimitConfig
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "authorizedHeader":
+			var err error
+			it.AuthorizedHeader, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "authorizedLimits":
+			var err error
+			var ptr1 models.InputRateLimit
+			if v != nil {
+				ptr1, err = UnmarshalInputRateLimit(v)
+				it.AuthorizedLimits = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "anonymousLimits":
+			var err error
+			var ptr1 models.InputRateLimit
+			if v != nil {
+				ptr1, err = UnmarshalInputRateLimit(v)
+				it.AnonymousLimits = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputRequestTemplate(v interface{}) (models.InputRequestTemplate, error) {
 	var it models.InputRequestTemplate
 	var asMap = v.(map[string]interface{})
@@ -15774,12 +15836,12 @@ func UnmarshalInputUpdateVirtualService(v interface{}) (models.InputUpdateVirtua
 			if err != nil {
 				return it, err
 			}
-		case "plugins":
+		case "rateLimitConfig":
 			var err error
-			var ptr1 models.InputVirtualServicePlugins
+			var ptr1 models.InputRateLimitConfig
 			if v != nil {
-				ptr1, err = UnmarshalInputVirtualServicePlugins(v)
-				it.Plugins = &ptr1
+				ptr1, err = UnmarshalInputRateLimitConfig(v)
+				it.RateLimitConfig = &ptr1
 			}
 
 			if err != nil {
@@ -15957,12 +16019,12 @@ func UnmarshalInputVirtualService(v interface{}) (models.InputVirtualService, er
 			if err != nil {
 				return it, err
 			}
-		case "plugins":
+		case "rateLimitConfig":
 			var err error
-			var ptr1 models.InputVirtualServicePlugins
+			var ptr1 models.InputRateLimitConfig
 			if v != nil {
-				ptr1, err = UnmarshalInputVirtualServicePlugins(v)
-				it.Plugins = &ptr1
+				ptr1, err = UnmarshalInputRateLimitConfig(v)
+				it.RateLimitConfig = &ptr1
 			}
 
 			if err != nil {
@@ -15971,29 +16033,6 @@ func UnmarshalInputVirtualService(v interface{}) (models.InputVirtualService, er
 		case "metadata":
 			var err error
 			it.Metadata, err = UnmarshalInputMetadata(v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func UnmarshalInputVirtualServicePlugins(v interface{}) (models.InputVirtualServicePlugins, error) {
-	var it models.InputVirtualServicePlugins
-	var asMap = v.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "empty":
-			var err error
-			var ptr1 string
-			if v != nil {
-				ptr1, err = graphql.UnmarshalString(v)
-				it.Empty = &ptr1
-			}
-
 			if err != nil {
 				return it, err
 			}
@@ -16051,238 +16090,474 @@ func (ec *executionContext) introspectType(name string) *introspection.Type {
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(
-	&ast.Source{Name: "schema.graphql", Input: `# Top Level
-schema {
-    query: Query
-    mutation: Mutation
-}
-
-type Query {
-    resource(guid: String!): Resource!
-    getOAuthEndpoint: OAuthEndpoint!
-    version: String!
-    upstreams(namespace: String!): UpstreamQuery!
-    virtualServices(namespace: String!): VirtualServiceQuery!
-    resolverMaps(namespace: String!): ResolverMapQuery!
-    schemas(namespace: String!): SchemaQuery!
-    secrets(namespace: String!): SecretQuery!
-    artifacts(namespace: String!): ArtifactQuery!
-    settings: SettingsQuery!
-    vcs: VcsQuery!
-    versioned(branch: String!): VersionedQuery!
-}
-
-type Mutation {
-    upstreams(namespace: String!): UpstreamMutation!
-    virtualServices(namespace: String!): VirtualServiceMutation!
-    resolverMaps(namespace: String!): ResolverMapMutation!
-    schemas(namespace: String!): SchemaMutation!
-    secrets(namespace: String!): SecretMutation!
-    artifacts(namespace: String!): ArtifactMutation!
-    settings: SettingsMutation!
-    vcs: VcsMutation!
-    versioned(branch: String!): VersionedMutation!
-}
-
-type Subscription {
-    upstreams(namespace: String!, selector: InputMapStringString): [Upstream]
-    virtualServices(namespace: String!, selector: InputMapStringString): [VirtualService]
-}
-
-union Resource = Upstream | VirtualService | ResolverMap | Schema | Secret | Artifact | Settings
-
-type OAuthEndpoint {
-    url: String!
-    clientName: String!
-}
-
-type UpstreamQuery {
-    list(selector: InputMapStringString): [Upstream]
-    get(name: String!):                Upstream
-}
-
-
-type UpstreamMutation {
-    create(upstream: InputUpstream!): Upstream
-    update(upstream: InputUpstream!): Upstream
-    delete(name: String!): Upstream
-}
-
-
-type VirtualServiceQuery {
-    list(selector: InputMapStringString): [VirtualService]
-    get(name: String!):                VirtualService
-}
-
-
-type VirtualServiceMutation {
-    create(virtualService: InputVirtualService!): VirtualService
-    update(name: String!, resourceVersion: String!, updates: InputUpdateVirtualService!): VirtualService
-    delete(name: String!): VirtualService
-
-    addRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!, route: InputRoute!) : VirtualService
-    updateRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!, route: InputRoute!) : VirtualService
-    deleteRoute(virtualServiceName: String!, resourceVersion: String!, index: Int!) : VirtualService
-    swapRoutes(virtualServiceName: String!, resourceVersion: String!, index1: Int!, index2: Int!) : VirtualService
-    shiftRoutes(virtualServiceName: String!, resourceVersion: String!, fromIndex: Int!, toIndex: Int!) : VirtualService
-}
-
-
-type ResolverMapQuery {
-    list(selector: InputMapStringString): [ResolverMap]
-    get(name: String!):                ResolverMap
-}
-
-type ResolverMapMutation {
-    create(resolverMap: InputResolverMap!): ResolverMap
-    update(resolverMap: InputResolverMap!): ResolverMap
-    delete(name: String!): ResolverMap
-    setResolver(resolverMapName: String!, resourceVersion: String!, typeName: String!, fieldName: String!, glooResolver: InputGlooResolver!): ResolverMap
-}
-
-type SchemaQuery {
-    list(selector: InputMapStringString): [Schema]
-    get(name: String!):                Schema
-}
-
-type SchemaMutation {
-    create(schema: InputSchema!): Schema
-    update(schema: InputSchema!): Schema
-    delete(name: String!): Schema
-}
-
-type SecretQuery {
-    list(selector: InputMapStringString): [Secret]
-    get(name: String!):                Secret
-}
-
-type SecretMutation {
-    create(secret: InputSecret!): Secret
-    update(secret: InputSecret!): Secret
-    delete(name: String!): Secret
-}
-
-type ArtifactQuery {
-    list(selector: InputMapStringString): [Artifact]
-    get(name: String!):                Artifact
+	&ast.Source{Name: "artifacts.graphql", Input: `type ArtifactQuery {
+  list(selector: InputMapStringString): [Artifact]
+  get(name: String!): Artifact
 }
 
 type ArtifactMutation {
-    create(artifact: InputArtifact!): Artifact
-    update(artifact: InputArtifact!): Artifact
-    delete(name: String!): Artifact
+  create(artifact: InputArtifact!): Artifact
+  update(artifact: InputArtifact!): Artifact
+  delete(name: String!): Artifact
+}
+type Artifact {
+  data: String!
+  metadata: Metadata!
 }
 
-type SettingsQuery {
-    get:                Settings
+input InputArtifact {
+  data: String!
+  metadata: InputMetadata!
+}
+`},
+	&ast.Source{Name: "metadata.graphql", Input: `type Metadata {
+  name: String!
+  namespace: String!
+  resourceVersion: String!
+  labels: MapStringString
+  annotations: MapStringString
+  guid: String!
 }
 
-type SettingsMutation {
-    update(settings: InputSettings!): Settings
+type Status {
+  state: State!
+  reason: String
 }
+
+type ResourceRef {
+  name: String!
+  namespace: String!
+}
+
+input InputResourceRef {
+  name: String!
+  namespace: String!
+}
+
+# Scalars / Extra
+
+enum State {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum AzureFnAuthLevel {
+  ANONYMOUS
+  FUNCTION
+  ADMIN
+}
+
+type MapStringString {
+  values: [Value!]
+}
+
+input InputMapStringString {
+  values: [InputValue!]
+}
+
+type Value {
+  key: String!
+  value: String!
+}
+
+input InputValue {
+  key: String!
+  value: String!
+}
+
+enum PathMatchType {
+  PREFIX
+  REGEX
+  EXACT
+}
+
+enum AwsLambdaInvocationStyle {
+  SYNC
+  ASYNC
+}
+
+scalar Duration
+scalar UnsignedInt`},
+	&ast.Source{Name: "oauth.graphql", Input: `type OAuthEndpoint {
+  url: String!
+  clientName: String!
+}
+`},
+	&ast.Source{Name: "resolvermaps.graphql", Input: `type ResolverMapQuery {
+  list(selector: InputMapStringString): [ResolverMap]
+  get(name: String!): ResolverMap
+}
+
+type ResolverMapMutation {
+  create(resolverMap: InputResolverMap!): ResolverMap
+  update(resolverMap: InputResolverMap!): ResolverMap
+  delete(name: String!): ResolverMap
+  setResolver(
+    resolverMapName: String!
+    resourceVersion: String!
+    typeName: String!
+    fieldName: String!
+    glooResolver: InputGlooResolver!
+  ): ResolverMap
+}
+
+type ResolverMap {
+  # can't do maps, thanks facebook
+  # the trick with type resolvers is the typeNames must be unique!
+  # this converts to a map in the server
+  # what a novel idea for a type system. maps... who would have thunk it?
+  types: [TypeResolver!]!
+  metadata: Metadata!
+  status: Status!
+}
+
+type TypeResolver {
+  typeName: String!
+  # again, the fieldNames within this array must be unique
+  fields: [FieldResolver!]!
+}
+
+type FieldResolver {
+  fieldName: String!
+  resolver: Resolver
+}
+
+union Resolver = GlooResolver | TemplateResolver | NodeJSResolver
+
+type GlooResolver {
+  requestTemplate: RequestTemplate
+  responseTemplate: ResponseTemplate
+  destination: Destination!
+}
+
+type RequestTemplate {
+  verb: String!
+  path: String!
+  body: String!
+  headers: MapStringString
+}
+
+type ResponseTemplate {
+  body: String!
+  headers: MapStringString
+}
+
+type TemplateResolver {
+  inlineTemplate: String
+}
+
+type NodeJSResolver {
+  empty: String
+}
+
+input InputResolverMap {
+  # can't do maps, thanks facebook
+  # the trick with type resolvers is the typeNames must be unique!
+  # this converts to a map in the server
+  # what a novel idea for a type system. maps... who would have thunk it?
+  types: [InputTypeResolver!]!
+  metadata: InputMetadata!
+}
+
+input InputTypeResolver {
+  typeName: String!
+  # again, the fieldNames within this array must be unique
+  fields: [InputFieldResolver!]!
+}
+
+input InputFieldResolver {
+  fieldName: String!
+  resolver: InputResolver!
+}
+
+input InputResolver {
+  # oneof: gloo, template, node
+  glooResolver: InputGlooResolver
+  templateResolver: InputTemplateResolver
+  nodeResolver: InputNodeJSResolver
+}
+
+input InputGlooResolver {
+  requestTemplate: InputRequestTemplate
+  responseTemplate: InputResponseTemplate
+  destination: InputDestination!
+}
+
+input InputRequestTemplate {
+  verb: String!
+  path: String!
+  body: String!
+  headers: InputMapStringString
+}
+
+input InputResponseTemplate {
+  body: String!
+  headers: InputMapStringString
+}
+input InputTemplateResolver {
+  empty: String
+}
+input InputNodeJSResolver {
+  empty: String
+}
+`},
+	&ast.Source{Name: "schema.graphql", Input: `# Top Level
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  resource(guid: String!): Resource!
+  version: String!
+  upstreams(namespace: String!): UpstreamQuery!
+  virtualServices(namespace: String!): VirtualServiceQuery!
+  schemas(namespace: String!): SchemaQuery!
+  secrets(namespace: String!): SecretQuery!
+  settings: SettingsQuery!
+  vcs: VcsQuery!
+  versioned(branch: String!): VersionedQuery!
+}
+
+type Mutation {
+  upstreams(namespace: String!): UpstreamMutation!
+  virtualServices(namespace: String!): VirtualServiceMutation!
+  resolverMaps(namespace: String!): ResolverMapMutation!
+  schemas(namespace: String!): SchemaMutation!
+  secrets(namespace: String!): SecretMutation!
+  artifacts(namespace: String!): ArtifactMutation!
+  settings: SettingsMutation!
+  vcs: VcsMutation!
+  versioned(branch: String!): VersionedMutation!
+}
+
+type Subscription {
+  upstreams(namespace: String!, selector: InputMapStringString): [Upstream]
+  virtualServices(
+    namespace: String!
+    selector: InputMapStringString
+  ): [VirtualService]
+}
+
+union Resource =
+    Upstream
+  | VirtualService
+  | ResolverMap
+  | Schema
+  | Secret
+  | Artifact
+  | Settings
 
 # TODO: add other versioned resources
 # Queries resources inside a changeset
 type VersionedQuery {
-    virtualServices(namespace: String!): VirtualServiceQuery!
+  virtualServices(namespace: String!): VirtualServiceQuery!
 }
 
 # TODO: add other versioned resources
 # Mutates resources inside a changeset
 type VersionedMutation {
-    virtualServices(namespace: String!): VirtualServiceMutation!
+  virtualServices(namespace: String!): VirtualServiceMutation!
+}
+`},
+	&ast.Source{Name: "schemas.graphql", Input: `type SchemaQuery {
+  list(selector: InputMapStringString): [Schema]
+  get(name: String!): Schema
 }
 
-type VcsQuery {
-    branches: [Branch]!
+type SchemaMutation {
+  create(schema: InputSchema!): Schema
+  update(schema: InputSchema!): Schema
+  delete(name: String!): Schema
 }
 
-type VcsMutation {
-    checkoutBranch(branchName: String!): String
+type SqoopServiceSpec {
+  schemas: [Schema]!
 }
 
-# Upstream
-# Upstream
-# Upstream
-# Upstream
+type SqoopDestinationSpec {
+  schema: Schema!
+  playground: Boolean!
+}
+
+type Schema {
+  inlineSchema: String!
+  metadata: Metadata!
+  status: Status!
+}
+
+input InputSchema {
+  inlineSchema: String!
+  metadata: InputMetadata!
+}
+`},
+	&ast.Source{Name: "secrets.graphql", Input: `type SecretQuery {
+  list(selector: InputMapStringString): [Secret]
+  get(name: String!): Secret
+}
+
+type SecretMutation {
+  create(secret: InputSecret!): Secret
+  update(secret: InputSecret!): Secret
+  delete(name: String!): Secret
+}
+
+type Secret {
+  kind: SecretKind!
+  metadata: Metadata!
+}
+
+union SecretKind = AwsSecret | AzureSecret | TlsSecret
+
+type AwsSecret {
+  accessKey: String!
+  secretKey: String!
+}
+
+type AzureSecret {
+  apiKeys: MapStringString
+}
+
+type TlsSecret {
+  certChain: String!
+  privateKey: String!
+  rootCa: String! # note: it is okay to leave this as an empty string
+}
+
+input InputSecret {
+  kind: InputSecretKind!
+  metadata: InputMetadata!
+}
+
+input InputSecretKind {
+  # oneof: aws, azure, tls
+  aws: InputAwsSecret
+  azure: InputAzureSecret
+  tls: InputTlsSecret
+}
+
+input InputAwsSecret {
+  accessKey: String!
+  secretKey: String!
+}
+
+input InputAzureSecret {
+  apiKeys: InputMapStringString!
+}
+
+input InputTlsSecret {
+  certChain: String!
+  privateKey: String!
+  rootCa: String! # note: it is okay to leave this as an empty string
+}
+`},
+	&ast.Source{Name: "settings.graphql", Input: `type SettingsQuery {
+  get: Settings
+}
+
+type SettingsMutation {
+  update(settings: InputSettings!): Settings
+}
+
+type Settings {
+  watchNamespaces: [String!]
+  refreshRate: Duration
+  metadata: Metadata!
+}
+
+input InputSettings {
+  watchNamespaces: [String!]
+  refreshRate: Duration
+  metadata: InputMetadata!
+}
+`},
+	&ast.Source{Name: "upstreams.graphql", Input: `type UpstreamQuery {
+  list(selector: InputMapStringString): [Upstream]
+  get(name: String!): Upstream
+}
+
+type UpstreamMutation {
+  create(upstream: InputUpstream!): Upstream
+  update(upstream: InputUpstream!): Upstream
+  delete(name: String!): Upstream
+}
 
 type Upstream {
-    spec:     UpstreamSpec!
-    metadata: Metadata!
-    status:   Status!
+  spec: UpstreamSpec!
+  metadata: Metadata!
+  status: Status!
 }
 
-union UpstreamSpec = AwsUpstreamSpec | AzureUpstreamSpec | KubeUpstreamSpec | StaticUpstreamSpec
+union UpstreamSpec =
+    AwsUpstreamSpec
+  | AzureUpstreamSpec
+  | KubeUpstreamSpec
+  | StaticUpstreamSpec
 
 type AwsUpstreamSpec {
-    region:    String!
-    secretRef: ResourceRef!
-    functions: [AwsLambdaFunction!]
+  region: String!
+  secretRef: ResourceRef!
+  functions: [AwsLambdaFunction!]
 }
 
 type AzureUpstreamSpec {
-    functionAppName: String!
-    secretRef:       ResourceRef!
-    functions:       [AzureFunction!]
+  functionAppName: String!
+  secretRef: ResourceRef!
+  functions: [AzureFunction!]
 }
 
 type KubeUpstreamSpec {
-    serviceName:      String!
-    serviceNamespace: String!
-    servicePort:      Int!
-    selector:         MapStringString
-    serviceSpec:      ServiceSpec
+  serviceName: String!
+  serviceNamespace: String!
+  servicePort: Int!
+  selector: MapStringString
+  serviceSpec: ServiceSpec
 }
 
 type StaticUpstreamSpec {
-    hosts:        [StaticHost!]
-    serviceSpec:  ServiceSpec
-    useTls:       Boolean!
+  hosts: [StaticHost!]
+  serviceSpec: ServiceSpec
+  useTls: Boolean!
 }
 
 type StaticHost {
-    addr: String!
-    port: Int!
+  addr: String!
+  port: Int!
 }
 
 type AwsLambdaFunction {
-    logicalName:  String!
-    functionName: String!
-    qualifier:    String!
+  logicalName: String!
+  functionName: String!
+  qualifier: String!
 }
 
 type AzureFunction {
-    functionName: String!
-    authLevel:    AzureFnAuthLevel!
+  functionName: String!
+  authLevel: AzureFnAuthLevel!
 }
 
 union ServiceSpec = RestServiceSpec | GrpcServiceSpec | SqoopServiceSpec
 
-type RestServiceSpec  {
-    functions: [Transformation!]
+type RestServiceSpec {
+  functions: [Transformation!]
 }
 
 type Transformation {
-    functionName: String!
-    body: String
-    headers: MapStringString
+  functionName: String!
+  body: String
+  headers: MapStringString
 }
 
 type GrpcServiceSpec {
-    grpcServices: [GrpcService]
+  grpcServices: [GrpcService]
 }
 
 type GrpcService {
-    packageName: String!
-    serviceName: String!
-    functionNames: [String!]
+  packageName: String!
+  serviceName: String!
+  functionNames: [String!]
 }
-
-type SqoopServiceSpec {
-    schemas: [Schema]!
-}
-
-
 
 # Upstream Mutation
 # Upstream Mutation
@@ -16290,638 +16565,385 @@ type SqoopServiceSpec {
 # Upstream Mutation
 
 input InputUpstream {
-    spec:     InputUpstreamSpec!
-    metadata: InputMetadata!
+  spec: InputUpstreamSpec!
+  metadata: InputMetadata!
 }
 
 input InputUpstreamSpec {
-    # oneof: aws | azure | kube | static
-    aws: InputAwsUpstreamSpec
-    azure: InputAzureUpstreamSpec
-    kube: InputKubeUpstreamSpec
-    static: InputStaticUpstreamSpec
+  # oneof: aws | azure | kube | static
+  aws: InputAwsUpstreamSpec
+  azure: InputAzureUpstreamSpec
+  kube: InputKubeUpstreamSpec
+  static: InputStaticUpstreamSpec
 }
 
 input InputAwsUpstreamSpec {
-    region:    String!
-    secretRef: InputResourceRef!
-    functions: [InputAwsLambdaFunction!]
+  region: String!
+  secretRef: InputResourceRef!
+  functions: [InputAwsLambdaFunction!]
 }
 
 input InputAzureUpstreamSpec {
-    functionAppName: String!
-    secretRef:       InputResourceRef
-    functions:       [InputAzureFunction!]
+  functionAppName: String!
+  secretRef: InputResourceRef
+  functions: [InputAzureFunction!]
 }
 
 input InputKubeUpstreamSpec {
-    serviceName:      String!
-    serviceNamespace: String!
-    servicePort:      Int!
-    selector:         InputMapStringString
-    serviceSpec:      InputServiceSpec
+  serviceName: String!
+  serviceNamespace: String!
+  servicePort: Int!
+  selector: InputMapStringString
+  serviceSpec: InputServiceSpec
 }
 
 input InputStaticUpstreamSpec {
-    hosts:        [InputStaticHost!]
-    serviceSpec:  InputServiceSpec
-    useTls:       Boolean!
+  hosts: [InputStaticHost!]
+  serviceSpec: InputServiceSpec
+  useTls: Boolean!
 }
 
 input InputStaticHost {
-    addr: String!
-    port: Int!
+  addr: String!
+  port: Int!
 }
 
 input InputAwsLambdaFunction {
-    logicalName:  String!
-    functionName: String!
-    qualifier:    String!
+  logicalName: String!
+  functionName: String!
+  qualifier: String!
 }
 
 input InputAzureFunction {
-    functionName: String!
-    authLevel:    String!
+  functionName: String!
+  authLevel: String!
 }
 
-input InputServiceSpec  {
-    # oneof: Rest | grpc
-    rest: InputRestServiceSpec
-    grpc:    InputGrpcServiceSpec
+input InputServiceSpec {
+  # oneof: Rest | grpc
+  rest: InputRestServiceSpec
+  grpc: InputGrpcServiceSpec
 }
 
-input InputRestServiceSpec  {
-    functions: [InputTransformation!]
-    inlineSwaggerDoc: String
+input InputRestServiceSpec {
+  functions: [InputTransformation!]
+  inlineSwaggerDoc: String
 }
 
 input InputTransformation {
-    functionName: String!
-    body: String
-    headers: InputMapStringString
+  functionName: String!
+  body: String
+  headers: InputMapStringString
 }
-
 
 # Not implemented yet
 input InputGrpcServiceSpec {
-    empty: String
+  empty: String
 }
 
 input InputMetadata {
-    name:            String!
-    namespace:       String!
-    resourceVersion: String!
-    labels:          InputMapStringString
-    annotations:     InputMapStringString
+  name: String!
+  namespace: String!
+  resourceVersion: String!
+  labels: InputMapStringString
+  annotations: InputMapStringString
 }
 
 input InputUpdateMetadata {
-    name:            String
-    labels:          InputMapStringString
-    annotations:     InputMapStringString
+  name: String
+  labels: InputMapStringString
+  annotations: InputMapStringString
 }
 
 input InputStatus {
-    state:  State!
-    reason: String!
+  state: State!
+  reason: String!
+}
+`},
+	&ast.Source{Name: "vcs.graphql", Input: `type VcsQuery {
+  branches: [Branch]!
 }
 
+type VcsMutation {
+  checkoutBranch(branchName: String!): String
+}
 
+type Branch {
+  name: String!
+  hash: String!
+  lastCommitMsg: String!
+}
+`},
+	&ast.Source{Name: "version.graphql", Input: ``},
+	&ast.Source{Name: "virtualservices.graphql", Input: `type VirtualServiceQuery {
+  list(selector: InputMapStringString): [VirtualService]
+  get(name: String!): VirtualService
+}
 
+type VirtualServiceMutation {
+  create(virtualService: InputVirtualService!): VirtualService
+  update(
+    name: String!
+    resourceVersion: String!
+    updates: InputUpdateVirtualService!
+  ): VirtualService
 
+  delete(name: String!): VirtualService
 
+  addRoute(
+    virtualServiceName: String!
+    resourceVersion: String!
+    index: Int!
+    route: InputRoute!
+  ): VirtualService
 
-## VirtualService
-## VirtualService
-## VirtualService
-## VirtualService
-## VirtualService
-## VirtualService
+  updateRoute(
+    virtualServiceName: String!
+    resourceVersion: String!
+    index: Int!
+    route: InputRoute!
+  ): VirtualService
+
+  deleteRoute(
+    virtualServiceName: String!
+    resourceVersion: String!
+    index: Int!
+  ): VirtualService
+
+  swapRoutes(
+    virtualServiceName: String!
+    resourceVersion: String!
+    index1: Int!
+    index2: Int!
+  ): VirtualService
+
+  shiftRoutes(
+    virtualServiceName: String!
+    resourceVersion: String!
+    fromIndex: Int!
+    toIndex: Int!
+  ): VirtualService
+}
 
 type VirtualService {
-    domains: [String!]
-    routes:  [Route!]
-    sslConfig: SslConfig
-    plugins: VirtualServicePlugins
-
-    metadata: Metadata!
-    status:   Status!
+  metadata: Metadata!
+  status: Status!
+  domains: [String!]
+  routes: [Route!]
+  sslConfig: SslConfig
+  rateLimitConfig: RateLimitConfig
 }
-
 
 type Route {
-    matcher: Matcher!
-    destination: Destination!
-    plugins: RoutePlugins
-}
-
-# not implemented
-type VirtualServicePlugins {
-    empty: String
+  matcher: Matcher!
+  destination: Destination!
+  plugins: RoutePlugins
 }
 
 type Matcher {
-    pathMatch: String!
-    pathMatchType: PathMatchType!
-    headers: [KeyValueMatcher!]
-    queryParameters: [KeyValueMatcher!]
-    methods: [String!]
-}
-
-type KeyValueMatcher {
-    name: String!
-    value: String!
-    isRegex: Boolean!
+  pathMatch: String!
+  pathMatchType: PathMatchType!
+  headers: [KeyValueMatcher!]
+  queryParameters: [KeyValueMatcher!]
+  methods: [String!]
 }
 
 union Destination = MultiDestination | SingleDestination
 
 type MultiDestination {
-    destinations: [WeightedDestination!]
+  destinations: [WeightedDestination!]
 }
 
 type WeightedDestination {
-    destination: SingleDestination!
-    weight: Int!
+  destination: SingleDestination!
+  weight: Int!
 }
 
 type SingleDestination {
-    upstream: Upstream!
-    destinationSpec: DestinationSpec
+  upstream: Upstream!
+  destinationSpec: DestinationSpec
 }
 
-union DestinationSpec = AwsDestinationSpec | AzureDestinationSpec | RestDestinationSpec | GrpcDestinationSpec | SqoopDestinationSpec
+union DestinationSpec =
+    AwsDestinationSpec
+  | AzureDestinationSpec
+  | RestDestinationSpec
+  | GrpcDestinationSpec
+  | SqoopDestinationSpec
 
 type AwsDestinationSpec {
-    logicalName: String!
-    invocationStyle: AwsLambdaInvocationStyle!
-    responseTransformation: Boolean!
+  logicalName: String!
+  invocationStyle: AwsLambdaInvocationStyle!
+  responseTransformation: Boolean!
 }
 
 type AzureDestinationSpec {
-    functionName: String!
+  functionName: String!
 }
 
 type RestDestinationSpec {
-    functionName: String!
-    parameters: TransformationParameters
+  functionName: String!
+  parameters: TransformationParameters
 }
 
 type GrpcDestinationSpec {
-    package: String!
-    service: String!
-    function: String!
-    parameters: TransformationParameters
+  package: String!
+  service: String!
+  function: String!
+  parameters: TransformationParameters
 }
 
-type SqoopDestinationSpec {
-    schema: Schema!
-    playground: Boolean!
+type RateLimitConfig {
+  authorizedHeader: String!
+  authorizedLimits: RateLimit
+  anonymousLimits: RateLimit
 }
 
-type TransformationParameters {
-    headers: MapStringString
-    path: String
+type RateLimit {
+  unit: TimeUnit!
+  requestsPerUnit: UnsignedInt!
 }
 
-type SslConfig {
-    secretRef: ResourceRef!
+enum TimeUnit {
+  SECOND
+  MINUTE
+  HOUR
+  DAY
 }
 
 # not implemented
 type RoutePlugins {
-    empty: String
+  empty: String
 }
 
-# InputVirtualService
-# InputVirtualService
-# InputVirtualService
-# InputVirtualService
-
 input InputVirtualService {
-    domains: [String!]
-    routes:  [InputRoute!]
-    sslConfig: InputSslConfig
-    plugins: InputVirtualServicePlugins
-    metadata: InputMetadata!
+  domains: [String!]
+  routes: [InputRoute!]
+  sslConfig: InputSslConfig
+  rateLimitConfig: InputRateLimitConfig
+  metadata: InputMetadata!
 }
 
 input InputUpdateVirtualService {
-    domains: [String!]
-    sslConfig: InputSslConfig
-    plugins: InputVirtualServicePlugins
-    metadata: InputUpdateMetadata
+  domains: [String!]
+  sslConfig: InputSslConfig
+  rateLimitConfig: InputRateLimitConfig
+  metadata: InputUpdateMetadata
 }
 
 input InputRoute {
-    matcher: InputMatcher!
-    destination: InputDestination!
-    plugins: InputRoutePlugins
-}
-
-# not implemented
-input InputVirtualServicePlugins {
-    empty: String
+  matcher: InputMatcher!
+  destination: InputDestination!
+  plugins: InputRoutePlugins
 }
 
 input InputMatcher {
-    pathMatch: String!
-    pathMatchType: PathMatchType!
-    headers: [InputKeyValueMatcher!]
-    queryParameters: [InputKeyValueMatcher!]
-    methods: [String!]
+  pathMatch: String!
+  pathMatchType: PathMatchType!
+  headers: [InputKeyValueMatcher!]
+  queryParameters: [InputKeyValueMatcher!]
+  methods: [String!]
 }
 
-input InputKeyValueMatcher {
-    name: String!
-    value: String!
-    isRegex: Boolean!
+input InputRateLimitConfig {
+  authorizedHeader: String!
+  authorizedLimits: InputRateLimit
+  anonymousLimits: InputRateLimit
+}
+
+input InputRateLimit {
+  unit: TimeUnit!
+  requestsPerUnit: UnsignedInt!
 }
 
 input InputDestination {
-    # oneof: MultiDestination, SingleDestination
-    singleDestination: InputSingleDestination
-    multiDestination: InputMultiDestination
+  # oneof: MultiDestination, SingleDestination
+  singleDestination: InputSingleDestination
+  multiDestination: InputMultiDestination
 }
 
-input InputMultiDestination {
-    destinations: [InputWeightedDestination!]
+input InputKeyValueMatcher {
+  name: String!
+  value: String!
+  isRegex: Boolean!
 }
 
-input InputWeightedDestination {
-    destination: InputSingleDestination!
-    weight: Int!
+type TransformationParameters {
+  headers: MapStringString
+  path: String
 }
 
-input InputSingleDestination {
-    upstream: InputResourceRef!
-    destinationSpec: InputDestinationSpec
+type KeyValueMatcher {
+  name: String!
+  value: String!
+  isRegex: Boolean!
 }
 
-input InputDestinationSpec {
-    # oneof: aws | azure
-    aws: InputAwsDestinationSpec
-    azure: InputAzureDestinationSpec
-    rest: InputRestDestinationSpec
-    grpc: InputGrpcDestinationSpec
-    sqoop: InputSqoopDestinationSpec
-}
-
-input InputRestDestinationSpec {
-    functionName: String!
-    parameters: InputTransformationParameters
-}
-
-input InputGrpcDestinationSpec {
-    package: String!
-    service: String!
-    function: String!
-}
-
-input InputSqoopDestinationSpec {
-    schemaName: String!
-    schemaNamespace: String!
-    playground: Boolean!
-}
-
-input InputTransformationParameters {
-    headers: InputMapStringString
-    path: String
-}
-
-input InputAwsDestinationSpec {
-    logicalName: String!
-    invocationStyle: AwsLambdaInvocationStyle!
-    responseTransformation: Boolean!
-}
-
-input InputAzureDestinationSpec {
-    functionName: String!
+type SslConfig {
+  secretRef: ResourceRef!
 }
 
 input InputSslConfig {
-    secretRef: InputResourceRef!
+  secretRef: InputResourceRef!
 }
 
+input InputSingleDestination {
+  upstream: InputResourceRef!
+  destinationSpec: InputDestinationSpec
+}
+
+input InputDestinationSpec {
+  # oneof: aws | azure
+  aws: InputAwsDestinationSpec
+  azure: InputAzureDestinationSpec
+  rest: InputRestDestinationSpec
+  grpc: InputGrpcDestinationSpec
+  sqoop: InputSqoopDestinationSpec
+}
+
+input InputMultiDestination {
+  destinations: [InputWeightedDestination!]
+}
 
 # not implemented
 input InputRoutePlugins {
-    empty: String
+  empty: String
 }
 
-
-## ResolverMap
-## ResolverMap
-## ResolverMap
-## ResolverMap
-## ResolverMap
-## ResolverMap
-## ResolverMap
-## ResolverMap
-## ResolverMap
-## ResolverMap
-## ResolverMap
-## ResolverMap
-## ResolverMap
-
-
-type ResolverMap {
-    # can't do maps, thanks facebook
-    # the trick with type resolvers is the typeNames must be unique!
-    # this converts to a map in the server
-    # what a novel idea for a type system. maps... who would have thunk it?
-    types: [TypeResolver!]!
-    metadata: Metadata!
-    status:   Status!
+input InputWeightedDestination {
+  destination: InputSingleDestination!
+  weight: Int!
 }
 
-type TypeResolver {
-    typeName: String!
-    # again, the fieldNames within this array must be unique
-    fields: [FieldResolver!]!
+input InputAwsDestinationSpec {
+  logicalName: String!
+  invocationStyle: AwsLambdaInvocationStyle!
+  responseTransformation: Boolean!
 }
 
-type FieldResolver {
-    fieldName: String!
-    resolver: Resolver
+input InputAzureDestinationSpec {
+  functionName: String!
 }
 
-union Resolver = GlooResolver | TemplateResolver | NodeJSResolver
-
-type GlooResolver {
-    requestTemplate: RequestTemplate
-    responseTemplate: ResponseTemplate
-    destination: Destination!
+input InputRestDestinationSpec {
+  functionName: String!
+  parameters: InputTransformationParameters
 }
 
-type RequestTemplate {
-    verb: String!
-    path: String!
-    body: String!
-    headers: MapStringString
+input InputGrpcDestinationSpec {
+  package: String!
+  service: String!
+  function: String!
 }
 
-type ResponseTemplate {
-    body: String!
-    headers: MapStringString
+input InputSqoopDestinationSpec {
+  schemaName: String!
+  schemaNamespace: String!
+  playground: Boolean!
 }
 
-type TemplateResolver {
-    inlineTemplate: String
-}
-
-type NodeJSResolver {
-    empty: String
-}
-
-
-
-input InputResolverMap {
-    # can't do maps, thanks facebook
-    # the trick with type resolvers is the typeNames must be unique!
-    # this converts to a map in the server
-    # what a novel idea for a type system. maps... who would have thunk it?
-    types: [InputTypeResolver!]!
-    metadata: InputMetadata!
-}
-
-input InputTypeResolver {
-    typeName: String!
-    # again, the fieldNames within this array must be unique
-    fields: [InputFieldResolver!]!
-}
-
-input InputFieldResolver {
-    fieldName: String!
-    resolver: InputResolver!
-}
-
-input InputResolver {
-    # oneof: gloo, template, node
-    glooResolver: InputGlooResolver
-    templateResolver: InputTemplateResolver
-    nodeResolver: InputNodeJSResolver
-}
-
-input InputGlooResolver {
-    requestTemplate: InputRequestTemplate
-    responseTemplate: InputResponseTemplate
-    destination: InputDestination!
-}
-
-input InputRequestTemplate {
-    verb: String!
-    path: String!
-    body: String!
-    headers: InputMapStringString
-}
-
-input InputResponseTemplate {
-    body: String!
-    headers: InputMapStringString
-}
-input InputTemplateResolver {
-    empty: String
-}
-input InputNodeJSResolver {
-    empty: String
-}
-
-
-## Schema
-## Schema
-## Schema
-## Schema
-## Schema
-
-type Schema {
-    inlineSchema: String!
-    metadata: Metadata!
-    status: Status!
-}
-
-input InputSchema {
-    inlineSchema: String!
-    metadata: InputMetadata!
-}
-
-
-## Secret
-## Secret
-## Secret
-## Secret
-## Secret
-## Secret
-
-type Secret {
-    kind: SecretKind!
-    metadata: Metadata!
-}
-
-union SecretKind = AwsSecret | AzureSecret | TlsSecret
-
-type AwsSecret {
-    accessKey: String!
-    secretKey: String!
-}
-
-type AzureSecret {
-    apiKeys: MapStringString
-}
-
-type TlsSecret {
-    certChain: String!
-    privateKey: String!
-    rootCa: String! # note: it is okay to leave this as an empty string
-}
-
-input InputSecret {
-    kind: InputSecretKind!
-    metadata: InputMetadata!
-}
-
-input InputSecretKind {
-    # oneof: aws, azure, tls
-    aws: InputAwsSecret
-    azure: InputAzureSecret
-    tls: InputTlsSecret
-}
-
-input InputAwsSecret {
-    accessKey: String!
-    secretKey: String!
-}
-
-input InputAzureSecret {
-    apiKeys: InputMapStringString!
-}
-
-input InputTlsSecret {
-    certChain: String!
-    privateKey: String!
-    rootCa: String! # note: it is okay to leave this as an empty string
-}
-
-## Artifact
-## Artifact
-## Artifact
-## Artifact
-## Artifact
-
-type Artifact {
-    data: String!
-    metadata: Metadata!
-}
-
-input InputArtifact {
-    data: String!
-    metadata: InputMetadata!
-}
-
-## Settings
-## Settings
-## Settings
-## Settings
-## Settings
-
-type Settings {
-    watchNamespaces: [String!]
-    refreshRate: Duration
-    metadata: Metadata!
-}
-
-input InputSettings {
-    watchNamespaces: [String!]
-    refreshRate: Duration
-    metadata: InputMetadata!
-}
-
-## Vcs
-## Vcs
-## Vcs
-## Vcs
-## Vcs
-
-type Branch {
-    name: String!
-    hash: String!
-    lastCommitMsg: String!
-}
-
-
-# Common output types
-# Common output types
-# Common output types
-# Common output types
-# Common output types
-
-type Metadata {
-    name:            String!
-    namespace:       String!
-    resourceVersion: String!
-    labels:          MapStringString
-    annotations:     MapStringString
-    guid:            String!
-}
-
-type Status {
-    state:  State!
-    reason: String
-}
-
-type ResourceRef {
-    name: String!
-    namespace: String!
-}
-
-input InputResourceRef {
-    name: String!
-    namespace: String!
-}
-
-
-# Scalars / Extra
-
-enum State {
-    PENDING
-    ACCEPTED
-    REJECTED
-}
-
-enum AzureFnAuthLevel {
-    ANONYMOUS
-    FUNCTION
-    ADMIN
-}
-
-type MapStringString {
-    values: [Value!]
-}
-
-input InputMapStringString {
-    values: [InputValue!]
-}
-
-type Value {
-    key: String!
-    value: String!
-}
-
-input InputValue {
-    key: String!
-    value: String!
-}
-
-enum PathMatchType {
-    PREFIX
-    REGEX
-    EXACT
-}
-
-enum AwsLambdaInvocationStyle {
-    SYNC
-    ASYNC
-}
-
-scalar Duration`},
+input InputTransformationParameters {
+  headers: InputMapStringString
+  path: String
+}`},
 )

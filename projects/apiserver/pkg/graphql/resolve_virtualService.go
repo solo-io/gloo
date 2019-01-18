@@ -38,14 +38,14 @@ func (r *virtualServiceQueryResolver) Get(ctx context.Context, obj *customtypes.
 
 type virtualServiceMutationResolver struct{ *ApiResolver }
 
-func (r *virtualServiceMutationResolver) write(overwrite bool, ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error) {
+func (r *virtualServiceMutationResolver) Create(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error) {
 	v1VirtualService, err := NewConverter(r.ApiResolver, ctx).ConvertInputVirtualService(virtualService)
 	if err != nil {
 		return nil, err
 	}
 	out, err := r.VirtualServices.Write(v1VirtualService, clients.WriteOpts{
 		Ctx:               ctx,
-		OverwriteExisting: overwrite,
+		OverwriteExisting: false,
 	})
 	if err != nil {
 		return nil, err
@@ -53,11 +53,7 @@ func (r *virtualServiceMutationResolver) write(overwrite bool, ctx context.Conte
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
 }
 
-func (r *virtualServiceMutationResolver) Create(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualService models.InputVirtualService) (*models.VirtualService, error) {
-	return r.write(false, ctx, obj, virtualService)
-}
-
-// Reads the virtual service identifed for update from storage
+// Reads the virtual service identified for update from storage
 // Steps through the update object and applies only the requested updates
 func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string, resourceVersion string, updates models.InputUpdateVirtualService) (*models.VirtualService, error) {
 	virtualService, err := r.VirtualServices.Read(obj.Namespace, name, clients.ReadOpts{Ctx: ctx})
@@ -88,7 +84,7 @@ func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *custom
 		return nil, errors.Errorf("SSLConfig updates are not yet supported.")
 	}
 
-	if updates.Plugins != nil {
+	if updates.RateLimitConfig != nil {
 		return nil, errors.Errorf("Plugin updates are not yet supported.")
 	}
 

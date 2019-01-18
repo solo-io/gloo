@@ -51,3 +51,6 @@ models:
     model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.Duration
   VcsMutation:
     model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.VcsMutation
+  UnsignedInt:
+    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.UnsignedInt
+

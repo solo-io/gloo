@@ -6,6 +6,11 @@ import (
 	"sort"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
+	ratelimitapi "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
+
 	"github.com/gogo/protobuf/types"
 	"github.com/pkg/errors"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -410,10 +415,16 @@ func (c *Converter) ConvertInputVirtualService(virtualService InputVirtualServic
 		return nil, errors.Wrap(err, "validating input routes")
 	}
 
+	rateLimitConfig, err := convertInputRateLimitConfig(virtualService.RateLimitConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "validating rate limit config")
+	}
+
 	return &gatewayv1.VirtualService{
 		VirtualHost: &v1.VirtualHost{
-			Domains: virtualService.Domains,
-			Routes:  routes,
+			Domains:            virtualService.Domains,
+			Routes:             routes,
+			VirtualHostPlugins: rateLimitConfig,
 		},
 		SslConfig: convertInputSSLConfig(virtualService.SslConfig),
 		Metadata:  convertInputMetadata(virtualService.Metadata),
@@ -638,6 +649,57 @@ func convertInputSSLConfig(ssl *InputSslConfig) *v1.SslConfig {
 	}
 }
 
+func convertInputRateLimitConfig(inputConfig *InputRateLimitConfig) (*v1.VirtualHostPlugins, error) {
+	if inputConfig == nil {
+		return nil, nil
+	}
+	rlProto := &ratelimitapi.IngressRateLimit{}
+
+	if inputConfig.AuthorizedHeader == "" {
+		return nil, errors.Errorf("must provide authorizedHeader")
+	}
+	rlProto.AuthorizedHeader = inputConfig.AuthorizedHeader
+
+	// Get rate limits for authorized requests
+	if inputConfig.AuthorizedLimits != nil {
+		authLimits := *inputConfig.AuthorizedLimits
+		unit, err := convertGQLTimeUnitEnum(authLimits.Unit)
+		if err != nil {
+			return nil, err
+		}
+		rlProto.AuthorizedLimits = &ratelimitapi.RateLimit{
+			Unit:            unit,
+			RequestsPerUnit: uint32(authLimits.RequestsPerUnit),
+		}
+	}
+
+	// Get rate limits for anonymous requests
+	if inputConfig.AnonymousLimits != nil {
+		anonLimits := *inputConfig.AnonymousLimits
+		unit, err := convertGQLTimeUnitEnum(anonLimits.Unit)
+		if err != nil {
+			return nil, err
+		}
+		rlProto.AnonymousLimits = &ratelimitapi.RateLimit{
+			Unit:            unit,
+			RequestsPerUnit: uint32(anonLimits.RequestsPerUnit),
+		}
+	}
+
+	rlStruct, err := util.MessageToStruct(rlProto)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &v1.VirtualHostPlugins{
+		Extensions: &v1.Extensions{
+			Configs: map[string]*types.Struct{ratelimit.ExtensionName: rlStruct},
+		},
+	}
+
+	return result, nil
+}
+
 func (c *Converter) ConvertOutputVirtualServices(virtualServices gatewayv1.VirtualServiceList) ([]*VirtualService, error) {
 	var result []*VirtualService
 	for _, vs := range virtualServices {
@@ -651,23 +713,28 @@ func (c *Converter) ConvertOutputVirtualServices(virtualServices gatewayv1.Virtu
 }
 
 func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.VirtualService) (*VirtualService, error) {
-	gqlRoutes, err := c.convertOutputRoutes(virtualService.VirtualHost.Routes)
+	gqlRoutes, err := c.ConvertOutputRoutes(virtualService.VirtualHost.Routes)
+	if err != nil {
+		return nil, err
+	}
+	rateLimitConfig, err := convertOutputRateLimitConfig(virtualService.VirtualHost.VirtualHostPlugins)
 	if err != nil {
 		return nil, err
 	}
 	return &VirtualService{
-		Domains:   virtualService.VirtualHost.Domains,
-		Routes:    gqlRoutes,
-		SslConfig: convertOutputSSLConfig(virtualService.SslConfig),
-		Status:    convertOutputStatus(virtualService.Status),
-		Metadata:  convertOutputMetadata(&gatewayv1.VirtualService{}, virtualService.Metadata),
+		Domains:         virtualService.VirtualHost.Domains,
+		Routes:          gqlRoutes,
+		SslConfig:       convertOutputSSLConfig(virtualService.SslConfig),
+		Status:          convertOutputStatus(virtualService.Status),
+		Metadata:        convertOutputMetadata(&gatewayv1.VirtualService{}, virtualService.Metadata),
+		RateLimitConfig: rateLimitConfig,
 	}, nil
 }
 
-func (c *Converter) convertOutputRoutes(routes []*v1.Route) ([]Route, error) {
+func (c *Converter) ConvertOutputRoutes(routes []*v1.Route) ([]Route, error) {
 	var outRoutes []Route
 	for _, r := range routes {
-		route, err := c.convertOutputRoute(r)
+		route, err := c.ConvertOutputRoute(r)
 		if err != nil {
 			return nil, err
 		}
@@ -676,7 +743,7 @@ func (c *Converter) convertOutputRoutes(routes []*v1.Route) ([]Route, error) {
 	return outRoutes, nil
 }
 
-func (c *Converter) convertOutputRoute(route *v1.Route) (Route, error) {
+func (c *Converter) ConvertOutputRoute(route *v1.Route) (Route, error) {
 	action, ok := route.Action.(*v1.Route_RouteAction)
 	if !ok {
 		return Route{}, errors.Errorf("%v does not have a RouteAction", route)
@@ -812,8 +879,9 @@ func (c *Converter) convertOutputDestinationSpec(spec *v1.DestinationSpec) (Dest
 			invocationStyle = AwsLambdaInvocationStyleSync
 		}
 		return &AwsDestinationSpec{
-			LogicalName:     destSpec.Aws.LogicalName,
-			InvocationStyle: invocationStyle,
+			LogicalName:            destSpec.Aws.LogicalName,
+			InvocationStyle:        invocationStyle,
+			ResponseTransformation: destSpec.Aws.ResponseTrasnformation,
 		}, nil
 	case *v1.DestinationSpec_Azure:
 		return &AzureDestinationSpec{
@@ -882,6 +950,80 @@ func convertOutputSSLConfig(ssl *v1.SslConfig) *SslConfig {
 
 	return &SslConfig{
 		SecretRef: ref,
+	}
+}
+
+func convertOutputRateLimitConfig(plugins *v1.VirtualHostPlugins) (*RateLimitConfig, error) {
+	if plugins == nil {
+		return nil, nil
+	}
+	if plugins.Extensions == nil {
+		return nil, nil
+	}
+	var rateLimit ratelimitapi.IngressRateLimit
+	err := utils.UnmarshalExtension(plugins, ratelimit.ExtensionName, &rateLimit)
+	if err != nil {
+		if err == utils.NotFoundError {
+			// plugin not present, just return nil
+			return nil, nil
+		}
+		// plugin present and marshalling failed, return error
+		return nil, errors.Wrapf(err, "failed to unmarshal proto message to %v plugin", ratelimit.ExtensionName)
+	}
+
+	// We assume that the configuration we read in is correct, validation is done on write
+	result := &RateLimitConfig{}
+	result.AuthorizedHeader = rateLimit.AuthorizedHeader
+	if rateLimit.AuthorizedLimits != nil {
+		authUnit, err := convertProtoTimeUnitEnum(rateLimit.AuthorizedLimits.Unit)
+		if err != nil {
+			return nil, err
+		}
+		result.AuthorizedLimits = &RateLimit{
+			Unit:            authUnit,
+			RequestsPerUnit: customtypes.UnsignedInt(rateLimit.AuthorizedLimits.RequestsPerUnit),
+		}
+	}
+	if rateLimit.AnonymousLimits != nil {
+		anonUnit, err := convertProtoTimeUnitEnum(rateLimit.AnonymousLimits.Unit)
+		if err != nil {
+			return nil, err
+		}
+		result.AnonymousLimits = &RateLimit{
+			Unit:            anonUnit,
+			RequestsPerUnit: customtypes.UnsignedInt(rateLimit.AnonymousLimits.RequestsPerUnit),
+		}
+	}
+	return result, nil
+}
+
+func convertProtoTimeUnitEnum(protoEnum ratelimitapi.RateLimit_Unit) (TimeUnit, error) {
+	switch protoEnum {
+	case ratelimitapi.RateLimit_SECOND:
+		return TimeUnitSecond, nil
+	case ratelimitapi.RateLimit_MINUTE:
+		return TimeUnitMinute, nil
+	case ratelimitapi.RateLimit_HOUR:
+		return TimeUnitHour, nil
+	case ratelimitapi.RateLimit_DAY:
+		return TimeUnitDay, nil
+	default:
+		return "", errors.Errorf("invalid rate limit unit: %v", protoEnum)
+	}
+}
+
+func convertGQLTimeUnitEnum(gqlEnum TimeUnit) (ratelimitapi.RateLimit_Unit, error) {
+	switch gqlEnum {
+	case TimeUnitSecond:
+		return ratelimitapi.RateLimit_SECOND, nil
+	case TimeUnitMinute:
+		return ratelimitapi.RateLimit_MINUTE, nil
+	case TimeUnitHour:
+		return ratelimitapi.RateLimit_HOUR, nil
+	case TimeUnitDay:
+		return ratelimitapi.RateLimit_DAY, nil
+	default:
+		return 0, errors.Errorf("invalid rate limit time unit: %v", gqlEnum)
 	}
 }
 

@@ -242,6 +242,17 @@ type InputNodeJSResolver struct {
 	Empty *string `json:"empty"`
 }
 
+type InputRateLimit struct {
+	Unit            TimeUnit                `json:"unit"`
+	RequestsPerUnit customtypes.UnsignedInt `json:"requestsPerUnit"`
+}
+
+type InputRateLimitConfig struct {
+	AuthorizedHeader string          `json:"authorizedHeader"`
+	AuthorizedLimits *InputRateLimit `json:"authorizedLimits"`
+	AnonymousLimits  *InputRateLimit `json:"anonymousLimits"`
+}
+
 type InputRequestTemplate struct {
 	Verb    string                `json:"verb"`
 	Path    string                `json:"path"`
@@ -381,10 +392,10 @@ type InputUpdateMetadata struct {
 }
 
 type InputUpdateVirtualService struct {
-	Domains   []string                    `json:"domains"`
-	SslConfig *InputSslConfig             `json:"sslConfig"`
-	Plugins   *InputVirtualServicePlugins `json:"plugins"`
-	Metadata  *InputUpdateMetadata        `json:"metadata"`
+	Domains         []string              `json:"domains"`
+	SslConfig       *InputSslConfig       `json:"sslConfig"`
+	RateLimitConfig *InputRateLimitConfig `json:"rateLimitConfig"`
+	Metadata        *InputUpdateMetadata  `json:"metadata"`
 }
 
 type InputUpstream struct {
@@ -405,15 +416,11 @@ type InputValue struct {
 }
 
 type InputVirtualService struct {
-	Domains   []string                    `json:"domains"`
-	Routes    []InputRoute                `json:"routes"`
-	SslConfig *InputSslConfig             `json:"sslConfig"`
-	Plugins   *InputVirtualServicePlugins `json:"plugins"`
-	Metadata  InputMetadata               `json:"metadata"`
-}
-
-type InputVirtualServicePlugins struct {
-	Empty *string `json:"empty"`
+	Domains         []string              `json:"domains"`
+	Routes          []InputRoute          `json:"routes"`
+	SslConfig       *InputSslConfig       `json:"sslConfig"`
+	RateLimitConfig *InputRateLimitConfig `json:"rateLimitConfig"`
+	Metadata        InputMetadata         `json:"metadata"`
 }
 
 type InputWeightedDestination struct {
@@ -473,6 +480,17 @@ func (NodeJSResolver) IsResolver() {}
 type OAuthEndpoint struct {
 	URL        string `json:"url"`
 	ClientName string `json:"clientName"`
+}
+
+type RateLimit struct {
+	Unit            TimeUnit                `json:"unit"`
+	RequestsPerUnit customtypes.UnsignedInt `json:"requestsPerUnit"`
+}
+
+type RateLimitConfig struct {
+	AuthorizedHeader string     `json:"authorizedHeader"`
+	AuthorizedLimits *RateLimit `json:"authorizedLimits"`
+	AnonymousLimits  *RateLimit `json:"anonymousLimits"`
 }
 
 type RequestTemplate struct {
@@ -664,19 +682,15 @@ type VersionedQuery struct {
 }
 
 type VirtualService struct {
-	Domains   []string               `json:"domains"`
-	Routes    []Route                `json:"routes"`
-	SslConfig *SslConfig             `json:"sslConfig"`
-	Plugins   *VirtualServicePlugins `json:"plugins"`
-	Metadata  Metadata               `json:"metadata"`
-	Status    Status                 `json:"status"`
+	Metadata        Metadata         `json:"metadata"`
+	Status          Status           `json:"status"`
+	Domains         []string         `json:"domains"`
+	Routes          []Route          `json:"routes"`
+	SslConfig       *SslConfig       `json:"sslConfig"`
+	RateLimitConfig *RateLimitConfig `json:"rateLimitConfig"`
 }
 
 func (VirtualService) IsResource() {}
-
-type VirtualServicePlugins struct {
-	Empty *string `json:"empty"`
-}
 
 type WeightedDestination struct {
 	Destination SingleDestination `json:"destination"`
@@ -827,5 +841,43 @@ func (e *State) UnmarshalGQL(v interface{}) error {
 }
 
 func (e State) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TimeUnit string
+
+const (
+	TimeUnitSecond TimeUnit = "SECOND"
+	TimeUnitMinute TimeUnit = "MINUTE"
+	TimeUnitHour   TimeUnit = "HOUR"
+	TimeUnitDay    TimeUnit = "DAY"
+)
+
+func (e TimeUnit) IsValid() bool {
+	switch e {
+	case TimeUnitSecond, TimeUnitMinute, TimeUnitHour, TimeUnitDay:
+		return true
+	}
+	return false
+}
+
+func (e TimeUnit) String() string {
+	return string(e)
+}
+
+func (e *TimeUnit) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TimeUnit(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TimeUnit", str)
+	}
+	return nil
+}
+
+func (e TimeUnit) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

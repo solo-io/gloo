@@ -376,6 +376,14 @@
   revision = "6f2cf27854a4a29e3811b0371547be335d411b8b"
 
 [[projects]]
+  digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
+  name = "github.com/golang/mock"
+  packages = ["gomock"]
+  pruneopts = "UT"
+  revision = "51421b967af1f557f93a59e0057aaf15ca02e29c"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:98d8bcc9b013ef48532bd746254dbd0bd2fb94d2c7dc5b4961f08c23908d214a"
   name = "github.com/golang/protobuf"
   packages = [
@@ -1114,7 +1122,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d3cccb22ee2ee11159a0dabab152a989312f723b6019d72dec5a3ebda723b5e1"
+  digest = "1:92344dbcb8d3b2cfb322c6c411138f04813c7bb0e9e14d347c9da1c0814b789d"
   name = "github.com/solo-io/gloo"
   packages = [
     "pkg/cliutil",
@@ -1168,6 +1176,7 @@
     "projects/gloo/pkg/bootstrap",
     "projects/gloo/pkg/defaults",
     "projects/gloo/pkg/discovery",
+    "projects/gloo/pkg/mocks",
     "projects/gloo/pkg/plugins",
     "projects/gloo/pkg/plugins/aws",
     "projects/gloo/pkg/plugins/azure",
@@ -1187,7 +1196,7 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "658fb24ca87daad9a3feb98d481ddee6d087a55b"
+  revision = "7c60c5f268a6e3b7cbd410e97f1ad6026286427b"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -2034,6 +2043,7 @@
     "github.com/gogo/protobuf/gogoproto",
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/types",
+    "github.com/golang/mock/gomock",
     "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
     "github.com/grpc-ecosystem/go-grpc-middleware",
@@ -2092,6 +2102,7 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation",
     "github.com/solo-io/gloo/projects/gloo/pkg/bootstrap",
     "github.com/solo-io/gloo/projects/gloo/pkg/defaults",
+    "github.com/solo-io/gloo/projects/gloo/pkg/mocks",
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins",
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils",
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins/transformation",
@@ -2117,6 +2128,7 @@
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache",
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/client",
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server",
+    "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util",
     "github.com/solo-io/solo-kit/pkg/api/v1/reconcile",
     "github.com/solo-io/solo-kit/pkg/api/v1/reporter",
     "github.com/solo-io/solo-kit/pkg/api/v1/resources",

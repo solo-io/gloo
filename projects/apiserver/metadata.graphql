@@ -66,3 +66,4 @@ enum AwsLambdaInvocationStyle {
 }
 
 scalar Duration
+scalar UnsignedInt

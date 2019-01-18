@@ -49,12 +49,12 @@ type VirtualServiceMutation {
 }
 
 type VirtualService {
+  metadata: Metadata!
+  status: Status!
   domains: [String!]
   routes: [Route!]
   sslConfig: SslConfig
-  plugins: VirtualServicePlugins
-  metadata: Metadata!
-  status: Status!
+  rateLimitConfig: RateLimitConfig
 }
 
 type Route {
@@ -69,10 +69,6 @@ type Matcher {
   headers: [KeyValueMatcher!]
   queryParameters: [KeyValueMatcher!]
   methods: [String!]
-}
-# not implemented
-type VirtualServicePlugins {
-  empty: String
 }
 
 union Destination = MultiDestination | SingleDestination
@@ -120,10 +116,24 @@ type GrpcDestinationSpec {
   parameters: TransformationParameters
 }
 
-type SqoopDestinationSpec {
-  schema: Schema!
-  playground: Boolean!
+type RateLimitConfig {
+  authorizedHeader: String!
+  authorizedLimits: RateLimit
+  anonymousLimits: RateLimit
 }
+
+type RateLimit {
+  unit: TimeUnit!
+  requestsPerUnit: UnsignedInt!
+}
+
+enum TimeUnit {
+  SECOND
+  MINUTE
+  HOUR
+  DAY
+}
+
 # not implemented
 type RoutePlugins {
   empty: String
@@ -133,14 +143,14 @@ input InputVirtualService {
   domains: [String!]
   routes: [InputRoute!]
   sslConfig: InputSslConfig
-  plugins: InputVirtualServicePlugins
+  rateLimitConfig: InputRateLimitConfig
   metadata: InputMetadata!
 }
 
 input InputUpdateVirtualService {
   domains: [String!]
   sslConfig: InputSslConfig
-  plugins: InputVirtualServicePlugins
+  rateLimitConfig: InputRateLimitConfig
   metadata: InputUpdateMetadata
 }
 
@@ -150,15 +160,112 @@ input InputRoute {
   plugins: InputRoutePlugins
 }
 
-# not implemented
-input InputVirtualServicePlugins {
-  empty: String
-}
-
 input InputMatcher {
   pathMatch: String!
   pathMatchType: PathMatchType!
   headers: [InputKeyValueMatcher!]
   queryParameters: [InputKeyValueMatcher!]
   methods: [String!]
+}
+
+input InputRateLimitConfig {
+  authorizedHeader: String!
+  authorizedLimits: InputRateLimit
+  anonymousLimits: InputRateLimit
+}
+
+input InputRateLimit {
+  unit: TimeUnit!
+  requestsPerUnit: UnsignedInt!
+}
+
+input InputDestination {
+  # oneof: MultiDestination, SingleDestination
+  singleDestination: InputSingleDestination
+  multiDestination: InputMultiDestination
+}
+
+input InputKeyValueMatcher {
+  name: String!
+  value: String!
+  isRegex: Boolean!
+}
+
+type TransformationParameters {
+  headers: MapStringString
+  path: String
+}
+
+type KeyValueMatcher {
+  name: String!
+  value: String!
+  isRegex: Boolean!
+}
+
+type SslConfig {
+  secretRef: ResourceRef!
+}
+
+input InputSslConfig {
+  secretRef: InputResourceRef!
+}
+
+input InputSingleDestination {
+  upstream: InputResourceRef!
+  destinationSpec: InputDestinationSpec
+}
+
+input InputDestinationSpec {
+  # oneof: aws | azure
+  aws: InputAwsDestinationSpec
+  azure: InputAzureDestinationSpec
+  rest: InputRestDestinationSpec
+  grpc: InputGrpcDestinationSpec
+  sqoop: InputSqoopDestinationSpec
+}
+
+input InputMultiDestination {
+  destinations: [InputWeightedDestination!]
+}
+
+# not implemented
+input InputRoutePlugins {
+  empty: String
+}
+
+input InputWeightedDestination {
+  destination: InputSingleDestination!
+  weight: Int!
+}
+
+input InputAwsDestinationSpec {
+  logicalName: String!
+  invocationStyle: AwsLambdaInvocationStyle!
+  responseTransformation: Boolean!
+}
+
+input InputAzureDestinationSpec {
+  functionName: String!
+}
+
+input InputRestDestinationSpec {
+  functionName: String!
+  parameters: InputTransformationParameters
+}
+
+input InputGrpcDestinationSpec {
+  package: String!
+  service: String!
+  function: String!
+}
+
+input InputSqoopDestinationSpec {
+  schemaName: String!
+  schemaNamespace: String!
+  playground: Boolean!
+}
+
+input InputTransformationParameters {
+  headers: InputMapStringString
+  path: String
 }
