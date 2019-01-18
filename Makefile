@@ -42,7 +42,7 @@ clean:
 generated-code: $(OUTPUT_DIR)/.generated-code
 
 SUBDIRS:=projects test
-$(OUTPUT_DIR)/.generated-code:
+$(OUTPUT_DIR)/.generated-code: install/gloo.yaml install/gloo-knative.yaml
 	go generate ./...
 	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)
@@ -247,7 +247,7 @@ HELM_SYNC_DIR := $(OUTPUT_DIR)/helm
 HELM_DIR := install/helm
 
 .PHONY: manifest
-manifest: install/kube.yaml bump-helm-version update-helm-chart
+manifest: install/gloo.yaml bump-helm-version update-helm-chart
 
 bump-helm-version:
 	sed -i 's/version: .*/version: $(VERSION)/g' install/helm/gloo/Chart.yaml
@@ -259,10 +259,10 @@ ifeq ($(RELEASE),"true")
 	helm repo index $(HELM_SYNC_DIR)
 endif
 
-install/kube.yaml: $(shell find install/helm/gloo)
+install/gloo.yaml: $(shell find install/helm/gloo)
 	helm template install/helm/gloo --namespace gloo-system > $@
 
-install/kube-knative.yaml: $(shell find install/helm/gloo)
+install/gloo-knative.yaml: $(shell find install/helm/gloo)
 	helm template install/helm/gloo --namespace gloo-system --values install/helm/gloo/values-knative.yaml > $@
 
 #----------------------------------------------------------------------------------

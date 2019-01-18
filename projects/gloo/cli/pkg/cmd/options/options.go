@@ -27,7 +27,9 @@ type Top struct {
 }
 
 type Install struct {
-	DockerAuth struct {
+	EnableKnative bool
+	Version       string
+	DockerAuth    struct {
 		Email    string
 		Username string
 		Password string
@@ -36,13 +38,14 @@ type Install struct {
 }
 
 const (
-	ClusterProvider_GKE      = "GKE"
-	ClusterProvider_Minikube = "Minikube"
+	ClusterProvider_GKE       = "GKE"
+	ClusterProvider_BareMetal = "BareMetal"
 )
 
 type Gateway struct {
 	ClusterProvider string
 	Proxy           string
+	Port            string
 	FollowLogs      bool
 	DebugLogs       bool
 }
