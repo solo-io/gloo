@@ -61,10 +61,10 @@ func (ExperimentSpec_State) EnumDescriptor() ([]byte, []int) {
 // @solo-kit:resource.resource_groups=api.glooshot.solo.io
 type Experiment struct {
 	// Metadata contains the object metadata for this resource
-	Metadata core.Metadata   `protobuf:"bytes,1,opt,name=metadata" json:"metadata"`
-	Spec     *ExperimentSpec `protobuf:"bytes,2,opt,name=spec" json:"spec,omitempty"`
+	Metadata core.Metadata   `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata"`
+	Spec     *ExperimentSpec `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
 	// Status indicates the validation status of the resource. Status is read-only by clients, and set by gloo during validation
-	Status               core.Status `protobuf:"bytes,3,opt,name=status" json:"status" testdiff:"ignore"`
+	Status               core.Status `protobuf:"bytes,3,opt,name=status,proto3" json:"status" testdiff:"ignore"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -116,8 +116,8 @@ func (m *Experiment) GetStatus() core.Status {
 }
 
 type ExperimentSpec struct {
-	Faults        []*ExperimentSpec_InjectedFault `protobuf:"bytes,1,rep,name=faults" json:"faults,omitempty"`
-	StopCondition *StopCondition                  `protobuf:"bytes,2,opt,name=stop_condition,json=stopCondition" json:"stop_condition,omitempty"`
+	Faults        []*ExperimentSpec_InjectedFault `protobuf:"bytes,1,rep,name=faults,proto3" json:"faults,omitempty"`
+	StopCondition *StopCondition                  `protobuf:"bytes,2,opt,name=stop_condition,json=stopCondition,proto3" json:"stop_condition,omitempty"`
 	// State is the enum indicating the state of the resource
 	State                ExperimentSpec_State `protobuf:"varint,4,opt,name=state,proto3,enum=glooshot.solo.io.ExperimentSpec_State" json:"state,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
@@ -172,8 +172,8 @@ func (m *ExperimentSpec) GetState() ExperimentSpec_State {
 
 type ExperimentSpec_InjectedFault struct {
 	// TODO(yuval-k) should this be an upstream ref?
-	Service              *v1.Destination             `protobuf:"bytes,1,opt,name=service" json:"service,omitempty"`
-	Fault                *faultinjection.RouteFaults `protobuf:"bytes,2,opt,name=fault" json:"fault,omitempty"`
+	Service              *v1.Destination             `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
+	Fault                *faultinjection.RouteFaults `protobuf:"bytes,2,opt,name=fault,proto3" json:"fault,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
 	XXX_unrecognized     []byte                      `json:"-"`
 	XXX_sizecache        int32                       `json:"-"`
@@ -218,8 +218,8 @@ func (m *ExperimentSpec_InjectedFault) GetFault() *faultinjection.RouteFaults {
 }
 
 type StopCondition struct {
-	Duration             *time.Duration     `protobuf:"bytes,1,opt,name=duration,stdduration" json:"duration,omitempty"`
-	Metric               []*MetricThreshold `protobuf:"bytes,2,rep,name=metric" json:"metric,omitempty"`
+	Duration             *time.Duration     `protobuf:"bytes,1,opt,name=duration,proto3,stdduration" json:"duration,omitempty"`
+	Metric               []*MetricThreshold `protobuf:"bytes,2,rep,name=metric,proto3" json:"metric,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
 	XXX_unrecognized     []byte             `json:"-"`
 	XXX_sizecache        int32              `json:"-"`

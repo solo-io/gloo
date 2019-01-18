@@ -40,7 +40,7 @@ A Proxy is a container for the entire set of configuration that will to be appli
 Proxies can be understood as a set of listeners, represents a different bind address/port where the proxy will listen
 for connections. Each listener has its own set of configuration.
 
-If any of the subresources within a listener is declared invalid (e.g. due to invalid user configuration), the
+If any of the sub-resources within a listener is declared invalid (e.g. due to invalid user configuration), the
 proxy will be marked invalid by Gloo.
 
 Proxy instances that register with Gloo are assigned the proxy configuration corresponding with
@@ -109,7 +109,7 @@ Some plugins can be configured to work both on the listener and virtual host lev
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `virtual_hosts` | [[]gloo.solo.io.VirtualHost](proxy.proto.sk.md#VirtualHost) | the set of virtual hosts that will be accessible by clients connecting to this listener. at least one virtual host must be specified for this listener to be active (else connections will be refused) the set of domains for each virtual host must be unique, or the config will be considered invalid |  |
-| `listener_plugins` | [.gloo.solo.io.ListenerPlugins](../../../../../solo-projects/projects/gloo/api/v1/plugins.proto.sk.md#ListenerPlugins) | Plugins contains top-level plugin configuration to be applied to a listener Listener config is applied to all HTTP traffic that connects to this listener. Some configuration here can be overridden in Virtual Host Plugin configuration or Route Plugin configuration Plugins should be specified here in the form of `"plugin_name": {..//plugin_config...}` to allow specifying multiple plugins. |  |
+| `listener_plugins` | [.gloo.solo.io.ListenerPlugins](plugins.proto.sk.md#ListenerPlugins) | Plugins contains top-level plugin configuration to be applied to a listener Listener config is applied to all HTTP traffic that connects to this listener. Some configuration here can be overridden in Virtual Host Plugin configuration or Route Plugin configuration Plugins should be specified here in the form of `"plugin_name": {..//plugin_config...}` to allow specifying multiple plugins. |  |
 
 
 
@@ -136,7 +136,7 @@ If a request is not matched to any virtual host or a route therein, the target p
 | `name` | `string` | the logical name of the virtual host. names must be unique for each virtual host within a listener |  |
 | `domains` | `[]string` | The list of domains (i.e.: matching the `Host` header of a request) that belong to this virtual host. Note that the wildcard will not match the empty string. e.g. “*-bar.foo.com” will match “baz-bar.foo.com” but not “-bar.foo.com”. Additionally, a special entry “*” is allowed which will match any host/authority header. Only a single virtual host in the entire route configuration can match on “*”. A domain must be unique across all virtual hosts or the config will be invalidated by Gloo Domains on virtual hosts obey the same rules as [Envoy Virtual Hosts](https://github.com/envoyproxy/envoy/blob/master/api/envoy/api/v2/route/route.proto) |  |
 | `routes` | [[]gloo.solo.io.Route](proxy.proto.sk.md#Route) | The list of HTTP routes define routing actions to be taken for incoming HTTP requests whose host header matches this virtual host. If the request matches more than one route in the list, the first route matched will be selected. If the list of routes is empty, the virtual host will be ignored by Gloo. |  |
-| `virtual_host_plugins` | [.gloo.solo.io.VirtualHostPlugins](../../../../../solo-projects/projects/gloo/api/v1/plugins.proto.sk.md#VirtualHostPlugins) | Plugins contains top-level plugin configuration to be applied to a listener Listener config is applied to all HTTP traffic that connects to this listener. Some configuration here can be overridden in Virtual Host Plugin configuration or Route Plugin configuration Plugins should be specified here in the form of `"plugin_name": {..//plugin_config...}` to allow specifying multiple plugins. |  |
+| `virtual_host_plugins` | [.gloo.solo.io.VirtualHostPlugins](plugins.proto.sk.md#VirtualHostPlugins) | Plugins contains top-level plugin configuration to be applied to a listener Listener config is applied to all HTTP traffic that connects to this listener. Some configuration here can be overridden in Virtual Host Plugin configuration or Route Plugin configuration Plugins should be specified here in the form of `"plugin_name": {..//plugin_config...}` to allow specifying multiple plugins. |  |
 
 
 
@@ -163,7 +163,7 @@ Routes declare the entrypoints on virtual hosts and the action to take for match
 | `route_action` | [.gloo.solo.io.RouteAction](proxy.proto.sk.md#RouteAction) | This action is the primary action to be selected for most routes. The RouteAction tells the proxy to route requests to an upstream. |  |
 | `redirect_action` | [.gloo.solo.io.RedirectAction](proxy.proto.sk.md#RedirectAction) | Redirect actions tell the proxy to return a redirect response to the downstream client |  |
 | `direct_response_action` | [.gloo.solo.io.DirectResponseAction](proxy.proto.sk.md#DirectResponseAction) | Return an arbitrary HTTP response directly, without proxying. |  |
-| `route_plugins` | [.gloo.solo.io.RoutePlugins](../../../../../solo-projects/projects/gloo/api/v1/plugins.proto.sk.md#RoutePlugins) | Route Plugins extend the behavior of routes. Route plugins include configuration such as retries, rate limiting, and request/resonse transformation. Plugins should be specified here in the form of `"plugin_name": {..//plugin_config...}` to allow specifying multiple plugins. |  |
+| `route_plugins` | [.gloo.solo.io.RoutePlugins](plugins.proto.sk.md#RoutePlugins) | Route Plugins extend the behavior of routes. Route plugins include configuration such as retries, rate limiting, and request/resonse transformation. Plugins should be specified here in the form of `"plugin_name": {..//plugin_config...}` to allow specifying multiple plugins. |  |
 
 
 
@@ -281,7 +281,7 @@ Destinations define routable destinations for proxied requests
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `upstream` | [.core.solo.io.ResourceRef](../../../../../solo-kit/api/v1/ref.proto.sk.md#ResourceRef) | The upstream to route requests to |  |
-| `destination_spec` | [.gloo.solo.io.DestinationSpec](../../../../../solo-projects/projects/gloo/api/v1/plugins.proto.sk.md#DestinationSpec) | Some upstreams utilize plugins which require or permit additional configuration on routes targeting them. gRPC upstreams, for example, allow specifying REST-style parameters for JSON-to-gRPC transcoding in the destination config. If the destination config is required for the upstream and not provided by the user, Gloo will invalidate the destination and its parent resources. |  |
+| `destination_spec` | [.gloo.solo.io.DestinationSpec](plugins.proto.sk.md#DestinationSpec) | Some upstreams utilize plugins which require or permit additional configuration on routes targeting them. gRPC upstreams, for example, allow specifying REST-style parameters for JSON-to-gRPC transcoding in the destination config. If the destination config is required for the upstream and not provided by the user, Gloo will invalidate the destination and its parent resources. |  |
 
 
 

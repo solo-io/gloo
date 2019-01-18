@@ -1198,10 +1198,11 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:1fbae7b7218b4d4e8d417c12e0fa88936cca20a9f77a09b97ca6ecf14a5840b5"
+  digest = "1:0ee8dfa67e0da09a14aa2b406bb7091986454abe0de178d5db4cc79b867e5f3b"
   name = "github.com/solo-io/go-utils"
   packages = [
     "cliutils",
+    "contextutils",
     "errors",
     "kubeutils",
     "protoutils",
@@ -2028,6 +2029,7 @@
     "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rate_limit/v2",
     "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2",
     "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2",
+    "github.com/envoyproxy/go-control-plane/pkg/util",
     "github.com/fatih/structs",
     "github.com/gogo/protobuf/gogoproto",
     "github.com/gogo/protobuf/proto",
@@ -2054,6 +2056,7 @@
     "github.com/rs/cors",
     "github.com/solo-io/envoy-operator/pkg/downward",
     "github.com/solo-io/gloo/pkg/utils/setuputils",
+    "github.com/solo-io/gloo/pkg/version",
     "github.com/solo-io/gloo/projects/discovery/pkg/fds/setup",
     "github.com/solo-io/gloo/projects/discovery/pkg/fds/syncer",
     "github.com/solo-io/gloo/projects/discovery/pkg/uds/setup",
@@ -2096,7 +2099,9 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/syncer",
     "github.com/solo-io/go-checkpoint",
     "github.com/solo-io/go-utils/cliutils",
+    "github.com/solo-io/go-utils/contextutils",
     "github.com/solo-io/go-utils/errors",
+    "github.com/solo-io/go-utils/kubeutils",
     "github.com/solo-io/keygen",
     "github.com/solo-io/keygen/services",
     "github.com/solo-io/rate-limiter/pkg/config",
@@ -2168,7 +2173,6 @@
     "k8s.io/client-go/kubernetes/typed/authentication/v1",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/client-go/rest",
-    "k8s.io/client-go/tools/clientcmd",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

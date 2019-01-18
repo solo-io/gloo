@@ -1,0 +1,8 @@
+// TODO(EItanya): Fix solo-kit so this file isn't necessary
+
+syntax = "proto3";
+package observability.solo.io;
+option go_package = "github.com/solo-io/solo-projects/projects/observability/pkg/api/v1";
+
+
+import "github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto";

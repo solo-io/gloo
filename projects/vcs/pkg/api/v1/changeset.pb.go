@@ -62,30 +62,30 @@ func (Action) EnumDescriptor() ([]byte, []int) {
 //
 type ChangeSet struct {
 	// Status indicates the validation status of this resource
-	Status core.Status `protobuf:"bytes,1,opt,name=status" json:"status" testdiff:"ignore"`
+	Status core.Status `protobuf:"bytes,1,opt,name=status,proto3" json:"status" testdiff:"ignore"`
 	// Metadata for this resource
-	Metadata core.Metadata `protobuf:"bytes,2,opt,name=metadata" json:"metadata"`
+	Metadata core.Metadata `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata"`
 	// The name of the git branch the changes will be applied to
-	Branch types.StringValue `protobuf:"bytes,3,opt,name=branch" json:"branch"`
+	Branch types.StringValue `protobuf:"bytes,3,opt,name=branch,proto3" json:"branch"`
 	// Represents an action that this changeset is waiting to be performed. The default value is NONE.
 	PendingAction Action `protobuf:"varint,4,opt,name=pending_action,json=pendingAction,proto3,enum=vcs.solo.io.Action" json:"pending_action,omitempty"`
 	// Description of the changeset. This will be the git commit message
-	Description types.StringValue `protobuf:"bytes,5,opt,name=description" json:"description"`
+	Description types.StringValue `protobuf:"bytes,5,opt,name=description,proto3" json:"description"`
 	// The number of edits that the user applied to the previous commit.
 	// A value greater than zero represents a dirty work tree.
-	EditCount types.UInt32Value `protobuf:"bytes,6,opt,name=edit_count,json=editCount" json:"edit_count"`
+	EditCount types.UInt32Value `protobuf:"bytes,6,opt,name=edit_count,json=editCount,proto3" json:"edit_count"`
 	// The user who owns this changeset
 	// TODO use dedicated message? Also, determine how to handle secrets?
-	UserId types.StringValue `protobuf:"bytes,7,opt,name=user_id,json=userId" json:"user_id"`
+	UserId types.StringValue `protobuf:"bytes,7,opt,name=user_id,json=userId,proto3" json:"user_id"`
 	// The hash of the commit that the changeset represents an increment upon
-	RootCommit types.StringValue `protobuf:"bytes,8,opt,name=root_commit,json=rootCommit" json:"root_commit"`
+	RootCommit types.StringValue `protobuf:"bytes,8,opt,name=root_commit,json=rootCommit,proto3" json:"root_commit"`
 	// The git commit message for the root commit
-	RootDescription types.StringValue `protobuf:"bytes,9,opt,name=root_description,json=rootDescription" json:"root_description"`
+	RootDescription types.StringValue `protobuf:"bytes,9,opt,name=root_description,json=rootDescription,proto3" json:"root_description"`
 	// If a git commit attempt fails, this field will be populated with a user-friendly error message
 	// No further git commit attempts will be possible until the user clears this field
-	ErrorMsg *types.StringValue `protobuf:"bytes,10,opt,name=error_msg,json=errorMsg" json:"error_msg,omitempty"`
+	ErrorMsg *types.StringValue `protobuf:"bytes,10,opt,name=error_msg,json=errorMsg,proto3" json:"error_msg,omitempty"`
 	// A collection of Gloo resources
-	Data                 Data     `protobuf:"bytes,11,opt,name=data" json:"data"`
+	Data                 Data     `protobuf:"bytes,11,opt,name=data,proto3" json:"data"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -194,13 +194,13 @@ func (m *ChangeSet) GetData() Data {
 
 // A user-specific snapshot of all gloo resources at a given commit plus any non-committed changes made by the user
 type Data struct {
-	Gateways             []*v1.Gateway        `protobuf:"bytes,1,rep,name=gateways" json:"gateways,omitempty"`
-	VirtualServices      []*v1.VirtualService `protobuf:"bytes,2,rep,name=virtual_services,json=virtualServices" json:"virtual_services,omitempty"`
-	Proxies              []*v11.Proxy         `protobuf:"bytes,3,rep,name=proxies" json:"proxies,omitempty"`
-	Settings             []*v11.Settings      `protobuf:"bytes,4,rep,name=settings" json:"settings,omitempty"`
-	Upstreams            []*v11.Upstream      `protobuf:"bytes,5,rep,name=upstreams" json:"upstreams,omitempty"`
-	ResolverMaps         []*v12.ResolverMap   `protobuf:"bytes,6,rep,name=resolver_maps,json=resolverMaps" json:"resolver_maps,omitempty"`
-	Schemas              []*v12.Schema        `protobuf:"bytes,7,rep,name=schemas" json:"schemas,omitempty"`
+	Gateways             []*v1.Gateway        `protobuf:"bytes,1,rep,name=gateways,proto3" json:"gateways,omitempty"`
+	VirtualServices      []*v1.VirtualService `protobuf:"bytes,2,rep,name=virtual_services,json=virtualServices,proto3" json:"virtual_services,omitempty"`
+	Proxies              []*v11.Proxy         `protobuf:"bytes,3,rep,name=proxies,proto3" json:"proxies,omitempty"`
+	Settings             []*v11.Settings      `protobuf:"bytes,4,rep,name=settings,proto3" json:"settings,omitempty"`
+	Upstreams            []*v11.Upstream      `protobuf:"bytes,5,rep,name=upstreams,proto3" json:"upstreams,omitempty"`
+	ResolverMaps         []*v12.ResolverMap   `protobuf:"bytes,6,rep,name=resolver_maps,json=resolverMaps,proto3" json:"resolver_maps,omitempty"`
+	Schemas              []*v12.Schema        `protobuf:"bytes,7,rep,name=schemas,proto3" json:"schemas,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
 	XXX_sizecache        int32                `json:"-"`

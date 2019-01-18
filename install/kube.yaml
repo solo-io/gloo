@@ -1,465 +1,51 @@
-########################################################################
-###                                                                  ###
-###            Installation Manifest for Kubernetes                  ###
-###                                                                  ###
-########################################################################
+---
+# Source: gloo/templates/0-namespace.yaml
 
-########################################################################
-###                                                                  ###
-###                            PreReqs                               ###
-###                                                                  ###
-########################################################################
 
 apiVersion: v1
 kind: Namespace
 metadata:
   name: gloo-system
-
 ---
-#rbac
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: gloo-role
-rules:
-- apiGroups: [""]
-  resources: ["pods", "services", "secrets", "endpoints", "configmaps"]
-  verbs: ["*"]
-- apiGroups: [""]
-  resources: ["namespaces"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["apiextensions.k8s.io"]
-  resources: ["customresourcedefinitions"]
-  verbs: ["get", "create"]
-- apiGroups: ["gloo.solo.io"]
-  resources: ["settings", "upstreams", "proxies","virtualservices"]
-  verbs: ["*"]
-- apiGroups: ["sqoop.solo.io"]
-  resources: ["schemas"]
-  verbs: ["*"]
-- apiGroups: ["gateway.solo.io"]
-  resources: ["virtualservices", "gateways"]
-  verbs: ["*"]
----
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: gloo-role-binding
-subjects:
-- kind: ServiceAccount
-  name: default
-  namespace: gloo-system
-roleRef:
-  kind: ClusterRole
-  name: gloo-role
-  apiGroup: rbac.authorization.k8s.io
-
----
-########################################################################
-###                                                                  ###
-###                            Gloo                                  ###
-###                                                                  ###
-########################################################################
-
-# pod
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  labels:
-    app: gloo
-    gloo: gloo
-  name: gloo
-  namespace: gloo-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      gloo: gloo
-  template:
-    metadata:
-      labels:
-        gloo: gloo
-    spec:
-      containers:
-      - image: soloio/gloo-ee:0.1.0
-        imagePullPolicy: Always
-        name: gloo
-        ports:
-        - containerPort: 9977
-          name: xds
-          protocol: TCP
-        env:
-          - name: LICENSE_KEY
-            value: "5"
-      imagePullSecrets:
-      - name: solo-io-docker-secret
----
-# service
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: gloo
-    gloo: gloo
-  name: gloo
-  namespace: gloo-system
-spec:
-  ports:
-  - name: xds
-    port: 9977
-    protocol: TCP
-  selector:
-    gloo: gloo
-
----
-
-########################################################################
-###                                                                  ###
-###                        Discovery                                 ###
-###                                                                  ###
-########################################################################
-
-# pod
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  labels:
-    app: gloo
-    gloo: discovery
-  name: discovery
-  namespace: gloo-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      gloo: discovery
-  template:
-    metadata:
-      labels:
-        gloo: discovery
-    spec:
-      containers:
-      - image: soloio/discovery-ee:0.1.0
-        imagePullPolicy: Always
-        name: discovery
-      imagePullSecrets:
-      - name: solo-io-docker-secret
-
----
-
-########################################################################
-###                                                                  ###
-###                        Gateway                                   ###
-###                                                                  ###
-########################################################################
-
-# pod
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  labels:
-    app: gloo
-    gloo: gateway
-  name: gateway
-  namespace: gloo-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      gloo: gateway
-  template:
-    metadata:
-      labels:
-        gloo: gateway
-    spec:
-      containers:
-      - image: soloio/gateway-ee:0.1.0
-        imagePullPolicy: Always
-        name: gateway
-      imagePullSecrets:
-      - name: solo-io-docker-secret
-
----
-
-########################################################################
-###                                                                  ###
-###                        Licensing                                 ###
-###                                                                  ###
-########################################################################
-
-# pod
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  labels:
-    app: gloo
-    service: licensing-service
-    gloo: licensing
-  name: licensing
-  namespace: gloo-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      gloo: licensing
-  template:
-    metadata:
-      labels:
-        gloo: licensing
-    spec:
-      containers:
-        - image: soloio/licensing-server-ee:0.1.0
-          ports:
-            - name: licensing
-              containerPort: 9000
-            - name: health-check
-              containerPort: 9001
-          imagePullPolicy: Always
-          name: licensing-container
-          env:
-            - name: KEYGEN_AUTH_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: licensing
-                  key: authtoken
-            - name: KEYGEN_ACCOUNT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: licensing
-                  key: accountid
-      imagePullSecrets:
-        - name: solo-io-docker-secret
-
----
-
-#service
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: gloo
-    gloo: licensing
-    service: licensing-service
-  name: licensing
-  namespace: gloo-system
-spec:
-  ports:
-    - port: 80
-      protocol: TCP
-      targetPort: 9000
-      name: grpc
-    - port: 81
-      protocol: TCP
-      targetPort: 9001
-      name: http
-  selector:
-    gloo: licensing
-
----
-
-########################################################################
-###                                                                  ###
-###                        Rate-Limit                                ###
-###                                                                  ###
-########################################################################
-
-# pod
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  labels:
-    app: gloo
-    gloo: rate-limit
-  name: rate-limit
-  namespace: gloo-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      gloo: rate-limit
-  template:
-    metadata:
-      labels:
-        gloo: rate-limit
-    spec:
-      containers:
-      - image: soloio/rate-limit-ee:0.1.0
-        imagePullPolicy: Always
-        name: rate-limit
-        env:
-        - name: GLOO_ADDRESS
-          value: gloo:9977
-        - name: REDIS_URL
-          value: redis:6379
-        - name: REDIS_SOCKET_TYPE
-          value: tcp
-      imagePullSecrets:
-      - name: solo-io-docker-secret
-
----
-# service
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: gloo
-    gloo: rate-limit
-  name: rate-limit
-  namespace: gloo-system
-spec:
-  ports:
-    - name: grpc
-      port: 18081
-      protocol: TCP
-  selector:
-    gloo: rate-limit
-
----
-
-# redis pod for rate limit
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: redis
-  namespace: gloo-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      gloo: redis
-  template:
-    metadata:
-      labels:
-        gloo: redis
-    spec:
-      containers:
-      - image: kubernetes/redis:v1
-        imagePullPolicy: Always
-        name: redis
-        ports:
-        - containerPort: 6379
-        env:
-        - name: MASTER
-          value: "true"
-        volumeMounts:
-        - mountPath: /redis-master-data
-          name: data
-      imagePullSecrets:
-      - name: solo-io-docker-secret
-      volumes:
-      - name: data
-        emptyDir: {}
-
----
-# service
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: redis
-    gloo: redis
-  name: redis
-  namespace: gloo-system
-spec:
-  ports:
-  - name: redis
-    port: 6379
-    protocol: TCP
-  selector:
-    gloo: redis
-
----
-
-########################################################################
-###                                                                  ###
-###                     Gateway-Proxy                                ###
-###                                                                  ###
-########################################################################
-
-# pod
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  labels:
-    app: gloo
-    gloo: gateway-proxy
-  name: gateway-proxy
-  namespace: gloo-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      gloo: gateway-proxy
-  template:
-    metadata:
-      labels:
-        gloo: gateway-proxy
-    spec:
-      containers:
-      - env:
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        image: soloio/data-plane-ee:v1-754-g2d30d128
-        imagePullPolicy: Always
-        name: gateway-proxy
-        ports:
-        - containerPort: 8080
-          name: http
-          protocol: TCP
-        volumeMounts:
-        - mountPath: /etc/envoy
-          name: envoy-config
-      imagePullSecrets:
-      - name: solo-io-docker-secret
-      volumes:
-      - configMap:
-          name: gateway-envoy-config
-        name: envoy-config
-
----
-
-# service
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: gloo
-    gloo: gateway-proxy
-  name: gateway-proxy
-  namespace: gloo-system
-spec:
-  ports:
-  - port: 8080
-    protocol: TCP
-    name: http
-  selector:
-    gloo: gateway-proxy
-  type: LoadBalancer
-
----
-
+# Source: gloo/templates/12-ingress-proxy-configmap.yaml
 # configmap
 apiVersion: v1
 data:
   envoy.yaml: |
     node:
-      cluster: gateway
+      cluster: ingress
       id: "{{.PodName}}.{{.PodNamespace}}"
       metadata:
         # this line must match !
-        role: "gloo-system~gateway-proxy"
-    rate_limit_service:
-      use_data_plane_proto: true
-      grpc_service:
-        envoy_grpc:
-          cluster_name: rate_limit_cluster
+        role: "gloo-system~ingress-proxy"
     static_resources:
+      listeners:
+        - name: prometheus_listener
+          address:
+            socket_address:
+              address: 0.0.0.0
+              port_value: 19001
+          filter_chains:
+            - filters:
+                - name: envoy.http_connection_manager
+                  config:
+                    codec_type: auto
+                    stat_prefix: prometheus
+                    route_config:
+                      name: prometheus_route
+                      virtual_hosts:
+                        - name: prometheus_host
+                          domains:
+                            - "*"
+                          routes:
+                            - match:
+                                prefix: "/metrics"
+                              route:
+                                prefix_rewrite: "/stats/prometheus"
+                                cluster: admin_port_cluster
+                    http_filters:
+                      - name: envoy.router
+                        config: {}
       clusters:
       - name: xds_cluster
         connect_timeout: 5.000s
@@ -474,19 +60,19 @@ data:
                     port_value: 9977
         http2_protocol_options: {}
         type: STRICT_DNS
-      - name: rate_limit_cluster
+      - name: admin_port_cluster
         connect_timeout: 5.000s
-        load_assignment:
-          cluster_name: rate_limit_cluster
-          endpoints:
-          - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: rate-limit
-                    port_value: 18081
-        http2_protocol_options: {}
         type: STRICT_DNS
+        lb_policy: ROUND_ROBIN
+        load_assignment:
+          cluster_name: admin_port_cluster
+          endpoints:
+            - lb_endpoints:
+                - endpoint:
+                    address:
+                      socket_address:
+                        address: 127.0.0.1
+                        port_value: 19000
     dynamic_resources:
       ads_config:
         api_type: GRPC
@@ -506,7 +92,463 @@ kind: ConfigMap
 metadata:
   labels:
     app: gloo
+  name: ingress-envoy-config
+  namespace: gloo-system
+
+---
+# Source: gloo/templates/9-gateway-proxy-configmap.yaml
+# configmap
+apiVersion: v1
+data:
+  envoy.yaml: |
+    node:
+      cluster: gateway
+      id: "{{.PodName}}.{{.PodNamespace}}"
+      metadata:
+        # this line must match !
+        role: "gloo-system~gateway-proxy"
+    rate_limit_service:
+      use_data_plane_proto: true
+      grpc_service:
+        envoy_grpc:
+          cluster_name: rate_limit_cluster
+
+    static_resources:
+      listeners:
+        - name: prometheus_listener
+          address:
+            socket_address:
+              address: 0.0.0.0
+              port_value: 19001
+          filter_chains:
+            - filters:
+                - name: envoy.http_connection_manager
+                  config:
+                    codec_type: auto
+                    stat_prefix: prometheus
+                    route_config:
+                      name: prometheus_route
+                      virtual_hosts:
+                        - name: prometheus_host
+                          domains:
+                            - "*"
+                          routes:
+                            - match:
+                                prefix: "/metrics"
+                              route:
+                                prefix_rewrite: "/stats/prometheus"
+                                cluster: admin_port_cluster
+                    http_filters:
+                      - name: envoy.router
+                        config: {}
+      clusters:
+        - name: xds_cluster
+          connect_timeout: 5.000s
+          load_assignment:
+            cluster_name: xds_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: gloo
+                          port_value: 9977
+          http2_protocol_options: {}
+          type: STRICT_DNS
+        - name: rate_limit_cluster
+          connect_timeout: 5.000s
+          load_assignment:
+            cluster_name: rate_limit_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: rate-limit
+                          port_value: 18081
+          http2_protocol_options: {}
+          type: STRICT_DNS
+        - name: admin_port_cluster
+          connect_timeout: 5.000s
+          type: STRICT_DNS
+          lb_policy: ROUND_ROBIN
+          load_assignment:
+            cluster_name: admin_port_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: 127.0.0.1
+                          port_value: 19000
+
+    dynamic_resources:
+      ads_config:
+        api_type: GRPC
+        grpc_services:
+          - envoy_grpc: {cluster_name: xds_cluster}
+      cds_config:
+        ads: {}
+      lds_config:
+        ads: {}
+    admin:
+      access_log_path: /dev/null
+      address:
+        socket_address:
+          address: 127.0.0.1
+          port_value: 19000
+kind: ConfigMap
+metadata:
+  labels:
+    app: gloo
   name: gateway-envoy-config
   namespace: gloo-system
 
+---
+# Source: gloo/templates/settings-crd.yaml
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: settings.gloo.solo.io
+  annotations:
+    "helm.sh/hook": crd-install
+  labels:
+    gloo: settings
+spec:
+  group: gloo.solo.io
+  names:
+    kind: Settings
+    listKind: SettingsList
+    plural: settings
+  scope: Namespaced
+  version: v1
+---
+# Source: gloo/templates/1-namespace-clusterrole.yaml
+
+
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "secrets", "endpoints", "configmaps"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "create"]
+  - apiGroups: ["gloo.solo.io"]
+    resources: ["settings", "upstreams", "proxies","virtualservices"]
+    verbs: ["*"]
+  - apiGroups: ["sqoop.solo.io"]
+    resources: ["schemas"]
+    verbs: ["*"]
+  - apiGroups: ["gateway.solo.io"]
+    resources: ["virtualservices", "gateways"]
+    verbs: ["*"]
+  - apiGroups: ["extensions", ""]
+    resources: ["ingresses"]
+    verbs: ["*"]
+---
+# Source: gloo/templates/2-namespace-clusterrolebinding.yaml
+
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gloo-role-binding
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: gloo-system
+roleRef:
+  kind: ClusterRole
+  name: gloo-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: gloo/templates/13-ingress-proxy-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gloo
+    gloo: ingress-proxy
+  name: ingress-proxy
+  namespace: gloo-system
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      name: http
+  selector:
+    gloo: ingress-proxy
+  type: LoadBalancer
+
+---
+# Source: gloo/templates/4-gloo-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gloo
+    gloo: gloo
+  name: gloo
+  namespace: gloo-system
+spec:
+  ports:
+    - name: grpc
+      port: 9977
+      protocol: TCP
+  selector:
+    gloo: gloo
+
+---
+# Source: gloo/templates/8-gateway-proxy-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gloo
+    gloo: gateway-proxy
+  name: gateway-proxy
+  namespace: gloo-system
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      name: http
+  selector:
+    gloo: gateway-proxy
+  type: LoadBalancer
+
+---
+# Source: gloo/templates/10-ingress-deployment.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    gloo: ingress
+  name: ingress
+  namespace: gloo-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: ingress
+  template:
+    metadata:
+      labels:
+        gloo: ingress
+    spec:
+      containers:
+        - image: soloio/ingress:0.6.0
+          imagePullPolicy: Always
+          name: ingress
+          args: ["--namespace", "gloo-system" ]
+
+---
+# Source: gloo/templates/11-ingress-proxy-deployment.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    gloo: ingress-proxy
+  name: ingress-proxy
+  namespace: gloo-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: ingress-proxy
+  template:
+    metadata:
+      labels:
+        gloo: ingress-proxy
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "19001"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - args: ["--disable-hot-restart"]
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          image: soloio/gloo-envoy-wrapper:0.6.0
+          imagePullPolicy: Always
+          name: ingress-proxy
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /etc/envoy
+              name: envoy-config
+      volumes:
+        - configMap:
+            name: ingress-envoy-config
+          name: envoy-config
+---
+# Source: gloo/templates/3-gloo-deployment.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    gloo: gloo
+  name: gloo
+  namespace: gloo-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: gloo
+  template:
+    metadata:
+      labels:
+        gloo: gloo
+    spec:
+      containers:
+        - image: soloio/gloo-ee:0.0.6
+          imagePullPolicy: Always
+          name: gloo
+          ports:
+            - containerPort: 9977
+              name: grpc
+              protocol: TCP
+          args: ["--namespace", "gloo-system" ]
+      imagePullSecrets:
+        - name: solo-io-docker-secret
+
+
+---
+# Source: gloo/templates/5-discovery-deployment.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    gloo: discovery
+  name: discovery
+  namespace: gloo-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: discovery
+  template:
+    metadata:
+      labels:
+        gloo: discovery
+    spec:
+      containers:
+        - image: soloio/discovery:0.6.0
+          imagePullPolicy: Always
+          name: discovery
+          args: ["--namespace", "gloo-system" ]
+
+
+---
+# Source: gloo/templates/6-gateway-deployment.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    gloo: gateway
+  name: gateway
+  namespace: gloo-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: gateway
+  template:
+    metadata:
+      labels:
+        gloo: gateway
+    spec:
+      containers:
+        - image: soloio/gateway:0.6.0
+          imagePullPolicy: Always
+          name: gateway
+          args: ["--namespace", "gloo-system" ]
+
+---
+# Source: gloo/templates/7-gateway-proxy-deployment.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    gloo: gateway-proxy
+  name: gateway-proxy
+  namespace: gloo-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: gateway-proxy
+  template:
+    metadata:
+      labels:
+        gloo: gateway-proxy
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "19001"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - args: ["--disable-hot-restart"]
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          image: soloio/gloo-envoy-wrapper:0.6.0
+          imagePullPolicy: Always
+          name: gateway-proxy
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /etc/envoy
+              name: envoy-config
+      volumes:
+        - configMap:
+            name: gateway-envoy-config
+          name: envoy-config
+---
+# Source: gloo/templates/settings.yaml
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  name: default
+  namespace: gloo-system
+spec:
+  bindAddr: 0.0.0.0:9977
+  discoveryNamespace: gloo-system
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  watchNamespaces:
+    - gloo-system
+    - default
 

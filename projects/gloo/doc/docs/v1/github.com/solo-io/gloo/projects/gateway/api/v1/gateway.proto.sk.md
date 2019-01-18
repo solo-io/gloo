@@ -37,7 +37,7 @@ A gateway describes the routes to upstreams that are reachable via a specific po
 | `virtual_services` | [[]core.solo.io.ResourceRef](../../../../../solo-kit/api/v1/ref.proto.sk.md#ResourceRef) | names of the the virtual services, which contain the actual routes for the gateway if the list is empty, the gateway will apply all virtual services to this gateway |  |
 | `bind_address` | `string` | the bind address the gateway should serve traffic on |  |
 | `bind_port` | `int` | bind ports must not conflict across gateways in a namespace |  |
-| `plugins` | [.gloo.solo.io.ListenerPlugins](../../../../../solo-projects/projects/gloo/api/v1/plugins.proto.sk.md#ListenerPlugins) | top level plugin configuration for all routes on the gateway |  |
+| `plugins` | [.gloo.solo.io.ListenerPlugins](../../../gloo/api/v1/plugins.proto.sk.md#ListenerPlugins) | top level plugin configuration for all routes on the gateway |  |
 | `status` | [.core.solo.io.Status](../../../../../solo-kit/api/v1/status.proto.sk.md#Status) | Status indicates the validation status of this resource. Status is read-only by clients, and set by gloo during validation |  |
 | `metadata` | [.core.solo.io.Metadata](../../../../../solo-kit/api/v1/metadata.proto.sk.md#Metadata) | Metadata contains the object metadata for this resource |  |
 

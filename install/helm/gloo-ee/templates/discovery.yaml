@@ -22,8 +22,8 @@ spec:
     spec:
       containers:
         - name: discovery
-          image: "{{ .Values.discovery.image.repository }}:{{ .Values.discovery.image.tag }}"
-          imagePullPolicy: {{ .Values.discovery.image.pullPolicy }}
+          image: {{ .Values.discovery.image }}
+          imagePullPolicy: {{ .Values.discovery.imagePullPolicy }}
           resources:
 {{ toYaml .Values.discovery.resources | indent 12 }}
     {{- with .Values.discovery.nodeSelector }}

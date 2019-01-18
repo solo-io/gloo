@@ -22,8 +22,8 @@ spec:
     spec:
       containers:
         - name: data-plane
-          image: "{{ .Values.data_plane.image }}:{{ .Values.data_plane.imageTag }}"
-          imagePullPolicy: {{ .Values.data_plane.imagePullPolicy }}
+          image: {{ .Values.data_plane.image }}
+          imagePullPolicy: {{ .Values.data_plane.PullPolicy }}
           ports: 
           - containerPort: {{ .Values.data_plane.port }}
             name: http

@@ -38,7 +38,7 @@
 "directory_artifact_source": .gloo.solo.io.Settings.Directory
 "bind_addr": string
 "refresh_rate": .google.protobuf.Duration
-"DevMode": bool
+"dev_mode": bool
 "metadata": .core.solo.io.Metadata
 "status": .core.solo.io.Status
 
@@ -57,7 +57,7 @@
 | `directory_artifact_source` | [.gloo.solo.io.Settings.Directory](settings.proto.sk.md#Directory) |  |  |
 | `bind_addr` | `string` | where the gloo xds server should bind (should not need configuration by user) |  |
 | `refresh_rate` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | how frequently to resync watches, etc |  |
-| `DevMode` | `bool` | enable serving debug data on port 9090 |  |
+| `dev_mode` | `bool` | enable serving debug data on port 9090 |  |
 | `metadata` | [.core.solo.io.Metadata](../../../../../solo-kit/api/v1/metadata.proto.sk.md#Metadata) | Metadata contains the object metadata for this resource |  |
 | `status` | [.core.solo.io.Status](../../../../../solo-kit/api/v1/status.proto.sk.md#Status) | Status indicates the validation status of this resource. Status is read-only by clients, and set by gloo during validation |  |
 

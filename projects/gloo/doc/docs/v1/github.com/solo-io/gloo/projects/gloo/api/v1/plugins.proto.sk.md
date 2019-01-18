@@ -4,6 +4,7 @@
 ##### Types:
 
 
+- [Extensions](#Extensions)
 - [ListenerPlugins](#ListenerPlugins)
 - [VirtualHostPlugins](#VirtualHostPlugins)
 - [RoutePlugins](#RoutePlugins)
@@ -15,6 +16,23 @@
 
 ##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/plugins.proto](https://github.com/solo-io/gloo/blob/master/projects/gloo/api/v1/plugins.proto)
 
+
+
+
+
+---
+### <a name="Extensions">Extensions</a>
+
+
+
+```yaml
+"configs": map<string, .google.protobuf.Struct>
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `configs` | `map<string, .google.protobuf.Struct>` |  |  |
 
 
 
@@ -48,13 +66,13 @@ Note to developers: new Virtual Host Plugins must be added to this struct
 to be usable by Gloo.
 
 ```yaml
-"plugins": map<string, .google.protobuf.Any>
+"extensions": .gloo.solo.io.Extensions
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `plugins` | `map<string, .google.protobuf.Any>` |  |  |
+| `extensions` | [.gloo.solo.io.Extensions](plugins.proto.sk.md#Extensions) |  |  |
 
 
 
@@ -72,6 +90,8 @@ to be usable by Gloo.
 "transformations": .transformation.plugins.gloo.solo.io.RouteTransformations
 "faults": .fault.plugins.gloo.solo.io.RouteFaults
 "prefix_rewrite": .transformation.plugins.gloo.solo.io.PrefixRewrite
+"timeout": .google.protobuf.Duration
+"retries": .retries.plugins.gloo.solo.io.RetryPolicy
 
 ```
 
@@ -80,6 +100,8 @@ to be usable by Gloo.
 | `transformations` | [.transformation.plugins.gloo.solo.io.RouteTransformations](plugins/transformation/transformation.proto.sk.md#RouteTransformations) |  |  |
 | `faults` | [.fault.plugins.gloo.solo.io.RouteFaults](plugins/faultinjection/fault.proto.sk.md#RouteFaults) |  |  |
 | `prefix_rewrite` | [.transformation.plugins.gloo.solo.io.PrefixRewrite](plugins/transformation/prefix_rewrite.proto.sk.md#PrefixRewrite) |  |  |
+| `timeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) |  |  |
+| `retries` | [.retries.plugins.gloo.solo.io.RetryPolicy](plugins/retries/retries.proto.sk.md#RetryPolicy) |  |  |
 
 
 
@@ -105,7 +127,7 @@ Configuration for Destinations that are tied to the UpstreamSpec or ServiceSpec 
 | `azure` | [.azure.plugins.gloo.solo.io.DestinationSpec](plugins/azure/azure.proto.sk.md#DestinationSpec) |  |  |
 | `rest` | [.rest.plugins.gloo.solo.io.DestinationSpec](plugins/rest/rest.proto.sk.md#DestinationSpec) |  |  |
 | `grpc` | [.grpc.plugins.gloo.solo.io.DestinationSpec](plugins/grpc/grpc.proto.sk.md#DestinationSpec) |  |  |
-| `sqoop` | [.sqoop.plugins.gloo.solo.io.DestinationSpec](../../../../../solo-projects/projects/gloo/api/v1/plugins/sqoop/sqoop.proto.sk.md#DestinationSpec) |  |  |
+| `sqoop` | [.sqoop.plugins.gloo.solo.io.DestinationSpec](plugins/sqoop/sqoop.proto.sk.md#DestinationSpec) |  |  |
 
 
 

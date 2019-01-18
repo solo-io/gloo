@@ -34,12 +34,12 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 type ResolverMap struct {
 	// Types is a map of Type Names (defined in the schema) to a TypeResolver, which contain resolvers for the
 	// specific fields of the type
-	Types map[string]*TypeResolver `protobuf:"bytes,3,rep,name=types" json:"types,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value"`
+	Types map[string]*TypeResolver `protobuf:"bytes,3,rep,name=types,proto3" json:"types,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// Status indicates the validation status of this resource.
 	// Status is read-only by clients, and set by gloo during validation
-	Status core.Status `protobuf:"bytes,6,opt,name=status" json:"status" testdiff:"ignore"`
+	Status core.Status `protobuf:"bytes,6,opt,name=status,proto3" json:"status" testdiff:"ignore"`
 	// Metadata contains the object metadata for this resource
-	Metadata             core.Metadata `protobuf:"bytes,7,opt,name=metadata" json:"metadata"`
+	Metadata             core.Metadata `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
 	XXX_sizecache        int32         `json:"-"`
@@ -93,7 +93,7 @@ func (m *ResolverMap) GetMetadata() core.Metadata {
 // TypeResolver contains the individual resolvers for each field for a specific type
 type TypeResolver struct {
 	// This is a map of Field Names to the resolver that Sqoop should invoke when a query arrives for that field
-	Fields               map[string]*FieldResolver `protobuf:"bytes,1,rep,name=fields" json:"fields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value"`
+	Fields               map[string]*FieldResolver `protobuf:"bytes,1,rep,name=fields,proto3" json:"fields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
 	XXX_unrecognized     []byte                    `json:"-"`
 	XXX_sizecache        int32                     `json:"-"`
@@ -174,13 +174,13 @@ type isFieldResolver_Resolver interface {
 }
 
 type FieldResolver_GlooResolver struct {
-	GlooResolver *GlooResolver `protobuf:"bytes,1,opt,name=gloo_resolver,json=glooResolver,oneof"`
+	GlooResolver *GlooResolver `protobuf:"bytes,1,opt,name=gloo_resolver,json=glooResolver,proto3,oneof"`
 }
 type FieldResolver_TemplateResolver struct {
-	TemplateResolver *TemplateResolver `protobuf:"bytes,2,opt,name=template_resolver,json=templateResolver,oneof"`
+	TemplateResolver *TemplateResolver `protobuf:"bytes,2,opt,name=template_resolver,json=templateResolver,proto3,oneof"`
 }
 type FieldResolver_NodejsResolver struct {
-	NodejsResolver *NodeJSResolver `protobuf:"bytes,3,opt,name=nodejs_resolver,json=nodejsResolver,oneof"`
+	NodejsResolver *NodeJSResolver `protobuf:"bytes,3,opt,name=nodejs_resolver,json=nodejsResolver,proto3,oneof"`
 }
 
 func (*FieldResolver_GlooResolver) isFieldResolver_Resolver()     {}
@@ -313,14 +313,14 @@ type GlooResolver struct {
 	// the Request Template, if specified, will become the body of the HTTP request used to invoke a function through Gloo
 	// input parameters, if needed, should be specified in the request template. See Sqoop's [Resolver documentation](TODO)
 	// for more information on Request Templates.
-	RequestTemplate *RequestTemplate `protobuf:"bytes,1,opt,name=request_template,json=requestTemplate" json:"request_template,omitempty"`
+	RequestTemplate *RequestTemplate `protobuf:"bytes,1,opt,name=request_template,json=requestTemplate,proto3" json:"request_template,omitempty"`
 	// The response template, if specified, will transform the body of HTTP responses returned by Gloo functions.
 	// This field should be used if the object returned by the Gloo Function does not match the type specified in the GraphQL schema.
 	// It can also be used to modify or transform responses from their original state. See Sqoop's [Resolver documentation](TODO)
 	// for more information on Response Templates.
-	ResponseTemplate *ResponseTemplate `protobuf:"bytes,2,opt,name=response_template,json=responseTemplate" json:"response_template,omitempty"`
+	ResponseTemplate *ResponseTemplate `protobuf:"bytes,2,opt,name=response_template,json=responseTemplate,proto3" json:"response_template,omitempty"`
 	// the routing action to take when resolver is executed. usually this is a Route destination
-	Action               *v1.RouteAction `protobuf:"bytes,4,opt,name=action" json:"action,omitempty"`
+	Action               *v1.RouteAction `protobuf:"bytes,4,opt,name=action,proto3" json:"action,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
 	XXX_unrecognized     []byte          `json:"-"`
 	XXX_sizecache        int32           `json:"-"`
@@ -375,7 +375,7 @@ type RequestTemplate struct {
 	Verb                 string            `protobuf:"bytes,1,opt,name=verb,proto3" json:"verb,omitempty"`
 	Path                 string            `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
 	Body                 string            `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
-	Headers              map[string]string `protobuf:"bytes,4,rep,name=headers" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Headers              map[string]string `protobuf:"bytes,4,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
@@ -435,7 +435,7 @@ func (m *RequestTemplate) GetHeaders() map[string]string {
 
 type ResponseTemplate struct {
 	Body                 string            `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
-	Headers              map[string]string `protobuf:"bytes,3,rep,name=headers" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Headers              map[string]string `protobuf:"bytes,3,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`

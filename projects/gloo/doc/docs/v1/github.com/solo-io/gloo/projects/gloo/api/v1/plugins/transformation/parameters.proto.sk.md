@@ -21,14 +21,14 @@
 
 
 ```yaml
-"headers": map<string, .transformation.plugins.gloo.solo.io.InjaTemplate>
+"headers": map<string, string>
 "path": .google.protobuf.StringValue
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `headers` | `map<string, .transformation.plugins.gloo.solo.io.InjaTemplate>` | headers that will be used to extract data for processing output templates Gloo will search for parameters by their name in header value strings, enclosed in single curly braces Example: extensions: parameters: headers: x-user-id: { userId } |  |
+| `headers` | `map<string, string>` | headers that will be used to extract data for processing output templates Gloo will search for parameters by their name in header value strings, enclosed in single curly braces Example: extensions: parameters: headers: x-user-id: { userId } |  |
 | `path` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) | part of the (or the entire) path that will be used extract data for processing output templates Gloo will search for parameters by their name in header value strings, enclosed in single curly braces Example: extensions: parameters: path: /users/{ userId } |  |
 
 

@@ -20,3 +20,6 @@ type RateLimit struct {
 	TimeUnit            string
 	RequestsPerTimeUnit uint32
 }
+
+type Dashboard struct {
+}

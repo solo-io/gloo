@@ -22,8 +22,8 @@ spec:
     spec:
       containers:
         - name: gloo-i
-          image: "{{ .Values.gloo_i.image.repository }}:{{ .Values.gloo_i.image.tag }}"
-          imagePullPolicy: {{ .Values.gloo_i.image.pullPolicy }}
+          image: "{{ .Values.gloo_i.repository }}:{{ .Values.gloo_i.tag }}"
+          imagePullPolicy: {{ .Values.gloo_i.pullPolicy }}
           ports:
             - name: grpc-ads
               containerPort: {{ .Values.gloo_i.port }}

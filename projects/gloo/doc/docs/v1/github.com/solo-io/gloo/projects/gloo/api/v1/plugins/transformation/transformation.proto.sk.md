@@ -96,7 +96,7 @@ TODO: to solo-kit/api/envoy
 ```yaml
 "advanced_templates": bool
 "extractors": map<string, .transformation.plugins.gloo.solo.io.Extraction>
-"headers": map<string, .transformation.plugins.gloo.solo.io.InjaTemplate>
+"headers": map<string, string>
 "body": .transformation.plugins.gloo.solo.io.InjaTemplate
 "passthrough": .transformation.plugins.gloo.solo.io.Passthrough
 "merge_extractors_to_body": .transformation.plugins.gloo.solo.io.MergeExtractorsToBody
@@ -107,7 +107,7 @@ TODO: to solo-kit/api/envoy
 | ----- | ---- | ----------- |----------- | 
 | `advanced_templates` | `bool` |  |  |
 | `extractors` | `map<string, .transformation.plugins.gloo.solo.io.Extraction>` | Extractors are in the origin request language domain |  |
-| `headers` | `map<string, .transformation.plugins.gloo.solo.io.InjaTemplate>` |  |  |
+| `headers` | `map<string, string>` |  |  |
 | `body` | [.transformation.plugins.gloo.solo.io.InjaTemplate](transformation.proto.sk.md#InjaTemplate) |  |  |
 | `passthrough` | [.transformation.plugins.gloo.solo.io.Passthrough](transformation.proto.sk.md#Passthrough) |  |  |
 | `merge_extractors_to_body` | [.transformation.plugins.gloo.solo.io.MergeExtractorsToBody](transformation.proto.sk.md#MergeExtractorsToBody) |  |  |

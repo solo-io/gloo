@@ -142,6 +142,27 @@ $(OUTPUT_DIR)/Dockerfile.rate-limit: $(RATELIMIT_DIR)/cmd/Dockerfile
 rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.rate-limit
 	docker build -t soloio/rate-limit-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.rate-limit
 
+
+
+#----------------------------------------------------------------------------------
+# Observability
+#----------------------------------------------------------------------------------
+
+OBSERVABILITY_DIR=projects/observability
+OBSERVABILITY_SOURCES=$(shell find $(OBSERVABILITY_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+
+$(OUTPUT_DIR)/observability-linux-amd64: $(OBSERVABILITY_SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(OBSERVABILITY_DIR)/cmd/main.go
+
+.PHONY: observability
+observability: $(OUTPUT_DIR)/observability-linux-amd64
+
+$(OUTPUT_DIR)/Dockerfile.observability: $(OBSERVABILITY_DIR)/cmd/Dockerfile
+	cp $< $@
+
+observability-docker: $(OUTPUT_DIR)/observability-linux-amd64 $(OUTPUT_DIR)/Dockerfile.observability
+	docker build -t soloio/observability-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.observability
+
 #----------------------------------------------------------------------------------
 # Sqoop
 #----------------------------------------------------------------------------------
@@ -182,6 +203,9 @@ $(OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
 gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
 	docker build -t soloio/gloo-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo
 
+gloo-docker-dev: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
+	docker build -t soloio/gloo-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo --no-cache
+
 #----------------------------------------------------------------------------------
 # Envoy init
 #----------------------------------------------------------------------------------
@@ -202,6 +226,22 @@ $(OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile
 .PHONY: gloo-ee-envoy-wrapper-docker
 gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
 	docker build -t soloio/gloo-ee-envoy-wrapper:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
+
+
+#----------------------------------------------------------------------------------
+# Deployment Manifests / Helm
+#----------------------------------------------------------------------------------
+
+.PHONY: manifest bump-helm-version
+manifest: install/kube.yaml bump-helm-version
+
+bump-helm-version:
+	sed -i 's/version: .*/version: $(VERSION)/g' install/helm/gloo/Chart.yaml
+	sed -i 's@image: soloio/\(.*\):.*@image: soloio/\1:$(VERSION)@g' install/helm/gloo-ee/values.yaml
+
+install/kube.yaml: $(shell find install/helm/gloo-ee)
+	helm template install/helm/gloo-ee --namespace gloo-system > $@
+
 
 #----------------------------------------------------------------------------------
 # LicensingServer

@@ -91,7 +91,7 @@ Configuration for Destinations that are tied to the UpstreamSpec or ServiceSpec 
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `sqoop` | [.sqoop.plugins.gloo.solo.io.DestinationSpec](plugins/sqoop/sqoop.proto.sk.md#DestinationSpec) |  |  |
+| `sqoop` | [.sqoop.plugins.gloo.solo.io.DestinationSpec](../../../../../gloo/projects/gloo/api/v1/plugins/sqoop/sqoop.proto.sk.md#DestinationSpec) |  |  |
 
 
 

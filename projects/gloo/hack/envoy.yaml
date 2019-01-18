@@ -2,31 +2,93 @@ node:
   cluster: ingress
   id: ingress~1
 
-static_resources:
-  clusters:
+rate_limit_service:
+  use_data_plane_proto: true
+  grpc_service:
+    envoy_grpc:
+      cluster_name: rate_limit_cluster
 
-  - name: xds_cluster
-    connect_timeout: 5.000s
-    hosts:
-    - socket_address:
-        address: 127.0.0.1
-        port_value: 8080
-    http2_protocol_options: {}
-    type: STATIC
+static_resources:
+  listeners:
+    - name: prometheus_listener
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 19001
+      filter_chains:
+        - filters:
+            - name: envoy.http_connection_manager
+              config:
+                codec_type: auto
+                stat_prefix: prometheus
+                route_config:
+                  name: prometheus_route
+                  virtual_hosts:
+                    - name: prometheus_host
+                      domains:
+                        - "*"
+                      routes:
+                        - match:
+                            prefix: "/metrics"
+                          route:
+                            prefix_rewrite: "/stats/prometheus"
+                            cluster: admin_port_cluster
+                http_filters:
+                  - name: envoy.router
+                    config: {}
+  clusters:
+    - name: xds_cluster
+      connect_timeout: 5.000s
+      load_assignment:
+        cluster_name: xds_cluster
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: gloo
+                      port_value: 9977
+      http2_protocol_options: {}
+      type: STRICT_DNS
+    - name: rate_limit_cluster
+      connect_timeout: 5.000s
+      load_assignment:
+        cluster_name: rate_limit_cluster
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: rate-limit
+                      port_value: 18081
+      http2_protocol_options: {}
+      type: STRICT_DNS
+    - name: admin_port_cluster
+      connect_timeout: 5.000s
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: admin_port_cluster
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 19000
 
 dynamic_resources:
   ads_config:
     api_type: GRPC
     grpc_services:
-    - envoy_grpc: {cluster_name: xds_cluster}
+      - envoy_grpc: {cluster_name: xds_cluster}
   cds_config:
     ads: {}
   lds_config:
     ads: {}
-
 admin:
   access_log_path: /dev/null
   address:
     socket_address:
-      address: 0.0.0.0
+      address: 127.0.0.1
       port_value: 19000

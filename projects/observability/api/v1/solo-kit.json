@@ -1,0 +1,12 @@
+{
+  "name": "observability.solo.io",
+  "version": "v1",
+  "resource_groups": {
+    "dashboards.observability.solo.io": [
+      {
+        "name": "Upstream",
+        "package": "gloo.solo.io"
+      }
+    ]
+  }
+}

@@ -51,7 +51,7 @@ func (LicenseKey_Type) EnumDescriptor() ([]byte, []int) {
 }
 
 type ValidateKeyRequest struct {
-	Key                  *LicenseKey `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
+	Key                  *LicenseKey `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -136,7 +136,7 @@ type LicenseKey struct {
 	Key  string          `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	Type LicenseKey_Type `protobuf:"varint,2,opt,name=type,proto3,enum=licensing.solo.io.LicenseKey_Type" json:"type,omitempty"`
 	// Metadata contains the object metadata for this resource
-	Metadata             core.Metadata `protobuf:"bytes,4,opt,name=metadata" json:"metadata"`
+	Metadata             core.Metadata `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
 	XXX_sizecache        int32         `json:"-"`

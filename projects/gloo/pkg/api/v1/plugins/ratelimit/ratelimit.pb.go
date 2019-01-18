@@ -101,8 +101,8 @@ func (m *RateLimit) GetRequestsPerUnit() uint32 {
 
 type IngressRateLimit struct {
 	AuthorizedHeader     string     `protobuf:"bytes,1,opt,name=authorized_header,json=authorizedHeader,proto3" json:"authorized_header,omitempty"`
-	AuthorizedLimits     *RateLimit `protobuf:"bytes,2,opt,name=authorized_limits,json=authorizedLimits" json:"authorized_limits,omitempty"`
-	AnonymousLimits      *RateLimit `protobuf:"bytes,3,opt,name=anonymous_limits,json=anonymousLimits" json:"anonymous_limits,omitempty"`
+	AuthorizedLimits     *RateLimit `protobuf:"bytes,2,opt,name=authorized_limits,json=authorizedLimits,proto3" json:"authorized_limits,omitempty"`
+	AnonymousLimits      *RateLimit `protobuf:"bytes,3,opt,name=anonymous_limits,json=anonymousLimits,proto3" json:"anonymous_limits,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
 	XXX_unrecognized     []byte     `json:"-"`
 	XXX_sizecache        int32      `json:"-"`
