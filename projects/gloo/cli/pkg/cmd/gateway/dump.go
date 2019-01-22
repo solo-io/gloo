@@ -22,7 +22,7 @@ import (
 func dumpCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "dump",
-		Short: "dump Envoy config from one of the gateway proxy instances",
+		Short: "dump Envoy config from one of the proxy instances",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfgDump, err := getEnvoyCfgDump(opts)
 			if err != nil {
@@ -40,7 +40,7 @@ func dumpCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 func getEnvoyCfgDump(opts *options.Options) (string, error) {
 	adminPort := strconv.Itoa(int(defaults.EnvoyAdminPort))
 	portFwd := exec.Command("kubectl", "port-forward", "-n", opts.Metadata.Namespace,
-		"deployment/"+opts.Gateway.Proxy, adminPort)
+		"deployment/"+opts.Proxy.Name, adminPort)
 	portFwd.Stdout = os.Stderr
 	portFwd.Stderr = os.Stderr
 	if err := portFwd.Start(); err != nil {
@@ -101,7 +101,7 @@ func getEnvoyCfgDump(opts *options.Options) (string, error) {
 func statsCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stats",
-		Short: "stats for one of the gateway proxy instances",
+		Short: "stats for one of the proxy instances",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfgDump, err := getEnvoyStatsDump(opts)
 			if err != nil {
@@ -119,7 +119,7 @@ func statsCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra
 func getEnvoyStatsDump(opts *options.Options) (string, error) {
 	adminPort := strconv.Itoa(int(defaults.EnvoyAdminPort))
 	portFwd := exec.Command("kubectl", "port-forward", "-n", opts.Metadata.Namespace,
-		"deployment/"+opts.Gateway.Proxy, adminPort)
+		"deployment/"+opts.Proxy.Name, adminPort)
 	portFwd.Stdout = os.Stderr
 	portFwd.Stderr = os.Stderr
 	if err := portFwd.Start(); err != nil {
