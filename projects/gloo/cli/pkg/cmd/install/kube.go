@@ -3,11 +3,6 @@ package install
 import (
 	"bytes"
 	"fmt"
-	"os"
-	"os/exec"
-	"regexp"
-	"strings"
-
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/pkg/version"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
@@ -15,11 +10,14 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
+	"io/ioutil"
 	"k8s.io/api/core/v1"
 	kubeerrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"os"
+	"os/exec"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/spf13/cobra"
@@ -30,10 +28,8 @@ import (
 const (
 	InstallNamespace    = "gloo-system"
 	imagePullSecretName = "solo-io-docker-secret"
+	glooUrlTemplate     = "https://github.com/solo-io/gloo/releases/download/v%s/gloo.yaml"
 )
-
-//go:generate sh -c "2gobytes -p install -a glooManifestBytes -i ${GOPATH}/src/github.com/solo-io/gloo/install/gloo.yaml | sed 's@// date.*@@g' > gloo.yaml.go"
-//go:generate sh -c "2gobytes -p install -a glooKnativeManifestBytes -i ${GOPATH}/src/github.com/solo-io/gloo/install/gloo-knative.yaml | sed 's@// date.*@@g' > gloo-knative.yaml.go"
 
 func KubeCmd(opts *options.Options) *cobra.Command {
 	cmd := &cobra.Command{
@@ -47,19 +43,15 @@ func KubeCmd(opts *options.Options) *cobra.Command {
 			if err := registerSettingsCrd(); err != nil {
 				return errors.Wrapf(err, "registering settings crd")
 			}
-
-			imageVersion := opts.Install.Version
-			if imageVersion == "" {
-				imageVersion = version.Version
+			glooManifestBytes, err := readGlooManifest(opts, glooUrlTemplate)
+			if err != nil {
+				return errors.Wrapf(err, "reading gloo manifest")
 			}
-
-			manifest := glooManifestBytes
-
 			if opts.Install.DryRun {
-				fmt.Printf("%s", manifest)
+				fmt.Printf("%s", glooManifestBytes)
 				return nil
 			}
-			return applyManifest(manifest, imageVersion)
+			return applyManifest(glooManifestBytes)
 		},
 	}
 	pflags := cmd.PersistentFlags()
@@ -67,10 +59,31 @@ func KubeCmd(opts *options.Options) *cobra.Command {
 	return cmd
 }
 
-func applyManifest(manifest []byte, imageVersion string) error {
+func readGlooManifest(opts *options.Options, urlTemplate string) ([]byte, error) {
+	if opts.Install.File != "" {
+		return readManifestFromFile(opts.Install.File)
+	}
+	if version.Version == version.UndefinedVersion || version.Version == version.DevVersion {
+		return nil, errors.Errorf("You must provide a file containing the gloo manifest when running an unreleased version of glooctl.")
+	}
+	return readGlooManifestFromRelease(version.Version, urlTemplate)
+}
+
+func readManifestFromFile(path string) ([]byte, error) {
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Error reading file %s", path)
+	}
+	return bytes, nil
+}
+
+func readGlooManifestFromRelease(version, urlTemplate string) ([]byte, error) {
+	return readManifest(version, urlTemplate)
+}
+
+func applyManifest(manifest []byte) error {
 	kubectl := exec.Command("kubectl", "apply", "-f", "-")
-	updatedManifest := UpdateBytesWithVersion(manifest, imageVersion)
-	kubectl.Stdin = bytes.NewBuffer(updatedManifest)
+	kubectl.Stdin = bytes.NewBuffer(manifest)
 	kubectl.Stdout = os.Stdout
 	kubectl.Stderr = os.Stderr
 	return kubectl.Run()
@@ -89,22 +102,6 @@ func registerSettingsCrd() error {
 	})
 
 	return settingsClient.Register()
-}
-
-func UpdateBytesWithVersion(manifestBytes []byte, version string) []byte {
-	if version == "undefined" {
-		return manifestBytes
-	}
-	manifest := string(manifestBytes)
-	regexString := `image: soloio/\S+:(.+)`
-	regex := regexp.MustCompile(regexString)
-	matches := regex.FindStringSubmatch(manifest)
-	if len(matches) < 2 {
-		return manifestBytes
-	}
-	oldVersion := matches[1]
-	updatedManifest := strings.Replace(manifest, oldVersion, version, -1)
-	return []byte(updatedManifest)
 }
 
 func createImagePullSecretIfNeeded(install options.Install) error {
@@ -129,6 +126,10 @@ func createImagePullSecretIfNeeded(install options.Install) error {
 			"--docker-email \n" +
 			"--docker-username \n" +
 			"--docker-password \n")
+	}
+
+	if install.DryRun {
+		return nil
 	}
 
 	kubectl := exec.Command("kubectl", "create", "secret", "docker-registry", "-n", InstallNamespace,

@@ -19,3 +19,9 @@
 .project
 .idea/
 *.tmproj
+
+# template files
+*-template.yaml
+# generator files
+*.go
+generate/

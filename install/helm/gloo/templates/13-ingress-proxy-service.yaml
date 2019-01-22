@@ -8,10 +8,10 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
-  - port: {{ .Values.deployment.ingressProxy.httpPort }}
+  - port: {{ .Values.ingressProxy.deployment.httpPort }}
     protocol: TCP
     name: http
-  - port: {{ .Values.deployment.ingressProxy.httpsPort }}
+  - port: {{ .Values.ingressProxy.deployment.httpsPort }}
     protocol: TCP
     name: https
   selector:

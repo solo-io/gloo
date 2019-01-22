@@ -1,0 +1,14 @@
+settings:
+  integrations:
+    knative:
+      enabled: true
+      proxy:
+        image:
+          repository: soloio/gloo-envoy-wrapper
+          pullPolicy: Always
+        httpPort: 80
+        httpsPort: 443
+        replicas: 1
+
+# Everything else is the same as values-template.yaml
+

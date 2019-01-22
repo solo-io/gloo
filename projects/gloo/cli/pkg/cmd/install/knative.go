@@ -1,10 +1,7 @@
 package install
 
 import (
-	"bytes"
 	"fmt"
-	"os"
-	"os/exec"
 
 	"github.com/solo-io/gloo/pkg/version"
 	"github.com/solo-io/go-utils/errors"
@@ -19,7 +16,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//go:generate sh -c "2gobytes -p install -a knativeManifestBytes -i ${GOPATH}/src/github.com/solo-io/gloo/install/integrations/knative-no-istio-0.3.0.yaml | sed 's@// date.*@@g' > knative.yaml.go"
+const (
+	knativeUrlTemplate     = "https://github.com/solo-io/gloo/releases/download/v%s/knative-no-istio-0.3.0.yaml"
+	glooKnativeUrlTemplate = "https://github.com/solo-io/gloo/releases/download/v%s/gloo-knative.yaml"
+)
 
 func KnativeCmd(opts *options.Options) *cobra.Command {
 	cmd := &cobra.Command{
@@ -31,13 +31,18 @@ func KnativeCmd(opts *options.Options) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			if !installed {
-				kubectl := exec.Command("kubectl", "apply", "-f", "-")
-				kubectl.Stdin = bytes.NewBuffer(knativeManifestBytes)
-				kubectl.Stdout = os.Stdout
-				kubectl.Stderr = os.Stderr
-				if err := kubectl.Run(); err != nil {
-					return err
+				knativeManifestBytes, err := readKnativeManifest(opts, knativeUrlTemplate)
+				if err != nil {
+					return errors.Wrapf(err, "reading knative manifest")
+				}
+				if opts.Install.DryRun {
+					fmt.Printf("%s", knativeManifestBytes)
+				} else {
+					if err := applyManifest(knativeManifestBytes); err != nil {
+						return err
+					}
 				}
 			}
 
@@ -45,23 +50,31 @@ func KnativeCmd(opts *options.Options) *cobra.Command {
 				return errors.Wrapf(err, "creating image pull secret")
 			}
 
-			imageVersion := opts.Install.Version
-			if imageVersion == "" {
-				imageVersion = version.Version
+			glooKnativeManifestBytes, err := readGlooManifest(opts, glooKnativeUrlTemplate)
+			if err != nil {
+				return errors.Wrapf(err, "reading gloo knative manifest")
 			}
-
-			manifest := glooKnativeManifestBytes
 
 			if opts.Install.DryRun {
-				fmt.Printf("%s", manifest)
+				fmt.Printf("%s", glooKnativeManifestBytes)
 				return nil
 			}
-			return applyManifest(manifest, imageVersion)
+			return applyManifest(glooKnativeManifestBytes)
 		},
 	}
 	pflags := cmd.PersistentFlags()
 	flagutils.AddInstallFlags(pflags, &opts.Install)
 	return cmd
+}
+
+func readKnativeManifest(opts *options.Options, urlTemplate string) ([]byte, error) {
+	if opts.Install.KnativeManifest != "" {
+		return readManifestFromFile(opts.Install.KnativeManifest)
+	}
+	if version.Version == version.UndefinedVersion || version.Version == version.DevVersion {
+		return nil, errors.Errorf("You must provide a file containing the knative manifest when running an unreleased version of glooctl.")
+	}
+	return readManifest(version.Version, urlTemplate)
 }
 
 const knativeServingNamespace = "knative-serving"
