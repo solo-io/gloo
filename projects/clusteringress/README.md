@@ -124,7 +124,7 @@ Note: if your cluster is running in minishift, you'll need to run the following 
 url: 
 
 ```bash
-export INGRESS=$(glooctl proxy url --proxy clusteringress-proxy --local-cluster)
+export INGRESS=$(glooctl proxy url --name clusteringress-proxy --local-cluster)
 echo $INGRESS
 
 http://192.168.99.163:32220
