@@ -3,22 +3,17 @@ package graphql
 import (
 	"context"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 )
 
-type virtualServiceQueryResolver struct{ *ApiResolver }
-
-func (r *virtualServiceQueryResolver) List(ctx context.Context, obj *customtypes.VirtualServiceQuery, selector *models.InputMapStringString) ([]*models.VirtualService, error) {
-	var convertedSelector map[string]string
-	if selector != nil {
-		convertedSelector = selector.GoType()
-	}
-	list, err := r.VirtualServices.List(obj.Namespace, clients.ListOpts{
-		Ctx:      ctx,
-		Selector: convertedSelector,
+func (r *namespaceResolver) VirtualServices(ctx context.Context, obj *customtypes.Namespace) ([]*models.VirtualService, error) {
+	list, err := r.VirtualServiceClient.List(obj.Name, clients.ListOpts{
+		Ctx: ctx,
 	})
 	if err != nil {
 		return nil, err
@@ -26,8 +21,8 @@ func (r *virtualServiceQueryResolver) List(ctx context.Context, obj *customtypes
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualServices(list)
 }
 
-func (r *virtualServiceQueryResolver) Get(ctx context.Context, obj *customtypes.VirtualServiceQuery, name string) (*models.VirtualService, error) {
-	virtualService, err := r.VirtualServices.Read(obj.Namespace, name, clients.ReadOpts{
+func (r *namespaceResolver) VirtualService(ctx context.Context, obj *customtypes.Namespace, name string) (*models.VirtualService, error) {
+	virtualService, err := r.VirtualServiceClient.Read(obj.Name, name, clients.ReadOpts{
 		Ctx: ctx,
 	})
 	if err != nil {
@@ -43,7 +38,7 @@ func (r *virtualServiceMutationResolver) Create(ctx context.Context, obj *custom
 	if err != nil {
 		return nil, err
 	}
-	out, err := r.VirtualServices.Write(v1VirtualService, clients.WriteOpts{
+	out, err := r.VirtualServiceClient.Write(v1VirtualService, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: false,
 	})
@@ -55,8 +50,12 @@ func (r *virtualServiceMutationResolver) Create(ctx context.Context, obj *custom
 
 // Reads the virtual service identified for update from storage
 // Steps through the update object and applies only the requested updates
-func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string, resourceVersion string, updates models.InputUpdateVirtualService) (*models.VirtualService, error) {
-	virtualService, err := r.VirtualServices.Read(obj.Namespace, name, clients.ReadOpts{Ctx: ctx})
+func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *customtypes.VirtualServiceMutation, guid string, resourceVersion string, updates models.InputUpdateVirtualService) (*models.VirtualService, error) {
+	_, namespace, name, err := resources.SplitKey(guid)
+	if err != nil {
+		return &models.VirtualService{}, err
+	}
+	virtualService, err := r.VirtualServiceClient.Read(namespace, name, clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +87,7 @@ func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *custom
 		return nil, errors.Errorf("Plugin updates are not yet supported.")
 	}
 
-	out, err := r.VirtualServices.Write(virtualService, clients.WriteOpts{
+	out, err := r.VirtualServiceClient.Write(virtualService, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: true,
 	})
@@ -97,8 +96,13 @@ func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *custom
 	}
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
 }
-func (r *virtualServiceMutationResolver) Delete(ctx context.Context, obj *customtypes.VirtualServiceMutation, name string) (*models.VirtualService, error) {
-	virtualService, err := r.VirtualServices.Read(obj.Namespace, name, clients.ReadOpts{
+
+func (r *virtualServiceMutationResolver) Delete(ctx context.Context, obj *customtypes.VirtualServiceMutation, guid string) (*models.VirtualService, error) {
+	_, namespace, name, err := resources.SplitKey(guid)
+	if err != nil {
+		return &models.VirtualService{}, err
+	}
+	virtualService, err := r.VirtualServiceClient.Read(namespace, name, clients.ReadOpts{
 		Ctx: ctx,
 	})
 	if err != nil {
@@ -108,19 +112,24 @@ func (r *virtualServiceMutationResolver) Delete(ctx context.Context, obj *custom
 		return nil, err
 	}
 
-	err = r.VirtualServices.Delete(obj.Namespace, name, clients.DeleteOpts{Ctx: ctx})
+	err = r.VirtualServiceClient.Delete(namespace, name, clients.DeleteOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(virtualService)
 }
-func (r *virtualServiceMutationResolver) AddRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error) {
+
+func (r *virtualServiceMutationResolver) AddRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceId string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error) {
+	_, namespace, name, err := resources.SplitKey(virtualServiceId)
+	if err != nil {
+		return &models.VirtualService{}, err
+	}
 	v1Route, err := NewConverter(r.ApiResolver, ctx).ConvertInputRoute(route)
 	if err != nil {
 		return nil, err
 	}
 
-	virtualService, err := r.VirtualServices.Read(obj.Namespace, virtualServiceName, clients.ReadOpts{Ctx: ctx})
+	virtualService, err := r.VirtualServiceClient.Read(namespace, name, clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +144,7 @@ func (r *virtualServiceMutationResolver) AddRoute(ctx context.Context, obj *cust
 	copy(virtualService.VirtualHost.Routes[index+1:], virtualService.VirtualHost.Routes[index:])
 	virtualService.VirtualHost.Routes[index] = v1Route
 
-	out, err := r.VirtualServices.Write(virtualService, clients.WriteOpts{
+	out, err := r.VirtualServiceClient.Write(virtualService, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: true,
 	})
@@ -145,13 +154,17 @@ func (r *virtualServiceMutationResolver) AddRoute(ctx context.Context, obj *cust
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
 }
 
-func (r *virtualServiceMutationResolver) UpdateRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error) {
+func (r *virtualServiceMutationResolver) UpdateRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceId string, resourceVersion string, index int, route models.InputRoute) (*models.VirtualService, error) {
+	_, namespace, name, err := resources.SplitKey(virtualServiceId)
+	if err != nil {
+		return &models.VirtualService{}, err
+	}
 	v1Route, err := NewConverter(r.ApiResolver, ctx).ConvertInputRoute(route)
 	if err != nil {
 		return nil, err
 	}
 
-	virtualService, err := r.VirtualServices.Read(obj.Namespace, virtualServiceName, clients.ReadOpts{Ctx: ctx})
+	virtualService, err := r.VirtualServiceClient.Read(namespace, name, clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +178,7 @@ func (r *virtualServiceMutationResolver) UpdateRoute(ctx context.Context, obj *c
 
 	virtualService.VirtualHost.Routes[index] = v1Route
 
-	out, err := r.VirtualServices.Write(virtualService, clients.WriteOpts{
+	out, err := r.VirtualServiceClient.Write(virtualService, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: true,
 	})
@@ -175,8 +188,12 @@ func (r *virtualServiceMutationResolver) UpdateRoute(ctx context.Context, obj *c
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
 }
 
-func (r *virtualServiceMutationResolver) DeleteRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index int) (*models.VirtualService, error) {
-	virtualService, err := r.VirtualServices.Read(obj.Namespace, virtualServiceName, clients.ReadOpts{Ctx: ctx})
+func (r *virtualServiceMutationResolver) DeleteRoute(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceId string, resourceVersion string, index int) (*models.VirtualService, error) {
+	_, namespace, name, err := resources.SplitKey(virtualServiceId)
+	if err != nil {
+		return &models.VirtualService{}, err
+	}
+	virtualService, err := r.VirtualServiceClient.Read(namespace, name, clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +207,7 @@ func (r *virtualServiceMutationResolver) DeleteRoute(ctx context.Context, obj *c
 
 	virtualService.VirtualHost.Routes = append(virtualService.VirtualHost.Routes[:index], virtualService.VirtualHost.Routes[index+1:]...)
 
-	out, err := r.VirtualServices.Write(virtualService, clients.WriteOpts{
+	out, err := r.VirtualServiceClient.Write(virtualService, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: true,
 	})
@@ -200,8 +217,12 @@ func (r *virtualServiceMutationResolver) DeleteRoute(ctx context.Context, obj *c
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
 }
 
-func (r *virtualServiceMutationResolver) SwapRoutes(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, index1 int, index2 int) (*models.VirtualService, error) {
-	virtualService, err := r.VirtualServices.Read(obj.Namespace, virtualServiceName, clients.ReadOpts{Ctx: ctx})
+func (r *virtualServiceMutationResolver) SwapRoutes(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceId string, resourceVersion string, index1 int, index2 int) (*models.VirtualService, error) {
+	_, namespace, name, err := resources.SplitKey(virtualServiceId)
+	if err != nil {
+		return &models.VirtualService{}, err
+	}
+	virtualService, err := r.VirtualServiceClient.Read(namespace, name, clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +235,7 @@ func (r *virtualServiceMutationResolver) SwapRoutes(ctx context.Context, obj *cu
 	}
 
 	virtualService.VirtualHost.Routes[index1], virtualService.VirtualHost.Routes[index2] = virtualService.VirtualHost.Routes[index2], virtualService.VirtualHost.Routes[index1]
-	out, err := r.VirtualServices.Write(virtualService, clients.WriteOpts{
+	out, err := r.VirtualServiceClient.Write(virtualService, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: true,
 	})
@@ -227,8 +248,12 @@ func (r *virtualServiceMutationResolver) SwapRoutes(ctx context.Context, obj *cu
 
 // Removes the route at fromIndex and inserts it at toIndex.
 // Any routes in between shift to fill the hole or to make room.
-func (r *virtualServiceMutationResolver) ShiftRoutes(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceName string, resourceVersion string, fromIndex int, toIndex int) (*models.VirtualService, error) {
-	virtualService, err := r.VirtualServices.Read(obj.Namespace, virtualServiceName, clients.ReadOpts{Ctx: ctx})
+func (r *virtualServiceMutationResolver) ShiftRoutes(ctx context.Context, obj *customtypes.VirtualServiceMutation, virtualServiceId string, resourceVersion string, fromIndex int, toIndex int) (*models.VirtualService, error) {
+	_, namespace, name, err := resources.SplitKey(virtualServiceId)
+	if err != nil {
+		return &models.VirtualService{}, err
+	}
+	virtualService, err := r.VirtualServiceClient.Read(namespace, name, clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +277,7 @@ func (r *virtualServiceMutationResolver) ShiftRoutes(ctx context.Context, obj *c
 		}
 	}
 
-	out, err := r.VirtualServices.Write(virtualService, clients.WriteOpts{
+	out, err := r.VirtualServiceClient.Write(virtualService, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: true,
 	})

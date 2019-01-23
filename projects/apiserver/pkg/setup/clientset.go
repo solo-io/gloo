@@ -8,6 +8,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/config"
 
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/graph"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -73,6 +74,7 @@ type ClientSet struct {
 	gloov1.ArtifactClient
 	sqoopv1.ResolverMapClient
 	sqoopv1.SchemaClient
+	corev1.CoreV1Interface
 }
 
 func (c ClientSet) NewResolvers() graph.ResolverRoot {
@@ -83,7 +85,8 @@ func (c ClientSet) NewResolvers() graph.ResolverRoot {
 		c.SettingsClient,
 		c.SecretClient,
 		c.VirtualServiceClient,
-		c.ResolverMapClient)
+		c.ResolverMapClient,
+		c.CoreV1Interface)
 }
 
 // Returns a set of clients that use Kubernetes as storage
@@ -163,6 +166,7 @@ func NewClientSet(token string) (*ClientSet, error) {
 		SettingsClient:       settingsClient,
 		SecretClient:         secretClient,
 		ArtifactClient:       artifactClient,
+		CoreV1Interface:      kubeClientset.CoreV1(),
 	}, nil
 }
 
@@ -399,5 +403,6 @@ func newAdminClientSet() (*ClientSet, error) {
 		SettingsClient:       settingsClient,
 		SecretClient:         secretClient,
 		ArtifactClient:       artifactClient,
+		CoreV1Interface:      kubeClientset.CoreV1(),
 	}, nil
 }

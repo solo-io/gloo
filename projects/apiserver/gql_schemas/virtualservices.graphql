@@ -1,47 +1,42 @@
-type VirtualServiceQuery {
-  list(selector: InputMapStringString): [VirtualService]
-  get(name: String!): VirtualService
-}
-
 type VirtualServiceMutation {
   create(virtualService: InputVirtualService!): VirtualService
   update(
-    name: String!
+    virtualServiceId: ID!
     resourceVersion: String!
     updates: InputUpdateVirtualService!
   ): VirtualService
 
-  delete(name: String!): VirtualService
+  delete(guid: ID!): VirtualService
 
   addRoute(
-    virtualServiceName: String!
+    virtualServiceId: ID!
     resourceVersion: String!
     index: Int!
     route: InputRoute!
   ): VirtualService
 
   updateRoute(
-    virtualServiceName: String!
+    virtualServiceId: ID!
     resourceVersion: String!
     index: Int!
     route: InputRoute!
   ): VirtualService
 
   deleteRoute(
-    virtualServiceName: String!
+    virtualServiceId: ID!
     resourceVersion: String!
     index: Int!
   ): VirtualService
 
   swapRoutes(
-    virtualServiceName: String!
+    virtualServiceId: ID!
     resourceVersion: String!
     index1: Int!
     index2: Int!
   ): VirtualService
 
   shiftRoutes(
-    virtualServiceName: String!
+    virtualServiceId: ID!
     resourceVersion: String!
     fromIndex: Int!
     toIndex: Int!

@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	"github.com/gogo/protobuf/types"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -57,6 +59,7 @@ var _ = Describe("Converter", func() {
 			gloov1.SecretClient(nil),
 			gatewayv1.VirtualServiceClient(nil),
 			sqoopv1.ResolverMapClient(nil),
+			corev1.CoreV1Interface(nil),
 		)
 
 		converter = graphql.NewConverter(resolvers, context.TODO())

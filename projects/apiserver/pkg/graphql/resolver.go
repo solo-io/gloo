@@ -3,24 +3,28 @@ package graphql
 import (
 	"context"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
-	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/graph"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 type ApiResolver struct {
-	Upstreams       v1.UpstreamClient
-	Secrets         v1.SecretClient
-	Artifacts       v1.ArtifactClient
-	Settings        v1.SettingsClient
-	VirtualServices gatewayv1.VirtualServiceClient
-	ResolverMaps    sqoopv1.ResolverMapClient
-	Schemas         sqoopv1.SchemaClient
+	UpstreamClient       v1.UpstreamClient
+	SecretClient         v1.SecretClient
+	ArtifactClient       v1.ArtifactClient
+	SettingsClient       v1.SettingsClient
+	VirtualServiceClient gatewayv1.VirtualServiceClient
+	ResolverMapClient    sqoopv1.ResolverMapClient
+	SchemaClient         sqoopv1.SchemaClient
+	KubeClient           corev1.CoreV1Interface
 }
 
 func NewResolvers(upstreams v1.UpstreamClient,
@@ -29,134 +33,57 @@ func NewResolvers(upstreams v1.UpstreamClient,
 	settings v1.SettingsClient,
 	secrets v1.SecretClient,
 	virtualServices gatewayv1.VirtualServiceClient,
-	resolverMaps sqoopv1.ResolverMapClient) *ApiResolver {
+	resolverMaps sqoopv1.ResolverMapClient,
+	kubeClient corev1.CoreV1Interface,
+) *ApiResolver {
 	return &ApiResolver{
-		Upstreams:       upstreams,
-		VirtualServices: virtualServices,
-		ResolverMaps:    resolverMaps,
-		Schemas:         schemas,
-		Artifacts:       artifacts,
-		Settings:        settings,
-		Secrets:         secrets,
+		UpstreamClient:       upstreams,
+		VirtualServiceClient: virtualServices,
+		ResolverMapClient:    resolverMaps,
+		SchemaClient:         schemas,
+		ArtifactClient:       artifacts,
+		SettingsClient:       settings,
+		SecretClient:         secrets,
+		KubeClient:           kubeClient,
 		// TODO(ilackarms): just make these private functions, remove converter
 	}
 }
 
+func (r *ApiResolver) Query() graph.QueryResolver {
+	return &queryResolver{r}
+}
 func (r *ApiResolver) Mutation() graph.MutationResolver {
 	return &mutationResolver{r}
 }
-func (r *ApiResolver) Query() graph.QueryResolver {
-	return &queryResolver{r}
+func (r *ApiResolver) Subscription() graph.SubscriptionResolver {
+	return &subscriptionResolver{r}
+}
+func (r *ApiResolver) Namespace() graph.NamespaceResolver {
+	return &namespaceResolver{r}
 }
 func (r *ApiResolver) UpstreamMutation() graph.UpstreamMutationResolver {
 	return &upstreamMutationResolver{r}
 }
-func (r *ApiResolver) UpstreamQuery() graph.UpstreamQueryResolver {
-	return &upstreamQueryResolver{r}
-}
 func (r *ApiResolver) VirtualServiceMutation() graph.VirtualServiceMutationResolver {
 	return &virtualServiceMutationResolver{r}
-}
-func (r *ApiResolver) VirtualServiceQuery() graph.VirtualServiceQueryResolver {
-	return &virtualServiceQueryResolver{r}
 }
 func (r *ApiResolver) ResolverMapMutation() graph.ResolverMapMutationResolver {
 	return &resolverMapMutationResolver{r}
 }
-func (r *ApiResolver) ResolverMapQuery() graph.ResolverMapQueryResolver {
-	return &resolverMapQueryResolver{r}
-}
-
 func (r *ApiResolver) SchemaMutation() graph.SchemaMutationResolver {
 	return &schemaMutationResolver{r}
 }
-func (r *ApiResolver) SchemaQuery() graph.SchemaQueryResolver {
-	return &schemaQueryResolver{r}
-}
-
 func (r *ApiResolver) ArtifactMutation() graph.ArtifactMutationResolver {
 	return &artifactMutationResolver{r}
 }
-
-func (r *ApiResolver) ArtifactQuery() graph.ArtifactQueryResolver {
-	return &artifactQueryResolver{r}
-}
-
 func (r *ApiResolver) SettingsMutation() graph.SettingsMutationResolver {
 	return &settingsMutationResolver{r}
 }
-
-func (r *ApiResolver) SettingsQuery() graph.SettingsQueryResolver {
-	return &settingsQueryResolver{r}
-}
-
 func (r *ApiResolver) SecretMutation() graph.SecretMutationResolver {
 	return &secretMutationResolver{r}
 }
 
-func (r *ApiResolver) SecretQuery() graph.SecretQueryResolver {
-	return &secretQueryResolver{r}
-}
-
-func (r *ApiResolver) VcsMutation() graph.VcsMutationResolver {
-	return &vcsMutationResolver{r}
-}
-
-type mutationResolver struct{ *ApiResolver }
-
-func (r *mutationResolver) Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamMutation, error) {
-	return customtypes.UpstreamMutation{Namespace: namespace}, nil
-}
-func (r *mutationResolver) VirtualServices(ctx context.Context, namespace string) (customtypes.VirtualServiceMutation, error) {
-	return customtypes.VirtualServiceMutation{Namespace: namespace}, nil
-}
-func (r *mutationResolver) ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapMutation, error) {
-	return customtypes.ResolverMapMutation{Namespace: namespace}, nil
-}
-func (r *mutationResolver) Schemas(ctx context.Context, namespace string) (customtypes.SchemaMutation, error) {
-	return customtypes.SchemaMutation{Namespace: namespace}, nil
-}
-func (r *mutationResolver) Secrets(ctx context.Context, namespace string) (customtypes.SecretMutation, error) {
-	return customtypes.SecretMutation{Namespace: namespace}, nil
-}
-func (r *mutationResolver) Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactMutation, error) {
-	return customtypes.ArtifactMutation{Namespace: namespace}, nil
-}
-func (r *mutationResolver) Settings(ctx context.Context) (customtypes.SettingsMutation, error) {
-	return customtypes.SettingsMutation{}, nil
-}
-func (r *mutationResolver) Vcs(ctx context.Context) (customtypes.VcsMutation, error) {
-	return customtypes.VcsMutation{}, nil
-}
-func (r *mutationResolver) Versioned(ctx context.Context, branch string) (models.VersionedMutation, error) {
-	return models.VersionedMutation{}, nil
-}
-
 type queryResolver struct{ *ApiResolver }
-
-func (r *queryResolver) Resource(ctx context.Context, guid string) (models.Resource, error) {
-	kind, namespace, name, err := resources.SplitKey(guid)
-	if err != nil {
-		return nil, err
-	}
-	switch kind {
-	case resources.Kind(&v1.Upstream{}):
-		return r.UpstreamQuery().Get(ctx, &customtypes.UpstreamQuery{Namespace: namespace}, name)
-	case resources.Kind(&gatewayv1.VirtualService{}):
-		return r.VirtualServiceQuery().Get(ctx, &customtypes.VirtualServiceQuery{Namespace: namespace}, name)
-	case resources.Kind(&sqoopv1.ResolverMap{}):
-		return r.ResolverMapQuery().Get(ctx, &customtypes.ResolverMapQuery{Namespace: namespace}, name)
-	case resources.Kind(&sqoopv1.Schema{}):
-		return r.SchemaQuery().Get(ctx, &customtypes.SchemaQuery{Namespace: namespace}, name)
-	case resources.Kind(&v1.Secret{}):
-		return r.SecretQuery().Get(ctx, &customtypes.SecretQuery{Namespace: namespace}, name)
-	case resources.Kind(&v1.Artifact{}):
-		return r.ArtifactQuery().Get(ctx, &customtypes.ArtifactQuery{Namespace: namespace}, name)
-	case resources.Kind(&v1.Settings{}):
-		return r.SettingsQuery().Get(ctx, &customtypes.SettingsQuery{})
-	}
-	return nil, errors.Errorf("unknown kind %v", kind)
-}
 
 func (r *queryResolver) GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpoint, error) {
 	return getOAuthEndpoint()
@@ -166,33 +93,61 @@ func (r *queryResolver) Version(ctx context.Context) (string, error) {
 	return getAPIVersion(), nil
 }
 
-func (r *queryResolver) Upstreams(ctx context.Context, namespace string) (customtypes.UpstreamQuery, error) {
-	return customtypes.UpstreamQuery{Namespace: namespace}, nil
+func (r *queryResolver) Namespace(ctx context.Context, name string) (customtypes.Namespace, error) {
+	return customtypes.Namespace{Name: name}, nil
 }
-func (r *queryResolver) VirtualServices(ctx context.Context, namespace string) (customtypes.VirtualServiceQuery, error) {
-	return customtypes.VirtualServiceQuery{Namespace: namespace}, nil
+
+// This method causes the namespaceResolver (and the Kubernetes clients it uses) to be invoked once for every namespace.
+// The Kubernetes go-client could issue a single API call for all namespaces (by passing an empty namespace), but the
+// way that gqlgen generates resolvers prevents us from taking advantage of this without creating additional custom
+// types that would pollute the GraphQL schema.
+// Fortunately, we can live with this, since the client caching mechanism we have in place mitigates the problem.
+func (r *queryResolver) AllNamespaces(ctx context.Context) ([]customtypes.Namespace, error) {
+	nsList, err := r.KubeClient.Namespaces().List(metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	var namespaces []customtypes.Namespace
+	for _, ns := range nsList.Items {
+		namespaces = append(namespaces, customtypes.Namespace{Name: ns.Name})
+	}
+	return namespaces, nil
 }
-func (r *queryResolver) ResolverMaps(ctx context.Context, namespace string) (customtypes.ResolverMapQuery, error) {
-	return customtypes.ResolverMapQuery{Namespace: namespace}, nil
+
+func (r *queryResolver) Settings(ctx context.Context) (*models.Settings, error) {
+	namespace := defaults.GlooSystem
+	name := defaults.SettingsName
+	settings, err := r.SettingsClient.Read(namespace, name, clients.ReadOpts{
+		Ctx: ctx,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputSettings(settings), nil
 }
-func (r *queryResolver) Schemas(ctx context.Context, namespace string) (customtypes.SchemaQuery, error) {
-	return customtypes.SchemaQuery{Namespace: namespace}, nil
+
+type mutationResolver struct{ *ApiResolver }
+
+func (r *mutationResolver) Upstreams(ctx context.Context) (customtypes.UpstreamMutation, error) {
+	return customtypes.UpstreamMutation{}, nil
 }
-func (r *queryResolver) Secrets(ctx context.Context, namespace string) (customtypes.SecretQuery, error) {
-	return customtypes.SecretQuery{Namespace: namespace}, nil
+func (r *mutationResolver) VirtualServices(ctx context.Context) (customtypes.VirtualServiceMutation, error) {
+	return customtypes.VirtualServiceMutation{}, nil
 }
-func (r *queryResolver) Artifacts(ctx context.Context, namespace string) (customtypes.ArtifactQuery, error) {
-	return customtypes.ArtifactQuery{Namespace: namespace}, nil
+func (r *mutationResolver) ResolverMaps(ctx context.Context) (customtypes.ResolverMapMutation, error) {
+	return customtypes.ResolverMapMutation{}, nil
 }
-func (r *queryResolver) Settings(ctx context.Context) (customtypes.SettingsQuery, error) {
-	return customtypes.SettingsQuery{}, nil
+func (r *mutationResolver) Schemas(ctx context.Context) (customtypes.SchemaMutation, error) {
+	return customtypes.SchemaMutation{}, nil
 }
-func (r *queryResolver) Vcs(ctx context.Context) (models.VcsQuery, error) {
-	return getVcs(ctx)
+func (r *mutationResolver) Secrets(ctx context.Context) (customtypes.SecretMutation, error) {
+	return customtypes.SecretMutation{}, nil
 }
-func (r *queryResolver) Versioned(ctx context.Context, branch string) (models.VersionedQuery, error) {
-	return models.VersionedQuery{}, nil
+func (r *mutationResolver) Artifacts(ctx context.Context) (customtypes.ArtifactMutation, error) {
+	return customtypes.ArtifactMutation{}, nil
 }
-func (r *ApiResolver) Subscription() graph.SubscriptionResolver {
-	return &subscriptionResolver{r}
+func (r *mutationResolver) Settings(ctx context.Context) (customtypes.SettingsMutation, error) {
+	return customtypes.SettingsMutation{}, nil
 }
+
+type namespaceResolver struct{ *ApiResolver }

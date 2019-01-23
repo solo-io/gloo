@@ -1,58 +1,53 @@
 # Top Level
 schema {
-  query: Query
-  mutation: Mutation
+    query: Query
+    mutation: Mutation
 }
 
 type Query {
-  resource(guid: String!): Resource!
-  version: String!
-  upstreams(namespace: String!): UpstreamQuery!
-  virtualServices(namespace: String!): VirtualServiceQuery!
-  schemas(namespace: String!): SchemaQuery!
-  secrets(namespace: String!): SecretQuery!
-  settings: SettingsQuery!
-  vcs: VcsQuery!
-  versioned(branch: String!): VersionedQuery!
+    version: String!
+    getOAuthEndpoint: OAuthEndpoint!
+    allNamespaces: [Namespace!]!
+    namespace(name: String!): Namespace!
+    settings: Settings
 }
 
 type Mutation {
-  upstreams(namespace: String!): UpstreamMutation!
-  virtualServices(namespace: String!): VirtualServiceMutation!
-  resolverMaps(namespace: String!): ResolverMapMutation!
-  schemas(namespace: String!): SchemaMutation!
-  secrets(namespace: String!): SecretMutation!
-  artifacts(namespace: String!): ArtifactMutation!
-  settings: SettingsMutation!
-  vcs: VcsMutation!
-  versioned(branch: String!): VersionedMutation!
+    upstreams: UpstreamMutation!
+    virtualServices: VirtualServiceMutation!
+    resolverMaps: ResolverMapMutation!
+    schemas: SchemaMutation!
+    secrets: SecretMutation!
+    artifacts: ArtifactMutation!
+    settings: SettingsMutation!
 }
 
 type Subscription {
-  upstreams(namespace: String!, selector: InputMapStringString): [Upstream]
-  virtualServices(
-    namespace: String!
-    selector: InputMapStringString
-  ): [VirtualService]
+    upstreams(namespace: String!, selector: InputMapStringString): [Upstream]
+    virtualServices(
+        namespace: String!
+        selector: InputMapStringString
+    ): [VirtualService]
 }
 
-union Resource =
-    Upstream
-  | VirtualService
-  | ResolverMap
-  | Schema
-  | Secret
-  | Artifact
-  | Settings
+type Namespace {
+    name: String!
 
-# TODO: add other versioned resources
-# Queries resources inside a changeset
-type VersionedQuery {
-  virtualServices(namespace: String!): VirtualServiceQuery!
-}
+    upstreams: [Upstream]!
+    upstream(name: String!): Upstream
 
-# TODO: add other versioned resources
-# Mutates resources inside a changeset
-type VersionedMutation {
-  virtualServices(namespace: String!): VirtualServiceMutation!
+    virtualServices: [VirtualService]!
+    virtualService(name: String!): VirtualService
+
+    secrets: [Secret]!
+    secret(name: String!): Secret
+
+    artifacts: [Artifact]!
+    artifact(name: String!): Artifact
+
+    schemas: [Schema]!
+    schema(name: String!): Schema
+
+    resolverMaps: [ResolverMap]!
+    resolverMap(name: String!): ResolverMap
 }

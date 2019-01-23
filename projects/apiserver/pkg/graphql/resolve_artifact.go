@@ -3,33 +3,24 @@ package graphql
 import (
 	"context"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 )
 
-type artifactQueryResolver struct{ *ApiResolver }
-
-func (r *artifactQueryResolver) List(ctx context.Context, obj *customtypes.ArtifactQuery, selector *models.InputMapStringString) ([]*models.Artifact, error) {
-	var convertedSelector map[string]string
-	if selector != nil {
-		convertedSelector = selector.GoType()
-	}
-	list, err := r.Artifacts.List(obj.Namespace, clients.ListOpts{
-		Ctx:      ctx,
-		Selector: convertedSelector,
-	})
+func (r namespaceResolver) Artifacts(ctx context.Context, obj *customtypes.Namespace) ([]*models.Artifact, error) {
+	list, err := r.ArtifactClient.List(obj.Name, clients.ListOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputArtifacts(list), nil
 }
 
-func (r *artifactQueryResolver) Get(ctx context.Context, obj *customtypes.ArtifactQuery, name string) (*models.Artifact, error) {
-	artifact, err := r.Artifacts.Read(obj.Namespace, name, clients.ReadOpts{
-		Ctx: ctx,
-	})
+func (r namespaceResolver) Artifact(ctx context.Context, obj *customtypes.Namespace, name string) (*models.Artifact, error) {
+	artifact, err := r.ArtifactClient.Read(obj.Name, name, clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +34,7 @@ func (r *artifactMutationResolver) write(overwrite bool, ctx context.Context, ob
 	if err != nil {
 		return nil, err
 	}
-	out, err := r.Artifacts.Write(ups, clients.WriteOpts{
+	out, err := r.ArtifactClient.Write(ups, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: overwrite,
 	})
@@ -59,8 +50,12 @@ func (r *artifactMutationResolver) Create(ctx context.Context, obj *customtypes.
 func (r *artifactMutationResolver) Update(ctx context.Context, obj *customtypes.ArtifactMutation, artifact models.InputArtifact) (*models.Artifact, error) {
 	return r.write(true, ctx, obj, artifact)
 }
-func (r *artifactMutationResolver) Delete(ctx context.Context, obj *customtypes.ArtifactMutation, name string) (*models.Artifact, error) {
-	artifact, err := r.Artifacts.Read(obj.Namespace, name, clients.ReadOpts{
+func (r *artifactMutationResolver) Delete(ctx context.Context, obj *customtypes.ArtifactMutation, guid string) (*models.Artifact, error) {
+	_, namespace, name, err := resources.SplitKey(guid)
+	if err != nil {
+		return &models.Artifact{}, err
+	}
+	artifact, err := r.ArtifactClient.Read(namespace, name, clients.ReadOpts{
 		Ctx: ctx,
 	})
 	if err != nil {
@@ -70,7 +65,7 @@ func (r *artifactMutationResolver) Delete(ctx context.Context, obj *customtypes.
 		return nil, err
 	}
 
-	err = r.Artifacts.Delete(obj.Namespace, name, clients.DeleteOpts{Ctx: ctx})
+	err = r.ArtifactClient.Delete(namespace, name, clients.DeleteOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}

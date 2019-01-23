@@ -1,12 +1,7 @@
-type SchemaQuery {
-  list(selector: InputMapStringString): [Schema]
-  get(name: String!): Schema
-}
-
 type SchemaMutation {
   create(schema: InputSchema!): Schema
   update(schema: InputSchema!): Schema
-  delete(name: String!): Schema
+  delete(guid: ID!): Schema
 }
 
 type SqoopServiceSpec {

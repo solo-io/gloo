@@ -15,8 +15,6 @@ type Artifact struct {
 	Metadata Metadata `json:"metadata"`
 }
 
-func (Artifact) IsResource() {}
-
 type AwsDestinationSpec struct {
 	LogicalName            string                   `json:"logicalName"`
 	InvocationStyle        AwsLambdaInvocationStyle `json:"invocationStyle"`
@@ -70,12 +68,6 @@ type AzureUpstreamSpec struct {
 }
 
 func (AzureUpstreamSpec) IsUpstreamSpec() {}
-
-type Branch struct {
-	Name          string `json:"name"`
-	Hash          string `json:"hash"`
-	LastCommitMsg string `json:"lastCommitMsg"`
-}
 
 type Destination interface {
 	IsDestination()
@@ -516,12 +508,6 @@ type ResolverMap struct {
 	Status   Status         `json:"status"`
 }
 
-func (ResolverMap) IsResource() {}
-
-type Resource interface {
-	IsResource()
-}
-
 type ResourceRef struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
@@ -561,14 +547,10 @@ type Schema struct {
 	Status       Status   `json:"status"`
 }
 
-func (Schema) IsResource() {}
-
 type Secret struct {
 	Kind     SecretKind `json:"kind"`
 	Metadata Metadata   `json:"metadata"`
 }
-
-func (Secret) IsResource() {}
 
 type SecretKind interface {
 	IsSecretKind()
@@ -583,8 +565,6 @@ type Settings struct {
 	RefreshRate     *customtypes.Duration `json:"refreshRate"`
 	Metadata        Metadata              `json:"metadata"`
 }
-
-func (Settings) IsResource() {}
 
 type SingleDestination struct {
 	Upstream        Upstream        `json:"upstream"`
@@ -664,8 +644,6 @@ type Upstream struct {
 	Status   Status       `json:"status"`
 }
 
-func (Upstream) IsResource() {}
-
 type UpstreamSpec interface {
 	IsUpstreamSpec()
 }
@@ -673,18 +651,6 @@ type UpstreamSpec interface {
 type Value struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
-}
-
-type VcsQuery struct {
-	Branches []*Branch `json:"branches"`
-}
-
-type VersionedMutation struct {
-	VirtualServices customtypes.VirtualServiceMutation `json:"virtualServices"`
-}
-
-type VersionedQuery struct {
-	VirtualServices customtypes.VirtualServiceQuery `json:"virtualServices"`
 }
 
 type VirtualService struct {
@@ -696,8 +662,6 @@ type VirtualService struct {
 	RateLimitConfig *RateLimitConfig       `json:"rateLimitConfig"`
 	Plugins         *VirtualServicePlugins `json:"plugins"`
 }
-
-func (VirtualService) IsResource() {}
 
 type VirtualServicePlugins struct {
 	Empty *string `json:"empty"`

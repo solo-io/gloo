@@ -1,14 +1,9 @@
-type ResolverMapQuery {
-  list(selector: InputMapStringString): [ResolverMap]
-  get(name: String!): ResolverMap
-}
-
 type ResolverMapMutation {
   create(resolverMap: InputResolverMap!): ResolverMap
   update(resolverMap: InputResolverMap!): ResolverMap
-  delete(name: String!): ResolverMap
+  delete(guid: ID!): ResolverMap
   setResolver(
-    resolverMapName: String!
+    resolverMapId: ID!
     resourceVersion: String!
     typeName: String!
     fieldName: String!

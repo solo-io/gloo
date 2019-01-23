@@ -3,33 +3,24 @@ package graphql
 import (
 	"context"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 )
 
-type schemaQueryResolver struct{ *ApiResolver }
-
-func (r *schemaQueryResolver) List(ctx context.Context, obj *customtypes.SchemaQuery, selector *models.InputMapStringString) ([]*models.Schema, error) {
-	var convertedSelector map[string]string
-	if selector != nil {
-		convertedSelector = selector.GoType()
-	}
-	list, err := r.Schemas.List(obj.Namespace, clients.ListOpts{
-		Ctx:      ctx,
-		Selector: convertedSelector,
-	})
+func (r namespaceResolver) Schemas(ctx context.Context, obj *customtypes.Namespace) ([]*models.Schema, error) {
+	list, err := r.SchemaClient.List(obj.Name, clients.ListOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputSchemas(list), nil
 }
 
-func (r *schemaQueryResolver) Get(ctx context.Context, obj *customtypes.SchemaQuery, name string) (*models.Schema, error) {
-	schema, err := r.Schemas.Read(obj.Namespace, name, clients.ReadOpts{
-		Ctx: ctx,
-	})
+func (r namespaceResolver) Schema(ctx context.Context, obj *customtypes.Namespace, name string) (*models.Schema, error) {
+	schema, err := r.SchemaClient.Read(obj.Name, name, clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +34,7 @@ func (r *schemaMutationResolver) write(overwrite bool, ctx context.Context, obj 
 	if err != nil {
 		return nil, err
 	}
-	out, err := r.Schemas.Write(ups, clients.WriteOpts{
+	out, err := r.SchemaClient.Write(ups, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: overwrite,
 	})
@@ -59,8 +50,12 @@ func (r *schemaMutationResolver) Create(ctx context.Context, obj *customtypes.Sc
 func (r *schemaMutationResolver) Update(ctx context.Context, obj *customtypes.SchemaMutation, schema models.InputSchema) (*models.Schema, error) {
 	return r.write(true, ctx, obj, schema)
 }
-func (r *schemaMutationResolver) Delete(ctx context.Context, obj *customtypes.SchemaMutation, name string) (*models.Schema, error) {
-	schema, err := r.Schemas.Read(obj.Namespace, name, clients.ReadOpts{
+func (r *schemaMutationResolver) Delete(ctx context.Context, obj *customtypes.SchemaMutation, guid string) (*models.Schema, error) {
+	_, namespace, name, err := resources.SplitKey(guid)
+	if err != nil {
+		return &models.Schema{}, err
+	}
+	schema, err := r.SchemaClient.Read(namespace, name, clients.ReadOpts{
 		Ctx: ctx,
 	})
 	if err != nil {
@@ -70,7 +65,7 @@ func (r *schemaMutationResolver) Delete(ctx context.Context, obj *customtypes.Sc
 		return nil, err
 	}
 
-	err = r.Schemas.Delete(obj.Namespace, name, clients.DeleteOpts{Ctx: ctx})
+	err = r.SchemaClient.Delete(namespace, name, clients.DeleteOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}

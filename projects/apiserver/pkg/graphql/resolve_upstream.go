@@ -3,31 +3,24 @@ package graphql
 import (
 	"context"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 )
 
-type upstreamQueryResolver struct{ *ApiResolver }
-
-func (r *upstreamQueryResolver) List(ctx context.Context, obj *customtypes.UpstreamQuery, selector *models.InputMapStringString) ([]*models.Upstream, error) {
-	var convertedSelector map[string]string
-	if selector != nil {
-		convertedSelector = selector.GoType()
-	}
-	list, err := r.Upstreams.List(obj.Namespace, clients.ListOpts{
-		Ctx:      ctx,
-		Selector: convertedSelector,
-	})
+func (r namespaceResolver) Upstreams(ctx context.Context, obj *customtypes.Namespace) ([]*models.Upstream, error) {
+	list, err := r.UpstreamClient.List(obj.Name, clients.ListOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputUpstreams(list)
 }
 
-func (r *upstreamQueryResolver) Get(ctx context.Context, obj *customtypes.UpstreamQuery, name string) (*models.Upstream, error) {
-	upstream, err := r.Upstreams.Read(obj.Namespace, name, clients.ReadOpts{
+func (r namespaceResolver) Upstream(ctx context.Context, obj *customtypes.Namespace, name string) (*models.Upstream, error) {
+	upstream, err := r.UpstreamClient.Read(obj.Name, name, clients.ReadOpts{
 		Ctx: ctx,
 	})
 	if err != nil {
@@ -43,7 +36,7 @@ func (r *upstreamMutationResolver) write(overwrite bool, ctx context.Context, ob
 	if err != nil {
 		return nil, err
 	}
-	out, err := r.Upstreams.Write(ups, clients.WriteOpts{
+	out, err := r.UpstreamClient.Write(ups, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: overwrite,
 	})
@@ -59,8 +52,12 @@ func (r *upstreamMutationResolver) Create(ctx context.Context, obj *customtypes.
 func (r *upstreamMutationResolver) Update(ctx context.Context, obj *customtypes.UpstreamMutation, upstream models.InputUpstream) (*models.Upstream, error) {
 	return r.write(true, ctx, obj, upstream)
 }
-func (r *upstreamMutationResolver) Delete(ctx context.Context, obj *customtypes.UpstreamMutation, name string) (*models.Upstream, error) {
-	upstream, err := r.Upstreams.Read(obj.Namespace, name, clients.ReadOpts{
+func (r *upstreamMutationResolver) Delete(ctx context.Context, obj *customtypes.UpstreamMutation, guid string) (*models.Upstream, error) {
+	_, namespace, name, err := resources.SplitKey(guid)
+	if err != nil {
+		return &models.Upstream{}, err
+	}
+	upstream, err := r.UpstreamClient.Read(namespace, name, clients.ReadOpts{
 		Ctx: ctx,
 	})
 	if err != nil {
@@ -70,7 +67,7 @@ func (r *upstreamMutationResolver) Delete(ctx context.Context, obj *customtypes.
 		return nil, err
 	}
 
-	err = r.Upstreams.Delete(obj.Namespace, name, clients.DeleteOpts{Ctx: ctx})
+	err = r.UpstreamClient.Delete(namespace, name, clients.DeleteOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}

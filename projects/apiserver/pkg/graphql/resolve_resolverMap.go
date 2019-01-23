@@ -3,31 +3,24 @@ package graphql
 import (
 	"context"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
+
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 )
 
-type resolverMapQueryResolver struct{ *ApiResolver }
-
-func (r *resolverMapQueryResolver) List(ctx context.Context, obj *customtypes.ResolverMapQuery, selector *models.InputMapStringString) ([]*models.ResolverMap, error) {
-	var convertedSelector map[string]string
-	if selector != nil {
-		convertedSelector = selector.GoType()
-	}
-	list, err := r.ResolverMaps.List(obj.Namespace, clients.ListOpts{
-		Ctx:      ctx,
-		Selector: convertedSelector,
-	})
+func (r namespaceResolver) ResolverMaps(ctx context.Context, obj *customtypes.Namespace) ([]*models.ResolverMap, error) {
+	list, err := r.ResolverMapClient.List(obj.Name, clients.ListOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputResolverMaps(list)
 }
 
-func (r *resolverMapQueryResolver) Get(ctx context.Context, obj *customtypes.ResolverMapQuery, name string) (*models.ResolverMap, error) {
-	resolverMap, err := r.ResolverMaps.Read(obj.Namespace, name, clients.ReadOpts{
+func (r namespaceResolver) ResolverMap(ctx context.Context, obj *customtypes.Namespace, name string) (*models.ResolverMap, error) {
+	resolverMap, err := r.ResolverMapClient.Read(obj.Name, name, clients.ReadOpts{
 		Ctx: ctx,
 	})
 	if err != nil {
@@ -38,13 +31,17 @@ func (r *resolverMapQueryResolver) Get(ctx context.Context, obj *customtypes.Res
 
 type resolverMapMutationResolver struct{ *ApiResolver }
 
-func (r *resolverMapMutationResolver) SetResolver(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMapName, resourceVersion, typeName, fieldName string, resolver models.InputGlooResolver) (*models.ResolverMap, error) {
+func (r *resolverMapMutationResolver) SetResolver(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMapId, resourceVersion, typeName, fieldName string, resolver models.InputGlooResolver) (*models.ResolverMap, error) {
+	_, namespace, name, err := resources.SplitKey(resolverMapId)
+	if err != nil {
+		return &models.ResolverMap{}, err
+	}
 	v1Resolver, err := ConvertInputResolver(models.InputResolver{GlooResolver: &resolver})
 	if err != nil {
 		return nil, err
 	}
 
-	resolverMap, err := r.ResolverMaps.Read(obj.Namespace, resolverMapName, clients.ReadOpts{Ctx: ctx})
+	resolverMap, err := r.ResolverMapClient.Read(namespace, name, clients.ReadOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}
@@ -54,11 +51,11 @@ func (r *resolverMapMutationResolver) SetResolver(ctx context.Context, obj *cust
 
 	typResolver, ok := resolverMap.Types[typeName]
 	if !ok {
-		return nil, errors.Errorf("no type %v in resolver map %v", typeName, resolverMapName)
+		return nil, errors.Errorf("no type %v in resolver map %v", typeName, name)
 	}
 	typResolver.Fields[fieldName] = v1Resolver
 
-	out, err := r.ResolverMaps.Write(resolverMap, clients.WriteOpts{
+	out, err := r.ResolverMapClient.Write(resolverMap, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: true,
 	})
@@ -73,7 +70,7 @@ func (r *resolverMapMutationResolver) write(overwrite bool, ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	out, err := r.ResolverMaps.Write(ups, clients.WriteOpts{
+	out, err := r.ResolverMapClient.Write(ups, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: overwrite,
 	})
@@ -89,8 +86,12 @@ func (r *resolverMapMutationResolver) Create(ctx context.Context, obj *customtyp
 func (r *resolverMapMutationResolver) Update(ctx context.Context, obj *customtypes.ResolverMapMutation, resolverMap models.InputResolverMap) (*models.ResolverMap, error) {
 	return r.write(true, ctx, obj, resolverMap)
 }
-func (r *resolverMapMutationResolver) Delete(ctx context.Context, obj *customtypes.ResolverMapMutation, name string) (*models.ResolverMap, error) {
-	resolverMap, err := r.ResolverMaps.Read(obj.Namespace, name, clients.ReadOpts{
+func (r *resolverMapMutationResolver) Delete(ctx context.Context, obj *customtypes.ResolverMapMutation, guid string) (*models.ResolverMap, error) {
+	_, namespace, name, err := resources.SplitKey(guid)
+	if err != nil {
+		return &models.ResolverMap{}, err
+	}
+	resolverMap, err := r.ResolverMapClient.Read(namespace, name, clients.ReadOpts{
 		Ctx: ctx,
 	})
 	if err != nil {
@@ -100,7 +101,7 @@ func (r *resolverMapMutationResolver) Delete(ctx context.Context, obj *customtyp
 		return nil, err
 	}
 
-	err = r.ResolverMaps.Delete(obj.Namespace, name, clients.DeleteOpts{Ctx: ctx})
+	err = r.ResolverMapClient.Delete(namespace, name, clients.DeleteOpts{Ctx: ctx})
 	if err != nil {
 		return nil, err
 	}

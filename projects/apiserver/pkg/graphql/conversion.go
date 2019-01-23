@@ -307,7 +307,7 @@ func (c *Converter) convertOutputServiceSpec(spec *plugins.ServiceSpec) (Service
 	case *plugins.ServiceSpec_Sqoop:
 		var schemas []*Schema
 		for _, schemaRef := range serviceSpec.Sqoop.Schemas {
-			schema, err := c.r.SchemaQuery().Get(c.ctx, &customtypes.SchemaQuery{Namespace: schemaRef.Namespace}, schemaRef.Name)
+			schema, err := c.r.Namespace().Schema(c.ctx, &customtypes.Namespace{Name: schemaRef.Namespace}, schemaRef.Name)
 			if err != nil {
 				return nil, err
 			}
@@ -851,7 +851,7 @@ func (c *Converter) convertOutputSingleDestination(dest *v1.Destination) (Single
 	if dest.Upstream.Namespace == "" || dest.Upstream.Name == "" {
 		return SingleDestination{}, errors.Errorf("must provide destination upstream")
 	}
-	gqlUs, err := c.r.UpstreamQuery().Get(c.ctx, &customtypes.UpstreamQuery{Namespace: dest.Upstream.Namespace}, dest.Upstream.Name)
+	gqlUs, err := c.r.Namespace().Upstream(c.ctx, &customtypes.Namespace{Name: dest.Upstream.Namespace}, dest.Upstream.Name)
 	if err != nil {
 		return SingleDestination{}, err
 	}
@@ -900,7 +900,7 @@ func (c *Converter) convertOutputDestinationSpec(spec *v1.DestinationSpec) (Dest
 			Parameters: convertOutputTransformation(destSpec.Grpc.Parameters),
 		}, nil
 	case *v1.DestinationSpec_Sqoop:
-		schema, err := c.r.SchemaQuery().Get(c.ctx, &customtypes.SchemaQuery{Namespace: destSpec.Sqoop.Schema.Namespace}, destSpec.Sqoop.Schema.Name)
+		schema, err := c.r.Namespace().Schema(c.ctx, &customtypes.Namespace{Name: destSpec.Sqoop.Schema.Namespace}, destSpec.Sqoop.Schema.Name)
 		if err != nil {
 			return nil, err
 		}

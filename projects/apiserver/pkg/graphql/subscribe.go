@@ -16,7 +16,7 @@ func (r subscriptionResolver) Upstreams(ctx context.Context, namespace string, s
 	if selector != nil {
 		convertedSelector = selector.GoType()
 	}
-	watch, errs, err := r.ApiResolver.Upstreams.Watch(namespace, clients.WatchOpts{
+	watch, errs, err := r.ApiResolver.UpstreamClient.Watch(namespace, clients.WatchOpts{
 		// TODO(ilackarms): refresh rate
 		RefreshRate: time.Minute * 10,
 		Ctx:         ctx,
@@ -63,7 +63,7 @@ func (r subscriptionResolver) VirtualServices(ctx context.Context, namespace str
 	if selector != nil {
 		convertedSelector = selector.GoType()
 	}
-	watch, errs, err := r.ApiResolver.VirtualServices.Watch(namespace, clients.WatchOpts{
+	watch, errs, err := r.ApiResolver.VirtualServiceClient.Watch(namespace, clients.WatchOpts{
 		// TODO(ilackarms): refresh rate
 		RefreshRate: time.Minute * 10,
 		Ctx:         ctx,

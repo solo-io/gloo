@@ -1,12 +1,7 @@
-type UpstreamQuery {
-  list(selector: InputMapStringString): [Upstream]
-  get(name: String!): Upstream
-}
-
 type UpstreamMutation {
   create(upstream: InputUpstream!): Upstream
   update(upstream: InputUpstream!): Upstream
-  delete(name: String!): Upstream
+  delete(guid: ID!): Upstream
 }
 
 type Upstream {
