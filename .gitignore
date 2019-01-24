@@ -20,3 +20,4 @@ projects/gloo/doc/site/
 
 # Spurious files
 .DS_Store
+.vendor-new/

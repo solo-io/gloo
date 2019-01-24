@@ -66,8 +66,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  version = "0.6.8"
-
+  version = "0.6.9"
 
 [[override]]
   name = "github.com/hashicorp/consul"
@@ -85,3 +84,7 @@
 [[constraint]]
   name = "github.com/solo-io/keygen"
   version = "0.1.0"
+
+[[constraint]]
+  name = "github.com/solo-io/ext-auth-service"
+  version = "0.1.1"

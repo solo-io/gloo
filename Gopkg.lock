@@ -201,7 +201,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9c0217eb43730ab08f6148b8b64bc6403c938fa96755caec62548f21c147520e"
+  digest = "1:e3cd630dc83e043d7bd34b65ee69985cee16c0f7839b074f7f83632f7e57e8a5"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -215,6 +215,7 @@
     "envoy/config/bootstrap/v2",
     "envoy/config/filter/accesslog/v2",
     "envoy/config/filter/fault/v2",
+    "envoy/config/filter/http/ext_authz/v2alpha",
     "envoy/config/filter/http/fault/v2",
     "envoy/config/filter/http/rate_limit/v2",
     "envoy/config/filter/http/transcoder/v2",
@@ -223,6 +224,7 @@
     "envoy/config/overload/v2alpha",
     "envoy/config/ratelimit/v2",
     "envoy/config/trace/v2",
+    "envoy/service/auth/v2alpha",
     "envoy/service/discovery/v2",
     "envoy/service/ratelimit/v2",
     "envoy/type",
@@ -958,13 +960,15 @@
   version = "v1.6.0"
 
 [[projects]]
-  digest = "1:58418daa018f162c520512737c19ecd42582524b0f900f2eee7c212ce55cf0da"
+  digest = "1:910491a4e78ff2c3fee357cfc14e62f40431f5bda4f68cf18dade2b448cde1dc"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
     "format",
     "gbytes",
     "gexec",
+    "gstruct",
+    "gstruct/errors",
     "internal/assertion",
     "internal/asyncassertion",
     "internal/oraclematcher",
@@ -987,14 +991,6 @@
   pruneopts = "UT"
   revision = "c37440a7cf42ac63b919c752ca73a85067e05992"
   version = "v0.2.0"
-
-[[projects]]
-  digest = "1:95741de3af260a92cc5c7f3f3061e85273f5a81b5db20d4bd68da74bd521675e"
-  name = "github.com/pelletier/go-toml"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
-  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
@@ -1131,7 +1127,21 @@
   revision = "c71f318a203bca8433268be67336086379a2bf9f"
 
 [[projects]]
-  digest = "1:62d57102c8e506d9972982ed27e6fdcfaebf81988fff2fa119e8da70c794d05e"
+  digest = "1:6b963a9d1d6408a2704b0f9f068247c728b7a2f26aeedaa040483f9d1369a2ad"
+  name = "github.com/solo-io/ext-auth-service"
+  packages = [
+    "pkg/config",
+    "pkg/config/apr",
+    "pkg/config/oidc",
+    "pkg/consts",
+    "pkg/service",
+  ]
+  pruneopts = "UT"
+  revision = "1179e94e52d5f5f6e940dc12c252f2fc590f5a85"
+  version = "v0.1.1"
+
+[[projects]]
+  digest = "1:9b3ffc63754a04b1e6f855df1afcfb5ce66c75b202f55bd35fc21d5da024f7d6"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1206,8 +1216,8 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "8c36f0761d809c231f4757cbf4846e285e0fda31"
-  version = "v0.6.7"
+  revision = "3ced6dddf7c32f87d0dbf46b2665366b9d6193b3"
+  version = "v0.6.9"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1349,6 +1359,19 @@
   pruneopts = "UT"
   revision = "1ac3a1ac202429a54835fe8408a92880156b489d"
   version = "v1.4.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:9d0c0eaae06176cc5834f14fcb73b5789401aecdb4aed7bb4a6ec23b11b152f9"
+  name = "github.com/tredoe/osutil"
+  packages = [
+    "user/crypt",
+    "user/crypt/apr1_crypt",
+    "user/crypt/common",
+    "user/crypt/md5_crypt",
+  ]
+  pruneopts = "UT"
+  revision = "7d3ee1afa71c90fd1514c8f557ae6c5f414208eb"
 
 [[projects]]
   digest = "1:768c1db4944fa5ab6944d11847200ba4b8b9e2b45458b7a20b4272fe599a1de0"
@@ -1601,7 +1624,7 @@
   revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
 
 [[projects]]
-  digest = "1:b9d5704065ac5180f7e52e2076c3f643b596c45f2f377432b586953f75356971"
+  digest = "1:50e6297746c3c45c16be8855886890382796b6941db6b7b6fbcd62fe75109a51"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -1624,6 +1647,7 @@
     "metadata",
     "naming",
     "peer",
+    "reflection",
     "reflection/grpc_reflection_v1alpha",
     "resolver",
     "resolver/dns",
@@ -1664,6 +1688,18 @@
   pruneopts = "UT"
   revision = "d2d2541c53f18d2a059457998ce2876cc8e67cbf"
   version = "v0.9.1"
+
+[[projects]]
+  digest = "1:377f8ccfbf9d7ff3997ea7454b894de46cd1d9fe6ec1e724c93ad59eb716c5c0"
+  name = "gopkg.in/square/go-jose.v2"
+  packages = [
+    ".",
+    "cipher",
+    "json",
+  ]
+  pruneopts = "UT"
+  revision = "e94fb177d3668d35ab39c61cbb2f311550557e83"
+  version = "v2.2.2"
 
 [[projects]]
   digest = "1:866df945fc92cd221d2b384dca7de5f3131a6113b9f72a7a8019ae5046abe828"
@@ -2042,20 +2078,25 @@
     "github.com/Masterminds/sprig",
     "github.com/ahmetb/go-linq",
     "github.com/aokoli/goutils",
+    "github.com/dgrijalva/jwt-go",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/core",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/ratelimit",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/route",
+    "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2alpha",
     "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rate_limit/v2",
     "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2",
+    "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2alpha",
     "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2",
     "github.com/envoyproxy/go-control-plane/pkg/util",
     "github.com/fatih/structs",
+    "github.com/fgrosse/zaptest",
     "github.com/ghodss/yaml",
     "github.com/gogo/protobuf/gogoproto",
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/types",
     "github.com/golang/mock/gomock",
+    "github.com/google/go-github/github",
     "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
     "github.com/grpc-ecosystem/go-grpc-middleware",
@@ -2070,7 +2111,7 @@
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/gbytes",
     "github.com/onsi/gomega/gexec",
-    "github.com/pelletier/go-toml",
+    "github.com/onsi/gomega/gstruct",
     "github.com/pkg/errors",
     "github.com/prometheus/client_golang/api",
     "github.com/prometheus/client_golang/api/prometheus/v1",
@@ -2078,6 +2119,10 @@
     "github.com/prometheus/prometheus/discovery/targetgroup",
     "github.com/rs/cors",
     "github.com/solo-io/envoy-operator/pkg/downward",
+    "github.com/solo-io/ext-auth-service/pkg/config",
+    "github.com/solo-io/ext-auth-service/pkg/config/apr",
+    "github.com/solo-io/ext-auth-service/pkg/config/oidc",
+    "github.com/solo-io/ext-auth-service/pkg/service",
     "github.com/solo-io/gloo/install/helm/gloo/generate",
     "github.com/solo-io/gloo/pkg/utils/setuputils",
     "github.com/solo-io/gloo/pkg/version",
@@ -2095,7 +2140,6 @@
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/del",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gateway",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/get",
-    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/install",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/upgrade",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/common",
@@ -2122,6 +2166,7 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins/transformation",
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils",
     "github.com/solo-io/gloo/projects/gloo/pkg/syncer",
+    "github.com/solo-io/gloo/projects/gloo/pkg/translator",
     "github.com/solo-io/go-checkpoint",
     "github.com/solo-io/go-utils/cliutils",
     "github.com/solo-io/go-utils/contextutils",
@@ -2176,12 +2221,14 @@
     "go.opencensus.io/trace",
     "go.uber.org/zap",
     "golang.org/x/net/context",
+    "golang.org/x/oauth2",
     "golang.org/x/sync/errgroup",
     "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
     "google.golang.org/grpc/health",
     "google.golang.org/grpc/health/grpc_health_v1",
+    "google.golang.org/grpc/reflection",
     "google.golang.org/grpc/status",
     "gopkg.in/AlecAivazis/survey.v1",
     "gopkg.in/src-d/go-git.v4",
@@ -2193,12 +2240,14 @@
     "gopkg.in/src-d/go-git.v4/plumbing/transport/http",
     "k8s.io/api/authentication/v1",
     "k8s.io/api/core/v1",
+    "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/runtime",
     "k8s.io/apimachinery/pkg/runtime/schema",
     "k8s.io/client-go/kubernetes",
     "k8s.io/client-go/kubernetes/typed/authentication/v1",
     "k8s.io/client-go/kubernetes/typed/core/v1",
+    "k8s.io/client-go/plugin/pkg/client/auth",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/client-go/rest",
   ]

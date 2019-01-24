@@ -21,6 +21,7 @@ type ReceivedRequest struct {
 	Method      string
 	Body        []byte
 	Host        string
+	Headers     http.Header
 	GRPCRequest proto.Message
 }
 
@@ -78,6 +79,7 @@ func RunTestServer(ctx context.Context) (uint32, <-chan *ReceivedRequest) {
 				rr.Body = body
 				rw.Write(body)
 			}
+			rr.Headers = r.Header
 		}
 
 		rr.Host = r.Host

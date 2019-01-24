@@ -1,9 +1,10 @@
 package services
 
 import (
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
 	"net"
 	"time"
+
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
 
 	gatewaysyncer "github.com/solo-io/gloo/projects/gateway/pkg/syncer"
 
@@ -17,12 +18,13 @@ import (
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"google.golang.org/grpc"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
-	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"go.uber.org/zap"
 
 	. "github.com/onsi/gomega"
@@ -50,21 +52,22 @@ func RunGateway(ctx context.Context, justgloo bool) TestClients {
 }
 
 func RunGatewayWithNamespaceAndKubeClient(ctx context.Context, justgloo bool, ns string, kubeclient kubernetes.Interface) TestClients {
-	localglooPort := atomic.AddInt32(&glooPort, 1)
+	return RunGatewayWithKubeClientAndSettings(ctx, justgloo, ns, kubeclient, nil)
+}
 
+func RunGatewayWithSettings(ctx context.Context, justgloo bool, extensions *v1.Extensions) TestClients {
+	return RunGatewayWithKubeClientAndSettings(ctx, justgloo, defaults.GlooSystem, nil, extensions)
+}
+
+func RunGatewayWithKubeClientAndSettings(ctx context.Context, justgloo bool, ns string, kubeclient kubernetes.Interface, extensions *v1.Extensions) TestClients {
 	cache := memory.NewInMemoryResourceCache()
 
-	glooopts := DefaultGlooOpts(ctx, cache, ns, kubeclient)
-	glooopts.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
-	// no gateway for now
-	if !justgloo {
-		opts := DefaultTestConstructOpts(ctx, cache, ns)
-		go gatewaysyncer.RunGateway(opts)
-	}
-	glooopts.ControlPlane.StartGrpcServer = true
-	go syncer.RunGlooWithExtensions(glooopts, setup.GetGlooEeExtensions())
-	go fds_syncer.RunFDS(glooopts)
-	go uds_syncer.RunUDS(glooopts)
+	testclients := GetTestClients(cache)
+	testclients.GlooPort = RunGlooGatewayUdsFds(ctx, cache, What{DisableGateway: justgloo}, ns, kubeclient, extensions)
+	return testclients
+}
+
+func GetTestClients(cache memory.InMemoryResourceCache) TestClients {
 
 	// construct our own resources:
 	factory := &factory.MemoryResourceClientFactory{
@@ -88,8 +91,45 @@ func RunGatewayWithNamespaceAndKubeClient(ctx context.Context, justgloo bool, ns
 		UpstreamClient:       upstreamClient,
 		SecretClient:         secretClient,
 		ProxyClient:          proxyClient,
-		GlooPort:             int(localglooPort),
 	}
+}
+
+type What struct {
+	DisableGateway bool
+	DisableUds     bool
+	DisableFds     bool
+}
+
+func RunGlooGatewayUdsFds(ctx context.Context, cache memory.InMemoryResourceCache, what What, ns string, kubeclient kubernetes.Interface, extensions *v1.Extensions) int {
+	port := AllocateGlooPort()
+	RunGlooGatewayUdsFdsOnPort(ctx, cache, port, what, ns, kubeclient, extensions)
+	return int(port)
+}
+
+func AllocateGlooPort() int32 {
+	return atomic.AddInt32(&glooPort, 1)
+
+}
+
+func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResourceCache, localglooPort int32, what What, ns string, kubeclient kubernetes.Interface, extensions *v1.Extensions) {
+
+	glooopts := DefaultGlooOpts(ctx, cache, ns, kubeclient)
+	glooopts.BindAddr.(*net.TCPAddr).Port = int(localglooPort)
+	// no gateway for now
+	if !what.DisableGateway {
+		opts := DefaultTestConstructOpts(ctx, cache, ns)
+		go gatewaysyncer.RunGateway(opts)
+	}
+	glooopts.Extensions = extensions
+	glooopts.ControlPlane.StartGrpcServer = true
+	go syncer.RunGlooWithExtensions(glooopts, setup.GetGlooEeExtensions())
+	if !what.DisableFds {
+		go fds_syncer.RunFDS(glooopts)
+	}
+	if !what.DisableUds {
+		go uds_syncer.RunUDS(glooopts)
+	}
+
 }
 
 func DefaultTestConstructOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns string) gatewaysyncer.Opts {
