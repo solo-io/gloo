@@ -22,10 +22,16 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+const observability = "observability"
+
 func Main() error {
 	start := time.Now()
-	check.CallCheck("observability", version.Version, start)
-	return setuputils.Main("observability", Setup)
+	check.CallCheck(observability, version.Version, start)
+	return setuputils.Main(setuputils.SetupOpts{
+		LoggingPrefix: observability,
+		ExitOnError:   false,
+		SetupFunc:     Setup,
+	})
 }
 
 func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory.InMemoryResourceCache, settings *gloov1.Settings) error {

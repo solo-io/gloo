@@ -113,6 +113,15 @@ steps:
   args: ['-c', 'docker login --username soloiobot --password $$DOCKER_HUB_PASSWORD']
   secretEnv: ['DOCKER_HUB_PASSWORD']
 
+- name: 'gcr.io/$PROJECT_ID/go-make'
+  args: ['docker']
+  env:
+    - 'TAGGED_VERSION=$TAG_NAME'
+    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+    - 'GOPATH=/workspace/gopath'
+  dir: './gopath/src/github.com/solo-io/solo-projects'
+  secretEnv: ['GITHUB_TOKEN']
+
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
 - name: 'gcr.io/$PROJECT_ID/go-make'
   args: ['docker-push', 'manifest', 'release']
