@@ -42,7 +42,7 @@ const jsonTemplate = `
     "description": "Envoy proxy monitoring Dashboard with cluster and host level templates. ",
     "editable": true,
     "graphTooltip": 0,
-    "uid": "{{.ClusterName}}",
+    "uid": "{{.Uid}}",
     "id": null,
     "links": [],
     "timezone": "",

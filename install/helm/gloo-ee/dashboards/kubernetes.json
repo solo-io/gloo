@@ -2,11 +2,11 @@
   "__inputs": [
     {
       "name": "DS_PROMETHEUS",
-      "label": "Gloo",
+      "label": "Prometheus",
       "description": "",
       "type": "datasource",
-      "pluginId": "gloo",
-      "pluginName": "Gloo"
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
     }
   ],
   "__requires": [
@@ -36,6 +36,7 @@
     }
   ],
   "id": null,
+  "uid": "kubernetes",
   "title": "Kubernetes cluster monitoring (via Prometheus)",
   "description": "Monitors Kubernetes cluster using Prometheus. Shows overall cluster CPU / Memory / Filesystem usage as well as individual pod, containers, systemd services statistics. Uses cAdvisor metrics only.",
   "tags": [
@@ -55,7 +56,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -166,7 +167,7 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(245, 54, 54, 0.9)"
           ],
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "editable": true,
           "error": false,
           "format": "percent",
@@ -246,7 +247,7 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(245, 54, 54, 0.9)"
           ],
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -326,7 +327,7 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(245, 54, 54, 0.9)"
           ],
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -408,7 +409,7 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(245, 54, 54, 0.9)"
           ],
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -488,7 +489,7 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(245, 54, 54, 0.9)"
           ],
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -568,7 +569,7 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(245, 54, 54, 0.9)"
           ],
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -648,7 +649,7 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(245, 54, 54, 0.9)"
           ],
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -728,7 +729,7 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(245, 54, 54, 0.9)"
           ],
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -808,7 +809,7 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(245, 54, 54, 0.9)"
           ],
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -891,7 +892,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 3,
           "editable": true,
           "error": false,
@@ -986,7 +987,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 3,
           "editable": true,
           "error": false,
@@ -1080,7 +1081,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 3,
           "editable": true,
           "error": false,
@@ -1196,7 +1197,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 3,
           "editable": true,
           "error": false,
@@ -1291,7 +1292,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -1384,7 +1385,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -1477,7 +1478,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -1588,7 +1589,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -1681,7 +1682,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -1783,7 +1784,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -1927,7 +1928,7 @@
         {
           "aliasColors": {},
           "bars": false,
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "gloo",
           "decimals": 2,
           "editable": true,
           "error": false,
@@ -2056,7 +2057,7 @@
       {
         "allValue": ".*",
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "datasource": "gloo",
         "hide": 0,
         "includeAll": true,
         "multi": false,

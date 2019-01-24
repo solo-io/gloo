@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ .Values.redis.service.name }}
+    gloo: {{ .Values.redis.service.name }}
+  name: {{ .Values.redis.service.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+    - name: redis
+      port: {{ .Values.redis.service.port }}
+      protocol: TCP
+  selector:
+    gloo: {{ .Values.redis.service.name }}

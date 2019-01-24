@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    gloo: rate-limit
+  name: rate-limit
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: rate-limit
+  template:
+    metadata:
+      labels:
+        gloo: rate-limit
+    spec:
+      containers:
+        - image: "{{ .Values.rateLimit.deployment.image.repository }}:{{ .Values.rateLimit.deployment.image.tag }}"
+          imagePullPolicy: {{ .Values.rateLimit.deployment.image.pullPolicy }}
+          name: rate-limit
+          env:
+            - name: GLOO_ADDRESS
+              value: {{ .Values.rateLimit.deployment.glooAddress }}
+            - name: REDIS_URL
+              value: {{ .Values.rateLimit.deployment.redisUrl }}
+            - name: REDIS_SOCKET_TYPE
+              value: tcp
+      imagePullSecrets:
+        - name: solo-io-docker-secret

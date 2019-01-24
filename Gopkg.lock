@@ -200,7 +200,8 @@
   version = "v1.12.0"
 
 [[projects]]
-  digest = "1:aa489ba3da8358a8ac0772230b26b7071bf476d1b818465c45d8be09ac5a2156"
+  branch = "master"
+  digest = "1:9c0217eb43730ab08f6148b8b64bc6403c938fa96755caec62548f21c147520e"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -225,10 +226,11 @@
     "envoy/service/discovery/v2",
     "envoy/service/ratelimit/v2",
     "envoy/type",
+    "envoy/type/matcher",
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "676016db8193d83324a507a986a78cd3642ad713"
+  revision = "b42c1242205bd3a5a0080301db252f7524235c36"
 
 [[projects]]
   digest = "1:af43bdaaf86655a2343f113e9b293bbc16b12099eaeb223982bbe4d4c22ba14d"
@@ -987,6 +989,14 @@
   version = "v0.2.0"
 
 [[projects]]
+  digest = "1:95741de3af260a92cc5c7f3f3061e85273f5a81b5db20d4bd68da74bd521675e"
+  name = "github.com/pelletier/go-toml"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
+  version = "v1.2.0"
+
+[[projects]]
   branch = "master"
   digest = "1:3bf17a6e6eaa6ad24152148a631d18662f7212e21637c2699bff3369b7f00fa2"
   name = "github.com/petar/GoLLRB"
@@ -1121,10 +1131,10 @@
   revision = "c71f318a203bca8433268be67336086379a2bf9f"
 
 [[projects]]
-  branch = "master"
-  digest = "1:92344dbcb8d3b2cfb322c6c411138f04813c7bb0e9e14d347c9da1c0814b789d"
+  digest = "1:62d57102c8e506d9972982ed27e6fdcfaebf81988fff2fa119e8da70c794d05e"
   name = "github.com/solo-io/gloo"
   packages = [
+    "install/helm/gloo/generate",
     "pkg/cliutil",
     "pkg/utils/setuputils",
     "pkg/version",
@@ -1196,7 +1206,8 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "7c60c5f268a6e3b7cbd410e97f1ad6026286427b"
+  revision = "8c36f0761d809c231f4757cbf4846e285e0fda31"
+  version = "v0.6.7"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1307,8 +1318,8 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "d46d5027113b8ee70fd1d23f866c8facbfbaf87a"
-  version = "v0.2.17"
+  revision = "4aa5df4fc9a5f7af01daf6c4cf1a8adce340deb2"
+  version = "v0.2.18"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -2040,6 +2051,7 @@
     "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2",
     "github.com/envoyproxy/go-control-plane/pkg/util",
     "github.com/fatih/structs",
+    "github.com/ghodss/yaml",
     "github.com/gogo/protobuf/gogoproto",
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/types",
@@ -2058,6 +2070,7 @@
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/gbytes",
     "github.com/onsi/gomega/gexec",
+    "github.com/pelletier/go-toml",
     "github.com/pkg/errors",
     "github.com/prometheus/client_golang/api",
     "github.com/prometheus/client_golang/api/prometheus/v1",
@@ -2065,6 +2078,7 @@
     "github.com/prometheus/prometheus/discovery/targetgroup",
     "github.com/rs/cors",
     "github.com/solo-io/envoy-operator/pkg/downward",
+    "github.com/solo-io/gloo/install/helm/gloo/generate",
     "github.com/solo-io/gloo/pkg/utils/setuputils",
     "github.com/solo-io/gloo/pkg/version",
     "github.com/solo-io/gloo/projects/discovery/pkg/fds/setup",

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.apiServer.service.name }}
+  namespace: {{ .Release.namespace }}
+  labels:
+    gloo: {{ .Values.apiServer.service.name }}
+spec:
+  ports:
+    - port: {{.Values.apiServer.deployment.ui.staticPort}}
+      protocol: TCP
+      name: static
+    - port: {{.Values.apiServer.deployment.server.graphqlPort}}
+      protocol: TCP
+      name: graphql
+  selector:
+    gloo: {{ .Values.apiServer.service.name }}

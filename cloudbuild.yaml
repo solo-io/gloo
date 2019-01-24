@@ -41,6 +41,20 @@ steps:
     path: /root/.ssh
   id: 'dep'
 
+# Helm related setup
+- name: gcr.io/cloud-builders/gsutil
+  entrypoint: mkdir
+  args: ['-p', './_output/helm']
+  dir: './gopath/src/github.com/solo-io/solo-projects'
+# sync helm repo data from google cloud bucket
+- name: gcr.io/cloud-builders/gsutil
+  args:
+    - rsync
+    - -r
+    - gs://gloo-ee-helm/
+    - './_output/helm'
+  dir: './gopath/src/github.com/solo-io/solo-projects'
+
 # Setup keygen creds
 - name: gcr.io/cloud-builders/gcloud
   args:
@@ -101,13 +115,24 @@ steps:
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
 - name: 'gcr.io/$PROJECT_ID/go-make'
-  args: ['release', 'docker-push']
+  args: ['docker-push', 'manifest', 'release']
   env:
   - 'TAGGED_VERSION=$TAG_NAME'
   - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
   - 'GOPATH=/workspace/gopath'
+  - 'HELM_HOME=/root/.helm' # tell helm where to find data
   dir: './gopath/src/github.com/solo-io/solo-projects'
   secretEnv: ['GITHUB_TOKEN']
+
+  # Sync helm chart data back to google storage bucket
+- name: gcr.io/cloud-builders/gsutil
+  args:
+    - rsync
+    - -r
+    - './_output/helm'
+    - gs://gloo-ee-helm/
+  dir: './gopath/src/github.com/solo-io/solo-projects'
+  id: 'set-helm-chart'
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
 - name: 'gcr.io/$PROJECT_ID/go-make'

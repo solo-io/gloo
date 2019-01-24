@@ -10,7 +10,7 @@ import (
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 
-	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 )
@@ -125,8 +125,12 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	}
 	return []plugins.StagedHttpFilter{
 		{
-			HttpFilter: &envoyhttp.HttpFilter{Name: filterName,
-				Config: conf},
+			HttpFilter: &envoyhttp.HttpFilter{
+				Name: filterName,
+				ConfigType: &envoyhttp.HttpFilter_Config{
+					Config: conf,
+				},
+			},
 			Stage: filterStage,
 		},
 	}, nil

@@ -1,0 +1,35 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    gloo: observability
+  name: observability
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: observability
+  template:
+    metadata:
+      labels:
+        gloo: observability
+    spec:
+      containers:
+        - image: "{{.Values.observability.deployment.image.repository}}:{{.Values.observability.deployment.image.tag}}"
+          imagePullPolicy: {{.Values.observability.deployment.image.pullPolicy}}
+          name: observability
+          env:
+            - name: GRAFANA_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "grafana.fullname" . }}-grafana
+                  key: admin-user
+            - name: GRAFANA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "grafana.fullname" . }}-grafana
+                  key: admin-password
+      imagePullSecrets:
+        - name: solo-io-docker-secret

@@ -90,7 +90,10 @@ func RunObservability(opts Opts) error {
 	}
 
 	emitter := v1.NewDashboardsEmitter(upstreamClient)
-	dashSyncer := NewGrafanaDashboardSyncer(http.DefaultClient)
+	dashSyncer, err := NewGrafanaDashboardSyncer(http.DefaultClient)
+	if err != nil {
+		return err
+	}
 	eventLoop := v1.NewDashboardsEventLoop(emitter, dashSyncer)
 	writeErrs := make(chan error)
 	eventLoopErrs, err := eventLoop.Run(opts.WatchNamespaces, opts.WatchOpts)

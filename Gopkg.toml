@@ -14,7 +14,7 @@
   name = "github.com/99designs/gqlgen"
 
 [[constraint]]
-  revision = "676016db8193d83324a507a986a78cd3642ad713"
+  branch = "master"
   name = "github.com/envoyproxy/go-control-plane"
 
 [[constraint]]
@@ -62,11 +62,16 @@
 
 [[constraint]]
   name = "github.com/solo-io/solo-kit"
-  version = "0.2.17"
+  version = "0.2.18"
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  branch = "master"
+  version = "0.6.8"
+
+
+[[override]]
+  name = "github.com/hashicorp/consul"
+  revision = "eba25a143821cec25bdb48fe64dd7b7a6152d01d"
 
 # go versioning story not ideal, so we have to pin serf to the version consul expects
 [[override]]

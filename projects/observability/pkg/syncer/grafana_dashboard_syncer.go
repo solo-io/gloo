@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 
 	"go.uber.org/zap"
@@ -31,6 +32,9 @@ func (gs *grafanaState) containsBoard(upstreamUid string) bool {
 const (
 	GLOO_TAG    = "gloo"
 	DYNAMIC_TAG = "dynamic"
+
+	GRAFANA_USERNAME = "GRAFANA_USERNAME"
+	GRAFANA_PASSWORD = "GRAFANA_PASSWORD"
 )
 
 var TAGS = []string{GLOO_TAG, DYNAMIC_TAG}
@@ -41,11 +45,16 @@ type GrafanaDashboardsSyncer struct {
 	client *grafana.Client
 }
 
-func NewGrafanaDashboardSyncer(client *http.Client) *GrafanaDashboardsSyncer {
-	grafCli := grafana.NewClient("http://grafana.gloo-system.svc.cluster.local:3000", "admin:admin", client)
+func NewGrafanaDashboardSyncer(client *http.Client) (*GrafanaDashboardsSyncer, error) {
+	username := os.Getenv(GRAFANA_USERNAME)
+	password := os.Getenv(GRAFANA_PASSWORD)
+	if username == "" || password == "" {
+		return nil, fmt.Errorf("grafana username and password cannot be empty")
+	}
+	grafCli := grafana.NewClient("http://gloo-ee-grafana.gloo-system.svc.cluster.local:80", "admin:admin", client)
 	return &GrafanaDashboardsSyncer{
 		client: grafCli,
-	}
+	}, nil
 }
 
 func (s *GrafanaDashboardsSyncer) Synced() bool {
@@ -74,7 +83,6 @@ func (s *GrafanaDashboardsSyncer) Sync(ctx context.Context, snap *v1.DashboardsS
 
 func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger, snap *v1.DashboardsSnapshot, gs *grafanaState) {
 	for _, upstream := range snap.Upstreams.List() {
-
 		upstreamName := upstream.Metadata.GetName()
 		upstreamUid := grafana.NameToUid(upstream.Metadata.GetName())
 		// check grafana boards for presence of current upstream

@@ -1,0 +1,404 @@
+########################################################################
+###                                                                  ###
+###                        Gloo                                      ###
+###                                                                  ###
+########################################################################
+
+gloo:
+  gloo:
+    deployment:
+      image:
+        pullPolicy: Always
+        pullSecret: solo-io-docker-secret
+        repository: soloio/gloo-ee
+      replicas: 1
+  gatewayProxy:
+    deployment:
+      extraAnnotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8081"
+      extraPorts:
+        - containerPort: 8081
+          name: stats
+          protocol: TCP
+    configMap:
+      data:
+        envoy.yaml: |
+          node:
+            cluster: gateway
+            id: "{{.PodName}}{{.PodNamespace}}"
+            metadata:
+              # this line must match !
+              role: "gloo-system~gateway-proxy"
+
+          rate_limit_service:
+            grpc_service:
+              envoy_grpc:
+                cluster_name: rate_limit_cluster
+
+          static_resources:
+            listeners:
+              - name: prometheus_listener
+                address:
+                  socket_address:
+                    address: 0.0.0.0
+                    port_value: 8081
+                filter_chains:
+                  - filters:
+                      - name: envoy.http_connection_manager
+                        config:
+                          codec_type: auto
+                          stat_prefix: prometheus
+                          route_config:
+                            name: prometheus_route
+                            virtual_hosts:
+                              - name: prometheus_host
+                                domains:
+                                  - "*"
+                                routes:
+                                  - match:
+                                      prefix: "/metrics"
+                                    route:
+                                      prefix_rewrite: "/stats/prometheus"
+                                      cluster: admin_port_cluster
+                          http_filters:
+                            - name: envoy.router
+                              config: {}
+            clusters:
+              - name: xds_cluster
+                connect_timeout: 5.000s
+                load_assignment:
+                  cluster_name: xds_cluster
+                  endpoints:
+                    - lb_endpoints:
+                        - endpoint:
+                            address:
+                              socket_address:
+                                address: gloo
+                                port_value: 9977
+                http2_protocol_options: {}
+                type: STRICT_DNS
+              - name: rate_limit_cluster
+                connect_timeout: 5.000s
+                load_assignment:
+                  cluster_name: rate_limit_cluster
+                  endpoints:
+                    - lb_endpoints:
+                        - endpoint:
+                            address:
+                              socket_address:
+                                address: rate-limit
+                                port_value: 18081
+                http2_protocol_options: {}
+                type: STRICT_DNS
+              - name: admin_port_cluster
+                connect_timeout: 5.000s
+                type: STRICT_DNS
+                lb_policy: ROUND_ROBIN
+                load_assignment:
+                  cluster_name: admin_port_cluster
+                  endpoints:
+                    - lb_endpoints:
+                        - endpoint:
+                            address:
+                              socket_address:
+                                address: 127.0.0.1
+                                port_value: 19000
+
+          dynamic_resources:
+            ads_config:
+              api_type: GRPC
+              grpc_services:
+                - envoy_grpc: {cluster_name: xds_cluster}
+            cds_config:
+              ads: {}
+            lds_config:
+              ads: {}
+          admin:
+            access_log_path: /dev/null
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 19000
+  ingressProxy:
+    deployment:
+      extraAnnotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8081"
+      extraPorts:
+        - containerPort: 8081
+          name: stats
+          protocol: TCP
+    configMap:
+      data:
+        envoy.yaml: |
+          node:
+            cluster: ingress
+            id: "{{.PodName}}{{.PodNamespace}}"
+            metadata:
+              # this line must match !
+              role: "gloo-system~ingress-proxy"
+
+          rate_limit_service:
+            grpc_service:
+              envoy_grpc:
+                cluster_name: rate_limit_cluster
+
+          static_resources:
+            listeners:
+              - name: prometheus_listener
+                address:
+                  socket_address:
+                    address: 0.0.0.0
+                    port_value: 8081
+                filter_chains:
+                  - filters:
+                      - name: envoy.http_connection_manager
+                        config:
+                          codec_type: auto
+                          stat_prefix: prometheus
+                          route_config:
+                            name: prometheus_route
+                            virtual_hosts:
+                              - name: prometheus_host
+                                domains:
+                                  - "*"
+                                routes:
+                                  - match:
+                                      prefix: "/metrics"
+                                    route:
+                                      prefix_rewrite: "/stats/prometheus"
+                                      cluster: admin_port_cluster
+                          http_filters:
+                            - name: envoy.router
+                              config: {}
+            clusters:
+              - name: xds_cluster
+                connect_timeout: 5.000s
+                load_assignment:
+                  cluster_name: xds_cluster
+                  endpoints:
+                    - lb_endpoints:
+                        - endpoint:
+                            address:
+                              socket_address:
+                                address: gloo
+                                port_value: 9977
+                http2_protocol_options: {}
+                type: STRICT_DNS
+              - name: rate_limit_cluster
+                connect_timeout: 5.000s
+                load_assignment:
+                  cluster_name: rate_limit_cluster
+                  endpoints:
+                    - lb_endpoints:
+                        - endpoint:
+                            address:
+                              socket_address:
+                                address: rate-limit
+                                port_value: 18081
+                http2_protocol_options: {}
+                type: STRICT_DNS
+              - name: admin_port_cluster
+                connect_timeout: 5.000s
+                type: STRICT_DNS
+                lb_policy: ROUND_ROBIN
+                load_assignment:
+                  cluster_name: admin_port_cluster
+                  endpoints:
+                    - lb_endpoints:
+                        - endpoint:
+                            address:
+                              socket_address:
+                                address: 127.0.0.1
+                                port_value: 19000
+
+          dynamic_resources:
+            ads_config:
+              api_type: GRPC
+              grpc_services:
+                - envoy_grpc: {cluster_name: xds_cluster}
+            cds_config:
+              ads: {}
+            lds_config:
+              ads: {}
+          admin:
+            access_log_path: /dev/null
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 19000
+
+
+########################################################################
+###                                                                  ###
+###                        Rate Limit                                ###
+###                                                                  ###
+########################################################################
+
+rateLimit:
+  deployment:
+    name: 'rate-limit'
+    image:
+      pullPolicy: Always
+      repository: soloio/rate-limit-ee
+      pullSecret: solo-io-docker-secret
+    glooAddress: gloo:9977
+    redisUrl: redis:6379
+  service:
+    port: 18081
+    name: rate-limit
+
+
+redis:
+  deployment:
+    name: redis
+    image:
+      tag: v1
+      repository: kubernetes/redis
+      pullPolicy: Always
+    staticPort: 6379
+  service:
+    port: 6379
+    name: redis
+
+
+########################################################################
+###                                                                  ###
+###                        Licensing                                 ###
+###                                                                  ###
+########################################################################
+
+licensing:
+  deployment:
+    name: licensing
+    service: licensing-service
+    image:
+      repository: soloio/licensing-server-ee
+      pullPolicy: Always
+      pullSecret: solo-io-docker-secret
+    staticPort: 8080
+  service:
+    port: 80
+    name: licensing-service
+
+
+########################################################################
+###                                                                  ###
+###                        API Server                                ###
+###                                                                  ###
+########################################################################
+
+apiServer:
+  noAuth: true
+  deployment:
+    name: 'apiserver-ui'
+    server:
+      image:
+        name: apiserver
+        pullPolicy: Always
+        repository: soloio/apiserver-ee
+        pullSecret: solo-io-docker-secret
+      graphqlPort: 8082
+      oauth:
+        client: gloo
+        server: 'localhost:9000'
+    ui:
+      image:
+        name: 'gloo-i'
+        tag: hack # special container to temporarily bypass auth in UI
+        pullPolicy: Always
+        repository: soloio/gloo-i-ee
+        pullSecret: solo-io-docker-secret
+      staticPort: 8080
+  service:
+    name: 'apiserver-ui'
+  configMap:
+    name: ui-nginx-config
+
+
+########################################################################
+###                                                                  ###
+###                        Observability                             ###
+###                                                                  ###
+########################################################################
+
+observability:
+  deployment:
+    name: observability
+    image:
+      repository: soloio/observability-ee
+      pullPolicy: IfNotPresent
+      pullSecret: solo-io-docker-secret
+
+
+
+########################################################################
+###                                                                  ###
+###                        RBAC                                      ###
+###                                                                  ###
+########################################################################
+
+rbac:
+  create: true
+
+########################################################################
+###                                                                  ###
+###                        Prometheus                                ###
+###                                                                  ###
+########################################################################
+
+
+prometheus:
+  pushgateway:
+    enabled: false
+  alertmanager:
+    enabled: false
+  nodeExporter:
+    enabled: false
+
+
+########################################################################
+###                                                                  ###
+###                        Grafana                                   ###
+###                                                                  ###
+########################################################################
+
+grafana:
+  adminUser: admin
+  adminPassword: admin
+  persistence:
+    enabled: true
+    size: 100Mi
+  rbac:
+    pspUseAppArmor: false
+  datasources:
+    datasources.yaml:
+      # config file version
+      apiVersion: 1
+      # list of datasources to insert/update depending
+      # what's available in the database
+      datasources:
+        # <string, required> name of the datasource. Required
+      - name: gloo
+        # <string, required> datasource type. Required
+        type: prometheus
+        access: proxy
+        url: http://gloo-ee-prometheus-server:80
+        isDefault: true
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'gloo'
+        orgId: 1
+        folder: 'gloo'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/gloo
+  dashboardsConfigMaps:
+    gloo: gloo-ee-grafana-custom-dashboards

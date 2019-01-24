@@ -1,0 +1,58 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: api-server
+  namespace: {{ .Release.Namespace }}
+  labels:
+    gloo: api-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: api-server
+  template:
+    metadata:
+      labels:
+        gloo: api-server
+    spec:
+      imagePullSecrets:
+        - name: solo-io-docker-secret
+      containers:
+        - name: apiserver-ui
+          image: '{{.Values.apiServer.deployment.ui.image.repository}}:{{.Values.apiServer.deployment.ui.image.tag}}'
+          imagePullPolicy: {{.Values.apiServer.deployment.ui.image.pullPolicy}}
+          volumeMounts:
+            - name: ui-nginx-config
+              mountPath: /etc/nginx/conf
+            - name: empty-cache
+              mountPath: /var/cache/nginx
+            - name: empty-run
+              mountPath: /var/run
+          ports:
+            - name: static
+              containerPort: {{.Values.apiServer.deployment.ui.staticPort}}
+              protocol: TCP
+        - name: apiserver
+          image: '{{.Values.apiServer.deployment.server.image.repository}}:{{.Values.apiServer.deployment.server.image.tag}}'
+          imagePullPolicy: {{.Values.apiServer.deployment.server.image.pullPolicy}}
+          env:
+            - name: OAUTH_CLIENT
+              value: {{.Values.apiServer.deployment.server.oauth.client}}
+            - name: OAUTH_SERVER
+              value: {{.Values.apiServer.deployment.server.oauth.server}}
+{{- if .Values.apiServer.noAuth }}
+            - name: NO_AUTH
+              value: "1"
+{{- end}}
+          ports:
+            - name: graphql
+              containerPort: {{.Values.apiServer.deployment.server.graphqlPort}}
+              protocol: TCP
+      volumes:
+        - name: ui-nginx-config
+          configMap:
+            name: {{ .Values.apiServer.configMap.name }}
+        - name: empty-cache
+          emptyDir: {}
+        - name: empty-run
+          emptyDir: {}

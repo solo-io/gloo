@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    service: {{ .Values.licensing.service.name }}
+    gloo: licensing
+  name: licensing
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: licensing
+  template:
+    metadata:
+      labels:
+        gloo: licensing
+    spec:
+      containers:
+        - image: "{{ .Values.licensing.deployment.image.repository }}:{{ .Values.licensing.deployment.image.tag }}"
+          ports:
+            - name: licensing
+              containerPort: {{ .Values.licensing.deployment.staticPort }}
+            - name: health-check
+              containerPort: 9001
+          imagePullPolicy: {{ .Values.licensing.deployment.image.pullPolicy }}
+          name: licensing-container
+          env:
+            - name: KEYGEN_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: licensing
+                  key: authtoken
+            - name: KEYGEN_ACCOUNT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: licensing
+                  key: accountid
+      imagePullSecrets:
+        - name: solo-io-docker-secret

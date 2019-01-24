@@ -16,7 +16,11 @@ import (
 func Main() error {
 	start := time.Now()
 	check.CallCheck("gloo-ee", version.Version, start)
-	return setuputils.Main("gloo-ee", syncer.NewSetupFuncWithExtensions(GetGlooEeExtensions()))
+	return setuputils.Main(setuputils.SetupOpts{
+		SetupFunc:     syncer.NewSetupFuncWithExtensions(GetGlooEeExtensions()),
+		ExitOnError:   true,
+		LoggingPrefix: "gloo-ee",
+	})
 }
 
 func GetGlooEeExtensions() syncer.Extensions {

@@ -1,0 +1,11 @@
+# Config map which grafana reads in order to create custom dashboard dir
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gloo-ee-grafana-custom-dashboards
+  labels:
+    app: {{ template "grafana.name" . }}
+    chart: {{ template "grafana.chart" . }}
+    release: {{ .Release.Name }}
+data:
+{{ (.Files.Glob "dashboards/*.json").AsConfig | indent 2 }}

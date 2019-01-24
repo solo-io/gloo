@@ -233,16 +233,30 @@ gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/
 # Deployment Manifests / Helm
 #----------------------------------------------------------------------------------
 
-.PHONY: manifest bump-helm-version
-manifest: install/kube.yaml bump-helm-version
 
-bump-helm-version:
-	sed -i 's/version: .*/version: $(VERSION)/g' install/helm/gloo/Chart.yaml
-	sed -i 's@image: soloio/\(.*\):.*@image: soloio/\1:$(VERSION)@g' install/helm/gloo-ee/values.yaml
+HELM_SYNC_DIR := $(OUTPUT_DIR)/helm
+HELM_DIR := install/helm
 
-install/kube.yaml: $(shell find install/helm/gloo-ee)
-	helm template install/helm/gloo-ee --namespace gloo-system > $@
+.PHONY: manifest
+manifest: init-helm helm-template install/gloo-ee.yaml update-helm-chart
 
+# creates Chart.yaml, values.yaml, and requirements.yaml
+helm-template:
+	go run install/helm/gloo-ee/generate.go $(VERSION)
+
+update-helm-chart:
+ifeq ($(RELEASE),"true")
+	helm package --destination $(HELM_SYNC_DIR)/charts $(HELM_DIR)/gloo-ee
+	helm repo index $(HELM_SYNC_DIR)
+endif
+
+install/gloo-ee.yaml: $(shell find install/helm/gloo-ee)
+	helm dependency update install/helm/gloo-ee
+	helm template install/helm/gloo-ee --namespace gloo-system --name=gloo-ee > $@
+
+init-helm:
+	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
+	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 
 #----------------------------------------------------------------------------------
 # LicensingServer
@@ -289,17 +303,28 @@ ifeq ($(RELEASE),"true")
 		$(OUTPUT_DIR)/glooctl-darwin-amd64
 endif
 
+RELEASE_YAMLS :=
+ifeq ($(RELEASE),"true")
+	RELEASE_YAMLS := \
+		install/gloo-ee.yaml
+endif
+
 .PHONY: release-binaries
 release-binaries: $(RELEASE_BINARIES)
+
+
+.PHONY: release-yamls
+release-yamls: $(RELEASE_YAMLS)
 
 # This is invoked by cloudbuild. When the bot gets a release notification, it kicks of a build with and provides a tag
 # variable that gets passed through to here as $TAGGED_VERSION. If no tag is provided, this is a no-op. If a tagged
 # version is provided, all the release binaries are uploaded to github.
 # Create new releases by clicking "Draft a new release" from https://github.com/solo-io/solo-projects/releases
 .PHONY: release
-release: release-binaries
+release: release-binaries release-yamls
 ifeq ($(RELEASE),"true")
 	@$(foreach BINARY,$(RELEASE_BINARIES),ci/upload-github-release-asset.sh owner=solo-io repo=solo-projects tag=$(TAGGED_VERSION) filename=$(BINARY);)
+	@$(foreach YAML,$(RELEASE_YAMLS),ci/upload-github-release-asset.sh owner=solo-io repo=solo-projects tag=$(TAGGED_VERSION) filename=$(YAML);)
 endif
 
 #----------------------------------------------------------------------------------
@@ -330,4 +355,5 @@ ifeq ($(RELEASE),"true")
 	docker push soloio/gloo-ee:$(VERSION) && \
 	docker push soloio/gloo-ee-envoy-wrapper:$(VERSION) && \
 	docker push soloio/licensing-server-ee:$(VERSION)
+	docker push soloio/observability-ee:$(VERSION)
 endif

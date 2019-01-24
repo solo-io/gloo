@@ -23,6 +23,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var defaultDomains = []string{"*"}
+
 func VSCreate(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 
 	optsExt := &optionsExt.RateLimit{}
@@ -84,7 +86,7 @@ func createVirtualService(opts *options.Options, optsExt *optionsExt.RateLimit, 
 
 func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualService, rl optionsExt.RateLimit) (*v1.VirtualService, error) {
 	if len(input.Domains) == 0 {
-		input.Domains = constants.DefaultDomains
+		input.Domains = defaultDomains
 	}
 	vs := &v1.VirtualService{
 		Metadata: meta,
