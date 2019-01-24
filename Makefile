@@ -341,7 +341,7 @@ ifeq ($(RELEASE),"true")
 endif
 
 .PHONY: docker docker-push
-docker: apiserver-docker rate-limit-docker gloo-docker gloo-ee-envoy-wrapper-docker sqoop-docker licensing-server-docker
+docker: apiserver-docker rate-limit-docker gloo-docker gloo-ee-envoy-wrapper-docker sqoop-docker licensing-server-docker observability-docker
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
 # This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
