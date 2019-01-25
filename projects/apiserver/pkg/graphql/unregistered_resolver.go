@@ -38,14 +38,6 @@ func (r *UnregisteredResolver) Namespace() graph.NamespaceResolver {
 	panic("client must present a token to access this feature")
 }
 
-func (r *UnregisteredResolver) ResolverMapMutation() graph.ResolverMapMutationResolver {
-	panic("client must present a token to access this feature")
-}
-
-func (r *UnregisteredResolver) SchemaMutation() graph.SchemaMutationResolver {
-	panic("client must present a token to access this feature")
-}
-
 func (r *UnregisteredResolver) SecretMutation() graph.SecretMutationResolver {
 	panic("client must present a token to access this feature")
 }

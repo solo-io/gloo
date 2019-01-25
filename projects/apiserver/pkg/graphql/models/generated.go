@@ -77,19 +77,6 @@ type DestinationSpec interface {
 	IsDestinationSpec()
 }
 
-type FieldResolver struct {
-	FieldName string   `json:"fieldName"`
-	Resolver  Resolver `json:"resolver"`
-}
-
-type GlooResolver struct {
-	RequestTemplate  *RequestTemplate  `json:"requestTemplate"`
-	ResponseTemplate *ResponseTemplate `json:"responseTemplate"`
-	Destination      Destination       `json:"destination"`
-}
-
-func (GlooResolver) IsResolver() {}
-
 type GrpcDestinationSpec struct {
 	Package    string                    `json:"package"`
 	Service    string                    `json:"service"`
@@ -168,18 +155,6 @@ type InputDestinationSpec struct {
 	Azure *InputAzureDestinationSpec `json:"azure"`
 	Rest  *InputRestDestinationSpec  `json:"rest"`
 	Grpc  *InputGrpcDestinationSpec  `json:"grpc"`
-	Sqoop *InputSqoopDestinationSpec `json:"sqoop"`
-}
-
-type InputFieldResolver struct {
-	FieldName string        `json:"fieldName"`
-	Resolver  InputResolver `json:"resolver"`
-}
-
-type InputGlooResolver struct {
-	RequestTemplate  *InputRequestTemplate  `json:"requestTemplate"`
-	ResponseTemplate *InputResponseTemplate `json:"responseTemplate"`
-	Destination      InputDestination       `json:"destination"`
 }
 
 type InputGrpcDestinationSpec struct {
@@ -230,10 +205,6 @@ type InputMultiDestination struct {
 	Destinations []InputWeightedDestination `json:"destinations"`
 }
 
-type InputNodeJSResolver struct {
-	Empty *string `json:"empty"`
-}
-
 type InputRateLimit struct {
 	Unit            TimeUnit                `json:"unit"`
 	RequestsPerUnit customtypes.UnsignedInt `json:"requestsPerUnit"`
@@ -245,32 +216,9 @@ type InputRateLimitConfig struct {
 	AnonymousLimits  *InputRateLimit `json:"anonymousLimits"`
 }
 
-type InputRequestTemplate struct {
-	Verb    string                `json:"verb"`
-	Path    string                `json:"path"`
-	Body    string                `json:"body"`
-	Headers *InputMapStringString `json:"headers"`
-}
-
-type InputResolver struct {
-	GlooResolver     *InputGlooResolver     `json:"glooResolver"`
-	TemplateResolver *InputTemplateResolver `json:"templateResolver"`
-	NodeResolver     *InputNodeJSResolver   `json:"nodeResolver"`
-}
-
-type InputResolverMap struct {
-	Types    []InputTypeResolver `json:"types"`
-	Metadata InputMetadata       `json:"metadata"`
-}
-
 type InputResourceRef struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
-}
-
-type InputResponseTemplate struct {
-	Body    string                `json:"body"`
-	Headers *InputMapStringString `json:"headers"`
 }
 
 type InputRestDestinationSpec struct {
@@ -291,11 +239,6 @@ type InputRoute struct {
 
 type InputRoutePlugins struct {
 	Empty *string `json:"empty"`
-}
-
-type InputSchema struct {
-	InlineSchema string        `json:"inlineSchema"`
-	Metadata     InputMetadata `json:"metadata"`
 }
 
 type InputSecret struct {
@@ -325,12 +268,6 @@ type InputSingleDestination struct {
 	DestinationSpec *InputDestinationSpec `json:"destinationSpec"`
 }
 
-type InputSqoopDestinationSpec struct {
-	SchemaName      string `json:"schemaName"`
-	SchemaNamespace string `json:"schemaNamespace"`
-	Playground      bool   `json:"playground"`
-}
-
 type InputSslConfig struct {
 	SecretRef InputResourceRef `json:"secretRef"`
 }
@@ -351,10 +288,6 @@ type InputStatus struct {
 	Reason string `json:"reason"`
 }
 
-type InputTemplateResolver struct {
-	Empty *string `json:"empty"`
-}
-
 type InputTlsSecret struct {
 	CertChain  string `json:"certChain"`
 	PrivateKey string `json:"privateKey"`
@@ -370,11 +303,6 @@ type InputTransformation struct {
 type InputTransformationParameters struct {
 	Headers *InputMapStringString `json:"headers"`
 	Path    *string               `json:"path"`
-}
-
-type InputTypeResolver struct {
-	TypeName string               `json:"typeName"`
-	Fields   []InputFieldResolver `json:"fields"`
 }
 
 type InputUpdateMetadata struct {
@@ -469,12 +397,6 @@ type MultiDestination struct {
 
 func (MultiDestination) IsDestination() {}
 
-type NodeJSResolver struct {
-	Empty *string `json:"empty"`
-}
-
-func (NodeJSResolver) IsResolver() {}
-
 type OAuthEndpoint struct {
 	URL        string `json:"url"`
 	ClientName string `json:"clientName"`
@@ -491,31 +413,9 @@ type RateLimitConfig struct {
 	AnonymousLimits  *RateLimit `json:"anonymousLimits"`
 }
 
-type RequestTemplate struct {
-	Verb    string           `json:"verb"`
-	Path    string           `json:"path"`
-	Body    string           `json:"body"`
-	Headers *MapStringString `json:"headers"`
-}
-
-type Resolver interface {
-	IsResolver()
-}
-
-type ResolverMap struct {
-	Types    []TypeResolver `json:"types"`
-	Metadata Metadata       `json:"metadata"`
-	Status   Status         `json:"status"`
-}
-
 type ResourceRef struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
-}
-
-type ResponseTemplate struct {
-	Body    string           `json:"body"`
-	Headers *MapStringString `json:"headers"`
 }
 
 type RestDestinationSpec struct {
@@ -539,12 +439,6 @@ type Route struct {
 
 type RoutePlugins struct {
 	Empty *string `json:"empty"`
-}
-
-type Schema struct {
-	InlineSchema string   `json:"inlineSchema"`
-	Metadata     Metadata `json:"metadata"`
-	Status       Status   `json:"status"`
 }
 
 type Secret struct {
@@ -573,19 +467,6 @@ type SingleDestination struct {
 
 func (SingleDestination) IsDestination() {}
 
-type SqoopDestinationSpec struct {
-	Schema     Schema `json:"schema"`
-	Playground bool   `json:"playground"`
-}
-
-func (SqoopDestinationSpec) IsDestinationSpec() {}
-
-type SqoopServiceSpec struct {
-	Schemas []*Schema `json:"schemas"`
-}
-
-func (SqoopServiceSpec) IsServiceSpec() {}
-
 type SslConfig struct {
 	SecretRef ResourceRef `json:"secretRef"`
 }
@@ -608,12 +489,6 @@ type Status struct {
 	Reason *string `json:"reason"`
 }
 
-type TemplateResolver struct {
-	InlineTemplate *string `json:"inlineTemplate"`
-}
-
-func (TemplateResolver) IsResolver() {}
-
 type TlsSecret struct {
 	CertChain  string `json:"certChain"`
 	PrivateKey string `json:"privateKey"`
@@ -631,11 +506,6 @@ type Transformation struct {
 type TransformationParameters struct {
 	Headers *MapStringString `json:"headers"`
 	Path    *string          `json:"path"`
-}
-
-type TypeResolver struct {
-	TypeName string          `json:"typeName"`
-	Fields   []FieldResolver `json:"fields"`
 }
 
 type Upstream struct {

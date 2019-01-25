@@ -88,7 +88,6 @@ union DestinationSpec =
   | AzureDestinationSpec
   | RestDestinationSpec
   | GrpcDestinationSpec
-  | SqoopDestinationSpec
 
 type AwsDestinationSpec {
   logicalName: String!
@@ -224,12 +223,11 @@ input InputSingleDestination {
 }
 
 input InputDestinationSpec {
-  # oneof: aws | azure
+  # oneof: aws | azure | rest | grpc
   aws: InputAwsDestinationSpec
   azure: InputAzureDestinationSpec
   rest: InputRestDestinationSpec
   grpc: InputGrpcDestinationSpec
-  sqoop: InputSqoopDestinationSpec
 }
 
 input InputMultiDestination {
@@ -265,12 +263,6 @@ input InputGrpcDestinationSpec {
   package: String!
   service: String!
   function: String!
-}
-
-input InputSqoopDestinationSpec {
-  schemaName: String!
-  schemaNamespace: String!
-  playground: Boolean!
 }
 
 input InputTransformationParameters {

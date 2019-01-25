@@ -8,10 +8,6 @@ type UpstreamMutation struct{}
 
 type VirtualServiceMutation struct{}
 
-type ResolverMapMutation struct{}
-
-type SchemaMutation struct{}
-
 type SecretMutation struct{}
 
 type ArtifactMutation struct{}

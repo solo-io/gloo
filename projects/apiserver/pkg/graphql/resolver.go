@@ -12,7 +12,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/graph"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
-	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
@@ -22,25 +21,19 @@ type ApiResolver struct {
 	ArtifactClient       v1.ArtifactClient
 	SettingsClient       v1.SettingsClient
 	VirtualServiceClient gatewayv1.VirtualServiceClient
-	ResolverMapClient    sqoopv1.ResolverMapClient
-	SchemaClient         sqoopv1.SchemaClient
 	KubeClient           corev1.CoreV1Interface
 }
 
 func NewResolvers(upstreams v1.UpstreamClient,
-	schemas sqoopv1.SchemaClient,
 	artifacts v1.ArtifactClient,
 	settings v1.SettingsClient,
 	secrets v1.SecretClient,
 	virtualServices gatewayv1.VirtualServiceClient,
-	resolverMaps sqoopv1.ResolverMapClient,
 	kubeClient corev1.CoreV1Interface,
 ) *ApiResolver {
 	return &ApiResolver{
 		UpstreamClient:       upstreams,
 		VirtualServiceClient: virtualServices,
-		ResolverMapClient:    resolverMaps,
-		SchemaClient:         schemas,
 		ArtifactClient:       artifacts,
 		SettingsClient:       settings,
 		SecretClient:         secrets,
@@ -66,12 +59,6 @@ func (r *ApiResolver) UpstreamMutation() graph.UpstreamMutationResolver {
 }
 func (r *ApiResolver) VirtualServiceMutation() graph.VirtualServiceMutationResolver {
 	return &virtualServiceMutationResolver{r}
-}
-func (r *ApiResolver) ResolverMapMutation() graph.ResolverMapMutationResolver {
-	return &resolverMapMutationResolver{r}
-}
-func (r *ApiResolver) SchemaMutation() graph.SchemaMutationResolver {
-	return &schemaMutationResolver{r}
 }
 func (r *ApiResolver) ArtifactMutation() graph.ArtifactMutationResolver {
 	return &artifactMutationResolver{r}
@@ -133,12 +120,6 @@ func (r *mutationResolver) Upstreams(ctx context.Context) (customtypes.UpstreamM
 }
 func (r *mutationResolver) VirtualServices(ctx context.Context) (customtypes.VirtualServiceMutation, error) {
 	return customtypes.VirtualServiceMutation{}, nil
-}
-func (r *mutationResolver) ResolverMaps(ctx context.Context) (customtypes.ResolverMapMutation, error) {
-	return customtypes.ResolverMapMutation{}, nil
-}
-func (r *mutationResolver) Schemas(ctx context.Context) (customtypes.SchemaMutation, error) {
-	return customtypes.SchemaMutation{}, nil
 }
 func (r *mutationResolver) Secrets(ctx context.Context) (customtypes.SecretMutation, error) {
 	return customtypes.SecretMutation{}, nil

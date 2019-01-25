@@ -58,7 +58,7 @@ type AzureFunction {
   authLevel: AzureFnAuthLevel!
 }
 
-union ServiceSpec = RestServiceSpec | GrpcServiceSpec | SqoopServiceSpec
+union ServiceSpec = RestServiceSpec | GrpcServiceSpec
 
 type RestServiceSpec {
   functions: [Transformation!]

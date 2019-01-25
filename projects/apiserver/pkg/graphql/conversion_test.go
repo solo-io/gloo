@@ -18,7 +18,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
-	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 )
 
 var T *testing.T
@@ -53,12 +52,10 @@ var _ = Describe("Converter", func() {
 		// We only need the upstream client
 		resolvers := graphql.NewResolvers(
 			upstreamClient,
-			sqoopv1.SchemaClient(nil),
 			gloov1.ArtifactClient(nil),
 			gloov1.SettingsClient(nil),
 			gloov1.SecretClient(nil),
 			gatewayv1.VirtualServiceClient(nil),
-			sqoopv1.ResolverMapClient(nil),
 			corev1.CoreV1Interface(nil),
 		)
 

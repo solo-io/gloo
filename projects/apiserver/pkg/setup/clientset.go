@@ -19,7 +19,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/auth"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql"
-	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	vcsv1 "github.com/solo-io/solo-projects/projects/vcs/pkg/api/v1"
 	"k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
@@ -72,20 +71,16 @@ type ClientSet struct {
 	gloov1.SettingsClient
 	gloov1.SecretClient
 	gloov1.ArtifactClient
-	sqoopv1.ResolverMapClient
-	sqoopv1.SchemaClient
 	corev1.CoreV1Interface
 }
 
 func (c ClientSet) NewResolvers() graph.ResolverRoot {
 	return graphql.NewResolvers(
 		c.UpstreamClient,
-		c.SchemaClient,
 		c.ArtifactClient,
 		c.SettingsClient,
 		c.SecretClient,
 		c.VirtualServiceClient,
-		c.ResolverMapClient,
 		c.CoreV1Interface)
 }
 
@@ -118,16 +113,6 @@ func NewClientSet(token string) (*ClientSet, error) {
 		return nil, err
 	}
 
-	schemaClient, err := sqoopv1.NewSchemaClientWithToken(factoryFor(sqoopv1.SchemaCrd, *cfg, cache), token)
-	if err != nil {
-		return nil, err
-	}
-
-	rmClient, err := sqoopv1.NewResolverMapClientWithToken(factoryFor(sqoopv1.ResolverMapCrd, *cfg, cache), token)
-	if err != nil {
-		return nil, err
-	}
-
 	vsClient, err := gatewayv1.NewVirtualServiceClientWithToken(factoryFor(gatewayv1.VirtualServiceCrd, *cfg, cache), token)
 	if err != nil {
 		return nil, err
@@ -140,7 +125,7 @@ func NewClientSet(token string) (*ClientSet, error) {
 
 	// Needed only for the clients backed by the KubeResourceClientFactory
 	// so that they register with the cache they share
-	if err = registerAll(upstreamClient, schemaClient, rmClient, vsClient); err != nil {
+	if err = registerAll(upstreamClient, vsClient, settingsClient); err != nil {
 		return nil, err
 	}
 
@@ -160,8 +145,6 @@ func NewClientSet(token string) (*ClientSet, error) {
 
 	return &ClientSet{
 		UpstreamClient:       upstreamClient,
-		SchemaClient:         schemaClient,
-		ResolverMapClient:    rmClient,
 		VirtualServiceClient: vsClient,
 		SettingsClient:       settingsClient,
 		SecretClient:         secretClient,
@@ -238,23 +221,13 @@ func NewTempClientSet(token string) (*ClientSet, error) {
 		return nil, err
 	}
 
-	schemaClient, err := sqoopv1.NewSchemaClientWithToken(factoryFor(sqoopv1.SchemaCrd, *cfg, cache), token)
-	if err != nil {
-		return nil, err
-	}
-
-	rmClient, err := sqoopv1.NewResolverMapClientWithToken(factoryFor(sqoopv1.ResolverMapCrd, *cfg, cache), token)
-	if err != nil {
-		return nil, err
-	}
-
 	settingsClient, err := gloov1.NewSettingsClientWithToken(factoryFor(gloov1.SettingsCrd, *cfg, cache), token)
 	if err != nil {
 		return nil, err
 	}
 
 	// Needed only for the clients backed by a KubeResourceClientFactory to register with the cache they share
-	if err = registerAll(upstreamClient, schemaClient, rmClient, settingsClient); err != nil {
+	if err = registerAll(upstreamClient, settingsClient); err != nil {
 		return nil, err
 	}
 
@@ -300,8 +273,6 @@ func NewTempClientSet(token string) (*ClientSet, error) {
 
 	return &ClientSet{
 		UpstreamClient:       upstreamClient,
-		SchemaClient:         schemaClient,
-		ResolverMapClient:    rmClient,
 		VirtualServiceClient: vsClient,
 		SettingsClient:       settingsClient,
 		SecretClient:         secretClient,
@@ -319,7 +290,6 @@ func factoryFor(crd crd.Crd, cfg rest.Config, cache kube.SharedCache) factory.Re
 	}
 }
 
-// TODO(ilackarms): move to solo kit
 type registrant interface {
 	Register() error
 }
@@ -355,16 +325,6 @@ func newAdminClientSet() (*ClientSet, error) {
 		return nil, err
 	}
 
-	schemaClient, err := sqoopv1.NewSchemaClient(factoryFor(sqoopv1.SchemaCrd, *cfg, cache))
-	if err != nil {
-		return nil, err
-	}
-
-	rmClient, err := sqoopv1.NewResolverMapClient(factoryFor(sqoopv1.ResolverMapCrd, *cfg, cache))
-	if err != nil {
-		return nil, err
-	}
-
 	vsClient, err := gatewayv1.NewVirtualServiceClient(factoryFor(gatewayv1.VirtualServiceCrd, *cfg, cache))
 	if err != nil {
 		return nil, err
@@ -377,7 +337,7 @@ func newAdminClientSet() (*ClientSet, error) {
 
 	// Needed only for the clients backed by the KubeResourceClientFactory
 	// so that they register with the cache they share
-	if err = registerAll(upstreamClient, schemaClient, rmClient, vsClient); err != nil {
+	if err = registerAll(upstreamClient, vsClient, settingsClient); err != nil {
 		return nil, err
 	}
 
@@ -397,8 +357,6 @@ func newAdminClientSet() (*ClientSet, error) {
 
 	return &ClientSet{
 		UpstreamClient:       upstreamClient,
-		SchemaClient:         schemaClient,
-		ResolverMapClient:    rmClient,
 		VirtualServiceClient: vsClient,
 		SettingsClient:       settingsClient,
 		SecretClient:         secretClient,

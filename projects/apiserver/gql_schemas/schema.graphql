@@ -15,8 +15,6 @@ type Query {
 type Mutation {
     upstreams: UpstreamMutation!
     virtualServices: VirtualServiceMutation!
-    resolverMaps: ResolverMapMutation!
-    schemas: SchemaMutation!
     secrets: SecretMutation!
     artifacts: ArtifactMutation!
     settings: SettingsMutation!
@@ -44,10 +42,4 @@ type Namespace {
 
     artifacts: [Artifact]!
     artifact(name: String!): Artifact
-
-    schemas: [Schema]!
-    schema(name: String!): Schema
-
-    resolverMaps: [ResolverMap]!
-    resolverMap(name: String!): ResolverMap
 }

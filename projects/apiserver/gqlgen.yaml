@@ -23,10 +23,6 @@ models:
     model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.UpstreamMutation
   VirtualServiceMutation:
     model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.VirtualServiceMutation
-  ResolverMapMutation:
-    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.ResolverMapMutation
-  SchemaMutation:
-    model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.SchemaMutation
   SecretMutation:
     model: github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes.SecretMutation
   ArtifactMutation:

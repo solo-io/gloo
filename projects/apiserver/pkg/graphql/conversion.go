@@ -3,7 +3,6 @@ package graphql
 import (
 	"context"
 	"log"
-	"sort"
 	"time"
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
@@ -27,7 +26,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 	. "github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
-	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 )
 
 type Converter struct {
@@ -303,18 +301,6 @@ func (c *Converter) convertOutputServiceSpec(spec *plugins.ServiceSpec) (Service
 	case *plugins.ServiceSpec_Grpc:
 		return &GrpcServiceSpec{
 			GrpcServices: convertOutputGrpcServices(serviceSpec.Grpc.GrpcServices),
-		}, nil
-	case *plugins.ServiceSpec_Sqoop:
-		var schemas []*Schema
-		for _, schemaRef := range serviceSpec.Sqoop.Schemas {
-			schema, err := c.r.Namespace().Schema(c.ctx, &customtypes.Namespace{Name: schemaRef.Namespace}, schemaRef.Name)
-			if err != nil {
-				return nil, err
-			}
-			schemas = append(schemas, schema)
-		}
-		return &SqoopServiceSpec{
-			Schemas: schemas,
 		}, nil
 	}
 	panic("unsupported")
@@ -899,15 +885,6 @@ func (c *Converter) convertOutputDestinationSpec(spec *v1.DestinationSpec) (Dest
 			Function:   destSpec.Grpc.Function,
 			Parameters: convertOutputTransformation(destSpec.Grpc.Parameters),
 		}, nil
-	case *v1.DestinationSpec_Sqoop:
-		schema, err := c.r.Namespace().Schema(c.ctx, &customtypes.Namespace{Name: destSpec.Sqoop.Schema.Namespace}, destSpec.Sqoop.Schema.Name)
-		if err != nil {
-			return nil, err
-		}
-		return &SqoopDestinationSpec{
-			Schema:     *schema,
-			Playground: destSpec.Sqoop.Playground,
-		}, nil
 	}
 	return nil, errors.Errorf("unknown destination spec type: %v", spec)
 }
@@ -1027,207 +1004,6 @@ func convertGQLTimeUnitEnum(gqlEnum TimeUnit) (ratelimitapi.RateLimit_Unit, erro
 	}
 }
 
-func (c *Converter) ConvertOutputResolverMaps(resolverMaps sqoopv1.ResolverMapList) ([]*ResolverMap, error) {
-	var result []*ResolverMap
-	for _, us := range resolverMaps {
-		gqlRm, err := c.ConvertOutputResolverMap(us)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, gqlRm)
-	}
-	return result, nil
-}
-
-func (c *Converter) ConvertOutputResolverMap(resolverMap *sqoopv1.ResolverMap) (*ResolverMap, error) {
-	var typeResolvers []TypeResolver
-	for typeName, typeResolver := range resolverMap.Types {
-		gqlTr, err := c.convertOutputTypeResolver(typeName, typeResolver)
-		if err != nil {
-			return nil, err
-		}
-		typeResolvers = append(typeResolvers, gqlTr)
-	}
-	sort.SliceStable(typeResolvers, func(i, j int) bool {
-		return typeResolvers[i].TypeName < typeResolvers[j].TypeName
-	})
-	return &ResolverMap{
-		Types:    typeResolvers,
-		Status:   convertOutputStatus(resolverMap.Status),
-		Metadata: convertOutputMetadata(&sqoopv1.ResolverMap{}, resolverMap.Metadata),
-	}, nil
-}
-
-func (c *Converter) convertOutputTypeResolver(typeName string, typeResolver *sqoopv1.TypeResolver) (TypeResolver, error) {
-	var fieldResolvers []FieldResolver
-	for fieldName, fieldResolver := range typeResolver.Fields {
-		gqlResolver, err := c.convertOutputResolver(fieldResolver)
-		if err != nil {
-			return TypeResolver{}, err
-		}
-		fieldResolvers = append(fieldResolvers, FieldResolver{
-			FieldName: fieldName,
-			Resolver:  gqlResolver,
-		})
-	}
-	sort.SliceStable(fieldResolvers, func(i, j int) bool {
-		return fieldResolvers[i].FieldName < fieldResolvers[j].FieldName
-	})
-	return TypeResolver{
-		TypeName: typeName,
-		Fields:   fieldResolvers,
-	}, nil
-}
-
-func (c *Converter) convertOutputResolver(resolver *sqoopv1.FieldResolver) (Resolver, error) {
-	switch res := resolver.Resolver.(type) {
-	case *sqoopv1.FieldResolver_GlooResolver:
-		// Until implemented - bypass. TODO -implement
-		if res.GlooResolver == nil {
-			return nil, nil
-		}
-		gqlDest, err := c.convertOutputDestination(res.GlooResolver.Action)
-		if err != nil {
-			return nil, err
-		}
-		return &GlooResolver{
-			RequestTemplate:  convertOutputRequestTemplate(res.GlooResolver.RequestTemplate),
-			ResponseTemplate: convertOutputResponseTemplate(res.GlooResolver.ResponseTemplate),
-			Destination:      gqlDest,
-		}, nil
-	case *sqoopv1.FieldResolver_TemplateResolver:
-		return &TemplateResolver{}, nil
-	case *sqoopv1.FieldResolver_NodejsResolver:
-		return &NodeJSResolver{}, nil
-	}
-	log.Printf("invalid resolver type: %v", resolver)
-	return nil, nil
-}
-
-func convertOutputRequestTemplate(t *sqoopv1.RequestTemplate) *RequestTemplate {
-	if t == nil {
-		return nil
-	}
-	return &RequestTemplate{
-		Verb:    t.Verb,
-		Path:    t.Path,
-		Body:    t.Body,
-		Headers: NewMapStringString(t.Headers),
-	}
-}
-
-func convertOutputResponseTemplate(t *sqoopv1.ResponseTemplate) *ResponseTemplate {
-	if t == nil {
-		return nil
-	}
-	return &ResponseTemplate{
-		Body:    t.Body,
-		Headers: NewMapStringString(t.Headers),
-	}
-}
-
-func (c *Converter) ConvertInputResolverMaps(resolverMaps []*InputResolverMap) (sqoopv1.ResolverMapList, error) {
-	var result sqoopv1.ResolverMapList
-	for _, item := range resolverMaps {
-		in, err := c.ConvertInputResolverMap(*item)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, in)
-	}
-	return result, nil
-}
-
-func (c *Converter) ConvertInputResolverMap(resolverMap InputResolverMap) (*sqoopv1.ResolverMap, error) {
-	typeResolvers := make(map[string]*sqoopv1.TypeResolver)
-	for _, typeResolver := range resolverMap.Types {
-		res, err := convertInputTypeResolver(typeResolver)
-		if err != nil {
-			return nil, err
-		}
-		typeResolvers[typeResolver.TypeName] = res
-	}
-	return &sqoopv1.ResolverMap{
-		Metadata: convertInputMetadata(resolverMap.Metadata),
-		Types:    typeResolvers,
-	}, nil
-}
-
-func convertInputTypeResolver(typeResolver InputTypeResolver) (*sqoopv1.TypeResolver, error) {
-	fieldResolvers := make(map[string]*sqoopv1.FieldResolver)
-	for _, fieldResolver := range typeResolver.Fields {
-		resolver, err := ConvertInputResolver(fieldResolver.Resolver)
-		if err != nil {
-			return nil, err
-		}
-		fieldResolvers[fieldResolver.FieldName] = resolver
-	}
-	return &sqoopv1.TypeResolver{
-		Fields: fieldResolvers,
-	}, nil
-}
-
-// TODO(ilacakitems): implement these
-func ConvertInputResolver(resolver InputResolver) (*sqoopv1.FieldResolver, error) {
-	switch {
-	case resolver.GlooResolver != nil:
-		action, err := convertInputDestinationToAction(resolver.GlooResolver.Destination)
-		if err != nil {
-			return nil, err
-		}
-		return &sqoopv1.FieldResolver{
-			Resolver: &sqoopv1.FieldResolver_GlooResolver{
-				GlooResolver: &sqoopv1.GlooResolver{
-					RequestTemplate:  convertInputRequestTemplate(resolver.GlooResolver.RequestTemplate),
-					ResponseTemplate: convertInputResponseTemplate(resolver.GlooResolver.ResponseTemplate),
-					Action:           action,
-				},
-			},
-		}, nil
-	case resolver.TemplateResolver != nil:
-		return &sqoopv1.FieldResolver{
-			Resolver: &sqoopv1.FieldResolver_TemplateResolver{
-				TemplateResolver: &sqoopv1.TemplateResolver{},
-			},
-		}, nil
-	case resolver.NodeResolver != nil:
-		return &sqoopv1.FieldResolver{
-			Resolver: &sqoopv1.FieldResolver_NodejsResolver{
-				NodejsResolver: &sqoopv1.NodeJSResolver{},
-			},
-		}, nil
-	}
-	return nil, errors.Errorf("invalid input resolver: %#v", resolver)
-}
-
-func convertInputRequestTemplate(t *InputRequestTemplate) *sqoopv1.RequestTemplate {
-	if t == nil {
-		return nil
-	}
-	if t.Verb == "" && t.Path == "" && t.Body == "" && len(t.Headers.GoType()) == 0 {
-		return nil
-	}
-	return &sqoopv1.RequestTemplate{
-		Verb:    t.Verb,
-		Path:    t.Path,
-		Body:    t.Body,
-		Headers: t.Headers.GoType(),
-	}
-}
-
-func convertInputResponseTemplate(t *InputResponseTemplate) *sqoopv1.ResponseTemplate {
-	if t == nil {
-		return nil
-	}
-	if t.Body == "" && len(t.Headers.GoType()) == 0 {
-		return nil
-	}
-	return &sqoopv1.ResponseTemplate{
-		Body:    t.Body,
-		Headers: t.Headers.GoType(),
-	}
-}
-
 // common
 func convertInputMetadata(inMeta InputMetadata) core.Metadata {
 	return core.Metadata{
@@ -1271,41 +1047,6 @@ func convertOutputMetadata(resource resources.Resource, meta core.Metadata) Meta
 		Labels:          NewMapStringString(meta.Labels),
 		Annotations:     NewMapStringString(meta.Annotations),
 	}
-}
-
-func (c *Converter) ConvertOutputSchemas(schemas sqoopv1.SchemaList) []*Schema {
-	var result []*Schema
-	for _, us := range schemas {
-		result = append(result, c.ConvertOutputSchema(us))
-	}
-	return result
-}
-
-func (c *Converter) ConvertOutputSchema(schema *sqoopv1.Schema) *Schema {
-	return &Schema{
-		InlineSchema: schema.InlineSchema,
-		Status:       convertOutputStatus(schema.Status),
-		Metadata:     convertOutputMetadata(&sqoopv1.Schema{}, schema.Metadata),
-	}
-}
-
-func (c *Converter) ConvertInputSchemas(schemas []*InputSchema) (sqoopv1.SchemaList, error) {
-	var result sqoopv1.SchemaList
-	for _, item := range schemas {
-		in, err := c.ConvertInputSchema(*item)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, in)
-	}
-	return result, nil
-}
-
-func (c *Converter) ConvertInputSchema(schema InputSchema) (*sqoopv1.Schema, error) {
-	return &sqoopv1.Schema{
-		Metadata:     convertInputMetadata(schema.Metadata),
-		InlineSchema: schema.InlineSchema,
-	}, nil
 }
 
 func (c *Converter) ConvertOutputSecrets(secrets v1.SecretList) []*Secret {
