@@ -308,7 +308,6 @@ apiServer:
     ui:
       image:
         name: 'gloo-i'
-        tag: hack # special container to temporarily bypass auth in UI
         pullPolicy: Always
         repository: soloio/gloo-i-ee
         pullSecret: solo-io-docker-secret
@@ -358,6 +357,10 @@ prometheus:
     enabled: false
   nodeExporter:
     enabled: false
+  server:
+    global:
+      scrape_interval: 10s
+      evaluation_interval: 10s
 
 
 ########################################################################

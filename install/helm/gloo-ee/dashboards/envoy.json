@@ -308,7 +308,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "envoy_http_downstream_rq_active{envoy_http_conn_manager_prefix=\"http\",instance=\"gateway-proxy.gloo-system.svc.cluster.local:8081\",job=\"envoy-stats\"}",
+          "expr": "envoy_http_downstream_rq_active{envoy_http_conn_manager_prefix=\"http\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -392,7 +392,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "envoy_http_downstream_rq_completed{envoy_http_conn_manager_prefix=\"http\",instance=\"gateway-proxy.gloo-system.svc.cluster.local:8081\",job=\"envoy-stats\"}",
+          "expr": "envoy_http_downstream_rq_completed{envoy_http_conn_manager_prefix=\"http\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -476,7 +476,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "envoy_http_downstream_rq_total{envoy_http_conn_manager_prefix=\"http\",instance=\"gateway-proxy.gloo-system.svc.cluster.local:8081\",job=\"envoy-stats\"}",
+          "expr": "envoy_http_downstream_rq_total{envoy_http_conn_manager_prefix=\"http\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"

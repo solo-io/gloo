@@ -13,7 +13,7 @@ import (
 	"github.com/solo-io/solo-projects/install/helm/gloo-ee/generate"
 )
 
-var (
+const (
 	valuesTemplate       = "install/helm/gloo-ee/values-template.yaml"
 	valuesOutput         = "install/helm/gloo-ee/values.yaml"
 	chartTemplate        = "install/helm/gloo-ee/Chart-template.yaml"
@@ -26,6 +26,8 @@ var (
 	glooPkg      = "github.com/solo-io/gloo"
 	nameConst    = "name"
 	versionConst = "version"
+
+	glooiVersion = "0.0.3"
 )
 
 func main() {
@@ -85,7 +87,7 @@ func generateValuesYaml(version string) error {
 	config.Observability.Deployment.Image.Tag = version
 	config.ApiServer.Deployment.Server.Image.Tag = version
 	// Do not set image tag equal to the rest because it is separately versioned
-	//config.ApiServer.Deployment.Ui.Image.Tag = version
+	config.ApiServer.Deployment.Ui.Image.Tag = glooiVersion
 
 	return writeYaml(&config, valuesOutput)
 }

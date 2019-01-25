@@ -46,7 +46,7 @@ const jsonTemplate = `
     "id": null,
     "links": [],
     "timezone": "",
-    "title": "{{.ClusterName}} stats",
+    "title": "{{.ClusterName}}",
     "version": 4,
     "panels": [
       {
