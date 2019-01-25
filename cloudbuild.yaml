@@ -50,9 +50,9 @@ steps:
 # Must set the GOPATH to tell the container the workspace has already been set up (by the dep step above)
 - name: 'gcr.io/$PROJECT_ID/e2e-ginkgo'
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/gloo'
+  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
   - 'GOPATH=/workspace/gopath'
-  dir: './gopath/src/github.com/solo-io/gloo'
+  dir: './gopath/src/github.com/solo-io/solo-projects'
   entrypoint: make
   args: ['check-format']
   waitFor: ['dep']
@@ -61,10 +61,10 @@ steps:
   entrypoint: 'bash'
   args: ['ci/check-code-and-docs-gen.sh']
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/gloo'
+  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
   - 'GOPATH=/workspace/gopath'
   - 'TAGGED_VERSION=$TAG_NAME'
-  dir: './gopath/src/github.com/solo-io/gloo'
+  dir: './gopath/src/github.com/solo-io/solo-projects'
   waitFor: ['dep']
   id: 'check-code-and-docs-gen'
 
