@@ -1,5 +1,6 @@
 steps:
 
+# Setup SSH
 # These are required before dep
 - name: gcr.io/cloud-builders/gcloud
   args:
@@ -13,7 +14,7 @@ steps:
   volumes:
   - name: 'ssh'
     path: /root/.ssh
-
+  id: 'get-ssh-key'
 - name: 'gcr.io/cloud-builders/git'
   entrypoint: 'bash'
   args:
@@ -29,6 +30,13 @@ steps:
   volumes:
   - name: 'ssh'
     path: /root/.ssh
+  id: 'configure-git'
+
+# Can create a dep cache by running 'gcloud builds submit . --config=cloudbuild-cache.yaml'
+- name: gcr.io/cloud-builders/gsutil
+  entrypoint: 'bash'
+  args: ['-c', 'mkdir -p ./gopath/pkg/dep && gsutil cat gs://gloo-ee-cache/solo-projects/solo-projects-dep.tar.gz | tar -xzf -']
+  id: 'download-untar-dep-cache'
 
 # Using dep container from github.com/solo-io/cloud-builders/dep
 # This copies files into the proper workspace layout and so must be run before other tasks
