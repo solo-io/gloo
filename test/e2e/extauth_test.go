@@ -10,6 +10,7 @@ import (
 	"math/big"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
@@ -48,10 +49,12 @@ var _ = Describe("External ", func() {
 		settings    extauthrunner.Settings
 	)
 	var (
-		extauthport = 18071
+		baseExtauthPort = uint32(18071)
 	)
 
 	BeforeEach(func() {
+
+		extauthport := atomic.AddUint32(&baseExtauthPort, 1)
 
 		logger := zaptest.LoggerWriter(GinkgoWriter)
 		contextutils.SetFallbackLogger(logger.Sugar())
@@ -72,7 +75,7 @@ var _ = Describe("External ", func() {
 					Static: &gloov1static.UpstreamSpec{
 						Hosts: []*gloov1static.Host{{
 							Addr: "localhost",
-							Port: uint32(extauthport),
+							Port: extauthport,
 						}},
 						UseHttp2: true,
 					},
@@ -99,7 +102,7 @@ var _ = Describe("External ", func() {
 		settings = extauthrunner.Settings{
 			GlooAddress:  fmt.Sprintf("localhost:%d", testClients.GlooPort),
 			DebugPort:    0,
-			ServerPort:   extauthport,
+			ServerPort:   int(extauthport),
 			SigningKey:   "hello",
 			UserIdHeader: "X-User-Id",
 		}
