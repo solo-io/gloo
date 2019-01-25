@@ -3,8 +3,14 @@ package options
 import (
 	"sort"
 
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 )
+
+type ExtraOptions struct {
+	RateLimit RateLimit
+	OIDCAuth  OIDCAuth
+}
 
 var RateLimit_TimeUnits = func() []string {
 	var vals []string
@@ -22,4 +28,11 @@ type RateLimit struct {
 }
 
 type Dashboard struct {
+}
+
+type OIDCAuth struct {
+	Enable bool
+
+	// Include all options from the vhost extension
+	extauth.OAuth
 }

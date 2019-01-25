@@ -11,7 +11,7 @@ pages:
   - Kubernetes:
     - Basic Routing: getting_started/kubernetes/1.md
     - Function Routing: getting_started/kubernetes/2.md
-- CLI reference: cli.md
+- CLI reference: cli/README.md
 - v1 API reference:
   - Overview: v1/gloo-gateway.md
   - Upstreams: v1/github.com/solo-io/solo-projects/projects/gloo/api/v1/upstream.proto.sk.md

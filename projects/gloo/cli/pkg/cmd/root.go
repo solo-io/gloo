@@ -5,6 +5,9 @@ import (
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd"
 
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/remove"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/route"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/add"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/del"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gateway"
@@ -44,6 +47,8 @@ func optionsFunc(app *cobra.Command) {
 		del.RootCmd(opts),
 		install.RootCmd(opts),
 		add.RootCmd(opts),
+		remove.RootCmd(opts),
+		route.RootCmd(opts),
 		create.RootCmd(opts),
 		upgrade.RootCmd(opts),
 		gateway.RootCmd(opts),

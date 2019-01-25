@@ -18,7 +18,9 @@ import (
 	optionsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 	flagutilsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/flagutils"
 	surveyutilsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/surveyutils"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	extauth2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	ratelimit2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +29,9 @@ var defaultDomains = []string{"*"}
 
 func VSCreate(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 
-	optsExt := &optionsExt.RateLimit{}
+	optsExt := &optionsExt.ExtraOptions{}
+	optsExt.OIDCAuth.ClientSecretRef = new(core.ResourceRef)
+
 	cmd := &cobra.Command{
 		// Use command constants to aid with replacement.
 		Use:     constants.VIRTUAL_SERVICE_COMMAND.Use,
@@ -68,7 +72,7 @@ func VSCreate(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra
 	return cmd
 }
 
-func createVirtualService(opts *options.Options, optsExt *optionsExt.RateLimit, args []string) error {
+func createVirtualService(opts *options.Options, optsExt *optionsExt.ExtraOptions, args []string) error {
 	vs, err := virtualServiceFromOpts(opts.Metadata, opts.Create.VirtualService, *optsExt)
 	if err != nil {
 		return err
@@ -84,7 +88,7 @@ func createVirtualService(opts *options.Options, optsExt *optionsExt.RateLimit, 
 	return nil
 }
 
-func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualService, rl optionsExt.RateLimit) (*v1.VirtualService, error) {
+func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualService, extopts optionsExt.ExtraOptions) (*v1.VirtualService, error) {
 	if len(input.Domains) == 0 {
 		input.Domains = defaultDomains
 	}
@@ -94,6 +98,7 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 			Domains: input.Domains,
 		},
 	}
+	rl := extopts.RateLimit
 	if rl.Enable {
 		if vs.VirtualHost.VirtualHostPlugins == nil {
 			vs.VirtualHost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{}
@@ -119,6 +124,51 @@ func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualServic
 			vs.VirtualHost.VirtualHostPlugins.Extensions.Configs = make(map[string]*types.Struct)
 		}
 		vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[ratelimit2.ExtensionName] = ingressRateLimitStruct
+	}
+
+	oidc := extopts.OIDCAuth
+	if oidc.Enable {
+		if vs.VirtualHost.VirtualHostPlugins == nil {
+			vs.VirtualHost.VirtualHostPlugins = &gloov1.VirtualHostPlugins{}
+		}
+		if oidc.AppUrl == "" {
+			return nil, errors.Errorf("invalid app url specified: %v", oidc.AppUrl)
+		}
+		if oidc.IssuerUrl == "" {
+			return nil, errors.Errorf("invalid issuer url specified: %v", oidc.IssuerUrl)
+		}
+		if oidc.ClientId == "" {
+			return nil, errors.Errorf("invalid client id specified: %v", oidc.ClientId)
+		}
+		if oidc.CallbackPath == "" {
+			return nil, errors.Errorf("invalid callback path specified: %v", oidc.CallbackPath)
+		}
+		if oidc.ClientSecretRef.Name == "" || oidc.ClientSecretRef.Namespace == "" {
+			return nil, errors.Errorf("invalid client secret ref specified: %v.%v", oidc.ClientSecretRef.Namespace, oidc.ClientSecretRef.Name)
+		}
+		vhostAuth := &extauth.VhostExtension{
+			AuthConfig: &extauth.VhostExtension_Oauth{
+				Oauth: &extauth.OAuth{
+					AppUrl:          oidc.AppUrl,
+					CallbackPath:    oidc.CallbackPath,
+					ClientId:        oidc.ClientId,
+					ClientSecretRef: oidc.ClientSecretRef,
+					IssuerUrl:       oidc.IssuerUrl,
+				},
+			},
+		}
+		vhostAuthStruct, err := envoyutil.MessageToStruct(vhostAuth)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Error marshalling ingress rate limit")
+		}
+		if vs.VirtualHost.VirtualHostPlugins.Extensions == nil {
+			vs.VirtualHost.VirtualHostPlugins.Extensions = new(gloov1.Extensions)
+		}
+		if vs.VirtualHost.VirtualHostPlugins.Extensions.Configs == nil {
+			vs.VirtualHost.VirtualHostPlugins.Extensions.Configs = make(map[string]*types.Struct)
+		}
+		vs.VirtualHost.VirtualHostPlugins.Extensions.Configs[extauth2.ExtensionName] = vhostAuthStruct
+
 	}
 
 	return vs, nil

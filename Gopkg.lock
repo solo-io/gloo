@@ -169,6 +169,14 @@
   revision = "bf89c38ff1742f295e15df0bd5e8b3e81da95855"
 
 [[projects]]
+  digest = "1:7cb4fdca4c251b3ef8027c90ea35f70c7b661a593b9eeae34753c65499098bb1"
+  name = "github.com/cpuguy83/go-md2man"
+  packages = ["md2man"]
+  pruneopts = "UT"
+  revision = "20f5889cbdc3c73dbd2862796665e7c465ade7d1"
+  version = "v1.0.8"
+
+[[projects]]
   digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -933,11 +941,12 @@
   version = "v0.0.1"
 
 [[projects]]
-  digest = "1:42e29deef12327a69123b9cb2cb45fee4af5c12c2a23c6e477338279a052703f"
+  digest = "1:f37a92358921891d53d5375ff7fa57739ba65d5b3c311d96a460609bfc1b4999"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
     "config",
+    "extensions/table",
     "internal/codelocation",
     "internal/containernode",
     "internal/failer",
@@ -991,6 +1000,14 @@
   pruneopts = "UT"
   revision = "c37440a7cf42ac63b919c752ca73a85067e05992"
   version = "v0.2.0"
+
+[[projects]]
+  digest = "1:95741de3af260a92cc5c7f3f3061e85273f5a81b5db20d4bd68da74bd521675e"
+  name = "github.com/pelletier/go-toml"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
+  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
@@ -1096,6 +1113,14 @@
   version = "v1.5.0"
 
 [[projects]]
+  digest = "1:b36a0ede02c4c2aef7df7f91cbbb7bb88a98b5d253509d4f997dda526e50c88c"
+  name = "github.com/russross/blackfriday"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "05f3235734ad95d0016f6a23902f06461fcf567a"
+  version = "v1.5.2"
+
+[[projects]]
   digest = "1:0e792eea6c96ec55ff302ef33886acbaa5006e900fefe82689e88d96439dcd84"
   name = "github.com/ryanuber/go-glob"
   packages = ["."]
@@ -1141,7 +1166,7 @@
   version = "v0.1.1"
 
 [[projects]]
-  digest = "1:9b3ffc63754a04b1e6f855df1afcfb5ce66c75b202f55bd35fc21d5da024f7d6"
+  digest = "1:71b23bb143fe4d8198dffa524a479c3ee9a506874b03aef2042084c487ee0cfc"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1173,6 +1198,8 @@
     "projects/gloo/cli/pkg/cmd/get",
     "projects/gloo/cli/pkg/cmd/install",
     "projects/gloo/cli/pkg/cmd/options",
+    "projects/gloo/cli/pkg/cmd/remove",
+    "projects/gloo/cli/pkg/cmd/route",
     "projects/gloo/cli/pkg/cmd/upgrade",
     "projects/gloo/cli/pkg/common",
     "projects/gloo/cli/pkg/constants",
@@ -1213,11 +1240,12 @@
     "projects/gloo/pkg/plugins/utils",
     "projects/gloo/pkg/syncer",
     "projects/gloo/pkg/translator",
+    "projects/gloo/pkg/utils",
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "3ced6dddf7c32f87d0dbf46b2665366b9d6193b3"
-  version = "v0.6.9"
+  revision = "cb663c51f80d4bef30504e4a1cf0e5e4d14ae705"
+  version = "v0.6.11"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1332,9 +1360,12 @@
   version = "v0.2.18"
 
 [[projects]]
-  digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
+  digest = "1:e01b05ba901239c783dfe56450bcde607fc858908529868259c9a8765dc176d0"
   name = "github.com/spf13/cobra"
-  packages = ["."]
+  packages = [
+    ".",
+    "doc",
+  ]
   pruneopts = "UT"
   revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
   version = "v0.0.3"
@@ -2108,10 +2139,12 @@
     "github.com/mitchellh/hashstructure",
     "github.com/olekukonko/tablewriter",
     "github.com/onsi/ginkgo",
+    "github.com/onsi/ginkgo/extensions/table",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/gbytes",
     "github.com/onsi/gomega/gexec",
     "github.com/onsi/gomega/gstruct",
+    "github.com/pelletier/go-toml",
     "github.com/pkg/errors",
     "github.com/prometheus/client_golang/api",
     "github.com/prometheus/client_golang/api/prometheus/v1",
@@ -2206,6 +2239,7 @@
     "github.com/solo-io/solo-kit/test/setup",
     "github.com/solo-io/solo-kit/test/tests/typed",
     "github.com/spf13/cobra",
+    "github.com/spf13/cobra/doc",
     "github.com/spf13/pflag",
     "github.com/vektah/gqlgen/graphql",
     "github.com/vektah/gqlgen/handler",

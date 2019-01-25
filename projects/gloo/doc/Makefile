@@ -23,11 +23,14 @@ all: site
 docs/index.md: ../README.md
 	cat ../README.md | sed 's@doc/docs/@@' > $@
 
+docs/cli/glooctl.md: $(shell find ../cli -name "*.go" | grep -v test.go | grep -v '\.\#*')
+	go run gen_docs.go
+
 #----------------------------------------------------------------------------------
 # Site
 #----------------------------------------------------------------------------------
 
-site: docs/index.md
+site: docs/index.md docs/cli/glooctl.md
 	mkdocs build
 
 # To run this, install firebase CLI and first run firebase login (requires solo account)
