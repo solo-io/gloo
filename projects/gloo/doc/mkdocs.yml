@@ -1,5 +1,6 @@
 site_name: GlooE
-pages:
+strict: true
+nav:
 - Index: index.md
 - About:
   - Architecture: introduction/architecture.md

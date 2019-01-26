@@ -17,13 +17,29 @@ VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 
 #----------------------------------------------------------------------------------
-# Repo init
+# Repo setup
 #----------------------------------------------------------------------------------
 
 # https://www.viget.com/articles/two-ways-to-share-git-hooks-with-your-team/
 .PHONY: init
 init:
 	git config core.hooksPath .githooks
+
+.PHONY: update-deps
+update-deps:
+	go get -u golang.org/x/tools/cmd/goimports
+	go get -u github.com/gogo/protobuf/gogoproto
+	go get -u github.com/gogo/protobuf/protoc-gen-gogo
+	go get -u github.com/lyft/protoc-gen-validate
+	go get -u github.com/paulvollmer/2gobytes
+
+.PHONY: pin-repos
+pin-repos:
+	go run pin_repos.go
+
+.PHONY: check-format
+check-format:
+	NOT_FORMATTED=$$(gofmt -l ./projects/ ./pkg/ ./test/) && if [ -n "$$NOT_FORMATTED" ]; then echo These files are not formatted: $$NOT_FORMATTED; exit 1; fi
 
 #----------------------------------------------------------------------------------
 # Clean
@@ -46,6 +62,7 @@ $(OUTPUT_DIR)/.generated-code:
 	go generate ./...
 	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)
+	mkdir -p $(OUTPUT_DIR)
 	touch $@
 
 
