@@ -20,7 +20,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/auth"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql"
 	vcsv1 "github.com/solo-io/solo-projects/projects/vcs/pkg/api/v1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )

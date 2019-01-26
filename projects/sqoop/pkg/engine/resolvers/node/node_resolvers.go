@@ -2,7 +2,7 @@ package node
 
 import (
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	v1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/exec"
 )
 

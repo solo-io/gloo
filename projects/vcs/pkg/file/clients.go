@@ -20,7 +20,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	sqoopsetup "github.com/solo-io/solo-projects/projects/sqoop/pkg/syncer"
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
+	TODO "github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
 	"k8s.io/client-go/kubernetes"
 )
 

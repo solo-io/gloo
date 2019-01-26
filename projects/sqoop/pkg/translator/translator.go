@@ -4,8 +4,8 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
+	v1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	TODO "github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
 )
 
 // trnslate a snapshot of schemas and resolvermaps to:

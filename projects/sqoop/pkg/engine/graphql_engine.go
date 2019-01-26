@@ -3,7 +3,7 @@ package engine
 import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	v1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/exec"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/resolvers"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/router"

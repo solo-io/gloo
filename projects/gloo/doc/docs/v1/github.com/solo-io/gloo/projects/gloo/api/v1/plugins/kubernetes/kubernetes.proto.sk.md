@@ -28,7 +28,6 @@ Kubernetes Upstreams are typically generated automatically by Gloo from the Kube
 ```yaml
 "service_name": string
 "service_namespace": string
-"target_port": int
 "service_port": int
 "selector": map<string, string>
 "service_spec": .plugins.gloo.solo.io.ServiceSpec
@@ -39,8 +38,7 @@ Kubernetes Upstreams are typically generated automatically by Gloo from the Kube
 | ----- | ---- | ----------- |----------- | 
 | `service_name` | `string` | The name of the Kubernetes Service |  |
 | `service_namespace` | `string` | The namespace where the Service lives |  |
-| `target_port` | `int` | The port where the application backing the kubernetes service is listening. This port, not service_port, is used for routing |  |
-| `service_port` | `int` | The access port port of the kubernetes service is listening. This port is populated by Gloo for read-only purposes and is not consumed by the system. |  |
+| `service_port` | `int` | The access port port of the kubernetes service is listening. This port is used by Gloo to look up the corresponding port on the pod for routing. |  |
 | `selector` | `map<string, string>` | Allows finer-grained filtering of pods for the Upstream. Gloo will select pods based on their labels if any are provided here. (see [Kubernetes labels and selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) |  |
 | `service_spec` | [.plugins.gloo.solo.io.ServiceSpec](../service_spec.proto.sk.md#ServiceSpec) | An optional Service Spec describing the service listening at this address |  |
 

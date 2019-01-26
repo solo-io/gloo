@@ -16,10 +16,10 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/reporter"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/errutils"
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	v1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/router"
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
+	TODO "github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
 	"k8s.io/client-go/rest"
 )
 

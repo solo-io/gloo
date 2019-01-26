@@ -9,10 +9,10 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
+	v1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/engine/router"
-	"github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
+	TODO "github.com/solo-io/solo-projects/projects/sqoop/pkg/todo"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/translator"
 	"github.com/vektah/gqlgen/neelance/schema"
 )

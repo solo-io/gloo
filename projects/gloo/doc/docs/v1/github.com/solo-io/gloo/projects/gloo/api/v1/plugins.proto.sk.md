@@ -4,7 +4,6 @@
 ##### Types:
 
 
-- [Extensions](#Extensions)
 - [ListenerPlugins](#ListenerPlugins)
 - [VirtualHostPlugins](#VirtualHostPlugins)
 - [RoutePlugins](#RoutePlugins)
@@ -16,23 +15,6 @@
 
 ##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/plugins.proto](https://github.com/solo-io/gloo/blob/master/projects/gloo/api/v1/plugins.proto)
 
-
-
-
-
----
-### <a name="Extensions">Extensions</a>
-
-
-
-```yaml
-"configs": map<string, .google.protobuf.Struct>
-
-```
-
-| Field | Type | Description | Default |
-| ----- | ---- | ----------- |----------- | 
-| `configs` | `map<string, .google.protobuf.Struct>` |  |  |
 
 
 
@@ -72,7 +54,7 @@ to be usable by Gloo.
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `extensions` | [.gloo.solo.io.Extensions](plugins.proto.sk.md#Extensions) |  |  |
+| `extensions` | [.gloo.solo.io.Extensions](extensions.proto.sk.md#Extensions) |  |  |
 
 
 
@@ -92,6 +74,7 @@ to be usable by Gloo.
 "prefix_rewrite": .transformation.plugins.gloo.solo.io.PrefixRewrite
 "timeout": .google.protobuf.Duration
 "retries": .retries.plugins.gloo.solo.io.RetryPolicy
+"extensions": .gloo.solo.io.Extensions
 
 ```
 
@@ -102,6 +85,7 @@ to be usable by Gloo.
 | `prefix_rewrite` | [.transformation.plugins.gloo.solo.io.PrefixRewrite](plugins/transformation/prefix_rewrite.proto.sk.md#PrefixRewrite) |  |  |
 | `timeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) |  |  |
 | `retries` | [.retries.plugins.gloo.solo.io.RetryPolicy](plugins/retries/retries.proto.sk.md#RetryPolicy) |  |  |
+| `extensions` | [.gloo.solo.io.Extensions](extensions.proto.sk.md#Extensions) |  |  |
 
 
 

@@ -9,7 +9,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/solo-io/solo-projects/projects/observability/pkg/api/v1"
+	v1 "github.com/solo-io/solo-projects/projects/observability/pkg/api/v1"
 
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-projects/projects/observability/pkg/grafana"

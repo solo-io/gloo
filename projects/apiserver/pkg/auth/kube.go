@@ -5,7 +5,7 @@ import (
 
 	"github.com/solo-io/go-utils/errors"
 	authv1 "k8s.io/api/authentication/v1"
-	"k8s.io/client-go/kubernetes/typed/authentication/v1"
+	v1 "k8s.io/client-go/kubernetes/typed/authentication/v1"
 )
 
 // Attempts to authenticate a token to a known user.
