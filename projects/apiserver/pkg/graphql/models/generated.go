@@ -3,11 +3,11 @@
 package models
 
 import (
-	fmt "fmt"
-	io "io"
-	strconv "strconv"
+	"fmt"
+	"io"
+	"strconv"
 
-	customtypes "github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 )
 
 type Artifact struct {

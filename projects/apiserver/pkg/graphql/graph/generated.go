@@ -3,18 +3,19 @@
 package graph
 
 import (
-	bytes "bytes"
-	context "context"
-	fmt "fmt"
-	strconv "strconv"
-	sync "sync"
+	"bytes"
+	"context"
+	"errors"
+	"fmt"
+	"strconv"
+	"sync"
 
-	graphql "github.com/99designs/gqlgen/graphql"
-	introspection "github.com/99designs/gqlgen/graphql/introspection"
-	customtypes "github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
-	models "github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
-	gqlparser "github.com/vektah/gqlparser"
-	ast "github.com/vektah/gqlparser/ast"
+	"github.com/99designs/gqlgen/graphql"
+	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
+	"github.com/vektah/gqlparser"
+	"github.com/vektah/gqlparser/ast"
 )
 
 // NewExecutableSchema creates an ExecutableSchema from the ResolverRoot interface.
@@ -2235,7 +2236,7 @@ func (ec *executionContext) _Artifact(ctx context.Context, sel ast.SelectionSet,
 // nolint: vetshadow
 func (ec *executionContext) _Artifact_data(ctx context.Context, field graphql.CollectedField, obj *models.Artifact) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Artifact",
 		Args:   nil,
@@ -2262,7 +2263,7 @@ func (ec *executionContext) _Artifact_data(ctx context.Context, field graphql.Co
 // nolint: vetshadow
 func (ec *executionContext) _Artifact_metadata(ctx context.Context, field graphql.CollectedField, obj *models.Artifact) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Artifact",
 		Args:   nil,
@@ -2334,7 +2335,7 @@ func (ec *executionContext) _ArtifactMutation(ctx context.Context, sel ast.Selec
 // nolint: vetshadow
 func (ec *executionContext) _ArtifactMutation_create(ctx context.Context, field graphql.CollectedField, obj *customtypes.ArtifactMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_ArtifactMutation_create_args(rawArgs)
 	if err != nil {
@@ -2369,7 +2370,7 @@ func (ec *executionContext) _ArtifactMutation_create(ctx context.Context, field 
 // nolint: vetshadow
 func (ec *executionContext) _ArtifactMutation_update(ctx context.Context, field graphql.CollectedField, obj *customtypes.ArtifactMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_ArtifactMutation_update_args(rawArgs)
 	if err != nil {
@@ -2404,7 +2405,7 @@ func (ec *executionContext) _ArtifactMutation_update(ctx context.Context, field 
 // nolint: vetshadow
 func (ec *executionContext) _ArtifactMutation_delete(ctx context.Context, field graphql.CollectedField, obj *customtypes.ArtifactMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_ArtifactMutation_delete_args(rawArgs)
 	if err != nil {
@@ -2479,7 +2480,7 @@ func (ec *executionContext) _AwsDestinationSpec(ctx context.Context, sel ast.Sel
 // nolint: vetshadow
 func (ec *executionContext) _AwsDestinationSpec_logicalName(ctx context.Context, field graphql.CollectedField, obj *models.AwsDestinationSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AwsDestinationSpec",
 		Args:   nil,
@@ -2506,7 +2507,7 @@ func (ec *executionContext) _AwsDestinationSpec_logicalName(ctx context.Context,
 // nolint: vetshadow
 func (ec *executionContext) _AwsDestinationSpec_invocationStyle(ctx context.Context, field graphql.CollectedField, obj *models.AwsDestinationSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AwsDestinationSpec",
 		Args:   nil,
@@ -2533,7 +2534,7 @@ func (ec *executionContext) _AwsDestinationSpec_invocationStyle(ctx context.Cont
 // nolint: vetshadow
 func (ec *executionContext) _AwsDestinationSpec_responseTransformation(ctx context.Context, field graphql.CollectedField, obj *models.AwsDestinationSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AwsDestinationSpec",
 		Args:   nil,
@@ -2600,7 +2601,7 @@ func (ec *executionContext) _AwsLambdaFunction(ctx context.Context, sel ast.Sele
 // nolint: vetshadow
 func (ec *executionContext) _AwsLambdaFunction_logicalName(ctx context.Context, field graphql.CollectedField, obj *models.AwsLambdaFunction) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AwsLambdaFunction",
 		Args:   nil,
@@ -2627,7 +2628,7 @@ func (ec *executionContext) _AwsLambdaFunction_logicalName(ctx context.Context, 
 // nolint: vetshadow
 func (ec *executionContext) _AwsLambdaFunction_functionName(ctx context.Context, field graphql.CollectedField, obj *models.AwsLambdaFunction) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AwsLambdaFunction",
 		Args:   nil,
@@ -2654,7 +2655,7 @@ func (ec *executionContext) _AwsLambdaFunction_functionName(ctx context.Context,
 // nolint: vetshadow
 func (ec *executionContext) _AwsLambdaFunction_qualifier(ctx context.Context, field graphql.CollectedField, obj *models.AwsLambdaFunction) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AwsLambdaFunction",
 		Args:   nil,
@@ -2716,7 +2717,7 @@ func (ec *executionContext) _AwsSecret(ctx context.Context, sel ast.SelectionSet
 // nolint: vetshadow
 func (ec *executionContext) _AwsSecret_accessKey(ctx context.Context, field graphql.CollectedField, obj *models.AwsSecret) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AwsSecret",
 		Args:   nil,
@@ -2743,7 +2744,7 @@ func (ec *executionContext) _AwsSecret_accessKey(ctx context.Context, field grap
 // nolint: vetshadow
 func (ec *executionContext) _AwsSecret_secretKey(ctx context.Context, field graphql.CollectedField, obj *models.AwsSecret) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AwsSecret",
 		Args:   nil,
@@ -2807,7 +2808,7 @@ func (ec *executionContext) _AwsUpstreamSpec(ctx context.Context, sel ast.Select
 // nolint: vetshadow
 func (ec *executionContext) _AwsUpstreamSpec_region(ctx context.Context, field graphql.CollectedField, obj *models.AwsUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AwsUpstreamSpec",
 		Args:   nil,
@@ -2834,7 +2835,7 @@ func (ec *executionContext) _AwsUpstreamSpec_region(ctx context.Context, field g
 // nolint: vetshadow
 func (ec *executionContext) _AwsUpstreamSpec_secretRef(ctx context.Context, field graphql.CollectedField, obj *models.AwsUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AwsUpstreamSpec",
 		Args:   nil,
@@ -2862,7 +2863,7 @@ func (ec *executionContext) _AwsUpstreamSpec_secretRef(ctx context.Context, fiel
 // nolint: vetshadow
 func (ec *executionContext) _AwsUpstreamSpec_functions(ctx context.Context, field graphql.CollectedField, obj *models.AwsUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AwsUpstreamSpec",
 		Args:   nil,
@@ -2949,7 +2950,7 @@ func (ec *executionContext) _AzureDestinationSpec(ctx context.Context, sel ast.S
 // nolint: vetshadow
 func (ec *executionContext) _AzureDestinationSpec_functionName(ctx context.Context, field graphql.CollectedField, obj *models.AzureDestinationSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AzureDestinationSpec",
 		Args:   nil,
@@ -3011,7 +3012,7 @@ func (ec *executionContext) _AzureFunction(ctx context.Context, sel ast.Selectio
 // nolint: vetshadow
 func (ec *executionContext) _AzureFunction_functionName(ctx context.Context, field graphql.CollectedField, obj *models.AzureFunction) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AzureFunction",
 		Args:   nil,
@@ -3038,7 +3039,7 @@ func (ec *executionContext) _AzureFunction_functionName(ctx context.Context, fie
 // nolint: vetshadow
 func (ec *executionContext) _AzureFunction_authLevel(ctx context.Context, field graphql.CollectedField, obj *models.AzureFunction) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AzureFunction",
 		Args:   nil,
@@ -3092,7 +3093,7 @@ func (ec *executionContext) _AzureSecret(ctx context.Context, sel ast.SelectionS
 // nolint: vetshadow
 func (ec *executionContext) _AzureSecret_apiKeys(ctx context.Context, field graphql.CollectedField, obj *models.AzureSecret) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AzureSecret",
 		Args:   nil,
@@ -3158,7 +3159,7 @@ func (ec *executionContext) _AzureUpstreamSpec(ctx context.Context, sel ast.Sele
 // nolint: vetshadow
 func (ec *executionContext) _AzureUpstreamSpec_functionAppName(ctx context.Context, field graphql.CollectedField, obj *models.AzureUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AzureUpstreamSpec",
 		Args:   nil,
@@ -3185,7 +3186,7 @@ func (ec *executionContext) _AzureUpstreamSpec_functionAppName(ctx context.Conte
 // nolint: vetshadow
 func (ec *executionContext) _AzureUpstreamSpec_secretRef(ctx context.Context, field graphql.CollectedField, obj *models.AzureUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AzureUpstreamSpec",
 		Args:   nil,
@@ -3213,7 +3214,7 @@ func (ec *executionContext) _AzureUpstreamSpec_secretRef(ctx context.Context, fi
 // nolint: vetshadow
 func (ec *executionContext) _AzureUpstreamSpec_functions(ctx context.Context, field graphql.CollectedField, obj *models.AzureUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "AzureUpstreamSpec",
 		Args:   nil,
@@ -3312,7 +3313,7 @@ func (ec *executionContext) _GrpcDestinationSpec(ctx context.Context, sel ast.Se
 // nolint: vetshadow
 func (ec *executionContext) _GrpcDestinationSpec_package(ctx context.Context, field graphql.CollectedField, obj *models.GrpcDestinationSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "GrpcDestinationSpec",
 		Args:   nil,
@@ -3339,7 +3340,7 @@ func (ec *executionContext) _GrpcDestinationSpec_package(ctx context.Context, fi
 // nolint: vetshadow
 func (ec *executionContext) _GrpcDestinationSpec_service(ctx context.Context, field graphql.CollectedField, obj *models.GrpcDestinationSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "GrpcDestinationSpec",
 		Args:   nil,
@@ -3366,7 +3367,7 @@ func (ec *executionContext) _GrpcDestinationSpec_service(ctx context.Context, fi
 // nolint: vetshadow
 func (ec *executionContext) _GrpcDestinationSpec_function(ctx context.Context, field graphql.CollectedField, obj *models.GrpcDestinationSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "GrpcDestinationSpec",
 		Args:   nil,
@@ -3393,7 +3394,7 @@ func (ec *executionContext) _GrpcDestinationSpec_function(ctx context.Context, f
 // nolint: vetshadow
 func (ec *executionContext) _GrpcDestinationSpec_parameters(ctx context.Context, field graphql.CollectedField, obj *models.GrpcDestinationSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "GrpcDestinationSpec",
 		Args:   nil,
@@ -3459,7 +3460,7 @@ func (ec *executionContext) _GrpcService(ctx context.Context, sel ast.SelectionS
 // nolint: vetshadow
 func (ec *executionContext) _GrpcService_packageName(ctx context.Context, field graphql.CollectedField, obj *models.GrpcService) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "GrpcService",
 		Args:   nil,
@@ -3486,7 +3487,7 @@ func (ec *executionContext) _GrpcService_packageName(ctx context.Context, field 
 // nolint: vetshadow
 func (ec *executionContext) _GrpcService_serviceName(ctx context.Context, field graphql.CollectedField, obj *models.GrpcService) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "GrpcService",
 		Args:   nil,
@@ -3513,7 +3514,7 @@ func (ec *executionContext) _GrpcService_serviceName(ctx context.Context, field 
 // nolint: vetshadow
 func (ec *executionContext) _GrpcService_functionNames(ctx context.Context, field graphql.CollectedField, obj *models.GrpcService) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "GrpcService",
 		Args:   nil,
@@ -3573,7 +3574,7 @@ func (ec *executionContext) _GrpcServiceSpec(ctx context.Context, sel ast.Select
 // nolint: vetshadow
 func (ec *executionContext) _GrpcServiceSpec_grpcServices(ctx context.Context, field graphql.CollectedField, obj *models.GrpcServiceSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "GrpcServiceSpec",
 		Args:   nil,
@@ -3674,7 +3675,7 @@ func (ec *executionContext) _KeyValueMatcher(ctx context.Context, sel ast.Select
 // nolint: vetshadow
 func (ec *executionContext) _KeyValueMatcher_name(ctx context.Context, field graphql.CollectedField, obj *models.KeyValueMatcher) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "KeyValueMatcher",
 		Args:   nil,
@@ -3701,7 +3702,7 @@ func (ec *executionContext) _KeyValueMatcher_name(ctx context.Context, field gra
 // nolint: vetshadow
 func (ec *executionContext) _KeyValueMatcher_value(ctx context.Context, field graphql.CollectedField, obj *models.KeyValueMatcher) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "KeyValueMatcher",
 		Args:   nil,
@@ -3728,7 +3729,7 @@ func (ec *executionContext) _KeyValueMatcher_value(ctx context.Context, field gr
 // nolint: vetshadow
 func (ec *executionContext) _KeyValueMatcher_isRegex(ctx context.Context, field graphql.CollectedField, obj *models.KeyValueMatcher) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "KeyValueMatcher",
 		Args:   nil,
@@ -3799,7 +3800,7 @@ func (ec *executionContext) _KubeUpstreamSpec(ctx context.Context, sel ast.Selec
 // nolint: vetshadow
 func (ec *executionContext) _KubeUpstreamSpec_serviceName(ctx context.Context, field graphql.CollectedField, obj *models.KubeUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "KubeUpstreamSpec",
 		Args:   nil,
@@ -3826,7 +3827,7 @@ func (ec *executionContext) _KubeUpstreamSpec_serviceName(ctx context.Context, f
 // nolint: vetshadow
 func (ec *executionContext) _KubeUpstreamSpec_serviceNamespace(ctx context.Context, field graphql.CollectedField, obj *models.KubeUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "KubeUpstreamSpec",
 		Args:   nil,
@@ -3853,7 +3854,7 @@ func (ec *executionContext) _KubeUpstreamSpec_serviceNamespace(ctx context.Conte
 // nolint: vetshadow
 func (ec *executionContext) _KubeUpstreamSpec_servicePort(ctx context.Context, field graphql.CollectedField, obj *models.KubeUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "KubeUpstreamSpec",
 		Args:   nil,
@@ -3880,7 +3881,7 @@ func (ec *executionContext) _KubeUpstreamSpec_servicePort(ctx context.Context, f
 // nolint: vetshadow
 func (ec *executionContext) _KubeUpstreamSpec_selector(ctx context.Context, field graphql.CollectedField, obj *models.KubeUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "KubeUpstreamSpec",
 		Args:   nil,
@@ -3909,7 +3910,7 @@ func (ec *executionContext) _KubeUpstreamSpec_selector(ctx context.Context, fiel
 // nolint: vetshadow
 func (ec *executionContext) _KubeUpstreamSpec_serviceSpec(ctx context.Context, field graphql.CollectedField, obj *models.KubeUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "KubeUpstreamSpec",
 		Args:   nil,
@@ -3961,7 +3962,7 @@ func (ec *executionContext) _MapStringString(ctx context.Context, sel ast.Select
 // nolint: vetshadow
 func (ec *executionContext) _MapStringString_values(ctx context.Context, field graphql.CollectedField, obj *models.MapStringString) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "MapStringString",
 		Args:   nil,
@@ -4059,7 +4060,7 @@ func (ec *executionContext) _Matcher(ctx context.Context, sel ast.SelectionSet, 
 // nolint: vetshadow
 func (ec *executionContext) _Matcher_pathMatch(ctx context.Context, field graphql.CollectedField, obj *models.Matcher) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Matcher",
 		Args:   nil,
@@ -4086,7 +4087,7 @@ func (ec *executionContext) _Matcher_pathMatch(ctx context.Context, field graphq
 // nolint: vetshadow
 func (ec *executionContext) _Matcher_pathMatchType(ctx context.Context, field graphql.CollectedField, obj *models.Matcher) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Matcher",
 		Args:   nil,
@@ -4113,7 +4114,7 @@ func (ec *executionContext) _Matcher_pathMatchType(ctx context.Context, field gr
 // nolint: vetshadow
 func (ec *executionContext) _Matcher_headers(ctx context.Context, field graphql.CollectedField, obj *models.Matcher) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Matcher",
 		Args:   nil,
@@ -4170,7 +4171,7 @@ func (ec *executionContext) _Matcher_headers(ctx context.Context, field graphql.
 // nolint: vetshadow
 func (ec *executionContext) _Matcher_queryParameters(ctx context.Context, field graphql.CollectedField, obj *models.Matcher) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Matcher",
 		Args:   nil,
@@ -4227,7 +4228,7 @@ func (ec *executionContext) _Matcher_queryParameters(ctx context.Context, field 
 // nolint: vetshadow
 func (ec *executionContext) _Matcher_methods(ctx context.Context, field graphql.CollectedField, obj *models.Matcher) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Matcher",
 		Args:   nil,
@@ -4309,7 +4310,7 @@ func (ec *executionContext) _Metadata(ctx context.Context, sel ast.SelectionSet,
 // nolint: vetshadow
 func (ec *executionContext) _Metadata_name(ctx context.Context, field graphql.CollectedField, obj *models.Metadata) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Metadata",
 		Args:   nil,
@@ -4336,7 +4337,7 @@ func (ec *executionContext) _Metadata_name(ctx context.Context, field graphql.Co
 // nolint: vetshadow
 func (ec *executionContext) _Metadata_namespace(ctx context.Context, field graphql.CollectedField, obj *models.Metadata) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Metadata",
 		Args:   nil,
@@ -4363,7 +4364,7 @@ func (ec *executionContext) _Metadata_namespace(ctx context.Context, field graph
 // nolint: vetshadow
 func (ec *executionContext) _Metadata_resourceVersion(ctx context.Context, field graphql.CollectedField, obj *models.Metadata) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Metadata",
 		Args:   nil,
@@ -4390,7 +4391,7 @@ func (ec *executionContext) _Metadata_resourceVersion(ctx context.Context, field
 // nolint: vetshadow
 func (ec *executionContext) _Metadata_labels(ctx context.Context, field graphql.CollectedField, obj *models.Metadata) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Metadata",
 		Args:   nil,
@@ -4419,7 +4420,7 @@ func (ec *executionContext) _Metadata_labels(ctx context.Context, field graphql.
 // nolint: vetshadow
 func (ec *executionContext) _Metadata_annotations(ctx context.Context, field graphql.CollectedField, obj *models.Metadata) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Metadata",
 		Args:   nil,
@@ -4448,7 +4449,7 @@ func (ec *executionContext) _Metadata_annotations(ctx context.Context, field gra
 // nolint: vetshadow
 func (ec *executionContext) _Metadata_guid(ctx context.Context, field graphql.CollectedField, obj *models.Metadata) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Metadata",
 		Args:   nil,
@@ -4502,7 +4503,7 @@ func (ec *executionContext) _MultiDestination(ctx context.Context, sel ast.Selec
 // nolint: vetshadow
 func (ec *executionContext) _MultiDestination_destinations(ctx context.Context, field graphql.CollectedField, obj *models.MultiDestination) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "MultiDestination",
 		Args:   nil,
@@ -4613,7 +4614,7 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 // nolint: vetshadow
 func (ec *executionContext) _Mutation_upstreams(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Mutation",
 		Args:   nil,
@@ -4641,7 +4642,7 @@ func (ec *executionContext) _Mutation_upstreams(ctx context.Context, field graph
 // nolint: vetshadow
 func (ec *executionContext) _Mutation_virtualServices(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Mutation",
 		Args:   nil,
@@ -4669,7 +4670,7 @@ func (ec *executionContext) _Mutation_virtualServices(ctx context.Context, field
 // nolint: vetshadow
 func (ec *executionContext) _Mutation_secrets(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Mutation",
 		Args:   nil,
@@ -4697,7 +4698,7 @@ func (ec *executionContext) _Mutation_secrets(ctx context.Context, field graphql
 // nolint: vetshadow
 func (ec *executionContext) _Mutation_artifacts(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Mutation",
 		Args:   nil,
@@ -4725,7 +4726,7 @@ func (ec *executionContext) _Mutation_artifacts(ctx context.Context, field graph
 // nolint: vetshadow
 func (ec *executionContext) _Mutation_settings(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Mutation",
 		Args:   nil,
@@ -4844,7 +4845,7 @@ func (ec *executionContext) _Namespace(ctx context.Context, sel ast.SelectionSet
 // nolint: vetshadow
 func (ec *executionContext) _Namespace_name(ctx context.Context, field graphql.CollectedField, obj *customtypes.Namespace) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Namespace",
 		Args:   nil,
@@ -4871,7 +4872,7 @@ func (ec *executionContext) _Namespace_name(ctx context.Context, field graphql.C
 // nolint: vetshadow
 func (ec *executionContext) _Namespace_upstreams(ctx context.Context, field graphql.CollectedField, obj *customtypes.Namespace) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Namespace",
 		Args:   nil,
@@ -4935,7 +4936,7 @@ func (ec *executionContext) _Namespace_upstreams(ctx context.Context, field grap
 // nolint: vetshadow
 func (ec *executionContext) _Namespace_upstream(ctx context.Context, field graphql.CollectedField, obj *customtypes.Namespace) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_Namespace_upstream_args(rawArgs)
 	if err != nil {
@@ -4970,7 +4971,7 @@ func (ec *executionContext) _Namespace_upstream(ctx context.Context, field graph
 // nolint: vetshadow
 func (ec *executionContext) _Namespace_virtualServices(ctx context.Context, field graphql.CollectedField, obj *customtypes.Namespace) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Namespace",
 		Args:   nil,
@@ -5034,7 +5035,7 @@ func (ec *executionContext) _Namespace_virtualServices(ctx context.Context, fiel
 // nolint: vetshadow
 func (ec *executionContext) _Namespace_virtualService(ctx context.Context, field graphql.CollectedField, obj *customtypes.Namespace) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_Namespace_virtualService_args(rawArgs)
 	if err != nil {
@@ -5069,7 +5070,7 @@ func (ec *executionContext) _Namespace_virtualService(ctx context.Context, field
 // nolint: vetshadow
 func (ec *executionContext) _Namespace_secrets(ctx context.Context, field graphql.CollectedField, obj *customtypes.Namespace) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Namespace",
 		Args:   nil,
@@ -5133,7 +5134,7 @@ func (ec *executionContext) _Namespace_secrets(ctx context.Context, field graphq
 // nolint: vetshadow
 func (ec *executionContext) _Namespace_secret(ctx context.Context, field graphql.CollectedField, obj *customtypes.Namespace) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_Namespace_secret_args(rawArgs)
 	if err != nil {
@@ -5168,7 +5169,7 @@ func (ec *executionContext) _Namespace_secret(ctx context.Context, field graphql
 // nolint: vetshadow
 func (ec *executionContext) _Namespace_artifacts(ctx context.Context, field graphql.CollectedField, obj *customtypes.Namespace) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Namespace",
 		Args:   nil,
@@ -5232,7 +5233,7 @@ func (ec *executionContext) _Namespace_artifacts(ctx context.Context, field grap
 // nolint: vetshadow
 func (ec *executionContext) _Namespace_artifact(ctx context.Context, field graphql.CollectedField, obj *customtypes.Namespace) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_Namespace_artifact_args(rawArgs)
 	if err != nil {
@@ -5302,7 +5303,7 @@ func (ec *executionContext) _OAuthEndpoint(ctx context.Context, sel ast.Selectio
 // nolint: vetshadow
 func (ec *executionContext) _OAuthEndpoint_url(ctx context.Context, field graphql.CollectedField, obj *models.OAuthEndpoint) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "OAuthEndpoint",
 		Args:   nil,
@@ -5329,7 +5330,7 @@ func (ec *executionContext) _OAuthEndpoint_url(ctx context.Context, field graphq
 // nolint: vetshadow
 func (ec *executionContext) _OAuthEndpoint_clientName(ctx context.Context, field graphql.CollectedField, obj *models.OAuthEndpoint) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "OAuthEndpoint",
 		Args:   nil,
@@ -5432,7 +5433,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 // nolint: vetshadow
 func (ec *executionContext) _Query_version(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Query",
 		Args:   nil,
@@ -5459,7 +5460,7 @@ func (ec *executionContext) _Query_version(ctx context.Context, field graphql.Co
 // nolint: vetshadow
 func (ec *executionContext) _Query_getOAuthEndpoint(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Query",
 		Args:   nil,
@@ -5487,7 +5488,7 @@ func (ec *executionContext) _Query_getOAuthEndpoint(ctx context.Context, field g
 // nolint: vetshadow
 func (ec *executionContext) _Query_allNamespaces(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Query",
 		Args:   nil,
@@ -5547,7 +5548,7 @@ func (ec *executionContext) _Query_allNamespaces(ctx context.Context, field grap
 // nolint: vetshadow
 func (ec *executionContext) _Query_namespace(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_Query_namespace_args(rawArgs)
 	if err != nil {
@@ -5581,7 +5582,7 @@ func (ec *executionContext) _Query_namespace(ctx context.Context, field graphql.
 // nolint: vetshadow
 func (ec *executionContext) _Query_settings(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Query",
 		Args:   nil,
@@ -5610,7 +5611,7 @@ func (ec *executionContext) _Query_settings(ctx context.Context, field graphql.C
 // nolint: vetshadow
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_Query___type_args(rawArgs)
 	if err != nil {
@@ -5626,7 +5627,7 @@ func (ec *executionContext) _Query___type(ctx context.Context, field graphql.Col
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.introspectType(args["name"].(string)), nil
+		return ec.introspectType(args["name"].(string))
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -5645,7 +5646,7 @@ func (ec *executionContext) _Query___type(ctx context.Context, field graphql.Col
 // nolint: vetshadow
 func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Query",
 		Args:   nil,
@@ -5655,7 +5656,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.introspectSchema(), nil
+		return ec.introspectSchema()
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -5709,7 +5710,7 @@ func (ec *executionContext) _RateLimit(ctx context.Context, sel ast.SelectionSet
 // nolint: vetshadow
 func (ec *executionContext) _RateLimit_unit(ctx context.Context, field graphql.CollectedField, obj *models.RateLimit) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "RateLimit",
 		Args:   nil,
@@ -5736,7 +5737,7 @@ func (ec *executionContext) _RateLimit_unit(ctx context.Context, field graphql.C
 // nolint: vetshadow
 func (ec *executionContext) _RateLimit_requestsPerUnit(ctx context.Context, field graphql.CollectedField, obj *models.RateLimit) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "RateLimit",
 		Args:   nil,
@@ -5797,7 +5798,7 @@ func (ec *executionContext) _RateLimitConfig(ctx context.Context, sel ast.Select
 // nolint: vetshadow
 func (ec *executionContext) _RateLimitConfig_authorizedHeader(ctx context.Context, field graphql.CollectedField, obj *models.RateLimitConfig) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "RateLimitConfig",
 		Args:   nil,
@@ -5824,7 +5825,7 @@ func (ec *executionContext) _RateLimitConfig_authorizedHeader(ctx context.Contex
 // nolint: vetshadow
 func (ec *executionContext) _RateLimitConfig_authorizedLimits(ctx context.Context, field graphql.CollectedField, obj *models.RateLimitConfig) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "RateLimitConfig",
 		Args:   nil,
@@ -5853,7 +5854,7 @@ func (ec *executionContext) _RateLimitConfig_authorizedLimits(ctx context.Contex
 // nolint: vetshadow
 func (ec *executionContext) _RateLimitConfig_anonymousLimits(ctx context.Context, field graphql.CollectedField, obj *models.RateLimitConfig) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "RateLimitConfig",
 		Args:   nil,
@@ -5917,7 +5918,7 @@ func (ec *executionContext) _ResourceRef(ctx context.Context, sel ast.SelectionS
 // nolint: vetshadow
 func (ec *executionContext) _ResourceRef_name(ctx context.Context, field graphql.CollectedField, obj *models.ResourceRef) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "ResourceRef",
 		Args:   nil,
@@ -5944,7 +5945,7 @@ func (ec *executionContext) _ResourceRef_name(ctx context.Context, field graphql
 // nolint: vetshadow
 func (ec *executionContext) _ResourceRef_namespace(ctx context.Context, field graphql.CollectedField, obj *models.ResourceRef) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "ResourceRef",
 		Args:   nil,
@@ -6003,7 +6004,7 @@ func (ec *executionContext) _RestDestinationSpec(ctx context.Context, sel ast.Se
 // nolint: vetshadow
 func (ec *executionContext) _RestDestinationSpec_functionName(ctx context.Context, field graphql.CollectedField, obj *models.RestDestinationSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "RestDestinationSpec",
 		Args:   nil,
@@ -6030,7 +6031,7 @@ func (ec *executionContext) _RestDestinationSpec_functionName(ctx context.Contex
 // nolint: vetshadow
 func (ec *executionContext) _RestDestinationSpec_parameters(ctx context.Context, field graphql.CollectedField, obj *models.RestDestinationSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "RestDestinationSpec",
 		Args:   nil,
@@ -6086,7 +6087,7 @@ func (ec *executionContext) _RestServiceSpec(ctx context.Context, sel ast.Select
 // nolint: vetshadow
 func (ec *executionContext) _RestServiceSpec_functions(ctx context.Context, field graphql.CollectedField, obj *models.RestServiceSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "RestServiceSpec",
 		Args:   nil,
@@ -6180,7 +6181,7 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 // nolint: vetshadow
 func (ec *executionContext) _Route_matcher(ctx context.Context, field graphql.CollectedField, obj *models.Route) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Route",
 		Args:   nil,
@@ -6208,7 +6209,7 @@ func (ec *executionContext) _Route_matcher(ctx context.Context, field graphql.Co
 // nolint: vetshadow
 func (ec *executionContext) _Route_destination(ctx context.Context, field graphql.CollectedField, obj *models.Route) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Route",
 		Args:   nil,
@@ -6236,7 +6237,7 @@ func (ec *executionContext) _Route_destination(ctx context.Context, field graphq
 // nolint: vetshadow
 func (ec *executionContext) _Route_plugins(ctx context.Context, field graphql.CollectedField, obj *models.Route) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Route",
 		Args:   nil,
@@ -6292,7 +6293,7 @@ func (ec *executionContext) _RoutePlugins(ctx context.Context, sel ast.Selection
 // nolint: vetshadow
 func (ec *executionContext) _RoutePlugins_empty(ctx context.Context, field graphql.CollectedField, obj *models.RoutePlugins) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "RoutePlugins",
 		Args:   nil,
@@ -6355,7 +6356,7 @@ func (ec *executionContext) _Secret(ctx context.Context, sel ast.SelectionSet, o
 // nolint: vetshadow
 func (ec *executionContext) _Secret_kind(ctx context.Context, field graphql.CollectedField, obj *models.Secret) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Secret",
 		Args:   nil,
@@ -6383,7 +6384,7 @@ func (ec *executionContext) _Secret_kind(ctx context.Context, field graphql.Coll
 // nolint: vetshadow
 func (ec *executionContext) _Secret_metadata(ctx context.Context, field graphql.CollectedField, obj *models.Secret) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Secret",
 		Args:   nil,
@@ -6455,7 +6456,7 @@ func (ec *executionContext) _SecretMutation(ctx context.Context, sel ast.Selecti
 // nolint: vetshadow
 func (ec *executionContext) _SecretMutation_create(ctx context.Context, field graphql.CollectedField, obj *customtypes.SecretMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_SecretMutation_create_args(rawArgs)
 	if err != nil {
@@ -6490,7 +6491,7 @@ func (ec *executionContext) _SecretMutation_create(ctx context.Context, field gr
 // nolint: vetshadow
 func (ec *executionContext) _SecretMutation_update(ctx context.Context, field graphql.CollectedField, obj *customtypes.SecretMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_SecretMutation_update_args(rawArgs)
 	if err != nil {
@@ -6525,7 +6526,7 @@ func (ec *executionContext) _SecretMutation_update(ctx context.Context, field gr
 // nolint: vetshadow
 func (ec *executionContext) _SecretMutation_delete(ctx context.Context, field graphql.CollectedField, obj *customtypes.SecretMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_SecretMutation_delete_args(rawArgs)
 	if err != nil {
@@ -6594,7 +6595,7 @@ func (ec *executionContext) _Settings(ctx context.Context, sel ast.SelectionSet,
 // nolint: vetshadow
 func (ec *executionContext) _Settings_watchNamespaces(ctx context.Context, field graphql.CollectedField, obj *models.Settings) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Settings",
 		Args:   nil,
@@ -6627,7 +6628,7 @@ func (ec *executionContext) _Settings_watchNamespaces(ctx context.Context, field
 // nolint: vetshadow
 func (ec *executionContext) _Settings_refreshRate(ctx context.Context, field graphql.CollectedField, obj *models.Settings) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Settings",
 		Args:   nil,
@@ -6655,7 +6656,7 @@ func (ec *executionContext) _Settings_refreshRate(ctx context.Context, field gra
 // nolint: vetshadow
 func (ec *executionContext) _Settings_metadata(ctx context.Context, field graphql.CollectedField, obj *models.Settings) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Settings",
 		Args:   nil,
@@ -6715,7 +6716,7 @@ func (ec *executionContext) _SettingsMutation(ctx context.Context, sel ast.Selec
 // nolint: vetshadow
 func (ec *executionContext) _SettingsMutation_update(ctx context.Context, field graphql.CollectedField, obj *customtypes.SettingsMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_SettingsMutation_update_args(rawArgs)
 	if err != nil {
@@ -6782,7 +6783,7 @@ func (ec *executionContext) _SingleDestination(ctx context.Context, sel ast.Sele
 // nolint: vetshadow
 func (ec *executionContext) _SingleDestination_upstream(ctx context.Context, field graphql.CollectedField, obj *models.SingleDestination) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "SingleDestination",
 		Args:   nil,
@@ -6810,7 +6811,7 @@ func (ec *executionContext) _SingleDestination_upstream(ctx context.Context, fie
 // nolint: vetshadow
 func (ec *executionContext) _SingleDestination_destinationSpec(ctx context.Context, field graphql.CollectedField, obj *models.SingleDestination) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "SingleDestination",
 		Args:   nil,
@@ -6865,7 +6866,7 @@ func (ec *executionContext) _SslConfig(ctx context.Context, sel ast.SelectionSet
 // nolint: vetshadow
 func (ec *executionContext) _SslConfig_secretRef(ctx context.Context, field graphql.CollectedField, obj *models.SslConfig) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "SslConfig",
 		Args:   nil,
@@ -6928,7 +6929,7 @@ func (ec *executionContext) _StaticHost(ctx context.Context, sel ast.SelectionSe
 // nolint: vetshadow
 func (ec *executionContext) _StaticHost_addr(ctx context.Context, field graphql.CollectedField, obj *models.StaticHost) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "StaticHost",
 		Args:   nil,
@@ -6955,7 +6956,7 @@ func (ec *executionContext) _StaticHost_addr(ctx context.Context, field graphql.
 // nolint: vetshadow
 func (ec *executionContext) _StaticHost_port(ctx context.Context, field graphql.CollectedField, obj *models.StaticHost) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "StaticHost",
 		Args:   nil,
@@ -7016,7 +7017,7 @@ func (ec *executionContext) _StaticUpstreamSpec(ctx context.Context, sel ast.Sel
 // nolint: vetshadow
 func (ec *executionContext) _StaticUpstreamSpec_hosts(ctx context.Context, field graphql.CollectedField, obj *models.StaticUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "StaticUpstreamSpec",
 		Args:   nil,
@@ -7073,7 +7074,7 @@ func (ec *executionContext) _StaticUpstreamSpec_hosts(ctx context.Context, field
 // nolint: vetshadow
 func (ec *executionContext) _StaticUpstreamSpec_serviceSpec(ctx context.Context, field graphql.CollectedField, obj *models.StaticUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "StaticUpstreamSpec",
 		Args:   nil,
@@ -7098,7 +7099,7 @@ func (ec *executionContext) _StaticUpstreamSpec_serviceSpec(ctx context.Context,
 // nolint: vetshadow
 func (ec *executionContext) _StaticUpstreamSpec_useTls(ctx context.Context, field graphql.CollectedField, obj *models.StaticUpstreamSpec) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "StaticUpstreamSpec",
 		Args:   nil,
@@ -7157,7 +7158,7 @@ func (ec *executionContext) _Status(ctx context.Context, sel ast.SelectionSet, o
 // nolint: vetshadow
 func (ec *executionContext) _Status_state(ctx context.Context, field graphql.CollectedField, obj *models.Status) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Status",
 		Args:   nil,
@@ -7184,7 +7185,7 @@ func (ec *executionContext) _Status_state(ctx context.Context, field graphql.Col
 // nolint: vetshadow
 func (ec *executionContext) _Status_reason(ctx context.Context, field graphql.CollectedField, obj *models.Status) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Status",
 		Args:   nil,
@@ -7409,7 +7410,7 @@ func (ec *executionContext) _TlsSecret(ctx context.Context, sel ast.SelectionSet
 // nolint: vetshadow
 func (ec *executionContext) _TlsSecret_certChain(ctx context.Context, field graphql.CollectedField, obj *models.TlsSecret) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "TlsSecret",
 		Args:   nil,
@@ -7436,7 +7437,7 @@ func (ec *executionContext) _TlsSecret_certChain(ctx context.Context, field grap
 // nolint: vetshadow
 func (ec *executionContext) _TlsSecret_privateKey(ctx context.Context, field graphql.CollectedField, obj *models.TlsSecret) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "TlsSecret",
 		Args:   nil,
@@ -7463,7 +7464,7 @@ func (ec *executionContext) _TlsSecret_privateKey(ctx context.Context, field gra
 // nolint: vetshadow
 func (ec *executionContext) _TlsSecret_rootCa(ctx context.Context, field graphql.CollectedField, obj *models.TlsSecret) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "TlsSecret",
 		Args:   nil,
@@ -7524,7 +7525,7 @@ func (ec *executionContext) _Transformation(ctx context.Context, sel ast.Selecti
 // nolint: vetshadow
 func (ec *executionContext) _Transformation_functionName(ctx context.Context, field graphql.CollectedField, obj *models.Transformation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Transformation",
 		Args:   nil,
@@ -7551,7 +7552,7 @@ func (ec *executionContext) _Transformation_functionName(ctx context.Context, fi
 // nolint: vetshadow
 func (ec *executionContext) _Transformation_body(ctx context.Context, field graphql.CollectedField, obj *models.Transformation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Transformation",
 		Args:   nil,
@@ -7579,7 +7580,7 @@ func (ec *executionContext) _Transformation_body(ctx context.Context, field grap
 // nolint: vetshadow
 func (ec *executionContext) _Transformation_headers(ctx context.Context, field graphql.CollectedField, obj *models.Transformation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Transformation",
 		Args:   nil,
@@ -7637,7 +7638,7 @@ func (ec *executionContext) _TransformationParameters(ctx context.Context, sel a
 // nolint: vetshadow
 func (ec *executionContext) _TransformationParameters_headers(ctx context.Context, field graphql.CollectedField, obj *models.TransformationParameters) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "TransformationParameters",
 		Args:   nil,
@@ -7666,7 +7667,7 @@ func (ec *executionContext) _TransformationParameters_headers(ctx context.Contex
 // nolint: vetshadow
 func (ec *executionContext) _TransformationParameters_path(ctx context.Context, field graphql.CollectedField, obj *models.TransformationParameters) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "TransformationParameters",
 		Args:   nil,
@@ -7734,7 +7735,7 @@ func (ec *executionContext) _Upstream(ctx context.Context, sel ast.SelectionSet,
 // nolint: vetshadow
 func (ec *executionContext) _Upstream_spec(ctx context.Context, field graphql.CollectedField, obj *models.Upstream) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Upstream",
 		Args:   nil,
@@ -7762,7 +7763,7 @@ func (ec *executionContext) _Upstream_spec(ctx context.Context, field graphql.Co
 // nolint: vetshadow
 func (ec *executionContext) _Upstream_metadata(ctx context.Context, field graphql.CollectedField, obj *models.Upstream) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Upstream",
 		Args:   nil,
@@ -7790,7 +7791,7 @@ func (ec *executionContext) _Upstream_metadata(ctx context.Context, field graphq
 // nolint: vetshadow
 func (ec *executionContext) _Upstream_status(ctx context.Context, field graphql.CollectedField, obj *models.Upstream) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Upstream",
 		Args:   nil,
@@ -7862,7 +7863,7 @@ func (ec *executionContext) _UpstreamMutation(ctx context.Context, sel ast.Selec
 // nolint: vetshadow
 func (ec *executionContext) _UpstreamMutation_create(ctx context.Context, field graphql.CollectedField, obj *customtypes.UpstreamMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_UpstreamMutation_create_args(rawArgs)
 	if err != nil {
@@ -7897,7 +7898,7 @@ func (ec *executionContext) _UpstreamMutation_create(ctx context.Context, field 
 // nolint: vetshadow
 func (ec *executionContext) _UpstreamMutation_update(ctx context.Context, field graphql.CollectedField, obj *customtypes.UpstreamMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_UpstreamMutation_update_args(rawArgs)
 	if err != nil {
@@ -7932,7 +7933,7 @@ func (ec *executionContext) _UpstreamMutation_update(ctx context.Context, field 
 // nolint: vetshadow
 func (ec *executionContext) _UpstreamMutation_delete(ctx context.Context, field graphql.CollectedField, obj *customtypes.UpstreamMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_UpstreamMutation_delete_args(rawArgs)
 	if err != nil {
@@ -8002,7 +8003,7 @@ func (ec *executionContext) _Value(ctx context.Context, sel ast.SelectionSet, ob
 // nolint: vetshadow
 func (ec *executionContext) _Value_key(ctx context.Context, field graphql.CollectedField, obj *models.Value) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Value",
 		Args:   nil,
@@ -8029,7 +8030,7 @@ func (ec *executionContext) _Value_key(ctx context.Context, field graphql.Collec
 // nolint: vetshadow
 func (ec *executionContext) _Value_value(ctx context.Context, field graphql.CollectedField, obj *models.Value) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "Value",
 		Args:   nil,
@@ -8101,7 +8102,7 @@ func (ec *executionContext) _VirtualService(ctx context.Context, sel ast.Selecti
 // nolint: vetshadow
 func (ec *executionContext) _VirtualService_metadata(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "VirtualService",
 		Args:   nil,
@@ -8129,7 +8130,7 @@ func (ec *executionContext) _VirtualService_metadata(ctx context.Context, field 
 // nolint: vetshadow
 func (ec *executionContext) _VirtualService_status(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "VirtualService",
 		Args:   nil,
@@ -8157,7 +8158,7 @@ func (ec *executionContext) _VirtualService_status(ctx context.Context, field gr
 // nolint: vetshadow
 func (ec *executionContext) _VirtualService_domains(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "VirtualService",
 		Args:   nil,
@@ -8190,7 +8191,7 @@ func (ec *executionContext) _VirtualService_domains(ctx context.Context, field g
 // nolint: vetshadow
 func (ec *executionContext) _VirtualService_routes(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "VirtualService",
 		Args:   nil,
@@ -8247,7 +8248,7 @@ func (ec *executionContext) _VirtualService_routes(ctx context.Context, field gr
 // nolint: vetshadow
 func (ec *executionContext) _VirtualService_sslConfig(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "VirtualService",
 		Args:   nil,
@@ -8276,7 +8277,7 @@ func (ec *executionContext) _VirtualService_sslConfig(ctx context.Context, field
 // nolint: vetshadow
 func (ec *executionContext) _VirtualService_rateLimitConfig(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "VirtualService",
 		Args:   nil,
@@ -8305,7 +8306,7 @@ func (ec *executionContext) _VirtualService_rateLimitConfig(ctx context.Context,
 // nolint: vetshadow
 func (ec *executionContext) _VirtualService_plugins(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "VirtualService",
 		Args:   nil,
@@ -8408,7 +8409,7 @@ func (ec *executionContext) _VirtualServiceMutation(ctx context.Context, sel ast
 // nolint: vetshadow
 func (ec *executionContext) _VirtualServiceMutation_create(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_VirtualServiceMutation_create_args(rawArgs)
 	if err != nil {
@@ -8443,7 +8444,7 @@ func (ec *executionContext) _VirtualServiceMutation_create(ctx context.Context, 
 // nolint: vetshadow
 func (ec *executionContext) _VirtualServiceMutation_update(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_VirtualServiceMutation_update_args(rawArgs)
 	if err != nil {
@@ -8478,7 +8479,7 @@ func (ec *executionContext) _VirtualServiceMutation_update(ctx context.Context, 
 // nolint: vetshadow
 func (ec *executionContext) _VirtualServiceMutation_delete(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_VirtualServiceMutation_delete_args(rawArgs)
 	if err != nil {
@@ -8513,7 +8514,7 @@ func (ec *executionContext) _VirtualServiceMutation_delete(ctx context.Context, 
 // nolint: vetshadow
 func (ec *executionContext) _VirtualServiceMutation_addRoute(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_VirtualServiceMutation_addRoute_args(rawArgs)
 	if err != nil {
@@ -8548,7 +8549,7 @@ func (ec *executionContext) _VirtualServiceMutation_addRoute(ctx context.Context
 // nolint: vetshadow
 func (ec *executionContext) _VirtualServiceMutation_updateRoute(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_VirtualServiceMutation_updateRoute_args(rawArgs)
 	if err != nil {
@@ -8583,7 +8584,7 @@ func (ec *executionContext) _VirtualServiceMutation_updateRoute(ctx context.Cont
 // nolint: vetshadow
 func (ec *executionContext) _VirtualServiceMutation_deleteRoute(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_VirtualServiceMutation_deleteRoute_args(rawArgs)
 	if err != nil {
@@ -8618,7 +8619,7 @@ func (ec *executionContext) _VirtualServiceMutation_deleteRoute(ctx context.Cont
 // nolint: vetshadow
 func (ec *executionContext) _VirtualServiceMutation_swapRoutes(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_VirtualServiceMutation_swapRoutes_args(rawArgs)
 	if err != nil {
@@ -8653,7 +8654,7 @@ func (ec *executionContext) _VirtualServiceMutation_swapRoutes(ctx context.Conte
 // nolint: vetshadow
 func (ec *executionContext) _VirtualServiceMutation_shiftRoutes(ctx context.Context, field graphql.CollectedField, obj *customtypes.VirtualServiceMutation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field_VirtualServiceMutation_shiftRoutes_args(rawArgs)
 	if err != nil {
@@ -8715,7 +8716,7 @@ func (ec *executionContext) _VirtualServicePlugins(ctx context.Context, sel ast.
 // nolint: vetshadow
 func (ec *executionContext) _VirtualServicePlugins_empty(ctx context.Context, field graphql.CollectedField, obj *models.VirtualServicePlugins) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "VirtualServicePlugins",
 		Args:   nil,
@@ -8778,7 +8779,7 @@ func (ec *executionContext) _WeightedDestination(ctx context.Context, sel ast.Se
 // nolint: vetshadow
 func (ec *executionContext) _WeightedDestination_destination(ctx context.Context, field graphql.CollectedField, obj *models.WeightedDestination) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "WeightedDestination",
 		Args:   nil,
@@ -8806,7 +8807,7 @@ func (ec *executionContext) _WeightedDestination_destination(ctx context.Context
 // nolint: vetshadow
 func (ec *executionContext) _WeightedDestination_weight(ctx context.Context, field graphql.CollectedField, obj *models.WeightedDestination) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "WeightedDestination",
 		Args:   nil,
@@ -8875,7 +8876,7 @@ func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionS
 // nolint: vetshadow
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Directive",
 		Args:   nil,
@@ -8902,7 +8903,7 @@ func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql
 // nolint: vetshadow
 func (ec *executionContext) ___Directive_description(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Directive",
 		Args:   nil,
@@ -8926,7 +8927,7 @@ func (ec *executionContext) ___Directive_description(ctx context.Context, field 
 // nolint: vetshadow
 func (ec *executionContext) ___Directive_locations(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Directive",
 		Args:   nil,
@@ -8962,7 +8963,7 @@ func (ec *executionContext) ___Directive_locations(ctx context.Context, field gr
 // nolint: vetshadow
 func (ec *executionContext) ___Directive_args(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Directive",
 		Args:   nil,
@@ -9061,7 +9062,7 @@ func (ec *executionContext) ___EnumValue(ctx context.Context, sel ast.SelectionS
 // nolint: vetshadow
 func (ec *executionContext) ___EnumValue_name(ctx context.Context, field graphql.CollectedField, obj *introspection.EnumValue) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__EnumValue",
 		Args:   nil,
@@ -9088,7 +9089,7 @@ func (ec *executionContext) ___EnumValue_name(ctx context.Context, field graphql
 // nolint: vetshadow
 func (ec *executionContext) ___EnumValue_description(ctx context.Context, field graphql.CollectedField, obj *introspection.EnumValue) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__EnumValue",
 		Args:   nil,
@@ -9112,7 +9113,7 @@ func (ec *executionContext) ___EnumValue_description(ctx context.Context, field 
 // nolint: vetshadow
 func (ec *executionContext) ___EnumValue_isDeprecated(ctx context.Context, field graphql.CollectedField, obj *introspection.EnumValue) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__EnumValue",
 		Args:   nil,
@@ -9139,7 +9140,7 @@ func (ec *executionContext) ___EnumValue_isDeprecated(ctx context.Context, field
 // nolint: vetshadow
 func (ec *executionContext) ___EnumValue_deprecationReason(ctx context.Context, field graphql.CollectedField, obj *introspection.EnumValue) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__EnumValue",
 		Args:   nil,
@@ -9216,7 +9217,7 @@ func (ec *executionContext) ___Field(ctx context.Context, sel ast.SelectionSet, 
 // nolint: vetshadow
 func (ec *executionContext) ___Field_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Field",
 		Args:   nil,
@@ -9243,7 +9244,7 @@ func (ec *executionContext) ___Field_name(ctx context.Context, field graphql.Col
 // nolint: vetshadow
 func (ec *executionContext) ___Field_description(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Field",
 		Args:   nil,
@@ -9267,7 +9268,7 @@ func (ec *executionContext) ___Field_description(ctx context.Context, field grap
 // nolint: vetshadow
 func (ec *executionContext) ___Field_args(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Field",
 		Args:   nil,
@@ -9327,7 +9328,7 @@ func (ec *executionContext) ___Field_args(ctx context.Context, field graphql.Col
 // nolint: vetshadow
 func (ec *executionContext) ___Field_type(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Field",
 		Args:   nil,
@@ -9362,7 +9363,7 @@ func (ec *executionContext) ___Field_type(ctx context.Context, field graphql.Col
 // nolint: vetshadow
 func (ec *executionContext) ___Field_isDeprecated(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Field",
 		Args:   nil,
@@ -9389,7 +9390,7 @@ func (ec *executionContext) ___Field_isDeprecated(ctx context.Context, field gra
 // nolint: vetshadow
 func (ec *executionContext) ___Field_deprecationReason(ctx context.Context, field graphql.CollectedField, obj *introspection.Field) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Field",
 		Args:   nil,
@@ -9456,7 +9457,7 @@ func (ec *executionContext) ___InputValue(ctx context.Context, sel ast.Selection
 // nolint: vetshadow
 func (ec *executionContext) ___InputValue_name(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__InputValue",
 		Args:   nil,
@@ -9483,7 +9484,7 @@ func (ec *executionContext) ___InputValue_name(ctx context.Context, field graphq
 // nolint: vetshadow
 func (ec *executionContext) ___InputValue_description(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__InputValue",
 		Args:   nil,
@@ -9507,7 +9508,7 @@ func (ec *executionContext) ___InputValue_description(ctx context.Context, field
 // nolint: vetshadow
 func (ec *executionContext) ___InputValue_type(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__InputValue",
 		Args:   nil,
@@ -9542,7 +9543,7 @@ func (ec *executionContext) ___InputValue_type(ctx context.Context, field graphq
 // nolint: vetshadow
 func (ec *executionContext) ___InputValue_defaultValue(ctx context.Context, field graphql.CollectedField, obj *introspection.InputValue) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__InputValue",
 		Args:   nil,
@@ -9614,7 +9615,7 @@ func (ec *executionContext) ___Schema(ctx context.Context, sel ast.SelectionSet,
 // nolint: vetshadow
 func (ec *executionContext) ___Schema_types(ctx context.Context, field graphql.CollectedField, obj *introspection.Schema) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Schema",
 		Args:   nil,
@@ -9674,7 +9675,7 @@ func (ec *executionContext) ___Schema_types(ctx context.Context, field graphql.C
 // nolint: vetshadow
 func (ec *executionContext) ___Schema_queryType(ctx context.Context, field graphql.CollectedField, obj *introspection.Schema) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Schema",
 		Args:   nil,
@@ -9709,7 +9710,7 @@ func (ec *executionContext) ___Schema_queryType(ctx context.Context, field graph
 // nolint: vetshadow
 func (ec *executionContext) ___Schema_mutationType(ctx context.Context, field graphql.CollectedField, obj *introspection.Schema) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Schema",
 		Args:   nil,
@@ -9738,7 +9739,7 @@ func (ec *executionContext) ___Schema_mutationType(ctx context.Context, field gr
 // nolint: vetshadow
 func (ec *executionContext) ___Schema_subscriptionType(ctx context.Context, field graphql.CollectedField, obj *introspection.Schema) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Schema",
 		Args:   nil,
@@ -9767,7 +9768,7 @@ func (ec *executionContext) ___Schema_subscriptionType(ctx context.Context, fiel
 // nolint: vetshadow
 func (ec *executionContext) ___Schema_directives(ctx context.Context, field graphql.CollectedField, obj *introspection.Schema) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Schema",
 		Args:   nil,
@@ -9873,7 +9874,7 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // nolint: vetshadow
 func (ec *executionContext) ___Type_kind(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Type",
 		Args:   nil,
@@ -9900,7 +9901,7 @@ func (ec *executionContext) ___Type_kind(ctx context.Context, field graphql.Coll
 // nolint: vetshadow
 func (ec *executionContext) ___Type_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Type",
 		Args:   nil,
@@ -9928,7 +9929,7 @@ func (ec *executionContext) ___Type_name(ctx context.Context, field graphql.Coll
 // nolint: vetshadow
 func (ec *executionContext) ___Type_description(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Type",
 		Args:   nil,
@@ -9952,7 +9953,7 @@ func (ec *executionContext) ___Type_description(ctx context.Context, field graph
 // nolint: vetshadow
 func (ec *executionContext) ___Type_fields(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field___Type_fields_args(rawArgs)
 	if err != nil {
@@ -10015,7 +10016,7 @@ func (ec *executionContext) ___Type_fields(ctx context.Context, field graphql.Co
 // nolint: vetshadow
 func (ec *executionContext) ___Type_interfaces(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Type",
 		Args:   nil,
@@ -10072,7 +10073,7 @@ func (ec *executionContext) ___Type_interfaces(ctx context.Context, field graphq
 // nolint: vetshadow
 func (ec *executionContext) ___Type_possibleTypes(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Type",
 		Args:   nil,
@@ -10129,7 +10130,7 @@ func (ec *executionContext) ___Type_possibleTypes(ctx context.Context, field gra
 // nolint: vetshadow
 func (ec *executionContext) ___Type_enumValues(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rawArgs := field.ArgumentMap(ec.Variables)
 	args, err := field___Type_enumValues_args(rawArgs)
 	if err != nil {
@@ -10192,7 +10193,7 @@ func (ec *executionContext) ___Type_enumValues(ctx context.Context, field graphq
 // nolint: vetshadow
 func (ec *executionContext) ___Type_inputFields(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Type",
 		Args:   nil,
@@ -10249,7 +10250,7 @@ func (ec *executionContext) ___Type_inputFields(ctx context.Context, field graph
 // nolint: vetshadow
 func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.CollectedField, obj *introspection.Type) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer ec.Tracer.EndFieldExecution(ctx)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object: "__Type",
 		Args:   nil,
@@ -12023,12 +12024,18 @@ func (ec *executionContext) FieldMiddleware(ctx context.Context, obj interface{}
 	return res
 }
 
-func (ec *executionContext) introspectSchema() *introspection.Schema {
-	return introspection.WrapSchema(parsedSchema)
+func (ec *executionContext) introspectSchema() (*introspection.Schema, error) {
+	if ec.DisableIntrospection {
+		return nil, errors.New("introspection disabled")
+	}
+	return introspection.WrapSchema(parsedSchema), nil
 }
 
-func (ec *executionContext) introspectType(name string) *introspection.Type {
-	return introspection.WrapTypeFromDef(parsedSchema, parsedSchema.Types[name])
+func (ec *executionContext) introspectType(name string) (*introspection.Type, error) {
+	if ec.DisableIntrospection {
+		return nil, errors.New("introspection disabled")
+	}
+	return introspection.WrapTypeFromDef(parsedSchema, parsedSchema.Types[name]), nil
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(

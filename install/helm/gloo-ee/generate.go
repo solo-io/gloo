@@ -26,8 +26,9 @@ const (
 	glooPkg      = "github.com/solo-io/gloo"
 	nameConst    = "name"
 	versionConst = "version"
+	neverPull    = "Never"
 
-	glooiVersion = "0.0.3"
+	glooiVersion = "0.0.4"
 )
 
 func main() {
@@ -88,6 +89,14 @@ func generateValuesYaml(version string) error {
 	config.ApiServer.Deployment.Server.Image.Tag = version
 	// Do not set image tag equal to the rest because it is separately versioned
 	config.ApiServer.Deployment.Ui.Image.Tag = glooiVersion
+
+	if version == "dev" {
+		config.Gloo.Gloo.Deployment.Image.PullPolicy = neverPull
+		config.RateLimit.Deployment.Image.PullPolicy = neverPull
+		config.Licensing.Deployment.Image.PullPolicy = neverPull
+		config.Observability.Deployment.Image.PullPolicy = neverPull
+		config.ApiServer.Deployment.Server.Image.PullPolicy = neverPull
+	}
 
 	return writeYaml(&config, valuesOutput)
 }
