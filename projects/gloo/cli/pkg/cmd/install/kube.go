@@ -14,10 +14,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
-	v1 "k8s.io/api/core/v1"
-	kubeerrs "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
@@ -27,9 +23,7 @@ import (
 // TODO: support configuring install namespace
 // requires changing a few places in the yaml as well
 const (
-	InstallNamespace    = "gloo-system"
-	imagePullSecretName = "solo-io-docker-secret"
-	glooUrlTemplate     = "https://github.com/solo-io/gloo/releases/download/v%s/gloo.yaml"
+	glooUrlTemplate = "https://github.com/solo-io/gloo/releases/download/v%s/gloo.yaml"
 )
 
 func KubeCmd(opts *options.Options) *cobra.Command {
@@ -38,9 +32,6 @@ func KubeCmd(opts *options.Options) *cobra.Command {
 		Short: "install Gloo on kubernetes",
 		Long:  "requires kubectl to be installed",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := createImagePullSecretIfNeeded(opts.Install); err != nil {
-				return errors.Wrapf(err, "creating image pull secret")
-			}
 			if err := registerSettingsCrd(); err != nil {
 				return errors.Wrapf(err, "registering settings crd")
 			}
@@ -103,64 +94,4 @@ func registerSettingsCrd() error {
 	})
 
 	return settingsClient.Register()
-}
-
-func createImagePullSecretIfNeeded(install options.Install) error {
-	if err := createNamespaceIfNotExist(); err != nil {
-		return errors.Wrapf(err, "creating installation namespace")
-	}
-	dockerSecretDesired := install.DockerAuth.Username != "" ||
-		install.DockerAuth.Password != "" ||
-		install.DockerAuth.Email != ""
-
-	if !dockerSecretDesired {
-		return nil
-	}
-
-	validOpts := install.DockerAuth.Username != "" &&
-		install.DockerAuth.Password != "" &&
-		install.DockerAuth.Email != "" &&
-		install.DockerAuth.Server != ""
-
-	if !validOpts {
-		return errors.Errorf("must provide one of each flag for docker authentication: \n" +
-			"--docker-email \n" +
-			"--docker-username \n" +
-			"--docker-password \n")
-	}
-
-	if install.DryRun {
-		return nil
-	}
-
-	kubectl := exec.Command("kubectl", "create", "secret", "docker-registry", "-n", InstallNamespace,
-		"--docker-email", install.DockerAuth.Email,
-		"--docker-username", install.DockerAuth.Username,
-		"--docker-password", install.DockerAuth.Password,
-		"--docker-server", install.DockerAuth.Server,
-		imagePullSecretName,
-	)
-	kubectl.Stdout = os.Stdout
-	kubectl.Stderr = os.Stderr
-	return kubectl.Run()
-}
-
-func createNamespaceIfNotExist() error {
-	restCfg, err := kubeutils.GetConfig("", "")
-	if err != nil {
-		return err
-	}
-	kube, err := kubernetes.NewForConfig(restCfg)
-	if err != nil {
-		return err
-	}
-	installNamespace := &v1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: InstallNamespace,
-		},
-	}
-	if _, err := kube.CoreV1().Namespaces().Create(installNamespace); err != nil && !kubeerrs.IsAlreadyExists(err) {
-		return err
-	}
-	return nil
 }
