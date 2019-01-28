@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/ghodss/yaml"
-	"github.com/pelletier/go-toml"
+	toml "github.com/pelletier/go-toml"
 	"github.com/pkg/errors"
 	glooGenerate "github.com/solo-io/gloo/install/helm/gloo/generate"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
@@ -28,7 +28,7 @@ const (
 	versionConst = "version"
 	neverPull    = "Never"
 
-	glooiVersion = "0.0.4"
+	glooiVersion = "0.0.6"
 )
 
 func main() {
