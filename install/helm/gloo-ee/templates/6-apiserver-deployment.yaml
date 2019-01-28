@@ -22,8 +22,6 @@ spec:
           image: '{{.Values.apiServer.deployment.ui.image.repository}}:{{.Values.apiServer.deployment.ui.image.tag}}'
           imagePullPolicy: {{.Values.apiServer.deployment.ui.image.pullPolicy}}
           volumeMounts:
-            - name: ui-nginx-config
-              mountPath: /etc/nginx/conf
             - name: empty-cache
               mountPath: /var/cache/nginx
             - name: empty-run
@@ -49,9 +47,6 @@ spec:
               containerPort: {{.Values.apiServer.deployment.server.graphqlPort}}
               protocol: TCP
       volumes:
-        - name: ui-nginx-config
-          configMap:
-            name: {{ .Values.apiServer.configMap.name }}
         - name: empty-cache
           emptyDir: {}
         - name: empty-run

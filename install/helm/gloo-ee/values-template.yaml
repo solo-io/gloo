@@ -314,8 +314,6 @@ apiServer:
       staticPort: 8080
   service:
     name: 'apiserver-ui'
-  configMap:
-    name: ui-nginx-config
 
 
 ########################################################################
