@@ -75,7 +75,7 @@ func Upstream(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra
 			"Create a Kubernetes Upstream",
 			"Kubernetes Upstreams represent a collection of endpoints for Services registered with Kubernetes. "+
 				"Typically, Gloo will automatically discover these upstreams, meaning you don't have to create them. However, "+
-				"if upstream discovery in Gloo is disabled, or RBAC pe0rmissions have not been granted to Gloo to read from the registry, "+
+				"if upstream discovery in Gloo is disabled, or RBAC permissions have not been granted to Gloo to read from the registry, "+
 				"Kubernetes services can be added to Gloo manually via the CLI.",
 		),
 		createUpstreamSubcommand(opts,
@@ -96,6 +96,14 @@ func createUpstreamSubcommand(opts *options.Options, upstreamType, short, long s
 		Short: short,
 		Long:  long,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if opts.Top.Interactive {
+				if upstreamType == options.UpstreamType_Consul || upstreamType == options.UpstreamType_Kube {
+					// Short circuit this error propagation. Before this was getting bubbled up after asking
+					// the user to provide metadata, which made for a bad experience. We can remove these checks
+					// when we implement interactive mode for these types.
+					return errors.Errorf("interactive mode not currently available for type %v", upstreamType)
+				}
+			}
 			if err := argsutils.MetadataArgsParse(opts, args); err != nil {
 				return err
 			}
