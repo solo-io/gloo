@@ -14,8 +14,8 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/get"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/upgrade"
-	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/config"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/create"
+	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/edit"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/install"
 	"github.com/spf13/cobra"
 )
@@ -53,6 +53,6 @@ func optionsFunc(app *cobra.Command) {
 		create.RootCmd(opts),
 		upgrade.RootCmd(opts),
 		gateway.RootCmd(opts),
-		config.RootCmd(opts),
+		edit.RootCmd(opts),
 	)
 }

@@ -9,9 +9,15 @@ var (
 		Short:   "root command for observability functionality",
 	}
 
-	CONFIG_COMMAND = cobra.Command{
-		Use:     "config",
-		Aliases: []string{"cfg", "settings", "set"},
+	EDIT_COMMAND = cobra.Command{
+		Use:     "edit",
+		Aliases: []string{"ed", "settings", "set"},
+		Short:   "root command for editing",
+	}
+
+	SETTINGS_COMMAND = cobra.Command{
+		Use:     "settings",
+		Aliases: []string{"st", "set"},
 		Short:   "root command for settings",
 	}
 

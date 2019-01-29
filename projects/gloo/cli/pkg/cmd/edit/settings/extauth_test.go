@@ -1,4 +1,4 @@
-package config_test
+package settings_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -63,21 +63,21 @@ var _ = Describe("Extauth", func() {
 			Expect(*settings).To(Equal(originalSettings))
 
 		},
-		Entry("edit name", "config extauth --extauth-server-name test",
+		Entry("edit name", "edit settings extauth --extauth-server-name test",
 			&extauthpb.Settings{
 				ExtauthzServerRef: &core.ResourceRef{
 					Name:      "test",
 					Namespace: "",
 				},
 			}),
-		Entry("edit name", "config extauth --extauth-server-namespace test",
+		Entry("edit name", "edit settings extauth --extauth-server-namespace test",
 			&extauthpb.Settings{
 				ExtauthzServerRef: &core.ResourceRef{
 					Name:      "",
 					Namespace: "test",
 				},
 			}),
-		Entry("edit name", "config extauth --extauth-server-namespace test --extauth-server-name testname",
+		Entry("edit name", "edit settings extauth --extauth-server-namespace test --extauth-server-name testname",
 			&extauthpb.Settings{
 				ExtauthzServerRef: &core.ResourceRef{
 					Name:      "testname",

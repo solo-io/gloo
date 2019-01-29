@@ -1,4 +1,4 @@
-package config
+package settings
 
 import (
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/constants"
@@ -11,10 +11,10 @@ import (
 
 func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     constants.CONFIG_COMMAND.Use,
-		Aliases: constants.CONFIG_COMMAND.Aliases,
-		Short:   constants.CONFIG_COMMAND.Short,
-		Long:    constants.CONFIG_COMMAND.Long,
+		Use:     constants.SETTINGS_COMMAND.Use,
+		Aliases: constants.SETTINGS_COMMAND.Aliases,
+		Short:   constants.SETTINGS_COMMAND.Short,
+		Long:    constants.SETTINGS_COMMAND.Long,
 	}
 	flagutils.AddOutputFlag(cmd.PersistentFlags(), &opts.Top.Output)
 
