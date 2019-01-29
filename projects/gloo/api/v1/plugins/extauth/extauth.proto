@@ -12,10 +12,7 @@ import "google/api/annotations.proto";
 
 
 message Settings { 
-  oneof extauthz_server{
     core.solo.io.ResourceRef extauthz_server_ref = 1; 
-    string extauthz_server_uri = 2;
-  }
   string user_id_header = 3;
 }
 

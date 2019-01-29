@@ -86,9 +86,7 @@ var _ = Describe("External ", func() {
 		testClients.UpstreamClient.Write(extauthserver, clients.WriteOpts{})
 		ref := extauthserver.Metadata.Ref()
 		extauthSettings := &extauth.Settings{
-			ExtauthzServer: &extauth.Settings_ExtauthzServerRef{
-				ExtauthzServerRef: &ref,
-			},
+			ExtauthzServerRef: &ref,
 		}
 		settingsStruct, err := envoyutil.MessageToStruct(extauthSettings)
 		Expect(err).NotTo(HaveOccurred())

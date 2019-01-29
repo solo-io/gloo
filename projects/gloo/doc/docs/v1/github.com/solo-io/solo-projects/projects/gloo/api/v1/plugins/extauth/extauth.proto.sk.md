@@ -31,7 +31,6 @@
 
 ```yaml
 "extauthz_server_ref": .core.solo.io.ResourceRef
-"extauthz_server_uri": string
 "user_id_header": string
 
 ```
@@ -39,7 +38,6 @@
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `extauthz_server_ref` | [.core.solo.io.ResourceRef](../../../../../../../solo-kit/api/v1/ref.proto.sk.md#ResourceRef) |  |  |
-| `extauthz_server_uri` | `string` |  |  |
 | `user_id_header` | `string` |  |  |
 
 

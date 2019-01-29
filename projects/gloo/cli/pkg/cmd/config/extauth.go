@@ -1,0 +1,106 @@
+package config
+
+import (
+	"github.com/gogo/protobuf/types"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
+	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
+	"github.com/solo-io/go-utils/cliutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
+	optionsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
+	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/constants"
+	flagutilsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/flagutils"
+	surveyutilsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/surveyutils"
+	extauthpb "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
+
+	"github.com/spf13/cobra"
+)
+
+func ExtAuthConfig(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
+
+	optsExt := &optionsExt.OIDCSettings{}
+
+	cmd := &cobra.Command{
+		// Use command constants to aid with replacement.
+		Use:     constants.CONFIG_EXTAUTH_COMMAND.Use,
+		Aliases: constants.CONFIG_EXTAUTH_COMMAND.Aliases,
+		Short:   "Configure external auth settings",
+		Long:    "Let gloo know the location of the ext auth server",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if opts.Top.Interactive {
+				if err := surveyutilsExt.AddSettingsExtAuthFlagsInteractive(optsExt); err != nil {
+					return err
+				}
+			}
+			err := argsutils.MetadataArgsParse(opts, args)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return editSettings(opts, optsExt, args)
+		},
+	}
+
+	pflags := cmd.PersistentFlags()
+
+	// default name is default
+	pflags.StringVar(&opts.Metadata.Name, "name", "default", "name of the resource to read or write")
+	flagutils.AddNamespaceFlag(pflags, &opts.Metadata.Namespace)
+
+	flagutilsExt.AddConfigFlagsOIDCSettings(pflags, optsExt)
+	cliutils.ApplyOptions(cmd, optionsFunc)
+
+	return cmd
+}
+
+func editSettings(opts *options.Options, optsExt *optionsExt.OIDCSettings, args []string) error {
+	settingsClient := helpers.MustSettingsClient()
+	settings, err := settingsClient.Read(opts.Metadata.Namespace, opts.Metadata.Name, clients.ReadOpts{})
+	if err != nil {
+		return errors.Wrapf(err, "Error reading settings")
+	}
+
+	var extAuthSettings extauthpb.Settings
+	err = utils.UnmarshalExtension(settings, extauth.ExtensionName, &extAuthSettings)
+	if err != nil {
+		if err != utils.NotFoundError {
+			return err
+		}
+	}
+	if extAuthSettings.ExtauthzServerRef == nil {
+		extAuthSettings.ExtauthzServerRef = new(core.ResourceRef)
+	}
+	if optsExt.ExtAtuhServerUpstreamRef.Name != "" {
+		extAuthSettings.ExtauthzServerRef.Name = optsExt.ExtAtuhServerUpstreamRef.Name
+	}
+	if optsExt.ExtAtuhServerUpstreamRef.Namespace != "" {
+		extAuthSettings.ExtauthzServerRef.Namespace = optsExt.ExtAtuhServerUpstreamRef.Namespace
+	}
+
+	if settings.Extensions == nil {
+		settings.Extensions = &gloov1.Extensions{}
+	}
+
+	if settings.Extensions.Configs == nil {
+		settings.Extensions.Configs = make(map[string]*types.Struct)
+	}
+
+	extStruct, err := protoutils.MarshalStruct(&extAuthSettings)
+	if err != nil {
+		return err
+	}
+	settings.Extensions.Configs[extauth.ExtensionName] = extStruct
+
+	_, err = settingsClient.Write(settings, clients.WriteOpts{OverwriteExisting: true})
+	return err
+}

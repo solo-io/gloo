@@ -1166,7 +1166,7 @@
   version = "v0.1.1"
 
 [[projects]]
-  digest = "1:47741e242d6b8d5965fb4b72d99f3bd78e1fd1e75c50f1fae62655ce18fb4891"
+  digest = "1:c11f7f6c1805f386fe29598346c31a590f265dbc27cf6fe60abe50af98d0c18e"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1243,8 +1243,8 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "a27e1018640c46f7a25e4c1a0dc1f4cadf1773f5"
-  version = "v0.6.12"
+  revision = "fd82ec8d60180cb21488bb9a64989b1622b4134a"
+  version = "v0.6.13"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -2169,6 +2169,7 @@
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/add",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/create",
+    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/create/secret",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/del",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gateway",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/get",

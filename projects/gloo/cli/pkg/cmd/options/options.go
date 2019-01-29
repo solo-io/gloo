@@ -3,6 +3,7 @@ package options
 import (
 	"sort"
 
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 )
@@ -35,4 +36,8 @@ type OIDCAuth struct {
 
 	// Include all options from the vhost extension
 	extauth.OAuth
+}
+
+type OIDCSettings struct {
+	ExtAtuhServerUpstreamRef core.ResourceRef
 }

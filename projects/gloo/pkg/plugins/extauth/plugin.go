@@ -29,14 +29,15 @@ const (
 )
 
 const (
-	filterName = "envoy.ext_authz"
+	sanitizeFilterName  = "io.solo.filters.http.sanitize"
+	sanitizeFilterStage = plugins.PreInAuth
+	filterName          = "envoy.ext_authz"
 	// rate limiting should happen after auth
 	filterStage = plugins.InAuth
 )
 
 type Plugin struct {
 	upstreamRef *core.ResourceRef
-	upstreamUri string
 }
 
 func NewPlugin() plugins.Plugin {
@@ -55,17 +56,12 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 
 	var settings extauth.Settings
 	p.upstreamRef = nil
-	p.upstreamUri = ""
 	err := utils.UnmarshalExtension(&tmpPluginContainer{params}, ExtensionName, &settings)
 	if err != nil {
 		p.upstreamRef = nil
 	}
-	switch server := settings.ExtauthzServer.(type) {
-	case *extauth.Settings_ExtauthzServerRef:
-		p.upstreamRef = server.ExtauthzServerRef
-	case *extauth.Settings_ExtauthzServerUri:
-		p.upstreamUri = server.ExtauthzServerUri
-	}
+
+	p.upstreamRef = settings.ExtauthzServerRef
 
 	return nil
 }
@@ -111,7 +107,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 		return errors.Wrapf(err, "Error converting proto any to extauth plugin")
 	}
 
-	if p.upstreamRef == nil && p.upstreamUri == "" {
+	if p.upstreamRef == nil {
 		return fmt.Errorf("no ext auth server configured")
 	}
 
@@ -201,7 +197,7 @@ func setPerRouteConfig(out *envoyroute.VirtualHost, config *envoyauth.ExtAuthzPe
 }
 
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
-	if p.upstreamRef == nil && p.upstreamUri == "" {
+	if p.upstreamRef == nil {
 		return nil, nil
 	}
 	conf, err := protoutils.MarshalStruct(p.generateEnvoyConfigForFilter())
@@ -209,6 +205,9 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		return nil, err
 	}
 	return []plugins.StagedHttpFilter{
+		/*
+			TODO: add header santiation once a header is released
+		*/
 		{
 			HttpFilter: &envoyhttp.HttpFilter{Name: filterName,
 				ConfigType: &envoyhttp.HttpFilter_Config{Config: conf}},
@@ -219,20 +218,11 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 
 func (p *Plugin) generateEnvoyConfigForFilter() *envoyauth.ExtAuthz {
 	var svc *envoycore.GrpcService
-	if p.upstreamRef != nil {
-		svc = &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
-			EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-				ClusterName: translator.UpstreamToClusterName(*p.upstreamRef),
-			},
-		}}
-	} else {
-		svc = &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_GoogleGrpc_{
-			GoogleGrpc: &envoycore.GrpcService_GoogleGrpc{
-				TargetUri:  p.upstreamUri,
-				StatPrefix: "extauth",
-			},
-		}}
-	}
+	svc = &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+		EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+			ClusterName: translator.UpstreamToClusterName(*p.upstreamRef),
+		},
+	}}
 
 	return &envoyauth.ExtAuthz{
 		Services: &envoyauth.ExtAuthz_GrpcService{
