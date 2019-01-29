@@ -2156,6 +2156,7 @@
     "github.com/solo-io/ext-auth-service/pkg/config/oidc",
     "github.com/solo-io/ext-auth-service/pkg/service",
     "github.com/solo-io/gloo/install/helm/gloo/generate",
+    "github.com/solo-io/gloo/pkg/cliutil",
     "github.com/solo-io/gloo/pkg/utils/setuputils",
     "github.com/solo-io/gloo/pkg/version",
     "github.com/solo-io/gloo/projects/discovery/pkg/fds/setup",

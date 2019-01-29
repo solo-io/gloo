@@ -20,8 +20,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var versionTemplate = `{{with .Name}}{{printf "%s enterprise edition " .}}{{end}}{{printf "version %s" .Version}}
+`
+
 func App(version string) *cobra.Command {
 	app := cmd.App(version, optionsFunc)
+	app.SetVersionTemplate(versionTemplate)
 	return app
 }
 
