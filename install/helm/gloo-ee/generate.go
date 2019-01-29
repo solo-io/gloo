@@ -28,7 +28,7 @@ const (
 	versionConst = "version"
 	neverPull    = "Never"
 
-	glooiVersion = "0.0.6"
+	glooiVersion = "0.0.7"
 )
 
 func main() {
