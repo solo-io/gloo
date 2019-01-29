@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
+set -e
+
 cd $SOLO_PROJECTS_DIR
 
 rm -rf _output
 export VERSION=dev
 
-kubectl delete namespace gloo-system
+./hack/kube/safe_delete_namespace.sh
 
 eval $(minikube docker-env)
 make docker -B
