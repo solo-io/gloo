@@ -83,6 +83,8 @@ func generateValuesYaml(version string) error {
 	}
 
 	config.Gloo.Gloo.Deployment.Image.Tag = version
+	config.Gloo.GatewayProxy.Deployment.Image.Tag = version
+	config.Gloo.IngressProxy.Deployment.Image.Tag = version
 	config.RateLimit.Deployment.Image.Tag = version
 	config.Licensing.Deployment.Image.Tag = version
 	config.Observability.Deployment.Image.Tag = version
@@ -92,6 +94,8 @@ func generateValuesYaml(version string) error {
 
 	if version == "dev" {
 		config.Gloo.Gloo.Deployment.Image.PullPolicy = neverPull
+		config.Gloo.GatewayProxy.Deployment.Image.PullPolicy = neverPull
+		config.Gloo.IngressProxy.Deployment.Image.PullPolicy = neverPull
 		config.RateLimit.Deployment.Image.PullPolicy = neverPull
 		config.Licensing.Deployment.Image.PullPolicy = neverPull
 		config.Observability.Deployment.Image.PullPolicy = neverPull

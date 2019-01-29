@@ -22,6 +22,10 @@ gloo:
         - containerPort: 8081
           name: stats
           protocol: TCP
+      image:
+        pullPolicy: Always
+        pullSecret: solo-io-docker-secret
+        repository: soloio/gloo-ee-envoy-wrapper
     configMap:
       data:
         envoy.yaml: |
@@ -131,6 +135,10 @@ gloo:
         - containerPort: 8081
           name: stats
           protocol: TCP
+      image:
+        pullPolicy: Always
+        pullSecret: solo-io-docker-secret
+        repository: soloio/gloo-ee-envoy-wrapper
     configMap:
       data:
         envoy.yaml: |
