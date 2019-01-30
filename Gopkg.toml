@@ -82,9 +82,5 @@
   version = "0.0.4"
 
 [[constraint]]
-  name = "github.com/solo-io/keygen"
-  version = "0.1.0"
-
-[[constraint]]
   name = "github.com/solo-io/ext-auth-service"
   version = "0.1.1"

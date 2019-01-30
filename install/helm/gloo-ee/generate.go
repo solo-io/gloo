@@ -86,7 +86,6 @@ func generateValuesYaml(version string) error {
 	config.Gloo.GatewayProxy.Deployment.Image.Tag = version
 	config.Gloo.IngressProxy.Deployment.Image.Tag = version
 	config.RateLimit.Deployment.Image.Tag = version
-	config.Licensing.Deployment.Image.Tag = version
 	config.Observability.Deployment.Image.Tag = version
 	config.ApiServer.Deployment.Server.Image.Tag = version
 	// Do not set image tag equal to the rest because it is separately versioned
@@ -97,7 +96,6 @@ func generateValuesYaml(version string) error {
 		config.Gloo.GatewayProxy.Deployment.Image.PullPolicy = neverPull
 		config.Gloo.IngressProxy.Deployment.Image.PullPolicy = neverPull
 		config.RateLimit.Deployment.Image.PullPolicy = neverPull
-		config.Licensing.Deployment.Image.PullPolicy = neverPull
 		config.Observability.Deployment.Image.PullPolicy = neverPull
 		config.ApiServer.Deployment.Server.Image.PullPolicy = neverPull
 	}

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/solo-io/go-utils/versionutils"
+	version "github.com/solo-io/go-utils/versionutils"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
 )
 

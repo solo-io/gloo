@@ -275,26 +275,6 @@ redis:
 
 ########################################################################
 ###                                                                  ###
-###                        Licensing                                 ###
-###                                                                  ###
-########################################################################
-
-licensing:
-  deployment:
-    name: licensing
-    service: licensing-service
-    image:
-      repository: soloio/licensing-server-ee
-      pullPolicy: Always
-      pullSecret: solo-io-docker-secret
-    staticPort: 8080
-  service:
-    port: 80
-    name: licensing-service
-
-
-########################################################################
-###                                                                  ###
 ###                        API Server                                ###
 ###                                                                  ###
 ########################################################################

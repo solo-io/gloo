@@ -93,19 +93,6 @@ steps:
     - './_output/helm'
   dir: './gopath/src/github.com/solo-io/solo-projects'
 
-# Setup keygen creds
-- name: gcr.io/cloud-builders/gcloud
-  args:
-    - kms
-    - decrypt
-    - --ciphertext-file=./gopath/src/github.com/solo-io/solo-projects/ci/keygen_creds.json.enc
-    - --plaintext-file=/workspace/keygen_creds.json
-    - --location=global
-    - --keyring=build
-    - --key=build-key
-  waitFor: ['dep']
-  id: 'setup-keygen-creds'
-
 # Setup and run e2es
 - name: gcr.io/cloud-builders/gsutil
   entrypoint: 'bash'
@@ -141,10 +128,9 @@ steps:
   - 'CLOUDSDK_CONTAINER_CLUSTER=test-cluster'
   - 'RUN_KUBE_TESTS=1'
   - 'CLOUD_BUILD=1'
-  - 'KEYGEN_CREDENTIALS_FILE=/workspace/keygen_creds.json'
   - 'GOPATH=/workspace/gopath'
   args: ['-r']
-  waitFor: ['dep', 'get-envoy', 'setup-aws-creds', 'setup-keygen-creds']
+  waitFor: ['dep', 'get-envoy', 'setup-aws-creds']
 
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'

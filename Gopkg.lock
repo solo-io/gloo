@@ -1255,7 +1255,8 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:26bedcce972e94bed5edd7c31e659c5a7764611187f9bc3d6e92b541fc12b837"
+  branch = "master"
+  digest = "1:80f39338b5051fb37104a22e03e15580406db25ad63be5922bde1af4a269dbd4"
   name = "github.com/solo-io/go-utils"
   packages = [
     "cliutils",
@@ -1263,22 +1264,10 @@
     "errors",
     "kubeutils",
     "protoutils",
+    "versionutils",
   ]
   pruneopts = "UT"
-  revision = "1c5b99da71805f3cee3f259242e2e09057411586"
-  version = "v0.1.0"
-
-[[projects]]
-  digest = "1:d2370c4e8141adaf767e5cd4b3f5ba2af3aa8f689f803c9bd9bdbc01ccc9aa99"
-  name = "github.com/solo-io/keygen"
-  packages = [
-    ".",
-    "model",
-    "services",
-  ]
-  pruneopts = "UT"
-  revision = "76c33b6cd8340fb8062a684452b42c7dfa2e511a"
-  version = "v0.1.0"
+  revision = "7d4977881613ab3e063134a823508c545d049a98"
 
 [[projects]]
   branch = "master"
@@ -2207,8 +2196,7 @@
     "github.com/solo-io/go-utils/contextutils",
     "github.com/solo-io/go-utils/errors",
     "github.com/solo-io/go-utils/kubeutils",
-    "github.com/solo-io/keygen",
-    "github.com/solo-io/keygen/services",
+    "github.com/solo-io/go-utils/versionutils",
     "github.com/solo-io/rate-limiter/pkg/config",
     "github.com/solo-io/rate-limiter/pkg/redis",
     "github.com/solo-io/rate-limiter/pkg/server",
@@ -2257,11 +2245,9 @@
     "go.opencensus.io/trace",
     "go.uber.org/zap",
     "golang.org/x/oauth2",
-    "golang.org/x/sync/errgroup",
     "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
-    "google.golang.org/grpc/health",
     "google.golang.org/grpc/health/grpc_health_v1",
     "google.golang.org/grpc/reflection",
     "google.golang.org/grpc/status",

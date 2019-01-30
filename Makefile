@@ -276,34 +276,6 @@ init-helm:
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
 
 #----------------------------------------------------------------------------------
-# LicensingServer
-#----------------------------------------------------------------------------------
-
-LICENSING_SERVER_DIR=projects/licensingserver
-LICENSING_SERVER_SOURCES=$(shell find $(LICENSING_SERVER_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-
-$(OUTPUT_DIR)/licensing-server-linux-amd64: $(LICENSING_SERVER_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(LICENSING_SERVER_DIR)/cmd/main.go
-
-.PHONY: licensing-server
-licensing-server: $(OUTPUT_DIR)/licensing-server-linux-amd64
-
-$(OUTPUT_DIR)/Dockerfile.licensing-server: $(LICENSING_SERVER_DIR)/cmd/Dockerfile
-	cp $< $@
-
-licensing-server-docker: $(OUTPUT_DIR)/licensing-server-linux-amd64 $(OUTPUT_DIR)/Dockerfile.licensing-server
-	docker build -t soloio/licensing-server-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.licensing-server
-
-.PHONY: licensing-server-generate
-licensing-server-generate:
-	$(LICENSING_SERVER_DIR)/hack/protos.sh
-
-.PHONY: licensing-server-test
-licensing-server-test:
-	go test -v $(PACKAGE_PATH)/$(LICENSING_SERVER_DIR)/test/...
-
-
-#----------------------------------------------------------------------------------
 # Release
 #----------------------------------------------------------------------------------
 GH_ORG:=solo-io
@@ -358,7 +330,7 @@ ifeq ($(RELEASE),"true")
 endif
 
 .PHONY: docker docker-push
-docker: apiserver-docker rate-limit-docker gloo-docker gloo-ee-envoy-wrapper-docker sqoop-docker licensing-server-docker observability-docker
+docker: apiserver-docker rate-limit-docker gloo-docker gloo-ee-envoy-wrapper-docker sqoop-docker observability-docker
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
 # This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
@@ -371,6 +343,5 @@ ifeq ($(RELEASE),"true")
 	docker push soloio/apiserver-ee:$(VERSION) && \
 	docker push soloio/gloo-ee:$(VERSION) && \
 	docker push soloio/gloo-ee-envoy-wrapper:$(VERSION) && \
-	docker push soloio/licensing-server-ee:$(VERSION)
 	docker push soloio/observability-ee:$(VERSION)
 endif

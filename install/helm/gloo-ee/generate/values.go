@@ -7,7 +7,6 @@ type Config struct {
 	Redis         *Redis           `json:"redis,omitempty"`
 	RateLimit     *RateLimit       `json:"rateLimit,omitempty"`
 	ApiServer     *ApiServer       `json:"apiServer,omitempty"`
-	Licensing     *Licensing       `json:"licensing,omitempty"`
 	Observability *Observability   `json:"observability,omitempty"`
 	Rbac          *Rbac            `json:"rbac"`
 	Grafana       interface{}      `json:"grafana,omitempty"`
@@ -90,22 +89,6 @@ type ApiServerService struct {
 }
 
 type ApiServerConfigMap struct {
-	Name string `json:"name"`
-}
-
-type Licensing struct {
-	Deployment *LicensingDeployment `json:"deployment,omitempty"`
-	Service    *LicensingService    `json:"service,omitempty"`
-}
-
-type LicensingDeployment struct {
-	Image      *generate.Image `json:"image,omitempty"`
-	StaticPort string          `json:"staticPort"`
-	*generate.DeploymentSpec
-}
-
-type LicensingService struct {
-	Port string `json:"port"`
 	Name string `json:"name"`
 }
 
