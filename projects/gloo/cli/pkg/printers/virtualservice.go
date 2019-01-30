@@ -6,9 +6,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
+
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 	rateLimitPlugin "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
-	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/utils"
 
 	"github.com/olekukonko/tablewriter"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"

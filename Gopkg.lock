@@ -1302,7 +1302,7 @@
   revision = "32838befd54a98ecd76e6f1bf0ca6df602646a04"
 
 [[projects]]
-  digest = "1:70484857b2a4135518adc6c3aa407ee3f83be664efd146a9b5e6949ac9187291"
+  digest = "1:12498e2daff9e12a345d26c8dcec8efded83b345f7a568322142763d2ede5340"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1356,8 +1356,8 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "4aa5df4fc9a5f7af01daf6c4cf1a8adce340deb2"
-  version = "v0.2.18"
+  revision = "1114ce18c5fb4c698b24f2b81839abc4359bc694"
+  version = "v0.2.23"
 
 [[projects]]
   digest = "1:e01b05ba901239c783dfe56450bcde607fc858908529868259c9a8765dc176d0"
@@ -2199,8 +2199,6 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/defaults",
     "github.com/solo-io/gloo/projects/gloo/pkg/mocks",
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins",
-    "github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils",
-    "github.com/solo-io/gloo/projects/gloo/pkg/plugins/transformation",
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils",
     "github.com/solo-io/gloo/projects/gloo/pkg/syncer",
     "github.com/solo-io/gloo/projects/gloo/pkg/translator",

@@ -10,13 +10,10 @@ Gloo is a high-performance, plugin-extendable, platform-agnostic API Gateway bui
 
 
 ### API Resources:
-- [ChangeSet](./github.com/solo-io/solo-projects/projects/vcs/api/v1/changeset.proto.sk.md#ChangeSet)
-- [Experiment](./github.com/solo-io/solo-projects/projects/glooshot/api/v1/glooshot.proto.sk.md#Experiment)
+- [Artifact](./github.com/solo-io/gloo/projects/gloo/api/v1/artifact.proto.sk.md#Artifact)
 - [Gateway](./github.com/solo-io/gloo/projects/gateway/api/v1/gateway.proto.sk.md#Gateway)
-- [LicenseKey](./github.com/solo-io/solo-projects/projects/licensingserver/api/v1/license.proto.sk.md#LicenseKey)
 - [Proxy](./github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk.md#Proxy)
-- [ResolverMap](./github.com/solo-io/solo-projects/projects/sqoop/api/v1/resolver_map.proto.sk.md#ResolverMap)
-- [Schema](./github.com/solo-io/solo-projects/projects/sqoop/api/v1/schema.proto.sk.md#Schema)
+- [Secret](./github.com/solo-io/gloo/projects/gloo/api/v1/secret.proto.sk.md#Secret)
 - [Settings](./github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto.sk.md#Settings)
 - [Upstream](./github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto.sk.md#Upstream)
 - [VirtualService](./github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service.proto.sk.md#VirtualService)

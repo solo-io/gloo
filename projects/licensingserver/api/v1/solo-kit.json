@@ -2,5 +2,13 @@
   "title": "Licensing Server",
   "description": "Licensing server is the mechanism by which enterprise solo-io applications validate their software licenses",
   "name": "licensing.solo.io",
-  "version": "v1"
+  "version": "v1",
+  "resource_groups": {
+    "api.gloo.solo.io": [
+      {
+        "name": "LicenseKey",
+        "package": "licensing.solo.io"
+      }
+    ]
+  }
 }

@@ -1,4 +1,12 @@
 {
   "name": "vcs.solo.io",
-  "version": "v1"
+  "version": "v1",
+  "resource_groups": {
+    "api.vcs.solo.io": [
+      {
+        "name": "ChangeSet",
+        "package": "vcs.solo.io"
+      }
+    ]
+  }
 }

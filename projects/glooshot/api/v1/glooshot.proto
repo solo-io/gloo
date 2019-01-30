@@ -8,15 +8,16 @@ option (gogoproto.equal_all) = true;
 import "google/protobuf/duration.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/solo-kit.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/faultinjection/fault.proto";
 
-/*
-@solo-kit:resource.short_name=exp
-@solo-kit:resource.plural_name=experiments
-@solo-kit:resource.resource_groups=api.glooshot.solo.io
-*/
 message Experiment {
+
+    option (core.solo.io.resource).short_name = "exp";
+    option (core.solo.io.resource).plural_name = "experiments";
+    // TODO: remove when we are ready to include this resource in the docs
+    option (core.solo.io.resource).skip_docs_gen = true;
 
     // Metadata contains the object metadata for this resource
     core.solo.io.Metadata metadata = 1 [(gogoproto.nullable) = false];

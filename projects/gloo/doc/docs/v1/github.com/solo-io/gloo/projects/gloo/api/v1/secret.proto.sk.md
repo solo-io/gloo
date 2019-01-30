@@ -12,7 +12,7 @@
 
 
 
-##### Source File: [github.com/solo-io/solo-projects/projects/gloo/api/v1/secret.proto](https://github.com/solo-io/solo-projects/blob/master/projects/gloo/api/v1/secret.proto)
+##### Source File: [github.com/solo-io/gloo/projects/gloo/api/v1/secret.proto](https://github.com/solo-io/gloo/blob/master/projects/gloo/api/v1/secret.proto)
 
 
 
@@ -38,6 +38,7 @@ Gloo's secret backend can be configured in Gloo's bootstrap options
 "aws": .gloo.solo.io.AwsSecret
 "azure": .gloo.solo.io.AzureSecret
 "tls": .gloo.solo.io.TlsSecret
+"extension": .gloo.solo.io.Extension
 "metadata": .core.solo.io.Metadata
 
 ```
@@ -47,6 +48,7 @@ Gloo's secret backend can be configured in Gloo's bootstrap options
 | `aws` | [.gloo.solo.io.AwsSecret](secret.proto.sk.md#AwsSecret) |  |  |
 | `azure` | [.gloo.solo.io.AzureSecret](secret.proto.sk.md#AzureSecret) |  |  |
 | `tls` | [.gloo.solo.io.TlsSecret](secret.proto.sk.md#TlsSecret) |  |  |
+| `extension` | [.gloo.solo.io.Extension](extensions.proto.sk.md#Extension) |  |  |
 | `metadata` | [.core.solo.io.Metadata](../../../../../solo-kit/api/v1/metadata.proto.sk.md#Metadata) | Metadata contains the object metadata for this resource |  |
 
 

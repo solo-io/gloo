@@ -6,6 +6,7 @@ import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
+import "github.com/solo-io/solo-kit/api/v1/solo-kit.proto";
 
 
 service LicenseValidation {
@@ -23,13 +24,15 @@ message ValidateKeyReponse {
 }
 
 /*
-@solo-kit:resource.short_name=lc
-@solo-kit:resource.plural_name=licenses
-@solo-kit:resource.resource_groups=api.gloo.solo.io
-
 Interface exported by the server.
 */
 message LicenseKey {
+
+    option (core.solo.io.resource).short_name = "lc";
+    option (core.solo.io.resource).plural_name = "licenses";
+    // TODO: remove when we are ready to include this resource in the docs
+    option (core.solo.io.resource).skip_docs_gen = true;
+
     string key =1;
 
     enum Type {

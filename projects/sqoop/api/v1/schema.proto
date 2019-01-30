@@ -7,11 +7,9 @@ option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/solo-kit/api/v1/metadata.proto";
 import "github.com/solo-io/solo-kit/api/v1/status.proto";
+import "github.com/solo-io/solo-kit/api/v1/solo-kit.proto";
 
 /*
-@solo-kit:resource.short_name=sc
-@solo-kit:resource.plural_name=schemas
-@solo-kit:resource.resource_groups=api.sqoop.solo.io
 
 * The Schema object wraps the user's GraphQL Schema, which is stored as an inline string.
 * The Schema Object contains a Status field which is used by SQooP to validate the user's input schema.
@@ -19,6 +17,12 @@ import "github.com/solo-io/solo-kit/api/v1/status.proto";
 * Schemas are matched to resolver maps in the same namespace with the same name
 */
 message Schema {
+
+    option (core.solo.io.resource).short_name = "sc";
+    option (core.solo.io.resource).plural_name = "schemas";
+    // TODO: remove when we are ready to include this resource in the docs
+    option (core.solo.io.resource).skip_docs_gen = true;
+
     // inline the entire graphql schema as a string here
     string inline_schema = 3;
 
