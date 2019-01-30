@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// TODO: support configuring install namespace
+// TODO: support configuring install namespace (blocked on grafana and prometheus pods allowing namespace to be configurable
 // requires changing a few places in the yaml as well
 const (
 	InstallNamespace    = "gloo-system"
@@ -34,7 +34,7 @@ const (
 func KubeCmd(opts *options.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "kube",
-		Short: "install Gloo on kubernetes",
+		Short: fmt.Sprintf("install Gloo on kubernetes to the %s namespace", InstallNamespace),
 		Long:  "requires kubectl to be installed",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := createImagePullSecretIfNeeded(opts.Install); err != nil {
@@ -78,7 +78,7 @@ func readManifestFromFile(path string) ([]byte, error) {
 }
 
 func applyManifest(manifest []byte) error {
-	kubectl := exec.Command("kubectl", "apply", "-f", "-")
+	kubectl := exec.Command("kubectl", "apply", "-n", InstallNamespace, "-f", "-")
 	kubectl.Stdin = bytes.NewBuffer(manifest)
 	kubectl.Stdout = os.Stdout
 	kubectl.Stderr = os.Stderr

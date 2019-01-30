@@ -263,6 +263,7 @@ helm-template:
 
 update-helm-chart:
 ifeq ($(RELEASE),"true")
+	mkdir -p $(HELM_SYNC_DIR)/charts
 	helm package --destination $(HELM_SYNC_DIR)/charts $(HELM_DIR)/gloo-ee
 	helm repo index $(HELM_SYNC_DIR)
 endif
