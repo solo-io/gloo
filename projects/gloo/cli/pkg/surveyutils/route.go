@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/pkg/cliutil"
+	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -260,48 +261,30 @@ func AddRouteFlagsInteractive(opts *options.Options) error {
 }
 
 func RemoveRouteFlagsInteractive(opts *options.Options) error {
-	// collect vs list
-	vsByKey := make(map[string]core.ResourceRef)
-	var vsKeys []string
-	var namespaces []string
-	for _, ns := range helpers.MustGetNamespaces() {
-		namespaces = append(namespaces, ns)
-		vsList, err := helpers.MustVirtualServiceClient().List(ns, clients.ListOpts{})
-		if err != nil {
-			return err
-		}
-		for _, vs := range vsList {
-			ref := vs.Metadata.Ref()
-			vsByKey[ref.Key()] = ref
-			vsKeys = append(vsKeys, ref.Key())
-		}
-	}
-
-	if len(vsKeys) == 0 {
-		return errors.Errorf("no virtual services found")
-	}
-
-	var vsKey string
-	if err := cliutil.ChooseFromList(
-		"Choose a Virtual Service from which to remove the route: ",
-		&vsKey,
-		vsKeys,
-	); err != nil {
+	_, route, err := SelectRouteInteractive(opts, "Choose a Virtual Service from which to remove the route: ", "Choose the route you wish to remove: ")
+	if err != nil {
 		return err
 	}
-	opts.Metadata.Name = vsByKey[vsKey].Name
-	opts.Metadata.Namespace = vsByKey[vsKey].Namespace
+	opts.Remove.Route.RemoveIndex = uint32(route)
+	return nil
+}
+
+func SelectRouteInteractive(opts *options.Options, virtualServicePrompt, routePrompt string) (*gatewayv1.VirtualService, int, error) {
+	vsvc, err := SelectVirtualServiceInteractiveWithPrompt(opts, virtualServicePrompt)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	vs, err := helpers.MustVirtualServiceClient().Read(opts.Metadata.Namespace, opts.Metadata.Name,
 		clients.ReadOpts{Ctx: opts.Top.Ctx})
 	if err != nil {
-		return err
+		return nil, 0, err
 	}
 	if vs.VirtualHost == nil {
-		return errors.Errorf("invalid virtual service %v", opts.Metadata.Ref())
+		return nil, 0, errors.Errorf("invalid virtual service %v", opts.Metadata.Ref())
 	}
 	if len(vs.VirtualHost.Routes) == 0 {
-		return errors.Errorf("no routes defined for virtual service %v", opts.Metadata.Ref())
+		return nil, 0, errors.Errorf("no routes defined for virtual service %v", opts.Metadata.Ref())
 	}
 
 	var routes []string
@@ -310,56 +293,59 @@ func RemoveRouteFlagsInteractive(opts *options.Options) error {
 	}
 
 	var chosenRoute string
-	if err := cliutil.ChooseFromList(
-		"Choose a Virtual Service from which to remove the route: ",
+	if err := cliutil.ChooseFromList(routePrompt,
 		&chosenRoute,
 		routes,
 	); err != nil {
-		return err
+		return nil, 0, err
 	}
 
 	for i, route := range routes {
 		if route == chosenRoute {
-			opts.Remove.Route.RemoveIndex = uint32(i)
-			break
+			return vsvc, i, nil
 		}
 	}
 
-	return nil
+	return nil, 0, errors.Errorf("can't find route")
 }
 
-func SelectVirtualServiceInteractive(opts *options.Options) error {
+func SelectVirtualServiceInteractiveWithPrompt(opts *options.Options, prompt string) (*gatewayv1.VirtualService, error) {
 	// collect vs list
-	vsByKey := make(map[string]core.ResourceRef)
+	vsByKey := make(map[string]*gatewayv1.VirtualService)
 	var vsKeys []string
 	var namespaces []string
 	for _, ns := range helpers.MustGetNamespaces() {
 		namespaces = append(namespaces, ns)
 		vsList, err := helpers.MustVirtualServiceClient().List(ns, clients.ListOpts{})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		for _, vs := range vsList {
 			ref := vs.Metadata.Ref()
-			vsByKey[ref.Key()] = ref
+			vsByKey[ref.Key()] = vs
 			vsKeys = append(vsKeys, ref.Key())
 		}
 	}
 
 	if len(vsKeys) == 0 {
-		return errors.Errorf("no virtual services found")
+		return nil, errors.Errorf("no virtual services found")
 	}
 
 	var vsKey string
 	if err := cliutil.ChooseFromList(
-		"Choose a Virtual Service: ",
+		prompt,
 		&vsKey,
 		vsKeys,
 	); err != nil {
-		return err
+		return nil, err
 	}
-	opts.Metadata.Name = vsByKey[vsKey].Name
-	opts.Metadata.Namespace = vsByKey[vsKey].Namespace
+	opts.Metadata.Name = vsByKey[vsKey].Metadata.Name
+	opts.Metadata.Namespace = vsByKey[vsKey].Metadata.Namespace
 
-	return nil
+	return vsByKey[vsKey], nil
+}
+
+func SelectVirtualServiceInteractive(opts *options.Options) error {
+	_, err := SelectVirtualServiceInteractiveWithPrompt(opts, "Choose a Virtual Service: ")
+	return err
 }
