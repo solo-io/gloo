@@ -1,8 +1,6 @@
 package config
 
 var (
-	APIVersion = "20181102"
-
 	// the development server started by react-scripts defaults to ports 3000, 3001, etc. depending on what's available
 	CorsAllowedOrigins = []string{
 		"http://localhost:3000",

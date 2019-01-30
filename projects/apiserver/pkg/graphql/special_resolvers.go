@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"github.com/solo-io/solo-projects/pkg/version"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/config"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 )
@@ -14,5 +15,5 @@ func getOAuthEndpoint() (models.OAuthEndpoint, error) {
 }
 
 func getAPIVersion() string {
-	return config.APIVersion
+	return version.Version
 }
