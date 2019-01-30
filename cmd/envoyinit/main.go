@@ -18,7 +18,7 @@ func main() {
 		log.Fatalf("initializer failed: %v", err)
 	}
 	env := os.Environ()
-	args := []string{envoy(), "-c", outfile, "--v2-config-only"}
+	args := []string{envoy(), "-c", outfile}
 	if err := syscall.Exec(args[0], args, env); err != nil {
 		panic(err)
 	}
