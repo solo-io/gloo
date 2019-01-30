@@ -27,15 +27,15 @@ type Top struct {
 }
 
 type Install struct {
-	DryRun          bool
-	File            string
-	KnativeManifest string
-	DockerAuth      struct {
-		Email    string
-		Username string
-		Password string
-		Server   string
-	}
+	DryRun               bool
+	ReleaseVersion       string
+	GlooManifestOverride string
+	Knative              KnativeInstall
+}
+
+type KnativeInstall struct {
+	CrdManifestOverride     string
+	InstallManifestOverride string
 }
 
 type Proxy struct {

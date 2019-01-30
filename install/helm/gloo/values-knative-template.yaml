@@ -10,5 +10,15 @@ settings:
         httpsPort: 443
         replicas: 1
 
-# Everything else is the same as values-template.yaml
+gateway:
+  enabled: false
+
+ingress:
+  # ingress proxy is disabled, but we still need the controller for knative
+  enabled: false
+  deployment:
+    image:
+      repository: soloio/ingress
+      pullPolicy: Always
+    replicas: 1
 

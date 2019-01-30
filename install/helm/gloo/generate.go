@@ -11,10 +11,12 @@ import (
 )
 
 var (
-	valuesTemplate        = "install/helm/gloo/values-template.yaml"
+	valuesTemplate        = "install/helm/gloo/values-gateway-template.yaml"
 	valuesOutput          = "install/helm/gloo/values.yaml"
 	knativeValuesTemplate = "install/helm/gloo/values-knative-template.yaml"
 	knativeValuesOutput   = "install/helm/gloo/values-knative.yaml"
+	ingressValuesTemplate = "install/helm/gloo/values-ingress-template.yaml"
+	ingressValuesOutput   = "install/helm/gloo/values-ingress.yaml"
 	chartTemplate         = "install/helm/gloo/Chart-template.yaml"
 	chartOutput           = "install/helm/gloo/Chart.yaml"
 )
@@ -27,12 +29,14 @@ func main() {
 		version = os.Args[1]
 	}
 	log.Printf("Generating helm files.")
-	config, err := generateGlooConfigAndWriteYaml(version)
-	if err != nil {
+	if err := generateGatewayValuesYaml(version); err != nil {
 		log.Fatalf("generating values.yaml failed!: %v", err)
 	}
-	if err := generateKnativeValuesYaml(config, version); err != nil {
+	if err := generateKnativeValuesYaml(version); err != nil {
 		log.Fatalf("generating values-knative.yaml failed!: %v", err)
+	}
+	if err := generateIngressValuesYaml(version); err != nil {
+		log.Fatalf("generating values-ingress.yaml failed!: %v", err)
 	}
 	if err := generateChartYaml(version); err != nil {
 		log.Fatalf("generating Chart.yaml failed!: %v", err)
@@ -65,33 +69,65 @@ func writeYaml(obj interface{}, path string) error {
 	return nil
 }
 
-func generateGlooConfigAndWriteYaml(version string) (*generate.Config, error) {
+func readGatewayConfig() (*generate.Config, error) {
 	var config generate.Config
 	if err := readYaml(valuesTemplate, &config); err != nil {
 		return nil, err
 	}
-
-	config.Gloo.Deployment.Image.Tag = version
-	config.Discovery.Deployment.Image.Tag = version
-	config.Gateway.Deployment.Image.Tag = version
-	config.GatewayProxy.Deployment.Image.Tag = version
-	config.Ingress.Deployment.Image.Tag = version
-	config.IngressProxy.Deployment.Image.Tag = version
-
-	err := writeYaml(&config, valuesOutput)
-	return &config, err
+	return &config, nil
 }
 
-func generateKnativeValuesYaml(config *generate.Config, version string) error {
-	var glooKnativeConfig generate.Config
-	if err := readYaml(knativeValuesTemplate, &glooKnativeConfig); err != nil {
+// install with gateway only
+func generateGatewayValuesYaml(version string) error {
+	cfg, err := readGatewayConfig()
+	if err != nil {
 		return err
 	}
 
-	config.Settings.Integrations.Knative = glooKnativeConfig.Settings.Integrations.Knative
-	config.Settings.Integrations.Knative.Proxy.Image.Tag = version
+	cfg.Gloo.Deployment.Image.Tag = version
+	cfg.Discovery.Deployment.Image.Tag = version
+	cfg.Gateway.Deployment.Image.Tag = version
+	cfg.GatewayProxy.Deployment.Image.Tag = version
 
-	return writeYaml(&config, knativeValuesOutput)
+	return writeYaml(cfg, valuesOutput)
+}
+
+// install with knative only
+func generateKnativeValuesYaml(version string) error {
+	cfg, err := readGatewayConfig()
+	if err != nil {
+		return err
+	}
+	// overwrite any non-zero values
+	if err := readYaml(knativeValuesTemplate, &cfg); err != nil {
+		return err
+	}
+
+	cfg.Gloo.Deployment.Image.Tag = version
+	cfg.Discovery.Deployment.Image.Tag = version
+	cfg.Ingress.Deployment.Image.Tag = version
+	cfg.Settings.Integrations.Knative.Proxy.Image.Tag = version
+
+	return writeYaml(&cfg, knativeValuesOutput)
+}
+
+// install with ingress only
+func generateIngressValuesYaml(version string) error {
+	cfg, err := readGatewayConfig()
+	if err != nil {
+		return err
+	}
+	// overwrite any non-zero values
+	if err := readYaml(ingressValuesTemplate, &cfg); err != nil {
+		return err
+	}
+
+	cfg.Gloo.Deployment.Image.Tag = version
+	cfg.Discovery.Deployment.Image.Tag = version
+	cfg.Ingress.Deployment.Image.Tag = version
+	cfg.IngressProxy.Deployment.Image.Tag = version
+
+	return writeYaml(&cfg, ingressValuesOutput)
 }
 
 func generateChartYaml(version string) error {
