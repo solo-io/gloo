@@ -26,6 +26,9 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/test/v1helpers"
 )
@@ -67,10 +70,52 @@ var _ = Describe("Rate Limit", func() {
 		Eventually(redisSession.Out, "5s").Should(gbytes.Say("Ready to accept connections"))
 
 		ctx, cancel = context.WithCancel(context.Background())
-		t := services.RunGateway(ctx, true)
-		testClients = t
+		cache := memory.NewInMemoryResourceCache()
 
-		rlService = ratelimitservice.RunRatelimit(ctx, t.GlooPort)
+		testClients = services.GetTestClients(cache)
+		testClients.GlooPort = int(services.AllocateGlooPort())
+
+		// add the rl service as a static upstream
+		rlserver := &gloov1.Upstream{
+			Metadata: core.Metadata{
+				Name:      "rl-server",
+				Namespace: "default",
+			},
+			UpstreamSpec: &gloov1.UpstreamSpec{
+				UpstreamType: &gloov1.UpstreamSpec_Static{
+					Static: &gloov1static.UpstreamSpec{
+						Hosts: []*gloov1static.Host{{
+							Addr: "localhost",
+							Port: rlport,
+						}},
+						UseHttp2: true,
+					},
+				},
+			},
+		}
+
+		testClients.UpstreamClient.Write(rlserver, clients.WriteOpts{})
+		ref := rlserver.Metadata.Ref()
+		rlSettings := &ratelimit.Settings{
+			RatelimitServerRef: &ref,
+		}
+		settingsStruct, err := envoyutil.MessageToStruct(rlSettings)
+		Expect(err).NotTo(HaveOccurred())
+
+		extensions := &gloov1.Extensions{
+			Configs: map[string]*types.Struct{
+				ratelimit2.ExtensionName: settingsStruct,
+			},
+		}
+
+		what := services.What{
+			DisableGateway: true,
+			DisableUds:     true,
+			DisableFds:     true,
+		}
+
+		services.RunGlooGatewayUdsFdsOnPort(ctx, cache, int32(testClients.GlooPort), what, defaults.GlooSystem, nil, extensions)
+		rlService = ratelimitservice.RunRatelimit(ctx, testClients.GlooPort)
 	})
 
 	AfterEach(func() {

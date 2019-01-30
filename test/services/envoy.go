@@ -49,16 +49,6 @@ static_resources:
         port_value: {{.Port}}
     http2_protocol_options: {}
     type: STATIC
-{{if .RatelimitAddr}}
-  - name: ratelimit_cluster
-    connect_timeout: 5.000s
-    hosts:
-    - socket_address:
-        address: {{.RatelimitAddr}}
-        port_value: {{.RatelimitPort}}
-    http2_protocol_options: {}
-    type: STATIC
-{{end}}
 
 dynamic_resources:
   ads_config:
@@ -77,12 +67,6 @@ admin:
       address: 0.0.0.0
       port_value: {{.AdminPort}}
 
-{{if .RatelimitAddr}}
-rate_limit_service:
-  grpc_service:
-    envoy_grpc:
-      cluster_name: ratelimit_cluster
-{{end}}
 `
 
 var parsedTemplate = template.Must(template.New("bootstrap").Parse(envoyConfigTemplate))

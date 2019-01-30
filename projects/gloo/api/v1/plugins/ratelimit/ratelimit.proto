@@ -2,6 +2,7 @@ syntax = "proto3";
 package ratelimit.plugins.gloo.solo.io;
 option go_package = "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit";
 
+import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
@@ -22,4 +23,8 @@ message IngressRateLimit {
     string authorized_header = 1;
     RateLimit authorized_limits = 2;
     RateLimit anonymous_limits = 3;
+}
+
+message Settings { 
+    core.solo.io.ResourceRef ratelimit_server_ref = 1; 
 }

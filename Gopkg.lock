@@ -54,6 +54,14 @@
   version = "v2.16.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:3f44afe45c6c5038d9d0bec55b8b9e598b3dba2547d99ba353d7c3bb485d01fa"
+  name = "github.com/Netflix/go-expect"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9d1f4485533ba0665fa4ca2ef6f1210198f7eaae"
+
+[[projects]]
   digest = "1:d1665c44bd5db19aaee18d1b6233c99b0b9a986e8bccb24ef54747547a48027f"
   name = "github.com/PuerkitoBio/purell"
   packages = ["."]
@@ -208,8 +216,7 @@
   version = "v1.12.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:e3cd630dc83e043d7bd34b65ee69985cee16c0f7839b074f7f83632f7e57e8a5"
+  digest = "1:91fe5bba18481f5745a67d54e9904ac46ef9d64f67edb85b2f0fc4a53c59714e"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -223,7 +230,7 @@
     "envoy/config/bootstrap/v2",
     "envoy/config/filter/accesslog/v2",
     "envoy/config/filter/fault/v2",
-    "envoy/config/filter/http/ext_authz/v2alpha",
+    "envoy/config/filter/http/ext_authz/v2",
     "envoy/config/filter/http/fault/v2",
     "envoy/config/filter/http/rate_limit/v2",
     "envoy/config/filter/http/transcoder/v2",
@@ -232,7 +239,7 @@
     "envoy/config/overload/v2alpha",
     "envoy/config/ratelimit/v2",
     "envoy/config/trace/v2",
-    "envoy/service/auth/v2alpha",
+    "envoy/service/auth/v2",
     "envoy/service/discovery/v2",
     "envoy/service/ratelimit/v2",
     "envoy/type",
@@ -240,7 +247,7 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "b42c1242205bd3a5a0080301db252f7524235c36"
+  revision = "6bb1dbbfcb2b3192849c3f0e6d3a6a6f038ded8b"
 
 [[projects]]
   digest = "1:af43bdaaf86655a2343f113e9b293bbc16b12099eaeb223982bbe4d4c22ba14d"
@@ -663,6 +670,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:189c8f93f3242c4fc5902e9db5483e82f6d94ca4c35fad608f049cf5d9dada95"
+  name = "github.com/hinshun/vt10x"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d55458df857cfff952e4bf72ce1b567c5a4e141c"
+
+[[projects]]
+  branch = "master"
   digest = "1:59392ed8afb901aab4287d4894df8191722e34f3957716f4350c8c133ce99046"
   name = "github.com/hpcloud/tail"
   packages = [
@@ -820,6 +835,14 @@
   pruneopts = "UT"
   revision = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
   version = "v1.0.1"
+
+[[projects]]
+  digest = "1:29d28429a93b076908a36420a7ecb2bf429d24c15a4b5e2c220ea00fc84b71af"
+  name = "github.com/kr/pty"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "db8e3cd836b82e82e0a9c8edc6896967dd31374f"
+  version = "v1.1.3"
 
 [[projects]]
   digest = "1:dfe5159383dfcd370555c35374ac99022906f987b55cc65a830fb9ced970b4b1"
@@ -1152,7 +1175,7 @@
   revision = "c71f318a203bca8433268be67336086379a2bf9f"
 
 [[projects]]
-  digest = "1:6b963a9d1d6408a2704b0f9f068247c728b7a2f26aeedaa040483f9d1369a2ad"
+  digest = "1:b692bbf3f9c052f8336f8be3933b2ed943e9aeaca08894f5b767d9c00bea36a6"
   name = "github.com/solo-io/ext-auth-service"
   packages = [
     "pkg/config",
@@ -1162,15 +1185,16 @@
     "pkg/service",
   ]
   pruneopts = "UT"
-  revision = "1179e94e52d5f5f6e940dc12c252f2fc590f5a85"
-  version = "v0.1.1"
+  revision = "8bd554349fff9e4afc422efd4bbff967b13851fd"
+  version = "v0.2.0"
 
 [[projects]]
-  digest = "1:c11f7f6c1805f386fe29598346c31a590f265dbc27cf6fe60abe50af98d0c18e"
+  digest = "1:b8deabf8d8532e02a4ca04eb1c5018ccdd919fbea8bb5ddf80563edc32387991"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
     "pkg/cliutil",
+    "pkg/cliutil/testutil",
     "pkg/utils/setuputils",
     "pkg/version",
     "projects/discovery/pkg/fds",
@@ -1243,8 +1267,8 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "fd82ec8d60180cb21488bb9a64989b1622b4134a"
-  version = "v0.6.13"
+  revision = "5b7461f9f94d264ec7bb8a1b8c5ec96516fd2473"
+  version = "v0.6.15"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -2103,10 +2127,10 @@
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/core",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/ratelimit",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/route",
-    "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2alpha",
+    "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2",
     "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rate_limit/v2",
     "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2",
-    "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2alpha",
+    "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2",
     "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2",
     "github.com/envoyproxy/go-control-plane/pkg/util",
     "github.com/fatih/structs",
@@ -2147,6 +2171,7 @@
     "github.com/solo-io/ext-auth-service/pkg/service",
     "github.com/solo-io/gloo/install/helm/gloo/generate",
     "github.com/solo-io/gloo/pkg/cliutil",
+    "github.com/solo-io/gloo/pkg/cliutil/testutil",
     "github.com/solo-io/gloo/pkg/utils/setuputils",
     "github.com/solo-io/gloo/pkg/version",
     "github.com/solo-io/gloo/projects/discovery/pkg/fds/setup",

@@ -10,7 +10,7 @@ import (
 
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 
-	pb "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2alpha"
+	pb "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2"
 	extauthconfig "github.com/solo-io/ext-auth-service/pkg/config"
 	extauth "github.com/solo-io/ext-auth-service/pkg/service"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"

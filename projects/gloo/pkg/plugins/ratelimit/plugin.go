@@ -13,6 +13,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 /*
@@ -87,14 +88,35 @@ const (
 )
 
 type Plugin struct {
+	upstreamRef *core.ResourceRef
 }
 
 func NewPlugin() plugins.Plugin {
 	return &Plugin{}
 }
 
+//// TODO(yuval-k): Copied from ext auth. the real solution is to add it to upstream Gloo
+type tmpPluginContainer struct {
+	params plugins.InitParams
+}
+
+func (t *tmpPluginContainer) GetExtensions() *v1.Extensions {
+	return t.params.ExtensionsSettings
+}
+
 func (p *Plugin) Init(params plugins.InitParams) error {
 
+	var settings ratelimit.Settings
+	p.upstreamRef = nil
+	err := utils.UnmarshalExtension(&tmpPluginContainer{params}, ExtensionName, &settings)
+	if err != nil {
+		if err == utils.NotFoundError {
+			return nil
+		}
+		return err
+	}
+
+	p.upstreamRef = settings.RatelimitServerRef
 	return nil
 }
 
@@ -119,7 +141,11 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 }
 
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
-	conf, err := protoutils.MarshalStruct(generateEnvoyConfigForFilter())
+	if p.upstreamRef == nil {
+		return nil, nil
+	}
+
+	conf, err := protoutils.MarshalStruct(generateEnvoyConfigForFilter(*p.upstreamRef))
 	if err != nil {
 		return nil, err
 	}

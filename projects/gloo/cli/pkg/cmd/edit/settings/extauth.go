@@ -3,8 +3,6 @@ package settings
 import (
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
@@ -13,19 +11,18 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
-	optionsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
+	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/constants"
 	flagutilsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/flagutils"
 	surveyutilsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/surveyutils"
 	extauthpb "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
-
 	"github.com/spf13/cobra"
 )
 
-func ExtAuthConfig(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
+func ExtAuthConfig(opts *options.EditOptions, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 
-	optsExt := &optionsExt.OIDCSettings{}
+	optsExt := &options.OIDCSettings{}
 
 	cmd := &cobra.Command{
 		// Use command constants to aid with replacement.
@@ -39,7 +36,7 @@ func ExtAuthConfig(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *
 					return err
 				}
 			}
-			err := argsutils.MetadataArgsParse(opts, args)
+			err := argsutils.MetadataArgsParse(opts.Options, args)
 			if err != nil {
 				return err
 			}
@@ -51,19 +48,13 @@ func ExtAuthConfig(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *
 		},
 	}
 
-	pflags := cmd.PersistentFlags()
-
-	// default name is default
-	pflags.StringVar(&opts.Metadata.Name, "name", "default", "name of the resource to read or write")
-	flagutils.AddNamespaceFlag(pflags, &opts.Metadata.Namespace)
-
-	flagutilsExt.AddConfigFlagsOIDCSettings(pflags, optsExt)
+	flagutilsExt.AddConfigFlagsOIDCSettings(cmd.Flags(), optsExt)
 	cliutils.ApplyOptions(cmd, optionsFunc)
 
 	return cmd
 }
 
-func editSettings(opts *options.Options, optsExt *optionsExt.OIDCSettings, args []string) error {
+func editSettings(opts *options.EditOptions, optsExt *options.OIDCSettings, args []string) error {
 	settingsClient := helpers.MustSettingsClient()
 	settings, err := settingsClient.Read(opts.Metadata.Namespace, opts.Metadata.Name, clients.ReadOpts{})
 	if err != nil {

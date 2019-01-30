@@ -7,6 +7,7 @@
 - [RateLimit](#RateLimit)
 - [Unit](#Unit)
 - [IngressRateLimit](#IngressRateLimit)
+- [Settings](#Settings)
   
 
 
@@ -69,6 +70,23 @@
 | `authorized_header` | `string` |  |  |
 | `authorized_limits` | [.ratelimit.plugins.gloo.solo.io.RateLimit](ratelimit.proto.sk.md#RateLimit) |  |  |
 | `anonymous_limits` | [.ratelimit.plugins.gloo.solo.io.RateLimit](ratelimit.proto.sk.md#RateLimit) |  |  |
+
+
+
+
+---
+### <a name="Settings">Settings</a>
+
+
+
+```yaml
+"ratelimit_server_ref": .core.solo.io.ResourceRef
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `ratelimit_server_ref` | [.core.solo.io.ResourceRef](../../../../../../../solo-kit/api/v1/ref.proto.sk.md#ResourceRef) |  |  |
 
 
 

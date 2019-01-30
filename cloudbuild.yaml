@@ -97,10 +97,12 @@ steps:
 - name: gcr.io/cloud-builders/gsutil
   entrypoint: 'bash'
   args:
-  - '-c'
+  - '-ce'
   - |
-    gsutil cp gs://artifacts.solo.io/envoy/265f5f50b0b17b42442bcc8d7f7572a9b47a073a/envoy.stripped /workspace/envoy
+    ENVOY_VERSION=v$$(head -n1 ./cmd/envoyinit/Dockerfile|cut -d: -f2)
+    gsutil cp gs://artifacts.solo.io/envoy/$$ENVOY_VERSION/envoy.stripped /workspace/envoy
     chmod +x /workspace/envoy
+  dir: './gopath/src/github.com/solo-io/solo-projects'
   waitFor: ['dep']
   id: 'get-envoy'
 - name: gcr.io/cloud-builders/gcloud

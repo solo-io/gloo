@@ -1,15 +1,15 @@
 package settings
 
 import (
+	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/constants"
 
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/go-utils/cliutils"
 	"github.com/spf13/cobra"
 )
 
-func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
+func RootCmd(opts *options.EditOptions, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     constants.SETTINGS_COMMAND.Use,
 		Aliases: constants.SETTINGS_COMMAND.Aliases,
@@ -17,6 +17,15 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 		Long:    constants.SETTINGS_COMMAND.Long,
 	}
 	flagutils.AddOutputFlag(cmd.PersistentFlags(), &opts.Top.Output)
+
+	pflags := cmd.PersistentFlags()
+
+	// TODO(yuval-k):
+	// I would like the default name to be default, but currently the route subcommand will override default above.
+	// to fix that we will need a significat refactor or the CLI. so i'll avoid that for now.
+	//   pflags.StringVar(&opts.Metadata.Name, "name", "default", "name of the resource to read or write")
+	//   flagutils.AddNamespaceFlag(pflags, &opts.Metadata.Namespace)
+	flagutils.AddMetadataFlags(pflags, &opts.Metadata)
 
 	cmd.AddCommand(ExtAuthConfig(opts))
 	cliutils.ApplyOptions(cmd, optionsFunc)
