@@ -23,15 +23,17 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
 
+//go:generate protoc -I$GOPATH/src/github.com/lyft/protoc-gen-validate -I. -I$GOPATH/src/github.com/gogo/protobuf/protobuf --gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/ sanitize.proto
+
 const (
 	ExtensionName         = "extauth"
 	ContextExtensionVhost = "virtual_host"
 )
 
 const (
-	sanitizeFilterName  = "io.solo.filters.http.sanitize"
+	SanitizeFilterName  = "io.solo.filters.http.sanitize"
 	sanitizeFilterStage = plugins.PreInAuth
-	filterName          = "envoy.ext_authz"
+	ExtAuthFilterName   = "envoy.ext_authz"
 	// rate limiting should happen after auth
 	filterStage = plugins.InAuth
 )
@@ -40,7 +42,9 @@ type Plugin struct {
 	upstreamRef *core.ResourceRef
 }
 
-func NewPlugin() plugins.Plugin {
+var _ plugins.Plugin = new(Plugin)
+
+func NewPlugin() *Plugin {
 	return &Plugin{}
 }
 
@@ -77,21 +81,7 @@ func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 	}
 
 	if extauth.Disable {
-		config := &envoyauth.ExtAuthzPerRoute{
-			Override: &envoyauth.ExtAuthzPerRoute_Disabled{
-				Disabled: true,
-			},
-		}
-		if out.PerFilterConfig == nil {
-			out.PerFilterConfig = make(map[string]*types.Struct)
-		}
-
-		configStruct, err := util.MessageToStruct(config)
-		if err != nil {
-			return err
-		}
-		out.PerFilterConfig[filterName] = configStruct
-		return nil
+		return markRouteNoAuth(out)
 	}
 	return nil
 }
@@ -102,7 +92,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 	if err != nil {
 		if err == utils.NotFoundError {
 
-			return markNoAuth(out)
+			return markVhostNoAuth(out)
 		}
 		return errors.Wrapf(err, "Error converting proto any to extauth plugin")
 	}
@@ -157,7 +147,6 @@ func TranslateUserConfigToExtAuthServerConfig(name string, snap *v1.ApiSnapshot,
 	}
 
 	return extauthConfig, nil
-
 }
 
 func markName(out *envoyroute.VirtualHost) error {
@@ -170,11 +159,27 @@ func markName(out *envoyroute.VirtualHost) error {
 			},
 		},
 	}
+	if out.PerFilterConfig == nil {
+		out.PerFilterConfig = make(map[string]*types.Struct)
+	}
 	return setPerRouteConfig(out, config)
 }
 
-func markNoAuth(out *envoyroute.VirtualHost) error {
+func markVhostNoAuth(out *envoyroute.VirtualHost) error {
+	if out.PerFilterConfig == nil {
+		out.PerFilterConfig = make(map[string]*types.Struct)
+	}
+	return markNoAuth(out)
+}
 
+func markRouteNoAuth(out *envoyroute.Route) error {
+	if out.PerFilterConfig == nil {
+		out.PerFilterConfig = make(map[string]*types.Struct)
+	}
+	return markNoAuth(out)
+}
+
+func markNoAuth(out perFilterConfigable) error {
 	config := &envoyauth.ExtAuthzPerRoute{
 		Override: &envoyauth.ExtAuthzPerRoute_Disabled{
 			Disabled: true,
@@ -183,37 +188,49 @@ func markNoAuth(out *envoyroute.VirtualHost) error {
 	return setPerRouteConfig(out, config)
 }
 
-func setPerRouteConfig(out *envoyroute.VirtualHost, config *envoyauth.ExtAuthzPerRoute) error {
-	if out.PerFilterConfig == nil {
-		out.PerFilterConfig = make(map[string]*types.Struct)
-	}
+type perFilterConfigable interface {
+	GetPerFilterConfig() map[string]*types.Struct
+}
 
+func setPerRouteConfig(out perFilterConfigable, config *envoyauth.ExtAuthzPerRoute) error {
 	configStruct, err := util.MessageToStruct(config)
 	if err != nil {
 		return err
 	}
-	out.PerFilterConfig[filterName] = configStruct
+	out.GetPerFilterConfig()[ExtAuthFilterName] = configStruct
 	return nil
 }
 
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
+	// add sanitize filter here
+	sanitizeConf, err := protoutils.MarshalStruct(&Sanitize{
+		HeadersToRemove: []string{"TODO"},
+	})
+	if err != nil {
+		return nil, err
+	}
+	filters := []plugins.StagedHttpFilter{
+		{
+			HttpFilter: &envoyhttp.HttpFilter{Name: SanitizeFilterName,
+				ConfigType: &envoyhttp.HttpFilter_Config{Config: sanitizeConf}},
+			Stage: sanitizeFilterStage,
+		},
+	}
+
+	// always sanitize headers.
 	if p.upstreamRef == nil {
-		return nil, nil
+		return filters, nil
 	}
 	conf, err := protoutils.MarshalStruct(p.generateEnvoyConfigForFilter())
 	if err != nil {
 		return nil, err
 	}
-	return []plugins.StagedHttpFilter{
-		/*
-			TODO: add header santiation once a header is released
-		*/
-		{
-			HttpFilter: &envoyhttp.HttpFilter{Name: filterName,
-				ConfigType: &envoyhttp.HttpFilter_Config{Config: conf}},
-			Stage: filterStage,
-		},
-	}, nil
+	filters = append(filters, plugins.StagedHttpFilter{
+		HttpFilter: &envoyhttp.HttpFilter{Name: ExtAuthFilterName,
+			ConfigType: &envoyhttp.HttpFilter_Config{Config: conf}},
+		Stage: filterStage,
+	})
+	return filters, nil
 }
 
 func (p *Plugin) generateEnvoyConfigForFilter() *envoyauth.ExtAuthz {

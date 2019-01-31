@@ -14,7 +14,7 @@ func main() {
 		log.Fatalf("generate failed!: %v", err)
 	}
 	log.Printf("Starting generate...")
-	if err := cmd.Run(".", true, true, nil, nil); err != nil {
+	if err := cmd.Run(".", true, true, nil, []string{"./projects/gloo/pkg/"}); err != nil {
 		log.Fatalf("generate failed!: %v", err)
 	}
 }
