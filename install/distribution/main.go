@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -14,13 +15,16 @@ import (
 )
 
 const (
-	glooeYaml    = "glooe.yaml"
+	glooe        = "glooe"
+	glooeYaml    = glooe + ".yaml"
 	manifest     = "install/distribution/" + glooeYaml
 	output       = "_output"
 	distribution = output + "/distribution"
+	tarDir       = output + "/distribution_tar"
 	deployment   = "Deployment"
 	glooctl      = "glooctl"
-	tarFile      = ".tar"
+	tgzExt       = ".tgz"
+	tarExt       = ".tar"
 )
 
 var (
@@ -58,13 +62,21 @@ func main() {
 	if err := copyBinaries(); err != nil {
 		log.Fatal(err)
 	}
+
+	if err := createDistributionTarball(); err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func prepareWorkspace() error {
-	if _, err := os.Stat(distributionDir); os.IsNotExist(err) {
-		err = os.MkdirAll(distributionDir, 0755)
-		if err != nil {
-			return err
+	directories := []string{tarDir, distributionDir}
+	for _, v := range directories {
+		if _, err := os.Stat(v); os.IsNotExist(err) {
+			err = os.MkdirAll(v, 0755)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -95,7 +107,7 @@ func extractContainerImagesFromSpecs(specs []string) ([]v1.Deployment, error) {
 
 func savedImageName(imageName string) string {
 	splitImage := strings.Split(imageName, "/")
-	savedImage := filepath.Join(distributionDir, splitImage[len(splitImage)-1]) + tarFile
+	savedImage := filepath.Join(distributionDir, splitImage[len(splitImage)-1]) + tarExt
 	return savedImage
 }
 
@@ -151,5 +163,26 @@ func copyBinaries() error {
 			log.Printf("Successfully copied binary: (%s) to distribution directory", file.Name())
 		}
 	}
+	return nil
+}
+
+func createDistributionTarball() error {
+	tarFile := fmt.Sprintf("%s%s%s", glooe, version, tgzExt)
+	tarFilepath := filepath.Join(tarDir, tarFile)
+
+	file, err := os.Create(tarFilepath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	log.Printf("creating tar.gz file: (%s)", tarFilepath)
+	cmd := exec.Command("tar", "-C", distribution, "-cz", ".")
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = file
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	fmt.Printf("successfully created tar.gz file: (%s)", tarFile)
 	return nil
 }
