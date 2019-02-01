@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -408,8 +409,9 @@ func (c *Converter) ConvertInputVirtualService(virtualService InputVirtualServic
 
 	return &gatewayv1.VirtualService{
 		VirtualHost: &v1.VirtualHost{
-			Domains:            virtualService.Domains,
-			Routes:             routes,
+			Domains: virtualService.Domains,
+			Routes:  routes,
+			// TODO(mitchdraft) - this will need to be updated when we accept multiple types of plugins
 			VirtualHostPlugins: rateLimitConfig,
 		},
 		SslConfig: convertInputSSLConfig(virtualService.SslConfig),
@@ -635,44 +637,60 @@ func convertInputSSLConfig(ssl *InputSslConfig) *v1.SslConfig {
 	}
 }
 
-func convertInputRateLimitConfig(inputConfig *InputRateLimitConfig) (*v1.VirtualHostPlugins, error) {
+func applyInputRateLimitSpec(in *InputRateLimit, out *ratelimitapi.IngressRateLimit, authorized bool) error {
+	if in == nil {
+		return nil
+	}
+	if out == nil {
+		// Must not pass a nil pointer
+		fmt.Errorf("Unable to create rate limit specification.")
+	}
+	unit, err := convertGQLTimeUnitEnum(in.Unit)
+	if err != nil {
+		return err
+	}
+	rl := &ratelimitapi.RateLimit{
+		Unit:            unit,
+		RequestsPerUnit: uint32(in.RequestsPerUnit),
+	}
+	if authorized {
+		out.AuthorizedLimits = rl
+	} else {
+		out.AnonymousLimits = rl
+	}
+	return nil
+}
+
+func convertInputRateLimitToProto(inputConfig *InputRateLimitConfig) (*ratelimitapi.IngressRateLimit, error) {
 	if inputConfig == nil {
 		return nil, nil
 	}
 	rlProto := &ratelimitapi.IngressRateLimit{}
 
-	if inputConfig.AuthorizedHeader == "" {
-		return nil, errors.Errorf("must provide authorizedHeader")
+	if err := applyInputRateLimitSpec(inputConfig.AuthorizedLimits, rlProto, true); err != nil {
+		return nil, err
 	}
-	rlProto.AuthorizedHeader = inputConfig.AuthorizedHeader
-
-	// Get rate limits for authorized requests
-	if inputConfig.AuthorizedLimits != nil {
-		authLimits := *inputConfig.AuthorizedLimits
-		unit, err := convertGQLTimeUnitEnum(authLimits.Unit)
-		if err != nil {
-			return nil, err
-		}
-		rlProto.AuthorizedLimits = &ratelimitapi.RateLimit{
-			Unit:            unit,
-			RequestsPerUnit: uint32(authLimits.RequestsPerUnit),
-		}
+	if err := applyInputRateLimitSpec(inputConfig.AnonymousLimits, rlProto, false); err != nil {
+		return nil, err
 	}
+	return rlProto, nil
+}
 
-	// Get rate limits for anonymous requests
-	if inputConfig.AnonymousLimits != nil {
-		anonLimits := *inputConfig.AnonymousLimits
-		unit, err := convertGQLTimeUnitEnum(anonLimits.Unit)
-		if err != nil {
-			return nil, err
-		}
-		rlProto.AnonymousLimits = &ratelimitapi.RateLimit{
-			Unit:            unit,
-			RequestsPerUnit: uint32(anonLimits.RequestsPerUnit),
-		}
+func convertInputRateLimitToStruct(inputConfig *InputRateLimitConfig) (*types.Struct, error) {
+	rlProto, err := convertInputRateLimitToProto(inputConfig)
+	if err != nil {
+		return nil, err
+	}
+	return util.MessageToStruct(rlProto)
+}
+
+// TODO(mitchdraft) - we'll want to replace this with something that manages multiple types of plugins
+func convertInputRateLimitConfig(inputConfig *InputRateLimitConfig) (*v1.VirtualHostPlugins, error) {
+	if inputConfig == nil {
+		return nil, nil
 	}
 
-	rlStruct, err := util.MessageToStruct(rlProto)
+	rlStruct, err := convertInputRateLimitToStruct(inputConfig)
 	if err != nil {
 		return nil, err
 	}

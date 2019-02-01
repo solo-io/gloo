@@ -302,7 +302,6 @@ var GRAPHQL = struct {
 		},
 	},
 	rlConfig: &models.RateLimitConfig{
-		AuthorizedHeader: "auth-header",
 		AuthorizedLimits: &models.RateLimit{
 			RequestsPerUnit: 100,
 			Unit:            models.TimeUnitSecond,
@@ -313,7 +312,6 @@ var GRAPHQL = struct {
 		},
 	},
 	inputRlConfig: &models.InputRateLimitConfig{
-		AuthorizedHeader: "auth-header",
 		AuthorizedLimits: &models.InputRateLimit{
 			RequestsPerUnit: 100,
 			Unit:            models.TimeUnitSecond,
@@ -376,9 +374,6 @@ var PROTO = struct {
 	rlConfig: map[string]*types.Struct{
 		ratelimit.ExtensionName: {
 			Fields: map[string]*types.Value{
-				"authorized_header": {
-					Kind: &types.Value_StringValue{StringValue: "auth-header"},
-				},
 				"authorized_limits": {
 					Kind: &types.Value_StructValue{
 						StructValue: &types.Struct{

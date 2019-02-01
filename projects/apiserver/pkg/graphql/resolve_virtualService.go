@@ -3,12 +3,18 @@ package graphql
 import (
 	"context"
 
+	"github.com/gogo/protobuf/types"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
+	ratelimitapi "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 )
 
 func (r *namespaceResolver) VirtualServices(ctx context.Context, obj *customtypes.Namespace) ([]*models.VirtualService, error) {
@@ -84,7 +90,9 @@ func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *custom
 	}
 
 	if updates.RateLimitConfig != nil {
-		return nil, errors.Errorf("Plugin updates are not yet supported.")
+		if err := applyRateLimitConfigUpdate(updates.RateLimitConfig, virtualService.VirtualHost); err != nil {
+			return nil, err
+		}
 	}
 
 	out, err := r.VirtualServiceClient.Write(virtualService, clients.WriteOpts{
@@ -95,6 +103,38 @@ func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *custom
 		return nil, err
 	}
 	return NewConverter(r.ApiResolver, ctx).ConvertOutputVirtualService(out)
+}
+
+func applyRateLimitConfigUpdate(in *models.InputRateLimitConfig, out *v1.VirtualHost) error {
+	currentRlc := &ratelimitapi.IngressRateLimit{}
+	if out.VirtualHostPlugins == nil {
+		out.VirtualHostPlugins = &v1.VirtualHostPlugins{}
+	}
+	p := out.VirtualHostPlugins
+	err := utils.UnmarshalExtension(p, ratelimit.ExtensionName, currentRlc)
+	if err != nil && err != utils.NotFoundError {
+		return errors.Wrapf(err, "failed to unmarshal proto message to %v plugin", ratelimit.ExtensionName)
+	}
+
+	if err := applyInputRateLimitSpec(in.AuthorizedLimits, currentRlc, true); err != nil {
+		return err
+	}
+	if err := applyInputRateLimitSpec(in.AnonymousLimits, currentRlc, false); err != nil {
+		return err
+	}
+	rlStruct, err := util.MessageToStruct(currentRlc)
+	if err != nil {
+		return err
+	}
+	if p.Extensions == nil {
+		p.Extensions = &v1.Extensions{}
+	}
+	if p.Extensions.Configs == nil {
+		p.Extensions.Configs = map[string]*types.Struct{ratelimit.ExtensionName: rlStruct}
+	} else {
+		p.Extensions.Configs[ratelimit.ExtensionName] = rlStruct
+	}
+	return nil
 }
 
 func (r *virtualServiceMutationResolver) Delete(ctx context.Context, obj *customtypes.VirtualServiceMutation, guid string) (*models.VirtualService, error) {
