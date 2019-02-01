@@ -15,3 +15,4 @@ spec:
       name: graphql
   selector:
     gloo: {{ .Values.apiServer.service.name }}
+  type: NodePort

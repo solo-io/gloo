@@ -4,16 +4,16 @@ metadata:
   name: api-server
   namespace: {{ .Release.Namespace }}
   labels:
-    gloo: api-server
+    gloo: {{ .Values.apiServer.service.name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      gloo: api-server
+      gloo: {{ .Values.apiServer.service.name }}
   template:
     metadata:
       labels:
-        gloo: api-server
+        gloo: {{ .Values.apiServer.service.name }}
     spec:
       imagePullSecrets:
         - name: solo-io-docker-secret
@@ -28,7 +28,11 @@ spec:
               mountPath: /var/run
           ports:
             - name: static
+{{- if .Values.apiServer.noAuth }}
+              containerPort: {{.Values.apiServer.deployment.ui.staticPortNoAuth}}
+{{- else }}
               containerPort: {{.Values.apiServer.deployment.ui.staticPort}}
+{{- end}}
               protocol: TCP
         - name: apiserver
           image: '{{.Values.apiServer.deployment.server.image.repository}}:{{.Values.apiServer.deployment.server.image.tag}}'

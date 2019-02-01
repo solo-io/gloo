@@ -79,8 +79,9 @@ type ApiServerServerDeployment struct {
 }
 
 type ApiServerUiDeployment struct {
-	StaticPort string          `json:"staticPort"`
-	Image      *generate.Image `json:"image,omitempty"`
+	StaticPort       string          `json:"staticPort"`
+	StaticPortNoAuth string          `json:"staticPortNoAuth"`
+	Image            *generate.Image `json:"image,omitempty"`
 	*generate.DeploymentSpec
 }
 

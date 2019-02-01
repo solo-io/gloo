@@ -300,6 +300,7 @@ apiServer:
         repository: soloio/gloo-i-ee
         pullSecret: solo-io-docker-secret
       staticPort: 8080
+      staticPortNoAuth: 8088
   service:
     name: 'apiserver-ui'
 
