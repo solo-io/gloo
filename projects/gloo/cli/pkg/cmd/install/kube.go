@@ -8,7 +8,6 @@ import (
 	"os/exec"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
@@ -21,6 +20,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+	optionsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 	"github.com/spf13/cobra"
 )
 
@@ -31,13 +31,13 @@ const (
 	imagePullSecretName = "solo-io-docker-secret"
 )
 
-func KubeCmd(opts *options.Options) *cobra.Command {
+func KubeCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "kube",
 		Short: fmt.Sprintf("install Gloo on kubernetes to the %s namespace", InstallNamespace),
 		Long:  "requires kubectl to be installed",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := createImagePullSecretIfNeeded(opts.Install); err != nil {
+			if err := createImagePullSecretIfNeeded(opts.Install, optsExt.Install); err != nil {
 				return errors.Wrapf(err, "creating image pull secret")
 			}
 			if err := registerSettingsCrd(); err != nil {
@@ -54,14 +54,13 @@ func KubeCmd(opts *options.Options) *cobra.Command {
 			return applyManifest(glooManifestBytes)
 		},
 	}
-	pflags := cmd.PersistentFlags()
-	flagutils.AddInstallFlags(pflags, &opts.Install)
+
 	return cmd
 }
 
 func readGlooManifest(opts *options.Options) ([]byte, error) {
-	if opts.Install.File != "" {
-		return readManifestFromFile(opts.Install.File)
+	if opts.Install.GlooManifestOverride != "" {
+		return readManifestFromFile(opts.Install.GlooManifestOverride)
 	}
 	if version.Version == version.UndefinedVersion || version.Version == version.DevVersion {
 		return nil, errors.Errorf("You must provide a file containing the gloo manifest when running an unreleased version of glooctl.")
@@ -100,22 +99,22 @@ func registerSettingsCrd() error {
 	return settingsClient.Register()
 }
 
-func createImagePullSecretIfNeeded(install options.Install) error {
+func createImagePullSecretIfNeeded(install options.Install, installExt optionsExt.InstallExtended) error {
 	if err := createNamespaceIfNotExist(); err != nil {
 		return errors.Wrapf(err, "creating installation namespace")
 	}
-	dockerSecretDesired := install.DockerAuth.Username != "" ||
-		install.DockerAuth.Password != "" ||
-		install.DockerAuth.Email != ""
+	dockerSecretDesired := installExt.DockerAuth.Username != "" ||
+		installExt.DockerAuth.Password != "" ||
+		installExt.DockerAuth.Email != ""
 
 	if !dockerSecretDesired {
 		return nil
 	}
 
-	validOpts := install.DockerAuth.Username != "" &&
-		install.DockerAuth.Password != "" &&
-		install.DockerAuth.Email != "" &&
-		install.DockerAuth.Server != ""
+	validOpts := installExt.DockerAuth.Username != "" &&
+		installExt.DockerAuth.Password != "" &&
+		installExt.DockerAuth.Email != "" &&
+		installExt.DockerAuth.Server != ""
 
 	if !validOpts {
 		return errors.Errorf("must provide one of each flag for docker authentication: \n" +
@@ -129,10 +128,10 @@ func createImagePullSecretIfNeeded(install options.Install) error {
 	}
 
 	kubectl := exec.Command("kubectl", "create", "secret", "docker-registry", "-n", InstallNamespace,
-		"--docker-email", install.DockerAuth.Email,
-		"--docker-username", install.DockerAuth.Username,
-		"--docker-password", install.DockerAuth.Password,
-		"--docker-server", install.DockerAuth.Server,
+		"--docker-email", installExt.DockerAuth.Email,
+		"--docker-username", installExt.DockerAuth.Username,
+		"--docker-password", installExt.DockerAuth.Password,
+		"--docker-server", installExt.DockerAuth.Server,
 		imagePullSecretName,
 	)
 	kubectl.Stdout = os.Stdout

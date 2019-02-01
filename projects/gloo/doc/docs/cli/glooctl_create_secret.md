@@ -27,5 +27,6 @@ glooctl create secret [flags]
 
 * [glooctl create](glooctl_create.md)	 - Create a Gloo resource
 * [glooctl create secret aws](glooctl_create_secret_aws.md)	 - Create an AWS secret with the given name
+* [glooctl create secret oauth](glooctl_create_secret_oauth.md)	 - Create an OAuth secret with the given name
 * [glooctl create secret tls](glooctl_create_secret_tls.md)	 - Create a secret with the given name
 

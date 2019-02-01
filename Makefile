@@ -49,6 +49,7 @@ check-format:
 .PHONY: clean
 clean:
 	rm -rf _output
+	git clean -xdf install
 
 #----------------------------------------------------------------------------------
 # Generated Code
@@ -268,10 +269,10 @@ ifeq ($(RELEASE),"true")
 	helm repo index $(HELM_SYNC_DIR)
 endif
 
-install/gloo-ee.yaml: $(shell find install/helm/gloo-ee)
+install/gloo-ee.yaml:
 	helm template install/helm/gloo-ee --namespace gloo-system --name=gloo-ee > $@
 
-install/distribution/glooe.yaml: $(shell find install/helm/gloo-ee)
+install/distribution/glooe.yaml:
 	helm template install/helm/gloo-ee -f install/distribution/values.yaml --namespace gloo-system --name=gloo-ee > $@
 
 init-helm:

@@ -1189,7 +1189,7 @@
   version = "v0.2.1"
 
 [[projects]]
-  digest = "1:b8deabf8d8532e02a4ca04eb1c5018ccdd919fbea8bb5ddf80563edc32387991"
+  digest = "1:7a38c6b97f07f58ee3a43fd5b167e219a790c3b6c3c4619f913fcffa22846138"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1267,8 +1267,8 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "5b7461f9f94d264ec7bb8a1b8c5ec96516fd2473"
-  version = "v0.6.15"
+  revision = "42a5616de52c297b35b50c975c55cef857236aec"
+  version = "v0.6.16"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -2105,6 +2105,17 @@
   revision = "e3762e86a74c878ffed47484592986685639c2cd"
 
 [[projects]]
+  digest = "1:57ca5b3b1174d27fdca6ec5032018cf7035c2ca4d3c793dfa31aec8d8cd50852"
+  name = "sigs.k8s.io/kind"
+  packages = [
+    "pkg/docker",
+    "pkg/exec",
+  ]
+  pruneopts = "UT"
+  revision = "2d52d5cc5e2bc3797a23a54bed924531c223525c"
+  version = "0.1.0"
+
+[[projects]]
   digest = "1:7719608fe0b52a4ece56c2dde37bedd95b938677d1ab0f84b8a7852e4c59f849"
   name = "sigs.k8s.io/yaml"
   packages = ["."]
@@ -2300,6 +2311,7 @@
     "k8s.io/client-go/plugin/pkg/client/auth",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/client-go/rest",
+    "sigs.k8s.io/kind/pkg/docker",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

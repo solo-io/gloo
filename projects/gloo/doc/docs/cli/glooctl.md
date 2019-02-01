@@ -19,6 +19,7 @@ glooctl is the unified CLI for Gloo.
 * [glooctl add](glooctl_add.md)	 - adds configuration to a top-level Gloo resource
 * [glooctl create](glooctl_create.md)	 - Create a Gloo resource
 * [glooctl delete](glooctl_delete.md)	 - Delete a Gloo resource
+* [glooctl edit](glooctl_edit.md)	 - root command for editing
 * [glooctl get](glooctl_get.md)	 - Display one or a list of Gloo resources
 * [glooctl install](glooctl_install.md)	 - install gloo on different platforms
 * [glooctl proxy](glooctl_proxy.md)	 - interact with proxy instances managed by Gloo

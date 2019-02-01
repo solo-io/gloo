@@ -104,7 +104,7 @@ func saveImages(deployments []v1.Deployment) error {
 		containers := dpl.Spec.Template.Spec.Containers
 		for _, image := range containers {
 			var err error
-			err = docker.Pull(image.Image, 0)
+			_, err = docker.PullIfNotPresent(image.Image, 0)
 			if err != nil {
 				return err
 			}
