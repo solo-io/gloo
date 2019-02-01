@@ -112,7 +112,6 @@ type GrpcDestinationSpec {
 }
 
 type RateLimitConfig {
-  authorizedHeader: String!
   authorizedLimits: RateLimit
   anonymousLimits: RateLimit
 }
@@ -171,7 +170,6 @@ input InputMatcher {
 }
 
 input InputRateLimitConfig {
-  authorizedHeader: String!
   authorizedLimits: InputRateLimit
   anonymousLimits: InputRateLimit
 }

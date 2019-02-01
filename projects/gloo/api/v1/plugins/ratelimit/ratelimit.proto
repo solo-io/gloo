@@ -19,10 +19,8 @@ message RateLimit {
 }
 
 message IngressRateLimit {
-    
-    string authorized_header = 1;
-    RateLimit authorized_limits = 2;
-    RateLimit anonymous_limits = 3;
+    RateLimit authorized_limits = 1;
+    RateLimit anonymous_limits = 2;
 }
 
 message Settings { 

@@ -197,7 +197,6 @@ type ComplexityRoot struct {
 	}
 
 	RateLimitConfig struct {
-		AuthorizedHeader func(childComplexity int) int
 		AuthorizedLimits func(childComplexity int) int
 		AnonymousLimits  func(childComplexity int) int
 	}
@@ -1568,13 +1567,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RateLimit.RequestsPerUnit(childComplexity), true
-
-	case "RateLimitConfig.authorizedHeader":
-		if e.complexity.RateLimitConfig.AuthorizedHeader == nil {
-			break
-		}
-
-		return e.complexity.RateLimitConfig.AuthorizedHeader(childComplexity), true
 
 	case "RateLimitConfig.authorizedLimits":
 		if e.complexity.RateLimitConfig.AuthorizedLimits == nil {
@@ -5775,11 +5767,6 @@ func (ec *executionContext) _RateLimitConfig(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("RateLimitConfig")
-		case "authorizedHeader":
-			out.Values[i] = ec._RateLimitConfig_authorizedHeader(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "authorizedLimits":
 			out.Values[i] = ec._RateLimitConfig_authorizedLimits(ctx, field, obj)
 		case "anonymousLimits":
@@ -5793,33 +5780,6 @@ func (ec *executionContext) _RateLimitConfig(ctx context.Context, sel ast.Select
 		return graphql.Null
 	}
 	return out
-}
-
-// nolint: vetshadow
-func (ec *executionContext) _RateLimitConfig_authorizedHeader(ctx context.Context, field graphql.CollectedField, obj *models.RateLimitConfig) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "RateLimitConfig",
-		Args:   nil,
-		Field:  field,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AuthorizedHeader, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return graphql.MarshalString(res)
 }
 
 // nolint: vetshadow
@@ -11076,12 +11036,6 @@ func UnmarshalInputRateLimitConfig(v interface{}) (models.InputRateLimitConfig, 
 
 	for k, v := range asMap {
 		switch k {
-		case "authorizedHeader":
-			var err error
-			it.AuthorizedHeader, err = graphql.UnmarshalString(v)
-			if err != nil {
-				return it, err
-			}
 		case "authorizedLimits":
 			var err error
 			var ptr1 models.InputRateLimit
@@ -12542,7 +12496,6 @@ type GrpcDestinationSpec {
 }
 
 type RateLimitConfig {
-  authorizedHeader: String!
   authorizedLimits: RateLimit
   anonymousLimits: RateLimit
 }
@@ -12601,7 +12554,6 @@ input InputMatcher {
 }
 
 input InputRateLimitConfig {
-  authorizedHeader: String!
   authorizedLimits: InputRateLimit
   anonymousLimits: InputRateLimit
 }
@@ -12698,5 +12650,6 @@ input InputGrpcDestinationSpec {
 input InputTransformationParameters {
   headers: InputMapStringString
   path: String
-}`},
+}
+`},
 )

@@ -104,12 +104,14 @@ func generateEnvoyConfigForVhost(vhostname, headername string) []*envoyvhostrate
 
 	vhostAction := getPerVhostRateLimit(vhostname)
 
+	getAuthRateLimits := func(b bool) *envoyvhostratelimit.RateLimit_Action { return getAuthHeaderRateLimit(headername, b) }
+
 	vhostrl := []*envoyvhostratelimit.RateLimit{
 		{
 			Stage: &types.UInt32Value{Value: stage},
 			Actions: []*envoyvhostratelimit.RateLimit_Action{
 				vhostAction,
-				getAuthHeaderRateLimit(headername, true),
+				getAuthRateLimits(true),
 				getUserIdRateLimit(headername),
 			},
 		},
@@ -117,7 +119,7 @@ func generateEnvoyConfigForVhost(vhostname, headername string) []*envoyvhostrate
 			Stage: &types.UInt32Value{Value: stage},
 			Actions: []*envoyvhostratelimit.RateLimit_Action{
 				vhostAction,
-				getAuthHeaderRateLimit(vhostname, false),
+				getAuthRateLimits(false),
 				getPerIpRateLimit(),
 			},
 		},
@@ -152,7 +154,6 @@ func getAuthHeaderRateLimit(headername string, match bool) *envoyvhostratelimit.
 	return &envoyvhostratelimit.RateLimit_Action{
 		ActionSpecifier: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch_{
 			HeaderValueMatch: &envoyvhostratelimit.RateLimit_Action_HeaderValueMatch{
-
 				DescriptorValue: value,
 				ExpectMatch:     &types.BoolValue{Value: match},
 				Headers:         headersmatcher,

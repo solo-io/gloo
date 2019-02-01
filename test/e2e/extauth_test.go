@@ -19,6 +19,7 @@ import (
 	"github.com/gogo/protobuf/types"
 
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
 
@@ -49,12 +50,11 @@ var _ = Describe("External ", func() {
 		settings    extauthrunner.Settings
 	)
 	var (
-		baseExtauthPort = uint32(18071)
+		baseExtauthPort = uint32(9000)
 	)
 
 	BeforeEach(func() {
-
-		extauthport := atomic.AddUint32(&baseExtauthPort, 1)
+		extauthport := atomic.AddUint32(&baseExtauthPort, 1) + uint32(config.GinkgoConfig.ParallelNode*1000)
 
 		logger := zaptest.LoggerWriter(GinkgoWriter)
 		contextutils.SetFallbackLogger(logger.Sugar())
@@ -476,7 +476,12 @@ func getProxyExtAuthOIDC(envoyPort uint32, secretRef, upstream core.ResourceRef)
 }
 func getProxyExtAuthBasicAuth(envoyPort uint32, upstream core.ResourceRef) *gloov1.Proxy {
 
-	extauthCfg := &extauth.VhostExtension{
+	extauthCfg := GetBasicAuthExtension()
+	return getProxyExtAuth(envoyPort, upstream, extauthCfg)
+}
+
+func GetBasicAuthExtension() *extauth.VhostExtension {
+	return &extauth.VhostExtension{
 		AuthConfig: &extauth.VhostExtension_BasicAuth{
 			BasicAuth: &extauth.BasicAuth{
 				Realm: "gloo",
@@ -492,7 +497,6 @@ func getProxyExtAuthBasicAuth(envoyPort uint32, upstream core.ResourceRef) *gloo
 			},
 		},
 	}
-	return getProxyExtAuth(envoyPort, upstream, extauthCfg)
 }
 
 func getProxyExtAuth(envoyPort uint32, upstream core.ResourceRef, extauthCfg *extauth.VhostExtension) *gloov1.Proxy {

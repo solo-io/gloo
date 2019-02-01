@@ -968,7 +968,6 @@ func convertOutputRateLimitConfig(plugins *v1.VirtualHostPlugins) (*RateLimitCon
 
 	// We assume that the configuration we read in is correct, validation is done on write
 	result := &RateLimitConfig{}
-	result.AuthorizedHeader = rateLimit.AuthorizedHeader
 	if rateLimit.AuthorizedLimits != nil {
 		authUnit, err := convertProtoTimeUnitEnum(rateLimit.AuthorizedLimits.Unit)
 		if err != nil {

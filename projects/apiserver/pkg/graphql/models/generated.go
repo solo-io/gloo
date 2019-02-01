@@ -211,7 +211,6 @@ type InputRateLimit struct {
 }
 
 type InputRateLimitConfig struct {
-	AuthorizedHeader string          `json:"authorizedHeader"`
 	AuthorizedLimits *InputRateLimit `json:"authorizedLimits"`
 	AnonymousLimits  *InputRateLimit `json:"anonymousLimits"`
 }
@@ -408,7 +407,6 @@ type RateLimit struct {
 }
 
 type RateLimitConfig struct {
-	AuthorizedHeader string     `json:"authorizedHeader"`
 	AuthorizedLimits *RateLimit `json:"authorizedLimits"`
 	AnonymousLimits  *RateLimit `json:"anonymousLimits"`
 }

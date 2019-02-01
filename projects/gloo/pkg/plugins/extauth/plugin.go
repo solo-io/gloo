@@ -36,10 +36,13 @@ const (
 	ExtAuthFilterName   = "envoy.ext_authz"
 	// rate limiting should happen after auth
 	filterStage = plugins.InAuth
+
+	DefaultAuthHeader = "x-user-id"
 )
 
 type Plugin struct {
-	upstreamRef *core.ResourceRef
+	upstreamRef  *core.ResourceRef
+	userIdHeader string
 }
 
 var _ plugins.Plugin = new(Plugin)
@@ -56,17 +59,39 @@ func (t *tmpPluginContainer) GetExtensions() *v1.Extensions {
 	return t.params.ExtensionsSettings
 }
 
-func (p *Plugin) Init(params plugins.InitParams) error {
-
+func GetSettings(params plugins.InitParams) (*extauth.Settings, error) {
 	var settings extauth.Settings
-	p.upstreamRef = nil
 	err := utils.UnmarshalExtension(&tmpPluginContainer{params}, ExtensionName, &settings)
 	if err != nil {
-		p.upstreamRef = nil
+		if err == utils.NotFoundError {
+			return nil, nil
+		}
+		return nil, err
 	}
+	return &settings, nil
+}
+func GetAuthHeader(e *extauth.Settings) string {
+	if e != nil {
+		if e.UserIdHeader != "" {
+			return e.UserIdHeader
+		}
+	}
+	return DefaultAuthHeader
+}
 
+func (p *Plugin) Init(params plugins.InitParams) error {
+	p.upstreamRef = nil
+	p.userIdHeader = ""
+
+	settings, err := GetSettings(params)
+	if err != nil {
+		return err
+	}
+	if settings == nil {
+		return nil
+	}
 	p.upstreamRef = settings.ExtauthzServerRef
-
+	p.userIdHeader = GetAuthHeader(settings)
 	return nil
 }
 
@@ -203,8 +228,12 @@ func setPerRouteConfig(out perFilterConfigable, config *envoyauth.ExtAuthzPerRou
 
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
 	// add sanitize filter here
+	var headersToRemove []string
+	if p.userIdHeader != "" {
+		headersToRemove = []string{p.userIdHeader}
+	}
 	sanitizeConf, err := protoutils.MarshalStruct(&Sanitize{
-		HeadersToRemove: []string{"TODO"},
+		HeadersToRemove: headersToRemove,
 	})
 	if err != nil {
 		return nil, err

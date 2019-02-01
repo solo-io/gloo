@@ -1175,7 +1175,7 @@
   revision = "c71f318a203bca8433268be67336086379a2bf9f"
 
 [[projects]]
-  digest = "1:b692bbf3f9c052f8336f8be3933b2ed943e9aeaca08894f5b767d9c00bea36a6"
+  digest = "1:d49ef71350868f60ef2e9b04713a630d320947123a31b31e1e68910680d88670"
   name = "github.com/solo-io/ext-auth-service"
   packages = [
     "pkg/config",
@@ -1185,8 +1185,8 @@
     "pkg/service",
   ]
   pruneopts = "UT"
-  revision = "8bd554349fff9e4afc422efd4bbff967b13851fd"
-  version = "v0.2.0"
+  revision = "e37eb5b4091d3797413619fe64a7e94b0ac93b3e"
+  version = "v0.2.1"
 
 [[projects]]
   digest = "1:b8deabf8d8532e02a4ca04eb1c5018ccdd919fbea8bb5ddf80563edc32387991"
@@ -2154,6 +2154,7 @@
     "github.com/mitchellh/hashstructure",
     "github.com/olekukonko/tablewriter",
     "github.com/onsi/ginkgo",
+    "github.com/onsi/ginkgo/config",
     "github.com/onsi/ginkgo/extensions/table",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/gbytes",

@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 )
 
 /*
@@ -88,7 +89,8 @@ const (
 )
 
 type Plugin struct {
-	upstreamRef *core.ResourceRef
+	upstreamRef      *core.ResourceRef
+	authUserIdHeader string
 }
 
 func NewPlugin() plugins.Plugin {
@@ -117,6 +119,10 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	}
 
 	p.upstreamRef = settings.RatelimitServerRef
+
+	authSettings, _ := extauth.GetSettings(params)
+	p.authUserIdHeader = extauth.GetAuthHeader(authSettings)
+
 	return nil
 }
 
@@ -134,7 +140,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 		return err
 	}
 
-	vhost := generateEnvoyConfigForVhost(in.Name, rateLimit.AuthorizedHeader)
+	vhost := generateEnvoyConfigForVhost(in.Name, p.authUserIdHeader)
 	out.RateLimits = vhost
 
 	return nil
