@@ -10,13 +10,18 @@
   version = "v0.33.1"
 
 [[projects]]
-  digest = "1:3089f35bd501306a647bafe197d25cedd362c71b7aeca0d6805fc47ccec95b22"
+  digest = "1:cc0bbbf01f9f639555f9a9d4d5ff9c72da4c4c4bfe71f02fd318d37498270d80"
   name = "github.com/99designs/gqlgen"
   packages = [
+    "cmd",
+    "codegen",
+    "codegen/templates",
     "complexity",
     "graphql",
     "graphql/introspection",
     "handler",
+    "internal/gopath",
+    "internal/imports",
   ]
   pruneopts = "UT"
   revision = "3a7f37c7e22a8fedce430c4d340ad5c1351198f4"
@@ -1418,6 +1423,14 @@
   revision = "7d3ee1afa71c90fd1514c8f557ae6c5f414208eb"
 
 [[projects]]
+  digest = "1:b24d38b282bacf9791408a080f606370efa3d364e4b5fd9ba0f7b87786d3b679"
+  name = "github.com/urfave/cli"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
+  version = "v1.20.0"
+
+[[projects]]
   digest = "1:768c1db4944fa5ab6944d11847200ba4b8b9e2b45458b7a20b4272fe599a1de0"
   name = "github.com/vektah/gqlgen"
   packages = [
@@ -1636,6 +1649,29 @@
   packages = ["rate"]
   pruneopts = "UT"
   revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
+
+[[projects]]
+  branch = "master"
+  digest = "1:bcc7ca488b127d6dfd829f57a5091c88cc68c81bf249fd342144ce2076706823"
+  name = "golang.org/x/tools"
+  packages = [
+    "go/ast/astutil",
+    "go/buildutil",
+    "go/gcexportdata",
+    "go/internal/cgo",
+    "go/internal/gcimporter",
+    "go/internal/packagesdriver",
+    "go/loader",
+    "go/packages",
+    "go/types/typeutil",
+    "imports",
+    "internal/fastwalk",
+    "internal/gopathwalk",
+    "internal/module",
+    "internal/semver",
+  ]
+  pruneopts = "UT"
+  revision = "0e05534988fece6d00407fef91bec542a7859d8e"
 
 [[projects]]
   digest = "1:d2a8db567a76203e3b41c1f632d86485ffd57f8e650a0d1b19d240671c2fddd7"
@@ -2127,6 +2163,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/99designs/gqlgen/cmd",
     "github.com/99designs/gqlgen/graphql",
     "github.com/99designs/gqlgen/graphql/introspection",
     "github.com/99designs/gqlgen/handler",

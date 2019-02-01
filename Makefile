@@ -120,7 +120,7 @@ APISERVER_GQL_SCHEMAS=$(shell find $(APISERVER_DIR)/gql_schemas -name "*.graphql
 apiserver-dependencies: $(APISERVER_GRAPHQL_GENERATED_FILES)
 $(APISERVER_GRAPHQL_GENERATED_FILES): $(APISERVER_GQL_SCHEMAS) $(APISERVER_DIR)/gqlgen.yaml $(APISERVER_SOURCES)
 	cd $(APISERVER_DIR) && \
-	gqlgen -v
+	go run gqlgen.go -v
 
 .PHONY: apiserver
 apiserver: $(OUTPUT_DIR)/apiserver
