@@ -255,7 +255,7 @@ HELM_SYNC_DIR := $(OUTPUT_DIR)/helm
 HELM_DIR := install/helm
 
 .PHONY: manifest
-manifest: init-helm helm-template install/gloo-ee.yaml update-helm-chart
+manifest: helm-template init-helm install/gloo-ee.yaml install/distribution/glooe.yaml update-helm-chart
 
 # creates Chart.yaml, values.yaml, and requirements.yaml
 helm-template:
@@ -269,12 +269,15 @@ ifeq ($(RELEASE),"true")
 endif
 
 install/gloo-ee.yaml: $(shell find install/helm/gloo-ee)
-	helm dependency update install/helm/gloo-ee
 	helm template install/helm/gloo-ee --namespace gloo-system --name=gloo-ee > $@
+
+install/distribution/glooe.yaml: $(shell find install/helm/gloo-ee)
+	helm template install/helm/gloo-ee -f install/distribution/values.yaml --namespace gloo-system --name=gloo-ee > $@
 
 init-helm:
 	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
+	helm dependency update install/helm/gloo-ee
 
 #----------------------------------------------------------------------------------
 # Release
@@ -345,4 +348,16 @@ ifeq ($(RELEASE),"true")
 	docker push soloio/gloo-ee:$(VERSION) && \
 	docker push soloio/gloo-ee-envoy-wrapper:$(VERSION) && \
 	docker push soloio/observability-ee:$(VERSION)
+endif
+
+
+#----------------------------------------------------------------------------------
+# Distribution
+#----------------------------------------------------------------------------------
+
+DISTRIBUTION_DIR=install/distribution
+
+distribution:
+ifeq ($(RELEASE),"true")
+	go run $(DISTRIBUTION_DIR)/main.go $(VERSION)
 endif

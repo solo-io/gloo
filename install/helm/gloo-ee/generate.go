@@ -16,6 +16,7 @@ import (
 const (
 	valuesTemplate       = "install/helm/gloo-ee/values-template.yaml"
 	valuesOutput         = "install/helm/gloo-ee/values.yaml"
+	distributionOutput   = "install/distribution/values.yaml"
 	chartTemplate        = "install/helm/gloo-ee/Chart-template.yaml"
 	chartOutput          = "install/helm/gloo-ee/Chart.yaml"
 	requirementsTemplate = "install/helm/gloo-ee/requirements-template.yaml"
@@ -27,6 +28,7 @@ const (
 	nameConst    = "name"
 	versionConst = "version"
 	neverPull    = "Never"
+	alwaysPull   = "Always"
 
 	glooiVersion = "0.0.9"
 )
@@ -39,7 +41,7 @@ func main() {
 		version = os.Args[1]
 	}
 	log.Printf("Generating helm files.")
-	if err := generateValuesYaml(version); err != nil {
+	if err := generateValuesYamls(version); err != nil {
 		log.Fatalf("generating values.yaml failed!: %v", err)
 	}
 	if err := generateChartYaml(version); err != nil {
@@ -48,6 +50,14 @@ func main() {
 	if err := generateRequirementsYaml(); err != nil {
 		log.Fatalf("unable to parse Gopkg.toml for proper gloo version: %v", err)
 	}
+}
+
+func readConfig(path string) (generate.Config, error) {
+	var config generate.Config
+	if err := readYaml(valuesTemplate, &config); err != nil {
+		return config, err
+	}
+	return config, nil
 }
 
 func readYaml(path string, obj interface{}) error {
@@ -76,12 +86,11 @@ func writeYaml(obj interface{}, path string) error {
 	return nil
 }
 
-func generateValuesYaml(version string) error {
-	var config generate.Config
-	if err := readYaml(valuesTemplate, &config); err != nil {
+func generateValuesYaml(version, pullPolicy, outputFile string) error {
+	config, err := readConfig(valuesTemplate)
+	if err != nil {
 		return err
 	}
-
 	config.Gloo.Gloo.Deployment.Image.Tag = version
 	config.Gloo.GatewayProxy.Deployment.Image.Tag = version
 	config.Gloo.IngressProxy.Deployment.Image.Tag = version
@@ -90,17 +99,31 @@ func generateValuesYaml(version string) error {
 	config.ApiServer.Deployment.Server.Image.Tag = version
 	// Do not set image tag equal to the rest because it is separately versioned
 	config.ApiServer.Deployment.Ui.Image.Tag = glooiVersion
+	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
+	config.Gloo.GatewayProxy.Deployment.Image.PullPolicy = pullPolicy
+	config.Gloo.IngressProxy.Deployment.Image.PullPolicy = pullPolicy
+	config.RateLimit.Deployment.Image.PullPolicy = pullPolicy
+	config.Observability.Deployment.Image.PullPolicy = pullPolicy
+	config.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
 
+	return writeYaml(&config, outputFile)
+}
+
+func generateValuesYamls(version string) error {
+	// Generate values for standard manifest
+	standardPullPolicy := alwaysPull
 	if version == "dev" {
-		config.Gloo.Gloo.Deployment.Image.PullPolicy = neverPull
-		config.Gloo.GatewayProxy.Deployment.Image.PullPolicy = neverPull
-		config.Gloo.IngressProxy.Deployment.Image.PullPolicy = neverPull
-		config.RateLimit.Deployment.Image.PullPolicy = neverPull
-		config.Observability.Deployment.Image.PullPolicy = neverPull
-		config.ApiServer.Deployment.Server.Image.PullPolicy = neverPull
+		standardPullPolicy = neverPull
+	}
+	if err := generateValuesYaml(version, standardPullPolicy, valuesOutput); err != nil {
+		return err
 	}
 
-	return writeYaml(&config, valuesOutput)
+	// Generate values for distribution
+	if err := generateValuesYaml(version, neverPull, distributionOutput); err != nil {
+		return err
+	}
+	return nil
 }
 
 func generateChartYaml(version string) error {
