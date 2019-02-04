@@ -75,8 +75,8 @@ Create a virtual service, and add the open id connect information to it:
 
 ```
 glooctl create virtualservice --namespace gloo-system --name default --enable-oidc-auth \
---oidc-auth-client-name google \
---oidc-auth-client-namespace gloo-system \
+--oidc-auth-client-secret-name google \
+--oidc-auth-client-secret-namespace gloo-system \
 --oidc-auth-issuer-url https://accounts.google.com \
 --oidc-auth-client-id $CLIENT_ID \
 --oidc-auth-app-url http://localhost:8080/ \

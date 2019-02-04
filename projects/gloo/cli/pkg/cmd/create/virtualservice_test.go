@@ -41,8 +41,8 @@ var _ = Describe("Virtualservice", func() {
 			Expect(*oidc).To(Equal(expected))
 		},
 		Entry("with oid config", "create vs --name vs1 --enable-oidc-auth --oidc-auth-client-id "+
-			"1 --oidc-auth-app-url http://app.example.com --oidc-auth-client-name fake "+
-			"--oidc-auth-client-namespace fakens --oidc-auth-issuer-url http://issuer.example.com "+
+			"1 --oidc-auth-app-url http://app.example.com --oidc-auth-client-secret-name fake "+
+			"--oidc-auth-client-secret-namespace fakens --oidc-auth-issuer-url http://issuer.example.com "+
 			"--oidc-auth-callback-path /cb",
 			extauthpb.OAuth{
 				ClientId: "1",
@@ -55,8 +55,8 @@ var _ = Describe("Virtualservice", func() {
 				AppUrl:       "http://app.example.com",
 			}),
 		Entry("with default callback", "create vs --name vs1 --enable-oidc-auth --oidc-auth-client-id "+
-			"1 --oidc-auth-app-url http://app.example.com --oidc-auth-client-name fake "+
-			"--oidc-auth-client-namespace fakens --oidc-auth-issuer-url http://issuer.example.com",
+			"1 --oidc-auth-app-url http://app.example.com --oidc-auth-client-secret-name fake "+
+			"--oidc-auth-client-secret-namespace fakens --oidc-auth-issuer-url http://issuer.example.com",
 			extauthpb.OAuth{
 				ClientId: "1",
 				ClientSecretRef: &core.ResourceRef{
