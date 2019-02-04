@@ -1,0 +1,212 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"path"
+	"path/filepath"
+	"sync"
+	"time"
+
+	"cloud.google.com/go/storage"
+	"github.com/ghodss/yaml"
+)
+
+const (
+	distBucket         = "gloo-ee-distribution"
+	distBucketReleases = "releases"
+	distBucketTags     = "tags"
+	indexFile          = "index.yaml"
+
+	objectDNE = "storage: object doesn't exist"
+)
+
+type distributionBucketClient struct {
+	ctx    context.Context
+	client *storage.Client
+}
+
+type distributionVersion struct {
+	Version string `json:"version"`
+	Id      string `json:"id"`
+}
+
+type distributionVersions struct {
+	Versions []distributionVersion `json:"versions"`
+}
+
+func newDistributionBucketClient() (*distributionBucketClient, error) {
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	distBucketCli := &distributionBucketClient{
+		client: client,
+		ctx:    ctx,
+	}
+	return distBucketCli, nil
+}
+
+func syncDataToBucket(db *distributionBucketClient) error {
+	if err := db.saveZipToBucket(); err != nil {
+		return err
+	}
+	if err := db.uploadDistributionFolder(); err != nil {
+		return err
+	}
+	if err := db.syncIndexFile(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *distributionBucketClient) saveZipToBucket() error {
+	tarFilePath, err := tarballFileName()
+	if err != nil {
+		return err
+	}
+	bkt := db.client.Bucket(distBucket)
+	obj := bkt.Object(path.Join(distBucketReleases, tarFilePath))
+	wr := obj.NewWriter(db.ctx)
+	err = writeDistributionTarball(wr)
+	if err != nil {
+		return err
+	}
+	// Explicit non-deferred close to ensure object exists
+	wr.Close()
+	// Make zip file accessible to everyone with the link/public internet
+	if err := obj.ACL().Set(db.ctx, storage.AllUsers, storage.RoleReader); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *distributionBucketClient) uploadDistributionFolder() error {
+	files, err := ioutil.ReadDir(distributionDir)
+	if err != nil {
+		return err
+	}
+
+	wg := &sync.WaitGroup{}
+
+	bkt := db.client.Bucket(distBucket)
+	errch := make(chan error)
+
+	for _, file := range files {
+		if !file.IsDir() {
+			wg.Add(1)
+			go func(file os.FileInfo, wg *sync.WaitGroup) {
+				defer wg.Done()
+				logger.Infof("syncing file: (%s)", file.Name())
+				r, err := os.Open(filepath.Join(distributionDir, file.Name()))
+				if err != nil {
+					errch <- err
+					return
+				}
+				obj := bkt.Object(path.Join(distBucketTags, version, file.Name()))
+				wr := obj.NewWriter(db.ctx)
+				defer wr.Close()
+				_, err = io.Copy(wr, r)
+				if err != nil {
+					errch <- err
+					return
+				}
+				logger.Infof("finished syncing file: (%s)", file.Name())
+			}(file, wg)
+		}
+	}
+
+	go func(wg *sync.WaitGroup, errch chan error) {
+		wg.Wait()
+		close(errch)
+	}(wg, errch)
+
+	select {
+	case err := <-errch:
+		if err != nil {
+			return err
+		}
+	case <-time.After(10 * time.Minute):
+		return fmt.Errorf("go routine timed out after 10 minutes")
+	}
+	return nil
+}
+
+func (db *distributionBucketClient) syncIndexFile() error {
+	logger.Info("reading index.yaml file with version map")
+	bkt := db.client.Bucket(distBucket)
+	obj := bkt.Object(indexFile)
+
+	_, err := obj.Attrs(db.ctx)
+	if err != nil {
+		if err.Error() == objectDNE {
+			if err := db.createIndexFile(); err != nil {
+				return err
+			}
+		}
+	} else {
+		if err := db.updateIndexFile(obj); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (db *distributionBucketClient) createIndexFile() error {
+	logger.Info("creating index.yaml file")
+	bkt := db.client.Bucket(distBucket)
+	obj := bkt.Object(indexFile)
+	versions := distributionVersions{
+		Versions: []distributionVersion{},
+	}
+	w := obj.NewWriter(db.ctx)
+	if err := db.writeIndexFile(versions, w); err != nil {
+		return err
+	}
+	logger.Info("finished creating index.yaml file")
+	return nil
+}
+
+func (db *distributionBucketClient) writeIndexFile(versions distributionVersions, w *storage.Writer) error {
+	newVersion := distributionVersion{
+		Id:      id.String(),
+		Version: version,
+	}
+	versions.Versions = append(versions.Versions, newVersion)
+
+	outByt, err := yaml.Marshal(versions)
+	if err != nil {
+		return err
+	}
+
+	defer w.Close()
+	if _, err = io.WriteString(w, string(outByt)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *distributionBucketClient) updateIndexFile(obj *storage.ObjectHandle) error {
+	r, err := obj.NewReader(db.ctx)
+	if err != nil {
+		return err
+	}
+	byt, err := ioutil.ReadAll(r)
+
+	var versions distributionVersions
+	err = yaml.Unmarshal(byt, &versions)
+	if err != nil {
+		return err
+	}
+
+	w := obj.NewWriter(db.ctx)
+	if err := db.writeIndexFile(versions, w); err != nil {
+		return err
+	}
+	logger.Infof("finsihed updating index.yaml file with new version: (%s)", version)
+	return nil
+}

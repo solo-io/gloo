@@ -2,12 +2,16 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"go.uber.org/zap"
+
+	"github.com/google/uuid"
 
 	"github.com/ghodss/yaml"
 	v1 "k8s.io/api/apps/v1"
@@ -25,14 +29,31 @@ const (
 	glooctl      = "glooctl"
 	tgzExt       = ".tgz"
 	tarExt       = ".tar"
+
+	googleEnv = "GOOGLE_APPLICATION_CREDENTIALS"
 )
 
 var (
 	version         string
 	distributionDir string
+	id              uuid.UUID
+
+	logger *zap.SugaredLogger
+
+	projectId = os.ExpandEnv("PROJECT_ID")
 )
 
+func init() {
+	devLogger, err := zap.NewDevelopment()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	logger = devLogger.Sugar()
+}
+
 func main() {
+	defer logger.Sync()
 	if len(os.Args) < 2 {
 		panic("Must provide version as argument")
 	} else {
@@ -40,33 +61,53 @@ func main() {
 		distributionDir = filepath.Join(distribution, version)
 	}
 	if err := prepareWorkspace(); err != nil {
-		log.Fatal(err)
+		logger.Fatal(err.Error())
 	}
+
+	if err := prepareFiles(); err != nil {
+		logger.Fatal(err.Error())
+	}
+
+	if os.Getenv(googleEnv) == "" {
+		if err := localDistributionTarball(); err != nil {
+			logger.Fatal(err.Error())
+		}
+		logger.Fatal("google cloud credentials were not present, therefore exiting")
+	}
+
+	distBucketCli, err := newDistributionBucketClient()
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+
+	if err := syncDataToBucket(distBucketCli); err != nil {
+		logger.Fatal(err.Error())
+	}
+
+}
+
+func prepareFiles() error {
 	specs, err := readManifestIntoParts()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	deployments, err := extractContainerImagesFromSpecs(specs)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	if err := saveImages(deployments); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	if err := copyManifest(); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	if err := copyBinaries(); err != nil {
-		log.Fatal(err)
+		return err
 	}
-
-	if err := createDistributionTarball(); err != nil {
-		log.Fatal(err)
-	}
-
+	return nil
 }
 
 func prepareWorkspace() error {
@@ -124,7 +165,7 @@ func saveImages(deployments []v1.Deployment) error {
 			if err != nil {
 				return err
 			}
-			log.Printf("Successfully saved image: (%s)", image.Image)
+			logger.Infof("Successfully saved image: (%s)", image.Image)
 		}
 	}
 
@@ -144,7 +185,7 @@ func copyManifest() error {
 	if err := copyFile(manifest, destinationManifest); err != nil {
 		return err
 	}
-	log.Print("Successfully copied local manifest to distribution directory")
+	logger.Infof("Successfully copied local manifest to distribution directory")
 	return nil
 }
 
@@ -160,29 +201,56 @@ func copyBinaries() error {
 			if err := copyFile(source, dest); err != nil {
 				return err
 			}
-			log.Printf("Successfully copied binary: (%s) to distribution directory", file.Name())
+			logger.Infof("Successfully copied binary: (%s) to distribution directory", file.Name())
 		}
 	}
 	return nil
 }
 
-func createDistributionTarball() error {
-	tarFile := fmt.Sprintf("%s%s%s", glooe, version, tgzExt)
-	tarFilepath := filepath.Join(tarDir, tarFile)
+func tarballFileName() (string, error) {
+	var err error
+	id, err = uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
 
-	file, err := os.Create(tarFilepath)
+	tarFile := fmt.Sprintf("%s%s%s", glooe, version, tgzExt)
+	tarFilepath := filepath.Join(id.String(), tarFile)
+	return tarFilepath, nil
+}
+
+func localDistributionTarball() error {
+	tarFilepath, err := tarballFileName()
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(filepath.Join(tarDir, id.String()), 0755)
+	if err != nil {
+		return err
+	}
+	file, err := os.Create(filepath.Join(tarDir, tarFilepath))
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	log.Printf("creating tar.gz file: (%s)", tarFilepath)
+	if err := writeDistributionTarball(file); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func writeDistributionTarball(wr io.Writer) error {
 	cmd := exec.Command("tar", "-C", distribution, "-cz", ".")
 	cmd.Stderr = os.Stderr
-	cmd.Stdout = file
+
+	cmd.Stdout = wr
+
+	logger.Infof("creating tar.gz file")
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	fmt.Printf("successfully created tar.gz file: (%s)", tarFile)
+	logger.Info("successfully created tar.gz file")
 	return nil
 }

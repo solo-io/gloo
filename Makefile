@@ -360,5 +360,5 @@ DISTRIBUTION_DIR=install/distribution
 
 distribution:
 ifeq ($(RELEASE),"true")
-	go run $(DISTRIBUTION_DIR)/main.go $(VERSION)
+	go run $(ROOTDIR)/$(DISTRIBUTION_DIR) $(VERSION)
 endif

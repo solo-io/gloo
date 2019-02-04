@@ -21,3 +21,6 @@ projects/gloo/doc/site/
 # Spurious files
 .DS_Store
 .vendor-new/
+
+# test-build files
+test-build.yaml
