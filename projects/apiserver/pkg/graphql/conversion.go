@@ -637,21 +637,23 @@ func convertInputSSLConfig(ssl *InputSslConfig) *v1.SslConfig {
 	}
 }
 
-func applyInputRateLimitSpec(in *InputRateLimit, out *ratelimitapi.IngressRateLimit, authorized bool) error {
-	if in == nil {
-		return nil
-	}
+func updateInputRateLimitSpec(in *InputRateLimit, out *ratelimitapi.IngressRateLimit, authorized bool) error {
 	if out == nil {
 		// Must not pass a nil pointer
 		fmt.Errorf("Unable to create rate limit specification.")
 	}
-	unit, err := convertGQLTimeUnitEnum(in.Unit)
-	if err != nil {
-		return err
-	}
-	rl := &ratelimitapi.RateLimit{
-		Unit:            unit,
-		RequestsPerUnit: uint32(in.RequestsPerUnit),
+	rl := &ratelimitapi.RateLimit{}
+	if in == nil {
+		rl = nil
+	} else {
+		unit, err := convertGQLTimeUnitEnum(in.Unit)
+		if err != nil {
+			return err
+		}
+		rl = &ratelimitapi.RateLimit{
+			Unit:            unit,
+			RequestsPerUnit: uint32(in.RequestsPerUnit),
+		}
 	}
 	if authorized {
 		out.AuthorizedLimits = rl
@@ -667,10 +669,10 @@ func convertInputRateLimitToProto(inputConfig *InputRateLimitConfig) (*ratelimit
 	}
 	rlProto := &ratelimitapi.IngressRateLimit{}
 
-	if err := applyInputRateLimitSpec(inputConfig.AuthorizedLimits, rlProto, true); err != nil {
+	if err := updateInputRateLimitSpec(inputConfig.AuthorizedLimits, rlProto, true); err != nil {
 		return nil, err
 	}
-	if err := applyInputRateLimitSpec(inputConfig.AnonymousLimits, rlProto, false); err != nil {
+	if err := updateInputRateLimitSpec(inputConfig.AnonymousLimits, rlProto, false); err != nil {
 		return nil, err
 	}
 	return rlProto, nil
@@ -966,29 +968,33 @@ func convertOutputRateLimitConfig(plugins *v1.VirtualHostPlugins) (*RateLimitCon
 		return nil, errors.Wrapf(err, "failed to unmarshal proto message to %v plugin", ratelimit.ExtensionName)
 	}
 
-	// We assume that the configuration we read in is correct, validation is done on write
 	result := &RateLimitConfig{}
-	if rateLimit.AuthorizedLimits != nil {
-		authUnit, err := convertProtoTimeUnitEnum(rateLimit.AuthorizedLimits.Unit)
-		if err != nil {
-			return nil, err
-		}
-		result.AuthorizedLimits = &RateLimit{
-			Unit:            authUnit,
-			RequestsPerUnit: customtypes.UnsignedInt(rateLimit.AuthorizedLimits.RequestsPerUnit),
-		}
+	result.AuthorizedLimits, err = convertOutputRateLimit(rateLimit.AuthorizedLimits)
+	if err != nil {
+		return nil, err
 	}
-	if rateLimit.AnonymousLimits != nil {
-		anonUnit, err := convertProtoTimeUnitEnum(rateLimit.AnonymousLimits.Unit)
-		if err != nil {
-			return nil, err
-		}
-		result.AnonymousLimits = &RateLimit{
-			Unit:            anonUnit,
-			RequestsPerUnit: customtypes.UnsignedInt(rateLimit.AnonymousLimits.RequestsPerUnit),
-		}
+	result.AnonymousLimits, err = convertOutputRateLimit(rateLimit.AnonymousLimits)
+	if err != nil {
+		return nil, err
 	}
 	return result, nil
+}
+
+func convertOutputRateLimit(proto *ratelimitapi.RateLimit) (*RateLimit, error) {
+	// If the proto representation is nil, we have nothing to do
+	// RateLimit_UNKNOWN is the "zero value" for initialized RateLimits.
+	// If present here, it indicates an inactive rate limit
+	if proto == nil || proto.Unit == ratelimitapi.RateLimit_UNKNOWN {
+		return nil, nil
+	}
+	authUnit, err := convertProtoTimeUnitEnum(proto.Unit)
+	if err != nil {
+		return nil, err
+	}
+	return &RateLimit{
+		Unit:            authUnit,
+		RequestsPerUnit: customtypes.UnsignedInt(proto.RequestsPerUnit),
+	}, nil
 }
 
 func convertProtoTimeUnitEnum(protoEnum ratelimitapi.RateLimit_Unit) (TimeUnit, error) {

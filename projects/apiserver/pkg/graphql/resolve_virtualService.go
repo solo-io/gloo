@@ -116,10 +116,10 @@ func applyRateLimitConfigUpdate(in *models.InputRateLimitConfig, out *v1.Virtual
 		return errors.Wrapf(err, "failed to unmarshal proto message to %v plugin", ratelimit.ExtensionName)
 	}
 
-	if err := applyInputRateLimitSpec(in.AuthorizedLimits, currentRlc, true); err != nil {
+	if err := updateInputRateLimitSpec(in.AuthorizedLimits, currentRlc, true); err != nil {
 		return err
 	}
-	if err := applyInputRateLimitSpec(in.AnonymousLimits, currentRlc, false); err != nil {
+	if err := updateInputRateLimitSpec(in.AnonymousLimits, currentRlc, false); err != nil {
 		return err
 	}
 	rlStruct, err := util.MessageToStruct(currentRlc)
