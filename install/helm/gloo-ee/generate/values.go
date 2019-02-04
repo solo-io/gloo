@@ -11,6 +11,7 @@ type Config struct {
 	Rbac          *Rbac            `json:"rbac"`
 	Grafana       interface{}      `json:"grafana,omitempty"`
 	Prometheus    interface{}      `json:"prometheus,omitempty"`
+	ExtAuth       *ExtAuth         `json:"extAuth,omitempty"`
 }
 
 // Common
@@ -100,4 +101,29 @@ type Observability struct {
 type ObservabilityDeployment struct {
 	Image *generate.Image `json:"image,omitempty"`
 	*generate.DeploymentSpec
+}
+
+type ExtAuth struct {
+	UserIdHeader string             `json:"userIdHeader,omitempty"`
+	Deployment   *ExtAuthDeployment `json:"deployment,omitempty"`
+	Service      *ExtAuthService    `json:"service,omitempty"`
+	SigningKey   *ExtAuthSigningKey `json:"signingKey,omitempty"`
+}
+
+type ExtAuthDeployment struct {
+	Name        string          `json:"name"`
+	GlooAddress string          `json:"glooAddress"`
+	Port        string          `json:"port"`
+	Image       *generate.Image `json:"image,omitempty"`
+	*generate.DeploymentSpec
+}
+
+type ExtAuthService struct {
+	Port string `json:"port"`
+	Name string `json:"name"`
+}
+
+type ExtAuthSigningKey struct {
+	Name       string `json:"name"`
+	SigningKey string `json:"signing-key"`
 }

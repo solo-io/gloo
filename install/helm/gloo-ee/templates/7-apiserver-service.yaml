@@ -7,12 +7,13 @@ metadata:
     gloo: {{ .Values.apiServer.service.name }}
 spec:
   ports:
-    - port: {{.Values.apiServer.deployment.ui.staticPort}}
+    - name: static
+{{- if .Values.apiServer.noAuth }}
+      port: {{.Values.apiServer.deployment.ui.staticPortNoAuth}}
+{{- else }}
+      port: {{.Values.apiServer.deployment.ui.staticPort}}
+{{- end}}
       protocol: TCP
-      name: static
-    - port: {{.Values.apiServer.deployment.server.graphqlPort}}
-      protocol: TCP
-      name: graphql
   selector:
     gloo: {{ .Values.apiServer.service.name }}
   type: NodePort

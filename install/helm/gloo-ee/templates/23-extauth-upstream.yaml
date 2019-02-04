@@ -1,0 +1,14 @@
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  labels:
+    app: gloo
+    gloo: {{ .Values.extAuth.service.name }}
+  name: {{ .Values.extAuth.service.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  upstreamSpec:
+    kube:
+      serviceName: {{ .Values.extAuth.service.name }}
+      serviceNamespace: {{ .Release.Namespace }}
+      servicePort:  {{ .Values.extAuth.service.port }}

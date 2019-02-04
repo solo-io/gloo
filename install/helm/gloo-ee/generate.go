@@ -97,14 +97,17 @@ func generateValuesYaml(version, pullPolicy, outputFile string) error {
 	config.RateLimit.Deployment.Image.Tag = version
 	config.Observability.Deployment.Image.Tag = version
 	config.ApiServer.Deployment.Server.Image.Tag = version
+	config.ExtAuth.Deployment.Image.Tag = version
 	// Do not set image tag equal to the rest because it is separately versioned
 	config.ApiServer.Deployment.Ui.Image.Tag = glooiVersion
+
 	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.GatewayProxy.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.IngressProxy.Deployment.Image.PullPolicy = pullPolicy
 	config.RateLimit.Deployment.Image.PullPolicy = pullPolicy
 	config.Observability.Deployment.Image.PullPolicy = pullPolicy
 	config.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
+	config.ExtAuth.Deployment.Image.PullPolicy = pullPolicy
 
 	return writeYaml(&config, outputFile)
 }

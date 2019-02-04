@@ -10,7 +10,7 @@ import (
 )
 
 func GetYesInput(msg string) (bool, error) {
-	var yesAnswer string
+	yesAnswer := "no"
 
 	if err := GetStringInputDefault(
 		msg,
@@ -19,7 +19,7 @@ func GetYesInput(msg string) (bool, error) {
 	); err != nil {
 		return false, err
 	}
-	return strings.ToLower(yesAnswer) != "y", nil
+	return strings.HasPrefix("yes", strings.ToLower(yesAnswer)), nil
 }
 
 func GetStringInput(msg string, value *string) error {

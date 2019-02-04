@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo
+    gloo: {{ .Values.extAuth.deployment.name }}
+  name: {{ .Values.extAuth.deployment.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      gloo: {{ .Values.extAuth.deployment.name }}
+  template:
+    metadata:
+      labels:
+        gloo: {{ .Values.extAuth.deployment.name }}
+    spec:
+      containers:
+        - image: "{{ .Values.extAuth.deployment.image.repository }}:{{ .Values.extAuth.deployment.image.tag }}"
+          imagePullPolicy: {{ .Values.extAuth.deployment.image.pullPolicy }}
+          name: {{ .Values.extAuth.deployment.name }}
+          env:
+            - name: GLOO_ADDRESS
+  {{- if .Values.extAuth.deployment.glooAddress }}
+              value: {{ .Values.extAuth.deployment.glooAddress }}
+  {{- else }}
+              value: gloo:{{ .Values.gloo.gloo.deployment.xdsPort }}
+  {{- end }}
+            - name: SIGNING_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.extAuth.signingKey.name }}
+                  key: signing-key
+            {{- if .Values.extAuth.deployment.debugPort }}
+            - name: DEBUG_PORT
+              value: {{ .Values.extAuth.deployment.debugPort  | quote }}
+            {{- end }}
+            {{- if .Values.extAuth.deployment.port }}
+            - name: SERVER_PORT
+              value: {{ .Values.extAuth.deployment.port  | quote }}
+            {{- end }}
+            {{- if .Values.extAuth.userIdHeader }}
+            - name: USER_ID_HEADER
+              value: {{ .Values.extAuth.userIdHeader  | quote }}
+            {{- end }}
+      imagePullSecrets:
+        - name: solo-io-docker-secret

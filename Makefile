@@ -164,6 +164,27 @@ rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile
 
 
 #----------------------------------------------------------------------------------
+# ExtAuth
+#----------------------------------------------------------------------------------
+
+EXTAUTH_DIR=projects/extauth
+EXTAUTH_SOURCES=$(shell find $(EXTAUTH_DIR) -name "*.go" | grep -v test | grep -v generated.go)
+
+$(OUTPUT_DIR)/extauth-linux-amd64: $(EXTAUTH_SOURCES)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -o $@ $(EXTAUTH_DIR)/cmd/main.go
+
+.PHONY: extauth
+extauth: $(OUTPUT_DIR)/extauth-linux-amd64
+
+$(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
+	cp $< $@
+
+extauth-docker: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
+	docker build -t soloio/extauth-ee:$(VERSION) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
+
+
+
+#----------------------------------------------------------------------------------
 # Observability
 #----------------------------------------------------------------------------------
 
@@ -259,6 +280,7 @@ HELM_DIR := install/helm
 manifest: helm-template init-helm install/gloo-ee.yaml install/distribution/glooe.yaml update-helm-chart
 
 # creates Chart.yaml, values.yaml, and requirements.yaml
+.PHONY: helm-template
 helm-template:
 	go run install/helm/gloo-ee/generate.go $(VERSION)
 
@@ -269,10 +291,10 @@ ifeq ($(RELEASE),"true")
 	helm repo index $(HELM_SYNC_DIR)
 endif
 
-install/gloo-ee.yaml:
+install/gloo-ee.yaml: helm-template
 	helm template install/helm/gloo-ee --namespace gloo-system --name=gloo-ee > $@
 
-install/distribution/glooe.yaml:
+install/distribution/glooe.yaml: helm-template
 	helm template install/helm/gloo-ee -f install/distribution/values.yaml --namespace gloo-system --name=gloo-ee > $@
 
 init-helm:
@@ -335,7 +357,7 @@ ifeq ($(RELEASE),"true")
 endif
 
 .PHONY: docker docker-push
-docker: apiserver-docker rate-limit-docker gloo-docker gloo-ee-envoy-wrapper-docker sqoop-docker observability-docker
+docker: apiserver-docker rate-limit-docker extauth-docker gloo-docker gloo-ee-envoy-wrapper-docker sqoop-docker observability-docker
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
 # This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`

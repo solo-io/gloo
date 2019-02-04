@@ -6,7 +6,7 @@ import (
 
 type Settings struct {
 	GlooAddress  string `envconfig:"GLOO_ADDRESS" default:"control-plane:8080"`
-	SigningKey   string `envconfig:"SIGNING_KEY_ADDRESS" default:""`
+	SigningKey   string `envconfig:"SIGNING_KEY" default:""`
 	DebugPort    int    `envconfig:"DEBUG_PORT" default:9091`
 	ServerPort   int    `envconfig:"SERVER_PORT" default:8080`
 	UserIdHeader string `envconfig:"USER_ID_HEADER" default:""`

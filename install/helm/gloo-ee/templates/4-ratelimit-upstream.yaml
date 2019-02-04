@@ -1,0 +1,14 @@
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  labels:
+    app: gloo
+    gloo: {{ .Values.rateLimit.service.name }}
+  name: {{ .Values.rateLimit.service.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  upstreamSpec:
+    kube:
+      serviceName: {{ .Values.rateLimit.service.name }}
+      serviceNamespace: {{ .Release.Namespace }}
+      servicePort:  {{ .Values.rateLimit.service.port }}

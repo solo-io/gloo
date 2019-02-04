@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
+	"github.com/solo-io/gloo/pkg/cliutil/testutil"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	pluginutils "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -19,20 +20,24 @@ var _ = Describe("Virtualservice", func() {
 		helpers.UseMemoryClients()
 	})
 
+	getOIDCConfig := func() *extauthpb.OAuth {
+
+		vs, err := helpers.MustVirtualServiceClient().Read("gloo-system", "vs1", clients.ReadOpts{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(vs.Metadata.Name).To(Equal("vs1"))
+
+		var extension extauthpb.VhostExtension
+		err = pluginutils.UnmarshalExtension(vs.GetVirtualHost().GetVirtualHostPlugins(), extauth.ExtensionName, &extension)
+		Expect(err).NotTo(HaveOccurred())
+
+		return extension.AuthConfig.(*extauthpb.VhostExtension_Oauth).Oauth
+	}
+
 	DescribeTable("should create vhost",
 		func(cmd string, expected extauthpb.OAuth) {
 			err := testutils.GlooctlEE(cmd)
 			Expect(err).NotTo(HaveOccurred())
-
-			vs, err := helpers.MustVirtualServiceClient().Read("gloo-system", "vs1", clients.ReadOpts{})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(vs.Metadata.Name).To(Equal("vs1"))
-
-			var extension extauthpb.VhostExtension
-			err = pluginutils.UnmarshalExtension(vs.GetVirtualHost().GetVirtualHostPlugins(), extauth.ExtensionName, &extension)
-			Expect(err).NotTo(HaveOccurred())
-
-			oidc := extension.AuthConfig.(*extauthpb.VhostExtension_Oauth).Oauth
+			oidc := getOIDCConfig()
 			Expect(*oidc).To(Equal(expected))
 		},
 		Entry("with oid config", "create vs --name vs1 --enable-oidc-auth --oidc-auth-client-id "+
@@ -63,4 +68,76 @@ var _ = Describe("Virtualservice", func() {
 				AppUrl:       "http://app.example.com",
 			}),
 	)
+
+	Context("Interactive tests", func() {
+
+		It("should create vs with no rate limits and auth", func() {
+			testutil.ExpectInteractive(func(c *testutil.Console) {
+				c.ExpectString("Add another domain for this virtual service")
+				c.SendLine("")
+				c.ExpectString("do you wish to add rate limiting to the virtual service")
+				c.SendLine("n")
+				c.ExpectString("do you wish to add oidc auth to the virtual service")
+				c.SendLine("n")
+				c.ExpectString("name of the resource:")
+				c.SendLine("default")
+				c.ExpectString("namespace of the resource:")
+				c.SendLine("default")
+				c.ExpectEOF()
+			}, func() {
+				err := testutils.GlooctlEE("create vs -i")
+				Expect(err).NotTo(HaveOccurred())
+				_, err = helpers.MustVirtualServiceClient().Read("default", "default", clients.ReadOpts{})
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+		It("should create vs with auth", func() {
+			testutil.ExpectInteractive(func(c *testutil.Console) {
+				c.ExpectString("Add another domain for this virtual service")
+				c.SendLine("")
+				c.ExpectString("do you wish to add rate limiting to the virtual service")
+				c.SendLine("n")
+				c.ExpectString("do you wish to add oidc auth to the virtual service")
+				c.SendLine("y")
+				c.ExpectString("What is your app url?")
+				c.SendLine("http://app.example.com")
+				c.ExpectString("What is your issuer url?")
+				c.SendLine("https://accounts.google.com")
+				c.ExpectString("What path (relative to your app url) should we use as a callback from the issuer?")
+				c.SendLine("/auth-callback")
+				c.ExpectString("What is your client id?")
+				c.SendLine("me")
+				c.ExpectString("What is your client secret name?")
+				c.SendLine("secret-name")
+				c.ExpectString("What is your client secret namespace?")
+				c.SendLine("gloo-system")
+
+				c.ExpectString("name of the resource:")
+				c.SendLine("vs1")
+				c.ExpectString("namespace of the resource:")
+				c.SendLine("gloo-system")
+				c.ExpectEOF()
+			}, func() {
+				err := testutils.GlooctlEE("create vs -i")
+				Expect(err).NotTo(HaveOccurred())
+
+				oidc := getOIDCConfig()
+				expected := extauthpb.OAuth{
+					ClientId: "me",
+					ClientSecretRef: &core.ResourceRef{
+						Name:      "secret-name",
+						Namespace: "gloo-system",
+					},
+					CallbackPath: "/auth-callback",
+					IssuerUrl:    "https://accounts.google.com",
+					AppUrl:       "http://app.example.com",
+				}
+				Expect(*oidc).To(Equal(expected))
+
+			})
+		})
+
+	})
+
 })
