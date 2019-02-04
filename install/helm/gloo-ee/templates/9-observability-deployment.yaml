@@ -24,12 +24,12 @@ spec:
             - name: GRAFANA_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "grafana.fullname" . }}-grafana
+                  name: {{.Release.Name}}-grafana
                   key: admin-user
             - name: GRAFANA_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "grafana.fullname" . }}-grafana
+                  name: {{.Release.Name}}-grafana
                   key: admin-password
       imagePullSecrets:
         - name: solo-io-docker-secret

@@ -5,5 +5,4 @@ Chart.yaml
 values.yaml
 requirements.yaml
 
-gloo-ee.yaml
-glooe.yaml
+glooe-*.yaml

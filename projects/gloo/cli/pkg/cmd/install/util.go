@@ -14,7 +14,7 @@ import (
 const (
 	owner    = "solo-io"
 	repo     = "solo-projects"
-	yamlName = "gloo-ee.yaml"
+	yamlName = "glooe-release.yaml"
 )
 
 func setupGithubClient() (*github.Client, error) {

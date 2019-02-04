@@ -20,8 +20,8 @@ import (
 
 const (
 	glooe        = "glooe"
-	glooeYaml    = glooe + ".yaml"
-	manifest     = "install/distribution/" + glooeYaml
+	glooeYaml    = glooe + "-distribution.yaml"
+	manifest     = "install/manifest/" + glooeYaml
 	output       = "_output"
 	distribution = output + "/distribution"
 	tarDir       = output + "/distribution_tar"

@@ -275,13 +275,15 @@ gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/
 
 HELM_SYNC_DIR := $(OUTPUT_DIR)/helm
 HELM_DIR := install/helm
+MANIFEST_DIR := install/manifest
 
 .PHONY: manifest
-manifest: helm-template init-helm install/gloo-ee.yaml install/distribution/glooe.yaml update-helm-chart
+manifest: helm-template init-helm install/manifest/glooe-release.yaml install/manifest/glooe-distribution.yaml update-helm-chart
 
 # creates Chart.yaml, values.yaml, and requirements.yaml
 .PHONY: helm-template
 helm-template:
+	mkdir -p $(MANIFEST_DIR)
 	go run install/helm/gloo-ee/generate.go $(VERSION)
 
 update-helm-chart:
@@ -291,11 +293,11 @@ ifeq ($(RELEASE),"true")
 	helm repo index $(HELM_SYNC_DIR)
 endif
 
-install/gloo-ee.yaml: helm-template
-	helm template install/helm/gloo-ee --namespace gloo-system --name=gloo-ee > $@
+install/manifest/glooe-release.yaml: helm-template
+	helm template install/helm/gloo-ee --namespace gloo-system --name=glooe > $@
 
-install/distribution/glooe.yaml: helm-template
-	helm template install/helm/gloo-ee -f install/distribution/values.yaml --namespace gloo-system --name=gloo-ee > $@
+install/manifest/glooe-distribution.yaml: helm-template
+	helm template install/helm/gloo-ee -f install/distribution/values.yaml --namespace gloo-system --name=glooe > $@
 
 init-helm:
 	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
@@ -322,7 +324,7 @@ endif
 RELEASE_YAMLS :=
 ifeq ($(RELEASE),"true")
 	RELEASE_YAMLS := \
-		install/gloo-ee.yaml
+		install/manifest/glooe-release.yaml
 endif
 
 .PHONY: release-binaries
@@ -380,7 +382,9 @@ endif
 
 DISTRIBUTION_DIR=install/distribution
 
-distribution:
+
+.PHONY: distribution
+distribution: install/manifest/glooe-distribution.yaml
 ifeq ($(RELEASE),"true")
 	go run $(ROOTDIR)/$(DISTRIBUTION_DIR) $(VERSION)
 endif
