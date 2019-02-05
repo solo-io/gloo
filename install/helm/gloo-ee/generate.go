@@ -30,7 +30,7 @@ const (
 	neverPull    = "Never"
 	alwaysPull   = "Always"
 
-	glooiVersion = "0.0.11"
+	glooiVersion = "0.0.13"
 )
 
 func main() {

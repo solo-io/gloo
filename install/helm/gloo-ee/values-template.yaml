@@ -380,7 +380,7 @@ grafana:
         # <string, required> datasource type. Required
         type: prometheus
         access: proxy
-        url: http://gloo-ee-prometheus-server:80
+        url: http://glooe-prometheus-server:80
         isDefault: true
   dashboardProviders:
     dashboardproviders.yaml:
@@ -395,8 +395,8 @@ grafana:
         options:
           path: /var/lib/grafana/dashboards/gloo
   dashboardsConfigMaps:
-    gloo: gloo-ee-grafana-custom-dashboards
+    gloo: glooe-grafana-custom-dashboards
   grafana.ini:
     server:
-      domain: gloo-ee-grafana
+      domain: glooe-grafana
       root_url: "%(protocol)s://%(domain)s/grafana/"

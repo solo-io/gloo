@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: gloo-ee-grafana-custom-dashboards
+  name: glooe-grafana-custom-dashboards
   labels:
     app: {{ template "grafana.name" . }}
     chart: {{ template "grafana.chart" . }}
