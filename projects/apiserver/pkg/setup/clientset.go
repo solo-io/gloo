@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"context"
 	"log"
 	"os"
 	"sync"
@@ -106,7 +107,7 @@ func NewClientSet(token string) (*ClientSet, error) {
 	}
 
 	// New shared cache
-	cache := kube.NewKubeCache()
+	cache := kube.NewKubeCache(context.TODO())
 
 	upstreamClient, err := gloov1.NewUpstreamClientWithToken(factoryFor(gloov1.UpstreamCrd, *cfg, cache), token)
 	if err != nil {
@@ -176,7 +177,7 @@ func NewChangesetClientSet(token string) (*ClientSet, error) {
 	changesetClient, err := vcsv1.NewChangeSetClientWithToken(&factory.KubeResourceClientFactory{
 		Crd:                vcsv1.ChangeSetCrd,
 		Cfg:                cfg,
-		SharedCache:        kube.NewKubeCache(),
+		SharedCache:        kube.NewKubeCache(context.TODO()),
 		SkipCrdCreation:    true,
 		NamespaceWhitelist: []string{defaults.GlooSystem},
 	}, token)
@@ -214,7 +215,7 @@ func NewTempClientSet(token string) (*ClientSet, error) {
 	}
 
 	// New shared cache
-	cache := kube.NewKubeCache()
+	cache := kube.NewKubeCache(context.TODO())
 
 	upstreamClient, err := gloov1.NewUpstreamClientWithToken(factoryFor(gloov1.UpstreamCrd, *cfg, cache), token)
 	if err != nil {
@@ -255,7 +256,7 @@ func NewTempClientSet(token string) (*ClientSet, error) {
 	changesetClient, err := vcsv1.NewChangeSetClientWithToken(&factory.KubeResourceClientFactory{
 		Crd:                vcsv1.ChangeSetCrd,
 		Cfg:                cfg,
-		SharedCache:        kube.NewKubeCache(),
+		SharedCache:        kube.NewKubeCache(context.TODO()),
 		SkipCrdCreation:    true,
 		NamespaceWhitelist: []string{defaults.GlooSystem},
 	}, token)
@@ -318,7 +319,7 @@ func newAdminClientSet() (*ClientSet, error) {
 	}
 
 	// New shared cache
-	cache := kube.NewKubeCache()
+	cache := kube.NewKubeCache(context.TODO())
 
 	upstreamClient, err := gloov1.NewUpstreamClient(factoryFor(gloov1.UpstreamCrd, *cfg, cache))
 	if err != nil {

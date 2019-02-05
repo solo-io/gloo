@@ -151,7 +151,7 @@ func KubeGatewayOpts() (gatewaysetup.Opts, error) {
 	if err != nil {
 		return gatewaysetup.Opts{}, err
 	}
-	cache := kube.NewKubeCache()
+	cache := kube.NewKubeCache(context.TODO())
 	ctx := contextutils.WithLogger(context.Background(), "gateway")
 	return gatewaysetup.Opts{
 		WriteNamespace: defaults.GlooSystem,
@@ -198,7 +198,7 @@ func KubeSqoopOpts() (sqoopsetup.Opts, error) {
 	if err != nil {
 		return sqoopsetup.Opts{}, err
 	}
-	cache := kube.NewKubeCache()
+	cache := kube.NewKubeCache(context.TODO())
 
 	ctx := contextutils.WithLogger(context.Background(), "sqoop")
 	return sqoopsetup.Opts{
@@ -253,7 +253,7 @@ func KubernetesConstructOpts() (gloov1.SettingsClient, bootstrap.Opts, error) {
 		return nil, bootstrap.Opts{}, err
 	}
 	ctx := contextutils.WithLogger(context.Background(), "gloo")
-	cache := kube.NewKubeCache()
+	cache := kube.NewKubeCache(context.TODO())
 
 	// TODO(ilackarms): pass in settings configuration from an environment variable or CLI flag, rather than hard-coding to k8s
 	settingsClient, err := gloov1.NewSettingsClient(&factory.KubeResourceClientFactory{

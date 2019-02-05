@@ -55,7 +55,7 @@ var _ = Describe("V1Emitter", func() {
 		changeSetClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         ChangeSetCrd,
 			Cfg:         cfg,
-			SharedCache: kuberc.NewKubeCache(),
+			SharedCache: kuberc.NewKubeCache(context.TODO()),
 		}
 		changeSetClient, err = NewChangeSetClient(changeSetClientFactory)
 		Expect(err).NotTo(HaveOccurred())

@@ -79,7 +79,7 @@ func buildChangeSetClients(config *rest.Config) (v1.ChangeSetClient, v1.ChangeSe
 	csClient1, err := v1.NewChangeSetClient(&factory.KubeResourceClientFactory{
 		Crd:         v1.ChangeSetCrd,
 		Cfg:         config,
-		SharedCache: kube.NewKubeCache(),
+		SharedCache: kube.NewKubeCache(context.TODO()),
 	})
 	if err != nil {
 		return nil, nil, err

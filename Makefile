@@ -76,7 +76,7 @@ $(OUTPUT_DIR)/.generated-code:
 #----------------------------------------------------------------------------------
 # helper for testing
 .PHONY: allprojects
-allprojects: apiserver gloo glooctl rate-limit sqoop
+allprojects: apiserver gloo glooctl extauth rate-limit sqoop
 
 #----------------------------------------------------------------------------------
 # glooctl

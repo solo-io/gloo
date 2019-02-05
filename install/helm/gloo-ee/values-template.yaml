@@ -5,6 +5,19 @@
 ########################################################################
 
 gloo:
+  settings:
+    create: true
+    extensions:
+      configs:
+        extauth:
+          extauthzServerRef:
+            name: extauth
+            namespace: gloo-system
+        rate-limit:
+          ratelimit_server_ref:
+            name: rate-limit
+            namespace: gloo-system
+
   gloo:
     deployment:
       image:

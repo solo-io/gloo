@@ -56,7 +56,7 @@ var _ = Describe("V1Emitter", func() {
 		resolverMapClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         ResolverMapCrd,
 			Cfg:         cfg,
-			SharedCache: kuberc.NewKubeCache(),
+			SharedCache: kuberc.NewKubeCache(context.TODO()),
 		}
 		resolverMapClient, err = NewResolverMapClient(resolverMapClientFactory)
 		Expect(err).NotTo(HaveOccurred())
@@ -64,7 +64,7 @@ var _ = Describe("V1Emitter", func() {
 		schemaClientFactory := &factory.KubeResourceClientFactory{
 			Crd:         SchemaCrd,
 			Cfg:         cfg,
-			SharedCache: kuberc.NewKubeCache(),
+			SharedCache: kuberc.NewKubeCache(context.TODO()),
 		}
 		schemaClient, err = NewSchemaClient(schemaClientFactory)
 		Expect(err).NotTo(HaveOccurred())

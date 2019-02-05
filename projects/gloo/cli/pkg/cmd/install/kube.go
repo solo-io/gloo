@@ -2,6 +2,7 @@ package install
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -41,6 +42,9 @@ func KubeCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.Com
 				return errors.Wrapf(err, "creating image pull secret")
 			}
 			if err := registerSettingsCrd(); err != nil {
+				return errors.Wrapf(err, "registering settings crd")
+			}
+			if err := registerUpstreamCrd(); err != nil {
 				return errors.Wrapf(err, "registering settings crd")
 			}
 			glooManifestBytes, err := readGlooManifest(opts)
@@ -93,10 +97,25 @@ func registerSettingsCrd() error {
 	settingsClient, err := gloov1.NewSettingsClient(&factory.KubeResourceClientFactory{
 		Crd:         gloov1.SettingsCrd,
 		Cfg:         cfg,
-		SharedCache: kube.NewKubeCache(),
+		SharedCache: kube.NewKubeCache(context.Background()),
 	})
 
 	return settingsClient.Register()
+}
+
+func registerUpstreamCrd() error {
+	cfg, err := kubeutils.GetConfig("", os.Getenv("KUBECONFIG"))
+	if err != nil {
+		return err
+	}
+
+	upstreamClient, err := gloov1.NewUpstreamClient(&factory.KubeResourceClientFactory{
+		Crd:         gloov1.UpstreamCrd,
+		Cfg:         cfg,
+		SharedCache: kube.NewKubeCache(context.Background()),
+	})
+
+	return upstreamClient.Register()
 }
 
 func createImagePullSecretIfNeeded(install options.Install, installExt optionsExt.InstallExtended) error {
