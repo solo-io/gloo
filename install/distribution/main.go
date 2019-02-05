@@ -14,29 +14,31 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/ghodss/yaml"
-	v1 "k8s.io/api/apps/v1"
+	"k8s.io/api/apps/v1"
 	"sigs.k8s.io/kind/pkg/docker"
 )
 
 const (
-	glooe        = "glooe"
-	glooeYaml    = glooe + "-distribution.yaml"
-	manifest     = "install/manifest/" + glooeYaml
-	output       = "_output"
-	distribution = output + "/distribution"
-	tarDir       = output + "/distribution_tar"
-	deployment   = "Deployment"
-	glooctl      = "glooctl"
-	tgzExt       = ".tgz"
-	tarExt       = ".tar"
+	glooe           = "glooe"
+	glooeYaml       = glooe + "-distribution.yaml"
+	manifest        = "install/manifest/" + glooeYaml
+	scriptsDir      = "install/distribution/scripts"
+	output          = "_output"
+	distribution    = output + "/distribution"
+	tarDir          = output + "/distribution_tar"
+	deployment      = "Deployment"
+	glooctl         = "glooctl"
+	tgzExt          = ".tgz"
+	tarExt          = ".tar"
+	setupScriptName = "setup"
 
 	googleEnv = "GOOGLE_APPLICATION_CREDENTIALS"
 )
 
 var (
-	version         string
-	distributionDir string
-	id              uuid.UUID
+	version               string
+	outputDistributionDir string
+	id                    uuid.UUID
 
 	logger *zap.SugaredLogger
 
@@ -58,7 +60,7 @@ func main() {
 		panic("Must provide version as argument")
 	} else {
 		version = os.Args[1]
-		distributionDir = filepath.Join(distribution, version)
+		outputDistributionDir = filepath.Join(distribution, version)
 	}
 	if err := prepareWorkspace(); err != nil {
 		logger.Fatal(err.Error())
@@ -107,11 +109,15 @@ func prepareFiles() error {
 	if err := copyBinaries(); err != nil {
 		return err
 	}
+
+	if err := copySetupScripts(); err != nil {
+		return err
+	}
 	return nil
 }
 
 func prepareWorkspace() error {
-	directories := []string{tarDir, distributionDir}
+	directories := []string{tarDir, outputDistributionDir}
 	for _, v := range directories {
 		if _, err := os.Stat(v); os.IsNotExist(err) {
 			err = os.MkdirAll(v, 0755)
@@ -148,7 +154,7 @@ func extractContainerImagesFromSpecs(specs []string) ([]v1.Deployment, error) {
 
 func savedImageName(imageName string) string {
 	splitImage := strings.Split(imageName, "/")
-	savedImage := filepath.Join(distributionDir, splitImage[len(splitImage)-1]) + tarExt
+	savedImage := filepath.Join(outputDistributionDir, splitImage[len(splitImage)-1]) + tarExt
 	return savedImage
 }
 
@@ -181,7 +187,7 @@ func copyFile(source, dest string) error {
 }
 
 func copyManifest() error {
-	destinationManifest := filepath.Join(distributionDir, glooeYaml)
+	destinationManifest := filepath.Join(outputDistributionDir, glooeYaml)
 	if err := copyFile(manifest, destinationManifest); err != nil {
 		return err
 	}
@@ -197,12 +203,26 @@ func copyBinaries() error {
 	for _, file := range info {
 		if strings.Contains(file.Name(), glooctl) {
 			source := filepath.Join(output, file.Name())
-			dest := filepath.Join(distributionDir, file.Name())
+			dest := filepath.Join(outputDistributionDir, file.Name())
 			if err := copyFile(source, dest); err != nil {
 				return err
 			}
 			logger.Infof("Successfully copied binary: (%s) to distribution directory", file.Name())
 		}
+	}
+	return nil
+}
+
+// Copy setup scripts from install/distribution/scripts to output/distribution
+func copySetupScripts() error {
+	for _, extension := range []string{"sh", "bat"} {
+		filename := strings.Join([]string{setupScriptName, extension}, ".")
+		source := filepath.Join(scriptsDir, filename)
+		dest := filepath.Join(outputDistributionDir, filename)
+		if err := copyFile(source, dest); err != nil {
+			return err
+		}
+		logger.Infof("Successfully copied setup script (%s) to distribution directory", filename)
 	}
 	return nil
 }

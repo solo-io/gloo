@@ -86,7 +86,7 @@ func (db *distributionBucketClient) saveZipToBucket() error {
 }
 
 func (db *distributionBucketClient) uploadDistributionFolder() error {
-	files, err := ioutil.ReadDir(distributionDir)
+	files, err := ioutil.ReadDir(outputDistributionDir)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (db *distributionBucketClient) uploadDistributionFolder() error {
 			go func(file os.FileInfo, wg *sync.WaitGroup) {
 				defer wg.Done()
 				logger.Infof("syncing file: (%s)", file.Name())
-				r, err := os.Open(filepath.Join(distributionDir, file.Name()))
+				r, err := os.Open(filepath.Join(outputDistributionDir, file.Name()))
 				if err != nil {
 					errch <- err
 					return
