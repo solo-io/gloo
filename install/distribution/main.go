@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/ghodss/yaml"
-	"k8s.io/api/apps/v1"
+	v1 "k8s.io/api/apps/v1"
 	"sigs.k8s.io/kind/pkg/docker"
 )
 
@@ -31,8 +31,6 @@ const (
 	tgzExt          = ".tgz"
 	tarExt          = ".tar"
 	setupScriptName = "setup"
-
-	googleEnv = "GOOGLE_APPLICATION_CREDENTIALS"
 )
 
 var (
@@ -46,12 +44,18 @@ var (
 )
 
 func init() {
+	var err error
 	devLogger, err := zap.NewDevelopment()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 	logger = devLogger.Sugar()
+	id, err = uuid.NewRandom()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
 func main() {
@@ -68,13 +72,6 @@ func main() {
 
 	if err := prepareFiles(); err != nil {
 		logger.Fatal(err.Error())
-	}
-
-	if os.Getenv(googleEnv) == "" {
-		if err := localDistributionTarball(); err != nil {
-			logger.Fatal(err.Error())
-		}
-		logger.Fatal("google cloud credentials were not present, therefore exiting")
 	}
 
 	distBucketCli, err := newDistributionBucketClient()
@@ -228,12 +225,6 @@ func copySetupScripts() error {
 }
 
 func tarballFileName() (string, error) {
-	var err error
-	id, err = uuid.NewRandom()
-	if err != nil {
-		return "", err
-	}
-
 	tarFile := fmt.Sprintf("%s%s%s", glooe, version, tgzExt)
 	tarFilepath := filepath.Join(id.String(), tarFile)
 	return tarFilepath, nil
