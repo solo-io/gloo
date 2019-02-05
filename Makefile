@@ -379,7 +379,8 @@ ifeq ($(RELEASE),"true")
 	docker push soloio/apiserver-ee:$(VERSION) && \
 	docker push soloio/gloo-ee:$(VERSION) && \
 	docker push soloio/gloo-ee-envoy-wrapper:$(VERSION) && \
-	docker push soloio/observability-ee:$(VERSION)
+	docker push soloio/observability-ee:$(VERSION) && \
+	docker push soloio/extauth-ee:$(VERSION)
 endif
 
 
