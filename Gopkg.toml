@@ -10,7 +10,7 @@
 # this must match the version of the gqlgen binary we depend on
 
 [[constraint]]
-  version = "0.7.1"
+  version = "0.7.2"
   name = "github.com/99designs/gqlgen"
 
 [[constraint]]
