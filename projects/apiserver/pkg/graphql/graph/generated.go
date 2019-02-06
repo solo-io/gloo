@@ -10716,20 +10716,67 @@ func UnmarshalInputGrpcDestinationSpec(v interface{}) (models.InputGrpcDestinati
 	return it, nil
 }
 
+func UnmarshalInputGrpcService(v interface{}) (models.InputGrpcService, error) {
+	var it models.InputGrpcService
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "packageName":
+			var err error
+			it.PackageName, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "serviceName":
+			var err error
+			it.ServiceName, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "functionNames":
+			var err error
+			var rawIf1 []interface{}
+			if v != nil {
+				if tmp1, ok := v.([]interface{}); ok {
+					rawIf1 = tmp1
+				} else {
+					rawIf1 = []interface{}{v}
+				}
+			}
+			it.FunctionNames = make([]string, len(rawIf1))
+			for idx1 := range rawIf1 {
+				it.FunctionNames[idx1], err = graphql.UnmarshalString(rawIf1[idx1])
+			}
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputGrpcServiceSpec(v interface{}) (models.InputGrpcServiceSpec, error) {
 	var it models.InputGrpcServiceSpec
 	var asMap = v.(map[string]interface{})
 
 	for k, v := range asMap {
 		switch k {
-		case "empty":
+		case "grpcServices":
 			var err error
-			var ptr1 string
+			var rawIf1 []interface{}
 			if v != nil {
-				ptr1, err = graphql.UnmarshalString(v)
-				it.Empty = &ptr1
+				if tmp1, ok := v.([]interface{}); ok {
+					rawIf1 = tmp1
+				} else {
+					rawIf1 = []interface{}{v}
+				}
 			}
-
+			it.GrpcServices = make([]models.InputGrpcService, len(rawIf1))
+			for idx1 := range rawIf1 {
+				it.GrpcServices[idx1], err = UnmarshalInputGrpcService(rawIf1[idx1])
+			}
 			if err != nil {
 				return it, err
 			}
@@ -12358,9 +12405,14 @@ input InputTransformation {
   headers: InputMapStringString
 }
 
-# Not implemented yet
 input InputGrpcServiceSpec {
-  empty: String
+  grpcServices: [InputGrpcService!]
+}
+
+input InputGrpcService {
+  packageName: String!
+  serviceName: String!
+  functionNames: [String!]
 }
 
 input InputMetadata {

@@ -157,9 +157,14 @@ input InputTransformation {
   headers: InputMapStringString
 }
 
-# Not implemented yet
 input InputGrpcServiceSpec {
-  empty: String
+  grpcServices: [InputGrpcService!]
+}
+
+input InputGrpcService {
+  packageName: String!
+  serviceName: String!
+  functionNames: [String!]
 }
 
 input InputMetadata {

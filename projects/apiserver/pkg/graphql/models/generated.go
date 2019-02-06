@@ -163,8 +163,14 @@ type InputGrpcDestinationSpec struct {
 	Function string `json:"function"`
 }
 
+type InputGrpcService struct {
+	PackageName   string   `json:"packageName"`
+	ServiceName   string   `json:"serviceName"`
+	FunctionNames []string `json:"functionNames"`
+}
+
 type InputGrpcServiceSpec struct {
-	Empty *string `json:"empty"`
+	GrpcServices []InputGrpcService `json:"grpcServices"`
 }
 
 type InputKeyValueMatcher struct {

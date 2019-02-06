@@ -186,7 +186,24 @@ func convertInputServiceSpec(spec *InputServiceSpec) (*plugins.ServiceSpec, erro
 				SwaggerInfo:     swaggerInfo,
 			},
 		}}, nil
+
+	case spec.Grpc != nil:
+		serviceArray := []*grpc.ServiceSpec_GrpcService{}
+		for _, grpcValue := range spec.Grpc.GrpcServices {
+			serviceArray = append(serviceArray, &grpc.ServiceSpec_GrpcService{
+				PackageName:   grpcValue.PackageName,
+				ServiceName:   grpcValue.ServiceName,
+				FunctionNames: grpcValue.FunctionNames,
+			})
+		}
+
+		return &plugins.ServiceSpec{PluginType: &plugins.ServiceSpec_Grpc{
+			Grpc: &grpc.ServiceSpec{
+				GrpcServices: serviceArray,
+			},
+		}}, nil
 	}
+
 	return nil, errors.Errorf("unsupported spec: %v", spec)
 }
 
