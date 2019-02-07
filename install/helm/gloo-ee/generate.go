@@ -29,6 +29,7 @@ const (
 	versionConst = "version"
 	neverPull    = "Never"
 	alwaysPull   = "Always"
+	ifNotPresent = "IfNotPresent"
 
 	glooiVersion = "0.0.13"
 )
@@ -123,7 +124,7 @@ func generateValuesYamls(version string) error {
 	}
 
 	// Generate values for distribution
-	if err := generateValuesYaml(version, neverPull, distributionOutput); err != nil {
+	if err := generateValuesYaml(version, ifNotPresent, distributionOutput); err != nil {
 		return err
 	}
 	return nil

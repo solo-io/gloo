@@ -389,10 +389,13 @@ endif
 #----------------------------------------------------------------------------------
 
 DISTRIBUTION_DIR=install/distribution
+DISTRIBUTION_OUTPUT=$(OUTPUT_DIR)/distribution
 
 
 .PHONY: distribution
-distribution: install/manifest/glooe-distribution.yaml
+distribution: $(DISTRIBUTION_OUTPUT)
+
+$(DISTRIBUTION_OUTPUT):
 ifeq ($(RELEASE),"true")
 	go run $(ROOTDIR)/$(DISTRIBUTION_DIR) $(VERSION)
 endif

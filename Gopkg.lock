@@ -2167,6 +2167,19 @@
   version = "kubernetes-1.13.0"
 
 [[projects]]
+  digest = "1:4567d409610c8b301a696b711c2f0e8d7989cd0221a89f544a154f3b1370aa91"
+  name = "k8s.io/helm"
+  packages = [
+    "pkg/manifest",
+    "pkg/proto/hapi/chart",
+    "pkg/proto/hapi/release",
+    "pkg/releaseutil",
+  ]
+  pruneopts = "UT"
+  revision = "eecf22f77df5f65c823aacd2dbd30ae6c65f186e"
+  version = "v2.12.3"
+
+[[projects]]
   digest = "1:e2999bf1bb6eddc2a6aa03fe5e6629120a53088926520ca3b4765f77d7ff7eab"
   name = "k8s.io/klog"
   packages = ["."]
@@ -2287,7 +2300,6 @@
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/remove",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/route",
-    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/upgrade",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/common",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/constants",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils",
@@ -2392,7 +2404,11 @@
     "k8s.io/client-go/plugin/pkg/client/auth",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/client-go/rest",
+    "k8s.io/client-go/util/homedir",
+    "k8s.io/helm/pkg/manifest",
+    "k8s.io/helm/pkg/releaseutil",
     "sigs.k8s.io/kind/pkg/docker",
+    "sigs.k8s.io/yaml",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -7,6 +7,9 @@ import (
 	"net/http"
 	"os"
 
+	"k8s.io/helm/pkg/manifest"
+	"k8s.io/helm/pkg/releaseutil"
+
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
@@ -86,4 +89,9 @@ func readManifest(version string) ([]byte, error) {
 		}
 	}
 	return data, nil
+}
+
+func parseYaml(bigFile []byte) []manifest.Manifest {
+	manifests := releaseutil.SplitManifests(string(bigFile))
+	return manifest.SplitManifests(manifests)
 }

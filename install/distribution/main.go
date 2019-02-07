@@ -25,7 +25,6 @@ const (
 	scriptsDir      = "install/distribution/scripts"
 	output          = "_output"
 	distribution    = output + "/distribution"
-	tarDir          = output + "/distribution_tar"
 	deployment      = "Deployment"
 	glooctl         = "glooctl"
 	tgzExt          = ".tgz"
@@ -114,7 +113,7 @@ func prepareFiles() error {
 }
 
 func prepareWorkspace() error {
-	directories := []string{tarDir, outputDistributionDir}
+	directories := []string{outputDistributionDir}
 	for _, v := range directories {
 		if _, err := os.Stat(v); os.IsNotExist(err) {
 			err = os.MkdirAll(v, 0755)
@@ -228,28 +227,6 @@ func tarballFileName() (string, error) {
 	tarFile := fmt.Sprintf("%s%s%s", glooe, version, tgzExt)
 	tarFilepath := filepath.Join(id.String(), tarFile)
 	return tarFilepath, nil
-}
-
-func localDistributionTarball() error {
-	tarFilepath, err := tarballFileName()
-	if err != nil {
-		return err
-	}
-	err = os.MkdirAll(filepath.Join(tarDir, id.String()), 0755)
-	if err != nil {
-		return err
-	}
-	file, err := os.Create(filepath.Join(tarDir, tarFilepath))
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	if err := writeDistributionTarball(file); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func writeDistributionTarball(wr io.Writer) error {
