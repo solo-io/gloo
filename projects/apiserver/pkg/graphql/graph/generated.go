@@ -102,6 +102,14 @@ type ComplexityRoot struct {
 		Functions       func(childComplexity int) int
 	}
 
+	BasicAuth struct {
+		Realm func(childComplexity int) int
+	}
+
+	ExtAuthConfig struct {
+		AuthType func(childComplexity int) int
+	}
+
 	GrpcDestinationSpec struct {
 		Package    func(childComplexity int) int
 		Service    func(childComplexity int) int
@@ -178,9 +186,21 @@ type ComplexityRoot struct {
 		Artifact        func(childComplexity int, name string) int
 	}
 
+	OauthConfig struct {
+		ClientId     func(childComplexity int) int
+		ClientSecret func(childComplexity int) int
+		IssuerUrl    func(childComplexity int) int
+		AppUrl       func(childComplexity int) int
+		CallbackPath func(childComplexity int) int
+	}
+
 	OauthEndpoint struct {
 		Url        func(childComplexity int) int
 		ClientName func(childComplexity int) int
+	}
+
+	OauthSecret struct {
+		ClientSecret func(childComplexity int) int
 	}
 
 	Query struct {
@@ -317,6 +337,7 @@ type ComplexityRoot struct {
 		Routes          func(childComplexity int) int
 		SslConfig       func(childComplexity int) int
 		RateLimitConfig func(childComplexity int) int
+		ExtAuthConfig   func(childComplexity int) int
 		Plugins         func(childComplexity int) int
 	}
 
@@ -1179,6 +1200,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AzureUpstreamSpec.Functions(childComplexity), true
 
+	case "BasicAuth.realm":
+		if e.complexity.BasicAuth.Realm == nil {
+			break
+		}
+
+		return e.complexity.BasicAuth.Realm(childComplexity), true
+
+	case "ExtAuthConfig.authType":
+		if e.complexity.ExtAuthConfig.AuthType == nil {
+			break
+		}
+
+		return e.complexity.ExtAuthConfig.AuthType(childComplexity), true
+
 	case "GrpcDestinationSpec.package":
 		if e.complexity.GrpcDestinationSpec.Package == nil {
 			break
@@ -1500,6 +1535,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Namespace.Artifact(childComplexity, args["name"].(string)), true
 
+	case "OAuthConfig.clientId":
+		if e.complexity.OauthConfig.ClientId == nil {
+			break
+		}
+
+		return e.complexity.OauthConfig.ClientId(childComplexity), true
+
+	case "OAuthConfig.clientSecret":
+		if e.complexity.OauthConfig.ClientSecret == nil {
+			break
+		}
+
+		return e.complexity.OauthConfig.ClientSecret(childComplexity), true
+
+	case "OAuthConfig.issuerUrl":
+		if e.complexity.OauthConfig.IssuerUrl == nil {
+			break
+		}
+
+		return e.complexity.OauthConfig.IssuerUrl(childComplexity), true
+
+	case "OAuthConfig.appUrl":
+		if e.complexity.OauthConfig.AppUrl == nil {
+			break
+		}
+
+		return e.complexity.OauthConfig.AppUrl(childComplexity), true
+
+	case "OAuthConfig.callbackPath":
+		if e.complexity.OauthConfig.CallbackPath == nil {
+			break
+		}
+
+		return e.complexity.OauthConfig.CallbackPath(childComplexity), true
+
 	case "OAuthEndpoint.url":
 		if e.complexity.OauthEndpoint.Url == nil {
 			break
@@ -1513,6 +1583,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OauthEndpoint.ClientName(childComplexity), true
+
+	case "OauthSecret.clientSecret":
+		if e.complexity.OauthSecret.ClientSecret == nil {
+			break
+		}
+
+		return e.complexity.OauthSecret.ClientSecret(childComplexity), true
 
 	case "Query.version":
 		if e.complexity.Query.Version == nil {
@@ -1990,6 +2067,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.VirtualService.RateLimitConfig(childComplexity), true
+
+	case "VirtualService.extAuthConfig":
+		if e.complexity.VirtualService.ExtAuthConfig == nil {
+			break
+		}
+
+		return e.complexity.VirtualService.ExtAuthConfig(childComplexity), true
 
 	case "VirtualService.plugins":
 		if e.complexity.VirtualService.Plugins == nil {
@@ -3258,6 +3342,115 @@ func (ec *executionContext) _AzureUpstreamSpec_functions(ctx context.Context, fi
 	}
 	wg.Wait()
 	return arr1
+}
+
+var basicAuthImplementors = []string{"BasicAuth"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _BasicAuth(ctx context.Context, sel ast.SelectionSet, obj *models.BasicAuth) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, basicAuthImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BasicAuth")
+		case "realm":
+			out.Values[i] = ec._BasicAuth_realm(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _BasicAuth_realm(ctx context.Context, field graphql.CollectedField, obj *models.BasicAuth) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "BasicAuth",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Realm, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalString(res)
+}
+
+var extAuthConfigImplementors = []string{"ExtAuthConfig"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _ExtAuthConfig(ctx context.Context, sel ast.SelectionSet, obj *models.ExtAuthConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, extAuthConfigImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ExtAuthConfig")
+		case "authType":
+			out.Values[i] = ec._ExtAuthConfig_authType(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _ExtAuthConfig_authType(ctx context.Context, field graphql.CollectedField, obj *models.ExtAuthConfig) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "ExtAuthConfig",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthType, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(models.AuthType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	return ec._AuthType(ctx, field.Selections, &res)
 }
 
 var grpcDestinationSpecImplementors = []string{"GrpcDestinationSpec"}
@@ -5257,6 +5450,181 @@ func (ec *executionContext) _Namespace_artifact(ctx context.Context, field graph
 	return ec._Artifact(ctx, field.Selections, res)
 }
 
+var oAuthConfigImplementors = []string{"OAuthConfig"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _OAuthConfig(ctx context.Context, sel ast.SelectionSet, obj *models.OAuthConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, oAuthConfigImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OAuthConfig")
+		case "clientId":
+			out.Values[i] = ec._OAuthConfig_clientId(ctx, field, obj)
+		case "clientSecret":
+			out.Values[i] = ec._OAuthConfig_clientSecret(ctx, field, obj)
+		case "issuerUrl":
+			out.Values[i] = ec._OAuthConfig_issuerUrl(ctx, field, obj)
+		case "appUrl":
+			out.Values[i] = ec._OAuthConfig_appUrl(ctx, field, obj)
+		case "callbackPath":
+			out.Values[i] = ec._OAuthConfig_callbackPath(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _OAuthConfig_clientId(ctx context.Context, field graphql.CollectedField, obj *models.OAuthConfig) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "OAuthConfig",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientID, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _OAuthConfig_clientSecret(ctx context.Context, field graphql.CollectedField, obj *models.OAuthConfig) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "OAuthConfig",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientSecret, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _OAuthConfig_issuerUrl(ctx context.Context, field graphql.CollectedField, obj *models.OAuthConfig) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "OAuthConfig",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IssuerURL, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _OAuthConfig_appUrl(ctx context.Context, field graphql.CollectedField, obj *models.OAuthConfig) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "OAuthConfig",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AppURL, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _OAuthConfig_callbackPath(ctx context.Context, field graphql.CollectedField, obj *models.OAuthConfig) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "OAuthConfig",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CallbackPath, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
 var oAuthEndpointImplementors = []string{"OAuthEndpoint"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -5333,6 +5701,63 @@ func (ec *executionContext) _OAuthEndpoint_clientName(ctx context.Context, field
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClientName, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalString(res)
+}
+
+var oauthSecretImplementors = []string{"OauthSecret"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _OauthSecret(ctx context.Context, sel ast.SelectionSet, obj *models.OauthSecret) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, oauthSecretImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OauthSecret")
+		case "clientSecret":
+			out.Values[i] = ec._OauthSecret_clientSecret(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _OauthSecret_clientSecret(ctx context.Context, field graphql.CollectedField, obj *models.OauthSecret) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "OauthSecret",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientSecret, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -8046,6 +8471,8 @@ func (ec *executionContext) _VirtualService(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._VirtualService_sslConfig(ctx, field, obj)
 		case "rateLimitConfig":
 			out.Values[i] = ec._VirtualService_rateLimitConfig(ctx, field, obj)
+		case "extAuthConfig":
+			out.Values[i] = ec._VirtualService_extAuthConfig(ctx, field, obj)
 		case "plugins":
 			out.Values[i] = ec._VirtualService_plugins(ctx, field, obj)
 		default:
@@ -8261,6 +8688,35 @@ func (ec *executionContext) _VirtualService_rateLimitConfig(ctx context.Context,
 	}
 
 	return ec._RateLimitConfig(ctx, field.Selections, res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VirtualService_extAuthConfig(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "VirtualService",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExtAuthConfig, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.ExtAuthConfig)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._ExtAuthConfig(ctx, field.Selections, res)
 }
 
 // nolint: vetshadow
@@ -10236,6 +10692,23 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 	return ec.___Type(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _AuthType(ctx context.Context, sel ast.SelectionSet, obj *models.AuthType) graphql.Marshaler {
+	switch obj := (*obj).(type) {
+	case nil:
+		return graphql.Null
+	case models.OAuthConfig:
+		return ec._OAuthConfig(ctx, sel, &obj)
+	case *models.OAuthConfig:
+		return ec._OAuthConfig(ctx, sel, obj)
+	case models.BasicAuth:
+		return ec._BasicAuth(ctx, sel, &obj)
+	case *models.BasicAuth:
+		return ec._BasicAuth(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 func (ec *executionContext) _Destination(ctx context.Context, sel ast.SelectionSet, obj *models.Destination) graphql.Marshaler {
 	switch obj := (*obj).(type) {
 	case nil:
@@ -10294,6 +10767,10 @@ func (ec *executionContext) _SecretKind(ctx context.Context, sel ast.SelectionSe
 		return ec._TlsSecret(ctx, sel, &obj)
 	case *models.TlsSecret:
 		return ec._TlsSecret(ctx, sel, obj)
+	case models.OauthSecret:
+		return ec._OauthSecret(ctx, sel, &obj)
+	case *models.OauthSecret:
+		return ec._OauthSecret(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -10596,6 +11073,30 @@ func UnmarshalInputAzureUpstreamSpec(v interface{}) (models.InputAzureUpstreamSp
 	return it, nil
 }
 
+func UnmarshalInputBasicAuth(v interface{}) (models.InputBasicAuth, error) {
+	var it models.InputBasicAuth
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "realm":
+			var err error
+			it.Realm, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "specCsv":
+			var err error
+			it.SpecCsv, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputDestination(v interface{}) (models.InputDestination, error) {
 	var it models.InputDestination
 	var asMap = v.(map[string]interface{})
@@ -10675,6 +11176,40 @@ func UnmarshalInputDestinationSpec(v interface{}) (models.InputDestinationSpec, 
 			if v != nil {
 				ptr1, err = UnmarshalInputGrpcDestinationSpec(v)
 				it.Grpc = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputExtAuthConfig(v interface{}) (models.InputExtAuthConfig, error) {
+	var it models.InputExtAuthConfig
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "oAuth":
+			var err error
+			var ptr1 models.InputOAuthConfig
+			if v != nil {
+				ptr1, err = UnmarshalInputOAuthConfig(v)
+				it.OAuth = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "basicAuth":
+			var err error
+			var ptr1 models.InputBasicAuth
+			if v != nil {
+				ptr1, err = UnmarshalInputBasicAuth(v)
+				it.BasicAuth = &ptr1
 			}
 
 			if err != nil {
@@ -11053,6 +11588,66 @@ func UnmarshalInputMultiDestination(v interface{}) (models.InputMultiDestination
 	return it, nil
 }
 
+func UnmarshalInputOAuthConfig(v interface{}) (models.InputOAuthConfig, error) {
+	var it models.InputOAuthConfig
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "clientId":
+			var err error
+			it.ClientID, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "clientSecretRef":
+			var err error
+			it.ClientSecretRef, err = UnmarshalInputResourceRef(v)
+			if err != nil {
+				return it, err
+			}
+		case "issuerUrl":
+			var err error
+			it.IssuerURL, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "appUrl":
+			var err error
+			it.AppURL, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		case "callbackPath":
+			var err error
+			it.CallbackPath, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalInputOauthSecret(v interface{}) (models.InputOauthSecret, error) {
+	var it models.InputOauthSecret
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "clientSecret":
+			var err error
+			it.ClientSecret, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalInputRateLimit(v interface{}) (models.InputRateLimit, error) {
 	var it models.InputRateLimit
 	var asMap = v.(map[string]interface{})
@@ -11320,6 +11915,17 @@ func UnmarshalInputSecretKind(v interface{}) (models.InputSecretKind, error) {
 			if v != nil {
 				ptr1, err = UnmarshalInputTlsSecret(v)
 				it.TLS = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "oauth":
+			var err error
+			var ptr1 models.InputOauthSecret
+			if v != nil {
+				ptr1, err = UnmarshalInputOauthSecret(v)
+				it.Oauth = &ptr1
 			}
 
 			if err != nil {
@@ -11746,6 +12352,17 @@ func UnmarshalInputUpdateVirtualService(v interface{}) (models.InputUpdateVirtua
 			if err != nil {
 				return it, err
 			}
+		case "extAuthConfig":
+			var err error
+			var ptr1 models.InputExtAuthConfig
+			if v != nil {
+				ptr1, err = UnmarshalInputExtAuthConfig(v)
+				it.ExtAuthConfig = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		case "metadata":
 			var err error
 			var ptr1 models.InputUpdateMetadata
@@ -11935,6 +12552,17 @@ func UnmarshalInputVirtualService(v interface{}) (models.InputVirtualService, er
 			if v != nil {
 				ptr1, err = UnmarshalInputRateLimitConfig(v)
 				it.RateLimitConfig = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		case "extAuthConfig":
+			var err error
+			var ptr1 models.InputExtAuthConfig
+			if v != nil {
+				ptr1, err = UnmarshalInputExtAuthConfig(v)
+				it.ExtAuthConfig = &ptr1
 			}
 
 			if err != nil {
@@ -12186,7 +12814,7 @@ type Secret {
   metadata: Metadata!
 }
 
-union SecretKind = AwsSecret | AzureSecret | TlsSecret
+union SecretKind = AwsSecret | AzureSecret | TlsSecret | OauthSecret
 
 type AwsSecret {
   accessKey: String!
@@ -12203,16 +12831,21 @@ type TlsSecret {
   rootCa: String! # note: it is okay to leave this as an empty string
 }
 
+type OauthSecret {
+  clientSecret: String!
+}
+
 input InputSecret {
   kind: InputSecretKind!
   metadata: InputMetadata!
 }
 
 input InputSecretKind {
-  # oneof: aws, azure, tls
+  # oneof: aws, azure, tls, oauth
   aws: InputAwsSecret
   azure: InputAzureSecret
   tls: InputTlsSecret
+  oauth: InputOauthSecret
 }
 
 input InputAwsSecret {
@@ -12228,6 +12861,11 @@ input InputTlsSecret {
   certChain: String!
   privateKey: String!
   rootCa: String! # note: it is okay to leave this as an empty string
+}
+
+input InputOauthSecret {
+  "your client secret as registered with the issuer"
+  clientSecret: String!
 }
 `},
 	&ast.Source{Name: "gql_schemas/settings.graphql", Input: `type SettingsMutation {
@@ -12486,6 +13124,7 @@ type VirtualService {
   routes: [Route!]
   sslConfig: SslConfig
   rateLimitConfig: RateLimitConfig
+  extAuthConfig: ExtAuthConfig
   plugins: VirtualServicePlugins @deprecated(reason: "Use ` + "`" + `rateLimitConfig` + "`" + `.")
 }
 
@@ -12564,6 +13203,41 @@ enum TimeUnit {
   DAY
 }
 
+type ExtAuthConfig {
+  authType: AuthType
+}
+
+union AuthType =
+  OAuthConfig
+  | BasicAuth
+
+type OAuthConfig {
+  "your client id as registered with the issuer"
+  clientId: String
+  "your client secret as registered with the issuer"
+  clientSecret: String
+  """
+  The url of the issuer. We will look for OIDC information in issuerUrl+
+  '.well-known/openid-configuration'
+  """
+  issuerUrl: String
+  """
+  we to redirect after successful auth, if we can't determine the original
+  url this should be your publicly available app url.
+  """
+  appUrl: String
+  """
+  a callback path relative to app url that will be used for OIDC callbacks.
+  needs to not be used by the application
+  """
+  callbackPath: String
+}
+
+"NOTE: resolvers not implemented"
+type BasicAuth {
+  realm: String!
+}
+
 # not implemented
 type VirtualServicePlugins {
   empty: String
@@ -12579,6 +13253,7 @@ input InputVirtualService {
   routes: [InputRoute!]
   sslConfig: InputSslConfig
   rateLimitConfig: InputRateLimitConfig
+  extAuthConfig: InputExtAuthConfig
   metadata: InputMetadata!
   plugins: InputVirtualServicePlugins @deprecated(reason: "Use ` + "`" + `rateLimitConfig` + "`" + `.")
 }
@@ -12587,6 +13262,7 @@ input InputUpdateVirtualService {
   domains: [String!]
   sslConfig: InputSslConfig
   rateLimitConfig: InputRateLimitConfig
+  extAuthConfig: InputExtAuthConfig
   metadata: InputUpdateMetadata
   plugins: InputVirtualServicePlugins @deprecated(reason: "Use ` + "`" + `rateLimitConfig` + "`" + `.")
 }
@@ -12613,6 +13289,41 @@ input InputRateLimitConfig {
 input InputRateLimit {
   unit: TimeUnit!
   requestsPerUnit: UnsignedInt!
+}
+
+"Only one of oAuth or basicAuth should be specified"
+input InputExtAuthConfig {
+  oAuth: InputOAuthConfig
+  basicAuth: InputBasicAuth
+}
+
+input InputOAuthConfig {
+  "your client id as registered with the issuer"
+  clientId: String!
+  "your client secret as registered with the issuer"
+  clientSecretRef: InputResourceRef!
+  """
+  The url of the issuer. We will look for OIDC information in issuerUrl+
+  '.well-known/openid-configuration'
+  """
+  issuerUrl: String!
+  """
+  we to redirect after successful auth, if we can't determine the original
+  url this should be your publicly available app url.
+  """
+  appUrl: String!
+  """
+  a callback path relative to app url that will be used for OIDC callbacks.
+  needs to not be used by the application
+  """
+  callbackPath: String!
+}
+
+"NOTE: resolvers not implemented"
+input InputBasicAuth {
+  realm: String!
+  "specCsv rows should have the form: <user_name>,<pw_salt>,<pw_hash>"
+  specCsv: String!
 }
 
 # not implemented

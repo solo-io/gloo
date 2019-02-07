@@ -15,6 +15,10 @@ type Artifact struct {
 	Metadata Metadata `json:"metadata"`
 }
 
+type AuthType interface {
+	IsAuthType()
+}
+
 type AwsDestinationSpec struct {
 	LogicalName            string                   `json:"logicalName"`
 	InvocationStyle        AwsLambdaInvocationStyle `json:"invocationStyle"`
@@ -69,12 +73,23 @@ type AzureUpstreamSpec struct {
 
 func (AzureUpstreamSpec) IsUpstreamSpec() {}
 
+// NOTE: resolvers not implemented
+type BasicAuth struct {
+	Realm string `json:"realm"`
+}
+
+func (BasicAuth) IsAuthType() {}
+
 type Destination interface {
 	IsDestination()
 }
 
 type DestinationSpec interface {
 	IsDestinationSpec()
+}
+
+type ExtAuthConfig struct {
+	AuthType AuthType `json:"authType"`
 }
 
 type GrpcDestinationSpec struct {
@@ -145,6 +160,12 @@ type InputAzureUpstreamSpec struct {
 	Functions       []InputAzureFunction `json:"functions"`
 }
 
+// NOTE: resolvers not implemented
+type InputBasicAuth struct {
+	Realm   string `json:"realm"`
+	SpecCsv string `json:"specCsv"`
+}
+
 type InputDestination struct {
 	SingleDestination *InputSingleDestination `json:"singleDestination"`
 	MultiDestination  *InputMultiDestination  `json:"multiDestination"`
@@ -155,6 +176,12 @@ type InputDestinationSpec struct {
 	Azure *InputAzureDestinationSpec `json:"azure"`
 	Rest  *InputRestDestinationSpec  `json:"rest"`
 	Grpc  *InputGrpcDestinationSpec  `json:"grpc"`
+}
+
+// Only one of oAuth or basicAuth should be specified
+type InputExtAuthConfig struct {
+	OAuth     *InputOAuthConfig `json:"oAuth"`
+	BasicAuth *InputBasicAuth   `json:"basicAuth"`
 }
 
 type InputGrpcDestinationSpec struct {
@@ -211,6 +238,18 @@ type InputMultiDestination struct {
 	Destinations []InputWeightedDestination `json:"destinations"`
 }
 
+type InputOAuthConfig struct {
+	ClientID        string           `json:"clientId"`
+	ClientSecretRef InputResourceRef `json:"clientSecretRef"`
+	IssuerURL       string           `json:"issuerUrl"`
+	AppURL          string           `json:"appUrl"`
+	CallbackPath    string           `json:"callbackPath"`
+}
+
+type InputOauthSecret struct {
+	ClientSecret string `json:"clientSecret"`
+}
+
 type InputRateLimit struct {
 	Unit            TimeUnit                `json:"unit"`
 	RequestsPerUnit customtypes.UnsignedInt `json:"requestsPerUnit"`
@@ -255,6 +294,7 @@ type InputSecretKind struct {
 	Aws   *InputAwsSecret   `json:"aws"`
 	Azure *InputAzureSecret `json:"azure"`
 	TLS   *InputTlsSecret   `json:"tls"`
+	Oauth *InputOauthSecret `json:"oauth"`
 }
 
 type InputServiceSpec struct {
@@ -320,6 +360,7 @@ type InputUpdateVirtualService struct {
 	Domains         []string                    `json:"domains"`
 	SslConfig       *InputSslConfig             `json:"sslConfig"`
 	RateLimitConfig *InputRateLimitConfig       `json:"rateLimitConfig"`
+	ExtAuthConfig   *InputExtAuthConfig         `json:"extAuthConfig"`
 	Metadata        *InputUpdateMetadata        `json:"metadata"`
 	Plugins         *InputVirtualServicePlugins `json:"plugins"`
 }
@@ -346,6 +387,7 @@ type InputVirtualService struct {
 	Routes          []InputRoute                `json:"routes"`
 	SslConfig       *InputSslConfig             `json:"sslConfig"`
 	RateLimitConfig *InputRateLimitConfig       `json:"rateLimitConfig"`
+	ExtAuthConfig   *InputExtAuthConfig         `json:"extAuthConfig"`
 	Metadata        InputMetadata               `json:"metadata"`
 	Plugins         *InputVirtualServicePlugins `json:"plugins"`
 }
@@ -402,10 +444,26 @@ type MultiDestination struct {
 
 func (MultiDestination) IsDestination() {}
 
+type OAuthConfig struct {
+	ClientID     *string `json:"clientId"`
+	ClientSecret *string `json:"clientSecret"`
+	IssuerURL    *string `json:"issuerUrl"`
+	AppURL       *string `json:"appUrl"`
+	CallbackPath *string `json:"callbackPath"`
+}
+
+func (OAuthConfig) IsAuthType() {}
+
 type OAuthEndpoint struct {
 	URL        string `json:"url"`
 	ClientName string `json:"clientName"`
 }
+
+type OauthSecret struct {
+	ClientSecret string `json:"clientSecret"`
+}
+
+func (OauthSecret) IsSecretKind() {}
 
 type RateLimit struct {
 	Unit            TimeUnit                `json:"unit"`
@@ -534,6 +592,7 @@ type VirtualService struct {
 	Routes          []Route                `json:"routes"`
 	SslConfig       *SslConfig             `json:"sslConfig"`
 	RateLimitConfig *RateLimitConfig       `json:"rateLimitConfig"`
+	ExtAuthConfig   *ExtAuthConfig         `json:"extAuthConfig"`
 	Plugins         *VirtualServicePlugins `json:"plugins"`
 }
 

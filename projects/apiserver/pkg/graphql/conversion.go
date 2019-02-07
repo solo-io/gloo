@@ -8,7 +8,9 @@ import (
 
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
+	extauthv1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	ratelimitapi "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 
 	"github.com/gogo/protobuf/types"
@@ -419,17 +421,16 @@ func (c *Converter) ConvertInputVirtualService(virtualService InputVirtualServic
 		return nil, errors.Wrap(err, "validating input routes")
 	}
 
-	rateLimitConfig, err := convertInputRateLimitConfig(virtualService.RateLimitConfig)
+	virtualServicePlugins, err := convertInputVirtualServicePlugins(virtualService.RateLimitConfig, virtualService.ExtAuthConfig)
 	if err != nil {
-		return nil, errors.Wrap(err, "validating rate limit config")
+		return nil, errors.Wrap(err, "converting virtual service plugins")
 	}
 
 	return &gatewayv1.VirtualService{
 		VirtualHost: &v1.VirtualHost{
-			Domains: virtualService.Domains,
-			Routes:  routes,
-			// TODO(mitchdraft) - this will need to be updated when we accept multiple types of plugins
-			VirtualHostPlugins: rateLimitConfig,
+			Domains:            virtualService.Domains,
+			Routes:             routes,
+			VirtualHostPlugins: virtualServicePlugins,
 		},
 		SslConfig: convertInputSSLConfig(virtualService.SslConfig),
 		Metadata:  convertInputMetadata(virtualService.Metadata),
@@ -696,6 +697,9 @@ func convertInputRateLimitToProto(inputConfig *InputRateLimitConfig) (*ratelimit
 }
 
 func convertInputRateLimitToStruct(inputConfig *InputRateLimitConfig) (*types.Struct, error) {
+	if inputConfig == nil {
+		return nil, nil
+	}
 	rlProto, err := convertInputRateLimitToProto(inputConfig)
 	if err != nil {
 		return nil, err
@@ -703,20 +707,83 @@ func convertInputRateLimitToStruct(inputConfig *InputRateLimitConfig) (*types.St
 	return util.MessageToStruct(rlProto)
 }
 
-// TODO(mitchdraft) - we'll want to replace this with something that manages multiple types of plugins
-func convertInputRateLimitConfig(inputConfig *InputRateLimitConfig) (*v1.VirtualHostPlugins, error) {
+func convertInputExtAuthConfigToProto(inputConfig *InputExtAuthConfig) (*extauthv1.VhostExtension, error) {
 	if inputConfig == nil {
 		return nil, nil
 	}
+	if inputConfig.BasicAuth != nil {
+		return nil, errors.Errorf("BasicAuth resolvers are not implemented yet.")
+	}
+	if inputConfig.OAuth == nil {
+		return nil, nil
+	}
+	oidc := inputConfig.OAuth
+	if oidc.AppURL == "" {
+		return nil, errors.Errorf("invalid app url specified: %v", oidc.AppURL)
+	}
+	if oidc.IssuerURL == "" {
+		return nil, errors.Errorf("invalid issuer url specified: %v", oidc.IssuerURL)
+	}
+	if oidc.ClientID == "" {
+		return nil, errors.Errorf("invalid client id specified: %v", oidc.ClientID)
+	}
+	if oidc.CallbackPath == "" {
+		return nil, errors.Errorf("invalid callback path specified: %v", oidc.CallbackPath)
+	}
+	if oidc.ClientSecretRef.Name == "" || oidc.ClientSecretRef.Namespace == "" {
+		return nil, errors.Errorf("invalid client secret ref specified: %v.%v", oidc.ClientSecretRef.Namespace, oidc.ClientSecretRef.Name)
+	}
+	secretRef := convertInputRef(oidc.ClientSecretRef)
+	eaProto := &extauthv1.VhostExtension{
+		AuthConfig: &extauthv1.VhostExtension_Oauth{
+			Oauth: &extauthv1.OAuth{
+				AppUrl:          oidc.AppURL,
+				CallbackPath:    oidc.CallbackPath,
+				ClientId:        oidc.ClientID,
+				ClientSecretRef: &secretRef,
+				IssuerUrl:       oidc.IssuerURL,
+			},
+		},
+	}
+	return eaProto, nil
+}
 
-	rlStruct, err := convertInputRateLimitToStruct(inputConfig)
+func convertInputExtAuthConfigToStruct(inputConfig *InputExtAuthConfig) (*types.Struct, error) {
+	if inputConfig == nil {
+		return nil, nil
+	}
+	rlProto, err := convertInputExtAuthConfigToProto(inputConfig)
 	if err != nil {
 		return nil, err
+	}
+	return util.MessageToStruct(rlProto)
+}
+
+func convertInputVirtualServicePlugins(inputRateLimitConfig *InputRateLimitConfig, inputExtAuthConfig *InputExtAuthConfig) (*v1.VirtualHostPlugins, error) {
+
+	configs := map[string]*types.Struct{}
+
+	rlStruct, err := convertInputRateLimitToStruct(inputRateLimitConfig)
+	if err != nil {
+		return nil, err
+	}
+	if rlStruct != nil {
+		configs[ratelimit.ExtensionName] = rlStruct
+
+	}
+
+	eaStruct, err := convertInputExtAuthConfigToStruct(inputExtAuthConfig)
+	if err != nil {
+		return nil, err
+	}
+	if eaStruct != nil {
+		configs[extauth.ExtensionName] = eaStruct
+
 	}
 
 	result := &v1.VirtualHostPlugins{
 		Extensions: &v1.Extensions{
-			Configs: map[string]*types.Struct{ratelimit.ExtensionName: rlStruct},
+			Configs: configs,
 		},
 	}
 
@@ -740,6 +807,10 @@ func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.Virtua
 	if err != nil {
 		return nil, err
 	}
+	extAuthConfig, err := convertOutputExtAuthConfig(virtualService.VirtualHost.VirtualHostPlugins)
+	if err != nil {
+		return nil, err
+	}
 	rateLimitConfig, err := convertOutputRateLimitConfig(virtualService.VirtualHost.VirtualHostPlugins)
 	if err != nil {
 		return nil, err
@@ -750,6 +821,7 @@ func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.Virtua
 		SslConfig:       convertOutputSSLConfig(virtualService.SslConfig),
 		Status:          convertOutputStatus(virtualService.Status),
 		Metadata:        convertOutputMetadata(&gatewayv1.VirtualService{}, virtualService.Metadata),
+		ExtAuthConfig:   extAuthConfig,
 		RateLimitConfig: rateLimitConfig,
 	}, nil
 }
@@ -967,6 +1039,47 @@ func convertOutputSSLConfig(ssl *v1.SslConfig) *SslConfig {
 	}
 }
 
+func convertOutputExtAuthConfig(plugins *v1.VirtualHostPlugins) (*ExtAuthConfig, error) {
+	if plugins == nil {
+		return nil, nil
+	}
+	if plugins.Extensions == nil {
+		return nil, nil
+	}
+	var extAuth extauthv1.VhostExtension
+	err := utils.UnmarshalExtension(plugins, extauth.ExtensionName, &extAuth)
+	if err != nil {
+		if err == utils.NotFoundError {
+			// plugin not present, just return nil
+			return nil, nil
+		}
+		// plugin present and marshalling failed, return error
+		return nil, errors.Wrapf(err, "failed to unmarshal proto message to %v plugin", extauth.ExtensionName)
+	}
+
+	result := &ExtAuthConfig{}
+	switch auth := extAuth.AuthConfig.(type) {
+	case *extauthv1.VhostExtension_BasicAuth:
+		result.AuthType = &BasicAuth{
+			Realm: auth.BasicAuth.Realm,
+		}
+
+	case *extauthv1.VhostExtension_Oauth:
+		secretKey := auth.Oauth.ClientSecretRef.Key()
+		result.AuthType = &OAuthConfig{
+			ClientID:     &auth.Oauth.ClientId,
+			ClientSecret: &secretKey,
+			IssuerURL:    &auth.Oauth.IssuerUrl,
+			AppURL:       &auth.Oauth.AppUrl,
+			CallbackPath: &auth.Oauth.CallbackPath,
+		}
+	default:
+		return nil, errors.Errorf("Unrecognized auth type %v", auth)
+	}
+
+	return result, nil
+}
+
 func convertOutputRateLimitConfig(plugins *v1.VirtualHostPlugins) (*RateLimitConfig, error) {
 	if plugins == nil {
 		return nil, nil
@@ -974,6 +1087,10 @@ func convertOutputRateLimitConfig(plugins *v1.VirtualHostPlugins) (*RateLimitCon
 	if plugins.Extensions == nil {
 		return nil, nil
 	}
+	if rl, ok := plugins.Extensions.Configs[ratelimit.ExtensionName]; !ok || rl == nil {
+		return nil, nil
+	}
+
 	var rateLimit ratelimitapi.IngressRateLimit
 	err := utils.UnmarshalExtension(plugins, ratelimit.ExtensionName, &rateLimit)
 	if err != nil {
@@ -1101,25 +1218,38 @@ func (c *Converter) ConvertOutputSecret(secret *v1.Secret) *Secret {
 	return convertOutputSecret(secret)
 }
 
+// We are not actually returning the secret values, just their names
+// Consider updating the graphql schema to only return Metadata
 func convertOutputSecret(secret *v1.Secret) *Secret {
 	out := &Secret{
 		Metadata: convertOutputMetadata(&v1.Secret{}, secret.Metadata),
 	}
-	switch sec := secret.Kind.(type) {
+	switch secret.Kind.(type) {
 	case *v1.Secret_Aws:
 		out.Kind = &AwsSecret{
-			AccessKey: sec.Aws.AccessKey,
-			SecretKey: sec.Aws.SecretKey,
+			// AccessKey: sec.Aws.AccessKey,
+			// SecretKey: sec.Aws.SecretKey,
+			AccessKey: "(access key)",
+			SecretKey: "(secret key)",
 		}
 	case *v1.Secret_Azure:
 		out.Kind = &AzureSecret{
-			APIKeys: NewMapStringString(sec.Azure.ApiKeys),
+			// APIKeys: NewMapStringString(sec.Azure.ApiKeys),
+			APIKeys: NewMapStringString(map[string]string{"secretKey": "secretValue"}),
 		}
 	case *v1.Secret_Tls:
 		out.Kind = &TlsSecret{
-			CertChain:  sec.Tls.CertChain,
-			RootCa:     sec.Tls.RootCa,
-			PrivateKey: sec.Tls.PrivateKey,
+			// CertChain:  sec.Tls.CertChain,
+			// RootCa:     sec.Tls.RootCa,
+			// PrivateKey: sec.Tls.PrivateKey,
+			CertChain:  "(cert chain)",
+			RootCa:     "(root ca)",
+			PrivateKey: "(private key)",
+		}
+	case *v1.Secret_Extension:
+		// Currently we only have one type of secret extension so we don't need to do a check
+		out.Kind = &OauthSecret{
+			ClientSecret: "n/a",
 		}
 	}
 	return out
@@ -1163,8 +1293,20 @@ func (c *Converter) ConvertInputSecret(secret InputSecret) (*v1.Secret, error) {
 				CertChain:  secret.Kind.TLS.CertChain,
 			},
 		}
+	case secret.Kind.Oauth != nil:
+		secretStruct, err := util.MessageToStruct(&extauthv1.OauthSecret{
+			ClientSecret: secret.Kind.Oauth.ClientSecret,
+		})
+		if err != nil {
+			return nil, err
+		}
+		out.Kind = &v1.Secret_Extension{
+			Extension: &v1.Extension{
+				Config: secretStruct,
+			},
+		}
 	default:
-		return nil, errors.Errorf("invalid input secret:  requires one of Aws, Azure, or TLS set")
+		return nil, errors.Errorf("invalid input secret:  requires one of Aws, Azure, TLS, or OAuth set")
 	}
 	return out, nil
 }

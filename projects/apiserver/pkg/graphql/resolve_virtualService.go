@@ -14,6 +14,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 	ratelimitapi "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 )
 
@@ -95,6 +96,12 @@ func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *custom
 		}
 	}
 
+	if updates.ExtAuthConfig != nil {
+		if err := applyExtAuthConfigUpdate(updates.ExtAuthConfig, virtualService.VirtualHost); err != nil {
+			return nil, err
+		}
+	}
+
 	out, err := r.VirtualServiceClient.Write(virtualService, clients.WriteOpts{
 		Ctx:               ctx,
 		OverwriteExisting: true,
@@ -126,14 +133,31 @@ func applyRateLimitConfigUpdate(in *models.InputRateLimitConfig, out *v1.Virtual
 	if err != nil {
 		return err
 	}
+	applyExtensionToVirtualServicePlugin(ratelimit.ExtensionName, rlStruct, p)
+	return nil
+}
+
+func applyExtensionToVirtualServicePlugin(name string, pStruct *types.Struct, p *v1.VirtualHostPlugins) {
 	if p.Extensions == nil {
 		p.Extensions = &v1.Extensions{}
 	}
 	if p.Extensions.Configs == nil {
-		p.Extensions.Configs = map[string]*types.Struct{ratelimit.ExtensionName: rlStruct}
+		p.Extensions.Configs = map[string]*types.Struct{name: pStruct}
 	} else {
-		p.Extensions.Configs[ratelimit.ExtensionName] = rlStruct
+		p.Extensions.Configs[name] = pStruct
 	}
+}
+
+func applyExtAuthConfigUpdate(in *models.InputExtAuthConfig, out *v1.VirtualHost) error {
+	if out.VirtualHostPlugins == nil {
+		out.VirtualHostPlugins = &v1.VirtualHostPlugins{}
+	}
+	extAuthStruct, err := convertInputExtAuthConfigToStruct(in)
+	if err != nil {
+		return err
+	}
+	p := out.VirtualHostPlugins
+	applyExtensionToVirtualServicePlugin(extauth.ExtensionName, extAuthStruct, p)
 	return nil
 }
 
