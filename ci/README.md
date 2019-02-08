@@ -1,12 +1,6 @@
 # Commands use to setup build environment
 
-# build container:
-
-```
-cd dep && docker build -t soloio/dep . && docker push soloio/dep
-```
-
-# One time init:
+## One time init:
 
 ```
 KEYRING=build
@@ -27,7 +21,7 @@ gcloud kms keys add-iam-policy-binding \
     --role=roles/cloudkms.cryptoKeyEncrypterDecrypter
 ```
 
-# Github key
+## Github key
 
 ssh-keyscan -t rsa github.com > ./ci/github_known_hosts
 
@@ -41,23 +35,6 @@ gcloud kms encrypt \
   --location=global \
   --keyring=${KEYRING} \
   --key=${KEYNAME}
-```
-
-# Test dep container locally
-
-copy the unencrypted id_rsa to the ci folder. and run:
-
-```
-cp ${HOME}/Documents/solo/bot/id_rsa ./ci/id_rsa
-docker run --rm -t -i -v $PWD:/workspace -w /workspace -e PROJECT_ROOT=github.com/solo-io/solo-kit \
-    --entrypoint=/bin/bash soloio/dep
-rm ./ci/id_rsa
-```
-
-Run a build with:
-
-```
-gcloud builds submit --config ./cloudbuild.yaml .
 ```
 
 # More info:
