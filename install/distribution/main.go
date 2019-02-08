@@ -154,9 +154,10 @@ func savedImageName(imageName string) string {
 	return savedImage
 }
 
+// Pull and save the images of of containers and initContainers of the given deployments
 func saveImages(deployments []v1.Deployment) error {
 	for _, dpl := range deployments {
-		containers := dpl.Spec.Template.Spec.Containers
+		containers := append(dpl.Spec.Template.Spec.Containers, dpl.Spec.Template.Spec.InitContainers...)
 		for _, image := range containers {
 			var err error
 			_, err = docker.PullIfNotPresent(image.Image, 0)

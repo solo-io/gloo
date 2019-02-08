@@ -37,6 +37,6 @@ gcloud kms encrypt \
   --key=${KEYNAME}
 ```
 
-# More info:
+## More info:
 https://cloud.google.com/cloud-build/docs/securing-builds/use-encrypted-secrets-credentials
 https://cloud.google.com/cloud-build/docs/access-private-github-repos
