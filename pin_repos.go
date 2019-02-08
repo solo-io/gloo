@@ -7,30 +7,21 @@ import (
 
 func main() {
 	tomlTree, err := version.ParseToml()
-	if err != nil {
-		fatal(err)
-	}
+	fatalCheck(err, "parsing error")
 
 	glooVersion, err := version.GetVersion(version.GlooPkg, tomlTree)
-	if err != nil {
-		fatal(err)
-	}
+	fatalCheck(err, "getting gloo version")
 
 	soloKitVersion, err := version.GetVersion(version.SoloKitPkg, tomlTree)
-	if err != nil {
-		fatal(err)
-	}
+	fatalCheck(err, "getting solo-kit version")
 
-	err = version.PinGitVersion("../gloo", glooVersion)
-	if err != nil {
-		fatal(err)
-	}
-	err = version.PinGitVersion("../solo-kit", soloKitVersion)
-	if err != nil {
-		fatal(err)
-	}
+	fatalCheck(version.PinGitVersion("../gloo", glooVersion), "consider git fetching in gloo repo")
+
+	fatalCheck(version.PinGitVersion("../solo-kit", soloKitVersion), "consider git fetching in solo-kit repo")
 }
 
-func fatal(err error) {
-	log.Fatalf("unable to pin repos!: %v", err)
+func fatalCheck(err error, msg string) {
+	if err != nil {
+		log.Fatalf("Error (%v) unable to pin repos!: %v", msg, err)
+	}
 }
