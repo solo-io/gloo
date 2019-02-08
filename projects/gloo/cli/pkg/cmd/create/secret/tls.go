@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 
 	"github.com/solo-io/gloo/pkg/cliutil"
@@ -19,34 +21,33 @@ import (
 )
 
 func tlsCmd(opts *options.Options) *cobra.Command {
-	meta := opts.Metadata
 	input := opts.Create.InputSecret.TlsSecret
 	cmd := &cobra.Command{
 		Use:   "tls",
 		Short: `Create a secret with the given name`,
 		Long:  `Create a secret with the given name`,
 		RunE: func(c *cobra.Command, args []string) error {
-			if len(args) == 1 {
-				meta.Name = args[0]
+			if err := argsutils.MetadataArgsParse(opts, args); err != nil {
+				return err
 			}
 			if opts.Top.Interactive {
 				// and gather any missing args that are available through interactive mode
-				if err := tlsSecretArgsInteractive(&meta, &input); err != nil {
+				if err := TlsSecretArgsInteractive(&opts.Metadata, &input); err != nil {
 					return err
 				}
 			}
 			// create the secret
-			if err := createTlsSecret(opts.Top.Ctx, meta, input); err != nil {
+			if err := createTlsSecret(opts.Top.Ctx, opts.Metadata, input); err != nil {
 				return err
 			}
-			fmt.Printf("Created TLS secret [%v] in namespace [%v]\n", meta.Name, meta.Namespace)
+			fmt.Printf("Created TLS secret [%v] in namespace [%v]\n", opts.Metadata.Name, opts.Metadata.Namespace)
 			return nil
 		},
 	}
 
 	flags := cmd.Flags()
 
-	flagutils.AddMetadataFlags(flags, &meta)
+	flagutils.AddMetadataFlags(flags, &opts.Metadata)
 
 	flags.StringVar(&input.RootCaFilename, "rootca", "", "filename of rootca for secret")
 	flags.StringVar(&input.PrivateKeyFilename, "privatekey", "", "filename of privatekey for secret")
@@ -55,7 +56,7 @@ func tlsCmd(opts *options.Options) *cobra.Command {
 	return cmd
 }
 
-func tlsSecretArgsInteractive(meta *core.Metadata, input *options.TlsSecret) error {
+func TlsSecretArgsInteractive(meta *core.Metadata, input *options.TlsSecret) error {
 	if err := surveyutils.InteractiveNamespace(&meta.Namespace); err != nil {
 		return err
 	}
