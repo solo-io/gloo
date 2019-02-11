@@ -35,6 +35,9 @@ const (
 
 	GRAFANA_USERNAME = "GRAFANA_USERNAME"
 	GRAFANA_PASSWORD = "GRAFANA_PASSWORD"
+
+	SERVICE_LINK = "http://glooe-grafana.gloo-system.svc.cluster.local"
+	SERVICE_PORT = "80"
 )
 
 var TAGS = []string{GLOO_TAG, DYNAMIC_TAG}
@@ -51,7 +54,7 @@ func NewGrafanaDashboardSyncer(client *http.Client) (*GrafanaDashboardsSyncer, e
 	if username == "" || password == "" {
 		return nil, fmt.Errorf("grafana username and password cannot be empty")
 	}
-	grafCli := grafana.NewClient("http://gloo-ee-grafana.gloo-system.svc.cluster.local:80", "admin:admin", client)
+	grafCli := grafana.NewClient(fmt.Sprintf("%s:%s", SERVICE_LINK, SERVICE_PORT), "admin:admin", client)
 	return &GrafanaDashboardsSyncer{
 		client: grafCli,
 	}, nil
