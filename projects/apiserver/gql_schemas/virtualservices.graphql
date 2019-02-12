@@ -44,6 +44,7 @@ type VirtualServiceMutation {
 }
 
 type VirtualService {
+  displayName: String!
   metadata: Metadata!
   status: Status!
   domains: [String!]
@@ -175,6 +176,7 @@ type RoutePlugins {
 }
 
 input InputVirtualService {
+  displayName: String!
   domains: [String!]
   routes: [InputRoute!]
   sslConfig: InputSslConfig
@@ -185,11 +187,11 @@ input InputVirtualService {
 }
 
 input InputUpdateVirtualService {
+  displayName: String
   domains: [String!]
   sslConfig: InputSslConfig
   rateLimitConfig: InputRateLimitConfig
   extAuthConfig: InputExtAuthConfig
-  metadata: InputUpdateMetadata
   plugins: InputVirtualServicePlugins @deprecated(reason: "Use `rateLimitConfig`.")
 }
 

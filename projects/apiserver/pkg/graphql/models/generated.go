@@ -357,11 +357,11 @@ type InputUpdateMetadata struct {
 }
 
 type InputUpdateVirtualService struct {
+	DisplayName     *string                     `json:"displayName"`
 	Domains         []string                    `json:"domains"`
 	SslConfig       *InputSslConfig             `json:"sslConfig"`
 	RateLimitConfig *InputRateLimitConfig       `json:"rateLimitConfig"`
 	ExtAuthConfig   *InputExtAuthConfig         `json:"extAuthConfig"`
-	Metadata        *InputUpdateMetadata        `json:"metadata"`
 	Plugins         *InputVirtualServicePlugins `json:"plugins"`
 }
 
@@ -383,6 +383,7 @@ type InputValue struct {
 }
 
 type InputVirtualService struct {
+	DisplayName     string                      `json:"displayName"`
 	Domains         []string                    `json:"domains"`
 	Routes          []InputRoute                `json:"routes"`
 	SslConfig       *InputSslConfig             `json:"sslConfig"`
@@ -586,6 +587,7 @@ type Value struct {
 }
 
 type VirtualService struct {
+	DisplayName     string                 `json:"displayName"`
 	Metadata        Metadata               `json:"metadata"`
 	Status          Status                 `json:"status"`
 	Domains         []string               `json:"domains"`

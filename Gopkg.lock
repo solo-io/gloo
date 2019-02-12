@@ -1213,7 +1213,7 @@
   version = "v0.2.1"
 
 [[projects]]
-  digest = "1:51d8ec81b1399fe352cbf6c0f6e7f10114bd574ef75594e3c61794b0effac0b8"
+  digest = "1:3f2b0490081ea35eb91d9481b4af6e105605bf9102faf99324a9efdccba60e00"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1291,8 +1291,8 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "a4b7b6366c04ccafe971545ebfa4c259a66adc90"
-  version = "v0.6.17"
+  revision = "89ccfea2a31758d8358a5725102e35e8148a865f"
+  version = "v0.6.19"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"

@@ -331,6 +331,7 @@ type ComplexityRoot struct {
 	}
 
 	VirtualService struct {
+		DisplayName     func(childComplexity int) int
 		Metadata        func(childComplexity int) int
 		Status          func(childComplexity int) int
 		Domains         func(childComplexity int) int
@@ -2025,6 +2026,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Value.Value(childComplexity), true
+
+	case "VirtualService.displayName":
+		if e.complexity.VirtualService.DisplayName == nil {
+			break
+		}
+
+		return e.complexity.VirtualService.DisplayName(childComplexity), true
 
 	case "VirtualService.metadata":
 		if e.complexity.VirtualService.Metadata == nil {
@@ -8453,6 +8461,11 @@ func (ec *executionContext) _VirtualService(ctx context.Context, sel ast.Selecti
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("VirtualService")
+		case "displayName":
+			out.Values[i] = ec._VirtualService_displayName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "metadata":
 			out.Values[i] = ec._VirtualService_metadata(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -8484,6 +8497,33 @@ func (ec *executionContext) _VirtualService(ctx context.Context, sel ast.Selecti
 		return graphql.Null
 	}
 	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _VirtualService_displayName(ctx context.Context, field graphql.CollectedField, obj *models.VirtualService) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "VirtualService",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DisplayName, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalString(res)
 }
 
 // nolint: vetshadow
@@ -12313,6 +12353,17 @@ func UnmarshalInputUpdateVirtualService(v interface{}) (models.InputUpdateVirtua
 
 	for k, v := range asMap {
 		switch k {
+		case "displayName":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.DisplayName = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		case "domains":
 			var err error
 			var rawIf1 []interface{}
@@ -12358,17 +12409,6 @@ func UnmarshalInputUpdateVirtualService(v interface{}) (models.InputUpdateVirtua
 			if v != nil {
 				ptr1, err = UnmarshalInputExtAuthConfig(v)
 				it.ExtAuthConfig = &ptr1
-			}
-
-			if err != nil {
-				return it, err
-			}
-		case "metadata":
-			var err error
-			var ptr1 models.InputUpdateMetadata
-			if v != nil {
-				ptr1, err = UnmarshalInputUpdateMetadata(v)
-				it.Metadata = &ptr1
 			}
 
 			if err != nil {
@@ -12501,6 +12541,12 @@ func UnmarshalInputVirtualService(v interface{}) (models.InputVirtualService, er
 
 	for k, v := range asMap {
 		switch k {
+		case "displayName":
+			var err error
+			it.DisplayName, err = graphql.UnmarshalString(v)
+			if err != nil {
+				return it, err
+			}
 		case "domains":
 			var err error
 			var rawIf1 []interface{}
@@ -13118,6 +13164,7 @@ input InputStatus {
 }
 
 type VirtualService {
+  displayName: String!
   metadata: Metadata!
   status: Status!
   domains: [String!]
@@ -13249,6 +13296,7 @@ type RoutePlugins {
 }
 
 input InputVirtualService {
+  displayName: String!
   domains: [String!]
   routes: [InputRoute!]
   sslConfig: InputSslConfig
@@ -13259,11 +13307,11 @@ input InputVirtualService {
 }
 
 input InputUpdateVirtualService {
+  displayName: String
   domains: [String!]
   sslConfig: InputSslConfig
   rateLimitConfig: InputRateLimitConfig
   extAuthConfig: InputExtAuthConfig
-  metadata: InputUpdateMetadata
   plugins: InputVirtualServicePlugins @deprecated(reason: "Use ` + "`" + `rateLimitConfig` + "`" + `.")
 }
 

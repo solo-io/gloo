@@ -427,6 +427,7 @@ func (c *Converter) ConvertInputVirtualService(virtualService InputVirtualServic
 	}
 
 	return &gatewayv1.VirtualService{
+		DisplayName: virtualService.DisplayName,
 		VirtualHost: &v1.VirtualHost{
 			Domains:            virtualService.Domains,
 			Routes:             routes,
@@ -816,6 +817,7 @@ func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.Virtua
 		return nil, err
 	}
 	return &VirtualService{
+		DisplayName:     virtualService.DisplayName,
 		Domains:         virtualService.VirtualHost.Domains,
 		Routes:          gqlRoutes,
 		SslConfig:       convertOutputSSLConfig(virtualService.SslConfig),

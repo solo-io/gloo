@@ -70,20 +70,12 @@ func (r *virtualServiceMutationResolver) Update(ctx context.Context, obj *custom
 		return nil, errors.Errorf("resource version mismatch. received %v, want %v", resourceVersion, virtualService.Metadata.ResourceVersion)
 	}
 
-	if updates.Domains != nil {
-		virtualService.VirtualHost.Domains = updates.Domains
+	if updates.DisplayName != nil {
+		virtualService.DisplayName = *updates.DisplayName
 	}
 
-	if updates.Metadata != nil {
-		if updates.Metadata.Name != nil {
-			return nil, errors.Errorf("Changing name is not a valid operation. Please delete and recreate this resource.")
-			// return an error for now.
-			// We could delete and recreate the resource under a new name with:
-			// virtualService.Metadata.Name = *updates.Metadata.Name
-			// virtualService.Metadata.ResourceVersion = ""
-			// ...But that's probably not what the user wants
-			// Consider adding a "Reference Name" field to allow the user to update the displayed name without changing the CRD ID
-		}
+	if updates.Domains != nil {
+		virtualService.VirtualHost.Domains = updates.Domains
 	}
 
 	if updates.SslConfig != nil {
