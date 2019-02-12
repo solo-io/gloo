@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/labels"
+
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/solo-io/go-utils/cliutils"
@@ -55,7 +57,8 @@ func getIngressHost(opts *options.Options) (string, error) {
 	svc, err := kube.CoreV1().Services(opts.Metadata.Namespace).Get(opts.Proxy.Name, metav1.GetOptions{})
 	if err != nil {
 		return "", errors.Wrapf(err, "could not detect '%v' service in %v namespace. "+
-			"Check that Gloo has been installed properly and is running with 'kubectl get pod -n gloo-system'", opts.Proxy.Name)
+			"Check that Gloo has been installed properly and is running with 'kubectl get pod -n gloo-system'",
+			opts.Proxy.Name, opts.Metadata.Namespace)
 	}
 	var svcPort *v1.ServicePort
 	switch len(svc.Spec.Ports) {
@@ -80,7 +83,7 @@ func getIngressHost(opts *options.Options) (string, error) {
 	if len(svc.Status.LoadBalancer.Ingress) == 0 || opts.Proxy.LocalCluster {
 		// assume nodeport on kubernetes
 		// TODO: support more types of NodePort services
-		host, err = getNodeIp()
+		host, err = getNodeIp(svc, kube)
 		if err != nil {
 			return "", errors.Wrapf(err, "")
 		}
@@ -96,13 +99,52 @@ func getIngressHost(opts *options.Options) (string, error) {
 
 }
 
-func getNodeIp() (string, error) {
-	kubectl := exec.Command("kubectl", "get", "node", "--output", "jsonpath={.items[0].status.addresses[0].address}")
+func getNodeIp(svc *v1.Service, kube kubernetes.Interface) (string, error) {
+	// pick a node where one of our pods is running
+	pods, err := kube.CoreV1().Pods(svc.Namespace).List(metav1.ListOptions{
+		LabelSelector: labels.SelectorFromSet(svc.Spec.Selector).String(),
+	})
+	if err != nil {
+		return "", err
+	}
+	var nodeName string
+	for _, pod := range pods.Items {
+		if pod.Spec.NodeName != "" {
+			nodeName = pod.Spec.NodeName
+			break
+		}
+	}
+	if nodeName == "" {
+		return "", errors.Errorf("no node found for %v's pods. ensure at least one pod has been deployed "+
+			"for the %v service", svc.Name, svc.Name)
+	}
+	// special case for minikube
+	// we run `minikube ip` which avoids an issue where
+	// we get a NAT network IP when the minikube provider is virtualbox
+	if nodeName == "minikube" {
+		return minikubeIp()
+	}
+
+	node, err := kube.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+
+	for _, addr := range node.Status.Addresses {
+		return addr.Address, nil
+	}
+
+	return "", errors.Errorf("no active addresses found for node %v", node.Name)
+}
+
+func minikubeIp() (string, error) {
+	minikubeCmd := exec.Command("minikube", "ip")
 
 	hostname := &bytes.Buffer{}
 
-	kubectl.Stdout = hostname
-	kubectl.Stderr = os.Stderr
-	err := kubectl.Run()
+	minikubeCmd.Stdout = hostname
+	minikubeCmd.Stderr = os.Stderr
+	err := minikubeCmd.Run()
+
 	return strings.TrimSuffix(hostname.String(), "\n"), err
 }
