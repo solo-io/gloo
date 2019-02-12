@@ -88,7 +88,7 @@ In addition to the Client ID and secret, the following parameters are provided:
   automatically discovered, by going to the '.well-known/open-configuration' endpoint. in our example,
   this gloo will expect to find open id discovery information in `https://accounts.google.com/.well-known/openid-configuration`
 - app url: The public URL of your application. this is used in combination with the callback parameter.
-- callback path: The callbck path relative to the app url. In our example, the full callback url will be
+- callback path: The callback path relative to the app url. In our example, the full callback url will be
   `http://localhost:8080/callback`. used in the authentication process - 
   once authenticated, the identity provider will redirect the user to this url. Gloo will process
   request coming to this path and will not forward them upstream.
