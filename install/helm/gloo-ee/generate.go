@@ -41,19 +41,26 @@ func main() {
 	} else {
 		version = os.Args[1]
 	}
+
+	osGlooVersion, err := parseToml()
+	if err != nil {
+		log.Fatalf("failed to determine open source Gloo version. Cause: %v", err)
+	}
+	log.Printf("Open source gloo version is: %v", osGlooVersion)
+
 	log.Printf("Generating helm files.")
-	if err := generateValuesYamls(version); err != nil {
+	if err := generateValuesYamls(version, osGlooVersion); err != nil {
 		log.Fatalf("generating values.yaml failed!: %v", err)
 	}
 	if err := generateChartYaml(version); err != nil {
 		log.Fatalf("generating Chart.yaml failed!: %v", err)
 	}
-	if err := generateRequirementsYaml(); err != nil {
+	if err := generateRequirementsYaml(osGlooVersion); err != nil {
 		log.Fatalf("unable to parse Gopkg.toml for proper gloo version: %v", err)
 	}
 }
 
-func readConfig(path string) (generate.Config, error) {
+func readConfig() (generate.Config, error) {
 	var config generate.Config
 	if err := readYaml(valuesTemplate, &config); err != nil {
 		return config, err
@@ -87,14 +94,17 @@ func writeYaml(obj interface{}, path string) error {
 	return nil
 }
 
-func generateValuesYaml(version, pullPolicy, outputFile string) error {
-	config, err := readConfig(valuesTemplate)
+func generateValuesYaml(version, osGlooVersion, pullPolicy, outputFile string) error {
+	config, err := readConfig()
 	if err != nil {
 		return err
 	}
 	config.Gloo.Gloo.Deployment.Image.Tag = version
 	config.Gloo.GatewayProxy.Deployment.Image.Tag = version
 	config.Gloo.IngressProxy.Deployment.Image.Tag = version
+	// Use open source gloo version for discovery and gateway
+	config.Gloo.Discovery.Deployment.Image.Tag = osGlooVersion
+	config.Gloo.Gateway.Deployment.Image.Tag = osGlooVersion
 	config.RateLimit.Deployment.Image.Tag = version
 	config.Observability.Deployment.Image.Tag = version
 	config.ApiServer.Deployment.Server.Image.Tag = version
@@ -105,26 +115,30 @@ func generateValuesYaml(version, pullPolicy, outputFile string) error {
 	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.GatewayProxy.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.IngressProxy.Deployment.Image.PullPolicy = pullPolicy
+	config.Gloo.Discovery.Deployment.Image.PullPolicy = pullPolicy
+	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
 	config.RateLimit.Deployment.Image.PullPolicy = pullPolicy
 	config.Observability.Deployment.Image.PullPolicy = pullPolicy
 	config.ApiServer.Deployment.Server.Image.PullPolicy = pullPolicy
 	config.ExtAuth.Deployment.Image.PullPolicy = pullPolicy
+	config.ApiServer.Deployment.Ui.Image.PullPolicy = pullPolicy
+	config.Redis.Deployment.Image.PullPolicy = pullPolicy
 
 	return writeYaml(&config, outputFile)
 }
 
-func generateValuesYamls(version string) error {
+func generateValuesYamls(version, osGlooVersion string) error {
 	// Generate values for standard manifest
 	standardPullPolicy := alwaysPull
 	if version == "dev" {
 		standardPullPolicy = neverPull
 	}
-	if err := generateValuesYaml(version, standardPullPolicy, valuesOutput); err != nil {
+	if err := generateValuesYaml(version, osGlooVersion, standardPullPolicy, valuesOutput); err != nil {
 		return err
 	}
 
 	// Generate values for distribution
-	if err := generateValuesYaml(version, ifNotPresent, distributionOutput); err != nil {
+	if err := generateValuesYaml(version, osGlooVersion, ifNotPresent, distributionOutput); err != nil {
 		return err
 	}
 	return nil
@@ -141,13 +155,9 @@ func generateChartYaml(version string) error {
 	return writeYaml(&chart, chartOutput)
 }
 
-func generateRequirementsYaml() error {
+func generateRequirementsYaml(glooVersion string) error {
 	var dl generate.DependencyList
 	if err := readYaml(requirementsTemplate, &dl); err != nil {
-		return err
-	}
-	glooVersion, err := parseToml()
-	if err != nil {
 		return err
 	}
 	for i, v := range dl.Dependencies {

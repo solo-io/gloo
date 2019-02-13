@@ -292,12 +292,10 @@ helm-template:
 	mkdir -p $(MANIFEST_DIR)
 	go run install/helm/gloo-ee/generate.go $(VERSION)
 
-update-helm-chart:
-ifeq ($(RELEASE),"true")
-	mkdir -p $(HELM_SYNC_DIR)/charts
-	helm package --destination $(HELM_SYNC_DIR)/charts $(HELM_DIR)/gloo-ee
-	helm repo index $(HELM_SYNC_DIR)
-endif
+init-helm:
+	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
+	helm repo add gloo https://storage.googleapis.com/solo-public-helm
+	helm dependency update install/helm/gloo-ee
 
 install/manifest/glooe-release.yaml: helm-template
 	helm template install/helm/gloo-ee --namespace gloo-system --name=glooe > $@
@@ -305,10 +303,12 @@ install/manifest/glooe-release.yaml: helm-template
 install/manifest/glooe-distribution.yaml: helm-template
 	helm template install/helm/gloo-ee -f install/distribution/values.yaml --namespace gloo-system --name=glooe > $@
 
-init-helm:
-	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
-	helm repo add gloo https://storage.googleapis.com/solo-public-helm
-	helm dependency update install/helm/gloo-ee
+update-helm-chart:
+ifeq ($(RELEASE),"true")
+	mkdir -p $(HELM_SYNC_DIR)/charts
+	helm package --destination $(HELM_SYNC_DIR)/charts $(HELM_DIR)/gloo-ee
+	helm repo index $(HELM_SYNC_DIR)
+endif
 
 #----------------------------------------------------------------------------------
 # Release

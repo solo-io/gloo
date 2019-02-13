@@ -30,7 +30,7 @@ const (
 	distribution    = output + "/distribution"
 	deployment      = "Deployment"
 	glooctl         = "glooctl"
-	tgzExt          = ".tgz"
+	zipExt          = ".zip"
 	tarExt          = ".tar"
 	setupScriptName = "setup"
 )
@@ -250,22 +250,23 @@ func copySetupScripts() error {
 	return nil
 }
 
-func tarballFileName() (string, error) {
-	tarFile := fmt.Sprintf("%s%s%s", glooe, version, tgzExt)
-	tarFilepath := filepath.Join(id.String(), tarFile)
-	return tarFilepath, nil
-}
-
-func writeDistributionTarball(wr io.Writer) error {
-	cmd := exec.Command("tar", "-C", distribution, "-cz", ".")
+func writeDistributionArchive(wr io.Writer, fileName string) error {
+	// zip -r ARCHIVE_NAME DIR_TO_COMPRESS
+	cmd := exec.Command("zip", "-r", fileName, version)
+	cmd.Dir = distribution
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	cmd.Stdout = wr
-
-	logger.Infof("creating tar.gz file")
+	logger.Infof("creating zip file...")
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	logger.Info("successfully created tar.gz file")
-	return nil
+	logger.Info("successfully created zip file")
+
+	r, err := os.Open(filepath.Join(distribution, fileName))
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(wr, r)
+	return err
 }

@@ -65,19 +65,20 @@ func syncDataToBucket(db *distributionBucketClient) error {
 }
 
 func (db *distributionBucketClient) saveZipToBucket() error {
-	tarFilePath, err := tarballFileName()
-	if err != nil {
-		return err
-	}
+	zipFileName := fmt.Sprintf("%s%s%s", glooe, version, zipExt)
+
 	bkt := db.client.Bucket(distBucket)
-	obj := bkt.Object(path.Join(distBucketReleases, tarFilePath))
+	obj := bkt.Object(path.Join(distBucketReleases, id.String(), zipFileName))
+	logger.Infof("writing object: %v", obj.ObjectName())
+
 	wr := obj.NewWriter(db.ctx)
-	err = writeDistributionTarball(wr)
-	if err != nil {
+	if err := writeDistributionArchive(wr, zipFileName); err != nil {
 		return err
 	}
 	// Explicit non-deferred close to ensure object exists
-	wr.Close()
+	if err := wr.Close(); err != nil {
+		return err
+	}
 	// Make zip file accessible to everyone with the link/public internet
 	if err := obj.ACL().Set(db.ctx, storage.AllUsers, storage.RoleReader); err != nil {
 		return err
@@ -207,6 +208,6 @@ func (db *distributionBucketClient) updateIndexFile(obj *storage.ObjectHandle) e
 	if err := db.writeIndexFile(versions, w); err != nil {
 		return err
 	}
-	logger.Infof("finsihed updating index.yaml file with new version: (%s)", version)
+	logger.Infof("finished updating index.yaml file with new version: (%s)", version)
 	return nil
 }

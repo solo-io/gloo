@@ -243,7 +243,17 @@ gloo:
                 address: 127.0.0.1
                 port_value: 19000
 
-
+  discovery:
+    deployment:
+      image:
+        pullPolicy: Always
+        repository: soloio/discovery
+  gateway:
+    deployment:
+      image:
+        pullPolicy: Always
+        repository: soloio/gateway
+    enabled: true
 ########################################################################
 ###                                                                  ###
 ###                        Rate Limit                                ###
@@ -402,24 +412,24 @@ grafana:
       # what's available in the database
       datasources:
         # <string, required> name of the datasource. Required
-      - name: gloo
-        # <string, required> datasource type. Required
-        type: prometheus
-        access: proxy
-        url: http://glooe-prometheus-server:80
-        isDefault: true
+        - name: gloo
+          # <string, required> datasource type. Required
+          type: prometheus
+          access: proxy
+          url: http://glooe-prometheus-server:80
+          isDefault: true
   dashboardProviders:
     dashboardproviders.yaml:
       apiVersion: 1
       providers:
-      - name: 'gloo'
-        orgId: 1
-        folder: 'gloo'
-        type: file
-        disableDeletion: false
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/gloo
+        - name: 'gloo'
+          orgId: 1
+          folder: 'gloo'
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/gloo
   dashboardsConfigMaps:
     gloo: glooe-grafana-custom-dashboards
   grafana.ini:
