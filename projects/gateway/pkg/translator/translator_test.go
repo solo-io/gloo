@@ -22,37 +22,64 @@ var _ = Describe("Translator", func() {
 	BeforeEach(func() {
 		snap = &v1.ApiSnapshot{
 			Gateways: v1.GatewaysByNamespace{
-				ns: v1.GatewayList{{Metadata: core.Metadata{Namespace: ns, Name: "name"}}},
+				ns: v1.GatewayList{
+					{
+						Metadata: core.Metadata{Namespace: ns, Name: "name"},
+						BindPort: 2,
+					},
+				},
 			},
 			VirtualServices: v1.VirtualServicesByNamespace{
-				ns: v1.VirtualServiceList{{Metadata: core.Metadata{Namespace: ns, Name: "name"}}, {Metadata: core.Metadata{Namespace: ns, Name: "name2"}}},
+				ns: v1.VirtualServiceList{
+					{
+						Metadata: core.Metadata{Namespace: ns, Name: "name"},
+						VirtualHost: &gloov1.VirtualHost{
+							Domains: []string{"d1.com"},
+						},
+					},
+					{
+						Metadata: core.Metadata{Namespace: ns, Name: "name2"},
+						VirtualHost: &gloov1.VirtualHost{
+							Domains: []string{"d2.com"},
+						},
+					},
+				},
 			},
 		}
 	})
 
 	It("should translate proxy with default name", func() {
 
-		proxy, _ := Translate(context.Background(), ns, snap)
+		proxy, errs := Translate(context.Background(), ns, snap)
 
+		Expect(errs).To(HaveLen(3))
+		Expect(errs.Validate()).NotTo(HaveOccurred())
 		Expect(proxy.Metadata.Name).To(Equal(GatewayProxyName))
 		Expect(proxy.Metadata.Namespace).To(Equal(ns))
 	})
 
 	It("should translate an empty gateway to have all vservices", func() {
 
-		proxy, errs := Translate(context.Background(), ns, snap)
+		proxy, _ := Translate(context.Background(), ns, snap)
 
-		Expect(errs).To(HaveLen(3))
 		Expect(proxy.Listeners).To(HaveLen(1))
 		listener := proxy.Listeners[0].ListenerType.(*gloov1.Listener_HttpListener).HttpListener
 		Expect(listener.VirtualHosts).To(HaveLen(2))
 	})
 
+	It("should have no ssl config", func() {
+		proxy, _ := Translate(context.Background(), ns, snap)
+
+		Expect(proxy.Listeners).To(HaveLen(1))
+		Expect(proxy.Listeners[0].SslConfiguations).To(BeEmpty())
+	})
+
 	It("should translate an gateway to only have its vservices", func() {
 		snap.Gateways[ns][0].VirtualServices = []core.ResourceRef{snap.VirtualServices[ns][0].Metadata.Ref()}
 
-		proxy, _ := Translate(context.Background(), ns, snap)
+		proxy, errs := Translate(context.Background(), ns, snap)
 
+		Expect(errs.Validate()).NotTo(HaveOccurred())
 		Expect(proxy).NotTo(BeNil())
 		Expect(proxy.Listeners).To(HaveLen(1))
 		listener := proxy.Listeners[0].ListenerType.(*gloov1.Listener_HttpListener).HttpListener
@@ -62,11 +89,79 @@ var _ = Describe("Translator", func() {
 	It("should translate two gateways with to one proxy with the same name", func() {
 		snap.Gateways[ns] = append(snap.Gateways[ns], &v1.Gateway{Metadata: core.Metadata{Namespace: ns, Name: "name"}})
 
-		proxy, _ := Translate(context.Background(), ns, snap)
+		proxy, errs := Translate(context.Background(), ns, snap)
 
+		Expect(errs.Validate()).NotTo(HaveOccurred())
 		Expect(proxy.Metadata.Name).To(Equal(GatewayProxyName))
 		Expect(proxy.Metadata.Namespace).To(Equal(ns))
 		Expect(proxy.Listeners).To(HaveLen(2))
+	})
+
+	Context("merge", func() {
+		BeforeEach(func() {
+			snap.VirtualServices[ns][1].VirtualHost.Domains = snap.VirtualServices[ns][0].VirtualHost.Domains
+		})
+
+		It("should translate 2 virtual services with the same domains to 1 virtual service", func() {
+
+			proxy, errs := Translate(context.Background(), ns, snap)
+
+			Expect(errs.Validate()).NotTo(HaveOccurred())
+			Expect(proxy.Metadata.Name).To(Equal(GatewayProxyName))
+			Expect(proxy.Metadata.Namespace).To(Equal(ns))
+			Expect(proxy.Listeners).To(HaveLen(1))
+			listener := proxy.Listeners[0].ListenerType.(*gloov1.Listener_HttpListener).HttpListener
+			Expect(listener.VirtualHosts).To(HaveLen(1))
+		})
+
+		It("should translate 2 virtual services with the empty domains", func() {
+			snap.VirtualServices[ns][1].VirtualHost.Domains = nil
+			snap.VirtualServices[ns][0].VirtualHost.Domains = nil
+
+			proxy, errs := Translate(context.Background(), ns, snap)
+
+			Expect(errs.Validate()).NotTo(HaveOccurred())
+			Expect(proxy.Listeners).To(HaveLen(1))
+			listener := proxy.Listeners[0].ListenerType.(*gloov1.Listener_HttpListener).HttpListener
+			Expect(listener.VirtualHosts).To(HaveLen(1))
+			Expect(listener.VirtualHosts[0].Name).NotTo(BeEmpty())
+			Expect(listener.VirtualHosts[0].Name).NotTo(Equal(ns + "."))
+		})
+
+		It("should not error with one contains plugins", func() {
+			snap.VirtualServices[ns][0].VirtualHost.VirtualHostPlugins = new(gloov1.VirtualHostPlugins)
+
+			_, errs := Translate(context.Background(), ns, snap)
+
+			Expect(errs.Validate()).NotTo(HaveOccurred())
+		})
+
+		It("should error with both having plugins", func() {
+			snap.VirtualServices[ns][0].VirtualHost.VirtualHostPlugins = new(gloov1.VirtualHostPlugins)
+			snap.VirtualServices[ns][1].VirtualHost.VirtualHostPlugins = new(gloov1.VirtualHostPlugins)
+
+			_, errs := Translate(context.Background(), ns, snap)
+
+			Expect(errs.Validate()).To(HaveOccurred())
+		})
+
+		It("should not error with one contains ssl config", func() {
+			snap.VirtualServices[ns][0].SslConfig = new(gloov1.SslConfig)
+
+			_, errs := Translate(context.Background(), ns, snap)
+
+			Expect(errs.Validate()).NotTo(HaveOccurred())
+		})
+
+		It("should error with both having ssl config", func() {
+			snap.VirtualServices[ns][0].SslConfig = new(gloov1.SslConfig)
+			snap.VirtualServices[ns][1].SslConfig = new(gloov1.SslConfig)
+
+			_, errs := Translate(context.Background(), ns, snap)
+
+			Expect(errs.Validate()).To(HaveOccurred())
+		})
+
 	})
 
 })
