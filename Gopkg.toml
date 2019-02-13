@@ -62,7 +62,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  version = "0.6.21"
+  version = "0.6.22"
 
 [[override]]
   name = "github.com/hashicorp/consul"
