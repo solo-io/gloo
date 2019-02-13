@@ -13,6 +13,8 @@ eval $(minikube docker-env)
 make docker -B
 make manifest -B
 
+kubectl create namespace gloo-system
+
 kubectl config set-context $(kubectl config current-context) --namespace=gloo-system
 
 

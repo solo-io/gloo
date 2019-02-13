@@ -15,6 +15,12 @@ spec:
     metadata:
       labels:
         gloo: rate-limit
+      {{- if .Values.rateLimit.deployment.stats }}
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9091"
+        prometheus.io/scrape: "true"
+      {{- end}}
     spec:
       containers:
         - image: "{{ .Values.rateLimit.deployment.image.repository }}:{{ .Values.rateLimit.deployment.image.tag }}"
@@ -27,5 +33,9 @@ spec:
               value: {{ .Values.rateLimit.deployment.redisUrl }}
             - name: REDIS_SOCKET_TYPE
               value: tcp
+            {{- if .Values.rateLimit.deployment.stats }}
+            - name: START_STATS_SERVER
+              value: "true"
+            {{- end}}
       imagePullSecrets:
         - name: solo-io-docker-secret

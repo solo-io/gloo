@@ -17,9 +17,18 @@ gloo:
           ratelimit_server_ref:
             name: rate-limit
             namespace: gloo-system
-
+  discovery:
+    deployment:
+      stats: true
+      replicas: 1
+  gateway:
+    enabled: true
+    deployment:
+      stats: true
+      replicas: 1
   gloo:
     deployment:
+      stats: true
       image:
         pullPolicy: Always
         pullSecret: solo-io-docker-secret
@@ -243,6 +252,7 @@ gloo:
 
 rateLimit:
   deployment:
+    stats: true
     name: 'rate-limit'
     image:
       pullPolicy: Always
@@ -277,6 +287,7 @@ redis:
 extAuth:
   userIdHeader: x-user-id
   deployment:
+    stats: true
     name: 'extauth'
     image:
       pullPolicy: Always
@@ -299,6 +310,7 @@ extAuth:
 apiServer:
   noAuth: true
   deployment:
+    stats: true
     name: 'apiserver-ui'
     server:
       image:
@@ -330,6 +342,7 @@ apiServer:
 
 observability:
   deployment:
+    stats: true
     name: observability
     image:
       repository: soloio/observability-ee

@@ -14,6 +14,12 @@ spec:
     metadata:
       labels:
         gloo: {{ .Values.apiServer.service.name }}
+      {{- if .Values.apiServer.deployment.stats }}
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9091"
+        prometheus.io/scrape: "true"
+      {{- end}}
     spec:
       imagePullSecrets:
         - name: solo-io-docker-secret
@@ -42,10 +48,14 @@ spec:
               value: {{.Values.apiServer.deployment.server.oauth.client}}
             - name: OAUTH_SERVER
               value: {{.Values.apiServer.deployment.server.oauth.server}}
-{{- if .Values.apiServer.noAuth }}
+            {{- if .Values.apiServer.noAuth }}
             - name: NO_AUTH
               value: "1"
-{{- end}}
+            {{- end}}
+            {{- if .Values.apiServer.deployment.stats }}
+            - name: START_STATS_SERVER
+              value: "true"
+            {{- end}}
           ports:
             - name: graphql
               containerPort: {{.Values.apiServer.deployment.server.graphqlPort}}

@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -15,6 +17,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	v1 "k8s.io/api/apps/v1"
+	coreV1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/kind/pkg/docker"
 )
 
@@ -156,23 +159,46 @@ func savedImageName(imageName string) string {
 
 // Pull and save the images of of containers and initContainers of the given deployments
 func saveImages(deployments []v1.Deployment) error {
+	wg := &sync.WaitGroup{}
+	errch := make(chan error)
+
 	for _, dpl := range deployments {
 		containers := append(dpl.Spec.Template.Spec.Containers, dpl.Spec.Template.Spec.InitContainers...)
 		for _, image := range containers {
-			var err error
-			_, err = docker.PullIfNotPresent(image.Image, 0)
-			if err != nil {
-				return err
-			}
-			err = docker.Save(image.Image, savedImageName(image.Image))
-			if err != nil {
-				return err
-			}
-			logger.Infof("Successfully saved image: (%s)", image.Image)
+			wg.Add(1)
+			go func(image coreV1.Container, wg *sync.WaitGroup) {
+				defer wg.Done()
+				var err error
+				_, err = docker.PullIfNotPresent(image.Image, 0)
+				if err != nil {
+					errch <- err
+					return
+				}
+				err = docker.Save(image.Image, savedImageName(image.Image))
+				if err != nil {
+					errch <- err
+					return
+				}
+				logger.Infof("Successfully saved image: (%s)", image.Image)
+			}(image, wg)
 		}
 	}
 
+	go func(wg *sync.WaitGroup, errch chan error) {
+		wg.Wait()
+		close(errch)
+	}(wg, errch)
+
+	select {
+	case err := <-errch:
+		if err != nil {
+			return err
+		}
+	case <-time.After(10 * time.Minute):
+		return fmt.Errorf("go routine timed out after 10 minutes")
+	}
 	return nil
+
 }
 
 func copyFile(source, dest string) error {

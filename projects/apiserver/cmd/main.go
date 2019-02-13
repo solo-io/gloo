@@ -13,6 +13,10 @@ import (
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/setup"
 )
 
+const (
+	START_STATS_SERVER = "START_STATS_SERVER"
+)
+
 func main() {
 	if err := run(); err != nil {
 		log.Fatalf("%v", err)
@@ -21,7 +25,9 @@ func main() {
 
 func run() error {
 
-	stats.StartStatsServer()
+	if os.Getenv(START_STATS_SERVER) != "" {
+		stats.StartStatsServer()
+	}
 
 	port := flag.Int("p", 8082, "port to bind")
 	flag.Parse()

@@ -582,7 +582,7 @@ func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpe
 				Aws: &aws.DestinationSpec{
 					LogicalName:            spec.Aws.LogicalName,
 					InvocationStyle:        invocationstyle,
-					ResponseTrasnformation: spec.Aws.ResponseTransformation,
+					ResponseTransformation: spec.Aws.ResponseTransformation,
 				},
 			},
 		}, nil
@@ -978,7 +978,7 @@ func (c *Converter) convertOutputDestinationSpec(spec *v1.DestinationSpec) (Dest
 		return &AwsDestinationSpec{
 			LogicalName:            destSpec.Aws.LogicalName,
 			InvocationStyle:        invocationStyle,
-			ResponseTransformation: destSpec.Aws.ResponseTrasnformation,
+			ResponseTransformation: destSpec.Aws.ResponseTransformation,
 		}, nil
 	case *v1.DestinationSpec_Azure:
 		return &AzureDestinationSpec{

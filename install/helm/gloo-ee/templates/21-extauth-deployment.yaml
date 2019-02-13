@@ -15,6 +15,12 @@ spec:
     metadata:
       labels:
         gloo: {{ .Values.extAuth.deployment.name }}
+      {{- if .Values.extAuth.deployment.stats }}
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9091"
+        prometheus.io/scrape: "true"
+      {{- end}}
     spec:
       containers:
         - image: "{{ .Values.extAuth.deployment.image.repository }}:{{ .Values.extAuth.deployment.image.tag }}"
@@ -44,5 +50,9 @@ spec:
             - name: USER_ID_HEADER
               value: {{ .Values.extAuth.userIdHeader  | quote }}
             {{- end }}
+            {{- if .Values.extAuth.deployment.stats }}
+            - name: START_STATS_SERVER
+              value: "true"
+            {{- end}}
       imagePullSecrets:
         - name: solo-io-docker-secret

@@ -361,7 +361,7 @@ var PROTO = struct {
 							DestinationType: &gloov1.DestinationSpec_Aws{
 								Aws: &aws.DestinationSpec{
 									LogicalName:            "aws-1",
-									ResponseTrasnformation: true,
+									ResponseTransformation: true,
 									InvocationStyle:        aws.DestinationSpec_SYNC,
 								},
 							},

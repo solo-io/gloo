@@ -70,6 +70,7 @@ type ApiServer struct {
 type ApiServerDeployment struct {
 	Server *ApiServerServerDeployment `json:"server,omitempty"`
 	Ui     *ApiServerUiDeployment     `json:"ui,omitempty"`
+	*generate.DeploymentSpec
 }
 
 type ApiServerServerDeployment struct {
