@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -22,17 +23,18 @@ import (
 )
 
 const (
-	glooe           = "glooe"
-	glooeYaml       = glooe + "-distribution.yaml"
-	manifest        = "install/manifest/" + glooeYaml
-	scriptsDir      = "install/distribution/scripts"
-	output          = "_output"
-	distribution    = output + "/distribution"
-	deployment      = "Deployment"
-	glooctl         = "glooctl"
-	zipExt          = ".zip"
-	tarExt          = ".tar"
-	setupScriptName = "setup"
+	glooe              = "glooe"
+	glooeYaml          = glooe + "-distribution.yaml"
+	manifest           = "install/manifest/" + glooeYaml
+	scriptsDir         = "install/distribution/scripts"
+	output             = "_output"
+	distribution       = output + "/distribution"
+	deployment         = "Deployment"
+	glooctl            = "glooctl"
+	zipExt             = ".zip"
+	tarExt             = ".tar"
+	setupScriptName    = "setup"
+	imageNameSeparator = "_"
 )
 
 var (
@@ -151,10 +153,9 @@ func extractContainerImagesFromSpecs(specs []string) ([]v1.Deployment, error) {
 	return deployments, nil
 }
 
-func savedImageName(imageName string) string {
-	splitImage := strings.Split(imageName, "/")
-	savedImage := filepath.Join(outputDistributionDir, splitImage[len(splitImage)-1]) + tarExt
-	return savedImage
+func savedImageName(fullImageName string) string {
+	imageName := strings.Replace(path.Base(fullImageName), ":", imageNameSeparator, -1)
+	return filepath.Join(outputDistributionDir, imageName) + tarExt
 }
 
 // Pull and save the images of of containers and initContainers of the given deployments
