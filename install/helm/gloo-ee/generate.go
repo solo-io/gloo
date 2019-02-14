@@ -31,7 +31,7 @@ const (
 	alwaysPull   = "Always"
 	ifNotPresent = "IfNotPresent"
 
-	glooiVersion = "0.0.14"
+	glooiVersion = "0.0.15"
 )
 
 func main() {

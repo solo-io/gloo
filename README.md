@@ -9,9 +9,13 @@ make pin-repos
 dep ensure -v # you may need to repeat this and make pin-repos once or twice
 make allprojects
 
+# for a new UI: update the version in solo-projects/install/helm/gloo-ee/generate.go
+
 # at this point you should have gloo built to you ./_output/ directory
 # make the manifest
-VERSION="1.10.0" make manifest # note that there is no "v" in the version
+VERSION="1.10.0" make manifest # note that there is no "v" in the version, version pertains to the solo-projects version. Use "dev" or something if you want to use local images
+eval $(minikube docker-env) # so minikube can use local images
+make docker -B # creates all your images locally and tags them as "dev" by default
 
 # install
 # prep: create a secret with you docker credentials
