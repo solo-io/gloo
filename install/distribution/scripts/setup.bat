@@ -28,6 +28,8 @@ if %ERRORLEVEL% == 0 (
     echo Failed to copy glooctl executable to %USERPROFILE%\.gloo\bin
     goto :end
 )
+ren %USERPROFILE%\.gloo\bin\%FILENAME% glooctl.exe
+
 
 :: Echo instructions for next manual operation (we don't want to update the PATH here, as it's error prone on Windows)
 echo.
