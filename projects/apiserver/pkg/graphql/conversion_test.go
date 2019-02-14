@@ -75,7 +75,7 @@ var _ = Describe("Converter", func() {
 	})
 
 	It("correctly converts a Route proto to the GraphQL format", func() {
-		route, err := converter.ConvertOutputRoute(PROTO.route)
+		route, err := converter.ConvertOutputRoute(nil, PROTO.route)
 		Expect(err).NotTo(HaveOccurred())
 
 		// Check individual fields to get more info in case of failure
@@ -199,6 +199,10 @@ var _ = Describe("Converter", func() {
 		Expect(result.Domains).To(BeEquivalentTo(expected.Domains))
 		Expect(result.Metadata).To(BeEquivalentTo(expected.Metadata))
 		Expect(result.SslConfig).To(BeEquivalentTo(expected.SslConfig))
+		// prune the cyclic VirtualService field
+		for i := range result.Routes {
+			result.Routes[i].VirtualService = nil
+		}
 		Expect(result.Routes).To(BeEquivalentTo(expected.Routes))
 		Expect(result.RateLimitConfig).To(BeEquivalentTo(expected.RateLimitConfig))
 
@@ -215,6 +219,7 @@ var GRAPHQL = struct {
 	upstream      models.Upstream
 }{
 	route: models.Route{
+		VirtualService: nil,
 		Destination: models.SingleDestination{
 			DestinationSpec: &models.AwsDestinationSpec{
 				LogicalName:            "aws-1",

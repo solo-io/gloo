@@ -804,10 +804,6 @@ func (c *Converter) ConvertOutputVirtualServices(virtualServices gatewayv1.Virtu
 }
 
 func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.VirtualService) (*VirtualService, error) {
-	gqlRoutes, err := c.ConvertOutputRoutes(virtualService.VirtualHost.Routes)
-	if err != nil {
-		return nil, err
-	}
 	extAuthConfig, err := convertOutputExtAuthConfig(virtualService.VirtualHost.VirtualHostPlugins)
 	if err != nil {
 		return nil, err
@@ -816,22 +812,28 @@ func (c *Converter) ConvertOutputVirtualService(virtualService *gatewayv1.Virtua
 	if err != nil {
 		return nil, err
 	}
-	return &VirtualService{
+
+	vs := &VirtualService{
 		DisplayName:     virtualService.DisplayName,
 		Domains:         virtualService.VirtualHost.Domains,
-		Routes:          gqlRoutes,
 		SslConfig:       convertOutputSSLConfig(virtualService.SslConfig),
 		Status:          convertOutputStatus(virtualService.Status),
 		Metadata:        convertOutputMetadata(&gatewayv1.VirtualService{}, virtualService.Metadata),
 		ExtAuthConfig:   extAuthConfig,
 		RateLimitConfig: rateLimitConfig,
-	}, nil
+	}
+
+	vs.Routes, err = c.ConvertOutputRoutes(vs, virtualService.VirtualHost.Routes)
+	if err != nil {
+		return nil, err
+	}
+	return vs, nil
 }
 
-func (c *Converter) ConvertOutputRoutes(routes []*v1.Route) ([]Route, error) {
+func (c *Converter) ConvertOutputRoutes(vs *VirtualService, routes []*v1.Route) ([]Route, error) {
 	var outRoutes []Route
 	for _, r := range routes {
-		route, err := c.ConvertOutputRoute(r)
+		route, err := c.ConvertOutputRoute(vs, r)
 		if err != nil {
 			return nil, err
 		}
@@ -840,7 +842,7 @@ func (c *Converter) ConvertOutputRoutes(routes []*v1.Route) ([]Route, error) {
 	return outRoutes, nil
 }
 
-func (c *Converter) ConvertOutputRoute(route *v1.Route) (Route, error) {
+func (c *Converter) ConvertOutputRoute(vs *VirtualService, route *v1.Route) (Route, error) {
 	action, ok := route.Action.(*v1.Route_RouteAction)
 	if !ok {
 		return Route{}, errors.Errorf("%v does not have a RouteAction", route)
@@ -850,9 +852,10 @@ func (c *Converter) ConvertOutputRoute(route *v1.Route) (Route, error) {
 		return Route{}, err
 	}
 	return Route{
-		Matcher:     convertOutputMatcher(route.Matcher),
-		Destination: gqlDest,
-		Plugins:     convertOutputRoutePlugins(route.RoutePlugins),
+		Matcher:        convertOutputMatcher(route.Matcher),
+		Destination:    gqlDest,
+		Plugins:        convertOutputRoutePlugins(route.RoutePlugins),
+		VirtualService: vs,
 	}, nil
 }
 

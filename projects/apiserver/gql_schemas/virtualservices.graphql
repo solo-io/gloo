@@ -59,6 +59,7 @@ type Route {
   matcher: Matcher!
   destination: Destination!
   plugins: RoutePlugins
+  virtualService: VirtualService
 }
 
 type Matcher {

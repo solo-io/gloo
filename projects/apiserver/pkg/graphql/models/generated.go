@@ -495,9 +495,10 @@ type RestServiceSpec struct {
 func (RestServiceSpec) IsServiceSpec() {}
 
 type Route struct {
-	Matcher     Matcher       `json:"matcher"`
-	Destination Destination   `json:"destination"`
-	Plugins     *RoutePlugins `json:"plugins"`
+	Matcher        Matcher         `json:"matcher"`
+	Destination    Destination     `json:"destination"`
+	Plugins        *RoutePlugins   `json:"plugins"`
+	VirtualService *VirtualService `json:"virtualService"`
 }
 
 type RoutePlugins struct {

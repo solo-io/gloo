@@ -236,9 +236,10 @@ type ComplexityRoot struct {
 	}
 
 	Route struct {
-		Matcher     func(childComplexity int) int
-		Destination func(childComplexity int) int
-		Plugins     func(childComplexity int) int
+		Matcher        func(childComplexity int) int
+		Destination    func(childComplexity int) int
+		Plugins        func(childComplexity int) int
+		VirtualService func(childComplexity int) int
 	}
 
 	RoutePlugins struct {
@@ -1715,6 +1716,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Route.Plugins(childComplexity), true
+
+	case "Route.virtualService":
+		if e.complexity.Route.VirtualService == nil {
+			break
+		}
+
+		return e.complexity.Route.VirtualService(childComplexity), true
 
 	case "RoutePlugins.empty":
 		if e.complexity.RoutePlugins.Empty == nil {
@@ -6560,6 +6568,8 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "plugins":
 			out.Values[i] = ec._Route_plugins(ctx, field, obj)
+		case "virtualService":
+			out.Values[i] = ec._Route_virtualService(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6654,6 +6664,35 @@ func (ec *executionContext) _Route_plugins(ctx context.Context, field graphql.Co
 	}
 
 	return ec._RoutePlugins(ctx, field.Selections, res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Route_virtualService(ctx context.Context, field graphql.CollectedField, obj *models.Route) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Route",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VirtualService, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.VirtualService)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._VirtualService(ctx, field.Selections, res)
 }
 
 var routePluginsImplementors = []string{"RoutePlugins"}
@@ -13179,6 +13218,7 @@ type Route {
   matcher: Matcher!
   destination: Destination!
   plugins: RoutePlugins
+  virtualService: VirtualService
 }
 
 type Matcher {
