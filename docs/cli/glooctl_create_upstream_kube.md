@@ -1,3 +1,7 @@
+---
+title: "glooctl create upstream kube"
+weight: 5
+---
 ## glooctl create upstream kube
 
 Create a Kubernetes Upstream
@@ -32,5 +36,5 @@ glooctl create upstream kube [flags]
 
 ### SEE ALSO
 
-* [glooctl create upstream](glooctl_create_upstream.md)	 - Create an Upstream Interactively
+* [glooctl create upstream](../glooctl_create_upstream)	 - Create an Upstream Interactively
 

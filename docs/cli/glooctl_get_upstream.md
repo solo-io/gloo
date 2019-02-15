@@ -1,3 +1,7 @@
+---
+title: "glooctl get upstream"
+weight: 5
+---
 ## glooctl get upstream
 
 read an upstream or list upstreams in a namespace
@@ -27,5 +31,5 @@ glooctl get upstream [flags]
 
 ### SEE ALSO
 
-* [glooctl get](glooctl_get.md)	 - Display one or a list of Gloo resources
+* [glooctl get](../glooctl_get)	 - Display one or a list of Gloo resources
 

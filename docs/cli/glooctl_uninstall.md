@@ -1,3 +1,7 @@
+---
+title: "glooctl uninstall"
+weight: 5
+---
 ## glooctl uninstall
 
 uninstall gloo
@@ -24,5 +28,5 @@ glooctl uninstall [flags]
 
 ### SEE ALSO
 
-* [glooctl](glooctl.md)	 - CLI for Gloo
+* [glooctl](../glooctl)	 - CLI for Gloo
 

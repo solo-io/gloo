@@ -1,3 +1,7 @@
+---
+title: "glooctl install gateway"
+weight: 5
+---
 ## glooctl install gateway
 
 install the Gloo Gateway on kubernetes
@@ -27,5 +31,5 @@ glooctl install gateway [flags]
 
 ### SEE ALSO
 
-* [glooctl install](glooctl_install.md)	 - install gloo on different platforms
+* [glooctl install](../glooctl_install)	 - install gloo on different platforms
 

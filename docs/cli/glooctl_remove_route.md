@@ -1,3 +1,7 @@
+---
+title: "glooctl remove route"
+weight: 5
+---
 ## glooctl remove route
 
 Remove a Route from a Virtual Service
@@ -32,5 +36,5 @@ glooctl remove route [flags]
 
 ### SEE ALSO
 
-* [glooctl remove](glooctl_remove.md)	 - remove configuration items from a top-level Gloo resource
+* [glooctl remove](../glooctl_remove)	 - remove configuration items from a top-level Gloo resource
 

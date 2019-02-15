@@ -1,3 +1,7 @@
+---
+title: "glooctl proxy stats"
+weight: 5
+---
 ## glooctl proxy stats
 
 stats for one of the proxy instances
@@ -27,5 +31,5 @@ glooctl proxy stats [flags]
 
 ### SEE ALSO
 
-* [glooctl proxy](glooctl_proxy.md)	 - interact with proxy instances managed by Gloo
+* [glooctl proxy](../glooctl_proxy)	 - interact with proxy instances managed by Gloo
 

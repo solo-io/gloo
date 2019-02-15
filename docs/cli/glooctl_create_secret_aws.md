@@ -1,3 +1,7 @@
+---
+title: "glooctl create secret aws"
+weight: 5
+---
 ## glooctl create secret aws
 
 Create an AWS secret with the given name
@@ -29,5 +33,5 @@ glooctl create secret aws [flags]
 
 ### SEE ALSO
 
-* [glooctl create secret](glooctl_create_secret.md)	 - Create a secret
+* [glooctl create secret](../glooctl_create_secret)	 - Create a secret
 

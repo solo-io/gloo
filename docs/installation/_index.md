@@ -1,4 +1,7 @@
-# Installing Gloo
+---
+title: Installing Gloo
+weight: 2
+---
 
 ## 1. Install Glooctl
 
@@ -74,7 +77,7 @@ replicaset.apps/gloo-5b7b748dbf           1         1         1         5m
 ```
 
 
-See [Getting Started on Kubernetes](../getting_started/kubernetes/basic_routing.md) to get started using the Gloo Gateway.
+See [Getting Started on Kubernetes](../../user_guides/basic_routing) to get started using the Gloo Gateway.
 
 <a name="ingress"></a> 
 ### 2b. Install the Gloo Ingress Controller to your Kubernetes Cluster using Glooctl
@@ -114,7 +117,7 @@ replicaset.apps/ingress-proxy-7b676c5b7   1         1         1         4s
 
 ```
 
-See [Getting Started with Kubernetes Ingress](../getting_started/kubernetes/basic_ingress.md) to get started using the Gloo Ingress Controller.
+See [Getting Started with Kubernetes Ingress](../../user_guides/basic_ingress) to get started using the Gloo Ingress Controller.
         
 
 <a name="knative"></a> 
@@ -188,7 +191,7 @@ image.caching.internal.knative.dev/fluentd-sidecar   2m
 image.caching.internal.knative.dev/queue-proxy       2m
 ```
 
-See [Getting Started with Gloo and Knative](../getting_started/kubernetes/gloo_with_knative.md) to get started using Gloo as your Knative Ingress.
+See [Getting Started with Gloo and Knative](../../user_guides/gloo_with_knative) to get started using Gloo as your Knative Ingress.
 
 ### Next steps
 

@@ -1,3 +1,7 @@
+---
+title: "glooctl install knative"
+weight: 5
+---
 ## glooctl install knative
 
 install Knative with Gloo on kubernetes
@@ -29,5 +33,5 @@ glooctl install knative [flags]
 
 ### SEE ALSO
 
-* [glooctl install](glooctl_install.md)	 - install gloo on different platforms
+* [glooctl install](../glooctl_install)	 - install gloo on different platforms
 

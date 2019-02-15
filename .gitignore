@@ -4,4 +4,5 @@ _output
 site
 .firebase
 
+themes
 install/gloo.yaml

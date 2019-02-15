@@ -1,3 +1,7 @@
+---
+title: "glooctl create upstream aws"
+weight: 5
+---
 ## glooctl create upstream aws
 
 Create an Aws Upstream
@@ -30,5 +34,5 @@ glooctl create upstream aws [flags]
 
 ### SEE ALSO
 
-* [glooctl create upstream](glooctl_create_upstream.md)	 - Create an Upstream Interactively
+* [glooctl create upstream](../glooctl_create_upstream)	 - Create an Upstream Interactively
 

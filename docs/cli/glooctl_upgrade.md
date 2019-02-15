@@ -1,3 +1,7 @@
+---
+title: "glooctl upgrade"
+weight: 5
+---
 ## glooctl upgrade
 
 upgrade glooctl binary
@@ -26,5 +30,5 @@ glooctl upgrade [flags]
 
 ### SEE ALSO
 
-* [glooctl](glooctl.md)	 - CLI for Gloo
+* [glooctl](../glooctl)	 - CLI for Gloo
 

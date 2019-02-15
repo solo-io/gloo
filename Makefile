@@ -69,12 +69,9 @@ $(OUTPUT_DIR)/.generated-code:
 	mkdir -p $(OUTPUT_DIR)
 	touch $@
 
-.PHONY: docs/index.md
-docs/index.md: 
-	cat README.md | sed 's@docs/@@g' > $@
-
-site: docs/index.md docs/cli/glooctl.md
-	mkdocs build
+site: docs/cli/glooctl.md
+	if [ ! -d themes ]; then  git clone https://github.com/matcornic/hugo-theme-learn.git themes/hugo-theme-learn; fi
+	hugo --config docs.toml
 
 docs/cli/glooctl.md: $(shell find projects/gloo/cli -name "*.go" | grep -v test.go | grep -v '\.\#*')
 	go run projects/gloo/cli/cmd/docs/main.go
@@ -87,7 +84,7 @@ ifeq ($(RELEASE),"true")
 endif
 
 serve-site: site
-	cd site && python -m SimpleHTTPServer
+	hugo --config docs.toml server -D
 
 #----------------------------------------------------------------------------------
 # Generate mocks

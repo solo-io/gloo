@@ -1,3 +1,7 @@
+---
+title: "glooctl create upstream azure"
+weight: 5
+---
 ## glooctl create upstream azure
 
 Create an Azure Upstream
@@ -30,5 +34,5 @@ glooctl create upstream azure [flags]
 
 ### SEE ALSO
 
-* [glooctl create upstream](glooctl_create_upstream.md)	 - Create an Upstream Interactively
+* [glooctl create upstream](../glooctl_create_upstream)	 - Create an Upstream Interactively
 

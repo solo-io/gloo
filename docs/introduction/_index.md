@@ -1,29 +1,7 @@
-
-
-<h1 align="center">
-    <img src="img/Gloo-01.png" alt="Gloo" width="200" height="242">
-  <br>
-  An Envoy-Powered API Gateway
-</h1>
-
-Gloo is a feature-rich, Kubernetes-native ingress controller, and next-generation API gateway. Gloo is exceptional in its function-level routing; its support for legacy apps, microservices and serverless; its discovery capabilities; its numerous features; and its tight integration with leading open-source projects. Gloo is uniquely designed to support hybrid applications, in which multiple technologies, architectures, protocols, and clouds can coexist. 
-
-
-[**Installation**](installation/README.md) &nbsp; |
-&nbsp; [**Developers**](dev/README.md) &nbsp; |
-&nbsp; [**Documentation**](https://gloo.solo.io) &nbsp; |
-&nbsp; [**Blog**](https://medium.com/solo-io/announcing-gloo-the-function-gateway-3f0860ef6600) &nbsp; |
-&nbsp; [**Slack**](https://slack.solo.io) &nbsp; |
-&nbsp; [**Twitter**](https://twitter.com/soloio_inc)
-
-<BR><center><img src="introduction/gloo_diagram.png" alt="Gloo Architecture" width="906"></center>
-
-## Summary
-
-- [**Using Gloo**](#using-gloo)
-- [**What makes Gloo unique**](#what-makes-gloo-unique)
-- [**Features**](#features)
-
+---
+title: Introduction
+weight: 1
+---
 
 ## Using Gloo
 - **Kubernetes ingress controller**: Gloo can function as a feature-rich ingress controller, built on top of the Envoy Proxy. 
@@ -89,23 +67,3 @@ Gloo is a feature-rich, Kubernetes-native ingress controller, and next-generatio
 - **Pub/Sub**: Publish HTTP requests to NATS
 
 - **JSON-to-gRPC transcoding**: Connect JSON clients to gRPC services
-
-Blogs & Demos
------
-- [Announcement Blog](https://medium.com/solo-io/announcing-gloo-the-function-gateway-3f0860ef6600)
-- [Building hybrid app demo](https://www.youtube.com/watch?time_continue=1&v=ISR3G0CAZM0)
-
-
-Community
------
-Join us on our slack channel: [https://slack.solo.io/](https://slack.solo.io/)
-
-Contributing
------
-Read the Solo.io [Contributor Guidelines.](dev/CONTRIBUTING.md)
-
-### Thanks
-
-**Gloo** would not be possible without the valuable open-source work of projects in the community. We would like to extend a special thank-you to [Envoy](https://www.envoyproxy.io).
-
-

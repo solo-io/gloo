@@ -1,3 +1,7 @@
+---
+title: "glooctl add route"
+weight: 5
+---
 ## glooctl add route
 
 Add a Route to a Virtual Service
@@ -48,5 +52,5 @@ glooctl add route [flags]
 
 ### SEE ALSO
 
-* [glooctl add](glooctl_add.md)	 - adds configuration to a top-level Gloo resource
+* [glooctl add](../glooctl_add)	 - adds configuration to a top-level Gloo resource
 

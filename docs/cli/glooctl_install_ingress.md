@@ -1,3 +1,7 @@
+---
+title: "glooctl install ingress"
+weight: 5
+---
 ## glooctl install ingress
 
 install the Gloo Ingress Controller on kubernetes
@@ -27,5 +31,5 @@ glooctl install ingress [flags]
 
 ### SEE ALSO
 
-* [glooctl install](glooctl_install.md)	 - install gloo on different platforms
+* [glooctl install](../glooctl_install)	 - install gloo on different platforms
 
