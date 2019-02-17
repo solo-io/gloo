@@ -103,8 +103,83 @@ var _ = Describe("V1Emitter", func() {
 				case <-time.After(time.Second * 10):
 					nsList1, _ := changeSetClient.List(namespace1, clients.ListOpts{})
 					nsList2, _ := changeSetClient.List(namespace2, clients.ListOpts{})
-					combined := nsList1.ByNamespace()
-					combined.Add(nsList2...)
+					combined := ChangesetsByNamespace{
+						namespace1: nsList1,
+						namespace2: nsList2,
+					}
+					Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
+				}
+			}
+		}
+		changeSet1a, err := changeSetClient.Write(NewChangeSet(namespace1, name1), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		changeSet1b, err := changeSetClient.Write(NewChangeSet(namespace2, name1), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+
+		assertSnapshotChangesets(ChangeSetList{changeSet1a, changeSet1b}, nil)
+		changeSet2a, err := changeSetClient.Write(NewChangeSet(namespace1, name2), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		changeSet2b, err := changeSetClient.Write(NewChangeSet(namespace2, name2), clients.WriteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+
+		assertSnapshotChangesets(ChangeSetList{changeSet1a, changeSet1b, changeSet2a, changeSet2b}, nil)
+
+		err = changeSetClient.Delete(changeSet2a.Metadata.Namespace, changeSet2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		err = changeSetClient.Delete(changeSet2b.Metadata.Namespace, changeSet2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+
+		assertSnapshotChangesets(ChangeSetList{changeSet1a, changeSet1b}, ChangeSetList{changeSet2a, changeSet2b})
+
+		err = changeSetClient.Delete(changeSet1a.Metadata.Namespace, changeSet1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+		err = changeSetClient.Delete(changeSet1b.Metadata.Namespace, changeSet1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		Expect(err).NotTo(HaveOccurred())
+
+		assertSnapshotChangesets(nil, ChangeSetList{changeSet1a, changeSet1b, changeSet2a, changeSet2b})
+	})
+	It("tracks snapshots on changes to any resource using AllNamespace", func() {
+		ctx := context.Background()
+		err := emitter.Register()
+		Expect(err).NotTo(HaveOccurred())
+
+		snapshots, errs, err := emitter.Snapshots([]string{""}, clients.WatchOpts{
+			Ctx:         ctx,
+			RefreshRate: time.Second,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		var snap *ApiSnapshot
+
+		/*
+			ChangeSet
+		*/
+
+		assertSnapshotChangesets := func(expectChangesets ChangeSetList, unexpectChangesets ChangeSetList) {
+		drain:
+			for {
+				select {
+				case snap = <-snapshots:
+					for _, expected := range expectChangesets {
+						if _, err := snap.Changesets.List().Find(expected.Metadata.Ref().Strings()); err != nil {
+							continue drain
+						}
+					}
+					for _, unexpected := range unexpectChangesets {
+						if _, err := snap.Changesets.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
+							continue drain
+						}
+					}
+					break drain
+				case err := <-errs:
+					Expect(err).NotTo(HaveOccurred())
+				case <-time.After(time.Second * 10):
+					nsList1, _ := changeSetClient.List(namespace1, clients.ListOpts{})
+					nsList2, _ := changeSetClient.List(namespace2, clients.ListOpts{})
+					combined := ChangesetsByNamespace{
+						namespace1: nsList1,
+						namespace2: nsList2,
+					}
 					Fail("expected final snapshot before 10 seconds. expected " + log.Sprintf("%v", combined))
 				}
 			}

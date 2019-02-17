@@ -126,14 +126,6 @@ func (list ChangeSetList) AsInterfaces() []interface{} {
 	return asInterfaces
 }
 
-func (list ChangeSetList) ByNamespace() ChangesetsByNamespace {
-	byNamespace := make(ChangesetsByNamespace)
-	for _, changeSet := range list {
-		byNamespace.Add(changeSet)
-	}
-	return byNamespace
-}
-
 func (byNamespace ChangesetsByNamespace) Add(changeSet ...*ChangeSet) {
 	for _, item := range changeSet {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
@@ -153,7 +145,11 @@ func (byNamespace ChangesetsByNamespace) List() ChangeSetList {
 }
 
 func (byNamespace ChangesetsByNamespace) Clone() ChangesetsByNamespace {
-	return byNamespace.List().Clone().ByNamespace()
+	cloned := make(ChangesetsByNamespace)
+	for ns, list := range byNamespace {
+		cloned[ns] = list.Clone()
+	}
+	return cloned
 }
 
 var _ resources.Resource = &ChangeSet{}

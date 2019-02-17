@@ -1213,7 +1213,7 @@
   version = "v0.2.3"
 
 [[projects]]
-  digest = "1:4b8a25ad59150ff306c41cff6cd24e3e8a4495d778cd8c3b1d692c2e0c2f679d"
+  digest = "1:3f380983bdd7f981eec00c25d5de25368360b3787a63bb315ad198b82de13a3e"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1291,8 +1291,8 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "a9cb1971bbe425639536210a57a5bfe8d9ac6206"
-  version = "v0.6.22"
+  revision = "8ddaf670c08ab0eef7c2f0525c87abdf3434c6e3"
+  version = "v0.7.0"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1340,7 +1340,7 @@
   revision = "32838befd54a98ecd76e6f1bf0ca6df602646a04"
 
 [[projects]]
-  digest = "1:73c6be1a45bc4a36f52765f1b6865e8b7b878bf06644d9d3fd8dba52a1923c2d"
+  digest = "1:10dafce895bf56a4c94b87b9c1ba8efe7b8d2eb611ea7465150bb79f53dc1f67"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1349,6 +1349,7 @@
     "pkg/api/v1/clients/factory",
     "pkg/api/v1/clients/file",
     "pkg/api/v1/clients/kube",
+    "pkg/api/v1/clients/kube/cache",
     "pkg/api/v1/clients/kube/controller",
     "pkg/api/v1/clients/kube/crd",
     "pkg/api/v1/clients/kube/crd/client/clientset/versioned",
@@ -1356,7 +1357,6 @@
     "pkg/api/v1/clients/kube/crd/client/clientset/versioned/typed/solo.io/v1",
     "pkg/api/v1/clients/kube/crd/solo.io/v1",
     "pkg/api/v1/clients/kubesecret",
-    "pkg/api/v1/clients/kubesecretplain",
     "pkg/api/v1/clients/memory",
     "pkg/api/v1/clients/vault",
     "pkg/api/v1/control-plane/cache",
@@ -1372,10 +1372,12 @@
     "pkg/code-generator",
     "pkg/code-generator/cmd",
     "pkg/code-generator/codegen",
-    "pkg/code-generator/codegen/funcs",
     "pkg/code-generator/codegen/templates",
     "pkg/code-generator/docgen",
-    "pkg/code-generator/docgen/templates",
+    "pkg/code-generator/docgen/funcs",
+    "pkg/code-generator/docgen/options",
+    "pkg/code-generator/docgen/templates/markdown",
+    "pkg/code-generator/docgen/templates/restructured",
     "pkg/code-generator/model",
     "pkg/code-generator/parser",
     "pkg/errors",
@@ -1394,8 +1396,8 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "a8be3a112d249730039280d9f50f50fd8b453099"
-  version = "v0.2.24"
+  revision = "8b9cf5bf4cadf2ddfac5ecfba6ee695264325537"
+  version = "v0.2.26"
 
 [[projects]]
   digest = "1:e01b05ba901239c783dfe56450bcde607fc858908529868259c9a8765dc176d0"

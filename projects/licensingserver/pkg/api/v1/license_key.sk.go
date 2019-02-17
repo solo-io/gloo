@@ -107,14 +107,6 @@ func (list LicenseKeyList) AsInterfaces() []interface{} {
 	return asInterfaces
 }
 
-func (list LicenseKeyList) ByNamespace() LicensesByNamespace {
-	byNamespace := make(LicensesByNamespace)
-	for _, licenseKey := range list {
-		byNamespace.Add(licenseKey)
-	}
-	return byNamespace
-}
-
 func (byNamespace LicensesByNamespace) Add(licenseKey ...*LicenseKey) {
 	for _, item := range licenseKey {
 		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
@@ -134,7 +126,11 @@ func (byNamespace LicensesByNamespace) List() LicenseKeyList {
 }
 
 func (byNamespace LicensesByNamespace) Clone() LicensesByNamespace {
-	return byNamespace.List().Clone().ByNamespace()
+	cloned := make(LicensesByNamespace)
+	for ns, list := range byNamespace {
+		cloned[ns] = list.Clone()
+	}
+	return cloned
 }
 
 var _ resources.Resource = &LicenseKey{}
