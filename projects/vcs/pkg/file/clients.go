@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	corecache "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	sqoopv1 "github.com/solo-io/solo-projects/projects/sqoop/pkg/api/v1"
@@ -253,7 +254,8 @@ func KubernetesConstructOpts() (gloov1.SettingsClient, bootstrap.Opts, error) {
 		return nil, bootstrap.Opts{}, err
 	}
 	ctx := contextutils.WithLogger(context.Background(), "gloo")
-	cache := kube.NewKubeCache(context.TODO())
+	cache := kube.NewKubeCache(ctx)
+	kubeCoreCache := corecache.NewKubeCoreCache(ctx, clientset)
 
 	// TODO(ilackarms): pass in settings configuration from an environment variable or CLI flag, rather than hard-coding to k8s
 	settingsClient, err := gloov1.NewSettingsClient(&factory.KubeResourceClientFactory{
@@ -279,9 +281,11 @@ func KubernetesConstructOpts() (gloov1.SettingsClient, bootstrap.Opts, error) {
 		},
 		Secrets: &factory.KubeSecretClientFactory{
 			Clientset: clientset,
+			Cache:     kubeCoreCache,
 		},
 		Artifacts: &factory.KubeConfigMapClientFactory{
 			Clientset: clientset,
+			Cache:     kubeCoreCache,
 		},
 		WatchNamespaces: []string{clients.DefaultNamespace, defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{
@@ -317,6 +321,7 @@ func FileConstructOpts(path string) (gloov1.SettingsClient, bootstrap.Opts, erro
 	if err != nil {
 		return nil, bootstrap.Opts{}, err
 	}
+	kubeCoreCache := corecache.NewKubeCoreCache(ctx, clientset)
 
 	return settingsClient, bootstrap.Opts{
 		WriteNamespace: defaults.GlooSystem,
@@ -329,10 +334,12 @@ func FileConstructOpts(path string) (gloov1.SettingsClient, bootstrap.Opts, erro
 		// TODO - make less sketchy (fileClients don't store secrets so we're using kube for that - find a good way to fill in the git/fileClient missing pieces)
 		Secrets: &factory.KubeSecretClientFactory{
 			Clientset: clientset,
+			Cache:     kubeCoreCache,
 		},
 		// TODO - add to fileClient?
 		Artifacts: &factory.KubeConfigMapClientFactory{
 			Clientset: clientset,
+			Cache:     kubeCoreCache,
 		},
 		WatchNamespaces: []string{clients.DefaultNamespace, defaults.GlooSystem},
 		WatchOpts: clients.WatchOpts{

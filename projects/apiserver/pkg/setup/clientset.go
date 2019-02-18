@@ -16,6 +16,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	corecache "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/auth"
@@ -109,6 +110,8 @@ func NewClientSet(token string) (*ClientSet, error) {
 	// New shared cache
 	cache := kube.NewKubeCache(context.TODO())
 
+	kubeCoreCache := corecache.NewKubeCoreCache(context.TODO(), kubeClientset)
+
 	upstreamClient, err := gloov1.NewUpstreamClientWithToken(factoryFor(gloov1.UpstreamCrd, *cfg, cache), token)
 	if err != nil {
 		return nil, err
@@ -132,6 +135,7 @@ func NewClientSet(token string) (*ClientSet, error) {
 
 	secretClient, err := gloov1.NewSecretClientWithToken(&factory.KubeSecretClientFactory{
 		Clientset: kubeClientset,
+		Cache:     kubeCoreCache,
 	}, token)
 	if err != nil {
 		return nil, err
@@ -139,6 +143,7 @@ func NewClientSet(token string) (*ClientSet, error) {
 
 	artifactClient, err := gloov1.NewArtifactClientWithToken(&factory.KubeConfigMapClientFactory{
 		Clientset: kubeClientset,
+		Cache:     kubeCoreCache,
 	}, token)
 	if err != nil {
 		return nil, err
@@ -216,6 +221,7 @@ func NewTempClientSet(token string) (*ClientSet, error) {
 
 	// New shared cache
 	cache := kube.NewKubeCache(context.TODO())
+	kubeCoreCache := corecache.NewKubeCoreCache(context.TODO(), kubeClientset)
 
 	upstreamClient, err := gloov1.NewUpstreamClientWithToken(factoryFor(gloov1.UpstreamCrd, *cfg, cache), token)
 	if err != nil {
@@ -234,6 +240,7 @@ func NewTempClientSet(token string) (*ClientSet, error) {
 
 	secretClient, err := gloov1.NewSecretClientWithToken(&factory.KubeSecretClientFactory{
 		Clientset: kubeClientset,
+		Cache:     kubeCoreCache,
 	}, token)
 	if err != nil {
 		return nil, err
@@ -241,6 +248,7 @@ func NewTempClientSet(token string) (*ClientSet, error) {
 
 	artifactClient, err := gloov1.NewArtifactClientWithToken(&factory.KubeConfigMapClientFactory{
 		Clientset: kubeClientset,
+		Cache:     kubeCoreCache,
 	}, token)
 	if err != nil {
 		return nil, err
@@ -320,6 +328,7 @@ func newAdminClientSet() (*ClientSet, error) {
 
 	// New shared cache
 	cache := kube.NewKubeCache(context.TODO())
+	kubeCoreCache := corecache.NewKubeCoreCache(context.TODO(), kubeClientset)
 
 	upstreamClient, err := gloov1.NewUpstreamClient(factoryFor(gloov1.UpstreamCrd, *cfg, cache))
 	if err != nil {
@@ -344,6 +353,7 @@ func newAdminClientSet() (*ClientSet, error) {
 
 	secretClient, err := gloov1.NewSecretClient(&factory.KubeSecretClientFactory{
 		Clientset: kubeClientset,
+		Cache:     kubeCoreCache,
 	})
 	if err != nil {
 		return nil, err
@@ -351,6 +361,7 @@ func newAdminClientSet() (*ClientSet, error) {
 
 	artifactClient, err := gloov1.NewArtifactClient(&factory.KubeConfigMapClientFactory{
 		Clientset: kubeClientset,
+		Cache:     kubeCoreCache,
 	})
 	if err != nil {
 		return nil, err
