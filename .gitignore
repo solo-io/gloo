@@ -5,5 +5,4 @@ site
 .firebase
 
 themes
-!themes/hugo-theme-learn/static/css/theme-gloo.css
 install/gloo.yaml
