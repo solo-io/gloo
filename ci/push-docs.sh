@@ -18,6 +18,7 @@ github_token_no_spaces=$(echo $GITHUB_TOKEN | tr -d '[:space:]')
 branch="docs-gloo-$tag"
 
 git clone https://github.com/solo-io/gloo-docs.git
+git config --global user.name "soloio-bot"
 (cd gloo-docs && git checkout -b $branch)
 
 # Gloo
@@ -53,7 +54,7 @@ if [[ $( (cd gloo-docs && git status --porcelain) | wc -l) -eq 0 ]]; then
 fi
 
 (cd gloo-docs && git commit -m "Add docs for tag $tag")
-(cd gloo-docs && git push)
+(cd gloo-docs && git push --set-upstream origin $branch)
 
 curl -v -H "Authorization: token $github_token_no_spaces" -H "Content-Type:application/json" -X POST https://api.github.com/repos/solo-io/gloo-docs/pulls -d \
 '{"title":"Update docs for gloo '"$tag"'", "body": "Update docs for gloo '"$tag"'", "head": "'"$branch"'", "base": "master"}'
