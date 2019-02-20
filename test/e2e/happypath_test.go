@@ -153,7 +153,10 @@ var _ = Describe("Happypath", func() {
 		)
 
 		BeforeEach(func() {
+			namespace = ""
+			writeNamespace = ""
 			var err error
+			svc = nil
 			cfg, err = kubeutils.GetConfig("", "")
 			Expect(err).NotTo(HaveOccurred())
 			kubeClient, err = kubernetes.NewForConfig(cfg)
@@ -161,7 +164,9 @@ var _ = Describe("Happypath", func() {
 		})
 
 		prepNamespace := func() {
-			namespace = "gloo-e2e-" + helpers.RandString(8)
+			if namespace == "" {
+				namespace = "gloo-e2e-" + helpers.RandString(8)
+			}
 
 			err := setup.SetupKubeForTest(namespace)
 			Expect(err).NotTo(HaveOccurred())
@@ -263,6 +268,8 @@ var _ = Describe("Happypath", func() {
 
 		Context("all namespaces", func() {
 			BeforeEach(func() {
+				namespace = "gloo-e2e-" + helpers.RandString(8)
+
 				writeNamespace = defaults.GlooSystem
 				ro := &services.RunOptions{
 					NsToWrite: writeNamespace,
@@ -274,12 +281,26 @@ var _ = Describe("Happypath", func() {
 				}
 
 				testClients = services.RunGlooGatewayUdsFds(ctx, ro)
+				role := namespace + "~proxy"
+				err := envoyInstance.RunWithRole(role, testClients.GlooPort)
+				Expect(err).NotTo(HaveOccurred())
 
 				prepNamespace()
 			})
 
 			It("watch all namespaces", func() {
-				Eventually(getUpstream, "10s", "0.5s").ShouldNot(BeNil())
+				Eventually(getStatus, "10s", "0.5s").Should(Equal(core.Status_Accepted))
+
+				up, err := getUpstream()
+				Expect(err).NotTo(HaveOccurred())
+
+				proxycli := testClients.ProxyClient
+				proxy := getTrivialProxyForUpstream(namespace, envoyPort, up.Metadata.Ref())
+				var opts clients.WriteOpts
+				_, err = proxycli.Write(proxy, opts)
+				Expect(err).NotTo(HaveOccurred())
+
+				TestUpstremReachable()
 			})
 		})
 
