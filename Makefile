@@ -349,6 +349,12 @@ ifeq ($(RELEASE),"true")
 	@$(foreach YAML,$(RELEASE_YAMLS),ci/upload-github-release-asset.sh owner=solo-io repo=gloo tag=$(TAGGED_VERSION) filename=$(YAML);)
 endif
 
+.PHONY: push-docs
+push-docs:
+ifeq ($(RELEASE),"true")
+	ci/push-docs.sh tag=$(TAGGED_VERSION)
+endif
+
 #----------------------------------------------------------------------------------
 # Docker
 #----------------------------------------------------------------------------------
