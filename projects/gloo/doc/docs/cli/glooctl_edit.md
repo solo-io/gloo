@@ -1,3 +1,7 @@
+---
+title: "glooctl edit"
+weight: 5
+---
 ## glooctl edit
 
 root command for editing
@@ -22,7 +26,7 @@ root command for editing
 
 ### SEE ALSO
 
-* [glooctl](glooctl.md)	 - CLI for Gloo
-* [glooctl edit route](glooctl_edit_route.md)	 - 
-* [glooctl edit settings](glooctl_edit_settings.md)	 - root command for settings
+* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl edit route](../glooctl_edit_route)	 - 
+* [glooctl edit settings](../glooctl_edit_settings)	 - root command for settings
 

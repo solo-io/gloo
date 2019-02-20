@@ -1,3 +1,7 @@
+---
+title: "glooctl edit route externalauth"
+weight: 5
+---
 ## glooctl edit route externalauth
 
 Configure disable external auth on a route
@@ -30,5 +34,5 @@ glooctl edit route externalauth [flags]
 
 ### SEE ALSO
 
-* [glooctl edit route](glooctl_edit_route.md)	 - 
+* [glooctl edit route](../glooctl_edit_route)	 - 
 

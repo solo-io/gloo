@@ -1,3 +1,7 @@
+---
+title: "glooctl add"
+weight: 5
+---
 ## glooctl add
 
 adds configuration to a top-level Gloo resource
@@ -22,6 +26,6 @@ adds configuration to a top-level Gloo resource
 
 ### SEE ALSO
 
-* [glooctl](glooctl.md)	 - CLI for Gloo
-* [glooctl add route](glooctl_add_route.md)	 - Add a Route to a Virtual Service
+* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl add route](../glooctl_add_route)	 - Add a Route to a Virtual Service
 

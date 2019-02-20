@@ -1,3 +1,7 @@
+---
+title: "glooctl install kube"
+weight: 5
+---
 ## glooctl install kube
 
 install Gloo on kubernetes to the gloo-system namespace
@@ -31,5 +35,5 @@ glooctl install kube [flags]
 
 ### SEE ALSO
 
-* [glooctl install](glooctl_install.md)	 - install gloo on different platforms
+* [glooctl install](../glooctl_install)	 - install gloo on different platforms
 

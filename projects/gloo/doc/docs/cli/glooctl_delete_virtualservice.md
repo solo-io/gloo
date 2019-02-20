@@ -1,3 +1,7 @@
+---
+title: "glooctl delete virtualservice"
+weight: 5
+---
 ## glooctl delete virtualservice
 
 delete a virtualservice
@@ -26,5 +30,5 @@ glooctl delete virtualservice [flags]
 
 ### SEE ALSO
 
-* [glooctl delete](glooctl_delete.md)	 - Delete a Gloo resource
+* [glooctl delete](../glooctl_delete)	 - Delete a Gloo resource
 

@@ -1,3 +1,7 @@
+---
+title: "glooctl get proxy"
+weight: 5
+---
 ## glooctl get proxy
 
 read a proxy or list proxies in a namespace
@@ -27,5 +31,5 @@ glooctl get proxy [flags]
 
 ### SEE ALSO
 
-* [glooctl get](glooctl_get.md)	 - Display one or a list of Gloo resources
+* [glooctl get](../glooctl_get)	 - Display one or a list of Gloo resources
 

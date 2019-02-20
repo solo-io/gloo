@@ -1,3 +1,7 @@
+---
+title: "glooctl create upstream azure"
+weight: 5
+---
 ## glooctl create upstream azure
 
 Create an Azure Upstream
@@ -14,7 +18,7 @@ glooctl create upstream azure [flags]
 
 ```
       --azure-app-name string                                       name of the Azure Functions app to associate with this upstream
-      --azure-secret-name glooctl create secret azure --help        name of a secret containing Azure credentials created with glooctl. See glooctl create secret azure --help for help creating secrets (default "gloo-system")
+      --azure-secret-name glooctl create secret azure --help        name of a secret containing Azure credentials created with glooctl. See glooctl create secret azure --help for help creating secrets
       --azure-secret-namespace glooctl create secret azure --help   namespace where the Azure secret lives. See glooctl create secret azure --help for help creating secrets (default "gloo-system")
   -h, --help                                                        help for azure
       --name string                                                 name of the resource to read or write
@@ -30,5 +34,5 @@ glooctl create upstream azure [flags]
 
 ### SEE ALSO
 
-* [glooctl create upstream](glooctl_create_upstream.md)	 - Create an Upstream Interactively
+* [glooctl create upstream](../glooctl_create_upstream)	 - Create an Upstream Interactively
 

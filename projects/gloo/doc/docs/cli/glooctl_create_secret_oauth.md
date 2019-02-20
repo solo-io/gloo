@@ -1,3 +1,7 @@
+---
+title: "glooctl create secret oauth"
+weight: 5
+---
 ## glooctl create secret oauth
 
 Create an OAuth secret with the given name
@@ -28,5 +32,5 @@ glooctl create secret oauth [flags]
 
 ### SEE ALSO
 
-* [glooctl create secret](glooctl_create_secret.md)	 - Create a secret
+* [glooctl create secret](../glooctl_create_secret)	 - Create a secret
 

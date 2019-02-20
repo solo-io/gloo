@@ -1,3 +1,7 @@
+---
+title: "glooctl edit settings"
+weight: 5
+---
 ## glooctl edit settings
 
 root command for settings
@@ -24,6 +28,6 @@ root command for settings
 
 ### SEE ALSO
 
-* [glooctl edit](glooctl_edit.md)	 - root command for editing
-* [glooctl edit settings externalauth](glooctl_edit_settings_externalauth.md)	 - Configure external auth settings
+* [glooctl edit](../glooctl_edit)	 - root command for editing
+* [glooctl edit settings externalauth](../glooctl_edit_settings_externalauth)	 - Configure external auth settings
 

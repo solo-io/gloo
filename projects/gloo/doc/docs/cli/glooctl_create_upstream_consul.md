@@ -1,3 +1,7 @@
+---
+title: "glooctl create upstream consul"
+weight: 5
+---
 ## glooctl create upstream consul
 
 Create a Consul Upstream
@@ -14,7 +18,7 @@ glooctl create upstream consul [flags]
 
 ```
       --consul-service string         name of the service in the consul registry
-      --consul-service-tags strings   tags for choosing a subset of the service in the consul registry
+      --consul-service-tags strings   comma-separated list of tags for choosing a subset of the service in the consul registry
   -h, --help                          help for consul
       --name string                   name of the resource to read or write
   -n, --namespace string              namespace for reading or writing resources (default "gloo-system")
@@ -30,5 +34,5 @@ glooctl create upstream consul [flags]
 
 ### SEE ALSO
 
-* [glooctl create upstream](glooctl_create_upstream.md)	 - Create an Upstream Interactively
+* [glooctl create upstream](../glooctl_create_upstream)	 - Create an Upstream Interactively
 

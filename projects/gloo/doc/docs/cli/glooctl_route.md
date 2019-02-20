@@ -1,3 +1,7 @@
+---
+title: "glooctl route"
+weight: 5
+---
 ## glooctl route
 
 subcommands for interacting with routes within virtual services
@@ -22,6 +26,6 @@ subcommands for interacting with routes within virtual services
 
 ### SEE ALSO
 
-* [glooctl](glooctl.md)	 - CLI for Gloo
-* [glooctl route sort](glooctl_route_sort.md)	 - sort routes on an existing virtual service
+* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl route sort](../glooctl_route_sort)	 - sort routes on an existing virtual service
 

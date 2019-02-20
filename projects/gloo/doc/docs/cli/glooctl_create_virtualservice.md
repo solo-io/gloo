@@ -1,3 +1,7 @@
+---
+title: "glooctl create virtualservice"
+weight: 5
+---
 ## glooctl create virtualservice
 
 Create a Virtual Service
@@ -15,7 +19,8 @@ glooctl create virtualservice [flags]
 ### Options
 
 ```
-      --domains strings                            comma seperated list of domains
+      --display-name string                        descriptive name of virtual service (defaults to resource name)
+      --domains strings                            comma separated list of domains
       --enable-oidc-auth                           enable rate limiting features for this virtual service
       --enable-rate-limiting                       enable rate limiting features for this virtual service
   -h, --help                                       help for virtualservice
@@ -40,5 +45,5 @@ glooctl create virtualservice [flags]
 
 ### SEE ALSO
 
-* [glooctl create](glooctl_create.md)	 - Create a Gloo resource
+* [glooctl create](../glooctl_create)	 - Create a Gloo resource
 

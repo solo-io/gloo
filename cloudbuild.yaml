@@ -171,22 +171,11 @@ steps:
   dir: './gopath/src/github.com/solo-io/solo-projects'
   id: 'set-helm-chart'
 
-# go-make is produced from https://github.com/solo-io/cloud-builders/go-make
-#- name: 'gcr.io/$PROJECT_ID/go-make'
-#  args: ['deploy-site']
-#  env:
-#  - 'TAGGED_VERSION=$TAG_NAME'
-#  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-#  - 'GOPATH=/workspace/gopath'
-#  dir: './gopath/src/github.com/solo-io/solo-projects/projects/gloo/doc'
-#  secretEnv: ['FIREBASE_TOKEN']
-
 secrets:
 - kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key
   secretEnv:
     GITHUB_TOKEN: CiQAwdWthppXCatGZZrcHgwEcPXq0J1UVsTgGxHBVeS08sMZV/gSUgD5SXFIMJqfBsZflgeqMpC4hkszp8q8aeBh6oMuPRJRHKZRCIlJhHiaamm49VmFHROd9rG7b8y0MTVb5BOaQPN9MQ1j9tIXI8XoHlI9JHfpgLs=
     DOCKER_HUB_PASSWORD: CiQAwdWthnPx474iTBxC0Wn3IqXOtKE9GKcwo6BzRLFjsDEpybsSTgD5SXFIkjIL4U5PvBc7GqCg3SLHbxktlFByfWa0qSWE6RVMJoTbeOi0iNj1gLQifb9PeQwLIlJiv0D4TUWV8nvL7DbNSxsjdOvFeV/Vpw==
-#    FIREBASE_TOKEN: CiQAwdWthjhACaGIgkXZBr7vY1fXPf2JOVYB0MM2ZYuhJhn2V90SVwD5SXFIhTrx6gnp45XMlTChRmReaf6qVMq+RkI+2mFxcXCb3wWtBaf9HEgaJyNGFV1h9Jh6nDp1OC+VtLmihBznpAZVWqhEOYy1Yq+a7SLDKKH19xpusg==
 
 # Overall build timeout of 30m. The release builds take extra time for uploading and pushing artifacts. We can
 # set timeouts on specific steps (dep, tests, etc) if we want to limit the time in sections, but want a forgiving

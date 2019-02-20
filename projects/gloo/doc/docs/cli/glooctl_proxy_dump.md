@@ -1,3 +1,7 @@
+---
+title: "glooctl proxy dump"
+weight: 5
+---
 ## glooctl proxy dump
 
 dump Envoy config from one of the proxy instances
@@ -27,5 +31,5 @@ glooctl proxy dump [flags]
 
 ### SEE ALSO
 
-* [glooctl proxy](glooctl_proxy.md)	 - interact with proxy instances managed by Gloo
+* [glooctl proxy](../glooctl_proxy)	 - interact with proxy instances managed by Gloo
 

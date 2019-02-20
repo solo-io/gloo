@@ -1,3 +1,7 @@
+---
+title: "glooctl edit route"
+weight: 5
+---
 ## glooctl edit route
 
 
@@ -22,6 +26,6 @@
 
 ### SEE ALSO
 
-* [glooctl edit](glooctl_edit.md)	 - root command for editing
-* [glooctl edit route externalauth](glooctl_edit_route_externalauth.md)	 - Configure disable external auth on a route
+* [glooctl edit](../glooctl_edit)	 - root command for editing
+* [glooctl edit route externalauth](../glooctl_edit_route_externalauth)	 - Configure disable external auth on a route
 

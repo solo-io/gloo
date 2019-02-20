@@ -1,3 +1,7 @@
+---
+title: "glooctl route sort"
+weight: 5
+---
 ## glooctl route sort
 
 sort routes on an existing virtual service
@@ -29,5 +33,5 @@ glooctl route sort [flags]
 
 ### SEE ALSO
 
-* [glooctl route](glooctl_route.md)	 - subcommands for interacting with routes within virtual services
+* [glooctl route](../glooctl_route)	 - subcommands for interacting with routes within virtual services
 

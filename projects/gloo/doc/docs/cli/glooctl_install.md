@@ -1,3 +1,7 @@
+---
+title: "glooctl install"
+weight: 5
+---
 ## glooctl install
 
 install gloo on different platforms
@@ -27,6 +31,6 @@ choose which version of Gloo to install.
 
 ### SEE ALSO
 
-* [glooctl](glooctl.md)	 - CLI for Gloo
-* [glooctl install kube](glooctl_install_kube.md)	 - install Gloo on kubernetes to the gloo-system namespace
+* [glooctl](../glooctl)	 - CLI for Gloo
+* [glooctl install kube](../glooctl_install_kube)	 - install Gloo on kubernetes to the gloo-system namespace
 

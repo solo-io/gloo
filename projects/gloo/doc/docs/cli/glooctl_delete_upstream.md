@@ -1,3 +1,7 @@
+---
+title: "glooctl delete upstream"
+weight: 5
+---
 ## glooctl delete upstream
 
 delete an upstream
@@ -26,5 +30,5 @@ glooctl delete upstream [flags]
 
 ### SEE ALSO
 
-* [glooctl delete](glooctl_delete.md)	 - Delete a Gloo resource
+* [glooctl delete](../glooctl_delete)	 - Delete a Gloo resource
 
