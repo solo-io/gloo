@@ -72,23 +72,6 @@ $(OUTPUT_DIR)/.generated-code:
 	mkdir -p $(OUTPUT_DIR)
 	touch $@
 
-site: docs/cli/glooctl.md
-	if [ ! -d themes ]; then  git clone https://github.com/matcornic/hugo-theme-learn.git themes/hugo-theme-learn; fi
-	hugo --config docs.toml
-
-docs/cli/glooctl.md: $(shell find projects/gloo/cli -name "*.go" | grep -v test.go | grep -v '\.\#*')
-	go run projects/gloo/cli/cmd/docs/main.go
-# To run this, install firebase CLI and first run firebase login (requires solo account)
-# This is run by CI and is not intended to be run manually unless otherwise necessary
-.PHONY: deploy-site
-deploy-site: site
-ifeq ($(RELEASE),"true")
-	firebase deploy --only hosting:gloo-docs
-endif
-
-serve-site: site
-	hugo --config docs.toml server -D
-
 #----------------------------------------------------------------------------------
 # Generate mocks
 #----------------------------------------------------------------------------------
