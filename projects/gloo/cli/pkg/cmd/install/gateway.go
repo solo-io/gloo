@@ -1,7 +1,10 @@
 package install
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
@@ -10,17 +13,26 @@ import (
 )
 
 func gatewayCmd(opts *options.Options) *cobra.Command {
-	const glooGatewayUrlTemplate = "https://github.com/solo-io/gloo/releases/download/v%s/gloo-gateway.yaml"
 	cmd := &cobra.Command{
 		Use:   "gateway",
 		Short: "install the Gloo Gateway on kubernetes",
 		Long:  "requires kubectl to be installed",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := preInstall(); err != nil {
-				return errors.Wrapf(err, "pre-install failed")
+
+			// Get Gloo release version
+			version, err := getGlooVersion(opts)
+			if err != nil {
+				return err
 			}
-			if err := installFromUri(opts, opts.Install.GlooManifestOverride, glooGatewayUrlTemplate); err != nil {
-				return errors.Wrapf(err, "installing ingress from manifest")
+
+			// Get location of Gloo install manifest
+			manifestUri := fmt.Sprintf(constants.GlooHelmRepoTemplate, version)
+			if manifestOverride := opts.Install.GlooManifestOverride; manifestOverride != "" {
+				manifestUri = manifestOverride
+			}
+
+			if err := installFromUri(manifestUri, opts, ""); err != nil {
+				return errors.Wrapf(err, "installing gloo from helm")
 			}
 			return nil
 		},
