@@ -1213,12 +1213,13 @@
   version = "v0.2.3"
 
 [[projects]]
-  digest = "1:3f380983bdd7f981eec00c25d5de25368360b3787a63bb315ad198b82de13a3e"
+  digest = "1:6ec6c8599861df73cdc5b826d2771a7aefb08bcffa76fd19c3e300556b4c4e35"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
     "pkg/cliutil",
     "pkg/cliutil/testutil",
+    "pkg/utils",
     "pkg/utils/setuputils",
     "pkg/version",
     "projects/discovery/pkg/fds",
@@ -1255,6 +1256,7 @@
     "projects/gloo/cli/pkg/helpers",
     "projects/gloo/cli/pkg/printers",
     "projects/gloo/cli/pkg/surveyutils",
+    "projects/gloo/pkg/api/converters/kube",
     "projects/gloo/pkg/api/v1",
     "projects/gloo/pkg/api/v1/plugins",
     "projects/gloo/pkg/api/v1/plugins/aws",
@@ -1291,8 +1293,8 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "8ddaf670c08ab0eef7c2f0525c87abdf3434c6e3"
-  version = "v0.7.0"
+  revision = "e477246d4441ecc2cc0414f2a73039b04f37cbe0"
+  version = "v0.7.5"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1340,7 +1342,7 @@
   revision = "32838befd54a98ecd76e6f1bf0ca6df602646a04"
 
 [[projects]]
-  digest = "1:10dafce895bf56a4c94b87b9c1ba8efe7b8d2eb611ea7465150bb79f53dc1f67"
+  digest = "1:fdfc40490c40f4c987474a856a2eb2a2c0cb797bcd465219a8b6a3d8ff820522"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1396,8 +1398,8 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "8b9cf5bf4cadf2ddfac5ecfba6ee695264325537"
-  version = "v0.2.26"
+  revision = "73680f9c5837e9ea3e807d483f236f8080106d3e"
+  version = "v0.2.28"
 
 [[projects]]
   digest = "1:e01b05ba901239c783dfe56450bcde607fc858908529868259c9a8765dc176d0"
@@ -2341,6 +2343,7 @@
     "github.com/solo-io/solo-kit/pkg/api/v1/clients",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/factory",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube",
+    "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/memory",
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache",
