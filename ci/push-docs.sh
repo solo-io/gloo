@@ -18,33 +18,33 @@ github_token_no_spaces=$(echo $GITHUB_TOKEN | tr -d '[:space:]')
 branch="docs-glooe-$tag"
 
 set +x
-echo "Cloning gloo-docs repo"
-git clone https://soloio-bot:$github_token_no_spaces@github.com/solo-io/gloo-docs.git
+echo "Cloning solo-docs repo"
+git clone https://soloio-bot:$github_token_no_spaces@github.com/solo-io/solo-docs.git
 [ "$TRACE" ] && set -x
 
 git config --global user.name "soloio-bot"
-(cd gloo-docs && git checkout -b $branch)
+(cd solo-docs && git checkout -b $branch)
 
-if [ -d "gloo-docs/docs/v1/github.com/solo-io/solo-projects" ]; then
-	rm -r gloo-docs/docs/v1/github.com/solo-io/solo-projects
+if [ -d "solo-docs/gloo/docs/v1/github.com/solo-io/solo-projects" ]; then
+	rm -r solo-docs/gloo/docs/v1/github.com/solo-io/solo-projects
 fi
-cp -r projects/gloo/doc/docs/v1/github.com/solo-io/solo-projects gloo-docs/docs/v1/github.com/solo-io/solo-projects
+cp -r projects/gloo/doc/docs/v1/github.com/solo-io/solo-projects solo-docs/gloo/docs/v1/github.com/solo-io/solo-projects
 
-rm gloo-docs/docs/cli/glooctl*
-cp projects/gloo/doc/docs/cli/glooctl* gloo-docs/docs/cli/
+rm solo-docs/gloo/docs/cli/glooctl*
+cp projects/gloo/doc/docs/cli/glooctl* solo-docs/gloo/docs/cli/
 
-(cd gloo-docs && git add .)
+(cd solo-docs && git add .)
 
-if [[ $( (cd gloo-docs && git status --porcelain) | wc -l) -eq 0 ]]; then
+if [[ $( (cd solo-docs && git status --porcelain) | wc -l) -eq 0 ]]; then
   echo "No changes to solo-projects docs, exiting."
-  rm -rf gloo-docs
+  rm -rf solo-docs
   exit 0;
 fi
 
-(cd gloo-docs && git commit -m "Add docs for tag $tag")
-(cd gloo-docs && git push --set-upstream origin $branch)
+(cd solo-docs && git commit -m "Add docs for tag $tag")
+(cd solo-docs && git push --set-upstream origin $branch)
 
-curl -v -H "Authorization: token $github_token_no_spaces" -H "Content-Type:application/json" -X POST https://api.github.com/repos/solo-io/gloo-docs/pulls -d \
+curl -v -H "Authorization: token $github_token_no_spaces" -H "Content-Type:application/json" -X POST https://api.github.com/repos/solo-io/solo-docs/pulls -d \
 '{"title":"Update docs for glooe '"$tag"'", "body": "Update docs for glooe '"$tag"'", "head": "'"$branch"'", "base": "master"}'
 
-rm -rf gloo-docs
+rm -rf solo-docs
