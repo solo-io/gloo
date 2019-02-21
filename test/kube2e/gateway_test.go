@@ -70,6 +70,7 @@ var _ = Describe("Kube2e: gateway", func() {
 
 	AfterEach(func() {
 		cancel()
+		virtualServiceClient.Delete(namespace, "vs", clients.DeleteOpts{})
 	})
 
 	It("works", func() {
@@ -124,6 +125,10 @@ var _ = Describe("Kube2e: gateway", func() {
 		BeforeEach(func() {
 			// get the certificate so it is generated in the background
 			go Certificate()
+		})
+
+		AfterEach(func() {
+			kubeClient.CoreV1().Secrets(namespace).Delete("secret", nil)
 		})
 
 		It("works with ssl", func() {

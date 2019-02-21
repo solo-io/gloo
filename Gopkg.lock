@@ -1450,11 +1450,12 @@
   revision = "e2103e2c35297fb7e17febb81e49b312087a2372"
 
 [[projects]]
-  digest = "1:1fe9f1cf46deb81923e9e0dba06762f1a4e850f3fc0b41e2371128266b7d8482"
+  digest = "1:fa6bd41a75d99f159736704d3c8cd4529b15ca7725fd23796fe6541426a13564"
   name = "github.com/solo-io/envoy-operator"
   packages = ["pkg/downward"]
   pruneopts = "UT"
-  revision = "c71f318a203bca8433268be67336086379a2bf9f"
+  revision = "c0c348560c668090e5a1977d100a3b974f77f789"
+  version = "v0.1.0"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"

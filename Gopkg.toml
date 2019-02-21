@@ -20,7 +20,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/envoy-operator"
-  revision = "c71f318a203bca8433268be67336086379a2bf9f"
+  version = "0.1.0"
 
 [[constraint]]
   name = "github.com/solo-io/solo-kit"
