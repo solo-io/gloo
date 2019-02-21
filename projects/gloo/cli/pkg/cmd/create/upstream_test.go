@@ -31,6 +31,12 @@ var _ = Describe("Upstream", func() {
 			Expect(err.Error()).To(Equal(argsutils.NameError))
 		})
 
+		It("should error when host has invalid format", func() {
+			err := testutils.Glooctl(`create upstream static netlify --static-hosts "https://netlify.com:443"`)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("invalid host format"))
+		})
+
 		It("should error when hosts not provided", func() {
 			err := testutils.Glooctl("create upstream static jsonplaceholder-80")
 			Expect(err).To(HaveOccurred())

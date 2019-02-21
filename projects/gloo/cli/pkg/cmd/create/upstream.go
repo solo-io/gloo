@@ -236,7 +236,7 @@ func upstreamSpecFromOpts(input options.InputUpstream) (*v1.UpstreamSpec, error)
 				}
 				port = uint32(p)
 			default:
-				return nil, errors.Wrapf(err, "invalid host format. format must be IP:PORT or HOSTNAME:PORT "+
+				return nil, errors.Errorf("invalid host format. format must be IP:PORT or HOSTNAME:PORT " +
 					"eg www.google.com or www.google.com:80")
 			}
 			hosts = append(hosts, &static.Host{
