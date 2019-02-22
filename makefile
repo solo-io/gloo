@@ -39,7 +39,21 @@ pin-repos:
 
 .PHONY: check-format
 check-format:
-	NOT_FORMATTED=$$(gofmt -l ./projects/ ./pkg/ ./test/) && if [ -n "$$NOT_FORMATTED" ]; then echo These files are not formatted: $$NOT_FORMATTED; exit 1; fi
+	NOT_FORMATTED=$$(gofmt -l ./projects/ ./pkg/ ./test/ ./install/) && if [ -n "$$NOT_FORMATTED" ]; then echo These files are not formatted: $$NOT_FORMATTED; exit 1; fi
+
+
+#----------------------------------------------------------------------------------
+# Build Scripts
+#----------------------------------------------------------------------------------
+
+BUILD_SCRIPTS := install/distribution
+
+.PHONY: build-scripts
+build-scripts: $(BUILD_SCRIPTS)
+
+.PHONY: install/distribution
+install/distribution:
+	go build -o /dev/null $(ROOTDIR)/$@
 
 #----------------------------------------------------------------------------------
 # Clean

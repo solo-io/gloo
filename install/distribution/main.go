@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -170,7 +171,7 @@ func saveImages(deployments []v1.Deployment) error {
 			go func(image coreV1.Container, wg *sync.WaitGroup) {
 				defer wg.Done()
 				var err error
-				_, err = docker.PullIfNotPresent(image.Image, 0)
+				_, err = docker.PullIfNotPresent(context.TODO(), image.Image, 0)
 				if err != nil {
 					errch <- err
 					return

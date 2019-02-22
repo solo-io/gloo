@@ -62,7 +62,7 @@ steps:
   - 'GOPATH=/workspace/gopath'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   entrypoint: make
-  args: ['check-format']
+  args: ['check-format', 'build-scripts']
   waitFor: ['dep']
   id: 'check-format'
 - name: 'gcr.io/$PROJECT_ID/go-make'
