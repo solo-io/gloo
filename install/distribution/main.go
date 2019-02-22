@@ -17,9 +17,9 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/ghodss/yaml"
+	"github.com/solo-io/go-utils/docker"
 	v1 "k8s.io/api/apps/v1"
 	coreV1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/kind/pkg/docker"
 )
 
 const (
