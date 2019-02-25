@@ -38,6 +38,7 @@ func (r *Gateway) Hash() uint64 {
 	metaCopy.ResourceVersion = ""
 	return hashutils.HashAll(
 		metaCopy,
+		r.Ssl,
 		r.VirtualServices,
 		r.BindAddress,
 		r.BindPort,

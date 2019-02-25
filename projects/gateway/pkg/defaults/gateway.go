@@ -19,6 +19,15 @@ func DefaultGateway(writeNamespace string) *v1.Gateway {
 	}
 }
 
+func DefaultSslGateway(writeNamespace string) *v1.Gateway {
+	defaultgw := DefaultGateway(writeNamespace)
+	defaultgw.Metadata.Name = defaultgw.Metadata.Name + "-ssl"
+	defaultgw.BindPort = defaults.HttpsPort
+	defaultgw.Ssl = true
+
+	return defaultgw
+}
+
 func DefaultVirtualService(namespace, name string) *v1.VirtualService {
 	return &v1.VirtualService{
 		Metadata: core.Metadata{

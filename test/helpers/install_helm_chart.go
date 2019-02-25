@@ -31,6 +31,9 @@ func DeployGlooWithHelm(namespace, imageVersion string, enableKnative, verbose b
 		return err
 	}
 
+	// call make manifest
+	RunCommand(true, "make", "manifest")
+
 	// make the manifest
 	manifestContents, err := RunCommandOutput(verbose,
 		"helm", "template", GlooHelmChartDir(),

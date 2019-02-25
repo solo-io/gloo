@@ -1,7 +1,10 @@
 package v1helpers
 
 import (
+	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -10,6 +13,8 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gstruct"
 
 	"github.com/gogo/protobuf/proto"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -122,4 +127,48 @@ func RunTestServer(ctx context.Context) (uint32, <-chan *ReceivedRequest) {
 		close(bodychan)
 	}()
 	return uint32(port), bodychan
+}
+
+func TestUpstremReachable(envoyPort uint32, tu *TestUpstream, rootca *string) {
+
+	body := []byte("solo.io test")
+
+	EventuallyWithOffset(1, func() error {
+		// send a request with a body
+		var buf bytes.Buffer
+		buf.Write(body)
+
+		var client http.Client
+
+		scheme := "http"
+		if rootca != nil {
+			scheme = "https"
+			caCertPool := x509.NewCertPool()
+			ok := caCertPool.AppendCertsFromPEM([]byte(*rootca))
+			if !ok {
+				return fmt.Errorf("ca cert is not OK")
+			}
+
+			client.Transport = &http.Transport{
+				TLSClientConfig: &tls.Config{
+					RootCAs:            caCertPool,
+					InsecureSkipVerify: true,
+				},
+			}
+		}
+
+		res, err := client.Post(fmt.Sprintf(scheme+"://%s:%d/1", "localhost", envoyPort), "application/octet-stream", &buf)
+		if err != nil {
+			return err
+		}
+		if res.StatusCode != http.StatusOK {
+			return fmt.Errorf("%v is not OK", res.StatusCode)
+		}
+		return nil
+	}, "10s", ".5s").Should(BeNil())
+
+	EventuallyWithOffset(1, tu.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
+		"Method": Equal("POST"),
+		"Body":   Equal(body),
+	}))))
 }

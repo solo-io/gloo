@@ -23,6 +23,10 @@ func (t *translator) computeListener(params plugins.Params, proxy *v1.Proxy, lis
 	validateListenerPorts(proxy, report)
 
 	listenerFilters := t.computeListenerFilters(params, listener, report)
+	if len(listenerFilters) == 0 {
+		// nothing to do, return nil
+		return nil
+	}
 
 	filterChains := computeFilterChainsFromSslConfig(params.Snapshot, listener, listenerFilters, report)
 
@@ -95,11 +99,6 @@ func (t *translator) computeListenerFilters(params plugins.Params, listener *v1.
 // create a duplicate of the listener filter chain for each ssl cert we want to serve
 // if there is no SSL config on the listener, the envoy listener will have one insecure filter chain
 func computeFilterChainsFromSslConfig(snap *v1.ApiSnapshot, listener *v1.Listener, listenerFilters []envoylistener.Filter, report reportFunc) []envoylistener.FilterChain {
-	// no filters = no filter chains
-	if len(listenerFilters) == 0 {
-		report(errors.Errorf("listener %v configured with 0 virtual services and 0 filters", listener.Name),
-			"invalid listener")
-	}
 
 	// if no ssl config is provided, return a single insecure filter chain
 	if len(listener.SslConfiguations) == 0 {

@@ -1,18 +1,14 @@
 package e2e_test
 
 import (
-	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"net"
-	"net/http"
 	"os"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gstruct"
 
 	"github.com/solo-io/gloo/test/services"
 	"github.com/solo-io/go-utils/kubeutils"
@@ -64,28 +60,7 @@ var _ = Describe("Happypath", func() {
 	})
 
 	TestUpstremReachable := func() {
-
-		body := []byte("solo.io test")
-
-		EventuallyWithOffset(1, func() error {
-			// send a request with a body
-			var buf bytes.Buffer
-			buf.Write(body)
-
-			res, err := http.Post(fmt.Sprintf("http://%s:%d/1", "localhost", envoyPort), "application/octet-stream", &buf)
-			if err != nil {
-				return err
-			}
-			if res.StatusCode != http.StatusOK {
-				return errors.New(fmt.Sprintf("%v is not OK", res.StatusCode))
-			}
-			return nil
-		}, "10s", ".5s").Should(BeNil())
-
-		EventuallyWithOffset(1, tu.C).Should(Receive(PointTo(MatchFields(IgnoreExtras, Fields{
-			"Method": Equal("POST"),
-			"Body":   Equal(body),
-		}))))
+		v1helpers.TestUpstremReachable(envoyPort, tu, nil)
 	}
 
 	Describe("in memory", func() {

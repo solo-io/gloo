@@ -88,9 +88,10 @@ ClusterLoop:
 		}
 
 		envoyResources := t.computeListenerResources(params, proxy, listener, report)
-
-		routeConfigs = append(routeConfigs, envoyResources.routeConfig)
-		listeners = append(listeners, envoyResources.listener)
+		if envoyResources != nil {
+			routeConfigs = append(routeConfigs, envoyResources.routeConfig)
+			listeners = append(listeners, envoyResources.listener)
+		}
 	}
 
 	// run Cluster Generator Plugins
@@ -125,8 +126,11 @@ func (t *translator) computeListenerResources(params plugins.Params, proxy *v1.P
 
 	rdsName := routeConfigName(listener)
 
-	routeConfig := t.computeRouteConfig(params, proxy, listener, rdsName, report)
 	envoyListener := t.computeListener(params, proxy, listener, report)
+	if envoyListener == nil {
+		return nil
+	}
+	routeConfig := t.computeRouteConfig(params, proxy, listener, rdsName, report)
 
 	return &listenerResources{
 		listener:    envoyListener,

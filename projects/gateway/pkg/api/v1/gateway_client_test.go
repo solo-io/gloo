@@ -72,6 +72,7 @@ func GatewayClientTest(namespace string, client GatewayClient, name1, name2, nam
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
 	Expect(r1.Metadata.ResourceVersion).NotTo(Equal(input.Metadata.ResourceVersion))
 	Expect(r1.Metadata.Ref()).To(Equal(input.Metadata.Ref()))
+	Expect(r1.Ssl).To(Equal(input.Ssl))
 	Expect(r1.VirtualServices).To(Equal(input.VirtualServices))
 	Expect(r1.BindAddress).To(Equal(input.BindAddress))
 	Expect(r1.BindPort).To(Equal(input.BindPort))

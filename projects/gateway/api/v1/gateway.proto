@@ -20,8 +20,13 @@ import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins.proto";
 A gateway describes the routes to upstreams that are reachable via a specific port on the Gateway Proxy itself.
 */
 message Gateway {
+    
+    // if set to false, only use virtual services with no ssl configured.
+    // if set to true, only use virtual services with ssl configured.
+    bool ssl = 1;
+
     // names of the the virtual services, which contain the actual routes for the gateway
-    // if the list is empty, the gateway will apply all virtual services to this gateway
+    // if the list is empty, all virtual services will apply to this gateway (with accordance to tls flag above).
     repeated core.solo.io.ResourceRef virtual_services = 2 [(gogoproto.nullable) = false];
 
     // the bind address the gateway should serve traffic on

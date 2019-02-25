@@ -113,10 +113,12 @@ func RunGateway(opts Opts) error {
 		return err
 	}
 
-	if _, err := gatewayClient.Write(defaults.DefaultGateway(opts.WriteNamespace), clients.WriteOpts{
-		Ctx: opts.WatchOpts.Ctx,
-	}); err != nil && !errors.IsExist(err) {
-		return err
+	for _, gw := range []*v1.Gateway{defaults.DefaultGateway(opts.WriteNamespace), defaults.DefaultSslGateway(opts.WriteNamespace)} {
+		if _, err := gatewayClient.Write(gw, clients.WriteOpts{
+			Ctx: opts.WatchOpts.Ctx,
+		}); err != nil && !errors.IsExist(err) {
+			return err
+		}
 	}
 
 	emitter := v1.NewApiEmitter(gatewayClient, virtualServiceClient)

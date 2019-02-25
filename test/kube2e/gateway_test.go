@@ -178,7 +178,7 @@ var _ = Describe("Kube2e: gateway", func() {
 			}, "5s", "0.5s").Should(Not(BeNil()))
 
 			gatewayProxy := "gateway-proxy"
-			gatewayPort := int(80)
+			gatewayPort := int(443)
 			cafile := ToFile(helpers.Certificate())
 			defer os.Remove(cafile)
 

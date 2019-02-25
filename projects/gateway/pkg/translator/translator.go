@@ -37,7 +37,7 @@ func Translate(ctx context.Context, namespace string, snap *v1.ApiSnapshot) (*gl
 
 		virtualServices := getVirtualServiceForGateway(gateway, snap.VirtualServices.List(), resourceErrs)
 		mergedVirtualServices := validateAndMergeVirtualServices(namespace, gateway, virtualServices, resourceErrs)
-
+		mergedVirtualServices = filterVirtualSeviceForGateway(gateway, mergedVirtualServices)
 		listener := desiredListener(gateway, mergedVirtualServices)
 		listeners = append(listeners, listener)
 	}
@@ -202,7 +202,22 @@ func getVirtualServiceForGateway(gateway *v1.Gateway, virtualServices v1.Virtual
 		}
 		virtualServicesForGateway = append(virtualServicesForGateway, virtualService)
 	}
+
 	return virtualServicesForGateway
+}
+
+func filterVirtualSeviceForGateway(gateway *v1.Gateway, virtualServices v1.VirtualServiceList) v1.VirtualServiceList {
+	var virtualServicesForGateway v1.VirtualServiceList
+	for _, virtualService := range virtualServices {
+		if gateway.Ssl == hasSsl(virtualService) {
+			virtualServicesForGateway = append(virtualServicesForGateway, virtualService)
+		}
+	}
+	return virtualServicesForGateway
+}
+
+func hasSsl(vs *v1.VirtualService) bool {
+	return vs.SslConfig != nil
 }
 
 func desiredListener(gateway *v1.Gateway, virtualServicesForGateway v1.VirtualServiceList) *gloov1.Listener {
@@ -224,7 +239,7 @@ func desiredListener(gateway *v1.Gateway, virtualServicesForGateway v1.VirtualSe
 		}
 	}
 	return &gloov1.Listener{
-		Name:        gateway.Metadata.Name,
+		Name:        fmt.Sprintf("listener-%s-%d", gateway.BindAddress, gateway.BindPort),
 		BindAddress: gateway.BindAddress,
 		BindPort:    gateway.BindPort,
 		ListenerType: &gloov1.Listener_HttpListener{
