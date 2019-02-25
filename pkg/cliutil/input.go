@@ -65,7 +65,7 @@ func GetBoolInputDefault(msg string, value *bool, defaultValue bool) error {
 	if err := AskOne(prompt, &strValue, nil); err != nil {
 		return err
 	}
-	*value = strings.ToLower(defaultValueStr) == "y"
+	*value = strings.ToLower(strValue) == "y"
 	return nil
 }
 
