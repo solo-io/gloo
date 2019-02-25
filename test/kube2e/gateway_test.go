@@ -13,7 +13,6 @@ import (
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/test/helpers"
-	. "github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/test/setup"
@@ -124,7 +123,7 @@ var _ = Describe("Kube2e: gateway", func() {
 	Context("native ssl ", func() {
 		BeforeEach(func() {
 			// get the certificate so it is generated in the background
-			go Certificate()
+			go helpers.Certificate()
 		})
 
 		AfterEach(func() {
@@ -132,7 +131,7 @@ var _ = Describe("Kube2e: gateway", func() {
 		})
 
 		It("works with ssl", func() {
-			createdSecret, err := kubeClient.CoreV1().Secrets(namespace).Create(GetKubeSecret("secret", namespace))
+			createdSecret, err := kubeClient.CoreV1().Secrets(namespace).Create(helpers.GetKubeSecret("secret", namespace))
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = virtualServiceClient.Write(&v1.VirtualService{
@@ -180,7 +179,7 @@ var _ = Describe("Kube2e: gateway", func() {
 
 			gatewayProxy := "gateway-proxy"
 			gatewayPort := int(80)
-			cafile := ToFile(Certificate())
+			cafile := ToFile(helpers.Certificate())
 			defer os.Remove(cafile)
 
 			err = setup.Kubectl("cp", cafile, namespace+"/testrunner:/tmp/ca.crt")

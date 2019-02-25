@@ -21,7 +21,9 @@ import (
 	"github.com/solo-io/solo-kit/test/setup"
 
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
+	gloohelpers "github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/gloo/test/v1helpers"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 
@@ -91,7 +93,17 @@ var _ = Describe("Happypath", func() {
 		var up *gloov1.Upstream
 
 		BeforeEach(func() {
-			testClients = services.RunGateway(ctx, true)
+			ns := defaults.GlooSystem
+			ro := &services.RunOptions{
+				NsToWrite: ns,
+				NsToWatch: []string{"default", ns},
+				WhatToRun: services.What{
+					DisableGateway: true,
+					DisableUds:     true,
+					DisableFds:     true,
+				},
+			}
+			testClients = services.RunGlooGatewayUdsFds(ctx, ro)
 			err := envoyInstance.Run(testClients.GlooPort)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -109,6 +121,62 @@ var _ = Describe("Happypath", func() {
 
 			TestUpstremReachable()
 
+		})
+
+		Context("ssl", func() {
+			var upSsl *gloov1.Upstream
+
+			BeforeEach(func() {
+
+				sslSecret := &gloov1.Secret{
+					Metadata: core.Metadata{
+						Name:      "secret",
+						Namespace: "default",
+					},
+					Kind: &gloov1.Secret_Tls{
+						Tls: &gloov1.TlsSecret{
+							RootCa: gloohelpers.Certificate(),
+						},
+					},
+				}
+				_, err := testClients.SecretClient.Write(sslSecret, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+				// create ssl proxy
+				copyUp := *tu.Upstream
+				copyUp.Metadata.Name = copyUp.Metadata.Name + "-ssl"
+				port := tu.Upstream.UpstreamSpec.UpstreamType.(*gloov1.UpstreamSpec_Static).Static.Hosts[0].Port
+				addr := tu.Upstream.UpstreamSpec.UpstreamType.(*gloov1.UpstreamSpec_Static).Static.Hosts[0].Addr
+				sslport := v1helpers.StartSslProxy(ctx, port)
+				ref := sslSecret.Metadata.Ref()
+
+				copyUp.UpstreamSpec = &gloov1.UpstreamSpec{
+					UpstreamType: &gloov1.UpstreamSpec_Static{
+						Static: &static_plugin_gloo.UpstreamSpec{
+							Hosts: []*static_plugin_gloo.Host{{
+								Addr: addr,
+								Port: sslport,
+							}},
+						},
+					},
+				}
+				copyUp.UpstreamSpec.SslConfig = &gloov1.UpstreamSslConfig{
+					SslSecrets: &gloov1.UpstreamSslConfig_SecretRef{
+						SecretRef: &ref,
+					},
+				}
+				upSsl = &copyUp
+				_, err = testClients.UpstreamClient.Write(upSsl, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should work with ssl", func() {
+				proxycli := testClients.ProxyClient
+				proxy := getTrivialProxyForUpstream("default", envoyPort, upSsl.Metadata.Ref())
+				_, err := proxycli.Write(proxy, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+
+				TestUpstremReachable()
+			})
 		})
 
 		Context("sad path", func() {
@@ -248,11 +316,11 @@ var _ = Describe("Happypath", func() {
 				role := namespace + "~proxy"
 				err := envoyInstance.RunWithRole(role, testClients.GlooPort)
 				Expect(err).NotTo(HaveOccurred())
+
+				Eventually(getStatus, "10s", "0.5s").Should(Equal(core.Status_Accepted))
 			})
 
 			It("should discover service", func() {
-				Eventually(getStatus, "10s", "0.5s").Should(Equal(core.Status_Accepted))
-
 				up, err := getUpstream()
 				Expect(err).NotTo(HaveOccurred())
 
@@ -264,6 +332,7 @@ var _ = Describe("Happypath", func() {
 
 				TestUpstremReachable()
 			})
+
 		})
 
 		Context("all namespaces", func() {
