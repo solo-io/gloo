@@ -38,6 +38,9 @@ func (s *SslConfigTranslator) ResolveDownstreamSslConfig(dc *v1.SslConfig) (*env
 	if common.ValidationContextType != nil {
 		requireClientCert = &gogo_types.BoolValue{Value: true}
 	}
+	// show alpn for downstreams.
+	// placing it on upstreams maybe problematic if they do not expose alpn.
+	common.AlpnProtocols = []string{"h2", "http/1.1"}
 	return &envoyauth.DownstreamTlsContext{
 		CommonTlsContext:         common,
 		RequireClientCertificate: requireClientCert,
@@ -103,8 +106,7 @@ func (s *SslConfigTranslator) ResolveCommonSslConfig(cs CertSource) (*envoyauth.
 
 	tlsContext := &envoyauth.CommonTlsContext{
 		// default params
-		TlsParams:     &envoyauth.TlsParameters{},
-		AlpnProtocols: []string{"h2", "http/1.1"},
+		TlsParams: &envoyauth.TlsParameters{},
 	}
 
 	if certChainData != nil && privateKeyData != nil {
