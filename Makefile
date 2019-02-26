@@ -368,8 +368,8 @@ ifeq ($(RELEASE),"true")
 endif
 
 docker-kind: docker
-	docker save soloio/gateway:$(VERSION) | docker exec -i $(KIND_CONTAINER_ID) docker load
-	docker save soloio/ingress:$(VERSION) | docker exec -i $(KIND_CONTAINER_ID) docker load
-	docker save soloio/discovery:$(VERSION) | docker exec -i $(KIND_CONTAINER_ID) docker load
-	docker save soloio/gloo:$(VERSION) | docker exec -i $(KIND_CONTAINER_ID) docker load
-	docker save soloio/gloo-envoy-wrapper:$(VERSION) | docker exec -i $(KIND_CONTAINER_ID) docker load
+	kind load docker-image soloio/gateway:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image soloio/ingress:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image soloio/discovery:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image soloio/gloo:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image soloio/gloo-envoy-wrapper:$(VERSION) --name $(CLUSTER_NAME)
