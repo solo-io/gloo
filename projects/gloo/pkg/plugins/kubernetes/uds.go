@@ -241,6 +241,10 @@ func skip(svc *kubev1.Service, opts discovery.Opts) bool {
 }
 
 func (p *plugin) UpdateUpstream(original, desired *v1.Upstream) (bool, error) {
+	return UpdateUpstream(original, desired)
+}
+
+func UpdateUpstream(original, desired *v1.Upstream) (bool, error) {
 	originalSpec, ok := original.UpstreamSpec.UpstreamType.(*v1.UpstreamSpec_Kube)
 	if !ok {
 		return false, errors.Errorf("internal error: expected *v1.UpstreamSpec_Kube, got %v", reflect.TypeOf(original.UpstreamSpec.UpstreamType).Name())
@@ -253,6 +257,11 @@ func (p *plugin) UpdateUpstream(original, desired *v1.Upstream) (bool, error) {
 	desiredSpec.Kube.ServiceSpec = originalSpec.Kube.ServiceSpec
 	// copy labels; user may have written them over. cannot be auto-discovered
 	desiredSpec.Kube.Selector = originalSpec.Kube.Selector
+
+	// do not override ssl config if none specified by discovery
+	if desired.UpstreamSpec.SslConfig == nil {
+		desired.UpstreamSpec.SslConfig = original.UpstreamSpec.SslConfig
+	}
 
 	if originalSpec.Equal(desiredSpec) {
 		return false, nil
