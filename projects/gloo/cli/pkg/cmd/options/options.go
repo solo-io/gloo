@@ -3,16 +3,10 @@ package options
 import (
 	"sort"
 
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 )
-
-type EditOptions struct {
-	*options.Options
-	ResourceVersion string
-}
 
 type ExtraOptions struct {
 	Install   InstallExtended

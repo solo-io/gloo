@@ -114,13 +114,13 @@ var _ = Describe("Extauth", func() {
 
 		It("should enabled auth on route", func() {
 			testutil.ExpectInteractive(func(c *testutil.Console) {
-				c.ExpectString("name of the extauth server upstream:")
-				c.SendLine("extauth")
-				c.ExpectString("namespace of the extauth server upstream:")
-				c.SendLine("gloo-system")
 				c.ExpectString("name of the resource:")
 				c.SendLine("default")
 				c.ExpectString("namespace of the resource:")
+				c.SendLine("gloo-system")
+				c.ExpectString("name of the extauth server upstream:")
+				c.SendLine("extauth")
+				c.ExpectString("namespace of the extauth server upstream:")
 				c.SendLine("gloo-system")
 				c.ExpectEOF()
 			}, func() {

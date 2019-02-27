@@ -2,7 +2,8 @@ package settings
 
 import (
 	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils"
+	editOptions "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/options"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
@@ -20,7 +21,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func ExtAuthConfig(opts *options.EditOptions, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
+func ExtAuthConfig(opts *editOptions.EditOptions, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 
 	optsExt := &options.OIDCSettings{}
 
@@ -36,10 +37,6 @@ func ExtAuthConfig(opts *options.EditOptions, optionsFunc ...cliutils.OptionsFun
 					return err
 				}
 			}
-			err := argsutils.MetadataArgsParse(opts.Options, args)
-			if err != nil {
-				return err
-			}
 
 			return nil
 		},
@@ -54,7 +51,7 @@ func ExtAuthConfig(opts *options.EditOptions, optionsFunc ...cliutils.OptionsFun
 	return cmd
 }
 
-func editSettings(opts *options.EditOptions, optsExt *options.OIDCSettings, args []string) error {
+func editSettings(opts *editOptions.EditOptions, optsExt *options.OIDCSettings, args []string) error {
 	settingsClient := helpers.MustSettingsClient()
 	settings, err := settingsClient.Read(opts.Metadata.Namespace, opts.Metadata.Name, clients.ReadOpts{})
 	if err != nil {

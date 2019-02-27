@@ -94,8 +94,10 @@ var _ = Describe("Extauth", func() {
 
 		It("should enabled auth on route", func() {
 			testutil.ExpectInteractive(func(c *testutil.Console) {
-				c.ExpectString("Choose a Virtual Service:")
-				c.SendLine("")
+				c.ExpectString("name of the resource:")
+				c.SendLine("vs")
+				c.ExpectString("namespace of the resource:")
+				c.SendLine("gloo-system")
 				c.ExpectString("Choose the route you wish to change:")
 				c.PressDown()
 				c.SendLine("")

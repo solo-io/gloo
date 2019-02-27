@@ -1,19 +1,27 @@
 ---
-title: "glooctl edit route"
+title: "glooctl edit upstream"
 weight: 5
 ---
-## glooctl edit route
+## glooctl edit upstream
 
-
+read an upstream or list upstreams in a namespace
 
 ### Synopsis
 
+usage: glooctl edit upstream [NAME] [--namespace=namespace]
 
+```
+glooctl edit upstream [flags]
+```
 
 ### Options
 
 ```
-  -h, --help   help for route
+  -h, --help                          help for upstream
+      --ssl-remove                    Remove SSL configuration from this upstream
+      --ssl-secret-name string        name of the ssl secret for this upstream
+      --ssl-secret-namespace string   namespace of the ssl secret for this upstream
+      --ssl-sni string                SNI value to provide when contacting this upstream
 ```
 
 ### Options inherited from parent commands
@@ -29,5 +37,4 @@ weight: 5
 ### SEE ALSO
 
 * [glooctl edit](../glooctl_edit)	 - Edit a Gloo resource
-* [glooctl edit route externalauth](../glooctl_edit_route_externalauth)	 - Configure disable external auth on a route
 

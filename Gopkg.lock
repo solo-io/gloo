@@ -1351,7 +1351,7 @@
   version = "v0.2.3"
 
 [[projects]]
-  digest = "1:7fcde21476d71ff5d80b68a65a035e73a40d8635b07b5f8e18b962b93be1b059"
+  digest = "1:2213a6e92796d4ab800f03006f07644b07db48131506eb4b56add734eec8cefd"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1382,6 +1382,10 @@
     "projects/gloo/cli/pkg/cmd/create",
     "projects/gloo/cli/pkg/cmd/create/secret",
     "projects/gloo/cli/pkg/cmd/del",
+    "projects/gloo/cli/pkg/cmd/edit",
+    "projects/gloo/cli/pkg/cmd/edit/options",
+    "projects/gloo/cli/pkg/cmd/edit/upstream",
+    "projects/gloo/cli/pkg/cmd/edit/virtualservice",
     "projects/gloo/cli/pkg/cmd/gateway",
     "projects/gloo/cli/pkg/cmd/get",
     "projects/gloo/cli/pkg/cmd/install",
@@ -1425,6 +1429,7 @@
     "projects/gloo/pkg/plugins/rest",
     "projects/gloo/pkg/plugins/static",
     "projects/gloo/pkg/plugins/transformation",
+    "projects/gloo/pkg/plugins/upstreamssl",
     "projects/gloo/pkg/plugins/utils",
     "projects/gloo/pkg/syncer",
     "projects/gloo/pkg/translator",
@@ -1432,8 +1437,8 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "e26d8c02f58d1f1536d6b73a4c9cbddf84f72588"
-  version = "v0.7.8"
+  revision = "0e749d0fd9b41f8606dca85b70f0a9981cb0d5ca"
+  version = "v0.8.3"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -2642,6 +2647,8 @@
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/create",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/create/secret",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/del",
+    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit",
+    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/options",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gateway",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/get",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options",
@@ -2734,7 +2741,6 @@
     "google.golang.org/grpc/health/grpc_health_v1",
     "google.golang.org/grpc/reflection",
     "google.golang.org/grpc/status",
-    "gopkg.in/AlecAivazis/survey.v1",
     "gopkg.in/src-d/go-git.v4",
     "gopkg.in/src-d/go-git.v4/config",
     "gopkg.in/src-d/go-git.v4/plumbing",

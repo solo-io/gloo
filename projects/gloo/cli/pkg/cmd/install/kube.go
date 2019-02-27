@@ -68,8 +68,8 @@ func installGlooe(installer *Installer, opts *options.Options, optsExt *optionsE
 }
 
 func readGlooManifest(opts *options.Options) ([]byte, error) {
-	if opts.Install.GlooManifestOverride != "" {
-		return readManifestFromFile(opts.Install.GlooManifestOverride)
+	if opts.Install.HelmChartOverride != "" {
+		return readManifestFromFile(opts.Install.HelmChartOverride)
 	}
 	if version.Version == version.UndefinedVersion || version.Version == version.DevVersion {
 		return nil, errors.Errorf("You must provide a file containing the gloo manifest when running an unreleased version of glooctl.")

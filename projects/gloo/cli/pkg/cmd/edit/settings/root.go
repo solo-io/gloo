@@ -1,7 +1,8 @@
 package settings
 
 import (
-	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
+	editOptions "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/options"
+
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/constants"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
@@ -9,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func RootCmd(opts *options.EditOptions, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
+func RootCmd(opts *editOptions.EditOptions, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     constants.SETTINGS_COMMAND.Use,
 		Aliases: constants.SETTINGS_COMMAND.Aliases,

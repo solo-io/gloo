@@ -1,7 +1,7 @@
 package surveyutils
 
 import (
-	"github.com/solo-io/solo-projects/pkg/cliutil"
+	"github.com/solo-io/gloo/pkg/cliutil"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 )
 
