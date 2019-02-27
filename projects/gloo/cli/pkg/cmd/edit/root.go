@@ -6,6 +6,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils"
 	editOptions "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/upstream"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/virtualservice"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/go-utils/cliutils"
@@ -40,6 +41,7 @@ func RootCmdWithEditOpts(opts *editOptions.EditOptions, optionsFunc ...cliutils.
 	// atomically in that case
 	addEditFlags(cmd.PersistentFlags(), opts)
 
+	cmd.AddCommand(virtualservice.RootCmd(opts, optionsFunc...))
 	cmd.AddCommand(upstream.RootCmd(opts, optionsFunc...))
 	return cmd
 }
