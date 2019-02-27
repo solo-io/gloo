@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/solo-io/gloo/pkg/cliutil"
+	"github.com/solo-io/solo-projects/pkg/cliutil"
 
 	check "github.com/solo-io/go-checkpoint"
 	"github.com/solo-io/solo-projects/pkg/version"

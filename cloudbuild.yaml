@@ -135,6 +135,15 @@ steps:
   args: ['-r']
   waitFor: ['dep', 'get-envoy', 'setup-aws-creds']
 
+- name: 'gcr.io/cloud-builders/go'
+  dir: './gopath/src/github.com/solo-io/solo-projects'
+  env:
+  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+  - 'GOPATH=/workspace/gopath'
+  args: ['build', '-o', '/dev/null', 'projects/gloo/cli/cmd/main.go']
+  waitFor: ['dep']
+  id: 'build-cli'
+
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args: ['-c', 'docker login --username soloiobot --password $$DOCKER_HUB_PASSWORD']
