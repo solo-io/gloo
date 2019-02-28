@@ -13,9 +13,8 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/zap"
-
 	"github.com/google/uuid"
+	"github.com/solo-io/go-utils/contextutils"
 
 	"github.com/ghodss/yaml"
 	"github.com/solo-io/go-utils/docker"
@@ -43,19 +42,13 @@ var (
 	outputDistributionDir string
 	id                    uuid.UUID
 
-	logger *zap.SugaredLogger
+	dockerAuthStr string
 
-	projectId = os.ExpandEnv("PROJECT_ID")
+	projectId = os.Getenv("PROJECT_ID")
 )
 
 func init() {
 	var err error
-	devLogger, err := zap.NewDevelopment()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	logger = devLogger.Sugar()
 	id, err = uuid.NewRandom()
 	if err != nil {
 		fmt.Println(err)
@@ -64,6 +57,9 @@ func init() {
 }
 
 func main() {
+	ctx := context.Background()
+	logger := contextutils.LoggerFrom(ctx)
+
 	defer logger.Sync()
 	if len(os.Args) < 2 {
 		panic("Must provide version as argument")
@@ -71,15 +67,21 @@ func main() {
 		version = os.Args[1]
 		outputDistributionDir = filepath.Join(distribution, version)
 	}
+
+	//if err := dockerLogin(ctx); err != nil {
+	//	logger.Fatal(err.Error())
+	//}
+	//logger.Info("successfully authenticated with docker")
+
 	if err := prepareWorkspace(); err != nil {
 		logger.Fatal(err.Error())
 	}
 
-	if err := prepareFiles(); err != nil {
+	if err := prepareFiles(ctx); err != nil {
 		logger.Fatal(err.Error())
 	}
 
-	distBucketCli, err := newDistributionBucketClient()
+	distBucketCli, err := newDistributionBucketClient(ctx)
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
@@ -90,7 +92,7 @@ func main() {
 
 }
 
-func prepareFiles() error {
+func prepareFiles(ctx context.Context) error {
 	specs, err := readManifestIntoParts()
 	if err != nil {
 		return err
@@ -100,19 +102,19 @@ func prepareFiles() error {
 		return err
 	}
 
-	if err := saveImages(deployments); err != nil {
+	if err := saveImages(ctx, deployments); err != nil {
 		return err
 	}
 
-	if err := copyManifest(); err != nil {
+	if err := copyManifest(ctx); err != nil {
 		return err
 	}
 
-	if err := copyBinaries(); err != nil {
+	if err := copyBinaries(ctx); err != nil {
 		return err
 	}
 
-	if err := copySetupScripts(); err != nil {
+	if err := copySetupScripts(ctx); err != nil {
 		return err
 	}
 	return nil
@@ -160,7 +162,8 @@ func savedImageName(fullImageName string) string {
 }
 
 // Pull and save the images of of containers and initContainers of the given deployments
-func saveImages(deployments []v1.Deployment) error {
+func saveImages(ctx context.Context, deployments []v1.Deployment) error {
+	logger := contextutils.LoggerFrom(ctx)
 	wg := &sync.WaitGroup{}
 	errch := make(chan error)
 
@@ -171,11 +174,12 @@ func saveImages(deployments []v1.Deployment) error {
 			go func(image coreV1.Container, wg *sync.WaitGroup) {
 				defer wg.Done()
 				var err error
-				_, err = docker.PullIfNotPresent(context.TODO(), image.Image, 0)
+				_, err = docker.PullIfNotPresent(context.TODO(), image.Image, 3)
 				if err != nil {
 					errch <- err
 					return
 				}
+
 				err = docker.Save(image.Image, savedImageName(image.Image))
 				if err != nil {
 					errch <- err
@@ -211,7 +215,8 @@ func copyFile(source, dest string) error {
 	return nil
 }
 
-func copyManifest() error {
+func copyManifest(ctx context.Context) error {
+	logger := contextutils.LoggerFrom(ctx)
 	destinationManifest := filepath.Join(outputDistributionDir, glooeYaml)
 	if err := copyFile(manifest, destinationManifest); err != nil {
 		return err
@@ -220,7 +225,8 @@ func copyManifest() error {
 	return nil
 }
 
-func copyBinaries() error {
+func copyBinaries(ctx context.Context) error {
+	logger := contextutils.LoggerFrom(ctx)
 	info, err := ioutil.ReadDir(output)
 	if err != nil {
 		return err
@@ -239,7 +245,8 @@ func copyBinaries() error {
 }
 
 // Copy setup scripts from install/distribution/scripts to output/distribution
-func copySetupScripts() error {
+func copySetupScripts(ctx context.Context) error {
+	logger := contextutils.LoggerFrom(ctx)
 	for _, extension := range []string{"sh", "bat"} {
 		filename := strings.Join([]string{setupScriptName, extension}, ".")
 		source := filepath.Join(scriptsDir, filename)
@@ -252,7 +259,8 @@ func copySetupScripts() error {
 	return nil
 }
 
-func writeDistributionArchive(wr io.Writer, fileName string) error {
+func writeDistributionArchive(ctx context.Context, wr io.Writer, fileName string) error {
+	logger := contextutils.LoggerFrom(ctx)
 	// zip -r ARCHIVE_NAME DIR_TO_COMPRESS
 	cmd := exec.Command("zip", "-r", fileName, version)
 	cmd.Dir = distribution

@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/solo-io/go-utils/contextutils"
+
 	"cloud.google.com/go/storage"
 	"github.com/ghodss/yaml"
 )
@@ -38,8 +40,7 @@ type distributionVersions struct {
 	Versions []distributionVersion `json:"versions"`
 }
 
-func newDistributionBucketClient() (*distributionBucketClient, error) {
-	ctx := context.Background()
+func newDistributionBucketClient(ctx context.Context) (*distributionBucketClient, error) {
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		return nil, err
@@ -65,6 +66,7 @@ func syncDataToBucket(db *distributionBucketClient) error {
 }
 
 func (db *distributionBucketClient) saveZipToBucket() error {
+	logger := contextutils.LoggerFrom(db.ctx)
 	zipFileName := fmt.Sprintf("%s%s%s", glooe, version, zipExt)
 
 	bkt := db.client.Bucket(distBucket)
@@ -72,7 +74,7 @@ func (db *distributionBucketClient) saveZipToBucket() error {
 	logger.Infof("writing object: %v", obj.ObjectName())
 
 	wr := obj.NewWriter(db.ctx)
-	if err := writeDistributionArchive(wr, zipFileName); err != nil {
+	if err := writeDistributionArchive(db.ctx, wr, zipFileName); err != nil {
 		return err
 	}
 	// Explicit non-deferred close to ensure object exists
@@ -87,6 +89,7 @@ func (db *distributionBucketClient) saveZipToBucket() error {
 }
 
 func (db *distributionBucketClient) uploadDistributionFolder() error {
+	logger := contextutils.LoggerFrom(db.ctx)
 	files, err := ioutil.ReadDir(outputDistributionDir)
 	if err != nil {
 		return err
@@ -138,6 +141,7 @@ func (db *distributionBucketClient) uploadDistributionFolder() error {
 }
 
 func (db *distributionBucketClient) syncIndexFile() error {
+	logger := contextutils.LoggerFrom(db.ctx)
 	logger.Info("reading index.yaml file with version map")
 	bkt := db.client.Bucket(distBucket)
 	obj := bkt.Object(indexFile)
@@ -158,6 +162,7 @@ func (db *distributionBucketClient) syncIndexFile() error {
 }
 
 func (db *distributionBucketClient) createIndexFile() error {
+	logger := contextutils.LoggerFrom(db.ctx)
 	logger.Info("creating index.yaml file")
 	bkt := db.client.Bucket(distBucket)
 	obj := bkt.Object(indexFile)
@@ -192,6 +197,7 @@ func (db *distributionBucketClient) writeIndexFile(versions distributionVersions
 }
 
 func (db *distributionBucketClient) updateIndexFile(obj *storage.ObjectHandle) error {
+	logger := contextutils.LoggerFrom(db.ctx)
 	r, err := obj.NewReader(db.ctx)
 	if err != nil {
 		return err

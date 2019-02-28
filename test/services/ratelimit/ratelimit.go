@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/solo-io/rate-limiter/pkg/service"
+	ratelimit "github.com/solo-io/rate-limiter/pkg/service"
 	"github.com/solo-io/rate-limiter/pkg/settings"
 	"github.com/solo-io/solo-projects/projects/rate-limit/pkg/runner"
 )

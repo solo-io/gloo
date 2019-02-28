@@ -146,7 +146,7 @@ steps:
 
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
-  args: ['-c', 'docker login --username soloiobot --password $$DOCKER_HUB_PASSWORD']
+  args: ['-c', 'docker login docker.io --username soloiobot --password $$DOCKER_HUB_PASSWORD']
   secretEnv: ['DOCKER_HUB_PASSWORD']
 
 - name: 'gcr.io/$PROJECT_ID/go-make'
@@ -160,15 +160,37 @@ steps:
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
 - name: 'gcr.io/$PROJECT_ID/go-make'
-  args: ['docker-push', 'manifest', 'release', 'distribution']
+  args: ['docker-push', 'manifest', 'release']
   env:
   - 'TAGGED_VERSION=$TAG_NAME'
   - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
   - 'GOPATH=/workspace/gopath'
   - 'HELM_HOME=/root/.helm' # tell helm where to find data
   dir: './gopath/src/github.com/solo-io/solo-projects'
-  secretEnv: ['GITHUB_TOKEN']
+  secretEnv: ['GITHUB_TOKEN', 'DOCKER_HUB_PASSWORD']
   id: 'release'
+
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker logout']
+
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker login docker.io --username soloiobot --password $$DOCKER_HUB_PASSWORD']
+  secretEnv: ['DOCKER_HUB_PASSWORD']
+
+# go-make is produced from https://github.com/solo-io/cloud-builders/go-make
+- name: 'gcr.io/$PROJECT_ID/go-make'
+  args: ['distribution']
+  env:
+    - 'TAGGED_VERSION=$TAG_NAME'
+    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+    - 'GOPATH=/workspace/gopath'
+    - 'HELM_HOME=/root/.helm' # tell helm where to find data
+  dir: './gopath/src/github.com/solo-io/solo-projects'
+  secretEnv: ['GITHUB_TOKEN', 'DOCKER_HUB_PASSWORD']
+  id: 'distribution'
+
 
   # Sync helm chart data back to google storage bucket
 - name: gcr.io/cloud-builders/gsutil
@@ -184,9 +206,9 @@ secrets:
 - kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key
   secretEnv:
     GITHUB_TOKEN: CiQAwdWthppXCatGZZrcHgwEcPXq0J1UVsTgGxHBVeS08sMZV/gSUgD5SXFIMJqfBsZflgeqMpC4hkszp8q8aeBh6oMuPRJRHKZRCIlJhHiaamm49VmFHROd9rG7b8y0MTVb5BOaQPN9MQ1j9tIXI8XoHlI9JHfpgLs=
-    DOCKER_HUB_PASSWORD: CiQAwdWthnPx474iTBxC0Wn3IqXOtKE9GKcwo6BzRLFjsDEpybsSTgD5SXFIkjIL4U5PvBc7GqCg3SLHbxktlFByfWa0qSWE6RVMJoTbeOi0iNj1gLQifb9PeQwLIlJiv0D4TUWV8nvL7DbNSxsjdOvFeV/Vpw==
+    DOCKER_HUB_PASSWORD: CiQAwdWthjBCYCvT4dzVr1GcKXZhJe+gdSqXaNm7lJ4tHaoBPDISTQD5SXFIDVKxAT5OBQZnkSQpXBIVSUurefR+ry5f4kUqOYho5gONkdtrklW9Wxk4G3oBz8Z5042/GBG6vgjFyUdBBo9ETQirhMA+PH0x
 
 # Overall build timeout of 30m. The release builds take extra time for uploading and pushing artifacts. We can
 # set timeouts on specific steps (dep, tests, etc) if we want to limit the time in sections, but want a forgiving
 # timeout for the final step, and the default (10m) is not enough.
-timeout: 1800s
+timeout: 2400s

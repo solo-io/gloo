@@ -3,6 +3,8 @@
 package v1
 
 import (
+	"fmt"
+
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
 	"github.com/solo-io/solo-kit/pkg/utils/hashutils"
@@ -34,4 +36,27 @@ func (s DashboardsSnapshot) HashFields() []zap.Field {
 	fields = append(fields, zap.Uint64("upstreams", s.hashUpstreams()))
 
 	return append(fields, zap.Uint64("snapshotHash", s.Hash()))
+}
+
+type DashboardsSnapshotStringer struct {
+	Version   uint64
+	Upstreams []string
+}
+
+func (ss DashboardsSnapshotStringer) String() string {
+	s := fmt.Sprintf("DashboardsSnapshot %v\n", ss.Version)
+
+	s += fmt.Sprintf("  Upstreams %v\n", len(ss.Upstreams))
+	for _, name := range ss.Upstreams {
+		s += fmt.Sprintf("    %v\n", name)
+	}
+
+	return s
+}
+
+func (s DashboardsSnapshot) Stringer() DashboardsSnapshotStringer {
+	return DashboardsSnapshotStringer{
+		Version:   s.Hash(),
+		Upstreams: s.Upstreams.List().NamespacesDotNames(),
+	}
 }

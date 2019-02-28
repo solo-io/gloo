@@ -110,7 +110,10 @@ func NewClientSet(token string) (*ClientSet, error) {
 	// New shared cache
 	cache := kube.NewKubeCache(context.TODO())
 
-	kubeCoreCache := corecache.NewKubeCoreCache(context.TODO(), kubeClientset)
+	kubeCoreCache, err := corecache.NewKubeCoreCache(context.TODO(), kubeClientset)
+	if err != nil {
+		return nil, err
+	}
 
 	upstreamClient, err := gloov1.NewUpstreamClientWithToken(factoryFor(gloov1.UpstreamCrd, *cfg, cache), token)
 	if err != nil {
@@ -221,7 +224,10 @@ func NewTempClientSet(token string) (*ClientSet, error) {
 
 	// New shared cache
 	cache := kube.NewKubeCache(context.TODO())
-	kubeCoreCache := corecache.NewKubeCoreCache(context.TODO(), kubeClientset)
+	kubeCoreCache, err := corecache.NewKubeCoreCache(context.TODO(), kubeClientset)
+	if err != nil {
+		return nil, err
+	}
 
 	upstreamClient, err := gloov1.NewUpstreamClientWithToken(factoryFor(gloov1.UpstreamCrd, *cfg, cache), token)
 	if err != nil {
@@ -328,7 +334,10 @@ func newAdminClientSet() (*ClientSet, error) {
 
 	// New shared cache
 	cache := kube.NewKubeCache(context.TODO())
-	kubeCoreCache := corecache.NewKubeCoreCache(context.TODO(), kubeClientset)
+	kubeCoreCache, err := corecache.NewKubeCoreCache(context.TODO(), kubeClientset)
+	if err != nil {
+		return nil, err
+	}
 
 	upstreamClient, err := gloov1.NewUpstreamClient(factoryFor(gloov1.UpstreamCrd, *cfg, cache))
 	if err != nil {

@@ -255,7 +255,10 @@ func KubernetesConstructOpts() (gloov1.SettingsClient, bootstrap.Opts, error) {
 	}
 	ctx := contextutils.WithLogger(context.Background(), "gloo")
 	cache := kube.NewKubeCache(ctx)
-	kubeCoreCache := corecache.NewKubeCoreCache(ctx, clientset)
+	kubeCoreCache, err := corecache.NewKubeCoreCache(ctx, clientset)
+	if err != nil {
+		return nil, bootstrap.Opts{}, err
+	}
 
 	// TODO(ilackarms): pass in settings configuration from an environment variable or CLI flag, rather than hard-coding to k8s
 	settingsClient, err := gloov1.NewSettingsClient(&factory.KubeResourceClientFactory{
@@ -321,7 +324,10 @@ func FileConstructOpts(path string) (gloov1.SettingsClient, bootstrap.Opts, erro
 	if err != nil {
 		return nil, bootstrap.Opts{}, err
 	}
-	kubeCoreCache := corecache.NewKubeCoreCache(ctx, clientset)
+	kubeCoreCache, err := corecache.NewKubeCoreCache(ctx, clientset)
+	if err != nil {
+		return nil, bootstrap.Opts{}, err
+	}
 
 	return settingsClient, bootstrap.Opts{
 		WriteNamespace: defaults.GlooSystem,
