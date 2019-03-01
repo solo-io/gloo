@@ -205,7 +205,7 @@ steps:
 secrets:
 - kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key
   secretEnv:
-    GITHUB_TOKEN: CiQAwdWthppXCatGZZrcHgwEcPXq0J1UVsTgGxHBVeS08sMZV/gSUgD5SXFIMJqfBsZflgeqMpC4hkszp8q8aeBh6oMuPRJRHKZRCIlJhHiaamm49VmFHROd9rG7b8y0MTVb5BOaQPN9MQ1j9tIXI8XoHlI9JHfpgLs=
+    GITHUB_TOKEN: CiQAwdWthrSJ1uI5Ao/LnmX8OzXmA5TNCtDpeV6JdNouaGh5vpwSUQD5SXFIkCBvnu/wYDSGwgWNJaQV75wP/kDephn5GGuGCe0EGFXXE54zyH8iHRL45Uq0s39SoHEyYoZXF2Qla8IbKGAKswPRViYSChPthQILdA==
     DOCKER_HUB_PASSWORD: CiQAwdWthjBCYCvT4dzVr1GcKXZhJe+gdSqXaNm7lJ4tHaoBPDISTQD5SXFIDVKxAT5OBQZnkSQpXBIVSUurefR+ry5f4kUqOYho5gONkdtrklW9Wxk4G3oBz8Z5042/GBG6vgjFyUdBBo9ETQirhMA+PH0x
 
 # Overall build timeout of 30m. The release builds take extra time for uploading and pushing artifacts. We can
