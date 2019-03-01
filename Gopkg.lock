@@ -94,14 +94,6 @@
   version = "v2.16.0"
 
 [[projects]]
-  digest = "1:f9ae348e1f793dcf9ed930ed47136a67343dbd6809c5c91391322267f4476892"
-  name = "github.com/Microsoft/go-winio"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "1a8911d1ed007260465c3bfbbc785ac6915a0bb8"
-  version = "v0.4.12"
-
-[[projects]]
   branch = "master"
   digest = "1:3f44afe45c6c5038d9d0bec55b8b9e598b3dba2547d99ba353d7c3bb485d01fa"
   name = "github.com/Netflix/go-expect"
@@ -289,51 +281,15 @@
   version = "v2.7.1"
 
 [[projects]]
-  digest = "1:e514d2faf7496996f547739e0cb49a73e54aa125d2fdc3cd9d54624bc09869c1"
+  digest = "1:53e99d883df3e940f5f0223795f300eb32b8c044f226132bfc0e74930f24ea4b"
   name = "github.com/docker/docker"
   packages = [
-    "api/types",
-    "api/types/blkiodev",
-    "api/types/container",
-    "api/types/events",
-    "api/types/filters",
-    "api/types/mount",
-    "api/types/network",
-    "api/types/reference",
-    "api/types/registry",
-    "api/types/strslice",
-    "api/types/swarm",
-    "api/types/time",
-    "api/types/versions",
-    "api/types/volume",
-    "client",
     "pkg/term",
     "pkg/term/windows",
-    "pkg/tlsconfig",
   ]
   pruneopts = "UT"
   revision = "092cba3727bb9b4a2f0e922cd6c0f93ea270e363"
   version = "v1.13.1"
-
-[[projects]]
-  digest = "1:811c86996b1ca46729bad2724d4499014c4b9effd05ef8c71b852aad90deb0ce"
-  name = "github.com/docker/go-connections"
-  packages = [
-    "nat",
-    "sockets",
-    "tlsconfig",
-  ]
-  pruneopts = "UT"
-  revision = "7395e3f8aa162843a74ed6d48e79627d9792ac55"
-  version = "v0.4.0"
-
-[[projects]]
-  digest = "1:6f82cacd0af5921e99bf3f46748705239b36489464f4529a1589bc895764fb18"
-  name = "github.com/docker/go-units"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "47565b4f722fb6ceae66b95f853feed578a4a51c"
-  version = "v0.3.3"
 
 [[projects]]
   branch = "master"
@@ -1170,7 +1126,7 @@
   version = "v0.0.1"
 
 [[projects]]
-  digest = "1:f37a92358921891d53d5375ff7fa57739ba65d5b3c311d96a460609bfc1b4999"
+  digest = "1:9dd8858ae7fa91d2477ec05605b000d3c1ad65e3a1e36f9bf8f97a170c05ea05"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -1194,8 +1150,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "3774a09d95489ccaa16032e0770d08ea77ba6184"
-  version = "v1.6.0"
+  revision = "2e1be8f7d90e9d3e3e58b0ce470f2f14d075406f"
+  version = "v1.7.0"
 
 [[projects]]
   digest = "1:910491a4e78ff2c3fee357cfc14e62f40431f5bda4f68cf18dade2b448cde1dc"
@@ -1395,7 +1351,7 @@
   version = "v0.2.3"
 
 [[projects]]
-  digest = "1:a85f6c408a0e64a0d3cc5720afea9ac911eb7b007f708af36a528dd5381ccf7b"
+  digest = "1:8972821a1d93974b9103aa6d1e6c250e5ce2a030d4cf252fddf79d087accf3f1"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1481,8 +1437,8 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "e08dca0505f1621fdab6d2fee6a242785c683ea1"
-  version = "v0.8.4"
+  revision = "42a89574813b066fb096b289ebebbe412d9cf5a8"
+  version = "v0.8.6"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1493,21 +1449,25 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:e907fd7d821e71b453da5c169d0bfe23a878fde15d9c72483ca05e984302c827"
+  digest = "1:b9852e2479f439095d0e844677082b4fc22b614be62342b5e58b9e0d949d0a34"
   name = "github.com/solo-io/go-utils"
   packages = [
+    "changelogutils",
     "cliutils",
     "contextutils",
     "docker",
+    "docsutils",
     "errors",
+    "githubutils",
     "kubeutils",
+    "logger",
     "protoutils",
     "stats",
     "versionutils",
   ]
   pruneopts = "UT"
-  revision = "594125e202450886dd6cc80a925e3d824950843c"
-  version = "v0.2.5"
+  revision = "d691aec5ebf933da195a78e2f5cd0d3357c772de"
+  version = "v0.2.9"
 
 [[projects]]
   branch = "master"
@@ -1589,6 +1549,17 @@
   pruneopts = "UT"
   revision = "b6ba2b73a5eb3b82fe9fb6076c5a1f9ea8b9d10c"
   version = "v0.3.0"
+
+[[projects]]
+  digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
+  name = "github.com/spf13/afero"
+  packages = [
+    ".",
+    "mem",
+  ]
+  pruneopts = "UT"
+  revision = "f4711e4db9e9a1d3887343acb72b2bbfc2f686f5"
+  version = "v1.2.1"
 
 [[projects]]
   digest = "1:e01b05ba901239c783dfe56450bcde607fc858908529868259c9a8765dc176d0"
@@ -1778,7 +1749,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:bb89b2eea4f11cd814eefe3346ca84f2a42c152621e8b4e9cf70478f782aaf95"
+  digest = "1:f4a333ecb02eebcda25f0218fcb6aab7e67c76b0892d1ed505ecb784b1bd5121"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -1790,9 +1761,7 @@
     "http2",
     "http2/hpack",
     "idna",
-    "internal/socks",
     "internal/timeseries",
-    "proxy",
     "trace",
   ]
   pruneopts = "UT"
@@ -2625,8 +2594,6 @@
     "github.com/ahmetb/go-linq",
     "github.com/aokoli/goutils",
     "github.com/dgrijalva/jwt-go",
-    "github.com/docker/docker/api/types",
-    "github.com/docker/docker/client",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/core",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/ratelimit",
@@ -2729,6 +2696,7 @@
     "github.com/solo-io/go-utils/cliutils",
     "github.com/solo-io/go-utils/contextutils",
     "github.com/solo-io/go-utils/docker",
+    "github.com/solo-io/go-utils/docsutils",
     "github.com/solo-io/go-utils/errors",
     "github.com/solo-io/go-utils/kubeutils",
     "github.com/solo-io/go-utils/stats",

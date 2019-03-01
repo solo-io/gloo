@@ -57,11 +57,9 @@
   name = "github.com/solo-io/envoy-operator"
   revision = "c71f318a203bca8433268be67336086379a2bf9f"
 
-
 [[constraint]]
   name = "github.com/solo-io/rate-limiter"
   revision = "8aa2e36bb84a979cb654d4d3c795b31add32f6cf"
-
 
 [[constraint]]
   name = "github.com/solo-io/solo-kit"
@@ -69,7 +67,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  version = "0.8.4"
+  version = "0.8.5"
 
 [[override]]
   name = "github.com/hashicorp/consul"
@@ -90,4 +88,4 @@
 
 [[constraint]]
   name = "github.com/solo-io/go-utils"
-  version = "0.2.5"
+  version = "0.2.9"
