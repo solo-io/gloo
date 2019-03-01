@@ -1,4 +1,4 @@
-package kube2e_test
+package gateway_test
 
 import (
 	"context"
@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/solo-io/gloo/test/kube2e"
+	"k8s.io/client-go/kubernetes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,7 +24,6 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
@@ -69,7 +71,8 @@ var _ = Describe("Kube2e: gateway", func() {
 
 	AfterEach(func() {
 		cancel()
-		virtualServiceClient.Delete(namespace, "vs", clients.DeleteOpts{})
+		err := virtualServiceClient.Delete(namespace, "vs", clients.DeleteOpts{})
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("works", func() {
@@ -93,7 +96,7 @@ var _ = Describe("Kube2e: gateway", func() {
 						RouteAction: &gloov1.RouteAction{
 							Destination: &gloov1.RouteAction_Single{
 								Single: &gloov1.Destination{
-									Upstream: core.ResourceRef{Namespace: namespace, Name: fmt.Sprintf("%s-%s-%v", namespace, "testrunner", testRunnerPort)},
+									Upstream: core.ResourceRef{Namespace: namespace, Name: fmt.Sprintf("%s-%s-%v", namespace, "testrunner", kube2e.TestRunnerPort)},
 								},
 							},
 						},
@@ -103,11 +106,13 @@ var _ = Describe("Kube2e: gateway", func() {
 		}, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())
 
+		fmt.Println("wait for gateway to be created")
+
 		defaultGateway := defaults.DefaultGateway(namespace)
 		// wait for default gateway to be created
 		Eventually(func() (*v1.Gateway, error) {
 			return gatewayClient.Read(namespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
-		}, "5s", "0.5s").Should(Not(BeNil()))
+		}, "15s", "0.5s").Should(Not(BeNil()))
 
 		gatewayProxy := "gateway-proxy"
 		gatewayPort := int(80)
@@ -118,16 +123,19 @@ var _ = Describe("Kube2e: gateway", func() {
 			Host:     gatewayProxy,
 			Service:  gatewayProxy,
 			Port:     gatewayPort,
-		}, namespace, helpers.SimpleHttpResponse, int(time.Minute))
+		}, namespace, kube2e.SimpleHttpResponse, 1, time.Minute*2)
 	})
+
 	Context("native ssl ", func() {
+
 		BeforeEach(func() {
 			// get the certificate so it is generated in the background
 			go helpers.Certificate()
 		})
 
 		AfterEach(func() {
-			kubeClient.CoreV1().Secrets(namespace).Delete("secret", nil)
+			err := kubeClient.CoreV1().Secrets(namespace).Delete("secret", nil)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("works with ssl", func() {
@@ -161,7 +169,7 @@ var _ = Describe("Kube2e: gateway", func() {
 							RouteAction: &gloov1.RouteAction{
 								Destination: &gloov1.RouteAction_Single{
 									Single: &gloov1.Destination{
-										Upstream: core.ResourceRef{Namespace: namespace, Name: fmt.Sprintf("%s-%s-%v", namespace, "testrunner", testRunnerPort)},
+										Upstream: core.ResourceRef{Namespace: namespace, Name: fmt.Sprintf("%s-%s-%v", namespace, "testrunner", kube2e.TestRunnerPort)},
 									},
 								},
 							},
@@ -175,14 +183,15 @@ var _ = Describe("Kube2e: gateway", func() {
 			// wait for default gateway to be created
 			Eventually(func() (*v1.Gateway, error) {
 				return gatewayClient.Read(namespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
-			}, "5s", "0.5s").Should(Not(BeNil()))
+			}, "15s", "0.5s").Should(Not(BeNil()))
 
 			gatewayProxy := "gateway-proxy"
 			gatewayPort := int(443)
-			cafile := ToFile(helpers.Certificate())
-			defer os.Remove(cafile)
+			caFile := ToFile(helpers.Certificate())
+			//noinspection GoUnhandledErrorResult
+			defer os.Remove(caFile)
 
-			err = setup.Kubectl("cp", cafile, namespace+"/testrunner:/tmp/ca.crt")
+			err = setup.Kubectl("cp", caFile, namespace+"/testrunner:/tmp/ca.crt")
 			Expect(err).NotTo(HaveOccurred())
 
 			setup.CurlEventuallyShouldRespond(setup.CurlOpts{
@@ -193,7 +202,7 @@ var _ = Describe("Kube2e: gateway", func() {
 				Service:  gatewayProxy,
 				Port:     gatewayPort,
 				CaFile:   "/tmp/ca.crt",
-			}, namespace, helpers.SimpleHttpResponse, int(time.Minute))
+			}, namespace, kube2e.SimpleHttpResponse, 1, time.Minute*2)
 		})
 	})
 })
@@ -204,6 +213,6 @@ func ToFile(content string) string {
 	n, err := f.WriteString(content)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 	ExpectWithOffset(1, n).To(Equal(len(content)))
-	f.Close()
+	_ = f.Close()
 	return f.Name()
 }

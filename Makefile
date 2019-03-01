@@ -17,6 +17,34 @@ VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
 LDFLAGS := "-X github.com/solo-io/gloo/pkg/version.Version=$(VERSION)"
 GCFLAGS := all="-N -l"
 
+# Passed by cloudbuild
+GCLOUD_PROJECT_ID := $(GCLOUD_PROJECT_ID)
+BUILD_ID := $(BUILD_ID)
+
+TEST_IMAGE_TAG := test-$(BUILD_ID)
+TEST_ASSET_DIR := $(ROOTDIR)/_test
+GCR_REPO_PREFIX := gcr.io/$(GCLOUD_PROJECT_ID)
+
+
+#----------------------------------------------------------------------------------
+# Marcos
+#----------------------------------------------------------------------------------
+
+# This macro takes a relative path as its only argument and returns all the files
+# in the tree rooted at that directory that match the given criteria.
+get_sources = $(shell find $(1) -name "*.go" | grep -v test | grep -v generated.go | grep -v mock_)
+
+# If both GCLOUD_PROJECT_ID and BUILD_ID are set, define a function that takes a docker image name
+# and returns a '-t' flag that can be passed to 'docker build' to create a tag for a test image.
+# If the function is not defined, any attempt at calling if will return nothing (it does not cause en error)
+ifneq ($(GCLOUD_PROJECT_ID),)
+ifneq ($(BUILD_ID),)
+define get_test_tag
+	-t $(GCR_REPO_PREFIX)/$(1):$(TEST_IMAGE_TAG)
+endef
+endif
+endif
+
 #----------------------------------------------------------------------------------
 # Repo setup
 #----------------------------------------------------------------------------------
@@ -103,20 +131,6 @@ generate-client-mocks:
      		$(word 3,$(subst :, , $(INFO))) \
      	;)
 
-#################
-#################
-#               #
-#     Build     #
-#               #
-#               #
-#################
-#################
-#################
-
-# This macro takes a relative path as its only argument and returns all the files
-# in the tree rooted at that directory that match the given criteria.
-get_sources = $(shell find $(1) -name "*.go" | grep -v test | grep -v generated.go | grep -v mock_)
-
 #----------------------------------------------------------------------------------
 # glooctl
 #----------------------------------------------------------------------------------
@@ -129,7 +143,6 @@ $(OUTPUT_DIR)/glooctl: $(SOURCES)
 
 $(OUTPUT_DIR)/glooctl-linux-amd64: $(SOURCES)
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/cmd/main.go
-
 
 $(OUTPUT_DIR)/glooctl-darwin-amd64: $(SOURCES)
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(CLI_DIR)/cmd/main.go
@@ -165,7 +178,9 @@ $(OUTPUT_DIR)/Dockerfile.gateway: $(GATEWAY_DIR)/cmd/Dockerfile
 	cp $< $@
 
 gateway-docker: $(OUTPUT_DIR)/gateway-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gateway
-	docker build -t soloio/gateway:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gateway
+	docker build $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gateway \
+		-t soloio/gateway:$(VERSION) \
+		$(call get_test_tag,gateway)
 
 #----------------------------------------------------------------------------------
 # Ingress
@@ -185,7 +200,9 @@ $(OUTPUT_DIR)/Dockerfile.ingress: $(INGRESS_DIR)/cmd/Dockerfile
 	cp $< $@
 
 ingress-docker: $(OUTPUT_DIR)/ingress-linux-amd64 $(OUTPUT_DIR)/Dockerfile.ingress
-	docker build -t soloio/ingress:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.ingress
+	docker build $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.ingress \
+		-t soloio/ingress:$(VERSION) \
+		$(call get_test_tag,ingress)
 
 #----------------------------------------------------------------------------------
 # Discovery
@@ -205,7 +222,9 @@ $(OUTPUT_DIR)/Dockerfile.discovery: $(DISCOVERY_DIR)/cmd/Dockerfile
 	cp $< $@
 
 discovery-docker: $(OUTPUT_DIR)/discovery-linux-amd64 $(OUTPUT_DIR)/Dockerfile.discovery
-	docker build -t soloio/discovery:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.discovery
+	docker build $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.discovery \
+		-t soloio/discovery:$(VERSION) \
+		$(call get_test_tag,discovery)
 
 #----------------------------------------------------------------------------------
 # Gloo
@@ -225,7 +244,9 @@ $(OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
 
 gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
-	docker build -t soloio/gloo:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo
+	docker build $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo \
+		-t soloio/gloo:$(VERSION) \
+		$(call get_test_tag,gloo)
 
 #----------------------------------------------------------------------------------
 # Envoy init
@@ -246,7 +267,9 @@ $(OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile
 
 .PHONY: gloo-envoy-wrapper-docker
 gloo-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
-	docker build -t soloio/gloo-envoy-wrapper:$(VERSION) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
+	docker build $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit \
+		-t soloio/gloo-envoy-wrapper:$(VERSION) \
+		$(call get_test_tag,gloo-envoy-wrapper)
 
 
 #----------------------------------------------------------------------------------
@@ -371,3 +394,48 @@ docker-kind: docker
 	kind load docker-image soloio/discovery:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image soloio/gloo:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image soloio/gloo-envoy-wrapper:$(VERSION) --name $(CLUSTER_NAME)
+
+
+#----------------------------------------------------------------------------------
+# Build assets for Kube2e tests
+#----------------------------------------------------------------------------------
+#
+# The following targets are used to generate the assets on which the kube2e tests rely upon. The following actions are performed:
+#
+#   1. Push the images to GCR (images have been tagged as $(GCR_REPO_PREFIX)/<image-name>:$(TEST_IMAGE_TAG)
+#   2. Generate Gloo value files providing overrides to make the image elements point to GCR
+#      - override the repository prefix for all repository names (e.g. soloio/gateway -> gcr.io/solo-public/gateway)
+#      - set the tag for each image to TEST_IMAGE_TAG
+#   3. Package the Gloo Helm chart to the _test directory (also generate an index file)
+#
+# The Kube2e tests will use the generated Gloo Chart to install Gloo to the GKE test cluster.
+
+.PHONY: build-test-assets
+build-test-assets: push-test-images build-test-chart
+
+TEST_DOCKER_TARGETS := gateway-docker-test ingress-docker-test discovery-docker-test gloo-docker-test gloo-envoy-wrapper-docker-test
+
+.PHONY: push-test-images $(TEST_DOCKER_TARGETS)
+push-test-images: $(TEST_DOCKER_TARGETS)
+
+gateway-docker-test: $(OUTPUT_DIR)/gateway-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gateway
+	docker push $(GCR_REPO_PREFIX)/gateway:$(TEST_IMAGE_TAG)
+
+ingress-docker-test: $(OUTPUT_DIR)/ingress-linux-amd64 $(OUTPUT_DIR)/Dockerfile.ingress
+	docker push $(GCR_REPO_PREFIX)/ingress:$(TEST_IMAGE_TAG)
+
+discovery-docker-test: $(OUTPUT_DIR)/discovery-linux-amd64 $(OUTPUT_DIR)/Dockerfile.discovery
+	docker push $(GCR_REPO_PREFIX)/discovery:$(TEST_IMAGE_TAG)
+
+gloo-docker-test: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
+	docker push $(GCR_REPO_PREFIX)/gloo:$(TEST_IMAGE_TAG)
+
+gloo-envoy-wrapper-docker-test: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
+	docker push $(GCR_REPO_PREFIX)/gloo-envoy-wrapper:$(TEST_IMAGE_TAG)
+
+.PHONY: build-test-chart
+build-test-chart: $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
+	mkdir -p $(TEST_ASSET_DIR)
+	go run install/helm/gloo/generate.go $(TEST_IMAGE_TAG) $(GCR_REPO_PREFIX)
+	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo
+	helm repo index $(TEST_ASSET_DIR)

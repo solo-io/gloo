@@ -1,11 +1,11 @@
-package kube2e_test
+package ingress_test
 
 import (
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/solo-io/gloo/test/helpers"
+	"github.com/solo-io/gloo/test/kube2e"
 	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/solo-kit/test/setup"
 	"k8s.io/api/extensions/v1beta1"
@@ -16,6 +16,7 @@ import (
 )
 
 var _ = Describe("Kube2e: Ingress", func() {
+
 	It("works", func() {
 		cfg, err := kubeutils.GetConfig("", "")
 		Expect(err).NotTo(HaveOccurred())
@@ -23,6 +24,7 @@ var _ = Describe("Kube2e: Ingress", func() {
 		kube, err := kubernetes.NewForConfig(cfg)
 		Expect(err).NotTo(HaveOccurred())
 		kubeIngressClient := kube.ExtensionsV1beta1().Ingresses(namespace)
+
 		backend := &v1beta1.IngressBackend{
 			ServiceName: "testrunner",
 			ServicePort: intstr.IntOrString{
@@ -71,6 +73,6 @@ var _ = Describe("Kube2e: Ingress", func() {
 			Host:     ingressProxy,
 			Service:  ingressProxy,
 			Port:     ingressPort,
-		}, namespace, helpers.SimpleHttpResponse, int(time.Minute))
+		}, namespace, kube2e.SimpleHttpResponse, 1, time.Minute*2)
 	})
 })
