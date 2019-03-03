@@ -54,5 +54,7 @@ spec:
             - name: START_STATS_SERVER
               value: "true"
             {{- end}}
+      {{- if .Values.extAuth.deployment.image.pullSecret }}
       imagePullSecrets:
-        - name: solo-io-docker-secret
+        - name: {{ .Values.extAuth.deployment.image.pullSecret }}
+      {{- end }}

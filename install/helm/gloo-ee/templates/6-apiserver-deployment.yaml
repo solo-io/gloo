@@ -21,8 +21,6 @@ spec:
         prometheus.io/scrape: "true"
       {{- end}}
     spec:
-      imagePullSecrets:
-        - name: solo-io-docker-secret
       containers:
         - name: apiserver-ui
           image: '{{.Values.apiServer.deployment.ui.image.repository}}:{{.Values.apiServer.deployment.ui.image.tag}}'
@@ -65,3 +63,7 @@ spec:
           emptyDir: {}
         - name: empty-run
           emptyDir: {}
+      {{- if .Values.extAuth.deployment.image.pullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.extAuth.deployment.image.pullSecret }}
+      {{- end }}

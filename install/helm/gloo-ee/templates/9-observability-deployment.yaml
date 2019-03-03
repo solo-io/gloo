@@ -41,5 +41,7 @@ spec:
             - name: START_STATS_SERVER
               value: "true"
             {{- end}}
+      {{- if .Values.observability.deployment.image.pullSecret }}
       imagePullSecrets:
-        - name: solo-io-docker-secret
+        - name: {{ .Values.observability.deployment.image.pullSecret }}
+      {{- end }}

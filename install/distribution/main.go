@@ -42,8 +42,6 @@ var (
 	outputDistributionDir string
 	id                    uuid.UUID
 
-	dockerAuthStr string
-
 	projectId = os.Getenv("PROJECT_ID")
 )
 
@@ -67,11 +65,6 @@ func main() {
 		version = os.Args[1]
 		outputDistributionDir = filepath.Join(distribution, version)
 	}
-
-	//if err := dockerLogin(ctx); err != nil {
-	//	logger.Fatal(err.Error())
-	//}
-	//logger.Info("successfully authenticated with docker")
 
 	if err := prepareWorkspace(); err != nil {
 		logger.Fatal(err.Error())

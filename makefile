@@ -161,7 +161,7 @@ $(OUTPUT_DIR)/Dockerfile.apiserver: $(APISERVER_DIR)/cmd/Dockerfile
 	cp $< $@
 
 apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.apiserver
-	docker build -t soloio/apiserver-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.apiserver
+	docker build -t quay.io/solo-io/apiserver-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.apiserver
 
 #----------------------------------------------------------------------------------
 # RateLimit
@@ -180,7 +180,7 @@ $(OUTPUT_DIR)/Dockerfile.rate-limit: $(RATELIMIT_DIR)/cmd/Dockerfile
 	cp $< $@
 
 rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.rate-limit
-	docker build -t soloio/rate-limit-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.rate-limit
+	docker build -t quay.io/solo-io/rate-limit-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.rate-limit
 
 
 
@@ -201,7 +201,7 @@ $(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
 	cp $< $@
 
 extauth-docker: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
-	docker build -t soloio/extauth-ee:$(VERSION) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
+	docker build -t quay.io/solo-io/extauth-ee:$(VERSION) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
 
 
 
@@ -222,7 +222,7 @@ $(OUTPUT_DIR)/Dockerfile.observability: $(OBSERVABILITY_DIR)/cmd/Dockerfile
 	cp $< $@
 
 observability-docker: $(OUTPUT_DIR)/observability-linux-amd64 $(OUTPUT_DIR)/Dockerfile.observability
-	docker build -t soloio/observability-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.observability
+	docker build -t quay.io/solo-io/observability-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.observability
 
 #----------------------------------------------------------------------------------
 # Sqoop
@@ -242,7 +242,7 @@ $(OUTPUT_DIR)/Dockerfile.sqoop: $(SQOOP_DIR)/cmd/Dockerfile
 	cp $< $@
 
 sqoop-docker: $(OUTPUT_DIR)/sqoop-linux-amd64 $(OUTPUT_DIR)/Dockerfile.sqoop
-	docker build -t soloio/sqoop-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.sqoop
+	docker build -t quay.io/solo-io/sqoop-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.sqoop
 
 #----------------------------------------------------------------------------------
 # Gloo
@@ -262,10 +262,10 @@ $(OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
 
 gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
-	docker build -t soloio/gloo-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo
+	docker build -t quay.io/solo-io/gloo-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo
 
 gloo-docker-dev: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
-	docker build -t soloio/gloo-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo --no-cache
+	docker build -t quay.io/solo-io/gloo-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo --no-cache
 
 #----------------------------------------------------------------------------------
 # Envoy init
@@ -286,7 +286,7 @@ $(OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile
 
 .PHONY: gloo-ee-envoy-wrapper-docker
 gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
-	docker build -t soloio/gloo-ee-envoy-wrapper:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
+	docker build -t quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
 
 
 #----------------------------------------------------------------------------------
@@ -393,13 +393,13 @@ docker: apiserver-docker rate-limit-docker extauth-docker gloo-docker gloo-ee-en
 # docker-push is intended to be run by CI
 docker-push: $(DOCKER_IMAGES)
 ifeq ($(RELEASE),"true")
-	docker push soloio/sqoop-ee:$(VERSION) && \
-	docker push soloio/rate-limit-ee:$(VERSION) && \
-	docker push soloio/apiserver-ee:$(VERSION) && \
-	docker push soloio/gloo-ee:$(VERSION) && \
-	docker push soloio/gloo-ee-envoy-wrapper:$(VERSION) && \
-	docker push soloio/observability-ee:$(VERSION) && \
-	docker push soloio/extauth-ee:$(VERSION)
+	docker push quay.io/solo-io/sqoop-ee:$(VERSION) && \
+	docker push quay.io/solo-io/rate-limit-ee:$(VERSION) && \
+	docker push quay.io/solo-io/apiserver-ee:$(VERSION) && \
+	docker push quay.io/solo-io/gloo-ee:$(VERSION) && \
+	docker push quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION) && \
+	docker push quay.io/solo-io/observability-ee:$(VERSION) && \
+	docker push quay.io/solo-io/extauth-ee:$(VERSION)
 endif
 
 

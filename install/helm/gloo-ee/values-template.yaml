@@ -17,22 +17,13 @@ gloo:
           ratelimit_server_ref:
             name: rate-limit
             namespace: gloo-system
-  discovery:
-    deployment:
-      stats: true
-      replicas: 1
-  gateway:
-    enabled: true
-    deployment:
-      stats: true
-      replicas: 1
   gloo:
     deployment:
       stats: true
       image:
         pullPolicy: Always
-        pullSecret: solo-io-docker-secret
-        repository: soloio/gloo-ee
+        pullSecret: solo-io-readerbot-pull-secret
+        repository: quay.io/solo-io/gloo-ee
       replicas: 1
   gatewayProxy:
     deployment:
@@ -46,8 +37,8 @@ gloo:
           protocol: TCP
       image:
         pullPolicy: Always
-        pullSecret: solo-io-docker-secret
-        repository: soloio/gloo-ee-envoy-wrapper
+        pullSecret: solo-io-readerbot-pull-secret
+        repository: quay.io/solo-io/gloo-ee-envoy-wrapper
     configMap:
       data:
         envoy.yaml: |
@@ -141,8 +132,8 @@ gloo:
           protocol: TCP
       image:
         pullPolicy: Always
-        pullSecret: solo-io-docker-secret
-        repository: soloio/gloo-ee-envoy-wrapper
+        pullSecret: solo-io-readerbot-pull-secret
+        repository: quay.io/solo-io/gloo-ee-envoy-wrapper
     configMap:
       data:
         envoy.yaml: |
@@ -242,7 +233,6 @@ gloo:
               socket_address:
                 address: 127.0.0.1
                 port_value: 19000
-
   discovery:
     deployment:
       image:
@@ -266,8 +256,8 @@ rateLimit:
     name: 'rate-limit'
     image:
       pullPolicy: Always
-      repository: soloio/rate-limit-ee
-      pullSecret: solo-io-docker-secret
+      repository: quay.io/solo-io/rate-limit-ee
+      pullSecret: solo-io-readerbot-pull-secret
     glooAddress: gloo:9977
     redisUrl: redis:6379
   service:
@@ -301,8 +291,8 @@ extAuth:
     name: 'extauth'
     image:
       pullPolicy: Always
-      repository: soloio/extauth-ee
-      pullSecret: solo-io-docker-secret
+      repository: quay.io/solo-io/extauth-ee
+      pullSecret: solo-io-readerbot-pull-secret
     port: 8080
   service:
     port: 8080
@@ -326,8 +316,8 @@ apiServer:
       image:
         name: apiserver
         pullPolicy: Always
-        repository: soloio/apiserver-ee
-        pullSecret: solo-io-docker-secret
+        repository: quay.io/solo-io/apiserver-ee
+        pullSecret: solo-io-readerbot-pull-secret
       graphqlPort: 8082
       oauth:
         client: gloo
@@ -336,8 +326,8 @@ apiServer:
       image:
         name: 'gloo-i'
         pullPolicy: Always
-        repository: soloio/gloo-i-ee
-        pullSecret: solo-io-docker-secret
+        repository: quay.io/solo-io/gloo-i-ee
+        pullSecret: solo-io-readerbot-pull-secret
       staticPort: 8080
       staticPortNoAuth: 8088
   service:
@@ -355,9 +345,9 @@ observability:
     stats: true
     name: observability
     image:
-      repository: soloio/observability-ee
+      repository: quay.io/solo-io/observability-ee
       pullPolicy: IfNotPresent
-      pullSecret: solo-io-docker-secret
+      pullSecret: solo-io-readerbot-pull-secret
 
 
 
