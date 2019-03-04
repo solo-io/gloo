@@ -604,6 +604,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:3c4df6e0ec96b9dec76f15e0bcad888fa268ee6404d1cdcaf90d7567e32a8f73"
+  name = "github.com/google/wire"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9a7ae3ba6b734d831e88c75966fd5e9c0abdeace"
+  version = "v0.2.1"
+
+[[projects]]
   digest = "1:cd9864c6366515827a759931746738ede6079faa08df9c584596370d6add135c"
   name = "github.com/googleapis/gax-go"
   packages = [
@@ -1720,6 +1728,25 @@
   version = "v1.9.0"
 
 [[projects]]
+  digest = "1:a398c50c1c1bcc6a733b1cecda0ed9757d271cdadc750ce22df76185e2a615d9"
+  name = "gocloud.dev"
+  packages = [
+    "blob",
+    "blob/driver",
+    "blob/gcsblob",
+    "gcerrors",
+    "gcp",
+    "internal/escape",
+    "internal/gcerr",
+    "internal/oc",
+    "internal/retry",
+    "internal/useragent",
+  ]
+  pruneopts = "UT"
+  revision = "31355ab72ec930b5767ecbbf0306158d7b814d9a"
+  version = "v0.11.0"
+
+[[projects]]
   branch = "master"
   digest = "1:181682c38255bd51f4e6866a7d36573600cbd9c2ca9614ab50dad5ab383163ff"
   name = "golang.org/x/crypto"
@@ -1866,6 +1893,17 @@
   ]
   pruneopts = "UT"
   revision = "0e05534988fece6d00407fef91bec542a7859d8e"
+
+[[projects]]
+  branch = "master"
+  digest = "1:082530f09a83c0abfdb5915564c5f555dbf2beec22d855f72a890c3ffb9455e5"
+  name = "golang.org/x/xerrors"
+  packages = [
+    ".",
+    "internal",
+  ]
+  pruneopts = "UT"
+  revision = "a5947ffaace3e882f334c1750858b4a6a7e52422"
 
 [[projects]]
   digest = "1:768c35ec83dd17029060ea581d6ca9fdcaef473ec87e93e4bb750949035f6070"
@@ -2750,6 +2788,8 @@
     "go.opencensus.io/tag",
     "go.opencensus.io/trace",
     "go.uber.org/zap",
+    "gocloud.dev/blob",
+    "gocloud.dev/blob/gcsblob",
     "golang.org/x/oauth2",
     "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/grpc",
