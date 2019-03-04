@@ -123,6 +123,9 @@ glooctl-darwin-amd64: $(OUTPUT_DIR)/glooctl-darwin-amd64
 .PHONY: glooctl-windows-amd64
 glooctl-windows-amd64: $(OUTPUT_DIR)/glooctl-windows-amd64.exe
 
+.PHONY: build-cli
+build-cli: glooctl-linux-amd64 glooctl-darwin-amd64 glooctl-windows-amd64
+
 #----------------------------------------------------------------------------------
 # Apiserver
 #----------------------------------------------------------------------------------
@@ -325,51 +328,20 @@ ifeq ($(RELEASE),"true")
 	helm repo index $(HELM_SYNC_DIR)
 endif
 
+.PHONY: render-yaml
+render-yaml: install/manifest/glooe-release.yaml install/manifest/glooe-distribution.yaml
+
 #----------------------------------------------------------------------------------
 # Release
 #----------------------------------------------------------------------------------
-GH_ORG:=solo-io
-GH_REPO:=solo-projects
 
-# For now, expecting people using the release to start from a glooctl CLI we provide, not
-# installing the binaries locally / directly. So only uploading the CLI binaries to Github.
-# The other binaries can be built manually and used, and docker images for everything will
-# be published on release.
-RELEASE_BINARIES :=
-ifeq ($(RELEASE),"true")
-	RELEASE_BINARIES := \
-		$(OUTPUT_DIR)/glooctl-linux-amd64 \
-		$(OUTPUT_DIR)/glooctl-darwin-amd64 \
-		$(OUTPUT_DIR)/glooctl-windows-amd64.exe
-endif
-
-RELEASE_YAMLS :=
-ifeq ($(RELEASE),"true")
-	RELEASE_YAMLS := \
-		install/manifest/glooe-release.yaml
-endif
-
-.PHONY: release-binaries
-release-binaries: $(RELEASE_BINARIES)
-
-
-.PHONY: release-yamls
-release-yamls: $(RELEASE_YAMLS)
-
-# This is invoked by cloudbuild. When the bot gets a release notification, it kicks of a build with and provides a tag
-# variable that gets passed through to here as $TAGGED_VERSION. If no tag is provided, this is a no-op. If a tagged
-# version is provided, all the release binaries are uploaded to github.
-# Create new releases by clicking "Draft a new release" from https://github.com/solo-io/solo-projects/releases
-.PHONY: release
-release: release-binaries release-yamls
-ifeq ($(RELEASE),"true")
-	@$(foreach BINARY,$(RELEASE_BINARIES),ci/upload-github-release-asset.sh owner=solo-io repo=solo-projects tag=$(TAGGED_VERSION) filename=$(BINARY) sha=TRUE;)
-	@$(foreach YAML,$(RELEASE_YAMLS),ci/upload-github-release-asset.sh owner=solo-io repo=solo-projects tag=$(TAGGED_VERSION) filename=$(YAML);)
-endif
+.PHONY: upload-github-release-assets
+upload-github-release-assets: build-cli render-yaml
+	go run ci/upload_github_release_assets.go
 
 .PHONY: push-docs
 push-docs:
-	go run push_docs.go
+	go run ci/push_docs.go
 
 #----------------------------------------------------------------------------------
 # Docker
