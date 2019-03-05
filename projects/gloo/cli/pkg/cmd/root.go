@@ -20,6 +20,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var versionTemplate = `{{with .Name}}{{printf "%s community edition " .}}{{end}}{{printf "version %s" .Version}}
+`
+
 func App(version string, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 
 	app := &cobra.Command{
@@ -32,6 +35,8 @@ func App(version string, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
 
 	// Complete additional passed in setup
 	cliutils.ApplyOptions(app, optionsFunc)
+
+	app.SetVersionTemplate(versionTemplate)
 
 	return app
 }
