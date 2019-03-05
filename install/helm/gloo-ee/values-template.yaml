@@ -237,12 +237,12 @@ gloo:
     deployment:
       image:
         pullPolicy: Always
-        repository: soloio/discovery
+        repository: quay.io/solo-io/discovery
   gateway:
     deployment:
       image:
         pullPolicy: Always
-        repository: soloio/gateway
+        repository: quay.io/solo-io/gateway
     enabled: true
 ########################################################################
 ###                                                                  ###

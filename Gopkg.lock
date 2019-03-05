@@ -1359,7 +1359,7 @@
   version = "v0.2.3"
 
 [[projects]]
-  digest = "1:8972821a1d93974b9103aa6d1e6c250e5ce2a030d4cf252fddf79d087accf3f1"
+  digest = "1:e0489dff0f2f4811ab82d05e07af846a0394795e1662ec45be5e979fc1931d5b"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1445,8 +1445,8 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "42a89574813b066fb096b289ebebbe412d9cf5a8"
-  version = "v0.8.6"
+  revision = "5e5b0fcbf769497c7fe00db7fa5c7b839542ea00"
+  version = "v0.9.0"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1457,7 +1457,7 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:d723a53c30ba8dc3b316252a0d0dc377af42770e684f08a9432ff646c2aac399"
+  digest = "1:13640289ba461b20302dbd5e50c6d781271205d53c6f45ecd42eafa9285f4172"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1474,8 +1474,8 @@
     "versionutils",
   ]
   pruneopts = "UT"
-  revision = "36028dafd82bcd915151a82ef9653a8b698e92f6"
-  version = "v0.2.10"
+  revision = "e084fb30fbb39f78ce3dde57d5113fbf370d19ae"
+  version = "v0.2.14"
 
 [[projects]]
   branch = "master"
@@ -1499,7 +1499,7 @@
   revision = "8aa2e36bb84a979cb654d4d3c795b31add32f6cf"
 
 [[projects]]
-  digest = "1:4b14f0a60d1af77f2872aa2e5930918712d14b1705b0888017a22457ee069a74"
+  digest = "1:a91fb55d5730290831397542e7678b540007226b0f1aea0480adb7fe1063eb7e"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1555,8 +1555,8 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "b6ba2b73a5eb3b82fe9fb6076c5a1f9ea8b9d10c"
-  version = "v0.3.0"
+  revision = "6dbbf377211f93ed8dbc6689bfc6cf5aa4a3f821"
+  version = "v0.3.1"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -2736,6 +2736,7 @@
     "github.com/solo-io/go-utils/docker",
     "github.com/solo-io/go-utils/docsutils",
     "github.com/solo-io/go-utils/errors",
+    "github.com/solo-io/go-utils/githubutils",
     "github.com/solo-io/go-utils/kubeutils",
     "github.com/solo-io/go-utils/stats",
     "github.com/solo-io/go-utils/versionutils",
