@@ -54,6 +54,11 @@ spec:
             - name: START_STATS_SERVER
               value: "true"
             {{- end}}
+            - name: GLOO_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: license
+                  key: license-key
           ports:
             - name: graphql
               containerPort: {{.Values.apiServer.deployment.server.graphqlPort}}

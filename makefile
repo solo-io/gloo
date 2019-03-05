@@ -375,6 +375,15 @@ ifeq ($(RELEASE),"true")
 endif
 
 
+docker-kind: docker
+	kind load docker-image quay.io/solo-io/sqoop-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image quay.io/solo-io/rate-limit-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image quay.io/solo-io/apiserver-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image quay.io/solo-io/gloo-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image quay.io/solo-io/observability-ee:$(VERSION) --name $(CLUSTER_NAME)
+	kind load docker-image quay.io/solo-io/extauth-ee:$(VERSION) --name $(CLUSTER_NAME)
+
 #----------------------------------------------------------------------------------
 # Distribution
 #----------------------------------------------------------------------------------

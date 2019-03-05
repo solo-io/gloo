@@ -3,6 +3,7 @@ package generate
 import "github.com/solo-io/gloo/install/helm/gloo/generate"
 
 type Config struct {
+	LicenseKey    string           `json:"license_key,omitempty"`
 	Gloo          *generate.Config `json:"gloo,omitempty"`
 	Redis         *Redis           `json:"redis,omitempty"`
 	RateLimit     *RateLimit       `json:"rateLimit,omitempty"`
