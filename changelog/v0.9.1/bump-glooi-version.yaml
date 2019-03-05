@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: A fresh look has been given to tiles, filters, and searching.
+    issueLink: https://github.com/solo-io/solo-projects/issues/434
