@@ -209,6 +209,7 @@ type ComplexityRoot struct {
 		AllNamespaces    func(childComplexity int) int
 		Namespace        func(childComplexity int, name string) int
 		Settings         func(childComplexity int) int
+		IsLicenseValid   func(childComplexity int) int
 	}
 
 	RateLimit struct {
@@ -392,6 +393,7 @@ type QueryResolver interface {
 	AllNamespaces(ctx context.Context) ([]customtypes.Namespace, error)
 	Namespace(ctx context.Context, name string) (customtypes.Namespace, error)
 	Settings(ctx context.Context) (*models.Settings, error)
+	IsLicenseValid(ctx context.Context) (bool, error)
 }
 type SecretMutationResolver interface {
 	Create(ctx context.Context, obj *customtypes.SecretMutation, secret models.InputSecret) (*models.Secret, error)
@@ -1632,6 +1634,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Settings(childComplexity), true
+
+	case "Query.isLicenseValid":
+		if e.complexity.Query.IsLicenseValid == nil {
+			break
+		}
+
+		return e.complexity.Query.IsLicenseValid(childComplexity), true
 
 	case "RateLimit.unit":
 		if e.complexity.RateLimit.Unit == nil {
@@ -5848,6 +5857,15 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				out.Values[i] = ec._Query_settings(ctx, field)
 				wg.Done()
 			}(i, field)
+		case "isLicenseValid":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_isLicenseValid(ctx, field)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -6039,6 +6057,33 @@ func (ec *executionContext) _Query_settings(ctx context.Context, field graphql.C
 	}
 
 	return ec._Settings(ctx, field.Selections, res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_isLicenseValid(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IsLicenseValid(rctx)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalBoolean(res)
 }
 
 // nolint: vetshadow
@@ -12854,6 +12899,7 @@ type Query {
     allNamespaces: [Namespace!]!
     namespace(name: String!): Namespace!
     settings: Settings
+    isLicenseValid: Boolean!
 }
 
 type Mutation {

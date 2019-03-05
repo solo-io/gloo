@@ -89,3 +89,11 @@
 [[constraint]]
   name = "github.com/solo-io/go-utils"
   version = "0.2.14"
+
+[[constraint]]
+  name = "github.com/solo-io/licensing"
+  version = "0.1.1"
+
+[[constraint]]
+  name = "go.opencensus.io"
+  version = "v0.19.0"

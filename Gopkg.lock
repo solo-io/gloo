@@ -2,12 +2,14 @@
 
 
 [[projects]]
-  digest = "1:08636edd4ac1b095a9689b7a07763aa70e035068e0ff0e9dbfe2b6299b98e498"
+  digest = "1:ba5a5e42349c0bac9928dd22aba0626cb6d63c0f9c15a067556ed4e93c7fd4ad"
   name = "cloud.google.com/go"
   packages = [
     "compute/metadata",
+    "datastore",
     "iam",
     "internal",
+    "internal/fields",
     "internal/optional",
     "internal/trace",
     "internal/version",
@@ -538,7 +540,7 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:98d8bcc9b013ef48532bd746254dbd0bd2fb94d2c7dc5b4961f08c23908d214a"
+  digest = "1:dec81f0b3382876dc2653d2b812fe8383c7f984f666e5e95064f4f9408ac8256"
   name = "github.com/golang/protobuf"
   packages = [
     "jsonpb",
@@ -550,6 +552,7 @@
     "ptypes/duration",
     "ptypes/struct",
     "ptypes/timestamp",
+    "ptypes/wrappers",
   ]
   pruneopts = "UT"
   revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
@@ -602,6 +605,14 @@
   pruneopts = "UT"
   revision = "d460ce9f8df2e77fb1ba55ca87fafed96c607494"
   version = "v1.0.0"
+
+[[projects]]
+  digest = "1:3c4df6e0ec96b9dec76f15e0bcad888fa268ee6404d1cdcaf90d7567e32a8f73"
+  name = "github.com/google/wire"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9a7ae3ba6b734d831e88c75966fd5e9c0abdeace"
+  version = "v0.2.1"
 
 [[projects]]
   digest = "1:cd9864c6366515827a759931746738ede6079faa08df9c584596370d6add135c"
@@ -1478,6 +1489,23 @@
   revision = "5752d70e15b697ef118f5bf53cc3381ebef055e4"
 
 [[projects]]
+  digest = "1:67a1bba30c92952119cfe4a31f7f80bbb6946a386bbebfeeb49bfc13d8b1588f"
+  name = "github.com/solo-io/licensing"
+  packages = [
+    "pkg/db",
+    "pkg/db/gcloudstore",
+    "pkg/defaults",
+    "pkg/keys",
+    "pkg/keys/jwt",
+    "pkg/model",
+    "pkg/notify",
+    "pkg/notify/hubspot",
+  ]
+  pruneopts = "UT"
+  revision = "ca75ca48aa320ecb732000361aaac22bc692e133"
+  version = "v0.1.1"
+
+[[projects]]
   digest = "1:fe2f47fb7bb1e2156837a57419bcf16f30900b18f7f441c285b210fc335e3a54"
   name = "github.com/solo-io/rate-limiter"
   packages = [
@@ -1663,10 +1691,11 @@
   version = "v0.2.0"
 
 [[projects]]
-  digest = "1:1c644105ffd3cae8d24c9fa11044b48f30835bf6d028cd862c1988e325cb0390"
+  digest = "1:66cc08a702501988f2627f596b4b0d7fed859be5f79165f370bd6663c92b2860"
   name = "go.opencensus.io"
   packages = [
     ".",
+    "exemplar",
     "exporter/prometheus",
     "internal",
     "internal/tagencoding",
@@ -1685,8 +1714,8 @@
     "zpages/internal",
   ]
   pruneopts = "UT"
-  revision = "b11f239c032624b045c4c2bfd3d1287b4012ce89"
-  version = "v0.16.0"
+  revision = "f305e5c4e2cf345eba88de13d10de1126fa45a61"
+  version = "v0.19.1"
 
 [[projects]]
   digest = "1:3c1a69cdae3501bf75e76d0d86dc6f2b0a7421bc205c0cb7b96b19eed464a34d"
@@ -1718,6 +1747,25 @@
   pruneopts = "UT"
   revision = "4d45f9617f7d90f7a663ff21c7a4321dbe78098b"
   version = "v1.9.0"
+
+[[projects]]
+  digest = "1:a398c50c1c1bcc6a733b1cecda0ed9757d271cdadc750ce22df76185e2a615d9"
+  name = "gocloud.dev"
+  packages = [
+    "blob",
+    "blob/driver",
+    "blob/gcsblob",
+    "gcerrors",
+    "gcp",
+    "internal/escape",
+    "internal/gcerr",
+    "internal/oc",
+    "internal/retry",
+    "internal/useragent",
+  ]
+  pruneopts = "UT"
+  revision = "31355ab72ec930b5767ecbbf0306158d7b814d9a"
+  version = "v0.11.0"
 
 [[projects]]
   branch = "master"
@@ -1868,7 +1916,18 @@
   revision = "0e05534988fece6d00407fef91bec542a7859d8e"
 
 [[projects]]
-  digest = "1:768c35ec83dd17029060ea581d6ca9fdcaef473ec87e93e4bb750949035f6070"
+  branch = "master"
+  digest = "1:082530f09a83c0abfdb5915564c5f555dbf2beec22d855f72a890c3ffb9455e5"
+  name = "golang.org/x/xerrors"
+  packages = [
+    ".",
+    "internal",
+  ]
+  pruneopts = "UT"
+  revision = "a5947ffaace3e882f334c1750858b4a6a7e52422"
+
+[[projects]]
+  digest = "1:f74d790135904662a19e6624c5e33f1fb51ccf36f71011eed396472d8ce94fb4"
   name = "google.golang.org/api"
   packages = [
     "gensupport",
@@ -1879,6 +1938,7 @@
     "iterator",
     "option",
     "storage/v1",
+    "transport/grpc",
     "transport/http",
     "transport/http/internal/propagation",
   ]
@@ -1887,7 +1947,7 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:d2a8db567a76203e3b41c1f632d86485ffd57f8e650a0d1b19d240671c2fddd7"
+  digest = "1:b13819327be647014031c6a194299da87ca35313bfc01fdc1da7bd3ddf08cbce"
   name = "google.golang.org/appengine"
   packages = [
     ".",
@@ -1898,7 +1958,9 @@
     "internal/log",
     "internal/modules",
     "internal/remote_api",
+    "internal/socket",
     "internal/urlfetch",
+    "socket",
     "urlfetch",
   ]
   pruneopts = "UT"
@@ -1907,19 +1969,21 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ff760a397fba1ee1a22e40fb75aced010dd149a000f868d754d39a31794ec058"
+  digest = "1:c9fe4cc09582aed38f0c4cc2972f903b8e1d23d840dd1122286921b396f323f7"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
+    "googleapis/datastore/v1",
     "googleapis/iam/v1",
     "googleapis/rpc/code",
     "googleapis/rpc/status",
+    "googleapis/type/latlng",
   ]
   pruneopts = "UT"
   revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
 
 [[projects]]
-  digest = "1:50e6297746c3c45c16be8855886890382796b6941db6b7b6fbcd62fe75109a51"
+  digest = "1:ae799fbb66c4eb2b84a6f4d77c3cf5a06f17ace1fa8317a1a327116bb9bb4ee7"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -1929,6 +1993,7 @@
     "codes",
     "connectivity",
     "credentials",
+    "credentials/oauth",
     "encoding",
     "encoding/proto",
     "grpclog",
@@ -2702,6 +2767,8 @@
     "github.com/solo-io/go-utils/kubeutils",
     "github.com/solo-io/go-utils/stats",
     "github.com/solo-io/go-utils/versionutils",
+    "github.com/solo-io/licensing/pkg/defaults",
+    "github.com/solo-io/licensing/pkg/keys",
     "github.com/solo-io/rate-limiter/pkg/config",
     "github.com/solo-io/rate-limiter/pkg/redis",
     "github.com/solo-io/rate-limiter/pkg/server",

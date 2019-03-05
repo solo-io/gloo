@@ -9,6 +9,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/customtypes"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/graph"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
@@ -82,6 +83,13 @@ func (r *queryResolver) Version(ctx context.Context) (string, error) {
 
 func (r *queryResolver) Namespace(ctx context.Context, name string) (customtypes.Namespace, error) {
 	return customtypes.Namespace{Name: name}, nil
+}
+
+func (r *queryResolver) IsLicenseValid(ctx context.Context) (bool, error) {
+	if err := license.LicenseStatus(ctx); err != nil {
+		return false, nil
+	}
+	return true, nil
 }
 
 // This method causes the namespaceResolver (and the Kubernetes clients it uses) to be invoked once for every namespace.

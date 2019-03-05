@@ -10,6 +10,7 @@ type Query {
     allNamespaces: [Namespace!]!
     namespace(name: String!): Namespace!
     settings: Settings
+    isLicenseValid: Boolean!
 }
 
 type Mutation {
