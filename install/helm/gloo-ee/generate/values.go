@@ -3,16 +3,17 @@ package generate
 import "github.com/solo-io/gloo/install/helm/gloo/generate"
 
 type Config struct {
-	LicenseKey    string           `json:"license_key,omitempty"`
-	Gloo          *generate.Config `json:"gloo,omitempty"`
-	Redis         *Redis           `json:"redis,omitempty"`
-	RateLimit     *RateLimit       `json:"rateLimit,omitempty"`
-	ApiServer     *ApiServer       `json:"apiServer,omitempty"`
-	Observability *Observability   `json:"observability,omitempty"`
-	Rbac          *Rbac            `json:"rbac"`
-	Grafana       interface{}      `json:"grafana,omitempty"`
-	Prometheus    interface{}      `json:"prometheus,omitempty"`
-	ExtAuth       *ExtAuth         `json:"extAuth,omitempty"`
+	Settings      *generate.Settings `json:"settings,omitempty"`
+	LicenseKey    string             `json:"license_key,omitempty"`
+	Gloo          *generate.Config   `json:"gloo,omitempty"`
+	Redis         *Redis             `json:"redis,omitempty"`
+	RateLimit     *RateLimit         `json:"rateLimit,omitempty"`
+	ApiServer     *ApiServer         `json:"apiServer,omitempty"`
+	Observability *Observability     `json:"observability,omitempty"`
+	Rbac          *Rbac              `json:"rbac"`
+	Grafana       interface{}        `json:"grafana,omitempty"`
+	Prometheus    interface{}        `json:"prometheus,omitempty"`
+	ExtAuth       *ExtAuth           `json:"extAuth,omitempty"`
 }
 
 // Common

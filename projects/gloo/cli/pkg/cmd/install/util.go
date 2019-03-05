@@ -1,97 +1,71 @@
 package install
 
 import (
-	"context"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"os"
+	"strings"
 
-	"k8s.io/helm/pkg/manifest"
-	"k8s.io/helm/pkg/releaseutil"
-
-	"github.com/google/go-github/github"
-	"golang.org/x/oauth2"
+	"github.com/ghodss/yaml"
+	"github.com/solo-io/gloo/pkg/cliutil/install"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+	"github.com/solo-io/go-utils/errors"
+	"github.com/solo-io/go-utils/kubeutils"
+	"github.com/solo-io/solo-projects/pkg/version"
+	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
-const (
-	owner    = "solo-io"
-	repo     = "solo-projects"
-	yamlName = "glooe-release.yaml"
-)
+const PersistentVolumeClaim = "PersistentVolumeClaim"
 
-func setupGithubClient() (*github.Client, error) {
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		return nil, fmt.Errorf("GITHUB_TOKEN env var must be present")
+func getGlooEVersion(opts *options.Options) (string, error) {
+	if !version.IsReleaseVersion() && opts.Install.HelmChartOverride == "" {
+		return "", errors.Errorf("you must provide a GlooE Helm chart URI via the 'file' option " +
+			"when running an unreleased version of glooctl")
 	}
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
-	return client, nil
+	return version.Version, nil
+
 }
 
-func readManifest(version string) ([]byte, error) {
-	var (
-		releaseId *int64
-		assetId   *int64
-		data      []byte
+func removeExistingPVCs(manifestBytes []byte, namespace string) ([]byte, error) {
 
-		ctx = context.Background()
-	)
-	// Get the data
-	client, err := setupGithubClient()
+	cfg, err := kubeutils.GetConfig("", "")
 	if err != nil {
 		return nil, err
 	}
-	tag := fmt.Sprintf("v%s", version)
-	releases, _, err := client.Repositories.ListReleases(ctx, owner, repo, nil)
+	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, release := range releases {
-		if release.GetTagName() == tag {
-			releaseId = release.ID
-		}
-	}
-	if releaseId == nil {
-		return nil, fmt.Errorf("unable to find release with tag: %s", tag)
-	}
+	var docs []string
+	for _, doc := range strings.Split(string(manifestBytes), "---") {
 
-	assets, _, err := client.Repositories.ListReleaseAssets(ctx, owner, repo, *releaseId, nil)
-	for _, asset := range assets {
-		if asset.GetName() == yamlName {
-			assetId = asset.ID
+		// We need to define this ourselves, because if we unmarshal into `apiextensions.CustomResourceDefinition`
+		// we don't get the TypeMeta (in the yaml they are nested under `metadata`, but the k8s struct has
+		// them as top level fields...)
+		var resource struct {
+			Metadata v1.ObjectMeta
+			v1.TypeMeta
 		}
-	}
-	if assetId == nil {
-		return nil, fmt.Errorf("unable to find %s for given tag: %s", yamlName, tag)
-	}
+		if err := yaml.Unmarshal([]byte(doc), &resource); err != nil {
+			return nil, errors.Wrapf(err, "parsing resource: %s", doc)
+		}
 
-	ra, redirectUrl, err := client.Repositories.DownloadReleaseAsset(ctx, owner, repo, *assetId)
-	if ra != nil {
-		data, err = ioutil.ReadAll(ra)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		resp, err := http.Get(redirectUrl)
-		if err != nil {
-			return nil, err
-		}
-		data, err = ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return data, nil
-}
+		// If this is a PVC, check if it already exists. If so, exclude this resource from the manifest.
+		// We don't want to overwrite existing PVCs.
+		if resource.TypeMeta.Kind == PersistentVolumeClaim {
 
-func parseYaml(bigFile []byte) []manifest.Manifest {
-	manifests := releaseutil.SplitManifests(string(bigFile))
-	return manifest.SplitManifests(manifests)
+			_, err := kubeClient.CoreV1().PersistentVolumeClaims(namespace).Get(resource.Metadata.Name, v1.GetOptions{})
+			if err != nil {
+				if !kubeerrors.IsNotFound(err) {
+					return nil, errors.Wrapf(err, "retrieving %s: %s.%s", PersistentVolumeClaim, namespace, resource.Metadata.Name)
+				}
+			} else {
+				// The PVC exists, exclude it from manifest
+				continue
+			}
+		}
+
+		docs = append(docs, doc)
+	}
+	return []byte(strings.Join(docs, install.YamlDocumentSeparator)), nil
 }

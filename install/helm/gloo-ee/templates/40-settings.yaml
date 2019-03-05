@@ -1,0 +1,32 @@
+{{ if .Values.settings.create }}
+
+apiVersion: gloo.solo.io/v1
+kind: Settings
+metadata:
+  name: default
+  namespace: {{ .Release.Namespace }}
+spec:
+  bindAddr: 0.0.0.0:{{ .Values.gloo.gloo.deployment.xdsPort }}
+  {{- $releasenamespace := .Release.Namespace}}
+  discoveryNamespace: {{ .Values.settings.writeNamespace | default $releasenamespace }}
+  kubernetesArtifactSource: {}
+  kubernetesConfigSource: {}
+  kubernetesSecretSource: {}
+  refreshRate: 60s
+  extensions:
+    configs:
+      extauth:
+        extauthzServerRef:
+          name: extauth
+          namespace: {{ .Release.Namespace }}
+      rate-limit:
+        ratelimit_server_ref:
+          name: rate-limit
+          namespace: {{ .Release.Namespace }}
+
+{{- with .Values.gloo.settings.watchNamespaces }}
+  watchNamespaces:
+  - {{ . }}
+{{- end }}
+
+{{- end }}

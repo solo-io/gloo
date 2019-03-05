@@ -5,8 +5,6 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/go-utils/cliutils"
-	optionsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
-	flagutilsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/flagutils"
 	"github.com/spf13/cobra"
 )
 
@@ -17,12 +15,13 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 		Long:  constants.INSTALL_COMMAND.Long,
 	}
 
-	installOptionsExtended := &optionsExt.ExtraOptions{}
-	pflags := cmd.PersistentFlags()
-	flagutils.AddInstallFlags(pflags, &opts.Install)
-	flagutilsExt.AddInstallFlags(pflags, &installOptionsExtended.Install)
+	pFlags := cmd.PersistentFlags()
+	flagutils.AddInstallFlags(pFlags, &opts.Install)
 
-	cmd.AddCommand(KubeCmd(opts, installOptionsExtended))
+	cmd.AddCommand(GatewayCmd(opts))
+	cmd.AddCommand(IngressCmd(opts))
+	cmd.AddCommand(KnativeCmd(opts))
+
 	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
 }

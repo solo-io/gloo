@@ -1362,7 +1362,7 @@
   version = "v0.2.3"
 
 [[projects]]
-  digest = "1:e0489dff0f2f4811ab82d05e07af846a0394795e1662ec45be5e979fc1931d5b"
+  digest = "1:f973c87e6395f732a7aaf893d36255bea50112bb61da861927fffd6ed18dec05"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1448,8 +1448,8 @@
     "projects/gloo/pkg/xds",
   ]
   pruneopts = "UT"
-  revision = "5e5b0fcbf769497c7fe00db7fa5c7b839542ea00"
-  version = "v0.9.0"
+  revision = "1d9c46760efe143aa1f9bd7e2f7cf460cb364259"
+  version = "v0.10.0"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -2677,7 +2677,6 @@
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/types",
     "github.com/golang/mock/gomock",
-    "github.com/google/go-github/github",
     "github.com/google/uuid",
     "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
@@ -2711,6 +2710,7 @@
     "github.com/solo-io/ext-auth-service/pkg/service",
     "github.com/solo-io/gloo/install/helm/gloo/generate",
     "github.com/solo-io/gloo/pkg/cliutil",
+    "github.com/solo-io/gloo/pkg/cliutil/install",
     "github.com/solo-io/gloo/pkg/cliutil/testutil",
     "github.com/solo-io/gloo/pkg/utils/setuputils",
     "github.com/solo-io/gloo/pkg/version",
@@ -2818,7 +2818,6 @@
     "go.opencensus.io/tag",
     "go.opencensus.io/trace",
     "go.uber.org/zap",
-    "golang.org/x/oauth2",
     "google.golang.org/genproto/googleapis/api/annotations",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",
@@ -2846,9 +2845,10 @@
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/client-go/rest",
     "k8s.io/client-go/util/homedir",
+    "k8s.io/helm/pkg/chartutil",
+    "k8s.io/helm/pkg/hooks",
     "k8s.io/helm/pkg/manifest",
-    "k8s.io/helm/pkg/releaseutil",
-    "sigs.k8s.io/yaml",
+    "k8s.io/helm/pkg/renderutil",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

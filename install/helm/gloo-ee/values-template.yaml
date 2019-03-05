@@ -1,5 +1,15 @@
 ########################################################################
 ###                                                                  ###
+###                        Settings                                  ###
+###                                                                  ###
+########################################################################
+
+# Enable creation of the GlooE settings template, disable the Gloo one (see below)
+settings:
+  create: true
+
+########################################################################
+###                                                                  ###
 ###                        Gloo                                      ###
 ###                                                                  ###
 ########################################################################
@@ -7,17 +17,9 @@
 license_key: ""
 gloo:
   settings:
-    create: true
-    extensions:
-      configs:
-        extauth:
-          extauthzServerRef:
-            name: extauth
-            namespace: gloo-system
-        rate-limit:
-          ratelimit_server_ref:
-            name: rate-limit
-            namespace: gloo-system
+    # Do not render the Gloo settings template. We would need to template out 'namespace' in a subchart value file,
+    # which is hard. We will provide out own settings template as part of the GlooE chart.
+    create: false
   gloo:
     deployment:
       stats: true

@@ -1,0 +1,4 @@
+changelog:
+  - type: BREAKING_CHANGE
+    description: CLI installs from Helm chart istead of from GitHub release assets.
+    issueLink: https://github.com/solo-io/solo-projects/issues/425

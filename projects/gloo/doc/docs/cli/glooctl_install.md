@@ -13,15 +13,10 @@ choose which version of Gloo to install.
 ### Options
 
 ```
-      --docker-email string      Email for docker registry. Use for pulling private images.
-      --docker-password string   Password for docker registry authentication. Use for pulling private images.
-      --docker-server string     Docker server to use for pulling images (default "https://index.docker.io/v1/")
-      --docker-username string   Username for Docker registry authentication. Use for pulling private images.
-  -d, --dry-run                  Dump the raw installation yaml instead of applying it to kubernetes
-  -f, --file string              Install Gloo from this Helm chart archive file rather than from a release
-  -h, --help                     help for install
-  -n, --namespace string         namespace to install gloo into (default "gloo-system")
-      --release string           install using this release version. defaults to the latest github release
+  -d, --dry-run            Dump the raw installation yaml instead of applying it to kubernetes
+  -f, --file string        Install Gloo from this Helm chart archive file rather than from a release
+  -h, --help               help for install
+  -n, --namespace string   namespace to install gloo into (default "gloo-system")
 ```
 
 ### Options inherited from parent commands
@@ -33,5 +28,7 @@ choose which version of Gloo to install.
 ### SEE ALSO
 
 * [glooctl](../glooctl)	 - CLI for Gloo
-* [glooctl install kube](../glooctl_install_kube)	 - install Gloo on kubernetes to the gloo-system namespace
+* [glooctl install gateway](../glooctl_install_gateway)	 - install the GlooE Gateway on kubernetes
+* [glooctl install ingress](../glooctl_install_ingress)	 - install the GlooE Ingress Controller on kubernetes
+* [glooctl install knative](../glooctl_install_knative)	 - install Knative with GlooE on kubernetes
 
