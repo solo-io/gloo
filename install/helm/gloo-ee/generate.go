@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/ghodss/yaml"
-	toml "github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml"
 	"github.com/pkg/errors"
 	glooGenerate "github.com/solo-io/gloo/install/helm/gloo/generate"
 	"github.com/solo-io/solo-kit/pkg/utils/log"
@@ -30,32 +30,35 @@ const (
 	neverPull    = "Never"
 	alwaysPull   = "Always"
 	ifNotPresent = "IfNotPresent"
+)
 
-	glooiVersion = "0.1.2"
+var (
+	osGlooVersion string
 )
 
 func main() {
 	var version string
+	var err error
 	if len(os.Args) < 2 {
 		panic("Must provide version as argument")
 	} else {
 		version = os.Args[1]
 	}
 
-	osGlooVersion, err := parseToml()
+	osGlooVersion, err = parseToml()
 	if err != nil {
 		log.Fatalf("failed to determine open source Gloo version. Cause: %v", err)
 	}
 	log.Printf("Open source gloo version is: %v", osGlooVersion)
 
 	log.Printf("Generating helm files.")
-	if err := generateValuesYamls(version, osGlooVersion); err != nil {
+	if err := generateValuesYamls(version); err != nil {
 		log.Fatalf("generating values.yaml failed!: %v", err)
 	}
 	if err := generateChartYaml(version); err != nil {
 		log.Fatalf("generating Chart.yaml failed!: %v", err)
 	}
-	if err := generateRequirementsYaml(osGlooVersion); err != nil {
+	if err := generateRequirementsYaml(); err != nil {
 		log.Fatalf("unable to parse Gopkg.toml for proper gloo version: %v", err)
 	}
 }
@@ -94,7 +97,7 @@ func writeYaml(obj interface{}, path string) error {
 	return nil
 }
 
-func generateValuesYaml(version, osGlooVersion, pullPolicy, outputFile string) error {
+func generateValuesYaml(version, pullPolicy, outputFile string) error {
 	config, err := readConfig()
 	if err != nil {
 		return err
@@ -109,8 +112,6 @@ func generateValuesYaml(version, osGlooVersion, pullPolicy, outputFile string) e
 	config.Observability.Deployment.Image.Tag = version
 	config.ApiServer.Deployment.Server.Image.Tag = version
 	config.ExtAuth.Deployment.Image.Tag = version
-	// Do not set image tag equal to the rest because it is separately versioned
-	config.ApiServer.Deployment.Ui.Image.Tag = glooiVersion
 
 	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.GatewayProxy.Deployment.Image.PullPolicy = pullPolicy
@@ -127,18 +128,18 @@ func generateValuesYaml(version, osGlooVersion, pullPolicy, outputFile string) e
 	return writeYaml(&config, outputFile)
 }
 
-func generateValuesYamls(version, osGlooVersion string) error {
+func generateValuesYamls(version string) error {
 	// Generate values for standard manifest
 	standardPullPolicy := alwaysPull
 	if version == "dev" {
 		standardPullPolicy = neverPull
 	}
-	if err := generateValuesYaml(version, osGlooVersion, standardPullPolicy, valuesOutput); err != nil {
+	if err := generateValuesYaml(version, standardPullPolicy, valuesOutput); err != nil {
 		return err
 	}
 
 	// Generate values for distribution
-	if err := generateValuesYaml(version, osGlooVersion, ifNotPresent, distributionOutput); err != nil {
+	if err := generateValuesYaml(version, ifNotPresent, distributionOutput); err != nil {
 		return err
 	}
 	return nil
@@ -155,14 +156,14 @@ func generateChartYaml(version string) error {
 	return writeYaml(&chart, chartOutput)
 }
 
-func generateRequirementsYaml(glooVersion string) error {
+func generateRequirementsYaml() error {
 	var dl generate.DependencyList
 	if err := readYaml(requirementsTemplate, &dl); err != nil {
 		return err
 	}
 	for i, v := range dl.Dependencies {
 		if v.Name == "gloo" {
-			dl.Dependencies[i].Version = glooVersion
+			dl.Dependencies[i].Version = osGlooVersion
 		}
 	}
 	return writeYaml(dl, requirementsOutput)
