@@ -212,3 +212,6 @@ secrets:
 # set timeouts on specific steps (dep, tests, etc) if we want to limit the time in sections, but want a forgiving
 # timeout for the final step, and the default (10m) is not enough.
 timeout: 2400s
+
+options:
+  machineType: 'N1_HIGHCPU_8'
