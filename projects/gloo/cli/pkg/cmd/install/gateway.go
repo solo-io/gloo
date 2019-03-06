@@ -2,9 +2,12 @@ package install
 
 import (
 	"fmt"
+	"log"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/solo-io/solo-projects/pkg/cliutil"
 
 	"github.com/ghodss/yaml"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -83,18 +86,6 @@ func GatewayCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.
 				return err
 			}
 
-			// TODO: remove once we deploy gloo v0.10.1
-			// Exclude NOTES.txt file from manifests
-			excludeNotes := func(input []manifest.Manifest) (output []manifest.Manifest, err error) {
-				for _, man := range input {
-					if strings.HasSuffix(man.Name, "NOTES.txt") {
-						continue
-					}
-					output = append(output, man)
-				}
-				return
-			}
-
 			// Keep only CRDs and collect the names
 			var crdNames []string
 			keepOnlyCrds := func(input []manifest.Manifest) ([]manifest.Manifest, error) {
@@ -150,28 +141,32 @@ func GatewayCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.
 			 **************   End of filter functions   *******************
 			 **************************************************************/
 
+			// Helm uses the standard go log package. Redirect its output to the debug.log file  so that we don't
+			// expose useless warnings to the user.
+			log.SetOutput(cliutil.Logger)
+
 			// Render and install CRD manifests
 			crdManifestBytes, err := install.RenderChart(chart, values, renderOpts,
-				excludeNotes,
+				install.ExcludeNotes,
 				filterKnativeResources,
 				keepOnlyCrds,
 				install.ExcludeEmptyManifests)
 			if err != nil {
 				return errors.Wrapf(err, "rendering crd manifests")
 			}
-			if err := install.InstallManifest(crdManifestBytes, opts.Install.DryRun); err != nil {
+			if err := installManifest(crdManifestBytes, opts.Install.DryRun, ""); err != nil {
 				return errors.Wrapf(err, "installing crd manifests")
 			}
 			// Only run if this is not a dry run
 			if !opts.Install.DryRun {
-				if err := install.WaitForCrdsToBeRegistered(crdNames, time.Second*5, time.Millisecond*500); err != nil {
+				if err := waitForCrdsToBeRegistered(crdNames, time.Second*5, time.Millisecond*500); err != nil {
 					return errors.Wrapf(err, "waiting for crds to be registered")
 				}
 			}
 
 			// Render the rest of the GlooE manifest
 			glooEManifestBytes, err := install.RenderChart(chart, values, renderOpts,
-				excludeNotes,
+				install.ExcludeNotes,
 				filterKnativeResources,
 				install.ExcludeCrds,
 				install.ExcludeEmptyManifests)
@@ -185,7 +180,14 @@ func GatewayCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.
 				return errors.Wrapf(err, "checking for existing PVCs to remove")
 			}
 
-			return installManifest(glooEManifestBytes, opts.Install.DryRun, opts.Install.Namespace)
+			if err := installManifest(glooEManifestBytes, opts.Install.DryRun, opts.Install.Namespace); err != nil {
+				return err
+			}
+
+			fmt.Printf("\nGlooE was successfully installed! 🎉\n")
+
+			return nil
+
 		},
 	}
 

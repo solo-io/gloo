@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Wait for CRD registration before creating resources in `glooctl install`.
+    issueLink: https://github.com/solo-io/solo-projects/issues/346

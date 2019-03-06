@@ -5,9 +5,11 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
-	exec "os/exec"
+	"os/exec"
 	"strings"
+	"time"
+
+	"github.com/solo-io/solo-projects/pkg/cliutil"
 
 	"github.com/ghodss/yaml"
 	"github.com/solo-io/gloo/install/helm/gloo/generate"
@@ -31,7 +33,10 @@ func validateLicenseKey(extraOptions *optionsExt.ExtraOptions) error {
 	if extraOptions.Install.LicenseKey == "" {
 		return errors.Errorf("you must provide a valid license key to be able to install GlooE")
 	}
-	return license.IsLicenseValid(context.TODO(), extraOptions.Install.LicenseKey)
+	if err := license.IsLicenseValid(context.TODO(), extraOptions.Install.LicenseKey); err != nil {
+		return errors.Wrapf(err, "the license key you provided is invalid")
+	}
+	return nil
 }
 
 func getGlooEVersion(opts *options.Options) (string, error) {
@@ -137,19 +142,34 @@ func installManifest(manifest []byte, isDryRun bool, namespace string) error {
 		return nil
 	}
 
-	// Create namespace otherwise the next command might fail
-	if _, err := createNamespaceIfNotExist(namespace); err != nil {
-		return errors.Wrapf(err, "creating namespace [%s]", namespace)
-	}
+	// TODO(marco): this is hideous, but no time to wait on gloo build+release right now. I'll clean up soon.
+	if namespace != "" {
 
-	if err := kubectlApply(manifest, namespace); err != nil {
-		return errors.Wrapf(err, "running kubectl apply on manifest")
+		// Create namespace otherwise the next command might fail
+		if _, err := createNamespaceIfNotExist(namespace); err != nil {
+			return errors.Wrapf(err, "creating namespace [%s]", namespace)
+		}
+
+		if err := kubectlApplyWithNamespace(manifest, namespace); err != nil {
+			return errors.Wrapf(err, "running kubectl apply on manifest")
+		}
+		return nil
+
+	} else {
+
+		if err := kubectlApply(manifest); err != nil {
+			return errors.Wrapf(err, "running kubectl apply on manifest")
+		}
+		return nil
 	}
-	return nil
 }
 
-func kubectlApply(manifest []byte, namespace string) error {
+func kubectlApplyWithNamespace(manifest []byte, namespace string) error {
 	return kubectl(bytes.NewBuffer(manifest), "apply", "-n", namespace, "-f", "-")
+}
+
+func kubectlApply(manifest []byte) error {
+	return kubectl(bytes.NewBuffer(manifest), "apply", "-f", "-")
 }
 
 func kubectl(stdin io.Reader, args ...string) error {
@@ -157,8 +177,8 @@ func kubectl(stdin io.Reader, args ...string) error {
 	if stdin != nil {
 		kubectl.Stdin = stdin
 	}
-	kubectl.Stdout = os.Stdout
-	kubectl.Stderr = os.Stderr
+	kubectl.Stdout = cliutil.Logger
+	kubectl.Stderr = cliutil.Logger
 	return kubectl.Run()
 }
 
@@ -183,4 +203,31 @@ func createNamespaceIfNotExist(namespace string) (exists bool, err error) {
 		return false, err
 	}
 	return false, nil
+}
+
+// TODO: copied over and modified for a quick fix, improve
+// Blocks until the given CRDs have been registered.
+func waitForCrdsToBeRegistered(crds []string, timeout, interval time.Duration) error {
+	if len(crds) == 0 {
+		return nil
+	}
+
+	// TODO: think about improving
+	// Just pick the last crd in the list an wait for it to be created. It is reasonable to assume that by the time we
+	// get to applying the manifest the other ones will be ready as well.
+	crdName := crds[len(crds)-1]
+
+	elapsed := time.Duration(0)
+	for {
+		select {
+		case <-time.After(interval):
+			if err := kubectl(nil, "get", crdName); err == nil {
+				return nil
+			}
+			elapsed += interval
+			if elapsed > timeout {
+				return errors.Errorf("failed to confirm knative crd registration after %v", timeout)
+			}
+		}
+	}
 }
