@@ -23,8 +23,10 @@ const (
 	requirementsOutput   = "install/helm/gloo-ee/requirements.yaml"
 
 	gopkgToml    = "Gopkg.toml"
+	depsToml     = "Deps.toml"
 	constraint   = "constraint"
 	glooPkg      = "github.com/solo-io/gloo"
+	glooiPkg     = "github.com/solo-io/gloo-i"
 	nameConst    = "name"
 	versionConst = "version"
 	neverPull    = "Never"
@@ -34,6 +36,7 @@ const (
 
 var (
 	osGlooVersion string
+	glooiVersion  string
 )
 
 func main() {
@@ -45,11 +48,17 @@ func main() {
 		version = os.Args[1]
 	}
 
-	osGlooVersion, err = parseToml()
+	osGlooVersion, err = GetVersionFromToml(gopkgToml, glooPkg)
 	if err != nil {
 		log.Fatalf("failed to determine open source Gloo version. Cause: %v", err)
 	}
 	log.Printf("Open source gloo version is: %v", osGlooVersion)
+
+	glooiVersion, err = GetVersionFromToml(depsToml, glooiPkg)
+	if err != nil {
+		log.Fatalf("failed to determine glooi version. Cause: %v", err)
+	}
+	log.Printf("glooi version is: %v", glooiVersion)
 
 	log.Printf("Generating helm files.")
 	if err := generateValuesYamls(version); err != nil {
@@ -112,6 +121,7 @@ func generateValuesYaml(version, pullPolicy, outputFile string) error {
 	config.Observability.Deployment.Image.Tag = version
 	config.ApiServer.Deployment.Server.Image.Tag = version
 	config.ExtAuth.Deployment.Image.Tag = version
+	config.ApiServer.Deployment.Ui.Image.Tag = glooiVersion
 
 	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.GatewayProxy.Deployment.Image.PullPolicy = pullPolicy
@@ -169,8 +179,8 @@ func generateRequirementsYaml() error {
 	return writeYaml(dl, requirementsOutput)
 }
 
-func parseToml() (string, error) {
-	config, err := toml.LoadFile(gopkgToml)
+func GetVersionFromToml(filename, pkg string) (string, error) {
+	config, err := toml.LoadFile(filename)
 	if err != nil {
 		return "", err
 	}
@@ -189,7 +199,7 @@ func parseToml() (string, error) {
 	}
 
 	for _, v := range tree {
-		if v.Get(nameConst) == glooPkg && v.Get(versionConst) != "" {
+		if v.Get(nameConst) == pkg && v.Get(versionConst) != "" {
 			version = v.Get(versionConst).(string)
 		}
 	}

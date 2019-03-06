@@ -331,7 +331,6 @@ apiServer:
         pullPolicy: Always
         repository: quay.io/solo-io/gloo-i-ee
         pullSecret: solo-io-readerbot-pull-secret
-        tag: 0.1.5
       staticPort: 8080
       staticPortNoAuth: 8088
   service:
