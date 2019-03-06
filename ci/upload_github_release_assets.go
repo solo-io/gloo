@@ -25,7 +25,7 @@ func main() {
 	}
 	spec := githubutils.UploadReleaseAssetSpec{
 		Owner:             "solo-io",
-		Repo:              "gloo",
+		Repo:              "solo-projects",
 		Assets:            assets,
 		SkipAlreadyExists: true,
 	}
