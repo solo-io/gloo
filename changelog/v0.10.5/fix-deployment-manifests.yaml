@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Add `POD_NAMESPACE` environment variable to deployment manifests.
+    issueLink: https://github.com/solo-io/solo-projects/issues/452
