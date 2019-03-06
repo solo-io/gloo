@@ -6,10 +6,11 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+	optionsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 	"github.com/spf13/cobra"
 )
 
-func IngressCmd(opts *options.Options) *cobra.Command {
+func IngressCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ingress",
 		Short: "install the GlooE Ingress Controller on kubernetes",

@@ -19,6 +19,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+	optionsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 	"github.com/spf13/cobra"
 )
 
@@ -26,12 +27,16 @@ const (
 	GlooEHelmRepoTemplate = "https://storage.googleapis.com/gloo-ee-helm/charts/gloo-ee-%s.tgz"
 )
 
-func GatewayCmd(opts *options.Options) *cobra.Command {
+func GatewayCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "gateway",
 		Short: "install the GlooE Gateway on kubernetes",
 		Long:  "requires kubectl to be installed",
 		RunE: func(cmd *cobra.Command, args []string) error {
+
+			if err := validateLicenseKey(optsExt); err != nil {
+				return err
+			}
 
 			glooEVersion, err := getGlooEVersion(opts)
 			if err != nil {
@@ -56,7 +61,7 @@ func GatewayCmd(opts *options.Options) *cobra.Command {
 
 			// Passing fileName="" means "use default values".
 			// TODO: change when we move to only one value file in the OS Gloo chart
-			values, err := install.GetValuesFromFile(chart, "")
+			values, err := getValuesFromFile(chart, "", optsExt.Install.LicenseKey)
 			if err != nil {
 				return errors.Wrapf(err, "retrieving values")
 			}

@@ -6,10 +6,11 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+	optionsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
 	"github.com/spf13/cobra"
 )
 
-func KnativeCmd(opts *options.Options) *cobra.Command {
+func KnativeCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "knative",
 		Short: "install Knative with GlooE on kubernetes",

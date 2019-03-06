@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Now require license key in `glooctl install gateway`.
+    issueLink: https://github.com/solo-io/solo-projects/issues/407

@@ -9,6 +9,7 @@ import (
 )
 
 type ExtraOptions struct {
+	Install   InstallExtended
 	RateLimit RateLimit
 	OIDCAuth  OIDCAuth
 }
@@ -42,9 +43,6 @@ type OIDCSettings struct {
 	ExtAtuhServerUpstreamRef core.ResourceRef
 }
 
-type DockerAuth struct {
-	Email    string
-	Username string
-	Password string
-	Server   string
+type InstallExtended struct {
+	LicenseKey string
 }

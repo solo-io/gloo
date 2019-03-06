@@ -2848,6 +2848,7 @@
     "k8s.io/helm/pkg/chartutil",
     "k8s.io/helm/pkg/hooks",
     "k8s.io/helm/pkg/manifest",
+    "k8s.io/helm/pkg/proto/hapi/chart",
     "k8s.io/helm/pkg/renderutil",
   ]
   solver-name = "gps-cdcl"

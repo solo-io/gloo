@@ -12,6 +12,11 @@ import (
 func LicenseStatus(ctx context.Context) error {
 	license := os.Getenv("GLOO_LICENSE_KEY")
 
+	return IsLicenseValid(ctx, license)
+}
+
+func IsLicenseValid(ctx context.Context, license string) error {
+
 	km, err := defaults.GetKeyManager()
 	if err != nil {
 		return err
@@ -25,5 +30,6 @@ func LicenseStatus(ctx context.Context) error {
 	if keys.IsExpired(ki) {
 		return fmt.Errorf("license expired")
 	}
+
 	return nil
 }

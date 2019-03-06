@@ -13,10 +13,11 @@ choose which version of Gloo to install.
 ### Options
 
 ```
-  -d, --dry-run            Dump the raw installation yaml instead of applying it to kubernetes
-  -f, --file string        Install Gloo from this Helm chart archive file rather than from a release
-  -h, --help               help for install
-  -n, --namespace string   namespace to install gloo into (default "gloo-system")
+  -d, --dry-run              Dump the raw installation yaml instead of applying it to kubernetes
+  -f, --file string          Install Gloo from this Helm chart archive file rather than from a release
+  -h, --help                 help for install
+      --license-key string   License key to activate GlooE features
+  -n, --namespace string     namespace to install gloo into (default "gloo-system")
 ```
 
 ### Options inherited from parent commands

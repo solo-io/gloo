@@ -2,24 +2,37 @@ package install
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
+	exec "os/exec"
 	"strings"
 
 	"github.com/ghodss/yaml"
+	"github.com/solo-io/gloo/install/helm/gloo/generate"
 	"github.com/solo-io/gloo/pkg/cliutil/install"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/go-utils/errors"
 	"github.com/solo-io/go-utils/kubeutils"
+	"github.com/solo-io/solo-projects/pkg/license"
 	"github.com/solo-io/solo-projects/pkg/version"
+	optionsExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/options"
+	kubev1 "k8s.io/api/core/v1"
 	kubeerrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/helm/pkg/proto/hapi/chart"
 )
 
 const PersistentVolumeClaim = "PersistentVolumeClaim"
+
+func validateLicenseKey(extraOptions *optionsExt.ExtraOptions) error {
+	if extraOptions.Install.LicenseKey == "" {
+		return errors.Errorf("you must provide a valid license key to be able to install GlooE")
+	}
+	return license.IsLicenseValid(context.TODO(), extraOptions.Install.LicenseKey)
+}
 
 func getGlooEVersion(opts *options.Options) (string, error) {
 	if !version.IsReleaseVersion() && opts.Install.HelmChartOverride == "" {
@@ -27,7 +40,6 @@ func getGlooEVersion(opts *options.Options) (string, error) {
 			"when running an unreleased version of glooctl")
 	}
 	return version.Version, nil
-
 }
 
 func removeExistingPVCs(manifestBytes []byte, namespace string) ([]byte, error) {
@@ -75,6 +87,46 @@ func removeExistingPVCs(manifestBytes []byte, namespace string) ([]byte, error) 
 	return []byte(strings.Join(docs, install.YamlDocumentSeparator)), nil
 }
 
+// TODO: copied over from GLoo and modified to include license, come back and improve
+// Searches for the value file with the given name in the chart and returns its raw content.
+// NOTE: this also sets the namespace.create attribute to 'true'.
+func getValuesFromFile(helmChart *chart.Chart, fileName, licenseKey string) (*chart.Config, error) {
+	rawAdditionalValues := "{}"
+	if fileName != "" {
+		var found bool
+		for _, valueFile := range helmChart.Files {
+			if valueFile.TypeUrl == fileName {
+				rawAdditionalValues = string(valueFile.Value)
+				found = true
+			}
+		}
+		if !found {
+			return nil, errors.Errorf("could not find value file [%s] in Helm chart archive", fileName)
+		}
+	}
+
+	// Convert value file content to struct
+	valueStruct := &generate.Config{}
+	if err := yaml.Unmarshal([]byte(rawAdditionalValues), valueStruct); err != nil {
+		return nil, errors.Errorf("invalid format for value file [%s] in Helm chart archive", fileName)
+	}
+
+	// Namespace creation is disabled by default, otherwise install with helm will fail
+	// (`helm install --namespace=<namespace_name>` creates the given namespace)
+	valueStruct.Namespace = &generate.Namespace{Create: true}
+
+	valueBytes, err := yaml.Marshal(valueStruct)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed marshaling value file struct")
+	}
+
+	// Add license key. Ugly but it works
+	valuesString := fmt.Sprintf("license_key: %s\n%s", licenseKey, string(valueBytes))
+
+	// NOTE: config.Values is never used by helm
+	return &chart.Config{Raw: valuesString}, nil
+}
+
 // TODO: copied over and modified for a quick fix, improve
 //noinspection GoNameStartsWithPackageName
 func installManifest(manifest []byte, isDryRun bool, namespace string) error {
@@ -84,6 +136,12 @@ func installManifest(manifest []byte, isDryRun bool, namespace string) error {
 		fmt.Println("\n---")
 		return nil
 	}
+
+	// Create namespace otherwise the next command might fail
+	if _, err := createNamespaceIfNotExist(namespace); err != nil {
+		return errors.Wrapf(err, "creating namespace [%s]", namespace)
+	}
+
 	if err := kubectlApply(manifest, namespace); err != nil {
 		return errors.Wrapf(err, "running kubectl apply on manifest")
 	}
@@ -102,4 +160,27 @@ func kubectl(stdin io.Reader, args ...string) error {
 	kubectl.Stdout = os.Stdout
 	kubectl.Stderr = os.Stderr
 	return kubectl.Run()
+}
+
+func createNamespaceIfNotExist(namespace string) (exists bool, err error) {
+	cfg, err := kubeutils.GetConfig("", "")
+	if err != nil {
+		return false, err
+	}
+	kubeClient, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return false, err
+	}
+	installNamespace := &kubev1.Namespace{
+		ObjectMeta: v1.ObjectMeta{
+			Name: namespace,
+		},
+	}
+	if _, err := kubeClient.CoreV1().Namespaces().Create(installNamespace); err != nil {
+		if kubeerrors.IsAlreadyExists(err) {
+			return true, nil
+		}
+		return false, err
+	}
+	return false, nil
 }
