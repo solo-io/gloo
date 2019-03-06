@@ -1460,7 +1460,7 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:13640289ba461b20302dbd5e50c6d781271205d53c6f45ecd42eafa9285f4172"
+  digest = "1:6112dc4a1871153867f1cf4845e34160295b5a59e85717d65796ef4c79ab2016"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1477,8 +1477,8 @@
     "versionutils",
   ]
   pruneopts = "UT"
-  revision = "e084fb30fbb39f78ce3dde57d5113fbf370d19ae"
-  version = "v0.2.14"
+  revision = "0149ca22caff69179ccf1fa3f9ff8cde8a86c12a"
+  version = "v0.2.15"
 
 [[projects]]
   branch = "master"

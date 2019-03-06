@@ -378,6 +378,8 @@ prometheus:
   nodeExporter:
     enabled: false
   server:
+    persistentVolume:
+      size: 16Gi
     global:
       scrape_interval: 10s
       evaluation_interval: 10s

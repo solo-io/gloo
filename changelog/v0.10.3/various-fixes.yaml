@@ -1,0 +1,6 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Bump go-utils to get fix.
+  - type: FIX
+    description: Increased the size of the prometheus persistent volume claim to 16G.
+    issueLink: https://github.com/solo-io/solo-projects/issues/447
