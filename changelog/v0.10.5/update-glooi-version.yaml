@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Upgrade GlooI to v0.1.3.
+    issueLink: https://github.com/solo-io/solo-projects/issues/456
