@@ -4,11 +4,11 @@ weight: 5
 ---
 ## glooctl create secret oauth
 
-Create an OAuth secret with the given name
+Create an OAuth secret with the given name (Enterprise)
 
 ### Synopsis
 
-Create an OAuth secret with the given name. The OAuth secrets contains the client_secret as defined in RFC 6749.
+Create an OAuth secret with the given name. The OAuth secrets contains the client_secret as defined in RFC 6749. This is an enterprise-only feature.
 
 ```
 glooctl create secret oauth [flags]

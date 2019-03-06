@@ -4,11 +4,11 @@ weight: 5
 ---
 ## glooctl edit route externalauth
 
-Configure disable external auth on a route
+Configure disable external auth on a route (Enterprise)
 
 ### Synopsis
 
-Allows disabling external auth on specific routes
+Allows disabling external auth on specific routes. External auth is a gloo enterprise feature.
 
 ```
 glooctl edit route externalauth [flags]

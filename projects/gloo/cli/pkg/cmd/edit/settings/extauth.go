@@ -29,8 +29,8 @@ func ExtAuthConfig(opts *editOptions.EditOptions, optionsFunc ...cliutils.Option
 		// Use command constants to aid with replacement.
 		Use:     constants.CONFIG_EXTAUTH_COMMAND.Use,
 		Aliases: constants.CONFIG_EXTAUTH_COMMAND.Aliases,
-		Short:   "Configure external auth settings",
-		Long:    "Let gloo know the location of the ext auth server",
+		Short:   "Configure external auth settings (Enterprise)",
+		Long:    "Let gloo know the location of the ext auth server. This is a Gloo Enterprise feature.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Top.Interactive {
 				if err := surveyutilsExt.AddSettingsExtAuthFlagsInteractive(optsExt); err != nil {

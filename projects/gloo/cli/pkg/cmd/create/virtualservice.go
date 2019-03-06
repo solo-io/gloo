@@ -41,7 +41,7 @@ func VSCreate(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra
 			"Virtual services are containers for routes assigned to a domain or set of domains. \n" +
 			"Virtual services must not have overlapping domains, as the virtual service to match a request " +
 			"is selected by the Host header (in HTTP1) or :authority header (in HTTP2). " +
-			"The routes within a virtual service ",
+			"When using Gloo Enterprise, virtual services can be configured with rate limiting and oauth.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Top.Interactive {
 				if err := surveyutils.AddVirtualServiceFlagsInteractive(&opts.Create.VirtualService); err != nil {

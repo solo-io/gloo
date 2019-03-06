@@ -4,11 +4,11 @@ weight: 5
 ---
 ## glooctl edit settings externalauth
 
-Configure external auth settings
+Configure external auth settings (Enterprise)
 
 ### Synopsis
 
-Let gloo know the location of the ext auth server
+Let gloo know the location of the ext auth server. This is a Gloo Enterprise feature.
 
 ```
 glooctl edit settings externalauth [flags]

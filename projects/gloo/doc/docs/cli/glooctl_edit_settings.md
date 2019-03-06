@@ -29,5 +29,5 @@ root command for settings
 ### SEE ALSO
 
 * [glooctl edit](../glooctl_edit)	 - Edit a Gloo resource
-* [glooctl edit settings externalauth](../glooctl_edit_settings_externalauth)	 - Configure external auth settings
+* [glooctl edit settings externalauth](../glooctl_edit_settings_externalauth)	 - Configure external auth settings (Enterprise)
 

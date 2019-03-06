@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Call out features that are for enterprise Gloo only in the CLI docs and output.
+    issueLink: https://github.com/solo-io/solo-projects/issues/439

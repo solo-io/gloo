@@ -41,8 +41,8 @@ func ExtAuthConfig(opts *editOptions.EditOptions, optionsFunc ...cliutils.Option
 		// Use command constants to aid with replacement.
 		Use:     constants.CONFIG_EXTAUTH_COMMAND.Use,
 		Aliases: constants.CONFIG_EXTAUTH_COMMAND.Aliases,
-		Short:   "Configure disable external auth on a route",
-		Long:    "Allows disabling external auth on specific routes",
+		Short:   "Configure disable external auth on a route (Enterprise)",
+		Long:    "Allows disabling external auth on specific routes. External auth is a gloo enterprise feature.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Top.Interactive {
 

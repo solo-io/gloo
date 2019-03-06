@@ -25,8 +25,8 @@ func ExtAuthOathCmd(opts *options.Options) *cobra.Command {
 	input := extauth.OauthSecret{}
 	cmd := &cobra.Command{
 		Use:   "oauth",
-		Short: `Create an OAuth secret with the given name`,
-		Long:  `Create an OAuth secret with the given name. The OAuth secrets contains the client_secret as defined in RFC 6749.`,
+		Short: `Create an OAuth secret with the given name (Enterprise)`,
+		Long:  `Create an OAuth secret with the given name. The OAuth secrets contains the client_secret as defined in RFC 6749. This is an enterprise-only feature.`,
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) == 1 {
 				meta.Name = args[0]

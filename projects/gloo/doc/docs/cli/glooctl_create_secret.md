@@ -32,6 +32,6 @@ glooctl create secret [flags]
 * [glooctl create](../glooctl_create)	 - Create a Gloo resource
 * [glooctl create secret aws](../glooctl_create_secret_aws)	 - Create an AWS secret with the given name
 * [glooctl create secret azure](../glooctl_create_secret_azure)	 - Create an Azure secret with the given name
-* [glooctl create secret oauth](../glooctl_create_secret_oauth)	 - Create an OAuth secret with the given name
+* [glooctl create secret oauth](../glooctl_create_secret_oauth)	 - Create an OAuth secret with the given name (Enterprise)
 * [glooctl create secret tls](../glooctl_create_secret_tls)	 - Create a secret with the given name
 
