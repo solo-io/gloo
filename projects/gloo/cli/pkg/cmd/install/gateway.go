@@ -41,6 +41,8 @@ func GatewayCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.
 				return err
 			}
 
+			fmt.Printf("Installing GlooE. This might take a while...")
+
 			glooEVersion, err := getGlooEVersion(opts)
 			if err != nil {
 				return err
@@ -185,7 +187,7 @@ func GatewayCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.
 			}
 
 			if !opts.Install.DryRun {
-				fmt.Printf("\nGlooE was successfully installed! 🎉\n")
+				fmt.Printf("\nGlooE was successfully installed!\n")
 			}
 
 			return nil

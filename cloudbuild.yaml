@@ -84,6 +84,7 @@ steps:
   entrypoint: mkdir
   args: ['-p', './_output/helm']
   dir: './gopath/src/github.com/solo-io/solo-projects'
+  id: 'create-helm-dir'
 # sync helm repo data from google cloud bucket
 - name: gcr.io/cloud-builders/gsutil
   args:
@@ -93,7 +94,7 @@ steps:
     - gs://gloo-ee-helm/
     - './_output/helm'
   dir: './gopath/src/github.com/solo-io/solo-projects'
-
+  id: 'fetch-helm-repo'
 # Setup and run e2es
 - name: gcr.io/cloud-builders/gsutil
   entrypoint: 'bash'
@@ -134,6 +135,7 @@ steps:
   - 'GOPATH=/workspace/gopath'
   args: ['-r']
   waitFor: ['dep', 'get-envoy', 'setup-aws-creds']
+  id: 'test'
 
 - name: 'gcr.io/cloud-builders/go'
   dir: './gopath/src/github.com/solo-io/solo-projects'
@@ -148,6 +150,7 @@ steps:
   entrypoint: 'bash'
   args: ['-c', 'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD']
   secretEnv: ['QUAY_IO_PASSWORD']
+  id: 'docker-login'
 
 - name: 'gcr.io/$PROJECT_ID/go-make'
   args: ['docker']
@@ -157,6 +160,7 @@ steps:
     - 'GOPATH=/workspace/gopath'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   secretEnv: ['GITHUB_TOKEN']
+  id: 'build-docker-images'
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
 - name: 'gcr.io/$PROJECT_ID/go-make'
@@ -173,11 +177,13 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args: ['-c', 'docker logout']
+  id: 'docker-logout'
 
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args: ['-c', 'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD']
   secretEnv: ['QUAY_IO_PASSWORD']
+  id: 'docker-login-again'
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
 - name: 'gcr.io/$PROJECT_ID/go-make'
@@ -200,7 +206,7 @@ steps:
     - './_output/helm'
     - gs://gloo-ee-helm/
   dir: './gopath/src/github.com/solo-io/solo-projects'
-  id: 'set-helm-chart'
+  id: 'push-helm-repo'
 
 secrets:
 - kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key

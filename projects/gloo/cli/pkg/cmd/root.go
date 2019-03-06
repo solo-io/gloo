@@ -50,6 +50,7 @@ func optionsFunc(app *cobra.Command) {
 		get.RootCmd(opts),
 		del.RootCmd(opts),
 		install.RootCmd(opts),
+		install.UninstallCmd(opts),
 		add.RootCmd(opts),
 		remove.RootCmd(opts),
 		route.RootCmd(opts),
