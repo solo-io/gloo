@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Ignore whitespaces in the license key
+    issueLink: https://github.com/solo-io/solo-projects/issues/461

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/solo-io/licensing/pkg/defaults"
 	"github.com/solo-io/licensing/pkg/keys"
@@ -11,7 +12,7 @@ import (
 
 func LicenseStatus(ctx context.Context) error {
 	license := os.Getenv("GLOO_LICENSE_KEY")
-
+	license = strings.TrimSpace(license)
 	return IsLicenseValid(ctx, license)
 }
 
