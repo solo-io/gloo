@@ -184,12 +184,12 @@ func GatewayCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.
 				return err
 			}
 
-			fmt.Printf("\nGlooE was successfully installed! 🎉\n")
+			if !opts.Install.DryRun {
+				fmt.Printf("\nGlooE was successfully installed! 🎉\n")
+			}
 
 			return nil
-
 		},
 	}
-
 	return cmd
 }
