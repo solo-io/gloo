@@ -180,7 +180,7 @@ func GatewayCmd(opts *options.Options) *cobra.Command {
 				return errors.Wrapf(err, "checking for existing PVCs to remove")
 			}
 
-			return install.InstallManifest(glooEManifestBytes, opts.Install.DryRun)
+			return installManifest(glooEManifestBytes, opts.Install.DryRun, opts.Install.Namespace)
 		},
 	}
 

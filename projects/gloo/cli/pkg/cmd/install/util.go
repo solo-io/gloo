@@ -1,6 +1,11 @@
 package install
 
 import (
+	"bytes"
+	"fmt"
+	"io"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -68,4 +73,33 @@ func removeExistingPVCs(manifestBytes []byte, namespace string) ([]byte, error) 
 		docs = append(docs, doc)
 	}
 	return []byte(strings.Join(docs, install.YamlDocumentSeparator)), nil
+}
+
+// TODO: copied over and modified for a quick fix, improve
+//noinspection GoNameStartsWithPackageName
+func installManifest(manifest []byte, isDryRun bool, namespace string) error {
+	if isDryRun {
+		fmt.Printf("%s", manifest)
+		// For safety, print a YAML separator so multiple invocations of this function will produce valid output
+		fmt.Println("\n---")
+		return nil
+	}
+	if err := kubectlApply(manifest, namespace); err != nil {
+		return errors.Wrapf(err, "running kubectl apply on manifest")
+	}
+	return nil
+}
+
+func kubectlApply(manifest []byte, namespace string) error {
+	return kubectl(bytes.NewBuffer(manifest), "apply", "-n", namespace, "-f", "-")
+}
+
+func kubectl(stdin io.Reader, args ...string) error {
+	kubectl := exec.Command("kubectl", args...)
+	if stdin != nil {
+		kubectl.Stdin = stdin
+	}
+	kubectl.Stdout = os.Stdout
+	kubectl.Stderr = os.Stderr
+	return kubectl.Run()
 }
