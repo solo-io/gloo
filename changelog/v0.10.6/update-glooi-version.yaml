@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Upgrade Gloo-I to v0.1.4.
+    issueLink: https://github.com/solo-io/solo-projects/issues/456
