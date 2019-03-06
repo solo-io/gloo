@@ -180,16 +180,16 @@ steps:
   secretEnv: ['QUAY_IO_PASSWORD']
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
-#- name: 'gcr.io/$PROJECT_ID/go-make'
-#  args: ['distribution']
-#  env:
-#    - 'TAGGED_VERSION=$TAG_NAME'
-#    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-#    - 'GOPATH=/workspace/gopath'
-#    - 'HELM_HOME=/root/.helm' # tell helm where to find data
-#  dir: './gopath/src/github.com/solo-io/solo-projects'
-#  secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
-#  id: 'distribution'
+- name: 'gcr.io/$PROJECT_ID/go-make'
+  args: ['distribution']
+  env:
+    - 'TAGGED_VERSION=$TAG_NAME'
+    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+    - 'GOPATH=/workspace/gopath'
+    - 'HELM_HOME=/root/.helm' # tell helm where to find data
+  dir: './gopath/src/github.com/solo-io/solo-projects'
+  secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
+  id: 'distribution'
 
 
   # Sync helm chart data back to google storage bucket
