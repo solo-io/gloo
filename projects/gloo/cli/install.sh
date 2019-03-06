@@ -28,7 +28,7 @@ fi
 
   echo "Downloading ${filename}..."
 
-  SHA=$(curl -sL "${url}.sha256")
+  SHA=$(curl -sL "${url}.sha256" | cut -d' ' -f1)
   curl -sLO "${url}"
   echo "Download complete!, validating checksum..."
   checksum=$(openssl dgst -sha256 "${filename}" | awk '{ print $2 }')
