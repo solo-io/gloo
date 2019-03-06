@@ -32,13 +32,16 @@ func RunCommandInputOutput(input string, verbose bool, args ...string) (string, 
 	}
 	buf := &bytes.Buffer{}
 	var out io.Writer
+	var outerr io.Writer
 	if verbose {
-		out = io.MultiWriter(buf, os.Stdout, os.Stderr)
+		out = io.MultiWriter(buf, os.Stdout)
+		outerr = io.MultiWriter(buf, os.Stderr)
 	} else {
 		out = buf
+		outerr = buf
 	}
 	cmd.Stdout = out
-	cmd.Stderr = out
+	cmd.Stderr = outerr
 	if err := cmd.Run(); err != nil {
 		return "", errors.Wrapf(err, "%v failed: %s", cmd.Args, buf.String())
 	}

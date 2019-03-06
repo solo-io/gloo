@@ -32,6 +32,7 @@ func deployTestRunner(namespace, image string, port int32) error {
 		return err
 	}
 	labels := map[string]string{"gloo": "testrunner"}
+	zero := int64(0)
 	if _, err := kube.CoreV1().Pods(namespace).Create(&v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testrunner",
@@ -40,6 +41,7 @@ func deployTestRunner(namespace, image string, port int32) error {
 			Labels: labels,
 		},
 		Spec: v1.PodSpec{
+			TerminationGracePeriodSeconds: &zero,
 			Containers: []v1.Container{
 				{
 					Image:           image,
@@ -77,8 +79,12 @@ func deployTestRunner(namespace, image string, port int32) error {
 		return err
 	}
 	go func() {
+		start := time.Now()
 		if err := StartSimpleHttpServer(namespace, port); err != nil {
-			log.Warnf("failed to start HTTP Server in Test Runner: %v", err)
+			// if an error happened after 5 seconds, it's probably not an error.. just the pod terminating.
+			if time.Now().Sub(start).Seconds() < 5.0 {
+				log.Warnf("failed to start HTTP Server in Test Runner: %v", err)
+			}
 		}
 	}()
 	return nil

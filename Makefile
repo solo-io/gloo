@@ -359,7 +359,7 @@ ifeq ($(RELEASE),"true")
 	docker push quay.io/solo-io/gloo-envoy-wrapper:$(VERSION)
 endif
 
-docker-kind: docker
+push-kind-images: docker
 	kind load docker-image quay.io/solo-io/gateway:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/ingress:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/discovery:$(VERSION) --name $(CLUSTER_NAME)
@@ -383,6 +383,9 @@ docker-kind: docker
 
 .PHONY: build-test-assets
 build-test-assets: push-test-images build-test-chart
+
+.PHONY: build-kind-assets
+build-kind-assets: push-kind-images build-kind-chart
 
 TEST_DOCKER_TARGETS := gateway-docker-test ingress-docker-test discovery-docker-test gloo-docker-test gloo-envoy-wrapper-docker-test
 
@@ -408,5 +411,12 @@ gloo-envoy-wrapper-docker-test: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR
 build-test-chart: $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
 	mkdir -p $(TEST_ASSET_DIR)
 	go run install/helm/gloo/generate.go $(TEST_IMAGE_TAG) $(GCR_REPO_PREFIX)
+	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo
+	helm repo index $(TEST_ASSET_DIR)
+
+.PHONY: build-kind-chart
+build-kind-chart: $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
+	mkdir -p $(TEST_ASSET_DIR)
+	go run install/helm/gloo/generate.go $(VERSION)
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo
 	helm repo index $(TEST_ASSET_DIR)

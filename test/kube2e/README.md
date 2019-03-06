@@ -35,3 +35,13 @@ The below table contains the environment variables that can be used to configure
 | DEBUG             | N         | Set to 1 for debug log output |
 | WAIT_ON_FAIL      | N         | Set to 1 to prevent Ginkgo from cleaning up the Gloo installation in case of failure. Useful to exec into inspect resources created by the test. A command to resume the test run (and thus clean up resources) will be logged to the output.
 
+
+### To run locally:
+
+```bash
+./hack/test.sh start
+eval $(./hack/test.sh kind-env)
+make build-kind-assets
+export RUN_KUBE2E_TESTS=1
+ginkgo -r test/kube2e/
+```
