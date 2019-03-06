@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Check connection to Kubernetes before running any CLI command.
+    issueLink: https://github.com/solo-io/solo-projects/issues/463
