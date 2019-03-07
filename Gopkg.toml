@@ -88,7 +88,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/go-utils"
-  version = "0.2.15"
+  version = "0.2.16"
 
 [[constraint]]
   name = "github.com/solo-io/licensing"
