@@ -1,7 +1,4 @@
-# new file to lock versions of non-go deps
 
-# Gloo-ui version
 [[constraint]]
   name = "github.com/solo-io/gloo-i"
-  version = "0.1.5"
-
+  version = "0.1.6"
