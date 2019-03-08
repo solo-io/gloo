@@ -1,0 +1,3 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Add -j flag to make targets which would benefit from being run in parallel.

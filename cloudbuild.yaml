@@ -137,34 +137,38 @@ steps:
   waitFor: ['dep', 'get-envoy', 'setup-aws-creds']
   id: 'test'
 
-- name: 'gcr.io/cloud-builders/go'
-  dir: './gopath/src/github.com/solo-io/solo-projects'
-  env:
-  - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
-  - 'GOPATH=/workspace/gopath'
-  args: ['build', '-o', '/dev/null', 'projects/gloo/cli/cmd/main.go']
-  waitFor: ['dep']
-  id: 'build-cli'
-
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args: ['-c', 'docker login quay.io --username "solo-io+solobot" --password $$QUAY_IO_PASSWORD']
   secretEnv: ['QUAY_IO_PASSWORD']
+  waitFor: ['-']
   id: 'docker-login'
 
 - name: 'gcr.io/$PROJECT_ID/go-make'
-  args: ['docker']
+  args: ['-j', 'docker', 'build-cli']
   env:
     - 'TAGGED_VERSION=$TAG_NAME'
     - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
     - 'GOPATH=/workspace/gopath'
   dir: './gopath/src/github.com/solo-io/solo-projects'
-  secretEnv: ['GITHUB_TOKEN']
+  secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
+  waitFor: ['dep']
   id: 'build-docker-images'
+
+- name: 'gcr.io/$PROJECT_ID/go-make'
+  args: ['-j', 'docker-push']
+  env:
+    - 'TAGGED_VERSION=$TAG_NAME'
+    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+    - 'GOPATH=/workspace/gopath'
+  dir: './gopath/src/github.com/solo-io/solo-projects'
+  secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
+  waitFor: ['build-docker-images', 'docker-login', 'test']
+  id: 'push-docker-images'
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
 - name: 'gcr.io/$PROJECT_ID/go-make'
-  args: ['docker-push', 'manifest', 'upload-github-release-assets', 'push-docs']
+  args: ['manifest', 'upload-github-release-assets', 'push-docs']
   env:
   - 'TAGGED_VERSION=$TAG_NAME'
   - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
@@ -172,6 +176,7 @@ steps:
   - 'HELM_HOME=/root/.helm' # tell helm where to find data
   dir: './gopath/src/github.com/solo-io/solo-projects'
   secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
+  waitFor: ['push-docker-images']
   id: 'release'
 
 - name: 'gcr.io/cloud-builders/docker'

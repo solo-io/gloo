@@ -5,6 +5,8 @@
 ROOTDIR := $(shell pwd)
 PACKAGE_PATH:=github.com/solo-io/solo-projects
 OUTPUT_DIR ?= $(ROOTDIR)/_output
+# Kind of a hack to make sure _output exists
+z := $(shell mkdir -p $(OUTPUT_DIR))
 SOURCES := $(shell find . -name "*.go" | grep -v test.go | grep -v '\.\#*')
 RELEASE := "true"
 ifeq ($(TAGGED_VERSION),)
@@ -163,8 +165,12 @@ $(OUTPUT_DIR)/apiserver-darwin-amd64: apiserver-dependencies $(SOURCES)
 $(OUTPUT_DIR)/Dockerfile.apiserver: $(APISERVER_DIR)/cmd/Dockerfile
 	cp $< $@
 
-apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.apiserver
+.PHONY: apiserver-docker
+apiserver-docker: $(OUTPUT_DIR)/.apiserver-docker
+
+$(OUTPUT_DIR)/.apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.apiserver
 	docker build -t quay.io/solo-io/apiserver-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.apiserver
+	touch $@
 
 #----------------------------------------------------------------------------------
 # RateLimit
@@ -182,10 +188,12 @@ rate-limit: $(OUTPUT_DIR)/rate-limit-linux-amd64
 $(OUTPUT_DIR)/Dockerfile.rate-limit: $(RATELIMIT_DIR)/cmd/Dockerfile
 	cp $< $@
 
-rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.rate-limit
+.PHONY: rate-limit-docker
+rate-limit-docker: $(OUTPUT_DIR)/.rate-limit-docker
+
+$(OUTPUT_DIR)/.rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.rate-limit
 	docker build -t quay.io/solo-io/rate-limit-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.rate-limit
-
-
+	touch $@
 
 #----------------------------------------------------------------------------------
 # ExtAuth
@@ -203,9 +211,12 @@ extauth: $(OUTPUT_DIR)/extauth-linux-amd64
 $(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
 	cp $< $@
 
-extauth-docker: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
-	docker build -t quay.io/solo-io/extauth-ee:$(VERSION) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
+.PHONY: extauth-docker
+extauth-docker: $(OUTPUT_DIR)/.extauth-docker
 
+$(OUTPUT_DIR)/.extauth-docker: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
+	docker build -t quay.io/solo-io/extauth-ee:$(VERSION) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
+	touch $@
 
 
 #----------------------------------------------------------------------------------
@@ -224,8 +235,13 @@ observability: $(OUTPUT_DIR)/observability-linux-amd64
 $(OUTPUT_DIR)/Dockerfile.observability: $(OBSERVABILITY_DIR)/cmd/Dockerfile
 	cp $< $@
 
-observability-docker: $(OUTPUT_DIR)/observability-linux-amd64 $(OUTPUT_DIR)/Dockerfile.observability
+.PHONY: observability-docker
+observability-docker: $(OUTPUT_DIR)/.observability-docker
+
+$(OUTPUT_DIR)/.observability-docker: $(OUTPUT_DIR)/observability-linux-amd64 $(OUTPUT_DIR)/Dockerfile.observability
 	docker build -t quay.io/solo-io/observability-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.observability
+	touch $@
+
 
 #----------------------------------------------------------------------------------
 # Sqoop
@@ -244,8 +260,12 @@ sqoop: $(OUTPUT_DIR)/sqoop-linux-amd64
 $(OUTPUT_DIR)/Dockerfile.sqoop: $(SQOOP_DIR)/cmd/Dockerfile
 	cp $< $@
 
-sqoop-docker: $(OUTPUT_DIR)/sqoop-linux-amd64 $(OUTPUT_DIR)/Dockerfile.sqoop
+.PHONY: sqoop-docker
+sqoop-docker: $(OUTPUT_DIR)/.sqoop-docker
+
+$(OUTPUT_DIR)/.sqoop-docker: $(OUTPUT_DIR)/sqoop-linux-amd64 $(OUTPUT_DIR)/Dockerfile.sqoop
 	docker build -t quay.io/solo-io/sqoop-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.sqoop
+	touch $@
 
 #----------------------------------------------------------------------------------
 # Gloo
@@ -264,11 +284,17 @@ gloo: $(OUTPUT_DIR)/gloo-linux-amd64
 $(OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
 	cp $< $@
 
-gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
+
+.PHONY: gloo-docker
+gloo-docker: $(OUTPUT_DIR)/.gloo-docker
+
+$(OUTPUT_DIR)/.gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
 	docker build -t quay.io/solo-io/gloo-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo
+	touch $@
 
 gloo-docker-dev: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
 	docker build -t quay.io/solo-io/gloo-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo --no-cache
+	touch $@
 
 #----------------------------------------------------------------------------------
 # Envoy init
@@ -288,8 +314,11 @@ $(OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile
 	cp $< $@
 
 .PHONY: gloo-ee-envoy-wrapper-docker
-gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
+gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker
+
+$(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
 	docker build -t quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
+	touch $@
 
 
 #----------------------------------------------------------------------------------
