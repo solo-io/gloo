@@ -145,7 +145,7 @@ steps:
   id: 'docker-login'
 
 - name: 'gcr.io/$PROJECT_ID/go-make'
-  args: ['-j', 'docker', 'build-cli']
+  args: ['--jobs=4', 'build-cli']
   env:
     - 'TAGGED_VERSION=$TAG_NAME'
     - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
@@ -156,7 +156,7 @@ steps:
   id: 'build-docker-images'
 
 - name: 'gcr.io/$PROJECT_ID/go-make'
-  args: ['-j', 'docker-push']
+  args: ['--jobs=4', 'docker-push']
   env:
     - 'TAGGED_VERSION=$TAG_NAME'
     - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
