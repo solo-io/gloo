@@ -16,6 +16,6 @@ func CheckKubernetesConnection() error {
 	if err != nil {
 		return err
 	}
-	_, err = kubeClient.RESTClient().Get().Timeout(time.Second).DoRaw()
+	_, err = kubeClient.RESTClient().Get().Timeout(10 * time.Second).DoRaw()
 	return err
 }
