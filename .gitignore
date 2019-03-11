@@ -15,6 +15,7 @@
 *.out
 vendor/
 _output/
+_test/
 doc/site/
 projects/gloo/doc/site/
 

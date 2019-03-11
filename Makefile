@@ -18,6 +18,39 @@ endif
 VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
 LDFLAGS := "-X github.com/solo-io/solo-projects/pkg/version.Version=$(VERSION)"
 
+# Passed by cloudbuild
+GCLOUD_PROJECT_ID := $(GCLOUD_PROJECT_ID)
+BUILD_ID := $(BUILD_ID)
+
+TEST_IMAGE_TAG := test-$(BUILD_ID)
+TEST_ASSET_DIR := $(ROOTDIR)/_test
+GCR_REPO_PREFIX := gcr.io/$(GCLOUD_PROJECT_ID)
+
+
+#----------------------------------------------------------------------------------
+# Marcos
+#----------------------------------------------------------------------------------
+
+# If both GCLOUD_PROJECT_ID and BUILD_ID are set, define a function that takes a docker image name
+# and returns a '-t' flag that can be passed to 'docker build' to create a tag for a test image.
+# If the function is not defined, any attempt at calling if will return nothing (it does not cause en error)
+ifneq ($(GCLOUD_PROJECT_ID),)
+ifneq ($(BUILD_ID),)
+define get_test_tag_option
+	-t $(GCR_REPO_PREFIX)/$(1):$(TEST_IMAGE_TAG)
+endef
+endif
+endif
+
+# Same as above, but returns only the tag name withouth the '-t' prefix
+ifneq ($(GCLOUD_PROJECT_ID),)
+ifneq ($(BUILD_ID),)
+define get_test_tag
+	$(GCR_REPO_PREFIX)/$(1):$(TEST_IMAGE_TAG)
+endef
+endif
+endif
+
 #----------------------------------------------------------------------------------
 # Repo setup
 #----------------------------------------------------------------------------------
@@ -169,7 +202,7 @@ $(OUTPUT_DIR)/Dockerfile.apiserver: $(APISERVER_DIR)/cmd/Dockerfile
 apiserver-docker: $(OUTPUT_DIR)/.apiserver-docker
 
 $(OUTPUT_DIR)/.apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.apiserver
-	docker build -t quay.io/solo-io/apiserver-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.apiserver
+	docker build -t quay.io/solo-io/apiserver-ee:$(VERSION) $(call get_test_tag_option,apiserver-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.apiserver
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -192,7 +225,7 @@ $(OUTPUT_DIR)/Dockerfile.rate-limit: $(RATELIMIT_DIR)/cmd/Dockerfile
 rate-limit-docker: $(OUTPUT_DIR)/.rate-limit-docker
 
 $(OUTPUT_DIR)/.rate-limit-docker: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.rate-limit
-	docker build -t quay.io/solo-io/rate-limit-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.rate-limit
+	docker build -t quay.io/solo-io/rate-limit-ee:$(VERSION) $(call get_test_tag_option,rate-limit-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.rate-limit
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -215,7 +248,7 @@ $(OUTPUT_DIR)/Dockerfile.extauth: $(EXTAUTH_DIR)/cmd/Dockerfile
 extauth-docker: $(OUTPUT_DIR)/.extauth-docker
 
 $(OUTPUT_DIR)/.extauth-docker: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
-	docker build -t quay.io/solo-io/extauth-ee:$(VERSION) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
+	docker build -t quay.io/solo-io/extauth-ee:$(VERSION) $(call get_test_tag_option,extauth-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.extauth
 	touch $@
 
 
@@ -239,7 +272,7 @@ $(OUTPUT_DIR)/Dockerfile.observability: $(OBSERVABILITY_DIR)/cmd/Dockerfile
 observability-docker: $(OUTPUT_DIR)/.observability-docker
 
 $(OUTPUT_DIR)/.observability-docker: $(OUTPUT_DIR)/observability-linux-amd64 $(OUTPUT_DIR)/Dockerfile.observability
-	docker build -t quay.io/solo-io/observability-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.observability
+	docker build -t quay.io/solo-io/observability-ee:$(VERSION) $(call get_test_tag_option,observability-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.observability
 	touch $@
 
 
@@ -264,7 +297,7 @@ $(OUTPUT_DIR)/Dockerfile.sqoop: $(SQOOP_DIR)/cmd/Dockerfile
 sqoop-docker: $(OUTPUT_DIR)/.sqoop-docker
 
 $(OUTPUT_DIR)/.sqoop-docker: $(OUTPUT_DIR)/sqoop-linux-amd64 $(OUTPUT_DIR)/Dockerfile.sqoop
-	docker build -t quay.io/solo-io/sqoop-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.sqoop
+	docker build -t quay.io/solo-io/sqoop-ee:$(VERSION) $(call get_test_tag_option,sqoop-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.sqoop
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -289,11 +322,11 @@ $(OUTPUT_DIR)/Dockerfile.gloo: $(GLOO_DIR)/cmd/Dockerfile
 gloo-docker: $(OUTPUT_DIR)/.gloo-docker
 
 $(OUTPUT_DIR)/.gloo-docker: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
-	docker build -t quay.io/solo-io/gloo-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo
+	docker build -t quay.io/solo-io/gloo-ee:$(VERSION) $(call get_test_tag_option,gloo-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo
 	touch $@
 
 gloo-docker-dev: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
-	docker build -t quay.io/solo-io/gloo-ee:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo --no-cache
+	docker build -t quay.io/solo-io/gloo-ee:$(VERSION) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.gloo --no-cache
 	touch $@
 
 #----------------------------------------------------------------------------------
@@ -317,7 +350,7 @@ $(OUTPUT_DIR)/Dockerfile.envoyinit: $(ENVOYINIT_DIR)/Dockerfile
 gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker
 
 $(OUTPUT_DIR)/.gloo-ee-envoy-wrapper-docker: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
-	docker build -t quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION)  $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
+	docker build -t quay.io/solo-io/gloo-ee-envoy-wrapper:$(VERSION) $(call get_test_tag_option,gloo-ee-envoy-wrapper) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.envoyinit
 	touch $@
 
 
@@ -339,6 +372,7 @@ helm-template:
 	mkdir -p $(MANIFEST_DIR)
 	go run install/helm/gloo-ee/generate.go $(VERSION)
 
+.PHONY: init-helm
 init-helm:
 	helm repo add helm-hub  https://kubernetes-charts.storage.googleapis.com/
 	helm repo add gloo https://storage.googleapis.com/solo-public-helm
@@ -428,3 +462,56 @@ $(DISTRIBUTION_OUTPUT):
 ifeq ($(RELEASE),"true")
 	go run $(ROOTDIR)/$(DISTRIBUTION_DIR) $(VERSION)
 endif
+
+#----------------------------------------------------------------------------------
+# Build assets for regression tests
+#----------------------------------------------------------------------------------
+#
+# The following targets are used to generate the assets on which the regression tests rely upon. The following actions are performed:
+#
+#   1. Push the images to GCR (images have been tagged as $(GCR_REPO_PREFIX)/<image-name>:$(TEST_IMAGE_TAG)
+#   2. Generate GlooE value files providing overrides to make the image elements point to GCR
+#      - override the repository prefix for all repository names (e.g. quay.io/solo-io/gateway -> gcr.io/gloo-ee/gateway)
+#      - set the tag for each image to TEST_IMAGE_TAG
+#   3. Package the Gloo Helm chart to the _test directory (also generate an index file)
+#
+# The regression tests will use the generated Gloo Chart to install Gloo to the GKE test cluster.
+
+.PHONY: build-test-assets
+build-test-assets: push-test-images build-test-chart
+
+TEST_DOCKER_TARGETS := apiserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test sqoop-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test
+
+.PHONY: push-test-images $(TEST_DOCKER_TARGETS)
+push-test-images: $(TEST_DOCKER_TARGETS)
+
+apiserver-docker-test: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DIR)/Dockerfile.apiserver
+	docker push $(call get_test_tag,apiserver-ee)
+
+rate-limit-docker-test: $(OUTPUT_DIR)/rate-limit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.rate-limit
+	docker push $(call get_test_tag,rate-limit-ee)
+
+extauth-docker-test: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/Dockerfile.extauth
+	docker push $(call get_test_tag,extauth-ee)
+
+observability-docker-test: $(OUTPUT_DIR)/observability-linux-amd64 $(OUTPUT_DIR)/Dockerfile.observability
+	docker push $(call get_test_tag,observability-ee)
+
+sqoop-docker-test: $(OUTPUT_DIR)/sqoop-linux-amd64 $(OUTPUT_DIR)/Dockerfile.sqoop
+	docker push $(call get_test_tag,sqoop-ee)
+
+gloo-docker-test: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
+	docker push $(call get_test_tag,gloo-ee)
+
+gloo-ee-envoy-wrapper-docker-test: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_DIR)/Dockerfile.envoyinit
+	docker push $(call get_test_tag,gloo-ee-envoy-wrapper)
+
+.PHONY: build-test-chart
+build-test-chart: $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
+	mkdir -p $(TEST_ASSET_DIR)
+	go run install/helm/gloo-ee/generate.go $(TEST_IMAGE_TAG) $(GCR_REPO_PREFIX)
+	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
+	helm repo add gloo https://storage.googleapis.com/solo-public-helm
+	helm dependency update install/helm/gloo-ee
+	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
+	helm repo index $(TEST_ASSET_DIR)

@@ -145,15 +145,55 @@ steps:
   id: 'docker-login'
 
 - name: 'gcr.io/$PROJECT_ID/go-make'
-  args: ['--jobs=4', 'build-cli']
+  args: ['--jobs=2', 'build-cli']
   env:
     - 'TAGGED_VERSION=$TAG_NAME'
     - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
     - 'GOPATH=/workspace/gopath'
+    - 'BUILD_ID=$BUILD_ID'
+    - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
   waitFor: ['dep']
-  id: 'build-docker-images'
+  id: 'build-cli'
+
+- name: 'gcr.io/$PROJECT_ID/go-make'
+  args: ['--jobs=2', 'docker']
+  env:
+    - 'TAGGED_VERSION=$TAG_NAME'
+    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+    - 'GOPATH=/workspace/gopath'
+    - 'BUILD_ID=$BUILD_ID'
+    - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
+  dir: './gopath/src/github.com/solo-io/solo-projects'
+  secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
+  waitFor: ['dep']
+  id: 'build-images'
+
+  # Run regression tests
+- name: 'gcr.io/$PROJECT_ID/go-make'
+  args: ['build-test-assets']
+  env:
+    - 'PROJECT_ROOT=github.com/solo-io/gloo'
+    - 'GOPATH=/workspace/gopath'
+    - 'BUILD_ID=$BUILD_ID'
+    - 'GCLOUD_PROJECT_ID=$PROJECT_ID'
+    - 'HELM_HOME=/root/.helm'
+    - 'TAGGED_VERSION=$TAG_NAME'
+  dir: './gopath/src/github.com/solo-io/solo-projects'
+  waitFor: ['build-cli', 'build-images', 'docker-login', 'test']
+  id: 'build-test-assets'
+- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo'
+  env:
+    - 'PROJECT_ROOT=github.com/solo-io/gloo'
+    - 'GOPATH=/workspace/gopath'
+    - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=kube2e-tests'
+    - 'RUN_KUBE2E_TESTS=1'
+  dir: './gopath/src/github.com/solo-io/solo-projects'
+  args: ['-r', 'test/regressions']
+  waitFor: ['build-test-assets']
+  id: 'regression-tests'
 
 - name: 'gcr.io/$PROJECT_ID/go-make'
   args: ['--jobs=4', 'docker-push']
@@ -163,7 +203,6 @@ steps:
     - 'GOPATH=/workspace/gopath'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
-  waitFor: ['build-docker-images', 'docker-login', 'test']
   id: 'push-docker-images'
 
 # go-make is produced from https://github.com/solo-io/cloud-builders/go-make
@@ -176,7 +215,6 @@ steps:
   - 'HELM_HOME=/root/.helm' # tell helm where to find data
   dir: './gopath/src/github.com/solo-io/solo-projects'
   secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
-  waitFor: ['push-docker-images']
   id: 'release'
 
 - name: 'gcr.io/cloud-builders/docker'
@@ -224,5 +262,6 @@ secrets:
 # timeout for the final step, and the default (10m) is not enough.
 timeout: 2400s
 
+tags: ['solo-projects']
 options:
   machineType: 'N1_HIGHCPU_8'

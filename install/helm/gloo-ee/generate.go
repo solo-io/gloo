@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
+	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/pelletier/go-toml"
@@ -40,12 +42,16 @@ var (
 )
 
 func main() {
-	var version string
+	var version, repoPrefixOverride = "", ""
 	var err error
 	if len(os.Args) < 2 {
 		panic("Must provide version as argument")
 	} else {
 		version = os.Args[1]
+
+		if len(os.Args) == 3 {
+			repoPrefixOverride = os.Args[2]
+		}
 	}
 
 	osGlooVersion, err = GetVersionFromToml(gopkgToml, glooPkg)
@@ -61,7 +67,7 @@ func main() {
 	log.Printf("glooi version is: %v", glooiVersion)
 
 	log.Printf("Generating helm files.")
-	if err := generateValuesYamls(version); err != nil {
+	if err := generateValuesYamls(version, repoPrefixOverride); err != nil {
 		log.Fatalf("generating values.yaml failed!: %v", err)
 	}
 	if err := generateChartYaml(version); err != nil {
@@ -106,11 +112,12 @@ func writeYaml(obj interface{}, path string) error {
 	return nil
 }
 
-func generateValuesYaml(version, pullPolicy, outputFile string) error {
+func generateValuesYaml(version, pullPolicy, outputFile, repoPrefixOverride string) error {
 	config, err := readConfig()
 	if err != nil {
 		return err
 	}
+
 	config.Gloo.Gloo.Deployment.Image.Tag = version
 	config.Gloo.GatewayProxy.Deployment.Image.Tag = version
 	config.Gloo.IngressProxy.Deployment.Image.Tag = version
@@ -135,21 +142,31 @@ func generateValuesYaml(version, pullPolicy, outputFile string) error {
 	config.ApiServer.Deployment.Ui.Image.PullPolicy = pullPolicy
 	config.Redis.Deployment.Image.PullPolicy = pullPolicy
 
+	if repoPrefixOverride != "" {
+		config.Gloo.Gloo.Deployment.Image.Repository = replacePrefix(config.Gloo.Gloo.Deployment.Image.Repository, repoPrefixOverride)
+		config.Gloo.GatewayProxy.Deployment.Image.Repository = replacePrefix(config.Gloo.GatewayProxy.Deployment.Image.Repository, repoPrefixOverride)
+		config.Gloo.IngressProxy.Deployment.Image.Repository = replacePrefix(config.Gloo.IngressProxy.Deployment.Image.Repository, repoPrefixOverride)
+		config.RateLimit.Deployment.Image.Repository = replacePrefix(config.RateLimit.Deployment.Image.Repository, repoPrefixOverride)
+		config.Observability.Deployment.Image.Repository = replacePrefix(config.Observability.Deployment.Image.Repository, repoPrefixOverride)
+		config.ApiServer.Deployment.Server.Image.Repository = replacePrefix(config.ApiServer.Deployment.Server.Image.Repository, repoPrefixOverride)
+		config.ExtAuth.Deployment.Image.Repository = replacePrefix(config.ExtAuth.Deployment.Image.Repository, repoPrefixOverride)
+	}
+
 	return writeYaml(&config, outputFile)
 }
 
-func generateValuesYamls(version string) error {
+func generateValuesYamls(version, repositoryPrefix string) error {
 	// Generate values for standard manifest
 	standardPullPolicy := alwaysPull
 	if version == "dev" {
 		standardPullPolicy = neverPull
 	}
-	if err := generateValuesYaml(version, standardPullPolicy, valuesOutput); err != nil {
+	if err := generateValuesYaml(version, standardPullPolicy, valuesOutput, repositoryPrefix); err != nil {
 		return err
 	}
 
 	// Generate values for distribution
-	if err := generateValuesYaml(version, ifNotPresent, distributionOutput); err != nil {
+	if err := generateValuesYaml(version, ifNotPresent, distributionOutput, ""); err != nil {
 		return err
 	}
 	return nil
@@ -205,4 +222,11 @@ func GetVersionFromToml(filename, pkg string) (string, error) {
 	}
 
 	return version, nil
+}
+
+// We want to turn "quay.io/solo-io/gloo-ee" into "<newPrefix>/gloo-ee".
+func replacePrefix(repository, newPrefix string) string {
+	// Remove trailing slash, if present
+	newPrefix = strings.TrimSuffix(newPrefix, "/")
+	return strings.Join([]string{newPrefix, path.Base(repository)}, "/")
 }

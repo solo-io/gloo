@@ -41,7 +41,9 @@ func GatewayCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.
 				return err
 			}
 
-			fmt.Printf("Installing GlooE. This might take a while...")
+			if !opts.Install.DryRun {
+				fmt.Printf("Installing GlooE. This might take a while...")
+			}
 
 			glooEVersion, err := getGlooEVersion(opts)
 			if err != nil {

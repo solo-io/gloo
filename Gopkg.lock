@@ -168,6 +168,14 @@
   version = "v9"
 
 [[projects]]
+  digest = "1:1c9dffe45896d21dc8e183fdc3cdb405249e6c7dd3d00792e534af3597d5e4fc"
+  name = "github.com/avast/retry-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "08d411bf8302219fe47ca04dbdf9de892010c5e5"
+  version = "v2.2.0"
+
+[[projects]]
   digest = "1:546cda9f6b7b826b6a2d558e8de49909154481874d481e65fa74fe1352bccfae"
   name = "github.com/aws/aws-sdk-go"
   packages = [
@@ -994,12 +1002,12 @@
   revision = "668c8856d9992f97248b3177d45743d2cc1068db"
 
 [[projects]]
-  digest = "1:0a69a1c0db3591fcefb47f115b224592c8dfa4368b7ba9fae509d5e16cdc95c8"
+  digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
   pruneopts = "UT"
-  revision = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
-  version = "v1.0.1"
+  revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
+  version = "v1.0.2"
 
 [[projects]]
   digest = "1:29d28429a93b076908a36420a7ecb2bf429d24c15a4b5e2c220ea00fc84b71af"
@@ -1165,7 +1173,7 @@
   version = "v1.7.0"
 
 [[projects]]
-  digest = "1:910491a4e78ff2c3fee357cfc14e62f40431f5bda4f68cf18dade2b448cde1dc"
+  digest = "1:28ec8420931441ba18ea81668a7c7b52212e00a656a268dd9fa8adaa710bb12e"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -1186,8 +1194,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "b6ea1ea48f981d0f615a154a45eabb9dd466556d"
-  version = "v1.4.1"
+  revision = "65fb64232476ad9046e57c26cd0bff3d3a8dc6cd"
+  version = "v1.4.3"
 
 [[projects]]
   digest = "1:ee4d4af67d93cc7644157882329023ce9a7bcfce956a079069a9405521c7cc8d"
@@ -1341,11 +1349,12 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:1fe9f1cf46deb81923e9e0dba06762f1a4e850f3fc0b41e2371128266b7d8482"
+  digest = "1:fa6bd41a75d99f159736704d3c8cd4529b15ca7725fd23796fe6541426a13564"
   name = "github.com/solo-io/envoy-operator"
   packages = ["pkg/downward"]
   pruneopts = "UT"
-  revision = "c71f318a203bca8433268be67336086379a2bf9f"
+  revision = "c0c348560c668090e5a1977d100a3b974f77f789"
+  version = "v0.1.0"
 
 [[projects]]
   digest = "1:f116fe183ff6a4244270d03d652bcbd5338a0a26fee38e85566cb8006622496d"
@@ -1362,7 +1371,7 @@
   version = "v0.2.3"
 
 [[projects]]
-  digest = "1:1d87ffcc2e79379c3c83dbf5eea30c5e6da583eee336752182a36bbd78a16fb2"
+  digest = "1:c6544190305fd56f9540b6bf3c8432c1a3a6faa8effe7ae60f3b20ebba2a0a9d"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1446,10 +1455,11 @@
     "projects/gloo/pkg/translator",
     "projects/gloo/pkg/utils",
     "projects/gloo/pkg/xds",
+    "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "7392dd137b8ab4973720614f4b81c20e7b0230d3"
-  version = "v0.10.1"
+  revision = "18afa0fe738d3e6b593e8f16f665eede788fe9b5"
+  version = "v0.10.4"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1460,7 +1470,7 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:38f7b87799b0859e524d17270e08ac6a08907c3e9e9bc788c2dc39523b5d0878"
+  digest = "1:6224697cd6b01ec4a36ada5de6076e901650715bf588a592a4e9e0d137ba2d20"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1470,15 +1480,19 @@
     "docsutils",
     "errors",
     "githubutils",
+    "kubeinstallutils",
     "kubeutils",
     "logger",
     "protoutils",
     "stats",
+    "testutils",
+    "testutils/exec",
+    "testutils/helper",
     "versionutils",
   ]
   pruneopts = "UT"
-  revision = "ce08aab214b354d6cea0635dd49cb0d9c2aba312"
-  version = "v0.2.16"
+  revision = "d83e41644fbd36947e46c297710d27dddec2fe79"
+  version = "v0.4.1"
 
 [[projects]]
   branch = "master"
@@ -1769,7 +1783,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:181682c38255bd51f4e6866a7d36573600cbd9c2ca9614ab50dad5ab383163ff"
+  digest = "1:e25ef8896ed72409295f79caf50ddba5354604adb1e03921fb27cb710a1700df"
   name = "golang.org/x/crypto"
   packages = [
     "cast5",
@@ -1780,6 +1794,7 @@
     "internal/subtle",
     "openpgp",
     "openpgp/armor",
+    "openpgp/clearsign",
     "openpgp/elgamal",
     "openpgp/errors",
     "openpgp/packet",
@@ -2188,8 +2203,8 @@
     "storage/v1beta1",
   ]
   pruneopts = "UT"
-  revision = "89a74a8d264df0e993299876a8cde88379b940ee"
-  version = "kubernetes-1.13.0"
+  revision = "05914d821849570fba9eacfb29466f2d8d3cd229"
+  version = "kubernetes-1.13.1"
 
 [[projects]]
   digest = "1:ace21b4261a9bc8d06b188f03ce48d1bed92ccba4890fad616cf283939f723c6"
@@ -2203,8 +2218,8 @@
     "pkg/features",
   ]
   pruneopts = "UT"
-  revision = "20c909e7c8c3fec1a0e345b1d4e57f1c1623c368"
-  version = "kubernetes-1.13.0"
+  revision = "0fe22c71c47604641d9aa352c785b7912c200562"
+  version = "kubernetes-1.13.1"
 
 [[projects]]
   digest = "1:6489d76eab90e477f61eb30186098b5d2e45acd08cefdfdc4988e30c3752ff30"
@@ -2265,7 +2280,7 @@
   ]
   pruneopts = "UT"
   revision = "2b1284ed4c93a43499e781493253e2ac5959c4fd"
-  version = "kubernetes-1.13.0"
+  version = "kubernetes-1.13.1"
 
 [[projects]]
   digest = "1:138928c37ee6ec1be14aec46c97dab5f110ffa7e81828b9d27919df371fd8f62"
@@ -2278,8 +2293,8 @@
     "pkg/util/feature",
   ]
   pruneopts = "UT"
-  revision = "9caa0299108fbdf51d3d9b8e8956834ae84dac75"
-  version = "kubernetes-1.13.0"
+  revision = "3ccfe8365421eb08e334b195786a2973460741d8"
+  version = "kubernetes-1.13.1"
 
 [[projects]]
   branch = "release-1.12"
@@ -2294,7 +2309,7 @@
   revision = "11047e25a94a7eaa541b92a8bbfd3e1243607219"
 
 [[projects]]
-  digest = "1:bc9597aec563452a0bab34430ae11d6d6bc881e08d8d7d300de81f3f1d1ba620"
+  digest = "1:f29e91f524c0b5d388eeb9907f26dac0bfc54c5e8601f48901bc711e2100ce99"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -2456,27 +2471,33 @@
     "util/workqueue",
   ]
   pruneopts = "UT"
-  revision = "e64494209f554a6723674bd494d69445fb76a1d4"
-  version = "kubernetes-1.13.0"
+  revision = "8d9ed539ba3134352c586810e749e58df4e94e4f"
+  version = "kubernetes-1.13.1"
 
 [[projects]]
-  digest = "1:03170ab6a355ee2c646c063ae48e75ee206b42887e373ca58220ba0a88d9f6ba"
+  digest = "1:dffc9ae4f0605ba668c85a12e48b65c205b1a851d3ee53c19ccf0bf5023e8d16"
   name = "k8s.io/helm"
   packages = [
     "pkg/chartutil",
     "pkg/engine",
+    "pkg/getter",
+    "pkg/helm/environment",
+    "pkg/helm/helmpath",
     "pkg/hooks",
     "pkg/ignore",
     "pkg/kube",
     "pkg/manifest",
+    "pkg/plugin",
     "pkg/proto/hapi/chart",
     "pkg/proto/hapi/release",
     "pkg/proto/hapi/rudder",
     "pkg/proto/hapi/services",
     "pkg/proto/hapi/version",
+    "pkg/provenance",
     "pkg/releasetesting",
     "pkg/releaseutil",
     "pkg/renderutil",
+    "pkg/repo",
     "pkg/rudder",
     "pkg/storage",
     "pkg/storage/driver",
@@ -2485,6 +2506,8 @@
     "pkg/tiller",
     "pkg/tiller/environment",
     "pkg/timeconv",
+    "pkg/tlsutil",
+    "pkg/urlutil",
     "pkg/version",
   ]
   pruneopts = "UT"
@@ -2511,7 +2534,7 @@
   revision = "e3762e86a74c878ffed47484592986685639c2cd"
 
 [[projects]]
-  digest = "1:e38c623dbc145357cd0f49822566ab0b6283b6c159c04cc36998a1fcbdd76bed"
+  digest = "1:a533c51e1330839e7ee9e8d4e9d6c85fb40c9fd2ac7913c81d2e1518803308cc"
   name = "k8s.io/kubernetes"
   packages = [
     "pkg/api/legacyscheme",
@@ -2616,8 +2639,8 @@
     "pkg/version",
   ]
   pruneopts = "UT"
-  revision = "ddf47ac13c1a9483ea035a79cd7c10005ff21a6d"
-  version = "v1.13.0"
+  revision = "c27b913fddd1a6c480c229191a087698aa92f0b1"
+  version = "v1.13.4"
 
 [[projects]]
   branch = "master"
@@ -2719,6 +2742,7 @@
     "github.com/solo-io/gloo/projects/discovery/pkg/uds/setup",
     "github.com/solo-io/gloo/projects/discovery/pkg/uds/syncer",
     "github.com/solo-io/gloo/projects/gateway/pkg/api/v1",
+    "github.com/solo-io/gloo/projects/gateway/pkg/defaults",
     "github.com/solo-io/gloo/projects/gateway/pkg/setup",
     "github.com/solo-io/gloo/projects/gateway/pkg/syncer",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils",
@@ -2757,6 +2781,7 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils",
     "github.com/solo-io/gloo/projects/gloo/pkg/syncer",
     "github.com/solo-io/gloo/projects/gloo/pkg/translator",
+    "github.com/solo-io/gloo/test/helpers",
     "github.com/solo-io/go-checkpoint",
     "github.com/solo-io/go-utils/cliutils",
     "github.com/solo-io/go-utils/contextutils",
@@ -2766,6 +2791,8 @@
     "github.com/solo-io/go-utils/githubutils",
     "github.com/solo-io/go-utils/kubeutils",
     "github.com/solo-io/go-utils/stats",
+    "github.com/solo-io/go-utils/testutils",
+    "github.com/solo-io/go-utils/testutils/helper",
     "github.com/solo-io/go-utils/versionutils",
     "github.com/solo-io/licensing/pkg/defaults",
     "github.com/solo-io/licensing/pkg/keys",

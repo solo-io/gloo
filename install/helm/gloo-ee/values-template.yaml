@@ -49,9 +49,7 @@ gloo:
             cluster: gateway
             id: "{{.PodName}}{{.PodNamespace}}"
             metadata:
-              # this line must match !
-              role: "gloo-system~gateway-proxy"
-
+              role: "{{.PodNamespace}}~gateway-proxy"
           static_resources:
             listeners:
               - name: prometheus_listener
@@ -144,14 +142,11 @@ gloo:
             cluster: ingress
             id: "{{.PodName}}{{.PodNamespace}}"
             metadata:
-              # this line must match !
-              role: "gloo-system~ingress-proxy"
-
+              role: "{{.PodNamespace}}~ingress-proxy"
           rate_limit_service:
             grpc_service:
               envoy_grpc:
                 cluster_name: rate_limit_cluster
-
           static_resources:
             listeners:
               - name: prometheus_listener

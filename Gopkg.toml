@@ -19,35 +19,31 @@
 
 [[override]]
   name = "k8s.io/kubernetes"
-  version = "=v1.13.0"
+  version = "v1.13.0"
 
 [[override]]
   name = "k8s.io/api"
-  version = "kubernetes-1.13.0"
+  version = "kubernetes-1.13.1"
 
 [[constraint]]
   name = "k8s.io/client-go"
-  version = "kubernetes-1.13.0"
+  version = "kubernetes-1.13.1"
 
 [[constraint]]
   name = "k8s.io/apimachinery"
-  version = "kubernetes-1.13.0"
+  version = "kubernetes-1.13.1"
 
 [[override]]
   name = "k8s.io/apiextensions-apiserver"
-  version = "kubernetes-1.13.0"
+  version = "kubernetes-1.13.1"
 
 [[override]]
   name = "k8s.io/apiserver"
-  version = "kubernetes-1.13.0"
+  version = "kubernetes-1.13.1"
 
 [[override]]
   name = "k8s.io/helm"
   version = "v2.12.3"
-
-[[override]]
-  name = "github.com/docker/docker"
-  version = "v1.13.1"
 
 [[override]]
   version = "1.2.0"
@@ -55,7 +51,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/envoy-operator"
-  revision = "c71f318a203bca8433268be67336086379a2bf9f"
+  version = "0.1.0"
 
 [[constraint]]
   name = "github.com/solo-io/rate-limiter"
@@ -67,7 +63,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  version = "0.10.1"
+  version = "0.10.4"
 
 [[override]]
   name = "github.com/hashicorp/consul"
@@ -88,7 +84,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/go-utils"
-  version = "0.2.16"
+  version = "0.4.1"
 
 [[constraint]]
   name = "github.com/solo-io/licensing"
