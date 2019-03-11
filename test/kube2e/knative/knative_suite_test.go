@@ -1,20 +1,22 @@
 package knative_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
+	"time"
 
-	"github.com/solo-io/gloo/test/kube2e"
+	"github.com/solo-io/go-utils/testutils/helper"
+
+	"github.com/solo-io/go-utils/testutils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	skhelpers "github.com/solo-io/solo-kit/test/helpers"
 )
 
-// TODO(ilackarms): tie testrunner to solo CI test containers and then handle image tagging
-const defaultTestRunnerImage = "soloio/testrunner:latest"
-
 func TestKnative(t *testing.T) {
-	if kube2e.AreTestsDisabled() {
+	if testutils.AreTestsDisabled() {
 		return
 	}
 	skhelpers.RegisterCommonFailHandlers()
@@ -22,13 +24,29 @@ func TestKnative(t *testing.T) {
 	RunSpecs(t, "Knative Suite")
 }
 
-var namespace string
+var testHelper *helper.SoloTestHelper
 
 var _ = BeforeSuite(func() {
-	namespace = kube2e.InstallGloo(kube2e.KNATIVE)
+	cwd, err := os.Getwd()
+	Expect(err).NotTo(HaveOccurred())
+
+	testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
+		defaults.RootDir = filepath.Join(cwd, "../../..")
+		defaults.HelmChartName = "gloo"
+		return defaults
+	})
+	Expect(err).NotTo(HaveOccurred())
+
+	// Install Gloo
+	err = testHelper.InstallGloo(helper.KNATIVE, 5*time.Minute)
+	Expect(err).NotTo(HaveOccurred())
 })
 
 var _ = AfterSuite(func() {
-	err := kube2e.GlooctlUninstall(namespace)
+	err := testHelper.UninstallGloo()
 	Expect(err).NotTo(HaveOccurred())
+
+	Eventually(func() error {
+		return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)
+	}, "60s", "1s").Should(HaveOccurred())
 })

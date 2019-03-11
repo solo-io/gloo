@@ -1090,12 +1090,12 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:0a69a1c0db3591fcefb47f115b224592c8dfa4368b7ba9fae509d5e16cdc95c8"
+  digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
   pruneopts = "UT"
-  revision = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
-  version = "v1.0.1"
+  revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
+  version = "v1.0.2"
 
 [[projects]]
   digest = "1:29d28429a93b076908a36420a7ecb2bf429d24c15a4b5e2c220ea00fc84b71af"
@@ -1474,7 +1474,7 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:455929d3851c3aabf57adc32530ceeca4b651b4b1abb625545d54b425e4860d9"
+  digest = "1:3f1b0a907ee5bcad7242bdcec81026ba40630fb0a4ff5145badebf77c3f6164d"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1484,14 +1484,18 @@
     "docsutils",
     "errors",
     "githubutils",
+    "kubeinstallutils",
     "kubeutils",
     "logger",
     "protoutils",
+    "testutils",
+    "testutils/exec",
+    "testutils/helper",
     "versionutils",
   ]
   pruneopts = "UT"
-  revision = "a7c8ece03d8713231997a28a17cfbbe1b07c8a72"
-  version = "v0.4.0"
+  revision = "d83e41644fbd36947e46c297710d27dddec2fe79"
+  version = "v0.4.1"
 
 [[projects]]
   branch = "master"
@@ -2516,6 +2520,9 @@
     "github.com/solo-io/go-utils/kubeutils",
     "github.com/solo-io/go-utils/logger",
     "github.com/solo-io/go-utils/protoutils",
+    "github.com/solo-io/go-utils/testutils",
+    "github.com/solo-io/go-utils/testutils/exec",
+    "github.com/solo-io/go-utils/testutils/helper",
     "github.com/solo-io/go-utils/versionutils",
     "github.com/solo-io/kubecontroller",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients",
@@ -2583,7 +2590,6 @@
     "k8s.io/helm/pkg/manifest",
     "k8s.io/helm/pkg/proto/hapi/chart",
     "k8s.io/helm/pkg/renderutil",
-    "k8s.io/helm/pkg/repo",
     "k8s.io/helm/pkg/tiller",
     "k8s.io/kubernetes/pkg/apis/core",
     "k8s.io/kubernetes/pkg/apis/core/validation",
