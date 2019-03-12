@@ -207,6 +207,7 @@ type ComplexityRoot struct {
 		Version          func(childComplexity int) int
 		GetOauthEndpoint func(childComplexity int) int
 		AllNamespaces    func(childComplexity int) int
+		AllSecrets       func(childComplexity int) int
 		Namespace        func(childComplexity int, name string) int
 		Settings         func(childComplexity int) int
 		IsLicenseValid   func(childComplexity int) int
@@ -391,6 +392,7 @@ type QueryResolver interface {
 	Version(ctx context.Context) (string, error)
 	GetOAuthEndpoint(ctx context.Context) (models.OAuthEndpoint, error)
 	AllNamespaces(ctx context.Context) ([]customtypes.Namespace, error)
+	AllSecrets(ctx context.Context) ([]models.Secret, error)
 	Namespace(ctx context.Context, name string) (customtypes.Namespace, error)
 	Settings(ctx context.Context) (*models.Settings, error)
 	IsLicenseValid(ctx context.Context) (bool, error)
@@ -1615,6 +1617,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.AllNamespaces(childComplexity), true
+
+	case "Query.allSecrets":
+		if e.complexity.Query.AllSecrets == nil {
+			break
+		}
+
+		return e.complexity.Query.AllSecrets(childComplexity), true
 
 	case "Query.namespace":
 		if e.complexity.Query.Namespace == nil {
@@ -5842,6 +5851,15 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				wg.Done()
 			}(i, field)
+		case "allSecrets":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_allSecrets(ctx, field)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
 		case "namespace":
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
@@ -5983,6 +6001,66 @@ func (ec *executionContext) _Query_allNamespaces(ctx context.Context, field grap
 			arr1[idx1] = func() graphql.Marshaler {
 
 				return ec._Namespace(ctx, field.Selections, &res[idx1])
+			}()
+		}
+		if isLen1 {
+			f(idx1)
+		} else {
+			go f(idx1)
+		}
+
+	}
+	wg.Wait()
+	return arr1
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_allSecrets(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AllSecrets(rctx)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.Secret)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	arr1 := make(graphql.Array, len(res))
+	var wg sync.WaitGroup
+
+	isLen1 := len(res) == 1
+	if !isLen1 {
+		wg.Add(len(res))
+	}
+
+	for idx1 := range res {
+		idx1 := idx1
+		rctx := &graphql.ResolverContext{
+			Index:  &idx1,
+			Result: &res[idx1],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(idx1 int) {
+			if !isLen1 {
+				defer wg.Done()
+			}
+			arr1[idx1] = func() graphql.Marshaler {
+
+				return ec._Secret(ctx, field.Selections, &res[idx1])
 			}()
 		}
 		if isLen1 {
@@ -12897,6 +12975,7 @@ type Query {
     version: String!
     getOAuthEndpoint: OAuthEndpoint!
     allNamespaces: [Namespace!]!
+    allSecrets: [Secret!]!
     namespace(name: String!): Namespace!
     settings: Settings
     isLicenseValid: Boolean!

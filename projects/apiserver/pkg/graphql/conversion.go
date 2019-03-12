@@ -1211,6 +1211,21 @@ func convertOutputMetadata(resource resources.Resource, meta core.Metadata) Meta
 	}
 }
 
+// Proposing a new convention here:
+// ConvertResourceX returns Resources (for `resource!` queries)
+// ConvertResource returns *Resources (for `resource` queries)
+// Mnemonic: X "no pointer" or "eXclamation point"
+func (c *Converter) ConvertOutputSecretsX(secrets v1.SecretList) []Secret {
+	var result []Secret
+	for _, us := range secrets {
+		out := c.ConvertOutputSecret(us)
+		if out != nil {
+			result = append(result, *out)
+		}
+	}
+	return result
+}
+
 func (c *Converter) ConvertOutputSecrets(secrets v1.SecretList) []*Secret {
 	var result []*Secret
 	for _, us := range secrets {

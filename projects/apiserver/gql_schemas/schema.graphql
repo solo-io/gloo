@@ -8,6 +8,7 @@ type Query {
     version: String!
     getOAuthEndpoint: OAuthEndpoint!
     allNamespaces: [Namespace!]!
+    allSecrets: [Secret!]!
     namespace(name: String!): Namespace!
     settings: Settings
     isLicenseValid: Boolean!

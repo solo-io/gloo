@@ -109,6 +109,24 @@ func (r *queryResolver) AllNamespaces(ctx context.Context) ([]customtypes.Namesp
 	return namespaces, nil
 }
 
+func (r *queryResolver) AllSecrets(ctx context.Context) ([]models.Secret, error) {
+	nsList, err := r.AllNamespaces(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var secrets v1.SecretList
+	for _, ns := range nsList {
+		secretsList, err := r.SecretClient.List(ns.Name, clients.ListOpts{Ctx: ctx})
+		if err != nil {
+			return nil, err
+		}
+		for _, s := range secretsList {
+			secrets = append(secrets, s)
+		}
+	}
+	return NewConverter(r.ApiResolver, ctx).ConvertOutputSecretsX(secrets), nil
+}
+
 func (r *queryResolver) Settings(ctx context.Context) (*models.Settings, error) {
 	namespace := defaults.GlooSystem
 	name := defaults.SettingsName
