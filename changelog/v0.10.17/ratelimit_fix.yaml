@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: rate limit to work when using multiple listeners
+    issueLink: https://github.com/solo-io/solo-projects/issues/514

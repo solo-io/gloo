@@ -12,3 +12,5 @@ spec:
       serviceName: {{ .Values.rateLimit.service.name }}
       serviceNamespace: {{ .Release.Namespace }}
       servicePort:  {{ .Values.rateLimit.service.port }}
+      serviceSpec:
+        grpc: {}

@@ -515,3 +515,13 @@ build-test-chart: $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin
 	helm dependency update install/helm/gloo-ee
 	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
 	helm repo index $(TEST_ASSET_DIR)
+
+.PHONY: build-kind-chart
+build-kind-chart: $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
+	mkdir -p $(TEST_ASSET_DIR)
+	go run install/helm/gloo-ee/generate.go $(VERSION)
+	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
+	helm repo add gloo https://storage.googleapis.com/solo-public-helm
+	helm dependency update install/helm/gloo-ee
+	helm package --destination $(TEST_ASSET_DIR) $(HELM_DIR)/gloo-ee
+	helm repo index $(TEST_ASSET_DIR)

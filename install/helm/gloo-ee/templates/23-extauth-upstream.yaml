@@ -12,3 +12,5 @@ spec:
       serviceName: {{ .Values.extAuth.service.name }}
       serviceNamespace: {{ .Release.Namespace }}
       servicePort:  {{ .Values.extAuth.service.port }}
+      serviceSpec:
+        grpc: {}

@@ -159,7 +159,7 @@ func generateValuesYamls(version, repositoryPrefix string) error {
 	// Generate values for standard manifest
 	standardPullPolicy := alwaysPull
 	if version == "dev" {
-		standardPullPolicy = neverPull
+		standardPullPolicy = ifNotPresent
 	}
 	if err := generateValuesYaml(version, standardPullPolicy, valuesOutput, repositoryPrefix); err != nil {
 		return err

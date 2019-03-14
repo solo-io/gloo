@@ -19,6 +19,7 @@ import (
 	ratelimit "github.com/solo-io/rate-limiter/pkg/service"
 	"github.com/solo-io/rate-limiter/pkg/settings"
 	configproto "github.com/solo-io/solo-projects/projects/rate-limit/pkg/config"
+	"google.golang.org/grpc/reflection"
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 
@@ -91,6 +92,7 @@ func StartRateLimitWithGrpcServer(ctx context.Context, clientSettings Settings, 
 	}
 
 	pb.RegisterRateLimitServiceServer(grpcServer, service)
+	reflection.Register(grpcServer)
 }
 
 func startClient(ctx context.Context, s Settings, service ratelimit.RateLimitServerConfigMutator) error {

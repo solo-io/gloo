@@ -27,15 +27,16 @@ func NewTranslatorSyncerExtension() syncer.TranslatorSyncerExtension {
 }
 
 func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
+
+	rl := &v1.RateLimitConfig{
+		Domain: rateLimitPlugin.IngressDomain,
+	}
+
 	for _, proxy := range snap.Proxies.List() {
 		for _, listener := range proxy.Listeners {
 			httpListener, ok := listener.ListenerType.(*gloov1.Listener_HttpListener)
 			if !ok {
 				continue
-			}
-
-			rl := &v1.RateLimitConfig{
-				Domain: rateLimitPlugin.IngressDomain,
 			}
 
 			virtualHosts := httpListener.HttpListener.VirtualHosts
@@ -55,18 +56,21 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 				}
 				rl.Constraints = append(rl.Constraints, vhostConstraint)
 			}
-
-			resource := v1.NewRateLimitConfigXdsResourceWrapper(rl)
-			resources := []envoycache.Resource{resource}
-			h, err := hashstructure.Hash(resources, nil)
-			if err != nil {
-				contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing rate limit")
-				return err
-			}
-			rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
-			xdsCache.SetSnapshot("ratelimit", rlsnap)
 		}
 	}
+
+	// TODO(yuval-k): we should make sure that we add the proxy name and listener name to the descriptors
+	var resources []envoycache.Resource
+
+	resource := v1.NewRateLimitConfigXdsResourceWrapper(rl)
+	resources = append(resources, resource)
+	h, err := hashstructure.Hash(resources, nil)
+	if err != nil {
+		contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing rate limit")
+		return err
+	}
+	rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
+	xdsCache.SetSnapshot("ratelimit", rlsnap)
 
 	// find our plugin
 	return nil
