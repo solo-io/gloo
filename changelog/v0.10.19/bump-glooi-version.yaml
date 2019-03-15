@@ -1,0 +1,7 @@
+changelog:
+- dependencyOwner: solo-io
+  dependencyRepo: gloo-i
+  dependencyTag: v0.1.14
+  description: Update gloo-ui to version 0.1.14.
+  issueLink: https://github.com/solo-io/solo-projects/issues/522
+  type: DEPENDENCY_BUMP
