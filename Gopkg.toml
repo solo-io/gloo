@@ -63,7 +63,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  version = "0.10.4"
+  version = "0.10.5"
 
 [[override]]
   name = "github.com/hashicorp/consul"
@@ -84,7 +84,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/go-utils"
-  version = "0.4.1"
+  version = "0.5.0"
 
 [[constraint]]
   name = "github.com/solo-io/licensing"

@@ -1,0 +1,4 @@
+changelog:
+- type: FIX
+  description: Use the same factory generation logic in the apiserver and gloo.
+  issueLink: https://github.com/solo-io/solo-projects/issues/493

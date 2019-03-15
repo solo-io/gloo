@@ -3,12 +3,14 @@ package setup
 import (
 	"context"
 	"log"
-	"os"
 	"sync"
+
+	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/config"
 
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/graph"
+	v1 "k8s.io/api/core/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -16,13 +18,12 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
-	corecache "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/utils/kubeutils"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/auth"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql"
 	vcsv1 "github.com/solo-io/solo-projects/projects/vcs/pkg/api/v1"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -41,7 +42,7 @@ func NewPerTokenClientsets() PerTokenClientsets {
 	}
 }
 
-func (ptc PerTokenClientsets) ClientsetForToken(token string) (*ClientSet, error) {
+func (ptc PerTokenClientsets) ClientsetForToken(ctx context.Context, settings *gloov1.Settings, token string) (*ClientSet, error) {
 	ptc.lock.Lock()
 	defer ptc.lock.Unlock()
 	clientsetForToken, ok := ptc.clients[token]
@@ -49,16 +50,7 @@ func (ptc PerTokenClientsets) ClientsetForToken(token string) (*ClientSet, error
 		return clientsetForToken, nil
 	}
 
-	// TODO: temporary flag to switch to VCS clientset
-	var clientset *ClientSet
-	var err error
-	if os.Getenv("VCS") == "1" {
-		clientset, err = NewTempClientSet(token)
-	} else {
-		// Use regular clientset, to support current UI
-		clientset, err = NewClientSet(token)
-	}
-
+	clientset, err := NewClientSet(ctx, settings, token)
 	if err != nil {
 		return nil, err
 	}
@@ -87,21 +79,22 @@ func (c ClientSet) NewResolvers() graph.ResolverRoot {
 }
 
 // Returns a set of clients that use Kubernetes as storage
-func NewClientSet(token string) (*ClientSet, error) {
-
-	// TODO: temporary solution to bypass authentication.
-	if token == "" {
-		if config.SkipAuth == "" {
-			log.Panic("token is empty and auth is not bypassed. Should never happen.")
-		}
-		return newAdminClientSet()
-	}
+func NewClientSet(ctx context.Context, settings *gloov1.Settings, token string) (*ClientSet, error) {
 
 	// When running in-cluster, this configuration will hold a token associated with the pod service account
 	cfg, err := kubeutils.GetConfig("", "")
 	if err != nil {
 		return nil, err
 	}
+	// TODO: temporary solution to bypass authentication.
+	if token == "" {
+		if config.SkipAuth == "" {
+			log.Panic("token is empty and auth is not bypassed. Should never happen.")
+		}
+		// When we want to skip auth, we use the token associated with the pod service account
+		token = cfg.BearerToken
+	}
+
 	kubeClientset, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, err
@@ -110,17 +103,19 @@ func NewClientSet(token string) (*ClientSet, error) {
 	// New shared cache
 	cache := kube.NewKubeCache(context.TODO())
 
-	kubeCoreCache, err := corecache.NewKubeCoreCache(context.TODO(), kubeClientset)
+	var clientset kubernetes.Interface
+	memCache := memory.NewInMemoryResourceCache()
+	factories, err := syncer.BootstrapFactories(ctx, &clientset, cache, memCache, settings)
 	if err != nil {
 		return nil, err
 	}
 
-	upstreamClient, err := gloov1.NewUpstreamClientWithToken(factoryFor(gloov1.UpstreamCrd, *cfg, cache), token)
+	upstreamClient, err := gloov1.NewUpstreamClientWithToken(factories.Upstreams, token)
 	if err != nil {
 		return nil, err
 	}
 
-	vsClient, err := gatewayv1.NewVirtualServiceClientWithToken(factoryFor(gatewayv1.VirtualServiceCrd, *cfg, cache), token)
+	vsClient, err := gatewayv1.NewVirtualServiceClientWithToken(factories.Proxies, token)
 	if err != nil {
 		return nil, err
 	}
@@ -136,18 +131,13 @@ func NewClientSet(token string) (*ClientSet, error) {
 		return nil, err
 	}
 
-	secretClient, err := gloov1.NewSecretClientWithToken(&factory.KubeSecretClientFactory{
-		Clientset: kubeClientset,
-		Cache:     kubeCoreCache,
-	}, token)
+	// replace this with the gloo factory
+	secretClient, err := gloov1.NewSecretClientWithToken(factories.Secrets, token)
 	if err != nil {
 		return nil, err
 	}
 
-	artifactClient, err := gloov1.NewArtifactClientWithToken(&factory.KubeConfigMapClientFactory{
-		Clientset: kubeClientset,
-		Cache:     kubeCoreCache,
-	}, token)
+	artifactClient, err := gloov1.NewArtifactClientWithToken(factories.Artifacts, token)
 	if err != nil {
 		return nil, err
 	}
@@ -163,6 +153,7 @@ func NewClientSet(token string) (*ClientSet, error) {
 }
 
 // Returns a set of clients that use a Changeset as storage
+// This is will be used by GitOps
 func NewChangesetClientSet(token string) (*ClientSet, error) {
 
 	// When running in-cluster, this configuration will hold a token associated with the pod service account
@@ -209,102 +200,6 @@ func NewChangesetClientSet(token string) (*ClientSet, error) {
 	}, nil
 }
 
-// TODO: temporary hybrid clientset that writes only virtual services to a changeset
-func NewTempClientSet(token string) (*ClientSet, error) {
-
-	// When running in-cluster, this configuration will hold a token associated with the pod service account
-	cfg, err := kubeutils.GetConfig("", "")
-	if err != nil {
-		return nil, err
-	}
-	kubeClientset, err := kubernetes.NewForConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	// New shared cache
-	cache := kube.NewKubeCache(context.TODO())
-	kubeCoreCache, err := corecache.NewKubeCoreCache(context.TODO(), kubeClientset)
-	if err != nil {
-		return nil, err
-	}
-
-	upstreamClient, err := gloov1.NewUpstreamClientWithToken(factoryFor(gloov1.UpstreamCrd, *cfg, cache), token)
-	if err != nil {
-		return nil, err
-	}
-
-	settingsClient, err := gloov1.NewSettingsClientWithToken(factoryFor(gloov1.SettingsCrd, *cfg, cache), token)
-	if err != nil {
-		return nil, err
-	}
-
-	// Needed only for the clients backed by a KubeResourceClientFactory to register with the cache they share
-	if err = registerAll(upstreamClient, settingsClient); err != nil {
-		return nil, err
-	}
-
-	secretClient, err := gloov1.NewSecretClientWithToken(&factory.KubeSecretClientFactory{
-		Clientset: kubeClientset,
-		Cache:     kubeCoreCache,
-	}, token)
-	if err != nil {
-		return nil, err
-	}
-
-	artifactClient, err := gloov1.NewArtifactClientWithToken(&factory.KubeConfigMapClientFactory{
-		Clientset: kubeClientset,
-		Cache:     kubeCoreCache,
-	}, token)
-	if err != nil {
-		return nil, err
-	}
-
-	// validate bearer token and retrieve associated user information
-	username, err := auth.GetUsername(kubeClientset.AuthenticationV1(), token)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create a kubernetes client for changesets
-	changesetClient, err := vcsv1.NewChangeSetClientWithToken(&factory.KubeResourceClientFactory{
-		Crd:                vcsv1.ChangeSetCrd,
-		Cfg:                cfg,
-		SharedCache:        kube.NewKubeCache(context.TODO()),
-		SkipCrdCreation:    true,
-		NamespaceWhitelist: []string{defaults.GlooSystem},
-	}, token)
-	if err = changesetClient.Register(); err != nil {
-		return nil, err
-	}
-
-	// Clients built on top of this factory will use the changeset with the given name as storage
-	changesetClientFactory := &vcsv1.ChangesetResourceClientFactory{
-		ChangesetClient: changesetClient,
-		ChangesetName:   username,
-	}
-
-	vsClient, err := gatewayv1.NewVirtualServiceClient(changesetClientFactory)
-
-	return &ClientSet{
-		UpstreamClient:       upstreamClient,
-		VirtualServiceClient: vsClient,
-		SettingsClient:       settingsClient,
-		SecretClient:         secretClient,
-		ArtifactClient:       artifactClient,
-	}, nil
-}
-
-func factoryFor(crd crd.Crd, cfg rest.Config, cache kube.SharedCache) factory.ResourceClientFactory {
-	return &factory.KubeResourceClientFactory{
-		Crd:                crd,
-		Cfg:                &cfg,
-		SharedCache:        cache,
-		NamespaceWhitelist: []string{v1.NamespaceAll},
-		SkipCrdCreation:    true,
-	}
-}
-
 type registrant interface {
 	Register() error
 }
@@ -318,70 +213,12 @@ func registerAll(clients ...registrant) error {
 	return nil
 }
 
-// Returns a set of clients that use Kubernetes as storage
-// Uses the InClusterConfig k8s configuration
-func newAdminClientSet() (*ClientSet, error) {
-
-	// When running in-cluster, this configuration will hold a token associated with the pod service account
-	cfg, err := kubeutils.GetConfig("", "")
-	if err != nil {
-		return nil, err
+func factoryFor(crd crd.Crd, cfg rest.Config, cache kube.SharedCache) factory.ResourceClientFactory {
+	return &factory.KubeResourceClientFactory{
+		Crd:                crd,
+		Cfg:                &cfg,
+		SharedCache:        cache,
+		NamespaceWhitelist: []string{v1.NamespaceAll},
+		SkipCrdCreation:    true,
 	}
-	kubeClientset, err := kubernetes.NewForConfig(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	// New shared cache
-	cache := kube.NewKubeCache(context.TODO())
-	kubeCoreCache, err := corecache.NewKubeCoreCache(context.TODO(), kubeClientset)
-	if err != nil {
-		return nil, err
-	}
-
-	upstreamClient, err := gloov1.NewUpstreamClient(factoryFor(gloov1.UpstreamCrd, *cfg, cache))
-	if err != nil {
-		return nil, err
-	}
-
-	vsClient, err := gatewayv1.NewVirtualServiceClient(factoryFor(gatewayv1.VirtualServiceCrd, *cfg, cache))
-	if err != nil {
-		return nil, err
-	}
-
-	settingsClient, err := gloov1.NewSettingsClient(factoryFor(gloov1.SettingsCrd, *cfg, cache))
-	if err != nil {
-		return nil, err
-	}
-
-	// Needed only for the clients backed by the KubeResourceClientFactory
-	// so that they register with the cache they share
-	if err = registerAll(upstreamClient, vsClient, settingsClient); err != nil {
-		return nil, err
-	}
-
-	secretClient, err := gloov1.NewSecretClient(&factory.KubeSecretClientFactory{
-		Clientset: kubeClientset,
-		Cache:     kubeCoreCache,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	artifactClient, err := gloov1.NewArtifactClient(&factory.KubeConfigMapClientFactory{
-		Clientset: kubeClientset,
-		Cache:     kubeCoreCache,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &ClientSet{
-		UpstreamClient:       upstreamClient,
-		VirtualServiceClient: vsClient,
-		SettingsClient:       settingsClient,
-		SecretClient:         secretClient,
-		ArtifactClient:       artifactClient,
-		CoreV1Interface:      kubeClientset.CoreV1(),
-	}, nil
 }

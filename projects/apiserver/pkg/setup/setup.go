@@ -2,23 +2,50 @@ package setup
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/websocket"
+	"github.com/solo-io/gloo/pkg/utils/setuputils"
+	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/config"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
 	"github.com/rs/cors"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/auth"
 	apiServer "github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/graph"
 )
 
-// Setup initializes the api server
-func Setup(ctx context.Context, port int, debugMode bool) error {
+// Main initializes the api server
+func Main() error {
+	return setuputils.Main(setuputils.SetupOpts{
+		LoggingPrefix: "apiserver",
+		SetupFunc:     Setup,
+		ExitOnError:   true,
+	})
+}
+
+func Setup(ctx context.Context,
+	kubeCache kube.SharedCache,
+	inMemoryCache memory.InMemoryResourceCache,
+	settings *v1.Settings) error {
+
+	port := flag.Int("p", 8082, "port to bind")
+	flag.Parse()
+
+	debugMode := os.Getenv("DEBUG") == "1"
+
+	// fail fast if the environment is not correctly configured
+	config.ValidateEnvVars()
+
+	contextutils.LoggerFrom(ctx).Infof("listening on :%v", *port)
 
 	// Serve the query route such that it can be accessed from our UI during development
 	corsSettings := cors.New(cors.Options{
@@ -45,7 +72,7 @@ func Setup(ctx context.Context, port int, debugMode bool) error {
 		} else {
 
 			// get from cache or create anew
-			clientset, err := perTokenClientsets.ClientsetForToken(token)
+			clientset, err := perTokenClientsets.ClientsetForToken(ctx, settings, token)
 			if err != nil {
 				contextutils.LoggerFrom(ctx).Errorf("failed to create clientset: %v", err)
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -66,7 +93,7 @@ func Setup(ctx context.Context, port int, debugMode bool) error {
 		)).ServeHTTP(w, r)
 	})
 
-	return http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
+	return http.ListenAndServe(fmt.Sprintf(":%v", *port), nil)
 }
 
 func getResolverMiddleware(debugMode bool) handler.Option {

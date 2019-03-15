@@ -1371,7 +1371,7 @@
   version = "v0.2.3"
 
 [[projects]]
-  digest = "1:c6544190305fd56f9540b6bf3c8432c1a3a6faa8effe7ae60f3b20ebba2a0a9d"
+  digest = "1:aec346752c4c707f2f72abed5f267909e3972c2b1ba7f70f0f38c11ff29ddd53"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1458,8 +1458,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "18afa0fe738d3e6b593e8f16f665eede788fe9b5"
-  version = "v0.10.4"
+  revision = "44cbc55c048270317200eb3eab500bfe585392b8"
+  version = "v0.10.5"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1470,7 +1470,7 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:6224697cd6b01ec4a36ada5de6076e901650715bf588a592a4e9e0d137ba2d20"
+  digest = "1:28c195390693f555b4cdf866217aeef5687f1ffdab7d5dc40ab2aed5c5351ba3"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1491,8 +1491,8 @@
     "versionutils",
   ]
   pruneopts = "UT"
-  revision = "d83e41644fbd36947e46c297710d27dddec2fe79"
-  version = "v0.4.1"
+  revision = "94b56d174b345de8c59b6312228ccbd9c21b3581"
+  version = "v0.5.1"
 
 [[projects]]
   branch = "master"
