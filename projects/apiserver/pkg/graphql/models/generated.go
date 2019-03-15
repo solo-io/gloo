@@ -276,9 +276,16 @@ type InputRestServiceSpec struct {
 }
 
 type InputRoute struct {
-	Matcher     InputMatcher       `json:"matcher"`
-	Destination InputDestination   `json:"destination"`
-	Plugins     *InputRoutePlugins `json:"plugins"`
+	Matcher      InputMatcher             `json:"matcher"`
+	Destination  *InputDestination        `json:"destination"`
+	Destinations []*InputRouteDestination `json:"destinations"`
+	Plugins      *InputRoutePlugins       `json:"plugins"`
+}
+
+type InputRouteDestination struct {
+	Upstream        InputResourceRef      `json:"upstream"`
+	DestinationSpec *InputDestinationSpec `json:"destinationSpec"`
+	Weight          *int                  `json:"weight"`
 }
 
 type InputRoutePlugins struct {
@@ -495,10 +502,17 @@ type RestServiceSpec struct {
 func (RestServiceSpec) IsServiceSpec() {}
 
 type Route struct {
-	Matcher        Matcher         `json:"matcher"`
-	Destination    Destination     `json:"destination"`
-	Plugins        *RoutePlugins   `json:"plugins"`
-	VirtualService *VirtualService `json:"virtualService"`
+	Matcher        Matcher            `json:"matcher"`
+	Destination    Destination        `json:"destination"`
+	Destinations   []RouteDestination `json:"destinations"`
+	Plugins        *RoutePlugins      `json:"plugins"`
+	VirtualService *VirtualService    `json:"virtualService"`
+}
+
+type RouteDestination struct {
+	Upstream        Upstream        `json:"upstream"`
+	DestinationSpec DestinationSpec `json:"destinationSpec"`
+	Weight          *int            `json:"weight"`
 }
 
 type RoutePlugins struct {
