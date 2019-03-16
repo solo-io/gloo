@@ -13,7 +13,8 @@ weight: 5
 ### Options
 
 ```
-  -h, --help   help for route
+  -h, --help           help for route
+  -x, --index uint32   edit the route with this index in the virtual service route list
 ```
 
 ### Options inherited from parent commands
@@ -30,4 +31,5 @@ weight: 5
 
 * [glooctl edit](../glooctl_edit)	 - Edit a Gloo resource
 * [glooctl edit route externalauth](../glooctl_edit_route_externalauth)	 - Configure disable external auth on a route (Enterprise)
+* [glooctl edit route ratelimit](../glooctl_edit_route_ratelimit)	 - Configure rate limit settings (Enterprise)
 

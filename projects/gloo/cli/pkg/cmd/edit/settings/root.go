@@ -3,10 +3,10 @@ package settings
 import (
 	editOptions "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/options"
 
-	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/constants"
-
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/go-utils/cliutils"
+	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/edit/settings/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/constants"
 	"github.com/spf13/cobra"
 )
 
@@ -29,6 +29,7 @@ func RootCmd(opts *editOptions.EditOptions, optionsFunc ...cliutils.OptionsFunc)
 	flagutils.AddMetadataFlags(pflags, &opts.Metadata)
 
 	cmd.AddCommand(ExtAuthConfig(opts))
+	cmd.AddCommand(ratelimit.RateLimitConfig(opts))
 	cliutils.ApplyOptions(cmd, optionsFunc)
 	return cmd
 }

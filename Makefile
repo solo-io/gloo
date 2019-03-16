@@ -110,7 +110,7 @@ generated-code: $(OUTPUT_DIR)/.generated-code
 SUBDIRS:=projects install pkg test
 $(OUTPUT_DIR)/.generated-code:
 	go generate ./...
-	(rm projects/gloo/doc/docs/cli/* && cd projects/gloo/doc && go run gen_docs.go)
+	(rm projects/gloo/doc/docs/cli/*; cd projects/gloo/doc && go run gen_docs.go)
 	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)
 	mkdir -p $(OUTPUT_DIR)
@@ -438,7 +438,7 @@ ifeq ($(RELEASE),"true")
 endif
 
 
-docker-kind: docker
+push-kind-images: docker
 	kind load docker-image quay.io/solo-io/sqoop-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/rate-limit-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/apiserver-ee:$(VERSION) --name $(CLUSTER_NAME)
@@ -479,7 +479,8 @@ endif
 
 .PHONY: build-test-assets
 build-test-assets: push-test-images build-test-chart
-
+.PHONY: build-kind-assets
+build-kind-assets: push-kind-images build-kind-chart
 TEST_DOCKER_TARGETS := apiserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test sqoop-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test
 
 .PHONY: push-test-images $(TEST_DOCKER_TARGETS)

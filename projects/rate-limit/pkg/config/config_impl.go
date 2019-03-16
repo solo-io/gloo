@@ -118,7 +118,7 @@ func (this rateLimitConfig) GetLimit(
 	return rateLimit
 }
 
-func (this *rateLimitDescriptor) loadDescriptors(logger *zap.SugaredLogger, parentKey string, descriptors []*glooee.Constraint) error {
+func (this *rateLimitDescriptor) loadDescriptors(logger *zap.SugaredLogger, parentKey string, descriptors []*solorl.Descriptor) error {
 
 	for _, descriptorConfig := range descriptors {
 		if descriptorConfig.Key == "" {
@@ -155,7 +155,7 @@ func (this *rateLimitDescriptor) loadDescriptors(logger *zap.SugaredLogger, pare
 		logger.Debugf(
 			"loading descriptor: key=%s%s", newParentKey, rateLimitDebugString)
 		newDescriptor := &rateLimitDescriptor{map[string]*rateLimitDescriptor{}, rateLimit}
-		err := newDescriptor.loadDescriptors(logger, newParentKey+".", descriptorConfig.Constraints)
+		err := newDescriptor.loadDescriptors(logger, newParentKey+".", descriptorConfig.Descriptors)
 		if err != nil {
 			return err
 		}
@@ -201,6 +201,6 @@ func (this *rateLimitConfigGenerator) GenerateConfig(configs []*glooee.RateLimit
 func (this *rateLimitConfigGenerator) makeConfig(rc *glooee.RateLimitConfig) (*rateLimitDomain, error) {
 
 	newDomain := &rateLimitDomain{rateLimitDescriptor{map[string]*rateLimitDescriptor{}, nil}}
-	newDomain.loadDescriptors(this.logger, rc.Domain+".", rc.Constraints)
+	newDomain.loadDescriptors(this.logger, rc.Domain, rc.Descriptors)
 	return newDomain, nil
 }

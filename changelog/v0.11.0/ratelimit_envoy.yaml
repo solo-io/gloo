@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    description: allow rate limit with envoy config language.
+    issueLink: https://github.com/solo-io/solo-projects/issues/525
+  - type: BREAKING_CHANGE
+    description: Updated to gloo v0.11.X
+    issueLink: https://github.com/solo-io/solo-projects/issues/525

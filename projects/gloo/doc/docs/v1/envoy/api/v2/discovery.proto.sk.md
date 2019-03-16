@@ -34,23 +34,23 @@ A DiscoveryRequest requests a set of versioned resources of the same type for
 a given Envoy node on some API.
 
 ```yaml
-"version_info": string
+"versionInfo": string
 "node": .envoy.api.v2.core.Node
-"resource_names": []string
-"type_url": string
-"response_nonce": string
-"error_detail": .google.rpc.Status
+"resourceNames": []string
+"typeUrl": string
+"responseNonce": string
+"errorDetail": .google.rpc.Status
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `version_info` | `string` | The version_info provided in the request messages will be the version_info received with the most recent successfully processed response or empty on the first request. It is expected that no new request is sent after a response is received until the Envoy instance is ready to ACK/NACK the new configuration. ACK/NACK takes place by returning the new API config version as applied or the previous API config version respectively. Each type_url (see below) has an independent version associated with it. |  |
+| `versionInfo` | `string` | The version_info provided in the request messages will be the version_info received with the most recent successfully processed response or empty on the first request. It is expected that no new request is sent after a response is received until the Envoy instance is ready to ACK/NACK the new configuration. ACK/NACK takes place by returning the new API config version as applied or the previous API config version respectively. Each type_url (see below) has an independent version associated with it. |  |
 | `node` | [.envoy.api.v2.core.Node](../core/base.proto.sk#Node) | The node making the request. |  |
-| `resource_names` | `[]string` | List of resources to subscribe to, e.g. list of cluster names or a route configuration name. If this is empty, all resources for the API are returned. LDS/CDS expect empty resource_names, since this is global discovery for the Envoy instance. The LDS and CDS responses will then imply a number of resources that need to be fetched via EDS/RDS, which will be explicitly enumerated in resource_names. |  |
-| `type_url` | `string` | Type of the resource that is being requested, e.g. "type.googleapis.com/envoy.api.v2.ClusterLoadAssignment". This is implicit in requests made via singleton xDS APIs such as CDS, LDS, etc. but is required for ADS. |  |
-| `response_nonce` | `string` | nonce corresponding to DiscoveryResponse being ACK/NACKed. See above discussion on version_info and the DiscoveryResponse nonce comment. This may be empty if no nonce is available, e.g. at startup or for non-stream xDS implementations. |  |
-| `error_detail` | [.google.rpc.Status](../../../../google/rpc/status.proto.sk#Status) | This is populated when the previous :ref:`DiscoveryResponse <envoy_api_msg_DiscoveryResponse>` failed to update configuration. The *message* field in *error_details* provides the Envoy internal exception related to the failure. It is only intended for consumption during manual debugging, the string provided is not guaranteed to be stable across Envoy versions. |  |
+| `resourceNames` | `[]string` | List of resources to subscribe to, e.g. list of cluster names or a route configuration name. If this is empty, all resources for the API are returned. LDS/CDS expect empty resource_names, since this is global discovery for the Envoy instance. The LDS and CDS responses will then imply a number of resources that need to be fetched via EDS/RDS, which will be explicitly enumerated in resource_names. |  |
+| `typeUrl` | `string` | Type of the resource that is being requested, e.g. "type.googleapis.com/envoy.api.v2.ClusterLoadAssignment". This is implicit in requests made via singleton xDS APIs such as CDS, LDS, etc. but is required for ADS. |  |
+| `responseNonce` | `string` | nonce corresponding to DiscoveryResponse being ACK/NACKed. See above discussion on version_info and the DiscoveryResponse nonce comment. This may be empty if no nonce is available, e.g. at startup or for non-stream xDS implementations. |  |
+| `errorDetail` | [.google.rpc.Status](../../../../google/rpc/status.proto.sk#Status) | This is populated when the previous :ref:`DiscoveryResponse <envoy_api_msg_DiscoveryResponse>` failed to update configuration. The *message* field in *error_details* provides the Envoy internal exception related to the failure. It is only intended for consumption during manual debugging, the string provided is not guaranteed to be stable across Envoy versions. |  |
 
 
 
@@ -61,20 +61,20 @@ a given Envoy node on some API.
 
 
 ```yaml
-"version_info": string
+"versionInfo": string
 "resources": []google.protobuf.Any
 "canary": bool
-"type_url": string
+"typeUrl": string
 "nonce": string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `version_info` | `string` | The version of the response data. |  |
+| `versionInfo` | `string` | The version of the response data. |  |
 | `resources` | [[]google.protobuf.Any](../../../../google/protobuf/any.proto.sk#Any) | The response resources. These resources are typed and depend on the API being called. |  |
 | `canary` | `bool` | [#not-implemented-hide:] Canary is used to support two Envoy command line flags: * --terminate-on-canary-transition-failure. When set, Envoy is able to terminate if it detects that configuration is stuck at canary. Consider this example sequence of updates: - Management server applies a canary config successfully. - Management server rolls back to a production config. - Envoy rejects the new production config. Since there is no sensible way to continue receiving configuration updates, Envoy will then terminate and apply production config from a clean slate. * --dry-run-canary. When set, a canary response will never be applied, only validated via a dry run. |  |
-| `type_url` | `string` | Type URL for resources. This must be consistent with the type_url in the Any messages for resources if resources is non-empty. This effectively identifies the xDS API when muxing over ADS. |  |
+| `typeUrl` | `string` | Type URL for resources. This must be consistent with the type_url in the Any messages for resources if resources is non-empty. This effectively identifies the xDS API when muxing over ADS. |  |
 | `nonce` | `string` | For gRPC based subscriptions, the nonce provides a way to explicitly ack a specific DiscoveryResponse in a following DiscoveryRequest. Additional messages may have been sent by Envoy to the management server for the previous version on the stream prior to this DiscoveryResponse, that were unprocessed at response send time. The nonce allows the management server to ignore any further DiscoveryRequests for the previous version until a DiscoveryRequest bearing the nonce. The nonce is optional and is not required for non-stream based xDS implementations. |  |
 
 
@@ -113,24 +113,24 @@ IncrementalDiscoveryRequest can be sent in 3 situations:
 
 ```yaml
 "node": .envoy.api.v2.core.Node
-"type_url": string
-"resource_names_subscribe": []string
-"resource_names_unsubscribe": []string
-"initial_resource_versions": map<string, string>
-"response_nonce": string
-"error_detail": .google.rpc.Status
+"typeUrl": string
+"resourceNamesSubscribe": []string
+"resourceNamesUnsubscribe": []string
+"initialResourceVersions": map<string, string>
+"responseNonce": string
+"errorDetail": .google.rpc.Status
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `node` | [.envoy.api.v2.core.Node](../core/base.proto.sk#Node) | The node making the request. |  |
-| `type_url` | `string` | Type of the resource that is being requested, e.g. "type.googleapis.com/envoy.api.v2.ClusterLoadAssignment". This is implicit in requests made via singleton xDS APIs such as CDS, LDS, etc. but is required for ADS. |  |
-| `resource_names_subscribe` | `[]string` | IncrementalDiscoveryRequests allow the client to add or remove individual resources to the set of tracked resources in the context of a stream. All resource names in the resource_names_subscribe list are added to the set of tracked resources and all resource names in the resource_names_unsubscribe list are removed from the set of tracked resources. Unlike in non incremental xDS, an empty resource_names_subscribe or resource_names_unsubscribe list simply means that no resources are to be added or removed to the resource list. The xDS server must send updates for all tracked resources but can also send updates for resources the client has not subscribed to. This behavior is similar to non incremental xDS. These two fields can be set for all types of IncrementalDiscoveryRequests (initial, ACK/NACK or spontaneous). A list of Resource names to add to the list of tracked resources. |  |
-| `resource_names_unsubscribe` | `[]string` | A list of Resource names to remove from the list of tracked resources. |  |
-| `initial_resource_versions` | `map<string, string>` | This map must be populated when the IncrementalDiscoveryRequest is the first in a stream. The keys are the resources names of the xDS resources known to the xDS client. The values in the map are the associated resource level version info. |  |
-| `response_nonce` | `string` | When the IncrementalDiscoveryRequest is a ACK or NACK message in response to a previous IncrementalDiscoveryResponse, the response_nonce must be the nonce in the IncrementalDiscoveryResponse. Otherwise response_nonce must be omitted. |  |
-| `error_detail` | [.google.rpc.Status](../../../../google/rpc/status.proto.sk#Status) | This is populated when the previous :ref:`DiscoveryResponse <envoy_api_msg_DiscoveryResponse>` failed to update configuration. The *message* field in *error_details* provides the Envoy internal exception related to the failure. |  |
+| `typeUrl` | `string` | Type of the resource that is being requested, e.g. "type.googleapis.com/envoy.api.v2.ClusterLoadAssignment". This is implicit in requests made via singleton xDS APIs such as CDS, LDS, etc. but is required for ADS. |  |
+| `resourceNamesSubscribe` | `[]string` | IncrementalDiscoveryRequests allow the client to add or remove individual resources to the set of tracked resources in the context of a stream. All resource names in the resource_names_subscribe list are added to the set of tracked resources and all resource names in the resource_names_unsubscribe list are removed from the set of tracked resources. Unlike in non incremental xDS, an empty resource_names_subscribe or resource_names_unsubscribe list simply means that no resources are to be added or removed to the resource list. The xDS server must send updates for all tracked resources but can also send updates for resources the client has not subscribed to. This behavior is similar to non incremental xDS. These two fields can be set for all types of IncrementalDiscoveryRequests (initial, ACK/NACK or spontaneous). A list of Resource names to add to the list of tracked resources. |  |
+| `resourceNamesUnsubscribe` | `[]string` | A list of Resource names to remove from the list of tracked resources. |  |
+| `initialResourceVersions` | `map<string, string>` | This map must be populated when the IncrementalDiscoveryRequest is the first in a stream. The keys are the resources names of the xDS resources known to the xDS client. The values in the map are the associated resource level version info. |  |
+| `responseNonce` | `string` | When the IncrementalDiscoveryRequest is a ACK or NACK message in response to a previous IncrementalDiscoveryResponse, the response_nonce must be the nonce in the IncrementalDiscoveryResponse. Otherwise response_nonce must be omitted. |  |
+| `errorDetail` | [.google.rpc.Status](../../../../google/rpc/status.proto.sk#Status) | This is populated when the previous :ref:`DiscoveryResponse <envoy_api_msg_DiscoveryResponse>` failed to update configuration. The *message* field in *error_details* provides the Envoy internal exception related to the failure. |  |
 
 
 
@@ -141,18 +141,18 @@ IncrementalDiscoveryRequest can be sent in 3 situations:
 
 
 ```yaml
-"system_version_info": string
+"systemVersionInfo": string
 "resources": []envoy.api.v2.Resource
-"removed_resources": []string
+"removedResources": []string
 "nonce": string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `system_version_info` | `string` | The version of the response data (used for debugging). |  |
+| `systemVersionInfo` | `string` | The version of the response data (used for debugging). |  |
 | `resources` | [[]envoy.api.v2.Resource](../discovery.proto.sk#Resource) | The response resources. These are typed resources that match the type url in the IncrementalDiscoveryRequest. |  |
-| `removed_resources` | `[]string` | Resources names of resources that have be deleted and to be removed from the xDS Client. Removed resources for missing resources can be ignored. |  |
+| `removedResources` | `[]string` | Resources names of resources that have be deleted and to be removed from the xDS Client. Removed resources for missing resources can be ignored. |  |
 | `nonce` | `string` | The nonce provides a way for IncrementalDiscoveryRequests to uniquely reference a IncrementalDiscoveryResponse. The nonce is required. |  |
 
 

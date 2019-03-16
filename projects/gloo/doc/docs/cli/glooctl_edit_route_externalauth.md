@@ -17,14 +17,14 @@ glooctl edit route externalauth [flags]
 ### Options
 
 ```
-  -d, --disable        set to true to disable authentication on this route
-  -h, --help           help for externalauth
-  -x, --index uint32   edit the route with this index in the virtual service route list
+  -d, --disable   set to true to disable authentication on this route
+  -h, --help      help for externalauth
 ```
 
 ### Options inherited from parent commands
 
 ```
+  -x, --index uint32              edit the route with this index in the virtual service route list
   -i, --interactive               use interactive mode
       --name string               name of the resource to read or write
   -n, --namespace string          namespace for reading or writing resources (default "gloo-system")

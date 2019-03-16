@@ -378,6 +378,14 @@
   revision = "d6023ce2651d8eafb5c75bb0c7167536102ec9f5"
 
 [[projects]]
+  digest = "1:bbc4aacabe6880bdbce849c64cb061b7eddf39f132af4ea2853ddd32f85fbec3"
+  name = "github.com/fatih/camelcase"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "44e46d280b43ec1531bb25252440e34f1b800b65"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:af43bdaaf86655a2343f113e9b293bbc16b12099eaeb223982bbe4d4c22ba14d"
   name = "github.com/fatih/structs"
   packages = ["."]
@@ -1371,7 +1379,7 @@
   version = "v0.2.3"
 
 [[projects]]
-  digest = "1:aec346752c4c707f2f72abed5f267909e3972c2b1ba7f70f0f38c11ff29ddd53"
+  digest = "1:d08bfad550bc93b920441a46ac122ee0c6225bd68e391a75f428d061375a3c5b"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1458,8 +1466,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "44cbc55c048270317200eb3eab500bfe585392b8"
-  version = "v0.10.5"
+  revision = "f5cf4d472a64bfacd8291ff91543e2b2a8978084"
+  version = "v0.11.1"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1533,7 +1541,7 @@
   revision = "8aa2e36bb84a979cb654d4d3c795b31add32f6cf"
 
 [[projects]]
-  digest = "1:a91fb55d5730290831397542e7678b540007226b0f1aea0480adb7fe1063eb7e"
+  digest = "1:7ebc897f969b3f95bd57f9ffea2f5403338a02d7aa04e7223853f49b33a9b0a9"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1589,8 +1597,8 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "6dbbf377211f93ed8dbc6689bfc6cf5aa4a3f821"
-  version = "v0.3.1"
+  revision = "5814931156d118e53f46f2a67bf7ee2893321b94"
+  version = "v0.3.5"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -2534,7 +2542,7 @@
   revision = "e3762e86a74c878ffed47484592986685639c2cd"
 
 [[projects]]
-  digest = "1:a533c51e1330839e7ee9e8d4e9d6c85fb40c9fd2ac7913c81d2e1518803308cc"
+  digest = "1:d2d78ae312ecb9ed36c7016bee5ae187dec8d73aacb2d9b121468efddd0d2cd6"
   name = "k8s.io/kubernetes"
   packages = [
     "pkg/api/legacyscheme",
@@ -2609,14 +2617,31 @@
     "pkg/controller/deployment/util",
     "pkg/features",
     "pkg/fieldpath",
+    "pkg/kubectl",
+    "pkg/kubectl/apps",
     "pkg/kubectl/cmd/get",
     "pkg/kubectl/cmd/util",
+    "pkg/kubectl/cmd/util/editor",
+    "pkg/kubectl/cmd/util/editor/crlf",
     "pkg/kubectl/cmd/util/openapi",
     "pkg/kubectl/cmd/util/openapi/validation",
+    "pkg/kubectl/describe",
+    "pkg/kubectl/describe/versioned",
     "pkg/kubectl/generated",
     "pkg/kubectl/scheme",
+    "pkg/kubectl/util",
+    "pkg/kubectl/util/certificate",
+    "pkg/kubectl/util/deployment",
+    "pkg/kubectl/util/event",
+    "pkg/kubectl/util/fieldpath",
     "pkg/kubectl/util/i18n",
+    "pkg/kubectl/util/podutils",
     "pkg/kubectl/util/printers",
+    "pkg/kubectl/util/qos",
+    "pkg/kubectl/util/rbac",
+    "pkg/kubectl/util/resource",
+    "pkg/kubectl/util/slice",
+    "pkg/kubectl/util/storage",
     "pkg/kubectl/util/templates",
     "pkg/kubectl/util/term",
     "pkg/kubectl/validation",
@@ -2692,11 +2717,13 @@
     "github.com/envoyproxy/go-control-plane/envoy/config/ratelimit/v2",
     "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2",
     "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2",
+    "github.com/envoyproxy/go-control-plane/envoy/type",
     "github.com/envoyproxy/go-control-plane/pkg/util",
     "github.com/fatih/structs",
     "github.com/fgrosse/zaptest",
     "github.com/ghodss/yaml",
     "github.com/gogo/protobuf/gogoproto",
+    "github.com/gogo/protobuf/jsonpb",
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/types",
     "github.com/golang/mock/gomock",
@@ -2753,6 +2780,7 @@
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/del",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/options",
+    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/virtualservice",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gateway",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/get",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options",
@@ -2877,6 +2905,7 @@
     "k8s.io/helm/pkg/manifest",
     "k8s.io/helm/pkg/proto/hapi/chart",
     "k8s.io/helm/pkg/renderutil",
+    "k8s.io/kubernetes/pkg/kubectl/cmd/util/editor",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -11,7 +11,6 @@ weight: 5
 ##### Types:
 
 
-- [Constraint](#Constraint)
 - [RateLimitConfig](#RateLimitConfig)
   
 
@@ -24,29 +23,6 @@ weight: 5
 
 
 ---
-### <a name="Constraint">Constraint</a>
-
-
-
-```yaml
-"key": string
-"value": string
-"rate_limit": .ratelimit.plugins.gloo.solo.io.RateLimit
-"constraints": []gloo.solo.io.Constraint
-
-```
-
-| Field | Type | Description | Default |
-| ----- | ---- | ----------- |----------- | 
-| `key` | `string` |  |  |
-| `value` | `string` |  |  |
-| `rate_limit` | [.ratelimit.plugins.gloo.solo.io.RateLimit](../plugins/ratelimit/ratelimit.proto.sk#RateLimit) |  |  |
-| `constraints` | [[]gloo.solo.io.Constraint](../ratelimit.proto.sk#Constraint) |  |  |
-
-
-
-
----
 ### <a name="RateLimitConfig">RateLimitConfig</a>
 
  
@@ -54,14 +30,14 @@ weight: 5
 
 ```yaml
 "domain": string
-"constraints": []gloo.solo.io.Constraint
+"descriptors": []ratelimit.plugins.gloo.solo.io.Descriptor
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `domain` | `string` |  |  |
-| `constraints` | [[]gloo.solo.io.Constraint](../ratelimit.proto.sk#Constraint) |  |  |
+| `descriptors` | [[]ratelimit.plugins.gloo.solo.io.Descriptor](../plugins/ratelimit/ratelimit.proto.sk#Descriptor) |  |  |
 
 
 

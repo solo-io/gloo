@@ -26,4 +26,9 @@ var (
 		Aliases: []string{"extauth"},
 		Short:   "root command for external auth functionality",
 	}
+
+	CONFIG_RATELIMIT_COMMAND = cobra.Command{
+		Use:   "ratelimit",
+		Short: "root command for rate limit functionality",
+	}
 )

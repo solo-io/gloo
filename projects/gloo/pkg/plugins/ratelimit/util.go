@@ -11,7 +11,6 @@ import (
 	"github.com/gogo/protobuf/types"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	v1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 )
 
@@ -21,12 +20,12 @@ save them
 then translate get rate limit configs
 */
 
-func TranslateUserConfigToRateLimitServerConfig(vhostname string, ingressRl ratelimit.IngressRateLimit) (*v1.Constraint, error) {
+func TranslateUserConfigToRateLimitServerConfig(vhostname string, ingressRl ratelimit.IngressRateLimit) (*ratelimit.Descriptor, error) {
 
-	vhostConstraint := &v1.Constraint{
+	vhostDescriptor := &ratelimit.Descriptor{
 		Key:         genericKey,
 		Value:       vhostname,
-		Constraints: []*v1.Constraint{},
+		Descriptors: []*ratelimit.Descriptor{},
 	}
 
 	if ingressRl.AnonymousLimits != nil {
@@ -35,10 +34,10 @@ func TranslateUserConfigToRateLimitServerConfig(vhostname string, ingressRl rate
 			return nil, errors.New("unknown unit for anonymous config")
 		}
 
-		c := &v1.Constraint{
+		c := &ratelimit.Descriptor{
 			Key:   headerMatch,
 			Value: anonymous,
-			Constraints: []*v1.Constraint{
+			Descriptors: []*ratelimit.Descriptor{
 				{
 					Key:       remoteAddress,
 					RateLimit: ingressRl.AnonymousLimits,
@@ -46,7 +45,7 @@ func TranslateUserConfigToRateLimitServerConfig(vhostname string, ingressRl rate
 			},
 		}
 
-		vhostConstraint.Constraints = append(vhostConstraint.Constraints, c)
+		vhostDescriptor.Descriptors = append(vhostDescriptor.Descriptors, c)
 	}
 
 	if ingressRl.AuthorizedLimits != nil {
@@ -55,20 +54,20 @@ func TranslateUserConfigToRateLimitServerConfig(vhostname string, ingressRl rate
 			return nil, errors.New("unknown unit for authenticated config")
 		}
 
-		c := &v1.Constraint{
+		c := &ratelimit.Descriptor{
 			Key:   headerMatch,
 			Value: authenticated,
-			Constraints: []*v1.Constraint{
+			Descriptors: []*ratelimit.Descriptor{
 				{
 					Key:       userid,
 					RateLimit: ingressRl.AuthorizedLimits,
 				},
 			},
 		}
-		vhostConstraint.Constraints = append(vhostConstraint.Constraints, c)
+		vhostDescriptor.Descriptors = append(vhostDescriptor.Descriptors, c)
 	}
 
-	return vhostConstraint, nil
+	return vhostDescriptor, nil
 }
 
 func generateEnvoyConfigForFilter(ref core.ResourceRef) *envoyratelimit.RateLimit {

@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -10,6 +11,7 @@ import (
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 
+	"github.com/gogo/protobuf/types"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
@@ -66,16 +68,19 @@ constraints:
 */
 
 const (
-	ExtensionName = "rate-limit"
-	IngressDomain = "ingress"
-	requestType   = "external"
-	userid        = "userid"
+	ExtensionName      = "rate-limit"
+	EnvoyExtensionName = "envoy-rate-limit"
+	IngressDomain      = "ingress"
+	CustomDomain       = "custom"
+	requestType        = "external"
+	userid             = "userid"
 
 	authenticated = "is-authenticated"
 	anonymous     = "not-authenticated"
 
-	stage   = 0
-	timeout = 20 * time.Millisecond
+	stage       = 0
+	customStage = 1
+	timeout     = 20 * time.Millisecond
 
 	headerMatch   = "header_match"
 	genericKey    = "generic_key"
@@ -127,13 +132,22 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 }
 
 func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+
+	err := p.ProcessVirtualHostSimple(params, in, out)
+	if err != nil {
+		return err
+	}
+	return p.ProcessVirtualHostCustom(params, in, out)
+}
+
+func (p *Plugin) ProcessVirtualHostSimple(params plugins.Params, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
 	var rateLimit ratelimit.IngressRateLimit
 	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &rateLimit)
 	if err != nil {
 		if err == utils.NotFoundError {
 			return nil
 		}
-		return errors.Wrapf(err, "Error converting proto any to ingress rate limit plugin")
+		return errors.Wrapf(err, "Error converting proto to ingress rate limit plugin")
 	}
 	_, err = TranslateUserConfigToRateLimitServerConfig(in.Name, rateLimit)
 	if err != nil {
@@ -142,6 +156,40 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 
 	vhost := generateEnvoyConfigForVhost(in.Name, p.authUserIdHeader)
 	out.RateLimits = vhost
+
+	return nil
+}
+func (p *Plugin) ProcessVirtualHostCustom(params plugins.Params, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+	var rateLimit ratelimit.RateLimitVhostExtension
+	err := utils.UnmarshalExtension(in.VirtualHostPlugins, EnvoyExtensionName, &rateLimit)
+	if err != nil {
+		if err == utils.NotFoundError {
+			return nil
+		}
+		return errors.Wrapf(err, "Error converting proto to vhost rate limit plugin")
+	}
+
+	out.RateLimits = generateCustomEnvoyConfigForVhost(rateLimit.RateLimits)
+
+	return nil
+}
+func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
+	var rateLimit ratelimit.RateLimitRouteExtension
+	err := utils.UnmarshalExtension(in.RoutePlugins, EnvoyExtensionName, &rateLimit)
+	if err != nil {
+		if err == utils.NotFoundError {
+			return nil
+		}
+		return errors.Wrapf(err, "Error converting proto any to vhost rate limit plugin")
+	}
+	ra := out.GetRoute()
+	if ra != nil {
+		ra.RateLimits = generateCustomEnvoyConfigForVhost(rateLimit.RateLimits)
+		ra.IncludeVhRateLimits = &types.BoolValue{Value: rateLimit.IncludeVhRateLimits}
+	} else {
+		// TODO(yuval-k): maybe reaturn nil here instread and just log a warning?
+		return fmt.Errorf("cannot apply rate limits without a route action")
+	}
 
 	return nil
 }
@@ -155,7 +203,22 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	if err != nil {
 		return nil, err
 	}
+
+	customConf, err := protoutils.MarshalStruct(generateEnvoyConfigForCustomFilter(*p.upstreamRef))
+	if err != nil {
+		return nil, err
+	}
+
 	return []plugins.StagedHttpFilter{
+		{
+			HttpFilter: &envoyhttp.HttpFilter{
+				Name: filterName,
+				ConfigType: &envoyhttp.HttpFilter_Config{
+					Config: customConf,
+				},
+			},
+			Stage: filterStage,
+		},
 		{
 			HttpFilter: &envoyhttp.HttpFilter{
 				Name: filterName,

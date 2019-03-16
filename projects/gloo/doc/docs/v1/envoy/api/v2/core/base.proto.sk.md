@@ -48,7 +48,7 @@ Identifies location of where either Envoy runs or where upstream hosts run.
 ```yaml
 "region": string
 "zone": string
-"sub_zone": string
+"subZone": string
 
 ```
 
@@ -56,7 +56,7 @@ Identifies location of where either Envoy runs or where upstream hosts run.
 | ----- | ---- | ----------- |----------- | 
 | `region` | `string` | Region this :ref:`zone <envoy_api_field_core.Locality.zone>` belongs to. |  |
 | `zone` | `string` | Defines the local service zone where Envoy is running. Though optional, it should be set if discovery service routing is used and the discovery service exposes :ref:`zone data <config_cluster_manager_sds_api_host_az>`, either in this message or via :option:`--service-zone`. The meaning of zone is context dependent, e.g. `Availability Zone (AZ) <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html>`_ on AWS, `Zone <https://cloud.google.com/compute/docs/regions-zones/>`_ on GCP, etc. |  |
-| `sub_zone` | `string` | When used for locality of upstream hosts, this field further splits zone into smaller chunks of sub-zones so they can be load balanced independently. |  |
+| `subZone` | `string` | When used for locality of upstream hosts, this field further splits zone into smaller chunks of sub-zones so they can be load balanced independently. |  |
 
 
 
@@ -74,7 +74,7 @@ configuration for serving.
 "cluster": string
 "metadata": .google.protobuf.Struct
 "locality": .envoy.api.v2.core.Locality
-"build_version": string
+"buildVersion": string
 
 ```
 
@@ -84,7 +84,7 @@ configuration for serving.
 | `cluster` | `string` | Defines the local service cluster name where Envoy is running. Though optional, it should be set if any of the following features are used: :ref:`statsd <arch_overview_statistics>`, :ref:`health check cluster verification <config_cluster_manager_cluster_hc_service_name>`, :ref:`runtime override directory <config_runtime_override_subdirectory>`, :ref:`user agent addition <config_http_conn_man_add_user_agent>`, :ref:`HTTP global rate limiting <config_http_filters_rate_limit>`, :ref:`CDS <config_cluster_manager_cds>`, and :ref:`HTTP tracing <arch_overview_tracing>`, either in this message or via :option:`--service-cluster`. |  |
 | `metadata` | [.google.protobuf.Struct](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/struct) | Opaque metadata extending the node identifier. Envoy will pass this directly to the management server. |  |
 | `locality` | [.envoy.api.v2.core.Locality](../base.proto.sk#Locality) | Locality specifying where the Envoy instance is running. |  |
-| `build_version` | `string` | This is motivated by informing a management server during canary which version of Envoy is being tested in a heterogeneous fleet. This will be set by Envoy in management server RPCs. |  |
+| `buildVersion` | `string` | This is motivated by informing a management server during canary which version of Envoy is being tested in a heterogeneous fleet. This will be set by Envoy in management server RPCs. |  |
 
 
 
@@ -113,13 +113,13 @@ this purpose:
   (x-envoy-upstream-canary) and for stats purposes.
 
 ```yaml
-"filter_metadata": map<string, .google.protobuf.Struct>
+"filterMetadata": map<string, .google.protobuf.Struct>
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `filter_metadata` | `map<string, .google.protobuf.Struct>` | Key is the reverse DNS filter name, e.g. com.acme.widget. The envoy.* namespace is reserved for Envoy's built-in filters. |  |
+| `filterMetadata` | `map<string, .google.protobuf.Struct>` | Key is the reverse DNS filter name, e.g. com.acme.widget. The envoy.* namespace is reserved for Envoy's built-in filters. |  |
 
 
 
@@ -131,15 +131,15 @@ this purpose:
 Runtime derived uint32 with a default when not specified.
 
 ```yaml
-"default_value": int
-"runtime_key": string
+"defaultValue": int
+"runtimeKey": string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `default_value` | `int` | Default value if runtime value is not available. |  |
-| `runtime_key` | `string` | Runtime key to get value for comparison. This value is used if defined. |  |
+| `defaultValue` | `int` | Default value if runtime value is not available. |  |
+| `runtimeKey` | `string` | Runtime key to get value for comparison. This value is used if defined. |  |
 
 
 
@@ -192,16 +192,16 @@ Data source consisting of either a file or an inline value.
 
 ```yaml
 "filename": string
-"inline_bytes": bytes
-"inline_string": string
+"inlineBytes": bytes
+"inlineString": string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `filename` | `string` | Local filesystem data source. |  |
-| `inline_bytes` | `bytes` | Bytes inlined in the configuration. |  |
-| `inline_string` | `string` | String inlined in the configuration. |  |
+| `inlineBytes` | `bytes` | Bytes inlined in the configuration. |  |
+| `inlineString` | `string` | String inlined in the configuration. |  |
 
 
 
@@ -240,8 +240,8 @@ might not exist in upstream kernels or precompiled Envoy binaries.
 "description": string
 "level": int
 "name": int
-"int_value": int
-"buf_value": bytes
+"intValue": int
+"bufValue": bytes
 "state": .envoy.api.v2.core.SocketOption.SocketState
 
 ```
@@ -251,8 +251,8 @@ might not exist in upstream kernels or precompiled Envoy binaries.
 | `description` | `string` | An optional name to give this socket option for debugging, etc. Uniqueness is not required and no special meaning is assumed. |  |
 | `level` | `int` | Corresponding to the level value passed to setsockopt, such as IPPROTO_TCP |  |
 | `name` | `int` | The numeric name as passed to setsockopt |  |
-| `int_value` | `int` | Because many sockopts take an int value. |  |
-| `buf_value` | `bytes` | Otherwise it's a byte buffer. |  |
+| `intValue` | `int` | Because many sockopts take an int value. |  |
+| `bufValue` | `bytes` | Otherwise it's a byte buffer. |  |
 | `state` | [.envoy.api.v2.core.SocketOption.SocketState](../base.proto.sk#SocketState) | The state in which the option will be applied. When used in BindConfig STATE_PREBIND is currently the only valid value. |  |
 
 

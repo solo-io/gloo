@@ -37,15 +37,15 @@ weight: 5
 
 
 ```yaml
-"extauthz_server_ref": .core.solo.io.ResourceRef
-"user_id_header": string
+"extauthzServerRef": .core.solo.io.ResourceRef
+"userIdHeader": string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `extauthz_server_ref` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#ResourceRef) |  |  |
-| `user_id_header` | `string` |  |  |
+| `extauthzServerRef` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#ResourceRef) |  |  |
+| `userIdHeader` | `string` |  |  |
 
 
 
@@ -93,14 +93,14 @@ weight: 5
 
 ```yaml
 "salt": string
-"hashed_password": string
+"hashedPassword": string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `salt` | `string` |  |  |
-| `hashed_password` | `string` |  |  |
+| `hashedPassword` | `string` |  |  |
 
 
 
@@ -111,21 +111,21 @@ weight: 5
 
 
 ```yaml
-"client_id": string
-"client_secret_ref": .core.solo.io.ResourceRef
-"issuer_url": string
-"app_url": string
-"callback_path": string
+"clientId": string
+"clientSecretRef": .core.solo.io.ResourceRef
+"issuerUrl": string
+"appUrl": string
+"callbackPath": string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `client_id` | `string` | your client id as registered with the issuer |  |
-| `client_secret_ref` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#ResourceRef) | your client secret as registered with the issuer |  |
-| `issuer_url` | `string` | The url of the issuer. We will look for OIDC information in issuerUrl+ ".well-known/openid-configuration" |  |
-| `app_url` | `string` | we to redirect after successful auth, if we can't determine the original url this should be your publicly available app url. |  |
-| `callback_path` | `string` | a callback path relative to app url that will be used for OIDC callbacks. needs to not be used by the application |  |
+| `clientId` | `string` | your client id as registered with the issuer |  |
+| `clientSecretRef` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#ResourceRef) | your client secret as registered with the issuer |  |
+| `issuerUrl` | `string` | The url of the issuer. We will look for OIDC information in issuerUrl+ ".well-known/openid-configuration" |  |
+| `appUrl` | `string` | we to redirect after successful auth, if we can't determine the original url this should be your publicly available app url. |  |
+| `callbackPath` | `string` | a callback path relative to app url that will be used for OIDC callbacks. needs to not be used by the application |  |
 
 
 
@@ -136,13 +136,13 @@ weight: 5
 
 
 ```yaml
-"client_secret": string
+"clientSecret": string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `client_secret` | `string` |  |  |
+| `clientSecret` | `string` |  |  |
 
 
 
@@ -153,14 +153,14 @@ weight: 5
 
 
 ```yaml
-"basic_auth": .extauth.plugins.gloo.solo.io.BasicAuth
+"basicAuth": .extauth.plugins.gloo.solo.io.BasicAuth
 "oauth": .extauth.plugins.gloo.solo.io.OAuth
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `basic_auth` | [.extauth.plugins.gloo.solo.io.BasicAuth](../extauth.proto.sk#BasicAuth) |  |  |
+| `basicAuth` | [.extauth.plugins.gloo.solo.io.BasicAuth](../extauth.proto.sk#BasicAuth) |  |  |
 | `oauth` | [.extauth.plugins.gloo.solo.io.OAuth](../extauth.proto.sk#OAuth) |  |  |
 
 
@@ -192,7 +192,7 @@ weight: 5
 ```yaml
 "vhost": string
 "oauth": .extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig
-"basic_auth": .extauth.plugins.gloo.solo.io.BasicAuth
+"basicAuth": .extauth.plugins.gloo.solo.io.BasicAuth
 
 ```
 
@@ -200,7 +200,7 @@ weight: 5
 | ----- | ---- | ----------- |----------- | 
 | `vhost` | `string` |  |  |
 | `oauth` | [.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig](../extauth.proto.sk#OAuthConfig) |  |  |
-| `basic_auth` | [.extauth.plugins.gloo.solo.io.BasicAuth](../extauth.proto.sk#BasicAuth) |  |  |
+| `basicAuth` | [.extauth.plugins.gloo.solo.io.BasicAuth](../extauth.proto.sk#BasicAuth) |  |  |
 
 
 
@@ -211,21 +211,21 @@ weight: 5
 
 
 ```yaml
-"client_id": string
-"client_secret": string
-"issuer_url": string
-"app_url": string
-"callback_path": string
+"clientId": string
+"clientSecret": string
+"issuerUrl": string
+"appUrl": string
+"callbackPath": string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `client_id` | `string` | your client id as registered with the issuer |  |
-| `client_secret` | `string` | your client secret as registered with the issuer |  |
-| `issuer_url` | `string` | The url of the issuer. We will look for OIDC information in issuerUrl+ ".well-known/openid-configuration" |  |
-| `app_url` | `string` | we to redirect after successful auth, if we can't determine the original url this should be your publicly available app url. |  |
-| `callback_path` | `string` | a callback path relative to app url that will be used for OIDC callbacks. needs to not be used by the application |  |
+| `clientId` | `string` | your client id as registered with the issuer |  |
+| `clientSecret` | `string` | your client secret as registered with the issuer |  |
+| `issuerUrl` | `string` | The url of the issuer. We will look for OIDC information in issuerUrl+ ".well-known/openid-configuration" |  |
+| `appUrl` | `string` | we to redirect after successful auth, if we can't determine the original url this should be your publicly available app url. |  |
+| `callbackPath` | `string` | a callback path relative to app url that will be used for OIDC callbacks. needs to not be used by the application |  |
 
 
 

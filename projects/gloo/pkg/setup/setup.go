@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"context"
 	"time"
 
 	extauthExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
@@ -27,9 +28,11 @@ func Main() error {
 
 func GetGlooEeExtensions() syncer.Extensions {
 	return syncer.Extensions{
-		SyncerExtensions: []syncer.TranslatorSyncerExtension{
-			ratelimitExt.NewTranslatorSyncerExtension(),
-			extauthExt.NewTranslatorSyncerExtension(),
+		SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
+			ratelimitExt.NewTranslatorSyncerExtension,
+			func(context.Context, syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
+				return extauthExt.NewTranslatorSyncerExtension(), nil
+			},
 		},
 		PluginExtensions: []plugins.Plugin{
 			ratelimit.NewPlugin(),

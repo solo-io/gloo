@@ -20,13 +20,48 @@ import (
 )
 
 type RateLimitTranslatorSyncerExtension struct {
+	settings *ratelimit.EnvoySettings
 }
 
-func NewTranslatorSyncerExtension() syncer.TranslatorSyncerExtension {
-	return &RateLimitTranslatorSyncerExtension{}
+type extensionsContainer struct {
+	params syncer.TranslatorSyncerExtensionParams
+}
+
+func (t *extensionsContainer) GetExtensions() *gloov1.Extensions {
+	return t.params.SettingExtensions
+}
+
+func getSettings(params syncer.TranslatorSyncerExtensionParams, settings *ratelimit.EnvoySettings) error {
+	err := utils.UnmarshalExtension(&extensionsContainer{params}, rateLimitPlugin.EnvoyExtensionName, settings)
+	if err != nil {
+		if err == utils.NotFoundError {
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
+func NewTranslatorSyncerExtension(ctx context.Context, params syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
+	var settings ratelimit.EnvoySettings
+	err := getSettings(params, &settings)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RateLimitTranslatorSyncerExtension{
+		settings: &settings,
+	}, nil
 }
 
 func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
+	var customrl *v1.RateLimitConfig
+	if s.settings.CustomConfig != nil {
+		customrl = &v1.RateLimitConfig{
+			Domain:      rateLimitPlugin.CustomDomain,
+			Descriptors: s.settings.CustomConfig.Descriptors,
+		}
+	}
 
 	rl := &v1.RateLimitConfig{
 		Domain: rateLimitPlugin.IngressDomain,
@@ -54,7 +89,7 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 				if err != nil {
 					return err
 				}
-				rl.Constraints = append(rl.Constraints, vhostConstraint)
+				rl.Descriptors = append(rl.Descriptors, vhostConstraint)
 			}
 		}
 	}
@@ -64,6 +99,10 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 
 	resource := v1.NewRateLimitConfigXdsResourceWrapper(rl)
 	resources = append(resources, resource)
+	if customrl != nil {
+		resource := v1.NewRateLimitConfigXdsResourceWrapper(customrl)
+		resources = append(resources, resource)
+	}
 	h, err := hashstructure.Hash(resources, nil)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing rate limit")
