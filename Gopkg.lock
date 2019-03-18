@@ -1478,7 +1478,7 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:28c195390693f555b4cdf866217aeef5687f1ffdab7d5dc40ab2aed5c5351ba3"
+  digest = "1:940ff3e0a04d65819f3f44d759d64578677e93bba7f202b1639897e529a8502e"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1494,6 +1494,7 @@
     "protoutils",
     "stats",
     "testutils",
+    "testutils/clusterlock",
     "testutils/exec",
     "testutils/helper",
     "versionutils",
@@ -2820,6 +2821,7 @@
     "github.com/solo-io/go-utils/kubeutils",
     "github.com/solo-io/go-utils/stats",
     "github.com/solo-io/go-utils/testutils",
+    "github.com/solo-io/go-utils/testutils/clusterlock",
     "github.com/solo-io/go-utils/testutils/helper",
     "github.com/solo-io/go-utils/versionutils",
     "github.com/solo-io/licensing/pkg/defaults",

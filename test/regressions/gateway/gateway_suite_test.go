@@ -6,7 +6,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/avast/retry-go"
+	"github.com/solo-io/go-utils/kubeutils"
+	"k8s.io/client-go/kubernetes"
+
 	"github.com/solo-io/go-utils/testutils"
+	"github.com/solo-io/go-utils/testutils/clusterlock"
 
 	"github.com/solo-io/go-utils/testutils/helper"
 
@@ -26,6 +31,15 @@ func TestGateway(t *testing.T) {
 }
 
 var testHelper *helper.SoloTestHelper
+var locker *clusterlock.TestClusterLocker
+
+func MustKubeClient() kubernetes.Interface {
+	restConfig, err := kubeutils.GetConfig("", "")
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	kubeClient, err := kubernetes.NewForConfig(restConfig)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred())
+	return kubeClient
+}
 
 var _ = BeforeSuite(func() {
 	cwd, err := os.Getwd()
@@ -39,12 +53,17 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
+	locker, err = clusterlock.NewTestClusterLocker(MustKubeClient(), "")
+	Expect(err).NotTo(HaveOccurred())
+	Expect(locker.AcquireLock(retry.Attempts(20))).NotTo(HaveOccurred())
+
 	// Install Gloo
 	err = testHelper.InstallGloo(helper.GATEWAY, 5*time.Minute)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred())
 })
 
 var _ = AfterSuite(func() {
+	defer locker.ReleaseLock()
 	err := testHelper.UninstallGloo()
 	Expect(err).NotTo(HaveOccurred())
 
