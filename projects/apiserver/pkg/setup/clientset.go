@@ -115,7 +115,7 @@ func NewClientSet(ctx context.Context, settings *gloov1.Settings, token string) 
 		return nil, err
 	}
 
-	vsClient, err := gatewayv1.NewVirtualServiceClientWithToken(factories.Proxies, token)
+	vsClient, err := gatewayv1.NewVirtualServiceClientWithToken(factoryFor(gatewayv1.VirtualServiceCrd, *cfg, cache), token)
 	if err != nil {
 		return nil, err
 	}
