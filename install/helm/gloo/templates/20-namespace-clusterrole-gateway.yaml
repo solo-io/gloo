@@ -1,9 +1,10 @@
 {{- if .Values.rbac.create }}
 
+{{- if .Values.gateway.enabled }}
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-    name: gloo-role
+    name: gloo-role-gateway
 rules:
 - apiGroups: [""]
   resources: ["pods", "services", "secrets", "endpoints", "configmaps"]
@@ -20,11 +21,6 @@ rules:
 - apiGroups: ["gateway.solo.io"]
   resources: ["virtualservices", "gateways"]
   verbs: ["*"]
-- apiGroups: ["extensions", ""]
-  resources: ["ingresses"]
-  verbs: ["*"]
-- apiGroups: ["networking.internal.knative.dev"]
-  resources: ["clusteringresses"]
-  verbs: ["get", "list", "watch"]
+{{- end -}}
 
 {{- end -}}
