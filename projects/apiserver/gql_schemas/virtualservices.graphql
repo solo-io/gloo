@@ -57,8 +57,7 @@ type VirtualService {
 
 type Route {
   matcher: Matcher!
-  destination: Destination @deprecated(reason: "Use `destinations`")
-  destinations: [RouteDestination!]
+  destination: Destination!
   plugins: RoutePlugins
   virtualService: VirtualService
 }
@@ -69,12 +68,6 @@ type Matcher {
   headers: [KeyValueMatcher!]
   queryParameters: [KeyValueMatcher!]
   methods: [String!]
-}
-
-type RouteDestination {
-  upstream: Upstream!
-  destinationSpec: DestinationSpec!
-  weight: Int
 }
 
 union Destination = MultiDestination | SingleDestination
@@ -205,15 +198,8 @@ input InputUpdateVirtualService {
 
 input InputRoute {
   matcher: InputMatcher!
-  destination: InputDestination
-  destinations: [InputRouteDestination]
+  destination: InputDestination!
   plugins: InputRoutePlugins
-}
-
-input InputRouteDestination {
-  upstream: InputResourceRef!
-  destinationSpec: InputDestinationSpec
-  weight: Int
 }
 
 input InputMatcher {

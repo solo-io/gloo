@@ -1,4 +1,0 @@
-changelog:
-- type: NON_USER_FACING
-  description: Allow multiple destinations to be defined and queried in apiserver.
-  issueLink: https://github.com/solo-io/gloo-i/issues/185

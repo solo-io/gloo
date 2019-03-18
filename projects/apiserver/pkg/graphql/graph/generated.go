@@ -240,15 +240,8 @@ type ComplexityRoot struct {
 	Route struct {
 		Matcher        func(childComplexity int) int
 		Destination    func(childComplexity int) int
-		Destinations   func(childComplexity int) int
 		Plugins        func(childComplexity int) int
 		VirtualService func(childComplexity int) int
-	}
-
-	RouteDestination struct {
-		Upstream        func(childComplexity int) int
-		DestinationSpec func(childComplexity int) int
-		Weight          func(childComplexity int) int
 	}
 
 	RoutePlugins struct {
@@ -1735,13 +1728,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Route.Destination(childComplexity), true
 
-	case "Route.destinations":
-		if e.complexity.Route.Destinations == nil {
-			break
-		}
-
-		return e.complexity.Route.Destinations(childComplexity), true
-
 	case "Route.plugins":
 		if e.complexity.Route.Plugins == nil {
 			break
@@ -1755,27 +1741,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Route.VirtualService(childComplexity), true
-
-	case "RouteDestination.upstream":
-		if e.complexity.RouteDestination.Upstream == nil {
-			break
-		}
-
-		return e.complexity.RouteDestination.Upstream(childComplexity), true
-
-	case "RouteDestination.destinationSpec":
-		if e.complexity.RouteDestination.DestinationSpec == nil {
-			break
-		}
-
-		return e.complexity.RouteDestination.DestinationSpec(childComplexity), true
-
-	case "RouteDestination.weight":
-		if e.complexity.RouteDestination.Weight == nil {
-			break
-		}
-
-		return e.complexity.RouteDestination.Weight(childComplexity), true
 
 	case "RoutePlugins.empty":
 		if e.complexity.RoutePlugins.Empty == nil {
@@ -6721,8 +6686,9 @@ func (ec *executionContext) _Route(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "destination":
 			out.Values[i] = ec._Route_destination(ctx, field, obj)
-		case "destinations":
-			out.Values[i] = ec._Route_destinations(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "plugins":
 			out.Values[i] = ec._Route_plugins(ctx, field, obj)
 		case "virtualService":
@@ -6782,6 +6748,9 @@ func (ec *executionContext) _Route_destination(ctx context.Context, field graphq
 		return obj.Destination, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(models.Destination)
@@ -6789,63 +6758,6 @@ func (ec *executionContext) _Route_destination(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 
 	return ec._Destination(ctx, field.Selections, &res)
-}
-
-// nolint: vetshadow
-func (ec *executionContext) _Route_destinations(ctx context.Context, field graphql.CollectedField, obj *models.Route) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Route",
-		Args:   nil,
-		Field:  field,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Destinations, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]models.RouteDestination)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-
-	arr1 := make(graphql.Array, len(res))
-	var wg sync.WaitGroup
-
-	isLen1 := len(res) == 1
-	if !isLen1 {
-		wg.Add(len(res))
-	}
-
-	for idx1 := range res {
-		idx1 := idx1
-		rctx := &graphql.ResolverContext{
-			Index:  &idx1,
-			Result: &res[idx1],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(idx1 int) {
-			if !isLen1 {
-				defer wg.Done()
-			}
-			arr1[idx1] = func() graphql.Marshaler {
-
-				return ec._RouteDestination(ctx, field.Selections, &res[idx1])
-			}()
-		}
-		if isLen1 {
-			f(idx1)
-		} else {
-			go f(idx1)
-		}
-
-	}
-	wg.Wait()
-	return arr1
 }
 
 // nolint: vetshadow
@@ -6904,127 +6816,6 @@ func (ec *executionContext) _Route_virtualService(ctx context.Context, field gra
 	}
 
 	return ec._VirtualService(ctx, field.Selections, res)
-}
-
-var routeDestinationImplementors = []string{"RouteDestination"}
-
-// nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _RouteDestination(ctx context.Context, sel ast.SelectionSet, obj *models.RouteDestination) graphql.Marshaler {
-	fields := graphql.CollectFields(ctx, sel, routeDestinationImplementors)
-
-	out := graphql.NewOrderedMap(len(fields))
-	invalid := false
-	for i, field := range fields {
-		out.Keys[i] = field.Alias
-
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("RouteDestination")
-		case "upstream":
-			out.Values[i] = ec._RouteDestination_upstream(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "destinationSpec":
-			out.Values[i] = ec._RouteDestination_destinationSpec(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "weight":
-			out.Values[i] = ec._RouteDestination_weight(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-
-	if invalid {
-		return graphql.Null
-	}
-	return out
-}
-
-// nolint: vetshadow
-func (ec *executionContext) _RouteDestination_upstream(ctx context.Context, field graphql.CollectedField, obj *models.RouteDestination) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "RouteDestination",
-		Args:   nil,
-		Field:  field,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Upstream, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(models.Upstream)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-
-	return ec._Upstream(ctx, field.Selections, &res)
-}
-
-// nolint: vetshadow
-func (ec *executionContext) _RouteDestination_destinationSpec(ctx context.Context, field graphql.CollectedField, obj *models.RouteDestination) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "RouteDestination",
-		Args:   nil,
-		Field:  field,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DestinationSpec, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(models.DestinationSpec)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-
-	return ec._DestinationSpec(ctx, field.Selections, &res)
-}
-
-// nolint: vetshadow
-func (ec *executionContext) _RouteDestination_weight(ctx context.Context, field graphql.CollectedField, obj *models.RouteDestination) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "RouteDestination",
-		Args:   nil,
-		Field:  field,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Weight, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-
-	if res == nil {
-		return graphql.Null
-	}
-	return graphql.MarshalInt(*res)
 }
 
 var routePluginsImplementors = []string{"RoutePlugins"}
@@ -12224,33 +12015,7 @@ func UnmarshalInputRoute(v interface{}) (models.InputRoute, error) {
 			}
 		case "destination":
 			var err error
-			var ptr1 models.InputDestination
-			if v != nil {
-				ptr1, err = UnmarshalInputDestination(v)
-				it.Destination = &ptr1
-			}
-
-			if err != nil {
-				return it, err
-			}
-		case "destinations":
-			var err error
-			var rawIf1 []interface{}
-			if v != nil {
-				if tmp1, ok := v.([]interface{}); ok {
-					rawIf1 = tmp1
-				} else {
-					rawIf1 = []interface{}{v}
-				}
-			}
-			it.Destinations = make([]*models.InputRouteDestination, len(rawIf1))
-			for idx1 := range rawIf1 {
-				var ptr2 models.InputRouteDestination
-				if rawIf1[idx1] != nil {
-					ptr2, err = UnmarshalInputRouteDestination(rawIf1[idx1])
-					it.Destinations[idx1] = &ptr2
-				}
-			}
+			it.Destination, err = UnmarshalInputDestination(v)
 			if err != nil {
 				return it, err
 			}
@@ -12260,46 +12025,6 @@ func UnmarshalInputRoute(v interface{}) (models.InputRoute, error) {
 			if v != nil {
 				ptr1, err = UnmarshalInputRoutePlugins(v)
 				it.Plugins = &ptr1
-			}
-
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func UnmarshalInputRouteDestination(v interface{}) (models.InputRouteDestination, error) {
-	var it models.InputRouteDestination
-	var asMap = v.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "upstream":
-			var err error
-			it.Upstream, err = UnmarshalInputResourceRef(v)
-			if err != nil {
-				return it, err
-			}
-		case "destinationSpec":
-			var err error
-			var ptr1 models.InputDestinationSpec
-			if v != nil {
-				ptr1, err = UnmarshalInputDestinationSpec(v)
-				it.DestinationSpec = &ptr1
-			}
-
-			if err != nil {
-				return it, err
-			}
-		case "weight":
-			var err error
-			var ptr1 int
-			if v != nil {
-				ptr1, err = graphql.UnmarshalInt(v)
-				it.Weight = &ptr1
 			}
 
 			if err != nil {
@@ -13616,8 +13341,7 @@ type VirtualService {
 
 type Route {
   matcher: Matcher!
-  destination: Destination @deprecated(reason: "Use ` + "`" + `destinations` + "`" + `")
-  destinations: [RouteDestination!]
+  destination: Destination!
   plugins: RoutePlugins
   virtualService: VirtualService
 }
@@ -13628,12 +13352,6 @@ type Matcher {
   headers: [KeyValueMatcher!]
   queryParameters: [KeyValueMatcher!]
   methods: [String!]
-}
-
-type RouteDestination {
-  upstream: Upstream!
-  destinationSpec: DestinationSpec!
-  weight: Int
 }
 
 union Destination = MultiDestination | SingleDestination
@@ -13764,15 +13482,8 @@ input InputUpdateVirtualService {
 
 input InputRoute {
   matcher: InputMatcher!
-  destination: InputDestination
-  destinations: [InputRouteDestination]
+  destination: InputDestination!
   plugins: InputRoutePlugins
-}
-
-input InputRouteDestination {
-  upstream: InputResourceRef!
-  destinationSpec: InputDestinationSpec
-  weight: Int
 }
 
 input InputMatcher {

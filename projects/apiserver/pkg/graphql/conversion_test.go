@@ -80,7 +80,7 @@ var _ = Describe("Converter", func() {
 
 		// Check individual fields to get more info in case of failure
 		Expect(route.Matcher).To(BeEquivalentTo(GRAPHQL.route.Matcher))
-		Expect(route.Destinations).To(BeEquivalentTo(GRAPHQL.route.Destinations))
+		Expect(route.Destination).To(BeEquivalentTo(GRAPHQL.route.Destination))
 		Expect(route.Plugins).To(BeEquivalentTo(GRAPHQL.route.Plugins))
 
 		// Finally, check the whole struct
@@ -220,7 +220,6 @@ var GRAPHQL = struct {
 }{
 	route: models.Route{
 		VirtualService: nil,
-		// This field will be removed
 		Destination: models.SingleDestination{
 			DestinationSpec: &models.AwsDestinationSpec{
 				LogicalName:            "aws-1",
@@ -251,38 +250,6 @@ var GRAPHQL = struct {
 				},
 			},
 		},
-		Destinations: []models.RouteDestination{
-			models.RouteDestination{
-				DestinationSpec: &models.AwsDestinationSpec{
-					LogicalName:            "aws-1",
-					ResponseTransformation: true,
-					InvocationStyle:        models.AwsLambdaInvocationStyleSync,
-				},
-				Upstream: models.Upstream{
-					Metadata: models.Metadata{
-						Name:            "us-1",
-						Namespace:       "us-ns-1",
-						GUID:            "*v1.Upstream us-ns-1 us-1",
-						ResourceVersion: "123",
-					},
-					Status: models.Status{
-						State: models.StateAccepted,
-					},
-					Spec: &models.AwsUpstreamSpec{
-						Region: "us-east-1",
-						SecretRef: models.ResourceRef{
-							Name:      "aws-secret-1",
-							Namespace: "us-ns-1",
-						},
-						Functions: []models.AwsLambdaFunction{{
-							LogicalName:  "aws-1",
-							FunctionName: "lambda-1",
-							Qualifier:    "lambda-qualifier",
-						}},
-					},
-				},
-			},
-		},
 		Matcher: models.Matcher{
 			PathMatch:     "/some-path",
 			PathMatchType: models.PathMatchTypePrefix,
@@ -304,8 +271,8 @@ var GRAPHQL = struct {
 		},
 	},
 	inputRoute: models.InputRoute{
-		Destinations: []*models.InputRouteDestination{
-			&models.InputRouteDestination{
+		Destination: models.InputDestination{
+			SingleDestination: &models.InputSingleDestination{
 				Upstream: models.InputResourceRef{
 					Name:      "us-1",
 					Namespace: "us-ns-1",

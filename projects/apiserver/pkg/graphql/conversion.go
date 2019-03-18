@@ -455,37 +455,32 @@ func (c *Converter) ConvertInputRoute(route InputRoute) (*v1.Route, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	action, err := convertInputRouteDestinationsToAction(route.Destinations)
+	action, err := convertInputDestinationToAction(route.Destination)
 	if err != nil {
 		return nil, err
 	}
-
 	return &v1.Route{
 		Matcher:      match,
-		RoutePlugins: nil, // TODO: not implemented
+		RoutePlugins: convertInputRoutePlugins(route.Plugins),
 		Action: &v1.Route_RouteAction{
 			RouteAction: action,
 		},
 	}, nil
 }
 
-func convertInputRouteDestinationsToAction(destinations []*InputRouteDestination) (*v1.RouteAction, error) {
-
+func convertInputDestinationToAction(dest InputDestination) (*v1.RouteAction, error) {
 	action := &v1.RouteAction{}
-	switch len(destinations) {
-	case 0:
-		return nil, errors.Errorf("must specify exactly one of SingleDestination or MultiDestinations")
-	case 1:
-		dest, err := convertInputRouteDestination(*destinations[0])
+	switch {
+	case dest.SingleDestination != nil:
+		dest, err := convertInputSingleDestination(*dest.SingleDestination)
 		if err != nil {
 			return nil, err
 		}
 		action.Destination = &v1.RouteAction_Single{
 			Single: dest,
 		}
-	default:
-		weightedDestinations, err := convertMultipleInputRouteDestinations(destinations)
+	case dest.MultiDestination != nil:
+		weightedDestinations, err := convertInputDestinations(dest.MultiDestination.Destinations)
 		if err != nil {
 			return nil, err
 		}
@@ -494,9 +489,10 @@ func convertInputRouteDestinationsToAction(destinations []*InputRouteDestination
 				Destinations: weightedDestinations,
 			},
 		}
+	default:
+		return nil, errors.Errorf("must specify exactly one of SingleDestination or MultiDestinations")
 	}
 	return action, nil
-
 }
 
 func convertInputMatcher(match InputMatcher) (*v1.Matcher, error) {
@@ -546,6 +542,26 @@ func convertInputQueryMatcher(queryM []InputKeyValueMatcher) []*v1.QueryParamete
 		})
 	}
 	return v1Query
+}
+
+func convertInputRoutePlugins(plugs *InputRoutePlugins) *v1.RoutePlugins {
+	// TODO(ilackaitems): convert route plugins when there are any
+	return nil
+}
+
+func convertInputDestinations(inputDests []InputWeightedDestination) ([]*v1.WeightedDestination, error) {
+	var weightedDests []*v1.WeightedDestination
+	for _, inDest := range inputDests {
+		dest, err := convertInputSingleDestination(inDest.Destination)
+		if err != nil {
+			return nil, err
+		}
+		weightedDests = append(weightedDests, &v1.WeightedDestination{
+			Destination: dest,
+			Weight:      uint32(inDest.Weight),
+		})
+	}
+	return weightedDests, nil
 }
 
 func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpec, error) {
@@ -617,7 +633,7 @@ func convertInputDestinationSpec(spec *InputDestinationSpec) (*v1.DestinationSpe
 	return nil, nil
 }
 
-func convertInputRouteDestination(inputDest InputRouteDestination) (*v1.Destination, error) {
+func convertInputSingleDestination(inputDest InputSingleDestination) (*v1.Destination, error) {
 	destSpec, err := convertInputDestinationSpec(inputDest.DestinationSpec)
 	if err != nil {
 		return nil, err
@@ -626,33 +642,6 @@ func convertInputRouteDestination(inputDest InputRouteDestination) (*v1.Destinat
 		Upstream:        convertInputRef(inputDest.Upstream),
 		DestinationSpec: destSpec,
 	}, nil
-}
-
-func convertMultipleInputRouteDestinations(inputDests []*InputRouteDestination) ([]*v1.WeightedDestination, error) {
-	var destinations []*v1.WeightedDestination
-	for _, inputDest := range inputDests {
-
-		// Check whether all destination in the slice have a weight
-		if inputDest.Weight == nil {
-			return nil, errors.Errorf("must provide weight when specifying multiple destinations. "+
-				"Found no weight for destination upstream: %s/%s", inputDest.Upstream.Namespace, inputDest.Upstream.Name)
-		}
-
-		destSpec, err := convertInputDestinationSpec(inputDest.DestinationSpec)
-		if err != nil {
-			return nil, err
-		}
-
-		destinations = append(destinations, &v1.WeightedDestination{
-			Destination: &v1.Destination{
-				Upstream:        convertInputRef(inputDest.Upstream),
-				DestinationSpec: destSpec,
-			},
-			Weight: uint32(*inputDest.Weight),
-		})
-	}
-
-	return destinations, nil
 }
 
 func convertInputSSLConfig(ssl *InputSslConfig) *v1.SslConfig {
@@ -670,7 +659,7 @@ func convertInputSSLConfig(ssl *InputSslConfig) *v1.SslConfig {
 func updateInputRateLimitSpec(in *InputRateLimit, out *ratelimitapi.IngressRateLimit, authorized bool) error {
 	if out == nil {
 		// Must not pass a nil pointer
-		return fmt.Errorf("unable to create rate limit specification")
+		fmt.Errorf("Unable to create rate limit specification.")
 	}
 	rl := &ratelimitapi.RateLimit{}
 	if in == nil {
@@ -858,22 +847,14 @@ func (c *Converter) ConvertOutputRoute(vs *VirtualService, route *v1.Route) (Rou
 	if !ok {
 		return Route{}, errors.Errorf("%v does not have a RouteAction", route)
 	}
-
 	gqlDest, err := c.convertOutputDestination(action.RouteAction)
 	if err != nil {
 		return Route{}, err
 	}
-
-	destinations, err := c.convertOutputDestinations(action.RouteAction)
-	if err != nil {
-		return Route{}, err
-	}
-
 	return Route{
 		Matcher:        convertOutputMatcher(route.Matcher),
 		Destination:    gqlDest,
-		Destinations:   destinations,
-		Plugins:        nil,
+		Plugins:        convertOutputRoutePlugins(route.RoutePlugins),
 		VirtualService: vs,
 	}, nil
 }
@@ -889,25 +870,6 @@ func (c *Converter) convertOutputDestination(action *v1.RouteAction) (Destinatio
 		outDest = gqlDest
 	case *v1.RouteAction_Multi:
 		gqlDest, err := c.convertOutputMultiDestination(dest.Multi.Destinations)
-		if err != nil {
-			return nil, err
-		}
-		outDest = gqlDest
-	}
-	return outDest, nil
-}
-
-func (c *Converter) convertOutputDestinations(action *v1.RouteAction) ([]RouteDestination, error) {
-	var outDest []RouteDestination
-	switch dest := action.Destination.(type) {
-	case *v1.RouteAction_Single:
-		gqlDest, err := c.convertOutputSingleRouteDestination(dest.Single)
-		if err != nil {
-			return nil, err
-		}
-		outDest = []RouteDestination{gqlDest}
-	case *v1.RouteAction_Multi:
-		gqlDest, err := c.convertOutputMultiRouteDestinations(dest.Multi.Destinations)
 		if err != nil {
 			return nil, err
 		}
@@ -965,6 +927,11 @@ func convertOutputQueryMatcher(headers []*v1.QueryParameterMatcher) []KeyValueMa
 	return v1Headers
 }
 
+func convertOutputRoutePlugins(plugs *v1.RoutePlugins) *RoutePlugins {
+	// TODO(ilackaitems): convert route plugins when there are any
+	return nil
+}
+
 func (c *Converter) convertOutputMultiDestination(dests []*v1.WeightedDestination) (*MultiDestination, error) {
 	var weightedDests []WeightedDestination
 	for _, v1Dest := range dests {
@@ -980,31 +947,6 @@ func (c *Converter) convertOutputMultiDestination(dests []*v1.WeightedDestinatio
 	return &MultiDestination{Destinations: weightedDests}, nil
 }
 
-func (c *Converter) convertOutputMultiRouteDestinations(dests []*v1.WeightedDestination) ([]RouteDestination, error) {
-	var destinations []RouteDestination
-	for _, v1Dest := range dests {
-
-		gqlUs, err := c.r.Namespace().Upstream(c.ctx, &customtypes.Namespace{Name: v1Dest.Destination.Upstream.Namespace}, v1Dest.Destination.Upstream.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		gqlDestSpec, err := c.convertOutputDestinationSpec(v1Dest.Destination.DestinationSpec)
-		if err != nil {
-			return nil, err
-		}
-
-		weight := int(v1Dest.Weight)
-
-		destinations = append(destinations, RouteDestination{
-			Upstream:        *gqlUs,
-			DestinationSpec: gqlDestSpec,
-			Weight:          &weight,
-		})
-	}
-	return destinations, nil
-}
-
 func (c *Converter) convertOutputSingleDestination(dest *v1.Destination) (SingleDestination, error) {
 	if dest.Upstream.Namespace == "" || dest.Upstream.Name == "" {
 		return SingleDestination{}, errors.Errorf("must provide destination upstream")
@@ -1018,24 +960,6 @@ func (c *Converter) convertOutputSingleDestination(dest *v1.Destination) (Single
 		return SingleDestination{}, err
 	}
 	return SingleDestination{
-		Upstream:        *gqlUs,
-		DestinationSpec: ds,
-	}, nil
-}
-
-func (c *Converter) convertOutputSingleRouteDestination(dest *v1.Destination) (RouteDestination, error) {
-	if dest.Upstream.Namespace == "" || dest.Upstream.Name == "" {
-		return RouteDestination{}, errors.Errorf("must provide destination upstream")
-	}
-	gqlUs, err := c.r.Namespace().Upstream(c.ctx, &customtypes.Namespace{Name: dest.Upstream.Namespace}, dest.Upstream.Name)
-	if err != nil {
-		return RouteDestination{}, err
-	}
-	ds, err := c.convertOutputDestinationSpec(dest.DestinationSpec)
-	if err != nil {
-		return RouteDestination{}, err
-	}
-	return RouteDestination{
 		Upstream:        *gqlUs,
 		DestinationSpec: ds,
 	}, nil
