@@ -1,14 +1,13 @@
 package ratelimit
 
 import (
-	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
+	"time"
+
 	envoyvhostratelimit "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyratelimit "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rate_limit/v2"
 	envoytype "github.com/envoyproxy/go-control-plane/envoy/type"
 
-	rlconfig "github.com/envoyproxy/go-control-plane/envoy/config/ratelimit/v2"
 	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	gloorl "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 )
@@ -19,25 +18,8 @@ save them
 then translate get rate limit configs
 */
 
-func generateEnvoyConfigForCustomFilter(ref core.ResourceRef) *envoyratelimit.RateLimit {
-	var svc *envoycore.GrpcService
-	svc = &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
-		EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-			ClusterName: translator.UpstreamToClusterName(ref),
-		},
-	}}
-
-	timeout := timeout
-	envoyrl := envoyratelimit.RateLimit{
-		Domain:  CustomDomain,
-		Stage:   customStage,
-		Timeout: &timeout,
-
-		RateLimitService: &rlconfig.RateLimitServiceConfig{
-			GrpcService: svc,
-		},
-	}
-	return &envoyrl
+func generateEnvoyConfigForCustomFilter(ref core.ResourceRef, timeout *time.Duration, denyOnFail bool) *envoyratelimit.RateLimit {
+	return generateEnvoyConfigForFilterWith(ref, CustomDomain, customStage, timeout, denyOnFail)
 }
 
 func generateCustomEnvoyConfigForVhost(rlactions []*gloorl.RateLimitActions) []*envoyvhostratelimit.RateLimit {

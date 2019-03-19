@@ -1,6 +1,8 @@
 package ratelimit
 
 import (
+	"time"
+
 	"github.com/gogo/protobuf/types"
 	editOptions "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/options"
 
@@ -75,6 +77,14 @@ func editSettings(opts *editOptions.EditOptions, optsExt *RateLimitSettings, arg
 		rlSettings.RatelimitServerRef.Namespace = optsExt.RateLimitServerUpstreamRef.Namespace
 	}
 
+	var zeroduration time.Duration
+	if optsExt.RequestTimeout != zeroduration {
+		rlSettings.RequestTimeout = &optsExt.RequestTimeout
+	}
+	if optsExt.DenyOnFailure != nil {
+		rlSettings.DenyOnFail = *optsExt.DenyOnFailure
+	}
+
 	if settings.Extensions == nil {
 		settings.Extensions = &gloov1.Extensions{}
 	}
@@ -101,14 +111,39 @@ func AddSettingsInteractive(opts *RateLimitSettings) error {
 	if err := cliutil.GetStringInput("namespace of the ratelimit server upstream: ", &opts.RateLimitServerUpstreamRef.Namespace); err != nil {
 		return err
 	}
+
+	var requestTimeout string
+	if err := cliutil.GetStringInput("the timeout for a request: ", &requestTimeout); err != nil {
+		return err
+	}
+
+	t, err := time.ParseDuration(requestTimeout)
+	if err != nil {
+		return err
+	}
+	opts.RequestTimeout = t
+
+	var deny bool
+	if err := cliutil.GetBoolInput("enable failure mode deny: ", &deny); err != nil {
+		return err
+	}
+	opts.DenyOnFailure = &deny
+
 	return nil
 }
 
 type RateLimitSettings struct {
 	RateLimitServerUpstreamRef core.ResourceRef
+	RequestTimeout             time.Duration
+	DenyOnFailure              *bool
 }
 
 func AddConfigFlagsSettings(set *pflag.FlagSet, opts *RateLimitSettings) {
 	set.StringVar(&opts.RateLimitServerUpstreamRef.Name, "ratelimit-server-name", "", "name of the ext rate limit upstream")
 	set.StringVar(&opts.RateLimitServerUpstreamRef.Namespace, "ratelimit-server-namespace", "", "namespace of the ext rate limit upstream")
+	set.DurationVar(&opts.RequestTimeout, "request-timeout", time.Duration(0), "The timeout of the request to the rate limit server. set to 0 to use the default.")
+
+	flag := set.VarPF(newBoolValue(nil, &opts.DenyOnFailure), "deny-on-failure", "", "On a failure to contact rate limit server, or on a timeout - deny the request (default is to allow)")
+	flag.NoOptDefVal = "true"
+
 }

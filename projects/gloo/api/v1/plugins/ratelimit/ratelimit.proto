@@ -4,6 +4,7 @@ option go_package = "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/p
 
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/duration.proto";
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
@@ -34,6 +35,9 @@ message IngressRateLimit {
 
 message Settings {
   core.solo.io.ResourceRef ratelimit_server_ref = 1; 
+  google.protobuf.Duration request_timeout = 2 [(gogoproto.stdduration) = true];
+
+  bool deny_on_fail = 3;
 }
 
 message EnvoySettings {

@@ -17,9 +17,11 @@ glooctl edit settings ratelimit [flags]
 ### Options
 
 ```
+      --deny-on-failure                     On a failure to contact rate limit server, or on a timeout - deny the request (default is to allow) (default nil)
   -h, --help                                help for ratelimit
       --ratelimit-server-name string        name of the ext rate limit upstream
       --ratelimit-server-namespace string   namespace of the ext rate limit upstream
+      --request-timeout duration            The timeout of the request to the rate limit server. set to 0 to use the default.
 ```
 
 ### Options inherited from parent commands

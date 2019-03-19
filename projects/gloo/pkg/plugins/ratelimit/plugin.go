@@ -72,15 +72,15 @@ const (
 	EnvoyExtensionName = "envoy-rate-limit"
 	IngressDomain      = "ingress"
 	CustomDomain       = "custom"
-	requestType        = "external"
+	requestType        = "both"
 	userid             = "userid"
 
 	authenticated = "is-authenticated"
 	anonymous     = "not-authenticated"
 
-	stage       = 0
-	customStage = 1
-	timeout     = 20 * time.Millisecond
+	stage          = 0
+	customStage    = 1
+	defaultTimeout = 100 * time.Millisecond
 
 	headerMatch   = "header_match"
 	genericKey    = "generic_key"
@@ -94,11 +94,14 @@ const (
 )
 
 type Plugin struct {
-	upstreamRef      *core.ResourceRef
+	upstreamRef *core.ResourceRef
+	timeout     *time.Duration
+	denyOnFail  bool
+
 	authUserIdHeader string
 }
 
-func NewPlugin() plugins.Plugin {
+func NewPlugin() *Plugin {
 	return &Plugin{}
 }
 
@@ -127,6 +130,8 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 
 	authSettings, _ := extauth.GetSettings(params)
 	p.authUserIdHeader = extauth.GetAuthHeader(authSettings)
+	p.timeout = settings.RequestTimeout
+	p.denyOnFail = settings.DenyOnFail
 
 	return nil
 }
@@ -199,12 +204,12 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		return nil, nil
 	}
 
-	conf, err := protoutils.MarshalStruct(generateEnvoyConfigForFilter(*p.upstreamRef))
+	conf, err := protoutils.MarshalStruct(generateEnvoyConfigForFilter(*p.upstreamRef, p.timeout, p.denyOnFail))
 	if err != nil {
 		return nil, err
 	}
 
-	customConf, err := protoutils.MarshalStruct(generateEnvoyConfigForCustomFilter(*p.upstreamRef))
+	customConf, err := protoutils.MarshalStruct(generateEnvoyConfigForCustomFilter(*p.upstreamRef, p.timeout, p.denyOnFail))
 	if err != nil {
 		return nil, err
 	}

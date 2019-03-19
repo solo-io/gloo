@@ -125,12 +125,16 @@ weight: 5
 
 ```yaml
 "ratelimitServerRef": .core.solo.io.ResourceRef
+"requestTimeout": .google.protobuf.Duration
+"denyOnFail": bool
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `ratelimitServerRef` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#ResourceRef) |  |  |
+| `requestTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) |  |  |
+| `denyOnFail` | `bool` |  |  |
 
 
 

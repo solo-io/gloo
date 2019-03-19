@@ -2,6 +2,7 @@ package ratelimit
 
 import (
 	"errors"
+	"time"
 
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyvhostratelimit "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
@@ -70,7 +71,11 @@ func TranslateUserConfigToRateLimitServerConfig(vhostname string, ingressRl rate
 	return vhostDescriptor, nil
 }
 
-func generateEnvoyConfigForFilter(ref core.ResourceRef) *envoyratelimit.RateLimit {
+func generateEnvoyConfigForFilter(ref core.ResourceRef, timeout *time.Duration, denyOnFail bool) *envoyratelimit.RateLimit {
+	return generateEnvoyConfigForFilterWith(ref, IngressDomain, stage, timeout, denyOnFail)
+}
+
+func generateEnvoyConfigForFilterWith(ref core.ResourceRef, domain string, currentState uint32, timeout *time.Duration, denyOnFail bool) *envoyratelimit.RateLimit {
 	var svc *envoycore.GrpcService
 	svc = &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
 		EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
@@ -78,12 +83,16 @@ func generateEnvoyConfigForFilter(ref core.ResourceRef) *envoyratelimit.RateLimi
 		},
 	}}
 
-	timeout := timeout
+	curtimeout := defaultTimeout
+	if timeout != nil {
+		curtimeout = *timeout
+	}
 	envoyrl := envoyratelimit.RateLimit{
-		Domain:      IngressDomain,
-		Stage:       stage,
-		RequestType: requestType,
-		Timeout:     &timeout,
+		Domain:          domain,
+		Stage:           currentState,
+		RequestType:     requestType,
+		Timeout:         &curtimeout,
+		FailureModeDeny: denyOnFail,
 
 		RateLimitService: &rlconfig.RateLimitServiceConfig{
 			GrpcService: svc,

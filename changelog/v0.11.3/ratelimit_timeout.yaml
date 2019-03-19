@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Allow customizing the timeout and failure mode for ratelimit
+    issueLink: https://github.com/solo-io/solo-projects/issues/532

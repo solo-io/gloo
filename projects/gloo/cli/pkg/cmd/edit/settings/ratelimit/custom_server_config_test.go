@@ -29,7 +29,7 @@ var _ = Describe("CustomServerConfig", func() {
 
 		settings = &gloov1.Settings{
 			Metadata: core.Metadata{
-				Name:      "defualt",
+				Name:      "default",
 				Namespace: "gloo-system",
 			},
 		}
@@ -45,7 +45,7 @@ var _ = Describe("CustomServerConfig", func() {
 			return []byte(yaml), "", nil
 		}
 
-		return testutils.GlooctlEE("edit settings --name defualt --namespace gloo-system ratelimit custom-server-config")
+		return testutils.GlooctlEE("edit settings --name default --namespace gloo-system ratelimit custom-server-config")
 	}
 
 	Validate := func(yaml string) *ratelimitpb.EnvoySettings_RateLimitCustomConfig {
