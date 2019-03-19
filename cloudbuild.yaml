@@ -114,7 +114,7 @@ steps:
   - 'RUN_KUBE_TESTS=1'
   - 'DOCKER_CONFIG=/workspace/.docker/'
   dir: './gopath/src/github.com/solo-io/gloo'
-  args: ['-r', '-failFast', '-p', '-race']
+  args: ['-r', '-failFast', '-race']
   waitFor: ['get-envoy', 'setup-aws-creds', 'setup-helm', 'check-code-and-docs-gen']
   id: 'test'
 
@@ -164,7 +164,7 @@ steps:
     - 'CLOUDSDK_CONTAINER_CLUSTER=kube2e-tests'
     - 'RUN_KUBE2E_TESTS=1'
   dir: './gopath/src/github.com/solo-io/gloo'
-  args: ['-r', 'test/kube2e']
+  args: ['-r', 'test/kube2e', '-failFast']
   waitFor: ['build-test-assets', 'test', 'get-credentials']
   id: 'regression-tests'
 
