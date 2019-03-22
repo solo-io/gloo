@@ -4,6 +4,7 @@ metadata:
   name: api-server
   namespace: {{ .Release.Namespace }}
   labels:
+    app: gloo
     gloo: {{ .Values.apiServer.service.name }}
 spec:
   replicas: 1

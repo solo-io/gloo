@@ -85,10 +85,12 @@ func GatewayCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.
 			 *******************	Filter functions    *******************
 			 **************************************************************/
 
-			filterKnativeResources, err := install.GetKnativeResourceFilterFunction()
+			skipKnativeInstall, err := install.SkipKnativeInstall()
 			if err != nil {
 				return err
 			}
+
+			filterKnativeResources := install.KnativeResourceFilterFunction(skipKnativeInstall)
 
 			// Keep only CRDs and collect the names
 			var crdNames []string

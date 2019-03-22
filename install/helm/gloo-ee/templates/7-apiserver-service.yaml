@@ -4,6 +4,7 @@ metadata:
   name: {{ .Values.apiServer.service.name }}
   namespace: {{ .Release.Namespace }}
   labels:
+    app: gloo
     gloo: {{ .Values.apiServer.service.name }}
 spec:
   ports:

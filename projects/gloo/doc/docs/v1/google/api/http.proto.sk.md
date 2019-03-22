@@ -24,12 +24,12 @@ limitations under the License.
 
 
  
-##### Types:
+#### Types:
 
 
-- [Http](#Http)
-- [HttpRule](#HttpRule)
-- [CustomHttpPattern](#CustomHttpPattern)
+- [Http](#http)
+- [HttpRule](#httprule)
+- [CustomHttpPattern](#customhttppattern)
   
 
 
@@ -41,7 +41,7 @@ limitations under the License.
 
 
 ---
-### <a name="Http">Http</a>
+### Http
 
  
 Defines the HTTP configuration for an API service. It contains a list of
@@ -56,14 +56,14 @@ to one or more HTTP REST API methods.
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `rules` | [[]google.api.HttpRule](../http.proto.sk#HttpRule) | A list of HTTP configuration rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order. |  |
+| `rules` | [[]google.api.HttpRule](../http.proto.sk#httprule) | A list of HTTP configuration rules that apply to individual API methods. **NOTE:** All service configuration rules follow "last one wins" order. |  |
 | `fullyDecodeReservedExpansion` | `bool` | When set to true, URL path parmeters will be fully URI-decoded except in cases of single segment matches in reserved expansion, where "%2F" will be left encoded. The default behavior is to not decode RFC 6570 reserved characters in multi segment matches. |  |
 
 
 
 
 ---
-### <a name="HttpRule">HttpRule</a>
+### HttpRule
 
  
 `HttpRule` defines the mapping of an RPC method to one or more HTTP
@@ -305,15 +305,15 @@ repeated fields or map fields.
 | `post` | `string` | Used for creating a resource. |  |
 | `delete` | `string` | Used for deleting a resource. |  |
 | `patch` | `string` | Used for updating a resource. |  |
-| `custom` | [.google.api.CustomHttpPattern](../http.proto.sk#CustomHttpPattern) | The custom pattern is used for specifying an HTTP method that is not included in the `pattern` field, such as HEAD, or "*" to leave the HTTP method unspecified for this rule. The wild-card rule is useful for services that provide content to Web (HTML) clients. |  |
+| `custom` | [.google.api.CustomHttpPattern](../http.proto.sk#customhttppattern) | The custom pattern is used for specifying an HTTP method that is not included in the `pattern` field, such as HEAD, or "*" to leave the HTTP method unspecified for this rule. The wild-card rule is useful for services that provide content to Web (HTML) clients. |  |
 | `body` | `string` | The name of the request field whose value is mapped to the HTTP body, or `*` for mapping all fields not captured by the path pattern to the HTTP body. NOTE: the referred field must not be a repeated field and must be present at the top-level of request message type. |  |
-| `additionalBindings` | [[]google.api.HttpRule](../http.proto.sk#HttpRule) | Additional HTTP bindings for the selector. Nested bindings must not contain an `additional_bindings` field themselves (that is, the nesting may only be one level deep). |  |
+| `additionalBindings` | [[]google.api.HttpRule](../http.proto.sk#httprule) | Additional HTTP bindings for the selector. Nested bindings must not contain an `additional_bindings` field themselves (that is, the nesting may only be one level deep). |  |
 
 
 
 
 ---
-### <a name="CustomHttpPattern">CustomHttpPattern</a>
+### CustomHttpPattern
 
  
 A custom pattern is used for defining custom HTTP verb.

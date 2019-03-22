@@ -83,7 +83,7 @@ func (s *extAuthDiscoveryServiceServer) FetchExtAuthConfig(ctx context.Context, 
 	return s.Server.Fetch(ctx, req)
 }
 
-func (s *extAuthDiscoveryServiceServer) IncrementalExtAuthConfig(_ ExtAuthDiscoveryService_IncrementalExtAuthConfigServer) error {
+func (s *extAuthDiscoveryServiceServer) DeltaExtAuthConfig(_ ExtAuthDiscoveryService_DeltaExtAuthConfigServer) error {
 	return errors.New("not implemented")
 }
 

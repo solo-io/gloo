@@ -24,8 +24,6 @@ glooctl create virtualservice [flags]
       --enable-oidc-auth                           enable rate limiting features for this virtual service
       --enable-rate-limiting                       enable rate limiting features for this virtual service
   -h, --help                                       help for virtualservice
-      --name string                                name of the resource to read or write
-  -n, --namespace string                           namespace for reading or writing resources (default "gloo-system")
       --oidc-auth-app-url string                   the public url of your app
       --oidc-auth-callback-path string             the callback path. relative to the app url. (default "/oidc-gloo-callback")
       --oidc-auth-client-id string                 client id as registered with id provider
@@ -39,8 +37,10 @@ glooctl create virtualservice [flags]
 ### Options inherited from parent commands
 
 ```
-  -i, --interactive     use interactive mode
-  -o, --output string   output format: (yaml, json, table)
+  -i, --interactive        use interactive mode
+      --name string        name of the resource to read or write
+  -n, --namespace string   namespace for reading or writing resources (default "gloo-system")
+  -o, --output string      output format: (yaml, json, table)
 ```
 
 ### SEE ALSO

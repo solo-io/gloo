@@ -19,7 +19,7 @@ import (
 
 // Type Definitions:
 
-const RateLimitConfigType = cache.TypePrefix + "/gloo.solo.io.RateLimitConfig"
+const RateLimitConfigType = cache.TypePrefix + "/glooe.solo.io.RateLimitConfig"
 
 /* Defined a resource - to be used by snapshot */
 type RateLimitConfigXdsResourceWrapper struct {
@@ -83,7 +83,7 @@ func (s *rateLimitDiscoveryServiceServer) FetchRateLimitConfig(ctx context.Conte
 	return s.Server.Fetch(ctx, req)
 }
 
-func (s *rateLimitDiscoveryServiceServer) IncrementalRateLimitConfig(_ RateLimitDiscoveryService_IncrementalRateLimitConfigServer) error {
+func (s *rateLimitDiscoveryServiceServer) DeltaRateLimitConfig(_ RateLimitDiscoveryService_DeltaRateLimitConfigServer) error {
 	return errors.New("not implemented")
 }
 

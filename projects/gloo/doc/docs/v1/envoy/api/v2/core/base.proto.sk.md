@@ -8,19 +8,22 @@ weight: 5
 
 
 ### Package: `envoy.api.v2.core` 
-##### Types:
+#### Types:
 
 
-- [Locality](#Locality)
-- [Node](#Node)
-- [Metadata](#Metadata)
-- [RuntimeUInt32](#RuntimeUInt32)
-- [HeaderValue](#HeaderValue)
-- [HeaderValueOption](#HeaderValueOption)
-- [DataSource](#DataSource)
-- [TransportSocket](#TransportSocket)
-- [SocketOption](#SocketOption)
-- [SocketState](#SocketState)
+- [Locality](#locality)
+- [Node](#node)
+- [Metadata](#metadata)
+- [RuntimeUInt32](#runtimeuint32)
+- [HeaderValue](#headervalue)
+- [HeaderValueOption](#headervalueoption)
+- [HeaderMap](#headermap)
+- [DataSource](#datasource)
+- [TransportSocket](#transportsocket)
+- [SocketOption](#socketoption)
+- [SocketState](#socketstate)
+- [RuntimeFractionalPercent](#runtimefractionalpercent)
+- [ControlPlane](#controlplane)
   
 
  
@@ -28,8 +31,8 @@ weight: 5
 ##### Enums:
 
 
-	- [RoutingPriority](#RoutingPriority)
-	- [RequestMethod](#RequestMethod)
+	- [RoutingPriority](#routingpriority)
+	- [RequestMethod](#requestmethod)
 
 
 
@@ -40,7 +43,7 @@ weight: 5
 
 
 ---
-### <a name="Locality">Locality</a>
+### Locality
 
  
 Identifies location of where either Envoy runs or where upstream hosts run.
@@ -55,14 +58,14 @@ Identifies location of where either Envoy runs or where upstream hosts run.
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `region` | `string` | Region this :ref:`zone <envoy_api_field_core.Locality.zone>` belongs to. |  |
-| `zone` | `string` | Defines the local service zone where Envoy is running. Though optional, it should be set if discovery service routing is used and the discovery service exposes :ref:`zone data <config_cluster_manager_sds_api_host_az>`, either in this message or via :option:`--service-zone`. The meaning of zone is context dependent, e.g. `Availability Zone (AZ) <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html>`_ on AWS, `Zone <https://cloud.google.com/compute/docs/regions-zones/>`_ on GCP, etc. |  |
+| `zone` | `string` | Defines the local service zone where Envoy is running. Though optional, it should be set if discovery service routing is used and the discovery service exposes :ref:`zone data <envoy_api_field_endpoint.LocalityLbEndpoints.locality>`, either in this message or via :option:`--service-zone`. The meaning of zone is context dependent, e.g. `Availability Zone (AZ) <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html>`_ on AWS, `Zone <https://cloud.google.com/compute/docs/regions-zones/>`_ on GCP, etc. |  |
 | `subZone` | `string` | When used for locality of upstream hosts, this field further splits zone into smaller chunks of sub-zones so they can be load balanced independently. |  |
 
 
 
 
 ---
-### <a name="Node">Node</a>
+### Node
 
  
 Identifies a specific Envoy instance. The node identifier is presented to the
@@ -81,27 +84,30 @@ configuration for serving.
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `id` | `string` | An opaque node identifier for the Envoy node. This also provides the local service node name. It should be set if any of the following features are used: :ref:`statsd <arch_overview_statistics>`, :ref:`CDS <config_cluster_manager_cds>`, and :ref:`HTTP tracing <arch_overview_tracing>`, either in this message or via :option:`--service-node`. |  |
-| `cluster` | `string` | Defines the local service cluster name where Envoy is running. Though optional, it should be set if any of the following features are used: :ref:`statsd <arch_overview_statistics>`, :ref:`health check cluster verification <config_cluster_manager_cluster_hc_service_name>`, :ref:`runtime override directory <config_runtime_override_subdirectory>`, :ref:`user agent addition <config_http_conn_man_add_user_agent>`, :ref:`HTTP global rate limiting <config_http_filters_rate_limit>`, :ref:`CDS <config_cluster_manager_cds>`, and :ref:`HTTP tracing <arch_overview_tracing>`, either in this message or via :option:`--service-cluster`. |  |
+| `cluster` | `string` | Defines the local service cluster name where Envoy is running. Though optional, it should be set if any of the following features are used: :ref:`statsd <arch_overview_statistics>`, :ref:`health check cluster verification <envoy_api_field_core.HealthCheck.HttpHealthCheck.service_name>`, :ref:`runtime override directory <envoy_api_msg_config.bootstrap.v2.Runtime>`, :ref:`user agent addition <envoy_api_field_config.filter.network.http_connection_manager.v2.HttpConnectionManager.add_user_agent>`, :ref:`HTTP global rate limiting <config_http_filters_rate_limit>`, :ref:`CDS <config_cluster_manager_cds>`, and :ref:`HTTP tracing <arch_overview_tracing>`, either in this message or via :option:`--service-cluster`. |  |
 | `metadata` | [.google.protobuf.Struct](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/struct) | Opaque metadata extending the node identifier. Envoy will pass this directly to the management server. |  |
-| `locality` | [.envoy.api.v2.core.Locality](../base.proto.sk#Locality) | Locality specifying where the Envoy instance is running. |  |
+| `locality` | [.envoy.api.v2.core.Locality](../base.proto.sk#locality) | Locality specifying where the Envoy instance is running. |  |
 | `buildVersion` | `string` | This is motivated by informing a management server during canary which version of Envoy is being tested in a heterogeneous fleet. This will be set by Envoy in management server RPCs. |  |
 
 
 
 
 ---
-### <a name="Metadata">Metadata</a>
+### Metadata
 
  
 Metadata provides additional inputs to filters based on matched listeners,
-filter chains, routes and endpoints. It is structured as a map from filter
-name (in reverse DNS format) to metadata specific to the filter. Metadata
+filter chains, routes and endpoints. It is structured as a map, usually from
+filter name (in reverse DNS format) to metadata specific to the filter. Metadata
 key-values for a filter are merged as connection and request handling occurs,
 with later values for the same key overriding earlier values.
 
 An example use of metadata is providing additional values to
 http_connection_manager in the envoy.http_connection_manager.access_log
 namespace.
+
+Another example use of metadata is to per service config info in cluster metadata, which may get
+consumed by multiple filters.
 
 For load balancing, Metadata provides a means to subset cluster endpoints.
 Endpoints have a Metadata object associated and routes contain a Metadata
@@ -125,7 +131,7 @@ this purpose:
 
 
 ---
-### <a name="RuntimeUInt32">RuntimeUInt32</a>
+### RuntimeUInt32
 
  
 Runtime derived uint32 with a default when not specified.
@@ -145,7 +151,7 @@ Runtime derived uint32 with a default when not specified.
 
 
 ---
-### <a name="HeaderValue">HeaderValue</a>
+### HeaderValue
 
  
 Header name/value pair.
@@ -165,7 +171,7 @@ Header name/value pair.
 
 
 ---
-### <a name="HeaderValueOption">HeaderValueOption</a>
+### HeaderValueOption
 
  
 Header name/value pair plus option to control append behavior.
@@ -178,14 +184,32 @@ Header name/value pair plus option to control append behavior.
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `header` | [.envoy.api.v2.core.HeaderValue](../base.proto.sk#HeaderValue) | Header name/value pair that this option applies to. |  |
+| `header` | [.envoy.api.v2.core.HeaderValue](../base.proto.sk#headervalue) | Header name/value pair that this option applies to. |  |
 | `append` | [.google.protobuf.BoolValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/bool-value) | Should the value be appended? If true (default), the value is appended to existing values. |  |
 
 
 
 
 ---
-### <a name="DataSource">DataSource</a>
+### HeaderMap
+
+ 
+Wrapper for a set of headers.
+
+```yaml
+"headers": []envoy.api.v2.core.HeaderValue
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `headers` | [[]envoy.api.v2.core.HeaderValue](../base.proto.sk#headervalue) |  |  |
+
+
+
+
+---
+### DataSource
 
  
 Data source consisting of either a file or an inline value.
@@ -207,30 +231,32 @@ Data source consisting of either a file or an inline value.
 
 
 ---
-### <a name="TransportSocket">TransportSocket</a>
+### TransportSocket
 
  
 Configuration for transport socket in :ref:`listeners <config_listeners>` and
-:ref:`clusters <config_cluster_manager_cluster>`. If the configuration is
+:ref:`clusters <envoy_api_msg_Cluster>`. If the configuration is
 empty, a default transport socket implementation and configuration will be
 chosen based on the platform and existence of tls_context.
 
 ```yaml
 "name": string
 "config": .google.protobuf.Struct
+"typedConfig": .google.protobuf.Any
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `name` | `string` | The name of the transport socket to instantiate. The name must match a supported transport socket implementation. |  |
-| `config` | [.google.protobuf.Struct](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/struct) | Implementation specific configuration which depends on the implementation being instantiated. See the supported transport socket implementations for further documentation. |  |
+| `config` | [.google.protobuf.Struct](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/struct) |  |  |
+| `typedConfig` | [.google.protobuf.Any](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/any) |  |  |
 
 
 
 
 ---
-### <a name="SocketOption">SocketOption</a>
+### SocketOption
 
  
 Generic socket option message. This would be used to set socket options that
@@ -253,13 +279,13 @@ might not exist in upstream kernels or precompiled Envoy binaries.
 | `name` | `int` | The numeric name as passed to setsockopt |  |
 | `intValue` | `int` | Because many sockopts take an int value. |  |
 | `bufValue` | `bytes` | Otherwise it's a byte buffer. |  |
-| `state` | [.envoy.api.v2.core.SocketOption.SocketState](../base.proto.sk#SocketState) | The state in which the option will be applied. When used in BindConfig STATE_PREBIND is currently the only valid value. |  |
+| `state` | [.envoy.api.v2.core.SocketOption.SocketState](../base.proto.sk#socketstate) | The state in which the option will be applied. When used in BindConfig STATE_PREBIND is currently the only valid value. |  |
 
 
 
 
 ---
-### <a name="SocketState">SocketState</a>
+### SocketState
 
 
 
@@ -271,8 +297,47 @@ might not exist in upstream kernels or precompiled Envoy binaries.
 
 
 
+
+---
+### RuntimeFractionalPercent
+
+ 
+Runtime derived FractionalPercent with defaults for when the numerator or denominator is not
+specified via a runtime key.
+
+```yaml
+"defaultValue": .envoy.type.FractionalPercent
+"runtimeKey": string
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `defaultValue` | [.envoy.type.FractionalPercent](../../../../type/percent.proto.sk#fractionalpercent) | Default value if the runtime value's for the numerator/denominator keys are not available. |  |
+| `runtimeKey` | `string` | Runtime key for a YAML representation of a FractionalPercent. |  |
+
+
+
+
+---
+### ControlPlane
+
+ 
+Identifies a specific ControlPlane instance that Envoy is connected to.
+
+```yaml
+"identifier": string
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `identifier` | `string` | An opaque control plane identifier that uniquely identifies an instance of control plane. This can be used to identify which control plane instance, the Envoy is connected to. |  |
+
+
+
   
-### <a name="RoutingPriority">RoutingPriority</a>
+### RoutingPriority
 
 Description: Envoy supports :ref:`upstream priority routing
 <arch_overview_http_routing_priority>` both at the route and the virtual
@@ -287,7 +352,7 @@ over a single upstream connection.
 | DEFAULT |  |
 | HIGH |  |
   
-### <a name="RequestMethod">RequestMethod</a>
+### RequestMethod
 
 Description: HTTP request method.
 

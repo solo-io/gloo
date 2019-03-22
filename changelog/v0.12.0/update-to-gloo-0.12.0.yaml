@@ -1,0 +1,17 @@
+changelog:
+- dependencyOwner: solo-io
+  dependencyRepo: gloo
+  dependencyTag: v0.12.0
+  description: Update Gloo to version 0.12.0.
+  type: DEPENDENCY_BUMP
+- dependencyOwner: solo-io
+  dependencyRepo: solo-kit
+  dependencyTag: v0.3.10
+  description: Update Solo Kit to version 0.3.10.
+  type: DEPENDENCY_BUMP
+- type: BREAKING_CHANGE
+  description: Incremental changed to Delta in ratelimit and extauth protos.
+  issueLink: https://github.com/solo-io/solo-projects/issues/540
+- type: FIX
+  description: Fixes generation of rate limit XDS service.
+  issueLink: https://github.com/solo-io/solo-projects/issues/293

@@ -8,19 +8,19 @@ weight: 5
 
 
 ### Package: `extauth.plugins.gloo.solo.io` 
-##### Types:
+#### Types:
 
 
-- [Settings](#Settings)
-- [BasicAuth](#BasicAuth)
-- [Apr](#Apr)
-- [SaltedHashedPassword](#SaltedHashedPassword)
-- [OAuth](#OAuth)
-- [OauthSecret](#OauthSecret)
-- [VhostExtension](#VhostExtension)
-- [RouteExtension](#RouteExtension)
-- [ExtAuthConfig](#ExtAuthConfig)
-- [OAuthConfig](#OAuthConfig)
+- [Settings](#settings)
+- [BasicAuth](#basicauth)
+- [Apr](#apr)
+- [SaltedHashedPassword](#saltedhashedpassword)
+- [OAuth](#oauth)
+- [OauthSecret](#oauthsecret)
+- [VhostExtension](#vhostextension)
+- [RouteExtension](#routeextension)
+- [ExtAuthConfig](#extauthconfig)
+- [OAuthConfig](#oauthconfig)
   
 
 
@@ -32,7 +32,7 @@ weight: 5
 
 
 ---
-### <a name="Settings">Settings</a>
+### Settings
 
 
 
@@ -44,14 +44,14 @@ weight: 5
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `extauthzServerRef` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#ResourceRef) |  |  |
+| `extauthzServerRef` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
 | `userIdHeader` | `string` |  |  |
 
 
 
 
 ---
-### <a name="BasicAuth">BasicAuth</a>
+### BasicAuth
 
 
 
@@ -64,13 +64,13 @@ weight: 5
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `realm` | `string` |  |  |
-| `apr` | [.extauth.plugins.gloo.solo.io.BasicAuth.Apr](../extauth.proto.sk#Apr) |  |  |
+| `apr` | [.extauth.plugins.gloo.solo.io.BasicAuth.Apr](../extauth.proto.sk#apr) |  |  |
 
 
 
 
 ---
-### <a name="Apr">Apr</a>
+### Apr
 
 
 
@@ -87,7 +87,7 @@ weight: 5
 
 
 ---
-### <a name="SaltedHashedPassword">SaltedHashedPassword</a>
+### SaltedHashedPassword
 
 
 
@@ -106,7 +106,7 @@ weight: 5
 
 
 ---
-### <a name="OAuth">OAuth</a>
+### OAuth
 
 
 
@@ -122,7 +122,7 @@ weight: 5
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `clientId` | `string` | your client id as registered with the issuer |  |
-| `clientSecretRef` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#ResourceRef) | your client secret as registered with the issuer |  |
+| `clientSecretRef` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) | your client secret as registered with the issuer |  |
 | `issuerUrl` | `string` | The url of the issuer. We will look for OIDC information in issuerUrl+ ".well-known/openid-configuration" |  |
 | `appUrl` | `string` | we to redirect after successful auth, if we can't determine the original url this should be your publicly available app url. |  |
 | `callbackPath` | `string` | a callback path relative to app url that will be used for OIDC callbacks. needs to not be used by the application |  |
@@ -131,7 +131,7 @@ weight: 5
 
 
 ---
-### <a name="OauthSecret">OauthSecret</a>
+### OauthSecret
 
 
 
@@ -148,7 +148,7 @@ weight: 5
 
 
 ---
-### <a name="VhostExtension">VhostExtension</a>
+### VhostExtension
 
 
 
@@ -160,14 +160,14 @@ weight: 5
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `basicAuth` | [.extauth.plugins.gloo.solo.io.BasicAuth](../extauth.proto.sk#BasicAuth) |  |  |
-| `oauth` | [.extauth.plugins.gloo.solo.io.OAuth](../extauth.proto.sk#OAuth) |  |  |
+| `basicAuth` | [.extauth.plugins.gloo.solo.io.BasicAuth](../extauth.proto.sk#basicauth) |  |  |
+| `oauth` | [.extauth.plugins.gloo.solo.io.OAuth](../extauth.proto.sk#oauth) |  |  |
 
 
 
 
 ---
-### <a name="RouteExtension">RouteExtension</a>
+### RouteExtension
 
 
 
@@ -184,7 +184,7 @@ weight: 5
 
 
 ---
-### <a name="ExtAuthConfig">ExtAuthConfig</a>
+### ExtAuthConfig
 
  
 
@@ -199,14 +199,14 @@ weight: 5
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `vhost` | `string` |  |  |
-| `oauth` | [.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig](../extauth.proto.sk#OAuthConfig) |  |  |
-| `basicAuth` | [.extauth.plugins.gloo.solo.io.BasicAuth](../extauth.proto.sk#BasicAuth) |  |  |
+| `oauth` | [.extauth.plugins.gloo.solo.io.ExtAuthConfig.OAuthConfig](../extauth.proto.sk#oauthconfig) |  |  |
+| `basicAuth` | [.extauth.plugins.gloo.solo.io.BasicAuth](../extauth.proto.sk#basicauth) |  |  |
 
 
 
 
 ---
-### <a name="OAuthConfig">OAuthConfig</a>
+### OAuthConfig
 
 
 

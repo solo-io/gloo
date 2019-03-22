@@ -328,7 +328,7 @@
   version = "v1.12.0"
 
 [[projects]]
-  digest = "1:91fe5bba18481f5745a67d54e9904ac46ef9d64f67edb85b2f0fc4a53c59714e"
+  digest = "1:e4d6cd26873435c3659349002d03e77e160be22d0e30e6b737793317b3b0da33"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -347,6 +347,7 @@
     "envoy/config/filter/http/rate_limit/v2",
     "envoy/config/filter/http/transcoder/v2",
     "envoy/config/filter/network/http_connection_manager/v2",
+    "envoy/config/grpc_credential/v2alpha",
     "envoy/config/metrics/v2",
     "envoy/config/overload/v2alpha",
     "envoy/config/ratelimit/v2",
@@ -359,7 +360,8 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "6bb1dbbfcb2b3192849c3f0e6d3a6a6f038ded8b"
+  revision = "0ad6fa1cf0b9b6ca8f3617a7188a568e81f40b87"
+  version = "v0.6.9"
 
 [[projects]]
   digest = "1:f1f2bd73c025d24c3b93abf6364bccb802cf2fdedaa44360804c67800e8fab8d"
@@ -848,6 +850,14 @@
   pruneopts = "UT"
   revision = "e21712a687889de1125e0a12a980420b1a4f72d3"
   version = "v0.10.4"
+
+[[projects]]
+  digest = "1:8f3e1c572760f95e2b36c360396a9d4f9df9f53026b426208ef618b5112fd1fe"
+  name = "github.com/helm/helm"
+  packages = ["pkg/hooks"]
+  pruneopts = "UT"
+  revision = "618447cbf203d147601b4b9bd7f8c37a5d39fbb4"
+  version = "v2.13.1"
 
 [[projects]]
   branch = "master"
@@ -1375,11 +1385,11 @@
     "pkg/service",
   ]
   pruneopts = "UT"
-  revision = "9142270e1eee408c6c961210c338e9d6727f84da"
-  version = "v0.2.3"
+  revision = "94a77970017b390289bbf4aa48506e48ae946689"
+  version = "v0.2.4"
 
 [[projects]]
-  digest = "1:d08bfad550bc93b920441a46ac122ee0c6225bd68e391a75f428d061375a3c5b"
+  digest = "1:654d65c147032d15355ed4e994b6841030625bbdd792cbf25a8c7a0c760681d0"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1435,6 +1445,7 @@
     "projects/gloo/pkg/api/v1/plugins/consul",
     "projects/gloo/pkg/api/v1/plugins/faultinjection",
     "projects/gloo/pkg/api/v1/plugins/grpc",
+    "projects/gloo/pkg/api/v1/plugins/grpc_web",
     "projects/gloo/pkg/api/v1/plugins/kubernetes",
     "projects/gloo/pkg/api/v1/plugins/rest",
     "projects/gloo/pkg/api/v1/plugins/retries",
@@ -1466,8 +1477,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "f5cf4d472a64bfacd8291ff91543e2b2a8978084"
-  version = "v0.11.1"
+  revision = "91f800db5f96cda80c227bc6edd663c891efd8f1"
+  version = "v0.12.0"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1542,7 +1553,7 @@
   revision = "8aa2e36bb84a979cb654d4d3c795b31add32f6cf"
 
 [[projects]]
-  digest = "1:7ebc897f969b3f95bd57f9ffea2f5403338a02d7aa04e7223853f49b33a9b0a9"
+  digest = "1:e260ff6266435ed9789155e5414f0144b7a45260d51ccd0ab9d2a66e226a123f"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "pkg/api/v1/clients",
@@ -1598,8 +1609,8 @@
     "test/tests/typed",
   ]
   pruneopts = "UT"
-  revision = "5814931156d118e53f46f2a67bf7ee2893321b94"
-  version = "v0.3.5"
+  revision = "e722533e9c1f1a41eee32a256ff5c09a20f2bd03"
+  version = "v0.3.10"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -2707,6 +2718,7 @@
     "github.com/Masterminds/sprig",
     "github.com/ahmetb/go-linq",
     "github.com/aokoli/goutils",
+    "github.com/avast/retry-go",
     "github.com/dgrijalva/jwt-go",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2",
     "github.com/envoyproxy/go-control-plane/envoy/api/v2/core",
@@ -2784,6 +2796,7 @@
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/edit/virtualservice",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/gateway",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/get",
+    "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/install",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/remove",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/route",

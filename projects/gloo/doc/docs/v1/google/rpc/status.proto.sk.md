@@ -24,10 +24,10 @@ limitations under the License.
 
 
  
-##### Types:
+#### Types:
 
 
-- [Status](#Status)
+- [Status](#status)
   
 
 
@@ -39,7 +39,7 @@ limitations under the License.
 
 
 ---
-### <a name="Status">Status</a>
+### Status
 
  
 The `Status` type defines a logical error model that is suitable for different
@@ -106,7 +106,7 @@ Example uses of this error model include:
 | ----- | ---- | ----------- |----------- | 
 | `code` | `int` | The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code]. |  |
 | `message` | `string` | A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client. |  |
-| `details` | [[]google.protobuf.Any](../../protobuf/any.proto.sk#Any) | A list of messages that carry the error details. There is a common set of message types for APIs to use. |  |
+| `details` | [[]google.protobuf.Any](../../protobuf/any.proto.sk#any) | A list of messages that carry the error details. There is a common set of message types for APIs to use. |  |
 
 
 

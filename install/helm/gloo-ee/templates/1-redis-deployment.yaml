@@ -1,6 +1,9 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
+  labels:
+    app: gloo
+    gloo: redis
   name: redis
   namespace: {{ .Release.Namespace }}
 spec:

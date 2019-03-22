@@ -1,5 +1,5 @@
 syntax = "proto3";
-package gloo.solo.io;
+package glooe.solo.io;
 option go_package = "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1";
 
 import "envoy/api/v2/discovery.proto";
@@ -28,8 +28,8 @@ service RateLimitDiscoveryService {
     rpc StreamRateLimitConfig(stream envoy.api.v2.DiscoveryRequest) returns (stream envoy.api.v2.DiscoveryResponse) {
     }
 
-    rpc IncrementalRateLimitConfig(stream envoy.api.v2.IncrementalDiscoveryRequest)
-        returns (stream envoy.api.v2.IncrementalDiscoveryResponse) {
+    rpc DeltaRateLimitConfig(stream envoy.api.v2.DeltaDiscoveryRequest)
+        returns (stream envoy.api.v2.DeltaDiscoveryResponse) {
     }
 
     rpc FetchRateLimitConfig(envoy.api.v2.DiscoveryRequest) returns (envoy.api.v2.DiscoveryResponse) {
