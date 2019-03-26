@@ -1375,7 +1375,7 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:f116fe183ff6a4244270d03d652bcbd5338a0a26fee38e85566cb8006622496d"
+  digest = "1:7f4deca9b8f6d47de818cb5a8529c185d20a4c8f6d7fde649e8829f6223928f7"
   name = "github.com/solo-io/ext-auth-service"
   packages = [
     "pkg/config",
@@ -1385,8 +1385,8 @@
     "pkg/service",
   ]
   pruneopts = "UT"
-  revision = "94a77970017b390289bbf4aa48506e48ae946689"
-  version = "v0.2.4"
+  revision = "6a9e3666ed3fdbe09fb73036a271a39ac02ed97e"
+  version = "v0.2.5"
 
 [[projects]]
   digest = "1:654d65c147032d15355ed4e994b6841030625bbdd792cbf25a8c7a0c760681d0"

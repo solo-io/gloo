@@ -92,4 +92,4 @@
 
 [[constraint]]
   name = "github.com/solo-io/ext-auth-service"
-  version = "v0.2.4"
+  version = "v0.2.5"
