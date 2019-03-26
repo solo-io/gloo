@@ -89,3 +89,7 @@
 [[constraint]]
   name = "go.opencensus.io"
   version = "v0.19.0"
+
+[[constraint]]
+  name = "github.com/solo-io/ext-auth-service"
+  version = "v0.2.4"
