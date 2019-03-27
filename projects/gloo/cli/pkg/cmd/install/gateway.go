@@ -31,27 +31,9 @@ func GatewayCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.
 				fmt.Printf("Starting GlooE installation...\n")
 			}
 
-			glooEVersion, err := getGlooEVersion(opts)
+			installSpec, err := GetInstallSpec(opts, optsExt)
 			if err != nil {
 				return err
-			}
-			// Get location of Gloo helm chart
-			helmChartArchiveUri := fmt.Sprintf(GlooEHelmRepoTemplate, glooEVersion)
-			if helmChartOverride := opts.Install.HelmChartOverride; helmChartOverride != "" {
-				helmChartArchiveUri = helmChartOverride
-			}
-
-			extraValues := map[string]string{
-				"license_key":                     optsExt.Install.LicenseKey,
-				"gloo:\n  namespace:\n    create": "true",
-			}
-
-			installSpec := glooInstall.GlooInstallSpec{
-				HelmArchiveUri:   helmChartArchiveUri,
-				ProductName:      "glooe",
-				ValueFileName:    "",
-				ExtraValues:      extraValues,
-				ExcludeResources: getExcludeExistingPVCs(opts.Install.Namespace),
 			}
 
 			kubeInstallClient := NamespacedGlooKubeInstallClient{
@@ -59,7 +41,7 @@ func GatewayCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.
 				delegate:  &glooInstall.DefaultGlooKubeInstallClient{},
 			}
 
-			if err := glooInstall.InstallGloo(opts, installSpec, &kubeInstallClient); err != nil {
+			if err := glooInstall.InstallGloo(opts, *installSpec, &kubeInstallClient); err != nil {
 				return err
 			}
 
@@ -71,4 +53,30 @@ func GatewayCmd(opts *options.Options, optsExt *optionsExt.ExtraOptions) *cobra.
 		},
 	}
 	return cmd
+}
+
+func GetInstallSpec(opts *options.Options, optsExt *optionsExt.ExtraOptions) (*glooInstall.GlooInstallSpec, error) {
+	glooEVersion, err := getGlooEVersion(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get location of Gloo helm chart
+	helmChartArchiveUri := fmt.Sprintf(GlooEHelmRepoTemplate, glooEVersion)
+	if helmChartOverride := opts.Install.HelmChartOverride; helmChartOverride != "" {
+		helmChartArchiveUri = helmChartOverride
+	}
+
+	extraValues := map[string]string{
+		"license_key":                     optsExt.Install.LicenseKey,
+		"gloo:\n  namespace:\n    create": "true",
+	}
+
+	return &glooInstall.GlooInstallSpec{
+		HelmArchiveUri:   helmChartArchiveUri,
+		ProductName:      "glooe",
+		ValueFileName:    "",
+		ExtraValues:      extraValues,
+		ExcludeResources: getExcludeExistingPVCs(opts.Install.Namespace),
+	}, nil
 }
