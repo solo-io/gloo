@@ -1,6 +1,8 @@
 package secret_test
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -36,6 +38,22 @@ var _ = Describe("ExtauthOauth", func() {
 		err := testutils.GlooctlEE("create secret oauth --name oauth --namespace gloo-system")
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("client-secret not provided"))
+	})
+
+	It("can print the kube yaml in dry run", func() {
+		out, err := testutils.GlooctlEEOut("create secret oauth --name oauth --namespace gloo-system --client-secret 123 --dry-run")
+		Expect(err).NotTo(HaveOccurred())
+		fmt.Print(out)
+		Expect(out).To(Equal(`data:
+  extension: Y29uZmlnOgogIGNsaWVudF9zZWNyZXQ6ICIxMjMiCg==
+metadata:
+  annotations:
+    resource_kind: '*v1.Secret'
+  creationTimestamp: null
+  name: oauth
+  namespace: gloo-system
+`))
+
 	})
 
 })

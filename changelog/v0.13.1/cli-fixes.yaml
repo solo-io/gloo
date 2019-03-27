@@ -1,0 +1,7 @@
+changelog:
+  - type: FIX
+    description: "`glooctl create virtualservice` now sets the display name if the flag is provided, or defaults to the name."
+    issueLink: https://github.com/solo-io/solo-projects/issues/557
+  - type: NEW_FEATURE
+    description: "`glooctl create virtualservice` and `glooctl create secret oauth` now also support `--dry-run`. This was already supported for other commands inherited from open source `glooctl`."
+    issueLink: https://github.com/solo-io/solo-projects/issues/558

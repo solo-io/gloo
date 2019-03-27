@@ -6,6 +6,7 @@ import (
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/common"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
@@ -77,6 +78,11 @@ func createVirtualService(opts *options.Options, optsExt *optionsExt.ExtraOption
 	if err != nil {
 		return err
 	}
+
+	if opts.Create.DryRun {
+		return common.PrintKubeCrd(vs, v1.VirtualServiceCrd)
+	}
+
 	virtualServiceClient := helpers.MustVirtualServiceClient()
 	vs, err = virtualServiceClient.Write(vs, clients.WriteOpts{})
 	if err != nil {
@@ -88,15 +94,21 @@ func createVirtualService(opts *options.Options, optsExt *optionsExt.ExtraOption
 	return nil
 }
 
+// TODO: dedupe with Gloo
 func virtualServiceFromOpts(meta core.Metadata, input options.InputVirtualService, extopts optionsExt.ExtraOptions) (*v1.VirtualService, error) {
 	if len(input.Domains) == 0 {
 		input.Domains = defaultDomains
+	}
+	displayName := meta.Name
+	if input.DisplayName != "" {
+		displayName = input.DisplayName
 	}
 	vs := &v1.VirtualService{
 		Metadata: meta,
 		VirtualHost: &gloov1.VirtualHost{
 			Domains: input.Domains,
 		},
+		DisplayName: displayName,
 	}
 	rl := extopts.RateLimit
 	if rl.Enable {

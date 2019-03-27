@@ -1,6 +1,8 @@
 package create_test
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -138,6 +140,28 @@ var _ = Describe("Virtualservice", func() {
 			})
 		})
 
+	})
+
+	var _ = Describe("dry-run", func() {
+		It("can print as kube yaml in dry run", func() {
+			out, err := testutils.GlooctlEEOut("create virtualservice kube --dry-run --name vs --domains foo.bar,baz.qux")
+			Expect(err).NotTo(HaveOccurred())
+			fmt.Print(out)
+			Expect(out).To(Equal(`apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  creationTimestamp: null
+  name: vs
+  namespace: gloo-system
+spec:
+  displayName: vs
+  virtualHost:
+    domains:
+    - foo.bar
+    - baz.qux
+status: {}
+`))
+		})
 	})
 
 })

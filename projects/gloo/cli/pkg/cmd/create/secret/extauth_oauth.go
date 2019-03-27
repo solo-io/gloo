@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
-	"github.com/solo-io/gloo/projects/gloo/cli/pkg/flagutils"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/common"
 
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/solo-io/gloo/pkg/cliutil"
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/helpers"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/surveyutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -38,16 +38,13 @@ func ExtAuthOathCmd(opts *options.Options) *cobra.Command {
 				}
 			}
 			// create the secret
-			if err := createOauthSecret(opts.Top.Ctx, *meta, input); err != nil {
+			if err := createOauthSecret(opts.Top.Ctx, *meta, input, opts.Create.DryRun); err != nil {
 				return err
 			}
-			fmt.Printf("Created OAuth secret [%v] in namespace [%v]\n", meta.Name, meta.Namespace)
+
 			return nil
 		},
 	}
-
-	pflags := cmd.PersistentFlags()
-	flagutils.AddMetadataFlags(pflags, meta)
 
 	flags := cmd.Flags()
 	flags.StringVar(&input.ClientSecret, "client-secret", "", "oauth client secret")
@@ -71,7 +68,7 @@ func oauthSecretArgsInteractive(meta *core.Metadata, input *extauth.OauthSecret)
 	return nil
 }
 
-func createOauthSecret(ctx context.Context, meta core.Metadata, input extauth.OauthSecret) error {
+func createOauthSecret(ctx context.Context, meta core.Metadata, input extauth.OauthSecret, dryRun bool) error {
 	if input.ClientSecret == "" {
 		return fmt.Errorf("client-secret not provided")
 	}
@@ -90,9 +87,15 @@ func createOauthSecret(ctx context.Context, meta core.Metadata, input extauth.Oa
 		},
 	}
 
+	if dryRun {
+		return common.PrintKubeSecret(ctx, secret)
+	}
+
 	secretClient := helpers.MustSecretClient()
 	if _, err := secretClient.Write(secret, clients.WriteOpts{Ctx: ctx}); err != nil {
 		return err
 	}
+	fmt.Printf("Created OAuth secret [%v] in namespace [%v]\n", meta.Name, meta.Namespace)
+
 	return nil
 }
