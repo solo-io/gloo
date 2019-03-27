@@ -10,9 +10,11 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 type reportFunc func(error error, format string, args ...interface{})
@@ -128,14 +130,14 @@ func setMatch(in *v1.Route, out *envoyroute.Route) {
 func (t *translator) setAction(params plugins.Params, report reportFunc, in *v1.Route, out *envoyroute.Route) {
 	switch action := in.Action.(type) {
 	case *v1.Route_RouteAction:
-		if err := validateRouteDestinations(params.Snapshot.Upstreams.List(), action.RouteAction); err != nil {
+		if err := validateRouteDestinations(params.Snapshot, action.RouteAction); err != nil {
 			report(err, "invalid route")
 		}
 
 		out.Action = &envoyroute.Route_Route{
 			Route: &envoyroute.RouteAction{},
 		}
-		if err := setRouteAction(action.RouteAction, out.Action.(*envoyroute.Route_Route).Route); err != nil {
+		if err := setRouteAction(params, action.RouteAction, out.Action.(*envoyroute.Route_Route).Route); err != nil {
 			report(err, "translator error on route")
 		}
 
@@ -189,19 +191,32 @@ func (t *translator) setAction(params plugins.Params, report reportFunc, in *v1.
 	}
 }
 
-func setRouteAction(in *v1.RouteAction, out *envoyroute.RouteAction) error {
+func setRouteAction(params plugins.Params, in *v1.RouteAction, out *envoyroute.RouteAction) error {
 	switch dest := in.Destination.(type) {
 	case *v1.RouteAction_Single:
 		out.ClusterSpecifier = &envoyroute.RouteAction_Cluster{
 			Cluster: UpstreamToClusterName(dest.Single.Upstream),
 		}
+		out.MetadataMatch = getSubsetMatch(dest.Single.Subset)
+
+		return checkThatSubsetMatchesUpstream(params, dest.Single)
 	case *v1.RouteAction_Multi:
-		return setWeightedClusters(dest.Multi, out)
+		return setWeightedClusters(params, dest.Multi, out)
+	case *v1.RouteAction_UpstreamGroup:
+		upstreamGroupRef := dest.UpstreamGroup
+		upstreamGroup, err := params.Snapshot.Upstreamgroups.List().Find(upstreamGroupRef.Namespace, upstreamGroupRef.Name)
+		if err != nil {
+			return err
+		}
+		md := &v1.MultiDestination{
+			Destinations: upstreamGroup.Destinations,
+		}
+		return setWeightedClusters(params, md, out)
 	}
-	return nil
+	return errors.Errorf("unknown upstream destination type")
 }
 
-func setWeightedClusters(multiDest *v1.MultiDestination, out *envoyroute.RouteAction) error {
+func setWeightedClusters(params plugins.Params, multiDest *v1.MultiDestination, out *envoyroute.RouteAction) error {
 	if len(multiDest.Destinations) == 0 {
 		return errors.Errorf("must specify at least one weighted destination for multi destination routes")
 	}
@@ -214,15 +229,89 @@ func setWeightedClusters(multiDest *v1.MultiDestination, out *envoyroute.RouteAc
 	for _, weightedDest := range multiDest.Destinations {
 		totalWeight += weightedDest.Weight
 		clusterSpecifier.WeightedClusters.Clusters = append(clusterSpecifier.WeightedClusters.Clusters, &envoyroute.WeightedCluster_ClusterWeight{
-			Name:   UpstreamToClusterName(weightedDest.Destination.Upstream),
-			Weight: &types.UInt32Value{Value: weightedDest.Weight},
+			Name:          UpstreamToClusterName(weightedDest.Destination.Upstream),
+			Weight:        &types.UInt32Value{Value: weightedDest.Weight},
+			MetadataMatch: getSubsetMatch(weightedDest.Destination.Subset),
 		})
+
+		err := checkThatSubsetMatchesUpstream(params, weightedDest.Destination)
+		if err != nil {
+			return err
+		}
 	}
 
 	clusterSpecifier.WeightedClusters.TotalWeight = &types.UInt32Value{Value: totalWeight}
 
 	out.ClusterSpecifier = clusterSpecifier
 	return nil
+}
+
+func getSubsetMatch(subset *v1.Subset) *envoycore.Metadata {
+	// TODO(yuval-k): should we add validation that the route subset indeed exists in the upstream?
+	if subset == nil {
+		return nil
+	}
+	return getLbMetadata(nil, subset.Values)
+}
+
+func checkThatSubsetMatchesUpstream(params plugins.Params, dest *v1.Destination) error {
+
+	// make sure we have a subset config on the route
+	if dest.Subset == nil {
+		return nil
+	}
+	if len(dest.Subset.Values) == 0 {
+		return nil
+	}
+	routeSubset := dest.Subset.Values
+
+	ref := dest.Upstream
+	upstream, err := params.Snapshot.Upstreams.List().Find(ref.Namespace, ref.Name)
+	if err != nil {
+		return err
+	}
+
+	subsetConfig := getSubsets(upstream)
+
+	// if a route has a subset config, and an upstream doesnt - its an error
+	if subsetConfig == nil {
+		return errors.Errorf("route has a subset config, but the upstream does not.")
+	}
+
+	// make sure that the subset on the route will match a subset on the upstream.
+	found := false
+Outerloop:
+	for _, subset := range subsetConfig.Selectors {
+		keys := subset.Keys
+		if len(keys) != len(routeSubset) {
+			continue
+		}
+		for _, k := range keys {
+			if _, ok := routeSubset[k]; !ok {
+				continue Outerloop
+			}
+		}
+		found = true
+		break
+	}
+
+	if !found {
+		return errors.Errorf("route has a subset config, but none of the subsets in the upstream match it.")
+
+	}
+	return nil
+}
+
+func getSubsets(upstream *v1.Upstream) *v1plugins.SubsetSpec {
+
+	specGetter, ok := upstream.UpstreamSpec.UpstreamType.(v1.SubsetSpecGetter)
+	if !ok {
+		return nil
+	}
+	glooSubsetConfig := specGetter.GetSubsetSpec()
+
+	return glooSubsetConfig
+
 }
 
 func setEnvoyPathMatcher(in *v1.Matcher, out *envoyroute.RouteMatch) {
@@ -317,15 +406,33 @@ func validateVirtualHostDomains(virtualHosts []*v1.VirtualHost) error {
 	return domainErrors
 }
 
-func validateRouteDestinations(upstreams []*v1.Upstream, action *v1.RouteAction) error {
+func validateRouteDestinations(snap *v1.ApiSnapshot, action *v1.RouteAction) error {
+	upstreams := snap.Upstreams.List()
 	// make sure the destination itself has the right structure
 	switch dest := action.Destination.(type) {
 	case *v1.RouteAction_Single:
 		return validateSingleDestination(upstreams, dest.Single)
 	case *v1.RouteAction_Multi:
 		return validateMultiDestination(upstreams, dest.Multi.Destinations)
+	case *v1.RouteAction_UpstreamGroup:
+		return validateUpstreamGroup(snap, dest.UpstreamGroup)
 	}
-	return errors.Errorf("must specify either 'single_destination' or 'multiple_destinations' for action")
+	return errors.Errorf("must specify either 'singleDestination', 'multipleDestinations' or 'upstreamGroup' for action")
+}
+
+func validateUpstreamGroup(snap *v1.ApiSnapshot, ref *core.ResourceRef) error {
+
+	upstreamGroup, err := snap.Upstreamgroups.List().Find(ref.Namespace, ref.Name)
+	if err != nil {
+		return errors.Wrap(err, "invalid destination for upstream group")
+	}
+	upstreams := snap.Upstreams.List()
+
+	err = validateMultiDestination(upstreams, upstreamGroup.Destinations)
+	if err != nil {
+		return errors.Wrap(err, "invalid destination in weighted destination in upstream group")
+	}
+	return nil
 }
 
 func validateMultiDestination(upstreams []*v1.Upstream, destinations []*v1.WeightedDestination) error {

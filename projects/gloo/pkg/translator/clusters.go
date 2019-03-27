@@ -56,6 +56,7 @@ func (t *translator) initializeCluster(upstream *v1.Upstream, endpoints []*v1.En
 		Name:            UpstreamToClusterName(upstream.Metadata.Ref()),
 		Metadata:        new(envoycore.Metadata),
 		CircuitBreakers: getCircuitBreakers(upstream.UpstreamSpec.CircuitBreakers, t.settings.CircuitBreakers),
+		LbSubsetConfig:  createLbConfig(upstream),
 		// this field can be overridden by plugins
 		ConnectTimeout: ClusterConnectionTimeout,
 	}
@@ -66,6 +67,28 @@ func (t *translator) initializeCluster(upstream *v1.Upstream, endpoints []*v1.En
 		}
 	}
 	return out
+}
+
+func createLbConfig(upstream *v1.Upstream) *envoyapi.Cluster_LbSubsetConfig {
+	specGetter, ok := upstream.UpstreamSpec.UpstreamType.(v1.SubsetSpecGetter)
+	if !ok {
+		return nil
+	}
+	glooSubsetConfig := specGetter.GetSubsetSpec()
+	if glooSubsetConfig == nil {
+		return nil
+	}
+
+	subsetConfig := &envoyapi.Cluster_LbSubsetConfig{
+		FallbackPolicy: envoyapi.Cluster_LbSubsetConfig_ANY_ENDPOINT,
+	}
+	for _, keys := range glooSubsetConfig.Selectors {
+		subsetConfig.SubsetSelectors = append(subsetConfig.SubsetSelectors, &envoyapi.Cluster_LbSubsetConfig_LbSubsetSelector{
+			Keys: keys.Keys,
+		})
+	}
+
+	return subsetConfig
 }
 
 // TODO: add more validation here

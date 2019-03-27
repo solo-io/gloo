@@ -13,10 +13,14 @@ import (
 	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	types "github.com/gogo/protobuf/types"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	v1plugins "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins"
+	v1kubernetes "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/kubernetes"
 	v1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
-	staticplugin "github.com/solo-io/gloo/projects/gloo/pkg/plugins/static"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/registry"
 	"github.com/solo-io/gloo/projects/gloo/pkg/xds"
+	envoycache "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache"
 	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -28,7 +32,9 @@ var _ = Describe("Translator", func() {
 		proxy      *v1.Proxy
 		params     plugins.Params
 		matcher    *v1.Matcher
+		routes     []*v1.Route
 
+		snapshot            envoycache.Snapshot
 		cluster             *envoyapi.Cluster
 		listener            *envoyapi.Listener
 		hcm_cfg             *envoyhttp.HttpConnectionManager
@@ -38,9 +44,10 @@ var _ = Describe("Translator", func() {
 	BeforeEach(func() {
 		cluster = nil
 		settings = &v1.Settings{}
-		tplugins := []plugins.Plugin{
-			staticplugin.NewPlugin(),
+		opts := bootstrap.Opts{
+			Settings: settings,
 		}
+		tplugins := registry.Plugins(opts)
 		translator = NewTranslator(tplugins, settings)
 
 		upname := core.Metadata{
@@ -62,6 +69,7 @@ var _ = Describe("Translator", func() {
 				},
 			},
 		}
+
 		params = plugins.Params{
 			Ctx: context.Background(),
 			Snapshot: &v1.ApiSnapshot{
@@ -77,8 +85,25 @@ var _ = Describe("Translator", func() {
 				Prefix: "/",
 			},
 		}
+		routes = []*v1.Route{{
+			Matcher: matcher,
+			Action: &v1.Route_RouteAction{
+				RouteAction: &v1.RouteAction{
+					Destination: &v1.RouteAction_Single{
+						Single: &v1.Destination{
+							Upstream: upname.Ref(),
+						},
+					},
+				},
+			},
+		}}
+	})
+	JustBeforeEach(func() {
 		proxy = &v1.Proxy{
-			Metadata: upname,
+			Metadata: core.Metadata{
+				Name:      "test",
+				Namespace: "gloo-system",
+			},
 			Listeners: []*v1.Listener{{
 				Name:        "listener",
 				BindAddress: "127.0.0.1",
@@ -88,18 +113,7 @@ var _ = Describe("Translator", func() {
 						VirtualHosts: []*v1.VirtualHost{{
 							Name:    "virt1",
 							Domains: []string{"*"},
-							Routes: []*v1.Route{{
-								Matcher: matcher,
-								Action: &v1.Route_RouteAction{
-									RouteAction: &v1.RouteAction{
-										Destination: &v1.RouteAction_Single{
-											Single: &v1.Destination{
-												Upstream: upname.Ref(),
-											},
-										},
-									},
-								},
-							}},
+							Routes:  routes,
 						}},
 					},
 				},
@@ -135,6 +149,8 @@ var _ = Describe("Translator", func() {
 		routeResource := routes.Items["listener-routes"]
 		route_configuration = routeResource.ResourceProto().(*envoyapi.RouteConfiguration)
 		Expect(route_configuration).NotTo(BeNil())
+
+		snapshot = snap
 
 	}
 
@@ -275,4 +291,242 @@ var _ = Describe("Translator", func() {
 		})
 
 	})
+
+	Context("when handling upstream groups", func() {
+
+		var (
+			upstream2     *v1.Upstream
+			upstreamGroup *v1.UpstreamGroup
+		)
+
+		BeforeEach(func() {
+			upstream2 = &v1.Upstream{
+				Metadata: core.Metadata{
+					Name:      "test2",
+					Namespace: "gloo-system",
+				},
+				UpstreamSpec: &v1.UpstreamSpec{
+					UpstreamType: &v1.UpstreamSpec_Static{
+						Static: &v1static.UpstreamSpec{
+							Hosts: []*v1static.Host{
+								{
+									Addr: "Test2",
+									Port: 124,
+								},
+							},
+						},
+					},
+				},
+			}
+			upstreamGroup = &v1.UpstreamGroup{
+				Metadata: core.Metadata{
+					Name:      "test",
+					Namespace: "gloo-system",
+				},
+				Destinations: []*v1.WeightedDestination{
+					{
+						Weight: 1,
+						Destination: &v1.Destination{
+							Upstream: upstream.Metadata.Ref(),
+						},
+					},
+					{
+						Weight: 1,
+						Destination: &v1.Destination{
+							Upstream: upstream2.Metadata.Ref(),
+						},
+					},
+				},
+			}
+			params.Snapshot.Upstreams["gloo-system"] = append(params.Snapshot.Upstreams["gloo-system"], upstream2)
+			params.Snapshot.Upstreamgroups = v1.UpstreamgroupsByNamespace{
+				"gloo-system": v1.UpstreamGroupList{
+					upstreamGroup,
+				},
+			}
+			ref := upstreamGroup.Metadata.Ref()
+			routes = []*v1.Route{{
+				Matcher: matcher,
+				Action: &v1.Route_RouteAction{
+					RouteAction: &v1.RouteAction{
+						Destination: &v1.RouteAction_UpstreamGroup{
+							UpstreamGroup: &ref,
+						},
+					},
+				},
+			}}
+		})
+
+		It("should translate upstream groups", func() {
+			translate()
+
+			route := route_configuration.VirtualHosts[0].Routes[0].GetRoute()
+			Expect(route).ToNot(BeNil())
+			clusters := route.GetWeightedClusters()
+			Expect(clusters).ToNot(BeNil())
+			Expect(clusters.TotalWeight.Value).To(BeEquivalentTo(2))
+			Expect(clusters.Clusters).To(HaveLen(2))
+			Expect(clusters.Clusters[0].Name).To(Equal(UpstreamToClusterName(upstream.Metadata.Ref())))
+			Expect(clusters.Clusters[1].Name).To(Equal(UpstreamToClusterName(upstream2.Metadata.Ref())))
+		})
+
+		It("should error on invalid ref in upstream groups", func() {
+			upstreamGroup.Destinations[0].Destination.Upstream.Name = "notexist"
+
+			_, errs, err := translator.Translate(params, proxy)
+			Expect(err).NotTo(HaveOccurred())
+			err = errs.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("destination # 1: upstream not found: list did not find upstream gloo-system.notexist"))
+		})
+
+	})
+
+	Context("when handling subsets", func() {
+		var (
+			cla_configuration *envoyapi.ClusterLoadAssignment
+		)
+		BeforeEach(func() {
+			cla_configuration = nil
+
+			upstream.UpstreamSpec.UpstreamType = &v1.UpstreamSpec_Kube{
+				Kube: &v1kubernetes.UpstreamSpec{
+					SubsetSpec: &v1plugins.SubsetSpec{
+						Selectors: []*v1plugins.Selector{{
+							Keys: []string{
+								"testkey",
+							},
+						}},
+					},
+				},
+			}
+			ref := upstream.Metadata.Ref()
+			params.Snapshot.Endpoints = v1.EndpointsByNamespace{
+				"gloo-system": v1.EndpointList{
+					{
+						Metadata: core.Metadata{
+							Name:      "test",
+							Namespace: "gloo-system",
+							Labels:    map[string]string{"testkey": "testvalue"},
+						},
+						Upstreams: []*core.ResourceRef{
+							&ref,
+						},
+						Address: "1.2.3.4",
+						Port:    1234,
+					},
+				},
+			}
+
+			routes = []*v1.Route{{
+				Matcher: matcher,
+				Action: &v1.Route_RouteAction{
+					RouteAction: &v1.RouteAction{
+						Destination: &v1.RouteAction_Single{
+							Single: &v1.Destination{
+								Upstream: upstream.Metadata.Ref(),
+								Subset: &v1.Subset{
+									Values: map[string]string{
+										"testkey": "testvalue",
+									},
+								},
+							},
+						},
+					},
+				},
+			}}
+
+		})
+
+		translateWithEndpoints := func() {
+			translate()
+
+			endpoints := snapshot.GetResources(xds.EndpointType)
+
+			clusterName := UpstreamToClusterName(upstream.Metadata.Ref())
+			Expect(endpoints.Items).To(HaveKey(clusterName))
+			endpointsResource := endpoints.Items[clusterName]
+			cla_configuration = endpointsResource.ResourceProto().(*envoyapi.ClusterLoadAssignment)
+			Expect(cla_configuration).NotTo(BeNil())
+			Expect(cla_configuration.ClusterName).To(Equal(clusterName))
+			Expect(cla_configuration.Endpoints).To(HaveLen(1))
+			Expect(cla_configuration.Endpoints[0].LbEndpoints).To(HaveLen(len(params.Snapshot.Endpoints["gloo-system"])))
+		}
+
+		Context("when happy path", func() {
+
+			It("should transfer labels to envoy", func() {
+				translateWithEndpoints()
+
+				endpointMeta := cla_configuration.Endpoints[0].LbEndpoints[0].Metadata
+				fields := endpointMeta.FilterMetadata["envoy.lb"].Fields
+				Expect(fields).To(HaveKeyWithValue("testkey", sv("testvalue")))
+			})
+
+			It("should add subset to cluster", func() {
+				translateWithEndpoints()
+
+				Expect(cluster.LbSubsetConfig).ToNot(BeNil())
+				Expect(cluster.LbSubsetConfig.FallbackPolicy).To(Equal(envoyapi.Cluster_LbSubsetConfig_ANY_ENDPOINT))
+				Expect(cluster.LbSubsetConfig.SubsetSelectors).To(HaveLen(1))
+				Expect(cluster.LbSubsetConfig.SubsetSelectors[0].Keys).To(HaveLen(1))
+				Expect(cluster.LbSubsetConfig.SubsetSelectors[0].Keys[0]).To(Equal("testkey"))
+			})
+			It("should add subset to route", func() {
+				translateWithEndpoints()
+
+				metadatamatch := route_configuration.VirtualHosts[0].Routes[0].GetRoute().GetMetadataMatch()
+				fields := metadatamatch.FilterMetadata["envoy.lb"].Fields
+				Expect(fields).To(HaveKeyWithValue("testkey", sv("testvalue")))
+			})
+		})
+
+		It("should create empty value if missing labels on the endpoint are provided in the upstream", func() {
+			params.Snapshot.Endpoints["gloo-system"][0].Metadata.Labels = nil
+			translateWithEndpoints()
+			endpointMeta := cla_configuration.Endpoints[0].LbEndpoints[0].Metadata
+			Expect(endpointMeta).ToNot(BeNil())
+			Expect(endpointMeta.FilterMetadata).To(HaveKey("envoy.lb"))
+			fields := endpointMeta.FilterMetadata["envoy.lb"].Fields
+			Expect(fields).To(HaveKeyWithValue("testkey", sv("")))
+		})
+
+		Context("bad route", func() {
+			BeforeEach(func() {
+				routes = []*v1.Route{{
+					Matcher: matcher,
+					Action: &v1.Route_RouteAction{
+						RouteAction: &v1.RouteAction{
+							Destination: &v1.RouteAction_Single{
+								Single: &v1.Destination{
+									Upstream: upstream.Metadata.Ref(),
+									Subset: &v1.Subset{
+										Values: map[string]string{
+											"nottestkey": "value",
+										},
+									},
+								},
+							},
+						},
+					},
+				}}
+			})
+
+			It("should error a route when subset in route doesnt match subset in upstream", func() {
+				_, errs, err := translator.Translate(params, proxy)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(errs.Validate()).To(HaveOccurred())
+			})
+		})
+
+	})
+
 })
+
+func sv(s string) *types.Value {
+	return &types.Value{
+		Kind: &types.Value_StringValue{
+			StringValue: s,
+		},
+	}
+}
