@@ -11,10 +11,10 @@ import (
 	"context"
 	"sync/atomic"
 
+	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -120,7 +120,10 @@ func RunGlooGatewayUdsFdsOnPort(ctx context.Context, cache memory.InMemoryResour
 		opts := DefaultTestConstructOpts(ctx, cache, ns)
 		go gatewaysyncer.RunGateway(opts)
 	}
-	glooopts.Extensions = extensions
+	settings := v1.Settings{
+		Extensions: extensions,
+	}
+	glooopts.Settings = &settings
 	glooopts.ControlPlane.StartGrpcServer = true
 	go syncer.RunGlooWithExtensions(glooopts, setup.GetGlooEeExtensions())
 	if !what.DisableFds {

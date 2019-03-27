@@ -119,7 +119,9 @@ func generateValuesYaml(version, pullPolicy, outputFile, repoPrefixOverride stri
 	}
 
 	config.Gloo.Gloo.Deployment.Image.Tag = version
-	config.Gloo.GatewayProxy.Deployment.Image.Tag = version
+	for _, v := range config.Gloo.GatewayProxies {
+		v.Deployment.Image.Tag = version
+	}
 	config.Gloo.IngressProxy.Deployment.Image.Tag = version
 	// Use open source gloo version for discovery and gateway
 	config.Gloo.Discovery.Deployment.Image.Tag = osGlooVersion
@@ -131,7 +133,9 @@ func generateValuesYaml(version, pullPolicy, outputFile, repoPrefixOverride stri
 	config.ApiServer.Deployment.Ui.Image.Tag = glooiVersion
 
 	config.Gloo.Gloo.Deployment.Image.PullPolicy = pullPolicy
-	config.Gloo.GatewayProxy.Deployment.Image.PullPolicy = pullPolicy
+	for _, v := range config.Gloo.GatewayProxies {
+		v.Deployment.Image.PullPolicy = pullPolicy
+	}
 	config.Gloo.IngressProxy.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.Discovery.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
@@ -144,7 +148,9 @@ func generateValuesYaml(version, pullPolicy, outputFile, repoPrefixOverride stri
 
 	if repoPrefixOverride != "" {
 		config.Gloo.Gloo.Deployment.Image.Repository = replacePrefix(config.Gloo.Gloo.Deployment.Image.Repository, repoPrefixOverride)
-		config.Gloo.GatewayProxy.Deployment.Image.Repository = replacePrefix(config.Gloo.GatewayProxy.Deployment.Image.Repository, repoPrefixOverride)
+		for _, v := range config.Gloo.GatewayProxies {
+			v.Deployment.Image.Repository = replacePrefix(v.Deployment.Image.Repository, repoPrefixOverride)
+		}
 		config.Gloo.IngressProxy.Deployment.Image.Repository = replacePrefix(config.Gloo.IngressProxy.Deployment.Image.Repository, repoPrefixOverride)
 		config.RateLimit.Deployment.Image.Repository = replacePrefix(config.RateLimit.Deployment.Image.Repository, repoPrefixOverride)
 		config.Observability.Deployment.Image.Repository = replacePrefix(config.Observability.Deployment.Image.Repository, repoPrefixOverride)

@@ -11,7 +11,7 @@ import (
 
 	"github.com/gogo/protobuf/types"
 
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/go-utils/contextutils"
 
 	pb "github.com/envoyproxy/go-control-plane/envoy/service/ratelimit/v2"
 	"github.com/solo-io/rate-limiter/pkg/redis"

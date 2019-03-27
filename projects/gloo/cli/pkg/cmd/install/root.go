@@ -40,7 +40,7 @@ func UninstallCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *c
 		Short: constants.UNINSTALL_COMMAND.Short,
 		Long:  constants.UNINSTALL_COMMAND.Long,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Printf("Uninstalling GlooE. This might take a while...\n")
+			fmt.Printf("Uninstalling GlooE...\n")
 
 			glooInstall.UninstallGloo(opts, &installUtil.CmdKubectl{})
 

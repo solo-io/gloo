@@ -53,7 +53,7 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	locker, err = clusterlock.NewTestClusterLocker(MustKubeClient(), "")
+	locker, err = clusterlock.NewTestClusterLocker(MustKubeClient(), clusterlock.Options{})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(locker.AcquireLock(retry.Attempts(20))).NotTo(HaveOccurred())
 

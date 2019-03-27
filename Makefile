@@ -478,9 +478,9 @@ endif
 #
 # The regression tests will use the generated Gloo Chart to install Gloo to the GKE test cluster.
 
-.PHONY: build-test-assets
+.PHONY: build-test-assets $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
 build-test-assets: push-test-images build-test-chart
-.PHONY: build-kind-assets
+.PHONY: build-kind-assets $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
 build-kind-assets: push-kind-images build-kind-chart
 TEST_DOCKER_TARGETS := apiserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test sqoop-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test
 
@@ -509,7 +509,7 @@ gloo-ee-envoy-wrapper-docker-test: $(OUTPUT_DIR)/envoyinit-linux-amd64 $(OUTPUT_
 	docker push $(call get_test_tag,gloo-ee-envoy-wrapper)
 
 .PHONY: build-test-chart
-build-test-chart: $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
+build-test-chart:
 	mkdir -p $(TEST_ASSET_DIR)
 	go run install/helm/gloo-ee/generate.go $(TEST_IMAGE_TAG) $(GCR_REPO_PREFIX)
 	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/
@@ -519,7 +519,7 @@ build-test-chart: $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin
 	helm repo index $(TEST_ASSET_DIR)
 
 .PHONY: build-kind-chart
-build-kind-chart: $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
+build-kind-chart:
 	mkdir -p $(TEST_ASSET_DIR)
 	go run install/helm/gloo-ee/generate.go $(VERSION)
 	helm repo add helm-hub https://kubernetes-charts.storage.googleapis.com/

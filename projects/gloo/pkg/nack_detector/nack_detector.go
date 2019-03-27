@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/go-utils/contextutils"
 
 	xds "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/server"
 

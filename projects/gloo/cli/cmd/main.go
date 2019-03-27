@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/helpers"
 
-	"github.com/solo-io/solo-projects/pkg/cliutil"
+	"github.com/solo-io/gloo/pkg/cliutil"
 
 	check "github.com/solo-io/go-checkpoint"
 	"github.com/solo-io/solo-projects/pkg/version"
@@ -19,9 +19,7 @@ func main() {
 	start := time.Now()
 	defer check.CallReport("glooctl-ee", version.Version, start)
 
-	if err := cliutil.Initialize(); err != nil {
-		cliutil.Logger = os.Stdout
-	}
+	cliutil.Initialize()
 
 	if err := helpers.CheckKubernetesConnection(); err != nil {
 		fmt.Println(errors.Wrapf(err, "Error: unable to connect to kubernetes"))

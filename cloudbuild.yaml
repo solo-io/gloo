@@ -65,7 +65,7 @@ steps:
   args: ['check-format', 'build-scripts']
   waitFor: ['dep']
   id: 'check-format'
-- name: 'gcr.io/$PROJECT_ID/go-make'
+- name: 'gcr.io/$PROJECT_ID/go-make:0.1.5'
   entrypoint: 'bash'
   args: ['ci/check-code-and-docs-gen.sh']
   env:
@@ -122,7 +122,7 @@ steps:
 # e2e-ginkgo is produced from https://github.com/solo-io/cloud-builders/e2e-ginkgo
 # sets up redis, consul, kubectl, go with required environment variables
 # need to use the provided entrypoint
-- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo'
+- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.1.5'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   env:
   - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
@@ -133,6 +133,7 @@ steps:
   - 'RUN_KUBE_TESTS=1'
   - 'CLOUD_BUILD=1'
   - 'GOPATH=/workspace/gopath'
+  - 'HELM_HOME=/root/.helm'
   args: ['-r']
   waitFor: ['dep', 'get-envoy', 'setup-aws-creds']
   id: 'test'
@@ -183,7 +184,7 @@ steps:
   dir: './gopath/src/github.com/solo-io/solo-projects'
   waitFor: ['build-cli', 'build-images', 'docker-login', 'test']
   id: 'build-test-assets'
-- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo'
+- name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.1.5'
   env:
     - 'PROJECT_ROOT=github.com/solo-io/gloo'
     - 'GOPATH=/workspace/gopath'

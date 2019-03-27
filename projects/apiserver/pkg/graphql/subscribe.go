@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 )
 

@@ -8,7 +8,7 @@ import (
 
 	"github.com/gogo/protobuf/types"
 
-	"github.com/solo-io/solo-kit/pkg/utils/contextutils"
+	"github.com/solo-io/go-utils/contextutils"
 
 	pb "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2"
 	extauthconfig "github.com/solo-io/ext-auth-service/pkg/config"
