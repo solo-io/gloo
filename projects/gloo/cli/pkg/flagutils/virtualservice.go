@@ -22,7 +22,7 @@ func addVirtualServiceFlagsRateLinmit(set *pflag.FlagSet, rl *options.RateLimit)
 func addVirtualServiceFlagsOIDC(set *pflag.FlagSet, oidc *options.OIDCAuth) {
 	// TODO: add support for authorization when it is supported for ratelimit
 	//set.StringVar(&virtualHostPlugins.RateLimits.AuthrorizedHeader, "rate-limit-authorize-header", "", "header name used to authorize requests")
-	set.BoolVar(&oidc.Enable, "enable-oidc-auth", false, "enable rate limiting features for this virtual service")
+	set.BoolVar(&oidc.Enable, "enable-oidc-auth", false, "enable oidc auth features for this virtual service")
 	set.StringVar(&oidc.ClientId, "oidc-auth-client-id", "", "client id as registered with id provider")
 	set.StringVar(&oidc.ClientSecretRef.Name, "oidc-auth-client-secret-name", "", "name of the 'client secret' secret")
 	set.StringVar(&oidc.ClientSecretRef.Namespace, "oidc-auth-client-secret-namespace", "", "namespace of the 'client secret' secret")

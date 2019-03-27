@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fixed the description of the `--enable-oidc-auth` flag for `glooctl` virtual service commands.
+    issueLink: https://github.com/solo-io/solo-projects/issues/561
