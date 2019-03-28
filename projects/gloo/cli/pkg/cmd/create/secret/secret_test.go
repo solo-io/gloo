@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/create/secret"
+
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils"
 
 	"io/ioutil"
@@ -21,6 +23,14 @@ var _ = Describe("Secret", func() {
 
 	BeforeEach(func() {
 		helpers.UseMemoryClients()
+	})
+
+	Context("Empty args and flags", func() {
+		It("should give clear error message", func() {
+			err := testutils.Glooctl("create secret")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal(secret.EmptyCreateError))
+		})
 	})
 
 	Context("AWS", func() {
