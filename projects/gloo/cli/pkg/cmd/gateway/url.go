@@ -47,6 +47,28 @@ func urlCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.C
 	return cmd
 }
 
+func addressCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "address",
+		Short: "print the socket address for a proxy",
+		Long:  "Use this command to view the address (host:port) of a Proxy reachable from outside the cluster. You can connect to this address from a host on the same network (such as the host machine, in the case of minikube/minishift).",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ingressHost, err := getIngressHost(opts)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%v\n", ingressHost)
+			return nil
+		},
+	}
+
+	cmd.PersistentFlags().BoolVarP(&opts.Proxy.LocalCluster, "local-cluster", "l", false,
+		"use when the target kubernetes cluster is running locally, e.g. in minikube or minishift. this will default "+
+			"to true if LoadBalanced services are not assigned external IPs by your cluster")
+	cliutils.ApplyOptions(cmd, optionsFunc)
+	return cmd
+}
+
 func getIngressHost(opts *options.Options) (string, error) {
 	restCfg, err := kubeutils.GetConfig("", "")
 	if err != nil {
@@ -98,7 +120,6 @@ func getIngressHost(opts *options.Options) (string, error) {
 		port = fmt.Sprintf("%v", svcPort.Port)
 	}
 	return host + ":" + port, nil
-
 }
 
 func getNodeIp(svc *v1.Service, kube kubernetes.Interface) (string, error) {

@@ -20,6 +20,7 @@ func RootCmd(opts *options.Options, optionsFunc ...cliutils.OptionsFunc) *cobra.
 
 	flagutils.AddNamespaceFlag(cmd.PersistentFlags(), &opts.Metadata.Namespace)
 
+	cmd.AddCommand(addressCmd(opts))
 	cmd.AddCommand(urlCmd(opts))
 	cmd.AddCommand(dumpCmd(opts))
 	cmd.AddCommand(logsCmd(opts))
