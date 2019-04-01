@@ -137,6 +137,7 @@ var _ = Describe("Ratelimit tests", func() {
 			Service:           gatewayProxy,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
+			Verbose:           true,
 		}, "429", 1, time.Minute*5)
 	}
 

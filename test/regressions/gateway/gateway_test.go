@@ -20,6 +20,8 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	"github.com/solo-io/solo-kit/pkg/errors"
+	qm "github.com/solo-io/solo-projects/projects/apiserver/test/queries"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
@@ -73,7 +75,9 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 	AfterEach(func() {
 		cancel()
 		err := virtualServiceClient.Delete(testHelper.InstallNamespace, "vs", clients.DeleteOpts{})
-		Expect(err).NotTo(HaveOccurred())
+		if err != nil && !errors.IsNotExist(err) {
+			Expect(err).NotTo(HaveOccurred())
+		}
 	})
 
 	It("can route request to upstream", func() {
@@ -208,6 +212,53 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				CaFile:            "/tmp/ca.crt",
 				ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
 			}, helper.SimpleHttpResponse, 1, time.Minute*2)
+		})
+	})
+
+	Context("Call Apiserver", func() {
+		apiServer := ApiServer{
+			Origin: "http://apiserver-ui:8088",
+			// Origin: "http://localhost:8082",
+			// Token:  "any_string",
+		}
+		addr := os.Getenv("APISERVER_ADDR")
+		if addr != "" {
+			apiServer.Origin = addr
+		}
+
+		It("should call apiserver correctly", func() {
+
+			By("Basic Query")
+			testHelper.CurlEventuallyShouldRespond(
+				apiserverCurlOptions(qm.BasicUpstreamsQuery),
+				qm.BasicUpstreamsQueryMatch,
+				1,
+				time.Minute*2)
+
+			// After the first call has succeeded we can trust that the server is ready
+			By("Root Query")
+			response, err := testHelper.Curl(apiserverCurlOptions(qm.RootQuery))
+			Expect(err).NotTo(HaveOccurred())
+			re := unmarshalGqlResponse(response)
+			Expect(re.Errors).NotTo(HaveOccurred())
+			nsInterfaceList, ok := re.Data["allNamespaces"]
+			Expect(ok).To(BeTrue())
+			nsList, ok := nsInterfaceList.([]interface{})
+			Expect(ok).To(BeTrue())
+			Expect(len(nsList)).To(BeNumerically(">", 0))
+
+			// Run the recorded queries
+			recordedQueries := qm.Queries_6362475465567435311
+			// recordedQueries = append(recordedQueries, qm.Queries_to_be_recorded_later...)
+			By(fmt.Sprintf("Run %v recorded queries", len(recordedQueries)))
+			for i, q := range recordedQueries {
+				By(fmt.Sprintf("Recorded query %v", i))
+				response, err := testHelper.Curl(apiserverCurlOptions(q))
+				Expect(err).NotTo(HaveOccurred())
+				re := unmarshalGqlResponse(response)
+				Expect(re.Errors).NotTo(HaveOccurred())
+			}
+
 		})
 	})
 })

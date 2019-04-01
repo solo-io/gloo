@@ -1,0 +1,8 @@
+changelog:
+- type: NON_USER_FACING
+  description: e2e tests for apiserver.
+- dependencyOwner: solo-io
+  dependencyRepo: go-utils
+  dependencyTag: v0.6.3
+  description: Use updated curl util.
+  type: DEPENDENCY_BUMP
