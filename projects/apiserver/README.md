@@ -32,6 +32,7 @@ make record
 - **Make some queries in the playground or by interacting with the UI.**
   - Playground:
     - Tip: include an operation name with your queries and it will be recorded too. This can help you sort through the recordings and prune the ones you do not care about.
+    - **If you are creating resources, please use the `default` namespace** so it can be substituted with the randomly generated namespace used during the regression tests.
   - UI:
     - See footnotes
 - You can view the queries at `localhost:8082/querylog` or `localhost:8082/querylog/go`
@@ -65,12 +66,21 @@ var Queries_6362475465567435311 = []string{
   - Your `my_new_records.go` file will include a single exported list of queries titled `Queries_<random_number>`
   - insert it in `gateway_test.go` by appending it to the `recordedQueries` slice as follows:
 ```go
-			// recordedQueries = append(recordedQueries, qm.Queries_to_be_recorded_later...)
+			recordedQueries = append(recordedQueries, qm.Queries_to_be_recorded_later...)
+```
+  - Preferrably, pass your queries through `ReplaceNamespaces` to replace the `default` namespace with the namespace generated for the regression test:
+    - See limitations below.
+```go
+			recordedQueries = append(recordedQueries, qm.ReplaceNamespaces(qm.Queries_1731087844762345556, testHelper.InstallNamespace)...)
 ```
 - **Notes**
   - You may want to generate a bunch of queries and delete the ones you do not care about.
   - See below for some sample queries
   - Warning about mutations: mutations require valid resource versions. These are not repeatable during query replay. In the future, we may add logic to automatically find the correct resource versions. For now, avoid calling queries that Update or Delete CRDs. (Create and Read work as expected).
+- **Limitations**
+  - Queries ought to use a namespace that can be replaced with the namespace created for the test. This allows us to clean up all resources by simply deleting the namespace. For lack of a tool like `jq` to manipulate `gql` queries, we do a very basic substitution
+    - `"namespace":"default"` becomes `"namespace":"<regression_test_ns>"` when passed through `queries.ReplaceNamespaces`
+    - Therefore, please use the `default` namespace for any newly created resources.
 
 ## Sample GraphQL Queries for the playground
 ![playground overview](./img/playground.png)

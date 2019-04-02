@@ -1,6 +1,10 @@
 # These targets are for testing purposes only
 
-NAME ?= "recorded_query"
+RECORDED_QUERY_FILE_NAME ?= "recorded_query"
+
+.PHONY: run-basic
+run-basic:
+	NO_AUTH=1 OAUTH_SERVER="NO_SERVER_YET" OAUTH_CLIENT="NO_CLIENT_YET" DEBUG=1 go run cmd/main.go
 
 .PHONY: record
 record:
@@ -8,4 +12,4 @@ record:
 
 .PHONY: create-go-file
 create-go-file:
-	curl http://localhost:8082/querylog/go >> ./test/queries/${NAME}.go
+	curl http://localhost:8082/querylog/go >> ./test/queries/${RECORDED_QUERY_FILE_NAME}.go

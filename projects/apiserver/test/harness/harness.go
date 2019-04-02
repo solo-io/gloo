@@ -1,4 +1,4 @@
-package gateway_test
+package harness
 
 import (
 	"bytes"
@@ -7,16 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/solo-io/go-utils/testutils/helper"
 	"github.com/vektah/gqlparser/gqlerror"
 	"gopkg.in/yaml.v2"
 )
-
-func check(err error) {
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-}
 
 // ResponseErrors is the same as github.com/99designs/gqlgen/graphql.Response,
 // except, since only care about the errors, and since proper unmarshaling of
@@ -38,42 +31,7 @@ type ApiServer struct {
 	Token  string
 }
 
-func (a *ApiServer) ExpectManualQuery(name, query, variables string) {
-
-	By(fmt.Sprintf("manual query: %v", name))
-	var r string
-	Eventually(func() error {
-		var err error
-		r, err = a.CallQueryWithVariables(query, variables)
-		if err != nil {
-			return err
-		}
-		return nil
-	}, "100s", ".5s").Should(BeNil())
-	re := ResponseErrors{}
-	By(fmt.Sprintf("manual query: %v response validation", name))
-	check(yaml.Unmarshal([]byte(r), &re))
-	check(re.Errors)
-}
-
-func (a *ApiServer) ExpectRecordedQuery(name, query string) {
-	By(fmt.Sprintf("recorded query: %v", name))
-	var r string
-	var err error
-	Eventually(func() error {
-		r, err = a.CallQuery(query)
-		if err != nil {
-			return err
-		}
-		return nil
-	}, "10s", ".1s")
-	check(err)
-	re := ResponseErrors{}
-	check(yaml.Unmarshal([]byte(r), &re))
-	check(re.Errors)
-}
-
-func (a *ApiServer) CallQueryWithVariables(query, variables string) (string, error) {
+func (a *ApiServer) CallQueryWithVariables(query, variables string) (ResponseErrors, error) {
 	data := fmt.Sprintf(`{"query": "%v", "variables": %v}`, query, variables)
 	data = strings.Replace(data, "\n", " ", -1)
 	data = strings.Replace(data, "\t", " ", -1)
@@ -83,12 +41,13 @@ func (a *ApiServer) CallQueryWithVariables(query, variables string) (string, err
 // CallQuery is an adaptation of the graphiql playground's curl query to go code
 // If a Token is provided in the ApiServer, it will include the Authorization header
 // NOTE: this will only work when run from inside the cluster (or by connecting to a port-forwarded apiserver)
-func (a *ApiServer) CallQuery(data string) (string, error) {
+func (a *ApiServer) CallQuery(data string) (ResponseErrors, error) {
+
 	body := bytes.NewReader([]byte(data))
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%v/query", a.Origin), body)
 	if err != nil {
-		return "", err
+		return ResponseErrors{}, err
 	}
 	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 	req.Header.Set("Content-Type", "application/json")
@@ -102,33 +61,15 @@ func (a *ApiServer) CallQuery(data string) (string, error) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", err
+		return ResponseErrors{}, err
 	}
 	p := new(bytes.Buffer)
 	_, err = io.Copy(p, resp.Body)
 	defer resp.Body.Close()
 
-	return p.String(), nil
-}
-
-func apiserverCurlOptions(body string) helper.CurlOpts {
-	serviceName := "apiserver-ui"
-	return helper.CurlOpts{
-		Protocol:          "http",
-		Path:              "/query",
-		Method:            "POST",
-		Host:              serviceName,
-		Service:           serviceName,
-		Port:              8088,
-		ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-		Body:              body,
-		WithoutStats:      true,
-	}
-}
-
-func unmarshalGqlResponse(r string) ResponseErrors {
 	re := ResponseErrors{}
-	err := yaml.Unmarshal([]byte(r), &re)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred())
-	return re
+	if err := yaml.Unmarshal(p.Bytes(), &re); err != nil {
+		return ResponseErrors{}, err
+	}
+	return re, nil
 }

@@ -282,7 +282,8 @@ type InputRoute struct {
 }
 
 type InputRoutePlugins struct {
-	Empty *string `json:"empty"`
+	Empty         *string `json:"empty"`
+	PrefixRewrite *string `json:"prefixRewrite"`
 }
 
 type InputSecret struct {
@@ -502,7 +503,8 @@ type Route struct {
 }
 
 type RoutePlugins struct {
-	Empty *string `json:"empty"`
+	Empty         *string `json:"empty"`
+	PrefixRewrite *string `json:"prefixRewrite"`
 }
 
 type Secret struct {

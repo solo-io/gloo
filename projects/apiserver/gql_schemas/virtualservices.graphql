@@ -173,7 +173,8 @@ type VirtualServicePlugins {
 
 # not implemented
 type RoutePlugins {
-  empty: String
+  empty: String @deprecated(reason: "This was a placeholder.")
+  prefixRewrite: String
 }
 
 input InputVirtualService {
@@ -308,9 +309,9 @@ input InputMultiDestination {
   destinations: [InputWeightedDestination!]
 }
 
-# not implemented
 input InputRoutePlugins {
-  empty: String
+  empty: String @deprecated(reason: "This was a placeholder.")
+  prefixRewrite: String
 }
 
 input InputWeightedDestination {

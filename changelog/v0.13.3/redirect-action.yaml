@@ -1,0 +1,5 @@
+changelog:
+- type: NEW_FEATURE
+  description: Adds prefix rewrite capability to the apiserver.
+  issueLink: https://github.com/solo-io/gloo-i/issues/395
+  resolvesIssue: false

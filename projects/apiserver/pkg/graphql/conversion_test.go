@@ -2,6 +2,7 @@ package graphql_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -13,11 +14,19 @@ import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws"
+	"github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/mocks"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/models"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
+)
+
+var (
+	newPrefix          = "/new/prefix/"
+	route1PathMatch    = "/some-path"
+	upstream1Name      = "us-1"
+	upstream1Namespace = "us-ns-1"
 )
 
 var T *testing.T
@@ -45,7 +54,7 @@ var _ = Describe("Converter", func() {
 		// Set the return value. We need this for the Proto -> GraphQL conversion. The proto route holds a ResourceRef
 		// to the Upstream and the converter tries to resolve the dependency by retrieving the correspondent resource.
 		upstreamClient.EXPECT().
-			Read("us-ns-1", "us-1", gomock.Any()).
+			Read(upstream1Namespace, upstream1Name, gomock.Any()).
 			Return(&PROTO.upstream, nil).
 			AnyTimes()
 
@@ -209,6 +218,7 @@ var _ = Describe("Converter", func() {
 		// Finally, check the whole struct
 		Expect(result).To(BeEquivalentTo(expected))
 	})
+
 })
 
 var GRAPHQL = struct {
@@ -228,9 +238,9 @@ var GRAPHQL = struct {
 			},
 			Upstream: models.Upstream{
 				Metadata: models.Metadata{
-					Name:            "us-1",
-					Namespace:       "us-ns-1",
-					GUID:            "*v1.Upstream us-ns-1 us-1",
+					Name:            upstream1Name,
+					Namespace:       upstream1Namespace,
+					GUID:            fmt.Sprintf("*v1.Upstream %v %v", upstream1Namespace, upstream1Name),
 					ResourceVersion: "123",
 				},
 				Status: models.Status{
@@ -240,7 +250,7 @@ var GRAPHQL = struct {
 					Region: "us-east-1",
 					SecretRef: models.ResourceRef{
 						Name:      "aws-secret-1",
-						Namespace: "us-ns-1",
+						Namespace: upstream1Namespace,
 					},
 					Functions: []models.AwsLambdaFunction{{
 						LogicalName:  "aws-1",
@@ -251,7 +261,7 @@ var GRAPHQL = struct {
 			},
 		},
 		Matcher: models.Matcher{
-			PathMatch:     "/some-path",
+			PathMatch:     route1PathMatch,
 			PathMatchType: models.PathMatchTypePrefix,
 			Methods:       []string{"GET", "POST"},
 			Headers: []models.KeyValueMatcher{
@@ -269,13 +279,16 @@ var GRAPHQL = struct {
 				},
 			},
 		},
+		Plugins: &models.RoutePlugins{
+			PrefixRewrite: &newPrefix,
+		},
 	},
 	inputRoute: models.InputRoute{
 		Destination: models.InputDestination{
 			SingleDestination: &models.InputSingleDestination{
 				Upstream: models.InputResourceRef{
-					Name:      "us-1",
-					Namespace: "us-ns-1",
+					Name:      upstream1Name,
+					Namespace: upstream1Namespace,
 				},
 				DestinationSpec: &models.InputDestinationSpec{
 					Aws: &models.InputAwsDestinationSpec{
@@ -287,7 +300,7 @@ var GRAPHQL = struct {
 			},
 		},
 		Matcher: models.InputMatcher{
-			PathMatch:     "/some-path",
+			PathMatch:     route1PathMatch,
 			PathMatchType: models.PathMatchTypePrefix,
 			Methods:       []string{"GET", "POST"},
 			Headers: []models.InputKeyValueMatcher{
@@ -304,6 +317,9 @@ var GRAPHQL = struct {
 					IsRegex: true,
 				},
 			},
+		},
+		Plugins: &models.InputRoutePlugins{
+			PrefixRewrite: &newPrefix,
 		},
 	},
 	rlConfig: &models.RateLimitConfig{
@@ -336,7 +352,7 @@ var PROTO = struct {
 	route: &gloov1.Route{
 		Matcher: &gloov1.Matcher{
 			PathSpecifier: &gloov1.Matcher_Prefix{
-				Prefix: "/some-path",
+				Prefix: route1PathMatch,
 			},
 			Methods: []string{"GET", "POST"},
 			Headers: []*gloov1.HeaderMatcher{
@@ -359,8 +375,8 @@ var PROTO = struct {
 				Destination: &gloov1.RouteAction_Single{
 					Single: &gloov1.Destination{
 						Upstream: core.ResourceRef{
-							Name:      "us-1",
-							Namespace: "us-ns-1",
+							Name:      upstream1Name,
+							Namespace: upstream1Namespace,
 						},
 						DestinationSpec: &gloov1.DestinationSpec{
 							DestinationType: &gloov1.DestinationSpec_Aws{
@@ -373,6 +389,11 @@ var PROTO = struct {
 						},
 					},
 				},
+			},
+		},
+		RoutePlugins: &gloov1.RoutePlugins{
+			PrefixRewrite: &transformation.PrefixRewrite{
+				PrefixRewrite: newPrefix,
 			},
 		},
 	},
@@ -415,8 +436,8 @@ var PROTO = struct {
 			State: core.Status_Accepted,
 		},
 		Metadata: core.Metadata{
-			Name:            "us-1",
-			Namespace:       "us-ns-1",
+			Name:            upstream1Name,
+			Namespace:       upstream1Namespace,
 			ResourceVersion: "123",
 		},
 		UpstreamSpec: &gloov1.UpstreamSpec{
@@ -425,7 +446,7 @@ var PROTO = struct {
 					Region: "us-east-1",
 					SecretRef: core.ResourceRef{
 						Name:      "aws-secret-1",
-						Namespace: "us-ns-1",
+						Namespace: upstream1Namespace,
 					},
 					LambdaFunctions: []*aws.LambdaFunctionSpec{{
 						LogicalName:        "aws-1",

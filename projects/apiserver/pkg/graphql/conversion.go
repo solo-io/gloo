@@ -545,8 +545,14 @@ func convertInputQueryMatcher(queryM []InputKeyValueMatcher) []*v1.QueryParamete
 }
 
 func convertInputRoutePlugins(plugs *InputRoutePlugins) *v1.RoutePlugins {
-	// TODO(ilackaitems): convert route plugins when there are any
-	return nil
+	if plugs == nil || plugs.PrefixRewrite == nil {
+		return nil
+	}
+	return &v1.RoutePlugins{
+		PrefixRewrite: &transformation.PrefixRewrite{
+			PrefixRewrite: *plugs.PrefixRewrite,
+		},
+	}
 }
 
 func convertInputDestinations(inputDests []InputWeightedDestination) ([]*v1.WeightedDestination, error) {
@@ -928,8 +934,12 @@ func convertOutputQueryMatcher(headers []*v1.QueryParameterMatcher) []KeyValueMa
 }
 
 func convertOutputRoutePlugins(plugs *v1.RoutePlugins) *RoutePlugins {
-	// TODO(ilackaitems): convert route plugins when there are any
-	return nil
+	if plugs == nil || plugs.PrefixRewrite == nil {
+		return nil
+	}
+	return &RoutePlugins{
+		PrefixRewrite: &plugs.PrefixRewrite.PrefixRewrite,
+	}
 }
 
 func (c *Converter) convertOutputMultiDestination(dests []*v1.WeightedDestination) (*MultiDestination, error) {

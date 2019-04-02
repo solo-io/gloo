@@ -245,7 +245,8 @@ type ComplexityRoot struct {
 	}
 
 	RoutePlugins struct {
-		Empty func(childComplexity int) int
+		Empty         func(childComplexity int) int
+		PrefixRewrite func(childComplexity int) int
 	}
 
 	Secret struct {
@@ -1748,6 +1749,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RoutePlugins.Empty(childComplexity), true
+
+	case "RoutePlugins.prefixRewrite":
+		if e.complexity.RoutePlugins.PrefixRewrite == nil {
+			break
+		}
+
+		return e.complexity.RoutePlugins.PrefixRewrite(childComplexity), true
 
 	case "Secret.kind":
 		if e.complexity.Secret.Kind == nil {
@@ -6834,6 +6842,8 @@ func (ec *executionContext) _RoutePlugins(ctx context.Context, sel ast.Selection
 			out.Values[i] = graphql.MarshalString("RoutePlugins")
 		case "empty":
 			out.Values[i] = ec._RoutePlugins_empty(ctx, field, obj)
+		case "prefixRewrite":
+			out.Values[i] = ec._RoutePlugins_prefixRewrite(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6859,6 +6869,34 @@ func (ec *executionContext) _RoutePlugins_empty(ctx context.Context, field graph
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Empty, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _RoutePlugins_prefixRewrite(ctx context.Context, field graphql.CollectedField, obj *models.RoutePlugins) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "RoutePlugins",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PrefixRewrite, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -12053,6 +12091,17 @@ func UnmarshalInputRoutePlugins(v interface{}) (models.InputRoutePlugins, error)
 			if err != nil {
 				return it, err
 			}
+		case "prefixRewrite":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.PrefixRewrite = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -13457,7 +13506,8 @@ type VirtualServicePlugins {
 
 # not implemented
 type RoutePlugins {
-  empty: String
+  empty: String @deprecated(reason: "This was a placeholder.")
+  prefixRewrite: String
 }
 
 input InputVirtualService {
@@ -13592,9 +13642,9 @@ input InputMultiDestination {
   destinations: [InputWeightedDestination!]
 }
 
-# not implemented
 input InputRoutePlugins {
-  empty: String
+  empty: String @deprecated(reason: "This was a placeholder.")
+  prefixRewrite: String
 }
 
 input InputWeightedDestination {
