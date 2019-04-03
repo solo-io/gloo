@@ -111,7 +111,7 @@ generated-code: $(OUTPUT_DIR)/.generated-code
 SUBDIRS:=projects install pkg test
 $(OUTPUT_DIR)/.generated-code:
 	go generate ./...
-	(rm projects/gloo/doc/docs/cli/*; cd projects/gloo/doc && go run gen_docs.go)
+	(rm projects/gloo/doc/docs/cli/*;mkdir -p projects/gloo/doc/docs/cli/; cd projects/gloo/doc && go run gen_docs.go)
 	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)
 	mkdir -p $(OUTPUT_DIR)

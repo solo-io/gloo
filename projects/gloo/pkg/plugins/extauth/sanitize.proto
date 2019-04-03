@@ -3,6 +3,4 @@ syntax = "proto3";
 package envoy.config.filter.http.sanitize.v2;
 option go_package = "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth";
 
-import "validate/validate.proto";
-
 message Sanitize { repeated string headers_to_remove = 1; }

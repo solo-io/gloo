@@ -12,6 +12,11 @@ weight: 5
 
 
 - [Settings](#settings)
+- [HttpService](#httpservice)
+- [Request](#request)
+- [Response](#response)
+- [BufferSettings](#buffersettings)
+- [CustomAuth](#customauth)
 - [BasicAuth](#basicauth)
 - [Apr](#apr)
 - [SaltedHashedPassword](#saltedhashedpassword)
@@ -38,14 +43,118 @@ weight: 5
 
 ```yaml
 "extauthzServerRef": .core.solo.io.ResourceRef
+"httpService": .extauth.plugins.gloo.solo.io.HttpService
 "userIdHeader": string
+"requestTimeout": .google.protobuf.Duration
+"failureModeAllow": bool
+"requestBody": .extauth.plugins.gloo.solo.io.BufferSettings
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `extauthzServerRef` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
-| `userIdHeader` | `string` |  |  |
+| `extauthzServerRef` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) | The upstream to ask about auth decisions |  |
+| `httpService` | [.extauth.plugins.gloo.solo.io.HttpService](../extauth.proto.sk#httpservice) | If this is set, communication to the upstream will be with HTTP and not GRPC. |  |
+| `userIdHeader` | `string` | If the auth server trusted id of the user, it will be set in this header. Specifically this means that this header will be sanitized form the incoming request. |  |
+| `requestTimeout` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) | Timeout for the ext auth service to respond. defaults to 200ms |  |
+| `failureModeAllow` | `bool` | In case of a failure or timeout querying the auth server, normally a request is denied. if this is set to true, the request will be allowed. |  |
+| `requestBody` | [.extauth.plugins.gloo.solo.io.BufferSettings](../extauth.proto.sk#buffersettings) | Set this if you also want to send the body of the request, and not just the headers. |  |
+
+
+
+
+---
+### HttpService
+
+
+
+```yaml
+"pathPrefix": string
+"request": .extauth.plugins.gloo.solo.io.HttpService.Request
+"response": .extauth.plugins.gloo.solo.io.HttpService.Response
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `pathPrefix` | `string` | Sets a prefix to the value of authorization request header *Path*. |  |
+| `request` | [.extauth.plugins.gloo.solo.io.HttpService.Request](../extauth.proto.sk#request) |  |  |
+| `response` | [.extauth.plugins.gloo.solo.io.HttpService.Response](../extauth.proto.sk#response) |  |  |
+
+
+
+
+---
+### Request
+
+
+
+```yaml
+"allowedHeaders": []string
+"headersToAdd": map<string, string>
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `allowedHeaders` | `[]string` | These headesr will copied from the incoming request to the request going to the auth server. Note that in addition to the user's supplied matchers: 1. *Host*, *Method*, *Path* and *Content-Length* are automatically included to the list. 2. *Content-Length* will be set to 0 and the request to the authorization service will not have a message body. |  |
+| `headersToAdd` | `map<string, string>` | These headers that will be included to the request to authorization service. Note that client request of the same key will be overridden. |  |
+
+
+
+
+---
+### Response
+
+
+
+```yaml
+"allowedUpstreamHeaders": []string
+"allowedClientHeaders": []string
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `allowedUpstreamHeaders` | `[]string` | When this is set, authorization response headers that have a will be added to the original client request and sent to the upstream. Note that coexistent headers will be overridden. |  |
+| `allowedClientHeaders` | `[]string` | When this. is set, authorization response headers that will be added to the client's response when auth request is denied. Note that when this list is *not* set, all the authorization response headers, except *Authority (Host)* will be in the response to the client. When a header is included in this list, *Path*, *Status*, *Content-Length*, *WWW-Authenticate* and *Location* are automatically added. |  |
+
+
+
+
+---
+### BufferSettings
+
+ 
+Configuration for buffering the request data.
+
+```yaml
+"maxRequestBytes": int
+"allowPartialMessage": bool
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `maxRequestBytes` | `int` | Sets the maximum size of a message body that the filter will hold in memory. Envoy will return *HTTP 413* and will *not* initiate the authorization process when buffer reaches the number set in this field. Note that this setting will have precedence over failure_mode_allow. Defaults to 4KB. |  |
+| `allowPartialMessage` | `bool` | When this field is true, Envoy will buffer the message until *max_request_bytes* is reached. The authorization request will be dispatched and no 413 HTTP error will be returned by the filter. |  |
+
+
+
+
+---
+### CustomAuth
+
+ 
+Gloo is not expected to configure the ext auth server in this case.
+This is used with custom auth servers.
+
+```yaml
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
 
 
 
@@ -155,6 +264,7 @@ weight: 5
 ```yaml
 "basicAuth": .extauth.plugins.gloo.solo.io.BasicAuth
 "oauth": .extauth.plugins.gloo.solo.io.OAuth
+"customAuth": .extauth.plugins.gloo.solo.io.CustomAuth
 
 ```
 
@@ -162,6 +272,7 @@ weight: 5
 | ----- | ---- | ----------- |----------- | 
 | `basicAuth` | [.extauth.plugins.gloo.solo.io.BasicAuth](../extauth.proto.sk#basicauth) |  |  |
 | `oauth` | [.extauth.plugins.gloo.solo.io.OAuth](../extauth.proto.sk#oauth) |  |  |
+| `customAuth` | [.extauth.plugins.gloo.solo.io.CustomAuth](../extauth.proto.sk#customauth) |  |  |
 
 
 

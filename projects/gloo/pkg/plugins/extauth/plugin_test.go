@@ -1,19 +1,25 @@
 package extauth_test
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 
+	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2"
+	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	translatorutil "github.com/solo-io/gloo/projects/gloo/pkg/translator"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
@@ -97,6 +103,9 @@ var _ = Describe("Plugin", func() {
 			},
 		}
 
+	})
+	JustBeforeEach(func() {
+
 		extauthSt, err := util.MessageToStruct(extauthVhost)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -135,12 +144,31 @@ var _ = Describe("Plugin", func() {
 		}
 	})
 
-	Context("no extauth server", func() {
+	Context("no extauth settings", func() {
 		It("should provide sanitize filter", func() {
 			filters, err := plugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(filters).To(HaveLen(1))
 			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
+		})
+	})
+
+	Context("no extauth server", func() {
+
+		BeforeEach(func() {
+			extauthSettings := &extauth.Settings{}
+
+			settingsStruct, err := util.MessageToStruct(extauthSettings)
+			Expect(err).NotTo(HaveOccurred())
+
+			extensions := &v1.Extensions{
+				Configs: map[string]*types.Struct{
+					ExtensionName: settingsStruct,
+				},
+			}
+			plugin.Init(plugins.InitParams{
+				ExtensionsSettings: extensions,
+			})
 		})
 
 		It("should error processing vhost", func() {
@@ -153,12 +181,23 @@ var _ = Describe("Plugin", func() {
 	})
 
 	Context("with extauth server", func() {
+		var (
+			extAuthRef *core.ResourceRef
+		)
 		BeforeEach(func() {
+			second := time.Second
+			extAuthRef = &core.ResourceRef{
+				Name:      "extauth",
+				Namespace: "default",
+			}
 			extauthSettings := &extauth.Settings{
-				ExtauthzServerRef: &core.ResourceRef{
-					Name:      "extauth",
-					Namespace: "default",
+				ExtauthzServerRef: extAuthRef,
+				FailureModeAllow:  true,
+				RequestBody: &extauth.BufferSettings{
+					AllowPartialMessage: true,
+					MaxRequestBytes:     54,
 				},
+				RequestTimeout: &second,
 			}
 
 			settingsStruct, err := util.MessageToStruct(extauthSettings)
@@ -172,7 +211,6 @@ var _ = Describe("Plugin", func() {
 			plugin.Init(plugins.InitParams{
 				ExtensionsSettings: extensions,
 			})
-
 		})
 
 		It("should provide filters", func() {
@@ -181,12 +219,37 @@ var _ = Describe("Plugin", func() {
 			Expect(filters).To(HaveLen(2))
 			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
 			Expect(filters[1].HttpFilter.Name).To(Equal(ExtAuthFilterName))
+
+			// get the ext auth filter config:
+			receivedExtAuth := &envoyauth.ExtAuthz{}
+			translatorutil.ParseConfig(filters[1].HttpFilter, receivedExtAuth)
+
+			expectedConfig := &envoyauth.ExtAuthz{
+				FailureModeAllow: true,
+				WithRequestBody: &envoyauth.BufferSettings{
+					AllowPartialMessage: true,
+					MaxRequestBytes:     54,
+				},
+				Services: &envoyauth.ExtAuthz_GrpcService{
+					GrpcService: &envoycore.GrpcService{
+						Timeout: &types.Duration{
+							Seconds: 1,
+						},
+						TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+							EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+								ClusterName: translator.UpstreamToClusterName(*extAuthRef),
+							},
+						}},
+				},
+			}
+			Expect(expectedConfig).To(BeEquivalentTo(receivedExtAuth))
 		})
 
 		It("should not error processing vhost", func() {
 			var out envoyroute.VirtualHost
 			err := plugin.ProcessVirtualHost(params, virtualHost, &out)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(IsDisabled(&out)).To(BeFalse())
 		})
 
 		It("should mark vhost with no auth as disabled", func() {
@@ -240,7 +303,113 @@ var _ = Describe("Plugin", func() {
 			Expect(authcfg.AppUrl).To(Equal(expectAuthCfg.AppUrl))
 			Expect(authcfg.CallbackPath).To(Equal(expectAuthCfg.CallbackPath))
 		})
+		Context("with custom extauth server", func() {
+			BeforeEach(func() {
+				extauthVhost = &extauth.VhostExtension{
+					AuthConfig: &extauth.VhostExtension_CustomAuth{},
+				}
+			})
+
+			It("should process vhost", func() {
+				var out envoyroute.VirtualHost
+				err := plugin.ProcessVirtualHost(params, virtualHost, &out)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(IsDisabled(&out)).To(BeFalse())
+			})
+		})
 	})
+
+	Context("with http server server", func() {
+		var (
+			extAuthRef *core.ResourceRef
+		)
+		BeforeEach(func() {
+			second := time.Second
+			extAuthRef = &core.ResourceRef{
+				Name:      "extauth",
+				Namespace: "default",
+			}
+			extauthSettings := &extauth.Settings{
+				ExtauthzServerRef: extAuthRef,
+				RequestTimeout:    &second,
+				HttpService: &extauth.HttpService{
+					PathPrefix: "/foo",
+					Request: &extauth.HttpService_Request{
+						AllowedHeaders: []string{"allowed-header"},
+						HeadersToAdd:   map[string]string{"header": "add"},
+					},
+					Response: &extauth.HttpService_Response{
+						AllowedClientHeaders:   []string{"allowed-client-header"},
+						AllowedUpstreamHeaders: []string{"allowed-upstream-header"},
+					},
+				},
+			}
+
+			settingsStruct, err := util.MessageToStruct(extauthSettings)
+			Expect(err).NotTo(HaveOccurred())
+
+			extensions := &v1.Extensions{
+				Configs: map[string]*types.Struct{
+					ExtensionName: settingsStruct,
+				},
+			}
+			plugin.Init(plugins.InitParams{
+				ExtensionsSettings: extensions,
+			})
+		})
+
+		It("should provide filters", func() {
+			second := time.Second
+			filters, err := plugin.HttpFilters(params, nil)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(filters).To(HaveLen(2))
+			Expect(filters[0].HttpFilter.Name).To(Equal(SanitizeFilterName))
+			Expect(filters[1].HttpFilter.Name).To(Equal(ExtAuthFilterName))
+
+			// get the ext auth filter config:
+			receivedExtAuth := &envoyauth.ExtAuthz{}
+			translatorutil.ParseConfig(filters[1].HttpFilter, receivedExtAuth)
+
+			expectedConfig := &envoyauth.ExtAuthz{
+				Services: &envoyauth.ExtAuthz_HttpService{
+					HttpService: &envoyauth.HttpService{
+						AuthorizationRequest: &envoyauth.AuthorizationRequest{
+							AllowedHeaders: &envoymatcher.ListStringMatcher{
+								Patterns: []*envoymatcher.StringMatcher{{
+									MatchPattern: &envoymatcher.StringMatcher_Exact{Exact: "allowed-header"},
+								}},
+							},
+							HeadersToAdd: []*envoycore.HeaderValue{{
+								Key:   "header",
+								Value: "add",
+							}},
+						},
+						AuthorizationResponse: &envoyauth.AuthorizationResponse{
+							AllowedClientHeaders: &envoymatcher.ListStringMatcher{
+								Patterns: []*envoymatcher.StringMatcher{{
+									MatchPattern: &envoymatcher.StringMatcher_Exact{Exact: "allowed-client-header"},
+								}},
+							},
+							AllowedUpstreamHeaders: &envoymatcher.ListStringMatcher{
+								Patterns: []*envoymatcher.StringMatcher{{
+									MatchPattern: &envoymatcher.StringMatcher_Exact{Exact: "allowed-upstream-header"},
+								}},
+							},
+						},
+						PathPrefix: "/foo",
+						ServerUri: &envoycore.HttpUri{
+							Timeout: &second,
+							HttpUpstreamType: &envoycore.HttpUri_Cluster{
+								Cluster: translator.UpstreamToClusterName(*extAuthRef),
+							},
+						},
+					},
+				},
+			}
+			Expect(expectedConfig).To(BeEquivalentTo(receivedExtAuth))
+		})
+	})
+
 })
 
 type envoyPerFilterConfig interface {
@@ -261,5 +430,6 @@ func IsDisabled(e envoyPerFilterConfig) bool {
 	var cfg envoyauth.ExtAuthzPerRoute
 	err := util.StructToMessage(e.GetPerFilterConfig()[ExtAuthFilterName], &cfg)
 	Expect(err).NotTo(HaveOccurred())
-	return cfg.Override.(*envoyauth.ExtAuthzPerRoute_Disabled).Disabled
+
+	return cfg.GetDisabled()
 }

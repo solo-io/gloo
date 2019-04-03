@@ -175,6 +175,7 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 	return bootstrap.Opts{
 		WriteNamespace: ns,
 		Upstreams:      f,
+		UpstreamGroups: f,
 		Proxies:        f,
 		Secrets:        f,
 

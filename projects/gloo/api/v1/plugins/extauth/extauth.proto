@@ -1,5 +1,6 @@
 syntax = "proto3";
 package extauth.plugins.gloo.solo.io;
+
 option go_package = "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth";
 
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
@@ -7,13 +8,85 @@ import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "gogoproto/gogo.proto";
 option (gogoproto.equal_all) = true;
 
+import "validate/validate.proto";
 import "envoy/api/v2/discovery.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
 
 
 message Settings { 
-    core.solo.io.ResourceRef extauthz_server_ref = 1; 
+  // The upstream to ask about auth decisions
+  core.solo.io.ResourceRef extauthz_server_ref = 1;
+  // If this is set, communication to the upstream will be with HTTP and not GRPC.
+  HttpService http_service = 2;
+  
+  // If the auth server trusted id of the user, it will be set in this header. 
+  // Specifically this means that this header will be sanitized form the incoming request.
   string user_id_header = 3;
+
+  // Timeout for the ext auth service to respond. defaults to 200ms
+  google.protobuf.Duration request_timeout = 4 [(gogoproto.stdduration) = true];
+
+  // In case of a failure or timeout querying the auth server, normally a request is denied.
+  // if this is set to true, the request will be allowed.
+  bool failure_mode_allow = 5;
+
+  // Set this if you also want to send the body of the request, and not just the headers.
+  BufferSettings request_body = 6;
+}
+
+message HttpService {
+  // Sets a prefix to the value of authorization request header *Path*.
+  string path_prefix = 1;
+
+  message Request {
+  // These headesr will copied from the incoming request to the request going 
+  // to the auth server. Note that in addition to the user's supplied matchers:
+  //
+  // 1. *Host*, *Method*, *Path* and *Content-Length* are automatically included to the list.
+  //
+  // 2. *Content-Length* will be set to 0 and the request to the authorization service will not have
+  // a message body.
+    repeated string allowed_headers = 1;
+
+    // These headers that will be included to the request to authorization service. Note that
+    // client request of the same key will be overridden.
+    map<string,string> headers_to_add = 2;
+  }
+  Request request = 2;
+
+  message Response {
+  // When this is set, authorization response headers that have a will be added to the original client request and sent to the upstream.
+  // Note that coexistent headers will be overridden.
+  repeated string allowed_upstream_headers = 1;
+
+    // When this. is set, authorization response headers that will be added to the client's response when auth request is denied.
+    // Note that when this list is *not* set, all the authorization response headers, except *Authority
+    // (Host)* will be in the response to the client. When a header is included in this list, *Path*,
+    // *Status*, *Content-Length*, *WWW-Authenticate* and *Location* are automatically added.
+    repeated string allowed_client_headers = 2;
+  }
+  Response response = 3;
+}
+
+// Configuration for buffering the request data.
+message BufferSettings {
+  // Sets the maximum size of a message body that the filter will hold in memory. Envoy will return
+  // *HTTP 413* and will *not* initiate the authorization process when buffer reaches the number
+  // set in this field. Note that this setting will have precedence over failure_mode_allow.
+  // Defaults to 4KB.
+  uint32 max_request_bytes = 1;
+
+  // When this field is true, Envoy will buffer the message until *max_request_bytes* is reached.
+  // The authorization request will be dispatched and no 413 HTTP error will be returned by the
+  // filter.
+  bool allow_partial_message = 2;
+}
+
+
+// Gloo is not expected to configure the ext auth server in this case.
+// This is used with custom auth servers.
+message CustomAuth {
 }
 
 message BasicAuth {
@@ -55,6 +128,7 @@ message VhostExtension {
   oneof auth_config {
     BasicAuth basic_auth = 1;
     OAuth oauth = 2;
+    CustomAuth custom_auth = 3;
   }
 }
 

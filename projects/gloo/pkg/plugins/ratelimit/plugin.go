@@ -8,8 +8,6 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
-	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 
 	"github.com/gogo/protobuf/types"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -204,34 +202,20 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 		return nil, nil
 	}
 
-	conf, err := protoutils.MarshalStruct(generateEnvoyConfigForFilter(*p.upstreamRef, p.timeout, p.denyOnFail))
+	conf := generateEnvoyConfigForFilter(*p.upstreamRef, p.timeout, p.denyOnFail)
+	stagedFilter, err := plugins.NewStagedFilterWithConfig(filterName, conf, filterStage)
 	if err != nil {
 		return nil, err
 	}
 
-	customConf, err := protoutils.MarshalStruct(generateEnvoyConfigForCustomFilter(*p.upstreamRef, p.timeout, p.denyOnFail))
+	customConf := generateEnvoyConfigForCustomFilter(*p.upstreamRef, p.timeout, p.denyOnFail)
+	customStagedFilter, err := plugins.NewStagedFilterWithConfig(filterName, customConf, filterStage)
 	if err != nil {
 		return nil, err
 	}
 
 	return []plugins.StagedHttpFilter{
-		{
-			HttpFilter: &envoyhttp.HttpFilter{
-				Name: filterName,
-				ConfigType: &envoyhttp.HttpFilter_Config{
-					Config: customConf,
-				},
-			},
-			Stage: filterStage,
-		},
-		{
-			HttpFilter: &envoyhttp.HttpFilter{
-				Name: filterName,
-				ConfigType: &envoyhttp.HttpFilter_Config{
-					Config: conf,
-				},
-			},
-			Stage: filterStage,
-		},
+		customStagedFilter,
+		stagedFilter,
 	}, nil
 }

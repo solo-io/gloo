@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Allow using custom http service when using ext auth.
+    issueLink: https://github.com/solo-io/solo-projects/pull/570

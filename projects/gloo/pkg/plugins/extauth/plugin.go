@@ -2,23 +2,21 @@ package extauth
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
 
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/ext_authz/v2"
-	"github.com/envoyproxy/go-control-plane/pkg/util"
+	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
 
-	envoyhttp "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
+	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
@@ -41,8 +39,8 @@ const (
 )
 
 type Plugin struct {
-	upstreamRef  *core.ResourceRef
-	userIdHeader string
+	userIdHeader    string
+	extauthSettings *extauth.Settings
 }
 
 var _ plugins.Plugin = new(Plugin)
@@ -80,17 +78,15 @@ func GetAuthHeader(e *extauth.Settings) string {
 }
 
 func (p *Plugin) Init(params plugins.InitParams) error {
-	p.upstreamRef = nil
 	p.userIdHeader = ""
+	p.extauthSettings = nil
 
 	settings, err := GetSettings(params)
 	if err != nil {
 		return err
 	}
-	if settings == nil {
-		return nil
-	}
-	p.upstreamRef = settings.ExtauthzServerRef
+	p.extauthSettings = settings
+
 	p.userIdHeader = GetAuthHeader(settings)
 	return nil
 }
@@ -122,8 +118,12 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 		return errors.Wrapf(err, "Error converting proto any to extauth plugin")
 	}
 
-	if p.upstreamRef == nil {
-		return fmt.Errorf("no ext auth server configured")
+	cfg, err := p.generateEnvoyConfigForFilter()
+	if err != nil {
+		return err
+	}
+	if cfg == nil {
+		return errors.Errorf("no auth settings were defined")
 	}
 
 	markName(out)
@@ -141,6 +141,8 @@ func TranslateUserConfigToExtAuthServerConfig(name string, snap *v1.ApiSnapshot,
 		Vhost: name,
 	}
 	switch config := vhostextauth.AuthConfig.(type) {
+	case *extauth.VhostExtension_CustomAuth:
+		return nil, nil
 	case *extauth.VhostExtension_BasicAuth:
 		extauthConfig.AuthConfig = &extauth.ExtAuthConfig_BasicAuth{
 			BasicAuth: config.BasicAuth,
@@ -184,46 +186,24 @@ func markName(out *envoyroute.VirtualHost) error {
 			},
 		},
 	}
-	if out.PerFilterConfig == nil {
-		out.PerFilterConfig = make(map[string]*types.Struct)
-	}
-	return setPerRouteConfig(out, config)
+	return pluginutils.SetVhostPerFilterConfig(out, ExtAuthFilterName, config)
 }
 
 func markVhostNoAuth(out *envoyroute.VirtualHost) error {
-	if out.PerFilterConfig == nil {
-		out.PerFilterConfig = make(map[string]*types.Struct)
-	}
-	return markNoAuth(out)
+
+	return pluginutils.SetVhostPerFilterConfig(out, ExtAuthFilterName, getNoAuthConfig())
 }
 
 func markRouteNoAuth(out *envoyroute.Route) error {
-	if out.PerFilterConfig == nil {
-		out.PerFilterConfig = make(map[string]*types.Struct)
-	}
-	return markNoAuth(out)
+	return pluginutils.SetRoutePerFilterConfig(out, ExtAuthFilterName, getNoAuthConfig())
 }
 
-func markNoAuth(out perFilterConfigable) error {
-	config := &envoyauth.ExtAuthzPerRoute{
+func getNoAuthConfig() *envoyauth.ExtAuthzPerRoute {
+	return &envoyauth.ExtAuthzPerRoute{
 		Override: &envoyauth.ExtAuthzPerRoute_Disabled{
 			Disabled: true,
 		},
 	}
-	return setPerRouteConfig(out, config)
-}
-
-type perFilterConfigable interface {
-	GetPerFilterConfig() map[string]*types.Struct
-}
-
-func setPerRouteConfig(out perFilterConfigable, config *envoyauth.ExtAuthzPerRoute) error {
-	configStruct, err := util.MessageToStruct(config)
-	if err != nil {
-		return err
-	}
-	out.GetPerFilterConfig()[ExtAuthFilterName] = configStruct
-	return nil
 }
 
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
@@ -232,47 +212,146 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	if p.userIdHeader != "" {
 		headersToRemove = []string{p.userIdHeader}
 	}
-	sanitizeConf, err := protoutils.MarshalStruct(&Sanitize{
-		HeadersToRemove: headersToRemove,
-	})
-	if err != nil {
-		return nil, err
-	}
-	filters := []plugins.StagedHttpFilter{
-		{
-			HttpFilter: &envoyhttp.HttpFilter{Name: SanitizeFilterName,
-				ConfigType: &envoyhttp.HttpFilter_Config{Config: sanitizeConf}},
-			Stage: sanitizeFilterStage,
-		},
+	filters := []plugins.StagedHttpFilter{}
+
+	if len(headersToRemove) != 0 {
+		sanitizeConf := &Sanitize{
+			HeadersToRemove: headersToRemove,
+		}
+		stagedFilter, err := plugins.NewStagedFilterWithConfig(SanitizeFilterName, sanitizeConf, sanitizeFilterStage)
+		if err != nil {
+			return nil, err
+		}
+		filters = []plugins.StagedHttpFilter{
+			stagedFilter,
+		}
 	}
 
 	// always sanitize headers.
-	if p.upstreamRef == nil {
-		return filters, nil
-	}
-	conf, err := protoutils.MarshalStruct(p.generateEnvoyConfigForFilter())
+	extAuthCfg, err := p.generateEnvoyConfigForFilter()
 	if err != nil {
 		return nil, err
 	}
-	filters = append(filters, plugins.StagedHttpFilter{
-		HttpFilter: &envoyhttp.HttpFilter{Name: ExtAuthFilterName,
-			ConfigType: &envoyhttp.HttpFilter_Config{Config: conf}},
-		Stage: filterStage,
-	})
+	if extAuthCfg == nil {
+		return filters, nil
+	}
+
+	stagedFilter, err := plugins.NewStagedFilterWithConfig(ExtAuthFilterName, extAuthCfg, filterStage)
+	if err != nil {
+		return nil, err
+	}
+	filters = append(filters, stagedFilter)
 	return filters, nil
 }
 
-func (p *Plugin) generateEnvoyConfigForFilter() *envoyauth.ExtAuthz {
-	var svc *envoycore.GrpcService
-	svc = &envoycore.GrpcService{TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
-		EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
-			ClusterName: translator.UpstreamToClusterName(*p.upstreamRef),
-		},
-	}}
-
-	return &envoyauth.ExtAuthz{
-		Services: &envoyauth.ExtAuthz_GrpcService{
-			GrpcService: svc,
-		},
+func (p *Plugin) generateEnvoyConfigForFilter() (*envoyauth.ExtAuthz, error) {
+	if p.extauthSettings == nil {
+		return nil, nil
 	}
+	upstreamRef := p.extauthSettings.GetExtauthzServerRef()
+	if upstreamRef == nil {
+		return nil, errors.New("no ext auth server configured")
+	}
+	cfg := &envoyauth.ExtAuthz{}
+
+	httpService := p.extauthSettings.GetHttpService()
+	if httpService == nil {
+		svc := &envoycore.GrpcService{
+			TargetSpecifier: &envoycore.GrpcService_EnvoyGrpc_{
+				EnvoyGrpc: &envoycore.GrpcService_EnvoyGrpc{
+					ClusterName: translator.UpstreamToClusterName(*upstreamRef),
+				},
+			}}
+
+		timeout := p.extauthSettings.GetRequestTimeout()
+		if timeout != nil {
+			svc.Timeout = types.DurationProto(*timeout)
+		}
+
+		cfg.Services = &envoyauth.ExtAuthz_GrpcService{
+			GrpcService: svc,
+		}
+	} else {
+		httpURI := &envoycore.HttpUri{
+			Timeout: p.extauthSettings.GetRequestTimeout(),
+			HttpUpstreamType: &envoycore.HttpUri_Cluster{
+				Cluster: translator.UpstreamToClusterName(*upstreamRef),
+			},
+		}
+
+		cfg.Services = &envoyauth.ExtAuthz_HttpService{
+			HttpService: &envoyauth.HttpService{
+				ServerUri: httpURI,
+				// Trim suffix, as request path always starts with /, and we want to avoid a double /
+				PathPrefix:            strings.TrimSuffix(httpService.PathPrefix, "/"),
+				AuthorizationRequest:  translateRequest(httpService.Request),
+				AuthorizationResponse: translateResponse(httpService.Response),
+			},
+		}
+	}
+
+	cfg.FailureModeAllow = p.extauthSettings.FailureModeAllow
+	cfg.WithRequestBody = translateRequestBody(p.extauthSettings.RequestBody)
+
+	return cfg, nil
+}
+func translateRequestBody(in *extauth.BufferSettings) *envoyauth.BufferSettings {
+	if in == nil {
+		return nil
+	}
+	maxBytes := in.MaxRequestBytes
+	if maxBytes <= 0 {
+		maxBytes = 4 * 1024
+	}
+	return &envoyauth.BufferSettings{
+		AllowPartialMessage: in.AllowPartialMessage,
+		MaxRequestBytes:     maxBytes,
+	}
+}
+func translateRequest(in *extauth.HttpService_Request) *envoyauth.AuthorizationRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &envoyauth.AuthorizationRequest{
+		AllowedHeaders: translateListMatcher(in.AllowedHeaders),
+		HeadersToAdd:   convertHeadersToAdd(in.HeadersToAdd),
+	}
+}
+func convertHeadersToAdd(headersToAddMap map[string]string) []*envoycore.HeaderValue {
+	var headersToAdd []*envoycore.HeaderValue
+	for k, v := range headersToAddMap {
+		headersToAdd = append(headersToAdd, &envoycore.HeaderValue{
+			Key:   k,
+			Value: v,
+		})
+	}
+	return headersToAdd
+}
+func translateResponse(in *extauth.HttpService_Response) *envoyauth.AuthorizationResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &envoyauth.AuthorizationResponse{
+		AllowedUpstreamHeaders: translateListMatcher(in.AllowedUpstreamHeaders),
+		AllowedClientHeaders:   translateListMatcher(in.AllowedClientHeaders),
+	}
+}
+
+func translateListMatcher(in []string) *envoymatcher.ListStringMatcher {
+	if len(in) == 0 {
+		return nil
+	}
+	var lsm envoymatcher.ListStringMatcher
+
+	for _, pattern := range in {
+		lsm.Patterns = append(lsm.Patterns, convertPattern(pattern))
+	}
+
+	return &lsm
+}
+
+func convertPattern(pattern string) *envoymatcher.StringMatcher {
+	return &envoymatcher.StringMatcher{MatchPattern: &envoymatcher.StringMatcher_Exact{Exact: pattern}}
 }

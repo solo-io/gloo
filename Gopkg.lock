@@ -328,7 +328,7 @@
   version = "v1.12.0"
 
 [[projects]]
-  digest = "1:e4d6cd26873435c3659349002d03e77e160be22d0e30e6b737793317b3b0da33"
+  digest = "1:6cb9751a57054df4eb44688429deaa63aeafe506b0f967307898459c6eb42be2"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -360,8 +360,9 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "0ad6fa1cf0b9b6ca8f3617a7188a568e81f40b87"
-  version = "v0.6.9"
+  revision = "0f0e824095e98dbbb81d737d99cc7861d98f1e77"
+  source = "github.com/yuval-k/go-control-plane"
+  version = "v0.6.10"
 
 [[projects]]
   digest = "1:f1f2bd73c025d24c3b93abf6364bccb802cf2fdedaa44360804c67800e8fab8d"
@@ -1389,7 +1390,7 @@
   version = "v0.2.5"
 
 [[projects]]
-  digest = "1:40638e2ed94179d76057b7cd051bc102b7450d98419ba139826172755ee7a62b"
+  digest = "1:6505f2979c25ba6ab08aaf263e4c923384dcd572b64af1da714563a3ee714e25"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1481,8 +1482,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "44122811511c3d6bab63c4ca6886ffabb7aa602c"
-  version = "v0.13.5"
+  revision = "efda0fd78a57cd751312cebd25940cfe2ddc28d9"
+  version = "v0.13.9"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"

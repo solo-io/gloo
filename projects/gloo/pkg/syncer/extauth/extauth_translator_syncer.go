@@ -53,8 +53,9 @@ func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov
 				if err != nil {
 					return err
 				}
-
-				cfgs = append(cfgs, extath)
+				if extath != nil {
+					cfgs = append(cfgs, extath)
+				}
 			}
 
 			resources := []envoycache.Resource{}

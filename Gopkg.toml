@@ -63,7 +63,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  version = "0.13.5"
+  version = "0.13.9"
 
 [[override]]
   name = "github.com/hashicorp/consul"
@@ -93,3 +93,8 @@
 [[constraint]]
   name = "github.com/solo-io/ext-auth-service"
   version = "v0.2.5"
+
+[[constraint]]
+  version = "0.6.10"
+  name = "github.com/envoyproxy/go-control-plane"
+  source = "github.com/yuval-k/go-control-plane"
