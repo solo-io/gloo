@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Add default values for ext auth in http mode.
+    issueLink: https://github.com/solo-io/solo-projects/pull/571

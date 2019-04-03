@@ -41,6 +41,10 @@ import (
 	"github.com/solo-io/solo-projects/test/v1helpers"
 )
 
+var (
+	baseExtauthPort = uint32(27000)
+)
+
 var _ = Describe("External ", func() {
 
 	var (
@@ -48,9 +52,6 @@ var _ = Describe("External ", func() {
 		cancel      context.CancelFunc
 		testClients services.TestClients
 		settings    extauthrunner.Settings
-	)
-	var (
-		baseExtauthPort = uint32(9000)
 	)
 
 	BeforeEach(func() {

@@ -3,6 +3,7 @@ package extauth
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
@@ -36,6 +37,11 @@ const (
 	filterStage = plugins.InAuth
 
 	DefaultAuthHeader = "x-user-id"
+)
+
+var (
+	// 200ms default
+	defaultTimeout = time.Second / 5
 )
 
 type Plugin struct {
@@ -264,19 +270,26 @@ func (p *Plugin) generateEnvoyConfigForFilter() (*envoyauth.ExtAuthz, error) {
 			}}
 
 		timeout := p.extauthSettings.GetRequestTimeout()
-		if timeout != nil {
-			svc.Timeout = types.DurationProto(*timeout)
+		if timeout == nil {
+			timeout = &defaultTimeout
 		}
+		svc.Timeout = types.DurationProto(*timeout)
 
 		cfg.Services = &envoyauth.ExtAuthz_GrpcService{
 			GrpcService: svc,
 		}
 	} else {
 		httpURI := &envoycore.HttpUri{
+			// this uri is not used by the filter but is required because of envoy validation.
+			Uri:     "http://not-used.example.com/",
 			Timeout: p.extauthSettings.GetRequestTimeout(),
 			HttpUpstreamType: &envoycore.HttpUri_Cluster{
 				Cluster: translator.UpstreamToClusterName(*upstreamRef),
 			},
+		}
+		if httpURI.Timeout == nil {
+			// set to the default. this is required by envoy validation.
+			httpURI.Timeout = &defaultTimeout
 		}
 
 		cfg.Services = &envoyauth.ExtAuthz_HttpService{

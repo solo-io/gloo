@@ -399,6 +399,7 @@ var _ = Describe("Plugin", func() {
 						PathPrefix: "/foo",
 						ServerUri: &envoycore.HttpUri{
 							Timeout: &second,
+							Uri:     "http://not-used.example.com/",
 							HttpUpstreamType: &envoycore.HttpUri_Cluster{
 								Cluster: translator.UpstreamToClusterName(*extAuthRef),
 							},
