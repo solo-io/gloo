@@ -106,6 +106,10 @@ type ComplexityRoot struct {
 		Realm func(childComplexity int) int
 	}
 
+	CustomAuth struct {
+		Empty func(childComplexity int) int
+	}
+
 	ExtAuthConfig struct {
 		AuthType func(childComplexity int) int
 	}
@@ -1213,6 +1217,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BasicAuth.Realm(childComplexity), true
+
+	case "CustomAuth.empty":
+		if e.complexity.CustomAuth.Empty == nil {
+			break
+		}
+
+		return e.complexity.CustomAuth.Empty(childComplexity), true
 
 	case "ExtAuthConfig.authType":
 		if e.complexity.ExtAuthConfig.AuthType == nil {
@@ -3441,6 +3452,61 @@ func (ec *executionContext) _BasicAuth_realm(ctx context.Context, field graphql.
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return graphql.MarshalString(res)
+}
+
+var customAuthImplementors = []string{"CustomAuth"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _CustomAuth(ctx context.Context, sel ast.SelectionSet, obj *models.CustomAuth) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, customAuthImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CustomAuth")
+		case "empty":
+			out.Values[i] = ec._CustomAuth_empty(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _CustomAuth_empty(ctx context.Context, field graphql.CollectedField, obj *models.CustomAuth) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "CustomAuth",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Empty, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalString(*res)
 }
 
 var extAuthConfigImplementors = []string{"ExtAuthConfig"}
@@ -10944,6 +11010,10 @@ func (ec *executionContext) _AuthType(ctx context.Context, sel ast.SelectionSet,
 		return ec._BasicAuth(ctx, sel, &obj)
 	case *models.BasicAuth:
 		return ec._BasicAuth(ctx, sel, obj)
+	case models.CustomAuth:
+		return ec._CustomAuth(ctx, sel, &obj)
+	case *models.CustomAuth:
+		return ec._CustomAuth(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -13471,6 +13541,7 @@ type ExtAuthConfig {
 union AuthType =
   OAuthConfig
   | BasicAuth
+  | CustomAuth
 
 type OAuthConfig {
   "your client id as registered with the issuer"
@@ -13497,6 +13568,10 @@ type OAuthConfig {
 "NOTE: resolvers not implemented"
 type BasicAuth {
   realm: String!
+}
+
+type CustomAuth {
+  empty: String
 }
 
 # not implemented

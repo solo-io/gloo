@@ -80,6 +80,12 @@ type BasicAuth struct {
 
 func (BasicAuth) IsAuthType() {}
 
+type CustomAuth struct {
+	Empty *string `json:"empty"`
+}
+
+func (CustomAuth) IsAuthType() {}
+
 type Destination interface {
 	IsDestination()
 }

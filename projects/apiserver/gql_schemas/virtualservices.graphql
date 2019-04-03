@@ -138,6 +138,7 @@ type ExtAuthConfig {
 union AuthType =
   OAuthConfig
   | BasicAuth
+  | CustomAuth
 
 type OAuthConfig {
   "your client id as registered with the issuer"
@@ -164,6 +165,10 @@ type OAuthConfig {
 "NOTE: resolvers not implemented"
 type BasicAuth {
   realm: String!
+}
+
+type CustomAuth {
+  empty: String
 }
 
 # not implemented

@@ -1088,6 +1088,8 @@ func convertOutputExtAuthConfig(plugins *v1.VirtualHostPlugins) (*ExtAuthConfig,
 			AppURL:       &auth.Oauth.AppUrl,
 			CallbackPath: &auth.Oauth.CallbackPath,
 		}
+	case *extauthv1.VhostExtension_CustomAuth:
+		result.AuthType = &CustomAuth{}
 	default:
 		return nil, errors.Errorf("Unrecognized auth type %v", auth)
 	}

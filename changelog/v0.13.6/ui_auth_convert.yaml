@@ -1,0 +1,4 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Convert the UI auth object.
+    issueLink: https://github.com/solo-io/solo-projects/pull/572
