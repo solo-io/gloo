@@ -98,3 +98,7 @@
   version = "0.6.10"
   name = "github.com/envoyproxy/go-control-plane"
   source = "github.com/yuval-k/go-control-plane"
+
+[[override]]
+  name = "github.com/lyft/protoc-gen-validate"
+  version = "0.0.6"
