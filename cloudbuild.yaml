@@ -265,4 +265,4 @@ timeout: 2400s
 
 tags: ['solo-projects']
 options:
-  machineType: 'N1_HIGHCPU_8'
+  machineType: 'N1_HIGHCPU_32'
