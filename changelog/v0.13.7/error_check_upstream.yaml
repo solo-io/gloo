@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Add an error check that the auth service is indeed an existing upstream.
+    issueLink: https://github.com/solo-io/solo-projects/pull/575

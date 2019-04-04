@@ -42,7 +42,7 @@ var _ = Describe("Plugin", func() {
 		upstream = &v1.Upstream{
 			Metadata: core.Metadata{
 				Name:      "extauth",
-				Namespace: "gloo-system",
+				Namespace: "default",
 			},
 			UpstreamSpec: &v1.UpstreamSpec{
 				UpstreamType: &v1.UpstreamSpec_Static{
@@ -176,6 +176,47 @@ var _ = Describe("Plugin", func() {
 			err := plugin.ProcessVirtualHost(params, virtualHost, &out)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("no ext auth server configured"))
+		})
+	})
+
+	Context("non existant upstream", func() {
+		var (
+			extAuthRef *core.ResourceRef
+		)
+		BeforeEach(func() {
+			second := time.Second
+			extAuthRef = &core.ResourceRef{
+				Name:      "nothing",
+				Namespace: "default",
+			}
+			extauthSettings := &extauth.Settings{
+				ExtauthzServerRef: extAuthRef,
+				FailureModeAllow:  true,
+				RequestBody: &extauth.BufferSettings{
+					AllowPartialMessage: true,
+					MaxRequestBytes:     54,
+				},
+				RequestTimeout: &second,
+			}
+
+			settingsStruct, err := util.MessageToStruct(extauthSettings)
+			Expect(err).NotTo(HaveOccurred())
+
+			extensions := &v1.Extensions{
+				Configs: map[string]*types.Struct{
+					ExtensionName: settingsStruct,
+				},
+			}
+			plugin.Init(plugins.InitParams{
+				ExtensionsSettings: extensions,
+			})
+		})
+
+		It("should error processing vhost", func() {
+			var out envoyroute.VirtualHost
+			err := plugin.ProcessVirtualHost(params, virtualHost, &out)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("external auth upstream not found"))
 		})
 
 	})

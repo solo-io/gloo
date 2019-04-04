@@ -123,8 +123,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 		}
 		return errors.Wrapf(err, "Error converting proto any to extauth plugin")
 	}
-
-	cfg, err := p.generateEnvoyConfigForFilter()
+	cfg, err := p.generateEnvoyConfigForFilter(params)
 	if err != nil {
 		return err
 	}
@@ -234,7 +233,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	}
 
 	// always sanitize headers.
-	extAuthCfg, err := p.generateEnvoyConfigForFilter()
+	extAuthCfg, err := p.generateEnvoyConfigForFilter(params)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +249,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	return filters, nil
 }
 
-func (p *Plugin) generateEnvoyConfigForFilter() (*envoyauth.ExtAuthz, error) {
+func (p *Plugin) generateEnvoyConfigForFilter(params plugins.Params) (*envoyauth.ExtAuthz, error) {
 	if p.extauthSettings == nil {
 		return nil, nil
 	}
@@ -258,6 +257,13 @@ func (p *Plugin) generateEnvoyConfigForFilter() (*envoyauth.ExtAuthz, error) {
 	if upstreamRef == nil {
 		return nil, errors.New("no ext auth server configured")
 	}
+
+	// make sure the server exists:
+	_, err := params.Snapshot.Upstreams.List().Find(upstreamRef.Namespace, upstreamRef.Name)
+	if err != nil {
+		return nil, errors.Wrapf(err, "external auth upstream not found %s", upstreamRef.String())
+	}
+
 	cfg := &envoyauth.ExtAuthz{}
 
 	httpService := p.extauthSettings.GetHttpService()
