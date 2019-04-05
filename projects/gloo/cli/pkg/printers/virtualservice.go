@@ -9,6 +9,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 )
 
 // PrintTable prints virtual services using tables to io.Writer
@@ -21,7 +22,7 @@ func VirtualServiceTable(list []*v1.VirtualService, w io.Writer) {
 		displayName := v.GetDisplayName()
 		domains := domains(v)
 		ssl := sslConfig(v)
-		status := v.Status.State.String()
+		status := getVirtualServiceStatus(v)
 		routes := routeList(v)
 		plugins := vhPlugins(v)
 
@@ -39,6 +40,54 @@ func VirtualServiceTable(list []*v1.VirtualService, w io.Writer) {
 
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.Render()
+}
+
+func getVirtualServiceStatus(vs *v1.VirtualService) string {
+
+	// If the virtual service has not yet been accepted, don't clutter the status with the other errors.
+	resourceStatus := vs.Status.State
+	if resourceStatus != core.Status_Accepted {
+		return resourceStatus.String()
+	}
+
+	// Subresource statuses are reported as a map[string]*Status
+	// At the moment, virtual services only have one subresource, the associated gateway.
+	// In the future, we may add more.
+	// Either way, we only care if a subresource is in a non-accepted state.
+	// Therefore, only report non-accepted states, include the subresource name.
+	subResourceErrorMessages := []string{}
+	for k, v := range vs.Status.SubresourceStatuses {
+		if v.State != core.Status_Accepted {
+			subResourceErrorMessages = append(subResourceErrorMessages, fmt.Sprintf("%v %v: %v", k, v.State.String(), v.Reason))
+		}
+	}
+
+	switch len(subResourceErrorMessages) {
+	case 0:
+		// there are no errors with the subresources, pass Accepted status
+		return resourceStatus.String()
+	case 1:
+		// there is one error, try to pass a friendly error message
+		return cleanVirtualServiceSubResourceError(subResourceErrorMessages[0])
+	default:
+		// there are multiple errors, don't be fancy, just return list
+		return strings.Join(subResourceErrorMessages, "\n")
+	}
+}
+
+// If we can identify the type of error on a virtual service subresource,
+// return a cleaner message. If not, default to the full error message.
+func cleanVirtualServiceSubResourceError(eMsg string) string {
+	// If we add additional error scrubbers, we should use regexs
+	// For now, a simple way to test for the known error is to split the full error message by it
+	// If the split produced a list with two elements, then the error message is recognized
+	parts := strings.Split(eMsg, gloov1.UpstreamListErrorTag)
+	if len(parts) == 2 {
+		// if here, eMsg ~= "<preamble><well_known_error_string><error_details>"
+		errorDetails := parts[1]
+		return subResourceErrorFormat(errorDetails)
+	}
+	return eMsg
 }
 
 func routeList(v *v1.VirtualService) []string {
@@ -112,4 +161,14 @@ func sslConfig(v *v1.VirtualService) string {
 			return "unknown"
 		}
 	}
+}
+
+func genericErrorFormat(resourceName, statusString, reason string) string {
+	return fmt.Sprintf("%v %v: %v",
+		strings.TrimSpace(resourceName),
+		strings.TrimSpace(statusString),
+		strings.TrimSpace(reason))
+}
+func subResourceErrorFormat(errorDetails string) string {
+	return fmt.Sprintf("Error with Route: %v: %v", strings.TrimSpace(gloov1.UpstreamListErrorTag), strings.TrimPrefix(errorDetails, ": "))
 }
