@@ -122,11 +122,13 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 
 	logger := contextutils.LoggerFrom(contextutils.WithLogger(ctx, "kubernetes_eds"))
 
-	type epkey struct {
-		address string
-		port    uint32
+	type Epkey struct {
+		Address      string
+		Port         uint32
+		PodName      string
+		PodNamespace string
 	}
-	endpointsMap := make(map[epkey][]*core.ResourceRef)
+	endpointsMap := make(map[Epkey][]*core.ResourceRef)
 
 	// for each upstream
 	for usRef, spec := range upstreams {
@@ -175,9 +177,17 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 					continue
 				}
 				for _, addr := range subset.Addresses {
+					var podName, podNamespace string
+					targetRef := addr.TargetRef
+					if targetRef != nil {
+						if targetRef.Kind == "Pod" {
+							podName = targetRef.Name
+							podNamespace = targetRef.Namespace
+						}
+					}
 					if len(spec.Selector) != 0 {
 						// determine whether labels for the owner of this ip (pod) matches the spec
-						podLabels, err := getPodLabelsForIp(addr.IP, pods)
+						podLabels, err := getPodLabelsForIp(addr.IP, podName, podNamespace, pods)
 						if err != nil {
 							// pod not found for ip? what's that about?
 							logger.Warnf("error for upstream %v service %v: %v", usRef.Key(), spec.ServiceName, err)
@@ -191,10 +201,9 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 							continue
 						}
 					}
-					key := epkey{addr.IP, port}
+					key := Epkey{addr.IP, port, podName, podNamespace}
 					copyRef := usRef
 					endpointsMap[key] = append(endpointsMap[key], &copyRef)
-
 				}
 			}
 		}
@@ -205,7 +214,7 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 		// sort refs for idempotency
 		sort.Slice(refs, func(i, j int) bool { return refs[i].Key() < refs[j].Key() })
 
-		hash, _ := hashstructure.Hash([]interface{}{refs, addr}, nil)
+		hash, _ := hashstructure.Hash(addr, nil)
 		dnsname := strings.Map(func(r rune) rune {
 			if '0' <= r && r <= '9' {
 				return r
@@ -214,10 +223,10 @@ func filterEndpoints(ctx context.Context, writeNamespace string, kubeEndpoints [
 				return r
 			}
 			return '-'
-		}, addr.address)
-		endpointName := fmt.Sprintf("ep-%v-%v-%x", dnsname, addr.port, hash)
-		pod, _ := getPodForIp(addr.address, pods)
-		ep := createEndpoint(writeNamespace, endpointName, refs, addr.address, addr.port, pod)
+		}, addr.Address)
+		endpointName := fmt.Sprintf("ep-%v-%v-%x", dnsname, addr.Port, hash)
+		pod, _ := getPodForIp(addr.Address, addr.PodName, addr.PodNamespace, pods)
+		ep := createEndpoint(writeNamespace, endpointName, refs, addr.Address, addr.Port, pod)
 		endpoints = append(endpoints, ep)
 	}
 
@@ -245,19 +254,36 @@ func createEndpoint(namespace, name string, upstreams []*core.ResourceRef, addre
 	return ep
 }
 
-func getPodLabelsForIp(ip string, pods []*kubev1.Pod) (map[string]string, error) {
-	pod, err := getPodForIp(ip, pods)
+func getPodLabelsForIp(ip string, podName, podNamespace string, pods []*kubev1.Pod) (map[string]string, error) {
+	pod, err := getPodForIp(ip, podName, podNamespace, pods)
 	if err != nil {
 		return nil, err
 	}
 	return pod.Labels, nil
 }
 
-func getPodForIp(ip string, pods []*kubev1.Pod) (*kubev1.Pod, error) {
+func getPodForIp(ip string, podName, podNamespace string, pods []*kubev1.Pod) (*kubev1.Pod, error) {
+
 	for _, pod := range pods {
-		if pod.Status.PodIP == ip && pod.Status.Phase == kubev1.PodRunning {
-			return pod, nil
+		if podName != "" && podNamespace != "" {
+			// no need for hueristics!
+			if podName == pod.Name && podNamespace == pod.Namespace {
+				return pod, nil
+			}
 		}
+
+		if pod.Status.PodIP != ip {
+			continue
+		}
+		if pod.Status.Phase != kubev1.PodRunning {
+			continue
+		}
+		if pod.Spec.HostNetwork {
+			// we cant tell pods apart if they are all on the host network.
+			continue
+		}
+		return pod, nil
 	}
+
 	return nil, errors.Errorf("running pod not found with ip %v", ip)
 }
