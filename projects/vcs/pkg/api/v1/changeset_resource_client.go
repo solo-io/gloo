@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/gogo/protobuf/proto"
-
 	gatewayV1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	glooV1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -113,7 +111,7 @@ func (rc *ResourceClient) Write(resource resources.Resource, opts clients.WriteO
 	}
 
 	// Create a clone with updated metadata
-	clone := proto.Clone(resource).(resources.Resource)
+	clone := resources.Clone(resource)
 	inputMeta.ResourceVersion = newOrIncrementResourceVer(inputMeta.ResourceVersion)
 	clone.SetMetadata(inputMeta)
 

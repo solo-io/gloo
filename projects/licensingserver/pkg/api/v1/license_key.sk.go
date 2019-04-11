@@ -5,7 +5,6 @@ package v1
 import (
 	"sort"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -15,14 +14,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// TODO: modify as needed to populate additional fields
 func NewLicenseKey(namespace, name string) *LicenseKey {
-	return &LicenseKey{
-		Metadata: core.Metadata{
-			Name:      name,
-			Namespace: namespace,
-		},
-	}
+	licensekey := &LicenseKey{}
+	licensekey.SetMetadata(core.Metadata{
+		Name:      name,
+		Namespace: namespace,
+	})
+	return licensekey
 }
 
 func (r *LicenseKey) SetMetadata(meta core.Metadata) {
@@ -45,8 +43,8 @@ type LicensesByNamespace map[string]LicenseKeyList
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list LicenseKeyList) Find(namespace, name string) (*LicenseKey, error) {
 	for _, licenseKey := range list {
-		if licenseKey.Metadata.Name == name {
-			if namespace == "" || licenseKey.Metadata.Namespace == namespace {
+		if licenseKey.GetMetadata().Name == name {
+			if namespace == "" || licenseKey.GetMetadata().Namespace == namespace {
 				return licenseKey, nil
 			}
 		}
@@ -65,7 +63,7 @@ func (list LicenseKeyList) AsResources() resources.ResourceList {
 func (list LicenseKeyList) Names() []string {
 	var names []string
 	for _, licenseKey := range list {
-		names = append(names, licenseKey.Metadata.Name)
+		names = append(names, licenseKey.GetMetadata().Name)
 	}
 	return names
 }
@@ -73,14 +71,14 @@ func (list LicenseKeyList) Names() []string {
 func (list LicenseKeyList) NamespacesDotNames() []string {
 	var names []string
 	for _, licenseKey := range list {
-		names = append(names, licenseKey.Metadata.Namespace+"."+licenseKey.Metadata.Name)
+		names = append(names, licenseKey.GetMetadata().Namespace+"."+licenseKey.GetMetadata().Name)
 	}
 	return names
 }
 
 func (list LicenseKeyList) Sort() LicenseKeyList {
 	sort.SliceStable(list, func(i, j int) bool {
-		return list[i].Metadata.Less(list[j].Metadata)
+		return list[i].GetMetadata().Less(list[j].GetMetadata())
 	})
 	return list
 }
@@ -88,7 +86,7 @@ func (list LicenseKeyList) Sort() LicenseKeyList {
 func (list LicenseKeyList) Clone() LicenseKeyList {
 	var licenseKeyList LicenseKeyList
 	for _, licenseKey := range list {
-		licenseKeyList = append(licenseKeyList, proto.Clone(licenseKey).(*LicenseKey))
+		licenseKeyList = append(licenseKeyList, resources.Clone(licenseKey).(*LicenseKey))
 	}
 	return licenseKeyList
 }
@@ -109,7 +107,7 @@ func (list LicenseKeyList) AsInterfaces() []interface{} {
 
 func (byNamespace LicensesByNamespace) Add(licenseKey ...*LicenseKey) {
 	for _, item := range licenseKey {
-		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+		byNamespace[item.GetMetadata().Namespace] = append(byNamespace[item.GetMetadata().Namespace], item)
 	}
 }
 

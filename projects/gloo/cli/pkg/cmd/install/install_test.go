@@ -10,7 +10,7 @@ import (
 
 var _ = Describe("Install", func() {
 
-	const licenseKey = "--license-key=eyJleHAiOjE1NTQ1MTYyNTEsImlhdCI6MTU1MTgzNzg1MSwiayI6ImVqMVYyUSJ9.5lDPOuRWo4_qr3r9PXBv6lYIut3DbBrqqRauwSQZm4E"
+	const licenseKey = "--license-key=eyJleHAiOjM4Nzk1MTY3ODYsImlhdCI6MTU1NDk0MDM0OCwiayI6IkJ3ZXZQQSJ9.tbJ9I9AUltZ-iMmHBertugI2YIg1Z8Q0v6anRjc66Jo"
 
 	BeforeEach(func() {
 

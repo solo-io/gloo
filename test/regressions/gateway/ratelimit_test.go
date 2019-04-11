@@ -24,10 +24,10 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
+	"github.com/solo-io/go-utils/protoutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
 	ratelimitpb "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 
 	"k8s.io/client-go/rest"

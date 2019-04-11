@@ -117,10 +117,10 @@ var _ = Describe("Ratelimit", func() {
 
 		It("should enabled auth on route", func() {
 			testutil.ExpectInteractive(func(c *testutil.Console) {
+				c.ExpectString("Use default namespace (gloo-system)?")
+				c.SendLine("")
 				c.ExpectString("name of the resource:")
 				c.SendLine("default")
-				c.ExpectString("namespace of the resource:")
-				c.SendLine("gloo-system")
 				c.ExpectString("name of the ratelimit server upstream:")
 				c.SendLine("ratelimit")
 				c.ExpectString("namespace of the ratelimit server upstream:")

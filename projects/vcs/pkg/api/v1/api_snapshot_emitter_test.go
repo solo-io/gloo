@@ -57,6 +57,7 @@ var _ = Describe("V1Emitter", func() {
 			Cfg:         cfg,
 			SharedCache: kuberc.NewKubeCache(context.TODO()),
 		}
+
 		changeSetClient, err = NewChangeSetClient(changeSetClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 		emitter = NewApiEmitter(changeSetClient)
@@ -88,12 +89,12 @@ var _ = Describe("V1Emitter", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectChangesets {
-						if _, err := snap.Changesets.List().Find(expected.Metadata.Ref().Strings()); err != nil {
+						if _, err := snap.Changesets.List().Find(expected.GetMetadata().Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectChangesets {
-						if _, err := snap.Changesets.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
+						if _, err := snap.Changesets.List().Find(unexpected.GetMetadata().Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
@@ -124,16 +125,16 @@ var _ = Describe("V1Emitter", func() {
 
 		assertSnapshotChangesets(ChangeSetList{changeSet1a, changeSet1b, changeSet2a, changeSet2b}, nil)
 
-		err = changeSetClient.Delete(changeSet2a.Metadata.Namespace, changeSet2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = changeSetClient.Delete(changeSet2a.GetMetadata().Namespace, changeSet2a.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = changeSetClient.Delete(changeSet2b.Metadata.Namespace, changeSet2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = changeSetClient.Delete(changeSet2b.GetMetadata().Namespace, changeSet2b.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotChangesets(ChangeSetList{changeSet1a, changeSet1b}, ChangeSetList{changeSet2a, changeSet2b})
 
-		err = changeSetClient.Delete(changeSet1a.Metadata.Namespace, changeSet1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = changeSetClient.Delete(changeSet1a.GetMetadata().Namespace, changeSet1a.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = changeSetClient.Delete(changeSet1b.Metadata.Namespace, changeSet1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = changeSetClient.Delete(changeSet1b.GetMetadata().Namespace, changeSet1b.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotChangesets(nil, ChangeSetList{changeSet1a, changeSet1b, changeSet2a, changeSet2b})
@@ -161,12 +162,12 @@ var _ = Describe("V1Emitter", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectChangesets {
-						if _, err := snap.Changesets.List().Find(expected.Metadata.Ref().Strings()); err != nil {
+						if _, err := snap.Changesets.List().Find(expected.GetMetadata().Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectChangesets {
-						if _, err := snap.Changesets.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
+						if _, err := snap.Changesets.List().Find(unexpected.GetMetadata().Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
@@ -197,16 +198,16 @@ var _ = Describe("V1Emitter", func() {
 
 		assertSnapshotChangesets(ChangeSetList{changeSet1a, changeSet1b, changeSet2a, changeSet2b}, nil)
 
-		err = changeSetClient.Delete(changeSet2a.Metadata.Namespace, changeSet2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = changeSetClient.Delete(changeSet2a.GetMetadata().Namespace, changeSet2a.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = changeSetClient.Delete(changeSet2b.Metadata.Namespace, changeSet2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = changeSetClient.Delete(changeSet2b.GetMetadata().Namespace, changeSet2b.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotChangesets(ChangeSetList{changeSet1a, changeSet1b}, ChangeSetList{changeSet2a, changeSet2b})
 
-		err = changeSetClient.Delete(changeSet1a.Metadata.Namespace, changeSet1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = changeSetClient.Delete(changeSet1a.GetMetadata().Namespace, changeSet1a.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = changeSetClient.Delete(changeSet1b.Metadata.Namespace, changeSet1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = changeSetClient.Delete(changeSet1b.GetMetadata().Namespace, changeSet1b.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotChangesets(nil, ChangeSetList{changeSet1a, changeSet1b, changeSet2a, changeSet2b})

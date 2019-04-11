@@ -4,7 +4,7 @@ import (
 	"github.com/gogo/protobuf/types"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
-	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
+	"github.com/solo-io/go-utils/protoutils"
 	editRouteOptions "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/edit/route/options"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmdutils"
 	ratelimitpb "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"

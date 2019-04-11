@@ -58,6 +58,7 @@ var _ = Describe("V1Emitter", func() {
 			Cfg:         cfg,
 			SharedCache: kuberc.NewKubeCache(context.TODO()),
 		}
+
 		resolverMapClient, err = NewResolverMapClient(resolverMapClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 		// Schema Constructor
@@ -66,6 +67,7 @@ var _ = Describe("V1Emitter", func() {
 			Cfg:         cfg,
 			SharedCache: kuberc.NewKubeCache(context.TODO()),
 		}
+
 		schemaClient, err = NewSchemaClient(schemaClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 		emitter = NewApiEmitter(resolverMapClient, schemaClient)
@@ -97,12 +99,12 @@ var _ = Describe("V1Emitter", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectResolverMaps {
-						if _, err := snap.ResolverMaps.List().Find(expected.Metadata.Ref().Strings()); err != nil {
+						if _, err := snap.ResolverMaps.List().Find(expected.GetMetadata().Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectResolverMaps {
-						if _, err := snap.ResolverMaps.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
+						if _, err := snap.ResolverMaps.List().Find(unexpected.GetMetadata().Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
@@ -133,16 +135,16 @@ var _ = Describe("V1Emitter", func() {
 
 		assertSnapshotResolverMaps(ResolverMapList{resolverMap1a, resolverMap1b, resolverMap2a, resolverMap2b}, nil)
 
-		err = resolverMapClient.Delete(resolverMap2a.Metadata.Namespace, resolverMap2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = resolverMapClient.Delete(resolverMap2a.GetMetadata().Namespace, resolverMap2a.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = resolverMapClient.Delete(resolverMap2b.Metadata.Namespace, resolverMap2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = resolverMapClient.Delete(resolverMap2b.GetMetadata().Namespace, resolverMap2b.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotResolverMaps(ResolverMapList{resolverMap1a, resolverMap1b}, ResolverMapList{resolverMap2a, resolverMap2b})
 
-		err = resolverMapClient.Delete(resolverMap1a.Metadata.Namespace, resolverMap1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = resolverMapClient.Delete(resolverMap1a.GetMetadata().Namespace, resolverMap1a.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = resolverMapClient.Delete(resolverMap1b.Metadata.Namespace, resolverMap1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = resolverMapClient.Delete(resolverMap1b.GetMetadata().Namespace, resolverMap1b.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotResolverMaps(nil, ResolverMapList{resolverMap1a, resolverMap1b, resolverMap2a, resolverMap2b})
@@ -157,12 +159,12 @@ var _ = Describe("V1Emitter", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectSchemas {
-						if _, err := snap.Schemas.List().Find(expected.Metadata.Ref().Strings()); err != nil {
+						if _, err := snap.Schemas.List().Find(expected.GetMetadata().Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectSchemas {
-						if _, err := snap.Schemas.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
+						if _, err := snap.Schemas.List().Find(unexpected.GetMetadata().Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
@@ -193,16 +195,16 @@ var _ = Describe("V1Emitter", func() {
 
 		assertSnapshotSchemas(SchemaList{schema1a, schema1b, schema2a, schema2b}, nil)
 
-		err = schemaClient.Delete(schema2a.Metadata.Namespace, schema2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = schemaClient.Delete(schema2a.GetMetadata().Namespace, schema2a.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = schemaClient.Delete(schema2b.Metadata.Namespace, schema2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = schemaClient.Delete(schema2b.GetMetadata().Namespace, schema2b.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotSchemas(SchemaList{schema1a, schema1b}, SchemaList{schema2a, schema2b})
 
-		err = schemaClient.Delete(schema1a.Metadata.Namespace, schema1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = schemaClient.Delete(schema1a.GetMetadata().Namespace, schema1a.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = schemaClient.Delete(schema1b.Metadata.Namespace, schema1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = schemaClient.Delete(schema1b.GetMetadata().Namespace, schema1b.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotSchemas(nil, SchemaList{schema1a, schema1b, schema2a, schema2b})
@@ -230,12 +232,12 @@ var _ = Describe("V1Emitter", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectResolverMaps {
-						if _, err := snap.ResolverMaps.List().Find(expected.Metadata.Ref().Strings()); err != nil {
+						if _, err := snap.ResolverMaps.List().Find(expected.GetMetadata().Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectResolverMaps {
-						if _, err := snap.ResolverMaps.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
+						if _, err := snap.ResolverMaps.List().Find(unexpected.GetMetadata().Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
@@ -266,16 +268,16 @@ var _ = Describe("V1Emitter", func() {
 
 		assertSnapshotResolverMaps(ResolverMapList{resolverMap1a, resolverMap1b, resolverMap2a, resolverMap2b}, nil)
 
-		err = resolverMapClient.Delete(resolverMap2a.Metadata.Namespace, resolverMap2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = resolverMapClient.Delete(resolverMap2a.GetMetadata().Namespace, resolverMap2a.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = resolverMapClient.Delete(resolverMap2b.Metadata.Namespace, resolverMap2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = resolverMapClient.Delete(resolverMap2b.GetMetadata().Namespace, resolverMap2b.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotResolverMaps(ResolverMapList{resolverMap1a, resolverMap1b}, ResolverMapList{resolverMap2a, resolverMap2b})
 
-		err = resolverMapClient.Delete(resolverMap1a.Metadata.Namespace, resolverMap1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = resolverMapClient.Delete(resolverMap1a.GetMetadata().Namespace, resolverMap1a.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = resolverMapClient.Delete(resolverMap1b.Metadata.Namespace, resolverMap1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = resolverMapClient.Delete(resolverMap1b.GetMetadata().Namespace, resolverMap1b.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotResolverMaps(nil, ResolverMapList{resolverMap1a, resolverMap1b, resolverMap2a, resolverMap2b})
@@ -290,12 +292,12 @@ var _ = Describe("V1Emitter", func() {
 				select {
 				case snap = <-snapshots:
 					for _, expected := range expectSchemas {
-						if _, err := snap.Schemas.List().Find(expected.Metadata.Ref().Strings()); err != nil {
+						if _, err := snap.Schemas.List().Find(expected.GetMetadata().Ref().Strings()); err != nil {
 							continue drain
 						}
 					}
 					for _, unexpected := range unexpectSchemas {
-						if _, err := snap.Schemas.List().Find(unexpected.Metadata.Ref().Strings()); err == nil {
+						if _, err := snap.Schemas.List().Find(unexpected.GetMetadata().Ref().Strings()); err == nil {
 							continue drain
 						}
 					}
@@ -326,16 +328,16 @@ var _ = Describe("V1Emitter", func() {
 
 		assertSnapshotSchemas(SchemaList{schema1a, schema1b, schema2a, schema2b}, nil)
 
-		err = schemaClient.Delete(schema2a.Metadata.Namespace, schema2a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = schemaClient.Delete(schema2a.GetMetadata().Namespace, schema2a.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = schemaClient.Delete(schema2b.Metadata.Namespace, schema2b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = schemaClient.Delete(schema2b.GetMetadata().Namespace, schema2b.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotSchemas(SchemaList{schema1a, schema1b}, SchemaList{schema2a, schema2b})
 
-		err = schemaClient.Delete(schema1a.Metadata.Namespace, schema1a.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = schemaClient.Delete(schema1a.GetMetadata().Namespace, schema1a.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
-		err = schemaClient.Delete(schema1b.Metadata.Namespace, schema1b.Metadata.Name, clients.DeleteOpts{Ctx: ctx})
+		err = schemaClient.Delete(schema1b.GetMetadata().Namespace, schema1b.GetMetadata().Name, clients.DeleteOpts{Ctx: ctx})
 		Expect(err).NotTo(HaveOccurred())
 
 		assertSnapshotSchemas(nil, SchemaList{schema1a, schema1b, schema2a, schema2b})

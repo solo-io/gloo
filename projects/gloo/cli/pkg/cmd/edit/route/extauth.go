@@ -7,7 +7,7 @@ import (
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/go-utils/cliutils"
-	"github.com/solo-io/solo-kit/pkg/utils/protoutils"
+	"github.com/solo-io/go-utils/protoutils"
 	editRouteOptions "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/cmd/edit/route/options"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/constants"
 	extauthpb "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"

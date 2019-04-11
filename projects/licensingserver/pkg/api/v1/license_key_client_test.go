@@ -59,7 +59,7 @@ func LicenseKeyClientTest(namespace string, client LicenseKeyClient, name1, name
 
 	name := name1
 	input := NewLicenseKey(namespace, name)
-	input.Metadata.Namespace = namespace
+
 	r1, err := client.Write(input, clients.WriteOpts{})
 	Expect(err).NotTo(HaveOccurred())
 
@@ -70,8 +70,8 @@ func LicenseKeyClientTest(namespace string, client LicenseKeyClient, name1, name
 	Expect(r1).To(BeAssignableToTypeOf(&LicenseKey{}))
 	Expect(r1.GetMetadata().Name).To(Equal(name))
 	Expect(r1.GetMetadata().Namespace).To(Equal(namespace))
-	Expect(r1.Metadata.ResourceVersion).NotTo(Equal(input.Metadata.ResourceVersion))
-	Expect(r1.Metadata.Ref()).To(Equal(input.Metadata.Ref()))
+	Expect(r1.GetMetadata().ResourceVersion).NotTo(Equal(input.GetMetadata().ResourceVersion))
+	Expect(r1.GetMetadata().Ref()).To(Equal(input.GetMetadata().Ref()))
 	Expect(r1.Key).To(Equal(input.Key))
 	Expect(r1.Type).To(Equal(input.Type))
 
@@ -80,7 +80,9 @@ func LicenseKeyClientTest(namespace string, client LicenseKeyClient, name1, name
 	})
 	Expect(err).To(HaveOccurred())
 
-	input.Metadata.ResourceVersion = r1.GetMetadata().ResourceVersion
+	resources.UpdateMetadata(input, func(meta *core.Metadata) {
+		meta.ResourceVersion = r1.GetMetadata().ResourceVersion
+	})
 	r1, err = client.Write(input, clients.WriteOpts{
 		OverwriteExisting: true,
 	})
@@ -95,10 +97,10 @@ func LicenseKeyClientTest(namespace string, client LicenseKeyClient, name1, name
 	name = name2
 	input = &LicenseKey{}
 
-	input.Metadata = core.Metadata{
+	input.SetMetadata(core.Metadata{
 		Name:      name,
 		Namespace: namespace,
-	}
+	})
 
 	r2, err := client.Write(input, clients.WriteOpts{})
 	Expect(err).NotTo(HaveOccurred())
@@ -146,10 +148,10 @@ func LicenseKeyClientTest(namespace string, client LicenseKeyClient, name1, name
 		name = name3
 		input = &LicenseKey{}
 		Expect(err).NotTo(HaveOccurred())
-		input.Metadata = core.Metadata{
+		input.SetMetadata(core.Metadata{
 			Name:      name,
 			Namespace: namespace,
-		}
+		})
 
 		r3, err = client.Write(input, clients.WriteOpts{})
 		Expect(err).NotTo(HaveOccurred())

@@ -5,7 +5,6 @@ package v1
 import (
 	"sort"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -15,22 +14,21 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// TODO: modify as needed to populate additional fields
 func NewSchema(namespace, name string) *Schema {
-	return &Schema{
-		Metadata: core.Metadata{
-			Name:      name,
-			Namespace: namespace,
-		},
-	}
-}
-
-func (r *Schema) SetStatus(status core.Status) {
-	r.Status = status
+	schema := &Schema{}
+	schema.SetMetadata(core.Metadata{
+		Name:      name,
+		Namespace: namespace,
+	})
+	return schema
 }
 
 func (r *Schema) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
+}
+
+func (r *Schema) SetStatus(status core.Status) {
+	r.Status = status
 }
 
 func (r *Schema) Hash() uint64 {
@@ -48,8 +46,8 @@ type SchemasByNamespace map[string]SchemaList
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list SchemaList) Find(namespace, name string) (*Schema, error) {
 	for _, schema := range list {
-		if schema.Metadata.Name == name {
-			if namespace == "" || schema.Metadata.Namespace == namespace {
+		if schema.GetMetadata().Name == name {
+			if namespace == "" || schema.GetMetadata().Namespace == namespace {
 				return schema, nil
 			}
 		}
@@ -76,7 +74,7 @@ func (list SchemaList) AsInputResources() resources.InputResourceList {
 func (list SchemaList) Names() []string {
 	var names []string
 	for _, schema := range list {
-		names = append(names, schema.Metadata.Name)
+		names = append(names, schema.GetMetadata().Name)
 	}
 	return names
 }
@@ -84,14 +82,14 @@ func (list SchemaList) Names() []string {
 func (list SchemaList) NamespacesDotNames() []string {
 	var names []string
 	for _, schema := range list {
-		names = append(names, schema.Metadata.Namespace+"."+schema.Metadata.Name)
+		names = append(names, schema.GetMetadata().Namespace+"."+schema.GetMetadata().Name)
 	}
 	return names
 }
 
 func (list SchemaList) Sort() SchemaList {
 	sort.SliceStable(list, func(i, j int) bool {
-		return list[i].Metadata.Less(list[j].Metadata)
+		return list[i].GetMetadata().Less(list[j].GetMetadata())
 	})
 	return list
 }
@@ -99,7 +97,7 @@ func (list SchemaList) Sort() SchemaList {
 func (list SchemaList) Clone() SchemaList {
 	var schemaList SchemaList
 	for _, schema := range list {
-		schemaList = append(schemaList, proto.Clone(schema).(*Schema))
+		schemaList = append(schemaList, resources.Clone(schema).(*Schema))
 	}
 	return schemaList
 }
@@ -120,7 +118,7 @@ func (list SchemaList) AsInterfaces() []interface{} {
 
 func (byNamespace SchemasByNamespace) Add(schema ...*Schema) {
 	for _, item := range schema {
-		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+		byNamespace[item.GetMetadata().Namespace] = append(byNamespace[item.GetMetadata().Namespace], item)
 	}
 }
 

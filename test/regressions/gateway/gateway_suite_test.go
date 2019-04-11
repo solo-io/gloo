@@ -48,7 +48,7 @@ var _ = BeforeSuite(func() {
 	testHelper, err = helper.NewSoloTestHelper(func(defaults helper.TestConfig) helper.TestConfig {
 		defaults.RootDir = filepath.Join(cwd, "../../..")
 		defaults.HelmChartName = "gloo-ee"
-		defaults.LicenseKey = "eyJleHAiOjE1NTQ1MTYyNTEsImlhdCI6MTU1MTgzNzg1MSwiayI6ImVqMVYyUSJ9.5lDPOuRWo4_qr3r9PXBv6lYIut3DbBrqqRauwSQZm4E"
+		defaults.LicenseKey = "eyJleHAiOjM4Nzk1MTY3ODYsImlhdCI6MTU1NDk0MDM0OCwiayI6IkJ3ZXZQQSJ9.tbJ9I9AUltZ-iMmHBertugI2YIg1Z8Q0v6anRjc66Jo"
 		return defaults
 	})
 	Expect(err).NotTo(HaveOccurred())
@@ -67,9 +67,9 @@ var _ = AfterSuite(func() {
 	err := testHelper.UninstallGloo()
 	Expect(err).NotTo(HaveOccurred())
 
-	// TODO go-utils should expose `glooctl uninstall --delete-namespace`
-	err = testutils.Kubectl("delete", "namespace", testHelper.InstallNamespace)
-	Expect(err).NotTo(HaveOccurred())
+	// glooctl should delete the namespace. we do it again just in case it failed
+	// ignore errors
+	testutils.Kubectl("delete", "namespace", testHelper.InstallNamespace)
 
 	EventuallyWithOffset(1, func() error {
 		return testutils.Kubectl("get", "namespace", testHelper.InstallNamespace)

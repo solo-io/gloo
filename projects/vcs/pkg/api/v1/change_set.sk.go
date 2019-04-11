@@ -5,7 +5,6 @@ package v1
 import (
 	"sort"
 
-	"github.com/gogo/protobuf/proto"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
@@ -15,22 +14,21 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// TODO: modify as needed to populate additional fields
 func NewChangeSet(namespace, name string) *ChangeSet {
-	return &ChangeSet{
-		Metadata: core.Metadata{
-			Name:      name,
-			Namespace: namespace,
-		},
-	}
-}
-
-func (r *ChangeSet) SetStatus(status core.Status) {
-	r.Status = status
+	changeset := &ChangeSet{}
+	changeset.SetMetadata(core.Metadata{
+		Name:      name,
+		Namespace: namespace,
+	})
+	return changeset
 }
 
 func (r *ChangeSet) SetMetadata(meta core.Metadata) {
 	r.Metadata = meta
+}
+
+func (r *ChangeSet) SetStatus(status core.Status) {
+	r.Status = status
 }
 
 func (r *ChangeSet) Hash() uint64 {
@@ -56,8 +54,8 @@ type ChangesetsByNamespace map[string]ChangeSetList
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list ChangeSetList) Find(namespace, name string) (*ChangeSet, error) {
 	for _, changeSet := range list {
-		if changeSet.Metadata.Name == name {
-			if namespace == "" || changeSet.Metadata.Namespace == namespace {
+		if changeSet.GetMetadata().Name == name {
+			if namespace == "" || changeSet.GetMetadata().Namespace == namespace {
 				return changeSet, nil
 			}
 		}
@@ -84,7 +82,7 @@ func (list ChangeSetList) AsInputResources() resources.InputResourceList {
 func (list ChangeSetList) Names() []string {
 	var names []string
 	for _, changeSet := range list {
-		names = append(names, changeSet.Metadata.Name)
+		names = append(names, changeSet.GetMetadata().Name)
 	}
 	return names
 }
@@ -92,14 +90,14 @@ func (list ChangeSetList) Names() []string {
 func (list ChangeSetList) NamespacesDotNames() []string {
 	var names []string
 	for _, changeSet := range list {
-		names = append(names, changeSet.Metadata.Namespace+"."+changeSet.Metadata.Name)
+		names = append(names, changeSet.GetMetadata().Namespace+"."+changeSet.GetMetadata().Name)
 	}
 	return names
 }
 
 func (list ChangeSetList) Sort() ChangeSetList {
 	sort.SliceStable(list, func(i, j int) bool {
-		return list[i].Metadata.Less(list[j].Metadata)
+		return list[i].GetMetadata().Less(list[j].GetMetadata())
 	})
 	return list
 }
@@ -107,7 +105,7 @@ func (list ChangeSetList) Sort() ChangeSetList {
 func (list ChangeSetList) Clone() ChangeSetList {
 	var changeSetList ChangeSetList
 	for _, changeSet := range list {
-		changeSetList = append(changeSetList, proto.Clone(changeSet).(*ChangeSet))
+		changeSetList = append(changeSetList, resources.Clone(changeSet).(*ChangeSet))
 	}
 	return changeSetList
 }
@@ -128,7 +126,7 @@ func (list ChangeSetList) AsInterfaces() []interface{} {
 
 func (byNamespace ChangesetsByNamespace) Add(changeSet ...*ChangeSet) {
 	for _, item := range changeSet {
-		byNamespace[item.Metadata.Namespace] = append(byNamespace[item.Metadata.Namespace], item)
+		byNamespace[item.GetMetadata().Namespace] = append(byNamespace[item.GetMetadata().Namespace], item)
 	}
 }
 

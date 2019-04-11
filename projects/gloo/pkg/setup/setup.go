@@ -12,6 +12,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
 	check "github.com/solo-io/go-checkpoint"
 	"github.com/solo-io/solo-projects/pkg/version"
+	nackdetector "github.com/solo-io/solo-projects/projects/gloo/pkg/nack_detector"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
 )
@@ -27,7 +28,9 @@ func Main() error {
 }
 
 func GetGlooEeExtensions() syncer.Extensions {
+	ctx := context.Background()
 	return syncer.Extensions{
+		XdsCallbacks: nackdetector.NewNackDetector(ctx, nackdetector.StateChangedCallback(nackdetector.NewStatsGen(ctx).Stat)),
 		SyncerExtensions: []syncer.TranslatorSyncerExtensionFactory{
 			ratelimitExt.NewTranslatorSyncerExtension,
 			func(context.Context, syncer.TranslatorSyncerExtensionParams) (syncer.TranslatorSyncerExtension, error) {
