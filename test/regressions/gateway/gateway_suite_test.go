@@ -55,7 +55,7 @@ var _ = BeforeSuite(func() {
 
 	locker, err = clusterlock.NewTestClusterLocker(MustKubeClient(), clusterlock.Options{})
 	Expect(err).NotTo(HaveOccurred())
-	Expect(locker.AcquireLock(retry.Attempts(20))).NotTo(HaveOccurred())
+	Expect(locker.AcquireLock(retry.Attempts(40))).NotTo(HaveOccurred())
 
 	// Install Gloo
 	err = testHelper.InstallGloo(helper.GATEWAY, 5*time.Minute)

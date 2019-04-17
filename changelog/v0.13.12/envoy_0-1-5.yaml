@@ -1,0 +1,6 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Update to latest envoy-gloo-ee
+    dependencyRepo: envoy-gloo-ee
+    dependencyOwner: solo-io
+    dependencyTag: v0.1.5
