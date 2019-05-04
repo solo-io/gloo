@@ -77,6 +77,7 @@ func SettingsClientTest(namespace string, client SettingsClient, name1, name2, n
 	Expect(r1.BindAddr).To(Equal(input.BindAddr))
 	Expect(r1.RefreshRate).To(Equal(input.RefreshRate))
 	Expect(r1.DevMode).To(Equal(input.DevMode))
+	Expect(r1.Linkerd).To(Equal(input.Linkerd))
 	Expect(r1.CircuitBreakers).To(Equal(input.CircuitBreakers))
 	Expect(r1.Extensions).To(Equal(input.Extensions))
 	Expect(r1.Status).To(Equal(input.Status))
@@ -172,18 +173,17 @@ func SettingsClientTest(namespace string, client SettingsClient, name1, name2, n
 		Fail("expected a message in channel")
 	}
 
-drain:
-	for {
-		select {
-		case list = <-w:
-		case err := <-errs:
-			Expect(err).NotTo(HaveOccurred())
-		case <-time.After(time.Millisecond * 500):
-			break drain
+	go func() {
+		defer GinkgoRecover()
+		for {
+			select {
+			case err := <-errs:
+				Expect(err).NotTo(HaveOccurred())
+			case <-time.After(time.Second / 4):
+				return
+			}
 		}
-	}
+	}()
 
-	Expect(list).To(ContainElement(r1))
-	Expect(list).To(ContainElement(r2))
-	Expect(list).To(ContainElement(r3))
+	Eventually(w, time.Second*5, time.Second/10).Should(Receive(And(ContainElement(r1), ContainElement(r3), ContainElement(r3))))
 }

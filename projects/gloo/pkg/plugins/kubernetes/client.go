@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/cache"
 
-	"github.com/solo-io/kubecontroller"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/controller"
 	kubeinformers "k8s.io/client-go/informers"
 	kubelisters "k8s.io/client-go/listers/core/v1"
 
@@ -62,13 +62,16 @@ func startInformerFactory(ctx context.Context, client kubernetes.Interface) *Kub
 		podsLister:      podsInformer.Lister(),
 	}
 
-	kubeController := kubecontroller.NewController("kube-plugin-controller", client,
-		kubecontroller.NewLockingSyncHandler(k.updatedOccured),
+	kubeController := controller.NewController("kube-plugin-controller",
+		controller.NewLockingSyncHandler(k.updatedOccured),
 		endpointInformer.Informer(), podsInformer.Informer(), servicesInformer.Informer())
 
 	stop := ctx.Done()
-	go kubeInformerFactory.Start(stop)
-	go kubeController.Run(2, stop)
+	err := kubeController.Run(2, stop)
+	if err != nil {
+		k.initError = errors.Wrapf(err, "could not start shared informer factory")
+		return k
+	}
 
 	ok := cache.WaitForCacheSync(stop,
 		endpointInformer.Informer().HasSynced,
