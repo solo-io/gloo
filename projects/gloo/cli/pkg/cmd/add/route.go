@@ -85,7 +85,7 @@ func selectOrCreateVirtualService(opts *options.Options) (*gatewayv1.VirtualServ
 		opts.Metadata.Name = "default"
 	}
 	if opts.Metadata.Namespace == "" {
-		opts.Metadata.Name = defaults.GlooSystem
+		opts.Metadata.Namespace = defaults.GlooSystem
 	}
 
 	fmt.Printf("creating virtualservice %v with default domain *\n", opts.Metadata.Name)
@@ -191,6 +191,18 @@ func actionFromInput(input options.InputRoute) (*v1.Route_RouteAction, error) {
 	a := &v1.Route_RouteAction{
 		RouteAction: &v1.RouteAction{},
 	}
+
+	if input.UpstreamGroup.Name != "" {
+		if input.UpstreamGroup.Namespace == "" {
+			input.UpstreamGroup.Namespace = defaults.GlooSystem
+		}
+
+		a.RouteAction.Destination = &v1.RouteAction_UpstreamGroup{
+			UpstreamGroup: &input.UpstreamGroup,
+		}
+		return a, nil
+	}
+
 	// TODO: multi destination
 	dest := input.Destination
 	if dest.Upstream.Name == "" {
