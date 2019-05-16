@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/solo-io/solo-kit/pkg/utils/log"
+	"github.com/solo-io/go-utils/log"
 )
 
 type Duration time.Duration

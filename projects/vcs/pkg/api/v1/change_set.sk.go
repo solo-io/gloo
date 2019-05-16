@@ -5,11 +5,11 @@ package v1
 import (
 	"sort"
 
+	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/utils/hashutils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -49,7 +49,6 @@ func (r *ChangeSet) Hash() uint64 {
 }
 
 type ChangeSetList []*ChangeSet
-type ChangesetsByNamespace map[string]ChangeSetList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list ChangeSetList) Find(namespace, name string) (*ChangeSet, error) {
@@ -116,38 +115,18 @@ func (list ChangeSetList) Each(f func(element *ChangeSet)) {
 	}
 }
 
+func (list ChangeSetList) EachResource(f func(element resources.Resource)) {
+	for _, changeSet := range list {
+		f(changeSet)
+	}
+}
+
 func (list ChangeSetList) AsInterfaces() []interface{} {
 	var asInterfaces []interface{}
 	list.Each(func(element *ChangeSet) {
 		asInterfaces = append(asInterfaces, element)
 	})
 	return asInterfaces
-}
-
-func (byNamespace ChangesetsByNamespace) Add(changeSet ...*ChangeSet) {
-	for _, item := range changeSet {
-		byNamespace[item.GetMetadata().Namespace] = append(byNamespace[item.GetMetadata().Namespace], item)
-	}
-}
-
-func (byNamespace ChangesetsByNamespace) Clear(namespace string) {
-	delete(byNamespace, namespace)
-}
-
-func (byNamespace ChangesetsByNamespace) List() ChangeSetList {
-	var list ChangeSetList
-	for _, changeSetList := range byNamespace {
-		list = append(list, changeSetList...)
-	}
-	return list.Sort()
-}
-
-func (byNamespace ChangesetsByNamespace) Clone() ChangesetsByNamespace {
-	cloned := make(ChangesetsByNamespace)
-	for ns, list := range byNamespace {
-		cloned[ns] = list.Clone()
-	}
-	return cloned
 }
 
 var _ resources.Resource = &ChangeSet{}

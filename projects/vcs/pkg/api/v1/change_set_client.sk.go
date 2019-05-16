@@ -9,6 +9,11 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
+type ChangeSetWatcher interface {
+	// watch namespace-scoped Changesets
+	Watch(namespace string, opts clients.WatchOpts) (<-chan ChangeSetList, <-chan error, error)
+}
+
 type ChangeSetClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
@@ -16,7 +21,7 @@ type ChangeSetClient interface {
 	Write(resource *ChangeSet, opts clients.WriteOpts) (*ChangeSet, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
 	List(namespace string, opts clients.ListOpts) (ChangeSetList, error)
-	Watch(namespace string, opts clients.WatchOpts) (<-chan ChangeSetList, <-chan error, error)
+	ChangeSetWatcher
 }
 
 type changeSetClient struct {

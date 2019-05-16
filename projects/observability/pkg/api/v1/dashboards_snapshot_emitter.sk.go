@@ -12,9 +12,9 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 
+	"github.com/solo-io/go-utils/errutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
 var (
@@ -142,6 +142,7 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 			sentSnapshot := currentSnapshot.Clone()
 			snapshots <- &sentSnapshot
 		}
+		upstreamsByNamespace := make(map[string]gloo_solo_io.UpstreamList)
 
 		for {
 			record := func() { stats.Record(ctx, mDashboardsSnapshotIn.M(1)) }
@@ -161,9 +162,14 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 				record()
 
 				namespace := upstreamNamespacedList.namespace
-				upstreamList := upstreamNamespacedList.list
 
-				currentSnapshot.Upstreams[namespace] = upstreamList
+				// merge lists by namespace
+				upstreamsByNamespace[namespace] = upstreamNamespacedList.list
+				var upstreamList gloo_solo_io.UpstreamList
+				for _, upstreams := range upstreamsByNamespace {
+					upstreamList = append(upstreamList, upstreams...)
+				}
+				currentSnapshot.Upstreams = upstreamList.Sort()
 			}
 		}
 	}()

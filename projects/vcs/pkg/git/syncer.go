@@ -28,7 +28,10 @@ type RemoteSyncer struct {
 func (s *RemoteSyncer) Sync(ctx context.Context, snap *v1.ApiSnapshot) error {
 
 	// Iterate over all available changesets
-	for _, cs := range snap.Changesets[defaults.GlooSystem] {
+	for _, cs := range snap.Changesets {
+		if cs.Metadata.Namespace != defaults.GlooSystem {
+			continue
+		}
 
 		var err error
 

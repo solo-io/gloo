@@ -268,8 +268,8 @@ redis:
   deployment:
     name: redis
     image:
-      tag: v1
-      repository: kubernetes/redis
+      tag: "5"
+      repository: redis
       pullPolicy: Always
     staticPort: 6379
   service:

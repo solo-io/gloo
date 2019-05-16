@@ -85,7 +85,7 @@ func (s *GrafanaDashboardsSyncer) Sync(ctx context.Context, snap *v1.DashboardsS
 }
 
 func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger, snap *v1.DashboardsSnapshot, gs *grafanaState) {
-	for _, upstream := range snap.Upstreams.List() {
+	for _, upstream := range snap.Upstreams {
 		upstreamName := upstream.Metadata.GetName()
 		upstreamUid := grafana.NameToUid(upstream.Metadata.GetName())
 		// check grafana boards for presence of current upstream
@@ -129,7 +129,7 @@ func (s *GrafanaDashboardsSyncer) createGrafanaContent(logger *zap.SugaredLogger
 func (s *GrafanaDashboardsSyncer) deleteGrafanaContent(logger *zap.SugaredLogger, snap *v1.DashboardsSnapshot, gs *grafanaState) {
 	for _, board := range gs.boards {
 		missing := true
-		for _, upstream := range snap.Upstreams.List() {
+		for _, upstream := range snap.Upstreams {
 			upstreamUid := grafana.NameToUid(upstream.Metadata.GetName())
 			if board.UID == upstreamUid {
 				missing = false
@@ -147,7 +147,7 @@ func (s *GrafanaDashboardsSyncer) deleteGrafanaContent(logger *zap.SugaredLogger
 
 	for _, snapshot := range gs.snapshots {
 		missing := true
-		for _, upstream := range snap.Upstreams.List() {
+		for _, upstream := range snap.Upstreams {
 			upstreamUid := grafana.NameToUid(upstream.Metadata.GetName())
 			if snapshot.Name == upstreamUid {
 				missing = false

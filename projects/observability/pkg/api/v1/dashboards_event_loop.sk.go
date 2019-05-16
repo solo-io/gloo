@@ -10,9 +10,10 @@ import (
 	"github.com/hashicorp/go-multierror"
 
 	"github.com/solo-io/go-utils/contextutils"
+	"github.com/solo-io/go-utils/errutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/eventloop"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/utils/errutils"
 )
 
 type DashboardsSyncer interface {
@@ -31,16 +32,12 @@ func (s DashboardsSyncers) Sync(ctx context.Context, snapshot *DashboardsSnapsho
 	return multiErr.ErrorOrNil()
 }
 
-type DashboardsEventLoop interface {
-	Run(namespaces []string, opts clients.WatchOpts) (<-chan error, error)
-}
-
 type dashboardsEventLoop struct {
 	emitter DashboardsEmitter
 	syncer  DashboardsSyncer
 }
 
-func NewDashboardsEventLoop(emitter DashboardsEmitter, syncer DashboardsSyncer) DashboardsEventLoop {
+func NewDashboardsEventLoop(emitter DashboardsEmitter, syncer DashboardsSyncer) eventloop.EventLoop {
 	return &dashboardsEventLoop{
 		emitter: emitter,
 		syncer:  syncer,

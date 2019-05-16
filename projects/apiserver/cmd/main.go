@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/solo-io/solo-kit/pkg/utils/stats"
+	"github.com/solo-io/go-utils/stats"
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/setup"
 )
 

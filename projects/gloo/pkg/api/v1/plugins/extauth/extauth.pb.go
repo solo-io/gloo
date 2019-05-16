@@ -18,6 +18,8 @@ import (
 	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1895,6 +1897,20 @@ type ExtAuthDiscoveryServiceServer interface {
 	StreamExtAuthConfig(ExtAuthDiscoveryService_StreamExtAuthConfigServer) error
 	DeltaExtAuthConfig(ExtAuthDiscoveryService_DeltaExtAuthConfigServer) error
 	FetchExtAuthConfig(context.Context, *v2.DiscoveryRequest) (*v2.DiscoveryResponse, error)
+}
+
+// UnimplementedExtAuthDiscoveryServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedExtAuthDiscoveryServiceServer struct {
+}
+
+func (*UnimplementedExtAuthDiscoveryServiceServer) StreamExtAuthConfig(srv ExtAuthDiscoveryService_StreamExtAuthConfigServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamExtAuthConfig not implemented")
+}
+func (*UnimplementedExtAuthDiscoveryServiceServer) DeltaExtAuthConfig(srv ExtAuthDiscoveryService_DeltaExtAuthConfigServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeltaExtAuthConfig not implemented")
+}
+func (*UnimplementedExtAuthDiscoveryServiceServer) FetchExtAuthConfig(ctx context.Context, req *v2.DiscoveryRequest) (*v2.DiscoveryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FetchExtAuthConfig not implemented")
 }
 
 func RegisterExtAuthDiscoveryServiceServer(s *grpc.Server, srv ExtAuthDiscoveryServiceServer) {

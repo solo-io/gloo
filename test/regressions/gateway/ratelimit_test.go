@@ -33,7 +33,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-var _ = PDescribe("Ratelimit tests", func() {
+var _ = Describe("Ratelimit tests", func() {
 
 	var (
 		ctx    context.Context

@@ -9,6 +9,11 @@ import (
 	"github.com/solo-io/solo-kit/pkg/errors"
 )
 
+type LicenseKeyWatcher interface {
+	// watch namespace-scoped Licenses
+	Watch(namespace string, opts clients.WatchOpts) (<-chan LicenseKeyList, <-chan error, error)
+}
+
 type LicenseKeyClient interface {
 	BaseClient() clients.ResourceClient
 	Register() error
@@ -16,7 +21,7 @@ type LicenseKeyClient interface {
 	Write(resource *LicenseKey, opts clients.WriteOpts) (*LicenseKey, error)
 	Delete(namespace, name string, opts clients.DeleteOpts) error
 	List(namespace string, opts clients.ListOpts) (LicenseKeyList, error)
-	Watch(namespace string, opts clients.WatchOpts) (<-chan LicenseKeyList, <-chan error, error)
+	LicenseKeyWatcher
 }
 
 type licenseKeyClient struct {

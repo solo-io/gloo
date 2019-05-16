@@ -67,7 +67,7 @@ func (s *RateLimitTranslatorSyncerExtension) Sync(ctx context.Context, snap *glo
 		Domain: rateLimitPlugin.IngressDomain,
 	}
 
-	for _, proxy := range snap.Proxies.List() {
+	for _, proxy := range snap.Proxies {
 		for _, listener := range proxy.Listeners {
 			httpListener, ok := listener.ListenerType.(*gloov1.Listener_HttpListener)
 			if !ok {

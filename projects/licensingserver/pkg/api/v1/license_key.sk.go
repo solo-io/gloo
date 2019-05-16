@@ -5,11 +5,11 @@ package v1
 import (
 	"sort"
 
+	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/utils/hashutils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -38,7 +38,6 @@ func (r *LicenseKey) Hash() uint64 {
 }
 
 type LicenseKeyList []*LicenseKey
-type LicensesByNamespace map[string]LicenseKeyList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list LicenseKeyList) Find(namespace, name string) (*LicenseKey, error) {
@@ -97,38 +96,18 @@ func (list LicenseKeyList) Each(f func(element *LicenseKey)) {
 	}
 }
 
+func (list LicenseKeyList) EachResource(f func(element resources.Resource)) {
+	for _, licenseKey := range list {
+		f(licenseKey)
+	}
+}
+
 func (list LicenseKeyList) AsInterfaces() []interface{} {
 	var asInterfaces []interface{}
 	list.Each(func(element *LicenseKey) {
 		asInterfaces = append(asInterfaces, element)
 	})
 	return asInterfaces
-}
-
-func (byNamespace LicensesByNamespace) Add(licenseKey ...*LicenseKey) {
-	for _, item := range licenseKey {
-		byNamespace[item.GetMetadata().Namespace] = append(byNamespace[item.GetMetadata().Namespace], item)
-	}
-}
-
-func (byNamespace LicensesByNamespace) Clear(namespace string) {
-	delete(byNamespace, namespace)
-}
-
-func (byNamespace LicensesByNamespace) List() LicenseKeyList {
-	var list LicenseKeyList
-	for _, licenseKeyList := range byNamespace {
-		list = append(list, licenseKeyList...)
-	}
-	return list.Sort()
-}
-
-func (byNamespace LicensesByNamespace) Clone() LicensesByNamespace {
-	cloned := make(LicensesByNamespace)
-	for ns, list := range byNamespace {
-		cloned[ns] = list.Clone()
-	}
-	return cloned
 }
 
 var _ resources.Resource = &LicenseKey{}

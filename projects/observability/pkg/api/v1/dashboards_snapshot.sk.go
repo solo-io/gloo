@@ -7,12 +7,12 @@ import (
 
 	gloo_solo_io "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 
-	"github.com/solo-io/solo-kit/pkg/utils/hashutils"
+	"github.com/solo-io/go-utils/hashutils"
 	"go.uber.org/zap"
 )
 
 type DashboardsSnapshot struct {
-	Upstreams gloo_solo_io.UpstreamsByNamespace
+	Upstreams gloo_solo_io.UpstreamList
 }
 
 func (s DashboardsSnapshot) Clone() DashboardsSnapshot {
@@ -28,7 +28,7 @@ func (s DashboardsSnapshot) Hash() uint64 {
 }
 
 func (s DashboardsSnapshot) hashUpstreams() uint64 {
-	return hashutils.HashAll(s.Upstreams.List().AsInterfaces()...)
+	return hashutils.HashAll(s.Upstreams.AsInterfaces()...)
 }
 
 func (s DashboardsSnapshot) HashFields() []zap.Field {
@@ -57,6 +57,6 @@ func (ss DashboardsSnapshotStringer) String() string {
 func (s DashboardsSnapshot) Stringer() DashboardsSnapshotStringer {
 	return DashboardsSnapshotStringer{
 		Version:   s.Hash(),
-		Upstreams: s.Upstreams.List().NamespacesDotNames(),
+		Upstreams: s.Upstreams.NamespacesDotNames(),
 	}
 }

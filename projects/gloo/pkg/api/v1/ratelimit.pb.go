@@ -15,6 +15,8 @@ import (
 	ratelimit "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -251,6 +253,20 @@ type RateLimitDiscoveryServiceServer interface {
 	StreamRateLimitConfig(RateLimitDiscoveryService_StreamRateLimitConfigServer) error
 	DeltaRateLimitConfig(RateLimitDiscoveryService_DeltaRateLimitConfigServer) error
 	FetchRateLimitConfig(context.Context, *v2.DiscoveryRequest) (*v2.DiscoveryResponse, error)
+}
+
+// UnimplementedRateLimitDiscoveryServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedRateLimitDiscoveryServiceServer struct {
+}
+
+func (*UnimplementedRateLimitDiscoveryServiceServer) StreamRateLimitConfig(srv RateLimitDiscoveryService_StreamRateLimitConfigServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamRateLimitConfig not implemented")
+}
+func (*UnimplementedRateLimitDiscoveryServiceServer) DeltaRateLimitConfig(srv RateLimitDiscoveryService_DeltaRateLimitConfigServer) error {
+	return status.Errorf(codes.Unimplemented, "method DeltaRateLimitConfig not implemented")
+}
+func (*UnimplementedRateLimitDiscoveryServiceServer) FetchRateLimitConfig(ctx context.Context, req *v2.DiscoveryRequest) (*v2.DiscoveryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FetchRateLimitConfig not implemented")
 }
 
 func RegisterRateLimitDiscoveryServiceServer(s *grpc.Server, srv RateLimitDiscoveryServiceServer) {

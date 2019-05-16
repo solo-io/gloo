@@ -22,7 +22,7 @@ import (
 
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 
-	"github.com/solo-io/solo-kit/pkg/utils/stats"
+	"github.com/solo-io/go-utils/stats"
 
 	"google.golang.org/grpc"
 )

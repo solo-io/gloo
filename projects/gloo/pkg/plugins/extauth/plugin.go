@@ -153,7 +153,7 @@ func TranslateUserConfigToExtAuthServerConfig(name string, snap *v1.ApiSnapshot,
 			BasicAuth: config.BasicAuth,
 		}
 	case *extauth.VhostExtension_Oauth:
-		secret, err := snap.Secrets.List().Find(config.Oauth.ClientSecretRef.Namespace, config.Oauth.ClientSecretRef.Name)
+		secret, err := snap.Secrets.Find(config.Oauth.ClientSecretRef.Namespace, config.Oauth.ClientSecretRef.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -259,7 +259,7 @@ func (p *Plugin) generateEnvoyConfigForFilter(params plugins.Params) (*envoyauth
 	}
 
 	// make sure the server exists:
-	_, err := params.Snapshot.Upstreams.List().Find(upstreamRef.Namespace, upstreamRef.Name)
+	_, err := params.Snapshot.Upstreams.Find(upstreamRef.Namespace, upstreamRef.Name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "external auth upstream not found %s", upstreamRef.String())
 	}

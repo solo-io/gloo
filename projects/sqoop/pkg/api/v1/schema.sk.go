@@ -5,11 +5,11 @@ package v1
 import (
 	"sort"
 
+	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/utils/hashutils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -41,7 +41,6 @@ func (r *Schema) Hash() uint64 {
 }
 
 type SchemaList []*Schema
-type SchemasByNamespace map[string]SchemaList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list SchemaList) Find(namespace, name string) (*Schema, error) {
@@ -108,38 +107,18 @@ func (list SchemaList) Each(f func(element *Schema)) {
 	}
 }
 
+func (list SchemaList) EachResource(f func(element resources.Resource)) {
+	for _, schema := range list {
+		f(schema)
+	}
+}
+
 func (list SchemaList) AsInterfaces() []interface{} {
 	var asInterfaces []interface{}
 	list.Each(func(element *Schema) {
 		asInterfaces = append(asInterfaces, element)
 	})
 	return asInterfaces
-}
-
-func (byNamespace SchemasByNamespace) Add(schema ...*Schema) {
-	for _, item := range schema {
-		byNamespace[item.GetMetadata().Namespace] = append(byNamespace[item.GetMetadata().Namespace], item)
-	}
-}
-
-func (byNamespace SchemasByNamespace) Clear(namespace string) {
-	delete(byNamespace, namespace)
-}
-
-func (byNamespace SchemasByNamespace) List() SchemaList {
-	var list SchemaList
-	for _, schemaList := range byNamespace {
-		list = append(list, schemaList...)
-	}
-	return list.Sort()
-}
-
-func (byNamespace SchemasByNamespace) Clone() SchemasByNamespace {
-	cloned := make(SchemasByNamespace)
-	for ns, list := range byNamespace {
-		cloned[ns] = list.Clone()
-	}
-	return cloned
 }
 
 var _ resources.Resource = &Schema{}

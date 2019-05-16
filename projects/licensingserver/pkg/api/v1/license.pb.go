@@ -13,6 +13,8 @@ import (
 	proto "github.com/gogo/protobuf/proto"
 	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -349,6 +351,14 @@ func (c *licenseValidationClient) ValidateKey(ctx context.Context, in *ValidateK
 type LicenseValidationServer interface {
 	// Returns the validity of a given License key
 	ValidateKey(context.Context, *ValidateKeyRequest) (*ValidateKeyReponse, error)
+}
+
+// UnimplementedLicenseValidationServer can be embedded to have forward compatible implementations.
+type UnimplementedLicenseValidationServer struct {
+}
+
+func (*UnimplementedLicenseValidationServer) ValidateKey(ctx context.Context, req *ValidateKeyRequest) (*ValidateKeyReponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ValidateKey not implemented")
 }
 
 func RegisterLicenseValidationServer(s *grpc.Server, srv LicenseValidationServer) {

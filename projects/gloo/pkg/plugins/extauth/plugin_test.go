@@ -138,9 +138,9 @@ var _ = Describe("Plugin", func() {
 		}
 
 		params.Snapshot = &v1.ApiSnapshot{
-			Proxies:   map[string]v1.ProxyList{"default": v1.ProxyList{proxy}},
-			Upstreams: map[string]v1.UpstreamList{"default": v1.UpstreamList{upstream}},
-			Secrets:   map[string]v1.SecretList{"default": v1.SecretList{secret}},
+			Proxies:   v1.ProxyList{proxy},
+			Upstreams: v1.UpstreamList{upstream},
+			Secrets:   v1.SecretList{secret},
 		}
 	})
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/solo-io/solo-kit/pkg/utils/log"
+	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/solo-projects/projects/sqoop/pkg/setup"
 )
 

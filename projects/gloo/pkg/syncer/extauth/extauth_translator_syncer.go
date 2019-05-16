@@ -26,7 +26,7 @@ func NewTranslatorSyncerExtension() syncer.TranslatorSyncerExtension {
 }
 
 func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
-	for _, proxy := range snap.Proxies.List() {
+	for _, proxy := range snap.Proxies {
 		for _, listener := range proxy.Listeners {
 			httpListener, ok := listener.ListenerType.(*gloov1.Listener_HttpListener)
 			if !ok {

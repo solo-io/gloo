@@ -5,11 +5,11 @@ package v1
 import (
 	"sort"
 
+	"github.com/solo-io/go-utils/hashutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-kit/pkg/errors"
-	"github.com/solo-io/solo-kit/pkg/utils/hashutils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -41,7 +41,6 @@ func (r *ResolverMap) Hash() uint64 {
 }
 
 type ResolverMapList []*ResolverMap
-type ResolverMapsByNamespace map[string]ResolverMapList
 
 // namespace is optional, if left empty, names can collide if the list contains more than one with the same name
 func (list ResolverMapList) Find(namespace, name string) (*ResolverMap, error) {
@@ -108,38 +107,18 @@ func (list ResolverMapList) Each(f func(element *ResolverMap)) {
 	}
 }
 
+func (list ResolverMapList) EachResource(f func(element resources.Resource)) {
+	for _, resolverMap := range list {
+		f(resolverMap)
+	}
+}
+
 func (list ResolverMapList) AsInterfaces() []interface{} {
 	var asInterfaces []interface{}
 	list.Each(func(element *ResolverMap) {
 		asInterfaces = append(asInterfaces, element)
 	})
 	return asInterfaces
-}
-
-func (byNamespace ResolverMapsByNamespace) Add(resolverMap ...*ResolverMap) {
-	for _, item := range resolverMap {
-		byNamespace[item.GetMetadata().Namespace] = append(byNamespace[item.GetMetadata().Namespace], item)
-	}
-}
-
-func (byNamespace ResolverMapsByNamespace) Clear(namespace string) {
-	delete(byNamespace, namespace)
-}
-
-func (byNamespace ResolverMapsByNamespace) List() ResolverMapList {
-	var list ResolverMapList
-	for _, resolverMapList := range byNamespace {
-		list = append(list, resolverMapList...)
-	}
-	return list.Sort()
-}
-
-func (byNamespace ResolverMapsByNamespace) Clone() ResolverMapsByNamespace {
-	cloned := make(ResolverMapsByNamespace)
-	for ns, list := range byNamespace {
-		cloned[ns] = list.Clone()
-	}
-	return cloned
 }
 
 var _ resources.Resource = &ResolverMap{}
