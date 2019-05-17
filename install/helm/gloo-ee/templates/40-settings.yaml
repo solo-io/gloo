@@ -31,7 +31,9 @@ spec:
 
 {{- with .Values.gloo.settings.watchNamespaces }}
   watchNamespaces:
+  {{- range . }}
   - {{ . }}
+  {{- end }}
 {{- end }}
 
 {{- end }}

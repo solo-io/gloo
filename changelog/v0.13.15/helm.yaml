@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Allow helm to provide an array of namespaces to watch.
+    issueLink: https://github.com/solo-io/solo-projects/issues/597
