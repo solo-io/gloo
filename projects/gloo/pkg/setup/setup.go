@@ -14,7 +14,9 @@ import (
 	"github.com/solo-io/solo-projects/pkg/version"
 	nackdetector "github.com/solo-io/solo-projects/projects/gloo/pkg/nack_detector"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/extauth"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/ratelimit"
+	"github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
 )
 
 func Main() error {
@@ -40,6 +42,8 @@ func GetGlooEeExtensions() syncer.Extensions {
 		PluginExtensions: []plugins.Plugin{
 			ratelimit.NewPlugin(),
 			extauth.NewPlugin(),
+			rbac.NewPlugin(),
+			jwt.NewPlugin(),
 		},
 	}
 }

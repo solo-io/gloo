@@ -228,6 +228,19 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			apiServer.Origin = addr
 		}
 
+		AfterEach(func() {
+			// Delete the service created as part of the recodings.
+			// virtual service names found here:
+			// - projects/apiserver/test/queries/r4_prefix_rewrite.go
+			// - projects/apiserver/test/caller.go
+			for _, potentialVS := range []string{"has-prefix-rewrite", "m"} {
+				err := virtualServiceClient.Delete(testHelper.InstallNamespace, potentialVS, clients.DeleteOpts{})
+				if err != nil && !errors.IsNotExist(err) {
+					Expect(err).NotTo(HaveOccurred())
+				}
+			}
+		})
+
 		It("should call apiserver correctly", func() {
 			apiserverCurlOptions := func(body string) helper.CurlOpts {
 				serviceName := "apiserver-ui"

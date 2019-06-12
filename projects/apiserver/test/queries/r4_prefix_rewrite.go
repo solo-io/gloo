@@ -3,6 +3,9 @@
 
 package queries
 
+// This line creates a virtual service. when running the test it should be cleaned up.
+// See the AfterEach block in the "Call Apiserver" in test/regressions/gateway/gateway_test.go.
+// If this name changes, we should change it there too.
 // timestamp: 2019-04-01 14:51:56.689177 -0400 EDT m=+894.006652098
 const query_1731087844762345556_1 = `{"operationName":"CreateVirtualService_RewriteAction","variables":{"vs":{"metadata":{"name":"has-prefix-rewrite","namespace":"default","resourceVersion":"one"},"displayName":"This vs has a route with prefix rewrite","routes":[{"matcher":{"pathMatch":"/a/path/to/match","pathMatchType":"PREFIX"},"destination":{"singleDestination":{"upstream":{"name":"for-prefix-rewrite","namespace":"default"}}},"plugins":{"prefixRewrite":"/another/prefix"}}]}},"query":"mutation CreateVirtualService_RewriteAction($vs: InputVirtualService!) {\n  virtualServices {\n    create(virtualService: $vs) {\n      metadata {\n        name\n        guid\n      }\n      routes {\n        matcher {\n          pathMatch\n        }\n        plugins {\n          prefixRewrite\n        }\n      }\n    }\n  }\n}\n"}`
 

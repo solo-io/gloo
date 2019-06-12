@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: JWT and RBAC support
+    issueLink: https://github.com/solo-io/solo-projects/pull/602

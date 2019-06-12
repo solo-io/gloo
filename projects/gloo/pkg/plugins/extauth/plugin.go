@@ -20,9 +20,10 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
+	sputils "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/utils"
 )
 
-//go:generate protoc -I$GOPATH/src/github.com/lyft/protoc-gen-validate -I. -I$GOPATH/src/github.com/gogo/protobuf/protobuf --gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/ sanitize.proto
+//go:generate protoc -I$GOPATH/src/github.com/envoyproxy/protoc-gen-validate -I. -I$GOPATH/src/github.com/gogo/protobuf/protobuf --gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/ sanitize.proto
 
 const (
 	ExtensionName         = "extauth"
@@ -55,25 +56,18 @@ func NewPlugin() *Plugin {
 	return &Plugin{}
 }
 
-type tmpPluginContainer struct {
-	params plugins.InitParams
-}
-
-func (t *tmpPluginContainer) GetExtensions() *v1.Extensions {
-	return t.params.ExtensionsSettings
-}
-
 func GetSettings(params plugins.InitParams) (*extauth.Settings, error) {
 	var settings extauth.Settings
-	err := utils.UnmarshalExtension(&tmpPluginContainer{params}, ExtensionName, &settings)
+	ok, err := sputils.GetSettings(params, ExtensionName, &settings)
 	if err != nil {
-		if err == utils.NotFoundError {
-			return nil, nil
-		}
 		return nil, err
 	}
-	return &settings, nil
+	if ok {
+		return &settings, nil
+	}
+	return nil, nil
 }
+
 func GetAuthHeader(e *extauth.Settings) string {
 	if e != nil {
 		if e.UserIdHeader != "" {
