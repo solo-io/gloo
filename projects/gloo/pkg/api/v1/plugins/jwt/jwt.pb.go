@@ -25,15 +25,12 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 type VhostExtension struct {
-	// The url used when accessing the upstream for Json Web Key Set.
-	// This is used to set the host and path in the request
-	JwksUrl string `protobuf:"bytes,1,opt,name=jwks_url,json=jwksUrl,proto3" json:"jwks_url,omitempty"`
-	// The Upstream representing the Json Web Key Set server
-	JwksUpstreamRef *core.ResourceRef `protobuf:"bytes,2,opt,name=jwks_upstream_ref,json=jwksUpstreamRef,proto3" json:"jwks_upstream_ref,omitempty"`
+	// The source for the keys to validate JWTs.
+	Jwks *VhostExtension_Jwks `protobuf:"bytes,1,opt,name=jwks,proto3" json:"jwks,omitempty"`
 	// An incoming JWT must have an 'aud' claim and it must be in this list.
-	Audiences []string `protobuf:"bytes,3,rep,name=audiences,proto3" json:"audiences,omitempty"`
+	Audiences []string `protobuf:"bytes,2,rep,name=audiences,proto3" json:"audiences,omitempty"`
 	// Issuer of the JWT. the 'iss' claim of the JWT must match this.
-	Issuer               string   `protobuf:"bytes,4,opt,name=issuer,proto3" json:"issuer,omitempty"`
+	Issuer               string   `protobuf:"bytes,3,opt,name=issuer,proto3" json:"issuer,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -63,16 +60,9 @@ func (m *VhostExtension) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_VhostExtension proto.InternalMessageInfo
 
-func (m *VhostExtension) GetJwksUrl() string {
+func (m *VhostExtension) GetJwks() *VhostExtension_Jwks {
 	if m != nil {
-		return m.JwksUrl
-	}
-	return ""
-}
-
-func (m *VhostExtension) GetJwksUpstreamRef() *core.ResourceRef {
-	if m != nil {
-		return m.JwksUpstreamRef
+		return m.Jwks
 	}
 	return nil
 }
@@ -89,6 +79,238 @@ func (m *VhostExtension) GetIssuer() string {
 		return m.Issuer
 	}
 	return ""
+}
+
+type VhostExtension_RemoteJwks struct {
+	// The url used when accessing the upstream for Json Web Key Set.
+	// This is used to set the host and path in the request
+	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	// The Upstream representing the Json Web Key Set server
+	UpstreamRef          *core.ResourceRef `protobuf:"bytes,2,opt,name=upstream_ref,json=upstreamRef,proto3" json:"upstream_ref,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *VhostExtension_RemoteJwks) Reset()         { *m = VhostExtension_RemoteJwks{} }
+func (m *VhostExtension_RemoteJwks) String() string { return proto.CompactTextString(m) }
+func (*VhostExtension_RemoteJwks) ProtoMessage()    {}
+func (*VhostExtension_RemoteJwks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c318c41ba2d7c701, []int{0, 0}
+}
+func (m *VhostExtension_RemoteJwks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_VhostExtension_RemoteJwks.Unmarshal(m, b)
+}
+func (m *VhostExtension_RemoteJwks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_VhostExtension_RemoteJwks.Marshal(b, m, deterministic)
+}
+func (m *VhostExtension_RemoteJwks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VhostExtension_RemoteJwks.Merge(m, src)
+}
+func (m *VhostExtension_RemoteJwks) XXX_Size() int {
+	return xxx_messageInfo_VhostExtension_RemoteJwks.Size(m)
+}
+func (m *VhostExtension_RemoteJwks) XXX_DiscardUnknown() {
+	xxx_messageInfo_VhostExtension_RemoteJwks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VhostExtension_RemoteJwks proto.InternalMessageInfo
+
+func (m *VhostExtension_RemoteJwks) GetUrl() string {
+	if m != nil {
+		return m.Url
+	}
+	return ""
+}
+
+func (m *VhostExtension_RemoteJwks) GetUpstreamRef() *core.ResourceRef {
+	if m != nil {
+		return m.UpstreamRef
+	}
+	return nil
+}
+
+type VhostExtension_LocalJwks struct {
+	// Inline key. this can be json web key, key-set or PEM format.
+	Key                  string   `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *VhostExtension_LocalJwks) Reset()         { *m = VhostExtension_LocalJwks{} }
+func (m *VhostExtension_LocalJwks) String() string { return proto.CompactTextString(m) }
+func (*VhostExtension_LocalJwks) ProtoMessage()    {}
+func (*VhostExtension_LocalJwks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c318c41ba2d7c701, []int{0, 1}
+}
+func (m *VhostExtension_LocalJwks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_VhostExtension_LocalJwks.Unmarshal(m, b)
+}
+func (m *VhostExtension_LocalJwks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_VhostExtension_LocalJwks.Marshal(b, m, deterministic)
+}
+func (m *VhostExtension_LocalJwks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VhostExtension_LocalJwks.Merge(m, src)
+}
+func (m *VhostExtension_LocalJwks) XXX_Size() int {
+	return xxx_messageInfo_VhostExtension_LocalJwks.Size(m)
+}
+func (m *VhostExtension_LocalJwks) XXX_DiscardUnknown() {
+	xxx_messageInfo_VhostExtension_LocalJwks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VhostExtension_LocalJwks proto.InternalMessageInfo
+
+func (m *VhostExtension_LocalJwks) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+type VhostExtension_Jwks struct {
+	// Types that are valid to be assigned to Jwks:
+	//	*VhostExtension_Jwks_Remote
+	//	*VhostExtension_Jwks_Local
+	Jwks                 isVhostExtension_Jwks_Jwks `protobuf_oneof:"jwks"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
+}
+
+func (m *VhostExtension_Jwks) Reset()         { *m = VhostExtension_Jwks{} }
+func (m *VhostExtension_Jwks) String() string { return proto.CompactTextString(m) }
+func (*VhostExtension_Jwks) ProtoMessage()    {}
+func (*VhostExtension_Jwks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c318c41ba2d7c701, []int{0, 2}
+}
+func (m *VhostExtension_Jwks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_VhostExtension_Jwks.Unmarshal(m, b)
+}
+func (m *VhostExtension_Jwks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_VhostExtension_Jwks.Marshal(b, m, deterministic)
+}
+func (m *VhostExtension_Jwks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VhostExtension_Jwks.Merge(m, src)
+}
+func (m *VhostExtension_Jwks) XXX_Size() int {
+	return xxx_messageInfo_VhostExtension_Jwks.Size(m)
+}
+func (m *VhostExtension_Jwks) XXX_DiscardUnknown() {
+	xxx_messageInfo_VhostExtension_Jwks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VhostExtension_Jwks proto.InternalMessageInfo
+
+type isVhostExtension_Jwks_Jwks interface {
+	isVhostExtension_Jwks_Jwks()
+	Equal(interface{}) bool
+}
+
+type VhostExtension_Jwks_Remote struct {
+	Remote *VhostExtension_RemoteJwks `protobuf:"bytes,1,opt,name=remote,proto3,oneof"`
+}
+type VhostExtension_Jwks_Local struct {
+	Local *VhostExtension_LocalJwks `protobuf:"bytes,2,opt,name=local,proto3,oneof"`
+}
+
+func (*VhostExtension_Jwks_Remote) isVhostExtension_Jwks_Jwks() {}
+func (*VhostExtension_Jwks_Local) isVhostExtension_Jwks_Jwks()  {}
+
+func (m *VhostExtension_Jwks) GetJwks() isVhostExtension_Jwks_Jwks {
+	if m != nil {
+		return m.Jwks
+	}
+	return nil
+}
+
+func (m *VhostExtension_Jwks) GetRemote() *VhostExtension_RemoteJwks {
+	if x, ok := m.GetJwks().(*VhostExtension_Jwks_Remote); ok {
+		return x.Remote
+	}
+	return nil
+}
+
+func (m *VhostExtension_Jwks) GetLocal() *VhostExtension_LocalJwks {
+	if x, ok := m.GetJwks().(*VhostExtension_Jwks_Local); ok {
+		return x.Local
+	}
+	return nil
+}
+
+// XXX_OneofFuncs is for the internal use of the proto package.
+func (*VhostExtension_Jwks) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _VhostExtension_Jwks_OneofMarshaler, _VhostExtension_Jwks_OneofUnmarshaler, _VhostExtension_Jwks_OneofSizer, []interface{}{
+		(*VhostExtension_Jwks_Remote)(nil),
+		(*VhostExtension_Jwks_Local)(nil),
+	}
+}
+
+func _VhostExtension_Jwks_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*VhostExtension_Jwks)
+	// jwks
+	switch x := m.Jwks.(type) {
+	case *VhostExtension_Jwks_Remote:
+		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Remote); err != nil {
+			return err
+		}
+	case *VhostExtension_Jwks_Local:
+		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Local); err != nil {
+			return err
+		}
+	case nil:
+	default:
+		return fmt.Errorf("VhostExtension_Jwks.Jwks has unexpected type %T", x)
+	}
+	return nil
+}
+
+func _VhostExtension_Jwks_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*VhostExtension_Jwks)
+	switch tag {
+	case 1: // jwks.remote
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(VhostExtension_RemoteJwks)
+		err := b.DecodeMessage(msg)
+		m.Jwks = &VhostExtension_Jwks_Remote{msg}
+		return true, err
+	case 2: // jwks.local
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(VhostExtension_LocalJwks)
+		err := b.DecodeMessage(msg)
+		m.Jwks = &VhostExtension_Jwks_Local{msg}
+		return true, err
+	default:
+		return false, nil
+	}
+}
+
+func _VhostExtension_Jwks_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*VhostExtension_Jwks)
+	// jwks
+	switch x := m.Jwks.(type) {
+	case *VhostExtension_Jwks_Remote:
+		s := proto.Size(x.Remote)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *VhostExtension_Jwks_Local:
+		s := proto.Size(x.Local)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case nil:
+	default:
+		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
+	}
+	return n
 }
 
 type RouteExtension struct {
@@ -132,6 +354,9 @@ func (m *RouteExtension) GetDisable() bool {
 
 func init() {
 	proto.RegisterType((*VhostExtension)(nil), "jwt.plugins.gloo.solo.io.VhostExtension")
+	proto.RegisterType((*VhostExtension_RemoteJwks)(nil), "jwt.plugins.gloo.solo.io.VhostExtension.RemoteJwks")
+	proto.RegisterType((*VhostExtension_LocalJwks)(nil), "jwt.plugins.gloo.solo.io.VhostExtension.LocalJwks")
+	proto.RegisterType((*VhostExtension_Jwks)(nil), "jwt.plugins.gloo.solo.io.VhostExtension.Jwks")
 	proto.RegisterType((*RouteExtension)(nil), "jwt.plugins.gloo.solo.io.RouteExtension")
 }
 
@@ -140,26 +365,32 @@ func init() {
 }
 
 var fileDescriptor_c318c41ba2d7c701 = []byte{
-	// 299 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x51, 0x4f, 0x4b, 0x3b, 0x31,
-	0x10, 0x65, 0x7f, 0xfd, 0xd1, 0x3f, 0x11, 0x2a, 0x2e, 0x22, 0xdb, 0x22, 0x52, 0x7a, 0x2a, 0xa2,
-	0x09, 0xea, 0x37, 0x10, 0x7a, 0xea, 0x2d, 0xa0, 0x07, 0x2f, 0x65, 0xbb, 0x9d, 0x4d, 0xd3, 0xa6,
-	0x3b, 0x21, 0x93, 0x58, 0x3f, 0x52, 0x3f, 0x97, 0x9f, 0x44, 0x36, 0xdb, 0xda, 0x8b, 0x1e, 0x3c,
-	0x84, 0xbc, 0x37, 0x93, 0x79, 0xf3, 0xc8, 0x63, 0x33, 0xa5, 0xfd, 0x2a, 0x2c, 0x78, 0x81, 0x5b,
-	0x41, 0x68, 0xf0, 0x5e, 0x63, 0x73, 0x5b, 0x87, 0x6b, 0x28, 0x3c, 0x89, 0x6f, 0xa0, 0x0c, 0xa2,
-	0xc8, 0xad, 0x16, 0xef, 0x0f, 0xc2, 0x9a, 0xa0, 0x74, 0x45, 0x62, 0xbd, 0xf3, 0xf5, 0xe1, 0xd6,
-	0xa1, 0xc7, 0x34, 0x8b, 0xb0, 0x69, 0xf1, 0xfa, 0x39, 0xaf, 0xa5, 0xb8, 0xc6, 0xe1, 0xdd, 0x6f,
-	0x6b, 0x36, 0xda, 0x1f, 0x35, 0x1d, 0x94, 0x8d, 0xce, 0xf0, 0x52, 0xa1, 0xc2, 0x08, 0x45, 0x8d,
-	0x9a, 0xea, 0x78, 0x9f, 0xb0, 0xfe, 0xeb, 0x0a, 0xc9, 0x4f, 0x3f, 0x3c, 0x54, 0xa4, 0xb1, 0x4a,
-	0x07, 0xac, 0xbb, 0xde, 0x6d, 0x68, 0x1e, 0x9c, 0xc9, 0x92, 0x51, 0x32, 0xe9, 0xc9, 0x4e, 0xcd,
-	0x5f, 0x9c, 0x49, 0xa7, 0xec, 0xa2, 0x69, 0x59, 0xf2, 0x0e, 0xf2, 0xed, 0xdc, 0x41, 0x99, 0xfd,
-	0x1b, 0x25, 0x93, 0xb3, 0xc7, 0x01, 0x2f, 0xd0, 0xc1, 0xd1, 0x1b, 0x97, 0x40, 0x18, 0x5c, 0x01,
-	0x12, 0x4a, 0x79, 0x1e, 0xc7, 0x0f, 0x23, 0x12, 0xca, 0xf4, 0x9a, 0xf5, 0xf2, 0xb0, 0xd4, 0x50,
-	0x15, 0x40, 0x59, 0x6b, 0xd4, 0x9a, 0xf4, 0xe4, 0xa9, 0x90, 0x5e, 0xb1, 0xb6, 0x26, 0x0a, 0xe0,
-	0xb2, 0xff, 0x71, 0xfb, 0x81, 0x8d, 0x6f, 0x59, 0x5f, 0x62, 0xf0, 0x70, 0x72, 0x9a, 0xb1, 0xce,
-	0x52, 0x53, 0xbe, 0x30, 0x10, 0x8d, 0x76, 0xe5, 0x91, 0x3e, 0xcf, 0xf6, 0x9f, 0x37, 0xc9, 0xdb,
-	0xf4, 0x8f, 0x39, 0xd8, 0x8d, 0xfa, 0x21, 0x8b, 0x45, 0x3b, 0x7e, 0xd5, 0xd3, 0x57, 0x00, 0x00,
-	0x00, 0xff, 0xff, 0xba, 0xd7, 0x18, 0xf5, 0xd7, 0x01, 0x00, 0x00,
+	// 387 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x92, 0xcd, 0xaa, 0xd3, 0x40,
+	0x14, 0xc7, 0x9b, 0xa6, 0x46, 0x33, 0x95, 0x22, 0x41, 0x24, 0x06, 0x95, 0xd2, 0x55, 0x11, 0x3b,
+	0xc1, 0x76, 0xeb, 0xc6, 0x42, 0xa1, 0xb4, 0xba, 0x99, 0x85, 0x0b, 0x11, 0x24, 0x4d, 0x4f, 0xd2,
+	0x69, 0xd2, 0x9c, 0x30, 0x1f, 0xd6, 0xbe, 0x91, 0x6e, 0x7d, 0x24, 0x9f, 0xe4, 0x92, 0x49, 0xd2,
+	0x72, 0xe1, 0x16, 0x7a, 0x17, 0x21, 0xff, 0xf9, 0xfa, 0x9d, 0x1f, 0x33, 0x87, 0xac, 0x53, 0xae,
+	0x76, 0x7a, 0x43, 0x63, 0x3c, 0x84, 0x12, 0x73, 0x9c, 0x70, 0xac, 0xff, 0xa5, 0xc0, 0x3d, 0xc4,
+	0x4a, 0x86, 0xe7, 0x90, 0xe6, 0x88, 0x61, 0x54, 0xf2, 0xf0, 0xd7, 0xc7, 0xb0, 0xcc, 0x75, 0xca,
+	0x0b, 0x19, 0xee, 0x8f, 0xaa, 0xfa, 0x68, 0x29, 0x50, 0xa1, 0xe7, 0x9b, 0x58, 0x2f, 0xd1, 0x6a,
+	0x3b, 0xad, 0x50, 0x94, 0x63, 0xf0, 0xe1, 0x5a, 0x99, 0x8c, 0xab, 0x96, 0x29, 0x20, 0xa9, 0x39,
+	0xc1, 0xcb, 0x14, 0x53, 0x34, 0x31, 0xac, 0x52, 0x3d, 0x3b, 0xfa, 0x67, 0x93, 0xc1, 0xb7, 0x1d,
+	0x4a, 0xb5, 0xf8, 0xad, 0xa0, 0x90, 0x1c, 0x0b, 0xef, 0x33, 0xe9, 0xed, 0x8f, 0x99, 0xf4, 0xad,
+	0xa1, 0x35, 0xee, 0x4f, 0x27, 0xf4, 0x5a, 0x7d, 0x7a, 0xff, 0x1c, 0x5d, 0x1d, 0x33, 0xc9, 0xcc,
+	0x51, 0xef, 0x0d, 0x71, 0x23, 0xbd, 0xe5, 0x50, 0xc4, 0x20, 0xfd, 0xee, 0xd0, 0x1e, 0xbb, 0xec,
+	0x32, 0xe1, 0xbd, 0x22, 0x0e, 0x97, 0x52, 0x83, 0xf0, 0xed, 0xa1, 0x35, 0x76, 0x59, 0x33, 0x0a,
+	0x7e, 0x10, 0xc2, 0xe0, 0x80, 0x0a, 0x2a, 0x92, 0xf7, 0x82, 0xd8, 0x5a, 0xe4, 0xc6, 0xc2, 0x65,
+	0x55, 0xf4, 0x3e, 0x91, 0xe7, 0xba, 0x94, 0x4a, 0x40, 0x74, 0xf8, 0x29, 0x20, 0xf1, 0xbb, 0x46,
+	0xf0, 0x35, 0x8d, 0x51, 0xc0, 0x59, 0x8a, 0x81, 0x44, 0x2d, 0x62, 0x60, 0x90, 0xb0, 0x7e, 0xbb,
+	0x9d, 0x41, 0x12, 0xbc, 0x25, 0xee, 0x17, 0x8c, 0xa3, 0xbc, 0x85, 0x67, 0x70, 0x6a, 0xe1, 0x19,
+	0x9c, 0x82, 0xbf, 0x16, 0xe9, 0x99, 0xa5, 0xaf, 0xc4, 0x11, 0xc6, 0xa2, 0xb9, 0x80, 0xd9, 0xcd,
+	0x17, 0x70, 0x91, 0x5f, 0x76, 0x58, 0x03, 0xf1, 0x56, 0xe4, 0x49, 0x5e, 0x95, 0x6d, 0x6c, 0xa7,
+	0x37, 0xd3, 0xce, 0xb2, 0xcb, 0x0e, 0xab, 0x11, 0x73, 0xa7, 0x7e, 0x99, 0xd1, 0x7b, 0x32, 0x60,
+	0xa8, 0x15, 0x5c, 0xde, 0xcc, 0x27, 0x4f, 0xb7, 0x5c, 0x46, 0x9b, 0xbc, 0xb6, 0x7e, 0xc6, 0xda,
+	0xe1, 0x7c, 0xfd, 0xe7, 0xff, 0x3b, 0xeb, 0xfb, 0xe2, 0x91, 0x1d, 0x59, 0x66, 0xe9, 0x03, 0x5d,
+	0xb9, 0x71, 0x4c, 0xd3, 0xcc, 0xee, 0x02, 0x00, 0x00, 0xff, 0xff, 0x68, 0xfb, 0xda, 0xf6, 0xe1,
+	0x02, 0x00, 0x00,
 }
 
 func (this *VhostExtension) Equal(that interface{}) bool {
@@ -181,10 +412,7 @@ func (this *VhostExtension) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if this.JwksUrl != that1.JwksUrl {
-		return false
-	}
-	if !this.JwksUpstreamRef.Equal(that1.JwksUpstreamRef) {
+	if !this.Jwks.Equal(that1.Jwks) {
 		return false
 	}
 	if len(this.Audiences) != len(that1.Audiences) {
@@ -199,6 +427,144 @@ func (this *VhostExtension) Equal(that interface{}) bool {
 		return false
 	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *VhostExtension_RemoteJwks) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*VhostExtension_RemoteJwks)
+	if !ok {
+		that2, ok := that.(VhostExtension_RemoteJwks)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.Url != that1.Url {
+		return false
+	}
+	if !this.UpstreamRef.Equal(that1.UpstreamRef) {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *VhostExtension_LocalJwks) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*VhostExtension_LocalJwks)
+	if !ok {
+		that2, ok := that.(VhostExtension_LocalJwks)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.Key != that1.Key {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *VhostExtension_Jwks) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*VhostExtension_Jwks)
+	if !ok {
+		that2, ok := that.(VhostExtension_Jwks)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if that1.Jwks == nil {
+		if this.Jwks != nil {
+			return false
+		}
+	} else if this.Jwks == nil {
+		return false
+	} else if !this.Jwks.Equal(that1.Jwks) {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *VhostExtension_Jwks_Remote) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*VhostExtension_Jwks_Remote)
+	if !ok {
+		that2, ok := that.(VhostExtension_Jwks_Remote)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Remote.Equal(that1.Remote) {
+		return false
+	}
+	return true
+}
+func (this *VhostExtension_Jwks_Local) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*VhostExtension_Jwks_Local)
+	if !ok {
+		that2, ok := that.(VhostExtension_Jwks_Local)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Local.Equal(that1.Local) {
 		return false
 	}
 	return true

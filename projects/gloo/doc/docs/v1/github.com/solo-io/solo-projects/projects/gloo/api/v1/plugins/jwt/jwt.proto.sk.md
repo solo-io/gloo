@@ -12,6 +12,9 @@ weight: 5
 
 
 - [VhostExtension](#vhostextension)
+- [RemoteJwks](#remotejwks)
+- [LocalJwks](#localjwks)
+- [Jwks](#jwks)
 - [RouteExtension](#routeextension)
   
 
@@ -29,8 +32,7 @@ weight: 5
 
 
 ```yaml
-"jwksUrl": string
-"jwksUpstreamRef": .core.solo.io.ResourceRef
+"jwks": .jwt.plugins.gloo.solo.io.VhostExtension.Jwks
 "audiences": []string
 "issuer": string
 
@@ -38,10 +40,64 @@ weight: 5
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `jwksUrl` | `string` | The url used when accessing the upstream for Json Web Key Set. This is used to set the host and path in the request |  |
-| `jwksUpstreamRef` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) | The Upstream representing the Json Web Key Set server |  |
+| `jwks` | [.jwt.plugins.gloo.solo.io.VhostExtension.Jwks](../jwt.proto.sk#jwks) | The source for the keys to validate JWTs. |  |
 | `audiences` | `[]string` | An incoming JWT must have an 'aud' claim and it must be in this list. |  |
 | `issuer` | `string` | Issuer of the JWT. the 'iss' claim of the JWT must match this. |  |
+
+
+
+
+---
+### RemoteJwks
+
+
+
+```yaml
+"url": string
+"upstreamRef": .core.solo.io.ResourceRef
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `url` | `string` | The url used when accessing the upstream for Json Web Key Set. This is used to set the host and path in the request |  |
+| `upstreamRef` | [.core.solo.io.ResourceRef](../../../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) | The Upstream representing the Json Web Key Set server |  |
+
+
+
+
+---
+### LocalJwks
+
+
+
+```yaml
+"key": string
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `key` | `string` | Inline key. this can be json web key, key-set or PEM format. |  |
+
+
+
+
+---
+### Jwks
+
+
+
+```yaml
+"remote": .jwt.plugins.gloo.solo.io.VhostExtension.RemoteJwks
+"local": .jwt.plugins.gloo.solo.io.VhostExtension.LocalJwks
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `remote` | [.jwt.plugins.gloo.solo.io.VhostExtension.RemoteJwks](../jwt.proto.sk#remotejwks) | Use a remote JWKS server |  |
+| `local` | [.jwt.plugins.gloo.solo.io.VhostExtension.LocalJwks](../jwt.proto.sk#localjwks) | Use an inline JWKS |  |
 
 
 

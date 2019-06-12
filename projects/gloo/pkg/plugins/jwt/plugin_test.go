@@ -1,6 +1,9 @@
 package jwt_test
 
 import (
+	"crypto/x509"
+	"encoding/json"
+
 	envoycore "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauth "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/jwt_authn/v2alpha"
@@ -8,6 +11,7 @@ import (
 	"github.com/gogo/protobuf/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/jwt"
 
@@ -26,6 +30,29 @@ var _ = Describe("Plugin", func() {
 		route       *v1.Route
 		jwtVhost    *jwt.VhostExtension
 	)
+
+	const (
+		publicKey = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4XbzUpqbgKbDLngsLp4b
+pjf04WkMzXx8QsZAorkuGprIc2BYVwAmWD2tZvez4769QfXsohu85NRviYsrqbyC
+w/NTs3fMlcgld+ayfb/1X3+6u4f1Q8JsDm4fkSWoBUlTkWO7Mcts2hF8OJ8LlGSw
+zUDj3TJLQXwtfM0Ty1VzGJQMJELeBuOYHl/jaTdGogI8zbhDZ986CaIfO+q/UM5u
+kDA3NJ7oBQEH78N6BTsFpjDUKeTae883CCsRDbsytWgfKT8oA7C4BFkvRqVMSek7
+FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
+7QIDAQAB
+-----END PUBLIC KEY-----
+	`
+		jwk  = `{"use":"sig","kty":"RSA","alg":"RS256","n":"4XbzUpqbgKbDLngsLp4bpjf04WkMzXx8QsZAorkuGprIc2BYVwAmWD2tZvez4769QfXsohu85NRviYsrqbyCw_NTs3fMlcgld-ayfb_1X3-6u4f1Q8JsDm4fkSWoBUlTkWO7Mcts2hF8OJ8LlGSwzUDj3TJLQXwtfM0Ty1VzGJQMJELeBuOYHl_jaTdGogI8zbhDZ986CaIfO-q_UM5ukDA3NJ7oBQEH78N6BTsFpjDUKeTae883CCsRDbsytWgfKT8oA7C4BFkvRqVMSek7FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC17Q","e":"AQAB"}`
+		jwks = `{"keys":[` + jwk + `]}`
+	)
+	var (
+		keySet jose.JSONWebKeySet
+	)
+
+	BeforeEach(func() {
+		err := json.Unmarshal([]byte(jwks), &keySet)
+		Expect(err).NotTo(HaveOccurred())
+	})
 
 	BeforeEach(func() {
 		plugin = NewPlugin()
@@ -59,11 +86,20 @@ var _ = Describe("Plugin", func() {
 		}
 
 		jwtVhost = &jwt.VhostExtension{
-			JwksUrl:         "testium",
-			JwksUpstreamRef: &core.ResourceRef{Name: "test", Namespace: "testns"},
-			Audiences:       []string{"testaud"},
-			Issuer:          "testiss",
+			Jwks: &jwt.VhostExtension_Jwks{
+				Jwks: &jwt.VhostExtension_Jwks_Remote{
+					Remote: &jwt.VhostExtension_RemoteJwks{
+						Url:         "testium",
+						UpstreamRef: &core.ResourceRef{Name: "test", Namespace: "testns"},
+					},
+				},
+			},
+			Audiences: []string{"testaud"},
+			Issuer:    "testiss",
 		}
+
+	})
+	JustBeforeEach(func() {
 		jwtVhostSt, err := util.MessageToStruct(jwtVhost)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -106,7 +142,7 @@ var _ = Describe("Plugin", func() {
 			outVhost   envoyroute.VirtualHost
 			outFilters []plugins.StagedHttpFilter
 		)
-		BeforeEach(func() {
+		JustBeforeEach(func() {
 			outVhost = envoyroute.VirtualHost{
 				Name: "test",
 			}
@@ -162,9 +198,9 @@ var _ = Describe("Plugin", func() {
 						JwksSourceSpecifier: &envoyauth.JwtProvider_RemoteJwks{
 							RemoteJwks: &envoyauth.RemoteJwks{
 								HttpUri: &envoycore.HttpUri{
-									Uri: jwtVhost.JwksUrl,
+									Uri: jwtVhost.GetJwks().GetRemote().Url,
 									HttpUpstreamType: &envoycore.HttpUri_Cluster{
-										Cluster: translator.UpstreamToClusterName(*jwtVhost.JwksUpstreamRef),
+										Cluster: translator.UpstreamToClusterName(*jwtVhost.GetJwks().GetRemote().UpstreamRef),
 									},
 								},
 							},
@@ -174,11 +210,6 @@ var _ = Describe("Plugin", func() {
 				FilterStateRules: &envoyauth.FilterStateRule{
 					Name: StateName,
 					Requires: map[string]*envoyauth.JwtRequirement{
-						DisableName: &envoyauth.JwtRequirement{
-							RequiresType: &envoyauth.JwtRequirement_AllowMissingOrFailed{
-								AllowMissingOrFailed: &types.Empty{},
-							},
-						},
 						virtualHost.Name: &envoyauth.JwtRequirement{
 							RequiresType: &envoyauth.JwtRequirement_ProviderName{
 								ProviderName: virtualHost.Name,
@@ -189,6 +220,89 @@ var _ = Describe("Plugin", func() {
 			}
 			Expect(expectedCfg).To(Equal(cfg))
 		})
+
+		Context("local jwks", func() {
+			BeforeEach(func() {
+				jwtVhost = &jwt.VhostExtension{
+					Jwks: &jwt.VhostExtension_Jwks{
+						Jwks: &jwt.VhostExtension_Jwks_Local{
+							Local: &jwt.VhostExtension_LocalJwks{
+								Key: jwks,
+							},
+						},
+					},
+					Audiences: []string{"testaud"},
+					Issuer:    "testiss",
+				}
+			})
+
+			It("should process filters", func() {
+				Expect(outFilters).To(HaveLen(1))
+				filter := outFilters[0]
+				Expect(filter.Stage).To(Equal(plugins.InAuth))
+				Expect(filter.HttpFilter.Name).To(Equal(JwtFilterName))
+
+				cfgSt := filter.HttpFilter.GetConfig()
+				cfg := envoyauth.JwtAuthentication{}
+				err := util.StructToMessage(cfgSt, &cfg)
+				Expect(err).NotTo(HaveOccurred())
+
+				// in theory i could have used jwks instead of serializing,
+				// but i want to make sure that this will work in future go versions, if
+				// the serialization order changes.
+				keySetString, _ := json.Marshal(&keySet)
+
+				// Expect a requirement
+				expectedCfg := envoyauth.JwtAuthentication{
+					Providers: map[string]*envoyauth.JwtProvider{
+						virtualHost.Name: &envoyauth.JwtProvider{
+							Issuer:            jwtVhost.Issuer,
+							Audiences:         jwtVhost.Audiences,
+							PayloadInMetadata: PayloadInMetadata,
+							JwksSourceSpecifier: &envoyauth.JwtProvider_LocalJwks{
+								LocalJwks: &envoycore.DataSource{
+									Specifier: &envoycore.DataSource_InlineString{
+										InlineString: string(keySetString),
+									},
+								},
+							},
+						},
+					},
+					FilterStateRules: &envoyauth.FilterStateRule{
+						Name: StateName,
+						Requires: map[string]*envoyauth.JwtRequirement{
+							virtualHost.Name: &envoyauth.JwtRequirement{
+								RequiresType: &envoyauth.JwtRequirement_ProviderName{
+									ProviderName: virtualHost.Name,
+								},
+							},
+						},
+					},
+				}
+				Expect(expectedCfg).To(Equal(cfg))
+			})
+		})
+
 	})
 
+	Context("translate key", func() {
+
+		It("should translate PEM", func() {
+			jwks, err := TranslateKey(publicKey)
+			Expect(err).NotTo(HaveOccurred())
+			// make certs empty and not nil for comparison
+			jwks.Keys[0].Certificates = make([]*x509.Certificate, 0)
+			Expect(*jwks).To(BeEquivalentTo(keySet))
+		})
+		It("should translate key", func() {
+			jwks, err := TranslateKey(jwk)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(*jwks).To(BeEquivalentTo(keySet))
+		})
+		It("should translate key set", func() {
+			jwks, err := TranslateKey(jwks)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(*jwks).To(BeEquivalentTo(keySet))
+		})
+	})
 })

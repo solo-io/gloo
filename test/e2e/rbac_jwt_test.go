@@ -175,6 +175,45 @@ var _ = Describe("JWT + RBAC", func() {
 			envoyPort     = uint32(8080)
 		)
 
+		ExpectAccess := func(bar, fooget, foopost int, augmentRequest func(*http.Request)) {
+			query := func(method, path string) (*http.Response, error) {
+				url := fmt.Sprintf("http://%s:%d%s", "localhost", envoyPort, path)
+				By("Querying " + url)
+				req, err := http.NewRequest(method, url, nil)
+				if err != nil {
+					return nil, err
+				}
+				augmentRequest(req)
+				return http.DefaultClient.Do(req)
+			}
+
+			// test public route in eventually to let the proxy time to start
+			Eventually(func() (int, error) {
+				resp, err := query("GET", "/public_route")
+				if err != nil {
+					return 0, err
+				}
+				return resp.StatusCode, nil
+			}, "5s", "0.5s").Should(Equal(http.StatusOK))
+
+			// No need to do eventually here as all is initialized.
+			resp, err := query("GET", "/private_route")
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
+			ExpectWithOffset(1, resp.StatusCode).To(Equal(http.StatusForbidden))
+
+			resp, err = query("GET", "/bar")
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
+			ExpectWithOffset(1, resp.StatusCode).To(Equal(bar))
+
+			resp, err = query("GET", "/foo")
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
+			ExpectWithOffset(1, resp.StatusCode).To(Equal(fooget))
+
+			resp, err = query("POST", "/foo")
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
+			ExpectWithOffset(1, resp.StatusCode).To(Equal(foopost))
+		}
+
 		BeforeEach(func() {
 			var err error
 			envoyInstance, err = envoyFactory.NewEnvoyInstance()
@@ -196,15 +235,20 @@ var _ = Describe("JWT + RBAC", func() {
 				envoyInstance.Clean()
 			}
 		})
-
-		addToken := func(req *http.Request, sub string) {
+		getTokenFor := func(sub string) string {
 			claims := jwt.StandardClaims{
 				Issuer:   issuer,
 				Audience: audience,
 				Subject:  sub,
 			}
-			token := getToken(claims, privateKey)
+			return getToken(claims, privateKey)
+		}
+
+		addBearer := func(req *http.Request, token string) {
 			req.Header.Add("Authorization", "Bearer "+token)
+		}
+		addToken := func(req *http.Request, sub string) {
+			addBearer(req, getTokenFor(sub))
 		}
 
 		Context("user access tests", func() {
@@ -244,114 +288,34 @@ var _ = Describe("JWT + RBAC", func() {
 			})
 
 			Context("non admin user", func() {
-
-				It("should deny to /bar", func() {
-					Eventually(func() (int, error) {
-						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/bar", "localhost", envoyPort), nil)
-						addToken(req, "user")
-						if err != nil {
-							return 0, err
-						}
-
-						resp, err := http.DefaultClient.Do(req)
-						if err != nil {
-							return 0, err
-						}
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
+				It("should allow non admin user access to GET foo", func() {
+					ExpectAccess(http.StatusForbidden, http.StatusOK, http.StatusForbidden,
+						func(req *http.Request) { addToken(req, "user") })
 				})
 
-				It("should deny to /foo with POST and allow /foo with GET", func() {
-					Eventually(func() (int, error) {
-						req, err := http.NewRequest("POST", fmt.Sprintf("http://%s:%d/foo", "localhost", envoyPort), nil)
-						addToken(req, "user")
-						if err != nil {
-							return 0, err
-						}
-
-						resp, err := http.DefaultClient.Do(req)
-						if err != nil {
-							return 0, err
-						}
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusForbidden))
-
-					// All is initialized so this should work consistently
-					Consistently(func() (int, error) {
-						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/foo", "localhost", envoyPort), nil)
-						addToken(req, "user")
-						if err != nil {
-							return 0, err
-						}
-
-						resp, err := http.DefaultClient.Do(req)
-						if err != nil {
-							return 0, err
-						}
-						return resp.StatusCode, nil
-					}, "1s", "0.1s").Should(Equal(http.StatusOK))
-				})
 			})
 
 			Context("admin user", func() {
 				It("should allow everything", func() {
-					Eventually(func() (int, error) {
-						req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/bar", "localhost", envoyPort), nil)
-						addToken(req, "admin")
-						if err != nil {
-							return 0, err
-						}
-
-						resp, err := http.DefaultClient.Do(req)
-						if err != nil {
-							return 0, err
-						}
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusOK))
-
-					// No need to do eventually here as all is initialized.
-					foo := fmt.Sprintf("http://%s:%d/foo", "localhost", envoyPort)
-
-					req, err := http.NewRequest("POST", foo, nil)
-					addToken(req, "admin")
-					Expect(err).NotTo(HaveOccurred())
-					resp, err := http.DefaultClient.Do(req)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(resp.StatusCode).To(Equal(http.StatusOK))
-
-					req, err = http.NewRequest("GET", foo, nil)
-					addToken(req, "admin")
-					Expect(err).NotTo(HaveOccurred())
-					resp, err = http.DefaultClient.Do(req)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(resp.StatusCode).To(Equal(http.StatusOK))
+					ExpectAccess(http.StatusOK, http.StatusOK, http.StatusOK,
+						func(req *http.Request) { addToken(req, "admin") })
 				})
 			})
 
 			Context("anonymous user", func() {
-				It("should not allow anything other than the public route", func() {
-					Eventually(func() (int, error) {
-						resp, err := http.Get(fmt.Sprintf("http://%s:%d/bar", "localhost", envoyPort))
-						if err != nil {
-							return 0, err
-						}
-						return resp.StatusCode, nil
-					}, "5s", "0.5s").Should(Equal(http.StatusUnauthorized))
+				It("should only allow public route", func() {
+					ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
+						func(req *http.Request) {})
+				})
+			})
 
-					// No need to do eventually here as all is initialized.
-					foo := fmt.Sprintf("http://%s:%d/foo", "localhost", envoyPort)
-
-					resp, err := http.Post(foo, "application/json", nil)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(resp.StatusCode).To(Equal(http.StatusUnauthorized))
-
-					resp, err = http.Get(foo)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(resp.StatusCode).To(Equal(http.StatusUnauthorized))
-
-					resp, err = http.Get(fmt.Sprintf("http://%s:%d/public_route", "localhost", envoyPort))
-					Expect(err).NotTo(HaveOccurred())
-					Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			Context("bad token user", func() {
+				It("should only allow public route", func() {
+					token := getTokenFor("admin")
+					// remove some stuff to make the signature invalid
+					badToken := token[:len(token)-10]
+					ExpectAccess(http.StatusUnauthorized, http.StatusUnauthorized, http.StatusUnauthorized,
+						func(req *http.Request) { addBearer(req, badToken) })
 				})
 			})
 
@@ -362,10 +326,16 @@ var _ = Describe("JWT + RBAC", func() {
 func getProxyJwtRbac(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef) *gloov1.Proxy {
 
 	jwtCfg := &jwtplugin.VhostExtension{
-		JwksUrl:         "http://test/keys",
-		JwksUpstreamRef: &jwtksServerRef,
-		Issuer:          issuer,
-		Audiences:       []string{audience},
+		Jwks: &jwtplugin.VhostExtension_Jwks{
+			Jwks: &jwtplugin.VhostExtension_Jwks_Remote{
+				Remote: &jwtplugin.VhostExtension_RemoteJwks{
+					Url:         "http://test/keys",
+					UpstreamRef: &jwtksServerRef,
+				},
+			},
+		},
+		Issuer:    issuer,
+		Audiences: []string{audience},
 	}
 
 	rbacCfg := &rbac.VhostExtension{
@@ -444,6 +414,25 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					},
 				},
 			}, {
+				RoutePlugins: &gloov1.RoutePlugins{
+					// Disable JWT and not RBAC, so that no one can get here
+					Extensions: getDisabledJwt(),
+				},
+				Matcher: &gloov1.Matcher{
+					PathSpecifier: &gloov1.Matcher_Prefix{
+						Prefix: "/private_route",
+					},
+				},
+				Action: &gloov1.Route_RouteAction{
+					RouteAction: &gloov1.RouteAction{
+						Destination: &gloov1.RouteAction_Single{
+							Single: &gloov1.Destination{
+								Upstream: upstream,
+							},
+						},
+					},
+				},
+			}, {
 				Matcher: &gloov1.Matcher{
 					PathSpecifier: &gloov1.Matcher_Prefix{
 						Prefix: "/",
@@ -485,25 +474,30 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 	return p
 }
 
-func getDisabled() *gloov1.Extensions {
+func getDisabledJwt() *gloov1.Extensions {
 
 	jwtCfg := &jwtplugin.RouteExtension{
 		Disable: true,
 	}
+	jwtStruct, err := envoyutil.MessageToStruct(jwtCfg)
+	Expect(err).NotTo(HaveOccurred())
+	protos := map[string]*types.Struct{
+		jwt2.ExtensionName: jwtStruct,
+	}
+	return &gloov1.Extensions{
+		Configs: protos,
+	}
+}
+
+func getDisabled() *gloov1.Extensions {
 	rbacCfg := &rbac.RouteExtension{
 		Route: &rbac.RouteExtension_Disable{
 			Disable: true,
 		},
 	}
-	jwtStruct, err := envoyutil.MessageToStruct(jwtCfg)
-	Expect(err).NotTo(HaveOccurred())
 	rbacStruct, err := envoyutil.MessageToStruct(rbacCfg)
 	Expect(err).NotTo(HaveOccurred())
-	protos := map[string]*types.Struct{
-		jwt2.ExtensionName:  jwtStruct,
-		rbac2.ExtensionName: rbacStruct,
-	}
-	return &gloov1.Extensions{
-		Configs: protos,
-	}
+	extensions := getDisabledJwt()
+	extensions.Configs[rbac2.ExtensionName] = rbacStruct
+	return extensions
 }
