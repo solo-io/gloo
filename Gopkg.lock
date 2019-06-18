@@ -2772,6 +2772,7 @@
     "github.com/envoyproxy/go-control-plane/envoy/type",
     "github.com/envoyproxy/go-control-plane/envoy/type/matcher",
     "github.com/envoyproxy/go-control-plane/pkg/util",
+    "github.com/envoyproxy/protoc-gen-validate/validate",
     "github.com/fatih/structs",
     "github.com/fgrosse/zaptest",
     "github.com/ghodss/yaml",

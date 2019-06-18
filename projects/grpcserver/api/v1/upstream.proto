@@ -1,0 +1,81 @@
+syntax = "proto3";
+package glooeeapi.solo.io;
+option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto";
+import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+
+message GetUpstreamRequest {
+    core.solo.io.ResourceRef ref = 1;
+}
+
+message GetUpstreamResponse {
+    gloo.solo.io.Upstream upstream = 1;
+}
+
+message ListUpstreamsRequest {
+    repeated string namespace_list = 1;
+}
+
+message ListUpstreamsResponse {
+    repeated gloo.solo.io.Upstream upstream = 1;
+}
+
+message StreamUpstreamListRequest {
+    string namespace = 1;
+    map<string, string> selector = 2;
+}
+
+message StreamUpstreamListResponse {
+    gloo.solo.io.Upstream upstream = 1;
+}
+
+message UpstreamInput {
+    core.solo.io.ResourceRef ref = 1;
+    oneof spec {
+        kubernetes.plugins.gloo.solo.io.UpstreamSpec kube = 2;
+        static.plugins.gloo.solo.io.UpstreamSpec static = 3;
+        aws.plugins.gloo.solo.io.UpstreamSpec aws = 4;
+        azure.plugins.gloo.solo.io.UpstreamSpec azure = 5;
+        consul.plugins.gloo.solo.io.UpstreamSpec consul = 6;
+    }
+}
+
+message CreateUpstreamRequest {
+    UpstreamInput input = 1;
+}
+
+message CreateUpstreamResponse {
+    gloo.solo.io.Upstream upstream = 1;
+}
+
+message UpdateUpstreamRequest {
+    UpstreamInput input = 1;
+}
+
+message UpdateUpstreamResponse {
+    gloo.solo.io.Upstream upstream = 1;
+}
+
+message DeleteUpstreamRequest {
+    core.solo.io.ResourceRef ref = 1;
+}
+
+message DeleteUpstreamResponse {}
+
+service UpstreamApi {
+    rpc GetUpstream(GetUpstreamRequest) returns (GetUpstreamResponse) {}
+    rpc ListUpstreams(ListUpstreamsRequest) returns (ListUpstreamsResponse) {}
+    rpc StreamUpstreamList(StreamUpstreamListRequest) returns (StreamUpstreamListResponse) {}
+    rpc CreateUpstream(CreateUpstreamRequest) returns (CreateUpstreamResponse) {}
+    rpc UpdateUpstream(UpdateUpstreamRequest) returns (UpdateUpstreamResponse) {}
+    rpc DeleteUpstream(DeleteUpstreamRequest) returns (DeleteUpstreamResponse) {}
+}

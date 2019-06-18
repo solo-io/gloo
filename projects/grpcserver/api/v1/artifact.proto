@@ -1,0 +1,55 @@
+syntax = "proto3";
+package glooeeapi.solo.io;
+option go_package = "github.com/solo-io/solo-projects/projects/grpcserver/api/v1";
+
+import "gogoproto/gogo.proto";
+option (gogoproto.equal_all) = true;
+
+import "github.com/solo-io/gloo/projects/gloo/api/v1/artifact.proto";
+import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+
+message GetArtifactRequest {
+    core.solo.io.ResourceRef ref = 1;
+}
+
+message GetArtifactResponse {
+    gloo.solo.io.Artifact artifact = 1;
+}
+
+message ListArtifactsRequest {
+    repeated string namespace_list = 1;
+}
+
+message ListArtifactsResponse {
+    repeated gloo.solo.io.Artifact artifact = 1;
+}
+
+message CreateArtifactRequest {
+    gloo.solo.io.Artifact artifact = 1;
+}
+
+message CreateArtifactResponse {
+    gloo.solo.io.Artifact artifact = 1;
+}
+
+message UpdateArtifactRequest {
+    gloo.solo.io.Artifact artifact = 1;
+}
+
+message UpdateArtifactResponse {
+    gloo.solo.io.Artifact artifact = 1;
+}
+
+message DeleteArtifactRequest {
+    core.solo.io.ResourceRef ref = 1;
+}
+
+message DeleteArtifactResponse {}
+
+service ArtifactApi {
+    rpc GetArtifact(GetArtifactRequest) returns (GetArtifactResponse) {}
+    rpc ListArtifacts(ListArtifactsRequest) returns (ListArtifactsResponse) {}
+    rpc CreateArtifact(CreateArtifactRequest) returns (CreateArtifactResponse) {}
+    rpc UpdateArtifact(UpdateArtifactRequest) returns (UpdateArtifactResponse) {}
+    rpc DeleteArtifact(DeleteArtifactRequest) returns (DeleteArtifactResponse) {}
+}

@@ -65,7 +65,7 @@ steps:
   args: ['check-format', 'build-scripts']
   waitFor: ['dep']
   id: 'check-format'
-- name: 'gcr.io/$PROJECT_ID/go-make:0.1.5'
+- name: 'gcr.io/$PROJECT_ID/go-make:0.1.12'
   entrypoint: 'bash'
   args: ['ci/check-code-and-docs-gen.sh']
   env:
