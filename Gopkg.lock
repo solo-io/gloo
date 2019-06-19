@@ -535,7 +535,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:dc9cbd16a546ee8d4a9f4823c9c91f0825e294fc085493a5a3937183d5f17b84"
+  digest = "1:9b99ed2cb03eac00d0814d1104a01f3b64cb14a29b356eef16bad0f8d0b66024"
   name = "github.com/gogo/protobuf"
   packages = [
     "gogoproto",
@@ -547,8 +547,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "4cbf7e384e768b4e01799441fdf2a706a5635ae7"
-  version = "v1.2.0"
+  revision = "ba06b47c162d49f2af050fb4c75bcbc86a159d5c"
+  version = "v1.2.1"
 
 [[projects]]
   branch = "master"
@@ -1497,7 +1497,7 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:2bdc7ec5013c9da9a7e5f399186360a3d73baaeb2d94e2a85fb30316e5f6801d"
+  digest = "1:43a6457a9e3dc42c0687e5d872cb3f49e3190bf2677badd95c42b94a431f8ce7"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1506,6 +1506,7 @@
     "contextutils",
     "docker",
     "docsutils",
+    "envutils",
     "errors",
     "errutils",
     "githubutils",
@@ -1523,8 +1524,8 @@
     "versionutils",
   ]
   pruneopts = "UT"
-  revision = "7bce93b3ce1d25c598225bbf9d5878f0aa98bd5c"
-  version = "v0.8.20"
+  revision = "669bff7d2bfeb97c3979706c36138cffc6a8e00d"
+  version = "v0.8.21"
 
 [[projects]]
   digest = "1:67a1bba30c92952119cfe4a31f7f80bbb6946a386bbebfeeb49bfc13d8b1588f"
@@ -2851,6 +2852,7 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/aws",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/azure",
+    "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/consul",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/faultinjection",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/grpc",
     "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/kubernetes",
@@ -2871,6 +2873,7 @@
     "github.com/solo-io/go-utils/contextutils",
     "github.com/solo-io/go-utils/docker",
     "github.com/solo-io/go-utils/docsutils",
+    "github.com/solo-io/go-utils/envutils",
     "github.com/solo-io/go-utils/errors",
     "github.com/solo-io/go-utils/errutils",
     "github.com/solo-io/go-utils/githubutils",
