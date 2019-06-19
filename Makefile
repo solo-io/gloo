@@ -209,6 +209,10 @@ $(OUTPUT_DIR)/.apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DI
 	docker build -t quay.io/solo-io/apiserver-ee:$(VERSION) $(call get_test_tag_option,apiserver-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.apiserver
 	touch $@
 
+.PHONY: run-apiserver
+run-apiserver:
+	GRPC_PORT=10101 POD_NAMESPACE=gloo-system go run projects/grpcserver/server/cmd/main.go
+
 #----------------------------------------------------------------------------------
 # RateLimit
 #----------------------------------------------------------------------------------

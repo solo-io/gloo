@@ -4,8 +4,8 @@ import (
 	"context"
 	"net"
 
-	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
-	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
+	"github.com/solo-io/solo-projects/projects/apiserver/pkg/setup"
+
 	"github.com/solo-io/go-utils/contextutils"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service"
@@ -19,21 +19,17 @@ type GlooGrpcService struct {
 
 func NewGlooGrpcService(
 	listener net.Listener,
-	virtualServiceClient gatewayv1.VirtualServiceClient,
-	upstreamClient gloov1.UpstreamClient,
-	artifactClient gloov1.ArtifactClient,
-	secretClient gloov1.SecretClient,
-	settingsClient gloov1.SettingsClient) *GlooGrpcService {
+	clientset setup.ClientSet) *GlooGrpcService {
 
 	server := &GlooGrpcService{
 		server:   grpc.NewServer(),
 		listener: listener,
 	}
-	v1.RegisterUpstreamApiServer(server.server, service.NewUpstreamGrpcService(upstreamClient))
-	v1.RegisterArtifactApiServer(server.server, service.NewArtifactGrpcService(artifactClient))
-	v1.RegisterConfigApiServer(server.server, service.NewConfigGrpcService(settingsClient))
-	v1.RegisterSecretApiServer(server.server, service.NewSecretGrpcService(secretClient))
-	v1.RegisterVirtualServiceApiServer(server.server, service.NewVirtualServiceGrpcService(virtualServiceClient))
+	v1.RegisterUpstreamApiServer(server.server, service.NewUpstreamGrpcService(clientset.UpstreamClient))
+	v1.RegisterArtifactApiServer(server.server, service.NewArtifactGrpcService(clientset.ArtifactClient))
+	v1.RegisterConfigApiServer(server.server, service.NewConfigGrpcService(clientset.SettingsClient))
+	v1.RegisterSecretApiServer(server.server, service.NewSecretGrpcService(clientset.SecretClient))
+	v1.RegisterVirtualServiceApiServer(server.server, service.NewVirtualServiceGrpcService(clientset.VirtualServiceClient))
 	return server
 }
 
