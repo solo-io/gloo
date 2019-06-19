@@ -11,7 +11,6 @@ import (
 	"github.com/solo-io/go-utils/log"
 	"github.com/solo-io/go-utils/stats"
 	gloosetup "github.com/solo-io/solo-projects/projects/gloo/pkg/setup"
-	sqoopsetup "github.com/solo-io/solo-projects/projects/sqoop/pkg/setup"
 )
 
 func main() {
@@ -30,9 +29,6 @@ func run() error {
 	}()
 	go func() {
 		errs <- gatewaysetup.Main()
-	}()
-	go func() {
-		errs <- sqoopsetup.Main()
 	}()
 	go func() {
 		errs <- uds.Main()

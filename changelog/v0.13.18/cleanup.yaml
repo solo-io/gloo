@@ -1,0 +1,3 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Delete stuff that we don't care about from master. Can always look at git history. 

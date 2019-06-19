@@ -130,7 +130,7 @@ $(OUTPUT_DIR)/.generated-code:
 #----------------------------------------------------------------------------------
 # helper for testing
 .PHONY: allprojects
-allprojects: apiserver gloo glooctl extauth rate-limit sqoop
+allprojects: apiserver gloo glooctl extauth rate-limit observability
 
 #----------------------------------------------------------------------------------
 # glooctl
@@ -279,31 +279,6 @@ $(OUTPUT_DIR)/.observability-docker: $(OUTPUT_DIR)/observability-linux-amd64 $(O
 	docker build -t quay.io/solo-io/observability-ee:$(VERSION) $(call get_test_tag_option,observability-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.observability
 	touch $@
 
-
-#----------------------------------------------------------------------------------
-# Sqoop
-#----------------------------------------------------------------------------------
-
-SQOOP_DIR=projects/sqoop
-SQOOP_SOURCES=$(shell find $(SQOOP_DIR) -name "*.go" | grep -v test | grep -v generated.go)
-
-$(OUTPUT_DIR)/sqoop-linux-amd64: $(SQOOP_SOURCES)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags=$(LDFLAGS) -gcflags=$(GCFLAGS) -o $@ $(SQOOP_DIR)/cmd/main.go
-
-
-.PHONY: sqoop
-sqoop: $(OUTPUT_DIR)/sqoop-linux-amd64
-
-$(OUTPUT_DIR)/Dockerfile.sqoop: $(SQOOP_DIR)/cmd/Dockerfile
-	cp $< $@
-
-.PHONY: sqoop-docker
-sqoop-docker: $(OUTPUT_DIR)/.sqoop-docker
-
-$(OUTPUT_DIR)/.sqoop-docker: $(OUTPUT_DIR)/sqoop-linux-amd64 $(OUTPUT_DIR)/Dockerfile.sqoop
-	docker build -t quay.io/solo-io/sqoop-ee:$(VERSION) $(call get_test_tag_option,sqoop-ee) $(OUTPUT_DIR) -f $(OUTPUT_DIR)/Dockerfile.sqoop
-	touch $@
-
 #----------------------------------------------------------------------------------
 # Gloo
 #----------------------------------------------------------------------------------
@@ -424,7 +399,7 @@ ifeq ($(RELEASE),"true")
 endif
 
 .PHONY: docker docker-push
-docker: apiserver-docker rate-limit-docker extauth-docker gloo-docker gloo-ee-envoy-wrapper-docker sqoop-docker observability-docker
+docker: apiserver-docker rate-limit-docker extauth-docker gloo-docker gloo-ee-envoy-wrapper-docker observability-docker
 
 # Depends on DOCKER_IMAGES, which is set to docker if RELEASE is "true", otherwise empty (making this a no-op).
 # This prevents executing the dependent targets if RELEASE is not true, while still enabling `make docker`
@@ -432,7 +407,6 @@ docker: apiserver-docker rate-limit-docker extauth-docker gloo-docker gloo-ee-en
 # docker-push is intended to be run by CI
 docker-push: $(DOCKER_IMAGES)
 ifeq ($(RELEASE),"true")
-	docker push quay.io/solo-io/sqoop-ee:$(VERSION) && \
 	docker push quay.io/solo-io/rate-limit-ee:$(VERSION) && \
 	docker push quay.io/solo-io/apiserver-ee:$(VERSION) && \
 	docker push quay.io/solo-io/gloo-ee:$(VERSION) && \
@@ -443,7 +417,6 @@ endif
 
 
 push-kind-images: docker
-	kind load docker-image quay.io/solo-io/sqoop-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/rate-limit-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/apiserver-ee:$(VERSION) --name $(CLUSTER_NAME)
 	kind load docker-image quay.io/solo-io/gloo-ee:$(VERSION) --name $(CLUSTER_NAME)
@@ -485,7 +458,7 @@ endif
 build-test-assets: push-test-images build-test-chart
 .PHONY: build-kind-assets $(OUTPUT_DIR)/glooctl-linux-amd64 $(OUTPUT_DIR)/glooctl-darwin-amd64
 build-kind-assets: push-kind-images build-kind-chart
-TEST_DOCKER_TARGETS := apiserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test sqoop-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test
+TEST_DOCKER_TARGETS := apiserver-docker-test rate-limit-docker-test extauth-docker-test observability-docker-test gloo-docker-test gloo-ee-envoy-wrapper-docker-test
 
 .PHONY: push-test-images $(TEST_DOCKER_TARGETS)
 push-test-images: $(TEST_DOCKER_TARGETS)
@@ -501,9 +474,6 @@ extauth-docker-test: $(OUTPUT_DIR)/extauth-linux-amd64 $(OUTPUT_DIR)/Dockerfile.
 
 observability-docker-test: $(OUTPUT_DIR)/observability-linux-amd64 $(OUTPUT_DIR)/Dockerfile.observability
 	docker push $(call get_test_tag,observability-ee)
-
-sqoop-docker-test: $(OUTPUT_DIR)/sqoop-linux-amd64 $(OUTPUT_DIR)/Dockerfile.sqoop
-	docker push $(call get_test_tag,sqoop-ee)
 
 gloo-docker-test: $(OUTPUT_DIR)/gloo-linux-amd64 $(OUTPUT_DIR)/Dockerfile.gloo
 	docker push $(call get_test_tag,gloo-ee)
