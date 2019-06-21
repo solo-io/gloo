@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add config service to grpc service.
+    issueLink: https://github.com/solo-io/solo-projects/issues/609
