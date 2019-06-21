@@ -106,6 +106,7 @@ func (m *GetSecretResponse) GetSecret() *v1.Secret {
 }
 
 type ListSecretsRequest struct {
+	NamespaceList        []string `protobuf:"bytes,1,rep,name=namespace_list,json=namespaceList,proto3" json:"namespace_list,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -134,6 +135,13 @@ func (m *ListSecretsRequest) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_ListSecretsRequest proto.InternalMessageInfo
+
+func (m *ListSecretsRequest) GetNamespaceList() []string {
+	if m != nil {
+		return m.NamespaceList
+	}
+	return nil
+}
 
 type ListSecretsResponse struct {
 	SecretList           []*v1.Secret `protobuf:"bytes,1,rep,name=secret_list,json=secretList,proto3" json:"secret_list,omitempty"`
@@ -174,10 +182,16 @@ func (m *ListSecretsResponse) GetSecretList() []*v1.Secret {
 }
 
 type CreateSecretRequest struct {
-	Secret               *v1.Secret `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
-	XXX_unrecognized     []byte     `json:"-"`
-	XXX_sizecache        int32      `json:"-"`
+	Ref *core.ResourceRef `protobuf:"bytes,1,opt,name=ref,proto3" json:"ref,omitempty"`
+	// Types that are valid to be assigned to Kind:
+	//	*CreateSecretRequest_Aws
+	//	*CreateSecretRequest_Azure
+	//	*CreateSecretRequest_Tls
+	//	*CreateSecretRequest_Extension
+	Kind                 isCreateSecretRequest_Kind `protobuf_oneof:"kind"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
 func (m *CreateSecretRequest) Reset()         { *m = CreateSecretRequest{} }
@@ -204,11 +218,181 @@ func (m *CreateSecretRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateSecretRequest proto.InternalMessageInfo
 
-func (m *CreateSecretRequest) GetSecret() *v1.Secret {
+type isCreateSecretRequest_Kind interface {
+	isCreateSecretRequest_Kind()
+	Equal(interface{}) bool
+}
+
+type CreateSecretRequest_Aws struct {
+	Aws *v1.AwsSecret `protobuf:"bytes,2,opt,name=aws,proto3,oneof"`
+}
+type CreateSecretRequest_Azure struct {
+	Azure *v1.AzureSecret `protobuf:"bytes,3,opt,name=azure,proto3,oneof"`
+}
+type CreateSecretRequest_Tls struct {
+	Tls *v1.TlsSecret `protobuf:"bytes,4,opt,name=tls,proto3,oneof"`
+}
+type CreateSecretRequest_Extension struct {
+	Extension *v1.Extension `protobuf:"bytes,5,opt,name=extension,proto3,oneof"`
+}
+
+func (*CreateSecretRequest_Aws) isCreateSecretRequest_Kind()       {}
+func (*CreateSecretRequest_Azure) isCreateSecretRequest_Kind()     {}
+func (*CreateSecretRequest_Tls) isCreateSecretRequest_Kind()       {}
+func (*CreateSecretRequest_Extension) isCreateSecretRequest_Kind() {}
+
+func (m *CreateSecretRequest) GetKind() isCreateSecretRequest_Kind {
 	if m != nil {
-		return m.Secret
+		return m.Kind
 	}
 	return nil
+}
+
+func (m *CreateSecretRequest) GetRef() *core.ResourceRef {
+	if m != nil {
+		return m.Ref
+	}
+	return nil
+}
+
+func (m *CreateSecretRequest) GetAws() *v1.AwsSecret {
+	if x, ok := m.GetKind().(*CreateSecretRequest_Aws); ok {
+		return x.Aws
+	}
+	return nil
+}
+
+func (m *CreateSecretRequest) GetAzure() *v1.AzureSecret {
+	if x, ok := m.GetKind().(*CreateSecretRequest_Azure); ok {
+		return x.Azure
+	}
+	return nil
+}
+
+func (m *CreateSecretRequest) GetTls() *v1.TlsSecret {
+	if x, ok := m.GetKind().(*CreateSecretRequest_Tls); ok {
+		return x.Tls
+	}
+	return nil
+}
+
+func (m *CreateSecretRequest) GetExtension() *v1.Extension {
+	if x, ok := m.GetKind().(*CreateSecretRequest_Extension); ok {
+		return x.Extension
+	}
+	return nil
+}
+
+// XXX_OneofFuncs is for the internal use of the proto package.
+func (*CreateSecretRequest) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _CreateSecretRequest_OneofMarshaler, _CreateSecretRequest_OneofUnmarshaler, _CreateSecretRequest_OneofSizer, []interface{}{
+		(*CreateSecretRequest_Aws)(nil),
+		(*CreateSecretRequest_Azure)(nil),
+		(*CreateSecretRequest_Tls)(nil),
+		(*CreateSecretRequest_Extension)(nil),
+	}
+}
+
+func _CreateSecretRequest_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*CreateSecretRequest)
+	// kind
+	switch x := m.Kind.(type) {
+	case *CreateSecretRequest_Aws:
+		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Aws); err != nil {
+			return err
+		}
+	case *CreateSecretRequest_Azure:
+		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Azure); err != nil {
+			return err
+		}
+	case *CreateSecretRequest_Tls:
+		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Tls); err != nil {
+			return err
+		}
+	case *CreateSecretRequest_Extension:
+		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Extension); err != nil {
+			return err
+		}
+	case nil:
+	default:
+		return fmt.Errorf("CreateSecretRequest.Kind has unexpected type %T", x)
+	}
+	return nil
+}
+
+func _CreateSecretRequest_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*CreateSecretRequest)
+	switch tag {
+	case 2: // kind.aws
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(v1.AwsSecret)
+		err := b.DecodeMessage(msg)
+		m.Kind = &CreateSecretRequest_Aws{msg}
+		return true, err
+	case 3: // kind.azure
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(v1.AzureSecret)
+		err := b.DecodeMessage(msg)
+		m.Kind = &CreateSecretRequest_Azure{msg}
+		return true, err
+	case 4: // kind.tls
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(v1.TlsSecret)
+		err := b.DecodeMessage(msg)
+		m.Kind = &CreateSecretRequest_Tls{msg}
+		return true, err
+	case 5: // kind.extension
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(v1.Extension)
+		err := b.DecodeMessage(msg)
+		m.Kind = &CreateSecretRequest_Extension{msg}
+		return true, err
+	default:
+		return false, nil
+	}
+}
+
+func _CreateSecretRequest_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*CreateSecretRequest)
+	// kind
+	switch x := m.Kind.(type) {
+	case *CreateSecretRequest_Aws:
+		s := proto.Size(x.Aws)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *CreateSecretRequest_Azure:
+		s := proto.Size(x.Azure)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *CreateSecretRequest_Tls:
+		s := proto.Size(x.Tls)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *CreateSecretRequest_Extension:
+		s := proto.Size(x.Extension)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case nil:
+	default:
+		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
+	}
+	return n
 }
 
 type CreateSecretResponse struct {
@@ -250,10 +434,16 @@ func (m *CreateSecretResponse) GetSecret() *v1.Secret {
 }
 
 type UpdateSecretRequest struct {
-	Secret               *v1.Secret `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
-	XXX_unrecognized     []byte     `json:"-"`
-	XXX_sizecache        int32      `json:"-"`
+	Ref *core.ResourceRef `protobuf:"bytes,1,opt,name=ref,proto3" json:"ref,omitempty"`
+	// Types that are valid to be assigned to Kind:
+	//	*UpdateSecretRequest_Aws
+	//	*UpdateSecretRequest_Azure
+	//	*UpdateSecretRequest_Tls
+	//	*UpdateSecretRequest_Extension
+	Kind                 isUpdateSecretRequest_Kind `protobuf_oneof:"kind"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
 func (m *UpdateSecretRequest) Reset()         { *m = UpdateSecretRequest{} }
@@ -280,11 +470,181 @@ func (m *UpdateSecretRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateSecretRequest proto.InternalMessageInfo
 
-func (m *UpdateSecretRequest) GetSecret() *v1.Secret {
+type isUpdateSecretRequest_Kind interface {
+	isUpdateSecretRequest_Kind()
+	Equal(interface{}) bool
+}
+
+type UpdateSecretRequest_Aws struct {
+	Aws *v1.AwsSecret `protobuf:"bytes,2,opt,name=aws,proto3,oneof"`
+}
+type UpdateSecretRequest_Azure struct {
+	Azure *v1.AzureSecret `protobuf:"bytes,3,opt,name=azure,proto3,oneof"`
+}
+type UpdateSecretRequest_Tls struct {
+	Tls *v1.TlsSecret `protobuf:"bytes,4,opt,name=tls,proto3,oneof"`
+}
+type UpdateSecretRequest_Extension struct {
+	Extension *v1.Extension `protobuf:"bytes,5,opt,name=extension,proto3,oneof"`
+}
+
+func (*UpdateSecretRequest_Aws) isUpdateSecretRequest_Kind()       {}
+func (*UpdateSecretRequest_Azure) isUpdateSecretRequest_Kind()     {}
+func (*UpdateSecretRequest_Tls) isUpdateSecretRequest_Kind()       {}
+func (*UpdateSecretRequest_Extension) isUpdateSecretRequest_Kind() {}
+
+func (m *UpdateSecretRequest) GetKind() isUpdateSecretRequest_Kind {
 	if m != nil {
-		return m.Secret
+		return m.Kind
 	}
 	return nil
+}
+
+func (m *UpdateSecretRequest) GetRef() *core.ResourceRef {
+	if m != nil {
+		return m.Ref
+	}
+	return nil
+}
+
+func (m *UpdateSecretRequest) GetAws() *v1.AwsSecret {
+	if x, ok := m.GetKind().(*UpdateSecretRequest_Aws); ok {
+		return x.Aws
+	}
+	return nil
+}
+
+func (m *UpdateSecretRequest) GetAzure() *v1.AzureSecret {
+	if x, ok := m.GetKind().(*UpdateSecretRequest_Azure); ok {
+		return x.Azure
+	}
+	return nil
+}
+
+func (m *UpdateSecretRequest) GetTls() *v1.TlsSecret {
+	if x, ok := m.GetKind().(*UpdateSecretRequest_Tls); ok {
+		return x.Tls
+	}
+	return nil
+}
+
+func (m *UpdateSecretRequest) GetExtension() *v1.Extension {
+	if x, ok := m.GetKind().(*UpdateSecretRequest_Extension); ok {
+		return x.Extension
+	}
+	return nil
+}
+
+// XXX_OneofFuncs is for the internal use of the proto package.
+func (*UpdateSecretRequest) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _UpdateSecretRequest_OneofMarshaler, _UpdateSecretRequest_OneofUnmarshaler, _UpdateSecretRequest_OneofSizer, []interface{}{
+		(*UpdateSecretRequest_Aws)(nil),
+		(*UpdateSecretRequest_Azure)(nil),
+		(*UpdateSecretRequest_Tls)(nil),
+		(*UpdateSecretRequest_Extension)(nil),
+	}
+}
+
+func _UpdateSecretRequest_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*UpdateSecretRequest)
+	// kind
+	switch x := m.Kind.(type) {
+	case *UpdateSecretRequest_Aws:
+		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Aws); err != nil {
+			return err
+		}
+	case *UpdateSecretRequest_Azure:
+		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Azure); err != nil {
+			return err
+		}
+	case *UpdateSecretRequest_Tls:
+		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Tls); err != nil {
+			return err
+		}
+	case *UpdateSecretRequest_Extension:
+		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Extension); err != nil {
+			return err
+		}
+	case nil:
+	default:
+		return fmt.Errorf("UpdateSecretRequest.Kind has unexpected type %T", x)
+	}
+	return nil
+}
+
+func _UpdateSecretRequest_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*UpdateSecretRequest)
+	switch tag {
+	case 2: // kind.aws
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(v1.AwsSecret)
+		err := b.DecodeMessage(msg)
+		m.Kind = &UpdateSecretRequest_Aws{msg}
+		return true, err
+	case 3: // kind.azure
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(v1.AzureSecret)
+		err := b.DecodeMessage(msg)
+		m.Kind = &UpdateSecretRequest_Azure{msg}
+		return true, err
+	case 4: // kind.tls
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(v1.TlsSecret)
+		err := b.DecodeMessage(msg)
+		m.Kind = &UpdateSecretRequest_Tls{msg}
+		return true, err
+	case 5: // kind.extension
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(v1.Extension)
+		err := b.DecodeMessage(msg)
+		m.Kind = &UpdateSecretRequest_Extension{msg}
+		return true, err
+	default:
+		return false, nil
+	}
+}
+
+func _UpdateSecretRequest_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*UpdateSecretRequest)
+	// kind
+	switch x := m.Kind.(type) {
+	case *UpdateSecretRequest_Aws:
+		s := proto.Size(x.Aws)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *UpdateSecretRequest_Azure:
+		s := proto.Size(x.Azure)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *UpdateSecretRequest_Tls:
+		s := proto.Size(x.Tls)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *UpdateSecretRequest_Extension:
+		s := proto.Size(x.Extension)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case nil:
+	default:
+		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
+	}
+	return n
 }
 
 type UpdateSecretResponse struct {
@@ -411,34 +771,41 @@ func init() {
 }
 
 var fileDescriptor_77c74ec00e5dce55 = []byte{
-	// 426 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x94, 0xcd, 0x8e, 0xda, 0x30,
-	0x14, 0x85, 0x41, 0x48, 0x48, 0x5c, 0xba, 0x28, 0x4e, 0x54, 0xb5, 0x59, 0x54, 0x55, 0xfa, 0x2b,
-	0x95, 0x3a, 0x2a, 0x55, 0x17, 0x55, 0x17, 0x15, 0x3f, 0x52, 0xbb, 0x60, 0x95, 0xaa, 0x52, 0xd5,
-	0x45, 0xab, 0x90, 0x5e, 0x32, 0x9e, 0xc9, 0x8c, 0x3d, 0xb6, 0xe1, 0x99, 0xe6, 0xb9, 0xe6, 0x01,
-	0xe6, 0x19, 0x46, 0xc6, 0x21, 0x4a, 0xc0, 0x0c, 0x02, 0x56, 0x84, 0x70, 0xee, 0x77, 0x8e, 0x75,
-	0x0f, 0x86, 0x1f, 0x19, 0xd3, 0x67, 0x8b, 0x19, 0x4d, 0xf9, 0x65, 0xa4, 0x78, 0xce, 0x3f, 0x30,
-	0x6e, 0x3f, 0x85, 0xe4, 0xe7, 0x98, 0x6a, 0x15, 0x95, 0x0f, 0x99, 0x14, 0xa9, 0x42, 0xb9, 0x44,
-	0x19, 0x25, 0x82, 0x45, 0xcb, 0x8f, 0x91, 0xc2, 0x54, 0xa2, 0xa6, 0x42, 0x72, 0xcd, 0x49, 0x2f,
-	0xcb, 0x39, 0x47, 0x4c, 0x04, 0xa3, 0x06, 0x40, 0x19, 0x0f, 0xfc, 0x8c, 0x67, 0x7c, 0xf5, 0x6b,
-	0x64, 0x9e, 0xac, 0x30, 0xf8, 0xe2, 0xb0, 0x34, 0xb3, 0x15, 0x27, 0xf3, 0xcd, 0xe1, 0x11, 0xf4,
-	0x77, 0xa5, 0xbd, 0x60, 0x7a, 0x3d, 0x20, 0x71, 0x6e, 0xd5, 0xe1, 0x37, 0x78, 0xfc, 0x1d, 0xf5,
-	0xcf, 0x15, 0x20, 0xc6, 0xeb, 0x05, 0x2a, 0x4d, 0xde, 0x43, 0x4b, 0xe2, 0xfc, 0x69, 0xf3, 0x45,
-	0xf3, 0x5d, 0x77, 0xf0, 0x8c, 0xa6, 0x5c, 0xe2, 0x3a, 0x2e, 0x8d, 0x51, 0xf1, 0x85, 0x4c, 0x31,
-	0xc6, 0x79, 0x6c, 0x54, 0xe1, 0x10, 0x7a, 0x15, 0x80, 0x12, 0xfc, 0x4a, 0x21, 0xe9, 0x43, 0xdb,
-	0x66, 0x2a, 0x20, 0x3e, 0x35, 0x71, 0x4b, 0x48, 0xa1, 0x2e, 0x34, 0xa1, 0x0f, 0x64, 0xca, 0x54,
-	0xc1, 0x50, 0x45, 0x8a, 0x70, 0x0a, 0x5e, 0xed, 0x6d, 0x81, 0xfe, 0x0c, 0x5d, 0x3b, 0xf6, 0x2f,
-	0x67, 0xca, 0xf0, 0x5b, 0x3b, 0xf9, 0x60, 0x85, 0x86, 0x12, 0x8e, 0xc1, 0x1b, 0x4b, 0x4c, 0x34,
-	0xd6, 0x8f, 0x7a, 0x58, 0xd0, 0x09, 0xf8, 0x75, 0xc8, 0x51, 0xc7, 0x1d, 0x83, 0xf7, 0x4b, 0xfc,
-	0x3f, 0x3d, 0x4a, 0x1d, 0x72, 0x54, 0x94, 0x11, 0x78, 0x13, 0xcc, 0x71, 0x33, 0xca, 0x41, 0x05,
-	0x78, 0x02, 0x7e, 0x9d, 0x61, 0x93, 0x0c, 0xee, 0x5a, 0xd0, 0xb1, 0xaf, 0x86, 0x82, 0x91, 0xdf,
-	0xd0, 0x29, 0x6b, 0x42, 0x5e, 0xd2, 0xad, 0xff, 0x01, 0xdd, 0x6c, 0x61, 0xf0, 0xea, 0x61, 0x91,
-	0x75, 0x09, 0x1b, 0xe4, 0x2f, 0x74, 0x2b, 0x3d, 0x21, 0xaf, 0x1d, 0x63, 0xdb, 0xed, 0x0a, 0xde,
-	0xec, 0x93, 0x95, 0xfc, 0x04, 0x1e, 0x55, 0x97, 0x4e, 0x5c, 0x93, 0x8e, 0x6a, 0x05, 0x6f, 0xf7,
-	0xea, 0xaa, 0x16, 0xd5, 0x65, 0x3a, 0x2d, 0x1c, 0x95, 0x71, 0x5a, 0xb8, 0x5a, 0x61, 0x2d, 0xaa,
-	0x5b, 0x72, 0x5a, 0x38, 0xaa, 0xe0, 0xb4, 0x70, 0xad, 0x3b, 0x6c, 0x8c, 0x86, 0x37, 0xb7, 0xcf,
-	0x9b, 0x7f, 0xbe, 0x9e, 0x70, 0x59, 0xce, 0xda, 0xab, 0x4b, 0xe9, 0xd3, 0x7d, 0x00, 0x00, 0x00,
-	0xff, 0xff, 0x6c, 0x36, 0x67, 0x65, 0x72, 0x05, 0x00, 0x00,
+	// 540 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x55, 0xdd, 0x6e, 0xd3, 0x30,
+	0x14, 0x6e, 0xd7, 0xad, 0x52, 0x4f, 0x01, 0x31, 0xb7, 0x82, 0x90, 0x0b, 0x84, 0x02, 0x83, 0x49,
+	0x8c, 0x44, 0x1b, 0x42, 0x08, 0x4d, 0x08, 0xb5, 0x0c, 0xd1, 0x8b, 0x5d, 0x05, 0x90, 0x10, 0x17,
+	0xa0, 0x2c, 0x3b, 0x0d, 0x66, 0x59, 0x1c, 0x7c, 0xdc, 0x0d, 0xf1, 0x14, 0x3c, 0x06, 0xcf, 0xc5,
+	0x03, 0xf0, 0x0c, 0xc8, 0x71, 0x9a, 0x25, 0xcc, 0x63, 0xa2, 0xbb, 0xdd, 0x55, 0xd3, 0xf8, 0xfb,
+	0x39, 0xf9, 0xce, 0xb1, 0x0d, 0x93, 0x84, 0xab, 0xcf, 0xb3, 0x3d, 0x3f, 0x16, 0x87, 0x01, 0x89,
+	0x54, 0x3c, 0xe2, 0xc2, 0xfc, 0xe6, 0x52, 0x7c, 0xc1, 0x58, 0x51, 0x50, 0x3d, 0x24, 0x32, 0x8f,
+	0x09, 0xe5, 0x11, 0xca, 0x20, 0xca, 0x79, 0x70, 0xb4, 0x19, 0x10, 0xc6, 0x12, 0x95, 0x9f, 0x4b,
+	0xa1, 0x04, 0x5b, 0x4d, 0x52, 0x21, 0x10, 0xa3, 0x9c, 0xfb, 0x5a, 0xc0, 0xe7, 0xc2, 0x1d, 0x26,
+	0x22, 0x11, 0xc5, 0x6a, 0xa0, 0x9f, 0x0c, 0xd0, 0x7d, 0x6e, 0xb1, 0xd4, 0xdc, 0x9a, 0x93, 0xfe,
+	0x57, 0x7a, 0xe0, 0x37, 0x85, 0x19, 0x71, 0x91, 0x51, 0x49, 0x7f, 0xf6, 0x5f, 0xf4, 0x7a, 0x89,
+	0xee, 0xc6, 0x59, 0x1f, 0x7b, 0xc0, 0xd5, 0x9c, 0x20, 0x71, 0x6a, 0xd0, 0xde, 0x0b, 0xb8, 0xfe,
+	0x1a, 0xd5, 0x9b, 0x42, 0x20, 0xc4, 0xaf, 0x33, 0x24, 0xc5, 0x1e, 0x42, 0x47, 0xe2, 0xd4, 0x69,
+	0xdf, 0x69, 0xaf, 0xf7, 0xb7, 0x6e, 0xf9, 0xb1, 0x90, 0x38, 0xff, 0x5a, 0x3f, 0x44, 0x12, 0x33,
+	0x19, 0x63, 0x88, 0xd3, 0x50, 0xa3, 0xbc, 0x11, 0xac, 0xd6, 0x04, 0x28, 0x17, 0x19, 0x21, 0xdb,
+	0x80, 0xae, 0xa9, 0xa9, 0x14, 0x19, 0xfa, 0xba, 0xdc, 0x4a, 0xa4, 0x44, 0x97, 0x18, 0x6f, 0x1b,
+	0xd8, 0x2e, 0xa7, 0x52, 0x83, 0xe6, 0x55, 0xac, 0xc1, 0xb5, 0x2c, 0x3a, 0x44, 0xca, 0xa3, 0x18,
+	0x3f, 0xa5, 0x9c, 0xb4, 0x56, 0x67, 0xbd, 0x17, 0x5e, 0xad, 0xde, 0x6a, 0x92, 0xb7, 0x0b, 0x83,
+	0x06, 0xb9, 0xac, 0xe0, 0x09, 0xf4, 0x8d, 0xfa, 0x09, 0xf5, 0xac, 0x32, 0xc0, 0x00, 0x0b, 0xb5,
+	0x1f, 0x4b, 0x30, 0x78, 0x29, 0x31, 0x52, 0xb8, 0x78, 0x24, 0x1a, 0x1c, 0x1d, 0x93, 0xb3, 0x54,
+	0x80, 0x6f, 0x36, 0x3d, 0x47, 0xc7, 0x64, 0x94, 0x27, 0xad, 0x50, 0xa3, 0xd8, 0x26, 0xac, 0x44,
+	0xdf, 0x67, 0x12, 0x9d, 0x4e, 0xa9, 0xdd, 0x84, 0xeb, 0xa5, 0x8a, 0x60, 0x90, 0x5a, 0x5f, 0xa5,
+	0xe4, 0x2c, 0xdb, 0xf4, 0xdf, 0xa6, 0x35, 0x7d, 0x95, 0x12, 0x7b, 0x0a, 0xbd, 0x6a, 0xba, 0x9c,
+	0x15, 0x1b, 0xe5, 0xd5, 0x7c, 0x79, 0xd2, 0x0a, 0x4f, 0xb0, 0xe3, 0x2e, 0x2c, 0x1f, 0xf0, 0x6c,
+	0xdf, 0xdb, 0x81, 0x61, 0x33, 0x91, 0x85, 0x7a, 0xac, 0x83, 0x7d, 0x97, 0xef, 0x5f, 0x06, 0xdb,
+	0x08, 0xb6, 0x99, 0xc8, 0x42, 0xc1, 0x8e, 0x61, 0xb0, 0x83, 0x29, 0x5e, 0x24, 0x57, 0xef, 0x06,
+	0x0c, 0x9b, 0x1a, 0xa6, 0x92, 0xad, 0xdf, 0x1d, 0xe8, 0x99, 0x57, 0xa3, 0x9c, 0xb3, 0xf7, 0xd0,
+	0xab, 0x76, 0x3a, 0xbb, 0xeb, 0x9f, 0x3a, 0x09, 0xfd, 0xbf, 0x0f, 0x12, 0xf7, 0xde, 0xbf, 0x41,
+	0xc6, 0xc5, 0x6b, 0xb1, 0x8f, 0xd0, 0xaf, 0xed, 0x61, 0xb6, 0x66, 0xa1, 0x9d, 0x3e, 0x20, 0xdc,
+	0xfb, 0xe7, 0xc1, 0x2a, 0xfd, 0x08, 0xae, 0xd4, 0x47, 0x98, 0xd9, 0x98, 0x96, 0x5d, 0xef, 0x3e,
+	0x38, 0x17, 0x57, 0xb7, 0xa8, 0x37, 0xd3, 0x6a, 0x61, 0x99, 0x7f, 0xab, 0x85, 0x6d, 0x2a, 0x8c,
+	0x45, 0xbd, 0x4b, 0x56, 0x0b, 0xcb, 0x28, 0x58, 0x2d, 0x6c, 0xed, 0xf6, 0x5a, 0xe3, 0xd1, 0xcf,
+	0x5f, 0xb7, 0xdb, 0x1f, 0xb6, 0x2f, 0x70, 0x5d, 0xee, 0x75, 0x8b, 0x7b, 0xe5, 0xf1, 0x9f, 0x00,
+	0x00, 0x00, 0xff, 0xff, 0x70, 0x54, 0x36, 0x5e, 0x74, 0x07, 0x00, 0x00,
 }
 
 func (this *GetSecretRequest) Equal(that interface{}) bool {
@@ -514,6 +881,14 @@ func (this *ListSecretsRequest) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
+	if len(this.NamespaceList) != len(that1.NamespaceList) {
+		return false
+	}
+	for i := range this.NamespaceList {
+		if this.NamespaceList[i] != that1.NamespaceList[i] {
+			return false
+		}
+	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
 		return false
 	}
@@ -570,10 +945,115 @@ func (this *CreateSecretRequest) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if !this.Secret.Equal(that1.Secret) {
+	if !this.Ref.Equal(that1.Ref) {
+		return false
+	}
+	if that1.Kind == nil {
+		if this.Kind != nil {
+			return false
+		}
+	} else if this.Kind == nil {
+		return false
+	} else if !this.Kind.Equal(that1.Kind) {
 		return false
 	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *CreateSecretRequest_Aws) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*CreateSecretRequest_Aws)
+	if !ok {
+		that2, ok := that.(CreateSecretRequest_Aws)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Aws.Equal(that1.Aws) {
+		return false
+	}
+	return true
+}
+func (this *CreateSecretRequest_Azure) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*CreateSecretRequest_Azure)
+	if !ok {
+		that2, ok := that.(CreateSecretRequest_Azure)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Azure.Equal(that1.Azure) {
+		return false
+	}
+	return true
+}
+func (this *CreateSecretRequest_Tls) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*CreateSecretRequest_Tls)
+	if !ok {
+		that2, ok := that.(CreateSecretRequest_Tls)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Tls.Equal(that1.Tls) {
+		return false
+	}
+	return true
+}
+func (this *CreateSecretRequest_Extension) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*CreateSecretRequest_Extension)
+	if !ok {
+		that2, ok := that.(CreateSecretRequest_Extension)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Extension.Equal(that1.Extension) {
 		return false
 	}
 	return true
@@ -624,10 +1104,115 @@ func (this *UpdateSecretRequest) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if !this.Secret.Equal(that1.Secret) {
+	if !this.Ref.Equal(that1.Ref) {
+		return false
+	}
+	if that1.Kind == nil {
+		if this.Kind != nil {
+			return false
+		}
+	} else if this.Kind == nil {
+		return false
+	} else if !this.Kind.Equal(that1.Kind) {
 		return false
 	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *UpdateSecretRequest_Aws) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*UpdateSecretRequest_Aws)
+	if !ok {
+		that2, ok := that.(UpdateSecretRequest_Aws)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Aws.Equal(that1.Aws) {
+		return false
+	}
+	return true
+}
+func (this *UpdateSecretRequest_Azure) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*UpdateSecretRequest_Azure)
+	if !ok {
+		that2, ok := that.(UpdateSecretRequest_Azure)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Azure.Equal(that1.Azure) {
+		return false
+	}
+	return true
+}
+func (this *UpdateSecretRequest_Tls) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*UpdateSecretRequest_Tls)
+	if !ok {
+		that2, ok := that.(UpdateSecretRequest_Tls)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Tls.Equal(that1.Tls) {
+		return false
+	}
+	return true
+}
+func (this *UpdateSecretRequest_Extension) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*UpdateSecretRequest_Extension)
+	if !ok {
+		that2, ok := that.(UpdateSecretRequest_Extension)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Extension.Equal(that1.Extension) {
 		return false
 	}
 	return true

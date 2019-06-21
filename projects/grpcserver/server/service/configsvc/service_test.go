@@ -2,14 +2,14 @@ package configsvc_test
 
 import (
 	"context"
-	"fmt"
-	"net"
 	"time"
 
 	"github.com/gogo/protobuf/types"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
+
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	mock_gloo "github.com/solo-io/gloo/projects/gloo/pkg/mocks"
@@ -20,11 +20,13 @@ import (
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	mock_namespace "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/kube/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/configsvc"
-	"github.com/vektah/gqlgen/neelance/errors"
+	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
 	"google.golang.org/grpc"
 )
 
 var (
+	grpcServer        *grpc.Server
+	conn              *grpc.ClientConn
 	apiserver         v1.ConfigApiServer
 	client            v1.ConfigApiClient
 	mockCtrl          *gomock.Controller
@@ -36,34 +38,20 @@ var (
 	testErr           = errors.Errorf("test-err")
 )
 
-var _ = Describe("ServerTest", func() {
-
+var _ = Describe("ServiceTest", func() {
 	BeforeEach(func() {
-		// Set up test subject
 		mockCtrl = gomock.NewController(GinkgoT())
 		settingsClient = mock_gloo.NewMockSettingsClient(mockCtrl)
 		licenseClient = mock_license.NewMockClient(mockCtrl)
 		namespaceClient = mock_namespace.NewMockNamespaceClient(mockCtrl)
 		apiserver = configsvc.NewConfigGrpcService(context.TODO(), settingsClient, licenseClient, namespaceClient, testOAuthEndpoint, testVersion)
 
-		// Set up test server
-		lis, err := net.Listen("tcp", fmt.Sprintf(":0"))
-		Expect(err).NotTo(HaveOccurred())
-		port := lis.Addr().(*net.TCPAddr).Port
-		s := grpc.NewServer()
-		v1.RegisterConfigApiServer(s, apiserver)
-		go func() {
-			defer GinkgoRecover()
-			s.Serve(lis)
-		}()
-		conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", port), grpc.WithInsecure())
-
-		// Set up test client
+		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterConfigApiServer(s, apiserver) })
 		client = v1.NewConfigApiClient(conn)
-		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {
+		grpcServer.Stop()
 		mockCtrl.Finish()
 	})
 

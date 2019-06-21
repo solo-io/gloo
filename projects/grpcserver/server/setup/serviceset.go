@@ -47,9 +47,9 @@ func MustGetServiceSet(ctx context.Context) ServiceSet {
 	oAuthEndpoint := v1.OAuthEndpoint{Url: oAuthUrl, ClientName: oAuthClient}
 
 	upstreamService := upstreamsvc.NewUpstreamGrpcService(clientset.UpstreamClient)
-	artifactService := artifactsvc.NewArtifactGrpcService(clientset.ArtifactClient)
+	artifactService := artifactsvc.NewArtifactGrpcService(ctx, clientset.ArtifactClient)
 	configService := configsvc.NewConfigGrpcService(ctx, clientset.SettingsClient, licenseClient, namespaceClient, oAuthEndpoint, version.Version)
-	secretService := secretsvc.NewSecretGrpcService(clientset.SecretClient)
+	secretService := secretsvc.NewSecretGrpcService(ctx, clientset.SecretClient)
 	virtualServiceService := virtualservicesvc.NewVirtualServiceGrpcService(clientset.VirtualServiceClient)
 
 	return ServiceSet{

@@ -21,11 +21,12 @@ message ListArtifactsRequest {
 }
 
 message ListArtifactsResponse {
-    repeated gloo.solo.io.Artifact artifact = 1;
+    repeated gloo.solo.io.Artifact artifact_list = 1;
 }
 
 message CreateArtifactRequest {
-    gloo.solo.io.Artifact artifact = 1;
+    core.solo.io.ResourceRef ref = 1;
+    string data = 2;
 }
 
 message CreateArtifactResponse {
@@ -33,7 +34,8 @@ message CreateArtifactResponse {
 }
 
 message UpdateArtifactRequest {
-    gloo.solo.io.Artifact artifact = 1;
+    core.solo.io.ResourceRef ref = 1;
+    string data = 2;
 }
 
 message UpdateArtifactResponse {

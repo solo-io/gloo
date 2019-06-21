@@ -88,13 +88,13 @@ weight: 5
 
 
 ```yaml
-"artifact": []gloo.solo.io.Artifact
+"artifactList": []gloo.solo.io.Artifact
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `artifact` | [[]gloo.solo.io.Artifact](../../../../../../gloo/projects/gloo/api/v1/artifact.proto.sk#artifact) |  |  |
+| `artifactList` | [[]gloo.solo.io.Artifact](../../../../../../gloo/projects/gloo/api/v1/artifact.proto.sk#artifact) |  |  |
 
 
 
@@ -105,13 +105,15 @@ weight: 5
 
 
 ```yaml
-"artifact": .gloo.solo.io.Artifact
+"ref": .core.solo.io.ResourceRef
+"data": string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `artifact` | [.gloo.solo.io.Artifact](../../../../../../gloo/projects/gloo/api/v1/artifact.proto.sk#artifact) |  |  |
+| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
+| `data` | `string` |  |  |
 
 
 
@@ -139,13 +141,15 @@ weight: 5
 
 
 ```yaml
-"artifact": .gloo.solo.io.Artifact
+"ref": .core.solo.io.ResourceRef
+"data": string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `artifact` | [.gloo.solo.io.Artifact](../../../../../../gloo/projects/gloo/api/v1/artifact.proto.sk#artifact) |  |  |
+| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
+| `data` | `string` |  |  |
 
 
 

@@ -71,11 +71,13 @@ weight: 5
 
 
 ```yaml
+"namespaceList": []string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
+| `namespaceList` | `[]string` |  |  |
 
 
 
@@ -103,13 +105,21 @@ weight: 5
 
 
 ```yaml
-"secret": .gloo.solo.io.Secret
+"ref": .core.solo.io.ResourceRef
+"aws": .gloo.solo.io.AwsSecret
+"azure": .gloo.solo.io.AzureSecret
+"tls": .gloo.solo.io.TlsSecret
+"extension": .gloo.solo.io.Extension
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `secret` | [.gloo.solo.io.Secret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#secret) |  |  |
+| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
+| `aws` | [.gloo.solo.io.AwsSecret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#awssecret) |  |  |
+| `azure` | [.gloo.solo.io.AzureSecret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#azuresecret) |  |  |
+| `tls` | [.gloo.solo.io.TlsSecret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#tlssecret) |  |  |
+| `extension` | [.gloo.solo.io.Extension](../../../../../../gloo/projects/gloo/api/v1/extensions.proto.sk#extension) |  |  |
 
 
 
@@ -137,13 +147,21 @@ weight: 5
 
 
 ```yaml
-"secret": .gloo.solo.io.Secret
+"ref": .core.solo.io.ResourceRef
+"aws": .gloo.solo.io.AwsSecret
+"azure": .gloo.solo.io.AzureSecret
+"tls": .gloo.solo.io.TlsSecret
+"extension": .gloo.solo.io.Extension
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `secret` | [.gloo.solo.io.Secret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#secret) |  |  |
+| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
+| `aws` | [.gloo.solo.io.AwsSecret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#awssecret) |  |  |
+| `azure` | [.gloo.solo.io.AzureSecret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#azuresecret) |  |  |
+| `tls` | [.gloo.solo.io.TlsSecret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#tlssecret) |  |  |
+| `extension` | [.gloo.solo.io.Extension](../../../../../../gloo/projects/gloo/api/v1/extensions.proto.sk#extension) |  |  |
 
 
 
