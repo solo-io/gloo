@@ -5,6 +5,8 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"fmt"
+	"sort"
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/jwt"
@@ -23,7 +25,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/translator"
 )
 
-//go:generate protoc -I$GOPATH/src/github.com/envoyproxy/protoc-gen-validate -I. -I$GOPATH/src/github.com/gogo/protobuf/protobuf --gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types:${GOPATH}/src/ solo_jwt_authn.proto
+//go:generate protoc -I$GOPATH/src/github.com/envoyproxy/protoc-gen-validate -I. -I$GOPATH/src/github.com/gogo/protobuf/protobuf --gogo_out=Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,import_path=jwt,paths=source_relative:. solo_jwt_authn.proto
 
 const (
 	JwtFilterName     = "io.solo.filters.http.solo_jwt_authn"
@@ -43,7 +45,9 @@ const (
 // thats it!
 
 type Plugin struct {
-	allConfigs map[string]*envoyauth.JwtProvider
+	uniqProviders map[string]*envoyauth.JwtProvider
+
+	perVhostProviders map[string][]string
 }
 
 var _ plugins.Plugin = new(Plugin)
@@ -53,11 +57,12 @@ func NewPlugin() *Plugin {
 }
 
 func (p *Plugin) Init(params plugins.InitParams) error {
-	p.allConfigs = make(map[string]*envoyauth.JwtProvider)
+	p.perVhostProviders = make(map[string][]string)
+	p.uniqProviders = make(map[string]*envoyauth.JwtProvider)
 	return nil
 }
 
-func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
 	var jwtRoute jwt.RouteExtension
 	err := utils.UnmarshalExtension(in.RoutePlugins, ExtensionName, &jwtRoute)
 	if err != nil {
@@ -68,7 +73,7 @@ func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 	}
 
 	if jwtRoute.Disable {
-		pluginutils.SetRoutePerFilterConfig(out, JwtFilterName, &SoloJwtAuthnPerRoute{Requirement: DisableName})
+		return pluginutils.SetRoutePerFilterConfig(out, JwtFilterName, &SoloJwtAuthnPerRoute{Requirement: DisableName})
 	}
 	return nil
 }
@@ -86,14 +91,20 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 
 	cfgName := in.Name
 
-	p.allConfigs[cfgName], err = translateProvider(jwtExt)
+	claimsToHeader := make(map[string]*SoloJwtAuthnPerRoute_ClaimToHeaders)
+
+	err = p.translateProviders(in.Name, jwtExt, claimsToHeader)
 	if err != nil {
 		return errors.Wrapf(err, "Error translating provider for "+cfgName)
 	}
-
-	pluginutils.SetVhostPerFilterConfig(out, JwtFilterName, &SoloJwtAuthnPerRoute{Requirement: cfgName})
-
-	return nil
+	clearRouteCache := len(claimsToHeader) != 0
+	cfg := &SoloJwtAuthnPerRoute{
+		Requirement:       cfgName,
+		PayloadInMetadata: PayloadInMetadata,
+		ClaimsToHeaders:   claimsToHeader,
+		ClearRouteCache:   clearRouteCache,
+	}
+	return pluginutils.SetVhostPerFilterConfig(out, JwtFilterName, cfg)
 }
 
 func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) ([]plugins.StagedHttpFilter, error) {
@@ -105,9 +116,11 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 			Requires: make(map[string]*envoyauth.JwtRequirement),
 		},
 	}
-	for k, v := range p.allConfigs {
+	for k, v := range p.uniqProviders {
 		cfg.Providers[k] = v
-		cfg.FilterStateRules.Requires[k] = getRequirement(k)
+	}
+	for k, v := range p.perVhostProviders {
+		cfg.FilterStateRules.Requires[k] = p.getRequirement(k, v)
 	}
 
 	// this should never happen, but let's make sure
@@ -126,33 +139,137 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	return filters, nil
 }
 
-func getRequirement(name string) *envoyauth.JwtRequirement {
+func (p *Plugin) getRequirement(name string, providers []string) *envoyauth.JwtRequirement {
+
+	if len(providers) == 1 {
+		return &envoyauth.JwtRequirement{
+			RequiresType: &envoyauth.JwtRequirement_ProviderName{
+				ProviderName: providers[0],
+			},
+		}
+	}
+	var reqs []*envoyauth.JwtRequirement
+	for _, provider := range providers {
+		r := &envoyauth.JwtRequirement{
+			RequiresType: &envoyauth.JwtRequirement_ProviderName{
+				ProviderName: provider,
+			},
+		}
+		reqs = append(reqs, r)
+	}
+
+	// sort for idempotancy
+	sort.Slice(reqs, func(i, j int) bool { return reqs[i].GetProviderName() < reqs[j].GetProviderName() })
 	return &envoyauth.JwtRequirement{
-		RequiresType: &envoyauth.JwtRequirement_ProviderName{
-			ProviderName: name,
+		RequiresType: &envoyauth.JwtRequirement_RequiresAny{
+			RequiresAny: &envoyauth.JwtRequirementOrList{
+				Requirements: reqs,
+			},
 		},
 	}
+
+	// TODO: add OR for all providers in the vhost name
+
 }
 
-func translateProvider(j jwt.VhostExtension) (*envoyauth.JwtProvider, error) {
+func translateDefaultProvider(j jwt.VhostExtension) (*envoyauth.JwtProvider, error) {
 	if j.Jwks == nil {
 		return nil, errors.New("JWKS source not provided")
 	}
+
 	provider := &envoyauth.JwtProvider{
-		Issuer:            j.Issuer,
-		Audiences:         j.Audiences,
-		PayloadInMetadata: PayloadInMetadata,
+		Issuer:    j.Issuer,
+		Audiences: j.Audiences,
 	}
+	provider.PayloadInMetadata = PayloadInMetadata
+
+	err := translateJwks(&j, provider)
+	return provider, err
+}
+func translateProvider(j *jwt.Provider) (*envoyauth.JwtProvider, error) {
+	provider := &envoyauth.JwtProvider{
+		Issuer:    j.Issuer,
+		Audiences: j.Audiences,
+		Forward:   j.KeepToken,
+	}
+	translateTokenSource(j, provider)
+
 	err := translateJwks(j, provider)
 	return provider, err
 }
 
-func translateJwks(j jwt.VhostExtension, out *envoyauth.JwtProvider) error {
-	if j.Jwks == nil {
+func translateTokenSource(j *jwt.Provider, provider *envoyauth.JwtProvider) {
+	if headers := j.GetTokenSource().GetHeaders(); len(headers) != 0 {
+		for _, header := range headers {
+			provider.FromHeaders = append(provider.FromHeaders, &envoyauth.JwtHeader{
+				Name:        header.Header,
+				ValuePrefix: header.Prefix,
+			})
+		}
+	}
+	provider.FromParams = j.GetTokenSource().GetQueryParams()
+}
+
+func ProviderName(vhostname, providername string) string {
+	return fmt.Sprintf("%s_%s", vhostname, providername)
+}
+
+func (p *Plugin) translateProviders(vhostname string, j jwt.VhostExtension, claimsToHeader map[string]*SoloJwtAuthnPerRoute_ClaimToHeaders) error {
+	if len(j.GetProviders()) == 0 {
+		// TODO(yuval-k): This is to support fieldsw on the VhostExtensions that were there before
+		// providers were added. remove the fields in the VhostExtensions and then remove this code,
+		// when they are not in used any more.
+		provider, err := translateDefaultProvider(j)
+		if err != nil {
+			return err
+		}
+		name := ProviderName(vhostname, "default")
+		p.uniqProviders[name] = provider
+		p.perVhostProviders[vhostname] = append(p.perVhostProviders[vhostname], name)
+		return nil
+	}
+
+	for name, provider := range j.GetProviders() {
+		envoyProvider, err := translateProvider(provider)
+		if err != nil {
+			return err
+		}
+		name := ProviderName(vhostname, name)
+		envoyProvider.PayloadInMetadata = name
+		p.uniqProviders[name] = envoyProvider
+		claimsToHeader[name] = translateClaimsToHeader(provider.ClaimsToHeaders)
+		p.perVhostProviders[vhostname] = append(p.perVhostProviders[vhostname], name)
+	}
+	return nil
+}
+
+func translateClaimsToHeader(c2hs []*jwt.ClaimToHeader) *SoloJwtAuthnPerRoute_ClaimToHeaders {
+	var ret []*SoloJwtAuthnPerRoute_ClaimToHeader
+	for _, c2h := range c2hs {
+		ret = append(ret, &SoloJwtAuthnPerRoute_ClaimToHeader{
+			Claim:  c2h.Claim,
+			Header: c2h.Header,
+			Append: c2h.Append,
+		})
+	}
+	if ret == nil {
+		return nil
+	}
+	return &SoloJwtAuthnPerRoute_ClaimToHeaders{
+		Claims: ret,
+	}
+}
+
+type jwksSource interface {
+	GetJwks() *jwt.Jwks
+}
+
+func translateJwks(j jwksSource, out *envoyauth.JwtProvider) error {
+	if j.GetJwks() == nil {
 		return errors.New("no jwks source provided")
 	}
 	switch jwks := j.GetJwks().Jwks.(type) {
-	case (*jwt.VhostExtension_Jwks_Remote):
+	case *jwt.Jwks_Remote:
 		if jwks.Remote.UpstreamRef == nil {
 			return errors.New("upstream ref must not be empty in jwks source")
 		}
@@ -166,7 +283,7 @@ func translateJwks(j jwt.VhostExtension, out *envoyauth.JwtProvider) error {
 				},
 			},
 		}
-	case (*jwt.VhostExtension_Jwks_Local):
+	case (*jwt.Jwks_Local):
 
 		keyset, err := TranslateKey(jwks.Local.Key)
 		if err != nil {

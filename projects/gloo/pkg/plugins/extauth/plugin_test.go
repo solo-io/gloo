@@ -15,6 +15,7 @@ import (
 	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
 	"github.com/envoyproxy/go-control-plane/pkg/util"
 	"github.com/gogo/protobuf/types"
+	"github.com/solo-io/gloo/pkg/utils"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	static_plugin_gloo "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
@@ -26,6 +27,7 @@ import (
 var _ = Describe("Plugin", func() {
 	var (
 		params       plugins.Params
+		routeParams  plugins.RouteParams
 		plugin       *Plugin
 		virtualHost  *v1.VirtualHost
 		upstream     *v1.Upstream
@@ -65,7 +67,9 @@ var _ = Describe("Plugin", func() {
 				RouteAction: &v1.RouteAction{
 					Destination: &v1.RouteAction_Single{
 						Single: &v1.Destination{
-							Upstream: upstream.Metadata.Ref(),
+							DestinationType: &v1.Destination_Upstream{
+								Upstream: utils.ResourceRefPtr(upstream.Metadata.Ref()),
+							},
 						},
 					},
 				},
@@ -141,6 +145,10 @@ var _ = Describe("Plugin", func() {
 			Proxies:   v1.ProxyList{proxy},
 			Upstreams: v1.UpstreamList{upstream},
 			Secrets:   v1.SecretList{secret},
+		}
+		routeParams = plugins.RouteParams{
+			Params:      params,
+			VirtualHost: virtualHost,
 		}
 	})
 
@@ -320,13 +328,13 @@ var _ = Describe("Plugin", func() {
 				},
 			}
 			var out envoyroute.Route
-			err = plugin.ProcessRoute(params, route, &out)
+			err = plugin.ProcessRoute(routeParams, route, &out)
 			Expect(err).NotTo(HaveOccurred())
 			ExpectDisabled(&out)
 		})
 		It("should do nothing to a route thats not explicitly disabled", func() {
 			var out envoyroute.Route
-			err := plugin.ProcessRoute(params, route, &out)
+			err := plugin.ProcessRoute(routeParams, route, &out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(IsDisabled(&out)).To(BeFalse())
 		})

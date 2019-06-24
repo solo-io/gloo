@@ -32,6 +32,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/fgrosse/zaptest"
+	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -529,7 +530,9 @@ func getProxyExtAuth(envoyPort uint32, upstream core.ResourceRef, extauthCfg *ex
 				RouteAction: &gloov1.RouteAction{
 					Destination: &gloov1.RouteAction_Single{
 						Single: &gloov1.Destination{
-							Upstream: upstream,
+							DestinationType: &gloov1.Destination_Upstream{
+								Upstream: utils.ResourceRefPtr(upstream),
+							},
 						},
 					},
 				},

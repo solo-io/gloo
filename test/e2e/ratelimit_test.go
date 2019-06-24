@@ -28,6 +28,7 @@ import (
 	rlservice "github.com/solo-io/rate-limiter/pkg/service"
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/ratelimit"
 
+	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
@@ -433,7 +434,9 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 						RouteAction: &gloov1.RouteAction{
 							Destination: &gloov1.RouteAction_Single{
 								Single: &gloov1.Destination{
-									Upstream: b.upstream,
+									DestinationType: &gloov1.Destination_Upstream{
+										Upstream: utils.ResourceRefPtr(b.upstream),
+									},
 								},
 							},
 						},
@@ -458,7 +461,9 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 						RouteAction: &gloov1.RouteAction{
 							Destination: &gloov1.RouteAction_Single{
 								Single: &gloov1.Destination{
-									Upstream: b.upstream,
+									DestinationType: &gloov1.Destination_Upstream{
+										Upstream: utils.ResourceRefPtr(b.upstream),
+									},
 								},
 							},
 						},

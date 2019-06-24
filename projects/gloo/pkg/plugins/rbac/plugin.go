@@ -2,13 +2,14 @@ package rbac
 
 import (
 	"context"
+	"sort"
 
 	envoyroute "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
 	envoyauthz "github.com/envoyproxy/go-control-plane/envoy/config/filter/http/rbac/v2"
 	envoycfgauthz "github.com/envoyproxy/go-control-plane/envoy/config/rbac/v2"
 	"github.com/gogo/protobuf/proto"
 
-	matcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
+	envoymatcher "github.com/envoyproxy/go-control-plane/envoy/type/matcher"
 	v1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/pluginutils"
@@ -65,7 +66,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 		return errors.Wrapf(err, "Error converting proto to rbac plugin")
 	}
 
-	perRouteRbac, err := translateRbac(params.Ctx, rbacConfig.Config)
+	perRouteRbac, err := translateRbac(params.Ctx, in.Name, rbacConfig.Config)
 	if err != nil {
 		return err
 	}
@@ -73,7 +74,8 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 
 	return nil
 }
-func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
+
+func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
 	var rbacConfig rbac.RouteExtension
 	err := utils.UnmarshalExtension(in.RoutePlugins, ExtensionName, &rbacConfig)
 	if err != nil {
@@ -91,7 +93,7 @@ func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyrou
 			perRouteRbac = &envoyauthz.RBACPerRoute{}
 		}
 	case (*rbac.RouteExtension_Config):
-		perRouteRbac, err = translateRbac(params.Ctx, route.Config)
+		perRouteRbac, err = translateRbac(params.Ctx, params.VirtualHost.Name, route.Config)
 		if err != nil {
 			return err
 		}
@@ -124,7 +126,7 @@ func (p *Plugin) HttpFilters(params plugins.Params, listener *v1.HttpListener) (
 	return filters, nil
 }
 
-func translateRbac(ctx context.Context, j *rbac.Config) (*envoyauthz.RBACPerRoute, error) {
+func translateRbac(ctx context.Context, vhostname string, j *rbac.Config) (*envoyauthz.RBACPerRoute, error) {
 	ctx = contextutils.WithLogger(ctx, "rbac")
 	policies := make(map[string]*envoycfgauthz.Policy)
 	res := &envoyauthz.RBACPerRoute{
@@ -138,16 +140,16 @@ func translateRbac(ctx context.Context, j *rbac.Config) (*envoyauthz.RBACPerRout
 	userPolicies := j.GetPolicies()
 	if userPolicies != nil {
 		for k, v := range userPolicies {
-			policies[k] = translatePolicy(contextutils.WithLogger(ctx, k), v)
+			policies[k] = translatePolicy(contextutils.WithLogger(ctx, k), vhostname, v)
 		}
 	}
 	return res, nil
 }
 
-func translatePolicy(ctx context.Context, p *rbac.Policy) *envoycfgauthz.Policy {
+func translatePolicy(ctx context.Context, vhostname string, p *rbac.Policy) *envoycfgauthz.Policy {
 	outPolicy := &envoycfgauthz.Policy{}
 	for _, principal := range p.GetPrincipals() {
-		outPrincipal := translateJwtPrincipal(ctx, principal.JwtPrincipal)
+		outPrincipal := translateJwtPrincipal(ctx, vhostname, principal.JwtPrincipal)
 		if outPrincipal != nil {
 			outPolicy.Principals = append(outPolicy.Principals, outPrincipal)
 		}
@@ -206,29 +208,50 @@ func translatePolicy(ctx context.Context, p *rbac.Policy) *envoycfgauthz.Policy 
 	return outPolicy
 }
 
-func translateJwtPrincipal(ctx context.Context, jwtPrincipal *rbac.JWTPrincipal) *envoycfgauthz.Principal {
+func getName(vhostname string, jwtPrincipal *rbac.JWTPrincipal) string {
+	if vhostname == "" {
+		return jwt.PayloadInMetadata
+	}
+	if jwtPrincipal.GetProvider() == "" {
+		return jwt.PayloadInMetadata
+	}
+	return jwt.ProviderName(vhostname, jwtPrincipal.GetProvider())
+}
+
+func sortedKeys(m map[string]string) (keys []string) {
+	for key := range m {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return
+}
+
+func translateJwtPrincipal(ctx context.Context, vhostname string, jwtPrincipal *rbac.JWTPrincipal) *envoycfgauthz.Principal {
 	var jwtPrincipals []*envoycfgauthz.Principal
-	for claim, value := range jwtPrincipal.GetClaims() {
+	claims := jwtPrincipal.GetClaims()
+	// sort for idempotency
+	for _, claim := range sortedKeys(claims) {
+		value := claims[claim]
 		claimPrincipal := &envoycfgauthz.Principal{
 			Identifier: &envoycfgauthz.Principal_Metadata{
-				Metadata: &matcher.MetadataMatcher{
+				Metadata: &envoymatcher.MetadataMatcher{
 					Filter: "envoy.filters.http.jwt_authn",
-					Path: []*matcher.MetadataMatcher_PathSegment{
+					Path: []*envoymatcher.MetadataMatcher_PathSegment{
 						{
-							Segment: &matcher.MetadataMatcher_PathSegment_Key{
-								Key: jwt.PayloadInMetadata,
+							Segment: &envoymatcher.MetadataMatcher_PathSegment_Key{
+								Key: getName(vhostname, jwtPrincipal),
 							},
 						},
 						{
-							Segment: &matcher.MetadataMatcher_PathSegment_Key{
+							Segment: &envoymatcher.MetadataMatcher_PathSegment_Key{
 								Key: claim,
 							},
 						},
 					},
-					Value: &matcher.ValueMatcher{
-						MatchPattern: &matcher.ValueMatcher_StringMatch{
-							StringMatch: &matcher.StringMatcher{
-								MatchPattern: &matcher.StringMatcher_Exact{
+					Value: &envoymatcher.ValueMatcher{
+						MatchPattern: &envoymatcher.ValueMatcher_StringMatch{
+							StringMatch: &envoymatcher.StringMatcher{
+								MatchPattern: &envoymatcher.StringMatcher_Exact{
 									Exact: value,
 								},
 							},

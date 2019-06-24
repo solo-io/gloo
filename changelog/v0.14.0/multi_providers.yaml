@@ -1,0 +1,10 @@
+changelog:
+  - type: BREAKING_CHANGE
+    description: Update to gloo 0.14.0
+    issueLink: https://github.com/solo-io/solo-projects/pull/622
+  - type: NEW_FEATURE
+    description: Support multiple providers for JWT
+    issueLink: https://github.com/solo-io/solo-projects/pull/622
+  - type: NEW_FEATURE
+    description: Support setting claims as headers
+    issueLink: https://github.com/solo-io/solo-projects/pull/622

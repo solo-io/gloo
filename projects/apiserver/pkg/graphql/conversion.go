@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	glooutils "github.com/solo-io/gloo/pkg/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util"
 	extauthv1 "github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/extauth"
@@ -645,7 +646,9 @@ func convertInputSingleDestination(inputDest InputSingleDestination) (*v1.Destin
 		return nil, err
 	}
 	return &v1.Destination{
-		Upstream:        convertInputRef(inputDest.Upstream),
+		DestinationType: &v1.Destination_Upstream{
+			Upstream: glooutils.ResourceRefPtr(convertInputRef(inputDest.Upstream)),
+		},
 		DestinationSpec: destSpec,
 	}, nil
 }
@@ -958,10 +961,10 @@ func (c *Converter) convertOutputMultiDestination(dests []*v1.WeightedDestinatio
 }
 
 func (c *Converter) convertOutputSingleDestination(dest *v1.Destination) (SingleDestination, error) {
-	if dest.Upstream.Namespace == "" || dest.Upstream.Name == "" {
+	if dest.GetUpstream().Namespace == "" || dest.GetUpstream().Name == "" {
 		return SingleDestination{}, errors.Errorf("must provide destination upstream")
 	}
-	gqlUs, err := c.r.Namespace().Upstream(c.ctx, &customtypes.Namespace{Name: dest.Upstream.Namespace}, dest.Upstream.Name)
+	gqlUs, err := c.r.Namespace().Upstream(c.ctx, &customtypes.Namespace{Name: dest.GetUpstream().Namespace}, dest.GetUpstream().Name)
 	if err != nil {
 		return SingleDestination{}, err
 	}

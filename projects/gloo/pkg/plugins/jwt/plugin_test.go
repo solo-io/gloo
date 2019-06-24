@@ -22,10 +22,11 @@ import (
 	. "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 )
 
-var _ = Describe("Plugin", func() {
+var _ = Describe("JWT Plugin", func() {
 	var (
 		plugin      *Plugin
 		params      plugins.Params
+		routeParams plugins.RouteParams
 		virtualHost *v1.VirtualHost
 		route       *v1.Route
 		jwtVhost    *jwt.VhostExtension
@@ -86,9 +87,9 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 		}
 
 		jwtVhost = &jwt.VhostExtension{
-			Jwks: &jwt.VhostExtension_Jwks{
-				Jwks: &jwt.VhostExtension_Jwks_Remote{
-					Remote: &jwt.VhostExtension_RemoteJwks{
+			Jwks: &jwt.Jwks{
+				Jwks: &jwt.Jwks_Remote{
+					Remote: &jwt.RemoteJwks{
 						Url:         "testium",
 						UpstreamRef: &core.ResourceRef{Name: "test", Namespace: "testns"},
 					},
@@ -134,13 +135,19 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 		params.Snapshot = &v1.ApiSnapshot{
 			Proxies: v1.ProxyList{proxy},
 		}
+		routeParams = plugins.RouteParams{
+			Params:      params,
+			VirtualHost: virtualHost,
+		}
 	})
 
 	Context("Process snapshot", func() {
 		var (
-			outRoute   envoyroute.Route
-			outVhost   envoyroute.VirtualHost
-			outFilters []plugins.StagedHttpFilter
+			outRoute     envoyroute.Route
+			outVhost     envoyroute.VirtualHost
+			outFilters   []plugins.StagedHttpFilter
+			keySetString []byte
+			cfg          *envoyauth.JwtAuthentication
 		)
 		JustBeforeEach(func() {
 			outVhost = envoyroute.VirtualHost{
@@ -149,12 +156,27 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 			outRoute = envoyroute.Route{}
 
 			// run it like the translator:
-			err := plugin.ProcessRoute(params, route, &outRoute)
+			err := plugin.ProcessRoute(routeParams, route, &outRoute)
 			Expect(err).NotTo(HaveOccurred())
 			err = plugin.ProcessVirtualHost(params, virtualHost, &outVhost)
 			Expect(err).NotTo(HaveOccurred())
 			outFilters, err = plugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())
+
+			Expect(outFilters).To(HaveLen(1))
+			filter := outFilters[0]
+			cfgSt := filter.HttpFilter.GetConfig()
+			cfg = &envoyauth.JwtAuthentication{}
+			err = util.StructToMessage(cfgSt, cfg)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		BeforeEach(func() {
+
+			// in theory i could have used jwks instead of serializing,
+			// but i want to make sure that this will work in future go versions, if
+			// the serialization order changes.
+			keySetString, _ = json.Marshal(&keySet)
 		})
 
 		It("should process virtual host", func() {
@@ -178,20 +200,11 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 		})
 
 		It("should process filters", func() {
-			Expect(outFilters).To(HaveLen(1))
-			filter := outFilters[0]
-			Expect(filter.Stage).To(Equal(plugins.InAuth))
-			Expect(filter.HttpFilter.Name).To(Equal(JwtFilterName))
-
-			cfgSt := filter.HttpFilter.GetConfig()
-			cfg := envoyauth.JwtAuthentication{}
-			err := util.StructToMessage(cfgSt, &cfg)
-			Expect(err).NotTo(HaveOccurred())
-
 			// Expect a requirement
+			providerName := ProviderName(virtualHost.Name, "default")
 			expectedCfg := envoyauth.JwtAuthentication{
 				Providers: map[string]*envoyauth.JwtProvider{
-					virtualHost.Name: &envoyauth.JwtProvider{
+					providerName: &envoyauth.JwtProvider{
 						Issuer:            jwtVhost.Issuer,
 						Audiences:         jwtVhost.Audiences,
 						PayloadInMetadata: PayloadInMetadata,
@@ -212,21 +225,21 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 					Requires: map[string]*envoyauth.JwtRequirement{
 						virtualHost.Name: &envoyauth.JwtRequirement{
 							RequiresType: &envoyauth.JwtRequirement_ProviderName{
-								ProviderName: virtualHost.Name,
+								ProviderName: providerName,
 							},
 						},
 					},
 				},
 			}
-			Expect(expectedCfg).To(Equal(cfg))
+			Expect(expectedCfg).To(Equal(*cfg))
 		})
 
 		Context("local jwks", func() {
 			BeforeEach(func() {
 				jwtVhost = &jwt.VhostExtension{
-					Jwks: &jwt.VhostExtension_Jwks{
-						Jwks: &jwt.VhostExtension_Jwks_Local{
-							Local: &jwt.VhostExtension_LocalJwks{
+					Jwks: &jwt.Jwks{
+						Jwks: &jwt.Jwks_Local{
+							Local: &jwt.LocalJwks{
 								Key: jwks,
 							},
 						},
@@ -237,25 +250,12 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 			})
 
 			It("should process filters", func() {
-				Expect(outFilters).To(HaveLen(1))
-				filter := outFilters[0]
-				Expect(filter.Stage).To(Equal(plugins.InAuth))
-				Expect(filter.HttpFilter.Name).To(Equal(JwtFilterName))
-
-				cfgSt := filter.HttpFilter.GetConfig()
-				cfg := envoyauth.JwtAuthentication{}
-				err := util.StructToMessage(cfgSt, &cfg)
-				Expect(err).NotTo(HaveOccurred())
-
-				// in theory i could have used jwks instead of serializing,
-				// but i want to make sure that this will work in future go versions, if
-				// the serialization order changes.
-				keySetString, _ := json.Marshal(&keySet)
 
 				// Expect a requirement
+				providerName := ProviderName(virtualHost.Name, "default")
 				expectedCfg := envoyauth.JwtAuthentication{
 					Providers: map[string]*envoyauth.JwtProvider{
-						virtualHost.Name: &envoyauth.JwtProvider{
+						providerName: &envoyauth.JwtProvider{
 							Issuer:            jwtVhost.Issuer,
 							Audiences:         jwtVhost.Audiences,
 							PayloadInMetadata: PayloadInMetadata,
@@ -273,14 +273,217 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 						Requires: map[string]*envoyauth.JwtRequirement{
 							virtualHost.Name: &envoyauth.JwtRequirement{
 								RequiresType: &envoyauth.JwtRequirement_ProviderName{
-									ProviderName: virtualHost.Name,
+									ProviderName: providerName,
 								},
 							},
 						},
 					},
 				}
-				Expect(expectedCfg).To(Equal(cfg))
+				Expect(expectedCfg).To(Equal(*cfg))
 			})
+		})
+
+		Context("claims to headers", func() {
+			BeforeEach(func() {
+				route.RoutePlugins = nil
+				jwks := &jwt.Jwks{
+					Jwks: &jwt.Jwks_Local{
+						Local: &jwt.LocalJwks{
+							Key: jwks,
+						},
+					},
+				}
+				jwtVhost = &jwt.VhostExtension{
+					Providers: map[string]*jwt.Provider{
+						"provider1": &jwt.Provider{
+							Jwks:      jwks,
+							Audiences: []string{"testaud1"},
+							Issuer:    "testiss1",
+							ClaimsToHeaders: []*jwt.ClaimToHeader{{
+								Claim:  "sub",
+								Header: "x-sub",
+								Append: true,
+							}},
+						},
+					},
+				}
+			})
+
+			It("should translate claims to headers", func() {
+
+				pfc := outVhost.PerFilterConfig[JwtFilterName]
+				Expect(pfc).NotTo(BeNil())
+
+				var routeCfg SoloJwtAuthnPerRoute
+				err := util.StructToMessage(pfc, &routeCfg)
+				Expect(err).NotTo(HaveOccurred())
+
+				provider1Name := ProviderName(virtualHost.Name, "provider1")
+				expectedCfg := SoloJwtAuthnPerRoute{
+					Requirement: virtualHost.Name,
+					ClaimsToHeaders: map[string]*SoloJwtAuthnPerRoute_ClaimToHeaders{
+						provider1Name: {
+							Claims: []*SoloJwtAuthnPerRoute_ClaimToHeader{{
+								Claim:  "sub",
+								Header: "x-sub",
+								Append: true,
+							}},
+						},
+					},
+					ClearRouteCache:   true,
+					PayloadInMetadata: PayloadInMetadata,
+				}
+				Expect(expectedCfg).To(Equal(routeCfg))
+			})
+		})
+
+		Context("claims token source", func() {
+			BeforeEach(func() {
+				route.RoutePlugins = nil
+				jwks := &jwt.Jwks{
+					Jwks: &jwt.Jwks_Local{
+						Local: &jwt.LocalJwks{
+							Key: jwks,
+						},
+					},
+				}
+				jwtVhost = &jwt.VhostExtension{
+					Providers: map[string]*jwt.Provider{
+						"provider1": &jwt.Provider{
+							Jwks:      jwks,
+							Audiences: []string{"testaud1"},
+							Issuer:    "testiss1",
+							TokenSource: &jwt.TokenSource{
+								Headers: []*jwt.TokenSource_HeaderSource{{
+									Header: "header",
+									Prefix: "prefix",
+								}},
+								QueryParams: []string{"query"},
+							},
+						},
+					},
+				}
+			})
+
+			It("should translate token source", func() {
+				provider1Name := ProviderName(virtualHost.Name, "provider1")
+				expectedCfg := envoyauth.JwtAuthentication{
+					Providers: map[string]*envoyauth.JwtProvider{
+						provider1Name: &envoyauth.JwtProvider{
+							Issuer:            "testiss1",
+							Audiences:         []string{"testaud1"},
+							PayloadInMetadata: provider1Name,
+							FromHeaders: []*envoyauth.JwtHeader{{
+								Name:        "header",
+								ValuePrefix: "prefix",
+							}},
+							FromParams: []string{"query"},
+							JwksSourceSpecifier: &envoyauth.JwtProvider_LocalJwks{
+								LocalJwks: &envoycore.DataSource{
+									Specifier: &envoycore.DataSource_InlineString{
+										InlineString: string(keySetString),
+									},
+								},
+							},
+						},
+					},
+					FilterStateRules: &envoyauth.FilterStateRule{
+						Name: StateName,
+						Requires: map[string]*envoyauth.JwtRequirement{
+							virtualHost.Name: &envoyauth.JwtRequirement{
+								RequiresType: &envoyauth.JwtRequirement_ProviderName{
+									ProviderName: provider1Name,
+								},
+							},
+						},
+					},
+				}
+				Expect(expectedCfg).To(Equal(*cfg))
+			})
+		})
+
+		Context("multiple providers", func() {
+			BeforeEach(func() {
+				jwks := &jwt.Jwks{
+					Jwks: &jwt.Jwks_Local{
+						Local: &jwt.LocalJwks{
+							Key: jwks,
+						},
+					},
+				}
+				jwtVhost = &jwt.VhostExtension{
+					Providers: map[string]*jwt.Provider{
+						"provider1": &jwt.Provider{
+							Jwks:      jwks,
+							Audiences: []string{"testaud1"},
+							Issuer:    "testiss1",
+						},
+						"provider2": &jwt.Provider{
+							Jwks:      jwks,
+							Audiences: []string{"testaud2"},
+							Issuer:    "testiss2",
+						},
+					},
+				}
+			})
+
+			It("should translate multiple providers", func() {
+				// Expect a requirement
+				provider1Name := ProviderName(virtualHost.Name, "provider1")
+				provider2Name := ProviderName(virtualHost.Name, "provider2")
+				expectedCfg := envoyauth.JwtAuthentication{
+					Providers: map[string]*envoyauth.JwtProvider{
+						provider1Name: &envoyauth.JwtProvider{
+							Issuer:            "testiss1",
+							Audiences:         []string{"testaud1"},
+							PayloadInMetadata: provider1Name,
+							JwksSourceSpecifier: &envoyauth.JwtProvider_LocalJwks{
+								LocalJwks: &envoycore.DataSource{
+									Specifier: &envoycore.DataSource_InlineString{
+										InlineString: string(keySetString),
+									},
+								},
+							},
+						},
+						provider2Name: &envoyauth.JwtProvider{
+							Issuer:            "testiss2",
+							Audiences:         []string{"testaud2"},
+							PayloadInMetadata: provider2Name,
+							JwksSourceSpecifier: &envoyauth.JwtProvider_LocalJwks{
+								LocalJwks: &envoycore.DataSource{
+									Specifier: &envoycore.DataSource_InlineString{
+										InlineString: string(keySetString),
+									},
+								},
+							},
+						},
+					},
+					FilterStateRules: &envoyauth.FilterStateRule{
+						Name: StateName,
+						Requires: map[string]*envoyauth.JwtRequirement{
+							virtualHost.Name: &envoyauth.JwtRequirement{
+								RequiresType: &envoyauth.JwtRequirement_RequiresAny{
+									RequiresAny: &envoyauth.JwtRequirementOrList{
+										Requirements: []*envoyauth.JwtRequirement{
+											{
+												RequiresType: &envoyauth.JwtRequirement_ProviderName{
+													ProviderName: provider1Name,
+												},
+											}, {
+												RequiresType: &envoyauth.JwtRequirement_ProviderName{
+													ProviderName: provider2Name,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+				Expect(expectedCfg).To(Equal(*cfg))
+			})
+
 		})
 
 	})

@@ -1327,7 +1327,7 @@
   version = "v0.2.6"
 
 [[projects]]
-  digest = "1:ad63808dd4127ac397aa4a20951d963bc05b72afd36cf994002fe2fa725b2c87"
+  digest = "1:a434a99bb50e1c31c8874f410f2cf98e65d71f911c8c6314b7ea5308a54fcdfb"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1390,6 +1390,7 @@
     "projects/gloo/pkg/api/v1/plugins/rest",
     "projects/gloo/pkg/api/v1/plugins/retries",
     "projects/gloo/pkg/api/v1/plugins/static",
+    "projects/gloo/pkg/api/v1/plugins/stats",
     "projects/gloo/pkg/api/v1/plugins/transformation",
     "projects/gloo/pkg/bootstrap",
     "projects/gloo/pkg/defaults",
@@ -1411,19 +1412,21 @@
     "projects/gloo/pkg/plugins/registry",
     "projects/gloo/pkg/plugins/rest",
     "projects/gloo/pkg/plugins/static",
+    "projects/gloo/pkg/plugins/stats",
     "projects/gloo/pkg/plugins/transformation",
     "projects/gloo/pkg/plugins/upstreamconn",
     "projects/gloo/pkg/plugins/upstreamssl",
     "projects/gloo/pkg/plugins/utils",
     "projects/gloo/pkg/syncer",
     "projects/gloo/pkg/translator",
+    "projects/gloo/pkg/upstreams",
     "projects/gloo/pkg/utils",
     "projects/gloo/pkg/xds",
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "fe5d3a4e0cc0888c5cedd941faeb38f2749cb11f"
-  version = "v0.13.33"
+  revision = "30331163719bcf2a8b2c718a2c6f2bcaf64f1fe5"
+  version = "v0.14.0"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1495,9 +1498,15 @@
   revision = "8aa2e36bb84a979cb654d4d3c795b31add32f6cf"
 
 [[projects]]
-  digest = "1:4297291779a8216bca40a8b0dcfa130fe80953ce7000b058a25c84e8257b9ce7"
+  digest = "1:cc2f6cbbb83c61195187c892428724dea714fd6161b4a0695b37e6234e0bc7c7"
   name = "github.com/solo-io/solo-kit"
   packages = [
+    "api/external/kubernetes/configmap",
+    "api/external/kubernetes/deployment",
+    "api/external/kubernetes/namespace",
+    "api/external/kubernetes/pod",
+    "api/external/kubernetes/service",
+    "pkg/api/external/kubernetes/service",
     "pkg/api/v1/clients",
     "pkg/api/v1/clients/common",
     "pkg/api/v1/clients/configmap",
@@ -1526,6 +1535,7 @@
     "pkg/api/v1/reconcile",
     "pkg/api/v1/reporter",
     "pkg/api/v1/resources",
+    "pkg/api/v1/resources/common/kubernetes",
     "pkg/api/v1/resources/core",
     "pkg/code-generator",
     "pkg/code-generator/cmd",
@@ -2630,6 +2640,7 @@
     "github.com/solo-io/gloo/pkg/cliutil",
     "github.com/solo-io/gloo/pkg/cliutil/install",
     "github.com/solo-io/gloo/pkg/cliutil/testutil",
+    "github.com/solo-io/gloo/pkg/utils",
     "github.com/solo-io/gloo/pkg/utils/setuputils",
     "github.com/solo-io/gloo/pkg/version",
     "github.com/solo-io/gloo/projects/discovery/pkg/fds/setup",
@@ -2707,9 +2718,11 @@
     "github.com/solo-io/rate-limiter/pkg/server",
     "github.com/solo-io/rate-limiter/pkg/service",
     "github.com/solo-io/rate-limiter/pkg/settings",
+    "github.com/solo-io/solo-kit/pkg/api/external/kubernetes/service",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/factory",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube",
+    "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/crd",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/memory",
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/cache",
@@ -2718,6 +2731,7 @@
     "github.com/solo-io/solo-kit/pkg/api/v1/control-plane/util",
     "github.com/solo-io/solo-kit/pkg/api/v1/eventloop",
     "github.com/solo-io/solo-kit/pkg/api/v1/resources",
+    "github.com/solo-io/solo-kit/pkg/api/v1/resources/common/kubernetes",
     "github.com/solo-io/solo-kit/pkg/api/v1/resources/core",
     "github.com/solo-io/solo-kit/pkg/code-generator/cmd",
     "github.com/solo-io/solo-kit/pkg/code-generator/docgen/options",

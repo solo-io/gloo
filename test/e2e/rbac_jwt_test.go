@@ -12,6 +12,7 @@ import (
 	envoyutil "github.com/envoyproxy/go-control-plane/pkg/util"
 	jwt2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/jwt"
 	rbac2 "github.com/solo-io/solo-projects/projects/gloo/pkg/plugins/rbac"
+
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
@@ -29,8 +30,10 @@ import (
 	"github.com/solo-io/solo-projects/projects/gloo/pkg/api/v1/plugins/rbac"
 
 	"github.com/fgrosse/zaptest"
+	"github.com/solo-io/gloo/pkg/utils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	gloov1static "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/static"
+	transformation "github.com/solo-io/gloo/projects/gloo/pkg/api/v1/plugins/transformation"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
@@ -241,7 +244,9 @@ var _ = Describe("JWT + RBAC", func() {
 				Audience: audience,
 				Subject:  sub,
 			}
-			return getToken(claims, privateKey)
+			tok := getToken(claims, privateKey)
+			By("using token " + tok)
+			return tok
 		}
 
 		addBearer := func(req *http.Request, token string) {
@@ -251,6 +256,143 @@ var _ = Describe("JWT + RBAC", func() {
 			addBearer(req, getTokenFor(sub))
 		}
 
+		Context("jwt tests", func() {
+			BeforeEach(func() {
+				envoyPort += 1
+
+				proxy := getProxyJwt(envoyPort, jwtksServerRef, testUpstream.Upstream.Metadata.Ref())
+
+				_, err := testClients.ProxyClient.Write(proxy, clients.WriteOpts{})
+				Expect(err).NotTo(HaveOccurred())
+
+				Eventually(func() (core.Status, error) {
+					proxy, err := testClients.ProxyClient.Read(proxy.Metadata.Namespace, proxy.Metadata.Name, clients.ReadOpts{})
+					if err != nil {
+						return core.Status{}, err
+					}
+
+					return proxy.Status, nil
+				}, "5s", "0.1s").Should(MatchFields(IgnoreExtras, Fields{
+					"Reason": BeEmpty(),
+					"State":  Equal(core.Status_Accepted),
+				}))
+
+				// wait for key service to start
+				Eventually(func() error {
+					_, err := http.Get(fmt.Sprintf("http://%s:%d/", "localhost", jwksPort))
+					return err
+				}, "5s", "0.5s").ShouldNot(HaveOccurred())
+			})
+
+			Context("forward token", func() {
+				It("should forward token upstream", func() {
+					token := getTokenFor("user")
+
+					Eventually(func() (int, error) {
+						url := fmt.Sprintf("http://%s:%d/authnonly", "localhost", envoyPort)
+						By("Querying " + url)
+						req, err := http.NewRequest("GET", url, nil)
+						Expect(err).NotTo(HaveOccurred())
+						req.Header.Add("x-jwt", "JWT "+token)
+						resp, err := http.DefaultClient.Do(req)
+						if err != nil {
+							return 0, err
+						}
+						return resp.StatusCode, nil
+					}, "5s", "0.5s").Should(Equal(http.StatusOK))
+
+					select {
+					case received := <-testUpstream.C:
+						Expect(received.Headers).To(HaveKeyWithValue("X-Jwt", []string{"JWT " + token}))
+					default:
+						Fail("request didnt make it upstream")
+					}
+
+				})
+			})
+			Context("token source", func() {
+				BeforeEach(func() {
+					// drain channel as we dont care about it
+					go func() {
+						for range testUpstream.C {
+						}
+					}()
+				})
+				It("should get token from custom header", func() {
+					Eventually(func() (int, error) {
+						url := fmt.Sprintf("http://%s:%d/authnonly", "localhost", envoyPort)
+						By("Querying " + url)
+						req, err := http.NewRequest("GET", url, nil)
+						Expect(err).NotTo(HaveOccurred())
+						token := getTokenFor("user")
+						req.Header.Add("x-jwt", "JWT "+token)
+						resp, err := http.DefaultClient.Do(req)
+						if err != nil {
+							return 0, err
+						}
+						return resp.StatusCode, nil
+					}, "5s", "0.5s").Should(Equal(http.StatusOK))
+				})
+				It("should get token from custom query param", func() {
+					Eventually(func() (int, error) {
+						token := getTokenFor("user")
+
+						url := fmt.Sprintf("http://%s:%d/authnonly?jwttoken="+token, "localhost", envoyPort)
+						By("Querying " + url)
+						resp, err := http.Get(url)
+						if err != nil {
+							return 0, err
+						}
+						return resp.StatusCode, nil
+					}, "5s", "0.5s").Should(Equal(http.StatusOK))
+				})
+			})
+
+			Context("claims to headers", func() {
+				It("should should move the sub claim to a header", func() {
+					Eventually(func() (int, error) {
+						url := fmt.Sprintf("http://%s:%d/authnonly", "localhost", envoyPort)
+						By("Querying " + url)
+						req, err := http.NewRequest("GET", url, nil)
+						Expect(err).NotTo(HaveOccurred())
+						token := getTokenFor("user")
+						req.Header.Add("x-jwt", "JWT "+token)
+						resp, err := http.DefaultClient.Do(req)
+						if err != nil {
+							return 0, err
+						}
+						return resp.StatusCode, nil
+					}, "5s", "0.5s").Should(Equal(http.StatusOK))
+
+					select {
+					case received := <-testUpstream.C:
+						Expect(received.Headers).To(HaveKeyWithValue("X-Sub", []string{"user", "user"}))
+					default:
+						Fail("request didnt make it upstream")
+					}
+				})
+				It("should re-route based on the new header added", func() {
+					Eventually(func() (int, error) {
+						token := getTokenFor("teatime")
+						url := fmt.Sprintf("http://%s:%d/authnonly?jwttoken=%s", "localhost", envoyPort, token)
+						By("Querying " + url)
+						resp, err := http.Get(url)
+						if err != nil {
+							return 0, err
+						}
+						return resp.StatusCode, nil
+					}, "5s", "0.5s").Should(Equal(http.StatusOK))
+
+					select {
+					case received := <-testUpstream.C:
+						Expect(received.Headers).To(HaveKeyWithValue("X-New-Header", []string{"new"}))
+					default:
+						Fail("request didnt make it upstream")
+					}
+				})
+			})
+
+		})
 		Context("user access tests", func() {
 			BeforeEach(func() {
 
@@ -326,9 +468,9 @@ var _ = Describe("JWT + RBAC", func() {
 func getProxyJwtRbac(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef) *gloov1.Proxy {
 
 	jwtCfg := &jwtplugin.VhostExtension{
-		Jwks: &jwtplugin.VhostExtension_Jwks{
-			Jwks: &jwtplugin.VhostExtension_Jwks_Remote{
-				Remote: &jwtplugin.VhostExtension_RemoteJwks{
+		Jwks: &jwtplugin.Jwks{
+			Jwks: &jwtplugin.Jwks_Remote{
+				Remote: &jwtplugin.RemoteJwks{
 					Url:         "http://test/keys",
 					UpstreamRef: &jwtksServerRef,
 				},
@@ -373,16 +515,56 @@ func getProxyJwtRbac(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef
 	return getProxyJwtRbacWithExtensions(envoyPort, jwtksServerRef, upstream, jwtCfg, rbacCfg)
 }
 
+func getProxyJwt(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef) *gloov1.Proxy {
+	jwtCfg := &jwtplugin.VhostExtension{
+		Providers: map[string]*jwtplugin.Provider{
+			"provider1": {
+				Jwks: &jwtplugin.Jwks{
+					Jwks: &jwtplugin.Jwks_Remote{
+						Remote: &jwtplugin.RemoteJwks{
+							Url:         "http://test/keys",
+							UpstreamRef: &jwtksServerRef,
+						},
+					},
+				},
+				Issuer:    issuer,
+				Audiences: []string{audience},
+				KeepToken: true,
+				TokenSource: &jwtplugin.TokenSource{
+					Headers: []*jwtplugin.TokenSource_HeaderSource{{
+						Header: "x-jwt",
+						Prefix: "JWT ",
+					}},
+					QueryParams: []string{"jwttoken"},
+				},
+				ClaimsToHeaders: []*jwtplugin.ClaimToHeader{{
+					Claim:  "sub",
+					Header: "x-sub",
+				}, {
+					Claim:  "sub",
+					Header: "x-sub",
+					Append: true,
+				}},
+			},
+		},
+	}
+
+	return getProxyJwtRbacWithExtensions(envoyPort, jwtksServerRef, upstream, jwtCfg, nil)
+}
+
 func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream core.ResourceRef, jwtCfg *jwtplugin.VhostExtension, rbacCfg *rbac.VhostExtension) *gloov1.Proxy {
 	var extensions *gloov1.Extensions
 
 	jwtStruct, err := envoyutil.MessageToStruct(jwtCfg)
 	Expect(err).NotTo(HaveOccurred())
-	rbacStruct, err := envoyutil.MessageToStruct(rbacCfg)
-	Expect(err).NotTo(HaveOccurred())
+
 	protos := map[string]*types.Struct{
-		jwt2.ExtensionName:  jwtStruct,
-		rbac2.ExtensionName: rbacStruct,
+		jwt2.ExtensionName: jwtStruct,
+	}
+	if rbacCfg != nil {
+		rbacStruct, err := envoyutil.MessageToStruct(rbacCfg)
+		Expect(err).NotTo(HaveOccurred())
+		protos[rbac2.ExtensionName] = rbacStruct
 	}
 	extensions = &gloov1.Extensions{
 		Configs: protos,
@@ -408,7 +590,9 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					RouteAction: &gloov1.RouteAction{
 						Destination: &gloov1.RouteAction_Single{
 							Single: &gloov1.Destination{
-								Upstream: upstream,
+								DestinationType: &gloov1.Destination_Upstream{
+									Upstream: utils.ResourceRefPtr(upstream),
+								},
 							},
 						},
 					},
@@ -427,7 +611,65 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					RouteAction: &gloov1.RouteAction{
 						Destination: &gloov1.RouteAction_Single{
 							Single: &gloov1.Destination{
-								Upstream: upstream,
+								DestinationType: &gloov1.Destination_Upstream{
+									Upstream: utils.ResourceRefPtr(upstream),
+								},
+							},
+						},
+					},
+				},
+			}, {
+				RoutePlugins: &gloov1.RoutePlugins{
+					Transformations: &transformation.RouteTransformations{
+						RequestTransformation: &transformation.Transformation{
+							TransformationType: &transformation.Transformation_TransformationTemplate{
+								TransformationTemplate: &transformation.TransformationTemplate{
+									Headers:            map[string]*transformation.InjaTemplate{"x-new-header": {Text: "new"}},
+									BodyTransformation: &transformation.TransformationTemplate_Passthrough{Passthrough: &transformation.Passthrough{}},
+								},
+							},
+						},
+					},
+					// Disable RBAC and not JWT, for authn only tests
+					Extensions: getDisabledRbac(),
+				},
+				Matcher: &gloov1.Matcher{
+					Headers: []*gloov1.HeaderMatcher{{
+						Name:  "x-sub",
+						Value: "teatime",
+					}},
+					PathSpecifier: &gloov1.Matcher_Prefix{
+						Prefix: "/authnonly",
+					},
+				},
+				Action: &gloov1.Route_RouteAction{
+					RouteAction: &gloov1.RouteAction{
+						Destination: &gloov1.RouteAction_Single{
+							Single: &gloov1.Destination{
+								DestinationType: &gloov1.Destination_Upstream{
+									Upstream: utils.ResourceRefPtr(upstream),
+								},
+							},
+						},
+					},
+				},
+			}, {
+				RoutePlugins: &gloov1.RoutePlugins{
+					// Disable RBAC and not JWT, for authn only tests
+					Extensions: getDisabledRbac(),
+				},
+				Matcher: &gloov1.Matcher{
+					PathSpecifier: &gloov1.Matcher_Prefix{
+						Prefix: "/authnonly",
+					},
+				},
+				Action: &gloov1.Route_RouteAction{
+					RouteAction: &gloov1.RouteAction{
+						Destination: &gloov1.RouteAction_Single{
+							Single: &gloov1.Destination{
+								DestinationType: &gloov1.Destination_Upstream{
+									Upstream: utils.ResourceRefPtr(upstream),
+								},
 							},
 						},
 					},
@@ -442,7 +684,9 @@ func getProxyJwtRbacWithExtensions(envoyPort uint32, jwtksServerRef, upstream co
 					RouteAction: &gloov1.RouteAction{
 						Destination: &gloov1.RouteAction_Single{
 							Single: &gloov1.Destination{
-								Upstream: upstream,
+								DestinationType: &gloov1.Destination_Upstream{
+									Upstream: utils.ResourceRefPtr(upstream),
+								},
 							},
 						},
 					},
@@ -490,6 +734,14 @@ func getDisabledJwt() *gloov1.Extensions {
 }
 
 func getDisabled() *gloov1.Extensions {
+	extensions := getDisabledJwt()
+	for k, v := range getDisabledRbac().Configs {
+		extensions.Configs[k] = v
+	}
+	return extensions
+}
+
+func getDisabledRbac() *gloov1.Extensions {
 	rbacCfg := &rbac.RouteExtension{
 		Route: &rbac.RouteExtension_Disable{
 			Disable: true,
@@ -497,7 +749,10 @@ func getDisabled() *gloov1.Extensions {
 	}
 	rbacStruct, err := envoyutil.MessageToStruct(rbacCfg)
 	Expect(err).NotTo(HaveOccurred())
-	extensions := getDisabledJwt()
-	extensions.Configs[rbac2.ExtensionName] = rbacStruct
-	return extensions
+	protos := map[string]*types.Struct{
+		rbac2.ExtensionName: rbacStruct,
+	}
+	return &gloov1.Extensions{
+		Configs: protos,
+	}
 }

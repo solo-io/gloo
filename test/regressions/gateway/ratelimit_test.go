@@ -103,9 +103,11 @@ var _ = Describe("Ratelimit tests", func() {
 						RouteAction: &gloov1.RouteAction{
 							Destination: &gloov1.RouteAction_Single{
 								Single: &gloov1.Destination{
-									Upstream: core.ResourceRef{
-										Namespace: testHelper.InstallNamespace,
-										Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, "testrunner", helper.TestRunnerPort)},
+									DestinationType: &gloov1.Destination_Upstream{
+										Upstream: &core.ResourceRef{
+											Namespace: testHelper.InstallNamespace,
+											Name:      fmt.Sprintf("%s-%s-%v", testHelper.InstallNamespace, "testrunner", helper.TestRunnerPort)},
+									},
 								},
 							},
 						},

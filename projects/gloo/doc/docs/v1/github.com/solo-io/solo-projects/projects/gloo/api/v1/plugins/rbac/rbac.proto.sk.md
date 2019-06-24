@@ -37,12 +37,14 @@ A JWT principal. To use this, JWT plugin MUST be enabled.
 
 ```yaml
 "claims": map<string, string>
+"provider": string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `claims` | `map<string, string>` | Set of claims that make up this principal. Commonly, the 'iss' and 'sub' or 'email' claims are used. all claims must be present on the JWT. |  |
+| `provider` | `string` | Verify that the JWT came from a specific provider. This usually can be left empty and a provider will be chosen automatically. |  |
 
 
 

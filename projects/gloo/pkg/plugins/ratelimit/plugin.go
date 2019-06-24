@@ -176,7 +176,7 @@ func (p *Plugin) ProcessVirtualHostCustom(params plugins.Params, in *v1.VirtualH
 
 	return nil
 }
-func (p *Plugin) ProcessRoute(params plugins.Params, in *v1.Route, out *envoyroute.Route) error {
+func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *envoyroute.Route) error {
 	var rateLimit ratelimit.RateLimitRouteExtension
 	err := utils.UnmarshalExtension(in.RoutePlugins, EnvoyExtensionName, &rateLimit)
 	if err != nil {

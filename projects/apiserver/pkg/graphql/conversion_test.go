@@ -374,9 +374,11 @@ var PROTO = struct {
 			RouteAction: &gloov1.RouteAction{
 				Destination: &gloov1.RouteAction_Single{
 					Single: &gloov1.Destination{
-						Upstream: core.ResourceRef{
-							Name:      upstream1Name,
-							Namespace: upstream1Namespace,
+						DestinationType: &gloov1.Destination_Upstream{
+							Upstream: &core.ResourceRef{
+								Name:      upstream1Name,
+								Namespace: upstream1Namespace,
+							},
 						},
 						DestinationSpec: &gloov1.DestinationSpec{
 							DestinationType: &gloov1.DestinationSpec_Aws{
