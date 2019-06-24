@@ -1327,7 +1327,7 @@
   version = "v0.2.6"
 
 [[projects]]
-  digest = "1:a434a99bb50e1c31c8874f410f2cf98e65d71f911c8c6314b7ea5308a54fcdfb"
+  digest = "1:1857318909ad6d5c810d4c95a9a98b125bafa6ff592664b7dd2924084218f679"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1425,8 +1425,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "30331163719bcf2a8b2c718a2c6f2bcaf64f1fe5"
-  version = "v0.14.0"
+  revision = "dc11210b3734158843cc0360ac515f8c27acf47a"
+  version = "v0.14.1"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -2692,6 +2692,7 @@
     "github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils",
     "github.com/solo-io/gloo/projects/gloo/pkg/syncer",
     "github.com/solo-io/gloo/projects/gloo/pkg/translator",
+    "github.com/solo-io/gloo/projects/gloo/pkg/utils",
     "github.com/solo-io/gloo/test/helpers",
     "github.com/solo-io/go-checkpoint",
     "github.com/solo-io/go-utils/cliutils",
