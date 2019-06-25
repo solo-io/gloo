@@ -1,0 +1,11 @@
+FROM nginx:1.13.9-alpine
+
+# Replace existing NGINX configuration
+RUN rm -rf /etc/nginx/conf.d
+COPY ./conf /etc/nginx
+
+COPY ./build /usr/share/nginx/html
+
+EXPOSE 20202
+CMD ["nginx", "-g", "daemon off;"]
+

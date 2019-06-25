@@ -1,0 +1,14 @@
+arrowParens: avoid
+bracketSpacing: true
+endOfLine: auto
+eslintIntegration: false
+htmlWhitespaceSensitivity: css
+jsxSingleQuote: true
+parser: "typescript"
+requireConfig: false
+semi: true
+singleQuote: true
+tabWidth: 2
+trailingComma: none
+useTabs: false
+jsxBracketSameLine: true
