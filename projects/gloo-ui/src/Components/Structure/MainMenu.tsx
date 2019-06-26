@@ -3,6 +3,7 @@ import * as React from 'react';
 import { css, jsx } from '@emotion/core';
 import { NavLink } from 'react-router-dom';
 import { colors } from 'Styles';
+import { ReactComponent as GlooE } from 'assets/GlooEE.svg';
 import { ReactComponent as SettingsGear } from 'assets/settings-gear.svg';
 import { ReactComponent as HelpBubble } from 'assets/help-icon.svg';
 import styled from '@emotion/styled/macro';
@@ -31,6 +32,7 @@ const InnerContainer = styled.div`
 `;
 
 const TitleDiv = styled.div`
+  position: relative;
   display: inline-block;
   color: ${colors.puddleBlue};
   font-size: 18px;
@@ -38,10 +40,20 @@ const TitleDiv = styled.div`
   padding-right: 50px;
   border-right: 1px solid ${colors.lakeBlue};
   cursor: default;
+
+  > svg {
+    position: absolute;
+    left: -58px;
+    width: auto;
+    height: 35px;
+  }
 `;
 
 const activeStyle = {
   borderBottom: `8px solid ${colors.pondBlue}`,
+  cursor: 'default'
+};
+const activeSettingsStyle = {
   cursor: 'default'
 };
 
@@ -84,7 +96,9 @@ export const MainMenu = () => {
   return (
     <Container>
       <InnerContainer>
-        <TitleDiv>Gloo Enterprise</TitleDiv>
+        <TitleDiv>
+          <GlooE /> Gloo Enterprise
+        </TitleDiv>
         <NavLink
           style={NavLinkStyles}
           to='/virtualservices/'
@@ -112,7 +126,7 @@ export const MainMenu = () => {
             alignItems: 'center'
           }}
           to='/settings/'
-          activeStyle={activeStyle}>
+          activeStyle={activeSettingsStyle}>
           <SettingsGear />
         </NavLink>
 
