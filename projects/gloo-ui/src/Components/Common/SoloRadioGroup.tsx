@@ -65,8 +65,9 @@ const CheckboxWrapper = styled<
   ${props =>
     !!props.checked
       ? `background: ${colors.dropBlue};
-        border-color: ${colors.seaBlue};`
-      : ``}
+        border-color: ${colors.seaBlue};
+        cursor: default;`
+      : `cursor: pointer;`}
 
   ${props =>
     !!props.withoutCheckboxVisual

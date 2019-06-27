@@ -38,6 +38,7 @@ export interface RadioFilterProps {
 }
 
 export interface TypeFilterProps {
+  id: string;
   options: {
     id?: string;
     displayName: string;
@@ -51,6 +52,12 @@ interface FilterProps {
   checkboxes?: CheckboxFilterProps[];
   radios?: RadioFilterProps[];
   filterFunction: (
+    strings: StringFilterProps[],
+    types: TypeFilterProps[],
+    checkboxes: CheckboxFilterProps[],
+    radios: RadioFilterProps[]
+  ) => any;
+  onChange?: (
     strings: StringFilterProps[],
     types: TypeFilterProps[],
     checkboxes: CheckboxFilterProps[],
@@ -99,6 +106,17 @@ export const ListingFilter = (filterProps: FilterProps) => {
         })
       : []
   );
+
+  React.useEffect(() => {
+    if (filterProps.onChange) {
+      filterProps.onChange(
+        stringFilters,
+        typesFilters,
+        checkboxFilters,
+        radioFilters
+      );
+    }
+  }, [stringFilters, typesFilters, checkboxFilters, radioFilters]);
 
   return (
     <FilterContainer>
@@ -178,7 +196,6 @@ export const ListingFilter = (filterProps: FilterProps) => {
         })}
       </Filters>
       <Content>
-        List Container...
         {filterProps.filterFunction(
           stringFilters,
           typesFilters,
