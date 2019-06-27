@@ -145,6 +145,8 @@ generated-ui:
 		$(GOPATH)/src/github.com/solo-io/solo-projects/projects/gloo/api/v1/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
     	$(GOPATH)/src/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/*/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+		$(GOPATH)/src/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/*.proto
 	ci/fix-gen.sh
 	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)
