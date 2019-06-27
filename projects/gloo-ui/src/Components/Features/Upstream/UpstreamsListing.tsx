@@ -52,11 +52,11 @@ export interface RouteParams {
   //... eg, virtualservice?: string
 }
 
-function UpstreamsListingC({
+export const UpstreamsListing = ({
   history,
   match,
   location
-}: RouteComponentProps<RouteParams>) {
+}: RouteComponentProps<RouteParams>) => {
   const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(true);
 
   const listDisplay = (
@@ -65,7 +65,26 @@ function UpstreamsListingC({
     checkboxes: CheckboxFilterProps[],
     radios: RadioFilterProps[]
   ) => {
-    return <div />;
+    return (
+      <div>
+        {strings.map(fil => {
+          return (
+            <div>
+              <span>{fil.displayName}</span>
+              <span>{fil.value}</span>
+            </div>
+          );
+        })}
+        {checkboxes.map(fil => {
+          return (
+            <div>
+              <span>{fil.displayName}</span>
+              <span>{!!fil.value ? 'true' : 'false'}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -75,6 +94,4 @@ function UpstreamsListingC({
       filterFunction={listDisplay}
     />
   );
-}
-
-export const UpstreamsListing = withRouter(UpstreamsListingC);
+};

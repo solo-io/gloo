@@ -10,12 +10,10 @@ export interface RouteParams {
   //... eg, virtualservice?: string
 }
 
-function StatsLandingC({
+export const StatsLanding = ({
   history,
   match,
   location
-}: RouteComponentProps<RouteParams>) {
+}: RouteComponentProps<RouteParams>) => {
   return <div>This is the stats landing placeholder...</div>;
-}
-
-export const StatsLanding = withRouter(StatsLandingC);
+};

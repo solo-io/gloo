@@ -25,11 +25,11 @@ export interface RouteParams {
   //... eg, virtualservice?: string
 }
 
-function VirtualServicesListingC({
+export const VirtualServicesListing = ({
   history,
   match,
   location
-}: RouteComponentProps<RouteParams>) {
+}: RouteComponentProps<RouteParams>) => {
   const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(true);
 
   const listDisplay = (
@@ -38,10 +38,19 @@ function VirtualServicesListingC({
     checkboxes: CheckboxFilterProps[],
     radios: RadioFilterProps[]
   ) => {
-    return <div />;
+    return (
+      <div>
+        {strings.map(fil => {
+          return (
+            <div>
+              <span>{fil.displayName}</span>
+              <span>{fil.value}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return <ListingFilter strings={StringFilters} filterFunction={listDisplay} />;
-}
-
-export const VirtualServicesListing = withRouter(VirtualServicesListingC);
+};

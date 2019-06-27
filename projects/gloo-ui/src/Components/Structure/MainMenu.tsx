@@ -38,12 +38,13 @@ const TitleDiv = styled.div`
   font-size: 18px;
   margin-right: 50px;
   padding-right: 50px;
+  padding-left: 60px;
   border-right: 1px solid ${colors.lakeBlue};
   cursor: default;
 
   > svg {
     position: absolute;
-    left: -58px;
+    left: 0;
     width: auto;
     height: 35px;
   }

@@ -3,6 +3,20 @@ import * as React from 'react';
 import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
 import { colors } from 'Styles';
+import { SoloInput } from './SoloInput';
+import { SoloCheckbox } from './SoloCheckbox';
+import { SoloRadioGroup } from './SoloRadioGroup';
+
+const FilterContainer = styled.div`
+  display: flex;
+`;
+const Filters = styled.div`
+  width: 190px;
+  margin-right: 35px;
+`;
+const Content = styled.div`
+  flex: 1;
+`;
 
 export interface StringFilterProps {
   displayName: string;
@@ -87,9 +101,83 @@ export const ListingFilter = (filterProps: FilterProps) => {
   );
 
   return (
-    <div>
-      <div>Filters...</div>
-      <div>
+    <FilterContainer>
+      <Filters>
+        {stringFilters.map((filter, ind) => {
+          return (
+            <SoloInput
+              key={filter.displayName}
+              value={filter.value!}
+              placeholder={filter.placeholder}
+              onChange={({ target }) => {
+                const newArray = [...stringFilters];
+                newArray[ind].value = target.value;
+
+                setStringFilters(newArray);
+              }}
+            />
+          );
+        })}
+        {typesFilters.map((filter, ind) => {
+          return (
+            <SoloRadioGroup
+              key={ind}
+              options={filter.options.map(option => {
+                return {
+                  displayName: option.displayName,
+                  id: option.id || option.displayName
+                };
+              })}
+              currentSelection={filter.choice}
+              withoutCheckboxes={true}
+              forceAChoice={true}
+              onChange={newValue => {
+                const newArray = [...typesFilters];
+                newArray[ind].choice = newValue;
+
+                setTypesFilters(newArray);
+              }}
+            />
+          );
+        })}
+        {checkboxFilters.map((filter, ind) => {
+          return (
+            <SoloCheckbox
+              key={filter.displayName}
+              title={filter.displayName}
+              checked={filter.value!}
+              withWrapper={true}
+              onChange={evt => {
+                const newArray = [...checkboxFilters];
+                newArray[ind].value = evt.target.checked;
+
+                setCheckboxFilters(newArray);
+              }}
+            />
+          );
+        })}
+        {radioFilters.map((filter, ind) => {
+          return (
+            <SoloRadioGroup
+              key={ind}
+              options={filter.options.map(option => {
+                return {
+                  displayName: option.displayName,
+                  id: option.id || option.displayName
+                };
+              })}
+              currentSelection={filter.choice}
+              onChange={newValue => {
+                const newArray = [...typesFilters];
+                newArray[ind].choice = newValue;
+
+                setTypesFilters(newArray);
+              }}
+            />
+          );
+        })}
+      </Filters>
+      <Content>
         List Container...
         {filterProps.filterFunction(
           stringFilters,
@@ -97,7 +185,7 @@ export const ListingFilter = (filterProps: FilterProps) => {
           checkboxFilters,
           radioFilters
         )}
-      </div>
-    </div>
+      </Content>
+    </FilterContainer>
   );
 };

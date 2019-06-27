@@ -7,7 +7,7 @@ import { Checkbox } from 'antd';
 
 const InputStyling = css`
   border-radius: 10px;
-  width: 250px;
+  width: 190px;
   padding: 10px 16px;
   margin-bottom: 20px;
   background: white;
@@ -40,12 +40,12 @@ const CheckboxStyling = css`
   }
 `;
 
-export const OnlyCheckbox = styled.span`
+const OnlyCheckbox = styled.span`
 ${CheckboxStyling}
 color: ${colors.septemberGrey};
 `;
 
-export const CheckboxWrapper = styled.div`
+const CheckboxWrapper = styled.div`
   ${InputStyling}
   display: flex;
   justify-content: space-between;
@@ -61,7 +61,7 @@ export const CheckboxWrapper = styled.div`
         border-color: ${colors.seaBlue};`
       : ``}
 
-  ${CheckboxStyling}
+  ${CheckboxStyling};
 `;
 
 interface Props {
