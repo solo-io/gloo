@@ -65,6 +65,11 @@ steps:
   args: ['check-format', 'build-scripts']
   waitFor: ['dep']
   id: 'check-format'
+- name: 'gcr.io/cloud-builders/yarn'
+  args: ['install']
+  dir: './gopath/src/github.com/solo-io/solo-projects/projects/gloo-ui'
+  id: yarn-install
+  waitFor: ['dep']
 - name: 'gcr.io/$PROJECT_ID/go-make:0.1.12'
   entrypoint: 'bash'
   args: ['ci/check-code-and-docs-gen.sh']
@@ -76,7 +81,7 @@ steps:
   volumes:
   - name: 'ssh'
     path: /root/.ssh
-  waitFor: ['dep']
+  waitFor: ['dep', 'yarn-install']
   id: 'check-code-and-docs-gen'
 
 # Helm related setup

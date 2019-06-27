@@ -108,11 +108,11 @@ clean:
 # Generated Code
 #----------------------------------------------------------------------------------
 
-.PHONY: generated-code
-generated-code: $(OUTPUT_DIR)/.generated-code
+
 
 SUBDIRS:=projects install pkg test
-$(OUTPUT_DIR)/.generated-code:
+.PHONY: generated-code
+generated-code:
 	CGO_ENABLED=0 go generate ./...
 	(rm projects/gloo/doc/docs/cli/*;mkdir -p projects/gloo/doc/docs/cli/; cd projects/gloo/doc && CGO_ENABLED=0 go run gen_docs.go)
 	gofmt -w $(SUBDIRS)
@@ -120,6 +120,34 @@ $(OUTPUT_DIR)/.generated-code:
 	mkdir -p $(OUTPUT_DIR)
 	touch $@
 
+UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc-gen-ts \
+		-I$(GOPATH)/src \
+		-I$(GOPATH)/src/github.com/solo-io/solo-kit/api/external \
+		-I$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1 \
+		-I$(GOPATH)/src/github.com/solo-io/gloo/projects/gateway/api/v1 \
+		-I$(GOPATH)/src/github.com/solo-io/solo-projects/projects/gloo/api/v1 \
+		--js_out=import_style=commonjs,binary:projects/gloo-ui/src/proto \
+		--ts_out=service=true:projects/gloo-ui/src/proto
+
+.PHONY: generated-ui
+generated-ui:
+	mkdir -p projects/gloo-ui/src/proto
+	ci/check-protoc.sh
+	protoc $(UI_PROTOC_FLAGS) \
+		$(GOPATH)/src/github.com/gogo/protobuf/gogoproto/gogo.proto
+	protoc $(UI_PROTOC_FLAGS) \
+	 	$(GOPATH)/src/github.com/solo-io/solo-kit/api/v1/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+		$(GOPATH)/src/github.com/solo-io/gloo/projects/gateway/api/v1/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+		$(GOPATH)/src/github.com/solo-io/solo-projects/projects/gloo/api/v1/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+    	$(GOPATH)/src/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/*/*.proto
+	ci/fix-gen.sh
+	gofmt -w $(SUBDIRS)
+	goimports -w $(SUBDIRS)
 
 #################
 #     Build     #

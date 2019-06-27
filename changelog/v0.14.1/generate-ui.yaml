@@ -1,0 +1,3 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Start generating webgrpc javascript for UI.
