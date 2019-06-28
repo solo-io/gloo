@@ -1,34 +1,30 @@
 package testutils
 
 import (
-	"fmt"
 	"net"
-	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/test/bufconn"
 )
-
-func TestVirtualservice(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Virtualservice Suite")
-}
 
 type registerServices func(s *grpc.Server)
 
 func MustRunGrpcServer(f registerServices) (*grpc.Server, *grpc.ClientConn) {
-	lis, err := net.Listen("tcp", ":0")
-	Expect(err).NotTo(HaveOccurred())
-	port := lis.Addr().(*net.TCPAddr).Port
+	lis := bufconn.Listen(1024 * 1024)
+	mockDialer := func(string, time.Duration) (net.Conn, error) {
+		return lis.Dial()
+	}
 	s := grpc.NewServer()
 	f(s)
 	go func() {
 		defer GinkgoRecover()
-		err = s.Serve(lis)
+		err := s.Serve(lis)
 		Expect(err).NotTo(HaveOccurred())
 	}()
-	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", port), grpc.WithInsecure())
+	conn, err := grpc.Dial("mock", grpc.WithDialer(mockDialer), grpc.WithInsecure())
 	Expect(err).NotTo(HaveOccurred())
 	return s, conn
 }

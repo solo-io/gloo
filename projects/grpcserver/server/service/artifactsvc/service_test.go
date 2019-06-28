@@ -58,8 +58,7 @@ var _ = Describe("ServiceTest", func() {
 
 			artifactClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(&artifact, nil).
-				Times(1)
+				Return(&artifact, nil)
 
 			request := &v1.GetArtifactRequest{Ref: &ref}
 			actual, err := client.GetArtifact(context.TODO(), request)
@@ -77,13 +76,12 @@ var _ = Describe("ServiceTest", func() {
 
 			artifactClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			request := &v1.GetArtifactRequest{Ref: &ref}
 			_, err := client.GetArtifact(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := artifactsvc.FailedToReadArtifactError(testErr, ref)
+			expectedErr := artifactsvc.FailedToReadArtifactError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -102,12 +100,10 @@ var _ = Describe("ServiceTest", func() {
 
 			artifactClient.EXPECT().
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
-				Return([]*gloov1.Artifact{&artifact1}, nil).
-				Times(1)
+				Return([]*gloov1.Artifact{&artifact1}, nil)
 			artifactClient.EXPECT().
 				List(ns2, clients.ListOpts{Ctx: context.TODO()}).
-				Return([]*gloov1.Artifact{&artifact2}, nil).
-				Times(1)
+				Return([]*gloov1.Artifact{&artifact2}, nil)
 
 			request := &v1.ListArtifactsRequest{NamespaceList: []string{ns1, ns2}}
 			actual, err := client.ListArtifacts(context.TODO(), request)
@@ -121,8 +117,7 @@ var _ = Describe("ServiceTest", func() {
 
 			artifactClient.EXPECT().
 				List(ns, clients.ListOpts{Ctx: context.TODO()}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			request := &v1.ListArtifactsRequest{NamespaceList: []string{ns}}
 			_, err := client.ListArtifacts(context.TODO(), request)
@@ -146,8 +141,7 @@ var _ = Describe("ServiceTest", func() {
 
 			artifactClient.EXPECT().
 				Write(&artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
-				Return(&artifact, nil).
-				Times(1)
+				Return(&artifact, nil)
 
 			request := &v1.CreateArtifactRequest{Ref: &ref, Data: artifact.Data}
 			actual, err := client.CreateArtifact(context.TODO(), request)
@@ -169,13 +163,12 @@ var _ = Describe("ServiceTest", func() {
 
 			artifactClient.EXPECT().
 				Write(&artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			request := &v1.CreateArtifactRequest{Ref: &ref, Data: artifact.Data}
 			_, err := client.CreateArtifact(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := artifactsvc.FailedToCreateArtifactError(testErr, ref)
+			expectedErr := artifactsvc.FailedToCreateArtifactError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -198,12 +191,10 @@ var _ = Describe("ServiceTest", func() {
 
 			artifactClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(&oldArtifact, nil).
-				Times(1)
+				Return(&oldArtifact, nil)
 			artifactClient.EXPECT().
 				Write(&newArtifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-				Return(&newArtifact, nil).
-				Times(1)
+				Return(&newArtifact, nil)
 
 			request := &v1.UpdateArtifactRequest{Ref: &ref, Data: newArtifact.Data}
 			actual, err := client.UpdateArtifact(context.TODO(), request)
@@ -225,13 +216,12 @@ var _ = Describe("ServiceTest", func() {
 
 			artifactClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			request := &v1.UpdateArtifactRequest{Ref: &ref, Data: artifact.Data}
 			_, err := client.UpdateArtifact(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, ref)
+			expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 
@@ -248,17 +238,15 @@ var _ = Describe("ServiceTest", func() {
 
 			artifactClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(&artifact, nil).
-				Times(1)
+				Return(&artifact, nil)
 			artifactClient.EXPECT().
 				Write(&artifact, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			request := &v1.UpdateArtifactRequest{Ref: &ref, Data: artifact.Data}
 			_, err := client.UpdateArtifact(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, ref)
+			expectedErr := artifactsvc.FailedToUpdateArtifactError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
@@ -272,8 +260,7 @@ var _ = Describe("ServiceTest", func() {
 
 			artifactClient.EXPECT().
 				Delete(ref.Namespace, ref.Name, clients.DeleteOpts{Ctx: context.TODO()}).
-				Return(nil).
-				Times(1)
+				Return(nil)
 
 			request := &v1.DeleteArtifactRequest{Ref: &ref}
 			actual, err := client.DeleteArtifact(context.TODO(), request)
@@ -290,13 +277,12 @@ var _ = Describe("ServiceTest", func() {
 
 			artifactClient.EXPECT().
 				Delete(ref.Namespace, ref.Name, clients.DeleteOpts{Ctx: context.TODO()}).
-				Return(testErr).
-				Times(1)
+				Return(testErr)
 
 			request := &v1.DeleteArtifactRequest{Ref: &ref}
 			_, err := client.DeleteArtifact(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := artifactsvc.FailedToDeleteArtifactError(testErr, ref)
+			expectedErr := artifactsvc.FailedToDeleteArtifactError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})

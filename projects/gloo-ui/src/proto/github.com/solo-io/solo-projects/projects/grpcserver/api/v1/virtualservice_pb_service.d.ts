@@ -26,7 +26,7 @@ type VirtualServiceApiStreamVirtualServiceList = {
   readonly methodName: string;
   readonly service: typeof VirtualServiceApi;
   readonly requestStream: false;
-  readonly responseStream: false;
+  readonly responseStream: true;
   readonly requestType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.StreamVirtualServiceListRequest;
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.StreamVirtualServiceListResponse;
 };
@@ -168,15 +168,7 @@ export class VirtualServiceApiClient {
     requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.ListVirtualServicesRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.ListVirtualServicesResponse|null) => void
   ): UnaryResponse;
-  streamVirtualServiceList(
-    requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.StreamVirtualServiceListRequest,
-    metadata: grpc.Metadata,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.StreamVirtualServiceListResponse|null) => void
-  ): UnaryResponse;
-  streamVirtualServiceList(
-    requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.StreamVirtualServiceListRequest,
-    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.StreamVirtualServiceListResponse|null) => void
-  ): UnaryResponse;
+  streamVirtualServiceList(requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.StreamVirtualServiceListRequest, metadata?: grpc.Metadata): ResponseStream<github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.StreamVirtualServiceListResponse>;
   createVirtualService(
     requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_virtualservice_pb.CreateVirtualServiceRequest,
     metadata: grpc.Metadata,

@@ -132,7 +132,7 @@ message ShiftRoutesResponse {
 service VirtualServiceApi {
     rpc GetVirtualService(GetVirtualServiceRequest) returns (GetVirtualServiceResponse) {}
     rpc ListVirtualServices(ListVirtualServicesRequest) returns (ListVirtualServicesResponse) {}
-    rpc StreamVirtualServiceList(StreamVirtualServiceListRequest) returns (StreamVirtualServiceListResponse) {}
+    rpc StreamVirtualServiceList(StreamVirtualServiceListRequest) returns (stream StreamVirtualServiceListResponse) {}
     rpc CreateVirtualService(CreateVirtualServiceRequest) returns (CreateVirtualServiceResponse) {}
     rpc UpdateVirtualService(UpdateVirtualServiceRequest) returns (UpdateVirtualServiceResponse) {}
     rpc DeleteVirtualService(DeleteVirtualServiceRequest) returns (DeleteVirtualServiceResponse) {}

@@ -26,7 +26,7 @@ message ListUpstreamsRequest {
 }
 
 message ListUpstreamsResponse {
-    repeated gloo.solo.io.Upstream upstream = 1;
+    repeated gloo.solo.io.Upstream upstream_list = 1;
 }
 
 message StreamUpstreamListRequest {
@@ -35,7 +35,7 @@ message StreamUpstreamListRequest {
 }
 
 message StreamUpstreamListResponse {
-    gloo.solo.io.Upstream upstream = 1;
+    repeated gloo.solo.io.Upstream upstream_list = 1;
 }
 
 message UpstreamInput {
@@ -74,7 +74,7 @@ message DeleteUpstreamResponse {}
 service UpstreamApi {
     rpc GetUpstream(GetUpstreamRequest) returns (GetUpstreamResponse) {}
     rpc ListUpstreams(ListUpstreamsRequest) returns (ListUpstreamsResponse) {}
-    rpc StreamUpstreamList(StreamUpstreamListRequest) returns (StreamUpstreamListResponse) {}
+    rpc StreamUpstreamList(StreamUpstreamListRequest) returns (stream StreamUpstreamListResponse) {}
     rpc CreateUpstream(CreateUpstreamRequest) returns (CreateUpstreamResponse) {}
     rpc UpdateUpstream(UpdateUpstreamRequest) returns (UpdateUpstreamResponse) {}
     rpc DeleteUpstream(DeleteUpstreamRequest) returns (DeleteUpstreamResponse) {}

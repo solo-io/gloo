@@ -19,10 +19,12 @@ import (
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/setup"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/kube"
+	settings_values "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/artifactsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/configsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/converter"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc"
 	"go.uber.org/zap"
 )
@@ -41,12 +43,14 @@ func MustGetServiceSet(ctx context.Context) ServiceSet {
 	// Create simple and derived clients
 	licenseClient := license.NewClient(ctx)
 	namespaceClient := kube.NewNamespaceClient(clientset.CoreV1Interface)
+	settingsValues := settings_values.NewSettingsValuesClient(ctx, clientset.SettingsClient)
+	inputConverter := converter.NewUpstreamInputConverter()
 
 	// Read env
 	oAuthUrl, oAuthClient := config.GetOAuthEndpointValues()
 	oAuthEndpoint := v1.OAuthEndpoint{Url: oAuthUrl, ClientName: oAuthClient}
 
-	upstreamService := upstreamsvc.NewUpstreamGrpcService(clientset.UpstreamClient)
+	upstreamService := upstreamsvc.NewUpstreamGrpcService(ctx, clientset.UpstreamClient, inputConverter, settingsValues)
 	artifactService := artifactsvc.NewArtifactGrpcService(ctx, clientset.ArtifactClient)
 	configService := configsvc.NewConfigGrpcService(ctx, clientset.SettingsClient, licenseClient, namespaceClient, oAuthEndpoint, version.Version)
 	secretService := secretsvc.NewSecretGrpcService(ctx, clientset.SecretClient)

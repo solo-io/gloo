@@ -45,7 +45,7 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("GetSecret", func() {
-		It("works when the newSecret client works", func() {
+		It("works when the secret client works", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
@@ -58,8 +58,7 @@ var _ = Describe("ServiceTest", func() {
 
 			secretClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(&secret, nil).
-				Times(1)
+				Return(&secret, nil)
 
 			request := &v1.GetSecretRequest{Ref: &ref}
 			actual, err := client.GetSecret(context.TODO(), request)
@@ -68,7 +67,7 @@ var _ = Describe("ServiceTest", func() {
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
-		It("errors when the newSecret client errors", func() {
+		It("errors when the secret client errors", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
@@ -77,19 +76,18 @@ var _ = Describe("ServiceTest", func() {
 
 			secretClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			request := &v1.GetSecretRequest{Ref: &ref}
 			_, err := client.GetSecret(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := secretsvc.FailedToReadSecretError(testErr, ref)
+			expectedErr := secretsvc.FailedToReadSecretError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
 
 	Describe("ListSecrets", func() {
-		It("works when the newSecret client works", func() {
+		It("works when the secret client works", func() {
 			ns1, ns2 := "one", "two"
 			secret1 := gloov1.Secret{
 				Kind:     &gloov1.Secret_Aws{Aws: &gloov1.AwsSecret{}},
@@ -102,12 +100,11 @@ var _ = Describe("ServiceTest", func() {
 
 			secretClient.EXPECT().
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
-				Return([]*gloov1.Secret{&secret1}, nil).
-				Times(1)
+				Return([]*gloov1.Secret{&secret1}, nil)
+
 			secretClient.EXPECT().
 				List(ns2, clients.ListOpts{Ctx: context.TODO()}).
-				Return([]*gloov1.Secret{&secret2}, nil).
-				Times(1)
+				Return([]*gloov1.Secret{&secret2}, nil)
 
 			request := &v1.ListSecretsRequest{NamespaceList: []string{ns1, ns2}}
 			actual, err := client.ListSecrets(context.TODO(), request)
@@ -116,13 +113,12 @@ var _ = Describe("ServiceTest", func() {
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
-		It("errors when the newSecret client errors", func() {
+		It("errors when the secret client errors", func() {
 			ns := "ns"
 
 			secretClient.EXPECT().
 				List(ns, clients.ListOpts{Ctx: context.TODO()}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			request := &v1.ListSecretsRequest{NamespaceList: []string{ns}}
 			_, err := client.ListSecrets(context.TODO(), request)
@@ -133,7 +129,7 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("CreateSecret", func() {
-		It("works when the newSecret client works", func() {
+		It("works when the secret client works", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
@@ -189,8 +185,7 @@ var _ = Describe("ServiceTest", func() {
 			for _, tc := range testCases {
 				secretClient.EXPECT().
 					Write(&tc.secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
-					Return(&tc.secret, nil).
-					Times(1)
+					Return(&tc.secret, nil)
 
 				actual, err := client.CreateSecret(context.TODO(), &tc.request)
 				Expect(err).NotTo(HaveOccurred())
@@ -199,7 +194,7 @@ var _ = Describe("ServiceTest", func() {
 			}
 		})
 
-		It("works when the newSecret client works", func() {
+		It("errors when the secret client errors", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
@@ -212,42 +207,18 @@ var _ = Describe("ServiceTest", func() {
 
 			secretClient.EXPECT().
 				Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
-				Return(&secret, nil).
-				Times(1)
-
-			request := &v1.CreateSecretRequest{Ref: &ref, Kind: &v1.CreateSecretRequest_Aws{Aws: &gloov1.AwsSecret{}}}
-			actual, err := client.CreateSecret(context.TODO(), request)
-			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.CreateSecretResponse{Secret: &secret}
-			ExpectEqualProtoMessages(actual, expected)
-		})
-
-		It("errors when the newSecret client errors", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
-			}
-			ref := metadata.Ref()
-			secret := gloov1.Secret{
-				Kind:     &gloov1.Secret_Aws{Aws: &gloov1.AwsSecret{}},
-				Metadata: metadata,
-			}
-
-			secretClient.EXPECT().
-				Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			request := &v1.CreateSecretRequest{Ref: &ref, Kind: &v1.CreateSecretRequest_Aws{Aws: &gloov1.AwsSecret{}}}
 			_, err := client.CreateSecret(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := secretsvc.FailedToCreateSecretError(testErr, ref)
+			expectedErr := secretsvc.FailedToCreateSecretError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
 
 	Describe("UpdateSecret", func() {
-		It("works when the newSecret client works", func() {
+		It("works when the secret client works", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
@@ -307,12 +278,10 @@ var _ = Describe("ServiceTest", func() {
 			for _, tc := range testCases {
 				secretClient.EXPECT().
 					Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-					Return(&oldSecret, nil).
-					Times(1)
+					Return(&oldSecret, nil)
 				secretClient.EXPECT().
 					Write(&tc.newSecret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-					Return(&tc.newSecret, nil).
-					Times(1)
+					Return(&tc.newSecret, nil)
 
 				actual, err := client.UpdateSecret(context.TODO(), &tc.request)
 				Expect(err).NotTo(HaveOccurred())
@@ -321,7 +290,7 @@ var _ = Describe("ServiceTest", func() {
 			}
 		})
 
-		It("errors when the newSecret client errors on read", func() {
+		It("errors when the secret client errors on read", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
@@ -330,17 +299,16 @@ var _ = Describe("ServiceTest", func() {
 
 			secretClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			request := &v1.UpdateSecretRequest{Ref: &ref, Kind: &v1.UpdateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}}}
 			_, err := client.UpdateSecret(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := secretsvc.FailedToUpdateSecretError(testErr, ref)
+			expectedErr := secretsvc.FailedToUpdateSecretError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 
-		It("errors when the newSecret client errors on write", func() {
+		It("errors when the secret client errors on write", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
@@ -353,23 +321,22 @@ var _ = Describe("ServiceTest", func() {
 
 			secretClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(&secret, nil).
-				Times(1)
+				Return(&secret, nil)
+
 			secretClient.EXPECT().
 				Write(&secret, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			request := &v1.UpdateSecretRequest{Ref: &ref, Kind: &v1.UpdateSecretRequest_Azure{Azure: &gloov1.AzureSecret{}}}
 			_, err := client.UpdateSecret(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := secretsvc.FailedToUpdateSecretError(testErr, ref)
+			expectedErr := secretsvc.FailedToUpdateSecretError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})
 
 	Describe("DeleteSecret", func() {
-		It("works when the newSecret client works", func() {
+		It("works when the secret client works", func() {
 			ref := core.ResourceRef{
 				Namespace: "ns",
 				Name:      "name",
@@ -377,8 +344,7 @@ var _ = Describe("ServiceTest", func() {
 
 			secretClient.EXPECT().
 				Delete(ref.Namespace, ref.Name, clients.DeleteOpts{Ctx: context.TODO()}).
-				Return(nil).
-				Times(1)
+				Return(nil)
 
 			request := &v1.DeleteSecretRequest{Ref: &ref}
 			actual, err := client.DeleteSecret(context.TODO(), request)
@@ -387,7 +353,7 @@ var _ = Describe("ServiceTest", func() {
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
-		It("errors when the newSecret client errors", func() {
+		It("errors when the secret client errors", func() {
 			ref := core.ResourceRef{
 				Namespace: "ns",
 				Name:      "name",
@@ -395,13 +361,12 @@ var _ = Describe("ServiceTest", func() {
 
 			secretClient.EXPECT().
 				Delete(ref.Namespace, ref.Name, clients.DeleteOpts{Ctx: context.TODO()}).
-				Return(testErr).
-				Times(1)
+				Return(testErr)
 
 			request := &v1.DeleteSecretRequest{Ref: &ref}
 			_, err := client.DeleteSecret(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
-			expectedErr := secretsvc.FailedToDeleteSecretError(testErr, ref)
+			expectedErr := secretsvc.FailedToDeleteSecretError(testErr, &ref)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
 		})
 	})

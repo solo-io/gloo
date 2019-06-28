@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add upstream service to grpc server.
+    issueLink: https://github.com/solo-io/solo-projects/issues/612

@@ -25,7 +25,7 @@ func (s *virtualServiceGrpcService) ListVirtualServices(context.Context, *v1.Lis
 	panic("implement me")
 }
 
-func (s *virtualServiceGrpcService) StreamVirtualServiceList(context.Context, *v1.StreamVirtualServiceListRequest) (*v1.StreamVirtualServiceListResponse, error) {
+func (s *virtualServiceGrpcService) StreamVirtualServiceList(*v1.StreamVirtualServiceListRequest, v1.VirtualServiceApi_StreamVirtualServiceListServer) error {
 	panic("implement me")
 }
 

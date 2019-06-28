@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	FailedToReadSecretError = func(err error, ref core.ResourceRef) error {
+	FailedToReadSecretError = func(err error, ref *core.ResourceRef) error {
 		return errors.Wrapf(err, "Failed to read newSecret %v.%v", ref.GetNamespace(), ref.GetName())
 	}
 
@@ -14,15 +14,15 @@ var (
 		return errors.Wrapf(err, "Failed to list secrets in %v", namespace)
 	}
 
-	FailedToCreateSecretError = func(err error, ref core.ResourceRef) error {
+	FailedToCreateSecretError = func(err error, ref *core.ResourceRef) error {
 		return errors.Wrapf(err, "Failed to create newSecret %v.%v", ref.GetNamespace(), ref.GetName())
 	}
 
-	FailedToUpdateSecretError = func(err error, ref core.ResourceRef) error {
+	FailedToUpdateSecretError = func(err error, ref *core.ResourceRef) error {
 		return errors.Wrapf(err, "Failed to update newSecret %v.%v", ref.GetNamespace(), ref.GetName())
 	}
 
-	FailedToDeleteSecretError = func(err error, ref core.ResourceRef) error {
+	FailedToDeleteSecretError = func(err error, ref *core.ResourceRef) error {
 		return errors.Wrapf(err, "Failed to delete newSecret %v.%v", ref.GetNamespace(), ref.GetName())
 	}
 )

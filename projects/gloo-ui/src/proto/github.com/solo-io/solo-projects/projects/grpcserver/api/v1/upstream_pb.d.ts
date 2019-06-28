@@ -78,10 +78,10 @@ export namespace ListUpstreamsRequest {
 }
 
 export class ListUpstreamsResponse extends jspb.Message {
-  clearUpstreamList(): void;
-  getUpstreamList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>;
-  setUpstreamList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>): void;
-  addUpstream(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
+  clearUpstreamListList(): void;
+  getUpstreamListList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>;
+  setUpstreamListList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>): void;
+  addUpstreamList(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListUpstreamsResponse.AsObject;
@@ -95,7 +95,7 @@ export class ListUpstreamsResponse extends jspb.Message {
 
 export namespace ListUpstreamsResponse {
   export type AsObject = {
-    upstreamList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject>,
+    upstreamListList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject>,
   }
 }
 
@@ -123,10 +123,10 @@ export namespace StreamUpstreamListRequest {
 }
 
 export class StreamUpstreamListResponse extends jspb.Message {
-  hasUpstream(): boolean;
-  clearUpstream(): void;
-  getUpstream(): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream | undefined;
-  setUpstream(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream): void;
+  clearUpstreamListList(): void;
+  getUpstreamListList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>;
+  setUpstreamListList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>): void;
+  addUpstreamList(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): StreamUpstreamListResponse.AsObject;
@@ -140,7 +140,7 @@ export class StreamUpstreamListResponse extends jspb.Message {
 
 export namespace StreamUpstreamListResponse {
   export type AsObject = {
-    upstream?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject,
+    upstreamListList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject>,
   }
 }
 

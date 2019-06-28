@@ -91,13 +91,13 @@ weight: 5
 
 
 ```yaml
-"upstream": []gloo.solo.io.Upstream
+"upstreamList": []gloo.solo.io.Upstream
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `upstream` | [[]gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) |  |  |
+| `upstreamList` | [[]gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) |  |  |
 
 
 
@@ -127,13 +127,13 @@ weight: 5
 
 
 ```yaml
-"upstream": .gloo.solo.io.Upstream
+"upstreamList": []gloo.solo.io.Upstream
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `upstream` | [.gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) |  |  |
+| `upstreamList` | [[]gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) |  |  |
 
 
 

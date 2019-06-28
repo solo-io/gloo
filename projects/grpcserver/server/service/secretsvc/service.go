@@ -24,9 +24,9 @@ func NewSecretGrpcService(ctx context.Context, secretClient gloov1.SecretClient)
 }
 
 func (s *secretGrpcService) GetSecret(ctx context.Context, request *v1.GetSecretRequest) (*v1.GetSecretResponse, error) {
-	secret, err := s.readSecret(*request.GetRef())
+	secret, err := s.readSecret(request.GetRef())
 	if err != nil {
-		wrapped := FailedToReadSecretError(err, *request.GetRef())
+		wrapped := FailedToReadSecretError(err, request.GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -69,7 +69,7 @@ func (s *secretGrpcService) CreateSecret(ctx context.Context, request *v1.Create
 
 	written, err := s.writeSecret(secret, false)
 	if err != nil {
-		wrapped := FailedToCreateSecretError(err, *request.GetRef())
+		wrapped := FailedToCreateSecretError(err, request.GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -77,9 +77,9 @@ func (s *secretGrpcService) CreateSecret(ctx context.Context, request *v1.Create
 }
 
 func (s *secretGrpcService) UpdateSecret(ctx context.Context, request *v1.UpdateSecretRequest) (*v1.UpdateSecretResponse, error) {
-	read, err := s.readSecret(*request.GetRef())
+	read, err := s.readSecret(request.GetRef())
 	if err != nil {
-		wrapped := FailedToUpdateSecretError(err, *request.GetRef())
+		wrapped := FailedToUpdateSecretError(err, request.GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -97,7 +97,7 @@ func (s *secretGrpcService) UpdateSecret(ctx context.Context, request *v1.Update
 
 	written, err := s.writeSecret(*read, true)
 	if err != nil {
-		wrapped := FailedToUpdateSecretError(err, *request.GetRef())
+		wrapped := FailedToUpdateSecretError(err, request.GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -108,14 +108,14 @@ func (s *secretGrpcService) UpdateSecret(ctx context.Context, request *v1.Update
 func (s *secretGrpcService) DeleteSecret(ctx context.Context, request *v1.DeleteSecretRequest) (*v1.DeleteSecretResponse, error) {
 	err := s.secretClient.Delete(request.GetRef().GetNamespace(), request.GetRef().GetName(), clients.DeleteOpts{Ctx: s.ctx})
 	if err != nil {
-		wrapped := FailedToDeleteSecretError(err, *request.GetRef())
+		wrapped := FailedToDeleteSecretError(err, request.GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
 	return &v1.DeleteSecretResponse{}, nil
 }
 
-func (s *secretGrpcService) readSecret(ref core.ResourceRef) (*gloov1.Secret, error) {
+func (s *secretGrpcService) readSecret(ref *core.ResourceRef) (*gloov1.Secret, error) {
 	return s.secretClient.Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
 }
 

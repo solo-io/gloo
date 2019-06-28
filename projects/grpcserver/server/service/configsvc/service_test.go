@@ -75,7 +75,7 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("GetIsLicenseValid", func() {
 		It("works when the license client works", func() {
-			licenseClient.EXPECT().IsLicenseValid().Return(nil).Times(1)
+			licenseClient.EXPECT().IsLicenseValid().Return(nil)
 
 			actual, err := client.GetIsLicenseValid(context.TODO(), &v1.GetIsLicenseValidRequest{})
 			Expect(err).NotTo(HaveOccurred())
@@ -84,7 +84,7 @@ var _ = Describe("ServiceTest", func() {
 		})
 
 		It("errors when the license client errors", func() {
-			licenseClient.EXPECT().IsLicenseValid().Return(testErr).Times(1)
+			licenseClient.EXPECT().IsLicenseValid().Return(testErr)
 
 			_, err := client.GetIsLicenseValid(context.TODO(), &v1.GetIsLicenseValidRequest{})
 			Expect(err).To(HaveOccurred())
@@ -99,8 +99,7 @@ var _ = Describe("ServiceTest", func() {
 
 			settingsClient.EXPECT().
 				Read(defaults.GlooSystem, defaults.SettingsName, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(settings, nil).
-				Times(1)
+				Return(settings, nil)
 
 			actual, err := client.GetSettings(context.TODO(), &v1.GetSettingsRequest{})
 			Expect(err).NotTo(HaveOccurred())
@@ -111,8 +110,7 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the settings client errors", func() {
 			settingsClient.EXPECT().
 				Read(defaults.GlooSystem, defaults.SettingsName, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			_, err := client.GetSettings(context.TODO(), &v1.GetSettingsRequest{})
 			Expect(err).To(HaveOccurred())
@@ -153,12 +151,10 @@ var _ = Describe("ServiceTest", func() {
 
 			settingsClient.EXPECT().
 				Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(readSettings, nil).
-				Times(1)
+				Return(readSettings, nil)
 			settingsClient.EXPECT().
 				Write(writeSettings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-				Return(writeSettings, nil).
-				Times(1)
+				Return(writeSettings, nil)
 
 			actual, err := client.UpdateSettings(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
@@ -183,12 +179,10 @@ var _ = Describe("ServiceTest", func() {
 
 			settingsClient.EXPECT().
 				Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(settings, nil).
-				Times(1)
+				Return(settings, nil)
 			settingsClient.EXPECT().
 				Write(settings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-				Return(settings, nil).
-				Times(1)
+				Return(settings, nil)
 
 			actual, err := client.UpdateSettings(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
@@ -210,8 +204,7 @@ var _ = Describe("ServiceTest", func() {
 
 			settingsClient.EXPECT().
 				Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(readSettings, nil).
-				Times(1)
+				Return(readSettings, nil)
 
 			_, err := client.UpdateSettings(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
@@ -231,8 +224,7 @@ var _ = Describe("ServiceTest", func() {
 
 			settingsClient.EXPECT().
 				Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			_, err := client.UpdateSettings(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
@@ -250,12 +242,10 @@ var _ = Describe("ServiceTest", func() {
 
 			settingsClient.EXPECT().
 				Read(ref.Namespace, ref.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(settings, nil).
-				Times(1)
+				Return(settings, nil)
 			settingsClient.EXPECT().
 				Write(settings, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			_, err := client.UpdateSettings(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
@@ -270,8 +260,7 @@ var _ = Describe("ServiceTest", func() {
 
 			namespaceClient.EXPECT().
 				ListNamespaces().
-				Return(namespaceList, nil).
-				Times(1)
+				Return(namespaceList, nil)
 
 			actual, err := client.ListNamespaces(context.TODO(), &v1.ListNamespacesRequest{})
 			Expect(err).NotTo(HaveOccurred())
@@ -282,8 +271,7 @@ var _ = Describe("ServiceTest", func() {
 		It("errors when the namespace client errors", func() {
 			namespaceClient.EXPECT().
 				ListNamespaces().
-				Return(nil, testErr).
-				Times(1)
+				Return(nil, testErr)
 
 			_, err := client.ListNamespaces(context.TODO(), &v1.ListNamespacesRequest{})
 			Expect(err).To(HaveOccurred())

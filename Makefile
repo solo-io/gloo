@@ -118,7 +118,6 @@ generated-code:
 	gofmt -w $(SUBDIRS)
 	goimports -w $(SUBDIRS)
 	mkdir -p $(OUTPUT_DIR)
-	touch $@
 
 UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc-gen-ts \
 		-I$(GOPATH)/src \
