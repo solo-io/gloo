@@ -23,7 +23,9 @@ export const WatchedNamespacesPage = (props: Props) => {
   };
 
   const removeNamespace = (removeIndex: number) => {
-    setWatchedNamespacesList([...watchedNamespacesList].splice(removeIndex, 1));
+    let newList = [...watchedNamespacesList];
+    newList.splice(removeIndex, 1);
+    setWatchedNamespacesList(newList);
   };
 
   return (

@@ -115,6 +115,8 @@ interface Props {
     value: string;
   }[];
   health?: number;
+  healthMessage?: string;
+  closeIcon?: boolean;
 }
 
 export const SectionCard: React.FunctionComponent<Props> = props => {
@@ -123,7 +125,9 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
     cardName,
     children,
     headerSecondaryInformation,
-    health
+    health,
+    healthMessage,
+    closeIcon
   } = props;
 
   return (
@@ -152,10 +156,11 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
         )}
         {health && (
           <HealthContainer>
-            Mesh Health
+            {healthMessage || ''}
             <HealthIndicator healthStatus={health} />
           </HealthContainer>
         )}
+        {closeIcon && <div style={{ padding: '10px' }}>X</div>}
       </Header>
       <BodyContainer>{children}</BodyContainer>
     </CardBlock>
