@@ -71,13 +71,13 @@ weight: 5
 
 
 ```yaml
-"namespaceList": []string
+"namespaces": []string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `namespaceList` | `[]string` |  |  |
+| `namespaces` | `[]string` |  |  |
 
 
 
@@ -88,13 +88,13 @@ weight: 5
 
 
 ```yaml
-"artifactList": []gloo.solo.io.Artifact
+"artifacts": []gloo.solo.io.Artifact
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `artifactList` | [[]gloo.solo.io.Artifact](../../../../../../gloo/projects/gloo/api/v1/artifact.proto.sk#artifact) |  |  |
+| `artifacts` | [[]gloo.solo.io.Artifact](../../../../../../gloo/projects/gloo/api/v1/artifact.proto.sk#artifact) |  |  |
 
 
 

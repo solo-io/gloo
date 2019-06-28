@@ -405,7 +405,7 @@ proto.glooeeapi.solo.io.ListUpstreamsRequest.prototype.toObject = function(opt_i
  */
 proto.glooeeapi.solo.io.ListUpstreamsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespaceListList: jspb.Message.getRepeatedField(msg, 1)
+    namespacesList: jspb.Message.getRepeatedField(msg, 1)
   };
 
   if (includeInstance) {
@@ -444,7 +444,7 @@ proto.glooeeapi.solo.io.ListUpstreamsRequest.deserializeBinaryFromReader = funct
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.addNamespaceList(value);
+      msg.addNamespaces(value);
       break;
     default:
       reader.skipField();
@@ -475,7 +475,7 @@ proto.glooeeapi.solo.io.ListUpstreamsRequest.prototype.serializeBinary = functio
  */
 proto.glooeeapi.solo.io.ListUpstreamsRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getNamespaceListList();
+  f = message.getNamespacesList();
   if (f.length > 0) {
     writer.writeRepeatedString(
       1,
@@ -486,16 +486,16 @@ proto.glooeeapi.solo.io.ListUpstreamsRequest.serializeBinaryToWriter = function(
 
 
 /**
- * repeated string namespace_list = 1;
+ * repeated string namespaces = 1;
  * @return {!Array<string>}
  */
-proto.glooeeapi.solo.io.ListUpstreamsRequest.prototype.getNamespaceListList = function() {
+proto.glooeeapi.solo.io.ListUpstreamsRequest.prototype.getNamespacesList = function() {
   return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
 };
 
 
 /** @param {!Array<string>} value */
-proto.glooeeapi.solo.io.ListUpstreamsRequest.prototype.setNamespaceListList = function(value) {
+proto.glooeeapi.solo.io.ListUpstreamsRequest.prototype.setNamespacesList = function(value) {
   jspb.Message.setField(this, 1, value || []);
 };
 
@@ -504,13 +504,13 @@ proto.glooeeapi.solo.io.ListUpstreamsRequest.prototype.setNamespaceListList = fu
  * @param {!string} value
  * @param {number=} opt_index
  */
-proto.glooeeapi.solo.io.ListUpstreamsRequest.prototype.addNamespaceList = function(value, opt_index) {
+proto.glooeeapi.solo.io.ListUpstreamsRequest.prototype.addNamespaces = function(value, opt_index) {
   jspb.Message.addToRepeatedField(this, 1, value, opt_index);
 };
 
 
-proto.glooeeapi.solo.io.ListUpstreamsRequest.prototype.clearNamespaceListList = function() {
-  this.setNamespaceListList([]);
+proto.glooeeapi.solo.io.ListUpstreamsRequest.prototype.clearNamespacesList = function() {
+  this.setNamespacesList([]);
 };
 
 
@@ -568,7 +568,7 @@ proto.glooeeapi.solo.io.ListUpstreamsResponse.prototype.toObject = function(opt_
  */
 proto.glooeeapi.solo.io.ListUpstreamsResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    upstreamListList: jspb.Message.toObjectList(msg.getUpstreamListList(),
+    upstreamsList: jspb.Message.toObjectList(msg.getUpstreamsList(),
     github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.toObject, includeInstance)
   };
 
@@ -609,7 +609,7 @@ proto.glooeeapi.solo.io.ListUpstreamsResponse.deserializeBinaryFromReader = func
     case 1:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.deserializeBinaryFromReader);
-      msg.addUpstreamList(value);
+      msg.addUpstreams(value);
       break;
     default:
       reader.skipField();
@@ -640,7 +640,7 @@ proto.glooeeapi.solo.io.ListUpstreamsResponse.prototype.serializeBinary = functi
  */
 proto.glooeeapi.solo.io.ListUpstreamsResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getUpstreamListList();
+  f = message.getUpstreamsList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
       1,
@@ -652,17 +652,17 @@ proto.glooeeapi.solo.io.ListUpstreamsResponse.serializeBinaryToWriter = function
 
 
 /**
- * repeated gloo.solo.io.Upstream upstream_list = 1;
+ * repeated gloo.solo.io.Upstream upstreams = 1;
  * @return {!Array<!proto.gloo.solo.io.Upstream>}
  */
-proto.glooeeapi.solo.io.ListUpstreamsResponse.prototype.getUpstreamListList = function() {
+proto.glooeeapi.solo.io.ListUpstreamsResponse.prototype.getUpstreamsList = function() {
   return /** @type{!Array<!proto.gloo.solo.io.Upstream>} */ (
     jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, 1));
 };
 
 
 /** @param {!Array<!proto.gloo.solo.io.Upstream>} value */
-proto.glooeeapi.solo.io.ListUpstreamsResponse.prototype.setUpstreamListList = function(value) {
+proto.glooeeapi.solo.io.ListUpstreamsResponse.prototype.setUpstreamsList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
@@ -672,13 +672,13 @@ proto.glooeeapi.solo.io.ListUpstreamsResponse.prototype.setUpstreamListList = fu
  * @param {number=} opt_index
  * @return {!proto.gloo.solo.io.Upstream}
  */
-proto.glooeeapi.solo.io.ListUpstreamsResponse.prototype.addUpstreamList = function(opt_value, opt_index) {
+proto.glooeeapi.solo.io.ListUpstreamsResponse.prototype.addUpstreams = function(opt_value, opt_index) {
   return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gloo.solo.io.Upstream, opt_index);
 };
 
 
-proto.glooeeapi.solo.io.ListUpstreamsResponse.prototype.clearUpstreamListList = function() {
-  this.setUpstreamListList([]);
+proto.glooeeapi.solo.io.ListUpstreamsResponse.prototype.clearUpstreamsList = function() {
+  this.setUpstreamsList([]);
 };
 
 
@@ -907,7 +907,7 @@ proto.glooeeapi.solo.io.StreamUpstreamListResponse.prototype.toObject = function
  */
 proto.glooeeapi.solo.io.StreamUpstreamListResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    upstreamListList: jspb.Message.toObjectList(msg.getUpstreamListList(),
+    upstreamsList: jspb.Message.toObjectList(msg.getUpstreamsList(),
     github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.toObject, includeInstance)
   };
 
@@ -948,7 +948,7 @@ proto.glooeeapi.solo.io.StreamUpstreamListResponse.deserializeBinaryFromReader =
     case 1:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.deserializeBinaryFromReader);
-      msg.addUpstreamList(value);
+      msg.addUpstreams(value);
       break;
     default:
       reader.skipField();
@@ -979,7 +979,7 @@ proto.glooeeapi.solo.io.StreamUpstreamListResponse.prototype.serializeBinary = f
  */
 proto.glooeeapi.solo.io.StreamUpstreamListResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getUpstreamListList();
+  f = message.getUpstreamsList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
       1,
@@ -991,17 +991,17 @@ proto.glooeeapi.solo.io.StreamUpstreamListResponse.serializeBinaryToWriter = fun
 
 
 /**
- * repeated gloo.solo.io.Upstream upstream_list = 1;
+ * repeated gloo.solo.io.Upstream upstreams = 1;
  * @return {!Array<!proto.gloo.solo.io.Upstream>}
  */
-proto.glooeeapi.solo.io.StreamUpstreamListResponse.prototype.getUpstreamListList = function() {
+proto.glooeeapi.solo.io.StreamUpstreamListResponse.prototype.getUpstreamsList = function() {
   return /** @type{!Array<!proto.gloo.solo.io.Upstream>} */ (
     jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, 1));
 };
 
 
 /** @param {!Array<!proto.gloo.solo.io.Upstream>} value */
-proto.glooeeapi.solo.io.StreamUpstreamListResponse.prototype.setUpstreamListList = function(value) {
+proto.glooeeapi.solo.io.StreamUpstreamListResponse.prototype.setUpstreamsList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
@@ -1011,13 +1011,13 @@ proto.glooeeapi.solo.io.StreamUpstreamListResponse.prototype.setUpstreamListList
  * @param {number=} opt_index
  * @return {!proto.gloo.solo.io.Upstream}
  */
-proto.glooeeapi.solo.io.StreamUpstreamListResponse.prototype.addUpstreamList = function(opt_value, opt_index) {
+proto.glooeeapi.solo.io.StreamUpstreamListResponse.prototype.addUpstreams = function(opt_value, opt_index) {
   return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gloo.solo.io.Upstream, opt_index);
 };
 
 
-proto.glooeeapi.solo.io.StreamUpstreamListResponse.prototype.clearUpstreamListList = function() {
-  this.setUpstreamListList([]);
+proto.glooeeapi.solo.io.StreamUpstreamListResponse.prototype.clearUpstreamsList = function() {
+  this.setUpstreamsList([]);
 };
 
 

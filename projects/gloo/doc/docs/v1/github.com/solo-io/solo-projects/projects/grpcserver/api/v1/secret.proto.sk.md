@@ -71,13 +71,13 @@ weight: 5
 
 
 ```yaml
-"namespaceList": []string
+"namespaces": []string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `namespaceList` | `[]string` |  |  |
+| `namespaces` | `[]string` |  |  |
 
 
 
@@ -88,13 +88,13 @@ weight: 5
 
 
 ```yaml
-"secretList": []gloo.solo.io.Secret
+"secrets": []gloo.solo.io.Secret
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `secretList` | [[]gloo.solo.io.Secret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#secret) |  |  |
+| `secrets` | [[]gloo.solo.io.Secret](../../../../../../gloo/projects/gloo/api/v1/secret.proto.sk#secret) |  |  |
 
 
 

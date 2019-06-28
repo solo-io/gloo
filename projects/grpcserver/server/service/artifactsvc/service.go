@@ -36,7 +36,7 @@ func (s *artifactGrpcService) GetArtifact(ctx context.Context, request *v1.GetAr
 
 func (s *artifactGrpcService) ListArtifacts(ctx context.Context, request *v1.ListArtifactsRequest) (*v1.ListArtifactsResponse, error) {
 	var artifactList gloov1.ArtifactList
-	for _, ns := range request.GetNamespaceList() {
+	for _, ns := range request.GetNamespaces() {
 		artifacts, err := s.artifactClient.List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListArtifactsError(err, ns)
@@ -45,7 +45,7 @@ func (s *artifactGrpcService) ListArtifacts(ctx context.Context, request *v1.Lis
 		}
 		artifactList = append(artifactList, artifacts...)
 	}
-	return &v1.ListArtifactsResponse{ArtifactList: artifactList}, nil
+	return &v1.ListArtifactsResponse{Artifacts: artifactList}, nil
 }
 
 func (s *artifactGrpcService) CreateArtifact(ctx context.Context, request *v1.CreateArtifactRequest) (*v1.CreateArtifactResponse, error) {

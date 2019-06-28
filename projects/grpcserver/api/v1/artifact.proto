@@ -17,11 +17,11 @@ message GetArtifactResponse {
 }
 
 message ListArtifactsRequest {
-    repeated string namespace_list = 1;
+    repeated string namespaces = 1;
 }
 
 message ListArtifactsResponse {
-    repeated gloo.solo.io.Artifact artifact_list = 1;
+    repeated gloo.solo.io.Artifact artifacts = 1;
 }
 
 message CreateArtifactRequest {

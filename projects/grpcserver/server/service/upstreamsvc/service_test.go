@@ -113,10 +113,10 @@ var _ = Describe("ServiceTest", func() {
 				List(ns2, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gloov1.Upstream{&upstream2}, nil)
 
-			request := &v1.ListUpstreamsRequest{NamespaceList: []string{ns1, ns2}}
+			request := &v1.ListUpstreamsRequest{Namespaces: []string{ns1, ns2}}
 			actual, err := client.ListUpstreams(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.ListUpstreamsResponse{UpstreamList: []*gloov1.Upstream{&upstream1, &upstream2}}
+			expected := &v1.ListUpstreamsResponse{Upstreams: []*gloov1.Upstream{&upstream1, &upstream2}}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -127,7 +127,7 @@ var _ = Describe("ServiceTest", func() {
 				List(ns, clients.ListOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.ListUpstreamsRequest{NamespaceList: []string{ns}}
+			request := &v1.ListUpstreamsRequest{Namespaces: []string{ns}}
 			_, err := client.ListUpstreams(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := upstreamsvc.FailedToListUpstreamsError(testErr, ns)
@@ -192,7 +192,7 @@ var _ = Describe("ServiceTest", func() {
 
 				actual, err := streamClient.Recv()
 				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.StreamUpstreamListResponse{UpstreamList: upstreamList}
+				expected := &v1.StreamUpstreamListResponse{Upstreams: upstreamList}
 				ExpectEqualProtoMessages(actual, expected)
 
 				errChan <- testErr

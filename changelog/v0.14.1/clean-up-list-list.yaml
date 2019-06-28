@@ -1,0 +1,3 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Do not use _list as a suffix for repeated-type field names to avoid awkward UI var names.

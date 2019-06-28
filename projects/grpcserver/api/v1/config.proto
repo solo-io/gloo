@@ -34,7 +34,7 @@ message GetSettingsResponse {
 
 message UpdateSettingsRequest {
     core.solo.io.ResourceRef ref = 1;
-    repeated string watch_namespace_list = 2;
+    repeated string watch_namespaces = 2;
     google.protobuf.Duration refresh_rate = 3;
 }
 
@@ -51,7 +51,7 @@ message GetIsLicenseValidResponse {
 message ListNamespacesRequest {}
 
 message ListNamespacesResponse {
-    repeated string namespace_list = 1;
+    repeated string namespaces = 1;
 }
 
 service ConfigApi {

@@ -397,7 +397,7 @@ proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.toObject = function(opt_i
  */
 proto.glooeeapi.solo.io.ListArtifactsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespaceListList: jspb.Message.getRepeatedField(msg, 1)
+    namespacesList: jspb.Message.getRepeatedField(msg, 1)
   };
 
   if (includeInstance) {
@@ -436,7 +436,7 @@ proto.glooeeapi.solo.io.ListArtifactsRequest.deserializeBinaryFromReader = funct
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.addNamespaceList(value);
+      msg.addNamespaces(value);
       break;
     default:
       reader.skipField();
@@ -467,7 +467,7 @@ proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.serializeBinary = functio
  */
 proto.glooeeapi.solo.io.ListArtifactsRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getNamespaceListList();
+  f = message.getNamespacesList();
   if (f.length > 0) {
     writer.writeRepeatedString(
       1,
@@ -478,16 +478,16 @@ proto.glooeeapi.solo.io.ListArtifactsRequest.serializeBinaryToWriter = function(
 
 
 /**
- * repeated string namespace_list = 1;
+ * repeated string namespaces = 1;
  * @return {!Array<string>}
  */
-proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.getNamespaceListList = function() {
+proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.getNamespacesList = function() {
   return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
 };
 
 
 /** @param {!Array<string>} value */
-proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.setNamespaceListList = function(value) {
+proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.setNamespacesList = function(value) {
   jspb.Message.setField(this, 1, value || []);
 };
 
@@ -496,13 +496,13 @@ proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.setNamespaceListList = fu
  * @param {!string} value
  * @param {number=} opt_index
  */
-proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.addNamespaceList = function(value, opt_index) {
+proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.addNamespaces = function(value, opt_index) {
   jspb.Message.addToRepeatedField(this, 1, value, opt_index);
 };
 
 
-proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.clearNamespaceListList = function() {
-  this.setNamespaceListList([]);
+proto.glooeeapi.solo.io.ListArtifactsRequest.prototype.clearNamespacesList = function() {
+  this.setNamespacesList([]);
 };
 
 
@@ -560,7 +560,7 @@ proto.glooeeapi.solo.io.ListArtifactsResponse.prototype.toObject = function(opt_
  */
 proto.glooeeapi.solo.io.ListArtifactsResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    artifactListList: jspb.Message.toObjectList(msg.getArtifactListList(),
+    artifactsList: jspb.Message.toObjectList(msg.getArtifactsList(),
     github_com_solo$io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.toObject, includeInstance)
   };
 
@@ -601,7 +601,7 @@ proto.glooeeapi.solo.io.ListArtifactsResponse.deserializeBinaryFromReader = func
     case 1:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_artifact_pb.Artifact;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.deserializeBinaryFromReader);
-      msg.addArtifactList(value);
+      msg.addArtifacts(value);
       break;
     default:
       reader.skipField();
@@ -632,7 +632,7 @@ proto.glooeeapi.solo.io.ListArtifactsResponse.prototype.serializeBinary = functi
  */
 proto.glooeeapi.solo.io.ListArtifactsResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getArtifactListList();
+  f = message.getArtifactsList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
       1,
@@ -644,17 +644,17 @@ proto.glooeeapi.solo.io.ListArtifactsResponse.serializeBinaryToWriter = function
 
 
 /**
- * repeated gloo.solo.io.Artifact artifact_list = 1;
+ * repeated gloo.solo.io.Artifact artifacts = 1;
  * @return {!Array<!proto.gloo.solo.io.Artifact>}
  */
-proto.glooeeapi.solo.io.ListArtifactsResponse.prototype.getArtifactListList = function() {
+proto.glooeeapi.solo.io.ListArtifactsResponse.prototype.getArtifactsList = function() {
   return /** @type{!Array<!proto.gloo.solo.io.Artifact>} */ (
     jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_artifact_pb.Artifact, 1));
 };
 
 
 /** @param {!Array<!proto.gloo.solo.io.Artifact>} value */
-proto.glooeeapi.solo.io.ListArtifactsResponse.prototype.setArtifactListList = function(value) {
+proto.glooeeapi.solo.io.ListArtifactsResponse.prototype.setArtifactsList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
@@ -664,13 +664,13 @@ proto.glooeeapi.solo.io.ListArtifactsResponse.prototype.setArtifactListList = fu
  * @param {number=} opt_index
  * @return {!proto.gloo.solo.io.Artifact}
  */
-proto.glooeeapi.solo.io.ListArtifactsResponse.prototype.addArtifactList = function(opt_value, opt_index) {
+proto.glooeeapi.solo.io.ListArtifactsResponse.prototype.addArtifacts = function(opt_value, opt_index) {
   return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gloo.solo.io.Artifact, opt_index);
 };
 
 
-proto.glooeeapi.solo.io.ListArtifactsResponse.prototype.clearArtifactListList = function() {
-  this.setArtifactListList([]);
+proto.glooeeapi.solo.io.ListArtifactsResponse.prototype.clearArtifactsList = function() {
+  this.setArtifactsList([]);
 };
 
 

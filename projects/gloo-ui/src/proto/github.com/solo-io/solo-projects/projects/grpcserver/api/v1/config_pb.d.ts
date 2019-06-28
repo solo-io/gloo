@@ -149,10 +149,10 @@ export class UpdateSettingsRequest extends jspb.Message {
   getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
   setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
 
-  clearWatchNamespaceListList(): void;
-  getWatchNamespaceListList(): Array<string>;
-  setWatchNamespaceListList(value: Array<string>): void;
-  addWatchNamespaceList(value: string, index?: number): string;
+  clearWatchNamespacesList(): void;
+  getWatchNamespacesList(): Array<string>;
+  setWatchNamespacesList(value: Array<string>): void;
+  addWatchNamespaces(value: string, index?: number): string;
 
   hasRefreshRate(): boolean;
   clearRefreshRate(): void;
@@ -172,7 +172,7 @@ export class UpdateSettingsRequest extends jspb.Message {
 export namespace UpdateSettingsRequest {
   export type AsObject = {
     ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    watchNamespaceListList: Array<string>,
+    watchNamespacesList: Array<string>,
     refreshRate?: google_protobuf_duration_pb.Duration.AsObject,
   }
 }
@@ -252,10 +252,10 @@ export namespace ListNamespacesRequest {
 }
 
 export class ListNamespacesResponse extends jspb.Message {
-  clearNamespaceListList(): void;
-  getNamespaceListList(): Array<string>;
-  setNamespaceListList(value: Array<string>): void;
-  addNamespaceList(value: string, index?: number): string;
+  clearNamespacesList(): void;
+  getNamespacesList(): Array<string>;
+  setNamespacesList(value: Array<string>): void;
+  addNamespaces(value: string, index?: number): string;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListNamespacesResponse.AsObject;
@@ -269,7 +269,7 @@ export class ListNamespacesResponse extends jspb.Message {
 
 export namespace ListNamespacesResponse {
   export type AsObject = {
-    namespaceListList: Array<string>,
+    namespacesList: Array<string>,
   }
 }
 

@@ -415,7 +415,7 @@ proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.toObject = function
  */
 proto.glooeeapi.solo.io.ListVirtualServicesRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespaceListList: jspb.Message.getRepeatedField(msg, 1)
+    namespacesList: jspb.Message.getRepeatedField(msg, 1)
   };
 
   if (includeInstance) {
@@ -454,7 +454,7 @@ proto.glooeeapi.solo.io.ListVirtualServicesRequest.deserializeBinaryFromReader =
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.addNamespaceList(value);
+      msg.addNamespaces(value);
       break;
     default:
       reader.skipField();
@@ -485,7 +485,7 @@ proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.serializeBinary = f
  */
 proto.glooeeapi.solo.io.ListVirtualServicesRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getNamespaceListList();
+  f = message.getNamespacesList();
   if (f.length > 0) {
     writer.writeRepeatedString(
       1,
@@ -496,16 +496,16 @@ proto.glooeeapi.solo.io.ListVirtualServicesRequest.serializeBinaryToWriter = fun
 
 
 /**
- * repeated string namespace_list = 1;
+ * repeated string namespaces = 1;
  * @return {!Array<string>}
  */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.getNamespaceListList = function() {
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.getNamespacesList = function() {
   return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
 };
 
 
 /** @param {!Array<string>} value */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.setNamespaceListList = function(value) {
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.setNamespacesList = function(value) {
   jspb.Message.setField(this, 1, value || []);
 };
 
@@ -514,13 +514,13 @@ proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.setNamespaceListLis
  * @param {!string} value
  * @param {number=} opt_index
  */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.addNamespaceList = function(value, opt_index) {
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.addNamespaces = function(value, opt_index) {
   jspb.Message.addToRepeatedField(this, 1, value, opt_index);
 };
 
 
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.clearNamespaceListList = function() {
-  this.setNamespaceListList([]);
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.clearNamespacesList = function() {
+  this.setNamespacesList([]);
 };
 
 
@@ -578,7 +578,7 @@ proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.toObject = functio
  */
 proto.glooeeapi.solo.io.ListVirtualServicesResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    virtualServiceList: jspb.Message.toObjectList(msg.getVirtualServiceList(),
+    virtualServicesList: jspb.Message.toObjectList(msg.getVirtualServicesList(),
     github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject, includeInstance)
   };
 
@@ -619,7 +619,7 @@ proto.glooeeapi.solo.io.ListVirtualServicesResponse.deserializeBinaryFromReader 
     case 1:
       var value = new github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
-      msg.addVirtualService(value);
+      msg.addVirtualServices(value);
       break;
     default:
       reader.skipField();
@@ -650,7 +650,7 @@ proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.serializeBinary = 
  */
 proto.glooeeapi.solo.io.ListVirtualServicesResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getVirtualServiceList();
+  f = message.getVirtualServicesList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
       1,
@@ -662,17 +662,17 @@ proto.glooeeapi.solo.io.ListVirtualServicesResponse.serializeBinaryToWriter = fu
 
 
 /**
- * repeated gateway.solo.io.VirtualService virtual_service = 1;
+ * repeated gateway.solo.io.VirtualService virtual_services = 1;
  * @return {!Array<!proto.gateway.solo.io.VirtualService>}
  */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.getVirtualServiceList = function() {
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.getVirtualServicesList = function() {
   return /** @type{!Array<!proto.gateway.solo.io.VirtualService>} */ (
     jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, 1));
 };
 
 
 /** @param {!Array<!proto.gateway.solo.io.VirtualService>} value */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.setVirtualServiceList = function(value) {
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.setVirtualServicesList = function(value) {
   jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
@@ -682,13 +682,13 @@ proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.setVirtualServiceL
  * @param {number=} opt_index
  * @return {!proto.gateway.solo.io.VirtualService}
  */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.addVirtualService = function(opt_value, opt_index) {
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.addVirtualServices = function(opt_value, opt_index) {
   return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gateway.solo.io.VirtualService, opt_index);
 };
 
 
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.clearVirtualServiceList = function() {
-  this.setVirtualServiceList([]);
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.clearVirtualServicesList = function() {
+  this.setVirtualServicesList([]);
 };
 
 
@@ -875,12 +875,19 @@ proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.prototype.clearSelectorM
  * @constructor
  */
 proto.glooeeapi.solo.io.StreamVirtualServiceListResponse = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.repeatedFields_, null);
 };
 goog.inherits(proto.glooeeapi.solo.io.StreamVirtualServiceListResponse, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.displayName = 'proto.glooeeapi.solo.io.StreamVirtualServiceListResponse';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.repeatedFields_ = [1];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -910,7 +917,8 @@ proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.toObject = fu
  */
 proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f)
+    virtualServicesList: jspb.Message.toObjectList(msg.getVirtualServicesList(),
+    github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -950,7 +958,7 @@ proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.deserializeBinaryFromRe
     case 1:
       var value = new github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
-      msg.setVirtualService(value);
+      msg.addVirtualServices(value);
       break;
     default:
       reader.skipField();
@@ -981,9 +989,9 @@ proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.serializeBina
  */
 proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getVirtualService();
-  if (f != null) {
-    writer.writeMessage(
+  f = message.getVirtualServicesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
       1,
       f,
       github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
@@ -993,32 +1001,33 @@ proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.serializeBinaryToWriter
 
 
 /**
- * optional gateway.solo.io.VirtualService virtual_service = 1;
- * @return {?proto.gateway.solo.io.VirtualService}
+ * repeated gateway.solo.io.VirtualService virtual_services = 1;
+ * @return {!Array<!proto.gateway.solo.io.VirtualService>}
  */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.getVirtualService = function() {
-  return /** @type{?proto.gateway.solo.io.VirtualService} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, 1));
+proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.getVirtualServicesList = function() {
+  return /** @type{!Array<!proto.gateway.solo.io.VirtualService>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, 1));
 };
 
 
-/** @param {?proto.gateway.solo.io.VirtualService|undefined} value */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.setVirtualService = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
-};
-
-
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.clearVirtualService = function() {
-  this.setVirtualService(undefined);
+/** @param {!Array<!proto.gateway.solo.io.VirtualService>} value */
+proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.setVirtualServicesList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
 
 /**
- * Returns whether this field is set.
- * @return {!boolean}
+ * @param {!proto.gateway.solo.io.VirtualService=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.gateway.solo.io.VirtualService}
  */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.hasVirtualService = function() {
-  return jspb.Message.getField(this, 1) != null;
+proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.addVirtualServices = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gateway.solo.io.VirtualService, opt_index);
+};
+
+
+proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.clearVirtualServicesList = function() {
+  this.setVirtualServicesList([]);
 };
 
 

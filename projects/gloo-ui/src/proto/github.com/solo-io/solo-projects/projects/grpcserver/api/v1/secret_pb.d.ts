@@ -52,10 +52,10 @@ export namespace GetSecretResponse {
 }
 
 export class ListSecretsRequest extends jspb.Message {
-  clearNamespaceListList(): void;
-  getNamespaceListList(): Array<string>;
-  setNamespaceListList(value: Array<string>): void;
-  addNamespaceList(value: string, index?: number): string;
+  clearNamespacesList(): void;
+  getNamespacesList(): Array<string>;
+  setNamespacesList(value: Array<string>): void;
+  addNamespaces(value: string, index?: number): string;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListSecretsRequest.AsObject;
@@ -69,15 +69,15 @@ export class ListSecretsRequest extends jspb.Message {
 
 export namespace ListSecretsRequest {
   export type AsObject = {
-    namespaceListList: Array<string>,
+    namespacesList: Array<string>,
   }
 }
 
 export class ListSecretsResponse extends jspb.Message {
-  clearSecretListList(): void;
-  getSecretListList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret>;
-  setSecretListList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret>): void;
-  addSecretList(value?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret;
+  clearSecretsList(): void;
+  getSecretsList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret>;
+  setSecretsList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret>): void;
+  addSecrets(value?: github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListSecretsResponse.AsObject;
@@ -91,7 +91,7 @@ export class ListSecretsResponse extends jspb.Message {
 
 export namespace ListSecretsResponse {
   export type AsObject = {
-    secretListList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret.AsObject>,
+    secretsList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_secret_pb.Secret.AsObject>,
   }
 }
 

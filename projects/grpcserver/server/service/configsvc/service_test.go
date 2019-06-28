@@ -128,9 +128,9 @@ var _ = Describe("ServiceTest", func() {
 			refreshRate := types.Duration{Seconds: 1}
 			watchNamespaces := []string{"a", "b"}
 			request := &v1.UpdateSettingsRequest{
-				Ref:                &ref,
-				RefreshRate:        &refreshRate,
-				WatchNamespaceList: watchNamespaces,
+				Ref:             &ref,
+				RefreshRate:     &refreshRate,
+				WatchNamespaces: watchNamespaces,
 			}
 			readSettings := &gloov1.Settings{
 				Metadata: core.Metadata{
@@ -264,7 +264,7 @@ var _ = Describe("ServiceTest", func() {
 
 			actual, err := client.ListNamespaces(context.TODO(), &v1.ListNamespacesRequest{})
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.ListNamespacesResponse{NamespaceList: namespaceList}
+			expected := &v1.ListNamespacesResponse{Namespaces: namespaceList}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 

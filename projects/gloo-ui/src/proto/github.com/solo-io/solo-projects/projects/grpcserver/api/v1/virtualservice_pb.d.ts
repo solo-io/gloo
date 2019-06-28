@@ -54,10 +54,10 @@ export namespace GetVirtualServiceResponse {
 }
 
 export class ListVirtualServicesRequest extends jspb.Message {
-  clearNamespaceListList(): void;
-  getNamespaceListList(): Array<string>;
-  setNamespaceListList(value: Array<string>): void;
-  addNamespaceList(value: string, index?: number): string;
+  clearNamespacesList(): void;
+  getNamespacesList(): Array<string>;
+  setNamespacesList(value: Array<string>): void;
+  addNamespaces(value: string, index?: number): string;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListVirtualServicesRequest.AsObject;
@@ -71,15 +71,15 @@ export class ListVirtualServicesRequest extends jspb.Message {
 
 export namespace ListVirtualServicesRequest {
   export type AsObject = {
-    namespaceListList: Array<string>,
+    namespacesList: Array<string>,
   }
 }
 
 export class ListVirtualServicesResponse extends jspb.Message {
-  clearVirtualServiceList(): void;
-  getVirtualServiceList(): Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService>;
-  setVirtualServiceList(value: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService>): void;
-  addVirtualService(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, index?: number): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService;
+  clearVirtualServicesList(): void;
+  getVirtualServicesList(): Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService>;
+  setVirtualServicesList(value: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService>): void;
+  addVirtualServices(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, index?: number): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListVirtualServicesResponse.AsObject;
@@ -93,7 +93,7 @@ export class ListVirtualServicesResponse extends jspb.Message {
 
 export namespace ListVirtualServicesResponse {
   export type AsObject = {
-    virtualServiceList: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject>,
+    virtualServicesList: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject>,
   }
 }
 
@@ -121,10 +121,10 @@ export namespace StreamVirtualServiceListRequest {
 }
 
 export class StreamVirtualServiceListResponse extends jspb.Message {
-  hasVirtualService(): boolean;
-  clearVirtualService(): void;
-  getVirtualService(): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService | undefined;
-  setVirtualService(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService): void;
+  clearVirtualServicesList(): void;
+  getVirtualServicesList(): Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService>;
+  setVirtualServicesList(value: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService>): void;
+  addVirtualServices(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, index?: number): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): StreamVirtualServiceListResponse.AsObject;
@@ -138,7 +138,7 @@ export class StreamVirtualServiceListResponse extends jspb.Message {
 
 export namespace StreamVirtualServiceListResponse {
   export type AsObject = {
-    virtualService?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject,
+    virtualServicesList: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject>,
   }
 }
 

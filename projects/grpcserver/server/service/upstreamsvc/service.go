@@ -42,7 +42,7 @@ func (s *upstreamGrpcService) GetUpstream(ctx context.Context, request *v1.GetUp
 
 func (s *upstreamGrpcService) ListUpstreams(ctx context.Context, request *v1.ListUpstreamsRequest) (*v1.ListUpstreamsResponse, error) {
 	var upstreamList gloov1.UpstreamList
-	for _, ns := range request.GetNamespaceList() {
+	for _, ns := range request.GetNamespaces() {
 		upstreams, err := s.upstreamClient.List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListUpstreamsError(err, ns)
@@ -52,7 +52,7 @@ func (s *upstreamGrpcService) ListUpstreams(ctx context.Context, request *v1.Lis
 		upstreamList = append(upstreamList, upstreams...)
 	}
 
-	return &v1.ListUpstreamsResponse{UpstreamList: upstreamList}, nil
+	return &v1.ListUpstreamsResponse{Upstreams: upstreamList}, nil
 }
 
 func (s *upstreamGrpcService) StreamUpstreamList(request *v1.StreamUpstreamListRequest, stream v1.UpstreamApi_StreamUpstreamListServer) error {
@@ -73,7 +73,7 @@ func (s *upstreamGrpcService) StreamUpstreamList(request *v1.StreamUpstreamListR
 			if !ok {
 				return nil
 			}
-			err := stream.Send(&v1.StreamUpstreamListResponse{UpstreamList: list})
+			err := stream.Send(&v1.StreamUpstreamListResponse{Upstreams: list})
 			if err != nil {
 				wrapped := ErrorWhileWatchingUpstreams(err, request.GetNamespace())
 				contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))

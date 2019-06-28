@@ -1061,7 +1061,7 @@ proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.toObject = function(opt_
 proto.glooeeapi.solo.io.UpdateSettingsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    watchNamespaceListList: jspb.Message.getRepeatedField(msg, 2),
+    watchNamespacesList: jspb.Message.getRepeatedField(msg, 2),
     refreshRate: (f = msg.getRefreshRate()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f)
   };
 
@@ -1106,7 +1106,7 @@ proto.glooeeapi.solo.io.UpdateSettingsRequest.deserializeBinaryFromReader = func
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.addWatchNamespaceList(value);
+      msg.addWatchNamespaces(value);
       break;
     case 3:
       var value = new google_protobuf_duration_pb.Duration;
@@ -1150,7 +1150,7 @@ proto.glooeeapi.solo.io.UpdateSettingsRequest.serializeBinaryToWriter = function
       github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
     );
   }
-  f = message.getWatchNamespaceListList();
+  f = message.getWatchNamespacesList();
   if (f.length > 0) {
     writer.writeRepeatedString(
       2,
@@ -1199,16 +1199,16 @@ proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.hasRef = function() {
 
 
 /**
- * repeated string watch_namespace_list = 2;
+ * repeated string watch_namespaces = 2;
  * @return {!Array<string>}
  */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.getWatchNamespaceListList = function() {
+proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.getWatchNamespacesList = function() {
   return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
 };
 
 
 /** @param {!Array<string>} value */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.setWatchNamespaceListList = function(value) {
+proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.setWatchNamespacesList = function(value) {
   jspb.Message.setField(this, 2, value || []);
 };
 
@@ -1217,13 +1217,13 @@ proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.setWatchNamespaceListLis
  * @param {!string} value
  * @param {number=} opt_index
  */
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.addWatchNamespaceList = function(value, opt_index) {
+proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.addWatchNamespaces = function(value, opt_index) {
   jspb.Message.addToRepeatedField(this, 2, value, opt_index);
 };
 
 
-proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.clearWatchNamespaceListList = function() {
-  this.setWatchNamespaceListList([]);
+proto.glooeeapi.solo.io.UpdateSettingsRequest.prototype.clearWatchNamespacesList = function() {
+  this.setWatchNamespacesList([]);
 };
 
 
@@ -1846,7 +1846,7 @@ proto.glooeeapi.solo.io.ListNamespacesResponse.prototype.toObject = function(opt
  */
 proto.glooeeapi.solo.io.ListNamespacesResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespaceListList: jspb.Message.getRepeatedField(msg, 1)
+    namespacesList: jspb.Message.getRepeatedField(msg, 1)
   };
 
   if (includeInstance) {
@@ -1885,7 +1885,7 @@ proto.glooeeapi.solo.io.ListNamespacesResponse.deserializeBinaryFromReader = fun
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.addNamespaceList(value);
+      msg.addNamespaces(value);
       break;
     default:
       reader.skipField();
@@ -1916,7 +1916,7 @@ proto.glooeeapi.solo.io.ListNamespacesResponse.prototype.serializeBinary = funct
  */
 proto.glooeeapi.solo.io.ListNamespacesResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getNamespaceListList();
+  f = message.getNamespacesList();
   if (f.length > 0) {
     writer.writeRepeatedString(
       1,
@@ -1927,16 +1927,16 @@ proto.glooeeapi.solo.io.ListNamespacesResponse.serializeBinaryToWriter = functio
 
 
 /**
- * repeated string namespace_list = 1;
+ * repeated string namespaces = 1;
  * @return {!Array<string>}
  */
-proto.glooeeapi.solo.io.ListNamespacesResponse.prototype.getNamespaceListList = function() {
+proto.glooeeapi.solo.io.ListNamespacesResponse.prototype.getNamespacesList = function() {
   return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
 };
 
 
 /** @param {!Array<string>} value */
-proto.glooeeapi.solo.io.ListNamespacesResponse.prototype.setNamespaceListList = function(value) {
+proto.glooeeapi.solo.io.ListNamespacesResponse.prototype.setNamespacesList = function(value) {
   jspb.Message.setField(this, 1, value || []);
 };
 
@@ -1945,13 +1945,13 @@ proto.glooeeapi.solo.io.ListNamespacesResponse.prototype.setNamespaceListList = 
  * @param {!string} value
  * @param {number=} opt_index
  */
-proto.glooeeapi.solo.io.ListNamespacesResponse.prototype.addNamespaceList = function(value, opt_index) {
+proto.glooeeapi.solo.io.ListNamespacesResponse.prototype.addNamespaces = function(value, opt_index) {
   jspb.Message.addToRepeatedField(this, 1, value, opt_index);
 };
 
 
-proto.glooeeapi.solo.io.ListNamespacesResponse.prototype.clearNamespaceListList = function() {
-  this.setNamespaceListList([]);
+proto.glooeeapi.solo.io.ListNamespacesResponse.prototype.clearNamespacesList = function() {
+  this.setNamespacesList([]);
 };
 
 

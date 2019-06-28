@@ -156,7 +156,7 @@ weight: 5
 
 ```yaml
 "ref": .core.solo.io.ResourceRef
-"watchNamespaceList": []string
+"watchNamespaces": []string
 "refreshRate": .google.protobuf.Duration
 
 ```
@@ -164,7 +164,7 @@ weight: 5
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
-| `watchNamespaceList` | `[]string` |  |  |
+| `watchNamespaces` | `[]string` |  |  |
 | `refreshRate` | [.google.protobuf.Duration](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/duration) |  |  |
 
 
@@ -240,13 +240,13 @@ weight: 5
 
 
 ```yaml
-"namespaceList": []string
+"namespaces": []string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `namespaceList` | `[]string` |  |  |
+| `namespaces` | `[]string` |  |  |
 
 
 

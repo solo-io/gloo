@@ -22,11 +22,11 @@ message GetUpstreamResponse {
 }
 
 message ListUpstreamsRequest {
-    repeated string namespace_list = 1;
+    repeated string namespaces = 1;
 }
 
 message ListUpstreamsResponse {
-    repeated gloo.solo.io.Upstream upstream_list = 1;
+    repeated gloo.solo.io.Upstream upstreams = 1;
 }
 
 message StreamUpstreamListRequest {
@@ -35,7 +35,7 @@ message StreamUpstreamListRequest {
 }
 
 message StreamUpstreamListResponse {
-    repeated gloo.solo.io.Upstream upstream_list = 1;
+    repeated gloo.solo.io.Upstream upstreams = 1;
 }
 
 message UpstreamInput {

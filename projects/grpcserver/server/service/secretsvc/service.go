@@ -36,7 +36,7 @@ func (s *secretGrpcService) GetSecret(ctx context.Context, request *v1.GetSecret
 
 func (s *secretGrpcService) ListSecrets(ctx context.Context, request *v1.ListSecretsRequest) (*v1.ListSecretsResponse, error) {
 	var secretList gloov1.SecretList
-	for _, ns := range request.GetNamespaceList() {
+	for _, ns := range request.GetNamespaces() {
 		secrets, err := s.secretClient.List(ns, clients.ListOpts{Ctx: s.ctx})
 		if err != nil {
 			wrapped := FailedToListSecretsError(err, ns)
@@ -45,7 +45,7 @@ func (s *secretGrpcService) ListSecrets(ctx context.Context, request *v1.ListSec
 		}
 		secretList = append(secretList, secrets...)
 	}
-	return &v1.ListSecretsResponse{SecretList: secretList}, nil
+	return &v1.ListSecretsResponse{Secrets: secretList}, nil
 }
 
 func (s *secretGrpcService) CreateSecret(ctx context.Context, request *v1.CreateSecretRequest) (*v1.CreateSecretResponse, error) {

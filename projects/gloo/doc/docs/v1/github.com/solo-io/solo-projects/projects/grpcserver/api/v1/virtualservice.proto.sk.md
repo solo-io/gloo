@@ -86,13 +86,13 @@ weight: 5
 
 
 ```yaml
-"namespaceList": []string
+"namespaces": []string
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `namespaceList` | `[]string` |  |  |
+| `namespaces` | `[]string` |  |  |
 
 
 
@@ -103,13 +103,13 @@ weight: 5
 
 
 ```yaml
-"virtualService": []gateway.solo.io.VirtualService
+"virtualServices": []gateway.solo.io.VirtualService
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `virtualService` | [[]gateway.solo.io.VirtualService](../../../../../../gloo/projects/gateway/api/v1/virtual_service.proto.sk#virtualservice) |  |  |
+| `virtualServices` | [[]gateway.solo.io.VirtualService](../../../../../../gloo/projects/gateway/api/v1/virtual_service.proto.sk#virtualservice) |  |  |
 
 
 
@@ -139,13 +139,13 @@ weight: 5
 
 
 ```yaml
-"virtualService": .gateway.solo.io.VirtualService
+"virtualServices": []gateway.solo.io.VirtualService
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `virtualService` | [.gateway.solo.io.VirtualService](../../../../../../gloo/projects/gateway/api/v1/virtual_service.proto.sk#virtualservice) |  |  |
+| `virtualServices` | [[]gateway.solo.io.VirtualService](../../../../../../gloo/projects/gateway/api/v1/virtual_service.proto.sk#virtualservice) |  |  |
 
 
 

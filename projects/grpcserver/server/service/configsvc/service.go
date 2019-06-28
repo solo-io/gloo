@@ -89,8 +89,8 @@ func (s *configGrpcService) UpdateSettings(ctx context.Context, request *v1.Upda
 		}
 		existing.RefreshRate = request.GetRefreshRate()
 	}
-	if request.GetWatchNamespaceList() != nil {
-		existing.WatchNamespaces = request.GetWatchNamespaceList()
+	if request.GetWatchNamespaces() != nil {
+		existing.WatchNamespaces = request.GetWatchNamespaces()
 	}
 
 	written, err := s.settingsClient.Write(existing, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
@@ -109,7 +109,7 @@ func (s *configGrpcService) ListNamespaces(context.Context, *v1.ListNamespacesRe
 		return nil, FailedToListNamespacesError(err)
 	}
 
-	return &v1.ListNamespacesResponse{NamespaceList: namespaceList}, nil
+	return &v1.ListNamespacesResponse{Namespaces: namespaceList}, nil
 }
 
 func validateRefreshRate(rr *types.Duration) error {

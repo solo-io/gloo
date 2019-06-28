@@ -105,10 +105,10 @@ var _ = Describe("ServiceTest", func() {
 				List(ns2, clients.ListOpts{Ctx: context.TODO()}).
 				Return([]*gloov1.Artifact{&artifact2}, nil)
 
-			request := &v1.ListArtifactsRequest{NamespaceList: []string{ns1, ns2}}
+			request := &v1.ListArtifactsRequest{Namespaces: []string{ns1, ns2}}
 			actual, err := client.ListArtifacts(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.ListArtifactsResponse{ArtifactList: []*gloov1.Artifact{&artifact1, &artifact2}}
+			expected := &v1.ListArtifactsResponse{Artifacts: []*gloov1.Artifact{&artifact1, &artifact2}}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -119,7 +119,7 @@ var _ = Describe("ServiceTest", func() {
 				List(ns, clients.ListOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
-			request := &v1.ListArtifactsRequest{NamespaceList: []string{ns}}
+			request := &v1.ListArtifactsRequest{Namespaces: []string{ns}}
 			_, err := client.ListArtifacts(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := artifactsvc.FailedToListArtifactsError(testErr, ns)

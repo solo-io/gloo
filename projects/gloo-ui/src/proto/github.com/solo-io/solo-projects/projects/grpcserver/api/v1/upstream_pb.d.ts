@@ -56,10 +56,10 @@ export namespace GetUpstreamResponse {
 }
 
 export class ListUpstreamsRequest extends jspb.Message {
-  clearNamespaceListList(): void;
-  getNamespaceListList(): Array<string>;
-  setNamespaceListList(value: Array<string>): void;
-  addNamespaceList(value: string, index?: number): string;
+  clearNamespacesList(): void;
+  getNamespacesList(): Array<string>;
+  setNamespacesList(value: Array<string>): void;
+  addNamespaces(value: string, index?: number): string;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListUpstreamsRequest.AsObject;
@@ -73,15 +73,15 @@ export class ListUpstreamsRequest extends jspb.Message {
 
 export namespace ListUpstreamsRequest {
   export type AsObject = {
-    namespaceListList: Array<string>,
+    namespacesList: Array<string>,
   }
 }
 
 export class ListUpstreamsResponse extends jspb.Message {
-  clearUpstreamListList(): void;
-  getUpstreamListList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>;
-  setUpstreamListList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>): void;
-  addUpstreamList(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
+  clearUpstreamsList(): void;
+  getUpstreamsList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>;
+  setUpstreamsList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>): void;
+  addUpstreams(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListUpstreamsResponse.AsObject;
@@ -95,7 +95,7 @@ export class ListUpstreamsResponse extends jspb.Message {
 
 export namespace ListUpstreamsResponse {
   export type AsObject = {
-    upstreamListList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject>,
+    upstreamsList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject>,
   }
 }
 
@@ -123,10 +123,10 @@ export namespace StreamUpstreamListRequest {
 }
 
 export class StreamUpstreamListResponse extends jspb.Message {
-  clearUpstreamListList(): void;
-  getUpstreamListList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>;
-  setUpstreamListList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>): void;
-  addUpstreamList(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
+  clearUpstreamsList(): void;
+  getUpstreamsList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>;
+  setUpstreamsList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>): void;
+  addUpstreams(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): StreamUpstreamListResponse.AsObject;
@@ -140,7 +140,7 @@ export class StreamUpstreamListResponse extends jspb.Message {
 
 export namespace StreamUpstreamListResponse {
   export type AsObject = {
-    upstreamListList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject>,
+    upstreamsList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject>,
   }
 }
 

@@ -20,11 +20,11 @@ message GetVirtualServiceResponse {
 }
 
 message ListVirtualServicesRequest {
-    repeated string namespace_list = 1;
+    repeated string namespaces = 1;
 }
 
 message ListVirtualServicesResponse {
-    repeated gateway.solo.io.VirtualService virtual_service = 1;
+    repeated gateway.solo.io.VirtualService virtual_services = 1;
 }
 
 message StreamVirtualServiceListRequest {
@@ -33,7 +33,7 @@ message StreamVirtualServiceListRequest {
 }
 
 message StreamVirtualServiceListResponse {
-    gateway.solo.io.VirtualService virtual_service = 1;
+    repeated gateway.solo.io.VirtualService virtual_services = 1;
 }
 
 message VirtualServiceInput {

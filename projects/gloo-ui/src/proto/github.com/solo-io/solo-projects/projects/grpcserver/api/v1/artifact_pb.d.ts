@@ -51,10 +51,10 @@ export namespace GetArtifactResponse {
 }
 
 export class ListArtifactsRequest extends jspb.Message {
-  clearNamespaceListList(): void;
-  getNamespaceListList(): Array<string>;
-  setNamespaceListList(value: Array<string>): void;
-  addNamespaceList(value: string, index?: number): string;
+  clearNamespacesList(): void;
+  getNamespacesList(): Array<string>;
+  setNamespacesList(value: Array<string>): void;
+  addNamespaces(value: string, index?: number): string;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListArtifactsRequest.AsObject;
@@ -68,15 +68,15 @@ export class ListArtifactsRequest extends jspb.Message {
 
 export namespace ListArtifactsRequest {
   export type AsObject = {
-    namespaceListList: Array<string>,
+    namespacesList: Array<string>,
   }
 }
 
 export class ListArtifactsResponse extends jspb.Message {
-  clearArtifactListList(): void;
-  getArtifactListList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact>;
-  setArtifactListList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact>): void;
-  addArtifactList(value?: github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact;
+  clearArtifactsList(): void;
+  getArtifactsList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact>;
+  setArtifactsList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact>): void;
+  addArtifacts(value?: github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListArtifactsResponse.AsObject;
@@ -90,7 +90,7 @@ export class ListArtifactsResponse extends jspb.Message {
 
 export namespace ListArtifactsResponse {
   export type AsObject = {
-    artifactListList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.AsObject>,
+    artifactsList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_artifact_pb.Artifact.AsObject>,
   }
 }
 
