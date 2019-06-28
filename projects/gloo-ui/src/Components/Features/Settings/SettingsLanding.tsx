@@ -15,6 +15,7 @@ import {
 import { SecretsPage } from './SecretsPage';
 import { WatchedNamespacesPage } from './WatchedNamespacesPage';
 import { SecurityPage } from './SecurityPage';
+import { RouteParams } from '../Stats/StatsLanding';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',
@@ -32,9 +33,17 @@ const PageChoiceFilter: TypeFilterProps = {
   choice: 'Security'
 };
 
-interface Props extends RouteComponentProps<{ history: string }> {}
+interface Props extends RouteComponentProps<RouteParams> {}
 
 export const SettingsLanding = (props: Props) => {
+  const locationEnding = props.location.pathname.split('/settings/')[1];
+  const startingChoice =
+    locationEnding.length === 0
+      ? 'Security'
+      : locationEnding === 'namespaces'
+      ? 'Watched Namespaces'
+      : locationEnding.charAt(0).toUpperCase() + locationEnding.slice(1);
+
   const pageChanged = (
     strings: StringFilterProps[],
     types: TypeFilterProps[],
@@ -76,7 +85,7 @@ export const SettingsLanding = (props: Props) => {
 
   return (
     <ListingFilter
-      types={[PageChoiceFilter]}
+      types={[{ ...PageChoiceFilter, choice: startingChoice }]}
       filterFunction={listDisplay}
       onChange={pageChanged}
     />

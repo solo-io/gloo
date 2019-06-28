@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Watched namespace page visualizations, 80% setup
+    issueLink: https://github.com/solo-io/solo-projects/issues/638
+    resolvesIssue: false

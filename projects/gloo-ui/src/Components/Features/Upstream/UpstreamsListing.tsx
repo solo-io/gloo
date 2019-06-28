@@ -69,7 +69,7 @@ export const UpstreamsListing = ({
       <div>
         {strings.map(fil => {
           return (
-            <div>
+            <div key={fil.displayName}>
               <span>{fil.displayName}</span>
               <span>{fil.value}</span>
             </div>
@@ -77,7 +77,7 @@ export const UpstreamsListing = ({
         })}
         {checkboxes.map(fil => {
           return (
-            <div>
+            <div key={fil.displayName}>
               <span>{fil.displayName}</span>
               <span>{!!fil.value ? 'true' : 'false'}</span>
             </div>
