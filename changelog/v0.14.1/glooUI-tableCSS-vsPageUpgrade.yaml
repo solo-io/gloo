@@ -1,0 +1,9 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Virtual services page table and toggle complete
+    issueLink: https://github.com/solo-io/solo-projects/issues/634
+    resolvesIssue: false
+  - type: NEW_FEATURE
+    description: Tables now look closer to spec
+    issueLink: https://github.com/solo-io/solo-projects/issues/634
+    resolvesIssue: false

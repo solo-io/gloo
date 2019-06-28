@@ -12,6 +12,92 @@ import {
   CheckboxFilterProps,
   RadioFilterProps
 } from '../../Common/ListingFilter';
+import { SoloTable } from 'Components/Common/SoloTable';
+import { SectionCard } from 'Components/Common/SectionCard';
+import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
+import { ReactComponent as Gloo } from 'assets/Gloo.svg';
+import { Breadcrumb } from 'Components/Common/Breadcrumb';
+
+interface DataType {
+  name: string;
+  domain: string;
+  namespace: string;
+  version: string;
+  status: number;
+  routes: number;
+  brLimit: {
+    min: number;
+    sec: number;
+  };
+  arLimit: {
+    min: number;
+    sec: number;
+  };
+  actions: null;
+}
+interface DataSourceType extends DataType {
+  key: string;
+}
+
+const data: DataType[] = [
+  {
+    name: 'Jojoa.sdf',
+    domain: 'abc.def',
+    namespace: 'default',
+    version: 'v012',
+    status: 0,
+    routes: 3,
+    brLimit: {
+      min: 5,
+      sec: 0
+    },
+    arLimit: {
+      min: 37,
+      sec: 12
+    },
+    actions: null
+  }
+];
+
+const TableColumns = [
+  {
+    title: 'Name',
+    dataIndex: 'name'
+  },
+  {
+    title: 'Domain',
+    dataIndex: 'domain'
+  },
+  {
+    title: 'Namespace',
+    dataIndex: 'namespace'
+  },
+  {
+    title: 'Version',
+    dataIndex: 'version'
+  },
+  {
+    title: 'Status',
+    dataIndex: 'status'
+  },
+  {
+    title: 'Routes',
+    dataIndex: 'routes'
+  },
+  {
+    title: 'BR Limit',
+    dataIndex: 'brLimit'
+  },
+  {
+    title: 'AR Limit',
+    dataIndex: 'arLimit'
+  },
+  {
+    title: 'Actions',
+    dataIndex: 'actions',
+    render: (text: any) => <div>ACTION!</div>
+  }
+];
 
 const StringFilters: StringFilterProps[] = [
   {
@@ -21,16 +107,31 @@ const StringFilters: StringFilterProps[] = [
   }
 ];
 
-export interface RouteParams {
+const Heading = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+`;
+
+interface Props extends RouteComponentProps {
   //... eg, virtualservice?: string
 }
 
-export const VirtualServicesListing = ({
-  history,
-  match,
-  location
-}: RouteComponentProps<RouteParams>) => {
+export const VirtualServicesListing = (props: Props) => {
   const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(true);
+
+  const getUsableTableData = (nameFilter: string): DataSourceType[] => {
+    //REPLACE
+    const dataUsed: DataSourceType[] = [1, 2, 3, 4].map(num => {
+      return {
+        ...data[0],
+        name: data[0].name + num,
+        key: `${num}`
+      };
+    });
+
+    return dataUsed.filter(row => row.name.includes(nameFilter));
+  };
 
   const listDisplay = (
     strings: StringFilterProps[],
@@ -38,19 +139,32 @@ export const VirtualServicesListing = ({
     checkboxes: CheckboxFilterProps[],
     radios: RadioFilterProps[]
   ) => {
-    return (
-      <div>
-        {strings.map(fil => {
-          return (
-            <div>
-              <span>{fil.displayName}</span>
-              <span>{fil.value}</span>
-            </div>
-          );
-        })}
-      </div>
+    const nameFilterValue: string = strings.find(
+      s => s.displayName === 'Filter By Name...'
+    )!.value!;
+
+    return catalogNotTable ? (
+      <SectionCard cardName={'Virtual Services'} logoIcon={<Gloo />} />
+    ) : (
+      <SoloTable
+        dataSource={getUsableTableData(nameFilterValue)}
+        columns={TableColumns}
+      />
     );
   };
 
-  return <ListingFilter strings={StringFilters} filterFunction={listDisplay} />;
+  return (
+    <div>
+      <Heading>
+        <Breadcrumb />
+        <CatalogTableToggle
+          listIsSelected={!catalogNotTable}
+          onToggle={() => {
+            setCatalogNotTable(cNt => !cNt);
+          }}
+        />
+      </Heading>
+      <ListingFilter strings={StringFilters} filterFunction={listDisplay} />
+    </div>
+  );
 };

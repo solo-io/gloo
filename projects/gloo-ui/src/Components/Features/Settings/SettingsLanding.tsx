@@ -15,7 +15,6 @@ import {
 import { SecretsPage } from './SecretsPage';
 import { WatchedNamespacesPage } from './WatchedNamespacesPage';
 import { SecurityPage } from './SecurityPage';
-import { RouteParams } from '../Stats/StatsLanding';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',
@@ -33,7 +32,7 @@ const PageChoiceFilter: TypeFilterProps = {
   choice: 'Security'
 };
 
-interface Props extends RouteComponentProps<RouteParams> {}
+interface Props extends RouteComponentProps {}
 
 export const SettingsLanding = (props: Props) => {
   const locationEnding = props.location.pathname.split('/settings/')[1];

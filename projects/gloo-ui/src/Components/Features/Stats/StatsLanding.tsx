@@ -6,14 +6,8 @@ import styled from '@emotion/styled/macro';
 import { withRouter, RouteComponentProps } from 'react-router';
 import { colors } from 'Styles';
 
-export interface RouteParams {
-  //... eg, virtualservice?: string
-}
+interface Props extends RouteComponentProps {}
 
-export const StatsLanding = ({
-  history,
-  match,
-  location
-}: RouteComponentProps<RouteParams>) => {
+export const StatsLanding = (props: Props) => {
   return <div>This is the stats landing placeholder...</div>;
 };

@@ -12,6 +12,8 @@ import {
   CheckboxFilterProps,
   RadioFilterProps
 } from '../../Common/ListingFilter';
+import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
+import { Breadcrumb } from 'Components/Common/Breadcrumb';
 
 const StringFilters: StringFilterProps[] = [
   {
@@ -48,15 +50,17 @@ const CheckboxFilters: CheckboxFilterProps[] = [
   }
 ];
 
-export interface RouteParams {
+const Heading = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+`;
+
+interface Props extends RouteComponentProps {
   //... eg, virtualservice?: string
 }
 
-export const UpstreamsListing = ({
-  history,
-  match,
-  location
-}: RouteComponentProps<RouteParams>) => {
+export const UpstreamsListing = (props: Props) => {
   const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(true);
 
   const listDisplay = (
@@ -88,10 +92,21 @@ export const UpstreamsListing = ({
   };
 
   return (
-    <ListingFilter
-      strings={StringFilters}
-      checkboxes={CheckboxFilters}
-      filterFunction={listDisplay}
-    />
+    <div>
+      <Heading>
+        <Breadcrumb />
+        <CatalogTableToggle
+          listIsSelected={!catalogNotTable}
+          onToggle={() => {
+            setCatalogNotTable(cNt => !cNt);
+          }}
+        />
+      </Heading>
+      <ListingFilter
+        strings={StringFilters}
+        checkboxes={CheckboxFilters}
+        filterFunction={listDisplay}
+      />
+    </div>
   );
 };

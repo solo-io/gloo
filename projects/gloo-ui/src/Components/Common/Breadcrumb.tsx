@@ -17,7 +17,7 @@ const CrumbLink = styled.span`
   cursor: pointer;
 `;
 
-export interface RouteParams {
+interface RouteParams {
   //... eg, virtualservice?: string
 }
 
