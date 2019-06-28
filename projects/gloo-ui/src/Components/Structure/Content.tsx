@@ -24,6 +24,11 @@ export const Content = () => {
           render={(props: any) => <VirtualServicesListing {...props} />}
         />
         <Route
+          path='/virtualservices/:virtualservicename/'
+          render={(props: any) => <VirtualServicesListing {...props} />}
+        />
+
+        <Route
           path='/upstreams/'
           exact
           render={(props: any) => <UpstreamsListing {...props} />}
@@ -38,6 +43,7 @@ export const Content = () => {
           exact
           render={(props: any) => <StatsLanding {...props} />}
         />
+
         <Route
           path='/settings/'
           render={(props: any) => <SettingsLanding {...props} />}

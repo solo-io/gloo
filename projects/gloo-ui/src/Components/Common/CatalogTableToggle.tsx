@@ -12,7 +12,7 @@ const Container = styled.div``;
 
 const TileIcon = styled<
   React.FunctionComponent,
-  { isActive?: boolean; onClick: () => any }
+  { selected?: boolean; onClick: () => any }
 >(ColorlessTile)`
   margin-right: 10px;
   cursor: pointer;
@@ -27,7 +27,7 @@ const TileIcon = styled<
   }
 
   ${props =>
-    props.isActive
+    props.selected
       ? `
         pointer-events: none;
 
@@ -40,7 +40,7 @@ const TileIcon = styled<
 
 const ListIcon = styled<
   React.FunctionComponent,
-  { isActive?: boolean; onClick: () => any }
+  { selected?: boolean; onClick: () => any }
 >(ColorlessList)`
   cursor: pointer;
 
@@ -54,7 +54,7 @@ const ListIcon = styled<
   }
 
   ${props =>
-    props.isActive
+    props.selected
       ? `
         pointer-events: none;
 
@@ -69,11 +69,11 @@ interface Props {
   listIsSelected: boolean;
   onToggle: () => any;
   disabled?: boolean;
-  tileIsSelected?: boolean; // If we ever need them both false or true for some reason
+  tileselected?: boolean; // If we ever need them both false or true for some reason
 }
 
 export const CatalogTableToggle = (props: Props) => {
-  const { listIsSelected, onToggle, disabled, tileIsSelected } = props;
+  const { listIsSelected, onToggle, disabled, tileselected } = props;
 
   const doToggle = () => {
     if (!disabled) {
@@ -83,8 +83,11 @@ export const CatalogTableToggle = (props: Props) => {
 
   return (
     <Container>
-      <TileIcon isActive={!listIsSelected} onClick={doToggle} />
-      <ListIcon isActive={listIsSelected} onClick={doToggle} />
+      <TileIcon
+        selected={!listIsSelected || !!tileselected}
+        onClick={doToggle}
+      />
+      <ListIcon selected={listIsSelected} onClick={doToggle} />
     </Container>
   );
 };
