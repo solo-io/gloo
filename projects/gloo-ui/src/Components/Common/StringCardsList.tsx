@@ -58,7 +58,7 @@ export const StringCardsList = (props: Props) => {
     <Container>
       {values.map((value, ind) => {
         return (
-          <StringCard>
+          <StringCard key={ind}>
             {value} <div onClick={() => valueDeleted(ind)}>X</div>
           </StringCard>
         );

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { StringCardsList } from 'Components/Common/StringCardsList';
 import styled from '@emotion/styled/macro';
 import { colors } from 'Styles';
+import { DetailsSectionTitle } from './VirtualServiceDetails';
 
 const DomainsContainer = styled.div`
   background: ${colors.januaryGrey};
@@ -10,6 +11,7 @@ const DomainsContainer = styled.div`
   align-content: center;
   align-items: center;
 `;
+
 export const Domains = () => {
   const [domains, setDomains] = React.useState(['solo.io', 'domain.com']);
 
@@ -23,13 +25,16 @@ export const Domains = () => {
     setDomains(newList);
   };
   return (
-    <DomainsContainer>
-      <StringCardsList
-        values={domains}
-        valueDeleted={removeDomain}
-        createNewPromptText='new domain'
-        createNew={addDomain}
-      />
-    </DomainsContainer>
+    <React.Fragment>
+      <DetailsSectionTitle>Domains</DetailsSectionTitle>
+      <DomainsContainer>
+        <StringCardsList
+          values={domains}
+          valueDeleted={removeDomain}
+          createNewPromptText='new domain'
+          createNew={addDomain}
+        />
+      </DomainsContainer>
+    </React.Fragment>
   );
 };

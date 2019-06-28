@@ -6,32 +6,26 @@ import { Routes } from './Routes';
 import { Configuration } from './Configuration';
 import styled from '@emotion/styled/macro';
 import { colors, soloConstants } from 'Styles';
+import { RouteComponentProps } from 'react-router';
 
-const CardAddonsContainer = styled.div`
-  /* padding: ${soloConstants.buffer}px ${soloConstants.smallBuffer}px 10px;
-  display: flex;
-  flex-direction: column; */
+const DetailsContent = styled.div`
   display: grid;
   grid-template-rows: auto 2fr 1fr;
   grid-column-gap: 30px;
 `;
 
-const CardAddons = styled.div`
+const DetailsSection = styled.div`
   width: 100%;
 `;
-const CardAddonsTitle = styled.div`
+export const DetailsSectionTitle = styled.div`
   font-size: 18px;
   font-weight: bold;
   color: ${colors.novemberGrey};
+  margin-top: 10px;
   margin-bottom: 10px;
 `;
 
-const MoreTease = styled.div`
-  margin: 10px 0 0;
-  font-size: 14px;
-  color: ${colors.septemberGrey};
-`;
-
+interface Props extends RouteComponentProps<{ virtualservicename: string }> {}
 const headerInfo = [
   {
     title: 'namespace',
@@ -43,30 +37,28 @@ const headerInfo = [
   }
 ];
 
-export const VirtualServiceDetails = () => {
+export const VirtualServiceDetails = (props: Props) => {
+  const { match } = props;
   return (
     <React.Fragment>
       <SectionCard
-        cardName='Dio-test'
+        cardName={match.params ? match.params.virtualservicename : 'test'}
         logoIcon={<GlooIcon />}
         health={1}
         headerSecondaryInformation={headerInfo}
         healthMessage='Service Status'
         closeIcon>
-        <CardAddonsContainer>
-          <CardAddons>
-            <CardAddonsTitle>Domains</CardAddonsTitle>
+        <DetailsContent>
+          <DetailsSection>
             <Domains />
-          </CardAddons>
-          <CardAddons>
-            <CardAddonsTitle>Routes</CardAddonsTitle>
+          </DetailsSection>
+          <DetailsSection>
             <Routes />
-          </CardAddons>
-          <CardAddons>
-            <CardAddonsTitle>Configuration</CardAddonsTitle>
+          </DetailsSection>
+          <DetailsSection>
             <Configuration />
-          </CardAddons>
-        </CardAddonsContainer>
+          </DetailsSection>
+        </DetailsContent>
       </SectionCard>
     </React.Fragment>
   );

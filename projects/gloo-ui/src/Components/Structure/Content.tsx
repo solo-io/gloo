@@ -6,7 +6,7 @@ import { VirtualServicesListing } from 'Components/Features/VirtualService/Virtu
 import { UpstreamsListing } from 'Components/Features/Upstream/UpstreamsListing';
 import { StatsLanding } from 'Components/Features/Stats/StatsLanding';
 import { SettingsLanding } from 'Components/Features/Settings/SettingsLanding';
-import { VirtualServiceDetails } from '../Features/VirtualService/VirtualServiceDetails';
+import { VirtualServiceDetails } from '../Features/VirtualService/Details/VirtualServiceDetails';
 
 const Container = styled.div`
   padding: 35px 0 20px;
@@ -25,16 +25,16 @@ export const Content = () => {
         />
         <Route
           path='/virtualservices/:virtualservicename/'
+          exact
           render={(props: any) => <VirtualServicesListing {...props} />}
         />
-
         <Route
           path='/upstreams/'
           exact
           render={(props: any) => <UpstreamsListing {...props} />}
         />
         <Route
-          path='/virtualservices/details'
+          path='/virtualservices/:virtualservicename/details'
           exact
           render={(props: any) => <VirtualServiceDetails {...props} />}
         />
@@ -43,12 +43,10 @@ export const Content = () => {
           exact
           render={(props: any) => <StatsLanding {...props} />}
         />
-
         <Route
           path='/settings/'
           render={(props: any) => <SettingsLanding {...props} />}
         />
-
         <Redirect exact from='/' to='/virtualservices/' />
       </Switch>
     </Container>

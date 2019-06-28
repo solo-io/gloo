@@ -17,6 +17,7 @@ const ModalWindow = styled.div`
   background: rgba(0, 0, 0, 0.1);
   overflow: auto;
   line-height: 19px;
+  z-index: 100;
 `;
 
 const BlockHolder = styled.div`

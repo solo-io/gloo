@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Ext auth modal form set up, needs API hookup.
+    issueLink: https://github.com/solo-io/solo-projects/issues/636
+    resolvesIssue: false

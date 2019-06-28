@@ -6,7 +6,6 @@ import styled from '@emotion/styled/macro';
 import { withRouter, RouteComponentProps } from 'react-router';
 import { Breadcrumb as AntdBreadcrumb } from 'antd';
 import { colors } from 'Styles';
-import { string } from 'yup';
 
 const BreadcrumbContainer = styled(AntdBreadcrumb)`
   margin-bottom: 15px;

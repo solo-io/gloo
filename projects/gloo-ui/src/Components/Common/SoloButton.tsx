@@ -8,7 +8,7 @@ import { BaseButtonProps } from 'antd/lib/button/button';
 
 interface ButtonProps extends BaseButtonProps {
   text: string;
-  onClick: () => any;
+  onClick: any;
   inProgressText?: string;
   errorText?: string;
   error?: boolean;

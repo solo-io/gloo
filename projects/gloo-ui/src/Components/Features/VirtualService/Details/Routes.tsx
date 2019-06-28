@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { SoloTable } from 'Components/Common/SoloTable';
+import { DetailsSectionTitle } from './VirtualServiceDetails';
 
 const routeColumns = [
   {
@@ -55,8 +56,9 @@ for (let i = 1; i <= 5; i++) {
 
 export const Routes = () => {
   return (
-    <div>
+    <React.Fragment>
+      <DetailsSectionTitle>Routes</DetailsSectionTitle>
       <SoloTable columns={routeColumns} dataSource={routeData} />
-    </div>
+    </React.Fragment>
   );
 };

@@ -142,7 +142,7 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
           <SecondaryInformation>
             {headerSecondaryInformation.map(info => {
               return (
-                <SecondaryInformationSection>
+                <SecondaryInformationSection key={info.value}>
                   {!!info.title && (
                     <SecondaryInformationTitle>
                       {info.title}:{' '}
