@@ -26,7 +26,8 @@ export const colors = {
   septemberGrey: 'hsl(200, 3%, 44%)', //#6E7477
   novemberGrey: 'hsl(200, 5%, 22%)', //#35393B
 
-  boxShadow: 'hsla(0, 0%, 0%, 0.1)'
+  boxShadow: 'hsla(0, 0%, 0%, 0.1)',
+  darkerBoxShadow: 'hsla(0,0%,0%, .15)'
 } as { [key: string]: string };
 
 export function hslToHSLA(hsl: string, alpha: number | string) {

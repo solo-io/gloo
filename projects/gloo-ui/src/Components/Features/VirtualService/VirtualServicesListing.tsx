@@ -17,6 +17,8 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
 import { ReactComponent as Gloo } from 'assets/Gloo.svg';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
+import { CardsListing } from 'Components/Common/CardsListing';
+import { CardType } from 'Components/Common/Card';
 
 interface DataType {
   name: string;
@@ -120,6 +122,28 @@ interface Props extends RouteComponentProps {
 export const VirtualServicesListing = (props: Props) => {
   const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(true);
 
+  const getUsableCatalogData = (nameFilter: string): CardType[] => {
+    //REPLACE
+    const dataUsed: CardType[] = [1, 2, 3, 4, 5, 6].map(num => {
+      return {
+        ...data[0],
+        cardTitle: data[0].name + num,
+        cardSubtitle: 'subtitle' + num,
+        onRemovecard: (id: string): void => {},
+        onExpanded: () => {},
+        details: [
+          {
+            title: 'sample',
+            value: 'maybe',
+            valueDisplay: <div>No, we'll display this instead</div>
+          }
+        ]
+      };
+    });
+
+    return dataUsed.filter(row => row.cardTitle.includes(nameFilter));
+  };
+
   const getUsableTableData = (nameFilter: string): DataSourceType[] => {
     //REPLACE
     const dataUsed: DataSourceType[] = [1, 2, 3, 4].map(num => {
@@ -144,7 +168,9 @@ export const VirtualServicesListing = (props: Props) => {
     )!.value!;
 
     return catalogNotTable ? (
-      <SectionCard cardName={'Virtual Services'} logoIcon={<Gloo />} />
+      <SectionCard cardName={'Virtual Services'} logoIcon={<Gloo />}>
+        <CardsListing cardsData={getUsableCatalogData(nameFilterValue)} />
+      </SectionCard>
     ) : (
       <SoloTable
         dataSource={getUsableTableData(nameFilterValue)}

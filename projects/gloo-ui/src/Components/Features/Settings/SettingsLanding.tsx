@@ -15,6 +15,7 @@ import {
 import { SecretsPage } from './SecretsPage';
 import { WatchedNamespacesPage } from './WatchedNamespacesPage';
 import { SecurityPage } from './SecurityPage';
+import { Breadcrumb } from 'Components/Common/Breadcrumb';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',
@@ -32,16 +33,22 @@ const PageChoiceFilter: TypeFilterProps = {
   choice: 'Security'
 };
 
+const Heading = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+`;
+
 interface Props extends RouteComponentProps {}
 
 export const SettingsLanding = (props: Props) => {
   const locationEnding = props.location.pathname.split('/settings/')[1];
   const startingChoice =
-    locationEnding.length === 0
-      ? 'Security'
-      : locationEnding === 'namespaces'
-      ? 'Watched Namespaces'
-      : locationEnding.charAt(0).toUpperCase() + locationEnding.slice(1);
+    locationEnding && locationEnding.length
+      ? locationEnding === 'namespaces'
+        ? 'Watched Namespaces'
+        : locationEnding.charAt(0).toUpperCase() + locationEnding.slice(1)
+      : 'Security';
 
   const pageChanged = (
     strings: StringFilterProps[],
@@ -83,10 +90,15 @@ export const SettingsLanding = (props: Props) => {
   };
 
   return (
-    <ListingFilter
-      types={[{ ...PageChoiceFilter, choice: startingChoice }]}
-      filterFunction={listDisplay}
-      onChange={pageChanged}
-    />
+    <div>
+      <Heading>
+        <Breadcrumb />
+      </Heading>
+      <ListingFilter
+        types={[{ ...PageChoiceFilter, choice: startingChoice }]}
+        filterFunction={listDisplay}
+        onChange={pageChanged}
+      />
+    </div>
   );
 };

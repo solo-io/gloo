@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Virtual services catalog. Reusable elsewhere.
+    issueLink: https://github.com/solo-io/solo-projects/issues/634
+    resolvesIssue: false
