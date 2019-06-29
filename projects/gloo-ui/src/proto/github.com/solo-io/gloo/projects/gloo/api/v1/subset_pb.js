@@ -12,7 +12,7 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
-var gogoproto_gogo_pb = require('../../../../../../../gogoproto/gogo_pb.js');
+var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
 goog.exportSymbol('proto.gloo.solo.io.Subset', null, global);
 
 /**

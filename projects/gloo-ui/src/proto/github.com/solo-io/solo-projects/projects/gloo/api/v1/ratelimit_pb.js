@@ -15,7 +15,7 @@ var global = Function('return this')();
 var envoy_api_v2_discovery_pb = require('../../../../../../../envoy/api/v2/discovery_pb.js');
 var google_api_annotations_pb = require('../../../../../../../google/api/annotations_pb.js');
 var github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb = require('../../../../../../../github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb.js');
-var gogoproto_gogo_pb = require('../../../../../../../gogoproto/gogo_pb.js');
+var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
 goog.exportSymbol('proto.glooe.solo.io.RateLimitConfig', null, global);
 
 /**

@@ -130,6 +130,7 @@ UI_PROTOC_FLAGS=--plugin=protoc-gen-ts=projects/gloo-ui/node_modules/.bin/protoc
 
 .PHONY: generated-ui
 generated-ui:
+	rm -rf projects/gloo-ui/src/proto
 	mkdir -p projects/gloo-ui/src/proto
 	ci/check-protoc.sh
 	protoc $(UI_PROTOC_FLAGS) \

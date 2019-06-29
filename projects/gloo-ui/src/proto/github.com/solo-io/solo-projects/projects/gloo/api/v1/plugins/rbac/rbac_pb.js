@@ -12,7 +12,7 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
-var gogoproto_gogo_pb = require('../../../../../../../../../gogoproto/gogo_pb.js');
+var gogoproto_gogo_pb = require('../../../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
 goog.exportSymbol('proto.rbac.plugins.gloo.solo.io.Config', null, global);
 goog.exportSymbol('proto.rbac.plugins.gloo.solo.io.JWTPrincipal', null, global);
 goog.exportSymbol('proto.rbac.plugins.gloo.solo.io.Permissions', null, global);

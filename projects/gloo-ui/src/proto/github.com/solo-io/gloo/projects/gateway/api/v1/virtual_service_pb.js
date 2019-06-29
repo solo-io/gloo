@@ -12,7 +12,7 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
-var gogoproto_gogo_pb = require('../../../../../../../gogoproto/gogo_pb.js');
+var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
 var github_com_solo$io_solo$kit_api_v1_metadata_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/metadata_pb.js');
 var github_com_solo$io_solo$kit_api_v1_status_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/status_pb.js');
 var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');

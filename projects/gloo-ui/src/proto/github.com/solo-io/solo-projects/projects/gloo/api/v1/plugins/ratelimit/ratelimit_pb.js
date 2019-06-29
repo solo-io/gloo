@@ -15,7 +15,7 @@ var global = Function('return this')();
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
-var gogoproto_gogo_pb = require('../../../../../../../../../gogoproto/gogo_pb.js');
+var gogoproto_gogo_pb = require('../../../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
 goog.exportSymbol('proto.ratelimit.plugins.gloo.solo.io.Action', null, global);
 goog.exportSymbol('proto.ratelimit.plugins.gloo.solo.io.Action.DestinationCluster', null, global);
 goog.exportSymbol('proto.ratelimit.plugins.gloo.solo.io.Action.GenericKey', null, global);
