@@ -2,7 +2,7 @@ import * as React from 'react';
 import styled from '@emotion/styled/macro';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloButton } from 'Components/Common/SoloButton';
-import { useFormValidation } from '../../../../Hooks/useFormValidation';
+import { useFormValidation } from 'Hooks/useFormValidation';
 import { colors } from 'Styles';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
 
@@ -128,7 +128,7 @@ export const ExtAuthForm = () => {
         </div>
         <SoloNegativeButton>Clear</SoloNegativeButton>
         <SoloButton
-          onClick={handleSubmit}
+          onClick={handleSubmit!}
           text='Submit'
           disabled={isSubmitting}
         />

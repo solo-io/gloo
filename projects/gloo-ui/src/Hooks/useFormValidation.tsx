@@ -39,7 +39,7 @@ export const useFormValidation = (
     setErrors(validationErrors);
   };
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = (e: React.MouseEvent<any, MouseEvent>) => {
     e.preventDefault();
     setErrors(validate(values));
     setIsSubmitting(true);

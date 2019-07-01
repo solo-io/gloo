@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Rate Limit form scaffold.
+    issueLink: https://github.com/solo-io/solo-projects/issues/636
+    resolvesIssue: false

@@ -8,7 +8,7 @@ import { BaseButtonProps } from 'antd/lib/button/button';
 
 interface ButtonProps extends BaseButtonProps {
   text: string;
-  onClick: any;
+  onClick: (e: React.MouseEvent<any, MouseEvent>) => void;
   inProgressText?: string;
   errorText?: string;
   error?: boolean;
