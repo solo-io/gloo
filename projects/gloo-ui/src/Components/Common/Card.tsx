@@ -127,7 +127,7 @@ export const Card = (props: CardType) => {
           <ExpandedDetails>
             {details.map(detail => {
               return (
-                <Detail>
+                <Detail key={detail.title}>
                   <DetailTitle>{detail.title}:</DetailTitle>
                   <DetailContent>
                     {!!detail.valueDisplay ? detail.valueDisplay : detail.value}

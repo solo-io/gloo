@@ -23,7 +23,7 @@ import { CardsListing } from 'Components/Common/CardsListing';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { CardType } from 'antd/lib/card';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
-
+import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 const StringFilters: StringFilterProps[] = [
   {
     displayName: 'Filter By Name...',
@@ -40,11 +40,11 @@ const TableColumns = [
 
   {
     title: 'Namespace',
-    dataIndex: 'namespace'
+    dataIndex: 'metadata.namespace'
   },
   {
     title: 'Version',
-    dataIndex: 'version'
+    dataIndex: 'metadata.resourceVersion'
   },
   {
     title: 'Routes',
@@ -122,7 +122,7 @@ export const UpstreamsListing = (props: Props) => {
     if (!data || loading) {
       return <div>Loading...</div>;
     }
-
+    console.log(getUsableTableData(nameFilterValue, data.upstreamsList));
     return (
       <div>
         {catalogNotTable ? (
@@ -165,9 +165,20 @@ export const UpstreamsListing = (props: Props) => {
         onExpanded: () => {},
         details: [
           {
-            title: 'sample',
-            value: 'maybe',
-            valueDisplay: <div>No, we'll display this instead</div>
+            title: 'Namespace',
+            value: upstream.metadata!.namespace
+          },
+          {
+            title: 'Version',
+            value: upstream.metadata!.resourceVersion
+          },
+          {
+            title: 'Type',
+            value: getUpstreamType(upstream)
+          },
+          {
+            title: 'Status',
+            value: getUpstreamStatus(upstream)
           }
         ]
       };
@@ -183,6 +194,8 @@ export const UpstreamsListing = (props: Props) => {
     const dataUsed = data.map(upstream => {
       return {
         ...upstream,
+        // TODO: need a better way to get the status
+        status: getUpstreamStatus(upstream),
         name: upstream.metadata!.name,
         key: `${upstream.metadata!.name}- ${upstream.metadata!.namespace}`
       };
@@ -190,6 +203,37 @@ export const UpstreamsListing = (props: Props) => {
 
     return dataUsed.filter(row => row.name.includes(nameFilter));
   };
+
+  function getUpstreamType(upstream: Upstream.AsObject) {
+    let upstreamType = '';
+    if (!!upstream.upstreamSpec!.aws) {
+      upstreamType = 'AWS';
+    }
+    if (!!upstream.upstreamSpec!.azure) {
+      upstreamType = 'Azure';
+    }
+
+    if (!!upstream.upstreamSpec!.consul) {
+      upstreamType = 'Consul';
+    }
+
+    if (!!upstream.upstreamSpec!.kube) {
+      upstreamType = 'Kubernetes';
+    }
+    return upstreamType;
+  }
+  function getUpstreamStatus(upstream: Upstream.AsObject) {
+    switch (upstream.status!.state) {
+      case 0:
+        return 'PENDING';
+      case 1:
+        return 'ACCEPTED';
+      case 2:
+        return 'REJECTED';
+      default:
+        return '';
+    }
+  }
 
   return (
     <div>
