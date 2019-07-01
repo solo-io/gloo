@@ -429,6 +429,16 @@ endif
 .PHONY: render-yaml
 render-yaml: install/manifest/glooe-release.yaml install/manifest/glooe-distribution.yaml
 
+.PHONY: save-helm
+save-helm:
+ifeq ($(RELEASE),"true")
+	gsutil -m rsync -r './_output/helm' gs://gloo-ee-helm/
+endif
+
+.PHONY: fetch-helm
+fetch-helm:
+	gsutil -m rsync -r gs://gloo-ee-helm/ './_output/helm'
+
 #----------------------------------------------------------------------------------
 # Release
 #----------------------------------------------------------------------------------

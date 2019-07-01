@@ -70,7 +70,7 @@ steps:
   dir: './gopath/src/github.com/solo-io/solo-projects/projects/gloo-ui'
   id: yarn-install
   waitFor: ['dep']
-- name: 'gcr.io/$PROJECT_ID/go-make:0.1.12'
+- name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
   entrypoint: 'bash'
   args: ['ci/check-code-and-docs-gen.sh']
   env:
@@ -90,16 +90,14 @@ steps:
   args: ['-p', './_output/helm']
   dir: './gopath/src/github.com/solo-io/solo-projects'
   id: 'create-helm-dir'
-# sync helm repo data from google cloud bucket
-- name: gcr.io/cloud-builders/gsutil
-  args:
-    - -m
-    - rsync
-    - -r
-    - gs://gloo-ee-helm/
-    - './_output/helm'
+- name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
+  args: ['fetch-helm']
+  env:
+    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+    - 'GOPATH=/workspace/gopath'
+    - 'TAGGED_VERSION=$TAG_NAME'
   dir: './gopath/src/github.com/solo-io/solo-projects'
-  id: 'fetch-helm-repo'
+  id: 'fetch-helm'
 # Setup and run e2es
 - name: gcr.io/cloud-builders/gsutil
   entrypoint: 'bash'
@@ -140,7 +138,7 @@ steps:
   - 'GOPATH=/workspace/gopath'
   - 'HELM_HOME=/root/.helm'
   args: ['-r']
-  waitFor: ['dep', 'get-envoy', 'setup-aws-creds']
+  waitFor: ['dep', 'get-envoy', 'setup-aws-creds', 'fetch-helm']
   id: 'test'
 
 - name: 'gcr.io/cloud-builders/docker'
@@ -246,16 +244,15 @@ steps:
   secretEnv: ['GITHUB_TOKEN', 'QUAY_IO_PASSWORD']
   id: 'distribution'
 
-
   # Sync helm chart data back to google storage bucket
-- name: gcr.io/cloud-builders/gsutil
-  args:
-    - rsync
-    - -r
-    - './_output/helm'
-    - gs://gloo-ee-helm/
+- name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
+  args: ['save-helm']
+  env:
+    - 'PROJECT_ROOT=github.com/solo-io/solo-projects'
+    - 'GOPATH=/workspace/gopath'
+    - 'TAGGED_VERSION=$TAG_NAME'
   dir: './gopath/src/github.com/solo-io/solo-projects'
-  id: 'push-helm-repo'
+  id: 'save-helm-chart'
 
 secrets:
 - kmsKeyName: projects/gloo-ee/locations/global/keyRings/build/cryptoKeys/build-key
