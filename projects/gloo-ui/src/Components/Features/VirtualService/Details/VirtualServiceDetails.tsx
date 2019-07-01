@@ -7,6 +7,7 @@ import { Configuration } from './Configuration';
 import styled from '@emotion/styled/macro';
 import { colors, soloConstants } from 'Styles';
 import { RouteComponentProps } from 'react-router';
+import { Breadcrumb } from 'Components/Common/Breadcrumb';
 
 const DetailsContent = styled.div`
   display: grid;
@@ -41,6 +42,8 @@ export const VirtualServiceDetails = (props: Props) => {
   const { match } = props;
   return (
     <React.Fragment>
+      <Breadcrumb />
+
       <SectionCard
         cardName={match.params ? match.params.virtualservicename : 'test'}
         logoIcon={<GlooIcon />}

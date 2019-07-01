@@ -24,11 +24,6 @@ export const Content = () => {
           render={(props: any) => <VirtualServicesListing {...props} />}
         />
         <Route
-          path='/virtualservices/:virtualservicename/'
-          exact
-          render={(props: any) => <VirtualServicesListing {...props} />}
-        />
-        <Route
           path='/upstreams/'
           exact
           render={(props: any) => <UpstreamsListing {...props} />}

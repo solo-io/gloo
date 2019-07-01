@@ -121,6 +121,8 @@ interface Props extends RouteComponentProps {
 
 export const VirtualServicesListing = (props: Props) => {
   const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(true);
+  const { history, match } = props;
+  console.log(history, match);
 
   const getUsableCatalogData = (nameFilter: string): CardType[] => {
     //REPLACE
@@ -131,6 +133,9 @@ export const VirtualServicesListing = (props: Props) => {
         cardSubtitle: 'subtitle' + num,
         onRemovecard: (id: string): void => {},
         onExpanded: () => {},
+        onClick: () => {
+          history.push(`${match.path}${data[0].name + num}/details`);
+        },
         details: [
           {
             title: 'sample',

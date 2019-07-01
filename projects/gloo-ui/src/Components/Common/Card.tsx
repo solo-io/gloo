@@ -83,6 +83,7 @@ export interface CardType {
   onRemoveCard?: (id: string) => any;
   id?: string;
   onExpand?: () => any;
+  onClick?: () => any;
   details: {
     title: string;
     value: string;
@@ -93,14 +94,25 @@ export interface CardType {
 export const Card = (props: CardType) => {
   const [expanded, setExpanded] = React.useState<boolean>(false);
 
-  const { cardTitle, cardSubtitle, onRemoveCard, onExpand, details } = props;
+  const {
+    cardTitle,
+    cardSubtitle,
+    onRemoveCard,
+    onExpand,
+    details,
+    onClick
+  } = props;
 
-  const toggleExpansion = () => {
-    if (!!onExpand && !expanded) {
-      onExpand();
+  const handleFooterClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      if (!!onExpand && !expanded) {
+        onExpand();
+      }
+
+      setExpanded(exp => !exp);
     }
-
-    setExpanded(exp => !exp);
   };
 
   return (
@@ -109,7 +121,7 @@ export const Card = (props: CardType) => {
         <CardTitle>{cardTitle}</CardTitle>
         <CardSubtitle>{cardSubtitle}</CardSubtitle>
       </MainSection>
-      <Footer onClick={toggleExpansion}>View Details</Footer>
+      <Footer onClick={handleFooterClick}>View Details</Footer>
       {expanded && (
         <Expansion>
           <ExpandedDetails>
@@ -125,7 +137,7 @@ export const Card = (props: CardType) => {
             })}
           </ExpandedDetails>
 
-          <Footer onClick={toggleExpansion}>Hide Details</Footer>
+          <Footer onClick={handleFooterClick}>Hide Details</Footer>
         </Expansion>
       )}
     </Container>

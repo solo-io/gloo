@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Clicking on a virtual service tile now redirects to vs details page as per spec.
+    issueLink: https://github.com/solo-io/solo-projects/issues/634
+    resolvesIssue: false
