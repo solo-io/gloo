@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Display real upstream data.
+    issueLink: https://github.com/solo-io/solo-projects/issues/635
+    resolvesIssue: false

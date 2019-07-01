@@ -61,24 +61,64 @@ export function useGlooEContext() {
   return context;
 }
 
-const upstreamReq = new ListUpstreamsRequest();
-upstreamReq.setNamespacesList(['gloo-system']);
-upstreamClient.listUpstreams(
-  upstreamReq,
-  (
-    error: ServiceError | null,
-    responseMessage: ListUpstreamsResponse | null
-  ) => {
-    if (error) {
-      console.error('Error:', error.message);
-      console.error('Code:', error.code);
-      console.error('Metadata:', error.metadata);
-    } else {
-      const response = responseMessage;
-      console.log(response!.toObject());
+// List Upstreams
+export const useGetUpstreamsList = (
+  request: ListUpstreamsRequest | null,
+  initialData: ListUpstreamsResponse.AsObject | null = null
+) => {
+  const [state, dispatch] = React.useReducer<
+    Reducer<ListUpstreamsResponse.AsObject | null>
+  >(requestReducer, {
+    isLoading: true,
+    data: initialData
+  });
+
+  const mounted = React.useRef(true);
+
+  const makeRequest = () => {
+    if (!request) {
+      return;
     }
-  }
-);
+    dispatch({ type: RequestAction.START, payload: null });
+
+    upstreamClient.listUpstreams(
+      request,
+      (
+        error: ServiceError | null,
+        responseMessage: ListUpstreamsResponse | null
+      ) => {
+        if (error) {
+          console.error('Error:', error.message);
+          console.error('Code:', error.code);
+          console.error('Metadata:', error.metadata);
+          if (!mounted.current) return;
+          dispatch({ type: RequestAction.ERROR, payload: null, error });
+        } else {
+          const response = responseMessage;
+          if (!mounted.current) return;
+          dispatch({
+            type: RequestAction.SUCCESS,
+            payload: response!.toObject()
+          });
+        }
+      }
+    );
+  };
+
+  React.useEffect(() => {
+    makeRequest();
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  return {
+    data: state.data!,
+    error: state.error,
+    loading: state.isLoading,
+    refetch: makeRequest
+  };
+};
 
 /*
 export const useGetNamespacesForMeshes = (
@@ -137,4 +177,4 @@ export const useGetNamespacesForMeshes = (
     loading: state.isLoading,
     refetch: makeRequest
   };
-};*/
+}; */
