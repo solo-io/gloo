@@ -14,8 +14,8 @@ var global = Function('return this')();
 
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 var gogoproto_gogo_pb = require('../../../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
-var envoy_api_v2_discovery_pb = require('../../../../../../../../../envoy/api/v2/discovery_pb.js');
-var google_api_annotations_pb = require('../../../../../../../../../google/api/annotations_pb.js');
+var envoy_api_v2_discovery_pb = require('../../../../../../../../../github.com/solo-io/solo-kit/api/external/envoy/api/v2/discovery_pb.js');
+var google_api_annotations_pb = require('../../../../../../../../../github.com/solo-io/solo-kit/api/external/google/api/annotations_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.BasicAuth', null, global);
 goog.exportSymbol('proto.extauth.plugins.gloo.solo.io.BasicAuth.Apr', null, global);

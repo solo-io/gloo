@@ -3,6 +3,17 @@ import * as React from 'react';
 
 import { grpc } from '@improbable-eng/grpc-web';
 import { requestReducer, Reducer, RequestAction } from './request-reducer';
+import {
+  VirtualServiceApiClient,
+  ServiceError
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb_service';
+import { ListVirtualServicesRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { ListVirtualServicesResponse } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import {
+  ListUpstreamsRequest,
+  ListUpstreamsResponse
+} from '../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+import { UpstreamApiClient } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb_service';
 
 interface ApiResponseType<T> {
   //error?: ServiceError;
@@ -22,6 +33,16 @@ export const client = null; /*new GlooEApiClient(host, {
   debug: true
 });*/
 
+export const virtualServiceClient = new VirtualServiceApiClient(host, {
+  transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
+  debug: true
+});
+
+export const upstreamClient = new UpstreamApiClient(host, {
+  transport: grpc.CrossBrowserHttpTransport({ withCredentials: false }),
+  debug: true
+});
+
 interface GlooEContextType {
   client: typeof client;
   // other shared bits...
@@ -39,6 +60,25 @@ export function useGlooEContext() {
   const context = React.useContext(GlooEContext);
   return context;
 }
+
+const upstreamReq = new ListUpstreamsRequest();
+upstreamReq.setNamespacesList(['gloo-system']);
+upstreamClient.listUpstreams(
+  upstreamReq,
+  (
+    error: ServiceError | null,
+    responseMessage: ListUpstreamsResponse | null
+  ) => {
+    if (error) {
+      console.error('Error:', error.message);
+      console.error('Code:', error.code);
+      console.error('Metadata:', error.metadata);
+    } else {
+      const response = responseMessage;
+      console.log(response!.toObject());
+    }
+  }
+);
 
 /*
 export const useGetNamespacesForMeshes = (

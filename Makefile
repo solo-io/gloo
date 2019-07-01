@@ -136,9 +136,27 @@ generated-ui:
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/gogo/protobuf/gogoproto/gogo.proto
 	protoc $(UI_PROTOC_FLAGS) \
+    	$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/type/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+    	$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+    	$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/envoy/api/v2/core/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/google/api/annotations.proto
+	protoc $(UI_PROTOC_FLAGS) \
+		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/google/api/http.proto
+	protoc $(UI_PROTOC_FLAGS) \
+		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/google/rpc/status.proto
+	protoc $(UI_PROTOC_FLAGS) \
+		$(GOPATH)/src/github.com/solo-io/solo-kit/api/external/validate/validate.proto
+	protoc $(UI_PROTOC_FLAGS) \
 	 	$(GOPATH)/src/github.com/solo-io/solo-kit/api/v1/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+    	$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*.proto
+	protoc $(UI_PROTOC_FLAGS) \
+    	$(GOPATH)/src/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/*/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
 		$(GOPATH)/src/github.com/solo-io/gloo/projects/gateway/api/v1/*.proto
 	protoc $(UI_PROTOC_FLAGS) \
@@ -243,6 +261,10 @@ $(OUTPUT_DIR)/.apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DI
 run-apiserver:
 	GRPC_PORT=10101 POD_NAMESPACE=gloo-system go run projects/grpcserver/server/cmd/main.go
 
+.PHONY: run-envoy
+run-envoy:
+	envoy -c projects/grpcserver/envoy/envoy.yaml -l debug
+	
 #----------------------------------------------------------------------------------
 # RateLimit
 #----------------------------------------------------------------------------------
