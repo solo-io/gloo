@@ -51,7 +51,7 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
 
 [[constraint]]
   name = "github.com/solo-io/rate-limiter"
-  revision = "8aa2e36bb84a979cb654d4d3c795b31add32f6cf"
+  revision = "5cbd4d452dccb9492a4d126f79dfcc7be43f88dc"
 
 [[constraint]]
   name = "github.com/solo-io/solo-kit"
@@ -59,7 +59,7 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
 
 [[constraint]]
   name = "github.com/solo-io/gloo"
-  version = "0.14.1"
+  version = "0.14.3"
 
 [[override]]
   name = "github.com/hashicorp/consul"

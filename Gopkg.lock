@@ -1327,7 +1327,7 @@
   version = "v0.2.6"
 
 [[projects]]
-  digest = "1:1857318909ad6d5c810d4c95a9a98b125bafa6ff592664b7dd2924084218f679"
+  digest = "1:3407b6e8870d950d8ae7a4659435c2df474da127ba151bcdff5abe4cbbd3c90a"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1425,8 +1425,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "dc11210b3734158843cc0360ac515f8c27acf47a"
-  version = "v0.14.1"
+  revision = "02a2b757245f1cbcc4b5d0b06b08be70efb332fd"
+  version = "v0.14.3"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
