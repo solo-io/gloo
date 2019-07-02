@@ -259,7 +259,7 @@ $(OUTPUT_DIR)/.apiserver-docker: $(OUTPUT_DIR)/apiserver-linux-amd64 $(OUTPUT_DI
 
 .PHONY: run-apiserver
 run-apiserver:
-	GRPC_PORT=10101 POD_NAMESPACE=gloo-system go run projects/grpcserver/server/cmd/main.go
+	NO_AUTH=1 GRPC_PORT=10101 POD_NAMESPACE=gloo-system go run projects/grpcserver/server/cmd/main.go
 
 .PHONY: run-envoy
 run-envoy:

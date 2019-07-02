@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Implement virtual service API on grpc server.
+    issueLink: https://github.com/solo-io/solo-projects/issues/613

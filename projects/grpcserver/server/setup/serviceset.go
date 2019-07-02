@@ -26,6 +26,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/converter"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
 	"go.uber.org/zap"
 )
 
@@ -45,6 +46,8 @@ func MustGetServiceSet(ctx context.Context) ServiceSet {
 	namespaceClient := kube.NewNamespaceClient(clientset.CoreV1Interface)
 	settingsValues := settings_values.NewSettingsValuesClient(ctx, clientset.SettingsClient)
 	inputConverter := converter.NewUpstreamInputConverter()
+	mutator := mutation.NewMutator(ctx, clientset.VirtualServiceClient)
+	mutationFactory := mutation.NewMutationFactory()
 
 	// Read env
 	oAuthUrl, oAuthClient := config.GetOAuthEndpointValues()
@@ -54,7 +57,7 @@ func MustGetServiceSet(ctx context.Context) ServiceSet {
 	artifactService := artifactsvc.NewArtifactGrpcService(ctx, clientset.ArtifactClient)
 	configService := configsvc.NewConfigGrpcService(ctx, clientset.SettingsClient, licenseClient, namespaceClient, oAuthEndpoint, version.Version)
 	secretService := secretsvc.NewSecretGrpcService(ctx, clientset.SecretClient)
-	virtualServiceService := virtualservicesvc.NewVirtualServiceGrpcService(clientset.VirtualServiceClient)
+	virtualServiceService := virtualservicesvc.NewVirtualServiceGrpcService(ctx, clientset.VirtualServiceClient, settingsValues, mutator, mutationFactory)
 
 	return ServiceSet{
 		UpstreamService:       upstreamService,
