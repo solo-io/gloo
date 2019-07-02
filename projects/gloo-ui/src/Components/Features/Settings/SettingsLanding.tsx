@@ -16,6 +16,10 @@ import { SecretsPage } from './SecretsPage';
 import { WatchedNamespacesPage } from './WatchedNamespacesPage';
 import { SecurityPage } from './SecurityPage';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
+import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+import { ListNamespacesRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
+import { useListNamespaces, useListSecrets } from 'Api';
+import { ListSecretsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',
@@ -42,6 +46,49 @@ const Heading = styled.div`
 interface Props extends RouteComponentProps {}
 
 export const SettingsLanding = (props: Props) => {
+  const [namespacesList, setNamespacesList] = React.useState<string[]>([]);
+  let awsSecrets = [] as Secret.AsObject[];
+  let azureSecrets = [] as Secret.AsObject[];
+  let tlsSecrets = [] as Secret.AsObject[];
+  let oAuthSecrets = [] as Secret.AsObject[];
+  const listSecretsReq = React.useRef(new ListSecretsRequest());
+  let listNsRequest = new ListNamespacesRequest();
+
+  const {
+    data: listNsData,
+    loading: listNsLoading,
+    error: listNsError
+  } = useListNamespaces(listNsRequest);
+
+  const { data, loading, error, refetch } = useListSecrets(
+    listSecretsReq.current
+  );
+
+  React.useEffect(() => {
+    if (listNsData && listNsData.namespacesList) {
+      setNamespacesList(listNsData.namespacesList);
+      listSecretsReq.current.setNamespacesList(listNsData.namespacesList);
+      refetch(listSecretsReq.current);
+    }
+  }, [listNsLoading]);
+
+  if (data && data.secretsList.length > 0) {
+    data.secretsList.map(secret => {
+      if (!!secret.aws) {
+        awsSecrets.push(secret);
+      }
+      if (!!secret.azure) {
+        azureSecrets.push(secret);
+      }
+      if (!!secret.tls) {
+        tlsSecrets.push(secret);
+      }
+      if (!!secret.extension) {
+        oAuthSecrets.push(secret);
+      }
+    });
+  }
+
   const locationEnding = props.location.pathname.split('/settings/')[1];
   const startingChoice =
     locationEnding && locationEnding.length
@@ -76,12 +123,28 @@ export const SettingsLanding = (props: Props) => {
     return (
       <React.Fragment>
         <Switch>
-          <Route path='/settings/security/' render={() => <SecurityPage />} />
+          <Route
+            path='/settings/security/'
+            render={() => (
+              <SecurityPage
+                tlsSecrets={tlsSecrets}
+                oAuthSecrets={oAuthSecrets}
+              />
+            )}
+          />
           <Route
             path='/settings/namespaces/'
             render={() => <WatchedNamespacesPage />}
           />
-          <Route path='/settings/secrets/' render={() => <SecretsPage />} />
+          <Route
+            path='/settings/secrets/'
+            render={() => (
+              <SecretsPage
+                awsSecrets={awsSecrets}
+                azureSecrets={azureSecrets}
+              />
+            )}
+          />
 
           <Redirect exact from='/settings/' to='/settings/security/' />
         </Switch>

@@ -7,13 +7,28 @@ import { colors } from 'Styles';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { StringCardsList } from 'Components/Common/StringCardsList';
 import { ReactComponent as RelatedCircles } from 'assets/related-circles.svg';
+import { GetSettingsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
+import { useGetSettings } from 'Api';
 
 interface Props {}
 
 export const WatchedNamespacesPage = (props: Props) => {
+  let req = new GetSettingsRequest();
+  const { data, loading, error } = useGetSettings(req);
+
   const [watchedNamespacesList, setWatchedNamespacesList] = React.useState<
     string[]
-  >(['fan', 'fun', 'jog']);
+  >([]);
+
+  React.useEffect(() => {
+    if (data && data.settings) {
+      setWatchedNamespacesList(data.settings.watchNamespacesList);
+    }
+  }, [loading]);
+
+  if (!data || loading) {
+    return <div>Loading...</div>;
+  }
 
   const addNamespace = (newNamespace: string) => {
     const newArray = [...watchedNamespacesList];

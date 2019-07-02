@@ -33,7 +33,7 @@ export const useGetSecret = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: GetSecretRequest | null) => {
     if (!request) {
       return;
     }
@@ -64,7 +64,7 @@ export const useGetSecret = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
@@ -95,7 +95,7 @@ export const useListSecrets = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: ListSecretsRequest | null) => {
     if (!request) {
       return;
     }
@@ -126,7 +126,7 @@ export const useListSecrets = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
@@ -156,7 +156,7 @@ export const useCreateSecret = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: CreateSecretRequest | null) => {
     if (!request) {
       return;
     }
@@ -187,7 +187,7 @@ export const useCreateSecret = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
@@ -217,7 +217,7 @@ export const useUpdateSecret = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: UpdateSecretRequest | null) => {
     if (!request) {
       return;
     }
@@ -248,7 +248,7 @@ export const useUpdateSecret = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
@@ -278,7 +278,7 @@ export const useDeleteSecret = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: DeleteSecretRequest | null) => {
     if (!request) {
       return;
     }
@@ -309,7 +309,7 @@ export const useDeleteSecret = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };

@@ -7,6 +7,7 @@ import { colors } from 'Styles';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { ReactComponent as KeyRing } from 'assets/key-on-ring.svg';
+import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
 
 const AWSColumns = [
   {
@@ -20,11 +21,11 @@ const AWSColumns = [
   },
   {
     title: 'AccessKey',
-    dataIndex: 'accessKey'
+    dataIndex: 'aws.accessKey'
   },
   {
     title: 'Secret Key',
-    dataIndex: 'secretKey'
+    dataIndex: 'aws.secretKey'
   },
   {
     title: 'Actions',
@@ -32,7 +33,7 @@ const AWSColumns = [
     render: (text: any) => <div>ACTION!</div>
   }
 ];
-const OAuthColumns = [
+const AzureColumns = [
   {
     title: 'Name',
     dataIndex: 'name',
@@ -53,39 +54,55 @@ const OAuthColumns = [
   }
 ];
 
-interface Props {}
+interface Props {
+  awsSecrets?: Secret.AsObject[];
+  azureSecrets?: Secret.AsObject[];
+}
 
 export const SecretsPage = (props: Props) => {
-  const awsData: any[] = [];
-  for (let i = 1; i <= 10; i++) {
-    awsData.push({
-      key: i,
-      name: 'John Brown',
-      namespace: `${i}2`,
-      accessKey: `New York No. ${i} Lake Park`,
-      secretKey: `My name is John Brown, I am ${i}2 years old, living in New York No. ${i} Lake Park.`,
-      actions: ``
+  const { awsSecrets, azureSecrets } = props;
+
+  let awsTableData: any[] = [];
+  if (awsSecrets) {
+    awsTableData = awsSecrets.map(awsSecret => {
+      return {
+        key: `${awsSecret.metadata!.name}-${awsSecret.metadata!.namespace}`,
+        name: awsSecret.metadata!.name,
+        namespace: awsSecret.metadata!.namespace,
+        accessKey: awsSecret.aws!.accessKey,
+        secretKey: awsSecret.aws!.secretKey
+      };
     });
   }
 
-  const oAuthData: any[] = [];
-  for (let i = 1; i <= 10; i++) {
-    oAuthData.push({
-      key: i,
-      name: 'John Brown',
-      namespace: `${i}2`,
-      keyValue: `New York No. ${i} Lake Park`,
-      actions: ``
+  let azureTableData: any[] = [];
+  if (azureSecrets) {
+    azureTableData = azureSecrets.map(azureSecret => {
+      return {
+        key: `${azureSecret.metadata!.name}-${azureSecret.metadata!.namespace}`,
+        name: azureSecret.metadata!.name,
+        namespace: azureSecret.metadata!.namespace,
+        keyValue: azureSecret.azure!.apiKeysMap,
+        actions: ``
+      };
     });
   }
 
   return (
     <React.Fragment>
       <SectionCard cardName={'AWS Secrets'} logoIcon={<KeyRing />}>
-        <SoloTable columns={AWSColumns} dataSource={awsData} />
+        {awsTableData.length ? (
+          <SoloTable columns={AWSColumns} dataSource={awsTableData} />
+        ) : (
+          <div>No Secrets</div>
+        )}
       </SectionCard>
-      <SectionCard cardName={'OAuth'} logoIcon={<KeyRing />}>
-        <SoloTable columns={OAuthColumns} dataSource={oAuthData} />
+      <SectionCard cardName={'Azure Secrets'} logoIcon={<KeyRing />}>
+        {azureTableData.length ? (
+          <SoloTable columns={AzureColumns} dataSource={azureTableData} />
+        ) : (
+          <div>No Secrets</div>
+        )}
       </SectionCard>
     </React.Fragment>
   );

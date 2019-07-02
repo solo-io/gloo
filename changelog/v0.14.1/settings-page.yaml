@@ -1,0 +1,11 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Security page data hookup
+    issueLink: https://github.com/solo-io/solo-projects/issues/637
+  - type: NEW_FEATURE
+    description: Watched Namespaces page data hookup
+    issueLink: https://github.com/solo-io/solo-projects/issues/638
+  - type: NEW_FEATURE
+    description: Secrets page data hookup
+    issueLink: https://github.com/solo-io/solo-projects/issues/639
+    resolvesIssue: false

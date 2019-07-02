@@ -112,6 +112,7 @@ export const SoloRadioGroup = (props: Props) => {
       {options.map(option => {
         return (
           <CheckboxWrapper
+            key={option.id}
             checked={option.id === currentSelection}
             onClick={() => attemptSelection(option.id)}
             withoutCheckboxVisual={withoutCheckboxes}>

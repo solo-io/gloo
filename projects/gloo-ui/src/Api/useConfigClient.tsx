@@ -35,7 +35,7 @@ export const useGetVersion = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: GetVersionRequest | null) => {
     if (!request) {
       return;
     }
@@ -66,7 +66,7 @@ export const useGetVersion = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
@@ -97,7 +97,7 @@ export const useGetOAuthEndpoint = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: GetOAuthEndpointRequest | null) => {
     if (!request) {
       return;
     }
@@ -128,7 +128,7 @@ export const useGetOAuthEndpoint = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
@@ -159,7 +159,7 @@ export const useGetIsLicenseValid = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: GetIsLicenseValidRequest | null) => {
     if (!request) {
       return;
     }
@@ -190,7 +190,7 @@ export const useGetIsLicenseValid = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
@@ -221,7 +221,7 @@ export const useGetSettings = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: GetSettingsRequest | null) => {
     if (!request) {
       return;
     }
@@ -252,7 +252,7 @@ export const useGetSettings = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
@@ -283,7 +283,7 @@ export const useUpdateSettings = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: UpdateSettingsRequest | null) => {
     if (!request) {
       return;
     }
@@ -314,7 +314,7 @@ export const useUpdateSettings = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request ? request : null);
     return () => {
       mounted.current = false;
     };
@@ -345,7 +345,7 @@ export const useListNamespaces = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: ListNamespacesRequest | null) => {
     if (!request) {
       return;
     }
@@ -376,7 +376,7 @@ export const useListNamespaces = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };

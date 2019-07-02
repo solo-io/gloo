@@ -7,6 +7,7 @@ import { colors } from 'Styles';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { ReactComponent as KeyRing } from 'assets/key-on-ring.svg';
+import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
 
 const TLSColumns = [
   {
@@ -36,6 +37,7 @@ const TLSColumns = [
     render: (text: any) => <div>ACTION!</div>
   }
 ];
+
 const OAuthColumns = [
   {
     title: 'Name',
@@ -57,40 +59,57 @@ const OAuthColumns = [
   }
 ];
 
-interface Props {}
+interface Props {
+  tlsSecrets?: Secret.AsObject[];
+  oAuthSecrets?: Secret.AsObject[];
+}
 
-export const SecurityPage = (props: Props) => {
-  const tlsData: any[] = [];
-  for (let i = 1; i <= 10; i++) {
-    tlsData.push({
-      key: i,
-      name: 'John Brown',
-      namespace: `${i}2`,
-      certChain: `New York No. ${i} Lake Park`,
-      tlsPrivateKey: `My name is John Brown, I am ${i}2 years old, living in New York No. ${i} Lake Park.`,
-      rootCA: `New York No. ${i} Lake Park`,
-      actions: ``
+export const SecurityPage: React.FunctionComponent<Props> = props => {
+  const { tlsSecrets, oAuthSecrets } = props;
+
+  let tlsTableData: any[] = [];
+  if (tlsSecrets) {
+    tlsTableData = tlsSecrets.map(tlsSecret => {
+      return {
+        key: `${tlsSecret.metadata!.name}-${tlsSecret.metadata!.namespace}`,
+        name: tlsSecret.metadata!.name,
+        namespace: tlsSecret.metadata!.namespace,
+        certChain: '(cert chain)',
+        tlsPrivateKey: '**************************',
+        rootCA: '(root ca)',
+        actions: ``
+      };
     });
   }
 
-  const oAuthData: any[] = [];
-  for (let i = 1; i <= 10; i++) {
-    oAuthData.push({
-      key: i,
-      name: 'John Brown',
-      namespace: `${i}2`,
-      clientSecret: `New York No. ${i} Lake Park`,
-      actions: ``
+  let oAuthTableData: any[] = [];
+  if (oAuthSecrets) {
+    oAuthTableData = oAuthSecrets.map(oAuthSecret => {
+      return {
+        key: `${oAuthSecret.metadata!.name}-${oAuthSecret.metadata!.namespace}`,
+        name: oAuthSecret.metadata!.name,
+        namespace: oAuthSecret.metadata!.namespace,
+        clientSecret: '(client secret)',
+        actions: ``
+      };
     });
   }
 
   return (
     <React.Fragment>
       <SectionCard cardName={'TLS'} logoIcon={<KeyRing />}>
-        <SoloTable columns={TLSColumns} dataSource={tlsData} />
+        {tlsTableData.length ? (
+          <SoloTable columns={TLSColumns} dataSource={tlsTableData} />
+        ) : (
+          <div>No Secrets</div>
+        )}
       </SectionCard>
       <SectionCard cardName={'OAuth'} logoIcon={<KeyRing />}>
-        <SoloTable columns={OAuthColumns} dataSource={oAuthData} />
+        {oAuthTableData.length ? (
+          <SoloTable columns={OAuthColumns} dataSource={oAuthTableData} />
+        ) : (
+          <div>No Secrets</div>
+        )}
       </SectionCard>
     </React.Fragment>
   );

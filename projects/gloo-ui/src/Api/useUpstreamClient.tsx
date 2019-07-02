@@ -34,7 +34,7 @@ export const useGetUpstreamsList = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: ListUpstreamsRequest | null) => {
     if (!request) {
       return;
     }
@@ -65,7 +65,7 @@ export const useGetUpstreamsList = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
@@ -96,7 +96,7 @@ export const useGetUpstream = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: GetUpstreamRequest | null) => {
     if (!request) {
       return;
     }
@@ -127,7 +127,7 @@ export const useGetUpstream = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
@@ -158,7 +158,7 @@ export const useCreateUpstream = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: CreateUpstreamRequest | null) => {
     if (!request) {
       return;
     }
@@ -189,7 +189,7 @@ export const useCreateUpstream = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
@@ -220,7 +220,7 @@ export const useUpdateUpstream = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: UpdateUpstreamRequest | null) => {
     if (!request) {
       return;
     }
@@ -251,7 +251,7 @@ export const useUpdateUpstream = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
@@ -282,7 +282,7 @@ export const useDeleteUpstream = (
 
   const mounted = React.useRef(true);
 
-  const makeRequest = () => {
+  const makeRequest = (request: DeleteUpstreamRequest | null) => {
     if (!request) {
       return;
     }
@@ -313,7 +313,7 @@ export const useDeleteUpstream = (
   };
 
   React.useEffect(() => {
-    makeRequest();
+    makeRequest(request || null);
     return () => {
       mounted.current = false;
     };
