@@ -8,7 +8,7 @@ import { Content } from './Components/Structure/Content';
 import { Global } from '@emotion/core';
 import { globalStyles } from './Styles';
 import { Footer } from './Components/Structure/Footer';
-import { GlooEContext, initialGlooEContext } from './Api/grpc-web-hooks';
+import { GlooEContext, initialGlooEContext } from 'api';
 import './Styles/styles.css';
 
 type Action = {
