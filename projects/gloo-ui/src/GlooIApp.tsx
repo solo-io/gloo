@@ -8,8 +8,9 @@ import { Content } from './Components/Structure/Content';
 import { Global } from '@emotion/core';
 import { globalStyles } from './Styles';
 import { Footer } from './Components/Structure/Footer';
-import { GlooEContext, initialGlooEContext } from 'Api';
+import { GlooEContext, initialGlooEContext, useListNamespaces } from 'Api';
 import './Styles/styles.css';
+import { ListNamespacesRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
 
 type Action = {
   type: string;
@@ -39,21 +40,27 @@ const AppContainer = styled.div`
   grid-template-rows: 55px 1fr 62px;
 `;
 
+export const NamespacesContext = React.createContext(['']);
+
 export const GlooIApp = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
+  let listNsRequest = new ListNamespacesRequest();
+  const { data, loading, error } = useListNamespaces(listNsRequest);
 
   return (
     <GlooEContext.Provider value={initialGlooEContext}>
-      <StoreContext.Provider value={{ state, dispatch }}>
-        <BrowserRouter>
-          <Global styles={globalStyles} />
-          <AppContainer>
-            <MainMenu />
-            <Content />
-            <Footer />
-          </AppContainer>
-        </BrowserRouter>
-      </StoreContext.Provider>
+      <NamespacesContext.Provider value={data ? data.namespacesList : ['']}>
+        <StoreContext.Provider value={{ state, dispatch }}>
+          <BrowserRouter>
+            <Global styles={globalStyles} />
+            <AppContainer>
+              <MainMenu />
+              <Content />
+              <Footer />
+            </AppContainer>
+          </BrowserRouter>
+        </StoreContext.Provider>
+      </NamespacesContext.Provider>
     </GlooEContext.Provider>
   );
 };

@@ -19,6 +19,11 @@ import { ReactComponent as Gloo } from 'assets/Gloo.svg';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { CardsListing } from 'Components/Common/CardsListing';
 import { CardType } from 'Components/Common/Card';
+import { useListVirtualServices } from 'Api';
+import { ListVirtualServicesRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { NamespacesContext } from 'GlooIApp';
+import { getResourceStatus, getVSDomains } from 'utils/helpers';
 
 interface DataType {
   name: string;
@@ -68,15 +73,15 @@ const TableColumns = [
   },
   {
     title: 'Domain',
-    dataIndex: 'domain'
+    dataIndex: 'domains'
   },
   {
     title: 'Namespace',
-    dataIndex: 'namespace'
+    dataIndex: 'metadata.namespace'
   },
   {
     title: 'Version',
-    dataIndex: 'version'
+    dataIndex: 'metadata.resourceVersion'
   },
   {
     title: 'Status',
@@ -115,47 +120,55 @@ const Heading = styled.div`
   margin-bottom: 20px;
 `;
 
-interface Props extends RouteComponentProps {
-  //... eg, virtualservice?: string
-}
+interface Props extends RouteComponentProps {}
 
 export const VirtualServicesListing = (props: Props) => {
+  let listVsRequest = React.useRef(new ListVirtualServicesRequest());
+  const namespaces = React.useContext(NamespacesContext);
+
+  listVsRequest.current.setNamespacesList(namespaces);
+  const {
+    data: vsListData,
+    loading: vsLoading,
+    error: vsError,
+    refetch
+  } = useListVirtualServices(listVsRequest.current);
+
   const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(true);
   const { history, match } = props;
-  console.log(history, match);
 
-  const getUsableCatalogData = (nameFilter: string): CardType[] => {
-    //REPLACE
-    const dataUsed: CardType[] = [1, 2, 3, 4, 5, 6].map(num => {
+  const getUsableCatalogData = (
+    nameFilter: string,
+    data: VirtualService.AsObject[]
+  ) => {
+    const dataUsed = data.map(virtualService => {
       return {
-        ...data[0],
-        cardTitle: data[0].name + num,
-        cardSubtitle: 'subtitle' + num,
+        ...virtualService,
+        cardTitle: virtualService.metadata!.name,
+        cardSubtitle: getVSDomains(virtualService),
         onRemovecard: (id: string): void => {},
         onExpanded: () => {},
         onClick: () => {
-          history.push(`${match.path}${data[0].name + num}/details`);
-        },
-        details: [
-          {
-            title: 'sample',
-            value: 'maybe',
-            valueDisplay: <div>No, we'll display this instead</div>
-          }
-        ]
+          history.push(`${match.path}${virtualService.metadata!.name}/details`);
+        }
       };
     });
 
     return dataUsed.filter(row => row.cardTitle.includes(nameFilter));
   };
 
-  const getUsableTableData = (nameFilter: string): DataSourceType[] => {
-    //REPLACE
-    const dataUsed: DataSourceType[] = [1, 2, 3, 4].map(num => {
+  const getUsableTableData = (
+    nameFilter: string,
+    data: VirtualService.AsObject[]
+  ) => {
+    const dataUsed = data.map(virtualService => {
       return {
-        ...data[0],
-        name: data[0].name + num,
-        key: `${num}`
+        ...virtualService,
+        name: virtualService.metadata!.name,
+        domains: getVSDomains(virtualService),
+        routes: virtualService.virtualHost!.routesList.length,
+        status: getResourceStatus(virtualService),
+        key: `${virtualService.metadata!.name}`
       };
     });
 
@@ -172,15 +185,30 @@ export const VirtualServicesListing = (props: Props) => {
       s => s.displayName === 'Filter By Name...'
     )!.value!;
 
-    return catalogNotTable ? (
-      <SectionCard cardName={'Virtual Services'} logoIcon={<Gloo />}>
-        <CardsListing cardsData={getUsableCatalogData(nameFilterValue)} />
-      </SectionCard>
-    ) : (
-      <SoloTable
-        dataSource={getUsableTableData(nameFilterValue)}
-        columns={TableColumns}
-      />
+    if (vsLoading) {
+      return <div>Loading...</div>;
+    }
+    return (
+      <div>
+        {catalogNotTable ? (
+          <SectionCard cardName={'Virtual Services'} logoIcon={<Gloo />}>
+            <CardsListing
+              cardsData={getUsableCatalogData(
+                nameFilterValue,
+                vsListData.virtualServicesList
+              )}
+            />
+          </SectionCard>
+        ) : (
+          <SoloTable
+            dataSource={getUsableTableData(
+              nameFilterValue,
+              vsListData.virtualServicesList
+            )}
+            columns={TableColumns}
+          />
+        )}
+      </div>
     );
   };
 

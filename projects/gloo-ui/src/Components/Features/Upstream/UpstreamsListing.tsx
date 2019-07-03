@@ -24,6 +24,7 @@ import { SoloTable } from 'Components/Common/SoloTable';
 import { CardType } from 'antd/lib/card';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
+import { getResourceStatus, getUpstreamType } from 'utils/helpers';
 const StringFilters: StringFilterProps[] = [
   {
     displayName: 'Filter By Name...',
@@ -178,7 +179,7 @@ export const UpstreamsListing = (props: Props) => {
           },
           {
             title: 'Status',
-            value: getUpstreamStatus(upstream)
+            value: getResourceStatus(upstream)
           }
         ]
       };
@@ -195,7 +196,7 @@ export const UpstreamsListing = (props: Props) => {
       return {
         ...upstream,
         // TODO: need a better way to get the status
-        status: getUpstreamStatus(upstream),
+        status: getResourceStatus(upstream),
         name: upstream.metadata!.name,
         key: `${upstream.metadata!.name}- ${upstream.metadata!.namespace}`
       };
@@ -203,37 +204,6 @@ export const UpstreamsListing = (props: Props) => {
 
     return dataUsed.filter(row => row.name.includes(nameFilter));
   };
-
-  function getUpstreamType(upstream: Upstream.AsObject) {
-    let upstreamType = '';
-    if (!!upstream.upstreamSpec!.aws) {
-      upstreamType = 'AWS';
-    }
-    if (!!upstream.upstreamSpec!.azure) {
-      upstreamType = 'Azure';
-    }
-
-    if (!!upstream.upstreamSpec!.consul) {
-      upstreamType = 'Consul';
-    }
-
-    if (!!upstream.upstreamSpec!.kube) {
-      upstreamType = 'Kubernetes';
-    }
-    return upstreamType;
-  }
-  function getUpstreamStatus(upstream: Upstream.AsObject) {
-    switch (upstream.status!.state) {
-      case 0:
-        return 'PENDING';
-      case 1:
-        return 'ACCEPTED';
-      case 2:
-        return 'REJECTED';
-      default:
-        return '';
-    }
-  }
 
   return (
     <div>

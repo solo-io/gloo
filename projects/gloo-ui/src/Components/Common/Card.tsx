@@ -84,7 +84,7 @@ export interface CardType {
   id?: string;
   onExpand?: () => any;
   onClick?: () => any;
-  details: {
+  details?: {
     title: string;
     value: string;
     valueDisplay?: React.ReactNode | Element;
@@ -125,16 +125,19 @@ export const Card = (props: CardType) => {
       {expanded && (
         <Expansion>
           <ExpandedDetails>
-            {details.map(detail => {
-              return (
-                <Detail key={detail.title}>
-                  <DetailTitle>{detail.title}:</DetailTitle>
-                  <DetailContent>
-                    {!!detail.valueDisplay ? detail.valueDisplay : detail.value}
-                  </DetailContent>
-                </Detail>
-              );
-            })}
+            {details &&
+              details.map(detail => {
+                return (
+                  <Detail key={detail.title}>
+                    <DetailTitle>{detail.title}:</DetailTitle>
+                    <DetailContent>
+                      {!!detail.valueDisplay
+                        ? detail.valueDisplay
+                        : detail.value}
+                    </DetailContent>
+                  </Detail>
+                );
+              })}
           </ExpandedDetails>
 
           <Footer onClick={handleFooterClick}>Hide Details</Footer>

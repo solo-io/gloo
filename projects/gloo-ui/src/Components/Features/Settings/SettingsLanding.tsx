@@ -17,9 +17,9 @@ import { WatchedNamespacesPage } from './WatchedNamespacesPage';
 import { SecurityPage } from './SecurityPage';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-import { ListNamespacesRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
-import { useListNamespaces, useListSecrets } from 'Api';
+import { useListSecrets } from 'Api';
 import { ListSecretsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
+import { NamespacesContext } from 'GlooIApp';
 
 const PageChoiceFilter: TypeFilterProps = {
   id: 'pageChoice',
@@ -46,32 +46,19 @@ const Heading = styled.div`
 interface Props extends RouteComponentProps {}
 
 export const SettingsLanding = (props: Props) => {
-  const [namespacesList, setNamespacesList] = React.useState<string[]>([]);
   let awsSecrets = [] as Secret.AsObject[];
   let azureSecrets = [] as Secret.AsObject[];
   let tlsSecrets = [] as Secret.AsObject[];
   let oAuthSecrets = [] as Secret.AsObject[];
   const listSecretsReq = React.useRef(new ListSecretsRequest());
-  let listNsRequest = new ListNamespacesRequest();
+  const namespaces = React.useContext(NamespacesContext);
 
-  const {
-    data: listNsData,
-    loading: listNsLoading,
-    error: listNsError
-  } = useListNamespaces(listNsRequest);
+  listSecretsReq.current.setNamespacesList(namespaces);
+  const { data, loading, error } = useListSecrets(listSecretsReq.current);
 
-  const { data, loading, error, refetch } = useListSecrets(
-    listSecretsReq.current
-  );
-
-  React.useEffect(() => {
-    if (listNsData && listNsData.namespacesList) {
-      setNamespacesList(listNsData.namespacesList);
-      listSecretsReq.current.setNamespacesList(listNsData.namespacesList);
-      refetch(listSecretsReq.current);
-    }
-  }, [listNsLoading]);
-
+  if (!data || loading) {
+    return <div>Loading...</div>;
+  }
   if (data && data.secretsList.length > 0) {
     data.secretsList.map(secret => {
       if (!!secret.aws) {
