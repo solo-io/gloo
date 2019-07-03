@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/solo-io/gloo/projects/gloo/pkg/plugins/utils"
 	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	glooutils "github.com/solo-io/gloo/projects/gloo/pkg/utils"
 	"go.uber.org/zap"
 
 	"github.com/mitchellh/hashstructure"
@@ -49,6 +51,9 @@ func (s *ExtAuthTranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap 
 
 			virtualHosts := httpListener.HttpListener.VirtualHosts
 			for _, virtualHost := range virtualHosts {
+
+				virtualHost = proto.Clone(virtualHost).(*gloov1.VirtualHost)
+				virtualHost.Name = glooutils.SanitizeForEnvoy(ctx, virtualHost.Name, "virtual host")
 
 				var extAuthVhost extauth.VhostExtension
 				err := utils.UnmarshalExtension(virtualHost.VirtualHostPlugins, extAuthPlugin.ExtensionName, &extAuthVhost)

@@ -421,7 +421,7 @@ func (b *RlProxyBuilder) getProxy() *gloov1.Proxy {
 
 	for hostname, enableRateLimits := range b.hostsToRateLimits {
 		vhost := &gloov1.VirtualHost{
-			Name:    "virt" + hostname,
+			Name:    "gloo-system.virt" + hostname,
 			Domains: []string{hostname},
 			Routes: []*gloov1.Route{
 				{

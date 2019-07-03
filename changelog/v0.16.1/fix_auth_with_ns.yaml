@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix an issue where virtual host name containings dots in external auth.
+    issueLink: https://github.com/solo-io/solo-projects/pull/673

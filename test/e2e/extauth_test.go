@@ -517,7 +517,7 @@ func getProxyExtAuth(envoyPort uint32, upstream core.ResourceRef, extauthCfg *ex
 	var vhosts []*gloov1.VirtualHost
 
 	vhost := &gloov1.VirtualHost{
-		Name:               "virt1",
+		Name:               "gloo-system.virt1",
 		Domains:            []string{"*"},
 		VirtualHostPlugins: &gloov1.VirtualHostPlugins{},
 		Routes: []*gloov1.Route{{
