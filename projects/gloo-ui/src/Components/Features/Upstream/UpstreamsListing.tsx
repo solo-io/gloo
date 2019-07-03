@@ -26,6 +26,8 @@ import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/ups
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 import { getResourceStatus, getUpstreamType } from 'utils/helpers';
 import { NamespacesContext } from 'GlooIApp';
+import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
+
 const StringFilters: StringFilterProps[] = [
   {
     displayName: 'Filter By Name...',
@@ -99,6 +101,13 @@ const Heading = styled.div`
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
+`;
+
+const Action = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-items: baseline;
 `;
 
 interface Props extends RouteComponentProps {
@@ -215,12 +224,15 @@ export const UpstreamsListing = (props: Props) => {
     <div>
       <Heading>
         <Breadcrumb />
-        <CatalogTableToggle
-          listIsSelected={!catalogNotTable}
-          onToggle={() => {
-            setCatalogNotTable(cNt => !cNt);
-          }}
-        />
+        <Action>
+          <CreateUpstreamModal />
+          <CatalogTableToggle
+            listIsSelected={!catalogNotTable}
+            onToggle={() => {
+              setCatalogNotTable(cNt => !cNt);
+            }}
+          />
+        </Action>
       </Heading>
       <ListingFilter
         strings={StringFilters}

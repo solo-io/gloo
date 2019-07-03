@@ -25,6 +25,7 @@ export const useFormValidation = (
     setIsDifferent(!isEqual(values, initialState));
   }, [values]);
 
+  // TODO: type this
   const handleChange = (e: any) => {
     console.log(e.target.value);
     console.log(e.target.name);

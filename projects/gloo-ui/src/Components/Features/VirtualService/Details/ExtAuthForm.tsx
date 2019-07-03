@@ -14,7 +14,7 @@ const FormContainer = styled.div`
   grid-gap: 8px;
 `;
 
-const ErrorText = styled.div`
+export const ErrorText = styled.div`
   color: ${colors.grapefruitOrange};
 `;
 
