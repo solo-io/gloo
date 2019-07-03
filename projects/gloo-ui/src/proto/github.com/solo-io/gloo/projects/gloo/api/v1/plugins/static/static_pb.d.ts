@@ -19,9 +19,6 @@ export class UpstreamSpec extends jspb.Message {
   getServiceSpec(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec | undefined;
   setServiceSpec(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec): void;
 
-  getUseHttp2(): boolean;
-  setUseHttp2(value: boolean): void;
-
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSpec.AsObject;
   static toObject(includeInstance: boolean, msg: UpstreamSpec): UpstreamSpec.AsObject;
@@ -37,7 +34,6 @@ export namespace UpstreamSpec {
     hostsList: Array<Host.AsObject>,
     useTls: boolean,
     serviceSpec?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec.AsObject,
-    useHttp2: boolean,
   }
 }
 

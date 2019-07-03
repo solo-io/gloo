@@ -7,6 +7,7 @@ import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as github_com_solo_io_solo_kit_api_v1_metadata_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/metadata_pb";
 import * as github_com_solo_io_solo_kit_api_v1_status_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/status_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
+import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_subset_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/subset_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb";
@@ -105,8 +106,8 @@ export class HttpListener extends jspb.Message {
 
   hasListenerPlugins(): boolean;
   clearListenerPlugins(): void;
-  getListenerPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins | undefined;
-  setListenerPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins): void;
+  getListenerPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins | undefined;
+  setListenerPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpListener.AsObject;
@@ -121,7 +122,7 @@ export class HttpListener extends jspb.Message {
 export namespace HttpListener {
   export type AsObject = {
     virtualHostsList: Array<VirtualHost.AsObject>,
-    listenerPlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.AsObject,
+    listenerPlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.AsObject,
   }
 }
 

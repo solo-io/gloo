@@ -107,7 +107,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	return nil
 }
 
-func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
 	var extauth extauth.VhostExtension
 	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &extauth)
 	if err != nil {
@@ -117,7 +117,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 		}
 		return errors.Wrapf(err, "Error converting proto any to extauth plugin")
 	}
-	cfg, err := p.generateEnvoyConfigForFilter(params)
+	cfg, err := p.generateEnvoyConfigForFilter(params.Params)
 	if err != nil {
 		return err
 	}
@@ -125,9 +125,15 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 		return errors.Errorf("no auth settings were defined")
 	}
 
-	markName(out)
+	// TODO(yuval-k): add proxy and listener to plugin.Params
+	proxy, listener := params.Proxy, params.Listener
 
-	_, err = TranslateUserConfigToExtAuthServerConfig(out.Name, params.Snapshot, extauth)
+	name := GetResourceName(proxy, listener, in)
+	err = markName(name, out)
+	if err != nil {
+		return err
+	}
+	_, err = TranslateUserConfigToExtAuthServerConfig(proxy, listener, in, params.Snapshot, extauth)
 	if err != nil {
 		return err
 	}
@@ -135,7 +141,13 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 	return nil
 }
 
-func TranslateUserConfigToExtAuthServerConfig(name string, snap *v1.ApiSnapshot, vhostextauth extauth.VhostExtension) (*extauth.ExtAuthConfig, error) {
+func GetResourceName(proxy *v1.Proxy, listener *v1.Listener, vhost *v1.VirtualHost) string {
+	return fmt.Sprintf("%s-%s-%s", proxy.Metadata.Ref().Key(), listener.Name, vhost.Name)
+}
+
+func TranslateUserConfigToExtAuthServerConfig(proxy *v1.Proxy, listener *v1.Listener, vhost *v1.VirtualHost, snap *v1.ApiSnapshot, vhostextauth extauth.VhostExtension) (*extauth.ExtAuthConfig, error) {
+	name := GetResourceName(proxy, listener, vhost)
+
 	extauthConfig := &extauth.ExtAuthConfig{
 		Vhost: name,
 	}
@@ -175,12 +187,13 @@ func TranslateUserConfigToExtAuthServerConfig(name string, snap *v1.ApiSnapshot,
 	return extauthConfig, nil
 }
 
-func markName(out *envoyroute.VirtualHost) error {
+func markName(name string, out *envoyroute.VirtualHost) error {
+
 	config := &envoyauth.ExtAuthzPerRoute{
 		Override: &envoyauth.ExtAuthzPerRoute_CheckSettings{
 			CheckSettings: &envoyauth.CheckSettings{
 				ContextExtensions: map[string]string{
-					ContextExtensionVhost: out.Name,
+					ContextExtensionVhost: name,
 				},
 			},
 		},

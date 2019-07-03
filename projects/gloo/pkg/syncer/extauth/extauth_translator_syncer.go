@@ -21,11 +21,24 @@ import (
 type ExtAuthTranslatorSyncerExtension struct {
 }
 
-func NewTranslatorSyncerExtension() syncer.TranslatorSyncerExtension {
+var _ syncer.TranslatorSyncerExtension = NewTranslatorSyncerExtension()
+
+func NewTranslatorSyncerExtension() *ExtAuthTranslatorSyncerExtension {
 	return &ExtAuthTranslatorSyncerExtension{}
 }
 
+// TODO: move this into solo-kit
+type SnapshotSetter interface {
+	SetSnapshot(node string, snapshot envoycache.Snapshot) error
+}
+
 func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache envoycache.SnapshotCache) error {
+	return s.SyncAndSet(ctx, snap, xdsCache)
+}
+
+func (s *ExtAuthTranslatorSyncerExtension) SyncAndSet(ctx context.Context, snap *gloov1.ApiSnapshot, xdsCache SnapshotSetter) error {
+	var cfgs []*extauth.ExtAuthConfig
+
 	for _, proxy := range snap.Proxies {
 		for _, listener := range proxy.Listeners {
 			httpListener, ok := listener.ListenerType.(*gloov1.Listener_HttpListener)
@@ -33,8 +46,6 @@ func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov
 				// not an http listener - skip it as currently ext auth is only supported for http
 				continue
 			}
-
-			var cfgs []*extauth.ExtAuthConfig
 
 			virtualHosts := httpListener.HttpListener.VirtualHosts
 			for _, virtualHost := range virtualHosts {
@@ -49,7 +60,7 @@ func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov
 					return errors.Wrapf(err, "Error converting proto any to ingress ext auth plugin")
 				}
 
-				extath, err := extAuthPlugin.TranslateUserConfigToExtAuthServerConfig(virtualHost.Name, snap, extAuthVhost)
+				extath, err := extAuthPlugin.TranslateUserConfigToExtAuthServerConfig(proxy, listener, virtualHost, snap, extAuthVhost)
 				if err != nil {
 					return err
 				}
@@ -57,22 +68,21 @@ func (s *ExtAuthTranslatorSyncerExtension) Sync(ctx context.Context, snap *gloov
 					cfgs = append(cfgs, extath)
 				}
 			}
-
-			resources := []envoycache.Resource{}
-			for _, cfg := range cfgs {
-				resource := extauth.NewExtAuthConfigXdsResourceWrapper(cfg)
-				resources = append(resources, resource)
-			}
-			h, err := hashstructure.Hash(resources, nil)
-			if err != nil {
-				contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing ext auth")
-				return err
-			}
-			rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
-			xdsCache.SetSnapshot("extauth", rlsnap)
 		}
 	}
 
+	resources := []envoycache.Resource{}
+	for _, cfg := range cfgs {
+		resource := extauth.NewExtAuthConfigXdsResourceWrapper(cfg)
+		resources = append(resources, resource)
+	}
+	h, err := hashstructure.Hash(resources, nil)
+	if err != nil {
+		contextutils.LoggerFrom(ctx).With(zap.Error(err)).DPanic("error hashing ext auth")
+		return err
+	}
+	rlsnap := envoycache.NewEasyGenericSnapshot(fmt.Sprintf("%d", h), resources)
+	xdsCache.SetSnapshot("extauth", rlsnap)
 	// find our plugin
 	return nil
 }

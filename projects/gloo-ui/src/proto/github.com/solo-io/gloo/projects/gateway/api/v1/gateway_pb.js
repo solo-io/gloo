@@ -19,6 +19,7 @@ var github_com_solo$io_solo$kit_api_v1_status_pb = require('../../../../../../..
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb.js');
+var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 goog.exportSymbol('proto.gateway.solo.io.Gateway', null, global);
 
 /**
@@ -79,7 +80,7 @@ proto.gateway.solo.io.Gateway.toObject = function(includeInstance, msg) {
     github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject, includeInstance),
     bindAddress: jspb.Message.getFieldWithDefault(msg, 3, ""),
     bindPort: jspb.Message.getFieldWithDefault(msg, 4, 0),
-    plugins: (f = msg.getPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.toObject(includeInstance, f),
+    plugins: (f = msg.getPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.toObject(includeInstance, f),
     status: (f = msg.getStatus()) && github_com_solo$io_solo$kit_api_v1_status_pb.Status.toObject(includeInstance, f),
     metadata: (f = msg.getMetadata()) && github_com_solo$io_solo$kit_api_v1_metadata_pb.Metadata.toObject(includeInstance, f),
     useProxyProto: (f = msg.getUseProxyProto()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
@@ -137,8 +138,8 @@ proto.gateway.solo.io.Gateway.deserializeBinaryFromReader = function(msg, reader
       msg.setBindPort(value);
       break;
     case 5:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.deserializeBinaryFromReader);
       msg.setPlugins(value);
       break;
     case 6:
@@ -219,7 +220,7 @@ proto.gateway.solo.io.Gateway.serializeBinaryToWriter = function(message, writer
     writer.writeMessage(
       5,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.serializeBinaryToWriter
     );
   }
   f = message.getStatus();
@@ -328,16 +329,16 @@ proto.gateway.solo.io.Gateway.prototype.setBindPort = function(value) {
 
 
 /**
- * optional gloo.solo.io.ListenerPlugins plugins = 5;
- * @return {?proto.gloo.solo.io.ListenerPlugins}
+ * optional gloo.solo.io.HttpListenerPlugins plugins = 5;
+ * @return {?proto.gloo.solo.io.HttpListenerPlugins}
  */
 proto.gateway.solo.io.Gateway.prototype.getPlugins = function() {
-  return /** @type{?proto.gloo.solo.io.ListenerPlugins} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins, 5));
+  return /** @type{?proto.gloo.solo.io.HttpListenerPlugins} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins, 5));
 };
 
 
-/** @param {?proto.gloo.solo.io.ListenerPlugins|undefined} value */
+/** @param {?proto.gloo.solo.io.HttpListenerPlugins|undefined} value */
 proto.gateway.solo.io.Gateway.prototype.setPlugins = function(value) {
   jspb.Message.setWrapperField(this, 5, value);
 };

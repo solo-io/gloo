@@ -17,6 +17,7 @@ var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_
 var github_com_solo$io_solo$kit_api_v1_metadata_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/metadata_pb.js');
 var github_com_solo$io_solo$kit_api_v1_status_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/status_pb.js');
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
+var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_subset_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/subset_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb.js');
@@ -712,7 +713,7 @@ proto.gloo.solo.io.HttpListener.toObject = function(includeInstance, msg) {
   var f, obj = {
     virtualHostsList: jspb.Message.toObjectList(msg.getVirtualHostsList(),
     proto.gloo.solo.io.VirtualHost.toObject, includeInstance),
-    listenerPlugins: (f = msg.getListenerPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.toObject(includeInstance, f)
+    listenerPlugins: (f = msg.getListenerPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -755,8 +756,8 @@ proto.gloo.solo.io.HttpListener.deserializeBinaryFromReader = function(msg, read
       msg.addVirtualHosts(value);
       break;
     case 2:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.deserializeBinaryFromReader);
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.deserializeBinaryFromReader);
       msg.setListenerPlugins(value);
       break;
     default:
@@ -801,7 +802,7 @@ proto.gloo.solo.io.HttpListener.serializeBinaryToWriter = function(message, writ
     writer.writeMessage(
       2,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.serializeBinaryToWriter
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins.serializeBinaryToWriter
     );
   }
 };
@@ -839,16 +840,16 @@ proto.gloo.solo.io.HttpListener.prototype.clearVirtualHostsList = function() {
 
 
 /**
- * optional ListenerPlugins listener_plugins = 2;
- * @return {?proto.gloo.solo.io.ListenerPlugins}
+ * optional HttpListenerPlugins listener_plugins = 2;
+ * @return {?proto.gloo.solo.io.HttpListenerPlugins}
  */
 proto.gloo.solo.io.HttpListener.prototype.getListenerPlugins = function() {
-  return /** @type{?proto.gloo.solo.io.ListenerPlugins} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins, 2));
+  return /** @type{?proto.gloo.solo.io.HttpListenerPlugins} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.HttpListenerPlugins, 2));
 };
 
 
-/** @param {?proto.gloo.solo.io.ListenerPlugins|undefined} value */
+/** @param {?proto.gloo.solo.io.HttpListenerPlugins|undefined} value */
 proto.gloo.solo.io.HttpListener.prototype.setListenerPlugins = function(value) {
   jspb.Message.setWrapperField(this, 2, value);
 };

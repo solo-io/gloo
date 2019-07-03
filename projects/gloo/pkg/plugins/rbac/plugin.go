@@ -56,7 +56,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	return err
 }
 
-func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
 	var rbacConfig rbac.VhostExtension
 	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &rbacConfig)
 	if err != nil {

@@ -72,6 +72,9 @@ update-deps:
 	go get -u github.com/paulvollmer/2gobytes
 	go get -v -u github.com/golang/mock/gomock
 	go install github.com/golang/mock/mockgen
+
+update-ui-deps:
+	yarn --cwd=projects/gloo-ui install
 .PHONY: pin-repos
 pin-repos:
 	go run pin_repos.go

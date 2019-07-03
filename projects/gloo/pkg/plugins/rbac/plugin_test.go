@@ -28,6 +28,7 @@ var _ = Describe("Plugin", func() {
 	var (
 		plugin      *Plugin
 		params      plugins.Params
+		vhostParams plugins.VirtualHostParams
 		virtualHost *v1.VirtualHost
 		route       *v1.Route
 		rbacVhost   *rbac.VhostExtension
@@ -124,6 +125,11 @@ var _ = Describe("Plugin", func() {
 		params.Snapshot = &v1.ApiSnapshot{
 			Proxies: v1.ProxyList{proxy},
 		}
+		vhostParams = plugins.VirtualHostParams{
+			Params:   params,
+			Proxy:    proxy,
+			Listener: proxy.Listeners[0],
+		}
 	})
 
 	getExpectedPolicy := func(provider string) *envoycfgauthz.Policy {
@@ -216,13 +222,13 @@ var _ = Describe("Plugin", func() {
 			}
 			outRoute = envoyroute.Route{}
 			routesParams := plugins.RouteParams{
-				Params:      params,
-				VirtualHost: virtualHost,
+				VirtualHostParams: vhostParams,
+				VirtualHost:       virtualHost,
 			}
 			// run it like the translator:
 			err := plugin.ProcessRoute(routesParams, route, &outRoute)
 			Expect(err).NotTo(HaveOccurred())
-			err = plugin.ProcessVirtualHost(params, virtualHost, &outVhost)
+			err = plugin.ProcessVirtualHost(vhostParams, virtualHost, &outVhost)
 			Expect(err).NotTo(HaveOccurred())
 			outFilters, err = plugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())

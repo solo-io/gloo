@@ -13,7 +13,7 @@ import "google/api/annotations.proto";
 import "google/protobuf/duration.proto";
 
 
-message Settings { 
+message Settings {
   // The upstream to ask about auth decisions
   core.solo.io.ResourceRef extauthz_server_ref = 1;
   // If this is set, communication to the upstream will be with HTTP and not GRPC.

@@ -131,13 +131,13 @@ var _ = Describe("JWT + RBAC", func() {
 				Namespace: "default",
 			},
 			UpstreamSpec: &gloov1.UpstreamSpec{
+				UseHttp2: true,
 				UpstreamType: &gloov1.UpstreamSpec_Static{
 					Static: &gloov1static.UpstreamSpec{
 						Hosts: []*gloov1static.Host{{
 							Addr: "localhost",
 							Port: jwksPort,
 						}},
-						UseHttp2: true,
 					},
 				},
 			},

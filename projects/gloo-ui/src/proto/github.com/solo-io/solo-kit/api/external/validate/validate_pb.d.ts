@@ -905,6 +905,11 @@ export class StringRules extends jspb.Message {
   getConst(): string | undefined;
   setConst(value: string): void;
 
+  hasLen(): boolean;
+  clearLen(): void;
+  getLen(): number | undefined;
+  setLen(value: number): void;
+
   hasMinLen(): boolean;
   clearMinLen(): void;
   getMinLen(): number | undefined;
@@ -914,6 +919,11 @@ export class StringRules extends jspb.Message {
   clearMaxLen(): void;
   getMaxLen(): number | undefined;
   setMaxLen(value: number): void;
+
+  hasLenBytes(): boolean;
+  clearLenBytes(): void;
+  getLenBytes(): number | undefined;
+  setLenBytes(value: number): void;
 
   hasMinBytes(): boolean;
   clearMinBytes(): void;
@@ -1004,8 +1014,10 @@ export class StringRules extends jspb.Message {
 export namespace StringRules {
   export type AsObject = {
     pb_const?: string,
+    len?: number,
     minLen?: number,
     maxLen?: number,
+    lenBytes?: number,
     minBytes?: number,
     maxBytes?: number,
     pattern?: string,
@@ -1042,6 +1054,11 @@ export class BytesRules extends jspb.Message {
   getConst_asU8(): Uint8Array;
   getConst_asB64(): string;
   setConst(value: Uint8Array | string): void;
+
+  hasLen(): boolean;
+  clearLen(): void;
+  getLen(): number | undefined;
+  setLen(value: number): void;
 
   hasMinLen(): boolean;
   clearMinLen(): void;
@@ -1122,6 +1139,7 @@ export class BytesRules extends jspb.Message {
 export namespace BytesRules {
   export type AsObject = {
     const: Uint8Array | string,
+    len?: number,
     minLen?: number,
     maxLen?: number,
     pattern?: string,

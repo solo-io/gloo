@@ -6322,8 +6322,10 @@ proto.validate.StringRules.prototype.toObject = function(opt_includeInstance) {
 proto.validate.StringRules.toObject = function(includeInstance, msg) {
   var f, obj = {
     pb_const: jspb.Message.getField(msg, 1),
+    len: jspb.Message.getField(msg, 19),
     minLen: jspb.Message.getField(msg, 2),
     maxLen: jspb.Message.getField(msg, 3),
+    lenBytes: jspb.Message.getField(msg, 20),
     minBytes: jspb.Message.getField(msg, 4),
     maxBytes: jspb.Message.getField(msg, 5),
     pattern: jspb.Message.getField(msg, 6),
@@ -6379,6 +6381,10 @@ proto.validate.StringRules.deserializeBinaryFromReader = function(msg, reader) {
       var value = /** @type {string} */ (reader.readString());
       msg.setConst(value);
       break;
+    case 19:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setLen(value);
+      break;
     case 2:
       var value = /** @type {number} */ (reader.readUint64());
       msg.setMinLen(value);
@@ -6386,6 +6392,10 @@ proto.validate.StringRules.deserializeBinaryFromReader = function(msg, reader) {
     case 3:
       var value = /** @type {number} */ (reader.readUint64());
       msg.setMaxLen(value);
+      break;
+    case 20:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setLenBytes(value);
       break;
     case 4:
       var value = /** @type {number} */ (reader.readUint64());
@@ -6483,6 +6493,13 @@ proto.validate.StringRules.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
+  f = /** @type {number} */ (jspb.Message.getField(message, 19));
+  if (f != null) {
+    writer.writeUint64(
+      19,
+      f
+    );
+  }
   f = /** @type {number} */ (jspb.Message.getField(message, 2));
   if (f != null) {
     writer.writeUint64(
@@ -6494,6 +6511,13 @@ proto.validate.StringRules.serializeBinaryToWriter = function(message, writer) {
   if (f != null) {
     writer.writeUint64(
       3,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 20));
+  if (f != null) {
+    writer.writeUint64(
+      20,
       f
     );
   }
@@ -6635,6 +6659,35 @@ proto.validate.StringRules.prototype.hasConst = function() {
 
 
 /**
+ * optional uint64 len = 19;
+ * @return {number}
+ */
+proto.validate.StringRules.prototype.getLen = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 19, 0));
+};
+
+
+/** @param {number} value */
+proto.validate.StringRules.prototype.setLen = function(value) {
+  jspb.Message.setField(this, 19, value);
+};
+
+
+proto.validate.StringRules.prototype.clearLen = function() {
+  jspb.Message.setField(this, 19, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.validate.StringRules.prototype.hasLen = function() {
+  return jspb.Message.getField(this, 19) != null;
+};
+
+
+/**
  * optional uint64 min_len = 2;
  * @return {number}
  */
@@ -6689,6 +6742,35 @@ proto.validate.StringRules.prototype.clearMaxLen = function() {
  */
 proto.validate.StringRules.prototype.hasMaxLen = function() {
   return jspb.Message.getField(this, 3) != null;
+};
+
+
+/**
+ * optional uint64 len_bytes = 20;
+ * @return {number}
+ */
+proto.validate.StringRules.prototype.getLenBytes = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 20, 0));
+};
+
+
+/** @param {number} value */
+proto.validate.StringRules.prototype.setLenBytes = function(value) {
+  jspb.Message.setField(this, 20, value);
+};
+
+
+proto.validate.StringRules.prototype.clearLenBytes = function() {
+  jspb.Message.setField(this, 20, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.validate.StringRules.prototype.hasLenBytes = function() {
+  return jspb.Message.getField(this, 20) != null;
 };
 
 
@@ -7223,6 +7305,7 @@ proto.validate.BytesRules.prototype.toObject = function(opt_includeInstance) {
 proto.validate.BytesRules.toObject = function(includeInstance, msg) {
   var f, obj = {
     pb_const: msg.getConst_asB64(),
+    len: jspb.Message.getField(msg, 13),
     minLen: jspb.Message.getField(msg, 2),
     maxLen: jspb.Message.getField(msg, 3),
     pattern: jspb.Message.getField(msg, 4),
@@ -7273,6 +7356,10 @@ proto.validate.BytesRules.deserializeBinaryFromReader = function(msg, reader) {
     case 1:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.setConst(value);
+      break;
+    case 13:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setLen(value);
       break;
     case 2:
       var value = /** @type {number} */ (reader.readUint64());
@@ -7351,6 +7438,13 @@ proto.validate.BytesRules.serializeBinaryToWriter = function(message, writer) {
   if (f != null) {
     writer.writeBytes(
       1,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 13));
+  if (f != null) {
+    writer.writeUint64(
+      13,
       f
     );
   }
@@ -7484,6 +7578,35 @@ proto.validate.BytesRules.prototype.clearConst = function() {
  */
 proto.validate.BytesRules.prototype.hasConst = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional uint64 len = 13;
+ * @return {number}
+ */
+proto.validate.BytesRules.prototype.getLen = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 13, 0));
+};
+
+
+/** @param {number} value */
+proto.validate.BytesRules.prototype.setLen = function(value) {
+  jspb.Message.setField(this, 13, value);
+};
+
+
+proto.validate.BytesRules.prototype.clearLen = function() {
+  jspb.Message.setField(this, 13, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.validate.BytesRules.prototype.hasLen = function() {
+  return jspb.Message.getField(this, 13) != null;
 };
 
 

@@ -20,6 +20,14 @@
   version = "v0.33.1"
 
 [[projects]]
+  digest = "1:a0f79124a2fba5112d3d1466b917daf508e548c6c2da106399df92a79e06628b"
+  name = "contrib.go.opencensus.io/exporter/prometheus"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f4a2c1e53ec45636355d35fb9022b64e4bdd4a91"
+  version = "v0.1.0"
+
+[[projects]]
   digest = "1:e8f6639eaa399c8595b9a2dee175514a9f3842888dc080e2776360dc604150dc"
   name = "github.com/99designs/gqlgen"
   packages = [
@@ -214,17 +222,6 @@
   packages = ["quantile"]
   pruneopts = "UT"
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
-
-[[projects]]
-  branch = "master"
-  digest = "1:7310ec5042e3a0dd73ed9f23f812e73ce0ae88d08039e4473472ebba20bf2996"
-  name = "github.com/bxcodec/faker"
-  packages = [
-    ".",
-    "support/slice",
-  ]
-  pruneopts = "UT"
-  revision = "bf89c38ff1742f295e15df0bd5e8b3e81da95855"
 
 [[projects]]
   branch = "master"
@@ -1327,7 +1324,7 @@
   version = "v0.2.6"
 
 [[projects]]
-  digest = "1:3407b6e8870d950d8ae7a4659435c2df474da127ba151bcdff5abe4cbbd3c90a"
+  digest = "1:dbc9f7e811249de3a2aee4ed3db7fe26fad38310ed608099acd569b4378fcb09"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1391,6 +1388,7 @@
     "projects/gloo/pkg/api/v1/plugins/retries",
     "projects/gloo/pkg/api/v1/plugins/static",
     "projects/gloo/pkg/api/v1/plugins/stats",
+    "projects/gloo/pkg/api/v1/plugins/tcp",
     "projects/gloo/pkg/api/v1/plugins/transformation",
     "projects/gloo/pkg/bootstrap",
     "projects/gloo/pkg/defaults",
@@ -1425,8 +1423,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "02a2b757245f1cbcc4b5d0b06b08be70efb332fd"
-  version = "v0.14.3"
+  revision = "ad88027793bf8c23299aae7d4e230b45d49d3edb"
+  version = "v0.16.0"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1437,7 +1435,7 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:43a6457a9e3dc42c0687e5d872cb3f49e3190bf2677badd95c42b94a431f8ce7"
+  digest = "1:d28338d0627c2067382017f84b4de13edc8c8743f011a187a030a75160f28dc1"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1457,15 +1455,17 @@
     "protoutils",
     "stats",
     "stringutils",
+    "tarutils",
     "testutils",
     "testutils/clusterlock",
     "testutils/exec",
     "testutils/helper",
     "versionutils",
+    "vfsutils",
   ]
   pruneopts = "UT"
-  revision = "669bff7d2bfeb97c3979706c36138cffc6a8e00d"
-  version = "v0.8.21"
+  revision = "1c2dd400703ec1a7340609a6f5c00653ecf3d5c7"
+  version = "v0.9.1"
 
 [[projects]]
   digest = "1:67a1bba30c92952119cfe4a31f7f80bbb6946a386bbebfeeb49bfc13d8b1588f"
@@ -1485,7 +1485,7 @@
   version = "v0.1.1"
 
 [[projects]]
-  digest = "1:fe2f47fb7bb1e2156837a57419bcf16f30900b18f7f441c285b210fc335e3a54"
+  digest = "1:3c8eac7ed56610b2dacf46c6f8f3e3f9c27ada979fa6b954ee496a7427e9ba62"
   name = "github.com/solo-io/rate-limiter"
   packages = [
     "pkg/config",
@@ -1495,17 +1495,19 @@
     "pkg/settings",
   ]
   pruneopts = "UT"
-  revision = "8aa2e36bb84a979cb654d4d3c795b31add32f6cf"
+  revision = "5cbd4d452dccb9492a4d126f79dfcc7be43f88dc"
 
 [[projects]]
-  digest = "1:cc2f6cbbb83c61195187c892428724dea714fd6161b4a0695b37e6234e0bc7c7"
+  digest = "1:3bee6c0485ee6ba08be901b6fc939f66613f35705e5a67fa4e7cf9e4bb3300b0"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
+    "api/external/kubernetes/customresourcedefinition",
     "api/external/kubernetes/deployment",
     "api/external/kubernetes/namespace",
     "api/external/kubernetes/pod",
     "api/external/kubernetes/service",
+    "pkg/api/external/kubernetes/namespace",
     "pkg/api/external/kubernetes/service",
     "pkg/api/v1/clients",
     "pkg/api/v1/clients/common",
@@ -1555,8 +1557,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "1edf3f38af4cf7569fc66e53d115032d3385706d"
-  version = "v0.9.9"
+  revision = "a5b6bd42322788ea33293f320de942e053506e18"
+  version = "v0.10.2"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -1634,17 +1636,19 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:66cc08a702501988f2627f596b4b0d7fed859be5f79165f370bd6663c92b2860"
+  digest = "1:0133b905eb1f5f0249f5a209df2c38b2f8f5be59e10261b96e9216535ccdbd89"
   name = "go.opencensus.io"
   packages = [
     ".",
-    "exemplar",
-    "exporter/prometheus",
     "internal",
     "internal/tagencoding",
+    "metric/metricdata",
+    "metric/metricexport",
+    "metric/metricproducer",
     "plugin/ocgrpc",
     "plugin/ochttp",
     "plugin/ochttp/propagation/b3",
+    "resource",
     "stats",
     "stats/internal",
     "stats/view",
@@ -1657,8 +1661,8 @@
     "zpages/internal",
   ]
   pruneopts = "UT"
-  revision = "f305e5c4e2cf345eba88de13d10de1126fa45a61"
-  version = "v0.19.1"
+  revision = "9c377598961b706d1542bd2d84d538b5094d596e"
+  version = "v0.22.0"
 
 [[projects]]
   digest = "1:3c1a69cdae3501bf75e76d0d86dc6f2b0a7421bc205c0cb7b96b19eed464a34d"

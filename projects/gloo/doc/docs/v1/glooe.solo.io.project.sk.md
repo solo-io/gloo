@@ -17,13 +17,7 @@ Gloo is a high-performance, plugin-extendable, platform-agnostic API Gateway bui
 
 
 ### API Resources:
-- [Artifact](../github.com/solo-io/gloo/projects/gloo/api/v1/artifact.proto.sk#artifact)
-- [Proxy](../github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk#proxy)
-- [Secret](../github.com/solo-io/gloo/projects/gloo/api/v1/secret.proto.sk#secret)
-- [Settings](../github.com/solo-io/gloo/projects/gloo/api/v1/settings.proto.sk#settings)
 - [Upstream](../github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto.sk#upstream)
-- [UpstreamGroup](../github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto.sk#upstreamgroup)
-- [VirtualService](../github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service.proto.sk#virtualservice)
 
 <!-- Start of HubSpot Embed Code -->
 <script type="text/javascript" id="hs-script-loader" async defer src="//js.hs-scripts.com/5130874.js"></script>

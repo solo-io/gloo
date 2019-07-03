@@ -14,6 +14,7 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_rest_rest_pb fr
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_grpc_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc_web/grpc_web_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tcp_tcp_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tcp/tcp_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb";
@@ -26,16 +27,6 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 
 export class ListenerPlugins extends jspb.Message {
-  hasGrpcWeb(): boolean;
-  clearGrpcWeb(): void;
-  getGrpcWeb(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb.GrpcWeb | undefined;
-  setGrpcWeb(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb.GrpcWeb): void;
-
-  hasHttpConnectionManagerSettings(): boolean;
-  clearHttpConnectionManagerSettings(): void;
-  getHttpConnectionManagerSettings(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings | undefined;
-  setHttpConnectionManagerSettings(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings): void;
-
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListenerPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: ListenerPlugins): ListenerPlugins.AsObject;
@@ -48,8 +39,56 @@ export class ListenerPlugins extends jspb.Message {
 
 export namespace ListenerPlugins {
   export type AsObject = {
+  }
+}
+
+export class HttpListenerPlugins extends jspb.Message {
+  hasGrpcWeb(): boolean;
+  clearGrpcWeb(): void;
+  getGrpcWeb(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb.GrpcWeb | undefined;
+  setGrpcWeb(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb.GrpcWeb): void;
+
+  hasHttpConnectionManagerSettings(): boolean;
+  clearHttpConnectionManagerSettings(): void;
+  getHttpConnectionManagerSettings(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings | undefined;
+  setHttpConnectionManagerSettings(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): HttpListenerPlugins.AsObject;
+  static toObject(includeInstance: boolean, msg: HttpListenerPlugins): HttpListenerPlugins.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: HttpListenerPlugins, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): HttpListenerPlugins;
+  static deserializeBinaryFromReader(message: HttpListenerPlugins, reader: jspb.BinaryReader): HttpListenerPlugins;
+}
+
+export namespace HttpListenerPlugins {
+  export type AsObject = {
     grpcWeb?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb.GrpcWeb.AsObject,
     httpConnectionManagerSettings?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb.HttpConnectionManagerSettings.AsObject,
+  }
+}
+
+export class TcpListenerPlugins extends jspb.Message {
+  hasTcpProxySettings(): boolean;
+  clearTcpProxySettings(): void;
+  getTcpProxySettings(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tcp_tcp_pb.TcpProxySettings | undefined;
+  setTcpProxySettings(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tcp_tcp_pb.TcpProxySettings): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TcpListenerPlugins.AsObject;
+  static toObject(includeInstance: boolean, msg: TcpListenerPlugins): TcpListenerPlugins.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TcpListenerPlugins, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TcpListenerPlugins;
+  static deserializeBinaryFromReader(message: TcpListenerPlugins, reader: jspb.BinaryReader): TcpListenerPlugins;
+}
+
+export namespace TcpListenerPlugins {
+  export type AsObject = {
+    tcpProxySettings?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tcp_tcp_pb.TcpProxySettings.AsObject,
   }
 }
 
@@ -209,6 +248,9 @@ export class UpstreamSpec extends jspb.Message {
   getConnectionConfig(): github_com_solo_io_gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig | undefined;
   setConnectionConfig(value?: github_com_solo_io_gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig): void;
 
+  getUseHttp2(): boolean;
+  setUseHttp2(value: boolean): void;
+
   hasKube(): boolean;
   clearKube(): void;
   getKube(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec | undefined;
@@ -251,6 +293,7 @@ export namespace UpstreamSpec {
     circuitBreakers?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.AsObject,
     loadBalancerConfig?: github_com_solo_io_gloo_projects_gloo_api_v1_load_balancer_pb.LoadBalancerConfig.AsObject,
     connectionConfig?: github_com_solo_io_gloo_projects_gloo_api_v1_connection_pb.ConnectionConfig.AsObject,
+    useHttp2: boolean,
     kube?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec.AsObject,
     pb_static?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec.AsObject,
     aws?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec.AsObject,

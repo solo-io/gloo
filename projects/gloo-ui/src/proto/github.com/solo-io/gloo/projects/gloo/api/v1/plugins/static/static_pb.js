@@ -73,8 +73,7 @@ proto.static.plugins.gloo.solo.io.UpstreamSpec.toObject = function(includeInstan
     hostsList: jspb.Message.toObjectList(msg.getHostsList(),
     proto.static.plugins.gloo.solo.io.Host.toObject, includeInstance),
     useTls: jspb.Message.getFieldWithDefault(msg, 3, false),
-    serviceSpec: (f = msg.getServiceSpec()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec.toObject(includeInstance, f),
-    useHttp2: jspb.Message.getFieldWithDefault(msg, 6, false)
+    serviceSpec: (f = msg.getServiceSpec()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -124,10 +123,6 @@ proto.static.plugins.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = fun
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec.deserializeBinaryFromReader);
       msg.setServiceSpec(value);
-      break;
-    case 6:
-      var value = /** @type {boolean} */ (reader.readBool());
-      msg.setUseHttp2(value);
       break;
     default:
       reader.skipField();
@@ -179,13 +174,6 @@ proto.static.plugins.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = functio
       5,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec.serializeBinaryToWriter
-    );
-  }
-  f = message.getUseHttp2();
-  if (f) {
-    writer.writeBool(
-      6,
-      f
     );
   }
 };
@@ -266,23 +254,6 @@ proto.static.plugins.gloo.solo.io.UpstreamSpec.prototype.clearServiceSpec = func
  */
 proto.static.plugins.gloo.solo.io.UpstreamSpec.prototype.hasServiceSpec = function() {
   return jspb.Message.getField(this, 5) != null;
-};
-
-
-/**
- * optional bool use_http2 = 6;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
- */
-proto.static.plugins.gloo.solo.io.UpstreamSpec.prototype.getUseHttp2 = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 6, false));
-};
-
-
-/** @param {boolean} value */
-proto.static.plugins.gloo.solo.io.UpstreamSpec.prototype.setUseHttp2 = function(value) {
-  jspb.Message.setProto3BooleanField(this, 6, value);
 };
 
 

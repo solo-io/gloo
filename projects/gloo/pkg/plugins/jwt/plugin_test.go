@@ -26,6 +26,7 @@ var _ = Describe("JWT Plugin", func() {
 	var (
 		plugin      *Plugin
 		params      plugins.Params
+		vhostParams plugins.VirtualHostParams
 		routeParams plugins.RouteParams
 		virtualHost *v1.VirtualHost
 		route       *v1.Route
@@ -135,9 +136,14 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 		params.Snapshot = &v1.ApiSnapshot{
 			Proxies: v1.ProxyList{proxy},
 		}
+		vhostParams = plugins.VirtualHostParams{
+			Params:   params,
+			Proxy:    proxy,
+			Listener: proxy.Listeners[0],
+		}
 		routeParams = plugins.RouteParams{
-			Params:      params,
-			VirtualHost: virtualHost,
+			VirtualHostParams: vhostParams,
+			VirtualHost:       virtualHost,
 		}
 	})
 
@@ -158,7 +164,7 @@ FYkg7AesknSyCIVMObSaf6ZO3T2jVGrWc0iKfrR3Oo7WpiMH84SdBYXPaS1VdLC1
 			// run it like the translator:
 			err := plugin.ProcessRoute(routeParams, route, &outRoute)
 			Expect(err).NotTo(HaveOccurred())
-			err = plugin.ProcessVirtualHost(params, virtualHost, &outVhost)
+			err = plugin.ProcessVirtualHost(vhostParams, virtualHost, &outVhost)
 			Expect(err).NotTo(HaveOccurred())
 			outFilters, err = plugin.HttpFilters(params, nil)
 			Expect(err).NotTo(HaveOccurred())

@@ -15,10 +15,18 @@ func main() {
 		log.Fatalf("generate failed!: %v", err)
 	}
 	log.Printf("Starting generate...")
-	docsOpts := cmd.DocsOptions{
-		Output: options.Hugo,
+
+	generateOptions := cmd.GenerateOptions{
+		SkipGenMocks:  true,
+		CustomImports: nil,
+		SkipDirs:      []string{"./projects/gloo/pkg/", "./projects/gloo-ui/", "projects/grpcserver"},
+		RelativeRoot:  ".",
+		CompileProtos: true,
+		GenDocs: &cmd.DocsOptions{
+			Output: options.Hugo,
+		},
 	}
-	if err := cmd.Run(".", true, &docsOpts, nil, []string{"./projects/gloo/pkg/", "./projects/gloo-ui/"}); err != nil {
+	if err := cmd.Generate(generateOptions); err != nil {
 		log.Fatalf("generate failed!: %v", err)
 	}
 }

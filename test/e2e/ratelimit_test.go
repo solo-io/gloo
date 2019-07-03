@@ -92,13 +92,13 @@ var _ = Describe("Rate Limit", func() {
 				Namespace: "default",
 			},
 			UpstreamSpec: &gloov1.UpstreamSpec{
+				UseHttp2: true,
 				UpstreamType: &gloov1.UpstreamSpec_Static{
 					Static: &gloov1static.UpstreamSpec{
 						Hosts: []*gloov1static.Host{{
 							Addr: "localhost",
 							Port: rlport,
 						}},
-						UseHttp2: true,
 					},
 				},
 			},
@@ -250,13 +250,13 @@ var _ = Describe("Rate Limit", func() {
 						Namespace: "default",
 					},
 					UpstreamSpec: &gloov1.UpstreamSpec{
+						UseHttp2: true,
 						UpstreamType: &gloov1.UpstreamSpec_Static{
 							Static: &gloov1static.UpstreamSpec{
 								Hosts: []*gloov1static.Host{{
 									Addr: "localhost",
 									Port: extauthport,
 								}},
-								UseHttp2: true,
 							},
 						},
 					},

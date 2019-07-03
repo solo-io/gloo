@@ -1,0 +1,12 @@
+changelog:
+  - type: FIX
+    description: Fix a bug where OIDC was constantly returning 403
+    issueLink: https://github.com/solo-io/solo-projects/pull/669
+  - type: DEPENDENCY_BUMP
+    description: Update gloo to version v0.16.0.
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v0.16.0
+  - type: BREAKING_CHANGE
+    description: Update to gloo 0.16.0
+    issueLink: https://github.com/solo-io/solo-projects/pull/669

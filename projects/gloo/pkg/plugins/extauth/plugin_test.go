@@ -27,6 +27,7 @@ import (
 var _ = Describe("Plugin", func() {
 	var (
 		params       plugins.Params
+		vhostParams  plugins.VirtualHostParams
 		routeParams  plugins.RouteParams
 		plugin       *Plugin
 		virtualHost  *v1.VirtualHost
@@ -146,9 +147,14 @@ var _ = Describe("Plugin", func() {
 			Upstreams: v1.UpstreamList{upstream},
 			Secrets:   v1.SecretList{secret},
 		}
+		vhostParams = plugins.VirtualHostParams{
+			Params:   params,
+			Proxy:    proxy,
+			Listener: proxy.Listeners[0],
+		}
 		routeParams = plugins.RouteParams{
-			Params:      params,
-			VirtualHost: virtualHost,
+			VirtualHostParams: vhostParams,
+			VirtualHost:       virtualHost,
 		}
 	})
 
@@ -181,7 +187,7 @@ var _ = Describe("Plugin", func() {
 
 		It("should error processing vhost", func() {
 			var out envoyroute.VirtualHost
-			err := plugin.ProcessVirtualHost(params, virtualHost, &out)
+			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("no ext auth server configured"))
 		})
@@ -222,7 +228,7 @@ var _ = Describe("Plugin", func() {
 
 		It("should error processing vhost", func() {
 			var out envoyroute.VirtualHost
-			err := plugin.ProcessVirtualHost(params, virtualHost, &out)
+			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("external auth upstream not found"))
 		})
@@ -296,7 +302,7 @@ var _ = Describe("Plugin", func() {
 
 		It("should not error processing vhost", func() {
 			var out envoyroute.VirtualHost
-			err := plugin.ProcessVirtualHost(params, virtualHost, &out)
+			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(IsDisabled(&out)).To(BeFalse())
 		})
@@ -305,7 +311,7 @@ var _ = Describe("Plugin", func() {
 			// remove auth extension
 			virtualHost.VirtualHostPlugins.Extensions = nil
 			var out envoyroute.VirtualHost
-			err := plugin.ProcessVirtualHost(params, virtualHost, &out)
+			err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
 			Expect(err).NotTo(HaveOccurred())
 			ExpectDisabled(&out)
 		})
@@ -341,9 +347,9 @@ var _ = Describe("Plugin", func() {
 
 		It("should translate config for extauth server", func() {
 			// remove auth extension
-			cfg, err := TranslateUserConfigToExtAuthServerConfig(virtualHost.Name, params.Snapshot, *extauthVhost)
+			cfg, err := TranslateUserConfigToExtAuthServerConfig(params.Snapshot.Proxies[0], params.Snapshot.Proxies[0].Listeners[0], virtualHost, params.Snapshot, *extauthVhost)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(cfg.Vhost).To(Equal(virtualHost.Name))
+			Expect(cfg.Vhost).To(Equal(GetResourceName(params.Snapshot.Proxies[0], params.Snapshot.Proxies[0].Listeners[0], virtualHost)))
 			authcfg := cfg.AuthConfig.(*extauth.ExtAuthConfig_Oauth).Oauth
 			expectAuthCfg := extauthVhost.AuthConfig.(*extauth.VhostExtension_Oauth).Oauth
 			Expect(authcfg.IssuerUrl).To(Equal(expectAuthCfg.IssuerUrl))
@@ -361,7 +367,7 @@ var _ = Describe("Plugin", func() {
 
 			It("should process vhost", func() {
 				var out envoyroute.VirtualHost
-				err := plugin.ProcessVirtualHost(params, virtualHost, &out)
+				err := plugin.ProcessVirtualHost(vhostParams, virtualHost, &out)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(IsDisabled(&out)).To(BeFalse())
 			})

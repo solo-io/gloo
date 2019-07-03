@@ -78,7 +78,7 @@ func (p *Plugin) ProcessRoute(params plugins.RouteParams, in *v1.Route, out *env
 	return nil
 }
 
-func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
 	// get the jwt config from the vhost
 	var jwtExt jwt.VhostExtension
 	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &jwtExt)

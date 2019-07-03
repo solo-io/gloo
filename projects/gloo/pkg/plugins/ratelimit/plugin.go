@@ -134,7 +134,7 @@ func (p *Plugin) Init(params plugins.InitParams) error {
 	return nil
 }
 
-func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+func (p *Plugin) ProcessVirtualHost(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
 
 	err := p.ProcessVirtualHostSimple(params, in, out)
 	if err != nil {
@@ -143,7 +143,7 @@ func (p *Plugin) ProcessVirtualHost(params plugins.Params, in *v1.VirtualHost, o
 	return p.ProcessVirtualHostCustom(params, in, out)
 }
 
-func (p *Plugin) ProcessVirtualHostSimple(params plugins.Params, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+func (p *Plugin) ProcessVirtualHostSimple(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
 	var rateLimit ratelimit.IngressRateLimit
 	err := utils.UnmarshalExtension(in.VirtualHostPlugins, ExtensionName, &rateLimit)
 	if err != nil {
@@ -162,7 +162,7 @@ func (p *Plugin) ProcessVirtualHostSimple(params plugins.Params, in *v1.VirtualH
 
 	return nil
 }
-func (p *Plugin) ProcessVirtualHostCustom(params plugins.Params, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
+func (p *Plugin) ProcessVirtualHostCustom(params plugins.VirtualHostParams, in *v1.VirtualHost, out *envoyroute.VirtualHost) error {
 	var rateLimit ratelimit.RateLimitVhostExtension
 	err := utils.UnmarshalExtension(in.VirtualHostPlugins, EnvoyExtensionName, &rateLimit)
 	if err != nil {
