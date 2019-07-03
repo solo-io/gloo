@@ -12,9 +12,13 @@ const DomainsContainer = styled.div`
   align-items: center;
 `;
 
-export const Domains = () => {
-  const [domains, setDomains] = React.useState(['solo.io', 'domain.com']);
+interface Props {
+  domains: string[];
+}
+export const Domains: React.FC<Props> = props => {
+  const [domains, setDomains] = React.useState(props.domains);
 
+  // need to hook this up to api
   const addDomain = (domain: string) => {
     setDomains([...domains, domain]);
   };

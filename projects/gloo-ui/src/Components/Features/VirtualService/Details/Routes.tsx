@@ -1,6 +1,14 @@
 import * as React from 'react';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { DetailsSectionTitle } from './VirtualServiceDetails';
+import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import {
+  getRouteMethods,
+  getRouteSingleUpstream,
+  getRouteMatcher,
+  getRouteHeaders,
+  getRouteQueryParams
+} from 'utils/helpers';
 
 const routeColumns = [
   {
@@ -17,12 +25,8 @@ const routeColumns = [
     dataIndex: 'method'
   },
   {
-    title: 'Upstream',
-    dataIndex: 'upstreamName'
-  },
-  {
     title: 'Destination',
-    dataIndex: 'destinationName'
+    dataIndex: 'upstreamName'
   },
   {
     title: 'Headers',
@@ -39,26 +43,36 @@ const routeColumns = [
   }
 ];
 
-const routeData: any[] = [];
-for (let i = 1; i <= 5; i++) {
-  routeData.push({
-    key: i,
-    matcher: '/test',
-    pathMatch: 'PREFIX',
-    method: '*',
-    upstreamName: 'fake-upstream-13-9080',
-    destinationName: 'test',
-    header: 'test',
-    queryParams: 'test',
-    actions: ''
-  });
+interface Props {
+  routes: Route.AsObject[];
 }
 
-export const Routes = () => {
+export const Routes: React.FC<Props> = props => {
+  const getRouteData = (routes: Route.AsObject[]) => {
+    return routes.map(route => {
+      const upstreamName = getRouteSingleUpstream(route).name || '';
+      const { matcher, matchType } = getRouteMatcher(route);
+      console.log(route);
+      return {
+        key: route.matcher!.prefix,
+        matcher: matcher,
+        pathMatch: matchType,
+        method: getRouteMethods(route),
+        upstreamName: upstreamName,
+        header: getRouteHeaders(route),
+        queryParams: getRouteQueryParams(route),
+        actions: ''
+      };
+    });
+  };
+
   return (
     <React.Fragment>
       <DetailsSectionTitle>Routes</DetailsSectionTitle>
-      <SoloTable columns={routeColumns} dataSource={routeData} />
+      <SoloTable
+        columns={routeColumns}
+        dataSource={getRouteData(props.routes)}
+      />
     </React.Fragment>
   );
 };

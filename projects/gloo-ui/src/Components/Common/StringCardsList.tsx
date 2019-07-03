@@ -6,10 +6,11 @@ import styled from '@emotion/styled/macro';
 import { colors } from 'Styles';
 import { soloConstants } from 'Styles/constants';
 import { SoloInput } from './SoloInput';
-
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 const Container = styled.div`
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
 `;
 
 const StringCard = styled.div`
@@ -21,13 +22,14 @@ const StringCard = styled.div`
   padding: 10px;
   font-size: 16px;
   width: 175px;
-  margin-right: 10px;
-  margin-bottom: 23px;
+  margin: 10px;
+  white-space: nowrap;
 `;
 const NewStringPrompt = styled.div`
   display: flex;
   justify-content: space-between;
   width: 175px;
+  align-items: center;
 `;
 
 interface Props {
@@ -70,7 +72,9 @@ export const StringCardsList = (props: Props) => {
             placeholder={createNewPromptText}
             onChange={newValueChanged}
           />{' '}
-          <div onClick={sendCreateNew}>+</div>
+          <div onClick={sendCreateNew}>
+            <GreenPlus style={{ opacity: 0.5 }} />
+          </div>
         </NewStringPrompt>
       )}
     </Container>

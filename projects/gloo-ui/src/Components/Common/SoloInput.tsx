@@ -19,7 +19,7 @@ const Input = styled<'input', { error?: boolean; borderless?: boolean }>(
   padding: 9px 15px 9px 11px;
   border: 1px solid ${colors.aprilGrey};
   border-radius: ${soloConstants.smallRadius}px;
-  margin-bottom: 15px;
+
   line-height: 16px;
   outline: none;
 

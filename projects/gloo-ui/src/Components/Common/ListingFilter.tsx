@@ -18,6 +18,10 @@ const Content = styled.div`
   flex: 1;
 `;
 
+const FilterInput = styled.div`
+  margin-bottom: 15px;
+`;
+
 export interface StringFilterProps {
   displayName: string;
   placeholder?: string;
@@ -121,21 +125,23 @@ export const ListingFilter = (filterProps: FilterProps) => {
   return (
     <FilterContainer>
       <Filters>
-        {stringFilters.map((filter, ind) => {
-          return (
-            <SoloInput
-              key={filter.displayName}
-              value={filter.value!}
-              placeholder={filter.placeholder}
-              onChange={({ target }) => {
-                const newArray = [...stringFilters];
-                newArray[ind].value = target.value;
+        <FilterInput>
+          {stringFilters.map((filter, ind) => {
+            return (
+              <SoloInput
+                key={filter.displayName}
+                value={filter.value!}
+                placeholder={filter.placeholder}
+                onChange={({ target }) => {
+                  const newArray = [...stringFilters];
+                  newArray[ind].value = target.value;
 
-                setStringFilters(newArray);
-              }}
-            />
-          );
-        })}
+                  setStringFilters(newArray);
+                }}
+              />
+            );
+          })}
+        </FilterInput>
         {typesFilters.map((filter, ind) => {
           return (
             <SoloRadioGroup

@@ -149,7 +149,11 @@ export const VirtualServicesListing = (props: Props) => {
         onRemovecard: (id: string): void => {},
         onExpanded: () => {},
         onClick: () => {
-          history.push(`${match.path}${virtualService.metadata!.name}/details`);
+          history.push(
+            `${match.path}${virtualService.metadata!.namespace}/${
+              virtualService.metadata!.name
+            }`
+          );
         }
       };
     });

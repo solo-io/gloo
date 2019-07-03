@@ -8,6 +8,10 @@ import styled from '@emotion/styled/macro';
 import { colors, soloConstants } from 'Styles';
 import { RouteComponentProps } from 'react-router';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { GetVirtualServiceRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { useGetVirtualService } from 'Api';
+import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 
 const DetailsContent = styled.div`
   display: grid;
@@ -26,7 +30,11 @@ export const DetailsSectionTitle = styled.div`
   margin-bottom: 10px;
 `;
 
-interface Props extends RouteComponentProps<{ virtualservicename: string }> {}
+interface Props
+  extends RouteComponentProps<{
+    virtualservicename: string;
+    virtualservicenamespace: string;
+  }> {}
 const headerInfo = [
   {
     title: 'namespace',
@@ -40,6 +48,27 @@ const headerInfo = [
 
 export const VirtualServiceDetails = (props: Props) => {
   const { match } = props;
+  console.log(match);
+  const { virtualservicename, virtualservicenamespace } = match.params;
+  let resourceRef = new ResourceRef();
+  resourceRef.setName(virtualservicename);
+  resourceRef.setNamespace(virtualservicenamespace);
+  let vsRequest = new GetVirtualServiceRequest();
+  vsRequest.setRef(resourceRef);
+  const { data, loading, error } = useGetVirtualService(vsRequest);
+
+  console.log(data);
+  if (!data || loading) {
+    return <div>Loading...</div>;
+  }
+
+  let routes: Route.AsObject[] = [];
+  let domains: string[] = [];
+  if (data.virtualService && data.virtualService.virtualHost) {
+    routes = data.virtualService.virtualHost.routesList;
+    domains = data.virtualService.virtualHost.domainsList;
+  }
+
   return (
     <React.Fragment>
       <Breadcrumb />
@@ -53,10 +82,10 @@ export const VirtualServiceDetails = (props: Props) => {
         closeIcon>
         <DetailsContent>
           <DetailsSection>
-            <Domains />
+            <Domains domains={domains} />
           </DetailsSection>
           <DetailsSection>
-            <Routes />
+            <Routes routes={routes} />
           </DetailsSection>
           <DetailsSection>
             <Configuration />

@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Populate the virtual service details view with real data.
+    issueLink: https://github.com/solo-io/solo-projects/issues/636
+    resolvesIssue: false

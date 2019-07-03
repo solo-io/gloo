@@ -1,5 +1,7 @@
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 
 type Resource = VirtualService.AsObject | Upstream.AsObject;
 
@@ -15,6 +17,10 @@ export function getResourceStatus(resource: Resource) {
       return '';
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                  UPSTREAMS                                 */
+/* -------------------------------------------------------------------------- */
 
 export function getUpstreamType(upstream: Upstream.AsObject) {
   let upstreamType = '';
@@ -35,8 +41,74 @@ export function getUpstreamType(upstream: Upstream.AsObject) {
   return upstreamType;
 }
 
+/* -------------------------------------------------------------------------- */
+/*                              VIRTUAL SERVICES                              */
+/* -------------------------------------------------------------------------- */
+
 export function getVSDomains(virtualService: VirtualService.AsObject) {
   if (virtualService.virtualHost && virtualService.virtualHost.domainsList) {
     return virtualService.virtualHost.domainsList.join(', ');
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   ROUTES                                   */
+/* -------------------------------------------------------------------------- */
+
+export function getRouteMethods(route: Route.AsObject) {
+  if (route.matcher && route.matcher.methodsList) {
+    return route.matcher.methodsList.join(', ');
+  }
+  return '';
+}
+
+export function getRouteSingleUpstream(route: Route.AsObject) {
+  if (route.routeAction) {
+    if (route.routeAction.single && route.routeAction.single.upstream) {
+      return route.routeAction.single.upstream;
+    }
+  }
+  return {} as ResourceRef.AsObject;
+}
+
+// TODO: handle multi destination case
+export function getRouteMultiUpstream(route: Route.AsObject) {}
+
+export function getRouteMatcher(route: Route.AsObject) {
+  let matcher = '';
+  let matchType = 'PATH_SPECIFIER_NOT_SET';
+  if (route.matcher) {
+    if (route.matcher.prefix) {
+      matcher = route.matcher.prefix;
+      matchType = 'PREFIX';
+    }
+    if (route.matcher.exact) {
+      matcher = route.matcher.exact;
+      matchType = 'EXACT';
+    }
+    if (route.matcher.regex) {
+      matcher = route.matcher.regex;
+      matchType = 'REGEX';
+    }
+  }
+  return {
+    matcher,
+    matchType
+  };
+}
+
+export function getRouteHeaders(route: Route.AsObject) {
+  if (route.matcher && route.matcher.headersList) {
+    return route.matcher.headersList.map(header => header.name).join(', ');
+  }
+  return '';
+}
+
+export function getRouteQueryParams(route: Route.AsObject) {
+  if (route.matcher && route.matcher.queryParametersList) {
+    return route.matcher.queryParametersList
+      .map(param => param.name)
+      .join(', ');
+  }
+  return '';
 }
