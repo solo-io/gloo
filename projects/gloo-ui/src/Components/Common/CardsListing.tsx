@@ -4,7 +4,7 @@ import { jsx } from '@emotion/core';
 
 import styled from '@emotion/styled/macro';
 import { CardType, Card } from './Card';
-
+import { colors } from 'Styles';
 const ListContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, 235px);
@@ -13,14 +13,34 @@ const ListContainer = styled.div`
 
 interface Props {
   cardsData: CardType[];
+  title?: string;
 }
 
+const CardsListingTitle = styled.div`
+  font-size: 18px;
+  color: ${colors.novemberGrey};
+  margin-bottom: 10px;
+`;
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
 export const CardsListing = (props: Props) => {
+  const { title, cardsData } = props;
   return (
-    <ListContainer>
-      {props.cardsData.map(cardInfo => {
-        return <Card key={cardInfo.id || cardInfo.cardTitle} {...cardInfo} />;
-      })}
-    </ListContainer>
+    <Container>
+      {title && <CardsListingTitle>{title}</CardsListingTitle>}
+      <ListContainer>
+        {cardsData.map(cardInfo => {
+          return (
+            <Card
+              key={cardInfo.cardTitle + (cardInfo.cardSubtitle || '')}
+              {...cardInfo}
+            />
+          );
+        })}
+      </ListContainer>
+    </Container>
   );
 };

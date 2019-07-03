@@ -24,6 +24,9 @@ const CardTitle = styled.div`
   color: ${colors.novemberGrey};
   font-size: 16px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const CardSubtitle = styled.div`
@@ -75,6 +78,9 @@ const DetailTitle = styled.div`
 
 const DetailContent = styled.div`
   color: ${colors.septemberGrey};
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-all;
 `;
 
 export interface CardType {

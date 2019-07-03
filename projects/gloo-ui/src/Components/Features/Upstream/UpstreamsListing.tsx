@@ -25,6 +25,7 @@ import { CardType } from 'antd/lib/card';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 import { getResourceStatus, getUpstreamType } from 'utils/helpers';
+import { NamespacesContext } from 'GlooIApp';
 const StringFilters: StringFilterProps[] = [
   {
     displayName: 'Filter By Name...',
@@ -106,8 +107,9 @@ interface Props extends RouteComponentProps {
 
 export const UpstreamsListing = (props: Props) => {
   const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(true);
+  const namespaces = React.useContext(NamespacesContext);
   let request = new ListUpstreamsRequest();
-  request.setNamespacesList(['gloo-system']);
+  request.setNamespacesList(namespaces);
   const { data, loading, error } = useGetUpstreamsList(request);
 
   const listDisplay = (
@@ -123,7 +125,7 @@ export const UpstreamsListing = (props: Props) => {
     if (!data || loading) {
       return <div>Loading...</div>;
     }
-    console.log(getUsableTableData(nameFilterValue, data.upstreamsList));
+
     return (
       <div>
         {catalogNotTable ? (
@@ -166,6 +168,10 @@ export const UpstreamsListing = (props: Props) => {
         onExpanded: () => {},
         details: [
           {
+            title: 'Name',
+            value: upstream.metadata!.name
+          },
+          {
             title: 'Namespace',
             value: upstream.metadata!.namespace
           },
@@ -198,7 +204,7 @@ export const UpstreamsListing = (props: Props) => {
         // TODO: need a better way to get the status
         status: getResourceStatus(upstream),
         name: upstream.metadata!.name,
-        key: `${upstream.metadata!.name}- ${upstream.metadata!.namespace}`
+        key: `${upstream.metadata!.name}-${upstream.metadata!.namespace}`
       };
     });
 
