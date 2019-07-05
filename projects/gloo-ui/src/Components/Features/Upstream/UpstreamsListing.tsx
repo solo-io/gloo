@@ -24,7 +24,7 @@ import { SoloTable } from 'Components/Common/SoloTable';
 import { CardType } from 'antd/lib/card';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
-import { getResourceStatus, getUpstreamType } from 'utils/helpers';
+import { getResourceStatus, getUpstreamType, groupBy } from 'utils/helpers';
 import { NamespacesContext } from 'GlooIApp';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
 
@@ -109,7 +109,13 @@ const Action = styled.div`
   align-items: center;
   align-items: baseline;
 `;
-
+interface UpstreamCardData extends Upstream.AsObject {
+  cardTitle: string;
+  cardSubtitle: string;
+  onRemovecard: (id: string) => void;
+  onExpanded: () => void;
+  details: { title: string; value: string }[];
+}
 interface Props extends RouteComponentProps {
   //... eg, virtualservice?: string
 }
@@ -121,6 +127,10 @@ export const UpstreamsListing = (props: Props) => {
   request.setNamespacesList(namespaces);
   const { data, loading, error } = useGetUpstreamsList(request);
 
+  if (!data || loading) {
+    return <div>Loading...</div>;
+  }
+
   const listDisplay = (
     strings: StringFilterProps[],
     types: TypeFilterProps[],
@@ -131,35 +141,36 @@ export const UpstreamsListing = (props: Props) => {
       s => s.displayName === 'Filter By Name...'
     )!.value!;
 
-    if (!data || loading) {
-      return <div>Loading...</div>;
-    }
+    // group by type
+    let upstreamsByType = groupBy(data.upstreamsList, u => getUpstreamType(u));
+    let upstreamsByTypeArr = Array.from(upstreamsByType.entries());
 
+    let checkboxesNotSet = checkboxes.every(c => !c.value!);
     return (
       <div>
         {catalogNotTable ? (
-          <SectionCard cardName={'Kubernetes'} logoIcon={<Gloo />}>
-            <CardsListing
-              cardsData={getUsableCatalogData(
-                nameFilterValue,
-                data.upstreamsList
-              )}
-            />
-          </SectionCard>
+          upstreamsByTypeArr.map(
+            ([type, upstreams]) =>
+              // show section according to type filter
+              (checkboxesNotSet ||
+                checkboxes.find(c => c.displayName === type)!.value!) && (
+                <SectionCard cardName={type} logoIcon={<Gloo />} key={type}>
+                  <CardsListing
+                    cardsData={getUsableCatalogData(nameFilterValue, upstreams)}
+                  />
+                </SectionCard>
+              )
+          )
         ) : (
           <SoloTable
-            dataSource={getUsableTableData(nameFilterValue, data.upstreamsList)}
+            dataSource={getUsableTableData(
+              nameFilterValue,
+              data.upstreamsList,
+              checkboxes
+            )}
             columns={TableColumns}
           />
         )}
-        {checkboxes.map(fil => {
-          return (
-            <div key={fil.displayName}>
-              <span>{fil.displayName}</span>
-              <span>{!!fil.value ? 'true' : 'false'}</span>
-            </div>
-          );
-        })}
       </div>
     );
   };
@@ -168,7 +179,7 @@ export const UpstreamsListing = (props: Props) => {
     nameFilter: string,
     data: Upstream.AsObject[]
   ) => {
-    const dataUsed = data.map(upstream => {
+    const dataUsed: UpstreamCardData[] = data.map(upstream => {
       return {
         ...upstream,
         cardTitle: upstream.metadata!.name,
@@ -205,19 +216,28 @@ export const UpstreamsListing = (props: Props) => {
 
   const getUsableTableData = (
     nameFilter: string,
-    data: Upstream.AsObject[]
+    data: Upstream.AsObject[],
+    checkboxes: CheckboxFilterProps[]
   ) => {
     const dataUsed = data.map(upstream => {
       return {
         ...upstream,
-        // TODO: need a better way to get the status
         status: getResourceStatus(upstream),
+        type: getUpstreamType(upstream),
         name: upstream.metadata!.name,
         key: `${upstream.metadata!.name}-${upstream.metadata!.namespace}`
       };
     });
+    let checkboxesNotSet = checkboxes.every(c => !c.value!);
 
-    return dataUsed.filter(row => row.name.includes(nameFilter));
+    return dataUsed
+      .filter(row => row.name.includes(nameFilter))
+      .filter(row => {
+        return (
+          checkboxes.find(c => c.displayName === row.type)!.value! ||
+          checkboxesNotSet
+        );
+      });
   };
 
   return (

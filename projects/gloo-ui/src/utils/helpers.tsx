@@ -18,6 +18,19 @@ export function getResourceStatus(resource: Resource) {
   }
 }
 
+export function groupBy<T>(data: T[], getKey: (item: T) => string) {
+  const map = new Map<string, T[]>();
+  data.forEach(resource => {
+    const key = getKey(resource);
+    if (!map.get(key)) {
+      map.set(key, [resource]);
+    } else {
+      map.get(key)!.push(resource);
+    }
+  });
+  return map;
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                  UPSTREAMS                                 */
 /* -------------------------------------------------------------------------- */
