@@ -13,7 +13,7 @@ export const useFormValidation = (
 
   React.useEffect(() => {
     if (Object.keys(errors).length === 0 && isSubmitting) {
-      handleSucess();
+      handleSucess(values);
     }
     setIsSubmitting(false);
   }, [errors]);
@@ -26,13 +26,20 @@ export const useFormValidation = (
   }, [values]);
 
   // TODO: type this
-  const handleChange = (e: any) => {
-    console.log(e.target.value);
-    console.log(e.target.name);
-    setValues({
-      ...values,
-      [e.target.name]: e.target.value
-    });
+  const handleChange = (e: any, valueName?: string) => {
+    // handle typeahead case
+    if (typeof e === 'string' && valueName) {
+      setValues({
+        ...values,
+        [valueName]: e
+      });
+    }
+    if (e.target) {
+      setValues({
+        ...values,
+        [e.target.name]: e.target.value
+      });
+    }
   };
 
   const handleBlur = () => {

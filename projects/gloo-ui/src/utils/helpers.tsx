@@ -41,6 +41,25 @@ export function getUpstreamType(upstream: Upstream.AsObject) {
   return upstreamType;
 }
 
+export const UPSTREAM_TYPES = [
+  {
+    key: 'AWS',
+    value: 'AWS'
+  },
+  {
+    key: 'Azure',
+    value: 'Azure'
+  },
+  {
+    key: 'Kubernetes',
+    value: 'Kubernetes'
+  },
+  {
+    key: 'Static',
+    value: 'Static'
+  }
+];
+
 /* -------------------------------------------------------------------------- */
 /*                              VIRTUAL SERVICES                              */
 /* -------------------------------------------------------------------------- */

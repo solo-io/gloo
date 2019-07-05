@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Support basic create upstream functionality.
+    issueLink: https://github.com/solo-io/solo-projects/issues/635
+    resolvesIssue: false
