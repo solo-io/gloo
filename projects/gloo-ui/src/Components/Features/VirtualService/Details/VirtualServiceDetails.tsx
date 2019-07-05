@@ -35,16 +35,6 @@ interface Props
     virtualservicename: string;
     virtualservicenamespace: string;
   }> {}
-const headerInfo = [
-  {
-    title: 'namespace',
-    value: 'dio'
-  },
-  {
-    title: 'namespace',
-    value: 'default'
-  }
-];
 
 export const VirtualServiceDetails = (props: Props) => {
   const { match } = props;
@@ -68,6 +58,12 @@ export const VirtualServiceDetails = (props: Props) => {
     routes = data.virtualService.virtualHost.routesList;
     domains = data.virtualService.virtualHost.domainsList;
   }
+  const headerInfo = [
+    {
+      title: 'namespace',
+      value: virtualservicenamespace
+    }
+  ];
 
   return (
     <React.Fragment>

@@ -23,7 +23,7 @@ import { UpstreamSpec as StaticUpstreamSpec } from 'proto/github.com/solo-io/glo
 import { useCreateUpstream } from 'Api';
 import { NamespacesContext } from 'GlooIApp';
 import { SoloDropdown } from 'Components/Common/SoloDropdown';
-import { UPSTREAM_TYPES } from 'utils/helpers';
+import { UPSTREAM_TYPES, UPSTREAM_SPEC_TYPES } from 'utils/helpers';
 
 interface Props {}
 
@@ -42,7 +42,12 @@ const InputContainer = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-around;
-  padding: 15px 15px 0;
+  padding: 15px;
+`;
+
+const InputItem = styled.div`
+  display: flex;
+  flex-direction: column;
 `;
 
 const Footer = styled.div`
@@ -66,6 +71,9 @@ const validate = (values: typeof initialValues) => {
 };
 
 export const CreateUpstreamForm = (props: Props) => {
+  const namespaces = React.useContext(NamespacesContext);
+  // this is to match the value displayed by the typeahead
+  initialValues.namespace = namespaces[0] || '';
   const {
     handleSubmit,
     handleChange,
@@ -76,7 +84,6 @@ export const CreateUpstreamForm = (props: Props) => {
     isDifferent
   } = useFormValidation(initialValues, validate, createUpstream);
 
-  const namespaces = React.useContext(NamespacesContext);
   const { refetch: makeRequest } = useCreateUpstream(null);
 
   // grpc request
@@ -93,19 +100,19 @@ export const CreateUpstreamForm = (props: Props) => {
 
     //TODO: set up correct upstream spec
     switch (values.type) {
-      case 'AWS':
+      case UPSTREAM_SPEC_TYPES.AWS:
         let awsSpec = new AwsUpstreamSpec();
         usInput.setAws(awsSpec);
         break;
-      case 'Azure':
+      case UPSTREAM_SPEC_TYPES.AZURE:
         let azureSpec = new AzureUpstreamSpec();
         usInput.setAzure(azureSpec);
         break;
-      case 'Kubernetes':
+      case UPSTREAM_SPEC_TYPES.KUBE:
         let kubeSpec = new KubeUpstreamSpec();
         usInput.setKube(kubeSpec);
         break;
-      case 'Static':
+      case UPSTREAM_SPEC_TYPES.STATIC:
         let staticSpec = new StaticUpstreamSpec();
         usInput.setStatic(staticSpec);
         break;
@@ -120,7 +127,7 @@ export const CreateUpstreamForm = (props: Props) => {
   return (
     <FormContainer>
       <InputContainer>
-        <div>
+        <InputItem>
           <SoloInput
             title='Upstream Name'
             name='name'
@@ -130,9 +137,8 @@ export const CreateUpstreamForm = (props: Props) => {
             onBlur={handleBlur}
           />
           {errors && <ErrorText>{errors.name}</ErrorText>}
-        </div>
-
-        <div>
+        </InputItem>
+        <InputItem>
           <SoloDropdown
             title={'Upstream Type'}
             placeholder='Type'
@@ -142,8 +148,8 @@ export const CreateUpstreamForm = (props: Props) => {
             onBlur={handleBlur}
           />
           {errors && <ErrorText>{errors.type}</ErrorText>}
-        </div>
-        <div>
+        </InputItem>
+        <InputItem>
           <SoloTypeahead
             title='Upstream Namespace'
             defaultValue={values.namespace}
@@ -151,7 +157,7 @@ export const CreateUpstreamForm = (props: Props) => {
             presetOptions={namespaces}
           />
           {errors && <ErrorText>{errors.namespace}</ErrorText>}
-        </div>
+        </InputItem>
       </InputContainer>
       <Footer>
         <SoloButton

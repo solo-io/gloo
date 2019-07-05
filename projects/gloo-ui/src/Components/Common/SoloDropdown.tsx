@@ -7,7 +7,7 @@ import { Label } from './SoloInput';
 
 const SoloDropdownBlock = styled(Select)`
   width: 100%;
-  margin-bottom: 15px;
+  /* margin-bottom: 15px; */
   line-height: 16px;
 
   .ant-select-selection {

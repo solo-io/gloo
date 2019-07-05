@@ -12,7 +12,7 @@ const { Option } = AutoComplete;
 
 const SoloAutocompleteBlock = styled(AutoComplete)`
   width: 100%;
-  margin-bottom: 15px;
+  /* margin-bottom: 15px; */
   line-height: 40px;
 
   &.ant-select {
@@ -100,7 +100,7 @@ export const SoloTypeahead = (props: DropdownProps) => {
   };
 
   return (
-    <div>
+    <React.Fragment>
       {title && <Label>{title}</Label>}
       <SoloAutocompleteBlock
         disabled={disabled}
@@ -115,6 +115,6 @@ export const SoloTypeahead = (props: DropdownProps) => {
         placeholder={placeholder}
         optionLabelProp='value'
       />
-    </div>
+    </React.Fragment>
   );
 };

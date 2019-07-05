@@ -60,6 +60,13 @@ export const UPSTREAM_TYPES = [
   }
 ];
 
+export enum UPSTREAM_SPEC_TYPES {
+  AZURE = 'Azure',
+  KUBE = 'Kubernetes',
+  AWS = 'AWS',
+  STATIC = 'Static'
+}
+
 /* -------------------------------------------------------------------------- */
 /*                              VIRTUAL SERVICES                              */
 /* -------------------------------------------------------------------------- */

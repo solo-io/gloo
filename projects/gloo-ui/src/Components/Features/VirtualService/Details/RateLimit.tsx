@@ -3,7 +3,6 @@ import styled from '@emotion/styled/macro';
 import { colors } from 'Styles';
 import { Button } from 'antd';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { ExtAuthForm } from './ExtAuthForm';
 import { RateLimitForm } from './RateLimitForm';
 
 const ConfigItemHeader = styled.div`

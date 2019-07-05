@@ -22,6 +22,9 @@ const ModalContainer = styled.div`
   flex-direction: row;
   align-content: center;
 `;
+const Legend = styled.div`
+  background-color: ${colors.januaryGrey};
+`;
 
 // TODO: use spec font
 const ModalTrigger = styled.div`
@@ -41,7 +44,7 @@ export const CreateUpstreamModal = (props: Props) => {
           <StyledGreenPlus />
           Create Upstream
         </React.Fragment>
-        <Divider type='vertical' />
+        <Divider type='vertical' style={{ height: '1.5em' }} />
       </ModalTrigger>
       <SoloModal
         visible={showModal}
@@ -49,12 +52,12 @@ export const CreateUpstreamModal = (props: Props) => {
         title='Create an Upstream'
         onClose={() => setShowModal(false)}>
         <React.Fragment>
-          <div>
+          <Legend>
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Aspernatur
             officia deleniti ullam hic nostrum quod explicabo optio accusantium,
             maiores cumque asperiores! Consectetur illum omnis eum qui
             reprehenderit in eaque doloremque!
-          </div>
+          </Legend>
           <CreateUpstreamForm />
         </React.Fragment>
       </SoloModal>

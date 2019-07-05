@@ -24,6 +24,7 @@ import { ListVirtualServicesRequest } from 'proto/github.com/solo-io/solo-projec
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { NamespacesContext } from 'GlooIApp';
 import { getResourceStatus, getVSDomains } from 'utils/helpers';
+import { CreateVirtualServiceModal } from './Creation/CreateVirtualServiceModal';
 
 interface DataType {
   name: string;
@@ -118,6 +119,13 @@ const Heading = styled.div`
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
+`;
+
+const Action = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-items: baseline;
 `;
 
 interface Props extends RouteComponentProps {}
@@ -220,12 +228,15 @@ export const VirtualServicesListing = (props: Props) => {
     <div>
       <Heading>
         <Breadcrumb />
-        <CatalogTableToggle
-          listIsSelected={!catalogNotTable}
-          onToggle={() => {
-            setCatalogNotTable(cNt => !cNt);
-          }}
-        />
+        <Action>
+          <CreateVirtualServiceModal />
+          <CatalogTableToggle
+            listIsSelected={!catalogNotTable}
+            onToggle={() => {
+              setCatalogNotTable(cNt => !cNt);
+            }}
+          />
+        </Action>
       </Heading>
       <ListingFilter strings={StringFilters} filterFunction={listDisplay} />
     </div>
