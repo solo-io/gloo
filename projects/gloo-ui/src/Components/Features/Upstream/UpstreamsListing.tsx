@@ -5,7 +5,6 @@ import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
 import { withRouter, RouteComponentProps } from 'react-router';
 import { colors } from 'Styles';
-import { ReactComponent as Gloo } from 'assets/Gloo.svg';
 
 import {
   ListingFilter,
@@ -24,7 +23,12 @@ import { SoloTable } from 'Components/Common/SoloTable';
 import { CardType } from 'antd/lib/card';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
-import { getResourceStatus, getUpstreamType, groupBy } from 'utils/helpers';
+import {
+  getResourceStatus,
+  getUpstreamType,
+  groupBy,
+  getIcon
+} from 'utils/helpers';
 import { NamespacesContext } from 'GlooIApp';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
 
@@ -154,7 +158,10 @@ export const UpstreamsListing = (props: Props) => {
               // show section according to type filter
               (checkboxesNotSet ||
                 checkboxes.find(c => c.displayName === type)!.value!) && (
-                <SectionCard cardName={type} logoIcon={<Gloo />} key={type}>
+                <SectionCard
+                  cardName={type}
+                  logoIcon={getIcon(type)}
+                  key={type}>
                   <CardsListing
                     cardsData={getUsableCatalogData(nameFilterValue, upstreams)}
                   />

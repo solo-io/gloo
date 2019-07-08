@@ -3,18 +3,20 @@ import * as React from 'react';
 import { jsx } from '@emotion/core';
 
 import styled from '@emotion/styled/macro';
-import { withRouter, RouteComponentProps } from 'react-router';
 import { colors } from 'Styles';
-import { Button, Divider } from 'antd';
+import { Divider } from 'antd';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { RateLimitForm } from 'Components/Features/VirtualService/Details/RateLimitForm';
 import { CreateUpstreamForm } from './CreateUpstreamForm';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+
 interface Props {}
 
 const StyledGreenPlus = styled(GreenPlus)`
   cursor: pointer;
   margin-right: 7px;
+  .a {
+    fill: ${colors.forestGreen};
+  }
 `;
 
 const ModalContainer = styled.div`

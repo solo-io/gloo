@@ -1,9 +1,28 @@
+import * as React from 'react';
+import styled from '@emotion/styled/macro';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { ReactComponent as KubeLogo } from 'assets/kube-logo.svg';
+import { ReactComponent as AWSLogo } from 'assets/aws-logo.svg';
+import { ReactComponent as AzureLogo } from 'assets/azure-logo.svg';
+// TODO: get svg format GRPC logo
+// import { ReactComponent as GRPCLogo } from 'assets/grpc-logo.svg';
+import GRPCLogo from 'assets/grpc-logo.png';
+import { ReactComponent as StaticLogo } from 'assets/static-logo.svg';
+import { ReactComponent as RESTLogo } from 'assets/rest-logo.svg';
+import { ReactComponent as Gloo } from 'assets/Gloo.svg';
 
 type Resource = VirtualService.AsObject | Upstream.AsObject;
+
+const StyledGRPCLogo = styled.img`
+  width: 20px;
+  max-height: 25px;
+`;
+/* -------------------------------------------------------------------------- */
+/*                                   GENERAL                                  */
+/* -------------------------------------------------------------------------- */
 
 export function getResourceStatus(resource: Resource) {
   switch (resource.status!.state) {
@@ -29,6 +48,25 @@ export function groupBy<T>(data: T[], getKey: (item: T) => string) {
     }
   });
   return map;
+}
+
+export function getIcon(type: string) {
+  switch (type) {
+    case 'Kubernetes':
+      return <KubeLogo />;
+    case 'AWS':
+      return <AWSLogo />;
+    case 'Azure':
+      return <AzureLogo />;
+    case 'GRPC':
+      return <StyledGRPCLogo src={GRPCLogo} />;
+    case 'Static':
+      return <StaticLogo />;
+    case 'REST':
+      return <RESTLogo />;
+    default:
+      return <Gloo />;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
