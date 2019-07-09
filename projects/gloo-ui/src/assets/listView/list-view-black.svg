@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="22.253" height="22.139" viewBox="0 0 22.253 22.139"><g transform="translate(0)"><rect width="15.794" height="2.922" transform="translate(6.459)"/><rect width="4.416" height="2.922"/><rect width="15.794" height="2.922" transform="translate(6.459 6.406)"/><rect width="4.416" height="2.922" transform="translate(0 6.406)"/><rect width="15.794" height="2.922" transform="translate(6.459 12.812)"/><rect width="4.416" height="2.922" transform="translate(0 12.812)"/><rect width="15.794" height="2.922" transform="translate(6.459 19.218)"/><rect width="4.416" height="2.922" transform="translate(0 19.218)"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="22.253" height="22.139" viewBox="0 0 22.253 22.139">
+    <g transform="translate(0)">
+        <rect width="15.794" height="2.922" transform="translate(6.459)"/>
+        <rect width="4.416" height="2.922"/>
+        <rect width="15.794" height="2.922" transform="translate(6.459 6.406)"/>
+        <rect width="4.416" height="2.922" transform="translate(0 6.406)"/>
+        <rect width="15.794" height="2.922" transform="translate(6.459 12.812)"/>
+        <rect width="4.416" height="2.922" transform="translate(0 12.812)"/>
+        <rect width="15.794" height="2.922" transform="translate(6.459 19.218)"/>
+        <rect width="4.416" height="2.922" transform="translate(0 19.218)"/>
+    </g>
+</svg>

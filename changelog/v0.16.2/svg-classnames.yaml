@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Change class names in svg elements so they dont override each other.
+    issueLink: https://github.com/solo-io/solo-projects/pull/680

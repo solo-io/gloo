@@ -1,1 +1,68 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="567.214" height="40" viewBox="0 0 567.214 40"><defs><style>.a{fill:#e98d5e;}.b{fill:none;}.c{clip-path:url(#a);}.d{opacity:0.396;clip-path:url(#b);}</style><clipPath id="a"><path class="a" d="M7.984,0H559.23a7.9,7.9,0,0,1,7.984,7.8V32.2A7.9,7.9,0,0,1,559.23,40H7.984A7.9,7.9,0,0,1,0,32.2V7.8A7.9,7.9,0,0,1,7.984,0Z" transform="translate(399.781 362)"/></clipPath><clipPath id="b"><rect class="b" width="668.165" height="40.07"/></clipPath></defs><g class="c" transform="translate(-399.781 -362)"><g class="d" transform="translate(298.83 361.93)"><g transform="translate(-408 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(-367 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(-326 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(-285 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(-244 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(-203 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(-162 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(-121 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(-80 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(-39 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(2 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(43 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(84 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(125 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(166 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(207 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g><g transform="translate(248 -363.93)"><path class="a" d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" transform="translate(406 365.993)"/></g></g></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="567.214" height="40" viewBox="0 0 567.214 40">
+    <defs>
+        <style>
+            .warning-progress-mask-a{fill:#e98d5e;}.b{fill:none;}.warning-progress-mask-c{clip-path:url(#a);}.warning-progress-mask-d{opacity:0.396;clip-path:url(#b);}
+        </style>
+        <clipPath id="a">
+            <path d="M7.984,0H559.23a7.9,7.9,0,0,1,7.984,7.8V32.2A7.9,7.9,0,0,1,559.23,40H7.984A7.9,7.9,0,0,1,0,32.2V7.8A7.9,7.9,0,0,1,7.984,0Z" class="warning-progress-mask-a" transform="translate(399.781 362)"/>
+        </clipPath>
+        <clipPath id="b">
+            <rect width="668.165" height="40.07" class="warning-progress-mask-b"/>
+        </clipPath>
+    </defs>
+    <g class="warning-progress-mask-c" transform="translate(-399.781 -362)">
+        <g class="warning-progress-mask-d" transform="translate(298.83 361.93)">
+            <g transform="translate(-408 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(-367 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(-326 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(-285 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(-244 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(-203 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(-162 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(-121 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(-80 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(-39 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(2 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(43 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(84 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(125 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(166 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(207 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+            <g transform="translate(248 -363.93)">
+                <path d="M20.805-1.811h20.7L19.453,40.211h-20.7Z" class="warning-progress-mask-a" transform="translate(406 365.993)"/>
+            </g>
+        </g>
+    </g>
+</svg>
