@@ -142,11 +142,5 @@ var _ = Describe("Install", func() {
 			expectLabels(validator.resources, install.ExpectedLabels)
 		})
 
-		It("skips knative install", func() {
-			err := installer.DoKnativeInstall()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(validator.applied).To(BeFalse())
-			Expect(validator.waited).To(BeFalse())
-		})
 	})
 })

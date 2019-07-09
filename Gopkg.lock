@@ -525,9 +525,12 @@
   revision = "6f2cf27854a4a29e3811b0371547be335d411b8b"
 
 [[projects]]
-  digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
+  digest = "1:a507e8646bf3775af6f7e7b2a62a5e67d1c6a8f00754f87e66b96181b7f3d747"
   name = "github.com/golang/mock"
-  packages = ["gomock"]
+  packages = [
+    "gomock",
+    "mockgen/model",
+  ]
   pruneopts = "UT"
   revision = "51421b967af1f557f93a59e0057aaf15ca02e29c"
   version = "v1.2.0"
@@ -1324,7 +1327,7 @@
   version = "v0.2.6"
 
 [[projects]]
-  digest = "1:dbc9f7e811249de3a2aee4ed3db7fe26fad38310ed608099acd569b4378fcb09"
+  digest = "1:76ccb94cd11234eb9aa1902e4b27e595a6660c876fd92a223e4b8193dee4efb6"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1415,6 +1418,7 @@
     "projects/gloo/pkg/plugins/upstreamconn",
     "projects/gloo/pkg/plugins/upstreamssl",
     "projects/gloo/pkg/plugins/utils",
+    "projects/gloo/pkg/plugins/utils/transformation",
     "projects/gloo/pkg/syncer",
     "projects/gloo/pkg/translator",
     "projects/gloo/pkg/upstreams",
@@ -1423,8 +1427,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "ad88027793bf8c23299aae7d4e230b45d49d3edb"
-  version = "v0.16.0"
+  revision = "19da3dd650e1cb697b5d69d10aa6205a18498699"
+  version = "v0.17.0"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1435,7 +1439,7 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:d28338d0627c2067382017f84b4de13edc8c8743f011a187a030a75160f28dc1"
+  digest = "1:8c4529923795fcc9d452b580302a939a975ff77c99117d645531551bd54c5b8c"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1460,6 +1464,7 @@
     "testutils/clusterlock",
     "testutils/exec",
     "testutils/helper",
+    "testutils/kube",
     "versionutils",
     "vfsutils",
   ]
@@ -1498,7 +1503,7 @@
   revision = "5cbd4d452dccb9492a4d126f79dfcc7be43f88dc"
 
 [[projects]]
-  digest = "1:3bee6c0485ee6ba08be901b6fc939f66613f35705e5a67fa4e7cf9e4bb3300b0"
+  digest = "1:f809be16e43eece2ce54125299339ef0cefa4fa4a4bfab735e28831211acf7ac"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1555,6 +1560,7 @@
     "pkg/utils/kubeutils",
     "pkg/utils/protoutils",
     "test/helpers",
+    "test/testutils",
   ]
   pruneopts = "UT"
   revision = "a5b6bd42322788ea33293f320de942e053506e18"
@@ -2613,6 +2619,7 @@
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/types",
     "github.com/golang/mock/gomock",
+    "github.com/golang/mock/mockgen/model",
     "github.com/google/uuid",
     "github.com/gorilla/websocket",
     "github.com/grpc-ecosystem/go-grpc-middleware",
@@ -2743,6 +2750,7 @@
     "github.com/solo-io/solo-kit/pkg/code-generator/docgen/options",
     "github.com/solo-io/solo-kit/pkg/errors",
     "github.com/solo-io/solo-kit/test/helpers",
+    "github.com/solo-io/solo-kit/test/testutils",
     "github.com/spf13/cobra",
     "github.com/spf13/cobra/doc",
     "github.com/spf13/pflag",
@@ -2768,6 +2776,7 @@
     "k8s.io/api/apps/v1",
     "k8s.io/api/authentication/v1",
     "k8s.io/api/core/v1",
+    "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/client-go/kubernetes",

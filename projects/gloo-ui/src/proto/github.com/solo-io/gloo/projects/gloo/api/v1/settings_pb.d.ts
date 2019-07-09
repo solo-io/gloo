@@ -78,6 +78,11 @@ export class Settings extends jspb.Message {
   getKnative(): Settings.KnativeOptions | undefined;
   setKnative(value?: Settings.KnativeOptions): void;
 
+  hasDiscovery(): boolean;
+  clearDiscovery(): void;
+  getDiscovery(): Settings.DiscoveryOptions | undefined;
+  setDiscovery(value?: Settings.DiscoveryOptions): void;
+
   hasExtensions(): boolean;
   clearExtensions(): void;
   getExtensions(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
@@ -123,6 +128,7 @@ export namespace Settings {
     linkerd: boolean,
     circuitBreakers?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.AsObject,
     knative?: Settings.KnativeOptions.AsObject,
+    discovery?: Settings.DiscoveryOptions.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
     status?: github_com_solo_io_solo_kit_api_v1_status_pb.Status.AsObject,
@@ -229,6 +235,32 @@ export namespace Settings {
   export namespace KnativeOptions {
     export type AsObject = {
       clusterIngressProxyAddress: string,
+    }
+  }
+
+  export class DiscoveryOptions extends jspb.Message {
+    getFdsMode(): Settings.DiscoveryOptions.FdsMode;
+    setFdsMode(value: Settings.DiscoveryOptions.FdsMode): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): DiscoveryOptions.AsObject;
+    static toObject(includeInstance: boolean, msg: DiscoveryOptions): DiscoveryOptions.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: DiscoveryOptions, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): DiscoveryOptions;
+    static deserializeBinaryFromReader(message: DiscoveryOptions, reader: jspb.BinaryReader): DiscoveryOptions;
+  }
+
+  export namespace DiscoveryOptions {
+    export type AsObject = {
+      fdsMode: Settings.DiscoveryOptions.FdsMode,
+    }
+
+    export enum FdsMode {
+      BLACKLIST = 0,
+      WHITELIST = 1,
+      DISABLED = 2,
     }
   }
 

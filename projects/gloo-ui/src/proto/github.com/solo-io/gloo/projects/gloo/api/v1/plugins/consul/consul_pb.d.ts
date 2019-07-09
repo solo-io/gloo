@@ -22,6 +22,9 @@ export class UpstreamSpec extends jspb.Message {
   getConnectEnabled(): boolean;
   setConnectEnabled(value: boolean): void;
 
+  getDataCenter(): string;
+  setDataCenter(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSpec.AsObject;
   static toObject(includeInstance: boolean, msg: UpstreamSpec): UpstreamSpec.AsObject;
@@ -38,6 +41,7 @@ export namespace UpstreamSpec {
     serviceTagsList: Array<string>,
     serviceSpec?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec.AsObject,
     connectEnabled: boolean,
+    dataCenter: string,
   }
 }
 

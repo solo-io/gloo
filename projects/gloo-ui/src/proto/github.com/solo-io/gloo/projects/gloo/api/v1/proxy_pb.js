@@ -21,11 +21,13 @@ var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../
 var github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_subset_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/subset_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb.js');
+goog.exportSymbol('proto.gloo.solo.io.ConsulServiceDestination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.CorsPolicy', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Destination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.DirectResponseAction', null, global);
 goog.exportSymbol('proto.gloo.solo.io.HeaderMatcher', null, global);
 goog.exportSymbol('proto.gloo.solo.io.HttpListener', null, global);
+goog.exportSymbol('proto.gloo.solo.io.KubernetesServiceDestination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Listener', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Matcher', null, global);
 goog.exportSymbol('proto.gloo.solo.io.MultiDestination', null, global);
@@ -35,7 +37,6 @@ goog.exportSymbol('proto.gloo.solo.io.RedirectAction', null, global);
 goog.exportSymbol('proto.gloo.solo.io.RedirectAction.RedirectResponseCode', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Route', null, global);
 goog.exportSymbol('proto.gloo.solo.io.RouteAction', null, global);
-goog.exportSymbol('proto.gloo.solo.io.ServiceDestination', null, global);
 goog.exportSymbol('proto.gloo.solo.io.UpstreamGroup', null, global);
 goog.exportSymbol('proto.gloo.solo.io.VirtualHost', null, global);
 goog.exportSymbol('proto.gloo.solo.io.WeightedDestination', null, global);
@@ -2656,7 +2657,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.Destination.oneofGroups_ = [[10,11]];
+proto.gloo.solo.io.Destination.oneofGroups_ = [[10,11,12]];
 
 /**
  * @enum {number}
@@ -2664,7 +2665,8 @@ proto.gloo.solo.io.Destination.oneofGroups_ = [[10,11]];
 proto.gloo.solo.io.Destination.DestinationTypeCase = {
   DESTINATION_TYPE_NOT_SET: 0,
   UPSTREAM: 10,
-  SERVICE: 11
+  KUBE: 11,
+  CONSUL: 12
 };
 
 /**
@@ -2704,7 +2706,8 @@ proto.gloo.solo.io.Destination.prototype.toObject = function(opt_includeInstance
 proto.gloo.solo.io.Destination.toObject = function(includeInstance, msg) {
   var f, obj = {
     upstream: (f = msg.getUpstream()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    service: (f = msg.getService()) && proto.gloo.solo.io.ServiceDestination.toObject(includeInstance, f),
+    kube: (f = msg.getKube()) && proto.gloo.solo.io.KubernetesServiceDestination.toObject(includeInstance, f),
+    consul: (f = msg.getConsul()) && proto.gloo.solo.io.ConsulServiceDestination.toObject(includeInstance, f),
     destinationSpec: (f = msg.getDestinationSpec()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.DestinationSpec.toObject(includeInstance, f),
     subset: (f = msg.getSubset()) && github_com_solo$io_gloo_projects_gloo_api_v1_subset_pb.Subset.toObject(includeInstance, f)
   };
@@ -2749,9 +2752,14 @@ proto.gloo.solo.io.Destination.deserializeBinaryFromReader = function(msg, reade
       msg.setUpstream(value);
       break;
     case 11:
-      var value = new proto.gloo.solo.io.ServiceDestination;
-      reader.readMessage(value,proto.gloo.solo.io.ServiceDestination.deserializeBinaryFromReader);
-      msg.setService(value);
+      var value = new proto.gloo.solo.io.KubernetesServiceDestination;
+      reader.readMessage(value,proto.gloo.solo.io.KubernetesServiceDestination.deserializeBinaryFromReader);
+      msg.setKube(value);
+      break;
+    case 12:
+      var value = new proto.gloo.solo.io.ConsulServiceDestination;
+      reader.readMessage(value,proto.gloo.solo.io.ConsulServiceDestination.deserializeBinaryFromReader);
+      msg.setConsul(value);
       break;
     case 2:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.DestinationSpec;
@@ -2800,12 +2808,20 @@ proto.gloo.solo.io.Destination.serializeBinaryToWriter = function(message, write
       github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
     );
   }
-  f = message.getService();
+  f = message.getKube();
   if (f != null) {
     writer.writeMessage(
       11,
       f,
-      proto.gloo.solo.io.ServiceDestination.serializeBinaryToWriter
+      proto.gloo.solo.io.KubernetesServiceDestination.serializeBinaryToWriter
+    );
+  }
+  f = message.getConsul();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      proto.gloo.solo.io.ConsulServiceDestination.serializeBinaryToWriter
     );
   }
   f = message.getDestinationSpec();
@@ -2858,23 +2874,23 @@ proto.gloo.solo.io.Destination.prototype.hasUpstream = function() {
 
 
 /**
- * optional ServiceDestination service = 11;
- * @return {?proto.gloo.solo.io.ServiceDestination}
+ * optional KubernetesServiceDestination kube = 11;
+ * @return {?proto.gloo.solo.io.KubernetesServiceDestination}
  */
-proto.gloo.solo.io.Destination.prototype.getService = function() {
-  return /** @type{?proto.gloo.solo.io.ServiceDestination} */ (
-    jspb.Message.getWrapperField(this, proto.gloo.solo.io.ServiceDestination, 11));
+proto.gloo.solo.io.Destination.prototype.getKube = function() {
+  return /** @type{?proto.gloo.solo.io.KubernetesServiceDestination} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.KubernetesServiceDestination, 11));
 };
 
 
-/** @param {?proto.gloo.solo.io.ServiceDestination|undefined} value */
-proto.gloo.solo.io.Destination.prototype.setService = function(value) {
+/** @param {?proto.gloo.solo.io.KubernetesServiceDestination|undefined} value */
+proto.gloo.solo.io.Destination.prototype.setKube = function(value) {
   jspb.Message.setOneofWrapperField(this, 11, proto.gloo.solo.io.Destination.oneofGroups_[0], value);
 };
 
 
-proto.gloo.solo.io.Destination.prototype.clearService = function() {
-  this.setService(undefined);
+proto.gloo.solo.io.Destination.prototype.clearKube = function() {
+  this.setKube(undefined);
 };
 
 
@@ -2882,8 +2898,38 @@ proto.gloo.solo.io.Destination.prototype.clearService = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.Destination.prototype.hasService = function() {
+proto.gloo.solo.io.Destination.prototype.hasKube = function() {
   return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional ConsulServiceDestination consul = 12;
+ * @return {?proto.gloo.solo.io.ConsulServiceDestination}
+ */
+proto.gloo.solo.io.Destination.prototype.getConsul = function() {
+  return /** @type{?proto.gloo.solo.io.ConsulServiceDestination} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.ConsulServiceDestination, 12));
+};
+
+
+/** @param {?proto.gloo.solo.io.ConsulServiceDestination|undefined} value */
+proto.gloo.solo.io.Destination.prototype.setConsul = function(value) {
+  jspb.Message.setOneofWrapperField(this, 12, proto.gloo.solo.io.Destination.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.Destination.prototype.clearConsul = function() {
+  this.setConsul(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Destination.prototype.hasConsul = function() {
+  return jspb.Message.getField(this, 12) != null;
 };
 
 
@@ -2958,12 +3004,12 @@ proto.gloo.solo.io.Destination.prototype.hasSubset = function() {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.gloo.solo.io.ServiceDestination = function(opt_data) {
+proto.gloo.solo.io.KubernetesServiceDestination = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.gloo.solo.io.ServiceDestination, jspb.Message);
+goog.inherits(proto.gloo.solo.io.KubernetesServiceDestination, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.gloo.solo.io.ServiceDestination.displayName = 'proto.gloo.solo.io.ServiceDestination';
+  proto.gloo.solo.io.KubernetesServiceDestination.displayName = 'proto.gloo.solo.io.KubernetesServiceDestination';
 }
 
 
@@ -2978,8 +3024,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.gloo.solo.io.ServiceDestination.prototype.toObject = function(opt_includeInstance) {
-  return proto.gloo.solo.io.ServiceDestination.toObject(opt_includeInstance, this);
+proto.gloo.solo.io.KubernetesServiceDestination.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.KubernetesServiceDestination.toObject(opt_includeInstance, this);
 };
 
 
@@ -2988,11 +3034,11 @@ proto.gloo.solo.io.ServiceDestination.prototype.toObject = function(opt_includeI
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.gloo.solo.io.ServiceDestination} msg The msg instance to transform.
+ * @param {!proto.gloo.solo.io.KubernetesServiceDestination} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.gloo.solo.io.ServiceDestination.toObject = function(includeInstance, msg) {
+proto.gloo.solo.io.KubernetesServiceDestination.toObject = function(includeInstance, msg) {
   var f, obj = {
     ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
     port: jspb.Message.getFieldWithDefault(msg, 2, 0)
@@ -3009,23 +3055,23 @@ proto.gloo.solo.io.ServiceDestination.toObject = function(includeInstance, msg) 
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.gloo.solo.io.ServiceDestination}
+ * @return {!proto.gloo.solo.io.KubernetesServiceDestination}
  */
-proto.gloo.solo.io.ServiceDestination.deserializeBinary = function(bytes) {
+proto.gloo.solo.io.KubernetesServiceDestination.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.gloo.solo.io.ServiceDestination;
-  return proto.gloo.solo.io.ServiceDestination.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.gloo.solo.io.KubernetesServiceDestination;
+  return proto.gloo.solo.io.KubernetesServiceDestination.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.gloo.solo.io.ServiceDestination} msg The message object to deserialize into.
+ * @param {!proto.gloo.solo.io.KubernetesServiceDestination} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.gloo.solo.io.ServiceDestination}
+ * @return {!proto.gloo.solo.io.KubernetesServiceDestination}
  */
-proto.gloo.solo.io.ServiceDestination.deserializeBinaryFromReader = function(msg, reader) {
+proto.gloo.solo.io.KubernetesServiceDestination.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -3054,9 +3100,9 @@ proto.gloo.solo.io.ServiceDestination.deserializeBinaryFromReader = function(msg
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.gloo.solo.io.ServiceDestination.prototype.serializeBinary = function() {
+proto.gloo.solo.io.KubernetesServiceDestination.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.gloo.solo.io.ServiceDestination.serializeBinaryToWriter(this, writer);
+  proto.gloo.solo.io.KubernetesServiceDestination.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -3064,11 +3110,11 @@ proto.gloo.solo.io.ServiceDestination.prototype.serializeBinary = function() {
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.gloo.solo.io.ServiceDestination} message
+ * @param {!proto.gloo.solo.io.KubernetesServiceDestination} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.gloo.solo.io.ServiceDestination.serializeBinaryToWriter = function(message, writer) {
+proto.gloo.solo.io.KubernetesServiceDestination.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getRef();
   if (f != null) {
@@ -3092,19 +3138,19 @@ proto.gloo.solo.io.ServiceDestination.serializeBinaryToWriter = function(message
  * optional core.solo.io.ResourceRef ref = 1;
  * @return {?proto.core.solo.io.ResourceRef}
  */
-proto.gloo.solo.io.ServiceDestination.prototype.getRef = function() {
+proto.gloo.solo.io.KubernetesServiceDestination.prototype.getRef = function() {
   return /** @type{?proto.core.solo.io.ResourceRef} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
 };
 
 
 /** @param {?proto.core.solo.io.ResourceRef|undefined} value */
-proto.gloo.solo.io.ServiceDestination.prototype.setRef = function(value) {
+proto.gloo.solo.io.KubernetesServiceDestination.prototype.setRef = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.gloo.solo.io.ServiceDestination.prototype.clearRef = function() {
+proto.gloo.solo.io.KubernetesServiceDestination.prototype.clearRef = function() {
   this.setRef(undefined);
 };
 
@@ -3113,7 +3159,7 @@ proto.gloo.solo.io.ServiceDestination.prototype.clearRef = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.gloo.solo.io.ServiceDestination.prototype.hasRef = function() {
+proto.gloo.solo.io.KubernetesServiceDestination.prototype.hasRef = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
@@ -3122,14 +3168,245 @@ proto.gloo.solo.io.ServiceDestination.prototype.hasRef = function() {
  * optional uint32 port = 2;
  * @return {number}
  */
-proto.gloo.solo.io.ServiceDestination.prototype.getPort = function() {
+proto.gloo.solo.io.KubernetesServiceDestination.prototype.getPort = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
 };
 
 
 /** @param {number} value */
-proto.gloo.solo.io.ServiceDestination.prototype.setPort = function(value) {
+proto.gloo.solo.io.KubernetesServiceDestination.prototype.setPort = function(value) {
   jspb.Message.setProto3IntField(this, 2, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.ConsulServiceDestination = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.ConsulServiceDestination.repeatedFields_, null);
+};
+goog.inherits(proto.gloo.solo.io.ConsulServiceDestination, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.ConsulServiceDestination.displayName = 'proto.gloo.solo.io.ConsulServiceDestination';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gloo.solo.io.ConsulServiceDestination.repeatedFields_ = [2,3];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.ConsulServiceDestination.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.ConsulServiceDestination.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.ConsulServiceDestination} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.ConsulServiceDestination.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    serviceName: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    tagsList: jspb.Message.getRepeatedField(msg, 2),
+    dataCentersList: jspb.Message.getRepeatedField(msg, 3)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.ConsulServiceDestination}
+ */
+proto.gloo.solo.io.ConsulServiceDestination.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.ConsulServiceDestination;
+  return proto.gloo.solo.io.ConsulServiceDestination.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.ConsulServiceDestination} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.ConsulServiceDestination}
+ */
+proto.gloo.solo.io.ConsulServiceDestination.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setServiceName(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addTags(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addDataCenters(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.ConsulServiceDestination.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.ConsulServiceDestination.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.ConsulServiceDestination} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.ConsulServiceDestination.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getServiceName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getTagsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      2,
+      f
+    );
+  }
+  f = message.getDataCentersList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      3,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string service_name = 1;
+ * @return {string}
+ */
+proto.gloo.solo.io.ConsulServiceDestination.prototype.getServiceName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.ConsulServiceDestination.prototype.setServiceName = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * repeated string tags = 2;
+ * @return {!Array<string>}
+ */
+proto.gloo.solo.io.ConsulServiceDestination.prototype.getTagsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 2));
+};
+
+
+/** @param {!Array<string>} value */
+proto.gloo.solo.io.ConsulServiceDestination.prototype.setTagsList = function(value) {
+  jspb.Message.setField(this, 2, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.gloo.solo.io.ConsulServiceDestination.prototype.addTags = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+proto.gloo.solo.io.ConsulServiceDestination.prototype.clearTagsList = function() {
+  this.setTagsList([]);
+};
+
+
+/**
+ * repeated string data_centers = 3;
+ * @return {!Array<string>}
+ */
+proto.gloo.solo.io.ConsulServiceDestination.prototype.getDataCentersList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+};
+
+
+/** @param {!Array<string>} value */
+proto.gloo.solo.io.ConsulServiceDestination.prototype.setDataCentersList = function(value) {
+  jspb.Message.setField(this, 3, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.gloo.solo.io.ConsulServiceDestination.prototype.addDataCenters = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+};
+
+
+proto.gloo.solo.io.ConsulServiceDestination.prototype.clearDataCentersList = function() {
+  this.setDataCentersList([]);
 };
 
 

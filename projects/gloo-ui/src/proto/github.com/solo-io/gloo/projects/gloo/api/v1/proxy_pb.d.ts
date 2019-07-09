@@ -388,10 +388,15 @@ export class Destination extends jspb.Message {
   getUpstream(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
   setUpstream(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
 
-  hasService(): boolean;
-  clearService(): void;
-  getService(): ServiceDestination | undefined;
-  setService(value?: ServiceDestination): void;
+  hasKube(): boolean;
+  clearKube(): void;
+  getKube(): KubernetesServiceDestination | undefined;
+  setKube(value?: KubernetesServiceDestination): void;
+
+  hasConsul(): boolean;
+  clearConsul(): void;
+  getConsul(): ConsulServiceDestination | undefined;
+  setConsul(value?: ConsulServiceDestination): void;
 
   hasDestinationSpec(): boolean;
   clearDestinationSpec(): void;
@@ -417,7 +422,8 @@ export class Destination extends jspb.Message {
 export namespace Destination {
   export type AsObject = {
     upstream?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    service?: ServiceDestination.AsObject,
+    kube?: KubernetesServiceDestination.AsObject,
+    consul?: ConsulServiceDestination.AsObject,
     destinationSpec?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.DestinationSpec.AsObject,
     subset?: github_com_solo_io_gloo_projects_gloo_api_v1_subset_pb.Subset.AsObject,
   }
@@ -425,11 +431,12 @@ export namespace Destination {
   export enum DestinationTypeCase {
     DESTINATION_TYPE_NOT_SET = 0,
     UPSTREAM = 10,
-    SERVICE = 11,
+    KUBE = 11,
+    CONSUL = 12,
   }
 }
 
-export class ServiceDestination extends jspb.Message {
+export class KubernetesServiceDestination extends jspb.Message {
   hasRef(): boolean;
   clearRef(): void;
   getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
@@ -439,19 +446,51 @@ export class ServiceDestination extends jspb.Message {
   setPort(value: number): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ServiceDestination.AsObject;
-  static toObject(includeInstance: boolean, msg: ServiceDestination): ServiceDestination.AsObject;
+  toObject(includeInstance?: boolean): KubernetesServiceDestination.AsObject;
+  static toObject(includeInstance: boolean, msg: KubernetesServiceDestination): KubernetesServiceDestination.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ServiceDestination, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ServiceDestination;
-  static deserializeBinaryFromReader(message: ServiceDestination, reader: jspb.BinaryReader): ServiceDestination;
+  static serializeBinaryToWriter(message: KubernetesServiceDestination, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): KubernetesServiceDestination;
+  static deserializeBinaryFromReader(message: KubernetesServiceDestination, reader: jspb.BinaryReader): KubernetesServiceDestination;
 }
 
-export namespace ServiceDestination {
+export namespace KubernetesServiceDestination {
   export type AsObject = {
     ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
     port: number,
+  }
+}
+
+export class ConsulServiceDestination extends jspb.Message {
+  getServiceName(): string;
+  setServiceName(value: string): void;
+
+  clearTagsList(): void;
+  getTagsList(): Array<string>;
+  setTagsList(value: Array<string>): void;
+  addTags(value: string, index?: number): string;
+
+  clearDataCentersList(): void;
+  getDataCentersList(): Array<string>;
+  setDataCentersList(value: Array<string>): void;
+  addDataCenters(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConsulServiceDestination.AsObject;
+  static toObject(includeInstance: boolean, msg: ConsulServiceDestination): ConsulServiceDestination.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConsulServiceDestination, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConsulServiceDestination;
+  static deserializeBinaryFromReader(message: ConsulServiceDestination, reader: jspb.BinaryReader): ConsulServiceDestination;
+}
+
+export namespace ConsulServiceDestination {
+  export type AsObject = {
+    serviceName: string,
+    tagsList: Array<string>,
+    dataCentersList: Array<string>,
   }
 }
 

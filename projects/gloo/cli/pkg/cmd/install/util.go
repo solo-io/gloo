@@ -82,7 +82,3 @@ func (i *NamespacedGlooKubeInstallClient) KubectlApply(manifest []byte) error {
 func (i *NamespacedGlooKubeInstallClient) WaitForCrdsToBeRegistered(crds []string, timeout, interval time.Duration) error {
 	return i.delegate.WaitForCrdsToBeRegistered(crds, timeout, interval)
 }
-
-func (i *NamespacedGlooKubeInstallClient) CheckKnativeInstallation() (isInstalled bool, isOurs bool, err error) {
-	return i.delegate.CheckKnativeInstallation()
-}
