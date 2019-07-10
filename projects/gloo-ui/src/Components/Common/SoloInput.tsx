@@ -40,7 +40,7 @@ const Input = styled<'input', { error?: boolean; borderless?: boolean }>(
   }
 `;
 
-interface InputProps {
+export interface InputProps {
   name?: string;
   title?: string;
   placeholder?: string;

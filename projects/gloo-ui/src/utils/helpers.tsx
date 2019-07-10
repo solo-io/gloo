@@ -71,55 +71,6 @@ export function getIcon(type: string) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                  UPSTREAMS                                 */
-/* -------------------------------------------------------------------------- */
-
-export function getUpstreamType(upstream: Upstream.AsObject) {
-  let upstreamType = '';
-  if (!!upstream.upstreamSpec!.aws) {
-    upstreamType = 'AWS';
-  }
-  if (!!upstream.upstreamSpec!.azure) {
-    upstreamType = 'Azure';
-  }
-
-  if (!!upstream.upstreamSpec!.consul) {
-    upstreamType = 'Consul';
-  }
-
-  if (!!upstream.upstreamSpec!.kube) {
-    upstreamType = 'Kubernetes';
-  }
-  return upstreamType;
-}
-
-export const UPSTREAM_TYPES = [
-  {
-    key: 'AWS',
-    value: 'AWS'
-  },
-  {
-    key: 'Azure',
-    value: 'Azure'
-  },
-  {
-    key: 'Kubernetes',
-    value: 'Kubernetes'
-  },
-  {
-    key: 'Static',
-    value: 'Static'
-  }
-];
-
-export enum UPSTREAM_SPEC_TYPES {
-  AZURE = 'Azure',
-  KUBE = 'Kubernetes',
-  AWS = 'AWS',
-  STATIC = 'Static'
-}
-
-/* -------------------------------------------------------------------------- */
 /*                              VIRTUAL SERVICES                              */
 /* -------------------------------------------------------------------------- */
 
@@ -190,3 +141,5 @@ export function getRouteQueryParams(route: Route.AsObject) {
   }
   return '';
 }
+
+export * from './upstreamHelpers';

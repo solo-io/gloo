@@ -1,48 +1,39 @@
-import * as React from 'react';
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
-
 import styled from '@emotion/styled/macro';
-import { colors } from 'Styles';
-import { SoloInput } from 'Components/Common/SoloInput';
-import { useFormValidation } from 'Hooks/useFormValidation';
-
-import { ErrorText } from '../../VirtualService/Details/ExtAuthForm';
-import { SoloTypeahead } from 'Components/Common/SoloTypeahead';
+import { useCreateUpstream } from 'Api';
 import { SoloButton } from 'Components/Common/SoloButton';
+import {
+  SoloFormDropdown,
+  SoloFormInput,
+  SoloFormTypeahead
+} from 'Components/Common/SoloFormField';
+import { Field, Formik } from 'formik';
+import { NamespacesContext } from 'GlooIApp';
+import { UpstreamSpec as AwsUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
+import { UpstreamSpec as AzureUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
+import { UpstreamSpec as KubeUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb';
+import { UpstreamSpec as StaticUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
   CreateUpstreamRequest,
   UpstreamInput
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { UpstreamSpec as KubeUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb';
-import { UpstreamSpec as AwsUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
-import { UpstreamSpec as AzureUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
-import { UpstreamSpec as StaticUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb';
-
-import { useCreateUpstream } from 'Api';
-import { NamespacesContext } from 'GlooIApp';
-import { SoloDropdown } from 'Components/Common/SoloDropdown';
-import { UPSTREAM_TYPES, UPSTREAM_SPEC_TYPES } from 'utils/helpers';
+import * as React from 'react';
+import { UPSTREAM_SPEC_TYPES, UPSTREAM_TYPES } from 'utils/upstreamHelpers';
+import * as yup from 'yup';
+import { AwsUpstreamForm } from './AwsUpstreamForm';
 
 interface Props {}
-
-let initialValues = {
-  name: '',
-  type: '',
-  namespace: ''
-};
 
 const FormContainer = styled.div`
   display: flex;
   flex-direction: column;
 `;
 
-const InputContainer = styled.div`
+export const InputContainer = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-around;
-  padding: 15px;
+  padding: 10px;
 `;
 
 const InputItem = styled.div`
@@ -56,33 +47,22 @@ const Footer = styled.div`
   justify-content: flex-end;
 `;
 
-const validate = (values: typeof initialValues) => {
-  let errors = {} as typeof initialValues;
-  if (!values.name) {
-    errors.name = 'Name is required';
-  }
-  if (!values.namespace) {
-    errors.namespace = 'Namespace is required';
-  }
-  if (!values.type) {
-    errors.type = 'Type is required';
-  }
-  return errors;
+// TODO: combine initial values
+let initialValues = {
+  name: '',
+  type: '',
+  namespace: 'gloo-system'
 };
+
+// TODO combine validation schemas
+const validationSchema = yup.object().shape({
+  name: yup.string(),
+  namespace: yup.string(),
+  type: yup.string()
+});
 
 export const CreateUpstreamForm = (props: Props) => {
   const namespaces = React.useContext(NamespacesContext);
-  // this is to match the value displayed by the typeahead
-  initialValues.namespace = namespaces[0] || '';
-  const {
-    handleSubmit,
-    handleChange,
-    handleBlur,
-    values,
-    errors,
-    isSubmitting,
-    isDifferent
-  } = useFormValidation(initialValues, validate, createUpstream);
 
   const { refetch: makeRequest } = useCreateUpstream(null);
 
@@ -125,47 +105,50 @@ export const CreateUpstreamForm = (props: Props) => {
   }
 
   return (
-    <FormContainer>
-      <InputContainer>
-        <InputItem>
-          <SoloInput
-            title='Upstream Name'
-            name='name'
-            value={values.name}
-            placeholder={'Upstream Name'}
-            onChange={handleChange}
-            onBlur={handleBlur}
-          />
-          {errors && <ErrorText>{errors.name}</ErrorText>}
-        </InputItem>
-        <InputItem>
-          <SoloDropdown
-            title={'Upstream Type'}
-            placeholder='Type'
-            value={values.type}
-            options={UPSTREAM_TYPES}
-            onChange={e => handleChange(e, 'type')}
-            onBlur={handleBlur}
-          />
-          {errors && <ErrorText>{errors.type}</ErrorText>}
-        </InputItem>
-        <InputItem>
-          <SoloTypeahead
-            title='Upstream Namespace'
-            defaultValue={values.namespace}
-            onChange={e => handleChange(e, 'namespace')}
-            presetOptions={namespaces}
-          />
-          {errors && <ErrorText>{errors.namespace}</ErrorText>}
-        </InputItem>
-      </InputContainer>
-      <Footer>
-        <SoloButton
-          onClick={handleSubmit}
-          text='Create Upstream'
-          disabled={isSubmitting}
-        />
-      </Footer>
-    </FormContainer>
+    <Formik
+      initialValues={initialValues}
+      validationSchema={validationSchema}
+      onSubmit={createUpstream}>
+      {({ values, isSubmitting, handleSubmit }) => (
+        <FormContainer>
+          <InputContainer>
+            <InputItem>
+              <Field
+                name='name'
+                title='Upstream Name'
+                placeholder='Upstream Name'
+                component={SoloFormInput}
+              />
+            </InputItem>
+            <InputItem>
+              <Field
+                name='type'
+                title='Upstream Type'
+                options={UPSTREAM_TYPES}
+                component={SoloFormDropdown}
+              />
+            </InputItem>
+            <InputItem>
+              <Field
+                name='namespace'
+                title='Upstream Namespace'
+                defaultValue='gloo-system'
+                presetOptions={namespaces}
+                component={SoloFormTypeahead}
+              />
+            </InputItem>
+          </InputContainer>
+          {values.type === UPSTREAM_SPEC_TYPES.AWS && <AwsUpstreamForm />}
+          <Footer>
+            <pre>{JSON.stringify(values, null, 2)}</pre>
+            <SoloButton
+              onClick={handleSubmit}
+              text='Create Upstream'
+              disabled={isSubmitting}
+            />
+          </Footer>
+        </FormContainer>
+      )}
+    </Formik>
   );
 };

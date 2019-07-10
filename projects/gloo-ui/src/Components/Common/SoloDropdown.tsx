@@ -38,7 +38,7 @@ export interface OptionType {
   disabled?: boolean;
   value: string | number;
 }
-interface DropdownProps {
+export interface DropdownProps {
   value: string | number | undefined;
   options: OptionType[];
   onChange?: (newValue: string | number) => any;

@@ -55,10 +55,11 @@ export const CreateUpstreamModal = (props: Props) => {
         onClose={() => setShowModal(false)}>
         <React.Fragment>
           <Legend>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Aspernatur
-            officia deleniti ullam hic nostrum quod explicabo optio accusantium,
-            maiores cumque asperiores! Consectetur illum omnis eum qui
-            reprehenderit in eaque doloremque!
+            Upstreams define destinations for routes. Upstreams tell Gloo what
+            to route to and how to route to them. Gloo determines how to handle
+            routing for the upstream based on its spec field. Upstreams have a
+            type-specific spec field which must be used to provide routing
+            information to Gloo.
           </Legend>
           <CreateUpstreamForm />
         </React.Fragment>

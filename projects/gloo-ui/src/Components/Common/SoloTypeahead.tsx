@@ -61,7 +61,7 @@ const SoloAutocompleteBlock = styled(AutoComplete)`
   }
 `;
 
-interface DropdownProps {
+export interface TypeaheadProps {
   presetOptions: string[];
   onChange: (newValue: string) => any;
   title?: string;
@@ -71,10 +71,17 @@ interface DropdownProps {
   disabled?: boolean;
 }
 
-export const SoloTypeahead = (props: DropdownProps) => {
+export const SoloTypeahead = (props: TypeaheadProps) => {
   const [typeInText, setTypeInText] = React.useState<string>('');
 
-  const { title, disabled, placeholder, presetOptions, onChange } = props;
+  const {
+    title,
+    disabled,
+    placeholder,
+    presetOptions,
+    onChange,
+    defaultValue
+  } = props;
 
   const handleChange = (value: SelectValue): void => {
     onChange(value as string);
@@ -106,7 +113,9 @@ export const SoloTypeahead = (props: DropdownProps) => {
         disabled={disabled}
         onChange={handleChange}
         defaultValue={
-          props.presetOptions.length
+          defaultValue
+            ? defaultValue
+            : props.presetOptions.length
             ? props.presetOptions[0]
             : 'New namespace...'
         }
