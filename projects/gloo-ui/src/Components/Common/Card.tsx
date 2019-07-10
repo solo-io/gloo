@@ -2,9 +2,10 @@ import * as React from 'react';
 /** @jsx jsx */
 import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
-import { colors, soloConstants } from 'Styles';
+import { colors, soloConstants, healthConstants } from 'Styles';
 import { CardCSS } from 'Styles/CommonEmotions/card';
 import { hslToHSLA } from 'Styles/colors';
+import { HealthIndicator } from './HealthIndicator';
 
 const Container = styled.div`
   ${CardCSS};
@@ -32,11 +33,14 @@ const CardTitle = styled.div`
 const CardSubtitle = styled.div`
   color: ${colors.novemberGrey};
   font-size: 12px;
+  min-height: 18px;
 `;
 
 const Footer = styled.div`
+  position: relative;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-top: 10px;
   background: ${hslToHSLA(colors.marchGrey, 0.15)};
   color: ${colors.seaBlue};
@@ -83,6 +87,35 @@ const DetailContent = styled.div`
   word-break: break-all;
 `;
 
+const ArrowToggle = styled<'div', { active?: boolean }>('div')`
+  position: absolute;
+  right: 8px;
+  top: ${props => (props.active ? '14' : '15')}px;
+
+  &:before,
+  &:after {
+    position: absolute;
+    content: '';
+    display: block;
+    width: 8px;
+    height: 1px;
+    background: white;
+    transition: transform 0.5s;
+  }
+
+  &:before {
+    right: 5px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    transform: rotate(${props => (props.active ? '-' : '')}45deg);
+  }
+
+  &:after {
+    right: 1px;
+    transform: rotate(${props => (props.active ? '' : '-')}45deg);
+  }
+`;
+
 export interface CardType {
   cardTitle: string;
   cardSubtitle?: string;
@@ -95,6 +128,7 @@ export interface CardType {
     value: string;
     valueDisplay?: React.ReactNode | Element;
   }[];
+  healthStatus?: number;
 }
 
 export const Card = (props: CardType) => {
@@ -106,7 +140,8 @@ export const Card = (props: CardType) => {
     onRemoveCard,
     onExpand,
     details,
-    onClick
+    onClick,
+    healthStatus
   } = props;
 
   const handleFooterClick = () => {
@@ -125,9 +160,17 @@ export const Card = (props: CardType) => {
     <Container>
       <MainSection>
         <CardTitle>{cardTitle}</CardTitle>
-        <CardSubtitle>{cardSubtitle}</CardSubtitle>
+        <CardSubtitle>
+          {cardSubtitle && cardSubtitle.length ? cardSubtitle : '   '}
+        </CardSubtitle>
       </MainSection>
-      <Footer onClick={handleFooterClick}>View Details</Footer>
+      <Footer onClick={handleFooterClick}>
+        <span>View Details</span>
+        <HealthIndicator
+          healthStatus={healthStatus || healthConstants.Pending.value}
+        />
+        {!!onExpand && <ArrowToggle />}
+      </Footer>
       {expanded && (
         <Expansion>
           <ExpandedDetails>
@@ -146,7 +189,13 @@ export const Card = (props: CardType) => {
               })}
           </ExpandedDetails>
 
-          <Footer onClick={handleFooterClick}>Hide Details</Footer>
+          <Footer onClick={handleFooterClick}>
+            <span>Hide Details</span>
+            <HealthIndicator
+              healthStatus={healthStatus || healthConstants.Pending.value}
+            />
+            <ArrowToggle active={true} />
+          </Footer>
         </Expansion>
       )}
     </Container>

@@ -2,6 +2,7 @@ import * as React from 'react';
 import styled from '@emotion/styled/macro';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import { ReactComponent as KubeLogo } from 'assets/kube-logo.svg';
@@ -27,11 +28,11 @@ const StyledGRPCLogo = styled.img`
 export function getResourceStatus(resource: Resource) {
   switch (resource.status!.state) {
     case 0:
-      return 'PENDING';
+      return 'Pending';
     case 1:
-      return 'ACCEPTED';
+      return 'Accepted';
     case 2:
-      return 'REJECTED';
+      return 'Rejected';
     default:
       return '';
   }

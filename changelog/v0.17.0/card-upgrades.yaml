@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Upgrade cards to show health better. Creates component for status information.
+    issueLink: https://github.com/solo-io/solo-projects/issues/685

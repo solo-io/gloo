@@ -2,7 +2,7 @@ import * as React from 'react';
 /** @jsx jsx */
 import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
-import { colors } from 'Styles';
+import { colors, healthConstants } from 'Styles';
 import { soloConstants } from 'Styles/constants';
 
 const HealthIndicatorCircle = styled<'div', { health: number }>('div')`
@@ -10,14 +10,13 @@ const HealthIndicatorCircle = styled<'div', { health: number }>('div')`
   height: 18px;
   width: 18px;
   border-radius: 18px;
-  margin-bottom: -3px;
   margin-left: 10px;
   ${props =>
-    props.health === soloConstants.healthStatus.Good.value
-      ? `
-      background: ${colors.forestGreen};`
-      : `
-    background: ${colors.grapefruitOrange};`}
+    props.health === healthConstants.Good.value
+      ? `background: ${colors.forestGreen};`
+      : props.health === healthConstants.Error.value
+      ? `background: ${colors.grapefruitOrange};`
+      : `background: ${colors.sunGold};`}
 `;
 
 interface Props {

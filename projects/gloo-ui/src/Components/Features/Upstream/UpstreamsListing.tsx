@@ -4,7 +4,7 @@ import { jsx } from '@emotion/core';
 
 import styled from '@emotion/styled/macro';
 import { withRouter, RouteComponentProps } from 'react-router';
-import { colors } from 'Styles';
+import { colors, soloConstants, healthConstants } from 'Styles';
 
 import {
   ListingFilter,
@@ -31,6 +31,7 @@ import {
 } from 'utils/helpers';
 import { NamespacesContext } from 'GlooIApp';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
+import { HealthInformation } from 'Components/Common/HealthInformation';
 
 const StringFilters: StringFilterProps[] = [
   {
@@ -113,12 +114,13 @@ const Action = styled.div`
   align-items: center;
   align-items: baseline;
 `;
-interface UpstreamCardData extends Upstream.AsObject {
+interface UpstreamCardData {
   cardTitle: string;
   cardSubtitle: string;
-  onRemovecard: (id: string) => void;
-  onExpanded: () => void;
+  onRemoveCard: (id: string) => void;
+  onExpand: () => void;
   details: { title: string; value: string }[];
+  healthStatus: number;
 }
 interface Props extends RouteComponentProps {
   //... eg, virtualservice?: string
@@ -188,11 +190,13 @@ export const UpstreamsListing = (props: Props) => {
   ) => {
     const dataUsed: UpstreamCardData[] = data.map(upstream => {
       return {
-        ...upstream,
+        healthStatus: upstream.status
+          ? upstream.status.state
+          : healthConstants.Pending.value,
         cardTitle: upstream.metadata!.name,
         cardSubtitle: upstream.metadata!.namespace,
-        onRemovecard: (id: string): void => {},
-        onExpanded: () => {},
+        onRemoveCard: (id: string): void => {},
+        onExpand: () => {},
         details: [
           {
             title: 'Name',
@@ -212,7 +216,8 @@ export const UpstreamsListing = (props: Props) => {
           },
           {
             title: 'Status',
-            value: getResourceStatus(upstream)
+            value: getResourceStatus(upstream),
+            valueDisplay: <HealthInformation healthStatus={upstream.status} />
           }
         ]
       };
