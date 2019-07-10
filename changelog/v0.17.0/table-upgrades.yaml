@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: Tables now have more functionality and real data showing.
+    issueLink: https://github.com/solo-io/solo-projects/issues/687
+    resolvesIssue: false

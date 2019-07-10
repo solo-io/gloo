@@ -9,6 +9,7 @@ import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 import { hslToHSLA } from 'Styles/colors';
 
 const Health = styled<'div', { health: number }>('div')`
+  display: inline;
   position: relative;
   color: ${props =>
     props.health === healthConstants.Good.value

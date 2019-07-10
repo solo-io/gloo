@@ -4,7 +4,13 @@ import { jsx } from '@emotion/core';
 
 import styled from '@emotion/styled/macro';
 import { withRouter, RouteComponentProps } from 'react-router';
-import { colors, soloConstants, healthConstants } from 'Styles';
+import {
+  colors,
+  soloConstants,
+  healthConstants,
+  TableHealthCircleHolder,
+  TableActionCircle
+} from 'Styles';
 
 import {
   ListingFilter,
@@ -32,6 +38,7 @@ import {
 import { NamespacesContext } from 'GlooIApp';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
 import { HealthInformation } from 'Components/Common/HealthInformation';
+import { HealthIndicator } from 'Components/Common/HealthIndicator';
 
 const StringFilters: StringFilterProps[] = [
   {
@@ -61,7 +68,15 @@ const TableColumns = [
   },
   {
     title: 'Status',
-    dataIndex: 'status'
+    dataIndex: 'status',
+    render: (healthStatus: Status.AsObject) => (
+      <div>
+        <TableHealthCircleHolder>
+          <HealthIndicator healthStatus={healthStatus.state} />
+        </TableHealthCircleHolder>
+        <HealthInformation healthStatus={healthStatus} />
+      </div>
+    )
   },
   {
     title: 'Use TLS',
@@ -71,7 +86,11 @@ const TableColumns = [
   {
     title: 'Actions',
     dataIndex: 'actions',
-    render: (text: any) => <div>ACTION!</div>
+    render: (all: any) => (
+      <TableActionCircle onClick={() => alert('Create Route!')}>
+        +
+      </TableActionCircle>
+    )
   }
 ];
 
@@ -234,7 +253,7 @@ export const UpstreamsListing = (props: Props) => {
     const dataUsed = data.map(upstream => {
       return {
         ...upstream,
-        status: getResourceStatus(upstream),
+        status: upstream.status,
         type: getUpstreamType(upstream),
         name: upstream.metadata!.name,
         key: `${upstream.metadata!.name}-${upstream.metadata!.namespace}`

@@ -3,8 +3,9 @@ import * as React from 'react';
 import { jsx } from '@emotion/core';
 
 import styled from '@emotion/styled/macro';
-import { withRouter, RouteComponentProps } from 'react-router';
+import { RouteComponentProps } from 'react-router';
 import { colors } from 'Styles';
+import { TableActionCircle, TableHealthCircleHolder } from 'Styles/table';
 import {
   ListingFilter,
   StringFilterProps,
@@ -18,59 +19,35 @@ import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
 import { ReactComponent as Gloo } from 'assets/Gloo.svg';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { CardsListing } from 'Components/Common/CardsListing';
-import { CardType } from 'Components/Common/Card';
 import { useListVirtualServices } from 'Api';
 import { ListVirtualServicesRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
+import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 import { NamespacesContext } from 'GlooIApp';
 import { getResourceStatus, getVSDomains } from 'utils/helpers';
 import { CreateVirtualServiceModal } from './Creation/CreateVirtualServiceModal';
+import { HealthInformation } from 'Components/Common/HealthInformation';
+import { HealthIndicator } from 'Components/Common/HealthIndicator';
 
-interface DataType {
-  name: string;
-  domain: string;
-  namespace: string;
-  version: string;
-  status: number;
-  routes: number;
-  brLimit: {
-    min: number;
-    sec: number;
-  };
-  arLimit: {
-    min: number;
-    sec: number;
-  };
-  actions: null;
-}
-interface DataSourceType extends DataType {
-  key: string;
-}
-
-const data: DataType[] = [
-  {
-    name: 'Jojoa.sdf',
-    domain: 'abc.def',
-    namespace: 'default',
-    version: 'v012',
-    status: 0,
-    routes: 3,
-    brLimit: {
-      min: 5,
-      sec: 0
-    },
-    arLimit: {
-      min: 37,
-      sec: 12
-    },
-    actions: null
-  }
-];
+const TableLink = styled.div`
+  cursor: pointer;
+  color: ${colors.seaBlue};
+`;
 
 const TableColumns = [
   {
     title: 'Name',
-    dataIndex: 'name'
+    dataIndex: 'name',
+    render: (nameObject: {
+      goToVirtualService: () => void;
+      displayName: string;
+    }) => {
+      return (
+        <TableLink onClick={nameObject.goToVirtualService}>
+          {nameObject.displayName}
+        </TableLink>
+      );
+    }
   },
   {
     title: 'Domain',
@@ -86,7 +63,15 @@ const TableColumns = [
   },
   {
     title: 'Status',
-    dataIndex: 'status'
+    dataIndex: 'status',
+    render: (healthStatus: Status.AsObject) => (
+      <div>
+        <TableHealthCircleHolder>
+          <HealthIndicator healthStatus={healthStatus.state} />
+        </TableHealthCircleHolder>
+        <HealthInformation healthStatus={healthStatus} />
+      </div>
+    )
   },
   {
     title: 'Routes',
@@ -103,7 +88,11 @@ const TableColumns = [
   {
     title: 'Actions',
     dataIndex: 'actions',
-    render: (text: any) => <div>ACTION!</div>
+    render: (all: any) => (
+      <TableActionCircle onClick={() => alert('Create Route!')}>
+        +
+      </TableActionCircle>
+    )
   }
 ];
 
@@ -176,15 +165,24 @@ export const VirtualServicesListing = (props: Props) => {
     const dataUsed = data.map(virtualService => {
       return {
         ...virtualService,
-        name: virtualService.metadata!.name,
+        name: {
+          displayName: virtualService.metadata!.name,
+          goToVirtualService: () => {
+            history.push(
+              `${match.path}${virtualService.metadata!.namespace}/${
+                virtualService.metadata!.name
+              }`
+            );
+          }
+        },
         domains: getVSDomains(virtualService),
         routes: virtualService.virtualHost!.routesList.length,
-        status: getResourceStatus(virtualService),
+        status: virtualService.status,
         key: `${virtualService.metadata!.name}`
       };
     });
 
-    return dataUsed.filter(row => row.name.includes(nameFilter));
+    return dataUsed.filter(row => row.name.displayName.includes(nameFilter));
   };
 
   const listDisplay = (
