@@ -1,11 +1,12 @@
 import styled from '@emotion/styled/macro';
 import { useCreateUpstream } from 'Api';
-import { SoloButton } from 'Components/Common/SoloButton';
 import {
   SoloFormDropdown,
   SoloFormInput,
   SoloFormTypeahead
-} from 'Components/Common/SoloFormField';
+} from 'Components/Common/Form/SoloFormField';
+import { SoloFormTemplate } from 'Components/Common/Form/SoloFormTemplate';
+import { SoloButton } from 'Components/Common/SoloButton';
 import { Field, Formik } from 'formik';
 import { NamespacesContext } from 'GlooIApp';
 import { UpstreamSpec as AwsUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
@@ -20,7 +21,8 @@ import {
 import * as React from 'react';
 import { UPSTREAM_SPEC_TYPES, UPSTREAM_TYPES } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
-import { AwsUpstreamForm } from './AwsUpstreamForm';
+import { awsInitialValues, AwsUpstreamForm } from './AwsUpstreamForm';
+import { kubeInitialValues, KubeUpstreamForm } from './KubeUpstreamForm';
 
 interface Props {}
 
@@ -47,11 +49,13 @@ const Footer = styled.div`
   justify-content: flex-end;
 `;
 
-// TODO: combine initial values
+// TODO: better way to include all initial values?
 let initialValues = {
   name: '',
   type: '',
-  namespace: 'gloo-system'
+  namespace: 'gloo-system',
+  ...awsInitialValues,
+  ...kubeInitialValues
 };
 
 // TODO combine validation schemas
@@ -79,9 +83,16 @@ export const CreateUpstreamForm = (props: Props) => {
     usInput.setRef(usResourceRef);
 
     //TODO: set up correct upstream spec
+    // TODO: validation for specific fields
     switch (values.type) {
       case UPSTREAM_SPEC_TYPES.AWS:
         let awsSpec = new AwsUpstreamSpec();
+        awsSpec.setRegion(values.region);
+        let secretRef = new ResourceRef();
+        secretRef.setName(values.secretRefName);
+        secretRef.setNamespace(values.secretRefNamespace);
+
+        awsSpec.setSecretRef(secretRef);
         usInput.setAws(awsSpec);
         break;
       case UPSTREAM_SPEC_TYPES.AZURE:
@@ -90,6 +101,9 @@ export const CreateUpstreamForm = (props: Props) => {
         break;
       case UPSTREAM_SPEC_TYPES.KUBE:
         let kubeSpec = new KubeUpstreamSpec();
+        kubeSpec.setServiceName(values.serviceName);
+        kubeSpec.setServiceNamespace(values.serviceNamespace);
+        kubeSpec.setServicePort(+values.servicePort);
         usInput.setKube(kubeSpec);
         break;
       case UPSTREAM_SPEC_TYPES.STATIC:
@@ -111,36 +125,31 @@ export const CreateUpstreamForm = (props: Props) => {
       onSubmit={createUpstream}>
       {({ values, isSubmitting, handleSubmit }) => (
         <FormContainer>
-          <InputContainer>
-            <InputItem>
-              <Field
-                name='name'
-                title='Upstream Name'
-                placeholder='Upstream Name'
-                component={SoloFormInput}
-              />
-            </InputItem>
-            <InputItem>
-              <Field
-                name='type'
-                title='Upstream Type'
-                options={UPSTREAM_TYPES}
-                component={SoloFormDropdown}
-              />
-            </InputItem>
-            <InputItem>
-              <Field
-                name='namespace'
-                title='Upstream Namespace'
-                defaultValue='gloo-system'
-                presetOptions={namespaces}
-                component={SoloFormTypeahead}
-              />
-            </InputItem>
-          </InputContainer>
+          <SoloFormTemplate>
+            <Field
+              name='name'
+              title='Upstream Name'
+              placeholder='Upstream Name'
+              component={SoloFormInput}
+            />
+            <Field
+              name='type'
+              title='Upstream Type'
+              placeholder='Type'
+              options={UPSTREAM_TYPES}
+              component={SoloFormDropdown}
+            />
+            <Field
+              name='namespace'
+              title='Upstream Namespace'
+              defaultValue='gloo-system'
+              presetOptions={namespaces}
+              component={SoloFormTypeahead}
+            />
+          </SoloFormTemplate>
           {values.type === UPSTREAM_SPEC_TYPES.AWS && <AwsUpstreamForm />}
+          {values.type === UPSTREAM_SPEC_TYPES.KUBE && <KubeUpstreamForm />}
           <Footer>
-            <pre>{JSON.stringify(values, null, 2)}</pre>
             <SoloButton
               onClick={handleSubmit}
               text='Create Upstream'

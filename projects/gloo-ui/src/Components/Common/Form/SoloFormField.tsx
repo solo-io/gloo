@@ -1,10 +1,10 @@
-import React from 'react';
-import { FieldProps } from 'formik';
-import { InputProps, SoloInput } from './SoloInput';
-import { SoloDropdown, DropdownProps } from './SoloDropdown';
-import { SoloTypeahead, TypeaheadProps } from './SoloTypeahead';
 import styled from '@emotion/styled/macro';
+import { FieldProps } from 'formik';
+import React from 'react';
 import { colors } from 'Styles';
+import { DropdownProps, SoloDropdown } from '../SoloDropdown';
+import { InputProps, SoloInput } from '../SoloInput';
+import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 
 const ErrorText = styled.div`
   color: ${colors.grapefruitOrange};
