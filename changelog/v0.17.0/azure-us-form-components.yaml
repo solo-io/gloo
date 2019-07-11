@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Add the components for the Azure specific create us fields.
+    issueLink: https://github.com/solo-io/solo-projects/issues/682
+    resolvesIssue: false

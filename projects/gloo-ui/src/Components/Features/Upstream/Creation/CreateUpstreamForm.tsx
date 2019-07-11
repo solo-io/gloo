@@ -23,6 +23,7 @@ import { UPSTREAM_SPEC_TYPES, UPSTREAM_TYPES } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
 import { awsInitialValues, AwsUpstreamForm } from './AwsUpstreamForm';
 import { kubeInitialValues, KubeUpstreamForm } from './KubeUpstreamForm';
+import { AzureUpstreamForm, azureInitialValues } from './AzureUpstreamForm';
 
 interface Props {}
 
@@ -38,11 +39,6 @@ export const InputContainer = styled.div`
   padding: 10px;
 `;
 
-const InputItem = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
 const Footer = styled.div`
   display: flex;
   flex-direction: row;
@@ -55,7 +51,8 @@ let initialValues = {
   type: '',
   namespace: 'gloo-system',
   ...awsInitialValues,
-  ...kubeInitialValues
+  ...kubeInitialValues,
+  ...azureInitialValues
 };
 
 // TODO combine validation schemas
@@ -88,15 +85,19 @@ export const CreateUpstreamForm = (props: Props) => {
       case UPSTREAM_SPEC_TYPES.AWS:
         let awsSpec = new AwsUpstreamSpec();
         awsSpec.setRegion(values.region);
-        let secretRef = new ResourceRef();
-        secretRef.setName(values.secretRefName);
-        secretRef.setNamespace(values.secretRefNamespace);
+        let awsSecretRef = new ResourceRef();
+        awsSecretRef.setName(values.awsSecretRefName);
+        awsSecretRef.setNamespace(values.awsSecretRefNamespace);
 
-        awsSpec.setSecretRef(secretRef);
+        awsSpec.setSecretRef(awsSecretRef);
         usInput.setAws(awsSpec);
         break;
       case UPSTREAM_SPEC_TYPES.AZURE:
         let azureSpec = new AzureUpstreamSpec();
+        let azureSecretRef = new ResourceRef();
+        azureSecretRef.setName(values.azureSecretRefName);
+        azureSecretRef.setNamespace(values.azureSecretRefNamespace);
+        azureSpec.setSecretRef(azureSecretRef);
         usInput.setAzure(azureSpec);
         break;
       case UPSTREAM_SPEC_TYPES.KUBE:
@@ -149,6 +150,7 @@ export const CreateUpstreamForm = (props: Props) => {
           </SoloFormTemplate>
           {values.type === UPSTREAM_SPEC_TYPES.AWS && <AwsUpstreamForm />}
           {values.type === UPSTREAM_SPEC_TYPES.KUBE && <KubeUpstreamForm />}
+          {values.type === UPSTREAM_SPEC_TYPES.AZURE && <AzureUpstreamForm />}
           <Footer>
             <SoloButton
               onClick={handleSubmit}

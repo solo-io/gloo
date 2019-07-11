@@ -6,45 +6,42 @@ import { SoloFormTemplate } from 'Components/Common/Form/SoloFormTemplate';
 import { Field } from 'formik';
 import { NamespacesContext } from 'GlooIApp';
 import * as React from 'react';
-import { AWS_REGIONS } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
 
 // TODO combine with main initial values
-export const awsInitialValues = {
-  region: 'us-east-1',
-  awsSecretRefNamespace: '',
-  awsSecretRefName: ''
+export const azureInitialValues = {
+  functionAppName: '',
+  azureSecretRefNamespace: '',
+  azureSecretRefName: ''
 };
 
 interface Props {}
 
-export const awsValidationSchema = yup.object().shape({
-  region: yup.string(),
-  awsSecretRefNamespace: yup.string(),
-  awsSecretRefName: yup.string()
+export const azureValidationSchema = yup.object().shape({
+  functionAppName: yup.string(),
+  azureSecretRefNamespace: yup.string(),
+  azureSecretRefName: yup.string()
 });
 
-export const AwsUpstreamForm: React.FC<Props> = () => {
+export const AzureUpstreamForm: React.FC<Props> = () => {
   const namespaces = React.useContext(NamespacesContext);
-
-  const awsRegions = AWS_REGIONS.map(item => item.name);
 
   return (
     <SoloFormTemplate formHeader='AWS Upstream Settings'>
       <Field
-        name='region'
-        title='Region'
-        presetOptions={awsRegions}
-        component={SoloFormTypeahead}
+        name='functionAppName'
+        title='Function App Name'
+        placeholder='Function App Name'
+        component={SoloFormInput}
       />
       <Field
-        name='awsSecretRefNamespace'
+        name='azureSecretRefNamespace'
         title='Secret Ref Namespace'
         presetOptions={namespaces}
         component={SoloFormTypeahead}
       />
       <Field
-        name='awsSecretRefName'
+        name='azureSecretRefName'
         title='Secret Ref Name'
         placeholder='Secret Ref Name'
         component={SoloFormInput}

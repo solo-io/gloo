@@ -2,11 +2,11 @@ import {
   SoloFormInput,
   SoloFormTypeahead
 } from 'Components/Common/Form/SoloFormField';
+import { SoloFormTemplate } from 'Components/Common/Form/SoloFormTemplate';
 import { Field } from 'formik';
 import { NamespacesContext } from 'GlooIApp';
 import * as React from 'react';
 import * as yup from 'yup';
-import { SoloFormTemplate } from 'Components/Common/Form/SoloFormTemplate';
 
 // TODO combine with main initial values
 export const kubeInitialValues = {
