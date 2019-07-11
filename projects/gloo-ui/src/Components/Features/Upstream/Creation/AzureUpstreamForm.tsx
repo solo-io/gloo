@@ -10,7 +10,7 @@ import * as yup from 'yup';
 
 // TODO combine with main initial values
 export const azureInitialValues = {
-  functionAppName: '',
+  azureFunctionAppName: '',
   azureSecretRefNamespace: '',
   azureSecretRefName: ''
 };
@@ -18,7 +18,7 @@ export const azureInitialValues = {
 interface Props {}
 
 export const azureValidationSchema = yup.object().shape({
-  functionAppName: yup.string(),
+  azureFunctionAppName: yup.string(),
   azureSecretRefNamespace: yup.string(),
   azureSecretRefName: yup.string()
 });
@@ -29,7 +29,7 @@ export const AzureUpstreamForm: React.FC<Props> = () => {
   return (
     <SoloFormTemplate formHeader='AWS Upstream Settings'>
       <Field
-        name='functionAppName'
+        name='azureFunctionAppName'
         title='Function App Name'
         placeholder='Function App Name'
         component={SoloFormInput}

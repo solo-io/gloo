@@ -11,7 +11,9 @@ import { Field, Formik } from 'formik';
 import { NamespacesContext } from 'GlooIApp';
 import { UpstreamSpec as AwsUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
 import { UpstreamSpec as AzureUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
+import { UpstreamSpec as ConsulUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul_pb';
 import { UpstreamSpec as KubeUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb';
+import { ServiceSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/service_spec_pb';
 import { UpstreamSpec as StaticUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
@@ -22,9 +24,10 @@ import * as React from 'react';
 import { UPSTREAM_SPEC_TYPES, UPSTREAM_TYPES } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
 import { awsInitialValues, AwsUpstreamForm } from './AwsUpstreamForm';
+import { azureInitialValues, AzureUpstreamForm } from './AzureUpstreamForm';
+import { consulInitialValues, ConsulUpstreamForm } from './ConsulUpstreamForm';
 import { kubeInitialValues, KubeUpstreamForm } from './KubeUpstreamForm';
-import { StaticUpstreamForm, staticInitialValues } from './StaticUpstreamForm';
-import { AzureUpstreamForm, azureInitialValues } from './AzureUpstreamForm';
+import { staticInitialValues, StaticUpstreamForm } from './StaticUpstreamForm';
 
 interface Props {}
 
@@ -54,7 +57,8 @@ let initialValues = {
   ...awsInitialValues,
   ...kubeInitialValues,
   ...staticInitialValues,
-  ...azureInitialValues
+  ...azureInitialValues,
+  ...consulInitialValues
 };
 
 // TODO combine validation schemas
@@ -86,11 +90,10 @@ export const CreateUpstreamForm = (props: Props) => {
     switch (values.type) {
       case UPSTREAM_SPEC_TYPES.AWS:
         let awsSpec = new AwsUpstreamSpec();
-        awsSpec.setRegion(values.region);
+        awsSpec.setRegion(values.awsRegion);
         let awsSecretRef = new ResourceRef();
         awsSecretRef.setName(values.awsSecretRefName);
         awsSecretRef.setNamespace(values.awsSecretRefNamespace);
-
         awsSpec.setSecretRef(awsSecretRef);
         usInput.setAws(awsSpec);
         break;
@@ -100,19 +103,30 @@ export const CreateUpstreamForm = (props: Props) => {
         azureSecretRef.setName(values.azureSecretRefName);
         azureSecretRef.setNamespace(values.azureSecretRefNamespace);
         azureSpec.setSecretRef(azureSecretRef);
+        azureSpec.setFunctionAppName(values.azureFunctionAppName);
         usInput.setAzure(azureSpec);
         break;
       case UPSTREAM_SPEC_TYPES.KUBE:
         let kubeSpec = new KubeUpstreamSpec();
-        kubeSpec.setServiceName(values.serviceName);
-        kubeSpec.setServiceNamespace(values.serviceNamespace);
-        kubeSpec.setServicePort(+values.servicePort);
+        kubeSpec.setServiceName(values.kubeServiceName);
+        kubeSpec.setServiceNamespace(values.kubeServiceNamespace);
+        kubeSpec.setServicePort(+values.kubeServicePort);
         usInput.setKube(kubeSpec);
         break;
       case UPSTREAM_SPEC_TYPES.STATIC:
         let staticSpec = new StaticUpstreamSpec();
+        staticSpec.setUseTls(values.staticUseTls);
         usInput.setStatic(staticSpec);
         break;
+      case UPSTREAM_SPEC_TYPES.CONSUL:
+        let consulSpec = new ConsulUpstreamSpec();
+        consulSpec.setServiceName(values.consulServiceName);
+        consulSpec.setServiceTagsList([values.consulServiceTagsList]);
+        consulSpec.setConnectEnabled(values.consulConnectEnabled);
+        consulSpec.setDataCenter(values.consulDataCenter);
+        let consulServiceSpec = new ServiceSpec();
+        consulSpec.setServiceSpec(consulServiceSpec);
+        usInput.setConsul(consulSpec);
       default:
         break;
     }
@@ -154,6 +168,8 @@ export const CreateUpstreamForm = (props: Props) => {
           {values.type === UPSTREAM_SPEC_TYPES.KUBE && <KubeUpstreamForm />}
           {values.type === UPSTREAM_SPEC_TYPES.STATIC && <StaticUpstreamForm />}
           {values.type === UPSTREAM_SPEC_TYPES.AZURE && <AzureUpstreamForm />}
+          {values.type === UPSTREAM_SPEC_TYPES.CONSUL && <ConsulUpstreamForm />}
+
           <pre>{JSON.stringify(values, null, 2)}</pre>
           <Footer>
             <SoloButton

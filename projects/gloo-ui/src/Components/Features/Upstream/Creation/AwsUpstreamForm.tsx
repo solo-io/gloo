@@ -11,7 +11,7 @@ import * as yup from 'yup';
 
 // TODO combine with main initial values
 export const awsInitialValues = {
-  region: 'us-east-1',
+  awsRegion: 'us-east-1',
   awsSecretRefNamespace: '',
   awsSecretRefName: ''
 };
@@ -19,7 +19,7 @@ export const awsInitialValues = {
 interface Props {}
 
 export const awsValidationSchema = yup.object().shape({
-  region: yup.string(),
+  awsRegion: yup.string(),
   awsSecretRefNamespace: yup.string(),
   awsSecretRefName: yup.string()
 });
@@ -32,7 +32,7 @@ export const AwsUpstreamForm: React.FC<Props> = () => {
   return (
     <SoloFormTemplate formHeader='AWS Upstream Settings'>
       <Field
-        name='region'
+        name='awsRegion'
         title='Region'
         presetOptions={awsRegions}
         component={SoloFormTypeahead}

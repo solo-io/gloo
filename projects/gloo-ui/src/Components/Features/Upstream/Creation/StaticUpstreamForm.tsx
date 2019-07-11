@@ -11,43 +11,43 @@ import { StringCard } from 'Components/Common/StringCardsList';
 
 // TODO combine with main initial values
 export const staticInitialValues = {
-  hostList: [
+  staticServiceName: '',
+  staticHostList: [
     {
       addr: '',
       port: ''
     }
   ],
-  useTls: false,
-  servicePort: ''
+  staticUseTls: false,
+  staticServicePort: ''
 };
 
 interface Props {}
 
 // TODO: figure out which fields are required
 export const staticValidationSchema = yup.object().shape({
-  serviceName: yup.string(),
-  serviceNamespace: yup.string(),
-  servicePort: yup.string()
+  staticHostList: yup.string(),
+  staticServicePort: yup.string(),
+  staticServiceName: yup.string()
 });
-// hostlist
-//host ={addr:'', port:''}
+
 export const StaticUpstreamForm: React.FC<Props> = () => {
   return (
     <SoloFormTemplate formHeader='Static Upstream Settings'>
       <Field
-        name='serviceName'
+        name='staticServiceName'
         title='Service Name'
         placeholder='Service Name'
         component={SoloFormInput}
       />
-      <Field name='useTls' title='Use Tls' component={SoloFormCheckbox} />
+      <Field name='staticUseTls' title='Use Tls' component={SoloFormCheckbox} />
       <Field
-        name='servicePort'
+        name='staticServicePort'
         title='Service Port'
         placeholder='Service Port'
         component={SoloFormInput}
       />
-      <FieldArray name='hostList' render={SoloFormArrayField} />
+      <FieldArray name='staticHostList' render={SoloFormArrayField} />
     </SoloFormTemplate>
   );
 };
@@ -62,13 +62,13 @@ export const SoloFormArrayField: React.FC<FieldArrayRenderProps> = ({
   <div>
     <div key={`${name}-${0}`}>
       <Field
-        name={`hostList[${0}].addr`}
+        name={`kubeHostList[${0}].addr`}
         title='Host Address'
         placeholder='Host Address'
         component={SoloFormInput}
       />
       <Field
-        name={`hostList[${0}].port`}
+        name={`kubeHostList[${0}].port`}
         title='Host Port'
         placeholder='Host Port'
         component={SoloFormInput}
@@ -78,16 +78,12 @@ export const SoloFormArrayField: React.FC<FieldArrayRenderProps> = ({
         onClick={() => insert(0, { addr: '', port: '' })}
       />
     </div>
-    {form.values.hostList.map((host: any, index: any) => {
+    {form.values.kubeHostList.map((host: any, index: any) => {
       return (
-        <div key={`${name}-${index}`}>
-          {
-            <StringCard>
-              {` ${host.addr || ''}:${host.port || ''}`}
-              <div onClick={() => remove(index)}>x</div>
-            </StringCard>
-          }
-        </div>
+        <StringCard key={`${name}-${index}`}>
+          {` ${host.addr || ''}:${host.port || ''}`}
+          <div onClick={() => remove(index)}>x</div>
+        </StringCard>
       );
     })}
   </div>
