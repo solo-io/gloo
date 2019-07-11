@@ -13,7 +13,7 @@ const Container = styled.div`
   align-items: center;
 `;
 
-const StringCard = styled.div`
+export const StringCard = styled.div`
   display: flex;
   justify-content: space-between;
   border-radius: ${soloConstants.smallRadius}px;

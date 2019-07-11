@@ -6,7 +6,7 @@ import { SoloButtonCSS } from 'Styles/CommonEmotions/button';
 
 import { BaseButtonProps } from 'antd/lib/button/button';
 
-interface ButtonProps extends BaseButtonProps {
+export interface SoloButtonProps extends BaseButtonProps {
   text: string;
   onClick: (e: React.MouseEvent<any, MouseEvent>) => void;
   inProgressText?: string;
@@ -16,7 +16,7 @@ interface ButtonProps extends BaseButtonProps {
   uniqueCss?: SerializedStyles;
 }
 
-export const SoloButton = (props: ButtonProps) => {
+export const SoloButton = (props: SoloButtonProps) => {
   const {
     loading,
     text,

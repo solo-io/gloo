@@ -4,6 +4,8 @@ import { css, jsx } from '@emotion/core';
 import { colors, soloConstants } from '../../Styles';
 import styled from '@emotion/styled/macro';
 import { Checkbox } from 'antd';
+import { CheckboxChangeEvent } from 'antd/lib/checkbox';
+import { Label } from './SoloInput';
 
 const InputStyling = css`
   border-radius: 10px;
@@ -45,7 +47,7 @@ ${CheckboxStyling}
 color: ${colors.septemberGrey};
 `;
 
-const CheckboxWrapper = styled.div`
+const CheckboxWrapper = styled<'div', { checked?: boolean }>('div')`
   ${InputStyling}
   display: flex;
   justify-content: space-between;
@@ -55,7 +57,6 @@ const CheckboxWrapper = styled.div`
     border ${soloConstants.transitionTime};
 
   ${props =>
-    // @ts-ignore
     !!props.checked
       ? `background: ${colors.dropBlue};
         border-color: ${colors.seaBlue};`
@@ -64,32 +65,30 @@ const CheckboxWrapper = styled.div`
   ${CheckboxStyling};
 `;
 
-interface Props {
+export interface CheckboxProps {
   checked: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => any;
+  onChange: (e: CheckboxChangeEvent) => void;
   title?: string;
   withWrapper?: boolean;
+  label?: boolean;
 }
 
-export class SoloCheckbox extends React.Component<Props, {}> {
-  render() {
-    const { title, checked, onChange, withWrapper } = this.props;
+export const SoloCheckbox: React.FC<CheckboxProps> = props => {
+  const { title, checked, onChange, withWrapper, label } = props;
 
-    if (!!withWrapper) {
-      return (
-        //@ts-ignore
-        <CheckboxWrapper checked={checked}>
-          {title}
-          <Checkbox checked={checked} onChange={onChange as any} />
-        </CheckboxWrapper>
-      );
-    }
-
+  if (!!withWrapper) {
     return (
-      <OnlyCheckbox>
-        {title}
-        <Checkbox checked={checked} onChange={onChange as any} />
-      </OnlyCheckbox>
+      <CheckboxWrapper checked={checked}>
+        {label ? <Label>{title}</Label> : title}
+        <Checkbox checked={checked} onChange={onChange} />
+      </CheckboxWrapper>
     );
   }
-}
+
+  return (
+    <OnlyCheckbox>
+      {label ? <Label>{title}</Label> : title}
+      <Checkbox checked={checked} onChange={onChange} />
+    </OnlyCheckbox>
+  );
+};

@@ -23,6 +23,7 @@ import { UPSTREAM_SPEC_TYPES, UPSTREAM_TYPES } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
 import { awsInitialValues, AwsUpstreamForm } from './AwsUpstreamForm';
 import { kubeInitialValues, KubeUpstreamForm } from './KubeUpstreamForm';
+import { StaticUpstreamForm, staticInitialValues } from './StaticUpstreamForm';
 import { AzureUpstreamForm, azureInitialValues } from './AzureUpstreamForm';
 
 interface Props {}
@@ -52,6 +53,7 @@ let initialValues = {
   namespace: 'gloo-system',
   ...awsInitialValues,
   ...kubeInitialValues,
+  ...staticInitialValues,
   ...azureInitialValues
 };
 
@@ -150,7 +152,9 @@ export const CreateUpstreamForm = (props: Props) => {
           </SoloFormTemplate>
           {values.type === UPSTREAM_SPEC_TYPES.AWS && <AwsUpstreamForm />}
           {values.type === UPSTREAM_SPEC_TYPES.KUBE && <KubeUpstreamForm />}
+          {values.type === UPSTREAM_SPEC_TYPES.STATIC && <StaticUpstreamForm />}
           {values.type === UPSTREAM_SPEC_TYPES.AZURE && <AzureUpstreamForm />}
+          <pre>{JSON.stringify(values, null, 2)}</pre>
           <Footer>
             <SoloButton
               onClick={handleSubmit}
