@@ -3,10 +3,8 @@ import * as React from 'react';
 import { jsx } from '@emotion/core';
 
 import styled from '@emotion/styled/macro';
-import { withRouter, RouteComponentProps } from 'react-router';
+import { RouteComponentProps } from 'react-router';
 import {
-  colors,
-  soloConstants,
   healthConstants,
   TableHealthCircleHolder,
   TableActionCircle
@@ -26,7 +24,6 @@ import { useGetUpstreamsList } from 'Api';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { CardsListing } from 'Components/Common/CardsListing';
 import { SoloTable } from 'Components/Common/SoloTable';
-import { CardType } from 'antd/lib/card';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 import {

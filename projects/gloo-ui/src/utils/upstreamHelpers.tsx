@@ -1,8 +1,27 @@
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
+import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
 
 /* -------------------------------------------------------------------------- */
 /*                                  UPSTREAMS                                 */
 /* -------------------------------------------------------------------------- */
+
+export function createUpstreamId(upstreamMetadata: Metadata.AsObject): string {
+  return `${upstreamMetadata!.name}-.-${upstreamMetadata!.namespace}`;
+}
+
+export function parseUpstreamId(
+  upstreamId: string
+): {
+  name: string;
+  namespace: string;
+} {
+  const idData = upstreamId.split('-.-');
+
+  return {
+    name: idData[0],
+    namespace: idData[1]
+  };
+}
 
 export function getUpstreamType(upstream: Upstream.AsObject) {
   let upstreamType = '';

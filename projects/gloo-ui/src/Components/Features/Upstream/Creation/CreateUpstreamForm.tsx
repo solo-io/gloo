@@ -5,7 +5,10 @@ import {
   SoloFormInput,
   SoloFormTypeahead
 } from 'Components/Common/Form/SoloFormField';
-import { SoloFormTemplate } from 'Components/Common/Form/SoloFormTemplate';
+import {
+  SoloFormTemplate,
+  InputRow
+} from 'Components/Common/Form/SoloFormTemplate';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Field, Formik } from 'formik';
 import { NamespacesContext } from 'GlooIApp';
@@ -34,13 +37,6 @@ interface Props {}
 const FormContainer = styled.div`
   display: flex;
   flex-direction: column;
-`;
-
-export const InputContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  padding: 10px;
 `;
 
 const Footer = styled.div`
@@ -143,26 +139,30 @@ export const CreateUpstreamForm = (props: Props) => {
       {({ values, isSubmitting, handleSubmit }) => (
         <FormContainer>
           <SoloFormTemplate>
-            <Field
-              name='name'
-              title='Upstream Name'
-              placeholder='Upstream Name'
-              component={SoloFormInput}
-            />
-            <Field
-              name='type'
-              title='Upstream Type'
-              placeholder='Type'
-              options={UPSTREAM_TYPES}
-              component={SoloFormDropdown}
-            />
-            <Field
-              name='namespace'
-              title='Upstream Namespace'
-              defaultValue='gloo-system'
-              presetOptions={namespaces}
-              component={SoloFormTypeahead}
-            />
+            <InputRow>
+              <Field
+                name='name'
+                title='Upstream Name'
+                placeholder='Upstream Name'
+                component={SoloFormInput}
+              />
+              <Field
+                name='type'
+                title='Upstream Type'
+                placeholder='Type'
+                options={UPSTREAM_TYPES}
+                component={SoloFormDropdown}
+              />
+            </InputRow>
+            <InputRow>
+              <Field
+                name='namespace'
+                title='Upstream Namespace'
+                defaultValue='gloo-system'
+                presetOptions={namespaces}
+                component={SoloFormTypeahead}
+              />
+            </InputRow>
           </SoloFormTemplate>
           {values.type === UPSTREAM_SPEC_TYPES.AWS && <AwsUpstreamForm />}
           {values.type === UPSTREAM_SPEC_TYPES.KUBE && <KubeUpstreamForm />}

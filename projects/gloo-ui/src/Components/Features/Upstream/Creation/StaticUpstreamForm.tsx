@@ -2,7 +2,10 @@ import {
   SoloFormCheckbox,
   SoloFormInput
 } from 'Components/Common/Form/SoloFormField';
-import { SoloFormTemplate } from 'Components/Common/Form/SoloFormTemplate';
+import {
+  SoloFormTemplate,
+  InputRow
+} from 'Components/Common/Form/SoloFormTemplate';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Field, FieldArray, FieldArrayRenderProps } from 'formik';
 import * as React from 'react';
@@ -34,20 +37,28 @@ export const staticValidationSchema = yup.object().shape({
 export const StaticUpstreamForm: React.FC<Props> = () => {
   return (
     <SoloFormTemplate formHeader='Static Upstream Settings'>
-      <Field
-        name='staticServiceName'
-        title='Service Name'
-        placeholder='Service Name'
-        component={SoloFormInput}
-      />
-      <Field name='staticUseTls' title='Use Tls' component={SoloFormCheckbox} />
-      <Field
-        name='staticServicePort'
-        title='Service Port'
-        placeholder='Service Port'
-        component={SoloFormInput}
-      />
-      <FieldArray name='staticHostList' render={SoloFormArrayField} />
+      <InputRow>
+        <Field
+          name='staticServiceName'
+          title='Service Name'
+          placeholder='Service Name'
+          component={SoloFormInput}
+        />
+        <Field
+          name='staticUseTls'
+          title='Use Tls'
+          component={SoloFormCheckbox}
+        />
+        <Field
+          name='staticServicePort'
+          title='Service Port'
+          placeholder='Service Port'
+          component={SoloFormInput}
+        />
+      </InputRow>
+      <InputRow>
+        <FieldArray name='staticHostList' render={SoloFormArrayField} />
+      </InputRow>
     </SoloFormTemplate>
   );
 };

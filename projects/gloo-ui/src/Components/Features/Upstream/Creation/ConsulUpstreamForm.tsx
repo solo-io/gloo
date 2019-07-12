@@ -2,7 +2,10 @@ import {
   SoloFormCheckbox,
   SoloFormInput
 } from 'Components/Common/Form/SoloFormField';
-import { SoloFormTemplate } from 'Components/Common/Form/SoloFormTemplate';
+import {
+  SoloFormTemplate,
+  InputRow
+} from 'Components/Common/Form/SoloFormTemplate';
 import { Field } from 'formik';
 import * as React from 'react';
 import * as yup from 'yup';
@@ -28,23 +31,25 @@ export const consulValidationSchema = yup.object().shape({
 export const ConsulUpstreamForm: React.FC<Props> = () => {
   return (
     <SoloFormTemplate formHeader='Consul Upstream Settings'>
-      <Field
-        name='consulServiceName'
-        title='Service Name'
-        placeholder='Service Name'
-        component={SoloFormInput}
-      />
-      <Field
-        name='consulConnectEnabled'
-        title='Enable Consul Connect'
-        component={SoloFormCheckbox}
-      />
-      <Field
-        name='consulDataCenter'
-        title='Data Center'
-        placeholder='Data Center'
-        component={SoloFormInput}
-      />
+      <InputRow>
+        <Field
+          name='consulServiceName'
+          title='Service Name'
+          placeholder='Service Name'
+          component={SoloFormInput}
+        />
+        <Field
+          name='consulConnectEnabled'
+          title='Enable Consul Connect'
+          component={SoloFormCheckbox}
+        />
+        <Field
+          name='consulDataCenter'
+          title='Data Center'
+          placeholder='Data Center'
+          component={SoloFormInput}
+        />
+      </InputRow>
     </SoloFormTemplate>
   );
 };

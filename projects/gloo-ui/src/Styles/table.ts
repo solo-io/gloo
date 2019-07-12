@@ -7,6 +7,7 @@ export const TableActionCircle = styled.div`
   height: 18px;
   line-height: 18px;
   text-align: center;
+  font-weight: normal;
   color: ${colors.novemberGrey};
   border-radius: 18px;
   cursor: pointer;

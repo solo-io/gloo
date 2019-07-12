@@ -2,7 +2,12 @@ import * as React from 'react';
 /** @jsx jsx */
 import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
-import { colors, soloConstants, healthConstants } from 'Styles';
+import {
+  colors,
+  soloConstants,
+  healthConstants,
+  TableActionCircle
+} from 'Styles';
 import { CardCSS } from 'Styles/CommonEmotions/card';
 import { hslToHSLA } from 'Styles/colors';
 import { HealthIndicator } from './HealthIndicator';
@@ -17,11 +22,13 @@ const Container = styled.div`
 `;
 
 const MainSection = styled.div`
-  padding: 12px;
+  padding: 12px 6px 12px 12px;
   border-radius: ${soloConstants.radius}px ${soloConstants.radius}px 0 0;
 `;
 
 const CardTitle = styled.div`
+  display: flex;
+  justify-content: space-between;
   color: ${colors.novemberGrey};
   font-size: 16px;
   font-weight: 600;
@@ -129,6 +136,7 @@ export interface CardType {
     valueDisplay?: React.ReactNode | Element;
   }[];
   healthStatus?: number;
+  onCreate?: () => any;
 }
 
 export const Card = (props: CardType) => {
@@ -141,7 +149,8 @@ export const Card = (props: CardType) => {
     onExpand,
     details,
     onClick,
-    healthStatus
+    healthStatus,
+    onCreate
   } = props;
 
   const handleFooterClick = () => {
@@ -159,7 +168,12 @@ export const Card = (props: CardType) => {
   return (
     <Container>
       <MainSection>
-        <CardTitle>{cardTitle}</CardTitle>
+        <CardTitle>
+          {cardTitle}
+          {!!onCreate && (
+            <TableActionCircle onClick={onCreate}>+</TableActionCircle>
+          )}
+        </CardTitle>
         <CardSubtitle>
           {cardSubtitle && cardSubtitle.length ? cardSubtitle : '   '}
         </CardSubtitle>

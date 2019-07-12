@@ -55,8 +55,8 @@ export const SoloFormDropdown: React.FC<FieldProps & DropdownProps> = ({
   return (
     <React.Fragment>
       <SoloDropdown
-        {...rest}
         {...field}
+        {...rest}
         onChange={value => setFieldValue(field.name, value)}
       />
       {errors && <ErrorText>{errors[field.name]}</ErrorText>}

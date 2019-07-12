@@ -143,3 +143,4 @@ export function getRouteQueryParams(route: Route.AsObject) {
 }
 
 export * from './upstreamHelpers';
+export * from './virtualServiceHelpers';

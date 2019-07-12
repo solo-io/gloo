@@ -12,7 +12,7 @@ import {
   TypeFilterProps,
   CheckboxFilterProps,
   RadioFilterProps
-} from '../../Common/ListingFilter';
+} from 'Components/Common/ListingFilter';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
@@ -28,6 +28,8 @@ import { getResourceStatus, getVSDomains } from 'utils/helpers';
 import { CreateVirtualServiceModal } from './Creation/CreateVirtualServiceModal';
 import { HealthInformation } from 'Components/Common/HealthInformation';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
 
 const TableLink = styled.div`
   cursor: pointer;
@@ -131,7 +133,11 @@ export const VirtualServicesListing = (props: Props) => {
     refetch
   } = useListVirtualServices(listVsRequest.current);
 
-  const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(true);
+  const [catalogNotTable, setCatalogNotTable] = React.useState(true);
+  const [
+    virtualServiceForRouteCreation,
+    setVirtualServiceForRouteCreation
+  ] = React.useState<VirtualService.AsObject | undefined>(undefined);
   const { history, match } = props;
 
   const getUsableCatalogData = (
@@ -154,7 +160,8 @@ export const VirtualServicesListing = (props: Props) => {
               virtualService.metadata!.name
             }`
           );
-        }
+        },
+        onCreate: () => setVirtualServiceForRouteCreation(virtualService)
       };
     });
 
@@ -240,6 +247,15 @@ export const VirtualServicesListing = (props: Props) => {
         </Action>
       </Heading>
       <ListingFilter strings={StringFilters} filterFunction={listDisplay} />
+      <SoloModal
+        visible={!!virtualServiceForRouteCreation}
+        width={500}
+        title={'Create Route'}
+        onClose={() => setVirtualServiceForRouteCreation(undefined)}>
+        <CreateRouteModal
+          defaultVirtualService={virtualServiceForRouteCreation}
+        />
+      </SoloModal>
     </div>
   );
 };

@@ -2,7 +2,10 @@ import {
   SoloFormInput,
   SoloFormTypeahead
 } from 'Components/Common/Form/SoloFormField';
-import { SoloFormTemplate } from 'Components/Common/Form/SoloFormTemplate';
+import {
+  SoloFormTemplate,
+  InputRow
+} from 'Components/Common/Form/SoloFormTemplate';
 import { Field } from 'formik';
 import { NamespacesContext } from 'GlooIApp';
 import * as React from 'react';
@@ -31,24 +34,26 @@ export const AwsUpstreamForm: React.FC<Props> = () => {
 
   return (
     <SoloFormTemplate formHeader='AWS Upstream Settings'>
-      <Field
-        name='awsRegion'
-        title='Region'
-        presetOptions={awsRegions}
-        component={SoloFormTypeahead}
-      />
-      <Field
-        name='awsSecretRefNamespace'
-        title='Secret Ref Namespace'
-        presetOptions={namespaces}
-        component={SoloFormTypeahead}
-      />
-      <Field
-        name='awsSecretRefName'
-        title='Secret Ref Name'
-        placeholder='Secret Ref Name'
-        component={SoloFormInput}
-      />
+      <InputRow>
+        <Field
+          name='awsRegion'
+          title='Region'
+          presetOptions={awsRegions}
+          component={SoloFormTypeahead}
+        />
+        <Field
+          name='awsSecretRefNamespace'
+          title='Secret Ref Namespace'
+          presetOptions={namespaces}
+          component={SoloFormTypeahead}
+        />
+        <Field
+          name='awsSecretRefName'
+          title='Secret Ref Name'
+          placeholder='Secret Ref Name'
+          component={SoloFormInput}
+        />
+      </InputRow>
     </SoloFormTemplate>
   );
 };

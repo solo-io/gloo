@@ -1,9 +1,15 @@
 import styled from '@emotion/styled/macro';
 import { Divider } from 'antd';
-import { InputContainer } from 'Components/Features/Upstream/Creation/CreateUpstreamForm';
 import * as React from 'react';
 
-const InputItem = styled.div`
+export const InputRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  padding: 10px;
+`;
+
+export const InputContainer = styled.div`
   display: flex;
   flex-direction: column;
 `;
@@ -20,7 +26,7 @@ const StyledDivider = styled(Divider)`
 
 interface Props {
   formHeader?: string;
-  children: React.ReactNode[];
+  children: React.ReactNode;
 }
 
 export const SoloFormTemplate: React.FC<Props> = props => {
@@ -32,11 +38,7 @@ export const SoloFormTemplate: React.FC<Props> = props => {
           <StyledDivider />
         </React.Fragment>
       )}
-      <InputContainer>
-        {React.Children.map(props.children, field => (
-          <InputItem>{field}</InputItem>
-        ))}
-      </InputContainer>
+      <InputContainer>{props.children}</InputContainer>
     </div>
   );
 };

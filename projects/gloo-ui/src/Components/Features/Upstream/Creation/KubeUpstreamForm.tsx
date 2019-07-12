@@ -2,7 +2,10 @@ import {
   SoloFormInput,
   SoloFormTypeahead
 } from 'Components/Common/Form/SoloFormField';
-import { SoloFormTemplate } from 'Components/Common/Form/SoloFormTemplate';
+import {
+  SoloFormTemplate,
+  InputRow
+} from 'Components/Common/Form/SoloFormTemplate';
 import { Field } from 'formik';
 import { NamespacesContext } from 'GlooIApp';
 import * as React from 'react';
@@ -29,25 +32,27 @@ export const KubeUpstreamForm: React.FC<Props> = () => {
 
   return (
     <SoloFormTemplate formHeader='Kube Upstream Settings'>
-      <Field
-        name='kubeServiceName'
-        title='Service Name'
-        placeholder='Service Name'
-        component={SoloFormInput}
-      />
-      <Field
-        name='kubeServiceNamespace'
-        title='Service Namespace'
-        defaultValue='gloo-system'
-        presetOptions={namespaces}
-        component={SoloFormTypeahead}
-      />
-      <Field
-        name='kubeServicePort'
-        title='Service Port'
-        placeholder='Service Port'
-        component={SoloFormInput}
-      />
+      <InputRow>
+        <Field
+          name='kubeServiceName'
+          title='Service Name'
+          placeholder='Service Name'
+          component={SoloFormInput}
+        />
+        <Field
+          name='kubeServiceNamespace'
+          title='Service Namespace'
+          defaultValue='gloo-system'
+          presetOptions={namespaces}
+          component={SoloFormTypeahead}
+        />
+        <Field
+          name='kubeServicePort'
+          title='Service Port'
+          placeholder='Service Port'
+          component={SoloFormInput}
+        />
+      </InputRow>
     </SoloFormTemplate>
   );
 };
