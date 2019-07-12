@@ -5,10 +5,12 @@ import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
 import { CardType, Card } from './Card';
 import { colors } from 'Styles';
+
 const ListContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, 235px);
   grid-gap: 20px;
+  margin-bottom: 10px;
 `;
 
 interface Props {
@@ -19,7 +21,8 @@ interface Props {
 const CardsListingTitle = styled.div`
   font-size: 18px;
   color: ${colors.novemberGrey};
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  font-weight: 700;
 `;
 const Container = styled.div`
   display: flex;

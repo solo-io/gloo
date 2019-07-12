@@ -174,21 +174,33 @@ export const UpstreamsListing = (props: Props) => {
     return (
       <div>
         {catalogNotTable ? (
-          upstreamsByTypeArr.map(
-            ([type, upstreams]) =>
-              // show section according to type filter
+          upstreamsByTypeArr.map(([type, upstreams]) => {
+            // show section according to type filter
+            let grpupedByNamespaces = Array.from(
+              groupBy(upstreams, u => u.metadata!.namespace).entries()
+            );
+
+            return (
               (checkboxesNotSet ||
                 checkboxes.find(c => c.displayName === type)!.value!) && (
                 <SectionCard
                   cardName={type}
                   logoIcon={getIcon(type)}
                   key={type}>
-                  <CardsListing
-                    cardsData={getUsableCatalogData(nameFilterValue, upstreams)}
-                  />
+                  {grpupedByNamespaces.map(([namespace, upstreams]) => (
+                    <CardsListing
+                      key={namespace}
+                      title={namespace}
+                      cardsData={getUsableCatalogData(
+                        nameFilterValue,
+                        upstreams
+                      )}
+                    />
+                  ))}
                 </SectionCard>
               )
-          )
+            );
+          })
         ) : (
           <SoloTable
             dataSource={getUsableTableData(
