@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Show correct virtual service status on icons in vs listing page.
+    issueLink: https://github.com/solo-io/solo-projects/issues/701

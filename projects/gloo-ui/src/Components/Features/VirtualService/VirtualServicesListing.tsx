@@ -4,7 +4,7 @@ import { jsx } from '@emotion/core';
 
 import styled from '@emotion/styled/macro';
 import { RouteComponentProps } from 'react-router';
-import { colors } from 'Styles';
+import { colors, healthConstants } from 'Styles';
 import { TableActionCircle, TableHealthCircleHolder } from 'Styles/table';
 import {
   ListingFilter,
@@ -141,6 +141,9 @@ export const VirtualServicesListing = (props: Props) => {
     const dataUsed = data.map(virtualService => {
       return {
         ...virtualService,
+        healthStatus: virtualService.status
+          ? virtualService.status.state
+          : healthConstants.Pending.value,
         cardTitle: virtualService.metadata!.name,
         cardSubtitle: getVSDomains(virtualService),
         onRemovecard: (id: string): void => {},
