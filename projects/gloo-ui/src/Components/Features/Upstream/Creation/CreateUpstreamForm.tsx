@@ -170,7 +170,6 @@ export const CreateUpstreamForm = (props: Props) => {
           {values.type === UPSTREAM_SPEC_TYPES.AZURE && <AzureUpstreamForm />}
           {values.type === UPSTREAM_SPEC_TYPES.CONSUL && <ConsulUpstreamForm />}
 
-          <pre>{JSON.stringify(values, null, 2)}</pre>
           <Footer>
             <SoloButton
               onClick={handleSubmit}

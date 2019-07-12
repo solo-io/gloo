@@ -62,13 +62,13 @@ export const SoloFormArrayField: React.FC<FieldArrayRenderProps> = ({
   <div>
     <div key={`${name}-${0}`}>
       <Field
-        name={`kubeHostList[${0}].addr`}
+        name={`staticHostList[${0}].addr`}
         title='Host Address'
         placeholder='Host Address'
         component={SoloFormInput}
       />
       <Field
-        name={`kubeHostList[${0}].port`}
+        name={`staticHostList[${0}].port`}
         title='Host Port'
         placeholder='Host Port'
         component={SoloFormInput}
@@ -78,7 +78,7 @@ export const SoloFormArrayField: React.FC<FieldArrayRenderProps> = ({
         onClick={() => insert(0, { addr: '', port: '' })}
       />
     </div>
-    {form.values.kubeHostList.map((host: any, index: any) => {
+    {form.values.staticHostList.map((host: any, index: any) => {
       return (
         <StringCard key={`${name}-${index}`}>
           {` ${host.addr || ''}:${host.port || ''}`}

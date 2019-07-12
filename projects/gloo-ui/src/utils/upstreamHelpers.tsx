@@ -39,6 +39,10 @@ export const UPSTREAM_TYPES = [
   {
     key: 'Static',
     value: 'Static'
+  },
+  {
+    key: 'Consul',
+    value: 'Consul'
   }
 ];
 
