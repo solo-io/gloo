@@ -9,9 +9,12 @@ import {
 } from 'Components/Common/Form/SoloFormTemplate';
 import {
   SoloFormInput,
-  SoloFormTypeahead,
-  SoloFormDropdown
+  SoloFormDropdown,
+  SoloFormMultiselect,
+  SoloFormMultipartStringCardsList,
+  SoloFormMetadataBasedDropdown
 } from 'Components/Common/Form/SoloFormField';
+import { SoloMultiSelect } from 'Components/Common/SoloMultiSelect';
 import { Field, Formik } from 'formik';
 import * as yup from 'yup';
 
@@ -55,6 +58,7 @@ import {
   createVirtualServiceId,
   parseVirtualServiceId
 } from 'utils/helpers';
+import { SoloButton } from 'Components/Common/SoloButton';
 
 enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
   PATH_SPECIFIER_NOT_SET = 0,
@@ -64,8 +68,8 @@ enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
 }
 
 interface CreateRouteValuesType {
-  virtualServiceId: string | undefined;
-  upstreamId: string | undefined;
+  virtualService: VirtualService.AsObject | undefined;
+  upstream: Upstream.AsObject | undefined;
   path: string;
   matchType: PathSpecifierCase;
   headers: {
@@ -90,8 +94,8 @@ interface CreateRouteValuesType {
 }
 
 const defaultValues: CreateRouteValuesType = {
-  virtualServiceId: '',
-  upstreamId: '',
+  virtualService: new VirtualService().toObject(),
+  upstream: new Upstream().toObject(),
   path: '',
   matchType: PathSpecifierCase.PREFIX,
   headers: [],
@@ -109,12 +113,8 @@ const defaultValues: CreateRouteValuesType = {
 
 const validationSchema = yup.object().shape({
   region: yup.string(),
-  virtualServiceId: yup
-    .string()
-    .test('len', 'A virtual service must be chosen', val => val.length > 0),
-  upstreamId: yup
-    .string()
-    .test('len', 'A upstream must be chosen', val => val.length > 0),
+  virtualService: yup.object(),
+  upstream: yup.object(),
   path: yup.string(),
   matchType: yup.number(),
   headers: yup.array().of(
@@ -145,6 +145,15 @@ const validationSchema = yup.object().shape({
 const FormContainer = styled.div`
   display: flex;
   flex-direction: column;
+`;
+
+const HalfColumn = styled.div`
+  width: calc(50% - 10px);
+`;
+const Footer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
 `;
 
 interface Props {
@@ -210,25 +219,15 @@ export const CreateRouteModal = (props: Props) => {
     let newRouteReq = new CreateRouteRequest();
     let reqRouteInput = new RouteInput();
 
-    const { name: vsName, namespace: vsNamespace } = parseVirtualServiceId(
-      values.virtualServiceId!
-    );
     let virtualServiceResourceRef = new ResourceRef();
-    virtualServiceResourceRef.setName(vsName);
-    virtualServiceResourceRef.setNamespace(vsNamespace);
+    virtualServiceResourceRef.setName(values.virtualService!.metadata!.name);
+    virtualServiceResourceRef.setNamespace(
+      values.virtualService!.metadata!.namespace
+    );
     reqRouteInput.setVirtualServiceRef(virtualServiceResourceRef);
 
     //reqRouteInput.setIndex(vs.virtualHost!.routesList.length);
 
-    const {
-      name: upstreamName,
-      namespace: upstreamNamespace
-    } = parseUpstreamId(values.upstreamId!);
-    const usedUpstream = allUsableUpstreams.find(
-      upstream =>
-        upstream.metadata!.name === upstreamName &&
-        upstream.metadata!.namespace === upstreamNamespace
-    )!;
     /***
      *  ROUTE CREATION BEGINS
      * */
@@ -281,10 +280,12 @@ export const CreateRouteModal = (props: Props) => {
     /* Route->Destination Section */
     let newRouteAction = new RouteAction();
     let newDestination = new Destination();
-    const upstreamSpec = usedUpstream.upstreamSpec!;
+    const upstreamSpec = values.upstream!.upstreamSpec!;
     let newDestinationResourceRef = new ResourceRef();
-    newDestinationResourceRef.setName(usedUpstream.metadata!.name);
-    newDestinationResourceRef.setNamespace(usedUpstream!.metadata!.namespace);
+    newDestinationResourceRef.setName(values.upstream!.metadata!.name);
+    newDestinationResourceRef.setNamespace(
+      values.upstream!.metadata!.namespace
+    );
     let newDestinationSpec = new DestinationSpec();
 
     if (!!upstreamSpec.aws) {
@@ -346,12 +347,10 @@ export const CreateRouteModal = (props: Props) => {
 
   const initialValues: CreateRouteValuesType = {
     ...defaultValues,
-    virtualServiceId: defaultVirtualService
-      ? createVirtualServiceId(defaultVirtualService.metadata!)
-      : defaultValues.virtualServiceId,
-    upstreamId: defaultUpstream
-      ? createUpstreamId(defaultUpstream.metadata!)
-      : defaultValues.upstreamId
+    virtualService: defaultVirtualService
+      ? defaultVirtualService
+      : defaultValues.virtualService,
+    upstream: defaultUpstream ? defaultUpstream : defaultValues.upstream
   };
 
   return (
@@ -360,32 +359,35 @@ export const CreateRouteModal = (props: Props) => {
       validationSchema={validationSchema}
       onSubmit={createRoute}>
       {({ values, isSubmitting, handleSubmit }) => {
-        console.log(values);
-        console.log(allUsableVirtualServices);
-
         return (
           <FormContainer>
-            <SoloFormTemplate formHeader='Create Route'>
-              {allUsableVirtualServices.length && (
-                <InputRow>
-                  <Field
-                    name='virtualServiceId'
-                    title='Virtual Service'
-                    placeholder='Virtual Service...'
-                    options={allUsableVirtualServices.map(vs => {
-                      return {
-                        key: createVirtualServiceId(
-                          vs.metadata!
-                        ) /*`${vs.metadata!.name}-${vs.metadata!.namespace}`*/,
-                        value: vs.displayName.length
-                          ? vs.displayName
-                          : vs.metadata!.name
-                      };
-                    })}
-                    component={SoloFormDropdown}
-                  />
-                </InputRow>
-              )}
+            <SoloFormTemplate>
+              <InputRow>
+                {allUsableVirtualServices.length && (
+                  <HalfColumn>
+                    <Field
+                      name='virtualService'
+                      title='Virtual Service'
+                      value={values.virtualService}
+                      placeholder='Virtual Service...'
+                      options={allUsableVirtualServices}
+                      component={SoloFormMetadataBasedDropdown}
+                    />
+                  </HalfColumn>
+                )}
+                {allUsableUpstreams.length && (
+                  <HalfColumn>
+                    <Field
+                      name='upstream'
+                      title='Upstream'
+                      value={values.upstream}
+                      placeholder='Upstream...'
+                      options={allUsableUpstreams}
+                      component={SoloFormMetadataBasedDropdown}
+                    />
+                  </HalfColumn>
+                )}
+              </InputRow>
               <InputRow>
                 <Field
                   name='path'
@@ -396,23 +398,47 @@ export const CreateRouteModal = (props: Props) => {
               </InputRow>
               <InputRow>
                 <Field
-                  name='upstreamId'
-                  title='Upstream'
-                  placeholder='Upstream...'
-                  options={allUsableUpstreams.map(upstream => {
+                  name='headers'
+                  title='Headers'
+                  values={values.headers}
+                  createNewNamePromptText={'Name...'}
+                  createNewValuePromptText={'Value...'}
+                  component={SoloFormMultipartStringCardsList}
+                />
+              </InputRow>
+              <InputRow>
+                <Field
+                  name='queryParameters'
+                  title='Query Parameters'
+                  values={values.queryParameters}
+                  createNewNamePromptText={'Name...'}
+                  createNewValuePromptText={'Value...'}
+                  component={SoloFormMultipartStringCardsList}
+                />
+              </InputRow>
+              <InputRow>
+                <Field
+                  name='methods'
+                  title='Methods'
+                  placeholder='Methods...'
+                  options={Object.keys(defaultValues.methods).map(key => {
                     return {
-                      key: createUpstreamId(
-                        upstream.metadata!
-                      ) /*`${upstream.metadata!.name}-${
-                      upstream.metadata!.namespace
-                    }`*/,
-                      value: upstream.metadata!.name
+                      key: key,
+                      value: key
                     };
                   })}
-                  component={SoloFormDropdown}
+                  component={SoloFormMultiselect}
                 />
               </InputRow>
             </SoloFormTemplate>
+
+            <Footer>
+              <SoloButton
+                onClick={handleSubmit}
+                text='Create Route'
+                disabled={isSubmitting}
+              />
+            </Footer>
           </FormContainer>
         );
       }}

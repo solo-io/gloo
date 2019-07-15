@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: First working version of create new route modal. Does not handle all cases.
+    issueLink: https://github.com/solo-io/solo-projects/issues/705
+    resolvesIssue: false

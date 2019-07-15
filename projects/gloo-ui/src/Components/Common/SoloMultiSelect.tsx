@@ -37,25 +37,24 @@ export interface OptionType {
   key: string;
   disabled?: boolean;
   value: string | number;
-  displayValue?: any;
 }
 export interface DropdownProps {
-  value: string | number | undefined;
+  values: string[] | number[] | undefined[];
   options: OptionType[];
-  onChange?: (newValue: string | number) => any;
+  onChange?: (newValues: string[] | number[]) => any;
   title?: string;
   placeholder?: string;
-  defaultValue?: string | number;
+  defaultValues?: string[] | number[];
   onBlur?: (newValue: string | number) => any;
   disabled?: boolean;
 }
 
-export const SoloDropdown = (props: DropdownProps) => {
+export const SoloMultiSelect = (props: DropdownProps) => {
   const {
     title,
     // disabled,
-    defaultValue,
-    value,
+    defaultValues,
+    values,
     placeholder,
     options,
     onChange,
@@ -66,8 +65,9 @@ export const SoloDropdown = (props: DropdownProps) => {
     <div style={{ width: '100%' }}>
       {title && <Label>{title}</Label>}
       <SoloDropdownBlock
-        value={value}
-        defaultValue={defaultValue || '' /**
+        mode='multiple'
+        value={values}
+        defaultValue={defaultValues || [] /**
       //@ts-ignore */}
         onChange={onChange /**
         //@ts-ignore */}
@@ -78,7 +78,7 @@ export const SoloDropdown = (props: DropdownProps) => {
             key={opt.key}
             value={opt.value}
             disabled={opt.disabled}>
-            {opt.displayValue || opt.value}
+            {opt.value}
           </Select.Option>
         ))}
       </SoloDropdownBlock>

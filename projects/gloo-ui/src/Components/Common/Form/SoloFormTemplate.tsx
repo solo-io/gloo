@@ -5,8 +5,8 @@ import * as React from 'react';
 export const InputRow = styled.div`
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
-  padding: 10px;
+  justify-content: space-between;
+  padding: 10px 0;
 `;
 
 export const InputContainer = styled.div`

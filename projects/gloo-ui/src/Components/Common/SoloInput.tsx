@@ -9,7 +9,7 @@ export const Label = styled.label`
   color: ${colors.novemberGrey};
   font-size: 16px;
   margin-bottom: 10px;
-  font-weight: 500px;
+  font-weight: 500;
 `;
 
 const Input = styled<'input', { error?: boolean; borderless?: boolean }>(

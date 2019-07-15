@@ -7,7 +7,9 @@ import { colors } from 'Styles';
 import { soloConstants } from 'Styles/constants';
 import { SoloInput } from './SoloInput';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
-const Container = styled.div`
+import { ReactComponent as GreyX } from 'assets/small-grey-x.svg';
+
+export const Container = styled.div`
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -19,17 +21,39 @@ export const StringCard = styled.div`
   border-radius: ${soloConstants.smallRadius}px;
   background: ${colors.marchGrey};
   color: ${colors.novemberGrey};
-  padding: 10px;
+  padding: 0 10px;
+  line-height: 33px;
   font-size: 16px;
   width: 175px;
   margin: 10px;
   white-space: nowrap;
 `;
-const NewStringPrompt = styled.div`
+export const CardValue = styled.div`
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+export const DeleteX = styled.div`
+  cursor: pointer;
+`;
+
+export const NewStringPrompt = styled.div`
   display: flex;
   justify-content: space-between;
   width: 175px;
   align-items: center;
+  margin: 0 10px;
+`;
+export const PlusHolder = styled<'div', { disabled: boolean }>('div')`
+  ${props =>
+    props.disabled
+      ? `opacity: .5;
+    pointer-events: none;`
+      : ''}
+
+  margin-left: 5px;
+  cursor: pointer;
 `;
 
 interface Props {
@@ -61,7 +85,10 @@ export const StringCardsList = (props: Props) => {
       {values.map((value, ind) => {
         return (
           <StringCard key={ind}>
-            {value} <div onClick={() => valueDeleted(ind)}>X</div>
+            <CardValue>{value}</CardValue>
+            <DeleteX onClick={() => valueDeleted(ind)}>
+              <GreyX style={{ marginBottom: '-3px' }} />
+            </DeleteX>
           </StringCard>
         );
       })}
@@ -71,10 +98,10 @@ export const StringCardsList = (props: Props) => {
             value={newValue}
             placeholder={createNewPromptText}
             onChange={newValueChanged}
-          />{' '}
-          <div onClick={sendCreateNew}>
-            <GreenPlus style={{ opacity: 0.5 }} />
-          </div>
+          />
+          <PlusHolder disabled={!newValue.length} onClick={sendCreateNew}>
+            <GreenPlus style={{ marginBottom: '-3px' }} />
+          </PlusHolder>
         </NewStringPrompt>
       )}
     </Container>
