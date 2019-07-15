@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Can now set all fields in the azure upstream form.
+    issueLink: https://github.com/solo-io/solo-projects/issues/682
+    resolvesIssue: false

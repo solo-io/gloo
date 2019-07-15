@@ -19,6 +19,15 @@ import * as React from 'react';
 import { AWS_REGIONS } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
 
+/* ------------------------------ Upstream Spec ----------------------------- */
+/*
+  region: string,
+  secretRef?: ResourceRef: {name: string, namespace: string},
+  lambdaFunctionsList: Array<LambdaFunctionSpec: {logicalName: string,
+    lambdaFunctionName: string,
+    qualifier: string,}>,
+*/
+
 // TODO combine with main initial values
 export const awsInitialValues = {
   awsRegion: 'us-east-1',
@@ -124,7 +133,9 @@ export const AwsUpstreamForm: React.FC<Props> = () => {
                 <SoloTypeahead
                   {...field}
                   title='Secret Ref Name'
+                  disabled={secretsFound.length === 0}
                   presetOptions={secretsFound}
+                  defaultValue='Secret...'
                   onChange={value => form.setFieldValue(field.name, value)}
                 />
                 {form.errors && (

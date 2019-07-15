@@ -11,6 +11,38 @@ import { NamespacesContext } from 'GlooIApp';
 import * as React from 'react';
 import * as yup from 'yup';
 
+/* ------------------------------ Upstream Spec ----------------------------- */
+/* serviceName: string,
+  serviceNamespace: string,
+  servicePort: number,
+  selectorMap: Array < [string, string] >,
+  serviceSpec?: {
+    rest?: {
+      transformationsMap: Map<string, TransformationTemplate : {
+        advancedTemplates: boolean,
+        extractorsMap: Array<[string, Extraction: {
+          header: string,
+          regex: string,
+          subgroup: number,
+        }]>,
+        headersMap: Array<[string, InjaTemplate: {text: string}]>,
+        body?: InjaTemplate: {text: string},
+        passthrough?: Passthrough: ???,
+        mergeExtractorsToBody?: MergeExtractorsToBody: ????,
+      }>
+    swaggerInfo?: {url: string, inline: string, }
+    }
+    grpc?: {
+      descriptors: Uint8Array | string,
+      grpcServicesList: Array<ServiceSpec.GrpcService: {
+        packageName: string,
+        serviceName: string,
+        functionNamesList: Array<string>,}>,}
+  }
+},
+  subsetSpec ?: SubsetSpec : {selectorsList: Array<Selector: { keysList: string[]}> },
+
+*/
 // TODO combine with main initial values
 export const kubeInitialValues = {
   kubeServiceName: '',
@@ -31,7 +63,7 @@ export const KubeUpstreamForm: React.FC<Props> = () => {
   const namespaces = React.useContext(NamespacesContext);
 
   return (
-    <SoloFormTemplate formHeader='Kube Upstream Settings'>
+    <SoloFormTemplate formHeader='Kubernetes Upstream Settings'>
       <InputRow>
         <Field
           name='kubeServiceName'

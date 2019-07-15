@@ -111,6 +111,13 @@ export const CreateUpstreamForm = (props: Props) => {
         azureSecretRef.setName(values.azureSecretRefName);
         azureSecretRef.setNamespace(values.azureSecretRefNamespace);
         azureSpec.setSecretRef(azureSecretRef);
+        let azureFnList = values.azureFunctionsList.map(azureFn => {
+          let azureFnSpec = new AzureUpstreamSpec.FunctionSpec();
+          azureFnSpec.setFunctionName(azureFn.functionName);
+          azureFnSpec.setAuthLevel(azureFn.authLevel);
+          return azureFnSpec;
+        });
+        azureSpec.setFunctionsList(azureFnList);
         azureSpec.setFunctionAppName(values.azureFunctionAppName);
         usInput.setAzure(azureSpec);
         break;
@@ -152,26 +159,32 @@ export const CreateUpstreamForm = (props: Props) => {
         <FormContainer>
           <SoloFormTemplate>
             <InputRow>
-              <Field
-                name='name'
-                title='Upstream Name'
-                placeholder='Upstream Name'
-                component={SoloFormInput}
-              />
-              <Field
-                name='type'
-                title='Upstream Type'
-                placeholder='Type'
-                options={UPSTREAM_TYPES}
-                component={SoloFormDropdown}
-              />
-              <Field
-                name='namespace'
-                title='Upstream Namespace'
-                defaultValue='gloo-system'
-                presetOptions={namespaces}
-                component={SoloFormTypeahead}
-              />
+              <div>
+                <Field
+                  name='name'
+                  title='Upstream Name'
+                  placeholder='Upstream Name'
+                  component={SoloFormInput}
+                />
+              </div>
+              <div>
+                <Field
+                  name='type'
+                  title='Upstream Type'
+                  placeholder='Type'
+                  options={UPSTREAM_TYPES}
+                  component={SoloFormDropdown}
+                />
+              </div>
+              <div>
+                <Field
+                  name='namespace'
+                  title='Upstream Namespace'
+                  defaultValue='gloo-system'
+                  presetOptions={namespaces}
+                  component={SoloFormTypeahead}
+                />
+              </div>
             </InputRow>
           </SoloFormTemplate>
           {values.type === UPSTREAM_SPEC_TYPES.AWS && <AwsUpstreamForm />}
