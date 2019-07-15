@@ -12,7 +12,10 @@ import {
 import { SoloButton } from 'Components/Common/SoloButton';
 import { Field, Formik } from 'formik';
 import { NamespacesContext } from 'GlooIApp';
-import { UpstreamSpec as AwsUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
+import {
+  UpstreamSpec as AwsUpstreamSpec,
+  LambdaFunctionSpec
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
 import { UpstreamSpec as AzureUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
 import { UpstreamSpec as ConsulUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul_pb';
 import { UpstreamSpec as KubeUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb';
@@ -91,6 +94,15 @@ export const CreateUpstreamForm = (props: Props) => {
         awsSecretRef.setName(values.awsSecretRefName);
         awsSecretRef.setNamespace(values.awsSecretRefNamespace);
         awsSpec.setSecretRef(awsSecretRef);
+        let lambdaList = values.awsLambdaFunctionsList.map(lambda => {
+          let lambdaReq = new LambdaFunctionSpec();
+          lambdaReq.setLambdaFunctionName(lambda.lambdaFunctionName);
+          lambdaReq.setLogicalName(lambda.logicalName);
+          lambdaReq.setQualifier(lambda.qualifier);
+          return lambdaReq;
+        });
+        awsSpec.setLambdaFunctionsList(lambdaList);
+
         usInput.setAws(awsSpec);
         break;
       case UPSTREAM_SPEC_TYPES.AZURE:
@@ -153,8 +165,6 @@ export const CreateUpstreamForm = (props: Props) => {
                 options={UPSTREAM_TYPES}
                 component={SoloFormDropdown}
               />
-            </InputRow>
-            <InputRow>
               <Field
                 name='namespace'
                 title='Upstream Namespace'

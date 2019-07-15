@@ -39,14 +39,14 @@ export const SoloFormTypeahead: React.FC<FieldProps & TypeaheadProps> = ({
   ...rest
 }) => {
   return (
-    <React.Fragment>
+    <div>
       <SoloTypeahead
         {...rest}
         {...field}
         onChange={value => setFieldValue(field.name, value)}
       />
       {errors && <ErrorText>{errors[field.name]}</ErrorText>}
-    </React.Fragment>
+    </div>
   );
 };
 
