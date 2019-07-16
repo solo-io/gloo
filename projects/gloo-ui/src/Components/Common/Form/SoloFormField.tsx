@@ -17,6 +17,10 @@ import { SoloButton } from '../SoloButton';
 import { SoloMultiSelect } from '../SoloMultiSelect';
 import { MultipartStringCardsList } from '../MultipartStringCardsList';
 import { createUpstreamId, parseUpstreamId } from 'utils/helpers';
+import { NamespacesContext } from 'GlooIApp';
+import { ListSecretsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
+import { useListSecrets } from 'Api';
+import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
 const ErrorText = styled.div`
   color: ${colors.grapefruitOrange};
 `;
@@ -180,6 +184,94 @@ export const SoloFormMultipartStringCardsList: React.FC<
         }}
       />
       {errors && <ErrorText>{errors[field.name]}</ErrorText>}
+    </React.Fragment>
+  );
+};
+
+export const SoloSecretRefInput: React.FC<
+  FieldProps & TypeaheadProps & { type: string }
+> = ({ field: parentField, form, type, ...rest }) => {
+  const namespaces = React.useContext(NamespacesContext);
+  const [selectedNS, setSelectedNS] = React.useState('');
+  const listSecretsRequest = new ListSecretsRequest();
+
+  React.useEffect(() => {
+    listSecretsRequest.setNamespacesList(namespaces);
+  }, [namespaces]);
+
+  const { data: secretsListData } = useListSecrets(listSecretsRequest);
+
+  const [secretsFound, setSecretsFound] = React.useState(
+    secretsListData
+      ? secretsListData.secretsList
+          .filter(secret => {
+            // TODO: are these the only forms requiring a secret ref?
+            if (type === 'aws') return !!secret.aws;
+            if (type === 'azure') return !!secret.azure;
+          })
+          .filter(secret => secret.metadata!.namespace === selectedNS)
+          .map(secret => secret.metadata!.name)
+      : []
+  );
+
+  React.useEffect(() => {
+    setSecretsFound(
+      secretsListData
+        ? secretsListData.secretsList
+            .filter(secret => {
+              if (type === 'aws') return !!secret.aws;
+              if (type === 'azure') return !!secret.azure;
+            })
+            .filter(secret => secret.metadata!.namespace === selectedNS)
+
+            .map(secret => secret.metadata!.name)
+        : []
+    );
+  }, [selectedNS]);
+
+  return (
+    <React.Fragment>
+      <div>
+        <Field
+          name={`${parentField.name}.namespace`}
+          render={({ form, field }: FieldProps) => (
+            <div>
+              <SoloTypeahead
+                {...field}
+                title='Secret Ref Namespace'
+                defaultValue='gloo-system'
+                presetOptions={namespaces}
+                onChange={value => {
+                  form.setFieldValue(field.name, value);
+                  setSelectedNS(value);
+                  form.setFieldValue(`${parentField.name}.name`, '');
+                }}
+              />
+              {form.errors && <ErrorText>{form.errors[field.name]}</ErrorText>}
+            </div>
+          )}
+        />
+      </div>
+      <div>
+        <Field
+          name={`${parentField.name}.name`}
+          render={({ form, field }: FieldProps) => (
+            <div>
+              <SoloTypeahead
+                {...field}
+                title='Secret Ref Name'
+                disabled={secretsFound.length === 0}
+                presetOptions={secretsFound}
+                defaultValue='Secret...'
+                onChange={value =>
+                  form.setFieldValue(`${parentField.name}.name`, value)
+                }
+              />
+              {form.errors && <ErrorText>{form.errors[field.name]}</ErrorText>}
+            </div>
+          )}
+        />
+      </div>
     </React.Fragment>
   );
 };

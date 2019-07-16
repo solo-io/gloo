@@ -49,7 +49,7 @@ const Footer = styled.div`
 `;
 
 // TODO: better way to include all initial values?
-let initialValues = {
+const initialValues = {
   name: '',
   type: '',
   namespace: 'gloo-system',
@@ -74,10 +74,10 @@ export const CreateUpstreamForm = (props: Props) => {
 
   // grpc request
   function createUpstream(values: typeof initialValues) {
-    let newUpstreamReq = new CreateUpstreamRequest();
-    let usInput = new UpstreamInput();
+    const newUpstreamReq = new CreateUpstreamRequest();
+    const usInput = new UpstreamInput();
 
-    let usResourceRef = new ResourceRef();
+    const usResourceRef = new ResourceRef();
 
     usResourceRef.setName(values.name);
     usResourceRef.setNamespace(values.namespace);
@@ -88,14 +88,14 @@ export const CreateUpstreamForm = (props: Props) => {
     // TODO: validation for specific fields
     switch (values.type) {
       case UPSTREAM_SPEC_TYPES.AWS:
-        let awsSpec = new AwsUpstreamSpec();
+        const awsSpec = new AwsUpstreamSpec();
         awsSpec.setRegion(values.awsRegion);
-        let awsSecretRef = new ResourceRef();
-        awsSecretRef.setName(values.awsSecretRefName);
-        awsSecretRef.setNamespace(values.awsSecretRefNamespace);
+        const awsSecretRef = new ResourceRef();
+        awsSecretRef.setName(values.awsSecretRef.name);
+        awsSecretRef.setNamespace(values.awsSecretRef.namespace);
         awsSpec.setSecretRef(awsSecretRef);
-        let lambdaList = values.awsLambdaFunctionsList.map(lambda => {
-          let lambdaReq = new LambdaFunctionSpec();
+        const lambdaList = values.awsLambdaFunctionsList.map(lambda => {
+          const lambdaReq = new LambdaFunctionSpec();
           lambdaReq.setLambdaFunctionName(lambda.lambdaFunctionName);
           lambdaReq.setLogicalName(lambda.logicalName);
           lambdaReq.setQualifier(lambda.qualifier);
@@ -106,13 +106,13 @@ export const CreateUpstreamForm = (props: Props) => {
         usInput.setAws(awsSpec);
         break;
       case UPSTREAM_SPEC_TYPES.AZURE:
-        let azureSpec = new AzureUpstreamSpec();
-        let azureSecretRef = new ResourceRef();
-        azureSecretRef.setName(values.azureSecretRefName);
-        azureSecretRef.setNamespace(values.azureSecretRefNamespace);
+        const azureSpec = new AzureUpstreamSpec();
+        const azureSecretRef = new ResourceRef();
+        azureSecretRef.setName(values.azureSecretRef.name);
+        azureSecretRef.setNamespace(values.azureSecretRef.namespace);
         azureSpec.setSecretRef(azureSecretRef);
-        let azureFnList = values.azureFunctionsList.map(azureFn => {
-          let azureFnSpec = new AzureUpstreamSpec.FunctionSpec();
+        const azureFnList = values.azureFunctionsList.map(azureFn => {
+          const azureFnSpec = new AzureUpstreamSpec.FunctionSpec();
           azureFnSpec.setFunctionName(azureFn.functionName);
           azureFnSpec.setAuthLevel(azureFn.authLevel);
           return azureFnSpec;
@@ -122,24 +122,24 @@ export const CreateUpstreamForm = (props: Props) => {
         usInput.setAzure(azureSpec);
         break;
       case UPSTREAM_SPEC_TYPES.KUBE:
-        let kubeSpec = new KubeUpstreamSpec();
+        const kubeSpec = new KubeUpstreamSpec();
         kubeSpec.setServiceName(values.kubeServiceName);
         kubeSpec.setServiceNamespace(values.kubeServiceNamespace);
         kubeSpec.setServicePort(+values.kubeServicePort);
         usInput.setKube(kubeSpec);
         break;
       case UPSTREAM_SPEC_TYPES.STATIC:
-        let staticSpec = new StaticUpstreamSpec();
+        const staticSpec = new StaticUpstreamSpec();
         staticSpec.setUseTls(values.staticUseTls);
         usInput.setStatic(staticSpec);
         break;
       case UPSTREAM_SPEC_TYPES.CONSUL:
-        let consulSpec = new ConsulUpstreamSpec();
+        const consulSpec = new ConsulUpstreamSpec();
         consulSpec.setServiceName(values.consulServiceName);
         consulSpec.setServiceTagsList([values.consulServiceTagsList]);
         consulSpec.setConnectEnabled(values.consulConnectEnabled);
         consulSpec.setDataCenter(values.consulDataCenter);
-        let consulServiceSpec = new ServiceSpec();
+        const consulServiceSpec = new ServiceSpec();
         consulSpec.setServiceSpec(consulServiceSpec);
         usInput.setConsul(consulSpec);
       default:
@@ -192,7 +192,6 @@ export const CreateUpstreamForm = (props: Props) => {
           {values.type === UPSTREAM_SPEC_TYPES.STATIC && <StaticUpstreamForm />}
           {values.type === UPSTREAM_SPEC_TYPES.AZURE && <AzureUpstreamForm />}
           {values.type === UPSTREAM_SPEC_TYPES.CONSUL && <ConsulUpstreamForm />}
-
           <Footer>
             <SoloButton
               onClick={handleSubmit}

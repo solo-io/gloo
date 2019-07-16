@@ -1,20 +1,16 @@
-import { useListSecrets } from 'Api';
 import { ReactComponent as CloseX } from 'assets/close-x.svg';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import {
   SoloFormInput,
-  SoloFormTypeahead
+  SoloFormTypeahead,
+  SoloSecretRefInput
 } from 'Components/Common/Form/SoloFormField';
 import {
   InputRow,
   SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
-import { SoloTypeahead } from 'Components/Common/SoloTypeahead';
-import { ErrorText } from 'Components/Features/VirtualService/Details/ExtAuthForm';
-import { Field, FieldArray, FieldArrayRenderProps, FieldProps } from 'formik';
-import { NamespacesContext } from 'GlooIApp';
+import { Field, FieldArray, FieldArrayRenderProps } from 'formik';
 import { LambdaFunctionSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
-import { ListSecretsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import * as React from 'react';
 import { AWS_REGIONS } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
@@ -31,8 +27,10 @@ import * as yup from 'yup';
 // TODO combine with main initial values
 export const awsInitialValues = {
   awsRegion: 'us-east-1',
-  awsSecretRefNamespace: 'gloo-system',
-  awsSecretRefName: '',
+  awsSecretRef: {
+    name: '',
+    namespace: 'gloo-system'
+  },
   awsLambdaFunctionsList: [
     {
       logicalName: '',
@@ -58,38 +56,7 @@ export const awsValidationSchema = yup.object().shape({
 });
 
 export const AwsUpstreamForm: React.FC<Props> = () => {
-  const namespaces = React.useContext(NamespacesContext);
-
   const awsRegions = AWS_REGIONS.map(item => item.name);
-  const [selectedNS, setSelectedNS] = React.useState('');
-  const listSecretsReq = new ListSecretsRequest();
-
-  listSecretsReq.setNamespacesList(namespaces);
-
-  const { data: secretsListData } = useListSecrets(listSecretsReq);
-
-  const [secretsFound, setSecretsFound] = React.useState<string[]>(() =>
-    secretsListData
-      ? secretsListData.secretsList
-          .filter(secret => !!secret.aws && secret.aws)
-          .map(secret => secret.metadata!.name)
-      : []
-  );
-
-  React.useEffect(() => {
-    setSecretsFound(
-      secretsListData
-        ? secretsListData.secretsList
-            .filter(
-              secret =>
-                !!secret.aws &&
-                secret.aws &&
-                secret.metadata!.namespace === selectedNS
-            )
-            .map(secret => secret.metadata!.name)
-        : []
-    );
-  }, [selectedNS]);
 
   return (
     <SoloFormTemplate formHeader='AWS Upstream Settings'>
@@ -104,45 +71,9 @@ export const AwsUpstreamForm: React.FC<Props> = () => {
         </div>
         <div>
           <Field
-            name='awsSecretRefNamespace'
-            render={({ form, field }: FieldProps) => (
-              <div>
-                <SoloTypeahead
-                  {...field}
-                  title='Secret Ref Namespace'
-                  defaultValue='gloo-system'
-                  presetOptions={namespaces}
-                  onChange={value => {
-                    form.setFieldValue(field.name, value);
-                    setSelectedNS(value);
-                    form.setFieldValue('awsSecretRefName', '');
-                  }}
-                />
-                {form.errors && (
-                  <ErrorText>{form.errors[field.name]}</ErrorText>
-                )}
-              </div>
-            )}
-          />
-        </div>
-        <div>
-          <Field
-            name='awsSecretRefName'
-            render={({ form, field }: FieldProps) => (
-              <div>
-                <SoloTypeahead
-                  {...field}
-                  title='Secret Ref Name'
-                  disabled={secretsFound.length === 0}
-                  presetOptions={secretsFound}
-                  defaultValue='Secret...'
-                  onChange={value => form.setFieldValue(field.name, value)}
-                />
-                {form.errors && (
-                  <ErrorText>{form.errors[field.name]}</ErrorText>
-                )}
-              </div>
-            )}
+            name='awsSecretRef'
+            type='aws'
+            component={SoloSecretRefInput}
           />
         </div>
       </InputRow>
