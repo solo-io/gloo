@@ -110,11 +110,13 @@ export const MultipartStringCardsList = (props: Props) => {
         {!!createNew && (
           <div>
             <NewStringPrompt>
-              <SoloInput
-                value={newName}
-                placeholder={createNewNamePromptText}
-                onChange={newNameChanged}
-              />
+              <div style={{ marginRight: '5px' }}>
+                <SoloInput
+                  value={newName}
+                  placeholder={createNewNamePromptText}
+                  onChange={newNameChanged}
+                />
+              </div>
               <SoloInput
                 value={newValue}
                 placeholder={createNewValuePromptText}

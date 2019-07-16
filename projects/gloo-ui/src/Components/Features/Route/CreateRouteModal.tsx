@@ -1,6 +1,7 @@
 import * as React from 'react';
 /** @jsx jsx */
 import { jsx } from '@emotion/core';
+import { isEmpty } from 'lodash';
 import styled from '@emotion/styled/macro';
 import { colors, soloConstants } from 'Styles';
 import {
@@ -59,6 +60,7 @@ import {
   parseVirtualServiceId
 } from 'utils/helpers';
 import { SoloButton } from 'Components/Common/SoloButton';
+import { ButtonProgress } from 'Styles/CommonEmotions/button';
 
 enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
   PATH_SPECIFIER_NOT_SET = 0,
@@ -67,11 +69,29 @@ enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
   REGEX = 3
 }
 
+const PATH_SPECIFIERS = [
+  {
+    key: 'PREFIX',
+    value: 'PREFIX',
+    displayValue: 'Prefix'
+  },
+  {
+    key: 'EXACT',
+    value: 'EXACT',
+    displayValue: 'Exact'
+  },
+  {
+    key: 'REGEX',
+    value: 'REGEX',
+    displayValue: 'Regex'
+  }
+];
+
 interface CreateRouteValuesType {
   virtualService: VirtualService.AsObject | undefined;
   upstream: Upstream.AsObject | undefined;
   path: string;
-  matchType: PathSpecifierCase;
+  matchType: 'PREFIX' | 'EXACT' | 'REGEX';
   headers: {
     name: string;
     value: string;
@@ -97,7 +117,7 @@ const defaultValues: CreateRouteValuesType = {
   virtualService: new VirtualService().toObject(),
   upstream: new Upstream().toObject(),
   path: '',
-  matchType: PathSpecifierCase.PREFIX,
+  matchType: 'PREFIX',
   headers: [],
   queryParameters: [],
   methods: {
@@ -115,8 +135,10 @@ const validationSchema = yup.object().shape({
   region: yup.string(),
   virtualService: yup.object(),
   upstream: yup.object(),
-  path: yup.string(),
-  matchType: yup.number(),
+  path: yup
+    .string()
+    .test('Valid Path', 'Paths begin with /', val => val[0] === '/'),
+  matchType: yup.string(),
   headers: yup.array().of(
     yup.object().shape({
       name: yup.string(),
@@ -154,6 +176,7 @@ const Footer = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
+  margin-top: 28px;
 `;
 
 interface Props {
@@ -233,24 +256,7 @@ export const CreateRouteModal = (props: Props) => {
      * */
     let newRoute = new Route();
     let routeMatcher = new Matcher();
-    switch (values.matchType) {
-      case PathSpecifierCase.EXACT:
-        {
-          routeMatcher.setPrefix('EXACT');
-        }
-        break;
-      case PathSpecifierCase.REGEX:
-        {
-          routeMatcher.setPrefix('REGEX');
-        }
-        break;
-      case PathSpecifierCase.PREFIX:
-      default:
-        {
-          routeMatcher.setPrefix('PREFIX');
-        }
-        break;
-    }
+    routeMatcher.setPrefix(values.matchType);
     let matcherHeaders: HeaderMatcher[] = values.headers.map(head => {
       const newMatcherHeader = new HeaderMatcher();
       newMatcherHeader.setName(head.name);
@@ -358,7 +364,7 @@ export const CreateRouteModal = (props: Props) => {
       initialValues={initialValues}
       validationSchema={validationSchema}
       onSubmit={createRoute}>
-      {({ values, isSubmitting, handleSubmit }) => {
+      {({ values, isSubmitting, handleSubmit, isValid, errors }) => {
         return (
           <FormContainer>
             <SoloFormTemplate>
@@ -389,12 +395,23 @@ export const CreateRouteModal = (props: Props) => {
                 )}
               </InputRow>
               <InputRow>
-                <Field
-                  name='path'
-                  title='Path'
-                  placeholder='Path...'
-                  component={SoloFormInput}
-                />
+                <HalfColumn>
+                  <Field
+                    name='path'
+                    title='Path'
+                    placeholder='Path...'
+                    component={SoloFormInput}
+                  />
+                </HalfColumn>
+                <HalfColumn>
+                  <Field
+                    name='matchType'
+                    title='Match Type'
+                    defaultValue={'PREFIX'}
+                    options={PATH_SPECIFIERS}
+                    component={SoloFormDropdown}
+                  />
+                </HalfColumn>
               </InputRow>
               <InputRow>
                 <Field
@@ -436,8 +453,11 @@ export const CreateRouteModal = (props: Props) => {
               <SoloButton
                 onClick={handleSubmit}
                 text='Create Route'
-                disabled={isSubmitting}
-              />
+                disabled={!isEmpty(errors)}
+                loading={isSubmitting}
+                inProgressText={'Creating Route...'}>
+                <ButtonProgress />
+              </SoloButton>
             </Footer>
           </FormContainer>
         );

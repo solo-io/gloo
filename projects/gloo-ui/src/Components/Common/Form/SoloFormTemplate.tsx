@@ -6,7 +6,7 @@ export const InputRow = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  padding: 10px 0;
+  padding: 10px 0 0;
 `;
 
 export const InputContainer = styled.div`

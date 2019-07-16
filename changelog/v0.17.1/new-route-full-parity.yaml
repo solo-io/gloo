@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: New route modal now has full parity with previous version.
+    issueLink: https://github.com/solo-io/solo-projects/issues/705

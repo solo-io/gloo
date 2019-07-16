@@ -5,7 +5,7 @@ import { colors, soloConstants } from 'Styles';
 import styled from '@emotion/styled/macro';
 import { Label } from './SoloInput';
 
-const SoloDropdownBlock = styled(Select)`
+const SoloMultiselectBlock = styled(Select)`
   width: 100%;
   /* margin-bottom: 15px; */
   line-height: 16px;
@@ -19,11 +19,40 @@ const SoloDropdownBlock = styled(Select)`
     outline: none;
 
     .ant-select-selection__rendered {
-      line-height: inherit;
+      line-height: 33px;
       margin: 0;
 
       .ant-select-selection-selected-value {
         color: ${colors.septemberGrey};
+      }
+
+      .ant-select-selection__choice {
+        background: ${colors.marchGrey};
+        color: ${colors.novemberGrey};
+        border-radius: ${soloConstants.smallRadius}px;
+        line-height: 33px;
+        height: 35px;
+
+        .ant-select-selection__choice__content {
+          margin-right: 8px;
+        }
+
+        .ant-select-selection__choice__remove {
+          .anticon.anticon-close.ant-select-remove-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 20px;
+            width: 20px;
+            border-radius: 20px;
+            background: #9f9f9f;
+            color: white;
+
+            svg {
+              height: 10px;
+            }
+          }
+        }
       }
     }
 
@@ -64,7 +93,7 @@ export const SoloMultiSelect = (props: DropdownProps) => {
   return (
     <div style={{ width: '100%' }}>
       {title && <Label>{title}</Label>}
-      <SoloDropdownBlock
+      <SoloMultiselectBlock
         mode='multiple'
         value={values}
         defaultValue={defaultValues || [] /**
@@ -81,7 +110,7 @@ export const SoloMultiSelect = (props: DropdownProps) => {
             {opt.value}
           </Select.Option>
         ))}
-      </SoloDropdownBlock>
+      </SoloMultiselectBlock>
     </div>
   );
 };

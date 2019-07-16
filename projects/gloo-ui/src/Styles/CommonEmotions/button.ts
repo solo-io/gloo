@@ -15,7 +15,7 @@ export const SoloButtonCSS = css`
   display: inline-block;
   padding: 10px 20px 13px;
   font-size: 16px;
-  line-height: 16px;
+  line-height: 14px;
   background: ${colors.seaBlue};
   color: white;
   border: none;
@@ -28,6 +28,7 @@ export const SoloButtonCSS = css`
 
   &:hover,
   &:focus {
+    color: white;
     background: ${colors.lakeBlue};
   }
 

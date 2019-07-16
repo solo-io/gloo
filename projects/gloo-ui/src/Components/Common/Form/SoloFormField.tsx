@@ -1,29 +1,24 @@
 import styled from '@emotion/styled/macro';
-import {
-  FieldProps,
-  FieldArrayRenderProps,
-  Form,
-  FieldArray,
-  Field
-} from 'formik';
+import { FieldProps, Field } from 'formik';
 import React from 'react';
 import { colors } from 'Styles';
 import { DropdownProps, SoloDropdown } from '../SoloDropdown';
 import { InputProps, SoloInput } from '../SoloInput';
 import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 import { SoloCheckbox, CheckboxProps } from '../SoloCheckbox';
-import { staticInitialValues } from 'Components/Features/Upstream/Creation/StaticUpstreamForm';
-import { SoloButton } from '../SoloButton';
 import { SoloMultiSelect } from '../SoloMultiSelect';
 import { MultipartStringCardsList } from '../MultipartStringCardsList';
 import { createUpstreamId, parseUpstreamId } from 'utils/helpers';
 import { NamespacesContext } from 'GlooIApp';
 import { ListSecretsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import { useListSecrets } from 'Api';
-import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-const ErrorText = styled.div`
+
+const ErrorText = styled<'div', { errorExists?: boolean }>('div')`
   color: ${colors.grapefruitOrange};
+  visibility: ${props => (props.errorExists ? 'visible' : 'hidden')};
+  min-height: 19px;
 `;
+
 // TODO: make these wrappers generic to avoid repetition
 export const SoloFormInput: React.FC<FieldProps & InputProps> = ({
   error,
@@ -33,7 +28,7 @@ export const SoloFormInput: React.FC<FieldProps & InputProps> = ({
 }) => (
   <React.Fragment>
     <SoloInput error={!!errors[field.name]} {...field} {...rest} />
-    {errors && <ErrorText>{errors[field.name]}</ErrorText>}
+    <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
   </React.Fragment>
 );
 
@@ -49,7 +44,7 @@ export const SoloFormTypeahead: React.FC<FieldProps & TypeaheadProps> = ({
         {...field}
         onChange={value => setFieldValue(field.name, value)}
       />
-      {errors && <ErrorText>{errors[field.name]}</ErrorText>}
+      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
     </div>
   );
 };
@@ -66,7 +61,7 @@ export const SoloFormDropdown: React.FC<FieldProps & DropdownProps> = ({
         {...rest}
         onChange={value => setFieldValue(field.name, value)}
       />
-      {errors && <ErrorText>{errors[field.name]}</ErrorText>}
+      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
     </React.Fragment>
   );
 };
@@ -109,7 +104,7 @@ export const SoloFormMetadataBasedDropdown: React.FC<
         value={usedValue}
         onChange={setNewValue}
       />
-      {errors && <ErrorText>{errors[field.name]}</ErrorText>}
+      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
     </React.Fragment>
   );
 };
@@ -137,7 +132,7 @@ export const SoloFormMultiselect: React.FC<FieldProps & DropdownProps> = ({
           setFieldValue(field.name, newFieldValues);
         }}
       />
-      {errors && <ErrorText>{errors[field.name]}</ErrorText>}
+      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
     </React.Fragment>
   );
 };
@@ -156,7 +151,7 @@ export const SoloFormCheckbox: React.FC<FieldProps & CheckboxProps> = ({
         onChange={value => setFieldValue(field.name, value.target.checked)}
         label
       />
-      {errors && <ErrorText>{errors[field.name]}</ErrorText>}
+      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
     </React.Fragment>
   );
 };
@@ -171,7 +166,6 @@ export const SoloFormMultipartStringCardsList: React.FC<
         {...rest}
         values={field.value}
         valueDeleted={indexDeleted => {
-          console.log(indexDeleted);
           setFieldValue(field.name, [...field.value].splice(indexDeleted, 1));
         }}
         createNew={newPair => {
@@ -183,7 +177,7 @@ export const SoloFormMultipartStringCardsList: React.FC<
           setFieldValue(field.name, newList);
         }}
       />
-      {errors && <ErrorText>{errors[field.name]}</ErrorText>}
+      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
     </React.Fragment>
   );
 };
