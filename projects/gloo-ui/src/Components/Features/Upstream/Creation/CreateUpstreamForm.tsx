@@ -9,7 +9,6 @@ import {
   SoloFormTemplate,
   InputRow
 } from 'Components/Common/Form/SoloFormTemplate';
-import { SoloButton } from 'Components/Common/SoloButton';
 import { Field, Formik } from 'formik';
 import { NamespacesContext } from 'GlooIApp';
 import {

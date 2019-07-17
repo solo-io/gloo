@@ -8,6 +8,8 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { ReactComponent as KeyRing } from 'assets/key-on-ring.svg';
 import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+import { SecretForm } from './SecretForm';
+import { getIcon } from 'utils/helpers';
 
 const AWSColumns = [
   {
@@ -90,19 +92,27 @@ export const SecretsPage = (props: Props) => {
 
   return (
     <React.Fragment>
-      <SectionCard cardName={'AWS Secrets'} logoIcon={<KeyRing />}>
+      <SectionCard cardName={'AWS Secrets'} logoIcon={getIcon('AWS')}>
         {awsTableData.length ? (
-          <SoloTable columns={AWSColumns} dataSource={awsTableData} />
+          <SoloTable
+            columns={AWSColumns}
+            dataSource={awsTableData}
+            formComponent={() => (
+              <SecretForm secretKind={Secret.KindCase.AWS} />
+            )}
+          />
         ) : (
           <div>No Secrets</div>
         )}
       </SectionCard>
-      <SectionCard cardName={'Azure Secrets'} logoIcon={<KeyRing />}>
-        {azureTableData.length ? (
-          <SoloTable columns={AzureColumns} dataSource={azureTableData} />
-        ) : (
-          <div>No Secrets</div>
-        )}
+      <SectionCard cardName={'Azure Secrets'} logoIcon={getIcon('Azure')}>
+        <SoloTable
+          columns={AzureColumns}
+          dataSource={azureTableData}
+          formComponent={() => (
+            <SecretForm secretKind={Secret.KindCase.AZURE} />
+          )}
+        />
       </SectionCard>
     </React.Fragment>
   );

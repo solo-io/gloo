@@ -19,9 +19,9 @@ const SoloAutocompleteBlock = styled(AutoComplete)`
     .ant-select-search--inline {
       float: none;
     }
-    .ant-select-selection--single {
+    /* .ant-select-selection--single {
       height: 36px;
-    }
+    } */
   }
 
   .ant-select-selection {
@@ -34,6 +34,9 @@ const SoloAutocompleteBlock = styled(AutoComplete)`
 
       .ant-select-selection-selected-value {
         color: ${colors.septemberGrey};
+      }
+      &::after {
+        display: none;
       }
     }
 

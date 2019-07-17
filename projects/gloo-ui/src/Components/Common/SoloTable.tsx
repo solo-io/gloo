@@ -4,7 +4,7 @@ import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
 
 import { colors, soloConstants } from '../../Styles';
-import Table, { ColumnProps } from 'antd/lib/table';
+import Table from 'antd/lib/table';
 import { hslToHSLA } from 'Styles/colors';
 
 // To restyle table to match spec later
@@ -87,12 +87,51 @@ const TableContainer = styled.div`
 interface Props {
   columns: any[];
   dataSource: any[];
+  formComponent?: React.ReactNode;
 }
 
+const EditableRow = ({ lastRowID, formComponent, ...props }: any) => {
+  const isLastRow = lastRowID === props['data-row-key'];
+  const FormComponent = formComponent;
+
+  return (
+    <React.Fragment>
+      <tr {...props} />
+      {isLastRow && !!formComponent && (
+        <tr>
+          <FormComponent />
+        </tr>
+      )}
+    </React.Fragment>
+  );
+};
+
 export const SoloTable = (props: Props) => {
+  const components = {
+    body: {
+      row: EditableRow
+    }
+  };
+
+  const lastRowID =
+    props.dataSource.length > 0
+      ? props.dataSource[props.dataSource.length - 1].key
+      : true;
+
   return (
     <TableContainer>
-      <Table columns={props.columns} dataSource={props.dataSource} />
+      <Table
+        //TODO: handle case when datasource is empty
+        dataSource={props.dataSource}
+        columns={props.columns}
+        components={components}
+        onRow={(record: any) => ({
+          record,
+          lastRowID,
+          cols: props.columns,
+          formComponent: props.formComponent
+        })}
+      />
     </TableContainer>
   );
 };

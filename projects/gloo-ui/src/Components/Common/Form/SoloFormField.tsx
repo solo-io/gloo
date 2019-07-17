@@ -38,14 +38,14 @@ export const SoloFormTypeahead: React.FC<FieldProps & TypeaheadProps> = ({
   ...rest
 }) => {
   return (
-    <div>
+    <React.Fragment>
       <SoloTypeahead
         {...rest}
         {...field}
         onChange={value => setFieldValue(field.name, value)}
       />
       <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
-    </div>
+    </React.Fragment>
   );
 };
 
@@ -263,6 +263,16 @@ export const SoloSecretRefInput: React.FC<
           </div>
         )}
       />
+    </React.Fragment>
+  );
+};
+
+export const TableFormWrapper: React.FC = props => {
+  return (
+    <React.Fragment>
+      {React.Children.map(props.children, child => (
+        <td>{child}</td>
+      ))}
     </React.Fragment>
   );
 };

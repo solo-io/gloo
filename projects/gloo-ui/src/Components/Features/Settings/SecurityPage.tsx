@@ -8,6 +8,7 @@ import { SectionCard } from 'Components/Common/SectionCard';
 import { SoloTable } from 'Components/Common/SoloTable';
 import { ReactComponent as KeyRing } from 'assets/key-on-ring.svg';
 import { Secret } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
+import { SecretForm } from './SecretForm';
 
 const TLSColumns = [
   {
@@ -99,7 +100,13 @@ export const SecurityPage: React.FunctionComponent<Props> = props => {
     <React.Fragment>
       <SectionCard cardName={'TLS'} logoIcon={<KeyRing />}>
         {tlsTableData.length ? (
-          <SoloTable columns={TLSColumns} dataSource={tlsTableData} />
+          <SoloTable
+            columns={TLSColumns}
+            dataSource={tlsTableData}
+            formComponent={() => (
+              <SecretForm secretKind={Secret.KindCase.TLS} />
+            )}
+          />
         ) : (
           <div>No Secrets</div>
         )}
