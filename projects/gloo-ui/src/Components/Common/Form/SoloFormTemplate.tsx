@@ -14,6 +14,12 @@ export const InputContainer = styled.div`
   flex-direction: column;
 `;
 
+export const Footer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+`;
+
 const SectionHeader = styled.div`
   font-size: 18px;
   font-weight: 500;

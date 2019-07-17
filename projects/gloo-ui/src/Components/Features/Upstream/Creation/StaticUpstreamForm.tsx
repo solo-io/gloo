@@ -3,94 +3,92 @@ import {
   SoloFormInput
 } from 'Components/Common/Form/SoloFormField';
 import {
-  SoloFormTemplate,
-  InputRow
+  Footer,
+  InputRow,
+  SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
 import { SoloButton } from 'Components/Common/SoloButton';
-import { Field, FieldArray, FieldArrayRenderProps } from 'formik';
+import { StringCard } from 'Components/Common/StringCardsList';
+import {
+  Field,
+  FieldArray,
+  FieldArrayRenderProps,
+  Formik,
+  FormikProps
+} from 'formik';
+import { Host } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb';
 import * as React from 'react';
 import * as yup from 'yup';
-import { StringCard } from 'Components/Common/StringCardsList';
 
-/* ------------------------------ Upstream Spec ----------------------------- */
-/* 
-  hostsList: Array<Host.AsObject>,
-  useTls: boolean,
-  serviceSpec?: {
-    rest?: {
-      transformationsMap: Map<string, TransformationTemplate : {
-        advancedTemplates: boolean,
-        extractorsMap: Array<[string, Extraction: {
-          header: string,
-          regex: string,
-          subgroup: number,
-        }]>,
-        headersMap: Array<[string, InjaTemplate: {text: string}]>,
-        body?: InjaTemplate: {text: string},
-        passthrough?: Passthrough: ???,
-        mergeExtractorsToBody?: MergeExtractorsToBody: ????,
-      }>
-    swaggerInfo?: {url: string, inline: string, }
-    }
-    grpc?: {
-      descriptors: Uint8Array | string, 
-      grpcServicesList: Array<ServiceSpec.GrpcService: { 
-        packageName: string,
-        serviceName: string,
-        functionNamesList: Array<string>,}>,}
-  }
+// TODO: handle service spec
+interface StaticValuesType {
+  staticServiceName: string;
+  staticHostList: Host.AsObject[];
+  staticUseTls: boolean;
+  staticServicePort: string;
 }
 
-*/
-
-// TODO combine with main initial values
-export const staticInitialValues = {
+export const staticInitialValues: StaticValuesType = {
   staticServiceName: '',
   staticHostList: [
     {
       addr: '',
-      port: ''
+      port: 8080
     }
   ],
   staticUseTls: false,
   staticServicePort: ''
 };
 
-interface Props {}
-
+interface Props {
+  parentForm: FormikProps<StaticValuesType>;
+}
 // TODO: figure out which fields are required
 export const staticValidationSchema = yup.object().shape({
   staticHostList: yup.string(),
-  staticServicePort: yup.string(),
+  staticServicePort: yup.number(),
   staticServiceName: yup.string()
 });
 
-export const StaticUpstreamForm: React.FC<Props> = () => {
+export const StaticUpstreamForm: React.FC<Props> = ({ parentForm }) => {
   return (
-    <SoloFormTemplate formHeader='Static Upstream Settings'>
-      <InputRow>
-        <Field
-          name='staticServiceName'
-          title='Service Name'
-          placeholder='Service Name'
-          component={SoloFormInput}
-        />
-        <Field
-          name='staticUseTls'
-          title='Use Tls'
-          component={SoloFormCheckbox}
-        />
-        <Field
-          name='staticServicePort'
-          title='Service Port'
-          placeholder='Service Port'
-          component={SoloFormInput}
-        />
-      </InputRow>
-      <InputRow>
-        <FieldArray name='staticHostList' render={SoloFormArrayField} />
-      </InputRow>
-    </SoloFormTemplate>
+    <Formik<StaticValuesType>
+      validationSchema={staticValidationSchema}
+      initialValues={staticInitialValues}
+      onSubmit={() => parentForm.submitForm()}>
+      <SoloFormTemplate formHeader='Static Upstream Settings'>
+        <InputRow>
+          <Field
+            name='staticServiceName'
+            title='Service Name'
+            placeholder='Service Name'
+            component={SoloFormInput}
+          />
+          <Field
+            name='staticUseTls'
+            title='Use Tls'
+            component={SoloFormCheckbox}
+          />
+          <Field
+            name='staticServicePort'
+            title='Service Port'
+            placeholder='Service Port'
+            type='number'
+            component={SoloFormInput}
+          />
+        </InputRow>
+        <InputRow>
+          <FieldArray name='staticHostList' render={SoloFormArrayField} />
+        </InputRow>
+        <Footer>
+          <SoloButton
+            onClick={parentForm.handleSubmit}
+            text='Create Upstream'
+            disabled={parentForm.isSubmitting}
+          />
+        </Footer>
+      </SoloFormTemplate>
+    </Formik>
   );
 };
 

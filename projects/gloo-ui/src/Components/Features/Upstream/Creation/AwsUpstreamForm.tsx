@@ -6,26 +6,31 @@ import {
   SoloSecretRefInput
 } from 'Components/Common/Form/SoloFormField';
 import {
+  Footer,
   InputRow,
   SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
-import { Field, FieldArray, FieldArrayRenderProps } from 'formik';
+import { SoloButton } from 'Components/Common/SoloButton';
+import {
+  Field,
+  FieldArray,
+  FieldArrayRenderProps,
+  Formik,
+  FormikProps
+} from 'formik';
 import { LambdaFunctionSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
 import { AWS_REGIONS } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
 
-/* ------------------------------ Upstream Spec ----------------------------- */
-/*
-  region: string,
-  secretRef?: ResourceRef: {name: string, namespace: string},
-  lambdaFunctionsList: Array<LambdaFunctionSpec: {logicalName: string,
-    lambdaFunctionName: string,
-    qualifier: string,}>,
-*/
+interface AwsValuesType {
+  awsRegion: string;
+  awsSecretRef: ResourceRef.AsObject;
+  awsLambdaFunctionsList: LambdaFunctionSpec.AsObject[];
+}
 
-// TODO combine with main initial values
-export const awsInitialValues = {
+export const awsInitialValues: AwsValuesType = {
   awsRegion: 'us-east-1',
   awsSecretRef: {
     name: '',
@@ -40,7 +45,9 @@ export const awsInitialValues = {
   ]
 };
 
-interface Props {}
+interface Props {
+  parentForm: FormikProps<AwsValuesType>;
+}
 
 export const awsValidationSchema = yup.object().shape({
   awsRegion: yup.string(),
@@ -55,32 +62,42 @@ export const awsValidationSchema = yup.object().shape({
   )
 });
 
-export const AwsUpstreamForm: React.FC<Props> = () => {
+export const AwsUpstreamForm: React.FC<Props> = ({ parentForm }) => {
   const awsRegions = AWS_REGIONS.map(item => item.name);
 
   return (
-    <SoloFormTemplate formHeader='AWS Upstream Settings'>
-      <InputRow>
-        <div>
-          <Field
-            name='awsRegion'
-            title='Region'
-            presetOptions={awsRegions}
-            component={SoloFormTypeahead}
-          />
-        </div>
-        <div>
+    <Formik<AwsValuesType>
+      validationSchema={awsValidationSchema}
+      initialValues={awsInitialValues}
+      onSubmit={() => parentForm.submitForm()}>
+      <SoloFormTemplate formHeader='AWS Upstream Settings'>
+        <InputRow>
+          <div>
+            <Field
+              name='awsRegion'
+              title='Region'
+              presetOptions={awsRegions}
+              component={SoloFormTypeahead}
+            />
+          </div>
           <Field
             name='awsSecretRef'
             type='aws'
             component={SoloSecretRefInput}
           />
-        </div>
-      </InputRow>
-      <SoloFormTemplate formHeader='Lambda Functions'>
-        <FieldArray name='awsLambdaFunctionsList' render={LambdaFunctions} />
+        </InputRow>
+        <SoloFormTemplate formHeader='Lambda Functions'>
+          <FieldArray name='awsLambdaFunctionsList' render={LambdaFunctions} />
+        </SoloFormTemplate>
+        <Footer>
+          <SoloButton
+            onClick={parentForm.handleSubmit}
+            text='Create Upstream'
+            disabled={parentForm.isSubmitting}
+          />
+        </Footer>
       </SoloFormTemplate>
-    </SoloFormTemplate>
+    </Formik>
   );
 };
 

@@ -43,6 +43,7 @@ const Input = styled<'input', { error?: boolean; borderless?: boolean }>(
 export interface InputProps {
   name?: string;
   title?: string;
+  type?: string;
   placeholder?: string;
   value: string | number;
   disabled?: boolean;
@@ -62,7 +63,8 @@ export const SoloInput = (props: InputProps) => {
     onBlur,
     disabled,
     error,
-    borderless
+    borderless,
+    type = 'text'
   } = props;
 
   return (
@@ -75,6 +77,7 @@ export const SoloInput = (props: InputProps) => {
         name={name}
         placeholder={placeholder}
         title={title}
+        type={type}
         value={value}
         onChange={onChange}
         onBlur={onBlur}

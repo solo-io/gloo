@@ -1,14 +1,17 @@
 export const AZURE_AUTH_LEVELS = [
   {
     key: 'ANONYMOUS',
-    value: 'Anonymous'
+    value: 0,
+    displayValue: 'Anonymous'
   },
   {
     key: 'FUNCTION',
-    value: 'Function'
+    value: 1,
+    displayValue: 'Function'
   },
   {
     key: 'ADMIN',
-    value: 'Admin'
+    value: 2,
+    displayValue: 'Admin'
   }
 ];

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled/macro';
-import { FieldProps, Field } from 'formik';
+import { FieldProps, Field, FieldArrayRenderProps } from 'formik';
 import React from 'react';
 import { colors } from 'Styles';
 import { DropdownProps, SoloDropdown } from '../SoloDropdown';
@@ -183,8 +183,8 @@ export const SoloFormMultipartStringCardsList: React.FC<
 };
 
 export const SoloSecretRefInput: React.FC<
-  FieldProps & TypeaheadProps & { type: string }
-> = ({ field: parentField, form, type, ...rest }) => {
+  FieldProps & TypeaheadProps & { type: string; asColumn: boolean }
+> = ({ field: parentField, form, type, asColumn, ...rest }) => {
   const namespaces = React.useContext(NamespacesContext);
   const [selectedNS, setSelectedNS] = React.useState('');
   const listSecretsRequest = new ListSecretsRequest();
@@ -225,47 +225,44 @@ export const SoloSecretRefInput: React.FC<
 
   return (
     <React.Fragment>
-      <div>
-        <Field
-          name={`${parentField.name}.namespace`}
-          render={({ form, field }: FieldProps) => (
-            <div>
-              <SoloTypeahead
-                {...field}
-                title='Secret Ref Namespace'
-                defaultValue='gloo-system'
-                presetOptions={namespaces}
-                onChange={value => {
-                  form.setFieldValue(field.name, value);
-                  setSelectedNS(value);
-                  form.setFieldValue(`${parentField.name}.name`, '');
-                }}
-              />
-              {form.errors && <ErrorText>{form.errors[field.name]}</ErrorText>}
-            </div>
-          )}
-        />
-      </div>
-      <div>
-        <Field
-          name={`${parentField.name}.name`}
-          render={({ form, field }: FieldProps) => (
-            <div>
-              <SoloTypeahead
-                {...field}
-                title='Secret Ref Name'
-                disabled={secretsFound.length === 0}
-                presetOptions={secretsFound}
-                defaultValue='Secret...'
-                onChange={value =>
-                  form.setFieldValue(`${parentField.name}.name`, value)
-                }
-              />
-              {form.errors && <ErrorText>{form.errors[field.name]}</ErrorText>}
-            </div>
-          )}
-        />
-      </div>
+      <Field
+        name={`${parentField.name}.namespace`}
+        render={({ form, field }: FieldProps) => (
+          <div>
+            <SoloTypeahead
+              {...field}
+              title='Secret Ref Namespace'
+              defaultValue='gloo-system'
+              presetOptions={namespaces}
+              onChange={value => {
+                form.setFieldValue(field.name, value);
+                setSelectedNS(value);
+                form.setFieldValue(`${parentField.name}.name`, '');
+              }}
+            />
+            {form.errors && <ErrorText>{form.errors[field.name]}</ErrorText>}
+          </div>
+        )}
+      />
+
+      <Field
+        name={`${parentField.name}.name`}
+        render={({ form, field }: FieldProps) => (
+          <div>
+            <SoloTypeahead
+              {...field}
+              title='Secret Ref Name'
+              disabled={secretsFound.length === 0}
+              presetOptions={secretsFound}
+              defaultValue='Secret...'
+              onChange={value =>
+                form.setFieldValue(`${parentField.name}.name`, value)
+              }
+            />
+            {form.errors && <ErrorText>{form.errors[field.name]}</ErrorText>}
+          </div>
+        )}
+      />
     </React.Fragment>
   );
 };

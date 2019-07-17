@@ -49,7 +49,7 @@ const Footer = styled.div`
 `;
 
 // TODO: better way to include all initial values?
-const initialValues = {
+export const initialValues = {
   name: '',
   type: '',
   namespace: 'gloo-system',
@@ -125,7 +125,7 @@ export const CreateUpstreamForm = (props: Props) => {
         const kubeSpec = new KubeUpstreamSpec();
         kubeSpec.setServiceName(values.kubeServiceName);
         kubeSpec.setServiceNamespace(values.kubeServiceNamespace);
-        kubeSpec.setServicePort(+values.kubeServicePort);
+        kubeSpec.setServicePort(values.kubeServicePort);
         usInput.setKube(kubeSpec);
         break;
       case UPSTREAM_SPEC_TYPES.STATIC:
@@ -136,7 +136,7 @@ export const CreateUpstreamForm = (props: Props) => {
       case UPSTREAM_SPEC_TYPES.CONSUL:
         const consulSpec = new ConsulUpstreamSpec();
         consulSpec.setServiceName(values.consulServiceName);
-        consulSpec.setServiceTagsList([values.consulServiceTagsList]);
+        consulSpec.setServiceTagsList(values.consulServiceTagsList);
         consulSpec.setConnectEnabled(values.consulConnectEnabled);
         consulSpec.setDataCenter(values.consulDataCenter);
         const consulServiceSpec = new ServiceSpec();
@@ -155,7 +155,7 @@ export const CreateUpstreamForm = (props: Props) => {
       initialValues={initialValues}
       validationSchema={validationSchema}
       onSubmit={createUpstream}>
-      {({ values, isSubmitting, handleSubmit }) => (
+      {formik => (
         <FormContainer>
           <SoloFormTemplate>
             <InputRow>
@@ -187,18 +187,21 @@ export const CreateUpstreamForm = (props: Props) => {
               </div>
             </InputRow>
           </SoloFormTemplate>
-          {values.type === UPSTREAM_SPEC_TYPES.AWS && <AwsUpstreamForm />}
-          {values.type === UPSTREAM_SPEC_TYPES.KUBE && <KubeUpstreamForm />}
-          {values.type === UPSTREAM_SPEC_TYPES.STATIC && <StaticUpstreamForm />}
-          {values.type === UPSTREAM_SPEC_TYPES.AZURE && <AzureUpstreamForm />}
-          {values.type === UPSTREAM_SPEC_TYPES.CONSUL && <ConsulUpstreamForm />}
-          <Footer>
-            <SoloButton
-              onClick={handleSubmit}
-              text='Create Upstream'
-              disabled={isSubmitting}
-            />
-          </Footer>
+          {formik.values.type === UPSTREAM_SPEC_TYPES.AWS && (
+            <AwsUpstreamForm parentForm={formik} />
+          )}
+          {formik.values.type === UPSTREAM_SPEC_TYPES.KUBE && (
+            <KubeUpstreamForm parentForm={formik} />
+          )}
+          {formik.values.type === UPSTREAM_SPEC_TYPES.STATIC && (
+            <StaticUpstreamForm parentForm={formik} />
+          )}
+          {formik.values.type === UPSTREAM_SPEC_TYPES.AZURE && (
+            <AzureUpstreamForm parentForm={formik} />
+          )}
+          {formik.values.type === UPSTREAM_SPEC_TYPES.CONSUL && (
+            <ConsulUpstreamForm parentForm={formik} />
+          )}
         </FormContainer>
       )}
     </Formik>
