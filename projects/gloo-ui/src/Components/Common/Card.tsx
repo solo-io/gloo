@@ -41,6 +41,10 @@ const CardSubtitle = styled.div`
   color: ${colors.novemberGrey};
   font-size: 12px;
   min-height: 18px;
+  max-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
 `;
 
 const Footer = styled.div`

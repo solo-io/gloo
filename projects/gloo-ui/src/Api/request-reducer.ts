@@ -1,3 +1,5 @@
+import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb_service';
+
 export enum RequestAction {
   START,
   SUCCESS,
@@ -7,12 +9,12 @@ export enum RequestAction {
 interface Action<T> {
   type: RequestAction;
   payload: T;
-  error?: unknown;
+  error?: ServiceError | undefined;
 }
 
 interface State<T> {
   isLoading: boolean;
-  error?: unknown;
+  error?: ServiceError | undefined;
   data: T;
 }
 

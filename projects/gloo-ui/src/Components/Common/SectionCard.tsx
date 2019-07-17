@@ -74,37 +74,28 @@ const SecondaryInformationTitle = styled.span`
 `;
 
 const HealthContainer = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
   flex: 1;
   text-align: right;
   font-size: 16px;
+  font-weight: 600;
   color: ${colors.novemberGrey};
+`;
+
+const CloseIcon = styled.div`
+  font-size: 21px;
+  line-height: 17px;
+  margin-left: ${soloConstants.largeBuffer}px;
+  margin-top: 2px;
+  font-weight: 100;
+  color: ${colors.juneGrey};
+  cursor: pointer;
 `;
 
 const BodyContainer = styled.div`
   padding: 20px;
-`;
-
-const CardAddonsContainer = styled.div`
-  padding: ${soloConstants.buffer}px ${soloConstants.smallBuffer}px 10px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-column-gap: 30px;
-`;
-
-const CardAddons = styled.div`
-  width: 100%;
-`;
-const CardAddonsTitle = styled.div`
-  font-size: 18px;
-  font-weight: bold;
-  color: ${colors.novemberGrey};
-  margin-bottom: 10px;
-`;
-
-const MoreTease = styled.div`
-  margin: 10px 0 0;
-  font-size: 14px;
-  color: ${colors.septemberGrey};
 `;
 
 interface Props {
@@ -116,7 +107,7 @@ interface Props {
   }[];
   health?: number;
   healthMessage?: string;
-  closeIcon?: boolean;
+  onClose?: () => any;
 }
 
 export const SectionCard: React.FunctionComponent<Props> = props => {
@@ -127,7 +118,7 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
     headerSecondaryInformation,
     health,
     healthMessage,
-    closeIcon
+    onClose
   } = props;
 
   return (
@@ -160,7 +151,7 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
             <HealthIndicator healthStatus={health} />
           </HealthContainer>
         )}
-        {closeIcon && <div style={{ padding: '10px' }}>X</div>}
+        {onClose && <CloseIcon onClick={onClose}>X</CloseIcon>}
       </Header>
       <BodyContainer>{children}</BodyContainer>
     </CardBlock>

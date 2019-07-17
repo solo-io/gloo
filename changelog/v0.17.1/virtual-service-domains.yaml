@@ -1,0 +1,8 @@
+changelog:
+  - type: FIX
+    description: Domain names now fully display in their lists in UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/712
+  - type: FIX
+    description: Domains now listed in Virtual Service details page, and updates going through API.
+    issueLink: https://github.com/solo-io/solo-projects/issues/636
+    resolvesIssue: false

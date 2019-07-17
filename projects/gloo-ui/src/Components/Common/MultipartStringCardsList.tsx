@@ -49,12 +49,15 @@ const NewStringPrompt = styled(SmallNewStringPrompt)`
 
 const DeleteX = styled(SmallDeleteX)`
   padding: 0 8px;
+  margin-left: 0;
 `;
 
 interface Props {
   values: { name: string; value: string }[];
   valueDeleted: (indexDeleted: number) => any;
   createNew?: (newPair: { newName: string; newValue: string }) => any;
+  valueIsValid?: (value: string) => boolean;
+  nameIsValid?: (value: string) => boolean;
   createNewNamePromptText?: string;
   createNewValuePromptText?: string;
   title?: string;
@@ -66,6 +69,8 @@ export const MultipartStringCardsList = (props: Props) => {
     values,
     valueDeleted,
     createNew,
+    valueIsValid,
+    nameIsValid,
     createNewNamePromptText,
     createNewValuePromptText,
     title
@@ -98,7 +103,12 @@ export const MultipartStringCardsList = (props: Props) => {
       <Container>
         {values.map((value, ind) => {
           return (
-            <StringCard key={value.name + ind}>
+            <StringCard
+              key={value.name + ind}
+              hasError={
+                (!!valueIsValid ? !valueIsValid(value.value) : false) ||
+                (!!nameIsValid ? nameIsValid(value.name) : false)
+              }>
               <CardName>{value.name}</CardName>
               <CardValue>{value.value} </CardValue>
               <DeleteX onClick={() => valueDeleted(ind)}>
@@ -115,17 +125,30 @@ export const MultipartStringCardsList = (props: Props) => {
                   value={newName}
                   placeholder={createNewNamePromptText}
                   onChange={newNameChanged}
+                  error={
+                    !!newName.length &&
+                    (!!nameIsValid ? !nameIsValid(newName) : false)
+                  }
                 />
               </div>
               <SoloInput
                 value={newValue}
                 placeholder={createNewValuePromptText}
                 onChange={newValueChanged}
+                error={
+                  !!newName.length &&
+                  (!!valueIsValid ? !valueIsValid(newValue) : false)
+                }
               />
               <PlusHolder
-                disabled={!newValue.length || !newName.length}
+                disabled={
+                  !newValue.length ||
+                  !newName.length ||
+                  (!!nameIsValid ? !nameIsValid(newName) : false) ||
+                  (!!valueIsValid ? !valueIsValid(newValue) : false)
+                }
                 onClick={sendCreateNew}>
-                <GreenPlus style={{ marginBottom: '-3px' }} />
+                <GreenPlus style={{ width: '16px', height: '16px' }} />
               </PlusHolder>
             </NewStringPrompt>
           </div>

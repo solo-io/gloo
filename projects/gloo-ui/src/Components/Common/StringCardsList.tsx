@@ -15,35 +15,52 @@ export const Container = styled.div`
   align-items: center;
 `;
 
-export const StringCard = styled.div`
+export const StringCard = styled<
+  'div',
+  { hasError: boolean; limitWidth?: boolean }
+>('div')`
   display: flex;
   justify-content: space-between;
   border-radius: ${soloConstants.smallRadius}px;
-  background: ${colors.marchGrey};
-  color: ${colors.novemberGrey};
   padding: 0 10px;
   line-height: 33px;
   font-size: 16px;
-  width: 175px;
+  width: ${props => (props.limitWidth ? '175px' : 'auto')};
   margin: 10px;
   white-space: nowrap;
+
+  ${props =>
+    props.hasError
+      ? `background: ${colors.tangerineOrange};
+      color: ${colors.pumpkinOrange};
+      
+      .greyX-c {
+        fill: ${colors.pumpkinOrange};
+      }`
+      : `
+      background: ${colors.marchGrey};
+      color: ${colors.novemberGrey};`}
 `;
 export const CardValue = styled.div`
-  max-width: 160px;
+  min-width: 100px;
+  max-width: 500px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: default;
 `;
 export const DeleteX = styled.div`
   cursor: pointer;
+  margin-left: 5px;
 `;
 
 export const NewStringPrompt = styled.div`
+  position: relative;
   display: flex;
   justify-content: space-between;
   width: 175px;
   align-items: center;
-  margin: 0 10px;
+  margin: 10px;
 `;
 export const PlusHolder = styled<'div', { disabled: boolean }>('div')`
   ${props =>
@@ -52,7 +69,9 @@ export const PlusHolder = styled<'div', { disabled: boolean }>('div')`
     pointer-events: none;`
       : ''}
 
-  margin-left: 5px;
+  position: absolute;
+  right: 7px;
+  top: 10px;
   cursor: pointer;
 `;
 
@@ -60,12 +79,19 @@ interface Props {
   values: string[];
   valueDeleted: (indexDeleted: number) => any;
   createNew?: (newValue: string) => any;
+  valueIsValid?: (value: string) => boolean;
   createNewPromptText?: string;
 }
 
 // This badly needs a better name
 export const StringCardsList = (props: Props) => {
-  const { values, valueDeleted, createNew, createNewPromptText } = props;
+  const {
+    values,
+    valueDeleted,
+    createNew,
+    createNewPromptText,
+    valueIsValid
+  } = props;
 
   const [newValue, setNewValue] = React.useState<string>('');
 
@@ -84,8 +110,10 @@ export const StringCardsList = (props: Props) => {
     <Container>
       {values.map((value, ind) => {
         return (
-          <StringCard key={ind}>
-            <CardValue>{value}</CardValue>
+          <StringCard
+            key={ind}
+            hasError={!!valueIsValid ? !valueIsValid(value) : false}>
+            <CardValue title={value}>{value}</CardValue>
             <DeleteX onClick={() => valueDeleted(ind)}>
               <GreyX style={{ marginBottom: '-3px' }} />
             </DeleteX>
@@ -98,9 +126,18 @@ export const StringCardsList = (props: Props) => {
             value={newValue}
             placeholder={createNewPromptText}
             onChange={newValueChanged}
+            error={
+              !!newValue.length &&
+              (!!valueIsValid ? !valueIsValid(newValue) : false)
+            }
           />
-          <PlusHolder disabled={!newValue.length} onClick={sendCreateNew}>
-            <GreenPlus style={{ marginBottom: '-3px' }} />
+          <PlusHolder
+            disabled={
+              !newValue.length ||
+              (!!valueIsValid ? !valueIsValid(newValue) : false)
+            }
+            onClick={sendCreateNew}>
+            <GreenPlus style={{ width: '16px', height: '16px' }} />
           </PlusHolder>
         </NewStringPrompt>
       )}

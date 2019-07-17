@@ -120,7 +120,7 @@ export const SoloFormArrayField: React.FC<FieldArrayRenderProps> = ({
     </div>
     {form.values.staticHostList.map((host: any, index: any) => {
       return (
-        <StringCard key={`${name}-${index}`}>
+        <StringCard key={`${name}-${index}`} inError={false}>
           {` ${host.addr || ''}:${host.port || ''}`}
           <div onClick={() => remove(index)}>x</div>
         </StringCard>
