@@ -81,6 +81,16 @@ export const SecurityPage: React.FunctionComponent<Props> = props => {
         actions: ``
       };
     });
+    // This is to be replaced by the add new row form
+    tlsTableData.push({
+      key: '',
+      name: '',
+      namespace: '',
+      certChain: '(cert chain)',
+      tlsPrivateKey: '**************************',
+      rootCA: '(root ca)',
+      actions: ``
+    });
   }
 
   let oAuthTableData: any[] = [];
@@ -93,6 +103,14 @@ export const SecurityPage: React.FunctionComponent<Props> = props => {
         clientSecret: '(client secret)',
         actions: ``
       };
+    });
+    // This is to be replaced by the add new row form
+    oAuthTableData.push({
+      key: '',
+      name: '',
+      namespace: '',
+      clientSecret: '(client secret)',
+      actions: ``
     });
   }
 
@@ -113,7 +131,13 @@ export const SecurityPage: React.FunctionComponent<Props> = props => {
       </SectionCard>
       <SectionCard cardName={'OAuth'} logoIcon={<KeyRing />}>
         {oAuthTableData.length ? (
-          <SoloTable columns={OAuthColumns} dataSource={oAuthTableData} />
+          <SoloTable
+            columns={OAuthColumns}
+            dataSource={oAuthTableData}
+            formComponent={() => (
+              <SecretForm secretKind={Secret.KindCase.EXTENSION} />
+            )}
+          />
         ) : (
           <div>No Secrets</div>
         )}

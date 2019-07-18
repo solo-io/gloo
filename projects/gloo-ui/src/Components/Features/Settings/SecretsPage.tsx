@@ -75,6 +75,14 @@ export const SecretsPage = (props: Props) => {
         secretKey: awsSecret.aws!.secretKey
       };
     });
+    // This is to be replaced by the add new row form
+    awsTableData.push({
+      key: '',
+      name: '',
+      namespace: '',
+      accessKey: '',
+      secretKey: ''
+    });
   }
 
   let azureTableData: any[] = [];
@@ -87,6 +95,14 @@ export const SecretsPage = (props: Props) => {
         keyValue: azureSecret.azure!.apiKeysMap,
         actions: ``
       };
+    });
+    // This is to be replaced by the add new row form
+    azureTableData.push({
+      key: ``,
+      name: '',
+      namespace: '',
+      keyValue: '',
+      actions: ``
     });
   }
 

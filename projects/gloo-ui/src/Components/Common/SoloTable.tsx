@@ -87,20 +87,22 @@ const TableContainer = styled.div`
 interface Props {
   columns: any[];
   dataSource: any[];
-  formComponent?: React.ReactNode;
+  formComponent?: React.FC;
 }
 
-const EditableRow = ({ lastRowID, formComponent, ...props }: any) => {
+// TODO: figure out if edit row should always be shown or always be last row
+const EditableRow = ({ lastRowID, formComponent, isEmpty, ...props }: any) => {
   const isLastRow = lastRowID === props['data-row-key'];
   const FormComponent = formComponent;
 
   return (
     <React.Fragment>
-      <tr {...props} />
-      {isLastRow && !!formComponent && (
+      {isLastRow && !!formComponent ? (
         <tr>
           <FormComponent />
         </tr>
+      ) : (
+        <tr {...props} />
       )}
     </React.Fragment>
   );
@@ -121,13 +123,13 @@ export const SoloTable = (props: Props) => {
   return (
     <TableContainer>
       <Table
-        //TODO: handle case when datasource is empty
         dataSource={props.dataSource}
         columns={props.columns}
         components={components}
         onRow={(record: any) => ({
           record,
           lastRowID,
+          isEmpty: props.dataSource.length === 1,
           cols: props.columns,
           formComponent: props.formComponent
         })}

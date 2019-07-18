@@ -25,7 +25,7 @@ interface SecretValuesType {
   awsSecret: AwsSecret.AsObject;
   azureSecret: AzureSecret.AsObject;
   tlsSecret: TlsSecret.AsObject;
-  // oAuthSecret: unknown TODO: handle OAuth secret
+  oAuthSecret: { clientSecret: string };
 }
 
 const initialValues: SecretValuesType = {
@@ -44,6 +44,9 @@ const initialValues: SecretValuesType = {
     certChain: '',
     privateKey: '',
     rootCa: ''
+  },
+  oAuthSecret: {
+    clientSecret: ''
   }
 };
 
@@ -75,6 +78,12 @@ export const SecretForm: React.FC<Props> = ({ secretKind }) => {
 
     azureSecret.getApiKeysMap().set('keyname', 'key');
 
+    const tlsSecret = new TlsSecret();
+    tlsSecret.setCertChain(values.tlsSecret.certChain);
+    tlsSecret.setPrivateKey(values.tlsSecret.privateKey);
+    tlsSecret.setRootCa(values.tlsSecret.rootCa);
+    secretReq.setTls(tlsSecret);
+
     makeRequest(secretReq);
   };
 
@@ -102,8 +111,7 @@ export const SecretForm: React.FC<Props> = ({ secretKind }) => {
             {secretKind === Secret.KindCase.AWS && <AwsSecretFields />}
             {secretKind === Secret.KindCase.AZURE && <AzureSecretFields />}
             {secretKind === Secret.KindCase.TLS && <TlsSecretFields />}
-            {/* {secretKind === Secret.KindCase.EXTENSION && <OAuthSecretFields />} */}
-
+            {secretKind === Secret.KindCase.EXTENSION && <OAuthSecretFields />}
             <td>
               <GreenPlus
                 style={{ cursor: 'pointer' }}
@@ -156,8 +164,8 @@ const AzureSecretFields: React.FC = () => {
   return (
     <TableFormWrapper>
       <Field
-        name='tlsSecret.certChain'
-        placeholder='Cert Chain'
+        name='azureSecret.apiKeysMap'
+        placeholder='Api Keys'
         component={SoloFormInput}
       />
     </TableFormWrapper>
@@ -165,5 +173,13 @@ const AzureSecretFields: React.FC = () => {
 };
 
 const OAuthSecretFields: React.FC = () => {
-  return <div>oauth</div>;
+  return (
+    <TableFormWrapper>
+      <Field
+        name='oAuthSecret.clientSecret'
+        placeholder='Client Secret'
+        component={SoloFormInput}
+      />
+    </TableFormWrapper>
+  );
 };
