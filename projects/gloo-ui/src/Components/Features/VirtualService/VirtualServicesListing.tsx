@@ -36,67 +36,83 @@ const TableLink = styled.div`
   color: ${colors.seaBlue};
 `;
 
-const TableColumns = [
-  {
-    title: 'Name',
-    dataIndex: 'name',
-    render: (nameObject: {
-      goToVirtualService: () => void;
-      displayName: string;
-    }) => {
-      return (
-        <TableLink onClick={nameObject.goToVirtualService}>
-          {nameObject.displayName}
-        </TableLink>
-      );
+const TableDomains = styled.div`
+  max-width: 200px;
+  max-height: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const getTableColumns = (
+  startCreatingRoute: (vs: VirtualService.AsObject) => any
+) => {
+  return [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      render: (nameObject: {
+        goToVirtualService: () => void;
+        displayName: string;
+      }) => {
+        return (
+          <TableLink onClick={nameObject.goToVirtualService}>
+            {nameObject.displayName}
+          </TableLink>
+        );
+      }
+    },
+    {
+      title: 'Domain',
+      dataIndex: 'domains',
+      render: (domains: string) => {
+        return <TableDomains>{domains}</TableDomains>;
+      }
+    },
+    {
+      title: 'Namespace',
+      dataIndex: 'metadata.namespace'
+    },
+    {
+      title: 'Version',
+      dataIndex: 'metadata.resourceVersion'
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      render: (healthStatus: Status.AsObject) => (
+        <div>
+          <TableHealthCircleHolder>
+            <HealthIndicator healthStatus={healthStatus.state} />
+          </TableHealthCircleHolder>
+          <HealthInformation healthStatus={healthStatus} />
+        </div>
+      )
+    },
+    {
+      title: 'Routes',
+      dataIndex: 'routes'
+    },
+    {
+      title: 'BR Limit',
+      dataIndex: 'brLimit'
+    },
+    {
+      title: 'AR Limit',
+      dataIndex: 'arLimit'
+    },
+    {
+      title: 'Actions',
+      dataIndex: 'actions',
+      render: (vs: VirtualService.AsObject) => {
+        return (
+          <TableActionCircle onClick={() => startCreatingRoute(vs)}>
+            +
+          </TableActionCircle>
+        );
+      }
     }
-  },
-  {
-    title: 'Domain',
-    dataIndex: 'domains'
-  },
-  {
-    title: 'Namespace',
-    dataIndex: 'metadata.namespace'
-  },
-  {
-    title: 'Version',
-    dataIndex: 'metadata.resourceVersion'
-  },
-  {
-    title: 'Status',
-    dataIndex: 'status',
-    render: (healthStatus: Status.AsObject) => (
-      <div>
-        <TableHealthCircleHolder>
-          <HealthIndicator healthStatus={healthStatus.state} />
-        </TableHealthCircleHolder>
-        <HealthInformation healthStatus={healthStatus} />
-      </div>
-    )
-  },
-  {
-    title: 'Routes',
-    dataIndex: 'routes'
-  },
-  {
-    title: 'BR Limit',
-    dataIndex: 'brLimit'
-  },
-  {
-    title: 'AR Limit',
-    dataIndex: 'arLimit'
-  },
-  {
-    title: 'Actions',
-    dataIndex: 'actions',
-    render: (all: any) => (
-      <TableActionCircle onClick={() => alert('Create Route!')}>
-        +
-      </TableActionCircle>
-    )
-  }
-];
+  ];
+};
 
 const StringFilters: StringFilterProps[] = [
   {
@@ -188,7 +204,8 @@ export const VirtualServicesListing = (props: Props) => {
         domains: getVSDomains(virtualService),
         routes: virtualService.virtualHost!.routesList.length,
         status: virtualService.status,
-        key: `${virtualService.metadata!.name}`
+        key: `${virtualService.metadata!.name}`,
+        actions: virtualService
       };
     });
 
@@ -225,7 +242,7 @@ export const VirtualServicesListing = (props: Props) => {
               nameFilterValue,
               vsListData.virtualServicesList
             )}
-            columns={TableColumns}
+            columns={getTableColumns(setVirtualServiceForRouteCreation)}
           />
         )}
       </div>

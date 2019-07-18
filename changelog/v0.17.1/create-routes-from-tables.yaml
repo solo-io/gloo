@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Create routes modal fed by tables in VS list and tables+cards in Upstreams list.
+    issueLink: https://github.com/solo-io/solo-projects/issues/705

@@ -36,6 +36,8 @@ import { NamespacesContext } from 'GlooIApp';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
 import { HealthInformation } from 'Components/Common/HealthInformation';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
+import { SoloModal } from 'Components/Common/SoloModal';
+import { CreateRouteModal } from '../Route/CreateRouteModal';
 
 const StringFilters: StringFilterProps[] = [
   {
@@ -45,51 +47,57 @@ const StringFilters: StringFilterProps[] = [
   }
 ];
 
-const TableColumns = [
-  {
-    title: 'Name',
-    dataIndex: 'name'
-  },
+const getTableColumns = (
+  startCreatingRoute: (upstream: Upstream.AsObject) => any
+) => {
+  return [
+    {
+      title: 'Name',
+      dataIndex: 'name'
+    },
 
-  {
-    title: 'Namespace',
-    dataIndex: 'metadata.namespace'
-  },
-  {
-    title: 'Version',
-    dataIndex: 'metadata.resourceVersion'
-  },
-  {
-    title: 'Routes',
-    dataIndex: 'routes'
-  },
-  {
-    title: 'Status',
-    dataIndex: 'status',
-    render: (healthStatus: Status.AsObject) => (
-      <div>
-        <TableHealthCircleHolder>
-          <HealthIndicator healthStatus={healthStatus.state} />
-        </TableHealthCircleHolder>
-        <HealthInformation healthStatus={healthStatus} />
-      </div>
-    )
-  },
-  {
-    title: 'Use TLS',
-    dataIndex: 'useTls'
-  },
+    {
+      title: 'Namespace',
+      dataIndex: 'metadata.namespace'
+    },
+    {
+      title: 'Version',
+      dataIndex: 'metadata.resourceVersion'
+    },
+    {
+      title: 'Routes',
+      dataIndex: 'routes'
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      render: (healthStatus: Status.AsObject) => (
+        <div>
+          <TableHealthCircleHolder>
+            <HealthIndicator healthStatus={healthStatus.state} />
+          </TableHealthCircleHolder>
+          <HealthInformation healthStatus={healthStatus} />
+        </div>
+      )
+    },
+    {
+      title: 'Use TLS',
+      dataIndex: 'useTls'
+    },
 
-  {
-    title: 'Actions',
-    dataIndex: 'actions',
-    render: (all: any) => (
-      <TableActionCircle onClick={() => alert('Create Route!')}>
-        +
-      </TableActionCircle>
-    )
-  }
-];
+    {
+      title: 'Actions',
+      dataIndex: 'actions',
+      render: (upstream: Upstream.AsObject) => {
+        return (
+          <TableActionCircle onClick={() => startCreatingRoute(upstream)}>
+            +
+          </TableActionCircle>
+        );
+      }
+    }
+  ];
+};
 
 const CheckboxFilters: CheckboxFilterProps[] = [
   {
@@ -144,6 +152,10 @@ interface Props extends RouteComponentProps {
 
 export const UpstreamsListing = (props: Props) => {
   const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(true);
+  const [
+    upstreamForRouteCreation,
+    setUpstreamForRouteCreation
+  ] = React.useState<Upstream.AsObject | undefined>(undefined);
   const namespaces = React.useContext(NamespacesContext);
   let request = new ListUpstreamsRequest();
   request.setNamespacesList(namespaces);
@@ -205,7 +217,7 @@ export const UpstreamsListing = (props: Props) => {
               data.upstreamsList,
               checkboxes
             )}
-            columns={TableColumns}
+            columns={getTableColumns(setUpstreamForRouteCreation)}
           />
         )}
       </div>
@@ -247,7 +259,8 @@ export const UpstreamsListing = (props: Props) => {
             value: getResourceStatus(upstream),
             valueDisplay: <HealthInformation healthStatus={upstream.status} />
           }
-        ]
+        ],
+        onCreate: () => setUpstreamForRouteCreation(upstream)
       };
     });
 
@@ -265,7 +278,8 @@ export const UpstreamsListing = (props: Props) => {
         status: upstream.status,
         type: getUpstreamType(upstream),
         name: upstream.metadata!.name,
-        key: `${upstream.metadata!.name}-${upstream.metadata!.namespace}`
+        key: `${upstream.metadata!.name}-${upstream.metadata!.namespace}`,
+        actions: upstream
       };
     });
     let checkboxesNotSet = checkboxes.every(c => !c.value!);
@@ -299,6 +313,13 @@ export const UpstreamsListing = (props: Props) => {
         checkboxes={CheckboxFilters}
         filterFunction={listDisplay}
       />
+      <SoloModal
+        visible={!!upstreamForRouteCreation}
+        width={500}
+        title={'Create Route'}
+        onClose={() => setUpstreamForRouteCreation(undefined)}>
+        <CreateRouteModal defaultUpstream={upstreamForRouteCreation} />
+      </SoloModal>
     </div>
   );
 };

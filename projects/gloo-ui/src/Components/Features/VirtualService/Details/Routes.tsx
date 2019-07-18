@@ -13,8 +13,7 @@ import {
 const routeColumns = [
   {
     title: 'Matcher',
-    dataIndex: 'matcher',
-    width: 200
+    dataIndex: 'matcher'
   },
   {
     title: 'Path Match Type',
