@@ -9,6 +9,7 @@ import * as github_com_solo_io_solo_kit_api_v1_solo_kit_pb from "../../../../../
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/extensions_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/circuit_breaker_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
 export class Settings extends jspb.Message {
   getDiscoveryNamespace(): string;
@@ -83,6 +84,11 @@ export class Settings extends jspb.Message {
   getDiscovery(): Settings.DiscoveryOptions | undefined;
   setDiscovery(value?: Settings.DiscoveryOptions): void;
 
+  hasConsul(): boolean;
+  clearConsul(): void;
+  getConsul(): Settings.ConsulConfiguration | undefined;
+  setConsul(value?: Settings.ConsulConfiguration): void;
+
   hasExtensions(): boolean;
   clearExtensions(): void;
   getExtensions(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
@@ -129,6 +135,7 @@ export namespace Settings {
     circuitBreakers?: github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb.CircuitBreakerConfig.AsObject,
     knative?: Settings.KnativeOptions.AsObject,
     discovery?: Settings.DiscoveryOptions.AsObject,
+    consul?: Settings.ConsulConfiguration.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     metadata?: github_com_solo_io_solo_kit_api_v1_metadata_pb.Metadata.AsObject,
     status?: github_com_solo_io_solo_kit_api_v1_status_pb.Status.AsObject,
@@ -261,6 +268,40 @@ export namespace Settings {
       BLACKLIST = 0,
       WHITELIST = 1,
       DISABLED = 2,
+    }
+  }
+
+  export class ConsulConfiguration extends jspb.Message {
+    hasAddress(): boolean;
+    clearAddress(): void;
+    getAddress(): google_protobuf_wrappers_pb.StringValue | undefined;
+    setAddress(value?: google_protobuf_wrappers_pb.StringValue): void;
+
+    clearDataCentersList(): void;
+    getDataCentersList(): Array<string>;
+    setDataCentersList(value: Array<string>): void;
+    addDataCenters(value: string, index?: number): string;
+
+    hasWaitTime(): boolean;
+    clearWaitTime(): void;
+    getWaitTime(): google_protobuf_duration_pb.Duration | undefined;
+    setWaitTime(value?: google_protobuf_duration_pb.Duration): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ConsulConfiguration.AsObject;
+    static toObject(includeInstance: boolean, msg: ConsulConfiguration): ConsulConfiguration.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ConsulConfiguration, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ConsulConfiguration;
+    static deserializeBinaryFromReader(message: ConsulConfiguration, reader: jspb.BinaryReader): ConsulConfiguration;
+  }
+
+  export namespace ConsulConfiguration {
+    export type AsObject = {
+      address?: google_protobuf_wrappers_pb.StringValue.AsObject,
+      dataCentersList: Array<string>,
+      waitTime?: google_protobuf_duration_pb.Duration.AsObject,
     }
   }
 

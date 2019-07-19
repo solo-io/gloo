@@ -29,8 +29,11 @@ gloo:
         repository: quay.io/solo-io/gloo-ee
       replicas: 1
   gatewayProxies:
-    gateway-proxy:
-      deployment:
+    gatewayProxy:
+      kind:
+        deployment:
+          replicas: 1
+      podTemplate:
         extraAnnotations:
           prometheus.io/scrape: "true"
           prometheus.io/path: /metrics

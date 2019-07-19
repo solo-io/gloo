@@ -10,6 +10,7 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_circuit_breaker_pb from
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_load_balancer_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/load_balancer_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_connection_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/connection_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/ec2/aws_ec2_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_rest_rest_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_grpc_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc_web/grpc_web_pb";
@@ -276,6 +277,11 @@ export class UpstreamSpec extends jspb.Message {
   getConsul(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec | undefined;
   setConsul(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec): void;
 
+  hasAwsEc2(): boolean;
+  clearAwsEc2(): void;
+  getAwsEc2(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec | undefined;
+  setAwsEc2(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec): void;
+
   getUpstreamTypeCase(): UpstreamSpec.UpstreamTypeCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpstreamSpec.AsObject;
@@ -299,6 +305,7 @@ export namespace UpstreamSpec {
     aws?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec.AsObject,
     azure?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb.UpstreamSpec.AsObject,
     consul?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec.AsObject,
+    awsEc2?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec.AsObject,
   }
 
   export enum UpstreamTypeCase {
@@ -308,6 +315,7 @@ export namespace UpstreamSpec {
     AWS = 2,
     AZURE = 3,
     CONSUL = 5,
+    AWS_EC2 = 11,
   }
 }
 

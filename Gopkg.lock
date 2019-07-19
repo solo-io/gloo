@@ -88,6 +88,14 @@
   revision = "e9091a26100e9cfb2b6a8f470085bfa541931a91"
 
 [[projects]]
+  digest = "1:3b10c6fd33854dc41de2cf78b7bae105da94c2789b6fa5b9ac9e593ea43484ac"
+  name = "github.com/Masterminds/goutils"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "41ac8693c5c10a92ea1ff5ac3a7f95646f6123b0"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:55388fd080150b9a072912f97b1f5891eb0b50df43401f8b75fb4273d3fec9fc"
   name = "github.com/Masterminds/semver"
   packages = ["."]
@@ -96,12 +104,12 @@
   version = "v1.4.2"
 
 [[projects]]
-  digest = "1:b0baf96eb3f1387dfd368f38f1d9c91adb947239530014d1006540ccee7579b2"
+  digest = "1:ab506cfc00b11d6d406789c15abb0b341e8db076640e3f5255615a7e327398c1"
   name = "github.com/Masterminds/sprig"
   packages = ["."]
   pruneopts = "UT"
-  revision = "15f9564e7e9cf0da02a48e0d25f12a7b83559aa6"
-  version = "v2.16.0"
+  revision = "258b00ffa7318e8b109a141349980ffbd30a35db"
+  version = "v2.20.0"
 
 [[projects]]
   branch = "master"
@@ -144,14 +152,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:8f5416c7f59da8600725ae1ff00a99af1da8b04c211ae6f3c8f8bcab0164f650"
-  name = "github.com/aokoli/goutils"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "3391d3790d23d03408670993e957e8f408993c34"
-  version = "v1.0.1"
-
-[[projects]]
   branch = "master"
   digest = "1:ef5b0622d834c139454148b8fd0c92bb314828900532b267ae62da9fec109866"
   name = "github.com/armon/go-metrics"
@@ -176,7 +176,7 @@
   version = "v2.2.0"
 
 [[projects]]
-  digest = "1:546cda9f6b7b826b6a2d558e8de49909154481874d481e65fa74fe1352bccfae"
+  digest = "1:0f963d6a6a7fbd178a1ef062bac8fcac88aee76f063cdf88faea81d1fd195625"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -188,6 +188,7 @@
     "aws/credentials",
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
     "aws/credentials/stscreds",
     "aws/csm",
     "aws/defaults",
@@ -196,11 +197,13 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/ini",
     "internal/sdkio",
     "internal/sdkrand",
     "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
+    "private/protocol/ec2query",
     "private/protocol/json/jsonutil",
     "private/protocol/jsonrpc",
     "private/protocol/query",
@@ -208,12 +211,14 @@
     "private/protocol/rest",
     "private/protocol/restjson",
     "private/protocol/xml/xmlutil",
+    "service/ec2",
     "service/lambda",
     "service/sts",
+    "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "8b15f938ed215522a37275106e847f6f0be85fe8"
-  version = "v1.15.23"
+  revision = "8ae9ae0c8959def54f4a180ed76812ccc5f888db"
+  version = "v1.21.1"
 
 [[projects]]
   branch = "master"
@@ -398,14 +403,6 @@
   revision = "eeefdecb41b842af6dc652aaea4026e8403e62df"
 
 [[projects]]
-  digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"
-  name = "github.com/go-ini/ini"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "5cf292cae48347c2490ac1a58fe36735fb78df7e"
-  version = "v1.38.2"
-
-[[projects]]
   digest = "1:8c4be86399428a81749056c2d67feba95c1784b742ccf03ac7527d0b426bf22a"
   name = "github.com/go-openapi/analysis"
   packages = [
@@ -525,12 +522,9 @@
   revision = "6f2cf27854a4a29e3811b0371547be335d411b8b"
 
 [[projects]]
-  digest = "1:a507e8646bf3775af6f7e7b2a62a5e67d1c6a8f00754f87e66b96181b7f3d747"
+  digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
   name = "github.com/golang/mock"
-  packages = [
-    "gomock",
-    "mockgen/model",
-  ]
+  packages = ["gomock"]
   pruneopts = "UT"
   revision = "51421b967af1f557f93a59e0057aaf15ca02e29c"
   version = "v1.2.0"
@@ -932,11 +926,11 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:e22af8c7518e1eab6f2eab2b7d7558927f816262586cd6ed9f349c97a6c285c4"
+  digest = "1:bb81097a5b62634f3e9fec1014657855610c82d19b9a40c17612e32651e35dca"
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
   pruneopts = "UT"
-  revision = "0b12d6b5"
+  revision = "c2b33e84"
 
 [[projects]]
   digest = "1:eaefc85d32c03e5f0c2b88ea2f79fce3d993e2c78316d21319575dd4ea9153ca"
@@ -1327,7 +1321,7 @@
   version = "v0.2.6"
 
 [[projects]]
-  digest = "1:76ccb94cd11234eb9aa1902e4b27e595a6660c876fd92a223e4b8193dee4efb6"
+  digest = "1:b688b0e8e58ddc36cd7d51f48939f4a5ae2e8fcd0e3f8c3c5ac94fa29be15eee"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1376,10 +1370,12 @@
     "projects/gloo/cli/pkg/printers",
     "projects/gloo/cli/pkg/surveyutils",
     "projects/gloo/cli/pkg/testutils",
+    "projects/gloo/constants",
     "projects/gloo/pkg/api/converters/kube",
     "projects/gloo/pkg/api/v1",
     "projects/gloo/pkg/api/v1/plugins",
     "projects/gloo/pkg/api/v1/plugins/aws",
+    "projects/gloo/pkg/api/v1/plugins/aws/ec2",
     "projects/gloo/pkg/api/v1/plugins/azure",
     "projects/gloo/pkg/api/v1/plugins/consul",
     "projects/gloo/pkg/api/v1/plugins/faultinjection",
@@ -1399,6 +1395,7 @@
     "projects/gloo/pkg/mocks",
     "projects/gloo/pkg/plugins",
     "projects/gloo/pkg/plugins/aws",
+    "projects/gloo/pkg/plugins/aws/ec2",
     "projects/gloo/pkg/plugins/azure",
     "projects/gloo/pkg/plugins/basicroute",
     "projects/gloo/pkg/plugins/consul",
@@ -1422,13 +1419,16 @@
     "projects/gloo/pkg/syncer",
     "projects/gloo/pkg/translator",
     "projects/gloo/pkg/upstreams",
+    "projects/gloo/pkg/upstreams/consul",
+    "projects/gloo/pkg/upstreams/kubernetes",
     "projects/gloo/pkg/utils",
+    "projects/gloo/pkg/utils/aws",
     "projects/gloo/pkg/xds",
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "19da3dd650e1cb697b5d69d10aa6205a18498699"
-  version = "v0.17.0"
+  revision = "2c5aa5526cbe00504be88d89ecc6f88e83c131d9"
+  version = "v0.17.4"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1439,7 +1439,7 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:8c4529923795fcc9d452b580302a939a975ff77c99117d645531551bd54c5b8c"
+  digest = "1:4f369cf6791711ac25c1fe7b88f11ca8881deac27d7a88821ade4905f6df6596"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1457,6 +1457,7 @@
     "kubeutils",
     "log",
     "protoutils",
+    "randutils",
     "stats",
     "stringutils",
     "tarutils",
@@ -1466,11 +1467,12 @@
     "testutils/helper",
     "testutils/kube",
     "versionutils",
+    "versionutils/kubeapi",
     "vfsutils",
   ]
   pruneopts = "UT"
-  revision = "1c2dd400703ec1a7340609a6f5c00653ecf3d5c7"
-  version = "v0.9.1"
+  revision = "8eada3e906dc4de9810cf93455a476e7121fa5f4"
+  version = "v0.9.9"
 
 [[projects]]
   digest = "1:67a1bba30c92952119cfe4a31f7f80bbb6946a386bbebfeeb49bfc13d8b1588f"
@@ -1503,7 +1505,7 @@
   revision = "5cbd4d452dccb9492a4d126f79dfcc7be43f88dc"
 
 [[projects]]
-  digest = "1:f809be16e43eece2ce54125299339ef0cefa4fa4a4bfab735e28831211acf7ac"
+  digest = "1:952fe414fb7f363845ccc781af08fe29e9915818e3c4d498ad906e54c87f168e"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1563,8 +1565,8 @@
     "test/testutils",
   ]
   pruneopts = "UT"
-  revision = "a5b6bd42322788ea33293f320de942e053506e18"
-  version = "v0.10.2"
+  revision = "96dce349db114c370bf725c37f8636f8c5c24d5e"
+  version = "v0.10.3"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -1779,9 +1781,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b521f10a2d8fa85c04a8ef4e62f2d1e14d303599a55d64dabf9f5a02f84d35eb"
+  digest = "1:04a5b0e4138f98eef79ce12a955a420ee358e9f787044cc3a553ac3c3ade997e"
   name = "golang.org/x/sync"
-  packages = ["errgroup"]
+  packages = [
+    "errgroup",
+    "semaphore",
+  ]
   pruneopts = "UT"
   revision = "37e7f081c4d4c64e13b10787722085407fe5d15f"
 
@@ -2373,7 +2378,7 @@
   version = "kubernetes-1.13.1"
 
 [[projects]]
-  digest = "1:dffc9ae4f0605ba668c85a12e48b65c205b1a851d3ee53c19ccf0bf5023e8d16"
+  digest = "1:030c72fc6646a9f1469a3a7278294c44eb05d8571eb883015134455b97c55bbb"
   name = "k8s.io/helm"
   packages = [
     "pkg/chartutil",
@@ -2409,8 +2414,8 @@
     "pkg/version",
   ]
   pruneopts = "UT"
-  revision = "eecf22f77df5f65c823aacd2dbd30ae6c65f186e"
-  version = "v2.12.3"
+  revision = "618447cbf203d147601b4b9bd7f8c37a5d39fbb4"
+  version = "v2.13.1"
 
 [[projects]]
   digest = "1:e2999bf1bb6eddc2a6aa03fe5e6629120a53088926520ca3b4765f77d7ff7eab"
@@ -2619,7 +2624,6 @@
     "github.com/gogo/protobuf/proto",
     "github.com/gogo/protobuf/types",
     "github.com/golang/mock/gomock",
-    "github.com/golang/mock/mockgen/model",
     "github.com/google/uuid",
     "github.com/gorilla/websocket",
     "github.com/grpc-ecosystem/go-grpc-middleware",

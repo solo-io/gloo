@@ -38,7 +38,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.consul.plugins.gloo.solo.io.UpstreamSpec.repeatedFields_ = [2];
+proto.consul.plugins.gloo.solo.io.UpstreamSpec.repeatedFields_ = [2,5];
 
 
 
@@ -73,7 +73,7 @@ proto.consul.plugins.gloo.solo.io.UpstreamSpec.toObject = function(includeInstan
     serviceTagsList: jspb.Message.getRepeatedField(msg, 2),
     serviceSpec: (f = msg.getServiceSpec()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_service_spec_pb.ServiceSpec.toObject(includeInstance, f),
     connectEnabled: jspb.Message.getFieldWithDefault(msg, 4, false),
-    dataCenter: jspb.Message.getFieldWithDefault(msg, 5, "")
+    dataCentersList: jspb.Message.getRepeatedField(msg, 5)
   };
 
   if (includeInstance) {
@@ -129,7 +129,7 @@ proto.consul.plugins.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = fun
       break;
     case 5:
       var value = /** @type {string} */ (reader.readString());
-      msg.setDataCenter(value);
+      msg.addDataCenters(value);
       break;
     default:
       reader.skipField();
@@ -189,9 +189,9 @@ proto.consul.plugins.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = functio
       f
     );
   }
-  f = message.getDataCenter();
+  f = message.getDataCentersList();
   if (f.length > 0) {
-    writer.writeString(
+    writer.writeRepeatedString(
       5,
       f
     );
@@ -291,17 +291,31 @@ proto.consul.plugins.gloo.solo.io.UpstreamSpec.prototype.setConnectEnabled = fun
 
 
 /**
- * optional string data_center = 5;
- * @return {string}
+ * repeated string data_centers = 5;
+ * @return {!Array<string>}
  */
-proto.consul.plugins.gloo.solo.io.UpstreamSpec.prototype.getDataCenter = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+proto.consul.plugins.gloo.solo.io.UpstreamSpec.prototype.getDataCentersList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 5));
 };
 
 
-/** @param {string} value */
-proto.consul.plugins.gloo.solo.io.UpstreamSpec.prototype.setDataCenter = function(value) {
-  jspb.Message.setProto3StringField(this, 5, value);
+/** @param {!Array<string>} value */
+proto.consul.plugins.gloo.solo.io.UpstreamSpec.prototype.setDataCentersList = function(value) {
+  jspb.Message.setField(this, 5, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.consul.plugins.gloo.solo.io.UpstreamSpec.prototype.addDataCenters = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 5, value, opt_index);
+};
+
+
+proto.consul.plugins.gloo.solo.io.UpstreamSpec.prototype.clearDataCentersList = function() {
+  this.setDataCentersList([]);
 };
 
 
