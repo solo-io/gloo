@@ -39,7 +39,7 @@ type ServicesAndDescriptor struct {
 	Descriptors *descriptor.FileDescriptorSet
 }
 
-func NewPlugin(transformsAdded *bool) plugins.Plugin {
+func NewPlugin(transformsAdded *bool) *plugin {
 	return &plugin{
 		recordedUpstreams: make(map[core.ResourceRef]*v1.Upstream),
 		upstreamServices:  make(map[string]ServicesAndDescriptor),

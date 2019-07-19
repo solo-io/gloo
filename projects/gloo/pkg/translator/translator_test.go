@@ -220,6 +220,20 @@ var _ = Describe("Translator", func() {
 		})
 	})
 
+	Context("route no path", func() {
+		It("should error when path math is missing", func() {
+			matcher.PathSpecifier = nil
+			matcher.Headers = []*v1.HeaderMatcher{
+				{
+					Name: "test",
+				},
+			}
+			_, errs, err := translator.Translate(params, proxy)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(errs.Validate()).To(HaveOccurred())
+			Expect(errs.Validate().Error()).To(ContainSubstring("route_config.invalid route: no path specifier provided"))
+		})
+	})
 	Context("route header match", func() {
 		It("should translate header matcher with no value to a PresentMatch", func() {
 
