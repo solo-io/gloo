@@ -158,7 +158,7 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
             })}
           </SecondaryInformation>
         )}
-        {health && (
+        {(!!health || health === 0) && (
           <HealthContainer>
             {healthMessage || ''}
             <HealthIndicator healthStatus={health} />

@@ -182,6 +182,7 @@ const Footer = styled.div`
 interface Props {
   defaultVirtualService?: VirtualService.AsObject;
   defaultUpstream?: Upstream.AsObject;
+  completeCreation: (newVirtualService?: VirtualService.AsObject) => any;
 }
 
 export const CreateRouteModal = (props: Props) => {
@@ -193,7 +194,10 @@ export const CreateRouteModal = (props: Props) => {
     Upstream.AsObject[]
   >([]);
 
-  const { refetch: makeRequest } = useCreateRoute(null);
+  const {
+    data: createdVirtualServiceData,
+    refetch: makeRequest
+  } = useCreateRoute(null);
   let listVirtualServicesRequest = React.useRef(
     new ListVirtualServicesRequest()
   );
@@ -201,6 +205,12 @@ export const CreateRouteModal = (props: Props) => {
   const namespaces = React.useContext(NamespacesContext);
   listVirtualServicesRequest.current.setNamespacesList(namespaces);
   listUpstreamsRequest.current.setNamespacesList(namespaces);
+
+  React.useEffect(() => {
+    if (!!createdVirtualServiceData) {
+      props.completeCreation(createdVirtualServiceData.virtualService);
+    }
+  }, [createdVirtualServiceData]);
 
   const {
     data: upstreamsData,

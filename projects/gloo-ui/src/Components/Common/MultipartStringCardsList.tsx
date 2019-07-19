@@ -30,7 +30,8 @@ const StringCard = styled(SmallStringCard)`
 
 const CardValue = styled(SmallCardValue)`
   max-width: none;
-  width: 50%;
+  min-width: 0;
+  width: calc(50% - 16px);
   padding: 0 5px;
   padding-left: 8px;
   background: white;

@@ -40,7 +40,7 @@ export const Domains: React.FC<Props> = props => {
     }
 
     return RegExp(
-      '(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]'
+      '(?:[a-z0-9*](?:[a-z0-9-]{0,61}[a-z0-9])?.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]'
     ).test(domain);
   };
 

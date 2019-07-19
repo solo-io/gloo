@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: Routes in virtual service details page now delete and addable.
+    issueLink: https://github.com/solo-io/solo-projects/issues/636
+    resolvesIssue: false

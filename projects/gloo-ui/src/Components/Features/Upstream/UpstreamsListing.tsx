@@ -7,7 +7,8 @@ import { RouteComponentProps } from 'react-router';
 import {
   healthConstants,
   TableHealthCircleHolder,
-  TableActionCircle
+  TableActionCircle,
+  TableActions
 } from 'Styles';
 
 import {
@@ -90,9 +91,11 @@ const getTableColumns = (
       dataIndex: 'actions',
       render: (upstream: Upstream.AsObject) => {
         return (
-          <TableActionCircle onClick={() => startCreatingRoute(upstream)}>
-            +
-          </TableActionCircle>
+          <TableActions>
+            <TableActionCircle onClick={() => startCreatingRoute(upstream)}>
+              +
+            </TableActionCircle>
+          </TableActions>
         );
       }
     }
@@ -318,7 +321,10 @@ export const UpstreamsListing = (props: Props) => {
         width={500}
         title={'Create Route'}
         onClose={() => setUpstreamForRouteCreation(undefined)}>
-        <CreateRouteModal defaultUpstream={upstreamForRouteCreation} />
+        <CreateRouteModal
+          defaultUpstream={upstreamForRouteCreation}
+          completeCreation={() => setUpstreamForRouteCreation(undefined)}
+        />
       </SoloModal>
     </div>
   );

@@ -37,6 +37,7 @@ import {
   OAuth,
   CustomAuth
 } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
+import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 
 const DetailsContent = styled.div`
   display: grid;
@@ -65,30 +66,74 @@ export const VirtualServiceDetails = (props: Props) => {
   const { match, history } = props;
   const { virtualservicename, virtualservicenamespace } = match.params;
 
+  const [virtualService, setVirtualService] = React.useState<
+    VirtualService.AsObject | undefined
+  >(undefined);
+
   let resourceRef = new ResourceRef();
   resourceRef.setName(virtualservicename);
   resourceRef.setNamespace(virtualservicenamespace);
   let vsRequest = new GetVirtualServiceRequest();
   vsRequest.setRef(resourceRef);
-  const { data, loading, error } = useGetVirtualService(vsRequest);
+  const { data, loading, error, refetch: getVSRefetch } = useGetVirtualService(
+    vsRequest
+  );
 
-  const { refetch: makeUpdateRequest } = useUpdateVirtualService(null);
+  const {
+    data: updateData,
+    loading: updateLoading,
+    refetch: makeUpdateRequest
+  } = useUpdateVirtualService(null);
 
-  console.log(data);
-  if (!data || loading) {
-    return <div>Loading...</div>;
+  React.useEffect(() => {
+    console.log(data);
+    if (!!data) {
+      setVirtualService(data.virtualService);
+    }
+  }, [loading]);
+
+  React.useEffect(() => {
+    console.log(updateData);
+    if (!!updateData) {
+      setVirtualService(updateData.virtualService);
+    }
+  }, [updateLoading]);
+
+  console.log({ data, loading, updateLoading });
+  if (!virtualService && (loading || updateLoading)) {
+    return (
+      <React.Fragment>
+        <Breadcrumb />
+
+        <SectionCard
+          cardName={'Loading...'}
+          logoIcon={<GlooIcon />}
+          health={healthConstants.Pending.value}
+          healthMessage={'Loading...'}
+          onClose={() => history.push(`/virtualservices/`)}
+        />
+      </React.Fragment>
+    );
   }
-  if (!!error || (data && !data.virtualService)) {
+  if (!!error || !virtualService) {
     return <ErrorText>{error}</ErrorText>;
   }
 
-  const virtualService = data.virtualService!;
+  const reloadVirtualService = (
+    newVirtualService?: VirtualService.AsObject
+  ) => {
+    if (newVirtualService) {
+      setVirtualService(newVirtualService);
+    } else {
+      getVSRefetch(vsRequest);
+    }
+  };
 
   let routes: Route.AsObject[] = [];
   let domains: string[] = [];
-  if (virtualService.virtualHost) {
-    routes = virtualService.virtualHost.routesList;
-    domains = virtualService.virtualHost.domainsList;
+  if (!!virtualService!.virtualHost) {
+    routes = virtualService!.virtualHost!.routesList;
+    domains = virtualService!.virtualHost!.domainsList;
   }
 
   const updateVirtualService = (newInfo: {
@@ -99,25 +144,30 @@ export const VirtualServiceDetails = (props: Props) => {
   }) => {
     let virtualServiceInput = new VirtualServiceInput();
     let vsRef = new ResourceRef();
-    vsRef.setName(virtualService.metadata!.name);
-    vsRef.setNamespace(virtualService.metadata!.namespace);
+    vsRef.setName(virtualService!.metadata!.name);
+    vsRef.setNamespace(virtualService!.metadata!.namespace);
     virtualServiceInput.setRef(vsRef);
-    virtualServiceInput.setDisplayName(virtualService.displayName);
+    virtualServiceInput.setDisplayName(virtualService!.displayName);
     virtualServiceInput.setDomainsList(
       !!newInfo.newDomainsList
         ? newInfo.newDomainsList
-        : virtualService.virtualHost!.domainsList
+        : virtualService!.virtualHost!.domainsList
     );
     const routesList: Route[] = (!!newInfo.newRoutesList
       ? newInfo.newRoutesList
-      : virtualService.virtualHost!.routesList
+      : virtualService!.virtualHost!.routesList
     ).map((rt: Route.AsObject) => {
       let newRoute = new Route();
 
       let routeMatcher = new Matcher();
-      routeMatcher.setPrefix(
-        rt.matcher!.exact ? 'EXACT' : rt.matcher!.prefix ? 'PREFIX' : 'REGEX'
-      );
+      if (!!rt.matcher!.prefix) {
+        routeMatcher.setPrefix(rt.matcher!.prefix);
+      } else if (!!rt.matcher!.exact) {
+        routeMatcher.setExact(rt.matcher!.exact);
+      } else if (!!rt.matcher!.regex) {
+        routeMatcher.setRegex(rt.matcher!.regex);
+      }
+
       let matcherHeaders: HeaderMatcher[] = rt.matcher!.headersList.map(
         head => {
           const newMatcherHeader = new HeaderMatcher();
@@ -187,20 +237,20 @@ export const VirtualServiceDetails = (props: Props) => {
     });
     virtualServiceInput.setRoutesList(routesList);
 
-    if (!!virtualService.sslConfig && !!virtualService.sslConfig.secretRef) {
+    if (!!virtualService!.sslConfig && !!virtualService!.sslConfig!.secretRef) {
       let secretRef = new ResourceRef();
-      secretRef.setName(virtualService.sslConfig!.secretRef!.name);
-      secretRef.setNamespace(virtualService.sslConfig!.secretRef!.namespace);
+      secretRef.setName(virtualService!.sslConfig!.secretRef!.name);
+      secretRef.setNamespace(virtualService!.sslConfig!.secretRef!.namespace);
       virtualServiceInput.setSecretRef(secretRef);
     }
 
     if (
-      !!virtualService.virtualHost &&
-      !!virtualService.virtualHost!.virtualHostPlugins &&
-      !!virtualService.virtualHost!.virtualHostPlugins!.extensions &&
-      !!virtualService.virtualHost!.virtualHostPlugins!.extensions!.configsMap
+      !!virtualService!.virtualHost &&
+      !!virtualService!.virtualHost!.virtualHostPlugins &&
+      !!virtualService!.virtualHost!.virtualHostPlugins!.extensions &&
+      !!virtualService!.virtualHost!.virtualHostPlugins!.extensions!.configsMap
     ) {
-      const configsMap = virtualService.virtualHost!.virtualHostPlugins!
+      const configsMap = virtualService!.virtualHost!.virtualHostPlugins!
         .extensions!.configsMap;
 
       /** RATE LIMITS */
@@ -289,6 +339,9 @@ export const VirtualServiceDetails = (props: Props) => {
   const domainsChanged = (newDomainsList: string[]) => {
     updateVirtualService({ newDomainsList });
   };
+  const routesChanged = (newRoutesList: Route.AsObject[]) => {
+    updateVirtualService({ newRoutesList });
+  };
 
   const headerInfo = [
     {
@@ -305,14 +358,14 @@ export const VirtualServiceDetails = (props: Props) => {
         cardName={match.params ? match.params.virtualservicename : 'test'}
         logoIcon={<GlooIcon />}
         health={
-          virtualService.status
-            ? virtualService.status.state
+          virtualService!.status
+            ? virtualService!.status!.state
             : healthConstants.Pending.value
         }
         headerSecondaryInformation={headerInfo}
         healthMessage={
-          virtualService.status && virtualService.status.reason.length
-            ? virtualService.status.reason
+          virtualService!.status && virtualService!.status!.reason.length
+            ? virtualService!.status!.reason
             : 'Service Status'
         }
         onClose={() => history.push(`/virtualservices/`)}>
@@ -321,7 +374,12 @@ export const VirtualServiceDetails = (props: Props) => {
             <Domains domains={domains} domainsChanged={domainsChanged} />
           </DetailsSection>
           <DetailsSection>
-            <Routes routes={routes} virtualService={virtualService} />
+            <Routes
+              routes={routes}
+              virtualService={virtualService!}
+              routesChanged={routesChanged}
+              reloadVirtualService={reloadVirtualService}
+            />
           </DetailsSection>
           <DetailsSection>
             <Configuration />

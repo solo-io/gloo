@@ -3,7 +3,8 @@ import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/gr
 export enum RequestAction {
   START,
   SUCCESS,
-  ERROR
+  ERROR,
+  INITIALREFETCH
 }
 
 interface Action<T> {
@@ -41,6 +42,13 @@ export const requestReducer = <T>(state: State<T>, action: Action<T>) => {
         ...state,
         isLoading: false
         // error: action.error
+      };
+
+    case RequestAction.INITIALREFETCH:
+      return {
+        ...state,
+        isLoading: false,
+        error: undefined
       };
 
     default:

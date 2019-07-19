@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	"github.com/solo-io/solo-projects/pkg/license"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/kube"
@@ -93,6 +94,7 @@ func (s *configGrpcService) UpdateSettings(ctx context.Context, request *v1.Upda
 		existing.WatchNamespaces = request.GetWatchNamespaces()
 	}
 
+	existing.Status = core.Status{}
 	written, err := s.settingsClient.Write(existing, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: true})
 	if err != nil {
 		wrapped := FailedToUpdateSettingsError(err)

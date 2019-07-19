@@ -98,6 +98,10 @@ const DetailContent = styled.div`
   word-break: break-all;
 `;
 
+const ActionCircle = styled(TableActionCircle)`
+  display: inline-block;
+`;
+
 const ArrowToggle = styled<'div', { active?: boolean }>('div')`
   position: absolute;
   right: 8px;
@@ -174,9 +178,7 @@ export const Card = (props: CardType) => {
       <MainSection>
         <CardTitle>
           {cardTitle}
-          {!!onCreate && (
-            <TableActionCircle onClick={onCreate}>+</TableActionCircle>
-          )}
+          {!!onCreate && <ActionCircle onClick={onCreate}>+</ActionCircle>}
         </CardTitle>
         <CardSubtitle>
           {cardSubtitle && cardSubtitle.length ? cardSubtitle : '   '}

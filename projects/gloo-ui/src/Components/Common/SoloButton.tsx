@@ -24,13 +24,15 @@ export const SoloButton = (props: SoloButtonProps) => {
     inProgressText,
     errorText,
     error,
-    uniqueCss
+    uniqueCss,
+    ...rest
   } = props;
 
   return (
     <React.Fragment>
       <Button
-        {...props}
+        {...rest}
+        loading={loading}
         css={css`
           ${SoloButtonCSS};
           ${uniqueCss || {}};

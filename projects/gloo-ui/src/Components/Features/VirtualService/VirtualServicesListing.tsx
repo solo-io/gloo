@@ -5,7 +5,11 @@ import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
 import { RouteComponentProps } from 'react-router';
 import { colors, healthConstants } from 'Styles';
-import { TableActionCircle, TableHealthCircleHolder } from 'Styles/table';
+import {
+  TableActionCircle,
+  TableHealthCircleHolder,
+  TableActions
+} from 'Styles/table';
 import {
   ListingFilter,
   StringFilterProps,
@@ -105,9 +109,11 @@ const getTableColumns = (
       dataIndex: 'actions',
       render: (vs: VirtualService.AsObject) => {
         return (
-          <TableActionCircle onClick={() => startCreatingRoute(vs)}>
-            +
-          </TableActionCircle>
+          <TableActions>
+            <TableActionCircle onClick={() => startCreatingRoute(vs)}>
+              +
+            </TableActionCircle>
+          </TableActions>
         );
       }
     }
@@ -271,6 +277,7 @@ export const VirtualServicesListing = (props: Props) => {
         onClose={() => setVirtualServiceForRouteCreation(undefined)}>
         <CreateRouteModal
           defaultVirtualService={virtualServiceForRouteCreation}
+          completeCreation={() => setVirtualServiceForRouteCreation(undefined)}
         />
       </SoloModal>
     </div>

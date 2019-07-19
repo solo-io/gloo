@@ -12,7 +12,7 @@ import {
   getRouteQueryParams
 } from 'utils/helpers';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { TableActionCircle } from 'Styles';
+import { TableActionCircle, TableActions } from 'Styles';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
 
@@ -23,7 +23,10 @@ const RouteMatch = styled.div`
   text-overflow: ellipsis;
 `;
 
-const getRouteColumns = (showCreateRouteModal: (boolean: true) => any) => {
+const getRouteColumns = (
+  showCreateRouteModal: (boolean: true) => void,
+  deleteRoute: (matcher: string) => any
+) => {
   return [
     {
       title: 'Matcher',
@@ -55,11 +58,18 @@ const getRouteColumns = (showCreateRouteModal: (boolean: true) => any) => {
     {
       title: 'Actions',
       dataIndex: 'actions',
-      render: () => {
+      render: (matcher: string) => {
         return (
-          <TableActionCircle onClick={() => showCreateRouteModal(true)}>
-            +
-          </TableActionCircle>
+          <TableActions>
+            <TableActionCircle onClick={() => showCreateRouteModal(true)}>
+              +
+            </TableActionCircle>
+            <div style={{ marginLeft: '5px' }}>
+              <TableActionCircle onClick={() => deleteRoute(matcher)}>
+                x
+              </TableActionCircle>
+            </div>
+          </TableActions>
         );
       }
     }
@@ -69,6 +79,8 @@ const getRouteColumns = (showCreateRouteModal: (boolean: true) => any) => {
 interface Props {
   routes: Route.AsObject[];
   virtualService: VirtualService.AsObject;
+  routesChanged: (newRoutes: Route.AsObject[]) => any;
+  reloadVirtualService: (newVirtualService?: VirtualService.AsObject) => any;
 }
 
 export const Routes: React.FC<Props> = props => {
@@ -78,25 +90,37 @@ export const Routes: React.FC<Props> = props => {
     return routes.map(route => {
       const upstreamName = getRouteSingleUpstream(route).name || '';
       const { matcher, matchType } = getRouteMatcher(route);
-      console.log(route);
       return {
-        key: route.matcher!.prefix,
+        key: matcher,
         matcher: matcher,
         pathMatch: matchType,
         method: getRouteMethods(route),
         upstreamName: upstreamName,
         header: getRouteHeaders(route),
         queryParams: getRouteQueryParams(route),
-        actions: ''
+        actions: matcher
       };
     });
+  };
+
+  const deleteRoute = (matcherToDelete: string) => {
+    props.routesChanged(
+      props.routes.filter(
+        route => getRouteMatcher(route).matcher !== matcherToDelete
+      )
+    );
+  };
+
+  const finishRouteCreation = (newVirtualService?: VirtualService.AsObject) => {
+    setCreateRoute(false);
+    props.reloadVirtualService(newVirtualService);
   };
 
   return (
     <React.Fragment>
       <DetailsSectionTitle>Routes</DetailsSectionTitle>
       <SoloTable
-        columns={getRouteColumns(setCreateRoute)}
+        columns={getRouteColumns(setCreateRoute, deleteRoute)}
         dataSource={getRouteData(props.routes)}
       />
       <SoloModal
@@ -104,7 +128,10 @@ export const Routes: React.FC<Props> = props => {
         width={500}
         title={'Create Route'}
         onClose={() => setCreateRoute(false)}>
-        <CreateRouteModal defaultVirtualService={props.virtualService} />
+        <CreateRouteModal
+          defaultVirtualService={props.virtualService}
+          completeCreation={finishRouteCreation}
+        />
       </SoloModal>
     </React.Fragment>
   );

@@ -45,6 +45,7 @@ func (m *mutator) Update(ref *core.ResourceRef, f Mutation) (*gatewayv1.VirtualS
 	if err := f(virtualService); err != nil {
 		return nil, err
 	}
+	virtualService.Status = core.Status{}
 	return m.client.Write(virtualService, clients.WriteOpts{Ctx: m.ctx, OverwriteExisting: true})
 }
 

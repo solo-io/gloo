@@ -243,6 +243,7 @@ export const useUpdateVirtualService = (
 
   const makeRequest = (request: UpdateVirtualServiceRequest | null) => {
     if (!request) {
+      dispatch({ type: RequestAction.INITIALREFETCH, payload: null });
       return;
     }
     dispatch({ type: RequestAction.START, payload: null });

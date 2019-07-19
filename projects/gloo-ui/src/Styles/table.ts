@@ -1,8 +1,11 @@
 import styled from '@emotion/styled/macro';
 import { colors } from 'Styles/colors';
 
+export const TableActions = styled.div`
+  display: flex;
+`;
+
 export const TableActionCircle = styled.div`
-  display: inline-block;
   width: 18px;
   height: 18px;
   line-height: 18px;
