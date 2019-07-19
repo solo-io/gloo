@@ -256,7 +256,18 @@ export const CreateRouteModal = (props: Props) => {
      * */
     let newRoute = new Route();
     let routeMatcher = new Matcher();
-    routeMatcher.setPrefix(values.matchType);
+    switch (values.matchType) {
+      case 'PREFIX':
+        routeMatcher.setPrefix(values.path);
+        break;
+      case 'EXACT':
+        routeMatcher.setExact(values.path);
+        break;
+      case 'REGEX':
+        routeMatcher.setRegex(values.path);
+        break;
+    }
+
     let matcherHeaders: HeaderMatcher[] = values.headers.map(head => {
       const newMatcherHeader = new HeaderMatcher();
       newMatcherHeader.setName(head.name);

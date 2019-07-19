@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Route table in VS Details and Route creation fixes.
+    issueLink: https://github.com/solo-io/solo-projects/issues/705

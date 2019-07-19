@@ -321,7 +321,7 @@ export const VirtualServiceDetails = (props: Props) => {
             <Domains domains={domains} domainsChanged={domainsChanged} />
           </DetailsSection>
           <DetailsSection>
-            <Routes routes={routes} />
+            <Routes routes={routes} virtualService={virtualService} />
           </DetailsSection>
           <DetailsSection>
             <Configuration />
