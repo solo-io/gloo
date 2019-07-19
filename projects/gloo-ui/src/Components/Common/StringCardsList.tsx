@@ -8,6 +8,7 @@ import { soloConstants } from 'Styles/constants';
 import { SoloInput } from './SoloInput';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { ReactComponent as GreyX } from 'assets/small-grey-x.svg';
+import { SoloTypeahead } from './SoloTypeahead';
 
 export const Container = styled.div`
   display: flex;
@@ -73,6 +74,7 @@ export const PlusHolder = styled<'div', { disabled: boolean }>('div')`
   right: 7px;
   top: 10px;
   cursor: pointer;
+  z-index: 5;
 `;
 
 interface Props {
@@ -81,6 +83,8 @@ interface Props {
   createNew?: (newValue: string) => any;
   valueIsValid?: (value: string) => boolean;
   createNewPromptText?: string;
+  asTypeahead?: boolean;
+  presetOptions?: string[];
 }
 
 // This badly needs a better name
@@ -90,7 +94,9 @@ export const StringCardsList = (props: Props) => {
     valueDeleted,
     createNew,
     createNewPromptText,
-    valueIsValid
+    valueIsValid,
+    asTypeahead,
+    presetOptions
   } = props;
 
   const [newValue, setNewValue] = React.useState<string>('');
@@ -122,22 +128,32 @@ export const StringCardsList = (props: Props) => {
       })}
       {!!createNew && (
         <NewStringPrompt>
-          <SoloInput
-            value={newValue}
-            placeholder={createNewPromptText}
-            onChange={newValueChanged}
-            error={
-              !!newValue.length &&
-              (!!valueIsValid ? !valueIsValid(newValue) : false)
-            }
-          />
+          {asTypeahead ? (
+            <SoloTypeahead
+              placeholder={createNewPromptText}
+              onChange={value => setNewValue(value)}
+              presetOptions={presetOptions!}
+            />
+          ) : (
+            <SoloInput
+              value={newValue}
+              placeholder={createNewPromptText}
+              onChange={newValueChanged}
+              error={
+                !!newValue.length &&
+                (!!valueIsValid ? !valueIsValid(newValue) : false)
+              }
+            />
+          )}
           <PlusHolder
             disabled={
               !newValue.length ||
               (!!valueIsValid ? !valueIsValid(newValue) : false)
             }
             onClick={sendCreateNew}>
-            <GreenPlus style={{ width: '16px', height: '16px' }} />
+            <GreenPlus
+              style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+            />
           </PlusHolder>
         </NewStringPrompt>
       )}

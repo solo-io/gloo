@@ -108,6 +108,7 @@ interface Props {
   health?: number;
   healthMessage?: string;
   onClose?: () => any;
+  secondaryComponent?: React.ReactNode;
 }
 
 export const SectionCard: React.FunctionComponent<Props> = props => {
@@ -118,8 +119,14 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
     headerSecondaryInformation,
     health,
     healthMessage,
-    onClose
+    onClose,
+    secondaryComponent
   } = props;
+
+  // TODO: figure out best way to render this
+  const SecondaryComponent: React.ReactNode = !!secondaryComponent
+    ? secondaryComponent
+    : () => <div />;
 
   return (
     <CardBlock>
@@ -128,7 +135,13 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
         <HeaderTitleSection>
           <HeaderTitleName>{cardName}</HeaderTitleName>
         </HeaderTitleSection>
-
+        {!!secondaryComponent && (
+          <SecondaryInformation>
+            <SecondaryInformationSection>
+              {secondaryComponent}
+            </SecondaryInformationSection>
+          </SecondaryInformation>
+        )}
         {!!headerSecondaryInformation && (
           <SecondaryInformation>
             {headerSecondaryInformation.map(info => {

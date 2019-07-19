@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Watch namespaces is now hooked up to api.
+    issueLink: https://github.com/solo-io/solo-projects/issues/639
+    resolvesIssue: false
