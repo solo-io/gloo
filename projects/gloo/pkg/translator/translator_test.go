@@ -76,6 +76,7 @@ var _ = Describe("Translator", func() {
 		opts := bootstrap.Opts{
 			Settings:     settings,
 			Secrets:      memoryClientFactory,
+			Upstreams:    memoryClientFactory,
 			ConsulClient: consul.NewMockConsulWatcher(ctrl), // just needed to activate the consul plugin
 		}
 		registeredPlugins = registry.Plugins(opts)
