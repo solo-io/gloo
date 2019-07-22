@@ -123,11 +123,6 @@ export const SectionCard: React.FunctionComponent<Props> = props => {
     secondaryComponent
   } = props;
 
-  // TODO: figure out best way to render this
-  const SecondaryComponent: React.ReactNode = !!secondaryComponent
-    ? secondaryComponent
-    : () => <div />;
-
   return (
     <CardBlock>
       <Header>

@@ -44,38 +44,54 @@ export const KubeUpstreamForm: React.FC<Props> = ({ parentForm }) => {
     <Formik<KubeValuesType>
       validationSchema={kubeValidationSchema}
       initialValues={kubeInitialValues}
-      onSubmit={() => parentForm.submitForm()}>
-      <SoloFormTemplate formHeader='Kubernetes Upstream Settings'>
-        <InputRow>
-          <Field
-            name='kubeServiceName'
-            title='Service Name'
-            placeholder='Service Name'
-            component={SoloFormInput}
-          />
-          <Field
-            name='kubeServiceNamespace'
-            title='Service Namespace'
-            defaultValue='gloo-system'
-            presetOptions={namespaces}
-            component={SoloFormTypeahead}
-          />
-          <Field
-            name='kubeServicePort'
-            title='Service Port'
-            placeholder='Service Port'
-            type='number'
-            component={SoloFormInput}
-          />
-        </InputRow>
-        <Footer>
-          <SoloButton
-            onClick={parentForm.handleSubmit}
-            text='Create Upstream'
-            disabled={parentForm.isSubmitting}
-          />
-        </Footer>
-      </SoloFormTemplate>
+      onSubmit={values => {
+        parentForm.setFieldValue('kubeServiceName', values.kubeServiceName);
+        parentForm.setFieldValue(
+          'kubeServiceNamespace',
+          values.kubeServiceNamespace
+        );
+        parentForm.setFieldValue('kubeServicePort', values.kubeServicePort);
+        parentForm.submitForm();
+      }}>
+      {({ handleSubmit }) => (
+        <SoloFormTemplate formHeader='Kubernetes Upstream Settings'>
+          <InputRow>
+            <div>
+              <Field
+                name='kubeServiceName'
+                title='Service Name'
+                placeholder='Service Name'
+                component={SoloFormInput}
+              />
+            </div>
+            <div>
+              <Field
+                name='kubeServiceNamespace'
+                title='Service Namespace'
+                defaultValue='gloo-system'
+                presetOptions={namespaces}
+                component={SoloFormTypeahead}
+              />
+            </div>
+            <div>
+              <Field
+                name='kubeServicePort'
+                title='Service Port'
+                placeholder='Service Port'
+                type='number'
+                component={SoloFormInput}
+              />
+            </div>
+          </InputRow>
+          <Footer>
+            <SoloButton
+              onClick={handleSubmit}
+              text='Create Upstream'
+              disabled={parentForm.isSubmitting}
+            />
+          </Footer>
+        </SoloFormTemplate>
+      )}
     </Formik>
   );
 };

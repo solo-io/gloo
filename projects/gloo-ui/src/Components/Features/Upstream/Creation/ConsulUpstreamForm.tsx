@@ -42,27 +42,46 @@ export const ConsulUpstreamForm: React.FC<Props> = ({ parentForm }) => {
     <Formik<ConsulVauesType>
       validationSchema={consulValidationSchema}
       initialValues={consulInitialValues}
-      onSubmit={() => parentForm.submitForm()}>
-      {({ values }) => (
+      onSubmit={values => {
+        parentForm.setFieldValue(
+          'consulConnectEnabled',
+          values.consulConnectEnabled
+        );
+        parentForm.setFieldValue('consulDataCenter', values.consulDataCenter);
+        parentForm.setFieldValue('consulServiceName', values.consulServiceName);
+        parentForm.setFieldValue(
+          'consulServiceTagsList',
+          values.consulServiceTagsList
+        );
+
+        parentForm.submitForm();
+      }}>
+      {({ values, handleSubmit }) => (
         <SoloFormTemplate formHeader='Consul Upstream Settings'>
           <InputRow>
-            <Field
-              name='consulServiceName'
-              title='Service Name'
-              placeholder='Service Name'
-              component={SoloFormInput}
-            />
-            <Field
-              name='consulConnectEnabled'
-              title='Enable Consul Connect'
-              component={SoloFormCheckbox}
-            />
-            <Field
-              name='consulDataCenter'
-              title='Data Center'
-              placeholder='Data Center'
-              component={SoloFormInput}
-            />
+            <div>
+              <Field
+                name='consulServiceName'
+                title='Service Name'
+                placeholder='Service Name'
+                component={SoloFormInput}
+              />
+            </div>
+            <div>
+              <Field
+                name='consulConnectEnabled'
+                title='Enable Consul Connect'
+                component={SoloFormCheckbox}
+              />
+            </div>
+            <div>
+              <Field
+                name='consulDataCenter'
+                title='Data Center'
+                placeholder='Data Center'
+                component={SoloFormInput}
+              />
+            </div>
             {/* TODO: Use String Cards List component */}
             <FieldArray
               name='consulServiceTagsList'
@@ -85,7 +104,7 @@ export const ConsulUpstreamForm: React.FC<Props> = ({ parentForm }) => {
           </InputRow>
           <Footer>
             <SoloButton
-              onClick={parentForm.handleSubmit}
+              onClick={handleSubmit}
               text='Create Upstream'
               disabled={parentForm.isSubmitting}
             />

@@ -23,6 +23,7 @@ import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
 import { AWS_REGIONS } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
+import { Table } from 'antd';
 
 interface AwsValuesType {
   awsRegion: string;
@@ -68,89 +69,122 @@ export const AwsUpstreamForm: React.FC<Props> = ({ parentForm }) => {
   return (
     <Formik<AwsValuesType>
       validationSchema={awsValidationSchema}
-      initialValues={awsInitialValues}
-      onSubmit={() => parentForm.submitForm()}>
-      <SoloFormTemplate formHeader='AWS Upstream Settings'>
-        <InputRow>
-          <div>
+      initialValues={parentForm.values}
+      onSubmit={values => {
+        parentForm.setFieldValue('awsRegion', values.awsRegion);
+        parentForm.setFieldValue(
+          'awsLambdaFunctionsList',
+          values.awsLambdaFunctionsList.slice(1)
+        );
+        parentForm.setFieldValue('awsSecretRef', values.awsSecretRef);
+        parentForm.submitForm();
+      }}>
+      {({ handleSubmit }) => (
+        <SoloFormTemplate formHeader='AWS Upstream Settings'>
+          <InputRow>
+            <div>
+              <Field
+                name='awsRegion'
+                title='Region'
+                presetOptions={awsRegions}
+                component={SoloFormTypeahead}
+              />
+            </div>
             <Field
-              name='awsRegion'
-              title='Region'
-              presetOptions={awsRegions}
-              component={SoloFormTypeahead}
+              name='awsSecretRef'
+              type='aws'
+              component={SoloSecretRefInput}
             />
-          </div>
-          <Field
-            name='awsSecretRef'
-            type='aws'
-            component={SoloSecretRefInput}
-          />
-        </InputRow>
-        <SoloFormTemplate formHeader='Lambda Functions'>
-          <FieldArray name='awsLambdaFunctionsList' render={LambdaFunctions} />
+          </InputRow>
+          <SoloFormTemplate formHeader='Lambda Functions'>
+            <FieldArray
+              name='awsLambdaFunctionsList'
+              render={LambdaFunctions}
+            />
+          </SoloFormTemplate>
+          <Footer>
+            <SoloButton
+              onClick={handleSubmit}
+              text='Create Upstream'
+              disabled={parentForm.isSubmitting}
+            />
+          </Footer>
         </SoloFormTemplate>
-        <Footer>
-          <SoloButton
-            onClick={parentForm.handleSubmit}
-            text='Create Upstream'
-            disabled={parentForm.isSubmitting}
-          />
-        </Footer>
-      </SoloFormTemplate>
+      )}
     </Formik>
   );
 };
 
-export const LambdaFunctions: React.FC<FieldArrayRenderProps> = ({
-  form,
-  remove,
-  insert,
-  name
-}) => (
-  <React.Fragment>
-    <InputRow>
-      <Field
-        name='awsLambdaFunctionsList[0].logicalName'
-        title='Logical Name'
-        placeholder='Logical Name'
-        component={SoloFormInput}
-      />
-      <Field
-        name='awsLambdaFunctionsList[0].lambdaFunctionName'
-        title='Lambda Function Name'
-        placeholder='Lambda Function Name'
-        component={SoloFormInput}
-      />
-      <Field
-        name='awsLambdaFunctionsList[0].qualifier'
-        title='Qualifier'
-        placeholder='Qualifier'
-        component={SoloFormInput}
-      />
-      <GreenPlus
-        style={{ alignSelf: 'center' }}
-        onClick={() =>
-          insert(0, {
-            logicalName: '',
-            lambdaFunctionName: '',
-            qualifier: ''
-          })
-        }
-      />
-    </InputRow>
-    <InputRow>
-      {form.values.awsLambdaFunctionsList.map(
-        (lambda: LambdaFunctionSpec.AsObject, index: number) => {
-          return (
-            <div key={lambda.logicalName}>
-              <div>{lambda.logicalName}</div>
-              <div>{lambda.lambdaFunctionName}</div>
-              <div>{lambda.qualifier}</div>
-              <CloseX onClick={() => remove(index)} />
-            </div>
-          );
-        }
-      )}
-    </InputRow>
-  </React.Fragment>
-);
+interface LambdaProps extends FieldArrayRenderProps {
+  form: FormikProps<AwsValuesType>;
+  name: string;
+}
+const LambdaFunctions: React.FC<LambdaProps> = props => {
+  const { form, remove, insert, name, push } = props;
+  const cols = [
+    {
+      title: 'Logical name',
+      dataIndex: 'logicalName'
+    },
+    {
+      title: 'Function name',
+      dataIndex: 'lambdaFunctionName'
+    },
+    {
+      title: 'Qualifier',
+      dataIndex: 'qualifier'
+    },
+    { title: 'Action', dataIndex: 'action' }
+  ];
+  const formData = form.values.awsLambdaFunctionsList.map((lambda, index) => {
+    return {
+      ...lambda,
+      key: `${lambda.logicalName}-${lambda.lambdaFunctionName}`,
+      action: (
+        <CloseX style={{ cursor: 'pointer' }} onClick={() => remove(index)} />
+      )
+    };
+  });
+  return (
+    <React.Fragment>
+      <InputRow>
+        <Field
+          name='awsLambdaFunctionsList[0].logicalName'
+          title='Logical Name'
+          placeholder='Logical Name'
+          component={SoloFormInput}
+        />
+        <Field
+          name='awsLambdaFunctionsList[0].lambdaFunctionName'
+          title='Lambda Function Name'
+          placeholder='Lambda Function Name'
+          component={SoloFormInput}
+        />
+        <Field
+          name='awsLambdaFunctionsList[0].qualifier'
+          title='Qualifier'
+          placeholder='Qualifier'
+          component={SoloFormInput}
+        />
+        <GreenPlus
+          style={{ alignSelf: 'center' }}
+          onClick={() => {
+            insert(0, {
+              logicalName: '',
+              lambdaFunctionName: '',
+              qualifier: ''
+            });
+          }}
+        />
+      </InputRow>
+      <InputRow>
+        <Table
+          style={{ width: '100%' }}
+          dataSource={formData.slice(1)}
+          columns={cols}
+          pagination={false}
+        />
+      </InputRow>
+    </React.Fragment>
+  );
+};

@@ -55,39 +55,48 @@ export const StaticUpstreamForm: React.FC<Props> = ({ parentForm }) => {
     <Formik<StaticValuesType>
       validationSchema={staticValidationSchema}
       initialValues={staticInitialValues}
-      onSubmit={() => parentForm.submitForm()}>
-      <SoloFormTemplate formHeader='Static Upstream Settings'>
-        <InputRow>
-          <Field
-            name='staticServiceName'
-            title='Service Name'
-            placeholder='Service Name'
-            component={SoloFormInput}
-          />
-          <Field
-            name='staticUseTls'
-            title='Use Tls'
-            component={SoloFormCheckbox}
-          />
-          <Field
-            name='staticServicePort'
-            title='Service Port'
-            placeholder='Service Port'
-            type='number'
-            component={SoloFormInput}
-          />
-        </InputRow>
-        <InputRow>
-          <FieldArray name='staticHostList' render={SoloFormArrayField} />
-        </InputRow>
-        <Footer>
-          <SoloButton
-            onClick={parentForm.handleSubmit}
-            text='Create Upstream'
-            disabled={parentForm.isSubmitting}
-          />
-        </Footer>
-      </SoloFormTemplate>
+      onSubmit={values => {
+        parentForm.setFieldValue('staticHostList', values.staticHostList);
+        parentForm.setFieldValue('staticServiceName', values.staticServiceName);
+        parentForm.setFieldValue('staticServicePort', values.staticServicePort);
+        parentForm.setFieldValue('staticUseTls', values.staticUseTls);
+
+        parentForm.submitForm();
+      }}>
+      {({ handleSubmit }) => (
+        <SoloFormTemplate formHeader='Static Upstream Settings'>
+          <InputRow>
+            <Field
+              name='staticServiceName'
+              title='Service Name'
+              placeholder='Service Name'
+              component={SoloFormInput}
+            />
+            <Field
+              name='staticUseTls'
+              title='Use Tls'
+              component={SoloFormCheckbox}
+            />
+            <Field
+              name='staticServicePort'
+              title='Service Port'
+              placeholder='Service Port'
+              type='number'
+              component={SoloFormInput}
+            />
+          </InputRow>
+          <InputRow>
+            <FieldArray name='staticHostList' render={SoloFormArrayField} />
+          </InputRow>
+          <Footer>
+            <SoloButton
+              onClick={handleSubmit}
+              text='Create Upstream'
+              disabled={parentForm.isSubmitting}
+            />
+          </Footer>
+        </SoloFormTemplate>
+      )}
     </Formik>
   );
 };

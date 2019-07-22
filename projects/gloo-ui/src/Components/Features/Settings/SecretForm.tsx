@@ -60,29 +60,34 @@ export const SecretForm: React.FC<Props> = ({ secretKind }) => {
 
   const createSecret = (values: typeof initialValues) => {
     const secretReq = new CreateSecretRequest();
-
+    switch (secretKind) {
+      case Secret.KindCase.AWS:
+        const awsSecret = new AwsSecret();
+        awsSecret.setAccessKey(values.awsSecret.accessKey);
+        awsSecret.setSecretKey(values.awsSecret.secretKey);
+        secretReq.setAws(awsSecret);
+        break;
+      case Secret.KindCase.AZURE:
+        // TODO: figure out correct way to input api keys map
+        // https://docs.microsoft.com/en-us/azure/search/search-security-api-keys
+        const azureSecret = new AzureSecret();
+        azureSecret.getApiKeysMap().set('keyname', 'key');
+        const apiKeys = new Map<string, string>();
+        break;
+      case Secret.KindCase.TLS:
+        const tlsSecret = new TlsSecret();
+        tlsSecret.setCertChain(values.tlsSecret.certChain);
+        tlsSecret.setPrivateKey(values.tlsSecret.privateKey);
+        tlsSecret.setRootCa(values.tlsSecret.rootCa);
+        secretReq.setTls(tlsSecret);
+        break;
+      default:
+        break;
+    }
     const resourceRef = new ResourceRef();
     resourceRef.setName(values.secretResourceRef.name);
     resourceRef.setNamespace(values.secretResourceRef.namespace);
     secretReq.setRef(resourceRef);
-
-    const awsSecret = new AwsSecret();
-    awsSecret.setAccessKey(values.awsSecret.accessKey);
-    awsSecret.setSecretKey(values.awsSecret.secretKey);
-    secretReq.setAws(awsSecret);
-
-    // TODO: figure out correct way to input api keys map
-    // https://docs.microsoft.com/en-us/azure/search/search-security-api-keys
-    const azureSecret = new AzureSecret();
-    const apiKeys = new Map<string, string>();
-
-    azureSecret.getApiKeysMap().set('keyname', 'key');
-
-    const tlsSecret = new TlsSecret();
-    tlsSecret.setCertChain(values.tlsSecret.certChain);
-    tlsSecret.setPrivateKey(values.tlsSecret.privateKey);
-    tlsSecret.setRootCa(values.tlsSecret.rootCa);
-    secretReq.setTls(tlsSecret);
 
     makeRequest(secretReq);
   };

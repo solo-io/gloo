@@ -41,12 +41,6 @@ const FormContainer = styled.div`
   flex-direction: column;
 `;
 
-const Footer = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-`;
-
 // TODO: better way to include all initial values?
 export const initialValues = {
   name: '',
@@ -71,6 +65,7 @@ export const CreateUpstreamForm = (props: Props) => {
 
   const { refetch: makeRequest } = useCreateUpstream(null);
 
+  const LambdaFunctionList = React.useRef<LambdaFunctionSpec[]>([]);
   // grpc request
   function createUpstream(values: typeof initialValues) {
     const newUpstreamReq = new CreateUpstreamRequest();
@@ -93,14 +88,15 @@ export const CreateUpstreamForm = (props: Props) => {
         awsSecretRef.setName(values.awsSecretRef.name);
         awsSecretRef.setNamespace(values.awsSecretRef.namespace);
         awsSpec.setSecretRef(awsSecretRef);
-        const lambdaList = values.awsLambdaFunctionsList.map(lambda => {
-          const lambdaReq = new LambdaFunctionSpec();
-          lambdaReq.setLambdaFunctionName(lambda.lambdaFunctionName);
-          lambdaReq.setLogicalName(lambda.logicalName);
-          lambdaReq.setQualifier(lambda.qualifier);
-          return lambdaReq;
+        values.awsLambdaFunctionsList.forEach(lambda => {
+          const newLambdaList = new LambdaFunctionSpec();
+          newLambdaList.setLambdaFunctionName(lambda.lambdaFunctionName);
+          newLambdaList.setLogicalName(lambda.logicalName);
+          newLambdaList.setQualifier(lambda.qualifier);
+          LambdaFunctionList.current.push(newLambdaList);
         });
-        awsSpec.setLambdaFunctionsList(lambdaList);
+        console.log(values.awsLambdaFunctionsList);
+        awsSpec.setLambdaFunctionsList(LambdaFunctionList.current);
 
         usInput.setAws(awsSpec);
         break;
