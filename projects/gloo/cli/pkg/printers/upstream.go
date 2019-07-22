@@ -19,9 +19,10 @@ func UpstreamTable(upstreams []*v1.Upstream, w io.Writer) {
 	for _, us := range upstreams {
 		name := us.GetMetadata().Name
 		s := us.Status.State.String()
-		u := upstreamType(us)
 
+		u := upstreamType(us)
 		details := upstreamDetails(us)
+
 		if len(details) == 0 {
 			details = []string{""}
 		}
@@ -40,6 +41,10 @@ func UpstreamTable(upstreams []*v1.Upstream, w io.Writer) {
 }
 
 func upstreamType(up *v1.Upstream) string {
+	if up.UpstreamSpec == nil {
+		return "Invalid"
+	}
+
 	switch up.UpstreamSpec.UpstreamType.(type) {
 	case *v1.UpstreamSpec_Aws:
 		return "AWS"
@@ -57,6 +62,10 @@ func upstreamType(up *v1.Upstream) string {
 }
 
 func upstreamDetails(up *v1.Upstream) []string {
+	if up.UpstreamSpec == nil {
+		return []string{"invalid: spec was nil"}
+	}
+
 	var details []string
 	add := func(s ...string) {
 		details = append(details, s...)
