@@ -12,6 +12,7 @@ import { createUpstreamId, parseUpstreamId } from 'utils/helpers';
 import { NamespacesContext } from 'GlooIApp';
 import { ListSecretsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import { useListSecrets } from 'Api';
+import { StringCardsListProps, StringCardsList } from '../StringCardsList';
 
 const ErrorText = styled<'div', { errorExists?: boolean }>('div')`
   color: ${colors.grapefruitOrange};
@@ -23,7 +24,7 @@ const ErrorText = styled<'div', { errorExists?: boolean }>('div')`
 export const SoloFormInput: React.FC<FieldProps & InputProps> = ({
   error,
   field,
-  form: { errors },
+  form: { errors, ...form },
   ...rest
 }) => (
   <React.Fragment>
@@ -34,7 +35,7 @@ export const SoloFormInput: React.FC<FieldProps & InputProps> = ({
 
 export const SoloFormTypeahead: React.FC<FieldProps & TypeaheadProps> = ({
   field,
-  form: { errors, setFieldValue },
+  form: { errors, setFieldValue, ...form },
   ...rest
 }) => {
   return (
@@ -51,7 +52,7 @@ export const SoloFormTypeahead: React.FC<FieldProps & TypeaheadProps> = ({
 
 export const SoloFormDropdown: React.FC<FieldProps & DropdownProps> = ({
   field,
-  form: { errors, setFieldValue },
+  form: { errors, setFieldValue, ...form },
   ...rest
 }) => {
   return (
@@ -111,7 +112,7 @@ export const SoloFormMetadataBasedDropdown: React.FC<
 
 export const SoloFormMultiselect: React.FC<FieldProps & DropdownProps> = ({
   field,
-  form: { errors, setFieldValue },
+  form: { errors, setFieldValue, ...form },
   ...rest
 }) => {
   return (
@@ -139,7 +140,7 @@ export const SoloFormMultiselect: React.FC<FieldProps & DropdownProps> = ({
 
 export const SoloFormCheckbox: React.FC<FieldProps & CheckboxProps> = ({
   field,
-  form: { errors, setFieldValue },
+  form: { errors, setFieldValue, ...form },
   ...rest
 }) => {
   return (
@@ -273,6 +274,36 @@ export const TableFormWrapper: React.FC = props => {
       {React.Children.map(props.children, child => (
         <td>{child}</td>
       ))}
+    </React.Fragment>
+  );
+};
+
+export const SoloFormStringsList: React.FC<
+  FieldProps & StringCardsListProps
+> = ({
+  field,
+  form: { errors, setFieldValue, ...form },
+  createNewPromptText,
+  ...rest
+}) => {
+  const removeValue = (index: number) => {
+    setFieldValue(field.name, form.values[field.name].splice(index, 1));
+  };
+  const addValue = (value: string) => {
+    setFieldValue(field.name, form.values[field.name].concat(value));
+  };
+
+  return (
+    <React.Fragment>
+      <StringCardsList
+        {...rest}
+        {...field}
+        values={form.values.consulDataCentersList.slice(1)}
+        valueDeleted={removeValue}
+        createNew={addValue}
+        createNewPromptText={createNewPromptText}
+      />
+      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
     </React.Fragment>
   );
 };

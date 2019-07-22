@@ -183,6 +183,7 @@ const LambdaFunctions: React.FC<LambdaProps> = props => {
           dataSource={formData.slice(1)}
           columns={cols}
           pagination={false}
+          locale={{ emptyText: 'Enter Functions' }}
         />
       </InputRow>
     </React.Fragment>

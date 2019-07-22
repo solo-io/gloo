@@ -77,7 +77,7 @@ export const PlusHolder = styled<'div', { disabled: boolean }>('div')`
   z-index: 5;
 `;
 
-interface Props {
+export interface StringCardsListProps {
   values: string[];
   valueDeleted: (indexDeleted: number) => any;
   createNew?: (newValue: string) => any;
@@ -88,7 +88,7 @@ interface Props {
 }
 
 // This badly needs a better name
-export const StringCardsList = (props: Props) => {
+export const StringCardsList = (props: StringCardsListProps) => {
   const {
     values,
     valueDeleted,

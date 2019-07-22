@@ -1,3 +1,4 @@
+import { Table } from 'antd';
 import { ReactComponent as CloseX } from 'assets/close-x.svg';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import {
@@ -5,26 +6,24 @@ import {
   SoloSecretRefInput
 } from 'Components/Common/Form/SoloFormField';
 import {
+  Footer,
   InputRow,
-  SoloFormTemplate,
-  Footer
+  SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
+import { SoloButton } from 'Components/Common/SoloButton';
 import {
   Field,
   FieldArray,
   FieldArrayRenderProps,
-  FormikProps,
-  Formik
+  Formik,
+  FormikProps
 } from 'formik';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
 import { AZURE_AUTH_LEVELS } from 'utils/azureHelpers';
 import * as yup from 'yup';
 import { UpstreamSpec as AzureUpstreamSpec } from '../../../../proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
 import { SoloFormDropdown } from '../../../Common/Form/SoloFormField';
-import { initialValues } from './CreateUpstreamForm';
-import { SoloButton } from 'Components/Common/SoloButton';
-import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
-import { Table } from 'antd';
 
 interface AzureValuesType {
   azureFunctionAppName: string;
@@ -171,7 +170,7 @@ const AzureFunctions: React.FC<AzureFunctionProps> = ({
           dataSource={formData.slice(1)}
           columns={cols}
           pagination={false}
-          locale={{ emptyText: '' }}
+          locale={{ emptyText: 'Enter Functions' }}
         />
       </InputRow>
     </React.Fragment>

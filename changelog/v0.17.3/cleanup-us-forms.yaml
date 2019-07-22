@@ -1,0 +1,5 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Clean up static and consul forms.
+    issueLink: https://github.com/solo-io/solo-projects/issues/682
+    resolvesIssue: false

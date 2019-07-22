@@ -1,29 +1,30 @@
 import {
   SoloFormCheckbox,
-  SoloFormInput
+  SoloFormInput,
+  SoloFormStringsList
 } from 'Components/Common/Form/SoloFormField';
 import {
-  SoloFormTemplate,
+  Footer,
   InputRow,
-  Footer
+  SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
-import { Field, FormikProps, Formik, FieldArray } from 'formik';
+import { SoloButton } from 'Components/Common/SoloButton';
+import { Field, Formik, FormikProps } from 'formik';
 import * as React from 'react';
 import * as yup from 'yup';
-import { SoloButton } from 'Components/Common/SoloButton';
 
 interface ConsulVauesType {
   consulServiceName: string;
   consulServiceTagsList: string[];
   consulConnectEnabled: boolean;
-  consulDataCenter: string;
+  consulDataCentersList: string[];
 }
 
 export const consulInitialValues: ConsulVauesType = {
   consulServiceName: '',
-  consulServiceTagsList: [],
+  consulServiceTagsList: [''],
   consulConnectEnabled: false,
-  consulDataCenter: ''
+  consulDataCentersList: ['']
 };
 
 interface Props {
@@ -34,7 +35,7 @@ export const consulValidationSchema = yup.object().shape({
   consulServiceName: yup.string(),
   consulServiceTagsList: yup.array().of(yup.string()),
   consulConnectEnabled: yup.boolean(),
-  consulDataCenter: yup.string()
+  consulDataCentersList: yup.array().of(yup.string())
 });
 
 export const ConsulUpstreamForm: React.FC<Props> = ({ parentForm }) => {
@@ -47,7 +48,10 @@ export const ConsulUpstreamForm: React.FC<Props> = ({ parentForm }) => {
           'consulConnectEnabled',
           values.consulConnectEnabled
         );
-        parentForm.setFieldValue('consulDataCenter', values.consulDataCenter);
+        parentForm.setFieldValue(
+          'consulDataCentersList',
+          values.consulDataCentersList
+        );
         parentForm.setFieldValue('consulServiceName', values.consulServiceName);
         parentForm.setFieldValue(
           'consulServiceTagsList',
@@ -59,48 +63,37 @@ export const ConsulUpstreamForm: React.FC<Props> = ({ parentForm }) => {
       {({ values, handleSubmit }) => (
         <SoloFormTemplate formHeader='Consul Upstream Settings'>
           <InputRow>
-            <div>
-              <Field
-                name='consulServiceName'
-                title='Service Name'
-                placeholder='Service Name'
-                component={SoloFormInput}
-              />
-            </div>
-            <div>
-              <Field
-                name='consulConnectEnabled'
-                title='Enable Consul Connect'
-                component={SoloFormCheckbox}
-              />
-            </div>
-            <div>
-              <Field
-                name='consulDataCenter'
-                title='Data Center'
-                placeholder='Data Center'
-                component={SoloFormInput}
-              />
-            </div>
-            {/* TODO: Use String Cards List component */}
-            <FieldArray
-              name='consulServiceTagsList'
-              render={({ form, remove, insert, name }) => (
-                <React.Fragment>
-                  <Field
-                    name={`consulServiceTagsList.[0]`}
-                    title='Consul Service Tags'
-                    placeholder='Service Tags'
-                    component={SoloFormInput}
-                  />
-                  <div>
-                    {values.consulServiceTagsList.map(tag => (
-                      <div key={tag}>{tag} </div>
-                    ))}
-                  </div>
-                </React.Fragment>
-              )}
+            <Field
+              name='consulServiceName'
+              title='Service Name'
+              placeholder='Service Name'
+              component={SoloFormInput}
             />
+            <Field
+              name='consulConnectEnabled'
+              title='Enable Consul Connect'
+              component={SoloFormCheckbox}
+            />
+          </InputRow>
+          <InputRow>
+            <SoloFormTemplate formHeader='Service Tags'>
+              <Field
+                name='consulServiceTagsList'
+                title='Consul Service Tags'
+                createNewPromptText='Service Tags'
+                component={SoloFormStringsList}
+              />
+            </SoloFormTemplate>
+          </InputRow>
+          <InputRow>
+            <SoloFormTemplate formHeader='Data Centers'>
+              <Field
+                name='consulDataCentersList'
+                title='Data Centers'
+                createNewPromptText='Data Centers'
+                component={SoloFormStringsList}
+              />
+            </SoloFormTemplate>
           </InputRow>
           <Footer>
             <SoloButton
