@@ -62,12 +62,21 @@ export const SoloDropdown = (props: DropdownProps) => {
     onBlur
   } = props;
 
+  const getDefaultValue = (): string | number => {
+    console.log({ value, defaultValue });
+    if (typeof defaultValue === undefined) {
+      return '';
+    }
+
+    return defaultValue!;
+  };
+
   return (
     <div style={{ width: '100%' }}>
       {title && <Label>{title}</Label>}
       <SoloDropdownBlock
         value={value}
-        defaultValue={defaultValue || '' /**
+        defaultValue={getDefaultValue() /**
       //@ts-ignore */}
         onChange={onChange /**
         //@ts-ignore */}

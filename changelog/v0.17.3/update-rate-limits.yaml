@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: Rates now updatable.
+    issueLink: https://github.com/solo-io/solo-projects/issues/636
+    resolvesIssue: false

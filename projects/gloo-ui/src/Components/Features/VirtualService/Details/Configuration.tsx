@@ -4,6 +4,7 @@ import { colors } from 'Styles';
 import { DetailsSectionTitle } from './VirtualServiceDetails';
 import { ExtAuth } from './ExtAuth';
 import { RateLimit } from './RateLimit';
+import { IngressRateLimit } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb';
 
 const ConfigContainer = styled.div`
   display: grid;
@@ -19,7 +20,13 @@ const ConfigItem = styled.div`
   background: white;
 `;
 
-export const Configuration = () => {
+interface Props {
+  rates: IngressRateLimit.AsObject | undefined;
+  rateLimitsChanged: (newRateLimits: IngressRateLimit.AsObject) => any;
+}
+export const Configuration = (props: Props) => {
+  const { rates, rateLimitsChanged } = props;
+
   return (
     <React.Fragment>
       <DetailsSectionTitle>Configuration</DetailsSectionTitle>
@@ -28,7 +35,7 @@ export const Configuration = () => {
           <ExtAuth />
         </ConfigItem>
         <ConfigItem>
-          <RateLimit />
+          <RateLimit rates={rates} rateLimitsChanged={rateLimitsChanged} />
         </ConfigItem>
       </ConfigContainer>
     </React.Fragment>

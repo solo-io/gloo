@@ -133,7 +133,7 @@ export const CreateUpstreamForm = (props: Props) => {
         consulSpec.setServiceName(values.consulServiceName);
         consulSpec.setServiceTagsList(values.consulServiceTagsList);
         consulSpec.setConnectEnabled(values.consulConnectEnabled);
-        consulSpec.setDataCenter(values.consulDataCenter);
+        consulSpec.setDataCentersList([values.consulDataCenter]);
         const consulServiceSpec = new ServiceSpec();
         consulSpec.setServiceSpec(consulServiceSpec);
         usInput.setConsul(consulSpec);

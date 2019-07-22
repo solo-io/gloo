@@ -37,11 +37,12 @@ import {
   OAuth,
   CustomAuth
 } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
+import { Struct } from 'google-protobuf/google/protobuf/struct_pb';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 
 const DetailsContent = styled.div`
   display: grid;
-  grid-template-rows: auto 2fr 1fr;
+  grid-template-rows: auto 1fr 1fr;
   grid-column-gap: 30px;
 `;
 
@@ -99,7 +100,6 @@ export const VirtualServiceDetails = (props: Props) => {
     }
   }, [updateLoading]);
 
-  console.log({ data, loading, updateLoading });
   if (!virtualService && (loading || updateLoading)) {
     return (
       <React.Fragment>
@@ -136,12 +136,60 @@ export const VirtualServiceDetails = (props: Props) => {
     domains = virtualService!.virtualHost!.domainsList;
   }
 
+  let configsMap: Map<string, Struct.AsObject> | undefined = undefined;
+  let rateLimits: IngressRateLimit.AsObject | undefined = undefined;
+  if (
+    !!virtualService.virtualHost &&
+    !!virtualService.virtualHost!.virtualHostPlugins &&
+    !!virtualService.virtualHost!.virtualHostPlugins!.extensions
+  ) {
+    configsMap = new Map(
+      virtualService.virtualHost!.virtualHostPlugins!.extensions!.configsMap
+    );
+  }
+  if (!!configsMap && !!configsMap.get('rate-limit')) {
+    const fieldsMap = new Map(configsMap.get('rate-limit')!.fieldsMap);
+
+    let anonLimit = undefined;
+    if (!!fieldsMap.get('anonymous_limits')) {
+      const structValues = new Map(
+        fieldsMap.get('anonymous_limits')!.structValue!.fieldsMap
+      );
+
+      anonLimit = {
+        // @ts-ignore
+        unit: RateLimit.Unit[structValues.get('unit')!.stringValue],
+        requestsPerUnit: structValues.get('requests_per_unit')!.numberValue
+      };
+    }
+    let authLimit = undefined;
+    if (!!fieldsMap.get('authorized_limits')) {
+      const structValues = new Map(
+        fieldsMap.get('anonymous_limits')!.structValue!.fieldsMap
+      );
+
+      authLimit = {
+        // @ts-ignore
+        unit: RateLimit.Unit[structValues.get('unit')!.stringValue],
+        requestsPerUnit: structValues.get('requests_per_unit')!.numberValue
+      };
+    }
+
+    if (!!authLimit || !!anonLimit) {
+      rateLimits = {
+        anonymousLimits: anonLimit,
+        authorizedLimits: authLimit
+      };
+    }
+  }
+
   const updateVirtualService = (newInfo: {
     newDomainsList?: string[];
     newRoutesList?: Route.AsObject[];
     newRateLimits?: IngressRateLimit.AsObject;
     newOAuth?: OAuth.AsObject;
   }) => {
+    console.log(newInfo);
     let virtualServiceInput = new VirtualServiceInput();
     let vsRef = new ResourceRef();
     vsRef.setName(virtualService!.metadata!.name);
@@ -244,91 +292,74 @@ export const VirtualServiceDetails = (props: Props) => {
       virtualServiceInput.setSecretRef(secretRef);
     }
 
-    if (
-      !!virtualService!.virtualHost &&
-      !!virtualService!.virtualHost!.virtualHostPlugins &&
-      !!virtualService!.virtualHost!.virtualHostPlugins!.extensions &&
-      !!virtualService!.virtualHost!.virtualHostPlugins!.extensions!.configsMap
-    ) {
-      const configsMap = virtualService!.virtualHost!.virtualHostPlugins!
-        .extensions!.configsMap;
-
-      /** RATE LIMITS */
-      let rateLimits = new IngressRateLimit();
-      const currentRateLimitIndex = configsMap.findIndex(
-        config => config[0] === 'rate-limit'
-      );
-      const usedRateLimits = newInfo.newRateLimits
-        ? newInfo.newRateLimits
-        : currentRateLimitIndex !== -1
-        ? configsMap[currentRateLimitIndex][1]
-        : undefined;
-      if (!!usedRateLimits) {
+    /** RATE LIMITS */
+    let newRateLimits = new IngressRateLimit();
+    const usedRateLimits = !!newInfo.newRateLimits
+      ? newInfo.newRateLimits
+      : !!configsMap && !!configsMap.get('rate-limit')
+      ? configsMap.get('rate-limit')
+      : undefined;
+    if (!!usedRateLimits) {
+      //@ts-ignore
+      if (!!usedRateLimits.anonymousLimits) {
+        const anonLimit = new RateLimit();
         //@ts-ignore
-        if (!!usedRateLimits.anonymousLimits) {
-          const anonLimit = new RateLimit();
+        anonLimit.setUnit(usedRateLimits.anonymousLimits!.unit);
+        anonLimit.setRequestsPerUnit(
           //@ts-ignore
-          anonLimit.setUnit(usedRateLimits.anonymousLimits!.unit);
-          anonLimit.setRequestsPerUnit(
-            //@ts-ignore
-            usedRateLimits.anonymousLimits!.requestsPerUnit
-          );
-          rateLimits.setAnonymousLimits(anonLimit);
-        }
-        //@ts-ignore
-        if (!!usedRateLimits.authorizedLimits) {
-          const authLimit = new RateLimit();
-          //@ts-ignore
-          authLimit.setUnit(usedRateLimits.authorizedLimits!.unit);
-          authLimit.setRequestsPerUnit(
-            //@ts-ignore
-            usedRateLimits.authorizedLimits!.requestsPerUnit
-          );
-          rateLimits.setAuthorizedLimits(authLimit);
-        }
-      }
-      virtualServiceInput.setRateLimitConfig(rateLimits);
-
-      /** AUTHORIZATIONS */
-      const basicAuthIndex = configsMap.findIndex(
-        config => config[0] === 'basic-auth'
-      );
-      if (basicAuthIndex !== -1) {
-        const existingBasicAuth = configsMap[basicAuthIndex][1];
-        let basicAuth = new VirtualServiceInput.BasicAuthInput();
-        // @ts-ignore
-        basicAuth.setSpecCsv(existingBasicAuth.specCsv);
-        // @ts-ignore
-        basicAuth.setRealm(existingBasicAuth.realm);
-        virtualServiceInput.setBasicAuth(basicAuth);
-      }
-      const oAuthIndex = configsMap.findIndex(config => config[0] === 'oauth');
-      if (oAuthIndex !== -1) {
-        const existingOAuth = configsMap[oAuthIndex][1];
-        const usedOAuth = newInfo.newOAuth || existingOAuth;
-        let oAuth = new OAuth();
-        // @ts-ignore
-        oAuth.setClientId(usedOAuth.clientId);
-        // @ts-ignore
-        oAuth.setCallbackPath(usedOAuth.callbackPath);
-        // @ts-ignore
-        oAuth.setIssuerUrl(usedOAuth.issuerUrl);
-        // @ts-ignore
-        oAuth.setAppUrl(usedOAuth.appUrl);
-        let clientSecretRef = new ResourceRef();
-        // @ts-ignore
-        clientSecretRef.setName(usedOAuth.clientSecretRef!.name);
-        clientSecretRef.setNamespace(
-          // @ts-ignore
-          usedOAuth.clientSecretRef!.namespace
+          usedRateLimits.anonymousLimits!.requestsPerUnit
         );
-        oAuth.setClientSecretRef(clientSecretRef);
-        virtualServiceInput.setOauth(oAuth);
+        newRateLimits.setAnonymousLimits(anonLimit);
       }
-      if (!!configsMap.find(config => config[0] === 'custom-auth')) {
-        let customAuth = new CustomAuth();
-        virtualServiceInput.setCustomAuth(customAuth);
+      //@ts-ignore
+      if (!!usedRateLimits.authorizedLimits) {
+        const authLimit = new RateLimit();
+        //@ts-ignore
+        authLimit.setUnit(usedRateLimits.authorizedLimits!.unit);
+        authLimit.setRequestsPerUnit(
+          //@ts-ignore
+          usedRateLimits.authorizedLimits!.requestsPerUnit
+        );
+        newRateLimits.setAuthorizedLimits(authLimit);
       }
+    }
+    console.log(newRateLimits.toObject());
+    virtualServiceInput.setRateLimitConfig(newRateLimits);
+
+    /** AUTHORIZATIONS */
+    if (!!configsMap && !!configsMap.get('basic-auth')) {
+      const existingBasicAuth = configsMap.get('basic-auth');
+      let basicAuth = new VirtualServiceInput.BasicAuthInput();
+      // @ts-ignore
+      basicAuth.setSpecCsv(existingBasicAuth.specCsv);
+      // @ts-ignore
+      basicAuth.setRealm(existingBasicAuth.realm);
+      virtualServiceInput.setBasicAuth(basicAuth);
+    }
+    if ((!!configsMap && !!configsMap.get('oauth')) || newInfo.newOAuth) {
+      const usedOAuth = newInfo.newOAuth || configsMap!.get('oauth');
+      let oAuth = new OAuth();
+      // @ts-ignore
+      oAuth.setClientId(usedOAuth.clientId);
+      // @ts-ignore
+      oAuth.setCallbackPath(usedOAuth.callbackPath);
+      // @ts-ignore
+      oAuth.setIssuerUrl(usedOAuth.issuerUrl);
+      // @ts-ignore
+      oAuth.setAppUrl(usedOAuth.appUrl);
+      let clientSecretRef = new ResourceRef();
+      // @ts-ignore
+      clientSecretRef.setName(usedOAuth.clientSecretRef!.name);
+      clientSecretRef.setNamespace(
+        // @ts-ignore
+        usedOAuth.clientSecretRef!.namespace
+      );
+      oAuth.setClientSecretRef(clientSecretRef);
+      virtualServiceInput.setOauth(oAuth);
+    }
+    if (!!configsMap && !!configsMap.get('custom-auth')) {
+      let customAuth = new CustomAuth();
+      virtualServiceInput.setCustomAuth(customAuth);
     }
 
     let updateRequest = new UpdateVirtualServiceRequest();
@@ -338,6 +369,9 @@ export const VirtualServiceDetails = (props: Props) => {
 
   const domainsChanged = (newDomainsList: string[]) => {
     updateVirtualService({ newDomainsList });
+  };
+  const ratesChanged = (newRateLimits: IngressRateLimit.AsObject) => {
+    updateVirtualService({ newRateLimits });
   };
   const routesChanged = (newRoutesList: Route.AsObject[]) => {
     updateVirtualService({ newRoutesList });
@@ -382,7 +416,10 @@ export const VirtualServiceDetails = (props: Props) => {
             />
           </DetailsSection>
           <DetailsSection>
-            <Configuration />
+            <Configuration
+              rates={rateLimits}
+              rateLimitsChanged={ratesChanged}
+            />
           </DetailsSection>
         </DetailsContent>
       </SectionCard>
