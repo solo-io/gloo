@@ -228,7 +228,7 @@ export const VirtualServicesListing = (props: Props) => {
       s => s.displayName === 'Filter By Name...'
     )!.value!;
 
-    if (vsLoading) {
+    if (!vsListData || vsLoading) {
       return <div>Loading...</div>;
     }
     return (

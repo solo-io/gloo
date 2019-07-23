@@ -22,9 +22,17 @@ import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
 import { AZURE_AUTH_LEVELS } from 'utils/azureHelpers';
 import * as yup from 'yup';
-import { UpstreamSpec as AzureUpstreamSpec } from '../../../../proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
-import { SoloFormDropdown } from '../../../Common/Form/SoloFormField';
+import { UpstreamSpec as AzureUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
+import { SoloFormDropdown } from 'Components/Common/Form/SoloFormField';
+import styled from '@emotion/styled/macro';
 
+const StyledInputRow = styled(InputRow)`
+  justify-content: space-around;
+`;
+
+const IconContainer = styled.div`
+  display: flex;
+`;
 interface AzureValuesType {
   azureFunctionAppName: string;
   azureSecretRef: ResourceRef.AsObject;
@@ -136,7 +144,7 @@ const AzureFunctions: React.FC<AzureFunctionProps> = ({
 
   return (
     <React.Fragment>
-      <InputRow>
+      <StyledInputRow>
         <div>
           <Field
             name='azureFunctionsList[0].functionName'
@@ -154,16 +162,18 @@ const AzureFunctions: React.FC<AzureFunctionProps> = ({
             component={SoloFormDropdown}
           />
         </div>
-        <GreenPlus
-          style={{ alignSelf: 'center' }}
-          onClick={() =>
-            insert(0, {
-              functionName: '',
-              authLevel: ''
-            })
-          }
-        />
-      </InputRow>
+        <IconContainer>
+          <GreenPlus
+            style={{ alignSelf: 'center', cursor: 'pointer' }}
+            onClick={() =>
+              insert(0, {
+                functionName: '',
+                authLevel: ''
+              })
+            }
+          />
+        </IconContainer>
+      </StyledInputRow>
       <InputRow>
         <Table
           style={{ width: '100%' }}

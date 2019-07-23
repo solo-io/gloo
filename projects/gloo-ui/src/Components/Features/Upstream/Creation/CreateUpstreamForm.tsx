@@ -55,9 +55,12 @@ export const initialValues = {
 
 // TODO combine validation schemas
 const validationSchema = yup.object().shape({
-  name: yup.string(),
-  namespace: yup.string(),
-  type: yup.string()
+  name: yup
+    .string()
+    .required('Upstream name is required')
+    .min(2, `Name can't be that short`),
+  namespace: yup.string().required('Namespace is required'),
+  type: yup.string().required('Must specify an upstream type')
 });
 
 export const CreateUpstreamForm = (props: Props) => {

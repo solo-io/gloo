@@ -16,7 +16,8 @@ import {
   FieldArray,
   FieldArrayRenderProps,
   Formik,
-  FormikProps
+  FormikProps,
+  FieldProps
 } from 'formik';
 import { LambdaFunctionSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/aws_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
@@ -52,13 +53,19 @@ interface Props {
 
 export const awsValidationSchema = yup.object().shape({
   awsRegion: yup.string(),
-  awsSecretRefNamespace: yup.string(),
-  awsSecretRefName: yup.string(),
+  awsSecretRef: yup.object().shape({
+    name: yup.string().required('need a secret'),
+    namespace: yup.string()
+  }),
   awsLambdaFunctionsList: yup.array().of(
     yup.object().shape({
-      logicalName: yup.string(),
-      lambdaFunctionName: yup.string(),
-      qualifier: yup.string()
+      logicalName: yup.string().required('This is required'),
+      lambdaFunctionName: yup.string().required('This is required'),
+      qualifier: yup
+        .string()
+        .required('This is required')
+        .min(1, 'Minimum length of 1')
+        .max(128, 'Maximum length of 128')
     })
   )
 });
@@ -84,6 +91,7 @@ export const AwsUpstreamForm: React.FC<Props> = ({ parentForm }) => {
           <InputRow>
             <div>
               <Field
+                parentForm={parentForm}
                 name='awsRegion'
                 title='Region'
                 presetOptions={awsRegions}
@@ -91,6 +99,7 @@ export const AwsUpstreamForm: React.FC<Props> = ({ parentForm }) => {
               />
             </div>
             <Field
+              parentForm={parentForm}
               name='awsSecretRef'
               type='aws'
               component={SoloSecretRefInput}
@@ -119,6 +128,7 @@ interface LambdaProps extends FieldArrayRenderProps {
   form: FormikProps<AwsValuesType>;
   name: string;
 }
+// TODO: figure out how to render errors in array fields
 const LambdaFunctions: React.FC<LambdaProps> = props => {
   const { form, remove, insert, name, push } = props;
   const cols = [
@@ -145,6 +155,7 @@ const LambdaFunctions: React.FC<LambdaProps> = props => {
       )
     };
   });
+
   return (
     <React.Fragment>
       <InputRow>
@@ -167,7 +178,7 @@ const LambdaFunctions: React.FC<LambdaProps> = props => {
           component={SoloFormInput}
         />
         <GreenPlus
-          style={{ alignSelf: 'center' }}
+          style={{ alignSelf: 'center', cursor: 'pointer' }}
           onClick={() => {
             insert(0, {
               logicalName: '',

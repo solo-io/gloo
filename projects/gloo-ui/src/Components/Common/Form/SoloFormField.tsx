@@ -1,5 +1,5 @@
 import styled from '@emotion/styled/macro';
-import { FieldProps, Field, FieldArrayRenderProps } from 'formik';
+import { FieldProps, Field, FormikProps } from 'formik';
 import React from 'react';
 import { colors } from 'Styles';
 import { DropdownProps, SoloDropdown } from '../SoloDropdown';
@@ -26,12 +26,14 @@ export const SoloFormInput: React.FC<FieldProps & InputProps> = ({
   field,
   form: { errors, ...form },
   ...rest
-}) => (
-  <React.Fragment>
-    <SoloInput error={!!errors[field.name]} {...field} {...rest} />
-    <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
-  </React.Fragment>
-);
+}) => {
+  return (
+    <React.Fragment>
+      <SoloInput error={!!errors[field.name]} {...field} {...rest} />
+      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
+    </React.Fragment>
+  );
+};
 
 export const SoloFormTypeahead: React.FC<FieldProps & TypeaheadProps> = ({
   field,
@@ -184,12 +186,17 @@ export const SoloFormMultipartStringCardsList: React.FC<
 };
 
 export const SoloSecretRefInput: React.FC<
-  FieldProps & TypeaheadProps & { type: string; asColumn: boolean }
-> = ({ field: parentField, form, type, asColumn, ...rest }) => {
+  FieldProps &
+    TypeaheadProps & {
+      type: string;
+      asColumn: boolean;
+      parentForm: FormikProps<any>;
+    }
+> = ({ parentForm, field: parentField, form, type, asColumn, ...rest }) => {
   const namespaces = React.useContext(NamespacesContext);
   const [selectedNS, setSelectedNS] = React.useState('');
   const listSecretsRequest = new ListSecretsRequest();
-
+  const [noSecrets, setNoSecrets] = React.useState(false);
   React.useEffect(() => {
     listSecretsRequest.setNamespacesList(namespaces);
   }, [namespaces]);
@@ -222,6 +229,9 @@ export const SoloSecretRefInput: React.FC<
             .map(secret => secret.metadata!.name)
         : []
     );
+    if (secretsListData && secretsFound.length === 0) {
+      setNoSecrets(true);
+    }
   }, [selectedNS]);
 
   return (
@@ -238,10 +248,17 @@ export const SoloSecretRefInput: React.FC<
               onChange={value => {
                 form.setFieldValue(field.name, value);
                 setSelectedNS(value);
+                form.setFieldTouched(`${parentField.name}.name`);
                 form.setFieldValue(`${parentField.name}.name`, '');
+                if (secretsFound.length === 0) {
+                  setNoSecrets(true);
+                  parentForm.setFieldError(field.name, 'No secrets found');
+                }
               }}
             />
-            {form.errors && <ErrorText>{form.errors[field.name]}</ErrorText>}
+            <ErrorText errorExists={noSecrets}>
+              {form.errors[field.name]}
+            </ErrorText>
           </div>
         )}
       />
@@ -256,11 +273,13 @@ export const SoloSecretRefInput: React.FC<
               disabled={secretsFound.length === 0}
               presetOptions={secretsFound}
               defaultValue='Secret...'
-              onChange={value =>
-                form.setFieldValue(`${parentField.name}.name`, value)
-              }
+              onChange={value => {
+                form.setFieldValue(`${parentField.name}.name`, value);
+              }}
             />
-            {form.errors && <ErrorText>{form.errors[field.name]}</ErrorText>}
+            {form.errors && (
+              <ErrorText>{form.errors[`${parentField.name}.name`]}</ErrorText>
+            )}
           </div>
         )}
       />
@@ -298,7 +317,7 @@ export const SoloFormStringsList: React.FC<
       <StringCardsList
         {...rest}
         {...field}
-        values={form.values.consulDataCentersList.slice(1)}
+        values={form.values[field.name].slice(1)}
         valueDeleted={removeValue}
         createNew={addValue}
         createNewPromptText={createNewPromptText}
