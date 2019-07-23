@@ -1,3 +1,4 @@
+{{- if .Values.rateLimit.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -13,3 +14,4 @@ spec:
     protocol: TCP
   selector:
     gloo: {{ .Values.rateLimit.service.name }}
+{{- end }}

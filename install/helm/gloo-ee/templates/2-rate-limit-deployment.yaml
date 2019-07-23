@@ -1,3 +1,4 @@
+{{- if .Values.rateLimit.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,3 +46,4 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.rateLimit.deployment.image.pullSecret }}
       {{- end }}
+{{- end }}

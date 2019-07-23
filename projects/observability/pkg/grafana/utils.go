@@ -45,7 +45,7 @@ func GenerateSnapshot(upstream *gloov1.Upstream) ([]byte, error) {
 		NameTemplate: "{{zone}} ({{host}})",
 		Overwrite:    true,
 	}
-	return tmplExec(snapshotTemlpate, stats)
+	return tmplExec(snapshotTemplate, stats)
 }
 
 func tmplExec(tmplStr string, us upstreamStats) ([]byte, error) {

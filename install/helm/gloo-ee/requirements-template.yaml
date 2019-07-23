@@ -4,6 +4,12 @@ dependencies:
   - name: prometheus
     repository: https://kubernetes-charts.storage.googleapis.com/
     version: 8.4.1
+    condition: prometheus.enabled
+    tags:
+      - monitoring
   - name: grafana
     repository: https://kubernetes-charts.storage.googleapis.com/
     version: 1.25.1
+    condition: grafana.enabled
+    tags:
+      - monitoring

@@ -13,6 +13,7 @@ type Config struct {
 	Rbac          *Rbac              `json:"rbac"`
 	Grafana       interface{}        `json:"grafana,omitempty"`
 	Prometheus    interface{}        `json:"prometheus,omitempty"`
+	Tags          map[string]string  `json:"tags,omitempty"`
 	ExtAuth       *ExtAuth           `json:"extAuth,omitempty"`
 }
 
@@ -30,6 +31,7 @@ type Rbac struct {
 // Gloo-ee
 
 type RateLimit struct {
+	Enabled    bool                 `json:"enabled"`
 	Deployment *RateLimitDeployment `json:"deployment,omitempty"`
 	Service    *RateLimitService    `json:"service,omitempty"`
 }

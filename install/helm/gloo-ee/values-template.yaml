@@ -253,6 +253,8 @@ gloo:
 ########################################################################
 
 rateLimit:
+  # setting to false will disable rate limiting
+  enabled: true
   deployment:
     stats: true
     name: 'rate-limit'
@@ -370,6 +372,8 @@ rbac:
 
 
 prometheus:
+  # setting to false will disable prometheus, removing it from gloo's chart dependencies
+  enabled: true
   pushgateway:
     enabled: false
   alertmanager:
@@ -391,6 +395,8 @@ prometheus:
 ########################################################################
 
 grafana:
+  # setting to false will disable grafana, removing it from gloo's chart dependencies
+  enabled: true
   adminUser: admin
   adminPassword: admin
   persistence:

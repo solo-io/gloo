@@ -27,9 +27,9 @@ type BoardProperties struct {
 
 // GetRawDashboard loads a dashboard JSON from Grafana instance along with metadata for a dashboard.
 // Contrary to GetDashboard() it not unpack loaded JSON to Board structure. Instead it
-// returns it as byte slice. It guarantee that data of dashboard returned untouched by conversion
+// returns it as byte slice. It guarantees that data of dashboard returned untouched by conversion
 // with Board so no matter how properly fields from a current version of Grafana mapped to
-// our Board fields. It useful for backuping purposes when you want a dashboard exactly with
+// our Board fields. It useful for backup purposes when you want a dashboard exactly with
 // same data as it exported by Grafana.
 func (r *Client) GetRawDashboard(uid string) ([]byte, BoardProperties, error) {
 	var (

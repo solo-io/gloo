@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Allow users to enable/disable grafana, prometheus, and rate-limiting.
+    issueLink: https://github.com/solo-io/gloo/issues/840

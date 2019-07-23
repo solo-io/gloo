@@ -4,7 +4,7 @@ import "fmt"
 
 var (
 	dashboardTemplate string
-	snapshotTemlpate  string
+	snapshotTemplate  string
 )
 
 func init() {
@@ -15,7 +15,7 @@ func init() {
   "overwrite": {{.Overwrite}}
 }
 `, jsonTemplate)
-	snapshotTemlpate = fmt.Sprintf(`
+	snapshotTemplate = fmt.Sprintf(`
 {
   "dashboard": 
 	%s,

@@ -1,4 +1,5 @@
 # Config map which grafana reads in order to create custom dashboard dir
+{{- if .Values.grafana.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,3 +10,4 @@ metadata:
     release: {{ .Release.Name }}
 data:
 {{ (.Files.Glob "dashboards/*.json").AsConfig | indent 2 }}
+{{- end }}
