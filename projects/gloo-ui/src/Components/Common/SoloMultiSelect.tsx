@@ -67,7 +67,7 @@ export interface OptionType {
   disabled?: boolean;
   value: string | number;
 }
-export interface DropdownProps {
+export interface MultiselectProps {
   values: string[] | number[] | undefined[];
   options: OptionType[];
   onChange?: (newValues: string[] | number[]) => any;
@@ -78,7 +78,7 @@ export interface DropdownProps {
   disabled?: boolean;
 }
 
-export const SoloMultiSelect = (props: DropdownProps) => {
+export const SoloMultiSelect = (props: MultiselectProps) => {
   const {
     title,
     // disabled,

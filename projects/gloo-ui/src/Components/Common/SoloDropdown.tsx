@@ -63,7 +63,6 @@ export const SoloDropdown = (props: DropdownProps) => {
   } = props;
 
   const getDefaultValue = (): string | number => {
-    console.log({ value, defaultValue });
     if (typeof defaultValue === undefined) {
       return '';
     }

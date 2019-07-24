@@ -53,7 +53,7 @@ const DeleteX = styled(SmallDeleteX)`
   margin-left: 0;
 `;
 
-interface Props {
+export interface MultipartStringCardsProps {
   values: { name: string; value: string }[];
   valueDeleted: (indexDeleted: number) => any;
   createNew?: (newPair: { newName: string; newValue: string }) => any;
@@ -65,7 +65,7 @@ interface Props {
 }
 
 // This badly needs a better name
-export const MultipartStringCardsList = (props: Props) => {
+export const MultipartStringCardsList = (props: MultipartStringCardsProps) => {
   const {
     values,
     valueDeleted,

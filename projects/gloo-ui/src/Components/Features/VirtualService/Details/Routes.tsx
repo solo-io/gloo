@@ -14,6 +14,7 @@ import {
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { TableActionCircle, TableActions } from 'Styles';
 import { SoloModal } from 'Components/Common/SoloModal';
+import { NewRouteRowForm } from 'Components/Features/VirtualService/Details/NewRouteRowForm';
 import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
 
 const RouteMatch = styled.div`
@@ -41,7 +42,8 @@ const getRouteColumns = (
     },
     {
       title: 'Methods',
-      dataIndex: 'method'
+      dataIndex: 'method',
+      width: 150
     },
     {
       title: 'Destination',
@@ -61,10 +63,13 @@ const getRouteColumns = (
       render: (matcher: string) => {
         return (
           <TableActions>
+            {/* Unclear what edit should look like yet
             <TableActionCircle onClick={() => showCreateRouteModal(true)}>
               +
             </TableActionCircle>
-            <div style={{ marginLeft: '5px' }}>
+
+            <div style={{ marginLeft: '5px' }}>*/}
+            <div>
               <TableActionCircle onClick={() => deleteRoute(matcher)}>
                 x
               </TableActionCircle>
@@ -84,10 +89,10 @@ interface Props {
 }
 
 export const Routes: React.FC<Props> = props => {
-  const [createRoute, setCreateRoute] = React.useState<boolean>(false);
+  const [editRoute, setEditRoute] = React.useState<boolean>(false);
 
   const getRouteData = (routes: Route.AsObject[]) => {
-    return routes.map(route => {
+    const existingRoutes = routes.map(route => {
       const upstreamName = getRouteSingleUpstream(route).name || '';
       const { matcher, matchType } = getRouteMatcher(route);
       return {
@@ -101,6 +106,19 @@ export const Routes: React.FC<Props> = props => {
         actions: matcher
       };
     });
+
+    existingRoutes.push({
+      key: 'creating-additional-route',
+      matcher: '',
+      pathMatch: '',
+      method: '',
+      upstreamName: '',
+      header: '',
+      queryParams: '',
+      actions: ''
+    });
+
+    return existingRoutes;
   };
 
   const deleteRoute = (matcherToDelete: string) => {
@@ -111,28 +129,24 @@ export const Routes: React.FC<Props> = props => {
     );
   };
 
-  const finishRouteCreation = (newVirtualService?: VirtualService.AsObject) => {
-    setCreateRoute(false);
-    props.reloadVirtualService(newVirtualService);
+  const finishRouteEditiing = (newVirtualService?: VirtualService.AsObject) => {
+    setEditRoute(false);
+    props.reloadVirtualService();
   };
 
   return (
     <React.Fragment>
       <DetailsSectionTitle>Routes</DetailsSectionTitle>
       <SoloTable
-        columns={getRouteColumns(setCreateRoute, deleteRoute)}
+        columns={getRouteColumns(setEditRoute, deleteRoute)}
         dataSource={getRouteData(props.routes)}
+        formComponent={() => (
+          <NewRouteRowForm
+            virtualService={props.virtualService}
+            reloadVirtualService={props.reloadVirtualService}
+          />
+        )}
       />
-      <SoloModal
-        visible={createRoute}
-        width={500}
-        title={'Create Route'}
-        onClose={() => setCreateRoute(false)}>
-        <CreateRouteModal
-          defaultVirtualService={props.virtualService}
-          completeCreation={finishRouteCreation}
-        />
-      </SoloModal>
     </React.Fragment>
   );
 };

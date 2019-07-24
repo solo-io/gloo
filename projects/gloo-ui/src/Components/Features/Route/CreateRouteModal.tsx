@@ -15,7 +15,6 @@ import {
   SoloFormMultipartStringCardsList,
   SoloFormMetadataBasedDropdown
 } from 'Components/Common/Form/SoloFormField';
-import { SoloMultiSelect } from 'Components/Common/SoloMultiSelect';
 import { Field, Formik } from 'formik';
 import * as yup from 'yup';
 
@@ -48,7 +47,6 @@ import { DestinationSpec as AWSDestinationSpec } from 'proto/github.com/solo-io/
 import { DestinationSpec as AzureDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb';
 import { DestinationSpec as RestDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb';
 import { DestinationSpec as GrpcDestinationSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb';
-import { SoloDropdown } from 'Components/Common/SoloDropdown';
 import { ListUpstreamsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import { Loading } from 'Components/Common/Loading';
 import { ErrorText } from '../VirtualService/Details/ExtAuthForm';
@@ -69,7 +67,7 @@ enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
   REGEX = 3
 }
 
-const PATH_SPECIFIERS = [
+export const PATH_SPECIFIERS = [
   {
     key: 'PREFIX',
     value: 'PREFIX',
@@ -87,7 +85,7 @@ const PATH_SPECIFIERS = [
   }
 ];
 
-interface CreateRouteValuesType {
+export interface CreateRouteValuesType {
   virtualService: VirtualService.AsObject | undefined;
   upstream: Upstream.AsObject | undefined;
   path: string;
@@ -113,7 +111,7 @@ interface CreateRouteValuesType {
   };
 }
 
-const defaultValues: CreateRouteValuesType = {
+export const createRouteDefaultValues: CreateRouteValuesType = {
   virtualService: new VirtualService().toObject(),
   upstream: new Upstream().toObject(),
   path: '',
@@ -373,11 +371,13 @@ export const CreateRouteModal = (props: Props) => {
   };
 
   const initialValues: CreateRouteValuesType = {
-    ...defaultValues,
+    ...createRouteDefaultValues,
     virtualService: defaultVirtualService
       ? defaultVirtualService
-      : defaultValues.virtualService,
-    upstream: defaultUpstream ? defaultUpstream : defaultValues.upstream
+      : createRouteDefaultValues.virtualService,
+    upstream: defaultUpstream
+      ? defaultUpstream
+      : createRouteDefaultValues.upstream
   };
 
   return (
@@ -459,12 +459,14 @@ export const CreateRouteModal = (props: Props) => {
                   name='methods'
                   title='Methods'
                   placeholder='Methods...'
-                  options={Object.keys(defaultValues.methods).map(key => {
-                    return {
-                      key: key,
-                      value: key
-                    };
-                  })}
+                  options={Object.keys(createRouteDefaultValues.methods).map(
+                    key => {
+                      return {
+                        key: key,
+                        value: key
+                      };
+                    }
+                  )}
                   component={SoloFormMultiselect}
                 />
               </InputRow>

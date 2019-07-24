@@ -7,8 +7,11 @@ import { SoloButton } from 'Components/Common/SoloButton';
 import { colors } from 'Styles';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
 import { OAuth } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
-import FormItem from 'antd/lib/form/FormItem';
-import { SoloFormInput } from 'Components/Common/Form/SoloFormField';
+import { NamespacesContext } from 'GlooIApp';
+import {
+  SoloFormInput,
+  SoloFormTypeahead
+} from 'Components/Common/Form/SoloFormField';
 
 const FormContainer = styled.div`
   display: grid;
@@ -53,12 +56,12 @@ const defaultValues: ValuesType = {
 };
 
 const validationSchema = yup.object().shape({
-  clientId: yup.string().required(),
+  clientId: yup.string().required('A client ID is required.'),
   secretRefName: yup.string(),
   secretRefNamespace: yup.string(),
-  issuerUrl: yup.string().required(),
-  appUrl: yup.string().required(),
-  callbackPath: yup.string().required()
+  issuerUrl: yup.string().required('An issuer URL is required.'),
+  appUrl: yup.string().required('An app URL is required.'),
+  callbackPath: yup.string().required('A callback path is required.')
 });
 
 interface Props {
@@ -68,6 +71,8 @@ interface Props {
 
 export const ExtAuthForm = (props: Props) => {
   const { externalAuth, externalAuthChanged } = props;
+
+  const namespaces = React.useContext(NamespacesContext);
 
   const initialValues: ValuesType = { ...defaultValues, ...externalAuth };
 
@@ -105,7 +110,7 @@ export const ExtAuthForm = (props: Props) => {
       };
     }
 
-    props.externalAuthChanged(newExternalAuth);
+    externalAuthChanged(newExternalAuth);
   };
 
   return (
@@ -168,8 +173,9 @@ export const ExtAuthForm = (props: Props) => {
               <Field
                 name='secretRefNamespace'
                 title='Secret Ref Namespace'
-                placeholder='gloo-system'
-                component={SoloFormInput}
+                defaultValue='gloo-system'
+                presetOptions={namespaces}
+                component={SoloFormTypeahead}
               />
             </div>
             <FormFooter>

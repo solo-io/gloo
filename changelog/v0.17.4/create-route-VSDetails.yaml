@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Virtual Service details now has propre route creation UX.
+    issueLink: https://github.com/solo-io/solo-projects/issues/636

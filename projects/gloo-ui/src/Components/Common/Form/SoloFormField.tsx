@@ -6,15 +6,18 @@ import { DropdownProps, SoloDropdown } from '../SoloDropdown';
 import { InputProps, SoloInput } from '../SoloInput';
 import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 import { SoloCheckbox, CheckboxProps } from '../SoloCheckbox';
-import { SoloMultiSelect } from '../SoloMultiSelect';
-import { MultipartStringCardsList } from '../MultipartStringCardsList';
+import { SoloMultiSelect, MultiselectProps } from '../SoloMultiSelect';
+import {
+  MultipartStringCardsList,
+  MultipartStringCardsProps
+} from '../MultipartStringCardsList';
 import { createUpstreamId, parseUpstreamId } from 'utils/helpers';
 import { NamespacesContext } from 'GlooIApp';
 import { ListSecretsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import { useListSecrets } from 'Api';
 import { StringCardsListProps, StringCardsList } from '../StringCardsList';
 
-const ErrorText = styled<'div', { errorExists?: boolean }>('div')`
+export const ErrorText = styled<'div', { errorExists?: boolean }>('div')`
   color: ${colors.grapefruitOrange};
   visibility: ${props => (props.errorExists ? 'visible' : 'hidden')};
   min-height: 19px;
@@ -86,7 +89,11 @@ export const SoloFormMetadataBasedDropdown: React.FC<
   });
 
   const usedValue =
-    rest.value && rest.value.metadata ? rest.value.metadata.name : undefined;
+    rest.value && rest.value.metadata
+      ? rest.value.metadata.name
+      : field.value && field.value.metadata
+      ? field.value.metadata.name
+      : undefined;
 
   const setNewValue = (newValueId: any) => {
     const { name, namespace } = parseUpstreamId(newValueId);
@@ -112,7 +119,7 @@ export const SoloFormMetadataBasedDropdown: React.FC<
   );
 };
 
-export const SoloFormMultiselect: React.FC<FieldProps & DropdownProps> = ({
+export const SoloFormMultiselect: React.FC<FieldProps & MultiselectProps> = ({
   field,
   form: { errors, setFieldValue, ...form },
   ...rest
@@ -122,9 +129,15 @@ export const SoloFormMultiselect: React.FC<FieldProps & DropdownProps> = ({
       <SoloMultiSelect
         {...field}
         {...rest}
-        values={Object.keys(field.value).filter(key => field.value[key])}
+        values={
+          !!rest.values
+            ? rest.values
+            : Object.keys(field.value).filter(key => field.value[key])
+        }
         onChange={newValues => {
-          const newFieldValues = { ...field.value };
+          const newFieldValues = !!rest.values
+            ? { ...rest.values }
+            : { ...field.value };
           Object.keys(newFieldValues).forEach(key => {
             newFieldValues[key] = false;
           });
@@ -160,19 +173,19 @@ export const SoloFormCheckbox: React.FC<FieldProps & CheckboxProps> = ({
 };
 
 export const SoloFormMultipartStringCardsList: React.FC<
-  FieldProps & DropdownProps
+  FieldProps & MultipartStringCardsProps
 > = ({ field, form: { errors, setFieldValue }, ...rest }) => {
   return (
     <React.Fragment>
       <MultipartStringCardsList
         {...field}
         {...rest}
-        values={field.value}
+        values={rest.values || field.value}
         valueDeleted={indexDeleted => {
           setFieldValue(field.name, [...field.value].splice(indexDeleted, 1));
         }}
         createNew={newPair => {
-          let newList = [...field.value];
+          let newList = !!rest.values ? [...rest.values] : [...field.value];
           newList.push({
             value: newPair.newValue,
             name: newPair.newName
