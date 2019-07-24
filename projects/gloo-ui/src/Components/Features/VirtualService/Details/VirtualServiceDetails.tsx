@@ -165,7 +165,7 @@ export const VirtualServiceDetails = (props: Props) => {
     let authLimit = undefined;
     if (!!fieldsMap.get('authorized_limits')) {
       const structValues = new Map(
-        fieldsMap.get('anonymous_limits')!.structValue!.fieldsMap
+        fieldsMap.get('authorized_limits')!.structValue!.fieldsMap
       );
 
       authLimit = {

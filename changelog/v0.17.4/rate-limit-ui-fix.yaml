@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix parsing of anon/authorized rate limit from field map.
+    issueLink: https://github.com/solo-io/solo-projects/issues/734
