@@ -52,9 +52,10 @@ type Knative struct {
 }
 
 type KnativeProxy struct {
-	Image     *Image `json:"image,omitempty"`
-	HttpPort  string `json:"httpPort,omitempty"`
-	HttpsPort string `json:"httpsPort,omitempty"`
+	Image     *Image  `json:"image,omitempty"`
+	HttpPort  string  `json:"httpPort,omitempty"`
+	HttpsPort string  `json:"httpsPort,omitempty"`
+	Tracing   *string `json:"tracing,omitempty"`
 	*DeploymentSpec
 }
 
@@ -101,6 +102,7 @@ type GatewayProxy struct {
 	PodTemplate *GatewayProxyPodTemplate `json:"podTemplate,omitempty"`
 	ConfigMap   *GatewayProxyConfigMap   `json:"configMap,omitempty"`
 	Service     *GatewayProxyService     `json:"service,omitempty"`
+	Tracing     *string                  `json:"tracing,omitempty"`
 }
 
 type GatewayProxyKind struct {
@@ -152,6 +154,7 @@ type IngressDeployment struct {
 type IngressProxy struct {
 	Deployment *IngressProxyDeployment `json:"deployment,omitempty"`
 	ConfigMap  *IngressProxyConfigMap  `json:"configMap,omitempty"`
+	Tracing    *string                 `json:"tracing,omitempty"`
 }
 
 type IngressProxyDeployment struct {
