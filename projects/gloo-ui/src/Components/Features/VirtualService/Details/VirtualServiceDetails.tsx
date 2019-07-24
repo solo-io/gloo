@@ -138,6 +138,7 @@ export const VirtualServiceDetails = (props: Props) => {
 
   let configsMap: Map<string, Struct.AsObject> | undefined = undefined;
   let rateLimits: IngressRateLimit.AsObject | undefined = undefined;
+  let externalAuth: OAuth.AsObject | undefined = undefined;
   if (
     !!virtualService.virtualHost &&
     !!virtualService.virtualHost!.virtualHostPlugins &&
@@ -181,6 +182,36 @@ export const VirtualServiceDetails = (props: Props) => {
         authorizedLimits: authLimit
       };
     }
+  }
+  if (!!configsMap && !!configsMap.get('extauth')) {
+    const fieldsMap = new Map(configsMap.get('extauth')!.fieldsMap);
+
+    const appUrl = fieldsMap.get('app_url')!.stringValue;
+    const clientId = fieldsMap.get('client_id')!.stringValue;
+    const issuerUrl = fieldsMap.get('issuer_url')!.stringValue;
+    const callbackPath = fieldsMap.get('callback_path')!.stringValue;
+    let clientSecretRef = undefined;
+    if (
+      !!fieldsMap.get('client_secret_ref') &&
+      !!fieldsMap.get('client_secret_ref')!.stringValue.length
+    ) {
+      const structValues = new Map(
+        fieldsMap.get('client_secret_ref')!.structValue!.fieldsMap
+      );
+
+      clientSecretRef = {
+        name: structValues.get('name')!.stringValue,
+        namespace: structValues.get('namespace')!.stringValue
+      };
+    }
+
+    externalAuth = {
+      clientId,
+      clientSecretRef,
+      issuerUrl,
+      appUrl,
+      callbackPath
+    };
   }
 
   const updateVirtualService = (newInfo: {
@@ -323,7 +354,6 @@ export const VirtualServiceDetails = (props: Props) => {
         newRateLimits.setAuthorizedLimits(authLimit);
       }
     }
-    console.log(newRateLimits.toObject());
     virtualServiceInput.setRateLimitConfig(newRateLimits);
 
     /** AUTHORIZATIONS */
@@ -336,8 +366,8 @@ export const VirtualServiceDetails = (props: Props) => {
       basicAuth.setRealm(existingBasicAuth.realm);
       virtualServiceInput.setBasicAuth(basicAuth);
     }
-    if ((!!configsMap && !!configsMap.get('oauth')) || newInfo.newOAuth) {
-      const usedOAuth = newInfo.newOAuth || configsMap!.get('oauth');
+    if ((!!configsMap && !!configsMap.get('extauth')) || newInfo.newOAuth) {
+      const usedOAuth = newInfo.newOAuth || configsMap!.get('extauth');
       let oAuth = new OAuth();
       // @ts-ignore
       oAuth.setClientId(usedOAuth.clientId);
@@ -347,14 +377,17 @@ export const VirtualServiceDetails = (props: Props) => {
       oAuth.setIssuerUrl(usedOAuth.issuerUrl);
       // @ts-ignore
       oAuth.setAppUrl(usedOAuth.appUrl);
-      let clientSecretRef = new ResourceRef();
       // @ts-ignore
-      clientSecretRef.setName(usedOAuth.clientSecretRef!.name);
-      clientSecretRef.setNamespace(
+      if (!!usedOAuth!.clientSecretRef) {
+        let clientSecretRef = new ResourceRef();
         // @ts-ignore
-        usedOAuth.clientSecretRef!.namespace
-      );
-      oAuth.setClientSecretRef(clientSecretRef);
+        clientSecretRef.setName(usedOAuth.clientSecretRef!.name);
+        clientSecretRef.setNamespace(
+          // @ts-ignore
+          usedOAuth.clientSecretRef!.namespace
+        );
+        oAuth.setClientSecretRef(clientSecretRef);
+      }
       virtualServiceInput.setOauth(oAuth);
     }
     if (!!configsMap && !!configsMap.get('custom-auth')) {
@@ -372,6 +405,9 @@ export const VirtualServiceDetails = (props: Props) => {
   };
   const ratesChanged = (newRateLimits: IngressRateLimit.AsObject) => {
     updateVirtualService({ newRateLimits });
+  };
+  const externalAuthChanged = (newOAuth: OAuth.AsObject) => {
+    updateVirtualService({ newOAuth });
   };
   const routesChanged = (newRoutesList: Route.AsObject[]) => {
     updateVirtualService({ newRoutesList });
@@ -417,6 +453,8 @@ export const VirtualServiceDetails = (props: Props) => {
           </DetailsSection>
           <DetailsSection>
             <Configuration
+              externalAuth={externalAuth}
+              externalAuthChanged={externalAuthChanged}
               rates={rateLimits}
               rateLimitsChanged={ratesChanged}
             />

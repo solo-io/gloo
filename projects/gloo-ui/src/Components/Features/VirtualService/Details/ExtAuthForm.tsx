@@ -1,10 +1,14 @@
 import * as React from 'react';
 import styled from '@emotion/styled/macro';
+import * as yup from 'yup';
+import { Field, Formik, FormikValues, FormikErrors } from 'formik';
 import { SoloInput } from 'Components/Common/SoloInput';
 import { SoloButton } from 'Components/Common/SoloButton';
-import { useFormValidation } from 'Hooks/useFormValidation';
 import { colors } from 'Styles';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
+import { OAuth } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
+import FormItem from 'antd/lib/form/FormItem';
+import { SoloFormInput } from 'Components/Common/Form/SoloFormField';
 
 const FormContainer = styled.div`
   display: grid;
@@ -18,121 +22,169 @@ export const ErrorText = styled.div`
   color: ${colors.grapefruitOrange};
 `;
 
-const initialValues = {
+const FormFooter = styled.div`
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: 90px 125px;
+  grid-template-rows: 33px;
+  grid-gap: 5px;
+  justify-content: right;
+`;
+
+const SmallSoloNegativeButton = styled(SoloNegativeButton)`
+  min-width: 0;
+`;
+
+interface ValuesType {
+  clientId: string;
+  callbackPath: string;
+  issuerUrl: string;
+  appUrl: string;
+  secretRefNamespace: string | undefined;
+  secretRefName: string | undefined;
+}
+const defaultValues: ValuesType = {
   clientId: '',
   callbackPath: '',
-  issuerURL: '',
-  appURL: '',
+  issuerUrl: '',
+  appUrl: '',
   secretRefNamespace: '',
   secretRefName: ''
 };
 
-const validate = (values: typeof initialValues) => {
-  let errors = {} as typeof initialValues;
-  if (!values.clientId) {
-    errors.clientId = 'Need a client ID ';
-  }
-  if (!values.callbackPath) {
-    errors.callbackPath = 'Need a callback path ';
-  }
-  if (!values.issuerURL) {
-    errors.issuerURL = 'Need an issuer url ';
-  }
+const validationSchema = yup.object().shape({
+  clientId: yup.string().required(),
+  secretRefName: yup.string(),
+  secretRefNamespace: yup.string(),
+  issuerUrl: yup.string().required(),
+  appUrl: yup.string().required(),
+  callbackPath: yup.string().required()
+});
 
-  return errors;
-};
+interface Props {
+  externalAuth: OAuth.AsObject | undefined;
+  externalAuthChanged: (newExternalAuth: OAuth.AsObject) => any;
+}
 
-export const ExtAuthForm = () => {
-  const {
-    handleSubmit,
-    handleChange,
-    handleBlur,
-    values,
-    errors,
-    isSubmitting,
-    isDifferent
-  } = useFormValidation(initialValues, validate, updateExtAuth);
+export const ExtAuthForm = (props: Props) => {
+  const { externalAuth, externalAuthChanged } = props;
 
-  function updateExtAuth() {
-    console.log('do grpc request');
-  }
+  const initialValues: ValuesType = { ...defaultValues, ...externalAuth };
+
+  const invalid = (values: ValuesType, errors: FormikErrors<ValuesType>) => {
+    let isInvalid = Object.keys(errors).length;
+
+    return !!isInvalid;
+  };
+
+  const updateExtAuth = (values: ValuesType) => {
+    const {
+      clientId,
+      callbackPath,
+      appUrl,
+      issuerUrl,
+      secretRefName,
+      secretRefNamespace
+    } = values;
+    let newExternalAuth = new OAuth().toObject();
+
+    newExternalAuth = {
+      clientId,
+      callbackPath,
+      appUrl,
+      issuerUrl
+    };
+
+    if (!!secretRefName && !!secretRefNamespace) {
+      newExternalAuth = {
+        ...newExternalAuth,
+        clientSecretRef: {
+          name: secretRefName,
+          namespace: secretRefNamespace
+        }
+      };
+    }
+
+    props.externalAuthChanged(newExternalAuth);
+  };
 
   return (
-    <div>
-      <FormContainer>
-        <div>
-          <SoloInput
-            title='Client ID'
-            name='clientId'
-            value={values.clientId}
-            placeholder={'example'}
-            onChange={handleChange}
-            onBlur={handleBlur}
-          />
-          {errors && <ErrorText>{errors.clientId}</ErrorText>}
-        </div>
-        <div>
-          <SoloInput
-            title='Callback Path'
-            name='callbackPath'
-            value={values.callbackPath}
-            placeholder={'example'}
-            onChange={handleChange}
-            onBlur={handleBlur}
-          />
-          {errors && <ErrorText>{errors.callbackPath}</ErrorText>}
-        </div>
-        <div>
-          <SoloInput
-            title='Issuer URL'
-            name='issuerURL'
-            value={values.issuerURL}
-            placeholder={'example'}
-            onChange={handleChange}
-            onBlur={handleBlur}
-          />
-          {errors && <ErrorText>{errors.issuerURL}</ErrorText>}
-        </div>
-        <div>
-          <SoloInput
-            title='App URL'
-            name='appURL'
-            value={values.appURL}
-            placeholder={'example'}
-            onChange={handleChange}
-            onBlur={handleBlur}
-          />
-          {errors && <ErrorText>{errors.appURL}</ErrorText>}
-        </div>
-        <div>
-          <SoloInput
-            title='Secret Ref Namespace'
-            name='secretRefNamespace'
-            value={values.secretRefNamespace}
-            placeholder={'Secret Ref Namespace'}
-            onChange={handleChange}
-            onBlur={handleBlur}
-          />
-          {errors && <ErrorText>{errors.secretRefNamespace}</ErrorText>}
-        </div>
-        <div>
-          <SoloInput
-            title='Secret Ref Name'
-            name='secretRefName'
-            value={values.secretRefName}
-            placeholder={'example'}
-            onChange={handleChange}
-            onBlur={handleBlur}
-          />
-          {errors && <ErrorText>{errors.secretRefName}</ErrorText>}
-        </div>
-        <SoloNegativeButton>Clear</SoloNegativeButton>
-        <SoloButton
-          onClick={handleSubmit!}
-          text='Submit'
-          disabled={isSubmitting}
-        />
-      </FormContainer>
-    </div>
+    <Formik
+      initialValues={initialValues}
+      validationSchema={validationSchema}
+      onSubmit={updateExtAuth}>
+      {({
+        isSubmitting,
+        handleSubmit,
+        isValid,
+        errors,
+        handleReset,
+        dirty,
+        values
+      }) => {
+        return (
+          <FormContainer>
+            <div>
+              <Field
+                name='clientId'
+                title='Client ID'
+                placeholder='myclientid'
+                component={SoloFormInput}
+              />
+            </div>
+            <div>
+              <Field
+                name='callbackPath'
+                title='Callback Path'
+                placeholder='/my/callback/path/'
+                component={SoloFormInput}
+              />
+            </div>
+            <div>
+              <Field
+                name='issuerUrl'
+                title='Issuer URL'
+                placeholder='myclientidtheissuer.com'
+                component={SoloFormInput}
+              />
+            </div>
+            <div>
+              <Field
+                name='appUrl'
+                title='App URL'
+                placeholder='myapp.com'
+                component={SoloFormInput}
+              />
+            </div>
+            <div>
+              <Field
+                name='secretRefName'
+                title='Secret Ref Name'
+                placeholder='myoauthsecret'
+                component={SoloFormInput}
+              />
+            </div>
+            <div>
+              <Field
+                name='secretRefNamespace'
+                title='Secret Ref Namespace'
+                placeholder='gloo-system'
+                component={SoloFormInput}
+              />
+            </div>
+            <FormFooter>
+              <SmallSoloNegativeButton onClick={handleReset} disabled={!dirty}>
+                Clear
+              </SmallSoloNegativeButton>
+              <SoloButton
+                onClick={handleSubmit}
+                text='Submit'
+                disabled={isSubmitting || invalid(values, errors) || !dirty}
+              />
+            </FormFooter>
+          </FormContainer>
+        );
+      }}
+    </Formik>
   );
 };

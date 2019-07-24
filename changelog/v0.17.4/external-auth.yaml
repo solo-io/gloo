@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Virtual Service OAuth configuration is now mutable from the UI.
+    issueLink: https://github.com/solo-io/solo-projects/issues/636

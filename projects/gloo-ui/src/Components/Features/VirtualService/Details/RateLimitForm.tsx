@@ -141,7 +141,7 @@ export const RateLimitForm = (props: Props) => {
     return isInvalid;
   };
 
-  const updateRateLimit = (values: typeof defaultValues) => {
+  const updateRateLimit = (values: ValuesType) => {
     const newRateLimits = new IngressRateLimit().toObject();
 
     if (applyAnonymousLimits) {
@@ -156,7 +156,6 @@ export const RateLimitForm = (props: Props) => {
         requestsPerUnit: values.authLimitNumber!
       };
     }
-    console.log(newRateLimits);
 
     props.rateLimitsChanged(newRateLimits);
   };
