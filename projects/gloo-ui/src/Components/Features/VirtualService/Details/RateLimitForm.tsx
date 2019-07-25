@@ -1,9 +1,9 @@
 import * as React from 'react';
 import styled from '@emotion/styled/macro';
-import { Field, Formik, FormikValues, FormikErrors } from 'formik';
+import { Formik, FormikErrors } from 'formik';
 import * as yup from 'yup';
 import { colors } from 'Styles';
-import { Label, SoloInput } from 'Components/Common/SoloInput';
+import { Label } from 'Components/Common/SoloInput';
 import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
 import { SoloButton } from 'Components/Common/SoloButton';
 import {
@@ -187,20 +187,18 @@ export const RateLimitForm = (props: Props) => {
               {applyAuthorizedLimits && (
                 <InputRow>
                   <div>
-                    <Field
+                    <SoloFormInput
                       name='authLimitNumber'
                       title=''
                       placeholder='##'
-                      component={SoloFormInput}
                     />
                   </div>
                   <PerText>per</PerText>
                   <div style={{ minWidth: '50%' }}>
-                    <Field
+                    <SoloFormDropdown
                       name='authLimitTimeUnit'
                       title=''
                       options={timeOptions}
-                      component={SoloFormDropdown}
                     />
                   </div>
                 </InputRow>
@@ -217,20 +215,18 @@ export const RateLimitForm = (props: Props) => {
               {applyAnonymousLimits && (
                 <InputRow>
                   <div>
-                    <Field
+                    <SoloFormInput
                       name='anonLimitNumber'
                       title=''
                       placeholder='##'
-                      component={SoloFormInput}
                     />
                   </div>
                   <PerText>per</PerText>
                   <div style={{ minWidth: '50%' }}>
-                    <Field
+                    <SoloFormDropdown
                       name='anonLimitTimeUnit'
                       title=''
                       options={timeOptions}
-                      component={SoloFormDropdown}
                     />
                   </div>
                 </InputRow>

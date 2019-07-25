@@ -23,7 +23,7 @@
     "antd": "^3.19.2",
     "emotion-theming": "^10.0.10",
     "eslint-plugin-emotion": "^10.0.7",
-    "formik": "^1.5.7",
+    "formik": "^2.0.1-rc.12",
     "google-protobuf": "^3.7.1",
     "grpc-web": "^1.0.4",
     "lodash": "4.17.13",

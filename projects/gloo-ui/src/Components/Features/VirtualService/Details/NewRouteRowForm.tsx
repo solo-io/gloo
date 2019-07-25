@@ -211,18 +211,13 @@ export const NewRouteRowForm: React.FC<Props> = ({
         {({ handleSubmit, values }) => (
           <React.Fragment>
             <TableFormWrapper>
-              <Field
-                name='path'
-                placeholder='Path...'
-                component={SoloFormInput}
-              />
-              <Field
+              <SoloFormInput name='path' placeholder='Path...' />
+              <SoloFormDropdown
                 name='matchType'
                 defaultValue={'PREFIX'}
                 options={PATH_SPECIFIERS}
-                component={SoloFormDropdown}
               />
-              <Field
+              <SoloFormMultiselect
                 name='methods'
                 placeholder='Methods...'
                 options={Object.keys(createRouteDefaultValues.methods).map(
@@ -233,25 +228,23 @@ export const NewRouteRowForm: React.FC<Props> = ({
                     };
                   }
                 )}
-                component={SoloFormMultiselect}
               />
-              <Field
+              <SoloFormMetadataBasedDropdown
                 name='upstream'
                 placeholder='Upstream...'
+                value={values.upstream}
                 options={allUsableUpstreams}
-                component={SoloFormMetadataBasedDropdown}
               />
-              <Field
+              <SoloFormMultipartStringCardsList
                 name='headers'
                 createNewNamePromptText={'Name...'}
                 createNewValuePromptText={'Value...'}
-                component={SoloFormMultipartStringCardsList}
               />
-              <Field
+
+              <SoloFormMultipartStringCardsList
                 name='queryParameters'
                 createNewNamePromptText={'Name...'}
                 createNewValuePromptText={'Value...'}
-                component={SoloFormMultipartStringCardsList}
               />
             </TableFormWrapper>
             <td>

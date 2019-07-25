@@ -120,6 +120,10 @@ const CheckboxFilters: CheckboxFilterProps[] = [
     value: false
   },
   {
+    displayName: 'Consul',
+    value: false
+  },
+  {
     displayName: 'Kubernetes',
     value: false
   },
@@ -181,7 +185,6 @@ export const UpstreamsListing = (props: Props) => {
     // group by type
     let upstreamsByType = groupBy(data.upstreamsList, u => getUpstreamType(u));
     let upstreamsByTypeArr = Array.from(upstreamsByType.entries());
-
     let checkboxesNotSet = checkboxes.every(c => !c.value!);
     return (
       <div>

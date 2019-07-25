@@ -8,7 +8,7 @@ import {
   TlsSecret,
   Secret
 } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/secret_pb';
-import { Formik, Field } from 'formik';
+import { Formik } from 'formik';
 import {
   SoloFormInput,
   TableFormWrapper,
@@ -100,17 +100,12 @@ export const SecretForm: React.FC<Props> = ({ secretKind }) => {
         {({ handleSubmit }) => (
           <React.Fragment>
             <TableFormWrapper>
-              <Field
-                name='secretResourceRef.name'
-                placeholder='Name'
-                component={SoloFormInput}
-              />
-              <Field
+              <SoloFormInput name='secretResourceRef.name' placeholder='Name' />
+              <SoloFormTypeahead
                 name='secretResourceRef.namespace'
                 placeholder='Namespace'
                 defaultValue='gloo-system'
                 presetOptions={namespaces}
-                component={SoloFormTypeahead}
               />
             </TableFormWrapper>
             {secretKind === Secret.KindCase.AWS && <AwsSecretFields />}
@@ -133,16 +128,8 @@ export const SecretForm: React.FC<Props> = ({ secretKind }) => {
 const AwsSecretFields: React.FC = () => {
   return (
     <TableFormWrapper>
-      <Field
-        name='awsSecret.accessKey'
-        placeholder='Access Key'
-        component={SoloFormInput}
-      />
-      <Field
-        name='awsSecret.secretKey'
-        placeholder='Secret Key'
-        component={SoloFormInput}
-      />
+      <SoloFormInput name='awsSecret.accessKey' placeholder='Access Key' />
+      <SoloFormInput name='awsSecret.secretKey' placeholder='Secret Key' />
     </TableFormWrapper>
   );
 };
@@ -150,17 +137,9 @@ const AwsSecretFields: React.FC = () => {
 const TlsSecretFields: React.FC = () => {
   return (
     <TableFormWrapper>
-      <Field
-        name='tlsSecret.certChain'
-        placeholder='Cert Chain'
-        component={SoloFormInput}
-      />
-      <Field
-        name='tlsSecret.privateKey'
-        placeholder='Private Key'
-        component={SoloFormInput}
-      />
-      <Field name='rootCa' placeholder='Root Ca' component={SoloFormInput} />
+      <SoloFormInput name='tlsSecret.certChain' placeholder='Cert Chain' />
+      <SoloFormInput name='tlsSecret.privateKey' placeholder='Private Key' />
+      <SoloFormInput name='rootCa' placeholder='Root Ca' />
     </TableFormWrapper>
   );
 };
@@ -168,11 +147,7 @@ const TlsSecretFields: React.FC = () => {
 const AzureSecretFields: React.FC = () => {
   return (
     <TableFormWrapper>
-      <Field
-        name='azureSecret.apiKeysMap'
-        placeholder='Api Keys'
-        component={SoloFormInput}
-      />
+      <SoloFormInput name='azureSecret.apiKeysMap' placeholder='Api Keys' />
     </TableFormWrapper>
   );
 };
@@ -180,10 +155,9 @@ const AzureSecretFields: React.FC = () => {
 const OAuthSecretFields: React.FC = () => {
   return (
     <TableFormWrapper>
-      <Field
+      <SoloFormInput
         name='oAuthSecret.clientSecret'
         placeholder='Client Secret'
-        component={SoloFormInput}
       />
     </TableFormWrapper>
   );

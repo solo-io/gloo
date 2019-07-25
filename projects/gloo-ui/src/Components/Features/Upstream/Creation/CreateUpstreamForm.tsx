@@ -7,7 +7,8 @@ import {
 } from 'Components/Common/Form/SoloFormField';
 import {
   SoloFormTemplate,
-  InputRow
+  InputRow,
+  Footer
 } from 'Components/Common/Form/SoloFormTemplate';
 import { Field, Formik } from 'formik';
 import { NamespacesContext } from 'GlooIApp';
@@ -30,10 +31,14 @@ import { UPSTREAM_SPEC_TYPES, UPSTREAM_TYPES } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
 import { awsInitialValues, AwsUpstreamForm } from './AwsUpstreamForm';
 import { azureInitialValues, AzureUpstreamForm } from './AzureUpstreamForm';
-import { consulInitialValues, ConsulUpstreamForm } from './ConsulUpstreamForm';
+import {
+  consulInitialValues,
+  ConsulUpstreamForm,
+  consulValidationSchema
+} from './ConsulUpstreamForm';
 import { kubeInitialValues, KubeUpstreamForm } from './KubeUpstreamForm';
 import { staticInitialValues, StaticUpstreamForm } from './StaticUpstreamForm';
-
+import { SoloButton } from 'Components/Common/SoloButton';
 interface Props {}
 
 const FormContainer = styled.div`
@@ -60,7 +65,12 @@ const validationSchema = yup.object().shape({
     .required('Upstream name is required')
     .min(2, `Name can't be that short`),
   namespace: yup.string().required('Namespace is required'),
-  type: yup.string().required('Must specify an upstream type')
+  type: yup.string().required('Must specify an upstream type'),
+  awsRegion: yup.string(),
+  awsSecretRef: yup.object().shape({
+    name: yup.string().required('A secret is required'),
+    namespace: yup.string()
+  })
 });
 
 export const CreateUpstreamForm = (props: Props) => {
@@ -68,7 +78,6 @@ export const CreateUpstreamForm = (props: Props) => {
 
   const { refetch: makeRequest } = useCreateUpstream(null);
 
-  const LambdaFunctionList = React.useRef<LambdaFunctionSpec[]>([]);
   // grpc request
   function createUpstream(values: typeof initialValues) {
     const newUpstreamReq = new CreateUpstreamRequest();
@@ -91,16 +100,6 @@ export const CreateUpstreamForm = (props: Props) => {
         awsSecretRef.setName(values.awsSecretRef.name);
         awsSecretRef.setNamespace(values.awsSecretRef.namespace);
         awsSpec.setSecretRef(awsSecretRef);
-        values.awsLambdaFunctionsList.forEach(lambda => {
-          const newLambdaList = new LambdaFunctionSpec();
-          newLambdaList.setLambdaFunctionName(lambda.lambdaFunctionName);
-          newLambdaList.setLogicalName(lambda.logicalName);
-          newLambdaList.setQualifier(lambda.qualifier);
-          LambdaFunctionList.current.push(newLambdaList);
-        });
-        console.log(values.awsLambdaFunctionsList);
-        awsSpec.setLambdaFunctionsList(LambdaFunctionList.current);
-
         usInput.setAws(awsSpec);
         break;
       case UPSTREAM_SPEC_TYPES.AZURE:
@@ -109,13 +108,6 @@ export const CreateUpstreamForm = (props: Props) => {
         azureSecretRef.setName(values.azureSecretRef.name);
         azureSecretRef.setNamespace(values.azureSecretRef.namespace);
         azureSpec.setSecretRef(azureSecretRef);
-        const azureFnList = values.azureFunctionsList.map(azureFn => {
-          const azureFnSpec = new AzureUpstreamSpec.FunctionSpec();
-          azureFnSpec.setFunctionName(azureFn.functionName);
-          azureFnSpec.setAuthLevel(azureFn.authLevel);
-          return azureFnSpec;
-        });
-        azureSpec.setFunctionsList(azureFnList);
         azureSpec.setFunctionAppName(values.azureFunctionAppName);
         usInput.setAzure(azureSpec);
         break;
@@ -158,48 +150,52 @@ export const CreateUpstreamForm = (props: Props) => {
           <SoloFormTemplate>
             <InputRow>
               <div>
-                <Field
+                <SoloFormInput
                   name='name'
                   title='Upstream Name'
                   placeholder='Upstream Name'
-                  component={SoloFormInput}
                 />
               </div>
               <div>
-                <Field
+                <SoloFormDropdown
                   name='type'
                   title='Upstream Type'
                   placeholder='Type'
                   options={UPSTREAM_TYPES}
-                  component={SoloFormDropdown}
                 />
               </div>
               <div>
-                <Field
+                <SoloFormTypeahead
                   name='namespace'
                   title='Upstream Namespace'
                   defaultValue='gloo-system'
                   presetOptions={namespaces}
-                  component={SoloFormTypeahead}
                 />
               </div>
             </InputRow>
           </SoloFormTemplate>
           {formik.values.type === UPSTREAM_SPEC_TYPES.AWS && (
-            <AwsUpstreamForm parentForm={formik} />
+            <AwsUpstreamForm />
           )}
           {formik.values.type === UPSTREAM_SPEC_TYPES.KUBE && (
-            <KubeUpstreamForm parentForm={formik} />
+            <KubeUpstreamForm />
           )}
           {formik.values.type === UPSTREAM_SPEC_TYPES.STATIC && (
-            <StaticUpstreamForm parentForm={formik} />
+            <StaticUpstreamForm />
           )}
           {formik.values.type === UPSTREAM_SPEC_TYPES.AZURE && (
-            <AzureUpstreamForm parentForm={formik} />
+            <AzureUpstreamForm />
           )}
           {formik.values.type === UPSTREAM_SPEC_TYPES.CONSUL && (
-            <ConsulUpstreamForm parentForm={formik} />
+            <ConsulUpstreamForm />
           )}
+          <Footer>
+            <SoloButton
+              onClick={e => formik.handleSubmit(e)}
+              text='Create Upstream'
+              disabled={formik.isSubmitting}
+            />
+          </Footer>
         </FormContainer>
       )}
     </Formik>

@@ -135,7 +135,7 @@ const validationSchema = yup.object().shape({
   upstream: yup.object(),
   path: yup
     .string()
-    .test('Valid Path', 'Paths begin with /', val => val[0] === '/'),
+    .test('Valid Path', 'Paths begin with /', val => val && val[0] === '/'),
   matchType: yup.string(),
   headers: yup.array().of(
     yup.object().shape({
@@ -392,70 +392,64 @@ export const CreateRouteModal = (props: Props) => {
               <InputRow>
                 {allUsableVirtualServices.length && (
                   <HalfColumn>
-                    <Field
+                    <SoloFormMetadataBasedDropdown
                       name='virtualService'
                       title='Virtual Service'
                       value={values.virtualService}
                       placeholder='Virtual Service...'
                       options={allUsableVirtualServices}
-                      component={SoloFormMetadataBasedDropdown}
                     />
                   </HalfColumn>
                 )}
                 {allUsableUpstreams.length && (
                   <HalfColumn>
-                    <Field
+                    <SoloFormMetadataBasedDropdown
                       name='upstream'
                       title='Upstream'
                       value={values.upstream}
                       placeholder='Upstream...'
                       options={allUsableUpstreams}
-                      component={SoloFormMetadataBasedDropdown}
                     />
                   </HalfColumn>
                 )}
               </InputRow>
               <InputRow>
                 <HalfColumn>
-                  <Field
+                  <SoloFormInput
                     name='path'
                     title='Path'
                     placeholder='Path...'
-                    component={SoloFormInput}
                   />
                 </HalfColumn>
                 <HalfColumn>
-                  <Field
+                  <SoloFormDropdown
                     name='matchType'
                     title='Match Type'
                     defaultValue={'PREFIX'}
                     options={PATH_SPECIFIERS}
-                    component={SoloFormDropdown}
                   />
                 </HalfColumn>
               </InputRow>
               <InputRow>
-                <Field
+                <SoloFormMultipartStringCardsList
                   name='headers'
                   title='Headers'
                   values={values.headers}
                   createNewNamePromptText={'Name...'}
                   createNewValuePromptText={'Value...'}
-                  component={SoloFormMultipartStringCardsList}
                 />
               </InputRow>
               <InputRow>
-                <Field
+                <SoloFormMultipartStringCardsList
                   name='queryParameters'
                   title='Query Parameters'
                   values={values.queryParameters}
                   createNewNamePromptText={'Name...'}
                   createNewValuePromptText={'Value...'}
-                  component={SoloFormMultipartStringCardsList}
                 />
               </InputRow>
               <InputRow>
-                <Field
+                <SoloFormMultiselect
                   name='methods'
                   title='Methods'
                   placeholder='Methods...'
@@ -467,11 +461,9 @@ export const CreateRouteModal = (props: Props) => {
                       };
                     }
                   )}
-                  component={SoloFormMultiselect}
                 />
               </InputRow>
             </SoloFormTemplate>
-
             <Footer>
               <SoloButton
                 onClick={handleSubmit}

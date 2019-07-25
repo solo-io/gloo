@@ -1,5 +1,14 @@
 import styled from '@emotion/styled/macro';
-import { FieldProps, Field, FormikProps } from 'formik';
+import {
+  FieldProps,
+  Field,
+  FieldArrayRenderProps,
+  useField,
+  FieldAttributes,
+  useFormikContext,
+  FormikProps,
+  setIn
+} from 'formik';
 import React from 'react';
 import { colors } from 'Styles';
 import { DropdownProps, SoloDropdown } from '../SoloDropdown';
@@ -23,51 +32,98 @@ export const ErrorText = styled<'div', { errorExists?: boolean }>('div')`
   min-height: 19px;
 `;
 
-// TODO: make these wrappers generic to avoid repetition
-export const SoloFormInput: React.FC<FieldProps & InputProps> = ({
-  error,
-  field,
-  form: { errors, ...form },
-  ...rest
-}) => {
+export const SoloFormInput = ({ ...props }) => {
+  const [field, meta] = useField(props.name);
+
   return (
     <React.Fragment>
-      <SoloInput error={!!errors[field.name]} {...field} {...rest} />
-      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
+      <SoloInput
+        {...field}
+        {...props}
+        title={props.title}
+        value={field.value}
+        onChange={field.onChange}
+      />
+      <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
     </React.Fragment>
   );
 };
 
-export const SoloFormTypeahead: React.FC<FieldProps & TypeaheadProps> = ({
-  field,
-  form: { errors, setFieldValue, ...form },
-  ...rest
-}) => {
+export const SoloFormTypeahead = (props: any) => {
+  const [field, meta] = useField(props.name);
+  const form = useFormikContext<any>();
   return (
     <React.Fragment>
       <SoloTypeahead
-        {...rest}
+        {...props}
         {...field}
-        onChange={value => setFieldValue(field.name, value)}
+        title={props.title}
+        presetOptions={props.presetOptions}
+        onChange={value => form.setFieldValue(props.name, value)}
       />
-      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
+      <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
     </React.Fragment>
   );
 };
 
-export const SoloFormDropdown: React.FC<FieldProps & DropdownProps> = ({
-  field,
-  form: { errors, setFieldValue, ...form },
-  ...rest
-}) => {
+export const SoloFormDropdown = (props: any) => {
+  const [field, meta] = useField(props.name);
+  const form = useFormikContext<any>();
   return (
     <React.Fragment>
       <SoloDropdown
         {...field}
-        {...rest}
-        onChange={value => setFieldValue(field.name, value)}
+        {...props}
+        onChange={value => form.setFieldValue(field.name, value)}
       />
-      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
+      <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
+    </React.Fragment>
+  );
+};
+
+export const SoloFormCheckbox = (props: any) => {
+  const [field, meta] = useField(props.name);
+  const form = useFormikContext<any>();
+  return (
+    <React.Fragment>
+      <SoloCheckbox
+        {...props}
+        {...field}
+        checked={!!field.value}
+        onChange={value => form.setFieldValue(field.name, value.target.checked)}
+        label
+      />
+      <ErrorText errorExists={!!meta.touched && !!meta.error}>
+        {meta.error}
+      </ErrorText>
+    </React.Fragment>
+  );
+};
+
+export const SoloFormMultiselect = (props: any) => {
+  const [field, meta] = useField(props.name);
+  const form = useFormikContext<any>();
+  return (
+    <React.Fragment>
+      <SoloMultiSelect
+        {...field}
+        {...props}
+        values={Object.keys(field.value).filter(key => field.value[key])}
+        onChange={newValues => {
+          const newFieldValues = { ...field.value };
+          Object.keys(newFieldValues).forEach(key => {
+            newFieldValues[key] = false;
+          });
+          for (let val of newValues) {
+            newFieldValues[val] = true;
+          }
+
+          form.setFieldValue(field.name, newFieldValues);
+        }}
+      />
+      <ErrorText errorExists={!!meta.touched && !!meta.error}>
+        {meta.error}
+      </ErrorText>{' '}
     </React.Fragment>
   );
 };
@@ -75,12 +131,14 @@ export const SoloFormDropdown: React.FC<FieldProps & DropdownProps> = ({
 interface MetadataBasedDropdownProps extends DropdownProps {
   value: any;
   options: any[];
+  name: string;
 }
-
 export const SoloFormMetadataBasedDropdown: React.FC<
-  FieldProps & MetadataBasedDropdownProps
-> = ({ field, form: { errors, setFieldValue }, ...rest }) => {
-  const usedOptions = rest.options.map(option => {
+  MetadataBasedDropdownProps
+> = ({ ...props }) => {
+  const [field, meta] = useField(props.name);
+  const form = useFormikContext<any>();
+  const usedOptions = props.options.map(option => {
     return {
       key: createUpstreamId(option.metadata!), // the same as virtual service's currently
       displayValue: option.metadata.name,
@@ -89,125 +147,83 @@ export const SoloFormMetadataBasedDropdown: React.FC<
   });
 
   const usedValue =
-    rest.value && rest.value.metadata
-      ? rest.value.metadata.name
+    props.value && props.value.metadata
+      ? props.value.metadata.name
       : field.value && field.value.metadata
       ? field.value.metadata.name
       : undefined;
 
   const setNewValue = (newValueId: any) => {
     const { name, namespace } = parseUpstreamId(newValueId);
-    const optionChosen = rest.options.find(
+    const optionChosen = props.options.find(
       option =>
         option.metadata.name === name && option.metadata.namespace === namespace
     );
 
-    setFieldValue(field.name, optionChosen);
+    form.setFieldValue(field.name, optionChosen);
   };
 
   return (
     <React.Fragment>
       <SoloDropdown
         {...field}
-        {...rest}
+        {...props}
         options={usedOptions}
         value={usedValue}
         onChange={setNewValue}
       />
-      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
-    </React.Fragment>
-  );
-};
-
-export const SoloFormMultiselect: React.FC<FieldProps & MultiselectProps> = ({
-  field,
-  form: { errors, setFieldValue, ...form },
-  ...rest
-}) => {
-  return (
-    <React.Fragment>
-      <SoloMultiSelect
-        {...field}
-        {...rest}
-        values={
-          !!rest.values
-            ? rest.values
-            : Object.keys(field.value).filter(key => field.value[key])
-        }
-        onChange={newValues => {
-          const newFieldValues = !!rest.values
-            ? { ...rest.values }
-            : { ...field.value };
-          Object.keys(newFieldValues).forEach(key => {
-            newFieldValues[key] = false;
-          });
-          for (let val of newValues) {
-            newFieldValues[val] = true;
-          }
-
-          setFieldValue(field.name, newFieldValues);
-        }}
-      />
-      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
-    </React.Fragment>
-  );
-};
-
-export const SoloFormCheckbox: React.FC<FieldProps & CheckboxProps> = ({
-  field,
-  form: { errors, setFieldValue, ...form },
-  ...rest
-}) => {
-  return (
-    <React.Fragment>
-      <SoloCheckbox
-        {...rest}
-        {...field}
-        checked={!!field.value}
-        onChange={value => setFieldValue(field.name, value.target.checked)}
-        label
-      />
-      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
+      <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
     </React.Fragment>
   );
 };
 
 export const SoloFormMultipartStringCardsList: React.FC<
-  FieldProps & MultipartStringCardsProps
-> = ({ field, form: { errors, setFieldValue }, ...rest }) => {
+  { name: string } & any
+> = ({ name, ...props }) => {
+  const [field, meta] = useField(name);
+  const form = useFormikContext<any>();
   return (
     <React.Fragment>
       <MultipartStringCardsList
         {...field}
-        {...rest}
-        values={rest.values || field.value}
+        {...props}
+        values={field.value}
         valueDeleted={indexDeleted => {
-          setFieldValue(field.name, [...field.value].splice(indexDeleted, 1));
+          form.setFieldValue(
+            field.name,
+            [...field.value].splice(indexDeleted, 1)
+          );
         }}
         createNew={newPair => {
-          let newList = !!rest.values ? [...rest.values] : [...field.value];
+          let newList = [...field.value];
           newList.push({
             value: newPair.newValue,
             name: newPair.newName
           });
-          setFieldValue(field.name, newList);
+          form.setFieldValue(field.name, newList);
         }}
       />
-      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
+      <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
     </React.Fragment>
   );
 };
 
-export const SoloSecretRefInput: React.FC<
-  FieldProps &
-    TypeaheadProps & {
-      type: string;
-      asColumn: boolean;
-      parentForm: FormikProps<any>;
-    }
-> = ({ parentForm, field: parentField, form, type, asColumn, ...rest }) => {
+export const SoloFormSecretRefInput: React.FC<{
+  type: string;
+  asColumn?: boolean;
+  name: string;
+}> = props => {
+  const { name, type } = props;
+  const [field, meta] = useField(name);
+  const form = useFormikContext<any>();
+  console.log('form', form);
+  const [namespaceField, namespaceMeta] = useField(`${field.name}.namespace`);
+  const [nameField, nameMeta] = useField(`${field.name}.name`);
+
+  console.log(namespaceField, namespaceMeta);
+  console.log(nameField, nameMeta);
   const namespaces = React.useContext(NamespacesContext);
-  const [selectedNS, setSelectedNS] = React.useState('');
+  const [selectedNS, setSelectedNS] = React.useState(namespaceField.value);
   const listSecretsRequest = new ListSecretsRequest();
   const [noSecrets, setNoSecrets] = React.useState(false);
   React.useEffect(() => {
@@ -249,53 +265,43 @@ export const SoloSecretRefInput: React.FC<
 
   return (
     <React.Fragment>
-      <Field
-        name={`${parentField.name}.namespace`}
-        render={({ form, field }: FieldProps) => (
-          <div>
-            <SoloTypeahead
-              {...field}
-              title='Secret Ref Namespace'
-              defaultValue='gloo-system'
-              presetOptions={namespaces}
-              onChange={value => {
-                form.setFieldValue(field.name, value);
-                setSelectedNS(value);
-                form.setFieldTouched(`${parentField.name}.name`);
-                form.setFieldValue(`${parentField.name}.name`, '');
-                if (secretsFound.length === 0) {
-                  setNoSecrets(true);
-                  parentForm.setFieldError(field.name, 'No secrets found');
-                }
-              }}
-            />
-            <ErrorText errorExists={noSecrets}>
-              {form.errors[field.name]}
-            </ErrorText>
-          </div>
-        )}
-      />
-
-      <Field
-        name={`${parentField.name}.name`}
-        render={({ form, field }: FieldProps) => (
-          <div>
-            <SoloTypeahead
-              {...field}
-              title='Secret Ref Name'
-              disabled={secretsFound.length === 0}
-              presetOptions={secretsFound}
-              defaultValue='Secret...'
-              onChange={value => {
-                form.setFieldValue(`${parentField.name}.name`, value);
-              }}
-            />
-            {form.errors && (
-              <ErrorText>{form.errors[`${parentField.name}.name`]}</ErrorText>
-            )}
-          </div>
-        )}
-      />
+      <div>
+        <SoloTypeahead
+          {...namespaceField}
+          title='Secret Ref Namespace'
+          defaultValue='gloo-system'
+          presetOptions={namespaces}
+          onChange={value => {
+            form.setFieldValue(`${field.name}.namespace`, value);
+            console.log(`${field.name}.name`, value);
+            setSelectedNS(value);
+            if (noSecrets) {
+              form.setFieldError(
+                `${field.name}.namespace`,
+                'No secrets found on this namespace'
+              );
+            }
+            form.setFieldTouched(`${field.name}.name`);
+            form.setFieldValue(`${field.name}.name`, '');
+          }}
+        />
+        <ErrorText errorExists={!!namespaceMeta.error}>
+          {namespaceMeta.error}
+        </ErrorText>
+      </div>
+      <div>
+        <SoloTypeahead
+          {...nameField}
+          title='Secret Ref Name'
+          disabled={secretsFound.length === 0}
+          presetOptions={secretsFound}
+          defaultValue='Secret...'
+          onChange={value => {
+            form.setFieldValue(`${field.name}.name`, value);
+          }}
+        />
+        <ErrorText errorExists={!!nameMeta.error}>{nameMeta.error}</ErrorText>
+      </div>
     </React.Fragment>
   );
 };
@@ -310,32 +316,31 @@ export const TableFormWrapper: React.FC = props => {
   );
 };
 
-export const SoloFormStringsList: React.FC<
-  FieldProps & StringCardsListProps
-> = ({
-  field,
-  form: { errors, setFieldValue, ...form },
+export const SoloFormStringsList: React.FC<any> = ({
   createNewPromptText,
-  ...rest
+  ...props
 }) => {
+  const [field, meta] = useField(props.name);
+  const form = useFormikContext<any>();
+
   const removeValue = (index: number) => {
-    setFieldValue(field.name, form.values[field.name].splice(index, 1));
+    form.setFieldValue(field.name, form.values[field.name].splice(index, 1));
   };
   const addValue = (value: string) => {
-    setFieldValue(field.name, form.values[field.name].concat(value));
+    form.setFieldValue(field.name, form.values[field.name].concat(value));
   };
 
   return (
     <React.Fragment>
       <StringCardsList
-        {...rest}
+        {...props}
         {...field}
         values={form.values[field.name].slice(1)}
         valueDeleted={removeValue}
         createNew={addValue}
         createNewPromptText={createNewPromptText}
       />
-      <ErrorText errorExists={!!errors}>{errors[field.name]}</ErrorText>
+      <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
     </React.Fragment>
   );
 };

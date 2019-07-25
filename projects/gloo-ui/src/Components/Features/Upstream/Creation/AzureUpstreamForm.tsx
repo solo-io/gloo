@@ -3,7 +3,7 @@ import { ReactComponent as CloseX } from 'assets/close-x.svg';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import {
   SoloFormInput,
-  SoloSecretRefInput
+  SoloFormSecretRefInput
 } from 'Components/Common/Form/SoloFormField';
 import {
   Footer,
@@ -36,7 +36,6 @@ const IconContainer = styled.div`
 interface AzureValuesType {
   azureFunctionAppName: string;
   azureSecretRef: ResourceRef.AsObject;
-  azureFunctionsList: AzureUpstreamSpec.FunctionSpec.AsObject[];
 }
 
 export const azureInitialValues: AzureValuesType = {
@@ -44,18 +43,10 @@ export const azureInitialValues: AzureValuesType = {
   azureSecretRef: {
     name: '',
     namespace: 'gloo-system'
-  },
-  azureFunctionsList: [
-    {
-      functionName: '',
-      authLevel: AZURE_AUTH_LEVELS[0].value
-    }
-  ]
+  }
 };
 
-interface Props {
-  parentForm: FormikProps<AzureValuesType>;
-}
+interface Props {}
 
 export const azureValidationSchema = yup.object().shape({
   azureFunctionAppName: yup.string(),
@@ -63,126 +54,17 @@ export const azureValidationSchema = yup.object().shape({
   azureSecretRefName: yup.string()
 });
 
-export const AzureUpstreamForm: React.FC<Props> = ({ parentForm }) => {
+export const AzureUpstreamForm: React.FC<Props> = () => {
   return (
-    <Formik<AzureValuesType>
-      validationSchema={azureValidationSchema}
-      initialValues={azureInitialValues}
-      onSubmit={values => {
-        parentForm.setFieldValue(
-          'azureFunctionAppName',
-          values.azureFunctionAppName
-        );
-        parentForm.setFieldValue(
-          'azureFunctionsList',
-          values.azureFunctionsList.slice(1)
-        );
-        parentForm.setFieldValue('azureSecretRef', values.azureSecretRef);
-        parentForm.submitForm();
-      }}>
-      {({ handleSubmit }) => (
-        <SoloFormTemplate formHeader='Azure Upstream Settings'>
-          <InputRow>
-            <Field
-              name='azureFunctionAppName'
-              title='Function App Name'
-              placeholder='Function App Name'
-              component={SoloFormInput}
-            />
-            <Field
-              name='azureSecretRef'
-              type='azure'
-              component={SoloSecretRefInput}
-            />
-          </InputRow>
-          <SoloFormTemplate formHeader='Azure Functions'>
-            <FieldArray name='azureFunctionsList' render={AzureFunctions} />
-          </SoloFormTemplate>
-          <Footer>
-            <SoloButton
-              onClick={handleSubmit}
-              text='Create Upstream'
-              disabled={parentForm.isSubmitting}
-            />
-          </Footer>
-        </SoloFormTemplate>
-      )}
-    </Formik>
-  );
-};
-
-interface AzureFunctionProps extends FieldArrayRenderProps {
-  form: FormikProps<AzureValuesType>;
-}
-const AzureFunctions: React.FC<AzureFunctionProps> = ({
-  form,
-  remove,
-  insert,
-  name
-}) => {
-  const cols = [
-    {
-      title: 'Function Name',
-      dataIndex: 'functionName'
-    },
-    {
-      title: 'Auth Level',
-      dataIndex: 'lambdaFunctionName'
-    },
-    { title: 'Action', dataIndex: 'action' }
-  ];
-
-  const formData = form.values.azureFunctionsList.map((azureFn, index) => {
-    return {
-      ...azureFn,
-      key: `${azureFn.functionName}`,
-      action: (
-        <CloseX style={{ cursor: 'pointer' }} onClick={() => remove(index)} />
-      )
-    };
-  });
-
-  return (
-    <React.Fragment>
-      <StyledInputRow>
-        <div>
-          <Field
-            name='azureFunctionsList[0].functionName'
-            title='Function Name'
-            placeholder='Function Name'
-            component={SoloFormInput}
-          />
-        </div>
-        <div>
-          <Field
-            name='azureFunctionsList[0].authLevel'
-            title='Function Auth Level'
-            defaultValue='FUNCTION'
-            options={AZURE_AUTH_LEVELS}
-            component={SoloFormDropdown}
-          />
-        </div>
-        <IconContainer>
-          <GreenPlus
-            style={{ alignSelf: 'center', cursor: 'pointer' }}
-            onClick={() =>
-              insert(0, {
-                functionName: '',
-                authLevel: ''
-              })
-            }
-          />
-        </IconContainer>
-      </StyledInputRow>
+    <SoloFormTemplate formHeader='Azure Upstream Settings'>
       <InputRow>
-        <Table
-          style={{ width: '100%' }}
-          dataSource={formData.slice(1)}
-          columns={cols}
-          pagination={false}
-          locale={{ emptyText: 'Enter Functions' }}
+        <SoloFormInput
+          name='azureFunctionAppName'
+          title='Function App Name'
+          placeholder='Function App Name'
         />
+        <SoloFormSecretRefInput name='azureSecretRef' type='azure' />
       </InputRow>
-    </React.Fragment>
+    </SoloFormTemplate>
   );
 };

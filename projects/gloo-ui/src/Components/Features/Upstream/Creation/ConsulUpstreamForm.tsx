@@ -4,12 +4,9 @@ import {
   SoloFormStringsList
 } from 'Components/Common/Form/SoloFormField';
 import {
-  Footer,
   InputRow,
   SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
-import { SoloButton } from 'Components/Common/SoloButton';
-import { Field, Formik, FormikProps } from 'formik';
 import * as React from 'react';
 import * as yup from 'yup';
 
@@ -27,9 +24,7 @@ export const consulInitialValues: ConsulVauesType = {
   consulDataCentersList: ['']
 };
 
-interface Props {
-  parentForm: FormikProps<ConsulVauesType>;
-}
+interface Props {}
 
 export const consulValidationSchema = yup.object().shape({
   consulServiceName: yup.string(),
@@ -38,72 +33,42 @@ export const consulValidationSchema = yup.object().shape({
   consulDataCentersList: yup.array().of(yup.string())
 });
 
-export const ConsulUpstreamForm: React.FC<Props> = ({ parentForm }) => {
+export const ConsulUpstreamForm: React.FC<Props> = () => {
   return (
-    <Formik<ConsulVauesType>
-      validationSchema={consulValidationSchema}
-      initialValues={consulInitialValues}
-      onSubmit={values => {
-        parentForm.setFieldValue(
-          'consulConnectEnabled',
-          values.consulConnectEnabled
-        );
-        parentForm.setFieldValue(
-          'consulDataCentersList',
-          values.consulDataCentersList
-        );
-        parentForm.setFieldValue('consulServiceName', values.consulServiceName);
-        parentForm.setFieldValue(
-          'consulServiceTagsList',
-          values.consulServiceTagsList
-        );
-
-        parentForm.submitForm();
-      }}>
-      {({ values, handleSubmit }) => (
-        <SoloFormTemplate formHeader='Consul Upstream Settings'>
-          <InputRow>
-            <Field
-              name='consulServiceName'
-              title='Service Name'
-              placeholder='Service Name'
-              component={SoloFormInput}
-            />
-            <Field
-              name='consulConnectEnabled'
-              title='Enable Consul Connect'
-              component={SoloFormCheckbox}
-            />
-          </InputRow>
-          <InputRow>
-            <SoloFormTemplate formHeader='Service Tags'>
-              <Field
-                name='consulServiceTagsList'
-                title='Consul Service Tags'
-                createNewPromptText='Service Tags'
-                component={SoloFormStringsList}
-              />
-            </SoloFormTemplate>
-          </InputRow>
-          <InputRow>
-            <SoloFormTemplate formHeader='Data Centers'>
-              <Field
-                name='consulDataCentersList'
-                title='Data Centers'
-                createNewPromptText='Data Centers'
-                component={SoloFormStringsList}
-              />
-            </SoloFormTemplate>
-          </InputRow>
-          <Footer>
-            <SoloButton
-              onClick={handleSubmit}
-              text='Create Upstream'
-              disabled={parentForm.isSubmitting}
-            />
-          </Footer>
+    <SoloFormTemplate formHeader='Consul Upstream Settings'>
+      <InputRow>
+        <div>
+          <SoloFormInput
+            name='consulServiceName'
+            title='Service Name'
+            placeholder='Service Name'
+          />
+        </div>
+        <div>
+          <SoloFormCheckbox
+            name='consulConnectEnabled'
+            title='Enable Consul Connect'
+          />
+        </div>
+      </InputRow>
+      <InputRow>
+        <SoloFormTemplate formHeader='Service Tags'>
+          <SoloFormStringsList
+            name='consulServiceTagsList'
+            title='Consul Service Tags'
+            createNewPromptText='Service Tags'
+          />
         </SoloFormTemplate>
-      )}
-    </Formik>
+      </InputRow>
+      <InputRow>
+        <SoloFormTemplate formHeader='Data Centers'>
+          <SoloFormStringsList
+            name='consulDataCentersList'
+            title='Data Centers'
+            createNewPromptText='Data Centers'
+          />
+        </SoloFormTemplate>
+      </InputRow>
+    </SoloFormTemplate>
   );
 };

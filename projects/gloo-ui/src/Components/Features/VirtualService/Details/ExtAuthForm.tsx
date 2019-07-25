@@ -1,17 +1,16 @@
-import * as React from 'react';
 import styled from '@emotion/styled/macro';
-import * as yup from 'yup';
-import { Field, Formik, FormikValues, FormikErrors } from 'formik';
-import { SoloInput } from 'Components/Common/SoloInput';
-import { SoloButton } from 'Components/Common/SoloButton';
-import { colors } from 'Styles';
-import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
-import { OAuth } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
-import { NamespacesContext } from 'GlooIApp';
 import {
   SoloFormInput,
   SoloFormTypeahead
 } from 'Components/Common/Form/SoloFormField';
+import { SoloButton } from 'Components/Common/SoloButton';
+import { Formik, FormikErrors } from 'formik';
+import { NamespacesContext } from 'GlooIApp';
+import { OAuth } from 'proto/github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb';
+import * as React from 'react';
+import { colors } from 'Styles';
+import { SoloNegativeButton } from 'Styles/CommonEmotions/button';
+import * as yup from 'yup';
 
 const FormContainer = styled.div`
   display: grid;
@@ -130,52 +129,46 @@ export const ExtAuthForm = (props: Props) => {
         return (
           <FormContainer>
             <div>
-              <Field
+              <SoloFormInput
                 name='clientId'
                 title='Client ID'
                 placeholder='myclientid'
-                component={SoloFormInput}
               />
             </div>
             <div>
-              <Field
+              <SoloFormInput
                 name='callbackPath'
                 title='Callback Path'
                 placeholder='/my/callback/path/'
-                component={SoloFormInput}
               />
             </div>
             <div>
-              <Field
+              <SoloFormInput
                 name='issuerUrl'
                 title='Issuer URL'
                 placeholder='myclientidtheissuer.com'
-                component={SoloFormInput}
               />
             </div>
             <div>
-              <Field
+              <SoloFormInput
                 name='appUrl'
                 title='App URL'
                 placeholder='myapp.com'
-                component={SoloFormInput}
               />
             </div>
             <div>
-              <Field
+              <SoloFormInput
                 name='secretRefName'
                 title='Secret Ref Name'
                 placeholder='myoauthsecret'
-                component={SoloFormInput}
               />
             </div>
             <div>
-              <Field
+              <SoloFormTypeahead
                 name='secretRefNamespace'
                 title='Secret Ref Namespace'
                 defaultValue='gloo-system'
                 presetOptions={namespaces}
-                component={SoloFormTypeahead}
               />
             </div>
             <FormFooter>

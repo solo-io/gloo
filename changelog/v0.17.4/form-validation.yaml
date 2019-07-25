@@ -1,0 +1,5 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Add more validation, refactor form input components to be more reusable.
+    issueLink: https://github.com/solo-io/solo-projects/issues/682
+    resolvesIssue: false
