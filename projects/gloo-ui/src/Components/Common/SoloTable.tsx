@@ -3,9 +3,9 @@ import * as React from 'react';
 import { jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
 
-import { colors, soloConstants } from '../../Styles';
+import { soloConstants } from 'Styles';
 import Table from 'antd/lib/table';
-import { hslToHSLA } from 'Styles/colors';
+import { hslToHSLA, colors } from 'Styles/colors';
 
 // To restyle table to match spec later
 const TableContainer = styled.div`

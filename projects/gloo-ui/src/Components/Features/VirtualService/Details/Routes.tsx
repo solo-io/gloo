@@ -1,8 +1,7 @@
 import * as React from 'react';
 import styled from '@emotion/styled/macro';
 
-import { SoloTable } from 'Components/Common/SoloTable';
-import { DetailsSectionTitle } from './VirtualServiceDetails';
+import { SoloDragSortableTable } from 'Components/Common/SoloDragSortableTable';
 import { Route } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb';
 import {
   getRouteMethods,
@@ -12,9 +11,10 @@ import {
   getRouteQueryParams
 } from 'utils/helpers';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
-import { TableActionCircle, TableActions } from 'Styles';
+import { TableActionCircle, TableActions, colors } from 'Styles';
 import { SoloModal } from 'Components/Common/SoloModal';
-import { NewRouteRowForm } from 'Components/Features/VirtualService/Details/NewRouteRowForm';
+import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { ReactComponent as EditPencil } from 'assets/edit-pencil.svg';
 import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
 
 const RouteMatch = styled.div`
@@ -24,8 +24,30 @@ const RouteMatch = styled.div`
   text-overflow: ellipsis;
 `;
 
+const RouteSectionTitle = styled.div`
+  font-size: 18px;
+  font-weight: bold;
+  color: ${colors.novemberGrey};
+  margin-top: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+`;
+
+const StyledGreenPlus = styled(GreenPlus)`
+  cursor: pointer;
+  margin-right: 7px;
+`;
+const ModalTrigger = styled.div`
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 14px;
+`;
+
 const getRouteColumns = (
-  showCreateRouteModal: (boolean: true) => void,
+  showEditRouteModal: (matcher: string) => void,
   deleteRoute: (matcher: string) => any
 ) => {
   return [
@@ -63,13 +85,11 @@ const getRouteColumns = (
       render: (matcher: string) => {
         return (
           <TableActions>
-            {/* Unclear what edit should look like yet
-            <TableActionCircle onClick={() => showCreateRouteModal(true)}>
-              +
+            <TableActionCircle onClick={() => showEditRouteModal(matcher)}>
+              <EditPencil />
             </TableActionCircle>
 
-            <div style={{ marginLeft: '5px' }}>*/}
-            <div>
+            <div style={{ marginLeft: '5px' }}>
               <TableActionCircle onClick={() => deleteRoute(matcher)}>
                 x
               </TableActionCircle>
@@ -89,10 +109,13 @@ interface Props {
 }
 
 export const Routes: React.FC<Props> = props => {
-  const [editRoute, setEditRoute] = React.useState<boolean>(false);
+  const [editRoute, setEditRoute] = React.useState<Route.AsObject | undefined>(
+    undefined
+  );
+  const [createNewRoute, setCreateNewRoute] = React.useState<boolean>(false);
 
-  const getRouteData = (routes: Route.AsObject[]) => {
-    const existingRoutes = routes.map(route => {
+  const getRouteData = () => {
+    const existingRoutes = props.routes.map(route => {
       const upstreamName = getRouteSingleUpstream(route).name || '';
       const { matcher, matchType } = getRouteMatcher(route);
       return {
@@ -107,17 +130,6 @@ export const Routes: React.FC<Props> = props => {
       };
     });
 
-    existingRoutes.push({
-      key: 'creating-additional-route',
-      matcher: '',
-      pathMatch: '',
-      method: '',
-      upstreamName: '',
-      header: '',
-      queryParams: '',
-      actions: ''
-    });
-
     return existingRoutes;
   };
 
@@ -129,24 +141,82 @@ export const Routes: React.FC<Props> = props => {
     );
   };
 
-  const finishRouteEditiing = (newVirtualService?: VirtualService.AsObject) => {
-    setEditRoute(false);
+  const finishNewRouteCreation = () => {
     props.reloadVirtualService();
+    setCreateNewRoute(false);
+  };
+
+  const beginRouteEditing = (matcherToEdit: string) => {
+    setEditRoute(
+      props.routes.find(
+        route => getRouteMatcher(route).matcher === matcherToEdit
+      )
+    );
+  };
+
+  const finishRouteEditiing = (newRoute: Route.AsObject) => {
+    const newRouteMatcher = getRouteMatcher(newRoute).matcher;
+
+    let newRoutesList = [...props.routes];
+    newRoutesList.splice(
+      props.routes.findIndex(
+        route => getRouteMatcher(route).matcher === newRouteMatcher
+      ),
+      1,
+      newRoute
+    );
+
+    props.routesChanged(newRoutesList);
+    setEditRoute(undefined);
+  };
+
+  const reorderRoutes = (dragIndex: number, hoverIndex: number) => {
+    const movedRoute = props.routes.splice(dragIndex, 1)[0];
+
+    let newRoutesList = [...props.routes];
+    newRoutesList.splice(hoverIndex, 0, movedRoute);
+
+    props.routesChanged(newRoutesList);
   };
 
   return (
     <React.Fragment>
-      <DetailsSectionTitle>Routes</DetailsSectionTitle>
-      <SoloTable
-        columns={getRouteColumns(setEditRoute, deleteRoute)}
-        dataSource={getRouteData(props.routes)}
-        formComponent={() => (
-          <NewRouteRowForm
-            virtualService={props.virtualService}
-            reloadVirtualService={props.reloadVirtualService}
-          />
-        )}
+      <RouteSectionTitle>
+        Routes
+        <ModalTrigger onClick={() => setCreateNewRoute(true)}>
+          <React.Fragment>
+            <StyledGreenPlus />
+            Create Route
+          </React.Fragment>
+        </ModalTrigger>
+      </RouteSectionTitle>
+
+      <SoloDragSortableTable
+        columns={getRouteColumns(beginRouteEditing, deleteRoute)}
+        dataSource={getRouteData()}
+        moveRow={reorderRoutes}
       />
+
+      <SoloModal
+        visible={createNewRoute}
+        width={500}
+        title={'Create Route'}
+        onClose={() => setCreateNewRoute(false)}>
+        <CreateRouteModal
+          defaultVirtualService={props.virtualService}
+          completeCreation={finishNewRouteCreation}
+        />
+      </SoloModal>
+      {/*<SoloModal
+        visible={!!editRoute}
+        width={500}
+        title={'Edit Route'}
+        onClose={() => setEditRoute(undefined)}>
+        <CreateRouteModal
+          defaultVirtualService={props.virtualService}
+          completeEditing={finishRouteEditiing}
+        />
+      </SoloModal>*/}
     </React.Fragment>
   );
 };

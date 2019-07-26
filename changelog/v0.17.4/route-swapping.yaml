@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Route order can now be swapped.
+    issueLink: https://github.com/solo-io/solo-projects/issues/636
