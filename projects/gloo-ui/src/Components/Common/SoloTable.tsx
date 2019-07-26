@@ -8,7 +8,7 @@ import Table from 'antd/lib/table';
 import { hslToHSLA, colors } from 'Styles/colors';
 
 // To restyle table to match spec later
-const TableContainer = styled.div`
+export const TableContainer = styled.div`
   box-shadow: 0px 4px 9px ${colors.boxShadow};
 
   .ant-table-wrapper {
@@ -84,7 +84,7 @@ const TableContainer = styled.div`
   }
 `;
 
-interface Props {
+export interface TableProps {
   columns: any[];
   dataSource: any[];
   formComponent?: React.FC;
@@ -108,7 +108,7 @@ const EditableRow = ({ lastRowID, formComponent, isEmpty, ...props }: any) => {
   );
 };
 
-export const SoloTable = (props: Props) => {
+export const SoloTable = (props: TableProps) => {
   const components = {
     body: {
       row: EditableRow
