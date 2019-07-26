@@ -20,7 +20,12 @@ import {
   MultipartStringCardsList,
   MultipartStringCardsProps
 } from '../MultipartStringCardsList';
-import { createUpstreamId, parseUpstreamId } from 'utils/helpers';
+import {
+  createUpstreamId,
+  parseUpstreamId,
+  getUpstreamType,
+  getIcon
+} from 'utils/helpers';
 import { NamespacesContext } from 'GlooIApp';
 import { ListSecretsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
 import { useListSecrets } from 'Api';
@@ -139,13 +144,22 @@ export const SoloFormMetadataBasedDropdown: React.FC<
 > = ({ ...props }) => {
   const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
-  const usedOptions = props.options.map(option => {
-    return {
-      key: createUpstreamId(option.metadata!), // the same as virtual service's currently
-      displayValue: option.metadata.name,
-      value: createUpstreamId(option.metadata!)
-    };
-  });
+  const usedOptions = props.options
+    .sort((optionA, optionB) => {
+      const nameA = optionA.metadata.name;
+      const nameB = optionB.metadata.name;
+      return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
+    })
+    .map(option => {
+      return {
+        key: createUpstreamId(option.metadata!), // the same as virtual service's currently
+        displayValue: option.metadata.name,
+        value: createUpstreamId(option.metadata!),
+        icon: !!option.upstreamSpec
+          ? getIcon(getUpstreamType(option))
+          : undefined
+      };
+    });
 
   const usedValue =
     props.value && props.value.metadata

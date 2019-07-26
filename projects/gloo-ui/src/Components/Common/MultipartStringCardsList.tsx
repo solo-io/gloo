@@ -41,6 +41,8 @@ const CardValue = styled(SmallCardValue)`
 const CardName = styled(CardValue)`
   padding-left: 10px;
   background: transparent;
+  border-top: none;
+  border-bottom: none;
 `;
 
 const NewStringPrompt = styled(SmallNewStringPrompt)`

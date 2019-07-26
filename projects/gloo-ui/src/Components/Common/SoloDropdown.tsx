@@ -38,6 +38,7 @@ export interface OptionType {
   disabled?: boolean;
   value: string | number;
   displayValue?: any;
+  icon?: JSX.Element;
 }
 export interface DropdownProps {
   value: string | number | undefined;
@@ -87,7 +88,7 @@ export const SoloDropdown = (props: DropdownProps) => {
             key={opt.key}
             value={opt.value}
             disabled={opt.disabled}>
-            {opt.displayValue || opt.value}
+            {opt.icon} {opt.displayValue || opt.value}
           </Select.Option>
         ))}
       </SoloDropdownBlock>

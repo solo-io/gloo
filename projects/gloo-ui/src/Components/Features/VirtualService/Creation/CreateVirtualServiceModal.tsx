@@ -24,6 +24,8 @@ const ModalContainer = styled.div`
 
 const Legend = styled.div`
   background-color: ${colors.januaryGrey};
+  padding: 13px 13px 13px 10px;
+  margin-bottom: 23px;
 `;
 // TODO: use spec font
 const ModalTrigger = styled.div`
@@ -52,10 +54,8 @@ export const CreateVirtualServiceModal = (props: Props) => {
         onClose={() => setShowModal(false)}>
         <React.Fragment>
           <Legend>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Aspernatur
-            officia deleniti ullam hic nostrum quod explicabo optio accusantium,
-            maiores cumque asperiores! Consectetur illum omnis eum qui
-            reprehenderit in eaque doloremque!
+            Virtual Services define a set of route rules, an optional SNI
+            configuration for a given domain or set of domains.
           </Legend>
           <CreateVirtualServiceForm />
         </React.Fragment>

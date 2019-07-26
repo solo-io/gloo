@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Upstream dropdowns now show the upstream type by icon.
+    issueLink: https://github.com/solo-io/solo-projects/issues/744

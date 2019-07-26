@@ -46,5 +46,18 @@ export const globalStyles = css`
         }
       }
     }
+
+    .ant-select-dropdown {
+      .ant-select-dropdown-menu-item {
+        display: flex;
+        align-items: center;
+
+        svg {
+          height: 20px;
+          width: 20px;
+          margin-right: 8px;
+        }
+      }
+    }
   }
 `;

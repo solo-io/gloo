@@ -26,6 +26,8 @@ const ModalContainer = styled.div`
 `;
 const Legend = styled.div`
   background-color: ${colors.januaryGrey};
+  padding: 13px 13px 13px 10px;
+  margin-bottom: 23px;
 `;
 
 // TODO: use spec font

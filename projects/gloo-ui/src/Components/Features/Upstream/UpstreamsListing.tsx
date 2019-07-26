@@ -40,6 +40,16 @@ import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreateRouteModal } from '../Route/CreateRouteModal';
 
+const TypeHolder = styled.div`
+  display: flex;
+  align-items: center;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+`;
+
 const StringFilters: StringFilterProps[] = [
   {
     displayName: 'Filter By Name...',
@@ -64,6 +74,16 @@ const getTableColumns = (
     {
       title: 'Version',
       dataIndex: 'metadata.resourceVersion'
+    },
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      render: (upstreamType: string) => (
+        <TypeHolder>
+          {getIcon(upstreamType)}
+          <span style={{ marginLeft: '5px' }}>{upstreamType}</span>
+        </TypeHolder>
+      )
     },
     {
       title: 'Routes',
