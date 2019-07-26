@@ -53,7 +53,7 @@ export interface DropdownProps {
 export const SoloDropdown = (props: DropdownProps) => {
   const {
     title,
-    // disabled,
+    disabled,
     defaultValue,
     value,
     placeholder,
@@ -80,6 +80,7 @@ export const SoloDropdown = (props: DropdownProps) => {
         onChange={onChange /**
         //@ts-ignore */}
         onBlur={onBlur}
+        disabled={disabled}
         placeholder={placeholder}>
         {options.map((opt: OptionType) => (
           <Select.Option

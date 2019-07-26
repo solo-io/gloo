@@ -67,6 +67,7 @@ const CheckboxWrapper = styled<'div', { checked?: boolean }>('div')`
 
 export interface CheckboxProps {
   checked: boolean;
+  disabled?: boolean;
   onChange: (e: CheckboxChangeEvent) => void;
   title?: string;
   withWrapper?: boolean;
@@ -74,13 +75,13 @@ export interface CheckboxProps {
 }
 
 export const SoloCheckbox: React.FC<CheckboxProps> = props => {
-  const { title, checked, onChange, withWrapper, label } = props;
+  const { title, checked, onChange, withWrapper, label, disabled } = props;
 
   if (!!withWrapper) {
     return (
       <CheckboxWrapper checked={checked}>
         {label ? <Label>{title}</Label> : title}
-        <Checkbox checked={checked} onChange={onChange} />
+        <Checkbox disabled={disabled} checked={checked} onChange={onChange} />
       </CheckboxWrapper>
     );
   }
@@ -88,7 +89,7 @@ export const SoloCheckbox: React.FC<CheckboxProps> = props => {
   return (
     <OnlyCheckbox>
       {label ? <Label>{title}</Label> : title}
-      <Checkbox checked={checked} onChange={onChange} />
+      <Checkbox disabled={disabled} checked={checked} onChange={onChange} />
     </OnlyCheckbox>
   );
 };

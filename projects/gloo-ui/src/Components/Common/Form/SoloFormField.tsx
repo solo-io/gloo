@@ -31,6 +31,7 @@ export const ErrorText = styled<'div', { errorExists?: boolean }>('div')`
   visibility: ${props => (props.errorExists ? 'visible' : 'hidden')};
   min-height: 19px;
 `;
+// TODO: find best way to type the components
 
 export const SoloFormInput = ({ ...props }) => {
   const [field, meta] = useField(props.name);
@@ -49,7 +50,7 @@ export const SoloFormInput = ({ ...props }) => {
   );
 };
 
-export const SoloFormTypeahead = (props: any) => {
+export const SoloFormTypeahead = ({ ...props }) => {
   const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
   return (
@@ -216,12 +217,10 @@ export const SoloFormSecretRefInput: React.FC<{
   const { name, type } = props;
   const [field, meta] = useField(name);
   const form = useFormikContext<any>();
-  console.log('form', form);
+
   const [namespaceField, namespaceMeta] = useField(`${field.name}.namespace`);
   const [nameField, nameMeta] = useField(`${field.name}.name`);
 
-  console.log(namespaceField, namespaceMeta);
-  console.log(nameField, nameMeta);
   const namespaces = React.useContext(NamespacesContext);
   const [selectedNS, setSelectedNS] = React.useState(namespaceField.value);
   const listSecretsRequest = new ListSecretsRequest();
@@ -273,7 +272,7 @@ export const SoloFormSecretRefInput: React.FC<{
           presetOptions={namespaces}
           onChange={value => {
             form.setFieldValue(`${field.name}.namespace`, value);
-            console.log(`${field.name}.name`, value);
+
             setSelectedNS(value);
             if (noSecrets) {
               form.setFieldError(

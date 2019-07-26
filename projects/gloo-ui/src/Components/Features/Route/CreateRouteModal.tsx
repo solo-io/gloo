@@ -59,6 +59,7 @@ import {
 } from 'utils/helpers';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { ButtonProgress } from 'Styles/CommonEmotions/button';
+import { DestinationForm } from './DestinationForm';
 
 enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
   PATH_SPECIFIER_NOT_SET = 0,
@@ -88,6 +89,7 @@ export const PATH_SPECIFIERS = [
 export interface CreateRouteValuesType {
   virtualService: VirtualService.AsObject | undefined;
   upstream: Upstream.AsObject | undefined;
+  destinationSpec: DestinationSpec.AsObject;
   path: string;
   matchType: 'PREFIX' | 'EXACT' | 'REGEX';
   headers: {
@@ -114,6 +116,9 @@ export interface CreateRouteValuesType {
 export const createRouteDefaultValues: CreateRouteValuesType = {
   virtualService: new VirtualService().toObject(),
   upstream: new Upstream().toObject(),
+  destinationSpec: {
+    aws: { logicalName: '', invocationStyle: 0, responseTransformation: false }
+  },
   path: '',
   matchType: 'PREFIX',
   headers: [],
@@ -167,7 +172,7 @@ const FormContainer = styled.div`
   flex-direction: column;
 `;
 
-const HalfColumn = styled.div`
+export const HalfColumn = styled.div`
   width: calc(50% - 10px);
 `;
 const Footer = styled.div`
@@ -313,9 +318,17 @@ export const CreateRouteModal = (props: Props) => {
     );
     let newDestinationSpec = new DestinationSpec();
 
-    if (!!upstreamSpec.aws) {
+    if (!!upstreamSpec.aws && values.destinationSpec.aws) {
+      const {
+        logicalName,
+        invocationStyle,
+        responseTransformation
+      } = values.destinationSpec.aws;
       newDestination.setUpstream(newDestinationResourceRef);
       let newAWSDestinationSpec = new AWSDestinationSpec();
+      newAWSDestinationSpec.setLogicalName(logicalName);
+      newAWSDestinationSpec.setInvocationStyle(+invocationStyle);
+      newAWSDestinationSpec.setResponseTransformation(responseTransformation);
       // TODO :: I have no idea what to set the values to
       //newAWSDestinationSpec.setInvocationStyle(0);
       newDestinationSpec.setAws(newAWSDestinationSpec);
@@ -379,7 +392,7 @@ export const CreateRouteModal = (props: Props) => {
       ? defaultUpstream
       : createRouteDefaultValues.upstream
   };
-
+  console.log(defaultUpstream);
   return (
     <Formik
       initialValues={initialValues}
@@ -391,28 +404,42 @@ export const CreateRouteModal = (props: Props) => {
             <SoloFormTemplate>
               <InputRow>
                 {allUsableVirtualServices.length && (
-                  <HalfColumn>
-                    <SoloFormMetadataBasedDropdown
-                      name='virtualService'
-                      title='Virtual Service'
-                      value={values.virtualService}
-                      placeholder='Virtual Service...'
-                      options={allUsableVirtualServices}
-                    />
-                  </HalfColumn>
-                )}
-                {allUsableUpstreams.length && (
-                  <HalfColumn>
-                    <SoloFormMetadataBasedDropdown
-                      name='upstream'
-                      title='Upstream'
-                      value={values.upstream}
-                      placeholder='Upstream...'
-                      options={allUsableUpstreams}
-                    />
-                  </HalfColumn>
+                  <React.Fragment>
+                    <HalfColumn>
+                      <SoloFormMetadataBasedDropdown
+                        name='virtualService'
+                        title='Virtual Service'
+                        value={values.virtualService}
+                        placeholder='Virtual Service...'
+                        options={allUsableVirtualServices}
+                      />
+                    </HalfColumn>
+                    {allUsableUpstreams.length && (
+                      <HalfColumn>
+                        <SoloFormMetadataBasedDropdown
+                          name='upstream'
+                          title='Upstream'
+                          value={values.upstream}
+                          placeholder='Upstream...'
+                          options={allUsableUpstreams}
+                        />
+                      </HalfColumn>
+                    )}
+                  </React.Fragment>
                 )}
               </InputRow>
+              {allUsableUpstreams.length && (
+                <React.Fragment>
+                  <InputRow>
+                    {!!values.upstream && (
+                      <DestinationForm
+                        name='destinationSpec'
+                        upstreamSpec={values.upstream.upstreamSpec!}
+                      />
+                    )}
+                  </InputRow>
+                </React.Fragment>
+              )}
               <InputRow>
                 <HalfColumn>
                   <SoloFormInput
