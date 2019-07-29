@@ -137,7 +137,13 @@ export const createRouteDefaultValues: CreateRouteValuesType = {
 const validationSchema = yup.object().shape({
   region: yup.string(),
   virtualService: yup.object(),
-  upstream: yup.object(),
+  upstream: yup
+    .object()
+    .test(
+      'Valid upstream',
+      'Upstream must be set',
+      upstream => !!upstream && !!upstream.metadata
+    ),
   path: yup
     .string()
     .test('Valid Path', 'Paths begin with /', val => val && val[0] === '/'),
@@ -392,7 +398,6 @@ export const CreateRouteModal = (props: Props) => {
       ? defaultUpstream
       : createRouteDefaultValues.upstream
   };
-  console.log(defaultUpstream);
   return (
     <Formik
       initialValues={initialValues}

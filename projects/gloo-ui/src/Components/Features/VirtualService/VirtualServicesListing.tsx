@@ -172,7 +172,7 @@ export const VirtualServicesListing = (props: Props) => {
         healthStatus: virtualService.status
           ? virtualService.status.state
           : healthConstants.Pending.value,
-        cardTitle: virtualService.metadata!.name,
+        cardTitle: virtualService.displayName || virtualService.metadata!.name,
         cardSubtitle: getVSDomains(virtualService),
         onRemovecard: (id: string): void => {},
         onExpanded: () => {},
@@ -255,12 +255,25 @@ export const VirtualServicesListing = (props: Props) => {
     );
   };
 
+  const finishCreation = (succeeded?: {
+    namespace: string;
+    name: string;
+  }): void => {
+    //TODO : Proper way to do this is to be polling always and, once we see the VS that matches this exists, we then jump
+
+    if (succeeded) {
+      setTimeout(() => {
+        history.push(`${match.path}${succeeded.namespace}/${succeeded.name}`);
+      }, 500);
+    }
+  };
+
   return (
     <div>
       <Heading>
         <Breadcrumb />
         <Action>
-          <CreateVirtualServiceModal />
+          <CreateVirtualServiceModal finishCreation={finishCreation} />
           <CatalogTableToggle
             listIsSelected={!catalogNotTable}
             onToggle={() => {

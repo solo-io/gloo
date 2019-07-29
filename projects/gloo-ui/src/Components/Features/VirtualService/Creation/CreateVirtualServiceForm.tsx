@@ -29,7 +29,6 @@ const InputContainer = styled.div`
   grid-gap: 10px;
 `;
 
-interface Props {}
 let initialValues = {
   virtualServiceName: '',
   displayName: '',
@@ -49,6 +48,10 @@ const validate = (values: typeof initialValues) => {
 
   return errors;
 };
+
+interface Props {
+  onCompletion?: (succeeded?: { namespace: string; name: string }) => any;
+}
 
 export const CreateVirtualServiceForm = (props: Props) => {
   const namespaces = React.useContext(NamespacesContext);
@@ -73,10 +76,19 @@ export const CreateVirtualServiceForm = (props: Props) => {
     let vsRef = new ResourceRef();
     vsRef.setName(values.virtualServiceName);
     vsRef.setNamespace(values.namespace);
-
     vsInput.setRef(vsRef);
+
+    vsInput.setDisplayName(values.displayName);
+
     vsRequest.setInput(vsInput);
     makeRequest(vsRequest);
+
+    if (!!props.onCompletion) {
+      props.onCompletion({
+        name: values.virtualServiceName,
+        namespace: values.namespace
+      });
+    }
   }
 
   return (

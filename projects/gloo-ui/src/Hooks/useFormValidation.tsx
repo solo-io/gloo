@@ -20,8 +20,8 @@ export const useFormValidation = (
 
   // check if values have changed, so we can disable submit for updates
   React.useEffect(() => {
-    console.log('initial', initialState);
-    console.log('values', values);
+    /*console.log('initial', initialState);
+    console.log('values', values);*/
     setIsDifferent(!isEqual(values, initialState));
   }, [values]);
 

@@ -9,7 +9,6 @@ import { SoloModal } from 'Components/Common/SoloModal';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
 import { Divider } from 'antd';
 import { CreateVirtualServiceForm } from './CreateVirtualServiceForm';
-interface Props {}
 
 const StyledGreenPlus = styled(GreenPlus)`
   cursor: pointer;
@@ -35,8 +34,22 @@ const ModalTrigger = styled.div`
   padding: 0 10px;
   font-size: 14px;
 `;
+
+interface Props {
+  finishCreation: (succeeded?: { namespace: string; name: string }) => any;
+}
+
 export const CreateVirtualServiceModal = (props: Props) => {
   const [showModal, setShowModal] = React.useState(false);
+
+  const finishCreation = (succeeded?: {
+    namespace: string;
+    name: string;
+  }): void => {
+    setShowModal(false);
+
+    props.finishCreation(succeeded);
+  };
 
   return (
     <ModalContainer>
@@ -57,7 +70,7 @@ export const CreateVirtualServiceModal = (props: Props) => {
             Virtual Services define a set of route rules, an optional SNI
             configuration for a given domain or set of domains.
           </Legend>
-          <CreateVirtualServiceForm />
+          <CreateVirtualServiceForm onCompletion={finishCreation} />
         </React.Fragment>
       </SoloModal>
     </ModalContainer>

@@ -1,0 +1,10 @@
+changelog:
+  - type: FIX
+    description: Upstream names, and all titles, no longer break their cards in the listing.
+    issueLink: https://github.com/solo-io/solo-projects/issues/761
+  - type: FIX
+    description: Virtual service creation now ends more naturally for user.
+    issueLink: https://github.com/solo-io/solo-projects/issues/760
+  - type: FIX
+    description: Now catch and inform user when attempting to create a route without setting upstream.
+    issueLink: https://github.com/solo-io/solo-projects/issues/759

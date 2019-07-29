@@ -10,7 +10,7 @@ const ListContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, 235px);
   grid-gap: 20px;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 `;
 
 interface Props {

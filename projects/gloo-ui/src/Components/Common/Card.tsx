@@ -31,10 +31,18 @@ const CardTitle = styled.div`
   justify-content: space-between;
   color: ${colors.novemberGrey};
   font-size: 16px;
+  line-height: 20px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+`;
+
+const CardTitleText = styled.div`
+  max-width: 175px;
+  display: block;
+  word-break: break-all;
+  white-space: normal;
 `;
 
 const CardSubtitle = styled.div`
@@ -42,6 +50,7 @@ const CardSubtitle = styled.div`
   font-size: 12px;
   min-height: 18px;
   max-height: 18px;
+  line-height: 18px;
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-all;
@@ -177,7 +186,7 @@ export const Card = (props: CardType) => {
     <Container>
       <MainSection>
         <CardTitle>
-          {cardTitle}
+          <CardTitleText>{cardTitle}</CardTitleText>
           {!!onCreate && <ActionCircle onClick={onCreate}>+</ActionCircle>}
         </CardTitle>
         <CardSubtitle>
