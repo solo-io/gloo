@@ -31,7 +31,8 @@ import {
   getResourceStatus,
   getUpstreamType,
   groupBy,
-  getIcon
+  getIcon,
+  getFunctionInfo
 } from 'utils/helpers';
 import { NamespacesContext } from 'GlooIApp';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
@@ -39,7 +40,7 @@ import { HealthInformation } from 'Components/Common/HealthInformation';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreateRouteModal } from '../Route/CreateRouteModal';
-
+import { ExtraInfo } from 'Components/Features/Upstream/ExtraInfo';
 const TypeHolder = styled.div`
   display: flex;
   align-items: center;
@@ -280,12 +281,24 @@ export const UpstreamsListing = (props: Props) => {
             title: 'Type',
             value: getUpstreamType(upstream)
           },
+
           {
             title: 'Status',
             value: getResourceStatus(upstream),
             valueDisplay: <HealthInformation healthStatus={upstream.status} />
-          }
+          },
+          ...(!!getFunctionInfo(upstream)
+            ? [
+                {
+                  title: 'Functions',
+                  value: getFunctionInfo(upstream)
+                }
+              ]
+            : [])
         ],
+        ...(!!getFunctionInfo(upstream) && {
+          extraInfoComponent: () => <ExtraInfo upstream={upstream} />
+        }),
         onCreate: () => setUpstreamForRouteCreation(upstream)
       };
     });

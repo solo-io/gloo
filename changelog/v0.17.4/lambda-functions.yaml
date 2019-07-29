@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Display the list of lambda functions on the upstreams page.
+    issueLink: https://github.com/solo-io/gloo/issues/744

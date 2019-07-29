@@ -42,6 +42,16 @@ export function getUpstreamType(upstream: Upstream.AsObject) {
   return upstreamType;
 }
 
+export function getFunctionInfo(upstream: Upstream.AsObject) {
+  if (getUpstreamType(upstream) === 'Azure') {
+    return `${upstream.upstreamSpec!.azure!.functionsList.length}`;
+  }
+  if (getUpstreamType(upstream) === 'AWS') {
+    return `${upstream.upstreamSpec!.aws!.lambdaFunctionsList.length}`;
+  }
+  return '';
+}
+
 export const UPSTREAM_TYPES = [
   {
     key: 'AWS',

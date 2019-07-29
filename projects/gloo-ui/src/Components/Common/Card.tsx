@@ -61,7 +61,6 @@ const Footer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
   background: ${hslToHSLA(colors.marchGrey, 0.15)};
   color: ${colors.seaBlue};
   font-size: 14px;
@@ -154,6 +153,7 @@ export interface CardType {
   }[];
   healthStatus?: number;
   onCreate?: () => any;
+  extraInfoComponent?: React.FC;
 }
 
 export const Card = (props: CardType) => {
@@ -167,7 +167,8 @@ export const Card = (props: CardType) => {
     details,
     onClick,
     healthStatus,
-    onCreate
+    onCreate,
+    extraInfoComponent
   } = props;
 
   const handleFooterClick = () => {
@@ -181,7 +182,10 @@ export const Card = (props: CardType) => {
       setExpanded(exp => !exp);
     }
   };
-
+  let ExtraInformation = null;
+  if (!!extraInfoComponent) {
+    ExtraInformation = extraInfoComponent;
+  }
   return (
     <Container>
       <MainSection>
@@ -217,7 +221,7 @@ export const Card = (props: CardType) => {
                 );
               })}
           </ExpandedDetails>
-
+          {!!ExtraInformation && <ExtraInformation />}
           <Footer onClick={handleFooterClick}>
             <span>Hide Details</span>
             <HealthIndicator
