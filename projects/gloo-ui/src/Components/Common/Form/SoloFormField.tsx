@@ -46,11 +46,14 @@ export const SoloFormInput = ({ ...props }) => {
       <SoloInput
         {...field}
         {...props}
+        error={!!meta.error && meta.touched}
         title={props.title}
         value={field.value}
         onChange={field.onChange}
       />
-      <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
+      <ErrorText errorExists={!!meta.error && meta.touched}>
+        {meta.error}
+      </ErrorText>
     </React.Fragment>
   );
 };
@@ -80,9 +83,12 @@ export const SoloFormDropdown = (props: any) => {
       <SoloDropdown
         {...field}
         {...props}
+        error={!!meta.error && meta.touched}
         onChange={value => form.setFieldValue(field.name, value)}
       />
-      <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
+      <ErrorText errorExists={!!meta.error && meta.touched}>
+        {meta.error}
+      </ErrorText>
     </React.Fragment>
   );
 };
@@ -95,6 +101,7 @@ export const SoloFormCheckbox = (props: any) => {
       <SoloCheckbox
         {...props}
         {...field}
+        error={!!meta.error && meta.touched}
         checked={!!field.value}
         onChange={value => form.setFieldValue(field.name, value.target.checked)}
         label
@@ -114,6 +121,7 @@ export const SoloFormMultiselect = (props: any) => {
       <SoloMultiSelect
         {...field}
         {...props}
+        error={!!meta.error && meta.touched}
         values={Object.keys(field.value).filter(key => field.value[key])}
         onChange={newValues => {
           const newFieldValues = { ...field.value };
@@ -148,7 +156,17 @@ export const SoloFormMetadataBasedDropdown: React.FC<
     .sort((optionA, optionB) => {
       const nameA = optionA.metadata.name;
       const nameB = optionB.metadata.name;
-      return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
+
+      const nameOrder = nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
+
+      if (!!optionA.upstreamSpec) {
+        const typeA = getUpstreamType(optionA);
+        const typeB = getUpstreamType(optionB);
+
+        return typeA < typeB ? -1 : typeA > typeB ? 1 : nameOrder;
+      }
+
+      return nameOrder;
     })
     .map(option => {
       return {
@@ -187,7 +205,9 @@ export const SoloFormMetadataBasedDropdown: React.FC<
         value={usedValue}
         onChange={setNewValue}
       />
-      <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
+      <ErrorText errorExists={!!meta.error && meta.touched}>
+        {meta.error}
+      </ErrorText>
     </React.Fragment>
   );
 };
@@ -202,6 +222,7 @@ export const SoloFormMultipartStringCardsList: React.FC<
       <MultipartStringCardsList
         {...field}
         {...props}
+        error={!!meta.error && meta.touched}
         values={field.value}
         valueDeleted={indexDeleted => {
           form.setFieldValue(
@@ -218,7 +239,9 @@ export const SoloFormMultipartStringCardsList: React.FC<
           form.setFieldValue(field.name, newList);
         }}
       />
-      <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
+      <ErrorText errorExists={!!meta.error && meta.touched}>
+        {meta.error}
+      </ErrorText>
     </React.Fragment>
   );
 };
@@ -298,7 +321,7 @@ export const SoloFormSecretRefInput: React.FC<{
             form.setFieldValue(`${field.name}.name`, '');
           }}
         />
-        <ErrorText errorExists={!!namespaceMeta.error}>
+        <ErrorText errorExists={!!namespaceMeta.error && namespaceMeta.touched}>
           {namespaceMeta.error}
         </ErrorText>
       </div>
@@ -313,7 +336,9 @@ export const SoloFormSecretRefInput: React.FC<{
             form.setFieldValue(`${field.name}.name`, value);
           }}
         />
-        <ErrorText errorExists={!!nameMeta.error}>{nameMeta.error}</ErrorText>
+        <ErrorText errorExists={!!nameMeta.error && nameMeta.touched}>
+          {nameMeta.error}
+        </ErrorText>
       </div>
     </React.Fragment>
   );
@@ -348,12 +373,15 @@ export const SoloFormStringsList: React.FC<any> = ({
       <StringCardsList
         {...props}
         {...field}
+        error={!!meta.error && meta.touched}
         values={form.values[field.name].slice(1)}
         valueDeleted={removeValue}
         createNew={addValue}
         createNewPromptText={createNewPromptText}
       />
-      <ErrorText errorExists={!!meta.error}>{meta.error}</ErrorText>
+      <ErrorText errorExists={!!meta.error && meta.touched}>
+        {meta.error}
+      </ErrorText>
     </React.Fragment>
   );
 };

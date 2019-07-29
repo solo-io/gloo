@@ -184,7 +184,10 @@ export const VirtualServiceDetails = (props: Props) => {
     }
   }
   if (!!configsMap && !!configsMap.get('extauth')) {
-    const fieldsMap = new Map(configsMap.get('extauth')!.fieldsMap);
+    let fieldsMap = new Map(configsMap.get('extauth')!.fieldsMap);
+    if (!!fieldsMap.get('oauth')) {
+      fieldsMap = new Map(fieldsMap.get('oauth')!.structValue!.fieldsMap);
+    }
 
     const appUrl = fieldsMap.get('app_url')!.stringValue;
     const clientId = fieldsMap.get('client_id')!.stringValue;
@@ -357,7 +360,7 @@ export const VirtualServiceDetails = (props: Props) => {
     virtualServiceInput.setRateLimitConfig(newRateLimits);
 
     /** AUTHORIZATIONS */
-    if (!!configsMap && !!configsMap.get('basic-auth')) {
+    /*if (!!configsMap && !!configsMap.get('basic-auth')) {
       const existingBasicAuth = configsMap.get('basic-auth');
       let basicAuth = new VirtualServiceInput.BasicAuthInput();
       // @ts-ignore
@@ -365,30 +368,33 @@ export const VirtualServiceDetails = (props: Props) => {
       // @ts-ignore
       basicAuth.setRealm(existingBasicAuth.realm);
       virtualServiceInput.setBasicAuth(basicAuth);
-    }
-    if ((!!configsMap && !!configsMap.get('extauth')) || newInfo.newOAuth) {
-      const usedOAuth = newInfo.newOAuth || configsMap!.get('extauth');
-      let oAuth = new OAuth();
-      // @ts-ignore
-      oAuth.setClientId(usedOAuth.clientId);
-      // @ts-ignore
-      oAuth.setCallbackPath(usedOAuth.callbackPath);
-      // @ts-ignore
-      oAuth.setIssuerUrl(usedOAuth.issuerUrl);
-      // @ts-ignore
-      oAuth.setAppUrl(usedOAuth.appUrl);
-      // @ts-ignore
-      if (!!usedOAuth!.clientSecretRef) {
-        let clientSecretRef = new ResourceRef();
+    }*/
+    if (!!configsMap && !!configsMap.get('extauth')) {
+      if (newInfo.newOAuth) {
+        const usedOAuth = newInfo.newOAuth || configsMap!.get('extauth');
+        let oAuth = new OAuth();
         // @ts-ignore
-        clientSecretRef.setName(usedOAuth.clientSecretRef!.name);
-        clientSecretRef.setNamespace(
+        oAuth.setClientId(usedOAuth.clientId);
+        // @ts-ignore
+        oAuth.setCallbackPath(usedOAuth.callbackPath);
+        // @ts-ignore
+        oAuth.setIssuerUrl(usedOAuth.issuerUrl);
+        // @ts-ignore
+        oAuth.setAppUrl(usedOAuth.appUrl);
+        // @ts-ignore
+        if (!!usedOAuth!.clientSecretRef) {
+          let clientSecretRef = new ResourceRef();
           // @ts-ignore
-          usedOAuth.clientSecretRef!.namespace
-        );
-        oAuth.setClientSecretRef(clientSecretRef);
+          clientSecretRef.setName(usedOAuth.clientSecretRef!.name);
+          clientSecretRef.setNamespace(
+            // @ts-ignore
+            usedOAuth.clientSecretRef!.namespace
+          );
+          oAuth.setClientSecretRef(clientSecretRef);
+        }
+        virtualServiceInput.setOauth(oAuth);
+      } else {
       }
-      virtualServiceInput.setOauth(oAuth);
     }
     if (!!configsMap && !!configsMap.get('custom-auth')) {
       let customAuth = new CustomAuth();

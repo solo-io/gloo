@@ -31,12 +31,16 @@ const UpdateButton = styled(Button)`
 
 const AuthInfo = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 50% 50%;
 `;
 
 const InfoBlock = styled.div`
   display: flex;
   line-height: 24px;
+  max-width: 95%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 `;
 
 const StrongLabel = styled(Label)`

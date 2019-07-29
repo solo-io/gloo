@@ -55,6 +55,7 @@ export const globalStyles = css`
         svg {
           height: 20px;
           width: 20px;
+          min-width: 20px;
           margin-right: 8px;
         }
       }

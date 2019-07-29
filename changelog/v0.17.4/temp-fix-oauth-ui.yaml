@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: Add smoother validation. Tape patch bug in anticipation of real fix.
+    issueLink: https://github.com/solo-io/solo-projects/issues/682
+    resolvesIssue: false
