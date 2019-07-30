@@ -83,7 +83,7 @@ const Expansion = styled.div`
 `;
 
 const ExpandedDetails = styled.div`
-  margin: 0 12px;
+  margin: 0 12px 18px;
   border-top: 1px solid ${colors.aprilGrey};
 `;
 
@@ -182,10 +182,12 @@ export const Card = (props: CardType) => {
       setExpanded(exp => !exp);
     }
   };
+
   let ExtraInformation = null;
   if (!!extraInfoComponent) {
     ExtraInformation = extraInfoComponent;
   }
+
   return (
     <Container>
       <MainSection>

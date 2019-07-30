@@ -26,6 +26,9 @@ const colorsList = {
   septemberGrey: 'hsl(200, 3%, 44%)', //#6E7477
   novemberGrey: 'hsl(200, 5%, 22%)', //#35393B
 
+  scrollbarBorderGrey: '#E5E5E5',
+  scrollbarBackgroundGrey: 'hsl(0,0%,98.5%)',
+
   boxShadow: 'hsla(0, 0%, 0%, 0.1)',
   darkerBoxShadow: 'hsla(0,0%,0%, .15)'
 };

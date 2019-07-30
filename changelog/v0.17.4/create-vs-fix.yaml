@@ -1,0 +1,9 @@
+changelog:
+  - type: FIX
+    description: Virtual Service creation now requires proper values.
+    issueLink: https://github.com/solo-io/solo-projects/issues/772
+  - type: NON_USER_FACING
+    description: AWS function listing is even prettier than before!
+  - type: FIX
+    description: Virtual Service details now has propre route creation UX.
+    issueLink: https://github.com/solo-io/solo-projects/issues/773

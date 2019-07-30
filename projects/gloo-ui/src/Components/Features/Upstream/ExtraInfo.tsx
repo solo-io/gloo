@@ -1,19 +1,54 @@
 import React from 'react';
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import styled from '@emotion/styled/macro';
-import { List, Button } from 'antd';
+import { List } from 'antd';
+import { colors } from 'Styles';
 
 const ExtraInfoContainer = styled.div`
+  margin-top: -18px;
+`;
+
+const ToggleContainer = styled.div`
   display: flex;
   justify-content: flex-end;
   padding-right: 10px;
 `;
 
-const FunctionContainer = styled.div`
-  max-height: 250px;
-  overflow-y: scroll;
-  padding: 5px;
+const ShowToggle = styled.div`
+  color: ${colors.seaBlue};
+  font-size: 14px;
+  line-height: 30px;
+  height: 30px;
+  cursor: pointer;
 `;
+
+const FunctionsContainer = styled.div`
+  position: relative;
+  max-height: 200px;
+  overflow-y: scroll;
+  padding-left: 20px;
+  padding-right: 5px;
+  background: ${colors.januaryGrey};
+`;
+const ScrollMirror = styled.div`
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 15px;
+  height: 100%;
+  border-right: 1px solid ${colors.scrollbarBorderGrey};
+  background: ${colors.scrollbarBackgroundGrey};
+`;
+
+const ListBlock = styled.div`
+  margin: 8px 0 5px;
+
+  .ant-list {
+    background: white;
+  }
+`;
+
 interface Props {
   upstream: Upstream.AsObject;
 }
@@ -28,31 +63,36 @@ export function ExtraInfo(props: Props) {
     [];
 
   return (
-    <div>
-      <ExtraInfoContainer>
-        <Button
-          type='link'
-          style={{ cursor: 'pointer' }}
-          onClick={() => setShowModal(s => !s)}
-          disabled={functions.length === 0}>
+    <ExtraInfoContainer>
+      <ToggleContainer>
+        <ShowToggle
+          onClick={() => {
+            console.log(functions);
+            if (functions.length !== 0) {
+              setShowModal(s => !s);
+            }
+          }}>
           {`${showModal ? 'Hide' : 'Show'} Functions`}
-        </Button>
-      </ExtraInfoContainer>
-      <FunctionContainer>
-        {showModal && (
-          <List
-            size='small'
-            bordered
-            dataSource={functions}
-            locale={{ emptyText: 'No Functions' }}
-            renderItem={item => (
-              <List.Item style={{ padding: '0 5px' }}>
-                <List.Item.Meta title={item.logicalName} />
-              </List.Item>
-            )}
-          />
-        )}
-      </FunctionContainer>
-    </div>
+        </ShowToggle>
+      </ToggleContainer>
+      {showModal && (
+        <FunctionsContainer>
+          <ScrollMirror />
+          <ListBlock>
+            <List
+              size='small'
+              bordered
+              dataSource={functions}
+              locale={{ emptyText: 'No Functions' }}
+              renderItem={item => (
+                <List.Item style={{ padding: '0 5px' }}>
+                  <List.Item.Meta title={item.logicalName} />
+                </List.Item>
+              )}
+            />
+          </ListBlock>
+        </FunctionsContainer>
+      )}
+    </ExtraInfoContainer>
   );
 }

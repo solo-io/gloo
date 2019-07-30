@@ -31,6 +31,11 @@ const Container = styled.div`
 
 export const CardsListing = (props: Props) => {
   const { title, cardsData } = props;
+
+  if (!cardsData.length) {
+    return null;
+  }
+
   return (
     <Container>
       {title && <CardsListingTitle>{title}</CardsListingTitle>}

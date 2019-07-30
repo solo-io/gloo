@@ -46,6 +46,10 @@ const validate = (values: typeof initialValues) => {
     errors.namespace = 'Namespace is required';
   }
 
+  if (!!values.displayName && values.displayName.length > 500) {
+    errors.displayName = 'Display name cannot be longer than 500 characters';
+  }
+
   return errors;
 };
 
@@ -91,6 +95,11 @@ export const CreateVirtualServiceForm = (props: Props) => {
     }
   }
 
+  const isSubmittable = () => {
+    console.log({ errors, isSubmitting, isDifferent });
+    return isDifferent && !Object.keys(errors).length && !isSubmitting;
+  };
+
   return (
     <div>
       <InputContainer>
@@ -130,7 +139,7 @@ export const CreateVirtualServiceForm = (props: Props) => {
         <SoloButton
           onClick={handleSubmit}
           text='Create Virtual Service'
-          disabled={isSubmitting}
+          disabled={!isSubmittable()}
         />
       </Footer>
     </div>
