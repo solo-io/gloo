@@ -1,9 +1,7 @@
 import * as React from 'react';
 /** @jsx jsx */
 import { jsx } from '@emotion/core';
-import { isEmpty } from 'lodash';
 import styled from '@emotion/styled/macro';
-import { colors, soloConstants } from 'Styles';
 import {
   SoloFormTemplate,
   InputRow
@@ -15,7 +13,7 @@ import {
   SoloFormMultipartStringCardsList,
   SoloFormMetadataBasedDropdown
 } from 'Components/Common/Form/SoloFormField';
-import { Field, Formik } from 'formik';
+import { Field, Formik, FormikErrors } from 'formik';
 import * as yup from 'yup';
 
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
@@ -89,7 +87,7 @@ export const PATH_SPECIFIERS = [
 export interface CreateRouteValuesType {
   virtualService: VirtualService.AsObject | undefined;
   upstream: Upstream.AsObject | undefined;
-  destinationSpec: DestinationSpec.AsObject;
+  destinationSpec: DestinationSpec.AsObject | null;
   path: string;
   matchType: 'PREFIX' | 'EXACT' | 'REGEX';
   headers: {
@@ -116,9 +114,7 @@ export interface CreateRouteValuesType {
 export const createRouteDefaultValues: CreateRouteValuesType = {
   virtualService: new VirtualService().toObject(),
   upstream: new Upstream().toObject(),
-  destinationSpec: {
-    aws: { logicalName: '', invocationStyle: 0, responseTransformation: false }
-  },
+  destinationSpec: null,
   path: '',
   matchType: 'PREFIX',
   headers: [],
@@ -144,6 +140,23 @@ const validationSchema = yup.object().shape({
       'Upstream must be set',
       upstream => !!upstream && !!upstream.metadata
     ),
+  destinationSpec: yup
+    .object()
+    .shape({
+      aws: yup.object().shape({
+        logicalName: yup
+          .string()
+          .required()
+          .test(
+            'len',
+            'A lambda function must be selected',
+            val => !!val && val.length > 0
+          ),
+        invocationStyle: yup.boolean(),
+        responseTransformation: yup.boolean()
+      })
+    })
+    .nullable(),
   path: yup
     .string()
     .test('Valid Path', 'Paths begin with /', val => val && val[0] === '/'),
@@ -324,7 +337,11 @@ export const CreateRouteModal = (props: Props) => {
     );
     let newDestinationSpec = new DestinationSpec();
 
-    if (!!upstreamSpec.aws && values.destinationSpec.aws) {
+    if (
+      !!upstreamSpec.aws &&
+      !!values.destinationSpec &&
+      values.destinationSpec.aws
+    ) {
       const {
         logicalName,
         invocationStyle,
@@ -389,8 +406,24 @@ export const CreateRouteModal = (props: Props) => {
     makeRequest(newRouteReq);
   };
 
+  const isSubmittable = (
+    errors: FormikErrors<CreateRouteValuesType>,
+    isChanged: boolean
+  ) => {
+    return isChanged && !Object.keys(errors).length;
+  };
+
   const initialValues: CreateRouteValuesType = {
     ...createRouteDefaultValues,
+    destinationSpec: defaultUpstream
+      ? {
+          aws: {
+            logicalName: '',
+            invocationStyle: 0,
+            responseTransformation: false
+          }
+        }
+      : null,
     virtualService: defaultVirtualService
       ? defaultVirtualService
       : createRouteDefaultValues.virtualService,
@@ -403,7 +436,15 @@ export const CreateRouteModal = (props: Props) => {
       initialValues={initialValues}
       validationSchema={validationSchema}
       onSubmit={createRoute}>
-      {({ values, isSubmitting, handleSubmit, isValid, errors }) => {
+      {({
+        values,
+        isSubmitting,
+        handleSubmit,
+        isValid,
+        errors,
+        dirty,
+        setFieldValue
+      }) => {
         return (
           <FormContainer>
             <SoloFormTemplate>
@@ -427,6 +468,17 @@ export const CreateRouteModal = (props: Props) => {
                           value={values.upstream}
                           placeholder='Upstream...'
                           options={allUsableUpstreams}
+                          onChange={newUpstream => {
+                            if (newUpstream.upstreamSpec.aws) {
+                              setFieldValue('destinationSpec', {
+                                aws: {
+                                  logicalName: '',
+                                  invocationStyle: 0,
+                                  responseTransformation: false
+                                }
+                              });
+                            }
+                          }}
                         />
                       </HalfColumn>
                     )}
@@ -434,16 +486,14 @@ export const CreateRouteModal = (props: Props) => {
                 )}
               </InputRow>
               {allUsableUpstreams.length && (
-                <React.Fragment>
-                  <InputRow>
-                    {!!values.upstream && (
-                      <DestinationForm
-                        name='destinationSpec'
-                        upstreamSpec={values.upstream.upstreamSpec!}
-                      />
-                    )}
-                  </InputRow>
-                </React.Fragment>
+                <InputRow>
+                  {!!values.upstream && (
+                    <DestinationForm
+                      name='destinationSpec'
+                      upstreamSpec={values.upstream.upstreamSpec!}
+                    />
+                  )}
+                </InputRow>
               )}
               <InputRow>
                 <HalfColumn>
@@ -500,7 +550,7 @@ export const CreateRouteModal = (props: Props) => {
               <SoloButton
                 onClick={handleSubmit}
                 text='Create Route'
-                disabled={!isEmpty(errors)}
+                disabled={!isSubmittable(errors, dirty)}
                 loading={isSubmitting}
                 inProgressText={'Creating Route...'}>
                 <ButtonProgress />

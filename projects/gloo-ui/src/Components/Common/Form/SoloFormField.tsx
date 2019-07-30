@@ -146,6 +146,7 @@ interface MetadataBasedDropdownProps extends DropdownProps {
   value: any;
   options: any[];
   name: string;
+  onChange?: (newValue: any) => any;
 }
 export const SoloFormMetadataBasedDropdown: React.FC<
   MetadataBasedDropdownProps
@@ -192,6 +193,10 @@ export const SoloFormMetadataBasedDropdown: React.FC<
       option =>
         option.metadata.name === name && option.metadata.namespace === namespace
     );
+
+    if (props.onChange) {
+      props.onChange(optionChosen);
+    }
 
     form.setFieldValue(field.name, optionChosen);
   };

@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Creating a route in the UI now requires all valid data.
+    issueLink: https://github.com/solo-io/solo-projects/issues/775
