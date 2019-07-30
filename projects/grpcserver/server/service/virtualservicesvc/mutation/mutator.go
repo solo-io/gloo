@@ -6,15 +6,14 @@ import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 )
 
 type Mutation func(vs *gatewayv1.VirtualService) error
 
-//go:generate mockgen -destination mocks/mutator_mock.go -self_package github.com/solo-io/gloo/projects/gateway/pkg/api/v1 -package mocks github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation Mutator
+//go:generate mockgen -destination mocks/mutator_mock.go -package mocks github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation Mutator
 
 type Mutator interface {
-	Create(input *v1.VirtualServiceInput, f Mutation) (*gatewayv1.VirtualService, error)
+	Create(ref *core.ResourceRef, f Mutation) (*gatewayv1.VirtualService, error)
 	Update(ref *core.ResourceRef, f Mutation) (*gatewayv1.VirtualService, error)
 }
 
@@ -23,18 +22,14 @@ type mutator struct {
 	client gatewayv1.VirtualServiceClient
 }
 
-func (m *mutator) Create(input *v1.VirtualServiceInput, f Mutation) (*gatewayv1.VirtualService, error) {
+func (m *mutator) Create(ref *core.ResourceRef, f Mutation) (*gatewayv1.VirtualService, error) {
 	virtualService := &gatewayv1.VirtualService{
 		Metadata: core.Metadata{
-			Namespace: input.GetRef().GetNamespace(),
-			Name:      input.GetRef().GetName(),
+			Namespace: ref.GetNamespace(),
+			Name:      ref.GetName(),
 		},
 	}
-
-	if err := f(virtualService); err != nil {
-		return nil, err
-	}
-	return m.client.Write(virtualService, clients.WriteOpts{Ctx: m.ctx, OverwriteExisting: false})
+	return m.mutateAndWrite(virtualService, f, false)
 }
 
 func (m *mutator) Update(ref *core.ResourceRef, f Mutation) (*gatewayv1.VirtualService, error) {
@@ -42,11 +37,15 @@ func (m *mutator) Update(ref *core.ResourceRef, f Mutation) (*gatewayv1.VirtualS
 	if err != nil {
 		return nil, err
 	}
-	if err := f(virtualService); err != nil {
+	return m.mutateAndWrite(virtualService, f, true)
+}
+
+func (m *mutator) mutateAndWrite(vs *gatewayv1.VirtualService, f Mutation, overwrite bool) (*gatewayv1.VirtualService, error) {
+	if err := f(vs); err != nil {
 		return nil, err
 	}
-	virtualService.Status = core.Status{}
-	return m.client.Write(virtualService, clients.WriteOpts{Ctx: m.ctx, OverwriteExisting: true})
+	vs.Status = core.Status{}
+	return m.client.Write(vs, clients.WriteOpts{Ctx: m.ctx, OverwriteExisting: overwrite})
 }
 
 func NewMutator(ctx context.Context, client gatewayv1.VirtualServiceClient) *mutator {

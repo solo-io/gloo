@@ -193,77 +193,165 @@ var _ = Describe("ServiceTest", func() {
 	})
 
 	Describe("CreateVirtualService", func() {
-		getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInput {
-			return &v1.VirtualServiceInput{
-				Ref: ref,
-			}
-		}
-
-		It("works when the mutator works", func() {
-			virtualService := gatewayv1.VirtualService{
-				Metadata: metadata,
+		Context("with deprecated input", func() {
+			getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInput {
+				return &v1.VirtualServiceInput{
+					Ref: ref,
+				}
 			}
 
-			mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
-			mutator.EXPECT().
-				Create(getInput(&ref), gomock.Any()).
-				Return(&virtualService, nil)
+			It("works when the mutator works", func() {
+				virtualService := gatewayv1.VirtualService{
+					Metadata: metadata,
+				}
 
-			actual, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{Input: getInput(&ref)})
-			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.CreateVirtualServiceResponse{VirtualService: &virtualService}
-			ExpectEqualProtoMessages(actual, expected)
+				mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
+				mutator.EXPECT().
+					Create(&ref, gomock.Any()).
+					Return(&virtualService, nil)
+
+				actual, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{Input: getInput(&ref)})
+				Expect(err).NotTo(HaveOccurred())
+				expected := &v1.CreateVirtualServiceResponse{VirtualService: &virtualService}
+				ExpectEqualProtoMessages(actual, expected)
+			})
+
+			It("errors when the mutator errors", func() {
+				mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
+				mutator.EXPECT().
+					Create(&ref, gomock.Any()).
+					Return(nil, testErr)
+
+				request := &v1.CreateVirtualServiceRequest{
+					Input: getInput(&ref),
+				}
+				_, err := client.CreateVirtualService(context.TODO(), request)
+				Expect(err).To(HaveOccurred())
+				expectedErr := virtualservicesvc.FailedToCreateVirtualServiceError(testErr, &ref)
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
 		})
 
-		It("errors when the mutator errors", func() {
-			mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
-			mutator.EXPECT().
-				Create(getInput(&ref), gomock.Any()).
-				Return(nil, testErr)
-
-			request := &v1.CreateVirtualServiceRequest{
-				Input: getInput(&ref),
+		Context("with v2 input", func() {
+			getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInputV2 {
+				return &v1.VirtualServiceInputV2{
+					Ref: ref,
+				}
 			}
-			_, err := client.CreateVirtualService(context.TODO(), request)
+
+			It("works when the mutator works", func() {
+				virtualService := gatewayv1.VirtualService{
+					Metadata: metadata,
+				}
+
+				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(&ref))
+				mutator.EXPECT().
+					Create(&ref, gomock.Any()).
+					Return(&virtualService, nil)
+
+				actual, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(&ref)})
+				Expect(err).NotTo(HaveOccurred())
+				expected := &v1.CreateVirtualServiceResponse{VirtualService: &virtualService}
+				ExpectEqualProtoMessages(actual, expected)
+			})
+
+			It("errors when the mutator errors", func() {
+				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(&ref))
+				mutator.EXPECT().
+					Create(&ref, gomock.Any()).
+					Return(nil, testErr)
+
+				_, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(&ref)})
+				Expect(err).To(HaveOccurred())
+				expectedErr := virtualservicesvc.FailedToCreateVirtualServiceError(testErr, &ref)
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
+		})
+
+		It("errors when no input is provided", func() {
+			_, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{})
 			Expect(err).To(HaveOccurred())
-			expectedErr := virtualservicesvc.FailedToCreateVirtualServiceError(testErr, &ref)
-			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			Expect(err.Error()).To(ContainSubstring(virtualservicesvc.InvalidInputError.Error()))
 		})
 	})
 
-	Describe("ConfigureVirtualService", func() {
-		getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInput {
-			return &v1.VirtualServiceInput{
-				Ref: ref,
-			}
-		}
-
-		It("works when the mutator works", func() {
-			virtualService := gatewayv1.VirtualService{
-				Metadata: metadata,
+	Describe("UpdateVirtualService", func() {
+		Context("with deprecated input", func() {
+			getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInput {
+				return &v1.VirtualServiceInput{
+					Ref: ref,
+				}
 			}
 
-			mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
-			mutator.EXPECT().
-				Update(&ref, gomock.Any()).
-				Return(&virtualService, nil)
+			It("works when the mutator works", func() {
+				virtualService := gatewayv1.VirtualService{
+					Metadata: metadata,
+				}
 
-			actual, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{Input: getInput(&ref)})
-			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.UpdateVirtualServiceResponse{VirtualService: &virtualService}
-			ExpectEqualProtoMessages(actual, expected)
+				mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
+				mutator.EXPECT().
+					Update(&ref, gomock.Any()).
+					Return(&virtualService, nil)
+
+				actual, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{Input: getInput(&ref)})
+				Expect(err).NotTo(HaveOccurred())
+				expected := &v1.UpdateVirtualServiceResponse{VirtualService: &virtualService}
+				ExpectEqualProtoMessages(actual, expected)
+			})
+
+			It("errors when the mutator errors", func() {
+				mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
+				mutator.EXPECT().
+					Update(&ref, gomock.Any()).
+					Return(nil, testErr)
+
+				_, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{Input: getInput(&ref)})
+				Expect(err).To(HaveOccurred())
+				expectedErr := virtualservicesvc.FailedToUpdateVirtualServiceError(testErr, &ref)
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
 		})
 
-		It("errors when the mutator errors", func() {
-			mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
-			mutator.EXPECT().
-				Update(&ref, gomock.Any()).
-				Return(nil, testErr)
+		Context("with v2 input", func() {
+			getInput := func(ref *core.ResourceRef) *v1.VirtualServiceInputV2 {
+				return &v1.VirtualServiceInputV2{
+					Ref: ref,
+				}
+			}
 
-			_, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{Input: getInput(&ref)})
+			It("works when the mutator works", func() {
+				virtualService := gatewayv1.VirtualService{
+					Metadata: metadata,
+				}
+
+				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(&ref))
+				mutator.EXPECT().
+					Update(&ref, gomock.Any()).
+					Return(&virtualService, nil)
+
+				actual, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(&ref)})
+				Expect(err).NotTo(HaveOccurred())
+				expected := &v1.UpdateVirtualServiceResponse{VirtualService: &virtualService}
+				ExpectEqualProtoMessages(actual, expected)
+			})
+
+			It("errors when the mutator errors", func() {
+				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(&ref))
+				mutator.EXPECT().
+					Update(&ref, gomock.Any()).
+					Return(nil, testErr)
+
+				_, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(&ref)})
+				Expect(err).To(HaveOccurred())
+				expectedErr := virtualservicesvc.FailedToUpdateVirtualServiceError(testErr, &ref)
+				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			})
+		})
+
+		It("errors when no input is provided", func() {
+			_, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{})
 			Expect(err).To(HaveOccurred())
-			expectedErr := virtualservicesvc.FailedToUpdateVirtualServiceError(testErr, &ref)
-			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+			Expect(err.Error()).To(ContainSubstring(virtualservicesvc.InvalidInputError.Error()))
 		})
 	})
 

@@ -19,6 +19,13 @@ weight: 5
 - [StreamVirtualServiceListResponse](#streamvirtualservicelistresponse)
 - [VirtualServiceInput](#virtualserviceinput)
 - [BasicAuthInput](#basicauthinput)
+- [RepeatedStrings](#repeatedstrings)
+- [RepeatedRoutes](#repeatedroutes)
+- [SslConfigValue](#sslconfigvalue)
+- [IngressRateLimitValue](#ingressratelimitvalue)
+- [ExtAuthInput](#extauthinput)
+- [Config](#config)
+- [VirtualServiceInputV2](#virtualserviceinputv2)
 - [CreateVirtualServiceRequest](#createvirtualservicerequest)
 - [CreateVirtualServiceResponse](#createvirtualserviceresponse)
 - [UpdateVirtualServiceRequest](#updatevirtualservicerequest)
@@ -153,7 +160,8 @@ weight: 5
 ---
 ### VirtualServiceInput
 
-
+ 
+Deprecated. Use VirtualServiceInputV2
 
 ```yaml
 "ref": .core.solo.io.ResourceRef
@@ -203,18 +211,153 @@ weight: 5
 
 
 ---
+### RepeatedStrings
+
+
+
+```yaml
+"values": []string
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `values` | `[]string` |  |  |
+
+
+
+
+---
+### RepeatedRoutes
+
+
+
+```yaml
+"values": []gloo.solo.io.Route
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `values` | [[]gloo.solo.io.Route](../../../../../../gloo/projects/gloo/api/v1/proxy.proto.sk#route) |  |  |
+
+
+
+
+---
+### SslConfigValue
+
+
+
+```yaml
+"value": .gloo.solo.io.SslConfig
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `value` | [.gloo.solo.io.SslConfig](../../../../../../gloo/projects/gloo/api/v1/ssl.proto.sk#sslconfig) |  |  |
+
+
+
+
+---
+### IngressRateLimitValue
+
+
+
+```yaml
+"value": .ratelimit.plugins.gloo.solo.io.IngressRateLimit
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `value` | [.ratelimit.plugins.gloo.solo.io.IngressRateLimit](../../../../gloo/api/v1/plugins/ratelimit/ratelimit.proto.sk#ingressratelimit) |  |  |
+
+
+
+
+---
+### ExtAuthInput
+
+
+
+```yaml
+"config": .glooeeapi.solo.io.ExtAuthInput.Config
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `config` | [.glooeeapi.solo.io.ExtAuthInput.Config](../virtualservice.proto.sk#config) |  |  |
+
+
+
+
+---
+### Config
+
+
+
+```yaml
+"oauth": .extauth.plugins.gloo.solo.io.OAuth
+"customAuth": .extauth.plugins.gloo.solo.io.CustomAuth
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `oauth` | [.extauth.plugins.gloo.solo.io.OAuth](../../../../gloo/api/v1/plugins/extauth/extauth.proto.sk#oauth) |  |  |
+| `customAuth` | [.extauth.plugins.gloo.solo.io.CustomAuth](../../../../gloo/api/v1/plugins/extauth/extauth.proto.sk#customauth) |  |  |
+
+
+
+
+---
+### VirtualServiceInputV2
+
+
+
+```yaml
+"ref": .core.solo.io.ResourceRef
+"displayName": .google.protobuf.StringValue
+"domains": .glooeeapi.solo.io.RepeatedStrings
+"routes": .glooeeapi.solo.io.RepeatedRoutes
+"sslConfig": .glooeeapi.solo.io.SslConfigValue
+"rateLimitConfig": .glooeeapi.solo.io.IngressRateLimitValue
+"extAuthConfig": .glooeeapi.solo.io.ExtAuthInput
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `ref` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
+| `displayName` | [.google.protobuf.StringValue](https://developers.google.com/protocol-buffers/docs/reference/csharp/class/google/protobuf/well-known-types/string-value) |  |  |
+| `domains` | [.glooeeapi.solo.io.RepeatedStrings](../virtualservice.proto.sk#repeatedstrings) |  |  |
+| `routes` | [.glooeeapi.solo.io.RepeatedRoutes](../virtualservice.proto.sk#repeatedroutes) |  |  |
+| `sslConfig` | [.glooeeapi.solo.io.SslConfigValue](../virtualservice.proto.sk#sslconfigvalue) |  |  |
+| `rateLimitConfig` | [.glooeeapi.solo.io.IngressRateLimitValue](../virtualservice.proto.sk#ingressratelimitvalue) |  |  |
+| `extAuthConfig` | [.glooeeapi.solo.io.ExtAuthInput](../virtualservice.proto.sk#extauthinput) |  |  |
+
+
+
+
+---
 ### CreateVirtualServiceRequest
 
 
 
 ```yaml
 "input": .glooeeapi.solo.io.VirtualServiceInput
+"inputV2": .glooeeapi.solo.io.VirtualServiceInputV2
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `input` | [.glooeeapi.solo.io.VirtualServiceInput](../virtualservice.proto.sk#virtualserviceinput) |  |  |
+| `input` | [.glooeeapi.solo.io.VirtualServiceInput](../virtualservice.proto.sk#virtualserviceinput) | Deprecated. Will be removed, but in the meantime we will fallback to this input if v2 is not provided. |  |
+| `inputV2` | [.glooeeapi.solo.io.VirtualServiceInputV2](../virtualservice.proto.sk#virtualserviceinputv2) |  |  |
 
 
 
@@ -243,12 +386,14 @@ weight: 5
 
 ```yaml
 "input": .glooeeapi.solo.io.VirtualServiceInput
+"inputV2": .glooeeapi.solo.io.VirtualServiceInputV2
 
 ```
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `input` | [.glooeeapi.solo.io.VirtualServiceInput](../virtualservice.proto.sk#virtualserviceinput) |  |  |
+| `input` | [.glooeeapi.solo.io.VirtualServiceInput](../virtualservice.proto.sk#virtualserviceinput) | Deprecated. Will be removed, but in the meantime we will fallback to this input if v2 is not provided. |  |
+| `inputV2` | [.glooeeapi.solo.io.VirtualServiceInputV2](../virtualservice.proto.sk#virtualserviceinputv2) |  |  |
 
 
 

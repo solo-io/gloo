@@ -19,7 +19,7 @@ func main() {
 	generateOptions := cmd.GenerateOptions{
 		SkipGenMocks:  true,
 		CustomImports: nil,
-		SkipDirs:      []string{"./projects/gloo/pkg/", "./projects/gloo-ui/", "projects/grpcserver"},
+		SkipDirs:      []string{"./projects/gloo/pkg/", "./projects/gloo-ui/"},
 		RelativeRoot:  ".",
 		CompileProtos: true,
 		GenDocs: &cmd.DocsOptions{

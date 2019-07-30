@@ -10,7 +10,6 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	core "github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	v10 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	mutation "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
 )
 
@@ -38,7 +37,7 @@ func (m *MockMutator) EXPECT() *MockMutatorMockRecorder {
 }
 
 // Create mocks base method
-func (m *MockMutator) Create(arg0 *v10.VirtualServiceInput, arg1 mutation.Mutation) (*v1.VirtualService, error) {
+func (m *MockMutator) Create(arg0 *core.ResourceRef, arg1 mutation.Mutation) (*v1.VirtualService, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
 	ret0, _ := ret[0].(*v1.VirtualService)

@@ -81,7 +81,7 @@ ignored = ["github.com/lyft/protoc-gen-validate*"]
 
 [[constraint]]
   name = "github.com/solo-io/go-utils"
-  version = "0.9.1"
+  version = "0.9.12"
 
 [[constraint]]
   name = "github.com/solo-io/licensing"

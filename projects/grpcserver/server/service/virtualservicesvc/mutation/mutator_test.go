@@ -10,7 +10,6 @@ import (
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
-	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	mock_vssvc "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
 )
@@ -37,6 +36,11 @@ var _ = Describe("Mutator", func() {
 		}
 	}
 
+	getRef := func() *core.ResourceRef {
+		ref := getVirtualService().GetMetadata().Ref()
+		return &ref
+	}
+
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		client = mock_vssvc.NewMockVirtualServiceClient(mockCtrl)
@@ -48,35 +52,20 @@ var _ = Describe("Mutator", func() {
 	})
 
 	Describe("Create", func() {
-		getInput := func() *v1.VirtualServiceInput {
-			return &v1.VirtualServiceInput{
-				Ref: &core.ResourceRef{
-					Namespace: "ns",
-					Name:      "name",
-				},
-			}
-		}
-
 		It("works", func() {
-			input := getInput()
-			vs := &gatewayv1.VirtualService{
-				Metadata: core.Metadata{
-					Namespace: "ns",
-					Name:      "name",
-				},
-			}
+			vs := getVirtualService()
 
 			client.EXPECT().
 				Write(vs, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
 				Return(vs, nil)
 
-			actual, err := mutator.Create(input, noopMutation)
+			actual, err := mutator.Create(getRef(), noopMutation)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(actual).To(Equal(vs))
 		})
 
 		It("errors when the mutation errors", func() {
-			_, err := mutator.Create(getInput(), errMutation)
+			_, err := mutator.Create(getRef(), errMutation)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(Equal(mutationError))
 		})
@@ -86,20 +75,13 @@ var _ = Describe("Mutator", func() {
 				Write(gomock.Any(), clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
 				Return(nil, writeError)
 
-			_, err := mutator.Create(getInput(), noopMutation)
+			_, err := mutator.Create(getRef(), noopMutation)
 			Expect(err).To(HaveOccurred())
 			Expect(err).To(Equal(writeError))
 		})
 	})
 
 	Describe("Update", func() {
-		getRef := func() *core.ResourceRef {
-			return &core.ResourceRef{
-				Namespace: "ns",
-				Name:      "name",
-			}
-		}
-
 		It("works", func() {
 			expected := getVirtualService()
 

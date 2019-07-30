@@ -7,9 +7,11 @@ option (gogoproto.equal_all) = true;
 
 import "github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/proxy.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/ssl.proto";
 import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth.proto";
 import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit.proto";
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
+import "google/protobuf/wrappers.proto";
 
 message GetVirtualServiceRequest {
     core.solo.io.ResourceRef ref = 1;
@@ -36,6 +38,7 @@ message StreamVirtualServiceListResponse {
     repeated gateway.solo.io.VirtualService virtual_services = 1;
 }
 
+// Deprecated. Use VirtualServiceInputV2
 message VirtualServiceInput {
     core.solo.io.ResourceRef ref = 1;
     string display_name = 2;
@@ -56,8 +59,47 @@ message VirtualServiceInput {
     }
 }
 
+message RepeatedStrings {
+    repeated string values = 1;
+}
+
+message RepeatedRoutes {
+    repeated gloo.solo.io.Route values = 1;
+}
+
+message SslConfigValue {
+    gloo.solo.io.SslConfig value = 1;
+}
+
+message IngressRateLimitValue {
+    ratelimit.plugins.gloo.solo.io.IngressRateLimit value = 1;
+}
+
+message ExtAuthInput {
+    message Config {
+        oneof value {
+            extauth.plugins.gloo.solo.io.OAuth oauth = 1;
+            extauth.plugins.gloo.solo.io.CustomAuth custom_auth = 2;
+        }
+    }
+
+    Config config = 1;
+}
+
+message VirtualServiceInputV2 {
+    core.solo.io.ResourceRef ref = 1;
+    google.protobuf.StringValue display_name = 2;
+    RepeatedStrings domains = 3;
+    RepeatedRoutes routes = 4;
+    SslConfigValue ssl_config = 5;
+    IngressRateLimitValue rate_limit_config = 6;
+    ExtAuthInput ext_auth_config = 7;
+}
+
 message CreateVirtualServiceRequest {
+    // Deprecated. Will be removed, but in the meantime we will fallback to this input if v2 is not provided.
     VirtualServiceInput input = 1;
+    VirtualServiceInputV2 input_v2 = 2;
 }
 
 message CreateVirtualServiceResponse {
@@ -65,7 +107,9 @@ message CreateVirtualServiceResponse {
 }
 
 message UpdateVirtualServiceRequest {
+    // Deprecated. Will be removed, but in the meantime we will fallback to this input if v2 is not provided.
     VirtualServiceInput input = 1;
+    VirtualServiceInputV2 input_v2 = 2;
 }
 
 message UpdateVirtualServiceResponse {

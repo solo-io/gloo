@@ -5,9 +5,11 @@ import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../gogoproto/gogo_pb";
 import * as github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb from "../../../../../../../github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/ssl_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb from "../../../../../../../github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/extauth/extauth_pb";
 import * as github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb from "../../../../../../../github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/ratelimit_pb";
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
+import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
 export class GetVirtualServiceRequest extends jspb.Message {
   hasRef(): boolean;
@@ -242,11 +244,219 @@ export namespace VirtualServiceInput {
   }
 }
 
+export class RepeatedStrings extends jspb.Message {
+  clearValuesList(): void;
+  getValuesList(): Array<string>;
+  setValuesList(value: Array<string>): void;
+  addValues(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RepeatedStrings.AsObject;
+  static toObject(includeInstance: boolean, msg: RepeatedStrings): RepeatedStrings.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RepeatedStrings, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RepeatedStrings;
+  static deserializeBinaryFromReader(message: RepeatedStrings, reader: jspb.BinaryReader): RepeatedStrings;
+}
+
+export namespace RepeatedStrings {
+  export type AsObject = {
+    valuesList: Array<string>,
+  }
+}
+
+export class RepeatedRoutes extends jspb.Message {
+  clearValuesList(): void;
+  getValuesList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route>;
+  setValuesList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route>): void;
+  addValues(value?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RepeatedRoutes.AsObject;
+  static toObject(includeInstance: boolean, msg: RepeatedRoutes): RepeatedRoutes.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RepeatedRoutes, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RepeatedRoutes;
+  static deserializeBinaryFromReader(message: RepeatedRoutes, reader: jspb.BinaryReader): RepeatedRoutes;
+}
+
+export namespace RepeatedRoutes {
+  export type AsObject = {
+    valuesList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route.AsObject>,
+  }
+}
+
+export class SslConfigValue extends jspb.Message {
+  hasValue(): boolean;
+  clearValue(): void;
+  getValue(): github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig | undefined;
+  setValue(value?: github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SslConfigValue.AsObject;
+  static toObject(includeInstance: boolean, msg: SslConfigValue): SslConfigValue.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SslConfigValue, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SslConfigValue;
+  static deserializeBinaryFromReader(message: SslConfigValue, reader: jspb.BinaryReader): SslConfigValue;
+}
+
+export namespace SslConfigValue {
+  export type AsObject = {
+    value?: github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.AsObject,
+  }
+}
+
+export class IngressRateLimitValue extends jspb.Message {
+  hasValue(): boolean;
+  clearValue(): void;
+  getValue(): github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit | undefined;
+  setValue(value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): IngressRateLimitValue.AsObject;
+  static toObject(includeInstance: boolean, msg: IngressRateLimitValue): IngressRateLimitValue.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: IngressRateLimitValue, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): IngressRateLimitValue;
+  static deserializeBinaryFromReader(message: IngressRateLimitValue, reader: jspb.BinaryReader): IngressRateLimitValue;
+}
+
+export namespace IngressRateLimitValue {
+  export type AsObject = {
+    value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
+  }
+}
+
+export class ExtAuthInput extends jspb.Message {
+  hasConfig(): boolean;
+  clearConfig(): void;
+  getConfig(): ExtAuthInput.Config | undefined;
+  setConfig(value?: ExtAuthInput.Config): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ExtAuthInput.AsObject;
+  static toObject(includeInstance: boolean, msg: ExtAuthInput): ExtAuthInput.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ExtAuthInput, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ExtAuthInput;
+  static deserializeBinaryFromReader(message: ExtAuthInput, reader: jspb.BinaryReader): ExtAuthInput;
+}
+
+export namespace ExtAuthInput {
+  export type AsObject = {
+    config?: ExtAuthInput.Config.AsObject,
+  }
+
+  export class Config extends jspb.Message {
+    hasOauth(): boolean;
+    clearOauth(): void;
+    getOauth(): github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth | undefined;
+    setOauth(value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth): void;
+
+    hasCustomAuth(): boolean;
+    clearCustomAuth(): void;
+    getCustomAuth(): github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth | undefined;
+    setCustomAuth(value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth): void;
+
+    getValueCase(): Config.ValueCase;
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Config.AsObject;
+    static toObject(includeInstance: boolean, msg: Config): Config.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Config, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Config;
+    static deserializeBinaryFromReader(message: Config, reader: jspb.BinaryReader): Config;
+  }
+
+  export namespace Config {
+    export type AsObject = {
+      oauth?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth.AsObject,
+      customAuth?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth.AsObject,
+    }
+
+    export enum ValueCase {
+      VALUE_NOT_SET = 0,
+      OAUTH = 1,
+      CUSTOM_AUTH = 2,
+    }
+  }
+}
+
+export class VirtualServiceInputV2 extends jspb.Message {
+  hasRef(): boolean;
+  clearRef(): void;
+  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+  hasDisplayName(): boolean;
+  clearDisplayName(): void;
+  getDisplayName(): google_protobuf_wrappers_pb.StringValue | undefined;
+  setDisplayName(value?: google_protobuf_wrappers_pb.StringValue): void;
+
+  hasDomains(): boolean;
+  clearDomains(): void;
+  getDomains(): RepeatedStrings | undefined;
+  setDomains(value?: RepeatedStrings): void;
+
+  hasRoutes(): boolean;
+  clearRoutes(): void;
+  getRoutes(): RepeatedRoutes | undefined;
+  setRoutes(value?: RepeatedRoutes): void;
+
+  hasSslConfig(): boolean;
+  clearSslConfig(): void;
+  getSslConfig(): SslConfigValue | undefined;
+  setSslConfig(value?: SslConfigValue): void;
+
+  hasRateLimitConfig(): boolean;
+  clearRateLimitConfig(): void;
+  getRateLimitConfig(): IngressRateLimitValue | undefined;
+  setRateLimitConfig(value?: IngressRateLimitValue): void;
+
+  hasExtAuthConfig(): boolean;
+  clearExtAuthConfig(): void;
+  getExtAuthConfig(): ExtAuthInput | undefined;
+  setExtAuthConfig(value?: ExtAuthInput): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): VirtualServiceInputV2.AsObject;
+  static toObject(includeInstance: boolean, msg: VirtualServiceInputV2): VirtualServiceInputV2.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: VirtualServiceInputV2, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): VirtualServiceInputV2;
+  static deserializeBinaryFromReader(message: VirtualServiceInputV2, reader: jspb.BinaryReader): VirtualServiceInputV2;
+}
+
+export namespace VirtualServiceInputV2 {
+  export type AsObject = {
+    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    displayName?: google_protobuf_wrappers_pb.StringValue.AsObject,
+    domains?: RepeatedStrings.AsObject,
+    routes?: RepeatedRoutes.AsObject,
+    sslConfig?: SslConfigValue.AsObject,
+    rateLimitConfig?: IngressRateLimitValue.AsObject,
+    extAuthConfig?: ExtAuthInput.AsObject,
+  }
+}
+
 export class CreateVirtualServiceRequest extends jspb.Message {
   hasInput(): boolean;
   clearInput(): void;
   getInput(): VirtualServiceInput | undefined;
   setInput(value?: VirtualServiceInput): void;
+
+  hasInputV2(): boolean;
+  clearInputV2(): void;
+  getInputV2(): VirtualServiceInputV2 | undefined;
+  setInputV2(value?: VirtualServiceInputV2): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CreateVirtualServiceRequest.AsObject;
@@ -261,6 +471,7 @@ export class CreateVirtualServiceRequest extends jspb.Message {
 export namespace CreateVirtualServiceRequest {
   export type AsObject = {
     input?: VirtualServiceInput.AsObject,
+    inputV2?: VirtualServiceInputV2.AsObject,
   }
 }
 
@@ -292,6 +503,11 @@ export class UpdateVirtualServiceRequest extends jspb.Message {
   getInput(): VirtualServiceInput | undefined;
   setInput(value?: VirtualServiceInput): void;
 
+  hasInputV2(): boolean;
+  clearInputV2(): void;
+  getInputV2(): VirtualServiceInputV2 | undefined;
+  setInputV2(value?: VirtualServiceInputV2): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpdateVirtualServiceRequest.AsObject;
   static toObject(includeInstance: boolean, msg: UpdateVirtualServiceRequest): UpdateVirtualServiceRequest.AsObject;
@@ -305,6 +521,7 @@ export class UpdateVirtualServiceRequest extends jspb.Message {
 export namespace UpdateVirtualServiceRequest {
   export type AsObject = {
     input?: VirtualServiceInput.AsObject,
+    inputV2?: VirtualServiceInputV2.AsObject,
   }
 }
 

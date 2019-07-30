@@ -3,10 +3,10 @@ package virtualservicesvc
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	"github.com/solo-io/go-utils/contextutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
+	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
@@ -104,13 +104,22 @@ func (s *virtualServiceGrpcService) StreamVirtualServiceList(request *v1.StreamV
 }
 
 func (s *virtualServiceGrpcService) CreateVirtualService(ctx context.Context, request *v1.CreateVirtualServiceRequest) (*v1.CreateVirtualServiceResponse, error) {
-	if request.GetInput() == nil {
-		return nil, errors.Errorf("Invalid input error")
+	var ref *core.ResourceRef
+	var createMutation mutation.Mutation
+
+	if request.GetInputV2() != nil {
+		ref = request.GetInputV2().GetRef()
+		createMutation = s.mutationFactory.ConfigureVirtualServiceV2(request.GetInputV2())
+	} else if request.GetInput() != nil {
+		ref = request.GetInput().GetRef()
+		createMutation = s.mutationFactory.ConfigureVirtualService(request.GetInput())
+	} else {
+		return nil, InvalidInputError
 	}
 
-	written, err := s.mutator.Create(request.GetInput(), s.mutationFactory.ConfigureVirtualService(request.GetInput()))
+	written, err := s.mutator.Create(ref, createMutation)
 	if err != nil {
-		wrapped := FailedToCreateVirtualServiceError(err, request.GetInput().GetRef())
+		wrapped := FailedToCreateVirtualServiceError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
@@ -118,9 +127,22 @@ func (s *virtualServiceGrpcService) CreateVirtualService(ctx context.Context, re
 }
 
 func (s *virtualServiceGrpcService) UpdateVirtualService(ctx context.Context, request *v1.UpdateVirtualServiceRequest) (*v1.UpdateVirtualServiceResponse, error) {
-	written, err := s.mutator.Update(request.GetInput().GetRef(), s.mutationFactory.ConfigureVirtualService(request.GetInput()))
+	var ref *core.ResourceRef
+	var createMutation mutation.Mutation
+
+	if request.GetInputV2() != nil {
+		ref = request.GetInputV2().GetRef()
+		createMutation = s.mutationFactory.ConfigureVirtualServiceV2(request.GetInputV2())
+	} else if request.GetInput() != nil {
+		ref = request.GetInput().GetRef()
+		createMutation = s.mutationFactory.ConfigureVirtualService(request.GetInput())
+	} else {
+		return nil, InvalidInputError
+	}
+
+	written, err := s.mutator.Update(ref, createMutation)
 	if err != nil {
-		wrapped := FailedToUpdateVirtualServiceError(err, request.GetInput().GetRef())
+		wrapped := FailedToUpdateVirtualServiceError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}

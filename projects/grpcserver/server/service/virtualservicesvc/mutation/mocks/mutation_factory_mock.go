@@ -49,6 +49,20 @@ func (mr *MockMutationFactoryMockRecorder) ConfigureVirtualService(arg0 interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigureVirtualService", reflect.TypeOf((*MockMutationFactory)(nil).ConfigureVirtualService), arg0)
 }
 
+// ConfigureVirtualServiceV2 mocks base method
+func (m *MockMutationFactory) ConfigureVirtualServiceV2(arg0 *v1.VirtualServiceInputV2) mutation.Mutation {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConfigureVirtualServiceV2", arg0)
+	ret0, _ := ret[0].(mutation.Mutation)
+	return ret0
+}
+
+// ConfigureVirtualServiceV2 indicates an expected call of ConfigureVirtualServiceV2
+func (mr *MockMutationFactoryMockRecorder) ConfigureVirtualServiceV2(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigureVirtualServiceV2", reflect.TypeOf((*MockMutationFactory)(nil).ConfigureVirtualServiceV2), arg0)
+}
+
 // CreateRoute mocks base method
 func (m *MockMutationFactory) CreateRoute(arg0 *v1.RouteInput) mutation.Mutation {
 	m.ctrl.T.Helper()

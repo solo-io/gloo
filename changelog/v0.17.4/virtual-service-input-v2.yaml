@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Add a new virtual service input object to create / update API to allow delta-style updates.
+    issueLink: https://github.com/solo-io/solo-projects/issues/749

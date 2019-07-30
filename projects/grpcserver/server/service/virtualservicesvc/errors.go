@@ -22,6 +22,8 @@ var (
 		return errors.Wrapf(err, "Error encountered while watching virtual services in %v", namespace)
 	}
 
+	InvalidInputError = errors.New("No input provided")
+
 	FailedToCreateVirtualServiceError = func(err error, ref *core.ResourceRef) error {
 		return errors.Wrapf(err, "Failed to create virtual service %v.%v", ref.GetNamespace(), ref.GetName())
 	}
