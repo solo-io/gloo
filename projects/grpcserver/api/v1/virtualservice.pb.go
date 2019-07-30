@@ -33,6 +33,524 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
+type VirtualServiceDetails struct {
+	VirtualService       *v1.VirtualService `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
+	Plugins              *Plugins           `protobuf:"bytes,2,opt,name=plugins,proto3" json:"plugins,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
+}
+
+func (m *VirtualServiceDetails) Reset()         { *m = VirtualServiceDetails{} }
+func (m *VirtualServiceDetails) String() string { return proto.CompactTextString(m) }
+func (*VirtualServiceDetails) ProtoMessage()    {}
+func (*VirtualServiceDetails) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c1e74246b50b246, []int{0}
+}
+func (m *VirtualServiceDetails) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_VirtualServiceDetails.Unmarshal(m, b)
+}
+func (m *VirtualServiceDetails) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_VirtualServiceDetails.Marshal(b, m, deterministic)
+}
+func (m *VirtualServiceDetails) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VirtualServiceDetails.Merge(m, src)
+}
+func (m *VirtualServiceDetails) XXX_Size() int {
+	return xxx_messageInfo_VirtualServiceDetails.Size(m)
+}
+func (m *VirtualServiceDetails) XXX_DiscardUnknown() {
+	xxx_messageInfo_VirtualServiceDetails.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VirtualServiceDetails proto.InternalMessageInfo
+
+func (m *VirtualServiceDetails) GetVirtualService() *v1.VirtualService {
+	if m != nil {
+		return m.VirtualService
+	}
+	return nil
+}
+
+func (m *VirtualServiceDetails) GetPlugins() *Plugins {
+	if m != nil {
+		return m.Plugins
+	}
+	return nil
+}
+
+type Plugins struct {
+	ExtAuth              *ExtAuthPlugin   `protobuf:"bytes,1,opt,name=ext_auth,json=extAuth,proto3" json:"ext_auth,omitempty"`
+	RateLimit            *RateLimitPlugin `protobuf:"bytes,2,opt,name=rate_limit,json=rateLimit,proto3" json:"rate_limit,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
+}
+
+func (m *Plugins) Reset()         { *m = Plugins{} }
+func (m *Plugins) String() string { return proto.CompactTextString(m) }
+func (*Plugins) ProtoMessage()    {}
+func (*Plugins) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c1e74246b50b246, []int{1}
+}
+func (m *Plugins) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Plugins.Unmarshal(m, b)
+}
+func (m *Plugins) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Plugins.Marshal(b, m, deterministic)
+}
+func (m *Plugins) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Plugins.Merge(m, src)
+}
+func (m *Plugins) XXX_Size() int {
+	return xxx_messageInfo_Plugins.Size(m)
+}
+func (m *Plugins) XXX_DiscardUnknown() {
+	xxx_messageInfo_Plugins.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Plugins proto.InternalMessageInfo
+
+func (m *Plugins) GetExtAuth() *ExtAuthPlugin {
+	if m != nil {
+		return m.ExtAuth
+	}
+	return nil
+}
+
+func (m *Plugins) GetRateLimit() *RateLimitPlugin {
+	if m != nil {
+		return m.RateLimit
+	}
+	return nil
+}
+
+type ExtAuthPlugin struct {
+	Value                *extauth.ExtAuthConfig `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	Error                string                 `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
+}
+
+func (m *ExtAuthPlugin) Reset()         { *m = ExtAuthPlugin{} }
+func (m *ExtAuthPlugin) String() string { return proto.CompactTextString(m) }
+func (*ExtAuthPlugin) ProtoMessage()    {}
+func (*ExtAuthPlugin) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c1e74246b50b246, []int{2}
+}
+func (m *ExtAuthPlugin) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ExtAuthPlugin.Unmarshal(m, b)
+}
+func (m *ExtAuthPlugin) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ExtAuthPlugin.Marshal(b, m, deterministic)
+}
+func (m *ExtAuthPlugin) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ExtAuthPlugin.Merge(m, src)
+}
+func (m *ExtAuthPlugin) XXX_Size() int {
+	return xxx_messageInfo_ExtAuthPlugin.Size(m)
+}
+func (m *ExtAuthPlugin) XXX_DiscardUnknown() {
+	xxx_messageInfo_ExtAuthPlugin.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ExtAuthPlugin proto.InternalMessageInfo
+
+func (m *ExtAuthPlugin) GetValue() *extauth.ExtAuthConfig {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
+func (m *ExtAuthPlugin) GetError() string {
+	if m != nil {
+		return m.Error
+	}
+	return ""
+}
+
+type RateLimitPlugin struct {
+	Value                *ratelimit.IngressRateLimit `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	Error                string                      `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
+}
+
+func (m *RateLimitPlugin) Reset()         { *m = RateLimitPlugin{} }
+func (m *RateLimitPlugin) String() string { return proto.CompactTextString(m) }
+func (*RateLimitPlugin) ProtoMessage()    {}
+func (*RateLimitPlugin) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c1e74246b50b246, []int{3}
+}
+func (m *RateLimitPlugin) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RateLimitPlugin.Unmarshal(m, b)
+}
+func (m *RateLimitPlugin) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RateLimitPlugin.Marshal(b, m, deterministic)
+}
+func (m *RateLimitPlugin) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RateLimitPlugin.Merge(m, src)
+}
+func (m *RateLimitPlugin) XXX_Size() int {
+	return xxx_messageInfo_RateLimitPlugin.Size(m)
+}
+func (m *RateLimitPlugin) XXX_DiscardUnknown() {
+	xxx_messageInfo_RateLimitPlugin.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RateLimitPlugin proto.InternalMessageInfo
+
+func (m *RateLimitPlugin) GetValue() *ratelimit.IngressRateLimit {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
+func (m *RateLimitPlugin) GetError() string {
+	if m != nil {
+		return m.Error
+	}
+	return ""
+}
+
+type RepeatedStrings struct {
+	Values               []string `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RepeatedStrings) Reset()         { *m = RepeatedStrings{} }
+func (m *RepeatedStrings) String() string { return proto.CompactTextString(m) }
+func (*RepeatedStrings) ProtoMessage()    {}
+func (*RepeatedStrings) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c1e74246b50b246, []int{4}
+}
+func (m *RepeatedStrings) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RepeatedStrings.Unmarshal(m, b)
+}
+func (m *RepeatedStrings) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RepeatedStrings.Marshal(b, m, deterministic)
+}
+func (m *RepeatedStrings) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RepeatedStrings.Merge(m, src)
+}
+func (m *RepeatedStrings) XXX_Size() int {
+	return xxx_messageInfo_RepeatedStrings.Size(m)
+}
+func (m *RepeatedStrings) XXX_DiscardUnknown() {
+	xxx_messageInfo_RepeatedStrings.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RepeatedStrings proto.InternalMessageInfo
+
+func (m *RepeatedStrings) GetValues() []string {
+	if m != nil {
+		return m.Values
+	}
+	return nil
+}
+
+type RepeatedRoutes struct {
+	Values               []*v11.Route `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
+}
+
+func (m *RepeatedRoutes) Reset()         { *m = RepeatedRoutes{} }
+func (m *RepeatedRoutes) String() string { return proto.CompactTextString(m) }
+func (*RepeatedRoutes) ProtoMessage()    {}
+func (*RepeatedRoutes) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c1e74246b50b246, []int{5}
+}
+func (m *RepeatedRoutes) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RepeatedRoutes.Unmarshal(m, b)
+}
+func (m *RepeatedRoutes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RepeatedRoutes.Marshal(b, m, deterministic)
+}
+func (m *RepeatedRoutes) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RepeatedRoutes.Merge(m, src)
+}
+func (m *RepeatedRoutes) XXX_Size() int {
+	return xxx_messageInfo_RepeatedRoutes.Size(m)
+}
+func (m *RepeatedRoutes) XXX_DiscardUnknown() {
+	xxx_messageInfo_RepeatedRoutes.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RepeatedRoutes proto.InternalMessageInfo
+
+func (m *RepeatedRoutes) GetValues() []*v11.Route {
+	if m != nil {
+		return m.Values
+	}
+	return nil
+}
+
+type SslConfigValue struct {
+	Value                *v11.SslConfig `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
+	XXX_unrecognized     []byte         `json:"-"`
+	XXX_sizecache        int32          `json:"-"`
+}
+
+func (m *SslConfigValue) Reset()         { *m = SslConfigValue{} }
+func (m *SslConfigValue) String() string { return proto.CompactTextString(m) }
+func (*SslConfigValue) ProtoMessage()    {}
+func (*SslConfigValue) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c1e74246b50b246, []int{6}
+}
+func (m *SslConfigValue) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SslConfigValue.Unmarshal(m, b)
+}
+func (m *SslConfigValue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SslConfigValue.Marshal(b, m, deterministic)
+}
+func (m *SslConfigValue) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SslConfigValue.Merge(m, src)
+}
+func (m *SslConfigValue) XXX_Size() int {
+	return xxx_messageInfo_SslConfigValue.Size(m)
+}
+func (m *SslConfigValue) XXX_DiscardUnknown() {
+	xxx_messageInfo_SslConfigValue.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SslConfigValue proto.InternalMessageInfo
+
+func (m *SslConfigValue) GetValue() *v11.SslConfig {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
+type IngressRateLimitValue struct {
+	Value                *ratelimit.IngressRateLimit `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
+}
+
+func (m *IngressRateLimitValue) Reset()         { *m = IngressRateLimitValue{} }
+func (m *IngressRateLimitValue) String() string { return proto.CompactTextString(m) }
+func (*IngressRateLimitValue) ProtoMessage()    {}
+func (*IngressRateLimitValue) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c1e74246b50b246, []int{7}
+}
+func (m *IngressRateLimitValue) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_IngressRateLimitValue.Unmarshal(m, b)
+}
+func (m *IngressRateLimitValue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_IngressRateLimitValue.Marshal(b, m, deterministic)
+}
+func (m *IngressRateLimitValue) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IngressRateLimitValue.Merge(m, src)
+}
+func (m *IngressRateLimitValue) XXX_Size() int {
+	return xxx_messageInfo_IngressRateLimitValue.Size(m)
+}
+func (m *IngressRateLimitValue) XXX_DiscardUnknown() {
+	xxx_messageInfo_IngressRateLimitValue.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_IngressRateLimitValue proto.InternalMessageInfo
+
+func (m *IngressRateLimitValue) GetValue() *ratelimit.IngressRateLimit {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
+type ExtAuthInput struct {
+	Config               *ExtAuthInput_Config `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *ExtAuthInput) Reset()         { *m = ExtAuthInput{} }
+func (m *ExtAuthInput) String() string { return proto.CompactTextString(m) }
+func (*ExtAuthInput) ProtoMessage()    {}
+func (*ExtAuthInput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c1e74246b50b246, []int{8}
+}
+func (m *ExtAuthInput) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ExtAuthInput.Unmarshal(m, b)
+}
+func (m *ExtAuthInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ExtAuthInput.Marshal(b, m, deterministic)
+}
+func (m *ExtAuthInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ExtAuthInput.Merge(m, src)
+}
+func (m *ExtAuthInput) XXX_Size() int {
+	return xxx_messageInfo_ExtAuthInput.Size(m)
+}
+func (m *ExtAuthInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_ExtAuthInput.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ExtAuthInput proto.InternalMessageInfo
+
+func (m *ExtAuthInput) GetConfig() *ExtAuthInput_Config {
+	if m != nil {
+		return m.Config
+	}
+	return nil
+}
+
+type ExtAuthInput_Config struct {
+	// Types that are valid to be assigned to Value:
+	//	*ExtAuthInput_Config_Oauth
+	//	*ExtAuthInput_Config_CustomAuth
+	Value                isExtAuthInput_Config_Value `protobuf_oneof:"value"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
+}
+
+func (m *ExtAuthInput_Config) Reset()         { *m = ExtAuthInput_Config{} }
+func (m *ExtAuthInput_Config) String() string { return proto.CompactTextString(m) }
+func (*ExtAuthInput_Config) ProtoMessage()    {}
+func (*ExtAuthInput_Config) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c1e74246b50b246, []int{8, 0}
+}
+func (m *ExtAuthInput_Config) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ExtAuthInput_Config.Unmarshal(m, b)
+}
+func (m *ExtAuthInput_Config) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ExtAuthInput_Config.Marshal(b, m, deterministic)
+}
+func (m *ExtAuthInput_Config) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ExtAuthInput_Config.Merge(m, src)
+}
+func (m *ExtAuthInput_Config) XXX_Size() int {
+	return xxx_messageInfo_ExtAuthInput_Config.Size(m)
+}
+func (m *ExtAuthInput_Config) XXX_DiscardUnknown() {
+	xxx_messageInfo_ExtAuthInput_Config.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ExtAuthInput_Config proto.InternalMessageInfo
+
+type isExtAuthInput_Config_Value interface {
+	isExtAuthInput_Config_Value()
+	Equal(interface{}) bool
+}
+
+type ExtAuthInput_Config_Oauth struct {
+	Oauth *extauth.OAuth `protobuf:"bytes,1,opt,name=oauth,proto3,oneof"`
+}
+type ExtAuthInput_Config_CustomAuth struct {
+	CustomAuth *extauth.CustomAuth `protobuf:"bytes,2,opt,name=custom_auth,json=customAuth,proto3,oneof"`
+}
+
+func (*ExtAuthInput_Config_Oauth) isExtAuthInput_Config_Value()      {}
+func (*ExtAuthInput_Config_CustomAuth) isExtAuthInput_Config_Value() {}
+
+func (m *ExtAuthInput_Config) GetValue() isExtAuthInput_Config_Value {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
+func (m *ExtAuthInput_Config) GetOauth() *extauth.OAuth {
+	if x, ok := m.GetValue().(*ExtAuthInput_Config_Oauth); ok {
+		return x.Oauth
+	}
+	return nil
+}
+
+func (m *ExtAuthInput_Config) GetCustomAuth() *extauth.CustomAuth {
+	if x, ok := m.GetValue().(*ExtAuthInput_Config_CustomAuth); ok {
+		return x.CustomAuth
+	}
+	return nil
+}
+
+// XXX_OneofFuncs is for the internal use of the proto package.
+func (*ExtAuthInput_Config) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _ExtAuthInput_Config_OneofMarshaler, _ExtAuthInput_Config_OneofUnmarshaler, _ExtAuthInput_Config_OneofSizer, []interface{}{
+		(*ExtAuthInput_Config_Oauth)(nil),
+		(*ExtAuthInput_Config_CustomAuth)(nil),
+	}
+}
+
+func _ExtAuthInput_Config_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*ExtAuthInput_Config)
+	// value
+	switch x := m.Value.(type) {
+	case *ExtAuthInput_Config_Oauth:
+		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Oauth); err != nil {
+			return err
+		}
+	case *ExtAuthInput_Config_CustomAuth:
+		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.CustomAuth); err != nil {
+			return err
+		}
+	case nil:
+	default:
+		return fmt.Errorf("ExtAuthInput_Config.Value has unexpected type %T", x)
+	}
+	return nil
+}
+
+func _ExtAuthInput_Config_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*ExtAuthInput_Config)
+	switch tag {
+	case 1: // value.oauth
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(extauth.OAuth)
+		err := b.DecodeMessage(msg)
+		m.Value = &ExtAuthInput_Config_Oauth{msg}
+		return true, err
+	case 2: // value.custom_auth
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(extauth.CustomAuth)
+		err := b.DecodeMessage(msg)
+		m.Value = &ExtAuthInput_Config_CustomAuth{msg}
+		return true, err
+	default:
+		return false, nil
+	}
+}
+
+func _ExtAuthInput_Config_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*ExtAuthInput_Config)
+	// value
+	switch x := m.Value.(type) {
+	case *ExtAuthInput_Config_Oauth:
+		s := proto.Size(x.Oauth)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *ExtAuthInput_Config_CustomAuth:
+		s := proto.Size(x.CustomAuth)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case nil:
+	default:
+		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
+	}
+	return n
+}
+
 type GetVirtualServiceRequest struct {
 	Ref                  *core.ResourceRef `protobuf:"bytes,1,opt,name=ref,proto3" json:"ref,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
@@ -44,7 +562,7 @@ func (m *GetVirtualServiceRequest) Reset()         { *m = GetVirtualServiceReque
 func (m *GetVirtualServiceRequest) String() string { return proto.CompactTextString(m) }
 func (*GetVirtualServiceRequest) ProtoMessage()    {}
 func (*GetVirtualServiceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{0}
+	return fileDescriptor_3c1e74246b50b246, []int{9}
 }
 func (m *GetVirtualServiceRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetVirtualServiceRequest.Unmarshal(m, b)
@@ -72,17 +590,19 @@ func (m *GetVirtualServiceRequest) GetRef() *core.ResourceRef {
 }
 
 type GetVirtualServiceResponse struct {
-	VirtualService       *v1.VirtualService `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
+	// Deprecated. Use virtual_service_details.
+	VirtualService        *v1.VirtualService     `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
+	VirtualServiceDetails *VirtualServiceDetails `protobuf:"bytes,2,opt,name=virtual_service_details,json=virtualServiceDetails,proto3" json:"virtual_service_details,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}               `json:"-"`
+	XXX_unrecognized      []byte                 `json:"-"`
+	XXX_sizecache         int32                  `json:"-"`
 }
 
 func (m *GetVirtualServiceResponse) Reset()         { *m = GetVirtualServiceResponse{} }
 func (m *GetVirtualServiceResponse) String() string { return proto.CompactTextString(m) }
 func (*GetVirtualServiceResponse) ProtoMessage()    {}
 func (*GetVirtualServiceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{1}
+	return fileDescriptor_3c1e74246b50b246, []int{10}
 }
 func (m *GetVirtualServiceResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetVirtualServiceResponse.Unmarshal(m, b)
@@ -109,6 +629,13 @@ func (m *GetVirtualServiceResponse) GetVirtualService() *v1.VirtualService {
 	return nil
 }
 
+func (m *GetVirtualServiceResponse) GetVirtualServiceDetails() *VirtualServiceDetails {
+	if m != nil {
+		return m.VirtualServiceDetails
+	}
+	return nil
+}
+
 type ListVirtualServicesRequest struct {
 	Namespaces           []string `protobuf:"bytes,1,rep,name=namespaces,proto3" json:"namespaces,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -120,7 +647,7 @@ func (m *ListVirtualServicesRequest) Reset()         { *m = ListVirtualServicesR
 func (m *ListVirtualServicesRequest) String() string { return proto.CompactTextString(m) }
 func (*ListVirtualServicesRequest) ProtoMessage()    {}
 func (*ListVirtualServicesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{2}
+	return fileDescriptor_3c1e74246b50b246, []int{11}
 }
 func (m *ListVirtualServicesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListVirtualServicesRequest.Unmarshal(m, b)
@@ -148,17 +675,19 @@ func (m *ListVirtualServicesRequest) GetNamespaces() []string {
 }
 
 type ListVirtualServicesResponse struct {
-	VirtualServices      []*v1.VirtualService `protobuf:"bytes,1,rep,name=virtual_services,json=virtualServices,proto3" json:"virtual_services,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_unrecognized     []byte               `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
+	// Deprecated. Use virtual_service_details.
+	VirtualServices       []*v1.VirtualService     `protobuf:"bytes,1,rep,name=virtual_services,json=virtualServices,proto3" json:"virtual_services,omitempty"`
+	VirtualServiceDetails []*VirtualServiceDetails `protobuf:"bytes,2,rep,name=virtual_service_details,json=virtualServiceDetails,proto3" json:"virtual_service_details,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}                 `json:"-"`
+	XXX_unrecognized      []byte                   `json:"-"`
+	XXX_sizecache         int32                    `json:"-"`
 }
 
 func (m *ListVirtualServicesResponse) Reset()         { *m = ListVirtualServicesResponse{} }
 func (m *ListVirtualServicesResponse) String() string { return proto.CompactTextString(m) }
 func (*ListVirtualServicesResponse) ProtoMessage()    {}
 func (*ListVirtualServicesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{3}
+	return fileDescriptor_3c1e74246b50b246, []int{12}
 }
 func (m *ListVirtualServicesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListVirtualServicesResponse.Unmarshal(m, b)
@@ -185,86 +714,9 @@ func (m *ListVirtualServicesResponse) GetVirtualServices() []*v1.VirtualService 
 	return nil
 }
 
-type StreamVirtualServiceListRequest struct {
-	Namespace            string            `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Selector             map[string]string `protobuf:"bytes,2,rep,name=selector,proto3" json:"selector,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
-}
-
-func (m *StreamVirtualServiceListRequest) Reset()         { *m = StreamVirtualServiceListRequest{} }
-func (m *StreamVirtualServiceListRequest) String() string { return proto.CompactTextString(m) }
-func (*StreamVirtualServiceListRequest) ProtoMessage()    {}
-func (*StreamVirtualServiceListRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{4}
-}
-func (m *StreamVirtualServiceListRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_StreamVirtualServiceListRequest.Unmarshal(m, b)
-}
-func (m *StreamVirtualServiceListRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_StreamVirtualServiceListRequest.Marshal(b, m, deterministic)
-}
-func (m *StreamVirtualServiceListRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_StreamVirtualServiceListRequest.Merge(m, src)
-}
-func (m *StreamVirtualServiceListRequest) XXX_Size() int {
-	return xxx_messageInfo_StreamVirtualServiceListRequest.Size(m)
-}
-func (m *StreamVirtualServiceListRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_StreamVirtualServiceListRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_StreamVirtualServiceListRequest proto.InternalMessageInfo
-
-func (m *StreamVirtualServiceListRequest) GetNamespace() string {
+func (m *ListVirtualServicesResponse) GetVirtualServiceDetails() []*VirtualServiceDetails {
 	if m != nil {
-		return m.Namespace
-	}
-	return ""
-}
-
-func (m *StreamVirtualServiceListRequest) GetSelector() map[string]string {
-	if m != nil {
-		return m.Selector
-	}
-	return nil
-}
-
-type StreamVirtualServiceListResponse struct {
-	VirtualServices      []*v1.VirtualService `protobuf:"bytes,1,rep,name=virtual_services,json=virtualServices,proto3" json:"virtual_services,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_unrecognized     []byte               `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
-}
-
-func (m *StreamVirtualServiceListResponse) Reset()         { *m = StreamVirtualServiceListResponse{} }
-func (m *StreamVirtualServiceListResponse) String() string { return proto.CompactTextString(m) }
-func (*StreamVirtualServiceListResponse) ProtoMessage()    {}
-func (*StreamVirtualServiceListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{5}
-}
-func (m *StreamVirtualServiceListResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_StreamVirtualServiceListResponse.Unmarshal(m, b)
-}
-func (m *StreamVirtualServiceListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_StreamVirtualServiceListResponse.Marshal(b, m, deterministic)
-}
-func (m *StreamVirtualServiceListResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_StreamVirtualServiceListResponse.Merge(m, src)
-}
-func (m *StreamVirtualServiceListResponse) XXX_Size() int {
-	return xxx_messageInfo_StreamVirtualServiceListResponse.Size(m)
-}
-func (m *StreamVirtualServiceListResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_StreamVirtualServiceListResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_StreamVirtualServiceListResponse proto.InternalMessageInfo
-
-func (m *StreamVirtualServiceListResponse) GetVirtualServices() []*v1.VirtualService {
-	if m != nil {
-		return m.VirtualServices
+		return m.VirtualServiceDetails
 	}
 	return nil
 }
@@ -291,7 +743,7 @@ func (m *VirtualServiceInput) Reset()         { *m = VirtualServiceInput{} }
 func (m *VirtualServiceInput) String() string { return proto.CompactTextString(m) }
 func (*VirtualServiceInput) ProtoMessage()    {}
 func (*VirtualServiceInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{6}
+	return fileDescriptor_3c1e74246b50b246, []int{13}
 }
 func (m *VirtualServiceInput) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_VirtualServiceInput.Unmarshal(m, b)
@@ -505,7 +957,7 @@ func (m *VirtualServiceInput_BasicAuthInput) Reset()         { *m = VirtualServi
 func (m *VirtualServiceInput_BasicAuthInput) String() string { return proto.CompactTextString(m) }
 func (*VirtualServiceInput_BasicAuthInput) ProtoMessage()    {}
 func (*VirtualServiceInput_BasicAuthInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{6, 0}
+	return fileDescriptor_3c1e74246b50b246, []int{13, 0}
 }
 func (m *VirtualServiceInput_BasicAuthInput) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_VirtualServiceInput_BasicAuthInput.Unmarshal(m, b)
@@ -539,340 +991,6 @@ func (m *VirtualServiceInput_BasicAuthInput) GetSpecCsv() string {
 	return ""
 }
 
-type RepeatedStrings struct {
-	Values               []string `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *RepeatedStrings) Reset()         { *m = RepeatedStrings{} }
-func (m *RepeatedStrings) String() string { return proto.CompactTextString(m) }
-func (*RepeatedStrings) ProtoMessage()    {}
-func (*RepeatedStrings) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{7}
-}
-func (m *RepeatedStrings) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_RepeatedStrings.Unmarshal(m, b)
-}
-func (m *RepeatedStrings) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_RepeatedStrings.Marshal(b, m, deterministic)
-}
-func (m *RepeatedStrings) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RepeatedStrings.Merge(m, src)
-}
-func (m *RepeatedStrings) XXX_Size() int {
-	return xxx_messageInfo_RepeatedStrings.Size(m)
-}
-func (m *RepeatedStrings) XXX_DiscardUnknown() {
-	xxx_messageInfo_RepeatedStrings.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_RepeatedStrings proto.InternalMessageInfo
-
-func (m *RepeatedStrings) GetValues() []string {
-	if m != nil {
-		return m.Values
-	}
-	return nil
-}
-
-type RepeatedRoutes struct {
-	Values               []*v11.Route `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_unrecognized     []byte       `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
-}
-
-func (m *RepeatedRoutes) Reset()         { *m = RepeatedRoutes{} }
-func (m *RepeatedRoutes) String() string { return proto.CompactTextString(m) }
-func (*RepeatedRoutes) ProtoMessage()    {}
-func (*RepeatedRoutes) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{8}
-}
-func (m *RepeatedRoutes) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_RepeatedRoutes.Unmarshal(m, b)
-}
-func (m *RepeatedRoutes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_RepeatedRoutes.Marshal(b, m, deterministic)
-}
-func (m *RepeatedRoutes) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RepeatedRoutes.Merge(m, src)
-}
-func (m *RepeatedRoutes) XXX_Size() int {
-	return xxx_messageInfo_RepeatedRoutes.Size(m)
-}
-func (m *RepeatedRoutes) XXX_DiscardUnknown() {
-	xxx_messageInfo_RepeatedRoutes.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_RepeatedRoutes proto.InternalMessageInfo
-
-func (m *RepeatedRoutes) GetValues() []*v11.Route {
-	if m != nil {
-		return m.Values
-	}
-	return nil
-}
-
-type SslConfigValue struct {
-	Value                *v11.SslConfig `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
-}
-
-func (m *SslConfigValue) Reset()         { *m = SslConfigValue{} }
-func (m *SslConfigValue) String() string { return proto.CompactTextString(m) }
-func (*SslConfigValue) ProtoMessage()    {}
-func (*SslConfigValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{9}
-}
-func (m *SslConfigValue) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_SslConfigValue.Unmarshal(m, b)
-}
-func (m *SslConfigValue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_SslConfigValue.Marshal(b, m, deterministic)
-}
-func (m *SslConfigValue) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SslConfigValue.Merge(m, src)
-}
-func (m *SslConfigValue) XXX_Size() int {
-	return xxx_messageInfo_SslConfigValue.Size(m)
-}
-func (m *SslConfigValue) XXX_DiscardUnknown() {
-	xxx_messageInfo_SslConfigValue.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_SslConfigValue proto.InternalMessageInfo
-
-func (m *SslConfigValue) GetValue() *v11.SslConfig {
-	if m != nil {
-		return m.Value
-	}
-	return nil
-}
-
-type IngressRateLimitValue struct {
-	Value                *ratelimit.IngressRateLimit `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
-	XXX_unrecognized     []byte                      `json:"-"`
-	XXX_sizecache        int32                       `json:"-"`
-}
-
-func (m *IngressRateLimitValue) Reset()         { *m = IngressRateLimitValue{} }
-func (m *IngressRateLimitValue) String() string { return proto.CompactTextString(m) }
-func (*IngressRateLimitValue) ProtoMessage()    {}
-func (*IngressRateLimitValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{10}
-}
-func (m *IngressRateLimitValue) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_IngressRateLimitValue.Unmarshal(m, b)
-}
-func (m *IngressRateLimitValue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_IngressRateLimitValue.Marshal(b, m, deterministic)
-}
-func (m *IngressRateLimitValue) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IngressRateLimitValue.Merge(m, src)
-}
-func (m *IngressRateLimitValue) XXX_Size() int {
-	return xxx_messageInfo_IngressRateLimitValue.Size(m)
-}
-func (m *IngressRateLimitValue) XXX_DiscardUnknown() {
-	xxx_messageInfo_IngressRateLimitValue.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_IngressRateLimitValue proto.InternalMessageInfo
-
-func (m *IngressRateLimitValue) GetValue() *ratelimit.IngressRateLimit {
-	if m != nil {
-		return m.Value
-	}
-	return nil
-}
-
-type ExtAuthInput struct {
-	Config               *ExtAuthInput_Config `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
-	XXX_unrecognized     []byte               `json:"-"`
-	XXX_sizecache        int32                `json:"-"`
-}
-
-func (m *ExtAuthInput) Reset()         { *m = ExtAuthInput{} }
-func (m *ExtAuthInput) String() string { return proto.CompactTextString(m) }
-func (*ExtAuthInput) ProtoMessage()    {}
-func (*ExtAuthInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{11}
-}
-func (m *ExtAuthInput) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ExtAuthInput.Unmarshal(m, b)
-}
-func (m *ExtAuthInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ExtAuthInput.Marshal(b, m, deterministic)
-}
-func (m *ExtAuthInput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ExtAuthInput.Merge(m, src)
-}
-func (m *ExtAuthInput) XXX_Size() int {
-	return xxx_messageInfo_ExtAuthInput.Size(m)
-}
-func (m *ExtAuthInput) XXX_DiscardUnknown() {
-	xxx_messageInfo_ExtAuthInput.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ExtAuthInput proto.InternalMessageInfo
-
-func (m *ExtAuthInput) GetConfig() *ExtAuthInput_Config {
-	if m != nil {
-		return m.Config
-	}
-	return nil
-}
-
-type ExtAuthInput_Config struct {
-	// Types that are valid to be assigned to Value:
-	//	*ExtAuthInput_Config_Oauth
-	//	*ExtAuthInput_Config_CustomAuth
-	Value                isExtAuthInput_Config_Value `protobuf_oneof:"value"`
-	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
-	XXX_unrecognized     []byte                      `json:"-"`
-	XXX_sizecache        int32                       `json:"-"`
-}
-
-func (m *ExtAuthInput_Config) Reset()         { *m = ExtAuthInput_Config{} }
-func (m *ExtAuthInput_Config) String() string { return proto.CompactTextString(m) }
-func (*ExtAuthInput_Config) ProtoMessage()    {}
-func (*ExtAuthInput_Config) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{11, 0}
-}
-func (m *ExtAuthInput_Config) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ExtAuthInput_Config.Unmarshal(m, b)
-}
-func (m *ExtAuthInput_Config) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ExtAuthInput_Config.Marshal(b, m, deterministic)
-}
-func (m *ExtAuthInput_Config) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ExtAuthInput_Config.Merge(m, src)
-}
-func (m *ExtAuthInput_Config) XXX_Size() int {
-	return xxx_messageInfo_ExtAuthInput_Config.Size(m)
-}
-func (m *ExtAuthInput_Config) XXX_DiscardUnknown() {
-	xxx_messageInfo_ExtAuthInput_Config.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ExtAuthInput_Config proto.InternalMessageInfo
-
-type isExtAuthInput_Config_Value interface {
-	isExtAuthInput_Config_Value()
-	Equal(interface{}) bool
-}
-
-type ExtAuthInput_Config_Oauth struct {
-	Oauth *extauth.OAuth `protobuf:"bytes,1,opt,name=oauth,proto3,oneof"`
-}
-type ExtAuthInput_Config_CustomAuth struct {
-	CustomAuth *extauth.CustomAuth `protobuf:"bytes,2,opt,name=custom_auth,json=customAuth,proto3,oneof"`
-}
-
-func (*ExtAuthInput_Config_Oauth) isExtAuthInput_Config_Value()      {}
-func (*ExtAuthInput_Config_CustomAuth) isExtAuthInput_Config_Value() {}
-
-func (m *ExtAuthInput_Config) GetValue() isExtAuthInput_Config_Value {
-	if m != nil {
-		return m.Value
-	}
-	return nil
-}
-
-func (m *ExtAuthInput_Config) GetOauth() *extauth.OAuth {
-	if x, ok := m.GetValue().(*ExtAuthInput_Config_Oauth); ok {
-		return x.Oauth
-	}
-	return nil
-}
-
-func (m *ExtAuthInput_Config) GetCustomAuth() *extauth.CustomAuth {
-	if x, ok := m.GetValue().(*ExtAuthInput_Config_CustomAuth); ok {
-		return x.CustomAuth
-	}
-	return nil
-}
-
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ExtAuthInput_Config) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ExtAuthInput_Config_OneofMarshaler, _ExtAuthInput_Config_OneofUnmarshaler, _ExtAuthInput_Config_OneofSizer, []interface{}{
-		(*ExtAuthInput_Config_Oauth)(nil),
-		(*ExtAuthInput_Config_CustomAuth)(nil),
-	}
-}
-
-func _ExtAuthInput_Config_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ExtAuthInput_Config)
-	// value
-	switch x := m.Value.(type) {
-	case *ExtAuthInput_Config_Oauth:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Oauth); err != nil {
-			return err
-		}
-	case *ExtAuthInput_Config_CustomAuth:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.CustomAuth); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ExtAuthInput_Config.Value has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ExtAuthInput_Config_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ExtAuthInput_Config)
-	switch tag {
-	case 1: // value.oauth
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(extauth.OAuth)
-		err := b.DecodeMessage(msg)
-		m.Value = &ExtAuthInput_Config_Oauth{msg}
-		return true, err
-	case 2: // value.custom_auth
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(extauth.CustomAuth)
-		err := b.DecodeMessage(msg)
-		m.Value = &ExtAuthInput_Config_CustomAuth{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ExtAuthInput_Config_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ExtAuthInput_Config)
-	// value
-	switch x := m.Value.(type) {
-	case *ExtAuthInput_Config_Oauth:
-		s := proto.Size(x.Oauth)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ExtAuthInput_Config_CustomAuth:
-		s := proto.Size(x.CustomAuth)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
-}
-
 type VirtualServiceInputV2 struct {
 	Ref                  *core.ResourceRef      `protobuf:"bytes,1,opt,name=ref,proto3" json:"ref,omitempty"`
 	DisplayName          *types.StringValue     `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
@@ -890,7 +1008,7 @@ func (m *VirtualServiceInputV2) Reset()         { *m = VirtualServiceInputV2{} }
 func (m *VirtualServiceInputV2) String() string { return proto.CompactTextString(m) }
 func (*VirtualServiceInputV2) ProtoMessage()    {}
 func (*VirtualServiceInputV2) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{12}
+	return fileDescriptor_3c1e74246b50b246, []int{14}
 }
 func (m *VirtualServiceInputV2) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_VirtualServiceInputV2.Unmarshal(m, b)
@@ -972,7 +1090,7 @@ func (m *CreateVirtualServiceRequest) Reset()         { *m = CreateVirtualServic
 func (m *CreateVirtualServiceRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateVirtualServiceRequest) ProtoMessage()    {}
 func (*CreateVirtualServiceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{13}
+	return fileDescriptor_3c1e74246b50b246, []int{15}
 }
 func (m *CreateVirtualServiceRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateVirtualServiceRequest.Unmarshal(m, b)
@@ -1007,17 +1125,19 @@ func (m *CreateVirtualServiceRequest) GetInputV2() *VirtualServiceInputV2 {
 }
 
 type CreateVirtualServiceResponse struct {
-	VirtualService       *v1.VirtualService `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
+	// Deprecated. Use virtual_service_details.
+	VirtualService        *v1.VirtualService     `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
+	VirtualServiceDetails *VirtualServiceDetails `protobuf:"bytes,2,opt,name=virtual_service_details,json=virtualServiceDetails,proto3" json:"virtual_service_details,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}               `json:"-"`
+	XXX_unrecognized      []byte                 `json:"-"`
+	XXX_sizecache         int32                  `json:"-"`
 }
 
 func (m *CreateVirtualServiceResponse) Reset()         { *m = CreateVirtualServiceResponse{} }
 func (m *CreateVirtualServiceResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateVirtualServiceResponse) ProtoMessage()    {}
 func (*CreateVirtualServiceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{14}
+	return fileDescriptor_3c1e74246b50b246, []int{16}
 }
 func (m *CreateVirtualServiceResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateVirtualServiceResponse.Unmarshal(m, b)
@@ -1044,6 +1164,13 @@ func (m *CreateVirtualServiceResponse) GetVirtualService() *v1.VirtualService {
 	return nil
 }
 
+func (m *CreateVirtualServiceResponse) GetVirtualServiceDetails() *VirtualServiceDetails {
+	if m != nil {
+		return m.VirtualServiceDetails
+	}
+	return nil
+}
+
 type UpdateVirtualServiceRequest struct {
 	// Deprecated. Will be removed, but in the meantime we will fallback to this input if v2 is not provided.
 	Input                *VirtualServiceInput   `protobuf:"bytes,1,opt,name=input,proto3" json:"input,omitempty"`
@@ -1057,7 +1184,7 @@ func (m *UpdateVirtualServiceRequest) Reset()         { *m = UpdateVirtualServic
 func (m *UpdateVirtualServiceRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateVirtualServiceRequest) ProtoMessage()    {}
 func (*UpdateVirtualServiceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{15}
+	return fileDescriptor_3c1e74246b50b246, []int{17}
 }
 func (m *UpdateVirtualServiceRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateVirtualServiceRequest.Unmarshal(m, b)
@@ -1092,17 +1219,19 @@ func (m *UpdateVirtualServiceRequest) GetInputV2() *VirtualServiceInputV2 {
 }
 
 type UpdateVirtualServiceResponse struct {
-	VirtualService       *v1.VirtualService `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
+	// Deprecated. Use virtual_service_details.
+	VirtualService        *v1.VirtualService     `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
+	VirtualServiceDetails *VirtualServiceDetails `protobuf:"bytes,2,opt,name=virtual_service_details,json=virtualServiceDetails,proto3" json:"virtual_service_details,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}               `json:"-"`
+	XXX_unrecognized      []byte                 `json:"-"`
+	XXX_sizecache         int32                  `json:"-"`
 }
 
 func (m *UpdateVirtualServiceResponse) Reset()         { *m = UpdateVirtualServiceResponse{} }
 func (m *UpdateVirtualServiceResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateVirtualServiceResponse) ProtoMessage()    {}
 func (*UpdateVirtualServiceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{16}
+	return fileDescriptor_3c1e74246b50b246, []int{18}
 }
 func (m *UpdateVirtualServiceResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateVirtualServiceResponse.Unmarshal(m, b)
@@ -1129,6 +1258,13 @@ func (m *UpdateVirtualServiceResponse) GetVirtualService() *v1.VirtualService {
 	return nil
 }
 
+func (m *UpdateVirtualServiceResponse) GetVirtualServiceDetails() *VirtualServiceDetails {
+	if m != nil {
+		return m.VirtualServiceDetails
+	}
+	return nil
+}
+
 type DeleteVirtualServiceRequest struct {
 	Ref                  *core.ResourceRef `protobuf:"bytes,1,opt,name=ref,proto3" json:"ref,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
@@ -1140,7 +1276,7 @@ func (m *DeleteVirtualServiceRequest) Reset()         { *m = DeleteVirtualServic
 func (m *DeleteVirtualServiceRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteVirtualServiceRequest) ProtoMessage()    {}
 func (*DeleteVirtualServiceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{17}
+	return fileDescriptor_3c1e74246b50b246, []int{19}
 }
 func (m *DeleteVirtualServiceRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteVirtualServiceRequest.Unmarshal(m, b)
@@ -1177,7 +1313,7 @@ func (m *DeleteVirtualServiceResponse) Reset()         { *m = DeleteVirtualServi
 func (m *DeleteVirtualServiceResponse) String() string { return proto.CompactTextString(m) }
 func (*DeleteVirtualServiceResponse) ProtoMessage()    {}
 func (*DeleteVirtualServiceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{18}
+	return fileDescriptor_3c1e74246b50b246, []int{20}
 }
 func (m *DeleteVirtualServiceResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteVirtualServiceResponse.Unmarshal(m, b)
@@ -1210,7 +1346,7 @@ func (m *RouteInput) Reset()         { *m = RouteInput{} }
 func (m *RouteInput) String() string { return proto.CompactTextString(m) }
 func (*RouteInput) ProtoMessage()    {}
 func (*RouteInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{19}
+	return fileDescriptor_3c1e74246b50b246, []int{21}
 }
 func (m *RouteInput) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RouteInput.Unmarshal(m, b)
@@ -1262,7 +1398,7 @@ func (m *CreateRouteRequest) Reset()         { *m = CreateRouteRequest{} }
 func (m *CreateRouteRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateRouteRequest) ProtoMessage()    {}
 func (*CreateRouteRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{20}
+	return fileDescriptor_3c1e74246b50b246, []int{22}
 }
 func (m *CreateRouteRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateRouteRequest.Unmarshal(m, b)
@@ -1290,17 +1426,19 @@ func (m *CreateRouteRequest) GetInput() *RouteInput {
 }
 
 type CreateRouteResponse struct {
-	VirtualService       *v1.VirtualService `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
+	// Deprecated. Use virtual_service_details.
+	VirtualService        *v1.VirtualService     `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
+	VirtualServiceDetails *VirtualServiceDetails `protobuf:"bytes,2,opt,name=virtual_service_details,json=virtualServiceDetails,proto3" json:"virtual_service_details,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}               `json:"-"`
+	XXX_unrecognized      []byte                 `json:"-"`
+	XXX_sizecache         int32                  `json:"-"`
 }
 
 func (m *CreateRouteResponse) Reset()         { *m = CreateRouteResponse{} }
 func (m *CreateRouteResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateRouteResponse) ProtoMessage()    {}
 func (*CreateRouteResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{21}
+	return fileDescriptor_3c1e74246b50b246, []int{23}
 }
 func (m *CreateRouteResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateRouteResponse.Unmarshal(m, b)
@@ -1327,6 +1465,13 @@ func (m *CreateRouteResponse) GetVirtualService() *v1.VirtualService {
 	return nil
 }
 
+func (m *CreateRouteResponse) GetVirtualServiceDetails() *VirtualServiceDetails {
+	if m != nil {
+		return m.VirtualServiceDetails
+	}
+	return nil
+}
+
 type UpdateRouteRequest struct {
 	Input                *RouteInput `protobuf:"bytes,1,opt,name=input,proto3" json:"input,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
@@ -1338,7 +1483,7 @@ func (m *UpdateRouteRequest) Reset()         { *m = UpdateRouteRequest{} }
 func (m *UpdateRouteRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateRouteRequest) ProtoMessage()    {}
 func (*UpdateRouteRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{22}
+	return fileDescriptor_3c1e74246b50b246, []int{24}
 }
 func (m *UpdateRouteRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateRouteRequest.Unmarshal(m, b)
@@ -1366,17 +1511,19 @@ func (m *UpdateRouteRequest) GetInput() *RouteInput {
 }
 
 type UpdateRouteResponse struct {
-	VirtualService       *v1.VirtualService `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
+	// Deprecated. Use virtual_service_details.
+	VirtualService        *v1.VirtualService     `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
+	VirtualServiceDetails *VirtualServiceDetails `protobuf:"bytes,2,opt,name=virtual_service_details,json=virtualServiceDetails,proto3" json:"virtual_service_details,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}               `json:"-"`
+	XXX_unrecognized      []byte                 `json:"-"`
+	XXX_sizecache         int32                  `json:"-"`
 }
 
 func (m *UpdateRouteResponse) Reset()         { *m = UpdateRouteResponse{} }
 func (m *UpdateRouteResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateRouteResponse) ProtoMessage()    {}
 func (*UpdateRouteResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{23}
+	return fileDescriptor_3c1e74246b50b246, []int{25}
 }
 func (m *UpdateRouteResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateRouteResponse.Unmarshal(m, b)
@@ -1403,6 +1550,13 @@ func (m *UpdateRouteResponse) GetVirtualService() *v1.VirtualService {
 	return nil
 }
 
+func (m *UpdateRouteResponse) GetVirtualServiceDetails() *VirtualServiceDetails {
+	if m != nil {
+		return m.VirtualServiceDetails
+	}
+	return nil
+}
+
 type DeleteRouteRequest struct {
 	VirtualServiceRef    *core.ResourceRef `protobuf:"bytes,1,opt,name=virtual_service_ref,json=virtualServiceRef,proto3" json:"virtual_service_ref,omitempty"`
 	Index                uint32            `protobuf:"varint,2,opt,name=index,proto3" json:"index,omitempty"`
@@ -1415,7 +1569,7 @@ func (m *DeleteRouteRequest) Reset()         { *m = DeleteRouteRequest{} }
 func (m *DeleteRouteRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteRouteRequest) ProtoMessage()    {}
 func (*DeleteRouteRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{24}
+	return fileDescriptor_3c1e74246b50b246, []int{26}
 }
 func (m *DeleteRouteRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteRouteRequest.Unmarshal(m, b)
@@ -1450,17 +1604,19 @@ func (m *DeleteRouteRequest) GetIndex() uint32 {
 }
 
 type DeleteRouteResponse struct {
-	VirtualService       *v1.VirtualService `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
+	// Deprecated. Use virtual_service_details.
+	VirtualService        *v1.VirtualService     `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
+	VirtualServiceDetails *VirtualServiceDetails `protobuf:"bytes,2,opt,name=virtual_service_details,json=virtualServiceDetails,proto3" json:"virtual_service_details,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}               `json:"-"`
+	XXX_unrecognized      []byte                 `json:"-"`
+	XXX_sizecache         int32                  `json:"-"`
 }
 
 func (m *DeleteRouteResponse) Reset()         { *m = DeleteRouteResponse{} }
 func (m *DeleteRouteResponse) String() string { return proto.CompactTextString(m) }
 func (*DeleteRouteResponse) ProtoMessage()    {}
 func (*DeleteRouteResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{25}
+	return fileDescriptor_3c1e74246b50b246, []int{27}
 }
 func (m *DeleteRouteResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteRouteResponse.Unmarshal(m, b)
@@ -1487,6 +1643,13 @@ func (m *DeleteRouteResponse) GetVirtualService() *v1.VirtualService {
 	return nil
 }
 
+func (m *DeleteRouteResponse) GetVirtualServiceDetails() *VirtualServiceDetails {
+	if m != nil {
+		return m.VirtualServiceDetails
+	}
+	return nil
+}
+
 type SwapRoutesRequest struct {
 	VirtualServiceRef    *core.ResourceRef `protobuf:"bytes,1,opt,name=virtual_service_ref,json=virtualServiceRef,proto3" json:"virtual_service_ref,omitempty"`
 	Index1               uint32            `protobuf:"varint,2,opt,name=index1,proto3" json:"index1,omitempty"`
@@ -1500,7 +1663,7 @@ func (m *SwapRoutesRequest) Reset()         { *m = SwapRoutesRequest{} }
 func (m *SwapRoutesRequest) String() string { return proto.CompactTextString(m) }
 func (*SwapRoutesRequest) ProtoMessage()    {}
 func (*SwapRoutesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{26}
+	return fileDescriptor_3c1e74246b50b246, []int{28}
 }
 func (m *SwapRoutesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SwapRoutesRequest.Unmarshal(m, b)
@@ -1542,17 +1705,19 @@ func (m *SwapRoutesRequest) GetIndex2() uint32 {
 }
 
 type SwapRoutesResponse struct {
-	VirtualService       *v1.VirtualService `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
+	// Deprecated. Use virtual_service_details.
+	VirtualService        *v1.VirtualService     `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
+	VirtualServiceDetails *VirtualServiceDetails `protobuf:"bytes,2,opt,name=virtual_service_details,json=virtualServiceDetails,proto3" json:"virtual_service_details,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}               `json:"-"`
+	XXX_unrecognized      []byte                 `json:"-"`
+	XXX_sizecache         int32                  `json:"-"`
 }
 
 func (m *SwapRoutesResponse) Reset()         { *m = SwapRoutesResponse{} }
 func (m *SwapRoutesResponse) String() string { return proto.CompactTextString(m) }
 func (*SwapRoutesResponse) ProtoMessage()    {}
 func (*SwapRoutesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{27}
+	return fileDescriptor_3c1e74246b50b246, []int{29}
 }
 func (m *SwapRoutesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SwapRoutesResponse.Unmarshal(m, b)
@@ -1579,6 +1744,13 @@ func (m *SwapRoutesResponse) GetVirtualService() *v1.VirtualService {
 	return nil
 }
 
+func (m *SwapRoutesResponse) GetVirtualServiceDetails() *VirtualServiceDetails {
+	if m != nil {
+		return m.VirtualServiceDetails
+	}
+	return nil
+}
+
 type ShiftRoutesRequest struct {
 	VirtualServiceRef    *core.ResourceRef `protobuf:"bytes,1,opt,name=virtual_service_ref,json=virtualServiceRef,proto3" json:"virtual_service_ref,omitempty"`
 	FromIndex            uint32            `protobuf:"varint,2,opt,name=from_index,json=fromIndex,proto3" json:"from_index,omitempty"`
@@ -1592,7 +1764,7 @@ func (m *ShiftRoutesRequest) Reset()         { *m = ShiftRoutesRequest{} }
 func (m *ShiftRoutesRequest) String() string { return proto.CompactTextString(m) }
 func (*ShiftRoutesRequest) ProtoMessage()    {}
 func (*ShiftRoutesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{28}
+	return fileDescriptor_3c1e74246b50b246, []int{30}
 }
 func (m *ShiftRoutesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ShiftRoutesRequest.Unmarshal(m, b)
@@ -1634,17 +1806,19 @@ func (m *ShiftRoutesRequest) GetToIndex() uint32 {
 }
 
 type ShiftRoutesResponse struct {
-	VirtualService       *v1.VirtualService `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
+	// Deprecated. Use virtual_service_details.
+	VirtualService        *v1.VirtualService     `protobuf:"bytes,1,opt,name=virtual_service,json=virtualService,proto3" json:"virtual_service,omitempty"`
+	VirtualServiceDetails *VirtualServiceDetails `protobuf:"bytes,2,opt,name=virtual_service_details,json=virtualServiceDetails,proto3" json:"virtual_service_details,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}               `json:"-"`
+	XXX_unrecognized      []byte                 `json:"-"`
+	XXX_sizecache         int32                  `json:"-"`
 }
 
 func (m *ShiftRoutesResponse) Reset()         { *m = ShiftRoutesResponse{} }
 func (m *ShiftRoutesResponse) String() string { return proto.CompactTextString(m) }
 func (*ShiftRoutesResponse) ProtoMessage()    {}
 func (*ShiftRoutesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3c1e74246b50b246, []int{29}
+	return fileDescriptor_3c1e74246b50b246, []int{31}
 }
 func (m *ShiftRoutesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ShiftRoutesResponse.Unmarshal(m, b)
@@ -1671,22 +1845,30 @@ func (m *ShiftRoutesResponse) GetVirtualService() *v1.VirtualService {
 	return nil
 }
 
+func (m *ShiftRoutesResponse) GetVirtualServiceDetails() *VirtualServiceDetails {
+	if m != nil {
+		return m.VirtualServiceDetails
+	}
+	return nil
+}
+
 func init() {
-	proto.RegisterType((*GetVirtualServiceRequest)(nil), "glooeeapi.solo.io.GetVirtualServiceRequest")
-	proto.RegisterType((*GetVirtualServiceResponse)(nil), "glooeeapi.solo.io.GetVirtualServiceResponse")
-	proto.RegisterType((*ListVirtualServicesRequest)(nil), "glooeeapi.solo.io.ListVirtualServicesRequest")
-	proto.RegisterType((*ListVirtualServicesResponse)(nil), "glooeeapi.solo.io.ListVirtualServicesResponse")
-	proto.RegisterType((*StreamVirtualServiceListRequest)(nil), "glooeeapi.solo.io.StreamVirtualServiceListRequest")
-	proto.RegisterMapType((map[string]string)(nil), "glooeeapi.solo.io.StreamVirtualServiceListRequest.SelectorEntry")
-	proto.RegisterType((*StreamVirtualServiceListResponse)(nil), "glooeeapi.solo.io.StreamVirtualServiceListResponse")
-	proto.RegisterType((*VirtualServiceInput)(nil), "glooeeapi.solo.io.VirtualServiceInput")
-	proto.RegisterType((*VirtualServiceInput_BasicAuthInput)(nil), "glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput")
+	proto.RegisterType((*VirtualServiceDetails)(nil), "glooeeapi.solo.io.VirtualServiceDetails")
+	proto.RegisterType((*Plugins)(nil), "glooeeapi.solo.io.Plugins")
+	proto.RegisterType((*ExtAuthPlugin)(nil), "glooeeapi.solo.io.ExtAuthPlugin")
+	proto.RegisterType((*RateLimitPlugin)(nil), "glooeeapi.solo.io.RateLimitPlugin")
 	proto.RegisterType((*RepeatedStrings)(nil), "glooeeapi.solo.io.RepeatedStrings")
 	proto.RegisterType((*RepeatedRoutes)(nil), "glooeeapi.solo.io.RepeatedRoutes")
 	proto.RegisterType((*SslConfigValue)(nil), "glooeeapi.solo.io.SslConfigValue")
 	proto.RegisterType((*IngressRateLimitValue)(nil), "glooeeapi.solo.io.IngressRateLimitValue")
 	proto.RegisterType((*ExtAuthInput)(nil), "glooeeapi.solo.io.ExtAuthInput")
 	proto.RegisterType((*ExtAuthInput_Config)(nil), "glooeeapi.solo.io.ExtAuthInput.Config")
+	proto.RegisterType((*GetVirtualServiceRequest)(nil), "glooeeapi.solo.io.GetVirtualServiceRequest")
+	proto.RegisterType((*GetVirtualServiceResponse)(nil), "glooeeapi.solo.io.GetVirtualServiceResponse")
+	proto.RegisterType((*ListVirtualServicesRequest)(nil), "glooeeapi.solo.io.ListVirtualServicesRequest")
+	proto.RegisterType((*ListVirtualServicesResponse)(nil), "glooeeapi.solo.io.ListVirtualServicesResponse")
+	proto.RegisterType((*VirtualServiceInput)(nil), "glooeeapi.solo.io.VirtualServiceInput")
+	proto.RegisterType((*VirtualServiceInput_BasicAuthInput)(nil), "glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput")
 	proto.RegisterType((*VirtualServiceInputV2)(nil), "glooeeapi.solo.io.VirtualServiceInputV2")
 	proto.RegisterType((*CreateVirtualServiceRequest)(nil), "glooeeapi.solo.io.CreateVirtualServiceRequest")
 	proto.RegisterType((*CreateVirtualServiceResponse)(nil), "glooeeapi.solo.io.CreateVirtualServiceResponse")
@@ -1712,134 +1894,109 @@ func init() {
 }
 
 var fileDescriptor_3c1e74246b50b246 = []byte{
-	// 1440 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x58, 0xcf, 0x73, 0xdb, 0xc4,
-	0x17, 0x8f, 0x92, 0xc6, 0x89, 0x5f, 0xda, 0xa4, 0xde, 0xa4, 0xfd, 0x3a, 0x6a, 0x9a, 0xb6, 0xfa,
-	0xd2, 0x4e, 0x3a, 0x69, 0xe5, 0xd6, 0x1d, 0x98, 0x42, 0x0b, 0x6d, 0x12, 0x4a, 0xeb, 0xd2, 0x01,
-	0x46, 0x86, 0x30, 0x03, 0x9d, 0x7a, 0x14, 0x65, 0xed, 0x88, 0xca, 0x5e, 0xa1, 0x5d, 0xb9, 0xf1,
-	0x5f, 0xc0, 0x8d, 0x33, 0x0c, 0x17, 0x8e, 0xfc, 0x43, 0x5c, 0xb8, 0x30, 0xc3, 0x99, 0x3f, 0x81,
-	0x03, 0xb3, 0x3f, 0xa4, 0x48, 0xf6, 0xda, 0x89, 0x27, 0xee, 0x0c, 0x27, 0xef, 0xae, 0xde, 0xfb,
-	0xbc, 0xcf, 0xdb, 0xfd, 0xec, 0x7b, 0xb2, 0xe0, 0x8b, 0x96, 0xcf, 0x0e, 0xe2, 0x3d, 0xdb, 0x23,
-	0xed, 0x0a, 0x25, 0x01, 0xb9, 0xed, 0x13, 0xf9, 0x1b, 0x46, 0xe4, 0x3b, 0xec, 0x31, 0x5a, 0x49,
-	0x07, 0xad, 0x28, 0xf4, 0x28, 0x8e, 0xba, 0x38, 0xaa, 0xb8, 0xa1, 0x5f, 0xe9, 0xde, 0xad, 0x74,
-	0xfd, 0x88, 0xc5, 0x6e, 0xc0, 0x17, 0x7d, 0x0f, 0xdb, 0x61, 0x44, 0x18, 0x41, 0xa5, 0x56, 0x40,
-	0x08, 0xc6, 0x6e, 0xe8, 0xdb, 0x1c, 0xc8, 0xf6, 0x89, 0xb9, 0xd2, 0x22, 0x2d, 0x22, 0x9e, 0x56,
-	0xf8, 0x48, 0x1a, 0x9a, 0x4f, 0x34, 0xa1, 0xb9, 0x6f, 0x26, 0xa2, 0xcb, 0xf0, 0x1b, 0xb7, 0xd7,
-	0x17, 0xae, 0x91, 0x8b, 0x67, 0xde, 0x3f, 0x1e, 0x86, 0xcf, 0x14, 0x46, 0x18, 0x91, 0xc3, 0x9e,
-	0xf2, 0x7c, 0x6f, 0x2c, 0x4f, 0x4a, 0x03, 0xe5, 0x57, 0x1f, 0x63, 0xcf, 0xb2, 0xa1, 0x83, 0xb8,
-	0xe5, 0x77, 0x68, 0x05, 0x1f, 0x32, 0x37, 0x66, 0x07, 0xc9, 0xaf, 0x02, 0xfd, 0xfa, 0x74, 0xa0,
-	0x91, 0xcb, 0x70, 0xe0, 0xb7, 0x7d, 0x76, 0x34, 0x52, 0xc0, 0xb7, 0x86, 0x01, 0xbf, 0xf6, 0x59,
-	0x82, 0x12, 0xe1, 0xa6, 0xb2, 0x5e, 0x6f, 0x11, 0xd2, 0x0a, 0x70, 0x45, 0xcc, 0xf6, 0xe2, 0x66,
-	0xe5, 0x4d, 0xe4, 0x86, 0x21, 0x8e, 0xa8, 0x7c, 0x6e, 0x3d, 0x85, 0xf2, 0x53, 0xcc, 0x76, 0xe5,
-	0x49, 0xd4, 0xe5, 0x41, 0x38, 0xf8, 0xfb, 0x18, 0x53, 0x86, 0x36, 0x61, 0x26, 0xc2, 0xcd, 0xb2,
-	0x71, 0xd5, 0xd8, 0x58, 0xa8, 0xae, 0xda, 0x1e, 0x89, 0x70, 0x22, 0x01, 0xdb, 0xc1, 0x94, 0xc4,
-	0x11, 0xb7, 0x6d, 0x3a, 0xdc, 0xca, 0xc2, 0xb0, 0xaa, 0x01, 0xa2, 0x21, 0xe9, 0x50, 0x8c, 0x9e,
-	0xc1, 0x52, 0xdf, 0x61, 0x2b, 0xd4, 0x2b, 0xb6, 0xd2, 0x44, 0x0a, 0xdc, 0x87, 0xb0, 0xd8, 0xcd,
-	0xcd, 0xad, 0x87, 0x60, 0xbe, 0xf0, 0x69, 0x5f, 0x1c, 0x9a, 0x30, 0x5e, 0x07, 0xe8, 0xb8, 0x6d,
-	0x4c, 0x43, 0xd7, 0xc3, 0xb4, 0x6c, 0x5c, 0x9d, 0xd9, 0x28, 0x3a, 0x99, 0x15, 0xcb, 0x87, 0x4b,
-	0x5a, 0x6f, 0x45, 0xf3, 0x39, 0x9c, 0xef, 0xa3, 0x29, 0x41, 0x4e, 0xc0, 0x73, 0x29, 0xcf, 0x93,
-	0x5a, 0x7f, 0x18, 0x70, 0xa5, 0xce, 0x22, 0xec, 0xb6, 0xf3, 0x96, 0x3c, 0x7e, 0x42, 0x77, 0x0d,
-	0x8a, 0x29, 0x39, 0xb1, 0x21, 0x45, 0xe7, 0x68, 0x01, 0xbd, 0x84, 0x79, 0x8a, 0x03, 0xec, 0x31,
-	0x12, 0x95, 0xa7, 0x05, 0x8b, 0xc7, 0xf6, 0xc0, 0x5d, 0xb4, 0x8f, 0x89, 0x61, 0xd7, 0x15, 0xc4,
-	0x93, 0x0e, 0x8b, 0x7a, 0x4e, 0x8a, 0x68, 0x3e, 0x80, 0x73, 0xb9, 0x47, 0xe8, 0x3c, 0xcc, 0xbc,
-	0xc6, 0x3d, 0x45, 0x83, 0x0f, 0xd1, 0x0a, 0xcc, 0x76, 0xdd, 0x20, 0xc6, 0xe5, 0x69, 0xb1, 0x26,
-	0x27, 0x1f, 0x4c, 0xdf, 0x37, 0xac, 0x0e, 0x5c, 0x1d, 0x1e, 0xf7, 0x2d, 0x6c, 0xe6, 0x3f, 0x67,
-	0x60, 0x39, 0x6f, 0x53, 0xeb, 0x84, 0xf1, 0x78, 0x0a, 0x45, 0xd7, 0xe0, 0xec, 0xbe, 0x4f, 0xc3,
-	0xc0, 0xed, 0x35, 0xf8, 0x26, 0xab, 0xac, 0x16, 0xd4, 0xda, 0x67, 0x6e, 0x1b, 0xa3, 0x32, 0xcc,
-	0xed, 0x93, 0xb6, 0xeb, 0x77, 0x68, 0x79, 0x46, 0x88, 0x27, 0x99, 0xa2, 0x4d, 0x28, 0x44, 0x24,
-	0x66, 0x98, 0x96, 0xcf, 0x88, 0x1c, 0x96, 0xc5, 0x51, 0x1c, 0x05, 0xe3, 0xcf, 0x1c, 0x65, 0x82,
-	0xee, 0x03, 0x50, 0xec, 0x45, 0x98, 0x35, 0x38, 0xbb, 0xd9, 0xe3, 0xd8, 0x15, 0xa5, 0xb1, 0x83,
-	0x9b, 0xe8, 0x25, 0x94, 0xf8, 0x7d, 0x6f, 0x88, 0x0b, 0xdf, 0xf0, 0x48, 0xa7, 0xe9, 0xb7, 0xca,
-	0x05, 0x01, 0x70, 0xc7, 0xce, 0x54, 0x02, 0x59, 0x25, 0xf2, 0x1c, 0x6a, 0x9d, 0x56, 0x84, 0x29,
-	0x75, 0x5c, 0x86, 0x5f, 0x70, 0x2b, 0x67, 0x29, 0x4a, 0x86, 0x3b, 0x02, 0x08, 0xed, 0x02, 0xec,
-	0xb9, 0xd4, 0xf7, 0x1a, 0xbc, 0x4e, 0x95, 0xe7, 0x04, 0xec, 0xbb, 0x1a, 0x4d, 0x69, 0xb6, 0xda,
-	0xde, 0xe6, 0x8e, 0x5b, 0x31, 0x3b, 0x10, 0xd3, 0x67, 0x53, 0x4e, 0x71, 0x2f, 0x59, 0x41, 0x0f,
-	0x60, 0x96, 0x08, 0xc8, 0x79, 0x01, 0xf9, 0x7f, 0x3b, 0x2d, 0x85, 0x3a, 0x9e, 0x9f, 0x73, 0x9f,
-	0x67, 0x53, 0x8e, 0xf4, 0x41, 0x9f, 0xc2, 0x82, 0x17, 0x53, 0x46, 0xda, 0x92, 0x55, 0x51, 0x40,
-	0x6c, 0x8c, 0x86, 0xd8, 0x11, 0x0e, 0x0a, 0x07, 0xbc, 0x74, 0x66, 0x6e, 0xc1, 0x62, 0x9e, 0x28,
-	0x17, 0x71, 0x84, 0xdd, 0xa0, 0xad, 0x84, 0x2d, 0x27, 0x68, 0x15, 0xe6, 0x69, 0x88, 0xbd, 0x86,
-	0x47, 0xbb, 0x4a, 0x07, 0x73, 0x7c, 0xbe, 0x43, 0xbb, 0xdb, 0x25, 0x58, 0xc2, 0x87, 0x4c, 0x90,
-	0x51, 0x07, 0x60, 0xdd, 0x84, 0x25, 0x07, 0x87, 0xd8, 0x65, 0x78, 0xbf, 0xce, 0x22, 0xbf, 0xd3,
-	0xa2, 0xe8, 0x22, 0x14, 0xc4, 0x75, 0x48, 0xaa, 0x8c, 0x9a, 0x59, 0x1f, 0xc2, 0x62, 0x62, 0xea,
-	0x48, 0x31, 0x6c, 0xe6, 0x2c, 0x87, 0x29, 0x47, 0xb9, 0x3f, 0x82, 0xc5, 0x3a, 0x0d, 0xe4, 0x71,
-	0xed, 0xf2, 0x25, 0x74, 0x3b, 0xb9, 0x84, 0x52, 0xe4, 0xff, 0xcb, 0x7b, 0xa7, 0xc6, 0xea, 0x76,
-	0x5a, 0x0d, 0xb8, 0xd0, 0xaf, 0x03, 0x89, 0xf3, 0x49, 0x1e, 0x67, 0x7c, 0x35, 0xa9, 0x00, 0x7f,
-	0x1b, 0x70, 0xf6, 0xc9, 0x21, 0x3b, 0xda, 0xe0, 0x8f, 0xa0, 0xa0, 0x74, 0x2a, 0x91, 0x6f, 0x68,
-	0x04, 0x95, 0x75, 0xb0, 0x15, 0x61, 0xe5, 0x65, 0xfe, 0x62, 0x40, 0x41, 0xe9, 0x33, 0xd5, 0x91,
-	0x71, 0x7a, 0x1d, 0x4d, 0x9f, 0x46, 0x47, 0xdb, 0x73, 0x6a, 0xb7, 0xac, 0x3f, 0x67, 0xe0, 0x82,
-	0xe6, 0x3a, 0xec, 0x56, 0xc7, 0xab, 0x3d, 0x8f, 0x34, 0xb5, 0x67, 0xa1, 0xba, 0x66, 0xcb, 0xee,
-	0x6c, 0x27, 0xdd, 0xd9, 0x96, 0xf2, 0x12, 0x27, 0x96, 0xaf, 0x4c, 0x0f, 0xb3, 0x95, 0x89, 0xfb,
-	0x5a, 0x9a, 0x6d, 0xee, 0x13, 0xe9, 0x51, 0xf5, 0x7a, 0x3f, 0x53, 0xbd, 0xb8, 0xf3, 0xb5, 0x11,
-	0xce, 0x52, 0xb6, 0x69, 0x2d, 0x7b, 0x0c, 0x40, 0x69, 0x90, 0x94, 0xa2, 0xd9, 0xa1, 0xee, 0x79,
-	0xd9, 0x3a, 0x45, 0x9a, 0xcc, 0xd1, 0x97, 0xc3, 0x6b, 0xda, 0x86, 0x06, 0x48, 0x2b, 0xdf, 0xc1,
-	0x5a, 0xf6, 0x74, 0xe0, 0x9a, 0xaa, 0x82, 0x76, 0xe5, 0x18, 0xfd, 0x39, 0xe7, 0xb0, 0x9c, 0x49,
-	0x20, 0xeb, 0x57, 0x03, 0x2e, 0xed, 0x44, 0x3c, 0x75, 0xfd, 0x5b, 0xd0, 0x43, 0x98, 0xf5, 0xb9,
-	0xdf, 0x08, 0x79, 0x6b, 0x04, 0xe2, 0x48, 0x27, 0xb4, 0x03, 0xf3, 0x62, 0xd0, 0xe8, 0x56, 0x53,
-	0x49, 0x9e, 0x08, 0x60, 0xb7, 0xea, 0xcc, 0xf9, 0x72, 0x60, 0x1d, 0xc0, 0x9a, 0x9e, 0xe1, 0xc4,
-	0x5f, 0xaf, 0xf8, 0x66, 0x7c, 0x15, 0xee, 0xff, 0xc7, 0x37, 0x43, 0xcf, 0x70, 0xe2, 0x9b, 0xf1,
-	0x1c, 0x2e, 0x7d, 0x8c, 0x03, 0x3c, 0x6c, 0x2f, 0xc6, 0x7a, 0x3d, 0x5e, 0x87, 0x35, 0x3d, 0x96,
-	0x64, 0x6d, 0xfd, 0x64, 0x00, 0x88, 0x9b, 0x27, 0x8b, 0x6a, 0x0d, 0x96, 0xfb, 0x92, 0x68, 0x9c,
-	0x28, 0x56, 0xa9, 0xdb, 0x07, 0xdf, 0xe4, 0x0d, 0xd0, 0xef, 0xec, 0xe3, 0x43, 0xb1, 0xe3, 0xe7,
-	0x1c, 0x39, 0x41, 0x37, 0x61, 0x56, 0x5c, 0x70, 0x55, 0x4d, 0xb4, 0x4d, 0x49, 0x5a, 0x58, 0x35,
-	0x40, 0x52, 0x7d, 0x72, 0x55, 0x65, 0x7f, 0x2f, 0xaf, 0x84, 0xcb, 0xba, 0x8a, 0x92, 0xe6, 0xa3,
-	0x04, 0x60, 0x35, 0x60, 0x39, 0x07, 0x35, 0xf1, 0x23, 0xab, 0x01, 0x92, 0xe2, 0x98, 0x08, 0xd7,
-	0x1c, 0xd4, 0xc4, 0xb9, 0xc6, 0x80, 0xa4, 0x24, 0x72, 0x5c, 0xdf, 0xf6, 0xc9, 0xf3, 0xbc, 0x72,
-	0x61, 0x27, 0x9e, 0xd7, 0x8f, 0x06, 0x94, 0xea, 0x6f, 0xdc, 0x50, 0x35, 0x92, 0xc9, 0xe7, 0x75,
-	0x11, 0x0a, 0x22, 0x95, 0xbb, 0x2a, 0x31, 0x35, 0x4b, 0xd7, 0xab, 0x42, 0xd4, 0xc9, 0x7a, 0xd5,
-	0x7a, 0x05, 0x28, 0xcb, 0x67, 0xe2, 0x09, 0xff, 0x6c, 0x00, 0xaa, 0x1f, 0xf8, 0x4d, 0xf6, 0xd6,
-	0x32, 0xbe, 0x0c, 0xd0, 0x8c, 0x48, 0xbb, 0x91, 0x3d, 0xce, 0x22, 0x5f, 0xa9, 0x89, 0xcb, 0xbc,
-	0x0a, 0xf3, 0x8c, 0xa8, 0x87, 0x32, 0xf5, 0x39, 0x46, 0x6a, 0xc9, 0x69, 0xe7, 0xa8, 0x4d, 0x3a,
-	0xf9, 0xea, 0xef, 0x45, 0x28, 0xe5, 0x4d, 0xb6, 0x42, 0x1f, 0x85, 0x50, 0x1a, 0xf8, 0x1a, 0x80,
-	0x36, 0x35, 0xf7, 0x6e, 0xd8, 0xc7, 0x07, 0xf3, 0xd6, 0xc9, 0x8c, 0x55, 0xf9, 0x9c, 0x42, 0x5d,
-	0x58, 0xd6, 0xfc, 0xb5, 0x47, 0xb7, 0x35, 0x30, 0xc3, 0x3f, 0x20, 0x98, 0xf6, 0x49, 0xcd, 0xd3,
-	0xb8, 0x3f, 0x18, 0x50, 0x1e, 0xf6, 0x5f, 0x18, 0x55, 0xc7, 0xff, 0xc3, 0x6e, 0xde, 0x1b, 0xcb,
-	0x27, 0xe1, 0x71, 0xc7, 0x40, 0x3d, 0x58, 0xd1, 0xbd, 0x25, 0x20, 0x5d, 0x4e, 0x23, 0x5e, 0x78,
-	0xcc, 0xca, 0x89, 0xed, 0xd3, 0x4d, 0xe8, 0xc1, 0x8a, 0xae, 0x27, 0x6b, 0x43, 0x8f, 0x78, 0xbd,
-	0xd0, 0x86, 0x1e, 0xd5, 0xec, 0x65, 0x68, 0x5d, 0x63, 0xd5, 0x86, 0x1e, 0xd1, 0xcd, 0xb5, 0xa1,
-	0x47, 0x76, 0xec, 0x29, 0xf4, 0x0a, 0x16, 0x32, 0xdd, 0x0c, 0x5d, 0x1f, 0xba, 0x6f, 0xd9, 0x02,
-	0x6f, 0xde, 0x38, 0xce, 0x2c, 0x8b, 0x9f, 0xe9, 0x40, 0x5a, 0xfc, 0xc1, 0x66, 0xa7, 0xc5, 0xd7,
-	0x34, 0x32, 0x89, 0x9f, 0xe9, 0x04, 0x5a, 0xfc, 0xc1, 0x06, 0xa5, 0xc5, 0xd7, 0x34, 0x14, 0x6b,
-	0x0a, 0x7d, 0x0b, 0x70, 0x54, 0x77, 0xd1, 0x3b, 0x3a, 0x5d, 0xf7, 0xb7, 0x09, 0xf3, 0xfa, 0x31,
-	0x56, 0x59, 0xf2, 0x99, 0xc2, 0xa6, 0x25, 0x3f, 0x58, 0x93, 0xb5, 0xe4, 0x35, 0xf5, 0xd1, 0x9a,
-	0xda, 0xde, 0xfa, 0xed, 0xaf, 0x75, 0xe3, 0x9b, 0x07, 0xa7, 0xf8, 0x9c, 0xbe, 0x57, 0x10, 0x7f,
-	0xeb, 0xee, 0xfd, 0x1b, 0x00, 0x00, 0xff, 0xff, 0x96, 0x06, 0x86, 0x23, 0x94, 0x17, 0x00, 0x00,
+	// 1465 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x59, 0xdd, 0x72, 0xdb, 0x44,
+	0x14, 0x8e, 0x48, 0x1d, 0xc7, 0x27, 0x6d, 0x82, 0x37, 0xfd, 0x49, 0xdc, 0x36, 0x6d, 0x05, 0xed,
+	0xb4, 0x93, 0x56, 0xa6, 0x2e, 0x30, 0x65, 0x5a, 0x28, 0x49, 0x5a, 0x5a, 0x97, 0x0e, 0x74, 0x14,
+	0x08, 0x33, 0xc0, 0x60, 0x14, 0x67, 0xed, 0x08, 0x64, 0xaf, 0xd8, 0x5d, 0xb9, 0xc9, 0x23, 0x70,
+	0xc3, 0x2d, 0x30, 0xdc, 0x70, 0xc9, 0x63, 0xc0, 0x15, 0x33, 0xf4, 0x21, 0x98, 0xe1, 0x9a, 0x47,
+	0xe0, 0x82, 0xd9, 0x1f, 0x29, 0x92, 0xbc, 0xb6, 0x13, 0x92, 0xce, 0xe0, 0xab, 0x68, 0x57, 0xe7,
+	0x7c, 0xe7, 0xec, 0xb7, 0xdf, 0x9e, 0xb3, 0x56, 0xe0, 0x69, 0xdb, 0xe7, 0xdb, 0xd1, 0xa6, 0xd3,
+	0x24, 0x9d, 0x2a, 0x23, 0x01, 0xb9, 0xe1, 0x13, 0xf5, 0x37, 0xa4, 0xe4, 0x2b, 0xdc, 0xe4, 0xac,
+	0x9a, 0x3c, 0xb4, 0x69, 0xd8, 0x64, 0x98, 0xf6, 0x30, 0xad, 0x7a, 0xa1, 0x5f, 0xed, 0xdd, 0xac,
+	0xf6, 0x7c, 0xca, 0x23, 0x2f, 0x10, 0x93, 0x7e, 0x13, 0x3b, 0x21, 0x25, 0x9c, 0xa0, 0x72, 0x3b,
+	0x20, 0x04, 0x63, 0x2f, 0xf4, 0x1d, 0x01, 0xe4, 0xf8, 0xa4, 0x72, 0xb2, 0x4d, 0xda, 0x44, 0xbe,
+	0xad, 0x8a, 0x27, 0x65, 0x58, 0x79, 0x60, 0x08, 0x2d, 0x7c, 0x53, 0x11, 0x3d, 0x8e, 0x9f, 0x79,
+	0xbb, 0xb9, 0x70, 0x8d, 0x4c, 0xbc, 0xca, 0xed, 0xd1, 0x30, 0x62, 0xa4, 0x31, 0x42, 0x4a, 0x76,
+	0x76, 0xb5, 0xe7, 0x9b, 0x07, 0xf2, 0x64, 0x2c, 0xd0, 0x7e, 0xeb, 0x07, 0xe0, 0x2c, 0x1d, 0x3a,
+	0x88, 0xda, 0x7e, 0x97, 0x55, 0xf1, 0x0e, 0xf7, 0x22, 0xbe, 0x1d, 0xff, 0xd5, 0xa0, 0x9f, 0x1c,
+	0x0e, 0x94, 0x7a, 0x1c, 0x07, 0x7e, 0xc7, 0xe7, 0x7b, 0x4f, 0x1a, 0xf8, 0xfa, 0x20, 0xe0, 0xaf,
+	0x7d, 0x1e, 0xa3, 0x50, 0xdc, 0xd2, 0xd6, 0x4b, 0x6d, 0x42, 0xda, 0x01, 0xae, 0xca, 0xd1, 0x66,
+	0xd4, 0xaa, 0x3e, 0xa3, 0x5e, 0x18, 0x62, 0xca, 0xd4, 0x7b, 0xfb, 0x7b, 0x0b, 0x4e, 0x6d, 0xa8,
+	0x7d, 0x58, 0x57, 0xdb, 0x70, 0x1f, 0x73, 0xcf, 0x0f, 0x18, 0x7a, 0x04, 0x73, 0xb9, 0x0d, 0x5a,
+	0xb0, 0x2e, 0x5a, 0x57, 0x67, 0x6a, 0x17, 0x1c, 0xbd, 0x8f, 0xb1, 0x1e, 0x9c, 0x2c, 0x80, 0x3b,
+	0xdb, 0xcb, 0x8c, 0xd1, 0xeb, 0x50, 0xd4, 0xcb, 0x5a, 0x78, 0x49, 0x22, 0x54, 0x9c, 0x3e, 0x4d,
+	0x39, 0x4f, 0x95, 0x85, 0x1b, 0x9b, 0xda, 0xdf, 0x5a, 0x50, 0xd4, 0x93, 0xe8, 0x0e, 0x4c, 0xe3,
+	0x1d, 0xde, 0x10, 0xf4, 0xea, 0x24, 0x2e, 0x1a, 0x20, 0x1e, 0xec, 0xf0, 0x95, 0x88, 0x6f, 0x2b,
+	0x27, 0xb7, 0x88, 0xd5, 0x10, 0xad, 0x00, 0x08, 0x0e, 0x1b, 0x92, 0x44, 0x9d, 0x81, 0x6d, 0x70,
+	0x77, 0x3d, 0x8e, 0x9f, 0x08, 0x1b, 0x0d, 0x50, 0xa2, 0xf1, 0x84, 0xbd, 0x0d, 0x27, 0x32, 0xe0,
+	0x68, 0x05, 0x0a, 0x3d, 0x2f, 0x88, 0x62, 0x4a, 0x96, 0x9d, 0x64, 0xf3, 0x55, 0xc6, 0x12, 0x3e,
+	0x9f, 0xd8, 0x1a, 0xe9, 0xb6, 0xfc, 0xb6, 0xab, 0x3c, 0xd1, 0x49, 0x28, 0x60, 0x4a, 0x09, 0x95,
+	0x19, 0x95, 0x5c, 0x35, 0xb0, 0x09, 0xcc, 0xe5, 0xf2, 0x40, 0xef, 0x65, 0x63, 0xbd, 0xe6, 0xa4,
+	0x14, 0x61, 0x8a, 0x56, 0xef, 0xb6, 0x29, 0x66, 0x2c, 0x81, 0x19, 0x1e, 0xf0, 0x1a, 0xcc, 0xb9,
+	0x38, 0xc4, 0x1e, 0xc7, 0x5b, 0xeb, 0x9c, 0xfa, 0xdd, 0x36, 0x43, 0xa7, 0x61, 0x4a, 0x7a, 0xb0,
+	0x05, 0xeb, 0xe2, 0xe4, 0xd5, 0x92, 0xab, 0x47, 0xf6, 0xdb, 0x30, 0x1b, 0x9b, 0xba, 0x24, 0xe2,
+	0x98, 0xa1, 0xe5, 0x8c, 0xe5, 0x4c, 0x6d, 0x3e, 0x9b, 0x89, 0xb4, 0x4a, 0xdc, 0xef, 0xc1, 0xec,
+	0x3a, 0x0b, 0x14, 0x09, 0x1b, 0x32, 0xa3, 0x1b, 0xd9, 0x95, 0x9d, 0xc9, 0x7a, 0x27, 0xc6, 0x7a,
+	0x01, 0x76, 0x03, 0x4e, 0xe5, 0xd7, 0xa6, 0x70, 0x8e, 0x88, 0x21, 0xfb, 0x6f, 0x0b, 0x8e, 0xeb,
+	0xbd, 0xaa, 0x77, 0xc3, 0x88, 0xa3, 0x77, 0x60, 0xaa, 0x29, 0x53, 0xd0, 0xc8, 0x57, 0x06, 0xab,
+	0x4e, 0x3a, 0x38, 0x3a, 0x61, 0xed, 0x55, 0xf9, 0xc9, 0x82, 0x29, 0x35, 0x85, 0xee, 0x40, 0x81,
+	0xa4, 0xf4, 0xfb, 0xca, 0x70, 0xc5, 0x7c, 0x28, 0x20, 0x1f, 0x4d, 0xb8, 0xca, 0x07, 0xbd, 0x0f,
+	0x33, 0xcd, 0x88, 0x71, 0xd2, 0x51, 0x47, 0x40, 0x69, 0xf8, 0xea, 0x70, 0x88, 0x35, 0xe9, 0xa0,
+	0x71, 0xa0, 0x99, 0x8c, 0x56, 0x8b, 0x9a, 0x2d, 0xfb, 0x21, 0x2c, 0x3c, 0xc4, 0x3c, 0x77, 0x78,
+	0xf1, 0x37, 0x11, 0x66, 0x1c, 0x2d, 0xc3, 0x24, 0xc5, 0x2d, 0x9d, 0xec, 0xa2, 0xd3, 0x24, 0x14,
+	0xef, 0x6d, 0x2b, 0x66, 0x24, 0xa2, 0xc2, 0xb6, 0xe5, 0x0a, 0x2b, 0xfb, 0x77, 0x0b, 0x16, 0x0d,
+	0x48, 0x2c, 0x24, 0x5d, 0x86, 0x8f, 0xb0, 0x90, 0x7c, 0x09, 0x67, 0x72, 0x48, 0x8d, 0x2d, 0x55,
+	0xad, 0x12, 0x4a, 0xfa, 0xf7, 0xc7, 0x58, 0xdd, 0xdc, 0x53, 0x3d, 0xd3, 0xb4, 0x7d, 0x17, 0x2a,
+	0x4f, 0x7c, 0x96, 0x5b, 0x09, 0x8b, 0x49, 0x59, 0x02, 0xe8, 0x7a, 0x1d, 0xcc, 0x42, 0xaf, 0x99,
+	0x1c, 0x8e, 0xd4, 0x8c, 0xfd, 0xdc, 0x82, 0xb3, 0x46, 0x77, 0xcd, 0xc4, 0x63, 0x78, 0x39, 0x97,
+	0x7f, 0x7c, 0x70, 0x46, 0x52, 0x31, 0x97, 0xcd, 0x97, 0x0d, 0xe7, 0x62, 0xf2, 0x28, 0xb8, 0xf8,
+	0xe7, 0x18, 0xcc, 0x67, 0x1d, 0xd4, 0xa1, 0x38, 0x88, 0x34, 0xd0, 0x25, 0x38, 0xbe, 0xe5, 0xb3,
+	0x30, 0xf0, 0x76, 0x1b, 0x82, 0x28, 0x5d, 0x7b, 0x66, 0xf4, 0xdc, 0x07, 0x5e, 0x07, 0xa3, 0x05,
+	0x28, 0x6e, 0x91, 0x8e, 0x27, 0xda, 0xc3, 0xa4, 0xa4, 0x34, 0x1e, 0x8a, 0xf2, 0x42, 0x65, 0xa1,
+	0x59, 0x38, 0x36, 0xa4, 0xbc, 0x28, 0x13, 0x74, 0x1b, 0x80, 0xe1, 0x26, 0xc5, 0xbc, 0x21, 0xb2,
+	0x2b, 0x8c, 0xca, 0xae, 0xa4, 0x8c, 0x5d, 0xdc, 0x42, 0x9f, 0x43, 0x79, 0xaf, 0x41, 0x34, 0xf4,
+	0x81, 0x9f, 0xfa, 0x8f, 0xa5, 0x64, 0x2e, 0xe9, 0x1a, 0xfa, 0xe0, 0x6f, 0x00, 0x6c, 0x7a, 0xcc,
+	0x6f, 0xaa, 0xa3, 0x5b, 0x94, 0xb0, 0x6f, 0x8c, 0xdc, 0x1b, 0x55, 0x4e, 0x56, 0x85, 0x63, 0x52,
+	0x5d, 0x1e, 0x4d, 0xb8, 0xa5, 0xcd, 0x78, 0x66, 0xaf, 0xa0, 0x4c, 0x1f, 0xbe, 0xa0, 0x94, 0x0e,
+	0x53, 0x50, 0x2a, 0x2b, 0x30, 0x9b, 0x4d, 0x54, 0xb4, 0x1a, 0x8a, 0xbd, 0xa0, 0x23, 0x45, 0x52,
+	0x72, 0xd5, 0x00, 0x2d, 0xc2, 0x34, 0x0b, 0x71, 0xb3, 0xd1, 0x64, 0x3d, 0xad, 0x83, 0xa2, 0x18,
+	0xaf, 0xb1, 0xde, 0x6a, 0x19, 0xe6, 0xe2, 0x06, 0xaf, 0x37, 0xc0, 0xfe, 0x73, 0x32, 0x7f, 0x33,
+	0x91, 0xd8, 0x1b, 0xb5, 0x83, 0x09, 0xf0, 0x9e, 0x41, 0x80, 0x33, 0xb5, 0x73, 0x8e, 0xba, 0x17,
+	0x39, 0xf1, 0xbd, 0xc8, 0x51, 0xcd, 0x4f, 0xf6, 0x93, 0xac, 0x3c, 0xef, 0xa6, 0xe5, 0x39, 0xf0,
+	0xee, 0x90, 0x6d, 0xa1, 0x7b, 0x12, 0x7e, 0x2b, 0x25, 0x61, 0xe1, 0x7c, 0x69, 0x88, 0xb3, 0x6a,
+	0xaa, 0x89, 0xa0, 0xdf, 0x05, 0x60, 0x2c, 0x88, 0xf5, 0x58, 0x18, 0xe8, 0x9e, 0x6d, 0xaa, 0x6e,
+	0x89, 0xc5, 0x63, 0xf4, 0xd1, 0x60, 0x61, 0x9b, 0xaa, 0x83, 0xb1, 0xb9, 0xf6, 0x0b, 0xfa, 0x61,
+	0xdf, 0x5e, 0x69, 0x55, 0x5f, 0x18, 0xd1, 0x1d, 0xdd, 0x13, 0x38, 0x7d, 0x11, 0xb2, 0x7f, 0xb6,
+	0xe0, 0xec, 0x1a, 0x15, 0x4b, 0x37, 0xf7, 0xa0, 0xbb, 0x50, 0xf0, 0x85, 0xdf, 0x90, 0xe6, 0x6b,
+	0x10, 0x88, 0xab, 0x9c, 0xd0, 0x1a, 0x4c, 0xcb, 0x87, 0x46, 0xaf, 0xb6, 0xef, 0xee, 0xa0, 0x15,
+	0xe6, 0x16, 0x7d, 0xf5, 0x60, 0xff, 0x61, 0xc1, 0x39, 0x73, 0x8a, 0x63, 0xd8, 0xdc, 0x04, 0xdf,
+	0x1f, 0x87, 0x5b, 0xff, 0x77, 0xbe, 0xcd, 0x29, 0x8e, 0x21, 0xdf, 0x8f, 0xe1, 0xec, 0x7d, 0x1c,
+	0xe0, 0x41, 0x74, 0x1f, 0xe8, 0x8a, 0xb5, 0x04, 0xe7, 0xcc, 0x58, 0x8a, 0x17, 0xfb, 0x07, 0x0b,
+	0x40, 0xd6, 0x0f, 0x55, 0x80, 0xeb, 0x30, 0x9f, 0x5f, 0xdc, 0xbe, 0x62, 0x95, 0x7b, 0x39, 0xf8,
+	0x96, 0xa8, 0xe5, 0x7e, 0x77, 0x0b, 0xef, 0x48, 0x56, 0x4e, 0xb8, 0x6a, 0x80, 0xae, 0x41, 0x41,
+	0x96, 0x29, 0x5d, 0x13, 0x8d, 0x9d, 0x59, 0x59, 0xd8, 0x75, 0x40, 0xea, 0x08, 0xa9, 0x59, 0xbd,
+	0xfa, 0x5b, 0x59, 0xb1, 0x9d, 0x37, 0xd5, 0xc5, 0x64, 0x3d, 0x5a, 0x63, 0xf6, 0x6f, 0x16, 0xcc,
+	0x67, 0xb0, 0xc6, 0x50, 0x15, 0x75, 0x40, 0x4a, 0xe1, 0x47, 0x43, 0x47, 0x06, 0x6b, 0x0c, 0xe9,
+	0x88, 0x00, 0x29, 0x61, 0x67, 0xe8, 0x78, 0xd1, 0xfa, 0x95, 0xd4, 0x65, 0xe2, 0x8e, 0x21, 0x75,
+	0xdf, 0x59, 0x50, 0x5e, 0x7f, 0xe6, 0x85, 0xfa, 0xde, 0x70, 0xf4, 0xd4, 0x9d, 0x86, 0x29, 0xc9,
+	0xd6, 0x4d, 0xcd, 0x9d, 0x1e, 0x25, 0xf3, 0x35, 0x79, 0xfa, 0xe3, 0xf9, 0x9a, 0xfd, 0xab, 0x05,
+	0x28, 0x9d, 0xd0, 0x18, 0x72, 0xfa, 0xa3, 0x58, 0xc2, 0xb6, 0xdf, 0xe2, 0x2f, 0x8c, 0xd4, 0xf3,
+	0x00, 0x2d, 0x4a, 0x3a, 0x8d, 0xb4, 0x28, 0x4b, 0x62, 0xa6, 0x2e, 0x0b, 0xeb, 0x22, 0x4c, 0x73,
+	0xa2, 0x5f, 0x2a, 0x76, 0x8b, 0x9c, 0xd4, 0x13, 0xcd, 0x66, 0x72, 0x1b, 0x3f, 0x7e, 0x6b, 0xcf,
+	0xa7, 0xa1, 0x9c, 0x75, 0x58, 0x09, 0x7d, 0x14, 0x42, 0xb9, 0xef, 0xfb, 0x01, 0x5a, 0x36, 0xc4,
+	0x1a, 0xf4, 0xbd, 0xa2, 0x72, 0x7d, 0x7f, 0xc6, 0xba, 0x5b, 0x4e, 0xa0, 0x1e, 0xcc, 0x1b, 0x7e,
+	0xa9, 0xa3, 0x1b, 0x06, 0x98, 0xc1, 0x1f, 0x04, 0x2a, 0xce, 0x7e, 0xcd, 0x93, 0xb8, 0xbb, 0x70,
+	0xd2, 0x74, 0x9f, 0x44, 0x26, 0xa4, 0x21, 0x77, 0xe3, 0x4a, 0x75, 0xdf, 0xf6, 0xe9, 0xd0, 0xa6,
+	0xab, 0x95, 0x31, 0xf4, 0x90, 0x6b, 0xa2, 0x31, 0xf4, 0xb0, 0x3b, 0x9b, 0x0a, 0x6d, 0xba, 0xbd,
+	0x18, 0x43, 0x0f, 0xb9, 0x32, 0x19, 0x43, 0x0f, 0xbd, 0x16, 0x4d, 0xa0, 0x2f, 0x60, 0x26, 0x75,
+	0x63, 0x40, 0x97, 0x07, 0xf2, 0x96, 0xee, 0x3f, 0x95, 0x2b, 0xa3, 0xcc, 0xd2, 0xf8, 0xa9, 0x16,
+	0x6c, 0xc4, 0xef, 0x6f, 0xf7, 0x46, 0x7c, 0x43, 0x27, 0x57, 0xf8, 0xa9, 0x3e, 0x65, 0xc4, 0xef,
+	0xef, 0x9f, 0x46, 0x7c, 0x43, 0xbb, 0xb3, 0x27, 0xd0, 0x67, 0x00, 0x7b, 0x25, 0x1b, 0xbd, 0x6a,
+	0xfa, 0x7d, 0x99, 0x6f, 0x31, 0x95, 0xcb, 0x23, 0xac, 0xd2, 0xc9, 0xa7, 0x0a, 0x96, 0x31, 0xf9,
+	0xfe, 0x62, 0x6b, 0x4c, 0xde, 0x50, 0xf7, 0xec, 0x89, 0xd5, 0x95, 0x5f, 0xfe, 0x5a, 0xb2, 0x3e,
+	0xbd, 0x73, 0x88, 0xff, 0x79, 0x6d, 0x4e, 0xc9, 0x2f, 0x00, 0xb7, 0xfe, 0x0d, 0x00, 0x00, 0xff,
+	0xff, 0x5e, 0x2a, 0x8b, 0xe8, 0x39, 0x1b, 0x00, 0x00,
 }
 
-func (this *GetVirtualServiceRequest) Equal(that interface{}) bool {
+func (this *VirtualServiceDetails) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*GetVirtualServiceRequest)
+	that1, ok := that.(*VirtualServiceDetails)
 	if !ok {
-		that2, ok := that.(GetVirtualServiceRequest)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.Ref.Equal(that1.Ref) {
-		return false
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *GetVirtualServiceResponse) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*GetVirtualServiceResponse)
-	if !ok {
-		that2, ok := that.(GetVirtualServiceResponse)
+		that2, ok := that.(VirtualServiceDetails)
 		if ok {
 			that1 = &that2
 		} else {
@@ -1854,196 +2011,7 @@ func (this *GetVirtualServiceResponse) Equal(that interface{}) bool {
 	if !this.VirtualService.Equal(that1.VirtualService) {
 		return false
 	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *ListVirtualServicesRequest) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*ListVirtualServicesRequest)
-	if !ok {
-		that2, ok := that.(ListVirtualServicesRequest)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if len(this.Namespaces) != len(that1.Namespaces) {
-		return false
-	}
-	for i := range this.Namespaces {
-		if this.Namespaces[i] != that1.Namespaces[i] {
-			return false
-		}
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *ListVirtualServicesResponse) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*ListVirtualServicesResponse)
-	if !ok {
-		that2, ok := that.(ListVirtualServicesResponse)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if len(this.VirtualServices) != len(that1.VirtualServices) {
-		return false
-	}
-	for i := range this.VirtualServices {
-		if !this.VirtualServices[i].Equal(that1.VirtualServices[i]) {
-			return false
-		}
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *StreamVirtualServiceListRequest) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*StreamVirtualServiceListRequest)
-	if !ok {
-		that2, ok := that.(StreamVirtualServiceListRequest)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.Namespace != that1.Namespace {
-		return false
-	}
-	if len(this.Selector) != len(that1.Selector) {
-		return false
-	}
-	for i := range this.Selector {
-		if this.Selector[i] != that1.Selector[i] {
-			return false
-		}
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *StreamVirtualServiceListResponse) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*StreamVirtualServiceListResponse)
-	if !ok {
-		that2, ok := that.(StreamVirtualServiceListResponse)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if len(this.VirtualServices) != len(that1.VirtualServices) {
-		return false
-	}
-	for i := range this.VirtualServices {
-		if !this.VirtualServices[i].Equal(that1.VirtualServices[i]) {
-			return false
-		}
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *VirtualServiceInput) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*VirtualServiceInput)
-	if !ok {
-		that2, ok := that.(VirtualServiceInput)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.Ref.Equal(that1.Ref) {
-		return false
-	}
-	if this.DisplayName != that1.DisplayName {
-		return false
-	}
-	if len(this.Domains) != len(that1.Domains) {
-		return false
-	}
-	for i := range this.Domains {
-		if this.Domains[i] != that1.Domains[i] {
-			return false
-		}
-	}
-	if len(this.Routes) != len(that1.Routes) {
-		return false
-	}
-	for i := range this.Routes {
-		if !this.Routes[i].Equal(that1.Routes[i]) {
-			return false
-		}
-	}
-	if !this.SecretRef.Equal(that1.SecretRef) {
-		return false
-	}
-	if !this.RateLimitConfig.Equal(that1.RateLimitConfig) {
-		return false
-	}
-	if that1.ExtAuthConfig == nil {
-		if this.ExtAuthConfig != nil {
-			return false
-		}
-	} else if this.ExtAuthConfig == nil {
-		return false
-	} else if !this.ExtAuthConfig.Equal(that1.ExtAuthConfig) {
+	if !this.Plugins.Equal(that1.Plugins) {
 		return false
 	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
@@ -2051,14 +2019,14 @@ func (this *VirtualServiceInput) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *VirtualServiceInput_BasicAuth) Equal(that interface{}) bool {
+func (this *Plugins) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*VirtualServiceInput_BasicAuth)
+	that1, ok := that.(*Plugins)
 	if !ok {
-		that2, ok := that.(VirtualServiceInput_BasicAuth)
+		that2, ok := that.(Plugins)
 		if ok {
 			that1 = &that2
 		} else {
@@ -2070,19 +2038,25 @@ func (this *VirtualServiceInput_BasicAuth) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if !this.BasicAuth.Equal(that1.BasicAuth) {
+	if !this.ExtAuth.Equal(that1.ExtAuth) {
+		return false
+	}
+	if !this.RateLimit.Equal(that1.RateLimit) {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
 		return false
 	}
 	return true
 }
-func (this *VirtualServiceInput_Oauth) Equal(that interface{}) bool {
+func (this *ExtAuthPlugin) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*VirtualServiceInput_Oauth)
+	that1, ok := that.(*ExtAuthPlugin)
 	if !ok {
-		that2, ok := that.(VirtualServiceInput_Oauth)
+		that2, ok := that.(ExtAuthPlugin)
 		if ok {
 			that1 = &that2
 		} else {
@@ -2094,19 +2068,25 @@ func (this *VirtualServiceInput_Oauth) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if !this.Oauth.Equal(that1.Oauth) {
+	if !this.Value.Equal(that1.Value) {
+		return false
+	}
+	if this.Error != that1.Error {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
 		return false
 	}
 	return true
 }
-func (this *VirtualServiceInput_CustomAuth) Equal(that interface{}) bool {
+func (this *RateLimitPlugin) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*VirtualServiceInput_CustomAuth)
+	that1, ok := that.(*RateLimitPlugin)
 	if !ok {
-		that2, ok := that.(VirtualServiceInput_CustomAuth)
+		that2, ok := that.(RateLimitPlugin)
 		if ok {
 			that1 = &that2
 		} else {
@@ -2118,34 +2098,10 @@ func (this *VirtualServiceInput_CustomAuth) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if !this.CustomAuth.Equal(that1.CustomAuth) {
+	if !this.Value.Equal(that1.Value) {
 		return false
 	}
-	return true
-}
-func (this *VirtualServiceInput_BasicAuthInput) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*VirtualServiceInput_BasicAuthInput)
-	if !ok {
-		that2, ok := that.(VirtualServiceInput_BasicAuthInput)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.Realm != that1.Realm {
-		return false
-	}
-	if this.SpecCsv != that1.SpecCsv {
+	if this.Error != that1.Error {
 		return false
 	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
@@ -2379,6 +2335,298 @@ func (this *ExtAuthInput_Config_CustomAuth) Equal(that interface{}) bool {
 	}
 	return true
 }
+func (this *GetVirtualServiceRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*GetVirtualServiceRequest)
+	if !ok {
+		that2, ok := that.(GetVirtualServiceRequest)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Ref.Equal(that1.Ref) {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *GetVirtualServiceResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*GetVirtualServiceResponse)
+	if !ok {
+		that2, ok := that.(GetVirtualServiceResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.VirtualService.Equal(that1.VirtualService) {
+		return false
+	}
+	if !this.VirtualServiceDetails.Equal(that1.VirtualServiceDetails) {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *ListVirtualServicesRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*ListVirtualServicesRequest)
+	if !ok {
+		that2, ok := that.(ListVirtualServicesRequest)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if len(this.Namespaces) != len(that1.Namespaces) {
+		return false
+	}
+	for i := range this.Namespaces {
+		if this.Namespaces[i] != that1.Namespaces[i] {
+			return false
+		}
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *ListVirtualServicesResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*ListVirtualServicesResponse)
+	if !ok {
+		that2, ok := that.(ListVirtualServicesResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if len(this.VirtualServices) != len(that1.VirtualServices) {
+		return false
+	}
+	for i := range this.VirtualServices {
+		if !this.VirtualServices[i].Equal(that1.VirtualServices[i]) {
+			return false
+		}
+	}
+	if len(this.VirtualServiceDetails) != len(that1.VirtualServiceDetails) {
+		return false
+	}
+	for i := range this.VirtualServiceDetails {
+		if !this.VirtualServiceDetails[i].Equal(that1.VirtualServiceDetails[i]) {
+			return false
+		}
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *VirtualServiceInput) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*VirtualServiceInput)
+	if !ok {
+		that2, ok := that.(VirtualServiceInput)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Ref.Equal(that1.Ref) {
+		return false
+	}
+	if this.DisplayName != that1.DisplayName {
+		return false
+	}
+	if len(this.Domains) != len(that1.Domains) {
+		return false
+	}
+	for i := range this.Domains {
+		if this.Domains[i] != that1.Domains[i] {
+			return false
+		}
+	}
+	if len(this.Routes) != len(that1.Routes) {
+		return false
+	}
+	for i := range this.Routes {
+		if !this.Routes[i].Equal(that1.Routes[i]) {
+			return false
+		}
+	}
+	if !this.SecretRef.Equal(that1.SecretRef) {
+		return false
+	}
+	if !this.RateLimitConfig.Equal(that1.RateLimitConfig) {
+		return false
+	}
+	if that1.ExtAuthConfig == nil {
+		if this.ExtAuthConfig != nil {
+			return false
+		}
+	} else if this.ExtAuthConfig == nil {
+		return false
+	} else if !this.ExtAuthConfig.Equal(that1.ExtAuthConfig) {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
+func (this *VirtualServiceInput_BasicAuth) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*VirtualServiceInput_BasicAuth)
+	if !ok {
+		that2, ok := that.(VirtualServiceInput_BasicAuth)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.BasicAuth.Equal(that1.BasicAuth) {
+		return false
+	}
+	return true
+}
+func (this *VirtualServiceInput_Oauth) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*VirtualServiceInput_Oauth)
+	if !ok {
+		that2, ok := that.(VirtualServiceInput_Oauth)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Oauth.Equal(that1.Oauth) {
+		return false
+	}
+	return true
+}
+func (this *VirtualServiceInput_CustomAuth) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*VirtualServiceInput_CustomAuth)
+	if !ok {
+		that2, ok := that.(VirtualServiceInput_CustomAuth)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.CustomAuth.Equal(that1.CustomAuth) {
+		return false
+	}
+	return true
+}
+func (this *VirtualServiceInput_BasicAuthInput) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*VirtualServiceInput_BasicAuthInput)
+	if !ok {
+		that2, ok := that.(VirtualServiceInput_BasicAuthInput)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.Realm != that1.Realm {
+		return false
+	}
+	if this.SpecCsv != that1.SpecCsv {
+		return false
+	}
+	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
+		return false
+	}
+	return true
+}
 func (this *VirtualServiceInputV2) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
@@ -2476,6 +2724,9 @@ func (this *CreateVirtualServiceResponse) Equal(that interface{}) bool {
 	if !this.VirtualService.Equal(that1.VirtualService) {
 		return false
 	}
+	if !this.VirtualServiceDetails.Equal(that1.VirtualServiceDetails) {
+		return false
+	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
 		return false
 	}
@@ -2531,6 +2782,9 @@ func (this *UpdateVirtualServiceResponse) Equal(that interface{}) bool {
 		return false
 	}
 	if !this.VirtualService.Equal(that1.VirtualService) {
+		return false
+	}
+	if !this.VirtualServiceDetails.Equal(that1.VirtualServiceDetails) {
 		return false
 	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
@@ -2671,6 +2925,9 @@ func (this *CreateRouteResponse) Equal(that interface{}) bool {
 	if !this.VirtualService.Equal(that1.VirtualService) {
 		return false
 	}
+	if !this.VirtualServiceDetails.Equal(that1.VirtualServiceDetails) {
+		return false
+	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
 		return false
 	}
@@ -2723,6 +2980,9 @@ func (this *UpdateRouteResponse) Equal(that interface{}) bool {
 		return false
 	}
 	if !this.VirtualService.Equal(that1.VirtualService) {
+		return false
+	}
+	if !this.VirtualServiceDetails.Equal(that1.VirtualServiceDetails) {
 		return false
 	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
@@ -2780,6 +3040,9 @@ func (this *DeleteRouteResponse) Equal(that interface{}) bool {
 		return false
 	}
 	if !this.VirtualService.Equal(that1.VirtualService) {
+		return false
+	}
+	if !this.VirtualServiceDetails.Equal(that1.VirtualServiceDetails) {
 		return false
 	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
@@ -2842,6 +3105,9 @@ func (this *SwapRoutesResponse) Equal(that interface{}) bool {
 	if !this.VirtualService.Equal(that1.VirtualService) {
 		return false
 	}
+	if !this.VirtualServiceDetails.Equal(that1.VirtualServiceDetails) {
+		return false
+	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
 		return false
 	}
@@ -2902,6 +3168,9 @@ func (this *ShiftRoutesResponse) Equal(that interface{}) bool {
 	if !this.VirtualService.Equal(that1.VirtualService) {
 		return false
 	}
+	if !this.VirtualServiceDetails.Equal(that1.VirtualServiceDetails) {
+		return false
+	}
 	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
 		return false
 	}
@@ -2922,7 +3191,6 @@ const _ = grpc.SupportPackageIsVersion4
 type VirtualServiceApiClient interface {
 	GetVirtualService(ctx context.Context, in *GetVirtualServiceRequest, opts ...grpc.CallOption) (*GetVirtualServiceResponse, error)
 	ListVirtualServices(ctx context.Context, in *ListVirtualServicesRequest, opts ...grpc.CallOption) (*ListVirtualServicesResponse, error)
-	StreamVirtualServiceList(ctx context.Context, in *StreamVirtualServiceListRequest, opts ...grpc.CallOption) (VirtualServiceApi_StreamVirtualServiceListClient, error)
 	CreateVirtualService(ctx context.Context, in *CreateVirtualServiceRequest, opts ...grpc.CallOption) (*CreateVirtualServiceResponse, error)
 	UpdateVirtualService(ctx context.Context, in *UpdateVirtualServiceRequest, opts ...grpc.CallOption) (*UpdateVirtualServiceResponse, error)
 	DeleteVirtualService(ctx context.Context, in *DeleteVirtualServiceRequest, opts ...grpc.CallOption) (*DeleteVirtualServiceResponse, error)
@@ -2957,38 +3225,6 @@ func (c *virtualServiceApiClient) ListVirtualServices(ctx context.Context, in *L
 		return nil, err
 	}
 	return out, nil
-}
-
-func (c *virtualServiceApiClient) StreamVirtualServiceList(ctx context.Context, in *StreamVirtualServiceListRequest, opts ...grpc.CallOption) (VirtualServiceApi_StreamVirtualServiceListClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_VirtualServiceApi_serviceDesc.Streams[0], "/glooeeapi.solo.io.VirtualServiceApi/StreamVirtualServiceList", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &virtualServiceApiStreamVirtualServiceListClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type VirtualServiceApi_StreamVirtualServiceListClient interface {
-	Recv() (*StreamVirtualServiceListResponse, error)
-	grpc.ClientStream
-}
-
-type virtualServiceApiStreamVirtualServiceListClient struct {
-	grpc.ClientStream
-}
-
-func (x *virtualServiceApiStreamVirtualServiceListClient) Recv() (*StreamVirtualServiceListResponse, error) {
-	m := new(StreamVirtualServiceListResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
 }
 
 func (c *virtualServiceApiClient) CreateVirtualService(ctx context.Context, in *CreateVirtualServiceRequest, opts ...grpc.CallOption) (*CreateVirtualServiceResponse, error) {
@@ -3067,7 +3303,6 @@ func (c *virtualServiceApiClient) ShiftRoutes(ctx context.Context, in *ShiftRout
 type VirtualServiceApiServer interface {
 	GetVirtualService(context.Context, *GetVirtualServiceRequest) (*GetVirtualServiceResponse, error)
 	ListVirtualServices(context.Context, *ListVirtualServicesRequest) (*ListVirtualServicesResponse, error)
-	StreamVirtualServiceList(*StreamVirtualServiceListRequest, VirtualServiceApi_StreamVirtualServiceListServer) error
 	CreateVirtualService(context.Context, *CreateVirtualServiceRequest) (*CreateVirtualServiceResponse, error)
 	UpdateVirtualService(context.Context, *UpdateVirtualServiceRequest) (*UpdateVirtualServiceResponse, error)
 	DeleteVirtualService(context.Context, *DeleteVirtualServiceRequest) (*DeleteVirtualServiceResponse, error)
@@ -3087,9 +3322,6 @@ func (*UnimplementedVirtualServiceApiServer) GetVirtualService(ctx context.Conte
 }
 func (*UnimplementedVirtualServiceApiServer) ListVirtualServices(ctx context.Context, req *ListVirtualServicesRequest) (*ListVirtualServicesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListVirtualServices not implemented")
-}
-func (*UnimplementedVirtualServiceApiServer) StreamVirtualServiceList(req *StreamVirtualServiceListRequest, srv VirtualServiceApi_StreamVirtualServiceListServer) error {
-	return status.Errorf(codes.Unimplemented, "method StreamVirtualServiceList not implemented")
 }
 func (*UnimplementedVirtualServiceApiServer) CreateVirtualService(ctx context.Context, req *CreateVirtualServiceRequest) (*CreateVirtualServiceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateVirtualService not implemented")
@@ -3154,27 +3386,6 @@ func _VirtualServiceApi_ListVirtualServices_Handler(srv interface{}, ctx context
 		return srv.(VirtualServiceApiServer).ListVirtualServices(ctx, req.(*ListVirtualServicesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
-}
-
-func _VirtualServiceApi_StreamVirtualServiceList_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(StreamVirtualServiceListRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(VirtualServiceApiServer).StreamVirtualServiceList(m, &virtualServiceApiStreamVirtualServiceListServer{stream})
-}
-
-type VirtualServiceApi_StreamVirtualServiceListServer interface {
-	Send(*StreamVirtualServiceListResponse) error
-	grpc.ServerStream
-}
-
-type virtualServiceApiStreamVirtualServiceListServer struct {
-	grpc.ServerStream
-}
-
-func (x *virtualServiceApiStreamVirtualServiceListServer) Send(m *StreamVirtualServiceListResponse) error {
-	return x.ServerStream.SendMsg(m)
 }
 
 func _VirtualServiceApi_CreateVirtualService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -3366,12 +3577,6 @@ var _VirtualServiceApi_serviceDesc = grpc.ServiceDesc{
 			Handler:    _VirtualServiceApi_ShiftRoutes_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "StreamVirtualServiceList",
-			Handler:       _VirtualServiceApi_StreamVirtualServiceList_Handler,
-			ServerStreams: true,
-		},
-	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice.proto",
 }

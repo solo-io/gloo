@@ -2,7 +2,6 @@ package upstreamsvc_test
 
 import (
 	"context"
-	"time"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -132,81 +131,6 @@ var _ = Describe("ServiceTest", func() {
 			Expect(err).To(HaveOccurred())
 			expectedErr := upstreamsvc.FailedToListUpstreamsError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-		})
-	})
-
-	Describe("StreamUpstreamList", func() {
-		It("works", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
-			}
-			ref := metadata.Ref()
-
-			upstreamList := []*gloov1.Upstream{{
-				Metadata: metadata,
-				UpstreamSpec: &gloov1.UpstreamSpec{
-					UpstreamType: &gloov1.UpstreamSpec_Aws{
-						Aws: &aws.UpstreamSpec{Region: "test"},
-					},
-				}},
-				{
-					Metadata: metadata,
-					UpstreamSpec: &gloov1.UpstreamSpec{
-						UpstreamType: &gloov1.UpstreamSpec_Aws{
-							Aws: &aws.UpstreamSpec{Region: "test2"},
-						},
-					},
-				},
-			}
-
-			refreshRate := time.Minute
-			request := v1.StreamUpstreamListRequest{
-				Namespace: ref.GetNamespace(),
-			}
-			upstreamChan := make(chan gloov1.UpstreamList, 1)
-			upstreamChan <- upstreamList
-			errChan := make(chan error)
-
-			defer func() {
-				close(upstreamChan)
-				close(errChan)
-			}()
-
-			settingsValues.EXPECT().GetRefreshRate().Return(refreshRate)
-			upstreamClient.EXPECT().
-				Watch(ref.GetNamespace(), gomock.Any()).
-				Return(upstreamChan, errChan, nil)
-
-			ctx, cancel := context.WithCancel(context.TODO())
-			defer cancel()
-			streamClient, err := client.StreamUpstreamList(ctx, &request)
-			Expect(err).NotTo(HaveOccurred())
-
-			wait := make(chan struct{})
-			go func() {
-				defer GinkgoRecover()
-				defer func() {
-					close(wait)
-				}()
-
-				actual, err := streamClient.Recv()
-				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.StreamUpstreamListResponse{Upstreams: upstreamList}
-				ExpectEqualProtoMessages(actual, expected)
-
-				errChan <- testErr
-				_, err = streamClient.Recv()
-				Expect(err).To(HaveOccurred())
-				expectedErr := upstreamsvc.ErrorWhileWatchingUpstreams(testErr, metadata.Namespace)
-				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-			}()
-
-			select {
-			case <-wait:
-			case <-time.After(time.Second):
-				Fail("expected wait to be closed before 1s")
-			}
 		})
 	})
 

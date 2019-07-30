@@ -24,8 +24,9 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/configsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/converter"
+	us_converter "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/converter"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc"
+	vs_converter "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/converter"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
 	"go.uber.org/zap"
 )
@@ -45,19 +46,20 @@ func MustGetServiceSet(ctx context.Context) ServiceSet {
 	licenseClient := license.NewClient(ctx)
 	namespaceClient := kube.NewNamespaceClient(clientset.CoreV1Interface)
 	settingsValues := settings_values.NewSettingsValuesClient(ctx, clientset.SettingsClient)
-	inputConverter := converter.NewUpstreamInputConverter()
+	upstreamInputConverter := us_converter.NewUpstreamInputConverter()
 	mutator := mutation.NewMutator(ctx, clientset.VirtualServiceClient)
 	mutationFactory := mutation.NewMutationFactory()
+	virtualServiceDetailsConverter := vs_converter.NewVirtualServiceDetailsConverter()
 
 	// Read env
 	oAuthUrl, oAuthClient := config.GetOAuthEndpointValues()
 	oAuthEndpoint := v1.OAuthEndpoint{Url: oAuthUrl, ClientName: oAuthClient}
 
-	upstreamService := upstreamsvc.NewUpstreamGrpcService(ctx, clientset.UpstreamClient, inputConverter, settingsValues)
+	upstreamService := upstreamsvc.NewUpstreamGrpcService(ctx, clientset.UpstreamClient, upstreamInputConverter, settingsValues)
 	artifactService := artifactsvc.NewArtifactGrpcService(ctx, clientset.ArtifactClient)
 	configService := configsvc.NewConfigGrpcService(ctx, clientset.SettingsClient, licenseClient, namespaceClient, oAuthEndpoint, version.Version)
 	secretService := secretsvc.NewSecretGrpcService(ctx, clientset.SecretClient)
-	virtualServiceService := virtualservicesvc.NewVirtualServiceGrpcService(ctx, clientset.VirtualServiceClient, settingsValues, mutator, mutationFactory)
+	virtualServiceService := virtualservicesvc.NewVirtualServiceGrpcService(ctx, clientset.VirtualServiceClient, settingsValues, mutator, mutationFactory, virtualServiceDetailsConverter)
 
 	return ServiceSet{
 		UpstreamService:       upstreamService,

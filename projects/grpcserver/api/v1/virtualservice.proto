@@ -13,50 +13,24 @@ import "github.com/solo-io/solo-projects/projects/gloo/api/v1/plugins/ratelimit/
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 import "google/protobuf/wrappers.proto";
 
-message GetVirtualServiceRequest {
-    core.solo.io.ResourceRef ref = 1;
-}
-
-message GetVirtualServiceResponse {
+message VirtualServiceDetails {
     gateway.solo.io.VirtualService virtual_service = 1;
+    Plugins plugins = 2;
 }
 
-message ListVirtualServicesRequest {
-    repeated string namespaces = 1;
+message Plugins {
+    ExtAuthPlugin ext_auth = 1;
+    RateLimitPlugin rate_limit = 2;
 }
 
-message ListVirtualServicesResponse {
-    repeated gateway.solo.io.VirtualService virtual_services = 1;
+message ExtAuthPlugin {
+    extauth.plugins.gloo.solo.io.ExtAuthConfig value = 1;
+    string error = 2;
 }
 
-message StreamVirtualServiceListRequest {
-    string namespace = 1;
-    map<string, string> selector = 2;
-}
-
-message StreamVirtualServiceListResponse {
-    repeated gateway.solo.io.VirtualService virtual_services = 1;
-}
-
-// Deprecated. Use VirtualServiceInputV2
-message VirtualServiceInput {
-    core.solo.io.ResourceRef ref = 1;
-    string display_name = 2;
-    repeated string domains = 3;
-    repeated gloo.solo.io.Route routes = 4;
-    core.solo.io.ResourceRef secret_ref = 5;
-    ratelimit.plugins.gloo.solo.io.IngressRateLimit rate_limit_config = 6;
-
-    message BasicAuthInput {
-        string realm = 1;
-        string spec_csv = 2;
-    }
-
-    oneof ext_auth_config {
-        BasicAuthInput basic_auth = 7;
-        extauth.plugins.gloo.solo.io.OAuth oauth = 8;
-        extauth.plugins.gloo.solo.io.CustomAuth custom_auth = 9;
-    }
+message RateLimitPlugin {
+    ratelimit.plugins.gloo.solo.io.IngressRateLimit value = 1;
+    string error = 2;
 }
 
 message RepeatedStrings {
@@ -86,6 +60,47 @@ message ExtAuthInput {
     Config config = 1;
 }
 
+message GetVirtualServiceRequest {
+    core.solo.io.ResourceRef ref = 1;
+}
+
+message GetVirtualServiceResponse {
+    // Deprecated. Use virtual_service_details.
+    gateway.solo.io.VirtualService virtual_service = 1;
+    VirtualServiceDetails virtual_service_details = 2;
+}
+
+message ListVirtualServicesRequest {
+    repeated string namespaces = 1;
+}
+
+message ListVirtualServicesResponse {
+    // Deprecated. Use virtual_service_details.
+    repeated gateway.solo.io.VirtualService virtual_services = 1;
+    repeated VirtualServiceDetails virtual_service_details = 2;
+}
+
+// Deprecated. Use VirtualServiceInputV2
+message VirtualServiceInput {
+    core.solo.io.ResourceRef ref = 1;
+    string display_name = 2;
+    repeated string domains = 3;
+    repeated gloo.solo.io.Route routes = 4;
+    core.solo.io.ResourceRef secret_ref = 5;
+    ratelimit.plugins.gloo.solo.io.IngressRateLimit rate_limit_config = 6;
+
+    message BasicAuthInput {
+        string realm = 1;
+        string spec_csv = 2;
+    }
+
+    oneof ext_auth_config {
+        BasicAuthInput basic_auth = 7;
+        extauth.plugins.gloo.solo.io.OAuth oauth = 8;
+        extauth.plugins.gloo.solo.io.CustomAuth custom_auth = 9;
+    }
+}
+
 message VirtualServiceInputV2 {
     core.solo.io.ResourceRef ref = 1;
     google.protobuf.StringValue display_name = 2;
@@ -103,7 +118,9 @@ message CreateVirtualServiceRequest {
 }
 
 message CreateVirtualServiceResponse {
+    // Deprecated. Use virtual_service_details.
     gateway.solo.io.VirtualService virtual_service = 1;
+    VirtualServiceDetails virtual_service_details = 2;
 }
 
 message UpdateVirtualServiceRequest {
@@ -113,7 +130,9 @@ message UpdateVirtualServiceRequest {
 }
 
 message UpdateVirtualServiceResponse {
+    // Deprecated. Use virtual_service_details.
     gateway.solo.io.VirtualService virtual_service = 1;
+    VirtualServiceDetails virtual_service_details = 2;
 }
 
 message DeleteVirtualServiceRequest {
@@ -133,7 +152,9 @@ message CreateRouteRequest {
 }
 
 message CreateRouteResponse {
+    // Deprecated. Use virtual_service_details.
     gateway.solo.io.VirtualService virtual_service = 1;
+    VirtualServiceDetails virtual_service_details = 2;
 }
 
 message UpdateRouteRequest {
@@ -141,7 +162,9 @@ message UpdateRouteRequest {
 }
 
 message UpdateRouteResponse {
+    // Deprecated. Use virtual_service_details.
     gateway.solo.io.VirtualService virtual_service = 1;
+    VirtualServiceDetails virtual_service_details = 2;
 }
 
 message DeleteRouteRequest {
@@ -150,7 +173,9 @@ message DeleteRouteRequest {
 }
 
 message DeleteRouteResponse {
+    // Deprecated. Use virtual_service_details.
     gateway.solo.io.VirtualService virtual_service = 1;
+    VirtualServiceDetails virtual_service_details = 2;
 }
 
 message SwapRoutesRequest {
@@ -160,7 +185,9 @@ message SwapRoutesRequest {
 }
 
 message SwapRoutesResponse {
+    // Deprecated. Use virtual_service_details.
     gateway.solo.io.VirtualService virtual_service = 1;
+    VirtualServiceDetails virtual_service_details = 2;
 }
 
 message ShiftRoutesRequest {
@@ -170,13 +197,14 @@ message ShiftRoutesRequest {
 }
 
 message ShiftRoutesResponse {
+    // Deprecated. Use virtual_service_details.
     gateway.solo.io.VirtualService virtual_service = 1;
+    VirtualServiceDetails virtual_service_details = 2;
 }
 
 service VirtualServiceApi {
     rpc GetVirtualService(GetVirtualServiceRequest) returns (GetVirtualServiceResponse) {}
     rpc ListVirtualServices(ListVirtualServicesRequest) returns (ListVirtualServicesResponse) {}
-    rpc StreamVirtualServiceList(StreamVirtualServiceListRequest) returns (stream StreamVirtualServiceListResponse) {}
     rpc CreateVirtualService(CreateVirtualServiceRequest) returns (CreateVirtualServiceResponse) {}
     rpc UpdateVirtualService(UpdateVirtualServiceRequest) returns (UpdateVirtualServiceResponse) {}
     rpc DeleteVirtualService(DeleteVirtualServiceRequest) returns (DeleteVirtualServiceResponse) {}

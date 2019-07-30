@@ -22,15 +22,6 @@ type UpstreamApiListUpstreams = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_upstream_pb.ListUpstreamsResponse;
 };
 
-type UpstreamApiStreamUpstreamList = {
-  readonly methodName: string;
-  readonly service: typeof UpstreamApi;
-  readonly requestStream: false;
-  readonly responseStream: true;
-  readonly requestType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_upstream_pb.StreamUpstreamListRequest;
-  readonly responseType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_upstream_pb.StreamUpstreamListResponse;
-};
-
 type UpstreamApiCreateUpstream = {
   readonly methodName: string;
   readonly service: typeof UpstreamApi;
@@ -62,7 +53,6 @@ export class UpstreamApi {
   static readonly serviceName: string;
   static readonly GetUpstream: UpstreamApiGetUpstream;
   static readonly ListUpstreams: UpstreamApiListUpstreams;
-  static readonly StreamUpstreamList: UpstreamApiStreamUpstreamList;
   static readonly CreateUpstream: UpstreamApiCreateUpstream;
   static readonly UpdateUpstream: UpstreamApiUpdateUpstream;
   static readonly DeleteUpstream: UpstreamApiDeleteUpstream;
@@ -118,7 +108,6 @@ export class UpstreamApiClient {
     requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_upstream_pb.ListUpstreamsRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_upstream_pb.ListUpstreamsResponse|null) => void
   ): UnaryResponse;
-  streamUpstreamList(requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_upstream_pb.StreamUpstreamListRequest, metadata?: grpc.Metadata): ResponseStream<github_com_solo_io_solo_projects_projects_grpcserver_api_v1_upstream_pb.StreamUpstreamListResponse>;
   createUpstream(
     requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_upstream_pb.CreateUpstreamRequest,
     metadata: grpc.Metadata,

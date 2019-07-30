@@ -15,8 +15,6 @@ weight: 5
 - [GetUpstreamResponse](#getupstreamresponse)
 - [ListUpstreamsRequest](#listupstreamsrequest)
 - [ListUpstreamsResponse](#listupstreamsresponse)
-- [StreamUpstreamListRequest](#streamupstreamlistrequest)
-- [StreamUpstreamListResponse](#streamupstreamlistresponse)
 - [UpstreamInput](#upstreaminput)
 - [CreateUpstreamRequest](#createupstreamrequest)
 - [CreateUpstreamResponse](#createupstreamresponse)
@@ -87,42 +85,6 @@ weight: 5
 
 ---
 ### ListUpstreamsResponse
-
-
-
-```yaml
-"upstreams": []gloo.solo.io.Upstream
-
-```
-
-| Field | Type | Description | Default |
-| ----- | ---- | ----------- |----------- | 
-| `upstreams` | [[]gloo.solo.io.Upstream](../../../../../../gloo/projects/gloo/api/v1/upstream.proto.sk#upstream) |  |  |
-
-
-
-
----
-### StreamUpstreamListRequest
-
-
-
-```yaml
-"namespace": string
-"selector": map<string, string>
-
-```
-
-| Field | Type | Description | Default |
-| ----- | ---- | ----------- |----------- | 
-| `namespace` | `string` |  |  |
-| `selector` | `map<string, string>` |  |  |
-
-
-
-
----
-### StreamUpstreamListResponse
 
 
 

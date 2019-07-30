@@ -99,51 +99,6 @@ export namespace ListUpstreamsResponse {
   }
 }
 
-export class StreamUpstreamListRequest extends jspb.Message {
-  getNamespace(): string;
-  setNamespace(value: string): void;
-
-  getSelectorMap(): jspb.Map<string, string>;
-  clearSelectorMap(): void;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): StreamUpstreamListRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: StreamUpstreamListRequest): StreamUpstreamListRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: StreamUpstreamListRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): StreamUpstreamListRequest;
-  static deserializeBinaryFromReader(message: StreamUpstreamListRequest, reader: jspb.BinaryReader): StreamUpstreamListRequest;
-}
-
-export namespace StreamUpstreamListRequest {
-  export type AsObject = {
-    namespace: string,
-    selectorMap: Array<[string, string]>,
-  }
-}
-
-export class StreamUpstreamListResponse extends jspb.Message {
-  clearUpstreamsList(): void;
-  getUpstreamsList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>;
-  setUpstreamsList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream>): void;
-  addUpstreams(value?: github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): StreamUpstreamListResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: StreamUpstreamListResponse): StreamUpstreamListResponse.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: StreamUpstreamListResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): StreamUpstreamListResponse;
-  static deserializeBinaryFromReader(message: StreamUpstreamListResponse, reader: jspb.BinaryReader): StreamUpstreamListResponse;
-}
-
-export namespace StreamUpstreamListResponse {
-  export type AsObject = {
-    upstreamsList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_upstream_pb.Upstream.AsObject>,
-  }
-}
-
 export class UpstreamInput extends jspb.Message {
   hasRef(): boolean;
   clearRef(): void;

@@ -30,25 +30,27 @@ goog.exportSymbol('proto.glooeeapi.solo.io.DeleteVirtualServiceRequest', null, g
 goog.exportSymbol('proto.glooeeapi.solo.io.DeleteVirtualServiceResponse', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.ExtAuthInput', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.ExtAuthInput.Config', null, global);
+goog.exportSymbol('proto.glooeeapi.solo.io.ExtAuthPlugin', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.GetVirtualServiceRequest', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.GetVirtualServiceResponse', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.IngressRateLimitValue', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.ListVirtualServicesRequest', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.ListVirtualServicesResponse', null, global);
+goog.exportSymbol('proto.glooeeapi.solo.io.Plugins', null, global);
+goog.exportSymbol('proto.glooeeapi.solo.io.RateLimitPlugin', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.RepeatedRoutes', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.RepeatedStrings', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.RouteInput', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.ShiftRoutesRequest', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.ShiftRoutesResponse', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.SslConfigValue', null, global);
-goog.exportSymbol('proto.glooeeapi.solo.io.StreamVirtualServiceListRequest', null, global);
-goog.exportSymbol('proto.glooeeapi.solo.io.StreamVirtualServiceListResponse', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.SwapRoutesRequest', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.SwapRoutesResponse', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.UpdateRouteRequest', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.UpdateRouteResponse', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.UpdateVirtualServiceRequest', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.UpdateVirtualServiceResponse', null, global);
+goog.exportSymbol('proto.glooeeapi.solo.io.VirtualServiceDetails', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.VirtualServiceInput', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput', null, global);
 goog.exportSymbol('proto.glooeeapi.solo.io.VirtualServiceInputV2', null, global);
@@ -63,12 +65,12 @@ goog.exportSymbol('proto.glooeeapi.solo.io.VirtualServiceInputV2', null, global)
  * @extends {jspb.Message}
  * @constructor
  */
-proto.glooeeapi.solo.io.GetVirtualServiceRequest = function(opt_data) {
+proto.glooeeapi.solo.io.VirtualServiceDetails = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.glooeeapi.solo.io.GetVirtualServiceRequest, jspb.Message);
+goog.inherits(proto.glooeeapi.solo.io.VirtualServiceDetails, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.glooeeapi.solo.io.GetVirtualServiceRequest.displayName = 'proto.glooeeapi.solo.io.GetVirtualServiceRequest';
+  proto.glooeeapi.solo.io.VirtualServiceDetails.displayName = 'proto.glooeeapi.solo.io.VirtualServiceDetails';
 }
 
 
@@ -83,8 +85,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.toObject = function(opt_includeInstance) {
-  return proto.glooeeapi.solo.io.GetVirtualServiceRequest.toObject(opt_includeInstance, this);
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.toObject = function(opt_includeInstance) {
+  return proto.glooeeapi.solo.io.VirtualServiceDetails.toObject(opt_includeInstance, this);
 };
 
 
@@ -93,13 +95,14 @@ proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.toObject = function(o
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.glooeeapi.solo.io.GetVirtualServiceRequest} msg The msg instance to transform.
+ * @param {!proto.glooeeapi.solo.io.VirtualServiceDetails} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.glooeeapi.solo.io.GetVirtualServiceRequest.toObject = function(includeInstance, msg) {
+proto.glooeeapi.solo.io.VirtualServiceDetails.toObject = function(includeInstance, msg) {
   var f, obj = {
-    ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f)
+    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f),
+    plugins: (f = msg.getPlugins()) && proto.glooeeapi.solo.io.Plugins.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -113,182 +116,23 @@ proto.glooeeapi.solo.io.GetVirtualServiceRequest.toObject = function(includeInst
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.glooeeapi.solo.io.GetVirtualServiceRequest}
+ * @return {!proto.glooeeapi.solo.io.VirtualServiceDetails}
  */
-proto.glooeeapi.solo.io.GetVirtualServiceRequest.deserializeBinary = function(bytes) {
+proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.glooeeapi.solo.io.GetVirtualServiceRequest;
-  return proto.glooeeapi.solo.io.GetVirtualServiceRequest.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.glooeeapi.solo.io.VirtualServiceDetails;
+  return proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.glooeeapi.solo.io.GetVirtualServiceRequest} msg The message object to deserialize into.
+ * @param {!proto.glooeeapi.solo.io.VirtualServiceDetails} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.glooeeapi.solo.io.GetVirtualServiceRequest}
+ * @return {!proto.glooeeapi.solo.io.VirtualServiceDetails}
  */
-proto.glooeeapi.solo.io.GetVirtualServiceRequest.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
-      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
-      msg.setRef(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.glooeeapi.solo.io.GetVirtualServiceRequest.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.glooeeapi.solo.io.GetVirtualServiceRequest} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.glooeeapi.solo.io.GetVirtualServiceRequest.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getRef();
-  if (f != null) {
-    writer.writeMessage(
-      1,
-      f,
-      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
-    );
-  }
-};
-
-
-/**
- * optional core.solo.io.ResourceRef ref = 1;
- * @return {?proto.core.solo.io.ResourceRef}
- */
-proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.getRef = function() {
-  return /** @type{?proto.core.solo.io.ResourceRef} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
-};
-
-
-/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
-proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.setRef = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
-};
-
-
-proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.clearRef = function() {
-  this.setRef(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.hasRef = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.glooeeapi.solo.io.GetVirtualServiceResponse = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
-};
-goog.inherits(proto.glooeeapi.solo.io.GetVirtualServiceResponse, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.glooeeapi.solo.io.GetVirtualServiceResponse.displayName = 'proto.glooeeapi.solo.io.GetVirtualServiceResponse';
-}
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.toObject = function(opt_includeInstance) {
-  return proto.glooeeapi.solo.io.GetVirtualServiceResponse.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.glooeeapi.solo.io.GetVirtualServiceResponse} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.glooeeapi.solo.io.GetVirtualServiceResponse.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.glooeeapi.solo.io.GetVirtualServiceResponse}
- */
-proto.glooeeapi.solo.io.GetVirtualServiceResponse.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.glooeeapi.solo.io.GetVirtualServiceResponse;
-  return proto.glooeeapi.solo.io.GetVirtualServiceResponse.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.glooeeapi.solo.io.GetVirtualServiceResponse} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.glooeeapi.solo.io.GetVirtualServiceResponse}
- */
-proto.glooeeapi.solo.io.GetVirtualServiceResponse.deserializeBinaryFromReader = function(msg, reader) {
+proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -300,6 +144,11 @@ proto.glooeeapi.solo.io.GetVirtualServiceResponse.deserializeBinaryFromReader = 
       reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
       msg.setVirtualService(value);
       break;
+    case 2:
+      var value = new proto.glooeeapi.solo.io.Plugins;
+      reader.readMessage(value,proto.glooeeapi.solo.io.Plugins.deserializeBinaryFromReader);
+      msg.setPlugins(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -313,9 +162,9 @@ proto.glooeeapi.solo.io.GetVirtualServiceResponse.deserializeBinaryFromReader = 
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.serializeBinary = function() {
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.glooeeapi.solo.io.GetVirtualServiceResponse.serializeBinaryToWriter(this, writer);
+  proto.glooeeapi.solo.io.VirtualServiceDetails.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -323,11 +172,11 @@ proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.serializeBinary = fu
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.glooeeapi.solo.io.GetVirtualServiceResponse} message
+ * @param {!proto.glooeeapi.solo.io.VirtualServiceDetails} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.glooeeapi.solo.io.GetVirtualServiceResponse.serializeBinaryToWriter = function(message, writer) {
+proto.glooeeapi.solo.io.VirtualServiceDetails.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getVirtualService();
   if (f != null) {
@@ -337,6 +186,14 @@ proto.glooeeapi.solo.io.GetVirtualServiceResponse.serializeBinaryToWriter = func
       github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
     );
   }
+  f = message.getPlugins();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.glooeeapi.solo.io.Plugins.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -344,19 +201,19 @@ proto.glooeeapi.solo.io.GetVirtualServiceResponse.serializeBinaryToWriter = func
  * optional gateway.solo.io.VirtualService virtual_service = 1;
  * @return {?proto.gateway.solo.io.VirtualService}
  */
-proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.getVirtualService = function() {
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.getVirtualService = function() {
   return /** @type{?proto.gateway.solo.io.VirtualService} */ (
     jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, 1));
 };
 
 
 /** @param {?proto.gateway.solo.io.VirtualService|undefined} value */
-proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.setVirtualService = function(value) {
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.setVirtualService = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.clearVirtualService = function() {
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.clearVirtualService = function() {
   this.setVirtualService(undefined);
 };
 
@@ -365,171 +222,38 @@ proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.clearVirtualService 
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.hasVirtualService = function() {
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.hasVirtualService = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
 
-
 /**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
+ * optional Plugins plugins = 2;
+ * @return {?proto.glooeeapi.solo.io.Plugins}
  */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.glooeeapi.solo.io.ListVirtualServicesRequest.repeatedFields_, null);
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.getPlugins = function() {
+  return /** @type{?proto.glooeeapi.solo.io.Plugins} */ (
+    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.Plugins, 2));
 };
-goog.inherits(proto.glooeeapi.solo.io.ListVirtualServicesRequest, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.glooeeapi.solo.io.ListVirtualServicesRequest.displayName = 'proto.glooeeapi.solo.io.ListVirtualServicesRequest';
-}
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.repeatedFields_ = [1];
 
 
+/** @param {?proto.glooeeapi.solo.io.Plugins|undefined} value */
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.setPlugins = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
 
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.toObject = function(opt_includeInstance) {
-  return proto.glooeeapi.solo.io.ListVirtualServicesRequest.toObject(opt_includeInstance, this);
+
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.clearPlugins = function() {
+  this.setPlugins(undefined);
 };
 
 
 /**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.glooeeapi.solo.io.ListVirtualServicesRequest} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
+ * Returns whether this field is set.
+ * @return {!boolean}
  */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    namespacesList: jspb.Message.getRepeatedField(msg, 1)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.glooeeapi.solo.io.ListVirtualServicesRequest}
- */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.glooeeapi.solo.io.ListVirtualServicesRequest;
-  return proto.glooeeapi.solo.io.ListVirtualServicesRequest.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.glooeeapi.solo.io.ListVirtualServicesRequest} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.glooeeapi.solo.io.ListVirtualServicesRequest}
- */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addNamespaces(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.glooeeapi.solo.io.ListVirtualServicesRequest.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.glooeeapi.solo.io.ListVirtualServicesRequest} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getNamespacesList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      1,
-      f
-    );
-  }
-};
-
-
-/**
- * repeated string namespaces = 1;
- * @return {!Array<string>}
- */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.getNamespacesList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
-};
-
-
-/** @param {!Array<string>} value */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.setNamespacesList = function(value) {
-  jspb.Message.setField(this, 1, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.addNamespaces = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 1, value, opt_index);
-};
-
-
-proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.clearNamespacesList = function() {
-  this.setNamespacesList([]);
+proto.glooeeapi.solo.io.VirtualServiceDetails.prototype.hasPlugins = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -544,180 +268,12 @@ proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.clearNamespacesList
  * @extends {jspb.Message}
  * @constructor
  */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.glooeeapi.solo.io.ListVirtualServicesResponse.repeatedFields_, null);
-};
-goog.inherits(proto.glooeeapi.solo.io.ListVirtualServicesResponse, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.glooeeapi.solo.io.ListVirtualServicesResponse.displayName = 'proto.glooeeapi.solo.io.ListVirtualServicesResponse';
-}
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.repeatedFields_ = [1];
-
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.toObject = function(opt_includeInstance) {
-  return proto.glooeeapi.solo.io.ListVirtualServicesResponse.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.glooeeapi.solo.io.ListVirtualServicesResponse} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    virtualServicesList: jspb.Message.toObjectList(msg.getVirtualServicesList(),
-    github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject, includeInstance)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.glooeeapi.solo.io.ListVirtualServicesResponse}
- */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.glooeeapi.solo.io.ListVirtualServicesResponse;
-  return proto.glooeeapi.solo.io.ListVirtualServicesResponse.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.glooeeapi.solo.io.ListVirtualServicesResponse} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.glooeeapi.solo.io.ListVirtualServicesResponse}
- */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = new github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
-      msg.addVirtualServices(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.glooeeapi.solo.io.ListVirtualServicesResponse.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.glooeeapi.solo.io.ListVirtualServicesResponse} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getVirtualServicesList();
-  if (f.length > 0) {
-    writer.writeRepeatedMessage(
-      1,
-      f,
-      github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
-    );
-  }
-};
-
-
-/**
- * repeated gateway.solo.io.VirtualService virtual_services = 1;
- * @return {!Array<!proto.gateway.solo.io.VirtualService>}
- */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.getVirtualServicesList = function() {
-  return /** @type{!Array<!proto.gateway.solo.io.VirtualService>} */ (
-    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, 1));
-};
-
-
-/** @param {!Array<!proto.gateway.solo.io.VirtualService>} value */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.setVirtualServicesList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 1, value);
-};
-
-
-/**
- * @param {!proto.gateway.solo.io.VirtualService=} opt_value
- * @param {number=} opt_index
- * @return {!proto.gateway.solo.io.VirtualService}
- */
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.addVirtualServices = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gateway.solo.io.VirtualService, opt_index);
-};
-
-
-proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.clearVirtualServicesList = function() {
-  this.setVirtualServicesList([]);
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListRequest = function(opt_data) {
+proto.glooeeapi.solo.io.Plugins = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.glooeeapi.solo.io.StreamVirtualServiceListRequest, jspb.Message);
+goog.inherits(proto.glooeeapi.solo.io.Plugins, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.displayName = 'proto.glooeeapi.solo.io.StreamVirtualServiceListRequest';
+  proto.glooeeapi.solo.io.Plugins.displayName = 'proto.glooeeapi.solo.io.Plugins';
 }
 
 
@@ -732,8 +288,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.prototype.toObject = function(opt_includeInstance) {
-  return proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.toObject(opt_includeInstance, this);
+proto.glooeeapi.solo.io.Plugins.prototype.toObject = function(opt_includeInstance) {
+  return proto.glooeeapi.solo.io.Plugins.toObject(opt_includeInstance, this);
 };
 
 
@@ -742,14 +298,14 @@ proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.prototype.toObject = fun
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.glooeeapi.solo.io.StreamVirtualServiceListRequest} msg The msg instance to transform.
+ * @param {!proto.glooeeapi.solo.io.Plugins} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.toObject = function(includeInstance, msg) {
+proto.glooeeapi.solo.io.Plugins.toObject = function(includeInstance, msg) {
   var f, obj = {
-    namespace: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    selectorMap: (f = msg.getSelectorMap()) ? f.toObject(includeInstance, undefined) : []
+    extAuth: (f = msg.getExtAuth()) && proto.glooeeapi.solo.io.ExtAuthPlugin.toObject(includeInstance, f),
+    rateLimit: (f = msg.getRateLimit()) && proto.glooeeapi.solo.io.RateLimitPlugin.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -763,23 +319,23 @@ proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.toObject = function(incl
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.glooeeapi.solo.io.StreamVirtualServiceListRequest}
+ * @return {!proto.glooeeapi.solo.io.Plugins}
  */
-proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.deserializeBinary = function(bytes) {
+proto.glooeeapi.solo.io.Plugins.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.glooeeapi.solo.io.StreamVirtualServiceListRequest;
-  return proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.glooeeapi.solo.io.Plugins;
+  return proto.glooeeapi.solo.io.Plugins.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.glooeeapi.solo.io.StreamVirtualServiceListRequest} msg The message object to deserialize into.
+ * @param {!proto.glooeeapi.solo.io.Plugins} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.glooeeapi.solo.io.StreamVirtualServiceListRequest}
+ * @return {!proto.glooeeapi.solo.io.Plugins}
  */
-proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.deserializeBinaryFromReader = function(msg, reader) {
+proto.glooeeapi.solo.io.Plugins.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -787,14 +343,14 @@ proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.deserializeBinaryFromRea
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setNamespace(value);
+      var value = new proto.glooeeapi.solo.io.ExtAuthPlugin;
+      reader.readMessage(value,proto.glooeeapi.solo.io.ExtAuthPlugin.deserializeBinaryFromReader);
+      msg.setExtAuth(value);
       break;
     case 2:
-      var value = msg.getSelectorMap();
-      reader.readMessage(value, function(message, reader) {
-        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
-         });
+      var value = new proto.glooeeapi.solo.io.RateLimitPlugin;
+      reader.readMessage(value,proto.glooeeapi.solo.io.RateLimitPlugin.deserializeBinaryFromReader);
+      msg.setRateLimit(value);
       break;
     default:
       reader.skipField();
@@ -809,9 +365,9 @@ proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.deserializeBinaryFromRea
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.prototype.serializeBinary = function() {
+proto.glooeeapi.solo.io.Plugins.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.serializeBinaryToWriter(this, writer);
+  proto.glooeeapi.solo.io.Plugins.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -819,686 +375,49 @@ proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.prototype.serializeBinar
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.glooeeapi.solo.io.StreamVirtualServiceListRequest} message
+ * @param {!proto.glooeeapi.solo.io.Plugins} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.serializeBinaryToWriter = function(message, writer) {
+proto.glooeeapi.solo.io.Plugins.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getNamespace();
-  if (f.length > 0) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
-  f = message.getSelectorMap(true);
-  if (f && f.getLength() > 0) {
-    f.serializeBinary(2, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
-  }
-};
-
-
-/**
- * optional string namespace = 1;
- * @return {string}
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.prototype.getNamespace = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/** @param {string} value */
-proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.prototype.setNamespace = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-/**
- * map<string, string> selector = 2;
- * @param {boolean=} opt_noLazyCreate Do not create the map if
- * empty, instead returning `undefined`
- * @return {!jspb.Map<string,string>}
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.prototype.getSelectorMap = function(opt_noLazyCreate) {
-  return /** @type {!jspb.Map<string,string>} */ (
-      jspb.Message.getMapField(this, 2, opt_noLazyCreate,
-      null));
-};
-
-
-proto.glooeeapi.solo.io.StreamVirtualServiceListRequest.prototype.clearSelectorMap = function() {
-  this.getSelectorMap().clear();
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.repeatedFields_, null);
-};
-goog.inherits(proto.glooeeapi.solo.io.StreamVirtualServiceListResponse, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.displayName = 'proto.glooeeapi.solo.io.StreamVirtualServiceListResponse';
-}
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.repeatedFields_ = [1];
-
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.toObject = function(opt_includeInstance) {
-  return proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.glooeeapi.solo.io.StreamVirtualServiceListResponse} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    virtualServicesList: jspb.Message.toObjectList(msg.getVirtualServicesList(),
-    github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject, includeInstance)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.glooeeapi.solo.io.StreamVirtualServiceListResponse}
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.glooeeapi.solo.io.StreamVirtualServiceListResponse;
-  return proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.glooeeapi.solo.io.StreamVirtualServiceListResponse} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.glooeeapi.solo.io.StreamVirtualServiceListResponse}
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = new github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
-      msg.addVirtualServices(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.glooeeapi.solo.io.StreamVirtualServiceListResponse} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getVirtualServicesList();
-  if (f.length > 0) {
-    writer.writeRepeatedMessage(
-      1,
-      f,
-      github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
-    );
-  }
-};
-
-
-/**
- * repeated gateway.solo.io.VirtualService virtual_services = 1;
- * @return {!Array<!proto.gateway.solo.io.VirtualService>}
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.getVirtualServicesList = function() {
-  return /** @type{!Array<!proto.gateway.solo.io.VirtualService>} */ (
-    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, 1));
-};
-
-
-/** @param {!Array<!proto.gateway.solo.io.VirtualService>} value */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.setVirtualServicesList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 1, value);
-};
-
-
-/**
- * @param {!proto.gateway.solo.io.VirtualService=} opt_value
- * @param {number=} opt_index
- * @return {!proto.gateway.solo.io.VirtualService}
- */
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.addVirtualServices = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gateway.solo.io.VirtualService, opt_index);
-};
-
-
-proto.glooeeapi.solo.io.StreamVirtualServiceListResponse.prototype.clearVirtualServicesList = function() {
-  this.setVirtualServicesList([]);
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.glooeeapi.solo.io.VirtualServiceInput = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.glooeeapi.solo.io.VirtualServiceInput.repeatedFields_, proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_);
-};
-goog.inherits(proto.glooeeapi.solo.io.VirtualServiceInput, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.glooeeapi.solo.io.VirtualServiceInput.displayName = 'proto.glooeeapi.solo.io.VirtualServiceInput';
-}
-/**
- * List of repeated fields within this message type.
- * @private {!Array<number>}
- * @const
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.repeatedFields_ = [3,4];
-
-/**
- * Oneof group definitions for this message. Each group defines the field
- * numbers belonging to that group. When of these fields' value is set, all
- * other fields in the group are cleared. During deserialization, if multiple
- * fields are encountered for a group, only the last value seen will be kept.
- * @private {!Array<!Array<number>>}
- * @const
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_ = [[7,8,9]];
-
-/**
- * @enum {number}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.ExtAuthConfigCase = {
-  EXT_AUTH_CONFIG_NOT_SET: 0,
-  BASIC_AUTH: 7,
-  OAUTH: 8,
-  CUSTOM_AUTH: 9
-};
-
-/**
- * @return {proto.glooeeapi.solo.io.VirtualServiceInput.ExtAuthConfigCase}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getExtAuthConfigCase = function() {
-  return /** @type {proto.glooeeapi.solo.io.VirtualServiceInput.ExtAuthConfigCase} */(jspb.Message.computeOneofCase(this, proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_[0]));
-};
-
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.toObject = function(opt_includeInstance) {
-  return proto.glooeeapi.solo.io.VirtualServiceInput.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.glooeeapi.solo.io.VirtualServiceInput} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    displayName: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    domainsList: jspb.Message.getRepeatedField(msg, 3),
-    routesList: jspb.Message.toObjectList(msg.getRoutesList(),
-    github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.toObject, includeInstance),
-    secretRef: (f = msg.getSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
-    rateLimitConfig: (f = msg.getRateLimitConfig()) && github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.toObject(includeInstance, f),
-    basicAuth: (f = msg.getBasicAuth()) && proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.toObject(includeInstance, f),
-    oauth: (f = msg.getOauth()) && github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth.toObject(includeInstance, f),
-    customAuth: (f = msg.getCustomAuth()) && github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth.toObject(includeInstance, f)
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.glooeeapi.solo.io.VirtualServiceInput}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.glooeeapi.solo.io.VirtualServiceInput;
-  return proto.glooeeapi.solo.io.VirtualServiceInput.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.glooeeapi.solo.io.VirtualServiceInput} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.glooeeapi.solo.io.VirtualServiceInput}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
-      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
-      msg.setRef(value);
-      break;
-    case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setDisplayName(value);
-      break;
-    case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addDomains(value);
-      break;
-    case 4:
-      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route;
-      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.deserializeBinaryFromReader);
-      msg.addRoutes(value);
-      break;
-    case 5:
-      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
-      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
-      msg.setSecretRef(value);
-      break;
-    case 6:
-      var value = new github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit;
-      reader.readMessage(value,github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.deserializeBinaryFromReader);
-      msg.setRateLimitConfig(value);
-      break;
-    case 7:
-      var value = new proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput;
-      reader.readMessage(value,proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.deserializeBinaryFromReader);
-      msg.setBasicAuth(value);
-      break;
-    case 8:
-      var value = new github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth;
-      reader.readMessage(value,github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth.deserializeBinaryFromReader);
-      msg.setOauth(value);
-      break;
-    case 9:
-      var value = new github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth;
-      reader.readMessage(value,github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth.deserializeBinaryFromReader);
-      msg.setCustomAuth(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.glooeeapi.solo.io.VirtualServiceInput.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.glooeeapi.solo.io.VirtualServiceInput} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getRef();
+  f = message.getExtAuth();
   if (f != null) {
     writer.writeMessage(
       1,
       f,
-      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+      proto.glooeeapi.solo.io.ExtAuthPlugin.serializeBinaryToWriter
     );
   }
-  f = message.getDisplayName();
-  if (f.length > 0) {
-    writer.writeString(
+  f = message.getRateLimit();
+  if (f != null) {
+    writer.writeMessage(
       2,
-      f
-    );
-  }
-  f = message.getDomainsList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      3,
-      f
-    );
-  }
-  f = message.getRoutesList();
-  if (f.length > 0) {
-    writer.writeRepeatedMessage(
-      4,
       f,
-      github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.serializeBinaryToWriter
-    );
-  }
-  f = message.getSecretRef();
-  if (f != null) {
-    writer.writeMessage(
-      5,
-      f,
-      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
-    );
-  }
-  f = message.getRateLimitConfig();
-  if (f != null) {
-    writer.writeMessage(
-      6,
-      f,
-      github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.serializeBinaryToWriter
-    );
-  }
-  f = message.getBasicAuth();
-  if (f != null) {
-    writer.writeMessage(
-      7,
-      f,
-      proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.serializeBinaryToWriter
-    );
-  }
-  f = message.getOauth();
-  if (f != null) {
-    writer.writeMessage(
-      8,
-      f,
-      github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth.serializeBinaryToWriter
-    );
-  }
-  f = message.getCustomAuth();
-  if (f != null) {
-    writer.writeMessage(
-      9,
-      f,
-      github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth.serializeBinaryToWriter
-    );
-  }
-};
-
-
-
-/**
- * Generated by JsPbCodeGenerator.
- * @param {Array=} opt_data Optional initial data array, typically from a
- * server response, or constructed directly in Javascript. The array is used
- * in place and becomes part of the constructed object. It is not cloned.
- * If no data is provided, the constructed object will be empty, but still
- * valid.
- * @extends {jspb.Message}
- * @constructor
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
-};
-goog.inherits(proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput, jspb.Message);
-if (goog.DEBUG && !COMPILED) {
-  proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.displayName = 'proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput';
-}
-
-
-if (jspb.Message.GENERATE_TO_OBJECT) {
-/**
- * Creates an object representation of this proto suitable for use in Soy templates.
- * Field names that are reserved in JavaScript and will be renamed to pb_name.
- * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
- * For the list of reserved names please see:
- *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
- * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
- *     for transitional soy proto support: http://goto/soy-param-migration
- * @return {!Object}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.prototype.toObject = function(opt_includeInstance) {
-  return proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.toObject(opt_includeInstance, this);
-};
-
-
-/**
- * Static version of the {@see toObject} method.
- * @param {boolean|undefined} includeInstance Whether to include the JSPB
- *     instance for transitional soy proto support:
- *     http://goto/soy-param-migration
- * @param {!proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput} msg The msg instance to transform.
- * @return {!Object}
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.toObject = function(includeInstance, msg) {
-  var f, obj = {
-    realm: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    specCsv: jspb.Message.getFieldWithDefault(msg, 2, "")
-  };
-
-  if (includeInstance) {
-    obj.$jspbMessageInstance = msg;
-  }
-  return obj;
-};
-}
-
-
-/**
- * Deserializes binary data (in protobuf wire format).
- * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.deserializeBinary = function(bytes) {
-  var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput;
-  return proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.deserializeBinaryFromReader(msg, reader);
-};
-
-
-/**
- * Deserializes binary data (in protobuf wire format) from the
- * given reader into the given message object.
- * @param {!proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput} msg The message object to deserialize into.
- * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.deserializeBinaryFromReader = function(msg, reader) {
-  while (reader.nextField()) {
-    if (reader.isEndGroup()) {
-      break;
-    }
-    var field = reader.getFieldNumber();
-    switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setRealm(value);
-      break;
-    case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setSpecCsv(value);
-      break;
-    default:
-      reader.skipField();
-      break;
-    }
-  }
-  return msg;
-};
-
-
-/**
- * Serializes the message to binary data (in protobuf wire format).
- * @return {!Uint8Array}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.prototype.serializeBinary = function() {
-  var writer = new jspb.BinaryWriter();
-  proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.serializeBinaryToWriter(this, writer);
-  return writer.getResultBuffer();
-};
-
-
-/**
- * Serializes the given message to binary data (in protobuf wire
- * format), writing to the given BinaryWriter.
- * @param {!proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput} message
- * @param {!jspb.BinaryWriter} writer
- * @suppress {unusedLocalVariables} f is only used for nested messages
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.serializeBinaryToWriter = function(message, writer) {
-  var f = undefined;
-  f = message.getRealm();
-  if (f.length > 0) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
-  f = message.getSpecCsv();
-  if (f.length > 0) {
-    writer.writeString(
-      2,
-      f
+      proto.glooeeapi.solo.io.RateLimitPlugin.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional string realm = 1;
- * @return {string}
+ * optional ExtAuthPlugin ext_auth = 1;
+ * @return {?proto.glooeeapi.solo.io.ExtAuthPlugin}
  */
-proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.prototype.getRealm = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+proto.glooeeapi.solo.io.Plugins.prototype.getExtAuth = function() {
+  return /** @type{?proto.glooeeapi.solo.io.ExtAuthPlugin} */ (
+    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.ExtAuthPlugin, 1));
 };
 
 
-/** @param {string} value */
-proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.prototype.setRealm = function(value) {
-  jspb.Message.setProto3StringField(this, 1, value);
-};
-
-
-/**
- * optional string spec_csv = 2;
- * @return {string}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.prototype.getSpecCsv = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
-};
-
-
-/** @param {string} value */
-proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.prototype.setSpecCsv = function(value) {
-  jspb.Message.setProto3StringField(this, 2, value);
-};
-
-
-/**
- * optional core.solo.io.ResourceRef ref = 1;
- * @return {?proto.core.solo.io.ResourceRef}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getRef = function() {
-  return /** @type{?proto.core.solo.io.ResourceRef} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
-};
-
-
-/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setRef = function(value) {
+/** @param {?proto.glooeeapi.solo.io.ExtAuthPlugin|undefined} value */
+proto.glooeeapi.solo.io.Plugins.prototype.setExtAuth = function(value) {
   jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearRef = function() {
-  this.setRef(undefined);
+proto.glooeeapi.solo.io.Plugins.prototype.clearExtAuth = function() {
+  this.setExtAuth(undefined);
 };
 
 
@@ -1506,164 +425,386 @@ proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearRef = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasRef = function() {
+proto.glooeeapi.solo.io.Plugins.prototype.hasExtAuth = function() {
   return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * optional string display_name = 2;
+ * optional RateLimitPlugin rate_limit = 2;
+ * @return {?proto.glooeeapi.solo.io.RateLimitPlugin}
+ */
+proto.glooeeapi.solo.io.Plugins.prototype.getRateLimit = function() {
+  return /** @type{?proto.glooeeapi.solo.io.RateLimitPlugin} */ (
+    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.RateLimitPlugin, 2));
+};
+
+
+/** @param {?proto.glooeeapi.solo.io.RateLimitPlugin|undefined} value */
+proto.glooeeapi.solo.io.Plugins.prototype.setRateLimit = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.glooeeapi.solo.io.Plugins.prototype.clearRateLimit = function() {
+  this.setRateLimit(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.Plugins.prototype.hasRateLimit = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.glooeeapi.solo.io.ExtAuthPlugin = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.glooeeapi.solo.io.ExtAuthPlugin, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.glooeeapi.solo.io.ExtAuthPlugin.displayName = 'proto.glooeeapi.solo.io.ExtAuthPlugin';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.glooeeapi.solo.io.ExtAuthPlugin.prototype.toObject = function(opt_includeInstance) {
+  return proto.glooeeapi.solo.io.ExtAuthPlugin.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.glooeeapi.solo.io.ExtAuthPlugin} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.ExtAuthPlugin.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    value: (f = msg.getValue()) && github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.ExtAuthConfig.toObject(includeInstance, f),
+    error: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.glooeeapi.solo.io.ExtAuthPlugin}
+ */
+proto.glooeeapi.solo.io.ExtAuthPlugin.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.glooeeapi.solo.io.ExtAuthPlugin;
+  return proto.glooeeapi.solo.io.ExtAuthPlugin.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.glooeeapi.solo.io.ExtAuthPlugin} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.glooeeapi.solo.io.ExtAuthPlugin}
+ */
+proto.glooeeapi.solo.io.ExtAuthPlugin.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.ExtAuthConfig;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.ExtAuthConfig.deserializeBinaryFromReader);
+      msg.setValue(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setError(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.glooeeapi.solo.io.ExtAuthPlugin.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.glooeeapi.solo.io.ExtAuthPlugin.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.glooeeapi.solo.io.ExtAuthPlugin} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.ExtAuthPlugin.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getValue();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.ExtAuthConfig.serializeBinaryToWriter
+    );
+  }
+  f = message.getError();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional extauth.plugins.gloo.solo.io.ExtAuthConfig value = 1;
+ * @return {?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig}
+ */
+proto.glooeeapi.solo.io.ExtAuthPlugin.prototype.getValue = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.ExtAuthConfig, 1));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.ExtAuthConfig|undefined} value */
+proto.glooeeapi.solo.io.ExtAuthPlugin.prototype.setValue = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.glooeeapi.solo.io.ExtAuthPlugin.prototype.clearValue = function() {
+  this.setValue(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.ExtAuthPlugin.prototype.hasValue = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional string error = 2;
  * @return {string}
  */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getDisplayName = function() {
+proto.glooeeapi.solo.io.ExtAuthPlugin.prototype.getError = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
 /** @param {string} value */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setDisplayName = function(value) {
+proto.glooeeapi.solo.io.ExtAuthPlugin.prototype.setError = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
+
 /**
- * repeated string domains = 3;
- * @return {!Array<string>}
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
  */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getDomainsList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+proto.glooeeapi.solo.io.RateLimitPlugin = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
+goog.inherits(proto.glooeeapi.solo.io.RateLimitPlugin, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.glooeeapi.solo.io.RateLimitPlugin.displayName = 'proto.glooeeapi.solo.io.RateLimitPlugin';
+}
 
 
-/** @param {!Array<string>} value */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setDomainsList = function(value) {
-  jspb.Message.setField(this, 3, value || []);
-};
-
-
+if (jspb.Message.GENERATE_TO_OBJECT) {
 /**
- * @param {!string} value
- * @param {number=} opt_index
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
  */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.addDomains = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
-};
-
-
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearDomainsList = function() {
-  this.setDomainsList([]);
+proto.glooeeapi.solo.io.RateLimitPlugin.prototype.toObject = function(opt_includeInstance) {
+  return proto.glooeeapi.solo.io.RateLimitPlugin.toObject(opt_includeInstance, this);
 };
 
 
 /**
- * repeated gloo.solo.io.Route routes = 4;
- * @return {!Array<!proto.gloo.solo.io.Route>}
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.glooeeapi.solo.io.RateLimitPlugin} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getRoutesList = function() {
-  return /** @type{!Array<!proto.gloo.solo.io.Route>} */ (
-    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route, 4));
-};
+proto.glooeeapi.solo.io.RateLimitPlugin.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    value: (f = msg.getValue()) && github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.toObject(includeInstance, f),
+    error: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
 
-
-/** @param {!Array<!proto.gloo.solo.io.Route>} value */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setRoutesList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 4, value);
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
 };
+}
 
 
 /**
- * @param {!proto.gloo.solo.io.Route=} opt_value
- * @param {number=} opt_index
- * @return {!proto.gloo.solo.io.Route}
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.glooeeapi.solo.io.RateLimitPlugin}
  */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.addRoutes = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 4, opt_value, proto.gloo.solo.io.Route, opt_index);
-};
-
-
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearRoutesList = function() {
-  this.setRoutesList([]);
+proto.glooeeapi.solo.io.RateLimitPlugin.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.glooeeapi.solo.io.RateLimitPlugin;
+  return proto.glooeeapi.solo.io.RateLimitPlugin.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
- * optional core.solo.io.ResourceRef secret_ref = 5;
- * @return {?proto.core.solo.io.ResourceRef}
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.glooeeapi.solo.io.RateLimitPlugin} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.glooeeapi.solo.io.RateLimitPlugin}
  */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getSecretRef = function() {
-  return /** @type{?proto.core.solo.io.ResourceRef} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 5));
-};
-
-
-/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setSecretRef = function(value) {
-  jspb.Message.setWrapperField(this, 5, value);
-};
-
-
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearSecretRef = function() {
-  this.setSecretRef(undefined);
+proto.glooeeapi.solo.io.RateLimitPlugin.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.deserializeBinaryFromReader);
+      msg.setValue(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setError(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
 };
 
 
 /**
- * Returns whether this field is set.
- * @return {!boolean}
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
  */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasSecretRef = function() {
-  return jspb.Message.getField(this, 5) != null;
+proto.glooeeapi.solo.io.RateLimitPlugin.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.glooeeapi.solo.io.RateLimitPlugin.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
 };
 
 
 /**
- * optional ratelimit.plugins.gloo.solo.io.IngressRateLimit rate_limit_config = 6;
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.glooeeapi.solo.io.RateLimitPlugin} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.RateLimitPlugin.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getValue();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.serializeBinaryToWriter
+    );
+  }
+  f = message.getError();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional ratelimit.plugins.gloo.solo.io.IngressRateLimit value = 1;
  * @return {?proto.ratelimit.plugins.gloo.solo.io.IngressRateLimit}
  */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getRateLimitConfig = function() {
+proto.glooeeapi.solo.io.RateLimitPlugin.prototype.getValue = function() {
   return /** @type{?proto.ratelimit.plugins.gloo.solo.io.IngressRateLimit} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit, 6));
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit, 1));
 };
 
 
 /** @param {?proto.ratelimit.plugins.gloo.solo.io.IngressRateLimit|undefined} value */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setRateLimitConfig = function(value) {
-  jspb.Message.setWrapperField(this, 6, value);
+proto.glooeeapi.solo.io.RateLimitPlugin.prototype.setValue = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
 };
 
 
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearRateLimitConfig = function() {
-  this.setRateLimitConfig(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasRateLimitConfig = function() {
-  return jspb.Message.getField(this, 6) != null;
-};
-
-
-/**
- * optional BasicAuthInput basic_auth = 7;
- * @return {?proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getBasicAuth = function() {
-  return /** @type{?proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput} */ (
-    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput, 7));
-};
-
-
-/** @param {?proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput|undefined} value */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setBasicAuth = function(value) {
-  jspb.Message.setOneofWrapperField(this, 7, proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_[0], value);
-};
-
-
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearBasicAuth = function() {
-  this.setBasicAuth(undefined);
+proto.glooeeapi.solo.io.RateLimitPlugin.prototype.clearValue = function() {
+  this.setValue(undefined);
 };
 
 
@@ -1671,68 +812,23 @@ proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearBasicAuth = function(
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasBasicAuth = function() {
-  return jspb.Message.getField(this, 7) != null;
+proto.glooeeapi.solo.io.RateLimitPlugin.prototype.hasValue = function() {
+  return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * optional extauth.plugins.gloo.solo.io.OAuth oauth = 8;
- * @return {?proto.extauth.plugins.gloo.solo.io.OAuth}
+ * optional string error = 2;
+ * @return {string}
  */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getOauth = function() {
-  return /** @type{?proto.extauth.plugins.gloo.solo.io.OAuth} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth, 8));
+proto.glooeeapi.solo.io.RateLimitPlugin.prototype.getError = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
-/** @param {?proto.extauth.plugins.gloo.solo.io.OAuth|undefined} value */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setOauth = function(value) {
-  jspb.Message.setOneofWrapperField(this, 8, proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_[0], value);
-};
-
-
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearOauth = function() {
-  this.setOauth(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasOauth = function() {
-  return jspb.Message.getField(this, 8) != null;
-};
-
-
-/**
- * optional extauth.plugins.gloo.solo.io.CustomAuth custom_auth = 9;
- * @return {?proto.extauth.plugins.gloo.solo.io.CustomAuth}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getCustomAuth = function() {
-  return /** @type{?proto.extauth.plugins.gloo.solo.io.CustomAuth} */ (
-    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth, 9));
-};
-
-
-/** @param {?proto.extauth.plugins.gloo.solo.io.CustomAuth|undefined} value */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setCustomAuth = function(value) {
-  jspb.Message.setOneofWrapperField(this, 9, proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_[0], value);
-};
-
-
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearCustomAuth = function() {
-  this.setCustomAuth(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasCustomAuth = function() {
-  return jspb.Message.getField(this, 9) != null;
+/** @param {string} value */
+proto.glooeeapi.solo.io.RateLimitPlugin.prototype.setError = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
@@ -2784,6 +1880,1441 @@ proto.glooeeapi.solo.io.ExtAuthInput.prototype.hasConfig = function() {
  * @extends {jspb.Message}
  * @constructor
  */
+proto.glooeeapi.solo.io.GetVirtualServiceRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.glooeeapi.solo.io.GetVirtualServiceRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.glooeeapi.solo.io.GetVirtualServiceRequest.displayName = 'proto.glooeeapi.solo.io.GetVirtualServiceRequest';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.glooeeapi.solo.io.GetVirtualServiceRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.glooeeapi.solo.io.GetVirtualServiceRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.glooeeapi.solo.io.GetVirtualServiceRequest}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.glooeeapi.solo.io.GetVirtualServiceRequest;
+  return proto.glooeeapi.solo.io.GetVirtualServiceRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.glooeeapi.solo.io.GetVirtualServiceRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.glooeeapi.solo.io.GetVirtualServiceRequest}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setRef(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.glooeeapi.solo.io.GetVirtualServiceRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.glooeeapi.solo.io.GetVirtualServiceRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRef();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional core.solo.io.ResourceRef ref = 1;
+ * @return {?proto.core.solo.io.ResourceRef}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.getRef = function() {
+  return /** @type{?proto.core.solo.io.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
+};
+
+
+/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
+proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.setRef = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.clearRef = function() {
+  this.setRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceRequest.prototype.hasRef = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.glooeeapi.solo.io.GetVirtualServiceResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.glooeeapi.solo.io.GetVirtualServiceResponse.displayName = 'proto.glooeeapi.solo.io.GetVirtualServiceResponse';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.glooeeapi.solo.io.GetVirtualServiceResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.glooeeapi.solo.io.GetVirtualServiceResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f),
+    virtualServiceDetails: (f = msg.getVirtualServiceDetails()) && proto.glooeeapi.solo.io.VirtualServiceDetails.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.glooeeapi.solo.io.GetVirtualServiceResponse}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.glooeeapi.solo.io.GetVirtualServiceResponse;
+  return proto.glooeeapi.solo.io.GetVirtualServiceResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.glooeeapi.solo.io.GetVirtualServiceResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.glooeeapi.solo.io.GetVirtualServiceResponse}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
+      msg.setVirtualService(value);
+      break;
+    case 2:
+      var value = new proto.glooeeapi.solo.io.VirtualServiceDetails;
+      reader.readMessage(value,proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinaryFromReader);
+      msg.setVirtualServiceDetails(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.glooeeapi.solo.io.GetVirtualServiceResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.glooeeapi.solo.io.GetVirtualServiceResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getVirtualService();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
+    );
+  }
+  f = message.getVirtualServiceDetails();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.glooeeapi.solo.io.VirtualServiceDetails.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional gateway.solo.io.VirtualService virtual_service = 1;
+ * @return {?proto.gateway.solo.io.VirtualService}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.getVirtualService = function() {
+  return /** @type{?proto.gateway.solo.io.VirtualService} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, 1));
+};
+
+
+/** @param {?proto.gateway.solo.io.VirtualService|undefined} value */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.setVirtualService = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.clearVirtualService = function() {
+  this.setVirtualService(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.hasVirtualService = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional VirtualServiceDetails virtual_service_details = 2;
+ * @return {?proto.glooeeapi.solo.io.VirtualServiceDetails}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.getVirtualServiceDetails = function() {
+  return /** @type{?proto.glooeeapi.solo.io.VirtualServiceDetails} */ (
+    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.VirtualServiceDetails, 2));
+};
+
+
+/** @param {?proto.glooeeapi.solo.io.VirtualServiceDetails|undefined} value */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.setVirtualServiceDetails = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.clearVirtualServiceDetails = function() {
+  this.setVirtualServiceDetails(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.GetVirtualServiceResponse.prototype.hasVirtualServiceDetails = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesRequest = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.glooeeapi.solo.io.ListVirtualServicesRequest.repeatedFields_, null);
+};
+goog.inherits(proto.glooeeapi.solo.io.ListVirtualServicesRequest, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.glooeeapi.solo.io.ListVirtualServicesRequest.displayName = 'proto.glooeeapi.solo.io.ListVirtualServicesRequest';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.toObject = function(opt_includeInstance) {
+  return proto.glooeeapi.solo.io.ListVirtualServicesRequest.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.glooeeapi.solo.io.ListVirtualServicesRequest} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    namespacesList: jspb.Message.getRepeatedField(msg, 1)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.glooeeapi.solo.io.ListVirtualServicesRequest}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.glooeeapi.solo.io.ListVirtualServicesRequest;
+  return proto.glooeeapi.solo.io.ListVirtualServicesRequest.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.glooeeapi.solo.io.ListVirtualServicesRequest} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.glooeeapi.solo.io.ListVirtualServicesRequest}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addNamespaces(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.glooeeapi.solo.io.ListVirtualServicesRequest.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.glooeeapi.solo.io.ListVirtualServicesRequest} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getNamespacesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * repeated string namespaces = 1;
+ * @return {!Array<string>}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.getNamespacesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 1));
+};
+
+
+/** @param {!Array<string>} value */
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.setNamespacesList = function(value) {
+  jspb.Message.setField(this, 1, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.addNamespaces = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 1, value, opt_index);
+};
+
+
+proto.glooeeapi.solo.io.ListVirtualServicesRequest.prototype.clearNamespacesList = function() {
+  this.setNamespacesList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.glooeeapi.solo.io.ListVirtualServicesResponse.repeatedFields_, null);
+};
+goog.inherits(proto.glooeeapi.solo.io.ListVirtualServicesResponse, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.glooeeapi.solo.io.ListVirtualServicesResponse.displayName = 'proto.glooeeapi.solo.io.ListVirtualServicesResponse';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.repeatedFields_ = [1,2];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.toObject = function(opt_includeInstance) {
+  return proto.glooeeapi.solo.io.ListVirtualServicesResponse.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.glooeeapi.solo.io.ListVirtualServicesResponse} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    virtualServicesList: jspb.Message.toObjectList(msg.getVirtualServicesList(),
+    github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject, includeInstance),
+    virtualServiceDetailsList: jspb.Message.toObjectList(msg.getVirtualServiceDetailsList(),
+    proto.glooeeapi.solo.io.VirtualServiceDetails.toObject, includeInstance)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.glooeeapi.solo.io.ListVirtualServicesResponse}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.glooeeapi.solo.io.ListVirtualServicesResponse;
+  return proto.glooeeapi.solo.io.ListVirtualServicesResponse.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.glooeeapi.solo.io.ListVirtualServicesResponse} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.glooeeapi.solo.io.ListVirtualServicesResponse}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
+      msg.addVirtualServices(value);
+      break;
+    case 2:
+      var value = new proto.glooeeapi.solo.io.VirtualServiceDetails;
+      reader.readMessage(value,proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinaryFromReader);
+      msg.addVirtualServiceDetails(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.glooeeapi.solo.io.ListVirtualServicesResponse.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.glooeeapi.solo.io.ListVirtualServicesResponse} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getVirtualServicesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
+    );
+  }
+  f = message.getVirtualServiceDetailsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      2,
+      f,
+      proto.glooeeapi.solo.io.VirtualServiceDetails.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * repeated gateway.solo.io.VirtualService virtual_services = 1;
+ * @return {!Array<!proto.gateway.solo.io.VirtualService>}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.getVirtualServicesList = function() {
+  return /** @type{!Array<!proto.gateway.solo.io.VirtualService>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, 1));
+};
+
+
+/** @param {!Array<!proto.gateway.solo.io.VirtualService>} value */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.setVirtualServicesList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.gateway.solo.io.VirtualService=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.gateway.solo.io.VirtualService}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.addVirtualServices = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gateway.solo.io.VirtualService, opt_index);
+};
+
+
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.clearVirtualServicesList = function() {
+  this.setVirtualServicesList([]);
+};
+
+
+/**
+ * repeated VirtualServiceDetails virtual_service_details = 2;
+ * @return {!Array<!proto.glooeeapi.solo.io.VirtualServiceDetails>}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.getVirtualServiceDetailsList = function() {
+  return /** @type{!Array<!proto.glooeeapi.solo.io.VirtualServiceDetails>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.glooeeapi.solo.io.VirtualServiceDetails, 2));
+};
+
+
+/** @param {!Array<!proto.glooeeapi.solo.io.VirtualServiceDetails>} value */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.setVirtualServiceDetailsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 2, value);
+};
+
+
+/**
+ * @param {!proto.glooeeapi.solo.io.VirtualServiceDetails=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.glooeeapi.solo.io.VirtualServiceDetails}
+ */
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.addVirtualServiceDetails = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.glooeeapi.solo.io.VirtualServiceDetails, opt_index);
+};
+
+
+proto.glooeeapi.solo.io.ListVirtualServicesResponse.prototype.clearVirtualServiceDetailsList = function() {
+  this.setVirtualServiceDetailsList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.glooeeapi.solo.io.VirtualServiceInput.repeatedFields_, proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_);
+};
+goog.inherits(proto.glooeeapi.solo.io.VirtualServiceInput, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.glooeeapi.solo.io.VirtualServiceInput.displayName = 'proto.glooeeapi.solo.io.VirtualServiceInput';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.repeatedFields_ = [3,4];
+
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_ = [[7,8,9]];
+
+/**
+ * @enum {number}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.ExtAuthConfigCase = {
+  EXT_AUTH_CONFIG_NOT_SET: 0,
+  BASIC_AUTH: 7,
+  OAUTH: 8,
+  CUSTOM_AUTH: 9
+};
+
+/**
+ * @return {proto.glooeeapi.solo.io.VirtualServiceInput.ExtAuthConfigCase}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getExtAuthConfigCase = function() {
+  return /** @type {proto.glooeeapi.solo.io.VirtualServiceInput.ExtAuthConfigCase} */(jspb.Message.computeOneofCase(this, proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_[0]));
+};
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.toObject = function(opt_includeInstance) {
+  return proto.glooeeapi.solo.io.VirtualServiceInput.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.glooeeapi.solo.io.VirtualServiceInput} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    ref: (f = msg.getRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    displayName: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    domainsList: jspb.Message.getRepeatedField(msg, 3),
+    routesList: jspb.Message.toObjectList(msg.getRoutesList(),
+    github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.toObject, includeInstance),
+    secretRef: (f = msg.getSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    rateLimitConfig: (f = msg.getRateLimitConfig()) && github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.toObject(includeInstance, f),
+    basicAuth: (f = msg.getBasicAuth()) && proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.toObject(includeInstance, f),
+    oauth: (f = msg.getOauth()) && github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth.toObject(includeInstance, f),
+    customAuth: (f = msg.getCustomAuth()) && github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.glooeeapi.solo.io.VirtualServiceInput}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.glooeeapi.solo.io.VirtualServiceInput;
+  return proto.glooeeapi.solo.io.VirtualServiceInput.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.glooeeapi.solo.io.VirtualServiceInput} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.glooeeapi.solo.io.VirtualServiceInput}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setRef(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDisplayName(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addDomains(value);
+      break;
+    case 4:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.deserializeBinaryFromReader);
+      msg.addRoutes(value);
+      break;
+    case 5:
+      var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
+      reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setSecretRef(value);
+      break;
+    case 6:
+      var value = new github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.deserializeBinaryFromReader);
+      msg.setRateLimitConfig(value);
+      break;
+    case 7:
+      var value = new proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput;
+      reader.readMessage(value,proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.deserializeBinaryFromReader);
+      msg.setBasicAuth(value);
+      break;
+    case 8:
+      var value = new github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth.deserializeBinaryFromReader);
+      msg.setOauth(value);
+      break;
+    case 9:
+      var value = new github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth;
+      reader.readMessage(value,github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth.deserializeBinaryFromReader);
+      msg.setCustomAuth(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.glooeeapi.solo.io.VirtualServiceInput.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.glooeeapi.solo.io.VirtualServiceInput} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRef();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getDisplayName();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getDomainsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      3,
+      f
+    );
+  }
+  f = message.getRoutesList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      4,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route.serializeBinaryToWriter
+    );
+  }
+  f = message.getSecretRef();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getRateLimitConfig();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.serializeBinaryToWriter
+    );
+  }
+  f = message.getBasicAuth();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.serializeBinaryToWriter
+    );
+  }
+  f = message.getOauth();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth.serializeBinaryToWriter
+    );
+  }
+  f = message.getCustomAuth();
+  if (f != null) {
+    writer.writeMessage(
+      9,
+      f,
+      github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth.serializeBinaryToWriter
+    );
+  }
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.displayName = 'proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.prototype.toObject = function(opt_includeInstance) {
+  return proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    realm: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    specCsv: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput;
+  return proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRealm(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSpecCsv(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getRealm();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getSpecCsv();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string realm = 1;
+ * @return {string}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.prototype.getRealm = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.prototype.setRealm = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string spec_csv = 2;
+ * @return {string}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.prototype.getSpecCsv = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput.prototype.setSpecCsv = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional core.solo.io.ResourceRef ref = 1;
+ * @return {?proto.core.solo.io.ResourceRef}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getRef = function() {
+  return /** @type{?proto.core.solo.io.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 1));
+};
+
+
+/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setRef = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearRef = function() {
+  this.setRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasRef = function() {
+  return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional string display_name = 2;
+ * @return {string}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getDisplayName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setDisplayName = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * repeated string domains = 3;
+ * @return {!Array<string>}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getDomainsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 3));
+};
+
+
+/** @param {!Array<string>} value */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setDomainsList = function(value) {
+  jspb.Message.setField(this, 3, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.addDomains = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 3, value, opt_index);
+};
+
+
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearDomainsList = function() {
+  this.setDomainsList([]);
+};
+
+
+/**
+ * repeated gloo.solo.io.Route routes = 4;
+ * @return {!Array<!proto.gloo.solo.io.Route>}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getRoutesList = function() {
+  return /** @type{!Array<!proto.gloo.solo.io.Route>} */ (
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb.Route, 4));
+};
+
+
+/** @param {!Array<!proto.gloo.solo.io.Route>} value */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setRoutesList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 4, value);
+};
+
+
+/**
+ * @param {!proto.gloo.solo.io.Route=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.gloo.solo.io.Route}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.addRoutes = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 4, opt_value, proto.gloo.solo.io.Route, opt_index);
+};
+
+
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearRoutesList = function() {
+  this.setRoutesList([]);
+};
+
+
+/**
+ * optional core.solo.io.ResourceRef secret_ref = 5;
+ * @return {?proto.core.solo.io.ResourceRef}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getSecretRef = function() {
+  return /** @type{?proto.core.solo.io.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef, 5));
+};
+
+
+/** @param {?proto.core.solo.io.ResourceRef|undefined} value */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setSecretRef = function(value) {
+  jspb.Message.setWrapperField(this, 5, value);
+};
+
+
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearSecretRef = function() {
+  this.setSecretRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasSecretRef = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional ratelimit.plugins.gloo.solo.io.IngressRateLimit rate_limit_config = 6;
+ * @return {?proto.ratelimit.plugins.gloo.solo.io.IngressRateLimit}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getRateLimitConfig = function() {
+  return /** @type{?proto.ratelimit.plugins.gloo.solo.io.IngressRateLimit} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit, 6));
+};
+
+
+/** @param {?proto.ratelimit.plugins.gloo.solo.io.IngressRateLimit|undefined} value */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setRateLimitConfig = function(value) {
+  jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearRateLimitConfig = function() {
+  this.setRateLimitConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasRateLimitConfig = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional BasicAuthInput basic_auth = 7;
+ * @return {?proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getBasicAuth = function() {
+  return /** @type{?proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput} */ (
+    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput, 7));
+};
+
+
+/** @param {?proto.glooeeapi.solo.io.VirtualServiceInput.BasicAuthInput|undefined} value */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setBasicAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 7, proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_[0], value);
+};
+
+
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearBasicAuth = function() {
+  this.setBasicAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasBasicAuth = function() {
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional extauth.plugins.gloo.solo.io.OAuth oauth = 8;
+ * @return {?proto.extauth.plugins.gloo.solo.io.OAuth}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getOauth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.OAuth} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth, 8));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.OAuth|undefined} value */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setOauth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 8, proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_[0], value);
+};
+
+
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearOauth = function() {
+  this.setOauth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasOauth = function() {
+  return jspb.Message.getField(this, 8) != null;
+};
+
+
+/**
+ * optional extauth.plugins.gloo.solo.io.CustomAuth custom_auth = 9;
+ * @return {?proto.extauth.plugins.gloo.solo.io.CustomAuth}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.getCustomAuth = function() {
+  return /** @type{?proto.extauth.plugins.gloo.solo.io.CustomAuth} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_solo$projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth, 9));
+};
+
+
+/** @param {?proto.extauth.plugins.gloo.solo.io.CustomAuth|undefined} value */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.setCustomAuth = function(value) {
+  jspb.Message.setOneofWrapperField(this, 9, proto.glooeeapi.solo.io.VirtualServiceInput.oneofGroups_[0], value);
+};
+
+
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.clearCustomAuth = function() {
+  this.setCustomAuth(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.VirtualServiceInput.prototype.hasCustomAuth = function() {
+  return jspb.Message.getField(this, 9) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
 proto.glooeeapi.solo.io.VirtualServiceInputV2 = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
@@ -3446,7 +3977,8 @@ proto.glooeeapi.solo.io.CreateVirtualServiceResponse.prototype.toObject = functi
  */
 proto.glooeeapi.solo.io.CreateVirtualServiceResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f)
+    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f),
+    virtualServiceDetails: (f = msg.getVirtualServiceDetails()) && proto.glooeeapi.solo.io.VirtualServiceDetails.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3488,6 +4020,11 @@ proto.glooeeapi.solo.io.CreateVirtualServiceResponse.deserializeBinaryFromReader
       reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
       msg.setVirtualService(value);
       break;
+    case 2:
+      var value = new proto.glooeeapi.solo.io.VirtualServiceDetails;
+      reader.readMessage(value,proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinaryFromReader);
+      msg.setVirtualServiceDetails(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -3525,6 +4062,14 @@ proto.glooeeapi.solo.io.CreateVirtualServiceResponse.serializeBinaryToWriter = f
       github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
     );
   }
+  f = message.getVirtualServiceDetails();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.glooeeapi.solo.io.VirtualServiceDetails.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -3555,6 +4100,36 @@ proto.glooeeapi.solo.io.CreateVirtualServiceResponse.prototype.clearVirtualServi
  */
 proto.glooeeapi.solo.io.CreateVirtualServiceResponse.prototype.hasVirtualService = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional VirtualServiceDetails virtual_service_details = 2;
+ * @return {?proto.glooeeapi.solo.io.VirtualServiceDetails}
+ */
+proto.glooeeapi.solo.io.CreateVirtualServiceResponse.prototype.getVirtualServiceDetails = function() {
+  return /** @type{?proto.glooeeapi.solo.io.VirtualServiceDetails} */ (
+    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.VirtualServiceDetails, 2));
+};
+
+
+/** @param {?proto.glooeeapi.solo.io.VirtualServiceDetails|undefined} value */
+proto.glooeeapi.solo.io.CreateVirtualServiceResponse.prototype.setVirtualServiceDetails = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.glooeeapi.solo.io.CreateVirtualServiceResponse.prototype.clearVirtualServiceDetails = function() {
+  this.setVirtualServiceDetails(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.CreateVirtualServiceResponse.prototype.hasVirtualServiceDetails = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -3808,7 +4383,8 @@ proto.glooeeapi.solo.io.UpdateVirtualServiceResponse.prototype.toObject = functi
  */
 proto.glooeeapi.solo.io.UpdateVirtualServiceResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f)
+    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f),
+    virtualServiceDetails: (f = msg.getVirtualServiceDetails()) && proto.glooeeapi.solo.io.VirtualServiceDetails.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3850,6 +4426,11 @@ proto.glooeeapi.solo.io.UpdateVirtualServiceResponse.deserializeBinaryFromReader
       reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
       msg.setVirtualService(value);
       break;
+    case 2:
+      var value = new proto.glooeeapi.solo.io.VirtualServiceDetails;
+      reader.readMessage(value,proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinaryFromReader);
+      msg.setVirtualServiceDetails(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -3887,6 +4468,14 @@ proto.glooeeapi.solo.io.UpdateVirtualServiceResponse.serializeBinaryToWriter = f
       github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
     );
   }
+  f = message.getVirtualServiceDetails();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.glooeeapi.solo.io.VirtualServiceDetails.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -3917,6 +4506,36 @@ proto.glooeeapi.solo.io.UpdateVirtualServiceResponse.prototype.clearVirtualServi
  */
 proto.glooeeapi.solo.io.UpdateVirtualServiceResponse.prototype.hasVirtualService = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional VirtualServiceDetails virtual_service_details = 2;
+ * @return {?proto.glooeeapi.solo.io.VirtualServiceDetails}
+ */
+proto.glooeeapi.solo.io.UpdateVirtualServiceResponse.prototype.getVirtualServiceDetails = function() {
+  return /** @type{?proto.glooeeapi.solo.io.VirtualServiceDetails} */ (
+    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.VirtualServiceDetails, 2));
+};
+
+
+/** @param {?proto.glooeeapi.solo.io.VirtualServiceDetails|undefined} value */
+proto.glooeeapi.solo.io.UpdateVirtualServiceResponse.prototype.setVirtualServiceDetails = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.glooeeapi.solo.io.UpdateVirtualServiceResponse.prototype.clearVirtualServiceDetails = function() {
+  this.setVirtualServiceDetails(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.UpdateVirtualServiceResponse.prototype.hasVirtualServiceDetails = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -4631,7 +5250,8 @@ proto.glooeeapi.solo.io.CreateRouteResponse.prototype.toObject = function(opt_in
  */
 proto.glooeeapi.solo.io.CreateRouteResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f)
+    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f),
+    virtualServiceDetails: (f = msg.getVirtualServiceDetails()) && proto.glooeeapi.solo.io.VirtualServiceDetails.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -4673,6 +5293,11 @@ proto.glooeeapi.solo.io.CreateRouteResponse.deserializeBinaryFromReader = functi
       reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
       msg.setVirtualService(value);
       break;
+    case 2:
+      var value = new proto.glooeeapi.solo.io.VirtualServiceDetails;
+      reader.readMessage(value,proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinaryFromReader);
+      msg.setVirtualServiceDetails(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4710,6 +5335,14 @@ proto.glooeeapi.solo.io.CreateRouteResponse.serializeBinaryToWriter = function(m
       github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
     );
   }
+  f = message.getVirtualServiceDetails();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.glooeeapi.solo.io.VirtualServiceDetails.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -4740,6 +5373,36 @@ proto.glooeeapi.solo.io.CreateRouteResponse.prototype.clearVirtualService = func
  */
 proto.glooeeapi.solo.io.CreateRouteResponse.prototype.hasVirtualService = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional VirtualServiceDetails virtual_service_details = 2;
+ * @return {?proto.glooeeapi.solo.io.VirtualServiceDetails}
+ */
+proto.glooeeapi.solo.io.CreateRouteResponse.prototype.getVirtualServiceDetails = function() {
+  return /** @type{?proto.glooeeapi.solo.io.VirtualServiceDetails} */ (
+    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.VirtualServiceDetails, 2));
+};
+
+
+/** @param {?proto.glooeeapi.solo.io.VirtualServiceDetails|undefined} value */
+proto.glooeeapi.solo.io.CreateRouteResponse.prototype.setVirtualServiceDetails = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.glooeeapi.solo.io.CreateRouteResponse.prototype.clearVirtualServiceDetails = function() {
+  this.setVirtualServiceDetails(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.CreateRouteResponse.prototype.hasVirtualServiceDetails = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -4949,7 +5612,8 @@ proto.glooeeapi.solo.io.UpdateRouteResponse.prototype.toObject = function(opt_in
  */
 proto.glooeeapi.solo.io.UpdateRouteResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f)
+    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f),
+    virtualServiceDetails: (f = msg.getVirtualServiceDetails()) && proto.glooeeapi.solo.io.VirtualServiceDetails.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -4991,6 +5655,11 @@ proto.glooeeapi.solo.io.UpdateRouteResponse.deserializeBinaryFromReader = functi
       reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
       msg.setVirtualService(value);
       break;
+    case 2:
+      var value = new proto.glooeeapi.solo.io.VirtualServiceDetails;
+      reader.readMessage(value,proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinaryFromReader);
+      msg.setVirtualServiceDetails(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5028,6 +5697,14 @@ proto.glooeeapi.solo.io.UpdateRouteResponse.serializeBinaryToWriter = function(m
       github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
     );
   }
+  f = message.getVirtualServiceDetails();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.glooeeapi.solo.io.VirtualServiceDetails.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -5058,6 +5735,36 @@ proto.glooeeapi.solo.io.UpdateRouteResponse.prototype.clearVirtualService = func
  */
 proto.glooeeapi.solo.io.UpdateRouteResponse.prototype.hasVirtualService = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional VirtualServiceDetails virtual_service_details = 2;
+ * @return {?proto.glooeeapi.solo.io.VirtualServiceDetails}
+ */
+proto.glooeeapi.solo.io.UpdateRouteResponse.prototype.getVirtualServiceDetails = function() {
+  return /** @type{?proto.glooeeapi.solo.io.VirtualServiceDetails} */ (
+    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.VirtualServiceDetails, 2));
+};
+
+
+/** @param {?proto.glooeeapi.solo.io.VirtualServiceDetails|undefined} value */
+proto.glooeeapi.solo.io.UpdateRouteResponse.prototype.setVirtualServiceDetails = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.glooeeapi.solo.io.UpdateRouteResponse.prototype.clearVirtualServiceDetails = function() {
+  this.setVirtualServiceDetails(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.UpdateRouteResponse.prototype.hasVirtualServiceDetails = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -5294,7 +6001,8 @@ proto.glooeeapi.solo.io.DeleteRouteResponse.prototype.toObject = function(opt_in
  */
 proto.glooeeapi.solo.io.DeleteRouteResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f)
+    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f),
+    virtualServiceDetails: (f = msg.getVirtualServiceDetails()) && proto.glooeeapi.solo.io.VirtualServiceDetails.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5336,6 +6044,11 @@ proto.glooeeapi.solo.io.DeleteRouteResponse.deserializeBinaryFromReader = functi
       reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
       msg.setVirtualService(value);
       break;
+    case 2:
+      var value = new proto.glooeeapi.solo.io.VirtualServiceDetails;
+      reader.readMessage(value,proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinaryFromReader);
+      msg.setVirtualServiceDetails(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5373,6 +6086,14 @@ proto.glooeeapi.solo.io.DeleteRouteResponse.serializeBinaryToWriter = function(m
       github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
     );
   }
+  f = message.getVirtualServiceDetails();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.glooeeapi.solo.io.VirtualServiceDetails.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -5403,6 +6124,36 @@ proto.glooeeapi.solo.io.DeleteRouteResponse.prototype.clearVirtualService = func
  */
 proto.glooeeapi.solo.io.DeleteRouteResponse.prototype.hasVirtualService = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional VirtualServiceDetails virtual_service_details = 2;
+ * @return {?proto.glooeeapi.solo.io.VirtualServiceDetails}
+ */
+proto.glooeeapi.solo.io.DeleteRouteResponse.prototype.getVirtualServiceDetails = function() {
+  return /** @type{?proto.glooeeapi.solo.io.VirtualServiceDetails} */ (
+    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.VirtualServiceDetails, 2));
+};
+
+
+/** @param {?proto.glooeeapi.solo.io.VirtualServiceDetails|undefined} value */
+proto.glooeeapi.solo.io.DeleteRouteResponse.prototype.setVirtualServiceDetails = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.glooeeapi.solo.io.DeleteRouteResponse.prototype.clearVirtualServiceDetails = function() {
+  this.setVirtualServiceDetails(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.DeleteRouteResponse.prototype.hasVirtualServiceDetails = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -5666,7 +6417,8 @@ proto.glooeeapi.solo.io.SwapRoutesResponse.prototype.toObject = function(opt_inc
  */
 proto.glooeeapi.solo.io.SwapRoutesResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f)
+    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f),
+    virtualServiceDetails: (f = msg.getVirtualServiceDetails()) && proto.glooeeapi.solo.io.VirtualServiceDetails.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -5708,6 +6460,11 @@ proto.glooeeapi.solo.io.SwapRoutesResponse.deserializeBinaryFromReader = functio
       reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
       msg.setVirtualService(value);
       break;
+    case 2:
+      var value = new proto.glooeeapi.solo.io.VirtualServiceDetails;
+      reader.readMessage(value,proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinaryFromReader);
+      msg.setVirtualServiceDetails(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -5745,6 +6502,14 @@ proto.glooeeapi.solo.io.SwapRoutesResponse.serializeBinaryToWriter = function(me
       github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
     );
   }
+  f = message.getVirtualServiceDetails();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.glooeeapi.solo.io.VirtualServiceDetails.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -5775,6 +6540,36 @@ proto.glooeeapi.solo.io.SwapRoutesResponse.prototype.clearVirtualService = funct
  */
 proto.glooeeapi.solo.io.SwapRoutesResponse.prototype.hasVirtualService = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional VirtualServiceDetails virtual_service_details = 2;
+ * @return {?proto.glooeeapi.solo.io.VirtualServiceDetails}
+ */
+proto.glooeeapi.solo.io.SwapRoutesResponse.prototype.getVirtualServiceDetails = function() {
+  return /** @type{?proto.glooeeapi.solo.io.VirtualServiceDetails} */ (
+    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.VirtualServiceDetails, 2));
+};
+
+
+/** @param {?proto.glooeeapi.solo.io.VirtualServiceDetails|undefined} value */
+proto.glooeeapi.solo.io.SwapRoutesResponse.prototype.setVirtualServiceDetails = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.glooeeapi.solo.io.SwapRoutesResponse.prototype.clearVirtualServiceDetails = function() {
+  this.setVirtualServiceDetails(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.SwapRoutesResponse.prototype.hasVirtualServiceDetails = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -6038,7 +6833,8 @@ proto.glooeeapi.solo.io.ShiftRoutesResponse.prototype.toObject = function(opt_in
  */
 proto.glooeeapi.solo.io.ShiftRoutesResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f)
+    virtualService: (f = msg.getVirtualService()) && github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.toObject(includeInstance, f),
+    virtualServiceDetails: (f = msg.getVirtualServiceDetails()) && proto.glooeeapi.solo.io.VirtualServiceDetails.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -6080,6 +6876,11 @@ proto.glooeeapi.solo.io.ShiftRoutesResponse.deserializeBinaryFromReader = functi
       reader.readMessage(value,github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.deserializeBinaryFromReader);
       msg.setVirtualService(value);
       break;
+    case 2:
+      var value = new proto.glooeeapi.solo.io.VirtualServiceDetails;
+      reader.readMessage(value,proto.glooeeapi.solo.io.VirtualServiceDetails.deserializeBinaryFromReader);
+      msg.setVirtualServiceDetails(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -6117,6 +6918,14 @@ proto.glooeeapi.solo.io.ShiftRoutesResponse.serializeBinaryToWriter = function(m
       github_com_solo$io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.serializeBinaryToWriter
     );
   }
+  f = message.getVirtualServiceDetails();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.glooeeapi.solo.io.VirtualServiceDetails.serializeBinaryToWriter
+    );
+  }
 };
 
 
@@ -6147,6 +6956,36 @@ proto.glooeeapi.solo.io.ShiftRoutesResponse.prototype.clearVirtualService = func
  */
 proto.glooeeapi.solo.io.ShiftRoutesResponse.prototype.hasVirtualService = function() {
   return jspb.Message.getField(this, 1) != null;
+};
+
+
+/**
+ * optional VirtualServiceDetails virtual_service_details = 2;
+ * @return {?proto.glooeeapi.solo.io.VirtualServiceDetails}
+ */
+proto.glooeeapi.solo.io.ShiftRoutesResponse.prototype.getVirtualServiceDetails = function() {
+  return /** @type{?proto.glooeeapi.solo.io.VirtualServiceDetails} */ (
+    jspb.Message.getWrapperField(this, proto.glooeeapi.solo.io.VirtualServiceDetails, 2));
+};
+
+
+/** @param {?proto.glooeeapi.solo.io.VirtualServiceDetails|undefined} value */
+proto.glooeeapi.solo.io.ShiftRoutesResponse.prototype.setVirtualServiceDetails = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.glooeeapi.solo.io.ShiftRoutesResponse.prototype.clearVirtualServiceDetails = function() {
+  this.setVirtualServiceDetails(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.ShiftRoutesResponse.prototype.hasVirtualServiceDetails = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

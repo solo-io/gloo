@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Make it easier to work with virtual service plugins on the front end
+    issueLink: https://github.com/solo-io/solo-projects/issues/767

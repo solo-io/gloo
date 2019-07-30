@@ -9,6 +9,7 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/converter"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
 	"go.uber.org/zap"
 )
@@ -21,6 +22,7 @@ type virtualServiceGrpcService struct {
 	virtualServiceClient gatewayv1.VirtualServiceClient
 	mutator              mutation.Mutator
 	mutationFactory      mutation.MutationFactory
+	detailsConverter     converter.VirtualServiceDetailsConverter
 }
 
 func NewVirtualServiceGrpcService(
@@ -29,6 +31,7 @@ func NewVirtualServiceGrpcService(
 	settingsValues settings.ValuesClient,
 	mutator mutation.Mutator,
 	mutationFactory mutation.MutationFactory,
+	detailsConverter converter.VirtualServiceDetailsConverter,
 ) v1.VirtualServiceApiServer {
 
 	return &virtualServiceGrpcService{
@@ -37,6 +40,7 @@ func NewVirtualServiceGrpcService(
 		settingsValues:       settingsValues,
 		mutator:              mutator,
 		mutationFactory:      mutationFactory,
+		detailsConverter:     detailsConverter,
 	}
 }
 
@@ -48,7 +52,8 @@ func (s *virtualServiceGrpcService) GetVirtualService(ctx context.Context, reque
 		return nil, wrapped
 	}
 
-	return &v1.GetVirtualServiceResponse{VirtualService: virtualService}, nil
+	details := s.detailsConverter.GetDetails(s.ctx, virtualService)
+	return &v1.GetVirtualServiceResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) ListVirtualServices(ctx context.Context, request *v1.ListVirtualServicesRequest) (*v1.ListVirtualServicesResponse, error) {
@@ -63,44 +68,12 @@ func (s *virtualServiceGrpcService) ListVirtualServices(ctx context.Context, req
 		virtualServiceList = append(virtualServiceList, virtualServices...)
 	}
 
-	return &v1.ListVirtualServicesResponse{VirtualServices: virtualServiceList}, nil
-}
-
-func (s *virtualServiceGrpcService) StreamVirtualServiceList(request *v1.StreamVirtualServiceListRequest, stream v1.VirtualServiceApi_StreamVirtualServiceListServer) error {
-	watch, errs, err := s.virtualServiceClient.Watch(request.GetNamespace(), clients.WatchOpts{
-		RefreshRate: s.settingsValues.GetRefreshRate(),
-		Ctx:         stream.Context(),
-		Selector:    request.GetSelector(),
-	})
-	if err != nil {
-		wrapped := FailedToStreamVirtualServicesError(err, request.GetNamespace())
-		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-		return wrapped
+	detailsList := make([]*v1.VirtualServiceDetails, 0, len(virtualServiceList))
+	for _, vs := range virtualServiceList {
+		detailsList = append(detailsList, s.detailsConverter.GetDetails(s.ctx, vs))
 	}
 
-	for {
-		select {
-		case list, ok := <-watch:
-			if !ok {
-				return nil
-			}
-			err := stream.Send(&v1.StreamVirtualServiceListResponse{VirtualServices: list})
-			if err != nil {
-				wrapped := ErrorWhileWatchingVirtualServices(err, request.GetNamespace())
-				contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-				return wrapped
-			}
-		case err, ok := <-errs:
-			if !ok {
-				return nil
-			}
-			wrapped := ErrorWhileWatchingVirtualServices(err, request.GetNamespace())
-			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-			return wrapped
-		case <-stream.Context().Done():
-			return nil
-		}
-	}
+	return &v1.ListVirtualServicesResponse{VirtualServices: virtualServiceList, VirtualServiceDetails: detailsList}, nil
 }
 
 func (s *virtualServiceGrpcService) CreateVirtualService(ctx context.Context, request *v1.CreateVirtualServiceRequest) (*v1.CreateVirtualServiceResponse, error) {
@@ -123,30 +96,33 @@ func (s *virtualServiceGrpcService) CreateVirtualService(ctx context.Context, re
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &v1.CreateVirtualServiceResponse{VirtualService: written}, nil
+
+	details := s.detailsConverter.GetDetails(s.ctx, written)
+	return &v1.CreateVirtualServiceResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) UpdateVirtualService(ctx context.Context, request *v1.UpdateVirtualServiceRequest) (*v1.UpdateVirtualServiceResponse, error) {
 	var ref *core.ResourceRef
-	var createMutation mutation.Mutation
+	var updateMutation mutation.Mutation
 
 	if request.GetInputV2() != nil {
 		ref = request.GetInputV2().GetRef()
-		createMutation = s.mutationFactory.ConfigureVirtualServiceV2(request.GetInputV2())
+		updateMutation = s.mutationFactory.ConfigureVirtualServiceV2(request.GetInputV2())
 	} else if request.GetInput() != nil {
 		ref = request.GetInput().GetRef()
-		createMutation = s.mutationFactory.ConfigureVirtualService(request.GetInput())
+		updateMutation = s.mutationFactory.ConfigureVirtualService(request.GetInput())
 	} else {
 		return nil, InvalidInputError
 	}
 
-	written, err := s.mutator.Update(ref, createMutation)
+	written, err := s.mutator.Update(ref, updateMutation)
 	if err != nil {
 		wrapped := FailedToUpdateVirtualServiceError(err, ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &v1.UpdateVirtualServiceResponse{VirtualService: written}, nil
+	details := s.detailsConverter.GetDetails(s.ctx, written)
+	return &v1.UpdateVirtualServiceResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) DeleteVirtualService(ctx context.Context, request *v1.DeleteVirtualServiceRequest) (*v1.DeleteVirtualServiceResponse, error) {
@@ -166,7 +142,8 @@ func (s *virtualServiceGrpcService) CreateRoute(ctx context.Context, request *v1
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &v1.CreateRouteResponse{VirtualService: written}, nil
+	details := s.detailsConverter.GetDetails(s.ctx, written)
+	return &v1.CreateRouteResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) UpdateRoute(ctx context.Context, request *v1.UpdateRouteRequest) (*v1.UpdateRouteResponse, error) {
@@ -176,7 +153,8 @@ func (s *virtualServiceGrpcService) UpdateRoute(ctx context.Context, request *v1
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &v1.UpdateRouteResponse{VirtualService: written}, nil
+	details := s.detailsConverter.GetDetails(s.ctx, written)
+	return &v1.UpdateRouteResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) DeleteRoute(ctx context.Context, request *v1.DeleteRouteRequest) (*v1.DeleteRouteResponse, error) {
@@ -186,7 +164,8 @@ func (s *virtualServiceGrpcService) DeleteRoute(ctx context.Context, request *v1
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &v1.DeleteRouteResponse{VirtualService: written}, nil
+	details := s.detailsConverter.GetDetails(s.ctx, written)
+	return &v1.DeleteRouteResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) SwapRoutes(ctx context.Context, request *v1.SwapRoutesRequest) (*v1.SwapRoutesResponse, error) {
@@ -196,7 +175,8 @@ func (s *virtualServiceGrpcService) SwapRoutes(ctx context.Context, request *v1.
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &v1.SwapRoutesResponse{VirtualService: written}, nil
+	details := s.detailsConverter.GetDetails(s.ctx, written)
+	return &v1.SwapRoutesResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
 }
 
 func (s *virtualServiceGrpcService) ShiftRoutes(ctx context.Context, request *v1.ShiftRoutesRequest) (*v1.ShiftRoutesResponse, error) {
@@ -206,5 +186,6 @@ func (s *virtualServiceGrpcService) ShiftRoutes(ctx context.Context, request *v1
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}
-	return &v1.ShiftRoutesResponse{VirtualService: written}, nil
+	details := s.detailsConverter.GetDetails(s.ctx, written)
+	return &v1.ShiftRoutesResponse{VirtualService: details.VirtualService, VirtualServiceDetails: details}, nil
 }

@@ -29,15 +29,6 @@ message ListUpstreamsResponse {
     repeated gloo.solo.io.Upstream upstreams = 1;
 }
 
-message StreamUpstreamListRequest {
-    string namespace = 1;
-    map<string, string> selector = 2;
-}
-
-message StreamUpstreamListResponse {
-    repeated gloo.solo.io.Upstream upstreams = 1;
-}
-
 message UpstreamInput {
     core.solo.io.ResourceRef ref = 1;
     oneof spec {
@@ -74,7 +65,6 @@ message DeleteUpstreamResponse {}
 service UpstreamApi {
     rpc GetUpstream(GetUpstreamRequest) returns (GetUpstreamResponse) {}
     rpc ListUpstreams(ListUpstreamsRequest) returns (ListUpstreamsResponse) {}
-    rpc StreamUpstreamList(StreamUpstreamListRequest) returns (stream StreamUpstreamListResponse) {}
     rpc CreateUpstream(CreateUpstreamRequest) returns (CreateUpstreamResponse) {}
     rpc UpdateUpstream(UpdateUpstreamRequest) returns (UpdateUpstreamResponse) {}
     rpc DeleteUpstream(DeleteUpstreamRequest) returns (DeleteUpstreamResponse) {}

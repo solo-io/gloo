@@ -11,236 +11,111 @@ import * as github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_rateli
 import * as github_com_solo_io_solo_kit_api_v1_ref_pb from "../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 
-export class GetVirtualServiceRequest extends jspb.Message {
-  hasRef(): boolean;
-  clearRef(): void;
-  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
-  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetVirtualServiceRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: GetVirtualServiceRequest): GetVirtualServiceRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GetVirtualServiceRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetVirtualServiceRequest;
-  static deserializeBinaryFromReader(message: GetVirtualServiceRequest, reader: jspb.BinaryReader): GetVirtualServiceRequest;
-}
-
-export namespace GetVirtualServiceRequest {
-  export type AsObject = {
-    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-  }
-}
-
-export class GetVirtualServiceResponse extends jspb.Message {
+export class VirtualServiceDetails extends jspb.Message {
   hasVirtualService(): boolean;
   clearVirtualService(): void;
   getVirtualService(): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService | undefined;
   setVirtualService(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService): void;
 
+  hasPlugins(): boolean;
+  clearPlugins(): void;
+  getPlugins(): Plugins | undefined;
+  setPlugins(value?: Plugins): void;
+
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetVirtualServiceResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: GetVirtualServiceResponse): GetVirtualServiceResponse.AsObject;
+  toObject(includeInstance?: boolean): VirtualServiceDetails.AsObject;
+  static toObject(includeInstance: boolean, msg: VirtualServiceDetails): VirtualServiceDetails.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GetVirtualServiceResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetVirtualServiceResponse;
-  static deserializeBinaryFromReader(message: GetVirtualServiceResponse, reader: jspb.BinaryReader): GetVirtualServiceResponse;
+  static serializeBinaryToWriter(message: VirtualServiceDetails, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): VirtualServiceDetails;
+  static deserializeBinaryFromReader(message: VirtualServiceDetails, reader: jspb.BinaryReader): VirtualServiceDetails;
 }
 
-export namespace GetVirtualServiceResponse {
+export namespace VirtualServiceDetails {
   export type AsObject = {
     virtualService?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject,
+    plugins?: Plugins.AsObject,
   }
 }
 
-export class ListVirtualServicesRequest extends jspb.Message {
-  clearNamespacesList(): void;
-  getNamespacesList(): Array<string>;
-  setNamespacesList(value: Array<string>): void;
-  addNamespaces(value: string, index?: number): string;
+export class Plugins extends jspb.Message {
+  hasExtAuth(): boolean;
+  clearExtAuth(): void;
+  getExtAuth(): ExtAuthPlugin | undefined;
+  setExtAuth(value?: ExtAuthPlugin): void;
+
+  hasRateLimit(): boolean;
+  clearRateLimit(): void;
+  getRateLimit(): RateLimitPlugin | undefined;
+  setRateLimit(value?: RateLimitPlugin): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ListVirtualServicesRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: ListVirtualServicesRequest): ListVirtualServicesRequest.AsObject;
+  toObject(includeInstance?: boolean): Plugins.AsObject;
+  static toObject(includeInstance: boolean, msg: Plugins): Plugins.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ListVirtualServicesRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ListVirtualServicesRequest;
-  static deserializeBinaryFromReader(message: ListVirtualServicesRequest, reader: jspb.BinaryReader): ListVirtualServicesRequest;
+  static serializeBinaryToWriter(message: Plugins, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Plugins;
+  static deserializeBinaryFromReader(message: Plugins, reader: jspb.BinaryReader): Plugins;
 }
 
-export namespace ListVirtualServicesRequest {
+export namespace Plugins {
   export type AsObject = {
-    namespacesList: Array<string>,
+    extAuth?: ExtAuthPlugin.AsObject,
+    rateLimit?: RateLimitPlugin.AsObject,
   }
 }
 
-export class ListVirtualServicesResponse extends jspb.Message {
-  clearVirtualServicesList(): void;
-  getVirtualServicesList(): Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService>;
-  setVirtualServicesList(value: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService>): void;
-  addVirtualServices(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, index?: number): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService;
+export class ExtAuthPlugin extends jspb.Message {
+  hasValue(): boolean;
+  clearValue(): void;
+  getValue(): github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.ExtAuthConfig | undefined;
+  setValue(value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.ExtAuthConfig): void;
+
+  getError(): string;
+  setError(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): ListVirtualServicesResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: ListVirtualServicesResponse): ListVirtualServicesResponse.AsObject;
+  toObject(includeInstance?: boolean): ExtAuthPlugin.AsObject;
+  static toObject(includeInstance: boolean, msg: ExtAuthPlugin): ExtAuthPlugin.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: ListVirtualServicesResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): ListVirtualServicesResponse;
-  static deserializeBinaryFromReader(message: ListVirtualServicesResponse, reader: jspb.BinaryReader): ListVirtualServicesResponse;
+  static serializeBinaryToWriter(message: ExtAuthPlugin, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ExtAuthPlugin;
+  static deserializeBinaryFromReader(message: ExtAuthPlugin, reader: jspb.BinaryReader): ExtAuthPlugin;
 }
 
-export namespace ListVirtualServicesResponse {
+export namespace ExtAuthPlugin {
   export type AsObject = {
-    virtualServicesList: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject>,
+    value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.ExtAuthConfig.AsObject,
+    error: string,
   }
 }
 
-export class StreamVirtualServiceListRequest extends jspb.Message {
-  getNamespace(): string;
-  setNamespace(value: string): void;
+export class RateLimitPlugin extends jspb.Message {
+  hasValue(): boolean;
+  clearValue(): void;
+  getValue(): github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit | undefined;
+  setValue(value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit): void;
 
-  getSelectorMap(): jspb.Map<string, string>;
-  clearSelectorMap(): void;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): StreamVirtualServiceListRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: StreamVirtualServiceListRequest): StreamVirtualServiceListRequest.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: StreamVirtualServiceListRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): StreamVirtualServiceListRequest;
-  static deserializeBinaryFromReader(message: StreamVirtualServiceListRequest, reader: jspb.BinaryReader): StreamVirtualServiceListRequest;
-}
-
-export namespace StreamVirtualServiceListRequest {
-  export type AsObject = {
-    namespace: string,
-    selectorMap: Array<[string, string]>,
-  }
-}
-
-export class StreamVirtualServiceListResponse extends jspb.Message {
-  clearVirtualServicesList(): void;
-  getVirtualServicesList(): Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService>;
-  setVirtualServicesList(value: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService>): void;
-  addVirtualServices(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, index?: number): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService;
+  getError(): string;
+  setError(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): StreamVirtualServiceListResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: StreamVirtualServiceListResponse): StreamVirtualServiceListResponse.AsObject;
+  toObject(includeInstance?: boolean): RateLimitPlugin.AsObject;
+  static toObject(includeInstance: boolean, msg: RateLimitPlugin): RateLimitPlugin.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: StreamVirtualServiceListResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): StreamVirtualServiceListResponse;
-  static deserializeBinaryFromReader(message: StreamVirtualServiceListResponse, reader: jspb.BinaryReader): StreamVirtualServiceListResponse;
+  static serializeBinaryToWriter(message: RateLimitPlugin, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RateLimitPlugin;
+  static deserializeBinaryFromReader(message: RateLimitPlugin, reader: jspb.BinaryReader): RateLimitPlugin;
 }
 
-export namespace StreamVirtualServiceListResponse {
+export namespace RateLimitPlugin {
   export type AsObject = {
-    virtualServicesList: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject>,
-  }
-}
-
-export class VirtualServiceInput extends jspb.Message {
-  hasRef(): boolean;
-  clearRef(): void;
-  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
-  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
-
-  getDisplayName(): string;
-  setDisplayName(value: string): void;
-
-  clearDomainsList(): void;
-  getDomainsList(): Array<string>;
-  setDomainsList(value: Array<string>): void;
-  addDomains(value: string, index?: number): string;
-
-  clearRoutesList(): void;
-  getRoutesList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route>;
-  setRoutesList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route>): void;
-  addRoutes(value?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route;
-
-  hasSecretRef(): boolean;
-  clearSecretRef(): void;
-  getSecretRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
-  setSecretRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
-
-  hasRateLimitConfig(): boolean;
-  clearRateLimitConfig(): void;
-  getRateLimitConfig(): github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit | undefined;
-  setRateLimitConfig(value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit): void;
-
-  hasBasicAuth(): boolean;
-  clearBasicAuth(): void;
-  getBasicAuth(): VirtualServiceInput.BasicAuthInput | undefined;
-  setBasicAuth(value?: VirtualServiceInput.BasicAuthInput): void;
-
-  hasOauth(): boolean;
-  clearOauth(): void;
-  getOauth(): github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth | undefined;
-  setOauth(value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth): void;
-
-  hasCustomAuth(): boolean;
-  clearCustomAuth(): void;
-  getCustomAuth(): github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth | undefined;
-  setCustomAuth(value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth): void;
-
-  getExtAuthConfigCase(): VirtualServiceInput.ExtAuthConfigCase;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): VirtualServiceInput.AsObject;
-  static toObject(includeInstance: boolean, msg: VirtualServiceInput): VirtualServiceInput.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: VirtualServiceInput, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): VirtualServiceInput;
-  static deserializeBinaryFromReader(message: VirtualServiceInput, reader: jspb.BinaryReader): VirtualServiceInput;
-}
-
-export namespace VirtualServiceInput {
-  export type AsObject = {
-    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    displayName: string,
-    domainsList: Array<string>,
-    routesList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route.AsObject>,
-    secretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
-    rateLimitConfig?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
-    basicAuth?: VirtualServiceInput.BasicAuthInput.AsObject,
-    oauth?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth.AsObject,
-    customAuth?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth.AsObject,
-  }
-
-  export class BasicAuthInput extends jspb.Message {
-    getRealm(): string;
-    setRealm(value: string): void;
-
-    getSpecCsv(): string;
-    setSpecCsv(value: string): void;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): BasicAuthInput.AsObject;
-    static toObject(includeInstance: boolean, msg: BasicAuthInput): BasicAuthInput.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: BasicAuthInput, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): BasicAuthInput;
-    static deserializeBinaryFromReader(message: BasicAuthInput, reader: jspb.BinaryReader): BasicAuthInput;
-  }
-
-  export namespace BasicAuthInput {
-    export type AsObject = {
-      realm: string,
-      specCsv: string,
-    }
-  }
-
-  export enum ExtAuthConfigCase {
-    EXT_AUTH_CONFIG_NOT_SET = 0,
-    BASIC_AUTH = 7,
-    OAUTH = 8,
-    CUSTOM_AUTH = 9,
+    value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
+    error: string,
   }
 }
 
@@ -389,6 +264,206 @@ export namespace ExtAuthInput {
   }
 }
 
+export class GetVirtualServiceRequest extends jspb.Message {
+  hasRef(): boolean;
+  clearRef(): void;
+  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetVirtualServiceRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetVirtualServiceRequest): GetVirtualServiceRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetVirtualServiceRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetVirtualServiceRequest;
+  static deserializeBinaryFromReader(message: GetVirtualServiceRequest, reader: jspb.BinaryReader): GetVirtualServiceRequest;
+}
+
+export namespace GetVirtualServiceRequest {
+  export type AsObject = {
+    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+  }
+}
+
+export class GetVirtualServiceResponse extends jspb.Message {
+  hasVirtualService(): boolean;
+  clearVirtualService(): void;
+  getVirtualService(): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService | undefined;
+  setVirtualService(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService): void;
+
+  hasVirtualServiceDetails(): boolean;
+  clearVirtualServiceDetails(): void;
+  getVirtualServiceDetails(): VirtualServiceDetails | undefined;
+  setVirtualServiceDetails(value?: VirtualServiceDetails): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetVirtualServiceResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetVirtualServiceResponse): GetVirtualServiceResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetVirtualServiceResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetVirtualServiceResponse;
+  static deserializeBinaryFromReader(message: GetVirtualServiceResponse, reader: jspb.BinaryReader): GetVirtualServiceResponse;
+}
+
+export namespace GetVirtualServiceResponse {
+  export type AsObject = {
+    virtualService?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject,
+    virtualServiceDetails?: VirtualServiceDetails.AsObject,
+  }
+}
+
+export class ListVirtualServicesRequest extends jspb.Message {
+  clearNamespacesList(): void;
+  getNamespacesList(): Array<string>;
+  setNamespacesList(value: Array<string>): void;
+  addNamespaces(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ListVirtualServicesRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ListVirtualServicesRequest): ListVirtualServicesRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ListVirtualServicesRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListVirtualServicesRequest;
+  static deserializeBinaryFromReader(message: ListVirtualServicesRequest, reader: jspb.BinaryReader): ListVirtualServicesRequest;
+}
+
+export namespace ListVirtualServicesRequest {
+  export type AsObject = {
+    namespacesList: Array<string>,
+  }
+}
+
+export class ListVirtualServicesResponse extends jspb.Message {
+  clearVirtualServicesList(): void;
+  getVirtualServicesList(): Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService>;
+  setVirtualServicesList(value: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService>): void;
+  addVirtualServices(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService, index?: number): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService;
+
+  clearVirtualServiceDetailsList(): void;
+  getVirtualServiceDetailsList(): Array<VirtualServiceDetails>;
+  setVirtualServiceDetailsList(value: Array<VirtualServiceDetails>): void;
+  addVirtualServiceDetails(value?: VirtualServiceDetails, index?: number): VirtualServiceDetails;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ListVirtualServicesResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ListVirtualServicesResponse): ListVirtualServicesResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ListVirtualServicesResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListVirtualServicesResponse;
+  static deserializeBinaryFromReader(message: ListVirtualServicesResponse, reader: jspb.BinaryReader): ListVirtualServicesResponse;
+}
+
+export namespace ListVirtualServicesResponse {
+  export type AsObject = {
+    virtualServicesList: Array<github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject>,
+    virtualServiceDetailsList: Array<VirtualServiceDetails.AsObject>,
+  }
+}
+
+export class VirtualServiceInput extends jspb.Message {
+  hasRef(): boolean;
+  clearRef(): void;
+  getRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+  getDisplayName(): string;
+  setDisplayName(value: string): void;
+
+  clearDomainsList(): void;
+  getDomainsList(): Array<string>;
+  setDomainsList(value: Array<string>): void;
+  addDomains(value: string, index?: number): string;
+
+  clearRoutesList(): void;
+  getRoutesList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route>;
+  setRoutesList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route>): void;
+  addRoutes(value?: github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route, index?: number): github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route;
+
+  hasSecretRef(): boolean;
+  clearSecretRef(): void;
+  getSecretRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
+  setSecretRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
+
+  hasRateLimitConfig(): boolean;
+  clearRateLimitConfig(): void;
+  getRateLimitConfig(): github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit | undefined;
+  setRateLimitConfig(value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit): void;
+
+  hasBasicAuth(): boolean;
+  clearBasicAuth(): void;
+  getBasicAuth(): VirtualServiceInput.BasicAuthInput | undefined;
+  setBasicAuth(value?: VirtualServiceInput.BasicAuthInput): void;
+
+  hasOauth(): boolean;
+  clearOauth(): void;
+  getOauth(): github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth | undefined;
+  setOauth(value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth): void;
+
+  hasCustomAuth(): boolean;
+  clearCustomAuth(): void;
+  getCustomAuth(): github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth | undefined;
+  setCustomAuth(value?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth): void;
+
+  getExtAuthConfigCase(): VirtualServiceInput.ExtAuthConfigCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): VirtualServiceInput.AsObject;
+  static toObject(includeInstance: boolean, msg: VirtualServiceInput): VirtualServiceInput.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: VirtualServiceInput, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): VirtualServiceInput;
+  static deserializeBinaryFromReader(message: VirtualServiceInput, reader: jspb.BinaryReader): VirtualServiceInput;
+}
+
+export namespace VirtualServiceInput {
+  export type AsObject = {
+    ref?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    displayName: string,
+    domainsList: Array<string>,
+    routesList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_proxy_pb.Route.AsObject>,
+    secretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    rateLimitConfig?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_ratelimit_ratelimit_pb.IngressRateLimit.AsObject,
+    basicAuth?: VirtualServiceInput.BasicAuthInput.AsObject,
+    oauth?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.OAuth.AsObject,
+    customAuth?: github_com_solo_io_solo_projects_projects_gloo_api_v1_plugins_extauth_extauth_pb.CustomAuth.AsObject,
+  }
+
+  export class BasicAuthInput extends jspb.Message {
+    getRealm(): string;
+    setRealm(value: string): void;
+
+    getSpecCsv(): string;
+    setSpecCsv(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): BasicAuthInput.AsObject;
+    static toObject(includeInstance: boolean, msg: BasicAuthInput): BasicAuthInput.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: BasicAuthInput, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): BasicAuthInput;
+    static deserializeBinaryFromReader(message: BasicAuthInput, reader: jspb.BinaryReader): BasicAuthInput;
+  }
+
+  export namespace BasicAuthInput {
+    export type AsObject = {
+      realm: string,
+      specCsv: string,
+    }
+  }
+
+  export enum ExtAuthConfigCase {
+    EXT_AUTH_CONFIG_NOT_SET = 0,
+    BASIC_AUTH = 7,
+    OAUTH = 8,
+    CUSTOM_AUTH = 9,
+  }
+}
+
 export class VirtualServiceInputV2 extends jspb.Message {
   hasRef(): boolean;
   clearRef(): void;
@@ -481,6 +556,11 @@ export class CreateVirtualServiceResponse extends jspb.Message {
   getVirtualService(): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService | undefined;
   setVirtualService(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService): void;
 
+  hasVirtualServiceDetails(): boolean;
+  clearVirtualServiceDetails(): void;
+  getVirtualServiceDetails(): VirtualServiceDetails | undefined;
+  setVirtualServiceDetails(value?: VirtualServiceDetails): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CreateVirtualServiceResponse.AsObject;
   static toObject(includeInstance: boolean, msg: CreateVirtualServiceResponse): CreateVirtualServiceResponse.AsObject;
@@ -494,6 +574,7 @@ export class CreateVirtualServiceResponse extends jspb.Message {
 export namespace CreateVirtualServiceResponse {
   export type AsObject = {
     virtualService?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject,
+    virtualServiceDetails?: VirtualServiceDetails.AsObject,
   }
 }
 
@@ -531,6 +612,11 @@ export class UpdateVirtualServiceResponse extends jspb.Message {
   getVirtualService(): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService | undefined;
   setVirtualService(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService): void;
 
+  hasVirtualServiceDetails(): boolean;
+  clearVirtualServiceDetails(): void;
+  getVirtualServiceDetails(): VirtualServiceDetails | undefined;
+  setVirtualServiceDetails(value?: VirtualServiceDetails): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpdateVirtualServiceResponse.AsObject;
   static toObject(includeInstance: boolean, msg: UpdateVirtualServiceResponse): UpdateVirtualServiceResponse.AsObject;
@@ -544,6 +630,7 @@ export class UpdateVirtualServiceResponse extends jspb.Message {
 export namespace UpdateVirtualServiceResponse {
   export type AsObject = {
     virtualService?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject,
+    virtualServiceDetails?: VirtualServiceDetails.AsObject,
   }
 }
 
@@ -645,6 +732,11 @@ export class CreateRouteResponse extends jspb.Message {
   getVirtualService(): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService | undefined;
   setVirtualService(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService): void;
 
+  hasVirtualServiceDetails(): boolean;
+  clearVirtualServiceDetails(): void;
+  getVirtualServiceDetails(): VirtualServiceDetails | undefined;
+  setVirtualServiceDetails(value?: VirtualServiceDetails): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CreateRouteResponse.AsObject;
   static toObject(includeInstance: boolean, msg: CreateRouteResponse): CreateRouteResponse.AsObject;
@@ -658,6 +750,7 @@ export class CreateRouteResponse extends jspb.Message {
 export namespace CreateRouteResponse {
   export type AsObject = {
     virtualService?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject,
+    virtualServiceDetails?: VirtualServiceDetails.AsObject,
   }
 }
 
@@ -689,6 +782,11 @@ export class UpdateRouteResponse extends jspb.Message {
   getVirtualService(): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService | undefined;
   setVirtualService(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService): void;
 
+  hasVirtualServiceDetails(): boolean;
+  clearVirtualServiceDetails(): void;
+  getVirtualServiceDetails(): VirtualServiceDetails | undefined;
+  setVirtualServiceDetails(value?: VirtualServiceDetails): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UpdateRouteResponse.AsObject;
   static toObject(includeInstance: boolean, msg: UpdateRouteResponse): UpdateRouteResponse.AsObject;
@@ -702,6 +800,7 @@ export class UpdateRouteResponse extends jspb.Message {
 export namespace UpdateRouteResponse {
   export type AsObject = {
     virtualService?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject,
+    virtualServiceDetails?: VirtualServiceDetails.AsObject,
   }
 }
 
@@ -737,6 +836,11 @@ export class DeleteRouteResponse extends jspb.Message {
   getVirtualService(): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService | undefined;
   setVirtualService(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService): void;
 
+  hasVirtualServiceDetails(): boolean;
+  clearVirtualServiceDetails(): void;
+  getVirtualServiceDetails(): VirtualServiceDetails | undefined;
+  setVirtualServiceDetails(value?: VirtualServiceDetails): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DeleteRouteResponse.AsObject;
   static toObject(includeInstance: boolean, msg: DeleteRouteResponse): DeleteRouteResponse.AsObject;
@@ -750,6 +854,7 @@ export class DeleteRouteResponse extends jspb.Message {
 export namespace DeleteRouteResponse {
   export type AsObject = {
     virtualService?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject,
+    virtualServiceDetails?: VirtualServiceDetails.AsObject,
   }
 }
 
@@ -789,6 +894,11 @@ export class SwapRoutesResponse extends jspb.Message {
   getVirtualService(): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService | undefined;
   setVirtualService(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService): void;
 
+  hasVirtualServiceDetails(): boolean;
+  clearVirtualServiceDetails(): void;
+  getVirtualServiceDetails(): VirtualServiceDetails | undefined;
+  setVirtualServiceDetails(value?: VirtualServiceDetails): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SwapRoutesResponse.AsObject;
   static toObject(includeInstance: boolean, msg: SwapRoutesResponse): SwapRoutesResponse.AsObject;
@@ -802,6 +912,7 @@ export class SwapRoutesResponse extends jspb.Message {
 export namespace SwapRoutesResponse {
   export type AsObject = {
     virtualService?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject,
+    virtualServiceDetails?: VirtualServiceDetails.AsObject,
   }
 }
 
@@ -841,6 +952,11 @@ export class ShiftRoutesResponse extends jspb.Message {
   getVirtualService(): github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService | undefined;
   setVirtualService(value?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService): void;
 
+  hasVirtualServiceDetails(): boolean;
+  clearVirtualServiceDetails(): void;
+  getVirtualServiceDetails(): VirtualServiceDetails | undefined;
+  setVirtualServiceDetails(value?: VirtualServiceDetails): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ShiftRoutesResponse.AsObject;
   static toObject(includeInstance: boolean, msg: ShiftRoutesResponse): ShiftRoutesResponse.AsObject;
@@ -854,6 +970,7 @@ export class ShiftRoutesResponse extends jspb.Message {
 export namespace ShiftRoutesResponse {
   export type AsObject = {
     virtualService?: github_com_solo_io_gloo_projects_gateway_api_v1_virtual_service_pb.VirtualService.AsObject,
+    virtualServiceDetails?: VirtualServiceDetails.AsObject,
   }
 }
 

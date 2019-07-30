@@ -14,14 +14,6 @@ var (
 		return errors.Wrapf(err, "Failed to list virtual services in %v", namespace)
 	}
 
-	FailedToStreamVirtualServicesError = func(err error, namespace string) error {
-		return errors.Wrapf(err, "Failed to stream virtual services in %v", namespace)
-	}
-
-	ErrorWhileWatchingVirtualServices = func(err error, namespace string) error {
-		return errors.Wrapf(err, "Error encountered while watching virtual services in %v", namespace)
-	}
-
 	InvalidInputError = errors.New("No input provided")
 
 	FailedToCreateVirtualServiceError = func(err error, ref *core.ResourceRef) error {

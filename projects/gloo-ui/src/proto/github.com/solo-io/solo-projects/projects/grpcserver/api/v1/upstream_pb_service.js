@@ -28,15 +28,6 @@ UpstreamApi.ListUpstreams = {
   responseType: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_upstream_pb.ListUpstreamsResponse
 };
 
-UpstreamApi.StreamUpstreamList = {
-  methodName: "StreamUpstreamList",
-  service: UpstreamApi,
-  requestStream: false,
-  responseStream: true,
-  requestType: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_upstream_pb.StreamUpstreamListRequest,
-  responseType: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_upstream_pb.StreamUpstreamListResponse
-};
-
 UpstreamApi.CreateUpstream = {
   methodName: "CreateUpstream",
   service: UpstreamApi,
@@ -128,45 +119,6 @@ UpstreamApiClient.prototype.listUpstreams = function listUpstreams(requestMessag
   return {
     cancel: function () {
       callback = null;
-      client.close();
-    }
-  };
-};
-
-UpstreamApiClient.prototype.streamUpstreamList = function streamUpstreamList(requestMessage, metadata) {
-  var listeners = {
-    data: [],
-    end: [],
-    status: []
-  };
-  var client = grpc.invoke(UpstreamApi.StreamUpstreamList, {
-    request: requestMessage,
-    host: this.serviceHost,
-    metadata: metadata,
-    transport: this.options.transport,
-    debug: this.options.debug,
-    onMessage: function (responseMessage) {
-      listeners.data.forEach(function (handler) {
-        handler(responseMessage);
-      });
-    },
-    onEnd: function (status, statusMessage, trailers) {
-      listeners.end.forEach(function (handler) {
-        handler();
-      });
-      listeners.status.forEach(function (handler) {
-        handler({ code: status, details: statusMessage, metadata: trailers });
-      });
-      listeners = null;
-    }
-  });
-  return {
-    on: function (type, handler) {
-      listeners[type].push(handler);
-      return this;
-    },
-    cancel: function () {
-      listeners = null;
       client.close();
     }
   };

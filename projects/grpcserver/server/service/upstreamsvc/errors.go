@@ -14,14 +14,6 @@ var (
 		return errors.Wrapf(err, "Failed to list upstreams in %v", namespace)
 	}
 
-	FailedToStreamUpstreamsError = func(err error, namespace string) error {
-		return errors.Wrapf(err, "Failed to stream upstreams in %v", namespace)
-	}
-
-	ErrorWhileWatchingUpstreams = func(err error, namespace string) error {
-		return errors.Wrapf(err, "Error encountered while watching upstreams in %v", namespace)
-	}
-
 	FailedToCreateUpstreamError = func(err error, ref *core.ResourceRef) error {
 		return errors.Wrapf(err, "Failed to create upstream %v.%v", ref.GetNamespace(), ref.GetName())
 	}

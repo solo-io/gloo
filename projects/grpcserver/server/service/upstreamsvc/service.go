@@ -55,43 +55,6 @@ func (s *upstreamGrpcService) ListUpstreams(ctx context.Context, request *v1.Lis
 	return &v1.ListUpstreamsResponse{Upstreams: upstreamList}, nil
 }
 
-func (s *upstreamGrpcService) StreamUpstreamList(request *v1.StreamUpstreamListRequest, stream v1.UpstreamApi_StreamUpstreamListServer) error {
-	watch, errs, err := s.upstreamClient.Watch(request.GetNamespace(), clients.WatchOpts{
-		RefreshRate: s.settingsValues.GetRefreshRate(),
-		Ctx:         stream.Context(),
-		Selector:    request.GetSelector(),
-	})
-	if err != nil {
-		wrapped := FailedToStreamUpstreamsError(err, request.GetNamespace())
-		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-		return wrapped
-	}
-
-	for {
-		select {
-		case list, ok := <-watch:
-			if !ok {
-				return nil
-			}
-			err := stream.Send(&v1.StreamUpstreamListResponse{Upstreams: list})
-			if err != nil {
-				wrapped := ErrorWhileWatchingUpstreams(err, request.GetNamespace())
-				contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-				return wrapped
-			}
-		case err, ok := <-errs:
-			if !ok {
-				return nil
-			}
-			wrapped := ErrorWhileWatchingUpstreams(err, request.GetNamespace())
-			contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-			return wrapped
-		case <-stream.Context().Done():
-			return nil
-		}
-	}
-}
-
 func (s *upstreamGrpcService) CreateUpstream(ctx context.Context, request *v1.CreateUpstreamRequest) (*v1.CreateUpstreamResponse, error) {
 	upstream := gloov1.Upstream{
 		Metadata: core.Metadata{

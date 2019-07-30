@@ -2,7 +2,6 @@ package virtualservicesvc_test
 
 import (
 	"context"
-	"time"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -16,6 +15,7 @@ import (
 	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
 	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc"
+	mock_converter "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/converter/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mocks"
 	mock_mutation "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation/mocks"
 	"google.golang.org/grpc"
@@ -31,6 +31,10 @@ var (
 	mutator               *mock_mutation.MockMutator
 	mutationFactory       *mock_mutation.MockMutationFactory
 	settingsValues        *mock_settings.MockValuesClient
+	detailsConverter      *mock_converter.MockVirtualServiceDetailsConverter
+	detailsExpectation    *gomock.Call
+	virtualService        *gatewayv1.VirtualService
+	virtualServiceDetails *v1.VirtualServiceDetails
 	testErr               = errors.Errorf("test-err")
 	uint32Zero, uint32One = uint32(0), uint32(1)
 	metadata              = core.Metadata{
@@ -48,7 +52,14 @@ var _ = Describe("ServiceTest", func() {
 		mutator = mock_mutation.NewMockMutator(mockCtrl)
 		mutationFactory = mock_mutation.NewMockMutationFactory(mockCtrl)
 		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
-		apiserver = virtualservicesvc.NewVirtualServiceGrpcService(context.TODO(), virtualServiceClient, settingsValues, mutator, mutationFactory)
+		detailsConverter = mock_converter.NewMockVirtualServiceDetailsConverter(mockCtrl)
+		apiserver = virtualservicesvc.NewVirtualServiceGrpcService(context.TODO(), virtualServiceClient, settingsValues, mutator, mutationFactory, detailsConverter)
+
+		virtualService = &gatewayv1.VirtualService{Metadata: metadata}
+		virtualServiceDetails = &v1.VirtualServiceDetails{VirtualService: virtualService}
+		detailsExpectation = detailsConverter.EXPECT().
+			GetDetails(context.TODO(), virtualService).
+			Return(virtualServiceDetails)
 
 		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterVirtualServiceApiServer(s, apiserver) })
 		client = v1.NewVirtualServiceApiClient(conn)
@@ -61,19 +72,14 @@ var _ = Describe("ServiceTest", func() {
 
 	Describe("GetVirtualService", func() {
 		It("works when the virtual service client works", func() {
-			virtualService := gatewayv1.VirtualService{
-				Status:   core.Status{State: core.Status_Accepted},
-				Metadata: metadata,
-			}
-
 			virtualServiceClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(&virtualService, nil)
+				Return(virtualService, nil)
 
 			request := &v1.GetVirtualServiceRequest{Ref: &ref}
 			actual, err := client.GetVirtualService(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.GetVirtualServiceResponse{VirtualService: &virtualService}
+			expected := &v1.GetVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -81,6 +87,7 @@ var _ = Describe("ServiceTest", func() {
 			virtualServiceClient.EXPECT().
 				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
+			detailsExpectation.Times(0)
 
 			request := &v1.GetVirtualServiceRequest{Ref: &ref}
 			_, err := client.GetVirtualService(context.TODO(), request)
@@ -93,26 +100,42 @@ var _ = Describe("ServiceTest", func() {
 	Describe("ListVirtualServices", func() {
 		It("works when the virtual service client works", func() {
 			ns1, ns2 := "one", "two"
-			virtualService1 := gatewayv1.VirtualService{
+			virtualService1 := &gatewayv1.VirtualService{
 				Status:   core.Status{State: core.Status_Accepted},
 				Metadata: core.Metadata{Namespace: ns1},
 			}
-			virtualService2 := gatewayv1.VirtualService{
+			virtualService2 := &gatewayv1.VirtualService{
 				Status:   core.Status{State: core.Status_Pending},
 				Metadata: core.Metadata{Namespace: ns2},
+			}
+			virtualServiceDetails1 := &v1.VirtualServiceDetails{
+				VirtualService: virtualService1,
+			}
+			virtualServiceDetails2 := &v1.VirtualServiceDetails{
+				VirtualService: virtualService2,
 			}
 
 			virtualServiceClient.EXPECT().
 				List(ns1, clients.ListOpts{Ctx: context.TODO()}).
-				Return([]*gatewayv1.VirtualService{&virtualService1}, nil)
+				Return([]*gatewayv1.VirtualService{virtualService1}, nil)
 			virtualServiceClient.EXPECT().
 				List(ns2, clients.ListOpts{Ctx: context.TODO()}).
-				Return([]*gatewayv1.VirtualService{&virtualService2}, nil)
+				Return([]*gatewayv1.VirtualService{virtualService2}, nil)
+			detailsExpectation.Times(0)
+			detailsConverter.EXPECT().
+				GetDetails(context.TODO(), virtualService1).
+				Return(virtualServiceDetails1)
+			detailsConverter.EXPECT().
+				GetDetails(context.TODO(), virtualService2).
+				Return(virtualServiceDetails2)
 
 			request := &v1.ListVirtualServicesRequest{Namespaces: []string{ns1, ns2}}
 			actual, err := client.ListVirtualServices(context.TODO(), request)
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.ListVirtualServicesResponse{VirtualServices: []*gatewayv1.VirtualService{&virtualService1, &virtualService2}}
+			expected := &v1.ListVirtualServicesResponse{
+				VirtualServices:       []*gatewayv1.VirtualService{virtualService1, virtualService2},
+				VirtualServiceDetails: []*v1.VirtualServiceDetails{virtualServiceDetails1, virtualServiceDetails2},
+			}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -122,73 +145,13 @@ var _ = Describe("ServiceTest", func() {
 			virtualServiceClient.EXPECT().
 				List(ns, clients.ListOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
+			detailsExpectation.Times(0)
 
 			request := &v1.ListVirtualServicesRequest{Namespaces: []string{ns}}
 			_, err := client.ListVirtualServices(context.TODO(), request)
 			Expect(err).To(HaveOccurred())
 			expectedErr := virtualservicesvc.FailedToListVirtualServicesError(testErr, ns)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-		})
-	})
-
-	Describe("StreamVirtualServiceList", func() {
-		It("works", func() {
-			virtualServiceList := []*gatewayv1.VirtualService{
-				{
-					Metadata: metadata,
-				},
-				{
-					Metadata: metadata,
-				},
-			}
-
-			refreshRate := time.Minute
-			request := v1.StreamVirtualServiceListRequest{
-				Namespace: ref.GetNamespace(),
-			}
-			virtualServiceChan := make(chan gatewayv1.VirtualServiceList, 1)
-			virtualServiceChan <- virtualServiceList
-			errChan := make(chan error)
-
-			defer func() {
-				close(virtualServiceChan)
-				close(errChan)
-			}()
-
-			settingsValues.EXPECT().GetRefreshRate().Return(refreshRate)
-			virtualServiceClient.EXPECT().
-				Watch(ref.GetNamespace(), gomock.Any()).
-				Return(virtualServiceChan, errChan, nil)
-
-			ctx, cancel := context.WithCancel(context.TODO())
-			defer cancel()
-			streamClient, err := client.StreamVirtualServiceList(ctx, &request)
-			Expect(err).NotTo(HaveOccurred())
-
-			wait := make(chan struct{})
-			go func() {
-				defer GinkgoRecover()
-				defer func() {
-					close(wait)
-				}()
-
-				actual, err := streamClient.Recv()
-				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.StreamVirtualServiceListResponse{VirtualServices: virtualServiceList}
-				ExpectEqualProtoMessages(actual, expected)
-
-				errChan <- testErr
-				_, err = streamClient.Recv()
-				Expect(err).To(HaveOccurred())
-				expectedErr := virtualservicesvc.ErrorWhileWatchingVirtualServices(testErr, metadata.Namespace)
-				Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-			}()
-
-			select {
-			case <-wait:
-			case <-time.After(time.Second):
-				Fail("expected wait to be closed before 1s")
-			}
 		})
 	})
 
@@ -201,18 +164,14 @@ var _ = Describe("ServiceTest", func() {
 			}
 
 			It("works when the mutator works", func() {
-				virtualService := gatewayv1.VirtualService{
-					Metadata: metadata,
-				}
-
 				mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
 				mutator.EXPECT().
 					Create(&ref, gomock.Any()).
-					Return(&virtualService, nil)
+					Return(virtualService, nil)
 
 				actual, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{Input: getInput(&ref)})
 				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.CreateVirtualServiceResponse{VirtualService: &virtualService}
+				expected := &v1.CreateVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 				ExpectEqualProtoMessages(actual, expected)
 			})
 
@@ -221,6 +180,7 @@ var _ = Describe("ServiceTest", func() {
 				mutator.EXPECT().
 					Create(&ref, gomock.Any()).
 					Return(nil, testErr)
+				detailsExpectation.Times(0)
 
 				request := &v1.CreateVirtualServiceRequest{
 					Input: getInput(&ref),
@@ -240,18 +200,14 @@ var _ = Describe("ServiceTest", func() {
 			}
 
 			It("works when the mutator works", func() {
-				virtualService := gatewayv1.VirtualService{
-					Metadata: metadata,
-				}
-
 				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(&ref))
 				mutator.EXPECT().
 					Create(&ref, gomock.Any()).
-					Return(&virtualService, nil)
+					Return(virtualService, nil)
 
 				actual, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(&ref)})
 				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.CreateVirtualServiceResponse{VirtualService: &virtualService}
+				expected := &v1.CreateVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 				ExpectEqualProtoMessages(actual, expected)
 			})
 
@@ -260,6 +216,7 @@ var _ = Describe("ServiceTest", func() {
 				mutator.EXPECT().
 					Create(&ref, gomock.Any()).
 					Return(nil, testErr)
+				detailsExpectation.Times(0)
 
 				_, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{InputV2: getInput(&ref)})
 				Expect(err).To(HaveOccurred())
@@ -269,6 +226,7 @@ var _ = Describe("ServiceTest", func() {
 		})
 
 		It("errors when no input is provided", func() {
+			detailsExpectation.Times(0)
 			_, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(virtualservicesvc.InvalidInputError.Error()))
@@ -284,18 +242,14 @@ var _ = Describe("ServiceTest", func() {
 			}
 
 			It("works when the mutator works", func() {
-				virtualService := gatewayv1.VirtualService{
-					Metadata: metadata,
-				}
-
 				mutationFactory.EXPECT().ConfigureVirtualService(getInput(&ref))
 				mutator.EXPECT().
 					Update(&ref, gomock.Any()).
-					Return(&virtualService, nil)
+					Return(virtualService, nil)
 
 				actual, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{Input: getInput(&ref)})
 				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.UpdateVirtualServiceResponse{VirtualService: &virtualService}
+				expected := &v1.UpdateVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 				ExpectEqualProtoMessages(actual, expected)
 			})
 
@@ -304,6 +258,7 @@ var _ = Describe("ServiceTest", func() {
 				mutator.EXPECT().
 					Update(&ref, gomock.Any()).
 					Return(nil, testErr)
+				detailsExpectation.Times(0)
 
 				_, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{Input: getInput(&ref)})
 				Expect(err).To(HaveOccurred())
@@ -320,18 +275,14 @@ var _ = Describe("ServiceTest", func() {
 			}
 
 			It("works when the mutator works", func() {
-				virtualService := gatewayv1.VirtualService{
-					Metadata: metadata,
-				}
-
 				mutationFactory.EXPECT().ConfigureVirtualServiceV2(getInput(&ref))
 				mutator.EXPECT().
 					Update(&ref, gomock.Any()).
-					Return(&virtualService, nil)
+					Return(virtualService, nil)
 
 				actual, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(&ref)})
 				Expect(err).NotTo(HaveOccurred())
-				expected := &v1.UpdateVirtualServiceResponse{VirtualService: &virtualService}
+				expected := &v1.UpdateVirtualServiceResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 				ExpectEqualProtoMessages(actual, expected)
 			})
 
@@ -340,6 +291,7 @@ var _ = Describe("ServiceTest", func() {
 				mutator.EXPECT().
 					Update(&ref, gomock.Any()).
 					Return(nil, testErr)
+				detailsExpectation.Times(0)
 
 				_, err := client.UpdateVirtualService(context.TODO(), &v1.UpdateVirtualServiceRequest{InputV2: getInput(&ref)})
 				Expect(err).To(HaveOccurred())
@@ -349,6 +301,7 @@ var _ = Describe("ServiceTest", func() {
 		})
 
 		It("errors when no input is provided", func() {
+			detailsExpectation.Times(0)
 			_, err := client.CreateVirtualService(context.TODO(), &v1.CreateVirtualServiceRequest{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring(virtualservicesvc.InvalidInputError.Error()))
@@ -360,6 +313,7 @@ var _ = Describe("ServiceTest", func() {
 			virtualServiceClient.EXPECT().
 				Delete(ref.Namespace, ref.Name, clients.DeleteOpts{Ctx: context.TODO()}).
 				Return(nil)
+			detailsExpectation.Times(0)
 
 			request := &v1.DeleteVirtualServiceRequest{Ref: &ref}
 			actual, err := client.DeleteVirtualService(context.TODO(), request)
@@ -372,6 +326,7 @@ var _ = Describe("ServiceTest", func() {
 			virtualServiceClient.EXPECT().
 				Delete(ref.Namespace, ref.Name, clients.DeleteOpts{Ctx: context.TODO()}).
 				Return(testErr)
+			detailsExpectation.Times(0)
 
 			request := &v1.DeleteVirtualServiceRequest{Ref: &ref}
 			_, err := client.DeleteVirtualService(context.TODO(), request)
@@ -389,18 +344,14 @@ var _ = Describe("ServiceTest", func() {
 		}
 
 		It("works when the mutator works", func() {
-			virtualService := gatewayv1.VirtualService{
-				Metadata: metadata,
-			}
-
 			mutationFactory.EXPECT().CreateRoute(getInput(&ref))
 			mutator.EXPECT().
 				Update(&ref, gomock.Any()).
-				Return(&virtualService, nil)
+				Return(virtualService, nil)
 
 			actual, err := client.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.CreateRouteResponse{VirtualService: &virtualService}
+			expected := &v1.CreateRouteResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -409,6 +360,7 @@ var _ = Describe("ServiceTest", func() {
 			mutator.EXPECT().
 				Update(&ref, gomock.Any()).
 				Return(nil, testErr)
+			detailsExpectation.Times(0)
 
 			_, err := client.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
 			Expect(err).To(HaveOccurred())
@@ -425,18 +377,14 @@ var _ = Describe("ServiceTest", func() {
 		}
 
 		It("works when the mutator works", func() {
-			virtualService := gatewayv1.VirtualService{
-				Metadata: metadata,
-			}
-
 			mutationFactory.EXPECT().UpdateRoute(getInput(&ref))
 			mutator.EXPECT().
 				Update(&ref, gomock.Any()).
-				Return(&virtualService, nil)
+				Return(virtualService, nil)
 
 			actual, err := client.UpdateRoute(context.TODO(), &v1.UpdateRouteRequest{Input: getInput(&ref)})
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.UpdateRouteResponse{VirtualService: &virtualService}
+			expected := &v1.UpdateRouteResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -445,6 +393,7 @@ var _ = Describe("ServiceTest", func() {
 			mutator.EXPECT().
 				Update(&ref, gomock.Any()).
 				Return(nil, testErr)
+			detailsExpectation.Times(0)
 
 			_, err := client.UpdateRoute(context.TODO(), &v1.UpdateRouteRequest{Input: getInput(&ref)})
 			Expect(err).To(HaveOccurred())
@@ -462,18 +411,14 @@ var _ = Describe("ServiceTest", func() {
 		}
 
 		It("works when the mutator works", func() {
-			virtualService := gatewayv1.VirtualService{
-				Metadata: metadata,
-			}
-
 			mutationFactory.EXPECT().DeleteRoute(uint32Zero)
 			mutator.EXPECT().
 				Update(&ref, gomock.Any()).
-				Return(&virtualService, nil)
+				Return(virtualService, nil)
 
 			actual, err := client.DeleteRoute(context.TODO(), getRequest(&ref))
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.DeleteRouteResponse{VirtualService: &virtualService}
+			expected := &v1.DeleteRouteResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -482,6 +427,7 @@ var _ = Describe("ServiceTest", func() {
 			mutator.EXPECT().
 				Update(&ref, gomock.Any()).
 				Return(nil, testErr)
+			detailsExpectation.Times(0)
 
 			_, err := client.DeleteRoute(context.TODO(), getRequest(&ref))
 			Expect(err).To(HaveOccurred())
@@ -500,18 +446,14 @@ var _ = Describe("ServiceTest", func() {
 		}
 
 		It("works when the mutator works", func() {
-			virtualService := gatewayv1.VirtualService{
-				Metadata: metadata,
-			}
-
 			mutationFactory.EXPECT().SwapRoutes(uint32Zero, uint32One)
 			mutator.EXPECT().
 				Update(&ref, gomock.Any()).
-				Return(&virtualService, nil)
+				Return(virtualService, nil)
 
 			actual, err := client.SwapRoutes(context.TODO(), getRequest(&ref))
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.SwapRoutesResponse{VirtualService: &virtualService}
+			expected := &v1.SwapRoutesResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -520,6 +462,7 @@ var _ = Describe("ServiceTest", func() {
 			mutator.EXPECT().
 				Update(&ref, gomock.Any()).
 				Return(nil, testErr)
+			detailsExpectation.Times(0)
 
 			_, err := client.SwapRoutes(context.TODO(), getRequest(&ref))
 			Expect(err).To(HaveOccurred())
@@ -538,18 +481,14 @@ var _ = Describe("ServiceTest", func() {
 		}
 
 		It("works when the mutator works", func() {
-			virtualService := gatewayv1.VirtualService{
-				Metadata: metadata,
-			}
-
 			mutationFactory.EXPECT().ShiftRoutes(uint32Zero, uint32One)
 			mutator.EXPECT().
 				Update(&ref, gomock.Any()).
-				Return(&virtualService, nil)
+				Return(virtualService, nil)
 
 			actual, err := client.ShiftRoutes(context.TODO(), getRequest(&ref))
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.ShiftRoutesResponse{VirtualService: &virtualService}
+			expected := &v1.ShiftRoutesResponse{VirtualService: virtualService, VirtualServiceDetails: virtualServiceDetails}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
@@ -558,6 +497,7 @@ var _ = Describe("ServiceTest", func() {
 			mutator.EXPECT().
 				Update(&ref, gomock.Any()).
 				Return(nil, testErr)
+			detailsExpectation.Times(0)
 
 			_, err := client.ShiftRoutes(context.TODO(), getRequest(&ref))
 			Expect(err).To(HaveOccurred())
