@@ -1,6 +1,9 @@
 import { Upstream } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb';
 import { Metadata } from 'proto/github.com/solo-io/solo-kit/api/v1/metadata_pb';
-
+import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
+import { CheckboxFilterProps } from 'Components/Common/ListingFilter';
+import _ from 'lodash';
+import { UpstreamInput } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 /* -------------------------------------------------------------------------- */
 /*                                  UPSTREAMS                                 */
 /* -------------------------------------------------------------------------- */
@@ -26,7 +29,7 @@ export function parseUpstreamId(
 export function getUpstreamType(upstream: Upstream.AsObject) {
   let upstreamType = '';
   if (!!upstream.upstreamSpec!.aws) {
-    upstreamType = 'AWS';
+    upstreamType = 'Aws';
   }
   if (!!upstream.upstreamSpec!.azure) {
     upstreamType = 'Azure';
@@ -38,6 +41,10 @@ export function getUpstreamType(upstream: Upstream.AsObject) {
 
   if (!!upstream.upstreamSpec!.kube) {
     upstreamType = 'Kubernetes';
+  }
+
+  if (!!upstream.upstreamSpec!.awsEc2) {
+    upstreamType = 'Aws Ec 2';
   }
   return upstreamType;
 }
@@ -52,36 +59,49 @@ export function getFunctionInfo(upstream: Upstream.AsObject) {
   return '';
 }
 
-export const UPSTREAM_TYPES = [
-  {
-    key: 'AWS',
-    value: 'AWS'
-  },
-  {
-    key: 'Azure',
-    value: 'Azure'
-  },
-  {
-    key: 'Kubernetes',
-    value: 'Kubernetes'
-  },
-  {
-    key: 'Static',
-    value: 'Static'
-  },
-  {
-    key: 'Consul',
-    value: 'Consul'
-  }
-];
+export const UPSTREAM_TYPES = Object.keys(UpstreamSpec.UpstreamTypeCase)
+  .filter(str => str !== 'UPSTREAM_TYPE_NOT_SET')
+  .map(str => {
+    if (str === 'KUBE') return 'Kubernetes';
+  })
+  .map(upstreamType => {
+    return {
+      key: upstreamType,
+      value: _.startCase(_.toLower(upstreamType))
+    };
+  });
+
+// The upstreams we allow the user to create are not guaranteed to be the same
+// as the ones we can discover since these depend on the grpc server
+export const UPSTREAM_TYPES_CREATE = Object.keys(UpstreamInput.SpecCase)
+  .filter(str => str !== 'SPEC_NOT_SET') // auto generated for oneof fields
+  .map(str => (str === 'KUBE' ? 'Kubernetes' : str))
+  .map(upstreamType => {
+    return {
+      key: upstreamType,
+      value: _.startCase(_.toLower(upstreamType))
+    };
+  });
 
 export enum UPSTREAM_SPEC_TYPES {
   AZURE = 'Azure',
   KUBE = 'Kubernetes',
-  AWS = 'AWS',
+  AWS = 'Aws',
   STATIC = 'Static',
   CONSUL = 'Consul'
 }
+
+export const CheckboxFilters: CheckboxFilterProps[] = Object.keys(
+  UpstreamSpec.UpstreamTypeCase
+)
+  .filter(str => str !== 'UPSTREAM_TYPE_NOT_SET') // auto generated for oneof fields
+  .map(str => (str === 'KUBE' ? 'Kubernetes' : str))
+  .map(str => {
+    return {
+      displayName: _.startCase(_.toLower(str)),
+      value: false
+    };
+  });
 
 // from https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-available-regions
 export const AWS_REGIONS = [

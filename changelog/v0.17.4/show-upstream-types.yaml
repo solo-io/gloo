@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Show all upstream types we can discover in the checkboxes.
+    issueLink: https://github.com/solo-io/solo-projects/issues/744

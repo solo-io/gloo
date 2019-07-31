@@ -55,7 +55,7 @@ export function getIcon(type: string) {
   switch (type) {
     case 'Kubernetes':
       return <KubeLogo />;
-    case 'AWS':
+    case 'Aws':
       return <AWSLogo />;
     case 'Azure':
       return <AzureLogo />;

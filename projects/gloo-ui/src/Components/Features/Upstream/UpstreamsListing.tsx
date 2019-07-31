@@ -32,7 +32,9 @@ import {
   getUpstreamType,
   groupBy,
   getIcon,
-  getFunctionInfo
+  getFunctionInfo,
+  CheckboxFilters,
+  UPSTREAM_TYPES
 } from 'utils/helpers';
 import { NamespacesContext } from 'GlooIApp';
 import { CreateUpstreamModal } from './Creation/CreateUpstreamModal';
@@ -41,6 +43,8 @@ import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreateRouteModal } from '../Route/CreateRouteModal';
 import { ExtraInfo } from 'Components/Features/Upstream/ExtraInfo';
+import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
+import _ from 'lodash';
 const TypeHolder = styled.div`
   display: flex;
   align-items: center;
@@ -122,37 +126,6 @@ const getTableColumns = (
     }
   ];
 };
-
-const CheckboxFilters: CheckboxFilterProps[] = [
-  {
-    displayName: 'AWS',
-    value: false
-  },
-  {
-    displayName: 'Azure',
-    value: false
-  },
-  {
-    displayName: 'REST',
-    value: false
-  },
-  {
-    displayName: 'gRPC',
-    value: false
-  },
-  {
-    displayName: 'Consul',
-    value: false
-  },
-  {
-    displayName: 'Kubernetes',
-    value: false
-  },
-  {
-    displayName: 'Static',
-    value: false
-  }
-];
 
 const Heading = styled.div`
   display: flex;
