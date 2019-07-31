@@ -10,7 +10,9 @@ import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import * as React from 'react';
 import { AWS_REGIONS } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
-
+import { SoloButton } from 'Components/Common/SoloButton';
+import { withRouter, RouterProps } from 'react-router';
+import { useFormikContext, useField } from 'formik';
 interface AwsValuesType {
   awsRegion: string;
   awsSecretRef: ResourceRef.AsObject;
@@ -34,8 +36,11 @@ export const awsValidationSchema = yup.object().shape({
   })
 });
 
-export const AwsUpstreamForm: React.FC<Props> = () => {
+const AwsUpstreamFormComponent: React.FC<Props & RouterProps> = ({
+  history
+}) => {
   const awsRegions = AWS_REGIONS.map(item => item.name);
+  const [_, meta] = useField('awsSecretRef');
 
   return (
     <React.Fragment>
@@ -50,7 +55,17 @@ export const AwsUpstreamForm: React.FC<Props> = () => {
           </div>
           <SoloFormSecretRefInput name='awsSecretRef' type='aws' />
         </InputRow>
+        <InputRow>
+          {!!meta.error && !!meta.touched && (
+            <SoloButton
+              text='Create a secret first'
+              onClick={() => history.push('/settings/secrets')}
+            />
+          )}
+        </InputRow>
       </SoloFormTemplate>
     </React.Fragment>
   );
 };
+
+export const AwsUpstreamForm = withRouter(AwsUpstreamFormComponent);

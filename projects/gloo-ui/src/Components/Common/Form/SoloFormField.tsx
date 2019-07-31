@@ -1,35 +1,23 @@
 import styled from '@emotion/styled/macro';
-import {
-  FieldProps,
-  Field,
-  FieldArrayRenderProps,
-  useField,
-  FieldAttributes,
-  useFormikContext,
-  FormikProps,
-  setIn
-} from 'formik';
-import React from 'react';
-import { colors } from 'Styles';
-import { DropdownProps, SoloDropdown } from '../SoloDropdown';
-import { InputProps, SoloInput } from '../SoloInput';
-import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
-import { SoloCheckbox, CheckboxProps } from '../SoloCheckbox';
-import { SoloMultiSelect, MultiselectProps } from '../SoloMultiSelect';
-import {
-  MultipartStringCardsList,
-  MultipartStringCardsProps
-} from '../MultipartStringCardsList';
-import {
-  createUpstreamId,
-  parseUpstreamId,
-  getUpstreamType,
-  getIcon
-} from 'utils/helpers';
+import { useListSecrets } from 'Api';
+import { useField, useFormikContext } from 'formik';
 import { NamespacesContext } from 'GlooIApp';
 import { ListSecretsRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/secret_pb';
-import { useListSecrets } from 'Api';
-import { StringCardsListProps, StringCardsList } from '../StringCardsList';
+import React from 'react';
+import { colors } from 'Styles';
+import {
+  createUpstreamId,
+  getIcon,
+  getUpstreamType,
+  parseUpstreamId
+} from 'utils/helpers';
+import { MultipartStringCardsList } from '../MultipartStringCardsList';
+import { SoloCheckbox } from '../SoloCheckbox';
+import { DropdownProps, SoloDropdown } from '../SoloDropdown';
+import { SoloInput } from '../SoloInput';
+import { SoloMultiSelect } from '../SoloMultiSelect';
+import { SoloTypeahead } from '../SoloTypeahead';
+import { StringCardsList } from '../StringCardsList';
 
 export const ErrorText = styled<'div', { errorExists?: boolean }>('div')`
   color: ${colors.grapefruitOrange};
@@ -310,7 +298,6 @@ export const SoloFormSecretRefInput: React.FC<{
         <SoloTypeahead
           {...namespaceField}
           title='Secret Ref Namespace'
-          defaultValue='gloo-system'
           presetOptions={namespaces}
           onChange={value => {
             form.setFieldValue(`${field.name}.namespace`, value);

@@ -64,7 +64,7 @@ const ProgressSliderCSS = css`
 export const ButtonProgress = styled.div`
   ${ProgressSliderCSS};
 `;
-export const SoloButton = styled.button`
+export const SoloButtonStyledComponent = styled.button`
   ${SoloButtonCSS};
 
   ${props =>

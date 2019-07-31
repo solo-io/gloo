@@ -112,12 +112,12 @@ export const SecretForm: React.FC<Props> = ({ secretKind }) => {
             {secretKind === Secret.KindCase.AZURE && <AzureSecretFields />}
             {secretKind === Secret.KindCase.TLS && <TlsSecretFields />}
             {secretKind === Secret.KindCase.EXTENSION && <OAuthSecretFields />}
-            <td>
+            <TableFormWrapper>
               <GreenPlus
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleSubmit()}
               />
-            </td>
+            </TableFormWrapper>
           </React.Fragment>
         )}
       </Formik>

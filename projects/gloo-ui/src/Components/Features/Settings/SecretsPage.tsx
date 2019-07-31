@@ -171,7 +171,7 @@ export const SecretsPage = (props: Props) => {
             columns={AWSColumns}
             dataSource={awsTableData}
             formComponent={() => (
-              <SecretForm secretKind={Secret.KindCase.AWS} />
+              <SecretForm secretKind={Secret.KindCase.AWS} asTable />
             )}
           />
         ) : (
@@ -183,7 +183,7 @@ export const SecretsPage = (props: Props) => {
           columns={AzureColumns}
           dataSource={azureTableData}
           formComponent={() => (
-            <SecretForm secretKind={Secret.KindCase.AZURE} />
+            <SecretForm secretKind={Secret.KindCase.AZURE} asTable />
           )}
         />
       </SectionCard>
