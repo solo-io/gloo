@@ -4,7 +4,7 @@ import { css, jsx, SerializedStyles } from '@emotion/core';
 import {
   SoloButtonCSS,
   ButtonProgress,
-  SoloButtonReplace
+  SoloButtonStyledComponent
 } from 'Styles/CommonEmotions/button';
 
 import { BaseButtonProps } from 'antd/lib/button/button';
@@ -33,7 +33,7 @@ export const SoloButton = (props: SoloButtonProps) => {
 
   return (
     <React.Fragment>
-      <SoloButtonReplace
+      <SoloButtonStyledComponent
         {...rest}
         loading={loading}
         css={css`
@@ -43,7 +43,7 @@ export const SoloButton = (props: SoloButtonProps) => {
         onClick={onClick}>
         <ButtonProgress />
         {loading ? inProgressText : error ? errorText : text}
-      </SoloButtonReplace>
+      </SoloButtonStyledComponent>
     </React.Fragment>
   );
 };

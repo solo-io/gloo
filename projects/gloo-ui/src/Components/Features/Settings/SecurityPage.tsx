@@ -177,7 +177,7 @@ export const SecurityPage: React.FunctionComponent<Props> = props => {
             columns={TLSColumns}
             dataSource={tlsTableData}
             formComponent={() => (
-              <SecretForm secretKind={Secret.KindCase.TLS} asTable />
+              <SecretForm secretKind={Secret.KindCase.TLS} />
             )}
           />
         ) : (
@@ -190,7 +190,7 @@ export const SecurityPage: React.FunctionComponent<Props> = props => {
             columns={OAuthColumns}
             dataSource={oAuthTableData}
             formComponent={() => (
-              <SecretForm secretKind={Secret.KindCase.EXTENSION} asTable />
+              <SecretForm secretKind={Secret.KindCase.EXTENSION} />
             )}
           />
         ) : (

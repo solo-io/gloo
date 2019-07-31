@@ -8,6 +8,8 @@ import { ReactComponent as SettingsGear } from 'assets/settings-gear.svg';
 import { ReactComponent as HelpBubble } from 'assets/help-icon.svg';
 import styled from '@emotion/styled/macro';
 import { Popover } from 'antd';
+import { GetVirtualServiceRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { useGetVersion } from 'Api';
 
 const NavLinkStyles = {
   display: 'inline-block',
@@ -94,6 +96,12 @@ const VersionDisplay = styled.div`
 `;
 
 export const MainMenu = () => {
+  const {
+    data: versionData,
+    loading: versionLoading,
+    error: versionError
+  } = useGetVersion(new GetVirtualServiceRequest());
+
   return (
     <Container>
       <InnerContainer>
@@ -143,7 +151,14 @@ export const MainMenu = () => {
                   Join the Community
                 </DocumentationLink>
 
-                <VersionDisplay>Version: {'unknown'}</VersionDisplay>
+                <VersionDisplay>
+                  Version:{' '}
+                  {versionData
+                    ? versionData.version
+                    : versionLoading
+                    ? 'loading...'
+                    : 'unknown'}
+                </VersionDisplay>
               </div>
             }>
             <HelpBubble />

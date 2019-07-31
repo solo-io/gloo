@@ -4,6 +4,8 @@ import styled from '@emotion/styled/macro';
 import { soloConstants } from 'Styles/constants';
 import blueProgressMask from 'assets/primary-progress-mask.svg';
 import orangeProgressMask from 'assets/warning-progress-mask.svg';
+import { Button } from 'antd';
+
 const slide = keyframes`
   from { background-position: -281px 0; }
   to { background-position: 0 0; }
@@ -63,7 +65,7 @@ const ProgressSliderCSS = css`
 export const ButtonProgress = styled.div`
   ${ProgressSliderCSS};
 `;
-export const SoloButtonStyledComponent = styled.button`
+export const SoloButtonStyledComponent = styled(Button)`
   ${SoloButtonCSS};
 
   ${props =>

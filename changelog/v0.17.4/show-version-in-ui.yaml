@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Version is now actually tied to something in the UI.
+    issueLink: https://github.com/solo-io/gloo/issues/781
