@@ -1,8 +1,11 @@
 import * as React from 'react';
 /** @jsx jsx */
 import { css, jsx, SerializedStyles } from '@emotion/core';
-import { Button } from 'antd';
-import { SoloButtonCSS } from 'Styles/CommonEmotions/button';
+import {
+  SoloButtonCSS,
+  ButtonProgress,
+  SoloButtonReplace
+} from 'Styles/CommonEmotions/button';
 
 import { BaseButtonProps } from 'antd/lib/button/button';
 
@@ -30,7 +33,7 @@ export const SoloButton = (props: SoloButtonProps) => {
 
   return (
     <React.Fragment>
-      <Button
+      <SoloButtonReplace
         {...rest}
         loading={loading}
         css={css`
@@ -38,8 +41,9 @@ export const SoloButton = (props: SoloButtonProps) => {
           ${uniqueCss || {}};
         `}
         onClick={onClick}>
+        <ButtonProgress />
         {loading ? inProgressText : error ? errorText : text}
-      </Button>
+      </SoloButtonReplace>
     </React.Fragment>
   );
 };

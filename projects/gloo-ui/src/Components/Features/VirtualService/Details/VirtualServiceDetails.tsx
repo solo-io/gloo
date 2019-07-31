@@ -87,14 +87,12 @@ export const VirtualServiceDetails = (props: Props) => {
   } = useUpdateVirtualService(null);
 
   React.useEffect(() => {
-    console.log(data);
     if (!!data) {
       setVirtualService(data.virtualService);
     }
   }, [loading]);
 
   React.useEffect(() => {
-    console.log(updateData);
     if (!!updateData) {
       setVirtualService(updateData.virtualService);
     }
@@ -176,12 +174,10 @@ export const VirtualServiceDetails = (props: Props) => {
       };
     }
 
-    if (!!authLimit || !!anonLimit) {
-      rateLimits = {
-        anonymousLimits: anonLimit,
-        authorizedLimits: authLimit
-      };
-    }
+    rateLimits = {
+      anonymousLimits: anonLimit,
+      authorizedLimits: authLimit
+    };
   }
   if (!!configsMap && !!configsMap.get('extauth')) {
     let fieldsMap = new Map(configsMap.get('extauth')!.fieldsMap);
@@ -410,6 +406,7 @@ export const VirtualServiceDetails = (props: Props) => {
     updateVirtualService({ newDomainsList });
   };
   const ratesChanged = (newRateLimits: IngressRateLimit.AsObject) => {
+    console.log(newRateLimits);
     updateVirtualService({ newRateLimits });
   };
   const externalAuthChanged = (newOAuth: OAuth.AsObject) => {

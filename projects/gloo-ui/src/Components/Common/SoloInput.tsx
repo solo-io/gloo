@@ -69,8 +69,6 @@ export const SoloInput = (props: InputProps) => {
   return (
     <div>
       {title && <Label>{title}</Label>}
-      {/*
-                      // @ts-ignore*/}
       <Input
         borderless={borderless}
         name={name}

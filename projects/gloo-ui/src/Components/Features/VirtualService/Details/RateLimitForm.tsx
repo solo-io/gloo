@@ -91,12 +91,22 @@ export const timeOptions = [
 const validationSchema = yup.object().shape({
   authLimitNumber: yup
     .number()
-    .test('Valid Number', 'Greater than 0', val => val > 0),
-  authLimitTimeUnit: yup.number(),
+    .nullable(true)
+    .test(
+      'Valid Number',
+      'Must be positive or zero',
+      val => val === undefined || val > -1
+    ),
+  authLimitTimeUnit: yup.number().nullable(),
   anonLimitNumber: yup
     .number()
-    .test('Valid Number', 'Greater than 0', val => val > 0),
-  anonLimitTimeUnit: yup.number()
+    .nullable(true)
+    .test(
+      'Valid Number',
+      'Must be positive or zero',
+      val => val === undefined || val > -1
+    ),
+  anonLimitTimeUnit: yup.number().nullable()
 });
 
 interface Props {
@@ -109,7 +119,7 @@ export const RateLimitForm = (props: Props) => {
     !!props.rates && !!props.rates.authorizedLimits
   );
   const [applyAnonymousLimits, setApplyAnonymousLimits] = React.useState(
-    !!props.rates && !!props.rates.authorizedLimits
+    !!props.rates && !!props.rates.anonymousLimits
   );
 
   const initialValues: ValuesType = { ...defaultValues };
@@ -126,6 +136,7 @@ export const RateLimitForm = (props: Props) => {
       initialValues.anonLimitTimeUnit = props.rates.anonymousLimits.unit;
     }
   }
+  console.log(initialValues);
 
   const invalid = (values: ValuesType, errors: FormikErrors<ValuesType>) => {
     let isInvalid = false;
@@ -160,6 +171,15 @@ export const RateLimitForm = (props: Props) => {
     props.rateLimitsChanged(newRateLimits);
   };
 
+  const isDirty = (formIsDirty: boolean) => {
+    return (
+      formIsDirty ||
+      applyAuthorizedLimits !==
+        (!!props.rates && !!props.rates.authorizedLimits) ||
+      applyAnonymousLimits !== (!!props.rates && !!props.rates.anonymousLimits)
+    );
+  };
+
   return (
     <Formik
       initialValues={initialValues}
@@ -172,7 +192,8 @@ export const RateLimitForm = (props: Props) => {
         errors,
         handleReset,
         dirty,
-        values
+        values,
+        setFieldValue
       }) => {
         return (
           <FormContainer>
@@ -181,7 +202,15 @@ export const RateLimitForm = (props: Props) => {
                 <SoloCheckbox
                   title={'Apply Authorized Limits '}
                   checked={applyAuthorizedLimits}
-                  onChange={() => setApplyAuthorizedLimits(s => !s)}
+                  onChange={() => {
+                    if (
+                      !applyAuthorizedLimits &&
+                      values.authLimitNumber === undefined
+                    ) {
+                      setFieldValue('authLimitNumber', 1);
+                    }
+                    setApplyAuthorizedLimits(s => !s);
+                  }}
                 />
               </StrongLabel>
               {applyAuthorizedLimits && (
@@ -209,7 +238,15 @@ export const RateLimitForm = (props: Props) => {
                 <SoloCheckbox
                   title={'Apply Anonymous Limits '}
                   checked={applyAnonymousLimits}
-                  onChange={() => setApplyAnonymousLimits(s => !s)}
+                  onChange={() => {
+                    if (
+                      !applyAnonymousLimits &&
+                      values.anonLimitNumber === undefined
+                    ) {
+                      setFieldValue('anonLimitNumber', 1);
+                    }
+                    setApplyAnonymousLimits(s => !s);
+                  }}
                 />
               </StrongLabel>
               {applyAnonymousLimits && (
@@ -239,7 +276,9 @@ export const RateLimitForm = (props: Props) => {
               <SoloButton
                 onClick={handleSubmit}
                 text='Submit'
-                disabled={isSubmitting || invalid(values, errors) || !dirty}
+                disabled={
+                  isSubmitting || invalid(values, errors) || !isDirty(dirty)
+                }
               />
             </FormFooter>
           </FormContainer>

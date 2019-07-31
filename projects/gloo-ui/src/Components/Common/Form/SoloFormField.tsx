@@ -73,6 +73,7 @@ export const SoloFormDropdown = (props: any) => {
         {...props}
         error={!!meta.error && meta.touched}
         onChange={value => form.setFieldValue(field.name, value)}
+        onBlur={value => form.setFieldValue(field.name, value)}
       />
       <ErrorText errorExists={!!meta.error && meta.touched}>
         {meta.error}

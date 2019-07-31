@@ -4,10 +4,8 @@ import { css, jsx } from '@emotion/core';
 import styled from '@emotion/styled/macro';
 
 import { colors, soloConstants } from 'Styles';
-import {
-  SoloButtonStyledComponent,
-  ButtonProgress
-} from 'Styles/CommonEmotions/button';
+import { ButtonProgress } from 'Styles/CommonEmotions/button';
+import { SoloButton } from './SoloButton';
 
 export enum InstallExtensionButtonAction {
   install,
@@ -131,13 +129,9 @@ export const SoloButtonWithDropdown = (props: ButtonProps) => {
     <Container inProgress={inProgress} ref={containerRef}>
       {/*
     // @ts-ignore*/}
-      <SoloButtonStyledComponent
-        inProgress={inProgress}
-        onClick={onClick}
-        disabled={disabled}>
-        <ButtonProgress />
+      <SoloButton inProgress={inProgress} onClick={onClick} disabled={disabled}>
         {props.children}
-      </SoloButtonStyledComponent>
+      </SoloButton>
 
       {!inProgress && (
         <React.Fragment>

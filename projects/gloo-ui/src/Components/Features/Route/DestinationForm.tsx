@@ -51,22 +51,24 @@ export function DestinationForm(props: DestiantionFormProps) {
               options={functionsList}
             />
           </HalfColumn>
-          <InputRow>
-            <HalfColumn>
-              <SoloFormCheckbox
-                name={`${field.name}.aws.invocationStyle`}
-                title='Async'
-                disabled={functionsList.length === 0}
-              />
-            </HalfColumn>
-            <HalfColumn>
-              <SoloFormCheckbox
-                name={`${field.name}.aws.responseTransformation`}
-                title='Transform Response'
-                disabled={functionsList.length === 0}
-              />
-            </HalfColumn>
-          </InputRow>
+          <HalfColumn>
+            <InputRow>
+              <div>
+                <SoloFormCheckbox
+                  name={`${field.name}.aws.invocationStyle`}
+                  title='Async'
+                  disabled={functionsList.length === 0}
+                />
+              </div>
+              <div>
+                <SoloFormCheckbox
+                  name={`${field.name}.aws.responseTransformation`}
+                  title='Transform Response'
+                  disabled={functionsList.length === 0}
+                />
+              </div>
+            </InputRow>
+          </HalfColumn>
         </React.Fragment>
       )}
     </React.Fragment>

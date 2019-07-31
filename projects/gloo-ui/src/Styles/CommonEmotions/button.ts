@@ -4,7 +4,6 @@ import styled from '@emotion/styled/macro';
 import { soloConstants } from 'Styles/constants';
 import blueProgressMask from 'assets/primary-progress-mask.svg';
 import orangeProgressMask from 'assets/warning-progress-mask.svg';
-
 const slide = keyframes`
   from { background-position: -281px 0; }
   to { background-position: 0 0; }

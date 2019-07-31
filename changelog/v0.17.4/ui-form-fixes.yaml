@@ -1,0 +1,13 @@
+changelog:
+  - type: FIX
+    description: Dropdowns in UI fields now work fine on blur.
+    issueLink: https://github.com/solo-io/solo-projects/issues/782
+  - type: FIX
+    description: The rate limit form in the UI now disables and submits properly.
+    issueLink: https://github.com/solo-io/solo-projects/issues/782
+  - type: FIX
+    description: The checkboxes for Lambda functions in the UI are now aligned.
+    issueLink: https://github.com/solo-io/solo-projects/issues/782
+  - type: FIX
+    description: Other minor errors in the Rate Limit form are now fixed.
+    issueLink: https://github.com/solo-io/solo-projects/issues/782
