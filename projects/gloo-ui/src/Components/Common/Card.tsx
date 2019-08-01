@@ -11,6 +11,7 @@ import {
 import { CardCSS } from 'Styles/CommonEmotions/card';
 import { hslToHSLA } from 'Styles/colors';
 import { HealthIndicator } from './HealthIndicator';
+import { Popconfirm } from 'antd';
 
 const Container = styled.div`
   ${CardCSS};
@@ -108,6 +109,8 @@ const DetailContent = styled.div`
 
 const ActionCircle = styled(TableActionCircle)`
   display: inline-block;
+  margin: 1px;
+  color: ${colors.septemberGrey};
 `;
 
 const ArrowToggle = styled<'div', { active?: boolean }>('div')`
@@ -142,7 +145,7 @@ const ArrowToggle = styled<'div', { active?: boolean }>('div')`
 export interface CardType {
   cardTitle: string;
   cardSubtitle?: string;
-  onRemoveCard?: (id: string) => any;
+  onRemoveCard?: () => any;
   id?: string;
   onExpand?: () => any;
   onClick?: () => any;
@@ -193,7 +196,17 @@ export const Card = (props: CardType) => {
       <MainSection>
         <CardTitle>
           <CardTitleText>{cardTitle}</CardTitleText>
-          {!!onCreate && <ActionCircle onClick={onCreate}>+</ActionCircle>}
+          <div>
+            {!!onCreate && <ActionCircle onClick={onCreate}>+</ActionCircle>}
+            <Popconfirm
+              title='Are you sure you want to delete this virtual service？'
+              okText='Yes'
+              cancelText='No'>
+              {!!onRemoveCard && (
+                <ActionCircle onClick={onRemoveCard}>x</ActionCircle>
+              )}
+            </Popconfirm>
+          </div>
         </CardTitle>
         <CardSubtitle>
           {cardSubtitle && cardSubtitle.length ? cardSubtitle : '   '}

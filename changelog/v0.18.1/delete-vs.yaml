@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Allow users to delete virtual services.
+    issueLink: https://github.com/solo-io/gloo/issues/794

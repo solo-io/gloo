@@ -142,7 +142,7 @@ const Action = styled.div`
 interface UpstreamCardData {
   cardTitle: string;
   cardSubtitle: string;
-  onRemoveCard: (id: string) => void;
+  onRemoveCard?: () => any;
   onExpand: () => void;
   details: { title: string; value: string }[];
   healthStatus: number;
@@ -247,7 +247,6 @@ export const UpstreamsListing = (props: Props) => {
           : healthConstants.Pending.value,
         cardTitle: upstream.metadata!.name,
         cardSubtitle: upstream.metadata!.namespace,
-        onRemoveCard: (id: string): void => {},
         onExpand: () => {},
         details: [
           {

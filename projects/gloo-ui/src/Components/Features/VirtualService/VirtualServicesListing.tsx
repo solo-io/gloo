@@ -23,8 +23,11 @@ import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
 import { ReactComponent as Gloo } from 'assets/Gloo.svg';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
 import { CardsListing } from 'Components/Common/CardsListing';
-import { useListVirtualServices } from 'Api';
-import { ListVirtualServicesRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
+import { useListVirtualServices, useDeleteVirtualService } from 'Api';
+import {
+  ListVirtualServicesRequest,
+  DeleteVirtualServiceRequest
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/virtualservice_pb';
 import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 import { Status } from 'proto/github.com/solo-io/solo-kit/api/v1/status_pb';
 import { NamespacesContext } from 'GlooIApp';
@@ -34,6 +37,7 @@ import { HealthInformation } from 'Components/Common/HealthInformation';
 import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 
 const TableLink = styled.div`
   cursor: pointer;
@@ -48,7 +52,8 @@ const TableDomains = styled.div`
 `;
 
 const getTableColumns = (
-  startCreatingRoute: (vs: VirtualService.AsObject) => any
+  startCreatingRoute: (vs: VirtualService.AsObject) => any,
+  deleteVirtualService: (name: string, namespace: string) => void
 ) => {
   return [
     {
@@ -110,6 +115,12 @@ const getTableColumns = (
       render: (vs: VirtualService.AsObject) => {
         return (
           <TableActions>
+            <TableActionCircle
+              onClick={() =>
+                deleteVirtualService(vs.metadata!.name, vs.metadata!.namespace)
+              }>
+              x
+            </TableActionCircle>
             <TableActionCircle onClick={() => startCreatingRoute(vs)}>
               +
             </TableActionCircle>
@@ -154,7 +165,7 @@ export const VirtualServicesListing = (props: Props) => {
     error: vsError,
     refetch
   } = useListVirtualServices(listVsRequest.current);
-
+  const { refetch: makeRequest } = useDeleteVirtualService(null);
   const [catalogNotTable, setCatalogNotTable] = React.useState(true);
   const [
     virtualServiceForRouteCreation,
@@ -174,7 +185,11 @@ export const VirtualServicesListing = (props: Props) => {
           : healthConstants.Pending.value,
         cardTitle: virtualService.displayName || virtualService.metadata!.name,
         cardSubtitle: getVSDomains(virtualService),
-        onRemovecard: (id: string): void => {},
+        onRemoveCard: () =>
+          deleteVS(
+            virtualService.metadata!.name,
+            virtualService.metadata!.namespace
+          ),
         onExpanded: () => {},
         onClick: () => {
           history.push(
@@ -248,7 +263,10 @@ export const VirtualServicesListing = (props: Props) => {
               nameFilterValue,
               vsListData.virtualServicesList
             )}
-            columns={getTableColumns(setVirtualServiceForRouteCreation)}
+            columns={getTableColumns(
+              setVirtualServiceForRouteCreation,
+              deleteVS
+            )}
           />
         )}
       </div>
@@ -267,7 +285,14 @@ export const VirtualServicesListing = (props: Props) => {
       }, 500);
     }
   };
-
+  function deleteVS(name: string, namespace: string) {
+    let deleteReq = new DeleteVirtualServiceRequest();
+    let ref = new ResourceRef();
+    ref.setName(name);
+    ref.setNamespace(namespace);
+    deleteReq.setRef(ref);
+    // makeRequest(deleteReq);
+  }
   return (
     <div>
       <Heading>
