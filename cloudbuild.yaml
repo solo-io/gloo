@@ -187,6 +187,12 @@ steps:
   dir: './gopath/src/github.com/solo-io/solo-projects'
   waitFor: ['build-cli', 'build-images', 'docker-login', 'test']
   id: 'build-test-assets'
+- name: gcr.io/cloud-builders/gcloud
+  args: ['config', 'set', 'compute/zone', 'us-central1-a']
+  id: 'set-zone-regression'
+- name: gcr.io/cloud-builders/gcloud
+  args: ['container', 'clusters', 'get-credentials', 'solo-projects-regression']
+  id: 'get-credentials-regression'
 - name: 'gcr.io/$PROJECT_ID/e2e-ginkgo:0.1.5'
   env:
     - 'PROJECT_ROOT=github.com/solo-io/gloo'
@@ -196,7 +202,7 @@ steps:
     - 'RUN_KUBE2E_TESTS=1'
   dir: './gopath/src/github.com/solo-io/solo-projects'
   args: ['-r', 'test/regressions']
-  waitFor: ['build-test-assets']
+  waitFor: ['build-test-assets', 'get-credentials-regression']
   id: 'regression-tests'
 
 - name: 'gcr.io/$PROJECT_ID/go-make:0.1.13'
