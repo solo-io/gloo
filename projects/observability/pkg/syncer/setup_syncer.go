@@ -38,13 +38,8 @@ func Setup(ctx context.Context, kubeCache kube.SharedCache, inMemoryCache memory
 	var (
 		cfg *rest.Config
 	)
-	upstreamFactory, err := bootstrap.ConfigFactoryForSettings(
-		settings,
-		inMemoryCache,
-		kubeCache,
-		gloov1.UpstreamCrd,
-		&cfg,
-	)
+	params := bootstrap.NewConfigFactoryParams(settings, inMemoryCache, kubeCache, &cfg, nil)
+	upstreamFactory, err := bootstrap.ConfigFactoryForSettings(params, gloov1.UpstreamCrd)
 	if err != nil {
 		return err
 	}

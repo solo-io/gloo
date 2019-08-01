@@ -30,6 +30,11 @@ export class Settings extends jspb.Message {
   getDirectoryConfigSource(): Settings.Directory | undefined;
   setDirectoryConfigSource(value?: Settings.Directory): void;
 
+  hasConsulKvSource(): boolean;
+  clearConsulKvSource(): void;
+  getConsulKvSource(): Settings.ConsulKv | undefined;
+  setConsulKvSource(value?: Settings.ConsulKv): void;
+
   hasKubernetesSecretSource(): boolean;
   clearKubernetesSecretSource(): void;
   getKubernetesSecretSource(): Settings.KubernetesSecrets | undefined;
@@ -123,6 +128,7 @@ export namespace Settings {
     watchNamespacesList: Array<string>,
     kubernetesConfigSource?: Settings.KubernetesCrds.AsObject,
     directoryConfigSource?: Settings.Directory.AsObject,
+    consulKvSource?: Settings.ConsulKv.AsObject,
     kubernetesSecretSource?: Settings.KubernetesSecrets.AsObject,
     vaultSecretSource?: Settings.VaultSecrets.AsObject,
     directorySecretSource?: Settings.Directory.AsObject,
@@ -174,6 +180,35 @@ export namespace Settings {
   }
 
   export class VaultSecrets extends jspb.Message {
+    getToken(): string;
+    setToken(value: string): void;
+
+    getAddress(): string;
+    setAddress(value: string): void;
+
+    getCaCert(): string;
+    setCaCert(value: string): void;
+
+    getCaPath(): string;
+    setCaPath(value: string): void;
+
+    getClientCert(): string;
+    setClientCert(value: string): void;
+
+    getClientKey(): string;
+    setClientKey(value: string): void;
+
+    getTlsServerName(): string;
+    setTlsServerName(value: string): void;
+
+    hasInsecure(): boolean;
+    clearInsecure(): void;
+    getInsecure(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setInsecure(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+    getRootKey(): string;
+    setRootKey(value: string): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): VaultSecrets.AsObject;
     static toObject(includeInstance: boolean, msg: VaultSecrets): VaultSecrets.AsObject;
@@ -186,6 +221,35 @@ export namespace Settings {
 
   export namespace VaultSecrets {
     export type AsObject = {
+      token: string,
+      address: string,
+      caCert: string,
+      caPath: string,
+      clientCert: string,
+      clientKey: string,
+      tlsServerName: string,
+      insecure?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+      rootKey: string,
+    }
+  }
+
+  export class ConsulKv extends jspb.Message {
+    getRootKey(): string;
+    setRootKey(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ConsulKv.AsObject;
+    static toObject(includeInstance: boolean, msg: ConsulKv): ConsulKv.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ConsulKv, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ConsulKv;
+    static deserializeBinaryFromReader(message: ConsulKv, reader: jspb.BinaryReader): ConsulKv;
+  }
+
+  export namespace ConsulKv {
+    export type AsObject = {
+      rootKey: string,
     }
   }
 
@@ -272,20 +336,47 @@ export namespace Settings {
   }
 
   export class ConsulConfiguration extends jspb.Message {
-    hasAddress(): boolean;
-    clearAddress(): void;
-    getAddress(): google_protobuf_wrappers_pb.StringValue | undefined;
-    setAddress(value?: google_protobuf_wrappers_pb.StringValue): void;
+    getAddress(): string;
+    setAddress(value: string): void;
 
-    clearDataCentersList(): void;
-    getDataCentersList(): Array<string>;
-    setDataCentersList(value: Array<string>): void;
-    addDataCenters(value: string, index?: number): string;
+    getDatacenter(): string;
+    setDatacenter(value: string): void;
+
+    getUsername(): string;
+    setUsername(value: string): void;
+
+    getPassword(): string;
+    setPassword(value: string): void;
+
+    getToken(): string;
+    setToken(value: string): void;
+
+    getCaFile(): string;
+    setCaFile(value: string): void;
+
+    getCaPath(): string;
+    setCaPath(value: string): void;
+
+    getCertFile(): string;
+    setCertFile(value: string): void;
+
+    getKeyFile(): string;
+    setKeyFile(value: string): void;
+
+    hasInsecureSkipVerify(): boolean;
+    clearInsecureSkipVerify(): void;
+    getInsecureSkipVerify(): google_protobuf_wrappers_pb.BoolValue | undefined;
+    setInsecureSkipVerify(value?: google_protobuf_wrappers_pb.BoolValue): void;
 
     hasWaitTime(): boolean;
     clearWaitTime(): void;
     getWaitTime(): google_protobuf_duration_pb.Duration | undefined;
     setWaitTime(value?: google_protobuf_duration_pb.Duration): void;
+
+    hasServiceDiscovery(): boolean;
+    clearServiceDiscovery(): void;
+    getServiceDiscovery(): Settings.ConsulConfiguration.ServiceDiscoveryOptions | undefined;
+    setServiceDiscovery(value?: Settings.ConsulConfiguration.ServiceDiscoveryOptions): void;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): ConsulConfiguration.AsObject;
@@ -299,9 +390,40 @@ export namespace Settings {
 
   export namespace ConsulConfiguration {
     export type AsObject = {
-      address?: google_protobuf_wrappers_pb.StringValue.AsObject,
-      dataCentersList: Array<string>,
+      address: string,
+      datacenter: string,
+      username: string,
+      password: string,
+      token: string,
+      caFile: string,
+      caPath: string,
+      certFile: string,
+      keyFile: string,
+      insecureSkipVerify?: google_protobuf_wrappers_pb.BoolValue.AsObject,
       waitTime?: google_protobuf_duration_pb.Duration.AsObject,
+      serviceDiscovery?: Settings.ConsulConfiguration.ServiceDiscoveryOptions.AsObject,
+    }
+
+    export class ServiceDiscoveryOptions extends jspb.Message {
+      clearDataCentersList(): void;
+      getDataCentersList(): Array<string>;
+      setDataCentersList(value: Array<string>): void;
+      addDataCenters(value: string, index?: number): string;
+
+      serializeBinary(): Uint8Array;
+      toObject(includeInstance?: boolean): ServiceDiscoveryOptions.AsObject;
+      static toObject(includeInstance: boolean, msg: ServiceDiscoveryOptions): ServiceDiscoveryOptions.AsObject;
+      static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+      static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+      static serializeBinaryToWriter(message: ServiceDiscoveryOptions, writer: jspb.BinaryWriter): void;
+      static deserializeBinary(bytes: Uint8Array): ServiceDiscoveryOptions;
+      static deserializeBinaryFromReader(message: ServiceDiscoveryOptions, reader: jspb.BinaryReader): ServiceDiscoveryOptions;
+    }
+
+    export namespace ServiceDiscoveryOptions {
+      export type AsObject = {
+        dataCentersList: Array<string>,
+      }
     }
   }
 
@@ -309,6 +431,7 @@ export namespace Settings {
     CONFIG_SOURCE_NOT_SET = 0,
     KUBERNETES_CONFIG_SOURCE = 4,
     DIRECTORY_CONFIG_SOURCE = 5,
+    CONSUL_KV_SOURCE = 21,
   }
 
   export enum SecretSourceCase {

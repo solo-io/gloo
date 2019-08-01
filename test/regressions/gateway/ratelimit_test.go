@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
+
+	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
+
 	"github.com/gogo/protobuf/types"
 
 	"github.com/solo-io/go-utils/testutils/helper"
@@ -41,7 +45,7 @@ var _ = Describe("Ratelimit tests", func() {
 		cfg    *rest.Config
 
 		cache                kube.SharedCache
-		gatewayClient        v1.GatewayClient
+		gatewayClient        v2.GatewayClient
 		virtualServiceClient v1.VirtualServiceClient
 	)
 
@@ -54,7 +58,7 @@ var _ = Describe("Ratelimit tests", func() {
 
 		cache = kube.NewKubeCache(ctx)
 		gatewayClientFactory := &factory.KubeResourceClientFactory{
-			Crd:         v1.GatewayCrd,
+			Crd:         v2.GatewayCrd,
 			Cfg:         cfg,
 			SharedCache: cache,
 		}
@@ -63,7 +67,7 @@ var _ = Describe("Ratelimit tests", func() {
 			Cfg:         cfg,
 			SharedCache: cache,
 		}
-		gatewayClient, err = v1.NewGatewayClient(gatewayClientFactory)
+		gatewayClient, err = v2.NewGatewayClient(gatewayClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		virtualServiceClient, err = v1.NewVirtualServiceClient(virtualServiceClientFactory)
@@ -121,7 +125,7 @@ var _ = Describe("Ratelimit tests", func() {
 	waitForGateway := func() {
 		defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 		// wait for default gateway to be created
-		EventuallyWithOffset(2, func() (*v1.Gateway, error) {
+		EventuallyWithOffset(2, func() (*v2.Gateway, error) {
 			return gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
 		}, "15s", "0.5s").Should(Not(BeNil()))
 	}
@@ -129,14 +133,13 @@ var _ = Describe("Ratelimit tests", func() {
 	checkRateLimited := func() {
 		waitForGateway()
 
-		gatewayProxy := "gateway-proxy"
 		gatewayPort := int(80)
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
 			Path:              "/",
 			Method:            "GET",
-			Host:              gatewayProxy,
-			Service:           gatewayProxy,
+			Host:              translator.GatewayProxyName,
+			Service:           translator.GatewayProxyName,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
 			Verbose:           true,

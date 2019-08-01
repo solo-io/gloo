@@ -45,6 +45,7 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/v1.9.0/confi
 "serverName": string
 "acceptHttp10": bool
 "defaultHostForHttp10": string
+"tracing": .tracing.plugins.gloo.solo.io.ListenerTracingSettings
 
 ```
 
@@ -65,6 +66,7 @@ See here for more information: https://www.envoyproxy.io/docs/envoy/v1.9.0/confi
 | `serverName` | `string` |  |  |
 | `acceptHttp10` | `bool` | For explanation of these settings see: https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#envoy-api-msg-core-http1protocoloptions |  |
 | `defaultHostForHttp10` | `string` |  |  |
+| `tracing` | [.tracing.plugins.gloo.solo.io.ListenerTracingSettings](../../tracing/tracing.proto.sk#listenertracingsettings) |  |  |
 
 
 

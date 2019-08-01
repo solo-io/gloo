@@ -61,6 +61,11 @@ export class Listener extends jspb.Message {
   getHttpListener(): HttpListener | undefined;
   setHttpListener(value?: HttpListener): void;
 
+  hasTcpListener(): boolean;
+  clearTcpListener(): void;
+  getTcpListener(): TcpListener | undefined;
+  setTcpListener(value?: TcpListener): void;
+
   clearSslConfigurationsList(): void;
   getSslConfigurationsList(): Array<github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig>;
   setSslConfigurationsList(value: Array<github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig>): void;
@@ -70,6 +75,11 @@ export class Listener extends jspb.Message {
   clearUseProxyProto(): void;
   getUseProxyProto(): google_protobuf_wrappers_pb.BoolValue | undefined;
   setUseProxyProto(value?: google_protobuf_wrappers_pb.BoolValue): void;
+
+  hasPlugins(): boolean;
+  clearPlugins(): void;
+  getPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins | undefined;
+  setPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins): void;
 
   getListenertypeCase(): Listener.ListenertypeCase;
   serializeBinary(): Uint8Array;
@@ -88,13 +98,76 @@ export namespace Listener {
     bindAddress: string,
     bindPort: number,
     httpListener?: HttpListener.AsObject,
+    tcpListener?: TcpListener.AsObject,
     sslConfigurationsList: Array<github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.AsObject>,
     useProxyProto?: google_protobuf_wrappers_pb.BoolValue.AsObject,
+    plugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.AsObject,
   }
 
   export enum ListenertypeCase {
     LISTENERTYPE_NOT_SET = 0,
     HTTP_LISTENER = 4,
+    TCP_LISTENER = 5,
+  }
+}
+
+export class TcpListener extends jspb.Message {
+  clearTcpHostsList(): void;
+  getTcpHostsList(): Array<TcpHost>;
+  setTcpHostsList(value: Array<TcpHost>): void;
+  addTcpHosts(value?: TcpHost, index?: number): TcpHost;
+
+  hasPlugins(): boolean;
+  clearPlugins(): void;
+  getPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins | undefined;
+  setPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TcpListener.AsObject;
+  static toObject(includeInstance: boolean, msg: TcpListener): TcpListener.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TcpListener, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TcpListener;
+  static deserializeBinaryFromReader(message: TcpListener, reader: jspb.BinaryReader): TcpListener;
+}
+
+export namespace TcpListener {
+  export type AsObject = {
+    tcpHostsList: Array<TcpHost.AsObject>,
+    plugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.AsObject,
+  }
+}
+
+export class TcpHost extends jspb.Message {
+  getName(): string;
+  setName(value: string): void;
+
+  hasDestination(): boolean;
+  clearDestination(): void;
+  getDestination(): RouteAction | undefined;
+  setDestination(value?: RouteAction): void;
+
+  hasSslConfig(): boolean;
+  clearSslConfig(): void;
+  getSslConfig(): github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig | undefined;
+  setSslConfig(value?: github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): TcpHost.AsObject;
+  static toObject(includeInstance: boolean, msg: TcpHost): TcpHost.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: TcpHost, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): TcpHost;
+  static deserializeBinaryFromReader(message: TcpHost, reader: jspb.BinaryReader): TcpHost;
+}
+
+export namespace TcpHost {
+  export type AsObject = {
+    name: string,
+    destination?: RouteAction.AsObject,
+    sslConfig?: github_com_solo_io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.AsObject,
   }
 }
 

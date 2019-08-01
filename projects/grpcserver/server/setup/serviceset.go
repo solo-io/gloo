@@ -4,8 +4,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/solo-io/go-utils/kubeutils"
+	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
+	kube2 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+
 	"github.com/gogo/protobuf/types"
-	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/gloo/projects/gloo/pkg/defaults"
 	"github.com/solo-io/go-utils/contextutils"
@@ -95,8 +98,20 @@ func mustGetSettings(ctx context.Context) *gloov1.Settings {
 	return settings
 }
 
+func kubeSettingsClient(ctx context.Context) (gloov1.SettingsClient, error) {
+	cfg, err := kubeutils.GetConfig("", "")
+	if err != nil {
+		return nil, err
+	}
+	return gloov1.NewSettingsClient(&factory.KubeResourceClientFactory{
+		Crd:         gloov1.SettingsCrd,
+		Cfg:         cfg,
+		SharedCache: kube2.NewKubeCache(ctx),
+	})
+}
+
 func mustGetSettingsClient(ctx context.Context) gloov1.SettingsClient {
-	settingsClient, err := setuputils.KubeOrFileSettingsClient(ctx, "")
+	settingsClient, err := kubeSettingsClient(ctx)
 	if err != nil {
 		contextutils.LoggerFrom(ctx).Fatalw("Could not create settings client", zap.Error(err))
 	}

@@ -5,6 +5,7 @@ import * as jspb from "google-protobuf";
 import * as gogoproto_gogo_pb from "../../../../../../../../../gogoproto/gogo_pb";
 import * as google_protobuf_wrappers_pb from "google-protobuf/google/protobuf/wrappers_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb from "../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tracing/tracing_pb";
 
 export class HttpConnectionManagerSettings extends jspb.Message {
   getSkipXffAppend(): boolean;
@@ -68,6 +69,11 @@ export class HttpConnectionManagerSettings extends jspb.Message {
   getDefaultHostForHttp10(): string;
   setDefaultHostForHttp10(value: string): void;
 
+  hasTracing(): boolean;
+  clearTracing(): void;
+  getTracing(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.ListenerTracingSettings | undefined;
+  setTracing(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.ListenerTracingSettings): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): HttpConnectionManagerSettings.AsObject;
   static toObject(includeInstance: boolean, msg: HttpConnectionManagerSettings): HttpConnectionManagerSettings.AsObject;
@@ -95,6 +101,7 @@ export namespace HttpConnectionManagerSettings {
     serverName: string,
     acceptHttp10: boolean,
     defaultHostForHttp10: string,
+    tracing?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.ListenerTracingSettings.AsObject,
   }
 }
 

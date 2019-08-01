@@ -1,0 +1,4 @@
+changelog:
+  - type: BREAKING_CHANGE
+    description: "Bump Gloo to v0.18.2. This involves a breaking change to the Gateway API. Follow this guide for instructions on upgrading: https://gloo.solo.io/upgrading/0.18.1/." 
+    issueLink: https://github.com/solo-io/solo-projects/issues/754

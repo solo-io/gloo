@@ -97,8 +97,19 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 	}
 	upstreamChan := make(chan upstreamListWithNamespace)
 
+	var initialUpstreamList gloo_solo_io.UpstreamList
+
+	currentSnapshot := DashboardsSnapshot{}
+
 	for _, namespace := range watchNamespaces {
 		/* Setup namespaced watch for Upstream */
+		{
+			upstreams, err := c.upstream.List(namespace, clients.ListOpts{Ctx: opts.Ctx, Selector: opts.Selector})
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "initial Upstream list")
+			}
+			initialUpstreamList = append(initialUpstreamList, upstreams...)
+		}
 		upstreamNamespacesChan, upstreamErrs, err := c.upstream.Watch(namespace, opts)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "starting Upstream watch")
@@ -126,12 +137,14 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 			}
 		}(namespace)
 	}
+	/* Initialize snapshot for Upstreams */
+	currentSnapshot.Upstreams = initialUpstreamList.Sort()
 
 	snapshots := make(chan *DashboardsSnapshot)
 	go func() {
 		originalSnapshot := DashboardsSnapshot{}
-		currentSnapshot := originalSnapshot.Clone()
 		timer := time.NewTicker(time.Second * 1)
+
 		sync := func() {
 			if originalSnapshot.Hash() == currentSnapshot.Hash() {
 				return

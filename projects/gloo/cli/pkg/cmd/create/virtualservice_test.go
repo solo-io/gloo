@@ -75,7 +75,7 @@ var _ = Describe("Virtualservice", func() {
 
 		It("should create vs with no rate limits and auth", func() {
 			testutil.ExpectInteractive(func(c *testutil.Console) {
-				c.ExpectString("Add another domain for this virtual service")
+				c.ExpectString("Add a domain for this virtual service (empty defaults to all domains)?")
 				c.SendLine("")
 				c.ExpectString("do you wish to add rate limiting to the virtual service")
 				c.SendLine("n")
@@ -96,7 +96,7 @@ var _ = Describe("Virtualservice", func() {
 
 		It("should create vs with auth", func() {
 			testutil.ExpectInteractive(func(c *testutil.Console) {
-				c.ExpectString("Add another domain for this virtual service")
+				c.ExpectString("Add a domain for this virtual service (empty defaults to all domains)?")
 				c.SendLine("")
 				c.ExpectString("do you wish to add rate limiting to the virtual service")
 				c.SendLine("n")

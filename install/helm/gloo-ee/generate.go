@@ -122,7 +122,9 @@ func generateValuesYaml(version, pullPolicy, outputFile, repoPrefixOverride stri
 	for _, v := range config.Gloo.GatewayProxies {
 		v.PodTemplate.Image.Tag = version
 	}
-	config.Gloo.IngressProxy.Deployment.Image.Tag = version
+	if config.Gloo.IngressProxy != nil {
+		config.Gloo.IngressProxy.Deployment.Image.Tag = version
+	}
 	// Use open source gloo version for discovery and gateway
 	config.Gloo.Discovery.Deployment.Image.Tag = osGlooVersion
 	config.Gloo.Gateway.Deployment.Image.Tag = osGlooVersion
@@ -136,7 +138,9 @@ func generateValuesYaml(version, pullPolicy, outputFile, repoPrefixOverride stri
 	for _, v := range config.Gloo.GatewayProxies {
 		v.PodTemplate.Image.PullPolicy = pullPolicy
 	}
-	config.Gloo.IngressProxy.Deployment.Image.PullPolicy = pullPolicy
+	if config.Gloo.IngressProxy != nil {
+		config.Gloo.IngressProxy.Deployment.Image.PullPolicy = pullPolicy
+	}
 	config.Gloo.Discovery.Deployment.Image.PullPolicy = pullPolicy
 	config.Gloo.Gateway.Deployment.Image.PullPolicy = pullPolicy
 	config.RateLimit.Deployment.Image.PullPolicy = pullPolicy
@@ -151,7 +155,9 @@ func generateValuesYaml(version, pullPolicy, outputFile, repoPrefixOverride stri
 		for _, v := range config.Gloo.GatewayProxies {
 			v.PodTemplate.Image.Repository = replacePrefix(v.PodTemplate.Image.Repository, repoPrefixOverride)
 		}
-		config.Gloo.IngressProxy.Deployment.Image.Repository = replacePrefix(config.Gloo.IngressProxy.Deployment.Image.Repository, repoPrefixOverride)
+		if config.Gloo.IngressProxy != nil {
+			config.Gloo.IngressProxy.Deployment.Image.Repository = replacePrefix(config.Gloo.IngressProxy.Deployment.Image.Repository, repoPrefixOverride)
+		}
 		config.RateLimit.Deployment.Image.Repository = replacePrefix(config.RateLimit.Deployment.Image.Repository, repoPrefixOverride)
 		config.Observability.Deployment.Image.Repository = replacePrefix(config.Observability.Deployment.Image.Repository, repoPrefixOverride)
 		config.ApiServer.Deployment.Server.Image.Repository = replacePrefix(config.ApiServer.Deployment.Server.Image.Repository, repoPrefixOverride)

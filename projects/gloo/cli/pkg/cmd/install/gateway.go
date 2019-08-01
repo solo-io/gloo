@@ -70,6 +70,7 @@ func GetInstallSpec(opts *options.Options, optsExt *optionsExt.ExtraOptions) (*g
 	extraValues := map[string]string{
 		"license_key":                     optsExt.Install.LicenseKey,
 		"gloo:\n  namespace:\n    create": "true",
+		"gloo:\n  gateway:\n    upgrade":  fmt.Sprintf("%v", opts.Install.Upgrade),
 	}
 
 	return &glooInstall.GlooInstallSpec{

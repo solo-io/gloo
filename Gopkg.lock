@@ -307,7 +307,7 @@
   revision = "6480d4af844c189cf5dd913db24ddd339d3a4f85"
 
 [[projects]]
-  digest = "1:efed1eb780a3e9e49ad4f1179616d697274bb9db606d4aca270b31da20e6d7f2"
+  digest = "1:780e9d4064991400e1a9a47a34ed7bac76b2227c81076db8989aae5a53abf79a"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2",
@@ -318,6 +318,7 @@
     "envoy/api/v2/listener",
     "envoy/api/v2/ratelimit",
     "envoy/api/v2/route",
+    "envoy/config/accesslog/v2",
     "envoy/config/bootstrap/v2",
     "envoy/config/filter/accesslog/v2",
     "envoy/config/filter/fault/v2",
@@ -328,6 +329,7 @@
     "envoy/config/filter/http/rbac/v2",
     "envoy/config/filter/http/transcoder/v2",
     "envoy/config/filter/network/http_connection_manager/v2",
+    "envoy/config/filter/network/tcp_proxy/v2",
     "envoy/config/grpc_credential/v2alpha",
     "envoy/config/metrics/v2",
     "envoy/config/overload/v2alpha",
@@ -342,7 +344,8 @@
     "pkg/util",
   ]
   pruneopts = "UT"
-  revision = "62fa968cea8132a2f462d25904a9522be1a005a4"
+  revision = "0f0598e8dab0c0306119ca6fff632b0a672cbfa1"
+  version = "v0.8.2"
 
 [[projects]]
   digest = "1:743f8008a7fed04ef0d52261aef346766bbd5b3e360b90296d85289f8ef5c2e2"
@@ -1321,7 +1324,7 @@
   version = "v0.2.6"
 
 [[projects]]
-  digest = "1:18eaa80dc30d6649c482db06b1a6cfa46d120e7490da939efe3ddcd8a94b1fbe"
+  digest = "1:616937402653d62b2bfce9a2466ce7afc5a83467e7dbb85591a6cf0673d5e26f"
   name = "github.com/solo-io/gloo"
   packages = [
     "install/helm/gloo/generate",
@@ -1340,6 +1343,7 @@
     "projects/discovery/pkg/uds/setup",
     "projects/discovery/pkg/uds/syncer",
     "projects/gateway/pkg/api/v1",
+    "projects/gateway/pkg/api/v2",
     "projects/gateway/pkg/defaults",
     "projects/gateway/pkg/propagator",
     "projects/gateway/pkg/setup",
@@ -1374,6 +1378,7 @@
     "projects/gloo/pkg/api/converters/kube",
     "projects/gloo/pkg/api/v1",
     "projects/gloo/pkg/api/v1/plugins",
+    "projects/gloo/pkg/api/v1/plugins/als",
     "projects/gloo/pkg/api/v1/plugins/aws",
     "projects/gloo/pkg/api/v1/plugins/aws/ec2",
     "projects/gloo/pkg/api/v1/plugins/azure",
@@ -1383,17 +1388,20 @@
     "projects/gloo/pkg/api/v1/plugins/grpc_web",
     "projects/gloo/pkg/api/v1/plugins/hcm",
     "projects/gloo/pkg/api/v1/plugins/kubernetes",
+    "projects/gloo/pkg/api/v1/plugins/pipe",
     "projects/gloo/pkg/api/v1/plugins/rest",
     "projects/gloo/pkg/api/v1/plugins/retries",
     "projects/gloo/pkg/api/v1/plugins/static",
     "projects/gloo/pkg/api/v1/plugins/stats",
     "projects/gloo/pkg/api/v1/plugins/tcp",
+    "projects/gloo/pkg/api/v1/plugins/tracing",
     "projects/gloo/pkg/api/v1/plugins/transformation",
     "projects/gloo/pkg/bootstrap",
     "projects/gloo/pkg/defaults",
     "projects/gloo/pkg/discovery",
     "projects/gloo/pkg/mocks",
     "projects/gloo/pkg/plugins",
+    "projects/gloo/pkg/plugins/als",
     "projects/gloo/pkg/plugins/aws",
     "projects/gloo/pkg/plugins/aws/ec2",
     "projects/gloo/pkg/plugins/azure",
@@ -1406,11 +1414,14 @@
     "projects/gloo/pkg/plugins/kubernetes",
     "projects/gloo/pkg/plugins/linkerd",
     "projects/gloo/pkg/plugins/loadbalancer",
+    "projects/gloo/pkg/plugins/pipe",
     "projects/gloo/pkg/plugins/pluginutils",
     "projects/gloo/pkg/plugins/registry",
     "projects/gloo/pkg/plugins/rest",
     "projects/gloo/pkg/plugins/static",
     "projects/gloo/pkg/plugins/stats",
+    "projects/gloo/pkg/plugins/tcp",
+    "projects/gloo/pkg/plugins/tracing",
     "projects/gloo/pkg/plugins/transformation",
     "projects/gloo/pkg/plugins/upstreamconn",
     "projects/gloo/pkg/plugins/upstreamssl",
@@ -1427,8 +1438,8 @@
     "test/helpers",
   ]
   pruneopts = "UT"
-  revision = "b9093df1dff5cc362cd56f7dc0c6f3c93c485046"
-  version = "v0.17.6"
+  revision = "2415bca83fbfed16a74ed718dee5aae6d9c21f92"
+  version = "v0.18.5"
 
 [[projects]]
   digest = "1:699918466a9758902a14923851a7fbd230500f93da6982dae7c79959afb0a664"
@@ -1439,7 +1450,7 @@
   version = "0.0.4"
 
 [[projects]]
-  digest = "1:bb4efa9d2a4522f64905cf0627cca9d6a0f3aaf95869203d44b7ea3ab72ff958"
+  digest = "1:fbb4b06fec065e657f99c8763bfb5351162440fb353efb1d570a51cf241b1fdc"
   name = "github.com/solo-io/go-utils"
   packages = [
     "changelogutils",
@@ -1471,8 +1482,8 @@
     "vfsutils",
   ]
   pruneopts = "UT"
-  revision = "1ff45925770fd154338a1d8c59ab93961f957cc6"
-  version = "v0.9.12"
+  revision = "befe24a5a31cc9902941c560ce9e49538bab6c62"
+  version = "v0.9.13"
 
 [[projects]]
   digest = "1:67a1bba30c92952119cfe4a31f7f80bbb6946a386bbebfeeb49bfc13d8b1588f"
@@ -1505,7 +1516,7 @@
   revision = "5cbd4d452dccb9492a4d126f79dfcc7be43f88dc"
 
 [[projects]]
-  digest = "1:952fe414fb7f363845ccc781af08fe29e9915818e3c4d498ad906e54c87f168e"
+  digest = "1:6e9fc47bd3a92bc2c76ec0f405986d42433714231a5d498eff93393ff504fc16"
   name = "github.com/solo-io/solo-kit"
   packages = [
     "api/external/kubernetes/configmap",
@@ -1565,8 +1576,8 @@
     "test/testutils",
   ]
   pruneopts = "UT"
-  revision = "96dce349db114c370bf725c37f8636f8c5c24d5e"
-  version = "v0.10.3"
+  revision = "508b01868d70ddb62be7a9ae94c3d7f5840b5af5"
+  version = "v0.10.6"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -2030,6 +2041,14 @@
   pruneopts = "UT"
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
   version = "v2.2.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:525e411c9476f1a201efc22d7c4878002b001f20f241221c226a83ba654975e4"
+  name = "istio.io/gogo-genproto"
+  packages = ["opencensus/proto/trace/v1"]
+  pruneopts = "UT"
+  revision = "e88dc8b0e4dba2caf977ab9ec040cc2081db103f"
 
 [[projects]]
   digest = "1:a218faabd81ea62d514604e97d040b9c6d17ea0bbd5cf9a4e542d2d02f79512f"
@@ -2629,11 +2648,12 @@
     "github.com/grpc-ecosystem/go-grpc-middleware",
     "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap",
     "github.com/grpc-ecosystem/go-grpc-middleware/tags",
+    "github.com/hashicorp/consul/api",
     "github.com/hashicorp/go-multierror",
+    "github.com/hashicorp/vault/api",
     "github.com/kelseyhightower/envconfig",
     "github.com/keybase/go-ps",
     "github.com/mitchellh/hashstructure",
-    "github.com/olekukonko/tablewriter",
     "github.com/onsi/ginkgo",
     "github.com/onsi/ginkgo/config",
     "github.com/onsi/ginkgo/extensions/table",
@@ -2664,9 +2684,11 @@
     "github.com/solo-io/gloo/projects/discovery/pkg/uds/setup",
     "github.com/solo-io/gloo/projects/discovery/pkg/uds/syncer",
     "github.com/solo-io/gloo/projects/gateway/pkg/api/v1",
+    "github.com/solo-io/gloo/projects/gateway/pkg/api/v2",
     "github.com/solo-io/gloo/projects/gateway/pkg/defaults",
     "github.com/solo-io/gloo/projects/gateway/pkg/setup",
     "github.com/solo-io/gloo/projects/gateway/pkg/syncer",
+    "github.com/solo-io/gloo/projects/gateway/pkg/translator",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/argsutils",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd",
     "github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/add",
@@ -2735,7 +2757,6 @@
     "github.com/solo-io/rate-limiter/pkg/server",
     "github.com/solo-io/rate-limiter/pkg/service",
     "github.com/solo-io/rate-limiter/pkg/settings",
-    "github.com/solo-io/solo-kit/pkg/api/external/kubernetes/service",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/factory",
     "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube",

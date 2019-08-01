@@ -5,13 +5,17 @@ import (
 	"log"
 	"sync"
 
-	"github.com/solo-io/gloo/projects/gloo/pkg/syncer"
+	"github.com/solo-io/gloo/projects/gloo/pkg/bootstrap"
 
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/config"
 
 	"github.com/solo-io/solo-projects/projects/apiserver/pkg/graphql/graph"
 	v1 "k8s.io/api/core/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
+	consulapi "github.com/hashicorp/consul/api"
+	vaultapi "github.com/hashicorp/vault/api"
+	corecache "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -102,12 +106,12 @@ func NewClientSet(ctx context.Context, settings *gloov1.Settings, token string) 
 
 	var clientset kubernetes.Interface
 	memCache := memory.NewInMemoryResourceCache()
-	factories, err := syncer.BootstrapFactories(ctx, &clientset, cache, memCache, settings)
+	opts, err := constructOpts(ctx, &clientset, cache, nil, nil, memCache, settings)
 	if err != nil {
 		return nil, err
 	}
 
-	upstreamClient, err := gloov1.NewUpstreamClientWithToken(factories.Upstreams, token)
+	upstreamClient, err := gloov1.NewUpstreamClientWithToken(opts.Upstreams, token)
 	if err != nil {
 		return nil, err
 	}
@@ -129,12 +133,12 @@ func NewClientSet(ctx context.Context, settings *gloov1.Settings, token string) 
 	}
 
 	// replace this with the gloo factory
-	secretClient, err := gloov1.NewSecretClientWithToken(factories.Secrets, token)
+	secretClient, err := gloov1.NewSecretClientWithToken(opts.Secrets, token)
 	if err != nil {
 		return nil, err
 	}
 
-	artifactClient, err := gloov1.NewArtifactClientWithToken(factories.Artifacts, token)
+	artifactClient, err := gloov1.NewArtifactClientWithToken(opts.Artifacts, token)
 	if err != nil {
 		return nil, err
 	}
@@ -170,4 +174,83 @@ func factoryFor(crd crd.Crd, cfg rest.Config, cache kube.SharedCache) factory.Re
 		NamespaceWhitelist: []string{v1.NamespaceAll},
 		SkipCrdCreation:    true,
 	}
+}
+
+// TODO make this public in Gloo...
+func constructOpts(ctx context.Context, clientset *kubernetes.Interface, kubeCache kube.SharedCache, consulClient *consulapi.Client, vaultClient *vaultapi.Client, memCache memory.InMemoryResourceCache, settings *gloov1.Settings) (bootstrap.Opts, error) {
+
+	var (
+		cfg           *rest.Config
+		kubeCoreCache corecache.KubeCoreCache
+	)
+
+	params := bootstrap.NewConfigFactoryParams(
+		settings,
+		memCache,
+		kubeCache,
+		&cfg,
+		consulClient,
+	)
+
+	upstreamFactory, err := bootstrap.ConfigFactoryForSettings(params, gloov1.UpstreamCrd)
+	if err != nil {
+		return bootstrap.Opts{}, err
+	}
+
+	kubeServiceClient, err := bootstrap.KubeServiceClientForSettings(
+		ctx,
+		settings,
+		memCache,
+		&cfg,
+		clientset,
+		&kubeCoreCache,
+	)
+	if err != nil {
+		return bootstrap.Opts{}, err
+	}
+
+	proxyFactory, err := bootstrap.ConfigFactoryForSettings(params, gloov1.ProxyCrd)
+	if err != nil {
+		return bootstrap.Opts{}, err
+	}
+
+	secretFactory, err := bootstrap.SecretFactoryForSettings(
+		ctx,
+		settings,
+		memCache,
+		&cfg,
+		clientset,
+		&kubeCoreCache,
+		vaultClient,
+		gloov1.SecretCrd.Plural,
+	)
+	if err != nil {
+		return bootstrap.Opts{}, err
+	}
+
+	upstreamGroupFactory, err := bootstrap.ConfigFactoryForSettings(params, gloov1.UpstreamGroupCrd)
+	if err != nil {
+		return bootstrap.Opts{}, err
+	}
+
+	artifactFactory, err := bootstrap.ArtifactFactoryForSettings(
+		ctx,
+		settings,
+		memCache,
+		&cfg,
+		clientset,
+		&kubeCoreCache,
+		gloov1.ArtifactCrd.Plural,
+	)
+	if err != nil {
+		return bootstrap.Opts{}, err
+	}
+	return bootstrap.Opts{
+		Upstreams:         upstreamFactory,
+		KubeServiceClient: kubeServiceClient,
+		Proxies:           proxyFactory,
+		UpstreamGroups:    upstreamGroupFactory,
+		Secrets:           secretFactory,
+		Artifacts:         artifactFactory,
+	}, nil
 }

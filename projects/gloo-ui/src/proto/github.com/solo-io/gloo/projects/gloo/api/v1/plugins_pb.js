@@ -23,14 +23,17 @@ var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb = require('.
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/ec2/aws_ec2_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_rest_rest_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_grpc_grpc_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_als_als_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/als/als_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc_web/grpc_web_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tcp_tcp_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tcp/tcp_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tracing/tracing_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/retries/retries_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/pipe/pipe_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/stats/stats_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/prefix_rewrite_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/transformation_pb.js');
@@ -90,7 +93,7 @@ proto.gloo.solo.io.ListenerPlugins.prototype.toObject = function(opt_includeInst
  */
 proto.gloo.solo.io.ListenerPlugins.toObject = function(includeInstance, msg) {
   var f, obj = {
-
+    accessLoggingService: (f = msg.getAccessLoggingService()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -127,6 +130,11 @@ proto.gloo.solo.io.ListenerPlugins.deserializeBinaryFromReader = function(msg, r
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 1:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService.deserializeBinaryFromReader);
+      msg.setAccessLoggingService(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -156,6 +164,44 @@ proto.gloo.solo.io.ListenerPlugins.prototype.serializeBinary = function() {
  */
 proto.gloo.solo.io.ListenerPlugins.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getAccessLoggingService();
+  if (f != null) {
+    writer.writeMessage(
+      1,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional als.plugins.gloo.solo.io.AccessLoggingService access_logging_service = 1;
+ * @return {?proto.als.plugins.gloo.solo.io.AccessLoggingService}
+ */
+proto.gloo.solo.io.ListenerPlugins.prototype.getAccessLoggingService = function() {
+  return /** @type{?proto.als.plugins.gloo.solo.io.AccessLoggingService} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService, 1));
+};
+
+
+/** @param {?proto.als.plugins.gloo.solo.io.AccessLoggingService|undefined} value */
+proto.gloo.solo.io.ListenerPlugins.prototype.setAccessLoggingService = function(value) {
+  jspb.Message.setWrapperField(this, 1, value);
+};
+
+
+proto.gloo.solo.io.ListenerPlugins.prototype.clearAccessLoggingService = function() {
+  this.setAccessLoggingService(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.ListenerPlugins.prototype.hasAccessLoggingService = function() {
+  return jspb.Message.getField(this, 1) != null;
 };
 
 
@@ -820,7 +866,8 @@ proto.gloo.solo.io.RoutePlugins.toObject = function(includeInstance, msg) {
     prefixRewrite: (f = msg.getPrefixRewrite()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb.PrefixRewrite.toObject(includeInstance, f),
     timeout: (f = msg.getTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     retries: (f = msg.getRetries()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb.RetryPolicy.toObject(includeInstance, f),
-    extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f)
+    extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
+    tracing: (f = msg.getTracing()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -886,6 +933,11 @@ proto.gloo.solo.io.RoutePlugins.deserializeBinaryFromReader = function(msg, read
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.deserializeBinaryFromReader);
       msg.setExtensions(value);
+      break;
+    case 7:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings.deserializeBinaryFromReader);
+      msg.setTracing(value);
       break;
     default:
       reader.skipField();
@@ -962,6 +1014,14 @@ proto.gloo.solo.io.RoutePlugins.serializeBinaryToWriter = function(message, writ
       6,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.serializeBinaryToWriter
+    );
+  }
+  f = message.getTracing();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings.serializeBinaryToWriter
     );
   }
 };
@@ -1144,6 +1204,36 @@ proto.gloo.solo.io.RoutePlugins.prototype.clearExtensions = function() {
  */
 proto.gloo.solo.io.RoutePlugins.prototype.hasExtensions = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional tracing.plugins.gloo.solo.io.RouteTracingSettings tracing = 7;
+ * @return {?proto.tracing.plugins.gloo.solo.io.RouteTracingSettings}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.getTracing = function() {
+  return /** @type{?proto.tracing.plugins.gloo.solo.io.RouteTracingSettings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings, 7));
+};
+
+
+/** @param {?proto.tracing.plugins.gloo.solo.io.RouteTracingSettings|undefined} value */
+proto.gloo.solo.io.RoutePlugins.prototype.setTracing = function(value) {
+  jspb.Message.setWrapperField(this, 7, value);
+};
+
+
+proto.gloo.solo.io.RoutePlugins.prototype.clearTracing = function() {
+  this.setTracing(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.hasTracing = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 
@@ -1492,7 +1582,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.UpstreamSpec.oneofGroups_ = [[1,4,2,3,5,11]];
+proto.gloo.solo.io.UpstreamSpec.oneofGroups_ = [[1,4,12,2,3,5,11]];
 
 /**
  * @enum {number}
@@ -1501,6 +1591,7 @@ proto.gloo.solo.io.UpstreamSpec.UpstreamTypeCase = {
   UPSTREAM_TYPE_NOT_SET: 0,
   KUBE: 1,
   STATIC: 4,
+  PIPE: 12,
   AWS: 2,
   AZURE: 3,
   CONSUL: 5,
@@ -1550,6 +1641,7 @@ proto.gloo.solo.io.UpstreamSpec.toObject = function(includeInstance, msg) {
     useHttp2: jspb.Message.getFieldWithDefault(msg, 10, false),
     kube: (f = msg.getKube()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec.toObject(includeInstance, f),
     pb_static: (f = msg.getStatic()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec.toObject(includeInstance, f),
+    pipe: (f = msg.getPipe()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec.toObject(includeInstance, f),
     aws: (f = msg.getAws()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec.toObject(includeInstance, f),
     azure: (f = msg.getAzure()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb.UpstreamSpec.toObject(includeInstance, f),
     consul: (f = msg.getConsul()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec.toObject(includeInstance, f),
@@ -1623,6 +1715,11 @@ proto.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = function(msg, read
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec.deserializeBinaryFromReader);
       msg.setStatic(value);
+      break;
+    case 12:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec.deserializeBinaryFromReader);
+      msg.setPipe(value);
       break;
     case 2:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec;
@@ -1726,6 +1823,14 @@ proto.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = function(message, writ
       4,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec.serializeBinaryToWriter
+    );
+  }
+  f = message.getPipe();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec.serializeBinaryToWriter
     );
   }
   f = message.getAws();
@@ -1957,6 +2062,36 @@ proto.gloo.solo.io.UpstreamSpec.prototype.clearStatic = function() {
  */
 proto.gloo.solo.io.UpstreamSpec.prototype.hasStatic = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional pipe.plugins.gloo.solo.io.UpstreamSpec pipe = 12;
+ * @return {?proto.pipe.plugins.gloo.solo.io.UpstreamSpec}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.getPipe = function() {
+  return /** @type{?proto.pipe.plugins.gloo.solo.io.UpstreamSpec} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec, 12));
+};
+
+
+/** @param {?proto.pipe.plugins.gloo.solo.io.UpstreamSpec|undefined} value */
+proto.gloo.solo.io.UpstreamSpec.prototype.setPipe = function(value) {
+  jspb.Message.setOneofWrapperField(this, 12, proto.gloo.solo.io.UpstreamSpec.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.UpstreamSpec.prototype.clearPipe = function() {
+  this.setPipe(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.UpstreamSpec.prototype.hasPipe = function() {
+  return jspb.Message.getField(this, 12) != null;
 };
 
 

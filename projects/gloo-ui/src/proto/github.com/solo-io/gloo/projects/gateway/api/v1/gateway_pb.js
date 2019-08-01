@@ -17,9 +17,9 @@ var gogoproto_gogo_pb = require('../../../../../../gogo/protobuf/gogoproto/gogo_
 var github_com_solo$io_solo$kit_api_v1_metadata_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/metadata_pb.js');
 var github_com_solo$io_solo$kit_api_v1_status_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/status_pb.js');
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
+var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_proxy_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/proxy_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb.js');
-var github_com_solo$io_solo$kit_api_v1_solo$kit_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/solo-kit_pb.js');
 goog.exportSymbol('proto.gateway.solo.io.Gateway', null, global);
 
 /**

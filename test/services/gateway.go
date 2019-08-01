@@ -12,10 +12,8 @@ import (
 	"sync/atomic"
 
 	"github.com/solo-io/go-utils/contextutils"
-	"github.com/solo-io/solo-kit/pkg/api/external/kubernetes/service"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
-	"github.com/solo-io/solo-kit/pkg/api/v1/clients/kube/cache"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/memory"
 
 	gatewayv1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
@@ -177,13 +175,11 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 		Cache: cache,
 	}
 	return bootstrap.Opts{
-		WriteNamespace: ns,
-		Upstreams:      f,
-		UpstreamGroups: f,
-		Proxies:        f,
-		Secrets:        f,
-		Services:       newServiceClient(ctx, f, kubeclient),
-
+		WriteNamespace:  ns,
+		Upstreams:       f,
+		UpstreamGroups:  f,
+		Proxies:         f,
+		Secrets:         f,
 		Artifacts:       f,
 		WatchNamespaces: []string{"default", ns},
 		WatchOpts: clients.WatchOpts{
@@ -198,24 +194,4 @@ func DefaultGlooOpts(ctx context.Context, cache memory.InMemoryResourceCache, ns
 		KubeClient: kubeclient,
 		DevMode:    true,
 	}
-}
-
-func newServiceClient(ctx context.Context, memFactory *factory.MemoryResourceClientFactory, kubeclient kubernetes.Interface) skkube.ServiceClient {
-
-	// If the KubeClient option is set, the kubernetes discovery plugin will be activated and we must provide a
-	// kubernetes service client in order for service-derived upstreams to be included in the snapshot
-	if kubeclient != nil {
-		kubeCache, err := cache.NewKubeCoreCache(ctx, kubeclient)
-		if err != nil {
-			panic(err)
-		}
-		return service.NewServiceClient(kubeclient, kubeCache)
-	}
-
-	// Else return in-memory client
-	client, err := skkube.NewServiceClient(memFactory)
-	if err != nil {
-		panic(err)
-	}
-	return client
 }

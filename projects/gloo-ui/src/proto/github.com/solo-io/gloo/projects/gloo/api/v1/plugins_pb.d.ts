@@ -13,14 +13,17 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb from
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/ec2/aws_ec2_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_rest_rest_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/rest/rest_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_grpc_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc/grpc_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_als_als_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/als/als_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc_web/grpc_web_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tcp_tcp_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tcp/tcp_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tracing/tracing_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/retries/retries_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_static_static_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/pipe/pipe_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/stats/stats_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/prefix_rewrite_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/transformation_pb";
@@ -28,6 +31,11 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 
 export class ListenerPlugins extends jspb.Message {
+  hasAccessLoggingService(): boolean;
+  clearAccessLoggingService(): void;
+  getAccessLoggingService(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService | undefined;
+  setAccessLoggingService(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListenerPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: ListenerPlugins): ListenerPlugins.AsObject;
@@ -40,6 +48,7 @@ export class ListenerPlugins extends jspb.Message {
 
 export namespace ListenerPlugins {
   export type AsObject = {
+    accessLoggingService?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_als_als_pb.AccessLoggingService.AsObject,
   }
 }
 
@@ -158,6 +167,11 @@ export class RoutePlugins extends jspb.Message {
   getExtensions(): github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions | undefined;
   setExtensions(value?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions): void;
 
+  hasTracing(): boolean;
+  clearTracing(): void;
+  getTracing(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings | undefined;
+  setTracing(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RoutePlugins.AsObject;
   static toObject(includeInstance: boolean, msg: RoutePlugins): RoutePlugins.AsObject;
@@ -176,6 +190,7 @@ export namespace RoutePlugins {
     timeout?: google_protobuf_duration_pb.Duration.AsObject,
     retries?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb.RetryPolicy.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
+    tracing?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings.AsObject,
   }
 }
 
@@ -262,6 +277,11 @@ export class UpstreamSpec extends jspb.Message {
   getStatic(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec | undefined;
   setStatic(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec): void;
 
+  hasPipe(): boolean;
+  clearPipe(): void;
+  getPipe(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec | undefined;
+  setPipe(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec): void;
+
   hasAws(): boolean;
   clearAws(): void;
   getAws(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec | undefined;
@@ -302,6 +322,7 @@ export namespace UpstreamSpec {
     useHttp2: boolean,
     kube?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb.UpstreamSpec.AsObject,
     pb_static?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec.AsObject,
+    pipe?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pipe_pipe_pb.UpstreamSpec.AsObject,
     aws?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec.AsObject,
     azure?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb.UpstreamSpec.AsObject,
     consul?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec.AsObject,
@@ -312,6 +333,7 @@ export namespace UpstreamSpec {
     UPSTREAM_TYPE_NOT_SET = 0,
     KUBE = 1,
     STATIC = 4,
+    PIPE = 12,
     AWS = 2,
     AZURE = 3,
     CONSUL = 5,

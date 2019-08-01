@@ -15,6 +15,7 @@ var global = Function('return this')();
 var gogoproto_gogo_pb = require('../../../../../../../../gogo/protobuf/gogoproto/gogo_pb.js');
 var google_protobuf_wrappers_pb = require('google-protobuf/google/protobuf/wrappers_pb.js');
 var google_protobuf_duration_pb = require('google-protobuf/google/protobuf/duration_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb = require('../../../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tracing/tracing_pb.js');
 goog.exportSymbol('proto.hcm.plugins.gloo.solo.io.HttpConnectionManagerSettings', null, global);
 
 /**
@@ -77,7 +78,8 @@ proto.hcm.plugins.gloo.solo.io.HttpConnectionManagerSettings.toObject = function
     delayedCloseTimeout: (f = msg.getDelayedCloseTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     serverName: jspb.Message.getFieldWithDefault(msg, 14, ""),
     acceptHttp10: jspb.Message.getFieldWithDefault(msg, 15, false),
-    defaultHostForHttp10: jspb.Message.getFieldWithDefault(msg, 16, "")
+    defaultHostForHttp10: jspb.Message.getFieldWithDefault(msg, 16, ""),
+    tracing: (f = msg.getTracing()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.ListenerTracingSettings.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -181,6 +183,11 @@ proto.hcm.plugins.gloo.solo.io.HttpConnectionManagerSettings.deserializeBinaryFr
     case 16:
       var value = /** @type {string} */ (reader.readString());
       msg.setDefaultHostForHttp10(value);
+      break;
+    case 17:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.ListenerTracingSettings;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.ListenerTracingSettings.deserializeBinaryFromReader);
+      msg.setTracing(value);
       break;
     default:
       reader.skipField();
@@ -322,6 +329,14 @@ proto.hcm.plugins.gloo.solo.io.HttpConnectionManagerSettings.serializeBinaryToWr
     writer.writeString(
       16,
       f
+    );
+  }
+  f = message.getTracing();
+  if (f != null) {
+    writer.writeMessage(
+      17,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.ListenerTracingSettings.serializeBinaryToWriter
     );
   }
 };
@@ -675,6 +690,36 @@ proto.hcm.plugins.gloo.solo.io.HttpConnectionManagerSettings.prototype.getDefaul
 /** @param {string} value */
 proto.hcm.plugins.gloo.solo.io.HttpConnectionManagerSettings.prototype.setDefaultHostForHttp10 = function(value) {
   jspb.Message.setProto3StringField(this, 16, value);
+};
+
+
+/**
+ * optional tracing.plugins.gloo.solo.io.ListenerTracingSettings tracing = 17;
+ * @return {?proto.tracing.plugins.gloo.solo.io.ListenerTracingSettings}
+ */
+proto.hcm.plugins.gloo.solo.io.HttpConnectionManagerSettings.prototype.getTracing = function() {
+  return /** @type{?proto.tracing.plugins.gloo.solo.io.ListenerTracingSettings} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.ListenerTracingSettings, 17));
+};
+
+
+/** @param {?proto.tracing.plugins.gloo.solo.io.ListenerTracingSettings|undefined} value */
+proto.hcm.plugins.gloo.solo.io.HttpConnectionManagerSettings.prototype.setTracing = function(value) {
+  jspb.Message.setWrapperField(this, 17, value);
+};
+
+
+proto.hcm.plugins.gloo.solo.io.HttpConnectionManagerSettings.prototype.clearTracing = function() {
+  this.setTracing(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.hcm.plugins.gloo.solo.io.HttpConnectionManagerSettings.prototype.hasTracing = function() {
+  return jspb.Message.getField(this, 17) != null;
 };
 
 

@@ -37,6 +37,8 @@ goog.exportSymbol('proto.gloo.solo.io.RedirectAction', null, global);
 goog.exportSymbol('proto.gloo.solo.io.RedirectAction.RedirectResponseCode', null, global);
 goog.exportSymbol('proto.gloo.solo.io.Route', null, global);
 goog.exportSymbol('proto.gloo.solo.io.RouteAction', null, global);
+goog.exportSymbol('proto.gloo.solo.io.TcpHost', null, global);
+goog.exportSymbol('proto.gloo.solo.io.TcpListener', null, global);
 goog.exportSymbol('proto.gloo.solo.io.UpstreamGroup', null, global);
 goog.exportSymbol('proto.gloo.solo.io.VirtualHost', null, global);
 goog.exportSymbol('proto.gloo.solo.io.WeightedDestination', null, global);
@@ -319,7 +321,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<number>}
  * @const
  */
-proto.gloo.solo.io.Listener.repeatedFields_ = [5];
+proto.gloo.solo.io.Listener.repeatedFields_ = [6];
 
 /**
  * Oneof group definitions for this message. Each group defines the field
@@ -329,14 +331,15 @@ proto.gloo.solo.io.Listener.repeatedFields_ = [5];
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.gloo.solo.io.Listener.oneofGroups_ = [[4]];
+proto.gloo.solo.io.Listener.oneofGroups_ = [[4,5]];
 
 /**
  * @enum {number}
  */
 proto.gloo.solo.io.Listener.ListenertypeCase = {
   LISTENERTYPE_NOT_SET: 0,
-  HTTP_LISTENER: 4
+  HTTP_LISTENER: 4,
+  TCP_LISTENER: 5
 };
 
 /**
@@ -379,9 +382,11 @@ proto.gloo.solo.io.Listener.toObject = function(includeInstance, msg) {
     bindAddress: jspb.Message.getFieldWithDefault(msg, 2, ""),
     bindPort: jspb.Message.getFieldWithDefault(msg, 3, 0),
     httpListener: (f = msg.getHttpListener()) && proto.gloo.solo.io.HttpListener.toObject(includeInstance, f),
+    tcpListener: (f = msg.getTcpListener()) && proto.gloo.solo.io.TcpListener.toObject(includeInstance, f),
     sslConfigurationsList: jspb.Message.toObjectList(msg.getSslConfigurationsList(),
     github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.toObject, includeInstance),
-    useProxyProto: (f = msg.getUseProxyProto()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f)
+    useProxyProto: (f = msg.getUseProxyProto()) && google_protobuf_wrappers_pb.BoolValue.toObject(includeInstance, f),
+    plugins: (f = msg.getPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -436,14 +441,24 @@ proto.gloo.solo.io.Listener.deserializeBinaryFromReader = function(msg, reader) 
       msg.setHttpListener(value);
       break;
     case 5:
+      var value = new proto.gloo.solo.io.TcpListener;
+      reader.readMessage(value,proto.gloo.solo.io.TcpListener.deserializeBinaryFromReader);
+      msg.setTcpListener(value);
+      break;
+    case 6:
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.deserializeBinaryFromReader);
       msg.addSslConfigurations(value);
       break;
-    case 6:
+    case 7:
       var value = new google_protobuf_wrappers_pb.BoolValue;
       reader.readMessage(value,google_protobuf_wrappers_pb.BoolValue.deserializeBinaryFromReader);
       msg.setUseProxyProto(value);
+      break;
+    case 8:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.deserializeBinaryFromReader);
+      msg.setPlugins(value);
       break;
     default:
       reader.skipField();
@@ -503,10 +518,18 @@ proto.gloo.solo.io.Listener.serializeBinaryToWriter = function(message, writer) 
       proto.gloo.solo.io.HttpListener.serializeBinaryToWriter
     );
   }
+  f = message.getTcpListener();
+  if (f != null) {
+    writer.writeMessage(
+      5,
+      f,
+      proto.gloo.solo.io.TcpListener.serializeBinaryToWriter
+    );
+  }
   f = message.getSslConfigurationsList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
-      5,
+      6,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.serializeBinaryToWriter
     );
@@ -514,9 +537,17 @@ proto.gloo.solo.io.Listener.serializeBinaryToWriter = function(message, writer) 
   f = message.getUseProxyProto();
   if (f != null) {
     writer.writeMessage(
-      6,
+      7,
       f,
       google_protobuf_wrappers_pb.BoolValue.serializeBinaryToWriter
+    );
+  }
+  f = message.getPlugins();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins.serializeBinaryToWriter
     );
   }
 };
@@ -598,18 +629,48 @@ proto.gloo.solo.io.Listener.prototype.hasHttpListener = function() {
 
 
 /**
- * repeated SslConfig ssl_configurations = 5;
+ * optional TcpListener tcp_listener = 5;
+ * @return {?proto.gloo.solo.io.TcpListener}
+ */
+proto.gloo.solo.io.Listener.prototype.getTcpListener = function() {
+  return /** @type{?proto.gloo.solo.io.TcpListener} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.TcpListener, 5));
+};
+
+
+/** @param {?proto.gloo.solo.io.TcpListener|undefined} value */
+proto.gloo.solo.io.Listener.prototype.setTcpListener = function(value) {
+  jspb.Message.setOneofWrapperField(this, 5, proto.gloo.solo.io.Listener.oneofGroups_[0], value);
+};
+
+
+proto.gloo.solo.io.Listener.prototype.clearTcpListener = function() {
+  this.setTcpListener(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Listener.prototype.hasTcpListener = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * repeated SslConfig ssl_configurations = 6;
  * @return {!Array<!proto.gloo.solo.io.SslConfig>}
  */
 proto.gloo.solo.io.Listener.prototype.getSslConfigurationsList = function() {
   return /** @type{!Array<!proto.gloo.solo.io.SslConfig>} */ (
-    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig, 5));
+    jspb.Message.getRepeatedWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig, 6));
 };
 
 
 /** @param {!Array<!proto.gloo.solo.io.SslConfig>} value */
 proto.gloo.solo.io.Listener.prototype.setSslConfigurationsList = function(value) {
-  jspb.Message.setRepeatedWrapperField(this, 5, value);
+  jspb.Message.setRepeatedWrapperField(this, 6, value);
 };
 
 
@@ -619,7 +680,7 @@ proto.gloo.solo.io.Listener.prototype.setSslConfigurationsList = function(value)
  * @return {!proto.gloo.solo.io.SslConfig}
  */
 proto.gloo.solo.io.Listener.prototype.addSslConfigurations = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 5, opt_value, proto.gloo.solo.io.SslConfig, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 6, opt_value, proto.gloo.solo.io.SslConfig, opt_index);
 };
 
 
@@ -629,18 +690,18 @@ proto.gloo.solo.io.Listener.prototype.clearSslConfigurationsList = function() {
 
 
 /**
- * optional google.protobuf.BoolValue use_proxy_proto = 6;
+ * optional google.protobuf.BoolValue use_proxy_proto = 7;
  * @return {?proto.google.protobuf.BoolValue}
  */
 proto.gloo.solo.io.Listener.prototype.getUseProxyProto = function() {
   return /** @type{?proto.google.protobuf.BoolValue} */ (
-    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 6));
+    jspb.Message.getWrapperField(this, google_protobuf_wrappers_pb.BoolValue, 7));
 };
 
 
 /** @param {?proto.google.protobuf.BoolValue|undefined} value */
 proto.gloo.solo.io.Listener.prototype.setUseProxyProto = function(value) {
-  jspb.Message.setWrapperField(this, 6, value);
+  jspb.Message.setWrapperField(this, 7, value);
 };
 
 
@@ -654,7 +715,479 @@ proto.gloo.solo.io.Listener.prototype.clearUseProxyProto = function() {
  * @return {!boolean}
  */
 proto.gloo.solo.io.Listener.prototype.hasUseProxyProto = function() {
-  return jspb.Message.getField(this, 6) != null;
+  return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional ListenerPlugins plugins = 8;
+ * @return {?proto.gloo.solo.io.ListenerPlugins}
+ */
+proto.gloo.solo.io.Listener.prototype.getPlugins = function() {
+  return /** @type{?proto.gloo.solo.io.ListenerPlugins} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.ListenerPlugins, 8));
+};
+
+
+/** @param {?proto.gloo.solo.io.ListenerPlugins|undefined} value */
+proto.gloo.solo.io.Listener.prototype.setPlugins = function(value) {
+  jspb.Message.setWrapperField(this, 8, value);
+};
+
+
+proto.gloo.solo.io.Listener.prototype.clearPlugins = function() {
+  this.setPlugins(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.Listener.prototype.hasPlugins = function() {
+  return jspb.Message.getField(this, 8) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.TcpListener = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.gloo.solo.io.TcpListener.repeatedFields_, null);
+};
+goog.inherits(proto.gloo.solo.io.TcpListener, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.TcpListener.displayName = 'proto.gloo.solo.io.TcpListener';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.gloo.solo.io.TcpListener.repeatedFields_ = [1];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.TcpListener.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.TcpListener.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.TcpListener} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.TcpListener.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    tcpHostsList: jspb.Message.toObjectList(msg.getTcpHostsList(),
+    proto.gloo.solo.io.TcpHost.toObject, includeInstance),
+    plugins: (f = msg.getPlugins()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.TcpListener}
+ */
+proto.gloo.solo.io.TcpListener.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.TcpListener;
+  return proto.gloo.solo.io.TcpListener.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.TcpListener} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.TcpListener}
+ */
+proto.gloo.solo.io.TcpListener.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = new proto.gloo.solo.io.TcpHost;
+      reader.readMessage(value,proto.gloo.solo.io.TcpHost.deserializeBinaryFromReader);
+      msg.addTcpHosts(value);
+      break;
+    case 8:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.deserializeBinaryFromReader);
+      msg.setPlugins(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.TcpListener.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.TcpListener.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.TcpListener} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.TcpListener.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getTcpHostsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
+      1,
+      f,
+      proto.gloo.solo.io.TcpHost.serializeBinaryToWriter
+    );
+  }
+  f = message.getPlugins();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * repeated TcpHost tcp_hosts = 1;
+ * @return {!Array<!proto.gloo.solo.io.TcpHost>}
+ */
+proto.gloo.solo.io.TcpListener.prototype.getTcpHostsList = function() {
+  return /** @type{!Array<!proto.gloo.solo.io.TcpHost>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto.gloo.solo.io.TcpHost, 1));
+};
+
+
+/** @param {!Array<!proto.gloo.solo.io.TcpHost>} value */
+proto.gloo.solo.io.TcpListener.prototype.setTcpHostsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
+};
+
+
+/**
+ * @param {!proto.gloo.solo.io.TcpHost=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.gloo.solo.io.TcpHost}
+ */
+proto.gloo.solo.io.TcpListener.prototype.addTcpHosts = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.gloo.solo.io.TcpHost, opt_index);
+};
+
+
+proto.gloo.solo.io.TcpListener.prototype.clearTcpHostsList = function() {
+  this.setTcpHostsList([]);
+};
+
+
+/**
+ * optional TcpListenerPlugins plugins = 8;
+ * @return {?proto.gloo.solo.io.TcpListenerPlugins}
+ */
+proto.gloo.solo.io.TcpListener.prototype.getPlugins = function() {
+  return /** @type{?proto.gloo.solo.io.TcpListenerPlugins} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_pb.TcpListenerPlugins, 8));
+};
+
+
+/** @param {?proto.gloo.solo.io.TcpListenerPlugins|undefined} value */
+proto.gloo.solo.io.TcpListener.prototype.setPlugins = function(value) {
+  jspb.Message.setWrapperField(this, 8, value);
+};
+
+
+proto.gloo.solo.io.TcpListener.prototype.clearPlugins = function() {
+  this.setPlugins(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.TcpListener.prototype.hasPlugins = function() {
+  return jspb.Message.getField(this, 8) != null;
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.gloo.solo.io.TcpHost = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.gloo.solo.io.TcpHost, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.gloo.solo.io.TcpHost.displayName = 'proto.gloo.solo.io.TcpHost';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.gloo.solo.io.TcpHost.prototype.toObject = function(opt_includeInstance) {
+  return proto.gloo.solo.io.TcpHost.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.gloo.solo.io.TcpHost} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.TcpHost.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    destination: (f = msg.getDestination()) && proto.gloo.solo.io.RouteAction.toObject(includeInstance, f),
+    sslConfig: (f = msg.getSslConfig()) && github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.toObject(includeInstance, f)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.gloo.solo.io.TcpHost}
+ */
+proto.gloo.solo.io.TcpHost.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.gloo.solo.io.TcpHost;
+  return proto.gloo.solo.io.TcpHost.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.gloo.solo.io.TcpHost} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.gloo.solo.io.TcpHost}
+ */
+proto.gloo.solo.io.TcpHost.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setName(value);
+      break;
+    case 2:
+      var value = new proto.gloo.solo.io.RouteAction;
+      reader.readMessage(value,proto.gloo.solo.io.RouteAction.deserializeBinaryFromReader);
+      msg.setDestination(value);
+      break;
+    case 3:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.deserializeBinaryFromReader);
+      msg.setSslConfig(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.gloo.solo.io.TcpHost.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.gloo.solo.io.TcpHost.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.gloo.solo.io.TcpHost} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.gloo.solo.io.TcpHost.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getDestination();
+  if (f != null) {
+    writer.writeMessage(
+      2,
+      f,
+      proto.gloo.solo.io.RouteAction.serializeBinaryToWriter
+    );
+  }
+  f = message.getSslConfig();
+  if (f != null) {
+    writer.writeMessage(
+      3,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig.serializeBinaryToWriter
+    );
+  }
+};
+
+
+/**
+ * optional string name = 1;
+ * @return {string}
+ */
+proto.gloo.solo.io.TcpHost.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.TcpHost.prototype.setName = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional RouteAction destination = 2;
+ * @return {?proto.gloo.solo.io.RouteAction}
+ */
+proto.gloo.solo.io.TcpHost.prototype.getDestination = function() {
+  return /** @type{?proto.gloo.solo.io.RouteAction} */ (
+    jspb.Message.getWrapperField(this, proto.gloo.solo.io.RouteAction, 2));
+};
+
+
+/** @param {?proto.gloo.solo.io.RouteAction|undefined} value */
+proto.gloo.solo.io.TcpHost.prototype.setDestination = function(value) {
+  jspb.Message.setWrapperField(this, 2, value);
+};
+
+
+proto.gloo.solo.io.TcpHost.prototype.clearDestination = function() {
+  this.setDestination(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.TcpHost.prototype.hasDestination = function() {
+  return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional SslConfig ssl_config = 3;
+ * @return {?proto.gloo.solo.io.SslConfig}
+ */
+proto.gloo.solo.io.TcpHost.prototype.getSslConfig = function() {
+  return /** @type{?proto.gloo.solo.io.SslConfig} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_ssl_pb.SslConfig, 3));
+};
+
+
+/** @param {?proto.gloo.solo.io.SslConfig|undefined} value */
+proto.gloo.solo.io.TcpHost.prototype.setSslConfig = function(value) {
+  jspb.Message.setWrapperField(this, 3, value);
+};
+
+
+proto.gloo.solo.io.TcpHost.prototype.clearSslConfig = function() {
+  this.setSslConfig(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.TcpHost.prototype.hasSslConfig = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

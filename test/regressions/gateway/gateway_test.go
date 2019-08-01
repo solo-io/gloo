@@ -7,6 +7,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/solo-io/gloo/projects/gateway/pkg/translator"
+
+	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+
 	"github.com/solo-io/gloo/test/helpers"
 	"github.com/solo-io/go-utils/testutils"
 	"gopkg.in/yaml.v2"
@@ -16,7 +20,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	v1 "github.com/solo-io/gloo/projects/gateway/pkg/api/v1"
+	v2 "github.com/solo-io/gloo/projects/gateway/pkg/api/v2"
 	"github.com/solo-io/gloo/projects/gateway/pkg/defaults"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
 	"github.com/solo-io/go-utils/kubeutils"
@@ -40,7 +44,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 		cfg        *rest.Config
 		kubeClient kubernetes.Interface
 
-		gatewayClient        v1.GatewayClient
+		gatewayClient        v2.GatewayClient
 		virtualServiceClient v1.VirtualServiceClient
 	)
 
@@ -56,7 +60,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 		cache := kube.NewKubeCache(ctx)
 		gatewayClientFactory := &factory.KubeResourceClientFactory{
-			Crd:         v1.GatewayCrd,
+			Crd:         v2.GatewayCrd,
 			Cfg:         cfg,
 			SharedCache: cache,
 		}
@@ -66,7 +70,7 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 			SharedCache: cache,
 		}
 
-		gatewayClient, err = v1.NewGatewayClient(gatewayClientFactory)
+		gatewayClient, err = v2.NewGatewayClient(gatewayClientFactory)
 		Expect(err).NotTo(HaveOccurred())
 
 		virtualServiceClient, err = v1.NewVirtualServiceClient(virtualServiceClientFactory)
@@ -119,21 +123,20 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 		defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 		// wait for default gateway to be created
-		Eventually(func() (*v1.Gateway, error) {
+		Eventually(func() (*v2.Gateway, error) {
 			return gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
 		}, "15s", "0.5s").Should(Not(BeNil()))
 
-		gatewayProxy := "gateway-proxy"
 		gatewayPort := int(80)
 		testHelper.CurlEventuallyShouldRespond(helper.CurlOpts{
 			Protocol:          "http",
 			Path:              "/",
 			Method:            "GET",
-			Host:              gatewayProxy,
-			Service:           gatewayProxy,
+			Host:              translator.GatewayProxyName,
+			Service:           translator.GatewayProxyName,
 			Port:              gatewayPort,
 			ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
-		}, helper.SimpleHttpResponse, 1, time.Minute*2)
+		}, helper.SimpleHttpResponse, 1, time.Minute*20)
 	})
 
 	Context("virtual service in configured with SSL", func() {
@@ -195,11 +198,10 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 
 			defaultGateway := defaults.DefaultGateway(testHelper.InstallNamespace)
 			// wait for default gateway to be created
-			Eventually(func() (*v1.Gateway, error) {
+			Eventually(func() (*v2.Gateway, error) {
 				return gatewayClient.Read(testHelper.InstallNamespace, defaultGateway.Metadata.Name, clients.ReadOpts{})
 			}, "15s", "0.5s").Should(Not(BeNil()))
 
-			gatewayProxy := "gateway-proxy"
 			gatewayPort := int(443)
 			caFile := ToFile(helpers.Certificate())
 			//noinspection GoUnhandledErrorResult
@@ -212,8 +214,8 @@ var _ = Describe("Installing gloo in gateway mode", func() {
 				Protocol:          "https",
 				Path:              "/",
 				Method:            "GET",
-				Host:              gatewayProxy,
-				Service:           gatewayProxy,
+				Host:              translator.GatewayProxyName,
+				Service:           translator.GatewayProxyName,
 				Port:              gatewayPort,
 				CaFile:            "/tmp/ca.crt",
 				ConnectionTimeout: 10, // this is important, as the first curl call sometimes hangs indefinitely
