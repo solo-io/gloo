@@ -20,14 +20,20 @@ import { UpstreamSpec as AzureUpstreamSpec } from 'proto/github.com/solo-io/gloo
 import { UpstreamSpec as ConsulUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul_pb';
 import { UpstreamSpec as KubeUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb';
 import { ServiceSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/service_spec_pb';
-import { UpstreamSpec as StaticUpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb';
+import {
+  UpstreamSpec as StaticUpstreamSpec,
+  Host
+} from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
   CreateUpstreamRequest,
   UpstreamInput
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import * as React from 'react';
-import { UPSTREAM_SPEC_TYPES, UPSTREAM_TYPES_CREATE } from 'utils/upstreamHelpers';
+import {
+  UPSTREAM_SPEC_TYPES,
+  UPSTREAM_TYPES_CREATE
+} from 'utils/upstreamHelpers';
 import * as yup from 'yup';
 import { awsInitialValues, AwsUpstreamForm } from './AwsUpstreamForm';
 import { azureInitialValues, AzureUpstreamForm } from './AzureUpstreamForm';
@@ -66,11 +72,29 @@ const validationSchema = yup.object().shape({
     .min(2, `Name can't be that short`),
   namespace: yup.string().required('Namespace is required'),
   type: yup.string().required('Must specify an upstream type'),
-  awsRegion: yup.string(),
+  awsRegion: yup.string().when('type', {
+    is: type => type === 'AWS',
+    then: yup.string().required(),
+    otherwise: yup.string()
+  }),
   awsSecretRef: yup.object().shape({
-    name: yup.string().required('A secret is required'),
-    namespace: yup.string()
-  })
+    name: yup.string().when('type', {
+      is: type => type === 'AWS',
+      then: yup.string().required(),
+      otherwise: yup.string()
+    }),
+    namespace: yup.string().when('type', {
+      is: type => type === 'AWS',
+      then: yup.string().required(),
+      otherwise: yup.string()
+    })
+  }),
+  staticHostList: yup.array().of(
+    yup.object().shape({
+      addr: yup.string().min(1, 'Invalid host address'),
+      port: yup.number().min(10, 'Invalid port number')
+    })
+  )
 });
 
 export const CreateUpstreamForm = (props: Props) => {
@@ -121,6 +145,13 @@ export const CreateUpstreamForm = (props: Props) => {
       case UPSTREAM_SPEC_TYPES.STATIC:
         const staticSpec = new StaticUpstreamSpec();
         staticSpec.setUseTls(values.staticUseTls);
+        let hostList = values.staticHostList.map(host => {
+          let hostAdded = new Host();
+          hostAdded.setAddr(host.name);
+          hostAdded.setPort(+host.value);
+          return hostAdded;
+        });
+        staticSpec.setHostsList(hostList);
         usInput.setStatic(staticSpec);
         break;
       case UPSTREAM_SPEC_TYPES.CONSUL:
@@ -189,9 +220,10 @@ export const CreateUpstreamForm = (props: Props) => {
           {formik.values.type === UPSTREAM_SPEC_TYPES.CONSUL && (
             <ConsulUpstreamForm />
           )}
+
           <Footer>
             <SoloButton
-              onClick={e => formik.handleSubmit(e)}
+              onClick={() => formik.handleSubmit()}
               text='Create Upstream'
               disabled={formik.isSubmitting}
             />

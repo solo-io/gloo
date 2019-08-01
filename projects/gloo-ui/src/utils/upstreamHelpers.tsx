@@ -46,6 +46,9 @@ export function getUpstreamType(upstream: Upstream.AsObject) {
   if (!!upstream.upstreamSpec!.awsEc2) {
     upstreamType = 'Aws Ec 2';
   }
+  if (!!upstream.upstreamSpec!.pb_static) {
+    upstreamType = 'Static';
+  }
   return upstreamType;
 }
 

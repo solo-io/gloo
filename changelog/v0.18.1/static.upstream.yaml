@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Allow entering static upstreams.
+    issueLink: https://github.com/solo-io/solo-projects/issues/790

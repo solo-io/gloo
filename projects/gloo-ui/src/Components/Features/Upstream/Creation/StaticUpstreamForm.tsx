@@ -1,20 +1,19 @@
 import {
   SoloFormMultipartStringCardsList,
-  SoloFormInput,
   SoloFormCheckbox
 } from 'Components/Common/Form/SoloFormField';
 import {
   InputRow,
   SoloFormTemplate
 } from 'Components/Common/Form/SoloFormTemplate';
-import { Host } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static_pb';
 import * as React from 'react';
 import * as yup from 'yup';
+import { useFormikContext } from 'formik';
 
 // TODO: handle service spec
-interface StaticValuesType {
+export interface StaticValuesType {
   staticServiceName: string;
-  staticHostList: Host.AsObject[];
+  staticHostList: { name: string; value: string }[];
   staticUseTls: boolean;
   staticServicePort: string;
 }
@@ -28,37 +27,28 @@ export const staticInitialValues: StaticValuesType = {
 
 interface Props {}
 // TODO: figure out which fields are required
-export const staticValidationSchema = yup.object().shape({
+const staticValidationSchema = yup.object().shape({
   staticServicePort: yup.number(),
   staticServiceName: yup.string()
 });
 
 export const StaticUpstreamForm: React.FC<Props> = () => {
+  const form = useFormikContext<StaticValuesType>();
+
   return (
     <SoloFormTemplate formHeader='Static Upstream Settings'>
       <InputRow>
-        <SoloFormInput
-          name='staticServiceName'
-          title='Service Name'
-          placeholder='Service Name'
+        <SoloFormMultipartStringCardsList
+          name='staticHostList'
+          title='Hosts'
+          values={form.values.staticHostList}
+          createNewNamePromptText={'address...'}
+          createNewValuePromptText={'port...'}
         />
+
         <SoloFormCheckbox name='staticUseTls' title='Use Tls' />
-        <SoloFormInput
-          name='staticServicePort'
-          title='Service Port'
-          placeholder='Service Port'
-          type='number'
-        />
       </InputRow>
-      <SoloFormTemplate formHeader='Hosts'>
-        <InputRow>
-          <SoloFormMultipartStringCardsList
-            name='staticHostList'
-            createNewNamePromptText={'Address...'}
-            createNewValuePromptText={'Port...'}
-          />
-        </InputRow>
-      </SoloFormTemplate>
+      <InputRow />
     </SoloFormTemplate>
   );
 };

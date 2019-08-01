@@ -31,7 +31,7 @@ interface Props {}
 export const awsValidationSchema = yup.object().shape({
   awsRegion: yup.string(),
   awsSecretRef: yup.object().shape({
-    name: yup.string().required('You need to provide a secret'),
+    name: yup.string(),
     namespace: yup.string()
   })
 });

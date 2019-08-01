@@ -22,13 +22,13 @@ const Container = styled.div`
   align-items: center;
 `;
 
-const StringCard = styled(SmallStringCard)`
+export const StringCard = styled(SmallStringCard)`
   width: 200px;
   padding: 0;
   margin-left: 0;
 `;
 
-const CardValue = styled(SmallCardValue)`
+export const CardValue = styled(SmallCardValue)`
   max-width: none;
   min-width: 0;
   width: calc(50% - 16px);
@@ -38,7 +38,8 @@ const CardValue = styled(SmallCardValue)`
   border-top: 1px solid ${colors.februaryGrey};
   border-bottom: 1px solid ${colors.februaryGrey};
 `;
-const CardName = styled(CardValue)`
+
+export const CardName = styled(CardValue)`
   padding-left: 10px;
   background: transparent;
   border-top: none;
@@ -50,7 +51,7 @@ const NewStringPrompt = styled(SmallNewStringPrompt)`
   margin: 0;
 `;
 
-const DeleteX = styled(SmallDeleteX)`
+export const DeleteX = styled(SmallDeleteX)`
   padding: 0 8px;
   margin-left: 0;
 `;
@@ -105,6 +106,7 @@ export const MultipartStringCardsList = (props: MultipartStringCardsProps) => {
       {title && <Label>{title}</Label>}
       <Container>
         {values.map((value, ind) => {
+          console.log(value);
           return (
             <StringCard
               key={value.name + ind}

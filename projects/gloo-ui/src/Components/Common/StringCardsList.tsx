@@ -18,7 +18,7 @@ export const Container = styled.div`
 
 export const StringCard = styled<
   'div',
-  { hasError: boolean; limitWidth?: boolean }
+  { hasError?: boolean; limitWidth?: boolean }
 >('div')`
   display: flex;
   justify-content: space-between;
