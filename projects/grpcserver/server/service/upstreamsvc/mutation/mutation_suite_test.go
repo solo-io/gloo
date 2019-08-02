@@ -1,4 +1,4 @@
-package converter_test
+package mutation_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestConverter(t *testing.T) {
+func TestMutation(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "UpstreamSvc Converter Suite")
+	RunSpecs(t, "Mutation Suite")
 }

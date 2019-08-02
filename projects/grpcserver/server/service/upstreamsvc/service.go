@@ -9,23 +9,31 @@ import (
 	"github.com/solo-io/solo-kit/pkg/api/v1/resources/core"
 	v1 "github.com/solo-io/solo-projects/projects/grpcserver/api/v1"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/converter"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mutation"
 	"go.uber.org/zap"
 )
 
 type upstreamGrpcService struct {
-	ctx            context.Context
-	upstreamClient gloov1.UpstreamClient
-	settingsValues settings.ValuesClient
-	inputConverter converter.UpstreamInputConverter
+	ctx             context.Context
+	upstreamClient  gloov1.UpstreamClient
+	settingsValues  settings.ValuesClient
+	mutator         mutation.Mutator
+	mutationFactory mutation.Factory
 }
 
-func NewUpstreamGrpcService(ctx context.Context, upstreamClient gloov1.UpstreamClient, inputConverter converter.UpstreamInputConverter, settingsValues settings.ValuesClient) v1.UpstreamApiServer {
+func NewUpstreamGrpcService(
+	ctx context.Context,
+	upstreamClient gloov1.UpstreamClient,
+	settingsValues settings.ValuesClient,
+	mutator mutation.Mutator,
+	factory mutation.Factory) v1.UpstreamApiServer {
+
 	return &upstreamGrpcService{
-		ctx:            ctx,
-		upstreamClient: upstreamClient,
-		inputConverter: inputConverter,
-		settingsValues: settingsValues,
+		ctx:             ctx,
+		upstreamClient:  upstreamClient,
+		settingsValues:  settingsValues,
+		mutator:         mutator,
+		mutationFactory: factory,
 	}
 }
 
@@ -56,15 +64,7 @@ func (s *upstreamGrpcService) ListUpstreams(ctx context.Context, request *v1.Lis
 }
 
 func (s *upstreamGrpcService) CreateUpstream(ctx context.Context, request *v1.CreateUpstreamRequest) (*v1.CreateUpstreamResponse, error) {
-	upstream := gloov1.Upstream{
-		Metadata: core.Metadata{
-			Namespace: request.GetInput().GetRef().GetNamespace(),
-			Name:      request.GetInput().GetRef().GetName(),
-		},
-		UpstreamSpec: s.inputConverter.ConvertInputToUpstreamSpec(request.GetInput()),
-	}
-
-	written, err := s.writeUpstream(upstream, false)
+	written, err := s.mutator.Create(s.ctx, request.GetInput().GetRef(), s.mutationFactory.ConfigureUpstream(request.GetInput()))
 	if err != nil {
 		wrapped := FailedToCreateUpstreamError(err, request.GetInput().GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -74,17 +74,7 @@ func (s *upstreamGrpcService) CreateUpstream(ctx context.Context, request *v1.Cr
 }
 
 func (s *upstreamGrpcService) UpdateUpstream(ctx context.Context, request *v1.UpdateUpstreamRequest) (*v1.UpdateUpstreamResponse, error) {
-	read, err := s.readUpstream(request.GetInput().GetRef())
-	if err != nil {
-		wrapped := FailedToUpdateUpstreamError(err, request.GetInput().GetRef())
-		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
-		return nil, wrapped
-	}
-
-	read.UpstreamSpec = s.inputConverter.ConvertInputToUpstreamSpec(request.GetInput())
-	read.Status = core.Status{}
-
-	written, err := s.writeUpstream(*read, true)
+	written, err := s.mutator.Update(s.ctx, request.GetInput().GetRef(), s.mutationFactory.ConfigureUpstream(request.GetInput()))
 	if err != nil {
 		wrapped := FailedToUpdateUpstreamError(err, request.GetInput().GetRef())
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
@@ -107,6 +97,6 @@ func (s *upstreamGrpcService) readUpstream(ref *core.ResourceRef) (*gloov1.Upstr
 	return s.upstreamClient.Read(ref.GetNamespace(), ref.GetName(), clients.ReadOpts{Ctx: s.ctx})
 }
 
-func (s *upstreamGrpcService) writeUpstream(upstream gloov1.Upstream, overwriteExisting bool) (*gloov1.Upstream, error) {
-	return s.upstreamClient.Write(&upstream, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: overwriteExisting})
+func (s *upstreamGrpcService) writeUpstream(upstream *gloov1.Upstream, overwriteExisting bool) (*gloov1.Upstream, error) {
+	return s.upstreamClient.Write(upstream, clients.WriteOpts{Ctx: s.ctx, OverwriteExisting: overwriteExisting})
 }

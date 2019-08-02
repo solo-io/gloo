@@ -112,6 +112,7 @@ weight: 5
 "aws": .aws.plugins.gloo.solo.io.UpstreamSpec
 "azure": .azure.plugins.gloo.solo.io.UpstreamSpec
 "consul": .consul.plugins.gloo.solo.io.UpstreamSpec
+"awsEc2": .aws_ec2.plugins.gloo.solo.io.UpstreamSpec
 
 ```
 
@@ -123,6 +124,7 @@ weight: 5
 | `aws` | [.aws.plugins.gloo.solo.io.UpstreamSpec](../../../../../../gloo/projects/gloo/api/v1/plugins/aws/aws.proto.sk#upstreamspec) |  |  |
 | `azure` | [.azure.plugins.gloo.solo.io.UpstreamSpec](../../../../../../gloo/projects/gloo/api/v1/plugins/azure/azure.proto.sk#upstreamspec) |  |  |
 | `consul` | [.consul.plugins.gloo.solo.io.UpstreamSpec](../../../../../../gloo/projects/gloo/api/v1/plugins/consul/consul.proto.sk#upstreamspec) |  |  |
+| `awsEc2` | [.aws_ec2.plugins.gloo.solo.io.UpstreamSpec](../../../../../../gloo/projects/gloo/api/v1/plugins/aws/ec2/aws_ec2.proto.sk#upstreamspec) |  |  |
 
 
 

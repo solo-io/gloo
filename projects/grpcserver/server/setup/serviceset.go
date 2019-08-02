@@ -27,10 +27,10 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/configsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/secretsvc"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
-	us_converter "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/converter"
+	us_mutation "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mutation"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc"
 	vs_converter "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/converter"
-	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
+	vs_mutation "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
 	"go.uber.org/zap"
 )
 
@@ -49,20 +49,21 @@ func MustGetServiceSet(ctx context.Context) ServiceSet {
 	licenseClient := license.NewClient(ctx)
 	namespaceClient := kube.NewNamespaceClient(clientset.CoreV1Interface)
 	settingsValues := settings_values.NewSettingsValuesClient(ctx, clientset.SettingsClient)
-	upstreamInputConverter := us_converter.NewUpstreamInputConverter()
-	mutator := mutation.NewMutator(ctx, clientset.VirtualServiceClient)
-	mutationFactory := mutation.NewMutationFactory()
+	virtualServiceMutator := vs_mutation.NewMutator(ctx, clientset.VirtualServiceClient)
+	virtualServiceMutationFactory := vs_mutation.NewMutationFactory()
 	virtualServiceDetailsConverter := vs_converter.NewVirtualServiceDetailsConverter()
+	upstreamMutator := us_mutation.NewMutator(clientset.UpstreamClient)
+	upstreamMutationFactory := us_mutation.NewFactory()
 
 	// Read env
 	oAuthUrl, oAuthClient := config.GetOAuthEndpointValues()
 	oAuthEndpoint := v1.OAuthEndpoint{Url: oAuthUrl, ClientName: oAuthClient}
 
-	upstreamService := upstreamsvc.NewUpstreamGrpcService(ctx, clientset.UpstreamClient, upstreamInputConverter, settingsValues)
+	upstreamService := upstreamsvc.NewUpstreamGrpcService(ctx, clientset.UpstreamClient, settingsValues, upstreamMutator, upstreamMutationFactory)
 	artifactService := artifactsvc.NewArtifactGrpcService(ctx, clientset.ArtifactClient)
 	configService := configsvc.NewConfigGrpcService(ctx, clientset.SettingsClient, licenseClient, namespaceClient, oAuthEndpoint, version.Version)
 	secretService := secretsvc.NewSecretGrpcService(ctx, clientset.SecretClient)
-	virtualServiceService := virtualservicesvc.NewVirtualServiceGrpcService(ctx, clientset.VirtualServiceClient, settingsValues, mutator, mutationFactory, virtualServiceDetailsConverter)
+	virtualServiceService := virtualservicesvc.NewVirtualServiceGrpcService(ctx, clientset.VirtualServiceClient, settingsValues, virtualServiceMutator, virtualServiceMutationFactory, virtualServiceDetailsConverter)
 
 	return ServiceSet{
 		UpstreamService:       upstreamService,

@@ -1,0 +1,7 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Support creating ec2 upstreams via the new apiserver
+    issueLink: https://github.com/solo-io/solo-projects/issues/785
+  - type: FIX
+    description: Do not overwrite all upstreamspec fields when updating an upstream
+    issueLink: https://github.com/solo-io/solo-projects/issues/785

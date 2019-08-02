@@ -17,7 +17,7 @@ import (
 	mock_settings "github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings/mocks"
 	. "github.com/solo-io/solo-projects/projects/grpcserver/server/service/internal/testutils"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc"
-	mock_converter "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/converter/mocks"
+	mock_mutator "github.com/solo-io/solo-projects/projects/grpcserver/server/service/upstreamsvc/mutation/mocks"
 	"google.golang.org/grpc"
 )
 
@@ -28,7 +28,8 @@ var (
 	client         v1.UpstreamApiClient
 	mockCtrl       *gomock.Controller
 	upstreamClient *mock_gloo.MockUpstreamClient
-	inputConverter *mock_converter.MockUpstreamInputConverter
+	mutator        *mock_mutator.MockMutator
+	factory        *mock_mutator.MockFactory
 	settingsValues *mock_settings.MockValuesClient
 	testErr        = errors.Errorf("test-err")
 )
@@ -38,9 +39,10 @@ var _ = Describe("ServiceTest", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		upstreamClient = mock_gloo.NewMockUpstreamClient(mockCtrl)
-		inputConverter = mock_converter.NewMockUpstreamInputConverter(mockCtrl)
+		mutator = mock_mutator.NewMockMutator(mockCtrl)
+		factory = mock_mutator.NewMockFactory(mockCtrl)
 		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
-		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), upstreamClient, inputConverter, settingsValues)
+		apiserver = upstreamsvc.NewUpstreamGrpcService(context.TODO(), upstreamClient, settingsValues, mutator, factory)
 
 		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterUpstreamApiServer(s, apiserver) })
 		client = v1.NewUpstreamApiClient(conn)
@@ -144,14 +146,14 @@ var _ = Describe("ServiceTest", func() {
 			}
 		}
 
-		It("works when the upstream client works", func() {
+		It("works when the mutator works", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 
-			upstream := gloov1.Upstream{
+			upstream := &gloov1.Upstream{
 				Metadata: metadata,
 				UpstreamSpec: &gloov1.UpstreamSpec{
 					UpstreamType: &gloov1.UpstreamSpec_Aws{
@@ -160,39 +162,27 @@ var _ = Describe("ServiceTest", func() {
 				},
 			}
 
-			inputConverter.EXPECT().
-				ConvertInputToUpstreamSpec(getInput(&ref)).
-				Return(upstream.UpstreamSpec)
-			upstreamClient.EXPECT().
-				Write(&upstream, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
-				Return(&upstream, nil)
+			factory.EXPECT().ConfigureUpstream(getInput(&ref))
+			mutator.EXPECT().
+				Create(context.TODO(), &ref, gomock.Any()).
+				Return(upstream, nil)
 
 			actual, err := client.CreateUpstream(context.TODO(), &v1.CreateUpstreamRequest{Input: getInput(&ref)})
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.CreateUpstreamResponse{Upstream: &upstream}
+			expected := &v1.CreateUpstreamResponse{Upstream: upstream}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
-		It("errors when the upstream client errors", func() {
+		It("errors when the mutator errors", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
-			upstream := gloov1.Upstream{
-				Metadata: metadata,
-				UpstreamSpec: &gloov1.UpstreamSpec{
-					UpstreamType: &gloov1.UpstreamSpec_Aws{
-						Aws: &aws.UpstreamSpec{Region: "test"},
-					},
-				},
-			}
 
-			inputConverter.EXPECT().
-				ConvertInputToUpstreamSpec(getInput(&ref)).
-				Return(upstream.UpstreamSpec)
-			upstreamClient.EXPECT().
-				Write(&upstream, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: false}).
+			factory.EXPECT().ConfigureUpstream(getInput(&ref))
+			mutator.EXPECT().
+				Create(context.TODO(), &ref, gomock.Any()).
 				Return(nil, testErr)
 
 			request := &v1.CreateUpstreamRequest{
@@ -215,14 +205,14 @@ var _ = Describe("ServiceTest", func() {
 			}
 		}
 
-		It("works when the upstream client works", func() {
+		It("works when the mutator works", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 
-			upstream := gloov1.Upstream{
+			upstream := &gloov1.Upstream{
 				Metadata: metadata,
 				UpstreamSpec: &gloov1.UpstreamSpec{
 					UpstreamType: &gloov1.UpstreamSpec_Aws{
@@ -231,63 +221,27 @@ var _ = Describe("ServiceTest", func() {
 				},
 			}
 
-			inputConverter.EXPECT().
-				ConvertInputToUpstreamSpec(getInput(&ref)).
-				Return(upstream.UpstreamSpec)
-			upstreamClient.EXPECT().
-				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(&upstream, nil)
-			upstreamClient.EXPECT().
-				Write(&upstream, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
-				Return(&upstream, nil)
+			factory.EXPECT().ConfigureUpstream(getInput(&ref))
+			mutator.EXPECT().
+				Update(context.TODO(), &ref, gomock.Any()).
+				Return(upstream, nil)
 
 			actual, err := client.UpdateUpstream(context.TODO(), &v1.UpdateUpstreamRequest{Input: getInput(&ref)})
 			Expect(err).NotTo(HaveOccurred())
-			expected := &v1.UpdateUpstreamResponse{Upstream: &upstream}
+			expected := &v1.UpdateUpstreamResponse{Upstream: upstream}
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
-		It("errors when the upstream client errors on read", func() {
+		It("errors when the mutator errors", func() {
 			metadata := core.Metadata{
 				Namespace: "ns",
 				Name:      "name",
 			}
 			ref := metadata.Ref()
 
-			upstreamClient.EXPECT().
-				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(nil, testErr)
-
-			_, err := client.UpdateUpstream(context.TODO(), &v1.UpdateUpstreamRequest{Input: getInput(&ref)})
-			Expect(err).To(HaveOccurred())
-			expectedErr := upstreamsvc.FailedToUpdateUpstreamError(testErr, &ref)
-			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
-		})
-
-		It("errors when the upstream client errors on write", func() {
-			metadata := core.Metadata{
-				Namespace: "ns",
-				Name:      "name",
-			}
-			ref := metadata.Ref()
-
-			upstream := gloov1.Upstream{
-				Metadata: metadata,
-				UpstreamSpec: &gloov1.UpstreamSpec{
-					UpstreamType: &gloov1.UpstreamSpec_Aws{
-						Aws: &aws.UpstreamSpec{Region: "test"},
-					},
-				},
-			}
-
-			inputConverter.EXPECT().
-				ConvertInputToUpstreamSpec(getInput(&ref)).
-				Return(upstream.UpstreamSpec)
-			upstreamClient.EXPECT().
-				Read(metadata.Namespace, metadata.Name, clients.ReadOpts{Ctx: context.TODO()}).
-				Return(&upstream, nil)
-			upstreamClient.EXPECT().
-				Write(&upstream, clients.WriteOpts{Ctx: context.TODO(), OverwriteExisting: true}).
+			factory.EXPECT().ConfigureUpstream(getInput(&ref))
+			mutator.EXPECT().
+				Update(context.TODO(), &ref, gomock.Any()).
 				Return(nil, testErr)
 
 			_, err := client.UpdateUpstream(context.TODO(), &v1.UpdateUpstreamRequest{Input: getInput(&ref)})

@@ -18,6 +18,7 @@ var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb = requ
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_kubernetes_kubernetes_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/ec2/aws_ec2_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_upstream_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/upstream_pb.js');
 var github_com_solo$io_solo$kit_api_v1_ref_pb = require('../../../../../../../github.com/solo-io/solo-kit/api/v1/ref_pb.js');
 goog.exportSymbol('proto.glooeeapi.solo.io.CreateUpstreamRequest', null, global);
@@ -706,7 +707,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.glooeeapi.solo.io.UpstreamInput.oneofGroups_ = [[2,3,4,5,6]];
+proto.glooeeapi.solo.io.UpstreamInput.oneofGroups_ = [[2,3,4,5,6,7]];
 
 /**
  * @enum {number}
@@ -717,7 +718,8 @@ proto.glooeeapi.solo.io.UpstreamInput.SpecCase = {
   STATIC: 3,
   AWS: 4,
   AZURE: 5,
-  CONSUL: 6
+  CONSUL: 6,
+  AWS_EC2: 7
 };
 
 /**
@@ -761,7 +763,8 @@ proto.glooeeapi.solo.io.UpstreamInput.toObject = function(includeInstance, msg) 
     pb_static: (f = msg.getStatic()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_static_static_pb.UpstreamSpec.toObject(includeInstance, f),
     aws: (f = msg.getAws()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_aws_pb.UpstreamSpec.toObject(includeInstance, f),
     azure: (f = msg.getAzure()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb.UpstreamSpec.toObject(includeInstance, f),
-    consul: (f = msg.getConsul()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec.toObject(includeInstance, f)
+    consul: (f = msg.getConsul()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec.toObject(includeInstance, f),
+    awsEc2: (f = msg.getAwsEc2()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -827,6 +830,11 @@ proto.glooeeapi.solo.io.UpstreamInput.deserializeBinaryFromReader = function(msg
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec.deserializeBinaryFromReader);
       msg.setConsul(value);
+      break;
+    case 7:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec.deserializeBinaryFromReader);
+      msg.setAwsEc2(value);
       break;
     default:
       reader.skipField();
@@ -903,6 +911,14 @@ proto.glooeeapi.solo.io.UpstreamInput.serializeBinaryToWriter = function(message
       6,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_consul_consul_pb.UpstreamSpec.serializeBinaryToWriter
+    );
+  }
+  f = message.getAwsEc2();
+  if (f != null) {
+    writer.writeMessage(
+      7,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec.serializeBinaryToWriter
     );
   }
 };
@@ -1085,6 +1101,36 @@ proto.glooeeapi.solo.io.UpstreamInput.prototype.clearConsul = function() {
  */
 proto.glooeeapi.solo.io.UpstreamInput.prototype.hasConsul = function() {
   return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional aws_ec2.plugins.gloo.solo.io.UpstreamSpec aws_ec2 = 7;
+ * @return {?proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec}
+ */
+proto.glooeeapi.solo.io.UpstreamInput.prototype.getAwsEc2 = function() {
+  return /** @type{?proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_aws_ec2_aws_ec2_pb.UpstreamSpec, 7));
+};
+
+
+/** @param {?proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec|undefined} value */
+proto.glooeeapi.solo.io.UpstreamInput.prototype.setAwsEc2 = function(value) {
+  jspb.Message.setOneofWrapperField(this, 7, proto.glooeeapi.solo.io.UpstreamInput.oneofGroups_[0], value);
+};
+
+
+proto.glooeeapi.solo.io.UpstreamInput.prototype.clearAwsEc2 = function() {
+  this.setAwsEc2(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.glooeeapi.solo.io.UpstreamInput.prototype.hasAwsEc2 = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 

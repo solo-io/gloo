@@ -10,6 +10,7 @@ import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/static/static.proto
 import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/consul/consul.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/kubernetes/kubernetes.proto";
+import "github.com/solo-io/gloo/projects/gloo/api/v1/plugins/aws/ec2/aws_ec2.proto";
 import "github.com/solo-io/gloo/projects/gloo/api/v1/upstream.proto";
 import "github.com/solo-io/solo-kit/api/v1/ref.proto";
 
@@ -37,6 +38,7 @@ message UpstreamInput {
         aws.plugins.gloo.solo.io.UpstreamSpec aws = 4;
         azure.plugins.gloo.solo.io.UpstreamSpec azure = 5;
         consul.plugins.gloo.solo.io.UpstreamSpec consul = 6;
+        aws_ec2.plugins.gloo.solo.io.UpstreamSpec aws_ec2 = 7;
     }
 }
 
