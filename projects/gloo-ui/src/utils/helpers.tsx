@@ -86,9 +86,14 @@ export function getVSDomains(virtualService: VirtualService.AsObject) {
 
 export function getRouteMethods(route: Route.AsObject) {
   if (route.matcher && route.matcher.methodsList) {
+    if (route.matcher.methodsList.length === 7) {
+      // all options selected
+      return '*';
+    }
+
     return route.matcher.methodsList.join(', ');
   }
-  return '';
+  return '*';
 }
 
 export function getRouteSingleUpstream(route: Route.AsObject) {
@@ -128,16 +133,22 @@ export function getRouteMatcher(route: Route.AsObject) {
 
 export function getRouteHeaders(route: Route.AsObject) {
   if (route.matcher && route.matcher.headersList) {
-    return route.matcher.headersList.map(header => header.name).join(', ');
+    return route.matcher.headersList.map(header => (
+      <div>
+        {header.name}: {header.value}
+      </div>
+    ));
   }
   return '';
 }
 
 export function getRouteQueryParams(route: Route.AsObject) {
   if (route.matcher && route.matcher.queryParametersList) {
-    return route.matcher.queryParametersList
-      .map(param => param.name)
-      .join(', ');
+    return route.matcher.queryParametersList.map(param => (
+      <div>
+        {param.name}: {param.value}
+      </div>
+    ));
   }
   return '';
 }

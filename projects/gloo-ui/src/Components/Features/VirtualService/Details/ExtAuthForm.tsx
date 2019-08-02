@@ -58,8 +58,14 @@ const validationSchema = yup.object().shape({
   clientId: yup.string().required('A client ID is required.'),
   secretRefName: yup.string(),
   secretRefNamespace: yup.string(),
-  issuerUrl: yup.string().required('An issuer URL is required.'),
-  appUrl: yup.string().required('An app URL is required.'),
+  issuerUrl: yup
+    .string()
+    .url()
+    .required('An issuer URL is required.'),
+  appUrl: yup
+    .string()
+    .url()
+    .required('An app URL is required.'),
   callbackPath: yup.string().required('A callback path is required.')
 });
 
@@ -168,7 +174,9 @@ export const ExtAuthForm = (props: Props) => {
                 name='secretRefNamespace'
                 title='Secret Ref Namespace'
                 defaultValue='gloo-system'
-                presetOptions={namespaces}
+                presetOptions={namespaces.map(ns => {
+                  return { value: ns };
+                })}
               />
             </div>
             <FormFooter>

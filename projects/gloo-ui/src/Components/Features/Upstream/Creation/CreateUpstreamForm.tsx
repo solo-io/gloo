@@ -206,7 +206,9 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
                   name='namespace'
                   title='Upstream Namespace'
                   defaultValue='gloo-system'
-                  presetOptions={namespaces}
+                  presetOptions={namespaces.map(ns => {
+                    return { value: ns };
+                  })}
                 />
               </div>
             </InputRow>

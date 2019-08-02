@@ -132,7 +132,9 @@ export const StringCardsList = (props: StringCardsListProps) => {
             <SoloTypeahead
               placeholder={createNewPromptText}
               onChange={value => setNewValue(value)}
-              presetOptions={presetOptions!}
+              presetOptions={presetOptions!.map(pO => {
+                return { value: pO };
+              })}
             />
           ) : (
             <SoloInput

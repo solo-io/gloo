@@ -13,11 +13,12 @@ import {
 } from 'utils/helpers';
 import { MultipartStringCardsList } from '../MultipartStringCardsList';
 import { SoloCheckbox } from '../SoloCheckbox';
-import { DropdownProps, SoloDropdown } from '../SoloDropdown';
+import { DropdownProps, SoloDropdown, OptionType } from '../SoloDropdown';
 import { SoloInput } from '../SoloInput';
 import { SoloMultiSelect } from '../SoloMultiSelect';
-import { SoloTypeahead } from '../SoloTypeahead';
+import { SoloTypeahead, TypeaheadProps } from '../SoloTypeahead';
 import { StringCardsList } from '../StringCardsList';
+import { VirtualService } from 'proto/github.com/solo-io/gloo/projects/gateway/api/v1/virtual_service_pb';
 
 export const ErrorText = styled<'div', { errorExists?: boolean }>('div')`
   color: ${colors.grapefruitOrange};
@@ -46,7 +47,12 @@ export const SoloFormInput = ({ ...props }) => {
   );
 };
 
-export const SoloFormTypeahead = ({ ...props }) => {
+interface FormTypeaheadProps extends TypeaheadProps {
+  name: string;
+}
+export const SoloFormTypeahead: React.FC<FormTypeaheadProps> = ({
+  ...props
+}) => {
   const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
   return (
@@ -206,6 +212,83 @@ export const SoloFormMetadataBasedDropdown: React.FC<
   );
 };
 
+interface VirtualServiceTypeaheadProps extends TypeaheadProps {
+  value: VirtualService.AsObject | undefined;
+  options: VirtualService.AsObject[];
+  name: string;
+  onChange?: (newValue: any) => any;
+}
+export const SoloFormVirtualServiceTypeahead: React.FC<
+  VirtualServiceTypeaheadProps
+> = ({ ...props }) => {
+  const [field, meta] = useField(props.name);
+  const form = useFormikContext<any>();
+  const usedOptions = props.options
+    .sort((optionA, optionB) => {
+      const nameA = optionA.metadata!.name;
+      const nameB = optionB.metadata!.name;
+
+      return nameA === nameB ? 0 : nameA < nameB ? -1 : 1;
+    })
+    .map(option => {
+      return {
+        key: createUpstreamId(option.metadata!), // the same as virtual service's currently
+        displayValue: option.metadata!.name,
+        value: createUpstreamId(option.metadata!)
+      };
+    });
+
+  const usedValue =
+    props.value && props.value.metadata
+      ? props.value.metadata.name
+      : field.value && field.value.metadata
+      ? field.value.metadata.name
+      : undefined;
+
+  const setNewValue = (newValueId: any) => {
+    const { name, namespace } = parseUpstreamId(newValueId);
+
+    let optionChosen;
+    if (!!namespace) {
+      optionChosen = props.options.find(
+        option =>
+          option.metadata!.name === name &&
+          option.metadata!.namespace === namespace
+      );
+    } else {
+      const tempVirtualService = new VirtualService().toObject();
+
+      // @ts-ignore
+      tempVirtualService.metadata = {
+        name: newValueId,
+        namespace: 'gloo-system'
+      };
+    }
+    console.log(optionChosen);
+
+    if (props.onChange) {
+      props.onChange(optionChosen);
+    }
+
+    form.setFieldValue(field.name, optionChosen);
+  };
+
+  return (
+    <React.Fragment>
+      <SoloTypeahead
+        {...field}
+        {...props}
+        presetOptions={usedOptions}
+        defaultValue={usedValue}
+        onChange={setNewValue}
+      />
+      <ErrorText errorExists={!!meta.error && meta.touched}>
+        {meta.error}
+      </ErrorText>
+    </React.Fragment>
+  );
+};
+
 export const SoloFormMultipartStringCardsList: React.FC<
   { name: string } & any
 > = ({ name, ...props }) => {
@@ -299,7 +382,9 @@ export const SoloFormSecretRefInput: React.FC<{
         <SoloTypeahead
           {...namespaceField}
           title='Secret Ref Namespace'
-          presetOptions={namespaces}
+          presetOptions={namespaces.map(ns => {
+            return { value: ns };
+          })}
           onChange={value => {
             form.setFieldValue(`${field.name}.namespace`, value);
 
@@ -323,7 +408,9 @@ export const SoloFormSecretRefInput: React.FC<{
           {...nameField}
           title='Secret Ref Name'
           disabled={secretsFound.length === 0}
-          presetOptions={secretsFound}
+          presetOptions={secretsFound.map(sF => {
+            return { value: sF };
+          })}
           defaultValue='Secret...'
           onChange={value => {
             form.setFieldValue(`${field.name}.name`, value);

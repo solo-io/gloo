@@ -65,6 +65,9 @@ export interface MultipartStringCardsProps {
   createNewNamePromptText?: string;
   createNewValuePromptText?: string;
   title?: string;
+  nameSlotTitle?: string;
+  valueSlotTitle?: string;
+  valuesMayBeEmpty?: boolean;
 }
 
 // This badly needs a better name
@@ -77,7 +80,10 @@ export const MultipartStringCardsList = (props: MultipartStringCardsProps) => {
     nameIsValid,
     createNewNamePromptText,
     createNewValuePromptText,
-    title
+    title,
+    nameSlotTitle,
+    valueSlotTitle,
+    valuesMayBeEmpty
   } = props;
 
   const [newName, setNewName] = React.useState<string>('');
@@ -92,6 +98,7 @@ export const MultipartStringCardsList = (props: MultipartStringCardsProps) => {
 
   const sendCreateNew = () => {
     if (newValue.length > 0 && newName.length > 0) {
+      // TODO: Use the slotTitles prop for this case as well
       createNew!({
         newName,
         newValue
@@ -106,16 +113,20 @@ export const MultipartStringCardsList = (props: MultipartStringCardsProps) => {
       {title && <Label>{title}</Label>}
       <Container>
         {values.map((value, ind) => {
-          console.log(value);
+          // @ts-ignore
+          const name = !!nameSlotTitle ? value[nameSlotTitle] : value.name;
+          // @ts-ignore
+          const val = !!valueSlotTitle ? value[valueSlotTitle] : value.value;
+
           return (
             <StringCard
-              key={value.name + ind}
+              key={name + ind}
               hasError={
-                (!!valueIsValid ? !valueIsValid(value.value) : false) ||
-                (!!nameIsValid ? nameIsValid(value.name) : false)
+                (!!valueIsValid ? !valueIsValid(val) : false) ||
+                (!!nameIsValid ? nameIsValid(name) : false)
               }>
-              <CardName>{value.name}</CardName>
-              <CardValue>{value.value} </CardValue>
+              <CardName>{name}</CardName>
+              <CardValue>{val} </CardValue>
               <DeleteX onClick={() => valueDeleted(ind)}>
                 <GreyX style={{ marginBottom: '-3px' }} />
               </DeleteX>
@@ -147,6 +158,7 @@ export const MultipartStringCardsList = (props: MultipartStringCardsProps) => {
               />
               <PlusHolder
                 disabled={
+                  valuesMayBeEmpty ||
                   !newValue.length ||
                   !newName.length ||
                   (!!nameIsValid ? !nameIsValid(newName) : false) ||

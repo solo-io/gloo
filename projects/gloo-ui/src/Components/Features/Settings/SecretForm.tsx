@@ -105,7 +105,9 @@ export const SecretForm: React.FC<Props> = ({ secretKind }) => {
                 name='secretResourceRef.namespace'
                 placeholder='Namespace'
                 defaultValue='gloo-system'
-                presetOptions={namespaces}
+                presetOptions={namespaces.map(ns => {
+                  return { value: ns };
+                })}
               />
             </TableFormWrapper>
             {secretKind === Secret.KindCase.AWS && <AwsSecretFields />}

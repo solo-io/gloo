@@ -406,7 +406,6 @@ export const VirtualServiceDetails = (props: Props) => {
     updateVirtualService({ newDomainsList });
   };
   const ratesChanged = (newRateLimits: IngressRateLimit.AsObject) => {
-    console.log(newRateLimits);
     updateVirtualService({ newRateLimits });
   };
   const externalAuthChanged = (newOAuth: OAuth.AsObject) => {
@@ -428,7 +427,13 @@ export const VirtualServiceDetails = (props: Props) => {
       <Breadcrumb />
 
       <SectionCard
-        cardName={match.params ? match.params.virtualservicename : 'test'}
+        cardName={
+          virtualService.displayName.length
+            ? virtualService.displayName
+            : match.params
+            ? match.params.virtualservicename
+            : 'Error'
+        }
         logoIcon={<GlooIcon />}
         health={
           virtualService!.status

@@ -120,9 +120,9 @@ export const MainMenu = () => {
           activeStyle={activeStyle}>
           Upstreams
         </NavLink>
-        <NavLink style={NavLinkStyles} to='/stats/' activeStyle={activeStyle}>
+        {/*<NavLink style={NavLinkStyles} to='/stats/' activeStyle={activeStyle}>
           Stats
-        </NavLink>
+        </NavLink>*/}
         <NavLink
           style={{
             ...NavLinkStyles,

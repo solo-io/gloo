@@ -11,7 +11,8 @@ import {
   SoloFormDropdown,
   SoloFormMultiselect,
   SoloFormMultipartStringCardsList,
-  SoloFormMetadataBasedDropdown
+  SoloFormMetadataBasedDropdown,
+  SoloFormVirtualServiceTypeahead
 } from 'Components/Common/Form/SoloFormField';
 import { Field, Formik, FormikErrors } from 'formik';
 import * as yup from 'yup';
@@ -58,6 +59,7 @@ import {
 import { SoloButton } from 'Components/Common/SoloButton';
 import { ButtonProgress } from 'Styles/CommonEmotions/button';
 import { DestinationForm } from './DestinationForm';
+import { withRouter, RouteComponentProps } from 'react-router';
 
 enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
   PATH_SPECIFIER_NOT_SET = 0,
@@ -201,13 +203,13 @@ const Footer = styled.div`
   margin-top: 28px;
 `;
 
-interface Props {
+interface Props extends RouteComponentProps {
   defaultVirtualService?: VirtualService.AsObject;
   defaultUpstream?: Upstream.AsObject;
   completeCreation: (newVirtualService?: VirtualService.AsObject) => any;
 }
 
-export const CreateRouteModal = (props: Props) => {
+export const CreateRouteModalC = (props: Props) => {
   const [
     allUsableVirtualServices,
     setAllUsableVirtualServices
@@ -404,6 +406,15 @@ export const CreateRouteModal = (props: Props) => {
 
     newRouteReq.setInput(reqRouteInput);
     makeRequest(newRouteReq);
+
+    /*if (props.match.url.includes('/virtualservices/')) {
+    }*/
+
+    props.history.push({
+      pathname: `/virtualservices/${
+        values.virtualService!.metadata!.namespace
+      }/${values.virtualService!.metadata!.name}`
+    });
   };
 
   const isSubmittable = (
@@ -452,7 +463,7 @@ export const CreateRouteModal = (props: Props) => {
                 {allUsableVirtualServices.length && (
                   <React.Fragment>
                     <HalfColumn>
-                      <SoloFormMetadataBasedDropdown
+                      <SoloFormVirtualServiceTypeahead
                         name='virtualService'
                         title='Virtual Service'
                         value={values.virtualService}
@@ -517,6 +528,7 @@ export const CreateRouteModal = (props: Props) => {
                   name='headers'
                   title='Headers'
                   values={values.headers}
+                  valuesMayBeEmpty={true}
                   createNewNamePromptText={'Name...'}
                   createNewValuePromptText={'Value...'}
                 />
@@ -526,6 +538,7 @@ export const CreateRouteModal = (props: Props) => {
                   name='queryParameters'
                   title='Query Parameters'
                   values={values.queryParameters}
+                  valuesMayBeEmpty={true}
                   createNewNamePromptText={'Name...'}
                   createNewValuePromptText={'Value...'}
                 />
@@ -562,3 +575,5 @@ export const CreateRouteModal = (props: Props) => {
     </Formik>
   );
 };
+
+export const CreateRouteModal = withRouter(CreateRouteModalC);

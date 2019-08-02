@@ -50,7 +50,9 @@ const AwsUpstreamFormComponent: React.FC<Props & RouterProps> = ({
             <SoloFormTypeahead
               name='awsRegion'
               title='Region'
-              presetOptions={awsRegions}
+              presetOptions={awsRegions.map(region => {
+                return { value: region };
+              })}
             />
           </div>
           <SoloFormSecretRefInput name='awsSecretRef' type='aws' />

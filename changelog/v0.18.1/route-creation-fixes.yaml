@@ -1,0 +1,20 @@
+changelog:
+  - type: NON_USER_FACING
+    description: Devs can now specify in the UI what field names they want for MultstringInput.
+    issueLink: https://github.com/solo-io/solo-projects/issues/802
+  - type: FIX
+    description: Creating virtual services and routes now default to the gloo-system namespace.
+    issueLink: https://github.com/solo-io/solo-projects/issues/793
+  - type: FIX
+    description: Routes can now be created while specifying a brand new virtual service at the same time.
+    issueLink: https://github.com/solo-io/solo-projects/issues/792
+    resolvesIssue: false
+  - type: FIX
+    description: Stats page link removed until its true calling is discovered. A long journey awaits it.
+    issueLink: https://github.com/solo-io/solo-projects/issues/825
+  - type: FIX
+    description: Creating a route in the UI now redirects the user to the virtual service details which house it.
+    issueLink: https://github.com/solo-io/solo-projects/issues/823
+  - type: FIX
+    description: Methods, Headers, and Query Params now have prettier UI to highlight their natural beauty.
+    issueLink: https://github.com/solo-io/solo-projects/issues/815

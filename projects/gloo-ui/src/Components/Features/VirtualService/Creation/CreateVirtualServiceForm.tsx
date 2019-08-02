@@ -60,7 +60,7 @@ interface Props {
 export const CreateVirtualServiceForm = (props: Props) => {
   const namespaces = React.useContext(NamespacesContext);
   // this is to match the value displayed by the typeahead
-  initialValues.namespace = namespaces[0] || '';
+  initialValues.namespace = 'gloo-system';
   const {
     handleSubmit,
     handleChange,
@@ -96,7 +96,6 @@ export const CreateVirtualServiceForm = (props: Props) => {
   }
 
   const isSubmittable = () => {
-    console.log({ errors, isSubmitting, isDifferent });
     return isDifferent && !Object.keys(errors).length && !isSubmitting;
   };
 
@@ -130,7 +129,9 @@ export const CreateVirtualServiceForm = (props: Props) => {
             title='Virtual Service Namespace'
             defaultValue={values.namespace}
             onChange={e => handleChange(e, 'namespace')}
-            presetOptions={namespaces}
+            presetOptions={namespaces.map(ns => {
+              return { value: ns };
+            })}
           />
           {errors && <ErrorText>{errors.namespace}</ErrorText>}
         </div>

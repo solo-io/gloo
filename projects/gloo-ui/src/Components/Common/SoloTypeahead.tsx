@@ -5,7 +5,7 @@ import { AutoComplete } from 'antd';
 import { colors, soloConstants } from 'Styles';
 import styled from '@emotion/styled/macro';
 import { Label } from './SoloInput';
-import { SelectValue } from 'antd/lib/select';
+import Select, { SelectValue } from 'antd/lib/select';
 import { DataSourceItemType } from 'antd/lib/auto-complete';
 
 const { Option } = AutoComplete;
@@ -64,9 +64,16 @@ const SoloAutocompleteBlock = styled(AutoComplete)`
   }
 `;
 
+interface OptionType {
+  key?: string;
+  disabled?: boolean;
+  value: string;
+  displayValue?: any;
+  icon?: JSX.Element;
+}
 export interface TypeaheadProps {
-  presetOptions: string[];
-  onChange: (newValue: string) => any;
+  presetOptions?: OptionType[];
+  onChange?: (newValue: string) => any;
   title?: string;
   placeholder?: string;
   defaultValue?: string | number;
@@ -87,26 +94,24 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
   } = props;
 
   const handleChange = (value: SelectValue): void => {
-    onChange(value as string);
+    onChange!(value as string);
   };
   const getOptions = (): DataSourceItemType[] => {
-    return presetOptions
+    return presetOptions!
       .filter(
         opt =>
-          opt.toLowerCase().includes(typeInText.toLowerCase()) &&
-          opt.toLowerCase() !== typeInText.toLowerCase()
+          opt.value.toLowerCase().includes(typeInText.toLowerCase()) &&
+          opt.value.toLowerCase() !== typeInText.toLowerCase()
       )
-      .concat(typeInText.length ? [typeInText] : [])
-      .map(renderOption);
-  };
-
-  const renderOption = (value: string) => {
-    return (
-      // @ts-ignore
-      <Option key={value} value={value}>
-        {value}
-      </Option>
-    );
+      .concat(typeInText.length ? [{ value: typeInText, key: typeInText }] : [])
+      .map((opt: OptionType) => (
+        <Select.Option
+          key={opt.key || opt.value}
+          value={opt.value}
+          disabled={opt.disabled}>
+          {`${opt.icon || ''}${opt.displayValue || opt.value}`}
+        </Select.Option>
+      ));
   };
 
   return (
@@ -118,14 +123,14 @@ export const SoloTypeahead = (props: TypeaheadProps) => {
         defaultValue={
           defaultValue
             ? defaultValue
-            : props.presetOptions.length
-            ? props.presetOptions[0]
-            : 'New namespace...'
+            : props.presetOptions!.length
+            ? props.presetOptions![0].displayValue ||
+              props.presetOptions![0].value
+            : 'gloo-system'
         }
         onSearch={setTypeInText}
         dataSource={getOptions()}
         placeholder={placeholder}
-        optionLabelProp='value'
       />
     </React.Fragment>
   );
