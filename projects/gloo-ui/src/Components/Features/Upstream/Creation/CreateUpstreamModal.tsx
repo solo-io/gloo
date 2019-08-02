@@ -8,8 +8,11 @@ import { Divider } from 'antd';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreateUpstreamForm } from './CreateUpstreamForm';
 import { ReactComponent as GreenPlus } from 'assets/small-green-plus.svg';
+import { SuccessModal } from 'Components/Common/SuccessModal';
 
-interface Props {}
+interface Props {
+  toggleSuccessModal: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
 const StyledGreenPlus = styled(GreenPlus)`
   cursor: pointer;
@@ -63,7 +66,7 @@ export const CreateUpstreamModal = (props: Props) => {
             type-specific spec field which must be used to provide routing
             information to Gloo.
           </Legend>
-          <CreateUpstreamForm />
+          <CreateUpstreamForm toggleModal={setShowModal} />
         </React.Fragment>
       </SoloModal>
     </ModalContainer>

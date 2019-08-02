@@ -45,7 +45,11 @@ import {
 import { kubeInitialValues, KubeUpstreamForm } from './KubeUpstreamForm';
 import { staticInitialValues, StaticUpstreamForm } from './StaticUpstreamForm';
 import { SoloButton } from 'Components/Common/SoloButton';
-interface Props {}
+import { withRouter } from 'react-router-dom';
+import { RouteComponentProps } from 'react-router';
+interface Props {
+  toggleModal: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
 const FormContainer = styled.div`
   display: flex;
@@ -97,7 +101,7 @@ const validationSchema = yup.object().shape({
   )
 });
 
-export const CreateUpstreamForm = (props: Props) => {
+const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
   const namespaces = React.useContext(NamespacesContext);
 
   const { refetch: makeRequest } = useCreateUpstream(null);
@@ -169,6 +173,8 @@ export const CreateUpstreamForm = (props: Props) => {
 
     newUpstreamReq.setInput(usInput);
     makeRequest(newUpstreamReq);
+    props.toggleModal(s => !s);
+    props.history.push('/upstreams', { showSuccess: true });
   }
 
   return (
@@ -233,3 +239,5 @@ export const CreateUpstreamForm = (props: Props) => {
     </Formik>
   );
 };
+
+export const CreateUpstreamForm = withRouter(CreateUpstreamFormC);

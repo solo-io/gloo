@@ -45,6 +45,7 @@ import { CreateRouteModal } from '../Route/CreateRouteModal';
 import { ExtraInfo } from 'Components/Features/Upstream/ExtraInfo';
 import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import _ from 'lodash';
+import { SuccessModal } from 'Components/Common/SuccessModal';
 const TypeHolder = styled.div`
   display: flex;
   align-items: center;
@@ -152,6 +153,8 @@ interface Props extends RouteComponentProps {
 }
 
 export const UpstreamsListing = (props: Props) => {
+  const [showSuccessModal, setShowSuccessModal] = React.useState(false);
+
   const [catalogNotTable, setCatalogNotTable] = React.useState<boolean>(true);
   const [
     upstreamForRouteCreation,
@@ -161,6 +164,19 @@ export const UpstreamsListing = (props: Props) => {
   let request = new ListUpstreamsRequest();
   request.setNamespacesList(namespaces);
   const { data, loading, error } = useGetUpstreamsList(request);
+
+  React.useEffect(() => {
+    if (props.location.state && props.location.state.showSuccess) {
+      props.location.state.showSuccess = false;
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (props.location.state && props.location.state.showSuccess) {
+      setShowSuccessModal(true);
+    }
+    return () => setShowSuccessModal(false);
+  }, [props.location.state && props.location.state.showSuccess]);
 
   if (!data || loading) {
     return <div>Loading...</div>;
@@ -322,7 +338,11 @@ export const UpstreamsListing = (props: Props) => {
       <Heading>
         <Breadcrumb />
         <Action>
-          <CreateUpstreamModal />
+          <CreateUpstreamModal toggleSuccessModal={setShowSuccessModal} />
+          <SuccessModal
+            visible={showSuccessModal}
+            successMessage='Upstream added successfully'
+          />
           <CatalogTableToggle
             listIsSelected={!catalogNotTable}
             onToggle={() => {

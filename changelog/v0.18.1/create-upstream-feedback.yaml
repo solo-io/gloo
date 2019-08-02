@@ -1,0 +1,4 @@
+changelog:
+  - type: NEW_FEATURE
+    description: Show a confirmation modal and redirect after upstream creation.
+    issueLink: https://github.com/solo-io/solo-projects/issues/796
