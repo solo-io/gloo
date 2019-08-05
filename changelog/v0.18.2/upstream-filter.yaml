@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Only filter upstream types that are handled in the grpc server.
+    issueLink: https://github.com/solo-io/solo-projects/issues/817

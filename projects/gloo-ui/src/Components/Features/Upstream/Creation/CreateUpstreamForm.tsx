@@ -30,10 +30,7 @@ import {
   UpstreamInput
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
 import * as React from 'react';
-import {
-  UPSTREAM_SPEC_TYPES,
-  UPSTREAM_TYPES_CREATE
-} from 'utils/upstreamHelpers';
+import { UPSTREAM_SPEC_TYPES } from 'utils/upstreamHelpers';
 import * as yup from 'yup';
 import { awsInitialValues, AwsUpstreamForm } from './AwsUpstreamForm';
 import { azureInitialValues, AzureUpstreamForm } from './AzureUpstreamForm';
@@ -106,7 +103,6 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
 
   const { refetch: makeRequest } = useCreateUpstream(null);
 
-  // grpc request
   function createUpstream(values: typeof initialValues) {
     const newUpstreamReq = new CreateUpstreamRequest();
     const usInput = new UpstreamInput();
@@ -198,7 +194,7 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
                   name='type'
                   title='Upstream Type'
                   placeholder='Type'
-                  options={UPSTREAM_TYPES_CREATE}
+                  options={UPSTREAM_SPEC_TYPES}
                 />
               </div>
               <div>
