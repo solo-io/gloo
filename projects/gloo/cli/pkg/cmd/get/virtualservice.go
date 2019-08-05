@@ -5,8 +5,7 @@ import (
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/cmd/options"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/common"
 	"github.com/solo-io/gloo/projects/gloo/cli/pkg/constants"
-	helpersExt "github.com/solo-io/solo-projects/projects/gloo/cli/pkg/helpers"
-
+	"github.com/solo-io/gloo/projects/gloo/cli/pkg/printers"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +21,7 @@ func VSGet(opts *options.Options) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			helpersExt.PrintVirtualServices(virtualServices, opts.Top.Output)
+			printers.PrintVirtualServices(virtualServices, opts.Top.Output)
 			return nil
 		},
 	}

@@ -18,8 +18,9 @@ import (
 )
 
 var (
-	mDashboardsSnapshotIn  = stats.Int64("dashboards.observability.solo.io/snap_emitter/snap_in", "The number of snapshots in", "1")
-	mDashboardsSnapshotOut = stats.Int64("dashboards.observability.solo.io/snap_emitter/snap_out", "The number of snapshots out", "1")
+	mDashboardsSnapshotIn     = stats.Int64("dashboards.observability.solo.io/snap_emitter/snap_in", "The number of snapshots in", "1")
+	mDashboardsSnapshotOut    = stats.Int64("dashboards.observability.solo.io/snap_emitter/snap_out", "The number of snapshots out", "1")
+	mDashboardsSnapshotMissed = stats.Int64("dashboards.observability.solo.io/snap_emitter/snap_missed", "The number of snapshots missed", "1")
 
 	dashboardssnapshotInView = &view.View{
 		Name:        "dashboards.observability.solo.io_snap_emitter/snap_in",
@@ -35,10 +36,17 @@ var (
 		Aggregation: view.Count(),
 		TagKeys:     []tag.Key{},
 	}
+	dashboardssnapshotMissedView = &view.View{
+		Name:        "dashboards.observability.solo.io/snap_emitter/snap_missed",
+		Measure:     mDashboardsSnapshotMissed,
+		Description: "The number of snapshots updates going missed. this can happen in heavy load. missed snapshot will be re-tried after a second.",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{},
+	}
 )
 
 func init() {
-	view.Register(dashboardssnapshotInView, dashboardssnapshotOutView)
+	view.Register(dashboardssnapshotInView, dashboardssnapshotOutView, dashboardssnapshotMissedView)
 }
 
 type DashboardsEmitter interface {
@@ -142,6 +150,10 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 
 	snapshots := make(chan *DashboardsSnapshot)
 	go func() {
+		// sent initial snapshot to kick off the watch
+		initialSnapshot := currentSnapshot.Clone()
+		snapshots <- &initialSnapshot
+
 		originalSnapshot := DashboardsSnapshot{}
 		timer := time.NewTicker(time.Second * 1)
 
@@ -150,10 +162,14 @@ func (c *dashboardsEmitter) Snapshots(watchNamespaces []string, opts clients.Wat
 				return
 			}
 
-			stats.Record(ctx, mDashboardsSnapshotOut.M(1))
-			originalSnapshot = currentSnapshot.Clone()
 			sentSnapshot := currentSnapshot.Clone()
-			snapshots <- &sentSnapshot
+			select {
+			case snapshots <- &sentSnapshot:
+				stats.Record(ctx, mDashboardsSnapshotOut.M(1))
+				originalSnapshot = currentSnapshot.Clone()
+			default:
+				stats.Record(ctx, mDashboardsSnapshotMissed.M(1))
+			}
 		}
 		upstreamsByNamespace := make(map[string]gloo_solo_io.UpstreamList)
 

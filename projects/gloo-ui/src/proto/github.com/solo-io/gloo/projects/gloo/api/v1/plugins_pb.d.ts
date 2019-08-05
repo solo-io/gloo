@@ -16,6 +16,7 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_grpc_pb fr
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_als_als_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/als/als_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc_web/grpc_web_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/shadowing/shadowing_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tcp_tcp_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tcp/tcp_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tracing/tracing_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb";
@@ -172,6 +173,11 @@ export class RoutePlugins extends jspb.Message {
   getTracing(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings | undefined;
   setTracing(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings): void;
 
+  hasShadowing(): boolean;
+  clearShadowing(): void;
+  getShadowing(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing | undefined;
+  setShadowing(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RoutePlugins.AsObject;
   static toObject(includeInstance: boolean, msg: RoutePlugins): RoutePlugins.AsObject;
@@ -191,6 +197,7 @@ export namespace RoutePlugins {
     retries?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb.RetryPolicy.AsObject,
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     tracing?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings.AsObject,
+    shadowing?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing.AsObject,
   }
 }
 

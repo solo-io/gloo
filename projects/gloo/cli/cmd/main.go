@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/solo-io/solo-projects/projects/gloo/cli/pkg/helpers"
@@ -16,8 +15,7 @@ import (
 )
 
 func main() {
-	start := time.Now()
-	defer check.CallReport("glooctl-ee", version.Version, start)
+	defer check.NewUsageClient().Start("glooctl-ee", version.Version)
 
 	cliutil.Initialize()
 

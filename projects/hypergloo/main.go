@@ -21,20 +21,21 @@ func main() {
 }
 
 func run() error {
-	contextutils.LoggerFrom(context.TODO()).Infof("hypergloo!")
+	ctx := context.TODO()
+	contextutils.LoggerFrom(ctx).Infof("hypergloo!")
 	flag.Parse()
 	errs := make(chan error)
 	go func() {
 		errs <- gloosetup.Main()
 	}()
 	go func() {
-		errs <- gatewaysetup.Main()
+		errs <- gatewaysetup.Main(ctx)
 	}()
 	go func() {
-		errs <- uds.Main()
+		errs <- uds.Main(ctx)
 	}()
 	go func() {
-		errs <- fdssetup.Main()
+		errs <- fdssetup.Main(ctx)
 	}()
 	return <-errs
 }

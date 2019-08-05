@@ -3,7 +3,6 @@ package syncer
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/solo-io/gloo/pkg/utils/setuputils"
 	"github.com/solo-io/gloo/pkg/version"
@@ -25,8 +24,7 @@ import (
 const observability = "observability"
 
 func Main() error {
-	start := time.Now()
-	check.CallCheck(observability, version.Version, start)
+	check.NewUsageClient().Start(observability, version.Version)
 	return setuputils.Main(setuputils.SetupOpts{
 		LoggingPrefix: observability,
 		ExitOnError:   false,

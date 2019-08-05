@@ -26,6 +26,7 @@ var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_grpc_grpc_pb = require(
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_als_als_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/als/als_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_grpc_web_grpc_web_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/grpc_web/grpc_web_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_hcm_hcm_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hcm/hcm_pb.js');
+var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/shadowing/shadowing_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tcp_tcp_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tcp/tcp_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/tracing/tracing_pb.js');
 var github_com_solo$io_gloo_projects_gloo_api_v1_plugins_azure_azure_pb = require('../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/azure/azure_pb.js');
@@ -867,7 +868,8 @@ proto.gloo.solo.io.RoutePlugins.toObject = function(includeInstance, msg) {
     timeout: (f = msg.getTimeout()) && google_protobuf_duration_pb.Duration.toObject(includeInstance, f),
     retries: (f = msg.getRetries()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb.RetryPolicy.toObject(includeInstance, f),
     extensions: (f = msg.getExtensions()) && github_com_solo$io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.toObject(includeInstance, f),
-    tracing: (f = msg.getTracing()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings.toObject(includeInstance, f)
+    tracing: (f = msg.getTracing()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings.toObject(includeInstance, f),
+    shadowing: (f = msg.getShadowing()) && github_com_solo$io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -938,6 +940,11 @@ proto.gloo.solo.io.RoutePlugins.deserializeBinaryFromReader = function(msg, read
       var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings;
       reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings.deserializeBinaryFromReader);
       msg.setTracing(value);
+      break;
+    case 8:
+      var value = new github_com_solo$io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing;
+      reader.readMessage(value,github_com_solo$io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing.deserializeBinaryFromReader);
+      msg.setShadowing(value);
       break;
     default:
       reader.skipField();
@@ -1022,6 +1029,14 @@ proto.gloo.solo.io.RoutePlugins.serializeBinaryToWriter = function(message, writ
       7,
       f,
       github_com_solo$io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings.serializeBinaryToWriter
+    );
+  }
+  f = message.getShadowing();
+  if (f != null) {
+    writer.writeMessage(
+      8,
+      f,
+      github_com_solo$io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing.serializeBinaryToWriter
     );
   }
 };
@@ -1234,6 +1249,36 @@ proto.gloo.solo.io.RoutePlugins.prototype.clearTracing = function() {
  */
 proto.gloo.solo.io.RoutePlugins.prototype.hasTracing = function() {
   return jspb.Message.getField(this, 7) != null;
+};
+
+
+/**
+ * optional shadowing.plugins.gloo.solo.io.RouteShadowing shadowing = 8;
+ * @return {?proto.shadowing.plugins.gloo.solo.io.RouteShadowing}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.getShadowing = function() {
+  return /** @type{?proto.shadowing.plugins.gloo.solo.io.RouteShadowing} */ (
+    jspb.Message.getWrapperField(this, github_com_solo$io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing, 8));
+};
+
+
+/** @param {?proto.shadowing.plugins.gloo.solo.io.RouteShadowing|undefined} value */
+proto.gloo.solo.io.RoutePlugins.prototype.setShadowing = function(value) {
+  jspb.Message.setWrapperField(this, 8, value);
+};
+
+
+proto.gloo.solo.io.RoutePlugins.prototype.clearShadowing = function() {
+  this.setShadowing(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.gloo.solo.io.RoutePlugins.prototype.hasShadowing = function() {
+  return jspb.Message.getField(this, 8) != null;
 };
 
 

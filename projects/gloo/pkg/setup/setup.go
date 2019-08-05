@@ -2,7 +2,6 @@ package setup
 
 import (
 	"context"
-	"time"
 
 	extauthExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/extauth"
 	ratelimitExt "github.com/solo-io/solo-projects/projects/gloo/pkg/syncer/ratelimit"
@@ -20,8 +19,7 @@ import (
 )
 
 func Main() error {
-	start := time.Now()
-	check.CallCheck("gloo-ee", version.Version, start)
+	check.NewUsageClient().Start("gloo-ee", version.Version)
 	return setuputils.Main(setuputils.SetupOpts{
 		SetupFunc:     syncer.NewSetupFuncWithExtensions(GetGlooEeExtensions()),
 		ExitOnError:   true,
