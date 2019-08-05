@@ -11,6 +11,7 @@ import (
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/internal/settings"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/converter"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/selection"
 	"go.uber.org/zap"
 )
 
@@ -18,29 +19,35 @@ import (
 
 type virtualServiceGrpcService struct {
 	ctx                  context.Context
+	podNamespace         string
 	settingsValues       settings.ValuesClient
 	virtualServiceClient gatewayv1.VirtualServiceClient
 	mutator              mutation.Mutator
 	mutationFactory      mutation.MutationFactory
 	detailsConverter     converter.VirtualServiceDetailsConverter
+	selector             selection.VirtualServiceSelector
 }
 
 func NewVirtualServiceGrpcService(
 	ctx context.Context,
+	podNamespace string,
 	virtualServiceClient gatewayv1.VirtualServiceClient,
 	settingsValues settings.ValuesClient,
 	mutator mutation.Mutator,
 	mutationFactory mutation.MutationFactory,
 	detailsConverter converter.VirtualServiceDetailsConverter,
+	selector selection.VirtualServiceSelector,
 ) v1.VirtualServiceApiServer {
 
 	return &virtualServiceGrpcService{
 		ctx:                  ctx,
+		podNamespace:         podNamespace,
 		virtualServiceClient: virtualServiceClient,
 		settingsValues:       settingsValues,
 		mutator:              mutator,
 		mutationFactory:      mutationFactory,
 		detailsConverter:     detailsConverter,
+		selector:             selector,
 	}
 }
 
@@ -136,9 +143,16 @@ func (s *virtualServiceGrpcService) DeleteVirtualService(ctx context.Context, re
 }
 
 func (s *virtualServiceGrpcService) CreateRoute(ctx context.Context, request *v1.CreateRouteRequest) (*v1.CreateRouteResponse, error) {
-	written, err := s.mutator.Update(request.GetInput().GetVirtualServiceRef(), s.mutationFactory.CreateRoute(request.GetInput()))
+	vs, err := s.selector.SelectOrCreate(s.ctx, request.GetInput().GetVirtualServiceRef())
 	if err != nil {
 		wrapped := FailedToCreateRouteError(err, request.GetInput().GetVirtualServiceRef())
+		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
+	}
+	ref := vs.GetMetadata().Ref()
+	written, err := s.mutator.Update(&ref, s.mutationFactory.CreateRoute(request.GetInput()))
+	if err != nil {
+		wrapped := FailedToCreateRouteError(err, &ref)
 		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
 		return nil, wrapped
 	}

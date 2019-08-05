@@ -1,0 +1,5 @@
+changelog:
+  - type: FIX
+    description: Create a default virtual service if one isn't provided and can't be identified.
+    issueLink: https://github.com/solo-io/solo-projects/issues/792
+    resolvesIssue: false

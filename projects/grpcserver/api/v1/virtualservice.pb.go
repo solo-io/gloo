@@ -1334,6 +1334,8 @@ func (m *DeleteVirtualServiceResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_DeleteVirtualServiceResponse proto.InternalMessageInfo
 
 type RouteInput struct {
+	// Virtual service to apply the route to. Must be provided except for on CreateRoute.
+	// If not provided to CreateRoute, a default virtual service will be identified or created.
 	VirtualServiceRef    *core.ResourceRef `protobuf:"bytes,1,opt,name=virtual_service_ref,json=virtualServiceRef,proto3" json:"virtual_service_ref,omitempty"`
 	Index                uint32            `protobuf:"varint,2,opt,name=index,proto3" json:"index,omitempty"`
 	Route                *v11.Route        `protobuf:"bytes,3,opt,name=route,proto3" json:"route,omitempty"`

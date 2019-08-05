@@ -7,6 +7,7 @@ import (
 	"github.com/solo-io/go-utils/kubeutils"
 	"github.com/solo-io/solo-kit/pkg/api/v1/clients/factory"
 	kube2 "github.com/solo-io/solo-kit/pkg/api/v1/clients/kube"
+	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/selection"
 
 	"github.com/gogo/protobuf/types"
 	gloov1 "github.com/solo-io/gloo/projects/gloo/pkg/api/v1"
@@ -44,6 +45,7 @@ type ServiceSet struct {
 
 func MustGetServiceSet(ctx context.Context) ServiceSet {
 	clientset := mustGetClientset(ctx)
+	podNamespace := envutils.MustGetPodNamespace(ctx)
 
 	// Create simple and derived clients
 	licenseClient := license.NewClient(ctx)
@@ -52,10 +54,11 @@ func MustGetServiceSet(ctx context.Context) ServiceSet {
 	virtualServiceMutator := vs_mutation.NewMutator(ctx, clientset.VirtualServiceClient)
 	virtualServiceMutationFactory := vs_mutation.NewMutationFactory()
 	virtualServiceDetailsConverter := vs_converter.NewVirtualServiceDetailsConverter()
+	virtualServiceSelector := selection.NewVirtualServiceSelector(clientset.VirtualServiceClient, namespaceClient, podNamespace)
 	upstreamMutator := us_mutation.NewMutator(clientset.UpstreamClient)
 	upstreamMutationFactory := us_mutation.NewFactory()
 
-	// Read env
+	// oAuth
 	oAuthUrl, oAuthClient := config.GetOAuthEndpointValues()
 	oAuthEndpoint := v1.OAuthEndpoint{Url: oAuthUrl, ClientName: oAuthClient}
 
@@ -63,7 +66,16 @@ func MustGetServiceSet(ctx context.Context) ServiceSet {
 	artifactService := artifactsvc.NewArtifactGrpcService(ctx, clientset.ArtifactClient)
 	configService := configsvc.NewConfigGrpcService(ctx, clientset.SettingsClient, licenseClient, namespaceClient, oAuthEndpoint, version.Version)
 	secretService := secretsvc.NewSecretGrpcService(ctx, clientset.SecretClient)
-	virtualServiceService := virtualservicesvc.NewVirtualServiceGrpcService(ctx, clientset.VirtualServiceClient, settingsValues, virtualServiceMutator, virtualServiceMutationFactory, virtualServiceDetailsConverter)
+	virtualServiceService := virtualservicesvc.NewVirtualServiceGrpcService(
+		ctx,
+		podNamespace,
+		clientset.VirtualServiceClient,
+		settingsValues,
+		virtualServiceMutator,
+		virtualServiceMutationFactory,
+		virtualServiceDetailsConverter,
+		virtualServiceSelector,
+	)
 
 	return ServiceSet{
 		UpstreamService:       upstreamService,

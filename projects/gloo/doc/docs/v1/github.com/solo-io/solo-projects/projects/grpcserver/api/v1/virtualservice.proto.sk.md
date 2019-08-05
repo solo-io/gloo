@@ -511,7 +511,7 @@ Deprecated. Use VirtualServiceInputV2
 
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
-| `virtualServiceRef` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) |  |  |
+| `virtualServiceRef` | [.core.solo.io.ResourceRef](../../../../../../solo-kit/api/v1/ref.proto.sk#resourceref) | Virtual service to apply the route to. Must be provided except for on CreateRoute. If not provided to CreateRoute, a default virtual service will be identified or created. |  |
 | `index` | `int` |  |  |
 | `route` | [.gloo.solo.io.Route](../../../../../../gloo/projects/gloo/api/v1/proxy.proto.sk#route) |  |  |
 

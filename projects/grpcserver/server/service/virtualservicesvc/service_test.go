@@ -18,6 +18,7 @@ import (
 	mock_converter "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/converter/mocks"
 	"github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mocks"
 	mock_mutation "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/mutation/mocks"
+	mock_selector "github.com/solo-io/solo-projects/projects/grpcserver/server/service/virtualservicesvc/selection/mocks"
 	"google.golang.org/grpc"
 )
 
@@ -32,6 +33,7 @@ var (
 	mutationFactory       *mock_mutation.MockMutationFactory
 	settingsValues        *mock_settings.MockValuesClient
 	detailsConverter      *mock_converter.MockVirtualServiceDetailsConverter
+	selector              *mock_selector.MockVirtualServiceSelector
 	detailsExpectation    *gomock.Call
 	virtualService        *gatewayv1.VirtualService
 	virtualServiceDetails *v1.VirtualServiceDetails
@@ -53,7 +55,17 @@ var _ = Describe("ServiceTest", func() {
 		mutationFactory = mock_mutation.NewMockMutationFactory(mockCtrl)
 		settingsValues = mock_settings.NewMockValuesClient(mockCtrl)
 		detailsConverter = mock_converter.NewMockVirtualServiceDetailsConverter(mockCtrl)
-		apiserver = virtualservicesvc.NewVirtualServiceGrpcService(context.TODO(), virtualServiceClient, settingsValues, mutator, mutationFactory, detailsConverter)
+		selector = mock_selector.NewMockVirtualServiceSelector(mockCtrl)
+		apiserver = virtualservicesvc.NewVirtualServiceGrpcService(
+			context.TODO(),
+			"",
+			virtualServiceClient,
+			settingsValues,
+			mutator,
+			mutationFactory,
+			detailsConverter,
+			selector,
+		)
 
 		virtualService = &gatewayv1.VirtualService{Metadata: metadata}
 		virtualServiceDetails = &v1.VirtualServiceDetails{VirtualService: virtualService}
@@ -343,8 +355,12 @@ var _ = Describe("ServiceTest", func() {
 			}
 		}
 
-		It("works when the mutator works", func() {
-			mutationFactory.EXPECT().CreateRoute(getInput(&ref))
+		It("works when the mutator and selector work", func() {
+			selector.EXPECT().
+				SelectOrCreate(context.Background(), &ref).
+				Return(virtualService, nil)
+			mutationFactory.EXPECT().
+				CreateRoute(getInput(&ref))
 			mutator.EXPECT().
 				Update(&ref, gomock.Any()).
 				Return(virtualService, nil)
@@ -355,10 +371,21 @@ var _ = Describe("ServiceTest", func() {
 			ExpectEqualProtoMessages(actual, expected)
 		})
 
+		It("errors when the selector errors", func() {
+			selector.EXPECT().
+				SelectOrCreate(context.Background(), &ref).
+				Return(virtualService, testErr)
+			detailsExpectation.Times(0)
+
+			_, err := client.CreateRoute(context.TODO(), &v1.CreateRouteRequest{Input: getInput(&ref)})
+			Expect(err).To(HaveOccurred())
+			expectedErr := virtualservicesvc.FailedToCreateRouteError(testErr, &ref)
+			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+
 		It("errors when the mutator errors", func() {
-			mutationFactory.EXPECT().CreateRoute(getInput(&ref))
-			mutator.EXPECT().
-				Update(&ref, gomock.Any()).
+			selector.EXPECT().
+				SelectOrCreate(context.Background(), &ref).
 				Return(nil, testErr)
 			detailsExpectation.Times(0)
 

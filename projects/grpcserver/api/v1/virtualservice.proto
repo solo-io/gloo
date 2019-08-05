@@ -142,6 +142,8 @@ message DeleteVirtualServiceRequest {
 message DeleteVirtualServiceResponse {}
 
 message RouteInput {
+    // Virtual service to apply the route to. Must be provided except for on CreateRoute.
+    // If not provided to CreateRoute, a default virtual service will be identified or created.
     core.solo.io.ResourceRef virtual_service_ref = 1;
     uint32 index = 2;
     gloo.solo.io.Route route = 3;
