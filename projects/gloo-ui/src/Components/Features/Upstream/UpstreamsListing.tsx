@@ -50,6 +50,7 @@ import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1
 import _ from 'lodash';
 import { SuccessModal } from 'Components/Common/SuccessModal';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { Popconfirm } from 'antd';
 const TypeHolder = styled.div`
   display: flex;
   align-items: center;
@@ -69,7 +70,8 @@ const StringFilters: StringFilterProps[] = [
 ];
 
 const getTableColumns = (
-  startCreatingRoute: (upstream: Upstream.AsObject) => any
+  startCreatingRoute: (upstream: Upstream.AsObject) => any,
+  deleteUpstream: (name: string, namespace: string) => void
 ) => {
   return [
     {
@@ -119,10 +121,19 @@ const getTableColumns = (
     {
       title: 'Actions',
       dataIndex: 'actions',
-      render: (upstream: Upstream.AsObject) => {
+      render: (us: Upstream.AsObject) => {
         return (
           <TableActions>
-            <TableActionCircle onClick={() => startCreatingRoute(upstream)}>
+            <Popconfirm
+              onConfirm={() =>
+                deleteUpstream(us.metadata!.name, us.metadata!.namespace)
+              }
+              title={'Are you sure you want to delete this upstream? '}
+              okText='Yes'
+              cancelText='No'>
+              <TableActionCircle>x</TableActionCircle>
+            </Popconfirm>
+            <TableActionCircle onClick={() => startCreatingRoute(us)}>
               +
             </TableActionCircle>
           </TableActions>
@@ -259,7 +270,10 @@ export const UpstreamsListing = (props: Props) => {
               upstreamsList,
               checkboxes
             )}
-            columns={getTableColumns(setUpstreamForRouteCreation)}
+            columns={getTableColumns(
+              setUpstreamForRouteCreation,
+              deleteUpstream
+            )}
           />
         )}
       </div>

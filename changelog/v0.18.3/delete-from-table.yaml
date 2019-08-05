@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Delete virtual services and upstreams from the table view.
+    issueLink: https://github.com/solo-io/solo-projects/issues/818

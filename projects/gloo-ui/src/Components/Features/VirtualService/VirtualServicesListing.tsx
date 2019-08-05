@@ -38,6 +38,7 @@ import { HealthIndicator } from 'Components/Common/HealthIndicator';
 import { SoloModal } from 'Components/Common/SoloModal';
 import { CreateRouteModal } from 'Components/Features/Route/CreateRouteModal';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
+import { Popconfirm } from 'antd';
 
 const TableLink = styled.div`
   cursor: pointer;
@@ -115,12 +116,15 @@ const getTableColumns = (
       render: (vs: VirtualService.AsObject) => {
         return (
           <TableActions>
-            <TableActionCircle
-              onClick={() =>
+            <Popconfirm
+              onConfirm={() =>
                 deleteVirtualService(vs.metadata!.name, vs.metadata!.namespace)
-              }>
-              x
-            </TableActionCircle>
+              }
+              title={'Are you sure you want to delete this upstream? '}
+              okText='Yes'
+              cancelText='No'>
+              <TableActionCircle>x</TableActionCircle>
+            </Popconfirm>
             <TableActionCircle onClick={() => startCreatingRoute(vs)}>
               +
             </TableActionCircle>
