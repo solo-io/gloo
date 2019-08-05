@@ -20,8 +20,11 @@ import {
 } from '../../Common/ListingFilter';
 import { CatalogTableToggle } from 'Components/Common/CatalogTableToggle';
 import { Breadcrumb } from 'Components/Common/Breadcrumb';
-import { ListUpstreamsRequest } from '../../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
-import { useGetUpstreamsList } from 'Api';
+import {
+  ListUpstreamsRequest,
+  DeleteUpstreamRequest
+} from '../../../proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/upstream_pb';
+import { useGetUpstreamsList, useDeleteUpstream } from 'Api';
 import { SectionCard } from 'Components/Common/SectionCard';
 import { CardsListing } from 'Components/Common/CardsListing';
 import { SoloTable } from 'Components/Common/SoloTable';
@@ -46,6 +49,7 @@ import { ExtraInfo } from 'Components/Features/Upstream/ExtraInfo';
 import { UpstreamSpec } from 'proto/github.com/solo-io/gloo/projects/gloo/api/v1/plugins_pb';
 import _ from 'lodash';
 import { SuccessModal } from 'Components/Common/SuccessModal';
+import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 const TypeHolder = styled.div`
   display: flex;
   align-items: center;
@@ -164,6 +168,16 @@ export const UpstreamsListing = (props: Props) => {
   let request = new ListUpstreamsRequest();
   request.setNamespacesList(namespaces);
   const { data, loading, error } = useGetUpstreamsList(request);
+  const { refetch: makeRequest } = useDeleteUpstream(null);
+  const [upstreamsList, setUpstreamsList] = React.useState<Upstream.AsObject[]>(
+    []
+  );
+
+  React.useEffect(() => {
+    if (data && data.upstreamsList) {
+      setUpstreamsList(data.upstreamsList);
+    }
+  }, [loading]);
 
   React.useEffect(() => {
     if (props.location.state && props.location.state.showSuccess) {
@@ -193,7 +207,7 @@ export const UpstreamsListing = (props: Props) => {
     )!.value!;
 
     // group by type
-    let upstreamsByType = groupBy(data.upstreamsList, u => getUpstreamType(u));
+    let upstreamsByType = groupBy(upstreamsList, u => getUpstreamType(u));
     let upstreamsByTypeArr = Array.from(upstreamsByType.entries());
     let checkboxesNotSet = checkboxes.every(c => !c.value!);
     return (
@@ -242,7 +256,7 @@ export const UpstreamsListing = (props: Props) => {
           <SoloTable
             dataSource={getUsableTableData(
               nameFilterValue,
-              data.upstreamsList,
+              upstreamsList,
               checkboxes
             )}
             columns={getTableColumns(setUpstreamForRouteCreation)}
@@ -263,6 +277,9 @@ export const UpstreamsListing = (props: Props) => {
           : healthConstants.Pending.value,
         cardTitle: upstream.metadata!.name,
         cardSubtitle: upstream.metadata!.namespace,
+        onRemoveCard: () =>
+          deleteUpstream(upstream.metadata!.name, upstream.metadata!.namespace),
+        removeConfirmText: 'Are you sure you want to delete this upstream?',
         onExpand: () => {},
         details: [
           {
@@ -332,6 +349,16 @@ export const UpstreamsListing = (props: Props) => {
         );
       });
   };
+
+  function deleteUpstream(name: string, namespace: string) {
+    setUpstreamsList(usList => usList.filter(us => us.metadata!.name !== name));
+    let deleteRequest = new DeleteUpstreamRequest();
+    let ref = new ResourceRef();
+    ref.setName(name);
+    ref.setNamespace(namespace);
+    deleteRequest.setRef(ref);
+    makeRequest(deleteRequest);
+  }
 
   return (
     <div>
