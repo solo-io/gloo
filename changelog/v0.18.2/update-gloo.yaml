@@ -1,0 +1,6 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Update gloo to version v0.18.10.
+    dependencyOwner: solo-io
+    dependencyRepo: gloo
+    dependencyTag: v0.18.10

@@ -14,6 +14,9 @@ export class UpstreamSpec extends jspb.Message {
   getSecretRef(): github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef | undefined;
   setSecretRef(value?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef): void;
 
+  getRoleArn(): string;
+  setRoleArn(value: string): void;
+
   clearRoleArnsList(): void;
   getRoleArnsList(): Array<string>;
   setRoleArnsList(value: Array<string>): void;
@@ -44,6 +47,7 @@ export namespace UpstreamSpec {
   export type AsObject = {
     region: string,
     secretRef?: github_com_solo_io_solo_kit_api_v1_ref_pb.ResourceRef.AsObject,
+    roleArn: string,
     roleArnsList: Array<string>,
     filtersList: Array<TagFilter.AsObject>,
     publicIp: boolean,

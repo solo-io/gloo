@@ -632,6 +632,11 @@ export class WeightedDestination extends jspb.Message {
   getWeight(): number;
   setWeight(value: number): void;
 
+  hasWeighedDestinationPlugins(): boolean;
+  clearWeighedDestinationPlugins(): void;
+  getWeighedDestinationPlugins(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins | undefined;
+  setWeighedDestinationPlugins(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WeightedDestination.AsObject;
   static toObject(includeInstance: boolean, msg: WeightedDestination): WeightedDestination.AsObject;
@@ -646,6 +651,7 @@ export namespace WeightedDestination {
   export type AsObject = {
     destination?: Destination.AsObject,
     weight: number,
+    weighedDestinationPlugins?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_pb.WeightedDestinationPlugins.AsObject,
   }
 }
 

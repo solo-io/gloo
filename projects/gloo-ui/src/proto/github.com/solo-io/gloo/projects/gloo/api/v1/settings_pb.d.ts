@@ -293,6 +293,9 @@ export namespace Settings {
     getClusterIngressProxyAddress(): string;
     setClusterIngressProxyAddress(value: string): void;
 
+    getKnativeProxyAddress(): string;
+    setKnativeProxyAddress(value: string): void;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): KnativeOptions.AsObject;
     static toObject(includeInstance: boolean, msg: KnativeOptions): KnativeOptions.AsObject;
@@ -306,6 +309,7 @@ export namespace Settings {
   export namespace KnativeOptions {
     export type AsObject = {
       clusterIngressProxyAddress: string,
+      knativeProxyAddress: string,
     }
   }
 

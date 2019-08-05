@@ -1552,7 +1552,8 @@ proto.gloo.solo.io.Settings.KnativeOptions.prototype.toObject = function(opt_inc
  */
 proto.gloo.solo.io.Settings.KnativeOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
-    clusterIngressProxyAddress: jspb.Message.getFieldWithDefault(msg, 1, "")
+    clusterIngressProxyAddress: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    knativeProxyAddress: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -1593,6 +1594,10 @@ proto.gloo.solo.io.Settings.KnativeOptions.deserializeBinaryFromReader = functio
       var value = /** @type {string} */ (reader.readString());
       msg.setClusterIngressProxyAddress(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKnativeProxyAddress(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1629,6 +1634,13 @@ proto.gloo.solo.io.Settings.KnativeOptions.serializeBinaryToWriter = function(me
       f
     );
   }
+  f = message.getKnativeProxyAddress();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -1644,6 +1656,21 @@ proto.gloo.solo.io.Settings.KnativeOptions.prototype.getClusterIngressProxyAddre
 /** @param {string} value */
 proto.gloo.solo.io.Settings.KnativeOptions.prototype.setClusterIngressProxyAddress = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string knative_proxy_address = 2;
+ * @return {string}
+ */
+proto.gloo.solo.io.Settings.KnativeOptions.prototype.getKnativeProxyAddress = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.gloo.solo.io.Settings.KnativeOptions.prototype.setKnativeProxyAddress = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 

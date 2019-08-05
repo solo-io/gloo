@@ -29,6 +29,8 @@ import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb 
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_prefix_rewrite_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/prefix_rewrite_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_transformation_transformation_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/transformation/transformation_pb";
 import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_faultinjection_fault_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/faultinjection/fault_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/headers/headers_pb";
+import * as github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb from "../../../../../../../github.com/solo-io/gloo/projects/gloo/api/v1/plugins/hostrewrite/hostrewrite_pb";
 import * as google_protobuf_duration_pb from "google-protobuf/google/protobuf/duration_pb";
 
 export class ListenerPlugins extends jspb.Message {
@@ -119,6 +121,11 @@ export class VirtualHostPlugins extends jspb.Message {
   getStats(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb.Stats | undefined;
   setStats(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb.Stats): void;
 
+  hasHeaderManipulation(): boolean;
+  clearHeaderManipulation(): void;
+  getHeaderManipulation(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation | undefined;
+  setHeaderManipulation(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): VirtualHostPlugins.AsObject;
   static toObject(includeInstance: boolean, msg: VirtualHostPlugins): VirtualHostPlugins.AsObject;
@@ -134,6 +141,7 @@ export namespace VirtualHostPlugins {
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     retries?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_retries_retries_pb.RetryPolicy.AsObject,
     stats?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_stats_stats_pb.Stats.AsObject,
+    headerManipulation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.AsObject,
   }
 }
 
@@ -178,6 +186,16 @@ export class RoutePlugins extends jspb.Message {
   getShadowing(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing | undefined;
   setShadowing(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing): void;
 
+  hasHeaderManipulation(): boolean;
+  clearHeaderManipulation(): void;
+  getHeaderManipulation(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation | undefined;
+  setHeaderManipulation(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation): void;
+
+  hasHostRewrite(): boolean;
+  clearHostRewrite(): void;
+  getHostRewrite(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite | undefined;
+  setHostRewrite(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RoutePlugins.AsObject;
   static toObject(includeInstance: boolean, msg: RoutePlugins): RoutePlugins.AsObject;
@@ -198,6 +216,8 @@ export namespace RoutePlugins {
     extensions?: github_com_solo_io_gloo_projects_gloo_api_v1_extensions_pb.Extensions.AsObject,
     tracing?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_tracing_tracing_pb.RouteTracingSettings.AsObject,
     shadowing?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_shadowing_shadowing_pb.RouteShadowing.AsObject,
+    headerManipulation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.AsObject,
+    hostRewrite?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_hostrewrite_hostrewrite_pb.HostRewrite.AsObject,
   }
 }
 
@@ -247,6 +267,28 @@ export namespace DestinationSpec {
     AZURE = 2,
     REST = 3,
     GRPC = 4,
+  }
+}
+
+export class WeightedDestinationPlugins extends jspb.Message {
+  hasHeaderManipulation(): boolean;
+  clearHeaderManipulation(): void;
+  getHeaderManipulation(): github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation | undefined;
+  setHeaderManipulation(value?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): WeightedDestinationPlugins.AsObject;
+  static toObject(includeInstance: boolean, msg: WeightedDestinationPlugins): WeightedDestinationPlugins.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: WeightedDestinationPlugins, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): WeightedDestinationPlugins;
+  static deserializeBinaryFromReader(message: WeightedDestinationPlugins, reader: jspb.BinaryReader): WeightedDestinationPlugins;
+}
+
+export namespace WeightedDestinationPlugins {
+  export type AsObject = {
+    headerManipulation?: github_com_solo_io_gloo_projects_gloo_api_v1_plugins_headers_headers_pb.HeaderManipulation.AsObject,
   }
 }
 

@@ -73,6 +73,7 @@ proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.toObject = function(includeInsta
   var f, obj = {
     region: jspb.Message.getFieldWithDefault(msg, 1, ""),
     secretRef: (f = msg.getSecretRef()) && github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.toObject(includeInstance, f),
+    roleArn: jspb.Message.getFieldWithDefault(msg, 7, ""),
     roleArnsList: jspb.Message.getRepeatedField(msg, 6),
     filtersList: jspb.Message.toObjectList(msg.getFiltersList(),
     proto.aws_ec2.plugins.gloo.solo.io.TagFilter.toObject, includeInstance),
@@ -122,6 +123,10 @@ proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.deserializeBinaryFromReader = fu
       var value = new github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef;
       reader.readMessage(value,github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.deserializeBinaryFromReader);
       msg.setSecretRef(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRoleArn(value);
       break;
     case 6:
       var value = /** @type {string} */ (reader.readString());
@@ -182,6 +187,13 @@ proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.serializeBinaryToWriter = functi
       2,
       f,
       github_com_solo$io_solo$kit_api_v1_ref_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getRoleArn();
+  if (f.length > 0) {
+    writer.writeString(
+      7,
+      f
     );
   }
   f = message.getRoleArnsList();
@@ -258,6 +270,21 @@ proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.prototype.clearSecretRef = funct
  */
 proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.prototype.hasSecretRef = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string role_arn = 7;
+ * @return {string}
+ */
+proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.prototype.getRoleArn = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/** @param {string} value */
+proto.aws_ec2.plugins.gloo.solo.io.UpstreamSpec.prototype.setRoleArn = function(value) {
+  jspb.Message.setProto3StringField(this, 7, value);
 };
 
 
