@@ -155,6 +155,7 @@ const Action = styled.div`
 interface Props extends RouteComponentProps {}
 
 export const VirtualServicesListing = (props: Props) => {
+  const { history, match } = props;
   let listVsRequest = React.useRef(new ListVirtualServicesRequest());
   const namespaces = React.useContext(NamespacesContext);
 
@@ -167,11 +168,19 @@ export const VirtualServicesListing = (props: Props) => {
   } = useListVirtualServices(listVsRequest.current);
   const { refetch: makeRequest } = useDeleteVirtualService(null);
   const [catalogNotTable, setCatalogNotTable] = React.useState(true);
+  const [virtualServices, setVirtualServices] = React.useState<
+    VirtualService.AsObject[]
+  >([]);
+
   const [
     virtualServiceForRouteCreation,
     setVirtualServiceForRouteCreation
   ] = React.useState<VirtualService.AsObject | undefined>(undefined);
-  const { history, match } = props;
+  React.useEffect(() => {
+    if (vsListData) {
+      setVirtualServices(vsListData.virtualServicesList);
+    }
+  }, [vsLoading]);
 
   const getUsableCatalogData = (
     nameFilter: string,
@@ -190,6 +199,8 @@ export const VirtualServicesListing = (props: Props) => {
             virtualService.metadata!.name,
             virtualService.metadata!.namespace
           ),
+        removeConfirmText:
+          'Are you sure you want to delete this virtual service?',
         onExpanded: () => {},
         onClick: () => {
           history.push(
@@ -251,18 +262,12 @@ export const VirtualServicesListing = (props: Props) => {
         {catalogNotTable ? (
           <SectionCard cardName={'Virtual Services'} logoIcon={<Gloo />}>
             <CardsListing
-              cardsData={getUsableCatalogData(
-                nameFilterValue,
-                vsListData.virtualServicesList
-              )}
+              cardsData={getUsableCatalogData(nameFilterValue, virtualServices)}
             />
           </SectionCard>
         ) : (
           <SoloTable
-            dataSource={getUsableTableData(
-              nameFilterValue,
-              vsListData.virtualServicesList
-            )}
+            dataSource={getUsableTableData(nameFilterValue, virtualServices)}
             columns={getTableColumns(
               setVirtualServiceForRouteCreation,
               deleteVS
@@ -286,12 +291,15 @@ export const VirtualServicesListing = (props: Props) => {
     }
   };
   function deleteVS(name: string, namespace: string) {
+    setVirtualServices(vsList =>
+      vsList.filter(vs => vs.metadata!.name !== name)
+    );
     let deleteReq = new DeleteVirtualServiceRequest();
     let ref = new ResourceRef();
     ref.setName(name);
     ref.setNamespace(namespace);
     deleteReq.setRef(ref);
-    // makeRequest(deleteReq);
+    makeRequest(deleteReq);
   }
   return (
     <div>

@@ -146,6 +146,7 @@ export interface CardType {
   cardTitle: string;
   cardSubtitle?: string;
   onRemoveCard?: () => any;
+  removeConfirmText?: string;
   id?: string;
   onExpand?: () => any;
   onClick?: () => any;
@@ -171,7 +172,8 @@ export const Card = (props: CardType) => {
     onClick,
     healthStatus,
     onCreate,
-    extraInfoComponent
+    extraInfoComponent,
+    removeConfirmText
   } = props;
 
   const handleFooterClick = () => {
@@ -198,14 +200,15 @@ export const Card = (props: CardType) => {
           <CardTitleText>{cardTitle}</CardTitleText>
           <div>
             {!!onCreate && <ActionCircle onClick={onCreate}>+</ActionCircle>}
-            <Popconfirm
-              title='Are you sure you want to delete this virtual service？'
-              okText='Yes'
-              cancelText='No'>
-              {!!onRemoveCard && (
-                <ActionCircle onClick={onRemoveCard}>x</ActionCircle>
-              )}
-            </Popconfirm>
+            {!!onRemoveCard && (
+              <Popconfirm
+                onConfirm={onRemoveCard}
+                title={removeConfirmText}
+                okText='Yes'
+                cancelText='No'>
+                <ActionCircle>x</ActionCircle>
+              </Popconfirm>
+            )}
           </div>
         </CardTitle>
         <CardSubtitle>

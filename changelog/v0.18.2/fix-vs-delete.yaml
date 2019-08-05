@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Fix virtual service deletion.
+    issueLink: https://github.com/solo-io/solo-projects/issues/819
