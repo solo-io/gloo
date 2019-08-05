@@ -66,6 +66,7 @@ type Integrations struct {
 
 type Knative struct {
 	Enabled *bool         `json:"enabled" desc:"enabled knative components"`
+	Version *string       `json:"version", desc:"the version of knative installed to the cluster. if using version < 0.8.0, gloo will use Knative's ClusterIngress API for configuration rather than the namespace-scoped Ingress"`
 	Proxy   *KnativeProxy `json:"proxy,omitempty"`
 }
 
