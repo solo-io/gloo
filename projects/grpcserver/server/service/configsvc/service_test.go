@@ -33,6 +33,7 @@ var (
 	settingsClient    *mock_gloo.MockSettingsClient
 	licenseClient     *mock_license.MockClient
 	namespaceClient   *mock_namespace.MockNamespaceClient
+	podNamespace      = "pod-ns"
 	testVersion       = "test-version"
 	testOAuthEndpoint = v1.OAuthEndpoint{Url: "test", ClientName: "name"}
 	testErr           = errors.Errorf("test-err")
@@ -44,7 +45,7 @@ var _ = Describe("ServiceTest", func() {
 		settingsClient = mock_gloo.NewMockSettingsClient(mockCtrl)
 		licenseClient = mock_license.NewMockClient(mockCtrl)
 		namespaceClient = mock_namespace.NewMockNamespaceClient(mockCtrl)
-		apiserver = configsvc.NewConfigGrpcService(context.TODO(), settingsClient, licenseClient, namespaceClient, testOAuthEndpoint, testVersion)
+		apiserver = configsvc.NewConfigGrpcService(context.TODO(), settingsClient, licenseClient, namespaceClient, testOAuthEndpoint, testVersion, podNamespace)
 
 		grpcServer, conn = MustRunGrpcServer(func(s *grpc.Server) { v1.RegisterConfigApiServer(s, apiserver) })
 		client = v1.NewConfigApiClient(conn)
@@ -98,7 +99,7 @@ var _ = Describe("ServiceTest", func() {
 			settings := &gloov1.Settings{RefreshRate: &types.Duration{Seconds: 1}}
 
 			settingsClient.EXPECT().
-				Read(defaults.GlooSystem, defaults.SettingsName, clients.ReadOpts{Ctx: context.TODO()}).
+				Read(podNamespace, defaults.SettingsName, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(settings, nil)
 
 			actual, err := client.GetSettings(context.TODO(), &v1.GetSettingsRequest{})
@@ -109,7 +110,7 @@ var _ = Describe("ServiceTest", func() {
 
 		It("errors when the settings client errors", func() {
 			settingsClient.EXPECT().
-				Read(defaults.GlooSystem, defaults.SettingsName, clients.ReadOpts{Ctx: context.TODO()}).
+				Read(podNamespace, defaults.SettingsName, clients.ReadOpts{Ctx: context.TODO()}).
 				Return(nil, testErr)
 
 			_, err := client.GetSettings(context.TODO(), &v1.GetSettingsRequest{})
@@ -277,6 +278,15 @@ var _ = Describe("ServiceTest", func() {
 			Expect(err).To(HaveOccurred())
 			expectedErr := configsvc.FailedToListNamespacesError(testErr)
 			Expect(err.Error()).To(ContainSubstring(expectedErr.Error()))
+		})
+	})
+
+	Describe("GetPodNamespace", func() {
+		It("works", func() {
+			actual, err := client.GetPodNamespace(context.TODO(), &v1.GetPodNamespaceRequest{})
+			Expect(err).NotTo(HaveOccurred())
+			expected := &v1.GetPodNamespaceResponse{Namespace: podNamespace}
+			ExpectEqualProtoMessages(actual, expected)
 		})
 	})
 })

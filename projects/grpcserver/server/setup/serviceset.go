@@ -64,7 +64,7 @@ func MustGetServiceSet(ctx context.Context) ServiceSet {
 
 	upstreamService := upstreamsvc.NewUpstreamGrpcService(ctx, clientset.UpstreamClient, settingsValues, upstreamMutator, upstreamMutationFactory)
 	artifactService := artifactsvc.NewArtifactGrpcService(ctx, clientset.ArtifactClient)
-	configService := configsvc.NewConfigGrpcService(ctx, clientset.SettingsClient, licenseClient, namespaceClient, oAuthEndpoint, version.Version)
+	configService := configsvc.NewConfigGrpcService(ctx, clientset.SettingsClient, licenseClient, namespaceClient, oAuthEndpoint, version.Version, podNamespace)
 	secretService := secretsvc.NewSecretGrpcService(ctx, clientset.SecretClient)
 	virtualServiceService := virtualservicesvc.NewVirtualServiceGrpcService(
 		ctx,

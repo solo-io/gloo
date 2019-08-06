@@ -64,6 +64,15 @@ ConfigApi.ListNamespaces = {
   responseType: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_config_pb.ListNamespacesResponse
 };
 
+ConfigApi.GetPodNamespace = {
+  methodName: "GetPodNamespace",
+  service: ConfigApi,
+  requestStream: false,
+  responseStream: false,
+  requestType: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_config_pb.GetPodNamespaceRequest,
+  responseType: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_config_pb.GetPodNamespaceResponse
+};
+
 exports.ConfigApi = ConfigApi;
 
 function ConfigApiClient(serviceHost, options) {
@@ -231,6 +240,37 @@ ConfigApiClient.prototype.listNamespaces = function listNamespaces(requestMessag
     callback = arguments[1];
   }
   var client = grpc.unary(ConfigApi.ListNamespaces, {
+    request: requestMessage,
+    host: this.serviceHost,
+    metadata: metadata,
+    transport: this.options.transport,
+    debug: this.options.debug,
+    onEnd: function (response) {
+      if (callback) {
+        if (response.status !== grpc.Code.OK) {
+          var err = new Error(response.statusMessage);
+          err.code = response.status;
+          err.metadata = response.trailers;
+          callback(err, null);
+        } else {
+          callback(null, response.message);
+        }
+      }
+    }
+  });
+  return {
+    cancel: function () {
+      callback = null;
+      client.close();
+    }
+  };
+};
+
+ConfigApiClient.prototype.getPodNamespace = function getPodNamespace(requestMessage, metadata, callback) {
+  if (arguments.length === 2) {
+    callback = arguments[1];
+  }
+  var client = grpc.unary(ConfigApi.GetPodNamespace, {
     request: requestMessage,
     host: this.serviceHost,
     metadata: metadata,

@@ -235,6 +235,42 @@ export namespace GetIsLicenseValidResponse {
   }
 }
 
+export class GetPodNamespaceRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetPodNamespaceRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetPodNamespaceRequest): GetPodNamespaceRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetPodNamespaceRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetPodNamespaceRequest;
+  static deserializeBinaryFromReader(message: GetPodNamespaceRequest, reader: jspb.BinaryReader): GetPodNamespaceRequest;
+}
+
+export namespace GetPodNamespaceRequest {
+  export type AsObject = {
+  }
+}
+
+export class GetPodNamespaceResponse extends jspb.Message {
+  getNamespace(): string;
+  setNamespace(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetPodNamespaceResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetPodNamespaceResponse): GetPodNamespaceResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetPodNamespaceResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetPodNamespaceResponse;
+  static deserializeBinaryFromReader(message: GetPodNamespaceResponse, reader: jspb.BinaryReader): GetPodNamespaceResponse;
+}
+
+export namespace GetPodNamespaceResponse {
+  export type AsObject = {
+    namespace: string,
+  }
+}
+
 export class ListNamespacesRequest extends jspb.Message {
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ListNamespacesRequest.AsObject;

@@ -22,6 +22,8 @@ weight: 5
 - [UpdateSettingsResponse](#updatesettingsresponse)
 - [GetIsLicenseValidRequest](#getislicensevalidrequest)
 - [GetIsLicenseValidResponse](#getislicensevalidresponse)
+- [GetPodNamespaceRequest](#getpodnamespacerequest)
+- [GetPodNamespaceResponse](#getpodnamespaceresponse)
 - [ListNamespacesRequest](#listnamespacesrequest)
 - [ListNamespacesResponse](#listnamespacesresponse)
   
@@ -215,6 +217,38 @@ weight: 5
 | Field | Type | Description | Default |
 | ----- | ---- | ----------- |----------- | 
 | `isLicenseValid` | `bool` |  |  |
+
+
+
+
+---
+### GetPodNamespaceRequest
+
+
+
+```yaml
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+
+
+
+
+---
+### GetPodNamespaceResponse
+
+
+
+```yaml
+"namespace": string
+
+```
+
+| Field | Type | Description | Default |
+| ----- | ---- | ----------- |----------- | 
+| `namespace` | `string` |  |  |
 
 
 

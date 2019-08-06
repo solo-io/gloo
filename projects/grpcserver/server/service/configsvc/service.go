@@ -23,6 +23,7 @@ type configGrpcService struct {
 	namespaceClient kube.NamespaceClient
 	oAuthEndpoint   v1.OAuthEndpoint
 	version         string
+	podNamespace    string
 }
 
 func NewConfigGrpcService(
@@ -31,7 +32,7 @@ func NewConfigGrpcService(
 	licenseClient license.Client,
 	namespaceClient kube.NamespaceClient,
 	oAuthEndpoint v1.OAuthEndpoint,
-	version string) v1.ConfigApiServer {
+	version, podNamespace string) v1.ConfigApiServer {
 
 	return &configGrpcService{
 		ctx:             ctx,
@@ -40,6 +41,7 @@ func NewConfigGrpcService(
 		namespaceClient: namespaceClient,
 		oAuthEndpoint:   oAuthEndpoint,
 		version:         version,
+		podNamespace:    podNamespace,
 	}
 }
 
@@ -62,7 +64,7 @@ func (s *configGrpcService) GetIsLicenseValid(context.Context, *v1.GetIsLicenseV
 }
 
 func (s *configGrpcService) GetSettings(ctx context.Context, request *v1.GetSettingsRequest) (*v1.GetSettingsResponse, error) {
-	namespace := defaults.GlooSystem
+	namespace := s.podNamespace
 	name := defaults.SettingsName
 	settings, err := s.settingsClient.Read(namespace, name, clients.ReadOpts{Ctx: s.ctx})
 	if err != nil {
@@ -105,13 +107,19 @@ func (s *configGrpcService) UpdateSettings(ctx context.Context, request *v1.Upda
 	return &v1.UpdateSettingsResponse{Settings: written}, nil
 }
 
-func (s *configGrpcService) ListNamespaces(context.Context, *v1.ListNamespacesRequest) (*v1.ListNamespacesResponse, error) {
+func (s *configGrpcService) ListNamespaces(ctx context.Context, request *v1.ListNamespacesRequest) (*v1.ListNamespacesResponse, error) {
 	namespaceList, err := s.namespaceClient.ListNamespaces()
 	if err != nil {
-		return nil, FailedToListNamespacesError(err)
+		wrapped := FailedToListNamespacesError(err)
+		contextutils.LoggerFrom(s.ctx).Errorw(wrapped.Error(), zap.Error(err), zap.Any("request", request))
+		return nil, wrapped
 	}
 
 	return &v1.ListNamespacesResponse{Namespaces: namespaceList}, nil
+}
+
+func (s *configGrpcService) GetPodNamespace(context.Context, *v1.GetPodNamespaceRequest) (*v1.GetPodNamespaceResponse, error) {
+	return &v1.GetPodNamespaceResponse{Namespace: s.podNamespace}, nil
 }
 
 func validateRefreshRate(rr *types.Duration) error {

@@ -48,6 +48,12 @@ message GetIsLicenseValidResponse {
     bool is_license_valid = 1;
 }
 
+message GetPodNamespaceRequest {}
+
+message GetPodNamespaceResponse {
+    string namespace = 1;
+}
+
 message ListNamespacesRequest {}
 
 message ListNamespacesResponse {
@@ -63,4 +69,5 @@ service ConfigApi {
     rpc UpdateSettings(UpdateSettingsRequest) returns (UpdateSettingsResponse) {}
 
     rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {}
+    rpc GetPodNamespace(GetPodNamespaceRequest) returns (GetPodNamespaceResponse) {}
 }

@@ -58,6 +58,15 @@ type ConfigApiListNamespaces = {
   readonly responseType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_config_pb.ListNamespacesResponse;
 };
 
+type ConfigApiGetPodNamespace = {
+  readonly methodName: string;
+  readonly service: typeof ConfigApi;
+  readonly requestStream: false;
+  readonly responseStream: false;
+  readonly requestType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_config_pb.GetPodNamespaceRequest;
+  readonly responseType: typeof github_com_solo_io_solo_projects_projects_grpcserver_api_v1_config_pb.GetPodNamespaceResponse;
+};
+
 export class ConfigApi {
   static readonly serviceName: string;
   static readonly GetVersion: ConfigApiGetVersion;
@@ -66,6 +75,7 @@ export class ConfigApi {
   static readonly GetSettings: ConfigApiGetSettings;
   static readonly UpdateSettings: ConfigApiUpdateSettings;
   static readonly ListNamespaces: ConfigApiListNamespaces;
+  static readonly GetPodNamespace: ConfigApiGetPodNamespace;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -153,6 +163,15 @@ export class ConfigApiClient {
   listNamespaces(
     requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_config_pb.ListNamespacesRequest,
     callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_config_pb.ListNamespacesResponse|null) => void
+  ): UnaryResponse;
+  getPodNamespace(
+    requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_config_pb.GetPodNamespaceRequest,
+    metadata: grpc.Metadata,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_config_pb.GetPodNamespaceResponse|null) => void
+  ): UnaryResponse;
+  getPodNamespace(
+    requestMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_config_pb.GetPodNamespaceRequest,
+    callback: (error: ServiceError|null, responseMessage: github_com_solo_io_solo_projects_projects_grpcserver_api_v1_config_pb.GetPodNamespaceResponse|null) => void
   ): UnaryResponse;
 }
 
