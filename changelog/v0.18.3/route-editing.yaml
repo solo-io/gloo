@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Routes now be sorted more smoothly.
+    issueLink: https://github.com/solo-io/solo-projects/issues/824

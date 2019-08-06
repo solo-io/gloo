@@ -264,7 +264,6 @@ export const SoloFormVirtualServiceTypeahead: React.FC<
         namespace: 'gloo-system'
       };
     }
-    console.log(optionChosen);
 
     if (props.onChange) {
       props.onChange(optionChosen);

@@ -109,13 +109,18 @@ interface Props {
 }
 
 export const Routes: React.FC<Props> = props => {
+  const [routesList, setRoutesList] = React.useState<Route.AsObject[]>([]);
   const [editRoute, setEditRoute] = React.useState<Route.AsObject | undefined>(
     undefined
   );
   const [createNewRoute, setCreateNewRoute] = React.useState<boolean>(false);
 
+  React.useEffect(() => {
+    setRoutesList([...props.routes]);
+  }, [props.routes]);
+
   const getRouteData = () => {
-    const existingRoutes = props.routes.map(route => {
+    const existingRoutes = routesList.map(route => {
       const upstreamName = getRouteSingleUpstream(route).name || '';
       const { matcher, matchType } = getRouteMatcher(route);
       return {
@@ -134,11 +139,12 @@ export const Routes: React.FC<Props> = props => {
   };
 
   const deleteRoute = (matcherToDelete: string) => {
-    props.routesChanged(
-      props.routes.filter(
-        route => getRouteMatcher(route).matcher !== matcherToDelete
-      )
+    const newList = routesList.filter(
+      route => getRouteMatcher(route).matcher !== matcherToDelete
     );
+
+    setRoutesList(newList);
+    props.routesChanged(newList);
   };
 
   const finishNewRouteCreation = () => {
@@ -148,34 +154,34 @@ export const Routes: React.FC<Props> = props => {
 
   const beginRouteEditing = (matcherToEdit: string) => {
     setEditRoute(
-      props.routes.find(
-        route => getRouteMatcher(route).matcher === matcherToEdit
-      )
+      routesList.find(route => getRouteMatcher(route).matcher === matcherToEdit)
     );
   };
 
   const finishRouteEditiing = (newRoute: Route.AsObject) => {
     const newRouteMatcher = getRouteMatcher(newRoute).matcher;
 
-    let newRoutesList = [...props.routes];
+    let newRoutesList = [...routesList];
     newRoutesList.splice(
-      props.routes.findIndex(
+      routesList.findIndex(
         route => getRouteMatcher(route).matcher === newRouteMatcher
       ),
       1,
       newRoute
     );
 
+    setRoutesList(newRoutesList);
     props.routesChanged(newRoutesList);
     setEditRoute(undefined);
   };
 
   const reorderRoutes = (dragIndex: number, hoverIndex: number) => {
-    const movedRoute = props.routes.splice(dragIndex, 1)[0];
+    const movedRoute = routesList.splice(dragIndex, 1)[0];
 
-    let newRoutesList = [...props.routes];
+    let newRoutesList = [...routesList];
     newRoutesList.splice(hoverIndex, 0, movedRoute);
 
+    setRoutesList(newRoutesList);
     props.routesChanged(newRoutesList);
   };
 

@@ -54,7 +54,8 @@ import {
   createUpstreamId,
   parseUpstreamId,
   createVirtualServiceId,
-  parseVirtualServiceId
+  parseVirtualServiceId,
+  getRouteMatcher
 } from 'utils/helpers';
 import { SoloButton } from 'Components/Common/SoloButton';
 import { ButtonProgress } from 'Styles/CommonEmotions/button';
@@ -86,37 +87,38 @@ export const PATH_SPECIFIERS = [
   }
 ];
 
+interface RouteMethodsType {
+  POST: boolean;
+  PUT: boolean;
+  GET: boolean;
+  PATCH: boolean;
+  DELETE: boolean;
+  HEAD: boolean;
+  OPTIONS: boolean;
+}
 export interface CreateRouteValuesType {
   virtualService: VirtualService.AsObject | undefined;
   upstream: Upstream.AsObject | undefined;
-  destinationSpec: DestinationSpec.AsObject | null;
+  destinationSpec: DestinationSpec.AsObject | undefined;
   path: string;
   matchType: 'PREFIX' | 'EXACT' | 'REGEX';
   headers: {
     name: string;
     value: string;
-    isRegex: boolean;
+    regex: boolean;
   }[];
   queryParameters: {
     name: string;
     value: string;
-    isRegex: boolean;
+    regex: boolean;
   }[];
-  methods: {
-    POST: boolean;
-    PUT: boolean;
-    GET: boolean;
-    PATCH: boolean;
-    DELETE: boolean;
-    HEAD: boolean;
-    OPTIONS: boolean;
-  };
+  methods: RouteMethodsType;
 }
 
 export const createRouteDefaultValues: CreateRouteValuesType = {
   virtualService: new VirtualService().toObject(),
   upstream: new Upstream().toObject(),
-  destinationSpec: null,
+  destinationSpec: undefined,
   path: '',
   matchType: 'PREFIX',
   headers: [],
@@ -142,9 +144,10 @@ const validationSchema = yup.object().shape({
       'Upstream must be set',
       upstream => !!upstream && !!upstream.metadata
     ),
-  destinationSpec: yup
-    .object()
-    .shape({
+  destinationSpec: yup.object().when('upstream', {
+    is: upstream =>
+      !!upstream && !!upstream.upstreamSpec && !!upstream.upstreamSpec.aws,
+    then: yup.object().shape({
       aws: yup.object().shape({
         logicalName: yup
           .string()
@@ -157,8 +160,9 @@ const validationSchema = yup.object().shape({
         invocationStyle: yup.boolean(),
         responseTransformation: yup.boolean()
       })
-    })
-    .nullable(),
+    }),
+    otherwise: yup.object()
+  }),
   path: yup
     .string()
     .test('Valid Path', 'Paths begin with /', val => val && val[0] === '/'),
@@ -167,14 +171,14 @@ const validationSchema = yup.object().shape({
     yup.object().shape({
       name: yup.string(),
       value: yup.string(),
-      isRegex: yup.boolean()
+      regex: yup.boolean()
     })
   ),
   queryParameters: yup.array().of(
     yup.object().shape({
       name: yup.string(),
       value: yup.string(),
-      isRegex: yup.boolean()
+      regex: yup.boolean()
     })
   ),
   methods: yup.object().shape({
@@ -207,6 +211,7 @@ interface Props extends RouteComponentProps {
   defaultVirtualService?: VirtualService.AsObject;
   defaultUpstream?: Upstream.AsObject;
   completeCreation: (newVirtualService?: VirtualService.AsObject) => any;
+  existingRoute?: Route.AsObject;
 }
 
 export const CreateRouteModalC = (props: Props) => {
@@ -222,6 +227,7 @@ export const CreateRouteModalC = (props: Props) => {
     data: createdVirtualServiceData,
     refetch: makeRequest
   } = useCreateRoute(null);
+
   let listVirtualServicesRequest = React.useRef(
     new ListVirtualServicesRequest()
   );
@@ -306,7 +312,7 @@ export const CreateRouteModalC = (props: Props) => {
       const newMatcherHeader = new HeaderMatcher();
       newMatcherHeader.setName(head.name);
       newMatcherHeader.setValue(head.value);
-      newMatcherHeader.setRegex(head.isRegex);
+      newMatcherHeader.setRegex(head.regex);
 
       return newMatcherHeader;
     });
@@ -316,7 +322,7 @@ export const CreateRouteModalC = (props: Props) => {
         const newMatcherQueryParam = new QueryParameterMatcher();
         newMatcherQueryParam.setName(queryParam.name);
         newMatcherQueryParam.setValue(queryParam.value);
-        newMatcherQueryParam.setRegex(queryParam.isRegex);
+        newMatcherQueryParam.setRegex(queryParam.regex);
 
         return newMatcherQueryParam;
       }
@@ -424,24 +430,55 @@ export const CreateRouteModalC = (props: Props) => {
     return isChanged && !Object.keys(errors).length;
   };
 
-  const initialValues: CreateRouteValuesType = {
-    ...createRouteDefaultValues,
-    destinationSpec: defaultUpstream
-      ? {
-          aws: {
-            logicalName: '',
-            invocationStyle: 0,
-            responseTransformation: false
-          }
-        }
-      : null,
-    virtualService: defaultVirtualService
-      ? defaultVirtualService
-      : createRouteDefaultValues.virtualService,
-    upstream: defaultUpstream
-      ? defaultUpstream
-      : createRouteDefaultValues.upstream
-  };
+  let existingRouteToInitialValues = null;
+  if (!!props.existingRoute) {
+    let methodsList: RouteMethodsType = {
+      POST: false,
+      PUT: false,
+      GET: false,
+      PATCH: false,
+      DELETE: false,
+      HEAD: false,
+      OPTIONS: false
+    };
+    props.existingRoute.matcher!.methodsList.forEach(methodName => {
+      //@ts-ignore
+      methodsList[methodName] = true;
+    });
+
+    existingRouteToInitialValues = {
+      virtualService: props.defaultVirtualService!,
+      upstream: props.defaultUpstream,
+      destinationSpec: props.existingRoute.routeAction!.single!.destinationSpec,
+      headers: props.existingRoute.matcher!.headersList,
+      methods: methodsList,
+      path: getRouteMatcher(props.existingRoute).matcher,
+      matchType: getRouteMatcher(props.existingRoute).matchType as any,
+      queryParameters: props.existingRoute.matcher!.queryParametersList
+    };
+  }
+
+  const initialValues: CreateRouteValuesType = !!existingRouteToInitialValues
+    ? existingRouteToInitialValues
+    : {
+        ...createRouteDefaultValues,
+        destinationSpec: defaultUpstream
+          ? {
+              aws: {
+                logicalName: '',
+                invocationStyle: 0,
+                responseTransformation: false
+              }
+            }
+          : undefined,
+        virtualService: defaultVirtualService
+          ? defaultVirtualService
+          : createRouteDefaultValues.virtualService,
+        upstream: defaultUpstream
+          ? defaultUpstream
+          : createRouteDefaultValues.upstream
+      };
+
   return (
     <Formik
       initialValues={initialValues}

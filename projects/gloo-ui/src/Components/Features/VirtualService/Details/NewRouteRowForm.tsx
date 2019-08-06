@@ -111,7 +111,7 @@ export const NewRouteRowForm: React.FC<Props> = ({
       const newMatcherHeader = new HeaderMatcher();
       newMatcherHeader.setName(head.name);
       newMatcherHeader.setValue(head.value);
-      newMatcherHeader.setRegex(head.isRegex);
+      newMatcherHeader.setRegex(head.regex);
 
       return newMatcherHeader;
     });
@@ -121,7 +121,7 @@ export const NewRouteRowForm: React.FC<Props> = ({
         const newMatcherQueryParam = new QueryParameterMatcher();
         newMatcherQueryParam.setName(queryParam.name);
         newMatcherQueryParam.setValue(queryParam.value);
-        newMatcherQueryParam.setRegex(queryParam.isRegex);
+        newMatcherQueryParam.setRegex(queryParam.regex);
 
         return newMatcherQueryParam;
       }
