@@ -104,8 +104,8 @@ export const SecretForm: React.FC<Props> = ({ secretKind }) => {
               <SoloFormTypeahead
                 name='secretResourceRef.namespace'
                 placeholder='Namespace'
-                defaultValue='gloo-system'
-                presetOptions={namespaces.map(ns => {
+                defaultValue={namespaces.defaultNamespace}
+                presetOptions={namespaces.namespacesList.map(ns => {
                   return { value: ns };
                 })}
               />

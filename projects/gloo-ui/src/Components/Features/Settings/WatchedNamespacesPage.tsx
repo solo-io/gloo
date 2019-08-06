@@ -82,7 +82,9 @@ const RefreshRate: React.FC<RefreshRateProps> = props => {
 // TODO: consolidate update functions to avoid repetition
 export const WatchedNamespacesPage = (props: Props) => {
   const allNamespaces = React.useContext(NamespacesContext);
-  const [availableNS, setAvailableNS] = React.useState(allNamespaces);
+  const [availableNS, setAvailableNS] = React.useState(
+    allNamespaces.namespacesList
+  );
 
   let req = new GetSettingsRequest();
   const { data, loading, error } = useGetSettings(req);
@@ -116,7 +118,9 @@ export const WatchedNamespacesPage = (props: Props) => {
 
   React.useEffect(() => {
     setAvailableNS(
-      allNamespaces.filter(ns => !watchedNamespacesList.includes(ns))
+      allNamespaces.namespacesList.filter(
+        ns => !watchedNamespacesList.includes(ns)
+      )
     );
   }, [watchedNamespacesList]);
 

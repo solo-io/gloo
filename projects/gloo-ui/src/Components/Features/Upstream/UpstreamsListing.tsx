@@ -177,7 +177,7 @@ export const UpstreamsListing = (props: Props) => {
   ] = React.useState<Upstream.AsObject | undefined>(undefined);
   const namespaces = React.useContext(NamespacesContext);
   let request = new ListUpstreamsRequest();
-  request.setNamespacesList(namespaces);
+  request.setNamespacesList(namespaces.namespacesList);
   const { data, loading, error } = useGetUpstreamsList(request);
   const { refetch: makeRequest } = useDeleteUpstream(null);
   const [upstreamsList, setUpstreamsList] = React.useState<Upstream.AsObject[]>(

@@ -60,7 +60,7 @@ export const NewRouteRowForm: React.FC<Props> = ({
 
   const namespaces = React.useContext(NamespacesContext);
   let listUpstreamsRequest = React.useRef(new ListUpstreamsRequest());
-  listUpstreamsRequest.current.setNamespacesList(namespaces);
+  listUpstreamsRequest.current.setNamespacesList(namespaces.namespacesList);
 
   const {
     data: upstreamsData,

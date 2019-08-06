@@ -8,9 +8,17 @@ import { Content } from './Components/Structure/Content';
 import { Global } from '@emotion/core';
 import { globalStyles } from './Styles';
 import { Footer } from './Components/Structure/Footer';
-import { GlooEContext, initialGlooEContext, useListNamespaces } from 'Api';
+import {
+  GlooEContext,
+  initialGlooEContext,
+  useListNamespaces,
+  useGetDefaultNamespace
+} from 'Api';
 import './Styles/styles.css';
-import { ListNamespacesRequest } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
+import {
+  ListNamespacesRequest,
+  GetPodNamespaceRequest
+} from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
 
 type Action = {
   type: string;
@@ -40,16 +48,27 @@ const AppContainer = styled.div`
   grid-template-rows: 55px 1fr 62px;
 `;
 
-export const NamespacesContext = React.createContext(['']);
+export const NamespacesContext = React.createContext({
+  namespacesList: [''],
+  defaultNamespace: 'gloo-system'
+});
 
 export const GlooIApp = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   let listNsRequest = new ListNamespacesRequest();
   const { data, loading, error } = useListNamespaces(listNsRequest);
+  const getDefaultNsRequest = new GetPodNamespaceRequest();
+  const { data: defaultNsData } = useGetDefaultNamespace(getDefaultNsRequest);
 
   return (
     <GlooEContext.Provider value={initialGlooEContext}>
-      <NamespacesContext.Provider value={data ? data.namespacesList : ['']}>
+      <NamespacesContext.Provider
+        value={{
+          namespacesList: data ? data.namespacesList : [''],
+          defaultNamespace: defaultNsData
+            ? defaultNsData.namespace
+            : 'gloo-system'
+        }}>
         <StoreContext.Provider value={{ state, dispatch }}>
           <BrowserRouter>
             <Global styles={globalStyles} />

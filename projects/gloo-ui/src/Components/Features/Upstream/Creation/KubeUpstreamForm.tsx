@@ -50,8 +50,8 @@ export const KubeUpstreamForm: React.FC<Props> = () => {
           <SoloFormTypeahead
             name='kubeServiceNamespace'
             title='Service Namespace'
-            defaultValue='gloo-system'
-            presetOptions={namespaces.map(ns => {
+            defaultValue={namespaces.defaultNamespace}
+            presetOptions={namespaces.namespacesList.map(ns => {
               return { value: ns };
             })}
           />

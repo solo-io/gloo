@@ -221,6 +221,7 @@ interface VirtualServiceTypeaheadProps extends TypeaheadProps {
 export const SoloFormVirtualServiceTypeahead: React.FC<
   VirtualServiceTypeaheadProps
 > = ({ ...props }) => {
+  const namespaces = React.useContext(NamespacesContext);
   const [field, meta] = useField(props.name);
   const form = useFormikContext<any>();
   const usedOptions = props.options
@@ -261,7 +262,7 @@ export const SoloFormVirtualServiceTypeahead: React.FC<
       // @ts-ignore
       tempVirtualService.metadata = {
         name: newValueId,
-        namespace: 'gloo-system'
+        namespace: namespaces.defaultNamespace
       };
     }
 
@@ -339,7 +340,7 @@ export const SoloFormSecretRefInput: React.FC<{
   const listSecretsRequest = new ListSecretsRequest();
   const [noSecrets, setNoSecrets] = React.useState(false);
   React.useEffect(() => {
-    listSecretsRequest.setNamespacesList(namespaces);
+    listSecretsRequest.setNamespacesList(namespaces.namespacesList);
   }, [namespaces]);
 
   const { data: secretsListData } = useListSecrets(listSecretsRequest);
@@ -381,7 +382,7 @@ export const SoloFormSecretRefInput: React.FC<{
         <SoloTypeahead
           {...namespaceField}
           title='Secret Ref Namespace'
-          presetOptions={namespaces.map(ns => {
+          presetOptions={namespaces.namespacesList.map(ns => {
             return { value: ns };
           })}
           onChange={value => {

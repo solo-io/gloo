@@ -158,8 +158,7 @@ export const MultipartStringCardsList = (props: MultipartStringCardsProps) => {
               />
               <PlusHolder
                 disabled={
-                  valuesMayBeEmpty ||
-                  !newValue.length ||
+                  (!newValue.length && !valuesMayBeEmpty) ||
                   !newName.length ||
                   (!!nameIsValid ? !nameIsValid(newName) : false) ||
                   (!!valueIsValid ? !valueIsValid(newValue) : false)

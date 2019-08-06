@@ -61,6 +61,7 @@ import { SoloButton } from 'Components/Common/SoloButton';
 import { ButtonProgress } from 'Styles/CommonEmotions/button';
 import { DestinationForm } from './DestinationForm';
 import { withRouter, RouteComponentProps } from 'react-router';
+import { METHODS } from 'http';
 
 enum PathSpecifierCase { // From gloo -> proxy_pb -> Matcher's namespace
   PATH_SPECIFIER_NOT_SET = 0,
@@ -87,15 +88,15 @@ export const PATH_SPECIFIERS = [
   }
 ];
 
-interface RouteMethodsType {
-  POST: boolean;
-  PUT: boolean;
-  GET: boolean;
-  PATCH: boolean;
-  DELETE: boolean;
-  HEAD: boolean;
-  OPTIONS: boolean;
-}
+type MethodType =
+  | 'POST'
+  | 'PUT'
+  | 'GET'
+  | 'PATCH'
+  | 'DELETE'
+  | 'HEAD'
+  | 'OPTIONS';
+type RouteMethodsType = { [key in MethodType]: boolean };
 export interface CreateRouteValuesType {
   virtualService: VirtualService.AsObject | undefined;
   upstream: Upstream.AsObject | undefined;
@@ -233,8 +234,10 @@ export const CreateRouteModalC = (props: Props) => {
   );
   let listUpstreamsRequest = React.useRef(new ListUpstreamsRequest());
   const namespaces = React.useContext(NamespacesContext);
-  listVirtualServicesRequest.current.setNamespacesList(namespaces);
-  listUpstreamsRequest.current.setNamespacesList(namespaces);
+  listVirtualServicesRequest.current.setNamespacesList(
+    namespaces.namespacesList
+  );
+  listUpstreamsRequest.current.setNamespacesList(namespaces.namespacesList);
 
   React.useEffect(() => {
     if (!!createdVirtualServiceData) {
@@ -442,8 +445,7 @@ export const CreateRouteModalC = (props: Props) => {
       OPTIONS: false
     };
     props.existingRoute.matcher!.methodsList.forEach(methodName => {
-      //@ts-ignore
-      methodsList[methodName] = true;
+      methodsList[methodName as MethodType] = true;
     });
 
     existingRouteToInitialValues = {

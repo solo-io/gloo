@@ -53,7 +53,7 @@ export const SettingsLanding = (props: Props) => {
   const listSecretsReq = React.useRef(new ListSecretsRequest());
   const namespaces = React.useContext(NamespacesContext);
 
-  listSecretsReq.current.setNamespacesList(namespaces);
+  listSecretsReq.current.setNamespacesList(namespaces.namespacesList);
   const { data, loading, error } = useListSecrets(listSecretsReq.current);
 
   if (!data || loading) {

@@ -163,7 +163,7 @@ export const VirtualServicesListing = (props: Props) => {
   let listVsRequest = React.useRef(new ListVirtualServicesRequest());
   const namespaces = React.useContext(NamespacesContext);
 
-  listVsRequest.current.setNamespacesList(namespaces);
+  listVsRequest.current.setNamespacesList(namespaces.namespacesList);
   const {
     data: vsListData,
     loading: vsLoading,

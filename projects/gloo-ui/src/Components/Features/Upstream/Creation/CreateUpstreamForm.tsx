@@ -53,18 +53,6 @@ const FormContainer = styled.div`
   flex-direction: column;
 `;
 
-// TODO: better way to include all initial values?
-export const initialValues = {
-  name: '',
-  type: '',
-  namespace: 'gloo-system',
-  ...awsInitialValues,
-  ...kubeInitialValues,
-  ...staticInitialValues,
-  ...azureInitialValues,
-  ...consulInitialValues
-};
-
 // TODO combine validation schemas
 const validationSchema = yup.object().shape({
   name: yup
@@ -102,6 +90,26 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
   const namespaces = React.useContext(NamespacesContext);
 
   const { refetch: makeRequest } = useCreateUpstream(null);
+
+  const initialValues = {
+    name: '',
+    type: '',
+    namespace: namespaces.defaultNamespace,
+    ...awsInitialValues,
+    ...kubeInitialValues,
+    ...staticInitialValues,
+    ...azureInitialValues,
+    ...consulInitialValues,
+    awsSecretRef: {
+      ...awsInitialValues.awsSecretRef,
+      namespace: namespaces.defaultNamespace
+    },
+    azureSecretRef: {
+      ...azureInitialValues.azureSecretRef,
+      namespace: namespaces.defaultNamespace
+    },
+    kubeServiceNamespace: namespaces.defaultNamespace
+  };
 
   function createUpstream(values: typeof initialValues) {
     const newUpstreamReq = new CreateUpstreamRequest();
@@ -201,8 +209,8 @@ const CreateUpstreamFormC: React.FC<Props & RouteComponentProps> = props => {
                 <SoloFormTypeahead
                   name='namespace'
                   title='Upstream Namespace'
-                  defaultValue='gloo-system'
-                  presetOptions={namespaces.map(ns => {
+                  defaultValue={namespaces.defaultNamespace}
+                  presetOptions={namespaces.namespacesList.map(ns => {
                     return { value: ns };
                   })}
                 />

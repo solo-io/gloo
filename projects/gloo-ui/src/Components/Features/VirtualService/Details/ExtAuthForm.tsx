@@ -173,8 +173,8 @@ export const ExtAuthForm = (props: Props) => {
               <SoloFormTypeahead
                 name='secretRefNamespace'
                 title='Secret Ref Namespace'
-                defaultValue='gloo-system'
-                presetOptions={namespaces.map(ns => {
+                defaultValue={namespaces.defaultNamespace}
+                presetOptions={namespaces.namespacesList.map(ns => {
                   return { value: ns };
                 })}
               />

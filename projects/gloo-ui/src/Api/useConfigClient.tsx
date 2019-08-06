@@ -13,7 +13,9 @@ import {
   UpdateSettingsRequest,
   UpdateSettingsResponse,
   ListNamespacesRequest,
-  ListNamespacesResponse
+  ListNamespacesResponse,
+  GetPodNamespaceRequest,
+  GetPodNamespaceResponse
 } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb';
 import { configClient } from './grpc-web-hooks';
 import { ServiceError } from 'proto/github.com/solo-io/solo-projects/projects/grpcserver/api/v1/config_pb_service';
@@ -356,6 +358,68 @@ export const useListNamespaces = (
       (
         error: ServiceError | null,
         responseMessage: ListNamespacesResponse | null
+      ) => {
+        if (error) {
+          console.error('Error:', error.message);
+          console.error('Code:', error.code);
+          console.error('Metadata:', error.metadata);
+          if (!mounted.current) return;
+          dispatch({ type: RequestAction.ERROR, payload: null, error });
+        } else {
+          const response = responseMessage;
+          if (!mounted.current) return;
+          dispatch({
+            type: RequestAction.SUCCESS,
+            payload: response!.toObject()
+          });
+        }
+      }
+    );
+  };
+
+  React.useEffect(() => {
+    makeRequest(request || null);
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  return {
+    data: state.data!,
+    error: state.error,
+    loading: state.isLoading,
+    refetch: makeRequest
+  };
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                GET DEFAULT NAMESPACE                       */
+/* -------------------------------------------------------------------------- */
+
+export const useGetDefaultNamespace = (
+  request: GetPodNamespaceRequest | null,
+  initialData: GetPodNamespaceResponse.AsObject | null = null
+) => {
+  const [state, dispatch] = React.useReducer<
+    Reducer<GetPodNamespaceResponse.AsObject | null>
+  >(requestReducer, {
+    isLoading: true,
+    data: initialData
+  });
+
+  const mounted = React.useRef(true);
+
+  const makeRequest = (request: GetPodNamespaceRequest | null) => {
+    if (!request) {
+      return;
+    }
+    dispatch({ type: RequestAction.START, payload: null });
+
+    configClient.getPodNamespace(
+      request,
+      (
+        error: ServiceError | null,
+        responseMessage: GetPodNamespaceResponse | null
       ) => {
         if (error) {
           console.error('Error:', error.message);
