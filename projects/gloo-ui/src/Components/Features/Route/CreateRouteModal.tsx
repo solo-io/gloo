@@ -294,9 +294,8 @@ export const CreateRouteModalC = (props: Props) => {
 
     //reqRouteInput.setIndex(vs.virtualHost!.routesList.length);
 
-    /***
-     *  ROUTE CREATION BEGINS
-     * */
+    /* -------------------------- ROUTE CREATION BEGINS ------------------------- */
+
     let newRoute = new Route();
     let routeMatcher = new Matcher();
     switch (values.matchType) {
@@ -346,8 +345,9 @@ export const CreateRouteModalC = (props: Props) => {
     newDestinationResourceRef.setNamespace(
       values.upstream!.metadata!.namespace
     );
+    newDestination.setUpstream(newDestinationResourceRef);
     let newDestinationSpec = new DestinationSpec();
-
+    /* ----------------------------- AWS DESTINATION ---------------------------- */
     if (
       !!upstreamSpec.aws &&
       !!values.destinationSpec &&
@@ -358,66 +358,51 @@ export const CreateRouteModalC = (props: Props) => {
         invocationStyle,
         responseTransformation
       } = values.destinationSpec.aws;
-      newDestination.setUpstream(newDestinationResourceRef);
       let newAWSDestinationSpec = new AWSDestinationSpec();
       newAWSDestinationSpec.setLogicalName(logicalName);
       newAWSDestinationSpec.setInvocationStyle(+invocationStyle);
       newAWSDestinationSpec.setResponseTransformation(responseTransformation);
-      // TODO :: I have no idea what to set the values to
-      //newAWSDestinationSpec.setInvocationStyle(0);
       newDestinationSpec.setAws(newAWSDestinationSpec);
+
+      /* ---------------------------- AZURE DESTINATION --------------------------- */
     } else if (!!upstreamSpec.azure) {
-      newDestination.setUpstream(newDestinationResourceRef);
       let newAzureDestinationSpec = new AzureDestinationSpec();
-      // TODO :: I have no idea what to set the values to
       newDestinationSpec.setAzure(newAzureDestinationSpec);
-    } /*else if (!!upstreamSpec.kube) {
-      let newKubeServiceDestination = new KubernetesServiceDestination();
-      newKubeServiceDestination.setRef(newDestinationResourceRef);
-      // TODO :: I have no idea what to set the values to
-      newDestination.setKube(newKubeServiceDestination);
-      let newKubeDestinationSpec;
-      // TODO:: How do we tell if it is rest or GRPC?
-      //if() -> set DestinationSpec to grpc...
-      newDestination.setDestinationSpec(newKubeDestinationSpec);
+      newDestination.setDestinationSpec(newDestinationSpec);
+
+      /* ---------------------------- KUBE DESTINATION ---------------------------- */
+    } else if (!!upstreamSpec.kube) {
+      if (
+        values.destinationSpec!.rest &&
+        values.destinationSpec!.rest.functionName
+      ) {
+        let kubeDestination = new RestDestinationSpec();
+        kubeDestination.setFunctionName(
+          values.destinationSpec!.rest!.functionName
+        );
+        newDestinationSpec.setRest(kubeDestination);
+        newDestination.setDestinationSpec(newDestinationSpec);
+      }
+
+      /* --------------------------- CONSUL DESTINATION --------------------------- */
     } else if (!!upstreamSpec.consul) {
       let newConsulServiceDestination = new ConsulServiceDestination();
       // TODO :: I have no idea what to set the values to
       newDestination.setConsul(newConsulServiceDestination);
       let newConsulDestinationSpec;
-      // TODO:: I have no idea what goes in this case
+
       newDestination.setDestinationSpec(newConsulDestinationSpec);
-    }*/
-    newDestination.setDestinationSpec(newDestinationSpec);
+    } 
+
     newRouteAction.setSingle(newDestination);
     newRoute.setRouteAction(newRouteAction);
 
-    // It looks like we don't see any of the other actions if
-    // Route Action is taken??  But if they supplied
-    // a path, shouldn't we do the redirect action?
-    // Not clear on what the other actions would be based on?
-
-    /*
-    let newRedirectAction = new RedirectAction();
-    //TODO:: Do we need to set anything else for this???
-    if(values.matchType === PathSpecifierCase.PREFIX) {
-      // TODO:: Is this correct??
-      newRedirectAction.setPrefixRewrite("PREFIX");
-    } else {
-      newRedirectAction.setPathRedirect(values.path);
-    }
-    newRoute.setRedirectAction(newRedirectAction);*/
-
     reqRouteInput.setRoute(newRoute);
-    /***
-     *  ROUTE CREATION ENDS
-     * */
+
+    /* --------------------------- ROUTE CREATION ENDS -------------------------- */
 
     newRouteReq.setInput(reqRouteInput);
     makeRequest(newRouteReq);
-
-    /*if (props.match.url.includes('/virtualservices/')) {
-    }*/
 
     props.history.push({
       pathname: `/virtualservices/${

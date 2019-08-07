@@ -1,5 +1,5 @@
 import React from 'react';
-import { useField } from 'formik';
+import { useField, useFormikContext } from 'formik';
 import {
   SoloFormDropdown,
   SoloFormCheckbox
@@ -27,6 +27,7 @@ export function DestinationForm(props: DestiantionFormProps) {
   React.useEffect(() => {
     if (props.upstreamSpec) {
       setUpstreamSpec(props.upstreamSpec);
+      setFunctionsList([]);
       if (props.upstreamSpec.aws) {
         let newList = props.upstreamSpec.aws.lambdaFunctionsList.map(lambda => {
           return {
@@ -35,6 +36,20 @@ export function DestinationForm(props: DestiantionFormProps) {
           };
         });
         setFunctionsList(newList);
+      }
+      if (props.upstreamSpec.kube) {
+        const { serviceSpec } = props.upstreamSpec.kube;
+        if (serviceSpec && serviceSpec.rest) {
+          let newFnList = serviceSpec.rest.transformationsMap.map(
+            ([func, transform]) => {
+              return {
+                key: func,
+                value: func
+              };
+            }
+          );
+          setFunctionsList(newFnList);
+        }
       }
     }
   }, [props.upstreamSpec]);
@@ -68,6 +83,19 @@ export function DestinationForm(props: DestiantionFormProps) {
                 />
               </div>
             </InputRow>
+          </HalfColumn>
+        </React.Fragment>
+      )}
+
+      {!!upstreamSpec && upstreamSpec.kube && (
+        <React.Fragment>
+          <HalfColumn>
+            <SoloFormDropdown
+              name={`${field.name}.rest.functionName`}
+              title='Function'
+              disabled={functionsList.length === 0}
+              options={functionsList}
+            />
           </HalfColumn>
         </React.Fragment>
       )}

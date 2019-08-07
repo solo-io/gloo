@@ -199,7 +199,6 @@ export const Card = (props: CardType) => {
         <CardTitle>
           <CardTitleText>{cardTitle}</CardTitleText>
           <div>
-            {!!onCreate && <ActionCircle onClick={onCreate}>+</ActionCircle>}
             {!!onRemoveCard && (
               <Popconfirm
                 onConfirm={onRemoveCard}
@@ -209,6 +208,7 @@ export const Card = (props: CardType) => {
                 <ActionCircle>x</ActionCircle>
               </Popconfirm>
             )}
+            {!!onCreate && <ActionCircle onClick={onCreate}>+</ActionCircle>}
           </div>
         </CardTitle>
         <CardSubtitle>
