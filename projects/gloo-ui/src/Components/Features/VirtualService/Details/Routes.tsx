@@ -110,9 +110,9 @@ interface Props {
 
 export const Routes: React.FC<Props> = props => {
   const [routesList, setRoutesList] = React.useState<Route.AsObject[]>([]);
-  const [editRoute, setEditRoute] = React.useState<Route.AsObject | undefined>(
-    undefined
-  );
+  const [routeBeingEdited, setRouteBeingEdited] = React.useState<
+    Route.AsObject | undefined
+  >(undefined);
   const [createNewRoute, setCreateNewRoute] = React.useState<boolean>(false);
 
   React.useEffect(() => {
@@ -153,26 +153,14 @@ export const Routes: React.FC<Props> = props => {
   };
 
   const beginRouteEditing = (matcherToEdit: string) => {
-    setEditRoute(
+    setRouteBeingEdited(
       routesList.find(route => getRouteMatcher(route).matcher === matcherToEdit)
     );
   };
 
-  const finishRouteEditiing = (newRoute: Route.AsObject) => {
-    const newRouteMatcher = getRouteMatcher(newRoute).matcher;
-
-    let newRoutesList = [...routesList];
-    newRoutesList.splice(
-      routesList.findIndex(
-        route => getRouteMatcher(route).matcher === newRouteMatcher
-      ),
-      1,
-      newRoute
-    );
-
-    setRoutesList(newRoutesList);
-    props.routesChanged(newRoutesList);
-    setEditRoute(undefined);
+  const finishRouteEditiing = () => {
+    props.reloadVirtualService();
+    setRouteBeingEdited(undefined);
   };
 
   const reorderRoutes = (dragIndex: number, hoverIndex: number) => {
@@ -214,16 +202,17 @@ export const Routes: React.FC<Props> = props => {
           lockVirtualService
         />
       </SoloModal>
-      {/*<SoloModal
-        visible={!!editRoute}
+      <SoloModal
+        visible={!!routeBeingEdited}
         width={500}
         title={'Edit Route'}
-        onClose={() => setEditRoute(undefined)}>
+        onClose={() => setRouteBeingEdited(undefined)}>
         <CreateRouteModal
           defaultVirtualService={props.virtualService}
-          completeEditing={finishRouteEditiing}
+          existingRoute={routeBeingEdited}
+          completeCreation={finishRouteEditiing}
         />
-      </SoloModal>*/}
+      </SoloModal>
     </React.Fragment>
   );
 };

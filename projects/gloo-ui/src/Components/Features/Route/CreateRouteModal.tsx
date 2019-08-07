@@ -27,7 +27,8 @@ import {
 import {
   useCreateRoute,
   useGetUpstreamsList,
-  useListVirtualServices
+  useListVirtualServices,
+  useUpdateRoute
 } from 'Api';
 import { ResourceRef } from 'proto/github.com/solo-io/solo-kit/api/v1/ref_pb';
 import {
@@ -229,6 +230,10 @@ export const CreateRouteModalC = (props: Props) => {
     data: createdVirtualServiceData,
     refetch: makeRequest
   } = useCreateRoute(null);
+  const {
+    data: updatedVirtualServiceData,
+    refetch: makeUpdateRequest
+  } = useUpdateRoute(null);
 
   let listVirtualServicesRequest = React.useRef(
     new ListVirtualServicesRequest()
@@ -259,7 +264,10 @@ export const CreateRouteModalC = (props: Props) => {
         });
       }
     }
-  }, [createdVirtualServiceData]);
+    if (!!updatedVirtualServiceData) {
+      props.completeCreation(updatedVirtualServiceData.virtualService);
+    }
+  }, [createdVirtualServiceData, updatedVirtualServiceData]);
 
   const {
     data: upstreamsData,
@@ -420,7 +428,17 @@ export const CreateRouteModalC = (props: Props) => {
     /* --------------------------- ROUTE CREATION ENDS -------------------------- */
 
     newRouteReq.setInput(reqRouteInput);
-    makeRequest(newRouteReq);
+    if (!!props.existingRoute) {
+      makeUpdateRequest(newRouteReq);
+    } else {
+      makeRequest(newRouteReq);
+
+      props.history.push({
+        pathname: `/virtualservices/${
+          values.virtualService!.metadata!.namespace
+        }/${values.virtualService!.metadata!.name}`
+      });
+    }
   };
 
   const isSubmittable = (
@@ -431,7 +449,10 @@ export const CreateRouteModalC = (props: Props) => {
   };
 
   let existingRouteToInitialValues = null;
+
   if (!!props.existingRoute) {
+    const { existingRoute } = props;
+
     let methodsList: RouteMethodsType = {
       POST: false,
       PUT: false,
@@ -441,19 +462,31 @@ export const CreateRouteModalC = (props: Props) => {
       HEAD: false,
       OPTIONS: false
     };
-    props.existingRoute.matcher!.methodsList.forEach(methodName => {
+    existingRoute.matcher!.methodsList.forEach(methodName => {
       methodsList[methodName as MethodType] = true;
     });
 
+    const existingRouteUpstream = allUsableUpstreams.find(
+      upstream =>
+        !!upstream.metadata &&
+        !!existingRoute.routeAction &&
+        !!existingRoute.routeAction.single &&
+        !!existingRoute.routeAction.single.upstream &&
+        upstream.metadata!.name ===
+          existingRoute.routeAction!.single!.upstream!.name &&
+        upstream.metadata!.namespace ===
+          existingRoute.routeAction!.single!.upstream!.namespace
+    );
+
     existingRouteToInitialValues = {
       virtualService: props.defaultVirtualService!,
-      upstream: props.defaultUpstream,
-      destinationSpec: props.existingRoute.routeAction!.single!.destinationSpec,
-      headers: props.existingRoute.matcher!.headersList,
+      upstream: existingRouteUpstream,
+      destinationSpec: existingRoute.routeAction!.single!.destinationSpec,
+      headers: existingRoute.matcher!.headersList,
       methods: methodsList,
-      path: getRouteMatcher(props.existingRoute).matcher,
-      matchType: getRouteMatcher(props.existingRoute).matchType as any,
-      queryParameters: props.existingRoute.matcher!.queryParametersList
+      path: getRouteMatcher(existingRoute).matcher,
+      matchType: getRouteMatcher(existingRoute).matchType as any,
+      queryParameters: existingRoute.matcher!.queryParametersList
     };
   }
 
@@ -481,6 +514,7 @@ export const CreateRouteModalC = (props: Props) => {
   return (
     <Formik
       initialValues={initialValues}
+      enableReinitialize
       validationSchema={validationSchema}
       onSubmit={createRoute}>
       {({
@@ -601,10 +635,14 @@ export const CreateRouteModalC = (props: Props) => {
             <Footer>
               <SoloButton
                 onClick={handleSubmit}
-                text='Create Route'
+                text={!!props.existingRoute ? 'Save Edits' : 'Create Route'}
                 disabled={!isSubmittable(errors, dirty)}
                 loading={isSubmitting}
-                inProgressText={'Creating Route...'}>
+                inProgressText={
+                  !!props.existingRoute
+                    ? 'Saving Routes...'
+                    : 'Creating Route...'
+                }>
                 <ButtonProgress />
               </SoloButton>
             </Footer>

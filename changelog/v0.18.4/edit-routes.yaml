@@ -1,0 +1,4 @@
+changelog:
+  - type: FIX
+    description: Routes are now editable in their modal via the VS Details route list.
+    issueLink: https://github.com/solo-io/solo-projects/issues/814
